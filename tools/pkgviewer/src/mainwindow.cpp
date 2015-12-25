@@ -188,7 +188,7 @@ void MainWindow::cb_Export1_i(Fl_Menu_*, void*) {
                     		Fl::check(); // actually we don't need it
                     	}
                     
-                    uint32_t imgIdx = (uint32_t)(m_Browser->data(i));
+                    uint32_t imgIdx = (uintptr_t)(m_Browser->data(i));
                     g_WilPackage.SetIndex(imgIdx);
                     if(g_WilPackage.CurrentImageValid()){
                         auto nW = g_WilPackage.CurrentImageInfo().shWidth;
@@ -307,7 +307,7 @@ uint32_t MainWindow::SelectedImageIndex() {
   for(int i = 1; i <= m_Browser->size(); ++i)
   {
   	if(m_Browser->selected(i)){
-  		return (uint32_t)(m_Browser->data(i));
+  		return (uintptr_t)(m_Browser->data(i));
   	}
   }
   
