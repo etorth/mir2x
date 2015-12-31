@@ -1,0 +1,95 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0303 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include <asio.hpp>} {public global
+} 
+
+decl {\#include <ctime>} {public global
+} 
+
+decl {\#include <string>} {public global
+} 
+
+class MainWindow {open
+} {
+  Function {MainWindow()} {open
+  } {
+    Fl_Window m_Window {
+      label GateServer open
+      xywh {175 121 721 400} type Double labelfont 4 visible
+    } {
+      Fl_Menu_Bar {} {open
+        xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
+      } {
+        Submenu {} {
+          label Server open
+          xywh {0 0 62 20} labelfont 4
+        } {
+          MenuItem {} {
+            label {Launch          }
+            callback {// Launch
+{
+    extern GateServer      *g_GateServer;
+    extern ConfigureWindow *g_ConfigureWindow;
+    if(!g_GateServer){
+        g_GateServer = new GateServer(g_ConfigureWindow->ClientPort(), g_ConfigureWindow->SceneServerPort());
+    }
+    g_GateServer->Init();
+    g_GateServer->Launch();
+}}
+            xywh {0 0 30 20} shortcut 0x4006c labelfont 4 divider
+            code0 {\#include "gateserver.hpp"}
+            code1 {\#include "configurewindow.hpp"}
+          }
+          MenuItem {} {
+            label Configure
+            callback {{
+    extern ConfigureWindow *g_ConfigureWindow;
+    g_ConfigureWindow->ShowAll();
+}}
+            xywh {0 0 30 20} shortcut 0x40066 labelfont 4
+            code0 {\#include "configurewindow.hpp"}
+          }
+          MenuItem {} {
+            label Pause
+            xywh {10 10 30 20} shortcut 0x40070 labelfont 4 divider
+          }
+          MenuItem {} {
+            label Quit selected
+            xywh {20 20 30 20} labelfont 4
+          }
+        }
+      }
+      Fl_Browser m_Browser {
+        xywh {0 24 720 375} type Hold labelfont 4 textfont 4
+      }
+    }
+  }
+  Function {ShowAll()} {} {
+    code {{
+    m_Window->show();
+}} {}
+  }
+  Function {AddLog(int nLogType, const char *szMessage)} {open
+  } {
+    code {// AddLog(int nLogType, const char *szMessage)
+{
+    std::time_t stRes         = std::time(nullptr);
+    std::string szFullMessage = std::asctime(std::localtime(&stRes));
+    szFullMessage.back() = ' ';
+    switch(nLogType){
+        case 0:
+            szFullMessage = "@C4"  + szFullMessage + "  " + szMessage;
+            break;
+        case 1:
+            szFullMessage = "@C9" + szFullMessage + "  " + szMessage;
+            break;
+        default:
+            szFullMessage = "@C1" + szFullMessage + "  " + szMessage;
+            break;
+    }
+    m_Browser->add(szFullMessage.c_str());
+}} {}
+  }
+} 
