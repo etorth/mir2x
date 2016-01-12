@@ -1,0 +1,101 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0303 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include <cmath>} {public global
+} 
+
+class NetworkConfigureWindow {open
+} {
+  Function {NetworkConfigureWindow()} {open
+  } {
+    Fl_Window m_Window {
+      label {Network Configure} open selected
+      xywh {455 221 510 283} type Double labelfont 4 visible
+    } {
+      Fl_Input m_GateServerIP {
+        label {GateServer IP: }
+        xywh {172 16 150 24} labelfont 4 textfont 4
+      }
+      Fl_Value_Input m_GateServerPort {
+        label {GateServer Port: }
+        xywh {172 53 60 24} labelfont 4 minimum 1024 maximum 10000 value 3500 textfont 4
+      }
+      Fl_Input m_DatabaseIP {
+        label {Database IP: }
+        xywh {172 90 150 24} labelfont 4 textfont 4
+      }
+      Fl_Value_Input m_DatabasePort {
+        label {Database Port: }
+        xywh {172 127 60 24} labelfont 4 minimum 1024 maximum 10000 value 3306 textfont 4
+      }
+      Fl_Input m_UserName {
+        label {User Name: }
+        xywh {172 203 150 24} labelfont 4 textfont 4
+      }
+      Fl_Input m_Password {
+        label {Password: }
+        xywh {172 240 150 24} type Secret labelfont 4 textfont 4
+      }
+      Fl_Input m_DatabaseName {
+        label {Database Name: }
+        xywh {172 165 150 24} labelfont 4 textfont 4
+      }
+    }
+    code {m_DatabaseIP->value("127.0.0.1");
+m_GateServerIP->value("127.0.0.1");
+m_UserName->value("root");
+m_Password->value("hah86918");
+m_DatabaseName->value("mir2x");} {}
+  }
+  Function {ShowAll()} {open
+  } {
+    code {{
+    m_Window->show();
+}} {}
+  }
+  Function {GateServerIP()} {open return_type {const char *}
+  } {
+    code {{
+    return (m_GateServerIP->value());
+}} {}
+  }
+  Function {GateServerPort()} {open return_type int
+  } {
+    code {{
+    // printf("%d\\n", std::lround(m_VIPort1->value()));
+
+    return std::lround(m_GateServerPort->value());
+}} {}
+  }
+  Function {DatabaseIP()} {open return_type {const char *}
+  } {
+    code {{
+    return m_DatabaseIP->value();
+}} {}
+  }
+  Function {DatabasePort()} {open return_type int
+  } {
+    code {{
+    return std::lround(m_DatabasePort->value());
+}} {}
+  }
+  Function {DatabaseName()} {open return_type {const char *}
+  } {
+    code {{
+    return m_DatabaseName->value();
+}} {}
+  }
+  Function {UserName()} {open return_type {const char *}
+  } {
+    code {{
+    return m_UserName->value();
+}} {}
+  }
+  Function {Password()} {open return_type {const char *}
+  } {
+    code {{
+    return m_Password->value();
+}} {}
+  }
+} 
