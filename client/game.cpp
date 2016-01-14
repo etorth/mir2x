@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 8/12/2015 9:59:15 PM
- *  Last Modified: 09/03/2015 6:27:47 AM
+ *  Last Modified: 01/11/2016 23:04:35
  *
  *    Description: 
  *
@@ -43,7 +43,6 @@ Game::~Game()
 
 void Game::Init()
 {
-
     m_CurrentProcess = &m_ProcessLogo;
 	m_CurrentProcess->Enter();
 

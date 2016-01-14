@@ -17,7 +17,6 @@ class Game
         void Clear();
 
     public:
-        // must be the first, you know what I mean
         static void StartSystem();
 
     private:

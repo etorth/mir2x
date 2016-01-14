@@ -8,5 +8,5 @@ int main(int argc, char* argv[])
     stGame.Init();
     stGame.MainLoop();
     stGame.Clear();
-	return 0;
+    return 0;
 }
