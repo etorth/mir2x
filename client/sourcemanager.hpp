@@ -21,13 +21,13 @@
 #pragma once
 #include <cstdint>
 
-template<typename SourceKeyType, typename SourceType, size_t SourceCount = 100>
+template<typename SourceKeyType, typename SourceType, size_t SourceMaxCount = 100>
 class SourceManager
 {
     public:
         SourceManager()
         {
-            std::static_assert(SourceCount > 0, "Invalid template arguments");
+            std::static_assert(SourceMaxCount > 0, "Invalid template arguments");
             m_SourceMaxCount = SourceCount;
             m_CurrentTime    = 0;
         }
@@ -52,6 +52,9 @@ class SourceManager
     private:
         size_t  m_SourceMaxCount;
         int32_t m_CurrentTime;
+        
+    private:
+        std::unordered_map<SourceKeyType, SourceType> m_SourceCache;
 
     public:
         SourceType &Retrieve(const SourceKeyType &stRetrieveKey)
@@ -60,19 +63,20 @@ class SourceManager
             auto stResItor = m_SourceCache.find(stRetrieveKey);
             if(stResItor != m_SourceCache.end()){
                 // find it
+                // update access time stamp
                 stResItor->first = m_CurrentTime;
-                m_AccessTimeStampQueue.emplace({m_CurrentTime, stRetrieveKey});
+                m_AccessTimeStampQueue.push({m_CurrentTime, stRetrieveKey});
                 return stResItor->second;
             }else{
-                // didn't find source in cache
-                if((size_t)m_SourceCache.size() >= m_SourceMaxCount){
+                // don't find source in cache
+                if((size_t)m_SourceCache.size() > m_SourceMaxCount){
                     // need to release for memory
-                    while((size_t)m_SourceCache.size() >= (size_t)(m_SourceMaxCount >> 1)){
-                        for(auto &stTimeKeyItor: m_AccessTimeStampQueue){
-                            auto stTmpItor = m_SourceCache.find(stTimeKeyItor->second);
-                            if(stTmpItor != m_SourceCache.end() && stTmpItor->first == stTimeKeyItor->first){
+                    while((size_t)m_SourceCache.size() > (size_t)(m_SourceMaxCount >> 1)){
+                        auto &stTimeKeyPair = m_AccessTimeStampQueue.front();
+                        auto stTmpItor = m_SourceCache.find(stTimeKeyPair.second);
+                        if(stTmpItor != m_SourceCache.end() && stTmpItor->first == stTimeKeyPair.first){
                                 Release(stTmpItor->second);
-                                m_SourceCache.erase(stTmpKey);
+                                m_SourceCache.erase(stTmpItor);
                             }
                         }
                         m_AccessTimeStampQueue.pop();
@@ -80,12 +84,8 @@ class SourceManager
                 }
                 SourceType *pSource = Load(stRetrieveKey);
                 if(pSource){
-                    m_SourceCache[stRetrieveKey] = {nAccessTime, pSource};
-                    if(m_AccessTimeStampQueue.back().first == nAccessTime){
-                        m_AccessTimeStampQueue.back().second.insert(stRetrieveKey);
-                    }else{
-                        m_AccessTimeStampQueue.push({nAccessTime, {stRetrieveKey}});
-                    }
+                    m_SourceCache[stRetrieveKey] = {m_CurrentTime, pSource};
+                    m_AccessTimeStampQueue.push({m_CurrentTime, stRetrieveKey});
                 }
                 return pSource;
             }
