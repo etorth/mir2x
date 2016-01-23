@@ -20,22 +20,18 @@
 
 #pragma once
 #include <cstdint>
-#include "timemanager.hpp"
 
-const size_t knSourceDefaultMaxCount = 1000;
-
-template<typename SourceKeyType, typename SourceType>
+template<typename SourceKeyType, typename SourceType, size_t SourceCount = 100>
 class SourceManager
 {
     public:
-        SourceManager(size_t nSourceMaxCount = knSourceDefaultMaxCount)
+        SourceManager()
         {
-            if(nSourceMaxCount > knSourceDefaultMaxCount){
-                m_SourceMaxCount = nSourceMaxCount;
-            }else{
-                m_SourceMaxCount = knSourceDefaultMaxCount;
-            }
+            std::static_assert(SourceCount > 0, "Invalid template arguments");
+            m_SourceMaxCount = SourceCount;
+            m_CurrentTime    = 0;
         }
+        
         ~SourceManager()
         {
             ClearCache();
