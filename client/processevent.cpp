@@ -1,38 +1,31 @@
 #include "game.hpp"
 
-void Game::ProcessEventOnLogo(SDL_Event *pEvent)
-{
-    if(true
-            && pEvent
-            && pEvent->type == SDL_KEYDOWN
-            && pEvent->key.keysym.sym == SDLK_ESCAPE
-      ){
-        SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
-    }
-}
-
-void Game::ProcessEventOnSyrc(SDL_Event *pEvent)
-{
-    // do nothing, just wait
-}
-
-void Game::ProcessEventOnLogin(SDL_Event *pEvent)
+void Game::ProcessEvent(SDL_Event *pEvent)
 {
     if(pEvent){
-        m_IDBox.ProcessEvent(pEvent);
-        m_PasswordBox.ProcessEvent(pEvent);
-
-        if(false
-                || m_Button1.ProcessEvent(pEvent)
-                || m_Button2.ProcessEvent(pEvent)
-                || m_Button3.ProcessEvent(pEvent)
-                || m_Button4.ProcessEvent(pEvent)
-          ){
-            return;
+        if(pEvent->type == SDL_USEREVENT){
+            // network or timer event
+            if(pEvent->user.code < 0){
+                switch(m_CurrentProcessID){
+                    case PROCESSID_LOGO:  UpdateOnLogo();  DrawOnLogo();  break;
+                    case PROCESSID_SYRC:  UpdateOnSyrc();  DrawOnSyrc();  break;
+                    case PROCESSID_LOGIN: UpdateOnLogin(); DrawOnLogin(); break;
+                    case PROCESSID_RUN:   UpdateOnRun();   DrawOnRun();   break;
+                    default: break;
+                }
+            }else{
+                ProcessNetEvent((uint32_t)(pEvent->user.code),
+                        (uint32_t)(pEvent->user.data1), pEvent->user.data2);
+            }
+        }else{
+            // local event
+            switch(m_CurrentProcessID){
+                case PROCESSID_LOGO:  ProcessEventOnLogo();  break;
+                case PROCESSID_SYRC:  ProcessEventOnSyrc();  break;
+                case PROCESSID_LOGIN: ProcessEventOnLogin(); break;
+                case PROCESSID_RUN:   ProcessEventOnRun();   break;
+                default: break;
+            }
         }
     }
-}
-
-void Game::ProcessEventOnRun(SDL_Event *pEvent)
-{
 }

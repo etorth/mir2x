@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 8/14/2015 2:47:49 PM
- *  Last Modified: 01/14/2016 06:26:50
+ *  Last Modified: 01/23/2016 05:21:52
  *
  *    Description: 
  *
@@ -172,4 +172,22 @@ void ProcessLogin::DoLogin()
 	stMessage.Set(CLIENTMT_LOGIN, stTmpCM);
 
     GetMessageManager()->SendMessage(stMessage);
+}
+
+
+void Game::ProcessEventOnLogin(SDL_Event *pEvent)
+{
+    if(pEvent){
+        m_IDBox.ProcessEvent(pEvent);
+        m_PasswordBox.ProcessEvent(pEvent);
+
+        if(false
+                || m_Button1.ProcessEvent(pEvent)
+                || m_Button2.ProcessEvent(pEvent)
+                || m_Button3.ProcessEvent(pEvent)
+                || m_Button4.ProcessEvent(pEvent)
+          ){
+            return;
+        }
+    }
 }

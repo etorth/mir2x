@@ -3,7 +3,7 @@
  *
  *       Filename: switchprocess.cpp
  *        Created: 01/23/2016 04:18:45
- *  Last Modified: 01/23/2016 04:28:31
+ *  Last Modified: 01/23/2016 04:47:58
  *
  *    Description: 
  *
@@ -39,6 +39,7 @@ void Game::SwitchProcess(int nOldID, int nNewID)
                             // on initialization
                             m_TexLogo = m_GUITextureManager.Retrieve(0);
                             SDL_SetTextureBlendMode(m_TextureLogo, SDL_BLENDMODE_MOD);
+                            SDL_ShowCursor(0);
                             break;
                         }
                     case PROCESSID_EXIT:
@@ -50,10 +51,29 @@ void Game::SwitchProcess(int nOldID, int nNewID)
                         {
                             break;
                         }
-
+                }
+                break;
+            }
+        case PROCESSID_SYRC:
+            {
+                switch(nNewID)
+                {
+                    case PROCESSID_LOGIN:
+                        {
+                            SDL_ShowCursor(1);
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
 
                 }
+                break;
             }
-
+        default:
+            {
+                break;
+            }
     }
 }
