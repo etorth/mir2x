@@ -45,12 +45,17 @@ class NetIO
         void DoPush();
 
     public:
-        template <typename MessageStructType>
-        void Read(MessageStructType &stMST, std::function<void()> fnProcessMS)
-        {
-            Read(&stMST, sizeof(stMST), fnProcessMS);
-        }
+        void Send(uint8_t *, size_t);
 
     public:
-        friend NetIO *GetMessageManager();
+        void Send(uint8_t chMsg)
+        {
+            Send(&chMsg, 1);
+        }
+
+        template<typename MT>
+        void Send(const MT &stMT)
+        {
+            Send((uint8_t *)(&stMT), sizeof(stMT));
+        }
 };

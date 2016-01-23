@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: netfunc.cpp
- *        Created: 01/15/2016 06:37:36
- *  Last Modified: 01/23/2016 02:10:01
+ *       Filename: netmessage.hpp
+ *        Created: 01/23/2016 01:56:28
+ *  Last Modified: 01/23/2016 01:56:40
  *
  *    Description: 
  *
@@ -18,12 +18,3 @@
  * =====================================================================================
  */
 
-#include "game.hpp"
-
-void Game::NetFunc(void *pData)
-{
-    Game *pGame = (Game *)pData;
-    if(pGame){
-        pGame->RunASIO();
-    }
-}

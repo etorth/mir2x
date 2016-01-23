@@ -3,7 +3,7 @@
  *
  *       Filename: netevent.cpp
  *        Created: 01/16/2016 09:48:40
- *  Last Modified: 01/16/2016 10:15:00
+ *  Last Modified: 01/23/2016 01:56:06
  *
  *    Description: 
  *
@@ -54,6 +54,7 @@ void Game::NetByte()
 
 void Game::NetEvent()
 {
+
 
     auto 
     m_NetIO.Read()

@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 8/12/2015 9:59:15 PM
- *  Last Modified: 01/16/2016 09:10:55
+ *  Last Modified: 01/23/2016 04:29:27
  *
  *    Description: 
  *
@@ -176,16 +176,6 @@ void Game::SwitchProcess(int nOldID, int nNewID)
     }
 }
 
-void Game::ProcessEventOnLogo(SDL_Event *pEvent)
-{
-    if(true
-            && pEvent
-            && pEvent->type == SDL_KEYDOWN
-            && pEvent->key.keysym.sym == SDLK_ESCAPE
-      ){
-        SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
-    }
-}
 
 void Game::ProcessEventOnSyrc(SDL_Event *pEvent)
 {
@@ -194,4 +184,16 @@ void Game::ProcessEventOnSyrc(SDL_Event *pEvent)
 
 void Game::ProcessEventOnLogin(SDL_Event *pEvent)
 {
+}
+
+void Game::NetStart()
+{
+    m_NetIO.Connect(m_Config.GetString("Root/Server/IP"), m_Config.GetString("Root/Server/Port"));
+    m_NetIO.ReadHC()
+    SDL_CreateThread(Game::NetFunc, "NetThread", this);
+}
+
+void Game::RunASIO()
+{
+    m_NetIO.Start(m_Config.GetString("Root/Server/IP"), m_Config.GetString("Root/Server/Port"));
 }

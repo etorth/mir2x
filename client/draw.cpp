@@ -3,7 +3,7 @@
  *
  *       Filename: draw.cpp
  *        Created: 01/14/2016 06:26:55
- *  Last Modified: 01/14/2016 08:04:22
+ *  Last Modified: 01/23/2016 03:55:59
  *
  *    Description: 
  *
@@ -18,11 +18,6 @@
  * =====================================================================================
  */
 
-void Game::DrawOnLogo()
-{
-    SDL_RenderCopy(GetDeviceManager()->GetRenderer(),
-            GetGUITextureManager()->Retrieve(0), nullptr, nullptr);
-}
 
 void Game::DrawOnSyrc()
 {
