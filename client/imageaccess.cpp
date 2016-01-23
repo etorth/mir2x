@@ -22,6 +22,7 @@
 
 SDL_Texture *LoadSDLTextureFromFile(const char * szFileFullName, SDL_Renderer * pRenderer)
 {
+    // we always assume SDL are fully initalized
     SDL_Surface *pSurface = IMG_Load(szFileFullName);
     SDL_Texture *pTexture = nullptr;
     if(pSurface && pRenderer){
