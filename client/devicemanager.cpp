@@ -3,7 +3,7 @@
  *
  *       Filename: devicemanager.cpp
  *        Created: 6/17/2015 6:05:01 PM
- *  Last Modified: 08/21/2015 3:02:28 AM
+ *  Last Modified: 01/15/2016 05:46:04
  *
  *    Description: 
  *
@@ -25,12 +25,6 @@
 
 bool DeviceManager::Init()
 {
-    std::srand((unsigned int)std::time(nullptr));
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0){
-        SDL_Log("Could not initialize SDL: %s", SDL_GetError());
-        SDL_Quit();
-        exit(0);
-    }
 
     m_WindowFlag = 0
         | ((int)(GetConfigurationManager()->GetBool("Root/Window/FullScreen")) * SDL_WINDOW_FULLSCREEN)

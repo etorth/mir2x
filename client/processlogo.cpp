@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.cpp
  *        Created: 8/13/2015 12:15:38 AM
- *  Last Modified: 09/03/2015 6:26:45 AM
+ *  Last Modified: 01/14/2016 07:58:44
  *
  *    Description: 
  *
@@ -82,17 +82,4 @@ void ProcessLogo::Draw()
 
 void ProcessLogo::HandleEvent(SDL_Event *pEvent)
 {
-    if(pEvent){
-        switch(pEvent->type){
-            case SDL_KEYDOWN:
-                {
-                    if(pEvent->key.keysym.sym == SDLK_ESCAPE){
-                        m_NextProcessID = Process::PROCESSID_SYRC;
-                    }
-                    break;
-                }
-            default:
-                break;
-        }
-    }
 }

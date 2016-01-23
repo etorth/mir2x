@@ -1,36 +1,29 @@
 #pragma once
-#include <SDL.h>
-#include <unordered_map>
 
-class MapTextureManager final
+#include <SDL.h>
+#include "imageaccess.hpp"
+#include "sourcemanager.hpp"
+
+class MapTextureManager: public SourceManager<uint32_t, SDL_Texture>
 {
     private:
-        MapTextureManager();
-        ~MapTextureManager();
+        MapTextureManager()  = default;
+        ~MapTextureManager() = default;
 
     private:
         MapTextureManager(const MapTextureManager &)              = delete;
         MapTextureManager &operator = (const MapTextureManager &) = delete;
 
     private:
-        std::string m_TexturePath;
-
-    private:
-        int m_MaxTextureCount;
+        std::string m_MapTexturePath;
 
     public:
         bool Init();
-        void Release();
 
     public:
-        SDL_Texture *RetrieveTexture(uint32_t);
+        virtual SDL_Texture *Load(const uint32_t &);
+        virtual void Release(SDL_Texture *);
 
     public:
-        void ClearCache();
-
-    private:
-        std::unordered_map<uint32_t, SDL_Texture*> m_TextureCache;
-
-    public:
-        friend MapTextureManager *GetTextureManager();
+        friend MapTextureManager *GetMapTextureManager();
 };

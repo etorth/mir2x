@@ -1,9 +1,4 @@
 #pragma once 
-#include "process.hpp"
-#include "processrun.hpp"
-#include "processlogo.hpp"
-#include "processsyrc.hpp"
-#include "processlogin.hpp"
 
 class Game
 {
@@ -14,23 +9,19 @@ class Game
     public:
         void Init();
         void MainLoop();
-        void Clear();
 
     public:
         static void StartSystem();
 
+    public:
+        enum{
+            PROCESSID_NULL   = 0,
+            PROCESSID_LOGO   = 1,
+            PROCESSID_LOGIN  = 2,
+            PROCESSID_RUN    = 3,
+            PROCESSID_EXIT   = 4,
+        }
+
     private:
         void SwitchProcess(int, int);
-
-    private:
-        ProcessLogo     m_ProcessLogo;
-        ProcessSyrc     m_ProcessSyrc;
-        ProcessLogin    m_ProcessLogin;
-        ProcessRun      m_ProcessRun;
-
-    public:
-        ProcessRun      *OnProcessRun();
-
-    private:
-        Process        *m_CurrentProcess;
 };

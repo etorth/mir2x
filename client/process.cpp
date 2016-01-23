@@ -3,7 +3,7 @@
  *
  *       Filename: process.cpp
  *        Created: 6/29/2015 8:24:36 PM
- *  Last Modified: 09/03/2015 7:33:33 AM
+ *  Last Modified: 01/14/2016 04:06:30
  *
  *    Description: 
  *
@@ -52,26 +52,6 @@ void Process::Exit()
 
 void Process::EventDelay()
 {
-    double fEstimateTime   = m_InvokeCount * 1000.0 / m_FPS;
-    Uint32 nNextUpdateTime = m_StartTime + (Uint32)fEstimateTime;
-
-    while(true){
-        SDL_Event stEvent;
-        while(SDL_PollEvent(&stEvent)){
-            HandleEvent(&stEvent);
-        }
-
-        auto nNowTicks = SDL_GetTicks();
-        if(nNextUpdateTime > nNowTicks){
-            // static int d = 0;
-            // printf("delay here: %d\n", d++);
-            if(SDL_WaitEventTimeout(&stEvent, (int)(nNextUpdateTime - nNowTicks))){
-                HandleEvent(&stEvent);
-            }
-        }else{
-            break;
-        }
-    }
 }
 
 void Process::ClearEvent()

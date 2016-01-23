@@ -3,7 +3,7 @@
  *
  *       Filename: devicemanager.hpp
  *        Created: 6/17/2015 6:00:50 PM
- *  Last Modified: 08/31/2015 5:13:02 AM
+ *  Last Modified: 01/14/2016 00:36:47
  *
  *    Description: 
  *

@@ -7,6 +7,5 @@ int main(int argc, char* argv[])
     Game stGame;
     stGame.Init();
     stGame.MainLoop();
-    stGame.Clear();
     return 0;
 }
