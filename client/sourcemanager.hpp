@@ -68,23 +68,17 @@ class SourceManager
                 if((size_t)m_SourceCache.size() >= m_SourceMaxCount){
                     // need to release for memory
                     while((size_t)m_SourceCache.size() >= (size_t)(m_SourceMaxCount >> 1)){
-                        if(m_AccessTimeStampQueue.empty()){
-                            // actually we don't have to check it
-                            break;
-                        }
-                        for(const SourceKeyType &stTmpKey: m_AccessTimeStampQueue.front().second){
-                            auto stTmpItor = m_SourceCache.find(stTmpKey);
-                            if(stTmpItor != m_SourceCache.end()){
-                                if(stTmpItor->first == m_AccessTimeStampQueue.back().first){
-                                    Release(stTmpItor->second);
-                                    m_SourceCache.erase(stTmpKey);
-                                }
+                        for(auto &stTimeKeyItor: m_AccessTimeStampQueue){
+                            auto stTmpItor = m_SourceCache.find(stTimeKeyItor->second);
+                            if(stTmpItor != m_SourceCache.end() && stTmpItor->first == stTimeKeyItor->first){
+                                Release(stTmpItor->second);
+                                m_SourceCache.erase(stTmpKey);
                             }
                         }
                         m_AccessTimeStampQueue.pop();
                     }
                 }
-                SourceType *pSource = m_SourceLoadFunc(stRetrieveKey);
+                SourceType *pSource = Load(stRetrieveKey);
                 if(pSource){
                     m_SourceCache[stRetrieveKey] = {nAccessTime, pSource};
                     if(m_AccessTimeStampQueue.back().first == nAccessTime){
