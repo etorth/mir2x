@@ -51,32 +51,22 @@ class SourceManager
 
     private:
         size_t  m_SourceMaxCount;
+        int32_t m_CurrentTime;
 
     public:
-        bool Ready()
+        SourceType &Retrieve(const SourceKeyType &stRetrieveKey)
         {
-            return GetTimeManager()->Ready();
-        }
-
-        SourceKeyType *Retrieve(const SourceKeyType &stRetrieveKey)
-        {
-            if(!Ready()){
-                return nullptr;
-            }
-
-            auto nAccessTime = GetTimeManager()->Now();
-            auto stResItor   = m_SourceCache.find(stRetrieveKey);
+            ++m_CurrentTime;
+            auto stResItor = m_SourceCache.find(stRetrieveKey);
             if(stResItor != m_SourceCache.end()){
-                stResItor->first = nAccessTime;
-                if(m_AccessTimeStampQueue.back().first == nAccessTime){
-                    m_AccessTimeStampQueue.back().second.insert(stRetrieveKey);
-                }else{
-                    m_AccessTimeStampQueue.emplace({nAccessTime, {stRetrieveKey}});
-                }
+                // find it
+                stResItor->first = m_CurrentTime;
+                m_AccessTimeStampQueue.emplace({m_CurrentTime, stRetrieveKey});
                 return stResItor->second;
             }else{
-                // release source from front if necessary
-                if((size_t)m_SourceCache.size() >= (size_t)m_SourceMaxCount){
+                // didn't find source in cache
+                if((size_t)m_SourceCache.size() >= m_SourceMaxCount){
+                    // need to release for memory
                     while((size_t)m_SourceCache.size() >= (size_t)(m_SourceMaxCount >> 1)){
                         if(m_AccessTimeStampQueue.empty()){
                             // actually we don't have to check it
