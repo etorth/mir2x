@@ -38,7 +38,7 @@ class Label: public Widget
     public:
         void Draw();
         void Update(Uint32);
-        bool HandleEvent(SDL_Event &);
+        bool ProcessEvent(SDL_Event &);
 
     private:
         void Compile();
