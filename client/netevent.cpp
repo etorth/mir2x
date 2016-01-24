@@ -18,10 +18,16 @@
  * =====================================================================================
  */
 
+// SDL_UserEvent::code used as four part:
 
-void Game::PushNetEvent(uint8_t *pBuf)
+// code: ch4 ch3 ch2 ch1
+//      ch4     : denote as net event or timer event, we can add more event here
+//      ch3     : if it's net event, this is CM_ID / SM_ID
+//      ch2/ch1 : used as ch[2];
+
+void Game::PushNetEvent(uint8_t chMsgType, size_t nDataLen, uint8_t *pData)
 {
-
+    if()
 }
 
 void Game::OnNetLoginOK()
