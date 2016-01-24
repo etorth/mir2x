@@ -21,6 +21,13 @@
 #pragma once
 #include <cstdint>
 
-const uint8_t CM_NONE             = 0;
-const uint8_t CM_LOGIN            = 1;
-const uint8_t CM_PING             = 2;
+// message without content
+// should be 1 ~ 255, 0 is prohibited
+
+const uint16_t  CM_RIDEHORSE       = 1;
+
+// message with fixed size content
+// should be 256 ~ 65535
+const uint16_t  CM_PING           = 256;
+const uint16_t  CM_LOGIN          = 257;
+
