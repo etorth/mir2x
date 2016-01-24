@@ -53,11 +53,11 @@ typedef struct{
 typedef struct{
     int                 FrameIndex;
     EMOTICONFRAMEINFO   FrameInfo;
-    SDL_Texture        *Texture;
+    uint64_t            TextureHC;
 }EMOTICONBOXCACHE;
 
 typedef struct{
-    SDL_Texture        *Texture[3];
+    uint64_t            TextureHC;
 }UTF8CHARBOXCACHE;
 
 typedef struct{
@@ -68,7 +68,7 @@ typedef struct{
 typedef struct{
     TOKENBOXCACHE       MACache;
     UTF8CHARBOXCACHE    Cache;
-    char                Data[8];
+    uint32_t            UTF8Code;
 }UTF8CHARBOX;
 
 typedef union{
