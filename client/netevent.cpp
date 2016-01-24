@@ -27,7 +27,10 @@
 
 void Game::PushNetEvent(uint8_t chMsgType, size_t nDataLen, uint8_t *pData)
 {
-    if()
+    // for each SDL_Event we have 8 + 8 + 2 bytes
+    // if more than that we need to allocate memory
+    if(MessageTypeSize(chMsgType) <= 18){
+    }
 }
 
 void Game::OnNetLoginOK()
