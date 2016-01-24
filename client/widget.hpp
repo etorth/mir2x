@@ -11,13 +11,14 @@ class Widget
             , m_H(0)
             , m_Parent(nullptr)
         {}
+        
         virtual ~Widget()
         {}
 
     public:
-        virtual void Draw()                   = 0;
-        virtual void Update(Uint32)           = 0;
-        virtual bool HandleEvent(SDL_Event &) = 0;
+        virtual void Draw()                    = 0;
+        virtual void Update(Uint32)            = 0;
+        virtual bool ProcessEvent(SDL_Event *) = 0;
 
     public:
         int X()
