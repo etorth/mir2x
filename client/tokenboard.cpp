@@ -44,13 +44,14 @@ TokenBoard::TokenBoard(int nMaxWidth, bool bShrinkageWidth)
     , m_CurrentWidth(0)
     , m_HasEventText(false)
 {
-	m_CurrentWidth = 0;
 }
 
-bool TokenBoard::Load(const tinyxml2::XMLDocument &doc)
+bool TokenBoard::Load(const tinyxml2::XMLDocument *pDoc)
 {
-    const tinyxml2::XMLElement *root = doc.RootElement();
-    if (root == nullptr){ return false; }
+    if(pDoc == nullptr){ return false; }
+    
+    const tinyxml2::XMLElement *pRoot = pDoc->RootElement();
+    if (pRoot == nullptr){ return false; }
 
     const tinyxml2::XMLElement *pCurrentObject = nullptr;
     if(false){
