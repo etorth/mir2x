@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 8/31/2015 8:52:57 PM
- *  Last Modified: 09/09/2015 7:52:38 PM
+ *  Last Modified: 01/24/2016 21:48:27
  *
  *    Description: 
  *
@@ -19,7 +19,6 @@
  */
 
 #include "myhero.hpp"
-#include <SDL.h>
 
 MyHero::MyHero(int nSID, int nUID, int nGenTime)
 	: Hero(nSID, nUID, nGenTime)

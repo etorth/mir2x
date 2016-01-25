@@ -1,7 +1,6 @@
 #pragma once
 #include <array>
 #include <vector>
-#include "message.hpp"
 
 class Mir2ClientMap;
 class Actor
@@ -61,7 +60,6 @@ class Actor
     public:
         virtual void Draw() = 0;
         virtual void Update() = 0;
-        virtual void OnMessage(const Message &);
 
     public:
         void UpdateCurrentState();
@@ -81,8 +79,8 @@ class Actor
         void SetHP(int);
 
     public:
-        virtual Goto(int, int);
-        virtual DGoto(int, int);
+        virtual void Goto(int, int);
+        virtual void DGoto(int, int);
 
     public:
         // offset cache for drawing

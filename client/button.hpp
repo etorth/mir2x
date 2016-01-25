@@ -1,5 +1,4 @@
 #pragma once
-#include <SDL.h>
 #include <functional>
 #include "widget.hpp"
 #include "texturemanager.hpp"
@@ -20,7 +19,7 @@ class Button: public Widget
         // 0: normal
         // 1: on
         // 2: pressed
-        int                     m_State;
-        SDL_Texture            *m_Texture[3];
-        std::function<void()>   m_OnClick;
+        int                    m_State;
+        uint32_t               m_TextureID[3];
+        std::function<void()>  m_OnClick;
 };
