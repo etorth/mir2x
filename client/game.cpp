@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 8/12/2015 9:59:15 PM
- *  Last Modified: 01/23/2016 05:18:46
+ *  Last Modified: 01/24/2016 22:00:54
  *
  *    Description: 
  *
@@ -22,23 +22,16 @@
 
 Game::Game()
     : m_CurrentProcessID(PROCESSID_NULL)
-{}
-
-Game::~Game()
-{}
-
-bool DeviceManager::Init()
 {
-
     m_WindowFlag = 0
-        | ((int)(GetConfigurationManager()->GetBool("Root/Window/FullScreen")) * SDL_WINDOW_FULLSCREEN)
-        | ((int)(GetConfigurationManager()->GetBool("Root/Window/UseOpenGL" )) * SDL_WINDOW_OPENGL)
+        | ((int)(m_Config->GetBool("Root/Window/FullScreen")) * SDL_WINDOW_FULLSCREEN)
+        | ((int)(m_Config->GetBool("Root/Window/UseOpenGL" )) * SDL_WINDOW_OPENGL)
         ;
 
-    m_Window = SDL_CreateWindow(GetConfigurationManager()->GetString("Root/Window/Caption"),
+    m_Window = SDL_CreateWindow(m_Config()->GetString("Root/Window/Caption"),
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,    
-            GetConfigurationManager()->GetInt("Root/Window/SizeW"),
-            GetConfigurationManager()->GetInt("Root/Window/SizeH"),
+            m_Config()->GetInt("Root/Window/SizeW"),
+            m_Config()->GetInt("Root/Window/SizeH"),
             m_WindowFlag | SDL_WINDOW_SHOWN);
     if (m_Window == nullptr){
         SDL_Log("Could not create window: %s", SDL_GetError());
@@ -58,6 +51,14 @@ bool DeviceManager::Init()
         SDL_Quit();
         exit(0);
     }
+}
+
+Game::~Game()
+{}
+
+bool DeviceManager::Init()
+{
+
     return true;
 }
 
