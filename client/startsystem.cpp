@@ -49,18 +49,5 @@ void Game::StartSystem()
         SDL_Quit();
         exit(0);
     }
-
-
-
-
-
-
-    GetConfigurationManager()->Init();
-    GetTextureManager()->Init();
-    GetDeviceManager()->Init();
-    GetMessageManager()->Init();
-
-    GetFontTextureManager()->Init();
-    GetEmoticonManager()->Init();
 }
 
