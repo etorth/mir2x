@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: netio.cpp
- *        Created: 6/29/2015 7:18:27 PM
- *  Last Modified: 01/23/2016 03:51:57
+ *        Created: 06/29/2015 7:18:27 PM
+ *  Last Modified: 01/24/2016 20:37:37
  *
  *    Description: 
  *
@@ -22,7 +22,6 @@
 #include <thread>
 #include "message.hpp"
 #include "netio.hpp"
-#include "configurationmanager.hpp"
 
 NetIO::NetIO()
     : m_Resolver(m_IO)
@@ -31,26 +30,6 @@ NetIO::NetIO()
 
 NetIO::~NetIO()
 {}
-
-NetIO *GetMessageManager()
-{
-    static NetIO messageManager;
-    return &messageManager;
-}
-
-bool NetIO::Init()
-{
-    return true;
-}
-
-void NetIO::Release()
-{}
-
-
-void NetIO::ReadHC()
-{
-
-}
 
 bool NetIO::Connect(const std::string &szIP, const std::string &szPort)
 {
@@ -73,129 +52,79 @@ bool NetIO::Connect(const std::string &szIP, const std::string &szPort)
 void NetIO::Stop()
 {
     m_IO.post([this](){m_Socket.close();});
-    m_Thread->join();
 }
 
 void NetIO::Send(uint8_t *pBuf, size_t nLen)
 {
+    // TODO
+    // without mutex we have to allocate memory
+    // since when leave this function pBuf may become invalid
+    // or use internal buf operated with std::mutex
+    //
     pNewBuf = new uint8_t[nLen];
     std::memcpy(pNewBuf, pBuf, nLen);
     auto fnWrite = [this, pNewBuf, nLen](){
         bool bEmpty = m_WriteQueue.empty();
         m_WriteQueue.emplace_back(pNewBuf, nLen);
         if(bEmpty){
+            // if this is the only package then send it immediately
+            // otherwise previously called DoSend() will continue to send
             DoSend();
         }
     };
     m_IO.post(fnWrite);
 }
 
-bool NetIO::PollMessage(Message &stMessage)
-{
-    std::lock_guard<std::mutex> stLock(m_ReadMessageQueueMutex);
-    if(m_ReadMessageQueue.empty()){
-        return false;
-    }else{
-        stMessage = m_ReadMessageQueue.front();
-        m_ReadMessageQueue.pop_front();
-        return true;
-    }
-}
-
-void NetIO::BatchHandleMessage(std::function<void(const Message &)> fnHandleMessage)
-{
-    if(fnHandleMessage){
-        std::lock_guard<std::mutex> stLock(m_ReadMessageQueueMutex);
-        for(auto &stMessage: m_ReadMessageQueue){
-            fnHandleMessage(stMessage);
-        }
-        m_ReadMessageQueue.clear();
-    }
-}
-
-void NetIO::Read(uint8_t *pBuf, size_t nLen)
-{
-}
-
-
-void NetIO::DoReadHC()
+void NetIO::DoRead()
 {
     auto fnRead = [this](std::error_code stEC, std::size_t){
         if(!stEC){
-            // successfully read one HC
-            if(m_HC){
-                // fixed size message, only 1 bit
-                if(m_OnReadHC){
-                    m_OnReadHC(m_HC);
+            if(m_WithContentFunc(m_MsgID)){
+                size_t nLen = (m_ContentLengthFunc(m_MsgID));
+                if(nLen > 0){
+                    DoReadData(nLen);
+                }else{
+                    DoReadStream();
                 }
-                DoReadHC();
             }else{
-                DoReadSubHC();
+                // no content then consume it directly
+                m_ConsumeFunc(m_MsgID, nullptr, 0);
             }
+            // read again after processed the whole message
+            DoRead();
         }else{
             m_Socket.close();
         }
     };
-    asio::async_read(m_Socket, asio::buffer(&m_HC, 1), fnRead);
-}
-
-void NetIO::DoReadSubHC()
-{
-    std::assert(m_HC == 0);
-    auto fnRead = [this](std::error_code stEC, std::size_t){
-        if(!stEC){
-            // successfully read one SubHC
-            if(m_HC){
-                // short data stream with length m_HC
-                DoReadData((size_t)m_HC);
-            }else{
-                DoReadStream();
-            }
-        }else{
-            m_Socket.close();
-        }
-    };
-    asio::async_read(m_Socket, asio::buffer(&m_SubHC, 1), fnRead);
+    asio::async_read(m_Socket, asio::buffer(&m_MsgID, 1), fnRead);
 }
 
 void NetIO::DoReadData(size_t nLength)
 {
-    std::assert(m_HC == 0 && m_SubHC != 0);
-
-    void *pBuf = new char[(size_t)m_SubHC];
-    auto fnRead = [this](std::error_code stEC, std::size_t){
+    uint8_t *pBuf = new uint8_t[nLength];
+    auto fnRead = [this, pBuf, nLength](std::error_code stEC, std::size_t){
         if(!stEC){
             // successfully read fixed length data
-            if(m_OnReadData){
-                m_OnReadData(pBuf, m_SubHC);
-            }
-            ReadHC();
+            m_ConsumeFunc(m_MsgID, pBuf, nlength);
         }else{
             m_Socket.close();
         }
     };
-
-    asio::async_read(m_Socket, asio::buffer(pBuf, m_SubHC), fnRead);
+    asio::async_read(m_Socket, asio::buffer(pBuf, nLength), fnRead);
 }
 
 void NetIO::DoReadStream()
 {
-    std::assert(m_HC == 0 && m_SubHC == 0);
-
     auto fnRead = [this](std::error_code stEC, std::size_t){
         if(!stEC){
             // successfully read fixed length data
-            if(m_OnReadStream){
-                void *pBuf = new char[m_StreamBuf.size()];
-                std::memcpy(pBuf, m_StreamBuf.data(), m_StreamBuf.size());
-                m_OnReadStream(pBuf, m_OnReadStrea.size());
-            }
-            ReadHC();
+           uint8_t *pBuf = new uint8_t[m_StreamBuf.size()];
+           std::memcpy(pBuf, m_StreamBuf.data(), m_StreamBuf.size());
+           m_ConsumeFunc(m_MsgID, pBuf, m_StreamBuf.size());
         }else{
             m_Socket.close();
         }
     };
-
     asio::async_read_until(m_Socket, m_StreamBuf, '\0', fnRead);
 }
 
@@ -203,7 +132,8 @@ void NetIO::DoSend()
 {
     auto fnSend = [this](std::error_code stEC, size_t){
         if(!stEC){
-            delete [] m_WriteQueue.front().first;
+            // move forward for valid data
+            m_ValidThrough = m_WriteQueue.front().first + m_WriteQueue.front().second;
             m_WriteQueue.pop_front();
             if(!m_WriteQueue.empty()){
                 DoSend();
@@ -212,6 +142,10 @@ void NetIO::DoSend()
             m_Socket.close();
         }
     };
-    asio::async_write(m_Socket,
-            asio::buffer(m_WriteQueue.front().first, m_WriteQueue.front().second), fnSend);
+
+    // get buffer for the first message
+    uint8_t *pBuf = m_Buf + m_WriteQueue.front().first;
+    size_t   nLen = m_WriteQueue.front().second;
+
+    asio::async_write(m_Socket, asio::buffer(pBuf, nLen), fnSend);
 }
