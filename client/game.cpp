@@ -70,8 +70,20 @@ void Game::MainLoop()
 {
     while(m_CurrentProcessID != PROCESSID_EXIT){
         SDL_Event stEvent;
-        if(SDL_WaitEvent(&stEvent)){
+        while(SDL_PollEvent(&stEvent)){
             ProcessEvent(&stEvent);
+        }
+        
+        Update();
+        
+        double fNextUpdateTime = m_FPSCount * 1000.0 / m_FPS;
+        double fCurrentTime    = 1.0 * SDL_GetTicks();
+        Uint32 nWaitTime       = (Uint32)(fNextUpdateTime - fCurrentTime);
+    
+        if(fCurrentTime < fNextUpdateTime && nWaitTime != 0){
+            SDL_Delay(nWaitTime);
+        }else{
+            break;
         }
     }
 }
