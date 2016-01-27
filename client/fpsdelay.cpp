@@ -1,6 +1,6 @@
 #include "game.hpp"
 
-Game::FPSDelay()
+bool Game::FPSDelay()
 {
     double fNextUpdateTime = m_FPSCount * 1000.0 / m_FPS;
     double fCurrentTime    = 1.0 * SDL_GetTicks();
@@ -9,4 +9,5 @@ Game::FPSDelay()
     if(fCurrentTime < fNextUpdateTime && nWaitTime != 0){
         SDL_Delay(nWaitTime);
     }
+    return SDL_GetTicks() * 1.0 < fNextUpdateTime;
 }
