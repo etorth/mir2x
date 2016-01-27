@@ -75,6 +75,7 @@ void Game::MainLoop()
         }
         
         Update();
+        Draw();
         
         double fNextUpdateTime = m_FPSCount * 1000.0 / m_FPS;
         double fCurrentTime    = 1.0 * SDL_GetTicks();
