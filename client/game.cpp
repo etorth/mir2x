@@ -69,13 +69,17 @@ void Game::Init()
 void Game::MainLoop()
 {
     while(m_CurrentProcessID != PROCESSID_EXIT){
-        SDL_Event stEvent;
         while(true){
+            SDL_Event stEvent;
             if(SDL_PollEvent(&stEvent)){
                 ProcessEvent(&stEvent);
             }else{
-                FPSDelay();
+                if(FPSDelay()){
+                    break;
+                }
             }
         }
+        Update();
+        Draw();
     }
 }
