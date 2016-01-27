@@ -74,7 +74,7 @@ void Game::MainLoop()
             if(SDL_PollEvent(&stEvent)){
                 ProcessEvent(&stEvent);
             }else{
-                if(FPSDelay()){
+                if(!FPSDelay()){
                     break;
                 }
             }
