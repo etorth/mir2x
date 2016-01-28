@@ -10,7 +10,7 @@
 #include "texturemanager.hpp"
 #include "directiverectcover.hpp"
 
-Mir2ClientMap::Mir2ClientMap()
+ClientMap::ClientMap()
     : m_GroundInfo(nullptr)
     , m_BaseTileInfo(nullptr)
     , m_CellDesc(nullptr)
@@ -21,14 +21,14 @@ Mir2ClientMap::Mir2ClientMap()
     , m_ViewY(0)
 {}
 
-Mir2ClientMap::~Mir2ClientMap()
+ClientMap::~ClientMap()
 {
     delete []m_GroundInfo;   m_GroundInfo   = nullptr;
 	delete []m_BaseTileInfo; m_BaseTileInfo = nullptr;
     delete []m_CellDesc;     m_CellDesc     = nullptr;
 }
 
-bool Mir2ClientMap::NewLoadMap(const char *szFullName)
+bool ClientMap::NewLoadMap(const char *szFullName)
 {
     delete []m_GroundInfo;   m_GroundInfo   = nullptr;
 	delete []m_BaseTileInfo; m_BaseTileInfo = nullptr;
@@ -141,29 +141,29 @@ bool Mir2ClientMap::NewLoadMap(const char *szFullName)
     return true;
 }
 
-int Mir2ClientMap::W()
+int ClientMap::W()
 {
     return m_W;
 }
 
-int Mir2ClientMap::H()
+int ClientMap::H()
 {
     return m_H;
 }
 
-bool Mir2ClientMap::Valid()
+bool ClientMap::Valid()
 {
     return m_Valid;
 }
 
-uint32_t Mir2ClientMap::BitPickOne(uint32_t *pU32BitStream, uint32_t nOffset)
+uint32_t ClientMap::BitPickOne(uint32_t *pU32BitStream, uint32_t nOffset)
 {
     // nOffset can only be even number
     uint32_t nShift = 31 - (nOffset % 32);
     return ((uint32_t)(pU32BitStream[nOffset / 32] & ((uint32_t)0X01) << nShift)) >> nShift;
 }
 
-void Mir2ClientMap::SetOneGroundInfoGrid(
+void ClientMap::SetOneGroundInfoGrid(
         int nStartX, int nStartY, int nSubGrid, uint32_t nGroundInfoAttr)
 {
     // be careful! here it's not arranged as old format
@@ -171,7 +171,7 @@ void Mir2ClientMap::SetOneGroundInfoGrid(
     m_GroundInfo[nOffset] = nGroundInfoAttr;
 }
 
-void Mir2ClientMap::SetGroundInfoBlock(
+void ClientMap::SetGroundInfoBlock(
         int nStartX, int nStartY, int nSize, uint32_t nGroundInfoAttr)
 {
     // this function copy one unique attribute to nSize * nSize * 4 grid
@@ -185,7 +185,7 @@ void Mir2ClientMap::SetGroundInfoBlock(
     }
 }
 
-void Mir2ClientMap::ParseGroundInfoStream(int nStartX, int nStartY, int nSize,
+void ClientMap::ParseGroundInfoStream(int nStartX, int nStartY, int nSize,
         uint32_t *pU32BitStream,  uint32_t &nU32BitStreamOffset,
         uint32_t *pU32GroundInfo, uint32_t &nU32GroundInfoOffset)
 {
@@ -237,7 +237,7 @@ void Mir2ClientMap::ParseGroundInfoStream(int nStartX, int nStartY, int nSize,
     }
 }
 
-bool Mir2ClientMap::LoadGroundInfo(
+bool ClientMap::LoadGroundInfo(
         uint32_t * pU32BitStream, uint32_t nU32BitStreamLen,
         uint32_t * pU32GroundInfo, uint32_t nU32GroundInfoCount)
 {
@@ -253,7 +253,7 @@ bool Mir2ClientMap::LoadGroundInfo(
     return true;
 }
 
-void Mir2ClientMap::SetBaseTileBlock(
+void ClientMap::SetBaseTileBlock(
         int nStartX, int nStartY, int nSize, uint32_t nAttr)
 {
     for(int nY = nStartY; nY < nStartY + nSize; nY += 2){
@@ -263,7 +263,7 @@ void Mir2ClientMap::SetBaseTileBlock(
     }
 }
 
-void Mir2ClientMap::ParseBaseTileStream(int nStartX, int nStartY, int nSize,
+void ClientMap::ParseBaseTileStream(int nStartX, int nStartY, int nSize,
         uint32_t *pU32BitStream,    uint32_t &nU32BitStreamOffset,
         uint32_t *pU32BaseTileInfo, uint32_t &nU32BaseTileInfoOffset)
 {
@@ -299,7 +299,7 @@ void Mir2ClientMap::ParseBaseTileStream(int nStartX, int nStartY, int nSize,
     }
 }
 
-bool Mir2ClientMap::LoadBaseTileInfo(
+bool ClientMap::LoadBaseTileInfo(
         uint32_t *pU32BitStream,    uint32_t nU32BitStreamLen,
         uint32_t *pU32BaseTileInfo, uint32_t nU32BaseTileInfoLen)
 {
@@ -316,7 +316,7 @@ bool Mir2ClientMap::LoadBaseTileInfo(
     return true;
 }
 
-void Mir2ClientMap::SetCellDescBlock(
+void ClientMap::SetCellDescBlock(
         int nStartX, int nStartY, int nSize, const CELLDESC & stCellDesc)
 {
     for(int nY = nStartY; nY < nStartY + nSize; ++nY){
@@ -326,7 +326,7 @@ void Mir2ClientMap::SetCellDescBlock(
     }
 }
 
-void Mir2ClientMap::ParseCellDescStream(int nStartX, int nStartY, int nSize,
+void ClientMap::ParseCellDescStream(int nStartX, int nStartY, int nSize,
         uint32_t *pU32BitStream, uint32_t &nU32BitStreamOffset,
         CELLDESC *pCellDesc, uint32_t &nCellDescOffset)
 {
@@ -363,7 +363,7 @@ void Mir2ClientMap::ParseCellDescStream(int nStartX, int nStartY, int nSize,
     }
 }
 
-bool Mir2ClientMap::LoadCellDesc(
+bool ClientMap::LoadCellDesc(
         uint32_t *pU32BitStream, uint32_t nU32BitStreamLen,
         CELLDESC *pCellDesc,     uint32_t nCellDescLen)
 {
@@ -380,18 +380,18 @@ bool Mir2ClientMap::LoadCellDesc(
     return true;
 }
 
-bool Mir2ClientMap::ValidPosition(int nX, int nY, Monster *pMonster)
+bool ClientMap::ValidPosition(int nX, int nY, Monster *pMonster)
 {
     return true;
 }
 
-uint32_t Mir2ClientMap::BaseTileInfo(int nX, int nY)
+uint32_t ClientMap::BaseTileInfo(int nX, int nY)
 {
     return m_BaseTileInfo[(nX / 2) + (nY / 2) * (m_W / 2)];
 }
 
 
-void Mir2ClientMap::DrawBaseTile(
+void ClientMap::DrawBaseTile(
         int nStartCellX, int nStartCellY,
         int nStopCellX,  int nStopCellY)
 {
@@ -417,7 +417,7 @@ void Mir2ClientMap::DrawBaseTile(
     }
 }
 
-bool Mir2ClientMap::Overlap(const DirectiveRectCover &stDRC)
+bool ClientMap::Overlap(const DirectiveRectCover &stDRC)
 {
     Triangle stTri1(
             stDRC.Point(0).first, stDRC.Point(0).second,
@@ -430,7 +430,7 @@ bool Mir2ClientMap::Overlap(const DirectiveRectCover &stDRC)
     return Overlap(stTri1) || Overlap(stTri2);
 }
 
-bool Mir2ClientMap::Overlap(const Triangle &stTri)
+bool ClientMap::Overlap(const Triangle &stTri)
 {
     double fMinX = stTri.MinX();
     double fMinY = stTri.MinY();
@@ -462,7 +462,7 @@ bool Mir2ClientMap::Overlap(const Triangle &stTri)
     return false;
 }
 
-void Mir2ClientMap::DrawObject(
+void ClientMap::DrawObject(
         int nStartCellX, int nStartCellY,
         int nStopCellX,  int nStopCellY,
         std::function<bool(int, int)> fnCheckFunc,
@@ -538,7 +538,7 @@ __Mir2ClientMap_DrawObject_ExtDrawFunc: ;
     }
 }
 
-void Mir2ClientMap::DrawGroundObject(
+void ClientMap::DrawGroundObject(
         int nStartCellX, int nStartCellY,
         int nStopCellX,  int nStopCellY)
 {
@@ -549,7 +549,7 @@ void Mir2ClientMap::DrawGroundObject(
     DrawObject(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnCheckFunc, fnExtDrawFunc);
 }
 
-void Mir2ClientMap::DrawOverGroundObject(
+void ClientMap::DrawOverGroundObject(
         int nStartCellX, int nStartCellY,
         int nStopCellX,  int nStopCellY, 
         std::function<void(int, int)> fnExtDrawFunc)
@@ -560,7 +560,7 @@ void Mir2ClientMap::DrawOverGroundObject(
     DrawObject(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnCheckFunc, fnExtDrawFunc);
 }
 
-uint32_t Mir2ClientMap::GetDoorImageIndex(int nX, int nY)
+uint32_t ClientMap::GetDoorImageIndex(int nX, int nY)
 {
     uint32_t  nDoorIndex = 0;
     auto     &stCellDesc = m_CellDesc[nX + nY * m_W];
@@ -571,20 +571,20 @@ uint32_t Mir2ClientMap::GetDoorImageIndex(int nX, int nY)
     return nDoorIndex;
 }
 
-void Mir2ClientMap::SetViewPoint(int nX, int nY)
+void ClientMap::SetViewPoint(int nX, int nY)
 {
     m_ViewX = nX;
     m_ViewY = nY;
 }
 
-int Mir2ClientMap::ViewX()
+int ClientMap::ViewX()
 {
     return m_ViewX;
 }
 
-int Mir2ClientMap::ViewY()
+int ClientMap::ViewY()
 {
     return m_ViewY;
 }
 
-bool Mir2ClientMap::ValidPosition()
+bool ClientMap::ValidPosition()

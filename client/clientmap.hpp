@@ -6,36 +6,24 @@
 
 #pragma pack(push, 1)
 typedef struct{
-    // for door or dynamic tile
-    // conceptually they are different
-    // but they are the same in view of bit set
-    //
-    // for door or dynamic tile we only need 3 byte
-    // here we have 4 byte so use 1 byte as descriptor
-    //
-    // use dwDesc == 0 to indicate currently it's a null block
-    // why not use dwObject1/2 & 0XFF00FFFF == 0
-    // because here not-null doesn't means no obj
-    // also means no light, no door etc.
-    //
-    // but dwObject1/2 & 0XFF00FFFF can only indicate there is no obj
-    uint32_t    dwDesc;
-    uint32_t    dwObject1;
-    uint32_t    dwObject2;
-    uint32_t    dwLight;
+    uint8_t  Desc;
+    uint8_t  Light;
+    uint32_t Obj1;
+    uint32_t Obj2;
 }CELLDESC;
 
-// hard to design!!!
-// 
-// dwDesc Door | Light | Object1Ani | Object2Ani
+typedef struct{
+    uint8_t  FileIndex;
+    uint16_t ImageIndex;
+}TILEDESC;
 #pragma pack(pop)
 
 class Monster;
-class Mir2ClientMap
+class ClientMap
 {
     public:
-        Mir2ClientMap();
-        ~Mir2ClientMap();
+        ClientMap();
+        ~ClientMap();
 
     public:
         bool Valid();

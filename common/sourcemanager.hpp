@@ -3,7 +3,7 @@
  *
  *       Filename: sourcemanager.hpp
  *        Created: 01/13/2016 08:20:29
- *  Last Modified: 01/14/2016 00:05:27
+ *  Last Modified: 01/27/2016 19:27:27
  *
  *    Description: 
  *
@@ -20,8 +20,13 @@
 
 #pragma once
 #include <cstdint>
+#include <type_traits>
 
-template<typename SourceKeyType, typename SourceType, size_t SourceMaxCount = 100>
+template<typename SourceIntKeyType, typename SourceType,
+    size_t SourceMaxCount = 100, bool std::is_integral<SourceIntKeyType>::value> class SourceManager;
+
+
+template<typename SourceIntKeyType, typename SourceType, size_t SourceMaxCount = 100, true>
 class SourceManager
 {
     public:
@@ -38,7 +43,7 @@ class SourceManager
         }
 
     public:
-        virtual SourceType *Load(const SourceKeyType &) = 0;
+        virtual SourceType *Load(const SourceIntKeyType &) = 0;
         virtual void Release(SourceType *) = 0;
 
     public:
@@ -54,10 +59,10 @@ class SourceManager
         int32_t m_CurrentTime;
         
     private:
-        std::unordered_map<SourceKeyType, SourceType> m_SourceCache;
+        std::unordered_map<SourceIntKeyType, SourceType> m_SourceCache;
 
     public:
-        SourceType &Retrieve(const SourceKeyType &stRetrieveKey)
+        SourceType &Retrieve(const SourceIntKeyType &stRetrieveKey)
         {
             ++m_CurrentTime;
             auto stResItor = m_SourceCache.find(stRetrieveKey);
