@@ -28,43 +28,55 @@ ClientMap::~ClientMap()
     delete []m_CellDesc;     m_CellDesc     = nullptr;
 }
 
-bool ClientMap::NewLoadMap(const char *szFullName)
+bool ClientMap::Load(const char *szFullName)
 {
-    delete []m_GroundInfo;   m_GroundInfo   = nullptr;
-	delete []m_BaseTileInfo; m_BaseTileInfo = nullptr;
-    delete []m_CellDesc;     m_CellDesc     = nullptr;
+	delete []m_TileDesc; m_TileDesc = nullptr;
+    delete []m_CellDesc; m_CellDesc = nullptr;
 
-    m_Valid = false;
-
-    // auto pFile = fopen(szFullName, "rb");
-	FILE *pFile = nullptr;
-	fopen_s(&pFile, szFullName, "rb");
-
+    FILE *pFile = fopen(szFullName, "rb");
     if(pFile == nullptr){
         return false;
     }
 
     // file is already aligned to 64 byte
     fseek(pFile, 0, SEEK_END);
-    int nSize = ftell(pFile);
+    long nSize = ftell(pFile);
     fseek(pFile, 0, SEEK_SET);
 
-    auto pRawData = new uint8_t[nSize];
+    uint8_t *pRawData = new uint8_t[nSize];
     fread(pRawData, 1, nSize, pFile);
 
-    {
-        // read map size
-        uint16_t *pU16 = (uint16_t *)pRawData;
-        m_W = *pU16++;
-        m_H = *pU16++;
+    //             +--+--+----+-......-+----+---------------------------------------------------
+    // byte width: | 2  2  4       x     4
+    // zone label: | 1  2  3       4
+    //             +----------------------------------------------------------------------------
+    //
+    //  1: map width, 32 * 24
+    //  2: map height
+    //  3: size in byte of bit stream for walkable info
+    //  4: bit stream for walkable info, recursively defined, length defined in 3
 
-        int nMapLoadSize = m_W * m_H;
-        m_GroundInfo   = new uint32_t[nMapLoadSize * 4];
-        m_BaseTileInfo = new uint32_t[nMapLoadSize];
-        m_CellDesc     = new CELLDESC[nMapLoadSize];
-    }
+
+    // read map info
+    uint8_t *pMapHead = pRawData;
+    m_W = *((uint16_t *)(pMapHead + 0));
+    m_H = *((uint16_t *)(pMapHead + 2));
+
+    m_TileDesc = new TILEDESC[m_W * m_H / 4];
+    m_CellDesc = new CELLDESC[m_W * m_H    ];
+
+    // read walkable info
+    uint8_t  *pWalkInfo    = pMapHead + 4;
+    uint32_t  nWalkInfoLen = *((uint32_t *)pWalkInfo);
+    uint8_t  *pWalkInfoDat = pWalkInfo + 4;
+
+    LoadWalk(pWalkData);
+
 
     {
+        uint8_t *pWalkInfoStart
+
+
         uint32_t *pU32    = (uint32_t *)(pRawData + 4);
         uint32_t  nBitLen = 0;
         uint32_t  nU32Len = 0;
@@ -78,11 +90,7 @@ bool ClientMap::NewLoadMap(const char *szFullName)
         // but the stream is end of 64 * K
 
         // for align of 32
-        if(nBitLen % 32){
-            nU32Len = (nBitLen / 32 + 1);
-        }else{
-            nU32Len = nBitLen / 32;
-        }
+        nU32Len = (nBitLen + 31) / 32;
 
         if(nU32Len% 2 == 0){
             LoadGroundInfo(pU32, nBitLen, pU32 + nU32Len + 2, *(pU32 + nU32Len + 1));
@@ -156,31 +164,69 @@ bool ClientMap::Valid()
     return m_Valid;
 }
 
-uint32_t ClientMap::BitPickOne(uint32_t *pU32BitStream, uint32_t nOffset)
+void ClientMap::SetOneWalk(int nStartX, int nStartY, int nSubGrid, bool bAttr)
 {
-    // nOffset can only be even number
-    uint32_t nShift = 31 - (nOffset % 32);
-    return ((uint32_t)(pU32BitStream[nOffset / 32] & ((uint32_t)0X01) << nShift)) >> nShift;
+    int nOffset = nStartY * m_W + nStartX;
+    m_CellDesc[nOffset].Desc |= (uint8_t)(1 << (nSubGrid % 4));
 }
 
-void ClientMap::SetOneGroundInfoGrid(
-        int nStartX, int nStartY, int nSubGrid, uint32_t nGroundInfoAttr)
+void ClientMap::SetWalk(int nStartX, int nStartY, int nSize, bool bAttr)
 {
-    // be careful! here it's not arranged as old format
-    int nOffset = (nStartY * m_W + nStartX) * 4 + (nSubGrid % 4);
-    m_GroundInfo[nOffset] = nGroundInfoAttr;
-}
-
-void ClientMap::SetGroundInfoBlock(
-        int nStartX, int nStartY, int nSize, uint32_t nGroundInfoAttr)
-{
-    // this function copy one unique attribute to nSize * nSize * 4 grid
     for(int nY = nStartY; nY < nStartY + nSize; ++nY){
         for(int nX = nStartX; nX < nStartX + nSize; ++nX){
-            SetOneGroundInfoGrid(nX, nY, 0, nGroundInfoAttr);
-            SetOneGroundInfoGrid(nX, nY, 1, nGroundInfoAttr);
-            SetOneGroundInfoGrid(nX, nY, 2, nGroundInfoAttr);
-            SetOneGroundInfoGrid(nX, nY, 3, nGroundInfoAttr);
+            SetOneWalk(nX, nY, 0, bAttr);
+            SetOneWalk(nX, nY, 1, bAttr);
+            SetOneWalk(nX, nY, 2, bAttr);
+            SetOneWalk(nX, nY, 3, bAttr);
+        }
+    }
+}
+
+
+void ClientMap::SetOneWalk(int nStartX, int nStartY, int nSubGrid, bool bAttr)
+{
+    int nOffset = nStartY * m_W + nStartX;
+    m_CellDesc[nOffset].Desc |= (uint8_t)(1 << (nSubGrid % 4));
+}
+
+void ClientMap::SetWalk(int nStartX, int nStartY, int nSize, bool bAttr)
+{
+    for(int nY = nStartY; nY < nStartY + nSize; ++nY){
+        for(int nX = nStartX; nX < nStartX + nSize; ++nX){
+            SetOneWalk(nX, nY, 0, bAttr);
+            SetOneWalk(nX, nY, 1, bAttr);
+            SetOneWalk(nX, nY, 2, bAttr);
+            SetOneWalk(nX, nY, 3, bAttr);
+        }
+    }
+}
+
+void ClientMap::ParseWalk(int nStartX, int nStartY, uint8_t *pData, long &nBitOffset, int nSize)
+{
+    if(nStartX < m_W && nStartY < m_H){
+        if(PickOneBit(pData, nBitOffset++)){
+            // get a combined grid
+            if(nSize == 1){
+                // last level of grid, four smallest subgrid with X-cross division
+                if(PickOneBit(pData, nBitOffset++)){
+                    // still combined at last level
+                    SetOneWalk(nStartX, nStartY, 0, PickOneBit(pData, nBitOffset++));
+                    SetOneWalk(nStartX, nStartY, 1, PickOneBit(pData, nBitOffset++));
+                    SetOneWalk(nStartX, nStartY, 2, PickOneBit(pData, nBitOffset++));
+                    SetOneWalk(nStartX, nStartY, 3, PickOneBit(pData, nBitOffset++));
+                }else{
+                    // last level of grid is empty
+                    SetWalk(nStartX, nStartY, 1, 0);
+                }
+            }else{
+                // combined but not the last level, then recursively check
+                ParseWalk(nStartX,             nStartY,             pData, nBitOffset, nSize / 2);
+                ParseWalk(nStartX + nSize / 2, nStartY,             pData, nBitOffset, nSize / 2);
+                ParseWalk(nStartX,             nStartY + nSize / 2, pData, nBitOffset, nSize / 2);
+                ParseWalk(nStartX + nSize / 2, nStartY + nSize / 2, pData, nBitOffset, nSize / 2);
+            }
+        }else{
+            SetWalk(nStartX, nStartY, nSize, 0);
         }
     }
 }
@@ -237,20 +283,15 @@ void ClientMap::ParseGroundInfoStream(int nStartX, int nStartY, int nSize,
     }
 }
 
-bool ClientMap::LoadGroundInfo(
-        uint32_t * pU32BitStream, uint32_t nU32BitStreamLen,
-        uint32_t * pU32GroundInfo, uint32_t nU32GroundInfoCount)
+
+void ClientMap::LoadWalk(uint8_t * pWalkData)
 {
-    uint32_t nU32BitStreamOffset  = 0;
-    uint32_t nU32GroundInfoOffset = 0;
-    for(int nBlkY = 0; nBlkY < m_H / 8; ++nBlkY){
-        for(int nBlkX = 0; nBlkX < m_W / 8; ++nBlkX){
-            ParseGroundInfoStream(nBlkX * 8, nBlkY * 8, 8,
-                    pU32BitStream, nU32BitStreamOffset,
-                    pU32GroundInfo, nU32GroundInfoOffset);
+    long nBitOffset = 0;
+    for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
+        for(int nBlkX = 0; nBlkX < (m_W + 7) / 8; ++nBlkX){
+            ParseWalk(nBlkX * 8, nBlkY * 8, pWalkData, nBitOffset);
         }
     }
-    return true;
 }
 
 void ClientMap::SetBaseTileBlock(
@@ -530,9 +571,9 @@ void ClientMap::DrawObject(
                     }
                 }
 __Mir2ClientMap_DrawObject_ExtDrawFunc: ;
-                if(fnExtDrawFunc){
-                    fnExtDrawFunc(nXCnt, nYCnt);
-                }
+                                        if(fnExtDrawFunc){
+                                            fnExtDrawFunc(nXCnt, nYCnt);
+                                        }
             }
         }
     }

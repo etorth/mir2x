@@ -4,6 +4,25 @@
 #include "triangle.hpp"
 #include "directiverectcover.hpp"
 
+typedef struct{
+    uint8_t     Desc;
+    uint8_t     FileIndex;
+    uint16_t    ImageIndex;
+}TILEDESC;
+
+typedef struct{
+    uint8_t     Desc;
+    uint8_t     Ani;
+    uint8_t     FileIndex;
+    uint16_t    ImageIndex;
+}OBJDESC;
+
+typedef struct{
+    uint8_t     Desc;
+    OBJDESC     Obj[2];
+    uint16_t    Light;
+}CELLDESC;
+
 #pragma pack(push, 1)
 typedef struct{
     uint8_t  Desc;
@@ -78,6 +97,19 @@ class ClientMap
         void DrawBaseTile(int, int, int, int);
         void DrawGroundObject(int, int, int, int);
         void DrawOverGroundObject(int, int, int, int, std::function<void(int, int)>);
+
+    private:
+        template<typename T> bool PickOneBit(T *pData, long nOffset)
+        {
+            long nShift = sizeof(T) - (nOffset % sizeof(T));
+            return (((T)(pData[nOffset / sizeof(T)] & ((T)1) << nShift)) >> nShift) != 0;
+        }
+
+        uint32_t ClientMap::BitPickOne(uint32_t *pU32BitStream, uint32_t nOffset)
+        {
+            // nOffset can only be even number
+            uint32_t nShift = 31 - (nOffset % 32);
+        }
 
     public:
         bool Overlap(const DirectiveRectCover &);
