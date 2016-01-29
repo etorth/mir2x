@@ -3,7 +3,7 @@
  *
  *       Filename: actor.cpp
  *        Created: 8/31/2015 10:45:48 PM
- *  Last Modified: 09/09/2015 7:51:44 PM
+ *  Last Modified: 01/29/2016 01:15:18
  *
  *    Description: 
  *
@@ -35,6 +35,30 @@
 // g_GlobalActorOffset[nPrecode][nLID][state][direction][frame][shadow/body][x/y]
 static std::array<std::array<std::vector<std::vector<std::vector<std::array<std::array<int,
     2>, 2>>>>, 1024>, 8> g_GlobalActorOffset;
+
+
+// uint32_t for actor encode
+// 12 bits: LID
+//  4 bits: normal / poision / stone / other
+//  6 bits: state
+//  3 bits: direction
+//  6 bits: frame
+//  1 bits: shadow/body
+
+
+typedef struct{
+    SDL_Texture *Texture;
+    int DX;
+    int DY;
+}ACTORFRAMEDESC;
+
+S
+static std::map<uint32_t, 
+
+typedef struct{
+    int Speed;
+    int 
+}ACTORDESC;
 
 static std::vector<std::tuple<int, int, DirectiveRectCover>> g_SIDStateDRCTupleCacheV;
 
@@ -222,6 +246,9 @@ void Actor::InnDraw(
       ){
         return;
     }
+
+    uint32_t nKey = k
+
 
     uint32_t nFileIndex  = nLookID;
     uint32_t nImageIndex = nState * 1000 + nDirection * 100 + nFrameIndex;

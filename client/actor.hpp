@@ -2,7 +2,16 @@
 #include <array>
 #include <vector>
 
-class Mir2ClientMap;
+typedef struct{
+    SDL_Texture *Texture;
+    int DX;
+    int DY;
+}ACTORFRAME;
+
+class ActorFrameSourceManager: public SourceManager<uint32_t, ACTORFRAMEDESC>
+{
+}
+
 class Actor
 {
     public:
