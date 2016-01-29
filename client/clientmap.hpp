@@ -11,9 +11,8 @@ typedef struct{
 }TILEDESC;
 
 typedef struct{
-    uint8_t     Desc;
-    uint8_t     Ani;
-    uint8_t     FileIndex;
+    uint8_t     Desc;           // animation or not
+    uint8_t     FileIndex;  
     uint16_t    ImageIndex;
 }OBJDESC;
 
@@ -120,6 +119,18 @@ class ClientMap
 
     private:
         uint32_t GetDoorImageIndex(int, int);
+
+
+    private:
+        TILEDESC &ClientMap::TileDesc(int nX, int nY)
+        {
+            return m_TileDesc[nX / 2 + nY / 2 * m_H / 2];
+        }
+
+        CELLDESC &ClientMap::CellDesc(int nX, int nY)
+        {
+            return m_TileDesc[nX + nY * m_H ];
+        }
 
     private:
         void DrawObject(int, int, int, int,
