@@ -46,31 +46,17 @@ bool ClientMap::Load(const char *szFullName)
     uint8_t *pRawData = new uint8_t[nSize];
     fread(pRawData, 1, nSize, pFile);
 
-    //             +--+--+----+-......-+----+---------------------------------------------------
-    // byte width: | 2  2  4       x     4
-    // zone label: | 1  2  3       4
-    //             +----------------------------------------------------------------------------
-    //
-    //  1: map width, 32 * 24
-    //  2: map height
-    //  3: size in byte of bit stream for walkable info
-    //  4: bit stream for walkable info, recursively defined, length defined in 3
+    uint8_t *pCurDat = pRawData;
+    LoadHead(pCurDat);
+    LoadWalk(pCurDat);
+    LoadLight(pCurDat);
+    LoadTile(pCurDat);
+    LoadObj1(pCurDat);
+    LoadObj2(pCurDat);
 
 
-    // read map info
-    uint8_t *pMapHead = pRawData;
-    m_W = *((uint16_t *)(pMapHead + 0));
-    m_H = *((uint16_t *)(pMapHead + 2));
 
-    m_TileDesc = new TILEDESC[m_W * m_H / 4];
-    m_CellDesc = new CELLDESC[m_W * m_H    ];
 
-    // read walkable info
-    uint8_t  *pWalkInfo    = pMapHead + 4;
-    uint32_t  nWalkInfoLen = *((uint32_t *)pWalkInfo);
-    uint8_t  *pWalkInfoDat = pWalkInfo + 4;
-
-    LoadWalk(pWalkData);
 
 
     {
@@ -166,8 +152,8 @@ bool ClientMap::Valid()
 
 void ClientMap::SetOneWalk(int nStartX, int nStartY, int nSubGrid, bool bAttr)
 {
-    int nOffset = nStartY * m_W + nStartX;
-    m_CellDesc[nOffset].Desc |= (uint8_t)(1 << (nSubGrid % 4));
+    int nOff = nStartY * m_W + nStartX;
+    m_CellDesc[nOff].Desc |= (uint8_t)(1 << (nSubGrid % 4));
 }
 
 void ClientMap::SetWalk(int nStartX, int nStartY, int nSize, bool bAttr)
@@ -185,8 +171,8 @@ void ClientMap::SetWalk(int nStartX, int nStartY, int nSize, bool bAttr)
 
 void ClientMap::SetOneWalk(int nStartX, int nStartY, int nSubGrid, bool bAttr)
 {
-    int nOffset = nStartY * m_W + nStartX;
-    m_CellDesc[nOffset].Desc |= (uint8_t)(1 << (nSubGrid % 4));
+    int nOff = nStartY * m_W + nStartX;
+    m_CellDesc[nOff].Desc |= (uint8_t)(1 << (nSubGrid % 4));
 }
 
 void ClientMap::SetWalk(int nStartX, int nStartY, int nSize, bool bAttr)
@@ -201,43 +187,132 @@ void ClientMap::SetWalk(int nStartX, int nStartY, int nSize, bool bAttr)
     }
 }
 
-void ClientMap::ParseWalk(int nStartX, int nStartY, uint8_t *pData, long &nBitOffset, int nSize)
+
+void ClientMap::ParseWalk(int nStartX, int nStartY, int nSize, uint8_t *pMark, long &nMarkOff)
 {
+    // 1: there is data in current grid
+    // 0: no
+    //
+    // 1: current grid is combined, means it's filled partically
+    // 0: no
     if(nStartX < m_W && nStartY < m_H){
-        if(PickOneBit(pData, nBitOffset++)){
-            // get a combined grid
+        if(PickOneBit(pData, nBitOff++)){
+            // there is information in current grid
             if(nSize == 1){
-                // last level of grid, four smallest subgrid with X-cross division
-                if(PickOneBit(pData, nBitOffset++)){
-                    // still combined at last level
-                    SetOneWalk(nStartX, nStartY, 0, PickOneBit(pData, nBitOffset++));
-                    SetOneWalk(nStartX, nStartY, 1, PickOneBit(pData, nBitOffset++));
-                    SetOneWalk(nStartX, nStartY, 2, PickOneBit(pData, nBitOffset++));
-                    SetOneWalk(nStartX, nStartY, 3, PickOneBit(pData, nBitOffset++));
+                // last level of grid consists of four smallest subgrids divided by X-cross
+                if(PickOneBit(pData, nBitOff++)){
+                    // it's combined at last level
+                    SetOneWalk(nStartX, nStartY, 0, PickOneBit(pData, nBitOff++));
+                    SetOneWalk(nStartX, nStartY, 1, PickOneBit(pData, nBitOff++));
+                    SetOneWalk(nStartX, nStartY, 2, PickOneBit(pData, nBitOff++));
+                    SetOneWalk(nStartX, nStartY, 3, PickOneBit(pData, nBitOff++));
                 }else{
-                    // last level of grid is empty
-                    SetWalk(nStartX, nStartY, 1, 0);
+                    // it's not combined, and there is info, so it only can be all full-filled
+                    SetWalk(nStartX, nStartY, 1, true);
                 }
             }else{
-                // combined but not the last level, then recursively check
-                ParseWalk(nStartX,             nStartY,             pData, nBitOffset, nSize / 2);
-                ParseWalk(nStartX + nSize / 2, nStartY,             pData, nBitOffset, nSize / 2);
-                ParseWalk(nStartX,             nStartY + nSize / 2, pData, nBitOffset, nSize / 2);
-                ParseWalk(nStartX + nSize / 2, nStartY + nSize / 2, pData, nBitOffset, nSize / 2);
+                // not the last level of grid, and there is information in current gird
+                if(PickOneBit(pData, nBitOff++)){
+                    // there is data, and it's combined, need further parsing
+                    ParseWalk(nStartX,             nStartY,             nSize / 2, pMark, nMarkOff);
+                    ParseWalk(nStartX + nSize / 2, nStartY,             nSize / 2, pMark, nMarkOff);
+                    ParseWalk(nStartX,             nStartY + nSize / 2, nSize / 2, pMark, nMarkOff);
+                    ParseWalk(nStartX + nSize / 2, nStartY + nSize / 2, nSize / 2, pMark, nMarkOff);
+                }else{
+                    // there is information, but it's not combined, can only be full-filled
+                    SetWalk(nStartX, nStartY, nSize, true);
+                }
             }
         }else{
-            SetWalk(nStartX, nStartY, nSize, 0);
+            // no data here, always unset the desc field for the whole grid
+            SetWalk(nStartX, nStartY, nSize, false);
+        }
+    }
+}
+
+void ClientMap::ParseMarkData(
+        int nStartX, int nStartY,
+        int nSize,                      // current size
+        int nLastSize,                  // smallest size consists a atomic element
+        uint8_t *pMark, long &nMarkOff,
+        uint8_t *pData, long &nDataOff,
+        std::function<void()> fnDoSetBaseElement,
+        std::function<void()> fnUnSetBaseElement,
+        std::function<void()> fnUnSetElement,
+        )
+{
+    // 1: there is data in current grid
+    // 0: no
+    //
+    // 1: current grid is combined, means it's filled partically
+    // 0: no
+    if(nStartX < m_W && nStartY < m_H){
+        if(PickOneBit(pData, nBitOff++)){
+            // there is information in current grid
+            if(nSize == 1){
+                // last level of grid, and there is data, so fill it directly
+                SetOneData(nStartX, nStartY, pData, nDataOff);
+            }else{
+                // not the last level of grid, and there is information in current gird
+                if(PickOneBit(pData, nBitOff++)){
+                    // there is data in current grid and it's combined, further parse it
+                    ParseLight(nStartX,             nStartY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                    ParseLight(nStartX + nSize / 2, nStartY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                    ParseLight(nStartX,             nStartY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                    ParseLight(nStartX + nSize / 2, nStartY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                }else{
+                    // there is data and not combined, so full-filled the whole grid
+                    SetLight(nStartX, nStartY, nSize, pData, nDataOff);
+                }
+            }
+        }else{
+            // no data here, always unset the desc field for the whole grid
+            SetLight(nStartX, nStartY, nSize, nullptr, nDataOff);
+        }
+    }
+}
+
+void ClientMap::ParseLight(int nStartX, int nStartY, int nSize,
+        uint8_t *pMark, long &nMarkOff, uint8_t *pData, long &nDataOff)
+{
+    // 1: there is data in current grid
+    // 0: no
+    //
+    // 1: current grid is combined, means it's filled partically
+    // 0: no
+    if(nStartX < m_W && nStartY < m_H){
+        if(PickOneBit(pData, nBitOff++)){
+            // there is information in current grid
+            if(nSize == 1){
+                // last level of grid, and there is data, so fill it directly
+                SetOneLight(nStartX, nStartY, pData, nDataOff);
+            }else{
+                // not the last level of grid, and there is information in current gird
+                if(PickOneBit(pData, nBitOff++)){
+                    // there is data in current grid and it's combined, further parse it
+                    ParseLight(nStartX,             nStartY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                    ParseLight(nStartX + nSize / 2, nStartY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                    ParseLight(nStartX,             nStartY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                    ParseLight(nStartX + nSize / 2, nStartY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                }else{
+                    // there is data and not combined, so full-filled the whole grid
+                    SetLight(nStartX, nStartY, nSize, pData, nDataOff);
+                }
+            }
+        }else{
+            // no data here, always unset the desc field for the whole grid
+            SetLight(nStartX, nStartY, nSize, nullptr, nDataOff);
         }
     }
 }
 
 void ClientMap::ParseGroundInfoStream(int nStartX, int nStartY, int nSize,
-        uint32_t *pU32BitStream,  uint32_t &nU32BitStreamOffset,
-        uint32_t *pU32GroundInfo, uint32_t &nU32GroundInfoOffset)
+        uint32_t *pU32BitStream,  uint32_t &nU32BitStreamOff,
+        uint32_t *pU32GroundInfo, uint32_t &nU32GroundInfoOff)
 {
     // when getting inside, offset is at current position
     // when exited, offset is at next valid position
-    if(BitPickOne(pU32BitStream, nU32BitStreamOffset++) == 0){
+    if(BitPickOne(pU32BitStream, nU32BitStreamOff++) == 0){
         // here use 1 bit for null block
         // saving bits, since we assume most of them are null block
 
@@ -246,52 +321,68 @@ void ClientMap::ParseGroundInfoStream(int nStartX, int nStartY, int nSize,
     }else{
         // have something
         // maybe unique but walkable, or combined
-        if(BitPickOne(pU32BitStream, nU32BitStreamOffset++) == 0){
+        if(BitPickOne(pU32BitStream, nU32BitStreamOff++) == 0){
             // unique, walkable
             SetGroundInfoBlock(nStartX, nStartY, nSize,
-                    pU32GroundInfo[nU32GroundInfoOffset++]);
+                    pU32GroundInfo[nU32GroundInfoOff++]);
         }else{
             // combined
             if(nSize == 1){
                 for(int nCnt = 0; nCnt < 4; ++nCnt){
-                    if(BitPickOne(pU32BitStream, nU32BitStreamOffset++)){
+                    if(BitPickOne(pU32BitStream, nU32BitStreamOff++)){
                         SetOneGroundInfoGrid(nStartX, nStartY, nCnt, 0XFFFFFFFF);
                     }else{
                         SetOneGroundInfoGrid(nStartX, nStartY, nCnt,
-                                pU32GroundInfo[nU32GroundInfoOffset++]);
+                                pU32GroundInfo[nU32GroundInfoOff++]);
                     }
                 }
             }else{
                 // recursively invoke
                 ParseGroundInfoStream(nStartX, nStartY, nSize / 2,
-                        pU32BitStream,  nU32BitStreamOffset,
-                        pU32GroundInfo, nU32GroundInfoOffset);
+                        pU32BitStream,  nU32BitStreamOff,
+                        pU32GroundInfo, nU32GroundInfoOff);
 
                 ParseGroundInfoStream(nStartX + nSize / 2, nStartY, nSize / 2,
-                        pU32BitStream,  nU32BitStreamOffset,
-                        pU32GroundInfo, nU32GroundInfoOffset);
+                        pU32BitStream,  nU32BitStreamOff,
+                        pU32GroundInfo, nU32GroundInfoOff);
 
                 ParseGroundInfoStream(nStartX, nStartY + nSize / 2, nSize / 2,
-                        pU32BitStream,  nU32BitStreamOffset,
-                        pU32GroundInfo, nU32GroundInfoOffset);
+                        pU32BitStream,  nU32BitStreamOff,
+                        pU32GroundInfo, nU32GroundInfoOff);
 
                 ParseGroundInfoStream(nStartX + nSize / 2, nStartY + nSize / 2, nSize / 2,
-                        pU32BitStream,  nU32BitStreamOffset,
-                        pU32GroundInfo, nU32GroundInfoOffset);
+                        pU32BitStream,  nU32BitStreamOff,
+                        pU32GroundInfo, nU32GroundInfoOff);
             }
         }
     }
 }
 
 
-void ClientMap::LoadWalk(uint8_t * pWalkData)
+void ClientMap::LoadMarkData(uint8_t *pMark, uint8_t *pData)
 {
-    long nBitOffset = 0;
+    long nMarkOff = 0;
+    long nByteOff = 0;
     for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
         for(int nBlkX = 0; nBlkX < (m_W + 7) / 8; ++nBlkX){
-            ParseWalk(nBlkX * 8, nBlkY * 8, pWalkData, nBitOffset);
+            ParseMarkData(nBlkX * 8, nBlkY * 8, pMark, pData);
         }
     }
+}
+
+void ClientMap::LoadLight(uint8_t *pLigthMark, uint8_t *pLightData)
+{
+    long nMarkOff = 0;
+    long nByteOff = 0;
+    for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
+        for(int nBlkX = 0; nBlkX < (m_W + 7) / 8; ++nBlkX){
+            ParseLight(nBlkX * 8, nBlkY * 8, pLigthMark, pLightData);
+        }
+    }
+}
+
+void ClientMap::LoadWalk(uint8_t * pWalkData)
+{
 }
 
 void ClientMap::SetBaseTileBlock(
@@ -305,37 +396,37 @@ void ClientMap::SetBaseTileBlock(
 }
 
 void ClientMap::ParseBaseTileStream(int nStartX, int nStartY, int nSize,
-        uint32_t *pU32BitStream,    uint32_t &nU32BitStreamOffset,
-        uint32_t *pU32BaseTileInfo, uint32_t &nU32BaseTileInfoOffset)
+        uint32_t *pU32BitStream,    uint32_t &nU32BitStreamOff,
+        uint32_t *pU32BaseTileInfo, uint32_t &nU32BaseTileInfoOff)
 {
     // when getting inside, offset is at current position
     // when exited, offset is at next valid position
 
-    if(BitPickOne(pU32BitStream, nU32BitStreamOffset++) == 0){
+    if(BitPickOne(pU32BitStream, nU32BitStreamOff++) == 0){
         // no tile in this block, no matter whether nSize == 1 or not
         SetBaseTileBlock(nStartX, nStartY, nSize, 0XFFFFFFFF);
     }else{
         if(nSize == 2){
             // currently there may be object and nSize == 1
-            SetBaseTileBlock(nStartX, nStartY, nSize, pU32BaseTileInfo[nU32BaseTileInfoOffset++]);
+            SetBaseTileBlock(nStartX, nStartY, nSize, pU32BaseTileInfo[nU32BaseTileInfoOff++]);
         }else{
             // currently there may be object and nSize > 1
             // recursively parse sub-block
             ParseBaseTileStream(nStartX, nStartY, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pU32BaseTileInfo, nU32BaseTileInfoOffset);
+                    pU32BitStream,  nU32BitStreamOff,
+                    pU32BaseTileInfo, nU32BaseTileInfoOff);
 
             ParseBaseTileStream(nStartX + nSize / 2, nStartY, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pU32BaseTileInfo, nU32BaseTileInfoOffset);
+                    pU32BitStream,  nU32BitStreamOff,
+                    pU32BaseTileInfo, nU32BaseTileInfoOff);
 
             ParseBaseTileStream(nStartX, nStartY + nSize / 2, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pU32BaseTileInfo, nU32BaseTileInfoOffset);
+                    pU32BitStream,  nU32BitStreamOff,
+                    pU32BaseTileInfo, nU32BaseTileInfoOff);
 
             ParseBaseTileStream(nStartX + nSize / 2, nStartY + nSize / 2, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pU32BaseTileInfo, nU32BaseTileInfoOffset);
+                    pU32BitStream,  nU32BitStreamOff,
+                    pU32BaseTileInfo, nU32BaseTileInfoOff);
         }
     }
 }
@@ -345,13 +436,13 @@ bool ClientMap::LoadBaseTileInfo(
         uint32_t *pU32BaseTileInfo, uint32_t nU32BaseTileInfoLen)
 {
 
-    uint32_t nU32BitStreamOffset    = 0;
-    uint32_t nU32BaseTileInfoOffset = 0;
+    uint32_t nU32BitStreamOff    = 0;
+    uint32_t nU32BaseTileInfoOff = 0;
     for(int nBlkY = 0; nBlkY < m_H / 8; ++nBlkY){
         for(int nBlkX = 0; nBlkX < m_W / 8; ++nBlkX){
             ParseBaseTileStream(nBlkX * 8, nBlkY * 8, 8,
-                    pU32BitStream, nU32BitStreamOffset,
-                    pU32BaseTileInfo, nU32BaseTileInfoOffset);
+                    pU32BitStream, nU32BitStreamOff,
+                    pU32BaseTileInfo, nU32BaseTileInfoOff);
         }
     }
     return true;
@@ -368,38 +459,38 @@ void ClientMap::SetCellDescBlock(
 }
 
 void ClientMap::ParseCellDescStream(int nStartX, int nStartY, int nSize,
-        uint32_t *pU32BitStream, uint32_t &nU32BitStreamOffset,
-        CELLDESC *pCellDesc, uint32_t &nCellDescOffset)
+        uint32_t *pU32BitStream, uint32_t &nU32BitStreamOff,
+        CELLDESC *pCellDesc, uint32_t &nCellDescOff)
 {
     // when getting inside, offset is at current position
     // when exited, offset is at next valid position
 
-    if(BitPickOne(pU32BitStream, nU32BitStreamOffset++) == 0){
+    if(BitPickOne(pU32BitStream, nU32BitStreamOff++) == 0){
         // no object in this block, no matter whether nSize == 1 or not
         SetCellDescBlock(nStartX, nStartY, nSize, {
                 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF});
     }else{
         if(nSize == 1){
             // currently there may be object and nSize == 1
-            SetCellDescBlock(nStartX, nStartY, nSize, pCellDesc[nCellDescOffset++]);
+            SetCellDescBlock(nStartX, nStartY, nSize, pCellDesc[nCellDescOff++]);
         }else{
             // currently there may be object and nSize > 1
             // recursively parse sub-block
             ParseCellDescStream(nStartX, nStartY, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pCellDesc, nCellDescOffset);
+                    pU32BitStream,  nU32BitStreamOff,
+                    pCellDesc, nCellDescOff);
 
             ParseCellDescStream(nStartX + nSize / 2, nStartY, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pCellDesc, nCellDescOffset);
+                    pU32BitStream,  nU32BitStreamOff,
+                    pCellDesc, nCellDescOff);
 
             ParseCellDescStream(nStartX, nStartY + nSize / 2, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pCellDesc, nCellDescOffset);
+                    pU32BitStream,  nU32BitStreamOff,
+                    pCellDesc, nCellDescOff);
 
             ParseCellDescStream(nStartX + nSize / 2, nStartY + nSize / 2, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pCellDesc, nCellDescOffset);
+                    pU32BitStream,  nU32BitStreamOff,
+                    pCellDesc, nCellDescOff);
         }
     }
 }
@@ -409,13 +500,13 @@ bool ClientMap::LoadCellDesc(
         CELLDESC *pCellDesc,     uint32_t nCellDescLen)
 {
 
-    uint32_t nU32BitStreamOffset = 0;
-    uint32_t nCellDescOffset     = 0;
+    uint32_t nU32BitStreamOff = 0;
+    uint32_t nCellDescOff     = 0;
     for(int nBlkY = 0; nBlkY < m_H / 8; ++nBlkY){
         for(int nBlkX = 0; nBlkX < m_W / 8; ++nBlkX){
             ParseCellDescStream(nBlkX * 8, nBlkY * 8, 8,
-                    pU32BitStream, nU32BitStreamOffset,
-                    pCellDesc, nCellDescOffset);
+                    pU32BitStream, nU32BitStreamOff,
+                    pCellDesc, nCellDescOff);
         }
     }
     return true;
@@ -629,3 +720,41 @@ int ClientMap::ViewY()
 }
 
 bool ClientMap::ValidPosition()
+{
+
+}
+
+void ClientMap::LoadHead(uint8_t * &pData)
+{
+    m_W = *((uint16_t *)pData); pData += 2;
+    m_H = *((uint16_t *)pData); pData += 2;
+
+    m_TileDesc = new TILEDESC[m_W * m_H / 4];
+    m_CellDesc = new CELLDESC[m_W * m_H    ];
+}
+
+void ClientMap::LoadWalk(uint8_t * &pData)
+{
+    long nBitOff = 0;
+    for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
+        for(int nBlkX = 0; nBlkX < (m_W + 7) / 8; ++nBlkX){
+            ParseWalk(nBlkX * 8, nBlkY * 8, pData + 4, nBitOff);
+        }
+    }
+    pData += (4 + *((uint32_t *)pData));
+}
+
+void ClientMap::LoadLight(uint8_t * &pData)
+{
+    uint32_t nMarkLen = *((uint32_t *)(pData + 0));
+    uint32_t nDataLen = *((uint32_t *)(pData + 4 + nMarkLen));
+
+    long nMarkOff = 0;
+    long nDataOff = 0;
+    for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
+        for(int nBlkX = 0; nBlkX < (m_W + 7) / 8; ++nBlkX){
+            ParseLight(nBlkX * 8, nBlkY * 8, pData + 4, nMarkOff, pData + 8 + nMarkLen, nDataLen);
+        }
+    }
+    pData += (8 + nMarkLen + nDataLen);
+}
