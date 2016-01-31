@@ -3,7 +3,7 @@
  *
  *       Filename: misc.cpp
  *        Created: 7/24/2015 7:20:18 PM
- *  Last Modified: 09/03/2015 1:23:28 AM
+ *  Last Modified: 01/31/2016 01:28:32
  *
  *    Description: 
  *
@@ -25,14 +25,16 @@
 #include <cstring>
 #include <dirent.h>
 #include <string>
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <unordered_map>
 #include <string>
 
 #ifdef _WIN32
 #include <direct.h>
 #include <io.h>
+#else
+#include<sys/stat.h>
 #endif
 
 bool SaveRGBABufferToPNG(const uint8_t *rgbaBuff, uint32_t nW, uint32_t nH, const char *fileFullName)
@@ -157,11 +159,10 @@ bool MakeDir(const char *szDirName)
 {
     return 
 #ifdef _WIN32
-        !_mkdir
+        !_mkdir(szDirName);
 #else
-        !mkdir
+        !mkdir(szDirName, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 #endif
-        (szDirName);
 }
 
 bool FileExist(const char *szFileName)
@@ -199,166 +200,166 @@ bool PointInTriangle(double fX, double fY,
     return ((b1 == b2) && (b2 == b3));
 }
 
-SDL_Texture *LoadSDLTextureFromFile(const char * szFileFullName, SDL_Renderer * pRenderer)
-{
-    SDL_Surface *pSurface = IMG_Load(szFileFullName);
-    SDL_Texture *pTexture = nullptr;
-    if(pSurface && pRenderer){
-        pTexture = SDL_CreateTextureFromSurface(pRenderer, pSurface);
-        SDL_FreeSurface(pSurface);
-    }
-    return pTexture;
-}
-
-char SDLKeyEventCharName(SDL_Event &stEvent)
-{
-    // to optimize it, make a table here
-    // if(stEvent.key.keysym.sym >= SDLK_0 && stEvent.key.keysym.sym <= SDLK_9){
-    //     return '0' + stEvent.key.keysym.sym - SDLK_0;
-    // }
-
-    // if(stEvent.key.keysym.sym >= SDLK_a && stEvent.key.keysym.sym <= SDLK_z){
-    //     return 'a' + stEvent.key.keysym.sym - SDLK_a;
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_SPACE){
-    //     return ' ';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_AMPERSAND){
-    //     return '&';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_ASTERISK){
-    //     return '*';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_AT){
-    //     return '@';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_CARET){
-    //     return '^';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_COLON){
-    //     return ':';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_DOLLAR){
-    //     return '$';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_EXCLAIM){
-    //     return '!';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_GREATER){
-    //     return '>';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_HASH){
-    //     return '#';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_LEFTPAREN){
-    //     return '(';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_LESS){
-    //     return '<';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_PERCENT){
-    //     return '%';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_PLUS){
-    //     return '+';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_QUESTION){
-    //     return '?';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_QUOTEDBL){
-    //     return '"';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_RIGHTPAREN){
-    //     return ')';
-    // }
-
-    // if(stEvent.key.keysym.sym == SDLK_UNDERSCORE){
-    //     return '_';
-    // }
-
-    // SDL_Keycode lookup table
-
-
-	static std::unordered_map<SDL_Keycode, std::string> stLoopupTable = {
-        {SDLK_SPACE, "  "},
-        {SDLK_QUOTE, "'\""},
-        {SDLK_COMMA, ",<"},
-        {SDLK_MINUS, "-_"},
-        {SDLK_PERIOD, ".>"},
-        {SDLK_SLASH, "/?"},
-        {SDLK_0, "0)"},
-        {SDLK_1, "1!"},
-        {SDLK_2, "2@"},
-        {SDLK_3, "3#"},
-        {SDLK_4, "4$"},
-        {SDLK_5, "5%"},
-        {SDLK_6, "6^"},
-        {SDLK_7, "7&"},
-        {SDLK_8, "8*"},
-        {SDLK_9, "9("},
-        {SDLK_SEMICOLON, ";:"},
-        {SDLK_EQUALS, "=+"},
-        {SDLK_LEFTBRACKET, "[{"},
-        {SDLK_BACKSLASH, "\\|"},
-        {SDLK_RIGHTBRACKET, "]}"},
-        {SDLK_BACKQUOTE, "`~"},
-        {SDLK_a, "aA"},
-        {SDLK_b, "bB"},
-        {SDLK_c, "cC"},
-        {SDLK_d, "dD"},
-        {SDLK_e, "eE"},
-        {SDLK_f, "fF"},
-        {SDLK_g, "gG"},
-        {SDLK_h, "hH"},
-        {SDLK_i, "iI"},
-        {SDLK_j, "jJ"},
-        {SDLK_k, "kK"},
-        {SDLK_l, "lL"},
-        {SDLK_m, "mM"},
-        {SDLK_n, "nN"},
-        {SDLK_o, "oO"},
-        {SDLK_p, "pP"},
-        {SDLK_q, "qQ"},
-        {SDLK_r, "rR"},
-        {SDLK_s, "sS"},
-        {SDLK_t, "tT"},
-        {SDLK_u, "uU"},
-        {SDLK_v, "vV"},
-        {SDLK_w, "wW"},
-        {SDLK_x, "xX"},
-        {SDLK_y, "yY"},
-        {SDLK_z, "zZ"}
-    };
-
-    if(stLoopupTable.find(stEvent.key.keysym.sym) != stLoopupTable.end()){
-        if(false
-                || (stEvent.key.keysym.mod & KMOD_LSHIFT)
-                || (stEvent.key.keysym.mod & KMOD_RSHIFT)
-          ){
-            return stLoopupTable[stEvent.key.keysym.sym][1];
-        }else{
-            return stLoopupTable[stEvent.key.keysym.sym][0];
-        }
-    }
-    return '\0';
-}
+// SDL_Texture *LoadSDLTextureFromFile(const char * szFileFullName, SDL_Renderer * pRenderer)
+// {
+//     SDL_Surface *pSurface = IMG_Load(szFileFullName);
+//     SDL_Texture *pTexture = nullptr;
+//     if(pSurface && pRenderer){
+//         pTexture = SDL_CreateTextureFromSurface(pRenderer, pSurface);
+//         SDL_FreeSurface(pSurface);
+//     }
+//     return pTexture;
+// }
+//
+// char SDLKeyEventCharName(SDL_Event &stEvent)
+// {
+//     // to optimize it, make a table here
+//     // if(stEvent.key.keysym.sym >= SDLK_0 && stEvent.key.keysym.sym <= SDLK_9){
+//     //     return '0' + stEvent.key.keysym.sym - SDLK_0;
+//     // }
+//
+//     // if(stEvent.key.keysym.sym >= SDLK_a && stEvent.key.keysym.sym <= SDLK_z){
+//     //     return 'a' + stEvent.key.keysym.sym - SDLK_a;
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_SPACE){
+//     //     return ' ';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_AMPERSAND){
+//     //     return '&';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_ASTERISK){
+//     //     return '*';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_AT){
+//     //     return '@';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_CARET){
+//     //     return '^';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_COLON){
+//     //     return ':';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_DOLLAR){
+//     //     return '$';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_EXCLAIM){
+//     //     return '!';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_GREATER){
+//     //     return '>';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_HASH){
+//     //     return '#';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_LEFTPAREN){
+//     //     return '(';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_LESS){
+//     //     return '<';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_PERCENT){
+//     //     return '%';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_PLUS){
+//     //     return '+';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_QUESTION){
+//     //     return '?';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_QUOTEDBL){
+//     //     return '"';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_RIGHTPAREN){
+//     //     return ')';
+//     // }
+//
+//     // if(stEvent.key.keysym.sym == SDLK_UNDERSCORE){
+//     //     return '_';
+//     // }
+//
+//     // SDL_Keycode lookup table
+//
+//
+// 	static std::unordered_map<SDL_Keycode, std::string> stLoopupTable = {
+//         {SDLK_SPACE, "  "},
+//         {SDLK_QUOTE, "'\""},
+//         {SDLK_COMMA, ",<"},
+//         {SDLK_MINUS, "-_"},
+//         {SDLK_PERIOD, ".>"},
+//         {SDLK_SLASH, "/?"},
+//         {SDLK_0, "0)"},
+//         {SDLK_1, "1!"},
+//         {SDLK_2, "2@"},
+//         {SDLK_3, "3#"},
+//         {SDLK_4, "4$"},
+//         {SDLK_5, "5%"},
+//         {SDLK_6, "6^"},
+//         {SDLK_7, "7&"},
+//         {SDLK_8, "8*"},
+//         {SDLK_9, "9("},
+//         {SDLK_SEMICOLON, ";:"},
+//         {SDLK_EQUALS, "=+"},
+//         {SDLK_LEFTBRACKET, "[{"},
+//         {SDLK_BACKSLASH, "\\|"},
+//         {SDLK_RIGHTBRACKET, "]}"},
+//         {SDLK_BACKQUOTE, "`~"},
+//         {SDLK_a, "aA"},
+//         {SDLK_b, "bB"},
+//         {SDLK_c, "cC"},
+//         {SDLK_d, "dD"},
+//         {SDLK_e, "eE"},
+//         {SDLK_f, "fF"},
+//         {SDLK_g, "gG"},
+//         {SDLK_h, "hH"},
+//         {SDLK_i, "iI"},
+//         {SDLK_j, "jJ"},
+//         {SDLK_k, "kK"},
+//         {SDLK_l, "lL"},
+//         {SDLK_m, "mM"},
+//         {SDLK_n, "nN"},
+//         {SDLK_o, "oO"},
+//         {SDLK_p, "pP"},
+//         {SDLK_q, "qQ"},
+//         {SDLK_r, "rR"},
+//         {SDLK_s, "sS"},
+//         {SDLK_t, "tT"},
+//         {SDLK_u, "uU"},
+//         {SDLK_v, "vV"},
+//         {SDLK_w, "wW"},
+//         {SDLK_x, "xX"},
+//         {SDLK_y, "yY"},
+//         {SDLK_z, "zZ"}
+//     };
+//
+//     if(stLoopupTable.find(stEvent.key.keysym.sym) != stLoopupTable.end()){
+//         if(false
+//                 || (stEvent.key.keysym.mod & KMOD_LSHIFT)
+//                 || (stEvent.key.keysym.mod & KMOD_RSHIFT)
+//           ){
+//             return stLoopupTable[stEvent.key.keysym.sym][1];
+//         }else{
+//             return stLoopupTable[stEvent.key.keysym.sym][0];
+//         }
+//     }
+//     return '\0';
+// }
 
 bool MyCopyFile(const char *szDst, const char *szSrc)
 {
