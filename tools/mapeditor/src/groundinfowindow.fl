@@ -1,0 +1,525 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0303 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include <cstdint>} {public local
+} 
+
+class GroundInfoWindow {open
+} {
+  Function {GroundInfoWindow()} {open
+  } {
+    Fl_Window m_Window {open
+      xywh {111 100 733 381} type Double visible
+    } {
+      Fl_Group {} {
+        callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}} open
+        xywh {0 24 740 285}
+      } {
+        Fl_Check_Button m_Bit0 {
+          label {(00):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {18 33 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit1 {
+          label {(01):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {18 65 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit2 {
+          label {(02):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {18 97 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit3 {
+          label {(03):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {18 129 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit4 {
+          label {(04):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {18 161 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit5 {
+          label {(05):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {18 193 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit6 {
+          label {(06):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {18 225 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit7 {
+          label {(07):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {18 257 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit8 {
+          label {(08): Sand}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {194 33 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit9 {
+          label {(09): Earth}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {194 65 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit10 {
+          label {(10): Stone}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {194 97 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit11 {
+          label {(11): Water}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {194 129 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit12 {
+          label {(12):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {194 161 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit13 {
+          label {(13):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {194 193 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit14 {
+          label {(14):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {194 225 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit15 {
+          label {(15):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {194 257 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit16 {
+          label {(16): Peace}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {370 33 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit17 {
+          label {(17): Attack All}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {370 65 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit18 {
+          label {(18): Guild}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {370 97 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit19 {
+          label {(19): }
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {370 129 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit20 {
+          label {(20):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {370 161 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit21 {
+          label {(21):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {370 193 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit22 {
+          label {(22):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {370 225 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit23 {
+          label {(23):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {370 257 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit24 {
+          label {(24):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {546 33 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit25 {
+          label {(25):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {546 65 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit26 {
+          label {(26):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {546 97 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit27 {
+          label {(27):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {546 129 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit28 {
+          label {(28):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {546 161 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit29 {
+          label {(29):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {546 193 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit30 {
+          label {(30):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {546 225 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_Bit31 {
+          label {(31):}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}} selected
+          xywh {546 257 177 33} down_box DOWN_BOX labelfont 4
+        }
+      }
+      Fl_Button {} {
+        label Reset
+        callback {{
+    m_Bit0 ->value(0);
+    m_Bit1 ->value(0);
+    m_Bit2 ->value(0);
+    m_Bit3 ->value(0);
+    m_Bit4 ->value(0);
+    m_Bit5 ->value(0);
+    m_Bit6 ->value(0);
+    m_Bit7 ->value(0);
+    m_Bit8 ->value(0);
+    m_Bit9 ->value(0);
+    m_Bit10->value(0);
+    m_Bit11->value(0);
+    m_Bit12->value(0);
+    m_Bit13->value(0);
+    m_Bit14->value(0);
+    m_Bit15->value(0);
+    m_Bit16->value(0);
+    m_Bit17->value(0);
+    m_Bit18->value(0);
+    m_Bit19->value(0);
+    m_Bit20->value(0);
+    m_Bit21->value(0);
+    m_Bit22->value(0);
+    m_Bit23->value(0);
+    m_Bit24->value(0);
+    m_Bit25->value(0);
+    m_Bit26->value(0);
+    m_Bit27->value(0);
+    m_Bit28->value(0);
+    m_Bit29->value(0);
+    m_Bit30->value(0);
+    m_Bit31->value(0);
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+        xywh {605 330 80 30} labelfont 4
+        code0 {\#include "mainwindow.hpp"}
+      }
+      Fl_Button {} {
+        label Forbidden
+        callback {{
+    m_Bit0 ->value(1);
+    m_Bit1 ->value(1);
+    m_Bit2 ->value(1);
+    m_Bit3 ->value(1);
+    m_Bit4 ->value(1);
+    m_Bit5 ->value(1);
+    m_Bit6 ->value(1);
+    m_Bit7 ->value(1);
+    m_Bit8 ->value(1);
+    m_Bit9 ->value(1);
+    m_Bit10->value(1);
+    m_Bit11->value(1);
+    m_Bit12->value(1);
+    m_Bit13->value(1);
+    m_Bit14->value(1);
+    m_Bit15->value(1);
+    m_Bit16->value(1);
+    m_Bit17->value(1);
+    m_Bit18->value(1);
+    m_Bit19->value(1);
+    m_Bit20->value(1);
+    m_Bit21->value(1);
+    m_Bit22->value(1);
+    m_Bit23->value(1);
+    m_Bit24->value(1);
+    m_Bit25->value(1);
+    m_Bit26->value(1);
+    m_Bit27->value(1);
+    m_Bit28->value(1);
+    m_Bit29->value(1);
+    m_Bit30->value(1);
+    m_Bit31->value(1);
+    
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+        xywh {499 330 80 30} labelfont 4
+        code0 {\#include "mainwindow.hpp"}
+      }
+      Fl_Menu_Bar {} {open
+        xywh {0 0 733 25} labelfont 4 textfont 4
+      } {
+        Submenu {} {
+          label Operation open
+          xywh {0 0 62 20} labelfont 4
+        } {
+          MenuItem m_Eq {
+            label Equal
+            xywh {30 30 30 20} type Radio value 1 labelfont 4
+          }
+          MenuItem m_Neq {
+            label Neq
+            xywh {40 40 30 20} type Radio labelfont 4
+          }
+          MenuItem m_Overlap {
+            label {Overlap   }
+            xywh {0 0 30 20} type Radio labelfont 4
+          }
+          MenuItem m_Exclude {
+            label Exclude
+            tooltip {Input has no overlapping with mask bitset} xywh {30 30 30 20} type Radio labelfont 4
+          }
+          MenuItem m_Subset {
+            label Subset
+            tooltip {Input is a subset of mask bitset} xywh {10 10 30 20} type Radio labelfont 4
+          }
+          MenuItem m_Superset {
+            label Superset
+            tooltip {Input is a superset of mask bitset} xywh {20 20 30 20} type Radio labelfont 4
+          }
+          MenuItem m_Complement {
+            label {Complement  }
+            tooltip {Input is a superset of mask bitset} xywh {30 30 30 20} type Radio labelfont 4
+          }
+        }
+      }
+      Fl_Button {} {
+        label Flop
+        callback {{
+    {m_Bit0 ->value(!(m_Bit0 ->value()));}
+    {m_Bit1 ->value(!(m_Bit1 ->value()));}
+    {m_Bit2 ->value(!(m_Bit2 ->value()));}
+    {m_Bit3 ->value(!(m_Bit3 ->value()));}
+    {m_Bit4 ->value(!(m_Bit4 ->value()));}
+    {m_Bit5 ->value(!(m_Bit5 ->value()));}
+    {m_Bit6 ->value(!(m_Bit6 ->value()));}
+    {m_Bit7 ->value(!(m_Bit7 ->value()));}
+    {m_Bit8 ->value(!(m_Bit8 ->value()));}
+    {m_Bit9 ->value(!(m_Bit9 ->value()));}
+    {m_Bit10->value(!(m_Bit10->value()));}
+    {m_Bit11->value(!(m_Bit11->value()));}
+    {m_Bit12->value(!(m_Bit12->value()));}
+    {m_Bit13->value(!(m_Bit13->value()));}
+    {m_Bit14->value(!(m_Bit14->value()));}
+    {m_Bit15->value(!(m_Bit15->value()));}
+    {m_Bit16->value(!(m_Bit16->value()));}
+    {m_Bit17->value(!(m_Bit17->value()));}
+    {m_Bit18->value(!(m_Bit18->value()));}
+    {m_Bit19->value(!(m_Bit19->value()));}
+    {m_Bit20->value(!(m_Bit20->value()));}
+    {m_Bit21->value(!(m_Bit21->value()));}
+    {m_Bit22->value(!(m_Bit22->value()));}
+    {m_Bit23->value(!(m_Bit23->value()));}
+    {m_Bit24->value(!(m_Bit24->value()));}
+    {m_Bit25->value(!(m_Bit25->value()));}
+    {m_Bit26->value(!(m_Bit26->value()));}
+    {m_Bit27->value(!(m_Bit27->value()));}
+    {m_Bit28->value(!(m_Bit28->value()));}
+    {m_Bit29->value(!(m_Bit29->value()));}
+    {m_Bit30->value(!(m_Bit30->value()));}
+    {m_Bit31->value(!(m_Bit31->value()));}
+    
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+        xywh {393 330 80 30} labelfont 4
+        code0 {\#include "mainwindow.hpp"}
+      }
+    }
+  }
+  Function {ShowAll()} {return_type void
+  } {
+    code {m_Window->show();} {}
+  }
+  Function {Mask()} {open return_type uint32_t
+  } {
+    code {{
+    uint32_t bRes = 0;
+    if(m_Bit0 ->value()){ bRes += (1 << 0 ); }
+    if(m_Bit1 ->value()){ bRes += (1 << 1 ); }
+    if(m_Bit2 ->value()){ bRes += (1 << 2 ); }
+    if(m_Bit3 ->value()){ bRes += (1 << 3 ); }
+    if(m_Bit4 ->value()){ bRes += (1 << 4 ); }
+    if(m_Bit5 ->value()){ bRes += (1 << 5 ); }
+    if(m_Bit6 ->value()){ bRes += (1 << 6 ); }
+    if(m_Bit7 ->value()){ bRes += (1 << 7 ); }
+    if(m_Bit8 ->value()){ bRes += (1 << 8 ); }
+    if(m_Bit9 ->value()){ bRes += (1 << 9 ); }
+    if(m_Bit10->value()){ bRes += (1 << 10); }
+    if(m_Bit11->value()){ bRes += (1 << 11); }
+    if(m_Bit12->value()){ bRes += (1 << 12); }
+    if(m_Bit13->value()){ bRes += (1 << 13); }
+    if(m_Bit14->value()){ bRes += (1 << 14); }
+    if(m_Bit15->value()){ bRes += (1 << 15); }
+    if(m_Bit16->value()){ bRes += (1 << 16); }
+    if(m_Bit17->value()){ bRes += (1 << 17); }
+    if(m_Bit18->value()){ bRes += (1 << 18); }
+    if(m_Bit19->value()){ bRes += (1 << 19); }
+    if(m_Bit20->value()){ bRes += (1 << 20); }
+    if(m_Bit21->value()){ bRes += (1 << 21); }
+    if(m_Bit22->value()){ bRes += (1 << 22); }
+    if(m_Bit23->value()){ bRes += (1 << 23); }
+    if(m_Bit24->value()){ bRes += (1 << 24); }
+    if(m_Bit25->value()){ bRes += (1 << 25); }
+    if(m_Bit26->value()){ bRes += (1 << 26); }
+    if(m_Bit27->value()){ bRes += (1 << 27); }
+    if(m_Bit28->value()){ bRes += (1 << 28); }
+    if(m_Bit29->value()){ bRes += (1 << 29); }
+    if(m_Bit30->value()){ bRes += (1 << 30); }
+    if(m_Bit31->value()){ bRes += (1 << 31); }
+    return bRes;
+}} {}
+  }
+  Function {Test(uint32_t nInput)} {return_type bool
+  } {
+    code {// uint32_t nInput
+{
+    if(m_Eq->value()){
+        return nInput == Mask();
+    }
+
+    if(m_Neq->value()){
+        return nInput != Mask();
+    }
+
+    if(m_Overlap->value()){
+        return ((nInput & Mask()) != 0);
+    }
+
+    if(m_Exclude->value()){
+        return ((nInput & Mask()) == 0);
+    }
+
+    if(m_Subset->value()){
+        return false
+            || (nInput == 0)
+            || (((nInput & Mask()) != 0) && ((nInput & (~Mask())) == 0));
+    }
+
+    if(m_Superset->value()){
+        return false
+            || (Mask() == 0)
+            || (((nInput & Mask()) != 0) && ((nInput & (~Mask())) != 0));
+    }
+
+    if(m_Complement->value()){
+        return nInput == (~Mask());
+    }
+
+    return false;
+}} {}
+  }
+} 
