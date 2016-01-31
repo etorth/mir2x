@@ -1,0 +1,2 @@
+# AUX_SOURCE_DIRECTORY(. DIR_SRCS)
+ADD_EXECUTABLE(mapeditor main.cpp)
