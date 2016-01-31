@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0303 
+version 1.0302 
 header_name {.hpp} 
 code_name {.cpp}
 decl {\#include <cstdint>} {private local
@@ -18,6 +18,9 @@ decl {\#include <map>} {private local
 } 
 
 decl {\#include <string>} {private local
+} 
+
+decl {\#include <cstring>} {private local
 } 
 
 decl {\#include "misc.hpp"} {private local
@@ -42,7 +45,7 @@ class MainWindow {open
   Function {MainWindow()} {} {
     Fl_Window m_Window {
       callback {exit(0);} open
-      xywh {103 40 985 667} type Double resizable visible
+      xywh {491 200 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {selected
         xywh {0 20 965 626} resizable
