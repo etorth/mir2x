@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 8/31/2015 8:26:57 PM
- *  Last Modified: 09/08/2015 7:36:09 AM
+ *  Last Modified: 01/29/2016 21:36:40
  *
  *    Description: 
  *
@@ -80,4 +80,10 @@ int Monster::FrameCount()
     // int nPrecode = ((uint32_t)m_SID & 0XFFFFFC00) >> 10;
     // int nLID     = ((uint32_t)m_SID & 0X000003FF);
     return Actor::FrameCount(1, (uint32_t)m_SID & 0X000003FF);
+}
+
+void Monster::Draw(std::function<void(uint64_t, int, int)> fnDraw)
+{
+    fnDraw(ShadowKey(), m_X, m_Y);
+    fnDraw(BodyKey(), m_X, m_Y);
 }

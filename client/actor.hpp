@@ -10,7 +10,7 @@ typedef struct{
 
 class ActorFrameSourceManager: public SourceManager<uint32_t, ACTORFRAMEDESC>
 {
-}
+};
 
 class Actor
 {
@@ -76,6 +76,14 @@ class Actor
 
     protected:
         void UpdateMotion(int);
+
+    private:
+        bool    m_RedPoision;
+        bool    m_GreenPoision;
+        bool    m_StonePoision;
+
+        bool    m_WhiteBody;
+        bool    m_Holy;
 
     public:
         virtual void SetNextState(int);

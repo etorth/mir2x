@@ -3,7 +3,7 @@
  *
  *       Filename: actor.cpp
  *        Created: 8/31/2015 10:45:48 PM
- *  Last Modified: 01/29/2016 01:15:18
+ *  Last Modified: 01/29/2016 21:25:21
  *
  *    Description: 
  *
@@ -37,22 +37,21 @@ static std::array<std::array<std::vector<std::vector<std::vector<std::array<std:
     2>, 2>>>>, 1024>, 8> g_GlobalActorOffset;
 
 
-// uint32_t for actor encode
-// 12 bits: LID
-//  4 bits: normal / poision / stone / other
+//  +---------+-------+-----------+-------+--------+-----+
+//  | poision | state | direction | frame | shadow | LID |
+//  +---------+-------+-----------+-------+--------+-----+
+//  | 32      | 28    | 22        | 19    | 13     | 12  |
+//  +---------+-------+-----------+-------+--------+-----+
+//
+//  4 bits: visual state for normal / poision / stone / other
 //  6 bits: state
 //  3 bits: direction
 //  6 bits: frame
 //  1 bits: shadow/body
+// 12 bits: LID
 
+static std::map<uint32_t, std::pari<int, int>> g_ActorFrameOffset;
 
-typedef struct{
-    SDL_Texture *Texture;
-    int DX;
-    int DY;
-}ACTORFRAMEDESC;
-
-S
 static std::map<uint32_t, 
 
 typedef struct{
@@ -156,6 +155,28 @@ void Actor::SetMap(int nX, int nY, Mir2ClientMap *pMap)
     m_Map = pMap;
 }
 
+uint32_t Actor::OffsetKey(uint32_t nShadow)
+{
+    uint32_t nKey = m_LID + (m_VisualState << 28)
+        + (m_State << 22) + (m_Direction << 19) + (m_Frame << 13) + (Shadow << 12);
+}
+
+void Actor::Load()
+{
+    // read local data for actor
+    for(uint32_t nState = 0; nState < 64; ++nState){
+        for(uint32_t nDirection = 0; nDirection < 8; ++nDirection){
+            for(uint32_t nFrame = 0; nFrame < 64; ++nFrame){
+                for(uint32_t nShadow = 0; nShadow < 2; ++nShadow){
+                    uint32_t nKey = (nState << 26) + (nDirection << )
+                }
+            }
+        }
+    }
+
+
+
+}
 void Actor::LoadGlobalOffset(int nPrecode, int nLookID)
 {
     nPrecode %= 8;
@@ -402,3 +423,4 @@ bool Actor::SetGlobalCoverInfoCache(int nSID, int nState, int nDir, int nW, int 
     }
     return true;
 }
+
