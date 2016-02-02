@@ -1,4 +1,3 @@
-#include <SDL2/SDL.h>
 #include <memory.h>
 #include <cstring>
 #include <cstdint>
@@ -6,11 +5,8 @@
 #include <vector>
 #include "triangle.hpp"
 #include "mir2xmap.hpp"
-#include "devicemanager.hpp"
-#include "texturemanager.hpp"
-#include "directiverectcover.hpp"
 
-ClientMap::ClientMap()
+Mir2xMap::Mir2xMap()
     : m_GroundInfo(nullptr)
     , m_BaseTileInfo(nullptr)
     , m_CellDesc(nullptr)
@@ -21,14 +17,14 @@ ClientMap::ClientMap()
     , m_ViewY(0)
 {}
 
-ClientMap::~ClientMap()
+Mir2xMap::~Mir2xMap()
 {
     delete []m_GroundInfo;   m_GroundInfo   = nullptr;
 	delete []m_BaseTileInfo; m_BaseTileInfo = nullptr;
     delete []m_CellDesc;     m_CellDesc     = nullptr;
 }
 
-bool ClientMap::Load(const char *szFullName)
+bool Mir2xMap::Load(const char *szFullName)
 {
 	delete []m_TileDesc; m_TileDesc = nullptr;
     delete []m_CellDesc; m_CellDesc = nullptr;
@@ -135,28 +131,28 @@ bool ClientMap::Load(const char *szFullName)
     return true;
 }
 
-int ClientMap::W()
+int Mir2xMap::W()
 {
     return m_W;
 }
 
-int ClientMap::H()
+int Mir2xMap::H()
 {
     return m_H;
 }
 
-bool ClientMap::Valid()
+bool Mir2xMap::Valid()
 {
     return m_Valid;
 }
 
-void ClientMap::SetOneWalk(int nX, int nY, int nSubGrid, bool bAttr)
+void Mir2xMap::SetOneWalk(int nX, int nY, int nSubGrid, bool bAttr)
 {
     int nOff = nY * m_W + nX;
     m_CellDesc[nOff].Desc |= (uint8_t)(1 << (nSubGrid % 4));
 }
 
-void ClientMap::SetWalk(int nX, int nY, int nSize, bool bAttr)
+void Mir2xMap::SetWalk(int nX, int nY, int nSize, bool bAttr)
 {
     for(int nY = nY; nY < nY + nSize; ++nY){
         for(int nX = nX; nX < nX + nSize; ++nX){
@@ -169,13 +165,13 @@ void ClientMap::SetWalk(int nX, int nY, int nSize, bool bAttr)
 }
 
 
-void ClientMap::SetOneWalk(int nX, int nY, int nSubGrid, bool bAttr)
+void Mir2xMap::SetOneWalk(int nX, int nY, int nSubGrid, bool bAttr)
 {
     int nOff = nY * m_W + nX;
     m_CellDesc[nOff].Desc |= (uint8_t)(1 << (nSubGrid % 4));
 }
 
-void ClientMap::SetWalk(int nX, int nY, int nSize, bool bAttr)
+void Mir2xMap::SetWalk(int nX, int nY, int nSize, bool bAttr)
 {
     for(int nY = nY; nY < nY + nSize; ++nY){
         for(int nX = nX; nX < nX + nSize; ++nX){
@@ -188,7 +184,7 @@ void ClientMap::SetWalk(int nX, int nY, int nSize, bool bAttr)
 }
 
 
-void ClientMap::ParseWalk(int nX, int nY, int nSize, uint8_t *pMark, long &nMarkOff)
+void Mir2xMap::ParseWalk(int nX, int nY, int nSize, uint8_t *pMark, long &nMarkOff)
 {
     // 1: there is data in current grid
     // 0: no
@@ -230,7 +226,7 @@ void ClientMap::ParseWalk(int nX, int nY, int nSize, uint8_t *pMark, long &nMark
     }
 }
 
-void ClientMap::ParseObj(int nX, int nY, int nSize, int nObjIndex
+void Mir2xMap::ParseObj(int nX, int nY, int nSize, int nObjIndex
         uint8_t *pMark, long &nMarkOff, uint8_t *pData, long &nDataOff)
 {
     // 1: there is data in current grid
@@ -270,12 +266,12 @@ void ClientMap::ParseObj(int nX, int nY, int nSize, int nObjIndex
 }
 
 
-void ClientMap::SetOneObjLayer(int nX, int nY, int nObjIndex, bool bWallLayer)
+void Mir2xMap::SetOneObjLayer(int nX, int nY, int nObjIndex, bool bWallLayer)
 {
     CellDesc(nX, nY).Desc |= ((1 << 1) + (bWallLayer ? 1 : 0)) << (2 * (nObjIndex % 2) + 8);
 }
 
-void ClientMap::SetOneObj(int nX, int nY, int nObjIndex,
+void Mir2xMap::SetOneObj(int nX, int nY, int nObjIndex,
         uint8_t *pMark, long &nMarkOff, uint8_t *pData, long &nDataOff)
 {
     CellDesc(nX, nY).Obj[nObjIndex].Desc       = pData[nDataOff++];
@@ -286,7 +282,7 @@ void ClientMap::SetOneObj(int nX, int nY, int nObjIndex,
     SetObjLayer(nX, nY, nObjIndex, PickOneBit(pMark, nMarkOff++));
 }
 
-void ClientMap::SetObj(int nX, int nY, int nSize, int nObjIndex,
+void Mir2xMap::SetObj(int nX, int nY, int nSize, int nObjIndex,
         uint8_t *pMark, long &nMarkOff, uint8_t *pData, long &nDataOff)
 {
     // full-fill current grid defined by parameters
@@ -298,7 +294,7 @@ void ClientMap::SetObj(int nX, int nY, int nSize, int nObjIndex,
     }
 }
 
-void ClientMap::ParseLight(int nX, int nY, int nSize,
+void Mir2xMap::ParseLight(int nX, int nY, int nSize,
         uint8_t *pMark, long &nMarkOff, uint8_t *pData, long &nDataOff)
 {
     // 1: there is data in current grid
@@ -332,13 +328,13 @@ void ClientMap::ParseLight(int nX, int nY, int nSize,
     }
 }
 
-void ClientMap::ParseGroundInfoStream(int nX, int nY, int nSize,
+void Mir2xMap::ParseGroundInfoStream(int nX, int nY, int nSize,
         uint32_t *pU32BitStream,  uint32_t &nU32BitStreamOff,
         uint32_t *pU32GroundInfo, uint32_t &nU32GroundInfoOff)
 {
     // when getting inside, offset is at current position
     // when exited, offset is at next valid position
-    if(BitPickOne(pU32BitStream, nU32BitStreamOff++) == 0){
+    if(PickOneBit(pU32BitStream, nU32BitStreamOff++) == 0){
         // here use 1 bit for null block
         // saving bits, since we assume most of them are null block
 
@@ -347,7 +343,7 @@ void ClientMap::ParseGroundInfoStream(int nX, int nY, int nSize,
     }else{
         // have something
         // maybe unique but walkable, or combined
-        if(BitPickOne(pU32BitStream, nU32BitStreamOff++) == 0){
+        if(PickOneBit(pU32BitStream, nU32BitStreamOff++) == 0){
             // unique, walkable
             SetGroundInfoBlock(nX, nY, nSize,
                     pU32GroundInfo[nU32GroundInfoOff++]);
@@ -355,7 +351,7 @@ void ClientMap::ParseGroundInfoStream(int nX, int nY, int nSize,
             // combined
             if(nSize == 1){
                 for(int nCnt = 0; nCnt < 4; ++nCnt){
-                    if(BitPickOne(pU32BitStream, nU32BitStreamOff++)){
+                    if(PickOneBit(pU32BitStream, nU32BitStreamOff++)){
                         SetOneGroundInfoGrid(nX, nY, nCnt, 0XFFFFFFFF);
                     }else{
                         SetOneGroundInfoGrid(nX, nY, nCnt,
@@ -385,7 +381,7 @@ void ClientMap::ParseGroundInfoStream(int nX, int nY, int nSize,
 }
 
 
-void ClientMap::LoadLight(uint8_t *pLigthMark, uint8_t *pLightData)
+void Mir2xMap::LoadLight(uint8_t *pLigthMark, uint8_t *pLightData)
 {
     long nMarkOff = 0;
     long nByteOff = 0;
@@ -396,11 +392,11 @@ void ClientMap::LoadLight(uint8_t *pLigthMark, uint8_t *pLightData)
     }
 }
 
-void ClientMap::LoadWalk(uint8_t * pWalkData)
+void Mir2xMap::LoadWalk(uint8_t * pWalkData)
 {
 }
 
-void ClientMap::SetBaseTileBlock(
+void Mir2xMap::SetBaseTileBlock(
         int nX, int nY, int nSize, uint32_t nAttr)
 {
     for(int nY = nY; nY < nY + nSize; nY += 2){
@@ -410,14 +406,14 @@ void ClientMap::SetBaseTileBlock(
     }
 }
 
-void ClientMap::ParseBaseTileStream(int nX, int nY, int nSize,
+void Mir2xMap::ParseBaseTileStream(int nX, int nY, int nSize,
         uint32_t *pU32BitStream,    uint32_t &nU32BitStreamOff,
         uint32_t *pU32BaseTileInfo, uint32_t &nU32BaseTileInfoOff)
 {
     // when getting inside, offset is at current position
     // when exited, offset is at next valid position
 
-    if(BitPickOne(pU32BitStream, nU32BitStreamOff++) == 0){
+    if(PickOneBit(pU32BitStream, nU32BitStreamOff++) == 0){
         // no tile in this block, no matter whether nSize == 1 or not
         SetBaseTileBlock(nX, nY, nSize, 0XFFFFFFFF);
     }else{
@@ -446,7 +442,7 @@ void ClientMap::ParseBaseTileStream(int nX, int nY, int nSize,
     }
 }
 
-bool ClientMap::LoadBaseTileInfo(
+bool Mir2xMap::LoadBaseTileInfo(
         uint32_t *pU32BitStream,    uint32_t nU32BitStreamLen,
         uint32_t *pU32BaseTileInfo, uint32_t nU32BaseTileInfoLen)
 {
@@ -463,7 +459,7 @@ bool ClientMap::LoadBaseTileInfo(
     return true;
 }
 
-void ClientMap::SetCellDescBlock(
+void Mir2xMap::SetCellDescBlock(
         int nX, int nY, int nSize, const CELLDESC & stCellDesc)
 {
     for(int nY = nY; nY < nY + nSize; ++nY){
@@ -473,14 +469,14 @@ void ClientMap::SetCellDescBlock(
     }
 }
 
-void ClientMap::ParseCellDescStream(int nX, int nY, int nSize,
+void Mir2xMap::ParseCellDescStream(int nX, int nY, int nSize,
         uint32_t *pU32BitStream, uint32_t &nU32BitStreamOff,
         CELLDESC *pCellDesc, uint32_t &nCellDescOff)
 {
     // when getting inside, offset is at current position
     // when exited, offset is at next valid position
 
-    if(BitPickOne(pU32BitStream, nU32BitStreamOff++) == 0){
+    if(PickOneBit(pU32BitStream, nU32BitStreamOff++) == 0){
         // no object in this block, no matter whether nSize == 1 or not
         SetCellDescBlock(nX, nY, nSize, {
                 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF});
@@ -510,7 +506,7 @@ void ClientMap::ParseCellDescStream(int nX, int nY, int nSize,
     }
 }
 
-bool ClientMap::LoadCellDesc(
+bool Mir2xMap::LoadCellDesc(
         uint32_t *pU32BitStream, uint32_t nU32BitStreamLen,
         CELLDESC *pCellDesc,     uint32_t nCellDescLen)
 {
@@ -527,18 +523,13 @@ bool ClientMap::LoadCellDesc(
     return true;
 }
 
-bool ClientMap::ValidPosition(int nX, int nY, Monster *pMonster)
-{
-    return true;
-}
-
-uint32_t ClientMap::BaseTileInfo(int nX, int nY)
+uint32_t Mir2xMap::BaseTileInfo(int nX, int nY)
 {
     return m_BaseTileInfo[(nX / 2) + (nY / 2) * (m_W / 2)];
 }
 
 
-void ClientMap::DrawBaseTile(
+void Mir2xMap::DrawBaseTile(
         int nStartCellX, int nStartCellY,
         int nStopCellX,  int nStopCellY)
 {
@@ -564,39 +555,32 @@ void ClientMap::DrawBaseTile(
     }
 }
 
-bool ClientMap::Overlap(const DirectiveRectCover &stDRC)
+bool Mir2xMap::Overlap(int nX, int nY, int nR)
 {
-    Triangle stTri1(
-            stDRC.Point(0).first, stDRC.Point(0).second,
-            stDRC.Point(1).first, stDRC.Point(1).second,
-            stDRC.Point(2).first, stDRC.Point(2).second);
-    Triangle stTri2(
-            stDRC.Point(0).first, stDRC.Point(0).second,
-            stDRC.Point(3).first, stDRC.Point(3).second,
-            stDRC.Point(2).first, stDRC.Point(2).second);
-    return Overlap(stTri1) || Overlap(stTri2);
-}
+    if(ValidP(nX, nY) && nR > 0){
+    }
 
-bool ClientMap::Overlap(const Triangle &stTri)
-{
-    double fMinX = stTri.MinX();
-    double fMinY = stTri.MinY();
-    double fMaxX = stTri.MaxX();
-    double fMaxY = stTri.MaxY();
+    int nMinX = nX - nR;
+    int nMinY = nY - nR;
+    int nMaxX = nX + nR;
+    int nMaxY = nY + nR;
 
-    int nCellStartX = (int)(std::lround(fMinX) / 48);
-    int nCellStartY = (int)(std::lround(fMinY) / 32);
-    int nCellStopX  = (int)(std::lround(fMaxX) / 48);
-    int nCellStopY  = (int)(std::lround(fMaxY) / 32);
+    int nCellStartX = nMinX / 48;
+    int nCellStartY = nMinY / 32;
+    int nCellStopX  = nMaxX / 32;
+    int nCellStopY  = nMaxY / 32;
 
-    for(int nX = nCellStartX; nX <= nCellStopX; ++nX){
-        for(int nY = nCellStartY; nY <= nCellStopY; ++nY){
-            double fX[4] = {(nX + 0) * 48.0, (nX + 1) * 48.0, (nX + 1) * 48.0, (nX + 0) * 48.0};
-            double fY[4] = {(nY + 0) * 32.0, (nY + 0) * 32.0, (nY + 1) * 32.0, (nY + 1) * 32.0};
-            double fMidX = (nX + 0.5) * 48.0;
-            double fMidY = (nY + 0.5) * 48.0;
+    for(int nCellX = nCellStartX; nCellX <= nCellStopX; ++nCellX){
+        for(int nCellY = nCellStartY; nCellY <= nCellStopY; ++nCellY){
+            int nBdX[4] = {(nCellX + 0) * 48, (nCellX + 1) * 48, (nCellX + 1) * 48, (nCellX + 0) * 48};
+            int nBdY[4] = {(nCellY + 0) * 32, (nCellY + 0) * 32, (nCellY + 1) * 32, (nCellY + 1) * 32};
+            int nMidX = nX * 48 + 24;
+            int nMidY = nY * 32 + 16;
 
             for(int nIndex = 0; nIndex < 4; ++nIndex){
+                if(!CanWalk(nCellX, nCellY, nIndex) && InCircle()){
+
+                }
                 if(m_GroundInfo[(nX + nY * m_W) * 4 + nIndex] == 0XFFFFFFFF){
                     if(stTri.Overlap(Triangle(fMidX, fMidY, fX[nIndex], fY[nIndex],
                                     fX[(nIndex + 1) % 4], fY[(nIndex + 1) % 4]))){
@@ -609,7 +593,7 @@ bool ClientMap::Overlap(const Triangle &stTri)
     return false;
 }
 
-void ClientMap::DrawObject(
+void Mir2xMap::DrawObject(
         int nStartCellX, int nStartCellY,
         int nStopCellX,  int nStopCellY,
         std::function<bool(int, int)> fnCheckFunc,
@@ -685,7 +669,7 @@ __Mir2ClientMap_DrawObject_ExtDrawFunc: ;
     }
 }
 
-void ClientMap::DrawGroundObject(
+void Mir2xMap::DrawGroundObject(
         int nStartCellX, int nStartCellY,
         int nStopCellX,  int nStopCellY)
 {
@@ -696,7 +680,7 @@ void ClientMap::DrawGroundObject(
     DrawObject(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnCheckFunc, fnExtDrawFunc);
 }
 
-void ClientMap::DrawOverGroundObject(
+void Mir2xMap::DrawOverGroundObject(
         int nStartCellX, int nStartCellY,
         int nStopCellX,  int nStopCellY, 
         std::function<void(int, int)> fnExtDrawFunc)
@@ -707,7 +691,7 @@ void ClientMap::DrawOverGroundObject(
     DrawObject(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnCheckFunc, fnExtDrawFunc);
 }
 
-uint32_t ClientMap::GetDoorImageIndex(int nX, int nY)
+uint32_t Mir2xMap::GetDoorImageIndex(int nX, int nY)
 {
     uint32_t  nDoorIndex = 0;
     auto     &stCellDesc = m_CellDesc[nX + nY * m_W];
@@ -718,28 +702,28 @@ uint32_t ClientMap::GetDoorImageIndex(int nX, int nY)
     return nDoorIndex;
 }
 
-void ClientMap::SetViewPoint(int nX, int nY)
+void Mir2xMap::SetViewPoint(int nX, int nY)
 {
     m_ViewX = nX;
     m_ViewY = nY;
 }
 
-int ClientMap::ViewX()
+int Mir2xMap::ViewX()
 {
     return m_ViewX;
 }
 
-int ClientMap::ViewY()
+int Mir2xMap::ViewY()
 {
     return m_ViewY;
 }
 
-bool ClientMap::ValidPosition()
+bool Mir2xMap::ValidPosition()
 {
 
 }
 
-void ClientMap::LoadHead(uint8_t * &pData)
+void Mir2xMap::LoadHead(uint8_t * &pData)
 {
     m_W = *((uint16_t *)pData); pData += 2;
     m_H = *((uint16_t *)pData); pData += 2;
@@ -748,7 +732,7 @@ void ClientMap::LoadHead(uint8_t * &pData)
     m_CellDesc = new CELLDESC[m_W * m_H    ];
 }
 
-void ClientMap::LoadWalk(uint8_t * &pData)
+void Mir2xMap::LoadWalk(uint8_t * &pData)
 {
     long nBitOff = 0;
     for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
@@ -759,7 +743,7 @@ void ClientMap::LoadWalk(uint8_t * &pData)
     pData += (4 + *((uint32_t *)pData));
 }
 
-void ClientMap::LoadLight(uint8_t * &pData)
+void Mir2xMap::LoadLight(uint8_t * &pData)
 {
     uint32_t nMarkLen = *((uint32_t *)(pData + 0));
     uint32_t nDataLen = *((uint32_t *)(pData + 4 + nMarkLen));
@@ -774,7 +758,7 @@ void ClientMap::LoadLight(uint8_t * &pData)
     pData += (8 + nMarkLen + nDataLen);
 }
 
-void ClientMap::LoadObj(uint8_t * &pData, int nObjIndex)
+void Mir2xMap::LoadObj(uint8_t * &pData, int nObjIndex)
 {
     uint32_t nMarkLen = *((uint32_t *)(pData + 0));
     uint32_t nDataLen = *((uint32_t *)(pData + 4 + nMarkLen));
