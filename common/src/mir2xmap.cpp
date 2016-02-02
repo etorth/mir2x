@@ -1,11 +1,11 @@
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <memory.h>
 #include <cstring>
 #include <cstdint>
 #include <algorithm>
 #include <vector>
 #include "triangle.hpp"
-#include "mir2clientmap.hpp"
+#include "mir2xmap.hpp"
 #include "devicemanager.hpp"
 #include "texturemanager.hpp"
 #include "directiverectcover.hpp"

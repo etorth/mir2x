@@ -13,6 +13,7 @@ ELSE()
         MESSAGE(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 ENDIF()
 
-SET(COMMON_SRC common/src)
+SET(COMMON_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/common/src)
 
 ADD_SUBDIRECTORY(tools)
+ADD_SUBDIRECTORY(common)
