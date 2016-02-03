@@ -5,6 +5,7 @@
 #include <vector>
 #include "triangle.hpp"
 #include "mir2xmap.hpp"
+#include "mathfunc.hpp"
 
 Mir2xMap::Mir2xMap()
     : m_GroundInfo(nullptr)
@@ -529,6 +530,71 @@ uint32_t Mir2xMap::BaseTileInfo(int nX, int nY)
 }
 
 
+void Mir2Map::DrawGround(int nViewX, int nViewY, int nViewW, int nViewH,
+        std::function<void(int, int, uint32_t, int, int)> fnDrawFunc)
+{
+    int nStartCellX = nViewX / 96;
+    int nStartCellY = nViewY / 64;
+
+    int nStopCellX = (nViewX + nViewW) / 96;
+    int nStopCellY = (nViewY + nViewH) / 64;
+
+    for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
+        for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
+            if(!(nCellY % 2) && !(nCellX % 2) && TileValid(nCellX, nCellY)){
+                fnDrawFunc(nCellX * 48, nCellY * 32, TileKey(nCellX, nCellY), 96, 64);
+            }
+        }
+    }
+}
+
+void Mir2Map::DrawGroundObj(int nViewX, int nViewY, int nViewW, int nViewH, int nMaxObjH,
+        std::function<void(int, int, uint32_t, int, int)> fnDrawFunc)
+{
+    int nStartCellX = nViewX / 96;
+    int nStartCellY = nViewY / 64;
+
+    int nStopCellX = (nViewX + nViewW) / 96;
+    int nStopCellY = (nViewY + nViewH) / 64;
+
+    for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
+        for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
+            if(CellObjOverGround(nCellX, nCellY, 0)){
+                uint32_t nKey = nCellX, nCellY, 0CellObjKey(nCellX, nCellY, 0);
+                int nStartX = fnTexStartX(nkey);
+                int nStartY = fnTexStartY(nKey);
+
+                fnDrawFunc()
+            }
+            if(ValidGroundObj(nCellX, nCellY, 1)){
+                CellObjKey(nCellX, nCellY, )
+                int nStartX = fnTexStartX()
+                fnDrawFunc(nCellX * 48, nCellY * 32, TileKey(nCellX, nCellY), 96, 64);
+            }
+        }
+    }
+}
+
+void Mir2Map::DrawGroundObj
+
+void Mir2xMap::Draw(
+        int nView, int nViewY, int nViewW, int nViewH,      //
+        int nMaxObjH,                                       // 
+        )
+{
+    DrawGround(nView, nViewY, nViewW, nViewH, fnDrawFunc);
+
+    DrawGroundObj(nView, nViewY, nViewW, nViewH, fnDrawFunc);
+
+
+
+
+    void Mir2Map::DrawGroundObj(int nViewX, int nViewY, int nViewW, int nViewH,
+            std::function<void(int, int, uint32_t, int, int)> fnDrawFunc)
+}
+
+
+
 void Mir2xMap::DrawBaseTile(
         int nStartCellX, int nStartCellY,
         int nStopCellX,  int nStopCellY)
@@ -555,7 +621,7 @@ void Mir2xMap::DrawBaseTile(
     }
 }
 
-bool Mir2xMap::Overlap(int nX, int nY, int nR)
+bool Mir2xMap::Overlap(int nX, int nY, int nCX, int nCY, int nR)
 {
     if(ValidP(nX, nY) && nR > 0){
     }
@@ -578,96 +644,96 @@ bool Mir2xMap::Overlap(int nX, int nY, int nR)
             int nMidY = nY * 32 + 16;
 
             for(int nIndex = 0; nIndex < 4; ++nIndex){
-                if(!CanWalk(nCellX, nCellY, nIndex) && InCircle()){
-
-                }
-                if(m_GroundInfo[(nX + nY * m_W) * 4 + nIndex] == 0XFFFFFFFF){
-                    if(stTri.Overlap(Triangle(fMidX, fMidY, fX[nIndex], fY[nIndex],
+                if(!CanWalk(nCellX, nCellY, nIndex) && (PointInCircle(nBdX[nIndex], nBdY[nIndex], nBdX[(nIndex + 1) % 4], nBdy[(nIndex + 1) % 4], nCX, nCY, nR)){
+                        return false;
+                        }
+                        if(m_GroundInfo[(nX + nY * m_W) * 4 + nIndex] == 0XFFFFFFFF){
+                        if(stTri.Overlap(Triangle(fMidX, fMidY, fX[nIndex], fY[nIndex],
                                     fX[(nIndex + 1) % 4], fY[(nIndex + 1) % 4]))){
                         return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
-}
-
-void Mir2xMap::DrawObject(
-        int nStartCellX, int nStartCellY,
-        int nStopCellX,  int nStopCellY,
-        std::function<bool(int, int)> fnCheckFunc,
-        std::function<void(int, int)> fnExtDrawFunc)
-{
-    if(m_Valid){
-        for(int nYCnt = nStartCellY; nYCnt <= nStopCellY; ++nYCnt){
-            for(int nXCnt = nStartCellX; nXCnt <= nStopCellX; ++nXCnt){
-                auto &stCellDesc = m_CellDesc[nXCnt + nYCnt * m_W];
-                if(true
-                        && stCellDesc.dwDesc    == 0XFFFFFFFF
-                        && stCellDesc.dwObject1 == 0XFFFFFFFF
-                        && stCellDesc.dwObject2 == 0XFFFFFFFF
-                        && stCellDesc.dwLight   == 0XFFFFFFFF
-                  ){
-                    goto __Mir2ClientMap_DrawObject_ExtDrawFunc;
-                    // continue;
-                }
-
-                uint32_t nPrecodeV[2] = {
-                    (((stCellDesc.dwObject1 & 0XFC000000) >> 26)),
-                    (((stCellDesc.dwObject2 & 0XFC000000) >> 26))};
-                uint32_t nFileIndexV[2] = {
-                    (((stCellDesc.dwObject1 & 0X03FF0000) >> 16)),
-                    (((stCellDesc.dwObject2 & 0X03FF0000) >> 16))};
-                uint32_t nImageIndexV[2] = {
-                    (((stCellDesc.dwObject1 & 0X0000FFFF))),
-                    (((stCellDesc.dwObject2 & 0X0000FFFF)))};
-                uint32_t nObjectDescV[2] = {
-                    (((stCellDesc.dwDesc & 0X000000FF))),
-                    (((stCellDesc.dwDesc & 0X0000FF00) >> 8))};
-
-                for(int nIndex = 0; nIndex < 2; ++nIndex){
-                    uint32_t nPrecode    = nPrecodeV[nIndex];
-                    uint32_t nFileIndex  = nFileIndexV[nIndex];
-                    uint32_t nImageIndex = nImageIndexV[nIndex];
-                    uint32_t nObjectDesc = nObjectDescV[nIndex];
-
-                    if(nFileIndex != 255 && nImageIndex != 65535){
-                        nImageIndex += GetDoorImageIndex(nXCnt, nYCnt);
-                        if(nObjectDesc != 255){
-                            uint8_t bTickType = (nObjectDesc & 0X70) >> 4;
-                            int16_t shAniCnt  = (nObjectDesc & 0X0F);
-
-                            nImageIndex += m_bAniTileFrame[bTickType][shAniCnt];
+                        }
+                        }
+                        }
+                        }
+                        }
+                        return false;
                         }
 
-                        SDL_Texture *pTexture = 
-                            GetTextureManager()->RetrieveTexture(nPrecode, nFileIndex, nImageIndex);
+                        void Mir2xMap::DrawObject(
+                            int nStartCellX, int nStartCellY,
+                            int nStopCellX,  int nStopCellY,
+                            std::function<bool(int, int)> fnCheckFunc,
+                            std::function<void(int, int)> fnExtDrawFunc)
+                        {
+                            if(m_Valid){
+                                for(int nYCnt = nStartCellY; nYCnt <= nStopCellY; ++nYCnt){
+                                    for(int nXCnt = nStartCellX; nXCnt <= nStopCellX; ++nXCnt){
+                                        auto &stCellDesc = m_CellDesc[nXCnt + nYCnt * m_W];
+                                        if(true
+                                                && stCellDesc.dwDesc    == 0XFFFFFFFF
+                                                && stCellDesc.dwObject1 == 0XFFFFFFFF
+                                                && stCellDesc.dwObject2 == 0XFFFFFFFF
+                                                && stCellDesc.dwLight   == 0XFFFFFFFF
+                                          ){
+                                            goto __Mir2ClientMap_DrawObject_ExtDrawFunc;
+                                            // continue;
+                                        }
 
-                        { // internal draw
-                            int nW, nH;
-                            SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH);
-                            if(fnCheckFunc && !fnCheckFunc(nW, nH)){
-                                goto __Mir2ClientMap_DrawObject_ExtDrawFunc;
-                                // continue;
-                            }
+                                        uint32_t nPrecodeV[2] = {
+                                            (((stCellDesc.dwObject1 & 0XFC000000) >> 26)),
+                                            (((stCellDesc.dwObject2 & 0XFC000000) >> 26))};
+                                        uint32_t nFileIndexV[2] = {
+                                            (((stCellDesc.dwObject1 & 0X03FF0000) >> 16)),
+                                            (((stCellDesc.dwObject2 & 0X03FF0000) >> 16))};
+                                        uint32_t nImageIndexV[2] = {
+                                            (((stCellDesc.dwObject1 & 0X0000FFFF))),
+                                            (((stCellDesc.dwObject2 & 0X0000FFFF)))};
+                                        uint32_t nObjectDescV[2] = {
+                                            (((stCellDesc.dwDesc & 0X000000FF))),
+                                            (((stCellDesc.dwDesc & 0X0000FF00) >> 8))};
 
-                            SDL_Rect stDst = {
-                                nXCnt * 48 - m_ViewX, nYCnt * 32 + 32 - nH - m_ViewY, nW, nH};
-                            SDL_RenderCopy(
-                                    GetDeviceManager()->GetRenderer(), pTexture, nullptr, &stDst);
-                        }
+                                        for(int nIndex = 0; nIndex < 2; ++nIndex){
+                                            uint32_t nPrecode    = nPrecodeV[nIndex];
+                                            uint32_t nFileIndex  = nFileIndexV[nIndex];
+                                            uint32_t nImageIndex = nImageIndexV[nIndex];
+                                            uint32_t nObjectDesc = nObjectDescV[nIndex];
 
-                    }
-                }
+                                            if(nFileIndex != 255 && nImageIndex != 65535){
+                                                nImageIndex += GetDoorImageIndex(nXCnt, nYCnt);
+                                                if(nObjectDesc != 255){
+                                                    uint8_t bTickType = (nObjectDesc & 0X70) >> 4;
+                                                    int16_t shAniCnt  = (nObjectDesc & 0X0F);
+
+                                                    nImageIndex += m_bAniTileFrame[bTickType][shAniCnt];
+                                                }
+
+                                                SDL_Texture *pTexture = 
+                                                    GetTextureManager()->RetrieveTexture(nPrecode, nFileIndex, nImageIndex);
+
+                                                { // internal draw
+                                                    int nW, nH;
+                                                    SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH);
+                                                    if(fnCheckFunc && !fnCheckFunc(nW, nH)){
+                                                        goto __Mir2ClientMap_DrawObject_ExtDrawFunc;
+                                                        // continue;
+                                                    }
+
+                                                    SDL_Rect stDst = {
+                                                        nXCnt * 48 - m_ViewX, nYCnt * 32 + 32 - nH - m_ViewY, nW, nH};
+                                                    SDL_RenderCopy(
+                                                            GetDeviceManager()->GetRenderer(), pTexture, nullptr, &stDst);
+                                                }
+
+                                            }
+                                        }
 __Mir2ClientMap_DrawObject_ExtDrawFunc: ;
                                         if(fnExtDrawFunc){
                                             fnExtDrawFunc(nXCnt, nYCnt);
                                         }
-            }
-        }
-    }
-}
+                                    }
+                                }
+                            }
+                        }
 
 void Mir2xMap::DrawGroundObject(
         int nStartCellX, int nStartCellY,

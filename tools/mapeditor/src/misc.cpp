@@ -3,7 +3,7 @@
  *
  *       Filename: misc.cpp
  *        Created: 7/24/2015 7:20:18 PM
- *  Last Modified: 01/31/2016 23:42:42
+ *  Last Modified: 02/02/2016 22:01:46
  *
  *    Description: 
  *
@@ -176,29 +176,6 @@ bool FileExist(const char *szFileName)
         ;
 }
 
-bool PointInSegment(int nX, int nStartX, int nW)
-{
-    return nX >= nStartX && nX < nStartX + nW;
-}
-
-bool PointInRect(int nX, int nY, int nStartX, int nStartY, int nW, int nH)
-{
-    return PointInSegment(nX, nStartX, nW) && PointInSegment(nY, nStartY, nH);
-}
-
-bool PointInTriangle(double fX, double fY,
-        double fX1, double fY1, double fX2, double fY2, double fX3, double fY3)
-{
-    auto bSign = [](double p1X, double p1Y, double p2X, double p2Y, double p3X, double p3Y){
-        return (p1X - p3X) * (p2Y - p3Y) - (p2X - p3X) * (p1Y - p3Y);
-    };
-
-    bool b1 = bSign(fX, fY, fX1, fY1, fX2, fY2) < 0.0f;
-    bool b2 = bSign(fX, fY, fX2, fY2, fX3, fY3) < 0.0f;
-    bool b3 = bSign(fX, fY, fX3, fY3, fX1, fY1) < 0.0f;
-
-    return ((b1 == b2) && (b2 == b3));
-}
 
 // SDL_Texture *LoadSDLTextureFromFile(const char * szFileFullName, SDL_Renderer * pRenderer)
 // {

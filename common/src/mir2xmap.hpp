@@ -2,85 +2,60 @@
 #include <cstdint>
 #include <functional>
 
-typedef struct{
-    uint8_t     Desc;
-    uint8_t     FileIndex;
-    uint16_t    ImageIndex;
-}TILEDESC;
-
-typedef struct{
-    uint8_t     Desc;           // animation or not
-    uint8_t     FileIndex;  
-    uint16_t    ImageIndex;
-}OBJDESC;
-
-typedef struct{
-    uint8_t     Desc;
-    OBJDESC     Obj[2];
-    uint16_t    Light;
-}CELLDESC;
-
-// #pragma pack(push, 1)
-// typedef struct{
-//     uint8_t  Desc;
-//     uint8_t  Light;
-//     uint32_t Obj1;
-//     uint32_t Obj2;
-// }CELLDESC;
-//
-// typedef struct{
-//     uint8_t  FileIndex;
-//     uint16_t ImageIndex;
-// }TILEDESC;
-// #pragma pack(pop)
-
 class Mir2xMap
 {
+    private:
+        typedef struct
+        {
+            uint8_t     Desc;
+            uint8_t     FileIndex;
+            uint16_t    ImageIndex;
+        }TILEDESC;
+
+        typedef struct
+        {
+            uint8_t     Desc;
+            uint8_t     FileIndex;  
+            uint16_t    ImageIndex;
+        }OBJDESC;
+
+        typedef struct
+        {
+            uint8_t     Desc;
+            OBJDESC     Obj[2];
+            uint16_t    Light;
+        }CELLDESC;
+
     public:
         Mir2xMap();
         ~Mir2xMap();
 
     public:
-        bool Valid();
         int  W();
         int  H();
-        int  ViewX();
-        int  ViewY();
 
     public:
-        bool NewLoadMap(const char *);
+        bool Load(const char *);
 
     private:
-        uint32_t   *m_BaseTileInfo;
-        uint32_t   *m_GroundInfo;
+        TILEDESC   *m_TileDesc;
         CELLDESC   *m_CellDesc;
 
     private:
-        bool        m_Valid;
         uint16_t    m_W;
         uint16_t    m_H;
-        int         m_ViewX;
-        int         m_ViewY;
 
     private:
         uint32_t    m_dwAniSaveTime[8];
         uint8_t     m_bAniTileFrame[8][16];
 
     private:
-        bool LoadGroundInfo(uint32_t *, uint32_t, uint32_t *, uint32_t);
-        void SetOneGroundInfoGrid(int, int, int, uint32_t);
-        void SetGroundInfoBlock(int, int, int, uint32_t);
-        void ParseGroundInfoStream(int, int, int, uint32_t *, uint32_t &, uint32_t *, uint32_t &);
-
-    private:
-        bool LoadCellDesc(uint32_t *, uint32_t, CELLDESC *, uint32_t);
-        void SetCellDescBlock(int, int, int, const CELLDESC &);
-        void ParseCellDescStream(int, int, int, uint32_t *, uint32_t &, CELLDESC *, uint32_t &);
-
-    private:
-        void SetBaseTileBlock(int, int, int, uint32_t);
-        bool LoadBaseTileInfo(uint32_t *, uint32_t, uint32_t *, uint32_t);
-        void ParseBaseTileStream(int, int, int, uint32_t *, uint32_t &, uint32_t *, uint32_t &);
+        bool LoadHead(uint8_t *);
+        bool LoadWalk(uint8_t *);
+        bool LoadLight(uint8_t *);
+        bool LoadTile(uint8_t *);
+        bool LoadObj1(uint8_t *);
+        bool LoadObj2(uint8_t *);
 
     public:
         void DrawBaseTile(int, int, int, int);
@@ -105,20 +80,27 @@ class Mir2xMap
 
 
     private:
-        TILEDESC &Mir2xMap::TileDesc(int nX, int nY)
+        inline TILEDESC &TileDesc(int nX, int nY)
         {
             return m_TileDesc[nX / 2 + nY / 2 * m_H / 2];
         }
 
-        CELLDESC &Mir2xMap::CellDesc(int nX, int nY)
+        inline CELLDESC &CellDesc(int nX, int nY)
         {
             return m_TileDesc[nX + nY * m_H ];
         }
 
     private:
+        inline bool ValidP(int nX, int nY)
+        {
+            return nX >= 0 && nX < m_W && nY >= 0 && nY < m_H;
+        }
+
+    private:
+        void DrawGround();
+
+    private:
         void DrawObject(int, int, int, int,
                 std::function<bool(int, int)>,
                 std::function<void(int, int)>);
-    private:
-        uint32_t BaseTileInfo(int, int);
 };
