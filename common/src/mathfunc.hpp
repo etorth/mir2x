@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 02/02/2016 22:20:08
+ *  Last Modified: 02/03/2016 21:09:54
  *
  *    Description: 
  *
@@ -23,7 +23,7 @@
 template<typename T> bool PointInSegment(T nfX, T nfStartX, T nfW)
 {
     static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
-    return nfX >= nStartX && nfX < nStartX + nfW;
+    return nfX >= nfStartX && nfX < nfStartX + nfW;
 }
 
 template<typename T> bool PointInRect(T nfX, T nfY, T nStartX, T nStartY, T nfW, T nfH)
@@ -31,7 +31,7 @@ template<typename T> bool PointInRect(T nfX, T nfY, T nStartX, T nStartY, T nfW,
     return PointInSegment(nfX, nStartX, nfW) && PointInSegment(nfY, nStartY, nfH);
 }
 
-bool PointInTriangle(T nfX, T nfY, T nfX1, T nfY1, T nfX2, T nfY2, T nfX3, T nfY3)
+template<typename T> bool PointInTriangle(T nfX, T nfY, T nfX1, T nfY1, T nfX2, T nfY2, T nfX3, T nfY3)
 {
     static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
 
@@ -46,7 +46,7 @@ bool PointInTriangle(T nfX, T nfY, T nfX1, T nfY1, T nfX2, T nfY2, T nfX3, T nfY
     return ((b1 == b2) && (b2 == b3));
 }
 
-template<typename T, true> bool PointInCircle(T nfX, T nfY, T nfCX, T nfCY, T nfR)
+template<typename T> bool PointInCircle(T nfX, T nfY, T nfCX, T nfCY, T nfR)
 {
     static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
     T dX = nfX - nfCX;

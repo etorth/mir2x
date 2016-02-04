@@ -21,7 +21,7 @@ class Mir2xMap
 
         typedef struct
         {
-            uint8_t     Desc;
+            uint16_t    Desc;
             OBJDESC     Obj[2];
             uint16_t    Light;
         }CELLDESC;
@@ -31,8 +31,14 @@ class Mir2xMap
         ~Mir2xMap();
 
     public:
-        int  W();
-        int  H();
+        int W()
+        {
+            return m_W;
+        }
+        int H()
+        {
+            return m_H;
+        }
 
     public:
         bool Load(const char *);
@@ -50,12 +56,12 @@ class Mir2xMap
         uint8_t     m_bAniTileFrame[8][16];
 
     private:
-        bool LoadHead(uint8_t *);
-        bool LoadWalk(uint8_t *);
-        bool LoadLight(uint8_t *);
-        bool LoadTile(uint8_t *);
-        bool LoadObj1(uint8_t *);
-        bool LoadObj2(uint8_t *);
+        bool LoadHead(uint8_t * &);
+        bool LoadWalk(uint8_t * &);
+        bool LoadLight(uint8_t *&);
+        bool LoadTile(uint8_t * &);
+        bool LoadObj1(uint8_t * &);
+        bool LoadObj2(uint8_t * &);
 
     public:
         void DrawBaseTile(int, int, int, int);
@@ -63,10 +69,9 @@ class Mir2xMap
         void DrawOverGroundObject(int, int, int, int, std::function<void(int, int)>);
 
     private:
-        template<typename T> bool PickOneBit(const T *pData, long nOffset)
+        bool PickOneBit(const uint8_t *pData, long nOffset)
         {
-            long nShift = sizeof(T) - (nOffset % sizeof(T));
-            return (((T)(pData[nOffset / sizeof(T)] & ((T)1) << nShift)) >> nShift) != 0;
+            return (pData[nOffset / 8] & (0X01 << (nOffset) % 8)) != 0;
         }
 
     public:
@@ -80,24 +85,40 @@ class Mir2xMap
 
 
     private:
-        inline TILEDESC &TileDesc(int nX, int nY)
+        TILEDESC &TileDesc(int nX, int nY)
         {
-            return m_TileDesc[nX / 2 + nY / 2 * m_H / 2];
+            return m_TileDesc[nX / 2 + nY / 2 * m_W / 2];
         }
 
-        inline CELLDESC &CellDesc(int nX, int nY)
+        CELLDESC &CellDesc(int nX, int nY)
         {
-            return m_TileDesc[nX + nY * m_H ];
+            return m_CellDesc[nX + nY * m_W];
         }
 
     private:
-        inline bool ValidP(int nX, int nY)
+        bool ValidP(int nX, int nY)
+        {
+            return nX >= 0 && nX < m_W * 48 && nY >= 0 && nY < m_H * 32;
+        }
+
+        bool ValidC(int nX, int nY)
         {
             return nX >= 0 && nX < m_W && nY >= 0 && nY < m_H;
         }
 
     private:
         void DrawGround();
+
+    private:
+        bool LoadObj(uint8_t * &, int);
+        void ParseObj(int, int, int, int, const uint8_t *, long &, const uint8_t *, long &);
+        void SetObj(int, int, int, int, const uint8_t *, long &, const uint8_t *, long &);
+        void SetOneObj(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
+        void SetOneObjMask(int, int, int, bool, bool);
+
+
+    private:
+        void ExtendBuf(long);
 
     private:
         void DrawObject(int, int, int, int,
