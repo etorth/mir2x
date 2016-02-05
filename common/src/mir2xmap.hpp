@@ -56,7 +56,6 @@ class Mir2xMap
         uint8_t     m_bAniTileFrame[8][16];
 
     private:
-        bool LoadTile(uint8_t * &);
         bool LoadObj1(uint8_t * &);
         bool LoadObj2(uint8_t * &);
 
@@ -113,10 +112,12 @@ class Mir2xMap
 
     private:
         bool LoadTile(uint8_t * &);
+        void ParseTile(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
+        void SetTile(int, int, int, const uint8_t *, long &);
 
     private:
         bool LoadLight(uint8_t * &);
-        void ParseLight(int, int, const uint8_t *, long &, const uint8_t *, long &);
+        void ParseLight(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
         void SetLight(int, int, int, const uint8_t *, long &);
 
 
