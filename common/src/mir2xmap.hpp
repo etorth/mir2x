@@ -56,9 +56,6 @@ class Mir2xMap
         uint8_t     m_bAniTileFrame[8][16];
 
     private:
-        bool LoadHead(uint8_t * &);
-        bool LoadWalk(uint8_t * &);
-        bool LoadLight(uint8_t *&);
         bool LoadTile(uint8_t * &);
         bool LoadObj1(uint8_t * &);
         bool LoadObj2(uint8_t * &);
@@ -108,6 +105,26 @@ class Mir2xMap
 
     private:
         void DrawGround();
+
+        uint8_t *m_Buf;
+
+    private:
+        bool LoadHead(uint8_t * &);
+
+    private:
+        bool LoadTile(uint8_t * &);
+
+    private:
+        bool LoadLight(uint8_t * &);
+        void ParseLight(int, int, const uint8_t *, long &, const uint8_t *, long &);
+        void SetLight(int, int, int, const uint8_t *, long &);
+
+
+    private:
+        bool LoadWalk(uint8_t * &);
+        void ParseWalk(int, int, const uint8_t *, long &);
+        void SetWalk(int, int, int, bool);
+        void SetOneWalk(int, int, int, bool);
 
     private:
         bool LoadObj(uint8_t * &, int);

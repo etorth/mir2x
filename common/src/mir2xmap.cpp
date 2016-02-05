@@ -8,8 +8,9 @@
 #include "mathfunc.hpp"
 
 Mir2xMap::Mir2xMap()
-    , m_TileDesc(nullptr)
+    : m_TileDesc(nullptr)
     , m_CellDesc(nullptr)
+    , m_Buf(nullptr)
     , m_W(0)
     , m_H(0)
 {}
@@ -82,7 +83,7 @@ void Mir2xMap::ParseWalk(int nX, int nY, int nSize, uint8_t *pMark, long &nMarkO
                     SetOneWalk(nX, nY, 0, PickOneBit(pData, nBitOff++));
                     SetOneWalk(nX, nY, 1, PickOneBit(pData, nBitOff++));
                     SetOneWalk(nX, nY, 2, PickOneBit(pData, nBitOff++));
-                    SetOneWalk(nX, nY, 3, PickOneBit(pData, nBitOff++));
+                    SetOneWalk(nX, nY, 3, PickOneBit(pData, nBitOff++));;
                 }else{
                     // it's not combined, and there is info, so it only can be all full-filled
                     SetWalk(nX, nY, 1, true);
@@ -589,5 +590,76 @@ void Mir2Map::ExtendBuf(long nSize)
         m_BufMaxSize = nSize;
     }else{
         m_BufSize = nSize;
+    }
+}
+
+void Mir2xMap::ParseTile(int nX, int nY, int nSize,
+        const uint8_t *pMark, long &nMarkOff, const uint8_t *pData, long &nDataOff)
+{
+    // 1: there is data in current grid
+    // 0: no
+    //
+    // 1: current grid is combined, means it's filled partically
+    // 0: no
+    //
+    // 1: lights in full-filled grid are of different attributes
+    // 0: no
+    if(ValidC(nX, nY)){
+        if(PickOneBit(pData, nBitOff++)){
+            // there is information in current grid
+            if(nSize == 1){
+                // last level of grid, and there is data, so fill it directly
+                SetLight(nX, nY, pData, nDataOff);
+            }else{
+                // not the last level of grid, and there is information in current gird
+                if(PickOneBit(pData, nBitOff++)){
+                    // there is data in current grid and it's combined, further parse it
+                    ParseLight(nX,             nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                    ParseLight(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                    ParseLight(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                    ParseLight(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                }else{
+                    // there is data and not combined, so full-filled the whole grid
+                    // ask one more bit for light, here we use recursively defined data stream
+                    // since most likely lights in full-filled grid are of the same attributes
+                    if(PickOneBit(pData, nBitOff++)){
+                        // full-filled grid with lights of different attributes
+                        // this rarely happens
+                        ParseLight(nX,             nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                        ParseLight(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                        ParseLight(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                        ParseLight(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                    }else{
+                        // full-filled grid with lights of the same attributes
+                        SetLight(nX, nY, nSize, pData, nDataOff);
+                    }
+                }
+            }
+        }else{
+            // no data here, always unset the desc field for the whole grid
+            SetLight(nX, nY, nSize, nullptr, nDataOff);
+        }
+    }
+}
+
+void Mir2xMap::LoadTile(uint8_t * &pData)
+{
+    uint32_t nMarkLen = *((uint32_t *)(pData + 0));
+    uint32_t nDataLen = *((uint32_t *)(pData + 4 + nMarkLen));
+
+    long nMarkOff = 0;
+    long nDataOff = 0;
+
+    for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
+        for(int nBlkX = 0; nBlkX < (m_W + 7) / 8; ++nBlkX){
+            ParseTile(nBlkX * 8, nBlkY * 8, 8, pData + 8, nMarkOff, pData + 8 + nMarkLen, nDataOff);
+        }
+    }
+
+    if(pData[8 + nMarkLen + nDataLen] != 0){
+        return false;
+    }else{
+        pData += (8 + nMarkLen + nDataLen + 1);
+        return true;
     }
 }
