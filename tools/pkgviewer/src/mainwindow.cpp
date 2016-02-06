@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <iostream>
 #include "wilimagepackage.hpp"
+#include "savepng.hpp"
 
 void MainWindow::cb_m_Window_i(Fl_Double_Window*, void*) {
   /*

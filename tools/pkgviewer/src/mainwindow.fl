@@ -14,6 +14,9 @@ decl {\#include <iostream>} {private local
 decl {\#include "wilimagepackage.hpp"} {private local
 } 
 
+decl {\#include "savepng.hpp"} {private local
+} 
+
 class MainWindow {open
 } {
   Function {MainWindow()} {open
