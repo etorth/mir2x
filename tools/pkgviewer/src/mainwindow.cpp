@@ -47,15 +47,17 @@ void MainWindow::cb_Open_i(Fl_Menu_*, void*) {
             	DeactivateAll();
                 // TODO: NO ERROR CHECKING HERE
                 g_FileFullName = fileChooser.filename();
+                std::replace(g_FileFullName.begin(), g_FileFullName.end(), '\\', '/');
+
                 std::string pathName, fileName, fileExt;
-                auto posF = g_FileFullName.find_last_of('\\');
+                auto posF = g_FileFullName.find_last_of('/');
                 auto posD = g_FileFullName.find_last_of('.');
 
                 pathName = g_FileFullName.substr(0, posF);
                 fileName = g_FileFullName.substr(posF + 1, posD - posF - 1);
                 fileExt  = g_FileFullName.substr(posD + 1);
 
-                std::replace(pathName.begin(), pathName.end(), '\\', '/');
+                // std::replace(pathName.begin(), pathName.end(), '\\', '/');
 
                 // std::cout << pathName << std::endl;
                 // std::cout << fileName << std::endl;
