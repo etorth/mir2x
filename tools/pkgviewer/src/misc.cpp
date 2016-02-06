@@ -3,7 +3,7 @@
  *
  *       Filename: misc.cpp
  *        Created: 7/24/2015 7:20:18 PM
- *  Last Modified: 07/25/2015 1:02:31 AM
+ *  Last Modified: 02/06/2016 03:48:40
  *
  *    Description: 
  *
@@ -62,7 +62,7 @@ bool SaveRGBABufferToPNG(const uint8_t *rgbaBuff, uint32_t nW, uint32_t nH, cons
 
     /* Initialize rows of PNG. */
     row_pointers =(png_byte **)png_malloc(png_ptr, nH * sizeof(png_byte *));
-    for(int y = 0; y < nH; ++y){
+    for(int y = 0; y < (int)nH; ++y){
         png_byte *row =(png_byte *)png_malloc(png_ptr, sizeof(uint8_t) * nW * nPixelSize);
         std::memcpy(row, rgbaBuff + nW * y * nPixelSize * sizeof(uint8_t), nW * nPixelSize * sizeof(uint8_t));
         row_pointers[y] = row;
@@ -76,7 +76,7 @@ bool SaveRGBABufferToPNG(const uint8_t *rgbaBuff, uint32_t nW, uint32_t nH, cons
 
     status = true;
 
-    for(int y = 0; y < nH; y++){
+    for(int y = 0; y < (int)nH; y++){
         png_free(png_ptr, row_pointers[y]);
     }
 

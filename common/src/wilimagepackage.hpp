@@ -42,13 +42,13 @@ class WilImagePackage
         WILIMAGEINFO    m_CurrentWilImageInfo;
 
     private:
-        FILE        *m_FP;
-        int32_t      m_ImageCount;
-        uint16_t    *m_CurrentImageBuffer;
-        int          m_CurrentImageBufferLength;
         uint32_t     m_CurrentImageIndex;
+        int32_t      m_ImageCount;
         bool         m_CurrentImageValid;
+        uint16_t    *m_CurrentImageBuffer;
+        uint32_t     m_CurrentImageBufferLength;
         int16_t      m_Version;
+        FILE        *m_FP;
 
     public:
         WilImagePackage();

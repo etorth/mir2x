@@ -10,12 +10,12 @@
 #include <vector>
 
 Mir2Map::Mir2Map()
-    : m_pstTileInfo(nullptr)
+    : m_Valid(false)
+    , m_pstTileInfo(nullptr)
     , m_pstCellInfo(nullptr)
-    , m_GroundInfo(nullptr)
     , m_BaseTileInfo(nullptr)
+    , m_GroundInfo(nullptr)
     , m_CellDesc(nullptr)
-    , m_Valid(false)
 {
     std::memset(&m_stMapFileHeader, 0, sizeof(MAPFILEHEADER));
     std::memset(m_bAniTileFrame, 0, sizeof(uint8_t) * 8 * 16);
@@ -59,7 +59,7 @@ bool Mir2Map::LoadMap(const char *szMapFileName)
         return false;
     }
 
-    int nMapLoadSize = m_stMapFileHeader.shWidth * m_stMapFileHeader.shHeight;
+    size_t nMapLoadSize = m_stMapFileHeader.shWidth * m_stMapFileHeader.shHeight;
 
     m_pstTileInfo = new TILEINFO[nMapLoadSize / 4];
     if(fread(m_pstTileInfo, sizeof(TILEINFO), nMapLoadSize / 4, hFile) != nMapLoadSize / 4){
@@ -422,13 +422,14 @@ void Mir2Map::ExtractOneObjectTile(std::function<void(uint32_t *, uint32_t, uint
                 uint32_t nFrameCount = 0;
 
                 if(nObjectDesc != 255){
-                    uint16_t bTickType = (nObjectDesc & 0X70) >> 4; // for ticks
+                    // here we don't use bTickType when decode PNG's
+                    // uint16_t bTickType = (nObjectDesc & 0X70) >> 4; // for ticks
                     uint16_t shAniCnt  = (nObjectDesc & 0X0F);      // for frame count
 
                     nFrameCount += shAniCnt;
                 }
 
-                for(int nFrame = 0; nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
+                for(int nFrame = 0; (uint32_t)nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
                     if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex + nFrame)
                             && m_pxTileImage[nFileIndex].CurrentImageValid()){
                         int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
@@ -454,13 +455,14 @@ void Mir2Map::ExtractOneObjectTile(std::function<void(uint32_t *, uint32_t, uint
                 uint32_t nFrameCount = 0;
 
                 if(nObjectDesc != 255){
-                    uint16_t bTickType = (nObjectDesc & 0X70) >> 4; // for ticks
+                    // didn't use bTickType when decoding PNG's
+                    // uint16_t bTickType = (nObjectDesc & 0X70) >> 4; // for ticks
                     uint16_t shAniCnt  = (nObjectDesc & 0X0F);      // for frame count
 
                     nFrameCount += shAniCnt;
                 }
 
-                for(int nFrame = 0; nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
+                for(int nFrame = 0; (uint32_t)nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
                     if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex + nFrame)
                             && m_pxTileImage[nFileIndex].CurrentImageValid()){
                         int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
@@ -492,13 +494,14 @@ void Mir2Map::ExtractOneObjectTile(std::function<void(uint32_t *, uint32_t, uint
                 uint32_t nFrameCount = 0;
 
                 if(m_pstCellInfo[nArrayNum].bObj1Ani != 255){
-                    uint16_t bTickType = (m_pstCellInfo[nArrayNum].bObj1Ani & 0X70) >> 4; // for ticks
+                    // didn't use bTickType for decoding
+                    // uint16_t bTickType = (m_pstCellInfo[nArrayNum].bObj1Ani & 0X70) >> 4; // for ticks
                     uint16_t shAniCnt  = (m_pstCellInfo[nArrayNum].bObj1Ani & 0X0F);        // for frame count
 
                     nFrameCount += shAniCnt;
                 }
 
-                for(int nFrame = 0; nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
+                for(int nFrame = 0; (uint32_t)nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
                     if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex + nFrame) && m_pxTileImage[nFileIndex].CurrentImageValid()){
                         int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
                         int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
@@ -520,13 +523,13 @@ void Mir2Map::ExtractOneObjectTile(std::function<void(uint32_t *, uint32_t, uint
                 uint32_t nFrameCount = 0;
 
                 if(m_pstCellInfo[nArrayNum].bObj2Ani != 255){
-                    uint16_t bTickType = (m_pstCellInfo[nArrayNum].bObj2Ani & 0X70) >> 4; // for ticks
+                    // uint16_t bTickType = (m_pstCellInfo[nArrayNum].bObj2Ani & 0X70) >> 4; // for ticks
                     uint16_t shAniCnt  = (m_pstCellInfo[nArrayNum].bObj2Ani & 0X0F);        // for frame count
 
                     nFrameCount += shAniCnt;
                 }
 
-                for(int nFrame = 0; nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
+                for(int nFrame = 0; (uint32_t)nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
                     if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex + nFrame) && m_pxTileImage[nFileIndex].CurrentImageValid()){
                         int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
                         int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
@@ -579,13 +582,13 @@ void Mir2Map::ExtractObjectTile(std::function<bool(uint32_t, uint32_t)> fnCheckE
                         uint32_t nFrameCount = 0;
 
                         if(nObjectDesc != 255){
-                            uint16_t bTickType = (nObjectDesc & 0X70) >> 4; // for ticks
+                            // uint16_t bTickType = (nObjectDesc & 0X70) >> 4; // for ticks
                             uint16_t shAniCnt  = (nObjectDesc & 0X0F);      // for frame count
 
                             nFrameCount += shAniCnt;
                         }
 
-                        for(int nFrame = 0; nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
+                        for(int nFrame = 0; (uint32_t)nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
                             if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex + nFrame)
                                     && m_pxTileImage[nFileIndex].CurrentImageValid()){
                                 int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
@@ -611,13 +614,13 @@ void Mir2Map::ExtractObjectTile(std::function<bool(uint32_t, uint32_t)> fnCheckE
                         uint32_t nFrameCount = 0;
 
                         if(nObjectDesc != 255){
-                            uint16_t bTickType = (nObjectDesc & 0X70) >> 4; // for ticks
+                            // uint16_t bTickType = (nObjectDesc & 0X70) >> 4; // for ticks
                             uint16_t shAniCnt  = (nObjectDesc & 0X0F);      // for frame count
 
                             nFrameCount += shAniCnt;
                         }
 
-                        for(int nFrame = 0; nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
+                        for(int nFrame = 0; (uint32_t)nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
                             if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex + nFrame)
                                     && m_pxTileImage[nFileIndex].CurrentImageValid()){
                                 int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
@@ -653,13 +656,13 @@ void Mir2Map::ExtractObjectTile(std::function<bool(uint32_t, uint32_t)> fnCheckE
                         uint32_t nFrameCount = 0;
 
                         if(m_pstCellInfo[nArrayNum].bObj1Ani != 255){
-                            uint16_t bTickType = (m_pstCellInfo[nArrayNum].bObj1Ani & 0X70) >> 4; // for ticks
+                            // uint16_t bTickType = (m_pstCellInfo[nArrayNum].bObj1Ani & 0X70) >> 4; // for ticks
                             uint16_t shAniCnt  = (m_pstCellInfo[nArrayNum].bObj1Ani & 0X0F);        // for frame count
 
                             nFrameCount += shAniCnt;
                         }
 
-                        for(int nFrame = 0; nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
+                        for(int nFrame = 0; (uint32_t)nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
                             if(fnCheckExistFunc(nFileIndex, nImageIndex + nFrame)){
                                 continue;
                             }
@@ -684,13 +687,13 @@ void Mir2Map::ExtractObjectTile(std::function<bool(uint32_t, uint32_t)> fnCheckE
                         uint32_t nFrameCount = 0;
 
                         if(m_pstCellInfo[nArrayNum].bObj2Ani != 255){
-                            uint16_t bTickType = (m_pstCellInfo[nArrayNum].bObj2Ani & 0X70) >> 4; // for ticks
+                            // uint16_t bTickType = (m_pstCellInfo[nArrayNum].bObj2Ani & 0X70) >> 4; // for ticks
                             uint16_t shAniCnt  = (m_pstCellInfo[nArrayNum].bObj2Ani & 0X0F);        // for frame count
 
                             nFrameCount += shAniCnt;
                         }
 
-                        for(int nFrame = 0; nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
+                        for(int nFrame = 0; (uint32_t)nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
                             if(fnCheckExistFunc(nFileIndex, nImageIndex + nFrame)){
                                 continue;
                             }

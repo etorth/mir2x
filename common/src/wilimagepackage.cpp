@@ -36,15 +36,6 @@ static void Memcpy16To32(uint32_t *dst, const uint16_t *src, int32_t n, uint32_t
     }
 }
 
-static void MemSet16(uint16_t *dst, int32_t n, uint16_t src)
-{
-    if(dst){
-        for(int32_t ptr = 0; ptr < n; ptr++){
-            dst[ptr] = src;
-        }
-    }
-}
-
 static void MemSet32(uint32_t *dst, int n, uint32_t src)
 {
     if(dst){
@@ -160,7 +151,7 @@ bool WilImagePackage::Load(const char* wilFilePath, const char *wilFileName, con
     }
 
     if(fread(m_WixImageInfo.pnPosition, sizeof(int32_t), 
-                m_WixImageInfo.nIndexCount, hWixFile) != m_WixImageInfo.nIndexCount){
+                m_WixImageInfo.nIndexCount, hWixFile) != (size_t)m_WixImageInfo.nIndexCount){
         fclose(hWixFile);
         return false;
     }

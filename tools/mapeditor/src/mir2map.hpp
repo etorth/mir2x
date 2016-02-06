@@ -69,11 +69,6 @@ class Mir2Map
         uint8_t         m_bAniTileFrame[8][16];
 
     private:
-        TILEINFO       *m_pstTileInfo;
-        CELLINFO       *m_pstCellInfo;
-        MAPFILEHEADER   m_stMapFileHeader;
-
-    private:
         WilImagePackage *m_pxTileImage;
 
     public:
@@ -125,6 +120,11 @@ class Mir2Map
 
     public:
         bool NewLoadMap(const char *);
+
+    private:
+        TILEINFO       *m_pstTileInfo;
+        CELLINFO       *m_pstCellInfo;
+        MAPFILEHEADER   m_stMapFileHeader;
 
     private:
         uint32_t    *m_BaseTileInfo;

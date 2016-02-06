@@ -11,6 +11,8 @@ Mir2xMap::Mir2xMap()
     : m_TileDesc(nullptr)
     , m_CellDesc(nullptr)
     , m_Buf(nullptr)
+    , m_BufSize(0)
+    , m_BufMaxSize(0)
     , m_W(0)
     , m_H(0)
 {}
@@ -139,9 +141,9 @@ void Mir2xMap::SetObj(int nX, int nY, int nSize, int nObjIndex,
 {
     // full-fill current grid defined by parameters
     // obj has ground / wall layer, so need further parse mark data
-    for(int nY = nY; nY < nY + nSize; ++nY){
-        for(int nX = nX; nX < nX + nSize; ++nX){
-            SetOneObj(nX, nY, nObjIndex, pMark, nMarkOff, pData, nDataOff);
+    for(int nTY = nY; nTY < nY + nSize; ++nTY){
+        for(int nTX = nX; nTX < nX + nSize; ++nTX){
+            SetOneObj(nTX, nTY, nObjIndex, pMark, nMarkOff, pData, nDataOff);
         }
     }
 }
@@ -205,14 +207,14 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
         nDataOff += 2;
     }
 
-    for(int nY = nY; nY < nY + nSize; ++nY){
-        for(int nX = nX; nX < nX + nSize; ++nX){
+    for(int nTY = nY; nTY < nY + nSize; ++nTY){
+        for(int nTX = nX; nTX < nX + nSize; ++nTX){
             if(pData){
-                CellDesc(nX, nY).Desc |= 0X8000;
+                CellDesc(nTX, nTY).Desc |= 0X8000;
             }else{
-                CellDesc(nX, nY).Desc &= 0X7FFF;
+                CellDesc(nTX, nTY).Desc &= 0X7FFF;
             }
-            CellDesc(nX, nY).Light = nLightAttr;
+            CellDesc(nTX, nTY).Light = nLightAttr;
         }
     }
 }
@@ -365,7 +367,7 @@ bool Mir2xMap::Overlap(int nX, int nY, int nCX, int nCY, int nR)
             bool bMidIn = PointInCircle(nMidX, nMidY, nCX, nCY, nR);
             for(int nIndex = 0; nIndex < 4; ++nIndex){
                 if(!CanWalk(nCellX, nCellY, nIndex)
-                        && (PointInCircle(nBdX[nIndex], nBdY[nIndex], nCX, nCY, nR)
+                        && (bMidIn || PointInCircle(nBdX[nIndex], nBdY[nIndex], nCX, nCY, nR)
                             || PointInCircle(nBdX[(nIndex + 1) % 4], nBdY[(nIndex + 1) % 4], nCX, nCY, nR))){
                     return true;
                 }
@@ -499,7 +501,7 @@ bool Mir2xMap::LoadObj(uint8_t * &pData, int nObjIndex)
 
 }
 
-void Mir2xMap::ExtendBuf(long nSize)
+void Mir2xMap::ExtendBuf(size_t nSize)
 {
     if(nSize > m_BufMaxSize){
         delete[] m_Buf;
@@ -594,10 +596,10 @@ void Mir2xMap::SetTile(int nX, int nY, int nSize, const uint8_t *pData, long &nD
         nDataOff += 2;
     }
 
-    for(int nY = nY; nY < nY + nSize; ++nY){
-        for(int nX = nX; nX < nX + nSize; ++nX){
-            if(!(nX % 2 || nY %2)){
-                TileDesc(nX, nY) = stTileDesc;
+    for(int nTY = nY; nTY < nY + nSize; ++nTY){
+        for(int nTX = nX; nTX < nX + nSize; ++nTX){
+            if(!(nTX % 2 || nTY %2)){
+                TileDesc(nTX, nTY) = stTileDesc;
             }
         }
     }

@@ -879,7 +879,7 @@ void MainWindow::SaveMap() {
   
           uint32_t nTmpVarUint32 = 0;
           int nCurrentPos = 0;
-          while(nCurrentPos < stGroundInfoBitV.size()){
+          while((size_t)nCurrentPos < stGroundInfoBitV.size()){
               nTmpVarUint32 = (nTmpVarUint32 * 2 + (stGroundInfoBitV[nCurrentPos++] ? 1 : 0));
               if(!(nCurrentPos % (sizeof(nTmpVarUint32) * 8))){
                   fwrite(&nTmpVarUint32, sizeof(nTmpVarUint32), 1, pFile);
@@ -925,7 +925,7 @@ void MainWindow::SaveMap() {
   
           uint32_t nTmpVarUint32 = 0;
           int nCurrentPos = 0;
-          while(nCurrentPos < stTileInfoBitV.size()){
+          while((size_t)nCurrentPos < stTileInfoBitV.size()){
               nTmpVarUint32 = (nTmpVarUint32 * 2 + (stTileInfoBitV[nCurrentPos++] ? 1 : 0));
               if(!(nCurrentPos % (sizeof(nTmpVarUint32) * 8))){
                   fwrite(&nTmpVarUint32, sizeof(nTmpVarUint32), 1, pFile);
@@ -973,7 +973,7 @@ void MainWindow::SaveMap() {
   
           uint32_t nTmpVarUint32 = 0;
           int nCurrentPos = 0;
-          while(nCurrentPos < stCellInfoBitV.size()){
+          while((size_t)nCurrentPos < stCellInfoBitV.size()){
               nTmpVarUint32 = (nTmpVarUint32 * 2 + (stCellInfoBitV[nCurrentPos++] ? 1 : 0));
               if(!(nCurrentPos % (sizeof(nTmpVarUint32) * 8))){
                   fwrite(&nTmpVarUint32, sizeof(nTmpVarUint32), 1, pFile);

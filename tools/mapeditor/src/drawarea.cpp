@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 01/31/2016 23:42:39
+ *  Last Modified: 02/06/2016 03:28:55
  *
  *    Description: 
  *
@@ -36,11 +36,11 @@
 
 DrawArea::DrawArea(int x, int y, int w, int h)
     : Fl_Box(x, y, w, h)
-    , m_OffsetX(0)
-    , m_OffsetY(0)
     , m_MouseX(0)
     , m_MouseY(0)
     , m_IsDragging(false)
+    , m_OffsetX(0)
+    , m_OffsetY(0)
 {
 }
 

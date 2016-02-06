@@ -3,7 +3,7 @@
  *
  *       Filename: misc.cpp
  *        Created: 7/24/2015 7:20:18 PM
- *  Last Modified: 02/02/2016 22:01:46
+ *  Last Modified: 02/06/2016 03:29:31
  *
  *    Description: 
  *
@@ -120,7 +120,7 @@ bool RemoveDir(const char *szAbsolutePath)
     }
 
     struct dirent *stDirItem = nullptr;
-    while(stDirItem = readdir(stDir)){
+    while((stDirItem = readdir(stDir))!= nullptr){
         if(!std::strcmp(stDirItem->d_name, ".")){
             continue;
         }

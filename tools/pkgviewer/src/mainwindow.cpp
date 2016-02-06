@@ -78,20 +78,15 @@ void MainWindow::cb_Open_i(Fl_Menu_*, void*) {
                 Fl::check();
 
 		
-		int nOldPer = 0;
                 std::string formatStr;
                 formatStr = "Index: %0" + std::to_string(maxLen) + "d         W:%4d            H:%4d";
                 for(int i = 0; i < g_WilPackage.IndexCount(); ++i){
-                	int nNewPer = (int)(i * 100 / g_WilPackage.IndexCount());
-                	//if(nNewPer > nOldPer){
-                	if(1){
-                		nOldPer = nNewPer;
-                    		p->SetValue(nNewPer);
-                    		p->Redraw();
-                    		p->ShowAll();
-                    		Fl::check();
-                    	}
-                    	
+                    int nNewPer = (int)(i * 100 / g_WilPackage.IndexCount());
+                    p->SetValue(nNewPer);
+                    p->Redraw();
+                    p->ShowAll();
+                    Fl::check();
+
                     g_WilPackage.SetIndex(i);
                     if(g_WilPackage.CurrentImageValid()){
                         char tmpBuf[128];
@@ -176,28 +171,23 @@ void MainWindow::cb_Export1_i(Fl_Menu_*, void*) {
                 size_t    nBufferLen = 0;
                 extern WilImagePackage g_WilPackage;
                 
-		int nOldPer = 0;
                 for(int i = 1; i <= m_Browser->size(); ++i){
                 	int nNewPer = (int)(i * 100 / g_WilPackage.IndexCount());
-                	// if(nNewPer > nOldPer){
-                	if(1){
-                		nOldPer = nNewPer;
-                    		p->SetValue(nNewPer);
-                   		p->Redraw();
-                    		p->ShowAll();
-                    		Fl::check(); // actually we don't need it
-                    	}
+                    p->SetValue(nNewPer);
+                    p->Redraw();
+                    p->ShowAll();
+                    Fl::check(); // actually we don't need it
                     
-                    uint32_t imgIdx = (uintptr_t)(m_Browser->data(i));
+                    uint32_t imgIdx = (uint32_t)((intptr_t)(m_Browser->data(i)));
                     g_WilPackage.SetIndex(imgIdx);
                     if(g_WilPackage.CurrentImageValid()){
                         auto nW = g_WilPackage.CurrentImageInfo().shWidth;
                         auto nH = g_WilPackage.CurrentImageInfo().shHeight;
 
-                        if(nBufferLen < nW * nH){
+                        if(nBufferLen < (size_t)(nW * nH)){
                             delete pBuffer;
                             pBuffer    = new uint32_t[nW * nH];
-                            nBufferLen = nW * nH;
+                            nBufferLen = (size_t)(nW * nH);
                         }
 
                         g_WilPackage.Decode(pBuffer, 0XFFFFFFFF, 0XFFFFFFFF);
@@ -307,7 +297,7 @@ uint32_t MainWindow::SelectedImageIndex() {
   for(int i = 1; i <= m_Browser->size(); ++i)
   {
   	if(m_Browser->selected(i)){
-  		return (uintptr_t)(m_Browser->data(i));
+  		return (uint32_t)((intptr_t)m_Browser->data(i));
   	}
   }
   
