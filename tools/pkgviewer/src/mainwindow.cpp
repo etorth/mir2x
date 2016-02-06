@@ -97,7 +97,7 @@ void MainWindow::cb_Open_i(Fl_Menu_*, void*) {
                         char tmpBuf[128];
                         std::sprintf(tmpBuf, formatStr.c_str(), i, g_WilPackage.CurrentImageInfo().shWidth, g_WilPackage.CurrentImageInfo().shHeight);
                         // auto InfoBlk = g_WilPackage.CurrentImageInfo();
-                        m_Browser->add(tmpBuf, (void *)(i));
+                        m_Browser->add(tmpBuf, (void *)((intptr_t)i));
                     }
                 }
                 p->HideAll();
