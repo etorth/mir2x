@@ -3,7 +3,7 @@
  *
  *       Filename: previewwindow.cpp
  *        Created: 7/22/2015 3:16:57 AM
- *  Last Modified: 08/01/2015 5:42:50 PM
+ *  Last Modified: 02/06/2016 16:59:54
  *
  *    Description: 
  *
@@ -24,8 +24,10 @@
 
 PreviewWindow::PreviewWindow(int W, int H)
 	: Fl_Double_Window(0, 0, W, H)
+    , m_Inited(false)
     , m_Data(nullptr)
     , m_DataLen(0)
+    , m_Image(nullptr)
 {
 }
 

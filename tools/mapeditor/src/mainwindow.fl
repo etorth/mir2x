@@ -42,12 +42,15 @@ class MainWindow {open
 } {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_Window {
-      callback {exit(0);} open
-      xywh {491 200 985 665} type Double resizable visible
+      callback {{
+	// do nothing
+}} open
+      xywh {181 161 985 665} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {selected
+      Fl_Box m_DrawArea {
         xywh {0 20 965 626} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
@@ -215,6 +218,7 @@ class MainWindow {open
           }
           MenuItem {} {
             label Quit
+            callback {exit(0);} selected
             xywh {0 0 30 20} shortcut 0x40071 labelfont 4
           }
         }

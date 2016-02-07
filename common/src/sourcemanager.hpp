@@ -3,7 +3,7 @@
  *
  *       Filename: sourcemanager.hpp
  *        Created: 01/13/2016 08:20:29
- *  Last Modified: 01/27/2016 19:27:27
+ *  Last Modified: 02/06/2016 13:34:27
  *
  *    Description: 
  *

@@ -2,6 +2,7 @@
 
 #pragma once
 #include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Image.H>
 #include <cstdint>
 
 class PreviewWindow: public Fl_Double_Window
@@ -12,6 +13,8 @@ class PreviewWindow: public Fl_Double_Window
     public:
         void draw();
     private:
-        uint32_t *m_Data;
-        int       m_DataLen;
+        bool          m_Inited;
+        uint32_t     *m_Data;
+        int           m_DataLen;
+        Fl_RGB_Image *m_Image;
 };
