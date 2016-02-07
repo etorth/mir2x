@@ -10,11 +10,18 @@ class PreviewWindow: public Fl_Double_Window
     public:
         PreviewWindow(int, int);
         ~PreviewWindow();
+
     public:
         void draw();
+
+    private:
+        void ExtendBuf(size_t);
+        void LoadImage();
     private:
         bool          m_Inited;
+        uint32_t      m_ImageIndex;
         uint32_t     *m_Data;
-        int           m_DataLen;
+        size_t        m_DataLen;
+        size_t        m_DataMaxLen;
         Fl_RGB_Image *m_Image;
 };
