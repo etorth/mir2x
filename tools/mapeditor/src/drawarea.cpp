@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/07/2016 03:48:42
+ *  Last Modified: 02/07/2016 04:01:53
  *
  *    Description: 
  *
@@ -156,6 +156,10 @@ void DrawArea::DrawOverGroundObject()
 void DrawArea::DrawFunction(Fl_Shared_Image *pImage, int nStartX, int nStartY)
 {
     if(pImage){
+        int nX = nStartX + x() - m_OffsetX;
+        int nY = nStartY + y() - m_OffsetY;
+        int nW = pImage->w();
+        int nH = pImage->h();
         pImage->draw(nStartX + x() - m_OffsetX, nStartY + y() - m_OffsetY);
     }
 }
