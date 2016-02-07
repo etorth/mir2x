@@ -3,7 +3,7 @@
  *
  *       Filename: previewwindow.cpp
  *        Created: 7/22/2015 3:16:57 AM
- *  Last Modified: 02/06/2016 17:41:31
+ *  Last Modified: 02/06/2016 23:09:44
  *
  *    Description: 
  *
@@ -90,7 +90,7 @@ void PreviewWindow::LoadImage()
 
         ExtendBuf((size_t)(W * H));
 
-        g_WilPackage.Decode(m_Data, 0X99999999, 0X99999999);
+        g_WilPackage.Decode(m_Data, 0XFFFFFFFF, 0XFFFFFFFF);
         m_Image = new Fl_RGB_Image((uchar *)m_Data, W, H, 4);
     }
 
