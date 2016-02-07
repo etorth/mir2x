@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/07/2016 04:01:53
+ *  Last Modified: 02/07/2016 09:00:14
  *
  *    Description: 
  *
@@ -155,13 +155,47 @@ void DrawArea::DrawOverGroundObject()
 
 void DrawArea::DrawFunction(Fl_Shared_Image *pImage, int nStartX, int nStartY)
 {
-    if(pImage){
-        int nX = nStartX + x() - m_OffsetX;
-        int nY = nStartY + y() - m_OffsetY;
-        int nW = pImage->w();
-        int nH = pImage->h();
-        pImage->draw(nStartX + x() - m_OffsetX, nStartY + y() - m_OffsetY);
+    // linux needs crop the region, wtf
+    // pImage->draw(nStartX + x() - m_OffsetX, nStartY + y() - m_OffsetY);
+
+    int nWX = x();
+    int nWY = y();
+
+    int nX = nStartX - m_OffsetX + nWX;
+    int nY = nStartY - m_OffsetY + nWY;
+    int nW = pImage->w();
+    int nH = pImage->h();
+
+    if(pImage == nullptr
+            || nX >= nWX + w() || nX + pImage->w() <= nWX
+            || nY >= nWY + h() || nY + pImage->h() <= nWY){
+        return;
     }
+
+    int nSX = 0;
+    int nSY = 0;
+
+    if(nX < nWX){
+        nSX += (nWX - nX);
+        nW  -= (nWX - nX);
+        nX   = nWX;
+    }
+
+    if(nX + pImage->w() > nWX + w()){
+        nW = nWX + w() - nX;
+    }
+
+    if(nY < nWY){
+        nSY += (nWY - nY);
+        nH  -= (nWY - nY);
+        nY   = nWY;
+    }
+
+    if(nY + pImage->h() > nWY + h()){
+        nH = nWY + h() - nY;
+    }
+
+    pImage->draw(nX, nY, nW, nH, nSX, nSY);
 }
 
 void DrawArea::DrawFunction(uint32_t nFolderIndex, uint32_t nImageIndex, int nStartX, int nStartY)
