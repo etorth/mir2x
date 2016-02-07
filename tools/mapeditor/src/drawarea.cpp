@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/06/2016 23:24:14
+ *  Last Modified: 02/07/2016 03:48:42
  *
  *    Description: 
  *
@@ -71,10 +71,13 @@ void DrawArea::DrawGroundObject()
     extern MainWindow *g_MainWindow;
     if(!g_MainWindow->ShowGroundObjectLayer()){ return; }
 
-    auto fnDrawObjFunc = [this](uint32_t nFolderIndex, uint32_t nImageIndex, int nXCnt, int nYCnt){
+    auto fnDrawObjFunc = [this](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image * pImage, int nXCnt, int nYCnt){
 		extern MainWindow *g_MainWindow;
         // auto p = g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex);
-        auto p = g_MainWindow->RetrieveCachedPNG(nFolderIndex, nImageIndex, nXCnt, nYCnt);
+        auto p = pImage;
+        if(!p){
+            p = g_MainWindow->RetrieveCachedPNG(nFolderIndex, nImageIndex, nXCnt, nYCnt);
+        }
         if(p){
             // int nStartX = nXCnt * 48 - 200;
             // int nStartY = nYCnt * 32 - 157 + 32 - p->h();
@@ -88,10 +91,12 @@ void DrawArea::DrawGroundObject()
         }
     };
 
-    auto fnCheckFunc = [](uint32_t nFolderIndex, uint32_t nImageIndex, int nX, int nY){
+    auto fnCheckFunc = [](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image * &pImage, int nX, int nY){
         extern MainWindow *g_MainWindow;
         // auto p = g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex);
         auto p = g_MainWindow->RetrieveCachedPNG(nFolderIndex, nImageIndex, nX, nY);
+
+        pImage = p;
         return p ? (p->w() == 48 && p->h() == 32) : false;
     };
 
@@ -109,10 +114,15 @@ void DrawArea::DrawOverGroundObject()
     extern MainWindow *g_MainWindow;
     if(!g_MainWindow->ShowOverGroundObjectLayer()){ return; }
 
-    auto fnDrawObjFunc = [this](uint32_t nFolderIndex, uint32_t nImageIndex, int nXCnt, int nYCnt){
+    auto fnDrawObjFunc = [this](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image *pImage, int nXCnt, int nYCnt){
         extern MainWindow *g_MainWindow;
         // auto p = g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex);
-        auto p = g_MainWindow->RetrieveCachedPNG(nFolderIndex, nImageIndex, nXCnt, nYCnt);
+        auto p = pImage;
+
+        if(!p){
+            g_MainWindow->RetrieveCachedPNG(nFolderIndex, nImageIndex, nXCnt, nYCnt);
+        }
+
         if(p){
             // int nStartX = nXCnt * 48 - 200;
             // int nStartY = nYCnt * 32 - 157 + 32 - p->h();
@@ -126,10 +136,11 @@ void DrawArea::DrawOverGroundObject()
         }
     };
 
-    auto fnCheckFunc = [](uint32_t nFolderIndex, uint32_t nImageIndex, int nXCnt, int nYCnt){
+    auto fnCheckFunc = [](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image * &pImage, int nXCnt, int nYCnt){
         extern MainWindow *g_MainWindow;
         auto p = g_MainWindow->RetrieveCachedPNG(nFolderIndex, nImageIndex, nXCnt, nYCnt);
         // auto p = g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex);
+        pImage = p;
         return p ? (p->w() != 48 || p->h() != 32) : false;
     };
 

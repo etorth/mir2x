@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <functional>
 #include <vector>
+#include <Fl/Fl_Shared_Image.H>
 
 #pragma pack(push, 1)
 // this is abandoned
@@ -106,7 +107,7 @@ class Mir2Map
         const CELLINFO &CellInfo(int, int);
     public:
         void DrawBaseTile(int, int, int, int, std::function<void(uint32_t, uint32_t, int, int)>);
-        void DrawObjectTile(int, int, int, int, std::function<bool(uint32_t, uint32_t, int, int)>, std::function<void(uint32_t, uint32_t, int, int)>);
+        void DrawObjectTile(int, int, int, int, std::function<bool(uint32_t, uint32_t, Fl_Shared_Image * &, int, int)>, std::function<void(uint32_t, uint32_t, Fl_Shared_Image *, int, int)>);
 
     public:
         void CompressBaseTileInfo(std::vector<bool> &, std::vector<uint32_t> &);

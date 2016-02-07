@@ -300,12 +300,12 @@ void Mir2Map::ExtractBaseTile(std::function<bool(uint32_t, uint32_t)> fnCheckExi
 
 int Mir2Map::Width()
 {
-    return m_stMapFileHeader.shWidth;
+    return (int)(m_stMapFileHeader.shWidth);
 }
 
 int Mir2Map::Height()
 {
-    return m_stMapFileHeader.shHeight;
+    return (int)(m_stMapFileHeader.shHeight);
 }
 
 const CELLINFO &Mir2Map::CellInfo(int nX, int nY)
@@ -719,8 +719,8 @@ void Mir2Map::ExtractObjectTile(std::function<bool(uint32_t, uint32_t)> fnCheckE
 void Mir2Map::DrawObjectTile(
         int nStartCellX, int nStartCellY,
         int nStopCellX,  int nStopCellY,
-        std::function<bool(uint32_t, uint32_t, int, int)> fnCheckFunc,
-        std::function<void(uint32_t, uint32_t, int, int)> fnDrawObjFunc)
+        std::function<bool(uint32_t, uint32_t, Fl_Shared_Image * &, int, int)> fnCheckFunc,
+        std::function<void(uint32_t, uint32_t, Fl_Shared_Image *, int, int)> fnDrawObjFunc)
 {
     nStartCellX = (std::max)(0, nStartCellX);
     nStartCellY = (std::max)(0, nStartCellY);
@@ -756,8 +756,9 @@ void Mir2Map::DrawObjectTile(
                             nImageIndex += m_bAniTileFrame[bTickType][shAniCnt];
                         }
 
-                        if(fnCheckFunc(nFileIndex, nImageIndex, nXCnt, nYCnt)){
-                            fnDrawObjFunc(nFileIndex, nImageIndex, nXCnt, nYCnt);
+                        Fl_Shared_Image *p = nullptr;
+                        if(fnCheckFunc(nFileIndex, nImageIndex, p, nXCnt, nYCnt)){
+                            fnDrawObjFunc(nFileIndex, nImageIndex, p, nXCnt, nYCnt);
                         }
                     }
                 }
@@ -776,8 +777,9 @@ void Mir2Map::DrawObjectTile(
                             nImageIndex += m_bAniTileFrame[bTickType][shAniCnt];
                         }
 
-                        if(fnCheckFunc(nFileIndex, nImageIndex, nXCnt, nYCnt)){
-                            fnDrawObjFunc(nFileIndex, nImageIndex, nXCnt, nYCnt);
+                        Fl_Shared_Image *p = nullptr;
+                        if(fnCheckFunc(nFileIndex, nImageIndex, p, nXCnt, nYCnt)){
+                            fnDrawObjFunc(nFileIndex, nImageIndex, p, nXCnt, nYCnt);
                         }
                     }
                 }
@@ -802,8 +804,9 @@ void Mir2Map::DrawObjectTile(
                             nImageIndex += m_bAniTileFrame[bTickType][shAniCnt];
                         }
 
-                        if(fnCheckFunc(nFileIndex, nImageIndex, nXCnt, nYCnt)){
-                            fnDrawObjFunc(nFileIndex, nImageIndex, nXCnt, nYCnt);
+                        Fl_Shared_Image *p = nullptr;
+                        if(fnCheckFunc(nFileIndex, nImageIndex, p, nXCnt, nYCnt)){
+                            fnDrawObjFunc(nFileIndex, nImageIndex, p, nXCnt, nYCnt);
                         }
                     }
                 }
@@ -819,8 +822,9 @@ void Mir2Map::DrawObjectTile(
                             nImageIndex += m_bAniTileFrame[bTickType][shAniCnt];
                         }
 
-                        if(fnCheckFunc(nFileIndex, nImageIndex, nXCnt, nYCnt)){
-                            fnDrawObjFunc(nFileIndex, nImageIndex, nXCnt, nYCnt);
+                        Fl_Shared_Image *p = nullptr;
+                        if(fnCheckFunc(nFileIndex, nImageIndex, p, nXCnt, nYCnt)){
+                            fnDrawObjFunc(nFileIndex, nImageIndex, p, nXCnt, nYCnt);
                         }
                     }
                 }
