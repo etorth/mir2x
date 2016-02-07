@@ -3,7 +3,7 @@
  *
  *       Filename: platforms.hpp
  *        Created: 02/06/2016 17:41:44
- *  Last Modified: 02/06/2016 17:56:46
+ *  Last Modified: 02/06/2016 18:00:27
  *
  *    Description: 
  *
@@ -21,7 +21,7 @@
 
 #pragma once
 
-bool PlatformWindows()
+inline bool PlatformWindows()
 {
 #if !defined(SAG_COM) && \
     (defined(WIN64) || defined(_WIN64) || defined(__WIN64__) \
@@ -32,7 +32,7 @@ bool PlatformWindows()
 #endif
 }
 
-bool PlatformLinux()
+inline bool PlatformLinux()
 {
 #if defined(__linux__) || defined(__linux)
     return true;
