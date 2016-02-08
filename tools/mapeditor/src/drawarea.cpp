@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/07/2016 09:00:14
+ *  Last Modified: 02/07/2016 19:58:22
  *
  *    Description: 
  *
@@ -38,7 +38,6 @@ DrawArea::DrawArea(int x, int y, int w, int h)
     : Fl_Box(x, y, w, h)
     , m_MouseX(0)
     , m_MouseY(0)
-    , m_IsDragging(false)
     , m_OffsetX(0)
     , m_OffsetY(0)
 {
@@ -64,6 +63,43 @@ void DrawArea::draw()
     DrawGroundObject();
     DrawOverGroundObject();
 	DrawGroundInfo();
+
+    DrawSelect();
+}
+
+void DrawArea::DrawSelect()
+{
+    extern MainWindow *g_MainWindow;
+    if(g_MainWindow->EnableSelect() && g_MainWindow->SelectByRegion()){
+        auto wColor = fl_color();
+        fl_color(FL_RED);
+
+        extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
+        if(!g_SelectByRegionPointV.empty()){
+            for(auto &stPair: g_SelectByRegionPointV){
+                fl_circle(stPair.first, stPair.second, 4.0);
+            }
+        }
+
+
+        if(g_SelectByRegionPointV.size() > 1){
+            for(size_t nIndex = 0; nIndex < g_SelectByRegionPointV.size() - 1; ++nIndex){
+                fl_line(g_SelectByRegionPointV[nIndex].first, g_SelectByRegionPointV[nIndex].second,
+                        g_SelectByRegionPointV[nIndex + 1].first, g_SelectByRegionPointV[nIndex + 1].second);
+            }
+        }
+
+        fl_color(FL_YELLOW);
+        if(g_SelectByRegionPointV.size() > 2){
+            for(size_t nIndex = 1; nIndex < g_SelectByRegionPointV.size() - 1; ++nIndex){
+                fl_polygon(g_SelectByRegionPointV[0].first, g_SelectByRegionPointV[0].second,
+                        g_SelectByRegionPointV[nIndex].first, g_SelectByRegionPointV[nIndex].second,
+                        g_SelectByRegionPointV[nIndex + 1].first, g_SelectByRegionPointV[nIndex + 1].second);
+            }
+        }
+
+        fl_color(wColor);
+    }
 }
 
 void DrawArea::DrawGroundObject()
@@ -354,43 +390,60 @@ int DrawArea::handle(int nEvent)
     switch(nEvent){
         case FL_RELEASE:
             fl_cursor(FL_CURSOR_DEFAULT);
-            m_IsDragging = false;
+            break;
+
+        case FL_MOVE:
+            {
+                auto wColor = fl_color();
+                fl_color(FL_RED);
+                extern MainWindow *g_MainWindow;
+                extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
+                if(g_MainWindow->EnableSelect()
+                        && g_MainWindow->SelectByRegion()
+                        && g_SelectByRegionPointV.size() > 0){
+                    fl_line(m_MouseX, m_MouseY, g_SelectByRegionPointV.back().first, g_SelectByRegionPointV.back().second);
+                }
+                fl_color(wColor);
+            }
             break;
 
         case FL_DRAG:
             if(Fl::event_state() & FL_CTRL){
-                // bug of fltk here, when some key is pressed, 
+                // bug of fltk here for windows, when some key is pressed, 
                 // event_x() and event_y() are incorrect!
+                // printf("%4d %4d\n", Fl::event_x(), Fl::event_y());
                 //
                 // m_ReferenceLineX += (m_MouseX - mouseX);
                 // m_ReferenceLineY += (m_MouseY - mouseY);
             }else{
-                if(m_IsDragging){
-                    m_OffsetX -= (m_MouseX - mouseX);
-                    m_OffsetY -= (m_MouseY - mouseY);
-                    m_OffsetX  = (std::max)(m_OffsetX, 0);
-                    m_OffsetY  = (std::max)(m_OffsetY, 0);
-                    m_OffsetX  = (std::min)(m_OffsetX, (std::max)(0, 48 * g_Map.Width()  - w()));
-                    m_OffsetY  = (std::min)(m_OffsetY, (std::max)(0, 32 * g_Map.Height() - h()));
+                m_OffsetX -= (m_MouseX - mouseX);
+                m_OffsetY -= (m_MouseY - mouseY);
+                m_OffsetX  = (std::max)(m_OffsetX, 0);
+                m_OffsetY  = (std::max)(m_OffsetY, 0);
+                m_OffsetX  = (std::min)(m_OffsetX, (std::max)(0, 48 * g_Map.Width()  - w()));
+                m_OffsetY  = (std::min)(m_OffsetY, (std::max)(0, 32 * g_Map.Height() - h()));
 
 
-                    double fXP = -1.0;
-                    double fYP = -1.0;
-                    if(48 * g_Map.Width()  - w() > 0){
-                        fXP = m_OffsetX * 1.0 / (48 * g_Map.Width()  - w());
-                    }
-                    if(32 * g_Map.Height() - h() > 0){
-                        fYP = m_OffsetY * 1.0 / (32 * g_Map.Height() - h());
-                    }
-                    extern MainWindow *g_MainWindow;
-                    g_MainWindow->UpdateScrollBar(fXP, fYP);
+                double fXP = -1.0;
+                double fYP = -1.0;
+                if(48 * g_Map.Width()  - w() > 0){
+                    fXP = m_OffsetX * 1.0 / (48 * g_Map.Width()  - w());
                 }
+                if(32 * g_Map.Height() - h() > 0){
+                    fYP = m_OffsetY * 1.0 / (32 * g_Map.Height() - h());
+                }
+                extern MainWindow *g_MainWindow;
+                g_MainWindow->UpdateScrollBar(fXP, fYP);
             }
             break;
 
         case FL_PUSH:
             {
                 extern MainWindow *g_MainWindow;
+                if(g_MainWindow->EnableSelect() && g_MainWindow->SelectByRegion()){
+                    extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
+                    g_SelectByRegionPointV.emplace_back(m_MouseX, m_MouseY);
+                }
                 if(g_MainWindow->EnableEdit()){
                     if(Fl::event_state() & FL_CTRL){
                         // TODO:
@@ -401,7 +454,6 @@ int DrawArea::handle(int nEvent)
                     if(Fl::event_state() & FL_CTRL){
                         // TODO:
                     }else{
-                        m_IsDragging = true;
                         fl_cursor(FL_CURSOR_MOVE);
                     }
                 }

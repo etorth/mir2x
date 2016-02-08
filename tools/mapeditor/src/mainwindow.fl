@@ -35,6 +35,9 @@ decl {\#include <unordered_map>} {private local
 decl {\#include "wilimagepackage.hpp"} {private local
 } 
 
+decl {\#include <FL/fl_draw.H>} {selected public local
+} 
+
 decl {\#include <FL/Fl_Shared_Image.H>} {public local
 } 
 
@@ -48,14 +51,14 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {182 162 985 665} type Double resizable visible
+      xywh {327 126 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 626} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
       }
-      Fl_Menu_Bar m_MenuBar {open selected
+      Fl_Menu_Bar m_MenuBar {open
         xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -324,7 +327,7 @@ class MainWindow {open
             label {Edit Ground Info}
             xywh {30 30 30 20} type Toggle labelfont 4 divider
           }
-          MenuItem {\#include "mir2map.hpp"} {
+          MenuItem {} {
             label Optimize
             callback {{
     extern Mir2Map g_Map;
@@ -333,6 +336,7 @@ class MainWindow {open
     }
 }}
             xywh {40 40 30 20} labelfont 4
+            code0 {\#include "mir2map.hpp"}
           }
           MenuItem {} {
             label {Crop Map}
@@ -348,11 +352,31 @@ class MainWindow {open
           label Select open
           xywh {0 0 62 20} labelfont 4
         } {
+          MenuItem m_MenuItemEnableSelect {
+            label {Enable Select Mode         }
+            xywh {30 30 30 20} type Toggle labelfont 4 divider
+          }
+          MenuItem m_MenuItemSelectByRegion {
+            label Region
+            callback {fl_cursor(FL_CURSOR_HAND);}
+            xywh {20 20 30 20} type Radio value 1 labelfont 4
+          }
+          MenuItem m_MenuItemSelectByBitMask {
+            label BitMask
+            xywh {30 30 30 20} type Radio labelfont 4 divider
+          }
           MenuItem {} {
-            label {Ground Bit Window                    }
+            label {Bit Mask WIndow   }
             callback {extern GroundInfoWindow *g_GroundInfoWindow;
 g_GroundInfoWindow->ShowAll();}
             xywh {10 10 30 20} labelfont 4
+            code0 {\#include "groundinfowindow.hpp"}
+          }
+          MenuItem {} {
+            label {Bit Mask WIndow   }
+            callback {extern GroundInfoWindow *g_GroundInfoWindow;
+g_GroundInfoWindow->ShowAll();}
+            xywh {20 20 30 20} labelfont 4
             code0 {\#include "groundinfowindow.hpp"}
           }
         }
@@ -786,6 +810,24 @@ pWidgetY->value(pWidgetY->round(fYP));} {}
   } {
     code {{
 	return m_MenuItemEnableEdit->value();
+}} {}
+  }
+  Function {EnableSelect()} {return_type bool
+  } {
+    code {{
+	return m_MenuItemEnableSelect->value();
+}} {}
+  }
+  Function {SelectByRegion()} {return_type bool
+  } {
+    code {{
+	return m_MenuItemSelectByRegion->value();
+}} {}
+  }
+  Function {SelectByBitMask()} {return_type bool
+  } {
+    code {{
+	return m_MenuItemSelectByRegion->value();
 }} {}
   }
   Function {MakeWorkingFolder()} {return_type void

@@ -8,8 +8,6 @@ class DrawArea: public Fl_Box
     private:
         int     m_MouseX;
         int     m_MouseY;
-
-        bool    m_IsDragging;
     private:
         int     m_OffsetX;
         int     m_OffsetY;
@@ -28,6 +26,7 @@ class DrawArea: public Fl_Box
         void    DrawFunction(Fl_Shared_Image *, int, int);
         void    DrawFunction(uint32_t, uint32_t, int, int);
         void    DrawGroundInfo();
+        void    DrawSelect();
 
     public:
         bool LocateGroundSubCell(int, int, int &, int &, int &);
