@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/08/2016 00:23:42
+ *  Last Modified: 02/08/2016 11:28:01
  *
  *    Description: 
  *
@@ -69,13 +69,19 @@ void DrawArea::draw()
 
 void DrawArea::HightlightUnderCover()
 {
-    extern MainWindow *g_MainWindow;
-    int nStartX = (m_MouseX - g_MainWindow->SelectCoverRadius() - 32 / 2) / 32;
-    int nStartY = (m_MouseY - g_MainWindow->SelectCoverRadius() - 48 / 2) / 48;
-    int nStopX  = (m_MouseX + g_MainWindow->SelectCoverRadius() + 32 / 2) / 32;
-    int nStopY  = (m_MouseY + g_MainWindow->SelectCoverRadius() + 48 / 2) / 48;
+    int nMOMX = m_MouseX - x() + m_OffsetX; // mouse on map
+    int nMOMY = m_MouseY - y() + m_OffsetY; //
 
-    for()
+    extern MainWindow *g_MainWindow;
+    int nStartX = (nMOMX - g_MainWindow->SelectCoverRadius() - 32 / 2) / 32;
+    int nStartY = (nMOMY - g_MainWindow->SelectCoverRadius() - 48 / 2) / 48;
+    int nStopX  = (nMOMX + g_MainWindow->SelectCoverRadius() + 32 / 2) / 32;
+    int nStopY  = (nMOMY + g_MainWindow->SelectCoverRadius() + 48 / 2) / 48;
+
+    for(int nX = nStartX; nX <= nStopX; ++nX){
+        for(int nY = nStartY; nY <= nStopY; ++nY){
+        }
+    }
 }
 
 void DrawArea::DrawSelect()

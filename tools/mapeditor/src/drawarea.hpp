@@ -9,7 +9,7 @@ class DrawArea: public Fl_Box
         int     m_MouseX;
         int     m_MouseY;
     private:
-        int     m_OffsetX;
+        int     m_OffsetX; // location of (0, 0) on DrawArea
         int     m_OffsetY;
     public:
         DrawArea(int, int, int, int);
