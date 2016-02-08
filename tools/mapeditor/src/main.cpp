@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <array>
 #include "cropconfigurewindow.hpp"
+#include "coverconfigurewindow.hpp"
 
 #include <vector>
 #include <utility>
@@ -18,6 +19,7 @@
 MainWindow                      *g_MainWindow;
 AboutWindow                     *g_AboutWindow;
 GroundInfoWindow                *g_GroundInfoWindow;
+CoverConfigureWindow            *g_CoverConfigureWindow;
 CropConfigureWindow             *g_CropConfigureWindow;
 WilImagePackage                  g_WilImagePackage[128];
 std::string                      g_WilFilePathName;
@@ -35,10 +37,11 @@ int main()
     g_WilFilePathName  = "";
     g_WorkingPathName  = "";
 
-    g_MainWindow          = new MainWindow();
-    g_AboutWindow         = new AboutWindow();
-    g_GroundInfoWindow    = new GroundInfoWindow();
-    g_CropConfigureWindow = new CropConfigureWindow();
+    g_MainWindow           = new MainWindow();
+    g_AboutWindow          = new AboutWindow();
+    g_GroundInfoWindow     = new GroundInfoWindow();
+    g_CropConfigureWindow  = new CropConfigureWindow();
+    g_CoverConfigureWindow = new CoverConfigureWindow();
 
     g_MainWindow->ShowAll();
     return Fl::run();

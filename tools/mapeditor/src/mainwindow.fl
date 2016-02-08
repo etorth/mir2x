@@ -35,7 +35,7 @@ decl {\#include <unordered_map>} {private local
 decl {\#include "wilimagepackage.hpp"} {private local
 } 
 
-decl {\#include <FL/fl_draw.H>} {selected public local
+decl {\#include <FL/fl_draw.H>} {public local
 } 
 
 decl {\#include <FL/Fl_Shared_Image.H>} {public local
@@ -51,7 +51,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {327 126 985 665} type Double resizable visible
+      xywh {141 142 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 626} resizable
@@ -363,7 +363,16 @@ class MainWindow {open
           }
           MenuItem m_MenuItemSelectByBitMask {
             label BitMask
-            xywh {30 30 30 20} type Radio labelfont 4 divider
+            xywh {30 30 30 20} type Radio labelfont 4
+          }
+          MenuItem m_MenuItemSelectByCover {
+            label Cover
+            callback {{
+	extern CoverConfigureWindow *g_CoverConfigureWindow;
+	g_CoverConfigureWindow->ShowAll();
+}}
+            xywh {40 40 30 20} type Radio labelfont 4 divider
+            code0 {\#include "coverconfigurewindow.hpp"}
           }
           MenuItem {} {
             label {Bit Mask WIndow   }
@@ -829,6 +838,20 @@ pWidgetY->value(pWidgetY->round(fYP));} {}
     code {{
 	return m_MenuItemSelectByRegion->value();
 }} {}
+  }
+  Function {SelectByCover()} {return_type bool
+  } {
+    code {{
+	return m_MenuItemSelectByCover->value();
+}} {}
+  }
+  Function {SelectCoverRadius()} {return_type int
+  } {
+    code {{
+	extern CoverConfigureWindow *g_CoverConfigureWindow;
+	return g_CoverConfigureWindow->Radius();
+}} {selected
+    }
   }
   Function {MakeWorkingFolder()} {return_type void
   } {

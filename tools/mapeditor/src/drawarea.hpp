@@ -27,6 +27,7 @@ class DrawArea: public Fl_Box
         void    DrawFunction(uint32_t, uint32_t, int, int);
         void    DrawGroundInfo();
         void    DrawSelect();
+        void    DrawTriangle(int, int, int);
 
     public:
         bool LocateGroundSubCell(int, int, int &, int &, int &);

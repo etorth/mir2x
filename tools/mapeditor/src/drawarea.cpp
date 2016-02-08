@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/07/2016 19:58:22
+ *  Last Modified: 02/08/2016 00:23:42
  *
  *    Description: 
  *
@@ -67,12 +67,28 @@ void DrawArea::draw()
     DrawSelect();
 }
 
+void DrawArea::HightlightUnderCover()
+{
+    extern MainWindow *g_MainWindow;
+    int nStartX = (m_MouseX - g_MainWindow->SelectCoverRadius() - 32 / 2) / 32;
+    int nStartY = (m_MouseY - g_MainWindow->SelectCoverRadius() - 48 / 2) / 48;
+    int nStopX  = (m_MouseX + g_MainWindow->SelectCoverRadius() + 32 / 2) / 32;
+    int nStopY  = (m_MouseY + g_MainWindow->SelectCoverRadius() + 48 / 2) / 48;
+
+    for()
+}
+
 void DrawArea::DrawSelect()
 {
     extern MainWindow *g_MainWindow;
+    auto wColor = fl_color();
+    fl_color(FL_RED);
+
+    if(g_MainWindow->EnableSelect() && g_MainWindow->SelectByCover()){
+        fl_circle(m_MouseX, m_MouseY, g_MainWindow->SelectCoverRadius());
+    }
+
     if(g_MainWindow->EnableSelect() && g_MainWindow->SelectByRegion()){
-        auto wColor = fl_color();
-        fl_color(FL_RED);
 
         extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
         if(!g_SelectByRegionPointV.empty()){
@@ -97,9 +113,8 @@ void DrawArea::DrawSelect()
                         g_SelectByRegionPointV[nIndex + 1].first, g_SelectByRegionPointV[nIndex + 1].second);
             }
         }
-
-        fl_color(wColor);
     }
+    fl_color(wColor);
 }
 
 void DrawArea::DrawGroundObject()
@@ -240,6 +255,65 @@ void DrawArea::DrawFunction(uint32_t nFolderIndex, uint32_t nImageIndex, int nSt
     DrawFunction(g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex), nStartX, nStartY);
 }
 
+void DrawArea::DrawTriangle(int nX, int nY, int nIndex)
+{
+    //------->   0 
+    //-------> 3   1
+    //------->   2
+
+    int nStartX = nX * 48 + x() - m_OffsetX;
+    int nStartY = nY * 32 + y() - m_OffsetY;
+    int nStopX  = nStartX + 48;
+    int nStopY  = nStartY + 32;
+    int nMidX   = (nStartX + nStopX) / 2;
+    int nMidY   = (nStartY + nStopY) / 2;
+
+    int nE3P1X  = 0;
+    int nE3P1Y  = 0;
+    int nE3P2X  = 0;
+    int nE3P2Y  = 0;
+    int nE3P3X  = 0;
+    int nE3P3Y  = 0;
+
+    switch(nIndex){
+        case 0:
+            nE3P1X = nStartX;
+            nE3P1Y = nStartY;
+            nE3P2X = nStopX;
+            nE3P2Y = nStartY;
+            nE3P3X = nMidX;
+            nE3P3Y = nMidY;
+            break;
+        case 1:
+            nE3P1X = nMidX;
+            nE3P1Y = nMidY;
+            nE3P2X = nStopX;
+            nE3P2Y = nStartY;
+            nE3P3X = nStopX;
+            nE3P3Y = nStopY;
+            break;
+        case 2:
+            nE3P1X = nStartX;
+            nE3P1Y = nStopY;
+            nE3P2X = nMidX;
+            nE3P2Y = nMidY;
+            nE3P3X = nStopX;
+            nE3P3Y = nStopY;
+            break;
+        case 3:
+            nE3P1X = nStartX;
+            nE3P1Y = nStartY;
+            nE3P2X = nMidX;
+            nE3P2Y = nMidY;
+            nE3P3X = nStartX;
+            nE3P3Y = nStopY;
+            break;
+        default:
+            break;
+    }
+    fl_loop(nE3P1X, nE3P1Y, nE3P2X, nE3P2Y, nE3P3X, nE3P3Y);
+}
+
 void DrawArea::DrawGroundInfo()
 {
     //------->   0 
@@ -250,57 +324,58 @@ void DrawArea::DrawGroundInfo()
     auto fnDrawOnYESFunc  = [this](int nX, int nY, int nIndex){
         extern MainWindow *g_MainWindow;
         if(g_MainWindow->ShowGroundInfoLine()){
-            int nStartX = nX * 48 + x() - m_OffsetX;
-            int nStartY = nY * 32 + y() - m_OffsetY;
-            int nStopX  = nStartX + 48;
-            int nStopY  = nStartY + 32;
-            int nMidX   = (nStartX + nStopX) / 2;
-            int nMidY   = (nStartY + nStopY) / 2;
-
-            int nE3P1X  = 0;
-            int nE3P1Y  = 0;
-            int nE3P2X  = 0;
-            int nE3P2Y  = 0;
-            int nE3P3X  = 0;
-            int nE3P3Y  = 0;
-
-            switch(nIndex){
-                case 0:
-                    nE3P1X = nStartX;
-                    nE3P1Y = nStartY;
-                    nE3P2X = nStopX;
-                    nE3P2Y = nStartY;
-                    nE3P3X = nMidX;
-                    nE3P3Y = nMidY;
-                    break;
-                case 1:
-                    nE3P1X = nMidX;
-                    nE3P1Y = nMidY;
-                    nE3P2X = nStopX;
-                    nE3P2Y = nStartY;
-                    nE3P3X = nStopX;
-                    nE3P3Y = nStopY;
-                    break;
-                case 2:
-                    nE3P1X = nStartX;
-                    nE3P1Y = nStopY;
-                    nE3P2X = nMidX;
-                    nE3P2Y = nMidY;
-                    nE3P3X = nStopX;
-                    nE3P3Y = nStopY;
-                    break;
-                case 3:
-                    nE3P1X = nStartX;
-                    nE3P1Y = nStartY;
-                    nE3P2X = nMidX;
-                    nE3P2Y = nMidY;
-                    nE3P3X = nStartX;
-                    nE3P3Y = nStopY;
-                    break;
-                default:
-                    break;
-            }
-            fl_loop(nE3P1X, nE3P1Y, nE3P2X, nE3P2Y, nE3P3X, nE3P3Y);
+            DrawTriangle(nX, nY, nIndex);
+            // int nStartX = nX * 48 + x() - m_OffsetX;
+            // int nStartY = nY * 32 + y() - m_OffsetY;
+            // int nStopX  = nStartX + 48;
+            // int nStopY  = nStartY + 32;
+            // int nMidX   = (nStartX + nStopX) / 2;
+            // int nMidY   = (nStartY + nStopY) / 2;
+            //
+            // int nE3P1X  = 0;
+            // int nE3P1Y  = 0;
+            // int nE3P2X  = 0;
+            // int nE3P2Y  = 0;
+            // int nE3P3X  = 0;
+            // int nE3P3Y  = 0;
+            //
+            // switch(nIndex){
+            //     case 0:
+            //         nE3P1X = nStartX;
+            //         nE3P1Y = nStartY;
+            //         nE3P2X = nStopX;
+            //         nE3P2Y = nStartY;
+            //         nE3P3X = nMidX;
+            //         nE3P3Y = nMidY;
+            //         break;
+            //     case 1:
+            //         nE3P1X = nMidX;
+            //         nE3P1Y = nMidY;
+            //         nE3P2X = nStopX;
+            //         nE3P2Y = nStartY;
+            //         nE3P3X = nStopX;
+            //         nE3P3Y = nStopY;
+            //         break;
+            //     case 2:
+            //         nE3P1X = nStartX;
+            //         nE3P1Y = nStopY;
+            //         nE3P2X = nMidX;
+            //         nE3P2Y = nMidY;
+            //         nE3P3X = nStopX;
+            //         nE3P3Y = nStopY;
+            //         break;
+            //     case 3:
+            //         nE3P1X = nStartX;
+            //         nE3P1Y = nStartY;
+            //         nE3P2X = nMidX;
+            //         nE3P2Y = nMidY;
+            //         nE3P3X = nStartX;
+            //         nE3P3Y = nStopY;
+            //         break;
+            //     default:
+            //         break;
+            // }
+            // fl_loop(nE3P1X, nE3P1Y, nE3P2X, nE3P2Y, nE3P3X, nE3P3Y);
         }
     };
 
@@ -482,6 +557,8 @@ bool DrawArea::LocateGroundSubCell(int nMouseX, int nMouseY, int &nX, int &nY, i
         return false;
     }
 
+    // TODO any problem here?
+    // this offset is to the corner of current *window*, not current draw area
     int nXOnMap = nMouseX + m_OffsetX;
     int nYOnMap = nMouseY + m_OffsetY;
 
