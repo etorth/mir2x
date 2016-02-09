@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/08/2016 11:28:01
+ *  Last Modified: 02/08/2016 17:30:58
  *
  *    Description: 
  *
@@ -259,6 +259,78 @@ void DrawArea::DrawFunction(uint32_t nFolderIndex, uint32_t nImageIndex, int nSt
 {
     extern MainWindow *g_MainWindow;
     DrawFunction(g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex), nStartX, nStartY);
+}
+
+void DrawArea::GetTriangleOnDrawArea(
+        int &nX1, int &nY1,  // 0
+        int &nX2, int &nY2,  // 1
+        int &nX3, int &nY3)  // 2
+{
+    // for triangle index in a grid:
+    //------->   0 
+    //-------> 3   1
+    //------->   2
+    //
+    //for points in a triangle: use clock-wise:
+    //  1
+    // /|
+    //0 |    1-------2
+    // \|     \     /
+    //  2      \   /
+    //          \ /
+    //           0
+    //           
+
+    int nStartX = nX * 48 + x() - m_OffsetX;
+    int nStartY = nY * 32 + y() - m_OffsetY;
+    int nStopX  = nStartX + 48;
+    int nStopY  = nStartY + 32;
+    int nMidX   = (nStartX + nStopX) / 2;
+    int nMidY   = (nStartY + nStopY) / 2;
+
+    int nE3P1X  = 0;
+    int nE3P1Y  = 0;
+    int nE3P2X  = 0;
+    int nE3P2Y  = 0;
+    int nE3P3X  = 0;
+    int nE3P3Y  = 0;
+
+    switch(nIndex){
+        case 0:
+            nE3P1X = nStartX;
+            nE3P1Y = nStartY;
+            nE3P2X = nStopX;
+            nE3P2Y = nStartY;
+            nE3P3X = nMidX;
+            nE3P3Y = nMidY;
+            break;
+        case 1:
+            nE3P1X = nMidX;
+            nE3P1Y = nMidY;
+            nE3P2X = nStopX;
+            nE3P2Y = nStartY;
+            nE3P3X = nStopX;
+            nE3P3Y = nStopY;
+            break;
+        case 2:
+            nE3P1X = nStartX;
+            nE3P1Y = nStopY;
+            nE3P2X = nMidX;
+            nE3P2Y = nMidY;
+            nE3P3X = nStopX;
+            nE3P3Y = nStopY;
+            break;
+        case 3:
+            nE3P1X = nStartX;
+            nE3P1Y = nStartY;
+            nE3P2X = nMidX;
+            nE3P2Y = nMidY;
+            nE3P3X = nStartX;
+            nE3P3Y = nStopY;
+            break;
+        default:
+            break;
+    }
 }
 
 void DrawArea::DrawTriangle(int nX, int nY, int nIndex)
