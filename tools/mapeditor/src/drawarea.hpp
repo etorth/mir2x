@@ -23,14 +23,16 @@ class DrawArea: public Fl_Box
         void    DrawBaseTile();
         void    DrawGroundObject();
         void    DrawOverGroundObject();
+        void    DrawTriangleUnderCover();
         void    DrawFunction(Fl_Shared_Image *, int, int);
         void    DrawFunction(uint32_t, uint32_t, int, int);
         void    DrawGroundInfo();
         void    DrawSelect();
-        void    DrawTriangle(int, int, int);
 
     public:
         bool LocateGroundSubCell(int, int, int &, int &, int &);
         void SetGroundSubCellUnderPoint(int, int);
-        bool CheckInTriangle(int, int, int, int, int, int, int, int);
+
+    public:
+        void GetTriangleOnMap(int, int, int, int &, int &, int &, int &, int &, int &);
 };

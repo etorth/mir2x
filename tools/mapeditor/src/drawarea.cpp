@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/08/2016 17:30:58
+ *  Last Modified: 02/08/2016 23:39:30
  *
  *    Description: 
  *
@@ -32,7 +32,7 @@
 #include <functional>
 #include "mainwindow.hpp"
 #include "groundinfowindow.hpp"
-
+#include "mathfunc.hpp"
 
 DrawArea::DrawArea(int x, int y, int w, int h)
     : Fl_Box(x, y, w, h)
@@ -67,19 +67,33 @@ void DrawArea::draw()
     DrawSelect();
 }
 
-void DrawArea::HightlightUnderCover()
+void DrawArea::DrawTriangleUnderCover()
 {
     int nMOMX = m_MouseX - x() + m_OffsetX; // mouse on map
     int nMOMY = m_MouseY - y() + m_OffsetY; //
 
     extern MainWindow *g_MainWindow;
-    int nStartX = (nMOMX - g_MainWindow->SelectCoverRadius() - 32 / 2) / 32;
-    int nStartY = (nMOMY - g_MainWindow->SelectCoverRadius() - 48 / 2) / 48;
-    int nStopX  = (nMOMX + g_MainWindow->SelectCoverRadius() + 32 / 2) / 32;
-    int nStopY  = (nMOMY + g_MainWindow->SelectCoverRadius() + 48 / 2) / 48;
+    int nR = g_MainWindow->SelectCoverRadius();
+
+    int nStartX = (nMOMX - g_MainWindow->SelectCoverRadius() - 48 / 2) / 48;
+    int nStartY = (nMOMY - g_MainWindow->SelectCoverRadius() - 32 / 2) / 32;
+    int nStopX  = (nMOMX + g_MainWindow->SelectCoverRadius() + 48 / 2) / 48;
+    int nStopY  = (nMOMY + g_MainWindow->SelectCoverRadius() + 32 / 2) / 32;
+
+    int nDX = x() - m_OffsetX;
+    int nDY = y() - m_OffsetY;
 
     for(int nX = nStartX; nX <= nStopX; ++nX){
         for(int nY = nStartY; nY <= nStopY; ++nY){
+            for(int nIndex = 0; nIndex < 4; ++nIndex){
+                int nMidX, nMidY, nX1, nY1, nX2, nY2;
+                GetTriangleOnMap(nX, nY, nIndex, nMidX, nMidY, nX1, nY1, nX2, nY2);
+                if(PointInCircle(nMidX, nMidY, nMOMX, nMOMY, nR)
+                        || PointInCircle(nX1, nY1, nMOMX, nMOMY, nR)
+                        || PointInCircle(nX2, nY2, nMOMX, nMOMY, nR)){
+                    fl_loop(nMidX + nDX, nMidY + nDY, nX1 + nDX, nY1 + nDY, nX2 + nDX, nY2 + nDY);
+                }
+            }
         }
     }
 }
@@ -91,34 +105,40 @@ void DrawArea::DrawSelect()
     fl_color(FL_RED);
 
     if(g_MainWindow->EnableSelect() && g_MainWindow->SelectByCover()){
+        DrawTriangleUnderCover();
         fl_circle(m_MouseX, m_MouseY, g_MainWindow->SelectCoverRadius());
     }
 
     if(g_MainWindow->EnableSelect() && g_MainWindow->SelectByRegion()){
 
         extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
+
+        int nDX = x() - m_OffsetX;
+        int nDY = y() - m_OffsetY;
+
         if(!g_SelectByRegionPointV.empty()){
             for(auto &stPair: g_SelectByRegionPointV){
-                fl_circle(stPair.first, stPair.second, 4.0);
+                fl_circle(stPair.first + nDX, stPair.second +nDY, 4.0);
             }
         }
 
 
         if(g_SelectByRegionPointV.size() > 1){
             for(size_t nIndex = 0; nIndex < g_SelectByRegionPointV.size() - 1; ++nIndex){
-                fl_line(g_SelectByRegionPointV[nIndex].first, g_SelectByRegionPointV[nIndex].second,
-                        g_SelectByRegionPointV[nIndex + 1].first, g_SelectByRegionPointV[nIndex + 1].second);
+                fl_line(g_SelectByRegionPointV[nIndex].first + nDX, g_SelectByRegionPointV[nIndex].second + nDY,
+                        g_SelectByRegionPointV[nIndex + 1].first + nDX, g_SelectByRegionPointV[nIndex + 1].second + nDY);
             }
         }
 
-        fl_color(FL_YELLOW);
-        if(g_SelectByRegionPointV.size() > 2){
-            for(size_t nIndex = 1; nIndex < g_SelectByRegionPointV.size() - 1; ++nIndex){
-                fl_polygon(g_SelectByRegionPointV[0].first, g_SelectByRegionPointV[0].second,
-                        g_SelectByRegionPointV[nIndex].first, g_SelectByRegionPointV[nIndex].second,
-                        g_SelectByRegionPointV[nIndex + 1].first, g_SelectByRegionPointV[nIndex + 1].second);
-            }
-        }
+        // // can't do alpha blend, so comment this out
+        // fl_color(FL_YELLOW);
+        // if(g_SelectByRegionPointV.size() > 2){
+        //     for(size_t nIndex = 1; nIndex < g_SelectByRegionPointV.size() - 1; ++nIndex){
+        //         fl_polygon(g_SelectByRegionPointV[0].first, g_SelectByRegionPointV[0].second,
+        //                 g_SelectByRegionPointV[nIndex].first, g_SelectByRegionPointV[nIndex].second,
+        //                 g_SelectByRegionPointV[nIndex + 1].first, g_SelectByRegionPointV[nIndex + 1].second);
+        //     }
+        // }
     }
     fl_color(wColor);
 }
@@ -128,7 +148,10 @@ void DrawArea::DrawGroundObject()
     extern MainWindow *g_MainWindow;
     if(!g_MainWindow->ShowGroundObjectLayer()){ return; }
 
-    auto fnDrawObjFunc = [this](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image * pImage, int nXCnt, int nYCnt){
+    int nDX = x() - m_OffsetX;
+    int nDY = y() - m_OffsetY;
+
+    auto fnDrawObjFunc = [this, nDX, nDY](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image * pImage, int nXCnt, int nYCnt){
 		extern MainWindow *g_MainWindow;
         // auto p = g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex);
         auto p = pImage;
@@ -143,7 +166,7 @@ void DrawArea::DrawGroundObject()
             DrawFunction(p, nStartX, nStartY);
             extern MainWindow *g_MainWindow;
             if(g_MainWindow->ShowGroundObjectLine()){
-                fl_rect(nStartX + x() - m_OffsetX, nStartY + y() - m_OffsetY, p->w(), p->h(), FL_BLUE);
+                fl_rect(nStartX + nDX, nStartY + nDY, p->w(), p->h(), FL_BLUE);
             }
         }
     };
@@ -159,10 +182,10 @@ void DrawArea::DrawGroundObject()
 
 
     extern Mir2Map g_Map;
-    int nStartCellX = (std::max)(0, m_OffsetX / 48 - 10);
-    int nStartCellY = (std::max)(0, m_OffsetY / 32 - 20);
-    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 10, g_Map.Width()  - 1);
-    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 20, g_Map.Height() - 1);
+    int nStartCellX = (std::max)(0, m_OffsetX / 48 - 1);
+    int nStartCellY = (std::max)(0, m_OffsetY / 32 - 2);
+    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 1, g_Map.Width()  - 1);
+    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 2, g_Map.Height() - 1);
     g_Map.DrawObjectTile(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnCheckFunc, fnDrawObjFunc);
 }
 
@@ -171,7 +194,10 @@ void DrawArea::DrawOverGroundObject()
     extern MainWindow *g_MainWindow;
     if(!g_MainWindow->ShowOverGroundObjectLayer()){ return; }
 
-    auto fnDrawObjFunc = [this](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image *pImage, int nXCnt, int nYCnt){
+    int nDX = x() - m_OffsetX;
+    int nDY = y() - m_OffsetY;
+
+    auto fnDrawObjFunc = [this, nDX, nDY](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image *pImage, int nXCnt, int nYCnt){
         extern MainWindow *g_MainWindow;
         // auto p = g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex);
         auto p = pImage;
@@ -188,7 +214,7 @@ void DrawArea::DrawOverGroundObject()
             DrawFunction(p, nStartX, nStartY);
             extern MainWindow *g_MainWindow;
             if(g_MainWindow->ShowOverGroundObjectLine()){
-                fl_rect(nStartX + x() - m_OffsetX, nStartY + y() - m_OffsetY, p->w(), p->h(), FL_GREEN);
+                fl_rect(nStartX + nDX, nStartY + nDY, p->w(), p->h(), FL_GREEN);
             }
         }
     };
@@ -208,7 +234,6 @@ void DrawArea::DrawOverGroundObject()
     int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 20, g_Map.Height() - 1);
     g_Map.DrawObjectTile(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnCheckFunc, fnDrawObjFunc);
 }
-
 
 void DrawArea::DrawFunction(Fl_Shared_Image *pImage, int nStartX, int nStartY)
 {
@@ -261,199 +286,22 @@ void DrawArea::DrawFunction(uint32_t nFolderIndex, uint32_t nImageIndex, int nSt
     DrawFunction(g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex), nStartX, nStartY);
 }
 
-void DrawArea::GetTriangleOnDrawArea(
-        int &nX1, int &nY1,  // 0
-        int &nX2, int &nY2,  // 1
-        int &nX3, int &nY3)  // 2
-{
-    // for triangle index in a grid:
-    //------->   0 
-    //-------> 3   1
-    //------->   2
-    //
-    //for points in a triangle: use clock-wise:
-    //  1
-    // /|
-    //0 |    1-------2
-    // \|     \     /
-    //  2      \   /
-    //          \ /
-    //           0
-    //           
-
-    int nStartX = nX * 48 + x() - m_OffsetX;
-    int nStartY = nY * 32 + y() - m_OffsetY;
-    int nStopX  = nStartX + 48;
-    int nStopY  = nStartY + 32;
-    int nMidX   = (nStartX + nStopX) / 2;
-    int nMidY   = (nStartY + nStopY) / 2;
-
-    int nE3P1X  = 0;
-    int nE3P1Y  = 0;
-    int nE3P2X  = 0;
-    int nE3P2Y  = 0;
-    int nE3P3X  = 0;
-    int nE3P3Y  = 0;
-
-    switch(nIndex){
-        case 0:
-            nE3P1X = nStartX;
-            nE3P1Y = nStartY;
-            nE3P2X = nStopX;
-            nE3P2Y = nStartY;
-            nE3P3X = nMidX;
-            nE3P3Y = nMidY;
-            break;
-        case 1:
-            nE3P1X = nMidX;
-            nE3P1Y = nMidY;
-            nE3P2X = nStopX;
-            nE3P2Y = nStartY;
-            nE3P3X = nStopX;
-            nE3P3Y = nStopY;
-            break;
-        case 2:
-            nE3P1X = nStartX;
-            nE3P1Y = nStopY;
-            nE3P2X = nMidX;
-            nE3P2Y = nMidY;
-            nE3P3X = nStopX;
-            nE3P3Y = nStopY;
-            break;
-        case 3:
-            nE3P1X = nStartX;
-            nE3P1Y = nStartY;
-            nE3P2X = nMidX;
-            nE3P2Y = nMidY;
-            nE3P3X = nStartX;
-            nE3P3Y = nStopY;
-            break;
-        default:
-            break;
-    }
-}
-
-void DrawArea::DrawTriangle(int nX, int nY, int nIndex)
-{
-    //------->   0 
-    //-------> 3   1
-    //------->   2
-
-    int nStartX = nX * 48 + x() - m_OffsetX;
-    int nStartY = nY * 32 + y() - m_OffsetY;
-    int nStopX  = nStartX + 48;
-    int nStopY  = nStartY + 32;
-    int nMidX   = (nStartX + nStopX) / 2;
-    int nMidY   = (nStartY + nStopY) / 2;
-
-    int nE3P1X  = 0;
-    int nE3P1Y  = 0;
-    int nE3P2X  = 0;
-    int nE3P2Y  = 0;
-    int nE3P3X  = 0;
-    int nE3P3Y  = 0;
-
-    switch(nIndex){
-        case 0:
-            nE3P1X = nStartX;
-            nE3P1Y = nStartY;
-            nE3P2X = nStopX;
-            nE3P2Y = nStartY;
-            nE3P3X = nMidX;
-            nE3P3Y = nMidY;
-            break;
-        case 1:
-            nE3P1X = nMidX;
-            nE3P1Y = nMidY;
-            nE3P2X = nStopX;
-            nE3P2Y = nStartY;
-            nE3P3X = nStopX;
-            nE3P3Y = nStopY;
-            break;
-        case 2:
-            nE3P1X = nStartX;
-            nE3P1Y = nStopY;
-            nE3P2X = nMidX;
-            nE3P2Y = nMidY;
-            nE3P3X = nStopX;
-            nE3P3Y = nStopY;
-            break;
-        case 3:
-            nE3P1X = nStartX;
-            nE3P1Y = nStartY;
-            nE3P2X = nMidX;
-            nE3P2Y = nMidY;
-            nE3P3X = nStartX;
-            nE3P3Y = nStopY;
-            break;
-        default:
-            break;
-    }
-    fl_loop(nE3P1X, nE3P1Y, nE3P2X, nE3P2Y, nE3P3X, nE3P3Y);
-}
-
 void DrawArea::DrawGroundInfo()
 {
     //------->   0 
     //-------> 3   1
     //------->   2
 
+    int nDX = x() - m_OffsetX;
+    int nDY = y() - m_OffsetY;
+
     auto fnDrawOnNOFunc = [this](int nX, int nY, int nIndex){};
-    auto fnDrawOnYESFunc  = [this](int nX, int nY, int nIndex){
+    auto fnDrawOnYESFunc  = [this, nDX, nDY](int nX, int nY, int nIndex){
         extern MainWindow *g_MainWindow;
         if(g_MainWindow->ShowGroundInfoLine()){
-            DrawTriangle(nX, nY, nIndex);
-            // int nStartX = nX * 48 + x() - m_OffsetX;
-            // int nStartY = nY * 32 + y() - m_OffsetY;
-            // int nStopX  = nStartX + 48;
-            // int nStopY  = nStartY + 32;
-            // int nMidX   = (nStartX + nStopX) / 2;
-            // int nMidY   = (nStartY + nStopY) / 2;
-            //
-            // int nE3P1X  = 0;
-            // int nE3P1Y  = 0;
-            // int nE3P2X  = 0;
-            // int nE3P2Y  = 0;
-            // int nE3P3X  = 0;
-            // int nE3P3Y  = 0;
-            //
-            // switch(nIndex){
-            //     case 0:
-            //         nE3P1X = nStartX;
-            //         nE3P1Y = nStartY;
-            //         nE3P2X = nStopX;
-            //         nE3P2Y = nStartY;
-            //         nE3P3X = nMidX;
-            //         nE3P3Y = nMidY;
-            //         break;
-            //     case 1:
-            //         nE3P1X = nMidX;
-            //         nE3P1Y = nMidY;
-            //         nE3P2X = nStopX;
-            //         nE3P2Y = nStartY;
-            //         nE3P3X = nStopX;
-            //         nE3P3Y = nStopY;
-            //         break;
-            //     case 2:
-            //         nE3P1X = nStartX;
-            //         nE3P1Y = nStopY;
-            //         nE3P2X = nMidX;
-            //         nE3P2Y = nMidY;
-            //         nE3P3X = nStopX;
-            //         nE3P3Y = nStopY;
-            //         break;
-            //     case 3:
-            //         nE3P1X = nStartX;
-            //         nE3P1Y = nStartY;
-            //         nE3P2X = nMidX;
-            //         nE3P2Y = nMidY;
-            //         nE3P3X = nStartX;
-            //         nE3P3Y = nStopY;
-            //         break;
-            //     default:
-            //         break;
-            // }
-            // fl_loop(nE3P1X, nE3P1Y, nE3P2X, nE3P2Y, nE3P3X, nE3P3Y);
+            int nMidX, nMidY, nX1, nY1, nX2, nY2;
+            GetTriangleOnMap(nX, nY, nIndex, nMidX, nMidY, nX1, nY1, nX2, nY2);
+            fl_loop(nMidX + nDX, nMidY + nDY, nX1 + nDX, nY1 + nDY, nX2 + nDX, nY2 + nDY);
         }
     };
 
@@ -463,10 +311,10 @@ void DrawArea::DrawGroundInfo()
 
     extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
 
-    int nStartCellX = (std::max)(0, m_OffsetX / 48 - 10);
-    int nStartCellY = (std::max)(0, m_OffsetY / 32 - 20);
-    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 10, g_Map.Width()  - 1);
-    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 20, g_Map.Height() - 1);
+    int nStartCellX = (std::max)(0, m_OffsetX / 48 - 1);
+    int nStartCellY = (std::max)(0, m_OffsetY / 32 - 1);
+    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 1, g_Map.Width()  - 1);
+    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 1, g_Map.Height() - 1);
 
     std::function<void(int, int, int)> fnOnYes = fnDrawOnYESFunc;
     std::function<void(int, int, int)> fnOnNo  = fnDrawOnNOFunc;
@@ -496,7 +344,11 @@ void DrawArea::DrawBaseTile()
 {
     extern MainWindow *g_MainWindow;
     if(!g_MainWindow->ShowBaseTileLayer()){ return; }
-    auto fnDrawFunc = [this](uint32_t nFolderIndex, uint32_t nImageIndex, int nX, int nY){
+
+    int nDX = x() - m_OffsetX;
+    int nDY = y() - m_OffsetY;
+
+    auto fnDrawFunc = [this, nDX, nDY](uint32_t nFolderIndex, uint32_t nImageIndex, int nX, int nY){
         int nStartX = nX * 48;
         int nStartY = nY * 32;
         extern MainWindow *g_MainWindow;
@@ -505,16 +357,17 @@ void DrawArea::DrawBaseTile()
             DrawFunction(p, nStartX, nStartY);
             extern MainWindow *g_MainWindow;
             if(g_MainWindow->ShowBaseTileLine()){
-                fl_rect(nStartX + x() - m_OffsetX, nStartY + y() - m_OffsetY, 96, 64, FL_RED);
+                // fl_rect(nStartX + nDX, nStartY + nDY, 96, 64, FL_RED);
+                fl_rect(nStartX + nDX, nStartY + nDY, p->w(), p->h(), FL_RED);
             }
         }
     };
 
     extern Mir2Map g_Map;
-    int nStartCellX = (std::max)(0, m_OffsetX / 48 - 10);
-    int nStartCellY = (std::max)(0, m_OffsetY / 32 - 20);
-    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 10, g_Map.Width()  - 1);
-    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 20, g_Map.Height() - 1);
+    int nStartCellX = (std::max)(0, m_OffsetX / 48 - 1);
+    int nStartCellY = (std::max)(0, m_OffsetY / 32 - 1);
+    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 1, g_Map.Width()  - 1);
+    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 1, g_Map.Height() - 1);
     g_Map.DrawBaseTile(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnDrawFunc);
 }
 
@@ -531,10 +384,12 @@ void DrawArea::SetYOffset(int nY)
 int DrawArea::handle(int nEvent)
 {
     int ret = Fl_Box::handle(nEvent);
+
     extern Mir2Map g_Map;
     if(!g_Map.Valid()){
         return ret;
     }
+
     int mouseX = m_MouseX;
     int mouseY = m_MouseY;
     m_MouseX   = Fl::event_x();
@@ -554,7 +409,9 @@ int DrawArea::handle(int nEvent)
                 if(g_MainWindow->EnableSelect()
                         && g_MainWindow->SelectByRegion()
                         && g_SelectByRegionPointV.size() > 0){
-                    fl_line(m_MouseX, m_MouseY, g_SelectByRegionPointV.back().first, g_SelectByRegionPointV.back().second);
+                    fl_line(m_MouseX, m_MouseY,
+                            g_SelectByRegionPointV.back().first - m_OffsetX + x(),
+                            g_SelectByRegionPointV.back().second - m_OffsetY + y());
                 }
                 fl_color(wColor);
             }
@@ -595,13 +452,14 @@ int DrawArea::handle(int nEvent)
                 extern MainWindow *g_MainWindow;
                 if(g_MainWindow->EnableSelect() && g_MainWindow->SelectByRegion()){
                     extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
-                    g_SelectByRegionPointV.emplace_back(m_MouseX, m_MouseY);
+                    g_SelectByRegionPointV.emplace_back(
+                            m_MouseX - x() + m_OffsetX, m_MouseY - y() + m_OffsetY);
                 }
                 if(g_MainWindow->EnableEdit()){
                     if(Fl::event_state() & FL_CTRL){
                         // TODO:
                     }else{
-                        SetGroundSubCellUnderPoint(m_MouseX - x(), m_MouseY - y());
+                        SetGroundSubCellUnderPoint(m_MouseX - x() + m_OffsetX, m_MouseY - y() + m_OffsetY);
                     }
                 }else{
                     if(Fl::event_state() & FL_CTRL){
@@ -624,81 +482,25 @@ int DrawArea::handle(int nEvent)
     return ret;
 }
 
-bool DrawArea::LocateGroundSubCell(int nMouseX, int nMouseY, int &nX, int &nY, int &nIndex)
+bool DrawArea::LocateGroundSubCell(int nXOnMap, int nYOnMap, int &nX, int &nY, int &nIndex)
 {
     extern Mir2Map g_Map;
     if(false
-            || nMouseX < 0
-            || nMouseX >= g_Map.Width() * 48
-            || nMouseY < 0
-            || nMouseY >= g_Map.Height() * 32){
+            || nXOnMap < 0
+            || nXOnMap >= g_Map.Width() * 48
+            || nYOnMap < 0
+            || nYOnMap >= g_Map.Height() * 32
+      ){
         return false;
     }
-
-    // TODO any problem here?
-    // this offset is to the corner of current *window*, not current draw area
-    int nXOnMap = nMouseX + m_OffsetX;
-    int nYOnMap = nMouseY + m_OffsetY;
 
     nX = nXOnMap / 48;
     nY = nYOnMap / 32;
 
-    int nDX = nXOnMap % 48;
-    int nDY = nYOnMap % 32;
-
-    int nStartX = 0;
-    int nStartY = 0;
-    int nStopX  = nStartX + 48;
-    int nStopY  = nStartY + 32;
-    int nMidX   = (nStartX + nStopX) / 2;
-    int nMidY   = (nStartY + nStopY) / 2;
-
-    int nE3P1X  = 0;
-    int nE3P1Y  = 0;
-    int nE3P2X  = 0;
-    int nE3P2Y  = 0;
-    int nE3P3X  = 0;
-    int nE3P3Y  = 0;
-
     for(int nIndexLoop = 0; nIndexLoop < 4; ++nIndexLoop){
-        switch(nIndexLoop){
-            case 0:
-                nE3P1X = nStartX;
-                nE3P1Y = nStartY;
-                nE3P2X = nStopX;
-                nE3P2Y = nStartY;
-                nE3P3X = nMidX;
-                nE3P3Y = nMidY;
-                break;
-            case 1:
-                nE3P1X = nMidX;
-                nE3P1Y = nMidY;
-                nE3P2X = nStopX;
-                nE3P2Y = nStartY;
-                nE3P3X = nStopX;
-                nE3P3Y = nStopY;
-                break;
-            case 2:
-                nE3P1X = nStartX;
-                nE3P1Y = nStopY;
-                nE3P2X = nMidX;
-                nE3P2Y = nMidY;
-                nE3P3X = nStopX;
-                nE3P3Y = nStopY;
-                break;
-            case 3:
-                nE3P1X = nStartX;
-                nE3P1Y = nStartY;
-                nE3P2X = nMidX;
-                nE3P2Y = nMidY;
-                nE3P3X = nStartX;
-                nE3P3Y = nStopY;
-                break;
-            default:
-                break;
-        }
-
-        if(CheckInTriangle(nDX, nDY, nE3P1X, nE3P1Y, nE3P2X, nE3P2Y, nE3P3X, nE3P3Y)){
+        int nMidX, nMidY, nX1, nY1, nX2, nY2;
+        GetTriangleOnMap(nX, nY, nIndexLoop, nMidX, nMidY, nX1, nY1, nX2, nY2);
+        if(PointInTriangle(nXOnMap, nYOnMap, nMidX, nMidY, nX1, nY1, nX2, nY2)){
             nIndex = nIndexLoop;
             return true;
         }
@@ -706,10 +508,10 @@ bool DrawArea::LocateGroundSubCell(int nMouseX, int nMouseY, int &nX, int &nY, i
     return false;
 }
 
-void DrawArea::SetGroundSubCellUnderPoint(int nMouseX, int nMouseY)
+void DrawArea::SetGroundSubCellUnderPoint(int nMouseXOnMap, int nMouseYOnMap)
 {
     int nX, nY, nIndex;
-    if(LocateGroundSubCell(nMouseX, nMouseY, nX, nY, nIndex)){
+    if(LocateGroundSubCell(nMouseXOnMap, nMouseYOnMap, nX, nY, nIndex)){
         // printf("%03d %03d %03d\n", nX, nY, nIndex);
         extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
         extern GroundInfoWindow *g_GroundInfoWindow;
@@ -718,15 +520,62 @@ void DrawArea::SetGroundSubCellUnderPoint(int nMouseX, int nMouseY)
     }
 }
 
-bool DrawArea::CheckInTriangle(int nX, int nY, int nX1, int nY1, int nX2, int nY2, int nX3, int nY3)
+void DrawArea::GetTriangleOnMap(
+        int nCellX, int nCellY, int nIndex, // ientfy cell
+        int &nX0, int &nY0,  // 0
+        int &nX1, int &nY1,  // 1
+        int &nX2, int &nY2)  // 2
 {
-    auto bSign = [](double p1X, double p1Y, double p2X, double p2Y, double p3X, double p3Y){
-        return (p1X - p3X) * (p2Y - p3Y) - (p2X - p3X) * (p1Y - p3Y);
-    };
+    // for triangle index in a grid:
+    //------->   0 
+    //-------> 3   1
+    //------->   2
+    //
+    //for points in a triangle: use clock-wise:
+    //  1
+    // /|
+    //0 |    1-------2
+    // \|     \     /
+    //  2      \   /
+    //          \ /
+    //           0
 
-    bool b1 = bSign((double)nX, (double)nY, (double)nX1, (double)nY1, (double)nX2, (double)nY2) < 0.0f;
-    bool b2 = bSign((double)nX, (double)nY, (double)nX2, (double)nY2, (double)nX3, (double)nY3) < 0.0f;
-    bool b3 = bSign((double)nX, (double)nY, (double)nX3, (double)nY3, (double)nX1, (double)nY1) < 0.0f;
+    // int nStartX = nX * 48 + x() - m_OffsetX;
+    // int nStartY = nY * 32 + y() - m_OffsetY;
+    int nStartX = nCellX * 48;
+    int nStartY = nCellY * 32;
+    int nStopX  = nStartX + 48;
+    int nStopY  = nStartY + 32;
 
-    return ((b1 == b2) && (b2 == b3));
+    nX0 = (nStartX + nStopX) / 2;
+    nY0 = (nStartY + nStopY) / 2;
+
+    switch(nIndex % 4){
+        case 0:
+            nX1 = nStartX;
+            nY1 = nStartY;
+            nX2 = nStopX;
+            nY2 = nStartY;
+            break;
+        case 1:
+            nX1 = nStopX;
+            nY1 = nStartY;
+            nX2 = nStopX;
+            nY2 = nStopY;
+            break;
+        case 2:
+            nX1 = nStopX;
+            nY1 = nStopY;
+            nX2 = nStartX;
+            nY2 = nStopY;
+            break;
+        case 3:
+            nX1 = nStartX;
+            nY1 = nStopY;
+            nX2 = nStartX;
+            nY2 = nStartY;
+            break;
+        default:
+            break;
+    }
 }

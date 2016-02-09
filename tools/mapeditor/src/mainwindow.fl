@@ -23,10 +23,13 @@ decl {\#include <string>} {private local
 decl {\#include <cstring>} {private local
 } 
 
-decl {\#include "misc.hpp"} {private local
+decl {\#include "mir2map.hpp"} {private local
 } 
 
-decl {\#include "mir2map.hpp"} {private local
+decl {\#include "savepng.hpp"} {private local
+} 
+
+decl {\#include "filesys.hpp"} {selected private local
 } 
 
 decl {\#include <unordered_map>} {private local
@@ -51,7 +54,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {141 142 985 665} type Double resizable visible
+      xywh {142 143 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 626} resizable
@@ -178,7 +181,7 @@ class MainWindow {open
         std::sprintf(szCachePNGName, "./cache/0%03d%05d.PNG", nFileIndex, nImageIndex);
 
         if(FileExist(szCachePNGName)){
-           return MyCopyFile(szIMGPNGName, szCachePNGName);
+           return DupFile(szIMGPNGName, szCachePNGName);
         }
 
         return false;
@@ -850,8 +853,7 @@ pWidgetY->value(pWidgetY->round(fYP));} {}
     code {{
 	extern CoverConfigureWindow *g_CoverConfigureWindow;
 	return g_CoverConfigureWindow->Radius();
-}} {selected
-    }
+}} {}
   }
   Function {MakeWorkingFolder()} {return_type void
   } {

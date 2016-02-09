@@ -3,11 +3,12 @@
 #include <memory.h>
 #include "assert.h"
 #include <cstring>
-#include "misc.hpp"
 #include <functional>
 #include <cstdint>
 #include <algorithm>
 #include <vector>
+#include "savepng.hpp"
+#include "filesys.hpp"
 
 Mir2Map::Mir2Map()
     : m_Valid(false)
