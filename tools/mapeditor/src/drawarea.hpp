@@ -2,8 +2,10 @@
 #include <FL/Fl_Box.H>
 #include <cstdint>
 #include <FL/Fl_Shared_Image.H>
+// #include <FL/Fl_Gl_Window.H>
 
 class DrawArea: public Fl_Box
+// class DrawArea: public Fl_Gl_Window
 {
     private:
         int     m_MouseX;

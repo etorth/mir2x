@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/08/2016 23:39:30
+ *  Last Modified: 02/09/2016 18:21:07
  *
  *    Description: 
  *
@@ -414,6 +414,16 @@ int DrawArea::handle(int nEvent)
                             g_SelectByRegionPointV.back().second - m_OffsetY + y());
                 }
                 fl_color(wColor);
+
+                {
+                    static Fl_Shared_Image *pCircle = nullptr;
+                    if(pCircle == nullptr){
+                        pCircle = Fl_Shared_Image::get("/home/anhong/Dropbox/alphacircle.png");
+                    }
+                    if(pCircle){
+                        pCircle->draw(m_MouseX - pCircle->w() / 2, m_MouseY - pCircle->h() / 2);
+                    }
+                }
             }
             break;
 
