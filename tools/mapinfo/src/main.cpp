@@ -135,6 +135,7 @@ int main(int argc, char *argv[])
 
     for(int nMapCnt = 2; nMapCnt < argc; ++nMapCnt){
         g_Map.LoadMap(argv[nMapCnt]);
+        g_Map.OpenAllDoor();
         std::printf("%s\n", argv[nMapCnt]);
         std::printf("%s\n", g_Map.MapInfo().c_str());
     }
