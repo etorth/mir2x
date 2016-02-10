@@ -1,5 +1,5 @@
 # mir2x
-mir2 with SDL
+client, server, tools for cross-platform mir2. Using SDL, FLTK, libzip, etc..
 
 1. pkgviewer
 2. shadowmaker
