@@ -334,9 +334,9 @@ uint32_t Mir2Map::GetDoorImageIndex(int nX, int nY)
     if(m_pstCellInfo){
         // seems bDoorOffset & 0X80 shows open or close
         //       bDoorIndex  & 0X80 shows whether there is a door
-        if((m_pstCellInfo[nY + nX * m_stMapFileHeader.shWidth].bDoorOffset & 0X80) > 0){
-            if((m_pstCellInfo[nY + nX * m_stMapFileHeader.shWidth].bDoorIndex & 0X7F) > 0){
-                nDoorIndex += m_pstCellInfo[nY + nX * m_stMapFileHeader.shWidth].bDoorOffset & 0X7F;
+        if((m_pstCellInfo[nY + nX * m_stMapFileHeader.shHeight].bDoorOffset & 0X80) > 0){
+            if((m_pstCellInfo[nY + nX * m_stMapFileHeader.shHeight].bDoorIndex & 0X7F) > 0){
+                nDoorIndex += (m_pstCellInfo[nY + nX * m_stMapFileHeader.shHeight].bDoorOffset & 0X7F);
             }
         }
     }
@@ -1293,8 +1293,8 @@ void Mir2Map::ParseGroundInfoStream(int nStartX, int nStartY, int nSize,
 }
 
 bool Mir2Map::LoadGroundInfo(
-        uint32_t * pU32BitStream, uint32_t nU32BitStreamLen,
-        uint32_t * pU32GroundInfo, uint32_t nU32GroundInfoCount)
+        uint32_t * pU32BitStream, uint32_t,
+        uint32_t * pU32GroundInfo, uint32_t)
 {
     uint32_t nU32BitStreamOffset  = 0;
     uint32_t nU32GroundInfoOffset = 0;
@@ -1355,8 +1355,8 @@ void Mir2Map::ParseBaseTileStream(int nStartX, int nStartY, int nSize,
 }
 
 bool Mir2Map::LoadBaseTileInfo(
-        uint32_t *pU32BitStream,    uint32_t nU32BitStreamLen,
-        uint32_t *pU32BaseTileInfo, uint32_t nU32BaseTileInfoLen)
+        uint32_t *pU32BitStream,    uint32_t,
+        uint32_t *pU32BaseTileInfo, uint32_t)
 {
 
     uint32_t nU32BitStreamOffset    = 0;
@@ -1419,8 +1419,8 @@ void Mir2Map::ParseCellDescStream(int nStartX, int nStartY, int nSize,
 }
 
 bool Mir2Map::LoadCellDesc(
-        uint32_t *pU32BitStream, uint32_t nU32BitStreamLen,
-        CELLDESC *pCellDesc,     uint32_t nCellDescLen)
+        uint32_t *pU32BitStream, uint32_t,
+        CELLDESC *pCellDesc,     uint32_t)
 {
 
     uint32_t nU32BitStreamOffset = 0;
@@ -1622,7 +1622,7 @@ void Mir2Map::OptimizeBaseTile(int nX, int nY)
     }
 }
 
-void Mir2Map::OptimizeCell(int nX, int nY)
+void Mir2Map::OptimizeCell(int, int)
 {
 }
 
@@ -1658,6 +1658,8 @@ void Mir2Map::SetMapInfo()
                 if((m_pstCellInfo[nArrayNum].bDoorIndex & 0X80)
                         && (m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F) != 0){
                     m_DoorCount++;
+
+                    printf("%d, %d, %d\n", nXCnt, nYCnt, GetDoorImageIndex(nXCnt, nYCnt));
                 }
             }
 
@@ -1684,6 +1686,78 @@ void Mir2Map::SetMapInfo()
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+uint8_t Mir2Map::GetDoor(int nXCnt, int nYCnt)
+{
+    uint8_t bRes = 0;
+    int nArrayNum = nYCnt + nXCnt * m_stMapFileHeader.shHeight;
+    if(m_pstCellInfo[nArrayNum].bDoorIndex & 0X80){
+        bRes = m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F;
+    }
+    return bRes;
+}
+
+void Mir2Map::OpenDoor(int nX, int nY, uint8_t nDoorIndex)
+{
+    for(int nCntY = nY - 8; nCntY < nY + 10; nCntY++){
+        for(int nCntX = nX - 8; nCntX < nX + 10; nCntX++){
+            if(true
+                    && nCntX >= 0
+                    && nCntY >= 0
+                    && nCntX <  m_stMapFileHeader.shWidth
+                    && nCntY <  m_stMapFileHeader.shHeight
+              ){
+                int nArrayNum = nCntY + nCntX * m_stMapFileHeader.shHeight;
+                if((m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F) == nDoorIndex){
+                    m_pstCellInfo[nArrayNum].bDoorOffset |= 0X80;
+                }
+            }
+        }
+    }
+}
+
+void Mir2Map::CloseDoor(int nX, int nY, uint8_t nDoorIndex)
+{
+    for(int nCntY = nY - 8; nCntY < nY + 10; nCntY++){
+        for(int nCntX = nX - 8; nCntX < nX + 10; nCntX++){
+            if(true
+                    && nCntX >= 0
+                    && nCntY >= 0
+                    && nCntX <  m_stMapFileHeader.shWidth
+                    && nCntY <  m_stMapFileHeader.shHeight
+              ){
+                int nArrayNum = nCntY + nCntX * m_stMapFileHeader.shHeight;
+                if((m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F) == nDoorIndex){
+                    m_pstCellInfo[nArrayNum].bDoorOffset &= 0X7F;
+                }
+            }
+        }
+    }
+}
+
+void Mir2Map::OpenAllDoor()
+{
+    for(int nX = 0; nX < m_stMapFileHeader.shWidth; ++nX){
+        for(int nY = 0; nY < m_stMapFileHeader.shHeight; ++nY){
+            uint8_t nRes = GetDoor(nX, nY);
+            if(nRes){
+                OpenDoor(nX, nY, nRes);
+            }
+        }
+    }
+}
+
+void Mir2Map::CloseAllDoor()
+{
+    for(int nX = 0; nX < m_stMapFileHeader.shWidth; ++nX){
+        for(int nY = 0; nY < m_stMapFileHeader.shHeight; ++nY){
+            uint8_t nRes = GetDoor(nX, nY);
+            if(nRes){
+                CloseDoor(nX, nY, nRes);
             }
         }
     }

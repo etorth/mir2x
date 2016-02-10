@@ -32,10 +32,13 @@ decl {\#include "savepng.hpp"} {private local
 decl {\#include "filesys.hpp"} {private local
 } 
 
+decl {\#include "supwarning.hpp"} {selected private local
+} 
+
 decl {\#include <unordered_map>} {private local
 } 
 
-decl {\#include "mapinfowindow.hpp"} {selected private local
+decl {\#include "mapinfowindow.hpp"} {private local
 } 
 
 decl {\#include "wilimagepackage.hpp"} {private local
@@ -56,7 +59,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {696 218 985 665} type Double resizable visible
+      xywh {697 219 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 626} resizable
@@ -190,6 +193,8 @@ class MainWindow {open
     };
 
     auto fnSavePNGFunc = [this](uint32_t *pBuff, uint32_t nFileIndex, uint32_t nImageIndex, int nW, int nH, int nX, int nY){
+        UNUSED(nX);
+        UNUSED(nY);
         extern std::string g_WorkingPathName;
         char szIMGPNGName[512];
 
@@ -726,6 +731,8 @@ if(g_Map.Valid()){
             auto fnSavePNGFunc = [this](uint32_t *pBuff,
                     uint32_t nFileIndex, uint32_t nImageIndex,
                     int nW, int nH, int nX, int nY){
+                UNUSED(nX);
+                UNUSED(nY);
                 SavePNG(pBuff, nFileIndex, nImageIndex, nW, nH);
                 // CachePNG(nFileIndex, nImageIndex, nX, nY);
             };
@@ -770,6 +777,15 @@ pWidgetY->value(pWidgetY->round(fYP));} {}
     extern Mir2Map g_Map;
     if(g_Map.Valid()){
         g_Map.SetAniTileFrame(50);
+        {
+            static int bDoorOpen = false;
+            if(bDoorOpen){
+                g_Map.CloseAllDoor();
+            }else{
+                g_Map.OpenAllDoor();
+            }
+            bDoorOpen = !bDoorOpen;
+        }
         extern MainWindow *g_MainWindow;
         g_MainWindow->RedrawAll();
     }

@@ -125,7 +125,7 @@ bool WilImagePackage::SetIndex(uint32_t dwIndex)
     return true;
 }
 
-bool WilImagePackage::Load(const char* wilFilePath, const char *wilFileName, const char *wilFileExt)
+bool WilImagePackage::Load(const char* wilFilePath, const char *wilFileName, const char *)
 {
     m_CurrentImageValid = false;
     if(m_FP){
@@ -291,7 +291,7 @@ int16_t WilImagePackage::Version()
     return m_Version;
 }
 
-void WilImagePackage::ShadowDecode(uint32_t *rectImageBuffer, bool bProject, uint32_t dwColor1, uint32_t dwColor2)
+void WilImagePackage::ShadowDecode(uint32_t *rectImageBuffer, bool, uint32_t dwColor1, uint32_t dwColor2)
 {
     auto    pwSrc   = m_CurrentImageBuffer;
     int16_t nWidth  = m_CurrentWilImageInfo.shWidth;

@@ -67,12 +67,12 @@ class Mir2xMap
         void DrawExt(int, int, int, int, std::function<void(int, int)>);
 
     private:
-        uint16_t CellObjImageOff(int nX, int nY, int nIndex)
+        uint16_t CellObjImageOff(int, int, int)
         {
             return 0;
         }
 
-        uint16_t TileImageOff(int nX, int nY)
+        uint16_t TileImageOff(int, int)
         {
             return 0;
         }

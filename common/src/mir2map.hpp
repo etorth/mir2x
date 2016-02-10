@@ -167,4 +167,12 @@ class Mir2Map
 
     public:
         std::string MapInfo();
+
+    public:
+        // work on door
+        uint8_t GetDoor(int, int);
+        void OpenDoor(int, int, uint8_t);
+        void CloseDoor(int, int, uint8_t);
+        void OpenAllDoor();
+        void CloseAllDoor();
 };

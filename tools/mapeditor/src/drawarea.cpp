@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/09/2016 19:45:44
+ *  Last Modified: 02/10/2016 00:14:03
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 
+#include "supwarning.hpp"
 #include "drawarea.hpp"
 #include <FL/Fl_Shared_Image.H>
 #include <cstdlib>
@@ -65,6 +66,7 @@ void DrawArea::draw()
 	DrawGroundInfo();
 
     DrawSelect();
+    DrawTextBox();
 }
 
 void DrawArea::DrawTriangleUnderCover()
@@ -116,18 +118,20 @@ void DrawArea::DrawSelect()
         int nDX = x() - m_OffsetX;
         int nDY = y() - m_OffsetY;
 
-        if(!g_SelectByRegionPointV.empty()){
-            for(auto &stPair: g_SelectByRegionPointV){
-                fl_circle(stPair.first + nDX, stPair.second +nDY, 4.0);
-            }
-        }
-
-
         if(g_SelectByRegionPointV.size() > 1){
             for(size_t nIndex = 0; nIndex < g_SelectByRegionPointV.size() - 1; ++nIndex){
                 fl_line(g_SelectByRegionPointV[nIndex].first + nDX, g_SelectByRegionPointV[nIndex].second + nDY,
                         g_SelectByRegionPointV[nIndex + 1].first + nDX, g_SelectByRegionPointV[nIndex + 1].second + nDY);
             }
+        }
+
+        if(!g_SelectByRegionPointV.empty()){
+            for(auto &stPair: g_SelectByRegionPointV){
+                fl_circle(stPair.first + nDX, stPair.second +nDY, 4.0);
+            }
+            fl_line(m_MouseX, m_MouseY,
+                    g_SelectByRegionPointV.back().first + nDX,
+                    g_SelectByRegionPointV.back().second + nDY);
         }
 
         // // can't do alpha blend, so comment this out
@@ -140,6 +144,53 @@ void DrawArea::DrawSelect()
         //     }
         // }
     }
+
+    {
+        static Fl_Shared_Image *pCircle = nullptr;
+        if(pCircle == nullptr){
+            pCircle = Fl_Shared_Image::get("/home/anhong/Dropbox/alphacircle.png");
+        }
+        if(pCircle){
+            pCircle->draw(m_MouseX - pCircle->w() / 2, m_MouseY - pCircle->h() / 2);
+        }
+    }
+
+    fl_color(wColor);
+}
+
+void DrawArea::DrawTextBox()
+{
+    // fl_rectf(x(), y(), 48 * 4, 32 * 5, 0, 0, 0);
+    // extern MainWindow *g_MainWindow;
+    {
+        static Fl_Shared_Image *pTextBoxBG = nullptr;
+        if(pTextBoxBG == nullptr){
+            pTextBoxBG = Fl_Shared_Image::get("/home/anhong/Dropbox/texboxbg.png");
+        }
+        if(pTextBoxBG){
+            pTextBoxBG->draw(x(), y());
+        }
+    }
+
+    auto wColor = fl_color();
+    fl_color(FL_RED);
+
+    char szInfo[128];
+    std::sprintf(szInfo, "OffsetX: %d %d", m_OffsetX / 48, m_OffsetX);
+    fl_draw(szInfo, 10 + x(), 20 + y());
+
+    std::sprintf(szInfo, "OffsetY: %d %d", m_OffsetY / 32, m_OffsetY);
+    fl_draw(szInfo, 10 + x(), 40 + y());
+
+    int nDX = m_OffsetX - x();
+    int nDY = m_OffsetY - y();
+
+    std::sprintf(szInfo, "MouseMX: %d %d", (m_MouseX + nDX) / 48, (m_MouseX + nDX));
+    fl_draw(szInfo, 10 + x(), 60 + y());
+
+    std::sprintf(szInfo, "MouseMY: %d %d", (m_MouseY + nDY) / 32, (m_MouseY + nDY));
+    fl_draw(szInfo, 10 + x(), 80 + y());
+
     fl_color(wColor);
 }
 
@@ -152,7 +203,7 @@ void DrawArea::DrawGroundObject()
     int nDY = y() - m_OffsetY;
 
     auto fnDrawObjFunc = [this, nDX, nDY](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image * pImage, int nXCnt, int nYCnt){
-		extern MainWindow *g_MainWindow;
+        extern MainWindow *g_MainWindow;
         // auto p = g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex);
         auto p = pImage;
         if(!p){
@@ -295,7 +346,11 @@ void DrawArea::DrawGroundInfo()
     int nDX = x() - m_OffsetX;
     int nDY = y() - m_OffsetY;
 
-    auto fnDrawOnNOFunc = [this](int nX, int nY, int nIndex){};
+    auto fnDrawOnNOFunc = [this](int nX, int nY, int nIndex){
+        UNUSED(nX);
+        UNUSED(nY);
+        UNUSED(nIndex);
+    };
     auto fnDrawOnYESFunc  = [this, nDX, nDY](int nX, int nY, int nIndex){
         extern MainWindow *g_MainWindow;
         if(g_MainWindow->ShowGroundInfoLine()){
@@ -401,30 +456,6 @@ int DrawArea::handle(int nEvent)
             break;
 
         case FL_MOVE:
-            {
-                auto wColor = fl_color();
-                fl_color(FL_RED);
-                extern MainWindow *g_MainWindow;
-                extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
-                if(g_MainWindow->EnableSelect()
-                        && g_MainWindow->SelectByRegion()
-                        && g_SelectByRegionPointV.size() > 0){
-                    fl_line(m_MouseX, m_MouseY,
-                            g_SelectByRegionPointV.back().first - m_OffsetX + x(),
-                            g_SelectByRegionPointV.back().second - m_OffsetY + y());
-                }
-                fl_color(wColor);
-
-                {
-                    static Fl_Shared_Image *pCircle = nullptr;
-                    if(pCircle == nullptr){
-                        pCircle = Fl_Shared_Image::get("/home/anhong/Dropbox/alphacircle.png");
-                    }
-                    if(pCircle){
-                        pCircle->draw(m_MouseX - pCircle->w() / 2, m_MouseY - pCircle->h() / 2);
-                    }
-                }
-            }
             break;
 
         case FL_DRAG:

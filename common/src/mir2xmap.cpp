@@ -219,7 +219,7 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
     }
 }
 
-void Mir2xMap::DrawOverGroundObj(int nViewX, int nViewY, int nViewW, int nViewH, int nMaxObjH,
+void Mir2xMap::DrawOverGroundObj(int nViewX, int nViewY, int nViewW, int nViewH, int, // nMaxObjH,
         std::function<void(int, int, uint32_t)> fnDrawObjFunc, std::function<void(int, int)> fnDrawActorFunc)
 {
     int nStartCellX = nViewX / 96;
@@ -243,7 +243,7 @@ void Mir2xMap::DrawOverGroundObj(int nViewX, int nViewY, int nViewW, int nViewH,
 }
 
 
-void Mir2xMap::DrawGroundObj(int nViewX, int nViewY, int nViewW, int nViewH, int nMaxObjH,
+void Mir2xMap::DrawGroundObj(int nViewX, int nViewY, int nViewW, int nViewH, int, // nMaxObjH,
         std::function<void(int, int, uint32_t)> fnDrawFunc)
 {
     int nStartCellX = nViewX / 96;
