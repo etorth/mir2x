@@ -1,0 +1,28 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+use_FL_COMMAND 
+header_name {.hpp} 
+code_name {.cpp}
+class CoverConfigureWindow {open
+} {
+  Function {CoverConfigureWindow()} {open
+  } {
+    Fl_Window m_Window {open
+      private xywh {585 281 400 95} type Double labelfont 5 align 80 resizable visible
+    } {
+      Fl_Value_Slider m_ValueSlider {
+        label {Cover Radius}
+        xywh {25 25 345 25} type Horizontal labelfont 4 minimum 1 maximum 100 step 1 textfont 4 textsize 14
+      }
+    }
+  }
+  Function {ShowAll()} {open return_type void
+  } {
+    code {m_Window->show();} {}
+  }
+  Function {Radius()} {return_type int
+  } {
+    code {return (int)(m_ValueSlider->value());} {selected
+    }
+  }
+} 
