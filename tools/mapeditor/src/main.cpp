@@ -12,12 +12,14 @@
 #include <array>
 #include "cropconfigurewindow.hpp"
 #include "coverconfigurewindow.hpp"
+#include "mapinfowindow.hpp"
 
 #include <vector>
 #include <utility>
 
 MainWindow                      *g_MainWindow;
 AboutWindow                     *g_AboutWindow;
+MapInfoWindow                   *g_MapInfoWindow;
 GroundInfoWindow                *g_GroundInfoWindow;
 CoverConfigureWindow            *g_CoverConfigureWindow;
 CropConfigureWindow             *g_CropConfigureWindow;
@@ -38,6 +40,7 @@ int main()
     g_WorkingPathName  = "";
 
     g_MainWindow           = new MainWindow();
+    g_MapInfoWindow        = new MapInfoWindow();
     g_AboutWindow          = new AboutWindow();
     g_GroundInfoWindow     = new GroundInfoWindow();
     g_CropConfigureWindow  = new CropConfigureWindow();

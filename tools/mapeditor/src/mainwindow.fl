@@ -29,10 +29,13 @@ decl {\#include "mir2map.hpp"} {private local
 decl {\#include "savepng.hpp"} {private local
 } 
 
-decl {\#include "filesys.hpp"} {selected private local
+decl {\#include "filesys.hpp"} {private local
 } 
 
 decl {\#include <unordered_map>} {private local
+} 
+
+decl {\#include "mapinfowindow.hpp"} {selected private local
 } 
 
 decl {\#include "wilimagepackage.hpp"} {private local
@@ -48,13 +51,12 @@ class MainWindow {open
 } {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {open
-  } {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       callback {{
 	// do nothing
 }} open
-      xywh {142 143 985 665} type Double resizable visible
+      xywh {696 218 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 626} resizable
@@ -573,7 +575,7 @@ if(g_Map.Valid()){
     m_DrawArea->redraw();
 }} {}
   }
-  Function {AfterLoadMir2Map()} {return_type void
+  Function {AfterLoadMir2Map()} {open return_type void
   } {
     code {{
     extern Mir2Map g_Map;
@@ -610,6 +612,9 @@ if(g_Map.Valid()){
     };
 
     g_Map.ExtractGroundInfo(fnSetGroundInfoFunc);
+    
+    extern MapInfoWindow *g_MapInfoWindow;
+    g_MapInfoWindow->ShowAll();
 }} {}
   }
   Function {SetWorkingPathName()} {return_type void

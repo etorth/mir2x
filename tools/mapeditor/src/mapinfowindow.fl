@@ -1,0 +1,31 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+use_FL_COMMAND 
+header_name {.hpp} 
+code_name {.cpp}
+class MapInfoWindow {open
+} {
+  Function {MapInfoWindow()} {open
+  } {
+    Fl_Window m_Window {open
+      private xywh {998 355 325 205} type Double labelfont 5 align 80 resizable visible
+    } {
+      Fl_Output m_Output {
+        private xywh {0 0 325 204} type Multiline labelfont 4 textfont 4
+      }
+    }
+    code {m_Output->value("uninited");} {selected
+    }
+  }
+  Function {ShowAll()} {return_type void
+  } {
+    code {m_Window->show();} {}
+  }
+  Function {Output(const char * szMapInfo)} {return_type void
+  } {
+    code {m_Output->value(szMapInfo);
+m_Output->cursor_color(FL_WHITE);
+
+m_Window->redraw();} {}
+  }
+} 
