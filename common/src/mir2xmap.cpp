@@ -68,6 +68,15 @@ void Mir2xMap::SetWalk(int nX, int nY, int nSize, bool bCanWalk)
     }
 }
 
+// TODO: need to deal with walkable grid attributes:
+//       cave floor
+//       indoor floor
+//       grass
+//       etc.
+//
+//       differ ocean/lake/pond so sound can be different for even one tile
+//
+//       this is for different sound effect and more
 void Mir2xMap::ParseWalk(int nX, int nY, int nSize, const uint8_t *pMark, long &nMarkOff)
 {
     // 1: there is data in current grid

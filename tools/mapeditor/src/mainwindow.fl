@@ -60,7 +60,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {168 187 985 665} type Double resizable visible
+      xywh {94 145 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 626} resizable
@@ -131,7 +131,7 @@ class MainWindow {open
             }
     }
 }}
-            xywh {0 0 30 20} shortcut 0x4006f labelfont 4 divider
+            xywh {0 0 30 20} shortcut 0x4006f labelfont 4
             code0 {\#include <string>}
             code1 {\#include "mir2map.hpp"}
           }
@@ -228,7 +228,7 @@ class MainWindow {open
           }
           MenuItem {} {
             label {Save As         }
-            xywh {0 0 30 20} shortcut 0x50073 labelfont 4 divider
+            xywh {0 0 30 20} shortcut 0x50073 labelfont 4
           }
           MenuItem {} {
             label Quit
@@ -250,7 +250,7 @@ class MainWindow {open
           }
           MenuItem m_MenuItemOverGroundObjectLine {
             label {Over Ground Object          }
-            xywh {20 20 30 20} type Toggle labelfont 4 divider
+            xywh {20 20 30 20} type Toggle labelfont 4
           }
           MenuItem m_MenuItemGroundInfoLine {
             label {Ground Info Line}
@@ -332,11 +332,11 @@ class MainWindow {open
           MenuItem m_MenuItemEnableEdit {
             label {Enable Edit                    }
             callback {m_MenuItemReversedGroundInfoLine->clear();}
-            xywh {20 20 30 20} type Toggle labelfont 4 divider
+            xywh {20 20 30 20} type Toggle labelfont 4
           }
           MenuItem m_MenuItemEditGround {
             label {Edit Ground Info}
-            xywh {30 30 30 20} type Toggle labelfont 4 divider
+            xywh {30 30 30 20} type Toggle labelfont 4
           }
           MenuItem {} {
             label Optimize
@@ -365,7 +365,7 @@ class MainWindow {open
         } {
           MenuItem m_MenuItemEnableSelect {
             label {Enable Select Mode         }
-            xywh {30 30 30 20} type Toggle labelfont 4 divider
+            xywh {30 30 30 20} type Toggle labelfont 4
           }
           MenuItem m_MenuItemSelectByRegion {
             label Region
@@ -387,7 +387,7 @@ class MainWindow {open
           }
           MenuItem m_MenuItemSelectBySingle {
             label Single
-            xywh {50 50 30 20} type Radio labelfont 4 divider
+            xywh {50 50 30 20} type Radio labelfont 4
           }
           MenuItem {} {
             label {Bit Mask WIndow   }
@@ -425,7 +425,7 @@ extern Mir2Map g_Map;
 if(g_Map.Valid()){
 	int nValidYOffset = g_Map.Height() * 32 - m_DrawArea->h();
 	nValidYOffset = (std::max)(0, nValidYOffset);
-	int nYOffset = (int)(nValidYOffset * fValue);
+	int nYOffset = (int)(nValidYOffset * fValue * 1.0);
 	m_DrawArea->SetYOffset(nYOffset);
 	m_Window->redraw();
 }}
@@ -439,10 +439,10 @@ extern Mir2Map g_Map;
 if(g_Map.Valid()){
 	int nValidXOffset = g_Map.Width() * 48 - m_DrawArea->w();
 	nValidXOffset = (std::max)(0, nValidXOffset);
-	int nXOffset = (int)(nValidXOffset * fValue);
+	int nXOffset = (int)(nValidXOffset * fValue * 1.0);
 	m_DrawArea->SetXOffset(nXOffset);
 	m_Window->redraw();
-}}
+}} selected
         xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001
       }
     }
@@ -879,8 +879,7 @@ pWidgetY->value(pWidgetY->round(fYP));} {}
   } {
     code {{
 	return m_MenuItemSelectBySingle->value();
-}} {selected
-    }
+}} {}
   }
   Function {SelectCoverRadius()} {return_type int
   } {
