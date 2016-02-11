@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <FL/Fl_Box.H>
 #include <cstdint>
 #include <FL/Fl_Shared_Image.H>
@@ -26,20 +27,38 @@ class DrawArea: public Fl_Box
         void    DrawGroundObject();
         void    DrawOverGroundObject();
         void    DrawTriangleUnderCover();
-        void    DrawFunction(Fl_Shared_Image *, int, int);
+        void    DrawFunction(Fl_Image *, int, int);
         void    DrawFunction(uint32_t, uint32_t, int, int);
         void    DrawGroundInfo();
         void    DrawCover();
         void    DrawSelect();
         void    DrawTextBox();
 
+
     public:
         bool LocateGroundSubCell(int, int, int &, int &, int &);
         void SetGroundSubCellUnderPoint(int, int);
+
+    public:
+        Fl_Image *CreateTriangleUnitCover(int);
 
     public:
         void DrawTriangleUnit(int, int, int);
 
     public:
         void GetTriangleOnMap(int, int, int, int &, int &, int &, int &, int &, int &);
+
+    private:
+        // for cover image
+        std::vector<uint32_t> m_CoverData;
+        Fl_RGB_Image         *m_Cover;
+
+    private:
+        // for triangle unit cover
+        Fl_Image *m_TriangleUnitCover[4];
+
+    private:
+        // for text box, background
+        Fl_Image *m_TextBoxBG;
+
 };

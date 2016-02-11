@@ -32,7 +32,7 @@ decl {\#include "savepng.hpp"} {private local
 decl {\#include "filesys.hpp"} {private local
 } 
 
-decl {\#include "supwarning.hpp"} {selected private local
+decl {\#include "supwarning.hpp"} {private local
 } 
 
 decl {\#include <unordered_map>} {private local
@@ -54,12 +54,13 @@ class MainWindow {open
 } {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_Window {
       callback {{
 	// do nothing
 }} open
-      xywh {697 219 985 665} type Double resizable visible
+      xywh {168 187 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 626} resizable
@@ -381,8 +382,12 @@ class MainWindow {open
 	extern CoverConfigureWindow *g_CoverConfigureWindow;
 	g_CoverConfigureWindow->ShowAll();
 }}
-            xywh {40 40 30 20} type Radio labelfont 4 divider
+            xywh {40 40 30 20} type Radio labelfont 4
             code0 {\#include "coverconfigurewindow.hpp"}
+          }
+          MenuItem m_MenuItemSelectBySingle {
+            label Single
+            xywh {50 50 30 20} type Radio labelfont 4 divider
           }
           MenuItem {} {
             label {Bit Mask WIndow   }
@@ -580,7 +585,7 @@ if(g_Map.Valid()){
     m_DrawArea->redraw();
 }} {}
   }
-  Function {AfterLoadMir2Map()} {open return_type void
+  Function {AfterLoadMir2Map()} {return_type void
   } {
     code {{
     extern Mir2Map g_Map;
@@ -869,6 +874,13 @@ pWidgetY->value(pWidgetY->round(fYP));} {}
     code {{
 	return m_MenuItemSelectByCover->value();
 }} {}
+  }
+  Function {SelectBySingle()} {open return_type bool
+  } {
+    code {{
+	return m_MenuItemSelectBySingle->value();
+}} {selected
+    }
   }
   Function {SelectCoverRadius()} {return_type int
   } {

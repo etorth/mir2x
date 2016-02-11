@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/10/2016 19:05:54
+ *  Last Modified: 02/10/2016 22:19:17
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 
+#include <cstring>
 #include "supwarning.hpp"
 #include "drawarea.hpp"
 #include <FL/Fl_Shared_Image.H>
@@ -42,11 +43,24 @@ DrawArea::DrawArea(int x, int y, int w, int h)
     , m_MouseY(0)
     , m_OffsetX(0)
     , m_OffsetY(0)
+    , m_CoverData()
+    , m_Cover(nullptr)
+    , m_TriangleUnitCover{nullptr, nullptr, nullptr, nullptr}
+    , m_TextBoxBG(nullptr)
 {
+    m_TriangleUnitCover[0] = CreateTriangleUnitCover(0);
+    m_TriangleUnitCover[1] = CreateTriangleUnitCover(1);
+    m_TriangleUnitCover[2] = CreateTriangleUnitCover(2);
+    m_TriangleUnitCover[3] = CreateTriangleUnitCover(3);
 }
 
 DrawArea::~DrawArea()
 {
+    delete m_Cover;
+    delete m_TriangleUnitCover[0];
+    delete m_TriangleUnitCover[1];
+    delete m_TriangleUnitCover[2];
+    delete m_TriangleUnitCover[3];
 }
 
 void DrawArea::draw()
@@ -111,7 +125,17 @@ void DrawArea::DrawSelect()
 
     if(g_MainWindow->EnableSelect() && g_MainWindow->SelectByCover()){
         DrawTriangleUnderCover();
+        DrawCover();
         fl_circle(m_MouseX, m_MouseY, g_MainWindow->SelectCoverRadius());
+    }
+
+
+    if(g_MainWindow->EnableSelect() && g_MainWindow->SelectBySingle()){
+        int nX, nY, nIndex;
+        if(LocateGroundSubCell( m_MouseX - x() + m_OffsetX,
+                    m_MouseY - y() + m_OffsetY, nX, nY, nIndex)){
+            DrawTriangleUnit(nX, nY, nIndex);
+        }
     }
 
     if(g_MainWindow->EnableSelect() && g_MainWindow->SelectByRegion()){
@@ -137,18 +161,7 @@ void DrawArea::DrawSelect()
                     g_SelectByRegionPointV.back().second + nDY);
         }
 
-        // // can't do alpha blend, so comment this out
-        // fl_color(FL_YELLOW);
-        // if(g_SelectByRegionPointV.size() > 2){
-        //     for(size_t nIndex = 1; nIndex < g_SelectByRegionPointV.size() - 1; ++nIndex){
-        //         fl_polygon(g_SelectByRegionPointV[0].first, g_SelectByRegionPointV[0].second,
-        //                 g_SelectByRegionPointV[nIndex].first, g_SelectByRegionPointV[nIndex].second,
-        //                 g_SelectByRegionPointV[nIndex + 1].first, g_SelectByRegionPointV[nIndex + 1].second);
-        //     }
-        // }
     }
-
-    DrawCover();
 
     fl_color(wColor);
 }
@@ -157,60 +170,59 @@ void DrawArea::DrawCover()
 {
     extern MainWindow *g_MainWindow;
     int nR = g_MainWindow->SelectCoverRadius();
-    if(nR == 0){
+
+    if(nR <= 0){
+        // don't need to draw
         return;
     }
 
-    static Fl_RGB_Image *pCircle = nullptr;
-    static int nOldR = 0;
+    if(m_Cover && m_Cover->w() == nR * 2){
+        // don't need to update cover data, just draw it
+        DrawFunction(m_Cover,
+                m_MouseX - nR - x() + m_OffsetX,
+                m_MouseY - nR - y() + m_OffsetY);
+        return;
+    }
 
-    if(pCircle == nullptr || nOldR != nR){
-        uint32_t *pData = new uint32_t[nR * nR * 4];
-        uint32_t  nCB = 0X00000000;
-        uint32_t  nCF = 0X100000AA;
-        for(int nX = 0; nX < nR * 2; ++nX){
-            for(int nY = 0; nY < nR * 2; ++nY){
-                if((nX - nR) * (nX - nR) + (nY - nR) * (nY - nR) < nR * nR){
-                    pData[nY * 2* nR + nX] = nCF;
-                }else{
-                    pData[nY * 2* nR + nX] = nCB;
-                }
+    // need to update cover and draw
+    if(m_Cover == nullptr || m_Cover->w() < nR * 2){
+        m_CoverData.resize(nR * nR * 4);
+    }
+
+    for(int nX = 0; nX < nR * 2; ++nX){
+        for(int nY = 0; nY < nR * 2; ++nY){
+            if((nX - nR) * (nX - nR) + (nY - nR) * (nY - nR) <= nR * nR){
+                m_CoverData[nY * 2 * nR + nX] = 0X800000FF;
+            }else{
+                m_CoverData[nY * 2 * nR + nX] = 0X00000000;
             }
         }
-        delete pCircle;
-        pCircle = new Fl_RGB_Image((uchar *)pData, nR, nR, 4, 0);
-        delete pData;
-        nOldR = nR;
     }
 
-    if(pCircle){
-        pCircle->draw(m_MouseX - nR, m_MouseY - nR);
-    }
-
-    // {
-    //     static Fl_Shared_Image *pCircle = nullptr;
-    //     if(pCircle == nullptr){
-    //         pCircle = Fl_Shared_Image::get("/home/anhong/Dropbox/alphacircle.png");
-    //     }
-    //     if(pCircle){
-    //         pCircle->draw(m_MouseX - pCircle->w() / 2, m_MouseY - pCircle->h() / 2);
-    //     }
-    // }
+    delete m_Cover;
+    // TODO
+    // risk-taking, didn't check if the internal buffer keeps the same
+    // when there is no memory rellocation happens
+    // need to refer to the standard document
+    m_Cover = new Fl_RGB_Image((uchar *)(&m_CoverData[0]), nR * 2, nR * 2, 4, 0);
+    DrawFunction(m_Cover,
+            m_MouseX - nR - x() + m_OffsetX,
+            m_MouseY - nR - y() + m_OffsetY);
 }
 
 void DrawArea::DrawTextBox()
 {
-    // fl_rectf(x(), y(), 48 * 4, 32 * 5, 0, 0, 0);
-    // extern MainWindow *g_MainWindow;
-    {
-        static Fl_Shared_Image *pTextBoxBG = nullptr;
-        if(pTextBoxBG == nullptr){
-            pTextBoxBG = Fl_Shared_Image::get("/home/anhong/Dropbox/texboxbg.png");
+    if(m_TextBoxBG == nullptr){
+        uint32_t pData[32 * 5][48 * 4];
+        for(int nY = 0; nY < 32 * 5; ++nY){
+            for(int nX = 0; nX < 48 * 4; ++nX){
+                pData[nY][nX] = 0X80000000;
+            }
         }
-        if(pTextBoxBG){
-            pTextBoxBG->draw(x(), y());
-        }
+        m_TextBoxBG = Fl_RGB_Image((uchar *)pData, 48 * 4, 32 * 5, 4, 0).copy(48 * 4, 32 * 5);
     }
+
+    DrawFunction(m_TextBoxBG, m_OffsetX, m_OffsetY);
 
     auto wColor = fl_color();
     fl_color(FL_RED);
@@ -222,13 +234,13 @@ void DrawArea::DrawTextBox()
     std::sprintf(szInfo, "OffsetY: %d %d", m_OffsetY / 32, m_OffsetY);
     fl_draw(szInfo, 10 + x(), 40 + y());
 
-    int nDX = m_OffsetX - x();
-    int nDY = m_OffsetY - y();
+    int nMX = std::max(0, m_MouseX + m_OffsetX - x());
+    int nMY = std::max(0, m_MouseY + m_OffsetY - y());
 
-    std::sprintf(szInfo, "MouseMX: %d %d", (m_MouseX + nDX) / 48, (m_MouseX + nDX));
+    std::sprintf(szInfo, "MouseMX: %d %d", nMX / 48, nMX);
     fl_draw(szInfo, 10 + x(), 60 + y());
 
-    std::sprintf(szInfo, "MouseMY: %d %d", (m_MouseY + nDY) / 32, (m_MouseY + nDY));
+    std::sprintf(szInfo, "MouseMY: %d %d", nMY / 32, nMY);
     fl_draw(szInfo, 10 + x(), 80 + y());
 
     fl_color(wColor);
@@ -326,7 +338,7 @@ void DrawArea::DrawOverGroundObject()
     g_Map.DrawObjectTile(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnCheckFunc, fnDrawObjFunc);
 }
 
-void DrawArea::DrawFunction(Fl_Shared_Image *pImage, int nStartX, int nStartY)
+void DrawArea::DrawFunction(Fl_Image *pImage, int nStartX, int nStartY)
 {
     // linux needs crop the region, wtf
     // pImage->draw(nStartX + x() - m_OffsetX, nStartY + y() - m_OffsetY);
@@ -661,54 +673,52 @@ void DrawArea::GetTriangleOnMap(
     }
 }
 
-void DrawArea::DrawTriangleUnit(int nCX, int nCY, int nIndex)
+Fl_Image *DrawArea::CreateTriangleUnitCover(int nIndex)
 {
-    static Fl_RGB_Image *pImage[4] = {nullptr, nullptr, nullptr, nullptr};
-    if(pImage[nIndex % 4] == nullptr){
-        uint32_t nCB = 0X00000000;
-        uint32_t nCF = 0X800000FF;
-        uint32_t pData[32][48];
-        for(int nY = 0; nY < 32; ++nY){
-            for(int nX = 0; nX < 48; ++nX){
-                switch(nIndex % 4){
-                    case 0:
-                        if(3 * (16 - nY) >= 2 * std::abs(nX - 24)){
-                            pData[nY][nX] = nCF;
-                        }else{
-                            pData[nY][nX] = nCB;
-                        }
-                        break;
-                    // case 1:
-                    //     if(3 * std::abs(nY - 16) <= 2 * (nX - 24)){
-                    //         pData[nY][nX] = nCF;
-                    //     }else{
-                    //         pData[nY][nX] = nCB;
-                    //     }
-                    //     break;
-                    // case 2:
-                    //     if(3 * (nY - 16) >= 2 * std::abs(nX - 24)){
-                    //         pData[nY][nX] = nCF;
-                    //     }else{
-                    //         pData[nY][nX] = nCB;
-                    //     }
-                    //     break;
-                    // case 3:
-                    //     if(3 * std::abs(nY - 16) <= 2 * (24 - nX)){
-                    //         pData[nY][nX] = nCF;
-                    //     }else{
-                    //         pData[nY][nX] = nCB;
-                    //     }
-                    //     break;
-                    default:
+    uint32_t nCB = 0X00000000;
+    uint32_t nCF = 0X800000FF;
+    uint32_t pData[32][48];
+    for(int nY = 0; nY < 32; ++nY){
+        for(int nX = 0; nX < 48; ++nX){
+            switch(nIndex % 4){
+                case 0:
+                    if(3 * (16 - nY) >= 2 * std::abs(nX - 24)){
+                        pData[nY][nX] = nCF;
+                    }else{
                         pData[nY][nX] = nCB;
-                        break;
-                }
+                    }
+                    break;
+                case 1:
+                    if(3 * std::abs(nY - 16) <= 2 * (nX - 24)){
+                        pData[nY][nX] = nCF;
+                    }else{
+                        pData[nY][nX] = nCB;
+                    }
+                    break;
+                case 2:
+                    if(3 * (nY - 16) >= 2 * std::abs(nX - 24)){
+                        pData[nY][nX] = nCF;
+                    }else{
+                        pData[nY][nX] = nCB;
+                    }
+                    break;
+                case 3:
+                    if(3 * std::abs(nY - 16) <= 2 * (24 - nX)){
+                        pData[nY][nX] = nCF;
+                    }else{
+                        pData[nY][nX] = nCB;
+                    }
+                    break;
+                default:
+                    pData[nY][nX] = nCB;
+                    break;
             }
         }
-        pImage[nIndex % 4] = new Fl_RGB_Image((uchar *)(pData), 48, 32, 4);
     }
+    return Fl_RGB_Image((uchar *)(pData), 48, 32, 4, 0).copy(48, 32);
+}
 
-    if(pImage[nIndex % 4]){
-        pImage[nIndex % 4]->draw(nCX * 48 - m_OffsetX + x(), nCY * 32 - m_OffsetY + y());
-    }
+void DrawArea::DrawTriangleUnit(int nCX, int nCY, int nIndex)
+{
+    DrawFunction(m_TriangleUnitCover[nIndex % 4], nCX * 48, nCY * 32);
 }
