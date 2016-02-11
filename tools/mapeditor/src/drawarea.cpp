@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/10/2016 00:14:03
+ *  Last Modified: 02/10/2016 19:05:54
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 #include "supwarning.hpp"
 #include "drawarea.hpp"
 #include <FL/Fl_Shared_Image.H>
+#include <FL/Fl_RGB_Image.H>
 #include <cstdlib>
 #include <cstdio>
 #include <array>
@@ -93,7 +94,9 @@ void DrawArea::DrawTriangleUnderCover()
                 if(PointInCircle(nMidX, nMidY, nMOMX, nMOMY, nR)
                         || PointInCircle(nX1, nY1, nMOMX, nMOMY, nR)
                         || PointInCircle(nX2, nY2, nMOMX, nMOMY, nR)){
-                    fl_loop(nMidX + nDX, nMidY + nDY, nX1 + nDX, nY1 + nDY, nX2 + nDX, nY2 + nDY);
+                    // fl_loop(nMidX + nDX, nMidY + nDY, nX1 + nDX, nY1 + nDY, nX2 + nDX, nY2 + nDY);
+                    UNUSED(nDX); UNUSED(nDY);
+                    DrawTriangleUnit(nX, nY, nIndex);
                 }
             }
         }
@@ -145,17 +148,54 @@ void DrawArea::DrawSelect()
         // }
     }
 
-    {
-        static Fl_Shared_Image *pCircle = nullptr;
-        if(pCircle == nullptr){
-            pCircle = Fl_Shared_Image::get("/home/anhong/Dropbox/alphacircle.png");
-        }
-        if(pCircle){
-            pCircle->draw(m_MouseX - pCircle->w() / 2, m_MouseY - pCircle->h() / 2);
-        }
-    }
+    DrawCover();
 
     fl_color(wColor);
+}
+
+void DrawArea::DrawCover()
+{
+    extern MainWindow *g_MainWindow;
+    int nR = g_MainWindow->SelectCoverRadius();
+    if(nR == 0){
+        return;
+    }
+
+    static Fl_RGB_Image *pCircle = nullptr;
+    static int nOldR = 0;
+
+    if(pCircle == nullptr || nOldR != nR){
+        uint32_t *pData = new uint32_t[nR * nR * 4];
+        uint32_t  nCB = 0X00000000;
+        uint32_t  nCF = 0X100000AA;
+        for(int nX = 0; nX < nR * 2; ++nX){
+            for(int nY = 0; nY < nR * 2; ++nY){
+                if((nX - nR) * (nX - nR) + (nY - nR) * (nY - nR) < nR * nR){
+                    pData[nY * 2* nR + nX] = nCF;
+                }else{
+                    pData[nY * 2* nR + nX] = nCB;
+                }
+            }
+        }
+        delete pCircle;
+        pCircle = new Fl_RGB_Image((uchar *)pData, nR, nR, 4, 0);
+        delete pData;
+        nOldR = nR;
+    }
+
+    if(pCircle){
+        pCircle->draw(m_MouseX - nR, m_MouseY - nR);
+    }
+
+    // {
+    //     static Fl_Shared_Image *pCircle = nullptr;
+    //     if(pCircle == nullptr){
+    //         pCircle = Fl_Shared_Image::get("/home/anhong/Dropbox/alphacircle.png");
+    //     }
+    //     if(pCircle){
+    //         pCircle->draw(m_MouseX - pCircle->w() / 2, m_MouseY - pCircle->h() / 2);
+    //     }
+    // }
 }
 
 void DrawArea::DrawTextBox()
@@ -618,5 +658,57 @@ void DrawArea::GetTriangleOnMap(
             break;
         default:
             break;
+    }
+}
+
+void DrawArea::DrawTriangleUnit(int nCX, int nCY, int nIndex)
+{
+    static Fl_RGB_Image *pImage[4] = {nullptr, nullptr, nullptr, nullptr};
+    if(pImage[nIndex % 4] == nullptr){
+        uint32_t nCB = 0X00000000;
+        uint32_t nCF = 0X800000FF;
+        uint32_t pData[32][48];
+        for(int nY = 0; nY < 32; ++nY){
+            for(int nX = 0; nX < 48; ++nX){
+                switch(nIndex % 4){
+                    case 0:
+                        if(3 * (16 - nY) >= 2 * std::abs(nX - 24)){
+                            pData[nY][nX] = nCF;
+                        }else{
+                            pData[nY][nX] = nCB;
+                        }
+                        break;
+                    // case 1:
+                    //     if(3 * std::abs(nY - 16) <= 2 * (nX - 24)){
+                    //         pData[nY][nX] = nCF;
+                    //     }else{
+                    //         pData[nY][nX] = nCB;
+                    //     }
+                    //     break;
+                    // case 2:
+                    //     if(3 * (nY - 16) >= 2 * std::abs(nX - 24)){
+                    //         pData[nY][nX] = nCF;
+                    //     }else{
+                    //         pData[nY][nX] = nCB;
+                    //     }
+                    //     break;
+                    // case 3:
+                    //     if(3 * std::abs(nY - 16) <= 2 * (24 - nX)){
+                    //         pData[nY][nX] = nCF;
+                    //     }else{
+                    //         pData[nY][nX] = nCB;
+                    //     }
+                    //     break;
+                    default:
+                        pData[nY][nX] = nCB;
+                        break;
+                }
+            }
+        }
+        pImage[nIndex % 4] = new Fl_RGB_Image((uchar *)(pData), 48, 32, 4);
+    }
+
+    if(pImage[nIndex % 4]){
+        pImage[nIndex % 4]->draw(nCX * 48 - m_OffsetX + x(), nCY * 32 - m_OffsetY + y());
     }
 }

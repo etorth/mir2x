@@ -15,7 +15,6 @@ WilImagePackage     g_WilImagePackage[128];
 std::string         g_WilFilePathName;
 Mir2Map             g_Map;
 
-
 bool LoadWilPackage()
 {
     const char *szFileName[] = {

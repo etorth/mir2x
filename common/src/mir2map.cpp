@@ -1696,7 +1696,7 @@ uint8_t Mir2Map::GetDoor(int nXCnt, int nYCnt)
     uint8_t bRes = 0;
     int nArrayNum = nYCnt + nXCnt * m_stMapFileHeader.shHeight;
     if(m_pstCellInfo[nArrayNum].bDoorIndex & 0X80){
-        bRes = m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F;
+        bRes = (m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F);
     }
     return bRes;
 }

@@ -29,12 +29,16 @@ class DrawArea: public Fl_Box
         void    DrawFunction(Fl_Shared_Image *, int, int);
         void    DrawFunction(uint32_t, uint32_t, int, int);
         void    DrawGroundInfo();
+        void    DrawCover();
         void    DrawSelect();
         void    DrawTextBox();
 
     public:
         bool LocateGroundSubCell(int, int, int &, int &, int &);
         void SetGroundSubCellUnderPoint(int, int);
+
+    public:
+        void DrawTriangleUnit(int, int, int);
 
     public:
         void GetTriangleOnMap(int, int, int, int &, int &, int &, int &, int &, int &);
