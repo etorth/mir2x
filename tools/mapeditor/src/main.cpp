@@ -13,15 +13,17 @@
 #include "cropconfigurewindow.hpp"
 #include "coverconfigurewindow.hpp"
 #include "mapinfowindow.hpp"
+#include "selectsettingwindow.hpp"
+
 
 #include <vector>
 #include <utility>
 
 MainWindow                      *g_MainWindow;
+SelectSettingWindow             *g_SelectSettingWindow;
 AboutWindow                     *g_AboutWindow;
 MapInfoWindow                   *g_MapInfoWindow;
 GroundInfoWindow                *g_GroundInfoWindow;
-CoverConfigureWindow            *g_CoverConfigureWindow;
 CropConfigureWindow             *g_CropConfigureWindow;
 WilImagePackage                  g_WilImagePackage[128];
 std::string                      g_WilFilePathName;
@@ -40,11 +42,11 @@ int main()
     g_WorkingPathName  = "";
 
     g_MainWindow           = new MainWindow();
+    g_SelectSettingWindow  = new SelectSettingWindow();
     g_MapInfoWindow        = new MapInfoWindow();
     g_AboutWindow          = new AboutWindow();
     g_GroundInfoWindow     = new GroundInfoWindow();
     g_CropConfigureWindow  = new CropConfigureWindow();
-    g_CoverConfigureWindow = new CoverConfigureWindow();
 
     g_MainWindow->ShowAll();
     return Fl::run();

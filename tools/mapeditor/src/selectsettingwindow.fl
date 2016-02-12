@@ -1,0 +1,45 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+use_FL_COMMAND 
+header_name {.hpp} 
+code_name {.cpp}
+class SelectSettingWindow {open
+} {
+  Function {SelectSettingWindow()} {open
+  } {
+    Fl_Window m_Window {
+      label {Select Setting Window} open
+      private xywh {492 282 600 185} type Double labelfont 5 align 80 resizable visible
+    } {
+      Fl_Value_Slider m_ValueSliderCircle {
+        label {Circle }
+        xywh {150 25 345 25} type Horizontal labelfont 4 align 4 maximum 100 step 1 value 50 textfont 4 textsize 14
+      }
+      Fl_Value_Slider m_ValueSliderRectangle {
+        label {Rectangle }
+        xywh {150 65 345 25} type Horizontal labelfont 4 align 4 maximum 100 step 1 value 50 textfont 4 textsize 14
+      }
+      Fl_Value_Slider m_ValueSliderRhombus {
+        label {Rhombus }
+        xywh {150 110 345 25} type Horizontal labelfont 4 align 4 maximum 100 step 1 value 50 textfont 4 textsize 14
+      }
+    }
+  }
+  Function {ShowAll()} {open return_type void
+  } {
+    code {m_Window->show();} {}
+  }
+  Function {CircleSize()} {open return_type int
+  } {
+    code {return (int)(m_ValueSliderCircle->value());} {}
+  }
+  Function {RectangleSize()} {open return_type int
+  } {
+    code {return (int)(m_ValueSliderRectangle->value());} {}
+  }
+  Function {RhombusSize()} {open return_type int
+  } {
+    code {return (int)(m_ValueSliderRhombus->value());} {selected
+    }
+  }
+} 

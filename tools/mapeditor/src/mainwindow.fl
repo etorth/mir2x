@@ -60,7 +60,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {94 145 985 665} type Double resizable visible
+      xywh {101 152 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 626} resizable
@@ -365,7 +365,7 @@ class MainWindow {open
         } {
           MenuItem m_MenuItemEnableSelect {
             label {Enable Select Mode         }
-            xywh {30 30 30 20} type Toggle labelfont 4
+            xywh {30 30 30 20} type Toggle labelfont 4 divider
           }
           MenuItem m_MenuItemSelectByRegion {
             label Region
@@ -378,12 +378,15 @@ class MainWindow {open
           }
           MenuItem m_MenuItemSelectByCover {
             label Cover
-            callback {{
-	extern CoverConfigureWindow *g_CoverConfigureWindow;
-	g_CoverConfigureWindow->ShowAll();
-}}
             xywh {40 40 30 20} type Radio labelfont 4
-            code0 {\#include "coverconfigurewindow.hpp"}
+          }
+          MenuItem m_MenuItemSelectByRectangle {
+            label Rectangle selected
+            xywh {70 70 30 20} type Radio labelfont 4
+          }
+          MenuItem m_MenuItemSelectByRhombus {
+            label Rhombus
+            xywh {60 60 30 20} type Radio labelfont 4
           }
           MenuItem m_MenuItemSelectBySingle {
             label Single
@@ -400,8 +403,18 @@ g_GroundInfoWindow->ShowAll();}
             label {Bit Mask WIndow   }
             callback {extern GroundInfoWindow *g_GroundInfoWindow;
 g_GroundInfoWindow->ShowAll();}
-            xywh {20 20 30 20} labelfont 4
+            xywh {20 20 30 20} labelfont 4 divider
             code0 {\#include "groundinfowindow.hpp"}
+          }
+          MenuItem {} {
+            label Settings
+            callback {extern SelectSettingWindow *g_SelectSettingWindow;
+
+if(g_SelectSettingWindow){
+	g_SelectSettingWindow->ShowAll();
+}}
+            xywh {30 30 30 20} labelfont 4
+            code0 {\#include "selectsettingwindow.hpp"}
           }
         }
         Submenu {} {
@@ -442,7 +455,7 @@ if(g_Map.Valid()){
 	int nXOffset = (int)(nValidXOffset * fValue * 1.0);
 	m_DrawArea->SetXOffset(nXOffset);
 	m_Window->redraw();
-}} selected
+}}
         xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001
       }
     }
@@ -875,17 +888,22 @@ pWidgetY->value(pWidgetY->round(fYP));} {}
 	return m_MenuItemSelectByCover->value();
 }} {}
   }
-  Function {SelectBySingle()} {open return_type bool
+  Function {SelectByRhombus()} {return_type bool
+  } {
+    code {{
+	return m_MenuItemSelectByRhombus->value();
+}} {}
+  }
+  Function {SelectByRectangle()} {open return_type bool
+  } {
+    code {{
+	return m_MenuItemSelectByRectangle->value();
+}} {}
+  }
+  Function {SelectBySingle()} {return_type bool
   } {
     code {{
 	return m_MenuItemSelectBySingle->value();
-}} {}
-  }
-  Function {SelectCoverRadius()} {return_type int
-  } {
-    code {{
-	extern CoverConfigureWindow *g_CoverConfigureWindow;
-	return g_CoverConfigureWindow->Radius();
 }} {}
   }
   Function {MakeWorkingFolder()} {return_type void
