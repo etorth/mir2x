@@ -20,6 +20,7 @@ Mir2Map::Mir2Map()
     , m_BaseTileInfo(nullptr)
     , m_GroundInfo(nullptr)
     , m_CellDesc(nullptr)
+    , m_SelectedGrid()
 {
     std::memset(&m_stMapFileHeader, 0, sizeof(MAPFILEHEADER));
     std::memset(m_bAniTileFrame, 0, sizeof(uint8_t) * 8 * 16);
@@ -94,6 +95,10 @@ bool Mir2Map::LoadMap(const char *szMapFileName)
 	}
 
     SetMapInfo();
+
+    m_SelectedGrid = std::vector<std::vector<std::array<bool, 4>>>(
+            Width(), std::vector<std::array<bool, 4>>(
+                Height(), {false, false, false, false}));
 
     return m_Valid;
 }

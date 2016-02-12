@@ -138,6 +138,9 @@ class Mir2Map
         CELLDESC    *m_CellDesc;
 
     private:
+        std::vector<std::vector<std::array<bool, 4>>> m_SelectedGrid;
+
+    private:
         uint32_t    BitPickOne(uint32_t *, uint32_t);
 
 

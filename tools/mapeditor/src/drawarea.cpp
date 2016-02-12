@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/10/2016 22:19:17
+ *  Last Modified: 02/11/2016 20:32:46
  *
  *    Description: 
  *
@@ -89,13 +89,13 @@ void DrawArea::DrawTriangleUnderCover()
     int nMOMX = m_MouseX - x() + m_OffsetX; // mouse on map
     int nMOMY = m_MouseY - y() + m_OffsetY; //
 
-    extern MainWindow *g_MainWindow;
-    int nR = g_MainWindow->SelectCoverRadius();
+    extern SelectSettingWindow *g_SelectSettingWindow;
+    int nR = g_SelectSettingWindow->CircleSize();
 
-    int nStartX = (nMOMX - g_MainWindow->SelectCoverRadius() - 48 / 2) / 48;
-    int nStartY = (nMOMY - g_MainWindow->SelectCoverRadius() - 32 / 2) / 32;
-    int nStopX  = (nMOMX + g_MainWindow->SelectCoverRadius() + 48 / 2) / 48;
-    int nStopY  = (nMOMY + g_MainWindow->SelectCoverRadius() + 32 / 2) / 32;
+    int nStartX = (nMOMX - g_SelectSettingWindow->CircleSize() - 48 / 2) / 48;
+    int nStartY = (nMOMY - g_SelectSettingWindow->CircleSize() - 32 / 2) / 32;
+    int nStopX  = (nMOMX + g_SelectSettingWindow->CircleSize() + 48 / 2) / 48;
+    int nStopY  = (nMOMY + g_SelectSettingWindow->CircleSize() + 32 / 2) / 32;
 
     int nDX = x() - m_OffsetX;
     int nDY = y() - m_OffsetY;
@@ -117,59 +117,76 @@ void DrawArea::DrawTriangleUnderCover()
     }
 }
 
+void DrawArea::DrawSelectByRegion()
+{
+    extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
+
+    int nDX = x() - m_OffsetX;
+    int nDY = y() - m_OffsetY;
+
+    if(g_SelectByRegionPointV.size() > 1){
+        for(size_t nIndex = 0; nIndex < g_SelectByRegionPointV.size() - 1; ++nIndex){
+            fl_line(g_SelectByRegionPointV[nIndex].first + nDX, g_SelectByRegionPointV[nIndex].second + nDY,
+                    g_SelectByRegionPointV[nIndex + 1].first + nDX, g_SelectByRegionPointV[nIndex + 1].second + nDY);
+        }
+    }
+
+    if(!g_SelectByRegionPointV.empty()){
+        for(auto &stPair: g_SelectByRegionPointV){
+            fl_circle(stPair.first + nDX, stPair.second +nDY, 4.0);
+        }
+        fl_line(m_MouseX, m_MouseY,
+                g_SelectByRegionPointV.back().first + nDX,
+                g_SelectByRegionPointV.back().second + nDY);
+    }
+}
+
+void DrawArea::DrawSelectBySingle()
+{
+    int nX, nY, nIndex;
+    if(LocateGroundSubCell( m_MouseX - x() + m_OffsetX,
+                m_MouseY - y() + m_OffsetY, nX, nY, nIndex)){
+        DrawTriangleUnit(nX, nY, nIndex);
+    }
+}
+
+void DrawArea::DrawSelectByCircle()
+{
+    DrawTriangleUnderCover();
+    DrawCover();
+    extern SelectSettingWindow *g_SelectSettingWindow;
+    fl_circle(m_MouseX, m_MouseY, g_SelectSettingWindow->CircleSize());
+}
+
 void DrawArea::DrawSelect()
 {
     extern MainWindow *g_MainWindow;
-    auto wColor = fl_color();
-    fl_color(FL_RED);
+    if(g_MainWindow->EnableSelect()){
+        auto wColor = fl_color();
+        fl_color(FL_RED);
 
-    if(g_MainWindow->EnableSelect() && g_MainWindow->SelectByCover()){
-        DrawTriangleUnderCover();
-        DrawCover();
-        fl_circle(m_MouseX, m_MouseY, g_MainWindow->SelectCoverRadius());
-    }
-
-
-    if(g_MainWindow->EnableSelect() && g_MainWindow->SelectBySingle()){
-        int nX, nY, nIndex;
-        if(LocateGroundSubCell( m_MouseX - x() + m_OffsetX,
-                    m_MouseY - y() + m_OffsetY, nX, nY, nIndex)){
-            DrawTriangleUnit(nX, nY, nIndex);
-        }
-    }
-
-    if(g_MainWindow->EnableSelect() && g_MainWindow->SelectByRegion()){
-
-        extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
-
-        int nDX = x() - m_OffsetX;
-        int nDY = y() - m_OffsetY;
-
-        if(g_SelectByRegionPointV.size() > 1){
-            for(size_t nIndex = 0; nIndex < g_SelectByRegionPointV.size() - 1; ++nIndex){
-                fl_line(g_SelectByRegionPointV[nIndex].first + nDX, g_SelectByRegionPointV[nIndex].second + nDY,
-                        g_SelectByRegionPointV[nIndex + 1].first + nDX, g_SelectByRegionPointV[nIndex + 1].second + nDY);
-            }
+        // select by circle
+        if(g_MainWindow->SelectByCircle()){
         }
 
-        if(!g_SelectByRegionPointV.empty()){
-            for(auto &stPair: g_SelectByRegionPointV){
-                fl_circle(stPair.first + nDX, stPair.second +nDY, 4.0);
-            }
-            fl_line(m_MouseX, m_MouseY,
-                    g_SelectByRegionPointV.back().first + nDX,
-                    g_SelectByRegionPointV.back().second + nDY);
+
+        if(g_MainWindow->SelectBySingle()){
+            DrawSelectBySingle();
         }
 
-    }
+        if(g_MainWindow->SelectByRegion()){
+            DrawSelectByRegion();
+        }
 
-    fl_color(wColor);
+
+        fl_color(wColor);
+    }
 }
 
 void DrawArea::DrawCover()
 {
-    extern MainWindow *g_MainWindow;
-    int nR = g_MainWindow->SelectCoverRadius();
+    extern SelectSettingWindow *g_SelectSettingWindow;
+    int nR = g_SelectSettingWindow->CircleSize();
 
     if(nR <= 0){
         // don't need to draw
