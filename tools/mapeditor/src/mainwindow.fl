@@ -616,7 +616,7 @@ if(g_Map.Valid()){
     // actually in Mir2Map the bFlag only has 0 / 1 available 
     auto fnSetGroundInfoFunc = [this](uint32_t nGroundInfo, int nX, int nY, int nIndex){
         extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
-        if(nIndex >= 0 || nIndex < 4){
+        if(nIndex >= 0 && nIndex < 4){
             g_GroundInfo[nX][nY][nIndex] = nGroundInfo;
         }
     };

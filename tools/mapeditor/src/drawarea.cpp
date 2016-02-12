@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/10/2016 22:19:17
+ *  Last Modified: 02/11/2016 18:13:14
  *
  *    Description: 
  *
@@ -608,7 +608,6 @@ void DrawArea::SetGroundSubCellUnderPoint(int nMouseXOnMap, int nMouseYOnMap)
         // printf("%03d %03d %03d\n", nX, nY, nIndex);
         extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
         extern GroundInfoWindow *g_GroundInfoWindow;
-        // g_GroundInfo[nX][nY][nIndex] |= g_GroundInfoWindow->Mask();
         g_GroundInfo[nX][nY][nIndex] = g_GroundInfoWindow->Mask();
     }
 }
