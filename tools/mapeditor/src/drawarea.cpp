@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/11/2016 20:45:05
+ *  Last Modified: 02/12/2016 00:30:43
  *
  *    Description: 
  *
@@ -150,12 +150,52 @@ void DrawArea::DrawSelectBySingle()
     }
 }
 
-void DrawArea::DrawSelectByCircle()
+
+void DrawArea::DrawSelectByRhombus()
 {
-    DrawTriangleUnderCover();
-    DrawCover();
+
     extern SelectSettingWindow *g_SelectSettingWindow;
-    fl_circle(m_MouseX, m_MouseY, g_SelectSettingWindow->CircleSize());
+    int nSize = g_SelectSettingWindow->RhombusSize();
+    if(nSize <= 0){ return; }
+
+    int nCX = (m_MouseX + m_OffsetX - x()) / 48;
+    int nCY = (m_MouseY + m_OffsetY - y()) / 32;
+
+    // mode 0: 0, 2
+    // mode 1: 1, 3
+    int nMode = 0;
+    int nLine = 1;
+    while(nLine <= nSize){
+        int nCnt = (nLine <= nSize) ? nLine : (nLine - nCnt + 1);
+        for(nIndex = 0; nIndex < nCnt; ++nIndex){
+            if(nMode == 0){
+                DrawTriangleUnit(nCX, nCY    , 2);
+                DrawTriangleUnit(nCX, nCY + 1, 0);
+            }else{
+                DrawTriangleUnit(nCX    , nCY, 1);
+                DrawTriangleUnit(nCX + 1, nCY, 3);
+            }
+        }
+        nMode = 1 - nMode;
+    }
+}
+
+void DrawArea::DrawSelectByRectangle()
+{
+    int nMX = (m_MouseX + m_OffsetX - x()) / 48;
+    int nMY = (m_MouseY + m_OffsetY - y()) / 32;
+
+    extern SelectSettingWindow *g_SelectSettingWindow;
+    int nSize = g_SelectSettingWindow->RectangleSize();
+    if(nSize > 0){
+        for(int nX = 0; nX < nSize; ++nX){
+            for(int nY = 0; nY < nSize; ++nY){
+                for(int nIndex = 0; nIndex < 4; ++nIndex){
+                    DrawTriangleUnit(nX + nMX, nY + nMY, nIndex);
+                }
+            }
+        }
+    }
 }
 
 void DrawArea::DrawSelect()
@@ -165,10 +205,13 @@ void DrawArea::DrawSelect()
         auto wColor = fl_color();
         fl_color(FL_RED);
 
-        // select by circle
-        if(g_MainWindow->SelectByCircle()){
+        if(g_MainWindow->SelectByRectangle()){
+            DrawSelectByRectangle();
         }
 
+        if(g_MainWindow->SelectByRhombus()){
+            DrawSelectByRhombus();
+        }
 
         if(g_MainWindow->SelectBySingle()){
             DrawSelectBySingle();
@@ -177,7 +220,6 @@ void DrawArea::DrawSelect()
         if(g_MainWindow->SelectByRegion()){
             DrawSelectByRegion();
         }
-
 
         fl_color(wColor);
     }
@@ -736,5 +778,8 @@ Fl_Image *DrawArea::CreateTriangleUnitCover(int nIndex)
 
 void DrawArea::DrawTriangleUnit(int nCX, int nCY, int nIndex)
 {
-    DrawFunction(m_TriangleUnitCover[nIndex % 4], nCX * 48, nCY * 32);
+    extern Mir2Map g_Map;
+    if(nCX >= 0 && nCX < g_Map.Width() && nCY >= 0 && nCY < g_Map.Height()){
+        DrawFunction(m_TriangleUnitCover[nIndex % 4], nCX * 48, nCY * 32);
+    }
 }
