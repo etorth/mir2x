@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/12/2016 00:30:43
+ *  Last Modified: 02/12/2016 22:23:21
  *
  *    Description: 
  *
@@ -43,24 +43,22 @@ DrawArea::DrawArea(int x, int y, int w, int h)
     , m_MouseY(0)
     , m_OffsetX(0)
     , m_OffsetY(0)
-    , m_CoverData()
-    , m_Cover(nullptr)
-    , m_TriangleUnitCover{nullptr, nullptr, nullptr, nullptr}
+    , m_TriangleUC{nullptr, nullptr, nullptr, nullptr}
     , m_TextBoxBG(nullptr)
 {
-    m_TriangleUnitCover[0] = CreateTriangleUnitCover(0);
-    m_TriangleUnitCover[1] = CreateTriangleUnitCover(1);
-    m_TriangleUnitCover[2] = CreateTriangleUnitCover(2);
-    m_TriangleUnitCover[3] = CreateTriangleUnitCover(3);
+    m_TriangleUC[0] = CreateTriangleUC(0);
+    m_TriangleUC[1] = CreateTriangleUC(1);
+    m_TriangleUC[2] = CreateTriangleUC(2);
+    m_TriangleUC[3] = CreateTriangleUC(3);
 }
 
 DrawArea::~DrawArea()
 {
-    delete m_Cover;
-    delete m_TriangleUnitCover[0];
-    delete m_TriangleUnitCover[1];
-    delete m_TriangleUnitCover[2];
-    delete m_TriangleUnitCover[3];
+    delete m_TextBoxBG;
+    delete m_TriangleUC[0];
+    delete m_TriangleUC[1];
+    delete m_TriangleUC[2];
+    delete m_TriangleUC[3];
 }
 
 void DrawArea::draw()
@@ -75,6 +73,7 @@ void DrawArea::draw()
     if(!g_Map.Valid()){
         return;
     }
+
     DrawBaseTile();
     DrawGroundObject();
     DrawOverGroundObject();
@@ -84,36 +83,12 @@ void DrawArea::draw()
     DrawTextBox();
 }
 
-void DrawArea::DrawTriangleUnderCover()
+void DrawArea::DrawSelectBySingle()
 {
-    int nMOMX = m_MouseX - x() + m_OffsetX; // mouse on map
-    int nMOMY = m_MouseY - y() + m_OffsetY; //
-
-    extern SelectSettingWindow *g_SelectSettingWindow;
-    int nR = g_SelectSettingWindow->CircleSize();
-
-    int nStartX = (nMOMX - g_SelectSettingWindow->CircleSize() - 48 / 2) / 48;
-    int nStartY = (nMOMY - g_SelectSettingWindow->CircleSize() - 32 / 2) / 32;
-    int nStopX  = (nMOMX + g_SelectSettingWindow->CircleSize() + 48 / 2) / 48;
-    int nStopY  = (nMOMY + g_SelectSettingWindow->CircleSize() + 32 / 2) / 32;
-
-    int nDX = x() - m_OffsetX;
-    int nDY = y() - m_OffsetY;
-
-    for(int nX = nStartX; nX <= nStopX; ++nX){
-        for(int nY = nStartY; nY <= nStopY; ++nY){
-            for(int nIndex = 0; nIndex < 4; ++nIndex){
-                int nMidX, nMidY, nX1, nY1, nX2, nY2;
-                GetTriangleOnMap(nX, nY, nIndex, nMidX, nMidY, nX1, nY1, nX2, nY2);
-                if(PointInCircle(nMidX, nMidY, nMOMX, nMOMY, nR)
-                        || PointInCircle(nX1, nY1, nMOMX, nMOMY, nR)
-                        || PointInCircle(nX2, nY2, nMOMX, nMOMY, nR)){
-                    // fl_loop(nMidX + nDX, nMidY + nDY, nX1 + nDX, nY1 + nDY, nX2 + nDX, nY2 + nDY);
-                    UNUSED(nDX); UNUSED(nDY);
-                    DrawTriangleUnit(nX, nY, nIndex);
-                }
-            }
-        }
+    int nX, nY, nIndex;
+    if(LocateGroundSubCell( m_MouseX - x() + m_OffsetX,
+                m_MouseY - y() + m_OffsetY, nX, nY, nIndex)){
+        DrawTriangleUC(nX, nY, nIndex);
     }
 }
 
@@ -125,74 +100,93 @@ void DrawArea::DrawSelectByRegion()
     int nDY = y() - m_OffsetY;
 
     if(g_SelectByRegionPointV.size() > 1){
+        // connect all points
         for(size_t nIndex = 0; nIndex < g_SelectByRegionPointV.size() - 1; ++nIndex){
-            fl_line(g_SelectByRegionPointV[nIndex].first + nDX, g_SelectByRegionPointV[nIndex].second + nDY,
-                    g_SelectByRegionPointV[nIndex + 1].first + nDX, g_SelectByRegionPointV[nIndex + 1].second + nDY);
+            fl_line(g_SelectByRegionPointV[nIndex].first  + nDX,
+                    g_SelectByRegionPointV[nIndex].second + nDY,
+                    g_SelectByRegionPointV[nIndex + 1].first  + nDX,
+                    g_SelectByRegionPointV[nIndex + 1].second + nDY);
         }
     }
 
     if(!g_SelectByRegionPointV.empty()){
+        // draw all points as small circles
         for(auto &stPair: g_SelectByRegionPointV){
             fl_circle(stPair.first + nDX, stPair.second +nDY, 4.0);
         }
+        // draw current moving line
         fl_line(m_MouseX, m_MouseY,
                 g_SelectByRegionPointV.back().first + nDX,
                 g_SelectByRegionPointV.back().second + nDY);
     }
 }
 
-void DrawArea::DrawSelectBySingle()
-{
-    int nX, nY, nIndex;
-    if(LocateGroundSubCell( m_MouseX - x() + m_OffsetX,
-                m_MouseY - y() + m_OffsetY, nX, nY, nIndex)){
-        DrawTriangleUnit(nX, nY, nIndex);
-    }
-}
-
-
 void DrawArea::DrawSelectByRhombus()
 {
-
     extern SelectSettingWindow *g_SelectSettingWindow;
     int nSize = g_SelectSettingWindow->RhombusSize();
     if(nSize <= 0){ return; }
 
-    int nCX = (m_MouseX + m_OffsetX - x()) / 48;
-    int nCY = (m_MouseY + m_OffsetY - y()) / 32;
+    // don't check boundary condition
+    // since even center point is out of map
+    // we can still select grids over map
+
+    int nMX = m_MouseX + m_OffsetX - x();
+    int nMY = m_MouseY + m_OffsetY - y();
+
+    int nCX = nMX / 48;
+    int nCY = nMY / 32 - nSize / 2;
 
     // mode 0: 0, 2
     // mode 1: 1, 3
-    int nMode = 0;
+
+    int nStartMode = (2 * (nMX % 48) < 3 * (nMY % 32) ) ? 0 : 1;
+    int nMode = nStartMode;
     int nLine = 1;
-    while(nLine <= nSize){
-        int nCnt = (nLine <= nSize) ? nLine : (nLine - nCnt + 1);
-        for(nIndex = 0; nIndex < nCnt; ++nIndex){
+
+    auto fnDrawInfo = [nCX, nCY, nStartMode](
+            int &nStartX, int &nStartY, int &nCnt, int nLine){
+        nStartX = nCX - (nLine - nStartMode) / 2;
+        nStartY = nCY + (nLine - nStartMode) / 2;
+        nCnt    = nLine;
+    };
+
+    while(nLine < nSize * 2){
+        int nStartX, nStartY, nCnt;
+        if(nLine <= nSize){
+            fnDrawInfo(nStartX, nStartY, nCnt, nLine);
+        }else{
+            fnDrawInfo(nStartX, nStartY, nCnt, nSize * 2 - nLine);
+            nStartY += (nLine - nSize);
+        }
+
+        for(int nIndex = 0; nIndex < nCnt; ++nIndex){
             if(nMode == 0){
-                DrawTriangleUnit(nCX, nCY    , 2);
-                DrawTriangleUnit(nCX, nCY + 1, 0);
+                DrawTriangleUC(nStartX + nIndex, nStartY    , 2);
+                DrawTriangleUC(nStartX + nIndex, nStartY + 1, 0);
             }else{
-                DrawTriangleUnit(nCX    , nCY, 1);
-                DrawTriangleUnit(nCX + 1, nCY, 3);
+                DrawTriangleUC(nStartX + nIndex    , nStartY, 1);
+                DrawTriangleUC(nStartX + nIndex + 1, nStartY, 3);
             }
         }
         nMode = 1 - nMode;
+        nLine++;
     }
 }
 
 void DrawArea::DrawSelectByRectangle()
 {
-    int nMX = (m_MouseX + m_OffsetX - x()) / 48;
-    int nMY = (m_MouseY + m_OffsetY - y()) / 32;
-
     extern SelectSettingWindow *g_SelectSettingWindow;
     int nSize = g_SelectSettingWindow->RectangleSize();
-    if(nSize > 0){
-        for(int nX = 0; nX < nSize; ++nX){
-            for(int nY = 0; nY < nSize; ++nY){
-                for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    DrawTriangleUnit(nX + nMX, nY + nMY, nIndex);
-                }
+    if(nSize <= 0){ return; }
+
+    int nMX = (m_MouseX + m_OffsetX - x()) / 48 - nSize / 2;
+    int nMY = (m_MouseY + m_OffsetY - y()) / 32 - nSize / 2;
+
+    for(int nX = 0; nX < nSize; ++nX){
+        for(int nY = 0; nY < nSize; ++nY){
+            for(int nIndex = 0; nIndex < 4; ++nIndex){
+                DrawTriangleUC(nX + nMX, nY + nMY, nIndex);
             }
         }
     }
@@ -205,14 +199,6 @@ void DrawArea::DrawSelect()
         auto wColor = fl_color();
         fl_color(FL_RED);
 
-        if(g_MainWindow->SelectByRectangle()){
-            DrawSelectByRectangle();
-        }
-
-        if(g_MainWindow->SelectByRhombus()){
-            DrawSelectByRhombus();
-        }
-
         if(g_MainWindow->SelectBySingle()){
             DrawSelectBySingle();
         }
@@ -221,52 +207,16 @@ void DrawArea::DrawSelect()
             DrawSelectByRegion();
         }
 
+        if(g_MainWindow->SelectByRhombus()){
+            DrawSelectByRhombus();
+        }
+
+        if(g_MainWindow->SelectByRectangle()){
+            DrawSelectByRectangle();
+        }
+
         fl_color(wColor);
     }
-}
-
-void DrawArea::DrawCover()
-{
-    extern SelectSettingWindow *g_SelectSettingWindow;
-    int nR = g_SelectSettingWindow->CircleSize();
-
-    if(nR <= 0){
-        // don't need to draw
-        return;
-    }
-
-    if(m_Cover && m_Cover->w() == nR * 2){
-        // don't need to update cover data, just draw it
-        DrawFunction(m_Cover,
-                m_MouseX - nR - x() + m_OffsetX,
-                m_MouseY - nR - y() + m_OffsetY);
-        return;
-    }
-
-    // need to update cover and draw
-    if(m_Cover == nullptr || m_Cover->w() < nR * 2){
-        m_CoverData.resize(nR * nR * 4);
-    }
-
-    for(int nX = 0; nX < nR * 2; ++nX){
-        for(int nY = 0; nY < nR * 2; ++nY){
-            if((nX - nR) * (nX - nR) + (nY - nR) * (nY - nR) <= nR * nR){
-                m_CoverData[nY * 2 * nR + nX] = 0X800000FF;
-            }else{
-                m_CoverData[nY * 2 * nR + nX] = 0X00000000;
-            }
-        }
-    }
-
-    delete m_Cover;
-    // TODO
-    // risk-taking, didn't check if the internal buffer keeps the same
-    // when there is no memory rellocation happens
-    // need to refer to the standard document
-    m_Cover = new Fl_RGB_Image((uchar *)(&m_CoverData[0]), nR * 2, nR * 2, 4, 0);
-    DrawFunction(m_Cover,
-            m_MouseX - nR - x() + m_OffsetX,
-            m_MouseY - nR - y() + m_OffsetY);
 }
 
 void DrawArea::DrawTextBox()
@@ -731,7 +681,7 @@ void DrawArea::GetTriangleOnMap(
     }
 }
 
-Fl_Image *DrawArea::CreateTriangleUnitCover(int nIndex)
+Fl_Image *DrawArea::CreateTriangleUC(int nIndex)
 {
     uint32_t nCB = 0X00000000;
     uint32_t nCF = 0X800000FF;
@@ -776,10 +726,10 @@ Fl_Image *DrawArea::CreateTriangleUnitCover(int nIndex)
     return Fl_RGB_Image((uchar *)(pData), 48, 32, 4, 0).copy(48, 32);
 }
 
-void DrawArea::DrawTriangleUnit(int nCX, int nCY, int nIndex)
+void DrawArea::DrawTriangleUC(int nCX, int nCY, int nIndex)
 {
     extern Mir2Map g_Map;
     if(nCX >= 0 && nCX < g_Map.Width() && nCY >= 0 && nCY < g_Map.Height()){
-        DrawFunction(m_TriangleUnitCover[nIndex % 4], nCX * 48, nCY * 32);
+        DrawFunction(m_TriangleUC[nIndex % 4], nCX * 48, nCY * 32);
     }
 }

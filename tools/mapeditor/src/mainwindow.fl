@@ -60,7 +60,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {101 152 985 665} type Double resizable visible
+      xywh {39 103 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 626} resizable
@@ -360,7 +360,7 @@ class MainWindow {open
           }
         }
         Submenu {} {
-          label Select open
+          label Select open selected
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem m_MenuItemEnableSelect {
@@ -376,12 +376,8 @@ class MainWindow {open
             label BitMask
             xywh {30 30 30 20} type Radio labelfont 4
           }
-          MenuItem m_MenuItemSelectByCover {
-            label Cover
-            xywh {40 40 30 20} type Radio labelfont 4
-          }
           MenuItem m_MenuItemSelectByRectangle {
-            label Rectangle selected
+            label Rectangle
             xywh {70 70 30 20} type Radio labelfont 4
           }
           MenuItem m_MenuItemSelectByRhombus {
@@ -882,19 +878,13 @@ pWidgetY->value(pWidgetY->round(fYP));} {}
 	return m_MenuItemSelectByRegion->value();
 }} {}
   }
-  Function {SelectByCover()} {return_type bool
-  } {
-    code {{
-	return m_MenuItemSelectByCover->value();
-}} {}
-  }
   Function {SelectByRhombus()} {return_type bool
   } {
     code {{
 	return m_MenuItemSelectByRhombus->value();
 }} {}
   }
-  Function {SelectByRectangle()} {open return_type bool
+  Function {SelectByRectangle()} {return_type bool
   } {
     code {{
 	return m_MenuItemSelectByRectangle->value();
