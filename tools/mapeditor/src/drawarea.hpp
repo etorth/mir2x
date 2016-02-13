@@ -3,6 +3,7 @@
 #include <FL/Fl_Box.H>
 #include <cstdint>
 #include <FL/Fl_Shared_Image.H>
+#include <functional>
 
 class DrawArea: public Fl_Box
 {
@@ -14,7 +15,7 @@ class DrawArea: public Fl_Box
         int m_OffsetY;
 
     private:
-        Fl_Image *m_TriangleUC[4]; // triangle unit cover
+        Fl_Image *m_TUC[4]; // triangle unit cover
         Fl_Image *m_TextBoxBG;     // backgound for living text
 
     public:
@@ -27,8 +28,7 @@ class DrawArea: public Fl_Box
         int  handle(int);
 
     public:
-        void    SetXOffset(int);
-        void    SetYOffset(int);
+        void SetOffset(int, bool, int, bool);
 
     private:
         void    DrawBaseTile();
@@ -40,7 +40,12 @@ class DrawArea: public Fl_Box
 
     private:
         void    DrawSelect();
+        void    DrawTrySelect();
         void    DrawTextBox();
+
+    private:
+        void RhombusCoverOperation(int, int, int, std::function<void(int, int, int)>);
+        void RectangleCoverOperation(int, int, int, std::function<void(int, int, int)>);
 
     private:
         void DrawSelectBySingle();
@@ -49,13 +54,25 @@ class DrawArea: public Fl_Box
         void DrawSelectByRectangle();
 
     private:
+        void AddSelect();
+
+    private:
+        void AddSelectBySingle();
+        void AddSelectByRegion();
+        void AddSelectByRhombus();
+        void AddSelectByRectangle();
+
+    private:
         void GetTriangleOnMap(int, int, int, int &, int &, int &, int &, int &, int &);
         bool LocateGroundSubCell(int, int, int &, int &, int &);
         void SetGroundSubCellUnderPoint(int, int);
 
     public:
-        Fl_Image *CreateTriangleUC(int);
+        Fl_Image *CreateTUC(int);
+        void ClearSelectTUC();
+        void SetSelectTUC(int, int, int, int);
+        void SetScrollBar();
 
     public:
-        void DrawTriangleUC(int, int, int);
+        void DrawTUC(int, int, int);
 };

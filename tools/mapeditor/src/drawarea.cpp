@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/12/2016 22:23:21
+ *  Last Modified: 02/12/2016 22:19:18
  *
  *    Description: 
  *
@@ -43,22 +43,22 @@ DrawArea::DrawArea(int x, int y, int w, int h)
     , m_MouseY(0)
     , m_OffsetX(0)
     , m_OffsetY(0)
-    , m_TriangleUC{nullptr, nullptr, nullptr, nullptr}
+    , m_TUC{nullptr, nullptr, nullptr, nullptr}
     , m_TextBoxBG(nullptr)
 {
-    m_TriangleUC[0] = CreateTriangleUC(0);
-    m_TriangleUC[1] = CreateTriangleUC(1);
-    m_TriangleUC[2] = CreateTriangleUC(2);
-    m_TriangleUC[3] = CreateTriangleUC(3);
+    m_TUC[0] = CreateTUC(0);
+    m_TUC[1] = CreateTUC(1);
+    m_TUC[2] = CreateTUC(2);
+    m_TUC[3] = CreateTUC(3);
 }
 
 DrawArea::~DrawArea()
 {
     delete m_TextBoxBG;
-    delete m_TriangleUC[0];
-    delete m_TriangleUC[1];
-    delete m_TriangleUC[2];
-    delete m_TriangleUC[3];
+    delete m_TUC[0];
+    delete m_TUC[1];
+    delete m_TUC[2];
+    delete m_TUC[3];
 }
 
 void DrawArea::draw()
@@ -80,6 +80,7 @@ void DrawArea::draw()
 	DrawGroundInfo();
 
     DrawSelect();
+    DrawTrySelect();
     DrawTextBox();
 }
 
@@ -88,7 +89,16 @@ void DrawArea::DrawSelectBySingle()
     int nX, nY, nIndex;
     if(LocateGroundSubCell( m_MouseX - x() + m_OffsetX,
                 m_MouseY - y() + m_OffsetY, nX, nY, nIndex)){
-        DrawTriangleUC(nX, nY, nIndex);
+        DrawTUC(nX, nY, nIndex);
+    }
+}
+
+void DrawArea::AddSelectBySingle()
+{
+    int nX, nY, nIndex;
+    if(LocateGroundSubCell( m_MouseX - x() + m_OffsetX,
+                m_MouseY - y() + m_OffsetY, nX, nY, nIndex)){
+        SetSelectTUC(nX, nY, nIndex, 1);
     }
 }
 
@@ -121,18 +131,14 @@ void DrawArea::DrawSelectByRegion()
     }
 }
 
-void DrawArea::DrawSelectByRhombus()
+void DrawArea::RhombusCoverOperation(int nMX, int nMY, int nSize,
+        std::function<void(int, int, int)> fnOperation)
 {
-    extern SelectSettingWindow *g_SelectSettingWindow;
-    int nSize = g_SelectSettingWindow->RhombusSize();
     if(nSize <= 0){ return; }
 
     // don't check boundary condition
     // since even center point is out of map
     // we can still select grids over map
-
-    int nMX = m_MouseX + m_OffsetX - x();
-    int nMY = m_MouseY + m_OffsetY - y();
 
     int nCX = nMX / 48;
     int nCY = nMY / 32 - nSize / 2;
@@ -144,7 +150,7 @@ void DrawArea::DrawSelectByRhombus()
     int nMode = nStartMode;
     int nLine = 1;
 
-    auto fnDrawInfo = [nCX, nCY, nStartMode](
+    auto fnLineCoverInfo = [nCX, nCY, nStartMode](
             int &nStartX, int &nStartY, int &nCnt, int nLine){
         nStartX = nCX - (nLine - nStartMode) / 2;
         nStartY = nCY + (nLine - nStartMode) / 2;
@@ -154,19 +160,19 @@ void DrawArea::DrawSelectByRhombus()
     while(nLine < nSize * 2){
         int nStartX, nStartY, nCnt;
         if(nLine <= nSize){
-            fnDrawInfo(nStartX, nStartY, nCnt, nLine);
+            fnLineCoverInfo(nStartX, nStartY, nCnt, nLine);
         }else{
-            fnDrawInfo(nStartX, nStartY, nCnt, nSize * 2 - nLine);
+            fnLineCoverInfo(nStartX, nStartY, nCnt, nSize * 2 - nLine);
             nStartY += (nLine - nSize);
         }
 
         for(int nIndex = 0; nIndex < nCnt; ++nIndex){
             if(nMode == 0){
-                DrawTriangleUC(nStartX + nIndex, nStartY    , 2);
-                DrawTriangleUC(nStartX + nIndex, nStartY + 1, 0);
+                fnOperation(nStartX + nIndex, nStartY    , 2);
+                fnOperation(nStartX + nIndex, nStartY + 1, 0);
             }else{
-                DrawTriangleUC(nStartX + nIndex    , nStartY, 1);
-                DrawTriangleUC(nStartX + nIndex + 1, nStartY, 3);
+                fnOperation(nStartX + nIndex    , nStartY, 1);
+                fnOperation(nStartX + nIndex + 1, nStartY, 3);
             }
         }
         nMode = 1 - nMode;
@@ -174,25 +180,104 @@ void DrawArea::DrawSelectByRhombus()
     }
 }
 
-void DrawArea::DrawSelectByRectangle()
+void DrawArea::DrawSelectByRhombus()
 {
     extern SelectSettingWindow *g_SelectSettingWindow;
-    int nSize = g_SelectSettingWindow->RectangleSize();
+    int nSize = g_SelectSettingWindow->RhombusSize();
+    int nMX   = m_MouseX + m_OffsetX - x();
+    int nMY   = m_MouseY + m_OffsetY - y();
+
+    auto fnDrawFunc = [this](int nX,  int nY, int nIndex){
+        DrawTUC(nX, nY, nIndex);
+    };
+
+    RhombusCoverOperation(nMX, nMY, nSize, fnDrawFunc);
+}
+
+void DrawArea::AddSelectByRhombus()
+{
+    extern SelectSettingWindow *g_SelectSettingWindow;
+    int nSize = g_SelectSettingWindow->RhombusSize();
+    int nMX   = m_MouseX + m_OffsetX - x();
+    int nMY   = m_MouseY + m_OffsetY - y();
+
+    auto fnSetFunc = [this](int nX,  int nY, int nIndex){
+        SetSelectTUC(nX, nY, nIndex, 1);
+    };
+
+    RhombusCoverOperation(nMX, nMY, nSize, fnSetFunc);
+}
+
+void DrawArea::RectangleCoverOperation(
+        int nMouseXOnMap, int nMouseYOnMap, int nSize, std::function<void(int, int, int)> fnOperation)
+{
     if(nSize <= 0){ return; }
 
-    int nMX = (m_MouseX + m_OffsetX - x()) / 48 - nSize / 2;
-    int nMY = (m_MouseY + m_OffsetY - y()) / 32 - nSize / 2;
+    int nMX = nMouseXOnMap / 48 - nSize / 2;
+    int nMY = nMouseYOnMap / 32 - nSize / 2;
 
     for(int nX = 0; nX < nSize; ++nX){
         for(int nY = 0; nY < nSize; ++nY){
             for(int nIndex = 0; nIndex < 4; ++nIndex){
-                DrawTriangleUC(nX + nMX, nY + nMY, nIndex);
+                fnOperation(nX + nMX, nY + nMY, nIndex);
             }
         }
     }
 }
 
+void DrawArea::DrawSelectByRectangle()
+{
+    extern SelectSettingWindow *g_SelectSettingWindow;
+    int nSize = g_SelectSettingWindow->RectangleSize();
+    int nMX   = m_MouseX + m_OffsetX - x();
+    int nMY   = m_MouseY + m_OffsetY - y();
+
+    auto fnDrawFunc = [this](int nX,  int nY, int nIndex){
+        DrawTUC(nX, nY, nIndex);
+    };
+
+    RectangleCoverOperation(nMX, nMY, nSize, fnDrawFunc);
+}
+
+void DrawArea::AddSelectByRectangle()
+{
+    extern SelectSettingWindow *g_SelectSettingWindow;
+    int nSize = g_SelectSettingWindow->RectangleSize();
+    int nMX   = m_MouseX + m_OffsetX - x();
+    int nMY   = m_MouseY + m_OffsetY - y();
+
+    auto fnSetFunc = [this](int nX,  int nY, int nIndex){
+        SetSelectTUC(nX, nY, nIndex, 1);
+    };
+
+    RectangleCoverOperation(nMX, nMY, nSize, fnSetFunc);
+}
+
 void DrawArea::DrawSelect()
+{
+    extern Mir2Map g_Map;
+    extern std::vector<std::vector<std::array<int, 4>>> g_SelectTUC;
+
+    int nX = m_OffsetX / 48 - 1;
+    int nY = m_OffsetY / 32 - 1;
+
+    int nXSize = w() / 48 + 3;
+    int nYSize = h() / 32 + 3;
+
+    for(int nTX = nX; nTX < nXSize + nX; ++nTX){
+        for(int nTY = nY; nTY < nYSize + nY; ++nTY){
+            if(nTX >= 0 && nTX < g_Map.Width() && nTY >= 0 && nTY < g_Map.Height()){
+                for(int nIndex = 0; nIndex < 4; ++nIndex){
+                    if(g_SelectTUC[nTX][nTY][nIndex]){
+                        DrawTUC(nTX, nTY, nIndex);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void DrawArea::DrawTrySelect()
 {
     extern MainWindow *g_MainWindow;
     if(g_MainWindow->EnableSelect()){
@@ -487,14 +572,26 @@ void DrawArea::DrawBaseTile()
     g_Map.DrawBaseTile(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnDrawFunc);
 }
 
-void DrawArea::SetXOffset(int nX)
+void DrawArea::SetOffset(int nX, bool bRelativeX, int nY, bool bRelativeY)
 {
-    m_OffsetX = nX;
-}
+    extern Mir2Map g_Map;
+    if(!g_Map.Valid()){ return; }
 
-void DrawArea::SetYOffset(int nY)
-{
-    m_OffsetY = nY;
+    if(bRelativeX){
+        m_OffsetX += nX;
+    }else{
+        m_OffsetX = nX;
+    }
+    m_OffsetX = (std::max)(m_OffsetX, 0);
+    m_OffsetX = (std::min)(m_OffsetX, (std::max)(0, 48 * g_Map.Width() - w()));
+
+    if(bRelativeY){
+        m_OffsetY += nY;
+    }else{
+        m_OffsetY = nY;
+    }
+    m_OffsetY  = (std::max)(m_OffsetY, 0);
+    m_OffsetY  = (std::min)(m_OffsetY, (std::max)(0, 32 * g_Map.Height() - h()));
 }
 
 int DrawArea::handle(int nEvent)
@@ -520,43 +617,32 @@ int DrawArea::handle(int nEvent)
             break;
 
         case FL_DRAG:
-            if(Fl::event_state() & FL_CTRL){
-                // bug of fltk here for windows, when some key is pressed, 
-                // event_x() and event_y() are incorrect!
-                // printf("%4d %4d\n", Fl::event_x(), Fl::event_y());
-                //
-                // m_ReferenceLineX += (m_MouseX - mouseX);
-                // m_ReferenceLineY += (m_MouseY - mouseY);
-            }else{
-                m_OffsetX -= (m_MouseX - mouseX);
-                m_OffsetY -= (m_MouseY - mouseY);
-                m_OffsetX  = (std::max)(m_OffsetX, 0);
-                m_OffsetY  = (std::max)(m_OffsetY, 0);
-                m_OffsetX  = (std::min)(m_OffsetX, (std::max)(0, 48 * g_Map.Width()  - w()));
-                m_OffsetY  = (std::min)(m_OffsetY, (std::max)(0, 32 * g_Map.Height() - h()));
-
-
-                double fXP = -1.0;
-                double fYP = -1.0;
-                if(48 * g_Map.Width()  - w() > 0){
-                    fXP = m_OffsetX * 1.0 / (48 * g_Map.Width()  - w());
-                }
-                if(32 * g_Map.Height() - h() > 0){
-                    fYP = m_OffsetY * 1.0 / (32 * g_Map.Height() - h());
-                }
+            {
                 extern MainWindow *g_MainWindow;
-                g_MainWindow->UpdateScrollBar(fXP, fYP);
+                if(g_MainWindow->EnableSelect()){
+                    AddSelect();
+                }else if(g_MainWindow->EnableEdit()){
+                    // TODO
+                    //
+                }else{
+                    if(Fl::event_state() & FL_CTRL){
+                        // bug of fltk here for windows, when some key is pressed, 
+                        // event_x() and event_y() are incorrect!
+                    }else{
+                        SetOffset(-(m_MouseX - mouseX), true, -(m_MouseY - mouseY), false);
+                        SetScrollBar();
+                    }
+                }
             }
             break;
 
         case FL_PUSH:
             {
                 extern MainWindow *g_MainWindow;
-                if(g_MainWindow->EnableSelect() && g_MainWindow->SelectByRegion()){
-                    extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
-                    g_SelectByRegionPointV.emplace_back(
-                            m_MouseX - x() + m_OffsetX, m_MouseY - y() + m_OffsetY);
+                if(g_MainWindow->EnableSelect()){
+                    AddSelect();
                 }
+
                 if(g_MainWindow->EnableEdit()){
                     if(Fl::event_state() & FL_CTRL){
                         // TODO:
@@ -681,7 +767,7 @@ void DrawArea::GetTriangleOnMap(
     }
 }
 
-Fl_Image *DrawArea::CreateTriangleUC(int nIndex)
+Fl_Image *DrawArea::CreateTUC(int nIndex)
 {
     uint32_t nCB = 0X00000000;
     uint32_t nCF = 0X800000FF;
@@ -726,10 +812,88 @@ Fl_Image *DrawArea::CreateTriangleUC(int nIndex)
     return Fl_RGB_Image((uchar *)(pData), 48, 32, 4, 0).copy(48, 32);
 }
 
-void DrawArea::DrawTriangleUC(int nCX, int nCY, int nIndex)
+void DrawArea::DrawTUC(int nCX, int nCY, int nIndex)
 {
     extern Mir2Map g_Map;
     if(nCX >= 0 && nCX < g_Map.Width() && nCY >= 0 && nCY < g_Map.Height()){
-        DrawFunction(m_TriangleUC[nIndex % 4], nCX * 48, nCY * 32);
+        DrawFunction(m_TUC[nIndex % 4], nCX * 48, nCY * 32);
+    }
+}
+
+
+void DrawArea::AddSelectByRegion()
+{
+    extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
+    int nMX = m_MouseX - x() + m_OffsetX;
+    int nMY = m_MouseY - y() + m_OffsetY;
+    if(g_SelectByRegionPointV.back().first != nMX
+            && g_SelectByRegionPointV.back().second != nMY){
+        g_SelectByRegionPointV.emplace_back(nMX, nMY);
+        // TODO
+        // how to calculate the region by selected points ???
+    }
+}
+
+void DrawArea::ClearSelectTUC()
+{
+    extern Mir2Map g_Map;
+    if(!g_Map.Valid()){
+        return;
+    }
+
+    extern std::vector<std::vector<std::array<int, 4>>> g_SelectTUC;
+    for(int nX = 0; nX < g_Map.Width(); ++nX){
+        for(int nY = 0; nY < g_Map.Height(); ++nY){
+            for(int nIndex = 0; nIndex < 4; ++nIndex){
+                g_SelectTUC[nX][nY][nIndex] = 0;
+            }
+        }
+    }
+}
+
+void DrawArea::SetSelectTUC(int nCX, int nCY, int nIndex, int nValue)
+{
+    extern Mir2Map g_Map;
+    extern std::vector<std::vector<std::array<int, 4>>> g_SelectTUC;
+
+    if(nCX >= 0 && nCX < g_Map.Width() && nCY >= 0 && nCY < g_Map.Height()){
+        g_SelectTUC[nCX][nCY][nIndex % 4] = nValue;
+    }
+}
+
+void DrawArea::SetScrollBar()
+{
+    extern Mir2Map g_Map;
+
+    double fXP = -1.0;
+    double fYP = -1.0;
+    if(48 * g_Map.Width()  - w() > 0){
+        fXP = m_OffsetX * 1.0 / (48 * g_Map.Width()  - w());
+    }
+    if(32 * g_Map.Height() - h() > 0){
+        fYP = m_OffsetY * 1.0 / (32 * g_Map.Height() - h());
+    }
+
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->UpdateScrollBar(fXP, fYP);
+}
+
+void DrawArea::AddSelect()
+{
+    extern MainWindow *g_MainWindow;
+    if(g_MainWindow->SelectByRegion()){
+        AddSelectByRegion();
+    }
+
+    if(g_MainWindow->SelectBySingle()){
+        AddSelectBySingle();
+    }
+
+    if(g_MainWindow->SelectByRhombus()){
+        AddSelectByRhombus();
+    }
+
+    if(g_MainWindow->SelectByRectangle()){
+        AddSelectByRectangle();
     }
 }

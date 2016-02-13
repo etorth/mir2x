@@ -60,14 +60,14 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {39 103 985 665} type Double resizable visible
+      xywh {40 104 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 626} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
       }
-      Fl_Menu_Bar m_MenuBar {open
+      Fl_Menu_Bar m_MenuBar {open selected
         xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -360,17 +360,21 @@ class MainWindow {open
           }
         }
         Submenu {} {
-          label Select open selected
+          label Select open
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem m_MenuItemEnableSelect {
             label {Enable Select Mode         }
             xywh {30 30 30 20} type Toggle labelfont 4 divider
           }
+          MenuItem m_MenuItemSelectBySingle {
+            label Single
+            xywh {50 50 30 20} type Radio value 1 labelfont 4
+          }
           MenuItem m_MenuItemSelectByRegion {
             label Region
             callback {fl_cursor(FL_CURSOR_HAND);}
-            xywh {20 20 30 20} type Radio value 1 labelfont 4
+            xywh {20 20 30 20} type Radio labelfont 4
           }
           MenuItem m_MenuItemSelectByBitMask {
             label BitMask
@@ -382,11 +386,7 @@ class MainWindow {open
           }
           MenuItem m_MenuItemSelectByRhombus {
             label Rhombus
-            xywh {60 60 30 20} type Radio labelfont 4
-          }
-          MenuItem m_MenuItemSelectBySingle {
-            label Single
-            xywh {50 50 30 20} type Radio labelfont 4
+            xywh {60 60 30 20} type Radio labelfont 4 divider
           }
           MenuItem {} {
             label {Bit Mask WIndow   }
@@ -435,7 +435,7 @@ if(g_Map.Valid()){
 	int nValidYOffset = g_Map.Height() * 32 - m_DrawArea->h();
 	nValidYOffset = (std::max)(0, nValidYOffset);
 	int nYOffset = (int)(nValidYOffset * fValue * 1.0);
-	m_DrawArea->SetYOffset(nYOffset);
+    m_DrawArea->SetOffset(0, true, nYOffset, false);
 	m_Window->redraw();
 }}
         xywh {965 20 20 647} step 0.001
@@ -449,7 +449,7 @@ if(g_Map.Valid()){
 	int nValidXOffset = g_Map.Width() * 48 - m_DrawArea->w();
 	nValidXOffset = (std::max)(0, nValidXOffset);
 	int nXOffset = (int)(nValidXOffset * fValue * 1.0);
-	m_DrawArea->SetXOffset(nXOffset);
+    m_DrawArea->SetOffset(nXOffset, false, 0, true);
 	m_Window->redraw();
 }}
         xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001
@@ -601,9 +601,11 @@ if(g_Map.Valid()){
     extern std::vector<std::vector<
         std::unordered_map<uint32_t, Fl_Shared_Image *>>> g_PNGCache;
     extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
+    extern std::vector<std::vector<std::array<int, 4>>> g_SelectTUC;
 
     g_PNGCache.clear();
     g_GroundInfo.clear();
+    g_SelectTUC.clear();
 
     g_PNGCache = std::vector<std::vector<
         std::unordered_map<uint32_t, Fl_Shared_Image *>>>(g_Map.Width(),
@@ -616,9 +618,15 @@ if(g_Map.Valid()){
                 std::vector<std::array<uint32_t, 4>>(
                     g_Map.Height()));
 
+    g_SelectTUC = std::vector<std::vector<
+        std::array<int, 4>>>(g_Map.Width(),
+                std::vector<std::array<int, 4>>(
+                    g_Map.Height()));
+
     for(int nX = 0; nX < g_Map.Width(); ++nX){
         for(int nY = 0; nY < g_Map.Height(); ++nY){
             g_GroundInfo[nX][nY].fill(0XFFFFFFFF);
+            g_SelectTUC[nX][nY].fill(0);
         }
     }
 

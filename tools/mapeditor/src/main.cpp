@@ -33,6 +33,7 @@ std::vector<std::pair<int, int>> g_SelectByRegionPointV;
 
 std::vector<std::vector<std::unordered_map<uint32_t, Fl_Shared_Image *>>> g_PNGCache;
 std::vector<std::vector<std::array<uint32_t, 4>>>                         g_GroundInfo;
+std::vector<std::vector<std::array<int, 4>>>                              g_SelectTUC;
 
 int main()
 {
