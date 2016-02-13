@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/12/2016 22:19:18
+ *  Last Modified: 02/12/2016 22:36:22
  *
  *    Description: 
  *
@@ -629,7 +629,7 @@ int DrawArea::handle(int nEvent)
                         // bug of fltk here for windows, when some key is pressed, 
                         // event_x() and event_y() are incorrect!
                     }else{
-                        SetOffset(-(m_MouseX - mouseX), true, -(m_MouseY - mouseY), false);
+                        SetOffset(-(m_MouseX - mouseX), true, -(m_MouseY - mouseY), true);
                         SetScrollBar();
                     }
                 }

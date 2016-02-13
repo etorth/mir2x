@@ -82,17 +82,19 @@ bool Mir2Map::LoadMap(const char *szMapFileName)
 
     fclose(hFile);
 
-    // expand to 8 * 8
-    int nNewW = (m_stMapFileHeader.shWidth  + 7) / 8 * 8;
-    int nNewH = (m_stMapFileHeader.shHeight + 7) / 8 * 8;
+    // // expand to 8 * 8
+    // int nNewW = (m_stMapFileHeader.shWidth  + 7) / 8 * 8;
+    // int nNewH = (m_stMapFileHeader.shHeight + 7) / 8 * 8;
+    //
+    // if((m_stMapFileHeader.shWidth != nNewW) || (m_stMapFileHeader.shHeight != nNewH)){
+    //     if(Expand(nNewW, nNewH)){
+    //         m_Valid = true;
+    //     }
+	// }else{
+	// 	m_Valid = true;
+	// }
 
-    if((m_stMapFileHeader.shWidth != nNewW) || (m_stMapFileHeader.shHeight != nNewH)){
-        if(Expand(nNewW, nNewH)){
-            m_Valid = true;
-        }
-	}else{
-		m_Valid = true;
-	}
+    m_Valid = true;
 
     SetMapInfo();
 
