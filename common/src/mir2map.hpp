@@ -115,6 +115,7 @@ class Mir2Map
         void DrawObjectTile(int, int, int, int, std::function<bool(uint32_t, uint32_t, Fl_Shared_Image * &, int, int)>, std::function<void(uint32_t, uint32_t, Fl_Shared_Image *, int, int)>);
 
     public:
+        void CompressGroundInfo(std::vector<bool> &, std::vector<uint8_t> &);
         void CompressBaseTileInfo(std::vector<bool> &, std::vector<uint32_t> &);
         void CompressBaseTileInfoPreOrder(int, int, int, std::vector<bool> &, std::vector<uint32_t> &);
         bool EmptyBaseTileBlock(int, int, int);

@@ -986,50 +986,121 @@ bool Mir2Map::EmptyBaseTileBlock(int nStartX, int nStartY, int nSize)
     return true;
 }
 
+
+void Mir2Map::CompressGroundInfoPreOrder(
+        int nStartX, int nStartY, int nSize,
+        std::vector<bool> &stGroundInfoBitV, std::vector<uint32_t> &stGroundInfoV)
+{
+    if(!ValidC(nStartX, nStartY)){ return; }
+
+    int nType = GroundInfoBlockType(nStartX, nStartY, nSize);
+    if(nType == 0){
+        // no information in this box
+        stGroundInfoBitV.push_back(false);
+    }else{
+        // there is informaiton in this box
+        stGroundInfoBitV.push_back(true);
+        if(nType == 1){
+            // unified information
+            stGroundInfoBitV.push_back(false);
+            AppendGroundInfo(stGroundInfoV, nStartX, nStartY, 0);
+        }else{
+            // combined grid
+            stGroundInfoBitV.push_back(true);
+            if(nSize == 1){
+                // last level, no recursion anymore
+                for(int nIndex = 0; nIndex < 4; ++nIndex){
+                    if(CanGetOneGroundInfo(nStartX, nStartY, nIndex)){
+                        stGroundInfoBitV.push_back(true);
+                        AppendGroundInfo(stGroundInfoV, nStartX, nStartY, nIndex);
+                    }else{
+                        stGroundInfoBitV.push_back(false);
+                    }
+                }
+            }else{
+                // recursion
+                CompressGroundInfoPreOrder(
+                        nStartX, nStartY,
+                        nSize / 2,
+                        stGroundInfoBitV, stGroundInfoV);
+                CompressGroundInfoPreOrder(
+                        nStartX + nSize / 2, nStartY,
+                        nSize / 2,
+                        stGroundInfoBitV, stGroundInfoV);
+                CompressGroundInfoPreOrder(
+                        nStartX, nStartY + nSize / 2,
+                        nSize / 2,
+                        stGroundInfoBitV, stGroundInfoV);
+                CompressGroundInfoPreOrder(
+                        nStartX + nSize / 2, nStartY + nSize / 2,
+                        nSize / 2,
+                        stGroundInfoBitV, stGroundInfoV);
+            }
+        }
+    }
+}
+
 void Mir2Map::CompressBaseTileInfoPreOrder(
         int nStartX, int nStartY, int nSize,
         std::vector<bool> &stTileInfoBitV, std::vector<uint32_t> &stTileInfoV)
 {
-    if(EmptyBaseTileBlock(nStartX, nStartY, nSize)){
-        stTileInfoBitV.push_back(false);
+    if(!ValidC(nStartX, nStartY)){ return; }
+
+    int nType = BaseTileInfoBlockType(nStartX, nStartY, nSize);
+    if(nType == 0){
+        // no information in this box
+        stBaseTileInfoBitV.push_back(false);
     }else{
-        stTileInfoBitV.push_back(true);
-        if(nSize == 2){
-            // precode(8 bit) / fileindex(8 bit) / imageindex(16 bit)
-            // new:
-            // precode(6 bit) | fileindex(10 bit) | imageindex(16 bit)
-            if(m_BaseTileInfo){
-                int nArrNum = nStartX / 2 + nStartY * m_stMapFileHeader.shWidth / 4;
-                stTileInfoV.push_back(m_BaseTileInfo[nArrNum]);
-            }else if(m_pstTileInfo){
-                // uint32_t nPrecode    = 0X80000000;
-                uint32_t nPrecode    = 0; // for map: code is 0
-                uint32_t nFileIndex  = ((uint32_t)(BaseTileInfo(nStartX, nStartY).bFileIndex)) << 16;
-                uint32_t nImageIndex = ((uint32_t)(BaseTileInfo(nStartX, nStartY).wTileIndex));
-                stTileInfoV.push_back(nPrecode + nFileIndex + nImageIndex);
-            }else{
-                // can never be here since m_Valid == true;
-                printf("error!\n");
-            }
+        // there is informaiton in this box
+        stBaseTileInfoBitV.push_back(true);
+        if(nType == 1){
+            // unified information
+            stBaseTileInfoBitV.push_back(false);
+            AppendBaseTileInfo(stBaseTileInfoV, nStartX, nStartY);
         }else{
-            CompressBaseTileInfoPreOrder(
-                    nStartX, nStartY,
-                    nSize / 2,
-                    stTileInfoBitV, stTileInfoV);
-            CompressBaseTileInfoPreOrder(
-                    nStartX + nSize / 2, nStartY,
-                    nSize / 2,
-                    stTileInfoBitV, stTileInfoV);
-            CompressBaseTileInfoPreOrder(
-                    nStartX, nStartY + nSize / 2,
-                    nSize / 2,
-                    stTileInfoBitV, stTileInfoV);
-            CompressBaseTileInfoPreOrder(
-                    nStartX + nSize / 2, nStartY + nSize / 2,
-                    nSize / 2,
-                    stTileInfoBitV, stTileInfoV);
+            // combined grid
+            stBaseTileInfoBitV.push_back(true);
+            if(nSize == 2){
+                // last level, no recursion anymore
+                if(CanGetOneBaseTileInfo(nStartX, nStartY)){
+                    stBaseTileInfoBitV.push_back(true);
+                    AppendBaseTileInfo(stBaseTileInfoV, nStartX, nStartY);
+                }else{
+                    stBaseTileInfoBitV.push_back(false);
+                }
+            }else{
+                // recursion
+                CompressBaseTileInfoPreOrder(
+                        nStartX, nStartY,
+                        nSize / 2,
+                        stBaseTileInfoBitV, stBaseTileInfoV);
+                CompressBaseTileInfoPreOrder(
+                        nStartX + nSize / 2, nStartY,
+                        nSize / 2,
+                        stBaseTileInfoBitV, stBaseTileInfoV);
+                CompressBaseTileInfoPreOrder(
+                        nStartX, nStartY + nSize / 2,
+                        nSize / 2,
+                        stBaseTileInfoBitV, stBaseTileInfoV);
+                CompressBaseTileInfoPreOrder(
+                        nStartX + nSize / 2, nStartY + nSize / 2,
+                        nSize / 2,
+                        stBaseTileInfoBitV, stBaseTileInfoV);
+            }
         }
     }
+}
+
+void Mir2Map::CompressGroundInfo(std::vector<bool> &stGroundInfoBitV, std::vector<uint8_t> &stGroundInfoV)
+{
+    stGroundInfoBitV.clear();
+    stGroundInfoV.clear();
+    for(int nY = 0; nY < Height(); nY += 8){
+        for(int nX = 0; nX < Width(); nX += 8){
+            CompressGroundInfoPreOrder(nX, nY, 8, stTileInfoBitV, stTileInfoV);
+        }
+    }
+
 }
 
 void Mir2Map::CompressBaseTileInfo(std::vector<bool> &stTileInfoBitV, std::vector<uint32_t> &stTileInfoV)
