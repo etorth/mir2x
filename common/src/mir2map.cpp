@@ -834,7 +834,7 @@ uint8_t Mir2Map::GroundInfo(int nStartX, int nStartY, int nIndex)
 //                                      1: there is full-filled unified info in this block
 //                                      2: there is full-filled different info in this block
 //                                      3: there is empty/filled combined info in this block
-int Mir2Map::GroundInfoBlockType(int nStartX, int nStartY, int nIndex, int nSize)
+int Mir2Map::GroundBlockType(int nStartX, int nStartY, int nIndex, int nSize)
 {
     // assume valid map, valid parameters
     if(nSize == 0){
@@ -887,606 +887,259 @@ int Mir2Map::GroundInfoBlockType(int nStartX, int nStartY, int nIndex, int nSize
         }
     }
 }
-
-void Mir2Map::CompressGroundInfoPreOrder(
-        int nStartX, int nStartY, int nSize,
-        std::vector<bool> &stGroundInfoBitV, std::vector<uint32_t> &stGroundInfoV)
+// parser for ground information
+// block type can be 0 1 2 3
+// but the parse take 2 and 3 in the same action
+//
+// this is because for case 2, there is large possibility that
+// a huge grid with a/b combination of a, with one exception of b
+// in this case, arrange a/b combination in linear stream is bad
+void Mir2Map::CompressGroundPreOrder(int nX, int nY, int nSize,
+        std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV)
 {
-    if(!ValidC(nStartX, nStartY)){ return; }
+    if(!ValidC(nX, nY)){ return; }
 
-    int nType = GroundInfoBlockType(nStartX, nStartY, -1, nSize); // nSize >= 1 always
+    int nType = GroundBlockType(nX, nY, -1, nSize); // nSize >= 1 always
     if(nType != 0){
         // there is informaiton in this box
-        stGroundInfoBitV.push_back(true);
+        stMarkV.push_back(true);
         if(nSize == 1){
             // there is info, and it's last level, end of recursion
             if(nType == 2 || nType == 3){
-                // there is info that should parse one by one
-                // maybe empty/filled combined or fullfilled with different attributes
-                stGroundInfoBitV.push_back(true);
+                // there is info, maybe a/0 or a/b combined
+                // this is at last level, parser should parse it one by one
+                stMarkV.push_back(true);
                 for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    if(GroundInfoBlockType(nStartX, nStartY, nIndex, 0) == 0){
-                        // can only return 0 / 1
-                        stGroundInfoBitV.push_back(false);
+                    if(GroundBlockType(nX, nY, nIndex, 0) == 0){
+                        // when at last level, GroundBlockType() can only return 0 / 1
+                        // equivlent to !EmptyGroundInfo()
+                        stMarkV.push_back(false);
                     }else{
-                        stGroundInfoBitV.push_back(true);
-                        stGroundInfoV.push_back(GroundInfo(nStartX, nStartY, nIndex));
+                        stMarkV.push_back(true);
+                        RecordGround(stDataV, nX, nY, nIndex);
                     }
                 }
             }else{
-                // ntype == 1 here, full-filled with unified info
-                stGroundInfoBitV.push_back(false);
-                stGroundInfoV.push_back(GroundInfo(nStartX, nStartY, 0));
+                // ntype == 1 here, a/a full-filled with unified info
+                stMarkV.push_back(false);
+                RecordGround(stDataV, nX, nY, 0);
             }
         }else{
             // not the last level, and there is info
             if(nType == 2 || nType == 3){
                 // there is info and need further parse
-                stGroundInfoBitV.push_back(true);
-                CompressGroundInfoPreOrder(
-                        nStartX, nStartY,
-                        nSize / 2,
-                        stGroundInfoBitV, stGroundInfoV);
-                CompressGroundInfoPreOrder(
-                        nStartX + nSize / 2, nStartY,
-                        nSize / 2,
-                        stGroundInfoBitV, stGroundInfoV);
-                CompressGroundInfoPreOrder(
-                        nStartX, nStartY + nSize / 2,
-                        nSize / 2,
-                        stGroundInfoBitV, stGroundInfoV);
-                CompressGroundInfoPreOrder(
-                        nStartX + nSize / 2, nStartY + nSize / 2,
-                        nSize / 2,
-                        stGroundInfoBitV, stGroundInfoV);
+                stMarkV.push_back(true);
+                CompressGroundPreOrder(nX            , nY            , nSize / 2, stMarkV, stDataV);
+                CompressGroundPreOrder(nX + nSize / 2, nY            , nSize / 2, stMarkV, stDataV);
+                CompressGroundPreOrder(nX            , nY + nSize / 2, nSize / 2, stMarkV, stDataV);
+                CompressGroundPreOrder(nX + nSize / 2, nY + nSize / 2, nSize / 2, stMarkV, stDataV);
             }else{
-                // nType == 1 here
-                stGroundInfoBitV.push_back(false);
-                stGroundInfoV.push_back(GroundInfo(nStartX, nStartY, 0));
+                // nType == 1 here, unified info
+                stMarkV.push_back(false);
+                RecordGround(stDataV, nX, nY, 0);
             }
         }
     }else{
         // nType == 0, no information in this box
-        stGroundInfoBitV.push_back(false);
+        stMarkV.push_back(false);
     }
 }
 
-void Mir2Map::CompressGroundInfoPreOrder(
-        int nStartX, int nStartY, int nSize,
-        std::vector<bool> &stGroundInfoBitV, std::vector<uint32_t> &stGroundInfoV)
+void Mir2Map::RecordGround(std::vector<uint8_t> &stDataV, int nX, int nY, int nIndex)
 {
-    if(!ValidC(nStartX, nStartY)){ return; }
+    stDataV.push_back(Ground(nX, nY, nIndex));
+}
 
-    int nType = GroundInfoBlockType(nStartX, nStartY, -1, nSize); // nSize >= 1 always
-    if(nType == 0){
-        // no information in this box
-        stGroundInfoBitV.push_back(false);
-    }else{
+void Mir2Map::RecordLight(std::vector<uint8_t> &stDataV, int nX, int nY)
+{
+    uint8_t nLD = ((Light(nX, nY) & 0X00FF) >> 0);
+    uint8_t nHD = ((Light(nX, nY) & 0XFF00) >> 8);
+
+    stDataV.push_back(nLD);
+    stDataV.push_back(nHD);
+}
+
+void Mir2Map::RecordObject(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV, int nX, int nY, int nIndex)
+{
+    bool bGroundObj = GroundObjectValid(nX, nY, nIndex);
+    uint32_t nObjDesc = ObjectDesc(nX, nY, nIndex);
+
+    stMarkV.push_back(bGroundObj);
+
+    stDataV.push_back((uint8_t)((nObjDesc & 0X000000FF ) >>  0));
+    stDataV.push_back((uint8_t)((nObjDesc & 0X0000FF00 ) >>  8));
+    stDataV.push_back((uint8_t)((nObjDesc & 0X00FF0000 ) >> 16));
+    stDataV.push_back((uint8_t)((nObjDesc & 0XFF000000 ) >> 24));
+}
+
+void Mir2Map::RecordTile(std::vector<uint8_t> &stDataV, int nX, int nY)
+{
+    uint32_t nTileDesc = TileDesc(nX, nY, nIndex);
+
+    stDataV.push_back((uint8_t)((nTileDesc & 0X000000FF ) >>  0));
+    stDataV.push_back((uint8_t)((nTileDesc & 0X0000FF00 ) >>  8));
+    stDataV.push_back((uint8_t)((nTileDesc & 0X00FF0000 ) >> 16));
+    stDataV.push_back((uint8_t)((nTileDesc & 0XFF000000 ) >> 24));
+}
+
+// Light is simplest one
+void Mir2Map::CompressLightPreOrder(int nX, int nY, int nSize,
+        std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV)
+{
+    if(!ValidC(nX, nY)){ return; }
+
+    int nType = LightBlockType(nX, nY, nSize);
+    if(nType != 0){
         // there is informaiton in this box
-        stGroundInfoBitV.push_back(true);
-        if(nType == 1){
-            // unified information
-            stGroundInfoBitV.push_back(false);
-            stGroundInfoV.push_back(GroundInfo(nStartX, nStartY, 0));
+        stMarkV.push_back(true);
+        if(nSize == 1){
+            // there is info, and it's last level, so nType can only be 1
+            // end of recursion
+            RecordLight(stDataV, nX, nY);
         }else{
-            // combined grid
-            // 1. may be empty/filled combined
-            // 2. may be full-filled with different attributes
-            //
-            // for both possibility we further recursively retrieve
-            // don't read directly in case 2
-            // think the situation: large grid of same attributes with on exception
-            stGroundInfoBitV.push_back(true);
-            if(nSize == 1){
-                // last level, no recursion anymore
-                for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    if(GroundInfoBlockType(nStartX, nStartY, nIndex, 0) == 0){
-                        // can only return 0 / 1
-                        stGroundInfoBitV.push_back(false);
-                    }else{
-                        stGroundInfoBitV.push_back(true);
-                        stGroundInfoV.push_back(GroundInfo(nStartX, nStartY, nIndex));
-                    }
-                }
+            // there is info, and it's not the last level
+            if(nType == 2 || nType == 3){
+                // there is info and need further parse
+                stMarkV.push_back(true);
+                CompressLightPreOrder(nX            , nY            , nSize / 2, stMarkV, stDataV);
+                CompressLightPreOrder(nX + nSize / 2, nY            , nSize / 2, stMarkV, stDataV);
+                CompressLightPreOrder(nX            , nY + nSize / 2, nSize / 2, stMarkV, stDataV);
+                CompressLightPreOrder(nX + nSize / 2, nY + nSize / 2, nSize / 2, stMarkV, stDataV);
             }else{
-                // recursion
-                CompressGroundInfoPreOrder(
-                        nStartX, nStartY,
-                        nSize / 2,
-                        stGroundInfoBitV, stGroundInfoV);
-                CompressGroundInfoPreOrder(
-                        nStartX + nSize / 2, nStartY,
-                        nSize / 2,
-                        stGroundInfoBitV, stGroundInfoV);
-                CompressGroundInfoPreOrder(
-                        nStartX, nStartY + nSize / 2,
-                        nSize / 2,
-                        stGroundInfoBitV, stGroundInfoV);
-                CompressGroundInfoPreOrder(
-                        nStartX + nSize / 2, nStartY + nSize / 2,
-                        nSize / 2,
-                        stGroundInfoBitV, stGroundInfoV);
+                // nType == 1 here, unified info
+                stMarkV.push_back(false);
+                RecordLight(stDataV, nX, nY);
             }
         }
+    }else{
+        // nType == 0, no information in this box
+        stMarkV.push_back(false);
     }
 }
 
-void Mir2Map::CompressBaseTileInfoPreOrder(
-        int nStartX, int nStartY, int nSize,
-        std::vector<bool> &stTileInfoBitV, std::vector<uint32_t> &stTileInfoV)
+// tile compression is relatively simple
+void Mir2Map::CompressTilePreOrder(int nX, int nY, int nSize,
+        std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV)
 {
-    if(!ValidC(nStartX, nStartY)){ return; }
+    if(!ValidC(nX, nY)){ return; }
 
-    int nType = BaseTileInfoBlockType(nStartX, nStartY, nSize);
-    if(nType == 0){
-        // no information in this box
-        stBaseTileInfoBitV.push_back(false);
-    }else{
+    int nType = ObjectBlockType(nX, nY, nIndex, nSize);
+    if(nType != 0){
         // there is informaiton in this box
-        stBaseTileInfoBitV.push_back(true);
-        if(nType == 1){
-            // unified information
-            stBaseTileInfoBitV.push_back(false);
-            AppendBaseTileInfo(stBaseTileInfoV, nStartX, nStartY);
-        }else{
-            // combined grid
-            stBaseTileInfoBitV.push_back(true);
-            if(nSize == 2){
-                // last level, no recursion anymore
-                if(CanGetOneBaseTileInfo(nStartX, nStartY)){
-                    stBaseTileInfoBitV.push_back(true);
-                    AppendBaseTileInfo(stBaseTileInfoV, nStartX, nStartY);
-                }else{
-                    stBaseTileInfoBitV.push_back(false);
-                }
-            }else{
-                // recursion
-                CompressBaseTileInfoPreOrder(
-                        nStartX, nStartY,
-                        nSize / 2,
-                        stBaseTileInfoBitV, stBaseTileInfoV);
-                CompressBaseTileInfoPreOrder(
-                        nStartX + nSize / 2, nStartY,
-                        nSize / 2,
-                        stBaseTileInfoBitV, stBaseTileInfoV);
-                CompressBaseTileInfoPreOrder(
-                        nStartX, nStartY + nSize / 2,
-                        nSize / 2,
-                        stBaseTileInfoBitV, stBaseTileInfoV);
-                CompressBaseTileInfoPreOrder(
-                        nStartX + nSize / 2, nStartY + nSize / 2,
-                        nSize / 2,
-                        stBaseTileInfoBitV, stBaseTileInfoV);
-            }
-        }
-    }
-}
-
-void Mir2Map::CompressGroundInfo(std::vector<bool> &stGroundInfoBitV, std::vector<uint8_t> &stGroundInfoV)
-{
-    stGroundInfoBitV.clear();
-    stGroundInfoV.clear();
-    for(int nY = 0; nY < Height(); nY += 8){
-        for(int nX = 0; nX < Width(); nX += 8){
-            CompressGroundInfoPreOrder(nX, nY, 8, stTileInfoBitV, stTileInfoV);
-        }
-    }
-
-}
-
-void Mir2Map::CompressBaseTileInfo(std::vector<bool> &stTileInfoBitV, std::vector<uint32_t> &stTileInfoV)
-{
-    for(int nY = 0; nY < Height(); nY += 8){
-        for(int nX = 0; nX < Width(); nX += 8){
-            CompressBaseTileInfoPreOrder(nX, nY, 8, stTileInfoBitV, stTileInfoV);
-        }
-    }
-}
-
-bool Mir2Map::EmptyCellTileBlock(int nStartX, int nStartY, int nSize)
-{
-    for(int nYCnt = nStartY; nYCnt < nStartY + nSize; ++nYCnt){
-        for(int nXCnt = nStartX; nXCnt < nStartX + nSize; ++nXCnt){
-            if(m_CellDesc){
-                int nArrayNum = nXCnt + nYCnt * m_stMapFileHeader.shWidth;
-                // if(m_CellDesc[nArrayNum].dwDesc){
-                //     return false;
-                // }
-
-                if(false
-                        || m_CellDesc[nArrayNum].dwDesc    != 0XFFFFFFFF
-                        || m_CellDesc[nArrayNum].dwObject1 != 0XFFFFFFFF
-                        || m_CellDesc[nArrayNum].dwObject2 != 0XFFFFFFFF
-                        || m_CellDesc[nArrayNum].dwLight   != 0XFFFFFFFF
-                  ){
-                    return false;
-                }
-                continue;
-            }
-            if(m_pstCellInfo){
-                int nArrayNum = nYCnt + nXCnt * m_stMapFileHeader.shHeight;
-                { // door
-                    // for door
-                    // bDoorIdx first bit show whether there is a door
-                    // next 7 bit show the index, but if it's 0, still it's a null door
-                    //
-                    // then bDoorOffset the first bit show this door is open or close
-                    // next 7 bit show the offset of image of open and close
-                    //
-                    if(true
-                            && (m_pstCellInfo[nArrayNum].bDoorIndex & 0X80)> 0 &&
-                            (m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F)> 0){
-                        return false;
-                    }
-                }
-
-                {// light
-                    if(m_pstCellInfo[nArrayNum].wLigntNEvent != 0){
-                        return false;
-                    }
-                }
-
-                {// first layer:
-                    int nFileIndex = (m_pstCellInfo[nArrayNum].wFileIndex & 0XFF00) >> 8;
-                    if(nFileIndex != 255 && m_pstCellInfo[nArrayNum].wObj1 != 65535){
-                        return false;
-                    }
-                }
-                {// second layer:
-                    int nFileIndex = (m_pstCellInfo[nArrayNum].wFileIndex & 0X00FF);
-                    if(nFileIndex != 255 && m_pstCellInfo[nArrayNum].wObj2 != 65535){
-                        return false;
-                    }
-                }
-            }
-        }
-    }
-    return true;
-}
-
-void Mir2Map::CompressCellTileInfoPreOrder(int nStartX, int nStartY, int nSize, 
-        std::vector<bool> &stCellDescBitV, std::vector<CELLDESC> &stCellDescV)
-{
-    if(EmptyCellTileBlock(nStartX, nStartY, nSize)){
-        stCellDescBitV.push_back(false);
-    }else{
-        stCellDescBitV.push_back(true);
+        stMarkV.push_back(true);
         if(nSize == 1){
-            if(m_CellDesc){
-                auto &stDesc = m_CellDesc[nStartX + nStartY * m_stMapFileHeader.shWidth];
-                stCellDescV.push_back(stDesc);
-
-            }else if(m_pstCellInfo){
-
-                auto &stCellInfo = CellInfo(nStartX, nStartY);
-                CELLDESC stDesc;
-
-                { // converting here
-                    // input : CELLINFO stCellInfo
-                    // output: CELLDESC stDesc
-
-                    // object info
-                    // stDesc.dwObject1 = (((uint32_t)(stCellInfo.wFileIndex & 0XFF00)) << 16)
-                    //     + (((uint32_t)(stCellInfo.bObj1Ani)) << 16)
-                    //     + ((uint32_t)(stCellInfo.wObj1));
-                    // stDesc.dwObject2 = (((uint32_t)(stCellInfo.wFileIndex & 0X00FF)) << 24)
-                    //     + (((uint32_t)(stCellInfo.bObj2Ani)) << 16)
-                    //     + ((uint32_t)(stCellInfo.wObj2));
-                    { // first layer
-                        uint32_t nPrecode    = 0;
-                        uint32_t nFileIndex  = ((uint32_t)(stCellInfo.wFileIndex & 0XFF00)) << 8;
-                        uint32_t nImageIndex = ((uint32_t)(stCellInfo.wObj1));
-
-                        stDesc.dwObject1 = nPrecode + nFileIndex + nImageIndex;
-                    }
-                    { // second layer
-                        uint32_t nPrecode    = 0;
-                        uint32_t nFileIndex  = ((uint32_t)(stCellInfo.wFileIndex & 0X00FF)) << 16;
-                        uint32_t nImageIndex = ((uint32_t)(stCellInfo.wObj2));
-
-                        stDesc.dwObject2 = nPrecode + nFileIndex + nImageIndex;
-                    }
-
-                    // light info
-                    //
-                    // actually I read the source code
-                    // they only use there is or isn't light
-                    // but how to draw the light, the parameter is independent from LIGHTINFO struct
-                    // they use setted static info
-                    //
-                    // TODO:
-                    // I think this info is abandoned
-                    // just put it here
-                    stDesc.dwLight = (uint32_t)stCellInfo.wLigntNEvent;
-
-                    // door or dynamic tile info
-                    // they share one uint32_t means there couldn't be door and dynamic tile
-                    // at the same time
-                    // TODO: design this bitset later
-                    // stDesc.dwDesc = 0X80000000 // always show it as a door if possible
-                    //     + (((uint32_t)stCellInfo.bDoorIndex) << 8)
-                    //     + ((uint32_t)stCellInfo.bDoorOffset);
-
-                    {
-                        uint32_t nObjAniDesc1 = ((uint32_t)(stCellInfo.bObj1Ani));
-                        uint32_t nObjAniDesc2 = ((uint32_t)(stCellInfo.bObj2Ani))    <<  8;
-                        uint32_t nDoorOffset  = ((uint32_t)(stCellInfo.bDoorOffset)) << 16;
-                        uint32_t nDoorIndex   = ((uint32_t)(stCellInfo.bDoorIndex))  << 24;
-                        if(stCellInfo.bDoorIndex > 255){
-                            // TODO:
-                            // I think this info is abandoned
-                            // but if really happens
-                            // use a table to make door local to one map
-                            // then one map can contain 256 doors
-                            printf("door index is of length > 255, loss of information here!!!");
-                        }
-
-                        stDesc.dwDesc = nObjAniDesc1 + nObjAniDesc2 + nDoorOffset + nDoorIndex;
-                    }
-                }
-                stCellDescV.push_back(stDesc);
-            }else{
-                // can never be here
-                printf("error!");
-            }
+            // there is info, and it's last level, so nType can only be 1
+            // end of recursion
+            stDataV.push_back(Light(nX, nY));
+            RecordObject(stMarkV, stDataV, nX, nY, nIndex);
         }else{
-            CompressCellTileInfoPreOrder(
-                    nStartX, nStartY,
-                    nSize / 2,
-                    stCellDescBitV, stCellDescV);
-            CompressCellTileInfoPreOrder(
-                    nStartX + nSize / 2, nStartY,
-                    nSize / 2,
-                    stCellDescBitV, stCellDescV);
-            CompressCellTileInfoPreOrder(
-                    nStartX, nStartY + nSize / 2,
-                    nSize / 2,
-                    stCellDescBitV, stCellDescV);
-            CompressCellTileInfoPreOrder(
-                    nStartX + nSize / 2, nStartY + nSize / 2,
-                    nSize / 2,
-                    stCellDescBitV, stCellDescV);
+            // there is info, and it's not the last level
+            if(nType == 2 || nType == 3){
+                // there is info and need further parse
+                stMarkV.push_back(true);
+                CompressObjectPreOrder(nX            , nY            , nIndex, nSize / 2, stMarkV, stDataV);
+                CompressObjectPreOrder(nX + nSize / 2, nY            , nIndex, nSize / 2, stMarkV, stDataV);
+                CompressObjectPreOrder(nX            , nY + nSize / 2, nIndex, nSize / 2, stMarkV, stDataV);
+                CompressObjectPreOrder(nX + nSize / 2, nY + nSize / 2, nIndex, nSize / 2, stMarkV, stDataV);
+            }else{
+                // nType == 1 here, unified info
+                stMarkV.push_back(false);
+                RecordObject(stMarkV, stDataV, nX, nY, nIndex);
+            }
         }
+    }else{
+        // nType == 0, no information in this box
+        stMarkV.push_back(false);
     }
 }
 
-void Mir2Map::CompressCellTileInfo(
-        std::vector<bool> &stCellDescBitV, std::vector<CELLDESC> &stCellDescV)
+// object compression should take care of ground/overground info in mark vect
+void Mir2Map::CompressObjectPreOrder(int nX, int nY, int nIndex, int nSize,
+        std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV)
 {
+    if(!ValidC(nX, nY)){ return; }
+
+    int nType = ObjectBlockType(nX, nY, nIndex, nSize);
+    if(nType != 0){
+        // there is informaiton in this box
+        stMarkV.push_back(true);
+        if(nSize == 1){
+            // there is info, and it's last level, so nType can only be 1
+            // end of recursion
+            stDataV.push_back(Light(nX, nY));
+            RecordObject(stMarkV, stDataV, nX, nY, nIndex);
+        }else{
+            // there is info, and it's not the last level
+            if(nType == 2 || nType == 3){
+                // there is info and need further parse
+                stMarkV.push_back(true);
+                CompressObjectPreOrder(nX            , nY            , nIndex, nSize / 2, stMarkV, stDataV);
+                CompressObjectPreOrder(nX + nSize / 2, nY            , nIndex, nSize / 2, stMarkV, stDataV);
+                CompressObjectPreOrder(nX            , nY + nSize / 2, nIndex, nSize / 2, stMarkV, stDataV);
+                CompressObjectPreOrder(nX + nSize / 2, nY + nSize / 2, nIndex, nSize / 2, stMarkV, stDataV);
+            }else{
+                // nType == 1 here, unified info
+                stMarkV.push_back(false);
+                RecordObject(stMarkV, stDataV, nX, nY, nIndex);
+            }
+        }
+    }else{
+        // nType == 0, no information in this box
+        stMarkV.push_back(false);
+    }
+}
+
+void Mir2Map::CompressLight(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV)
+{
+    stMarkV.clear();
+    stDataV.clear();
     for(int nY = 0; nY < Height(); nY += 8){
         for(int nX = 0; nX < Width(); nX += 8){
-            CompressCellTileInfoPreOrder(nX, nY, 8, stCellDescBitV, stCellDescV);
+            CompressLightPreOrder(nX, nY, 8, stMarkV, stDataV);
         }
     }
 }
 
-uint32_t Mir2Map::BitPickOne(uint32_t *pU32BitStream, uint32_t nOffset)
+void Mir2Map::CompressGroundInfo(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV)
 {
-    // nOffset can only be even number
-    uint32_t nShift = 31 - (nOffset % 32);
-    return ((uint32_t)(pU32BitStream[nOffset / 32] & ((uint32_t)0X01) << nShift)) >> nShift;
-}
-
-void Mir2Map::SetOneGroundInfoGrid(
-        int nStartX, int nStartY, int nSubGrid, uint32_t nGroundInfoAttr)
-{
-    // be careful! here it's not arranged as old format
-    int nOffset = (nStartY * m_stMapFileHeader.shWidth + nStartX) * 4 + (nSubGrid % 4);
-    m_GroundInfo[nOffset] = nGroundInfoAttr;
-}
-
-void Mir2Map::SetGroundInfoBlock(
-        int nStartX, int nStartY, int nSize, uint32_t nGroundInfoAttr)
-{
-    // this function copy one unique attribute to nSize * nSize * 4 grid
-    for(int nY = nStartY; nY < nStartY + nSize; ++nY){
-        for(int nX = nStartX; nX < nStartX + nSize; ++nX){
-            SetOneGroundInfoGrid(nX, nY, 0, nGroundInfoAttr);
-            SetOneGroundInfoGrid(nX, nY, 1, nGroundInfoAttr);
-            SetOneGroundInfoGrid(nX, nY, 2, nGroundInfoAttr);
-            SetOneGroundInfoGrid(nX, nY, 3, nGroundInfoAttr);
+    stMarkV.clear();
+    stDataV.clear();
+    for(int nY = 0; nY < Height(); nY += 8){
+        for(int nX = 0; nX < Width(); nX += 8){
+            CompressGroundPreOrder(nX, nY, 8, stMarkV, stDataV);
         }
     }
 }
 
-void Mir2Map::ParseGroundInfoStream(int nStartX, int nStartY, int nSize,
-        uint32_t *pU32BitStream,  uint32_t &nU32BitStreamOffset,
-        uint32_t *pU32GroundInfo, uint32_t &nU32GroundInfoOffset)
+void Mir2Map::CompressTileInfo(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV)
 {
-    // when getting inside, offset is at current position
-    // when exited, offset is at next valid position
-    if(BitPickOne(pU32BitStream, nU32BitStreamOffset++) == 0){
-        // here use 1 bit for null block
-        // saving bits, since we assume most of them are null block
-
-        // nothing, no matter nSize == 1 or not
-        SetGroundInfoBlock(nStartX, nStartY, nSize, 0XFFFFFFFF);
-    }else{
-        // have something
-        // maybe unique but walkable, or combined
-        if(BitPickOne(pU32BitStream, nU32BitStreamOffset++) == 0){
-            // unique, walkable
-            SetGroundInfoBlock(nStartX, nStartY, nSize,
-                    pU32GroundInfo[nU32GroundInfoOffset++]);
-        }else{
-            // combined
-            if(nSize == 1){
-                for(int nCnt = 0; nCnt < 4; ++nCnt){
-                    if(BitPickOne(pU32BitStream, nU32BitStreamOffset++)){
-                        SetOneGroundInfoGrid(nStartX, nStartY, nCnt, 0XFFFFFFFF);
-                    }else{
-                        SetOneGroundInfoGrid(nStartX, nStartY, nCnt,
-                                pU32GroundInfo[nU32GroundInfoOffset++]);
-                    }
-                }
-            }else{
-                // recursively invoke
-                ParseGroundInfoStream(nStartX, nStartY, nSize / 2,
-                        pU32BitStream,  nU32BitStreamOffset,
-                        pU32GroundInfo, nU32GroundInfoOffset);
-
-                ParseGroundInfoStream(nStartX + nSize / 2, nStartY, nSize / 2,
-                        pU32BitStream,  nU32BitStreamOffset,
-                        pU32GroundInfo, nU32GroundInfoOffset);
-
-                ParseGroundInfoStream(nStartX, nStartY + nSize / 2, nSize / 2,
-                        pU32BitStream,  nU32BitStreamOffset,
-                        pU32GroundInfo, nU32GroundInfoOffset);
-
-                ParseGroundInfoStream(nStartX + nSize / 2, nStartY + nSize / 2, nSize / 2,
-                        pU32BitStream,  nU32BitStreamOffset,
-                        pU32GroundInfo, nU32GroundInfoOffset);
-            }
+    stMarkV.clear();
+    stDataV.clear();
+    for(int nY = 0; nY < Height(); nY += 8){
+        for(int nX = 0; nX < Width(); nX += 8){
+            CompressTileInfoPreOrder(nX, nY, 8, stMarkV, stDataV);
         }
     }
 }
 
-bool Mir2Map::LoadGroundInfo(
-        uint32_t * pU32BitStream, uint32_t,
-        uint32_t * pU32GroundInfo, uint32_t)
+void Mir2Map::CompressCellInfo(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV)
 {
-    uint32_t nU32BitStreamOffset  = 0;
-    uint32_t nU32GroundInfoOffset = 0;
-    for(int nBlkY = 0; nBlkY < Height() / 8; ++nBlkY){
-        for(int nBlkX = 0; nBlkX < Width() / 8; ++nBlkX){
-            ParseGroundInfoStream(nBlkX * 8, nBlkY * 8, 8,
-                    pU32BitStream, nU32BitStreamOffset,
-                    pU32GroundInfo, nU32GroundInfoOffset);
+    stMarkV.clear();
+    stDataV.clear();
+    for(int nY = 0; nY < Height(); nY += 8){
+        for(int nX = 0; nX < Width(); nX += 8){
+            CompressCellInfofoPreOrder(nX, nY, 8, stMarkV, stDataV);
         }
     }
-    return true;
-}
-
-void Mir2Map::SetBaseTileBlock(
-        int nStartX, int nStartY, int nSize, uint32_t nAttr)
-{
-    for(int nY = nStartY; nY < nStartY + nSize; nY += 2){
-        for(int nX = nStartX; nX < nStartX + nSize; nX += 2){
-            m_BaseTileInfo[(nY / 2) * (m_stMapFileHeader.shWidth / 2) + (nX / 2)] = nAttr;
-        }
-    }
-}
-
-void Mir2Map::ParseBaseTileStream(int nStartX, int nStartY, int nSize,
-        uint32_t *pU32BitStream,    uint32_t &nU32BitStreamOffset,
-        uint32_t *pU32BaseTileInfo, uint32_t &nU32BaseTileInfoOffset)
-{
-    // when getting inside, offset is at current position
-    // when exited, offset is at next valid position
-
-    if(BitPickOne(pU32BitStream, nU32BitStreamOffset++) == 0){
-        // no tile in this block, no matter whether nSize == 1 or not
-        SetBaseTileBlock(nStartX, nStartY, nSize, 0XFFFFFFFF);
-    }else{
-        if(nSize == 2){
-            // currently there may be object and nSize == 1
-            SetBaseTileBlock(nStartX, nStartY, nSize, pU32BaseTileInfo[nU32BaseTileInfoOffset++]);
-        }else{
-            // currently there may be object and nSize > 1
-            // recursively parse sub-block
-            ParseBaseTileStream(nStartX, nStartY, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pU32BaseTileInfo, nU32BaseTileInfoOffset);
-
-            ParseBaseTileStream(nStartX + nSize / 2, nStartY, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pU32BaseTileInfo, nU32BaseTileInfoOffset);
-
-            ParseBaseTileStream(nStartX, nStartY + nSize / 2, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pU32BaseTileInfo, nU32BaseTileInfoOffset);
-
-            ParseBaseTileStream(nStartX + nSize / 2, nStartY + nSize / 2, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pU32BaseTileInfo, nU32BaseTileInfoOffset);
-        }
-    }
-}
-
-bool Mir2Map::LoadBaseTileInfo(
-        uint32_t *pU32BitStream,    uint32_t,
-        uint32_t *pU32BaseTileInfo, uint32_t)
-{
-
-    uint32_t nU32BitStreamOffset    = 0;
-    uint32_t nU32BaseTileInfoOffset = 0;
-    for(int nBlkY = 0; nBlkY < Height() / 8; ++nBlkY){
-        for(int nBlkX = 0; nBlkX < Width() / 8; ++nBlkX){
-            ParseBaseTileStream(nBlkX * 8, nBlkY * 8, 8,
-                    pU32BitStream, nU32BitStreamOffset,
-                    pU32BaseTileInfo, nU32BaseTileInfoOffset);
-        }
-    }
-    return true;
-}
-
-void Mir2Map::SetCellDescBlock(
-        int nStartX, int nStartY, int nSize, const CELLDESC & stCellDesc)
-{
-    for(int nY = nStartY; nY < nStartY + nSize; ++nY){
-        for(int nX = nStartX; nX < nStartX + nSize; ++nX){
-            m_CellDesc[nY * m_stMapFileHeader.shWidth + nX] = stCellDesc;
-        }
-    }
-}
-
-void Mir2Map::ParseCellDescStream(int nStartX, int nStartY, int nSize,
-        uint32_t *pU32BitStream, uint32_t &nU32BitStreamOffset,
-        CELLDESC *pCellDesc, uint32_t &nCellDescOffset)
-{
-    // when getting inside, offset is at current position
-    // when exited, offset is at next valid position
-
-    if(BitPickOne(pU32BitStream, nU32BitStreamOffset++) == 0){
-        // no object in this block, no matter whether nSize == 1 or not
-        SetCellDescBlock(nStartX, nStartY, nSize, {
-                0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF});
-    }else{
-        if(nSize == 1){
-            // currently there may be object and nSize == 1
-            SetCellDescBlock(nStartX, nStartY, nSize, pCellDesc[nCellDescOffset++]);
-        }else{
-            // currently there may be object and nSize > 1
-            // recursively parse sub-block
-            ParseCellDescStream(nStartX, nStartY, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pCellDesc, nCellDescOffset);
-
-            ParseCellDescStream(nStartX + nSize / 2, nStartY, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pCellDesc, nCellDescOffset);
-
-            ParseCellDescStream(nStartX, nStartY + nSize / 2, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pCellDesc, nCellDescOffset);
-
-            ParseCellDescStream(nStartX + nSize / 2, nStartY + nSize / 2, nSize / 2,
-                    pU32BitStream,  nU32BitStreamOffset,
-                    pCellDesc, nCellDescOffset);
-        }
-    }
-}
-
-bool Mir2Map::LoadCellDesc(
-        uint32_t *pU32BitStream, uint32_t,
-        CELLDESC *pCellDesc,     uint32_t)
-{
-
-    uint32_t nU32BitStreamOffset = 0;
-    uint32_t nCellDescOffset     = 0;
-    for(int nBlkY = 0; nBlkY < Height() / 8; ++nBlkY){
-        for(int nBlkX = 0; nBlkX < Width() / 8; ++nBlkX){
-            ParseCellDescStream(nBlkX * 8, nBlkY * 8, 8,
-                    pU32BitStream, nU32BitStreamOffset,
-                    pCellDesc, nCellDescOffset);
-        }
-    }
-    return true;
 }
 
 std::string Mir2Map::MapInfo()
 {
-    if(Valid()){
+    if(!Valid()){
+        return "Invalid map";
+    }else if(m_Mir2xMap.Valid()){
+        return "MapInfo is unsupported for mir2x map";
+    }else{
         std::string szMapInfo;
         char szTmpInfo[128];
 
@@ -1506,8 +1159,6 @@ std::string Mir2Map::MapInfo()
         szMapInfo += szTmpInfo;
 
         return szMapInfo;
-    }else{
-        return "Invalid Map";
     }
 }
 
@@ -1524,8 +1175,9 @@ bool Mir2Map::NewLoadMap(const char *szFullName)
 
 void Mir2Map::Optimize()
 {
-    // try to remove some unnecessary tile/cell
+    if(!Valid() || m_Mir2xMap.Valid()){ return; }
 
+    // try to remove some unnecessary tile/cell
     // tile
     for(int nY = 0; nY < Height(); ++nY){
         for(int nX = 0; nX < Width(); ++nX){
@@ -1537,43 +1189,22 @@ void Mir2Map::Optimize()
 
 void Mir2Map::OptimizeBaseTile(int nX, int nY)
 {
-    if(nX % 2 || nY % 2){
-        return;
-    }
-
-    if(m_BaseTileInfo){
-        int nArrNum = nX / 2 + nY * m_stMapFileHeader.shWidth / 4;
-        uint32_t &nBaseTileInfo= m_BaseTileInfo[nArrNum];
-
-        { // drop 000200020.PNG
-            // if(nBaseTileInfo == 0X80020014){
-            //     nBaseTileInfo = 0;
-            // }
-            if(nBaseTileInfo == 0X00020014){
-                nBaseTileInfo = 0XFFFFFFFF;
-            }
-        }
-    }
-
-    if(m_pstTileInfo){
-        int nArrNum = nY / 2 + nX * m_stMapFileHeader.shHeight / 4;
-        auto &stBaseTileInfo = m_pstTileInfo[nArrNum];
-
-        { // drop 000200020.PNG
-            if(stBaseTileInfo.bFileIndex == 2 && stBaseTileInfo.wTileIndex == 20){
-                stBaseTileInfo = {255, 65535};
-            }
-        }
-    }
+    // TODO
 }
 
 void Mir2Map::OptimizeCell(int, int)
 {
+    // TODO
 }
 
 void Mir2Map::SetMapInfo()
 {
-    if(!m_Valid){ return; }
+    if(!Valid()){ return; }
+
+    if(m_Mir2xMap.Valid()){
+        // Mir2xMap doesn't support this
+        return;
+    }
 
     // Tile Infomation doesn't include any for alpha-blend, light or door
 
@@ -1638,6 +1269,9 @@ void Mir2Map::SetMapInfo()
 
 uint8_t Mir2Map::GetDoor(int nXCnt, int nYCnt)
 {
+    if(!Valid()){ return 0; }
+    if(m_Mir2xMap.Valid()){ return 0; }
+
     uint8_t bRes = 0;
     int nArrayNum = nYCnt + nXCnt * m_stMapFileHeader.shHeight;
     if(m_pstCellInfo[nArrayNum].bDoorIndex & 0X80){
@@ -1648,6 +1282,9 @@ uint8_t Mir2Map::GetDoor(int nXCnt, int nYCnt)
 
 void Mir2Map::OpenDoor(int nX, int nY, uint8_t nDoorIndex)
 {
+    if(!Valid()){ return; }
+    if(m_Mir2xMap.Valid()){ return; }
+
     for(int nCntY = nY - 8; nCntY < nY + 10; nCntY++){
         for(int nCntX = nX - 8; nCntX < nX + 10; nCntX++){
             if(true
@@ -1667,6 +1304,9 @@ void Mir2Map::OpenDoor(int nX, int nY, uint8_t nDoorIndex)
 
 void Mir2Map::CloseDoor(int nX, int nY, uint8_t nDoorIndex)
 {
+    if(!Valid()){ return; }
+    if(m_Mir2xMap.Valid()){ return; }
+
     for(int nCntY = nY - 8; nCntY < nY + 10; nCntY++){
         for(int nCntX = nX - 8; nCntX < nX + 10; nCntX++){
             if(true
@@ -1686,6 +1326,9 @@ void Mir2Map::CloseDoor(int nX, int nY, uint8_t nDoorIndex)
 
 void Mir2Map::OpenAllDoor()
 {
+    if(!Valid()){ return; }
+    if(m_Mir2xMap.Valid()){ return; }
+
     for(int nX = 0; nX < m_stMapFileHeader.shWidth; ++nX){
         for(int nY = 0; nY < m_stMapFileHeader.shHeight; ++nY){
             uint8_t nRes = GetDoor(nX, nY);
@@ -1698,12 +1341,222 @@ void Mir2Map::OpenAllDoor()
 
 void Mir2Map::CloseAllDoor()
 {
+    if(!Valid()){ return; }
+    if(m_Mir2xMap.Valid()){ return; }
+
     for(int nX = 0; nX < m_stMapFileHeader.shWidth; ++nX){
         for(int nY = 0; nY < m_stMapFileHeader.shHeight; ++nY){
             uint8_t nRes = GetDoor(nX, nY);
             if(nRes){
                 CloseDoor(nX, nY, nRes);
             }
+        }
+    }
+}
+
+
+void Mir2Map::ClearBuf()
+{
+    m_W = 0;
+    m_H = 0;
+    m_BufValid = false;
+}
+
+void Mir2Map::InitBuf()
+{
+    if(m_W == 0 || m_H == 0 || m_W % 2 || m_H % 2){ return; }
+
+    // m_BufLight[nX][nY]
+    m_BufLight = std::vector<std::vector<uint16_t>>(m_W, std::vector<uint16_t>(m_H, 0));
+    // m_BufLightMark[nX][nY]
+    m_BufLightMark = std::vector<std::vector<int>>(m_W, std::vector<uint32_t>(m_H, 0));
+
+    // m_BufTile[nX][nY]
+    m_BufTile = std::vector<std::vector<uint32_t>>(m_W / 2, std::vector<uint32_t>(m_H / 2, 0));
+    // m_BufTileMark[nX][nY]
+    m_BufTileMark = std::vector<std::vector<int>>(m_W / 2, std::vector<uint32_t>(m_H / 2, 0));
+
+    // m_BufObj[nX][nY][0]
+    m_BufObj = std::vector<std::vector<std::array<uint32_t, 2>>>(
+            m_W, std::vector<std::array<uint32_t, 2>>(m_H, {0, 0}));
+    // m_BufObjMark[nX][nY][0]
+    m_BufObjMark = std::vector<std::vector<std::array<int, 2>>>(
+            m_W, std::vector<std::array<int, 2>>(m_H, {0, 0}));
+    // m_BufGroundObjMark[nX][nY][0]
+    m_BufGroundObjMark = std::vector<std::vector<std::array<int, 2>>>(
+            m_W, std::vector<std::array<int, 2>>(m_H, {0, 0}));
+
+    // m_BufGround[nX][nY][0]
+    m_BufGround = std::vector<std::vector<std::array<uint8_t, 4>>>(
+            m_W, std::vector<std::array<uint8_t, 4>>(m_H, {0, 0, 0, 0}));
+    // m_BufGroundMark[nX][nY][0]
+    m_BufGroundMark = std::vector<std::vector<std::array<int, 4>>>(
+            m_W, std::vector<std::array<int, 4>>(m_H, {0, 0, 0, 0}));
+}
+
+bool Mir2Map::MakeBuf()
+{
+    // after load a map by mir2x map or old mir2 map
+    // always make a buffer of it, then we can edit on this buffer
+    //
+    // all queries and operations are on this buffer
+    // fixed format maps are only for one-shoot usage
+    //
+    // which simplifies outside funtion handle design
+
+    ClearBuf();
+
+    if(m_Mir2xMap.Valid()){
+        m_W = m_Mir2xMap.W();
+        m_H = m_Mir2xMap.H();
+    }else if(m_Valid){
+        m_W = m_stMapFileHeader.shWidth;
+        m_H = m_stMapFileHeader.shHeight;
+    }else{
+        // no valid map now
+        return false;
+    }
+
+    InitBuf();
+
+    for(int nY = 0; nY < m_H; ++nY){
+        for(int nX = 0; nX < m_W; ++nX){
+            // light
+            if(!(nX % 2) && !(nY % 2)){
+                SetTile(nX / 2, nY / 2);
+            }
+
+            SetBufLight(nX, nY);
+
+            SetBufObj(nX, nY, 0);
+            SetBufObj(nX, nY, 1);
+
+            SetBufGround(nX, nY, 0);
+            SetBufGround(nX, nY, 1);
+            SetBufGround(nX, nY, 2);
+            SetBufGround(nX, nY, 3);
+        }
+    }
+
+    m_BufValid = true;
+}
+
+
+void Mir2Map:SetBufTile(int nX, int nY)
+{
+    if(m_Mir2xMap.Valid()){
+        // mir2x map
+        if(m_Mir2xMap.TileValid(nX, nY)){
+            m_BufTile[nX][nY] = m_Mir2xMap.Tile(nX, nY);
+            m_BufTileMark[nX][nY] = 1;
+        }
+    }else if(m_Valid){
+        int nFileIndex  = m_pstTileInfo[(nY / 2) + (nX / 2)*m_stMapFileHeader.shHeight / 2].bFileIndex;
+        int nImageIndex = m_pstTileInfo[(nY / 2) + (nX / 2)*m_stMapFileHeader.shHeight / 2].wTileIndex;
+
+        if(nFileIndex != 255 && nImageIndex != 65535){
+            if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex) &&
+                    m_pxTileImage[nFileIndex].CurrentImageValid()){
+                int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
+                int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
+                if(nW * nH > 0){
+                    // 8 bit : unused
+                    // 8 bit : file index
+                    //16 bit : image index
+                    m_BufTile[nX][nY] = (((uint32_t)(nFileIndex & 0X000000FF)) << 16) + (((uint32_t)(nImageIndex)) & 0X0000FFFF);
+                    m_BufTileMark[nX][nY] = 1;
+                }
+            }
+        }
+    }
+}
+
+void Mir2Map::SetBufGround(int nX, int nY, int nIndex)
+{
+    if(m_Mir2xMap.Valid()){
+        // mir2x map
+        if(m_Mir2xMap.GroundValid(nX, nY, nIndex)){
+            m_BufGroundMark[nX][nY][nIndex] = 1;
+            m_BufGround[nX][nY][nIndex] = m_Mir2xMap.Ground(nX, nY, nIndex);
+        }
+    }else if(m_Valid){
+        // mir2 map
+        if(CellInfo(nX, nY).bFlag & 0X01){
+            m_BufGroundMark[nX][nY][nIndex] = 1;
+            m_BufGround[nX][nY][nIndex] = 0X0000; // set by myselt
+        }
+    }
+
+}
+
+void Mir2Map::SetBufObj(int nX, int nY, int nIndex)
+{
+    if(m_Mir2xMap.Valid()){
+        // mir2x map
+        if(m_Mir2xMap.ObjectValid(nX, nY, nIndex)){
+            if(m_Mir2xMap.GroundObjectValid(nX, nY, nIndex)){
+                m_BufObjMark[nX][nY][nIndex] = 3;
+            }else{
+                m_BufObjMark[nX][nY][nIndex] = 1;
+            }
+
+            m_BufObj[nX][nY][nIndex] = m_Mir2xMap.ObjectDesc(nX, nY, nIndex);
+        }
+    }else if(m_Valid){
+        // mirx map
+        int nFileIndex  = 0;
+        int nImageIndex = 0;
+        uint8_t nAttr   = 0;
+
+        if(nIndex == 0){
+            nFileIndex  = ((m_pstCellInfo[nArrayNum].wFileIndex & 0XFF00) >> 8);
+            nImageIndex = m_pstCellInfo[nArrayNum].wObj1;
+            nAttr       = m_pstCellInfo[nArrayNum].bObj1Ani;
+        }else{
+            nFileIndex  = (m_pstCellInfo[nArrayNum].wFileIndex & 0X00FF);
+            nImageIndex = m_pstCellInfo[nArrayNum].wObj2;
+            nAttr       = m_pstCellInfo[nArrayNum].bObj2Ani;
+        }
+
+        if(nFileIndex != 255 && nImageIndex != 65535){
+            // ignore door information
+            if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex)
+                    && m_pxTileImage[nFileIndex].CurrentImageValid()){
+                int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
+                int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
+                if(nW * nH != 0){
+                    if(nW == 48 && nH == 32){
+                        m_BufObjMark[nX][nY][nIndex] = 3;
+                    }else{
+                        m_BufObjMark[nX][nY][nIndex] = 1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Mir2Map::SetBufLight(int nX, int nY)
+{
+    if(m_Mir2xMap.Valid()){
+        // mir2x map
+        if(m_Mir2xMap.LightValid(nX, nY)){
+            m_BufLight[nX][nY]     = m_Mir2xMap.Light(nX, nY);
+            m_BufLightMark[nX][nY] = 1;
+        }
+    }else if(m_Valid){
+        // mir2 map
+        int nArrayNum = nY + nX * m_stMapFileHeader.shHeight;
+        if(m_pstCellInfo[nArrayNum].wLightNEvent != 0
+                || (m_pstCellInfo[nArrayNum].wLightNEvent & 0X0007) == 1){
+            // make light frog by myself
+            uint16_t nColorIndex = 128;  // 0, 1, 2, 3, ..., 15  4 bits
+            uint16_t nAlphaIndex =   2;  // 0, 1, 2, 3           2 bits
+            uint16_t nSizeType   =   0;  // 0, 1, 2, 3, ...,  7  3 bits
+            uint16_t nUnused     =   0;  //                      7 bits
+
+            m_BufLight[nX][nY] = ((nSizeType & 0X0007) << 7) + ((nAlphaIndex & 0X0003) << 4) + ((nColorIndex & 0X000F));
+            m_BufLightMark[nX][nY] = 1;
         }
     }
 }
