@@ -22,6 +22,7 @@ class Mir2xMap
         typedef struct
         {
             uint16_t    Desc;
+            uint8_t     Ground[4];
             OBJDESC     Obj[2];
             uint16_t    Light;
         }CELLDESC;
