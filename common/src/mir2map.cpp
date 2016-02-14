@@ -987,13 +987,30 @@ bool Mir2Map::EmptyBaseTileBlock(int nStartX, int nStartY, int nSize)
 }
 
 
-void Mir2Map::CompressGroundInfoPreOrder(
-        int nStartX, int nStartY, int nSize,
-        std::vector<bool> &stGroundInfoBitV, std::vector<uint32_t> &stGroundInfoV)
+// abstract api for compression
+// parameters:
+//      nStartX                 :
+//      nStartY                 :
+//      nSize                   :
+//      nFinalSize              :
+//      stInfoBitV              :
+//      stInfoV                 :
+//      fnBlockInfoType         : define block type ->
+//                                      0: no info in this block
+//                                      1: there is full-filled unified info in this block
+//                                      2: there is full-filled different info in this block
+//                                      3: there is empty/filled combined info in this block
+//
+//      fnBlockInfoAppend       : append one grid info to the buffer
+void Mir2Map::CompressInfoPreOrder(
+        int nStartX, int nStartY, int nSize, int nFinalSize,
+        std::vector<bool> stInfoBitV, std::vector<uint8_t> &stInfoV,
+        std::function<int(int, int, int, int)> fnBlockInfoType,
+        std::function<void(int, int, int, std::vector<int> &)> fnBlockInfoAppend)
 {
     if(!ValidC(nStartX, nStartY)){ return; }
 
-    int nType = GroundInfoBlockType(nStartX, nStartY, nSize);
+    int nType = BlockInfoType(nStartX, nStartY, nSize);
     if(nType == 0){
         // no information in this box
         stGroundInfoBitV.push_back(false);
@@ -1003,9 +1020,15 @@ void Mir2Map::CompressGroundInfoPreOrder(
         if(nType == 1){
             // unified information
             stGroundInfoBitV.push_back(false);
-            AppendGroundInfo(stGroundInfoV, nStartX, nStartY, 0);
+            fnBlockInfoAppend(stInfoV, nStartX, nStartY, 0);
         }else{
             // combined grid
+            // 1. may be empty/filled combined
+            // 2. may be full-filled with different attributes
+            //
+            // for both possibility we further recursively retrieve
+            // don't read directly in case 2
+            // think the situation: large grid of same attributes with on exception
             stGroundInfoBitV.push_back(true);
             if(nSize == 1){
                 // last level, no recursion anymore
@@ -1015,6 +1038,251 @@ void Mir2Map::CompressGroundInfoPreOrder(
                         AppendGroundInfo(stGroundInfoV, nStartX, nStartY, nIndex);
                     }else{
                         stGroundInfoBitV.push_back(false);
+                    }
+                }
+            }else{
+                // recursion
+                CompressGroundInfoPreOrder(
+                        nStartX, nStartY,
+                        nSize / 2,
+                        stGroundInfoBitV, stGroundInfoV);
+                CompressGroundInfoPreOrder(
+                        nStartX + nSize / 2, nStartY,
+                        nSize / 2,
+                        stGroundInfoBitV, stGroundInfoV);
+                CompressGroundInfoPreOrder(
+                        nStartX, nStartY + nSize / 2,
+                        nSize / 2,
+                        stGroundInfoBitV, stGroundInfoV);
+                CompressGroundInfoPreOrder(
+                        nStartX + nSize / 2, nStartY + nSize / 2,
+                        nSize / 2,
+                        stGroundInfoBitV, stGroundInfoV);
+            }
+        }
+    }
+}
+
+bool Mir2Map::Valid()
+{
+    if(m_Mir2xMap.Valid() || m_Valid){
+        return true;
+    }
+    return false;
+}
+
+bool Mir2Map::ValidC(int nX, int nY)
+{
+    // assume valid map
+    if(m_Mir2xMap.Valid()){
+        return m_Mir2xMap.ValidC(nX, nY);
+    }else{
+        return true
+            && nX >= 0
+            && nX <  m_stMapFileHeader.shWidth
+            && nY >= 0
+            && nY <  m_stMapFileHeader.shHeight;
+    }
+}
+
+bool Mir2Map::ValidP(int nX, int nY)
+{
+    // assume valid map
+    if(m_Mir2xMap.Valid()){
+        return m_Mir2xMap.ValidP(nX, nY);
+    }else{
+        return true
+            && nX >= 0
+            && nX <  48 * m_stMapFileHeader.shWidth
+            && nY >= 0
+            && nY <  32 * m_stMapFileHeader.shHeight;
+    }
+}
+
+bool Mir2Map::EmptyGroundInfo(int nStartX, int nStartY, int nIndex)
+{
+    if(m_Mir2xMap.Valid()){
+        return m_Mir2xMap.EmptyGroundInfo(nStartX, nStartY, nIndex);
+    }else{
+        extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
+        return (g_GroundInfo[nStartX][nStartY][nIndex] & 0X80000000) == 0;
+    }
+}
+
+uint8_t Mir2Map::GroundInfo(int nStartX, int nStartY, int nIndex)
+{
+    if(m_Mir2xMap.Valid()){
+        return m_Mir2xMap.GroundInfo(nStartX, nStartY, nIndex);
+    }else{
+        extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
+        return (uint8_t)(g_GroundInfo[nStartX][nStartY][nIndex] & 0X000000FF);
+    }
+}
+
+// get block type, assume valid parameters, parameters:
+//
+//      nStartX                 : ..
+//      nStartY                 : ..
+//      nIndex                  : ignore it when nSize != 0
+//      nSize                   :
+//
+//      return                  : define block type ->
+//                                      0: no info in this block
+//                                      1: there is full-filled unified info in this block
+//                                      2: there is full-filled different info in this block
+//                                      3: there is empty/filled combined info in this block
+int Mir2Map::GroundInfoBlockType(int nStartX, int nStartY, int nIndex, int nSize)
+{
+    // assume valid map, valid parameters
+    if(nSize == 0){
+        return EmptyGroundInfo(nStartX, nStartY, nIndex) ? 0 : 1;
+    }else{
+        bool bFindEmpty = false;
+        bool bFindFill  = false;
+        bool bFindDiff  = false;
+
+        bool bInited = false;
+        uint8_t nGroundInfoSample = 0;
+
+        for(int nX = 0; nX < nSize; ++nX){
+            for(int nY = 0; nY < nSize; ++nY){
+                for(int nIndex = 0; nIndex < 4; ++nIndex){
+                    if(EmptyGroundInfo(nX, nY, nIndex)){
+                        bFindEmpty = true;
+                    }else{
+                        bFindFill = true;
+                        if(bInited){
+                            if(nGroundInfoSample != GroundInfo(nX, nY, nIndex)){
+                                bFindDiff = true;
+                            }
+                        }else{
+                            nGroundInfoSample = GroundInfo(nX, nY, nIndex);
+                        }
+                    }
+                }
+            }
+        }
+
+        if(bFindFill == false){
+            // no information at all
+            return 0;
+        }else{
+            // do have information
+            if(bFindEmpty == false){
+                // all filled
+                if(bFindDiff == false){
+                    // all filled and no difference exists
+                    return 1;
+                }else{
+                    // all filled and there is difference
+                    return 2;
+                }
+            }else{
+                // there are filled and empty, combined
+                return 3;
+            }
+        }
+    }
+}
+
+void Mir2Map::CompressGroundInfoPreOrder(
+        int nStartX, int nStartY, int nSize,
+        std::vector<bool> &stGroundInfoBitV, std::vector<uint32_t> &stGroundInfoV)
+{
+    if(!ValidC(nStartX, nStartY)){ return; }
+
+    int nType = GroundInfoBlockType(nStartX, nStartY, -1, nSize); // nSize >= 1 always
+    if(nType != 0){
+        // there is informaiton in this box
+        stGroundInfoBitV.push_back(true);
+        if(nSize == 1){
+            // there is info, and it's last level, end of recursion
+            if(nType == 2 || nType == 3){
+                // there is info that should parse one by one
+                // maybe empty/filled combined or fullfilled with different attributes
+                stGroundInfoBitV.push_back(true);
+                for(int nIndex = 0; nIndex < 4; ++nIndex){
+                    if(GroundInfoBlockType(nStartX, nStartY, nIndex, 0) == 0){
+                        // can only return 0 / 1
+                        stGroundInfoBitV.push_back(false);
+                    }else{
+                        stGroundInfoBitV.push_back(true);
+                        stGroundInfoV.push_back(GroundInfo(nStartX, nStartY, nIndex));
+                    }
+                }
+            }else{
+                // ntype == 1 here, full-filled with unified info
+                stGroundInfoBitV.push_back(false);
+                stGroundInfoV.push_back(GroundInfo(nStartX, nStartY, 0));
+            }
+        }else{
+            // not the last level, and there is info
+            if(nType == 2 || nType == 3){
+                // there is info and need further parse
+                stGroundInfoBitV.push_back(true);
+                CompressGroundInfoPreOrder(
+                        nStartX, nStartY,
+                        nSize / 2,
+                        stGroundInfoBitV, stGroundInfoV);
+                CompressGroundInfoPreOrder(
+                        nStartX + nSize / 2, nStartY,
+                        nSize / 2,
+                        stGroundInfoBitV, stGroundInfoV);
+                CompressGroundInfoPreOrder(
+                        nStartX, nStartY + nSize / 2,
+                        nSize / 2,
+                        stGroundInfoBitV, stGroundInfoV);
+                CompressGroundInfoPreOrder(
+                        nStartX + nSize / 2, nStartY + nSize / 2,
+                        nSize / 2,
+                        stGroundInfoBitV, stGroundInfoV);
+            }else{
+                // nType == 1 here
+                stGroundInfoBitV.push_back(false);
+                stGroundInfoV.push_back(GroundInfo(nStartX, nStartY, 0));
+            }
+        }
+    }else{
+        // nType == 0, no information in this box
+        stGroundInfoBitV.push_back(false);
+    }
+}
+
+void Mir2Map::CompressGroundInfoPreOrder(
+        int nStartX, int nStartY, int nSize,
+        std::vector<bool> &stGroundInfoBitV, std::vector<uint32_t> &stGroundInfoV)
+{
+    if(!ValidC(nStartX, nStartY)){ return; }
+
+    int nType = GroundInfoBlockType(nStartX, nStartY, -1, nSize); // nSize >= 1 always
+    if(nType == 0){
+        // no information in this box
+        stGroundInfoBitV.push_back(false);
+    }else{
+        // there is informaiton in this box
+        stGroundInfoBitV.push_back(true);
+        if(nType == 1){
+            // unified information
+            stGroundInfoBitV.push_back(false);
+            stGroundInfoV.push_back(GroundInfo(nStartX, nStartY, 0));
+        }else{
+            // combined grid
+            // 1. may be empty/filled combined
+            // 2. may be full-filled with different attributes
+            //
+            // for both possibility we further recursively retrieve
+            // don't read directly in case 2
+            // think the situation: large grid of same attributes with on exception
+            stGroundInfoBitV.push_back(true);
+            if(nSize == 1){
+                // last level, no recursion anymore
+                for(int nIndex = 0; nIndex < 4; ++nIndex){
+                    if(GroundInfoBlockType(nStartX, nStartY, nIndex, 0) == 0){
+                        // can only return 0 / 1
+                        stGroundInfoBitV.push_back(false);
+                    }else{
+                        stGroundInfoBitV.push_back(true);
+                        stGroundInfoV.push_back(GroundInfo(nStartX, nStartY, nIndex));
                     }
                 }
             }else{
@@ -1121,7 +1389,7 @@ bool Mir2Map::EmptyCellTileBlock(int nStartX, int nStartY, int nSize)
                 // if(m_CellDesc[nArrayNum].dwDesc){
                 //     return false;
                 // }
-                
+
                 if(false
                         || m_CellDesc[nArrayNum].dwDesc    != 0XFFFFFFFF
                         || m_CellDesc[nArrayNum].dwObject1 != 0XFFFFFFFF
@@ -1545,7 +1813,7 @@ bool Mir2Map::NewLoadMap(const char *szFullName)
     delete []m_pstTileInfo;  m_pstTileInfo  = nullptr;
     delete []m_pstCellInfo;  m_pstCellInfo  = nullptr;
     delete []m_GroundInfo;   m_GroundInfo   = nullptr;
-	delete []m_BaseTileInfo; m_BaseTileInfo = nullptr;
+    delete []m_BaseTileInfo; m_BaseTileInfo = nullptr;
     delete []m_CellDesc;     m_CellDesc     = nullptr;
 
     m_Valid = false;
@@ -1694,7 +1962,7 @@ void Mir2Map::OptimizeBaseTile(int nX, int nY)
 
         { // drop 000200020.PNG
             if(stBaseTileInfo.bFileIndex == 2 && stBaseTileInfo.wTileIndex == 20){
-            stBaseTileInfo = {255, 65535};
+                stBaseTileInfo = {255, 65535};
             }
         }
     }
