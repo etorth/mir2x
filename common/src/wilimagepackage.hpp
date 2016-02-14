@@ -64,7 +64,7 @@ class WilImagePackage
     public:
         bool Load(const char *, const char *, const char *);
         bool SetIndex(uint32_t);
-        void Decode(uint32_t *, uint32_t, uint32_t);
+        void Decode(uint32_t *, uint32_t, uint32_t, uint32_t);
         void ShadowDecode(uint32_t *, bool, uint32_t, uint32_t);
 
     public:

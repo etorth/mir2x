@@ -196,7 +196,7 @@ const WILIMAGEINFO &WilImagePackage::CurrentImageInfo()
     }
 }
 
-void WilImagePackage::Decode(uint32_t *rectImageBuffer, uint32_t dwColor1, uint32_t dwColor2)
+void WilImagePackage::Decode(uint32_t *rectImageBuffer, uint32_t dwColor0, uint32_t dwColor1, uint32_t dwColor2)
 {
     auto    pwSrc   = m_CurrentImageBuffer;
     int16_t nWidth  = m_CurrentWilImageInfo.shWidth;
@@ -221,7 +221,7 @@ void WilImagePackage::Decode(uint32_t *rectImageBuffer, uint32_t dwColor1, uint3
                     MemSet32(rectImageBuffer + nRow * nWidth + dstNowPosInRow, cntCopy, 0X00000000);
                     break;
                 case 0XC1:
-                    Memcpy16To32(rectImageBuffer + nRow * nWidth + dstNowPosInRow, pwSrc + srcNowPos, cntCopy, 0XFFFFFFFF);
+                    Memcpy16To32(rectImageBuffer + nRow * nWidth + dstNowPosInRow, pwSrc + srcNowPos, cntCopy, dwColor0);
                     srcNowPos += cntCopy;
                     break;
                 case 0XC2:

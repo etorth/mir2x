@@ -1,4 +1,7 @@
 #pragma once
+
+#include "mir2xmap.hpp"
+
 #include <string>
 #include "wilimagepackage.hpp"
 #include <cstdint>
@@ -40,26 +43,6 @@ typedef struct{
     uint16_t    wLigntNEvent;
 }CELLINFO;
 
-typedef struct{
-    // for door or dynamic tile
-    // conceptually they are different
-    // but they are the same in view of bit set
-    //
-    // for door or dynamic tile we only need 3 byte
-    // here we have 4 byte so use 1 byte as descriptor
-    //
-    // use dwDesc == 0 to indicate currently it's a null block
-    // why not use dwObject1/2 & 0XFF00FFFF == 0
-    // because here not-null doesn't means no obj
-    // also means no light, no door etc.
-    //
-    // but dwObject1/2 & 0XFF00FFFF can only indicate there is no obj
-    uint32_t    dwDesc;
-    uint32_t    dwObject1;
-    uint32_t    dwObject2;
-    uint32_t    dwLight;
-}CELLDESC;
-
 #pragma pack(pop)
 
 class Mir2Map
@@ -76,6 +59,14 @@ class Mir2Map
 
     private:
         WilImagePackage *m_pxTileImage;
+
+    private:
+        TILEINFO       *m_pstTileInfo;
+        CELLINFO       *m_pstCellInfo;
+        MAPFILEHEADER   m_stMapFileHeader;
+
+    private:
+        Mir2xMap        g_Mir2xMap;
 
     public:
         Mir2Map();
@@ -127,16 +118,6 @@ class Mir2Map
 
     public:
         bool NewLoadMap(const char *);
-
-    private:
-        TILEINFO       *m_pstTileInfo;
-        CELLINFO       *m_pstCellInfo;
-        MAPFILEHEADER   m_stMapFileHeader;
-
-    private:
-        uint32_t    *m_BaseTileInfo;
-        uint32_t    *m_GroundInfo;
-        CELLDESC    *m_CellDesc;
 
     private:
         std::vector<std::vector<std::array<bool, 4>>> m_SelectedGrid;
