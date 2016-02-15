@@ -45,25 +45,27 @@ bool Mir2xMap::Load(const char *szFullName)
         && LoadLight(pCurDat) && LoadTile(pCurDat) && LoadObj(pCurDat, 0) && LoadObj(pCurDat, 1);
 }
 
-void Mir2xMap::SetOneWalk(int nX, int nY, int nSubGrid, bool bCanWalk)
+void Mir2xMap::SetOneGround(int nX, int nY, int nIndex, bool bHasInfo, uint8_t nGroundInfo)
 {
-    uint16_t nMask = (uint16_t)(0X0001 << (nSubGrid % 4));
-    if(bCanWalk){
+    uint16_t nMask = (uint16_t)(0X0001 << nIndex);
+    if(bHasInfo){
         CellDesc(nX, nY).Desc |= nMask;
+        CellDesc(nX, nY).Ground[nIndex] = nGroundInfo;
     }else{
         uint16_t nRMask = (uint16_t)(0XFFFF ^ nMask);
         CellDesc(nX, nY).Desc &= nRMask;
+        CellDesc(nX, nY).Ground[nIndex] = 0;
     }
 }
 
-void Mir2xMap::SetWalk(int nX, int nY, int nSize, bool bCanWalk)
+void Mir2xMap::SetGround(int nX, int nY, int nSize, bool bHasInfo, uint8_t nGroundInfo)
 {
     for(int nTY = nY; nTY < nY + nSize; ++nTY){
         for(int nTX = nX; nTX < nX + nSize; ++nTX){
-            SetOneWalk(nTX, nTY, 0, bCanWalk);
-            SetOneWalk(nTX, nTY, 1, bCanWalk);
-            SetOneWalk(nTX, nTY, 2, bCanWalk);
-            SetOneWalk(nTX, nTY, 3, bCanWalk);
+            SetOneGround(nTX, nTY, 0, bHasInfo, nGroundInfo);
+            SetOneGround(nTX, nTY, 1, bHasInfo, nGroundInfo);
+            SetOneGround(nTX, nTY, 2, bHasInfo, nGroundInfo);
+            SetOneGround(nTX, nTY, 3, bHasInfo, nGroundInfo);
         }
     }
 }
@@ -77,45 +79,93 @@ void Mir2xMap::SetWalk(int nX, int nY, int nSize, bool bCanWalk)
 //       differ ocean/lake/pond so sound can be different for even one tile
 //
 //       this is for different sound effect and more
-void Mir2xMap::ParseWalk(int nX, int nY, int nSize, const uint8_t *pMark, long &nMarkOff)
+void Mir2xMap::ParseGround(int nX, int nY, int nSize,
+        const uint8_t *pMark, long &nMarkOff, const uint8_t *pData, long &nDataOff)
 {
     // 1: there is data in current grid
     // 0: no
     //
     // 1: current grid is combined, means it's filled partically
     // 0: no
-    if(nX < m_W && nY < m_H){
-        if(PickOneBit(pMark, nMarkOff++)){
-            // there is information in current grid
-            if(nSize == 1){
-                // last level of grid consists of four smallest subgrids divided by X-cross
-                if(PickOneBit(pMark, nMarkOff++)){
-                    // it's combined at last level
-                    SetOneWalk(nX, nY, 0, PickOneBit(pMark, nMarkOff++));
-                    SetOneWalk(nX, nY, 1, PickOneBit(pMark, nMarkOff++));
-                    SetOneWalk(nX, nY, 2, PickOneBit(pMark, nMarkOff++));
-                    SetOneWalk(nX, nY, 3, PickOneBit(pMark, nMarkOff++));;
-                }else{
-                    // it's not combined, and there is info, so it only can be all full-filled
-                    SetWalk(nX, nY, 1, true);
+    //
+    // 1: ground info in full-filled grid are of different attributes
+    // 0: no
+    if(!ValidC(nX, nY)){ return; }
+
+    if(PickOneBit(pMark, nMarkOff++)){
+        // there is information in current grid
+        if(nSize == 1){
+            // last level of grid consists of four smallest subgrids divided by X-cross
+            if(PickOneBit(pMark, nMarkOff++)){
+                // it's a/0 combined or a/b combined at last level
+                // should parse one by one
+                for(int nIndex = 0; nIndex < 4; ++nIndex){
+                    if(PickOneBit(pMark, nMarkOff++)){
+                        SetOneGround(nX, nY, nIndex, pData[nDataOff++]);
+                    }
                 }
             }else{
-                // not the last level of grid, and there is information in current gird
-                if(PickOneBit(pMark, nMarkOff++)){
-                    // there is data, and it's combined, need further parsing
-                    ParseWalk(nX,             nY,             nSize / 2, pMark, nMarkOff);
-                    ParseWalk(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff);
-                    ParseWalk(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff);
-                    ParseWalk(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff);
-                }else{
-                    // there is information, but it's not combined, can only be full-filled
-                    SetWalk(nX, nY, nSize, true);
-                }
+                // it's not combined, and there is info, so it only can be all full-filled
+                SetGround(nX, nY, 1, true, pData[nDataOff++]);
             }
         }else{
-            // no data here, always unset the desc field for the whole grid
-            SetWalk(nX, nY, nSize, false);
+            // not the last level of grid, and there is information in current gird
+            if(PickOneBit(pMark, nMarkOff++)){
+                // there is data, and it's combined, need further parsing
+                // maybe filled/empty, or fullfilled of different attributes
+                ParseGround(nX,             nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                ParseGround(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                ParseGround(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                ParseGround(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+            }else{
+                // there is information, but it's not combined, can only be full-filled
+                SetGround(nX, nY, nSize, true, pData[nDataOff++]);
+            }
         }
+    }else{
+        // no data here, always unset the desc field for the whole grid
+        SetGround(nX, nY, nSize, false, 0);
+    }
+}
+
+// light is the simplest
+void Mir2xMap::ParseLight(int nX, int nY, int nSize,
+        const uint8_t *pMark, long &nMarkOff, const uint8_t *pData, long &nDataOff)
+{
+    // 1: there is data in current grid
+    // 0: no
+    //
+    // 1: current grid is combined, means it's filled partically
+    // 0: no
+    //
+    // 1: light in full-filled grid are of different attributes
+    // 0: no
+    if(!ValidC(nX, nY)){ return; }
+
+    if(PickOneBit(pMark, nMarkOff++)){
+        // there is information in current grid
+        if(nSize == 1){
+            // there is info and it's last level
+            // end of recursion
+            SetLight(nX, nY, 1, pData, nDataOff);
+        }else{
+            // not the last level of grid, and there is information in current gird
+            if(PickOneBit(pMark, nMarkOff++)){
+                // there is info, and it's combined, need further parsing
+                // maybe a/0 or a/b combination
+                ParseLight(nX,             nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                ParseLight(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                ParseLight(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                ParseLight(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+            }else{
+                // there is info, but not a/0 or a/b combined
+                // can only be a/a full-filled
+                SetLight(nX, nY, nSize, pData, nDataOff);
+            }
+        }
+    }else{
+        // no data here, always unset the desc field for the whole grid
+        SetLight(nX, nY, nSize, nullptr, nDataOff);
     }
 }
 
@@ -153,55 +203,6 @@ void Mir2xMap::SetObj(int nX, int nY, int nSize, int nObjIndex,
     for(int nTY = nY; nTY < nY + nSize; ++nTY){
         for(int nTX = nX; nTX < nX + nSize; ++nTX){
             SetOneObj(nTX, nTY, nObjIndex, pMark, nMarkOff, pData, nDataOff);
-        }
-    }
-}
-
-void Mir2xMap::ParseLight(int nX, int nY, int nSize,
-        const uint8_t *pMark, long &nMarkOff, const uint8_t *pData, long &nDataOff)
-{
-    // 1: there is data in current grid
-    // 0: no
-    //
-    // 1: current grid is combined, means it's filled partically
-    // 0: no
-    //
-    // 1: lights in full-filled grid are of different attributes
-    // 0: no
-    if(ValidC(nX, nY)){
-        if(PickOneBit(pMark, nMarkOff++)){
-            // there is information in current grid
-            if(nSize == 1){
-                // last level of grid, and there is data, so fill it directly
-                SetLight(nX, nY, 1, pData, nDataOff);
-            }else{
-                // not the last level of grid, and there is information in current gird
-                if(PickOneBit(pMark, nMarkOff++)){
-                    // there is data in current grid and it's combined, further parse it
-                    ParseLight(nX,             nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                    ParseLight(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                    ParseLight(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                    ParseLight(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                }else{
-                    // there is data and not combined, so full-filled the whole grid
-                    // ask one more bit for light, here we use recursively defined data stream
-                    // since most likely lights in full-filled grid are of the same attributes
-                    if(PickOneBit(pMark, nMarkOff++)){
-                        // full-filled grid with lights of different attributes
-                        // this rarely happens
-                        ParseLight(nX,             nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                        ParseLight(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                        ParseLight(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                        ParseLight(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                    }else{
-                        // full-filled grid with lights of the same attributes
-                        SetLight(nX, nY, nSize, pData, nDataOff);
-                    }
-                }
-            }
-        }else{
-            // no data here, always unset the desc field for the whole grid
-            SetLight(nX, nY, nSize, nullptr, nDataOff);
         }
     }
 }
@@ -407,7 +408,7 @@ bool Mir2xMap::LoadWalk(uint8_t * &pData)
     long nBitOff = 0;
     for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
         for(int nBlkX = 0; nBlkX < (m_W + 7) / 8; ++nBlkX){
-            ParseWalk(nBlkX * 8, nBlkY * 8, 8, pData + 4, nBitOff);
+            ParseGround(nBlkX * 8, nBlkY * 8, 8, pData + 4, nBitOff);
         }
     }
 

@@ -22,6 +22,7 @@ class Mir2xMap
         typedef struct
         {
             uint16_t    Desc;
+            uint8_t     Ground[4];
             OBJDESC     Obj[2];
             uint16_t    Light;
         }CELLDESC;
@@ -78,11 +79,18 @@ class Mir2xMap
         }
 
     private:
-        uint32_t CellObjKey(int nX, int nY, int nIndex)
+        uint32_t ObjectBaseKey(int nX, int nY, int nIndex)
         {
             return (((uint32_t)(CellDesc(nX, nY).Obj[nIndex % 2].Desc & 0X80)) << 24)
                 + (((uint32_t)(CellDesc(nX, nY).Obj[nIndex % 2].FileIndex)) << 16)
-                + (((uint32_t)(CellDesc(nX, nY).Obj[nIndex % 2].ImageIndex + CellObjImageOff(nX, nY, nIndex))));
+                + (((uint32_t)(CellDesc(nX, nY).Obj[nIndex % 2].ImageIndex + ObjectKeyOff(nX, nY, nIndex))));
+        }
+
+        uint32_t ObjectKey(int nX, int nY, int nIndex)
+        {
+            return (((uint32_t)(CellDesc(nX, nY).Obj[nIndex % 2].Desc & 0X80)) << 24)
+                + (((uint32_t)(CellDesc(nX, nY).Obj[nIndex % 2].FileIndex)) << 16)
+                + (((uint32_t)(CellDesc(nX, nY).Obj[nIndex % 2].ImageIndex + ObjectKeyOff(nX, nY, nIndex))));
         }
 
         uint32_t TileKey(int nX, int nY)
@@ -94,6 +102,11 @@ class Mir2xMap
         bool TileValid(int nX, int nY)
         {
             return (TileDesc(nX, nY).Desc & 0X01) == 0X01;
+        }
+
+        bool ObjectValid(int nX, int nY, int nIndex)
+        {
+            return (CellDesc(nX, nY).Desc & (0X0200 << ((nIndex % 2) * 2))) != 0;
         }
 
         bool GroundObjValid(int nX, int nY, int nIndex)
