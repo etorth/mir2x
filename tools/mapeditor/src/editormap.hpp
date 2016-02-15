@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/14/2016 23:38:23
+ *  Last Modified: 02/15/2016 01:53:17
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -57,6 +57,7 @@ class EditorMap
 
         std::vector<std::vector<std::array<int, 4>>>        m_BufGroundMark;
         std::vector<std::vector<std::array<uint8_t, 4>>>    m_BufGround;
+        std::vector<std::vector<std::array<int, 4>>>        m_BufGroundTag;
 
     public:
         EditorMap();
@@ -114,12 +115,17 @@ class EditorMap
             return m_BufObj[nX][nY][nIndex];
         }
 
-        int ObjectGround(int nX, int nY,  int nIndex)
+        int GroundObjectValid(int nX, int nY,  int nIndex)
         {
             return m_BufGroundObjMark[nX][nY][nIndex];
         }
 
-        bool ObjectAni(int nX, int nY, int nIndex)
+        int GroundTag(int nX, int nY, int nIndex)
+        {
+            return m_BufGroundTag[nX][nY][nIndex];
+        }
+
+        bool AniObjectValid(int nX, int nY, int nIndex)
         {
             return m_BufAniObjMark[nX][nY][nIndex];
         }
@@ -199,4 +205,10 @@ class EditorMap
             void ClearBuf();
             void MakeBuf(int, int);
             bool InitBuf();
+
+            void SetBufTile(int, int);
+            void SetBufLight(int, int);
+            void SetBufObj(int, int, int);
+            void SetBufGround(int, int, int);
+
 };

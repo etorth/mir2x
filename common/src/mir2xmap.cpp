@@ -41,7 +41,7 @@ bool Mir2xMap::Load(const char *szFullName)
     fread(m_Buf, 1, nSize, pFile);
 
     uint8_t *pCurDat = m_Buf;
-    return LoadHead(pCurDat) && LoadWalk(pCurDat) 
+    return LoadHead(pCurDat) && LoadGround(pCurDat) 
         && LoadLight(pCurDat) && LoadTile(pCurDat) && LoadObj(pCurDat, 0) && LoadObj(pCurDat, 1);
 }
 
@@ -101,7 +101,9 @@ void Mir2xMap::ParseGround(int nX, int nY, int nSize,
                 // should parse one by one
                 for(int nIndex = 0; nIndex < 4; ++nIndex){
                     if(PickOneBit(pMark, nMarkOff++)){
-                        SetOneGround(nX, nY, nIndex, pData[nDataOff++]);
+                        SetOneGround(nX, nY, nIndex, true, pData[nDataOff++]);
+                    }else{
+                        SetOneGround(nX, nY, nIndex, false, 0);
                     }
                 }
             }else{
@@ -229,63 +231,33 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
     }
 }
 
-void Mir2xMap::DrawOverGroundObj(int nViewX, int nViewY, int nViewW, int nViewH, int, // nMaxObjH,
-        std::function<void(int, int, uint32_t)> fnDrawObjFunc, std::function<void(int, int)> fnDrawActorFunc)
-{
-    int nStartCellX = nViewX / 96;
-    int nStartCellY = nViewY / 64;
-
-    int nStopCellX = (nViewX + nViewW) / 96;
-    int nStopCellY = (nViewY + nViewH) / 64;
-
-    for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
-        for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
-            if(OverGroundObjValid(nCellX, nCellY, 0)){
-                fnDrawObjFunc(nCellX * 48, nCellY * 32, CellObjKey(nCellX, nCellY, 0));
-            }
-
-            if(OverGroundObjValid(nCellX, nCellY, 1)){
-                fnDrawObjFunc(nCellX * 48, nCellY * 32, CellObjKey(nCellX, nCellY, 1));
-            }
-            fnDrawActorFunc(nCellX, nCellY);
-        }
-    }
-}
-
-
-void Mir2xMap::DrawGroundObj(int nViewX, int nViewY, int nViewW, int nViewH, int, // nMaxObjH,
-        std::function<void(int, int, uint32_t)> fnDrawFunc)
-{
-    int nStartCellX = nViewX / 96;
-    int nStartCellY = nViewY / 64;
-
-    int nStopCellX = (nViewX + nViewW) / 96;
-    int nStopCellY = (nViewY + nViewH) / 64;
-
-
-    // typical fnDrawFunc should be
-    // auto fnDrawFunc = [this](int nX, int nY, uint32_t nKey){
-    //     auto stItor = m_ObjTexCache.find(nKey);
-    //     if(stItor != m_ObjTexCache.end()){
-    //         int nW, nH;
-    //         SDL_QueryTexture(stItor->second, &nW, &nH);
-    //         SDL_Rect stDst = {nX - nViewX, nY + 32 - nH - m_ViewY, nW, nH};
-    //         SDL_RenderCopy(m_Renderer, stItor->second, &stDst, nullptr);
-    //     }
-    // };
-
-    for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
-        for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
-            if(GroundObjValid(nCellX, nCellY, 0)){
-                fnDrawFunc(nCellX * 48, nCellY * 32, CellObjKey(nCellX, nCellY, 0));
-            }
-
-            if(GroundObjValid(nCellX, nCellY, 1)){
-                fnDrawFunc(nCellX * 48, nCellY * 32, CellObjKey(nCellX, nCellY, 1));
-            }
-        }
-    }
-}
+// void Mir2xMap::DrawObject(
+//         int nViewX, int nViewY, int nViewW, int nViewH,
+//         int nMaxObjW, int nMaxObjH, bool bGround,
+//         std::function<void(int, int, uint8_t, uint16_t)> fnDrawObj,
+//         std::function<void(int, int)> fnDrawActor)
+// {
+//     // TODO
+//     UNUSED(nViewW); UNUSED(nViewH);
+//
+//     int nStartCellX = nViewX / 48;
+//     int nStartCellY = nViewY / 32;
+//
+//     int nStopCellX = (nViewX + nViewW) / 68;
+//     int nStopCellY = (nViewY + nViewH) / 32;
+//
+//     for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
+//         for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
+//             for(int nIndex = 0; nIndex < 2; ++nIndex){
+//                 if(GroundObjValid(nCellX, nCellY, nIndex) == bGround){
+//                     auto &stDesc = CellDesc(nCellX, nCellY, nIndex);
+//                     fnDrawObj(nCellX, nCellY, stDesc.FileIndex, stDesc.ImageIndex);
+//                 }
+//             }
+//             fnDrawActorFunc(nCellX, nCellY);
+//         }
+//     }
+// }
 
 void Mir2xMap::Draw(
         int nViewX, int nViewY, int nViewW, int nViewH,      //
@@ -326,31 +298,31 @@ void Mir2xMap::DrawExt(int nViewX, int nViewY, int nViewW, int nViewH,
     }
 }
 
-void Mir2xMap::DrawGround(int nViewX, int nViewY, int nViewW, int nViewH,
-        std::function<void(int, int, uint32_t)> fnDrawFunc)
-{
-    // a typical fnDrawFunc should be
-    // auto fnDrawFunc = [this](int nX, int nY, uint32_t nKey){
-    //     auto stItor = m_TileTexCache.find(nKey);
-    //     if(stItor != m_TileTexCache.end()){
-    //         m_DeviceManager->Render(stItor.second, nX, nY, 96, 64, 0, 0, 96, 64);
-    //     }
-    // };
-
-    int nStartCellX = nViewX / 96;
-    int nStartCellY = nViewY / 64;
-
-    int nStopCellX = (nViewX + nViewW) / 96;
-    int nStopCellY = (nViewY + nViewH) / 64;
-
-    for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
-        for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
-            if(!(nCellY % 2) && !(nCellX % 2) && TileValid(nCellX, nCellY)){
-                fnDrawFunc(nCellX * 48 - nViewX, nCellY * 32 - nViewY, TileKey(nCellX, nCellY));
-            }
-        }
-    }
-}
+// void Mir2xMap::DrawGround(int nViewX, int nViewY, int nViewW, int nViewH,
+//         std::function<void(int, int, uint32_t)> fnDrawFunc)
+// {
+//     // a typical fnDrawFunc should be
+//     // auto fnDrawFunc = [this](int nX, int nY, uint32_t nKey){
+//     //     auto stItor = m_TileTexCache.find(nKey);
+//     //     if(stItor != m_TileTexCache.end()){
+//     //         m_DeviceManager->Render(stItor.second, nX, nY, 96, 64, 0, 0, 96, 64);
+//     //     }
+//     // };
+//
+//     int nStartCellX = nViewX / 96;
+//     int nStartCellY = nViewY / 64;
+//
+//     int nStopCellX = (nViewX + nViewW) / 96;
+//     int nStopCellY = (nViewY + nViewH) / 64;
+//
+//     for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
+//         for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
+//             if(!(nCellY % 2) && !(nCellX % 2) && TileValid(nCellX, nCellY)){
+//                 fnDrawFunc(nCellX * 48 - nViewX, nCellY * 32 - nViewY, TileKey(nCellX, nCellY));
+//             }
+//         }
+//     }
+// }
 
 bool Mir2xMap::Overlap(int nX, int nY, int nCX, int nCY, int nR)
 {
@@ -403,16 +375,21 @@ bool Mir2xMap::LoadHead(uint8_t * &pData)
     }
 }
 
-bool Mir2xMap::LoadWalk(uint8_t * &pData)
+bool Mir2xMap::LoadGround(uint8_t * &pData)
 {
-    long nBitOff = 0;
+    uint32_t nMarkLen = *((uint32_t *)(pData + 0));
+    uint32_t nDataLen = *((uint32_t *)(pData + 4 + nMarkLen));
+
+    long nMarkOff = 0;
+    long nDataOff = 0;
+
     for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
         for(int nBlkX = 0; nBlkX < (m_W + 7) / 8; ++nBlkX){
-            ParseGround(nBlkX * 8, nBlkY * 8, 8, pData + 4, nBitOff);
+            ParseGround(nBlkX * 8, nBlkY * 8, 8, pData + 8, nMarkOff, pData + 8 + nMarkLen, nDataOff);
         }
     }
 
-    pData += (4 + *((uint32_t *)pData));
+    pData += (8 + nMarkLen + nDataLen);
     if(pData[0] != 0){
         return false;
     }else{

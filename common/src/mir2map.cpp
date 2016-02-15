@@ -79,6 +79,18 @@ uint8_t Mir2Map::Ground(int nX, int nY)
     return CellInfo(nX, nY).bFlag;
 }
 
+bool Mir2Map::AniObjectValid(int nX, int nY, int nIndex, ImageDB &stImageDB)
+{
+    if(ObjectValid(nX, nY, nIndex, stImageDB)){
+        if(nIndex == 0){
+            return CellInfo(nX, nY).bObj1Ani != 255;
+        }else{
+            return CellInfo(nX, nY).bObj2Ani != 255;
+        }
+    }
+    return false;
+}
+
 bool Mir2Map::GroundObjectValid(int nX, int nY, int nIndex, ImageDB &stImageDB)
 {
     uint32_t nFileIndex  = 0;

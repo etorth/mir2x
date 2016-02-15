@@ -109,6 +109,7 @@ class Mir2Map
 
         bool ObjectValid(int, int, int, ImageDB &);
         bool GroundObjectValid(int, int, int, ImageDB &);
+        bool AniObjectValid(int, int, int, ImageDB &);
         uint32_t Object(int, int, int);
 
         bool TileValid(int, int, ImageDB &);

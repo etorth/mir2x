@@ -3,7 +3,7 @@
  *
  *       Filename: imagecache.cpp
  *        Created: 02/14/2016 15:54:58
- *  Last Modified: 02/14/2016 20:26:59
+ *  Last Modified: 02/15/2016 02:14:07
  *
  *    Description: This class won't handle WilImagePackage directly
  *                 Actually it only deal with all PNG files

@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/14/2016 23:38:05
+ *  Last Modified: 02/15/2016 01:54:19
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -117,7 +117,7 @@ void EditorMap::ExtractOneObject(
     uint16_t nImageIndex = ((nKey & 0X0000FFFF));
     int      nAniCnt     = ((nKey & 0X0F000000) >> 24);
 
-    int      nFrameCount = (ObjectAni(nXCnt, nYCnt, nIndex) ? nAniCnt : 1);
+    int      nFrameCount = (AniObjectValid(nXCnt, nYCnt, nIndex) ? nAniCnt : 1);
     uint32_t nImageColor = (bBlend ? 0X80FFFFFF : 0XFFFFFFFF);
 
     for(int nIndex = 0; nIndex < nFrameCount; ++nIndex){
@@ -153,7 +153,7 @@ void EditorMap::DrawObject(
         for(int nXCnt = nStartCellX; nXCnt <= nStopCellX; ++nXCnt){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
                 if(ObjectValid(nXCnt, nYCnt, nIndex)
-                        && bGround == ObjectGround(nXCnt, nYCnt, nIndex)){
+                        && bGround == GroundObjectValid(nXCnt, nYCnt, nIndex)){
 
                     uint32_t nKey         = Object(nXCnt, nYCnt, nIndex);
                     uint8_t  nFileIndex   = ((nKey & 0X00FF0000) >> 16);
@@ -161,7 +161,7 @@ void EditorMap::DrawObject(
                     int      nAniType     = ((nKey & 0X70000000) >> 28);
                     int      nAniCnt      = ((nKey & 0X0F000000) >> 24);
 
-                    if(ObjectAni(nXCnt, nYCnt, nIndex)){
+                    if(AniObjectValid(nXCnt, nYCnt, nIndex)){
                         nImageIndex += ObjectOff(nAniType, nAniCnt);
                     }
 
@@ -248,6 +248,7 @@ bool EditorMap::Resize(
     auto stOldBufAniObjMark    = m_BufAniObjMark;
     auto stOldBufGround        = m_BufGround;
     auto stOldBufGroundMark    = m_BufGroundMark;
+    auto stOldBufGroundTag     = m_BufGroundTag;
 
     // this function will clear the new buffer
     // with all zeros
@@ -291,6 +292,11 @@ bool EditorMap::Resize(
                 stOldBufGroundMark     [nDstX / 2][nDstY / 2][1] = m_BufGroundMark     [nDstX / 2][nDstY / 2][1];
                 stOldBufGroundMark     [nDstX / 2][nDstY / 2][2] = m_BufGroundMark     [nDstX / 2][nDstY / 2][2];
                 stOldBufGroundMark     [nDstX / 2][nDstY / 2][3] = m_BufGroundMark     [nDstX / 2][nDstY / 2][3];
+
+                stOldBufGroundTag      [nDstX / 2][nDstY / 2][0] = m_BufGroundTag      [nDstX / 2][nDstY / 2][0];
+                stOldBufGroundTag      [nDstX / 2][nDstY / 2][1] = m_BufGroundTag      [nDstX / 2][nDstY / 2][1];
+                stOldBufGroundTag      [nDstX / 2][nDstY / 2][2] = m_BufGroundTag      [nDstX / 2][nDstY / 2][2];
+                stOldBufGroundTag      [nDstX / 2][nDstY / 2][3] = m_BufGroundTag      [nDstX / 2][nDstY / 2][3];
 
             }
         }
@@ -603,7 +609,7 @@ void EditorMap::RecordLight(std::vector<uint8_t> &stDataV, int nX, int nY)
 
 void EditorMap::RecordObject(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV, int nX, int nY, int nIndex)
 {
-    bool bGroundObj = ObjectGround(nX, nY, nIndex);
+    bool bGroundObj = GroundObjectValid(nX, nY, nIndex);
     uint32_t nObjDesc = Object(nX, nY, nIndex);
 
     stMarkV.push_back(bGroundObj);
@@ -836,45 +842,44 @@ void EditorMap::ClearBuf()
 
 bool EditorMap::InitBuf()
 {
-    if((m_Mir2xMap && m_Mir2xMap->Valid()) || (m_OldMir2Map && m_OldMir2Map->Valid())){
-        for(int nY = 0; nY < nH; ++nY){
-            for(int nX = 0; nX < nW; ++nX){
-                if(!(nX % 2) && !(nY % 2)){
-                    SetTile(nX / 2, nY / 2);
-                }
+    int nW = 0;
+    int nH = 0;
 
-                SetBufLight(nX, nY);
+    m_Valid = false;
 
-                SetBufObj(nX, nY, 0);
-                SetBufObj(nX, nY, 1);
-
-                SetBufGround(nX, nY, 0);
-                SetBufGround(nX, nY, 1);
-                SetBufGround(nX, nY, 2);
-                SetBufGround(nX, nY, 3);
-            }
-        }
-
-        if(m_Mir2xMap && m_Mir2xMap->Valid()){
-            m_W = m_Mir2xMap->W();
-            m_H = m_Mir2xMap->H();
-            m_Valid = true;
-        }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
-            m_W = m_OldMir2Map->W();
-            m_H = m_OldMir2Map->H();
-            m_Valid = true;
-        }else{
-            // can't be here
-            m_W = 0;
-            m_H = 0;
-            m_Valid = false;
-        }
+    if(m_Mir2xMap && m_Mir2xMap->Valid()){
+        nW = m_Mir2xMap->W();
+        nH = m_Mir2xMap->H();
+    }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
+        nW = m_OldMir2Map->W();
+        nH = m_OldMir2Map->H();
     }else{
-        // otherwise m_Valid is false
-        m_Valid = false;
+        return false;
     }
 
-    return m_Valid;
+    for(int nY = 0; nY < nH; ++nY){
+        for(int nX = 0; nX < nW; ++nX){
+            if(!(nX % 2) && !(nY % 2)){
+                SetBufTile(nX / 2, nY / 2);
+            }
+
+            SetBufLight(nX, nY);
+
+            SetBufObj(nX, nY, 0);
+            SetBufObj(nX, nY, 1);
+
+            SetBufGround(nX, nY, 0);
+            SetBufGround(nX, nY, 1);
+            SetBufGround(nX, nY, 2);
+            SetBufGround(nX, nY, 3);
+        }
+    }
+
+    m_W     = nW;
+    m_H     = nH;
+    m_Valid = true;
+
+    return true;
 }
 
 void EditorMap::MakeBuf(int nW, int nH)
@@ -912,7 +917,7 @@ void EditorMap::MakeBuf(int nW, int nH)
             nW, std::vector<std::array<int, 4>>(nH, {0, 0, 0, 0}));
 }
 
-void EditorMap:SetBufTile(int nX, int nY)
+void EditorMap::SetBufTile(int nX, int nY)
 {
     if(m_Mir2xMap && m_Mir2xMap->Valid()){
         // mir2x map
@@ -921,7 +926,8 @@ void EditorMap:SetBufTile(int nX, int nY)
             m_BufTileMark[nX][nY] = 1;
         }
     }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
-        if(m_OldMir2Map->TileValid(nX, nY)){
+        extern ImageDB g_ImageDB;
+        if(m_OldMir2Map->TileValid(nX, nY, g_ImageDB)){
             m_BufTile[nX][nY] = m_OldMir2Map->Tile(nX, nY);
             m_BufTileMark[nX][nY] = 1;
         }
@@ -956,22 +962,24 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
         // mir2x map
         if(m_Mir2xMap->ObjectValid(nX, nY, nIndex)){
             nObjValid = 1;
-            if(m_Mir2xMap->ObjectGround(nX, nY, nIndex)){
+            if(m_Mir2xMap->GroundObjectValid(nX, nY, nIndex)){
                 nGroundObj = 1;
             }
-            if(m_Mir2xMap->ObjectAni(nX, nY, nIndex)){
+            if(m_Mir2xMap->AniObjectValid(nX, nY, nIndex)){
                 nAniObj = 1;
             }
             nObj = m_Mir2xMap->Object(nX, nY, nIndex);
         }
     }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
         // mir2 map
-        if(m_OldMir2Map->ObjectValid(nX, nY, nIndex)){
+        extern ImageDB g_ImageDB;
+        if(m_OldMir2Map->ObjectValid(nX, nY, nIndex, g_ImageDB)){
             nObjValid = 1;
-            if(m_OldMir2Map->ObjectGround(nX, nY, nIndex)){
+            extern ImageDB g_ImageDB;
+            if(m_OldMir2Map->GroundObjectValid(nX, nY, nIndex, g_ImageDB)){
                 nGroundObj = 1;
             }
-            if(m_OldMir2Map->ObjectAni(nX, nY, nIndex)){
+            if(m_OldMir2Map->AniObjectValid(nX, nY, nIndex, g_ImageDB)){
                 nAniObj = 1;
             }
             nObj = m_OldMir2Map->Object(nX, nY, nIndex);
@@ -1003,6 +1011,8 @@ void EditorMap::SetBufLight(int nX, int nY)
             uint16_t nAlphaIndex =   2;  // 0, 1, 2, 3           2 bits
             uint16_t nSizeType   =   0;  // 0, 1, 2, 3, ...,  7  3 bits
             uint16_t nUnused     =   0;  //                      7 bits
+
+            UNUSED(nUnused);
 
             m_BufLight[nX][nY] = ((nSizeType & 0X0007) << 7) + ((nAlphaIndex & 0X0003) << 4) + ((nColorIndex & 0X000F));
             m_BufLightMark[nX][nY] = 1;

@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/14/2016 15:40:07
+ *  Last Modified: 02/15/2016 02:16:46
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -38,6 +38,7 @@
 #include "mainwindow.hpp"
 #include "groundinfowindow.hpp"
 #include "mathfunc.hpp"
+#include "editormap.hpp"
 
 DrawArea::DrawArea(int x, int y, int w, int h)
     : Fl_Box(x, y, w, h)
@@ -257,8 +258,7 @@ void DrawArea::AddSelectByRectangle()
 
 void DrawArea::DrawSelect()
 {
-    extern Mir2Map g_Map;
-    extern std::vector<std::vector<std::array<int, 4>>> g_SelectTUC;
+    extern EditorMap g_EditorMap;
 
     int nX = m_OffsetX / 48 - 1;
     int nY = m_OffsetY / 32 - 1;
@@ -268,9 +268,9 @@ void DrawArea::DrawSelect()
 
     for(int nTX = nX; nTX < nXSize + nX; ++nTX){
         for(int nTY = nY; nTY < nYSize + nY; ++nTY){
-            if(nTX >= 0 && nTX < g_Map.Width() && nTY >= 0 && nTY < g_Map.Height()){
+            if(g_EditorMap.ValidC(nTX, nTY)){
                 for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    if(g_SelectTUC[nTX][nTY][nIndex]){
+                    if(g_EditorMap.GroundTag(nTX, nTY, nIndex)){
                         DrawTUC(nTX, nTY, nIndex);
                     }
                 }
@@ -350,12 +350,18 @@ void DrawArea::DrawGroundObject()
     int nDX = x() - m_OffsetX;
     int nDY = y() - m_OffsetY;
 
-    auto fnDrawObjFunc = [this, nDX, nDY](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image * pImage, int nXCnt, int nYCnt){
-        extern MainWindow *g_MainWindow;
-        // auto p = g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex);
-        auto p = pImage;
-        if(!p){
-            p = g_MainWindow->RetrieveCachedPNG(nFolderIndex, nImageIndex, nXCnt, nYCnt);
+    auto fnDrawObj = [this, nDX, nDY](uint8_t nFolderIndex, uint16_t nImageIndex, int nXCnt, int nYCnt){
+        extern ImageDB    g_ImageDB;
+        extern ImageCache g_ImageCache;
+        auto p = g_ImageCache.Retrieve(nFolderIndex, nImageIndex);
+        if(p == nullptr){
+            if(g_ImageDB.Valid(nFolderIndex, nImageIndex)){
+                int nW = g_ImageDB.FastW(nFolderIndex);
+                int nH = g_ImageDB.FastH(nFolderIndex);
+                g_ImageCache.Register(nFolderIndex, nImageIndex, 
+                        g_ImageDB.FastDecode(nFolderIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF));
+                p = g_ImageCache.Retrieve(nFolderIndex, nImageIndex);
+            }
         }
         if(p){
             // int nStartX = nXCnt * 48 - 200;
