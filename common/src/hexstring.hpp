@@ -3,7 +3,7 @@
  *
  *       Filename: hexstring.hpp
  *        Created: 02/06/2016 13:35:51
- *  Last Modified: 02/14/2016 19:07:22
+ *  Last Modified: 02/15/2016 12:42:43
  *
  *    Description: 
  *

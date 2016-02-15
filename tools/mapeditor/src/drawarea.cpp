@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/15/2016 02:16:46
+ *  Last Modified: 02/15/2016 12:39:59
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -40,6 +40,9 @@
 #include "mathfunc.hpp"
 #include "editormap.hpp"
 
+#include "imagedb.hpp"
+#include "imagecache.hpp"
+
 DrawArea::DrawArea(int x, int y, int w, int h)
     : Fl_Box(x, y, w, h)
     , m_MouseX(0)
@@ -72,15 +75,15 @@ void DrawArea::draw()
         fl_rectf(x(), y(), w(), h(), 0, 0, 0);
     }
 
-    extern Mir2Map g_Map;
-    if(!g_Map.Valid()){
+    extern EditorMap g_EditorMap;
+    if(!g_EditorMap.Valid()){
         return;
     }
 
-    DrawBaseTile();
-    DrawGroundObject();
-    DrawOverGroundObject();
-	DrawGroundInfo();
+    DrawTile();
+    DrawObject(true);
+    DrawObject(false);
+	DrawGround();
 
     DrawSelect();
     DrawTrySelect();
@@ -107,31 +110,34 @@ void DrawArea::AddSelectBySingle()
 
 void DrawArea::DrawSelectByRegion()
 {
-    extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
-
     int nDX = x() - m_OffsetX;
     int nDY = y() - m_OffsetY;
 
-    if(g_SelectByRegionPointV.size() > 1){
-        // connect all points
-        for(size_t nIndex = 0; nIndex < g_SelectByRegionPointV.size() - 1; ++nIndex){
-            fl_line(g_SelectByRegionPointV[nIndex].first  + nDX,
-                    g_SelectByRegionPointV[nIndex].second + nDY,
-                    g_SelectByRegionPointV[nIndex + 1].first  + nDX,
-                    g_SelectByRegionPointV[nIndex + 1].second + nDY);
+    auto fnDrawSelect = [nDX, nDY, this](const std::vector<std::pair<int, int>> &stPointV){
+        if(stPointV.size() > 1){
+            // connect all points
+            for(size_t nIndex = 0; nIndex < stPointV.size() - 1; ++nIndex){
+                fl_line(stPointV[nIndex].first  + nDX,
+                        stPointV[nIndex].second + nDY,
+                        stPointV[nIndex + 1].first  + nDX,
+                        stPointV[nIndex + 1].second + nDY);
+            }
         }
-    }
 
-    if(!g_SelectByRegionPointV.empty()){
-        // draw all points as small circles
-        for(auto &stPair: g_SelectByRegionPointV){
-            fl_circle(stPair.first + nDX, stPair.second +nDY, 4.0);
+        if(!stPointV.empty()){
+            // draw all points as small circles
+            for(auto &stPair: stPointV){
+                fl_circle(stPair.first + nDX, stPair.second +nDY, 4.0);
+            }
+            // draw current moving line
+            fl_line(m_MouseX, m_MouseY,
+                    stPointV.back().first + nDX,
+                    stPointV.back().second + nDY);
         }
-        // draw current moving line
-        fl_line(m_MouseX, m_MouseY,
-                g_SelectByRegionPointV.back().first + nDX,
-                g_SelectByRegionPointV.back().second + nDY);
-    }
+    };
+
+    extern EditorMap g_EditorMap;
+    g_EditorMap.DrawSelect(fnDrawSelect);
 }
 
 void DrawArea::RhombusCoverOperation(int nMX, int nMY, int nSize,
@@ -190,11 +196,11 @@ void DrawArea::DrawSelectByRhombus()
     int nMX   = m_MouseX + m_OffsetX - x();
     int nMY   = m_MouseY + m_OffsetY - y();
 
-    auto fnDrawFunc = [this](int nX,  int nY, int nIndex){
+    auto fnDraw = [this](int nX,  int nY, int nIndex){
         DrawTUC(nX, nY, nIndex);
     };
 
-    RhombusCoverOperation(nMX, nMY, nSize, fnDrawFunc);
+    RhombusCoverOperation(nMX, nMY, nSize, fnDraw);
 }
 
 void DrawArea::AddSelectByRhombus()
@@ -204,11 +210,11 @@ void DrawArea::AddSelectByRhombus()
     int nMX   = m_MouseX + m_OffsetX - x();
     int nMY   = m_MouseY + m_OffsetY - y();
 
-    auto fnSetFunc = [this](int nX,  int nY, int nIndex){
+    auto fnSet = [this](int nX,  int nY, int nIndex){
         SetSelectTUC(nX, nY, nIndex, 1);
     };
 
-    RhombusCoverOperation(nMX, nMY, nSize, fnSetFunc);
+    RhombusCoverOperation(nMX, nMY, nSize, fnSet);
 }
 
 void DrawArea::RectangleCoverOperation(
@@ -235,11 +241,11 @@ void DrawArea::DrawSelectByRectangle()
     int nMX   = m_MouseX + m_OffsetX - x();
     int nMY   = m_MouseY + m_OffsetY - y();
 
-    auto fnDrawFunc = [this](int nX,  int nY, int nIndex){
+    auto fnDraw = [this](int nX,  int nY, int nIndex){
         DrawTUC(nX, nY, nIndex);
     };
 
-    RectangleCoverOperation(nMX, nMY, nSize, fnDrawFunc);
+    RectangleCoverOperation(nMX, nMY, nSize, fnDraw);
 }
 
 void DrawArea::AddSelectByRectangle()
@@ -249,11 +255,11 @@ void DrawArea::AddSelectByRectangle()
     int nMX   = m_MouseX + m_OffsetX - x();
     int nMY   = m_MouseY + m_OffsetY - y();
 
-    auto fnSetFunc = [this](int nX,  int nY, int nIndex){
+    auto fnSet = [this](int nX,  int nY, int nIndex){
         SetSelectTUC(nX, nY, nIndex, 1);
     };
 
-    RectangleCoverOperation(nMX, nMY, nSize, fnSetFunc);
+    RectangleCoverOperation(nMX, nMY, nSize, fnSet);
 }
 
 void DrawArea::DrawSelect()
@@ -342,27 +348,20 @@ void DrawArea::DrawTextBox()
     fl_color(wColor);
 }
 
-void DrawArea::DrawGroundObject()
+void DrawArea::DrawObject(bool bGround)
 {
     extern MainWindow *g_MainWindow;
-    if(!g_MainWindow->ShowGroundObjectLayer()){ return; }
+    if(bGround){
+        if(!g_MainWindow->ShowGroundObjectLayer()){ return; }
+    }else{
+        if(!g_MainWindow->ShowOverGroundObjectLayer()){ return; }
+    }
 
     int nDX = x() - m_OffsetX;
     int nDY = y() - m_OffsetY;
 
-    auto fnDrawObj = [this, nDX, nDY](uint8_t nFolderIndex, uint16_t nImageIndex, int nXCnt, int nYCnt){
-        extern ImageDB    g_ImageDB;
-        extern ImageCache g_ImageCache;
-        auto p = g_ImageCache.Retrieve(nFolderIndex, nImageIndex);
-        if(p == nullptr){
-            if(g_ImageDB.Valid(nFolderIndex, nImageIndex)){
-                int nW = g_ImageDB.FastW(nFolderIndex);
-                int nH = g_ImageDB.FastH(nFolderIndex);
-                g_ImageCache.Register(nFolderIndex, nImageIndex, 
-                        g_ImageDB.FastDecode(nFolderIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF));
-                p = g_ImageCache.Retrieve(nFolderIndex, nImageIndex);
-            }
-        }
+    auto fnDrawObj = [this, nDX, nDY, bGround](uint8_t nFileIndex, uint16_t nImageIndex, int nXCnt, int nYCnt){
+        auto p = RetrievePNG(nFileIndex, nImageIndex);
         if(p){
             // int nStartX = nXCnt * 48 - 200;
             // int nStartY = nYCnt * 32 - 157 + 32 - p->h();
@@ -370,74 +369,24 @@ void DrawArea::DrawGroundObject()
             int nStartY = nYCnt * 32 + 32 - p->h();
             DrawFunction(p, nStartX, nStartY);
             extern MainWindow *g_MainWindow;
-            if(g_MainWindow->ShowGroundObjectLine()){
-                fl_rect(nStartX + nDX, nStartY + nDY, p->w(), p->h(), FL_BLUE);
+            if(bGround){
+                if(g_MainWindow->ShowGroundObjectLine()){
+                    fl_rect(nStartX + nDX, nStartY + nDY, p->w(), p->h(), FL_BLUE);
+                }
+            }else{
+                if(g_MainWindow->ShowOverGroundObjectLine()){
+                    fl_rect(nStartX + nDX, nStartY + nDY, p->w(), p->h(), FL_GREEN);
+                }
             }
         }
     };
 
-    auto fnCheckFunc = [](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image * &pImage, int nX, int nY){
-        extern MainWindow *g_MainWindow;
-        // auto p = g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex);
-        auto p = g_MainWindow->RetrieveCachedPNG(nFolderIndex, nImageIndex, nX, nY);
-
-        pImage = p;
-        return p ? (p->w() == 48 && p->h() == 32) : false;
-    };
-
-
-    extern Mir2Map g_Map;
+    extern EditorMap g_EditorMap;
     int nStartCellX = (std::max)(0, m_OffsetX / 48 - 1);
     int nStartCellY = (std::max)(0, m_OffsetY / 32 - 2);
-    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 1, g_Map.Width()  - 1);
-    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 2, g_Map.Height() - 1);
-    g_Map.DrawObjectTile(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnCheckFunc, fnDrawObjFunc);
-}
-
-void DrawArea::DrawOverGroundObject()
-{
-    extern MainWindow *g_MainWindow;
-    if(!g_MainWindow->ShowOverGroundObjectLayer()){ return; }
-
-    int nDX = x() - m_OffsetX;
-    int nDY = y() - m_OffsetY;
-
-    auto fnDrawObjFunc = [this, nDX, nDY](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image *pImage, int nXCnt, int nYCnt){
-        extern MainWindow *g_MainWindow;
-        // auto p = g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex);
-        auto p = pImage;
-
-        if(!p){
-            g_MainWindow->RetrieveCachedPNG(nFolderIndex, nImageIndex, nXCnt, nYCnt);
-        }
-
-        if(p){
-            // int nStartX = nXCnt * 48 - 200;
-            // int nStartY = nYCnt * 32 - 157 + 32 - p->h();
-            int nStartX = nXCnt * 48;
-            int nStartY = nYCnt * 32 + 32 - p->h();
-            DrawFunction(p, nStartX, nStartY);
-            extern MainWindow *g_MainWindow;
-            if(g_MainWindow->ShowOverGroundObjectLine()){
-                fl_rect(nStartX + nDX, nStartY + nDY, p->w(), p->h(), FL_GREEN);
-            }
-        }
-    };
-
-    auto fnCheckFunc = [](uint32_t nFolderIndex, uint32_t nImageIndex, Fl_Shared_Image * &pImage, int nXCnt, int nYCnt){
-        extern MainWindow *g_MainWindow;
-        auto p = g_MainWindow->RetrieveCachedPNG(nFolderIndex, nImageIndex, nXCnt, nYCnt);
-        // auto p = g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex);
-        pImage = p;
-        return p ? (p->w() != 48 || p->h() != 32) : false;
-    };
-
-    extern Mir2Map g_Map;
-    int nStartCellX = (std::max)(0, m_OffsetX / 48 - 10);
-    int nStartCellY = (std::max)(0, m_OffsetY / 32 - 20);
-    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 10, g_Map.Width()  - 1);
-    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 20, g_Map.Height() - 1);
-    g_Map.DrawObjectTile(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnCheckFunc, fnDrawObjFunc);
+    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 1, g_EditorMap.W() - 1);
+    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 2, g_EditorMap.H() - 1);
+    g_EditorMap.DrawObject(nStartCellX, nStartCellY, nStopCellX, nStopCellY, bGround, fnDrawObj);
 }
 
 void DrawArea::DrawFunction(Fl_Image *pImage, int nStartX, int nStartY)
@@ -485,13 +434,7 @@ void DrawArea::DrawFunction(Fl_Image *pImage, int nStartX, int nStartY)
     pImage->draw(nX, nY, nW, nH, nSX, nSY);
 }
 
-void DrawArea::DrawFunction(uint32_t nFolderIndex, uint32_t nImageIndex, int nStartX, int nStartY)
-{
-    extern MainWindow *g_MainWindow;
-    DrawFunction(g_MainWindow->RetrievePNG(nFolderIndex, nImageIndex), nStartX, nStartY);
-}
-
-void DrawArea::DrawGroundInfo()
+void DrawArea::DrawGround()
 {
     //------->   0 
     //-------> 3   1
@@ -500,12 +443,12 @@ void DrawArea::DrawGroundInfo()
     int nDX = x() - m_OffsetX;
     int nDY = y() - m_OffsetY;
 
-    auto fnDrawOnNOFunc = [this](int nX, int nY, int nIndex){
+    auto fnDrawOnNO = [this](int nX, int nY, int nIndex){
         UNUSED(nX);
         UNUSED(nY);
         UNUSED(nIndex);
     };
-    auto fnDrawOnYESFunc  = [this, nDX, nDY](int nX, int nY, int nIndex){
+    auto fnDrawOnYES  = [this, nDX, nDY](int nX, int nY, int nIndex){
         extern MainWindow *g_MainWindow;
         if(g_MainWindow->ShowGroundInfoLine()){
             int nMidX, nMidY, nX1, nY1, nX2, nY2;
@@ -514,19 +457,17 @@ void DrawArea::DrawGroundInfo()
         }
     };
 
-    extern Mir2Map           g_Map;
+    extern EditorMap         g_EditorMap;
     extern MainWindow       *g_MainWindow;
     extern GroundInfoWindow *g_GroundInfoWindow;
 
-    extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
-
     int nStartCellX = (std::max)(0, m_OffsetX / 48 - 1);
     int nStartCellY = (std::max)(0, m_OffsetY / 32 - 1);
-    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 1, g_Map.Width()  - 1);
-    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 1, g_Map.Height() - 1);
+    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 1, g_EditorMap.W() - 1);
+    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 1, g_EditorMap.H() - 1);
 
-    std::function<void(int, int, int)> fnOnYes = fnDrawOnYESFunc;
-    std::function<void(int, int, int)> fnOnNo  = fnDrawOnNOFunc;
+    std::function<void(int, int, int)> fnOnYes = fnDrawOnYES;
+    std::function<void(int, int, int)> fnOnNo  = fnDrawOnNO;
     if(g_MainWindow->ReversedShowGroundInfoLine()){
         std::swap(fnOnYes, fnOnNo);
     }
@@ -537,10 +478,12 @@ void DrawArea::DrawGroundInfo()
         for(int nX = nStartCellX; nX <= nStopCellX; ++nX){
             for(int nY = nStartCellY; nY <= nStopCellY; ++nY){
                 for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    if(g_GroundInfoWindow->Test(g_GroundInfo[nX][nY][nIndex])){
-                        fnOnYes(nX, nY, nIndex);
-                    }else{
-                        fnOnNo(nX, nY, nIndex);
+                    if(g_EditorMap.GroundValid(nX, nY, nIndex)){
+                        if(g_GroundInfoWindow->Test((uint32_t)(g_EditorMap.Ground(nX, nY, nIndex)))){
+                            fnOnYes(nX, nY, nIndex);
+                        }else{
+                            fnOnNo(nX, nY, nIndex);
+                        }
                     }
                 }
             }
@@ -549,7 +492,24 @@ void DrawArea::DrawGroundInfo()
     }
 }
 
-void DrawArea::DrawBaseTile()
+Fl_Image *DrawArea::RetrievePNG(uint8_t nFileIndex, uint16_t nImageIndex)
+{
+    extern ImageDB    g_ImageDB;
+    extern ImageCache g_ImageCache;
+    auto p = g_ImageCache.Retrieve(nFileIndex, nImageIndex);
+    if(p == nullptr){
+        if(g_ImageDB.Valid(nFileIndex, nImageIndex)){
+            int nW = g_ImageDB.FastW(nFileIndex);
+            int nH = g_ImageDB.FastH(nFileIndex);
+            g_ImageCache.Register(nFileIndex, nImageIndex, 
+                    g_ImageDB.FastDecode(nFileIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF), nW, nH);
+            p = g_ImageCache.Retrieve(nFileIndex, nImageIndex);
+        }
+    }
+    return p;
+}
+
+void DrawArea::DrawTile()
 {
     extern MainWindow *g_MainWindow;
     if(!g_MainWindow->ShowBaseTileLayer()){ return; }
@@ -557,11 +517,10 @@ void DrawArea::DrawBaseTile()
     int nDX = x() - m_OffsetX;
     int nDY = y() - m_OffsetY;
 
-    auto fnDrawFunc = [this, nDX, nDY](uint32_t nFolderIndex, uint32_t nImageIndex, int nX, int nY){
+    auto fnDraw = [this, nDX, nDY](uint32_t nFileIndex, uint32_t nImageIndex, int nX, int nY){
         int nStartX = nX * 48;
         int nStartY = nY * 32;
-        extern MainWindow *g_MainWindow;
-        auto p = g_MainWindow->RetrieveCachedPNG(nFolderIndex, nImageIndex, nX, nY);
+        auto p = RetrievePNG(nFileIndex, nImageIndex);
         if(p){
             DrawFunction(p, nStartX, nStartY);
             extern MainWindow *g_MainWindow;
@@ -572,18 +531,18 @@ void DrawArea::DrawBaseTile()
         }
     };
 
-    extern Mir2Map g_Map;
+    extern EditorMap g_EditorMap;
     int nStartCellX = (std::max)(0, m_OffsetX / 48 - 1);
     int nStartCellY = (std::max)(0, m_OffsetY / 32 - 1);
-    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 1, g_Map.Width()  - 1);
-    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 1, g_Map.Height() - 1);
-    g_Map.DrawBaseTile(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnDrawFunc);
+    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 1, g_EditorMap.W() - 1);
+    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 1, g_EditorMap.H() - 1);
+    g_EditorMap.DrawTile(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnDraw);
 }
 
 void DrawArea::SetOffset(int nX, bool bRelativeX, int nY, bool bRelativeY)
 {
-    extern Mir2Map g_Map;
-    if(!g_Map.Valid()){ return; }
+    extern EditorMap g_EditorMap;
+    if(!g_EditorMap.Valid()){ return; }
 
     if(bRelativeX){
         m_OffsetX += nX;
@@ -591,7 +550,7 @@ void DrawArea::SetOffset(int nX, bool bRelativeX, int nY, bool bRelativeY)
         m_OffsetX = nX;
     }
     m_OffsetX = (std::max)(m_OffsetX, 0);
-    m_OffsetX = (std::min)(m_OffsetX, (std::max)(0, 48 * g_Map.Width() - w()));
+    m_OffsetX = (std::min)(m_OffsetX, (std::max)(0, 48 * g_EditorMap.W() - w()));
 
     if(bRelativeY){
         m_OffsetY += nY;
@@ -599,15 +558,15 @@ void DrawArea::SetOffset(int nX, bool bRelativeX, int nY, bool bRelativeY)
         m_OffsetY = nY;
     }
     m_OffsetY  = (std::max)(m_OffsetY, 0);
-    m_OffsetY  = (std::min)(m_OffsetY, (std::max)(0, 32 * g_Map.Height() - h()));
+    m_OffsetY  = (std::min)(m_OffsetY, (std::max)(0, 32 * g_EditorMap.H() - h()));
 }
 
 int DrawArea::handle(int nEvent)
 {
     int ret = Fl_Box::handle(nEvent);
 
-    extern Mir2Map g_Map;
-    if(!g_Map.Valid()){
+    extern EditorMap g_EditorMap;
+    if(!g_EditorMap.Valid()){
         return ret;
     }
 
@@ -680,12 +639,12 @@ int DrawArea::handle(int nEvent)
 
 bool DrawArea::LocateGroundSubCell(int nXOnMap, int nYOnMap, int &nX, int &nY, int &nIndex)
 {
-    extern Mir2Map g_Map;
+    extern EditorMap g_EditorMap;
     if(false
             || nXOnMap < 0
-            || nXOnMap >= g_Map.Width() * 48
+            || nXOnMap >= g_EditorMap.W() * 48
             || nYOnMap < 0
-            || nYOnMap >= g_Map.Height() * 32
+            || nYOnMap >= g_EditorMap.H() * 32
       ){
         return false;
     }
@@ -822,8 +781,8 @@ Fl_Image *DrawArea::CreateTUC(int nIndex)
 
 void DrawArea::DrawTUC(int nCX, int nCY, int nIndex)
 {
-    extern Mir2Map g_Map;
-    if(nCX >= 0 && nCX < g_Map.Width() && nCY >= 0 && nCY < g_Map.Height()){
+    extern EditorMap g_EditorMap;
+    if(nCX >= 0 && nCX < g_EditorMap.W() && nCY >= 0 && nCY < g_EditorMap.H()){
         DrawFunction(m_TUC[nIndex % 4], nCX * 48, nCY * 32);
     }
 }
@@ -831,27 +790,23 @@ void DrawArea::DrawTUC(int nCX, int nCY, int nIndex)
 
 void DrawArea::AddSelectByRegion()
 {
-    extern std::vector<std::pair<int, int>> g_SelectByRegionPointV;
     int nMX = m_MouseX - x() + m_OffsetX;
     int nMY = m_MouseY - y() + m_OffsetY;
-    if(g_SelectByRegionPointV.back().first != nMX
-            && g_SelectByRegionPointV.back().second != nMY){
-        g_SelectByRegionPointV.emplace_back(nMX, nMY);
-        // TODO
-        // how to calculate the region by selected points ???
-    }
+
+    extern EditorMap g_EditorMap;
+    g_EditorMap.AddSelectPoint(nMX, nMY);
 }
 
 void DrawArea::ClearSelectTUC()
 {
-    extern Mir2Map g_Map;
-    if(!g_Map.Valid()){
+    extern EditorMap g_EditorMap;
+    if(!g_EditorMap.Valid()){
         return;
     }
 
     extern std::vector<std::vector<std::array<int, 4>>> g_SelectTUC;
-    for(int nX = 0; nX < g_Map.Width(); ++nX){
-        for(int nY = 0; nY < g_Map.Height(); ++nY){
+    for(int nX = 0; nX < g_EditorMap.W(); ++nX){
+        for(int nY = 0; nY < g_EditorMap.H(); ++nY){
             for(int nIndex = 0; nIndex < 4; ++nIndex){
                 g_SelectTUC[nX][nY][nIndex] = 0;
             }
@@ -861,25 +816,24 @@ void DrawArea::ClearSelectTUC()
 
 void DrawArea::SetSelectTUC(int nCX, int nCY, int nIndex, int nValue)
 {
-    extern Mir2Map g_Map;
+    extern EditorMap g_EditorMap;
     extern std::vector<std::vector<std::array<int, 4>>> g_SelectTUC;
 
-    if(nCX >= 0 && nCX < g_Map.Width() && nCY >= 0 && nCY < g_Map.Height()){
+    if(nCX >= 0 && nCX < g_EditorMap.W() && nCY >= 0 && nCY < g_EditorMap.H()){
         g_SelectTUC[nCX][nCY][nIndex % 4] = nValue;
     }
 }
 
 void DrawArea::SetScrollBar()
 {
-    extern Mir2Map g_Map;
-
+    extern EditorMap g_EditorMap;
     double fXP = -1.0;
     double fYP = -1.0;
-    if(48 * g_Map.Width()  - w() > 0){
-        fXP = m_OffsetX * 1.0 / (48 * g_Map.Width()  - w());
+    if(48 * g_EditorMap.W()  - w() > 0){
+        fXP = m_OffsetX * 1.0 / (48 * g_EditorMap.W()  - w());
     }
-    if(32 * g_Map.Height() - h() > 0){
-        fYP = m_OffsetY * 1.0 / (32 * g_Map.Height() - h());
+    if(32 * g_EditorMap.H() - h() > 0){
+        fYP = m_OffsetY * 1.0 / (32 * g_EditorMap.H() - h());
     }
 
     extern MainWindow *g_MainWindow;

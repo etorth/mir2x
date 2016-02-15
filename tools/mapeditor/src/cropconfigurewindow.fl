@@ -32,17 +32,18 @@ class CropConfigureWindow {open
     /*if(!g_MainWindow->EnableEdit()){
         return;
     }*/
-    extern Mir2Map g_Map;
-    if(!g_Map.Valid()){
+
+    extern EditorMap g_EditorMap;
+    if(!g_EditorMap.Valid()){
         return;
     }
     
     int nStartX = (std::lround)(m_Left->value());
     int nStartY = (std::lround)(m_Top->value());
-    int nW      = g_Map.Width()  - nStartX - (std::lround)(m_Right->value());
-    int nH      = g_Map.Height() - nStartY - (std::lround)(m_Bottom->value());
+    int nW      = g_EditorMap.W() - nStartX - (std::lround)(m_Right->value());
+    int nH      = g_EditorMap.H() - nStartY - (std::lround)(m_Bottom->value());
     
-    g_Map.CropSize(nStartX, nStartY, nW, nH);
+    g_EditorMap.Resize(nStartX, nStartY, nW, nH, 0, 0, nW, nH);
     g_MainWindow->AfterLoadMir2Map();
     g_MainWindow->UpdateScrollBar(0, 0);
     

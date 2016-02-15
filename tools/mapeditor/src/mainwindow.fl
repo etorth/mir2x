@@ -23,25 +23,25 @@ decl {\#include <string>} {private local
 decl {\#include <cstring>} {private local
 } 
 
-decl {\#include "mir2map.hpp"} {private local
-} 
-
-decl {\#include "savepng.hpp"} {private local
-} 
-
 decl {\#include "filesys.hpp"} {private local
 } 
 
 decl {\#include "supwarning.hpp"} {private local
 } 
 
-decl {\#include <unordered_map>} {private local
-} 
-
 decl {\#include "mapinfowindow.hpp"} {private local
 } 
 
-decl {\#include "wilimagepackage.hpp"} {private local
+decl {\#include "imagedb.hpp"} {private local
+} 
+
+decl {\#include "imagecache.hpp"} {private local
+} 
+
+decl {\#include "editormap.hpp"} {private local
+} 
+
+decl {\#include "hexstring.hpp"} {private local
 } 
 
 decl {\#include <FL/fl_draw.H>} {public local
@@ -54,15 +54,16 @@ class MainWindow {open
 } {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_Window {
       callback {{
 	// do nothing
 }} open
-      xywh {42 106 985 665} type Double resizable visible
+      xywh {49 113 985 667} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
-        xywh {0 20 965 626} resizable
+        xywh {0 20 965 627} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
       }
@@ -113,26 +114,26 @@ class MainWindow {open
                 std::replace(szPath.begin(), szPath.end(), '\\\\', '/');
 
                 if(szPath.back() == '/'){
-                    szPath += "desc.bin";
+                    szPath += "DESC.BIN";
                 }else{
-                    szPath += "/desc.bin";
+                    szPath += "/DESC.BIN";
                 }
 
                 if(FileExist(szPath.c_str())){
-                    extern Mir2Map g_Map;
-                    if(!g_Map.NewLoadMap(szPath.c_str()) || !g_Map.Valid()){
-                        fl_alert("load map %s failed", szPath.c_str());
+                    extern EditorMap g_EditorMap;
+                    if(!g_EditorMap.LoadMir2xMap(szPath.c_str()) || !g_EditorMap.Valid()){
+                        fl_alert("Load mir2x map %s failed", szPath.c_str());
                     }
                     AfterLoadMir2Map();
                 }else{
-                    fl_alert("invalid map folder: %s", szPath.c_str());
+                    fl_alert("Invalid mir2x map folder: %s", szPath.c_str());
                 }
             }
     }
 }}
             xywh {0 0 30 20} shortcut 0x4006f labelfont 4
             code0 {\#include <string>}
-            code1 {\#include "mir2map.hpp"}
+            code1 {\#include "editormap.hpp"}
           }
           MenuItem {} {
             label {Load Mir2EI Map}
@@ -158,8 +159,8 @@ class MainWindow {open
           MenuItem {} {
             label {Extract PNG                 }
             callback {{
-    extern Mir2Map g_Map;
-    if(!g_Map.Valid()){
+    extern EditorMap g_EditorMap;
+    if(!g_EditorMap.Valid()){
         return;
     }
 
@@ -168,55 +169,44 @@ class MainWindow {open
         return;
     }
 
-    auto fnCheckExistFunc = [](uint32_t nFileIndex, uint32_t nImageIndex){
+    auto fnSaveObjPNG = [this](uint8_t nFileIndex, uint16_t nImageIndex, uint32_t nColor){
+        extern ImageDB    g_ImageDB;
+        extern ImageCache g_ImageCache;
         extern std::string g_WorkingPathName;
-        char szCachePNGName[512];
-        char szIMGPNGName[512];
 
-        if(g_WorkingPathName.back() != '/'){
-            std::sprintf(szIMGPNGName, "%s/IMG/00%04d%05d.PNG", g_WorkingPathName.c_str(), nFileIndex, nImageIndex);
-        }else{
-            std::sprintf(szIMGPNGName, "%sIMG/00%04d%05d.PNG", g_WorkingPathName.c_str(), nFileIndex, nImageIndex);
+        char szHexString[64];
+        uint32_t nKey = (((uint32_t)(nFileIndex)) << 16) + ((uint32_t)nImageIndex);
+        std::string szIMGPNGName = ((g_WorkingPathName + "/IMG/") + HexString(nKey, szHexString)) + ".PNG";
+
+        if(!FileExist(szIMGPNGName.c_str())){
+            if(!g_ImageCache.Retrieve(nFileIndex, nImageIndex)){
+                if(g_ImageDB.Valid(nFileIndex, nImageIndex)){
+                    int nW = g_ImageDB.FastW(nFileIndex);
+                    int nH = g_ImageDB.FastH(nFileIndex);
+                    g_ImageCache.Register(nFileIndex, nImageIndex,
+                            g_ImageDB.FastDecode(nFileIndex, nColor, 0XFFFFFFFF, 0XFFFFFFFF), nW, nH);
+                }
+            }
         }
 
-        if(FileExist(szIMGPNGName)){
-            return true;
-        }
-
-        std::sprintf(szCachePNGName, "./cache/0%03d%05d.PNG", nFileIndex, nImageIndex);
-
-        if(FileExist(szCachePNGName)){
-           return DupFile(szIMGPNGName, szCachePNGName);
-        }
-
-        return false;
-    };
-
-    auto fnSavePNGFunc = [this](uint32_t *pBuff, uint32_t nFileIndex, uint32_t nImageIndex, int nW, int nH, int nX, int nY){
-        UNUSED(nX);
-        UNUSED(nY);
-        extern std::string g_WorkingPathName;
-        char szIMGPNGName[512];
-
-        if(g_WorkingPathName.back() != '/'){
-            std::sprintf(szIMGPNGName, "%s/IMG/00%04d%05d.PNG", g_WorkingPathName.c_str(), nFileIndex, nImageIndex);
-        }else{
-            std::sprintf(szIMGPNGName, "%sIMG/00%04d%05d.PNG", g_WorkingPathName.c_str(), nFileIndex, nImageIndex);
-        }
-
-        if(!FileExist(szIMGPNGName)){
-            SaveRGBABufferToPNG((uint8_t *)pBuff, nW, nH, szIMGPNGName);
+       std::string szIMGPNGNameInCache = ((g_ImageCache.Path() + "/CACHE/") + szHexString) + ".PNG";
+        if(FileExist(szIMGPNGNameInCache.c_str())){
+            DupFile(szIMGPNGName.c_str(), szIMGPNGNameInCache.c_str());
         }
     };
 
-    g_Map.ExtractBaseTile(fnCheckExistFunc, fnSavePNGFunc);
-    g_Map.ExtractObjectTile(fnCheckExistFunc, fnSavePNGFunc);
+    auto fnSaveTilePNG = [fnSaveObjPNG](uint8_t nFileIndex, uint16_t nImageIndex){
+        fnSaveObjPNG(nFileIndex, nImageIndex, 0XFFFFFFFF);
+    };
+
+    g_EditorMap.ExtractTile(fnSaveTilePNG);
+    g_EditorMap.ExtractObject(fnSaveObjPNG);
 }}
             xywh {10 10 30 20} labelfont 4
             code0 {\#include <string>}
             code1 {\#include <FL/Fl_Native_File_Chooser.H>}
-            code2 {\#include <FL/fl_ask.H>}
-            code3 {\#include <algorithm>}
+            code2 {\#include "imagecache.hpp"}
+            code3 {\#include "imagedb.hpp"}
           }
           MenuItem {} {
             label Save
@@ -340,13 +330,13 @@ class MainWindow {open
           MenuItem {} {
             label Optimize
             callback {{
-    extern Mir2Map g_Map;
-    if(g_Map.Valid()){
-        g_Map.Optimize();
+    extern EditorMap g_EditorMap;
+        if(g_EditorMap.Valid()){
+        g_EditorMap.Optimize();
     }
 }}
             xywh {40 40 30 20} labelfont 4
-            code0 {\#include "mir2map.hpp"}
+            code0 {\#include "editormap.hpp"}
           }
           MenuItem {} {
             label {Crop Map}
@@ -429,29 +419,31 @@ g_AboutWindow->ShowAll();}
         callback {auto pWidget = ((Fl_Valuator *)(m_VSBar)); 
 auto fValue  = pWidget->value();
 
-extern Mir2Map g_Map;
-if(g_Map.Valid()){
-	int nValidYOffset = g_Map.Height() * 32 - m_DrawArea->h();
+extern EditorMap g_EditorMap;
+if(g_EditorMap.Valid()){
+	int nValidYOffset = g_EditorMap.H() * 32 - m_DrawArea->h();
 	nValidYOffset = (std::max)(0, nValidYOffset);
 	int nYOffset = (int)(nValidYOffset * fValue * 1.0);
-    m_DrawArea->SetOffset(0, true, nYOffset, false);
+    	m_DrawArea->SetOffset(0, true, nYOffset, false);
 	m_Window->redraw();
 }}
         xywh {965 20 20 647} step 0.001
+        code0 {\#include "editormap.hpp"}
       }
       Fl_Scrollbar m_SBar {
         callback {auto pWidget = ((Fl_Valuator *)(m_SBar)); 
 auto fValue  = pWidget->value();
 
-extern Mir2Map g_Map;
-if(g_Map.Valid()){
-	int nValidXOffset = g_Map.Width() * 48 - m_DrawArea->w();
+extern EditorMap g_EditorMap;
+if(g_EditorMap.Valid()){
+	int nValidXOffset = g_EditorMap.W() * 48 - m_DrawArea->w();
 	nValidXOffset = (std::max)(0, nValidXOffset);
 	int nXOffset = (int)(nValidXOffset * fValue * 1.0);
-    m_DrawArea->SetOffset(nXOffset, false, 0, true);
+    	m_DrawArea->SetOffset(nXOffset, false, 0, true);
 	m_Window->redraw();
-}}
+}} selected
         xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001
+        code0 {\#include "editormap.hpp"}
       }
     }
     code {{
@@ -504,7 +496,7 @@ if(g_Map.Valid()){
         default:
             {
                 if(!g_EditorMap.LoadMir2Map(fileChooser.filename())){
-                    fl_alert("Load %s failed...", fileChooser.filename());
+                    fl_alert("Load mir2 map %s failed...", fileChooser.filename());
                 }
                 
                 AfterLoadMir2Map();
@@ -556,6 +548,9 @@ if(g_Map.Valid()){
             {
                 g_WorkingPathName = stFileChooser.filename();
                 std::replace(g_WorkingPathName.begin(), g_WorkingPathName.end(), '\\\\', '/');
+                while(!g_WorkingPathName.empty() && g_WorkingPathName.back() == '/'){
+                    g_WorkingPathName.pop_back();
+                }
                 MakeWorkingFolder();
             }
             break;
@@ -614,7 +609,7 @@ if(g_Map.Valid()){
     code {{
     extern EditorMap g_EditorMap;
     if(g_EditorMap.Valid()){
-        g_Map.UpdateFrame(50);
+        g_EditorMap.UpdateFrame(50);
         extern MainWindow *g_MainWindow;
         g_MainWindow->RedrawAll();
     }
@@ -762,7 +757,6 @@ if(g_Map.Valid()){
   } {
     code {{
     return m_MenuItemClearBackground->value();
-}} {selected
-    }
+}} {}
   }
 } 

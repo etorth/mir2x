@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/15/2016 01:54:19
+ *  Last Modified: 02/15/2016 12:37:10
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -1018,4 +1018,38 @@ void EditorMap::SetBufLight(int nX, int nY)
             m_BufLightMark[nX][nY] = 1;
         }
     }
+}
+
+std::string EditorMap::MapInfo()
+{
+    char szInfo[128];
+    std::string szRes;
+
+    std::sprintf(szInfo, "Width   : %d", W());
+    szRes += szInfo;
+    szRes += "\n";
+
+    std::sprintf(szInfo, "Height  : %d", H());
+    szRes += szInfo;
+    szRes += "\n";
+
+    szRes += "Version : 0.01";
+
+    return szRes;
+}
+
+void EditorMap::AddSelectPoint(int nX, int nY)
+{
+    if(ValidP(nX, nY)){
+        if(!m_SelectPointV.empty()
+                && nX != m_SelectPointV.back().first
+                && nY != m_SelectPointV.back().second){
+            m_SelectPointV.emplace_back(nX, nY);
+        }
+    }
+}
+
+void EditorMap::DrawSelect(std::function<void(const std::vector<std::pair<int, int>> &)> fnDrawSelect)
+{
+    fnDrawSelect(m_SelectPointV);
 }

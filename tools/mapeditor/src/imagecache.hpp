@@ -3,10 +3,13 @@
  *
  *       Filename: imagecache.hpp
  *        Created: 02/14/2016 15:40:17
- *  Last Modified: 02/15/2016 02:10:53
+ *  Last Modified: 02/15/2016 11:59:47
  *
  *    Description: Interaction with WilImagePackage
  *                 return drawable objects with ImageKey provided by EditorMap
+ *
+ *                 if ImageCache::Retrieve() is not nullptr, then this class guartanee
+ *                 there must be a corresponding .PNG file in the cache folder
  *
  *        Version: 1.0
  *       Revision: none
@@ -34,10 +37,14 @@ class ImageCache
 
     public:
         Fl_Shared_Image *Retrieve(uint8_t, uint16_t);
-        bool Register(uint8_t, uint16_t, uint32_t *, int, int);
+        bool Register(uint8_t, uint16_t, const uint32_t *, int, int);
 
     public:
         void SetPath(const char *);
+        const std::string &Path()
+        {
+            return m_Path;
+        }
 
     private:
         std::string m_Path;

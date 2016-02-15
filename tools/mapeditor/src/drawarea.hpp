@@ -31,17 +31,18 @@ class DrawArea: public Fl_Box
         void SetOffset(int, bool, int, bool);
 
     private:
-        void    DrawBaseTile();
-        void    DrawGroundObject();
-        void    DrawOverGroundObject();
-        void    DrawFunction(Fl_Image *, int, int);
-        void    DrawFunction(uint32_t, uint32_t, int, int);
-        void    DrawGroundInfo();
+        void DrawTile();
+        void DrawObject(bool);
+        void DrawGround();
 
     private:
-        void    DrawSelect();
-        void    DrawTrySelect();
-        void    DrawTextBox();
+        // draw Fl_Image with margin operation
+        void DrawFunction(Fl_Image *, int, int);
+
+    private:
+        void DrawSelect();
+        void DrawTrySelect();
+        void DrawTextBox();
 
     private:
         void RhombusCoverOperation(int, int, int, std::function<void(int, int, int)>);
@@ -75,4 +76,8 @@ class DrawArea: public Fl_Box
 
     public:
         void DrawTUC(int, int, int);
+
+    public:
+        // helper function
+        Fl_Image *RetrievePNG(uint8_t, uint16_t);
 };

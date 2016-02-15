@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/15/2016 01:53:17
+ *  Last Modified: 02/15/2016 12:41:14
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -28,6 +28,7 @@
 #include <cstdint>
 #include <functional>
 #include <vector>
+#include <utility>
 
 class EditorMap
 {
@@ -58,6 +59,9 @@ class EditorMap
         std::vector<std::vector<std::array<int, 4>>>        m_BufGroundMark;
         std::vector<std::vector<std::array<uint8_t, 4>>>    m_BufGround;
         std::vector<std::vector<std::array<int, 4>>>        m_BufGroundTag;
+
+    private:
+        std::vector<std::pair<int, int>>                    m_SelectPointV;
 
     public:
         EditorMap();
@@ -166,6 +170,11 @@ class EditorMap
         void DrawObject(int, int, int, int, bool, std::function<void(uint8_t, uint16_t, int, int)>);
 
     public:
+        // selection operation
+        void AddSelectPoint(int, int);
+        void DrawSelect(std::function<void(const std::vector<std::pair<int, int>> &)>);
+
+    public:
         void CompressLight(std::vector<bool> &, std::vector<uint8_t> &);
         void CompressGround(std::vector<bool> &, std::vector<uint8_t> &);
         void CompressTile(std::vector<bool> &, std::vector<uint8_t> &);
@@ -211,4 +220,6 @@ class EditorMap
             void SetBufObj(int, int, int);
             void SetBufGround(int, int, int);
 
+    public:
+            std::string MapInfo();
 };

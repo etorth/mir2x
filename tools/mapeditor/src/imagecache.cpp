@@ -3,7 +3,7 @@
  *
  *       Filename: imagecache.cpp
  *        Created: 02/14/2016 15:54:58
- *  Last Modified: 02/15/2016 02:14:07
+ *  Last Modified: 02/15/2016 11:59:26
  *
  *    Description: This class won't handle WilImagePackage directly
  *                 Actually it only deal with all PNG files
@@ -80,7 +80,7 @@ Fl_Shared_Image *ImageCache::Retrieve(uint8_t nFileIndex, uint16_t nImageIndex)
     return nullptr;
 }
 
-bool ImageCache::Register(uint8_t nFileIndex, uint16_t nImageIndex, uint32_t *pBuff, int nW, int nH)
+bool ImageCache::Register(uint8_t nFileIndex, uint16_t nImageIndex, const uint32_t *pBuff, int nW, int nH)
 {
     if(m_Path.empty() || !pBuff || nW <= 0 || nH <= 0){ return false; }
 
