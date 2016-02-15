@@ -3,7 +3,7 @@
  *
  *       Filename: hexstring.hpp
  *        Created: 02/06/2016 13:35:51
- *  Last Modified: 02/06/2016 15:16:46
+ *  Last Modified: 02/14/2016 19:07:22
  *
  *    Description: 
  *
@@ -17,6 +17,9 @@
  *
  * =====================================================================================
  */
+
+
+#pragma once
 
 #include <cstdint>
 #include <type_traits>
