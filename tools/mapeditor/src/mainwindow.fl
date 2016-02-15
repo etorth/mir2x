@@ -54,20 +54,19 @@ class MainWindow {open
 } {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {open
-  } {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       callback {{
 	// do nothing
 }} open
-      xywh {40 104 985 665} type Double resizable visible
+      xywh {42 106 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 626} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
       }
-      Fl_Menu_Bar m_MenuBar {open selected
+      Fl_Menu_Bar m_MenuBar {open
         xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -463,103 +462,28 @@ if(g_Map.Valid()){
   }
   Function {ShowAll()} {return_type void
   } {
-    code {m_Window->show();} {}
+    code {{
+	m_Window->show();
+}} {}
+  }
+  Function {RedrawAll()} {return_type void
+  } {
+    code {{
+	m_Window->redraw();
+}} {}
   }
   Function {LoadMir2MapImage()} {return_type void
   } {
     code {{
-    const char *szFileName[] = {
-        "Tilesc",
-        "Tiles30c",
-        "Tiles5c",
-        "Smtilesc",
-        "Housesc",
-        "Cliffsc",
-        "Dungeonsc",
-        "Innersc",
-        "Furnituresc",
-        "Wallsc",
-        "SmObjectsc",
-        "Animationsc",
-        "Object1c",
-        "Object2c",
-        "Custom",
-        "Wood/Tilesc",
-        "Wood/Tiles30c",
-        "Wood/Tiles5c",
-        "Wood/Smtilesc",
-        "Wood/Housesc",
-        "Wood/Cliffsc",
-        "Wood/Dungeonsc",
-        "Wood/Innersc",
-        "Wood/Furnituresc",
-        "Wood/Wallsc",
-        "Wood/SmObjectsc",
-        "Wood/Animationsc",
-        "Wood/Object1c",
-        "Wood/Object2c",
-        "Wood/Custom",
-        "Sand/Tilesc",
-        "Sand/Tiles30c",
-        "Sand/Tiles5c",
-        "Sand/Smtilesc",
-        "Sand/Housesc",
-        "Sand/Cliffsc",
-        "Sand/Dungeonsc",
-        "Sand/Innersc",
-        "Sand/Furnituresc",
-        "Sand/Wallsc",
-        "Sand/SmObjectsc",
-        "Sand/Animationsc",
-        "Sand/Object1c",
-        "Sand/Object2c",
-        "Sand/Custom",
-        "Snow/Tilesc",
-        "Snow/Tiles30c",
-        "Snow/Tiles5c",
-        "Snow/Smtilesc",
-        "Snow/Housesc",
-        "Snow/Cliffsc",
-        "Snow/Dungeonsc",
-        "Snow/Innersc",
-        "Snow/Furnituresc",
-        "Snow/Wallsc",
-        "Snow/SmObjectsc",
-        "Snow/Animationsc",
-        "Snow/Object1c",
-        "Snow/Object2c",
-        "Snow/Custom",
-        "Forest/Tilesc",
-        "Forest/Tiles30c",
-        "Forest/Tiles5c",
-        "Forest/Smtilesc",
-        "Forest/Housesc",
-        "Forest/Cliffsc",
-        "Forest/Dungeonsc",
-        "Forest/Innersc",
-        "Forest/Furnituresc",
-        "Forest/Wallsc",
-        "Forest/SmObjectsc",
-        "Forest/Animationsc",
-        "Forest/Object1c",
-        "Forest/Object2c",
-        "Forest/Custom",
-        ""
-    };
-
-    extern std::string		g_WilFilePathName;
-    extern WilImagePackage	g_WilImagePackage[128];
-    for(int i = 0; std::strlen(szFileName[i]) > 0; ++i){
-        g_WilImagePackage[i].Load(g_WilFilePathName.c_str(), szFileName[i], ".wil");
-    }
+    extern std::string g_WilFilePathName;
+    extern ImageDB     g_ImageDB;
+    g_ImageDB.LoadDB(g_WilFilePathName.c_str());
 }} {}
   }
   Function {LoadMir2Map()} {return_type void
   } {
     code {{
-    extern Mir2Map          g_Map;
-    extern WilImagePackage  g_WilImagePackage[128];
-    g_Map.LoadMapImage(g_WilImagePackage);
+    extern EditorMap g_EditorMap;
 
     Fl_Native_File_Chooser fileChooser;
     fileChooser.title("Select .map file");
@@ -579,8 +503,7 @@ if(g_Map.Valid()){
             break;
         default:
             {
-                extern Mir2Map g_Map;
-                if(!g_Map.LoadMap(fileChooser.filename())){
+                if(!g_EditorMap.LoadMir2Map(fileChooser.filename())){
                     fl_alert("Load %s failed...", fileChooser.filename());
                 }
                 
@@ -597,59 +520,22 @@ if(g_Map.Valid()){
   Function {AfterLoadMir2Map()} {return_type void
   } {
     code {{
-    extern Mir2Map g_Map;
-    extern std::vector<std::vector<
-        std::unordered_map<uint32_t, Fl_Shared_Image *>>> g_PNGCache;
-    extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
-    extern std::vector<std::vector<std::array<int, 4>>> g_SelectTUC;
-
-    g_PNGCache.clear();
-    g_GroundInfo.clear();
-    g_SelectTUC.clear();
-
-    g_PNGCache = std::vector<std::vector<
-        std::unordered_map<uint32_t, Fl_Shared_Image *>>>(g_Map.Width(),
-                std::vector<std::unordered_map<uint32_t, Fl_Shared_Image *>>(
-                    g_Map.Height()));
-
-    // g_Map.Height(), {0, 0, 0, 0}));  // bug of fltk, doesn't accept
-    g_GroundInfo = std::vector<std::vector<
-        std::array<uint32_t, 4>>>(g_Map.Width(),
-                std::vector<std::array<uint32_t, 4>>(
-                    g_Map.Height()));
-
-    g_SelectTUC = std::vector<std::vector<
-        std::array<int, 4>>>(g_Map.Width(),
-                std::vector<std::array<int, 4>>(
-                    g_Map.Height()));
-
-    for(int nX = 0; nX < g_Map.Width(); ++nX){
-        for(int nY = 0; nY < g_Map.Height(); ++nY){
-            g_GroundInfo[nX][nY].fill(0XFFFFFFFF);
-            g_SelectTUC[nX][nY].fill(0);
-        }
-    }
-
-    // actually in Mir2Map the bFlag only has 0 / 1 available 
-    auto fnSetGroundInfoFunc = [this](uint32_t nGroundInfo, int nX, int nY, int nIndex){
-        extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
-        if(nIndex >= 0 && nIndex < 4){
-            g_GroundInfo[nX][nY][nIndex] = nGroundInfo;
-        }
-    };
-
-    g_Map.ExtractGroundInfo(fnSetGroundInfoFunc);
-    
-    extern MapInfoWindow *g_MapInfoWindow;
-    g_MapInfoWindow->Output(g_Map.MapInfo().c_str());
-    g_MapInfoWindow->ShowAll();
+	// previously this function is to set global variables after loading
+	// now seems I need to abondon it
+	extern MapInfoWindow *g_MapInfoWindow;
+	extern EditorMap      g_EditorMap;
+	g_MapInfoWindow->Output(g_EditorMap.MapInfo().c_str());
+	g_MapInfoWindow->ShowAll();
 }} {}
   }
   Function {SetWorkingPathName()} {return_type void
   } {
     code {{
+    // set the work folder
+    // default CACHE system locates inside
     extern std::string g_WorkingPathName;
     Fl_Native_File_Chooser stFileChooser;
+    
     stFileChooser.title("Set Working Folder...");
     stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
     stFileChooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
@@ -710,104 +596,25 @@ if(g_Map.Valid()){
     }
 }} {}
   }
-  Function {CachePNG(uint32_t nFileIndex, uint32_t nImageIndex, int nX, int nY)} {return_type void
-  } {
-    code {{
-    extern std::vector<std::vector<std::unordered_map<uint32_t, Fl_Shared_Image *>>> g_PNGCache;
-    uint32_t nKey = (((uint32_t)nFileIndex) << 16) + (uint32_t)nImageIndex;
-    g_PNGCache[nX][nY][nKey] = RetrievePNG(nFileIndex, nImageIndex);
-}} {}
-  }
-  Function {SavePNG(uint32_t *pBuff, uint32_t nFileIndex, uint32_t nImageIndex, int nW, int nH)} {return_type void
-  } {
-    code {{
-    char szPNGName[512];
-    std::sprintf(szPNGName, "./cache/0%03d%05d.PNG", nFileIndex, nImageIndex);
-    if(!FileExist(szPNGName)){
-        SaveRGBABufferToPNG((uint8_t *)pBuff, nW, nH, szPNGName);
-    }
-}} {}
-  }
-  Function {RetrievePNG(uint32_t nFileIndex, uint32_t nImageIndex)} {return_type {Fl_Shared_Image *}
-  } {
-    code {{
-    char szPNGName[512];
-    std::sprintf(szPNGName, "./cache/0%03d%05d.PNG", nFileIndex, nImageIndex);
-    return Fl_Shared_Image::get(szPNGName);
-}} {}
-  }
-  Function {RetrieveCachedPNG(uint32_t nFileIndex, uint32_t nImageIndex, int nX, int nY)} {return_type {Fl_Shared_Image *}
-  } {
-    code {{
-	uint32_t nKey = ((uint32_t)nFileIndex << 16) + (uint32_t)nImageIndex;
-	extern std::vector<std::vector<std::unordered_map<uint32_t, Fl_Shared_Image *>>> g_PNGCache;
-	
-	if(g_PNGCache[nX][nY].find(nKey) != g_PNGCache[nX][nY].end()){
-		return g_PNGCache[nX][nY][nKey];
-	}else{
-		auto pImage = RetrievePNG(nFileIndex, nImageIndex);
-        if(pImage){
-            g_PNGCache[nX][nY][nKey] = pImage;
-            return pImage;
-        }else{
-            auto fnSavePNGFunc = [this](uint32_t *pBuff,
-                    uint32_t nFileIndex, uint32_t nImageIndex,
-                    int nW, int nH, int nX, int nY){
-                UNUSED(nX);
-                UNUSED(nY);
-                SavePNG(pBuff, nFileIndex, nImageIndex, nW, nH);
-                // CachePNG(nFileIndex, nImageIndex, nX, nY);
-            };
-            extern Mir2Map g_Map;
-            g_Map.ExtractOneBaseTile(fnSavePNGFunc, nX, nY);
-            g_Map.ExtractOneObjectTile(fnSavePNGFunc, nX, nY);
-
-            auto pImage = RetrievePNG(nFileIndex, nImageIndex);
-
-            // here we don't check whether pImage is nullptr
-            // since we have extract from map
-            // if is null, means it invalid, then put nullptr here
-            // can suppress next retrieving
-            // 
-            // maybe nullptr but it's intended to be
-            g_PNGCache[nX][nY][nKey] = pImage;
-            return pImage;
-        }
-    }
-}} {}
-  }
-  Function {RedrawAll()} {return_type void
-  } {
-    code {{
-	m_Window->redraw();
-}} {}
-  }
   Function {UpdateScrollBar(double fXP, double fYP)} {return_type void
   } {
-    code {auto pWidgetX = ((Fl_Valuator *)(m_SBar));
-auto pWidgetY = ((Fl_Valuator *)(m_VSBar));
+    code {{
+	auto pWidgetX = ((Fl_Valuator *)(m_SBar));
+	auto pWidgetY = ((Fl_Valuator *)(m_VSBar));
 
-fXP = (std::min)(1.0, (std::max)(0.0, fXP));
-fYP = (std::min)(1.0, (std::max)(0.0, fYP));
+	fXP = (std::min)(1.0, (std::max)(0.0, fXP));
+	fYP = (std::min)(1.0, (std::max)(0.0, fYP));
 
-pWidgetX->value(pWidgetX->round(fXP));
-pWidgetY->value(pWidgetY->round(fYP));} {}
+	pWidgetX->value(pWidgetX->round(fXP));
+	pWidgetY->value(pWidgetY->round(fYP));
+}} {}
   }
   Function {UpdateFrame(void *)} {return_type {static void}
   } {
     code {{
-    extern Mir2Map g_Map;
-    if(g_Map.Valid()){
-        g_Map.SetAniTileFrame(50);
-        {
-            static int bDoorOpen = false;
-            if(bDoorOpen){
-                g_Map.CloseAllDoor();
-            }else{
-                g_Map.OpenAllDoor();
-            }
-            bDoorOpen = !bDoorOpen;
-        }
+    extern EditorMap g_EditorMap;
+    if(g_EditorMap.Valid()){
+        g_Map.UpdateFrame(50);
         extern MainWindow *g_MainWindow;
         g_MainWindow->RedrawAll();
     }
@@ -932,314 +739,30 @@ pWidgetY->value(pWidgetY->round(fYP));} {}
   }
   Function {SaveMap()} {return_type void
   } {
-    code {// save map
-{
-    // currently use uint32_t as map grid attribute
-    extern Mir2Map g_Map;
-    if(!g_Map.Valid()){
-        return;
-    }
-
-    // only make sense when sizeof(index) < sizeof(attribute)
-    // but since here we use uint32_t as attribute, so we don't need it
-    // std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
-    // std::unordered_set<uint32_t, int> stMapAttributeMap;
-    // int nCount = 0;
-    // for(auto &p: g_GroundInfo){
-    //     for(auto &q: p){
-    //         for(auto &r: q){
-    //             if(stMapAttributeMap.find(r) == stMapAttributeMap.end()){
-    //                 stMapAttributeMap[r] = nCount;
-    //                 nCount++;
-    //             }
-    //         }
-    //     }
-    // }
-
-    int nBlkW = g_Map.Width()  / 8;
-    int nBlkH = g_Map.Height() / 8;
-
-    std::vector<bool> stGroundInfoBitV;
-    std::vector<uint32_t> stGroundInfoV;
-    // be careful here, first Y then X
-    for(int nBlkY = 0; nBlkY < nBlkH; ++nBlkY){
-        for(int nBlkX = 0; nBlkX < nBlkW; ++nBlkX){
-            QTreePreOrder(nBlkX * 8, nBlkY * 8, 8, stGroundInfoBitV, stGroundInfoV);
-        }
-    }
-
-    std::vector<bool> stTileInfoBitV;
-    std::vector<uint32_t> stTileInfoV;
-
-    g_Map.CompressBaseTileInfo(stTileInfoBitV, stTileInfoV);
-    
-    std::vector<bool> stCellInfoBitV;
-    std::vector<CELLDESC> stCellInfoV;
-    
-    g_Map.CompressCellTileInfo(stCellInfoBitV, stCellInfoV);
-
-    extern std::string g_WorkingPathName;
-    std::string szTmpFileName = g_WorkingPathName;
-
-    if(szTmpFileName.back() == '/'){
-        szTmpFileName += "desc.bin";
-    }else{
-        szTmpFileName += "/desc.bin";
-    }
-
-    auto pFile = fopen(szTmpFileName.c_str(), "wb");
-    if(pFile == nullptr){
-        fl_alert("fail to open %s for writing", szTmpFileName.c_str());
-        return;
-    }
-
-    { // size info
-        uint16_t nTmpVar;
-        nTmpVar = g_Map.Width();
-        fwrite(&nTmpVar, sizeof(nTmpVar), 1, pFile);
-
-        nTmpVar = g_Map.Height();
-        fwrite(&nTmpVar, sizeof(nTmpVar), 1, pFile);
-    }
-
-    // ground info 
-    { // ground information bit stream length, without align 
-        uint32_t nTmpVarUint32 = (uint32_t)(stGroundInfoBitV.size());
-        fwrite(&nTmpVarUint32, sizeof(uint32_t), 1, pFile);
-    }
-
-    { // groundinfo stream start
-        // align to 32 * N bit
-        if(stGroundInfoBitV.size() % 32){
-            int nSize = stGroundInfoBitV.size();
-            stGroundInfoBitV.insert(stGroundInfoBitV.end(), 32 - (nSize % 32), false);
-        }
-
-        uint32_t nTmpVarUint32 = 0;
-        int nCurrentPos = 0;
-        while((size_t)nCurrentPos < stGroundInfoBitV.size()){
-            nTmpVarUint32 = (nTmpVarUint32 * 2 + (stGroundInfoBitV[nCurrentPos++] ? 1 : 0));
-            if(!(nCurrentPos % (sizeof(nTmpVarUint32) * 8))){
-                fwrite(&nTmpVarUint32, sizeof(nTmpVarUint32), 1, pFile);
-                nTmpVarUint32 = 0;
-            }
-        }
-
-        // since aligned by 32, so there won't be left
-        // then we need to add another uint32_t or not for 64-align boundary
-        if((stGroundInfoBitV.size() / 32) % 2 == 0){
-            nTmpVarUint32 = 0;
-            fwrite(&nTmpVarUint32, sizeof(nTmpVarUint32), 1, pFile);
-        }
-    }
-
-    { // ground information struct count, without align 
-        uint32_t nTmpVarUint32 = (uint32_t)(stGroundInfoV.size());
-        fwrite(&nTmpVarUint32, sizeof(uint32_t), 1, pFile);
-    }
-
-    { // ground info insertion
-        if(stGroundInfoV.size() > 0){
-            fwrite(&stGroundInfoV[0], sizeof(stGroundInfoV[0]), stGroundInfoV.size(), pFile);
-        }
-        if(stGroundInfoV.size() % 2 == 0){
-            uint32_t nTmpVarUint32 = 0;
-            fwrite(&nTmpVarUint32, sizeof(uint32_t), 1, pFile);
-        }
-    }
-
-    // base tile info
-    { // tile bit stream length, without align 
-        uint32_t nTmpVarUint32 = (uint32_t)(stTileInfoBitV.size());
-        fwrite(&nTmpVarUint32, sizeof(uint32_t), 1, pFile);
-    }
-
-    { // tile stream start
-        // align to 32 * N bit
-        if(stTileInfoBitV.size() % 32){
-            int nSize = stTileInfoBitV.size();
-            stTileInfoBitV.insert(stTileInfoBitV.end(), 32 - (nSize % 32), false);
-        }
-
-        uint32_t nTmpVarUint32 = 0;
-        int nCurrentPos = 0;
-        while((size_t)nCurrentPos < stTileInfoBitV.size()){
-            nTmpVarUint32 = (nTmpVarUint32 * 2 + (stTileInfoBitV[nCurrentPos++] ? 1 : 0));
-            if(!(nCurrentPos % (sizeof(nTmpVarUint32) * 8))){
-                fwrite(&nTmpVarUint32, sizeof(nTmpVarUint32), 1, pFile);
-                nTmpVarUint32 = 0;
-            }
-        }
-        // since aligned by 32, so there won't be left
-    }
-
-    {
-        if((stTileInfoBitV.size() / 32) % 2 == 0){
-            uint32_t nTmpVarUint32 = 0;
-            fwrite(&nTmpVarUint32, sizeof(nTmpVarUint32), 1, pFile);
-        }
-
-    }
-
-    { // base tile structure count, without align 
-        uint32_t nTmpVarUint32 = (uint32_t)(stTileInfoV.size());
-        fwrite(&nTmpVarUint32, sizeof(uint32_t), 1, pFile);
-    }
-
-    { // base tile structure insertion
-        if(stTileInfoV.size() > 0){
-            fwrite(&stTileInfoV[0], sizeof(stTileInfoV[0]), stTileInfoV.size(), pFile);
-        }
-        if(stTileInfoV.size() % 2 == 0){
-            uint32_t nTmpVarUint32 = 0;
-            fwrite(&nTmpVarUint32, sizeof(nTmpVarUint32), 1, pFile);
-        }
-    }
-
-    // cell desc start
-    { // tile bit stream length, without align 
-        uint32_t nTmpVarUint32 = (uint32_t)(stCellInfoBitV.size());
-        fwrite(&nTmpVarUint32, sizeof(uint32_t), 1, pFile);
-    }
-
-    { 
-        // align to 32 * N bit
-        if(stCellInfoBitV.size() % 32){
-            int nSize = stCellInfoBitV.size();
-            stCellInfoBitV.insert(stCellInfoBitV.end(), 32 - (nSize % 32), false);
-        }
-
-        uint32_t nTmpVarUint32 = 0;
-        int nCurrentPos = 0;
-        while((size_t)nCurrentPos < stCellInfoBitV.size()){
-            nTmpVarUint32 = (nTmpVarUint32 * 2 + (stCellInfoBitV[nCurrentPos++] ? 1 : 0));
-            if(!(nCurrentPos % (sizeof(nTmpVarUint32) * 8))){
-                fwrite(&nTmpVarUint32, sizeof(nTmpVarUint32), 1, pFile);
-                nTmpVarUint32 = 0;
-            }
-        }
-        // since aligned by 32, so there won't be left
-    }
-
-    {
-        if((stCellInfoBitV.size() / 32) % 2 == 0){
-            uint32_t nTmpVarUint32 = 0;
-            fwrite(&nTmpVarUint32, sizeof(nTmpVarUint32), 1, pFile);
-        }
-
-    }
-
-    { // object structure count, without align 
-        uint32_t nTmpVarUint32 = (uint32_t)(stCellInfoV.size());
-        fwrite(&nTmpVarUint32, sizeof(uint32_t), 1, pFile);
-    }
-
-    { // obj info insertion
-        if(stCellInfoV.size() > 0){
-            fwrite(&stCellInfoV[0], sizeof(stCellInfoV[0]), stCellInfoV.size(), pFile);
-        }
-        // we don't have to align to 64 here, since CELLDESC is already aligned to 64
-        // if(stCellInfoV.size() % 2 == 0){
-        //     uint32_t nTmpVarUint32 = 0;
-        //     fwrite(&nTmpVarUint32, sizeof(nTmpVarUint32), 1, pFile);
-        // }
-    }
-
-    fclose(pFile);
-    
-    // save PNG's
-}} {}
-  }
-  Function {EqualGroundInfoBlock(int nStartX, int nStartY, int nSize)} {return_type bool
-  } {
     code {{
-    // nSize should be 8 4 2 1
-    extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
-    uint32_t nAttribute = g_GroundInfo[nStartX][nStartY][0];
-    for(int nX = nStartX; nX < nStartX + nSize; ++nX){
-        for(int nY = nStartY; nY < nStartY + nSize; ++nY){
-            for(int nZ = 0; nZ < 4; ++nZ){
-                if(nAttribute != g_GroundInfo[nX][nY][nZ]){
-                    return false;
-                }
-            }
-        }
-    }
-    return true;
-}} {}
-  }
-  Function {QTreePreOrder(int nStartX, int nStartY, int nSize, std::vector<bool> &stBitV, std::vector<uint32_t> &stAttributeV)} {return_type void
-  } {
-    code {{
-    // when nSize = 8 4 2 1
-    // +---+---+
-    // | 0 | 1 |
-    // +---+---+
-    // | 2 | 3 |
-    // +---+---+
-    //
-    // when for small gird
-    // +-----------+
-    // |     0     |
-    // |   3 + 1   |
-    // |     2     |
-    // +-----------+
-
-    extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
-    if(EqualGroundInfoBlock(nStartX, nStartY, nSize)){
-        if(g_GroundInfo[nStartX][nStartY][0] == 0XFFFFFFFF){
-            // nothing, use 0 to indicate
-            stBitV.push_back(false);
-        }else{
-            // unique and walkable
-            stBitV.push_back(true);
-            stBitV.push_back(false);
-            stAttributeV.push_back(g_GroundInfo[nStartX][nStartY][0]);
-        }
-    }else{
-        // combined
-        stBitV.push_back(true);
-        stBitV.push_back(true);
-        if(nSize == 1){
-            for(int nCnt = 0; nCnt < 4; ++nCnt){
-                if(g_GroundInfo[nStartX][nStartY][nCnt] != 0XFFFFFFFF){
-                    stBitV.push_back(true);
-                    stAttributeV.push_back(g_GroundInfo[nStartX][nStartY][nCnt]);
-                }else{
-                    stBitV.push_back(false);
-                }
-            }
-        }else{
-            QTreePreOrder(nStartX, nStartY, 
-                    nSize / 2,
-                    stBitV, stAttributeV);
-
-            QTreePreOrder(nStartX + nSize / 2, nStartY,
-                    nSize / 2,
-                    stBitV, stAttributeV);
-
-            QTreePreOrder(nStartX, nStartY + nSize / 2,
-                    nSize / 2,
-                    stBitV, stAttributeV);
-
-            QTreePreOrder(nStartX + nSize / 2, nStartY + nSize / 2,
-                    nSize / 2,
-                    stBitV, stAttributeV);
-        }
-    }
-}} {}
-  }
-  Function {MapCrop(int nStartX, int nStartY, int nW, int nH)} {return_type void
-  } {
-    code {{
-    extern Mir2Map g_Map;
-    g_Map.CropSize(nStartX, nStartY, nW, nH);
+	extern EditorMap g_EditorMap;
+	if(g_EditorMap.Valid()){
+		extern std::string g_WorkingPathName;
+    		std::string szTmpFileName = g_WorkingPathName;
+	
+		if(szTmpFileName.back() == '/'){
+        		szTmpFileName += "DESC.BIN";
+    		}else{
+        		szTmpFileName += "/DESC.BIN";
+    		}
+    		g_EditorMap.Save(szTmpFileName.c_str());
+    		fl_message("Map file saved in mir2x format successfully!");
+    		
+	}else{
+		fl_alert("Currently no operating map!");
+	}
 }} {}
   }
   Function {ClearBackground()} {return_type bool
   } {
     code {{
     return m_MenuItemClearBackground->value();
-}} {}
+}} {selected
+    }
   }
 } 

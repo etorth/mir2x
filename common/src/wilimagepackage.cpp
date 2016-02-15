@@ -132,7 +132,11 @@ bool WilImagePackage::Load(const char* wilFilePath, const char *wilFileName, con
         fclose(m_FP); m_FP = nullptr;
     }
 
-    auto hWixFile = fopen((std::string(wilFilePath) + "/" + wilFileName + ".wix").c_str(), "rb");
+    FILE *hWixFile = nullptr;
+    if(!hWixFile){ hWixFile = fopen((std::string(wilFilePath) + "/" + wilFileName + ".wix").c_str(), "rb"); }
+    if(!hWixFile){ hWixFile = fopen((std::string(wilFilePath) + "/" + wilFileName + ".Wix").c_str(), "rb"); }
+    if(!hWixFile){ hWixFile = fopen((std::string(wilFilePath) + "/" + wilFileName + ".WIX").c_str(), "rb"); }
+
     if(hWixFile == nullptr){
         return false;
     }

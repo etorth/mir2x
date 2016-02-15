@@ -1,5 +1,26 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: editormap.cpp
+ *        Created: 02/08/2016 22:17:08
+ *  Last Modified: 02/14/2016 22:21:54
+ *
+ *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
+ *                 Use function handler to handle draw, cache, etc
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #include "mir2map.hpp"
-#include "wilimagepackage.hpp"
+#include "mir2xmap.hpp"
+#include "editormap.hpp"
+
 #include <memory.h>
 #include "assert.h"
 #include <cstring>
@@ -14,265 +35,46 @@ EditorMap::EditorMap()
     : m_Valid(false)
     , m_OldMir2Map(nullptr)
     , m_Mir2xMap(nullptr)
-    , m_SelectedGrid()
 {
-    std::memset(&m_stMapFileHeader, 0, sizeof(MAPFILEHEADER));
     std::memset(m_bAniTileFrame, 0, sizeof(uint8_t) * 8 * 16);
     std::memset(m_dwAniSaveTime, 0, sizeof(uint32_t) * 8);
 }
 
 EditorMap::~EditorMap()
 {
-    delete []m_pstTileInfo;  m_pstTileInfo  = nullptr;
-    delete []m_pstCellInfo;  m_pstCellInfo  = nullptr;
+    delete m_Mir2xMap  ; m_Mir2xMap   = nullptr;
+    delete m_OldMir2Map; m_OldMir2Map = nullptr;
 }
 
-void EditorMap::LoadMapImage(WilImagePackage *pWilImagePackage)
+void EditorMap::ExtractOneTile(int nXCnt, int nYCnt, std::function<void(uint8_t, uint16_t)> fnWritePNG)
 {
-    m_pxTileImage = pWilImagePackage;
+    if(!Valid() || !ValidC(nXCnt, nYCnt)
+            || (nXCnt % 2) || (nYCnt % 2) || TileValid(nXCnt, nYCnt)){ return; }
+
+    uint32_t nDescKey    = Tile(nXCnt, nYCnt);
+    uint8_t  nFileIndex  = ((nDescKey & 0X00FF0000) >> 16);
+    uint16_t nImageIndex = ((nDescKey & 0X0000FFFF));
+
+    fnWritePNG(nFileIndex, nImageIndex);
 }
 
-bool EditorMap::LoadMap(const char *szMapFileName)
-{
-    m_Valid = false;
-
-    delete []m_pstTileInfo;  m_pstTileInfo  = nullptr;
-    delete []m_pstCellInfo;  m_pstCellInfo  = nullptr;
-
-    std::memset(&m_stMapFileHeader, 0, sizeof(MAPFILEHEADER));
-
-    auto hFile = fopen(szMapFileName, "rb");
-    if(hFile == nullptr){
-        return false;
-    }
-
-    if(fread(&m_stMapFileHeader, sizeof(MAPFILEHEADER), 1, hFile) != 1){
-        // printf("pos  = %d\n", ftell(hFile));
-        fclose(hFile);
-        return false;
-    }
-
-    size_t nMapLoadSize = m_stMapFileHeader.shWidth * m_stMapFileHeader.shHeight;
-
-    m_pstTileInfo = new TILEINFO[nMapLoadSize / 4];
-    if(fread(m_pstTileInfo, sizeof(TILEINFO), nMapLoadSize / 4, hFile) != nMapLoadSize / 4){
-        delete m_pstTileInfo; m_pstTileInfo = nullptr;
-        fclose(hFile);
-        return false;
-    }
-
-    m_pstCellInfo = new CELLINFO[nMapLoadSize];
-    if(fread(m_pstCellInfo, sizeof(CELLINFO), nMapLoadSize, hFile) != nMapLoadSize){
-        delete m_pstCellInfo; m_pstCellInfo = nullptr;
-        fclose(hFile);
-        return false;
-    }
-
-    fclose(hFile);
-
-    m_Valid = true;
-
-    SetMapInfo();
-
-    m_SelectedGrid = std::vector<std::vector<std::array<bool, 4>>>(
-            W(), std::vector<std::array<bool, 4>>(
-                H(), {false, false, false, false}));
-
-    return m_Valid;
-}
-
-void EditorMap::ExtractOneBaseTile(
-            std::function<void(uint32_t *, uint32_t, uint32_t, int, int, int, int)> fnWritePNGFunc,
-            int nXCnt, int nYCnt)
-{
-    if(!Valid() || !ValidC(nXCnt, nYCnt) || (nXCnt % 2) || (nYCnt % 2)){ return; }
-
-    if(m_Mir2xMap && m_Mir2xMap->Valid()){
-        // decode with new map structure
-        if(!m_Mir2xMap->TileValid(nXCnt, nYCnt)){ return; }
-
-        // no alpha blend for tile 
-        uint32_t nKey   = m_Mir2xMap->TileKey(nXCnt, nYCnt);
-        int nFileIndex  = ((nKey & 0X00FF0000) >> 16);
-        int nImageIndex = ((nKey & 0X0000FFFF));
-
-        // actually we don't need to check here
-        // just put it here
-        if(nFileIndex == 255 || nImageIndex == 65535){
-            return;
-        }
-
-        if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex) &&
-                m_pxTileImage[nFileIndex].CurrentImageValid()){
-            int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
-            int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
-
-            uint32_t *pBuff = nullptr;
-            if(nW * nH > 0){
-                pBuff = new uint32_t[nW * nH];
-            }else{
-                return;
-            }
-            // no alpha blending for tiles
-            m_pxTileImage[nFileIndex].Decode(pBuff, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-            fnWritePNGFunc(pBuff, nFileIndex, nImageIndex, nW, nH, nXCnt, nYCnt);
-            delete pBuff;
-        }
-    }else{
-        // decode with old mir2 map
-        int nFileIndex  = m_pstTileInfo[(nYCnt / 2) + (nXCnt / 2)*m_stMapFileHeader.shHeight / 2].bFileIndex;
-        int nImageIndex = m_pstTileInfo[(nYCnt / 2) + (nXCnt / 2)*m_stMapFileHeader.shHeight / 2].wTileIndex;
-
-        if(nFileIndex != 255 && nImageIndex != 65535){
-            if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex) &&
-                    m_pxTileImage[nFileIndex].CurrentImageValid()){
-                int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
-                int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
-                uint32_t *pBuff = nullptr;
-                if(nW * nH > 0){
-                    pBuff = new uint32_t[nW * nH];
-                }else{
-                    return;
-                }
-                // no alpha blending
-                m_pxTileImage[nFileIndex].Decode(pBuff, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-                fnWritePNGFunc(pBuff, nFileIndex, nImageIndex, nW, nH, nXCnt, nYCnt);
-                delete pBuff;
-            }
-        }
-    }
-}
-
-void EditorMap::ExtractBaseTile(std::function<bool(uint32_t, uint32_t)> fnCheckExistFunc,
-        std::function<void(uint32_t *, uint32_t, uint32_t, int, int, int, int)> fnWritePNGFunc)
+void EditorMap::ExtractTile(std::function<void(uint8_t, uint16_t)> fnWritePNG)
 {
     if(!Valid()){ return; }
 
-    int nFileIndex  = 0;
-    int nImageIndex = 0;
-
-    uint32_t *pBuff    = nullptr;
-    int       nBuffLen = 0;
-
-    if(m_Mir2xMap && m_Mir2xMap->Valid()){
-        for(int nXCnt = 0; nXCnt < m_Mir2xMap->W(); nXCnt++){
-            for(int nYCnt = 0; nYCnt < m_Mir2xMap->H(); ++nYCnt){
-                if(!(nXCnt % 2) && !(nYCnt % 2)){
-                    if(!m_Mir2xMap->TileValid(nXCnt, nYCnt)){ continue; }
-
-                    // no alpha blend for tile 
-                    uint32_t nKey   = m_Mir2xMap->TileKey(nXCnt, nYCnt);
-                    int nFileIndex  = ((nKey & 0X00FF0000) >> 16);
-                    int nImageIndex = ((nKey & 0X0000FFFF));
-
-                    // actually we don't need to check here
-                    // just put it here
-                    if(nFileIndex == 255 || nImageIndex == 65535){
-                        continue;
-                    }
-
-                    if(fnCheckExistFunc(nFileIndex, nImageIndex)){
-                        continue;
-                    }
-
-                    if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex) &&
-                            m_pxTileImage[nFileIndex].CurrentImageValid()){
-                        int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
-                        int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
-
-                        if(nW * nH > 0){
-                            if(nW * nH > nBuffLen){
-                                delete pBuff;
-                                pBuff = new uint32_t[nW * nH];
-                                nBuffLen = nW * nH;
-                            }
-
-                            // no alpha blending for tiles
-                            m_pxTileImage[nFileIndex].Decode(pBuff, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-                            fnWritePNGFunc(pBuff, nFileIndex, nImageIndex, nW, nH, nXCnt, nYCnt);
-                        }
-                    }
-                }
-            }
-        }
-    }else{
-        for(int nXCnt = 0; nXCnt < m_stMapFileHeader.shWidth; nXCnt++){
-            for(int nYCnt = 0; nYCnt < m_stMapFileHeader.shHeight; ++nYCnt){
-                if(!(nXCnt % 2) && !(nYCnt % 2)){
-                    int nFileIndex = m_pstTileInfo[(nYCnt / 2) + (nXCnt / 2)*m_stMapFileHeader.shHeight / 2].bFileIndex;
-                    int nImageIndex = m_pstTileInfo[(nYCnt / 2) + (nXCnt / 2)*m_stMapFileHeader.shHeight / 2].wTileIndex;
-
-                    if(nFileIndex != 255 && nImageIndex != 65535) {
-                        if(fnCheckExistFunc(nFileIndex, nImageIndex)){
-                            continue;
-                        }
-                        if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex) &&
-                                m_pxTileImage[nFileIndex].CurrentImageValid()){
-
-                            int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
-                            int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
-
-                            if(nW * nH > 0){
-                                if(nW * nH > nBuffLen){
-                                    delete pBuff;
-                                    pBuff = new uint32_t[nW * nH];
-                                    nBuffLen = nW * nH;
-                                }
-                                m_pxTileImage[nFileIndex].Decode(pBuff, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-                                fnWritePNGFunc(pBuff, nFileIndex, nImageIndex, nW, nH, nXCnt, nYCnt);
-                            }
-                        }
-                    }
-                }
+    for(int nXCnt = 0; nXCnt < W(); nXCnt++){
+        for(int nYCnt = 0; nYCnt < H(); ++nYCnt){
+            if(!(nXCnt % 2) && !(nYCnt % 2)){
+                ExtractOneTile(nXCnt, nYCnt, fnWritePNG);
             }
         }
     }
-    delete pBuff;
 }
 
-int EditorMap::W()
-{
-    return (int)(m_stMapFileHeader.shWidth);
-}
-
-int EditorMap::H()
-{
-    return (int)(m_stMapFileHeader.shHeight);
-}
-
-const CELLINFO &EditorMap::CellInfo(int nX, int nY)
-{
-    return m_pstCellInfo[nY + nX * m_stMapFileHeader.shHeight];
-}
-
-const TILEINFO &EditorMap::BaseTileInfo(int nX, int nY)
-{
-    return m_pstTileInfo[(nX / 2) * m_stMapFileHeader.shHeight / 2 + nY / 2];
-}
-
-uint32_t EditorMap::GetDoorImageIndex(int nX, int nY)
-{
-    uint32_t nDoorIndex = 0;
-    if(Valid()){
-        if(m_Mir2xMap && m_Mir2xMap->Valid()){
-            return 0;
-        }else{
-            // seems bDoorOffset & 0X80 shows open or close
-            //       bDoorIndex  & 0X80 shows whether there is a door
-            if((m_pstCellInfo[nY + nX * m_stMapFileHeader.shHeight].bDoorOffset & 0X80) > 0){
-                if((m_pstCellInfo[nY + nX * m_stMapFileHeader.shHeight].bDoorIndex & 0X7F) > 0){
-                    nDoorIndex += (m_pstCellInfo[nY + nX * m_stMapFileHeader.shHeight].bDoorOffset & 0X7F);
-                }
-            }
-        }
-    }
-    return nDoorIndex;
-}
-
-void EditorMap::DrawBaseTile(
+void EditorMap::DrawTile(
         int nStartCellX, int nStartCellY,
         int nStopCellX,  int nStopCellY,
-        std::function<void(uint32_t, uint32_t, int, int)> fnDrawTileFunc)
+        std::function<void(uint8_t, uint16_t, int, int)> fnDrawTile)
 {
     if(!Valid()){ return; }
 
@@ -286,285 +88,58 @@ void EditorMap::DrawBaseTile(
             if(nX % 2 || nY % 2){
                 continue;
             }
-
-            if(m_Mir2xMap && m_Mir2xMap->Valid()){
-                if(!m_Mir2xMap->TileValid(nX, nY)){ continue; }
-                uint32_t nKey = m_Mir2xMap->TileKey(nX, nY);
-                int nFileIndex  = ((nKey & 0X00FF0000) >> 16);
-                int nImageIndex = ((nKey & 0X0000FFFF));
-
-                if(nFileIndex != 255 && nImageIndex != 65535){
-                    fnDrawTileFunc(nFileIndex, nImageIndex, nX, nY);
-                }
+            
+            if(!TileValid(nX, nY)){
                 continue;
             }
 
-            if(m_pstTileInfo){
-                auto stInfo = BaseTileInfo(nX, nY);
-                if(stInfo.bFileIndex != 255 && stInfo.wTileIndex != 65535){
-                    fnDrawTileFunc(stInfo.bFileIndex, stInfo.wTileIndex, nX, nY);
-                }
-                continue;
-            }
+            uint32_t nDescKey    = Tile(nX, nY);
+            uint8_t  nFileIndex  = ((nDescKey & 0X00FF0000) >> 16);
+            uint16_t nImageIndex = ((nDescKey & 0X0000FFFF));
+
+            // provide cell-coordinates on map
+            // fnDrawTile should convert it to drawarea pixel-coordinates
+            fnDrawTile(nFileIndex, nImageIndex, nX, nY);
         }
     }
 }
 
-void EditorMap::ExtractOneObjectTile(std::function<void(uint32_t *, uint32_t, uint32_t, int, int, int, int)> fnWritePNGFunc, int nXCnt, int nYCnt)
+void EditorMap::ExtractOneObject(
+        int nXCnt, int nYCnt, int nIndex, std::function<void(uint8_t, uint16_t, uint32_t)> fnWritePNG)
 {
-    if(!Valid() || !ValidC(nX, nY)){ return; }
+    if(!Valid() || !ValidC(nXCnt, nYCnt) || !ObjectValid(nXCnt, nYCnt, nIndex)){ return; }
 
-    if(m_Mir2xMap && m_Mir2xMap->Valid()){
-        uint32_t *pBuff    = nullptr;
-        int       nBuffLen = 0;
+    uint32_t nKey = Object(nXCnt, nYCnt, nIndex);
 
-        for(int nIndex = 0; nIndex < 2; ++nIndex){
-            if(m_Mir2xMap->ObjectValid(nX, nY, nIndex)){
-                uint32_t nKey = m_Mir2xMap->ObjectBaseKey(nX, nY, nIndex);
+    bool     bBlend      = ((nKey & 0X80000000) !=  0);
+    uint8_t  nFileIndex  = ((nKey & 0X00FF0000) >> 16);
+    uint16_t nImageIndex = ((nKey & 0X0000FFFF));
+    int      nAniCnt     = ((nKey & 0X0F000000) >> 24);
 
-                int nImageDesc  = ((nKey & 0XFF000000) >> 24);
-                int nFileIndex  = ((nKey & 0X00FF0000) >> 16);
-                int nImageIndex = ((nKey & 0X0000FFFF));
-                int nFrameCount = m_Mir2xMap->ObjectFrameCount(nX, nY, nIndex);
+    int      nFrameCount = (ObjectAni(nXCnt, nYCnt, nIndex) ? nAniCnt : 1);
+    uint32_t nImageColor = (bBlend ? 0X80FFFFFF : 0XFFFFFFFF);
 
-                uint32_t nImageColor = ((nImageDesc & 0X01) ? 0X80FFFFFF : 0XFFFFFFFF);
-
-                // no door informaiton, ignore it
-                if(nFileIndex != 255 && nImageIndex != 65535 && nFrameCount != 0){
-                    for(int nFrame = 0; nFrame < nFrameCount; ++nFrame){
-                        if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex + nFrame)
-                                && m_pxTileImage[nFileIndex].CurrentImageValid()){
-                            int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
-                            int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
-                            if(nBuffLen < nW * nH){
-                                delete pBuff;
-                                pBuff    = new uint32_t[nW * nH];
-                                nBuffLen = nW * nH;
-                            }
-                            m_pxTileImage[nFileIndex].Decode(pBuff, nImageColor, 0XFFFFFFFF, 0XFFFFFFFF);
-                            fnWritePNGFunc(pBuff, nFileIndex, nImageIndex + nFrame, nW, nH, nXCnt, nYCnt);
-                        }
-                    }
-                }
-            }
-        }
-        delete pBuff;
-    }else{
-
-        uint32_t *pBuff    = nullptr;
-        int       nBuffLen = 0;
-
-        int nArrayNum = nYCnt + nXCnt * m_stMapFileHeader.shHeight;
-
-        {// first layer:
-            int nFileIndex = (m_pstCellInfo[nArrayNum].wFileIndex & 0XFF00) >> 8;
-            if(nFileIndex != 255 && m_pstCellInfo[nArrayNum].wObj1 != 65535){
-                uint32_t nImageIndex = m_pstCellInfo[nArrayNum].wObj1 + GetDoorImageIndex(nXCnt, nYCnt);
-                uint32_t nFrameCount = 0;
-
-                bool bBlend = false;
-
-                if(m_pstCellInfo[nArrayNum].bObj1Ani != 255){
-                    bBlend = ((m_pstCellInfo[nArrayNum].bObj1Ani & 0X80) != 0);
-                    // didn't use bTickType for decoding
-                    // uint16_t bTickType = (m_pstCellInfo[nArrayNum].bObj1Ani & 0X70) >> 4; // for ticks
-                    uint16_t shAniCnt  = (m_pstCellInfo[nArrayNum].bObj1Ani & 0X0F);        // for frame count
-
-                    nFrameCount += shAniCnt;
-                }
-
-                uint32_t nImageColor = (bBlend ? 0X80FFFFFF : 0XFFFFFFFF);
-                for(int nFrame = 0; (uint32_t)nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
-                    if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex + nFrame) && m_pxTileImage[nFileIndex].CurrentImageValid()){
-                        int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
-                        int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
-                        if(nBuffLen < nW * nH){
-                            delete pBuff;
-                            pBuff    = new uint32_t[nW * nH];
-                            nBuffLen = nW * nH;
-                        }
-                        m_pxTileImage[nFileIndex].Decode(pBuff, nImageColor, 0XFFFFFFFF, 0XFFFFFFFF);
-                        fnWritePNGFunc(pBuff, nFileIndex, nImageIndex + nFrame, nW, nH, nXCnt, nYCnt);
-                    }
-                }
-            }
-        }
-
-        {// second layer:
-            int nFileIndex = (m_pstCellInfo[nArrayNum].wFileIndex & 0X00FF);
-            if(nFileIndex != 255 && m_pstCellInfo[nArrayNum].wObj2 != 65535){
-                uint32_t nImageIndex = m_pstCellInfo[nArrayNum].wObj2 + GetDoorImageIndex(nXCnt, nYCnt);
-                uint32_t nFrameCount = 0;
-
-                bool bBlend = false;
-
-                if(m_pstCellInfo[nArrayNum].bObj2Ani != 255){
-                    bBlend = ((m_pstCellInfo[nArrayNum].bObj2Ani & 0X80) != 0);
-                    // uint16_t bTickType = (m_pstCellInfo[nArrayNum].bObj2Ani & 0X70) >> 4; // for ticks
-                    uint16_t shAniCnt  = (m_pstCellInfo[nArrayNum].bObj2Ani & 0X0F);        // for frame count
-
-                    nFrameCount += shAniCnt;
-                }
-
-                uint32_t nImageColor = (bBlend ? 0X80FFFFFF : 0XFFFFFFFF);
-                for(int nFrame = 0; (uint32_t)nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
-                    if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex + nFrame) && m_pxTileImage[nFileIndex].CurrentImageValid()){
-                        int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
-                        int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
-                        if(nBuffLen < nW * nH){
-                            delete pBuff;
-                            pBuff    = new uint32_t[nW * nH];
-                            nBuffLen = nW * nH;
-                        }
-                        m_pxTileImage[nFileIndex].Decode(pBuff, nImageColor, 0XFFFFFFFF, 0XFFFFFFFF);
-                        fnWritePNGFunc(pBuff, nFileIndex, nImageIndex + nFrame, nW, nH, nXCnt, nYCnt);
-                    }
-                }
-            }
-        }
-        delete pBuff;
+    for(int nIndex = 0; nIndex < nFrameCount; ++nIndex){
+        fnWritePNG(nFileIndex, nImageIndex + (uint16_t)nIndex, nImageColor);
     }
-
 }
 
-void EditorMap::ExtractObjectTile(std::function<bool(uint32_t, uint32_t)> fnCheckExistFunc,
-        std::function<void(uint32_t *, uint32_t, uint32_t, int, int, int, int)> fnWritePNGFunc)
+void EditorMap::ExtractObject(std::function<void(uint8_t, uint16_t, uint32_t)> fnWritePNG)
 {
     if(!Valid()){ return; }
 
-    if(m_Mir2xMap && m_Mir2xMap->Valid()){
-        uint32_t *pBuff    = nullptr;
-        int       nBuffLen = 0;
-
-        for(int nYCnt = 0; nYCnt < m_Mir2xMap->H(); ++nYCnt){
-            for(int nXCnt = 0; nXCnt < m_Mir2xMap->W(); ++nXCnt){
-                for(int nIndex = 0; nIndex < 2; ++nIndex){
-                    if(m_Mir2xMap->ObjectValid(nX, nY, nIndex)){
-                        uint32_t nKey = m_Mir2xMap->ObjectBaseKey(nX, nY, nIndex);
-
-                        int nImageDesc  = ((nKey & 0XFF000000) >> 24);
-                        int nFileIndex  = ((nKey & 0X00FF0000) >> 16);
-                        int nImageIndex = ((nKey & 0X0000FFFF));
-                        int nFrameCount = m_Mir2xMap->ObjectFrameCount(nX, nY, nIndex);
-
-                        uint32_t nImageColor = ((nImageDesc & 0X01) ? 0X80FFFFFF : 0XFFFFFFFF);
-
-                        // no door informaiton, ignore it
-                        if(nFileIndex != 255 && nImageIndex != 65535 && nFrameCount != 0){
-                            for(int nFrame = 0; nFrame < nFrameCount; ++nFrame){
-                                if(fnCheckExistFunc(nFileIndex, nImageIndex + nFrame)){
-                                    continue;
-                                }
-                                if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex + nFrame)
-                                        && m_pxTileImage[nFileIndex].CurrentImageValid()){
-                                    int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
-                                    int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
-                                    if(nBuffLen < nW * nH){
-                                        delete pBuff;
-                                        pBuff    = new uint32_t[nW * nH];
-                                        nBuffLen = nW * nH;
-                                    }
-                                    m_pxTileImage[nFileIndex].Decode(pBuff, nImageColor, 0XFFFFFFFF, 0XFFFFFFFF);
-                                    fnWritePNGFunc(pBuff, nFileIndex, nImageIndex + nFrame, nW, nH, nXCnt, nYCnt);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    for(int nYCnt = 0; nYCnt < H(); ++nYCnt){
+        for(int nXCnt = 0; nXCnt < W(); ++nXCnt){
+            ExtractOneObject(nXCnt, nYCnt, 0, fnWritePNG);
+            ExtractOneObject(nXCnt, nYCnt, 1, fnWritePNG);
         }
-        delete pBuff;
-    }else{
-
-        uint32_t *pBuff    = nullptr;
-        int       nBuffLen = 0;
-
-        for(int nYCnt = 0; nYCnt < m_stMapFileHeader.shHeight; ++nYCnt){
-            for(int nXCnt = 0; nXCnt < m_stMapFileHeader.shWidth; ++nXCnt){
-                int nArrayNum = nYCnt + nXCnt * m_stMapFileHeader.shHeight;
-
-                {// first layer:
-                    int nFileIndex = (m_pstCellInfo[nArrayNum].wFileIndex & 0XFF00) >> 8;
-                    if(nFileIndex != 255 && m_pstCellInfo[nArrayNum].wObj1 != 65535){
-                        uint32_t nImageIndex = m_pstCellInfo[nArrayNum].wObj1 + GetDoorImageIndex(nXCnt, nYCnt);
-                        uint32_t nFrameCount = 0;
-
-                        bool bBlend = false;
-
-                        if(m_pstCellInfo[nArrayNum].bObj1Ani != 255){
-                            bBlend = ((m_pstCellInfo[nArrayNum].bObj1Ani & 0X80) != 0);
-                            // uint16_t bTickType = (m_pstCellInfo[nArrayNum].bObj1Ani & 0X70) >> 4; // for ticks
-                            uint16_t shAniCnt  = (m_pstCellInfo[nArrayNum].bObj1Ani & 0X0F);        // for frame count
-
-                            nFrameCount += shAniCnt;
-                        }
-
-                        uint32_t nImageColor = ( bBlend ? 0X80FFFFFF : 0XFFFFFFFF);
-                        for(int nFrame = 0; (uint32_t)nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
-                            if(fnCheckExistFunc(nFileIndex, nImageIndex + nFrame)){
-                                continue;
-                            }
-                            if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex + nFrame) && m_pxTileImage[nFileIndex].CurrentImageValid()){
-                                int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
-                                int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
-                                if(nBuffLen < nW * nH){
-                                    delete pBuff;
-                                    pBuff    = new uint32_t[nW * nH];
-                                    nBuffLen = nW * nH;
-                                }
-                                m_pxTileImage[nFileIndex].Decode(pBuff, nImageColor, 0XFFFFFFFF, 0XFFFFFFFF);
-                                fnWritePNGFunc(pBuff, nFileIndex, nImageIndex + nFrame, nW, nH, nXCnt, nYCnt);
-                            }
-                        }
-                    }
-                }
-
-                {// second layer:
-                    int nFileIndex = (m_pstCellInfo[nArrayNum].wFileIndex & 0X00FF);
-                    if(nFileIndex != 255 && m_pstCellInfo[nArrayNum].wObj2 != 65535){
-                        uint32_t nImageIndex = m_pstCellInfo[nArrayNum].wObj2 + GetDoorImageIndex(nXCnt, nYCnt);
-                        uint32_t nFrameCount = 0;
-
-                        bool bBlend = false;
-
-                        if(m_pstCellInfo[nArrayNum].bObj2Ani != 255){
-                            bBlend = ((m_pstCellInfo[nArrayNum].bObj1Ani & 0X80) != 0);
-                            // uint16_t bTickType = (m_pstCellInfo[nArrayNum].bObj2Ani & 0X70) >> 4; // for ticks
-                            uint16_t shAniCnt  = (m_pstCellInfo[nArrayNum].bObj2Ani & 0X0F);        // for frame count
-
-                            nFrameCount += shAniCnt;
-                        }
-
-                        uint32_t nImageColor = ( bBlend ? 0X80FFFFFF : 0XFFFFFFFF);
-                        for(int nFrame = 0; (uint32_t)nFrame < (std::max)((uint32_t)1, nFrameCount); ++nFrame){
-                            if(fnCheckExistFunc(nFileIndex, nImageIndex + nFrame)){
-                                continue;
-                            }
-                            if(m_pxTileImage[nFileIndex].SetIndex(nImageIndex + nFrame) && m_pxTileImage[nFileIndex].CurrentImageValid()){
-                                int nW = m_pxTileImage[nFileIndex].CurrentImageInfo().shWidth;
-                                int nH = m_pxTileImage[nFileIndex].CurrentImageInfo().shHeight;
-                                if(nBuffLen < nW * nH){
-                                    delete pBuff;
-                                    pBuff    = new uint32_t[nW * nH];
-                                    nBuffLen = nW * nH;
-                                }
-                                m_pxTileImage[nFileIndex].Decode(pBuff, nImageColor, 0XFFFFFFFF, 0XFFFFFFFF);
-                                fnWritePNGFunc(pBuff, nFileIndex, nImageIndex + nFrame, nW, nH, nXCnt, nYCnt);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        delete pBuff;
     }
 }
 
-void EditorMap::DrawObjectTile(
-        int nStartCellX, int nStartCellY,
-        int nStopCellX,  int nStopCellY,
-        std::function<bool(uint32_t, uint32_t, Fl_Shared_Image * &, int, int, int)> fnCheckFunc,
-        std::function<void(uint32_t, uint32_t, Fl_Shared_Image *, int, int, int)> fnDrawObjFunc)
+void EditorMap::DrawObject(
+        int nStartCellX, int nStartCellY, int nStopCellX, int nStopCellY,
+        bool bGround,
+        std::function<void(uint8_t, uint16_t, int, int)> fnDrawObj)
 {
     if(!Valid()){ return; }
 
@@ -576,16 +151,20 @@ void EditorMap::DrawObjectTile(
     for(int nYCnt = nStartCellY; nYCnt <= nStopCellY; ++nYCnt){
         for(int nXCnt = nStartCellX; nXCnt <= nStopCellX; ++nXCnt){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
-                if(m_Mir2xMap->ObjectValid(nXCnt, nYCnt, nIndex)){
-                    uint32_t nKey = m_Mir2xMap->ObjectKey(nXCnt, nYCnt, nIndex);
-                    int nFileIndex  = ((nKey & 0X00FF0000) >> 16);
-                    int nImageIndex = ((nKey & 0X0000FFFF));
-                    if(nFileIndex != 255 && nImageIndex != 65535){
-                        Fl_Shared_Image *p = nullptr;
-                        if(fnCheckFunc(nFileIndex, nImageIndex, p, nXCnt, nYCnt, nIndex)){
-                            fnDrawObjFunc(nFileIndex, nImageIndex, p, nXCnt, nYCnt, nIndex);
-                        }
+                if(ObjectValid(nXCnt, nYCnt, nIndex)
+                        && bGround == ObjectGround(nXCnt, nYCnt, nIndex)){
+
+                    uint32_t nKey         = Object(nXCnt, nYCnt, nIndex);
+                    uint8_t  nFileIndex   = ((nKey & 0X00FF0000) >> 16);
+                    uint16_t nImageIndex  = ((nKey & 0X0000FFFF));
+                    int      nAniType     = ((nKey & 0X70000000) >> 28);
+                    int      nAniCnt      = ((nKey & 0X0F000000) >> 24);
+
+                    if(ObjectAni(nXCnt, nYCnt, nIndex)){
+                        nImageIndex += ObjectOff(nAniType, nAniCnt);
                     }
+
+                    fnDrawObj(nFileIndex, nImageIndex, nXCnt, nYCnt);
                 }
             }
         }
@@ -665,6 +244,7 @@ bool EditorMap::Resize(
     auto stOldBufObj           = m_BufObj;
     auto stOldBufObjMark       = m_BufObjMark;
     auto stOldBufGroundObjMark = m_BufGroundObjMark;
+    auto stOldBufAniObjMark    = m_BufAniObjMark;
     auto stOldBufGround        = m_BufGround;
     auto stOldBufGroundMark    = m_BufGroundMark;
 
@@ -697,6 +277,9 @@ bool EditorMap::Resize(
                 stOldBufGroundObjMark  [nDstX / 2][nDstY / 2][0] = m_BufGroundObjMark  [nDstX / 2][nDstY / 2][0];
                 stOldBufGroundObjMark  [nDstX / 2][nDstY / 2][1] = m_BufGroundObjMark  [nDstX / 2][nDstY / 2][1];
 
+                stOldBufAniObjMark     [nDstX / 2][nDstY / 2][0] = m_BufAniObjMark     [nDstX / 2][nDstY / 2][0];
+                stOldBufAniObjMark     [nDstX / 2][nDstY / 2][1] = m_BufAniObjMark     [nDstX / 2][nDstY / 2][1];
+
                 stOldBufGround         [nDstX / 2][nDstY / 2][0] = m_BufGround         [nDstX / 2][nDstY / 2][0];
                 stOldBufGround         [nDstX / 2][nDstY / 2][1] = m_BufGround         [nDstX / 2][nDstY / 2][1];
                 stOldBufGround         [nDstX / 2][nDstY / 2][2] = m_BufGround         [nDstX / 2][nDstY / 2][2];
@@ -718,44 +301,65 @@ bool EditorMap::Resize(
     std::swap(stOldBufObj          , m_BufObj          );
     std::swap(stOldBufObjMark      , m_BufObjMark      );
     std::swap(stOldBufGroundObjMark, m_BufGroundObjMark);
+    std::swap(stOldBufAniObjMark   , m_BufAniObjMark   );
     std::swap(stOldBufGround       , m_BufGround       );
     std::swap(stOldBufGroundMark   , m_BufGroundMark   );
 
     return true;
 }
 
-bool EditorMap::Valid()
+int EditorMap::LightBlockType(int nStartX, int nStartY, int nSize)
 {
-    return m_Valid;
-}
+    // assume valid map, valid parameters
+    if(nSize == 0){
+        return GroundValid(nStartX, nStartY, nIndex) ? 1 : 0;
+    }else{
+        bool bFindEmpty = false;
+        bool bFindFill  = false;
+        bool bFindDiff  = false;
 
-bool EditorMap::ValidC(int nX, int nY)
-{
-    // assume valid map
-    return true
-        && nX >= 0
-        && nX <  W()
-        && nY >= 0
-        && nY <  H();
-}
+        bool bInited = false;
+        uint8_t nGroundInfoSample = 0;
 
-bool EditorMap::ValidP(int nX, int nY)
-{
-    // assume valid map
-    return true
-        && nX >= 0
-        && nX <  48 * W()
-        && nY >= 0
-        && nY <  32 * H();
-}
+        for(int nX = 0; nX < nSize; ++nX){
+            for(int nY = 0; nY < nSize; ++nY){
+                for(int nIndex = 0; nIndex < 4; ++nIndex){
+                    if(GroundValid(nX, nY, nIndex)){
+                        bFindFill = true;
+                        if(bInited){
+                            if(nGroundInfoSample != Ground(nX, nY, nIndex)){
+                                bFindDiff = true;
+                            }
+                        }else{
+                            nGroundInfoSample = Ground(nX, nY, nIndex);
+                        }
+                    }else{
+                        bFindEmpty = true;
+                    }
+                }
+            }
+        }
 
-bool EditorMap::!GroundValid(int nStartX, int nStartY, int nIndex)
-{
-}
-
-uint8_t EditorMap::Ground(int nStartX, int nStartY, int nIndex)
-{
-    return m_BufGround[nStartX][nStartY][nIndex];
+        if(bFindFill == false){
+            // no information at all
+            return 0;
+        }else{
+            // do have information
+            if(bFindEmpty == false){
+                // all filled
+                if(bFindDiff == false){
+                    // all filled and no difference exists
+                    return 1;
+                }else{
+                    // all filled and there is difference
+                    return 2;
+                }
+            }else{
+                // there are filled and empty, combined
+                return 3;
+            }
+        }
+    }
 }
 
 // get block type, assume valid parameters, parameters:
@@ -823,6 +427,7 @@ int EditorMap::GroundBlockType(int nStartX, int nStartY, int nIndex, int nSize)
         }
     }
 }
+
 // parser for ground information
 // block type can be 0 1 2 3
 // but the parse take 2 and 3 in the same action
@@ -894,8 +499,8 @@ void EditorMap::RecordLight(std::vector<uint8_t> &stDataV, int nX, int nY)
 
 void EditorMap::RecordObject(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV, int nX, int nY, int nIndex)
 {
-    bool bGroundObj = GroundObjectValid(nX, nY, nIndex);
-    uint32_t nObjDesc = ObjectDesc(nX, nY, nIndex);
+    bool bGroundObj = ObjectGround(nX, nY, nIndex);
+    uint32_t nObjDesc = Object(nX, nY, nIndex);
 
     stMarkV.push_back(bGroundObj);
 
@@ -907,7 +512,7 @@ void EditorMap::RecordObject(std::vector<bool> &stMarkV, std::vector<uint8_t> &s
 
 void EditorMap::RecordTile(std::vector<uint8_t> &stDataV, int nX, int nY)
 {
-    uint32_t nTileDesc = TileDesc(nX, nY, nIndex);
+    uint32_t nTileDesc = Tile(nX, nY);
 
     stDataV.push_back((uint8_t)((nTileDesc & 0X000000FF ) >>  0));
     stDataV.push_back((uint8_t)((nTileDesc & 0X0000FF00 ) >>  8));
@@ -1228,28 +833,41 @@ void EditorMap::SetBufGround(int nX, int nY, int nIndex)
 
 void EditorMap::SetBufObj(int nX, int nY, int nIndex)
 {
+    uint32_t nObj       = 0;
+    int      nObjValid  = 0;
+    int      nGroundObj = 0;
+    int      nAniObj    = 0;
+
     if(m_Mir2xMap && m_Mir2xMap->Valid()){
         // mir2x map
         if(m_Mir2xMap->ObjectValid(nX, nY, nIndex)){
-            if(m_Mir2xMap->GroundObjectValid(nX, nY, nIndex)){
-                m_BufObjMark[nX][nY][nIndex] = 3;
-            }else{
-                m_BufObjMark[nX][nY][nIndex] = 1;
+            nObjValid = 1;
+            if(m_Mir2xMap->ObjectGround(nX, nY, nIndex)){
+                nGroundObj = 1;
             }
-
-            m_BufObj[nX][nY][nIndex] = m_Mir2xMap->Object(nX, nY, nIndex);
+            if(m_Mir2xMap->ObjectAni(nX, nY, nIndex)){
+                nAniObj = 1;
+            }
+            nObj = m_Mir2xMap->Object(nX, nY, nIndex);
         }
     }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
-        // mirx map
+        // mir2 map
         if(m_OldMir2Map->ObjectValid(nX, nY, nIndex)){
-            m_BufObj[nX][nY][nIndex] = m_OldMir2Map->Object(nX, nY, nIndex);
-            if(m_OldMir2Map->GroundObjectValid(nX, nY, nIndex)){
-                m_BufObjMark[nX][nY][nIndex] = 3;
-            }else{
-                m_BufObjMark[nX][nY][nIndex] = 1;
+            nObjValid = 1;
+            if(m_OldMir2Map->ObjectGround(nX, nY, nIndex)){
+                nGroundObj = 1;
             }
+            if(m_OldMir2Map->ObjectAni(nX, nY, nIndex)){
+                nAniObj = 1;
+            }
+            nObj = m_OldMir2Map->Object(nX, nY, nIndex);
         }
     }
+
+    m_BufObj          [nX][nY][nIndex] = nObj;
+    m_BufObjMark      [nX][nY][nIndex] = nObjValid;
+    m_BufGroundObjMark[nX][nY][nIndex] = nGroundObj;
+    m_BufAniObjMark   [nX][nY][nIndex] = nAniObj;
 }
 
 void EditorMap::SetBufLight(int nX, int nY)

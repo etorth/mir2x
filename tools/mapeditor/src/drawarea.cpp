@@ -3,9 +3,11 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/12/2016 22:36:22
+ *  Last Modified: 02/14/2016 15:40:07
  *
- *    Description: 
+ *    Description: To handle or GUI interaction
+ *                 Provide handlers to EditorMap
+ *                 EditorMap will draw scene with assistance of ImageDB
  *
  *        Version: 1.0
  *       Revision: none

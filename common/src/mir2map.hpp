@@ -1,16 +1,15 @@
 #pragma once
 
-#include "mir2xmap.hpp"
-
 #include <string>
 #include "wilimagepackage.hpp"
 #include <cstdint>
 #include <functional>
 #include <vector>
-#include <Fl/Fl_Shared_Image.H>
+
+#include "imagedb.hpp"
 
 #pragma pack(push, 1)
-// this is abandoned
+
 typedef struct{
     int32_t     bIsLight;
     char        cLightSizeType;
@@ -40,124 +39,96 @@ typedef struct{
     uint16_t    wObj2;
     uint16_t    bDoorIndex;
     uint8_t     bDoorOffset;
-    uint16_t    wLigntNEvent;
+    uint16_t    wLightNEvent;
 }CELLINFO;
 
 #pragma pack(pop)
 
 class Mir2Map
 {
-    private:
-        bool            m_Valid;
-    private:
-        int             m_DoorCount;
-        int             m_LightCount;
-        int             m_AlphaBlend;
-    private:
-        uint32_t        m_dwAniSaveTime[8];
-        uint8_t         m_bAniTileFrame[8][16];
+    public:
+        Mir2Map();
+        ~Mir2Map();
 
     private:
-        WilImagePackage *m_pxTileImage;
+        bool            m_Valid;
 
     private:
         TILEINFO       *m_pstTileInfo;
         CELLINFO       *m_pstCellInfo;
         MAPFILEHEADER   m_stMapFileHeader;
 
-    private:
-        Mir2xMap        g_Mir2xMap;
+    public:
+        bool Load(const char *);
 
     public:
-        Mir2Map();
-        ~Mir2Map();
-
-    public:
-        bool LoadMap(const char *);
-        void LoadMapImage(WilImagePackage *);
-
-    public:
-
-        void ExtractOneBaseTile(std::function<void(uint32_t *, uint32_t, uint32_t, int, int, int, int)>, int, int);
-        void ExtractOneObjectTile(std::function<void(uint32_t *, uint32_t, uint32_t, int, int, int, int)>, int, int);
-
-        void ExtractBaseTile(std::function<bool(uint32_t, uint32_t)>, std::function<void(uint32_t *, uint32_t, uint32_t, int, int, int, int)>);
-        void ExtractObjectTile(std::function<bool(uint32_t, uint32_t)>, std::function<void(uint32_t *, uint32_t, uint32_t, int, int, int, int)>);
-        void ExtractGroundInfo(std::function<void(uint32_t, int, int, int)>);
-
-    public:
-        void     SetAniTileFrame(int);
         uint32_t GetDoorImageIndex(int, int);
 
     public:
         // use this API set to extract needed information only
-        int  Width();
-        int  Height();
-        bool Valid();
+        bool Valid()
+        {
+            return m_Valid;
+        }
+
+        bool ValidC(int nX, int nY)
+        {
+            return true
+                && nX >= 0
+                && nX <  m_stMapFileHeader.shWidth
+                && nY >= 0
+                && nY <  m_stMapFileHeader.shHeight;
+        }
+
+        bool ValidP(int nX, int nY)
+        {
+            return true
+                && nX >= 0
+                && nX <  48 * m_stMapFileHeader.shWidth
+                && nY >= 0
+                && nY <  32 * m_stMapFileHeader.shHeight;
+        }
 
     public:
-        bool Expand(int, int);
-        bool CropSize(int, int, int, int);
-    public:
-        const TILEINFO &BaseTileInfo(int, int);
-        const CELLINFO &CellInfo(int, int);
-    public:
-        void DrawBaseTile(int, int, int, int, std::function<void(uint32_t, uint32_t, int, int)>);
-        void DrawObjectTile(int, int, int, int, std::function<bool(uint32_t, uint32_t, Fl_Shared_Image * &, int, int)>, std::function<void(uint32_t, uint32_t, Fl_Shared_Image *, int, int)>);
+        int  W()
+        {
+            return m_stMapFileHeader.shWidth;
+        }
+
+        int  H()
+        {
+            return m_stMapFileHeader.shHeight;
+        }
 
     public:
-        void CompressGroundInfo(std::vector<bool> &, std::vector<uint8_t> &);
-        void CompressBaseTileInfo(std::vector<bool> &, std::vector<uint32_t> &);
-        void CompressBaseTileInfoPreOrder(int, int, int, std::vector<bool> &, std::vector<uint32_t> &);
-        bool EmptyBaseTileBlock(int, int, int);
+        bool LightValid(int, int);
+        uint16_t Light(int, int);
+
+        bool GroundValid(int, int);
+        uint8_t Ground(int, int);
+
+        bool ObjectValid(int, int, int, ImageDB &);
+        bool GroundObjectValid(int, int, int, ImageDB &);
+        uint32_t Object(int, int, int);
+
+        bool TileValid(int, int, ImageDB &);
+        uint32_t Tile(int, int);
 
     public:
-        void CompressCellTileInfo(std::vector<bool> &, std::vector<CELLDESC> &);
-        void CompressCellTileInfoPreOrder(int, int, int, std::vector<bool> &, std::vector<CELLDESC> &);
-        bool EmptyCellTileBlock(int, int, int);
+        const TILEINFO &BaseTileInfo(int nX, int nY)
+        {
+            return m_pstTileInfo[(nX / 2) * m_stMapFileHeader.shHeight / 2 + nY / 2];
+        }
+
+        const CELLINFO &CellInfo(int nX, int nY)
+        {
+            return m_pstCellInfo[nY + nX * m_stMapFileHeader.shHeight];
+        }
 
     public:
-        bool NewLoadMap(const char *);
-
-    private:
-        std::vector<std::vector<std::array<bool, 4>>> m_SelectedGrid;
-
-    private:
-        uint32_t    BitPickOne(uint32_t *, uint32_t);
-
-
-    private:
-        bool LoadGroundInfo(uint32_t *, uint32_t, uint32_t *, uint32_t);
-        void SetOneGroundInfoGrid(int, int, int, uint32_t);
-        void SetGroundInfoBlock(int, int, int, uint32_t);
-        void ParseGroundInfoStream(int, int, int, uint32_t *, uint32_t &, uint32_t *, uint32_t &);
-
-    private:
-        bool LoadCellDesc(uint32_t *, uint32_t, CELLDESC *, uint32_t);
-        void SetCellDescBlock(int, int, int, const CELLDESC &);
-        void ParseCellDescStream(int, int, int, uint32_t *, uint32_t &, CELLDESC *, uint32_t &);
-
-    private:
-        void SetBaseTileBlock(int, int, int, uint32_t);
-        bool LoadBaseTileInfo(uint32_t *, uint32_t, uint32_t *, uint32_t);
-        void ParseBaseTileStream(int, int, int, uint32_t *, uint32_t &, uint32_t *, uint32_t &);
-
-    public:
-        void Optimize();
-        void OptimizeBaseTile(int, int);
-        void OptimizeCell(int, int);
-
-    private:
-        void SetMapInfo();
-
-    public:
-        std::string MapInfo();
-
-    public:
-        // work on door
         uint8_t GetDoor(int, int);
-        void OpenDoor(int, int, uint8_t);
-        void CloseDoor(int, int, uint8_t);
-        void OpenAllDoor();
-        void CloseAllDoor();
+        void    OpenDoor(int, int, uint8_t);
+        void    CloseDoor(int, int, uint8_t);
+        void    OpenAllDoor();
+        void    CloseAllDoor();
 };

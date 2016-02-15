@@ -1,5 +1,26 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: editormap.hpp
+ *        Created: 02/08/2016 22:17:08
+ *  Last Modified: 02/14/2016 22:18:05
+ *
+ *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
+ *                 Use function handler to handle draw, cache, etc
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #pragma once
 
+#include "mir2map.hpp"
 #include "mir2xmap.hpp"
 
 #include <string>
@@ -7,157 +28,164 @@
 #include <cstdint>
 #include <functional>
 #include <vector>
-#include <Fl/Fl_Shared_Image.H>
 
-#pragma pack(push, 1)
-// this is abandoned
-typedef struct{
-    int32_t     bIsLight;
-    char        cLightSizeType;
-    char        cLightColorType;
-}LIGHTINFO;
-
-typedef struct{
-    char        szDesc[20];
-    uint16_t    wAttr;
-    int16_t     shWidth;
-    int16_t     shHeight;
-    char        cEventFileIndex;
-    char        cFogColor;
-}MAPFILEHEADER;
-
-typedef struct{
-    uint8_t     bFileIndex;
-    uint16_t    wTileIndex;
-}TILEINFO;
-
-typedef struct{
-    uint8_t     bFlag;
-    uint8_t     bObj1Ani;
-    uint8_t     bObj2Ani;
-    uint16_t    wFileIndex;
-    uint16_t    wObj1;
-    uint16_t    wObj2;
-    uint16_t    bDoorIndex;
-    uint8_t     bDoorOffset;
-    uint16_t    wLigntNEvent;
-}CELLINFO;
-
-#pragma pack(pop)
-
-class Mir2Map
+class EditorMap
 {
     private:
+        int             m_W;
+        int             m_H;
         bool            m_Valid;
-    private:
-        int             m_DoorCount;
-        int             m_LightCount;
-        int             m_AlphaBlend;
-    private:
         uint32_t        m_dwAniSaveTime[8];
         uint8_t         m_bAniTileFrame[8][16];
 
     private:
-        WilImagePackage *m_pxTileImage;
+        Mir2Map        *m_OldMir2Map;
+        Mir2xMap       *m_Mir2xMap;
 
     private:
-        TILEINFO       *m_pstTileInfo;
-        CELLINFO       *m_pstCellInfo;
-        MAPFILEHEADER   m_stMapFileHeader;
+        // buffers
+        std::vector<std::vector<int>>                       m_BufLightMark;
+        std::vector<std::vector<uint16_t>>                  m_BufLight;
 
-    private:
-        Mir2xMap        g_Mir2xMap;
+        std::vector<std::vector<int>>                       m_BufTileMark;
+        std::vector<std::vector<uint32_t>>                  m_BufTile;
 
-    public:
-        Mir2Map();
-        ~Mir2Map();
+        std::vector<std::vector<std::array<int, 2>>>        m_BufObjMark;
+        std::vector<std::vector<std::array<int, 2>>>        m_BufGroundObjMark;
+        std::vector<std::vector<std::array<int, 2>>>        m_BufAniObjMark;
+        std::vector<std::vector<std::array<uint32_t, 2>>>   m_BufObj;
 
-    public:
-        bool LoadMap(const char *);
-        void LoadMapImage(WilImagePackage *);
-
-    public:
-
-        void ExtractOneBaseTile(std::function<void(uint32_t *, uint32_t, uint32_t, int, int, int, int)>, int, int);
-        void ExtractOneObjectTile(std::function<void(uint32_t *, uint32_t, uint32_t, int, int, int, int)>, int, int);
-
-        void ExtractBaseTile(std::function<bool(uint32_t, uint32_t)>, std::function<void(uint32_t *, uint32_t, uint32_t, int, int, int, int)>);
-        void ExtractObjectTile(std::function<bool(uint32_t, uint32_t)>, std::function<void(uint32_t *, uint32_t, uint32_t, int, int, int, int)>);
-        void ExtractGroundInfo(std::function<void(uint32_t, int, int, int)>);
+        std::vector<std::vector<std::array<int, 4>>>        m_BufGroundMark;
+        std::vector<std::vector<std::array<uint8_t, 4>>>    m_BufGround;
 
     public:
-        void     SetAniTileFrame(int);
-        uint32_t GetDoorImageIndex(int, int);
+        EditorMap();
+        ~EditorMap();
 
     public:
-        // use this API set to extract needed information only
-        int  Width();
-        int  Height();
-        bool Valid();
+        bool LoadMir2Map(const char *);
+        void LoadMir2xMap(const char *);
 
     public:
-        bool Expand(int, int);
-        bool CropSize(int, int, int, int);
-    public:
-        const TILEINFO &BaseTileInfo(int, int);
-        const CELLINFO &CellInfo(int, int);
-    public:
-        void DrawBaseTile(int, int, int, int, std::function<void(uint32_t, uint32_t, int, int)>);
-        void DrawObjectTile(int, int, int, int, std::function<bool(uint32_t, uint32_t, Fl_Shared_Image * &, int, int)>, std::function<void(uint32_t, uint32_t, Fl_Shared_Image *, int, int)>);
+        // fast api
+        // user's responsability to maintain parameters and states
+        bool Valid()
+        {
+            return m_Valid;
+        }
+
+        bool ValidC(int nX, int nY)
+        {
+            return nX >= 0 && nX <  W() && nY >= 0 && nY <  H();
+        }
+
+        bool ValidP(int nX, int nY)
+        {
+            return nX >= 0 && nX <  48 * W() && nY >= 0 && nY <  32 * H();
+        }
+
+        int W()
+        {
+            return m_W;
+        }
+
+        int H()
+        {
+            return m_H;
+        }
+
+        int TileValid(int nX, int nY)
+        {
+            return m_BufTileMark[nX][nY];
+        }
+
+        uint32_t Tile(int nX, int nY)
+        {
+            return m_BufTile[nX][nY];
+        }
+
+        int ObjectValid(int nX, int nY, int nIndex)
+        {
+            return m_BufObjMark[nX][nY][nIndex];
+        }
+
+        uint32_t Object(int nX, int nY, int nIndex)
+        {
+            return m_BufObj[nX][nY][nIndex];
+        }
+
+        int ObjectGround(int nX, int nY,  int nIndex)
+        {
+            return m_BufGroundObjMark[nX][nY][nIndex];
+        }
+
+        bool ObjectAni(int nX, int nY, int nIndex)
+        {
+            return m_BufAniObjMark[nX][nY][nIndex];
+        }
+
+        int LightValid(int nX, int nY)
+        {
+            return m_BufLightMark[nX][nY];
+        }
+
+        uint16_t Light(int nX, int nY)
+        {
+            return m_BufLight[nX][nY];
+        }
+
+        int GroundValid(int nX, int nY, int nIndex)
+        {
+            return m_BufGroundMark[nX][nY][nIndex];
+        }
+
+        uint8_t Ground(int nX, int nY, int nIndex)
+        {
+            return m_BufGround[nX][nY][nIndex];
+        }
+
+        uint16_t ObjectOff(int nAniType, int nAniCnt)
+        {
+            return (uint16_t)(m_bAniTileFrame[nAniType][nAniCnt]);
+        }
 
     public:
-        void CompressGroundInfo(std::vector<bool> &, std::vector<uint8_t> &);
-        void CompressBaseTileInfo(std::vector<bool> &, std::vector<uint32_t> &);
-        void CompressBaseTileInfoPreOrder(int, int, int, std::vector<bool> &, std::vector<uint32_t> &);
-        bool EmptyBaseTileBlock(int, int, int);
+        void ExtractOneTile(int, int, std::function<void(uint8_t, uint16_t)>);
+        void ExtractTile(std::function<void(uint8_t, uint16_t)>);
+
+        void ExtractOneObject(int, int, int, std::function<void(uint8_t, uint16_t, uint32_t)>);
+        void ExtractObject(std::function<void(uint8_t, uint16_t, uint32_t)>);
+
+        void DrawTile(int, int, int,  int, std::function<void(uint8_t, uint16_t, int, int)>);
+        void DrawObject(int, int, int, int, bool, std::function<void(uint8_t, uint16_t, int, int)>);
 
     public:
-        void CompressCellTileInfo(std::vector<bool> &, std::vector<CELLDESC> &);
-        void CompressCellTileInfoPreOrder(int, int, int, std::vector<bool> &, std::vector<CELLDESC> &);
-        bool EmptyCellTileBlock(int, int, int);
+        void DoCompressGround(int, int, int, std::vector<bool> &, std::vector<uint8_t> &);
+        void DoCompressLight(int, int, int, std::vector<bool> &, std::vector<uint8_t> &);
 
     public:
-        bool NewLoadMap(const char *);
+        void RecordGround(std::vector<uint8_t> &, int, int, int);
+        void RecordLight(std::vector<uint8_t> &, int, int);
+        void RecordObject(std::vector<bool> &, std::vector<uint8_t> &, int, int, int);
+        void RecordTile(std::vector<uint8_t> &, int, int);
 
-    private:
-        std::vector<std::vector<std::array<bool, 4>>> m_SelectedGrid;
+    public:
+        void UpdateFrame(int);
+        bool Resize(int, int, int, int, int, int, int, int);
 
-    private:
-        uint32_t    BitPickOne(uint32_t *, uint32_t);
+    public:
+        int GroundBlockType(int, int, int, int);
+        int LightBlockType(int, int, int);
 
-
-    private:
-        bool LoadGroundInfo(uint32_t *, uint32_t, uint32_t *, uint32_t);
-        void SetOneGroundInfoGrid(int, int, int, uint32_t);
-        void SetGroundInfoBlock(int, int, int, uint32_t);
-        void ParseGroundInfoStream(int, int, int, uint32_t *, uint32_t &, uint32_t *, uint32_t &);
-
-    private:
-        bool LoadCellDesc(uint32_t *, uint32_t, CELLDESC *, uint32_t);
-        void SetCellDescBlock(int, int, int, const CELLDESC &);
-        void ParseCellDescStream(int, int, int, uint32_t *, uint32_t &, CELLDESC *, uint32_t &);
-
-    private:
-        void SetBaseTileBlock(int, int, int, uint32_t);
-        bool LoadBaseTileInfo(uint32_t *, uint32_t, uint32_t *, uint32_t);
-        void ParseBaseTileStream(int, int, int, uint32_t *, uint32_t &, uint32_t *, uint32_t &);
+    public:
+        // save to mir2x compact format
+        bool Save(const char *);
 
     public:
         void Optimize();
-        void OptimizeBaseTile(int, int);
+        void OptimizeTile(int, int);
         void OptimizeCell(int, int);
 
     private:
-        void SetMapInfo();
-
-    public:
-        std::string MapInfo();
-
-    public:
-        // work on door
-        uint8_t GetDoor(int, int);
-        void OpenDoor(int, int, uint8_t);
-        void CloseDoor(int, int, uint8_t);
-        void OpenAllDoor();
-        void CloseAllDoor();
+        void MakeBuf(int, int);
 };
