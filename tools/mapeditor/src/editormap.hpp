@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/14/2016 22:18:05
+ *  Last Modified: 02/14/2016 23:38:23
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -64,7 +64,7 @@ class EditorMap
 
     public:
         bool LoadMir2Map(const char *);
-        void LoadMir2xMap(const char *);
+        bool LoadMir2xMap(const char *);
 
     public:
         // fast api
@@ -160,32 +160,43 @@ class EditorMap
         void DrawObject(int, int, int, int, bool, std::function<void(uint8_t, uint16_t, int, int)>);
 
     public:
+        void CompressLight(std::vector<bool> &, std::vector<uint8_t> &);
+        void CompressGround(std::vector<bool> &, std::vector<uint8_t> &);
+        void CompressTile(std::vector<bool> &, std::vector<uint8_t> &);
+
+    public:
         void DoCompressGround(int, int, int, std::vector<bool> &, std::vector<uint8_t> &);
         void DoCompressLight(int, int, int, std::vector<bool> &, std::vector<uint8_t> &);
+        void DoCompressTile(int, int, int, std::vector<bool> &, std::vector<uint8_t> &);
+        void DoCompressObject(int, int, int, int, std::vector<bool> &, std::vector<uint8_t> &);
 
     public:
-        void RecordGround(std::vector<uint8_t> &, int, int, int);
-        void RecordLight(std::vector<uint8_t> &, int, int);
-        void RecordObject(std::vector<bool> &, std::vector<uint8_t> &, int, int, int);
-        void RecordTile(std::vector<uint8_t> &, int, int);
+            void RecordGround(std::vector<uint8_t> &, int, int, int);
+            void RecordLight(std::vector<uint8_t> &, int, int);
+            void RecordObject(std::vector<bool> &, std::vector<uint8_t> &, int, int, int);
+            void RecordTile(std::vector<uint8_t> &, int, int);
 
     public:
-        void UpdateFrame(int);
-        bool Resize(int, int, int, int, int, int, int, int);
+            void UpdateFrame(int);
+            bool Resize(int, int, int, int, int, int, int, int);
 
     public:
-        int GroundBlockType(int, int, int, int);
-        int LightBlockType(int, int, int);
+            int ObjectBlockType(int, int, int, int);
+            int GroundBlockType(int, int, int, int);
+            int LightBlockType(int, int, int);
+            int TileBlockType(int, int, int);
 
     public:
-        // save to mir2x compact format
-        bool Save(const char *);
+            // save to mir2x compact format
+            bool Save(const char *);
 
     public:
-        void Optimize();
-        void OptimizeTile(int, int);
-        void OptimizeCell(int, int);
+            void Optimize();
+            void OptimizeTile(int, int);
+            void OptimizeCell(int, int);
 
     private:
-        void MakeBuf(int, int);
+            void ClearBuf();
+            void MakeBuf(int, int);
+            bool InitBuf();
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/14/2016 22:21:54
+ *  Last Modified: 02/14/2016 23:38:05
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -20,6 +20,7 @@
 #include "mir2map.hpp"
 #include "mir2xmap.hpp"
 #include "editormap.hpp"
+#include "supwarning.hpp"
 
 #include <memory.h>
 #include "assert.h"
@@ -251,6 +252,7 @@ bool EditorMap::Resize(
     // this function will clear the new buffer
     // with all zeros
     MakeBuf(nNewW, nNewH);
+    InitBuf();
 
     for(int nTY = 0; nTY < nH; ++nTY){
         for(int nTX = 0; nTX < nW; ++nTX){
@@ -308,34 +310,136 @@ bool EditorMap::Resize(
     return true;
 }
 
-int EditorMap::LightBlockType(int nStartX, int nStartY, int nSize)
+int EditorMap::ObjectBlockType(int nStartX, int nStartY, int nIndex, int nSize)
 {
     // assume valid map, valid parameters
-    if(nSize == 0){
-        return GroundValid(nStartX, nStartY, nIndex) ? 1 : 0;
+    if(nSize == 1){
+        return ObjectValid(nStartX, nStartY, nIndex) ? 1 : 0;
     }else{
         bool bFindEmpty = false;
         bool bFindFill  = false;
         bool bFindDiff  = false;
 
         bool bInited = false;
-        uint8_t nGroundInfoSample = 0;
+        uint32_t nObjectSample = 0;
 
         for(int nX = 0; nX < nSize; ++nX){
             for(int nY = 0; nY < nSize; ++nY){
-                for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    if(GroundValid(nX, nY, nIndex)){
-                        bFindFill = true;
-                        if(bInited){
-                            if(nGroundInfoSample != Ground(nX, nY, nIndex)){
-                                bFindDiff = true;
-                            }
-                        }else{
-                            nGroundInfoSample = Ground(nX, nY, nIndex);
+                if(ObjectValid(nX, nY, nIndex)){
+                    bFindFill = true;
+                    if(bInited){
+                        if(nObjectSample != Object(nX, nY, nIndex)){
+                            bFindDiff = true;
                         }
                     }else{
-                        bFindEmpty = true;
+                        nObjectSample = Object(nX, nY, nIndex);
                     }
+                }else{
+                    bFindEmpty = true;
+                }
+            }
+        }
+
+        if(bFindFill == false){
+            // no information at all
+            return 0;
+        }else{
+            // do have information
+            if(bFindEmpty == false){
+                // all filled
+                if(bFindDiff == false){
+                    // all filled and no difference exists
+                    return 1;
+                }else{
+                    // all filled and there is difference
+                    return 2;
+                }
+            }else{
+                // there are filled and empty, combined
+                return 3;
+            }
+        }
+    }
+}
+
+int EditorMap::TileBlockType(int nStartX, int nStartY, int nSize)
+{
+    // assume valid map, valid parameters
+    if(nSize == 2){
+        return TileValid(nStartX, nStartY) ? 1 : 0;
+    }else{
+        bool bFindEmpty = false;
+        bool bFindFill  = false;
+        bool bFindDiff  = false;
+
+        bool bInited = false;
+        uint32_t nTileSample = 0;
+
+        for(int nX = 0; nX < nSize; ++nX){
+            for(int nY = 0; nY < nSize; ++nY){
+                if(TileValid(nX, nY)){
+                    bFindFill = true;
+                    if(bInited){
+                        if(nTileSample != Tile(nX, nY)){
+                            bFindDiff = true;
+                        }
+                    }else{
+                        nTileSample = Tile(nX, nY);
+                    }
+                }else{
+                    bFindEmpty = true;
+                }
+            }
+        }
+
+        if(bFindFill == false){
+            // no information at all
+            return 0;
+        }else{
+            // do have information
+            if(bFindEmpty == false){
+                // all filled
+                if(bFindDiff == false){
+                    // all filled and no difference exists
+                    return 1;
+                }else{
+                    // all filled and there is difference
+                    return 2;
+                }
+            }else{
+                // there are filled and empty, combined
+                return 3;
+            }
+        }
+    }
+}
+
+int EditorMap::LightBlockType(int nStartX, int nStartY, int nSize)
+{
+    // assume valid map, valid parameters
+    if(nSize == 1){
+        return LightValid(nStartX, nStartY) ? 1 : 0;
+    }else{
+        bool bFindEmpty = false;
+        bool bFindFill  = false;
+        bool bFindDiff  = false;
+
+        bool bInited = false;
+        uint16_t nLightSample = 0;
+
+        for(int nX = 0; nX < nSize; ++nX){
+            for(int nY = 0; nY < nSize; ++nY){
+                if(LightValid(nX, nY)){
+                    bFindFill = true;
+                    if(bInited){
+                        if(nLightSample != Light(nX, nY)){
+                            bFindDiff = true;
+                        }
+                    }else{
+                        nLightSample = Light(nX, nY);
+                    }
+                }else{
+                    bFindEmpty = true;
                 }
             }
         }
@@ -389,15 +493,15 @@ int EditorMap::GroundBlockType(int nStartX, int nStartY, int nIndex, int nSize)
 
         for(int nX = 0; nX < nSize; ++nX){
             for(int nY = 0; nY < nSize; ++nY){
-                for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    if(GroundValid(nX, nY, nIndex)){
+                for(int nIdx = 0; nIdx < 4; ++nIdx){
+                    if(GroundValid(nX, nY, nIdx)){
                         bFindFill = true;
                         if(bInited){
-                            if(nGroundInfoSample != Ground(nX, nY, nIndex)){
+                            if(nGroundInfoSample != Ground(nX, nY, nIdx)){
                                 bFindDiff = true;
                             }
                         }else{
-                            nGroundInfoSample = Ground(nX, nY, nIndex);
+                            nGroundInfoSample = Ground(nX, nY, nIdx);
                         }
                     }else{
                         bFindEmpty = true;
@@ -555,34 +659,33 @@ void EditorMap::DoCompressLight(int nX, int nY, int nSize,
     }
 }
 
-// tile compression is relatively simple
+// tile compression is relatively simple, end-level is 2
 void EditorMap::DoCompressTile(int nX, int nY, int nSize,
         std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV)
 {
     if(!ValidC(nX, nY)){ return; }
 
-    int nType = ObjectBlockType(nX, nY, nIndex, nSize);
+    int nType = TileBlockType(nX, nY, nSize);
     if(nType != 0){
         // there is informaiton in this box
         stMarkV.push_back(true);
-        if(nSize == 1){
+        if(nSize == 2){
             // there is info, and it's last level, so nType can only be 1
             // end of recursion
-            stDataV.push_back(Light(nX, nY));
-            RecordObject(stMarkV, stDataV, nX, nY, nIndex);
+            RecordTile(stDataV, nX, nY);
         }else{
             // there is info, and it's not the last level
             if(nType == 2 || nType == 3){
                 // there is info and need further parse
                 stMarkV.push_back(true);
-                DoCompressObject(nX            , nY            , nIndex, nSize / 2, stMarkV, stDataV);
-                DoCompressObject(nX + nSize / 2, nY            , nIndex, nSize / 2, stMarkV, stDataV);
-                DoCompressObject(nX            , nY + nSize / 2, nIndex, nSize / 2, stMarkV, stDataV);
-                DoCompressObject(nX + nSize / 2, nY + nSize / 2, nIndex, nSize / 2, stMarkV, stDataV);
+                DoCompressTile(nX            , nY            , nSize / 2, stMarkV, stDataV);
+                DoCompressTile(nX + nSize / 2, nY            , nSize / 2, stMarkV, stDataV);
+                DoCompressTile(nX            , nY + nSize / 2, nSize / 2, stMarkV, stDataV);
+                DoCompressTile(nX + nSize / 2, nY + nSize / 2, nSize / 2, stMarkV, stDataV);
             }else{
                 // nType == 1 here, unified info
                 stMarkV.push_back(false);
-                RecordObject(stMarkV, stDataV, nX, nY, nIndex);
+                RecordTile(stDataV, nX, nY);
             }
         }
     }else{
@@ -660,13 +763,14 @@ void EditorMap::CompressTile(std::vector<bool> &stMarkV, std::vector<uint8_t> &s
     }
 }
 
-bool EditorMap::LoadMap2xMap(const char *szFullName)
+bool EditorMap::LoadMir2xMap(const char *szFullName)
 {
     delete m_OldMir2Map; m_OldMir2Map = nullptr;
     delete m_Mir2xMap  ; m_Mir2xMap   = new Mir2xMap();
 
     if(m_Mir2xMap->Load(szFullName)){
-        MakeBuf();
+        MakeBuf(m_Mir2xMap->W(), m_Mir2xMap->H());
+        InitBuf();
     }
 
     delete m_Mir2xMap;
@@ -679,7 +783,8 @@ bool EditorMap::LoadMir2Map(const char *szFullName)
     delete m_Mir2xMap  ; m_Mir2xMap   = nullptr;
 
     if(m_OldMir2Map->Load(szFullName)){
-        MakeBuf();
+        MakeBuf(m_OldMir2Map->W(), m_OldMir2Map->H());
+        InitBuf();
     }
 
     delete m_OldMir2Map;
@@ -694,42 +799,100 @@ void EditorMap::Optimize()
     // tile
     for(int nY = 0; nY < H(); ++nY){
         for(int nX = 0; nX < W(); ++nX){
-            OptimizeBaseTile(nX, nY);
+            OptimizeTile(nX, nY);
             OptimizeCell(nX, nY);
         }
     }
 }
 
-void EditorMap::OptimizeBaseTile(int nX, int nY)
+void EditorMap::OptimizeTile(int nX, int nY)
 {
     // TODO
+    UNUSED(nX); UNUSED(nY);
 }
 
-void EditorMap::OptimizeCell(int, int)
+void EditorMap::OptimizeCell(int nX, int nY)
 {
     // TODO
+    UNUSED(nX); UNUSED(nY);
 }
 
 void EditorMap::ClearBuf()
 {
     m_W = 0;
     m_H = 0;
-    m_BufValid = false;
+    m_Valid = false;
+
+    m_BufLight.clear();
+    m_BufLightMark.clear();
+    m_BufTile.clear();
+    m_BufTileMark.clear();
+    m_BufObj.clear();
+    m_BufObjMark.clear();
+    m_BufGroundObjMark.clear();
+    m_BufGround.clear();
+    m_BufGroundMark.clear();
 }
 
-bool EditorMap::InitBuf(int nW, int nH)
+bool EditorMap::InitBuf()
 {
-    if(nW == 0 || nH == 0 || nW % 2 || nH % 2){ return false; }
+    if((m_Mir2xMap && m_Mir2xMap->Valid()) || (m_OldMir2Map && m_OldMir2Map->Valid())){
+        for(int nY = 0; nY < nH; ++nY){
+            for(int nX = 0; nX < nW; ++nX){
+                if(!(nX % 2) && !(nY % 2)){
+                    SetTile(nX / 2, nY / 2);
+                }
+
+                SetBufLight(nX, nY);
+
+                SetBufObj(nX, nY, 0);
+                SetBufObj(nX, nY, 1);
+
+                SetBufGround(nX, nY, 0);
+                SetBufGround(nX, nY, 1);
+                SetBufGround(nX, nY, 2);
+                SetBufGround(nX, nY, 3);
+            }
+        }
+
+        if(m_Mir2xMap && m_Mir2xMap->Valid()){
+            m_W = m_Mir2xMap->W();
+            m_H = m_Mir2xMap->H();
+            m_Valid = true;
+        }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
+            m_W = m_OldMir2Map->W();
+            m_H = m_OldMir2Map->H();
+            m_Valid = true;
+        }else{
+            // can't be here
+            m_W = 0;
+            m_H = 0;
+            m_Valid = false;
+        }
+    }else{
+        // otherwise m_Valid is false
+        m_Valid = false;
+    }
+
+    return m_Valid;
+}
+
+void EditorMap::MakeBuf(int nW, int nH)
+{
+    // make a buffer for loading new map
+    // or extend / crop old map
+    ClearBuf();
+    if(nW == 0 || nH == 0 || nW % 2 || nH % 2){ return; }
 
     // m_BufLight[nX][nY]
     m_BufLight = std::vector<std::vector<uint16_t>>(nW, std::vector<uint16_t>(nH, 0));
     // m_BufLightMark[nX][nY]
-    m_BufLightMark = std::vector<std::vector<int>>(nW, std::vector<uint32_t>(nH, 0));
+    m_BufLightMark = std::vector<std::vector<int>>(nW, std::vector<int>(nH, 0));
 
     // m_BufTile[nX][nY]
     m_BufTile = std::vector<std::vector<uint32_t>>(nW / 2, std::vector<uint32_t>(nH / 2, 0));
     // m_BufTileMark[nX][nY]
-    m_BufTileMark = std::vector<std::vector<int>>(nW / 2, std::vector<uint32_t>(nH / 2, 0));
+    m_BufTileMark = std::vector<std::vector<int>>(nW / 2, std::vector<int>(nH / 2, 0));
 
     // m_BufObj[nX][nY][0]
     m_BufObj = std::vector<std::vector<std::array<uint32_t, 2>>>(
@@ -747,55 +910,6 @@ bool EditorMap::InitBuf(int nW, int nH)
     // m_BufGroundMark[nX][nY][0]
     m_BufGroundMark = std::vector<std::vector<std::array<int, 4>>>(
             nW, std::vector<std::array<int, 4>>(nH, {0, 0, 0, 0}));
-
-    return true;
-}
-
-bool EditorMap::MakeBuf()
-{
-    // after load a map by mir2x map or old mir2 map
-    // always make a buffer of it, then we can edit on this buffer
-    //
-    // all queries and operations are on this buffer
-    // fixed format maps are only for one-shoot usage
-    //
-    // which simplifies outside funtion handle design
-
-    ClearBuf();
-
-    if(m_Mir2xMap && m_Mir2xMap->Valid()){
-        m_W = m_Mir2xMap->W();
-        m_H = m_Mir2xMap->H();
-    }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
-        m_W = m_OldMir2Map->W();
-        m_H = m_OldMir2Map->H();
-    }else{
-        // no valid map now
-        return false;
-    }
-
-    InitBuf();
-
-    for(int nY = 0; nY < m_H; ++nY){
-        for(int nX = 0; nX < m_W; ++nX){
-            // light
-            if(!(nX % 2) && !(nY % 2)){
-                SetTile(nX / 2, nY / 2);
-            }
-
-            SetBufLight(nX, nY);
-
-            SetBufObj(nX, nY, 0);
-            SetBufObj(nX, nY, 1);
-
-            SetBufGround(nX, nY, 0);
-            SetBufGround(nX, nY, 1);
-            SetBufGround(nX, nY, 2);
-            SetBufGround(nX, nY, 3);
-        }
-    }
-
-    m_BufValid = true;
 }
 
 void EditorMap:SetBufTile(int nX, int nY)
