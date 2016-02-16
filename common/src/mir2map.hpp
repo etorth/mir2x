@@ -132,4 +132,7 @@ class Mir2Map
         void    CloseDoor(int, int, uint8_t);
         void    OpenAllDoor();
         void    CloseAllDoor();
+
+    public:
+        std::string MapInfo();
 };

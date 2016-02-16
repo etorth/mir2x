@@ -251,3 +251,92 @@ void Mir2Map::CloseAllDoor()
         }
     }
 }
+
+std::string Mir2Map::MapInfo()
+{
+    if(!Valid()){ return std::string("Invalid map!"); }
+
+    int nLightCount = 0;
+    int nDoorCount  = 0;
+    int nAlphaBlend = 0;
+
+    // Tile Infomation doesn't include any for alpha-blend, light or door
+
+    for(int nXCnt = 0; nXCnt < m_stMapFileHeader.shWidth; ++nXCnt){
+        for(int nYCnt = 0; nYCnt < m_stMapFileHeader.shHeight; ++nYCnt){
+
+            int nArrayNum = nYCnt + nXCnt * m_stMapFileHeader.shHeight;
+            {
+                // for light info
+                if((m_pstCellInfo[nArrayNum].wLightNEvent != 0)
+                        || (m_pstCellInfo[nArrayNum].wLightNEvent & 0X0007) == 1){
+                    // TODO quite doubt of this logic
+                    // seems the 15~4 for specified light-frog
+                    // 3~0 for general light-frog
+                    nLightCount++;
+                }
+            }
+
+            {
+                // for door info
+                // for one cell there are two object fields but only one door info field
+
+                // bDoorIndex & 0X80 for whether there is a door
+                // bDoorIndex & 0X7F for door index, if non-zero
+                // bDoorOffset & 0X80 for open/close the door
+                // bDoorOffset & 0X7F for door image offset
+                if((m_pstCellInfo[nArrayNum].bDoorIndex & 0X80)
+                        && (m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F) != 0){
+                    nDoorCount++;
+
+                    printf("%d, %d, %d\n", nXCnt, nYCnt, GetDoorImageIndex(nXCnt, nYCnt));
+                }
+            }
+
+            // for light info
+            {
+                // first layer:
+                int nFileIndex = (m_pstCellInfo[nArrayNum].wFileIndex & 0XFF00) >> 8;
+                if(nFileIndex != 255 && m_pstCellInfo[nArrayNum].wObj1 != 65535){
+                    if(m_pstCellInfo[nArrayNum].bObj1Ani != 255){
+                        if(m_pstCellInfo[nArrayNum].bObj1Ani & 0X80){
+                            nAlphaBlend++;
+                        }
+                    }
+                }
+            }
+
+            {
+                // second layer:
+                int nFileIndex = (m_pstCellInfo[nArrayNum].wFileIndex & 0X00FF);
+                if(nFileIndex != 255 && m_pstCellInfo[nArrayNum].wObj2 != 65535){
+                    if(m_pstCellInfo[nArrayNum].bObj2Ani != 255){
+                        if(m_pstCellInfo[nArrayNum].bObj2Ani & 0X80){
+                            nAlphaBlend++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    std::string szMapInfo;
+    char szTmpInfo[128];
+
+    std::sprintf(szTmpInfo, "Width:%d\n", m_stMapFileHeader.shWidth);
+    szMapInfo += szTmpInfo;
+
+    std::sprintf(szTmpInfo, "Height:%d\n", m_stMapFileHeader.shHeight);
+    szMapInfo += szTmpInfo;
+
+    std::sprintf(szTmpInfo, "Alpha:%d\n", nAlphaBlend);
+    szMapInfo += szTmpInfo;
+
+    std::sprintf(szTmpInfo, "Door:%d\n", nDoorCount);
+    szMapInfo += szTmpInfo;
+
+    std::sprintf(szTmpInfo, "Light:%d\n", nLightCount);
+    szMapInfo += szTmpInfo;
+
+    return szMapInfo;
+}
