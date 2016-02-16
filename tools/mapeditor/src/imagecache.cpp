@@ -3,7 +3,7 @@
  *
  *       Filename: imagecache.cpp
  *        Created: 02/14/2016 15:54:58
- *  Last Modified: 02/15/2016 11:59:26
+ *  Last Modified: 02/15/2016 19:09:43
  *
  *    Description: This class won't handle WilImagePackage directly
  *                 Actually it only deal with all PNG files
@@ -45,6 +45,7 @@ void ImageCache::SetPath(const char *szPath)
         szTmpPath.pop_back();
     }
 
+    m_Path = szTmpPath;
     MakeDir(szTmpPath.c_str());
     szTmpPath += "/CACHE";
     MakeDir(szTmpPath.c_str());
@@ -67,7 +68,7 @@ Fl_Shared_Image *ImageCache::Retrieve(uint8_t nFileIndex, uint16_t nImageIndex)
     // retrieve in file system cache
     char szHexStr[32];
     HexString(nKey, szHexStr);
-    std::string szPNGFullName = m_Path + "/" + szHexStr + ".PNG";
+    std::string szPNGFullName = m_Path + "/CACHE/" + szHexStr + ".PNG";
 
     if(FileExist(szPNGFullName.c_str())){
         auto pImage = Fl_Shared_Image::get(szPNGFullName.c_str());
@@ -88,7 +89,7 @@ bool ImageCache::Register(uint8_t nFileIndex, uint16_t nImageIndex, const uint32
 
     char szHexStr[32];
     HexString(nKey, szHexStr);
-    std::string szPNGFullName = m_Path + "/" + szHexStr + ".PNG";
+    std::string szPNGFullName = m_Path + "/CACHE/" + szHexStr + ".PNG";
     return SaveRGBABufferToPNG((uint8_t *)pBuff, nW, nH, szPNGFullName.c_str())
         && Retrieve(nFileIndex, nImageIndex) != nullptr;
 }

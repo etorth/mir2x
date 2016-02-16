@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/15/2016 17:16:33
+ *  Last Modified: 02/15/2016 18:39:05
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -82,12 +82,12 @@ class EditorMap
 
         bool ValidC(int nX, int nY)
         {
-            return nX >= 0 && nX <  W() && nY >= 0 && nY <  H();
+            return nX >= 0 && nX < W() && nY >= 0 && nY < H();
         }
 
         bool ValidP(int nX, int nY)
         {
-            return nX >= 0 && nX <  48 * W() && nY >= 0 && nY <  32 * H();
+            return nX >= 0 && nX < 48 * W() && nY >= 0 && nY < 32 * H();
         }
 
         int W()
@@ -102,12 +102,12 @@ class EditorMap
 
         int TileValid(int nX, int nY)
         {
-            return m_BufTileMark[nX][nY];
+            return m_BufTileMark[nX / 2][nY / 2];
         }
 
         uint32_t Tile(int nX, int nY)
         {
-            return m_BufTile[nX][nY];
+            return m_BufTile[nX / 2][nY / 2];
         }
 
         int ObjectValid(int nX, int nY, int nIndex)

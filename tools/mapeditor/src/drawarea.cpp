@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/15/2016 17:02:58
+ *  Last Modified: 02/15/2016 19:20:24
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -386,7 +386,7 @@ void DrawArea::DrawObject(bool bGround)
 
     extern EditorMap g_EditorMap;
     g_EditorMap.DrawObject(
-            m_OffsetX / 48 - 1, m_OffsetY / 32 - 2, w() / 48 + 1, h() / 32 + 2, bGround, fnDrawObj);
+            m_OffsetX / 48 - 10, m_OffsetY / 32 - 20, w() / 48 + 20, h() / 32 + 40, bGround, fnDrawObj);
 }
 
 void DrawArea::DrawFunction(Fl_Image *pImage, int nStartX, int nStartY)
@@ -533,7 +533,7 @@ void DrawArea::DrawTile()
 
     extern EditorMap g_EditorMap;
     g_EditorMap.DrawTile(
-            m_OffsetX / 48 - 1, m_OffsetY / 32 - 1, w() / 48 + 1, h() / 32 + 1, fnDraw);
+            m_OffsetX / 48 - 5, m_OffsetY / 32 - 5, w() / 48 + 10, h() / 32 + 10, fnDraw);
 }
 
 void DrawArea::SetOffset(int nX, bool bRelativeX, int nY, bool bRelativeY)

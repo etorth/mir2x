@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/15/2016 17:16:55
+ *  Last Modified: 02/15/2016 19:15:32
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -254,54 +254,43 @@ bool EditorMap::Resize(
 
             if(nDstX >= 0 && nDstX < nNewW && nDstY >= 0 && nDstY < nNewH){
                 if(!(nDstX % 2) && !(nDstY % 2) && !(nSrcX % 2) && !(nSrcY % 2)){
-                    stOldBufTile    [nDstX / 2][nDstY / 2] = m_BufTile    [nDstX / 2][nDstY / 2];
-                    stOldBufTileMark[nDstX / 2][nDstY / 2] = m_BufTileMark[nDstX / 2][nDstY / 2];
+                    m_BufTile    [nDstX / 2][nDstY / 2] = stOldBufTile    [nSrcX / 2][nSrcY / 2];
+                    m_BufTileMark[nDstX / 2][nDstY / 2] = stOldBufTileMark[nSrcX / 2][nSrcY / 2];
                 }
 
-                stOldBufLight            [nDstX / 2][nDstY / 2]    = m_BufLight            [nDstX / 2][nDstY / 2]   ;
-                stOldBufLightMark        [nDstX / 2][nDstY / 2]    = m_BufLightMark        [nDstX / 2][nDstY / 2]   ;
+                m_BufLight            [nDstX / 2][nDstY / 2]    = stOldBufLight            [nSrcX / 2][nSrcY / 2]   ;
+                m_BufLightMark        [nDstX / 2][nDstY / 2]    = stOldBufLightMark        [nSrcX / 2][nSrcY / 2]   ;
 
-                stOldBufObj              [nDstX / 2][nDstY / 2][0] = m_BufObj              [nDstX / 2][nDstY / 2][0];
-                stOldBufObj              [nDstX / 2][nDstY / 2][1] = m_BufObj              [nDstX / 2][nDstY / 2][1];
+                m_BufObj              [nDstX / 2][nDstY / 2][0] = stOldBufObj              [nSrcX / 2][nSrcY / 2][0];
+                m_BufObj              [nDstX / 2][nDstY / 2][1] = stOldBufObj              [nSrcX / 2][nSrcY / 2][1];
 
-                stOldBufObjMark          [nDstX / 2][nDstY / 2][0] = m_BufObjMark          [nDstX / 2][nDstY / 2][0];
-                stOldBufObjMark          [nDstX / 2][nDstY / 2][1] = m_BufObjMark          [nDstX / 2][nDstY / 2][1];
+                m_BufObjMark          [nDstX / 2][nDstY / 2][0] = stOldBufObjMark          [nSrcX / 2][nSrcY / 2][0];
+                m_BufObjMark          [nDstX / 2][nDstY / 2][1] = stOldBufObjMark          [nSrcX / 2][nSrcY / 2][1];
 
-                stOldBufGroundObjMark    [nDstX / 2][nDstY / 2][0] = m_BufGroundObjMark    [nDstX / 2][nDstY / 2][0];
-                stOldBufGroundObjMark    [nDstX / 2][nDstY / 2][1] = m_BufGroundObjMark    [nDstX / 2][nDstY / 2][1];
+                m_BufGroundObjMark    [nDstX / 2][nDstY / 2][0] = stOldBufGroundObjMark    [nSrcX / 2][nSrcY / 2][0];
+                m_BufGroundObjMark    [nDstX / 2][nDstY / 2][1] = stOldBufGroundObjMark    [nSrcX / 2][nSrcY / 2][1];
 
-                stOldBufAniObjMark       [nDstX / 2][nDstY / 2][0] = m_BufAniObjMark       [nDstX / 2][nDstY / 2][0];
-                stOldBufAniObjMark       [nDstX / 2][nDstY / 2][1] = m_BufAniObjMark       [nDstX / 2][nDstY / 2][1];
+                m_BufAniObjMark       [nDstX / 2][nDstY / 2][0] = stOldBufAniObjMark       [nSrcX / 2][nSrcY / 2][0];
+                m_BufAniObjMark       [nDstX / 2][nDstY / 2][1] = stOldBufAniObjMark       [nSrcX / 2][nSrcY / 2][1];
 
-                stOldBufGround           [nDstX / 2][nDstY / 2][0] = m_BufGround           [nDstX / 2][nDstY / 2][0];
-                stOldBufGround           [nDstX / 2][nDstY / 2][1] = m_BufGround           [nDstX / 2][nDstY / 2][1];
-                stOldBufGround           [nDstX / 2][nDstY / 2][2] = m_BufGround           [nDstX / 2][nDstY / 2][2];
-                stOldBufGround           [nDstX / 2][nDstY / 2][3] = m_BufGround           [nDstX / 2][nDstY / 2][3];
+                m_BufGround           [nDstX / 2][nDstY / 2][0] = stOldBufGround           [nSrcX / 2][nSrcY / 2][0];
+                m_BufGround           [nDstX / 2][nDstY / 2][1] = stOldBufGround           [nSrcX / 2][nSrcY / 2][1];
+                m_BufGround           [nDstX / 2][nDstY / 2][2] = stOldBufGround           [nSrcX / 2][nSrcY / 2][2];
+                m_BufGround           [nDstX / 2][nDstY / 2][3] = stOldBufGround           [nSrcX / 2][nSrcY / 2][3];
 
-                stOldBufGroundMark       [nDstX / 2][nDstY / 2][0] = m_BufGroundMark       [nDstX / 2][nDstY / 2][0];
-                stOldBufGroundMark       [nDstX / 2][nDstY / 2][1] = m_BufGroundMark       [nDstX / 2][nDstY / 2][1];
-                stOldBufGroundMark       [nDstX / 2][nDstY / 2][2] = m_BufGroundMark       [nDstX / 2][nDstY / 2][2];
-                stOldBufGroundMark       [nDstX / 2][nDstY / 2][3] = m_BufGroundMark       [nDstX / 2][nDstY / 2][3];
+                m_BufGroundMark       [nDstX / 2][nDstY / 2][0] = stOldBufGroundMark       [nSrcX / 2][nSrcY / 2][0];
+                m_BufGroundMark       [nDstX / 2][nDstY / 2][1] = stOldBufGroundMark       [nSrcX / 2][nSrcY / 2][1];
+                m_BufGroundMark       [nDstX / 2][nDstY / 2][2] = stOldBufGroundMark       [nSrcX / 2][nSrcY / 2][2];
+                m_BufGroundMark       [nDstX / 2][nDstY / 2][3] = stOldBufGroundMark       [nSrcX / 2][nSrcY / 2][3];
 
-                stOldBufGroundSelectMark [nDstX / 2][nDstY / 2][0] = m_BufGroundSelectMark [nDstX / 2][nDstY / 2][0];
-                stOldBufGroundSelectMark [nDstX / 2][nDstY / 2][1] = m_BufGroundSelectMark [nDstX / 2][nDstY / 2][1];
-                stOldBufGroundSelectMark [nDstX / 2][nDstY / 2][2] = m_BufGroundSelectMark [nDstX / 2][nDstY / 2][2];
-                stOldBufGroundSelectMark [nDstX / 2][nDstY / 2][3] = m_BufGroundSelectMark [nDstX / 2][nDstY / 2][3];
+                m_BufGroundSelectMark [nDstX / 2][nDstY / 2][0] = stOldBufGroundSelectMark [nSrcX / 2][nSrcY / 2][0];
+                m_BufGroundSelectMark [nDstX / 2][nDstY / 2][1] = stOldBufGroundSelectMark [nSrcX / 2][nSrcY / 2][1];
+                m_BufGroundSelectMark [nDstX / 2][nDstY / 2][2] = stOldBufGroundSelectMark [nSrcX / 2][nSrcY / 2][2];
+                m_BufGroundSelectMark [nDstX / 2][nDstY / 2][3] = stOldBufGroundSelectMark [nSrcX / 2][nSrcY / 2][3];
 
             }
         }
     }
-
-    std::swap(stOldBufLight        , m_BufLight        );
-    std::swap(stOldBufLightMark    , m_BufLightMark    );
-    std::swap(stOldBufTile         , m_BufTile         );
-    std::swap(stOldBufTileMark     , m_BufTileMark     );
-    std::swap(stOldBufObj          , m_BufObj          );
-    std::swap(stOldBufObjMark      , m_BufObjMark      );
-    std::swap(stOldBufGroundObjMark, m_BufGroundObjMark);
-    std::swap(stOldBufAniObjMark   , m_BufAniObjMark   );
-    std::swap(stOldBufGround       , m_BufGround       );
-    std::swap(stOldBufGroundMark   , m_BufGroundMark   );
 
     return true;
 }
@@ -910,11 +899,18 @@ void EditorMap::MakeBuf(int nW, int nH)
     m_BufGroundObjMark = std::vector<std::vector<std::array<int, 2>>>(
             nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
 
+    // m_BufAniObjMark[nX][nY][0]
+    m_BufAniObjMark = std::vector<std::vector<std::array<int, 2>>>(
+            nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
+
     // m_BufGround[nX][nY][0]
     m_BufGround = std::vector<std::vector<std::array<uint8_t, 4>>>(
             nW, std::vector<std::array<uint8_t, 4>>(nH, {0, 0, 0, 0}));
     // m_BufGroundMark[nX][nY][0]
     m_BufGroundMark = std::vector<std::vector<std::array<int, 4>>>(
+            nW, std::vector<std::array<int, 4>>(nH, {0, 0, 0, 0}));
+    // m_BufGroundSelectMark[nX][nY][0]
+    m_BufGroundSelectMark = std::vector<std::vector<std::array<int, 4>>>(
             nW, std::vector<std::array<int, 4>>(nH, {0, 0, 0, 0}));
 }
 

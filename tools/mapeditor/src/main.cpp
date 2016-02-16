@@ -39,6 +39,8 @@ int main()
     g_GroundInfoWindow     = new GroundInfoWindow();
     g_CropConfigureWindow  = new CropConfigureWindow();
 
+    g_ImageCache.SetPath(".");
+
     g_MainWindow->ShowAll();
     return Fl::run();
 }
