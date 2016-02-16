@@ -518,6 +518,8 @@ if(g_EditorMap.Valid()){
 	extern EditorMap      g_EditorMap;
 	g_MapInfoWindow->Output(g_EditorMap.MapInfo().c_str());
 	g_MapInfoWindow->ShowAll();
+
+    m_DrawArea->SetOffset(0, false, 0, false);
 }} {}
   }
   Function {SetWorkingPathName()} {return_type void

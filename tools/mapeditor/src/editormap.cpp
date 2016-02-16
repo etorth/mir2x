@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/15/2016 21:44:43
+ *  Last Modified: 02/15/2016 22:22:35
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -770,6 +770,8 @@ bool EditorMap::LoadMir2xMap(const char *szFullName)
     }
 
     delete m_Mir2xMap;
+    m_Mir2xMap = nullptr;
+
     return Valid();
 }
 
@@ -784,6 +786,8 @@ bool EditorMap::LoadMir2Map(const char *szFullName)
     }
 
     delete m_OldMir2Map;
+    m_OldMir2Map = nullptr;
+
     return Valid();
 }
 

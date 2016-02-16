@@ -6,8 +6,8 @@ class CropConfigureWindow {open
 } {
   Function {CropConfigureWindow()} {open
   } {
-    Fl_Window m_Window {open selected
-      xywh {230 224 468 199} type Double labelfont 4 visible
+    Fl_Window m_Window {open
+      xywh {231 225 468 199} type Double labelfont 4 modal visible
     } {
       Fl_Value_Input m_Top {
         label {Top Margin}
@@ -37,16 +37,16 @@ class CropConfigureWindow {open
     if(!g_EditorMap.Valid()){
         return;
     }
-    
+
     int nStartX = (std::lround)(m_Left->value());
     int nStartY = (std::lround)(m_Top->value());
     int nW      = g_EditorMap.W() - nStartX - (std::lround)(m_Right->value());
     int nH      = g_EditorMap.H() - nStartY - (std::lround)(m_Bottom->value());
-    
+
     g_EditorMap.Resize(nStartX, nStartY, nW, nH, 0, 0, nW, nH);
     g_MainWindow->AfterLoadMir2Map();
     g_MainWindow->UpdateScrollBar(0, 0);
-    
+
     m_Left->value(0);
     m_Top->value(0);
     m_Right->value(0);
@@ -54,7 +54,7 @@ class CropConfigureWindow {open
 
     m_Window->hide();
 }}
-        xywh {345 160 64 20} labelfont 4
+        xywh {345 160 70 25} labelfont 4
         code0 {\#include <algorithm>}
         code1 {\#include "mir2map.hpp"}
         code2 {\#include "mainwindow.hpp"}
