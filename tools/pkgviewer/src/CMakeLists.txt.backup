@@ -22,16 +22,13 @@ FOREACH(FLTK_SRC ${FLTK_ALL_SRC})
     STRING(RANDOM LENGTH 20 T_RSTRING)
 
     ADD_CUSTOM_TARGET(${T_BASENAME}.${T_RSTRING}.hcpp ALL
-        # DEPENDS ${T_OUT_HPPNAME} ${T_OUT_CPPNAME}
-        DEPENDS ${FLTK_SRC}
-        )
+        DEPENDS ${T_OUT_HPPNAME} ${T_OUT_CPPNAME})
 
-    # this is needed before build, to execute some commands
-    ADD_CUSTOM_COMMAND(TARGET ${T_BASENAME}.${T_RSTRING}.hcpp
-        PRE_BUILD 
-        COMMAND fluid -c -o ${T_OUT_CPPNAME} -h ${T_OUT_HPPNAME} ${FLTK_SRC}
-        # COMMENT "THIS COMMAND WILL BE EXECUTED BEFORE BUILDING TARGET TEST1"
-        )
+    # # this is needed before build, to execute some commands
+    # ADD_CUSTOM_COMMAND(TARGET ${T_BASENAME}.${T_RSTRING}.hcpp
+    #     PRE_BUILD 
+    #     COMMAND ECHO "EXECUTING A FAKE COMMAND"
+    #     COMMENT "THIS COMMAND WILL BE EXECUTED BEFORE BUILDING TARGET TEST1")
 ENDFOREACH()
 
 AUX_SOURCE_DIRECTORY(. MAPEDITOR_SRC)
@@ -45,4 +42,3 @@ TARGET_LINK_LIBRARIES(pkgviewer ${FLTK_LIBRARIES}  )
 TARGET_LINK_LIBRARIES(pkgviewer ${OPENGL_LIBRARIES})
 TARGET_LINK_LIBRARIES(pkgviewer dl                 )
 TARGET_LINK_LIBRARIES(pkgviewer common             )
-

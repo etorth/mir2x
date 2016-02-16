@@ -56,6 +56,7 @@ class DrawArea: public Fl_Box
 
     private:
         void AddSelect();
+        void ClearGroundSelect();
 
     private:
         void AddSelectBySingle();
@@ -69,9 +70,6 @@ class DrawArea: public Fl_Box
         void SetGroundSubCellUnderPoint(int, int);
 
     public:
-        Fl_Image *CreateTUC(int);
-        void ClearSelectTUC();
-        void SetSelectTUC(int, int, int, int);
         void SetScrollBar();
 
     public:
@@ -79,5 +77,6 @@ class DrawArea: public Fl_Box
 
     public:
         // helper function
+        Fl_Image *CreateTUC(int);
         Fl_Image *RetrievePNG(uint8_t, uint16_t);
 };

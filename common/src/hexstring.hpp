@@ -3,7 +3,7 @@
  *
  *       Filename: hexstring.hpp
  *        Created: 02/06/2016 13:35:51
- *  Last Modified: 02/15/2016 12:42:43
+ *  Last Modified: 02/15/2016 17:19:42
  *
  *    Description: 
  *
@@ -70,36 +70,4 @@ template<typename T> char *HexString(T nKey, char *szStr)
     return szStr;
 }
 
-uint64_t StringHex(const char *szStr)
-{
-    const uint8_t knvStringHexChunk[] = {
-        0X00,  // "0" - "0"
-        0X01,  // "1" - "0"
-        0X02,  // "2" - "0"
-        0X03,  // "3" - "0"
-        0X04,  // "4" - "0"
-        0X05,  // "5" - "0"
-        0X06,  // "6" - "0"
-        0X07,  // "7" - "0"
-        0X08,  // "8" - "0"
-        0X09,  // "9" - "0"
-        0XFF,  // ":" - "0" invalid
-        0XFF,  // ";" - "0" invalid
-        0XFF,  // "<" - "0" invalid
-        0XFF,  // "=" - "0" invalid
-        0XFF,  // ">" - "0" invalid
-        0XFF,  // "?" - "0" invalid
-        0XFF,  // "@" - "0" invalid
-        0X0A,  // "A" - "0"
-        0X0B,  // "B" - "0"
-        0X0C,  // "C" - "0"
-        0X0D,  // "D" - "0"
-        0X0E,  // "E" - "0"
-        0X0F,  // "F" - "0"
-    };
-    uint64_t nKey = 0;
-    for(std::size_t nIndex = 0; szStr[nIndex] != '\0'; ++nIndex){
-        nKey = (nKey << 4) + knvStringHexChunk[szStr[nIndex] - '0'];
-    }
-    return nKey;
-}
+uint64_t StringHex(const char *);

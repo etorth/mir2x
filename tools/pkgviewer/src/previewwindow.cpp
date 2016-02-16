@@ -3,7 +3,7 @@
  *
  *       Filename: previewwindow.cpp
  *        Created: 7/22/2015 3:16:57 AM
- *  Last Modified: 02/06/2016 23:09:44
+ *  Last Modified: 02/15/2016 17:21:33
  *
  *    Description: 
  *
@@ -83,14 +83,14 @@ void PreviewWindow::LoadImage()
     extern WilImagePackage  g_WilPackage;
     extern MainWindow      *g_MainWindow;
 
-    g_WilPackage.SetIndex(g_MainWindow->SelectedImageIndex());
-    if(g_WilPackage.CurrentImageValid()){
+    if(g_WilPackage.SetIndex(g_MainWindow->SelectedImageIndex())
+            && g_WilPackage.CurrentImageValid()){
         auto W = g_WilPackage.CurrentImageInfo().shWidth;
         auto H = g_WilPackage.CurrentImageInfo().shHeight;
 
         ExtendBuf((size_t)(W * H));
 
-        g_WilPackage.Decode(m_Data, 0XFFFFFFFF, 0XFFFFFFFF);
+        g_WilPackage.Decode(m_Data, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
         m_Image = new Fl_RGB_Image((uchar *)m_Data, W, H, 4);
     }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/15/2016 12:37:10
+ *  Last Modified: 02/15/2016 17:16:55
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -72,20 +72,17 @@ void EditorMap::ExtractTile(std::function<void(uint8_t, uint16_t)> fnWritePNG)
     }
 }
 
-void EditorMap::DrawTile(
-        int nStartCellX, int nStartCellY,
-        int nStopCellX,  int nStopCellY,
+void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH,
         std::function<void(uint8_t, uint16_t, int, int)> fnDrawTile)
 {
     if(!Valid()){ return; }
 
-    nStartCellX = (std::max)(0, nStartCellX);
-    nStartCellY = (std::max)(0, nStartCellY);
-    nStopCellX  = (std::min)(nStopCellX, W() - 1);
-    nStopCellY  = (std::min)(nStopCellY, H() - 1);
+    for(int nY = nCY; nY < nCY + nCH; ++nY){
+        for(int nX = nCX; nX < nCX + nCW; ++nX){
+            if(!ValidC(nX, nY)){
+                continue;
+            }
 
-    for(int nY = nStartCellY; nY <= nStopCellY; ++nY){
-        for(int nX = nStartCellX; nX <= nStopCellX; ++nX){
             if(nX % 2 || nY % 2){
                 continue;
             }
@@ -137,22 +134,15 @@ void EditorMap::ExtractObject(std::function<void(uint8_t, uint16_t, uint32_t)> f
     }
 }
 
-void EditorMap::DrawObject(
-        int nStartCellX, int nStartCellY, int nStopCellX, int nStopCellY,
-        bool bGround,
-        std::function<void(uint8_t, uint16_t, int, int)> fnDrawObj)
+void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH,
+        bool bGround, std::function<void(uint8_t, uint16_t, int, int)> fnDrawObj)
 {
     if(!Valid()){ return; }
-
-    nStartCellX = (std::max)(0, nStartCellX);
-    nStartCellY = (std::max)(0, nStartCellY);
-    nStopCellX  = (std::min)(nStopCellX, W() - 1);
-    nStopCellY  = (std::min)(nStopCellY, H() - 1);
-
-    for(int nYCnt = nStartCellY; nYCnt <= nStopCellY; ++nYCnt){
-        for(int nXCnt = nStartCellX; nXCnt <= nStopCellX; ++nXCnt){
+    for(int nYCnt = nCY; nYCnt < nCY + nCH; ++nYCnt){
+        for(int nXCnt = nCX; nXCnt < nCX + nCW; ++nXCnt){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
-                if(ObjectValid(nXCnt, nYCnt, nIndex)
+                if(ValidC(nXCnt, nYCnt)
+                        && ObjectValid(nXCnt, nYCnt, nIndex)
                         && bGround == GroundObjectValid(nXCnt, nYCnt, nIndex)){
 
                     uint32_t nKey         = Object(nXCnt, nYCnt, nIndex);
@@ -238,17 +228,17 @@ bool EditorMap::Resize(
     }
 
     // start for new memory allocation
-    auto stOldBufLight         = m_BufLight;
-    auto stOldBufLightMark     = m_BufLightMark;
-    auto stOldBufTile          = m_BufTile;
-    auto stOldBufTileMark      = m_BufTileMark;
-    auto stOldBufObj           = m_BufObj;
-    auto stOldBufObjMark       = m_BufObjMark;
-    auto stOldBufGroundObjMark = m_BufGroundObjMark;
-    auto stOldBufAniObjMark    = m_BufAniObjMark;
-    auto stOldBufGround        = m_BufGround;
-    auto stOldBufGroundMark    = m_BufGroundMark;
-    auto stOldBufGroundTag     = m_BufGroundTag;
+    auto stOldBufLight            = m_BufLight;
+    auto stOldBufLightMark        = m_BufLightMark;
+    auto stOldBufTile             = m_BufTile;
+    auto stOldBufTileMark         = m_BufTileMark;
+    auto stOldBufObj              = m_BufObj;
+    auto stOldBufObjMark          = m_BufObjMark;
+    auto stOldBufGroundObjMark    = m_BufGroundObjMark;
+    auto stOldBufAniObjMark       = m_BufAniObjMark;
+    auto stOldBufGround           = m_BufGround;
+    auto stOldBufGroundMark       = m_BufGroundMark;
+    auto stOldBufGroundSelectMark = m_BufGroundSelectMark;
 
     // this function will clear the new buffer
     // with all zeros
@@ -268,35 +258,35 @@ bool EditorMap::Resize(
                     stOldBufTileMark[nDstX / 2][nDstY / 2] = m_BufTileMark[nDstX / 2][nDstY / 2];
                 }
 
-                stOldBufLight          [nDstX / 2][nDstY / 2]    = m_BufLight          [nDstX / 2][nDstY / 2]   ;
-                stOldBufLightMark      [nDstX / 2][nDstY / 2]    = m_BufLightMark      [nDstX / 2][nDstY / 2]   ;
+                stOldBufLight            [nDstX / 2][nDstY / 2]    = m_BufLight            [nDstX / 2][nDstY / 2]   ;
+                stOldBufLightMark        [nDstX / 2][nDstY / 2]    = m_BufLightMark        [nDstX / 2][nDstY / 2]   ;
 
-                stOldBufObj            [nDstX / 2][nDstY / 2][0] = m_BufObj            [nDstX / 2][nDstY / 2][0];
-                stOldBufObj            [nDstX / 2][nDstY / 2][1] = m_BufObj            [nDstX / 2][nDstY / 2][1];
+                stOldBufObj              [nDstX / 2][nDstY / 2][0] = m_BufObj              [nDstX / 2][nDstY / 2][0];
+                stOldBufObj              [nDstX / 2][nDstY / 2][1] = m_BufObj              [nDstX / 2][nDstY / 2][1];
 
-                stOldBufObjMark        [nDstX / 2][nDstY / 2][0] = m_BufObjMark        [nDstX / 2][nDstY / 2][0];
-                stOldBufObjMark        [nDstX / 2][nDstY / 2][1] = m_BufObjMark        [nDstX / 2][nDstY / 2][1];
+                stOldBufObjMark          [nDstX / 2][nDstY / 2][0] = m_BufObjMark          [nDstX / 2][nDstY / 2][0];
+                stOldBufObjMark          [nDstX / 2][nDstY / 2][1] = m_BufObjMark          [nDstX / 2][nDstY / 2][1];
 
-                stOldBufGroundObjMark  [nDstX / 2][nDstY / 2][0] = m_BufGroundObjMark  [nDstX / 2][nDstY / 2][0];
-                stOldBufGroundObjMark  [nDstX / 2][nDstY / 2][1] = m_BufGroundObjMark  [nDstX / 2][nDstY / 2][1];
+                stOldBufGroundObjMark    [nDstX / 2][nDstY / 2][0] = m_BufGroundObjMark    [nDstX / 2][nDstY / 2][0];
+                stOldBufGroundObjMark    [nDstX / 2][nDstY / 2][1] = m_BufGroundObjMark    [nDstX / 2][nDstY / 2][1];
 
-                stOldBufAniObjMark     [nDstX / 2][nDstY / 2][0] = m_BufAniObjMark     [nDstX / 2][nDstY / 2][0];
-                stOldBufAniObjMark     [nDstX / 2][nDstY / 2][1] = m_BufAniObjMark     [nDstX / 2][nDstY / 2][1];
+                stOldBufAniObjMark       [nDstX / 2][nDstY / 2][0] = m_BufAniObjMark       [nDstX / 2][nDstY / 2][0];
+                stOldBufAniObjMark       [nDstX / 2][nDstY / 2][1] = m_BufAniObjMark       [nDstX / 2][nDstY / 2][1];
 
-                stOldBufGround         [nDstX / 2][nDstY / 2][0] = m_BufGround         [nDstX / 2][nDstY / 2][0];
-                stOldBufGround         [nDstX / 2][nDstY / 2][1] = m_BufGround         [nDstX / 2][nDstY / 2][1];
-                stOldBufGround         [nDstX / 2][nDstY / 2][2] = m_BufGround         [nDstX / 2][nDstY / 2][2];
-                stOldBufGround         [nDstX / 2][nDstY / 2][3] = m_BufGround         [nDstX / 2][nDstY / 2][3];
+                stOldBufGround           [nDstX / 2][nDstY / 2][0] = m_BufGround           [nDstX / 2][nDstY / 2][0];
+                stOldBufGround           [nDstX / 2][nDstY / 2][1] = m_BufGround           [nDstX / 2][nDstY / 2][1];
+                stOldBufGround           [nDstX / 2][nDstY / 2][2] = m_BufGround           [nDstX / 2][nDstY / 2][2];
+                stOldBufGround           [nDstX / 2][nDstY / 2][3] = m_BufGround           [nDstX / 2][nDstY / 2][3];
 
-                stOldBufGroundMark     [nDstX / 2][nDstY / 2][0] = m_BufGroundMark     [nDstX / 2][nDstY / 2][0];
-                stOldBufGroundMark     [nDstX / 2][nDstY / 2][1] = m_BufGroundMark     [nDstX / 2][nDstY / 2][1];
-                stOldBufGroundMark     [nDstX / 2][nDstY / 2][2] = m_BufGroundMark     [nDstX / 2][nDstY / 2][2];
-                stOldBufGroundMark     [nDstX / 2][nDstY / 2][3] = m_BufGroundMark     [nDstX / 2][nDstY / 2][3];
+                stOldBufGroundMark       [nDstX / 2][nDstY / 2][0] = m_BufGroundMark       [nDstX / 2][nDstY / 2][0];
+                stOldBufGroundMark       [nDstX / 2][nDstY / 2][1] = m_BufGroundMark       [nDstX / 2][nDstY / 2][1];
+                stOldBufGroundMark       [nDstX / 2][nDstY / 2][2] = m_BufGroundMark       [nDstX / 2][nDstY / 2][2];
+                stOldBufGroundMark       [nDstX / 2][nDstY / 2][3] = m_BufGroundMark       [nDstX / 2][nDstY / 2][3];
 
-                stOldBufGroundTag      [nDstX / 2][nDstY / 2][0] = m_BufGroundTag      [nDstX / 2][nDstY / 2][0];
-                stOldBufGroundTag      [nDstX / 2][nDstY / 2][1] = m_BufGroundTag      [nDstX / 2][nDstY / 2][1];
-                stOldBufGroundTag      [nDstX / 2][nDstY / 2][2] = m_BufGroundTag      [nDstX / 2][nDstY / 2][2];
-                stOldBufGroundTag      [nDstX / 2][nDstY / 2][3] = m_BufGroundTag      [nDstX / 2][nDstY / 2][3];
+                stOldBufGroundSelectMark [nDstX / 2][nDstY / 2][0] = m_BufGroundSelectMark [nDstX / 2][nDstY / 2][0];
+                stOldBufGroundSelectMark [nDstX / 2][nDstY / 2][1] = m_BufGroundSelectMark [nDstX / 2][nDstY / 2][1];
+                stOldBufGroundSelectMark [nDstX / 2][nDstY / 2][2] = m_BufGroundSelectMark [nDstX / 2][nDstY / 2][2];
+                stOldBufGroundSelectMark [nDstX / 2][nDstY / 2][3] = m_BufGroundSelectMark [nDstX / 2][nDstY / 2][3];
 
             }
         }
@@ -736,6 +726,17 @@ void EditorMap::DoCompressObject(int nX, int nY, int nIndex, int nSize,
     }
 }
 
+void EditorMap::CompressObject(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV, int nIndex)
+{
+    stMarkV.clear();
+    stDataV.clear();
+    for(int nY = 0; nY < H(); nY += 8){
+        for(int nX = 0; nX < W(); nX += 8){
+            DoCompressObject(nX, nY, nIndex, 8, stMarkV, stDataV);
+        }
+    }
+}
+
 void EditorMap::CompressLight(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV)
 {
     stMarkV.clear();
@@ -1049,7 +1050,43 @@ void EditorMap::AddSelectPoint(int nX, int nY)
     }
 }
 
-void EditorMap::DrawSelect(std::function<void(const std::vector<std::pair<int, int>> &)> fnDrawSelect)
+void EditorMap::DrawSelectPoint(std::function<void(const std::vector<std::pair<int, int>> &)> fnDrawSelect)
 {
     fnDrawSelect(m_SelectPointV);
+}
+
+void EditorMap::DrawSelectGround(int nX, int nY, int nW, int nH,
+        std::function<void(int, int, int)> fnDrawSelectGround)
+{
+    for(int nTX = nX; nTX < nX + nW; ++nTX){
+        for(int nTY = nY; nTY < nY + nH; ++nTY){
+            for(int nIndex = 0; nIndex < 4; ++nIndex){
+                if(ValidC(nTX, nTY) && m_BufGroundSelectMark[nTX][nTY][nIndex]){
+                    fnDrawSelectGround(nX, nY, nIndex);
+                }
+            }
+        }
+    }
+}
+
+void EditorMap::ClearGroundSelect()
+{
+    for(int nX = 0; nX < W(); ++nX){
+        for(int nY = 0; nY < H(); ++nY){
+            for(int nIndex = 0; nIndex < 4; ++nIndex){
+                SetGroundSelect(nX, nY, nIndex, 0);
+            }
+        }
+    }
+}
+
+void EditorMap::SetGroundSelect(int nX, int nY, int nIndex, int nSelect)
+{
+    m_BufGroundSelectMark[nX][nY][nIndex] = nSelect;
+}
+
+bool EditorMap::Save(const char *szFullName)
+{
+    UNUSED(szFullName);
+    return true;
 }

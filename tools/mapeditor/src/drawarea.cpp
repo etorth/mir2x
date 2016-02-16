@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/15/2016 12:39:59
+ *  Last Modified: 02/15/2016 17:02:58
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -104,7 +104,8 @@ void DrawArea::AddSelectBySingle()
     int nX, nY, nIndex;
     if(LocateGroundSubCell( m_MouseX - x() + m_OffsetX,
                 m_MouseY - y() + m_OffsetY, nX, nY, nIndex)){
-        SetSelectTUC(nX, nY, nIndex, 1);
+        extern EditorMap g_EditorMap;
+        g_EditorMap.SetGroundSelect(nX, nY, nIndex, 1);
     }
 }
 
@@ -137,7 +138,7 @@ void DrawArea::DrawSelectByRegion()
     };
 
     extern EditorMap g_EditorMap;
-    g_EditorMap.DrawSelect(fnDrawSelect);
+    g_EditorMap.DrawSelectPoint(fnDrawSelect);
 }
 
 void DrawArea::RhombusCoverOperation(int nMX, int nMY, int nSize,
@@ -210,8 +211,9 @@ void DrawArea::AddSelectByRhombus()
     int nMX   = m_MouseX + m_OffsetX - x();
     int nMY   = m_MouseY + m_OffsetY - y();
 
-    auto fnSet = [this](int nX,  int nY, int nIndex){
-        SetSelectTUC(nX, nY, nIndex, 1);
+    auto fnSet = [](int nX,  int nY, int nIndex){
+        extern EditorMap g_EditorMap;
+        g_EditorMap.SetGroundSelect(nX, nY, nIndex, 1);
     };
 
     RhombusCoverOperation(nMX, nMY, nSize, fnSet);
@@ -255,8 +257,9 @@ void DrawArea::AddSelectByRectangle()
     int nMX   = m_MouseX + m_OffsetX - x();
     int nMY   = m_MouseY + m_OffsetY - y();
 
-    auto fnSet = [this](int nX,  int nY, int nIndex){
-        SetSelectTUC(nX, nY, nIndex, 1);
+    auto fnSet = [](int nX,  int nY, int nIndex){
+        extern EditorMap g_EditorMap;
+        g_EditorMap.SetGroundSelect(nX, nY, nIndex, 1);
     };
 
     RectangleCoverOperation(nMX, nMY, nSize, fnSet);
@@ -276,7 +279,7 @@ void DrawArea::DrawSelect()
         for(int nTY = nY; nTY < nYSize + nY; ++nTY){
             if(g_EditorMap.ValidC(nTX, nTY)){
                 for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    if(g_EditorMap.GroundTag(nTX, nTY, nIndex)){
+                    if(g_EditorMap.GroundSelect(nTX, nTY, nIndex)){
                         DrawTUC(nTX, nTY, nIndex);
                     }
                 }
@@ -382,11 +385,8 @@ void DrawArea::DrawObject(bool bGround)
     };
 
     extern EditorMap g_EditorMap;
-    int nStartCellX = (std::max)(0, m_OffsetX / 48 - 1);
-    int nStartCellY = (std::max)(0, m_OffsetY / 32 - 2);
-    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 1, g_EditorMap.W() - 1);
-    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 2, g_EditorMap.H() - 1);
-    g_EditorMap.DrawObject(nStartCellX, nStartCellY, nStopCellX, nStopCellY, bGround, fnDrawObj);
+    g_EditorMap.DrawObject(
+            m_OffsetX / 48 - 1, m_OffsetY / 32 - 2, w() / 48 + 1, h() / 32 + 2, bGround, fnDrawObj);
 }
 
 void DrawArea::DrawFunction(Fl_Image *pImage, int nStartX, int nStartY)
@@ -532,11 +532,8 @@ void DrawArea::DrawTile()
     };
 
     extern EditorMap g_EditorMap;
-    int nStartCellX = (std::max)(0, m_OffsetX / 48 - 1);
-    int nStartCellY = (std::max)(0, m_OffsetY / 32 - 1);
-    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 1, g_EditorMap.W() - 1);
-    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 1, g_EditorMap.H() - 1);
-    g_EditorMap.DrawTile(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnDraw);
+    g_EditorMap.DrawTile(
+            m_OffsetX / 48 - 1, m_OffsetY / 32 - 1, w() / 48 + 1, h() / 32 + 1, fnDraw);
 }
 
 void DrawArea::SetOffset(int nX, bool bRelativeX, int nY, bool bRelativeY)
@@ -640,14 +637,7 @@ int DrawArea::handle(int nEvent)
 bool DrawArea::LocateGroundSubCell(int nXOnMap, int nYOnMap, int &nX, int &nY, int &nIndex)
 {
     extern EditorMap g_EditorMap;
-    if(false
-            || nXOnMap < 0
-            || nXOnMap >= g_EditorMap.W() * 48
-            || nYOnMap < 0
-            || nYOnMap >= g_EditorMap.H() * 32
-      ){
-        return false;
-    }
+    if(!g_EditorMap.ValidP(nXOnMap, nYOnMap)){ return false; }
 
     nX = nXOnMap / 48;
     nY = nYOnMap / 32;
@@ -668,9 +658,9 @@ void DrawArea::SetGroundSubCellUnderPoint(int nMouseXOnMap, int nMouseYOnMap)
     int nX, nY, nIndex;
     if(LocateGroundSubCell(nMouseXOnMap, nMouseYOnMap, nX, nY, nIndex)){
         // printf("%03d %03d %03d\n", nX, nY, nIndex);
-        extern std::vector<std::vector<std::array<uint32_t, 4>>> g_GroundInfo;
         extern GroundInfoWindow *g_GroundInfoWindow;
-        g_GroundInfo[nX][nY][nIndex] = g_GroundInfoWindow->Mask();
+        extern EditorMap g_EditorMap;
+        g_EditorMap.SetGround(nX, nY, nIndex, true, (uint8_t)g_GroundInfoWindow->Mask());
     }
 }
 
@@ -787,7 +777,6 @@ void DrawArea::DrawTUC(int nCX, int nCY, int nIndex)
     }
 }
 
-
 void DrawArea::AddSelectByRegion()
 {
     int nMX = m_MouseX - x() + m_OffsetX;
@@ -797,31 +786,14 @@ void DrawArea::AddSelectByRegion()
     g_EditorMap.AddSelectPoint(nMX, nMY);
 }
 
-void DrawArea::ClearSelectTUC()
+void DrawArea::ClearGroundSelect()
 {
     extern EditorMap g_EditorMap;
     if(!g_EditorMap.Valid()){
         return;
     }
 
-    extern std::vector<std::vector<std::array<int, 4>>> g_SelectTUC;
-    for(int nX = 0; nX < g_EditorMap.W(); ++nX){
-        for(int nY = 0; nY < g_EditorMap.H(); ++nY){
-            for(int nIndex = 0; nIndex < 4; ++nIndex){
-                g_SelectTUC[nX][nY][nIndex] = 0;
-            }
-        }
-    }
-}
-
-void DrawArea::SetSelectTUC(int nCX, int nCY, int nIndex, int nValue)
-{
-    extern EditorMap g_EditorMap;
-    extern std::vector<std::vector<std::array<int, 4>>> g_SelectTUC;
-
-    if(nCX >= 0 && nCX < g_EditorMap.W() && nCY >= 0 && nCY < g_EditorMap.H()){
-        g_SelectTUC[nCX][nCY][nIndex % 4] = nValue;
-    }
+    g_EditorMap.ClearGroundSelect();
 }
 
 void DrawArea::SetScrollBar()

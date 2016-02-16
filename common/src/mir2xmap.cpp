@@ -259,44 +259,44 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
 //     }
 // }
 
-void Mir2xMap::Draw(
-        int nViewX, int nViewY, int nViewW, int nViewH,      //
-        int nMaxObjH,                                       // 
-        std::function<void(int, int, uint32_t)> fnDrawTileFunc,
-        std::function<void(int, int, uint32_t)> fnDrawObjFunc,
-        std::function<void(int, int)> fnDrawActorFunc,
-        std::function<void(int, int)> fnDrawExtFunc)
-{
-    DrawGround(nViewX, nViewY, nViewW, nViewH, fnDrawTileFunc);
-    DrawGroundObj(nViewX, nViewY, nViewW, nViewH, nMaxObjH, fnDrawObjFunc);
-    DrawOverGroundObj(nViewX, nViewY, nViewW, nViewH, nMaxObjH, fnDrawObjFunc, fnDrawActorFunc);
-    DrawExt(nViewX, nViewY, nViewW, nViewH, fnDrawExtFunc);
-}
+// void Mir2xMap::Draw(
+//         int nViewX, int nViewY, int nViewW, int nViewH,      //
+//         int nMaxObjH,                                       // 
+//         std::function<void(int, int, uint32_t)> fnDrawTileFunc,
+//         std::function<void(int, int, uint32_t)> fnDrawObjFunc,
+//         std::function<void(int, int)> fnDrawActorFunc,
+//         std::function<void(int, int)> fnDrawExtFunc)
+// {
+//     DrawGround(nViewX, nViewY, nViewW, nViewH, fnDrawTileFunc);
+//     DrawGroundObj(nViewX, nViewY, nViewW, nViewH, nMaxObjH, fnDrawObjFunc);
+//     DrawOverGroundObj(nViewX, nViewY, nViewW, nViewH, nMaxObjH, fnDrawObjFunc, fnDrawActorFunc);
+//     DrawExt(nViewX, nViewY, nViewW, nViewH, fnDrawExtFunc);
+// }
 
 
-void Mir2xMap::DrawExt(int nViewX, int nViewY, int nViewW, int nViewH,
-        std::function<void(int, int)> fnDrawExtFunc)
-{
-    // a typical fnDrawFunc should be
-    // auto fnDrawFunc = [this](int nX, int nY, uint32_t nKey){
-    //     auto stItor = m_TileTexCache.find(nKey);
-    //     if(stItor != m_TileTexCache.end()){
-    //         m_DeviceManager->Render(stItor.second, nX, nY, 96, 64, 0, 0, 96, 64);
-    //     }
-    // };
-
-    int nStartCellX = nViewX / 96;
-    int nStartCellY = nViewY / 64;
-
-    int nStopCellX = (nViewX + nViewW) / 96;
-    int nStopCellY = (nViewY + nViewH) / 64;
-
-    for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
-        for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
-            fnDrawExtFunc(nCellX, nCellY);
-        }
-    }
-}
+// void Mir2xMap::DrawExt(int nViewX, int nViewY, int nViewW, int nViewH,
+//         std::function<void(int, int)> fnDrawExtFunc)
+// {
+//     // a typical fnDrawFunc should be
+//     // auto fnDrawFunc = [this](int nX, int nY, uint32_t nKey){
+//     //     auto stItor = m_TileTexCache.find(nKey);
+//     //     if(stItor != m_TileTexCache.end()){
+//     //         m_DeviceManager->Render(stItor.second, nX, nY, 96, 64, 0, 0, 96, 64);
+//     //     }
+//     // };
+//
+//     int nStartCellX = nViewX / 96;
+//     int nStartCellY = nViewY / 64;
+//
+//     int nStopCellX = (nViewX + nViewW) / 96;
+//     int nStopCellY = (nViewY + nViewH) / 64;
+//
+//     for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
+//         for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
+//             fnDrawExtFunc(nCellX, nCellY);
+//         }
+//     }
+// }
 
 // void Mir2xMap::DrawGround(int nViewX, int nViewY, int nViewW, int nViewH,
 //         std::function<void(int, int, uint32_t)> fnDrawFunc)

@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/15/2016 12:41:14
+ *  Last Modified: 02/15/2016 17:16:33
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -56,11 +56,12 @@ class EditorMap
         std::vector<std::vector<std::array<int, 2>>>        m_BufAniObjMark;
         std::vector<std::vector<std::array<uint32_t, 2>>>   m_BufObj;
 
-        std::vector<std::vector<std::array<int, 4>>>        m_BufGroundMark;
         std::vector<std::vector<std::array<uint8_t, 4>>>    m_BufGround;
-        std::vector<std::vector<std::array<int, 4>>>        m_BufGroundTag;
+        std::vector<std::vector<std::array<int, 4>>>        m_BufGroundMark;
+        std::vector<std::vector<std::array<int, 4>>>        m_BufGroundSelectMark;
 
     private:
+        // for ground select
         std::vector<std::pair<int, int>>                    m_SelectPointV;
 
     public:
@@ -124,9 +125,9 @@ class EditorMap
             return m_BufGroundObjMark[nX][nY][nIndex];
         }
 
-        int GroundTag(int nX, int nY, int nIndex)
+        int GroundSelect(int nX, int nY, int nIndex)
         {
-            return m_BufGroundTag[nX][nY][nIndex];
+            return m_BufGroundSelectMark[nX][nY][nIndex];
         }
 
         bool AniObjectValid(int nX, int nY, int nIndex)
@@ -159,25 +160,50 @@ class EditorMap
             return (uint16_t)(m_bAniTileFrame[nAniType][nAniCnt]);
         }
 
+        void SetGround(int nX, int nY, int nIndex, bool bValid, uint8_t nDesc)
+        {
+            m_BufGroundMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
+            m_BufGround[nX][nY][nIndex]     = nDesc;
+        }
+
+        void SetObject(int nX, int nY, int nIndex, bool bValid, uint32_t nDesc)
+        {
+            m_BufObjMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
+            m_BufObj[nX][nY][nIndex]     = nDesc;
+        }
+
+        void SetGroundObject(int nX, int nY, int nIndex, int nGroundObj)
+        {
+            m_BufGroundObjMark[nX][nY][nIndex] = nGroundObj;
+        }
+
     public:
+        // for map resource extraction
         void ExtractOneTile(int, int, std::function<void(uint8_t, uint16_t)>);
         void ExtractTile(std::function<void(uint8_t, uint16_t)>);
 
         void ExtractOneObject(int, int, int, std::function<void(uint8_t, uint16_t, uint32_t)>);
         void ExtractObject(std::function<void(uint8_t, uint16_t, uint32_t)>);
 
-        void DrawTile(int, int, int,  int, std::function<void(uint8_t, uint16_t, int, int)>);
+    public:
+        // draw map
+        // external class will provide handlers for physical draw function
+        void DrawTile(int, int, int, int, std::function<void(uint8_t, uint16_t, int, int)>);
         void DrawObject(int, int, int, int, bool, std::function<void(uint8_t, uint16_t, int, int)>);
+        void DrawSelectGround(int, int, int, int, std::function<void(int, int, int)>);
+        void DrawSelectPoint(std::function<void(const std::vector<std::pair<int, int>> &)>);
 
     public:
         // selection operation
         void AddSelectPoint(int, int);
-        void DrawSelect(std::function<void(const std::vector<std::pair<int, int>> &)>);
+        void SetGroundSelect(int, int, int, int);
+        void ClearGroundSelect();
 
     public:
         void CompressLight(std::vector<bool> &, std::vector<uint8_t> &);
         void CompressGround(std::vector<bool> &, std::vector<uint8_t> &);
         void CompressTile(std::vector<bool> &, std::vector<uint8_t> &);
+        void CompressObject(std::vector<bool> &, std::vector<uint8_t> &, int);
 
     public:
         void DoCompressGround(int, int, int, std::vector<bool> &, std::vector<uint8_t> &);
@@ -186,40 +212,40 @@ class EditorMap
         void DoCompressObject(int, int, int, int, std::vector<bool> &, std::vector<uint8_t> &);
 
     public:
-            void RecordGround(std::vector<uint8_t> &, int, int, int);
-            void RecordLight(std::vector<uint8_t> &, int, int);
-            void RecordObject(std::vector<bool> &, std::vector<uint8_t> &, int, int, int);
-            void RecordTile(std::vector<uint8_t> &, int, int);
+        void RecordGround(std::vector<uint8_t> &, int, int, int);
+        void RecordLight(std::vector<uint8_t> &, int, int);
+        void RecordObject(std::vector<bool> &, std::vector<uint8_t> &, int, int, int);
+        void RecordTile(std::vector<uint8_t> &, int, int);
 
     public:
-            void UpdateFrame(int);
-            bool Resize(int, int, int, int, int, int, int, int);
+        void UpdateFrame(int);
+        bool Resize(int, int, int, int, int, int, int, int);
 
     public:
-            int ObjectBlockType(int, int, int, int);
-            int GroundBlockType(int, int, int, int);
-            int LightBlockType(int, int, int);
-            int TileBlockType(int, int, int);
+        int ObjectBlockType(int, int, int, int);
+        int GroundBlockType(int, int, int, int);
+        int LightBlockType(int, int, int);
+        int TileBlockType(int, int, int);
 
     public:
-            // save to mir2x compact format
-            bool Save(const char *);
+        // save to mir2x compact format
+        bool Save(const char *);
 
     public:
-            void Optimize();
-            void OptimizeTile(int, int);
-            void OptimizeCell(int, int);
+        void Optimize();
+        void OptimizeTile(int, int);
+        void OptimizeCell(int, int);
 
     private:
-            void ClearBuf();
-            void MakeBuf(int, int);
-            bool InitBuf();
+        void ClearBuf();
+        void MakeBuf(int, int);
+        bool InitBuf();
 
-            void SetBufTile(int, int);
-            void SetBufLight(int, int);
-            void SetBufObj(int, int, int);
-            void SetBufGround(int, int, int);
+        void SetBufTile(int, int);
+        void SetBufLight(int, int);
+        void SetBufObj(int, int, int);
+        void SetBufGround(int, int, int);
 
     public:
-            std::string MapInfo();
+        std::string MapInfo();
 };

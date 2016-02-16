@@ -3,7 +3,7 @@
  *
  *       Filename: imagedb.cpp
  *        Created: 02/14/2016 16:35:49
- *  Last Modified: 02/14/2016 19:32:42
+ *  Last Modified: 02/15/2016 17:15:15
  *
  *    Description: This class handle wilimagepackage array, so any constraits
  *                 for mir2map applies here. like 255/65535 etc
@@ -181,4 +181,13 @@ const uint32_t *ImageDB::Decode(
         return FastDecode(nFileIndex, nC0, nC1, nC2);
     }
     return nullptr;
+}
+
+void ImageDB::ExtendBuf(int nBufLen)
+{
+    if(m_BufLen < nBufLen){
+        delete m_Buf;
+        m_Buf = new uint32_t[nBufLen];
+        m_BufLen = nBufLen;
+    }
 }
