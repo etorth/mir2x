@@ -4,7 +4,6 @@
 #include "aboutwindow.hpp"
 #include "groundinfowindow.hpp"
 #include "cropconfigurewindow.hpp"
-#include "coverconfigurewindow.hpp"
 #include "mapinfowindow.hpp"
 #include "selectsettingwindow.hpp"
 #include "editormap.hpp"

@@ -9,7 +9,7 @@ class SelectSettingWindow {open
   } {
     Fl_Window m_Window {
       label {Select Setting Window} open selected
-      private xywh {248 285 550 180} type Double labelfont 5 align 80 resizable visible
+      private xywh {249 286 550 180} type Double labelfont 5 align 80 resizable modal visible
     } {
       Fl_Value_Slider m_ValueSliderRectangle {
         label {Rectangle }

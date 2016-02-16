@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/15/2016 19:20:24
+ *  Last Modified: 02/15/2016 21:27:39
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -517,7 +517,7 @@ void DrawArea::DrawTile()
     int nDX = x() - m_OffsetX;
     int nDY = y() - m_OffsetY;
 
-    auto fnDraw = [this, nDX, nDY](uint32_t nFileIndex, uint32_t nImageIndex, int nX, int nY){
+    auto fnDraw = [this, nDX, nDY](uint8_t nFileIndex, uint16_t nImageIndex, int nX, int nY){
         int nStartX = nX * 48;
         int nStartY = nY * 32;
         auto p = RetrievePNG(nFileIndex, nImageIndex);

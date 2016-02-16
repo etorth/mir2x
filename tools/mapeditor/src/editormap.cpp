@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/15/2016 19:15:32
+ *  Last Modified: 02/15/2016 21:44:43
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -50,11 +50,11 @@ EditorMap::~EditorMap()
 void EditorMap::ExtractOneTile(int nXCnt, int nYCnt, std::function<void(uint8_t, uint16_t)> fnWritePNG)
 {
     if(!Valid() || !ValidC(nXCnt, nYCnt)
-            || (nXCnt % 2) || (nYCnt % 2) || TileValid(nXCnt, nYCnt)){ return; }
+            || (nXCnt % 2) || (nYCnt % 2) || !TileValid(nXCnt, nYCnt)){ return; }
 
     uint32_t nDescKey    = Tile(nXCnt, nYCnt);
-    uint8_t  nFileIndex  = ((nDescKey & 0X00FF0000) >> 16);
-    uint16_t nImageIndex = ((nDescKey & 0X0000FFFF));
+    uint8_t  nFileIndex  = (uint8_t)((nDescKey & 0X00FF0000) >> 16);
+    uint16_t nImageIndex = (uint16_t)((nDescKey & 0X0000FFFF));
 
     fnWritePNG(nFileIndex, nImageIndex);
 }
@@ -92,8 +92,8 @@ void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH,
             }
 
             uint32_t nDescKey    = Tile(nX, nY);
-            uint8_t  nFileIndex  = ((nDescKey & 0X00FF0000) >> 16);
-            uint16_t nImageIndex = ((nDescKey & 0X0000FFFF));
+            uint8_t  nFileIndex  = (uint8_t)((nDescKey & 0X00FF0000) >> 16);
+            uint16_t nImageIndex = (uint16_t)((nDescKey & 0X0000FFFF));
 
             // provide cell-coordinates on map
             // fnDrawTile should convert it to drawarea pixel-coordinates
@@ -850,7 +850,7 @@ bool EditorMap::InitBuf()
     for(int nY = 0; nY < nH; ++nY){
         for(int nX = 0; nX < nW; ++nX){
             if(!(nX % 2) && !(nY % 2)){
-                SetBufTile(nX / 2, nY / 2);
+                SetBufTile(nX, nY);
             }
 
             SetBufLight(nX, nY);
@@ -898,7 +898,6 @@ void EditorMap::MakeBuf(int nW, int nH)
     // m_BufGroundObjMark[nX][nY][0]
     m_BufGroundObjMark = std::vector<std::vector<std::array<int, 2>>>(
             nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
-
     // m_BufAniObjMark[nX][nY][0]
     m_BufAniObjMark = std::vector<std::vector<std::array<int, 2>>>(
             nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
@@ -919,14 +918,14 @@ void EditorMap::SetBufTile(int nX, int nY)
     if(m_Mir2xMap && m_Mir2xMap->Valid()){
         // mir2x map
         if(m_Mir2xMap->TileValid(nX, nY)){
-            m_BufTile[nX][nY] = m_Mir2xMap->Tile(nX, nY);
-            m_BufTileMark[nX][nY] = 1;
+            m_BufTile    [nX / 2][nY / 2] = m_Mir2xMap->Tile(nX, nY);
+            m_BufTileMark[nX / 2][nY / 2] = 1;
         }
     }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
         extern ImageDB g_ImageDB;
         if(m_OldMir2Map->TileValid(nX, nY, g_ImageDB)){
-            m_BufTile[nX][nY] = m_OldMir2Map->Tile(nX, nY);
-            m_BufTileMark[nX][nY] = 1;
+            m_BufTile    [nX / 2][nY / 2] = m_OldMir2Map->Tile(nX, nY);
+            m_BufTileMark[nX / 2][nY / 2] = 1;
         }
     }
 }
