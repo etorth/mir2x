@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/15/2016 22:22:35
+ *  Last Modified: 02/15/2016 23:39:48
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -1086,6 +1086,102 @@ void EditorMap::SetGroundSelect(int nX, int nY, int nIndex, int nSelect)
 
 bool EditorMap::Save(const char *szFullName)
 {
-    UNUSED(szFullName);
+    if(!Valid()){
+        fl_alert("Invalid map!");
+        return false;
+    }
+
+    auto pFile = fopen(szFullName, "wb");
+    if(pFile == nullptr){
+        fl_alert("Fail to open %s for writing!", szFullName);
+        fclose(pFile);
+        return false;
+    }
+
+    std::vector<bool>    stMarkV;
+    std::vector<uint8_t> stDataV;
+    std::vector<uint8_t> stOutV;
+
+    // header, w and then h
+    {
+        stOutV.push_back((uint8_t)((m_W & 0X00FF)     ));
+        stOutV.push_back((uint8_t)((m_W & 0XFF00) >> 8));
+        stOutV.push_back((uint8_t)((m_H & 0X00FF)     ));
+        stOutV.push_back((uint8_t)((m_H & 0XFF00) >> 8));
+        stOutV.push_back((uint8_t)(0));
+    }
+
+    // ground information
+    {
+        stMarkV.clear();
+        stDataV.clear();
+        CompressGround(stMarkV, stDataV);
+        PushData(stMarkV, stDataV, stOutV);
+    }
+
+    // light information
+    {
+        stMarkV.clear();
+        stDataV.clear();
+        CompressLight(stMarkV, stDataV);
+        PushData(stMarkV, stDataV, stOutV);
+    }
+
+    // tile information
+    {
+        stMarkV.clear();
+        stDataV.clear();
+        CompressTile(stMarkV, stDataV);
+        PushData(stMarkV, stDataV, stOutV);
+    }
+
+    // object-0 information
+    {
+        stMarkV.clear();
+        stDataV.clear();
+        CompressTile(stMarkV, stDataV, 0);
+        PushData(stMarkV, stDataV, stOutV);
+    }
+
+    // object-1 information
+    {
+        stMarkV.clear();
+        stDataV.clear();
+        CompressTile(stMarkV, stDataV, 1);
+        PushData(stMarkV, stDataV, stOutV);
+    }
     return true;
+}
+
+void EditorMap::PushBit(const std::vector<bool> &stMarkV, std::vector<uint8_t> &stOutV)
+{
+    // will pad by zeros
+    size_t nIndex = 0;
+    while(nIndex < stMarkV.size()){
+        uint8_t nRes = 0X00;
+        for(int nBit = 0; nBit < 8; ++nBit){
+            nRes = nRes * 2 + (nIndex < stMarkV.size() && stMarkV[nIndex++]) ? 1 : 0;
+        }
+        stOutV.push_back(nRes);
+    }
+}
+
+void EditorMap::PushData(const std::vector<bool> &stMarkV,
+        const std::vector<uint8_t> &stDataV, std::vector<uint8_t> &stOutV)
+{
+    uint32_t nMarkLen = (stMarkV.size() + 7) / 8;
+    uint32_t nDataLen = (stDataV.size());
+    stOutV.push_back((uint8_t)((nMarkLen & 0X000000FF) >>  0));
+    stOutV.push_back((uint8_t)((nMarkLen & 0X0000FF00) >>  8));
+    stOutV.push_back((uint8_t)((nMarkLen & 0X00FF0000) >> 16));
+    stOutV.push_back((uint8_t)((nMarkLen & 0XFF000000) >> 24));
+
+    stOutV.push_back((uint8_t)((nDataLen & 0X000000FF) >>  0));
+    stOutV.push_back((uint8_t)((nDataLen & 0X0000FF00) >>  8));
+    stOutV.push_back((uint8_t)((nDataLen & 0X00FF0000) >> 16));
+    stOutV.push_back((uint8_t)((nDataLen & 0XFF000000) >> 24));
+
+    PushBit(stMarkV, stOutV);
+    stOutV.insert(stOutV.end(), stDataV.begin(), stDataV.end());
+    stOutV.push_back((uint8_t)(0));
 }
