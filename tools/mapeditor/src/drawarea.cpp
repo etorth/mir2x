@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/15/2016 21:27:39
+ *  Last Modified: 02/17/2016 00:45:47
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -83,7 +83,7 @@ void DrawArea::draw()
     DrawTile();
     DrawObject(true);
     DrawObject(false);
-	DrawGround();
+    DrawGrid();
 
     DrawSelect();
     DrawTrySelect();
@@ -118,10 +118,8 @@ void DrawArea::DrawSelectByRegion()
         if(stPointV.size() > 1){
             // connect all points
             for(size_t nIndex = 0; nIndex < stPointV.size() - 1; ++nIndex){
-                fl_line(stPointV[nIndex].first  + nDX,
-                        stPointV[nIndex].second + nDY,
-                        stPointV[nIndex + 1].first  + nDX,
-                        stPointV[nIndex + 1].second + nDY);
+                DrawLine(stPointV[nIndex].first + m_OffsetX, stPointV[nIndex].second + m_OffsetY,
+                        stPointV[nIndex + 1].first + m_OffsetX, stPointV[nIndex + 1].second + m_OffsetY);
             }
         }
 
@@ -131,9 +129,8 @@ void DrawArea::DrawSelectByRegion()
                 fl_circle(stPair.first + nDX, stPair.second +nDY, 4.0);
             }
             // draw current moving line
-            fl_line(m_MouseX, m_MouseY,
-                    stPointV.back().first + nDX,
-                    stPointV.back().second + nDY);
+            DrawLine(m_MouseX - x(), m_MouseY - y(),
+                    stPointV.back().first + m_OffsetX, stPointV.back().second + m_OffsetY);
         }
     };
 
@@ -327,7 +324,7 @@ void DrawArea::DrawTextBox()
         m_TextBoxBG = Fl_RGB_Image((uchar *)pData, 48 * 4, 32 * 5, 4, 0).copy(48 * 4, 32 * 5);
     }
 
-    DrawFunction(m_TextBoxBG, m_OffsetX, m_OffsetY);
+    DrawImage(m_TextBoxBG, m_OffsetX, m_OffsetY);
 
     auto wColor = fl_color();
     fl_color(FL_RED);
@@ -370,7 +367,7 @@ void DrawArea::DrawObject(bool bGround)
             // int nStartY = nYCnt * 32 - 157 + 32 - p->h();
             int nStartX = nXCnt * 48;
             int nStartY = nYCnt * 32 + 32 - p->h();
-            DrawFunction(p, nStartX, nStartY);
+            DrawImage(p, nStartX, nStartY);
             extern MainWindow *g_MainWindow;
             if(bGround){
                 if(g_MainWindow->ShowGroundObjectLine()){
@@ -389,107 +386,76 @@ void DrawArea::DrawObject(bool bGround)
             m_OffsetX / 48 - 10, m_OffsetY / 32 - 20, w() / 48 + 20, h() / 32 + 40, bGround, fnDrawObj);
 }
 
-void DrawArea::DrawFunction(Fl_Image *pImage, int nStartX, int nStartY)
+// coordinate (0, 0) is on most top-left of *DrawArea*
+// not for map or window
+void DrawArea::DrawImage(Fl_Image *pImage, int nAX, int nAY)
 {
-    // linux needs crop the region, wtf
-    // pImage->draw(nStartX + x() - m_OffsetX, nStartY + y() - m_OffsetY);
-
-    int nWX = x();
-    int nWY = y();
-
-    int nX = nStartX - m_OffsetX + nWX;
-    int nY = nStartY - m_OffsetY + nWY;
+    int nX = nAX + x();
+    int nY = nAY + y();
     int nW = pImage->w();
     int nH = pImage->h();
 
     if(pImage == nullptr
-            || nX >= nWX + w() || nX + pImage->w() <= nWX
-            || nY >= nWY + h() || nY + pImage->h() <= nWY){
+            || nAX >= w() || nAX + pImage->w() <= 0
+            || nAY >= h() || nAY + pImage->h() <= 0){
         return;
     }
 
     int nSX = 0;
     int nSY = 0;
 
-    if(nX < nWX){
-        nSX += (nWX - nX);
-        nW  -= (nWX - nX);
-        nX   = nWX;
+    if(nAX< 0){
+        nSX -= nAX;
+        nW  += nAX;
+        nX   = x();
     }
 
-    if(nX + pImage->w() > nWX + w()){
-        nW = nWX + w() - nX;
+    if(nAX + pImage->w() > w()){
+        nW = w() - nAX;
     }
 
-    if(nY < nWY){
-        nSY += (nWY - nY);
-        nH  -= (nWY - nY);
-        nY   = nWY;
+    if(nAY < 0){
+        nSY -= nAY;
+        nH  += nAY;
+        nY   = y();
     }
 
-    if(nY + pImage->h() > nWY + h()){
-        nH = nWY + h() - nY;
+    if(nAY + pImage->h() > h()){
+        nH = h() - nAY;
     }
 
     pImage->draw(nX, nY, nW, nH, nSX, nSY);
 }
 
-void DrawArea::DrawGround()
+void DrawArea::DrawGrid()
 {
+    // this function draw all grids for assistance
+    // for selection purpose, use selection operation
     //------->   0 
     //-------> 3   1
     //------->   2
 
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->ShowGroundInfoLine()){ return; }
+
     int nDX = x() - m_OffsetX;
     int nDY = y() - m_OffsetY;
 
-    auto fnDrawOnNO = [this](int nX, int nY, int nIndex){
-        UNUSED(nX);
-        UNUSED(nY);
-        UNUSED(nIndex);
-    };
-    auto fnDrawOnYES  = [this, nDX, nDY](int nX, int nY, int nIndex){
-        extern MainWindow *g_MainWindow;
-        if(g_MainWindow->ShowGroundInfoLine()){
-            int nMidX, nMidY, nX1, nY1, nX2, nY2;
-            GetTriangleOnMap(nX, nY, nIndex, nMidX, nMidY, nX1, nY1, nX2, nY2);
-            fl_loop(nMidX + nDX, nMidY + nDY, nX1 + nDX, nY1 + nDY, nX2 + nDX, nY2 + nDY);
-        }
-    };
+    auto wColor = fl_color();
+    fl_color(FL_MAGENTA);
 
-    extern EditorMap         g_EditorMap;
-    extern MainWindow       *g_MainWindow;
-    extern GroundInfoWindow *g_GroundInfoWindow;
-
-    int nStartCellX = (std::max)(0, m_OffsetX / 48 - 1);
-    int nStartCellY = (std::max)(0, m_OffsetY / 32 - 1);
-    int nStopCellX  = (std::min)((m_OffsetX + w()) / 48 + 1, g_EditorMap.W() - 1);
-    int nStopCellY  = (std::min)((m_OffsetY + h()) / 32 + 1, g_EditorMap.H() - 1);
-
-    std::function<void(int, int, int)> fnOnYes = fnDrawOnYES;
-    std::function<void(int, int, int)> fnOnNo  = fnDrawOnNO;
-    if(g_MainWindow->ReversedShowGroundInfoLine()){
-        std::swap(fnOnYes, fnOnNo);
-    }
-
-    {// set color and then draw ground info
-        auto wColor = fl_color();
-        fl_color(FL_MAGENTA);
-        for(int nX = nStartCellX; nX <= nStopCellX; ++nX){
-            for(int nY = nStartCellY; nY <= nStopCellY; ++nY){
-                for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    if(g_EditorMap.GroundValid(nX, nY, nIndex)){
-                        if(g_GroundInfoWindow->Test((uint32_t)(g_EditorMap.Ground(nX, nY, nIndex)))){
-                            fnOnYes(nX, nY, nIndex);
-                        }else{
-                            fnOnNo(nX, nY, nIndex);
-                        }
-                    }
-                }
+    for(int nCX = m_OffsetX / 48 - 1; nCX < (m_OffsetX + w()) / 48 + 1; ++nCX){
+        for(int nCY = m_OffsetY / 32 - 1; nCY < (m_OffsetY + h()) / 32 + 1; ++nCY){
+            extern EditorMap g_EditorMap;
+            if(g_EditorMap.ValidC(nCX, nCY)){
+                int nMidX, nMidY, nX1, nY1, nX2, nY2;
+                GetTriangleOnMap(nCX, nCY, nIndex, nMidX, nMidY, nX1, nY1, nX2, nY2);
+                fl_loop(nMidX + nDX, nMidY + nDY, nX1 + nDX, nY1 + nDY, nX2 + nDX, nY2 + nDY);
             }
         }
-        fl_color(wColor);
     }
+
+    fl_color(wColor);
 }
 
 Fl_Image *DrawArea::RetrievePNG(uint8_t nFileIndex, uint16_t nImageIndex)
@@ -522,7 +488,7 @@ void DrawArea::DrawTile()
         int nStartY = nY * 32;
         auto p = RetrievePNG(nFileIndex, nImageIndex);
         if(p){
-            DrawFunction(p, nStartX, nStartY);
+            DrawImage(p, nStartX, nStartY);
             extern MainWindow *g_MainWindow;
             if(g_MainWindow->ShowBaseTileLine()){
                 // fl_rect(nStartX + nDX, nStartY + nDY, 96, 64, FL_RED);
@@ -773,7 +739,7 @@ void DrawArea::DrawTUC(int nCX, int nCY, int nIndex)
 {
     extern EditorMap g_EditorMap;
     if(nCX >= 0 && nCX < g_EditorMap.W() && nCY >= 0 && nCY < g_EditorMap.H()){
-        DrawFunction(m_TUC[nIndex % 4], nCX * 48, nCY * 32);
+        DrawImage(m_TUC[nIndex % 4], nCX * 48, nCY * 32);
     }
 }
 
@@ -829,5 +795,17 @@ void DrawArea::AddSelect()
 
     if(g_MainWindow->SelectByRectangle()){
         AddSelectByRectangle();
+    }
+}
+
+// coordinate (0, 0) is on most top-left of *DrawArea*
+void DrawArea::DrawLine(int nAX0, int nAY0, int nAX1, int nAY1)
+{
+    if(PointInRectangle(nAX0, nAY0, 0, 0, w(), h())
+            && PointInRectangle(nA1, nAY1, 0, 0, w(), h())){
+        fl_line(nAX0, nAY0, nAX1, nAY1);
+    }else{
+        // TODO
+        // complete the code
     }
 }

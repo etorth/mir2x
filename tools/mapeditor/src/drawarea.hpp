@@ -36,8 +36,17 @@ class DrawArea: public Fl_Box
         void DrawGround();
 
     private:
-        // draw Fl_Image with margin operation
-        void DrawFunction(Fl_Image *, int, int);
+        // TODO
+        // require drawarea is fully inside of window
+        // draw functions with margin cut-off, using *DrawArea* coordinates
+        // 1. not window coordinates
+        // 2. not map coordinates
+        //
+        // why not for window coordinates is easy
+        // why hot for map coordinates, since some line drawing will exceed the boundary
+        // if if want to support pre-defined object, the image would also exceeds.
+        void DrawImage(Fl_Image *, int, int);
+        void DrawLine(int, int, int, int);
 
     private:
         void DrawSelect();
