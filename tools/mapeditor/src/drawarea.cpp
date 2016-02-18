@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/17/2016 00:45:47
+ *  Last Modified: 02/17/2016 18:49:16
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -798,14 +798,64 @@ void DrawArea::AddSelect()
     }
 }
 
+// truncate line into segment inside *DrawArea*
+bool DrawArea::LocateLineSegment(int &nX1, int &nY1, int &nX2, int &nY2)
+{
+    // Liang-Barsky clipping algorithm.
+    // https://github.com/smcameron/liang-barsky-in-c
+
+    int nDX = nX2 - nX1;
+    int nDY = nY2 - nY1;
+
+    if(true
+            && nDX == 0
+            && nDY == 0
+            && PointInRectangle(nX1, nY1, 0, 0, w(), h())){
+        return true;
+    }
+
+    auto fnClipT = [](int nNum, int nDenom, double &ftE, double &ftL){
+        if(nDenom == 0){
+            return nNum < 0;
+        }else{
+            double fT = nNum * 1.0 / nDenom;
+            if(nDenom > 0){
+                if(fT > ftL){ return false; }
+                if(fT > ftE){ ftE = fT    ; }
+            }else{
+                if(fT < ftE){ return false; }
+                if(fT < ftL){ ftL = fT    ; }
+            }
+            return true;
+        }
+    };
+
+    double ftE = 0.0;
+    double ftL = 1.0;
+
+    if(true
+            && fnClipT(0 - nX1      ,  nDX, ftE, ftL)
+            && fnClipT(1 + nX1 - w(), -nDX, ftE, ftL)
+            && fnClipT(0 - nY1      ,  nDY, ftE, ftL)
+            && fnClipT(1 + nY1 - h(), -nDY, ftE, ftL))
+    {
+        if(ftL < 1.0){
+            nX2 = (int)std::lround(nX1 + ftL * nDX);
+            nY2 = (int)std::lround(nY1 + ftL * nDY);
+        }
+        if(ftE > 0.0){
+            nX1 += (int)std::lround(ftE * nDX);
+            nY1 += (int)std::lround(ftE * nDY);
+        }
+        return true;
+    }
+    return false;
+}
+
 // coordinate (0, 0) is on most top-left of *DrawArea*
 void DrawArea::DrawLine(int nAX0, int nAY0, int nAX1, int nAY1)
 {
-    if(PointInRectangle(nAX0, nAY0, 0, 0, w(), h())
-            && PointInRectangle(nA1, nAY1, 0, 0, w(), h())){
+    if(LocateLineSegment(nAX0, nAY0, nAX1, nAY1)){
         fl_line(nAX0, nAY0, nAX1, nAY1);
-    }else{
-        // TODO
-        // complete the code
     }
 }
