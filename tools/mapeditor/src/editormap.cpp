@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/15/2016 23:39:48
+ *  Last Modified: 02/17/2016 21:20:03
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -31,6 +31,8 @@
 #include <vector>
 #include "savepng.hpp"
 #include "filesys.hpp"
+
+#include <FL/fl_ask.H>
 
 EditorMap::EditorMap()
     : m_Valid(false)
@@ -1139,7 +1141,7 @@ bool EditorMap::Save(const char *szFullName)
     {
         stMarkV.clear();
         stDataV.clear();
-        CompressTile(stMarkV, stDataV, 0);
+        CompressObject(stMarkV, stDataV, 0);
         PushData(stMarkV, stDataV, stOutV);
     }
 
@@ -1147,7 +1149,7 @@ bool EditorMap::Save(const char *szFullName)
     {
         stMarkV.clear();
         stDataV.clear();
-        CompressTile(stMarkV, stDataV, 1);
+        CompressObject(stMarkV, stDataV, 1);
         PushData(stMarkV, stDataV, stOutV);
     }
     return true;

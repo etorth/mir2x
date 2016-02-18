@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 02/17/2016 00:49:36
+ *  Last Modified: 02/17/2016 19:39:00
  *
  *    Description: 
  *
@@ -26,7 +26,7 @@ template<typename T> bool PointInSegment(T nfX, T nfStartX, T nfW)
     return nfX >= nfStartX && nfX < nfStartX + nfW;
 }
 
-template<typename T> bool PointInRect(T nfX, T nfY, T nStartX, T nStartY, T nfW, T nfH)
+template<typename T> bool PointInRectangle(T nfX, T nfY, T nStartX, T nStartY, T nfW, T nfH)
 {
     return PointInSegment(nfX, nStartX, nfW) && PointInSegment(nfY, nStartY, nfH);
 }
@@ -59,4 +59,9 @@ template<typename T> bool RectangleOverlap(T nfX1, T nfY1, T nfW1, T nfH1, T nfX
     // TODO
     // finish code
     static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
+    return !(true
+            || nfX1 >= nfX2 + nfW2
+            || nfY1 >= nfY2 + nfH2
+            || nfX1 + nfW1 < nfX2
+            || nfY1 + nfH1 < nfY2);
 }

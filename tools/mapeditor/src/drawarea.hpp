@@ -15,7 +15,7 @@ class DrawArea: public Fl_Box
         int m_OffsetY;
 
     private:
-        Fl_Image *m_TUC[4]; // triangle unit cover
+        Fl_Image *m_TUC[2][4]; // triangle unit cover
         Fl_Image *m_TextBoxBG;     // backgound for living text
 
     public:
@@ -30,7 +30,9 @@ class DrawArea: public Fl_Box
     public:
         void SetOffset(int, bool, int, bool);
 
+
     private:
+        void DrawGrid();
         void DrawTile();
         void DrawObject(bool);
         void DrawGround();
@@ -47,6 +49,7 @@ class DrawArea: public Fl_Box
         // if if want to support pre-defined object, the image would also exceeds.
         void DrawImage(Fl_Image *, int, int);
         void DrawLine(int, int, int, int);
+        void DrawRectangle(int, int, int, int);
 
     private:
         void DrawSelect();
@@ -59,7 +62,6 @@ class DrawArea: public Fl_Box
 
     private:
         void DrawSelectBySingle();
-        void DrawSelectByRegion();
         void DrawSelectByRhombus();
         void DrawSelectByRectangle();
 
@@ -69,12 +71,12 @@ class DrawArea: public Fl_Box
 
     private:
         void AddSelectBySingle();
-        void AddSelectByRegion();
         void AddSelectByRhombus();
         void AddSelectByRectangle();
 
     private:
         void GetTriangleOnMap(int, int, int, int &, int &, int &, int &, int &, int &);
+        bool LocateLineSegment(int &, int &, int &, int &);
         bool LocateGroundSubCell(int, int, int &, int &, int &);
         void SetGroundSubCellUnderPoint(int, int);
 
@@ -82,10 +84,10 @@ class DrawArea: public Fl_Box
         void SetScrollBar();
 
     public:
-        void DrawTUC(int, int, int);
+        void DrawTUC(int, int, int, bool);
 
     public:
         // helper function
-        Fl_Image *CreateTUC(int);
+        Fl_Image *CreateTUC(int, bool);
         Fl_Image *RetrievePNG(uint8_t, uint16_t);
 };

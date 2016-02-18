@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/15/2016 18:39:05
+ *  Last Modified: 02/17/2016 19:35:21
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -230,6 +230,11 @@ class EditorMap
     public:
         // save to mir2x compact format
         bool Save(const char *);
+
+    private:
+        void PushData(const std::vector<bool> &,
+                const std::vector<uint8_t> &, std::vector<uint8_t> &);
+        void PushBit(const std::vector<bool> &, std::vector<uint8_t> &);
 
     public:
         void Optimize();

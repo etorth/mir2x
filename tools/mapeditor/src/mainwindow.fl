@@ -60,7 +60,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {49 113 985 667} type Double resizable visible
+      xywh {56 120 985 667} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -76,7 +76,8 @@ class MainWindow {open
         } {
           MenuItem {} {
             label New
-            callback {SetWorkingPathName();}
+            callback {SetWorkingPathName();
+fl_alert("Haven't implement yet!");}
             xywh {0 0 30 20} labelfont 4
           }
           MenuItem {} {
@@ -229,6 +230,10 @@ class MainWindow {open
           label Lines open
           xywh {0 0 62 20} labelfont 4
         } {
+          MenuItem m_MenuItemGridLine {
+            label Grid
+            xywh {30 30 30 20} type Toggle labelfont 4
+          }
           MenuItem m_MenuItemBaseTileLine {
             label {Base Tile}
             xywh {0 0 30 20} type Toggle labelfont 4
@@ -240,14 +245,6 @@ class MainWindow {open
           MenuItem m_MenuItemOverGroundObjectLine {
             label {Over Ground Object          }
             xywh {20 20 30 20} type Toggle labelfont 4
-          }
-          MenuItem m_MenuItemGroundInfoLine {
-            label {Ground Info Line}
-            xywh {30 30 30 20} type Toggle value 1 labelfont 4
-          }
-          MenuItem m_MenuItemReversedGroundInfoLine {
-            label {Reversed Ground Info Line    }
-            xywh {40 40 30 20} type Toggle labelfont 4
           }
         }
         Submenu {} {
@@ -320,12 +317,11 @@ class MainWindow {open
         } {
           MenuItem m_MenuItemEnableEdit {
             label {Enable Edit                    }
-            callback {m_MenuItemReversedGroundInfoLine->clear();}
             xywh {20 20 30 20} type Toggle labelfont 4
           }
           MenuItem m_MenuItemEditGround {
             label {Edit Ground Info}
-            xywh {30 30 30 20} type Toggle labelfont 4
+            xywh {30 30 30 20} type Toggle labelfont 4 divider
           }
           MenuItem {} {
             label Optimize
@@ -353,17 +349,12 @@ class MainWindow {open
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem m_MenuItemEnableSelect {
-            label {Enable Select Mode         }
+            label {Enable Select         }
             xywh {30 30 30 20} type Toggle labelfont 4 divider
           }
           MenuItem m_MenuItemSelectBySingle {
             label Single
             xywh {50 50 30 20} type Radio value 1 labelfont 4
-          }
-          MenuItem m_MenuItemSelectByRegion {
-            label Region
-            callback {fl_cursor(FL_CURSOR_HAND);}
-            xywh {20 20 30 20} type Radio labelfont 4
           }
           MenuItem m_MenuItemSelectByBitMask {
             label BitMask
@@ -377,19 +368,13 @@ class MainWindow {open
             label Rhombus
             xywh {60 60 30 20} type Radio labelfont 4 divider
           }
-          MenuItem {} {
-            label {Bit Mask WIndow   }
-            callback {extern GroundInfoWindow *g_GroundInfoWindow;
-g_GroundInfoWindow->ShowAll();}
-            xywh {10 10 30 20} labelfont 4
-            code0 {\#include "groundinfowindow.hpp"}
+          MenuItem m_MenuItemReversed {
+            label Reversed selected
+            xywh {10 10 30 20} type Toggle labelfont 4
           }
-          MenuItem {} {
-            label {Bit Mask WIndow   }
-            callback {extern GroundInfoWindow *g_GroundInfoWindow;
-g_GroundInfoWindow->ShowAll();}
-            xywh {20 20 30 20} labelfont 4 divider
-            code0 {\#include "groundinfowindow.hpp"}
+          MenuItem m_MenuItemDeselect {
+            label Deselect
+            xywh {20 20 30 20} type Toggle labelfont 4 divider
           }
           MenuItem {} {
             label Settings
@@ -441,7 +426,7 @@ if(g_EditorMap.Valid()){
 	int nXOffset = (int)(nValidXOffset * fValue * 1.0);
     	m_DrawArea->SetOffset(nXOffset, false, 0, true);
 	m_Window->redraw();
-}} selected
+}}
         xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001
         code0 {\#include "editormap.hpp"}
       }
@@ -636,16 +621,10 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemOverGroundObjectLine->value();
 }} {}
   }
-  Function {ShowGroundInfoLine()} {return_type bool
+  Function {ShowGridLine()} {return_type bool
   } {
     code {{
-	return m_MenuItemGroundInfoLine->value();
-}} {}
-  }
-  Function {ReversedShowGroundInfoLine()} {return_type bool
-  } {
-    code {{
-	return m_MenuItemReversedGroundInfoLine->value();
+	return m_MenuItemGridLine->value();
 }} {}
   }
   Function {ShowBaseTileLayer()} {return_type bool
@@ -678,16 +657,10 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemEnableSelect->value();
 }} {}
   }
-  Function {SelectByRegion()} {return_type bool
+  Function {SelectByBitMask()} {open return_type bool
   } {
     code {{
-	return m_MenuItemSelectByRegion->value();
-}} {}
-  }
-  Function {SelectByBitMask()} {return_type bool
-  } {
-    code {{
-	return m_MenuItemSelectByRegion->value();
+	return m_MenuItemSelectByBitMask->value();
 }} {}
   }
   Function {SelectByRhombus()} {return_type bool
@@ -759,6 +732,18 @@ if(g_EditorMap.Valid()){
   } {
     code {{
     return m_MenuItemClearBackground->value();
+}} {}
+  }
+  Function {Deselect()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemDeselect->value();
+}} {}
+  }
+  Function {Reversed()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemReversed->value();
 }} {}
   }
 } 
