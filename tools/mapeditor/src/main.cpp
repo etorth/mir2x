@@ -2,7 +2,7 @@
 #include <FL/Fl.H>
 #include "mainwindow.hpp"
 #include "aboutwindow.hpp"
-#include "groundinfowindow.hpp"
+#include "attributeselectwindow.hpp"
 #include "cropconfigurewindow.hpp"
 #include "mapinfowindow.hpp"
 #include "selectsettingwindow.hpp"
@@ -15,7 +15,7 @@ MainWindow                      *g_MainWindow;
 SelectSettingWindow             *g_SelectSettingWindow;
 AboutWindow                     *g_AboutWindow;
 MapInfoWindow                   *g_MapInfoWindow;
-GroundInfoWindow                *g_GroundInfoWindow;
+AttributeSelectWindow           *g_AttributeSelectWindow;
 CropConfigureWindow             *g_CropConfigureWindow;
 EditorMap                        g_EditorMap;
 ImageDB                          g_ImageDB;
@@ -31,12 +31,12 @@ int main()
     g_WilFilePathName  = "";
     g_WorkingPathName  = "";
 
-    g_MainWindow           = new MainWindow();
-    g_SelectSettingWindow  = new SelectSettingWindow();
-    g_MapInfoWindow        = new MapInfoWindow();
-    g_AboutWindow          = new AboutWindow();
-    g_GroundInfoWindow     = new GroundInfoWindow();
-    g_CropConfigureWindow  = new CropConfigureWindow();
+    g_MainWindow            = new MainWindow();
+    g_SelectSettingWindow   = new SelectSettingWindow();
+    g_MapInfoWindow         = new MapInfoWindow();
+    g_AboutWindow           = new AboutWindow();
+    g_AttributeSelectWindow = new AttributeSelectWindow();
+    g_CropConfigureWindow   = new CropConfigureWindow();
 
     g_ImageCache.SetPath(".");
 

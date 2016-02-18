@@ -60,7 +60,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {56 120 985 667} type Double resizable visible
+      xywh {57 121 985 667} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -356,20 +356,23 @@ fl_alert("Haven't implement yet!");}
             label Single
             xywh {50 50 30 20} type Radio value 1 labelfont 4
           }
-          MenuItem m_MenuItemSelectByBitMask {
-            label BitMask
-            xywh {30 30 30 20} type Radio labelfont 4
+          MenuItem m_MenuItemSelectByRhombus {
+            label Rhombus
+            xywh {60 60 30 20} type Radio labelfont 4
           }
           MenuItem m_MenuItemSelectByRectangle {
             label Rectangle
             xywh {70 70 30 20} type Radio labelfont 4
           }
-          MenuItem m_MenuItemSelectByRhombus {
-            label Rhombus
-            xywh {60 60 30 20} type Radio labelfont 4 divider
+          MenuItem m_MenuItemSelectByAttribute {
+            label Attribute
+            callback {extern AttributeSelectWindow *g_AttributeSelectWindow;
+g_AttributeSelectWindow->ShowAll();} selected
+            xywh {30 30 30 20} type Radio labelfont 4 divider
+            code0 {\#include "attributeselectwindow.hpp"}
           }
           MenuItem m_MenuItemReversed {
-            label Reversed selected
+            label Reversed
             xywh {10 10 30 20} type Toggle labelfont 4
           }
           MenuItem m_MenuItemDeselect {
@@ -657,10 +660,10 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemEnableSelect->value();
 }} {}
   }
-  Function {SelectByBitMask()} {open return_type bool
+  Function {SelectByAttribute()} {return_type bool
   } {
     code {{
-	return m_MenuItemSelectByBitMask->value();
+	return m_MenuItemSelectByAttribute->value();
 }} {}
   }
   Function {SelectByRhombus()} {return_type bool

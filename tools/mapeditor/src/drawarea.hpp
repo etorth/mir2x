@@ -59,11 +59,13 @@ class DrawArea: public Fl_Box
     private:
         void RhombusCoverOperation(int, int, int, std::function<void(int, int, int)>);
         void RectangleCoverOperation(int, int, int, std::function<void(int, int, int)>);
+        void AttributeCoverOperation(int, int, int, std::function<void(int, int, int)>);
 
     private:
         void DrawSelectBySingle();
         void DrawSelectByRhombus();
         void DrawSelectByRectangle();
+        void DrawSelectByAttribute();
 
     private:
         void AddSelect();
@@ -73,12 +75,12 @@ class DrawArea: public Fl_Box
         void AddSelectBySingle();
         void AddSelectByRhombus();
         void AddSelectByRectangle();
+        void AddSelectByAttribute();
 
     private:
         void GetTriangleOnMap(int, int, int, int &, int &, int &, int &, int &, int &);
         bool LocateLineSegment(int &, int &, int &, int &);
         bool LocateGroundSubCell(int, int, int &, int &, int &);
-        void SetGroundSubCellUnderPoint(int, int);
 
     public:
         void SetScrollBar();

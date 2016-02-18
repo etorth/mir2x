@@ -8,8 +8,8 @@ class SelectSettingWindow {open
   Function {SelectSettingWindow()} {open
   } {
     Fl_Window m_Window {
-      label {Select Setting Window} open selected
-      private xywh {249 286 550 180} type Double labelfont 5 align 80 resizable modal visible
+      label {Select Setting Window} open
+      private xywh {252 289 575 225} type Double labelfont 5 align 80 resizable modal visible
     } {
       Fl_Value_Slider m_ValueSliderRectangle {
         label {Rectangle }
@@ -25,12 +25,19 @@ g_MainWindow->RedrawAll();}
         xywh {126 71 345 25} type Horizontal labelfont 4 align 4 maximum 20 step 1 value 5 textfont 4 textsize 14
         code0 {\#include "mainwindow.hpp"}
       }
+      Fl_Value_Slider m_ValueSliderAttribute {
+        label {Attribute }
+        callback {extern MainWindow *g_MainWindow;
+g_MainWindow->RedrawAll();}
+        xywh {126 115 345 25} type Horizontal labelfont 4 align 4 maximum 20 step 1 value 5 textfont 4 textsize 14
+        code0 {\#include "mainwindow.hpp"}
+      }
       Fl_Button {} {
         label OK
         callback {{
 	m_Window->hide();
-}}
-        xywh {425 130 80 25}
+}} selected
+        xywh {420 175 80 25}
       }
     }
   }
@@ -45,5 +52,9 @@ g_MainWindow->RedrawAll();}
   Function {RhombusSize()} {return_type int
   } {
     code {return (int)(m_ValueSliderRhombus->value());} {}
+  }
+  Function {AttributeSize()} {return_type int
+  } {
+    code {return (int)(m_ValueSliderAttribute->value());} {}
   }
 } 

@@ -1,0 +1,147 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include <cstdint>} {public local
+} 
+
+decl {\#include "mainwindow.hpp"} {private local
+} 
+
+class AttributeSelectWindow {open
+} {
+  Function {AttributeSelectWindow()} {open
+  } {
+    Fl_Window m_Window {open
+      xywh {343 170 565 315} type Double visible
+    } {
+      Fl_Check_Button m_SelectWalkable {
+        label { Walkable}
+        callback {{
+	extern MainWindow *g_MainWindow;
+	g_MainWindow->RedrawAll();
+	
+	if(m_SelectWalkable->value()){
+		m_Group->deactivate();
+	}else{
+		m_Group->activate();
+	}
+}}
+        xywh {38 22 177 33} down_box DOWN_BOX value 1 labelfont 4
+      }
+      Fl_Group m_Group {open selected
+        xywh {20 70 620 180} deactivate
+      } {
+        Fl_Check_Button m_SelectGrass {
+          label { Grass}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {38 79 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_SelectStone {
+          label { Stone}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {38 111 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_SelectPond {
+          label { Pond}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {38 143 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_SelectSand {
+          label { Sand}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {38 175 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_SelectOcean {
+          label { Ocean}
+          callback {{
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+          xywh {38 207 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {235 79 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {235 111 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {235 143 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {235 175 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {235 207 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {440 79 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {440 111 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {440 143 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {440 175 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {440 207 177 33} down_box DOWN_BOX labelfont 4
+        }
+      }
+      Fl_Button {} {
+        label OK
+        callback {{
+	extern MainWindow *g_MainWindow;
+    	g_MainWindow->RedrawAll();
+    	
+    	m_Window->hide();
+}}
+        xywh {425 260 80 30} labelfont 4
+        code0 {\#include "mainwindow.hpp"}
+      }
+    }
+  }
+  Function {ShowAll()} {return_type void
+  } {
+    code {m_Window->show();} {}
+  }
+  Function {Test(bool bValid, uint8_t nValue)} {open return_type bool
+  } {
+    code {// bool bValid, uint8_t nValue
+{
+	if(m_SelectWalkable->value()){
+		return bValid;
+	}else{
+		// TODO
+		// complete the logic
+		nValue += 1;
+		return true;
+	}
+}} {}
+  }
+} 

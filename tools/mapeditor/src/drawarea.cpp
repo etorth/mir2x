@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/17/2016 21:09:57
+ *  Last Modified: 02/18/2016 01:44:20
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -36,7 +36,7 @@
 #include <FL/fl_draw.H>
 #include <functional>
 #include "mainwindow.hpp"
-#include "groundinfowindow.hpp"
+#include "attributeselectwindow.hpp"
 #include "mathfunc.hpp"
 #include "editormap.hpp"
 
@@ -248,6 +248,88 @@ void DrawArea::AddSelectByRectangle()
     RectangleCoverOperation(nMX, nMY, nSize, fnSet);
 }
 
+void DrawArea::DrawSelectByAttribute()
+{
+    extern SelectSettingWindow *g_SelectSettingWindow;
+    int nSize = g_SelectSettingWindow->AttributeSize();
+
+    if(nSize <= 0){ return; }
+
+    int nMX = m_MouseX + m_OffsetX - x();
+    int nMY = m_MouseY + m_OffsetY - y();
+
+    auto fnDraw = [this](int nX,  int nY, int nIndex){
+        extern AttributeSelectWindow *g_AttributeSelectWindow;
+        extern MainWindow *g_MainWindow;
+        extern EditorMap g_EditorMap;
+        bool bValid = g_EditorMap.GroundValid(nX, nY, nIndex);
+        uint8_t nValue = (bValid ? g_EditorMap.Ground(nX, nY, nIndex) : 0);
+        if(g_AttributeSelectWindow->Test(bValid, nValue)){
+            DrawTUC(nX, nY, nIndex, !g_MainWindow->Deselect());
+        }
+    };
+
+    AttributeCoverOperation(nMX, nMY, nSize, fnDraw);
+
+    extern EditorMap g_EditorMap;
+    int nAMaxX = std::min(w(), g_EditorMap.W() * 48 - m_OffsetX);
+    int nAMaxY = std::min(h(), g_EditorMap.H() * 32 - m_OffsetY);
+
+    int nAX = (nMX / 48 - (nSize / 2)) * 48 - m_OffsetX;
+    int nAY = (nMY / 32 - (nSize / 2)) * 32 - m_OffsetY;
+    int nAW = nSize * 48;
+    int nAH = nSize * 32;
+
+    nAX = std::min(nAX, nAMaxX);
+    nAY = std::min(nAY, nAMaxY);
+
+    if(nAX < 0){
+        nAW += nAX;
+        nAX  = 0;
+    }
+
+    if(nAY < 0){
+        nAH += nAY;
+        nAY  = 0;
+    }
+
+    if(nAX + nAW > nAMaxX){
+        nAW = nAMaxX - nAX;
+    }
+
+    if(nAY + nAH > nAMaxY){
+        nAH = nAMaxY - nAY;
+    }
+
+    auto wColor = fl_color();
+    fl_color(FL_YELLOW);
+    DrawRectangle(nAX, nAY, nAW, nAH);
+    fl_color(wColor);
+}
+
+void DrawArea::AddSelectByAttribute()
+{
+    extern SelectSettingWindow *g_SelectSettingWindow;
+
+    int nSize = g_SelectSettingWindow->AttributeSize();
+    int nMX   = m_MouseX + m_OffsetX - x();
+    int nMY   = m_MouseY + m_OffsetY - y();
+
+    auto fnSet = [](int nX,  int nY, int nIndex){
+        extern MainWindow *g_MainWindow;
+        extern EditorMap g_EditorMap;
+        bool bValid = g_EditorMap.GroundValid(nX, nY, nIndex);
+        uint8_t nValue = (bValid ? g_EditorMap.Ground(nX, nY, nIndex) : 0);
+
+        // TODO think about it
+        extern AttributeSelectWindow *g_AttributeSelectWindow;
+        if(g_AttributeSelectWindow->Test(bValid, nValue)){
+            g_EditorMap.SetGroundSelect(nX, nY, nIndex, g_MainWindow->Deselect() ? 0 : 1);
+        }
+    };
+    AttributeCoverOperation(nMX, nMY, nSize, fnSet);
+}
+
 void DrawArea::DrawSelect()
 {
     extern EditorMap g_EditorMap;
@@ -289,6 +371,10 @@ void DrawArea::DrawTrySelect()
 
         if(g_MainWindow->SelectByRectangle()){
             DrawSelectByRectangle();
+        }
+
+        if(g_MainWindow->SelectByAttribute()){
+            DrawSelectByAttribute();
         }
 
         fl_color(wColor);
@@ -389,7 +475,7 @@ void DrawArea::DrawImage(Fl_Image *pImage, int nAX, int nAY)
     int nSX = 0;
     int nSY = 0;
 
-    if(nAX< 0){
+    if(nAX < 0){
         nSX -= nAX;
         nW  += nAX;
         nX   = x();
@@ -567,7 +653,6 @@ int DrawArea::handle(int nEvent)
                     if(Fl::event_state() & FL_CTRL){
                         // TODO:
                     }else{
-                        SetGroundSubCellUnderPoint(m_MouseX - x() + m_OffsetX, m_MouseY - y() + m_OffsetY);
                     }
                 }else{
                     if(Fl::event_state() & FL_CTRL){
@@ -607,17 +692,6 @@ bool DrawArea::LocateGroundSubCell(int nXOnMap, int nYOnMap, int &nX, int &nY, i
         }
     }
     return false;
-}
-
-void DrawArea::SetGroundSubCellUnderPoint(int nMouseXOnMap, int nMouseYOnMap)
-{
-    int nX, nY, nIndex;
-    if(LocateGroundSubCell(nMouseXOnMap, nMouseYOnMap, nX, nY, nIndex)){
-        // printf("%03d %03d %03d\n", nX, nY, nIndex);
-        extern GroundInfoWindow *g_GroundInfoWindow;
-        extern EditorMap g_EditorMap;
-        g_EditorMap.SetGround(nX, nY, nIndex, true, (uint8_t)g_GroundInfoWindow->Mask());
-    }
 }
 
 void DrawArea::GetTriangleOnMap(
@@ -774,6 +848,10 @@ void DrawArea::AddSelect()
     if(g_MainWindow->SelectByRectangle()){
         AddSelectByRectangle();
     }
+
+    if(g_MainWindow->SelectByAttribute()){
+        AddSelectByAttribute();
+    }
 }
 
 // truncate line into segment inside *DrawArea*
@@ -840,8 +918,29 @@ void DrawArea::DrawLine(int nAX0, int nAY0, int nAX1, int nAY1)
 
 void DrawArea::DrawRectangle(int nAX, int nAY, int nAW, int nAH)
 {
+    // if(nAW < 0 || nAH < 0){ return; }
     DrawLine(nAX          , nAY          , nAX + nAW - 1, nAY          );
     DrawLine(nAX          , nAY          , nAX          , nAY + nAH - 1);
     DrawLine(nAX + nAW - 1, nAY          , nAX + nAW - 1, nAY + nAH - 1);
     DrawLine(nAX          , nAY + nAH - 1, nAX + nAW - 1, nAY + nAH - 1);
+}
+
+void DrawArea::AttributeCoverOperation(
+        int nMouseXOnMap, int nMouseYOnMap, int nSize, std::function<void(int, int, int)> fnOperation)
+{
+    if(nSize <= 0){ return; }
+
+    int nMX = nMouseXOnMap / 48;
+    int nMY = nMouseYOnMap / 32;
+
+    for(int nX = nMX - (nSize / 2); nX < nMX + (nSize + 1) / 2; ++nX){
+        for(int nY = nMY - (nSize / 2); nY < nMY + (nSize + 1) / 2; ++nY){
+            for(int nIndex = 0; nIndex < 4; ++nIndex){
+                extern EditorMap g_EditorMap;
+                if(g_EditorMap.ValidC(nX, nY)){
+                    fnOperation(nX, nY, nIndex);
+                }
+            }
+        }
+    }
 }
