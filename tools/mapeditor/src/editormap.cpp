@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/18/2016 23:06:38
+ *  Last Modified: 02/19/2016 00:39:43
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -300,6 +300,11 @@ bool EditorMap::Resize(
 int EditorMap::ObjectBlockType(int nStartX, int nStartY, int nIndex, int nSize)
 {
     // assume valid map, valid parameters
+    //
+    // actually we don't have to put this check here
+    // because XXXXBlockType() will be called exactly after ValidC() at the start point
+    if(!ValidC(nStartX, nStartY)){ return 4; }
+
     if(nSize == 1){
         return ObjectValid(nStartX, nStartY, nIndex) ? 1 : 0;
     }else{
@@ -312,14 +317,19 @@ int EditorMap::ObjectBlockType(int nStartX, int nStartY, int nIndex, int nSize)
 
         for(int nX = 0; nX < nSize; ++nX){
             for(int nY = 0; nY < nSize; ++nY){
-                if(ObjectValid(nX, nY, nIndex)){
+
+                // this check is necessary
+                if(!ValidC(nX + nStartX, nY + nStartY)){ continue; }
+
+                if(ObjectValid(nX + nStartX, nY + nStartY, nIndex)){
                     bFindFill = true;
                     if(bInited){
-                        if(nObjectSample != Object(nX, nY, nIndex)){
+                        if(nObjectSample != Object(nX + nStartX, nY + nStartY, nIndex)){
                             bFindDiff = true;
                         }
                     }else{
-                        nObjectSample = Object(nX, nY, nIndex);
+                        nObjectSample = Object(nX + nStartX, nY + nStartY, nIndex);
+                        bInited = true;
                     }
                 }else{
                     bFindEmpty = true;
@@ -352,6 +362,11 @@ int EditorMap::ObjectBlockType(int nStartX, int nStartY, int nIndex, int nSize)
 int EditorMap::TileBlockType(int nStartX, int nStartY, int nSize)
 {
     // assume valid map, valid parameters
+    //
+    // actually we don't have to put this check here
+    // because XXXXBlockType() will be called exactly after ValidC() at the start point
+    if(!ValidC(nStartX, nStartY)){ return 4; }
+
     if(nSize == 2){
         return TileValid(nStartX, nStartY) ? 1 : 0;
     }else{
@@ -364,14 +379,19 @@ int EditorMap::TileBlockType(int nStartX, int nStartY, int nSize)
 
         for(int nX = 0; nX < nSize; ++nX){
             for(int nY = 0; nY < nSize; ++nY){
-                if(TileValid(nX, nY)){
+
+                // this check is necessary
+                if(!ValidC(nX + nStartX, nY + nStartY)){ continue; }
+
+                if(TileValid(nX + nStartX, nY + nStartY)){
                     bFindFill = true;
                     if(bInited){
-                        if(nTileSample != Tile(nX, nY)){
+                        if(nTileSample != Tile(nX + nStartX, nY + nStartY)){
                             bFindDiff = true;
                         }
                     }else{
-                        nTileSample = Tile(nX, nY);
+                        nTileSample = Tile(nX + nStartX, nY + nStartY);
+                        bInited = true;
                     }
                 }else{
                     bFindEmpty = true;
@@ -404,6 +424,11 @@ int EditorMap::TileBlockType(int nStartX, int nStartY, int nSize)
 int EditorMap::LightBlockType(int nStartX, int nStartY, int nSize)
 {
     // assume valid map, valid parameters
+    //
+    // actually we don't have to put this check here
+    // because XXXXBlockType() will be called exactly after ValidC() at the start point
+    if(!ValidC(nStartX, nStartY)){ return 4; }
+
     if(nSize == 1){
         return LightValid(nStartX, nStartY) ? 1 : 0;
     }else{
@@ -416,14 +441,19 @@ int EditorMap::LightBlockType(int nStartX, int nStartY, int nSize)
 
         for(int nX = 0; nX < nSize; ++nX){
             for(int nY = 0; nY < nSize; ++nY){
-                if(LightValid(nX, nY)){
+
+                // this check is necessary
+                if(!ValidC(nX + nStartX, nY + nStartY)){ continue; }
+
+                if(LightValid(nX + nStartX, nY + nStartY)){
                     bFindFill = true;
                     if(bInited){
-                        if(nLightSample != Light(nX, nY)){
+                        if(nLightSample != Light(nX + nStartX, nY + nStartY)){
                             bFindDiff = true;
                         }
                     }else{
-                        nLightSample = Light(nX, nY);
+                        nLightSample = Light(nX + nStartX, nY + nStartY);
+                        bInited = true;
                     }
                 }else{
                     bFindEmpty = true;
@@ -468,6 +498,11 @@ int EditorMap::LightBlockType(int nStartX, int nStartY, int nSize)
 int EditorMap::GroundBlockType(int nStartX, int nStartY, int nIndex, int nSize)
 {
     // assume valid map, valid parameters
+    //
+    // actually we don't have to put this check here
+    // because XXXXBlockType() will be called exactly after ValidC() at the start point
+    if(!ValidC(nStartX, nStartY)){ return 4; }
+
     if(nSize == 0){
         return GroundValid(nStartX, nStartY, nIndex) ? 1 : 0;
     }else{
@@ -480,15 +515,20 @@ int EditorMap::GroundBlockType(int nStartX, int nStartY, int nIndex, int nSize)
 
         for(int nX = 0; nX < nSize; ++nX){
             for(int nY = 0; nY < nSize; ++nY){
+
+                // this check is necessary
+                if(!ValidC(nX + nStartX, nY + nStartY)){ continue; }
+
                 for(int nIdx = 0; nIdx < 4; ++nIdx){
-                    if(GroundValid(nX, nY, nIdx)){
+                    if(GroundValid(nX + nStartX, nY + nStartY, nIdx)){
                         bFindFill = true;
                         if(bInited){
-                            if(nGroundInfoSample != Ground(nX, nY, nIdx)){
+                            if(nGroundInfoSample != Ground(nX + nStartX, nY + nStartY, nIdx)){
                                 bFindDiff = true;
                             }
                         }else{
-                            nGroundInfoSample = Ground(nX, nY, nIdx);
+                            nGroundInfoSample = Ground(nX + nStartX, nY + nStartY, nIdx);
+                            bInited = true;
                         }
                     }else{
                         bFindEmpty = true;
@@ -1161,8 +1201,13 @@ void EditorMap::PushBit(const std::vector<bool> &stMarkV, std::vector<uint8_t> &
     size_t nIndex = 0;
     while(nIndex < stMarkV.size()){
         uint8_t nRes = 0X00;
+        // TODO think about this
+        //
+        // for(int nBit = 0; nBit < 8; ++nBit){
+        //     nRes = nRes * 2 + ((nIndex < stMarkV.size() && stMarkV[nIndex++]) ? 1 : 0);
+        // }
         for(int nBit = 0; nBit < 8; ++nBit){
-            nRes = nRes * 2 + (nIndex < stMarkV.size() && stMarkV[nIndex++]) ? 1 : 0;
+            nRes = (nRes >> 1) + ((nIndex < stMarkV.size() && stMarkV[nIndex++]) ? 0X80 : 0X00);
         }
         stOutV.push_back(nRes);
     }
