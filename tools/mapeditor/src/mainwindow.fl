@@ -60,7 +60,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {57 121 985 667} type Double resizable visible
+      xywh {60 124 985 667} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -137,7 +137,7 @@ fl_alert("Haven't implement yet!");}
             code1 {\#include "editormap.hpp"}
           }
           MenuItem {} {
-            label {Load Mir2EI Map}
+            label {Load Mir2EI Map   }
             callback {{
     // maybe default or setted one, depends
     MakeWorkingFolder();
@@ -158,7 +158,7 @@ fl_alert("Haven't implement yet!");}
             code3 {\#include <algorithm>}
           }
           MenuItem {} {
-            label {Extract PNG                 }
+            label {Extract PNG}
             callback {{
     extern EditorMap g_EditorMap;
     if(!g_EditorMap.Valid()){
@@ -217,8 +217,8 @@ fl_alert("Haven't implement yet!");}
             xywh {0 0 30 20} shortcut 0x40073 labelfont 4
           }
           MenuItem {} {
-            label {Save As         }
-            xywh {0 0 30 20} shortcut 0x50073 labelfont 4
+            label {Save As}
+            xywh {0 0 30 20} shortcut 0x50073 labelfont 4 divider
           }
           MenuItem {} {
             label Quit
@@ -233,6 +233,17 @@ fl_alert("Haven't implement yet!");}
           MenuItem m_MenuItemGridLine {
             label Grid
             xywh {30 30 30 20} type Toggle labelfont 4
+          }
+          MenuItem m_MenuItemAttributeGridLine {
+            label {Attribute Grid}
+            callback {{
+	extern AttributeGridWindow *g_AttributeGridWindow;
+	if(m_MenuItemAttributeGridLine->value()){
+		g_AttributeGridWindow->ShowAll();
+	}
+}}
+            xywh {30 30 30 20} type Toggle labelfont 4 divider
+            code0 {\#include "attributegridwindow.hpp"}
           }
           MenuItem m_MenuItemBaseTileLine {
             label {Base Tile}
@@ -366,8 +377,12 @@ fl_alert("Haven't implement yet!");}
           }
           MenuItem m_MenuItemSelectByAttribute {
             label Attribute
-            callback {extern AttributeSelectWindow *g_AttributeSelectWindow;
-g_AttributeSelectWindow->ShowAll();} selected
+            callback {{
+	extern AttributeSelectWindow *g_AttributeSelectWindow;
+	if(m_MenuItemSelectByAttribute->value()){
+		g_AttributeSelectWindow->ShowAll();
+	}
+}} selected
             xywh {30 30 30 20} type Radio labelfont 4 divider
             code0 {\#include "attributeselectwindow.hpp"}
           }
@@ -628,6 +643,12 @@ if(g_EditorMap.Valid()){
   } {
     code {{
 	return m_MenuItemGridLine->value();
+}} {}
+  }
+  Function {ShowAttributeGridLine()} {return_type bool
+  } {
+    code {{
+	return m_MenuItemAttributeGridLine->value();
 }} {}
   }
   Function {ShowBaseTileLayer()} {return_type bool

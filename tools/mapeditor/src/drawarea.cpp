@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/18/2016 01:44:20
+ *  Last Modified: 02/18/2016 23:15:53
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -92,6 +92,8 @@ void DrawArea::draw()
     DrawTile();
     DrawObject(true);
     DrawObject(false);
+
+    DrawAttributeGrid();
     DrawGrid();
 
     DrawSelect();
@@ -496,6 +498,38 @@ void DrawArea::DrawImage(Fl_Image *pImage, int nAX, int nAY)
     }
 
     pImage->draw(nX, nY, nW, nH, nSX, nSY);
+}
+
+void DrawArea::DrawAttributeGrid()
+{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->ShowAttributeGridLine()){ return; }
+
+    auto wColor = fl_color();
+    fl_color(FL_MAGENTA);
+
+    for(int nCX = m_OffsetX / 48 - 1; nCX < (m_OffsetX + w()) / 48 + 1; ++nCX){
+        for(int nCY = m_OffsetY / 32 - 1; nCY < (m_OffsetY + h()) / 32 + 1; ++nCY){
+            for(int nIndex = 0; nIndex < 4; ++nIndex){
+                extern EditorMap g_EditorMap;
+                if(g_EditorMap.ValidC(nCX, nCY)){
+                    bool    bValid = (g_EditorMap.GroundValid(nCX, nCY, nIndex) != 0);
+                    uint8_t nValue = (g_EditorMap.Ground(nCX, nCY, nIndex));
+
+                    extern AttributeGridWindow *g_AttributeGridWindow;
+                    if(g_AttributeGridWindow->Test(bValid, nValue)){
+                        int nMidX, nMidY, nX1, nY1, nX2, nY2;
+                        GetTriangleOnMap(nCX, nCY, nIndex, nMidX, nMidY, nX1, nY1, nX2, nY2);
+                        // TODO
+                        DrawLoop(nMidX - m_OffsetX, nMidY - m_OffsetY,
+                                nX1 - m_OffsetX, nY1 - m_OffsetY, nX2 - m_OffsetX, nY2 - m_OffsetY);
+                    }
+                }
+            }
+        }
+    }
+
+    fl_color(wColor);
 }
 
 void DrawArea::DrawGrid()
@@ -923,6 +957,13 @@ void DrawArea::DrawRectangle(int nAX, int nAY, int nAW, int nAH)
     DrawLine(nAX          , nAY          , nAX          , nAY + nAH - 1);
     DrawLine(nAX + nAW - 1, nAY          , nAX + nAW - 1, nAY + nAH - 1);
     DrawLine(nAX          , nAY + nAH - 1, nAX + nAW - 1, nAY + nAH - 1);
+}
+
+void DrawArea::DrawLoop(int nAX1, int nAY1, int nAX2, int nAY2, int nAX3, int nAY3)
+{
+    DrawLine(nAX1, nAY1, nAX2, nAY2);
+    DrawLine(nAX2, nAY2, nAX3, nAY3);
+    DrawLine(nAX3, nAY3, nAX1, nAY1);
 }
 
 void DrawArea::AttributeCoverOperation(

@@ -8,12 +8,12 @@ decl {\#include <cstdint>} {public local
 decl {\#include "mainwindow.hpp"} {private local
 } 
 
-class AttributeSelectWindow {open
+class AttributeGridWindow {open
 } {
-  Function {AttributeSelectWindow()} {open
+  Function {AttributeGridWindow()} {open
   } {
     Fl_Window m_Window {open
-      xywh {345 172 565 315} type Double modal visible
+      xywh {346 173 565 315} type Double modal visible
     } {
       Fl_Check_Button m_SelectWalkable {
         label { Walkable}

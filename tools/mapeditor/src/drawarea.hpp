@@ -32,6 +32,7 @@ class DrawArea: public Fl_Box
 
 
     private:
+        void DrawAttributeGrid();
         void DrawGrid();
         void DrawTile();
         void DrawObject(bool);
@@ -48,6 +49,7 @@ class DrawArea: public Fl_Box
         // why hot for map coordinates, since some line drawing will exceed the boundary
         // if if want to support pre-defined object, the image would also exceeds.
         void DrawImage(Fl_Image *, int, int);
+        void DrawLoop(int, int, int, int, int, int);
         void DrawLine(int, int, int, int);
         void DrawRectangle(int, int, int, int);
 

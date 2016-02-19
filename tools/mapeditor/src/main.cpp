@@ -3,6 +3,7 @@
 #include "mainwindow.hpp"
 #include "aboutwindow.hpp"
 #include "attributeselectwindow.hpp"
+#include "attributegridwindow.hpp"
 #include "cropconfigurewindow.hpp"
 #include "mapinfowindow.hpp"
 #include "selectsettingwindow.hpp"
@@ -16,6 +17,7 @@ SelectSettingWindow             *g_SelectSettingWindow;
 AboutWindow                     *g_AboutWindow;
 MapInfoWindow                   *g_MapInfoWindow;
 AttributeSelectWindow           *g_AttributeSelectWindow;
+AttributeGridWindow             *g_AttributeGridWindow;
 CropConfigureWindow             *g_CropConfigureWindow;
 EditorMap                        g_EditorMap;
 ImageDB                          g_ImageDB;
@@ -36,6 +38,7 @@ int main()
     g_MapInfoWindow         = new MapInfoWindow();
     g_AboutWindow           = new AboutWindow();
     g_AttributeSelectWindow = new AttributeSelectWindow();
+    g_AttributeGridWindow   = new AttributeGridWindow();        // this is prettry redundant
     g_CropConfigureWindow   = new CropConfigureWindow();
 
     g_ImageCache.SetPath(".");
