@@ -17,6 +17,7 @@ class DrawArea: public Fl_Box
     private:
         Fl_Image *m_TUC[2][4]; // triangle unit cover
         Fl_Image *m_TextBoxBG;     // backgound for living text
+        Fl_Image *m_LightUC;
 
     public:
         DrawArea(int, int, int, int);
@@ -35,6 +36,7 @@ class DrawArea: public Fl_Box
         void DrawAttributeGrid();
         void DrawGrid();
         void DrawTile();
+        void DrawLight();
         void DrawObject(bool);
         void DrawGround();
 

@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/19/2016 00:39:43
+ *  Last Modified: 02/19/2016 01:07:34
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -1192,6 +1192,12 @@ bool EditorMap::Save(const char *szFullName)
         CompressObject(stMarkV, stDataV, 1);
         PushData(stMarkV, stDataV, stOutV);
     }
+
+    if(!stOutV.empty()){
+        fwrite(&(stOutV[0]), stOutV.size() * sizeof(stOutV[0]), 1, pFile);
+    }
+    fclose(pFile);
+
     return true;
 }
 
@@ -1231,4 +1237,15 @@ void EditorMap::PushData(const std::vector<bool> &stMarkV,
     PushBit(stMarkV, stOutV);
     stOutV.insert(stOutV.end(), stDataV.begin(), stDataV.end());
     stOutV.push_back((uint8_t)(0));
+}
+
+void EditorMap::DrawLight(int nX, int nY, int nW, int nH, std::function<void(int, int)> fnDrawLight)
+{
+    for(int nTX = 0; nTX < nW; ++nTX){
+        for(int nTY = 0; nTY < nH; ++nTY){
+            if(ValidC(nTX + nX, nTY + nY) && LightValid(nTX + nX, nTY + nY)){
+                fnDrawLight(nTX + nX, nTY + nY);
+            }
+        }
+    }
 }

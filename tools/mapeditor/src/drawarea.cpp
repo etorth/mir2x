@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/18/2016 23:15:53
+ *  Last Modified: 02/19/2016 01:05:56
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -51,6 +51,7 @@ DrawArea::DrawArea(int x, int y, int w, int h)
     , m_OffsetY(0)
     , m_TUC{{nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr}}
     , m_TextBoxBG(nullptr)
+    , m_LightUC(nullptr)
 {
     m_TUC[0][0] = CreateTUC(0, true);
     m_TUC[0][1] = CreateTUC(1, true);
@@ -65,6 +66,7 @@ DrawArea::DrawArea(int x, int y, int w, int h)
 
 DrawArea::~DrawArea()
 {
+    delete m_LightUC;
     delete m_TextBoxBG;
     delete m_TUC[0][0];
     delete m_TUC[0][1];
@@ -92,6 +94,8 @@ void DrawArea::draw()
     DrawTile();
     DrawObject(true);
     DrawObject(false);
+
+    DrawLight();
 
     DrawAttributeGrid();
     DrawGrid();
@@ -984,4 +988,28 @@ void DrawArea::AttributeCoverOperation(
             }
         }
     }
+}
+
+void DrawArea::DrawLight()
+{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->ShowLightLayer()){ return; }
+
+    if(!m_LightUC){
+        uint32_t pData[32][48];
+        for(int nY = 0; nY < 32; ++nY){
+            for(int nX = 0; nX < 48; ++nX){
+                pData[nY][nX] = 0X80FF0000;
+            }
+        }
+        m_LightUC = Fl_RGB_Image((uchar *)pData, 48, 32, 4, 0).copy(48, 32);
+    }
+
+    auto fnDrawLight = [this](int nX, int nY){
+        DrawImage(m_LightUC, nX * 48 - m_OffsetX, nY * 32 - m_OffsetY);
+    };
+
+    extern EditorMap g_EditorMap;
+    g_EditorMap.DrawLight(
+            m_OffsetX / 48 - 2, m_OffsetY / 32 - 2, w() / 48 + 4, h() / 32 + 4, fnDrawLight);
 }

@@ -60,7 +60,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {60 124 985 667} type Double resizable visible
+      xywh {62 126 985 667} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -262,9 +262,13 @@ fl_alert("Haven't implement yet!");}
           label Layers open
           xywh {10 10 62 20} labelfont 4
         } {
+          MenuItem m_MenuItemLightLayer {
+            label Light
+            xywh {10 10 30 20} type Toggle value 1 labelfont 4
+          }
           MenuItem m_MenuItemBaseTileLayer {
             label {Base Tile}
-            xywh {10 10 30 20} type Toggle value 1 labelfont 4
+            xywh {20 20 30 20} type Toggle value 1 labelfont 4
           }
           MenuItem m_MenuItemGroundObjectLayer {
             label {Ground Object     }
@@ -272,7 +276,7 @@ fl_alert("Haven't implement yet!");}
           }
           MenuItem m_MenuItemOverGroundObjectLayer {
             label {Over Ground Object          }
-            xywh {30 30 30 20} type Toggle value 1 labelfont 4
+            xywh {30 30 30 20} type Toggle value 1 labelfont 4 divider
           }
           MenuItem m_MenuItemClearBackground {
             label {Clear Background         }
@@ -382,7 +386,7 @@ fl_alert("Haven't implement yet!");}
 	if(m_MenuItemSelectByAttribute->value()){
 		g_AttributeSelectWindow->ShowAll();
 	}
-}} selected
+}}
             xywh {30 30 30 20} type Radio labelfont 4 divider
             code0 {\#include "attributeselectwindow.hpp"}
           }
@@ -649,6 +653,12 @@ if(g_EditorMap.Valid()){
   } {
     code {{
 	return m_MenuItemAttributeGridLine->value();
+}} {}
+  }
+  Function {ShowLightLayer()} {selected return_type bool
+  } {
+    code {{
+	return m_MenuItemLightLayer->value();
 }} {}
   }
   Function {ShowBaseTileLayer()} {return_type bool
