@@ -97,7 +97,7 @@ class Mir2xMap
 
         bool TileValid(int nX, int nY)
         {
-            return (TileDesc(nX, nY).Desc & 0X01) == 0X01;
+            return (TileDesc(nX, nY).Desc & 0X80) == 0X80;
         }
 
         bool ObjectValid(int nX, int nY, int nIndex)
@@ -172,7 +172,6 @@ class Mir2xMap
     private:
         void DrawGround();
 
-
     private:
             TILEDESC   *m_TileDesc;
             CELLDESC   *m_CellDesc;
@@ -185,7 +184,6 @@ class Mir2xMap
     private:
             uint16_t    m_W;
             uint16_t    m_H;
-
 
     private:
             bool LoadHead(uint8_t * &);
@@ -201,8 +199,6 @@ class Mir2xMap
             void SetLight(int, int, int, const uint8_t *, long &);
 
     private:
-
-    private:
             bool LoadGround(uint8_t * &);
             void ParseGround(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
             void SetGround(int, int, int, bool, uint8_t);
@@ -214,7 +210,6 @@ class Mir2xMap
             void SetObj(int, int, int, int, const uint8_t *, long &, const uint8_t *, long &);
             void SetOneObj(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
             void SetOneObjMask(int, int, int, bool, bool);
-
 
     private:
             void ExtendBuf(size_t);

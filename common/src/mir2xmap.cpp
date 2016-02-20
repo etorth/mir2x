@@ -15,6 +15,7 @@ Mir2xMap::Mir2xMap()
     , m_BufMaxSize(0)
     , m_W(0)
     , m_H(0)
+    , m_Valid(false)
 {}
 
 Mir2xMap::~Mir2xMap()
@@ -25,7 +26,7 @@ Mir2xMap::~Mir2xMap()
 
 bool Mir2xMap::Load(const char *szFullName)
 {
-	delete []m_TileDesc; m_TileDesc = nullptr;
+    delete []m_TileDesc; m_TileDesc = nullptr;
     delete []m_CellDesc; m_CellDesc = nullptr;
 
     FILE *pFile = fopen(szFullName, "rb");
@@ -38,11 +39,14 @@ bool Mir2xMap::Load(const char *szFullName)
     fseek(pFile, 0, SEEK_SET);
 
     ExtendBuf(nSize);
-    fread(m_Buf, 1, nSize, pFile);
+    fread(m_Buf, nSize, 1, pFile);
+    fclose(pFile);
 
     uint8_t *pCurDat = m_Buf;
-    return LoadHead(pCurDat) && LoadGround(pCurDat) 
+    m_Valid = LoadHead(pCurDat) && LoadGround(pCurDat) 
         && LoadLight(pCurDat) && LoadTile(pCurDat) && LoadObj(pCurDat, 0) && LoadObj(pCurDat, 1);
+
+    return m_Valid;
 }
 
 void Mir2xMap::SetOneGround(int nX, int nY, int nIndex, bool bHasInfo, uint8_t nGroundInfo)
@@ -62,6 +66,7 @@ void Mir2xMap::SetGround(int nX, int nY, int nSize, bool bHasInfo, uint8_t nGrou
 {
     for(int nTY = nY; nTY < nY + nSize; ++nTY){
         for(int nTX = nX; nTX < nX + nSize; ++nTX){
+            if(!ValidC(nTX, nTY)){ continue; }
             SetOneGround(nTX, nTY, 0, bHasInfo, nGroundInfo);
             SetOneGround(nTX, nTY, 1, bHasInfo, nGroundInfo);
             SetOneGround(nTX, nTY, 2, bHasInfo, nGroundInfo);
@@ -221,6 +226,7 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
 
     for(int nTY = nY; nTY < nY + nSize; ++nTY){
         for(int nTX = nX; nTX < nX + nSize; ++nTX){
+            if(!ValidC(nTX, nTY)){ continue; }
             if(pData){
                 CellDesc(nTX, nTY).Desc |= 0X8000;
             }else{
@@ -378,7 +384,7 @@ bool Mir2xMap::LoadHead(uint8_t * &pData)
 bool Mir2xMap::LoadGround(uint8_t * &pData)
 {
     uint32_t nMarkLen = *((uint32_t *)(pData + 0));
-    uint32_t nDataLen = *((uint32_t *)(pData + 4 + nMarkLen));
+    uint32_t nDataLen = *((uint32_t *)(pData + 4));
 
     long nMarkOff = 0;
     long nDataOff = 0;
@@ -390,7 +396,7 @@ bool Mir2xMap::LoadGround(uint8_t * &pData)
     }
 
     pData += (8 + nMarkLen + nDataLen);
-    if(pData[0] != 0){
+    if(pData[0] != 0 || nMarkLen != (nMarkOff + 7) / 8 || nDataLen != nDataOff){
         return false;
     }else{
         pData++;
@@ -401,7 +407,7 @@ bool Mir2xMap::LoadGround(uint8_t * &pData)
 bool Mir2xMap::LoadLight(uint8_t * &pData)
 {
     uint32_t nMarkLen = *((uint32_t *)(pData + 0));
-    uint32_t nDataLen = *((uint32_t *)(pData + 4 + nMarkLen));
+    uint32_t nDataLen = *((uint32_t *)(pData + 4));
 
     long nMarkOff = 0;
     long nDataOff = 0;
@@ -413,7 +419,7 @@ bool Mir2xMap::LoadLight(uint8_t * &pData)
     }
 
     pData += (8 + nMarkLen + nDataLen);
-    if(pData[0] != 0){
+    if(pData[0] != 0 || nMarkLen != (nMarkOff + 7) / 8 || nDataLen != nDataOff){
         return false;
     }else{
         pData++;
@@ -466,7 +472,7 @@ void Mir2xMap::ParseObj(int nX, int nY, int nSize, int nObjIndex,
 bool Mir2xMap::LoadObj(uint8_t * &pData, int nObjIndex)
 {
     uint32_t nMarkLen = *((uint32_t *)(pData + 0));
-    uint32_t nDataLen = *((uint32_t *)(pData + 4 + nMarkLen));
+    uint32_t nDataLen = *((uint32_t *)(pData + 4));
 
     long nMarkOff = 0;
     long nDataOff = 0;
@@ -479,7 +485,7 @@ bool Mir2xMap::LoadObj(uint8_t * &pData, int nObjIndex)
     }
 
     pData += (8 + nMarkLen + nDataLen);
-    if(pData[0] != 0){
+    if(pData[0] != 0 || nMarkLen != (nMarkOff + 7) / 8 || nDataLen != nDataOff){
         return false;
     }else{
         pData++;
@@ -552,7 +558,7 @@ void Mir2xMap::ParseTile(int nX, int nY, int nSize,
 bool Mir2xMap::LoadTile(uint8_t * &pData)
 {
     uint32_t nMarkLen = *((uint32_t *)(pData + 0));
-    uint32_t nDataLen = *((uint32_t *)(pData + 4 + nMarkLen));
+    uint32_t nDataLen = *((uint32_t *)(pData + 4));
 
     long nMarkOff = 0;
     long nDataOff = 0;
@@ -563,7 +569,7 @@ bool Mir2xMap::LoadTile(uint8_t * &pData)
         }
     }
     pData += (8 + nMarkLen + nDataLen);
-    if(pData[0] != 0){
+    if(pData[0] != 0 || nMarkLen != (nMarkOff + 7) / 8 || nDataLen != nDataOff){
         return false;
     }else{
         pData++;
@@ -577,14 +583,22 @@ void Mir2xMap::SetTile(int nX, int nY, int nSize, const uint8_t *pData, long &nD
     TILEDESC stTileDesc = {0, 0, 0};
 
     if(pData){
-        stTileDesc.Desc       = 0X01;
-        stTileDesc.FileIndex  = pData[nDataOff++];
+        // stTileDesc.Desc       = 0X01;
+        stTileDesc.Desc       = (pData[nDataOff++] | 0X8000);
+        stTileDesc.FileIndex  = (pData[nDataOff++]         );
         stTileDesc.ImageIndex = *((uint16_t *)(pData + nDataOff));
         nDataOff += 2;
+
+        // stTileDesc.Desc       = pData[nDataOff++];
+        // stTileDesc.FileIndex  = pData[nDataOff++];
+        // stTileDesc.ImageIndex = *((uint16_t *)(pData + nDataOff));
+        // nDataOff += 2;
     }
 
     for(int nTY = nY; nTY < nY + nSize; ++nTY){
         for(int nTX = nX; nTX < nX + nSize; ++nTX){
+            if(!ValidC(nTX, nTY)){ continue; }
+
             if(!(nTX % 2 || nTY %2)){
                 TileDesc(nTX, nTY) = stTileDesc;
             }

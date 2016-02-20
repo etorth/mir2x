@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/19/2016 01:07:34
+ *  Last Modified: 02/20/2016 01:35:07
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -35,7 +35,9 @@
 #include <FL/fl_ask.H>
 
 EditorMap::EditorMap()
-    : m_Valid(false)
+    : m_W(0)
+    , m_H(0)
+    , m_Valid(false)
     , m_OldMir2Map(nullptr)
     , m_Mir2xMap(nullptr)
 {
@@ -644,11 +646,15 @@ void EditorMap::RecordObject(std::vector<bool> &stMarkV, std::vector<uint8_t> &s
 void EditorMap::RecordTile(std::vector<uint8_t> &stDataV, int nX, int nY)
 {
     uint32_t nTileDesc = Tile(nX, nY);
+    // stDataV.push_back((uint8_t)((nTileDesc & 0X000000FF ) >>  0));
+    // stDataV.push_back((uint8_t)((nTileDesc & 0X0000FF00 ) >>  8));
+    // stDataV.push_back((uint8_t)((nTileDesc & 0X00FF0000 ) >> 16));
+    // stDataV.push_back((uint8_t)((nTileDesc & 0XFF000000 ) >> 24));
 
-    stDataV.push_back((uint8_t)((nTileDesc & 0X000000FF ) >>  0));
-    stDataV.push_back((uint8_t)((nTileDesc & 0X0000FF00 ) >>  8));
-    stDataV.push_back((uint8_t)((nTileDesc & 0X00FF0000 ) >> 16));
-    stDataV.push_back((uint8_t)((nTileDesc & 0XFF000000 ) >> 24));
+    stDataV.push_back(((uint8_t)((nTileDesc & 0XFF000000 ) >> 24)) | 0X80); // Desc
+    stDataV.push_back(((uint8_t)((nTileDesc & 0X00FF0000 ) >> 16))       ); // FileIndex
+    stDataV.push_back(((uint8_t)((nTileDesc & 0X000000FF ) >>  0))       ); // ImageIndex, low
+    stDataV.push_back(((uint8_t)((nTileDesc & 0X0000FF00 ) >>  8))       ); // ImageIndex, high
 }
 
 // Light is simplest one
@@ -807,8 +813,12 @@ bool EditorMap::LoadMir2xMap(const char *szFullName)
     delete m_Mir2xMap  ; m_Mir2xMap   = new Mir2xMap();
 
     if(m_Mir2xMap->Load(szFullName)){
-        MakeBuf(m_Mir2xMap->W(), m_Mir2xMap->H());
-        InitBuf();
+        try{
+            MakeBuf(m_Mir2xMap->W(), m_Mir2xMap->H());
+            InitBuf();
+        }catch(...){
+            std::printf("exception!\n");
+        }
     }
 
     delete m_Mir2xMap;
@@ -874,6 +884,16 @@ void EditorMap::ClearBuf()
     m_BufGroundObjMark.clear();
     m_BufGround.clear();
     m_BufGroundMark.clear();
+
+    // decltype(m_BufLight        )().swap(m_BufLight        );
+    // decltype(m_BufLightMark    )().swap(m_BufLightMark    );
+    // decltype(m_BufTile         )().swap(m_BufTile         );
+    // decltype(m_BufTileMark     )().swap(m_BufTileMark     );
+    // decltype(m_BufObj          )().swap(m_BufObj          );
+    // decltype(m_BufObjMark      )().swap(m_BufObjMark      );
+    // decltype(m_BufGroundObjMark)().swap(m_BufGroundObjMark);
+    // decltype(m_BufGround       )().swap(m_BufGround       );
+    // decltype(m_BufGroundMark   )().swap(m_BufGroundMark   );
 }
 
 bool EditorMap::InitBuf()
