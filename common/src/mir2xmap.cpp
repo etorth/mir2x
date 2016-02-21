@@ -204,7 +204,11 @@ void Mir2xMap::SetObj(int nX, int nY, int nObjIndex, int nSize,
             CellDesc(nTX, nTY).Obj[nObjIndex] = stObjDesc;
             if(bIsObj){
                 // which layer of the obj is at
-                CellDesc(nTX, nTY).Desc |= ((PickOneBit(pMark, nMarkOff++) ? 0X0300 : 0X0200) << (nObjIndex * 2));
+                if(PickOneBit(pMark, nMarkOff++)){
+                    CellDesc(nTX, nTY).Desc |= ((nObjIndex == 0) ? 0X0100 : 0X1000);
+                }else{
+                    CellDesc(nTX, nTY).Desc &= ((nObjIndex == 0) ? 0XFEFF : 0XEFFF);
+                }
             }else{
                 CellDesc(nTX, nTY).Desc &= ((nObjIndex == 0) ? 0XFCFF : 0XF3FF);
             }
@@ -226,9 +230,9 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
             if(!ValidC(nTX, nTY)){ continue; }
 
             if(pData){
-                CellDesc(nTX, nTY).Desc |= 0X8000;
+                CellDesc(nTX, nTY).Desc |= 0X0080;
             }else{
-                CellDesc(nTX, nTY).Desc &= 0X7FFF;
+                CellDesc(nTX, nTY).Desc &= 0XFF7F;
             }
             CellDesc(nTX, nTY).Light = nLightAttr;
         }

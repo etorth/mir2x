@@ -69,10 +69,6 @@ class Mir2xMap
     public:
         bool Load(const char *);
 
-    private:
-        bool LoadObj1(uint8_t * &);
-        bool LoadObj2(uint8_t * &);
-
     public:
         void Draw(int, int, int, int, int,
                 std::function<void(int, int, uint32_t)>,
@@ -107,7 +103,7 @@ class Mir2xMap
 
         bool LightValid(int nX, int nY)
         {
-            return (CellDesc(nX, nY).Desc & 0X8000) != 0;
+            return (CellDesc(nX, nY).Desc & 0X0080) != 0;
         }
 
         uint16_t Light(int nX, int nY)
@@ -122,12 +118,12 @@ class Mir2xMap
 
         bool TileValid(int nX, int nY)
         {
-            return (TileDesc(nX, nY).Desc & 0X80) == 0X80;
+            return (TileDesc(nX, nY).Desc & 0X80) != 0;
         }
 
         bool ObjectValid(int nX, int nY, int nIndex)
         {
-            return (CellDesc(nX, nY).Desc & (0X0200 << (nIndex * 2))) != 0;
+            return (CellDesc(nX, nY).Desc & ((nIndex == 0) ? 0X0100 : 0X1000)) != 0;
         }
 
         bool AniObjectValid(int nX, int nY, int nIndex)
@@ -137,12 +133,7 @@ class Mir2xMap
 
         bool GroundObjectValid(int nX, int nY, int nIndex)
         {
-            return (CellDesc(nX, nY).Desc & (0X0300 << (nIndex * 2))) == (0X0200 << (nIndex * 2));
-        }
-
-        bool OverGroundObjectValid(int nX, int nY, int nIndex)
-        {
-            return (CellDesc(nX, nY).Desc & (0X0300 << (nIndex * 2))) == (0X0300 << (nIndex * 2));
+            return (CellDesc(nX, nY).Desc & ((nIndex == 0) ? 0X0200 : 0X2000)) != 0;
         }
 
     private:
