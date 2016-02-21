@@ -7,21 +7,46 @@ class Mir2xMap
     private:
         typedef struct
         {
-            uint8_t     Desc;
+            uint8_t     Desc;           // 0x<-87654321:
+                                        //   8: valid or not
+                                        // 7~1: specified info of tile
             uint8_t     FileIndex;
             uint16_t    ImageIndex;
         }TILEDESC;
 
         typedef struct
         {
-            uint8_t     Desc;
+            uint8_t     Desc;           // description for animated object
+                                        // 0x <- 87654321
+                                        //     8: animated
+                                        //   7-5: tick type, define animation fps
+                                        //   4-1 : frame count, for max = 16
             uint8_t     FileIndex;  
             uint16_t    ImageIndex;
         }OBJDESC;
 
         typedef struct
         {
-            uint16_t    Desc;
+            uint16_t    Desc;           //  0x b(87654321) a(87654321)
+                                        //
+                                        //  b8: obj-1 is alpha blended
+                                        //  b7: obj-1 is looped animation
+                                        //  b6: obj-1 is ground obj
+                                        //  b5  obj-1 valid
+                                        //
+                                        //  b4: obj-0 is alpha blended
+                                        //  b3: obj-0 is looped animation
+                                        //  b2: obj-0 is ground obj
+                                        //  b1: obj-0 valid
+                                        //
+                                        //  a8: light
+                                        //  a7:
+                                        //  a6:
+                                        //  a5:
+                                        //  a4: gournd subgrid-4 is valid
+                                        //  a3: gournd subgrid-3 is valid
+                                        //  a2: gournd subgrid-2 is valid
+                                        //  a1: gournd subgrid-1 is valid
             uint8_t     Ground[4];
             OBJDESC     Obj[2];
             uint16_t    Light;
@@ -173,55 +198,54 @@ class Mir2xMap
         void DrawGround();
 
     private:
-            TILEDESC   *m_TileDesc;
-            CELLDESC   *m_CellDesc;
+        TILEDESC   *m_TileDesc;
+        CELLDESC   *m_CellDesc;
 
     private:
-            uint8_t    *m_Buf;
-            size_t      m_BufSize;
-            size_t      m_BufMaxSize;
+        uint8_t    *m_Buf;
+        size_t      m_BufSize;
+        size_t      m_BufMaxSize;
 
     private:
-            uint16_t    m_W;
-            uint16_t    m_H;
+        uint16_t    m_W;
+        uint16_t    m_H;
 
     private:
-            bool LoadHead(uint8_t * &);
+        bool LoadHead(uint8_t * &);
 
     private:
-            bool LoadTile(uint8_t * &);
-            void ParseTile(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
-            void SetTile(int, int, int, const uint8_t *, long &);
+        bool LoadTile(uint8_t * &);
+        void ParseTile(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
+        void SetTile(int, int, int, const uint8_t *, long &);
 
     private:
-            bool LoadLight(uint8_t * &);
-            void ParseLight(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
-            void SetLight(int, int, int, const uint8_t *, long &);
+        bool LoadLight(uint8_t * &);
+        void ParseLight(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
+        void SetLight(int, int, int, const uint8_t *, long &);
 
     private:
-            bool LoadGround(uint8_t * &);
-            void ParseGround(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
-            void SetGround(int, int, int, bool, uint8_t);
-            void SetOneGround(int, int, int, bool, uint8_t);
+        bool LoadGround(uint8_t * &);
+        void ParseGround(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
+        void SetGround(int, int, int, bool, uint8_t);
+        void SetOneGround(int, int, int, bool, uint8_t);
 
     private:
-            bool LoadObj(uint8_t * &, int);
-            void ParseObj(int, int, int, int, const uint8_t *, long &, const uint8_t *, long &);
-            void SetObj(int, int, int, int, const uint8_t *, long &, const uint8_t *, long &);
-            void SetOneObj(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
-            void SetOneObjMask(int, int, int, bool, bool);
+        bool LoadObj(uint8_t * &, int);
+        void ParseObj(int, int, int, int, const uint8_t *, long &, const uint8_t *, long &);
+        void SetObj(int, int, int, int, const uint8_t *, long &, const uint8_t *, long &);
+        void SetOneObj(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
+        void SetOneObjMask(int, int, int, bool, bool);
 
     private:
-            void ExtendBuf(size_t);
+        void ExtendBuf(size_t);
 
     private:
-            void DrawObject(int, int, int, int,
-                    std::function<bool(int, int)>,
-                    std::function<void(int, int)>);
+        void DrawObject(int, int, int, int,
+                std::function<bool(int, int)>,
+                std::function<void(int, int)>);
 
     private:
-            bool        m_Valid;
-            uint32_t    m_dwAniSaveTime[8];
-            uint8_t     m_bAniTileFrame[8][16];
-
+        bool        m_Valid;
+        uint32_t    m_dwAniSaveTime[8];
+        uint8_t     m_bAniTileFrame[8][16];
 };

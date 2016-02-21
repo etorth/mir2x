@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/20/2016 01:35:07
+ *  Last Modified: 02/21/2016 05:21:35
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -303,6 +303,14 @@ int EditorMap::ObjectBlockType(int nStartX, int nStartY, int nIndex, int nSize)
 {
     // assume valid map, valid parameters
     //
+    // TODO
+    // think about how to define *the same obj*
+    // currently is:
+    //  1. same animation desc
+    //  2. same file index
+    //  3. same image index
+    //  4. same *layer*
+    //
     // actually we don't have to put this check here
     // because XXXXBlockType() will be called exactly after ValidC() at the start point
     if(!ValidC(nStartX, nStartY)){ return 4; }
@@ -314,8 +322,9 @@ int EditorMap::ObjectBlockType(int nStartX, int nStartY, int nIndex, int nSize)
         bool bFindFill  = false;
         bool bFindDiff  = false;
 
-        bool bInited = false;
-        uint32_t nObjectSample = 0;
+        bool     bInited             = false;
+        bool     bGroundObjectSample = false;
+        uint32_t nObjectSample       = 0;
 
         for(int nX = 0; nX < nSize; ++nX){
             for(int nY = 0; nY < nSize; ++nY){
@@ -326,11 +335,13 @@ int EditorMap::ObjectBlockType(int nStartX, int nStartY, int nIndex, int nSize)
                 if(ObjectValid(nX + nStartX, nY + nStartY, nIndex)){
                     bFindFill = true;
                     if(bInited){
-                        if(nObjectSample != Object(nX + nStartX, nY + nStartY, nIndex)){
+                        if(nObjectSample != Object(nX + nStartX, nY + nStartY, nIndex)
+                                || bGroundObjectSample != GroundObjectValid(nX + nStartX, nY + nStartY, nIndex)){
                             bFindDiff = true;
                         }
                     }else{
-                        nObjectSample = Object(nX + nStartX, nY + nStartY, nIndex);
+                        nObjectSample       = Object(nX + nStartX, nY + nStartY, nIndex);
+                        bGroundObjectSample = GroundObjectValid(nX + nStartX, nY + nStartY, nIndex);
                         bInited = true;
                     }
                 }else{
@@ -367,7 +378,7 @@ int EditorMap::TileBlockType(int nStartX, int nStartY, int nSize)
     //
     // actually we don't have to put this check here
     // because XXXXBlockType() will be called exactly after ValidC() at the start point
-    if(!ValidC(nStartX, nStartY)){ return 4; }
+    if(!ValidC(nStartX, nStartY) || (nStartX % 2) || (nStartY % 2)){ return 4; }
 
     if(nSize == 2){
         return TileValid(nStartX, nStartY) ? 1 : 0;
@@ -383,7 +394,11 @@ int EditorMap::TileBlockType(int nStartX, int nStartY, int nSize)
             for(int nY = 0; nY < nSize; ++nY){
 
                 // this check is necessary
-                if(!ValidC(nX + nStartX, nY + nStartY)){ continue; }
+                if(!ValidC(nX + nStartX, nY + nStartY)
+                        || ((nX + nStartX) % 2)
+                        || ((nY + nStartY) % 2)){
+                    continue;
+                }
 
                 if(TileValid(nX + nStartX, nY + nStartY)){
                     bFindFill = true;
@@ -632,15 +647,15 @@ void EditorMap::RecordLight(std::vector<uint8_t> &stDataV, int nX, int nY)
 
 void EditorMap::RecordObject(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV, int nX, int nY, int nIndex)
 {
-    bool bGroundObj = GroundObjectValid(nX, nY, nIndex);
+    bool bGroundObj = (GroundObjectValid(nX, nY, nIndex) != 0);
     uint32_t nObjDesc = Object(nX, nY, nIndex);
 
     stMarkV.push_back(bGroundObj);
 
-    stDataV.push_back((uint8_t)((nObjDesc & 0X000000FF ) >>  0));
-    stDataV.push_back((uint8_t)((nObjDesc & 0X0000FF00 ) >>  8));
-    stDataV.push_back((uint8_t)((nObjDesc & 0X00FF0000 ) >> 16));
-    stDataV.push_back((uint8_t)((nObjDesc & 0XFF000000 ) >> 24));
+    stDataV.push_back((uint8_t)((nObjDesc & 0XFF000000 ) >> 24));  // ObjDesc
+    stDataV.push_back((uint8_t)((nObjDesc & 0X00FF0000 ) >> 16));  // FileIndex
+    stDataV.push_back((uint8_t)((nObjDesc & 0X000000FF ) >>  0));  // ImageIndex Low
+    stDataV.push_back((uint8_t)((nObjDesc & 0X0000FF00 ) >>  8));  // ImageIndex Hight
 }
 
 void EditorMap::RecordTile(std::vector<uint8_t> &stDataV, int nX, int nY)
@@ -740,7 +755,6 @@ void EditorMap::DoCompressObject(int nX, int nY, int nIndex, int nSize,
         if(nSize == 1){
             // there is info, and it's last level, so nType can only be 1
             // end of recursion
-            stDataV.push_back(Light(nX, nY));
             RecordObject(stMarkV, stDataV, nX, nY, nIndex);
         }else{
             // there is info, and it's not the last level
@@ -813,12 +827,8 @@ bool EditorMap::LoadMir2xMap(const char *szFullName)
     delete m_Mir2xMap  ; m_Mir2xMap   = new Mir2xMap();
 
     if(m_Mir2xMap->Load(szFullName)){
-        try{
-            MakeBuf(m_Mir2xMap->W(), m_Mir2xMap->H());
-            InitBuf();
-        }catch(...){
-            std::printf("exception!\n");
-        }
+        MakeBuf(m_Mir2xMap->W(), m_Mir2xMap->H());
+        InitBuf();
     }
 
     delete m_Mir2xMap;

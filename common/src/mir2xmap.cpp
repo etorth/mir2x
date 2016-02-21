@@ -176,44 +176,41 @@ void Mir2xMap::ParseLight(int nX, int nY, int nSize,
     }
 }
 
-void Mir2xMap::SetOneObj(int nX, int nY, int nObjIndex,
+void Mir2xMap::SetObj(int nX, int nY, int nObjIndex, int nSize,
         const uint8_t *pMark, long &nMarkOff, const uint8_t *pData, long &nDataOff)
 {
+    // we define two objects are *the same* in:
+    //  1. animation desc
+    //  2. file index
+    //  3. image index
+    //  4. layer
+    //
+    OBJDESC stObjDesc = {0, 0, 0};
+    bool    bIsObj    = false;
+
     if(pMark && pData){
-        CellDesc(nX, nY).Obj[nObjIndex].Desc       = pData[nDataOff++];
-        CellDesc(nX, nY).Obj[nObjIndex].FileIndex  = pData[nDataOff++];
-        CellDesc(nX, nY).Obj[nObjIndex].ImageIndex = *((uint16_t *)(pData + nDataOff));
-        pData += 2;
+        stObjDesc.Desc       = pData[nDataOff++];
+        stObjDesc.FileIndex  = pData[nDataOff++];
+        stObjDesc.ImageIndex = *((uint16_t *)(pData + nDataOff));
 
-        SetOneObjMask(nX, nY, nObjIndex, true, PickOneBit(pMark, nMarkOff++));
-    }else{
-        SetOneObjMask(nX, nY, nObjIndex, false, true);
-    }
-}
-
-void Mir2xMap::SetOneObjMask(int nX, int nY, int nObjIndex, bool bIsObj, bool bWallLayer)
-{
-    uint16_t nMask = 0;
-
-    if(bIsObj){
-        nMask = ((bWallLayer ? 0X0300 : 0X0200) << (nObjIndex * 2));
+        nDataOff += 2;
+        bIsObj = true;
     }
 
-    CellDesc(nX, nY).Desc |= nMask;
-}
-
-void Mir2xMap::SetObj(int nX, int nY, int nSize, int nObjIndex,
-        const uint8_t *pMark, long &nMarkOff, const uint8_t *pData, long &nDataOff)
-{
-    // full-fill current grid defined by parameters
-    // obj has ground / wall layer, so need further parse mark data
     for(int nTY = nY; nTY < nY + nSize; ++nTY){
         for(int nTX = nX; nTX < nX + nSize; ++nTX){
-            SetOneObj(nTX, nTY, nObjIndex, pMark, nMarkOff, pData, nDataOff);
+            if(!ValidC(nTX, nTY)){ continue; }
+
+            CellDesc(nTX, nTY).Obj[nObjIndex] = stObjDesc;
+            if(bIsObj){
+                // which layer of the obj is at
+                CellDesc(nTX, nTY).Desc |= ((PickOneBit(pMark, nMarkOff++) ? 0X0300 : 0X0200) << (nObjIndex * 2));
+            }else{
+                CellDesc(nTX, nTY).Desc &= ((nObjIndex == 0) ? 0XFCFF : 0XF3FF);
+            }
         }
     }
 }
-
 void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &nDataOff)
 {
     // full-filled current grid defined by the same attributes
@@ -227,6 +224,7 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
     for(int nTY = nY; nTY < nY + nSize; ++nTY){
         for(int nTX = nX; nTX < nX + nSize; ++nTX){
             if(!ValidC(nTX, nTY)){ continue; }
+
             if(pData){
                 CellDesc(nTX, nTY).Desc |= 0X8000;
             }else{
@@ -440,32 +438,29 @@ void Mir2xMap::ParseObj(int nX, int nY, int nSize, int nObjIndex,
     // 1: current obj is for wall layer
     // 0: for ground layer
     //
-    if(ValidC(nX, nY)){
-        if(PickOneBit(pMark, nMarkOff++)){
-            // there is information in current grid
-            if(nSize == 1){
-                // last level of grid, and there is data, so fill it directly
-                // need to read one more bit for ground / wall layer decision
-                SetOneObj(nX, nY, nObjIndex, pMark, nMarkOff, pData, nDataOff);
-            }else{
-                // not the last level of grid, and there is information in current gird
-                if(PickOneBit(pMark, nMarkOff++)){
-                    // there is data in current grid and it's combined, further parse it
-                    ParseObj(nX,             nY,             nSize / 2, nObjIndex, pMark, nMarkOff, pData, nDataOff);
-                    ParseObj(nX + nSize / 2, nY,             nSize / 2, nObjIndex, pMark, nMarkOff, pData, nDataOff);
-                    ParseObj(nX,             nY + nSize / 2, nSize / 2, nObjIndex, pMark, nMarkOff, pData, nDataOff);
-                    ParseObj(nX + nSize / 2, nY + nSize / 2, nSize / 2, nObjIndex, pMark, nMarkOff, pData, nDataOff);
-                }else{
-                    // there is data and not combined, so full-filled the whole grid
-                    // for object, store data sequentially when there is full-filled grid with subgrid
-                    // because for object it's hard to repeat in close area
-                    SetObj(nX, nY, nSize, nObjIndex, pMark, nMarkOff, pData, nDataOff);
-                }
-            }
+    if(!ValidC(nX, nY)){ return; }
+
+    if(PickOneBit(pMark, nMarkOff++)){
+        // there is information in current grid
+        if(nSize == 1){
+            // last level of grid, and there is data, so fill it directly
+            // need to read one more bit for ground / wall layer decision
+            SetObj(nX, nY, nObjIndex, 1, pMark, nMarkOff, pData, nDataOff);
         }else{
-            // no data here, always unset the desc field for the whole grid
-            SetObj(nX, nY, nSize, nObjIndex, nullptr, nMarkOff, nullptr, nDataOff);
+            // not the last level of grid, and there is information in current gird
+            if(PickOneBit(pMark, nMarkOff++)){
+                // there is data in current grid and it's combined, further parse it
+                ParseObj(nX,             nY,             nSize / 2, nObjIndex, pMark, nMarkOff, pData, nDataOff);
+                ParseObj(nX + nSize / 2, nY,             nSize / 2, nObjIndex, pMark, nMarkOff, pData, nDataOff);
+                ParseObj(nX,             nY + nSize / 2, nSize / 2, nObjIndex, pMark, nMarkOff, pData, nDataOff);
+                ParseObj(nX + nSize / 2, nY + nSize / 2, nSize / 2, nObjIndex, pMark, nMarkOff, pData, nDataOff);
+            }else{
+                SetObj(nX, nY, nObjIndex, nSize, pMark, nMarkOff, pData, nDataOff);
+            }
         }
+    }else{
+        // no data here, always unset the desc field for the whole grid
+        SetObj(nX, nY, nObjIndex, nSize, nullptr, nMarkOff, nullptr, nDataOff);
     }
 }
 
@@ -517,41 +512,29 @@ void Mir2xMap::ParseTile(int nX, int nY, int nSize,
     //
     // 1: lights in full-filled grid are of different attributes
     // 0: no
-    if(ValidC(nX, nY)){
-        if(PickOneBit(pMark, nMarkOff++)){
-            // there is information in current grid
-            if(nSize == 2){
-                // last level of grid, and there is data, so fill it directly
-                SetTile(nX, nY, 2, pMark, nMarkOff);
-            }else{
-                // not the last level of grid, and there is information in current gird
-                if(PickOneBit(pMark, nMarkOff++)){
-                    // there is data in current grid and it's combined, further parse it
-                    ParseTile(nX,             nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                    ParseTile(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                    ParseTile(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                    ParseTile(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                }else{
-                    // there is data and not combined, so full-filled the whole grid
-                    // ask one more bit for light, here we use recursively defined data stream
-                    // since most likely lights/tiles in full-filled grid are of the same attributes
-                    if(PickOneBit(pMark, nMarkOff++)){
-                        // full-filled grid with lights of different attributes
-                        // this rarely happens
-                        ParseTile(nX,             nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                        ParseTile(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                        ParseTile(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                        ParseTile(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                    }else{
-                        // full-filled grid with lights of the same attributes
-                        SetTile(nX, nY, nSize, pData, nDataOff);
-                    }
-                }
-            }
+    if(!ValidC(nX, nY)){ return; }
+
+    if(PickOneBit(pMark, nMarkOff++)){
+        // there is information in current grid
+        if(nSize == 2){
+            // last level of grid, and there is data, so fill it directly
+            SetTile(nX, nY, 2, pData, nDataOff);
         }else{
-            // no data here, always unset the desc field for the whole grid
-            SetTile(nX, nY, nSize, nullptr, nDataOff);
+            // not the last level of grid, and there is information in current gird
+            if(PickOneBit(pMark, nMarkOff++)){
+                // there is data in current grid and it's combined, further parse it
+                ParseTile(nX,             nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                ParseTile(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                ParseTile(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+                ParseTile(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+            }else{
+                // full-filled grid with lights of the same attributes
+                SetTile(nX, nY, nSize, pData, nDataOff);
+            }
         }
+    }else{
+        // no data here, always unset the desc field for the whole grid
+        SetTile(nX, nY, nSize, nullptr, nDataOff);
     }
 }
 
@@ -584,8 +567,8 @@ void Mir2xMap::SetTile(int nX, int nY, int nSize, const uint8_t *pData, long &nD
 
     if(pData){
         // stTileDesc.Desc       = 0X01;
-        stTileDesc.Desc       = (pData[nDataOff++] | 0X8000);
-        stTileDesc.FileIndex  = (pData[nDataOff++]         );
+        stTileDesc.Desc       = (pData[nDataOff++] | 0X80);
+        stTileDesc.FileIndex  = (pData[nDataOff++]       );
         stTileDesc.ImageIndex = *((uint16_t *)(pData + nDataOff));
         nDataOff += 2;
 
@@ -599,7 +582,7 @@ void Mir2xMap::SetTile(int nX, int nY, int nSize, const uint8_t *pData, long &nD
         for(int nTX = nX; nTX < nX + nSize; ++nTX){
             if(!ValidC(nTX, nTY)){ continue; }
 
-            if(!(nTX % 2 || nTY %2)){
+            if(!(nTX % 2 || nTY % 2)){
                 TileDesc(nTX, nTY) = stTileDesc;
             }
         }
