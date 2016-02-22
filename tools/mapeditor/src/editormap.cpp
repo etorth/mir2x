@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/21/2016 23:16:32
+ *  Last Modified: 02/21/2016 23:42:05
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -232,15 +232,18 @@ bool EditorMap::Resize(
     }
 
     // start for new memory allocation
-    auto stOldBufLight            = m_BufLight;
     auto stOldBufLightMark        = m_BufLightMark;
-    auto stOldBufTile             = m_BufTile;
+    auto stOldBufLight            = m_BufLight;
+
     auto stOldBufTileMark         = m_BufTileMark;
-    auto stOldBufObj              = m_BufObj;
+    auto stOldBufTile             = m_BufTile;
+
     auto stOldBufObjMark          = m_BufObjMark;
     auto stOldBufGroundObjMark    = m_BufGroundObjMark;
-    auto stOldBufAniObjMark       = m_BufAniObjMark;
     auto stOldBufAlphaObjMark     = m_BufAlphaObjMark;
+    auto stOldBufAniObjMark       = m_BufAniObjMark;
+    auto stOldBufObj              = m_BufObj;
+
     auto stOldBufGround           = m_BufGround;
     auto stOldBufGroundMark       = m_BufGroundMark;
     auto stOldBufGroundSelectMark = m_BufGroundSelectMark;
@@ -248,7 +251,6 @@ bool EditorMap::Resize(
     // this function will clear the new buffer
     // with all zeros
     MakeBuf(nNewW, nNewH);
-    InitBuf();
 
     for(int nTY = 0; nTY < nH; ++nTY){
         for(int nTX = 0; nTX < nW; ++nTX){
@@ -299,6 +301,10 @@ bool EditorMap::Resize(
             }
         }
     }
+
+    m_W     = nNewW;
+    m_H     = nNewH;
+    m_Valid = true;
 
     return true;
 }

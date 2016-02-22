@@ -60,9 +60,9 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {63 127 985 667} type Double resizable visible
+      xywh {64 128 985 667} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {
+      Fl_Box m_DrawArea {selected
         xywh {0 20 965 627} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
@@ -354,7 +354,7 @@ fl_alert("Haven't implement yet!");}
             code0 {\#include "editormap.hpp"}
           }
           MenuItem {} {
-            label {Crop Map}
+            label {Map Resize}
             callback {{
     extern CropConfigureWindow *g_CropConfigureWindow;
     g_CropConfigureWindow->ShowAll();
@@ -532,8 +532,7 @@ if(g_EditorMap.Valid()){
 
     m_DrawArea->SetOffset(0, false, 0, false);
     RedrawAll();
-}} {selected
-    }
+}} {}
   }
   Function {SetWorkingPathName()} {return_type void
   } {
