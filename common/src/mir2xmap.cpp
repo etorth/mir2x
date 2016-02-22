@@ -184,9 +184,12 @@ void Mir2xMap::SetObj(int nX, int nY, int nObjIndex, int nSize,
     //  2. file index
     //  3. image index
     //  4. layer
+    //  5. alpha obj
     //
-    OBJDESC stObjDesc = {0, 0, 0};
-    bool    bIsObj    = false;
+    OBJDESC stObjDesc  = {0, 0, 0};
+    bool    bIsObj     = false;
+    bool    bGroundObj = false;
+    bool    bAlphaObj  = false;
 
     if(pMark && pData){
         stObjDesc.Desc       = pData[nDataOff++];
@@ -194,7 +197,10 @@ void Mir2xMap::SetObj(int nX, int nY, int nObjIndex, int nSize,
         stObjDesc.ImageIndex = *((uint16_t *)(pData + nDataOff));
 
         nDataOff += 2;
-        bIsObj = true;
+        bIsObj = true; // mark for validation
+
+        bGroundObj = PickOneBit(pMark, nMarkOff++);
+        bAlphaObj  = PickOneBit(pMark, nMarkOff++);
     }
 
     for(int nTY = nY; nTY < nY + nSize; ++nTY){
@@ -203,18 +209,27 @@ void Mir2xMap::SetObj(int nX, int nY, int nObjIndex, int nSize,
 
             CellDesc(nTX, nTY).Obj[nObjIndex] = stObjDesc;
             if(bIsObj){
-                // which layer of the obj is at
-                if(PickOneBit(pMark, nMarkOff++)){
-                    CellDesc(nTX, nTY).Desc |= ((nObjIndex == 0) ? 0X0100 : 0X1000);
+                // mark it as valid
+                CellDesc(nTX, nTY).Desc |= ((nObjIndex == 0) ? 0X0100 : 0X1000);
+
+                if(bGroundObj){
+                    CellDesc(nTX, nTY).Desc |= ((nObjIndex == 0) ? 0X0200 : 0X2000);
                 }else{
-                    CellDesc(nTX, nTY).Desc &= ((nObjIndex == 0) ? 0XFEFF : 0XEFFF);
+                    CellDesc(nTX, nTY).Desc &= ((nObjIndex == 0) ? 0XFDFF : 0XDFFF);
+                }
+
+                if(bAlphaObj){
+                    CellDesc(nTX, nTY).Desc |= ((nObjIndex == 0) ? 0X0800 : 0X8000);
+                }else{
+                    CellDesc(nTX, nTY).Desc &= ((nObjIndex == 0) ? 0XF7FF : 0X7FFF);
                 }
             }else{
-                CellDesc(nTX, nTY).Desc &= ((nObjIndex == 0) ? 0XFCFF : 0XF3FF);
+                CellDesc(nTX, nTY).Desc &= ((nObjIndex == 0) ? 0XFEFF : 0XEFFF);
             }
         }
     }
 }
+
 void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &nDataOff)
 {
     // full-filled current grid defined by the same attributes

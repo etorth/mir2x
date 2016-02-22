@@ -115,7 +115,7 @@ class Mir2Map
         bool TileValid(int, int, ImageDB &);
         uint32_t Tile(int, int);
 
-    public:
+    private:
         const TILEINFO &BaseTileInfo(int nX, int nY)
         {
             return m_pstTileInfo[(nX / 2) * m_stMapFileHeader.shHeight / 2 + nY / 2];

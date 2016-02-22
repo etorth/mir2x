@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/21/2016 05:21:35
+ *  Last Modified: 02/21/2016 23:16:32
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -113,7 +113,7 @@ void EditorMap::ExtractOneObject(
 
     uint32_t nKey = Object(nXCnt, nYCnt, nIndex);
 
-    bool     bBlend      = ((nKey & 0X80000000) !=  0);
+    bool     bBlend      = (AlphaObjectValid(nXCnt, nYCnt, nIndex) != 0);
     uint8_t  nFileIndex  = ((nKey & 0X00FF0000) >> 16);
     uint16_t nImageIndex = ((nKey & 0X0000FFFF));
     int      nAniCnt     = ((nKey & 0X0F000000) >> 24);
@@ -240,6 +240,7 @@ bool EditorMap::Resize(
     auto stOldBufObjMark          = m_BufObjMark;
     auto stOldBufGroundObjMark    = m_BufGroundObjMark;
     auto stOldBufAniObjMark       = m_BufAniObjMark;
+    auto stOldBufAlphaObjMark     = m_BufAlphaObjMark;
     auto stOldBufGround           = m_BufGround;
     auto stOldBufGroundMark       = m_BufGroundMark;
     auto stOldBufGroundSelectMark = m_BufGroundSelectMark;
@@ -273,6 +274,9 @@ bool EditorMap::Resize(
 
                 m_BufGroundObjMark    [nDstX / 2][nDstY / 2][0] = stOldBufGroundObjMark    [nSrcX / 2][nSrcY / 2][0];
                 m_BufGroundObjMark    [nDstX / 2][nDstY / 2][1] = stOldBufGroundObjMark    [nSrcX / 2][nSrcY / 2][1];
+
+                m_BufAlphaObjMark     [nDstX / 2][nDstY / 2][0] = stOldBufAlphaObjMark     [nSrcX / 2][nSrcY / 2][0];
+                m_BufAlphaObjMark     [nDstX / 2][nDstY / 2][1] = stOldBufAlphaObjMark     [nSrcX / 2][nSrcY / 2][1];
 
                 m_BufAniObjMark       [nDstX / 2][nDstY / 2][0] = stOldBufAniObjMark       [nSrcX / 2][nSrcY / 2][0];
                 m_BufAniObjMark       [nDstX / 2][nDstY / 2][1] = stOldBufAniObjMark       [nSrcX / 2][nSrcY / 2][1];
@@ -310,6 +314,7 @@ int EditorMap::ObjectBlockType(int nStartX, int nStartY, int nIndex, int nSize)
     //  2. same file index
     //  3. same image index
     //  4. same *layer*
+    //  5. same alpha defination
     //
     // actually we don't have to put this check here
     // because XXXXBlockType() will be called exactly after ValidC() at the start point
@@ -323,6 +328,7 @@ int EditorMap::ObjectBlockType(int nStartX, int nStartY, int nIndex, int nSize)
         bool bFindDiff  = false;
 
         bool     bInited             = false;
+        bool     bAlphaObjectSample  = false;
         bool     bGroundObjectSample = false;
         uint32_t nObjectSample       = 0;
 
@@ -336,12 +342,14 @@ int EditorMap::ObjectBlockType(int nStartX, int nStartY, int nIndex, int nSize)
                     bFindFill = true;
                     if(bInited){
                         if(nObjectSample != Object(nX + nStartX, nY + nStartY, nIndex)
-                                || bGroundObjectSample != GroundObjectValid(nX + nStartX, nY + nStartY, nIndex)){
+                                || bGroundObjectSample != GroundObjectValid(nX + nStartX, nY + nStartY, nIndex)
+                                || bAlphaObjectSample != AlphaObjectValid(nX + nStartX, nY + nStartY, nIndex)){
                             bFindDiff = true;
                         }
                     }else{
                         nObjectSample       = Object(nX + nStartX, nY + nStartY, nIndex);
                         bGroundObjectSample = GroundObjectValid(nX + nStartX, nY + nStartY, nIndex);
+                        bAlphaObjectSample  = AlphaObjectValid(nX + nStartX, nY + nStartY, nIndex);
                         bInited = true;
                     }
                 }else{
@@ -648,9 +656,12 @@ void EditorMap::RecordLight(std::vector<uint8_t> &stDataV, int nX, int nY)
 void EditorMap::RecordObject(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV, int nX, int nY, int nIndex)
 {
     bool bGroundObj = (GroundObjectValid(nX, nY, nIndex) != 0);
+    bool bAlphaObj  = (AlphaObjectValid(nX, nY, nIndex) != 0);
     uint32_t nObjDesc = Object(nX, nY, nIndex);
 
+    // all extra object attributes should be put here
     stMarkV.push_back(bGroundObj);
+    stMarkV.push_back(bAlphaObj);
 
     stDataV.push_back((uint8_t)((nObjDesc & 0XFF000000 ) >> 24));  // ObjDesc
     stDataV.push_back((uint8_t)((nObjDesc & 0X00FF0000 ) >> 16));  // FileIndex
@@ -892,18 +903,9 @@ void EditorMap::ClearBuf()
     m_BufObj.clear();
     m_BufObjMark.clear();
     m_BufGroundObjMark.clear();
+    m_BufAlphaObjMark.clear();
     m_BufGround.clear();
     m_BufGroundMark.clear();
-
-    // decltype(m_BufLight        )().swap(m_BufLight        );
-    // decltype(m_BufLightMark    )().swap(m_BufLightMark    );
-    // decltype(m_BufTile         )().swap(m_BufTile         );
-    // decltype(m_BufTileMark     )().swap(m_BufTileMark     );
-    // decltype(m_BufObj          )().swap(m_BufObj          );
-    // decltype(m_BufObjMark      )().swap(m_BufObjMark      );
-    // decltype(m_BufGroundObjMark)().swap(m_BufGroundObjMark);
-    // decltype(m_BufGround       )().swap(m_BufGround       );
-    // decltype(m_BufGroundMark   )().swap(m_BufGroundMark   );
 }
 
 bool EditorMap::InitBuf()
@@ -974,6 +976,9 @@ void EditorMap::MakeBuf(int nW, int nH)
     // m_BufGroundObjMark[nX][nY][0]
     m_BufGroundObjMark = std::vector<std::vector<std::array<int, 2>>>(
             nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
+    // m_BufAlphaObjMark[nX][nY][0]
+    m_BufAlphaObjMark = std::vector<std::vector<std::array<int, 2>>>(
+            nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
     // m_BufAniObjMark[nX][nY][0]
     m_BufAniObjMark = std::vector<std::vector<std::array<int, 2>>>(
             nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
@@ -1029,6 +1034,7 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
     int      nObjValid  = 0;
     int      nGroundObj = 0;
     int      nAniObj    = 0;
+    int      nAlphaObj  = 0;
 
     if(m_Mir2xMap && m_Mir2xMap->Valid()){
         // mir2x map
@@ -1040,14 +1046,14 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
             if(m_Mir2xMap->AniObjectValid(nX, nY, nIndex)){
                 nAniObj = 1;
             }
-            nObj = m_Mir2xMap->Object(nX, nY, nIndex);
+            nAlphaObj = m_Mir2xMap->AlphaObjectValid(nX, nY, nIndex);
+            nObj      = m_Mir2xMap->Object(nX, nY, nIndex);
         }
     }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
         // mir2 map
         extern ImageDB g_ImageDB;
         if(m_OldMir2Map->ObjectValid(nX, nY, nIndex, g_ImageDB)){
             nObjValid = 1;
-            extern ImageDB g_ImageDB;
             if(m_OldMir2Map->GroundObjectValid(nX, nY, nIndex, g_ImageDB)){
                 nGroundObj = 1;
             }
@@ -1055,6 +1061,15 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
                 nAniObj = 1;
             }
             nObj = m_OldMir2Map->Object(nX, nY, nIndex);
+            // for Mir2Map, Object is arranged in different bit-order
+
+            if(nAniObj == 1){
+                nAlphaObj  = ((nObj & 0X80000000) ? 1 : 0);
+                nObj      |= 0X80000000;
+            }else{
+                nAlphaObj  = 0;
+                nObj      &= 0X00FFFFFF;
+            }
         }
     }
 
@@ -1062,6 +1077,7 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
     m_BufObjMark      [nX][nY][nIndex] = nObjValid;
     m_BufGroundObjMark[nX][nY][nIndex] = nGroundObj;
     m_BufAniObjMark   [nX][nY][nIndex] = nAniObj;
+    m_BufAlphaObjMark [nX][nY][nIndex] = nAlphaObj;
 }
 
 void EditorMap::SetBufLight(int nX, int nY)

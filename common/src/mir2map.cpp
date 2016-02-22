@@ -138,6 +138,7 @@ uint32_t Mir2Map::Object(int nX, int nY, int nIndex)
         nImageIndex = CellInfo(nX, nY).wObj2;
         nObjectDesc = CellInfo(nX, nY).bObj2Ani;
     }
+    // didn't change ObjAni, the highest bit of it is for alpha still
     return (nObjectDesc << 24) + (nFileIndex << 16) + nImageIndex;
 }
 
@@ -152,7 +153,7 @@ uint32_t Mir2Map::Tile(int nX, int nY)
 {
     uint32_t nFileIndex  = BaseTileInfo(nX, nY).bFileIndex;
     uint32_t nImageIndex = BaseTileInfo(nX, nY).wTileIndex;
-    return (nFileIndex << 16) + nImageIndex;
+    return (nFileIndex << 16) + nImageIndex; // put 32~24 as unset
 }
 
 uint32_t Mir2Map::GetDoorImageIndex(int nX, int nY)

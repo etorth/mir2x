@@ -20,7 +20,7 @@ class Mir2xMap
                                         // 0x <- 87654321
                                         //     8: animated
                                         //   7-5: tick type, define animation fps
-                                        //   4-1 : frame count, for max = 16
+                                        //   4-1: frame count, for max = 16
             uint8_t     FileIndex;  
             uint16_t    ImageIndex;
         }OBJDESC;
@@ -30,12 +30,12 @@ class Mir2xMap
             uint16_t    Desc;           //  0x b(87654321) a(87654321)
                                         //
                                         //  b8: obj-1 is alpha blended
-                                        //  b7: obj-1 is looped animation
+                                        //  b7: 
                                         //  b6: obj-1 is ground obj
                                         //  b5  obj-1 valid
                                         //
                                         //  b4: obj-0 is alpha blended
-                                        //  b3: obj-0 is looped animation
+                                        //  b3: 
                                         //  b2: obj-0 is ground obj
                                         //  b1: obj-0 valid
                                         //
@@ -88,7 +88,9 @@ class Mir2xMap
         uint32_t Object(int nX, int nY, int nIndex)
         {
             auto &stDesc = CellDesc(nX, nY).Obj[nIndex];
-            return (((uint32_t)stDesc.Desc) << 24) + (((uint32_t)stDesc.FileIndex) << 16) + ((uint32_t)stDesc.Desc);
+            // desc is for animation mark and animation info
+            // not for alpha anymore
+            return (((uint32_t)stDesc.Desc) << 24) + (((uint32_t)stDesc.FileIndex) << 16) + ((uint32_t)stDesc.ImageIndex);
         }
 
         uint32_t Tile(int nX, int nY)
@@ -134,6 +136,11 @@ class Mir2xMap
         bool GroundObjectValid(int nX, int nY, int nIndex)
         {
             return (CellDesc(nX, nY).Desc & ((nIndex == 0) ? 0X0200 : 0X2000)) != 0;
+        }
+
+        bool AlphaObjectValid(int nX, int nY, int nIndex)
+        {
+            return (CellDesc(nX, nY).Desc & ((nIndex == 0) ? 0X0800 : 0X8000)) != 0;
         }
 
     private:

@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/20/2016 01:34:18
+ *  Last Modified: 02/21/2016 22:30:58
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -53,6 +53,7 @@ class EditorMap
 
         std::vector<std::vector<std::array<int, 2>>>        m_BufObjMark;
         std::vector<std::vector<std::array<int, 2>>>        m_BufGroundObjMark;
+        std::vector<std::vector<std::array<int, 2>>>        m_BufAlphaObjMark;
         std::vector<std::vector<std::array<int, 2>>>        m_BufAniObjMark;
         std::vector<std::vector<std::array<uint32_t, 2>>>   m_BufObj;
 
@@ -123,6 +124,11 @@ class EditorMap
         int GroundObjectValid(int nX, int nY,  int nIndex)
         {
             return m_BufGroundObjMark[nX][nY][nIndex];
+        }
+
+        int AlphaObjectValid(int nX, int nY,  int nIndex)
+        {
+            return m_BufAlphaObjMark[nX][nY][nIndex];
         }
 
         int GroundSelect(int nX, int nY, int nIndex)
