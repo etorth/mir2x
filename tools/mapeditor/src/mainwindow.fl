@@ -60,7 +60,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {62 126 985 667} type Double resizable visible
+      xywh {63 127 985 667} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -125,7 +125,11 @@ fl_alert("Haven't implement yet!");}
                     if(!g_EditorMap.LoadMir2xMap(szPath.c_str()) || !g_EditorMap.Valid()){
                         fl_alert("Load mir2x map %s failed", szPath.c_str());
                     }
+                    
                     AfterLoadMir2Map();
+                    Fl::remove_timeout(UpdateFrame);
+                    Fl::add_timeout(0.5, UpdateFrame);
+                    
                 }else{
                     fl_alert("Invalid mir2x map folder: %s", szPath.c_str());
                 }
@@ -516,7 +520,7 @@ if(g_EditorMap.Valid()){
     m_DrawArea->redraw();
 }} {}
   }
-  Function {AfterLoadMir2Map()} {return_type void
+  Function {AfterLoadMir2Map()} {open return_type void
   } {
     code {{
 	// previously this function is to set global variables after loading
@@ -527,7 +531,9 @@ if(g_EditorMap.Valid()){
 	g_MapInfoWindow->ShowAll();
 
     m_DrawArea->SetOffset(0, false, 0, false);
-}} {}
+    RedrawAll();
+}} {selected
+    }
   }
   Function {SetWorkingPathName()} {return_type void
   } {
@@ -655,7 +661,7 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemAttributeGridLine->value();
 }} {}
   }
-  Function {ShowLightLayer()} {selected return_type bool
+  Function {ShowLightLayer()} {return_type bool
   } {
     code {{
 	return m_MenuItemLightLayer->value();
