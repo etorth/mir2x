@@ -413,7 +413,9 @@ bool Mir2xMap::LoadGround(uint8_t * &pData)
     }
 
     pData += (8 + nMarkLen + nDataLen);
-    if(pData[0] != 0 || nMarkLen != (nMarkOff + 7) / 8 || nDataLen != nDataOff){
+    if(pData[0] != 0
+            || (long)nMarkLen != (nMarkOff + 7) / 8
+            || (long)nDataLen != nDataOff){
         return false;
     }else{
         pData++;
@@ -436,7 +438,9 @@ bool Mir2xMap::LoadLight(uint8_t * &pData)
     }
 
     pData += (8 + nMarkLen + nDataLen);
-    if(pData[0] != 0 || nMarkLen != (nMarkOff + 7) / 8 || nDataLen != nDataOff){
+    if(pData[0] != 0
+            || (long)nMarkLen != (nMarkOff + 7) / 8
+            || (long)nDataLen != nDataOff){
         return false;
     }else{
         pData++;
@@ -499,7 +503,9 @@ bool Mir2xMap::LoadObj(uint8_t * &pData, int nObjIndex)
     }
 
     pData += (8 + nMarkLen + nDataLen);
-    if(pData[0] != 0 || nMarkLen != (nMarkOff + 7) / 8 || nDataLen != nDataOff){
+    if(pData[0] != 0 ||
+            (long)nMarkLen != (nMarkOff + 7) / 8 ||
+            (long)nDataLen != nDataOff){
         return false;
     }else{
         pData++;
@@ -571,7 +577,9 @@ bool Mir2xMap::LoadTile(uint8_t * &pData)
         }
     }
     pData += (8 + nMarkLen + nDataLen);
-    if(pData[0] != 0 || nMarkLen != (nMarkOff + 7) / 8 || nDataLen != nDataOff){
+    if(pData[0] != 0
+            || (long)nMarkLen != (nMarkOff + 7) / 8
+            || (long)nDataLen != nDataOff){
         return false;
     }else{
         pData++;
