@@ -3,7 +3,7 @@
  *
  *       Filename: runasio.cpp
  *        Created: 02/22/2016 16:28:32
- *  Last Modified: 02/22/2016 16:57:38
+ *  Last Modified: 02/23/2016 00:15:32
  *
  *    Description: 
  *
@@ -20,16 +20,4 @@
 
 void Game::RunASIO()
 {
-    std::function<void(uint8_t)> fnProcessHC = [this, fnProcessHC](uint8_t nSMID){
-        switch(nSMID){
-            case SM_PING:   OnHCPing(); break;
-            case SM_LOGINOK:   OnHCLoginOK(); break;
-            case SM_PING:   OnPing(); break;
-            case SM_PING:   OnPing(); break;
-            case SM_PING:   OnPing(); break;
-            default: break;
-        }
-        m_NetIO.ReadHC(fnProcessHC);
-    };
-    m_NetIO.ReadHC(fnProcessHC);
 }

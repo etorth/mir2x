@@ -2,10 +2,11 @@
 
 int main(int argc, char* argv[])
 {
-    Game::StartSystem();
+    Game *pGame = new Game();
 
-    Game stGame;
-    stGame.Init();
-    stGame.MainLoop();
+    pGame->Init();
+    pGame->MainLoop();
+
+    delete pGame;
     return 0;
 }

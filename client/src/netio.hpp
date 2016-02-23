@@ -1,61 +1,59 @@
 #pragma once
+#include <queue>
 #include <asio.hpp>
-#include "message.hpp"
-#include <deque>
-#include <mutex>
 #include <functional>
-#include <thread>
 
-class NetIO
+class NetIO final
 {
-    private:
-		NetIO();
-        ~NetIO();
-
     private:
         asio::io_service        m_IO;
         asio::ip::tcp::resolver m_Resolver;
         asio::ip::tcp::socket   m_Socket;
-        asio::ip::tcp::endpoint m_EndPoint;
 
     private:
-        std::thread            *m_Thread;
-        std::mutex              m_ReadMessageQueueMutex;
-        std::deque<Message>     m_ReadMessageQueue;
-        std::deque<Message>     m_WriteMessageQueue;
-    private:
-        Message     m_Message;
+        // send queue
+        // this provides data stream in send order
+        std::queue<std::tuple<
+            uint8_t,    // Message HC
+            uint8_t *,  // Message buf, NetIO won't maintain its validation
+            size_t>> m_WQ;
 
     public:
-        bool Init();
-        void Release();
-        void Start();
-        void Stop();
-        void Send(uint8_t *, size_t);
-        void SendMessage(const Message &);
-        bool PollMessage(Message &);
+        NetIO();
+        ~NetIO();
 
     public:
-        void BatchHandleMessage(std::function<void(const Message &)>);
-
-    private:
-        void DoReadHeader();
-        void DoReadBody();
-        void DoSend();
-        void DoPush();
+        void SetIO(const std::string &,
+                const std::string &, std::function<void()>);
 
     public:
-        void Send(uint8_t *, size_t);
+        void RunIO();
+        void StopIO();
 
     public:
-        void Send(uint8_t chMsg)
+        // send a body-less head code
+        void Send(uint8_t);
+        // send a HC and its body buffer
+        // user should maintain the validation of the buffer
+        void Send(uint8_t, const uint8_t *, size_t);
+
+        // read a HC
+        // user should provide the method to consume the HC
+        void ReadHC(std::function<void(uint8_t)>);
+
+        // read specified length of data to the buffer
+        // user should maintain the validation of the buffer
+        void Read(uint8_t *, size_t, std::function<void()>);
+
+        template<typename T> void Read(T stMsg, std::function<void()> fnOperateBuf)
         {
-            Send(&chMsg, 1);
+            Read((uint8_t *)(&stMsg), sizeof(stMsg), fnOperateBuf);
         }
 
-        template<typename MT>
-        void Send(const MT &stMT)
-        {
-            Send((uint8_t *)(&stMT), sizeof(stMT));
-        }
+    private:
+        void Close();
+
+        void DoSendHC();
+        void DoSentBuf();
+        void DoSendNext();
 };

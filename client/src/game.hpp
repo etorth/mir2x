@@ -3,6 +3,10 @@
 
 class Game
 {
+    private:
+        std::atomic<bool>   m_LoginOK;
+
+
     public:
         Game();
         ~Game();
@@ -10,9 +14,6 @@ class Game
     public:
         void Init();
         void MainLoop();
-
-    public:
-        static void StartSystem();
 
     public:
         enum{
