@@ -3,7 +3,7 @@
  *
  *       Filename: netevent.cpp
  *        Created: 01/16/2016 09:48:40
- *  Last Modified: 01/23/2016 01:56:06
+ *  Last Modified: 02/22/2016 16:36:34
  *
  *    Description: 
  *
@@ -42,8 +42,11 @@ void Game::OnNetLoginOK()
     m_NetIO.Read(stMsg, std::);
 }
 
-void Game::ProcessNet(uint8_t nMsgHead)
+void Game::ProcessNet(ServerMessageID nMsgID)
 {
+    switch(nMsgID){
+        case ServerMessageID::Ping: 
+    }
     switch(nMsgHead){
         case SM_NONE:      OnNetNone();      break;
         case SM_BROADCAST: OnNetBroadcast(); break;
