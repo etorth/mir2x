@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: sourcemanager.hpp
+ *       Filename: vardb.hpp
  *        Created: 01/13/2016 08:20:29
- *  Last Modified: 02/06/2016 13:34:27
+ *  Last Modified: 02/24/2016 03:28:37
  *
  *    Description: 
  *
@@ -22,6 +22,23 @@
 #include <cstdint>
 #include <type_traits>
 
+// accessing of unordered_map is 100 times less than accessing
+// in vector or buildin array
+// Maybe I can make a vector<T> inside as a step-1 cache
+// and use unordered_map as step-2 cache
+
+template<typename T>
+class VarDB final
+{
+    public:
+        VarDB();
+        ~VarDB();
+
+    public:
+        void *Retrieve(T);
+};
+
+
 template<typename SourceIntKeyType, typename SourceType,
     size_t SourceMaxCount = 100, bool std::is_integral<SourceIntKeyType>::value> class SourceManager;
 
@@ -36,7 +53,7 @@ class SourceManager
             m_SourceMaxCount = SourceCount;
             m_CurrentTime    = 0;
         }
-        
+
         ~SourceManager()
         {
             ClearCache();
@@ -57,7 +74,7 @@ class SourceManager
     private:
         size_t  m_SourceMaxCount;
         int32_t m_CurrentTime;
-        
+
     private:
         std::unordered_map<SourceIntKeyType, SourceType> m_SourceCache;
 
@@ -80,19 +97,19 @@ class SourceManager
                         auto &stTimeKeyPair = m_AccessTimeStampQueue.front();
                         auto stTmpItor = m_SourceCache.find(stTimeKeyPair.second);
                         if(stTmpItor != m_SourceCache.end() && stTmpItor->first == stTimeKeyPair.first){
-                                Release(stTmpItor->second);
-                                m_SourceCache.erase(stTmpItor);
-                            }
+                            Release(stTmpItor->second);
+                            m_SourceCache.erase(stTmpItor);
                         }
-                        m_AccessTimeStampQueue.pop();
                     }
+                    m_AccessTimeStampQueue.pop();
                 }
-                SourceType *pSource = Load(stRetrieveKey);
-                if(pSource){
-                    m_SourceCache[stRetrieveKey] = {m_CurrentTime, pSource};
-                    m_AccessTimeStampQueue.push({m_CurrentTime, stRetrieveKey});
-                }
-                return pSource;
             }
+            SourceType *pSource = Load(stRetrieveKey);
+            if(pSource){
+                m_SourceCache[stRetrieveKey] = {m_CurrentTime, pSource};
+                m_AccessTimeStampQueue.push({m_CurrentTime, stRetrieveKey});
+            }
+            return pSource;
         }
+}
 };
