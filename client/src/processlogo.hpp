@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.hpp
  *        Created: 8/13/2015 12:07:39 AM
- *  Last Modified: 09/03/2015 3:15:29 AM
+ *  Last Modified: 02/24/2016 02:22:15
  *
  *    Description: 
  *
@@ -26,6 +26,12 @@
 
 class ProcessLogo: public Process
 {
+    public:
+        int ID()
+        {
+            return PROCESSID_LOGO;
+        }
+
     private:
         Uint32  m_FullMS;
         double  m_StartPartRatio;

@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 8/14/2015 2:47:49 PM
- *  Last Modified: 01/23/2016 04:51:29
+ *  Last Modified: 02/24/2016 03:04:17
  *
  *    Description: 
  *
@@ -47,38 +47,38 @@ void UpdateOnSyrc()
     // nothing to do
 }
 
-void Game::ProcessEventOnSyrc(SDL_Event *pEvent)
+void ProcessSyrc::ProcessEvent(SDL_Event *pEvent)
 {
-    if(pEvent){
-        switch(pEvent->type){
-            case SDL_KEYDOWN:
-                {
-                    if(pEvent->key.keysym.sym == SDLK_ESCAPE){
-                        SwitchProcess(PROCESSID_LOGIN);
-                    }
-                    break;
+    if(pEvent == nullptr){ return; }
+
+    switch(pEvent->type){
+        case SDL_KEYDOWN:
+            {
+                if(pEvent->key.keysym.sym == SDLK_ESCAPE){
+                    SwitchProcess(PROCESSID_LOGIN);
                 }
-            case SDL_USEREVENT:
-                {
-                    ProcessUserEvent(pEvent);
-                    break;
-                }
-            default:
                 break;
-        }
+            }
+        case SDL_USEREVENT:
+            {
+                ProcessUserEvent(pEvent);
+                break;
+            }
+        default:
+            break;
     }
 }
 
-void Game::DrawOnSyrc()
+void Game::Draw()
 {
-    SDL_Rect stRectSrc, stRectDst;
-	int nW, nH;
-	SDL_QueryTexture(GetGUITextureManager()->Retrieve(), nullptr, nullptr, &nW, &nH);
+
+    int nW = m_Game->ImageW(255, 1);
+    int nH = m_Game->ImageH(255, 1);
 
     stRectSrc.x = 0;
     stRectSrc.y = 0;
     stRectSrc.w = std::lround(nW * (GetFinishedOnSyrc() / 100.0));
-	stRectSrc.h = nH;
+    stRectSrc.h = nH;
     stRectDst.x = 112;
     stRectDst.y = 528;
     stRectDst.w = stRectSrc.w;
@@ -87,5 +87,5 @@ void Game::DrawOnSyrc()
     SDL_RenderCopy(m_Renderer, m_TextureProgressBar, &stRectSrc, &stRectDst);
     SDL_RenderCopy(m_Renderer, m_TextureBackground, nullptr, nullptr);
 
-	m_Info.Draw();
+    m_Info.Draw();
 }

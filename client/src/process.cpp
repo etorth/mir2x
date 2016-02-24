@@ -3,7 +3,7 @@
  *
  *       Filename: process.cpp
  *        Created: 6/29/2015 8:24:36 PM
- *  Last Modified: 01/23/2016 03:53:26
+ *  Last Modified: 02/24/2016 02:15:54
  *
  *    Description: 
  *
@@ -83,7 +83,4 @@ void Process::Update()
 {
     m_InvokeCount++;
 }
-
-
-
 

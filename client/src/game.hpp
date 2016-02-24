@@ -27,6 +27,15 @@ class Game
     private:
         void SwitchProcess(int, int);
 
+
+    private:
+        ProcessLogin    *m_ProcessLogin;
+        ProcessLogo     *m_ProcessLogo;
+
+    private:
+        int     *m_CurrentProcessID;
+        Process *m_CurrentProcess;
+
     private:
         // private utility functions delcared as inline
         //

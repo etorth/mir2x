@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.cpp
  *        Created: 8/13/2015 12:15:38 AM
- *  Last Modified: 01/23/2016 04:29:24
+ *  Last Modified: 02/24/2016 02:48:06
  *
  *    Description: 
  *
@@ -32,30 +32,37 @@ static double Ratio(Uint32 nCurrentMS, Uint32 nFullMS, double fStep1R, double fS
     }
 }
 
-void Game::ProcessEventOnLogo(SDL_Event *pEvent)
+void ProcessLogo::ProcessEvent(SDL_Event *pEvent)
 {
     if(true
             && pEvent
             && pEvent->type == SDL_KEYDOWN
             && pEvent->key.keysym.sym == SDLK_ESCAPE
       ){
-        SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
+        m_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
     }
 }
 
-void Game::UpdateOnLogo()
+void ProcessLogo::Update()
 {
-    Uint32 nTmpMS = SDL_GetTicks();
-    if(nTmpMS - m_StateStartTick >= m_StateLogoMaxTick){
-        SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
+    Uint32 nMaxMS = 5000;
+    Uint32 nTmpMS = SDL_GetTicks() - m_StartMS;
+
+    if(nTmpMS >= 5000){
+        m_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
     }else{
-        double fRatio = Ratio(nTmpMS - m_StateStartTick, m_StateLogoMaxTick, 0.3, 0.4);
+        double fRatio = Ratio(nTmpMS, 5000, 0.3, 0.4);
         Uint8 bColor = std::lround(255 * fRatio);
-        SDL_SetRenderDrawColor(m_Renderer, bColor, bColor, bColor, bColor);
+        m_Game->SetRenderDrawColor(bColor, bColor, bColor, bColor);
     }
 }
 
-void Game::DrawOnLogo()
+void ProcessLogo::Reset()
 {
-    SDL_RenderCopy(m_Renderer,m_GUITexManager.Retrieve(0), nullptr, nullptr);
+    m_StateStartTick = SDL_GetTicks();
+}
+
+void ProcessLogo::Draw()
+{
+    m_Game->DrawImage(255, 0);
 }
