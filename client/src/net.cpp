@@ -3,7 +3,7 @@
  *
  *       Filename: net.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 02/23/2016 04:01:29
+ *  Last Modified: 02/24/2016 01:24:27
  *
  *    Description: 
  *
@@ -38,7 +38,7 @@ void Game::RunASIO()
         }
     };
 
-    m_NetIO.Run(m_ServerIP, m_ServerPort, [this](){ ReadHC(); });
+    m_NetIO.Run(m_ServerIP, m_ServerPort, fnStartRead);
 }
 
 void Game::ReadHC()

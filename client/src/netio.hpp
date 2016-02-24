@@ -37,6 +37,11 @@ class NetIO final
         // user should maintain the validation of the buffer
         void Send(uint8_t, const uint8_t *, size_t);
 
+        template<typename T> void Send(uint8_t nMsgHC, T stMsg)
+        {
+            Send(nMsgHC, (uint8_t *)(&stMsg), sizeof(stMsg));
+        }
+
         // read a HC
         // user should provide the method to consume the HC
         void ReadHC(std::function<void(uint8_t)>);
