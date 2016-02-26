@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: fontexdb.h
+ *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 02/26/2016 02:39:14
+ *  Last Modified: 02/26/2016 03:29:08
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -22,10 +22,40 @@
 template<int N = 4>
 class FontexDB final
 {
+    private:
+        // linear cache
+        std::array<256,
+            QueueN<N, std::tuple<
+                SDL_Texture *, int, uint32_t, uint32_t>>> m_LCache;
+
+        // main cache
+        std::unordered_map<uint32_t,
+            std::unordered_map<uint32_t, SDL_Texture *>> m_Cache;
+
+        // time stamp queue
+        std::queue<std::tuple<int, uint32_t, uint32_t>>  m_TimeStampQ;
+
+        // font cache, no size control
+        std::unordered_map<uint16_t, TTF_Font *> m_FontCache;
+
+        int m_ResourceMaxCount;
+        int m_ResourceCount;
+
+    public:
+        enum uint8_t{
+            FONTSTYLE_BOLD          = 0B0000'0001;
+            FONTSTYLE_ITALIC        = 0B0000'0010;
+            FONTSTYLE_UNDERLINE     = 0B0000'0100;
+            FONTSTYLE_STRIKETHROUGH = 0B0000'1000;
+            FONTSTYLE_SOLID         = 0B0001'0000;
+            FONTSTYLE_SHADED        = 0B0010'0000;
+            FONTSTYLE_BLENDED       = 0B0100'0000;
+        };
+
     public:
         FontxDB()
-            : m_SourceMaxCount(N * 256 * 2)
-            , m_SourceCount(0)
+            : m_ResourceMaxCount(N * 256 * 4)
+            , m_ResourceCount(0)
         {
         }
 
@@ -37,19 +67,21 @@ class FontexDB final
 
         void Resize(int nMaxSize)
         {
-            m_SourceMaxCount = std::max(N * 256 * 2, nMaxSize);
-            while(m_SourceCount > m_SourceMaxCount){
+            m_ResourceMaxCount = std::max(N * 256 * 4, nMaxSize);
+            while(m_ResourceCount > m_ResourceMaxCount){
                 if(m_TimeStampQ.empty()){
-                    // this won't happen, put it here for safity
+                    // this won't happen
+                    // put it here for safity
                     break;
                 }
 
                 uint32_t nFontFaceKey = std::get<1>(m_TimeStampQ.front());
                 uint32_t nUTF8Code    = std::get<2>(m_TimeStampQ.front());
 
-                uint8_t nLCKey     = LinearCacheKey(nFontFaceKey, nUTF8Code);
                 int     nTimeStamp = std::get<0>(m_TimeStampQ.front());
+                uint8_t nLCKey     = LinearCacheKey(nFontFaceKey, nUTF8Code);
 
+                // may or may not release one resource
                 ReleaseResource(nLCKey, nFontFaceKey, nUTF8Code, nTimeStamp);
             }
         }
@@ -62,7 +94,7 @@ class FontexDB final
             // there must be a pointer retrieved responding to (nFontFaceKey, nUTF8Code)
             // even if it's nullptr, so update time stamp at each time
             //
-            // overflow won't be a problem
+            // overflow will be handled
             m_CurrentTime++;
 
             uint32_t nFontFaceKey = ((uint32_t)nFileIndex << 16) + ((uint32_t)nSize << 8) + nStyle;
@@ -71,7 +103,7 @@ class FontexDB final
             int nLocationInLC;
 
             if(LocateInLinearCache(nLCacheKey, nFontFaceKey, nUTF8Code, nLocationInLC)){
-                // find resource in LC, return it directly
+                // find resource in LC, good!
                 //
                 // 1. move the record in LC to its head
                 m_LCache[nLCacheKey].SwapHead(nLocationInLC);
@@ -89,57 +121,83 @@ class FontexDB final
             }else{
                 // didn't find it in LC, try to find it in m_Cache
                 auto pFontFaceInst = m_Cache.find(nFontFaceKey);
-                if(pFontFaceInst != m_Cache.end()){
-                    auto pTextureInst = pFontFaceInst.second.find(nUTF8Code);
-                    if(pTextureInst != pFontFaceInst.second.end()){
-                        // we find it in m_Cache!
-                        //
-                        // 1. Put a record in LC
-                        //
-                        //    but we need more operation when LC is already full
-                        //    when it's full, insert a record cause drop an old record
-                        //    we need the old record to update the last access time in m_Cache
-                        if(m_LCache[nLCacheKey].Full()){
-                            // since it's in LC, it must exist in m_Cache
-                            int      nOldTimeStamp   = std::get<1>(m_LCache[nLCacheKey].Back());
-                            uint32_t nOldFontFaceKey = std::get<2>(m_LCache[nLCacheKey].Back());
-                            uint32_t nOldUTF8Key     = std::get<3>(m_LCache[nLCacheKey].Back());
+                if(pFontFaceInst == m_Cache.end()){
+                    // ok allocate the memory here
+                    m_Cache[nFontFaceKey] = {};
+                    // just in case of re-hash
+                    pFontFaceInst = m_Cache.find(nFontFaceKey);
+                }
 
-                            m_Cache[nOldFontFaceKey][nOldUTF8Key].first = nOldTimeStamp;
-                        }
-
-                        m_LCache[nLCacheKey].PushHead(
-                                {pTextureInst.second, m_CurrentTime, nFontFaceKey, nUTF8Code});
-
-                        // 2. don't need to update access time in LC
-                        //    set access time in m_Cache
-                        //
-                        pTextureInst.second.first = m_CurrentTime;
-
-                        // 3. push the access stamp at the end of the time stamp queue
-                        m_TimeStampQ.push({m_CurrentTime, nFontFaceKey, nUTF8Code});
-
-                        // 4. return the resource pointer
-                        return pTexture.second.second;
-                    }
-                }else{
-                    // it's not in m_Cache, we need to load it from external source
-                    auto pTexture = LoadTexture(nFileIndex, nSize, nStyle, nUTF8Code);
-
+                auto pTextureInst = pFontFaceInst.second.find(nUTF8Code);
+                if(pTextureInst != pFontFaceInst.second.end()){
+                    // we find it in m_Cache, OK...
+                    //
                     // 1. Put a record in LC
-                    m_LCache[nLCacheKey].PushHead({pTexture, m_CurrentTime, nFontFaceKey, nUTF8Code});
+                    //
+                    //    but when LC is full, insertion of a record causes to drop another
+                    //    old record, we need to update the resource access time w.r.t the 
+                    //    to-drop record, since whenever there is a record in LC, access time
+                    //    in m_Cache won't be updated.
+                    if(m_LCache[nLCacheKey].Full()){
+                        // since it's in LC, it must exist in m_Cache
+                        int      nOldTimeStamp   = std::get<1>(m_LCache[nLCacheKey].Back());
+                        uint32_t nOldFontFaceKey = std::get<2>(m_LCache[nLCacheKey].Back());
+                        uint32_t nOldUTF8Key     = std::get<3>(m_LCache[nLCacheKey].Back());
 
-                    // 2. put the resource in m_Cache
-                    if(pFontFaceInst != m_Cache.end()){
-                        pFontFaceInst.second[nUTF8Code] = {m_CurrentTime, pTexture};
-                    }else{
-                        m_Cache[nFontFaceKey][nUTF8Code] = {m_CurrentTime, pTexture};
+                        m_Cache[nOldFontFaceKey][nOldUTF8Key].first = nOldTimeStamp;
                     }
+
+                    // now insert the record to LC
+                    m_LCache[nLCacheKey].PushHead(
+                            {pTextureInst.second.second, m_CurrentTime, nFontFaceKey, nUTF8Code});
+
+                    // 2. set access time in m_Cache
+                    //
+                    pTextureInst.second.first = m_CurrentTime;
 
                     // 3. push the access stamp at the end of the time stamp queue
+                    //
                     m_TimeStampQ.push({m_CurrentTime, nFontFaceKey, nUTF8Code});
 
                     // 4. return the resource pointer
+                    return pTexture.second.second;
+
+                }else{
+
+                    // it's not in m_Cache, too bad ...
+                    // so externally load is required
+                    //
+                    auto pTexture = LoadTexture(nFileIndex, nSize, nStyle, nUTF8Code);
+
+                    // 1. Put a record in LC
+                    //    same here, we need to handle when LC is full in one box
+                    if(m_LCache[nLCacheKey].Full()){
+                        // since it's in LC, it must exist in m_Cache
+                        int      nOldTimeStamp   = std::get<1>(m_LCache[nLCacheKey].Back());
+                        uint32_t nOldFontFaceKey = std::get<2>(m_LCache[nLCacheKey].Back());
+                        uint32_t nOldUTF8Key     = std::get<3>(m_LCache[nLCacheKey].Back());
+
+                        m_Cache[nOldFontFaceKey][nOldUTF8Key].first = nOldTimeStamp;
+                    }
+
+                    // now insert the record to LC
+                    //
+                    m_LCache[nLCacheKey].PushHead({pTexture, m_CurrentTime, nFontFaceKey, nUTF8Code});
+
+                    // 2. put the resource in m_Cache
+                    //
+                    pFontFaceInst.second[nUTF8Code] = {m_CurrentTime, pTexture};
+
+                    // 3. push the access stamp at the end of the time stamp queue
+                    //
+                    m_TimeStampQ.push({m_CurrentTime, nFontFaceKey, nUTF8Code});
+
+                    // 4. reset the size of the cache
+                    // 
+                    m_ReourceCount++;
+                    Resize(m_ResourceMaxCount);
+
+                    // 5. return the resource pointer
                     return pTexture;
                 }
             }
@@ -156,6 +214,8 @@ class FontexDB final
 
         TTF_Font *RetrieveFont(uint8_t nFileIndex, uint8_t nSize)
         {
+            // we don't control # of TTF_Font
+            // since it won't be a problem
             uint16_t nFontCode = ((uint16_t)nFileIndex << 8) + nSize;
             auto pFontInst = m_FontCache.find(nFontCode);
             if(pFontInst != m_FontCache.end()){
@@ -275,8 +335,4 @@ class FontexDB final
             }
             return false;
         }
-
-
-    private:
-        std::tuple<uint8_t, uint8_t, TTF_Font *> m_FontCache[256][5];
 };
