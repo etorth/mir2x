@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 02/27/2016 03:28:03
+ *  Last Modified: 02/27/2016 04:57:38
  *
  *    Description: 
  *
@@ -83,7 +83,20 @@ class PNGTexOffDB
             int nErrorCode;
 
             m_ZIP = zip_open(szPNGTexDBName, ZIP_RDONLY, &nErrorCode);
-            return (m_ZIP != nullptr);
+            return (m_ZIP != nullptr);,
+
+            zip_uint64_t nNumEntries = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
+            for(zip_uint64_t nIndex = 0; nIndex < nNumEntries; ++nIndex){
+                zip_stat_t stStatus;
+                if(zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stStatus)){
+                    Record(stStatus);
+                }else{
+                    m_IndexCache.clear();
+                    zip_close(m_ZIP); m_ZIP = nullptr;
+                    return false;
+                }
+            }
+            return true;
         }
 
         void Clear()
@@ -243,6 +256,42 @@ class PNGTexOffDB
         {
             // for PNGTexDB, just take last 8 bits
             return nKey & 0X000000FF;
+        }
+
+
+        int SignedHexStringDecode(const char *szStringCode)
+        {
+            const int knvStringHexChk[] = {
+                0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+                0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+                0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+                0,  0,  0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  0,  0,
+                0,  0,  0,  0,  0, 10, 11, 12, 13, 14, 15,  0,  0,  0,  0,
+                0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+                0,  0,  0,  0,  0,  0,  0, 10, 11, 12, 13, 14, 15,  0,  0};
+
+            int nRes = (szStringCode[0] == '0' ? 1 : -1)
+                * (knvStringHexChk[1] * 256 + knvStringHexChk[2] * 16 + knvStringHexChk[3]);
+        }
+
+        void Record(const zip_stat_t &stStatus)
+        {
+            // A(123456)B(1234)C(1234).PNG
+            //     A:1~6 image index
+            //     B:1   sgn(dx)
+            //     B:2~4 abs(dx)
+            //     C:1   sgn(dy)
+            //     D:2~4 abs(dy)
+
+            uint32_t nKey = HexString(stStatus.name, 6);
+
+            zip_uint64_t nSize;
+
+            m_IndexCache[nKey] = {
+                stStatus.index,
+                stStatus.size,
+                SignedHexStringDecode(stStatus.name +  6),
+                SignedHexStringDecode(stStatus.name + 10)};
         }
 
 
