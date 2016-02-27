@@ -3,7 +3,7 @@
  *
  *       Filename: imagecache.cpp
  *        Created: 02/14/2016 15:54:58
- *  Last Modified: 02/15/2016 19:09:43
+ *  Last Modified: 02/26/2016 22:48:07
  *
  *    Description: This class won't handle WilImagePackage directly
  *                 Actually it only deal with all PNG files
@@ -51,13 +51,14 @@ void ImageCache::SetPath(const char *szPath)
     MakeDir(szTmpPath.c_str());
 }
 
-
 Fl_Shared_Image *ImageCache::Retrieve(uint8_t nFileIndex, uint16_t nImageIndex)
 {
     // setup cache file folder first
     if(m_Path.empty()){ return nullptr; }
 
     uint32_t nKey = (((uint32_t)nFileIndex) << 16) + nImageIndex;
+
+    printf("0X%08X\n", nKey);
 
     // retrieve in memory
     auto stItor = m_Cache.find(nKey);

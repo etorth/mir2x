@@ -3,7 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 02/26/2016 03:29:08
+ *  Last Modified: 02/26/2016 21:49:28
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -62,6 +62,9 @@ class FontexDB final
         ~FontxDB()
         {
         }
+
+    public:
+        bool Load(const std::array<256, std::string> &);
 
     public:
 
