@@ -87,7 +87,6 @@ void MonoServer::CreateDBConnection()
 void MonoServer::Launch()
 {
     CreateDBConnection();
-    CreateNetThread();
 
     // all-set, start to accept connections from clients
     m_SessionManager->Start([this](){ ReadHC(); });
@@ -95,13 +94,13 @@ void MonoServer::Launch()
 
 void MonoServer::ReadHC()
 {
-    std::function<void(uint8_t)> fnProcessHC = [this, fnProcessHC](uint8_t nSMID){
-        switch(nSMHC){
-            case SM_PING:           OnPing(); break;
-            case SM_LOGINOK:        OnLoginOK(); break;
-            case SM_PING:           OnPing(); break;
-            case SM_PING:           OnPing(); break;
-            case SM_PING:           OnPing(); break;
+    std::function<void(uint8_t)> fnProcessHC = [this, fnProcessHC](uint8_t nCMID){
+        switch(nCMID){
+            case CM_PING:           OnPing();       break;
+            case CM_LOGINOK:        OnLoginOK();    break;
+            case CM_PING:           OnPing(); break;
+            case CM_PING:           OnPing(); break;
+            case CM_PING:           OnPing(); break;
             default: break;
         }
         m_NetIO.ReadHC(fnProcessHC);

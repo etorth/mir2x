@@ -11,7 +11,7 @@ class SessionManager final
         SessionManager(int);
 
     public:
-        void Start();
+        void Start(std::function<void()>);
         void StopSession(int);
 
     private:

@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 02/28/2016 00:49:56
+ *  Last Modified: 02/28/2016 00:57:55
  *
  *    Description: 
  *
@@ -38,7 +38,8 @@ class MonoServer final
         std::unordered_map<uint16_t, MapThread *>   m_MapPool;
 
     public:
-        void Launch()
+        void Launch();
+        void ReadHC();
 
     private:
         void RunASIO();
