@@ -1,19 +1,27 @@
-#include "gateserver.hpp"
+#include <cstdarg>
 #include "message.hpp"
-#include "mainwindow.hpp"
-#include "clientmessagedef.hpp"
-#include "servermessagedef.hpp"
 #include "database.hpp"
+#include "mainwindow.hpp"
+#include "monoserver.hpp"
 
-MonoServer::MonoServer(int nClientPort, int nSceneServerPort)
-    : m_ClientSessionAcceptor(nClientPort)
-    , m_SceneServerSessionAcceptor(nSceneServerPort)
-    , m_UserInfoDB(nullptr)
-{}
+#include "databaseconfigurewindow.hpp"
+
+MonoServer::MonoServer()
+{
+}
 
 MonoServer::~MonoServer()
-{}
+{
+}
 
+void MonoServer::ExtendLogBuf(int nNewSize)
+{
+    if(nNewSize > m_LogBufSize){
+        delete[] m_LogBuf;
+        m_LogBuf     = new char[nNewSize];
+        m_LogBufSize = nNewSize;
+    }
+}
 
 void MonoServer::Log(int nLogType, const char *szFormat, ...)
 {
@@ -36,9 +44,9 @@ void MonoServer::Log(int nLogType, const char *szFormat, ...)
 
         m_LogBuf[nRes] = '\0';
 
-        g_MainWindow->Log(nLogType, m_LogBuf);
+        g_MainWindow->AddLog(nLogType, m_LogBuf);
     }else if(nRes == 0){
-        g_MainWindow->Log(nLogType, "");
+        g_MainWindow->AddLog(nLogType, "");
     }else{
         std::string szErrorInfo;
         szErrorInfo  = "Error in log information parse!";
@@ -48,47 +56,15 @@ void MonoServer::Log(int nLogType, const char *szFormat, ...)
         szErrorInfo += std::to_string(nLogType);
         szErrorInfo += ")";
 
-        g_MainWindow->Log(3, szErrorInfo.c_str());
+        g_MainWindow->AddLog(3, szErrorInfo.c_str());
     }
-}
-
-void MonoServer::Init()
-{
-}
-
-void MonoServer::RunASIO()
-{
-    auto fnStartRead = [this](std::error_code stEC, asio::ip::tcp::resolver::iterator){
-        if(stEC){
-            Log("Connect to server IP = %s, Port = %d failed.", m_ServerIP, m_ServerPort);
-        }else{
-            ReadHC();
-        }
-    };
-
-    m_NetIO.Run(fnStartRead);
-}
-
-void MonoServer::CreateNetThread()
-{
-    if(m_NetThread){
-        if(m_NetThread->joinable()){
-            m_NetIO.StopIO();
-            m_NetThread->join();
-        }
-        delete m_NetThread;
-    }
-
-    // start net thread
-    m_NetIO.SetIO([this](){ ReadHC(); });
-    m_NetThread = new std::thread([this]{ RunASIO(); });
 }
 
 void MonoServer::CreateDBConnection()
 {
-    delete m_UserInfoDB;
-
     extern DatabaseConfigureWindow *g_DatabaseConfigureWindow;
+
+    // delete m_UserInfoDB;
 
     m_DBConnection = new DBConnection(
             g_DatabaseConfigureWindow->DatabaseIP(),
@@ -112,6 +88,25 @@ void MonoServer::Launch()
 {
     CreateDBConnection();
     CreateNetThread();
+
+    // all-set, start to accept connections from clients
+    m_SessionManager->Start([this](){ ReadHC(); });
+}
+
+void MonoServer::ReadHC()
+{
+    std::function<void(uint8_t)> fnProcessHC = [this, fnProcessHC](uint8_t nSMID){
+        switch(nSMHC){
+            case SM_PING:           OnPing(); break;
+            case SM_LOGINOK:        OnLoginOK(); break;
+            case SM_PING:           OnPing(); break;
+            case SM_PING:           OnPing(); break;
+            case SM_PING:           OnPing(); break;
+            default: break;
+        }
+        m_NetIO.ReadHC(fnProcessHC);
+    };
+    m_NetIO.ReadHC(fnProcessHC);
 }
 
 void MonoServer::OnServerRecv(const Message &stMessage, Session &stSession)

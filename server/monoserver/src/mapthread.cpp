@@ -3,7 +3,7 @@
  *
  *       Filename: mapthread.cpp
  *        Created: 02/24/2016 00:16:07
- *  Last Modified: 02/24/2016 00:19:32
+ *  Last Modified: 02/27/2016 20:15:59
  *
  *    Description: 
  *
@@ -22,12 +22,22 @@
 #include "mapthread.hpp"
 #include "monoserver.hpp"
 
-MapThread(uint16_t nMapID, void *pData)
-    : m_MapID(nMapID)
-    , m_MonoServer((MonoServer *)pData)
+MapThread::MapThread()
 {
 }
 
-MapThread::Run()
+MapThread::~MapThread()
+{
+}
+
+bool MapThread::Load(uint16_t nMapID, void *pData)
+{
+    m_MapID      = nMapID;
+    m_MonoServer = (MonoServer *)pData;
+
+    return true;
+}
+
+void MapThread::Run()
 {
 }

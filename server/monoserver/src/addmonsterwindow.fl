@@ -17,7 +17,7 @@ class AddMonsterWindow {open
   } {
     Fl_Window m_Window {
       label {Add Monster} open
-      xywh {530 225 335 260} type Double labelfont 4 visible
+      xywh {532 227 335 260} type Double labelfont 4 hide modal
     } {
       Fl_Choice m_ValidMapList {
         label {Map:} open
@@ -28,7 +28,7 @@ class AddMonsterWindow {open
         xywh {95 66 180 25} down_box BORDER_BOX labelfont 4 textfont 4
       } {}
       Fl_Choice m_ValidMonstCountList {
-        label {Count:} open
+        label {Count:} open selected
         xywh {95 105 180 25} down_box BORDER_BOX labelfont 4 textfont 4
       } {}
       Fl_Choice m_CurrentMonsterList {
@@ -38,29 +38,20 @@ class AddMonsterWindow {open
       Fl_Button {} {
         label Refresh
         callback {{
-    Refresh();
+	Refresh();
 }}
         xywh {40 211 75 25} labelfont 4
-        code0 {\#include "sceneserver.hpp"}
       }
       Fl_Button {} {
         label Add
-        callback {{
-    extern SceneServer *g_SceneServer;
-    g_SceneServer->AddMonsterType((uint32_t)(m_ValidList->menu()[m_ValidList->value()].user_data()));
-    
-    Refresh();
-}}
         xywh {131 211 75 25} labelfont 4
-        code0 {\#include "sceneserver.hpp"}
       }
       Fl_Button {} {
         label OK
         callback {{
-    m_Window->hide();
+	m_Window->hide();
 }}
         xywh {221 211 75 25} labelfont 4
-        code0 {\#include "sceneserver.hpp"}
       }
     }
   }
@@ -134,7 +125,7 @@ class AddMonsterWindow {open
 	g_AddMonsterWindow->SetMonsterList((int)((intptr_t)(pData)));
 }} {}
   }
-  Function {SetMonsterList(int nMapID)} {selected return_type void
+  Function {SetMonsterList(int nMapID)} {return_type void
   } {
     code {{
 	extern MonoServer *g_MonoServer;

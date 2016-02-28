@@ -3,7 +3,7 @@
  *
  *       Filename: mapthread.hpp
  *        Created: 02/24/2016 00:08:05
- *  Last Modified: 02/24/2016 00:16:06
+ *  Last Modified: 02/27/2016 22:21:28
  *
  *    Description: every map is a thread in server
  *
@@ -25,9 +25,14 @@
 class MapThread final
 {
     public:
-        MapThread(uint16_t, void *);
+        MapThread();
         ~MapThread();
 
     public:
+        bool Load(uint16_t, void *);
         void Run();
+
+    private:
+        uint16_t    m_MapID;
+        void       *m_MonoServer;
 };

@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302
+version 1.0302 
 header_name {.hpp} 
 code_name {.cpp}
 decl {\#include <asio.hpp>} {public global
@@ -20,7 +20,7 @@ class MainWindow {open
       callback {{
     exit(0);
 }} open
-      xywh {225 142 721 400} type Double labelfont 4 visible
+      xywh {166 271 720 400} type Double labelfont 4 visible
     } {
       Fl_Menu_Bar {} {open
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
@@ -32,16 +32,13 @@ class MainWindow {open
           MenuItem {} {
             label {Launch          }
             callback {{
-    extern SceneServer *g_SceneServer;
-    if(!g_SceneServer){
-        g_SceneServer = new SceneServer();
-    }
-    g_SceneServer->Init();
-    g_SceneServer->Launch();
+	extern MonoServer *g_MonoServer;
+	delete g_MonoServer;
+	
+	g_MonoServer->Launch();
 }}
             xywh {0 0 30 20} shortcut 0x4006c labelfont 4 divider
-            code0 {\#include "sceneserver.hpp"}
-            code1 {\#include "networkconfigurewindow.hpp"}
+            code0 {\#include "monoserver.hpp"}
           }
           MenuItem {} {
             label Pause
@@ -59,8 +56,8 @@ class MainWindow {open
           MenuItem {} {
             label {Server          }
             callback {{
-    extern ServerConfigureWindow *g_ServerConfigureWindow;
-    g_ServerConfigureWindow->ShowAll();
+	extern ServerConfigureWindow	*g_ServerConfigureWindow;
+	g_ServerConfigureWindow->ShowAll();
 }}
             xywh {10 10 30 20} labelfont 4
             code0 {\#include "serverconfigurewindow.hpp"}
@@ -68,11 +65,11 @@ class MainWindow {open
           MenuItem {} {
             label {Network            }
             callback {{
-    extern NetworkConfigureWindow *g_NetworkConfigureWindow;
-    g_NetworkConfigureWindow->ShowAll();
+	extern DatabaseConfigureWindow	*g_DatabaseConfigureWindow;
+	g_DatabaseConfigureWindow->ShowAll();
 }}
             xywh {0 0 30 20} labelfont 4
-            code0 {\#include "networkconfigurewindow.hpp"}
+            code0 {\#include "databaseconfigurewindow.hpp"}
           }
         }
         Submenu {} {
@@ -82,9 +79,9 @@ class MainWindow {open
           MenuItem {} {
             label {Add Monster        }
             callback {{
-    extern AddMonsterWindow *g_AddMonsterWindow;
-    g_AddMonsterWindow->Refresh();
-    g_AddMonsterWindow->ShowAll();
+	extern AddMonsterWindow	*g_AddMonsterWindow;
+    	g_AddMonsterWindow->Refresh();
+    	g_AddMonsterWindow->ShowAll();
 }}
             xywh {15 15 30 20} labelfont 4
             code0 {\#include "addmonsterwindow.hpp"}
