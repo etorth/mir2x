@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 02/28/2016 00:57:55
+ *  Last Modified: 02/28/2016 17:01:19
  *
  *    Description: 
  *
@@ -59,6 +59,7 @@ class MonoServer final
     private:
         // for network
         SessionManager      *m_SessionManager;
+        std::array<8192, Session>
 
     private:
         // for DB

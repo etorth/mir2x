@@ -10,11 +10,14 @@ Session::Session(asio::ip::tcp::socket stSocket, SessionAcceptor *pSessionAccept
     m_IP = m_Socket.remote_endpoint().address().to_string();
 }
 
-void Session::Start()
+void Session::Launch(fnOperateHC)
 {
-    Confirm();
-    DoReadHeader();
+    ReadHC(fnOperateHC);
 }
+
+
+
+
 
 void Session::Deliver(const Message &stMessage)
 {
@@ -84,8 +87,8 @@ int Session::ID()
 void Session::Confirm()
 {
     Message stMessage;
-	stMessage.SetIndex(CLIENTMT_CONNECTSUCCEED);
-	Deliver(stMessage);
+    stMessage.SetIndex(CLIENTMT_CONNECTSUCCEED);
+    Deliver(stMessage);
 }
 
 void Session::SetOnRecv(std::function<void(const Message &, Session &)> fnOnRecv)
@@ -111,9 +114,9 @@ int Session::Port()
 
 
 
-NetIO::NetIO()
+    NetIO::NetIO()
     : m_Resolver(m_IO)
-    , m_Socket(m_IO)
+      , m_Socket(m_IO)
 {
 }
 
@@ -175,8 +178,7 @@ void NetIO::Send(uint8_t nMsgHC, const uint8_t *pBuf, size_t nLen)
     m_IO.post(fnSendHC);
 }
 
-void NetIO::Read(uint8_t * pBuf,
-        size_t nBufLen, std::function<void()> fnOperateBuf)
+void Session::Read(int nLen, std::function<void()> fnOperateBuf)
 {
     auto fnOnReadBuf = [this, fnOperateBuf](std::error_code stEC, size_t){
         if(stEC){
@@ -187,6 +189,50 @@ void NetIO::Read(uint8_t * pBuf,
     };
     asio::async_read(m_Socket,
             asio::buffer(pBuf, nBufLen), fnOnReadBuf);
+}
+
+
+void Session::ReadHC(std::function<void(uint8_t, Session *)> fnProcessHC)
+{
+    auto fnOnReadHC = [this, fnProcessHC](std::error_code stEC, size_t){
+        if(stEC){
+            Close();
+        }else{
+            fnProcessHC(m_MessageHC, this);
+        }
+    };
+
+    asio::async_read(m_Socket, asio::buffer(&m_MessageHC, 1), fnOnReadHC);
+}
+
+
+// for read data, class session will maintain its validation
+void Session::Read(int nLen, std::function<void(uint8_t *, int)> fnProcessData)
+{
+    uint8_t *pData = AllocateBuf(nLen);
+
+    auto fnOnReadData = [this, nLen, fnOperateData, pData](std::error_code stEC, size_t){
+        if(stEC){
+            Close();
+        }else{
+            fnProcessData(pData, nLen);
+        }
+    };
+
+    asio::async_read(m_Socket, asio::buffer(pData, nLen), fnOnReadData);
+}
+
+void Session::ReadHC(std::function<void(uint8_t)> fnProcessHC)
+{
+    auto fnOnReadHC = [this, fnProcessHC](std::error_code stEC, size_t){
+        if(!stEC){
+            fnProcessHC(m_SessionID, m_UID, m_MessageHC, m_Socket);
+        }else{
+            Close();
+        }
+    };
+
+    asio::async_read(m_Socket, asio::buffer(&m_MessageHC, 1), fnOnReadHC);
 }
 
 void NetIO::ReadHC(std::function<void(uint8_t)> fnProcessHC)
@@ -202,6 +248,8 @@ void NetIO::ReadHC(std::function<void(uint8_t)> fnProcessHC)
 
     asio::async_read(m_Socket, asio::buffer(&nMsgHC, 1), fnOnReadHC);
 }
+
+
 
 void NetIO::DoSendNext()
 {
@@ -245,7 +293,20 @@ void NetIO::DoSendHC()
             asio::buffer(&(std::get<0>(m_WQ.front())), 1), fnDoSendBuf);
 }
 
-void Session::OnPing()
-{
+void Session
 
+void NetIO::ReadHC(std::function<void(uint8_t)> fnProcessHC)
+{
+    static uint8_t nMsgHC;
+    auto fnOnReadHC = [this, fnProcessHC, &nMsgHC](std::error_code stEC, size_t){
+        if(!stEC){
+            fnProcessHC(nMsgHC);
+        }else{
+            Close();
+        }
+    };
+
+    asio::async_read(m_Socket, asio::buffer(&nMsgHC, 1), fnOnReadHC);
 }
+
+void Session::Read()

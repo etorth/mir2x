@@ -3,7 +3,7 @@
  *
  *       Filename: netserveronhc.cpp
  *        Created: 02/24/2016 01:52:37
- *  Last Modified: 02/24/2016 02:11:17
+ *  Last Modified: 02/28/2016 16:59:39
  *
  *    Description: 
  *
@@ -38,9 +38,21 @@ MonoServer::ReadHC()
 
 void MonoServer::OnPing()
 {
-    static uint32_t nTick;
     auto fnResponsePing = [this, &nTick](){
         m_NetIO.Send(SM_PING, nTick);
     };
     m_NetIO.Read(nTick, fnResponsePing);
 }
+
+void MonoServer::OnPing()
+{
+    auto fnResponsePing = [this, &nTick](){
+        m_NetIO.Send(SM_PING, nTick);
+    };
+    m_NetIO.Read(nTick, fnResponsePing);
+
+    Read(4, fnOnRead)
+}
+
+
+

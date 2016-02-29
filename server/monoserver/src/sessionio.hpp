@@ -5,10 +5,10 @@
 #include <thread>
 
 class Session;
-class SessionManager final
+class SessionIO final
 {
     public:
-        SessionManager(int);
+        SessionIO(int);
 
     public:
         void Start(std::function<void()>);

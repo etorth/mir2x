@@ -31,10 +31,9 @@ class Session
         std::function<void(const Message &, Session &)> m_OnReadMessage;
 
     private:
-        asio::ip::tcp::socket  m_Socket;
-        Message                m_Message;
-        SessionAcceptor       *m_SessionAcceptor;
-        std::deque<Message>    m_WriteMessageQueue;
-        std::string            m_IP;
-        int                    m_ID;
+        asio::ip::tcp::socket   m_Socket;
+        SessionManager         *m_Parent;
+        std::deque<Message>     m_WriteMessageQueue;
+        std::string             m_IP;
+        int                     m_ID;
 };
