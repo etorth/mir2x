@@ -3,7 +3,7 @@
  *
  *       Filename: sessionio.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 02/29/2016 01:39:41
+ *  Last Modified: 02/29/2016 02:20:30
  *
  *    Description: 
  *
@@ -29,7 +29,7 @@ class Session;
 class SessionIO final
 {
     public:
-        SessionIO(int, std::function<void(uint8_t *, size_t)>);
+        SessionIO(int, std::function<void(uint8_t, Session *)>);
        ~SessionIO();
 
     public:
@@ -63,7 +63,6 @@ class SessionIO final
         int          m_MaxID;
 
     private:
-        std::unordered_map<int, Session *>     m_SessionHub;
-        std::function<void(uint8_t *, size_t)> m_OperateFunc;
-
+        std::unordered_map<int, Session *>      m_SessionHub;
+        std::function<void(uint8_t, Session *)> m_OperateFunc;
 };

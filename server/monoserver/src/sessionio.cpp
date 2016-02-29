@@ -3,7 +3,7 @@
  *
  *       Filename: sessionio.cpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 02/29/2016 01:39:34
+ *  Last Modified: 02/29/2016 02:19:05
  *
  *    Description: 
  *
@@ -21,7 +21,7 @@
 #include "sessionio.hpp"
 #include <thread>
 
-SessionIO::SessionIO(int nPort, std::function<void(uint8_t *, size_t)> fnOperateHC)
+SessionIO::SessionIO(int nPort, std::function<void(uint8_t, Session *)> fnOperateHC)
     : m_Port(nPort)
     , m_EndPoint(asio::ip::tcp::v4(), nPort)
     , m_Acceptor(m_IO, m_EndPoint)

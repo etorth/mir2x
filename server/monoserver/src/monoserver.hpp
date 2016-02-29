@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 02/29/2016 01:42:21
+ *  Last Modified: 02/29/2016 02:49:26
  *
  *    Description: 
  *
@@ -63,8 +63,12 @@ class MonoServer final
     private:
         // for DB
         DBConnection    *m_DBConnection;
+        DBConnection    *m_UserInfoDB;
 
 
     private:
         void OnReadHC(uint8_t, Session *);
+
+        void OnPing (Session *);
+        void OnLogin(Session *);
 };

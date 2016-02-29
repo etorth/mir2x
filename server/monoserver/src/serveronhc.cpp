@@ -3,7 +3,7 @@
  *
  *       Filename: serveronhc.cpp
  *        Created: 02/28/2016 01:37:19
- *  Last Modified: 02/29/2016 01:13:03
+ *  Last Modified: 02/29/2016 02:51:27
  *
  *    Description: 
  *
@@ -19,20 +19,22 @@
  */
 
 #include <cstdint>
+#include "message.hpp"
+#include "session.hpp"
+#include "monoserver.hpp"
 
 void MonoServer::OnPing(Session *pSession)
 {
-    auto fnPorcessPing = [this, pSession](uint8_t *pData, size_t){
-        std::cout << (uint32_t)(*pData) << std::endl;
+    auto fnProcessPing = [this, pSession](uint8_t *pData, size_t){
         pSession->Send(SM_PING, pData, 4);
     };
 
     pSession->Read(4, fnProcessPing);
 }
 
-bool MonoServer::OnLogin(Session *pSession)
+void MonoServer::OnLogin(Session *pSession)
 {
-    auto fnProcessLogin = [](uint8_t *pData, int){
+    auto fnProcessLogin = [this, pSession](uint8_t *pData, int){
         Log(0, "Login requested from (%s:%d)", pSession->IP(), pSession->Port());
 
         auto pCMLogin = (CMLogin *)pData;

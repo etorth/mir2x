@@ -5,12 +5,14 @@
 Session::Session(int nSessionID,
         asio::ip::tcp::socket stSocket,
         SessionIO *pSessionIO,
-        std::function<void(uint8_t *, size_t)> fnOperateHC)
+        std::function<void(uint8_t, Session *)> fnOperateHC)
     : m_ID(nSessionID)
     , m_Socket(std::move(stSocket))
     , m_SessionIO(pSessionIO)
     , m_IP()
     , m_Port(0)
+    , m_MessageHC(0)
+    , m_ReadRequest(0)
     , m_OperateFunc(fnOperateHC)
 {
     m_IP   = m_Socket.remote_endpoint().address().to_string();
@@ -35,23 +37,6 @@ void Session::Send(uint8_t nMsgHC, const uint8_t *pData, size_t nLen)
     if(bEmpty){
         DoSendHC();
     }
-}
-
-void Session::DoSend()
-{
-    auto fnDoSend = [this](std::error_code stEC, size_t){
-        if(stEC){
-            m_SessionIO->Kill(m_ID);
-        }else{
-            m_SendQ.pop();
-            if(!m_SendQ.empty()){
-                DoSend();
-            }
-        }
-    };
-
-    asio::async_write(m_Socket,
-            asio::buffer(m_SendQ.front().first, m_SendQ.front().second), fnDoSend);
 }
 
 void Session::ReadHC()
@@ -79,7 +64,7 @@ void Session::Read(size_t nLen, std::function<void(uint8_t *, size_t)> fnProcess
         m_Buf.resize(nLen);
     }
 
-    auto fnOnReadData = [this, fnOperateData](std::error_code stEC, size_t){
+    auto fnOnReadData = [this, nLen, fnProcessData](std::error_code stEC, size_t){
         if(stEC){
             Stop();
         }else{
@@ -94,7 +79,7 @@ void Session::Read(size_t nLen, std::function<void(uint8_t *, size_t)> fnProcess
 
 void Session::DoSendNext()
 {
-    m_SendQ.pop_front();
+    m_SendQ.pop();
     if(!m_SendQ.empty()){
         DoSendHC();
     }
@@ -114,7 +99,7 @@ void Session::DoSendBuf()
         };
 
         asio::async_write(m_Socket,
-                asio::buffer(&(std::get<1>(m_SendQ.front())), std::get<2>(m_SendQ.front())), fnDoSendBuf);
+                asio::buffer(&(std::get<1>(m_SendQ.front())), std::get<2>(m_SendQ.front())), fnDoSendValidBuf);
     }else{
         DoSendNext();
     }

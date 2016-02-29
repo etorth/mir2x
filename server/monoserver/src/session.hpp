@@ -1,4 +1,6 @@
 #pragma once
+#include <tuple>
+#include <cstdint>
 #include <asio.hpp>
 #include <queue>
 #include <functional>
@@ -10,7 +12,7 @@ class Session
         Session(int,    // session id
                 asio::ip::tcp::socket,  // socket
                 SessionIO *,            // parent
-                std::function<void(uint8_t *, size_t)>);  // handler on header code
+                std::function<void(uint8_t, Session *)>);  // handler on header code
 
        ~Session();
 
@@ -21,6 +23,11 @@ class Session
        void Read(size_t, std::function<void(uint8_t *, size_t)>);
        // send
        void Send(uint8_t, const uint8_t *, size_t);
+
+    private:
+        void DoSendHC();
+        void DoSendBuf();
+        void DoSendNext();
 
     public:
         int  ID()
@@ -65,9 +72,11 @@ class Session
         SessionIO              *m_SessionIO;
         std::string             m_IP;
         int                     m_Port;
+        uint8_t                 m_MessageHC;
+        int                     m_ReadRequest;
 
     private:
-        std::function<void(uint8_t *, size_t)>              m_OperateFunc;
-        std::queue<std::tuple<uint8_t, uint8_t *, size_t>>  m_SendQ;
-        std::vector<uint8_t>                                m_Buf;
+        std::function<void(uint8_t, Session *)>                  m_OperateFunc;
+        std::queue<std::tuple<uint8_t, const uint8_t *, size_t>> m_SendQ;
+        std::vector<uint8_t>                                     m_Buf;
 };
