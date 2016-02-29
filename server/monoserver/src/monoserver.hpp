@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 02/28/2016 17:01:19
+ *  Last Modified: 02/29/2016 01:42:21
  *
  *    Description: 
  *
@@ -23,7 +23,7 @@
 #include <cstdint>
 #include "mapthread.hpp"
 #include <unordered_map>
-#include "sessionmanager.hpp"
+#include "sessionio.hpp"
 
 #include "database.hpp"
 
@@ -58,10 +58,13 @@ class MonoServer final
 
     private:
         // for network
-        SessionManager      *m_SessionManager;
-        std::array<8192, Session>
+        SessionIO   *m_SessionIO;
 
     private:
         // for DB
         DBConnection    *m_DBConnection;
+
+
+    private:
+        void OnReadHC(uint8_t, Session *);
 };

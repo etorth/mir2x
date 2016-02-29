@@ -3,7 +3,7 @@
  *
  *       Filename: sessionio.cpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 02/28/2016 22:25:06
+ *  Last Modified: 02/29/2016 01:39:34
  *
  *    Description: 
  *
@@ -18,31 +18,33 @@
  * =====================================================================================
  */
 #include "session.hpp"
-#include "sessionacceptor.hpp"
-#include "mainwindow.hpp"
+#include "sessionio.hpp"
 #include <thread>
 
-SessionIO::SessionIO(int nPort)
-    : m_EndPoint(asio::ip::tcp::v4(), nPort)
+SessionIO::SessionIO(int nPort, std::function<void(uint8_t *, size_t)> fnOperateHC)
+    : m_Port(nPort)
+    , m_EndPoint(asio::ip::tcp::v4(), nPort)
     , m_Acceptor(m_IO, m_EndPoint)
     , m_Socket(m_IO)
-    , m_Count(0)
-{}
-
-void SessionIO::SetOnRecv(std::function<void(const Message &, Session &)> fnOnRecv)
+    , m_Thread(nullptr)
+    , m_MaxID(0)
+    , m_OperateFunc(fnOperateHC)
 {
-    m_OnRecvFunc = fnOnRecv;
 }
 
-void SessionIO::Launch(std::function<void()> fnOperateHC)
+SessionIO::~SessionIO()
 {
-    Accept(fnOperateHC);
+}
+
+void SessionIO::Launch()
+{
+    Accept();
     m_Thread = new std::thread([this](){ m_IO.run(); });
 }
 
-void SessionIO::Accept(std::function<void()> fnOperateHC)
+void SessionIO::Accept()
 {
-    auto fnAccept = [this, fnOperateHC](std::error_code stEC){
+    auto fnAccept = [this](std::error_code stEC){
 
         if(stEC){
             // error occurs, stop the network
@@ -54,24 +56,25 @@ void SessionIO::Accept(std::function<void()> fnOperateHC)
             //         m_Socket.remote_endpoint().address().to_string().c_str(),
             //         m_Socket.remote_endpoint().port());
 
-            int nSessionID = AllocateID();
+            int nSessionID = m_MaxID;
 
-            auto pSession = new Session(nSessionID, std::move(m_Socket), this, fnOperateHC);
+            auto pSession = new Session(
+                    nSessionID, std::move(m_Socket), this, m_OperateFunc);
+
+            m_MaxID++;
 
             m_SessionHub[nSessionID] = pSession;
 
-            m_SessionList.emplace_back(pSession);
-
-            pSession->Launch(fnOperateHC);
+            pSession->Launch();
         }
 
-        Accept(fnOperateHC);
+        Accept();
     };
 
     m_Acceptor.async_accept(m_Socket, fnAccept);
 }
 
-void SessionIO::StopSession(int nSessionID)
+void SessionIO::Kill(int nSessionID)
 {
     if(m_SessionHub.find(nSessionID) != m_SessionHub.end()){
         m_SessionHub[nSessionID]->Stop();
@@ -79,35 +82,20 @@ void SessionIO::StopSession(int nSessionID)
     }
 }
 
-void SessionIO::Dispatch(uint8_t nMsgID, const uint8_t *pData, int nDataLen)
+void SessionIO::Dispatch(uint8_t nMsgID, const uint8_t *pData, size_t nDataLen)
 {
-    for(auto &pSession: m_SessionList){
-        pSession->Deliver(nMsgID, pData, nDataLen);
-    }
-}
-
-void SessionIO::Deliver(int nSessionID, uint8_t nMsgID, const uint8_t *pData)
-{
-    for(auto pSession = m_SessionList.begin(); pSession != m_SessionList.end(); ++pSession){
-        if((*pSession)->ID() == nSessionID){
-            (*pSession)->Deliver(stMessage);
-            break;
+    for(int nSessionID = 0; nSessionID <= m_MaxID; ++nSessionID){
+        auto p = m_SessionHub.find(nSessionID);
+        if(p != m_SessionHub.end()){
+            p->second->Send(nMsgID, pData, nDataLen);
         }
     }
 }
 
-int SessionIO::AllocateID()
+void SessionIO::Send(int nSessionID, uint8_t nMsgID, const uint8_t *pData, size_t nDataLen)
 {
-    static int nNextID = 0;
-
-    while(m_SessionHub.find(nNextID) != m_SessionHub.end()){
-        nNextID++;
+    auto p = m_SessionHub.find(nSessionID);
+    if(p != m_SessionHub.end()){
+        p->second->Send(nMsgID, pData, nDataLen);
     }
-
-    return nNextID;
-}
-
-int SessionIO::SessionCount()
-{
-    return m_SessionHub.size();
 }

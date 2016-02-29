@@ -3,7 +3,7 @@
  *
  *       Filename: serveronhc.cpp
  *        Created: 02/28/2016 01:37:19
- *  Last Modified: 02/28/2016 23:13:26
+ *  Last Modified: 02/29/2016 01:13:03
  *
  *    Description: 
  *
@@ -22,9 +22,9 @@
 
 void MonoServer::OnPing(Session *pSession)
 {
-    auto fnPorcessPing = [this, pSession](uint8_t *pData, int nLen){
+    auto fnPorcessPing = [this, pSession](uint8_t *pData, size_t){
         std::cout << (uint32_t)(*pData) << std::endl;
-        pSession->Send(pData, nlen);
+        pSession->Send(SM_PING, pData, 4);
     };
 
     pSession->Read(4, fnProcessPing);

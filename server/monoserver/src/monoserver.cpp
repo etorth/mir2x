@@ -89,7 +89,7 @@ void MonoServer::Launch()
     CreateDBConnection();
 
     // all-set, start to accept connections from clients
-    m_SessionIO->Launch([this](){ OnReadHC(); });
+    m_SessionIO->Launch();
 }
 
 void MonoServer::OnReadHC(uint8_t nMsgHC, Session *pSession)

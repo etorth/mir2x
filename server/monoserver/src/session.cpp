@@ -1,312 +1,134 @@
-#include "message.hpp"
+#include <cassert>
 #include "session.hpp"
-#include "sessionmanager.hpp"
+#include "sessionio.hpp"
 
-Session::Session(asio::ip::tcp::socket stSocket, SessionAcceptor *pSessionAcceptor, int nID)
-    : m_Socket(std::move(stSocket))
-    , m_SessionAcceptor(pSessionAcceptor)
-    , m_ID(nID)
+Session::Session(int nSessionID,
+        asio::ip::tcp::socket stSocket,
+        SessionIO *pSessionIO,
+        std::function<void(uint8_t *, size_t)> fnOperateHC)
+    : m_ID(nSessionID)
+    , m_Socket(std::move(stSocket))
+    , m_SessionIO(pSessionIO)
+    , m_IP()
+    , m_Port(0)
+    , m_OperateFunc(fnOperateHC)
 {
-    m_IP = m_Socket.remote_endpoint().address().to_string();
+    m_IP   = m_Socket.remote_endpoint().address().to_string();
+    m_Port = m_Socket.remote_endpoint().port();
+
+    m_Buf.resize(512, 0);
 }
 
-void Session::Launch(fnOperateHC)
+Session::~Session()
 {
-    ReadHC(fnOperateHC);
+    Stop();
 }
 
-
-
-
-
-void Session::Deliver(const Message &stMessage)
+void Session::Send(uint8_t nMsgHC, const uint8_t *pData, size_t nLen)
 {
-    // TODO this is ok since when calling
-    // stMessage is copied to queue immediately
+    // TODO
+    // Send() won't maintain the validation of pData!
 
-    bool bEmpty = m_WriteMessageQueue.empty();
-    m_WriteMessageQueue.push_back(stMessage);
+    bool bEmpty = m_SendQ.empty();
+    m_SendQ.emplace(nMsgHC, pData, nLen);
 
     if(bEmpty){
-        DoWrite();
-    }
-}
-
-void Session::DoReadHeader()
-{
-    auto fnReadHeader = [this](std::error_code stEC, std::size_t){
-        if(!stEC){
-            DoReadBody();
-        }else{
-            m_SessionAcceptor->StopSession(m_ID);
-        }
-    };
-
-    asio::async_read(m_Socket, asio::buffer(m_Message.Data(), m_Message.HeaderSize()), fnReadHeader);
-}
-
-
-void Session::DoReadBody()
-{
-    auto fnReadBody = [this](std::error_code stEC, std::size_t){
-        if(!stEC){
-            if(m_OnReadMessage){
-                m_OnReadMessage(m_Message, *this);
-            }
-            DoReadHeader();
-        }else{
-            m_SessionAcceptor->StopSession(m_ID);
-        }
-    };
-
-    asio::async_read(m_Socket, asio::buffer(m_Message.Body(), m_Message.BodySize()), fnReadBody);
-}
-
-void Session::DoWrite()
-{
-    auto fnDoWrite = [this](std::error_code stEC, std::size_t){
-        if(!stEC){
-            m_WriteMessageQueue.pop_front();
-            if(!m_WriteMessageQueue.empty()){
-                DoWrite();
-            }
-        }else{
-            m_SessionAcceptor->StopSession(m_ID);
-        }
-    };
-
-    auto &stMessage = m_WriteMessageQueue.front();
-    asio::async_write(m_Socket, asio::buffer(stMessage.Data(), stMessage.Size()), fnDoWrite);
-}
-
-int Session::ID()
-{
-    return m_ID;
-}
-
-void Session::Confirm()
-{
-    Message stMessage;
-    stMessage.SetIndex(CLIENTMT_CONNECTSUCCEED);
-    Deliver(stMessage);
-}
-
-void Session::SetOnRecv(std::function<void(const Message &, Session &)> fnOnRecv)
-{
-    m_OnReadMessage = fnOnRecv;
-}
-
-const char *Session::IP()
-{
-    // bug here: to_string create a temp std::string
-    // and this object destructed when this line end
-    // so c_str() is undefined
-    //
-    // return m_Socket.remote_endpoint().address().to_string().c_str();
-    return m_IP.c_str();
-}
-
-int Session::Port()
-{
-    return m_Socket.remote_endpoint().port();
-}
-
-
-
-
-    NetIO::NetIO()
-    : m_Resolver(m_IO)
-      , m_Socket(m_IO)
-{
-}
-
-NetIO::~NetIO()
-{
-    m_IO.stop();
-}
-
-void NetIO::StopIO()
-{
-    m_IO.post([this](){Close();});
-}
-
-void NetIO::SetIO(const std::string &szIP,
-        const std::string &szPort, std::function<void()> fnOperateHC)
-{
-    auto stIterator = m_Resolver.resolve({szIP, szPort});
-    auto fnOnConnect = [this, fnOperateHC](std::error_code stEC, asio::ip::tcp::resolver::iterator){
-        if(stEC){
-            Close();
-        }else{
-            DoReadHC(fnOperateHC);
-        }
-    };
-
-    asio::async_connect(m_Socket, stIterator, fnOnConnect);
-}
-
-void NetIO::RunIO()
-{
-    // start the event loop and never return when in normal operation
-    m_IO.run();
-}
-
-void NetIO::Close()
-{
-    m_Socket.close();
-}
-
-void NetIO::Send(uint8_t nMsgHC)
-{
-    Send(nMsgHC, nullptr, 0);
-}
-
-// validation of pBuf is maintained by caller!
-// just like asio::buffer()
-void NetIO::Send(uint8_t nMsgHC, const uint8_t *pBuf, size_t nLen)
-{
-    auto fnSendHC = [this, nMsgHC, pBuf, nLen](){
-        bool bEmpty = m_WQ.empty();
-        m_WQ.emplace(nMsgHC, pBuf, nLen);
-        if(bEmpty){
-            // if this is the only package then send it immediately
-            // otherwise previously called DoSend() will continue to send
-            // this guarantee data will be sent in order
-            DoSendHC();
-        }
-    };
-    m_IO.post(fnSendHC);
-}
-
-void Session::Read(int nLen, std::function<void()> fnOperateBuf)
-{
-    auto fnOnReadBuf = [this, fnOperateBuf](std::error_code stEC, size_t){
-        if(stEC){
-            Close();
-        }else{
-            fnOperateBuf();
-        }
-    };
-    asio::async_read(m_Socket,
-            asio::buffer(pBuf, nBufLen), fnOnReadBuf);
-}
-
-
-void Session::ReadHC(std::function<void(uint8_t, Session *)> fnProcessHC)
-{
-    auto fnOnReadHC = [this, fnProcessHC](std::error_code stEC, size_t){
-        if(stEC){
-            Close();
-        }else{
-            fnProcessHC(m_MessageHC, this);
-        }
-    };
-
-    asio::async_read(m_Socket, asio::buffer(&m_MessageHC, 1), fnOnReadHC);
-}
-
-
-// for read data, class session will maintain its validation
-void Session::Read(int nLen, std::function<void(uint8_t *, int)> fnProcessData)
-{
-    uint8_t *pData = AllocateBuf(nLen);
-
-    auto fnOnReadData = [this, nLen, fnOperateData, pData](std::error_code stEC, size_t){
-        if(stEC){
-            Close();
-        }else{
-            fnProcessData(pData, nLen);
-        }
-    };
-
-    asio::async_read(m_Socket, asio::buffer(pData, nLen), fnOnReadData);
-}
-
-void Session::ReadHC(std::function<void(uint8_t)> fnProcessHC)
-{
-    auto fnOnReadHC = [this, fnProcessHC](std::error_code stEC, size_t){
-        if(!stEC){
-            fnProcessHC(m_SessionID, m_UID, m_MessageHC, m_Socket);
-        }else{
-            Close();
-        }
-    };
-
-    asio::async_read(m_Socket, asio::buffer(&m_MessageHC, 1), fnOnReadHC);
-}
-
-void NetIO::ReadHC(std::function<void(uint8_t)> fnProcessHC)
-{
-    static uint8_t nMsgHC;
-    auto fnOnReadHC = [this, fnProcessHC, &nMsgHC](std::error_code stEC, size_t){
-        if(!stEC){
-            fnProcessHC(nMsgHC);
-        }else{
-            Close();
-        }
-    };
-
-    asio::async_read(m_Socket, asio::buffer(&nMsgHC, 1), fnOnReadHC);
-}
-
-
-
-void NetIO::DoSendNext()
-{
-    m_WQ.pop_front();
-    if(!m_WQ.empty()){
         DoSendHC();
     }
 }
 
-void NetIO::DoSendBuf()
+void Session::DoSend()
 {
-    if(m_WQ.empty){ return; }
+    auto fnDoSend = [this](std::error_code stEC, size_t){
+        if(stEC){
+            m_SessionIO->Kill(m_ID);
+        }else{
+            m_SendQ.pop();
+            if(!m_SendQ.empty()){
+                DoSend();
+            }
+        }
+    };
 
-    if(std::get<0>(m_WQ.front()) && std::get<1>(m_WQ.front())){
+    asio::async_write(m_Socket,
+            asio::buffer(m_SendQ.front().first, m_SendQ.front().second), fnDoSend);
+}
+
+void Session::ReadHC()
+{
+    auto fnOnReadHC = [this](std::error_code stEC, size_t){
+        if(stEC){
+            Stop();
+        }else{
+            m_OperateFunc(m_MessageHC, this);
+        }
+    };
+
+    asio::async_read(m_Socket, asio::buffer(&m_MessageHC, 1), fnOnReadHC);
+}
+
+// for read data, we use the internal buffer
+// this means at any time, they could only be *one* read-request in the io-queue
+// otherwise data in buffer will be destroied
+void Session::Read(size_t nLen, std::function<void(uint8_t *, size_t)> fnProcessData)
+{
+    m_ReadRequest++;
+    assert(m_ReadRequest == 1);
+
+    if(nLen > m_Buf.size()){
+        m_Buf.resize(nLen);
+    }
+
+    auto fnOnReadData = [this, fnOperateData](std::error_code stEC, size_t){
+        if(stEC){
+            Stop();
+        }else{
+            m_ReadRequest--;
+            assert(m_ReadRequest == 0);
+            fnProcessData(&(m_Buf[0]), nLen);
+        }
+    };
+
+    asio::async_read(m_Socket, asio::buffer(&(m_Buf[0]), nLen), fnOnReadData);
+}
+
+void Session::DoSendNext()
+{
+    m_SendQ.pop_front();
+    if(!m_SendQ.empty()){
+        DoSendHC();
+    }
+}
+
+void Session::DoSendBuf()
+{
+    if(m_SendQ.empty()){ return; }
+
+    if(std::get<1>(m_SendQ.front()) && (std::get<2>(m_SendQ.front()) > 0)){
         auto fnDoSendValidBuf = [this](std::error_code stEC, size_t){
             if(stEC){
-                Close();
+                Stop();
             }else{
                 DoSendNext();
             }
         };
 
         asio::async_write(m_Socket,
-                asio::buffer(&(std::get<1>(m_WQ.front())), std::get<2>(m_WQ.front())), fnDoSendBuf);
+                asio::buffer(&(std::get<1>(m_SendQ.front())), std::get<2>(m_SendQ.front())), fnDoSendBuf);
     }else{
         DoSendNext();
     }
 }
 
-void NetIO::DoSendHC()
+void Session::DoSendHC()
 {
-    auto fnDoSendBuf = [this, fnSendBuf](std::error_code stEC, size_t){
+    auto fnDoSendBuf = [this](std::error_code stEC, size_t){
         if(stEC){
-            Close();
+            Stop();
         }else{
             DoSendBuf();
         }
     };
 
-    asio::async_write(m_Socket,
-            asio::buffer(&(std::get<0>(m_WQ.front())), 1), fnDoSendBuf);
+    asio::async_write(m_Socket, asio::buffer(&(std::get<0>(m_SendQ.front())), 1), fnDoSendBuf);
 }
-
-void Session
-
-void NetIO::ReadHC(std::function<void(uint8_t)> fnProcessHC)
-{
-    static uint8_t nMsgHC;
-    auto fnOnReadHC = [this, fnProcessHC, &nMsgHC](std::error_code stEC, size_t){
-        if(!stEC){
-            fnProcessHC(nMsgHC);
-        }else{
-            Close();
-        }
-    };
-
-    asio::async_read(m_Socket, asio::buffer(&nMsgHC, 1), fnOnReadHC);
-}
-
-void Session::Read()
