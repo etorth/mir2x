@@ -1,3 +1,5 @@
+#include <cstdio>
+#include <cstdarg>
 #include <cstring>
 #include <mariadb/mysql.h>
 #include "dbrecord.hpp"
@@ -7,6 +9,9 @@ DBRecord::DBRecord(DBConnection * pConnection)
     : m_SQLRES(nullptr)
     , m_CurrentRow(nullptr)
     , m_Connection(pConnection)
+    , m_QueryBuf(nullptr)
+    , m_QueryBufLen(0)
+    , m_ValidExecuteString(true)
     , m_Valid(false)
     , m_QuerySucceed(false)
 {
@@ -14,11 +19,51 @@ DBRecord::DBRecord(DBConnection * pConnection)
 
 DBRecord::~DBRecord()
 {
+    delete m_QueryBuf;
 }
 
-bool DBRecord::Execute(const char *szQueryCmd)
+void DBRecord::ExtendQueryBuf(size_t nNewLen)
 {
-    return Query(szQueryCmd) && Valid() && StoreResult();
+    if(nNewLen > m_QueryBufLen){
+        delete m_QueryBuf;
+        size_t nNewLen8 = ((nNewLen + 7) / 8) * 8;
+        m_QueryBuf    = new char[nNewLen8];
+        m_QueryBufLen = nNewLen8;
+    }
+}
+
+bool DBRecord::Execute(const char *szQueryCmd, ...)
+{
+    // ExtendQueryBuf(std::strlen(szQueryCmd) * 2 + 64);
+    // anyway std::vsnprintf will give me right buffer length
+    // so just give a large buffer
+    //
+    ExtendQueryBuf(128);
+
+    va_list ap;
+
+    while(1){
+
+        va_start(ap, szQueryCmd);
+
+        int nRes = std::vsnprintf(m_QueryBuf, m_QueryBufLen, szQueryCmd, ap);
+
+        va_end(ap);
+
+        if(nRes > -1 && (size_t)nRes < m_QueryBufLen){
+            // additional '\0' takes one char
+            // everything works
+            break;
+        }else if(nRes < 0){
+            // error occurs
+            return false;
+        }else{
+            // we need a larger buffer
+            ExtendQueryBuf(nRes + 1);
+        }
+    }
+
+    return Query(m_QueryBuf) && Valid() && StoreResult();
 }
 
 bool DBRecord::Query(const char *szQueryCmd)
@@ -121,16 +166,36 @@ int DBRecord::ColumnCount()
 
 int DBRecord::ErrorID()
 {
-    if(m_Connection){
-        return m_Connection->ErrorID();
+    if(m_ValidExecuteString){
+        if(m_Connection){
+            // -1, 0, ...
+            return m_Connection->ErrorID();
+        }else{
+            // error in initialization
+            return -2;
+        }
+    }else{
+        return -3;
     }
+
+    // dead code here
     return 0;
 }
 
 const char *DBRecord::ErrorInfo()
 {
-    if(m_Connection){
-        return m_Connection->ErrorInfo();
+    if(m_ValidExecuteString){
+        if(m_Connection){
+            // -1, 0, ...
+            return m_Connection->ErrorInfo();
+        }else{
+            // error in initialization
+            return "null connection pointer in record";
+        }
+    }else{
+        return "error in parsing execute command in vsnprintf()";
     }
-    return "";
+
+    // dead code
+    return "no error";
 }

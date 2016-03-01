@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 02/29/2016 02:49:26
+ *  Last Modified: 03/01/2016 00:28:07
  *
  *    Description: 
  *
@@ -26,6 +26,7 @@
 #include "sessionio.hpp"
 
 #include "database.hpp"
+#include "message.hpp"
 
 
 class MonoServer final
@@ -65,6 +66,11 @@ class MonoServer final
         DBConnection    *m_DBConnection;
         DBConnection    *m_UserInfoDB;
 
+    private:
+        bool PlayerLogin(SMLoginOK)
+        {
+            return true;
+        }
 
     private:
         void OnReadHC(uint8_t, Session *);

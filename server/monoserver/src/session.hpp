@@ -24,6 +24,18 @@ class Session
        // send
        void Send(uint8_t, const uint8_t *, size_t);
 
+       // short format
+       void Send(uint8_t nMsgHC)
+       {
+           Send(nMsgHC, nullptr, 0);
+       }
+       // another helper
+       template<typename T> void Send(uint8_t nMsgHC, T stMsgT)
+       {
+           Send(nMsgHC, (uint8_t *)(&stMsgT), sizeof(stMsgT));
+       }
+
+
     private:
         void DoSendHC();
         void DoSendBuf();

@@ -3,7 +3,7 @@
  *
  *       Filename: serveronhc.cpp
  *        Created: 02/28/2016 01:37:19
- *  Last Modified: 02/29/2016 02:51:27
+ *  Last Modified: 03/01/2016 00:29:00
  *
  *    Description: 
  *
@@ -45,11 +45,11 @@ void MonoServer::OnLogin(Session *pSession)
             if(pRecord->RowCount() != 1){
                 pSession->Send(SM_LOGINFAIL);
             }else{
-                SMLoginSucceed stTmpSM;
+                SMLoginOK stTmpSM;
                 pRecord->Fetch();
 
-                std::strcpy(stTmpSM.CharName, pRecord->Get("fld_name"));
-                std::strcpy(stTmpCM.MapName,  pRecord->Get("fld_map"));
+                std::strncpy(stTmpSM.CharName, pRecord->Get("fld_name"), sizeof(stTmpSM.CharName));
+                std::strncpy(stTmpSM.MapName , pRecord->Get("fld_map"),  sizeof(stTmpSM.MapName ));
 
                 stTmpSM.UID       = std::atoi(pRecord->Get("fld_uid"));
                 stTmpSM.SID       = std::atoi(pRecord->Get("fld_sid"));
@@ -60,7 +60,7 @@ void MonoServer::OnLogin(Session *pSession)
 
                 // blocking
                 if(PlayerLogin(stTmpSM)){
-                    pSession->Send(SM_LOGINOK, &stTmpSM, sizeof(stTmpSM));
+                    pSession->Send(SM_LOGINOK, stTmpSM);
                 }
             }
         }else{

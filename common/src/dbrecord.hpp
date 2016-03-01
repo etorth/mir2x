@@ -14,11 +14,14 @@ class DBRecord final
         DBConnection   *m_Connection;
 
     private:
+        char   *m_QueryBuf;
+        size_t  m_QueryBufLen;
+        bool    m_ValidExecuteString;
         bool    m_Valid;
         bool    m_QuerySucceed;
 
     public:
-        bool Execute(const char *);
+        bool Execute(const char *, ...);
         bool Valid();
         bool Fetch();
         int  RowCount();
@@ -32,6 +35,7 @@ class DBRecord final
         const char *ErrorInfo();
 
     private:
+        void ExtendQueryBuf(size_t);
         bool Query(const char *);
         bool StoreResult();
 
