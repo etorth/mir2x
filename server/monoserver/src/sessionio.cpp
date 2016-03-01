@@ -3,7 +3,7 @@
  *
  *       Filename: sessionio.cpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 02/29/2016 02:19:05
+ *  Last Modified: 03/01/2016 02:07:03
  *
  *    Description: 
  *
@@ -98,4 +98,8 @@ void SessionIO::Send(int nSessionID, uint8_t nMsgID, const uint8_t *pData, size_
     if(p != m_SessionHub.end()){
         p->second->Send(nMsgID, pData, nDataLen);
     }
+}
+
+void SessionIO::Stop()
+{
 }

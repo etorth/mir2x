@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 03/01/2016 00:28:07
+ *  Last Modified: 03/01/2016 01:38:34
  *
  *    Description: 
  *
@@ -71,6 +71,12 @@ class MonoServer final
         {
             return true;
         }
+
+    public:
+        // for gui
+        bool GetValidMapV(std::vector<std::pair<int, std::string>> &);
+        bool GetValidMonsterV(int, std::vector<std::pair<int, std::string>> &);
+        int  GetValidMonsterCount(int, int);
 
     private:
         void OnReadHC(uint8_t, Session *);

@@ -2,6 +2,9 @@
 version 1.0302 
 header_name {.hpp} 
 code_name {.cpp}
+decl {\#include <utility>} {public global
+} 
+
 decl {\#include <cmath>} {public global
 } 
 
@@ -14,13 +17,19 @@ decl {\#include <cstdlib>} {public global
 decl {\#include <vector>} {public global
 } 
 
+decl {\#include <Fl/fl_ask.H>} {public global
+} 
+
+decl {\#include "monoserver.hpp"} {private local
+} 
+
 class AddMonsterWindow {open
 } {
   Function {AddMonsterWindow()} {open
   } {
     Fl_Window m_Window {
       label {Add Monster} open
-      xywh {535 230 335 260} type Double labelfont 4 modal visible
+      xywh {504 176 335 260} type Double labelfont 4 modal visible
     } {
       Fl_Choice m_ValidMapList {
         label {Map:} open
@@ -30,7 +39,7 @@ class AddMonsterWindow {open
         label {Monster:} open
         xywh {95 66 180 25} down_box BORDER_BOX labelfont 4 textfont 4
       } {}
-      Fl_Choice m_ValidMonstCountList {
+      Fl_Choice m_ValidMonsterCountList {
         label {Count:} open
         xywh {95 105 180 25} down_box BORDER_BOX labelfont 4 textfont 4
       } {}
@@ -63,27 +72,13 @@ class AddMonsterWindow {open
 	m_Window->show();
 }} {}
   }
-  Function {AddValid(const char *szSID, const char *szName)} {open return_type void
-  } {
-    code {{
-	m_ValidList->add(szName, 0, 0, (void *)(std::atoi(szSID)), 0);
-    	m_ValidList->textfont(4);
-}} {}
-  }
-  Function {AddCurrent(const char *szSID, const char *szName)} {open return_type void
-  } {
-    code {{
-	m_CurrentList->add(szName, 0, 0, (void *)(std::atoi(szSID)), 0);
-    	m_CurrentList->textfont(4);
-}} {}
-  }
-  Function {SetMapList(const std::vector<int> & stMapIDList)} {open return_type void
+  Function {SetMapList()} {return_type void
   } {
     code {{
 	m_ValidMapList->clear();
 	
 	extern MonoServer *g_MonoServer;
-	std::vector<int, std::string> stValidMapV;
+	std::vector<std::pair<int, std::string>> stValidMapV;
 	
 	if(g_MonoServer->GetValidMapV(stValidMapV)){
 		for(auto stPair: stValidMapV){
@@ -92,55 +87,28 @@ class AddMonsterWindow {open
 	}else{
 		fl_alert("No valid map currently");
 	}
-}} {selected
-    }
-  }
-  Function {AddMapList(int nMapID, const char *szMapName)} {open return_type void
-  } {
-    code {{
-	// TODO: check for redundancy of the map list
-	m_ValidMapList->add(szMapName, 0, OnSelectMap, (void *)(nMapID), 0);
 }} {}
   }
-  Function {Refresh()} {open return_type void
-  } {
-    code {{
-	m_CurrentList->clear();
-	m_ValidList->clear();
-	extern SceneServer *g_SceneServer;
-	if(g_SceneServer){
-		g_SceneServer->UpdateValidMonsterList();
-	}
-
-	if(m_ValidList->size() > 0){
-		m_ValidList->value(0);
-	}
-
-	if(m_CurrentList->size() > 0){
-		m_CurrentList->value(0);
-	}
-}} {}
-  }
-  Function {OnSelectMap(Fl_Widget *, void *pData)} {open return_type {static void}
-  } {
-    code {{
-	extern AddMonsterWindow *g_AddMonsterWindow;	
-	g_AddMonsterWindow->SetMonsterList((int)((intptr_t)(pData)));
-}} {}
-  }
-  Function {SetMonsterList(int nMapID)} {open return_type void
+  Function {SetMonsterList()} {return_type void
   } {
     code {{
 	extern MonoServer *g_MonoServer;
-	std::vector<uint16_t, std::string> stMonsterV;
+	std::vector<std::pair<int, std::string>> stMonsterV;
 	
-	if(g_MonoServer->GetValidMonsterV(stMonsterV)){
+	if(g_MonoServer->GetValidMonsterV(CurrentMapID(), stMonsterV)){
 		for(auto stPair: stMonsterV){
 			AddMonsterList(stPair.first, stPair.second.c_str());
 		}
 	}else{
 		fl_alert("No valid monster for current map");
 	}
+}} {}
+  }
+  Function {AddMapList(int nMapID, const char *szMapName)} {return_type void
+  } {
+    code {{
+	// TODO: check for redundancy of the map list
+	m_ValidMapList->add(szMapName, 0, OnSelectMap, (void *)(nMapID), 0);
 }} {}
   }
   Function {AddMonsterList(int nMonsterID, const char *szMonsterName)} {return_type void
@@ -150,11 +118,50 @@ class AddMonsterWindow {open
 	m_ValidMonsterList->add(szMonsterName, 0, OnSelectMonster, (void *)(nMonsterID), 0);
 }} {}
   }
-  Function {OnSelectMonster(Fl_Widget *, void *pData)} {return_type {static void}
+  Function {OnSelectMap(Fl_Widget *, void *)} {return_type {static void}
   } {
     code {{
 	extern AddMonsterWindow *g_AddMonsterWindow;	
-	g_AddMonsterWindow->SetMonsterCountList((int)((intptr_t)(pData)));
+	g_AddMonsterWindow->SetMonsterList();
+}} {}
+  }
+  Function {OnSelectMonster(Fl_Widget *, void *)} {return_type {static void}
+  } {
+    code {{
+	extern AddMonsterWindow *g_AddMonsterWindow;	
+	g_AddMonsterWindow->SetMonsterCountList();
+}} {}
+  }
+  Function {Refresh()} {return_type void
+  } {
+    code {{
+	SetMapList();
+}} {}
+  }
+  Function {SetMonsterCountList()} {return_type void
+  } {
+    code {{
+	extern MonoServer *g_MonoServer;
+	int nValidCount = g_MonoServer->GetValidMonsterCount(CurrentMapID(), CurrentMonsterID());
+		
+	m_ValidMonsterCountList->clear();
+	
+	for(int nCnt = 0; nCnt <= nValidCount; ++nCnt){
+	  m_ValidMonsterCountList->add(
+	  	std::to_string(nCnt).c_str(), 0, nullptr, (void *)(nCnt), 0);
+	}
+}} {}
+  }
+  Function {CurrentMapID()} {return_type int
+  } {
+    code {{
+	return (int)(intptr_t)(m_ValidMapList->mvalue()->user_data());
+}} {}
+  }
+  Function {CurrentMonsterID()} {return_type int
+  } {
+    code {{
+	return (int)(intptr_t)(m_ValidMonsterList->mvalue()->user_data());
 }} {}
   }
 } 

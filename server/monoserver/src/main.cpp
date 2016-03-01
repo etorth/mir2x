@@ -7,6 +7,7 @@
 
 MonoServer               *g_MonoServer;
 MainWindow               *g_MainWindow;
+AddMonsterWindow         *g_AddMonsterWindow;
 ServerConfigureWindow    *g_ServerConfigureWindow;
 DatabaseConfigureWindow  *g_DatabaseConfigureWindow;
 
