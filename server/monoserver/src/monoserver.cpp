@@ -8,6 +8,7 @@
 #include "databaseconfigurewindow.hpp"
 
 MonoServer::MonoServer()
+    : m_SessionIO(nullptr)
 {
 }
 
@@ -15,50 +16,52 @@ MonoServer::~MonoServer()
 {
 }
 
-void MonoServer::ExtendLogBuf(int nNewSize)
+void MonoServer::ExtendLogBuf(size_t nNewSize)
 {
     if(nNewSize > m_LogBufSize){
         delete[] m_LogBuf;
-        m_LogBuf     = new char[nNewSize];
-        m_LogBufSize = nNewSize;
+        size_t nNewSize8 = ((nNewSize + 7) / 8) * 8;
+        m_LogBuf     = new char[nNewSize8];
+        m_LogBufSize = nNewSize8;
     }
 }
 
 void MonoServer::Log(int nLogType, const char *szFormat, ...)
 {
-    // TODO
-    // need to be thread safe
-    //
     extern MainWindow *g_MainWindow;
+
+    ExtendLogBuf(128);
+
     va_list ap;
 
-    va_start(ap, szFormat);
-    int nRes = vsnprintf(nullptr, 0, szFormat, ap);
-    va_end(ap);
+    int nMaxParseCount = 0;
 
-    if(nRes > 0){
-        ExtendLogBuf(nRes + 1);
-        va_list ap2;
-        va_start(ap2, szFormat);
-        vsnprintf(m_LogBuf, nRes, szFormat, ap2);
+    // actually it only needs 2 rounds at most
+    while(10 > nMaxParseCount++){
+
+        va_start(ap, szFormat);
+
+        int nRes = std::vsnprintf(m_LogBuf, m_LogBufSize, szFormat, ap);
+
         va_end(ap);
 
-        m_LogBuf[nRes] = '\0';
+        if(nRes > -1 && (size_t)nRes < m_LogBufSize){
+            // additional '\0' takes one char
+            // everything works
+            g_MainWindow->AddLog(nLogType, m_LogBuf);
+            return;
 
-        g_MainWindow->AddLog(nLogType, m_LogBuf);
-    }else if(nRes == 0){
-        g_MainWindow->AddLog(nLogType, "");
-    }else{
-        std::string szErrorInfo;
-        szErrorInfo  = "Error in log information parse!";
-        szErrorInfo += "(";
-        szErrorInfo += szFormat;
-        szErrorInfo += ", ";
-        szErrorInfo += std::to_string(nLogType);
-        szErrorInfo += ")";
+        }else if(nRes < 0){
+            // error occurs in parsing log
+            break;
 
-        g_MainWindow->AddLog(3, szErrorInfo.c_str());
+        }else{
+            // we need a larger buffer
+            ExtendLogBuf(nRes + 1);
+        }
     }
+
+    g_MainWindow->AddLog(3, "error in parsing log message");
 }
 
 void MonoServer::CreateDBConnection()
@@ -90,6 +93,14 @@ void MonoServer::Launch()
     CreateDBConnection();
 
     // all-set, start to accept connections from clients
+    extern ServerConfigureWindow *g_ServerConfigureWindow;
+    int nPort = g_ServerConfigureWindow->Port();
+
+    auto fnOperateHC = [this](uint8_t nMsgHC, Session *pSession){
+        OnReadHC(nMsgHC, pSession);
+    };
+
+    m_SessionIO = new SessionIO(nPort, fnOperateHC);
     m_SessionIO->Launch();
 }
 

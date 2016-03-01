@@ -11,7 +11,7 @@ class DatabaseConfigureWindow {open
   } {
     Fl_Window m_Window {
       label {Network Configure} open
-      xywh {506 179 495 295} type Double labelfont 4 modal visible
+      xywh {508 181 495 295} type Double labelfont 4 modal visible
     } {
       Fl_Input m_DatabaseIP {
         label {Database IP: }
@@ -35,15 +35,19 @@ class DatabaseConfigureWindow {open
       }
       Fl_Button {} {
         label OK
+        callback {{
+	m_Window->hide();
+}}
         xywh {350 235 100 25}
       }
     }
     code {{
 	m_DatabaseIP->value("127.0.0.1");
 	m_UserName->value("root");
-	m_Password->value("hah86918");
+	m_Password->value("123456");
 	m_DatabaseName->value("mir2x");
-}} {}
+}} {selected
+    }
   }
   Function {ShowAll()} {} {
     code {{
@@ -66,8 +70,7 @@ class DatabaseConfigureWindow {open
   } {
     code {{
 	return m_DatabaseName->value();
-}} {selected
-    }
+}} {}
   }
   Function {UserName()} {return_type {const char *}
   } {

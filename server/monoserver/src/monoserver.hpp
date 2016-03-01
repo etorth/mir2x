@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 03/01/2016 01:38:34
+ *  Last Modified: 03/01/2016 03:20:31
  *
  *    Description: 
  *
@@ -50,12 +50,12 @@ class MonoServer final
         void Log(int, const char *, ...);
 
     private:
-        void ExtendLogBuf(int);
+        void ExtendLogBuf(size_t);
 
     private:
         // for log
         char    *m_LogBuf;
-        int      m_LogBufSize;
+        size_t   m_LogBufSize;
 
     private:
         // for network

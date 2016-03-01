@@ -14,7 +14,7 @@ class ServerConfigureWindow {open
   } {
     Fl_Window m_Window {
       label ConfigureWindow open selected
-      xywh {84 204 575 305} type Double labelfont 4 modal visible
+      xywh {89 209 575 305} type Double labelfont 4 modal visible
     } {
       Fl_Value_Input m_MaxPlayerCount {
         label {Maximal Player: }
@@ -81,15 +81,18 @@ class ServerConfigureWindow {open
 }}
         xywh {450 250 70 25}
       }
+      Fl_Value_Input m_Port {
+        label {Listen Port: }
+        xywh {171 248 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
+      }
     }
   }
-  Function {ShowAll()} {open
-  } {
+  Function {ShowAll()} {} {
     code {{
     m_Window->show();
 }} {}
   }
-  Function {MapFullName()} {open return_type {const char *}
+  Function {MapFullName()} {return_type {const char *}
   } {
     code {{
     // printf("%d\\n", std::lround(m_VIPort1->value()));
@@ -97,34 +100,40 @@ class ServerConfigureWindow {open
     return m_MapFullName->value();
 }} {}
   }
-  Function {MaxPlayerCount()} {open return_type int
+  Function {MaxPlayerCount()} {return_type int
   } {
     code {{
     return std::lround(m_MaxPlayerCount->value());
 }} {}
   }
-  Function {ExpRate()} {open return_type double
+  Function {ExpRate()} {return_type double
   } {
     code {{
     return (std::max)(0.00, (double)(m_ExpRate->value()));
 }} {}
   }
-  Function {EquipRate()} {open return_type double
+  Function {EquipRate()} {return_type double
   } {
     code {{
     return (std::max)(0.00, (double)(m_EquipRate->value()));
 }} {}
   }
-  Function {GoldRate()} {open return_type double
+  Function {GoldRate()} {return_type double
   } {
     code {{
     return (std::max)(0.00, (double)(m_GoldRate->value()));
 }} {}
   }
-  Function {MaxMonsterCount()} {open return_type int
+  Function {MaxMonsterCount()} {return_type int
   } {
     code {{
     return std::lround(m_MaxMonsterCount->value());
+}} {}
+  }
+  Function {Port()} {return_type int
+  } {
+    code {{
+    return std::lround(m_Port->value());
 }} {}
   }
 } 
