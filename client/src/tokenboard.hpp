@@ -74,7 +74,9 @@ class TokenBoard
     private:
         int  TokenBoxType(const TOKENBOX &);
     public:
-        bool Load(const tinyxml2::XMLDocument &);
+        // load the content and it's callback table
+        bool Load(const tinyxml2::XMLDocument &,
+                std::unordered_map<std::string, std::function<void()>);
 
     private:
         bool ParseXMLContent(const tinyxml2::XMLElement *);
