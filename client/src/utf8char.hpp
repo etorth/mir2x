@@ -3,7 +3,7 @@
  *
  *       Filename: utf8char.hpp
  *        Created: 7/3/2015 2:05:13 PM
- *  Last Modified: 08/20/2015 10:13:22 PM
+ *  Last Modified: 03/02/2016 00:36:12
  *
  *    Description: 
  *
@@ -33,7 +33,7 @@
 //  1-bits: italic
 
 struct{
-    uint32_t UTF8Code;   // max length of UTF-8 is 4-byte by RFC-3629
+    uint32_t UTF8Code;  // max length of UTF-8 is 4-byte by RFC-3629
     uint8_t  FontIndex; // Font file index, support 0 ~ 7
     uint8_t  FontSize;  // Font size, support 0 ~ 128
     uint8_t  R;         // R for 0 ~ 64, use only 6-bits

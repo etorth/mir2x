@@ -1,8 +1,9 @@
 #pragma once
 
-#include <SDL.h>
 #include <vector>
 #include <string>
+#include <SDL2/SDL.h>
+
 #include "widget.hpp"
 #include "tokenbox.hpp"
 

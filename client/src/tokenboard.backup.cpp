@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 6/17/2015 10:24:27 PM
- *  Last Modified: 03/02/2016 03:15:01
+ *  Last Modified: 03/02/2016 01:17:08
  *
  *    Description: 
  *
@@ -100,7 +100,7 @@ bool TokenBoard::ParseXMLContent(const tinyxml2::XMLElement *pFirstObject)
     }
 
     if(m_HasEventText){
-        MakeEventTextBitmap();
+		MakeEventTextBitmap();
     }
 
     return true;
@@ -955,140 +955,15 @@ bool TokenBoard::AddNewTokenBox(TOKENBOX &stTokenBox, int nMaxWidth)
     return true;
 }
 
-// ---------------here--------03/02-------
-bool TokenBoard::ProcessEvent(int nFrameStartX, int nFrameStartY, const SDL_Event &rstEvent)
+
+
+bool TokenBoard::IntervalOverlapped(int startX1, int endX1, int startX2, int endX2)
 {
-    if(m_SkipEvent){
-        return false;
-    }
+    return !(endX1 < startX2 || endX2 < startX1);
+}
 
-    // field ``Event" is only for rendering 0/1/2
-    // need more information for checking clicks
-    //
-    bool bClickUp = false;
-
-    int nEventType, nEventX, nEventY, nEventDX, nEventDY;
-
-    switch(rstEvent.type){
-        case SDL_MOUSEBUTTONUP:
-            nEventType = 1;
-            nEventX    = rstEvent.button.x;
-            nEventY    = rstEvent.button.y;
-            bClickUp   = true;
-            break;
-        case SDL_MOUSEBUTTONDOWN:
-            nEventType = 2;
-            nEventX    = rstEvent.button.x;
-            nEventY    = rstEvent.button.y;
-            break;
-        case SDL_MOUSEMOTION:
-            nEventType = 1;
-            nEventX    = rstEvent.motion.x;
-            nEventY    = rstEvent.motion.y;
-            break;
-        default:
-            return false;
-    }
-
-    nEventDX = nEventX - nFrameStartX;
-    nEventDY = nEventY - nFrameStartY;
-
-    // use the cached hot spot data for text box
-    // first check last token box
-    //
-    if(m_LastTokenBox){
-        // 
-        // W1 and W2 should also count in
-        // otherwise mouse can escape from the flaw of two contiguous tokens
-        // means when move mouse horizontally, event text will turn on and off
-        //
-        int nX = m_LastTokenBox->Cache.StartX - m_LastTokenBox->State.W1;
-        int nY = m_LastTokenBox->Cache.StartY;
-        int nW = m_LastTokenBox->Cache.W;
-        int nH = m_LastTokenBox->Cache.H;
-
-        if(PointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
-            // 
-            // save the old state for callback function
-            int nOldEvent = m_SectionV[m_LastTokenBox->Section].State.Text.Event;
-            //
-            // set as current event type
-            m_SectionV[m_LastTokenBox->Section].State.Text.Event = nEventType;
-
-            // previous state is ``pressed" and now is ``releasing"
-            if(nOldEvent == 2 && bClickUp){
-                auto &rstLabel = m_SectionV[m_LastTokenBox->Section].State.Text.EventLabel;
-                // this will be slow since the key is string
-                // I need more experiments to decide whether to improve it or not
-                if(!rstLabel.empty() && m_Callback.find(rstLabel) != m_Callback.end()){
-                    m_Callback[rstLable]();
-                }
-            }
-            // done, captured event
-            return true;
-        }else{
-            // set as ``out"
-            m_SectionV[m_LastTokenBox->Section].State.Text.Event = 0;
-        }
-    }
-
-    // then try resolution grid directly
-    // here we don't need to try something like ``last resolution grid"
-    // since the are of the same expense
-    //
-    if(PointInRectangle(nEventX, nEventY, nFrameStartX, nFrameStartY, W(), H())){
-        int nGridX = nEventDX / m_Resolution;
-        int nGridY = nEventDY / m_Resolution;
-
-        // only put EventText Section in Bitmap
-        // emoticon won't accept events
-        //
-        for(auto &rstPair: m_TokenBoxBitmap[nGridX][nGridY]){
-            //
-            // for each possible tokenbox in the grid
-            //
-            // this is enough since cover of all tokenboxs in one gird
-            // is much larger than the grid itself
-            const auto &rstTokenBox = m_LineV[rstPair.first][rstPair.second];
-
-            int nStartX = rstTokenBox.Cache.StartX - rstTokenBox.State.W1;
-            int nStartY = rstTokenBox.Cache.StartY;
-            int nW      = rstTokenBox.Cache.W;
-            int nH      = rstTokenBox.Cache.H;
-
-            if (PointInRectangle(nEventX, nEventY, nStartX, nStartY, nW, nH)){
-                // save the old state
-                //
-                int nOldState = m_SectionV[rstTokenBox.Section].State.Text.Event;
-                //
-                // set event and last hot spot
-                m_SectionV[rstTokenBox.Section].State.Text.Event = nEventType;
-                m_LastTokenBox = &rstTokenBox;
-
-                // previous state is ``pressed" and now is ``releasing"
-                if(nOldEvent == 2 && bClickUp){
-                    auto &rstLabel = m_SectionV[m_LastTokenBox->Section].State.Text.EventLabel;
-                    // this will be slow since the key is string
-                    // I need more experiments to decide whether to improve it or not
-                    if(!rstLabel.empty() && m_Callback.find(rstLabel) != m_Callback.end()){
-                        m_Callback[rstLable]();
-                    }
-                }
-                // done, captured event
-                return true;
-            }
-        }
-        // in board but not in any section
-        // capture the event, but we need do nothing
-        return true;
-    }
-
-    // even not in board
-    // we don't need to set previous section by ``out" seperately
-    // since when examing ``m_LastTokenBox"
-    // we have already done for this setting
-    //
-    return false;
+void TokenBoard::AddEventHandler(const char *szSectionName, std::function<void()> fnHandler)
+{
 }
 
 bool TokenBoard::HandleEvent(int nFrameStartX, int nFrameStartY, const SDL_Event &stEvent)
@@ -1132,7 +1007,7 @@ bool TokenBoard::HandleEvent(int nFrameStartX, int nFrameStartY, const SDL_Event
         int nStartY = pLastTokenBox->Cache.StartY;
         int nW      = pLastTokenBox->Cache.W;
         int nH      = pLastTokenBox->Cache.H;
-        if(PointInRectangle(nEventDX, nEventDY, nStartX, nStartY, nW, nH)){
+        if(PointInRect(nEventDX, nEventDY, nStartX, nStartY, nW, nH)){
             m_SectionV[pLastTokenBox->Section].State.Text.Event = nEventType;
             return true;
         }else{
@@ -1140,7 +1015,7 @@ bool TokenBoard::HandleEvent(int nFrameStartX, int nFrameStartY, const SDL_Event
         }
     }
 
-    if(PointInRectangle(nEventX, nEventY, nFrameStartX, nFrameStartY, W(), H())){
+    if(PointInRect(nEventX, nEventY, nFrameStartX, nFrameStartY, W(), H())){
         int nGridX = nEventDX / m_Resolution;
         int nGridY = nEventDY / m_Resolution;
 
@@ -1152,7 +1027,7 @@ bool TokenBoard::HandleEvent(int nFrameStartX, int nFrameStartY, const SDL_Event
             int nW      = pTokenBox->Cache.W;
             int nH      = pTokenBox->Cache.H;
 
-            if (PointInRectangle(nEventX, nEventY, nStartX, nStartY, nW, nH)){
+            if (PointInRect(nEventX, nEventY, nStartX, nStartY, nW, nH)){
                 m_SectionV[pTokenBox->Section].State.Text.Event = nEventType;
                 pLastTokenBox = pTokenBox;
                 return true;
@@ -1166,94 +1041,47 @@ bool TokenBoard::HandleEvent(int nFrameStartX, int nFrameStartY, const SDL_Event
     return false;
 }
 
-int TokenBoard::TokenBoxType(int nX, int nY)
+int TokenBoard::TokenBoxType(const TOKENBOX &stTokenBox)
 {
-    return m_SectionV[m_LineV[nX][nY].Section].Info.Type;
+    return m_SectionV[stTokenBox.Section].Info.Type;
 }
 
 void TokenBoard::MakeEventTextBitmap()
 {
     // only make it for EventText since only it accepts event
-    //
-    // TODO
-    // maybe emoticons will also accept events
-    // but that introduces more issues
-    //    1. what to show the difference for press/release/out?
-    //    2. what frame index should be set when pressed?
-    //    3. ...
-    // this is too much, so just disable it in the design
-    //
+    int nW = W();
+    int nH = H();
 
-    int nGW = (W() + (m_Resolution - 1)) / m_Resolution;
-    int nGH = (H() + (m_Resolution - 1)) / m_Resolution;
+    int nBitmapRow = nW / m_Resolution + ((nW % m_Resolution) ? 1 : 0);
+    int nBitmapCol = nH / m_Resolution + ((nH % m_Resolution) ? 1 : 0);
 
-    // this should be easier to clarify
-    m_TokenBoxBitmap.resize(nGW);
-    for(int nGX = 0; nGX < nGW; ++nGX){
-        m_TokenBoxBitmap[nGX].resize(nGH, {});
-    }
+    m_TokenBoxBitmap = std::vector<std::vector<std::vector<const TOKENBOX *>>>(
+            nBitmapRow, std::vector<std::vector<const TOKENBOX *>>(nBitmapCol, {}));
 
-    for(int nX = 0; nX < m_TokenBoxBitmap.size(); ++nX){
-        for(int nY = 0; nY < m_TokenBoxBitmap[0].size(); ++nY){
-            if(TokenBoxType(nX, nY) == SECTIONTYPE_EVENTTEXT){
-                MarkEventTextBitmap(nX, nY);
+    for(auto &vTokenLine : m_LineV){
+        for(auto &stTokenBox : vTokenLine){
+            if(TokenBoxType(stTokenBox) == SECTIONTYPE_EVENTTEXT){
+                MarkEventTextBitmap(stTokenBox);
             }
         }
     }
 }
 
-int TokenBoard::GuessResoltion()
+void TokenBoard::MarkEventTextBitmap(TOKENBOX &stTokenBox)
 {
-    // TODO
-    // make this function more reasonable and functional
-    return 20;
-}
+    int nStartX = stTokenBox.Cache.StartX - stTokenBox.State.W1;
+    // int nStartY = stTokenBox.Cache.StartY - stTokenBox.Cache.H1;
+    int nStartY = stTokenBox.Cache.StartY;
+    int nW      = stTokenBox.Cache.W;
+    int nH      = stTokenBox.Cache.H;
 
-void TokenBoard::MarkEventTextBitmap(int nRow, int nIndex)
-{
-    // put the whole box (with the margin) to the bitmap
-    // not only the real box inside
-    //
-    // E : emoticon
-    // T : text
-    //
-    //              |<---Cache.W---->|
-    //              |                |
-    //    ---- ---- +---+--------+---+  <--- Cache.StartY
-    //     ^    ^   |   |        |   |
-    //     |    |   |   |        |   +---+-----+---+
-    //     |   H1   |   |        |   |   |     |   |
-    //     |    |   |   |   E    |   |   |  T  |   |
-    //     H    |   |   |        |   |   |     |   |
-    //     |   -x---+---+--------+---+---+-----+---+-             
-    //     |    |   |   |        |   |
-    //     |   H2   |   |        |   |
-    //     V    V   |   |        |   |
-    //    ---- -----+---+--------+---+
-    //              ^   ^
-    //              |   |
-    //              |   |
-    //              |   +--Cache.StartX
-    //              +------Cache.StartX - State.W1
-
-    auto &rstTokenBox = m_LineV[nRow][nIndex];
-
-    // get the whole box's (x, y, w, h), with the margin
-    int nX = rstTokenBox.Cache.StartX - rstTokenBox.State.W1;
-    int nY = rstTokenBox.Cache.StartY;
-    int nW = rstTokenBox.Cache.W;
-    int nH = rstTokenBox.Cache.H;
-
-    // map it to all the grid box
-    // maybe more than one
-    int nGX1 = nX / m_Resolution;
-    int nGY1 = nY / m_Resolution;
-    int nGX2 = (nX + nW) / m_Resolution;
-    int nGY2 = (nY + nH) / m_Resolution;
-
-    for(int nX = nGX1; nX <= nGX2; ++nX){
-        for(int nY = nGY1; nY <= nGY2; ++nY){
-            m_TokenBoxBitmap[nX][nY].emplace_back(nRow, nIndex);
+    int nStartGridX = nStartX / m_Resolution;
+    int nStartGridY = nStartY / m_Resolution;
+    int nEndGridX   = (nStartX + nW) / m_Resolution;
+    int nEndGridY   = (nStartY + nH) / m_Resolution;
+    for(int nX = nStartGridX; nX <= nEndGridX; ++nX){
+        for(int nY = nStartGridY; nY <= nEndGridY; ++nY){
+            m_TokenBoxBitmap[nX][nY].push_back(&stTokenBox);
         }
     }
 }

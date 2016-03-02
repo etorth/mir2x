@@ -1,6 +1,6 @@
 #pragma once
-#include <SDL.h>
-#include <SDL_ttf.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include "emoticon.hpp"
 #include <unordered_map>
 #include "utf8char.hpp"

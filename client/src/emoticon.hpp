@@ -1,5 +1,4 @@
 #pragma once
-#include <SDL.h>
 
 // How the frame will be shown
 // use EMOTICONTEXTUREINDICATOR and EMOTICONFRAMEINFO to show one frame
