@@ -3,7 +3,7 @@
  *
  *       Filename: tokenbox.hpp
  *        Created: 7/2/2015 3:31:13 PM
- *  Last Modified: 03/02/2016 01:02:31
+ *  Last Modified: 03/03/2016 00:55:36
  *
  *    Description: 
  *
@@ -57,7 +57,7 @@ typedef struct{
 }EMOTICONBOXCACHE;
 
 typedef struct{
-    uint64_t            TextureHC;
+    uint64_t    Key;
 }UTF8CHARBOXCACHE;
 
 typedef struct{

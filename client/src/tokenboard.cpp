@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 6/17/2015 10:24:27 PM
- *  Last Modified: 03/02/2016 03:15:01
+ *  Last Modified: 03/03/2016 04:04:40
  *
  *    Description: 
  *
@@ -35,12 +35,12 @@
 #include "misc.hpp"
 #include <functional>
 
-TokenBoard::TokenBoard(int nMaxWidth, bool bShrinkageWidth)
+TokenBoard::TokenBoard(int nMaxWidth, bool bWrap)
     : m_PW(nMaxWidth)
     , m_W(0)
     , m_H(0)
     , m_Resolution(20)
-    , m_ShrinkageWidth(bShrinkageWidth)
+    , m_Wrap(bWrap)
     , m_CurrentWidth(0)
     , m_HasEventText(false)
 {
@@ -400,16 +400,32 @@ void TokenBoard::ParseTextContentSection(const tinyxml2::XMLElement *pCurrentObj
     while(*pend != '\0'){
         pstart = pend;
         utf8::unchecked::advance(pend, 1);
-        std::memset(stTokenBox.UTF8CharBox.Data, 0, 8);
-        if(pend - pstart == 1 && (*pstart == '\n' || *pstart == '\t' || *pstart == '\r')){
-            // continue;
-            stTokenBox.UTF8CharBox.Data[0] = ' ';
-        }else{
-            std::memcpy(stTokenBox.UTF8CharBox.Data, pstart, pend - pstart);
-        }
-        LoadUTF8CharBoxCache(stTokenBox, 0);
-		stTokenBox.UTF8CharBox.Cache.Texture[1] = nullptr;
-		stTokenBox.UTF8CharBox.Cache.Texture[2] = nullptr;
+        char *pData = &(stTokenBox.UTF8CharBox.Data);
+
+        std::memset(pData, 0, sizeof(stTokenBox.UTF8CharBox.Data));
+
+        // TODO
+        // I guess when '\n', '\t', '\r' is passed
+        // retrieving will fail
+
+
+        // if(pend - pstart == 1 && (*pstart == '\n' || *pstart == '\t' || *pstart == '\r')){
+        //     // continue;
+        //     pData[0] = ' ';
+        // }else{
+        //     std::memcpy(stTokenBox.UTF8CharBox.Data, pstart, pend - pstart);
+        // }
+     
+        // Set the data
+        std::memcpy(pData, pstart, pend - pstart);
+
+        // Set cache key
+        stTokenBox.UTF8CharBox.Cache.Key = (uint64_t)(stTokenBox.UTF8CharBox.Data)
+            + ((uint64_t)m_SectionV[nSection].Info.Text.FileIndex) << (16 + 32)
+            + ((uint64_t)m_SectionV[nSection].Info.Text.Size)      << ( 8 + 32)
+            + ((uint64_t)m_SectionV[nSection].Info.Text.Style)     << ( 0 + 32);
+
+        LoadUTF8CharBoxSizeCache(stTokenBox, fnQueryTokenBoxInfo);
         AddNewTokenBox(stTokenBox, m_PW);
     }
 }
@@ -448,8 +464,8 @@ void TokenBoard::ParseEmoticonObjectAttribute(const tinyxml2::XMLElement *pCurre
 
     m_CurrentSection.Info.Emoticon.FPS = GetEmoticonManager()->RetrieveEmoticonInfo(
             m_CurrentSection.Info.Emoticon.Set, m_CurrentSection.Info.Emoticon.Index).FPS;
-	m_CurrentSection.Info.Emoticon.FrameCount = GetEmoticonManager()->RetrieveEmoticonFrameCount(
-		m_CurrentSection.Info.Emoticon.Set, m_CurrentSection.Info.Emoticon.Index);
+    m_CurrentSection.Info.Emoticon.FrameCount = GetEmoticonManager()->RetrieveEmoticonFrameCount(
+            m_CurrentSection.Info.Emoticon.Set, m_CurrentSection.Info.Emoticon.Index);
 
     m_SectionV.push_back(m_CurrentSection);
 }
@@ -459,7 +475,7 @@ bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement *pCurrentObject,
     ParseEmoticonObjectAttribute(pCurrentObject, nSection);
     TOKENBOX stTokenBox;
     stTokenBox.Section = nSection;
-	LoadEmoticonCache(stTokenBox, 0);
+    LoadEmoticonCache(stTokenBox, 0);
     AddNewTokenBox(stTokenBox, m_PW);
     return true;
 }
@@ -676,17 +692,14 @@ bool TokenBoard::Add(TOKENBOX &stTokenBox, int nMaxWidth)
     //           |          |               | H2
     //           +----------+             -----
     //                             
-    //
 
-    // here we use switch, kind of slow but ok
-    // since it's only for loading
-    // we only need to make as efficient as possible when updating and blitting
-
-    if(m_CurrentWidth + stTokenBox.Cache.W >= nMaxWidth){
+    if(m_Wrap && m_CurrentWidth + stTokenBox.Cache.W >= nMaxWidth){
+        // when wrapping, width control is enabled
         return false;
     }else{
         stTokenBox.State.W1 = 0;
         stTokenBox.State.W2 = 0;
+        // here it's copy
         m_CurrentLine.push_back(stTokenBox);
         m_CurrentWidth    += stTokenBox.Cache.W;
         m_CurrentLineMaxH2 = (std::max)(m_CurrentLineMaxH2, stTokenBox.Cache.H2);
@@ -726,7 +739,7 @@ int TokenBoard::GetNthLineIntervalMaxH2(int nthLine, int nIntervalStartX, int nI
     //  keep this as it is, and update it later
 
     int   nMaxH2    = -1;
-	int   nCurrentX =  0;
+    int   nCurrentX =  0;
 
     for(auto &stTokenBox: m_LineV[nthLine]){
         int nW  = stTokenBox.Cache.W;
@@ -799,163 +812,221 @@ int TokenBoard::GetNthNewLineStartY(int nthLine)
 
 void TokenBoard::LoadEmoticonCache(TOKENBOX &stTokenBox, int nFrameIndex)
 {
-	int nSet   = m_SectionV[stTokenBox.Section].Info.Emoticon.Set;
-	int nIndex = m_SectionV[stTokenBox.Section].Info.Emoticon.Index;
+    int nSet   = m_SectionV[stTokenBox.Section].Info.Emoticon.Set;
+    int nIndex = m_SectionV[stTokenBox.Section].Info.Emoticon.Index;
 
     stTokenBox.EmoticonBox.Cache.FrameIndex = 0;
     stTokenBox.EmoticonBox.Cache.FrameInfo  = GetEmoticonManager()->RetrieveEmoticonFrameInfo(nSet, nIndex, nFrameIndex);
-	stTokenBox.EmoticonBox.Cache.Texture    = GetEmoticonManager()->RetrieveTexture(nSet, nIndex, nFrameIndex);
+    stTokenBox.EmoticonBox.Cache.Texture    = GetEmoticonManager()->RetrieveTexture(nSet, nIndex, nFrameIndex);
 
-	stTokenBox.Cache.W  = GetEmoticonManager()->RetrieveEmoticonInfo(nSet, nIndex).W;
-	stTokenBox.Cache.H  = GetEmoticonManager()->RetrieveEmoticonInfo(nSet, nIndex).H;
-	stTokenBox.Cache.H1 = GetEmoticonManager()->RetrieveEmoticonInfo(nSet, nIndex).H1;
-	stTokenBox.Cache.H2 = GetEmoticonManager()->RetrieveEmoticonInfo(nSet, nIndex).H2;
+    stTokenBox.Cache.W  = GetEmoticonManager()->RetrieveEmoticonInfo(nSet, nIndex).W;
+    stTokenBox.Cache.H  = GetEmoticonManager()->RetrieveEmoticonInfo(nSet, nIndex).H;
+    stTokenBox.Cache.H1 = GetEmoticonManager()->RetrieveEmoticonInfo(nSet, nIndex).H1;
+    stTokenBox.Cache.H2 = GetEmoticonManager()->RetrieveEmoticonInfo(nSet, nIndex).H2;
 }
 
-void TokenBoard::LoadUTF8CharBoxCache(TOKENBOX &stTokenBox, int nIndex)
+// this function set the Cache.{W, H, H1, H2} with FontexDB's assistence
+// it won't set Cache.{StartX, StartY}
+//
+// isolate it from any SDL interface:
+//
+// 1. external functions won't see SECTIONTYPE_XXXX
+// 2. internal functions won't see SDL_XXXX
+void TokenBoard::LoadUTF8CharBoxSizeCache(TOKENBOX &rstTokenBox,
+        std::function<void(bool, uint64_t, int &, int &, int &, int &)> fnQueryTokenBoxInfo)
 {
-    UTF8CHARTEXTUREINDICATOR stIndicator;
-    stIndicator.FontInfo = m_SectionV[stTokenBox.Section].Info.Text.FontInfo;
-    stIndicator.Color    = m_SectionV[stTokenBox.Section].Info.Text.Color[nIndex % 3];
-    std::memcpy(stIndicator.Data, stTokenBox.UTF8CharBox.Data, 8);
-
-    stTokenBox.UTF8CharBox.Cache.Texture[nIndex % 3] = GetFontTextureManager()->RetrieveTexture(stIndicator);
-    SDL_QueryTexture(stTokenBox.UTF8CharBox.Cache.Texture[nIndex % 3],
-            nullptr, nullptr, &(stTokenBox.Cache.W), &(stTokenBox.Cache.H));
-
-    // don't set StartX/StartY here
-    // since this function may be invoked 3 times
-	stTokenBox.Cache.H1 = stTokenBox.Cache.H;
-	stTokenBox.Cache.H2 = 0;
+    fnQueryFontexInfo(true,
+            rstTokenBox.UTF8CharBox.Cache.Key,
+            stTokenBox.Cache.W, stTokenBox.Cache.H,
+            stTokenBox.Cache.H1, stTokenBox.Cache.H2);
 }
 
 // everything dynamic and can be retrieve is in Cache
 //            dynamic but can not be retrieved is in State
 //            static is in Info
-void TokenBoard::Draw(int nBoardStartX, int nBoardStartY)
+void TokenBoard::Draw(int nBoardStartX, int nBoardStartY, std::function<void(uint64_t, int, int)> fnDraw)
 {
+    // we assume all token box are well-prepared here!
+    // means cache, state, info are all valid now when invoke this function
+    //
     for(int nLine = 0; nLine < m_LineV.size(); ++nLine){
-        for(auto &stTokenBox: m_LineV[nLine]){
-            switch(m_SectionV[stTokenBox.Section].Info.Type){
-                case SECTIONTYPE_TEXT:
+        for(auto &rstTokenBox: m_LineV[nLine]){
+
+            switch(m_SectionV[rstTokenBox.Section].Info.Type){
                 case SECTIONTYPE_EVENTTEXT:
                     {
-                        int nEvent = m_SectionV[stTokenBox.Section].State.Text.Event;
-                        if(stTokenBox.UTF8CharBox.Cache.Texture[nEvent] == nullptr){
-                            LoadUTF8CharBoxCache(stTokenBox, nEvent);
-                        }
-                        SDL_Rect stDstRect = {
-                            nBoardStartX + stTokenBox.Cache.StartX,
-                            nBoardStartY + stTokenBox.Cache.StartY,
-                            stTokenBox.Cache.W,
-                            stTokenBox.Cache.H
-                        };
-                        SDL_RenderCopy(
-                                GetDeviceManager()->GetRenderer(),
-                                stTokenBox.UTF8CharBox.Cache.Texture[nEvent],
-                                nullptr, &stDstRect);
+                        // I had a hard time here
+                        //
+                        // TODO
+                        //
+                        // the purpose of introducing FontexDB is for saving video memory
+                        // not to support hot source data switch!
+                        //
+                        // assumptions:
+                        //  1. if a fontex can't be retrieved, it can never be retrieved
+                        //     that's to say, the data source is fixed
+                        //
+                        //  2. if a fontex can be retrieved, then it can be retrieved everytime
+                        //     the fontex release and restore are transparant to token board
+                        //
+                        //  3. if a token box cache is invalid, we need to set it at place
+                        //     but if it's valid, it always matches the data
+                        //
+                        //     that to say, the cache data set by fontex are always the same
+                        //     we can't steal the data source and replace by a new one at runtime
+                        //
 
-						DrawRectLine(stDstRect);
-                        break;
-                    }
-                case SECTIONTYPE_EMOTICON:
-                    {
-                        int nFrameIndex = m_SectionV[stTokenBox.Section].State.Emoticon.FrameIndex;
-                        if(nFrameIndex != stTokenBox.EmoticonBox.Cache.FrameIndex){
-                            LoadEmoticonCache(stTokenBox, nFrameIndex);
-                        }
-                        int nSrcStartX = stTokenBox.EmoticonBox.Cache.FrameInfo.X;
-                        int nSrcStartY = stTokenBox.EmoticonBox.Cache.FrameInfo.Y;
-                        int nSrcW      = stTokenBox.EmoticonBox.Cache.FrameInfo.W;
-                        int nSrcH      = stTokenBox.EmoticonBox.Cache.FrameInfo.H;
-                        int nDstStartX = stTokenBox.Cache.StartX + stTokenBox.EmoticonBox.Cache.FrameInfo.DX;
-                        int nDstStartY = stTokenBox.Cache.StartY + stTokenBox.EmoticonBox.Cache.FrameInfo.DY;
-                        SDL_Rect stSrcRect = {nSrcStartX, nSrcStartY, nSrcW, nSrcH};
-                        SDL_Rect stDstRect = {
-                            nDstStartX + nBoardStartX,
-                            nDstStartY + nBoardStartY,
-                            nSrcW,
-                            nSrcH
-                        };
+                        DrawUTF8CharBox(rstTokenBox, rstFontexDB);
 
-                        SDL_RenderCopy(
-                                GetDeviceManager()->GetRenderer(),
-                                stTokenBox.EmoticonBox.Cache.Texture,
-                                &stSrcRect, &stDstRect);
-						DrawRectLine(stDstRect);
-                        break;
+                        auto p = rstFontexDB.Retrieve(rstTokenBox.UTF8CharBox.Cache.Key);
+
+                        if(p && rstFontexDB.UTF8CharBox.Cache.Valid == false){
+                            LoadUTF8CharBoxCache(p, rstTokenBox);
+                        }
+
+                        DrawUTF8CharBox(p, rstTokenBox);
+                        // setup the cache
+                        SDL_QueryTexture(p, nullptr, nullptr,
+                                &(rstTokenBox.Cache.W), &(rstTokenBox.Cache.H));
+
+                        // don't set StartX/StartY here
+                        // since this function may be invoked 3 times
+                        stTokenBox.Cache.H1 = stTokenBox.Cache.H;
+                        stTokenBox.Cache.H2 = 0;
                     }
-                default:
+
+
+
+                    auto pBox = &rstTokenBox.UTF8CharBox;
+                    auto pTex = rstFontexDB.Retrieve(pBox->Cache.Key);
+                    if(pTex == nullptr){
+                        // failed...
+                        pBox = &m_FailedUTF8CharBox.UTF8CharBox;
+                        pTex = rstFontexDB.Retrieve(pBox->Cache.Key);
+                    }
+
+                    if(pTex == nullptr){
+                        // we give up...
+                        return;
+                    }
+
+
+                    if(p){
+                        // successfully find it!
+                        if(!rstTokenBox.Cache.Valid){
+
+                        }
+                        SDL_QueryTexture(p, nullptr, nullptr,
+                                &(rstTokenBox.Cache.W), &(rstTokenBox.Cache.H));
+
+                        // don't set StartX/StartY here
+                        // since this function may be invoked 3 times
+                        stTokenBox.Cache.H1 = stTokenBox.Cache.H;
+                        stTokenBox.Cache.H2 = 0;
+
+                    }
+                    int nEvent = m_SectionV[rstTokenBox.Section].State.Text.Event;
+                    int nEvent = m_SectionV[rstTokenBox.Section].State.Text.Event;
+                    if(rstTokenBox.UTF8CharBox.Cache.Texture[nEvent] == nullptr){
+                        LoadUTF8CharBoxCache(rstTokenBox, nEvent);
+                    }
+                    SDL_Rect stDstRect = {
+                        nBoardStartX + rstTokenBox.Cache.StartX,
+                        nBoardStartY + rstTokenBox.Cache.StartY,
+                        rstTokenBox.Cache.W,
+                        rstTokenBox.Cache.H
+                    };
+                    SDL_RenderCopy(
+                            GetDeviceManager()->GetRenderer(),
+                            rstTokenBox.UTF8CharBox.Cache.Texture[nEvent],
+                            nullptr, &stDstRect);
+
+                    DrawRectLine(stDstRect);
                     break;
             }
+            case SECTIONTYPE_EMOTICON:
+            {
+                int nFrameIndex = m_SectionV[rstTokenBox.Section].State.Emoticon.FrameIndex;
+                if(nFrameIndex != rstTokenBox.EmoticonBox.Cache.FrameIndex){
+                    LoadEmoticonCache(rstTokenBox, nFrameIndex);
+                }
+                int nSrcStartX = rstTokenBox.EmoticonBox.Cache.FrameInfo.X;
+                int nSrcStartY = rstTokenBox.EmoticonBox.Cache.FrameInfo.Y;
+                int nSrcW      = rstTokenBox.EmoticonBox.Cache.FrameInfo.W;
+                int nSrcH      = rstTokenBox.EmoticonBox.Cache.FrameInfo.H;
+                int nDstStartX = rstTokenBox.Cache.StartX + rstTokenBox.EmoticonBox.Cache.FrameInfo.DX;
+                int nDstStartY = rstTokenBox.Cache.StartY + rstTokenBox.EmoticonBox.Cache.FrameInfo.DY;
+                SDL_Rect stSrcRect = {nSrcStartX, nSrcStartY, nSrcW, nSrcH};
+                SDL_Rect stDstRect = {
+                    nDstStartX + nBoardStartX,
+                    nDstStartY + nBoardStartY,
+                    nSrcW,
+                    nSrcH
+                };
+
+                SDL_RenderCopy(
+                        GetDeviceManager()->GetRenderer(),
+                        rstTokenBox.EmoticonBox.Cache.Texture,
+                        &stSrcRect, &stDstRect);
+                DrawRectLine(stDstRect);
+                break;
+            }
+            default:
+            break;
         }
     }
 }
-
-void TokenBoard::DrawRectLine(const SDL_Rect & stRect)
-{
-    return;
-    // for debug
-    SDL_SetRenderDrawColor(
-            GetDeviceManager()->GetRenderer(), 255, 0, 0, 128);
-    SDL_RenderDrawLine(
-            GetDeviceManager()->GetRenderer(),
-            stRect.x, stRect.y, stRect.x + stRect.w, stRect.y);
-    SDL_RenderDrawLine(
-            GetDeviceManager()->GetRenderer(),
-            stRect.x, stRect.y, stRect.x, stRect.y + stRect.h);
-    SDL_RenderDrawLine(
-            GetDeviceManager()->GetRenderer(),
-            stRect.x + stRect.w, stRect.y, stRect.x + stRect.w, stRect.y + stRect.h);
-    SDL_RenderDrawLine(
-            GetDeviceManager()->GetRenderer(),
-            stRect.x, stRect.y + stRect.h, stRect.x + stRect.w, stRect.y + stRect.h);
-    SDL_SetRenderDrawColor(
-            GetDeviceManager()->GetRenderer(), 0, 0, 0, 128);
 }
 
 void TokenBoard::AddNewTokenBoxLine(bool bEndByReturn)
 {
-    if(!bEndByReturn){
+    if(m_Wrap && bEndByReturn == false){
         SpacePadding(m_PW);
     }
 
+    // set X cache
     SetTokenBoxStartX(m_CurrentLine);
+
     // always align lines to left
     // otherwise we need m_LineStartX
     // but GetNthNewLineStartY() need TOKENBOX::Cache.StartX
     // kind of inconsistent
 
     m_LineStartY.push_back(GetNthNewLineStartY(m_LineV.size()));
+
+    // set Y cache
     SetTokenBoxStartY(m_CurrentLine, m_LineStartY.back());
+
     m_LineV.emplace_back(std::move(m_CurrentLine));
 
+    // for wrap or not
     m_W = (std::max)(m_W, m_CurrentWidth);
     m_H = m_LineStartY.back() + m_CurrentLineMaxH2 + 1;
+
+    // this is a must for AddNewTokenBox() to end the recursion
     ResetCurrentLine();
 }
 
-
-bool TokenBoard::AddNewTokenBox(TOKENBOX &stTokenBox, int nMaxWidth)
-    // bool TokenBoard::AddNewTokenBox(const TOKENBOX &stTokenBox, int nMaxWidth)
+bool TokenBoard::AddNewTokenBox(TOKENBOX &rstTokenBox, int nMaxWidth)
 {
-    if (!Add(stTokenBox, nMaxWidth)){
-        if (!m_CurrentLine.empty()){
-            AddNewTokenBoxLine(false);
-            // TODO: here we assume when current line is empty
-            // we can always insert a new token box successfully
-            // but when the width is toooooooo small this may fail
-            return Add(stTokenBox, nMaxWidth);
-        }
-        else{
-            SDL_Log("Token is too large or line width is too small!");
+    if(Add(rstTokenBox, nMaxWidth)){
+        return true;
+    }else{
+        // try to add but failed
+        if(m_CurrentLine.empty()){
+            // allowed width is tooo small
+            // won't fix it, just fail and leave
             return false;
+        }else{
+            // 1. insert a finished line
+            // 2. recursively call itself to add the token again
+            AddNewTokenBoxLine(false);
+            // the depth of recursion at most is 2
+            return AddNewTokenBox(rstTokenBox, nMaxWidth);
         }
     }
-    return true;
 }
 
-// ---------------here--------03/02-------
 bool TokenBoard::ProcessEvent(int nFrameStartX, int nFrameStartY, const SDL_Event &rstEvent)
 {
     if(m_SkipEvent){
@@ -1017,7 +1088,7 @@ bool TokenBoard::ProcessEvent(int nFrameStartX, int nFrameStartY, const SDL_Even
 
             // previous state is ``pressed" and now is ``releasing"
             if(nOldEvent == 2 && bClickUp){
-                auto &rstLabel = m_SectionV[m_LastTokenBox->Section].State.Text.EventLabel;
+                auto &rstLabel = m_SectionV[m_LastTokenBox->Section].State.Text.ID;
                 // this will be slow since the key is string
                 // I need more experiments to decide whether to improve it or not
                 if(!rstLabel.empty() && m_Callback.find(rstLabel) != m_Callback.end()){
@@ -1067,7 +1138,7 @@ bool TokenBoard::ProcessEvent(int nFrameStartX, int nFrameStartY, const SDL_Even
 
                 // previous state is ``pressed" and now is ``releasing"
                 if(nOldEvent == 2 && bClickUp){
-                    auto &rstLabel = m_SectionV[m_LastTokenBox->Section].State.Text.EventLabel;
+                    auto &rstLabel = m_SectionV[m_LastTokenBox->Section].State.Text.ID;
                     // this will be slow since the key is string
                     // I need more experiments to decide whether to improve it or not
                     if(!rstLabel.empty() && m_Callback.find(rstLabel) != m_Callback.end()){
@@ -1091,84 +1162,9 @@ bool TokenBoard::ProcessEvent(int nFrameStartX, int nFrameStartY, const SDL_Even
     return false;
 }
 
-bool TokenBoard::HandleEvent(int nFrameStartX, int nFrameStartY, const SDL_Event &stEvent)
+int TokenBoard::TokenBoxType(const TOKENBOX &rstTokenBox)
 {
-    if(!m_HasEventText){
-        return false;
-    }
-
-    int nEventType, nEventX, nEventY, nEventDX, nEventDY;
-    switch(stEvent.type){
-        case SDL_MOUSEBUTTONUP:
-            nEventType = 1;
-            nEventX    = stEvent.button.x;
-            nEventY    = stEvent.button.y;
-            break;
-        case SDL_MOUSEBUTTONDOWN:
-            nEventType = 2;
-            nEventX    = stEvent.button.x;
-            nEventY    = stEvent.button.y;
-            break;
-        case SDL_MOUSEMOTION:
-            nEventType = 1;
-            nEventX    = stEvent.motion.x;
-            nEventY    = stEvent.motion.y;
-            break;
-        default:
-            return false;
-    }
-
-    nEventDX = nEventX - nFrameStartX;
-    nEventDY = nEventY - nFrameStartY;
-
-    // pLastTokenBox only store EventText
-    static const TOKENBOX *pLastTokenBox = nullptr;
-    if(pLastTokenBox){
-        // W1 and W2 should also count in
-        // otherwise mouse can escape from the flaw of two contiguous tokens
-        // means when move mouse horizontally, event text will turn on and off
-        int nStartX = pLastTokenBox->Cache.StartX - pLastTokenBox->State.W1;
-        // int nStartY = pLastTokenBox->Cache.StartY - pLastTokenBox->Cache.H1;
-        int nStartY = pLastTokenBox->Cache.StartY;
-        int nW      = pLastTokenBox->Cache.W;
-        int nH      = pLastTokenBox->Cache.H;
-        if(PointInRectangle(nEventDX, nEventDY, nStartX, nStartY, nW, nH)){
-            m_SectionV[pLastTokenBox->Section].State.Text.Event = nEventType;
-            return true;
-        }else{
-            m_SectionV[pLastTokenBox->Section].State.Text.Event = 0;
-        }
-    }
-
-    if(PointInRectangle(nEventX, nEventY, nFrameStartX, nFrameStartY, W(), H())){
-        int nGridX = nEventDX / m_Resolution;
-        int nGridY = nEventDY / m_Resolution;
-
-        // only put EventText Section in Bitmap
-        for(auto pTokenBox: m_TokenBoxBitmap[nGridX][nGridY]){
-            int nStartX = pTokenBox->Cache.StartX - pTokenBox->State.W1;
-            // int nStartY = pTokenBox->Cache.StartY - pTokenBox->Cache.H1;
-            int nStartY = pTokenBox->Cache.StartY;
-            int nW      = pTokenBox->Cache.W;
-            int nH      = pTokenBox->Cache.H;
-
-            if (PointInRectangle(nEventX, nEventY, nStartX, nStartY, nW, nH)){
-                m_SectionV[pTokenBox->Section].State.Text.Event = nEventType;
-                pLastTokenBox = pTokenBox;
-                return true;
-            }
-        }
-        // in board but not in any section
-        return true;
-    }
-
-    // even not in board
-    return false;
-}
-
-int TokenBoard::TokenBoxType(int nX, int nY)
-{
-    return m_SectionV[m_LineV[nX][nY].Section].Info.Type;
+    return m_SectionV[rstTokenBox.Section].Info.Type;
 }
 
 void TokenBoard::MakeEventTextBitmap()
@@ -1202,14 +1198,7 @@ void TokenBoard::MakeEventTextBitmap()
     }
 }
 
-int TokenBoard::GuessResoltion()
-{
-    // TODO
-    // make this function more reasonable and functional
-    return 20;
-}
-
-void TokenBoard::MarkEventTextBitmap(int nRow, int nIndex)
+void TokenBoard::MarkEventTextBitmap(const TOKENBOX &rstTokenBox)
 {
     // put the whole box (with the margin) to the bitmap
     // not only the real box inside
@@ -1236,9 +1225,8 @@ void TokenBoard::MarkEventTextBitmap(int nRow, int nIndex)
     //              |   +--Cache.StartX
     //              +------Cache.StartX - State.W1
 
-    auto &rstTokenBox = m_LineV[nRow][nIndex];
-
     // get the whole box's (x, y, w, h), with the margin
+    //
     int nX = rstTokenBox.Cache.StartX - rstTokenBox.State.W1;
     int nY = rstTokenBox.Cache.StartY;
     int nW = rstTokenBox.Cache.W;
@@ -1253,7 +1241,33 @@ void TokenBoard::MarkEventTextBitmap(int nRow, int nIndex)
 
     for(int nX = nGX1; nX <= nGX2; ++nX){
         for(int nY = nGY1; nY <= nGY2; ++nY){
-            m_TokenBoxBitmap[nX][nY].emplace_back(nRow, nIndex);
+            m_TokenBoxBitmap[nX][nY].emplace_back(&rstTokenBox);
         }
+    }
+}
+
+int TokenBoard::GuessResoltion()
+{
+    // TODO
+    // make this function more reasonable and functional
+    return 20;
+}
+
+void TokenBoard::DrawUTF8CharBox(const TOKENBOX &rstTokenBox, FontexDB &rstFontexDB)
+{
+    if(rstTokenBox.UTF8CharBox.Cache.Valid == 1){
+        // good this time it's valid and well prepared
+        SDL_Rect stDstRect = {
+            nBoardStartX + rstTokenBox.Cache.StartX,
+            nBoardStartY + rstTokenBox.Cache.StartY,
+            stTokenBox.Cache.W,
+            stTokenBox.Cache.H
+        };
+        SDL_RenderCopy(
+                GetDeviceManager()->GetRenderer(),
+                stTokenBox.UTF8CharBox.Cache.Texture[nEvent],
+                nullptr, &stDstRect);
+
+        DrawRectLine(stDstRect);
     }
 }

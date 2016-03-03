@@ -3,7 +3,7 @@
  *
  *       Filename: section.hpp
  *        Created: 8/18/2015 6:56:11 PM
- *  Last Modified: 03/02/2016 00:58:43
+ *  Last Modified: 03/03/2016 03:37:00
  *
  *    Description: 
  *
@@ -40,8 +40,10 @@ typedef struct{
 
 typedef struct{
     int                     Type;
-    FONTINFO                FontInfo;
-    SDL_Color               Color[3];
+    uint8_t                 FileIndex;
+    uint8_t                 Size;
+    uint8_t                 Style;
+    uint32_t                Color[3];
 }TEXTSECTIONINFO;
 
 enum{
