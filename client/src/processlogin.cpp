@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 8/14/2015 2:47:49 PM
- *  Last Modified: 02/23/2016 03:21:49
+ *  Last Modified: 03/04/2016 03:06:26
  *
  *    Description: 
  *
@@ -58,6 +58,20 @@ ProcessLogin::ProcessLogin(Game *pGame)
 
     m_PasswordBox.SetX(409);
     m_PasswordBox.SetY(540);
+
+    tinyxml2::XMLDocument stDoc;
+    stDoc.Parse(
+            "<root>"
+                "<object type=eventtext>"
+                "hello"
+                "</object>"
+                "<object type=eventtext>"
+                "test"
+                "</object>"
+            "</root>"
+            );
+
+    m_Info.Load(&stDoc);
 }
 
 ProcessLogin::~ProcessLogin()
@@ -132,14 +146,14 @@ void ProcessLogin::Draw()
     m_Button3.Draw();
     m_Button4.Draw();
 
-	m_IDInputBox.Draw();
+    m_IDInputBox.Draw();
     m_PasswordBox.Draw();
 }
 
 void ProcessLogin::HandleEvent(SDL_Event *pEvent)
 {
     if(pEvent){
-		m_IDInputBox.HandleEvent(*pEvent);
+        m_IDInputBox.HandleEvent(*pEvent);
         m_PasswordBox.HandleEvent(*pEvent);
 
         if(false
@@ -169,7 +183,7 @@ void ProcessLogin::DoLogin()
     std::memcpy(stTmpCM.szID,  m_IDInputBox.Content(), std::strlen(m_IDInputBox.Content()) + 1);
     std::memcpy(stTmpCM.szPWD, m_PasswordBox.Content(), std::strlen(m_PasswordBox.Content()) + 1);
 
-	stMessage.Set(CLIENTMT_LOGIN, stTmpCM);
+    stMessage.Set(CLIENTMT_LOGIN, stTmpCM);
 
     GetMessageManager()->SendMessage(stMessage);
 }
