@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 6/17/2015 10:24:27 PM
- *  Last Modified: 03/03/2016 04:04:40
+ *  Last Modified: 03/04/2016 02:49:59
  *
  *    Description: 
  *
@@ -18,24 +18,20 @@
  * =====================================================================================
  */
 
-#include <SDL.h>
-#include <algorithm>
-#include "tinyxml2.h"
+#include "emoticon.hpp"
+#include "misc.hpp"
+#include "section.hpp"
 #include "tokenboard.hpp"
 #include "tokenbox.hpp"
-#include "configurationmanager.hpp"
-#include "texturemanager.hpp"
-#include "devicemanager.hpp"
-#include <utf8.h>
 #include "utf8char.hpp"
-#include "emoticon.hpp"
-#include "fonttexturemanager.hpp"
-#include "emoticonmanager.hpp"
-#include "section.hpp"
-#include "misc.hpp"
-#include <functional>
 
-TokenBoard::TokenBoard(int nMaxWidth, bool bWrap)
+#include <SDL2/SDL.h>
+#include <algorithm>
+#include <functional>
+#include <tinyxml2.h>
+#include <utf8.h>
+
+TokenBoard::TokenBoard(bool bWrap, int nMaxWidth)
     : m_PW(nMaxWidth)
     , m_W(0)
     , m_H(0)
@@ -43,11 +39,14 @@ TokenBoard::TokenBoard(int nMaxWidth, bool bWrap)
     , m_Wrap(bWrap)
     , m_CurrentWidth(0)
     , m_HasEventText(false)
+    , m_Valid(false)
 {
 }
 
 bool TokenBoard::Load(const tinyxml2::XMLDocument *pDoc)
 {
+    m_Valid = false;
+
     if(pDoc == nullptr){ return false; }
     
     const tinyxml2::XMLElement *pRoot = pDoc->RootElement();
@@ -391,41 +390,35 @@ FONTINFO TokenBoard::ParseFontInfo(const tinyxml2::XMLElement *pCurrentObject)
 
 void TokenBoard::ParseTextContentSection(const tinyxml2::XMLElement *pCurrentObject, int nSection)
 {
-    TOKENBOX stTokenBox;
-    stTokenBox.Section = nSection;
-
     const char *pstart = pCurrentObject->GetText();
     const char *pend   = pstart;
+
+    // when get inside this funciton
+    // the section structure has been well-prepared
+    //
+    int nDefaultSize = (int)m_SectionV[nSection].Info.Text.Size;
+
+    uint32_t nFontAttrKey = 0
+        + (((uint64_t)m_SectionV[nSection].Info.Text.FileIndex) << 16)
+        + (((uint64_t)m_SectionV[nSection].Info.Text.Size)      <<  8)
+        + (((uint64_t)m_SectionV[nSection].Info.Text.Style)     <<  0);
+
 
     while(*pend != '\0'){
         pstart = pend;
         utf8::unchecked::advance(pend, 1);
-        char *pData = &(stTokenBox.UTF8CharBox.Data);
 
-        std::memset(pData, 0, sizeof(stTokenBox.UTF8CharBox.Data));
+        // should be true
+        assert(pend - pstart <= 4);
 
-        // TODO
-        // I guess when '\n', '\t', '\r' is passed
-        // retrieving will fail
+        uint32_t nUTF8Key = 0;
+        std::memcpy(&nUTF8Key, pstart, pend - pstart);
 
+        // fully set the token box unit
+        TOKENBOX stTokenBox;
+        LoadUTF8CharBoxSizeCache(stTokenBox,
+                nSection, nDefaultSize, nFontAttrKey, nUTF8Key, fnQueryTokenBoxInfo);
 
-        // if(pend - pstart == 1 && (*pstart == '\n' || *pstart == '\t' || *pstart == '\r')){
-        //     // continue;
-        //     pData[0] = ' ';
-        // }else{
-        //     std::memcpy(stTokenBox.UTF8CharBox.Data, pstart, pend - pstart);
-        // }
-     
-        // Set the data
-        std::memcpy(pData, pstart, pend - pstart);
-
-        // Set cache key
-        stTokenBox.UTF8CharBox.Cache.Key = (uint64_t)(stTokenBox.UTF8CharBox.Data)
-            + ((uint64_t)m_SectionV[nSection].Info.Text.FileIndex) << (16 + 32)
-            + ((uint64_t)m_SectionV[nSection].Info.Text.Size)      << ( 8 + 32)
-            + ((uint64_t)m_SectionV[nSection].Info.Text.Style)     << ( 0 + 32);
-
-        LoadUTF8CharBoxSizeCache(stTokenBox, fnQueryTokenBoxInfo);
         AddNewTokenBox(stTokenBox, m_PW);
     }
 }
@@ -450,22 +443,28 @@ void TokenBoard::ParseTextObjectAttribute(const tinyxml2::XMLElement *pCurrentOb
     m_SectionV.push_back(m_CurrentSection);
 }
 
-void TokenBoard::ParseEmoticonObjectAttribute(const tinyxml2::XMLElement *pCurrentObject, int)
+void TokenBoard::ParseEmoticonObjectAttribute(
+        const tinyxml2::XMLElement *pCurrentObject, int nSection,
+        std::function<bool()> fnEmoticonRetrieve)
 {
     m_CurrentSection.Info.Type                 = SECTIONTYPE_EMOTICON;
     m_CurrentSection.State.Emoticon.FrameIndex = 0;
-    m_CurrentSection.State.Emoticon.Ticks      = 0;
+    m_CurrentSection.State.Emoticon.MS         = 0;
     m_CurrentSection.Info.Emoticon.Set         = GetEmoticonSet(pCurrentObject);
     m_CurrentSection.Info.Emoticon.Index       = GetEmoticonIndex(pCurrentObject);
 
-    if (m_CurrentSection.Info.Emoticon.Set == 0){
-        m_CurrentSection.Info.Emoticon.Index = 0;
-    }
-
-    m_CurrentSection.Info.Emoticon.FPS = GetEmoticonManager()->RetrieveEmoticonInfo(
-            m_CurrentSection.Info.Emoticon.Set, m_CurrentSection.Info.Emoticon.Index).FPS;
-    m_CurrentSection.Info.Emoticon.FrameCount = GetEmoticonManager()->RetrieveEmoticonFrameCount(
-            m_CurrentSection.Info.Emoticon.Set, m_CurrentSection.Info.Emoticon.Index);
+    // [][]  [][][][]  [][]  [][]  [][]  [][]
+    // set   index     frame fps   count ratio
+    //
+    // []: 0-F
+    //
+    // ratio = H1 / (H1 + H2) * 256;
+    fnEmoticonRetrieve(
+            m_CurrentSection.Info.Emoticon.Set,        // input
+            m_CurrentSection.Info.Emoticon.Index,      // input
+            m_CurrentSection.Info.Emoticon.FPS,        // o
+            m_CurrentSection.Info.Emoticon.FrameCount, // o
+            m_CurrentSection.Info.Emoticon.YOffsetR);  // o
 
     m_SectionV.push_back(m_CurrentSection);
 }
@@ -473,26 +472,21 @@ void TokenBoard::ParseEmoticonObjectAttribute(const tinyxml2::XMLElement *pCurre
 bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement *pCurrentObject, int nSection)
 {
     ParseEmoticonObjectAttribute(pCurrentObject, nSection);
+
+    // emoticon doesn't have content
+    // all content has been moved to section part
     TOKENBOX stTokenBox;
-    stTokenBox.Section = nSection;
-    LoadEmoticonCache(stTokenBox, 0);
-    AddNewTokenBox(stTokenBox, m_PW);
-    return true;
+    LoadEmoticonSizeCache(stTokenBox, nSection);
+
+    return AddNewTokenBox(stTokenBox, m_PW);
 }
 
 bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement *pCurrentObject, int nSection)
 {
-    ParseEventTextObjectAttribute(pCurrentObject, nSection);
-    ParseTextContentSection(pCurrentObject, nSection);
     m_HasEventText = true;
-    return true;
-}
 
-bool TokenBoard::ParseTextObject(const tinyxml2::XMLElement *pCurrentObject, int nSection)
-{
-    ParseTextObjectAttribute(pCurrentObject, nSection);
-    ParseTextContentSection(pCurrentObject, nSection);
-    return true;
+    ParseEventTextObjectAttribute(pCurrentObject, nSection);
+    return ParseEventTextObjectContent(pCurrentObject, nSection);
 }
 
 void TokenBoard::UpdateSection(SECTION &stSection, Uint32 ticks)
@@ -503,11 +497,11 @@ void TokenBoard::UpdateSection(SECTION &stSection, Uint32 ticks)
         case SECTIONTYPE_EMOTICON:
             {
                 Uint32 nMaxTicks     = (Uint32)std::lround(1000.0 / stSection.Info.Emoticon.FPS);
-                Uint32 nCurrentTicks = (Uint32)std::lround(1.0 * ticks + stSection.State.Emoticon.Ticks);
+                Uint32 nCurrentTicks = (Uint32)std::lround(1.0 * ticks + stSection.State.Emoticon.MS);
                 int    nFrameIndex   = stSection.State.Emoticon.FrameIndex + nCurrentTicks / nMaxTicks;
 
                 stSection.State.Emoticon.FrameIndex = nFrameIndex % stSection.Info.Emoticon.FrameCount;
-                stSection.State.Emoticon.Ticks      = nCurrentTicks % nMaxTicks;
+                stSection.State.Emoticon.MS      = nCurrentTicks % nMaxTicks;
                 break;
             }
         default:
@@ -810,41 +804,74 @@ int TokenBoard::GetNthNewLineStartY(int nthLine)
     return nCurrentY;
 }
 
-void TokenBoard::LoadEmoticonCache(TOKENBOX &stTokenBox, int nFrameIndex)
+
+void TokenBoard::LoadUTF8CharBoxSizeCache(TOKENBOX &rstTokenBox,
+        int nSection, int nDefaultSize, uint32_t nFontAttrKey, uint32_t nUTF8Key, 
+        std::function<void(bool, uint64_t, int &, int &, int &, int &)> fnQueryTokenBoxInfo)
 {
-    int nSet   = m_SectionV[stTokenBox.Section].Info.Emoticon.Set;
-    int nIndex = m_SectionV[stTokenBox.Section].Info.Emoticon.Index;
+    uint64_t nKey = (((uint64_t)nFontAttrKey << 32) + nUTF8Key);
 
-    stTokenBox.EmoticonBox.Cache.FrameIndex = 0;
-    stTokenBox.EmoticonBox.Cache.FrameInfo  = GetEmoticonManager()->RetrieveEmoticonFrameInfo(nSet, nIndex, nFrameIndex);
-    stTokenBox.EmoticonBox.Cache.Texture    = GetEmoticonManager()->RetrieveTexture(nSet, nIndex, nFrameIndex);
+    rstTokenBox.Section = nSection;
+    rstTokenBox.UTF8CharBox.Data.UTF8Code = nUTF8Key;
+    rstTokenBox.UTF8CharBox.Cache.Key     = nKey;
 
-    stTokenBox.Cache.W  = GetEmoticonManager()->RetrieveEmoticonInfo(nSet, nIndex).W;
-    stTokenBox.Cache.H  = GetEmoticonManager()->RetrieveEmoticonInfo(nSet, nIndex).H;
-    stTokenBox.Cache.H1 = GetEmoticonManager()->RetrieveEmoticonInfo(nSet, nIndex).H1;
-    stTokenBox.Cache.H2 = GetEmoticonManager()->RetrieveEmoticonInfo(nSet, nIndex).H2;
+    if(!fnQueryFontexInfo(true, nKey,
+                stTokenBox.Cache.W, stTokenBox.Cache.H,
+                stTokenBox.Cache.H1, stTokenBox.Cache.H2)){
+        // failed to retrieve, set a []
+        stTokenBox.Cache.W  = nDefaultSize;
+        stTokenBox.Cache.H  = nDefaultSize;
+        stTokenBox.Cache.H1 = nDefaultSize;
+        stTokenBox.Cache.H2 = 0;
+    }
 }
 
-// this function set the Cache.{W, H, H1, H2} with FontexDB's assistence
-// it won't set Cache.{StartX, StartY}
-//
+void TokenBoard::LoadEmoticonSizeCache(TOKENBOX &rstTokenBox,
+        int nSection, int nDefaultSize, uint8_t nEmoticonSet, uint16_t nEmoticonIndex,
+        std::function<void(bool, uint64_t, int &, int &, int &, int &)> fnQueryTokenBoxInfo)
+{
+    // take the first frame for size info
+    uint32_t nKey = ((uint32_t)nEmoticonSet << 24) + ((uint32_t)nEmoticonIndex << 8);
+
+    if(!fnQueryTokenBoxInfo(false, (uint64_t)nKey,
+                stTokenBox.Cache.W, stTokenBox.Cache.H, stTokenBox.Cache.H1, stTokenBox.Cache.H2)){
+        stTokenBox.Cache.W = nDefaultSize;
+        stTokenBox.Cache.H = nDefaultSize;
+        stTokenBox.Cache.H1 = std::lround(nDefaultSize * 0.7);
+        stTokenBox.Cache.H2 = std::lround(nDefaultSize * 0.3);
+    }
+}
+
 // isolate it from any SDL interface:
 //
 // 1. external functions won't see SECTIONTYPE_XXXX
 // 2. internal functions won't see SDL_XXXX
 void TokenBoard::LoadUTF8CharBoxSizeCache(TOKENBOX &rstTokenBox,
+        int nSection, int nDefaultSize, uint32_t nFontAttrKey, uint32_t nUTF8Key, 
         std::function<void(bool, uint64_t, int &, int &, int &, int &)> fnQueryTokenBoxInfo)
 {
-    fnQueryFontexInfo(true,
-            rstTokenBox.UTF8CharBox.Cache.Key,
-            stTokenBox.Cache.W, stTokenBox.Cache.H,
-            stTokenBox.Cache.H1, stTokenBox.Cache.H2);
+    uint64_t nKey = (((uint64_t)nFontAttrKey << 32) + nUTF8Key);
+
+    rstTokenBox.Section = nSection;
+    rstTokenBox.UTF8CharBox.Data.UTF8Code = nUTF8Key;
+    rstTokenBox.UTF8CharBox.Cache.Key     = nKey;
+
+    if(!fnQueryFontexInfo(true, nKey,
+                stTokenBox.Cache.W, stTokenBox.Cache.H,
+                stTokenBox.Cache.H1, stTokenBox.Cache.H2)){
+        // failed to retrieve, set a []
+        stTokenBox.Cache.W  = nDefaultSize;
+        stTokenBox.Cache.H  = nDefaultSize;
+        stTokenBox.Cache.H1 = nDefaultSize;
+        stTokenBox.Cache.H2 = 0;
+    }
 }
 
 // everything dynamic and can be retrieve is in Cache
 //            dynamic but can not be retrieved is in State
 //            static is in Info
-void TokenBoard::Draw(int nBoardStartX, int nBoardStartY, std::function<void(uint64_t, int, int)> fnDraw)
+void TokenBoard::Draw(int nBoardStartX, int nBoardStartY,
+        std::function<void(uint64_t, int, int)> fnDraw)
 {
     // we assume all token box are well-prepared here!
     // means cache, state, info are all valid now when invoke this function
@@ -876,7 +903,19 @@ void TokenBoard::Draw(int nBoardStartX, int nBoardStartY, std::function<void(uin
                         //     we can't steal the data source and replace by a new one at runtime
                         //
 
-                        DrawUTF8CharBox(rstTokenBox, rstFontexDB);
+                        fnDrawTokenBox(
+                                true,
+                                rstTokenBox.UTF8CharBox.Cache.Valid,
+                                rstTokenBox.UTF8CharBox.Cache.Key,
+
+
+
+                                rstTokenBox.State.EventText.State.Update = 
+
+
+
+                                )
+
 
                         auto p = rstFontexDB.Retrieve(rstTokenBox.UTF8CharBox.Cache.Key);
 
@@ -1099,7 +1138,8 @@ bool TokenBoard::ProcessEvent(int nFrameStartX, int nFrameStartY, const SDL_Even
             return true;
         }else{
             // set as ``out"
-            m_SectionV[m_LastTokenBox->Section].State.Text.Event = 0;
+            m_SectionV[m_LastTokenBox->Section].State.Text.Event  = 0;
+            m_SectionV[m_LastTokenBox->Section].State.Text.Update = true;
         }
     }
 
@@ -1253,6 +1293,7 @@ int TokenBoard::GuessResoltion()
     return 20;
 }
 
+// isolate from SDL_XXX
 void TokenBoard::DrawUTF8CharBox(const TOKENBOX &rstTokenBox, FontexDB &rstFontexDB)
 {
     if(rstTokenBox.UTF8CharBox.Cache.Valid == 1){
@@ -1269,5 +1310,16 @@ void TokenBoard::DrawUTF8CharBox(const TOKENBOX &rstTokenBox, FontexDB &rstFonte
                 nullptr, &stDstRect);
 
         DrawRectLine(stDstRect);
+
+        fnDrawTokenBox(
+                bUTF8Char,
+                bTextureValid,
+                nKey,
+                nOuterFrameStartX,
+                nOuterFrameStartY,
+                nStartX,
+                nStartY,
+                bNeedUpdateTexture,
+                bColor);
     }
 }

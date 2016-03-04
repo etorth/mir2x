@@ -3,7 +3,7 @@
  *
  *       Filename: section.hpp
  *        Created: 8/18/2015 6:56:11 PM
- *  Last Modified: 03/03/2016 03:37:00
+ *  Last Modified: 03/04/2016 02:36:51
  *
  *    Description: 
  *
@@ -30,12 +30,13 @@ typedef struct{
 }EMOTICONSECTIONINFO;
 
 typedef struct{
-    int                     Ticks;
+    int                     MS;
     int                     FrameIndex;
 }EMOTICONSECTIONSTATE;
 
 typedef struct{
     int                     Event;
+    bool                    Update;
 }TEXTSECTIONSTATE;
 
 typedef struct{

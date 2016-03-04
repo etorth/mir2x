@@ -15,7 +15,7 @@
 class TokenBoard
 {
     public:
-        TokenBoard(int, bool);
+        TokenBoard(bool, int);
         ~TokenBoard() = default;
     private:
         bool              m_ShrinkageWidth;
