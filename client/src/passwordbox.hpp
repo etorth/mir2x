@@ -4,7 +4,7 @@
 class PasswordBox: public InputBox
 {
     public:
-        PasswordBox(int, int, const FONTINFO &, const SDL_Color &);
+        PasswordBox(int, int, uint8_t, uint8_t, uint32_t);
         ~PasswordBox() = default;
 
     protected:

@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: configurationmanager.cpp
- *        Created: 6/17/2015 6:25:24 PM
- *  Last Modified: 07/03/2015 8:16:04 PM
+ *       Filename: xmlext.cpp
+ *        Created: 06/17/2015 06:25:24
+ *  Last Modified: 03/05/2016 04:44:19
  *
  *    Description: 
  *
@@ -21,10 +21,7 @@
 #include <cstring>
 #include <string>
 
-#include "configurationmanager.hpp"
-
-
-bool ConfigurationManager::Init()
+bool XMLExt::Load(const tinyxml2::XMLDocument * pDoc)
 {
     if(m_XMLDoc.LoadFile("./configuration.xml") == 0){ return true; }
     if(m_XMLDoc.LoadFile("./configure.xml"    ) == 0){ return true; }
@@ -33,56 +30,25 @@ bool ConfigurationManager::Init()
     return false;
 }
 
-void ConfigurationManager::Release()
+void XMLExt::Release()
 {
 }
 
-// const char *ConfigurationManager::ExtractText(const char *path)
-// {
-//     // well-defined path should be: "root/basic/fullscreen/a/b/c/d/e"
-//     if(path == nullptr){ return nullptr; }
-//
-//     const char *pStart = path;
-//     while(*pStart == '/'){ pStart++; }
-//     if(pStart[0] == '\0'){ return nullptr; }
-//
-//     const char *pEnd = nullptr;
-//     const auto *pEle = m_XMLDoc.RootElement();
-//
-//     while(true){
-//         // pStart should be valid here
-//         // 1. not nullptr
-//         // 2. pStart[0] != '\0'
-//         pEnd = std::strchr(pStart, '/');
-//         if(pEnd == nullptr){
-//             pEle = pEle->FirstChildElement(pStart);
-//             return (pEle ? pEle->GetText() : nullptr);
-//         }else{
-//             pEle = pEle->FirstChildElement(std::string(pStart, pEnd - pStart).c_str());
-//             if(pEle == nullptr){ return nullptr; }
-//             pStart = pEnd;
-//             while(*pStart == '/'){ pStart++; }
-//             if(pStart[0] == '\0'){ return pEle->GetText(); }
-//         }
-//     }
-//     return nullptr;
-// }
-
-const char *ConfigurationManager::GetString(const char *path)
+const char *XMLExt::GetString(const char *path)
 {
     auto p = GetXMLElement(path);
     m_OperationFailed = (p == nullptr);
     return p ? p->GetText() : nullptr;
 }
 
-int ConfigurationManager::GetInt(const char *path)
+int XMLExt::GetInt(const char *path)
 {
     auto p = GetXMLElement(path);
     m_OperationFailed = (p == nullptr);
     return p ? std::atoi(p->GetText()) : 0;
 }
 
-bool ConfigurationManager::GetBool(const char *path)
+bool XMLExt::GetBool(const char *path)
 {
     auto p = GetXMLElement(path);
     m_OperationFailed = (p == nullptr);
@@ -97,13 +63,13 @@ bool ConfigurationManager::GetBool(const char *path)
         ;
 }
 
-bool ConfigurationManager::Error()
+bool XMLExt::Error()
 {
     // set as true when last error occurs
     return m_OperationFailed;
 }
 
-const tinyxml2::XMLElement *ConfigurationManager::GetXMLElement(const char *path)
+const tinyxml2::XMLElement *XMLExt::GetXMLElement(const char *path)
 {
     // Won't set m_OperationFailed, check return pointer to verify
     //
@@ -147,10 +113,4 @@ const tinyxml2::XMLElement *ConfigurationManager::GetXMLElement(const char *path
         }
     }
     return nullptr;
-}
-
-ConfigurationManager *GetConfigurationManager()
-{
-    static ConfigurationManager configurationManager;
-    return &configurationManager;
 }
