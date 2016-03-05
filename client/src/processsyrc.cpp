@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 8/14/2015 2:47:49 PM
- *  Last Modified: 02/24/2016 03:04:17
+ *  Last Modified: 03/05/2016 04:03:59
  *
  *    Description: 
  *
@@ -37,6 +37,15 @@ ProcessSyrc::ProcessSyrc(Game *pGame)
 
     m_TextureBackground  = GetTextureManager()->RetrieveTexture(63, 0, 1);
     m_TextureProgressBar = GetTextureManager()->RetrieveTexture(63, 0, 2);
+
+    m_Info = new TokenBoard();
+}
+
+
+bool ProcessSyrc::Init()
+{
+
+    m_Game->LoadTokenBoard(m_Info, pDoc);
 }
 
 ProcessSyrc::~ProcessSyrc()

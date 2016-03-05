@@ -17,10 +17,11 @@ class TokenBoard
     public:
         TokenBoard(bool, int);
         ~TokenBoard() = default;
+
     private:
-        bool              m_ShrinkageWidth;
-    private:
-        bool              m_HasEventText;
+        bool    m_Wrap;
+        bool    m_SkipEvent;
+
     public:
         int InSection(int, int);
 
@@ -73,9 +74,12 @@ class TokenBoard
 
     private:
         int  TokenBoxType(const TOKENBOX &);
+
     public:
         // load the content and it's callback table
         bool Load(const tinyxml2::XMLDocument &,
+                std::function<bool(bool, uint64_t, int &, int &)>,
+                std::function<bool(uint32_t, int &, int &, int &)>,
                 std::unordered_map<std::string, std::function<void()>);
 
     private:

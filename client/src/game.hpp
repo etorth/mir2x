@@ -24,6 +24,10 @@ class Game
             PROCESSID_EXIT   = 4,
         };
 
+    public:
+        // since the FontexDB and EmoticonDB are local inside of stGame
+        void LoadTokenBoard(TokenBoard *, const tinyxml2::XMLDocument *);
+
     private:
         void SwitchProcess(int, int);
 

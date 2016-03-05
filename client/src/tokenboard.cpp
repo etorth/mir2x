@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 6/17/2015 10:24:27 PM
- *  Last Modified: 03/04/2016 02:49:59
+ *  Last Modified: 03/05/2016 04:12:41
  *
  *    Description: 
  *
@@ -41,6 +41,14 @@ TokenBoard::TokenBoard(bool bWrap, int nMaxWidth)
     , m_HasEventText(false)
     , m_Valid(false)
 {
+}
+
+bool TokenBoard::Load(const tinyxml2::XMLElement *pDoc,
+        std::function<void(bool, uint64_t, int &, int &)> fnTokenBoxSize,
+        std::function<void(uint32_t, int &, int &, int &)> fnEmoticonInfo,
+        std::unordered_map<std::string, std::function<void()> stIDhandlerMap)
+{
+    m_Valid = false;
 }
 
 bool TokenBoard::Load(const tinyxml2::XMLDocument *pDoc)
