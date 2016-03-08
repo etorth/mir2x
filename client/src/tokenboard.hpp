@@ -1,13 +1,12 @@
 #pragma once
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <vector>
 #include <tinyxml2.h>
 #include <functional>
 #include "section.hpp"
 #include "tokenbox.hpp"
-#include "devicemanager.hpp"
-#include "texturemanager.hpp"
+#include <unordered_map>
 
 // SECTIONINFO      : static data
 // SECTIONSTATE     : dynamic data
@@ -80,7 +79,7 @@ class TokenBoard
         bool Load(const tinyxml2::XMLDocument &,
                 std::function<bool(bool, uint64_t, int &, int &)>,
                 std::function<bool(uint32_t, int &, int &, int &)>,
-                std::unordered_map<std::string, std::function<void()>);
+                std::unordered_map<std::string, std::function<void()>>);
 
     private:
         bool ParseXMLContent(const tinyxml2::XMLElement *);
@@ -107,8 +106,6 @@ class TokenBoard
     private:
         int         GetEmoticonSet  (const tinyxml2::XMLElement *);
         int         GetEmoticonIndex(const tinyxml2::XMLElement *);
-    private:
-        FONTINFO    ParseFontInfo(const tinyxml2::XMLElement *);
 
     private:
         void        ParseTextObjectAttribute(const tinyxml2::XMLElement*, int);

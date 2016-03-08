@@ -1,5 +1,10 @@
 #pragma once 
+#include "processlogo.hpp"
+#include "processlogin.hpp"
+
 #include <SDL2/SDL.h>
+#include <atomic>
+#include "tokenboard.hpp"
 
 class Game
 {
@@ -31,7 +36,6 @@ class Game
     private:
         void SwitchProcess(int, int);
 
-
     private:
         ProcessLogin    *m_ProcessLogin;
         ProcessLogo     *m_ProcessLogo;
@@ -39,6 +43,9 @@ class Game
     private:
         int     *m_CurrentProcessID;
         Process *m_CurrentProcess;
+
+    private:
+        SDLHardware     m_SDLHardware;
 
     private:
         // private utility functions delcared as inline

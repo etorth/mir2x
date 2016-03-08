@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.hpp
  *        Created: 8/13/2015 12:07:39 AM
- *  Last Modified: 02/24/2016 02:22:15
+ *  Last Modified: 03/07/2016 23:40:51
  *
  *    Description: 
  *
@@ -20,9 +20,8 @@
 
 #pragma once
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include "process.hpp"
-#include "texturemanager.hpp"
 
 class ProcessLogo: public Process
 {

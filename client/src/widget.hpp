@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <SDL2/SDL.h>
 
 class Widget
@@ -15,10 +16,10 @@ class Widget
         virtual ~Widget()
         {}
 
-    public:
-        virtual void Draw()                    = 0;
-        virtual void Update(Uint32)            = 0;
-        virtual bool ProcessEvent(SDL_Event *) = 0;
+    // public:
+    //     virtual void Draw(std::function<void(uint32_t, int, int)>)  = 0;
+    //     virtual void Update(uint32_t)                               = 0;
+    //     virtual bool ProcessEvent(SDL_Event &)                      = 0;
 
     public:
         int X()

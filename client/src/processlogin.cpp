@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: processlogin.cpp
- *        Created: 8/14/2015 2:47:49 PM
- *  Last Modified: 03/04/2016 03:06:26
+ *        Created: 08/14/2015 02:47:49
+ *  Last Modified: 03/07/2016 23:43:01
  *
  *    Description: 
  *
@@ -23,11 +23,6 @@
 #include <algorithm>
 #include "message.hpp"
 #include "processlogin.hpp"
-#include "texturemanager.hpp"
-#include "devicemanager.hpp"
-#include "messagemanager.hpp"
-#include "clientmessagedef.hpp"
-#include "configurationmanager.hpp"
 
 ProcessLogin::ProcessLogin(Game *pGame)
 	: Process(Process::PROCESSID_LOGIN, pGame)
