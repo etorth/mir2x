@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/08/2016 19:42:41
+ *  Last Modified: 03/08/2016 23:59:09
  *
  *    Description: copy from flare-engine:
  *		   SDLHardwareRenderDevice.h/cpp
@@ -158,7 +158,8 @@ int SDLDevice::createContext(bool allow_fallback)
     return (is_initialized ? 0 : -1);
 }
 
-int SDLDevice::render(Renderable& r, Rect& dest) {
+int SDLDevice::render(Renderable& r, Rect& dest)
+{
     dest.w = r.src.w;
     dest.h = r.src.h;
     SDL_Rect src = r.src;
@@ -220,7 +221,8 @@ int SDLDevice::renderText(
 	const std::string& text,
 	const Color& color,
 	Rect& dest
-	) {
+	)
+{
     int ret = 0;
     SDL_Texture *surface = nullptr;
 
@@ -275,7 +277,8 @@ Image * SDLDevice::renderTextToImage(FontStyle* font_style, const std::string& t
     return nullptr;
 }
 
-void SDLDevice::drawPixel(int x, int y, const Color& color) {
+void SDLDevice::DrawPixel(int nX, int nY, const Color& color)
+{
     SDL_SetRenderDrawColor(m_Renderer, color.r, color.g, color.b, color.a);
     SDL_RenderDrawPoint(m_Renderer, x, y);
 }
