@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: sdlharedwaredevice.cpp
+ *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/08/2016 00:14:05
+ *  Last Modified: 03/08/2016 19:42:41
  *
  *    Description: copy from flare-engine:
  *		   SDLHardwareRenderDevice.h/cpp
@@ -21,7 +21,7 @@
 
 #include "sdlharedwaredevice.hpp"
 
-SDLHardwareDevice::SDLHardwareDevice(tinyxml2::XMLDocument &)
+SDLDevice::SDLDevice(tinyxml2::XMLDocument &)
     : m_Window(nullptr)
     , m_Renderer(nullptr)
     , texture(nullptr)
@@ -37,7 +37,7 @@ SDLHardwareDevice::SDLHardwareDevice(tinyxml2::XMLDocument &)
     min_screen.y = MIN_SCREEN_H;
 }
 
-int SDLHardwareDevice::createContext(bool allow_fallback)
+int SDLDevice::createContext(bool allow_fallback)
 {
     bool settings_changed = (fullscreen != FULLSCREEN || hwsurface != HWSURFACE || vsync != VSYNC || texture_filter != TEXTURE_FILTER);
 
@@ -116,7 +116,7 @@ int SDLHardwareDevice::createContext(bool allow_fallback)
 		    if (last_resort == -1 && !is_initialized) {
 			// If this is the first attempt and it failed we are not
 			// getting anywhere.
-			logError("SDLHardwareDevice: createContext() failed: %s", SDL_GetError());
+			logError("SDLDevice: createContext() failed: %s", SDL_GetError());
 			Exit(1);
 		    }
 		    return last_resort;
@@ -158,7 +158,7 @@ int SDLHardwareDevice::createContext(bool allow_fallback)
     return (is_initialized ? 0 : -1);
 }
 
-int SDLHardwareDevice::render(Renderable& r, Rect& dest) {
+int SDLDevice::render(Renderable& r, Rect& dest) {
     dest.w = r.src.w;
     dest.h = r.src.h;
     SDL_Rect src = r.src;
@@ -167,7 +167,7 @@ int SDLHardwareDevice::render(Renderable& r, Rect& dest) {
     return SDL_RenderCopy(m_Renderer, static_cast<SDLHardwareImage *>(r.image)->surface, &src, &_dest);
 }
 
-int SDLHardwareDevice::render(Sprite *r) {
+int SDLDevice::render(Sprite *r) {
     if (r == nullptr) {
 	return -1;
     }
@@ -197,7 +197,7 @@ int SDLHardwareDevice::render(Sprite *r) {
     return SDL_RenderCopy(m_Renderer, static_cast<SDLHardwareImage *>(r->getGraphics())->surface, &src, &dest);
 }
 
-int SDLHardwareDevice::renderToImage(Image* src_image, Rect& src, Image* dest_image, Rect& dest) {
+int SDLDevice::renderToImage(Image* src_image, Rect& src, Image* dest_image, Rect& dest) {
     if (!src_image || !dest_image)
 	return -1;
 
@@ -215,7 +215,7 @@ int SDLHardwareDevice::renderToImage(Image* src_image, Rect& src, Image* dest_im
     return 0;
 }
 
-int SDLHardwareDevice::renderText(
+int SDLDevice::renderText(
 	FontStyle *font_style,
 	const std::string& text,
 	const Color& color,
@@ -253,7 +253,7 @@ int SDLHardwareDevice::renderText(
     return ret;
 }
 
-Image * SDLHardwareDevice::renderTextToImage(FontStyle* font_style, const std::string& text, const Color& color, bool blended) {
+Image * SDLDevice::renderTextToImage(FontStyle* font_style, const std::string& text, const Color& color, bool blended) {
     SDLHardwareImage *image = new SDLHardwareImage(this, m_Renderer);
 
     SDL_Surface *cleanup;
@@ -275,31 +275,31 @@ Image * SDLHardwareDevice::renderTextToImage(FontStyle* font_style, const std::s
     return nullptr;
 }
 
-void SDLHardwareDevice::drawPixel(int x, int y, const Color& color) {
+void SDLDevice::drawPixel(int x, int y, const Color& color) {
     SDL_SetRenderDrawColor(m_Renderer, color.r, color.g, color.b, color.a);
     SDL_RenderDrawPoint(m_Renderer, x, y);
 }
 
-void SDLHardwareDevice::drawLine(int x0, int y0, int x1, int y1, const Color& color) {
+void SDLDevice::drawLine(int x0, int y0, int x1, int y1, const Color& color) {
     SDL_SetRenderDrawColor(m_Renderer, color.r, color.g, color.b, color.a);
     SDL_RenderDrawLine(m_Renderer, x0, y0, x1, y1);
 }
 
-void SDLHardwareDevice::drawRectangle(const Point& p0, const Point& p1, const Color& color) {
+void SDLDevice::drawRectangle(const Point& p0, const Point& p1, const Color& color) {
     drawLine(p0.x, p0.y, p1.x, p0.y, color);
     drawLine(p1.x, p0.y, p1.x, p1.y, color);
     drawLine(p0.x, p0.y, p0.x, p1.y, color);
     drawLine(p0.x, p1.y, p1.x, p1.y, color);
 }
 
-void SDLHardwareDevice::blankScreen() {
+void SDLDevice::blankScreen() {
     SDL_SetRenderTarget(m_Renderer, texture);
     SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
     SDL_RenderClear(m_Renderer);
     return;
 }
 
-void SDLHardwareDevice::commitFrame() {
+void SDLDevice::commitFrame() {
     SDL_SetRenderTarget(m_Renderer, nullptr);
     SDL_RenderCopy(m_Renderer, texture, nullptr, nullptr);
     SDL_RenderPresent(m_Renderer);
@@ -308,7 +308,7 @@ void SDLHardwareDevice::commitFrame() {
     return;
 }
 
-void SDLHardwareDevice::destroyContext() {
+void SDLDevice::destroyContext() {
     // we need to free all loaded graphics as they may be tied to the current context
     RenderDevice::cacheRemoveAll();
     reload_graphics = true;
@@ -341,14 +341,14 @@ void SDLHardwareDevice::destroyContext() {
 /**
  * create blank surface
  */
-Image *SDLHardwareDevice::createImage(int width, int height) {
+Image *SDLDevice::createImage(int width, int height) {
 
     SDLHardwareImage *image = new SDLHardwareImage(this, m_Renderer);
 
     if (width > 0 && height > 0) {
 	image->surface = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, width, height);
 	if(image->surface == nullptr) {
-	    logError("SDLHardwareDevice: SDL_CreateTexture failed: %s", SDL_GetError());
+	    logError("SDLDevice: SDL_CreateTexture failed: %s", SDL_GetError());
 	}
 	else {
 	    SDL_SetRenderTarget(m_Renderer, image->surface);
@@ -362,13 +362,13 @@ Image *SDLHardwareDevice::createImage(int width, int height) {
     return image;
 }
 
-void SDLHardwareDevice::setGamma(float g) {
+void SDLDevice::setGamma(float g) {
     Uint16 ramp[256];
     SDL_CalculateGammaRamp(g, ramp);
     SDL_SetWindowGammaRamp(m_Window, ramp, ramp, ramp);
 }
 
-void SDLHardwareDevice::updateTitleBar() {
+void SDLDevice::updateTitleBar() {
     if (title) free(title);
     title = nullptr;
     if (titlebar_icon) SDL_FreeSurface(titlebar_icon);
@@ -383,7 +383,7 @@ void SDLHardwareDevice::updateTitleBar() {
     if (titlebar_icon) SDL_SetWindowIcon(m_Window, titlebar_icon);
 }
 
-Image *SDLHardwareDevice::loadImage(const std::string&filename, const std::string& errormessage, bool IfNotFoundExit) {
+Image *SDLDevice::loadImage(const std::string&filename, const std::string& errormessage, bool IfNotFoundExit) {
     // lookup image in cache
     Image *img;
     img = cacheLookup(filename);
@@ -398,7 +398,7 @@ Image *SDLHardwareDevice::loadImage(const std::string&filename, const std::strin
     if(image->surface == nullptr) {
 	delete image;
 	if (!errormessage.empty())
-	    logError("SDLHardwareDevice: [%s] %s: %s", filename.c_str(), errormessage.c_str(), IMG_GetError());
+	    logError("SDLDevice: [%s] %s: %s", filename.c_str(), errormessage.c_str(), IMG_GetError());
 	if (IfNotFoundExit) {
 	    Exit(1);
 	}
@@ -410,7 +410,7 @@ Image *SDLHardwareDevice::loadImage(const std::string&filename, const std::strin
     return image;
 }
 
-void SDLHardwareDevice::windowResize() {
+void SDLDevice::windowResize() {
     int w,h;
     SDL_GetWindowSize(m_Window, &w, &h);
     SCREEN_W = static_cast<unsigned short>(w);
@@ -434,4 +434,3 @@ void SDLHardwareDevice::windowResize() {
 
     updateScreenVars();
 }
-
