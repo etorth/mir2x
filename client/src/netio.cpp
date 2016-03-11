@@ -3,7 +3,7 @@
  *
  *       Filename: netio.cpp
  *        Created: 06/29/2015 7:18:27 PM
- *  Last Modified: 02/23/2016 04:00:35
+ *  Last Modified: 03/10/2016 19:12:15
  *
  *    Description: this class won't maintian buffer's validation
  *                 user should maintain it by themself
@@ -21,8 +21,12 @@
 
 #include "netio.hpp"
 
-NetIO::NetIO()
-    : m_Resolver(m_IO)
+NetIO::NetIO(const char *szIP, int nPort,
+        const std::function<void()> &fnOperateHC)
+    : m_IP(szIP)
+    , m_Port(nPort)
+    , m_OperateHC(fnOperateHC)
+    , m_Resolver(m_IO)
     , m_Socket(m_IO)
 {
 }
@@ -37,24 +41,24 @@ void NetIO::StopIO()
     m_IO.post([this](){Close();});
 }
 
-void NetIO::SetIO(const std::string &szIP,
-        const std::string &szPort, std::function<void()> fnOperateHC)
+void NetIO::RunIO(const std::function<void(uint8_t)> &fnOperateHC)
 {
-    auto stIterator = m_Resolver.resolve({szIP, szPort});
+    // 1. push a connect request into the event queue
+    // 2. start the event loop
+    //
+    auto stIterator = m_Resolver.resolve({m_IP.c_str(), m_Port});
     auto fnOnConnect = [this, fnOperateHC](std::error_code stEC, asio::ip::tcp::resolver::iterator){
         if(stEC){
             Close();
         }else{
-            DoReadHC(fnOperateHC);
+            ReadHC(fnOperateHC);
         }
     };
 
+    // push a connection request
     asio::async_connect(m_Socket, stIterator, fnOnConnect);
-}
 
-void NetIO::RunIO()
-{
-    // start the event loop and never return when in normal operation
+    // start the even loop and never return when OK
     m_IO.run();
 }
 

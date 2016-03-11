@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: configurationmanager.cpp
+ *       Filename: configuration.cpp
  *        Created: 6/17/2015 6:25:24 PM
- *  Last Modified: 07/03/2015 8:16:04 PM
+ *  Last Modified: 03/10/2016 17:26:48
  *
  *    Description: 
  *

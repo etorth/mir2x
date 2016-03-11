@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/10/2016 01:09:56
+ *  Last Modified: 03/10/2016 17:38:09
  *
  *    Description: copy from flare-engine:
  *		   SDLDevice.h/cpp
@@ -19,14 +19,79 @@
  * =====================================================================================
  */
 
-SDLDevice::SDLDevice(XMLExt &stXMLExt,
-        const std::function<void(const char *, varglistXXXX))
-    : m_Renderer(nullptr)
-    , m_Window(nullptr)
+#include <SDL2/SDL.h>
+#include <system_error>
+
+#include "xmlext.hpp"
+#include "sdldevice.hpp"
+
+SDLDevice::SDLDevice(const XMLExt &stXMLExt)
+    : m_Window(nullptr)
+    , m_Renderer(nullptr)
 {
+    // TODO
+    // won't support dynamically create/update context
+    // context should be created at the very beginning
+    Uint32 nFlags   = 0;
+    int    nWindowW = 0;
+    int    nWindowH = 0;
+
+    try{
+        if(stXMLExt.NodeAtob("Root/Configure/Window/FullScreen")){
+            nFlags |= SDL_WINDOW_FULLSCREEN;
+        }
+    }catch(...){
+        // it's ok to miss this index
+    }
+
+    try{
+        nWindowW = stXMLExt.NodeAtoi("Root/Configure/Window/W");
+        nWindowH = stXMLExt.NodeAtoi("Root/Configure/Window/H");
+    }catch(...){
+        // assign the proper size it later
+    }
+
+    if(!(nWindowW && nWindowH)){
+        nWindowW = 800;
+        nWindowH = 600;
+    }
+
+    if(nWindowW && nWindowH){
+        // try to adjust the current window size
+        SDL_DisplayMode stDesktop;
+        if(!SDL_GetDesktopDisplayMode(0, &stDesktop)){
+            nWindowW = std::min(nWindowW , stDesktop.w);
+            nWindowH = std::min(nWindowH , stDesktop.h);
+        }
+    }
+
+    m_Window = SDL_CreateWindow("MIR2X-V0.1",
+            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nWindowW, nWindowH, nFlags);
+
+    if(!m_Window){
+        throw std::system_error("Failed to crate window");
+    }
+
+    m_Renderer = SDL_CreateRenderer(window, -1, 0);
+    if(!m_Renderer){
+        SDL_DestroyWindow(m_Window);
+        throw std::system_error("Failed to crate renderer");
+    }
+
+    SetWindowIcon();
 }
 
-SDLDevice::~SDLDevice() {
+SDLDevice::~SDLDevice()
+{
+    if(m_Window){
+        SDL_DestroyWindow(m_Window);
+    }
+
+    if(m_Renderer){
+        SDL_DestroyRenderer(m_Renderer);
+    }
+
+    SDL_Quit();
 }
 
 void SDLDevice::SetWindowIcon()
@@ -68,129 +133,10 @@ void SDLDevice::SetWindowIcon()
     SDL_Surface *pstSurface = SDL_CreateRGBSurfaceFrom(pRawData, 16, 16, 16, 16*2, 0x0f00, 0x00f0, 0x000f, 0xf000);
 
     // The icon is attached to the window pointer
-    SDL_SetWindowIcon(window, pstSurface);
-    SDL_FreeSurface(pstSurface);
-}
-
-int SDLDevice::CreateContext()
-{
-    bool settings_changed = (fullscreen != FULLSCREEN || hwsurface != HWSURFACE || vsync != VSYNC || texture_filter != TEXTURE_FILTER);
-
-    Uint32 w_flags = 0;
-    Uint32 r_flags = 0;
-    int window_w = SCREEN_W;
-    int window_h = SCREEN_H;
-
-    if (FULLSCREEN) {
-        w_flags = w_flags | SDL_WINDOW_FULLSCREEN_DESKTOP;
-
-        // make the window the same size as the desktop resolution
-        SDL_DisplayMode desktop;
-        if (SDL_GetDesktopDisplayMode(0, &desktop) == 0) {
-            window_w = desktop.w;
-            window_h = desktop.h;
-        }
+    if(pstSurface){
+        SDL_SetWindowIcon(window, pstSurface);
+        SDL_FreeSurface(pstSurface);
     }
-    else if (fullscreen && is_initialized) {
-        // if the game was previously in fullscreen, resize the window when returning to windowed mode
-        window_w = MIN_SCREEN_W;
-        window_h = MIN_SCREEN_H;
-        w_flags = w_flags | SDL_WINDOW_SHOWN;
-    }
-    else {
-        w_flags = w_flags | SDL_WINDOW_SHOWN;
-    }
-
-    w_flags = w_flags | SDL_WINDOW_RESIZABLE;
-
-    if (HWSURFACE) {
-        r_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
-    }
-    else {
-        r_flags = SDL_RENDERER_SOFTWARE | SDL_RENDERER_TARGETTEXTURE;
-        VSYNC = false; // can't have software mode & vsync at the same time
-    }
-    if (VSYNC) r_flags = r_flags | SDL_RENDERER_PRESENTVSYNC;
-
-    if (settings_changed || !is_initialized) {
-        destroyContext();
-
-        window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_w, window_h, w_flags);
-        if (window) {
-            m_Renderer = SDL_CreateRenderer(window, -1, r_flags);
-            if (m_Renderer) {
-                if (TEXTURE_FILTER && !IGNORE_TEXTURE_FILTER)
-                    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-                else
-                    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-
-                windowResize();
-            }
-
-            SDL_SetWindowMinimumSize(window, MIN_SCREEN_W, MIN_SCREEN_H);
-            // setting minimum size might move the window, so set position again
-            SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-        }
-
-        bool window_created = window != NULL && m_Renderer != NULL;
-
-        if (!window_created) {
-            if (allow_fallback) {
-                // try previous setting first
-                FULLSCREEN = fullscreen;
-                HWSURFACE = hwsurface;
-                VSYNC = vsync;
-                TEXTURE_FILTER = texture_filter;
-                if (createContext(false) == -1) {
-                    // last resort, try turning everything off
-                    FULLSCREEN = false;
-                    HWSURFACE = false;
-                    VSYNC = false;
-                    TEXTURE_FILTER = false;
-                    int last_resort = createContext(false);
-                    if (last_resort == -1 && !is_initialized) {
-                        // If this is the first attempt and it failed we are not
-                        // getting anywhere.
-                        logError("SDLDevice: createContext() failed: %s", SDL_GetError());
-                        Exit(1);
-                    }
-                    return last_resort;
-                }
-                else {
-                    return 0;
-                }
-            }
-        }
-        else {
-            fullscreen = FULLSCREEN;
-            hwsurface = HWSURFACE;
-            vsync = VSYNC;
-            texture_filter = TEXTURE_FILTER;
-            is_initialized = true;
-        }
-    }
-
-    if (is_initialized) {
-        // update minimum window size if it has changed
-        if (min_screen.x != MIN_SCREEN_W || min_screen.y != MIN_SCREEN_H) {
-            min_screen.x = MIN_SCREEN_W;
-            min_screen.y = MIN_SCREEN_H;
-            SDL_SetWindowMinimumSize(window, MIN_SCREEN_W, MIN_SCREEN_H);
-            SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-        }
-
-        windowResize();
-
-        // update title bar text and icon
-        updateTitleBar();
-
-        // load persistent resources
-        SharedResources::loadIcons();
-        delete curs;
-        curs = new CursorManager();
-    }
-
-    return (is_initialized ? 0 : -1);
 }
 
 SDL_Texture *SDLDevice::CreateTexture(const void *pMem, int nSize)
