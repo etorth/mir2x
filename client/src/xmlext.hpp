@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: configurationmanager.hpp
- *        Created: 6/17/2015 6:24:14 PM
- *  Last Modified: 07/03/2015 8:07:31 PM
+ *       Filename: xmlext.hpp
+ *        Created: 06/17/2015 06:24:14
+ *  Last Modified: 03/10/2016 21:28:10
  *
  *    Description: 
  *
@@ -22,33 +22,38 @@
 #pragma once
 #include <tinyxml2.h>
 
-class ConfigurationManager
+class XMLExt final
 {
+    public:
+        XMLExt() = default;
+       ~XMLExt() = default;
+
+    public:
+       int    NodeAtoi(const char *);
+       double NodeAtof(const char *);
+       bool   NodeAtob(const char *);
+
+    public:
+       const tinyxml2::XMLElement *GetXMLNode(const char *);
+
+    public:
+       //tiny API, maintains the validation by caller
+       //
+       bool Find(const char *szPath)
+       {
+           return GetXMLNode(szPath) != nullptr;
+       }
+
+       bool Load(const char *szFileName)
+       {
+           return szFileName && m_XMLDoc.LoadFile(szFileName) == tinyxml2::XML_NO_ERROR;
+       }
+
+       bool Parse(const char *szRawBuf)
+       {
+           return szRawBuf && m_XMLDoc.Parse(szRawBuf) == tinyxml2::XML_NO_ERROR;
+       }
+
     private:
-        ConfigurationManager() = default;
-
-    private:
-        tinyxml2::XMLDocument	m_XMLDoc;
-        bool                    m_OperationFailed;
-
-    public:
-        bool Init();
-        void Release();
-
-    public:
-        bool Error();
-
-    private:
-		const char *ExtractText(const char *path);
-
-    public:
-        const tinyxml2::XMLElement *GetXMLElement(const char *path);
-
-    public:
-        const char *GetString(const char *path);
-        int         GetInt(const char *path);
-        bool        GetBool(const char *path);
-
-    public:
-        friend ConfigurationManager *GetConfigurationManager();
+       tinyxml2::XMLDocument m_XMLDoc;
 };

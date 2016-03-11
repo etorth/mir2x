@@ -1,4 +1,6 @@
 #pragma once 
+#include "sdldevice.hpp"
+
 #include "processlogo.hpp"
 #include "processlogin.hpp"
 
@@ -45,37 +47,10 @@ class Game
         Process *m_CurrentProcess;
 
     private:
-        SDLHardware     m_SDLHardware;
+        // TODO
+        // won't bother myself to make it in singleton mode
+        // but make sure there is only one instance
+        SDLDevice   *m_SDLDevice;
 
     private:
-        // private utility functions delcared as inline
-        //
-        inline void SetRenderDefaultColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
-        {
-            SDL_SetRenderDrawColor(m_Renderer, r, g, b, a);
-        }
-
-        inline void RenderClear()
-        {
-            SDL_RenderClear(m_Renderer);
-        }
-
-        inline void RenderPresent()
-        {
-            SDL_RenderPresent(m_Renderer);
-        }
-
-        inline int WindowSizeW()
-        {
-            int nW;
-            SDL_GetWindowSize(m_Window, &nW, nullptr);
-            return nW;
-        }
-
-        inline int WindowSizeH()
-        {
-            int nH;
-            SDL_GetWindowSize(m_Window, &nH, nullptr);
-            return nH;
-        }
 };

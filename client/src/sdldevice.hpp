@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/10/2016 17:23:20
+ *  Last Modified: 03/10/2016 21:29:04
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp
@@ -20,7 +20,10 @@
  */
 
 #pragma once
+#include <algorithm>
+
 #include <SDL2/SDL.h>
+
 #include "xmlext.hpp"
 
 class SDLDevice final

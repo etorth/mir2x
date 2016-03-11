@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: actor.cpp
- *        Created: 8/31/2015 10:45:48 PM
- *  Last Modified: 01/29/2016 21:25:21
+ *        Created: 08/31/2015 10:45:48 PM
+ *  Last Modified: 03/10/2016 21:53:22
  *
  *    Description: 
  *
@@ -18,14 +18,12 @@
  * =====================================================================================
  */
 
-#include <SDL.h>
 #include <string>
-#include "actor.hpp"
+
 #include <tinyxml2.h>
-#include "mir2clientmap.hpp"
-#include "devicemanager.hpp"
-#include "texturemanager.hpp"
-#include "configurationmanager.hpp"
+#include <SDL2/SDL.h>
+
+#include "actor.hpp"
 
 // global offset info vector
 // std::vector<std::vector<std::vector<std::vector<std::array<std::array<int, 2>, 2>>>>> g_GlobalActorOffset;
@@ -37,29 +35,18 @@ static std::array<std::array<std::vector<std::vector<std::vector<std::array<std:
     2>, 2>>>>, 1024>, 8> g_GlobalActorOffset;
 
 
-//  +---------+-------+-----------+-------+--------+-----+
-//  | poision | state | direction | frame | shadow | LID |
-//  +---------+-------+-----------+-------+--------+-----+
-//  | 32      | 28    | 22        | 19    | 13     | 12  |
-//  +---------+-------+-----------+-------+--------+-----+
+//  +----------+-------+-----------+-------+--------+-----+
+//  | reserved | state | direction | frame | shadow | LID |
+//  +----------+-------+-----------+-------+--------+-----+
+//  | 32       | 29    | 23        | 20    | 14     | 13  |
+//  +----------+-------+-----------+-------+--------+-----+
 //
-//  4 bits: visual state for normal / poision / stone / other
-//  6 bits: state
-//  3 bits: direction
-//  6 bits: frame
-//  1 bits: shadow/body
-// 12 bits: LID
-
-static std::map<uint32_t, std::pari<int, int>> g_ActorFrameOffset;
-
-static std::map<uint32_t, 
-
-typedef struct{
-    int Speed;
-    int 
-}ACTORDESC;
-
-static std::vector<std::tuple<int, int, DirectiveRectCover>> g_SIDStateDRCTupleCacheV;
+//  3 bits:    8: reserved, plan for normal/poisioned/stone but seem uncessary
+//  6 bits:   64: state
+//  3 bits:    8: direction
+//  6 bits:   64: frame
+//  1 bits:    2: shadow/body
+// 13 bits: 8192: LID
 
 Actor::Actor(int nSID, int nUID, int nGenTime)
     : m_SID(nSID)

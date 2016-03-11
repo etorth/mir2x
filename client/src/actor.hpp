@@ -1,16 +1,10 @@
 #pragma once
+
 #include <array>
 #include <vector>
 
-typedef struct{
-    SDL_Texture *Texture;
-    int DX;
-    int DY;
-}ACTORFRAME;
-
-class ActorFrameSourceManager: public SourceManager<uint32_t, ACTORFRAMEDESC>
-{
-};
+#include "mir2xmap.hpp"
+#include "pngtexoffdb.hpp"
 
 class Actor
 {
@@ -22,10 +16,10 @@ class Actor
         int m_HP;
 
     protected:
-        Mir2ClientMap *m_Map;
+        Mir2xMap *m_Map;
 
     public:
-        void SetMap(int, int, Mir2ClientMap *);
+        void SetMap(int, int, Mir2xMap *);
 
     protected:
         int m_SID;
@@ -108,4 +102,7 @@ class Actor
         static bool GlobalCoverInfoCacheValid(int);
         static bool SetGlobalCoverInfoCache(int, int, int, int, int);
         static int  GlobalCoverInfoCacheIndex(int, int, int);
+
+    private:
+        static PNGTexOffDB  *sm_PNGTexOffDB;
 };

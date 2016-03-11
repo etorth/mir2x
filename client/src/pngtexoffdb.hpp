@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 02/27/2016 04:57:38
+ *  Last Modified: 03/11/2016 00:45:24
  *
  *    Description: 
  *
@@ -20,8 +20,13 @@
 
 
 #pragma once
+#include <queue>
 #include <utility>
 #include <unordered_map>
+
+#include <zip.h>
+
+#include "cachequeue.hpp"
 
 template<int N = 4>
 class PNGTexOffDB
@@ -29,8 +34,8 @@ class PNGTexOffDB
     private:
 
         // linear cache
-        std::array<QueueN<std::tuple<
-            SDL_Texture *, int, uint32_t>>, 512> m_LCache;
+        std::array<CacheQueue<std::tuple<
+            SDL_Texture *, int, uint32_t>, N>, 512> m_LCache;
 
         // main cache
         std::unordered_map<uint32_t,
@@ -46,7 +51,7 @@ class PNGTexOffDB
 
         // libzip stuff
         //
-        zip_t    m_ZIP;
+        struct zip    m_ZIP;
         int      m_BufSize;
         uint8_t *m_Buf;
 

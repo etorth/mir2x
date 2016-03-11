@@ -1,6 +1,6 @@
 #include "game.hpp"
 
-int main(int argc, char* argv[])
+int main()
 {
     Game *pGame = new Game();
 
