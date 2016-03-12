@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/11/2016 00:45:24
+ *  Last Modified: 03/11/2016 00:49:52
  *
  *    Description: 
  *
@@ -51,7 +51,7 @@ class PNGTexOffDB
 
         // libzip stuff
         //
-        struct zip    m_ZIP;
+        zip_t    m_ZIP;
         int      m_BufSize;
         uint8_t *m_Buf;
 
