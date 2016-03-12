@@ -3,7 +3,7 @@
  *
  *       Filename: actor.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/12/2016 00:32:11
+ *  Last Modified: 03/12/2016 01:24:46
  *
  *    Description: 
  *
@@ -25,24 +25,14 @@
 
 #include "actor.hpp"
 
-// global offset info vector
-// std::vector<std::vector<std::vector<std::vector<std::array<std::array<int, 2>, 2>>>>> g_GlobalActorOffset;
-// static std::vector<std::vector<std::vector<std::vector<std::array<std::array<int, 2>, 2>>>>>
-// g_GlobalActorOffset = std::vector<std::vector<std::vector<std::vector<std::array<std::array<int, 2>, 2>>>>>(1024);
-
-// g_GlobalActorOffset[nPrecode][nLID][state][direction][frame][shadow/body][x/y]
-static std::array<std::array<std::vector<std::vector<std::vector<std::array<std::array<int,
-    2>, 2>>>>, 1024>, 8> g_GlobalActorOffset;
-
-
 //  +----------+-------+-----------+-------+--------+-----+
 //  | reserved | state | direction | frame | shadow | LID |
 //  +----------+-------+-----------+-------+--------+-----+
 //  | 32       | 29    | 23        | 20    | 14     | 13  |
 //  +----------+-------+-----------+-------+--------+-----+
 //
-//  3 bits:    8: reserved, plan for normal/poisioned/stone but seem uncessary
-//  6 bits:   64: state
+//  4 bits:   16: reserved for colouration effect
+//  5 bits:   32: state
 //  3 bits:    8: direction
 //  6 bits:   64: frame
 //  1 bits:    2: shadow/body
@@ -213,3 +203,6 @@ bool Actor::TryStepMove(std::function<bool()> fnExtCheck)
     EstimateNextPosition();
     return m_MapExt->ValidPosition(m_EstimateX, m_EstimateY, this);
 }
+
+
+

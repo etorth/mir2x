@@ -92,15 +92,8 @@ class Actor
         virtual void Goto(bool, int, int);
 
     public:
-        // offset cache for drawing
-        static void LoadGlobalOffset(int, int);
-
-    public:
-        // DRC cache
-        static bool GlobalCoverInfoCacheValid(int);
-        static bool SetGlobalCoverInfoCache(int, int, int, int, int);
-        static int  GlobalCoverInfoCacheIndex(int, int, int);
+        static bool GInfoValid(int);
 
     private:
-        static PNGTexOffDB<0>  *sm_PNGTexOffDB;
+        static std::unordered_map<int, ActorGInfo> sm_ActorGInfo;
 };
