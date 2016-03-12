@@ -3,7 +3,7 @@
  *
  *       Filename: hexstring.cpp
  *        Created: 02/15/2016 17:18:36
- *  Last Modified: 02/15/2016 17:19:41
+ *  Last Modified: 03/11/2016 22:47:23
  *
  *    Description: 
  *
@@ -19,7 +19,7 @@
  */
 #include "hexstring.hpp"
 
-uint64_t StringHex(const char *szStr)
+uint32_t StringHex(const char *szStr, size_t nLen)
 {
     const uint8_t knvStringHexChunk[] = {
         0X00,  // "0" - "0"
@@ -46,8 +46,8 @@ uint64_t StringHex(const char *szStr)
         0X0E,  // "E" - "0"
         0X0F,  // "F" - "0"
     };
-    uint64_t nKey = 0;
-    for(std::size_t nIndex = 0; szStr[nIndex] != '\0'; ++nIndex){
+    uint32_t nKey = 0;
+    for(size_t nIndex = 0; szStr[nIndex] != '\0' && nIndex < nLen; ++nIndex){
         nKey = (nKey << 4) + knvStringHexChunk[szStr[nIndex] - '0'];
     }
     return nKey;

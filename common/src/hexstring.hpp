@@ -3,7 +3,7 @@
  *
  *       Filename: hexstring.hpp
  *        Created: 02/06/2016 13:35:51
- *  Last Modified: 02/15/2016 17:19:42
+ *  Last Modified: 03/11/2016 22:48:17
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <type_traits>
 
@@ -70,4 +71,4 @@ template<typename T> char *HexString(T nKey, char *szStr)
     return szStr;
 }
 
-uint64_t StringHex(const char *);
+uint32_t StringHex(const char *, size_t);

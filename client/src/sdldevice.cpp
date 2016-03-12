@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/10/2016 17:38:09
+ *  Last Modified: 03/11/2016 23:11:46
  *
  *    Description: copy from flare-engine:
  *		   SDLDevice.h/cpp
@@ -194,4 +194,17 @@ void SDLDevice::DrawTexture(SDL_Texture *pstTexture, int nX, int nY)
             SDL_RenderCopy(m_Renderer, pstTexture, &stSrc, &stDst);
         }
     }
+}
+
+SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pRawData, size_t nLen)
+{
+    if(pRawData && nLen > 0){
+        auto pSurface = IMG_LoadPNG_RW(SDL_RWFromConstMem(pRawData, nLen));
+        if(pSurface){
+            auto pTexture = SDL_CreateTextureFromSurface(m_Renderer, pSurface);
+            SDL_FreeSurface(pSurface);
+            return pTexture;
+        }
+    }
+    return nullptr;
 }

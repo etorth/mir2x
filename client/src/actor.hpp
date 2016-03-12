@@ -3,7 +3,7 @@
 #include <array>
 #include <vector>
 
-#include "mir2xmap.hpp"
+#include "mir2xmapext.hpp"
 #include "pngtexoffdb.hpp"
 
 class Actor
@@ -13,31 +13,37 @@ class Actor
         ~Actor();
 
     protected:
-        int m_HP;
-
-    protected:
-        Mir2xMap *m_Map;
+        Mir2xMapExt *m_MapExt;
 
     public:
-        void SetMap(int, int, Mir2xMap *);
+        void SetMap(int, int, Mir2xMapExt *);
 
     protected:
         int m_SID;
         int m_UID;
+        int m_GenTime;
         int m_X;
         int m_Y;
+        int m_HP;
 
     protected:
-        int m_FrameUpdateDelay;
+        double m_FrameUpdateDelay;
 
     protected:
-        int m_FrameIndex;
-        int m_GenTime;
-        int m_Direction;
-        int m_State;
-        int m_NextState;
-        int m_UpdateTime;
-        int m_Speed;
+        int    m_FrameIndex;
+        int    m_Direction;
+        int    m_State;
+        int    m_NextState;
+        double m_UpdateTime;
+        int    m_Speed;
+
+    private:
+        bool    m_RedPoision;
+        bool    m_GreenPoision;
+        bool    m_StonePoision;
+
+        bool    m_WhiteBody;
+        bool    m_Holy;
 
     public:
         int SID();
@@ -71,13 +77,6 @@ class Actor
     protected:
         void UpdateMotion(int);
 
-    private:
-        bool    m_RedPoision;
-        bool    m_GreenPoision;
-        bool    m_StonePoision;
-
-        bool    m_WhiteBody;
-        bool    m_Holy;
 
     public:
         virtual void SetNextState(int);
@@ -90,8 +89,7 @@ class Actor
         void SetHP(int);
 
     public:
-        virtual void Goto(int, int);
-        virtual void DGoto(int, int);
+        virtual void Goto(bool, int, int);
 
     public:
         // offset cache for drawing
@@ -104,5 +102,5 @@ class Actor
         static int  GlobalCoverInfoCacheIndex(int, int, int);
 
     private:
-        static PNGTexOffDB  *sm_PNGTexOffDB;
+        static PNGTexOffDB<0>  *sm_PNGTexOffDB;
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/11/2016 19:11:25
+ *  Last Modified: 03/11/2016 23:14:09
  *
  *    Description: 
  *
@@ -18,15 +18,18 @@
  * =====================================================================================
  */
 
-
 #pragma once
 #include <queue>
 #include <utility>
 #include <unordered_map>
 
 #include <zip.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
+#include "hexstring.hpp"
 #include "cachequeue.hpp"
+
 
 template<int N = 4>
 class PNGTexOffDB
@@ -34,30 +37,26 @@ class PNGTexOffDB
     private:
 
         // linear cache
-        std::array<CacheQueue<std::tuple<
-            SDL_Texture *, int, uint32_t>, N>, 512> m_LCache;
+        std::array<CacheQueue<std::tuple< SDL_Texture *, int, uint32_t>, N>, 1024> m_LCache;
 
         // main cache
-        std::unordered_map<uint32_t,
-            std::pair<int, SDL_Texture *>> m_Cache;
+        std::unordered_map<uint32_t, std::pair<int, SDL_Texture *>> m_Cache;
+
+        // index cache
+        std::unordered_map<uint32_t, std::tuple<zip_uint64_t, zip_uint64_t, int, int>> m_IndexCache;
 
         // time stamp queue
         std::queue<std::tuple<int, uint32_t>>  m_TimeStampQ;
 
-        int m_ResourceMaxCount;
-        int m_ResourceCount;
-
-    private:
-
-        // libzip stuff
-        //
-        zip_t    m_ZIP;
-        int      m_BufSize;
+        zip_t   *m_ZIP;
         uint8_t *m_Buf;
+        size_t   m_BufSize;
+        int      m_CurrentTime;
+        int      m_ResourceMaxCount;
+        int      m_ResourceCount;
 
     public:
-
-        PNGTexDB()
+        PNGTexOffDB(const char *szDBPath)
             : m_ResourceMaxCount(N * 512 + 2000)
             , m_ResourceCount(0)
             , m_ZIP(nullptr)
@@ -66,7 +65,7 @@ class PNGTexOffDB
         {
         }
 
-        ~PNGTexDB()
+        ~PNGTexOffDB()
         {
             Clear();
             delete m_Buf;
@@ -88,7 +87,7 @@ class PNGTexOffDB
             int nErrorCode;
 
             m_ZIP = zip_open(szPNGTexDBName, ZIP_RDONLY, &nErrorCode);
-            return (m_ZIP != nullptr);,
+            return (m_ZIP != nullptr);
 
             zip_uint64_t nNumEntries = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
             for(zip_uint64_t nIndex = 0; nIndex < nNumEntries; ++nIndex){
@@ -183,19 +182,19 @@ class PNGTexOffDB
                     }
 
                     // now insert the record to LC
-                    m_LCache[nLCKey].PushHead({pTextureInst.second.second, m_CurrentTime, nKey});
+                    m_LCache[nLCacheKey].PushHead({pTextureInst->second.second, m_CurrentTime, nKey});
                 }
 
                 // 2. set access time in m_Cache
                 //
-                pTextureInst.second.first = m_CurrentTime;
+                pTextureInst->second.first = m_CurrentTime;
 
                 // 3. push the access stamp at the end of the time stamp queue
                 //
                 m_TimeStampQ.push({m_CurrentTime, nKey});
 
                 // 4. return the resource pointer
-                return pTexture.second.second;
+                return pTextureInst->second.second;
             }
 
             // it's not in m_Cache, too bad ...
@@ -217,7 +216,7 @@ class PNGTexOffDB
                 }
 
                 // now insert the record to LC
-                m_LCache[nLCKey].PushHead({pTexture, m_CurrentTime, nKey});
+                m_LCache[nLCacheKey].PushHead({pTexture, m_CurrentTime, nKey});
             }
 
             // 2. put the resource in m_Cache
@@ -230,7 +229,7 @@ class PNGTexOffDB
 
             // 4. reset the size of the cache
             // 
-            m_ReourceCount++;
+            m_ResourceCount++;
             Resize();
 
             // 5. return the resource pointer
@@ -277,28 +276,32 @@ class PNGTexOffDB
 
             int nRes = (szStringCode[0] == '0' ? 1 : -1)
                 * (knvStringHexChk[1] * 256 + knvStringHexChk[2] * 16 + knvStringHexChk[3]);
+            
+            return nRes;
         }
 
         void Record(const zip_stat_t &stStatus)
         {
-            // A(123456)B(1234)C(1234).PNG
-            //     A:1~6 image index
+            // A(12345678)B(1234)C(1234).PNG
+            //
+            //     A:1~8 image index for actor
+            //           uint32_t = 4 * 8: defined in actor.cpp
+            //
             //     B:1   sgn(dx)
             //     B:2~4 abs(dx)
             //     C:1   sgn(dy)
             //     D:2~4 abs(dy)
 
-            uint32_t nKey = HexString(stStatus.name, 6);
+            uint32_t nKey = StringHex(stStatus.name, 8);
 
             zip_uint64_t nSize;
 
             m_IndexCache[nKey] = {
                 stStatus.index,
                 stStatus.size,
-                SignedHexStringDecode(stStatus.name +  6),
-                SignedHexStringDecode(stStatus.name + 10)};
+                SignedHexStringDecode(stStatus.name +  8),
+                SignedHexStringDecode(stStatus.name + 12)};
         }
-
 
         void PNGFileName(uint32_t nKey, char *szPNGName)
         {
@@ -352,7 +355,8 @@ class PNGTexOffDB
         }
 
         // load texture from zip archive
-        SDL_Texture *LoadTexture(uint32_t nKey)
+        SDL_Texture *LoadTexture(uint32_t nKey,
+                const std::function<SDL_Texture *(uint8_t *, size_t)> &fnCreateTexture)
         {
             char szPNGName;
             PNGFileName(nKey, szPNGName);
@@ -374,13 +378,7 @@ class PNGTexOffDB
                         return nullptr;
                     }
 
-                    auto pSurface = IMG_LoadPNG_RW(m_Buf);
-                    if(pSurface == nullptr){ return nullptr; }
-
-                    auto pTexture = SDL_CreateTextureFromSurface(m_Renderer, pSurface);
-                    SDL_FreeSurface(pSurface);
-
-                    return pTexture;
+                    return fnCreateTexture(m_Buf, stZIPStat.size);
                 }
             }
             return nullptr;
@@ -405,8 +403,8 @@ class PNGTexOffDB
             // to handle the overflow problem
             // otherwise we don't need this check
             if(pTextureInst != m_Cache.end()){
-                if(pTextureInst.second.first == nTimeStamp){
-                    SDL_DestroyTexture(pTextureInst.second.second);
+                if(pTextureInst->second.first == nTimeStamp){
+                    SDL_DestroyTexture(pTextureInst->second.second);
                     m_Cache.erase(pTextureInst);
 
                     m_ResourceCount--;
@@ -438,4 +436,14 @@ class PNGTexOffDB
             }
             return false;
         }
+
+        void ExtendBuf(size_t nSize)
+        {
+            if(nSize > m_BufSize){
+                delete m_Buf;
+                m_Buf = new uint8_t[nSize];
+                m_BufSize = nSize;
+            }
+        }
+
 };
