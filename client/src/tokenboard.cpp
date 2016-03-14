@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 6/17/2015 10:24:27 PM
- *  Last Modified: 03/05/2016 04:12:41
+ *  Last Modified: 03/13/2016 18:34:36
  *
  *    Description: 
  *
@@ -31,8 +31,9 @@
 #include <tinyxml2.h>
 #include <utf8.h>
 
-TokenBoard::TokenBoard(bool bWrap, int nMaxWidth)
+TokenBoard::TokenBoard(bool bWrap, int nMaxWidth, int nMinTextMargin)
     : m_PW(nMaxWidth)
+    , m_MinTextMargin(nMinTextMargin)
     , m_W(0)
     , m_H(0)
     , m_Resolution(20)
@@ -878,14 +879,47 @@ void TokenBoard::LoadUTF8CharBoxSizeCache(TOKENBOX &rstTokenBox,
 // everything dynamic and can be retrieve is in Cache
 //            dynamic but can not be retrieved is in State
 //            static is in Info
-void TokenBoard::Draw(int nBoardStartX, int nBoardStartY,
-        std::function<void(uint64_t, int, int)> fnDraw)
+void TokenBoard::DrawEx(
+        int nDstX, int nDstY, // start position of drawing on the screen
+        int nSrcX, int nSrcY, // region to draw, a cropped region on the token board
+        int nSrcW, int nSrcH,
+        std::function<void(uint64_t, int, int, int, int, int, int)> fnDrawEx)
 {
     // we assume all token box are well-prepared here!
     // means cache, state, info are all valid now when invoke this function
     //
+
+    // if(false
+    //         || nSrcX >= m_W
+    //         || nSrcY >= m_H
+    //         || nSrcX + nDstW <= 0
+    //         || nSrcY + nDstH <= 0){
+    //     return;
+    // }
+    //
+    // if(nSrcX < 0){
+    //     nSrcW += nSrcX;
+    //     nSrcX  = 0;
+    // }
+    //
+    // if(nSrcY < 0){
+    //     nSrcH += nSrcY;
+    //     nSrcY  = 0;
+    // }
+    //
+    // if(nSrcX + nSrcW > m_W){
+    //     nSrcW = m_W - nSrcX;
+    // }
+    //
+    // if(nSrcY + nSrcH > m_H){
+    //     nSrcH = m_H - nSrcY;
+    // }
+
+    // now nSrc(X, Y, W, H) is a sub-area on the board
+
     for(int nLine = 0; nLine < m_LineV.size(); ++nLine){
         for(auto &rstTokenBox: m_LineV[nLine]){
+
 
             switch(m_SectionV[rstTokenBox.Section].Info.Type){
                 case SECTIONTYPE_EVENTTEXT:
@@ -911,118 +945,64 @@ void TokenBoard::Draw(int nBoardStartX, int nBoardStartY,
                         //     we can't steal the data source and replace by a new one at runtime
                         //
 
+
+                        int nX, nY, nW, nH;
+                        nX = rstTokenBox.Cache.StartX;
+                        nY = rstTokenBox.Cache.StartY;
+                        nW = rstTokenBox.Cache.W - rstTokenBox.State.W1 - rstTokenBox.State.W2;
+                        nH = rstTokenBox.Cache.H1;
+
+                        if(!RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, nX, nY, nW, nH)){
+                            // no overlap for current, nothing to do
+                            continue;
+                        }
+
                         fnDrawTokenBox(
                                 true,
                                 rstTokenBox.UTF8CharBox.Cache.Valid,
                                 rstTokenBox.UTF8CharBox.Cache.Key,
+                                nX + nDstX,
+                                nY + nDstY,
+                                nX - rstTokenBox.Cache.StartX,
+                                nY - rstTokenBox.Cache.StartY,
+                                nW, nH,
+                                nColor);
 
+                        break;
+                    }
 
+                case SECTIONTYPE_EMOTICON:
+                    {
+                        int nX, nY, nW, nH;
+                        nX = rstTokenBox.Cache.StartX;
+                        nY = rstTokenBox.Cache.StartY;
+                        nW = rstTokenBox.Cache.W - rstTokenBox.State.W1 - rstTokenBox.State.W2;
+                        nH = rstTokenBox.Cache.H;
 
-                                rstTokenBox.State.EventText.State.Update = 
-
-
-
-                                )
-
-
-                        auto p = rstFontexDB.Retrieve(rstTokenBox.UTF8CharBox.Cache.Key);
-
-                        if(p && rstFontexDB.UTF8CharBox.Cache.Valid == false){
-                            LoadUTF8CharBoxCache(p, rstTokenBox);
+                        if(!RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, nX, nY, nW, nH)){
+                            // no overlap for current, nothing to do
+                            continue;
                         }
 
-                        DrawUTF8CharBox(p, rstTokenBox);
-                        // setup the cache
-                        SDL_QueryTexture(p, nullptr, nullptr,
-                                &(rstTokenBox.Cache.W), &(rstTokenBox.Cache.H));
+                        int nFrameIndex = m_SectionV[rstTokenBox.Section].State.Emoticon.FrameIndex;
 
-                        // don't set StartX/StartY here
-                        // since this function may be invoked 3 times
-                        stTokenBox.Cache.H1 = stTokenBox.Cache.H;
-                        stTokenBox.Cache.H2 = 0;
+                        fnDrawTokenBox(
+                                false,
+                                rstTokenBox.EmoticonBox.Cache.Valid,
+                                rstTokenBox.EmoticonBox.Cache.Key + nFrameIndex,
+                                nX + nDstX,
+                                nY + nDstY,
+                                nX - rstTokenBox.Cache.StartX,
+                                nY - rstTokenBox.Cache.StartY,
+                                nW, nH, 0);
+
+                        break;
                     }
-
-
-
-                    auto pBox = &rstTokenBox.UTF8CharBox;
-                    auto pTex = rstFontexDB.Retrieve(pBox->Cache.Key);
-                    if(pTex == nullptr){
-                        // failed...
-                        pBox = &m_FailedUTF8CharBox.UTF8CharBox;
-                        pTex = rstFontexDB.Retrieve(pBox->Cache.Key);
-                    }
-
-                    if(pTex == nullptr){
-                        // we give up...
-                        return;
-                    }
-
-
-                    if(p){
-                        // successfully find it!
-                        if(!rstTokenBox.Cache.Valid){
-
-                        }
-                        SDL_QueryTexture(p, nullptr, nullptr,
-                                &(rstTokenBox.Cache.W), &(rstTokenBox.Cache.H));
-
-                        // don't set StartX/StartY here
-                        // since this function may be invoked 3 times
-                        stTokenBox.Cache.H1 = stTokenBox.Cache.H;
-                        stTokenBox.Cache.H2 = 0;
-
-                    }
-                    int nEvent = m_SectionV[rstTokenBox.Section].State.Text.Event;
-                    int nEvent = m_SectionV[rstTokenBox.Section].State.Text.Event;
-                    if(rstTokenBox.UTF8CharBox.Cache.Texture[nEvent] == nullptr){
-                        LoadUTF8CharBoxCache(rstTokenBox, nEvent);
-                    }
-                    SDL_Rect stDstRect = {
-                        nBoardStartX + rstTokenBox.Cache.StartX,
-                        nBoardStartY + rstTokenBox.Cache.StartY,
-                        rstTokenBox.Cache.W,
-                        rstTokenBox.Cache.H
-                    };
-                    SDL_RenderCopy(
-                            GetDeviceManager()->GetRenderer(),
-                            rstTokenBox.UTF8CharBox.Cache.Texture[nEvent],
-                            nullptr, &stDstRect);
-
-                    DrawRectLine(stDstRect);
+                default:
                     break;
             }
-            case SECTIONTYPE_EMOTICON:
-            {
-                int nFrameIndex = m_SectionV[rstTokenBox.Section].State.Emoticon.FrameIndex;
-                if(nFrameIndex != rstTokenBox.EmoticonBox.Cache.FrameIndex){
-                    LoadEmoticonCache(rstTokenBox, nFrameIndex);
-                }
-                int nSrcStartX = rstTokenBox.EmoticonBox.Cache.FrameInfo.X;
-                int nSrcStartY = rstTokenBox.EmoticonBox.Cache.FrameInfo.Y;
-                int nSrcW      = rstTokenBox.EmoticonBox.Cache.FrameInfo.W;
-                int nSrcH      = rstTokenBox.EmoticonBox.Cache.FrameInfo.H;
-                int nDstStartX = rstTokenBox.Cache.StartX + rstTokenBox.EmoticonBox.Cache.FrameInfo.DX;
-                int nDstStartY = rstTokenBox.Cache.StartY + rstTokenBox.EmoticonBox.Cache.FrameInfo.DY;
-                SDL_Rect stSrcRect = {nSrcStartX, nSrcStartY, nSrcW, nSrcH};
-                SDL_Rect stDstRect = {
-                    nDstStartX + nBoardStartX,
-                    nDstStartY + nBoardStartY,
-                    nSrcW,
-                    nSrcH
-                };
-
-                SDL_RenderCopy(
-                        GetDeviceManager()->GetRenderer(),
-                        rstTokenBox.EmoticonBox.Cache.Texture,
-                        &stSrcRect, &stDstRect);
-                DrawRectLine(stDstRect);
-                break;
-            }
-            default:
-            break;
         }
     }
-}
 }
 
 void TokenBoard::AddNewTokenBoxLine(bool bEndByReturn)
@@ -1299,35 +1279,4 @@ int TokenBoard::GuessResoltion()
     // TODO
     // make this function more reasonable and functional
     return 20;
-}
-
-// isolate from SDL_XXX
-void TokenBoard::DrawUTF8CharBox(const TOKENBOX &rstTokenBox, FontexDB &rstFontexDB)
-{
-    if(rstTokenBox.UTF8CharBox.Cache.Valid == 1){
-        // good this time it's valid and well prepared
-        SDL_Rect stDstRect = {
-            nBoardStartX + rstTokenBox.Cache.StartX,
-            nBoardStartY + rstTokenBox.Cache.StartY,
-            stTokenBox.Cache.W,
-            stTokenBox.Cache.H
-        };
-        SDL_RenderCopy(
-                GetDeviceManager()->GetRenderer(),
-                stTokenBox.UTF8CharBox.Cache.Texture[nEvent],
-                nullptr, &stDstRect);
-
-        DrawRectLine(stDstRect);
-
-        fnDrawTokenBox(
-                bUTF8Char,
-                bTextureValid,
-                nKey,
-                nOuterFrameStartX,
-                nOuterFrameStartY,
-                nStartX,
-                nStartY,
-                bNeedUpdateTexture,
-                bColor);
-    }
 }

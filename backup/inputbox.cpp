@@ -3,7 +3,7 @@
  *
  *       Filename: inputbox.cpp
  *        Created: 8/21/2015 7:04:16 PM
- *  Last Modified: 09/03/2015 7:28:11 AM
+ *  Last Modified: 03/13/2016 17:01:10
  *
  *    Description: 
  *
@@ -18,13 +18,10 @@
  * =====================================================================================
  */
 
-#include <SDL.h>
-#include "utf8.h"
-#include "misc.hpp"
+#include <SDL2/SDL.h>
+#include <utf8.h>
 #include <algorithm>
 #include "inputbox.hpp"
-#include "devicemanager.hpp"
-#include "fonttexturemanager.hpp"
 
 int InputBox::m_ShowSystemCursorCount = 0;
 int InputBox::m_InputBoxCount         = 0;
@@ -60,7 +57,7 @@ void InputBox::Update(Uint32 nMs)
     m_Ticks += nMs;
 }
 
-bool InputBox::HandleEvent(SDL_Event &stEvent)
+bool InputBox::ProcessEvent(SDL_Event &stEvent)
 {
     switch(stEvent.type){
         case SDL_MOUSEMOTION:

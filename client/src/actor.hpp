@@ -3,6 +3,7 @@
 #include <array>
 #include <vector>
 
+#include "actorginfo.hpp"
 #include "mir2xmapext.hpp"
 #include "pngtexoffdb.hpp"
 
@@ -19,6 +20,7 @@ class Actor
         void SetMap(int, int, Mir2xMapExt *);
 
     protected:
+        int m_LID;
         int m_SID;
         int m_UID;
         int m_GenTime;
@@ -45,6 +47,28 @@ class Actor
         bool    m_WhiteBody;
         bool    m_Holy;
 
+    private:
+        int     m_EstimateNextX;
+        int     m_EstimateNextY;
+
+        int     m_TargetX;
+        int     m_targetY;
+
+    public:
+
+        int EstimateNextX()
+        {
+            return m_EstimateNextX;
+        }
+
+        int EstimateNextY()
+        {
+            return m_EstimateNextY;
+        }
+
+    public:
+        bool TryStepMove(int);
+
     public:
         int SID();
         int UID();
@@ -55,7 +79,10 @@ class Actor
         int ScreenY();
 
     public:
-        int CalculateDirection(int, int);
+        int  CalculateDirection(int, int);
+
+        // update the next possible position based on current state
+        void EstimateNextPosition(int);
 
     public:
         virtual int FrameCount() = 0;
@@ -64,7 +91,7 @@ class Actor
         int FrameCount(int, int);
 
     protected:
-        void InnDraw(int, int, int, int, int, int, int);
+        void InnDraw(bool, const std::function<void(int, int, uint32_t, uint32_t)> &);
 
     public:
         virtual void Draw() = 0;
@@ -77,7 +104,6 @@ class Actor
     protected:
         void UpdateMotion(int);
 
-
     public:
         virtual void SetNextState(int);
         virtual void SetNextPosition(int, int);
@@ -89,10 +115,11 @@ class Actor
         void SetHP(int);
 
     public:
-        virtual void Goto(bool, int, int);
+        virtual void Goto(int, int);
 
     public:
         static bool GInfoValid(int);
+        static bool LoadGInfo(int, const PNGTexOffDB<0> &);
 
     private:
         static std::unordered_map<int, ActorGInfo> sm_ActorGInfo;

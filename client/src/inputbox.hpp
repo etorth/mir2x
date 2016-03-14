@@ -10,7 +10,7 @@
 class InputBox: public Widget
 {
     public:
-        InputBox(int, int, uint8_t, uint8_t, uint32_t);
+        InputBox(int, int, uint8_t, uint8_t, uint32_t, int, uint32_t);
         virtual ~InputBox();
 
     public:
@@ -24,7 +24,7 @@ class InputBox: public Widget
     public:
         void Draw();
         void Update(Uint32);
-        bool HandleEvent(SDL_Event &);
+        bool ProcessEvent(SDL_Event &);
 
     protected:
         virtual void Compile();
@@ -38,6 +38,13 @@ class InputBox: public Widget
         void SetTokenBoxStartX();
         void BindCursorTokenBox(int, int);
         void LoadUTF8CharBoxCache(TOKENBOX &);
+
+    protected:
+        int      m_CursorWidth;
+        uint32_t m_CursorColor;
+        uint8_t  m_FontSet;
+        uint8_t  m_Size;
+        uint32_t m_TextColor;
 
     protected:
         int     m_SystemCursorX;

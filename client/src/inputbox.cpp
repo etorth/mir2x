@@ -3,7 +3,7 @@
  *
  *       Filename: inputbox.cpp
  *        Created: 8/21/2015 7:04:16 PM
- *  Last Modified: 09/03/2015 7:28:11 AM
+ *  Last Modified: 03/13/2016 19:28:06
  *
  *    Description: 
  *
@@ -18,33 +18,36 @@
  * =====================================================================================
  */
 
-#include <SDL.h>
-#include "utf8.h"
-#include "misc.hpp"
+#include <SDL2/SDL.h>
+#include <utf8.h>
 #include <algorithm>
 #include "inputbox.hpp"
-#include "devicemanager.hpp"
-#include "fonttexturemanager.hpp"
+#include "sdlkeyeventchar.hpp"
 
 int InputBox::m_ShowSystemCursorCount = 0;
 int InputBox::m_InputBoxCount         = 0;
 
-InputBox::InputBox(int nW, int nH, const FONTINFO &stFontInfo, const SDL_Color &stColor)
+InputBox::InputBox(int nW, int nH,
+        uint8_t nFontSet, uint8_t nFontSize, uint32_t nTextColor,
+        int nCursorWidth, uint32_t nCursorColor)
     : Widget()
-    , m_Content("")
+    , m_CursorWidth(nCursorWidth)
+    , m_CursorColor(nCursorColor)
+    , m_FontSet(nFontSet)
+    , m_Size(nFontSize)
+    , m_TextColor(nTextColor)
+    , m_SystemCursorX(0)
+    , m_SystemCursorY(0)
+    , m_DrawOwnSystemCursor(false)
     , m_ShowStartX(0)
     , m_Ticks(0)
     , m_Focus(false)
-    , m_DrawOwnSystemCursor(false)
-    , m_SystemCursorX(0)
-    , m_SystemCursorY(0)
+    , m_Content("")
 {
     m_InputBoxCount++;
     m_ShowSystemCursorCount++;
     m_W = nW;
     m_H = nH;
-    m_CharBoxCache.FontInfo = stFontInfo;
-    m_CharBoxCache.Color    = stColor;
 
     SetProperH();
 }
@@ -60,7 +63,7 @@ void InputBox::Update(Uint32 nMs)
     m_Ticks += nMs;
 }
 
-bool InputBox::HandleEvent(SDL_Event &stEvent)
+bool InputBox::ProcessEvent(SDL_Event &stEvent)
 {
     switch(stEvent.type){
         case SDL_MOUSEMOTION:
@@ -98,11 +101,10 @@ bool InputBox::HandleEvent(SDL_Event &stEvent)
                     // clear the count
                     m_Ticks = 0;
 
-                    char chKeyName = SDLKeyEventCharName(stEvent);
+                    char chKeyName = SDLKeyEventChar(stEvent);
                     if(chKeyName != '\0'){
                         m_BindTokenBoxIndex++;
-                        m_Content.insert((std::size_t)(m_BindTokenBoxIndex),
-                                (std::size_t)1, chKeyName);
+                        m_Content.insert((std::size_t)(m_BindTokenBoxIndex), (std::size_t)1, chKeyName);
                         Compile();
                         ResetShowStartX();
                         return true;
@@ -293,8 +295,11 @@ void InputBox::DrawSystemCursor()
         SDL_ShowCursor(1);
     }
 }
+
 void InputBox::Compile()
 {
+    m_XMLContent.clear();
+
     m_Line.clear();
 
     TOKENBOX stTokenBox;

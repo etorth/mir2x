@@ -6,15 +6,18 @@
 #include <functional>
 #include "section.hpp"
 #include "tokenbox.hpp"
+#include "widget.hpp"
 #include <unordered_map>
 
 // SECTIONINFO      : static data
 // SECTIONSTATE     : dynamic data
 
-class TokenBoard
+class TokenBoard: public Widget
 {
     public:
-        TokenBoard(bool, int);
+        TokenBoard(bool,    // wrap or not
+                int,        // maximal width
+                int);       // minimal text box margin
         ~TokenBoard() = default;
 
     private:
@@ -188,4 +191,5 @@ class TokenBoard
         void DrawRectLine(const SDL_Rect &);
 
     public:
+        const std::string &ContentExport();
 };

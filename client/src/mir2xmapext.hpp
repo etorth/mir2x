@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapext.hpp
  *        Created: 03/11/2016 23:30:36
- *  Last Modified: 03/11/2016 23:32:20
+ *  Last Modified: 03/12/2016 19:22:48
  *
  *    Description: wrapper for Mir2xMap
  *
@@ -21,6 +21,7 @@
 #pragma once
 #include "mir2xmap.hpp"
 
+class Actor;
 class Mir2xMapExt final
 {
     private:
@@ -41,4 +42,7 @@ class Mir2xMapExt final
        {
            return m_ViewY;
        }
+
+    public:
+       bool ValidPosition(int, int, const Actor &);
 };

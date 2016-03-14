@@ -10,7 +10,7 @@
 class InputBox: public Widget
 {
     public:
-        InputBox(int, int, const FONTINFO &, const SDL_Color &);
+        InputBox(int, int, uint8_t, uint8_t, uint32_t);
         virtual ~InputBox();
 
     public:
@@ -24,7 +24,7 @@ class InputBox: public Widget
     public:
         void Draw();
         void Update(Uint32);
-        bool HandleEvent(SDL_Event &);
+        bool ProcessEvent(SDL_Event &);
 
     protected:
         virtual void Compile();
@@ -51,7 +51,7 @@ class InputBox: public Widget
     protected:
         std::vector<TOKENBOX>       m_Line;
         std::string                 m_Content;
-        UTF8CHARTEXTUREINDICATOR    m_CharBoxCache;
+
     public:
         static int  m_ShowSystemCursorCount;
         static int  m_InputBoxCount;

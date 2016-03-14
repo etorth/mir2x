@@ -3,7 +3,7 @@
  *
  *       Filename: actor.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/12/2016 01:24:46
+ *  Last Modified: 03/12/2016 19:22:09
  *
  *    Description: 
  *
@@ -40,6 +40,7 @@
 
 Actor::Actor(int nSID, int nUID, int nGenTime)
     : m_MapExt(nullptr)
+    , m_LID(0)
     , m_SID(nSID)
     , m_UID(nUID)
     , m_GenTime(nGenTime)
@@ -132,7 +133,8 @@ void Actor::SetMap(int nX, int nY, Mir2xMapExt *pMapExt)
     m_MapExt = pMapExt;
 }
 
-void Actor::InnDraw(bool bBody, const std::function<void()> &fnDraw)
+void Actor::InnDraw(bool bBody, // draw body or shadow
+        const std::function<void(int, int, uint32_t, uint32_t)> &fnDraw)
 {
     uint32_t nKey = (bBody ? 0 : (1 << 14))
         + (((uint32_t)m_State      & 0X0000003F) << 23)
@@ -140,7 +142,7 @@ void Actor::InnDraw(bool bBody, const std::function<void()> &fnDraw)
         + (((uint32_t)m_FrameIndex & 0X0000003F) << 14)
         + (((uint32_t)m_LID        & 0X00001FFF) <<  0);
 
-    fnDraw(m_X, m_Y, nKey);
+    fnDraw(m_X, m_Y, nKey, 0XFFFFFFFF);
 }
 
 void Actor::UpdateCurrentState()
@@ -181,28 +183,8 @@ void Actor::EstimateNextPosition(int nDistance)
     m_EstimateNextY = m_Y + std::lround(dDY[m_Direction] * nDistance);
 }
 
-int Actor::EstimateNextX()
+bool Actor::TryStepMove(int nDistance)
 {
-    return m_EstimateNextX;
+    EstimateNextPosition(nDistance);
+    return m_MapExt->ValidPosition(m_EstimateNextX, m_EstimateNextY, *this);
 }
-
-int Actor::EstimateNextY()
-{
-    return m_EstimateNextY;
-}
-
-void Actor::Goto(int nX, int nY)
-{
-    EstimateNextPosition();
-    m_NextX = nX;
-    m_NextY = nY;
-}
-
-bool Actor::TryStepMove(std::function<bool()> fnExtCheck)
-{
-    EstimateNextPosition();
-    return m_MapExt->ValidPosition(m_EstimateX, m_EstimateY, this);
-}
-
-
-
