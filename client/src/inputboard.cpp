@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: inputbox.cpp
+ *       Filename: inputboard.cpp
  *        Created: 8/21/2015 7:04:16 PM
- *  Last Modified: 03/13/2016 21:34:51
+ *  Last Modified: 03/13/2016 21:43:55
  *
  *    Description: 
  *
@@ -24,10 +24,10 @@
 #include "inputbox.hpp"
 #include "sdlkeyeventchar.hpp"
 
-int InputBox::m_ShowSystemCursorCount = 0;
-int InputBox::m_InputBoxCount         = 0;
+int InputBoard::m_ShowSystemCursorCount = 0;
+int InputBoard::m_InputBoxCount         = 0;
 
-InputBox::InputBox(int nW, int nH,
+InputBoard::InputBoard(int nW, int nH,
         uint8_t nFontSet, uint8_t nFontSize, uint32_t nTextColor,
         int nCursorWidth, uint32_t nCursorColor)
     : Widget()
@@ -53,18 +53,18 @@ InputBox::InputBox(int nW, int nH,
     SetProperH();
 }
 
-InputBox::~InputBox()
+InputBoard::~InputBoard()
 {
     m_InputBoxCount--;
     m_ShowSystemCursorCount--;
 }
 
-void InputBox::Update(Uint32 nMs)
+void InputBoard::Update(Uint32 nMs)
 {
     m_Ticks += nMs;
 }
 
-bool InputBox::ProcessEvent(const SDL_Event &rstEvent)
+bool InputBoard::ProcessEvent(const SDL_Event &rstEvent)
 {
     switch(rstEvent.type){
         case SDL_MOUSEMOTION:
@@ -153,7 +153,7 @@ bool InputBox::ProcessEvent(const SDL_Event &rstEvent)
 }
 
 
-void InputBox::BindCursorTokenBox(int nEventX, int nEventY)
+void InputBoard::BindCursorTokenBox(int nEventX, int nEventY)
 {
     int nX = nEventX - X() + m_ShowStartX;
     int nY = nEventY - Y();
@@ -176,11 +176,11 @@ void InputBox::BindCursorTokenBox(int nEventX, int nEventY)
 }
 
 
-void InputBox::ResetShowStartX()
+void InputBoard::ResetShowStartX()
 {
 }
 
-void InputBox::ResetShowStartX()
+void InputBoard::ResetShowStartX()
 {
     if(m_BindTokenBoxIndex < 0){
         m_ShowStartX = 0;
@@ -208,7 +208,7 @@ void InputBox::ResetShowStartX()
 }
 
 
-void InputBox::Draw()
+void InputBoard::Draw()
 {
     if(m_TokenBoard.W() + m_CursorWidth <= m_W){
         m_TokenBoard.Draw(X(), Y());
@@ -218,7 +218,7 @@ void InputBox::Draw()
     }
 }
 
-void InputBox::Draw()
+void InputBoard::Draw()
 {
     int  nX = X();
     int  nY = Y();
@@ -260,7 +260,7 @@ void InputBox::Draw()
     DrawSystemCursor();
 }
 
-void InputBox::DrawCursor()
+void InputBoard::DrawCursor()
 {
     if(m_Ticks % 1000 < 500 && m_Focus){
         int nX, nY, nH;
@@ -291,7 +291,7 @@ void InputBox::DrawCursor()
     }
 }
 
-void InputBox::DrawSystemCursor()
+void InputBoard::DrawSystemCursor()
 {
     if(m_DrawOwnSystemCursor){
         GetDeviceManager()->SetRenderDrawColor(200, 200, 200, 200);
@@ -321,7 +321,7 @@ void InputBox::DrawSystemCursor()
     }
 }
 
-void InputBox::Compile()
+void InputBoard::Compile()
 {
     m_XMLContent.clear();
 
@@ -348,7 +348,7 @@ void InputBox::Compile()
     SetTokenBoxStartX();
 }
 
-void InputBox::SetTokenBoxStartX()
+void InputBoard::SetTokenBoxStartX()
 {
     int nCurrentX = 0;
     for(auto &stTokenBox: m_Line){
@@ -359,7 +359,7 @@ void InputBox::SetTokenBoxStartX()
     }
 }
 
-void InputBox::PushBack(TOKENBOX &stTokenBox)
+void InputBoard::PushBack(TOKENBOX &stTokenBox)
 {
     stTokenBox.State.W1 = 0;
     // stTokenBox.State.W2 = 0;
@@ -367,7 +367,7 @@ void InputBox::PushBack(TOKENBOX &stTokenBox)
     m_Line.push_back(stTokenBox);
 }
 
-void InputBox::LoadUTF8CharBoxCache(TOKENBOX &stTokenBox)
+void InputBoard::LoadUTF8CharBoxCache(TOKENBOX &stTokenBox)
 {
     std::memcpy(m_CharBoxCache.Data, stTokenBox.UTF8CharBox.Data, 8);
 
@@ -381,7 +381,7 @@ void InputBox::LoadUTF8CharBoxCache(TOKENBOX &stTokenBox)
     m_H = (std::max)(m_H, stTokenBox.Cache.H);
 }
 
-void InputBox::SetContent(const char *szInfo)
+void InputBoard::SetContent(const char *szInfo)
 {
     if(szInfo){
         m_Content = szInfo;
@@ -393,12 +393,12 @@ void InputBox::SetContent(const char *szInfo)
     ResetShowStartX();
 }
 
-const char *InputBox::Content()
+const char *InputBoard::Content()
 {
     return m_Content.c_str();
 }
 
-void InputBox::SetProperH()
+void InputBoard::SetProperH()
 {
     TOKENBOX stTokenBox;
     stTokenBox.UTF8CharBox.Data[0] = ' ';
