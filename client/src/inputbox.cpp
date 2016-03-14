@@ -3,7 +3,7 @@
  *
  *       Filename: inputbox.cpp
  *        Created: 8/21/2015 7:04:16 PM
- *  Last Modified: 03/13/2016 20:46:57
+ *  Last Modified: 03/13/2016 21:02:46
  *
  *    Description: 
  *
@@ -207,6 +207,8 @@ void InputBox::Draw()
     if(m_TokenBoard.W() + m_CursorWidth <= m_W){
         m_TokenBoard.Draw(X(), Y());
     }else{
+        m_TokenBoard.Draw(X(), Y(), 
+                m_W - m_TokenBoard.W() - m_CursorWidth, 0);
     }
 }
 
