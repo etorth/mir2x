@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 8/21/2015 7:04:16 PM
- *  Last Modified: 03/13/2016 21:43:55
+ *  Last Modified: 03/14/2016 00:59:20
  *
  *    Description: 
  *
@@ -51,6 +51,8 @@ InputBoard::InputBoard(int nW, int nH,
     m_H = nH;
 
     SetProperH();
+
+    m_TokenBoard.SetLineSpace(5);
 }
 
 InputBoard::~InputBoard()
@@ -63,6 +65,11 @@ void InputBoard::Update(Uint32 nMs)
 {
     m_Ticks += nMs;
 }
+
+
+
+
+
 
 bool InputBoard::ProcessEvent(const SDL_Event &rstEvent)
 {
@@ -155,8 +162,34 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent)
 
 void InputBoard::BindCursorTokenBox(int nEventX, int nEventY)
 {
+    // +-------------------------- <------- screen corner
+    // |
+    // |
+    // |   +----------------------+ <------ full tokenbox
+    // |   |                      |
+    // |   |  +--------------+    | <------ the inputboard window
+    // |   |  |              |    |
+    // |   |  |              |    |
+    // |   |  |  x           |    | <------ event point
+    // |   |  |              |    |
+    // |   |  +--------------+    |
+    // |   |                      |
+    // |   |                      |
+    // |   +----------------------+
+
+    int nRow, nCol;
+
+    if(m_TokenBoard.TokenBoxUnderPoint(nEventX, nEventY, nRow, nCol)){
+        m_TokenBoard.TokenBoxLocationInfo(nRow, nCol,
+                nStartX, nStartY, nW, nW1, nW2, nH, nH1, nH2);
+
+        m_BindTokenBoxLocation = {nRow, nCol};
+
+
+    }
+
     int nX = nEventX - X() + m_ShowStartX;
-    int nY = nEventY - Y();
+    int nY = nEventY - Y() + m_ShowStartY;
 
     for(int nIndex = 0; nIndex < (int)m_Line.size(); ++nIndex){
         int nBoxStartX = m_Line[nIndex].Cache.StartX - m_Line[nIndex].State.W1;
@@ -260,34 +293,38 @@ void InputBoard::Draw()
     DrawSystemCursor();
 }
 
+void InputBoard::DeleteBindTokenBox()
+{
+    if(m_BindTokenBoxIndex.second < 0){
+        if(m_BindTokenBoxIndex.first > 0){
+            // at the beginning of some line
+
+            Compile();
+        }
+    }else{
+        // bind to some tokenbox for sure
+
+        Compile();
+    }
+}
+
 void InputBoard::DrawCursor()
 {
     if(m_Ticks % 1000 < 500 && m_Focus){
-        int nX, nY, nH;
-        if(m_BindTokenBoxIndex == -1){
-            nX = X();
+        if(m_BindTokenBoxIndex.first >= 0 && m_BindTokenBoxIndex.second >= 0){
+            // cursor binding to some box
+            int nStartX, nStartY, nW, nW1, nW2, nH, nH1, nH2;
+            m_TokenBoard.TokenBoxLocationInfo(m_BindTokenBoxIndex.first, m_BindTokenBoxIndex.second,
+                    nStartX, nStartY, nW, nW1, nW2, nH, nH1, nH2);
+
+            fnDrawCursor(X() + nStartX + nW - nW1 - nW2,
+                    Y() + nStartY + nH - nH1 - nH2, m_CursorWidth, m_CursorColor);
+
         }else{
-            nX = X()
-                + m_Line[m_BindTokenBoxIndex].Cache.StartX
-                + m_Line[m_BindTokenBoxIndex].Cache.W
-                + m_Line[m_BindTokenBoxIndex].State.W1
-                - m_ShowStartX;
+            if(m_BindTokenBoxIndex.second < 0){
+                // start with empty line
+            }
         }
-        nY = Y() - 1;
-        nH = m_H + 2;
-        GetDeviceManager()->SetRenderDrawColor(200, 200, 200, 200);
-        SDL_RenderDrawLine(
-                GetDeviceManager()->GetRenderer(),
-                nX, nY, nX, nY + nH);
-        // SDL_RenderDrawLine(
-        //         GetDeviceManager()->GetRenderer(),
-        //         nX - (std::max)(1, (int)std::lround(nH * 0.05)), nY,
-        //         nX + (std::max)(1, (int)std::lround(nH * 0.05)), nY);
-        // SDL_RenderDrawLine(
-        //         GetDeviceManager()->GetRenderer(),
-        //         nX - (std::max)(1, (int)std::lround(nH * 0.05)), nY + nH,
-        //         nX + (std::max)(1, (int)std::lround(nH * 0.05)), nY + nH);
-        GetDeviceManager()->SetRenderDrawColor(0, 0, 0, 0);
     }
 }
 
