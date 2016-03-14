@@ -3,7 +3,7 @@
  *
  *       Filename: inputbox.cpp
  *        Created: 8/21/2015 7:04:16 PM
- *  Last Modified: 03/13/2016 19:28:06
+ *  Last Modified: 03/13/2016 20:46:57
  *
  *    Description: 
  *
@@ -43,6 +43,7 @@ InputBox::InputBox(int nW, int nH,
     , m_Ticks(0)
     , m_Focus(false)
     , m_Content("")
+    , m_IME(nullptr)
 {
     m_InputBoxCount++;
     m_ShowSystemCursorCount++;
@@ -63,14 +64,14 @@ void InputBox::Update(Uint32 nMs)
     m_Ticks += nMs;
 }
 
-bool InputBox::ProcessEvent(SDL_Event &stEvent)
+bool InputBox::ProcessEvent(const SDL_Event &rstEvent)
 {
-    switch(stEvent.type){
+    switch(rstEvent.type){
         case SDL_MOUSEMOTION:
             {
-                if(In(stEvent.motion.x, stEvent.motion.y)){
-                    m_SystemCursorX    = stEvent.motion.x;
-                    m_SystemCursorY    = stEvent.motion.y;
+                if(In(rstEvent.motion.x, rstEvent.motion.y)){
+                    m_SystemCursorX    = rstEvent.motion.x;
+                    m_SystemCursorY    = rstEvent.motion.y;
                     if(!m_DrawOwnSystemCursor){
                         m_ShowSystemCursorCount--;
                     }
@@ -85,9 +86,9 @@ bool InputBox::ProcessEvent(SDL_Event &stEvent)
             }
         case SDL_MOUSEBUTTONDOWN:
             {
-                if(In(stEvent.button.x, stEvent.button.y)){
+                if(In(rstEvent.button.x, rstEvent.button.y)){
                     m_Focus = true;
-                    BindCursorTokenBox(stEvent.button.x, stEvent.button.y);
+                    BindCursorTokenBox(rstEvent.button.x, rstEvent.button.y);
                     ResetShowStartX();
                     return true;
                 }else{
@@ -101,7 +102,14 @@ bool InputBox::ProcessEvent(SDL_Event &stEvent)
                     // clear the count
                     m_Ticks = 0;
 
-                    char chKeyName = SDLKeyEventChar(stEvent);
+
+                    if(m_IME){
+                        return m_IME->ProcessEvent(rstEvent);
+                    }
+
+                    char chKeyName = SDLKeyEventChar(rstEvent);
+
+
                     if(chKeyName != '\0'){
                         m_BindTokenBoxIndex++;
                         m_Content.insert((std::size_t)(m_BindTokenBoxIndex), (std::size_t)1, chKeyName);
@@ -110,7 +118,7 @@ bool InputBox::ProcessEvent(SDL_Event &stEvent)
                         return true;
                     }
 
-                    if(stEvent.key.keysym.sym == SDLK_BACKSPACE){
+                    if(rstEvent.key.keysym.sym == SDLK_BACKSPACE){
                         if(m_BindTokenBoxIndex >= 0){
                             m_Content.erase(m_BindTokenBoxIndex, 1);
                             m_BindTokenBoxIndex--;
@@ -120,7 +128,7 @@ bool InputBox::ProcessEvent(SDL_Event &stEvent)
                         return true;
                     }
 
-                    if(stEvent.key.keysym.sym == SDLK_LEFT){
+                    if(rstEvent.key.keysym.sym == SDLK_LEFT){
                         if(m_BindTokenBoxIndex >= 0){
                             m_BindTokenBoxIndex--;
                             ResetShowStartX();
@@ -128,8 +136,8 @@ bool InputBox::ProcessEvent(SDL_Event &stEvent)
                         return true;
                     }
 
-                    if(stEvent.key.keysym.sym == SDLK_RIGHT){
-                        if(m_BindTokenBoxIndex + 1 < m_Content.size()){
+                    if(rstEvent.key.keysym.sym == SDLK_RIGHT){
+                        if((size_t)(m_BindTokenBoxIndex + 1) < m_Content.size()){
                             m_BindTokenBoxIndex++;
                             ResetShowStartX();
                         }
@@ -149,7 +157,7 @@ void InputBox::BindCursorTokenBox(int nEventX, int nEventY)
     int nX = nEventX - X() + m_ShowStartX;
     int nY = nEventY - Y();
 
-    for(int nIndex = 0; nIndex < m_Line.size(); ++nIndex){
+    for(int nIndex = 0; nIndex < (int)m_Line.size(); ++nIndex){
         int nBoxStartX = m_Line[nIndex].Cache.StartX - m_Line[nIndex].State.W1;
         int nBoxStartY = m_Line[nIndex].Cache.StartY;
         int nBoxW      = m_Line[nIndex].State.W1 + m_Line[nIndex].Cache.W + m_Line[nIndex].State.W2;
@@ -191,6 +199,15 @@ void InputBox::ResetShowStartX()
 
     // otherwise m_BindTokenBoxIndex is ok
     // do nothing ??
+}
+
+
+void InputBox::Draw()
+{
+    if(m_TokenBoard.W() + m_CursorWidth <= m_W){
+        m_TokenBoard.Draw(X(), Y());
+    }else{
+    }
 }
 
 void InputBox::Draw()

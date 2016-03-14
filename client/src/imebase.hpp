@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: inputmethodengine.hpp
+ *       Filename: imebase.hpp
  *        Created: 03/13/2016 19:17:48
- *  Last Modified: 03/13/2016 19:18:41
+ *  Last Modified: 03/13/2016 20:23:17
  *
  *    Description: input method engine
  *
@@ -20,8 +20,14 @@
 
 
 #pragma once
+#include "widget.hpp"
 
-class InputMethodEngine
+class IMEBase: public Widget
 {
+    public:
+        IMEBase();
+        virtual ~IMEBase();
 
-}
+    public:
+        bool ProcessEvent(const SDL_Event &);
+};

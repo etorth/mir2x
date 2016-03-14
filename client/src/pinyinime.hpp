@@ -3,7 +3,7 @@
  *
  *       Filename: pinyinengine.hpp
  *        Created: 03/13/2016 19:18:58
- *  Last Modified: 03/13/2016 19:26:11
+ *  Last Modified: 03/13/2016 19:38:40
  *
  *    Description: pinyin method
  *
@@ -35,4 +35,5 @@ class PinyinEngine: public InputMethodEngine
 
     public:
         std::string Translate();
+
 };

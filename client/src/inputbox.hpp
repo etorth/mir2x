@@ -6,6 +6,7 @@
 
 #include "widget.hpp"
 #include "tokenbox.hpp"
+#include "imebase.hpp"
 
 class InputBox: public Widget
 {
@@ -24,7 +25,7 @@ class InputBox: public Widget
     public:
         void Draw();
         void Update(Uint32);
-        bool ProcessEvent(SDL_Event &);
+        bool ProcessEvent(const SDL_Event &);
 
     protected:
         virtual void Compile();
@@ -62,4 +63,7 @@ class InputBox: public Widget
     public:
         static int  m_ShowSystemCursorCount;
         static int  m_InputBoxCount;
+
+    private:
+        IMEBase *m_IME;
 };
