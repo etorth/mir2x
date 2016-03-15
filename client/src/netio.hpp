@@ -27,7 +27,7 @@ class NetIO final
                 const std::string &, std::function<void()>);
 
     public:
-        void RunIO();
+        void RunIO(const std::function<void()> &);
         void StopIO();
 
     public:
@@ -44,7 +44,7 @@ class NetIO final
 
         // read a HC
         // user should provide the method to consume the HC
-        void ReadHC(std::function<void(uint8_t)>);
+        void ReadHC(const std::function<void(uint8_t)>&);
 
         // read specified length of data to the buffer
         // user should maintain the validation of the buffer

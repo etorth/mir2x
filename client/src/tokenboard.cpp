@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 6/17/2015 10:24:27 PM
- *  Last Modified: 03/14/2016 00:11:13
+ *  Last Modified: 03/14/2016 23:35:45
  *
  *    Description: 
  *
@@ -19,7 +19,6 @@
  */
 
 #include "emoticon.hpp"
-#include "misc.hpp"
 #include "section.hpp"
 #include "tokenboard.hpp"
 #include "tokenbox.hpp"
@@ -33,14 +32,13 @@
 
 TokenBoard::TokenBoard(bool bWrap, int nMaxWidth, int nMinTextMargin)
     : m_PW(nMaxWidth)
-    , m_MinTextMargin(nMinTextMargin)
     , m_W(0)
     , m_H(0)
-    , m_Resolution(20)
     , m_Wrap(bWrap)
     , m_CurrentWidth(0)
-    , m_HasEventText(false)
-    , m_Valid(false)
+    , m_SkipEvent(false)
+    , m_Resolution(20)
+    , m_MinTextMargin(nMinTextMargin)
 {
 }
 
@@ -49,13 +47,10 @@ bool TokenBoard::Load(const tinyxml2::XMLElement *pDoc,
         std::function<void(uint32_t, int &, int &, int &)> fnEmoticonInfo,
         std::unordered_map<std::string, std::function<void()> stIDhandlerMap)
 {
-    m_Valid = false;
 }
 
 bool TokenBoard::Load(const tinyxml2::XMLDocument *pDoc)
 {
-    m_Valid = false;
-
     if(pDoc == nullptr){ return false; }
     
     const tinyxml2::XMLElement *pRoot = pDoc->RootElement();

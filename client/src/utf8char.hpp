@@ -3,7 +3,7 @@
  *
  *       Filename: utf8char.hpp
  *        Created: 7/3/2015 2:05:13 PM
- *  Last Modified: 03/05/2016 04:17:41
+ *  Last Modified: 03/14/2016 23:19:48
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 
 #pragma once
+#include <cstdint>
 
 const uint8_t FONTSTYLE_BOLD          = 0B0000'0001;
 const uint8_t FONTSTYLE_UNDERLINE     = 0B0000'0010;

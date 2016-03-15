@@ -1,5 +1,6 @@
 #pragma once 
 #include "sdldevice.hpp"
+#include "netio.hpp"
 
 #include "processlogo.hpp"
 #include "processlogin.hpp"
@@ -37,6 +38,15 @@ class Game
 
     private:
         void SwitchProcess(int, int);
+        void RunASIO();
+        void ReadHC();
+
+    private:
+        void OnPing();
+        void OnLoginOK();
+
+    private:
+        NetIO   m_NetIO;
 
     private:
         ProcessLogin    *m_ProcessLogin;

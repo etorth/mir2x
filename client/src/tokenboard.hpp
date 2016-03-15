@@ -57,8 +57,9 @@ class TokenBoard: public Widget
         int m_CurrentWidth;
         int m_CurrentLineMaxH2;
         int          m_PW;
-        int          m_H;
         int          m_W;
+        int          m_H;
+
     private:
         void UpdateSection(SECTION &, Uint32);
     public:
@@ -184,7 +185,8 @@ class TokenBoard: public Widget
     private:
         void MakeEventTextBitmap();
         void MarkEventTextBitmap(TOKENBOX &);
-        int m_Resolution;
+        int  m_Resolution;
+        int  m_MinTextMargin;
     private:
         int SectionTypeCount(const std::vector<TOKENBOX> &, int);
 

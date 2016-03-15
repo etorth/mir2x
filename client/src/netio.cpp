@@ -3,7 +3,7 @@
  *
  *       Filename: netio.cpp
  *        Created: 06/29/2015 7:18:27 PM
- *  Last Modified: 03/10/2016 19:12:15
+ *  Last Modified: 03/14/2016 23:08:32
  *
  *    Description: this class won't maintian buffer's validation
  *                 user should maintain it by themself
@@ -41,7 +41,7 @@ void NetIO::StopIO()
     m_IO.post([this](){Close();});
 }
 
-void NetIO::RunIO(const std::function<void(uint8_t)> &fnOperateHC)
+void NetIO::RunIO(const std::function<void()> &fnOperateHC)
 {
     // 1. push a connect request into the event queue
     // 2. start the event loop
