@@ -10,6 +10,7 @@ class Widget
             , m_Y(0)
             , m_W(0)
             , m_H(0)
+            , m_Focus(false)
             , m_Parent(nullptr)
         {}
         
@@ -86,6 +87,9 @@ class Widget
         int m_Y;
         int m_W;
         int m_H;
+
+    protected:
+        bool m_Focus;
 
     protected:
         Widget *m_Parent;

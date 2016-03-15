@@ -1,7 +1,7 @@
 #pragma once
-#include "inputbox.hpp"
+#include "idbox.hpp"
 
-class PasswordBox: public InputBox
+class PasswordBox: public IDBox
 {
     public:
         PasswordBox(int, int, uint8_t, uint8_t, uint32_t);

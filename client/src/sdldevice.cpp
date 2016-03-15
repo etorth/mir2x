@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/11/2016 23:11:46
+ *  Last Modified: 03/15/2016 00:31:58
  *
  *    Description: copy from flare-engine:
  *		   SDLDevice.h/cpp
@@ -20,7 +20,9 @@
  */
 
 #include <SDL2/SDL.h>
-#include <system_error>
+#include <SDL2/SDL_image.h>
+
+#include <stdexcept>
 
 #include "xmlext.hpp"
 #include "sdldevice.hpp"
@@ -69,13 +71,13 @@ SDLDevice::SDLDevice(const XMLExt &stXMLExt)
             SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nWindowW, nWindowH, nFlags);
 
     if(!m_Window){
-        throw std::system_error("Failed to crate window");
+        throw std::runtime_error(SDL_GetError());
     }
 
-    m_Renderer = SDL_CreateRenderer(window, -1, 0);
+    m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
     if(!m_Renderer){
         SDL_DestroyWindow(m_Window);
-        throw std::system_error("Failed to crate renderer");
+        throw std::runtime_error(SDL_GetError());
     }
 
     SetWindowIcon();
@@ -134,12 +136,12 @@ void SDLDevice::SetWindowIcon()
 
     // The icon is attached to the window pointer
     if(pstSurface){
-        SDL_SetWindowIcon(window, pstSurface);
+        SDL_SetWindowIcon(m_Window, pstSurface);
         SDL_FreeSurface(pstSurface);
     }
 }
 
-SDL_Texture *SDLDevice::CreateTexture(const void *pMem, int nSize)
+SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
 {
     // TODO
     //
@@ -155,9 +157,9 @@ SDL_Texture *SDLDevice::CreateTexture(const void *pMem, int nSize)
     SDL_Surface *pstSurface = nullptr;
     SDL_Texture *pstTexture = nullptr;
 
-    pstRWops = SDL_RWFromConstMem(pMem);
+    pstRWops = SDL_RWFromConstMem((const void *)pMem, nSize);
     if(pstRWops){
-        pstSurface = SDL_LoadPNG_RW(pstRWops);
+        pstSurface = IMG_LoadPNG_RW(pstRWops);
         if(pstSurface){
             pstTexture = SDL_CreateTextureFromSurface(m_Renderer, pstSurface);
         }
@@ -194,17 +196,4 @@ void SDLDevice::DrawTexture(SDL_Texture *pstTexture, int nX, int nY)
             SDL_RenderCopy(m_Renderer, pstTexture, &stSrc, &stDst);
         }
     }
-}
-
-SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pRawData, size_t nLen)
-{
-    if(pRawData && nLen > 0){
-        auto pSurface = IMG_LoadPNG_RW(SDL_RWFromConstMem(pRawData, nLen));
-        if(pSurface){
-            auto pTexture = SDL_CreateTextureFromSurface(m_Renderer, pSurface);
-            SDL_FreeSurface(pSurface);
-            return pTexture;
-        }
-    }
-    return nullptr;
 }

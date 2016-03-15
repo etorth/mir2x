@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/11/2016 23:11:43
+ *  Last Modified: 03/15/2016 00:23:35
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp
@@ -34,6 +34,10 @@ class SDLDevice final
 
     public:
        SDL_Texture *CreateTexture(const uint8_t *, size_t);
+
+    public:
+       void SetWindowIcon();
+       void DrawTexture(SDL_Texture *, int, int);
 
     public:
        void Present()

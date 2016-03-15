@@ -1,3 +1,23 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: inputboard.hpp
+ *        Created: 06/17/2015 10:24:27 PM
+ *  Last Modified: 03/15/2016 00:07:38
+ *
+ *    Description: 
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
+
 #pragma once
 
 #include <vector>
@@ -8,11 +28,11 @@
 #include "tokenbox.hpp"
 #include "imebase.hpp"
 
-class InputBox: public Widget
+class InputBoard: public Widget
 {
     public:
-        InputBox(int, int, uint8_t, uint8_t, uint32_t, int, uint32_t);
-        virtual ~InputBox();
+        InputBoard(int, int, uint8_t, uint8_t, uint32_t, int, uint32_t);
+        virtual ~InputBoard();
 
     public:
         const char *Content();

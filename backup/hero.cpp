@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 09/09/2015 4:01:19 AM
+ *  Last Modified: 03/15/2016 00:11:08
  *
  *    Description: 
  *
@@ -19,7 +19,7 @@
  */
 
 #include "hero.hpp"
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 Hero::Hero(int nSID, int nUID, int nGenTime)
     : Actor(nSID, nUID, nGenTime)
