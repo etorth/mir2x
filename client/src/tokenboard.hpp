@@ -120,7 +120,7 @@ class TokenBoard: public Widget
         int     m_LineWidth;
 
     public:
-        bool ObjectEmocticon(const tinyxml2::XMLElement *);
+        bool ObjectEmocticon(const tinyxml2::XMLElement &);
         bool ObjectReturn(const tinyxml2::XMLElement *);
         bool ObjectText(const tinyxml2::XMLElement *);
         bool ObjectEventText(const tinyxml2::XMLElement *);
