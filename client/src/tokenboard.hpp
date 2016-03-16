@@ -21,9 +21,6 @@ class TokenBoard: public Widget
         ~TokenBoard() = default;
 
     private:
-        bool    m_Wrap;
-        bool    m_SkipEvent;
-
     public:
         int InSection(int, int);
 
@@ -52,13 +49,16 @@ class TokenBoard: public Widget
         int     SpacePadding(int);
 
     private:
-        int m_MaxH1;
-        int m_MaxH2;
-        int m_CurrentWidth;
-        int m_CurrentLineMaxH2;
-        int          m_PW;
-        int          m_W;
-        int          m_H;
+        int     m_MaxH1;
+        int     m_MaxH2;
+        int     m_CurrentLineMaxH2;
+        int     m_PW;
+        int     m_W;
+        int     m_H;
+        bool    m_Wrap;
+        int     m_CurrentWidth;
+        bool    m_SkipEvent;
+
 
     private:
         void UpdateSection(SECTION &, Uint32);
@@ -81,9 +81,9 @@ class TokenBoard: public Widget
     public:
         // load the content and it's callback table
         bool Load(const tinyxml2::XMLDocument &,
-                std::function<bool(bool, uint64_t, int &, int &)>,
-                std::function<bool(uint32_t, int &, int &, int &)>,
-                std::unordered_map<std::string, std::function<void()>>);
+                const std::function<bool(bool, uint64_t, int *, int *)> &,
+                const std::function<bool(uint32_t, int *, int *, int *)> &,
+                const std::unordered_map<std::string, std::function<void()>> &);
 
     private:
         bool ParseXMLContent(const tinyxml2::XMLElement *);
