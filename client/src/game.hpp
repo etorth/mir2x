@@ -36,7 +36,7 @@ class Game
         // since the FontexDB and EmoticonDB are local inside of stGame
         void LoadTokenBoard(TokenBoard *, const tinyxml2::XMLDocument *);
 
-    private:
+    public:
         void SwitchProcess(int, int);
         void RunASIO();
         void ReadHC();

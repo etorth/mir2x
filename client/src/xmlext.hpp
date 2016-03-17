@@ -3,7 +3,7 @@
  *
  *       Filename: xmlext.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 03/15/2016 00:13:43
+ *  Last Modified: 03/17/2016 00:01:21
  *
  *    Description: 
  *
@@ -22,7 +22,7 @@
 #pragma once
 #include <tinyxml2.h>
 
-class XMLExt final
+class XMLExt
 {
     public:
         XMLExt() = default;

@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/11/2016 23:14:09
+ *  Last Modified: 03/17/2016 01:25:45
  *
  *    Description: 
  *
@@ -19,7 +19,6 @@
  */
 
 #pragma once
-#include <queue>
 #include <utility>
 #include <unordered_map>
 
@@ -29,15 +28,20 @@
 
 #include "hexstring.hpp"
 #include "cachequeue.hpp"
+#include "sdldevice.hpp"
 
+// don't change this setting easily
+// since it will affect hash key of linear cache
+#define PNGTEXOFFDB_LINEAR_CACHE_SIZE   1024
 
-template<int N = 4>
+template<int N>
 class PNGTexOffDB
 {
     private:
 
         // linear cache
-        std::array<CacheQueue<std::tuple< SDL_Texture *, int, uint32_t>, N>, 1024> m_LCache;
+        std::array<CacheQueue<std::tuple<SDL_Texture *,
+            int, uint32_t>, N>, PNGTEXOFFDB_LINEAR_CACHE_SIZE> m_LCache;
 
         // main cache
         std::unordered_map<uint32_t, std::pair<int, SDL_Texture *>> m_Cache;
@@ -48,20 +52,21 @@ class PNGTexOffDB
         // time stamp queue
         std::queue<std::tuple<int, uint32_t>>  m_TimeStampQ;
 
+        int      m_ResourceMaxCount;
+        int      m_ResourceCount;
         zip_t   *m_ZIP;
         uint8_t *m_Buf;
         size_t   m_BufSize;
         int      m_CurrentTime;
-        int      m_ResourceMaxCount;
-        int      m_ResourceCount;
 
     public:
-        PNGTexOffDB(const char *szDBPath)
+        PNGTexOffDB()
             : m_ResourceMaxCount(N * 512 + 2000)
             , m_ResourceCount(0)
             , m_ZIP(nullptr)
             , m_Buf(nullptr)
             , m_BufSize(0)
+            , m_CurrentTime(0)
         {
         }
 
@@ -355,8 +360,7 @@ class PNGTexOffDB
         }
 
         // load texture from zip archive
-        SDL_Texture *LoadTexture(uint32_t nKey,
-                const std::function<SDL_Texture *(uint8_t *, size_t)> &fnCreateTexture)
+        SDL_Texture *LoadTexture(uint32_t nKey)
         {
             char szPNGName;
             PNGFileName(nKey, szPNGName);
@@ -378,7 +382,8 @@ class PNGTexOffDB
                         return nullptr;
                     }
 
-                    return fnCreateTexture(m_Buf, stZIPStat.size);
+                    extern SDLDevice *g_SDLDevice;
+                    return g_SDLDevice->CreateTexture(m_Buf, stZIPStat.size);
                 }
             }
             return nullptr;

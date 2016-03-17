@@ -3,7 +3,7 @@
  *
  *       Filename: process.cpp
  *        Created: 6/29/2015 8:24:36 PM
- *  Last Modified: 02/24/2016 02:15:54
+ *  Last Modified: 03/17/2016 01:11:02
  *
  *    Description: 
  *
@@ -25,44 +25,16 @@
 #include <cstdio>
 #include "process.hpp"
 
-Process::Process(int nProcessID, Game *pGame)
-    : m_ProcessID(nProcessID)
-    , m_Game(pGame)
-    , m_NextProcessID(Process::PROCESSID_NULL)
-    , m_StartTime(0)
-    , m_FPS(60)
-    , m_InvokeCount(0)
+Process::Process()
+    : m_NextProcessID(PROCESSID_NULL)
+    , m_TotalTime(0.0)
+    , m_FPS(60.0)
+    , m_InvokeCount(0.0)
     , m_Quit(false)
 {}
 
 Process::~Process()
 {}
-
-void Process::Enter()
-{
-    m_StartTime   = SDL_GetTicks();
-    m_InvokeCount = 0;
-}
-
-void Process::Exit()
-{
-    // clear those data needed when switching
-    m_NextProcessID = Process::PROCESSID_NULL;
-}
-
-void Process::EventDelay()
-{
-}
-
-void Process::ClearEvent()
-{
-    SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
-}
-
-int Process::ProcessID()
-{
-    return m_ProcessID;
-}
 
 bool Process::RequestQuit()
 {
@@ -76,11 +48,5 @@ int Process::NextProcessID()
 
 bool Process::RequestNewProcess()
 {
-    return m_NextProcessID != Process::PROCESSID_NULL;
+    return m_NextProcessID != PROCESSID_NULL;
 }
-
-void Process::Update()
-{
-    m_InvokeCount++;
-}
-

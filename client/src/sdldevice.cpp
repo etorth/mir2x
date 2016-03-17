@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/15/2016 00:31:58
+ *  Last Modified: 03/17/2016 01:27:25
  *
  *    Description: copy from flare-engine:
  *		   SDLDevice.h/cpp

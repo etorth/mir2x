@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.hpp
  *        Created: 08/14/2015 2:47:30 PM
- *  Last Modified: 03/15/2016 00:08:17
+ *  Last Modified: 03/17/2016 00:45:54
  *
  *    Description: 
  *
@@ -46,7 +46,7 @@ class ProcessLogin: public Process
         PasswordBox     m_PasswordBox;
 
     public:
-        ProcessLogin(Game *);
+        ProcessLogin();
         ~ProcessLogin();
 
     public:

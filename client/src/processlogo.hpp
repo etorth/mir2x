@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.hpp
  *        Created: 8/13/2015 12:07:39 AM
- *  Last Modified: 03/07/2016 23:40:51
+ *  Last Modified: 03/17/2016 01:10:30
  *
  *    Description: 
  *
@@ -25,6 +25,15 @@
 
 class ProcessLogo: public Process
 {
+    private:
+        double  m_FullMS;
+        double  m_TimeR1;
+        double  m_TimeR2;
+
+    public:
+        ProcessLogo();
+        virtual ~ProcessLogo();
+
     public:
         int ID()
         {
@@ -32,23 +41,10 @@ class ProcessLogo: public Process
         }
 
     private:
-        Uint32  m_FullMS;
-        double  m_StartPartRatio;
-        double  m_StayPartRatio;
-    private:
-        SDL_Texture    *m_TextureLogo;
-        Uint32          m_StartTime;
-        int             m_FrameCount;
-        int             m_ProcessID;
-    public:
-        ProcessLogo(Game *);
-        virtual ~ProcessLogo();
-    public:
         double Ratio();
+
     public:
-        void Enter();
-        void Exit();
-        void Update();
+        void Update(double);
         void Draw();
-        void HandleEvent(SDL_Event *);
+        void ProcessEvent(const SDL_Event &);
 };

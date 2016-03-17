@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 7:04:16 PM
- *  Last Modified: 03/15/2016 00:06:54
+ *  Last Modified: 03/17/2016 01:56:48
  *
  *    Description: 
  *
@@ -21,7 +21,7 @@
 #include <SDL2/SDL.h>
 #include <utf8.h>
 #include <algorithm>
-#include "inputbox.hpp"
+#include "inputboard.hpp"
 #include "sdlkeyeventchar.hpp"
 
 int InputBoard::m_ShowSystemCursorCount = 0;

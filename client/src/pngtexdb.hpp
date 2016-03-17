@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/16/2016 22:36:16
+ *  Last Modified: 03/17/2016 01:56:12
  *
  *    Description: 
  *
@@ -22,16 +22,20 @@
 #pragma once
 #include <utility>
 #include <unordered_map>
+
 #include <zip.h>
-#include <zipint.h>
-#include <zlib.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
+#include "hexstring.hpp"
 #include "cachequeue.hpp"
+#include "sdldevice.hpp"
 
 // don't change this setting easily
 // since it will affect hash key of linear cache
 #define PNGTEXDB_LINEAR_CACHE_SIZE   1024
 
-template<int N = 4>
+template<int N>
 class PNGTexDB
 {
     private:
@@ -49,13 +53,14 @@ class PNGTexDB
 
         int m_ResourceMaxCount;
         int m_ResourceCount;
+        int m_CurrentTime;
 
     private:
 
         // libzip stuff
         //
-        zip_t    m_ZIP;
-        int      m_BufSize;
+        zip_t   *m_ZIP;
+        size_t   m_BufSize;
         uint8_t *m_Buf;
 
     public:
@@ -63,9 +68,10 @@ class PNGTexDB
         PNGTexDB()
             : m_ResourceMaxCount(N * 512 + 2000)
             , m_ResourceCount(0)
+            , m_CurrentTime(0)
             , m_ZIP(nullptr)
-            , m_Buf(nullptr)
             , m_BufSize(0)
+            , m_Buf(nullptr)
         {
         }
 
@@ -111,6 +117,11 @@ class PNGTexDB
 
     public:
 
+        SDL_Texture *Retrieve(uint8_t nIndex, uint16_t nImage)
+        {
+            return Retrieve((uint32_t)(((uint32_t)(nIndex) << 16) + nImage));
+        }
+
         SDL_Texture *Retrieve(uint32_t nKey)
         {
             // everytime when call this function
@@ -142,7 +153,7 @@ class PNGTexDB
                     std::get<1>(m_LCache[nLCacheKey].Head()) = m_CurrentTime;
 
                     // 3. push the access stamp at the end of the time stamp queue
-                    m_TimeStampQ.push({m_CurrentTime, nKey});
+                    m_TimeStampQ.emplace(m_CurrentTime, nKey);
 
                     // 4. return the resource pointer
                     return std::get<0>(m_LCache[nLCacheKey].Head());
@@ -173,19 +184,19 @@ class PNGTexDB
                     }
 
                     // now insert the record to LC
-                    m_LCache[nLCKey].PushHead({pTextureInst.second.second, m_CurrentTime, nKey});
+                    m_LCache[nLCacheKey].PushHead(pTextureInst->second.second, m_CurrentTime, nKey);
                 }
 
                 // 2. set access time in m_Cache
                 //
-                pTextureInst.second.first = m_CurrentTime;
+                pTextureInst->second.first = m_CurrentTime;
 
                 // 3. push the access stamp at the end of the time stamp queue
                 //
-                m_TimeStampQ.push({m_CurrentTime, nKey});
+                m_TimeStampQ.emplace(m_CurrentTime, nKey);
 
                 // 4. return the resource pointer
-                return pTexture.second.second;
+                return pTextureInst->second.second;
             }
 
             // it's not in m_Cache, too bad ...
@@ -207,7 +218,7 @@ class PNGTexDB
                 }
 
                 // now insert the record to LC
-                m_LCache[nLCKey].PushHead({pTexture, m_CurrentTime, nKey});
+                m_LCache[nLCacheKey].PushHead(pTexture, m_CurrentTime, nKey);
             }
 
             // 2. put the resource in m_Cache
@@ -216,11 +227,11 @@ class PNGTexDB
 
             // 3. push the access stamp at the end of the time stamp queue
             //
-            m_TimeStampQ.push({m_CurrentTime, nKey});
+            m_TimeStampQ.emplace(m_CurrentTime, nKey);
 
             // 4. reset the size of the cache
             // 
-            m_ReourceCount++;
+            m_ResourceCount++;
             Resize();
 
             // 5. return the resource pointer
@@ -254,7 +265,7 @@ class PNGTexDB
         }
 
 
-        void PNGFileName(uint32_t nKey, char *szPNGName)
+        const char *PNGFileName(uint32_t nKey, char *szPNGName)
         {
             // only use 24 ~ 1 bits
             const uint16_t knvHexStringChunk[] = {
@@ -308,7 +319,7 @@ class PNGTexDB
         // load texture from zip archive
         SDL_Texture *LoadTexture(uint32_t nKey)
         {
-            char szPNGName;
+            char szPNGName[16];
             PNGFileName(nKey, szPNGName);
 
             zip_stat_t stZIPStat;
@@ -320,21 +331,16 @@ class PNGTexDB
                     auto fp = zip_fopen_index(m_ZIP, stZIPStat.index, 0);
                     if(fp == nullptr){ return nullptr; }
 
-                    ExtendBuf(stZIPStat.size);
+                    ExtendBuf((size_t)stZIPStat.size);
 
-                    if(stZIPStat.size != zip_fread(fp, m_Buf, stZIPStat.size)){
+                    if(stZIPStat.size != (zip_uint64_t)zip_fread(fp, m_Buf, stZIPStat.size)){
                         zip_fclose(fp);
                         zip_close(m_ZIP); m_ZIP = nullptr;
                         return nullptr;
                     }
 
-                    auto pSurface = IMG_LoadPNG_RW(m_Buf);
-                    if(pSurface == nullptr){ return nullptr; }
-
-                    auto pTexture = SDL_CreateTextureFromSurface(m_Renderer, pSurface);
-                    SDL_FreeSurface(pSurface);
-
-                    return pTexture;
+                    extern SDLDevice *g_SDLDevice;
+                    return g_SDLDevice->CreateTexture((const uint8_t *)m_Buf, (size_t)stZIPStat.size);
                 }
             }
             return nullptr;
@@ -359,8 +365,8 @@ class PNGTexDB
             // to handle the overflow problem
             // otherwise we don't need this check
             if(pTextureInst != m_Cache.end()){
-                if(pTextureInst.second.first == nTimeStamp){
-                    SDL_DestroyTexture(pTextureInst.second.second);
+                if(pTextureInst->second.first == nTimeStamp){
+                    SDL_DestroyTexture(pTextureInst->second.second);
                     m_Cache.erase(pTextureInst);
 
                     m_ResourceCount--;
@@ -374,7 +380,7 @@ class PNGTexDB
             // return directly if yes
             if(N != 0){
                 int nLocationInLC;
-                if(LocateInLinearCache(nKey, nLocationInLC)){ return; }
+                if(LocateInLinearCache(LinearCacheKey(nKey), nKey, nLocationInLC)){ return; }
             }
 
             // not in LC, release resource if (most likely) in the cache
@@ -386,10 +392,19 @@ class PNGTexDB
         {
             for(m_LCache[nLCKey].Reset(); !m_LCache[nLCKey].Done(); m_LCache[nLCKey].Forward()){
                 if(std::get<2>(m_LCache[nLCKey].Current()) == nKey){
-                    nLocationInLC =  m_LCache[nLCKey].CurrentIndex();
+                    nLocationInLC = m_LCache[nLCKey].Index();
                     return true;
                 }
             }
             return false;
+        }
+
+        void ExtendBuf(size_t nSize)
+        {
+            if(nSize > m_BufSize){
+                delete m_Buf;
+                m_Buf = new uint8_t[nSize];
+                m_BufSize = nSize;
+            }
         }
 };

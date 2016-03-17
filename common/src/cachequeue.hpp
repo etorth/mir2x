@@ -3,7 +3,7 @@
  *
  *       Filename: cachequeue.hpp
  *        Created: 02/25/2016 01:01:40
- *  Last Modified: 03/10/2016 23:52:54
+ *  Last Modified: 03/17/2016 01:47:34
  *
  *    Description: linear cache queue
  *
@@ -83,17 +83,18 @@ class CacheQueue final
             std::swap(m_CircleQ[m_Head], m_CircleQ[nIndex]);
         }
 
-        void PushHead(T stT)
+        template<typename... U>
+        void PushHead(U&&... u)
         {
             // 1. don't call it during the traversing
             // 2. may throw
             if(m_Size == 0){
                 // empty queue we need to use PushBack() instead
-                m_CircleQ[0] = stT;
+                m_CircleQ[0] = T(std::forward<U>(u)...);
                 m_Head       = 0;
                 m_Size       = 1;
             }else{
-                m_CircleQ[(m_Head - 1 + N) % N] = stT;
+                m_CircleQ[(m_Head - 1 + N) % N] = T(std::forward<U>(u)...);
                 m_Head = ((m_Head - 1 + N) % N);
                 m_Size = std::min(N, m_Size + 1);
             }
@@ -107,7 +108,7 @@ class CacheQueue final
 
         bool Done()
         {
-            return m_CheckCount == m_Size;
+            return (size_t)m_CheckCount == m_Size;
         }
 
         void Forward()

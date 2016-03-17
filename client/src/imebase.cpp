@@ -3,7 +3,7 @@
  *
  *       Filename: imebase.cpp
  *        Created: 03/13/2016 19:37:04
- *  Last Modified: 03/15/2016 00:45:06
+ *  Last Modified: 03/17/2016 00:16:35
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 
 #include "imebase.hpp"
+#include "supwarning.hpp"
 
 //  +------------------------------------- input string
 //  |
@@ -68,8 +69,6 @@ bool IMEBase::ProcessEvent(const SDL_Event &rstEvent)
                 if(In(rstEvent.motion.x, rstEvent.motion.y)){
                     for(int nIndex = 1; nIndex <= OptionCount(); ++nIndex){
                         if(InOptionBox(nIndex, rstEvent.motion.x, rstEvent.motion.y)){
-                            //
-                            m_HotOption = nIndex;
                             return true;
                         }
                     }
@@ -82,8 +81,6 @@ bool IMEBase::ProcessEvent(const SDL_Event &rstEvent)
             {
                 if(In(rstEvent.button.x, rstEvent.button.y)){
                     m_Focus = true;
-                    BindCursorTokenBox(rstEvent.button.x, rstEvent.button.y);
-                    ResetShowStartX();
                     return true;
                 }else{
                     m_Focus = false;
@@ -92,52 +89,6 @@ bool IMEBase::ProcessEvent(const SDL_Event &rstEvent)
             }
         case SDL_KEYDOWN:
             {
-                if(m_Focus){
-                    // clear the count
-                    m_Ticks = 0;
-
-
-                    if(m_IME){
-                        return m_IME->ProcessEvent(rstEvent);
-                    }
-
-                    char chKeyName = SDLKeyEventChar(rstEvent);
-
-
-                    if(chKeyName != '\0'){
-                        m_BindTokenBoxIndex++;
-                        m_Content.insert((std::size_t)(m_BindTokenBoxIndex), (std::size_t)1, chKeyName);
-                        Compile();
-                        ResetShowStartX();
-                        return true;
-                    }
-
-                    if(rstEvent.key.keysym.sym == SDLK_BACKSPACE){
-                        if(m_BindTokenBoxIndex >= 0){
-                            m_Content.erase(m_BindTokenBoxIndex, 1);
-                            m_BindTokenBoxIndex--;
-                            Compile();
-                            ResetShowStartX();
-                        }
-                        return true;
-                    }
-
-                    if(rstEvent.key.keysym.sym == SDLK_LEFT){
-                        if(m_BindTokenBoxIndex >= 0){
-                            m_BindTokenBoxIndex--;
-                            ResetShowStartX();
-                        }
-                        return true;
-                    }
-
-                    if(rstEvent.key.keysym.sym == SDLK_RIGHT){
-                        if((size_t)(m_BindTokenBoxIndex + 1) < m_Content.size()){
-                            m_BindTokenBoxIndex++;
-                            ResetShowStartX();
-                        }
-                        return true;
-                    }
-                }
                 break;
             }
         default:
@@ -146,17 +97,20 @@ bool IMEBase::ProcessEvent(const SDL_Event &rstEvent)
     return false;
 }
 
-void PinyinIME::Draw(int nX, int nY1, int nY2, std::function)
+void IMEBase::Draw(int nX, int nW, int nY1, int nY2)
 {
     // input method engine is special widget
     // when it's unfocused, it can't be visiable
     //
-    if(m_Focus){
-    }
+    if(!m_Focus){ return; }
+    UNUSED(nX);
+    UNUSED(nW);
+    UNUSED(nY1);
+    UNUSED(nY2);
 }
 
 
-PinyinIME::InsertInfo()
+void IMEBase::InsertInfo()
 {
     // insert a utf-8 string to the input widget
     // the input widget should parse the string

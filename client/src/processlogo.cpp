@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.cpp
  *        Created: 8/13/2015 12:15:38 AM
- *  Last Modified: 02/24/2016 02:48:06
+ *  Last Modified: 03/17/2016 01:31:01
  *
  *    Description: 
  *
@@ -19,50 +19,54 @@
  */
 
 #include "game.hpp"
+#include "sdldevice.hpp"
+#include "pngtexdb.hpp"
+#include "processlogo.hpp"
 
-static double Ratio(Uint32 nCurrentMS, Uint32 nFullMS, double fStep1R, double fStep2R)
+ProcessLogo::ProcessLogo()
+    : Process()
+    , m_FullMS(5.0)
+    , m_TimeR1(0.3)
+    , m_TimeR2(0.3)
+{}
+
+void ProcessLogo::ProcessEvent(const SDL_Event &rstEvent)
 {
-    double fRatio = nCurrentMS * 1.0 / nFullMS;
-    if(fRatio < fStep1R){
-        return fRatio / fStep1R;
-    }else if(fRatio < fStep1R + fStep2R){
-        return 1.0;
+    if(rstEvent.type == SDL_KEYDOWN && rstEvent.key.keysym.sym == SDLK_ESCAPE){
+        extern Game *g_Game;
+        g_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
+    }
+}
+
+void ProcessLogo::Update(double fDMS)
+{
+    m_TotalTime += fDMS;
+    if(m_TotalTime >= m_FullMS){
+        extern Game *g_Game;
+        g_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
     }else{
-        return 1.0 - (fRatio -fStep1R - fStep2R) / (1.0 - fStep1R - fStep2R);
+        Uint8 bColor = std::lround(255 * Ratio());
+        extern SDLDevice *g_SDLDevice;
+        g_SDLDevice->SetColor(bColor, bColor, bColor, bColor);
     }
-}
-
-void ProcessLogo::ProcessEvent(SDL_Event *pEvent)
-{
-    if(true
-            && pEvent
-            && pEvent->type == SDL_KEYDOWN
-            && pEvent->key.keysym.sym == SDLK_ESCAPE
-      ){
-        m_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
-    }
-}
-
-void ProcessLogo::Update()
-{
-    Uint32 nMaxMS = 5000;
-    Uint32 nTmpMS = SDL_GetTicks() - m_StartMS;
-
-    if(nTmpMS >= 5000){
-        m_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
-    }else{
-        double fRatio = Ratio(nTmpMS, 5000, 0.3, 0.4);
-        Uint8 bColor = std::lround(255 * fRatio);
-        m_Game->SetRenderDrawColor(bColor, bColor, bColor, bColor);
-    }
-}
-
-void ProcessLogo::Reset()
-{
-    m_StateStartTick = SDL_GetTicks();
 }
 
 void ProcessLogo::Draw()
 {
-    m_Game->DrawImage(255, 0);
+    extern SDLDevice    *g_SDLDevice;
+    extern PNGTexDB<0>  *g_PNGTexDB;
+
+    g_SDLDevice->DrawTexture(g_PNGTexDB->Retrieve(255, 0), 0, 0);
+}
+
+double ProcessLogo::Ratio()
+{
+    double fRatio = m_TotalTime / m_FullMS;
+    if(fRatio < m_TimeR1){
+        return fRatio / m_TimeR1;
+    }else if(fRatio < m_TimeR1 + m_TimeR2){
+        return 1.0;
+    }else{
+        return 1.0 - (fRatio - m_TimeR1 - m_TimeR2) / (1.0 - m_TimeR1 - m_TimeR2);
+    }
 }

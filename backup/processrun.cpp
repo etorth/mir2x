@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 8/31/2015 3:43:46 AM
- *  Last Modified: 01/14/2016 06:19:58
+ *  Last Modified: 03/17/2016 00:29:52
  *
  *    Description: 
  *
@@ -21,11 +21,8 @@
 #include <cmath>
 #include <mutex>
 #include "game.hpp"
-#include "monster.hpp"
 #include "processrun.hpp"
-#include "messagemanager.hpp"
 #include "clientmessagedef.hpp"
-#include "configurationmanager.hpp"
 
 ProcessRun::ProcessRun(Game* pGame)
     : Process(PROCESSID_RUN, pGame)
