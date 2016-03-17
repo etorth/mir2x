@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/16/2016 21:48:05
+ *  Last Modified: 03/16/2016 22:36:16
  *
  *    Description: 
  *
@@ -23,6 +23,8 @@
 #include <utility>
 #include <unordered_map>
 #include <zip.h>
+#include <zipint.h>
+#include <zlib.h>
 #include "cachequeue.hpp"
 
 // don't change this setting easily
