@@ -3,7 +3,7 @@
  *
  *       Filename: log.hpp
  *        Created: 03/16/2016 16:05:17
- *  Last Modified: 03/16/2016 16:40:13
+ *  Last Modified: 03/16/2016 21:41:44
  *
  *    Description: log functionality enabled by g3Log
  *
@@ -40,11 +40,14 @@
 #define LOG_ARGV0 "mir2x"
 #endif
 
+#define LOGTYPE_INFO
+
 class Log final
 {
     private:
-        std::unique_ptr<FileSinkHandle> m_Handler;
-        std::unique_ptr<LogWorker>      m_Worker;
+        std::unique_ptr<g3::FileSinkHandle> m_Handler;
+        std::unique_ptr<g3::LogWorker>      m_Worker;
+        std::string                         m_LogFileName;
 
     public:
         Log()
@@ -60,7 +63,10 @@ class Log final
 
             std::cout << "* This is the initialization of Log functionality"           << std::endl;
             std::cout << "* For info/debug/warning/fatal messages."                    << std::endl;
-            std::cout << "* Log file: [" << szLogFileName.get() << "]"                 << std::endl;
+
+            m_LogFileName = szLogFileName.get();
+
+            std::cout << "* Log file: [" << m_LogFileName << "]"                       << std::endl;
             std::cout << "* Log functionality established!"                            << std::endl;
             std::cout << "* All messges will be redirected to the log after this line" << std::endl;
         }
@@ -69,7 +75,29 @@ class Log final
 
     public:
 
-        void Log(int nLevel, const char * szFormat, ...)
+        const char *FileName() const
         {
+            return m_LogFileName.c_str();
+        }
+
+    public:
+
+        template<typename... U> void AddLog(
+                const std::array<std::string, 4> & stLoc, // use defined to subsistute __LINE__ etc.
+                const char *szLogFormat, U&&... u)        // varidic for internal printf(...)
+        {
+            int nLine = std::atoi(stLoc[2].c_str());
+
+            auto stLevel = INFO;
+            if(stLoc[0] == "1"){
+                stLevel = WARNING;
+            }else if(stLoc[0] == "2"){
+                stLevel = FATAL;
+            }else{
+                stLevel = DEBUG;
+            }
+
+            LogCapture(stLoc[1].c_str(),
+                    nLine, stLoc[3].c_str(), stLevel).capturef(szLogFormat, std::forward<U>(u)...);
         }
 };

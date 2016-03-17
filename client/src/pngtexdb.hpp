@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/10/2016 22:21:43
+ *  Last Modified: 03/16/2016 21:48:05
  *
  *    Description: 
  *
@@ -22,6 +22,12 @@
 #pragma once
 #include <utility>
 #include <unordered_map>
+#include <zip.h>
+#include "cachequeue.hpp"
+
+// don't change this setting easily
+// since it will affect hash key of linear cache
+#define PNGTEXDB_LINEAR_CACHE_SIZE   1024
 
 template<int N = 4>
 class PNGTexDB
@@ -29,8 +35,8 @@ class PNGTexDB
     private:
 
         // linear cache
-        std::array<QueueN<std::tuple<
-            SDL_Texture *, int, uint32_t>>, 512> m_LCache;
+        std::array<CacheQueue<std::tuple<
+            SDL_Texture *, int, uint32_t>, N>, PNGTEXDB_LINEAR_CACHE_SIZE> m_LCache;
 
         // main cache
         std::unordered_map<uint32_t,
