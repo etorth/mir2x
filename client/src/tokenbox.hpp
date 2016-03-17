@@ -3,7 +3,7 @@
  *
  *       Filename: tokenbox.hpp
  *        Created: 7/2/2015 3:31:13 PM
- *  Last Modified: 03/04/2016 00:36:22
+ *  Last Modified: 03/17/2016 14:22:10
  *
  *    Description: 
  *
@@ -35,6 +35,7 @@
 // general state
 typedef struct{
     int                 MASection;
+    int                 Valid;
     int                 W1;
     int                 W2;
 }TOKENBOXSTATE;

@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/16/2016 14:53:57
+ *  Last Modified: 03/17/2016 15:08:43
  *
  *    Description: 
  *
@@ -45,10 +45,7 @@ TokenBoard::TokenBoard(bool bWrap, int nMaxWidth, int nMinTextMargin)
 }
 
 bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
-        const std::function<bool(bool, uint64_t, int *, int *)> &fnTokenBoxSize,
-        const std::function<bool(uint32_t, int *, int *, int *)> &fnEmoticonInfo,
         const std::unordered_map<std::string, std::function<void()>> &rstIDhandlerMap)
-
 {
     const tinyxml2::XMLElement *pRoot = rstDoc.RootElement();
     if (pRoot == nullptr){ return false; }
@@ -65,7 +62,7 @@ bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
     int nSection = 0;
 
     while(pCurrentObject){
-        if(ObjectReturn(pCurrentObject)){
+        if(ObjectReturn(*pCurrentObject)){
             // so for description like 
             // <object type = "return"></object><object type = "return"></object>
             // we can only get one new line
@@ -73,9 +70,9 @@ bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
                 AddNewTokenBoxLine(true);
             }
         }else if(ObjectEmocticon(*pCurrentObject)){
-            ParseEmoticonObject(*pCurrentObject, nSection++, fnTokenBoxSize, fnEmoticonInfo);
+            ParseEmoticonObject(*pCurrentObject, nSection++, rstIDhandlerMap);
         }else if(ObjectEventText(*pCurrentObject)){
-            ParseEventTextObject(pCurrentObject, nSection++, fnTokenBoxSize);
+            ParseEventTextObject(*pCurrentObject, nSection++, rstIDhandlerMap);
         }else{
             // failed to parse something
         }
@@ -103,19 +100,18 @@ int TokenBoard::H()
     return m_H;
 }
 
-bool TokenBoard::ObjectReturn(const tinyxml2::XMLElement *pCurrentObject)
+bool TokenBoard::ObjectReturn(const tinyxml2::XMLElement &rstCurrentObject)
 {
     return false
-        || (pCurrentObject->Attribute("TYPE", "RETURN"))
-        || (pCurrentObject->Attribute("TYPE", "Return"))
-        || (pCurrentObject->Attribute("TYPE", "return"))
-        || (pCurrentObject->Attribute("Type", "RETURN"))
-        || (pCurrentObject->Attribute("Type", "Return"))
-        || (pCurrentObject->Attribute("Type", "return"))
-        || (pCurrentObject->Attribute("type", "RETURN"))
-        || (pCurrentObject->Attribute("type", "Return"))
-        || (pCurrentObject->Attribute("type", "return"))
-        ;
+        || (rstCurrentObject.Attribute("TYPE", "RETURN"))
+        || (rstCurrentObject.Attribute("TYPE", "Return"))
+        || (rstCurrentObject.Attribute("TYPE", "return"))
+        || (rstCurrentObject.Attribute("Type", "RETURN"))
+        || (rstCurrentObject.Attribute("Type", "Return"))
+        || (rstCurrentObject.Attribute("Type", "return"))
+        || (rstCurrentObject.Attribute("type", "RETURN"))
+        || (rstCurrentObject.Attribute("type", "Return"))
+        || (rstCurrentObject.Attribute("type", "return"));
 }
 
 bool TokenBoard::ObjectEmocticon(const tinyxml2::XMLElement &rstCurrentObject)
@@ -129,66 +125,40 @@ bool TokenBoard::ObjectEmocticon(const tinyxml2::XMLElement &rstCurrentObject)
         || (rstCurrentObject.Attribute("Type", "EMOTICON"))
         || (rstCurrentObject.Attribute("type", "Emoticon"))
         || (rstCurrentObject.Attribute("type", "emoticon"))
-        || (rstCurrentObject.Attribute("type", "EMOTICON"))
-        ;
+        || (rstCurrentObject.Attribute("type", "EMOTICON"));
 }
 
-bool TokenBoard::ObjectText(const tinyxml2::XMLElement *pCurrentObject)
-{
-    if(false
-            || ObjectReturn(pCurrentObject)
-            || ObjectEmocticon(pCurrentObject)
-            || ObjectEventText(pCurrentObject)
-      ){
-        return false;
-    }
-
-    return false
-        || (pCurrentObject->Attribute("Type") == nullptr)
-        || (pCurrentObject->Attribute("type") == nullptr)
-        || (pCurrentObject->Attribute("TYPE") == nullptr)
-        || (pCurrentObject->Attribute("TYPE", "Text"))
-        || (pCurrentObject->Attribute("TYPE", "text"))
-        || (pCurrentObject->Attribute("TYPE", "TEXT"))
-        || (pCurrentObject->Attribute("Type", "Text"))
-        || (pCurrentObject->Attribute("Type", "text"))
-        || (pCurrentObject->Attribute("Type", "TEXT"))
-        || (pCurrentObject->Attribute("type", "Text"))
-        || (pCurrentObject->Attribute("type", "text"))
-        || (pCurrentObject->Attribute("type", "TEXT"))
-        ;
-}
-
-
-bool TokenBoard::ObjectEventText(const tinyxml2::XMLElement *pCurrentObject)
+bool TokenBoard::ObjectEventText(const tinyxml2::XMLElement &rstCurrentObject)
 {
     return false
-        || (pCurrentObject->Attribute("TYPE", "EVENTTEXT"))
-        || (pCurrentObject->Attribute("TYPE", "EventText"))
-        || (pCurrentObject->Attribute("TYPE", "Eventtext"))
-        || (pCurrentObject->Attribute("TYPE", "eventText"))
-        || (pCurrentObject->Attribute("TYPE", "eventtext"))
-        || (pCurrentObject->Attribute("Type", "EVENTTEXT"))
-        || (pCurrentObject->Attribute("Type", "EventText"))
-        || (pCurrentObject->Attribute("Type", "Eventtext"))
-        || (pCurrentObject->Attribute("Type", "eventText"))
-        || (pCurrentObject->Attribute("Type", "eventtext"))
-        || (pCurrentObject->Attribute("type", "EVENTTEXT"))
-        || (pCurrentObject->Attribute("type", "EventText"))
-        || (pCurrentObject->Attribute("type", "Eventtext"))
-        || (pCurrentObject->Attribute("type", "eventText"))
-        || (pCurrentObject->Attribute("type", "eventtext"))
-        ;
+        || (rstCurrentObject.Attribute("Type") == nullptr)
+        || (rstCurrentObject.Attribute("type") == nullptr)
+        || (rstCurrentObject.Attribute("TYPE") == nullptr)
+        || (rstCurrentObject.Attribute("TYPE", "EVENTTEXT"))
+        || (rstCurrentObject.Attribute("TYPE", "EventText"))
+        || (rstCurrentObject.Attribute("TYPE", "Eventtext"))
+        || (rstCurrentObject.Attribute("TYPE", "eventText"))
+        || (rstCurrentObject.Attribute("TYPE", "eventtext"))
+        || (rstCurrentObject.Attribute("Type", "EVENTTEXT"))
+        || (rstCurrentObject.Attribute("Type", "EventText"))
+        || (rstCurrentObject.Attribute("Type", "Eventtext"))
+        || (rstCurrentObject.Attribute("Type", "eventText"))
+        || (rstCurrentObject.Attribute("Type", "eventtext"))
+        || (rstCurrentObject.Attribute("type", "EVENTTEXT"))
+        || (rstCurrentObject.Attribute("type", "EventText"))
+        || (rstCurrentObject.Attribute("type", "Eventtext"))
+        || (rstCurrentObject.Attribute("type", "eventText"))
+        || (rstCurrentObject.Attribute("type", "eventtext"));
 }
 
-int TokenBoard::GetEmoticonSet(const tinyxml2::XMLElement *pCurrentObject)
+int TokenBoard::GetEmoticonSet(const tinyxml2::XMLElement &rstCurrentObject)
 {
     const char *pText = nullptr;
 
     if(false){
-    }else if(pText = pCurrentObject->Attribute("SET")){
-    }else if(pText = pCurrentObject->Attribute("Set")){
-    }else if(pText = pCurrentObject->Attribute("set")){
+    }else if((pText = rstCurrentObject.Attribute("SET"))){
+    }else if((pText = rstCurrentObject.Attribute("Set"))){
+    }else if((pText = rstCurrentObject.Attribute("set"))){
     }else{
         pText = "0";
     }
@@ -197,14 +167,14 @@ int TokenBoard::GetEmoticonSet(const tinyxml2::XMLElement *pCurrentObject)
     return std::atoi(pText);
 }
 
-int TokenBoard::GetEmoticonIndex(const tinyxml2::XMLElement *pCurrentObject)
+int TokenBoard::GetEmoticonIndex(const tinyxml2::XMLElement &rstCurrentObject)
 {
     const char *pText = nullptr;
 
     if(false){
-    }else if(pText = pCurrentObject->Attribute("INDEX")){
-    }else if(pText = pCurrentObject->Attribute("Index")){
-    }else if(pText = pCurrentObject->Attribute("index")){
+    }else if((pText = rstCurrentObject.Attribute("INDEX"))){
+    }else if((pText = rstCurrentObject.Attribute("Index"))){
+    }else if((pText = rstCurrentObject.Attribute("index"))){
     }else{
         pText = "0";
     }
@@ -214,40 +184,40 @@ int TokenBoard::GetEmoticonIndex(const tinyxml2::XMLElement *pCurrentObject)
 const tinyxml2::XMLElement *TokenBoard::NextObject(const tinyxml2::XMLElement *pCurrentObject)
 {
     const tinyxml2::XMLElement *pRet = nullptr;
-    pRet = pCurrentObject->NextSiblingElement("OBJECT");
-    if(pRet){ return pRet; }
-    pRet = pCurrentObject->NextSiblingElement("Object");
-    if(pRet){ return pRet; }
-    pRet = pCurrentObject->NextSiblingElement("object");
-    if(pRet){ return pRet; }
-    return nullptr;
+    if(false){
+    }else if((pRet = pCurrentObject->NextSiblingElement("OBJECT"))){
+    }else if((pRet = pCurrentObject->NextSiblingElement("Object"))){
+    }else if((pRet = pCurrentObject->NextSiblingElement("object"))){
+    }else{
+        pRet = nullptr;
+    }
+    return pRet;
 }
 
-
-int TokenBoard::GetFontSize(const tinyxml2::XMLElement *pCurrentObject)
+int TokenBoard::GetFontSize(const tinyxml2::XMLElement &rstCurrentObject)
 {
-    const char *pText           = nullptr;
-    const int   defaultFontSize = 18;
+    const char *pText            = nullptr;
+    const int   nDefaultFontSize = 18;
 
     if(false){
-    }else if(pText = pCurrentObject->Attribute("SIZE")){
-    }else if(pText = pCurrentObject->Attribute("Size")){
-    }else if(pText = pCurrentObject->Attribute("size")){
+    }else if((pText = rstCurrentObject.Attribute("SIZE"))){
+    }else if((pText = rstCurrentObject.Attribute("Size"))){
+    }else if((pText = rstCurrentObject.Attribute("size"))){
     }else{
-        return defaultFontSize;
+        return nDefaultFontSize;
     }
-    int fontSize = std::atoi(pText);
-    return fontSize == 0 ? defaultFontSize : fontSize;
+    int nFontSize = std::atoi(pText);
+    return nFontSize == 0 ? nDefaultFontSize : nFontSize;
 }
 
-int TokenBoard::GetFontIndex(const tinyxml2::XMLElement *pCurrentObject)
+int TokenBoard::GetFontIndex(const tinyxml2::XMLElement &rstCurrentObject)
 {
     const char *pText;
 
     if(false){
-    }else if(pText = pCurrentObject->Attribute("FONT")){
-    }else if(pText = pCurrentObject->Attribute("Font")){
-    }else if(pText = pCurrentObject->Attribute("font")){
+    }else if((pText = rstCurrentObject.Attribute("FONT"))){
+    }else if((pText = rstCurrentObject.Attribute("Font"))){
+    }else if((pText = rstCurrentObject.Attribute("font"))){
     }else{
         // default to set FontIndex to be zero
         pText = "0";
@@ -255,14 +225,14 @@ int TokenBoard::GetFontIndex(const tinyxml2::XMLElement *pCurrentObject)
     return std::atoi(pText);
 }
 
-int TokenBoard::GetFontStyle(const tinyxml2::XMLElement *pCurrentObject)
+int TokenBoard::GetFontStyle(const tinyxml2::XMLElement &rstCurrentObject)
 {
     const char *pText;
 
     if(false){
-    }else if(pText = pCurrentObject->Attribute("STYLE")){
-    }else if(pText = pCurrentObject->Attribute("Style")){
-    }else if(pText = pCurrentObject->Attribute("style")){
+    }else if((pText = rstCurrentObject.Attribute("STYLE"))){
+    }else if((pText = rstCurrentObject.Attribute("Style"))){
+    }else if((pText = rstCurrentObject.Attribute("style"))){
     }else{
         pText = "0";
     }
@@ -270,13 +240,15 @@ int TokenBoard::GetFontStyle(const tinyxml2::XMLElement *pCurrentObject)
     return std::atoi(pText);
 }
 
-SDL_Color TokenBoard::GetEventTextCharColor(const tinyxml2::XMLElement *pCurrentObject, int nEvent)
+SDL_Color TokenBoard::GetEventTextCharColor(const tinyxml2::XMLElement &rstCurrentObject, int nEvent)
 {
     if(nEvent < 0 || nEvent > 2){
-        return {0X00, 0X00, 0X00, 0X00};
+        // for non-event text, try to parse ``color" attribute
+        // if failed, return pure white
+        return GetEventTextCharColor(rstCurrentObject);
     }
 
-    char *attrText[3][3] = {
+    const char *attrText[3][3] = {
         {"OFF",  "Off",  "off" },
         {"ON",   "On",   "on"  },
         {"PUSH", "Push", "push"}
@@ -291,9 +263,9 @@ SDL_Color TokenBoard::GetEventTextCharColor(const tinyxml2::XMLElement *pCurrent
     SDL_Color   color;
 
     if(false){
-    }else if(pText = pCurrentObject->Attribute(attrText[nEvent][0])){
-    }else if(pText = pCurrentObject->Attribute(attrText[nEvent][1])){
-    }else if(pText = pCurrentObject->Attribute(attrText[nEvent][2])){
+    }else if((pText = rstCurrentObject.Attribute(attrText[nEvent][0]))){
+    }else if((pText = rstCurrentObject.Attribute(attrText[nEvent][1]))){
+    }else if((pText = rstCurrentObject.Attribute(attrText[nEvent][2]))){
     }else{
         return defaultColor[nEvent];
     }
@@ -330,15 +302,16 @@ SDL_Color TokenBoard::GetEventTextCharColor(const tinyxml2::XMLElement *pCurrent
     return color;
 }
 
-SDL_Color TokenBoard::GetTextCharColor(const tinyxml2::XMLElement *pCurrentObject)
+// no event version, try to parse ``color" attribute for non-event text
+SDL_Color TokenBoard::GetEventTextCharColor(const tinyxml2::XMLElement &rstCurrentObject)
 {
     const char *pText;
     SDL_Color   color;
 
     if(false){
-    }else if(pText = pCurrentObject->Attribute("COLOR")){
-    }else if(pText = pCurrentObject->Attribute("Color")){
-    }else if(pText = pCurrentObject->Attribute("color")){
+    }else if((pText = rstCurrentObject.Attribute("COLOR"))){
+    }else if((pText = rstCurrentObject.Attribute("Color"))){
+    }else if((pText = rstCurrentObject.Attribute("color"))){
     }else{
     }
     if(pText == nullptr){
@@ -374,22 +347,78 @@ SDL_Color TokenBoard::GetTextCharColor(const tinyxml2::XMLElement *pCurrentObjec
     return color;
 }
 
-FONTINFO TokenBoard::ParseFontInfo(const tinyxml2::XMLElement *pCurrentObject)
+bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement &rstCurrentObject,
+        int nSection, const std::unordered_map<std::string, std::function<void()>> &/*rstIDhandlerMap*/)
 {
-    // we use the same function for text/eventtext
-    // so in the xml the font attribute should be of the same format
-    // not a big issue
-    FONTINFO fontInfo;
-    fontInfo.Index = GetFontIndex(pCurrentObject);
-    fontInfo.Style = GetFontStyle(pCurrentObject);
-    fontInfo.Size  = GetFontSize(pCurrentObject);
-    return fontInfo;
+    // currently I didn't support event response for emoticon box
+    // since my idea is not ready for it
+
+    m_CurrentSection.Info.Type                 = SECTIONTYPE_EMOTICON;
+    m_CurrentSection.State.Emoticon.FrameIndex = 0;
+    m_CurrentSection.State.Emoticon.MS         = 0.0;
+    m_CurrentSection.Info.Emoticon.Set         = GetEmoticonSet(rstCurrentObject);
+    m_CurrentSection.Info.Emoticon.Index       = GetEmoticonIndex(rstCurrentObject);
+
+    // [][]  [][][][]  [][]  [][]  [][]  [][]
+    // set   index     frame fps   count ratio
+    //
+    // []: 0-F
+    //
+    // ratio = H1 / (H1 + H2) * 256;
+    extern EmoticonDBN *g_EmotionDBN;
+    auto pTexture = g_EmotionDBN->Retrieve(
+            m_CurrentSection.Info.Emoticon.Set,         // emoticon set
+            m_CurrentSection.Info.Emoticon.Index,       // emoticon index
+            0,                                          // first frame of the emoticon
+            &m_CurrentSection.Info.Emoticon.FPS,        // o
+            &m_CurrentSection.Info.Emoticon.FrameCount, // o
+            &m_CurrentSection.Info.Emoticon.YOffsetR);  // o
+
+    TOKENBOX stTokenBox;
+    std::memset(&stTokenBox, 0, sizeof(stTokenBox));
+
+    if(pTexture){
+        // successfully get it
+        stTokenBox.State.Valid = 1;
+        m_CurrentSection.State.Valid = 1;
+        SDL_QueryTexture(pTexture, nullptr, nullptr, &(stTokenBox.Cache.W), &(stTokenBox.Cache.H));
+        double fRatio = m_CurrentSection.Info.Emoticon.YOffsetR * 1.0 / 255;
+        stTokenBox.Cache.H1 = std::lround(stTokenBox.Cache.H * fRatio);
+        stTokenBox.Cache.H2 = stTokenBox.Cache.H - stTokenBox.Cache.H1;
+    }
+
+    m_SectionV.push_back(m_CurrentSection);
+    return AddNewTokenBox(stTokenBox);
 }
 
-void TokenBoard::ParseTextContentSection(const tinyxml2::XMLElement *pCurrentObject, int nSection)
+bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement &rstCurrentObject,
+        int nSection, const std::unordered_map<std::string, std::function<void()>> &rstIDhandlerMap)
 {
-    const char *pstart = pCurrentObject->GetText();
-    const char *pend   = pstart;
+    // parse event text section desc
+    m_CurrentSection.Info.Type      = SECTIONTYPE_EVENTTEXT;
+    m_CurrentSection.Info.FileIndex = GetFontIndex(rstCurrentObject);
+    m_CurrentSection.Info.Style     = GetFontStyle(rstCurrentObject);
+    m_CurrentSection.Info.Size      = GetFontSize(rstCurrentObject);
+
+    const char *szID = rstCurrentObject.Attribute("ID");
+    if(szID){
+        // add a handler here
+        auto pFuncInst = rstIDhandlerMap.find(std::string(szID));
+        if(pFuncInst != rstIDhandlerMap.end()){
+            m_IDFuncV[nSection] = pFuncInst->second;
+        }
+    }
+
+    m_CurrentSection.Info.Text.Color[0] = GetEventTextCharColor(pCurrentObject, (szID) ? 0 : (-1));
+    m_CurrentSection.Info.Text.Color[1] = GetEventTextCharColor(pCurrentObject, (szID) ? 1 : (-1));
+    m_CurrentSection.Info.Text.Color[2] = GetEventTextCharColor(pCurrentObject, (szID) ? 2 : (-1));
+
+    m_CurrentSection.State.Text.Event = 0;
+    m_SectionV.push_back(m_CurrentSection);
+
+    // then we parse event text content
+    const char *pStart = rstCurrentObject.GetText();
+    const char *pEnd   = pStart;
 
     // when get inside this funciton
     // the section structure has been well-prepared
@@ -402,93 +431,42 @@ void TokenBoard::ParseTextContentSection(const tinyxml2::XMLElement *pCurrentObj
         + (((uint64_t)m_SectionV[nSection].Info.Text.Style)     <<  0);
 
 
-    while(*pend != '\0'){
-        pstart = pend;
-        utf8::unchecked::advance(pend, 1);
+    while(*pEnd != '\0'){
+        pStart = pEnd;
+        utf8::unchecked::advance(pEnd, 1);
 
         // should be true
-        assert(pend - pstart <= 4);
+        assert(pEnd - pStart <= 4);
 
         uint32_t nUTF8Key = 0;
-        std::memcpy(&nUTF8Key, pstart, pend - pstart);
+        std::memcpy(&nUTF8Key, pStart, pEnd - pStart);
 
         // fully set the token box unit
         TOKENBOX stTokenBox;
-        LoadUTF8CharBoxSizeCache(stTokenBox,
-                nSection, nDefaultSize, nFontAttrKey, nUTF8Key, fnQueryTokenBoxInfo);
+        std::memset(&stTokenBox, 0, sizeof(stTokenBox));
 
+        uint64_t nKey = (((uint64_t)nFontAttrKey << 32) + nUTF8Key);
+
+        stTokenBox.Section = nSection;
+        stTokenBox.UTF8CharBox.Data.UTF8Code = nUTF8Key;
+        stTokenBox.UTF8CharBox.Cache.Key     = nKey;
+
+        extern FontexDBN *g_FontexDBN;
+        auto pTexture = g_FontexDBN->Retrieve(nKey);
+        if(pTexture){
+            SDL_QueryTexture(pTexture, nullptr, nullptr, &stTokenBox.Cache.W, &stTokenBox.Cache.H);
+            stTokenBox.Cache.H1    = stTokenBox.Cache.H;
+            stTokenBox.Cache.H2    = 0;
+            stTokenBox.State.Valid = 1;
+        }else{
+            // failed to retrieve, set a []
+            stTokenBox.Cache.W  = nDefaultSize;
+            stTokenBox.Cache.H  = nDefaultSize;
+            stTokenBox.Cache.H1 = nDefaultSize;
+            stTokenBox.Cache.H2 = 0;
+        }
         AddNewTokenBox(stTokenBox, m_PW);
     }
-}
-
-void TokenBoard::ParseEventTextObjectAttribute(const tinyxml2::XMLElement *pCurrentObject, int)
-{
-}
-
-void TokenBoard::ParseTextObjectAttribute(const tinyxml2::XMLElement *pCurrentObject, int)
-{
-    m_CurrentSection.Info.Type          = SECTIONTYPE_TEXT;
-    m_CurrentSection.Info.Text.FontInfo = ParseFontInfo(pCurrentObject);
-    m_CurrentSection.Info.Text.Color[0] = GetTextCharColor(pCurrentObject);
-    m_CurrentSection.State.Text.Event   = 0;
-    m_SectionV.push_back(m_CurrentSection);
-}
-
-void TokenBoard::ParseEmoticonObjectAttribute(
-        const tinyxml2::XMLElement *pCurrentObject, int nSection,
-        std::function<bool()> fnEmoticonRetrieve)
-{
-    m_CurrentSection.Info.Type                 = SECTIONTYPE_EMOTICON;
-    m_CurrentSection.State.Emoticon.FrameIndex = 0;
-    m_CurrentSection.State.Emoticon.MS         = 0;
-    m_CurrentSection.Info.Emoticon.Set         = GetEmoticonSet(pCurrentObject);
-    m_CurrentSection.Info.Emoticon.Index       = GetEmoticonIndex(pCurrentObject);
-
-    // [][]  [][][][]  [][]  [][]  [][]  [][]
-    // set   index     frame fps   count ratio
-    //
-    // []: 0-F
-    //
-    // ratio = H1 / (H1 + H2) * 256;
-    fnEmoticonRetrieve(
-            m_CurrentSection.Info.Emoticon.Set,        // input
-            m_CurrentSection.Info.Emoticon.Index,      // input
-            m_CurrentSection.Info.Emoticon.FPS,        // o
-            m_CurrentSection.Info.Emoticon.FrameCount, // o
-            m_CurrentSection.Info.Emoticon.YOffsetR);  // o
-
-    m_SectionV.push_back(m_CurrentSection);
-}
-
-bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement *pCurrentObject, int nSection)
-{
-    ParseEmoticonObjectAttribute(pCurrentObject, nSection);
-
-    // emoticon doesn't have content
-    // all content has been moved to section part
-    TOKENBOX stTokenBox;
-    LoadEmoticonSizeCache(stTokenBox, nSection);
-
-    return AddNewTokenBox(stTokenBox, m_PW);
-}
-
-bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement &rstCurrentObject,
-        int nSection,
-        const std::function<bool(bool, uint64_t, int *, int *)> &fnTokenBoxSize,
-        const std::unordered_map<std::string, std::function<void()>> &rstIDhandlerMap)
-{
-    m_CurrentSection.Info.Type          = SECTIONTYPE_EVENTTEXT;
-    m_CurrentSection.Info.Text.FontInfo = ParseFontInfo(pCurrentObject);
-    m_CurrentSection.Info.Text.Color[0] = GetEventTextCharColor(pCurrentObject, 0);
-    m_CurrentSection.Info.Text.Color[1] = GetEventTextCharColor(pCurrentObject, 1);
-    m_CurrentSection.Info.Text.Color[2] = GetEventTextCharColor(pCurrentObject, 2);
-    m_CurrentSection.State.Text.Event = 0;
-    m_SectionV.push_back(m_CurrentSection);
-
-
-
-    ParseEventTextObjectAttribute(pCurrentObject, nSection);
-    return ParseEventTextObjectContent(pCurrentObject, nSection);
 }
 
 void TokenBoard::UpdateSection(SECTION &stSection, Uint32 ticks)
@@ -828,26 +806,6 @@ void TokenBoard::LoadUTF8CharBoxSizeCache(TOKENBOX &rstTokenBox,
     }
 }
 
-void TokenBoard::LoadEmoticonSizeCache(TOKENBOX &rstTokenBox,
-        int nSection, int nDefaultSize, uint8_t nEmoticonSet, uint16_t nEmoticonIndex,
-        std::function<void(bool, uint64_t, int &, int &, int &, int &)> fnQueryTokenBoxInfo)
-{
-    // take the first frame for size info
-    uint32_t nKey = ((uint32_t)nEmoticonSet << 24) + ((uint32_t)nEmoticonIndex << 8);
-
-    if(!fnQueryTokenBoxInfo(false, (uint64_t)nKey,
-                stTokenBox.Cache.W, stTokenBox.Cache.H, stTokenBox.Cache.H1, stTokenBox.Cache.H2)){
-        stTokenBox.Cache.W = nDefaultSize;
-        stTokenBox.Cache.H = nDefaultSize;
-        stTokenBox.Cache.H1 = std::lround(nDefaultSize * 0.7);
-        stTokenBox.Cache.H2 = std::lround(nDefaultSize * 0.3);
-    }
-}
-
-// isolate it from any SDL interface:
-//
-// 1. external functions won't see SECTIONTYPE_XXXX
-// 2. internal functions won't see SDL_XXXX
 void TokenBoard::LoadUTF8CharBoxSizeCache(TOKENBOX &rstTokenBox,
         int nSection, int nDefaultSize, uint32_t nFontAttrKey, uint32_t nUTF8Key, 
         std::function<void(bool, uint64_t, int &, int &, int &, int &)> fnQueryTokenBoxInfo)

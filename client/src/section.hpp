@@ -3,7 +3,7 @@
  *
  *       Filename: section.hpp
  *        Created: 8/18/2015 6:56:11 PM
- *  Last Modified: 03/04/2016 02:36:51
+ *  Last Modified: 03/17/2016 14:25:45
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #pragma once
 #include "tokenbox.hpp"
+#include <SDL2/SDL.h>
 
 typedef struct{
     int                     Type;
@@ -44,7 +45,7 @@ typedef struct{
     uint8_t                 FileIndex;
     uint8_t                 Size;
     uint8_t                 Style;
-    uint32_t                Color[3];
+    SDL_Color               Color[3];
 }TEXTSECTIONINFO;
 
 enum{

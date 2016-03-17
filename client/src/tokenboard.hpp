@@ -81,49 +81,41 @@ class TokenBoard: public Widget
     public:
         // load the content and it's callback table
         bool Load(const tinyxml2::XMLDocument &,
-                const std::function<bool(bool, uint64_t, int *, int *)> &,
-                const std::function<bool(uint32_t, int *, int *, int *)> &,
                 const std::unordered_map<std::string, std::function<void()>> &);
 
     private:
         bool ParseXMLContent(const tinyxml2::XMLElement *);
 
     private:
-        bool ParseEmoticonObject(const tinyxml2::XMLElement *, int);
-        bool ParseTextObject(const tinyxml2::XMLElement *, int);
-        bool ParseEventTextObject(const tinyxml2::XMLElement *, int);
+        bool ParseEmoticonObject(const tinyxml2::XMLElement &,
+                int, const std::unordered_map<std::string, std::function<void()>> &);
+        bool ParseEventTextObject(const tinyxml2::XMLElement &,
+                int, const std::unordered_map<std::string, std::function<void()>> &);
 
     private:
-        SDL_Color   GetFontColor(const tinyxml2::XMLElement *);
-        int         GetFontIndex(const tinyxml2::XMLElement *);
-        int         GetFontStyle(const tinyxml2::XMLElement *);
-        int         GetFontSize (const tinyxml2::XMLElement *);
+        SDL_Color   GetFontColor(const tinyxml2::XMLElement &);
+        int         GetFontIndex(const tinyxml2::XMLElement &);
+        int         GetFontStyle(const tinyxml2::XMLElement &);
+        int         GetFontSize (const tinyxml2::XMLElement &);
 
     private:
-        SDL_Color   GetTextCharColor(const tinyxml2::XMLElement *);
-        SDL_Color   GetEventTextCharColor(const tinyxml2::XMLElement *, int);
+        SDL_Color   GetEventTextCharColor(const tinyxml2::XMLElement &);
+        SDL_Color   GetEventTextCharColor(const tinyxml2::XMLElement &, int);
 
     private:
         void        ParseTextContentSection(const tinyxml2::XMLElement *, int);
 
-
     private:
-        int         GetEmoticonSet  (const tinyxml2::XMLElement *);
-        int         GetEmoticonIndex(const tinyxml2::XMLElement *);
-
-    private:
-        void        ParseTextObjectAttribute(const tinyxml2::XMLElement*, int);
-        void        ParseEventTextObjectAttribute(const tinyxml2::XMLElement*, int);
-        void        ParseEmoticonObjectAttribute(const tinyxml2::XMLElement*, int);
+        int         GetEmoticonSet  (const tinyxml2::XMLElement &);
+        int         GetEmoticonIndex(const tinyxml2::XMLElement &);
 
     private:
         int     m_LineWidth;
 
     public:
         bool ObjectEmocticon(const tinyxml2::XMLElement &);
-        bool ObjectReturn(const tinyxml2::XMLElement *);
-        bool ObjectText(const tinyxml2::XMLElement *);
-        bool ObjectEventText(const tinyxml2::XMLElement *);
+        bool ObjectReturn(const tinyxml2::XMLElement &);
+        bool ObjectEventText(const tinyxml2::XMLElement &);
 
 
     private:
