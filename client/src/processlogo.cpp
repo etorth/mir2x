@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.cpp
  *        Created: 8/13/2015 12:15:38 AM
- *  Last Modified: 03/17/2016 01:31:01
+ *  Last Modified: 03/18/2016 00:39:05
  *
  *    Description: 
  *
@@ -20,7 +20,7 @@
 
 #include "game.hpp"
 #include "sdldevice.hpp"
-#include "pngtexdb.hpp"
+#include "pngtexdbn.hpp"
 #include "processlogo.hpp"
 
 ProcessLogo::ProcessLogo()
@@ -53,10 +53,10 @@ void ProcessLogo::Update(double fDMS)
 
 void ProcessLogo::Draw()
 {
-    extern SDLDevice    *g_SDLDevice;
-    extern PNGTexDB<0>  *g_PNGTexDB;
+    extern SDLDevice *g_SDLDevice;
+    extern PNGTexDBN *g_PNGTexDBN;
 
-    g_SDLDevice->DrawTexture(g_PNGTexDB->Retrieve(255, 0), 0, 0);
+    g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve(255, 0), 0, 0);
 }
 
 double ProcessLogo::Ratio()
