@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/17/2016 01:12:14
+ *  Last Modified: 03/18/2016 16:12:23
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp
@@ -82,6 +82,14 @@ class SDLDevice final
            DrawLine(nX     , nY     , nX     , nY + nH);
            DrawLine(nX + nW, nY     , nX + nW, nY + nH);
            DrawLine(nX     , nY + nH, nX + nW, nY + nH);
+       }
+
+       SDL_Texture *CreateTextureFromSurface(SDL_Surface * pSurface)
+       {
+           if(pSurface){
+               return SDL_CreateTextureFromSurface(m_Renderer, pSurface);
+           }
+           return nullptr;
        }
 
     private:

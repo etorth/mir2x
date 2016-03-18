@@ -3,7 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 03/18/2016 15:51:29
+ *  Last Modified: 03/18/2016 16:10:18
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -70,7 +70,19 @@ class FontexDB: public InresDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
               , m_ZIP(nullptr)
               , m_ZIPItemInfoCache()
         {}
-        virtual ~FontexDB() = default;
+
+        virtual ~FontexDB()
+        {
+            for(auto &stItem: m_ZIPItemInfoCache){
+                delete stItem.Data;
+            }
+
+            ClearCache();
+
+            for(auto &stItem: m_SizedFontCache){
+                TTF_CloseFont(stItem.second);
+            }
+        }
 
     public:
         bool Valid()

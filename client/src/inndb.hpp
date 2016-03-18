@@ -1,11 +1,17 @@
 /*
  * =====================================================================================
  *
- *       Filename: inresdb.hpp
+ *       Filename: inndb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 12:12:11
+ *  Last Modified: 03/18/2016 16:01:33
  *
  *    Description: base of all Int->Tex map cache
+ *
+ *                 Internal Database support for 
+ *                 1. FIFO
+ *                 2. Double level cache
+ *                 3. Easy for extension
+ *
  *                 this class load resources with a external handler function
  *                 store it properly in a cache, additional linear cache is optional
  *
@@ -47,7 +53,7 @@
 template<typename KeyT, // key type, can only be unsigned intergal, so no reference is needed
     typename ResT,      // for res, see above why I don't use ``SDL_Texture *" directly
     size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
-class InresDB
+class InnDB
 {
     private:
         // linear cache
@@ -64,7 +70,7 @@ class InresDB
         unsigned long m_CurrentTime;
 
     public:
-        InresDB()
+        InnDB()
             : m_ResourceMaxCount(ResMaxN)
             , m_ResourceCount(0)
             , m_CurrentTime(0)
@@ -79,7 +85,7 @@ class InresDB
                     "don't set linear cache depth to be too large please");
         }
 
-        virtual ~InresDB()
+        virtual ~InnDB()
         {
             ClearCache();
         }

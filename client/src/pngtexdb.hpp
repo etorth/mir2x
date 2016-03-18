@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 00:27:02
+ *  Last Modified: 03/18/2016 16:06:20
  *
  *    Description: 
  *
@@ -19,13 +19,17 @@
  */
 
 #pragma once
-#include "inresdb.hpp"
+#include "inndb.hpp"
 #include <unordered_map>
 #include "hexstring.hpp"
 #include <zip.h>
 
+typedef struct{
+    SDL_Texture *Texture;
+}PNGTexItem;
+
 template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
-class PNGTexDB: public InresDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN>
+class PNGTexDB: public InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>
 {
     private:
         size_t   m_BufSize;
@@ -43,7 +47,7 @@ class PNGTexDB: public InresDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN
 
     public:
         PNGTexDB()
-            : InresDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN>()
+            : InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>()
             , m_BufSize(0)
             , m_Buf(nullptr)
             , m_ZIP(nullptr)
@@ -82,16 +86,16 @@ class PNGTexDB: public InresDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN
         }
 
     public:
-        SDL_Texture *RetrieveItem(uint32_t nKey,
+        PNGTexItem RetrieveItem(uint32_t nKey,
                 const std::function<size_t(uint32_t)> &fnLinearCacheKey)
         {
             // fnLinearCacheKey should be defined with LCLenN definition
-            SDL_Texture *pTexture = nullptr;
+            PNGTexItem stItem {nullptr};
 
             // InnRetrieve always return true;
-            this->InnRetrieve(nKey, &pTexture, fnLinearCacheKey, nullptr);
+            this->InnRetrieve(nKey, &stItem, fnLinearCacheKey, nullptr);
 
-            return pTexture;
+            return stItem.Texture;
         }
 
         void ExtendBuf(size_t nSize)
@@ -104,9 +108,9 @@ class PNGTexDB: public InresDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN
         }
 
     public:
-        // for all pure virtual function required in class InresDB;
+        // for all pure virtual function required in class InnDB;
         //
-        virtual SDL_Texture *LoadResource(uint32_t nKey)
+        virtual PNGTexItem LoadResource(uint32_t nKey)
         {
             auto pZIPIndexInst = m_ZIPItemInfoCache.find(nKey);
             if(pZIPIndexInst == m_ZIPItemInfoCache.end()){ return nullptr; }
@@ -123,13 +127,13 @@ class PNGTexDB: public InresDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN
             }
 
             extern SDLDevice *g_SDLDevice;
-            return g_SDLDevice->CreateTexture((const uint8_t *)m_Buf, nSize);
+            return {g_SDLDevice->CreateTexture((const uint8_t *)m_Buf, nSize)};
         }
 
-        void FreeResource(SDL_Texture * &pTexture)
+        void FreeResource(PNGTexItem &rstItem)
         {
             if(pTexture){
-                SDL_DestroyTexture(pTexture);
+                SDL_DestroyTexture(rstItem.Texture);
             }
         }
 };
