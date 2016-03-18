@@ -3,7 +3,7 @@
  *
  *       Filename: intexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 19:06:08
+ *  Last Modified: 03/17/2016 19:32:16
  *
  *    Description: base of all Int->Tex map cache
  *                 this class load resources from a zip archieve
@@ -37,12 +37,12 @@
 #include "cachequeue.hpp"
 #include "sdldevice.hpp"
 
-template<typename T, size_t DeepN, size_t LenN, size_t ResM>
+template<typename T, typename ResT, size_t DeepN, size_t LenN, size_t ResM>
 class IntexDB
 {
     private:
         // linear cache
-        std::array<CacheQueue<std::tuple<SDL_Texture *, unsigned long, T>, DeepN>, LenN> m_LCache;
+        std::array<CacheQueue<std::tuple<ResT, unsigned long, T>, DeepN>, LenN> m_LCache;
 
         // main cache
         std::unordered_map<T, std::pair<unsigned long, SDL_Texture *>> m_Cache;

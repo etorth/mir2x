@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 19:14:01
+ *  Last Modified: 03/17/2016 19:34:39
  *
  *    Description: 
  *
@@ -30,9 +30,14 @@
 #include "cachequeue.hpp"
 #include "sdldevice.hpp"
 
-// don't change this setting easily
-// since it will affect hash key of linear cache
-#define PNGTEXOFFDB_LINEAR_CACHE_SIZE   1024
+typedef struct{
+    SDL_Texture *texture;
+    int          dx;
+    int          dy;
+}PNGTexOffDBRes;
+
+template<size_t DeepN, size_t LenN, size_t ResM>
+class PNGTexDB: public IntexDB<uint32_t, PNGTexOffDBRes, DeepN, LenN, ResM>
 
 template<int N>
 class PNGTexOffDB

@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 19:11:47
+ *  Last Modified: 03/17/2016 19:32:43
  *
  *    Description: 
  *
@@ -24,7 +24,7 @@
 #include <unordered_map>
 
 template<size_t DeepN, size_t LenN, size_t ResM>
-class PNGTexDB: public IntexDB<uint32_t, DeepN, LenN, ResM>
+class PNGTexDB: public IntexDB<uint32_t, SDL_Texture *, DeepN, LenN, ResM>
 {
     public:
         PNGTexDB() : IntexDB(){}
