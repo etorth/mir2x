@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 00:17:42
+ *  Last Modified: 03/18/2016 00:36:39
  *
  *    Description: 
  *
@@ -54,7 +54,7 @@ class PNGTexOffDB: public InresDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResM
 
     public:
         PNGTexOffDB()
-            : InresDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN>()
+            : InresDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMaxN>()
             , m_BufSize(0)
             , m_Buf(nullptr)
             , m_ZIP(nullptr)
@@ -110,8 +110,8 @@ class PNGTexOffDB: public InresDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResM
                     }
                 }
             }
+            return Valid();
         }
-        return Valid();
 
     public:
         void RetrieveItem(uint32_t nKey, PNGTexOffItem *pItem,
@@ -120,7 +120,7 @@ class PNGTexOffDB: public InresDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResM
             // fnLinearCacheKey should be defined with LCLenN definition
             if(pItem){
                 // InnRetrieve always return true;
-                InnRetrieve(nKey, pItem, fnLinearCacheKey, nullptr);
+                this->InnRetrieve(nKey, pItem, fnLinearCacheKey, nullptr);
             }
         }
 
@@ -166,7 +166,7 @@ class PNGTexOffDB: public InresDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResM
 
         void FreeResource(PNGTexOffItem &stItem)
         {
-            if(pTexture){
+            if(stItem.Texture){
                 SDL_DestroyTexture(stItem.Texture);
             }
         }

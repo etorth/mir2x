@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 00:15:48
+ *  Last Modified: 03/18/2016 00:27:02
  *
  *    Description: 
  *
@@ -89,7 +89,7 @@ class PNGTexDB: public InresDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN
             SDL_Texture *pTexture = nullptr;
 
             // InnRetrieve always return true;
-            InnRetrieve(nKey, &pTexture, fnLinearCacheKey, nullptr);
+            this->InnRetrieve(nKey, &pTexture, fnLinearCacheKey, nullptr);
 
             return pTexture;
         }

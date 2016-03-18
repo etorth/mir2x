@@ -3,7 +3,7 @@
  *
  *       Filename: inresdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 00:08:51
+ *  Last Modified: 03/18/2016 00:31:39
  *
  *    Description: base of all Int->Tex map cache
  *                 this class load resources with a external handler function
@@ -90,8 +90,8 @@ class InresDB
         // function handler or pure virtual function for LoadResource() doesn't mater
         // we define it as pure virtual for conformming with FreeResource()
         //
-        ResT LoadResource(KeyT)   = 0;
-        void FreeResource(ResT &) = 0;
+        virtual ResT LoadResource(KeyT)   = 0;
+        virtual void FreeResource(ResT &) = 0;
 
         void ClearLC()
         {
@@ -110,7 +110,7 @@ class InresDB
             for(auto &stRecord: m_Cache){
                 // TODO
                 // important to make it pure virtual for derived class to define it
-                FreeResource(stRecord->second.second);
+                FreeResource(stRecord.second.second);
             }
             m_Cache.clear();
         }
@@ -293,7 +293,7 @@ class InresDB
             // 4. reset the size of the cache
             // 
             m_ResourceCount++;
-            Resize();
+            Resize(fnLinearCacheKey);
 
             // 5. return the resource pointer
             if(pResource){
@@ -307,14 +307,15 @@ class InresDB
     private:
 
         // keep the size under m_ResourceMaxCount
-        void Resize()
+        void Resize(const std::function<size_t(KeyT)> &fnLinearCacheKey)
         {
             while(m_ResourceCount > m_ResourceMaxCount){
                 // won't happen actually
                 if(m_TimeStampQ.empty()){ break; }
 
                 // may or may not release one resource
-                ReleaseResource(std::get<1>(m_TimeStampQ.front()), std::get<0>(m_TimeStampQ.front())); 
+                ReleaseResource(std::get<1>(m_TimeStampQ.front()),
+                        std::get<0>(m_TimeStampQ.front()), fnLinearCacheKey); 
                 // always pop front by one after trid to release resource
                 m_TimeStampQ.pop();
             }

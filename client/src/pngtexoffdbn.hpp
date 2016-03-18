@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 03/17/2016 23:50:07
+ *  Last Modified: 03/18/2016 00:33:02
  *
  *    Description: 
  *
@@ -26,7 +26,8 @@
 #define PNGTEXOFFDBN_LC_LENGTH (2048           )
 #define PNGTEXOFFDBN_CAPACITY  (2 * 2048 + 1024)
 
-using PNGTexOffDBType = PNGTexOffDB<PNGTEXOFFDBN_LC_DEPTH, PNGTEXOFFDBN_LC_LENGTH, PNGTEXOFFDBN_CAPACITY>;
+using PNGTexOffDBType = PNGTexOffDB<
+    PNGTEXOFFDBN_LC_DEPTH,PNGTEXOFFDBN_LC_LENGTH, PNGTEXOFFDBN_CAPACITY>;
 
 class PNGTexOffDBN: public PNGTexOffDBType
 {
@@ -42,7 +43,7 @@ class PNGTexOffDBN: public PNGTexOffDBType
         virtual ~PNGTexOffDBN() = default;
 
     public:
-        SDL_Texture *Retrieve(uint32_t nKey, int *pDx, int *pDY)
+        SDL_Texture *Retrieve(uint32_t nKey, int *pDX, int *pDY)
         {
             const auto &fnLinearCacheKey = [&](uint32_t nKey)
             {
@@ -50,10 +51,10 @@ class PNGTexOffDBN: public PNGTexOffDBType
             };
 
             PNGTexOffItem stItem;
-            RetrieveItem(nkey, &stItem, fnLinearCacheKey);
+            RetrieveItem(nKey, &stItem, fnLinearCacheKey);
 
-            if(pDX){ *pDX = stItem.DX};
-            if(pDY){ *pDY = stItem.DY};
+            if(pDX){ *pDX = stItem.DX; };
+            if(pDY){ *pDY = stItem.DY; };
 
             return stItem.Texture;
         }
