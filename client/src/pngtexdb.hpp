@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 22:58:17
+ *  Last Modified: 03/17/2016 23:15:25
  *
  *    Description: 
  *
@@ -22,13 +22,15 @@
 #include "inresdb.hpp"
 #include <unordered_map>
 #include "hexstring.hpp"
+#include <zip.h>
 
 template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
-class PNGTexDB: public IntexDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN>
+class PNGTexDB: public InresDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN>
 {
     private:
         size_t   m_BufSize;
         uint8_t *m_Buf;
+        zip_t   *M_ZIP;
 
     private:
         typedef struct{
