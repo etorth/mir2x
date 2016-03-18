@@ -127,7 +127,7 @@ class TokenBoard: public Widget
 
     private:
         // bool AddNewTokenBox(const TOKENBOX &, int);
-        bool AddNewTokenBox(TOKENBOX &, int);
+        bool AddNewTokenBox(TOKENBOX &);
 
     public:
 
@@ -144,16 +144,8 @@ class TokenBoard: public Widget
     private:
         void ClearCurrentLine();
 
-    private:
-
-    private:
-        SECTION    m_CurrentSection;
-
     public:
         bool HandleEvent(int, int, const SDL_Event &);
-
-    private:
-        SDL_Texture    *m_TextureCache;
 
     public:
         int Width();
@@ -179,6 +171,11 @@ class TokenBoard: public Widget
         void MarkEventTextBitmap(TOKENBOX &);
         int  m_Resolution;
         int  m_MinTextMargin;
+
+    private:
+        // callbacks
+        std::vector<std::function<void()>> m_IDFuncV;
+
     private:
         int SectionTypeCount(const std::vector<TOKENBOX> &, int);
 

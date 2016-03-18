@@ -3,7 +3,7 @@
  *
  *       Filename: emoticondb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 12:12:55
+ *  Last Modified: 03/18/2016 12:59:04
  *
  *    Description: 
  *
@@ -47,7 +47,7 @@
 //
 //  [0 ~ 1] [2 ~ 5] [6 ~ 7] [8 ~ 9] [10 ~ 13] [14 ~ 17] [18 ~ 21].PNG
 //
-//  ESet    ESubset EFrame  FPS     FrameW    FrameH    FrameH2
+//  ESet    ESubset EFrame  FPS     FrameW    FrameH    FrameH1
 //  1Byte   2Bytes  1Byte   1Byte   2Bytes    2Bytes    2Byte
 //                  ------
 //                    ^
@@ -59,7 +59,7 @@ typedef struct{
     SDL_Texture *Texture;
     int          FrameW;
     int          FrameH;
-    int          FrameH2;
+    int          FrameH1;
     int          FPS;
 }EmoticonItem;
 
@@ -127,10 +127,10 @@ class EmoticonDB: public InresDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMax
                             // 4. for frame H
                             int nFH = (int)StringHex<uint16_t, 2>(stZIPStat.name + 14);
 
-                            // 5. for frame H2
-                            int nH2 = (int)StringHex<uint16_t, 2>(stZIPStat.name + 18);
+                            // 5. for frame H1
+                            int nH1 = (int)StringHex<uint16_t, 2>(stZIPStat.name + 18);
 
-                            EmoticonItem stItem {nullptr, nFW, nFH, nH2, nFPS};
+                            EmoticonItem stItem {nullptr, nFW, nFH, nH1, nFPS};
                             m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)stZIPStat.size, stItem};
                         }
                     }

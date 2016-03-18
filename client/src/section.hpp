@@ -3,7 +3,7 @@
  *
  *       Filename: section.hpp
  *        Created: 8/18/2015 6:56:11 PM
- *  Last Modified: 03/17/2016 14:25:45
+ *  Last Modified: 03/18/2016 13:29:16
  *
  *    Description: 
  *
@@ -31,13 +31,13 @@ typedef struct{
 }EMOTICONSECTIONINFO;
 
 typedef struct{
-    int                     MS;
+    int                     Valid;
+    double                  MS;
     int                     FrameIndex;
 }EMOTICONSECTIONSTATE;
 
 typedef struct{
     int                     Event;
-    bool                    Update;
 }TEXTSECTIONSTATE;
 
 typedef struct{
@@ -51,8 +51,7 @@ typedef struct{
 enum{
     SECTIONTYPE_ALL         =      0,
     SECTIONTYPE_EVENTTEXT   = 1 << 1,
-    SECTIONTYPE_TEXT        = 1 << 2,
-    SECTIONTYPE_EMOTICON    = 1 << 3,
+    SECTIONTYPE_EMOTICON    = 1 << 2,
 };
 
 typedef union{

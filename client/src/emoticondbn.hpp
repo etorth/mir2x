@@ -3,7 +3,7 @@
  *
  *       Filename: emoticondbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 03/18/2016 12:10:25
+ *  Last Modified: 03/18/2016 13:26:29
  *
  *    Description: 
  *
@@ -17,7 +17,6 @@
  *
  * =====================================================================================
  */
-
 
 #pragma once
 #include "emoticondb.hpp"
@@ -44,7 +43,11 @@ class EmoticonDBN: public EmoticonDBType
 
     public:
         SDL_Texture *Retrieve(uint32_t nKey,
-                int *pSrcX, int *pSrcY, int *pSrcW, int *pSrcH, int *pFrameCount)
+                int *pSrcX, int *pSrcY,
+                int *pSrcW, int *pSrcH,
+                int *pH1,
+                int *pFPS,
+                int *pFrameCount)
         {
             const auto &fnLinearCacheKey = [&](uint32_t nKey)
             {
@@ -65,22 +68,27 @@ class EmoticonDBN: public EmoticonDBType
 
             int nFrameIndex = (int)(nKey & 0X000000FF);
 
-            if(*pSrcX){ *pSrcX = (nFrameIndex % nCountX) * stItem.FrameW; };
-            if(*pSrcY){ *pSrcY = (nFrameIndex / nCountX) * stItem.FrameH; };
-            if(*pSrcW){ *pSrcW = stItem.FrameW; }
-            if(*pSrcH){ *pSrcW = stItem.FrameH; }
-
-            if(*pFrameCount){ *pFrameCount = nCountX * nCountY; }
+            if(pSrcX      ){ *pSrcX       = (nFrameIndex % nCountX) * stItem.FrameW; }
+            if(pSrcY      ){ *pSrcY       = (nFrameIndex / nCountX) * stItem.FrameH; }
+            if(pSrcW      ){ *pSrcW       = stItem.FrameW;                           }
+            if(pSrcH      ){ *pSrcW       = stItem.FrameH;                           }
+            if(pH1        ){ *pH1         = stItem.FrameH1;                          }
+            if(pFPS       ){ *pFPS        = stItem.FPS;                              }
+            if(pFrameCount){ *pFrameCount = nCountX * nCountY;                       }
 
             return stItem.Texture;
         }
 
         SDL_Texture *Retrieve(uint8_t nSet, uint16_t nSubset, uint8_t nIndex,
-                int *pSrcX, int *pSrcY, int *pSrcW, int *pSrcH, int *pFrameCount)
+                int *pSrcX, int *pSrcY,
+                int *pSrcW, int *pSrcH,
+                int *pFPS,
+                int *pH1,
+                int *pFrameCount)
         {
             uint32_t nKey = ((uint32_t)(nSet) << 24)
                 + (uint32_t)(nSubset << 8) + (uint32_t)(nIndex);
 
-            return Retrieve(nKey, pSrcX, pSrcY, pSrcW, pSrcH, pFrameCount);
+            return Retrieve(nKey, pSrcX, pSrcY, pSrcW, pSrcH, pH1, pFPS, pFrameCount);
         }
 };

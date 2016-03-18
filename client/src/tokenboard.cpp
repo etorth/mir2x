@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/18/2016 12:08:54
+ *  Last Modified: 03/18/2016 13:41:14
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #include "emoticon.hpp"
 #include "emoticondbn.hpp"
+#include "fontexdbn.hpp"
 #include "section.hpp"
 #include "tokenboard.hpp"
 #include "tokenbox.hpp"
@@ -32,6 +33,7 @@
 #include <utf8.h>
 #include <unordered_map>
 #include <string>
+#include <cassert>
 
 TokenBoard::TokenBoard(bool bWrap, int nMaxWidth, int nMinTextMargin)
     : m_PW(nMaxWidth)
@@ -349,73 +351,79 @@ SDL_Color TokenBoard::GetEventTextCharColor(const tinyxml2::XMLElement &rstCurre
 }
 
 bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement &rstCurrentObject,
-        int nSection, const std::unordered_map<std::string, std::function<void()>> &/*rstIDhandlerMap*/)
+        int/*nSection*/, const std::unordered_map<std::string, std::function<void()>> &/*rstIDhandlerMap*/)
 {
     // currently I didn't support event response for emoticon box
     // since my idea is not ready for it
+    // so just put a null handler here
+    m_IDFuncV.push_back(std::function<void()>());
 
-    m_CurrentSection.Info.Type                 = SECTIONTYPE_EMOTICON;
-    m_CurrentSection.State.Emoticon.FrameIndex = 0;
-    m_CurrentSection.State.Emoticon.MS         = 0.0;
-    m_CurrentSection.Info.Emoticon.Set         = GetEmoticonSet(rstCurrentObject);
-    m_CurrentSection.Info.Emoticon.Index       = GetEmoticonIndex(rstCurrentObject);
-
-    // [][]  [][][][]  [][]  [][]  [][]  [][]
-    // set   index     frame fps   count ratio
-    //
-    // []: 0-F
-    //
-    // ratio = H1 / (H1 + H2) * 256;
-    extern EmoticonDBN *g_EmotionDBN;
-    auto pTexture = g_EmotionDBN->Retrieve(
-            m_CurrentSection.Info.Emoticon.Set,         // emoticon set
-            m_CurrentSection.Info.Emoticon.Index,       // emoticon index
-            0,                                          // first frame of the emoticon
-            &m_CurrentSection.Info.Emoticon.FPS,        // o
-            &m_CurrentSection.Info.Emoticon.FrameCount, // o
-            &m_CurrentSection.Info.Emoticon.YOffsetR);  // o
-
+    SECTION  stSection;
     TOKENBOX stTokenBox;
+    std::memset(&stSection , 0, sizeof(stSection) );
     std::memset(&stTokenBox, 0, sizeof(stTokenBox));
 
+    stSection.Info.Type                 = SECTIONTYPE_EMOTICON;
+    stSection.State.Emoticon.FrameIndex = 0;
+    stSection.State.Emoticon.MS         = 0.0;
+    stSection.Info.Emoticon.Set         = GetEmoticonSet(rstCurrentObject);
+    stSection.Info.Emoticon.Index       = GetEmoticonIndex(rstCurrentObject);
+
+    extern EmoticonDBN *g_EmotionDBN;
+    auto pTexture = g_EmotionDBN->Retrieve(
+            stSection.Info.Emoticon.Set,          // emoticon set
+            stSection.Info.Emoticon.Index,        // emoticon index
+            0,                                    // first frame of the emoticon
+            nullptr,                              // don't need the start info here
+            nullptr,                              // don't need the satrt info here
+            &stTokenBox.Cache.W,
+            &stTokenBox.Cache.H,
+            &stSection.Info.Emoticon.FPS,         // o
+            &stTokenBox.Cache.H1,                 // o
+            &stSection.Info.Emoticon.FrameCount); // o
+
     if(pTexture){
-        // successfully get it
-        stTokenBox.State.Valid = 1;
-        m_CurrentSection.State.Valid = 1;
-        SDL_QueryTexture(pTexture, nullptr, nullptr, &(stTokenBox.Cache.W), &(stTokenBox.Cache.H));
-        double fRatio = m_CurrentSection.Info.Emoticon.YOffsetR * 1.0 / 255;
-        stTokenBox.Cache.H1 = std::lround(stTokenBox.Cache.H * fRatio);
-        stTokenBox.Cache.H2 = stTokenBox.Cache.H - stTokenBox.Cache.H1;
+        // this emoticon is valid
+        stTokenBox.Cache.H1            = stTokenBox.Cache.H - stTokenBox.Cache.H2;
+        stTokenBox.State.Valid         = 1;
+        stSection.State.Emoticon.Valid = 1;
     }
 
-    m_SectionV.push_back(m_CurrentSection);
+    m_SectionV.push_back(stSection);
     return AddNewTokenBox(stTokenBox);
 }
 
 bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement &rstCurrentObject,
         int nSection, const std::unordered_map<std::string, std::function<void()>> &rstIDhandlerMap)
 {
-    // parse event text section desc
-    m_CurrentSection.Info.Type      = SECTIONTYPE_EVENTTEXT;
-    m_CurrentSection.Info.FileIndex = GetFontIndex(rstCurrentObject);
-    m_CurrentSection.Info.Style     = GetFontStyle(rstCurrentObject);
-    m_CurrentSection.Info.Size      = GetFontSize(rstCurrentObject);
+    SECTION stSection;
+    std::memset(&stSection, 0, sizeof(stSection));
 
+    // parse event text section desc
+    stSection.Info.Type           = SECTIONTYPE_EVENTTEXT;
+    stSection.Info.Text.FileIndex = GetFontIndex(rstCurrentObject);
+    stSection.Info.Text.Style     = GetFontStyle(rstCurrentObject);
+    stSection.Info.Text.Size      = GetFontSize(rstCurrentObject);
+
+    std::function<void()> fnCallback;
     const char *szID = rstCurrentObject.Attribute("ID");
+
     if(szID){
         // add a handler here
         auto pFuncInst = rstIDhandlerMap.find(std::string(szID));
         if(pFuncInst != rstIDhandlerMap.end()){
-            m_IDFuncV[nSection] = pFuncInst->second;
+            fnCallback = pFuncInst->second;
         }
     }
 
-    m_CurrentSection.Info.Text.Color[0] = GetEventTextCharColor(pCurrentObject, (szID) ? 0 : (-1));
-    m_CurrentSection.Info.Text.Color[1] = GetEventTextCharColor(pCurrentObject, (szID) ? 1 : (-1));
-    m_CurrentSection.Info.Text.Color[2] = GetEventTextCharColor(pCurrentObject, (szID) ? 2 : (-1));
+    m_IDFuncV.push_back(fnCallback);
 
-    m_CurrentSection.State.Text.Event = 0;
-    m_SectionV.push_back(m_CurrentSection);
+    stSection.Info.Text.Color[0] = GetEventTextCharColor(rstCurrentObject, (szID) ? 0 : (-1));
+    stSection.Info.Text.Color[1] = GetEventTextCharColor(rstCurrentObject, (szID) ? 1 : (-1));
+    stSection.Info.Text.Color[2] = GetEventTextCharColor(rstCurrentObject, (szID) ? 2 : (-1));
+
+    stSection.State.Text.Event = 0;
+    m_SectionV.push_back(stSection);
 
     // then we parse event text content
     const char *pStart = rstCurrentObject.GetText();
@@ -449,8 +457,8 @@ bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement &rstCurrentObje
         uint64_t nKey = (((uint64_t)nFontAttrKey << 32) + nUTF8Key);
 
         stTokenBox.Section = nSection;
-        stTokenBox.UTF8CharBox.Data.UTF8Code = nUTF8Key;
-        stTokenBox.UTF8CharBox.Cache.Key     = nKey;
+        stTokenBox.UTF8CharBox.UTF8Code  = nUTF8Key;
+        stTokenBox.UTF8CharBox.Cache.Key = nKey;
 
         extern FontexDBN *g_FontexDBN;
         auto pTexture = g_FontexDBN->Retrieve(nKey);
@@ -466,7 +474,7 @@ bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement &rstCurrentObje
             stTokenBox.Cache.H1 = nDefaultSize;
             stTokenBox.Cache.H2 = 0;
         }
-        AddNewTokenBox(stTokenBox, m_PW);
+        AddNewTokenBox(stTokenBox);
     }
 }
 
@@ -986,9 +994,9 @@ void TokenBoard::AddNewTokenBoxLine(bool bEndByReturn)
     ResetCurrentLine();
 }
 
-bool TokenBoard::AddNewTokenBox(TOKENBOX &rstTokenBox, int nMaxWidth)
+bool TokenBoard::AddNewTokenBox(TOKENBOX &rstTokenBox)
 {
-    if(Add(rstTokenBox, nMaxWidth)){
+    if(Add(rstTokenBox, m_PW)){
         return true;
     }else{
         // try to add but failed
