@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 19:32:43
+ *  Last Modified: 03/17/2016 21:14:39
  *
  *    Description: 
  *
@@ -29,6 +29,10 @@ class PNGTexDB: public IntexDB<uint32_t, SDL_Texture *, DeepN, LenN, ResM>
     public:
         PNGTexDB() : IntexDB(){}
        ~PNGTexDB() = default;
+
+    public:
+        size_t   m_BufSize;
+        uint8_t *m_Buf;
 
     public:
         bool Valid()
@@ -89,7 +93,54 @@ class PNGTexDB: public IntexDB<uint32_t, SDL_Texture *, DeepN, LenN, ResM>
                 return m_ZIPIndexCache[nKey];
             }
 
-            size_t nLCBucketIndex;
-            return InnRetrieve(nKey, fnLinearCacheKey, fnZIPIndex, &nLCBucketIndex);
+            return InnRetrieve(nKey, fnLinearCacheKey, fnZIPIndex, nullptr);
+        }
+
+        void ExtendBuf(size_t nSize)
+        {
+            if(nSize > m_BufSize){
+                delete m_Buf;
+                m_Buf = new uint8_t[nSize];
+                m_BufSize = nSize;
+            }
+        }
+
+    public:
+        // for all pure virtual function required in class InresDB;
+        SDL_Texture *LoadResource(uint32_t nKey)
+        {
+            auto pZIPIndexInst = m_ZIPIndexCache.find(nKey);
+            if(pZIPIndexInst == m_ZIPIndexCache.end()){ return nullptr; }
+
+            zip_stat_t stZIPStat;
+            if(!zip_stat_index(m_ZIP, pZIPIndexInst->second, ZIP_FL_ENC_RAW, &stZIPStat)){
+                // here we don't have to check agian actually
+                if(true
+                        && stZIPStat.valid & ZIP_STAT_INDEX
+                        && stZIPStat.valid & ZIP_STAT_SIZE){
+
+                    auto fp = zip_fopen_index(m_ZIP, stZIPStat.index, 0);
+                    if(fp == nullptr){ return nullptr; }
+
+                    ExtendBuf((size_t)stZIPStat.size);
+
+                    if(stZIPStat.size != (zip_uint64_t)zip_fread(fp, m_Buf, stZIPStat.size)){
+                        zip_fclose(fp);
+                        zip_close(m_ZIP); m_ZIP = nullptr;
+                        return nullptr;
+                    }
+
+                    extern SDLDevice *g_SDLDevice;
+                    return g_SDLDevice->CreateTexture((const uint8_t *)m_Buf, (size_t)stZIPStat.size);
+                }
+            }
+            return nullptr;
+        }
+
+        void FreeResource(SDL_Texture * &pTexture)
+        {
+            if(pTexture){
+                SDL_DestroyTexture(pTexture);
+            }
         }
 };

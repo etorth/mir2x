@@ -3,7 +3,7 @@
  *
  *       Filename: intexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 19:32:16
+ *  Last Modified: 03/17/2016 21:04:36
  *
  *    Description: base of all Int->Tex map cache
  *                 this class load resources from a zip archieve
@@ -37,6 +37,9 @@
 #include "cachequeue.hpp"
 #include "sdldevice.hpp"
 
+// because for PNGTexOffDB, the offset and texture are both important
+// otherwise I could only put a ``SDL_Texture *" here instead of ResT
+
 template<typename T, typename ResT, size_t DeepN, size_t LenN, size_t ResM>
 class IntexDB
 {
@@ -45,21 +48,15 @@ class IntexDB
         std::array<CacheQueue<std::tuple<ResT, unsigned long, T>, DeepN>, LenN> m_LCache;
 
         // main cache
-        std::unordered_map<T, std::pair<unsigned long, SDL_Texture *>> m_Cache;
+        std::unordered_map<T, std::pair<unsigned long, ResT>> m_Cache;
 
         // time stamp queue
         std::queue<std::tuple<unsigned long, T>>  m_TimeStampQ;
 
-        size_t        m_ResourceMaxCount;
-        size_t        m_ResourceCount;
-        unsigned long m_CurrentTime;
-
-    private:
-        // libzip stuff
-        //
-        zip_t   *m_ZIP;
-        size_t   m_BufSize;
-        uint8_t *m_Buf;
+        size_t         m_ResourceMaxCount;
+        size_t         m_ResourceCount;
+        unsigned long  m_CurrentTime;
+        zip_t         *m_ZIP;
 
     public:
 
@@ -68,8 +65,6 @@ class IntexDB
             , m_ResourceCount(0)
             , m_CurrentTime(0)
             , m_ZIP(nullptr)
-            , m_BufSize(0)
-            , m_Buf(nullptr)
         {
             static_assert(std::is_unsigned<T>::value,
                     "unsigned intergal type supported only please");
@@ -134,9 +129,10 @@ class IntexDB
         //      when no LC, nothing in nLCBucketIndex
         //
         // caller should define the LinearCacheKey() function
-        SDL_Texture *InnRetrieve(T nKey,
+        ResT InnRetrieve(T nKey,
                 const std::function<size_t(T)> &fnLinearCacheKey,
-                const std::function<zip_int64_t(T)> &fnZIPIndex, size_t *pLCBucketIndex)
+                const std::function<zip_int64_t(T)> &fnZIPIndex,
+                const std::function<Res(T)> &fnLoadRes, size_t *pLCBucketIndex)
         {
             // everytime when call this function
             // there must be a pointer retrieved responding to nKey
@@ -414,14 +410,5 @@ class IntexDB
                 }
             }
             return false;
-        }
-
-        void ExtendBuf(size_t nSize)
-        {
-            if(nSize > m_BufSize){
-                delete m_Buf;
-                m_Buf = new uint8_t[nSize];
-                m_BufSize = nSize;
-            }
         }
 };

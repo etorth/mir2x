@@ -3,7 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 02/26/2016 21:49:28
+ *  Last Modified: 03/17/2016 21:03:00
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
