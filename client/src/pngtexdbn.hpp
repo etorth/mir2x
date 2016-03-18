@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 03/17/2016 01:29:13
+ *  Last Modified: 03/17/2016 19:11:23
  *
  *    Description: 
  *
@@ -22,7 +22,7 @@
 #pragma once
 #include "pngtexdb.hpp"
 
-class PNGTexDBN: public PNGTexDB<0>
+class PNGTexDBN: public PNGTexDB<2, 2048, 2 * 2048 + 2000>
 {
     public:
         PNGTexDBN()

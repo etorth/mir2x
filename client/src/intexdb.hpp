@@ -1,11 +1,17 @@
 /*
  * =====================================================================================
  *
- *       Filename: pngtexoffdb.hpp
+ *       Filename: intexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 19:14:01
+ *  Last Modified: 03/17/2016 19:06:08
  *
- *    Description: 
+ *    Description: base of all Int->Tex map cache
+ *                 this class load resources from a zip archieve
+ *                 store it properly in a cache, additional linear cache is optional
+ *
+ *                 1. Load method depends
+ *                 2. retrieve mehods differs
+ *                 3. I'm also not 100% sure of my logic, so I added lot comments
  *
  *        Version: 1.0
  *       Revision: none
@@ -17,6 +23,7 @@
  *
  * =====================================================================================
  */
+
 
 #pragma once
 #include <utility>
@@ -30,49 +37,53 @@
 #include "cachequeue.hpp"
 #include "sdldevice.hpp"
 
-// don't change this setting easily
-// since it will affect hash key of linear cache
-#define PNGTEXOFFDB_LINEAR_CACHE_SIZE   1024
-
-template<int N>
-class PNGTexOffDB
+template<typename T, size_t DeepN, size_t LenN, size_t ResM>
+class IntexDB
 {
     private:
-
         // linear cache
-        std::array<CacheQueue<std::tuple<SDL_Texture *,
-            int, uint32_t>, N>, PNGTEXOFFDB_LINEAR_CACHE_SIZE> m_LCache;
+        std::array<CacheQueue<std::tuple<SDL_Texture *, unsigned long, T>, DeepN>, LenN> m_LCache;
 
         // main cache
-        std::unordered_map<uint32_t, std::pair<int, SDL_Texture *>> m_Cache;
-
-        // index cache
-        std::unordered_map<uint32_t, std::tuple<zip_uint64_t, zip_uint64_t, int, int>> m_IndexCache;
+        std::unordered_map<T, std::pair<unsigned long, SDL_Texture *>> m_Cache;
 
         // time stamp queue
-        std::queue<std::tuple<int, uint32_t>>  m_TimeStampQ;
+        std::queue<std::tuple<unsigned long, T>>  m_TimeStampQ;
 
-        int      m_ResourceMaxCount;
-        int      m_ResourceCount;
+        size_t        m_ResourceMaxCount;
+        size_t        m_ResourceCount;
+        unsigned long m_CurrentTime;
+
+    private:
+        // libzip stuff
+        //
         zip_t   *m_ZIP;
-        uint8_t *m_Buf;
         size_t   m_BufSize;
-        int      m_CurrentTime;
+        uint8_t *m_Buf;
 
     public:
-        PNGTexOffDB()
-            : m_ResourceMaxCount(N * 512 + 2000)
+
+        IntexDB()
+            : m_ResourceMaxCount(ResM)
             , m_ResourceCount(0)
-            , m_ZIP(nullptr)
-            , m_Buf(nullptr)
-            , m_BufSize(0)
             , m_CurrentTime(0)
+            , m_ZIP(nullptr)
+            , m_BufSize(0)
+            , m_Buf(nullptr)
         {
+            static_assert(std::is_unsigned<T>::value,
+                    "unsigned intergal type supported only please");
+            static_assert(ResM > DeepN * LenN,
+                    "maximal resource count must be larger than linear cache size please");
+            static_assert(LenN < 8192,
+                    "don't set linear cache size to be too large please");
+            static_assert(DeepN < 16,
+                    "don't set linear cache depth to be too large please");
         }
 
-        ~PNGTexOffDB()
+        ~IntexDB()
         {
-            Clear();
+            ClearLUT();
             delete m_Buf;
 
             if(m_ZIP){
@@ -82,35 +93,22 @@ class PNGTexOffDB
 
     public:
 
-        bool Valid()
+        bool ValidZIP()
         {
             return (m_ZIP != nullptr);
         }
 
-        bool Load(const char *szPNGTexDBName)
+        bool LoadZIP(const char *szPNGTexDBName)
         {
             int nErrorCode;
 
             m_ZIP = zip_open(szPNGTexDBName, ZIP_RDONLY, &nErrorCode);
             return (m_ZIP != nullptr);
-
-            zip_uint64_t nNumEntries = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
-            for(zip_uint64_t nIndex = 0; nIndex < nNumEntries; ++nIndex){
-                zip_stat_t stStatus;
-                if(zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stStatus)){
-                    Record(stStatus);
-                }else{
-                    m_IndexCache.clear();
-                    zip_close(m_ZIP); m_ZIP = nullptr;
-                    return false;
-                }
-            }
-            return true;
         }
 
-        void Clear()
+        void ClearLUT()
         {
-            if(N != 0){
+            if(UseLC()){
                 for(auto &stQN: m_LCache){
                     stQN.Clear();
                 }
@@ -125,7 +123,20 @@ class PNGTexOffDB
 
     public:
 
-        SDL_Texture *Retrieve(uint32_t nKey)
+        bool UseLC() const
+        {
+            return LenN > 0 && DeepN > 0;
+        }
+
+        // internal retrieve function, for derived class use only
+        // when retrieved successfully:
+        //      when there is LC enabled, m_LCache[*pLCBucketIndex].Head() is the current result
+        //      when no LC, nothing in nLCBucketIndex
+        //
+        // caller should define the LinearCacheKey() function
+        SDL_Texture *InnRetrieve(T nKey,
+                const std::function<size_t(T)> &fnLinearCacheKey,
+                const std::function<zip_int64_t(T)> &fnZIPIndex, size_t *pLCBucketIndex)
         {
             // everytime when call this function
             // there must be a pointer retrieved responding to nKey
@@ -137,12 +148,12 @@ class PNGTexOffDB
             // if linear cache is enabled
             // then first try to retrieve from cache
             //
-            int nLCacheKey;
-            int nLocationInLC;
+            size_t nLCacheKey;
+            size_t nLocationInLC;
 
-            if(N != 0){
+            if(UseLC()){
 
-                nLCacheKey = LinearCacheKey(nKey);
+                nLCacheKey = fnLinearCacheKey(nKey);
 
                 if(LocateInLinearCache(nLCacheKey, nKey, nLocationInLC)){
                     // find resource in LC, good!
@@ -152,13 +163,16 @@ class PNGTexOffDB
 
                     // 2. update access time stamp in LC *only*
                     //    *important*:
-                    //    didn't update the access time in Cache!
+                    //    didn't update the access time in hash map Cache!
                     std::get<1>(m_LCache[nLCacheKey].Head()) = m_CurrentTime;
 
                     // 3. push the access stamp at the end of the time stamp queue
-                    m_TimeStampQ.push({m_CurrentTime, nKey});
+                    m_TimeStampQ.emplace(m_CurrentTime, nKey);
 
-                    // 4. return the resource pointer
+                    // 4. return the bucket index
+                    *pLCBucketIndex = nLocationInLC;
+
+                    // 5. return the resource pointer
                     return std::get<0>(m_LCache[nLCacheKey].Head());
                 }
             }
@@ -176,18 +190,23 @@ class PNGTexOffDB
                 //    old record, we need to update the resource access time w.r.t the 
                 //    to-drop record, since whenever there is a record in LC, access time
                 //    in m_Cache won't be updated.
-                if(N != 0){
+                if(UseLC()){
 
                     // since the old record is in LC, it must exist in m_Cache
                     // update its time stamp
                     //
                     if(m_LCache[nLCacheKey].Full()){
-                        m_Cache[std::get<2>(m_LCache[
-                                nLCacheKey].Back())].first = std::get<1>(m_LCache[nLCacheKey].Back());
+                        m_Cache[std::get<2>(m_LCache[nLCacheKey].Back())].first // in hashmap and LC
+                            = std::get<1>(m_LCache[nLCacheKey].Back());         // update it's time stamp
                     }
 
+                    // set pLCBucketIndex if necessary
+                    *pLCBucketIndex = nLCacheKey;
+
                     // now insert the record to LC
-                    m_LCache[nLCacheKey].PushHead({pTextureInst->second.second, m_CurrentTime, nKey});
+                    // if it's full, the back() is overwrited as new head
+                    //
+                    m_LCache[nLCacheKey].PushHead(pTextureInst->second.second, m_CurrentTime, nKey);
                 }
 
                 // 2. set access time in m_Cache
@@ -196,7 +215,7 @@ class PNGTexOffDB
 
                 // 3. push the access stamp at the end of the time stamp queue
                 //
-                m_TimeStampQ.push({m_CurrentTime, nKey});
+                m_TimeStampQ.emplace(m_CurrentTime, nKey);
 
                 // 4. return the resource pointer
                 return pTextureInst->second.second;
@@ -205,23 +224,31 @@ class PNGTexOffDB
             // it's not in m_Cache, too bad ...
             // we need to load it from the hard driver
             //
-            auto pTexture = LoadTexture(nKey);
+
+            zip_int64_t nZIPIndex = fnZIPIndex(nKey);
+            SDL_Texture *pTexture = nullptr;
+            if(nZIPIndex >= 0){
+                pTexture = InnLoadTextureByZIPIndex((zip_uint64_t)nZIPIndex);
+            }
 
             // 1. Put a record in LC if necessary
             //    same here, we need to handle when LC is full in one box
             //
-            if(N != 0){
+            if(UseLC()){
 
                 // since the old record is in LC, it must exist in m_Cache
                 // update its time stamp
                 //
                 if(m_LCache[nLCacheKey].Full()){
-                    m_Cache[std::get<2>(m_LCache[
-                            nLCacheKey].Back())].first = std::get<1>(m_LCache[nLCacheKey].Back());
+                    m_Cache[std::get<2>(m_LCache[nLCacheKey].Back())].first
+                        = std::get<1>(m_LCache[nLCacheKey].Back());
                 }
 
+                // set pLCBucketIndex if necessary
+                *pLCBucketIndex = nLCacheKey;
+
                 // now insert the record to LC
-                m_LCache[nLCacheKey].PushHead({pTexture, m_CurrentTime, nKey});
+                m_LCache[nLCacheKey].PushHead(pTexture, m_CurrentTime, nKey);
             }
 
             // 2. put the resource in m_Cache
@@ -230,7 +257,7 @@ class PNGTexOffDB
 
             // 3. push the access stamp at the end of the time stamp queue
             //
-            m_TimeStampQ.push({m_CurrentTime, nKey});
+            m_TimeStampQ.emplace(m_CurrentTime, nKey);
 
             // 4. reset the size of the cache
             // 
@@ -257,60 +284,16 @@ class PNGTexOffDB
             }
         }
 
-        // return int with value in [0, 255)
+        // sizeof(T) is defined by declaration
+        // nUseByteNum = 0: use all bytes
+        // otherwise, use std::min(sizeof(T), nUseByteNum) from LSB
         //
-        // TODO
-        // design it for better performance
-        inline int LinearCacheKey(uint32_t nKey)
+        // 1. invocation should prepared enough buffer to szString
+        // 2. no '\0' at the end, be careful
+
+        template<size_t ByteN = 0> static const char *HexString(T nKey, char *szString)
         {
-            // for PNGTexDB, just take last 8 bits
-            return nKey & 0X000000FF;
-        }
-
-
-        int SignedHexStringDecode(const char *szStringCode)
-        {
-            const int knvStringHexChk[] = {
-                0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-                0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-                0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-                0,  0,  0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  0,  0,
-                0,  0,  0,  0,  0, 10, 11, 12, 13, 14, 15,  0,  0,  0,  0,
-                0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-                0,  0,  0,  0,  0,  0,  0, 10, 11, 12, 13, 14, 15,  0,  0};
-
-            int nRes = (szStringCode[0] == '0' ? 1 : -1)
-                * (knvStringHexChk[1] * 256 + knvStringHexChk[2] * 16 + knvStringHexChk[3]);
-            
-            return nRes;
-        }
-
-        void Record(const zip_stat_t &stStatus)
-        {
-            // A(12345678)B(1234)C(1234).PNG
-            //
-            //     A:1~8 image index for actor
-            //           uint32_t = 4 * 8: defined in actor.cpp
-            //
-            //     B:1   sgn(dx)
-            //     B:2~4 abs(dx)
-            //     C:1   sgn(dy)
-            //     D:2~4 abs(dy)
-
-            uint32_t nKey = StringHex(stStatus.name, 8);
-
-            zip_uint64_t nSize;
-
-            m_IndexCache[nKey] = {
-                stStatus.index,
-                stStatus.size,
-                SignedHexStringDecode(stStatus.name +  8),
-                SignedHexStringDecode(stStatus.name + 12)};
-        }
-
-        void PNGFileName(uint32_t nKey, char *szPNGName)
-        {
-            // only use 24 ~ 1 bits
+            const size_t nByteN = (ByteN) ? sizeof(T) : std::min(ByteN, sizeof(T));
             const uint16_t knvHexStringChunk[] = {
                 12336, 12592, 12848, 13104, 13360, 13616, 13872, 14128,
                 14384, 14640, 16688, 16944, 17200, 17456, 17712, 17968,
@@ -343,30 +326,20 @@ class PNGTexOffDB
                 12357, 12613, 12869, 13125, 13381, 13637, 13893, 14149,
                 14405, 14661, 16709, 16965, 17221, 17477, 17733, 17989,
                 12358, 12614, 12870, 13126, 13382, 13638, 13894, 14150,
-                14406, 14662, 16710, 16966, 17222, 17478, 17734, 17990
-            };
+                14406, 14662, 16710, 16966, 17222, 17478, 17734, 17990};
 
-            *(uint16_t *)(szPNGName + 0) = knvHexStringChunk[(nKey & 0X000000FF) >>  0];
-            *(uint16_t *)(szPNGName + 2) = knvHexStringChunk[(nKey & 0X000000FF) >>  8];
-            *(uint16_t *)(szPNGName + 4) = knvHexStringChunk[(nKey & 0X000000FF) >> 16];
+            for(size_t nIndex = 0; nIndex < nByteN; ++nIndex, (nKey >>= 8)){
+                *(uint16_t *)(szString + 2 * (nByteN - nIndex - 1)) = knvHexStringChunk[(nKey & 0XFF)];
+            }
 
-            szPNGName[ 6] =  '.';
-            szPNGName[ 7] =  'P';
-            szPNGName[ 8] =  'N';
-            szPNGName[ 9] =  'G';
-            szPNGName[10] = '\0';
-
-            return szPNGName;
+            return szString;
         }
 
         // load texture from zip archive
-        SDL_Texture *LoadTexture(uint32_t nKey)
+        SDL_Texture *InnLoadTextureByZIPIndex(zip_uint64_t nIndex)
         {
-            char szPNGName;
-            PNGFileName(nKey, szPNGName);
-
             zip_stat_t stZIPStat;
-            if(zip_stat(m_ZIP, szPNGName, ZIP_FL_ENC_RAW, &stZIPStat)){
+            if(!zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stZIPStat)){
                 if(true
                         && stZIPStat.valid & ZIP_STAT_INDEX
                         && stZIPStat.valid & ZIP_STAT_SIZE){
@@ -374,16 +347,16 @@ class PNGTexOffDB
                     auto fp = zip_fopen_index(m_ZIP, stZIPStat.index, 0);
                     if(fp == nullptr){ return nullptr; }
 
-                    ExtendBuf(stZIPStat.size);
+                    ExtendBuf((size_t)stZIPStat.size);
 
-                    if(stZIPStat.size != zip_fread(fp, m_Buf, stZIPStat.size)){
+                    if(stZIPStat.size != (zip_uint64_t)zip_fread(fp, m_Buf, stZIPStat.size)){
                         zip_fclose(fp);
                         zip_close(m_ZIP); m_ZIP = nullptr;
                         return nullptr;
                     }
 
                     extern SDLDevice *g_SDLDevice;
-                    return g_SDLDevice->CreateTexture(m_Buf, stZIPStat.size);
+                    return g_SDLDevice->CreateTexture((const uint8_t *)m_Buf, (size_t)stZIPStat.size);
                 }
             }
             return nullptr;
@@ -402,11 +375,10 @@ class PNGTexOffDB
         //         current node in time stamp queue is at time k, but the last accessing time of the
         //         resource is at (k + max) = k, then it's equal, and we release it incorrectly
         //         
-        void ReleaseResourceByTimeStamp(uint32_t nKey, int nTimeStamp)
+        void ReleaseResourceByTimeStamp(T nKey, unsigned long nTimeStamp)
         {
             auto pTextureInst = m_Cache.find(nKey);
-            // to handle the overflow problem
-            // otherwise we don't need this check
+            // to handle the overflow problem, otherwise we don't need this check
             if(pTextureInst != m_Cache.end()){
                 if(pTextureInst->second.first == nTimeStamp){
                     SDL_DestroyTexture(pTextureInst->second.second);
@@ -417,13 +389,14 @@ class PNGTexOffDB
             }
         }
 
-        void ReleaseResource(uint32_t nKey, int nTimeStamp)
+        void ReleaseResource(T nKey,
+                unsigned long nTimeStamp, const std::function<int(T)> &fnLinearCacheKey)
         {
             // first make sure that the resource is not in LC
             // return directly if yes
-            if(N != 0){
+            if(DeepN != 0 && LenN != 0){
                 int nLocationInLC;
-                if(LocateInLinearCache(nKey, nLocationInLC)){ return; }
+                if(LocateInLinearCache(fnLinearCacheKey(nKey), nKey, &nLocationInLC)){ return; }
             }
 
             // not in LC, release resource if (most likely) in the cache
@@ -431,11 +404,12 @@ class PNGTexOffDB
         }
 
 
-        bool LocateInLinearCache(int nLCKey, uint32_t nKey, int &nLocationInLC)
+        // assume everything is ok, parameters should be checked before invocation
+        bool LocateInLinearCache(int nLCKey, T nKey, size_t *pLocationInLC)
         {
             for(m_LCache[nLCKey].Reset(); !m_LCache[nLCKey].Done(); m_LCache[nLCKey].Forward()){
                 if(std::get<2>(m_LCache[nLCKey].Current()) == nKey){
-                    nLocationInLC =  m_LCache[nLCKey].CurrentIndex();
+                    *pLocationInLC = m_LCache[nLCKey].Index();
                     return true;
                 }
             }
@@ -450,5 +424,4 @@ class PNGTexOffDB
                 m_BufSize = nSize;
             }
         }
-
 };
