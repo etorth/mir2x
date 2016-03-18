@@ -3,7 +3,7 @@
  *
  *       Filename: inresdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 22:26:32
+ *  Last Modified: 03/18/2016 00:08:51
  *
  *    Description: base of all Int->Tex map cache
  *                 this class load resources with a external handler function
@@ -90,8 +90,8 @@ class InresDB
         // function handler or pure virtual function for LoadResource() doesn't mater
         // we define it as pure virtual for conformming with FreeResource()
         //
-        ResT LoadResource(KeyT)  = 0;
-        void FreeResource(Res &) = 0;
+        ResT LoadResource(KeyT)   = 0;
+        void FreeResource(ResT &) = 0;
 
         void ClearLC()
         {

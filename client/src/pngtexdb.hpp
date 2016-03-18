@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 23:15:25
+ *  Last Modified: 03/18/2016 00:15:48
  *
  *    Description: 
  *
@@ -30,7 +30,7 @@ class PNGTexDB: public InresDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN
     private:
         size_t   m_BufSize;
         uint8_t *m_Buf;
-        zip_t   *M_ZIP;
+        zip_t   *m_ZIP;
 
     private:
         typedef struct{
@@ -72,17 +72,17 @@ class PNGTexDB: public InresDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN
                                 && stZIPStat.valid & ZIP_STAT_INDEX
                                 && stZIPStat.valid & ZIP_STAT_SIZE
                                 && stZIPStat.valid & ZIP_STAT_NAME){
-                            uint32_t nKey = StringHex<uint32_t>(stZIPStat.name, 3);
+                            uint32_t nKey = StringHex<uint32_t, 3>(stZIPStat.name);
                             m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)stZIPStat.size};
                         }
                     }
                 }
             }
+            return Valid();
         }
-        return Valid();
 
     public:
-        SDL_Texture *Retrieve(uint32_t nKey,
+        SDL_Texture *RetrieveItem(uint32_t nKey,
                 const std::function<size_t(uint32_t)> &fnLinearCacheKey)
         {
             // fnLinearCacheKey should be defined with LCLenN definition

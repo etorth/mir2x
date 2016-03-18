@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 03/17/2016 23:03:16
+ *  Last Modified: 03/18/2016 00:16:11
  *
  *    Description: 
  *
@@ -44,12 +44,12 @@ class PNGTexDBN: public PNGTexDBType
     public:
         SDL_Texture *Retrieve(uint32_t nKey)
         {
-            const auto &fnLinearCacheKey = [&](uint32_t nKey)
+            const auto &fnLinearCacheKey = [&](uint32_t nKey)->size_t
             {
                 return (nKey & 0X0000FFFF) % PNGTEXDBN_LC_LENGTH;
             };
 
-            return Retrieve(nkey, fnLinearCacheKey);
+            return RetrieveItem(nKey, fnLinearCacheKey);
         }
 
         SDL_Texture *Retrieve(uint8_t nIndex, uint16_t nImage)
