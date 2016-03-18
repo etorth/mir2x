@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 21:14:39
+ *  Last Modified: 03/17/2016 22:58:17
  *
  *    Description: 
  *
@@ -18,82 +18,78 @@
  * =====================================================================================
  */
 
-
 #pragma once
-#include "intexdb.hpp"
+#include "inresdb.hpp"
 #include <unordered_map>
+#include "hexstring.hpp"
 
-template<size_t DeepN, size_t LenN, size_t ResM>
-class PNGTexDB: public IntexDB<uint32_t, SDL_Texture *, DeepN, LenN, ResM>
+template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
+class PNGTexDB: public IntexDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN>
 {
-    public:
-        PNGTexDB() : IntexDB(){}
-       ~PNGTexDB() = default;
-
-    public:
+    private:
         size_t   m_BufSize;
         uint8_t *m_Buf;
+
+    private:
+        typedef struct{
+            zip_uint64_t Index;
+            size_t       Size;
+        }ZIPItemInfo;
+
+    private:
+        std::unordered_map<uint32_t, ZIPItemInfo> m_ZIPItemInfoCache;
+
+    public:
+        PNGTexDB()
+            : InresDB<uint32_t, SDL_Texture *, LCDeepN, LCLenN, ResMaxN>()
+            , m_BufSize(0)
+            , m_Buf(nullptr)
+            , m_ZIP(nullptr)
+            , m_ZIPItemInfoCache()
+        {}
+        virtual ~PNGTexDB() = default;
 
     public:
         bool Valid()
         {
-            return ValidZIP() && !m_ZIPIndexCache.empty();
+            return m_ZIP && !m_ZIPItemInfoCache.empty();
         }
 
         bool Load(const char *szPNGTexDBName)
         {
-            if(LoadZIP(szPNGTexDBName)){
-                zip_int64_t nCount = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
-                if(nCount > 0){
-                    for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)nCount; ++nIndex){
-                        zip_stat_t stZIPStat;
-                        if(!zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stZIPStat)){
-                            if(true
-                                    && stZIPStat.valid & ZIP_STAT_INDEX
-                                    && stZIPStat.valid & ZIP_STAT_SIZE
-                                    && stZIPStat.valid & ZIP_STAT_NAME){
-                                uint32_t nKey = PNGNameKey(stZIPStat.name, 6);
-                                m_ZIPIndexCache[nKey] = stZIPStat.index;
-                            }
+            int nErrorCode;
+            m_ZIP = zip_open(szPNGTexDBName, ZIP_RDONLY, &nErrorCode);
+            if(m_ZIP == nullptr){ return false; }
+
+            zip_int64_t nCount = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
+            if(nCount > 0){
+                for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)nCount; ++nIndex){
+                    zip_stat_t stZIPStat;
+                    if(!zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stZIPStat)){
+                        if(true
+                                && stZIPStat.valid & ZIP_STAT_INDEX
+                                && stZIPStat.valid & ZIP_STAT_SIZE
+                                && stZIPStat.valid & ZIP_STAT_NAME){
+                            uint32_t nKey = StringHex<uint32_t>(stZIPStat.name, 3);
+                            m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)stZIPStat.size};
                         }
                     }
                 }
             }
-            return !m_ZIPIndexCache.empty();
         }
-
-        void Clear()
-        {
-            ClearLUT();
-            m_ZIPIndexCache.clear();
-        }
+        return Valid();
 
     public:
-
-        static size_t LinearCacheKey(uint32_t nKey)
+        SDL_Texture *Retrieve(uint32_t nKey,
+                const std::function<size_t(uint32_t)> &fnLinearCacheKey)
         {
-        }
+            // fnLinearCacheKey should be defined with LCLenN definition
+            SDL_Texture *pTexture = nullptr;
 
-        static zip_int64_t ZIPIndex()
+            // InnRetrieve always return true;
+            InnRetrieve(nKey, &pTexture, fnLinearCacheKey, nullptr);
 
-        SDL_Texture *Retrieve(uint8_t nIndex, uint16_t nImage)
-        {
-            return Retrieve((uint32_t)(((uint32_t)(nIndex) << 16) + nImage));
-        }
-
-        SDL_Texture *Retrieve(uint32_t nKey)
-        {
-            const auto &fnLinearCacheKey = [&](uint32_t nKey)
-            {
-                return (nKey & 0X0000FFFF) % LenN;
-            };
-
-            const auto &fnZIPIndex = [&](uint32_t nKey)
-            {
-                return m_ZIPIndexCache[nKey];
-            }
-
-            return InnRetrieve(nKey, fnLinearCacheKey, fnZIPIndex, nullptr);
+            return pTexture;
         }
 
         void ExtendBuf(size_t nSize)
@@ -107,34 +103,25 @@ class PNGTexDB: public IntexDB<uint32_t, SDL_Texture *, DeepN, LenN, ResM>
 
     public:
         // for all pure virtual function required in class InresDB;
-        SDL_Texture *LoadResource(uint32_t nKey)
+        //
+        virtual SDL_Texture *LoadResource(uint32_t nKey)
         {
-            auto pZIPIndexInst = m_ZIPIndexCache.find(nKey);
-            if(pZIPIndexInst == m_ZIPIndexCache.end()){ return nullptr; }
+            auto pZIPIndexInst = m_ZIPItemInfoCache.find(nKey);
+            if(pZIPIndexInst == m_ZIPItemInfoCache.end()){ return nullptr; }
 
-            zip_stat_t stZIPStat;
-            if(!zip_stat_index(m_ZIP, pZIPIndexInst->second, ZIP_FL_ENC_RAW, &stZIPStat)){
-                // here we don't have to check agian actually
-                if(true
-                        && stZIPStat.valid & ZIP_STAT_INDEX
-                        && stZIPStat.valid & ZIP_STAT_SIZE){
+            auto fp = zip_fopen_index(m_ZIP, pZIPIndexInst->second.Index, ZIP_FL_UNCHANGED);
+            if(fp == nullptr){ return nullptr; }
 
-                    auto fp = zip_fopen_index(m_ZIP, stZIPStat.index, 0);
-                    if(fp == nullptr){ return nullptr; }
+            size_t nSize = pZIPIndexInst->second.Size;
+            ExtendBuf(nSize);
 
-                    ExtendBuf((size_t)stZIPStat.size);
-
-                    if(stZIPStat.size != (zip_uint64_t)zip_fread(fp, m_Buf, stZIPStat.size)){
-                        zip_fclose(fp);
-                        zip_close(m_ZIP); m_ZIP = nullptr;
-                        return nullptr;
-                    }
-
-                    extern SDLDevice *g_SDLDevice;
-                    return g_SDLDevice->CreateTexture((const uint8_t *)m_Buf, (size_t)stZIPStat.size);
-                }
+            if(nSize != (size_t)zip_fread(fp, m_Buf, nSize)){
+                zip_fclose(fp);
+                return nullptr;
             }
-            return nullptr;
+
+            extern SDLDevice *g_SDLDevice;
+            return g_SDLDevice->CreateTexture((const uint8_t *)m_Buf, nSize);
         }
 
         void FreeResource(SDL_Texture * &pTexture)

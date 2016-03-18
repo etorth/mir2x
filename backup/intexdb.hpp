@@ -3,7 +3,7 @@
  *
  *       Filename: intexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 21:04:36
+ *  Last Modified: 03/17/2016 22:38:55
  *
  *    Description: base of all Int->Tex map cache
  *                 this class load resources from a zip archieve
@@ -95,9 +95,6 @@ class IntexDB
 
         bool LoadZIP(const char *szPNGTexDBName)
         {
-            int nErrorCode;
-
-            m_ZIP = zip_open(szPNGTexDBName, ZIP_RDONLY, &nErrorCode);
             return (m_ZIP != nullptr);
         }
 

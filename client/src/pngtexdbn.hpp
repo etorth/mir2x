@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 03/17/2016 19:11:23
+ *  Last Modified: 03/17/2016 23:03:16
  *
  *    Description: 
  *
@@ -22,15 +22,38 @@
 #pragma once
 #include "pngtexdb.hpp"
 
-class PNGTexDBN: public PNGTexDB<2, 2048, 2 * 2048 + 2000>
+#define PNGTEXDBN_LC_DEPTH  (2              )
+#define PNGTEXDBN_LC_LENGTH (2048           )
+#define PNGTEXDBN_CAPACITY  (2 * 2048 + 1024)
+
+using PNGTexDBType = PNGTexDB<PNGTEXDBN_LC_DEPTH, PNGTEXDBN_LC_LENGTH, PNGTEXDBN_CAPACITY>;
+
+class PNGTexDBN: public PNGTexDBType
 {
     public:
-        PNGTexDBN()
-            : PNGTexDB<0>()
+        PNGTexDBN(): PNGTexDBType()
         {
             extern PNGTexDBN *g_PNGTexDBN;
             if(g_PNGTexDBN){
                 throw std::runtime_error("one instance for PNGTexDBN please");
             }
+        }
+
+        virtual ~PNGTexDBN() = default;
+
+    public:
+        SDL_Texture *Retrieve(uint32_t nKey)
+        {
+            const auto &fnLinearCacheKey = [&](uint32_t nKey)
+            {
+                return (nKey & 0X0000FFFF) % PNGTEXDBN_LC_LENGTH;
+            };
+
+            return Retrieve(nkey, fnLinearCacheKey);
+        }
+
+        SDL_Texture *Retrieve(uint8_t nIndex, uint16_t nImage)
+        {
+            return Retrieve((uint32_t)(((uint32_t)(nIndex) << 16) + nImage));
         }
 };

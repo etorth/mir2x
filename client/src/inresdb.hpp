@@ -3,7 +3,7 @@
  *
  *       Filename: inresdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 22:16:39
+ *  Last Modified: 03/17/2016 22:26:32
  *
  *    Description: base of all Int->Tex map cache
  *                 this class load resources with a external handler function
@@ -44,12 +44,12 @@
 
 template<typename KeyT, // key type, can only be unsigned intergal, so no reference is needed
     typename ResT,      // for res, see above why I don't use ``SDL_Texture *" directly
-    size_t LCDeepN, size_t LCLenD, size_t ResMaxN>
+    size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
 class InresDB
 {
     private:
         // linear cache
-        std::array<CacheQueue<std::tuple<ResT, unsigned long, KeyT>, LCDeepN>, LCLenD> m_LCache;
+        std::array<CacheQueue<std::tuple<ResT, unsigned long, KeyT>, LCDeepN>, LCLenN> m_LCache;
 
         // main cache
         std::unordered_map<KeyT, std::pair<unsigned long, ResT>> m_Cache;
@@ -69,15 +69,15 @@ class InresDB
         {
             static_assert(std::is_unsigned<KeyT>::value,
                     "unsigned intergal type supported only please");
-            static_assert(ResMaxN > LCDeepN * LCLenD,
+            static_assert(ResMaxN > LCDeepN * LCLenN,
                     "maximal resource count must be larger than linear cache capacity please");
-            static_assert(LCLenD < 8192,
+            static_assert(LCLenN < 8192,
                     "don't set linear cache size to be too large please");
             static_assert(LCDeepN < 16,
                     "don't set linear cache depth to be too large please");
         }
 
-        ~InresDB()
+        virtual ~InresDB()
         {
             ClearCache();
         }
@@ -119,7 +119,7 @@ class InresDB
 
         bool UseLC() const
         {
-            return LCLenD > 0 && LCDeepN > 0;
+            return LCLenN > 0 && LCDeepN > 0;
         }
 
         // internal retrieve function, for derived class use only
