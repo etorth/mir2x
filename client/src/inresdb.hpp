@@ -3,7 +3,7 @@
  *
  *       Filename: inresdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 00:31:39
+ *  Last Modified: 03/18/2016 12:12:11
  *
  *    Description: base of all Int->Tex map cache
  *                 this class load resources with a external handler function
@@ -33,8 +33,10 @@
 #pragma once
 #include <utility>
 #include <tuple>
+#include <queue>
 #include <unordered_map>
 #include "cachequeue.hpp"
+#include <functional>
 
 // because for PNGTexOffDB, the offset and texture are both important
 // otherwise I could only put a ``SDL_Texture *" here instead of ResT

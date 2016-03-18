@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/17/2016 15:08:43
+ *  Last Modified: 03/18/2016 12:08:54
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 
 #include "emoticon.hpp"
+#include "emoticondbn.hpp"
 #include "section.hpp"
 #include "tokenboard.hpp"
 #include "tokenbox.hpp"
