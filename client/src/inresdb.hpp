@@ -3,15 +3,21 @@
  *
  *       Filename: inresdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/17/2016 21:25:03
+ *  Last Modified: 03/17/2016 22:16:39
  *
  *    Description: base of all Int->Tex map cache
  *                 this class load resources with a external handler function
  *                 store it properly in a cache, additional linear cache is optional
  *
- *                 1. Load method depends
- *                 2. retrieve mehods differs
- *                 3. I'm also not 100% sure of my logic, so I added a lot of comments
+ *                 to instantiation this class
+ *                 1. define LoadResource()
+ *                 2. define FreeResource()
+ *
+ *                 I don't make a virtual API for Load(const char *) since if we have
+ *                 a Load(), we may also need a Valid(), and RAII may also make this 
+ *                 unnecessary
+ *
+ *                 I'm also not 100% sure of my logic, so I added a lot of comments
  *
  *        Version: 1.0
  *       Revision: none
@@ -24,99 +30,87 @@
  * =====================================================================================
  */
 
-
 #pragma once
 #include <utility>
+#include <tuple>
 #include <unordered_map>
-
-#include "hexstring.hpp"
 #include "cachequeue.hpp"
-#include "sdldevice.hpp"
 
 // because for PNGTexOffDB, the offset and texture are both important
 // otherwise I could only put a ``SDL_Texture *" here instead of ResT
 //
 // and for FontexDB, the zip archieve is not for texture but for font
-// file instead, so I have to move stuff for libzip out
+// file instead, so I have to move stuff for libzip out of this file
 
-template<typename T, typename ResT, size_t DeepN, size_t LenN, size_t ResM>
-class IntexDB
+template<typename KeyT, // key type, can only be unsigned intergal, so no reference is needed
+    typename ResT,      // for res, see above why I don't use ``SDL_Texture *" directly
+    size_t LCDeepN, size_t LCLenD, size_t ResMaxN>
+class InresDB
 {
     private:
         // linear cache
-        std::array<CacheQueue<std::tuple<ResT, unsigned long, T>, DeepN>, LenN> m_LCache;
+        std::array<CacheQueue<std::tuple<ResT, unsigned long, KeyT>, LCDeepN>, LCLenD> m_LCache;
 
         // main cache
-        std::unordered_map<T, std::pair<unsigned long, ResT>> m_Cache;
+        std::unordered_map<KeyT, std::pair<unsigned long, ResT>> m_Cache;
 
         // time stamp queue
-        std::queue<std::tuple<unsigned long, T>>  m_TimeStampQ;
+        std::queue<std::tuple<unsigned long, KeyT>>  m_TimeStampQ;
 
-        size_t         m_ResourceMaxCount;
-        size_t         m_ResourceCount;
-        unsigned long  m_CurrentTime;
+        size_t        m_ResourceMaxCount;
+        size_t        m_ResourceCount;
+        unsigned long m_CurrentTime;
 
     public:
-        IntexDB()
-            : m_ResourceMaxCount(ResM)
+        InresDB()
+            : m_ResourceMaxCount(ResMaxN)
             , m_ResourceCount(0)
             , m_CurrentTime(0)
         {
-            static_assert(std::is_unsigned<T>::value,
+            static_assert(std::is_unsigned<KeyT>::value,
                     "unsigned intergal type supported only please");
-            static_assert(ResM > DeepN * LenN,
+            static_assert(ResMaxN > LCDeepN * LCLenD,
                     "maximal resource count must be larger than linear cache capacity please");
-            static_assert(LenN < 8192,
+            static_assert(LCLenD < 8192,
                     "don't set linear cache size to be too large please");
-            static_assert(DeepN < 16,
+            static_assert(LCDeepN < 16,
                     "don't set linear cache depth to be too large please");
         }
 
-        ~IntexDB()
+        ~InresDB()
         {
             ClearCache();
         }
 
     public:
 
-        bool ValidZIP()
-        {
-            return (m_ZIP != nullptr);
-        }
-
-        bool LoadZIP(const char *szPNGTexDBName)
-        {
-            int nErrorCode;
-
-            m_ZIP = zip_open(szPNGTexDBName, ZIP_RDONLY, &nErrorCode);
-            return (m_ZIP != nullptr);
-        }
-
-
-        // I have to put a virtual function here
-        // since dtor will call this function, and no functioin handler
-        // can be provided to the dtor, so need to put all Resource free
-        // funciton inside
+        // dtor will call ClearCache(), which can't take parameters, and no functioin handler
+        // so define FreeResource() pure virtual is necessary
         //
+        // function handler or pure virtual function for LoadResource() doesn't mater
+        // we define it as pure virtual for conformming with FreeResource()
+        //
+        ResT LoadResource(KeyT)  = 0;
         void FreeResource(Res &) = 0;
-        ResT LoadResource(T)     = 0;
 
         void ClearLC()
         {
             if(UseLC()){
                 for(auto &stQN: m_LCache){
+                    // just clean it
+                    // don't need FreeResource() here
                     stQN.Clear();
                 }
             }
         }
 
-        void Clear(ResT &rstRes) = 0;
-
         void ClearCache()
         {
             ClearLC();
             for(auto &stRecord: m_Cache){
-                Clear(stRecord->second.second);
+                // TODO
+                // important to make it pure virtual for derived class to define it
+                FreeResource(stRecord->second.second);
             }
             m_Cache.clear();
         }
@@ -125,7 +119,7 @@ class IntexDB
 
         bool UseLC() const
         {
-            return LenN > 0 && DeepN > 0;
+            return LCLenD > 0 && LCDeepN > 0;
         }
 
         // internal retrieve function, for derived class use only
@@ -133,32 +127,42 @@ class IntexDB
         //      when there is LC enabled, m_LCache[*pLCBucketIndex].Head() is the current result
         //      when no LC, nothing in nLCBucketIndex
         //
-        // parameters:
+        // this function always return true, the pResource always return
+        // a resource desc even actually it's null to prevent repeatly call LoadResource()
+        //
+        // outside logic will handle this, which make this null resource desc in LCache
+        // sink into m_Cache quickly
+        //
         //
         // caller should define the fnLinearCacheKey() function
+        // we don't make LinearCacheKey() pure virtual since when UseLC() is false, we don't need 
+        // it, if it pure virtual we have to define an unused function which is annoying
         //
-        // 1. key, can only be builtin type, so no need to be const reference
+        // parameters:
+        //
+        // 1. key, can only be builtin unsigned type, so no need to be const reference
         //
         // 2. return pointer, since ResT may be large
         //    but caller should never store this pointer since it may release/reload internally
+        //    call should consume it before next retrieve
         //
-        // 3. we won't make the LC address function virtual, since UseLC() may be false
-        //    in that case, virtual function declaration force me to make an function never used
+        // 3. calculate the LCache location
         //
         // 4. may be useful, if not used just subsititute it as nullptr
-        bool InnRetrieve(T nKey, ResT *pResource,
-                const std::function<size_t(T)> &fnLinearCacheKey,
+        //
+        bool InnRetrieve(KeyT nKey, ResT *pResource,
+                const std::function<size_t(KeyT)> &fnLinearCacheKey,
                 size_t *pLCBucketIndex)
         {
             // everytime when call this function
-            // there must be a pointer retrieved responding to nKey
-            // even if it's nullptr, so update time stamp at each time
+            // there must be a resource retrieved responding to nKey
+            // even if it's null, so update time stamp at each time
             //
             // overflow will be handled
             m_CurrentTime++;
 
             // if linear cache is enabled
-            // then first try to retrieve from cache
+            // then first try to retrieve from linear cache
             //
             size_t nLCacheKey;
             size_t nLocationInLC;
@@ -219,7 +223,9 @@ class IntexDB
                     }
 
                     // set pLCBucketIndex if necessary
-                    *pLCBucketIndex = nLCacheKey;
+                    if(pLCBucketIndex){
+                        *pLCBucketIndex = nLCacheKey;
+                    }
 
                     // now insert the record to LC
                     // if it's full, the back() is overwrited as new head
@@ -236,18 +242,23 @@ class IntexDB
                 m_TimeStampQ.emplace(m_CurrentTime, nKey);
 
                 // 4. return the resource pointer
-                return pTextureInst->second.second;
+                if(pResource){
+                    *pResource = pTextureInst->second.second;
+                }
+
+                return true;
             }
 
             // it's not in m_Cache, too bad ...
             // we need to load it from the hard driver
             //
-
-            zip_int64_t nZIPIndex = fnZIPIndex(nKey);
-            SDL_Texture *pTexture = nullptr;
-            if(nZIPIndex >= 0){
-                pTexture = InnLoadTextureByZIPIndex((zip_uint64_t)nZIPIndex);
-            }
+            // use the pure virtual function
+            // always return a resource desc even actually it's null
+            // to prevent repeatly call LoadResource()
+            // outside logic will handle this, which make this null resource desc
+            // sink into m_Cache quickly
+            //
+            ResT stResource = LoadResource(nKey);
 
             // 1. Put a record in LC if necessary
             //    same here, we need to handle when LC is full in one box
@@ -263,15 +274,17 @@ class IntexDB
                 }
 
                 // set pLCBucketIndex if necessary
-                *pLCBucketIndex = nLCacheKey;
+                if(pLCBucketIndex){
+                    *pLCBucketIndex = nLCacheKey;
+                }
 
                 // now insert the record to LC
-                m_LCache[nLCacheKey].PushHead(pTexture, m_CurrentTime, nKey);
+                m_LCache[nLCacheKey].PushHead(stResource, m_CurrentTime, nKey);
             }
 
             // 2. put the resource in m_Cache
             //
-            m_Cache[nKey] = {m_CurrentTime, pTexture};
+            m_Cache[nKey] = {m_CurrentTime, stResource};
 
             // 3. push the access stamp at the end of the time stamp queue
             //
@@ -283,7 +296,12 @@ class IntexDB
             Resize();
 
             // 5. return the resource pointer
-            return pTexture;
+            if(pResource){
+                *pResource = stResource;
+            }
+
+            // this function always return true
+            return true;
         }
 
     private:
@@ -292,7 +310,7 @@ class IntexDB
         void Resize()
         {
             while(m_ResourceCount > m_ResourceMaxCount){
-                // won't happen
+                // won't happen actually
                 if(m_TimeStampQ.empty()){ break; }
 
                 // may or may not release one resource
@@ -301,58 +319,6 @@ class IntexDB
                 m_TimeStampQ.pop();
             }
         }
-
-        // sizeof(T) is defined by declaration
-        // nUseByteNum = 0: use all bytes
-        // otherwise, use std::min(sizeof(T), nUseByteNum) from LSB
-        //
-        // 1. invocation should prepared enough buffer to szString
-        // 2. no '\0' at the end, be careful
-
-        template<size_t ByteN = 0> static const char *HexString(T nKey, char *szString)
-        {
-            const size_t nByteN = (ByteN) ? sizeof(T) : std::min(ByteN, sizeof(T));
-            const uint16_t knvHexStringChunk[] = {
-                12336, 12592, 12848, 13104, 13360, 13616, 13872, 14128,
-                14384, 14640, 16688, 16944, 17200, 17456, 17712, 17968,
-                12337, 12593, 12849, 13105, 13361, 13617, 13873, 14129,
-                14385, 14641, 16689, 16945, 17201, 17457, 17713, 17969,
-                12338, 12594, 12850, 13106, 13362, 13618, 13874, 14130,
-                14386, 14642, 16690, 16946, 17202, 17458, 17714, 17970,
-                12339, 12595, 12851, 13107, 13363, 13619, 13875, 14131,
-                14387, 14643, 16691, 16947, 17203, 17459, 17715, 17971,
-                12340, 12596, 12852, 13108, 13364, 13620, 13876, 14132,
-                14388, 14644, 16692, 16948, 17204, 17460, 17716, 17972,
-                12341, 12597, 12853, 13109, 13365, 13621, 13877, 14133,
-                14389, 14645, 16693, 16949, 17205, 17461, 17717, 17973,
-                12342, 12598, 12854, 13110, 13366, 13622, 13878, 14134,
-                14390, 14646, 16694, 16950, 17206, 17462, 17718, 17974,
-                12343, 12599, 12855, 13111, 13367, 13623, 13879, 14135,
-                14391, 14647, 16695, 16951, 17207, 17463, 17719, 17975,
-                12344, 12600, 12856, 13112, 13368, 13624, 13880, 14136,
-                14392, 14648, 16696, 16952, 17208, 17464, 17720, 17976,
-                12345, 12601, 12857, 13113, 13369, 13625, 13881, 14137,
-                14393, 14649, 16697, 16953, 17209, 17465, 17721, 17977,
-                12353, 12609, 12865, 13121, 13377, 13633, 13889, 14145,
-                14401, 14657, 16705, 16961, 17217, 17473, 17729, 17985,
-                12354, 12610, 12866, 13122, 13378, 13634, 13890, 14146,
-                14402, 14658, 16706, 16962, 17218, 17474, 17730, 17986,
-                12355, 12611, 12867, 13123, 13379, 13635, 13891, 14147,
-                14403, 14659, 16707, 16963, 17219, 17475, 17731, 17987,
-                12356, 12612, 12868, 13124, 13380, 13636, 13892, 14148,
-                14404, 14660, 16708, 16964, 17220, 17476, 17732, 17988,
-                12357, 12613, 12869, 13125, 13381, 13637, 13893, 14149,
-                14405, 14661, 16709, 16965, 17221, 17477, 17733, 17989,
-                12358, 12614, 12870, 13126, 13382, 13638, 13894, 14150,
-                14406, 14662, 16710, 16966, 17222, 17478, 17734, 17990};
-
-            for(size_t nIndex = 0; nIndex < nByteN; ++nIndex, (nKey >>= 8)){
-                *(uint16_t *)(szString + 2 * (nByteN - nIndex - 1)) = knvHexStringChunk[(nKey & 0XFF)];
-            }
-
-            return szString;
-        }
-
 
         // when calling this function, the nKey
         //
@@ -367,7 +333,7 @@ class IntexDB
         //         current node in time stamp queue is at time k, but the last accessing time of the
         //         resource is at (k + max) = k, then it's equal, and we release it incorrectly
         //         
-        void ReleaseResourceByTimeStamp(T nKey, unsigned long nTimeStamp)
+        void ReleaseResourceByTimeStamp(KeyT nKey, unsigned long nTimeStamp)
         {
             auto pResInst = m_Cache.find(nKey);
             // to handle the overflow problem, otherwise we don't need this check
@@ -381,8 +347,8 @@ class IntexDB
             }
         }
 
-        void ReleaseResource(T nKey,
-                unsigned long nTimeStamp, const std::function<size_t(T)> &fnLinearCacheKey)
+        void ReleaseResource(KeyT nKey,
+                unsigned long nTimeStamp, const std::function<size_t(KeyT)> &fnLinearCacheKey)
         {
             // first make sure that the resource is not in LC
             // return directly if yes
@@ -393,7 +359,7 @@ class IntexDB
         }
 
         // assume UseLC() is true, parameters should be checked before invocation
-        bool LocateInLinearCache(int nLCKey, T nKey, size_t *pLocationInLC)
+        bool LocateInLinearCache(int nLCKey, KeyT nKey, size_t *pLocationInLC)
         {
             for(m_LCache[nLCKey].Reset(); !m_LCache[nLCKey].Done(); m_LCache[nLCKey].Forward()){
                 if(std::get<2>(m_LCache[nLCKey].Current()) == nKey){
