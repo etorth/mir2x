@@ -124,6 +124,8 @@ class TokenBoard: public Widget
 
     public:
         void Draw(int, int);
+        void DrawEx(int, int, int, int, int, int);
+
 
     private:
         // bool AddNewTokenBox(const TOKENBOX &, int);

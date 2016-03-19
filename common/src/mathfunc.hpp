@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 03/02/2016 03:12:46
+ *  Last Modified: 03/18/2016 18:25:43
  *
  *    Description: 
  *
@@ -70,4 +70,30 @@ template<typename T> bool IntervalOverlap(T nfX1, T nfW1, T nfX2, T nfW2)
 {
     static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
     return !(nfX1 + nfW1 <= nfX2 || nfX2 + nfW2 <= nfX1);
+}
+
+template<typename T> bool RectangleOverlapRegion(
+        T nfX1, T nfY1, T nfW1, T nfH1, T *nfX2, T *nfY2, T *nfW2, T *nfH2)
+{
+    if(nfX2 && nfY2 && nfW2 && nfH2 && 
+            RectangleOverlap(nfX1, nfY1, nfW1, nfH1, *nfX2, *nfY2, *nfW2, *nfH2)){
+
+        T nfRX, nfRY, nfRW, nfRH;
+        // TODO
+        //
+        // we assume W, H are always non-negative
+
+        nfRX = std::max(nfX1, *nfX2);
+        nfRY = std::max(nfY1, *nfY2);
+        nfRW = std::min(nfX1 + nfW1, *nfX2 + *nfW2) - nfRX;
+        nfRH = std::min(nfY1 + nfH1, *nfY2 + *nfH2) - nfRY;
+
+        *nfX2 = nfRX;
+        *nfY2 = nfRY;
+        *nfW2 = nfRW;
+        *nfH2 = nfRH;
+
+        return true;
+    }
+    return false;
 }

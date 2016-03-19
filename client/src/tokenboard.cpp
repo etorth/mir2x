@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/18/2016 17:26:27
+ *  Last Modified: 03/18/2016 18:32:24
  *
  *    Description: 
  *
@@ -726,8 +726,6 @@ int TokenBoard::GetNthLineIntervalMaxH2(int nthLine, int nIntervalStartX, int nI
 
     for(auto &stTokenBox: m_LineV[nthLine]){
         int nW  = stTokenBox.Cache.W;
-        int nH  = stTokenBox.Cache.H;
-        int nH1 = stTokenBox.Cache.H1;
         int nH2 = stTokenBox.Cache.H2;
         int nW1 = stTokenBox.State.W1;
         int nW2 = stTokenBox.State.W2;
@@ -780,9 +778,7 @@ int TokenBoard::GetNthNewLineStartY(int nthLine)
     int nCurrentY = -1;
     for(auto &stTokenBox: m_CurrentLine){
         int nW  = stTokenBox.Cache.W;
-        int nH  = stTokenBox.Cache.H;
         int nH1 = stTokenBox.Cache.H1;
-        int nH2 = stTokenBox.Cache.H2;
         int nW1 = stTokenBox.State.W1;
         int nW2 = stTokenBox.State.W2;
 
@@ -793,57 +789,13 @@ int TokenBoard::GetNthNewLineStartY(int nthLine)
     return nCurrentY;
 }
 
-
-void TokenBoard::LoadUTF8CharBoxSizeCache(TOKENBOX &rstTokenBox,
-        int nSection, int nDefaultSize, uint32_t nFontAttrKey, uint32_t nUTF8Key, 
-        std::function<void(bool, uint64_t, int &, int &, int &, int &)> fnQueryTokenBoxInfo)
-{
-    uint64_t nKey = (((uint64_t)nFontAttrKey << 32) + nUTF8Key);
-
-    rstTokenBox.Section = nSection;
-    rstTokenBox.UTF8CharBox.Data.UTF8Code = nUTF8Key;
-    rstTokenBox.UTF8CharBox.Cache.Key     = nKey;
-
-    if(!fnQueryFontexInfo(true, nKey,
-                stTokenBox.Cache.W, stTokenBox.Cache.H,
-                stTokenBox.Cache.H1, stTokenBox.Cache.H2)){
-        // failed to retrieve, set a []
-        stTokenBox.Cache.W  = nDefaultSize;
-        stTokenBox.Cache.H  = nDefaultSize;
-        stTokenBox.Cache.H1 = nDefaultSize;
-        stTokenBox.Cache.H2 = 0;
-    }
-}
-
-void TokenBoard::LoadUTF8CharBoxSizeCache(TOKENBOX &rstTokenBox,
-        int nSection, int nDefaultSize, uint32_t nFontAttrKey, uint32_t nUTF8Key, 
-        std::function<void(bool, uint64_t, int &, int &, int &, int &)> fnQueryTokenBoxInfo)
-{
-    uint64_t nKey = (((uint64_t)nFontAttrKey << 32) + nUTF8Key);
-
-    rstTokenBox.Section = nSection;
-    rstTokenBox.UTF8CharBox.Data.UTF8Code = nUTF8Key;
-    rstTokenBox.UTF8CharBox.Cache.Key     = nKey;
-
-    if(!fnQueryFontexInfo(true, nKey,
-                stTokenBox.Cache.W, stTokenBox.Cache.H,
-                stTokenBox.Cache.H1, stTokenBox.Cache.H2)){
-        // failed to retrieve, set a []
-        stTokenBox.Cache.W  = nDefaultSize;
-        stTokenBox.Cache.H  = nDefaultSize;
-        stTokenBox.Cache.H1 = nDefaultSize;
-        stTokenBox.Cache.H2 = 0;
-    }
-}
-
 // everything dynamic and can be retrieve is in Cache
 //            dynamic but can not be retrieved is in State
 //            static is in Info
 void TokenBoard::DrawEx(
         int nDstX, int nDstY, // start position of drawing on the screen
         int nSrcX, int nSrcY, // region to draw, a cropped region on the token board
-        int nSrcW, int nSrcH,
-        std::function<void(uint64_t, int, int, int, int, int, int)> fnDrawEx)
+        int nSrcW, int nSrcH)
 {
     // we assume all token box are well-prepared here!
     // means cache, state, info are all valid now when invoke this function
@@ -877,7 +829,7 @@ void TokenBoard::DrawEx(
 
     // now nSrc(X, Y, W, H) is a sub-area on the board
 
-    for(int nLine = 0; nLine < m_LineV.size(); ++nLine){
+    for(int nLine = 0; nLine < (int)m_LineV.size(); ++nLine){
         for(auto &rstTokenBox: m_LineV[nLine]){
 
 
@@ -912,22 +864,16 @@ void TokenBoard::DrawEx(
                         nW = rstTokenBox.Cache.W - rstTokenBox.State.W1 - rstTokenBox.State.W2;
                         nH = rstTokenBox.Cache.H1;
 
-                        if(!RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, nX, nY, nW, nH)){
+                        if(!RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){
                             // no overlap for current, nothing to do
                             continue;
                         }
 
-                        fnDrawTokenBox(
-                                true,
-                                rstTokenBox.UTF8CharBox.Cache.Valid,
-                                rstTokenBox.UTF8CharBox.Cache.Key,
-                                nX + nDstX,
-                                nY + nDstY,
-                                nX - rstTokenBox.Cache.StartX,
-                                nY - rstTokenBox.Cache.StartY,
-                                nW, nH,
-                                nColor);
-
+                        extern SDLDevice *g_SDLDevice;
+                        extern FontexDBN *g_FontexDBN;
+                        g_SDLDevice->DrawImage(
+                                g_FontexDBN->Retrieve(rstTokenBox.UTF8CharBox.Cache.Key),
+                                nX + nDstX, nY + nDstY, nW, nH, nColor);
                         break;
                     }
 
@@ -950,12 +896,7 @@ void TokenBoard::DrawEx(
                                 false,
                                 rstTokenBox.EmoticonBox.Cache.Valid,
                                 rstTokenBox.EmoticonBox.Cache.Key + nFrameIndex,
-                                nX + nDstX,
-                                nY + nDstY,
-                                nX - rstTokenBox.Cache.StartX,
-                                nY - rstTokenBox.Cache.StartY,
-                                nW, nH, 0);
-
+                                nX + nDstX, nY + nDstY, nW, nH);
                         break;
                     }
                 default:
