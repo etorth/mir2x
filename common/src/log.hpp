@@ -3,7 +3,7 @@
  *
  *       Filename: log.hpp
  *        Created: 03/16/2016 16:05:17
- *  Last Modified: 03/18/2016 19:12:04
+ *  Last Modified: 03/19/2016 03:57:20
  *
  *    Description: log functionality enabled by g3Log
  *
@@ -48,7 +48,7 @@
     std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
 #define LOGTYPE_WARNING {std::string("1" ), \
     std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_FATAL   {std::string("1" ), \
+#define LOGTYPE_FATAL   {std::string("2" ), \
     std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
 
 class Log final

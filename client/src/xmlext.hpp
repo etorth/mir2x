@@ -3,7 +3,7 @@
  *
  *       Filename: xmlext.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 03/19/2016 02:50:25
+ *  Last Modified: 03/19/2016 03:46:59
  *
  *    Description: 
  *
@@ -54,6 +54,6 @@ class XMLExt
            return szRawBuf && m_XMLDoc.Parse(szRawBuf) == tinyxml2::XML_NO_ERROR;
        }
 
-    private:
+    protected:
        tinyxml2::XMLDocument m_XMLDoc;
 };
