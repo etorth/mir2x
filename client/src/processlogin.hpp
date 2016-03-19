@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.hpp
  *        Created: 08/14/2015 2:47:30 PM
- *  Last Modified: 03/17/2016 00:45:54
+ *  Last Modified: 03/19/2016 01:17:29
  *
  *    Description: 
  *
@@ -22,9 +22,9 @@
 #include <cstdint>
 #include <SDL2/SDL.h>
 #include "process.hpp"
-#include "tokenboard.hpp"
-#include "idbox.hpp"
-#include "passwordbox.hpp"
+// #include "tokenboard.hpp"
+// #include "idbox.hpp"
+// #include "passwordbox.hpp"
 #include "message.hpp"
 #include "button.hpp"
 
@@ -42,8 +42,8 @@ class ProcessLogin: public Process
         Button          m_Button3;
         Button          m_Button4;
 
-        IDBox           m_IDBox;
-        PasswordBox     m_PasswordBox;
+        // IDBox           m_IDBox;
+        // PasswordBox     m_PasswordBox;
 
     public:
         ProcessLogin();

@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/10/2016 18:53:33
+ *  Last Modified: 03/19/2016 01:37:26
  *
  *    Description: public API for class game only
  *
@@ -19,41 +19,30 @@
  */
 
 #include "game.hpp"
+#include <thread>
+#include <future>
 
 Game::Game()
-    : m_XMLExt()
-    , m_SDLDevice(nullptr)
-    , m_CurrentProcessID(PROCESSID_NULL)
-    , m_Window(nullptr)
-    , m_Renderer(nullptr)
+    : m_FPS(30.0)
 {
-    std::srand((unsigned int)std::time(nullptr));
-
-    // if failed, it will throw directly
-    m_XMLExt = new XMLExt();
-
-    if(false
-            || m_XMLExt->Load("./configuration.xml")
-            || m_XMLExt->Load("./configure.xml"    )
-            || m_XMLExt->Load("./config.xml"       )
-            || m_XMLExt->Load("./conf.xml"         )){
-        throw std::invalid_argument("No configuration found");
-    }
-
-    try{
-        m_SDLDevice = new SDLDevice(*m_XMLExt);
-        m_NetIO     = new NetIO(stXMLExt, [this](){ ReadHC(); })
-    }catch(...){
-        delete m_XMLExt;
-        delete m_SDLDevice;
-        throw;
+    // fullfil the time cq
+    for(size_t nIndex = 0; nIndex < m_DelayTimeCQ.Capacity(); ++nIndex){
+        m_DelayTimeCQ.PushHead(1000.0 / m_FPS);
     }
 }
 
 Game::~Game()
 {
-    delete m_XMLExt;
-    delete m_SDLDevice;
+}
+
+void Game::ProcessEvent()
+{
+    if(m_CurrentProcess){
+        SDL_Event stEvent;
+        while(SDL_PollEvent(&stEvent)){
+            m_CurrentProcess->ProcessEvent(stEvent);
+        }
+    }
 }
 
 void Game::MainLoop()
@@ -62,20 +51,35 @@ void Game::MainLoop()
     //
     SwitchProcess(PROCESSID_LOGO);
 
-    std::asyc([this](){ RunASIO(); });
+    std::async([this](){ RunASIO(); });
 
-    while(m_CurrentProcessID != PROCESSID_EXIT){
-        while(true){
-            SDL_Event stEvent;
-            if(SDL_PollEvent(&stEvent)){
-                ProcessEvent(&stEvent);
-            }else{
-                if(!FPSDelay()){
-                    break;
-                }
-            }
+    double fLastMS = GetTimeMS();
+
+    while(m_CurrentProcess->ID() != PROCESSID_EXIT){
+
+        // process *all* pending event
+        ProcessEvent();
+        
+        double fCurrentMS = GetTimeMS();
+
+        // time has passed by Delta MS from last update
+        Update(fCurrentMS - fLastMS);
+
+        m_DelayTimeCQ.PushHead(fCurrentMS - fLastMS);
+
+        fLastMS = fCurrentMS;
+
+        // try to expect next delay time interval
+        double fTimeSum = 0.0;
+        for(m_DelayTimeCQ.Reset(); !m_DelayTimeCQ.Done(); m_DelayTimeCQ.Forward()){
+            // TODO
+            // we assume the time queue is always full!
+            // so just fullfil the queue during initialization
+            fTimeSum += m_DelayTimeCQ.Current();
         }
-        Update();
-        Draw();
+
+        double fExpectedTime = (1.0 + m_DelayTimeCQ.Size()) * 1000.0 / m_FPS - fTimeSum;
+
+        EventDelay(fExpectedTime);
     }
 }

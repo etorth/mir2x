@@ -18,6 +18,11 @@ Game           *g_Game          = nullptr; // gobal instance
 
 int main()
 {
+    // firstly set the random seed
+    //
+    std::srand((unsigned int)std::time(nullptr));
+
+    // set the exit function for g_Log->AddLog(LOGTYPE_FATAL, ...)
     auto fnAtExit = [](){
         delete g_Log;  g_Log  = nullptr;
         delete g_Game; g_Game = nullptr;
@@ -26,8 +31,6 @@ int main()
     std::atexit(fnAtExit);
 
     g_Log = new Log();
-
-
 
     g_Game->Init();
     g_Game->MainLoop();

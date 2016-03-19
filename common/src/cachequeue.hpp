@@ -3,7 +3,7 @@
  *
  *       Filename: cachequeue.hpp
  *        Created: 02/25/2016 01:01:40
- *  Last Modified: 03/17/2016 01:47:34
+ *  Last Modified: 03/19/2016 01:31:03
  *
  *    Description: linear cache queue
  *
@@ -42,93 +42,98 @@ class CacheQueue final
        ~CacheQueue() = default;
 
     public:
-        bool Size()
-        {
-            return m_Size;
-        }
+       size_t Capacity()
+       {
+           return N;
+       }
 
-        bool Full()
-        {
-            return m_Size == N;
-        }
+       bool Size()
+       {
+           return m_Size;
+       }
 
-        T &Head()
-        {
-            // TODO
-            // undefined when N == 0
-            return m_CircleQ[m_Head];
-        }
+       bool Full()
+       {
+           return m_Size == N;
+       }
 
-        T &Back()
-        {
-            // TODO
-            // undefined when N == 0, but this compiles without warnings
-            return m_CircleQ[(m_Head + m_Size - 1 + N) % N];
-        }
+       T &Head()
+       {
+           // TODO
+           // undefined when N == 0
+           return m_CircleQ[m_Head];
+       }
 
-        T &Current()
-        {
-            return m_CircleQ[(m_Head + m_CheckCount) % N];
-        }
+       T &Back()
+       {
+           // TODO
+           // undefined when N == 0, but this compiles without warnings
+           return m_CircleQ[(m_Head + m_Size - 1 + N) % N];
+       }
 
-        size_t Index()
-        {
-            return (m_Head + m_CheckCount) % N;
-        }
+       T &Current()
+       {
+           return m_CircleQ[(m_Head + m_CheckCount) % N];
+       }
 
-        void SwapHead(size_t nIndex)
-        {
-            // won't check parameters
-            // index is absolute index
-            std::swap(m_CircleQ[m_Head], m_CircleQ[nIndex]);
-        }
+       size_t Index()
+       {
+           return (m_Head + m_CheckCount) % N;
+       }
 
-        template<typename... U>
-        void PushHead(U&&... u)
-        {
-            // 1. don't call it during the traversing
-            // 2. may throw
-            if(m_Size == 0){
-                // empty queue we need to use PushBack() instead
-                m_CircleQ[0] = T(std::forward<U>(u)...);
-                m_Head       = 0;
-                m_Size       = 1;
-            }else{
-                m_CircleQ[(m_Head - 1 + N) % N] = T(std::forward<U>(u)...);
-                m_Head = ((m_Head - 1 + N) % N);
-                m_Size = std::min(N, m_Size + 1);
-            }
-        }
+       void SwapHead(size_t nIndex)
+       {
+           // won't check parameters
+           // index is absolute index
+           std::swap(m_CircleQ[m_Head], m_CircleQ[nIndex]);
+       }
 
-        void Reset()
-        {
-            // for traversal
-            m_CheckCount = 0;
-        }
+       template<typename... U>
+           void PushHead(U&&... u)
+           {
+               // 1. don't call it during the traversing
+               // 2. may throw
+               if(m_Size == 0){
+                   // empty queue we need to use PushBack() instead
+                   m_CircleQ[0] = T(std::forward<U>(u)...);
+                   m_Head       = 0;
+                   m_Size       = 1;
+               }else{
+                   m_CircleQ[(m_Head - 1 + N) % N] = T(std::forward<U>(u)...);
+                   m_Head = ((m_Head - 1 + N) % N);
+                   m_Size = std::min(N, m_Size + 1);
+               }
+           }
 
-        bool Done()
-        {
-            return (size_t)m_CheckCount == m_Size;
-        }
+       void Reset()
+       {
+           // for traversal
+           m_CheckCount = 0;
+       }
 
-        void Forward()
-        {
-            m_CheckCount++;
-        }
+       bool Done()
+       {
+           return (size_t)m_CheckCount == m_Size;
+       }
 
-        void Clear()
-        {
-            // get rid of all elements
-            m_Head       = 0;
-            m_Size       = 0;
-            m_Current    = 0;
-            m_CheckCount = 0;
-        }
+       void Forward()
+       {
+           m_CheckCount++;
+       }
+
+       void Clear()
+       {
+           // get rid of all elements
+           m_Head       = 0;
+           m_Size       = 0;
+           m_Current    = 0;
+           m_CheckCount = 0;
+       }
 
     private:
-        std::array<T, N> m_CircleQ;
-        int              m_Head;
-        size_t           m_Size;
-        int              m_Current;
-        int              m_CheckCount;
+       std::array<T, N> m_CircleQ;
+       int              m_Head;
+       size_t           m_Size;
+       int              m_Current;
+       int              m_CheckCount;
 };

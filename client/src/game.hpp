@@ -7,13 +7,15 @@
 
 #include <SDL2/SDL.h>
 #include <atomic>
-#include "tokenboard.hpp"
+#include "cachequeue.hpp"
 
 class Game
 {
     private:
-        std::atomic<bool>   m_LoginOK;
+        double m_FPS;
 
+    private:
+        std::atomic<bool>   m_LoginOK;
 
     public:
         Game();
@@ -33,10 +35,8 @@ class Game
         };
 
     public:
-        // since the FontexDB and EmoticonDB are local inside of stGame
-        void LoadTokenBoard(TokenBoard *, const tinyxml2::XMLDocument *);
-
-    public:
+        bool FPSDelay();
+        void SwitchProcess(int);
         void SwitchProcess(int, int);
         void RunASIO();
         void ReadHC();
@@ -44,6 +44,13 @@ class Game
     private:
         void OnPing();
         void OnLoginOK();
+
+    private:
+        double GetTimeMS();
+        void   EventDelay(double);
+        void   ProcessEvent();
+        void   Update(double);
+        void   Draw();
 
     private:
         NetIO   m_NetIO;
@@ -55,6 +62,10 @@ class Game
     private:
         int     *m_CurrentProcessID;
         Process *m_CurrentProcess;
+
+    private:
+        // to get an average delay time in MS for most recent 100 loops
+        CacheQueue<double, 100> m_DelayTimeCQ;
 
     private:
         // TODO

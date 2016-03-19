@@ -3,7 +3,7 @@
  *
  *       Filename: label.hpp
  *        Created: 8/20/2015 8:59:11 PM
- *  Last Modified: 08/21/2015 7:02:41 PM
+ *  Last Modified: 03/19/2016 01:29:24
  *
  *    Description: 
  *
@@ -19,7 +19,7 @@
  */
 
 #pragma once
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <vector>
 #include <string>
 #include "widget.hpp"
