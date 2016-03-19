@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/18/2016 16:43:40
+ *  Last Modified: 03/18/2016 19:12:33
  *
  *    Description: copy from flare-engine:
  *		   SDLDevice.h/cpp
@@ -83,7 +83,7 @@ SDLDevice::SDLDevice(const XMLExt &stXMLExt)
 
     if(TTF_Init() == -1){
         extern Log *g_Log;
-        g_Log->Log(LOGTYPE_FATAL, "TTF_Init() failed: \n", TTF_GetError());
+        g_Log->AddLog(LOGTYPE_FATAL, "TTF_Init() failed: \n", TTF_GetError());
     }
 
     SetWindowIcon();
@@ -213,7 +213,7 @@ TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontP
 
     pstRWops = SDL_RWFromConstMem((const void *)pMem, nSize);
     if(pstRWops){
-        pstTTont = TTF_OpenFontRW(pstRWops, 0, nFontPointSize)
+        pstTTont = TTF_OpenFontRW(pstRWops, 0, nFontPointSize);
     }
 
     if(pstRWops){

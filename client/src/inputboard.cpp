@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 7:04:16 PM
- *  Last Modified: 03/17/2016 01:56:48
+ *  Last Modified: 03/18/2016 19:21:09
  *
  *    Description: 
  *
@@ -27,7 +27,8 @@
 int InputBoard::m_ShowSystemCursorCount = 0;
 int InputBoard::m_InputBoxCount         = 0;
 
-InputBoard::InputBoard(int nW, int nH,
+InputBoard::InputBoard(bool bWrap, int nW, int nH,
+        int nMinTextMargin, int nMinTextLineSpace,
         uint8_t nFontSet, uint8_t nFontSize, uint32_t nTextColor,
         int nCursorWidth, uint32_t nCursorColor)
     : Widget()
@@ -43,6 +44,7 @@ InputBoard::InputBoard(int nW, int nH,
     , m_Ticks(0)
     , m_Focus(false)
     , m_Content("")
+    , m_TokenBoard(bWrap, nW, nMinTextMargin, nMinTextLineSpace)
     , m_IME(nullptr)
 {
     m_InputBoxCount++;
@@ -51,8 +53,6 @@ InputBoard::InputBoard(int nW, int nH,
     m_H = nH;
 
     SetProperH();
-
-    m_TokenBoard.SetLineSpace(5);
 }
 
 InputBoard::~InputBoard()

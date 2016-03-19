@@ -3,7 +3,7 @@
  *
  *       Filename: log.hpp
  *        Created: 03/16/2016 16:05:17
- *  Last Modified: 03/16/2016 21:41:44
+ *  Last Modified: 03/18/2016 19:12:04
  *
  *    Description: log functionality enabled by g3Log
  *
@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <thread>
 #include <iostream>
+#include <string>
 
 #if (defined(WIN32) || defined(_WIN32) || defined(__WIN32__))
 #define LOG_PATH "./"
@@ -40,7 +41,15 @@
 #define LOG_ARGV0 "mir2x"
 #endif
 
-#define LOGTYPE_INFO
+
+#define LOGTYPE_DEBUG   {std::string("-1"),\
+    std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_INFO    {std::string("0" ), \
+    std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_WARNING {std::string("1" ), \
+    std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_FATAL   {std::string("1" ), \
+    std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
 
 class Log final
 {
@@ -89,7 +98,9 @@ class Log final
             int nLine = std::atoi(stLoc[2].c_str());
 
             auto stLevel = INFO;
-            if(stLoc[0] == "1"){
+            if(stLoc[0] == "0"){
+                stLevel = INFO;
+            }else if(stLoc[0] == "1"){
                 stLevel = WARNING;
             }else if(stLoc[0] == "2"){
                 stLevel = FATAL;

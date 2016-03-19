@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/15/2016 00:07:38
+ *  Last Modified: 03/18/2016 19:20:38
  *
  *    Description: 
  *
@@ -27,11 +27,13 @@
 #include "widget.hpp"
 #include "tokenbox.hpp"
 #include "imebase.hpp"
+#include "tokenboard.hpp"
 
 class InputBoard: public Widget
 {
     public:
-        InputBoard(int, int, uint8_t, uint8_t, uint32_t, int, uint32_t);
+        InputBoard(bool, int, int,
+                int, int, uint8_t, uint8_t, uint32_t, int, uint32_t);
         virtual ~InputBoard();
 
     public:
@@ -79,6 +81,7 @@ class InputBoard: public Widget
     protected:
         std::vector<TOKENBOX>       m_Line;
         std::string                 m_Content;
+        TokenBoard                  m_TokenBoard;
 
     public:
         static int  m_ShowSystemCursorCount;

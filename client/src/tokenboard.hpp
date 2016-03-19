@@ -17,7 +17,8 @@ class TokenBoard: public Widget
     public:
         TokenBoard(bool,    // wrap or not
                 int,        // maximal width
-                int);       // minimal text box margin
+                int,        // minimal text box margin
+                int);       // minimal text box line space
         ~TokenBoard() = default;
 
     private:
@@ -173,6 +174,7 @@ class TokenBoard: public Widget
         void MarkEventTextBitmap(TOKENBOX &);
         int  m_Resolution;
         int  m_MinTextMargin;
+        int  m_MinTextLineSpace;
 
     private:
         // callbacks

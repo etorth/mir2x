@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/18/2016 18:32:24
+ *  Last Modified: 03/18/2016 19:18:22
  *
  *    Description: 
  *
@@ -35,7 +35,8 @@
 #include <string>
 #include <cassert>
 
-TokenBoard::TokenBoard(bool bWrap, int nMaxWidth, int nMinTextMargin)
+TokenBoard::TokenBoard(bool bWrap,
+        int nMaxWidth, int nMinTextMargin, int nMinTextLineSpace)
     : m_PW(nMaxWidth)
     , m_W(0)
     , m_H(0)
@@ -44,6 +45,7 @@ TokenBoard::TokenBoard(bool bWrap, int nMaxWidth, int nMinTextMargin)
     , m_SkipEvent(false)
     , m_Resolution(20)
     , m_MinTextMargin(nMinTextMargin)
+    , m_MinTextLineSpace(nMinTextLineSpace)
 {
 }
 
