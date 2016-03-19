@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/18/2016 16:12:23
+ *  Last Modified: 03/18/2016 16:40:01
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp
@@ -22,6 +22,7 @@
 #pragma once
 #include <algorithm>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include "xmlext.hpp"
 
 class SDLDevice final
@@ -91,6 +92,10 @@ class SDLDevice final
            }
            return nullptr;
        }
+
+    public:
+
+       TTF_Font *CreateTTF(const uint8_t *, size_t, uint8_t);
 
     private:
        // for graphics hardware

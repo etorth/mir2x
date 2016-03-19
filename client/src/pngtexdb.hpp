@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 16:06:20
+ *  Last Modified: 03/18/2016 16:15:33
  *
  *    Description: 
  *
@@ -132,7 +132,7 @@ class PNGTexDB: public InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>
 
         void FreeResource(PNGTexItem &rstItem)
         {
-            if(pTexture){
+            if(rstItem.Texture){
                 SDL_DestroyTexture(rstItem.Texture);
             }
         }

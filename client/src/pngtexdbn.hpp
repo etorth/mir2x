@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 03/18/2016 16:07:01
+ *  Last Modified: 03/18/2016 16:18:20
  *
  *    Description: 
  *
@@ -54,6 +54,6 @@ class PNGTexDBN: public PNGTexDBType
 
         SDL_Texture *Retrieve(uint8_t nIndex, uint16_t nImage)
         {
-            return Retrieve((uint32_t)(((uint32_t)(nIndex) << 16) + nImage)).Texture;
+            return Retrieve((uint32_t)(((uint32_t)(nIndex) << 16) + nImage));
         }
 };

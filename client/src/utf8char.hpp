@@ -3,7 +3,7 @@
  *
  *       Filename: utf8char.hpp
  *        Created: 7/3/2015 2:05:13 PM
- *  Last Modified: 03/14/2016 23:19:48
+ *  Last Modified: 03/18/2016 16:20:38
  *
  *    Description: 
  *
@@ -21,7 +21,8 @@
 #pragma once
 #include <cstdint>
 
-const uint8_t FONTSTYLE_BOLD          = 0B0000'0001;
-const uint8_t FONTSTYLE_UNDERLINE     = 0B0000'0010;
-const uint8_t FONTSTYLE_ITALIC        = 0B0000'0100;
-const uint8_t FONTSTYLE_STRIKETHROUGH = 0B0000'1000;
+// const uint8_t FONTSTYLE_BOLD          = 0B0000'0001;
+// const uint8_t FONTSTYLE_UNDERLINE     = 0B0000'0010;
+// const uint8_t FONTSTYLE_ITALIC        = 0B0000'0100;
+// const uint8_t FONTSTYLE_STRIKETHROUGH = 0B0000'1000;
+

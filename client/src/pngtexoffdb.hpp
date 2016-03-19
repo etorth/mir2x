@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 00:36:39
+ *  Last Modified: 03/18/2016 16:15:11
  *
  *    Description: 
  *
@@ -19,7 +19,7 @@
  */
 
 #pragma once
-#include "inresdb.hpp"
+#include "inndb.hpp"
 #include <unordered_map>
 #include "hexstring.hpp"
 #include <zip.h>
@@ -31,7 +31,7 @@ typedef struct{
 }PNGTexOffItem;
 
 template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
-class PNGTexOffDB: public InresDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMaxN>
+class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMaxN>
 {
     private:
         size_t   m_BufSize;
@@ -54,7 +54,7 @@ class PNGTexOffDB: public InresDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResM
 
     public:
         PNGTexOffDB()
-            : InresDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMaxN>()
+            : InnDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMaxN>()
             , m_BufSize(0)
             , m_Buf(nullptr)
             , m_ZIP(nullptr)
@@ -134,7 +134,7 @@ class PNGTexOffDB: public InresDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResM
         }
 
     public:
-        // for all pure virtual function required in class InresDB;
+        // for all pure virtual function required in class InnDB;
         //
         virtual PNGTexOffItem LoadResource(uint32_t nKey)
         {

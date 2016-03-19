@@ -3,7 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 03/18/2016 16:10:18
+ *  Last Modified: 03/18/2016 16:45:48
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -19,15 +19,18 @@
  * =====================================================================================
  */
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+
 
 enum FontStyle: uint8_t{
-    FONTSTYLE_BOLD          = 0B0000'0001;
-    FONTSTYLE_ITALIC        = 0B0000'0010;
-    FONTSTYLE_UNDERLINE     = 0B0000'0100;
-    FONTSTYLE_STRIKETHROUGH = 0B0000'1000;
-    FONTSTYLE_SOLID         = 0B0001'0000;
-    FONTSTYLE_SHADED        = 0B0010'0000;
-    FONTSTYLE_BLENDED       = 0B0100'0000;
+    FONTSTYLE_BOLD          = 0B0000'0001,
+    FONTSTYLE_ITALIC        = 0B0000'0010,
+    FONTSTYLE_UNDERLINE     = 0B0000'0100,
+    FONTSTYLE_STRIKETHROUGH = 0B0000'1000,
+    FONTSTYLE_SOLID         = 0B0001'0000,
+    FONTSTYLE_SHADED        = 0B0010'0000,
+    FONTSTYLE_BLENDED       = 0B0100'0000,
 };
 
 typedef struct{
@@ -35,10 +38,12 @@ typedef struct{
 }FontexItem;
 
 template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
-class FontexDB: public InresDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
+class FontexDB: public InnDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
 {
     private:
         zip_t   *m_ZIP;
+
+        std::unordered_map<uint16_t, TTF_Font *> m_SizedFontCache;
 
     private:
         typedef struct{
@@ -64,11 +69,9 @@ class FontexDB: public InresDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
 
     public:
         FontexDB()
-            : InresDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>()
-              , m_BufSize(0)
-              , m_Buf(nullptr)
-              , m_ZIP(nullptr)
-              , m_ZIPItemInfoCache()
+            : InnDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>()
+            , m_ZIP(nullptr)
+            , m_ZIPItemInfoCache()
         {}
 
         virtual ~FontexDB()
@@ -77,7 +80,7 @@ class FontexDB: public InresDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
                 delete stItem.Data;
             }
 
-            ClearCache();
+            this->ClearCache();
 
             for(auto &stItem: m_SizedFontCache){
                 TTF_CloseFont(stItem.second);
@@ -137,7 +140,7 @@ class FontexDB: public InresDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
         }
 
     public:
-        // for all pure virtual function required in class InresDB;
+        // for all pure virtual function required in class InnDB;
         //
         // if we need to load, means we need to find the font file handler
         // and don't care the speed
@@ -180,7 +183,7 @@ class FontexDB: public InresDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
                     pZIPIndexInst->second.Tried = 1;
 
                     // 2. open the ttf in the zip
-                    auto pf = zip_fopen_index(m_ZIP, stZIPStat.index, ZIP_FL_UNCHANGED);
+                    auto pf = zip_fopen_index(m_ZIP, pZIPIndexInst->second.Index, ZIP_FL_UNCHANGED);
                     if(pf){
                         return stItem;
                     }
@@ -189,11 +192,11 @@ class FontexDB: public InresDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
                     pZIPIndexInst->second.Data = new uint8_t[pZIPIndexInst->second.Size];
 
                     // 4. read ttf file from zip archive
-                    auto nReadSize = (size_t)zip_fread(fp,
+                    auto nReadSize = (size_t)zip_fread(pf,
                             pZIPIndexInst->second.Data, pZIPIndexInst->second.Size);
 
                     // 5. close the file handler anyway
-                    zip_fclose(fp);
+                    zip_fclose(pf);
 
                     // 6. ran into failure, then free the buffer
                     if(nReadSize != pZIPIndexInst->second.Size){
@@ -208,8 +211,8 @@ class FontexDB: public InresDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
 
                 // now the data buffer is well prepared
                 extern SDLDevice *g_SDLDevice;
-                m_SizedFontCache[nSizedFontIndex] = 
-                    g_SDLDevice->CreateTTF((const uint8_t *)m_Buf, nSize, nFontSize);
+                m_SizedFontCache[nSizedFontIndex] = g_SDLDevice->CreateTTF(
+                        (pZIPIndexInst->second.Data), pZIPIndexInst->second.Size, nPointSize);
 
                 pSizeFontInst = m_SizedFontCache.find(nSizedFontIndex);
             }

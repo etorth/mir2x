@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/17/2016 01:27:25
+ *  Last Modified: 03/18/2016 16:43:40
  *
  *    Description: copy from flare-engine:
  *		   SDLDevice.h/cpp
@@ -26,6 +26,7 @@
 
 #include "xmlext.hpp"
 #include "sdldevice.hpp"
+#include "log.hpp"
 
 SDLDevice::SDLDevice(const XMLExt &stXMLExt)
     : m_Window(nullptr)
@@ -78,6 +79,11 @@ SDLDevice::SDLDevice(const XMLExt &stXMLExt)
     if(!m_Renderer){
         SDL_DestroyWindow(m_Window);
         throw std::runtime_error(SDL_GetError());
+    }
+
+    if(TTF_Init() == -1){
+        extern Log *g_Log;
+        g_Log->Log(LOGTYPE_FATAL, "TTF_Init() failed: \n", TTF_GetError());
     }
 
     SetWindowIcon();
@@ -196,4 +202,23 @@ void SDLDevice::DrawTexture(SDL_Texture *pstTexture, int nX, int nY)
             SDL_RenderCopy(m_Renderer, pstTexture, &stSrc, &stDst);
         }
     }
+}
+
+TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontPointSize)
+{
+    if(pMem == nullptr || nSize <= 0){ return nullptr; }
+
+    SDL_RWops *pstRWops = nullptr;
+    TTF_Font  *pstTTont = nullptr;
+
+    pstRWops = SDL_RWFromConstMem((const void *)pMem, nSize);
+    if(pstRWops){
+        pstTTont = TTF_OpenFontRW(pstRWops, 0, nFontPointSize)
+    }
+
+    if(pstRWops){
+        SDL_FreeRW(pstRWops);
+    }
+
+    return pstTTont;
 }
