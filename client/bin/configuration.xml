@@ -1,0 +1,39 @@
+<Root>
+    <Window>
+        <SizeW>800</SizeW>
+        <SizeH>600</SizeH>
+        <FullScreen>0</FullScreen>
+        <Caption>Mir2X</Caption>
+    </Window>
+    <Texture>
+        <Path>Res/Texture</Path>
+    </Texture>
+    <Map>
+        <Path>Res/Map</Path>
+    </Map>
+    <Font>
+        <FontFile Index="0">
+            <Name>微软雅黑</Name>
+            <FileName>Res/Font/msyh.ttf</FileName>
+        </FontFile>
+        <FontFile Index="1">
+            <Name>文泉驿正黑</Name>
+            <FileName>Res/Font/wqy.ttc</FileName>
+        </FontFile>
+    </Font>
+    <Actor>
+        <LID>
+            <Path>Res/Actor/LID</Path>
+        </LID>
+    </Actor>
+    <Monster>
+        <Path>Res/Monster</Path>
+    </Monster>
+    <Emoticon>
+        <Path>Res/Emoticon</Path>
+    </Emoticon>
+    <Server>
+        <IP>127.0.0.1</IP>
+        <Port>3400</Port>
+    </Server>
+</Root>
