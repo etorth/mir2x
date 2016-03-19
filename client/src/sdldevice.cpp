@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/19/2016 02:52:18
+ *  Last Modified: 03/19/2016 13:48:43
  *
  *    Description: copy from flare-engine:
  *		   SDLDevice.h/cpp
@@ -21,8 +21,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-
-#include <stdexcept>
+#include <system_error>
 
 #include "xmlconf.hpp"
 #include "sdldevice.hpp"
@@ -35,6 +34,19 @@ SDLDevice::SDLDevice()
     // TODO
     // won't support dynamically create/update context
     // context should be created at the very beginning
+
+    if(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS)){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Initialization failed for SDL2: %s", SDL_GetError());
+        throw std::error_code(1);
+    }
+
+    if(TTF_Init()){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Initialization failed for SDL2 TTF: %s", TTF_GetError());
+        throw std::runtime_error("Unrecoverable error in SDLDevice::SDLDevice()");
+    }
+
     Uint32 nFlags   = 0;
     int    nWindowW = 0;
     int    nWindowH = 0;
@@ -46,6 +58,8 @@ SDLDevice::SDLDevice()
         }
     }catch(...){
         // it's ok to miss this index
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Failed to select fullscreen mode by configuration file.");
     }
 
     try{
@@ -53,9 +67,13 @@ SDLDevice::SDLDevice()
         nWindowH = g_XMLConf->NodeAtoi("Root/Configure/Window/H");
     }catch(...){
         // assign the proper size it later
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Failed to set window size by configuration file.");
     }
 
     if(!(nWindowW && nWindowH)){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_INFO, "Use default window size".);
         nWindowW = 800;
         nWindowH = 600;
     }
@@ -80,11 +98,6 @@ SDLDevice::SDLDevice()
     if(!m_Renderer){
         SDL_DestroyWindow(m_Window);
         throw std::runtime_error(SDL_GetError());
-    }
-
-    if(TTF_Init() == -1){
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "TTF_Init() failed: \n", TTF_GetError());
     }
 
     SetWindowIcon();

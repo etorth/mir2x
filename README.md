@@ -20,3 +20,10 @@ actually:
 2. only reference it by ``extern g_VarXXX";
 3. no local function for operation on global variable only, means:
 4. all operations over global variables should be self-contained;
+
+Since there have both log system and exception system
+1. log system handle all detailed info
+2. exception system only throw/catch std::error_code
+     a. for non-fatal exception: throw std::error_code(0)
+     b. for fatal exception throw std::error_code(1) and process exit(0)
+     c. don't use LOGTYPE_FATAL if not in main()
