@@ -30,7 +30,8 @@ int main()
 
     std::atexit(fnAtExit);
 
-    g_Log = new Log();
+    g_Log       = new Log();
+    g_SDLDevice = new SDLDevice();
     g_Game->MainLoop();
 
     return 0;
