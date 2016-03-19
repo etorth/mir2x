@@ -31,7 +31,6 @@ int main()
     std::atexit(fnAtExit);
 
     g_Log = new Log();
-
     g_Game->MainLoop();
 
     return 0;
