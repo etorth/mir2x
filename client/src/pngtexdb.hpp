@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 16:15:33
+ *  Last Modified: 03/18/2016 17:11:47
  *
  *    Description: 
  *
@@ -95,7 +95,7 @@ class PNGTexDB: public InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>
             // InnRetrieve always return true;
             this->InnRetrieve(nKey, &stItem, fnLinearCacheKey, nullptr);
 
-            return stItem.Texture;
+            return stItem;
         }
 
         void ExtendBuf(size_t nSize)
@@ -112,18 +112,19 @@ class PNGTexDB: public InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>
         //
         virtual PNGTexItem LoadResource(uint32_t nKey)
         {
+            PNGTexItem stItem {nullptr};
             auto pZIPIndexInst = m_ZIPItemInfoCache.find(nKey);
-            if(pZIPIndexInst == m_ZIPItemInfoCache.end()){ return nullptr; }
+            if(pZIPIndexInst == m_ZIPItemInfoCache.end()){ return stItem; }
 
             auto fp = zip_fopen_index(m_ZIP, pZIPIndexInst->second.Index, ZIP_FL_UNCHANGED);
-            if(fp == nullptr){ return nullptr; }
+            if(fp == nullptr){ return stItem; }
 
             size_t nSize = pZIPIndexInst->second.Size;
             ExtendBuf(nSize);
 
             if(nSize != (size_t)zip_fread(fp, m_Buf, nSize)){
                 zip_fclose(fp);
-                return nullptr;
+                return stItem;
             }
 
             extern SDLDevice *g_SDLDevice;

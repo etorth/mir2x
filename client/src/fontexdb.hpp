@@ -3,7 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 03/18/2016 16:45:48
+ *  Last Modified: 03/18/2016 17:17:20
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -38,7 +38,7 @@ typedef struct{
 }FontexItem;
 
 template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
-class FontexDB: public InnDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
+class FontexDB: public InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
 {
     private:
         zip_t   *m_ZIP;

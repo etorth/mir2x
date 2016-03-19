@@ -3,7 +3,7 @@
  *
  *       Filename: emoticondb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 12:59:04
+ *  Last Modified: 03/18/2016 17:08:48
  *
  *    Description: 
  *
@@ -19,7 +19,7 @@
  */
 
 #pragma once
-#include "inresdb.hpp"
+#include "inndb.hpp"
 #include <unordered_map>
 #include "hexstring.hpp"
 #include <zip.h>
@@ -64,7 +64,7 @@ typedef struct{
 }EmoticonItem;
 
 template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
-class EmoticonDB: public InresDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMaxN>
+class EmoticonDB: public InnDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMaxN>
 {
     private:
         size_t   m_BufSize;
@@ -85,7 +85,7 @@ class EmoticonDB: public InresDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMax
 
     public:
         EmoticonDB()
-            : InresDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMaxN>()
+            : InnDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMaxN>()
             , m_BufSize(0)
             , m_Buf(nullptr)
             , m_ZIP(nullptr)
@@ -161,7 +161,7 @@ class EmoticonDB: public InresDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMax
         }
 
     public:
-        // for all pure virtual function required in class InresDB;
+        // for all pure virtual function required in class InnDB;
         //
         virtual EmoticonItem LoadResource(uint32_t nKey)
         {

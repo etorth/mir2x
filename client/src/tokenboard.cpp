@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/18/2016 13:41:14
+ *  Last Modified: 03/18/2016 17:26:27
  *
  *    Description: 
  *
@@ -621,7 +621,6 @@ int TokenBoard::DoPadding(int nDWidth, int nSectionType)
 
 void TokenBoard::SetTokenBoxStartY(std::vector<TOKENBOX> &vTokenBox, int nBaseLineY)
 {
-    int nCurrentX = 0;
     for(auto &stTokenBox: vTokenBox){
         stTokenBox.Cache.StartY = nBaseLineY - stTokenBox.Cache.H1;
     }
@@ -719,6 +718,7 @@ int TokenBoard::GetNthLineIntervalMaxH2(int nthLine, int nIntervalStartX, int nI
     //
     //  Here we take the padding space as part of the token box.
     //  If not, token in (n + 1)-th line may go through this space
+    //
     //  keep this as it is, and update it later
 
     int   nMaxH2    = -1;
