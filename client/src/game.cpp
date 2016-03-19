@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/19/2016 01:37:26
+ *  Last Modified: 03/19/2016 03:06:55
  *
  *    Description: public API for class game only
  *
@@ -42,6 +42,13 @@ void Game::ProcessEvent()
         while(SDL_PollEvent(&stEvent)){
             m_CurrentProcess->ProcessEvent(stEvent);
         }
+    }
+}
+
+void Game::Update(double fDeltaMS)
+{
+    if(m_CurrentProcess){
+        m_CurrentProcess->Update(fDeltaMS);
     }
 }
 

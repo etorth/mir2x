@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/18/2016 19:12:33
+ *  Last Modified: 03/19/2016 02:52:18
  *
  *    Description: copy from flare-engine:
  *		   SDLDevice.h/cpp
@@ -24,11 +24,11 @@
 
 #include <stdexcept>
 
-#include "xmlext.hpp"
+#include "xmlconf.hpp"
 #include "sdldevice.hpp"
 #include "log.hpp"
 
-SDLDevice::SDLDevice(const XMLExt &stXMLExt)
+SDLDevice::SDLDevice()
     : m_Window(nullptr)
     , m_Renderer(nullptr)
 {
@@ -39,8 +39,9 @@ SDLDevice::SDLDevice(const XMLExt &stXMLExt)
     int    nWindowW = 0;
     int    nWindowH = 0;
 
+    extern XMLConf *g_XMLConf;
     try{
-        if(stXMLExt.NodeAtob("Root/Configure/Window/FullScreen")){
+        if(g_XMLConf->NodeAtob("Root/Configure/Window/FullScreen")){
             nFlags |= SDL_WINDOW_FULLSCREEN;
         }
     }catch(...){
@@ -48,8 +49,8 @@ SDLDevice::SDLDevice(const XMLExt &stXMLExt)
     }
 
     try{
-        nWindowW = stXMLExt.NodeAtoi("Root/Configure/Window/W");
-        nWindowH = stXMLExt.NodeAtoi("Root/Configure/Window/H");
+        nWindowW = g_XMLConf->NodeAtoi("Root/Configure/Window/W");
+        nWindowH = g_XMLConf->NodeAtoi("Root/Configure/Window/H");
     }catch(...){
         // assign the proper size it later
     }

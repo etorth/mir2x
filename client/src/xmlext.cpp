@@ -3,7 +3,7 @@
  *
  *       Filename: xmlext.cpp
  *        Created: 06/17/2015 06:25:24
- *  Last Modified: 03/10/2016 21:25:03
+ *  Last Modified: 03/19/2016 02:55:22
  *
  *    Description: 
  *
@@ -20,6 +20,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <stdexcept>
+
+#include "xmlext.hpp"
 
 int XMLExt::NodeAtoi(const char *szPath)
 {
@@ -65,27 +68,27 @@ bool XMLExt::NodeAtob(const char *szPath)
             auto szContent = pstNode->GetText();
             if(szContent){
                 if(false
-                        || !std::strcmp(p->GetText(), "1")
-                        || !std::strcmp(p->GetText(), "ok")
-                        || !std::strcmp(p->GetText(), "Ok")
-                        || !std::strcmp(p->GetText(), "OK")
-                        || !std::strcmp(p->GetText(), "yes")
-                        || !std::strcmp(p->GetText(), "Yes")
-                        || !std::strcmp(p->GetText(), "YES")
-                        || !std::strcmp(p->GetText(), "true")
-                        || !std::strcmp(p->GetText(), "True")
-                        || !std::strcmp(p->GetText(), "TRUE")){
+                        || !std::strcmp(szContent, "1")
+                        || !std::strcmp(szContent, "ok")
+                        || !std::strcmp(szContent, "Ok")
+                        || !std::strcmp(szContent, "OK")
+                        || !std::strcmp(szContent, "yes")
+                        || !std::strcmp(szContent, "Yes")
+                        || !std::strcmp(szContent, "YES")
+                        || !std::strcmp(szContent, "true")
+                        || !std::strcmp(szContent, "True")
+                        || !std::strcmp(szContent, "TRUE")){
                     return true;
                 }
 
                 if(false
-                        || !std::strcmp(p->GetText(), "0")
-                        || !std::strcmp(p->GetText(), "no")
-                        || !std::strcmp(p->GetText(), "No")
-                        || !std::strcmp(p->GetText(), "NO")
-                        || !std::strcmp(p->GetText(), "false")
-                        || !std::strcmp(p->GetText(), "False")
-                        || !std::strcmp(p->GetText(), "FALSE")){
+                        || !std::strcmp(szContent, "0")
+                        || !std::strcmp(szContent, "no")
+                        || !std::strcmp(szContent, "No")
+                        || !std::strcmp(szContent, "NO")
+                        || !std::strcmp(szContent, "false")
+                        || !std::strcmp(szContent, "False")
+                        || !std::strcmp(szContent, "FALSE")){
                     return false;
                 }
                 throw std::invalid_argument("invalid node text for boolen value conversion");

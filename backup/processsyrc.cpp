@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 8/14/2015 2:47:49 PM
- *  Last Modified: 03/05/2016 04:03:59
+ *  Last Modified: 03/19/2016 02:47:04
  *
  *    Description: 
  *
@@ -19,8 +19,6 @@
  */
 
 #include "game.hpp"
-
-
 
 ProcessSyrc::ProcessSyrc(Game *pGame)
 	: Process(Process::PROCESSID_SYRC, pGame)

@@ -32,7 +32,6 @@ int main()
 
     g_Log = new Log();
 
-    g_Game->Init();
     g_Game->MainLoop();
 
     return 0;

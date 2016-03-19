@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.cpp
  *        Created: 8/13/2015 12:15:38 AM
- *  Last Modified: 03/18/2016 00:39:05
+ *  Last Modified: 03/19/2016 03:08:14
  *
  *    Description: 
  *
@@ -29,6 +29,10 @@ ProcessLogo::ProcessLogo()
     , m_TimeR1(0.3)
     , m_TimeR2(0.3)
 {}
+
+ProcessLogo::~ProcessLogo()
+{
+}
 
 void ProcessLogo::ProcessEvent(const SDL_Event &rstEvent)
 {

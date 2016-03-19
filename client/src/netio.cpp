@@ -3,7 +3,7 @@
  *
  *       Filename: netio.cpp
  *        Created: 06/29/2015 7:18:27 PM
- *  Last Modified: 03/14/2016 23:08:32
+ *  Last Modified: 03/19/2016 02:43:40
  *
  *    Description: this class won't maintian buffer's validation
  *                 user should maintain it by themself
@@ -21,12 +21,8 @@
 
 #include "netio.hpp"
 
-NetIO::NetIO(const char *szIP, int nPort,
-        const std::function<void()> &fnOperateHC)
-    : m_IP(szIP)
-    , m_Port(nPort)
-    , m_OperateHC(fnOperateHC)
-    , m_Resolver(m_IO)
+NetIO::NetIO()
+    : m_Resolver(m_IO)
     , m_Socket(m_IO)
 {
 }
@@ -41,12 +37,22 @@ void NetIO::StopIO()
     m_IO.post([this](){Close();});
 }
 
-void NetIO::RunIO(const std::function<void()> &fnOperateHC)
+// TODO
+// I'm not sure whether I can make fnOperateHC as const reference
+// since ...
+void NetIO::RunIO(const char *szIP,
+        const char * szPort, std::function<void(uint8_t)> fnOperateHC)
 {
     // 1. push a connect request into the event queue
     // 2. start the event loop
     //
-    auto stIterator = m_Resolver.resolve({m_IP.c_str(), m_Port});
+    // TODO
+    //
+    // I have no idea of that
+    // what would happen if I post requests before m_IO.run() started???
+    // or even before asio::async_connect()?
+    //
+    auto stIterator = m_Resolver.resolve({szIP, szPort});
     auto fnOnConnect = [this, fnOperateHC](std::error_code stEC, asio::ip::tcp::resolver::iterator){
         if(stEC){
             Close();
@@ -106,7 +112,7 @@ void NetIO::Read(uint8_t * pBuf,
 void NetIO::ReadHC(std::function<void(uint8_t)> fnProcessHC)
 {
     static uint8_t nMsgHC;
-    auto fnOnReadHC = [this, fnProcessHC, &nMsgHC](std::error_code stEC, size_t){
+    auto fnOnReadHC = [this, fnProcessHC](std::error_code stEC, size_t){
         if(!stEC){
             fnProcessHC(nMsgHC);
         }else{
@@ -119,7 +125,7 @@ void NetIO::ReadHC(std::function<void(uint8_t)> fnProcessHC)
 
 void NetIO::DoSendNext()
 {
-    m_WQ.pop_front();
+    m_WQ.pop();
     if(!m_WQ.empty()){
         DoSendHC();
     }
@@ -127,7 +133,7 @@ void NetIO::DoSendNext()
 
 void NetIO::DoSendBuf()
 {
-    if(m_WQ.empty){ return; }
+    if(m_WQ.empty()){ return; }
 
     if(std::get<0>(m_WQ.front()) && std::get<1>(m_WQ.front())){
         auto fnDoSendValidBuf = [this](std::error_code stEC, size_t){
@@ -139,7 +145,8 @@ void NetIO::DoSendBuf()
         };
 
         asio::async_write(m_Socket,
-                asio::buffer(&(std::get<1>(m_WQ.front())), std::get<2>(m_WQ.front())), fnDoSendBuf);
+                asio::buffer(&(std::get<1>(m_WQ.front())),
+                    std::get<2>(m_WQ.front())), fnDoSendValidBuf);
     }else{
         DoSendNext();
     }
@@ -147,7 +154,7 @@ void NetIO::DoSendBuf()
 
 void NetIO::DoSendHC()
 {
-    auto fnDoSendBuf = [this, fnSendBuf](std::error_code stEC, size_t){
+    auto fnDoSendBuf = [this](std::error_code stEC, size_t){
         if(stEC){
             Close();
         }else{

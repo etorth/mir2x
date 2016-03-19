@@ -3,7 +3,7 @@
  *
  *       Filename: xmlext.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 03/17/2016 00:01:21
+ *  Last Modified: 03/19/2016 02:50:25
  *
  *    Description: 
  *
@@ -29,9 +29,9 @@ class XMLExt
        ~XMLExt() = default;
 
     public:
-       int    NodeAtoi(const char *) const;
-       double NodeAtof(const char *) const;
-       bool   NodeAtob(const char *) const;
+       int    NodeAtoi(const char *);
+       double NodeAtof(const char *);
+       bool   NodeAtob(const char *);
 
     public:
        const tinyxml2::XMLElement *GetXMLNode(const char *);

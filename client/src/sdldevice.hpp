@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/18/2016 16:40:01
+ *  Last Modified: 03/19/2016 02:53:00
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp
@@ -23,12 +23,11 @@
 #include <algorithm>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include "xmlext.hpp"
 
 class SDLDevice final
 {
     public:
-        SDLDevice(const XMLExt &);
+        SDLDevice();
        ~SDLDevice();
 
     public:

@@ -3,7 +3,7 @@
 #include "netio.hpp"
 
 #include "processlogo.hpp"
-#include "processlogin.hpp"
+// #include "processlogin.hpp"
 
 #include <SDL2/SDL.h>
 #include <atomic>
@@ -38,8 +38,10 @@ class Game
         bool FPSDelay();
         void SwitchProcess(int);
         void SwitchProcess(int, int);
+
+    public:
         void RunASIO();
-        void ReadHC();
+        void OperateHC(uint8_t);
 
     private:
         void OnPing();
@@ -56,11 +58,10 @@ class Game
         NetIO   m_NetIO;
 
     private:
-        ProcessLogin    *m_ProcessLogin;
-        ProcessLogo     *m_ProcessLogo;
+        // ProcessLogin    *m_ProcessLogin;
+        // ProcessLogo     *m_ProcessLogo;
 
     private:
-        int     *m_CurrentProcessID;
         Process *m_CurrentProcess;
 
     private:

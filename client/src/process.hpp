@@ -33,12 +33,6 @@ class Process
         bool   m_Quit;
 
     public:
-        void EventDelay();
-        void ClearEvent();
-    public:
-        virtual void Enter();
-        virtual void Exit();
-    public:
         virtual void Update(double)                  = 0;
         virtual void Draw()                          = 0;
         virtual void ProcessEvent(const SDL_Event &) = 0;

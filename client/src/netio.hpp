@@ -14,8 +14,8 @@ class NetIO final
         // send queue
         // this provides data stream in send order
         std::queue<std::tuple<
-            uint8_t,    // Message HC
-            uint8_t *,  // Message buf, NetIO won't maintain its validation
+            uint8_t,          // Message HC
+            const uint8_t *,  // Message buf, NetIO won't maintain its validation
             size_t>> m_WQ;
 
     public:
@@ -23,11 +23,7 @@ class NetIO final
         ~NetIO();
 
     public:
-        void SetIO(const std::string &,
-                const std::string &, std::function<void()>);
-
-    public:
-        void RunIO(const std::function<void()> &);
+        void RunIO(const char *, const char *, std::function<void(uint8_t)>);
         void StopIO();
 
     public:
@@ -44,7 +40,7 @@ class NetIO final
 
         // read a HC
         // user should provide the method to consume the HC
-        void ReadHC(const std::function<void(uint8_t)>&);
+        void ReadHC(std::function<void(uint8_t)>);
 
         // read specified length of data to the buffer
         // user should maintain the validation of the buffer
@@ -59,6 +55,6 @@ class NetIO final
         void Close();
 
         void DoSendHC();
-        void DoSentBuf();
+        void DoSendBuf();
         void DoSendNext();
 };
