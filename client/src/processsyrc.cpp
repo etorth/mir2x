@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: processsyrc.cpp
- *        Created: 8/14/2015 2:47:49 PM
- *  Last Modified: 03/19/2016 02:47:04
+ *        Created: 08/14/2015 2:47:49 PM
+ *  Last Modified: 03/19/2016 22:23:23
  *
  *    Description: 
  *
@@ -19,16 +19,12 @@
  */
 
 #include "game.hpp"
+#include "processsyrc.hpp"
 
-ProcessSyrc::ProcessSyrc(Game *pGame)
+ProcessSyrc::ProcessSyrc()
 	: Process(Process::PROCESSID_SYRC, pGame)
-    , m_TextureBackground(nullptr)
-    , m_TextureProgressBar(nullptr)
     , m_Ratio(0)
-    , m_Info({0, 14, 0}, {255, 255, 255, 0}, "Connecting...")
-    // , m_TokenBoardConnect(800, true)
-    // , m_TokenBoardConnectSucceed(800, true)
-    // , m_CurrentTokenBoard(nullptr)
+    // , m_Info({0, 14, 0}, {255, 255, 255, 0}, "Connecting...")
 {
 	m_Info.SetX((800 - m_Info.W()) / 2);
 	m_Info.SetY(505);
@@ -37,13 +33,6 @@ ProcessSyrc::ProcessSyrc(Game *pGame)
     m_TextureProgressBar = GetTextureManager()->RetrieveTexture(63, 0, 2);
 
     m_Info = new TokenBoard();
-}
-
-
-bool ProcessSyrc::Init()
-{
-
-    m_Game->LoadTokenBoard(m_Info, pDoc);
 }
 
 ProcessSyrc::~ProcessSyrc()
@@ -78,9 +67,13 @@ void ProcessSyrc::ProcessEvent(SDL_Event *pEvent)
 
 void Game::Draw()
 {
+    extern PNGTexDB  *g_PNGTexDB;
+    extern SDLDevice *g_SDLDevice;
 
-    int nW = m_Game->ImageW(255, 1);
-    int nH = m_Game->ImageH(255, 1);
+    auto pTexture = g_PNGTexDB->Retrieve(255, 2);
+    int nW, nH;
+
+    SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH);
 
     stRectSrc.x = 0;
     stRectSrc.y = 0;
