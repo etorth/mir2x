@@ -24,10 +24,14 @@ actually:
 Since there have both log system and exception system
 
 1. log system handle all detailed info
-2. exception system only throw/catch std::error_code
+2. exception system only throw/catch std::error_code()
 
-And when throwing error_code:
+The function who throws always ``think" it's a fatal error so it just throw, but how to handle this ``fatal" error or do catch sub-clause really takes it as ``fatal" is decided not by the thrower, but the catcher.
 
-1. for non-fatal exception: throw std::error_code(0)
-2. for fatal exception throw std::error_code(1) and process exit(0)
-3. don't use LOGTYPE_FATAL if not in main()
+General rules:
+
+1. only throw std::error_code() and log detailed information.
+2. for functions which throws, the throwed type should be specified.
+3. for constructor, it may throw different type of exceptions.
+
+So if there are constructors in a normal function, we need catch-rethrow if there do exist exceptions, type rethrowed should only be std::error_code()

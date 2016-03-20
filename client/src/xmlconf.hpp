@@ -3,7 +3,7 @@
  *
  *       Filename: xmlconf.hpp
  *        Created: 03/16/2016 23:57:57
- *  Last Modified: 03/19/2016 03:46:28
+ *  Last Modified: 03/19/2016 14:18:57
  *
  *    Description: 
  *
@@ -21,6 +21,8 @@
 
 #pragma once
 #include "xmlext.hpp"
+#include <system_error>
+#include "log.hpp"
 
 class XMLConf: public XMLExt
 {
@@ -30,7 +32,9 @@ class XMLConf: public XMLExt
         {
             extern XMLConf *g_XMLConf;
             if(g_XMLConf){
-                throw std::runtime_error("one instance only for XMLConf please");
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_WARNING, "multiply initialization for XMLConf");
+                throw std::error_code(0, std::system_category());
             }
 
             if(false){
@@ -38,7 +42,13 @@ class XMLConf: public XMLExt
             }else if(!m_XMLDoc.LoadFile("./configure.xml"    )){
             }else if(!m_XMLDoc.LoadFile("./configuration.xml")){
             }else{
-                throw std::runtime_error("no configuration file find");
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_WARNING, "no configuration file found.");
+                // TODO
+                // if there is no configuration
+                // we need to generate one with default value and remind user to edit it
+                // then we can make this error as non-fatal
+                throw std::error_code(1, std::system_category());
             }
         }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/19/2016 13:48:43
+ *  Last Modified: 03/19/2016 17:08:40
  *
  *    Description: copy from flare-engine:
  *		   SDLDevice.h/cpp
@@ -35,16 +35,29 @@ SDLDevice::SDLDevice()
     // won't support dynamically create/update context
     // context should be created at the very beginning
 
+    extern SDLDevice *g_SDLDevice;
+    if(g_SDLDevice){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Multiply initialization for SDLDevice");
+        throw std::error_code(0, std::system_category());
+    }
+
     if(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS)){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_WARNING, "Initialization failed for SDL2: %s", SDL_GetError());
-        throw std::error_code(1);
+        throw std::error_code(1, std::system_category());
     }
 
     if(TTF_Init()){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_WARNING, "Initialization failed for SDL2 TTF: %s", TTF_GetError());
-        throw std::runtime_error("Unrecoverable error in SDLDevice::SDLDevice()");
+        throw std::error_code(1, std::system_category());
+    }
+
+    if(IMG_Init(IMG_INIT_PNG)){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Initialization failed for SDL2 IMG: %s", TTF_GetError());
+        throw std::error_code(1, std::system_category());
     }
 
     Uint32 nFlags   = 0;
@@ -73,7 +86,7 @@ SDLDevice::SDLDevice()
 
     if(!(nWindowW && nWindowH)){
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO, "Use default window size".);
+        g_Log->AddLog(LOGTYPE_INFO, "Use default window size.");
         nWindowW = 800;
         nWindowH = 600;
     }
@@ -91,13 +104,18 @@ SDLDevice::SDLDevice()
             SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nWindowW, nWindowH, nFlags);
 
     if(!m_Window){
-        throw std::runtime_error(SDL_GetError());
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Failed to create SDL window handler: %s", SDL_GetError());
+        throw std::error_code(1, std::system_category());
     }
 
     m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
+
     if(!m_Renderer){
         SDL_DestroyWindow(m_Window);
-        throw std::runtime_error(SDL_GetError());
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Failed to create SDL renderer: %s", SDL_GetError());
+        throw std::error_code(1, std::system_category());
     }
 
     SetWindowIcon();
@@ -177,6 +195,13 @@ SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
     SDL_Surface *pstSurface = nullptr;
     SDL_Texture *pstTexture = nullptr;
 
+    // TODO
+    // there are functions available:
+    //
+    // IMG_LoadTexture()
+    // IMG_LoadTexture_RW()
+    // IMG_LoadTextureTyped_RW()
+    //
     pstRWops = SDL_RWFromConstMem((const void *)pMem, nSize);
     if(pstRWops){
         pstSurface = IMG_LoadPNG_RW(pstRWops);
