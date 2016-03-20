@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/19/2016 20:59:46
+ *  Last Modified: 03/19/2016 21:29:31
  *
  *    Description: 
  *
@@ -34,9 +34,8 @@ template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
 class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMaxN>
 {
     private:
-        size_t   m_BufSize;
-        uint8_t *m_Buf;
-        // zip_t   *m_ZIP;
+        size_t      m_BufSize;
+        uint8_t    *m_Buf;
         struct zip *m_ZIP;
 
     private:
@@ -71,15 +70,18 @@ class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMax
 
         bool Load(const char *szPNGTexDBName)
         {
-            int nErrorCode;
-            // m_ZIP = zip_open(szPNGTexDBName, ZIP_RDONLY, &nErrorCode);
-            m_ZIP = zip_open(szPNGTexDBName, /* ZIP_RDONLY | */ZIP_CHECKCONS, &nErrorCode);
+            int nErrorCode = 0;
+
+#ifdef ZIP_RDONLY
+            m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS | ZIP_RDONLY, &nErrorCode);
+#else
+            m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS, &nErrorCode);
+#endif
             if(m_ZIP == nullptr){ return false; }
 
             zip_int64_t nCount = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
             if(nCount > 0){
                 for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)nCount; ++nIndex){
-                    // zip_stat_t stZIPStat;
                     struct zip_stat stZIPStat;
                     if(!zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stZIPStat)){
                         if(true

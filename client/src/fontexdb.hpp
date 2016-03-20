@@ -3,7 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 03/18/2016 17:17:20
+ *  Last Modified: 03/19/2016 21:28:24
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -41,8 +41,7 @@ template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
 class FontexDB: public InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
 {
     private:
-        zip_t   *m_ZIP;
-
+        struct zip *m_ZIP;
         std::unordered_map<uint16_t, TTF_Font *> m_SizedFontCache;
 
     private:
@@ -95,14 +94,19 @@ class FontexDB: public InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
 
         bool Load(const char *szFontexDBName)
         {
-            int nErrorCode;
-            m_ZIP = zip_open(szFontexDBName, ZIP_RDONLY, &nErrorCode);
+            int nErrorCode = 0;
+
+#ifdef ZIP_RDONLY
+            m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS | ZIP_RDONLY, &nErrorCode);
+#else
+            m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS, &nErrorCode);
+#endif
             if(m_ZIP == nullptr){ return false; }
 
             zip_int64_t nCount = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
             if(nCount > 0){
                 for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)nCount; ++nIndex){
-                    zip_stat_t stZIPStat;
+                    struct zip_stat stZIPStat;
                     if(!zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stZIPStat)){
                         if(true
                                 && stZIPStat.valid & ZIP_STAT_INDEX
