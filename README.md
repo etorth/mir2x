@@ -26,7 +26,7 @@ Since there have both log system and exception system
 1. log system handle all detailed info
 2. exception system only throw/catch std::error_code()
 
-The function who throws always ``think" it's a fatal error so it just throw, but how to handle this ``fatal" error or do catch sub-clause really takes it as ``fatal" is decided not by the thrower, but the catcher.
+The function who throws always think it's a fatal error so it just throw, but how to handle this ``fatal" error or do catch sub-clause really takes it as fatal is decided not by the thrower, but the catcher.
 
 General rules:
 
