@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 17:11:47
+ *  Last Modified: 03/19/2016 18:23:19
  *
  *    Description: 
  *
@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include "hexstring.hpp"
 #include <zip.h>
+#include "log.hpp"
 
 typedef struct{
     SDL_Texture *Texture;
@@ -64,7 +65,12 @@ class PNGTexDB: public InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>
         bool Load(const char *szPNGTexDBName)
         {
             int nErrorCode;
-            m_ZIP = zip_open(szPNGTexDBName, ZIP_RDONLY, &nErrorCode);
+            m_ZIP = zip_open(szPNGTexDBName,
+                    ZIP_RDONLY | ZIP_CHECKCONS, &nErrorCode);
+            if(nErrorCode){
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_WARNING, "zip_open() failed with error code %d.", nErrorCode);
+            }
             if(m_ZIP == nullptr){ return false; }
 
             zip_int64_t nCount = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);

@@ -6,6 +6,7 @@
         <Caption>Mir2X</Caption>
     </Window>
     <Texture>
+        <PNGTexDB>Res/Texture/PNGTexDB.ZIP</PNGTexDB>
         <Path>Res/Texture</Path>
     </Texture>
     <Map>

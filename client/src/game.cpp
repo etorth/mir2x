@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/19/2016 03:06:55
+ *  Last Modified: 03/19/2016 17:59:53
  *
  *    Description: public API for class game only
  *
@@ -21,14 +21,33 @@
 #include "game.hpp"
 #include <thread>
 #include <future>
+#include "log.hpp"
+#include "xmlconf.hpp"
+#include "pngtexdbn.hpp"
 
 Game::Game()
     : m_FPS(30.0)
+    , m_CurrentProcess(nullptr)
 {
     // fullfil the time cq
     for(size_t nIndex = 0; nIndex < m_DelayTimeCQ.Capacity(); ++nIndex){
         m_DelayTimeCQ.PushHead(1000.0 / m_FPS);
     }
+
+    // load PNGTexDB
+    extern PNGTexDBN *g_PNGTexDBN;
+    extern XMLConf   *g_XMLConf;
+    extern Log       *g_Log;
+
+    auto pNode = g_XMLConf->GetXMLNode("Root/Texture/PNGTexDB");
+    if(!pNode){
+        g_Log->AddLog(LOGTYPE_WARNING, "No PNGTexDBN path found in configuration.");
+        throw std::error_code();
+    }
+
+    g_Log->AddLog(LOGTYPE_WARNING, "PNGTexDBN path: %s", pNode->GetText());
+    g_PNGTexDBN->Load(pNode->GetText());
+
 }
 
 Game::~Game()
@@ -52,6 +71,13 @@ void Game::Update(double fDeltaMS)
     }
 }
 
+void Game::Draw()
+{
+    if(m_CurrentProcess){
+        m_CurrentProcess->Draw();
+    }
+}
+
 void Game::MainLoop()
 {
     // for first time entry, setup threads etc..
@@ -71,6 +97,8 @@ void Game::MainLoop()
 
         // time has passed by Delta MS from last update
         Update(fCurrentMS - fLastMS);
+
+        Draw();
 
         m_DelayTimeCQ.PushHead(fCurrentMS - fLastMS);
 

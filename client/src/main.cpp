@@ -31,9 +31,11 @@ int main()
     std::atexit(fnAtExit);
 
     g_Log       = new Log();
-
     g_XMLConf   = new XMLConf();
     g_SDLDevice = new SDLDevice();
+    g_PNGTexDBN = new PNGTexDBN();
+    g_Game      = new Game();
+
     g_Game->MainLoop();
 
     return 0;

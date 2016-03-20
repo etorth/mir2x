@@ -15,14 +15,13 @@ class Game
         double m_FPS;
 
     private:
-        std::atomic<bool>   m_LoginOK;
+        std::atomic<bool> m_LoginOK;
 
     public:
         Game();
-        ~Game();
+       ~Game();
 
     public:
-        void Init();
         void MainLoop();
 
     public:

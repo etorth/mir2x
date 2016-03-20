@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/19/2016 02:53:00
+ *  Last Modified: 03/19/2016 17:45:43
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp

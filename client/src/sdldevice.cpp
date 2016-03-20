@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/19/2016 17:08:40
+ *  Last Modified: 03/19/2016 17:27:08
  *
  *    Description: copy from flare-engine:
  *		   SDLDevice.h/cpp
@@ -39,25 +39,25 @@ SDLDevice::SDLDevice()
     if(g_SDLDevice){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_WARNING, "Multiply initialization for SDLDevice");
-        throw std::error_code(0, std::system_category());
+        throw std::error_code();
     }
 
     if(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS)){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_WARNING, "Initialization failed for SDL2: %s", SDL_GetError());
-        throw std::error_code(1, std::system_category());
+        throw std::error_code();
     }
 
     if(TTF_Init()){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_WARNING, "Initialization failed for SDL2 TTF: %s", TTF_GetError());
-        throw std::error_code(1, std::system_category());
+        throw std::error_code();
     }
 
-    if(IMG_Init(IMG_INIT_PNG)){
+    if((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_WARNING, "Initialization failed for SDL2 IMG: %s", TTF_GetError());
-        throw std::error_code(1, std::system_category());
+        throw std::error_code();
     }
 
     Uint32 nFlags   = 0;
@@ -195,13 +195,6 @@ SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
     SDL_Surface *pstSurface = nullptr;
     SDL_Texture *pstTexture = nullptr;
 
-    // TODO
-    // there are functions available:
-    //
-    // IMG_LoadTexture()
-    // IMG_LoadTexture_RW()
-    // IMG_LoadTextureTyped_RW()
-    //
     pstRWops = SDL_RWFromConstMem((const void *)pMem, nSize);
     if(pstRWops){
         pstSurface = IMG_LoadPNG_RW(pstRWops);

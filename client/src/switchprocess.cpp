@@ -3,7 +3,7 @@
  *
  *       Filename: switchprocess.cpp
  *        Created: 01/23/2016 04:18:45
- *  Last Modified: 03/19/2016 01:39:06
+ *  Last Modified: 03/19/2016 17:37:08
  *
  *    Description: 
  *
@@ -31,6 +31,9 @@ void Game::SwitchProcess(int nNewID)
 
 void Game::SwitchProcess(int nOldID, int nNewID)
 {
+    delete m_CurrentProcess;
+    m_CurrentProcess = nullptr;
+
     switch(nOldID)
     {
         case PROCESSID_NULL:
@@ -40,6 +43,7 @@ void Game::SwitchProcess(int nOldID, int nNewID)
                     case PROCESSID_LOGO:
                         {
                             // on initialization
+                            m_CurrentProcess = new ProcessLogo();
                             SDL_ShowCursor(0);
                             break;
                         }
