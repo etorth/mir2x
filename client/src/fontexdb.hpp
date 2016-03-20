@@ -3,7 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 03/19/2016 21:28:24
+ *  Last Modified: 03/20/2016 12:49:22
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -21,6 +21,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include "inndb.hpp"
 
 
 enum FontStyle: uint8_t{
@@ -68,7 +69,7 @@ class FontexDB: public InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
 
     public:
         FontexDB()
-            : InnDB<uint32_t, FontexItem, LCDeepN, LCLenN, ResMaxN>()
+            : InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>()
             , m_ZIP(nullptr)
             , m_ZIPItemInfoCache()
         {}
@@ -76,7 +77,7 @@ class FontexDB: public InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
         virtual ~FontexDB()
         {
             for(auto &stItem: m_ZIPItemInfoCache){
-                delete stItem.Data;
+                delete stItem.second.Data;
             }
 
             this->ClearCache();
@@ -97,9 +98,9 @@ class FontexDB: public InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
             int nErrorCode = 0;
 
 #ifdef ZIP_RDONLY
-            m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS | ZIP_RDONLY, &nErrorCode);
+            m_ZIP = zip_open(szFontexDBName, ZIP_CHECKCONS | ZIP_RDONLY, &nErrorCode);
 #else
-            m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS, &nErrorCode);
+            m_ZIP = zip_open(szFontexDBName, ZIP_CHECKCONS, &nErrorCode);
 #endif
             if(m_ZIP == nullptr){ return false; }
 

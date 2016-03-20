@@ -3,7 +3,7 @@
  *
  *       Filename: section.hpp
  *        Created: 8/18/2015 6:56:11 PM
- *  Last Modified: 03/18/2016 13:29:16
+ *  Last Modified: 03/20/2016 12:17:01
  *
  *    Description: 
  *
@@ -38,6 +38,7 @@ typedef struct{
 
 typedef struct{
     int                     Event;
+    int                     ID;
 }TEXTSECTIONSTATE;
 
 typedef struct{

@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: emoticondbn.hpp.txt
+ *       Filename: emoticondbn.hpp
  *        Created: 03/17/2016 01:17:51
  *  Last Modified: 03/18/2016 17:03:53
  *

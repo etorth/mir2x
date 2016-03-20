@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 03/18/2016 18:25:43
+ *  Last Modified: 03/20/2016 12:05:55
  *
  *    Description: 
  *
@@ -66,9 +66,19 @@ template<typename T> bool RectangleOverlap(T nfX1, T nfY1, T nfW1, T nfH1, T nfX
             || nfY1 + nfH1 < nfY2);
 }
 
+template<typename T> bool RectangleInside(T nfX1, T nfY1, T nfW1, T nfH1, T nfX2, T nfY2, T nfW2, T nfH2)
+{
+    // TODO
+    // finish code
+    static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
+    return nfX1 <= nfX2 && nfY1 <= nfY2 && nfW1 >= nfW2 && nfH1 >= nfH2;
+}
+
 template<typename T> bool IntervalOverlap(T nfX1, T nfW1, T nfX2, T nfW2)
 {
     static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
+    // TODO
+    // assume T2 is smaller
     return !(nfX1 + nfW1 <= nfX2 || nfX2 + nfW2 <= nfX1);
 }
 
