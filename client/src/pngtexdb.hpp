@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/19/2016 18:23:19
+ *  Last Modified: 03/19/2016 18:30:56
  *
  *    Description: 
  *
@@ -64,7 +64,7 @@ class PNGTexDB: public InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>
 
         bool Load(const char *szPNGTexDBName)
         {
-            int nErrorCode;
+            int nErrorCode = 0;
             m_ZIP = zip_open(szPNGTexDBName,
                     ZIP_RDONLY | ZIP_CHECKCONS, &nErrorCode);
             if(nErrorCode){

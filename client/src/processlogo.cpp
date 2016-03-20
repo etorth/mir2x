@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.cpp
  *        Created: 8/13/2015 12:15:38 AM
- *  Last Modified: 03/19/2016 03:08:14
+ *  Last Modified: 03/19/2016 19:40:51
  *
  *    Description: 
  *
@@ -60,7 +60,9 @@ void ProcessLogo::Draw()
     extern SDLDevice *g_SDLDevice;
     extern PNGTexDBN *g_PNGTexDBN;
 
+    g_SDLDevice->ClearScreen();
     g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve(255, 0), 0, 0);
+    g_SDLDevice->Present();
 }
 
 double ProcessLogo::Ratio()
