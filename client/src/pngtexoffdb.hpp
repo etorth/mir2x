@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 16:15:11
+ *  Last Modified: 03/19/2016 20:59:46
  *
  *    Description: 
  *
@@ -36,7 +36,8 @@ class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMax
     private:
         size_t   m_BufSize;
         uint8_t *m_Buf;
-        zip_t   *m_ZIP;
+        // zip_t   *m_ZIP;
+        struct zip *m_ZIP;
 
     private:
         typedef struct{
@@ -71,13 +72,15 @@ class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMax
         bool Load(const char *szPNGTexDBName)
         {
             int nErrorCode;
-            m_ZIP = zip_open(szPNGTexDBName, ZIP_RDONLY, &nErrorCode);
+            // m_ZIP = zip_open(szPNGTexDBName, ZIP_RDONLY, &nErrorCode);
+            m_ZIP = zip_open(szPNGTexDBName, /* ZIP_RDONLY | */ZIP_CHECKCONS, &nErrorCode);
             if(m_ZIP == nullptr){ return false; }
 
             zip_int64_t nCount = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
             if(nCount > 0){
                 for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)nCount; ++nIndex){
-                    zip_stat_t stZIPStat;
+                    // zip_stat_t stZIPStat;
+                    struct zip_stat stZIPStat;
                     if(!zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stZIPStat)){
                         if(true
                                 && stZIPStat.valid & ZIP_STAT_INDEX
