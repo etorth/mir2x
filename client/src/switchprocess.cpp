@@ -3,7 +3,7 @@
  *
  *       Filename: switchprocess.cpp
  *        Created: 01/23/2016 04:18:45
- *  Last Modified: 03/19/2016 17:37:08
+ *  Last Modified: 03/20/2016 01:45:20
  *
  *    Description: 
  *
@@ -19,6 +19,8 @@
  */
 
 #include "game.hpp"
+#include "processlogo.hpp"
+#include "processsyrc.hpp"
 
 void Game::SwitchProcess(int nNewID)
 {
@@ -59,6 +61,31 @@ void Game::SwitchProcess(int nOldID, int nNewID)
                 }
                 break;
             }
+
+        case PROCESSID_LOGO:
+            {
+                switch(nNewID)
+                {
+                    case PROCESSID_SYRC:
+                        {
+                            // on initialization
+                            m_CurrentProcess = new ProcessSyrc();
+                            SDL_ShowCursor(1);
+                            break;
+                        }
+                    case PROCESSID_EXIT:
+                        {
+                            // exit immediately when logo shows
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+                break;
+            }
+
         case PROCESSID_SYRC:
             {
                 switch(nNewID)

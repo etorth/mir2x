@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/19/2016 17:27:08
+ *  Last Modified: 03/20/2016 01:38:53
  *
  *    Description: copy from flare-engine:
  *		   SDLDevice.h/cpp
@@ -214,24 +214,29 @@ SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
     return pstTexture;
 }
 
+
+// TODO
+// didn't check the validation of parameters
+// 1. non-negative w/h
+// 2. out of boundary
+void SDLDevice::DrawTexture(SDL_Texture *pstTexture,
+        int nDstX, int nDstY,
+        int nSrcX, int nSrcY,
+        int nSrcW, int nSrcH)
+{
+    if(pstTexture){
+        SDL_Rect stSrc {nSrcX, nSrcY, nSrcW, nSrcH};
+        SDL_Rect stDst {nDstX, nDstY, nSrcW, nSrcH};
+        SDL_RenderCopy(m_Renderer, pstTexture, &stSrc, &stDst);
+    }
+}
+
 void SDLDevice::DrawTexture(SDL_Texture *pstTexture, int nX, int nY)
 {
     if(pstTexture){
-
-        SDL_Rect stSrc;
-        SDL_Rect stDst;
-
         int nW, nH;
-
         if(!SDL_QueryTexture(pstTexture, nullptr, nullptr, &nW, &nH)){
-
-            // TODO
-            // not sure whether need to adjust for boundary
-            // hope not!
-            stSrc = { 0,  0, nW, nH};
-            stDst = {nX, nY, nW, nH};
-
-            SDL_RenderCopy(m_Renderer, pstTexture, &stSrc, &stDst);
+            DrawTexture(pstTexture, nX, nY, 0, 0, nW, nH);
         }
     }
 }

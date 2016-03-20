@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/19/2016 21:33:53
+ *  Last Modified: 03/20/2016 01:51:07
  *
  *    Description: public API for class game only
  *
@@ -39,7 +39,7 @@ Game::Game()
     extern XMLConf   *g_XMLConf;
     extern Log       *g_Log;
 
-    auto pNode = g_XMLConf->GetXMLNode("Root/Texture/PNGTexDB");
+    auto pNode = g_XMLConf->GetXMLNode("Root/Texture/PNGTexDBN");
     if(!pNode){
         g_Log->AddLog(LOGTYPE_WARNING, "No PNGTexDBN path found in configuration.");
         throw std::error_code();

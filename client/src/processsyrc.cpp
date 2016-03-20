@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 08/14/2015 2:47:49 PM
- *  Last Modified: 03/19/2016 22:23:23
+ *  Last Modified: 03/20/2016 01:53:39
  *
  *    Description: 
  *
@@ -19,45 +19,26 @@
  */
 
 #include "game.hpp"
+#include "pngtexdbn.hpp"
 #include "processsyrc.hpp"
 
 ProcessSyrc::ProcessSyrc()
-	: Process(Process::PROCESSID_SYRC, pGame)
+	: Process()
     , m_Ratio(0)
-    // , m_Info({0, 14, 0}, {255, 255, 255, 0}, "Connecting...")
-{
-	m_Info.SetX((800 - m_Info.W()) / 2);
-	m_Info.SetY(505);
-
-    m_TextureBackground  = GetTextureManager()->RetrieveTexture(63, 0, 1);
-    m_TextureProgressBar = GetTextureManager()->RetrieveTexture(63, 0, 2);
-
-    m_Info = new TokenBoard();
-}
+{}
 
 ProcessSyrc::~ProcessSyrc()
 {}
 
-void UpdateOnSyrc()
+void ProcessSyrc::ProcessEvent(const SDL_Event &rstEvent)
 {
-    // nothing to do
-}
-
-void ProcessSyrc::ProcessEvent(SDL_Event *pEvent)
-{
-    if(pEvent == nullptr){ return; }
-
-    switch(pEvent->type){
+    switch(rstEvent.type){
         case SDL_KEYDOWN:
             {
-                if(pEvent->key.keysym.sym == SDLK_ESCAPE){
-                    SwitchProcess(PROCESSID_LOGIN);
+                if(rstEvent.key.keysym.sym == SDLK_ESCAPE){
+                    extern Game *g_Game;
+                    g_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_LOGIN);
                 }
-                break;
-            }
-        case SDL_USEREVENT:
-            {
-                ProcessUserEvent(pEvent);
                 break;
             }
         default:
@@ -65,27 +46,33 @@ void ProcessSyrc::ProcessEvent(SDL_Event *pEvent)
     }
 }
 
-void Game::Draw()
+void ProcessSyrc::Update(double fDeltaMS)
 {
-    extern PNGTexDB  *g_PNGTexDB;
-    extern SDLDevice *g_SDLDevice;
+    m_Ratio += (fDeltaMS > 10.0);
 
-    auto pTexture = g_PNGTexDB->Retrieve(255, 2);
+    if(m_Ratio >= 100){
+        m_Ratio = m_Ratio - 100;
+    }
+}
+
+void ProcessSyrc::Draw()
+{
+    extern PNGTexDBN  *g_PNGTexDBN;
+    extern SDLDevice  *g_SDLDevice;
+
+    auto pTexture = g_PNGTexDBN->Retrieve(255, 2);
     int nW, nH;
 
     SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH);
 
-    stRectSrc.x = 0;
-    stRectSrc.y = 0;
-    stRectSrc.w = std::lround(nW * (GetFinishedOnSyrc() / 100.0));
-    stRectSrc.h = nH;
-    stRectDst.x = 112;
-    stRectDst.y = 528;
-    stRectDst.w = stRectSrc.w;
-    stRectDst.h = stRectSrc.h;
-
-    SDL_RenderCopy(m_Renderer, m_TextureProgressBar, &stRectSrc, &stRectDst);
-    SDL_RenderCopy(m_Renderer, m_TextureBackground, nullptr, nullptr);
-
-    m_Info.Draw();
+    g_SDLDevice->ClearScreen();
+    g_SDLDevice->DrawTexture(pTexture,
+            112,  // dst x
+            528,  // dst y
+            0,    // src x
+            0,    // src y
+            std::lround(nW * (m_Ratio / 100.0)), // src w
+            nH);  // src h
+    g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve(255, 1), 0, 0);
+    g_SDLDevice->Present();
 }

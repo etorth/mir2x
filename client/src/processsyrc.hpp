@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.hpp
  *        Created: 8/14/2015 2:47:30 PM
- *  Last Modified: 03/19/2016 22:18:49
+ *  Last Modified: 03/20/2016 01:46:16
  *
  *    Description: 
  *
@@ -21,16 +21,23 @@
 
 #include <SDL2/SDL.h>
 #include "process.hpp"
+#include <atomic>
 
 class ProcessSyrc: public Process
 {
     private:
-        int     m_Ratio;
-        // Label   m_Info;
+        std::atomic<int> m_Ratio;
 
     public:
-        ProcessSyrc()
+        ProcessSyrc();
         virtual ~ProcessSyrc();
+
+    public:
+        int ID()
+        {
+            return PROCESSID_SYRC;
+        }
+
     public:
         void Update(double);
         void Draw();
