@@ -9,28 +9,14 @@ enum ProcessID: int{
     PROCESSID_RUN         = 4,
 };
 
-
 class Process
 {
     public:
-    public:
-        Process();
-        virtual ~Process();
-
-    public:
-        bool RequestQuit();
-        bool RequestNewProcess();
-        int  NextProcessID();
+        Process() = default;
+        virtual ~Process() = default;
 
     public:
         virtual int ID() = 0;
-
-    public:
-        int    m_NextProcessID;
-        double m_TotalTime;
-        double m_FPS;
-        double m_InvokeCount;
-        bool   m_Quit;
 
     public:
         virtual void Update(double)                  = 0;

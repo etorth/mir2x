@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/19/2016 17:45:43
+ *  Last Modified: 03/19/2016 21:37:45
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp
@@ -57,7 +57,7 @@ class SDLDevice final
 
        void ClearScreen()
        {
-           SetColor(0, 0, 0, 0XFF);
+           SetColor(0, 0, 0, 0);
            SDL_RenderClear(m_Renderer);
        }
 

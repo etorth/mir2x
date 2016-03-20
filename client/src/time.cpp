@@ -3,7 +3,7 @@
  *
  *       Filename: time.cpp
  *        Created: 03/19/2016 00:35:32
- *  Last Modified: 03/19/2016 00:51:17
+ *  Last Modified: 03/19/2016 22:02:19
  *
  *    Description: 
  *
@@ -22,7 +22,7 @@
 
 double Game::GetTimeMS()
 {
-    return SDL_GetPerformanceCounter() * 1.0 / SDL_GetPerformanceFrequency();
+    return SDL_GetPerformanceCounter() * 1000.0 / SDL_GetPerformanceFrequency();
 }
 
 void Game::EventDelay(double fDelayMS)

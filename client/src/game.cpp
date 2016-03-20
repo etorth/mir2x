@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/19/2016 17:59:53
+ *  Last Modified: 03/19/2016 21:33:53
  *
  *    Description: public API for class game only
  *
@@ -45,9 +45,8 @@ Game::Game()
         throw std::error_code();
     }
 
-    g_Log->AddLog(LOGTYPE_WARNING, "PNGTexDBN path: %s", pNode->GetText());
+    g_Log->AddLog(LOGTYPE_INFO, "PNGTexDBN path: %s", pNode->GetText());
     g_PNGTexDBN->Load(pNode->GetText());
-
 }
 
 Game::~Game()

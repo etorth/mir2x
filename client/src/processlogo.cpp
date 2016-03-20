@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.cpp
  *        Created: 8/13/2015 12:15:38 AM
- *  Last Modified: 03/19/2016 19:40:51
+ *  Last Modified: 03/19/2016 22:00:29
  *
  *    Description: 
  *
@@ -25,9 +25,10 @@
 
 ProcessLogo::ProcessLogo()
     : Process()
-    , m_FullMS(5.0)
+    , m_FullMS(5000.0)
     , m_TimeR1(0.3)
     , m_TimeR2(0.3)
+    , m_TotalTime(0.0)
 {}
 
 ProcessLogo::~ProcessLogo()
@@ -48,10 +49,6 @@ void ProcessLogo::Update(double fDMS)
     if(m_TotalTime >= m_FullMS){
         extern Game *g_Game;
         g_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
-    }else{
-        Uint8 bColor = std::lround(255 * Ratio());
-        extern SDLDevice *g_SDLDevice;
-        g_SDLDevice->SetColor(bColor, bColor, bColor, bColor);
     }
 }
 
@@ -61,7 +58,19 @@ void ProcessLogo::Draw()
     extern PNGTexDBN *g_PNGTexDBN;
 
     g_SDLDevice->ClearScreen();
-    g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve(255, 0), 0, 0);
+    // TODO
+    // there is a bug here
+    // between set some parameters to the texture and
+    // take that parameters into effect, if there is any
+    // release, then these effect of the parameters won't show
+    //
+    // so any operation on texture should be done and consumed ASAP
+
+    Uint8 bColor = std::lround(255 * Ratio());
+    auto pTexture = g_PNGTexDBN->Retrieve(255, 0);
+    SDL_SetTextureColorMod(pTexture, bColor, bColor, bColor);
+
+    g_SDLDevice->DrawTexture(pTexture, 0, 0);
     g_SDLDevice->Present();
 }
 

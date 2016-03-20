@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.hpp
  *        Created: 8/13/2015 12:07:39 AM
- *  Last Modified: 03/17/2016 01:10:30
+ *  Last Modified: 03/19/2016 21:45:04
  *
  *    Description: 
  *
@@ -29,6 +29,7 @@ class ProcessLogo: public Process
         double  m_FullMS;
         double  m_TimeR1;
         double  m_TimeR2;
+        double  m_TotalTime;
 
     public:
         ProcessLogo();
