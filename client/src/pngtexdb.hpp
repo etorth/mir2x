@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/19/2016 21:29:04
+ *  Last Modified: 03/20/2016 20:22:51
  *
  *    Description: 
  *
@@ -24,6 +24,7 @@
 #include "hexstring.hpp"
 #include <zip.h>
 #include "log.hpp"
+#include "sdldevice.hpp"
 
 typedef struct{
     SDL_Texture *Texture;

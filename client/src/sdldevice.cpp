@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/20/2016 19:21:50
+ *  Last Modified: 03/20/2016 22:08:46
  *
  *    Description: 
  *
@@ -29,6 +29,8 @@
 SDLDevice::SDLDevice()
     : m_Window(nullptr)
     , m_Renderer(nullptr)
+    , m_WindowW(0)
+    , m_WindowH(0)
 {
     // TODO
     // won't support dynamically create/update context
@@ -65,18 +67,27 @@ SDLDevice::SDLDevice()
 
     extern XMLConf *g_XMLConf;
     try{
-        if(g_XMLConf->NodeAtob("Root/Configure/Window/FullScreen")){
-            nFlags |= SDL_WINDOW_FULLSCREEN;
+        switch(g_XMLConf->NodeAtoi("Root/Window/ScreenMode")){
+            case 0:
+                break;
+            case 1:
+                nFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+                break;
+            case 2:
+                nFlags |= SDL_WINDOW_FULLSCREEN;
+                break;
+            default:
+                break;
         }
     }catch(...){
         // it's ok to miss this index
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "Failed to select fullscreen mode by configuration file.");
+        g_Log->AddLog(LOGTYPE_WARNING, "Failed to select screen mode by configuration file.");
     }
 
     try{
-        nWindowW = g_XMLConf->NodeAtoi("Root/Configure/Window/W");
-        nWindowH = g_XMLConf->NodeAtoi("Root/Configure/Window/H");
+        nWindowW = g_XMLConf->NodeAtoi("Root/Window/W");
+        nWindowH = g_XMLConf->NodeAtoi("Root/Window/H");
     }catch(...){
         // assign the proper size it later
         extern Log *g_Log;
@@ -90,17 +101,20 @@ SDLDevice::SDLDevice()
         nWindowH = 600;
     }
 
-    if(nWindowW && nWindowH){
+    m_WindowW = nWindowW;
+    m_WindowH = nWindowH;
+
+    if(m_WindowW && m_WindowH){
         // try to adjust the current window size
         SDL_DisplayMode stDesktop;
         if(!SDL_GetDesktopDisplayMode(0, &stDesktop)){
-            nWindowW = std::min(nWindowW , stDesktop.w);
-            nWindowH = std::min(nWindowH , stDesktop.h);
+            m_WindowW = std::min(m_WindowW , stDesktop.w);
+            m_WindowH = std::min(m_WindowH , stDesktop.h);
         }
     }
 
     m_Window = SDL_CreateWindow("MIR2X-V0.1",
-            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nWindowW, nWindowH, nFlags);
+            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_WindowW, m_WindowH, nFlags);
 
     if(!m_Window){
         extern Log *g_Log;

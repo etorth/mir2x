@@ -7,6 +7,7 @@ enum ProcessID: int{
     PROCESSID_SYRC        = 2,
     PROCESSID_LOGIN       = 3,
     PROCESSID_RUN         = 4,
+    PROCESSID_EXIT        = 4,
 };
 
 class Process

@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 08/14/2015 2:47:49 PM
- *  Last Modified: 03/20/2016 19:37:51
+ *  Last Modified: 03/20/2016 22:13:56
  *
  *    Description: 
  *
@@ -23,6 +23,7 @@
 #include "processsyrc.hpp"
 #include "tokenboard.hpp"
 #include "sdldevice.hpp"
+#include "log.hpp"
 
 ProcessSyrc::ProcessSyrc()
 	: Process()
@@ -55,7 +56,9 @@ void ProcessSyrc::Update(double fDeltaMS)
     m_Ratio += (fDeltaMS > 10.0);
 
     if(m_Ratio >= 100){
-        m_Ratio = m_Ratio - 100;
+        // m_Ratio = m_Ratio - 100;
+        extern Game *g_Game;
+        g_Game->SwitchProcess(PROCESSID_SYRC, PROCESSID_LOGIN);
     }
 }
 
@@ -80,6 +83,6 @@ void ProcessSyrc::Draw()
     g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve(255, 1), 0, 0);
 
     extern SDLDevice  *g_SDLDevice;
-    m_Info.Draw((g_SDLDevice->WindowW() - m_Info.W()) / 2, 528 + (nH - m_Info.H()) / 2);
+    m_Info.Draw((g_SDLDevice->WindowW(false) - m_Info.W()) / 2, 528 + (nH - m_Info.H()) / 2);
     g_SDLDevice->Present();
 }

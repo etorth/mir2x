@@ -1,10 +1,18 @@
 <Root>
+
     <Window>
-        <SizeW>800</SizeW>
-        <SizeH>600</SizeH>
-        <FullScreen>0</FullScreen>
+        <W>800</W>
+        <H>600</H>
+        <!-- ScreenMode: -->
+        <!--     0: window -->
+        <!--     1: window with full screen size -->
+        <!--     2: full screen -->
+        <ScreenMode>2</ScreenMode>
+
         <Caption>Mir2X</Caption>
     </Window>
+
+
     <Font><FontexDBN>Res/Font/FontexDBN.ZIP</FontexDBN></Font>
     <Texture>
         <PNGTexDBN>Res/Texture/PNGTexDBN.ZIP</PNGTexDBN>

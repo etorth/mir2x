@@ -26,8 +26,13 @@ int main()
 
     // set the exit function for g_Log->AddLog(LOGTYPE_FATAL, ...)
     auto fnAtExit = [](){
-        delete g_Log;  g_Log  = nullptr;
-        delete g_Game; g_Game = nullptr;
+        delete g_Log         ; g_Log         = nullptr;
+        delete g_XMLConf     ; g_XMLConf     = nullptr;
+        delete g_SDLDevice   ; g_SDLDevice   = nullptr;
+        delete g_PNGTexDBN   ; g_PNGTexDBN   = nullptr;
+        delete g_FontexDBN   ; g_FontexDBN   = nullptr;
+        delete g_EmoticonDBN ; g_EmoticonDBN = nullptr;
+        delete g_Game        ; g_Game        = nullptr;
     };
 
     std::atexit(fnAtExit);

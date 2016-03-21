@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/20/2016 19:24:26
+ *  Last Modified: 03/20/2016 22:10:15
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp
@@ -93,18 +93,26 @@ class SDLDevice final
            return nullptr;
        }
 
-       int WindowW()
+       int WindowW(bool bRealWindowSizeInPixel)
        {
            int nW, nH;
-           SDL_GetWindowSize(m_Window, &nW, &nH);
-           return nW;
+           if(bRealWindowSizeInPixel){
+               SDL_GetWindowSize(m_Window, &nW, &nH);
+               return nW;
+           }else{
+               return m_WindowW;
+           }
        }
 
-       int WindowH()
+       int WindowH(bool bRealWindowSizeInPixel)
        {
            int nW, nH;
-           SDL_GetWindowSize(m_Window, &nW, &nH);
-           return nH;
+           if(bRealWindowSizeInPixel){
+               SDL_GetWindowSize(m_Window, &nW, &nH);
+               return nH;
+           }else{
+               return m_WindowH;
+           }
        }
 
     public:
@@ -115,6 +123,10 @@ class SDLDevice final
        // for graphics hardware
        SDL_Window   *m_Window;
        SDL_Renderer *m_Renderer;
+
+    private:
+       int m_WindowW;
+       int m_WindowH;
 
     private:
        // for sound

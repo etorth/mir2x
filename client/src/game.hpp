@@ -25,15 +25,6 @@ class Game
         void MainLoop();
 
     public:
-        enum{
-            PROCESSID_NULL   = 0,
-            PROCESSID_LOGO   = 1,
-            PROCESSID_LOGIN  = 2,
-            PROCESSID_RUN    = 3,
-            PROCESSID_EXIT   = 4,
-        };
-
-    public:
         bool FPSDelay();
         void SwitchProcess(int);
         void SwitchProcess(int, int);

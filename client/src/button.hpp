@@ -3,7 +3,7 @@
  *
  *       Filename: button.hpp
  *        Created: 08/21/2015 04:12:57
- *  Last Modified: 03/07/2016 23:14:51
+ *  Last Modified: 03/20/2016 20:24:56
  *
  *    Description: Button, texture id should be baseID + [0, 1, 2]
  *
@@ -19,27 +19,26 @@
  */
 
 #pragma once
-#include <functional>
 #include "widget.hpp"
+
+#include <cstdint>
+#include <functional>
 
 class Button: public Widget
 {
     public:
-        Button(int, int, std::function<void()>,
-                std::function<bool(uint32_t, int &, int &)>);
-       ~Button();
+        Button(uint8_t, uint16_t, int, int, const std::function<void()> &);
+        virtual ~Button() = default;
 
     public:
-        void Draw(std::function<void(uint32_t, int, int)>);
-        void Update(uint32_t);
-        bool ProcessEvent(SDL_Event &);
+        void Draw();
+        bool ProcessEvent(const SDL_Event &);
 
     private:
         // 0: normal
         // 1: on
         // 2: pressed
-        uint32_t               m_TextureID;
+        uint32_t               m_BaseID;
         int                    m_State;
         std::function<void()>  m_OnClick;
-        int                    m_MS;
 };

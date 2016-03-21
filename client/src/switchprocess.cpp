@@ -3,7 +3,7 @@
  *
  *       Filename: switchprocess.cpp
  *        Created: 01/23/2016 04:18:45
- *  Last Modified: 03/20/2016 01:45:20
+ *  Last Modified: 03/20/2016 20:38:09
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 #include "game.hpp"
 #include "processlogo.hpp"
 #include "processsyrc.hpp"
+#include "processlogin.hpp"
 
 void Game::SwitchProcess(int nNewID)
 {
@@ -92,6 +93,7 @@ void Game::SwitchProcess(int nOldID, int nNewID)
                 {
                     case PROCESSID_LOGIN:
                         {
+                            m_CurrentProcess = new ProcessLogin();
                             SDL_ShowCursor(1);
                             break;
                         }
