@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/20/2016 16:47:50
+ *  Last Modified: 03/20/2016 19:34:26
  *
  *    Description: 
  *
@@ -66,6 +66,8 @@ bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
     }
 
     int nSection = 0;
+
+    ResetCurrentLine();
 
     while(pCurrentObject){
         if(ObjectReturn(*pCurrentObject)){

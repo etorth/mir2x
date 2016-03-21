@@ -1,3 +1,22 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: widget.hpp
+ *        Created: 08/12/2015 09:59:15
+ *  Last Modified: 03/20/2016 18:28:08
+ *
+ *    Description: public API for class game only
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #pragma once
 #include <cstdint>
 #include <SDL2/SDL.h>

@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.cpp
  *        Created: 8/13/2015 12:15:38 AM
- *  Last Modified: 03/19/2016 22:00:29
+ *  Last Modified: 03/20/2016 19:42:52
  *
  *    Description: 
  *
@@ -37,9 +37,24 @@ ProcessLogo::~ProcessLogo()
 
 void ProcessLogo::ProcessEvent(const SDL_Event &rstEvent)
 {
-    if(rstEvent.type == SDL_KEYDOWN && rstEvent.key.keysym.sym == SDLK_ESCAPE){
-        extern Game *g_Game;
-        g_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
+    switch(rstEvent.type){
+        case SDL_KEYDOWN:
+            {
+                switch(rstEvent.key.keysym.sym){
+                    case SDLK_SPACE:
+                    case SDLK_ESCAPE:
+                        {
+                            extern Game *g_Game;
+                            g_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            }
+        default:
+            break;
     }
 }
 
