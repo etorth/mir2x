@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 08/14/2015 2:47:49 PM
- *  Last Modified: 03/20/2016 01:53:39
+ *  Last Modified: 03/20/2016 16:33:22
  *
  *    Description: 
  *
@@ -21,11 +21,19 @@
 #include "game.hpp"
 #include "pngtexdbn.hpp"
 #include "processsyrc.hpp"
+#include "tokenboard.hpp"
 
 ProcessSyrc::ProcessSyrc()
 	: Process()
     , m_Ratio(0)
-{}
+    , m_TokenBoard(false, -1, 0, 0)
+{
+    tinyxml2::XMLDocument stDoc;
+    stDoc.Parse("<root><object size=\"14\" font=\"0\">Connecting...</object></root>");
+
+    std::unordered_map<std::string, std::function<void()>> fnIDFuncMap {};
+    m_TokenBoard.Load(stDoc, fnIDFuncMap);
+}
 
 ProcessSyrc::~ProcessSyrc()
 {}
@@ -74,5 +82,7 @@ void ProcessSyrc::Draw()
             std::lround(nW * (m_Ratio / 100.0)), // src w
             nH);  // src h
     g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve(255, 1), 0, 0);
+
+    m_TokenBoard.Draw(200, 200);
     g_SDLDevice->Present();
 }

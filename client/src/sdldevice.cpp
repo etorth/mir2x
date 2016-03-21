@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/20/2016 01:38:53
+ *  Last Modified: 03/20/2016 17:46:55
  *
  *    Description: copy from flare-engine:
  *		   SDLDevice.h/cpp
@@ -203,6 +203,10 @@ SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
         }
     }
 
+    // TODO
+    // not understand well for SDL_FreeRW()
+    // since the creation is done
+    // we can free it?
     if(pstRWops){
         SDL_FreeRW(pstRWops);
     }
@@ -249,12 +253,26 @@ TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontP
     TTF_Font  *pstTTont = nullptr;
 
     pstRWops = SDL_RWFromConstMem((const void *)pMem, nSize);
-    if(pstRWops){
-        pstTTont = TTF_OpenFontRW(pstRWops, 0, nFontPointSize);
-    }
+
+    // TODO
+    // I checked the SDL_ttf.c
+    // seems the TTF_OpenFontRW() will directly assign the SDL_RWops pointer
+    // to inside pointer, and also the freeMark
+    //
+    // so here we provide SDL_RWops and freeMark
+    // the TTF_Font struct will take control of free/assess the SDL_RWops
+    // and we can't free it before destroy TTF_Font
+    //
+    // so, don't use this code before the resource allocated by SDL_RWops
+    // is done. WTF
+    //
+    // if(pstRWops){
+    //     SDL_FreeRW(pstRWops);
+    // }
+    //
 
     if(pstRWops){
-        SDL_FreeRW(pstRWops);
+        pstTTont = TTF_OpenFontRW(pstRWops, 1, nFontPointSize);
     }
 
     return pstTTont;

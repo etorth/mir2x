@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/20/2016 12:54:03
+ *  Last Modified: 03/20/2016 16:47:50
  *
  *    Description: 
  *
@@ -438,9 +438,9 @@ bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement &rstCurrentObje
     int nDefaultSize = (int)m_SectionV[nSection].Info.Text.Size;
 
     uint32_t nFontAttrKey = 0
-        + (((uint64_t)m_SectionV[nSection].Info.Text.FileIndex) << 16)
-        + (((uint64_t)m_SectionV[nSection].Info.Text.Size)      <<  8)
-        + (((uint64_t)m_SectionV[nSection].Info.Text.Style)     <<  0);
+        + (((uint32_t)m_SectionV[nSection].Info.Text.FileIndex) << 16)
+        + (((uint32_t)m_SectionV[nSection].Info.Text.Size)      <<  8)
+        + (((uint32_t)m_SectionV[nSection].Info.Text.Style)     <<  0);
 
 
     while(*pEnd != '\0'){

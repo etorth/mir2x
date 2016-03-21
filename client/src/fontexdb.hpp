@@ -3,7 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 03/20/2016 12:49:22
+ *  Last Modified: 03/20/2016 18:06:04
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -38,8 +38,9 @@ typedef struct{
     SDL_Texture *Texture;
 }FontexItem;
 
+using FontexDBKT = uint64_t;
 template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
-class FontexDB: public InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
+class FontexDB: public InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>
 {
     private:
         struct zip *m_ZIP;
@@ -65,11 +66,11 @@ class FontexDB: public InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
         }ZIPItemInfo;
 
     private:
-        std::unordered_map<uint32_t, ZIPItemInfo> m_ZIPItemInfoCache;
+        std::unordered_map<uint8_t, ZIPItemInfo> m_ZIPItemInfoCache;
 
     public:
         FontexDB()
-            : InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>()
+            : InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>()
             , m_ZIP(nullptr)
             , m_ZIPItemInfoCache()
         {}
@@ -134,8 +135,8 @@ class FontexDB: public InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
         }
 
     public:
-        void RetrieveItem(uint32_t nKey, FontexItem *pItem,
-                const std::function<size_t(uint32_t)> &fnLinearCacheKey)
+        void RetrieveItem(FontexDBKT nKey, FontexItem *pItem,
+                const std::function<size_t(FontexDBKT)> &fnLinearCacheKey)
         {
             // fnLinearCacheKey should be defined with LCLenN definition
             if(pItem){
@@ -150,7 +151,7 @@ class FontexDB: public InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
         // if we need to load, means we need to find the font file handler
         // and don't care the speed
         // so we can put additional like font-setter or something here
-        virtual FontexItem LoadResource(uint64_t nKey)
+        virtual FontexItem LoadResource(FontexDBKT nKey)
         {
             // null resource desc
             FontexItem stItem {nullptr};
@@ -189,7 +190,7 @@ class FontexDB: public InnDB<uint64_t, FontexItem, LCDeepN, LCLenN, ResMaxN>
 
                     // 2. open the ttf in the zip
                     auto pf = zip_fopen_index(m_ZIP, pZIPIndexInst->second.Index, ZIP_FL_UNCHANGED);
-                    if(pf){
+                    if(!pf){
                         return stItem;
                     }
 

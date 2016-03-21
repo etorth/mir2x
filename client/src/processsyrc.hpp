@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.hpp
  *        Created: 8/14/2015 2:47:30 PM
- *  Last Modified: 03/20/2016 01:46:16
+ *  Last Modified: 03/20/2016 16:16:01
  *
  *    Description: 
  *
@@ -22,11 +22,13 @@
 #include <SDL2/SDL.h>
 #include "process.hpp"
 #include <atomic>
+#include "tokenboard.hpp"
 
 class ProcessSyrc: public Process
 {
     private:
         std::atomic<int> m_Ratio;
+        TokenBoard       m_TokenBoard;
 
     public:
         ProcessSyrc();

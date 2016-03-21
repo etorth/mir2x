@@ -5,6 +5,7 @@
         <FullScreen>0</FullScreen>
         <Caption>Mir2X</Caption>
     </Window>
+    <Font><FontexDBN>Res/Font/FontexDBN.ZIP</FontexDBN></Font>
     <Texture>
         <PNGTexDBN>Res/Texture/PNGTexDBN.ZIP</PNGTexDBN>
         <Path>Res/Texture</Path>

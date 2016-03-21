@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/20/2016 01:51:07
+ *  Last Modified: 03/20/2016 16:37:36
  *
  *    Description: public API for class game only
  *
@@ -24,6 +24,7 @@
 #include "log.hpp"
 #include "xmlconf.hpp"
 #include "pngtexdbn.hpp"
+#include "fontexdbn.hpp"
 
 Game::Game()
     : m_FPS(30.0)
@@ -36,6 +37,7 @@ Game::Game()
 
     // load PNGTexDB
     extern PNGTexDBN *g_PNGTexDBN;
+    extern FontexDBN *g_FontexDBN;
     extern XMLConf   *g_XMLConf;
     extern Log       *g_Log;
 
@@ -44,9 +46,16 @@ Game::Game()
         g_Log->AddLog(LOGTYPE_WARNING, "No PNGTexDBN path found in configuration.");
         throw std::error_code();
     }
-
     g_Log->AddLog(LOGTYPE_INFO, "PNGTexDBN path: %s", pNode->GetText());
     g_PNGTexDBN->Load(pNode->GetText());
+
+    pNode = g_XMLConf->GetXMLNode("Root/Font/FontexDBN");
+    if(!pNode){
+        g_Log->AddLog(LOGTYPE_WARNING, "No FontexDBN path found in configuration.");
+        throw std::error_code();
+    }
+    g_Log->AddLog(LOGTYPE_INFO, "FontexDBN path: %s", pNode->GetText());
+    g_FontexDBN->Load(pNode->GetText());
 }
 
 Game::~Game()
