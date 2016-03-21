@@ -3,7 +3,7 @@
  *
  *       Filename: imebase.cpp
  *        Created: 03/13/2016 19:37:04
- *  Last Modified: 03/17/2016 00:16:35
+ *  Last Modified: 03/20/2016 23:58:17
  *
  *    Description: 
  *
@@ -116,4 +116,19 @@ void IMEBase::InsertInfo()
     // the input widget should parse the string
 
     m_InputWidget->InsertInfo(m_CurrentString.c_str());
+}
+
+bool IMEBase::InHeadBox(int, int)
+{
+    return false;
+}
+
+bool IMEBase::InOptionBox(int, int, int)
+{
+    return false;
+}
+
+int IMEBase::OptionCount()
+{
+    return 0;
 }

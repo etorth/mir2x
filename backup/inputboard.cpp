@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 7:04:16 PM
- *  Last Modified: 03/18/2016 19:21:09
+ *  Last Modified: 03/20/2016 23:52:15
  *
  *    Description: 
  *
@@ -65,11 +65,6 @@ void InputBoard::Update(Uint32 nMs)
 {
     m_Ticks += nMs;
 }
-
-
-
-
-
 
 bool InputBoard::ProcessEvent(const SDL_Event &rstEvent)
 {
