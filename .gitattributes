@@ -1,2 +1,3 @@
 *.cpp text eof=lf
 *.hpp text eof=lf
+*.txt text eof=lf
