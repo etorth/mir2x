@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/21/2016 23:10:52
+ *  Last Modified: 03/21/2016 23:16:12
  *
  *    Description: Design TBD.
  *
@@ -71,6 +71,11 @@
  *                 No matter what, we need a string copy seems, since directly insert between token
  *                 cause more re-padding. So keep internal or external? Currently I prefer external,
  *                 and tokenboard is just a show board to reflect the text operation.
+ *
+ *                 Or just do directly tokenbox insert? because this affect only by para-graph, bet-
+ *                 ween paragraphes maybe there is blank space left for the last line of the current
+ *                 paragraph then we can just add Y for rest of paragraph? This logic will be much 
+ *                 more complicated.
  *                   
  *                 Event for handling or not:
  *
