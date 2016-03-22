@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/21/2016 22:59:41
+ *  Last Modified: 03/21/2016 23:10:52
  *
  *    Description: Design TBD.
  *
@@ -57,9 +57,7 @@
  *                   Another problem, how to support insert before current cursor? We can use func-
  *                 tion like GetXML() or GetPlainText(), but both just return formated text. inside
  *                 the tokenboard, cursor is something like (x, y) or (section, offset). we can't do
- *                 insert based on the returned text. Maybe in the wrapper class we can maintain a
- *                 copy of text in the board and mapping the cursor with this copy, but this is bad
- *                 iead. don't use it.
+ *                 insert based on the returned text.
  *
  *                   Currently what I can get is inside the board class for each section I keep a
  *                 copy of its stinrg content, this helps to return GetXML() and GetPlainText() qui-
@@ -69,6 +67,10 @@
  * 
  *                 BUT, if we use this strategy, why not keep an external copy in the wrapper class
  *                 and just make TokenBoard only support case 1???
+ *
+ *                 No matter what, we need a string copy seems, since directly insert between token
+ *                 cause more re-padding. So keep internal or external? Currently I prefer external,
+ *                 and tokenboard is just a show board to reflect the text operation.
  *                   
  *                 Event for handling or not:
  *
