@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/21/2016 23:16:12
+ *  Last Modified: 03/22/2016 01:15:06
  *
  *    Description: Design TBD.
  *
@@ -75,7 +75,9 @@
  *                 Or just do directly tokenbox insert? because this affect only by para-graph, bet-
  *                 ween paragraphes maybe there is blank space left for the last line of the current
  *                 paragraph then we can just add Y for rest of paragraph? This logic will be much 
- *                 more complicated.
+ *                 more complicated, but useful, since most likely if we insert, we only insert at
+ *                 the end of the current line. And for editable tokenboard, get text is expensive 
+ *                 but not very often, we only get it when we need to send it.
  *                   
  *                 Event for handling or not:
  *
