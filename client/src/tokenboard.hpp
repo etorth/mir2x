@@ -1,3 +1,32 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: tokenboard.hpp
+ *        Created: 06/17/2015 10:24:27 PM
+ *  Last Modified: 03/21/2016 17:06:31
+ *
+ *    Description: TokenBoard is not editable and selectable, this class is intended to 
+ *                 be designed as a button like text terminal.
+ *
+ *                 TBD:
+ *                   1. whether develop an EditBoard which directly accept events
+ *                      or just use set/get to tokenboard to show edits?
+ *
+ *                   2. is it proper to accept drag event for select in TokenBoard?
+ *
+ *                   3. WTF, I don't know
+ *
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #pragma once
 
 #include <SDL2/SDL.h>

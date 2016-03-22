@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/20/2016 19:34:26
+ *  Last Modified: 03/21/2016 15:07:25
  *
  *    Description: 
  *
@@ -1202,4 +1202,23 @@ int TokenBoard::GuessResoltion()
     // TODO
     // make this function more reasonable and functional
     return 20;
+}
+
+bool TokenBoard::ParsePlainText(const char *szText)
+{}
+
+bool TokenBoard::ParseXML(const char *szText)
+{}
+
+std::string TokenBoard::GetPlainText()
+{
+}
+
+std::string TokenBoard::GetXML()
+{
+}
+
+bool TokenBoard::BindTokenBox(int nEventX, int nEventY)
+{
+    // bind to a token
 }
