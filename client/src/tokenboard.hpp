@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/22/2016 01:15:06
+ *  Last Modified: 03/22/2016 13:37:32
  *
  *    Description: Design TBD.
  *
@@ -36,6 +36,7 @@
  *                               analyzed, edit is insert, and insert can be implemented by select.
  *                               so 2-b we need to support select.
  *
+ * ================Analysis on 03/22/2016===========================================================
  *                 Analysis: why we use select to support insert:
  *
  *                   for insert, we add new tokens to current board, we can everytime insert a new
@@ -93,6 +94,41 @@
  *                          if it's ctrl-x:
  *                             1. query the tokenboard, if there is selected part, cut it.
  *                             2. otherwise do nothing.
+ * ================Analysis on 03/23/2016===========================================================
+ *
+ *                 1. what's needed?
+ *
+ *                      What we need is to have class which can support case-1, case-2(a) and case-
+ *                      2-(b), for case-1, we need support click event trigger, and the board is as
+ *                      non-state class. For case-2(a) we need to support click event trigger, sele-
+ *                      ct. For case-2(b) we need to support select, insert.
+ *
+ *                 2. how to support it?
+ *                      Case-1 is simple and already supported. For select, we need to locate the
+ *                      token under pointer. For insert we need to support builtin cursor. Both need
+ *                      a (int, int) to support. Use (x, y) or (section, offset)?
+ *
+ *                      Let's use (x, y), since (x, y)->section is quick, but (section, offset)->
+ *                      (x, y) is slow.
+ *
+ *                 3. let me add a (bSelectable, bEditable) to the class, when disable both, we have
+ *                    the button-like text-terminal.
+ *
+ *                    (bSelectable, bEditable) with value:
+ *
+ *                    1. (0, 0): basic button-like text-terminal
+ *                    2. (0, 1): no idea of this mode
+ *                    3. (1, 0): sent-message box
+ *                    4. (1, 1): input box
+ *
+ *                    or use (bSelectable, bWithCursor) with value:
+ *                    1. (0, 0): basic button-like text-terminal
+ *                    2. (0, 1): can't select, but can put cursor everywhere and insert
+ *                    3. (1, 0): sent-message box, no cursor shown
+ *                    4. (1, 1): classical input box
+ *
+ *                    Let's use (bSelectable, bWithCursor), having cursor means editable.
+ *
  *
  *
  *        Version: 1.0
