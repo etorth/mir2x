@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/22/2016 14:51:17
+ *  Last Modified: 03/22/2016 01:15:06
  *
  *    Description: Design TBD.
  *
@@ -36,7 +36,6 @@
  *                               analyzed, edit is insert, and insert can be implemented by select.
  *                               so 2-b we need to support select.
  *
- * ================Analysis on 03/22/2016===========================================================
  *                 Analysis: why we use select to support insert:
  *
  *                   for insert, we add new tokens to current board, we can everytime insert a new
@@ -94,41 +93,6 @@
  *                          if it's ctrl-x:
  *                             1. query the tokenboard, if there is selected part, cut it.
  *                             2. otherwise do nothing.
- * ================Analysis on 03/23/2016===========================================================
- *
- *                 1. what's needed?
- *
- *                      What we need is to have class which can support case-1, case-2(a) and case-
- *                      2-(b), for case-1, we need support click event trigger, and the board is as
- *                      non-state class. For case-2(a) we need to support click event trigger, sele-
- *                      ct. For case-2(b) we need to support select, insert.
- *
- *                 2. how to support it?
- *                      Case-1 is simple and already supported. For select, we need to locate the
- *                      token under pointer. For insert we need to support builtin cursor. Both need
- *                      a (int, int) to support. Use (x, y) or (section, offset)?
- *
- *                      Let's use (x, y), since (x, y)->section is quick, but (section, offset)->
- *                      (x, y) is slow.
- *
- *                 3. let me add a (bSelectable, bEditable) to the class, when disable both, we have
- *                    the button-like text-terminal.
- *
- *                    (bSelectable, bEditable) with value:
- *
- *                    1. (0, 0): basic button-like text-terminal
- *                    2. (0, 1): no idea of this mode
- *                    3. (1, 0): sent-message box
- *                    4. (1, 1): input box
- *
- *                    or use (bSelectable, bWithCursor) with value:
- *                    1. (0, 0): basic button-like text-terminal
- *                    2. (0, 1): can't select, but can put cursor everywhere and insert
- *                    3. (1, 0): sent-message box, no cursor shown
- *                    4. (1, 1): classical input box
- *
- *                    Let's use (bSelectable, bWithCursor), having cursor means editable.
- *
  *
  *
  *        Version: 1.0
@@ -154,32 +118,15 @@
 
 // SECTIONINFO      : static data
 // SECTIONSTATE     : dynamic data
+
 class TokenBoard: public Widget
 {
     public:
-        // parameters
-        //
-        // bSelectable:       can select and copy
-        // bWithCursor:       enable with: 1. can insert before cursor
-        //                             2. show a cursor
-        //                             3. select has nothing to do with current cursor
-        // nMaxWidth  :       positive for wrap, non-positive for no-wrap
-        // nMinTextMargin
-        // nMinTextLineSpace
-        //
-        TokenBoard(bool bSelectable, bool bWithCursor, 
-                int nMaxWidth = -1, int nMinTextMargin = 0, int nMinTextLineSpace = 0)
-            : Widget()
-            , m_WithCursor(bWithCursor)
-            , m_PW(nMaxWidth)
-            , m_CurrentWidth(0)
-            , m_SkipEvent(false)
-            , m_Resolution(20)
-            , m_MinTextMargin(nMinTextMargin)
-            , m_MinTextLineSpace(nMinTextLineSpace)
-        {
-        }
-        virtual ~TokenBoard() = default;
+        TokenBoard(bool,    // wrap or not
+                int,        // maximal width
+                int,        // minimal text box margin
+                int);       // minimal text box line space
+        ~TokenBoard() = default;
 
     public:
         int InSection(int, int);
@@ -211,13 +158,13 @@ class TokenBoard: public Widget
         int     SpacePadding(int);
 
     private:
-        bool    m_WithCursor;
         int     m_MaxH1;
         int     m_MaxH2;
         int     m_CurrentLineMaxH2;
         int     m_PW;
         int     m_W;
         int     m_H;
+        bool    m_Wrap;
         int     m_CurrentWidth;
         bool    m_SkipEvent;
 

@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/22/2016 14:53:57
+ *  Last Modified: 03/21/2016 15:07:25
  *
  *    Description: 
  *
@@ -36,6 +36,19 @@
 #include <string>
 #include <cassert>
 
+TokenBoard::TokenBoard(bool bWrap,
+        int nMaxWidth, int nMinTextMargin, int nMinTextLineSpace)
+    : m_PW(nMaxWidth)
+    , m_W(0)
+    , m_H(0)
+    , m_Wrap(bWrap)
+    , m_CurrentWidth(0)
+    , m_SkipEvent(false)
+    , m_Resolution(20)
+    , m_MinTextMargin(nMinTextMargin)
+    , m_MinTextLineSpace(nMinTextLineSpace)
+{
+}
 
 bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
         const std::unordered_map<std::string, std::function<void()>> &rstIDhandlerMap)
@@ -83,6 +96,16 @@ bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
     }
 
     return true;
+}
+
+int TokenBoard::W()
+{
+    return m_W;
+}
+
+int TokenBoard::H()
+{
+    return m_H;
 }
 
 bool TokenBoard::ObjectReturn(const tinyxml2::XMLElement &rstCurrentObject)
@@ -484,10 +507,10 @@ void TokenBoard::UpdateSection(SECTION &stSection, Uint32 ticks)
     }
 }
 
-void TokenBoard::Update(double fMS)
+void TokenBoard::Update(Uint32 ticks)
 {
     for(auto &stSection: m_SectionV){
-        UpdateSection(stSection, fMS);
+        UpdateSection(stSection, ticks);
     }
 }
 
@@ -661,7 +684,7 @@ bool TokenBoard::Add(TOKENBOX &stTokenBox)
     //           +----------+             -----
     //                             
 
-    if(m_PW > 0 && m_CurrentWidth + stTokenBox.Cache.W >= m_PW){
+    if(m_Wrap && m_CurrentWidth + stTokenBox.Cache.W >= m_PW){
         // when wrapping, width control is enabled
         return false;
     }else{
@@ -914,7 +937,7 @@ void TokenBoard::DrawEx(
 
 void TokenBoard::AddNewTokenBoxLine(bool bEndByReturn)
 {
-    if(m_PW > 0 && bEndByReturn == false){
+    if(m_Wrap && bEndByReturn == false){
         SpacePadding(m_PW);
     }
 
