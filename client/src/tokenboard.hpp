@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/22/2016 14:51:17
+ *  Last Modified: 03/22/2016 20:49:41
  *
  *    Description: Design TBD.
  *
@@ -226,8 +226,6 @@ class TokenBoard: public Widget
 
     private:
         void UpdateSection(SECTION &, Uint32);
-    public:
-        void AddEventHandler(const char *, std::function<void()>);
 
     public:
         int W();
@@ -312,9 +310,6 @@ class TokenBoard: public Widget
 
     private:
         void ClearCurrentLine();
-
-    public:
-        bool HandleEvent(int, int, const SDL_Event &);
 
     public:
         int Width();
