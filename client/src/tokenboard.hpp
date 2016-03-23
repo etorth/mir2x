@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/22/2016 20:49:41
+ *  Last Modified: 03/23/2016 00:23:28
  *
  *    Description: Design TBD.
  *
@@ -349,4 +349,10 @@ class TokenBoard: public Widget
     public:
         const std::string &ContentExport();
         int GuessResoltion();
+
+
+    private:
+        int     m_SelectState;  // 0: no selection
+                                // 1: selecting
+                                // 2: selection done with result available
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/22/2016 14:53:57
+ *  Last Modified: 03/23/2016 00:44:52
  *
  *    Description: 
  *
@@ -35,7 +35,6 @@
 #include <unordered_map>
 #include <string>
 #include <cassert>
-
 
 bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
         const std::unordered_map<std::string, std::function<void()>> &rstIDhandlerMap)
@@ -960,6 +959,194 @@ bool TokenBoard::AddNewTokenBox(TOKENBOX &rstTokenBox)
         }
     }
 }
+
+
+void TokenBoard::TokenBoxGetMouseButtonUp(const TOKENBOX &rstTokenBox, bool bFirstHalf)
+{
+    switch(m_SectionV[rstTokenBox.Section].Info.Type){
+        case SECTIONTYPE_PLAINTEXT:
+        case SECTIONTYPE_EMOTICON:
+            {
+                // for plain text and emoticon, we only need to think about dragging
+                // and it can't accept other kind of events
+                if(m_Dragging){
+                    // 1. stop the dragging
+                    m_Dragging = false;
+                    // 2. record the end offset of dragging
+                    m_DraggingStop.first  = rstTokenBox.Section;
+                    m_DraggingStop.second = rstTokenBox.Offset - (bFirstHalf ? 1 : 0);
+                }else{
+                    // this should be click, need to do nothing
+                }
+                break;
+            }
+        case SECTIONTYPE_EVENTTEXT:
+            {
+                // 1. may trigger event
+                // 2. may be the end of dragging
+                switch(m_SectionV[.rstTokenBox.Section].State.Text.Event){
+                    case 0:
+                        {
+                            // impossible generally, only possibility comes with
+                            // user are moving mouse *very* fast. Then pointer can
+                            // jump inside one tokenbox and emit button up event.
+                            //
+                            // do nothing
+                            break;
+                        }
+                    case 1:
+                        {
+                            // over state and then get release, this only can be dragging
+                            if(m_Dragging){
+                                // 1. stop the dragging
+                                m_Dragging = false;
+                                // 2. record the end offset of dragging
+                                m_DraggingStop.first  = rstTokenBox.Section;
+                                m_DraggingStop.second = rstTokenBox.Offset - (bFirstHalf ? 1 : 0);
+                            }else{
+                                // impossible
+                            }
+                            break;
+                        }
+                    case 2:
+                        {
+                            // pressed state, and get released event, need tirgger
+                            // 1. make as state ``over"
+                            m_SectionV[m_LastTokenBox->Section].State.Text.Event = 1;
+                            // 2. trigger registered event handler
+                            if(m_IDFuncV[m_LastTokenBox->Section]){
+                                m_IDFuncV[m_LastTokenBox->Section]();
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+
+                }
+
+                break;
+            }
+    }
+}
+
+void TokenBoard::TokenBoxGetMouseButtonDown(const TOKENBOX &rstTokenBox, bool bFirstHalf)
+{
+    switch(m_SectionV[rstTokenBox.Section].Info.Type){
+        case SECTIONTYPE_PLAINTEXT:
+        case SECTIONTYPE_EMOTICON:
+            {
+                // 1. always drop the selected result off
+                m_SelectState = 0;
+
+                std::pair<int, int> stCursorLoc = {
+                    rstTokenBox.Section,
+                    rstTokenBox.Offset - (bFirstHalf ? 1 : 0)
+                };
+
+                // 2. mark for the preparing of next selection
+                if(m_Selectable){ m_DraggingStart = stCursorLoc; }
+                if(m_WithCursor){ m_CursorLoc     = stCursorLoc; }
+
+                break;
+            }
+        case SECTIONTYPE_EVENTTEXT:
+            {
+                // set to be pressed directly
+                m_SectionV[.rstTokenBox.Section].State.Text.Event = 2;
+                break;
+            }
+    }
+}
+
+void TokenBoard::TokenBoxGetMouseMotion(const TOKENBOX &rstTokenBox, bool bFirstHalf)
+{
+    if(m_Selectable){
+        m_SelectState = 1;
+        m_SelectStop = {
+            rstTokenBox.Section,
+            rstTokenBox.Offset - (bFirstHalf ? 1 : 0)
+        };
+    }
+}
+
+void TokenBoard::ProcessEventMouseButtonUp(int nEventDX, int nEventDY)
+{
+
+    if(!In(nEventDX, nEventDY)){ return; }
+
+    if(m_LastTokenBox){
+        // 
+        // W1 and W2 should also count in
+        // otherwise mouse can escape from the flaw of two contiguous tokens
+        // means when move mouse horizontally, event text will turn on and off
+        //
+        int nX = m_LastTokenBox->Cache.StartX - m_LastTokenBox->State.W1;
+        int nY = m_LastTokenBox->Cache.StartY;
+        int nW = m_LastTokenBox->Cache.W;
+        int nH = m_LastTokenBox->Cache.H;
+
+        if(PointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
+            TokenBoxGetMouseButtonUp(*m_LastTokenBox, nEventDX < nX + nW / 2 );
+        }
+    }else{
+        int nGridX = nEventDX / m_Resolution;
+        int nGridY = nEventDY / m_Resolution;
+
+        // only put EventText Section in Bitmap
+        // emoticon won't accept events
+        //
+        for(auto pTokenBox: m_TokenBoxBitmap[nGridX][nGridY]){
+            //
+            // for each possible tokenbox in the grid
+            //
+            // this is enough since cover of all tokenboxs in one gird
+            // is much larger than the grid itself
+            const auto &rstTokenBox = *pTokenBox;
+
+            int nStartX = rstTokenBox.Cache.StartX - rstTokenBox.State.W1;
+            int nStartY = rstTokenBox.Cache.StartY;
+            int nW      = rstTokenBox.Cache.W;
+            int nH      = rstTokenBox.Cache.H;
+
+            if(PointInRectangle(nEventX, nEventY, nStartX, nStartY, nW, nH)){
+                TokenBoxGetMouseButtonUp(rstTokenBox, nEventDX < nStartX + nW / 2);
+            }
+        }
+    }
+}
+
+void TokenBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
+{
+    // don't need to handle event or event has been consumed
+    if(m_SkipEvent || (bValid && !(*bValid))){ return; }
+
+    // too complicated, we need sub-functions
+    //
+    switch(rstEvent.type){
+        case SDL_MOUSEBUTTONUP:
+            {
+                ProcessEventMouseButtonUp(rstEvent.button.x - X(), rstEvent.button.y - Y());
+                break;
+            }
+        case SDL_MOUSEBUTTONDOWN:
+            {
+                ProcessEventMouseButtonDown(rstEvent.button.x - X(), rstEvent.button.y - Y());
+                break;
+            }
+        case SDL_MOUSEMOTION:
+            {
+                ProcessEventMouseMotion(rstEvent.motion.x - X(), rstEvent.motion.y - Y());
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+}
+
 
 bool TokenBoard::ProcessEvent(int nFrameStartX, int nFrameStartY, const SDL_Event &rstEvent)
 {

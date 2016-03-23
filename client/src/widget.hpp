@@ -3,7 +3,7 @@
  *
  *       Filename: widget.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/22/2016 22:35:39
+ *  Last Modified: 03/22/2016 22:43:48
  *
  *    Description: public API for class game only
  *
@@ -111,8 +111,11 @@ class Widget
         // bValid to be null means this event is broadcast, we must
         // handle it?
         //
-        virtual bool ProcessEvent(const SDL_Event &, bool *bValid = nullptr)
+        //
+        virtual bool ProcessEvent(const SDL_Event &, bool *bValid)
         {
+            // don't use default nullptr for bValid
+            // since it's virtual
         }
 
     public:
