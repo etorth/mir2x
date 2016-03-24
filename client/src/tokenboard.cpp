@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/23/2016 00:44:52
+ *  Last Modified: 03/24/2016 01:04:33
  *
  *    Description: 
  *
@@ -1122,72 +1122,33 @@ void TokenBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
     // don't need to handle event or event has been consumed
     if(m_SkipEvent || (bValid && !(*bValid))){ return; }
 
-    // too complicated, we need sub-functions
-    //
+    uint32_t nEventType;
+    int nEventDX, nEventDY;
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONUP:
-            {
-                ProcessEventMouseButtonUp(rstEvent.button.x - X(), rstEvent.button.y - Y());
-                break;
-            }
         case SDL_MOUSEBUTTONDOWN:
             {
-                ProcessEventMouseButtonDown(rstEvent.button.x - X(), rstEvent.button.y - Y());
+                nEventType = rstEvent.type;
+                nEventDX = rstEvent.button.x - X();
+                nEventDY = rstEvent.button.y - Y();
                 break;
             }
         case SDL_MOUSEMOTION:
             {
-                ProcessEventMouseMotion(rstEvent.motion.x - X(), rstEvent.motion.y - Y());
+                nEventType = rstEvent.type;
+                nEventDX = rstEvent.motion.x - X();
+                nEventDY = rstEvent.motion.y - Y();
                 break;
             }
         default:
             {
-                break;
+                // TBD
+                // for all other event, won't handle, just return
+                // maybe key up/down event maybe handled in the future
+                return;
             }
     }
-}
 
-
-bool TokenBoard::ProcessEvent(int nFrameStartX, int nFrameStartY, const SDL_Event &rstEvent)
-{
-    if(m_SkipEvent){
-        return false;
-    }
-
-    // field ``Event" is only for rendering 0/1/2
-    // need more information for checking clicks
-    //
-    bool bClickUp = false;
-
-    int nEventType, nEventX, nEventY, nEventDX, nEventDY;
-
-    switch(rstEvent.type){
-        case SDL_MOUSEBUTTONUP:
-            nEventType = 1;
-            nEventX    = rstEvent.button.x;
-            nEventY    = rstEvent.button.y;
-            bClickUp   = true;
-            break;
-        case SDL_MOUSEBUTTONDOWN:
-            nEventType = 2;
-            nEventX    = rstEvent.button.x;
-            nEventY    = rstEvent.button.y;
-            break;
-        case SDL_MOUSEMOTION:
-            nEventType = 1;
-            nEventX    = rstEvent.motion.x;
-            nEventY    = rstEvent.motion.y;
-            break;
-        default:
-            return false;
-    }
-
-    nEventDX = nEventX - nFrameStartX;
-    nEventDY = nEventY - nFrameStartY;
-
-    // use the cached hot spot data for text box
-    // first check last token box
-    //
     if(m_LastTokenBox){
         // 
         // W1 and W2 should also count in
@@ -1200,81 +1161,117 @@ bool TokenBoard::ProcessEvent(int nFrameStartX, int nFrameStartY, const SDL_Even
         int nH = m_LastTokenBox->Cache.H;
 
         if(PointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
-            // 
-            // save the old state for callback function
-            int nOldEvent = m_SectionV[m_LastTokenBox->Section].State.Text.Event;
-            //
-            // set as current event type
-            m_SectionV[m_LastTokenBox->Section].State.Text.Event = nEventType;
-
-            // previous state is ``pressed" and now is ``releasing"
-            if(nOldEvent == 2 && bClickUp){
-                if(m_IDFuncV[m_LastTokenBox->Section]){
-                    m_IDFuncV[m_LastTokenBox->Section]();
-                }
-            }
-            // done, captured event
-            return true;
+            TokenBoxGetEvent(*m_LastTokenBox, nEventDX, nEventDY);
+            return;
         }else{
-            // set as ``out"
-            m_SectionV[m_LastTokenBox->Section].State.Text.Event  = 0;
+            m_SectionV[m_LastTokenBox->Section].State.Text.Event = 0;
+            m_LastTokenBox = nullptr;
         }
     }
 
-    // then try resolution grid directly
-    // here we don't need to try something like ``last resolution grid"
-    // since the are of the same expense
-    //
-    if(PointInRectangle(nEventX, nEventY, nFrameStartX, nFrameStartY, W(), H())){
+    if(In(nEventDX, nEventDY)){
         int nGridX = nEventDX / m_Resolution;
         int nGridY = nEventDY / m_Resolution;
 
-        // only put EventText Section in Bitmap
-        // emoticon won't accept events
-        //
         for(auto pTokenBox: m_TokenBoxBitmap[nGridX][nGridY]){
-            //
-            // for each possible tokenbox in the grid
-            //
-            // this is enough since cover of all tokenboxs in one gird
-            // is much larger than the grid itself
-            const auto &rstTokenBox = *pTokenBox;
 
-            int nStartX = rstTokenBox.Cache.StartX - rstTokenBox.State.W1;
-            int nStartY = rstTokenBox.Cache.StartY;
-            int nW      = rstTokenBox.Cache.W;
-            int nH      = rstTokenBox.Cache.H;
+            int nX = pTokenBox->Cache.StartX - pTokenBox->State.W1;
+            int nY = pTokenBox->Cache.StartY;
+            int nW = pTokenBox->Cache.W;
+            int nH = pTokenBox->Cache.H;
 
-            if (PointInRectangle(nEventX, nEventY, nStartX, nStartY, nW, nH)){
-                // save the old state
-                //
-                int nOldEvent = m_SectionV[rstTokenBox.Section].State.Text.Event;
-                //
-                // set event and last hot spot
-                m_SectionV[rstTokenBox.Section].State.Text.Event = nEventType;
-                m_LastTokenBox = &rstTokenBox;
-
-                // previous state is ``pressed" and now is ``releasing"
-                if(nOldEvent == 2 && bClickUp){
-                    if(m_IDFuncV[m_LastTokenBox->Section]){
-                        m_IDFuncV[m_LastTokenBox->Section]();
-                    }
-                }
-                // done, captured event
-                return true;
+            if(PointInRectangle(nEventX, nEventY, nX, nY, nW, nH)){
+                TokenBoxGetEvent(pLastTokenBox, nEventDX, nEventDY);
+                m_LastTokenBox = pTokenBox;
+                // here we don't need to handle last tokenbox
+                // since if we really need, it's already be handled before
+                return;
             }
         }
-        // in board but not in any section
-        // capture the event, but we need do nothing
-        return true;
-    }
 
-    // even not in board
-    // we don't need to set previous section by ``out" seperately
-    // since when examing ``m_LastTokenBox"
-    // we have already done for this setting
-    //
-    return false;
+        // no box can handle this event, need to check line by line
+        if(m_Selectable || m_WithCursor){
+            // consume this event anyway
+            *bValid = false;
+
+            int nRowIn = -1;
+            for(int nRow = 0; nRow < m_LineStartY.size(); ++nRow){
+                if(m_LineStartY[nRow] > m_LineStartY[nRow]){
+                    // this may cause a problem:
+                    //
+                    //
+                    // +-----------+ +----+
+                    // |           | |    |
+                    // +-----------+ |    | --------------- Y
+                    //              *|    |
+                    //     +-------+ |    |
+                    //     |       | +----+
+                    //     |       | +--+
+                    //     |       | |  |
+                    //     +-------+ +--+   --------------- Y
+                    //
+                    // now if click is at "*", it will give cursor at the second
+                    // line, not the first line
+
+                    nRowIn = nRow;
+                    break;
+                }
+            }
+
+            if(m_LineStartY.size() > 0 && nEventDY > m_LineStartY.back()){
+                // after the last line we count it in the last line
+                nRowIn = m_LineStartY.size() - 1;
+            }
+
+            if(nRowIn < 0){ return; }
+
+            int nTokenBoxBind = -2; // here -1 is valid
+            int nLastCX = -1;
+            for(int nXCnt = 0; nXCnt < m_LineV[nRowIn].size(); ++nXCnt){
+                int nX  = m_LineV[nRowIn][nXCnt].Cache.StartX;
+                int nW  = m_LineV[nRowIn][nXCnt].Cache.W;
+                int nCX = nX + nW / 2;
+
+                if(PointInSegment(nEventDX, nLastCX, nCX - nLastCX + 1)){
+                    nTokenBoxBind = nXCnt - 1;
+                    break;
+                }
+
+                nLastCX = nCX;
+            }
+
+            if(nTokenBoxBind == -2){
+                // if we can't bind, bind it to the last box
+                // this may cause problem:
+                //
+                // +-----------+ +----+
+                // |           | |    |
+                // +-----------+ |    | --------------- Y
+                //               |    |
+                //     +-------+ |    |
+                //     |       | |    |
+                //     |       | |    |
+                //     |       | |    |
+                //     |       | |    | *
+                //     |       | +----+
+                //     +-------+ ---------------------- Y
+                //
+                // when clicking at "*", we get cursor bind
+                // at the second line
+                //
+                nTokenBoxBind = m_LineV[nRowIn].size() - 1;
+            }
+
+            if(m_WithCursor){
+                m_CursorLoc = {nRowIn, nTokenBoxBind};
+            }
+
+            if(m_Selectable){
+                m_SelectStartLoc = {nRowIn, nTokenBoxBind};
+                m_SelectState = 0;
+            }
+        }
+    }
 }
 
 int TokenBoard::TokenBoxType(const TOKENBOX &rstTokenBox)
@@ -1382,7 +1379,30 @@ std::string TokenBoard::GetXML()
 {
 }
 
-bool TokenBoard::BindTokenBox(int nEventX, int nEventY)
+std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
 {
-    // bind to a token
+    std::string szXML;
+    if((nY0 > nY1) || (nY0 == nY1 && nX0 > nX1)){ return szXML; }
+
+    szXML = "<root>";
+    int nX = nX0;
+    int nY = nY0;
+
+    while(!(nX == nX1 && nY == nY1)){
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
 }
