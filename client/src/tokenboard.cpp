@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/24/2016 01:04:33
+ *  Last Modified: 03/25/2016 23:34:43
  *
  *    Description: 
  *
@@ -382,7 +382,7 @@ bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement &rstCurrentObje
 
     // parse event text section desc
     stSection.Info.Type           = SECTIONTYPE_EVENTTEXT;
-    stSection.Info.Text.FileIndex = GetFontIndex(rstCurrentObject);
+    stSection.Info.Text.Font = GetFontIndex(rstCurrentObject);
     stSection.Info.Text.Style     = GetFontStyle(rstCurrentObject);
     stSection.Info.Text.Size      = GetFontSize(rstCurrentObject);
 
@@ -416,7 +416,7 @@ bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement &rstCurrentObje
     int nDefaultSize = (int)m_SectionV[nSection].Info.Text.Size;
 
     uint32_t nFontAttrKey = 0
-        + (((uint32_t)m_SectionV[nSection].Info.Text.FileIndex) << 16)
+        + (((uint32_t)m_SectionV[nSection].Info.Text.Font) << 16)
         + (((uint32_t)m_SectionV[nSection].Info.Text.Size)      <<  8)
         + (((uint32_t)m_SectionV[nSection].Info.Text.Style)     <<  0);
 
@@ -1362,21 +1362,26 @@ int TokenBoard::GuessResoltion()
 {
     // TODO
     // make this function more reasonable and functional
-    return 20;
+    return (m_MaxSize + m_MinSize) / 2;
 }
-
-bool TokenBoard::ParsePlainText(const char *szText)
-{}
 
 bool TokenBoard::ParseXML(const char *szText)
 {}
 
-std::string TokenBoard::GetPlainText()
+std::string TokenBoard::GetXML(bool bSelectedOnly)
 {
-}
-
-std::string TokenBoard::GetXML()
-{
+    int nX0, nY0, nX1, nY1;
+    if(bSelectedOnly){
+        if(m_SelectState = 1 || m_SelectState = 2){
+            // selecting or selected
+            return InnGetXML(m_SelectStartLoc.first,
+                    m_SelectStartLoc.second, m_SelectStopLoc.first, m_SelectStopLoc.second);
+        }else{
+            return "<root></root>";
+        }
+    }else{
+        return InnGetXML(0, 0, m_LineV.size() - 1, m_LineV.back().size() - 1);
+    }
 }
 
 std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
@@ -1388,21 +1393,75 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
     int nX = nX0;
     int nY = nY0;
 
+    int nLastSection = -1;
     while(!(nX == nX1 && nY == nY1)){
+        const auto &rstTB = m_LineV[nY][nX];
+        const auto &rstSN = m_SectionV[rstTB.Section];
 
+        if(nLastSection >= 0){
+            szXML += "</object>";
+        }
 
+        switch(rstSN.Type){
+            case SECTIONTYPE_EMOTICON:
+                {
+                    szXML += "<object type=emoticon set=";
+                    szXML += std::to_string(rstSN.Info.Emoticon.Set);
+                    szXML += " index=";
+                    szXML += std::to_string(rstSN.Info.Emoticon.Index);
+                    szXML += ">";
+                    break;
+                }
+            case SECTIONTYPE_EVENTTEXT:
+                {
+                    if(rstTB.Section != nLastSection){
+                        // TODO & TBD
+                        // 1. we won't parse ID here
+                        // 2. didn't parse style yet
+                        // 3. didn't parse color set yet
+                        //
+                        szXML += "<object type=eventtext font=";
+                        szXML += std::to_string(rstSN.Info.Text.Font);
+                        szXML += " size=";
+                        szXML += std::to_string(rstSN.Info.Text.Size);
+                        szXMl += ">";
+                    }
+                    // truncate to get last 32 bits
+                    uint32_t nUTF8Code = rstTB.UTF8CharBox.Cache.Key;
+                    szXML += (const char *)(&nUTF8Code);
+                    break;
+                }
+            case SECTIONTYPE_PLAINTEXT:
+                {
+                    if(rstTB.Section != nLastSection){
+                        szXML += "<object type=plaintext font=";
+                        szXML += std::to_string(rstSN.Info.Text.Font);
+                        szXML += " size=";
+                        szXML += std::to_string(rstSN.Info.Text.Size);
 
+                        char szColor[16];
+                        std::sprintf(szColor, "0x%08x", rstSN.Info.Text.Color[0]);
+                        szXML += " color=";
+                        szXML += szColor;
+                        szXMl += ">";
+                    }
+                    // truncate to get last 32 bits
+                    uint32_t nUTF8Code = rstTB.UTF8CharBox.Cache.Key;
+                    szXML += (const char *)(&nUTF8Code);
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
 
+        nLastSection = rstTB.Section;
 
-
+        nX++;
+        if(nX == m_LineV[nY].size()){
+            nX = 0;
+            nY++;
+        }
     }
-
-
-
-
-
-
-
-
-
 }
