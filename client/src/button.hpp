@@ -3,7 +3,7 @@
  *
  *       Filename: button.hpp
  *        Created: 08/21/2015 04:12:57
- *  Last Modified: 03/20/2016 20:24:56
+ *  Last Modified: 03/25/2016 23:55:31
  *
  *    Description: Button, texture id should be baseID + [0, 1, 2]
  *
@@ -27,7 +27,8 @@
 class Button: public Widget
 {
     public:
-        Button(uint8_t, uint16_t, int, int, const std::function<void()> &);
+        Button(int, int, Widget *, bool,
+                uint8_t, uint16_t, const std::function<void()> &);
         virtual ~Button() = default;
 
     public:

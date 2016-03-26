@@ -3,7 +3,7 @@
  *
  *       Filename: section.hpp
  *        Created: 8/18/2015 6:56:11 PM
- *  Last Modified: 03/20/2016 12:17:01
+ *  Last Modified: 03/26/2016 00:14:29
  *
  *    Description: 
  *
@@ -43,7 +43,7 @@ typedef struct{
 
 typedef struct{
     int                     Type;
-    uint8_t                 FileIndex;
+    uint8_t                 Font;
     uint8_t                 Size;
     uint8_t                 Style;
     SDL_Color               Color[3];
@@ -51,8 +51,9 @@ typedef struct{
 
 enum{
     SECTIONTYPE_ALL         =      0,
-    SECTIONTYPE_EVENTTEXT   = 1 << 1,
-    SECTIONTYPE_EMOTICON    = 1 << 2,
+    SECTIONTYPE_PLAINTEXT   = 1 << 1,
+    SECTIONTYPE_EVENTTEXT   = 1 << 2,
+    SECTIONTYPE_EMOTICON    = 1 << 3,
 };
 
 typedef union{

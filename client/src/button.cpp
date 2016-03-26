@@ -3,7 +3,7 @@
  *
  *       Filename: button.cpp
  *        Created: 08/21/2015 04:12:57
- *  Last Modified: 03/20/2016 21:28:51
+ *  Last Modified: 03/25/2016 23:51:15
  *
  *    Description: 
  *
@@ -26,9 +26,9 @@
 #include "sdldevice.hpp"
 #include "log.hpp"
 
-Button::Button(uint8_t nFileIndex,  uint16_t nImageIndex,
-        int nX, int nY, const std::function<void()> &fnOnClick)
-    : Widget()
+Button::Button(int nX, int nY, Widget *pWidget, bool bFreeWidget,
+        uint8_t nFileIndex, uint16_t nImageIndex, const std::function<void()> &fnOnClick)
+    : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
     , m_BaseID((((uint32_t)nFileIndex) << 16) + nImageIndex)
     , m_State(0)
     , m_OnClick(fnOnClick)

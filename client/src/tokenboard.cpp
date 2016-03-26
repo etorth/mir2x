@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/25/2016 23:34:43
+ *  Last Modified: 03/26/2016 04:07:18
  *
  *    Description: 
  *
@@ -36,9 +36,35 @@
 #include <string>
 #include <cassert>
 
-bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
-        const std::unordered_map<std::string, std::function<void()>> &rstIDhandlerMap)
+bool TokenBoard::ParseXML(const char *szXML, 
+        const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
 {
+    tinyxml2::XMLDocument stDoc;
+    return !stDoc.Parse(szXML) && Load(stDoc, rstIDHandleMap);
+}
+
+bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
+        const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
+{
+    // 1. clear all informaiton
+    //
+    m_LineV.clear();
+    m_IDFuncV.clear();
+    m_SectionV.clear();
+    m_LineStartY.clear();
+    m_TokenBoxBitmap.clear();
+
+    // 2. set variables
+    m_MaxH1            = 0;
+    m_MaxH2            = 0;
+    m_W                = 0;
+    m_H                = 0;
+    m_SelectState      = 0;
+    m_CurrentWidth     = 0;
+    m_CurrentLineMaxH2 = 0;
+    m_SkipEvent        = false;
+    m_LastTokenBox     = nullptr;
+
     const tinyxml2::XMLElement *pRoot = rstDoc.RootElement();
     if (pRoot == nullptr){ return false; }
 
@@ -64,9 +90,9 @@ bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
                 AddNewTokenBoxLine(true);
             }
         }else if(ObjectEmocticon(*pCurrentObject)){
-            ParseEmoticonObject(*pCurrentObject, nSection++, rstIDhandlerMap);
+            ParseEmoticonObject(*pCurrentObject, nSection++, rstIDHandleMap);
         }else if(ObjectEventText(*pCurrentObject)){
-            ParseEventTextObject(*pCurrentObject, nSection++, rstIDhandlerMap);
+            ParseEventTextObject(*pCurrentObject, nSection++, rstIDHandleMap);
         }else{
             // failed to parse something
         }
@@ -332,7 +358,7 @@ SDL_Color TokenBoard::GetEventTextCharColor(const tinyxml2::XMLElement &rstCurre
 }
 
 bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement &rstCurrentObject,
-        int/*nSection*/, const std::unordered_map<std::string, std::function<void()>> &/*rstIDhandlerMap*/)
+        int/*nSection*/, const std::unordered_map<std::string, std::function<void()>> &/*rstIDHandleMap*/)
 {
     // currently I didn't support event response for emoticon box
     // since my idea is not ready for it
@@ -375,7 +401,7 @@ bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement &rstCurrentObjec
 }
 
 bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement &rstCurrentObject,
-        int nSection, const std::unordered_map<std::string, std::function<void()>> &rstIDhandlerMap)
+        int nSection, const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
 {
     SECTION stSection;
     std::memset(&stSection, 0, sizeof(stSection));
@@ -391,8 +417,8 @@ bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement &rstCurrentObje
 
     if(szID){
         // add a handler here
-        auto pFuncInst = rstIDhandlerMap.find(std::string(szID));
-        if(pFuncInst != rstIDhandlerMap.end()){
+        auto pFuncInst = rstIDHandleMap.find(std::string(szID));
+        if(pFuncInst != rstIDHandleMap.end()){
             fnCallback = pFuncInst->second;
         }
     }
@@ -646,7 +672,7 @@ int TokenBoard::SpacePadding(int paddingWidth)
     return m_CurrentWidth;
 }
 
-bool TokenBoard::Add(TOKENBOX &stTokenBox)
+bool TokenBoard::AddTokenBox(TOKENBOX &stTokenBox)
 {
     // Emoticon itself has a box
     // and need to align to the baseline of words
@@ -942,7 +968,7 @@ void TokenBoard::AddNewTokenBoxLine(bool bEndByReturn)
 
 bool TokenBoard::AddNewTokenBox(TOKENBOX &rstTokenBox)
 {
-    if(Add(rstTokenBox)){
+    if(AddTokenBox(rstTokenBox)){
         return true;
     }else{
         // try to add but failed
@@ -1462,6 +1488,177 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
         if(nX == m_LineV[nY].size()){
             nX = 0;
             nY++;
+        }
+    }
+}
+
+// Insert a tokenbox at any position (nX, nY) inside the text block, this
+// function won't introduce any ``return"
+//
+// Assume:
+//      1. the tokenboard is well-prepared
+//      2. we won't allow empty line since don't know how to set height
+//
+// HowTo:
+//      1. if outside the text block, insert at the beginning or append
+//         at the very end
+//      2. if current line can hold the new box, just insert it
+//      3. if can't
+//          1. if current line ends with return, create a new line ends
+//             with return and contain all needed tokens, insert this 
+//             line next to current line. make current line and the new
+//             line both end with return
+//          2. if not, move token at the end of current line and insert
+//             it at the beginning of next line, until current line has
+//             enough space to hold the new token
+//  return:
+//      1. true most likely
+//      2. false when current token is tooooooo wide that a whole line
+//         even can't hold it
+bool TokenBoard::AddTokenBox(TOKENBOX &rstTokenBox, int nX, int nY)
+{
+    if(m_PW > 0 && m_PW < rstTokenBox.Cache.W){
+        // TODO
+        // just fail and leave, won't do anything
+        return false;
+    }
+
+    if(m_LineV.size() == 0){
+        AddNewLine({rstTokenBox}, 0);
+        m_EndWithReturn.insert(m_EndWithReturn.begin(), m_PW > 0);
+        ResetLine(0);
+        return true;
+    }
+
+    if(nY < 0){
+        nX = 0;
+        nY = 0;
+    }else if(nY >= m_LineV.size()){
+        nX = m_LineV.back().size();
+        nY = m_LineV.size() - 1;
+    }
+
+    nX = std::max(std::min(nX, m_LineV[nY].size()), 0);
+    if(m_PW <= 0){
+        // we don't have to wrap, easy case
+        m_LineV[nY].insert(m_LineV[nY].begin() + nX, rstTokenBox);
+        ResetLine(nY);
+        return true;
+    }
+
+    // we need to wrap the text
+    m_LineV[nY].insert(m_LineV[nY].begin() + nX, rstTokenBox);
+    int nRawLen = LineRawWidth(nY);
+
+    if(nRawLen + (m_LineV[nY].size() - 1) * m_MinMarginBtwBox <= m_PW){
+        // we are good
+        // current line have enough space for the new box
+        ResetLine(nY);
+        return true;
+    }
+
+    // bad luck, we need to move some tokens to next line
+    if(m_EndWithReturn[nY]){
+        // current line ends with return
+        // 1. change current line to be ``not ends with return"
+        m_EndWithReturn[nY] = false;
+        // 2. add a new line, make it end with return
+        AddNewLine({m_LineV[nY].back()}, nY + 1);
+        m_EndWithReturn.insert(m_EndWithReturn.begin() + nY + 1, true);
+        // 3. remove last token from current line
+        m_LineV[nY].pop_back();
+
+        // 4. now we have a ``next line" to put all the rest
+        //    we need at most two ``next line"s, think about
+        //
+        //     +----------+        +----------+
+        //     | xxxxxxxx |  --->  | xxxxxx   | 
+        //     |          |        | +------+ |
+        //                         | |      | |
+        //                         | +------+ |
+        //                         | xx       |
+        //
+        //
+        //    here the inserted token is too large, so we 
+        //    need to extra line for it.
+        //
+        //    but this will handled recursively
+    }
+
+    while(m_LineV[nY].size() > 0){
+        nRawLen = LineRawWidth(nY);
+        if(nRawLen + (m_LineV[nY].size() - 1) * m_MinMarginBtwBox <= m_PW){
+            // we are good
+            ResetLine(nY);
+            return true;
+        }else{
+            AddTokenBox(nY + 1, 0, m_LineV[nY].back());
+            m_LineV[nY].pop_back();
+        }
+    }
+
+    // this won't be executed
+    return false;
+}
+
+// Insert a return at any position *inside* a text block
+//
+// Assumption:
+//      1. The current tokenboard is well-prepared
+//      2. We won't allow empty line since don't know how to set height
+//
+// HowTo:
+//      1. if outside the text block, do nothing
+//      2. if insert return at the beginning of a line, make the last line
+//         to be end with return
+//      3. if try to insert return at the end of the line
+//           1. if current line ends with return, do nothing
+//           2. else make current line ends with return
+//      4. try to insert return inside a line, if current line ends with
+//         return then just add a new line next to current line, and make
+//         which ends with return, else
+//           1. make current line ends here with return
+//           2. insert the rest tokens in front of next line
+void TokenBoard::AddReturn(int nX, int nY)
+{
+    if(m_LineV.size() == 0 || nY < 0 || nY >= m_LineV.size()){
+        // outside the text block, do nothing
+        return;
+    }
+
+    if(nX <= 0){
+        // try to insert return at the very beginning
+        if(nY > 0){
+            // make last line ends with return
+            m_EndWithReturn[nY - 1] = true;
+            ResetLine(nY - 1);
+        }
+    }else if(nX >= m_LineV[nY].size()){
+        // try to insert return at the end of the line
+        if(!m_EndWithReturn[nY]){
+            m_EndWithReturn[nY] = true;
+            ResetLine(nY);
+        }
+    }else{
+        // try to insert return in the middle
+        if(m_EndWithReturn[nY]){
+            // current line ends with return
+            std::vector<TOKENBOX> stNewLine(m_LineV[nY].begin() + nX, m_LineV[nY].end());
+            AddNewLine(nY + 1, stNewLine);
+            m_EndWithReturn.insert(m_EndWithReturn.begin() + nY, true);
+            ResetLine(nY + 1);
+            m_LineV[nY].resize(nX);
+            m_EndWithReturn[nY] = true;
+            ResetLine(nY);
+        }else{
+            // it's a long line, process one by one
+            int nCount = m_LineV[nY].size() - nX;
+            for(int nIndex = 0; nIndex < nCount; ++nIndex){
+                AddTokenBox(nY + 1, 0, m_LineV[nY].back());
+                m_LineV[nY].pop_back();
+            }
+            m_EndWithReturn[nY] = true;
+            ResetLine(nY);
         }
     }
 }

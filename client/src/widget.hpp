@@ -3,7 +3,7 @@
  *
  *       Filename: widget.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/22/2016 22:43:48
+ *  Last Modified: 03/25/2016 23:56:06
  *
  *    Description: public API for class game only
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 #pragma once
+#include <vector>
 #include <cstdint>
 #include <SDL2/SDL.h>
 
@@ -52,7 +53,7 @@ class Widget
             , m_H(nH)
         {
             if(m_Parent){
-                m_Parent->ClildV.emplace_back({this, bFreeWidget});
+                m_Parent->m_ChildV.emplace_back(this, bFreeWidget);
             }
         }
         
@@ -112,10 +113,11 @@ class Widget
         // handle it?
         //
         //
-        virtual bool ProcessEvent(const SDL_Event &, bool *bValid)
+        virtual bool ProcessEvent(const SDL_Event &, bool *)
         {
             // don't use default nullptr for bValid
             // since it's virtual
+            return false;
         }
 
     public:

@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/23/2016 00:23:28
+ *  Last Modified: 03/26/2016 01:12:13
  *
  *    Description: Design TBD.
  *
@@ -167,10 +167,12 @@ class TokenBoard: public Widget
         // nMinTextMargin
         // nMinTextLineSpace
         //
-        TokenBoard(bool bSelectable, bool bWithCursor, 
-                int nMaxWidth = -1, int nMinTextMargin = 0, int nMinTextLineSpace = 0)
-            : Widget()
+        TokenBoard(int nX, int nY, bool bSelectable, bool bWithCursor, 
+                int nMaxWidth = -1, int nMinTextMargin = 0, int nMinTextLineSpace = 0,
+                Widget *pWidget = nullptr, bool bFreeWidget = false)
+            : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
             , m_WithCursor(bWithCursor)
+            , m_Selectable(bSelectable)
             , m_PW(nMaxWidth)
             , m_CurrentWidth(0)
             , m_SkipEvent(false)
@@ -178,6 +180,9 @@ class TokenBoard: public Widget
             , m_MinTextMargin(nMinTextMargin)
             , m_MinTextLineSpace(nMinTextLineSpace)
         {
+            if(m_PW > 0){
+                m_W = m_PW;
+            }
         }
         virtual ~TokenBoard() = default;
 
@@ -190,7 +195,7 @@ class TokenBoard: public Widget
     public:
         bool    Add(TOKENBOX &);
         void    Clear();
-        void    Update(Uint32);
+        void    Update(double);
         bool    Empty();
         int     MaxHeight();
 
@@ -212,6 +217,7 @@ class TokenBoard: public Widget
 
     private:
         bool    m_WithCursor;
+        bool    m_Selectable;
         int     m_MaxH1;
         int     m_MaxH2;
         int     m_CurrentLineMaxH2;
@@ -271,9 +277,6 @@ class TokenBoard: public Widget
         int         GetEmoticonSet  (const tinyxml2::XMLElement &);
         int         GetEmoticonIndex(const tinyxml2::XMLElement &);
 
-    private:
-        int     m_LineWidth;
-
     public:
         bool ObjectEmocticon(const tinyxml2::XMLElement &);
         bool ObjectReturn(const tinyxml2::XMLElement &);
@@ -318,8 +321,6 @@ class TokenBoard: public Widget
         void RedrawSection(int);
 
     private:
-        bool m_SetDrawToTextureCache;
-    private:
         std::vector<std::vector<TOKENBOX>> m_LineV;
         std::vector<TOKENBOX>              m_CurrentLine;
         std::vector<SECTION>               m_SectionV;
@@ -349,6 +350,12 @@ class TokenBoard: public Widget
     public:
         const std::string &ContentExport();
         int GuessResoltion();
+
+        void TokenBoxGetMouseButtonUp(const TOKENBOX &, bool);
+
+    private:
+        int m_MinMarginBtwBox;
+        int m_MinMarginBtwLine;
 
 
     private:
