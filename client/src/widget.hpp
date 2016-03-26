@@ -3,7 +3,7 @@
  *
  *       Filename: widget.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/25/2016 23:56:06
+ *  Last Modified: 03/26/2016 11:54:47
  *
  *    Description: public API for class game only
  *
@@ -161,6 +161,16 @@ class Widget
                 && nX <  X() + W()
                 && nY >= Y()
                 && nY <  Y() + H();
+        }
+
+        void Focus(bool bFocus)
+        {
+            m_Focus = bFocus;
+        }
+
+        bool Focus()
+        {
+            return m_Focus;
         }
 
     protected:

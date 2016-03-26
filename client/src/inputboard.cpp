@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 7:04:16 PM
- *  Last Modified: 03/20/2016 23:52:15
+ *  Last Modified: 03/26/2016 12:50:29
  *
  *    Description: 
  *
@@ -66,7 +66,7 @@ void InputBoard::Update(Uint32 nMs)
     m_Ticks += nMs;
 }
 
-bool InputBoard::ProcessEvent(const SDL_Event &rstEvent)
+bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
 {
     switch(rstEvent.type){
         case SDL_MOUSEMOTION:
@@ -84,13 +84,17 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent)
                     }
                     m_DrawOwnSystemCursor = false;
                 }
+
+                bool bInnValid = true;
+                m_TokenBoard.ProcessEvent(rstEvent, &bInnValid);
                 break;
             }
         case SDL_MOUSEBUTTONDOWN:
             {
                 if(In(rstEvent.button.x, rstEvent.button.y)){
-                    m_Focus = true;
-                    BindCursorTokenBox(rstEvent.button.x, rstEvent.button.y);
+                    bool bInnValid = true;
+                    m_TokenBoard.ProcessEvent(rstEvent, &bInnValid);
+
                     ResetShowStartX();
                     return true;
                 }else{
@@ -203,15 +207,72 @@ void InputBoard::BindCursorTokenBox(int nEventX, int nEventY)
     m_BindTokenBoxIndex = m_Line.size() - 1;
 }
 
-
-void InputBoard::ResetShowStartX()
+void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
 {
+    // +------------------------------+
+    // |                              |
+    // |                       +-+    |
+    // |                       | |    |
+    // |                       | |    |
+    // |                       | |    |
+    // |                       | |    |
+    // |                       | |    |
+    // |                       +-+    |
+    // |                              |
+    // +------------------------------+
+    //                          ^
+    //                          |
+    //
+    // cursor with non-zero width, but tokenboard itself have no
+    // concept of ``width of cursor", to tokenboard cursor is a
+    // location for (x, y)
+    //
+    int nTBX, nTBY, nTBW, nTBH, nX, nY, nW, nH;
+    m_TokenBoard->GetCursor(&nX, &nY);
+
+    if(m_TokenBoard->GetTokenBoxInfo(nX - 1, nY,
+                nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
+        nX = nTBX + nTBW;
+        nY = nTBY;
+        nH = nTBH + 2 * m_TokenBoard->GetLineSpace();
+    }else if(m_TokenBoard->GetTokenBoxInfo(nX, nY,
+                nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
+        nX = nTBX + nTBW;
+        nY = nTBY;
+        nH = nTBH + 2 * m_TokenBoard->GetLineSpace();
+    }else{
+        // should be the empty tokenboard, waiting for the first input
+        // use the default setting
+        extern FontexDBN *g_FontexDBN;
+        auto pTexture = g_FontexDBN->Retrieve(
+                m_DefaultFontIndex, m_DefaultFontSize, m_DefaultFontStyle, (int)'M');
+
+        int nDefaultH;
+        SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nDefaultH);
+        nX = 0;
+        nY = 0;
+        nH = nDefaultH;
+    }
+
+    if(*pX){ *pX = nX; }
+    if(*pY){ *pY = nY; }
+    if(*pW){ *pW = nW; }
+    if(*pH){ *pH = nH; }
 }
 
-void InputBoard::ResetShowStartX()
+// we always move the cursor point into the visiable region
+// and only do this
+void InputBoard::ResetTokenBoardLoction()
 {
-    if(m_BindTokenBoxIndex < 0){
+    int nX, nY, nW, nH;
+    GetCursorInfo(&nX, &nY, &nW, &nH);
+
+
+
+
+    if(m_TokenBoard.Empty()){
         m_ShowStartX = 0;
+        m_ShowStartY = 0;
         return;
     }
 

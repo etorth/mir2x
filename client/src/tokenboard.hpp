@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/26/2016 01:12:13
+ *  Last Modified: 03/26/2016 12:38:36
  *
  *    Description: Design TBD.
  *
@@ -353,13 +353,29 @@ class TokenBoard: public Widget
 
         void TokenBoxGetMouseButtonUp(const TOKENBOX &, bool);
 
+    public:
+        void GetCursor(int *pX, int *pY)
+        {
+            if(pX){ *pX = m_CursorLoc.first;  }
+            if(pY){ *pY = m_CursorLoc.second; }
+        }
+
+        int GetWordSpace()
+        {
+            return m_MinMarginBtwBox;
+        }
+
+        int GetLineSpace()
+        {
+            return m_MinMarginBtwLine;
+        }
+
     private:
         int m_MinMarginBtwBox;
         int m_MinMarginBtwLine;
 
-
     private:
         int     m_SelectState;  // 0: no selection
-                                // 1: selecting
-                                // 2: selection done with result available
+        // 1: selecting
+        // 2: selection done with result available
 };

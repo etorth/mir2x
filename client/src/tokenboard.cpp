@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/26/2016 04:07:18
+ *  Last Modified: 03/26/2016 12:31:07
  *
  *    Description: 
  *
@@ -1661,4 +1661,22 @@ void TokenBoard::AddReturn(int nX, int nY)
             ResetLine(nY);
         }
     }
+}
+
+// get the location and shape info of tokenbox
+bool TokenBoard::GetTokenBoxInfo(int nX, int nY,
+        int *pType, int *pX, int *pY, int *pW, int *pH, int *pW1, int *pW2)
+{
+    if(nY < 0 || nY >= m_LineV.size()){ return false; }
+    if(nX < 0 || nX >= m_LineV[nY].size()){ return false; }
+
+    if(pType){ *pType = m_SectionV[m_LineV[nY][nX].Section].Type; }
+    if(pX   ){ *pX    = m_LineV[nY][nX].Cache.StartX;             }
+    if(pY   ){ *pY    = m_LineV[nY][nX].Cache.StartY;             }
+    if(pW   ){ *pW    = m_LineV[nY][nX].Cache.W;                  }
+    if(pH   ){ *pH    = m_LineV[nY][nX].Cache.H;                  }
+    if(pW1  ){ *pW1   = m_LineV[nY][nX].State.W1;                 }
+    if(pW2  ){ *pW2   = m_LineV[nY][nX].State.W2;                 }
+
+    return true;
 }
