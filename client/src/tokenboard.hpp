@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/26/2016 20:32:59
+ *  Last Modified: 03/27/2016 11:33:09
  *
  *    Description: Design TBD.
  *
@@ -409,6 +409,12 @@ class TokenBoard: public Widget
         }
 
         void Delete(bool);
+
+
+        bool AddTokenBoxV(const std::vector<TOKENBOX> &rstTBV)
+        {
+            return AddTokenBoxV(m_CursorLoc.first, m_CursorLoc.second, rstTBV);
+        }
 
     private:
         int m_MinMarginBtwBox;

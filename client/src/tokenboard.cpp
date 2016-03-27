@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/27/2016 02:00:19
+ *  Last Modified: 03/27/2016 12:35:16
  *
  *    Description: 
  *
@@ -46,8 +46,7 @@ const tinyxml2::XMLElement *TokenBoard::XMLFirstObject(const tinyxml2::XMLElemen
     }else if((pCurrentObject = pRoot->FirstChildElement("object"))){
     }else if((pCurrentObject = pRoot->FirstChildElement("Object"))){
     }else if((pCurrentObject = pRoot->FirstChildElement("OBJECT"))){
-    }else{
-    }
+    }else{}
 
     return pCurrentObject;
 }
@@ -60,8 +59,7 @@ const tinyxml2::XMLElement *TokenBoard::XMLNextObject(const tinyxml2::XMLElement
     }else if((pRet = pCurrentObject->NextSiblingElement("OBJECT"))){
     }else if((pRet = pCurrentObject->NextSiblingElement("Object"))){
     }else if((pRet = pCurrentObject->NextSiblingElement("object"))){
-    }else{
-    }
+    }else{}
     return pRet;
 }
 
@@ -152,8 +150,33 @@ bool TokenBoard::LoadXML(const char *szXML,
 bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
         const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
 {
+    // invalid XML, so we return false
+    const tinyxml2::XMLElement *pRoot = rstDoc.RootElement();
+    if(pRoot == nullptr){ return false; }
+
+    // 1. clear all
     Clear();
 
+    // 2. add a empty line at the first line
+    m_LineV.emplace_back();
+    m_EndWithReturn.push_back(false);
+
+    // 3. set the cursor
+    m_CursorLoc = {0, 0};
+
+    // 4. call internal insert function to load
+    return InnInsert(rstDoc, rstIDHandleMap);
+}
+
+// inn function for LoadXXX and InsertXXX
+// assumption
+//      1. current tokenboard is valid
+//      2. cursor is well-prepared
+//      3. buffer is prepared, i.e. where start from empty board, there is alreay
+//         a empty vector at the end.
+bool TokenBoard::InnInsert(const tinyxml2::XMLDocument &rstDoc,
+        const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
+{
     // invalid XML, so we return false
     const tinyxml2::XMLElement *pRoot = rstDoc.RootElement();
     if(pRoot == nullptr){ return false; }
@@ -161,212 +184,74 @@ bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
     // empty object XML, we need to return true
     const tinyxml2::XMLElement *pCurrentObject = XMLFirstObject(*pRoot);
 
-
-
     // put a buffer after to accept coming tokens
-    m_LineV.emplace_back();
+    bool bRes = false;
     while(pCurrentObject){
-        switch(XMLObjectType(*pCurrentObject)){
+        int nObjectType = XMLObjectType(*pCurrentObject);
+        switch(nObjectType){
             case OBJECTTYPE_RETURN:
                 {
-                    LoadReturnObject();
+                    bRes = ParseReturnObject();
                     break;
                 }
             case OBJECTTYPE_EMOTICON:
                 {
-                    ParseEmoticonObject(*pCurrentObject, nSection++, rstIDHandleMap);
+                    bRes = ParseEmoticonObject(*pCurrentObject);
+                    break;
+                }
+                {
+                    bRes = ParseEventTextObject(*pCurrentObject, rstIDHandleMap);
                     break;
                 }
             case OBJECTTYPE_EVENTTEXT:
-                {
-                    ParseEventTextObject(*pCurrentObject, nSection++, rstIDHandleMap);
-                    break;
-                }
             case OBJECTTYPE_PLAINTEXT:
                 {
-                    ParseEventTextObject(*pCurrentObject, nSection++, rstIDHandleMap);
+                    bRes = ParseTextObject(*pCurrentObject, nObjectType, rstIDHandleMap);
                     break;
                 }
             default:
                 {
                     extern Log *g_Log;
                     g_Log->AddLog(LOGTYPE_INFO, "detected known object type, ignored it");
+
+                    bRes = true;
+                    break;
                 }
-
         }
+
+        if(!bRes){ break; }
     }
 
-    int nSection = 0;
-
-    ResetCurrentLine();
-
-    while(pCurrentObject){
-        if(ObjectReturn(*pCurrentObject)){
-            // so for description like 
-            // <object type = "return"></object><object type = "return"></object>
-            // we can only get one new line
-            if(!m_CurrentLine.empty()){
-                AddNewTokenBoxLine(true);
-            }
-        }else if(ObjectEmocticon(*pCurrentObject)){
-            ParseEmoticonObject(*pCurrentObject, nSection++, rstIDHandleMap);
-        }else if(ObjectEventText(*pCurrentObject)){
-            ParseEventTextObject(*pCurrentObject, nSection++, rstIDHandleMap);
-        }else{
-            // failed to parse something
-        }
-        pCurrentObject = NextObject(pCurrentObject);
-    }
-
-    if(!m_CurrentLine.empty()){
-        AddNewTokenBoxLine(true);
-    }
-
-    if(!m_SkipEvent){
-        MakeEventTextBitmap();
-    }
-
-    return true;
+    // TODO: do I need to check last line?
+    return bRes;
 }
 
-bool TokenBoard::InsertXML(const std::string &szXML)
-{
-    // 1. parse the XML
-    tinyxml2::XMLDocument stDoc;
-    stDoc.Parse(szXML.c_str());
-    const tinyxml2::XMLElement *pRoot = rstDoc.RootElement();
-    if (pRoot == nullptr){ return false; }
-
-    // 2. find the first object
-    const tinyxml2::XMLElement *pCurrentObject = nullptr;
-    if(false){
-    }else if((pCurrentObject = pRoot->FirstChildElement("object"))){
-    }else if((pCurrentObject = pRoot->FirstChildElement("Object"))){
-    }else if((pCurrentObject = pRoot->FirstChildElement("OBJECT"))){
-    }else{
-        return false;
-    }
-
-    ResetCurrentLine();
-
-    while(pCurrentObject){
-        if(ObjectReturn(*pCurrentObject)){
-            // so for description like 
-            // <object type = "return"></object><object type = "return"></object>
-            // we can only get one new line
-            if(!m_CurrentLine.empty()){
-                AddNewTokenBoxLine(true);
-            }
-        }else if(ObjectEmocticon(*pCurrentObject)){
-            ParseEmoticonObject(*pCurrentObject, nSection++, rstIDHandleMap);
-        }else if(ObjectEventText(*pCurrentObject)){
-            ParseEventTextObject(*pCurrentObject, nSection++, rstIDHandleMap);
-        }else{
-            // failed to parse something
-        }
-        pCurrentObject = NextObject(pCurrentObject);
-    }
-
-    if(!m_CurrentLine.empty()){
-        AddNewTokenBoxLine(true);
-    }
-
-    if(!m_SkipEvent){
-        MakeEventTextBitmap();
-    }
-
-    return true;
-}
-
-
-
-int TokenBoard::GetEmoticonSet(const tinyxml2::XMLElement &rstCurrentObject)
+// get the intergal attribute
+// 1. if no error occurs, pOut will be the convert result, return true
+// 2. any error, return false and pOut is the default value
+bool TokenBoard::GetAttributeAtoi(int *pOut, int nDefaultOut,
+        const tinyxml2::XMLElement &rstObject, const std::vector<std::string> &szQueryStringV)
 {
     const char *pText = nullptr;
-
-    if(false){
-    }else if((pText = rstCurrentObject.Attribute("SET"))){
-    }else if((pText = rstCurrentObject.Attribute("Set"))){
-    }else if((pText = rstCurrentObject.Attribute("set"))){
-    }else{
-        pText = "0";
-    }
-    // here means when set can not be found or conversion fails
-    // return 0
-    return std::atoi(pText);
-}
-
-int TokenBoard::GetEmoticonIndex(const tinyxml2::XMLElement &rstCurrentObject)
-{
-    const char *pText = nullptr;
-
-    if(false){
-    }else if((pText = rstCurrentObject.Attribute("INDEX"))){
-    }else if((pText = rstCurrentObject.Attribute("Index"))){
-    }else if((pText = rstCurrentObject.Attribute("index"))){
-    }else{
-        pText = "0";
-    }
-    return std::atoi(pText);
-}
-
-const tinyxml2::XMLElement *TokenBoard::NextObject(const tinyxml2::XMLElement *pCurrentObject)
-{
-    const tinyxml2::XMLElement *pRet = nullptr;
-    if(false){
-    }else if((pRet = pCurrentObject->NextSiblingElement("OBJECT"))){
-    }else if((pRet = pCurrentObject->NextSiblingElement("Object"))){
-    }else if((pRet = pCurrentObject->NextSiblingElement("object"))){
-    }else{
-        pRet = nullptr;
-    }
-    return pRet;
-}
-
-int TokenBoard::GetFontSize(const tinyxml2::XMLElement &rstCurrentObject)
-{
-    const char *pText            = nullptr;
-    const int   nDefaultFontSize = 18;
-
-    if(false){
-    }else if((pText = rstCurrentObject.Attribute("SIZE"))){
-    }else if((pText = rstCurrentObject.Attribute("Size"))){
-    }else if((pText = rstCurrentObject.Attribute("size"))){
-    }else{
-        return nDefaultFontSize;
-    }
-    int nFontSize = std::atoi(pText);
-    return nFontSize == 0 ? nDefaultFontSize : nFontSize;
-}
-
-int TokenBoard::GetFontIndex(const tinyxml2::XMLElement &rstCurrentObject)
-{
-    const char *pText;
-
-    if(false){
-    }else if((pText = rstCurrentObject.Attribute("FONT"))){
-    }else if((pText = rstCurrentObject.Attribute("Font"))){
-    }else if((pText = rstCurrentObject.Attribute("font"))){
-    }else{
-        // default to set FontIndex to be zero
-        pText = "0";
-    }
-    return std::atoi(pText);
-}
-
-int TokenBoard::GetFontStyle(const tinyxml2::XMLElement &rstCurrentObject)
-{
-    const char *pText;
-
-    if(false){
-    }else if((pText = rstCurrentObject.Attribute("STYLE"))){
-    }else if((pText = rstCurrentObject.Attribute("Style"))){
-    }else if((pText = rstCurrentObject.Attribute("style"))){
-    }else{
-        pText = "0";
+    for(auto &szKey: szQueryStringV){
+        if((pText) = rstObject.Attribute(szKey.c_str())){
+            break;
+        }
     }
 
-    return std::atoi(pText);
+    bool bRes = false;
+    int  nOut = nDefaultOut;;
+    if(pText){
+        try{
+            nOut = std::stoi(std::string(pText));
+            bRes = true;
+        }catch(...){
+            nOut = nDefaultOut;;
+        }
+    }
+
+    if(bRes && pOut){ *pOut = nOut; }
+    return bRes;
 }
 
 SDL_Color TokenBoard::GetEventTextCharColor(const tinyxml2::XMLElement &rstCurrentObject, int nEvent)
@@ -476,14 +361,9 @@ SDL_Color TokenBoard::GetEventTextCharColor(const tinyxml2::XMLElement &rstCurre
     return color;
 }
 
-bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement &rstCurrentObject,
-        int/*nSection*/, const std::unordered_map<std::string, std::function<void()>> &/*rstIDHandleMap*/)
+bool TokenBoard::ParseEmoticonObject(
+        const tinyxml2::XMLElement &rstCurrentObject)
 {
-    // currently I didn't support event response for emoticon box
-    // since my idea is not ready for it
-    // so just put a null handler here
-    m_IDFuncV.push_back(std::function<void()>());
-
     SECTION  stSection;
     TOKENBOX stTokenBox;
     std::memset(&stSection , 0, sizeof(stSection) );
@@ -492,8 +372,12 @@ bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement &rstCurrentObjec
     stSection.Info.Type                 = SECTIONTYPE_EMOTICON;
     stSection.State.Emoticon.FrameIndex = 0;
     stSection.State.Emoticon.MS         = 0.0;
-    stSection.Info.Emoticon.Set         = GetEmoticonSet(rstCurrentObject);
-    stSection.Info.Emoticon.Index       = GetEmoticonIndex(rstCurrentObject);
+
+    // won't exam the return value
+    GetAttributeAtoi(&(stSection.Info.Emoticon.Set),
+            0, rstCurrentObject, {"SET", "Set", "set"});
+    GetAttributeAtoi(&(stSection.Info.Emoticon.Index),
+            0, rstCurrentObject, {"INDEX", "Index", "index"});
 
     extern EmoticonDBN *g_EmoticonDBN;
     auto pTexture = g_EmoticonDBN->Retrieve(
@@ -515,8 +399,113 @@ bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement &rstCurrentObjec
         stSection.State.Emoticon.Valid = 1;
     }
 
-    m_SectionV.push_back(stSection);
-    return AddNewTokenBox(stTokenBox);
+    int nSectionID = CreateSection(stSection, std::function<void()>());
+    if(nSectionID >= 0){
+        stTokenBox.Section = nSectionID;
+        return AddTokenBoxV({stTokenBox});
+    }
+    return false;
+}
+
+bool TokenBoard::ParseTextObject(
+        const tinyxml2::XMLElement &rstCurrentObject, int nObjectType,
+        const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
+{
+    if(nObjectType != OBJECTTYPE_PLAINTEXT || nObjectType != OBJECTTYPE_EVENTTEXT){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_INFO, "try to parse unknown object type: %d", nObjectType);
+        return false;
+    }
+
+    SECTION stSection;
+    std::memset(&stSection, 0, sizeof(stSection));
+
+    // parse event text section desc
+    stSection.Info.Type = SECTIONTYPE_EVENTTEXT;
+
+    GetAttributeAtoi(&(stSection.Info.Text.Font),
+            0, rstCurrentObject, {"FONT", "Font", "font"});
+    // TODO: need to support it
+    // GetAttributeAtoi(&(stSection.Info.Text.Style),
+    //         0, rstCurrentObject, {"STYLE", "Style", "style"});
+    GetAttributeAtoi(&(stSection.Info.Text.Size),
+            0, rstCurrentObject, {"SIZE", "Size", "size"});
+
+    std::function<void()> fnCallback;
+    const char *szID = rstCurrentObject.Attribute("ID");
+
+    if(szID){
+        // add a handler here
+        auto pFuncInst = rstIDHandleMap.find(std::string(szID));
+        if(pFuncInst != rstIDHandleMap.end()){
+            fnCallback = pFuncInst->second;
+        }
+    }
+
+    stSection.Info.Text.Color[0] = GetEventTextCharColor(rstCurrentObject, (szID) ? 0 : (-1));
+    stSection.Info.Text.Color[1] = GetEventTextCharColor(rstCurrentObject, (szID) ? 1 : (-1));
+    stSection.Info.Text.Color[2] = GetEventTextCharColor(rstCurrentObject, (szID) ? 2 : (-1));
+
+    stSection.State.Text.Event = 0;
+
+    int nSectionID = CreateSection(stSection, fnCallback);
+    if(nSectionID < 0){ return false; }
+
+    // then we parse event text content
+    const char *pStart = rstCurrentObject.GetText();
+    const char *pEnd   = pStart;
+
+    // when get inside this funciton
+    // the section structure has been well-prepared
+    //
+    int nDefaultSize = (int)m_SectionV[nSectionID].Info.Text.Size;
+
+    uint32_t nFontAttrKey = 0
+        + (((uint32_t)m_SectionV[nSectionID].Info.Text.Font)  << 16)
+        + (((uint32_t)m_SectionV[nSectionID].Info.Text.Size)  <<  8)
+        + (((uint32_t)m_SectionV[nSectionID].Info.Text.Style) <<  0);
+
+
+    std::vector<TOKENBOX> stTBV;
+    while(*pEnd != '\0'){
+        pStart = pEnd;
+        utf8::unchecked::advance(pEnd, 1);
+
+        // should be true
+        assert(pEnd - pStart <= 4);
+
+        uint32_t nUTF8Key = 0;
+        std::memcpy(&nUTF8Key, pStart, pEnd - pStart);
+
+        // fully set the token box unit
+        TOKENBOX stTokenBox;
+        std::memset(&stTokenBox, 0, sizeof(stTokenBox));
+
+        uint64_t nKey = (((uint64_t)nFontAttrKey << 32) + nUTF8Key);
+
+        stTokenBox.Section = nSection;
+        stTokenBox.UTF8CharBox.UTF8Code  = nUTF8Key;
+        stTokenBox.UTF8CharBox.Cache.Key = nKey;
+
+        extern FontexDBN *g_FontexDBN;
+        auto pTexture = g_FontexDBN->Retrieve(nKey);
+        if(pTexture){
+            SDL_QueryTexture(pTexture, nullptr, nullptr, &stTokenBox.Cache.W, &stTokenBox.Cache.H);
+            stTokenBox.Cache.H1    = stTokenBox.Cache.H;
+            stTokenBox.Cache.H2    = 0;
+            stTokenBox.State.Valid = 1;
+        }else{
+            // failed to retrieve, set a []
+            stTokenBox.Cache.W  = nDefaultSize;
+            stTokenBox.Cache.H  = nDefaultSize;
+            stTokenBox.Cache.H1 = nDefaultSize;
+            stTokenBox.Cache.H2 = 0;
+        }
+
+        stTBV.push_back(stTokenBox);
+    }
+
+    return AddTokenBoxV(stTBV);
 }
 
 bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement &rstCurrentObject,
@@ -1857,6 +1846,7 @@ bool TokenBoard::AddTokenBox(TOKENBOX &rstTokenBox, int nX, int nY)
 // Assume:
 //      1. the tokenboard is well-prepared
 //      2. we won't allow empty line since don't know how to set height
+//      3. the section info has already been set
 //
 // HowTo:
 //      1. if outside the text block, insert at the beginning or append
