@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/26/2016 17:55:38
+ *  Last Modified: 03/26/2016 20:32:59
  *
  *    Description: Design TBD.
  *
@@ -153,8 +153,15 @@
 #include "widget.hpp"
 #include <unordered_map>
 
-// SECTIONINFO      : static data
-// SECTIONSTATE     : dynamic data
+
+enum XMLObjectType: int{
+    OBJECTTYPE_UNKNOWN      = 0,
+    OBJECTTYPE_RETURN       = 1,
+    OBJECTTYPE_PLAINTEXT    = 2,
+    OBJECTTYPE_EVENTTEXT    = 3,
+    OBJECTTYPE_EMOTICON     = 4,
+};
+
 class TokenBoard: public Widget
 {
     // +-----------------------------+
@@ -181,34 +188,47 @@ class TokenBoard: public Widget
         //                             2. show a cursor
         //                             3. select has nothing to do with current cursor
         // nMaxWidth  :       positive for wrap, non-positive for no-wrap
-        // nMinTextMargin
-        // nMinTextLineSpace
+        // nWordSpace
+        // nLineSpace
         //
-        TokenBoard(int nX, int nY, bool bSelectable, bool bWithCursor, bool bSpacing,
-                int nMaxWidth = -1, int nMinTextMargin = 0, int nMinTextLineSpace = 0,
-                int nXMargin, int nYMargin,
-                Widget *pWidget = nullptr, bool bFreeWidget = false)
+        TokenBoard(
+                int     nX,
+                int     nY,
+                bool    bSelectable,
+                bool    bWithCursor,
+                bool    bSpacing,
+                int     nMaxWidth   = -1,
+                int     nWordSpace  =  0,
+                int     nLineSpace  =  0,
+                int     nMargin0    =  0,
+                int     nMargin1    =  0,
+                int     nMargin2    =  0,
+                int     nMargin3    =  0,
+                Widget *pWidget     = nullptr,
+                bool    bFreeWidget = false)
             : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
               , m_WithCursor(bWithCursor)
               , m_Selectable(bSelectable)
+              , m_Spacing(bSpacing)
               , m_PW(nMaxWidth)
               , m_CurrentWidth(0)
               , m_SkipEvent(false)
               , m_Resolution(20)
-              , m_MinTextMargin(nMinTextMargin)
-              , m_MinTextLineSpace(nMinTextLineSpace)
+              , m_WordSpace(nWordSpace)
+              , m_LineSpace(nLineSpace)
     {
         if(m_PW > 0){
             m_W = m_PW;
         }
     }
+
         virtual ~TokenBoard() = default;
 
     public:
-        int InSection(int, int);
+        bool ProcessEvent(const SDL_Event &, bool *);
 
     public:
-        bool ProcessEvent(int, int, const SDL_Event &);
+        int XMLObjectType(const tinyxml2::XMLElement &);
 
     public:
         bool    Add(TOKENBOX &);
@@ -353,8 +373,8 @@ class TokenBoard: public Widget
         void MakeEventTextBitmap();
         void MarkEventTextBitmap(const TOKENBOX &);
         int  m_Resolution;
-        int  m_MinTextMargin;
-        int  m_MinTextLineSpace;
+        int  m_WordSpace;
+        int  m_LineSpace;
 
     private:
         // callbacks

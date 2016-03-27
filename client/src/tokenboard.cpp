@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/26/2016 18:33:28
+ *  Last Modified: 03/26/2016 23:31:41
  *
  *    Description: 
  *
@@ -26,6 +26,7 @@
 #include "tokenbox.hpp"
 #include "utf8char.hpp"
 #include "mathfunc.hpp"
+#include "log.hpp"
 
 #include <SDL2/SDL.h>
 #include <algorithm>
@@ -36,7 +37,112 @@
 #include <string>
 #include <cassert>
 
-bool TokenBoard::ParseXML(const char *szXML, 
+// XML handle functions
+const tinyxml2::XMLElement *TokenBoard::XMLFirstObject(const tinyxml2::XMLElement *pRoot)
+{
+    const tinyxml2::XMLElement *pCurrentObject = nullptr;
+
+    if(!pRoot){
+    }else if((pCurrentObject = pRoot->FirstChildElement("object"))){
+    }else if((pCurrentObject = pRoot->FirstChildElement("Object"))){
+    }else if((pCurrentObject = pRoot->FirstChildElement("OBJECT"))){
+    }else{
+    }
+
+    return pCurrentObject;
+}
+
+const tinyxml2::XMLElement *TokenBoard::XMLNextObject(const tinyxml2::XMLElement *pCurrentObject)
+{
+    const tinyxml2::XMLElement *pRet = nullptr;
+
+    if(!pCurrentObject){
+    }else if((pRet = pCurrentObject->NextSiblingElement("OBJECT"))){
+    }else if((pRet = pCurrentObject->NextSiblingElement("Object"))){
+    }else if((pRet = pCurrentObject->NextSiblingElement("object"))){
+    }else{
+    }
+    return pRet;
+}
+
+int TokenBoard::XMLObjectType(const tinyxml2::XMLElement &rstCurrentObject)
+{
+    if(false
+            || (rstCurrentObject.Attribute("Type") == nullptr)
+            || (rstCurrentObject.Attribute("TYPE") == nullptr)
+            || (rstCurrentObject.Attribute("type") == nullptr)
+            || (rstCurrentObject.Attribute("TYPE", "PLAINTEXT"))
+            || (rstCurrentObject.Attribute("TYPE", "PlainText"))
+            || (rstCurrentObject.Attribute("TYPE", "Plaintext"))
+            || (rstCurrentObject.Attribute("TYPE", "plainText"))
+            || (rstCurrentObject.Attribute("TYPE", "plaintext"))
+            || (rstCurrentObject.Attribute("Type", "PLAINTEXT"))
+            || (rstCurrentObject.Attribute("Type", "PlainText"))
+            || (rstCurrentObject.Attribute("Type", "Plaintext"))
+            || (rstCurrentObject.Attribute("Type", "plainText"))
+            || (rstCurrentObject.Attribute("Type", "plaintext"))
+            || (rstCurrentObject.Attribute("type", "PLAINTEXT"))
+            || (rstCurrentObject.Attribute("type", "PlainText"))
+            || (rstCurrentObject.Attribute("type", "Plaintext"))
+            || (rstCurrentObject.Attribute("type", "plainText"))
+            || (rstCurrentObject.Attribute("type", "plaintext"))){
+        return OBJECTTYPE_PLAINTEXT;
+    }else if(false
+            || (rstCurrentObject.Attribute("TYPE", "EVENTTEXT"))
+            || (rstCurrentObject.Attribute("TYPE", "EventText"))
+            || (rstCurrentObject.Attribute("TYPE", "Eventtext"))
+            || (rstCurrentObject.Attribute("TYPE", "eventText"))
+            || (rstCurrentObject.Attribute("TYPE", "eventtext"))
+            || (rstCurrentObject.Attribute("Type", "EVENTTEXT"))
+            || (rstCurrentObject.Attribute("Type", "EventText"))
+            || (rstCurrentObject.Attribute("Type", "Eventtext"))
+            || (rstCurrentObject.Attribute("Type", "eventText"))
+            || (rstCurrentObject.Attribute("Type", "eventtext"))
+            || (rstCurrentObject.Attribute("type", "EVENTTEXT"))
+            || (rstCurrentObject.Attribute("type", "EventText"))
+            || (rstCurrentObject.Attribute("type", "Eventtext"))
+            || (rstCurrentObject.Attribute("type", "eventText"))
+            || (rstCurrentObject.Attribute("type", "eventtext"))){
+        return OBJECTTYPE_EVENTTEXT;
+    }else if(false
+            || (rstCurrentObject.Attribute("TYPE", "RETURN"))
+            || (rstCurrentObject.Attribute("TYPE", "Return"))
+            || (rstCurrentObject.Attribute("TYPE", "return"))
+            || (rstCurrentObject.Attribute("Type", "RETURN"))
+            || (rstCurrentObject.Attribute("Type", "Return"))
+            || (rstCurrentObject.Attribute("Type", "return"))
+            || (rstCurrentObject.Attribute("type", "RETURN"))
+            || (rstCurrentObject.Attribute("type", "Return"))
+            || (rstCurrentObject.Attribute("type", "return"))){
+        return OBJECTTYPE_RETURN;
+    }else if(false
+            || (rstCurrentObject.Attribute("TYPE", "Emoticon"))
+            || (rstCurrentObject.Attribute("TYPE", "emoticon"))
+            || (rstCurrentObject.Attribute("TYPE", "EMOTICON"))
+            || (rstCurrentObject.Attribute("Type", "Emoticon"))
+            || (rstCurrentObject.Attribute("Type", "emoticon"))
+            || (rstCurrentObject.Attribute("Type", "EMOTICON"))
+            || (rstCurrentObject.Attribute("type", "Emoticon"))
+            || (rstCurrentObject.Attribute("type", "emoticon"))
+            || (rstCurrentObject.Attribute("type", "EMOTICON"))){
+        return OBJECTTYPE_EMOTICON;
+    }else{
+        return OBJECTTYPE_UNKNOWN;
+    }
+}
+
+// two families of parsing XML
+//  1. LoadXML, etc
+//  2. InsertXML, etc
+//
+//  difference is LoadXXX won't assume current board is valid, so
+//  it's for init when amount of data comes. InsertXXX assume the
+//  current board is valid, it's for edit propose
+//
+//  for loading, we don't use cursor since we always ``insert" at
+//  the end. But for insert we need it
+
+bool TokenBoard::LoadXML(const char *szXML, 
         const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
 {
     tinyxml2::XMLDocument stDoc;
@@ -46,35 +152,48 @@ bool TokenBoard::ParseXML(const char *szXML,
 bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
         const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
 {
-    // 1. clear all informaiton
-    //
-    m_LineV.clear();
-    m_IDFuncV.clear();
-    m_SectionV.clear();
-    m_LineStartY.clear();
-    m_TokenBoxBitmap.clear();
+    Clear();
 
-    // 2. set variables
-    m_MaxH1            = 0;
-    m_MaxH2            = 0;
-    m_W                = 0;
-    m_H                = 0;
-    m_SelectState      = 0;
-    m_CurrentWidth     = 0;
-    m_CurrentLineMaxH2 = 0;
-    m_SkipEvent        = false;
-    m_LastTokenBox     = nullptr;
-
+    // invalid XML, so we return false
     const tinyxml2::XMLElement *pRoot = rstDoc.RootElement();
-    if (pRoot == nullptr){ return false; }
+    if(pRoot == nullptr){ return false; }
 
-    const tinyxml2::XMLElement *pCurrentObject = nullptr;
-    if(false){
-    }else if((pCurrentObject = pRoot->FirstChildElement("object"))){
-    }else if((pCurrentObject = pRoot->FirstChildElement("Object"))){
-    }else if((pCurrentObject = pRoot->FirstChildElement("OBJECT"))){
-    }else{
-        return false;
+    // empty object XML, we need to return true
+    const tinyxml2::XMLElement *pCurrentObject = XMLFirstObject(*pRoot);
+
+
+
+    // put a buffer after to accept coming tokens
+    m_LineV.emplace_back();
+    while(pCurrentObject){
+        switch(XMLObjectType(*pCurrentObject)){
+            case OBJECTTYPE_RETURN:
+                {
+                    LoadReturnObject();
+                    break;
+                }
+            case OBJECTTYPE_EMOTICON:
+                {
+                    ParseEmoticonObject(*pCurrentObject, nSection++, rstIDHandleMap);
+                    break;
+                }
+            case OBJECTTYPE_EVENTTEXT:
+                {
+                    ParseEventTextObject(*pCurrentObject, nSection++, rstIDHandleMap);
+                    break;
+                }
+            case OBJECTTYPE_PLAINTEXT:
+                {
+                    ParseEventTextObject(*pCurrentObject, nSection++, rstIDHandleMap);
+                    break;
+                }
+            default:
+                {
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_INFO, "detected known object type, ignored it");
+                }
+
+        }
     }
 
     int nSection = 0;
@@ -110,56 +229,56 @@ bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
     return true;
 }
 
-bool TokenBoard::ObjectReturn(const tinyxml2::XMLElement &rstCurrentObject)
+bool TokenBoard::InsertXML(const std::string &szXML)
 {
-    return false
-        || (rstCurrentObject.Attribute("TYPE", "RETURN"))
-        || (rstCurrentObject.Attribute("TYPE", "Return"))
-        || (rstCurrentObject.Attribute("TYPE", "return"))
-        || (rstCurrentObject.Attribute("Type", "RETURN"))
-        || (rstCurrentObject.Attribute("Type", "Return"))
-        || (rstCurrentObject.Attribute("Type", "return"))
-        || (rstCurrentObject.Attribute("type", "RETURN"))
-        || (rstCurrentObject.Attribute("type", "Return"))
-        || (rstCurrentObject.Attribute("type", "return"));
+    // 1. parse the XML
+    tinyxml2::XMLDocument stDoc;
+    stDoc.Parse(szXML.c_str());
+    const tinyxml2::XMLElement *pRoot = rstDoc.RootElement();
+    if (pRoot == nullptr){ return false; }
+
+    // 2. find the first object
+    const tinyxml2::XMLElement *pCurrentObject = nullptr;
+    if(false){
+    }else if((pCurrentObject = pRoot->FirstChildElement("object"))){
+    }else if((pCurrentObject = pRoot->FirstChildElement("Object"))){
+    }else if((pCurrentObject = pRoot->FirstChildElement("OBJECT"))){
+    }else{
+        return false;
+    }
+
+    ResetCurrentLine();
+
+    while(pCurrentObject){
+        if(ObjectReturn(*pCurrentObject)){
+            // so for description like 
+            // <object type = "return"></object><object type = "return"></object>
+            // we can only get one new line
+            if(!m_CurrentLine.empty()){
+                AddNewTokenBoxLine(true);
+            }
+        }else if(ObjectEmocticon(*pCurrentObject)){
+            ParseEmoticonObject(*pCurrentObject, nSection++, rstIDHandleMap);
+        }else if(ObjectEventText(*pCurrentObject)){
+            ParseEventTextObject(*pCurrentObject, nSection++, rstIDHandleMap);
+        }else{
+            // failed to parse something
+        }
+        pCurrentObject = NextObject(pCurrentObject);
+    }
+
+    if(!m_CurrentLine.empty()){
+        AddNewTokenBoxLine(true);
+    }
+
+    if(!m_SkipEvent){
+        MakeEventTextBitmap();
+    }
+
+    return true;
 }
 
-bool TokenBoard::ObjectEmocticon(const tinyxml2::XMLElement &rstCurrentObject)
-{
-    return false
-        || (rstCurrentObject.Attribute("TYPE", "Emoticon"))
-        || (rstCurrentObject.Attribute("TYPE", "emoticon"))
-        || (rstCurrentObject.Attribute("TYPE", "EMOTICON"))
-        || (rstCurrentObject.Attribute("Type", "Emoticon"))
-        || (rstCurrentObject.Attribute("Type", "emoticon"))
-        || (rstCurrentObject.Attribute("Type", "EMOTICON"))
-        || (rstCurrentObject.Attribute("type", "Emoticon"))
-        || (rstCurrentObject.Attribute("type", "emoticon"))
-        || (rstCurrentObject.Attribute("type", "EMOTICON"));
-}
 
-bool TokenBoard::ObjectEventText(const tinyxml2::XMLElement &rstCurrentObject)
-{
-    return false
-        || (rstCurrentObject.Attribute("Type") == nullptr)
-        || (rstCurrentObject.Attribute("type") == nullptr)
-        || (rstCurrentObject.Attribute("TYPE") == nullptr)
-        || (rstCurrentObject.Attribute("TYPE", "EVENTTEXT"))
-        || (rstCurrentObject.Attribute("TYPE", "EventText"))
-        || (rstCurrentObject.Attribute("TYPE", "Eventtext"))
-        || (rstCurrentObject.Attribute("TYPE", "eventText"))
-        || (rstCurrentObject.Attribute("TYPE", "eventtext"))
-        || (rstCurrentObject.Attribute("Type", "EVENTTEXT"))
-        || (rstCurrentObject.Attribute("Type", "EventText"))
-        || (rstCurrentObject.Attribute("Type", "Eventtext"))
-        || (rstCurrentObject.Attribute("Type", "eventText"))
-        || (rstCurrentObject.Attribute("Type", "eventtext"))
-        || (rstCurrentObject.Attribute("type", "EVENTTEXT"))
-        || (rstCurrentObject.Attribute("type", "EventText"))
-        || (rstCurrentObject.Attribute("type", "Eventtext"))
-        || (rstCurrentObject.Attribute("type", "eventText"))
-        || (rstCurrentObject.Attribute("type", "eventtext"));
-}
 
 int TokenBoard::GetEmoticonSet(const tinyxml2::XMLElement &rstCurrentObject)
 {
@@ -516,131 +635,136 @@ void TokenBoard::Update(double fMS)
     }
 }
 
-int TokenBoard::SectionTypeCount(const std::vector<TOKENBOX> & vLine, int nSectionType)
+int TokenBoard::SectionTypeCount(int nLine, int nSectionType)
 {
+    if(nLine < 0 || nLine >= m_LineV.size()){ return -1; }
     int nCount = 0;
     if(nSectionType != 0){
-        for(const auto &stTokenBox: vLine){
-            if(m_SectionV[stTokenBox.Section].Info.Type & nSectionType){
-                nCount++;
+        for(const auto &rstTokenBox: m_LineV[nLine]){
+            auto p = m_SectionV.find(rstTokenBox.Section);
+            if(p != m_SectionV.end()){
+                if(p->second.Info.Type & nSectionType){
+                    nCount++;
+                }
+            }else{
+                // oooops
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_INFO, "section id can't be find");
             }
         }
         return nCount;
     }else{
-        return m_CurrentLine.size();
+        return m_LineV[nLine].size();
     }
 }
 
-int TokenBoard::DoPadding(int nDWidth, int nSectionType)
+// padding to set the current line width to be m_PW
+//  1. W1/W2 is prepared for m_MinMarginBtwBox only, we need to increase it
+//  2. only do padding, won't calculate StartX/Y for simplity
+//
+//      ++----------+------------+
+//      |+        + |
+//      ||        | |
+//      |+        + |
+//      +-----------+------------+
+//
+//  nDWidth      : width should be made by space
+//  nSectionType : specify SectionType for padding
+//
+// return should always be non-negative
+// meaning we can't be out of the boundary
+//
+// I even forget  logics in this funciton
+// update it when error occurs
+int TokenBoard::SpacePadding(int nLine, int nDWidth, int nSectionType)
 {
+    if(nLine < 0 || nLine > m_LineV.size()){ return -1; }
+    if(nDWidth < 0){ return -1; }
+
+    int nCount = SectionTypeCount(nLine, nSectionType);
+    if(false
+            || m_LineV[nLine].size() < 2
+            || nCount == 0){
+        // can't padding
+        return nDWidth;
+    }
+
+    int nPaddingSpace = nDWidth / nCount;
+
+    // first round
+    // first token may reserve for no padding
     //
-    // ++----------+------------+
-    // |+        + |
-    // ||        | |
-    // |+        + |
-    // +-----------+------------+
-    //
-    //  nDWidth      : recommended width
-    //  nSectionType : specify SectionType for padding
-    //
-    // return should always be non-negative
-    // meaning we can't be out of the boundary
-    //
-    // only do padding, won't calculate StartX/Y for simplity
-
-    int nCount = SectionTypeCount(m_CurrentLine, nSectionType);
-    if(m_CurrentLine.size() > 1 && nCount != 0){
-        int nPaddingSpace = nDWidth / nCount;
-
-        // first round
-        // first token may reserve for no padding
-        if(TokenBoxType(m_CurrentLine[0]) != TokenBoxType(m_CurrentLine[1])){
-            if(nSectionType == 0 || TokenBoxType(m_CurrentLine[0]) & nSectionType){
-                m_CurrentLine[0].State.W1 = 0;
-                m_CurrentLine[0].State.W2 = nPaddingSpace / 2;
-
-                nDWidth        -= nPaddingSpace / 2;
-                m_CurrentWidth += nPaddingSpace / 2;
-                if(nDWidth == 0){
-                    return 0;
-                }
-            }
-        }
-
-        for(size_t nIndex = 1; nIndex < m_CurrentLine.size() - 1; ++nIndex){
-            if(nSectionType == 0 || TokenBoxType(m_CurrentLine[nIndex]) & nSectionType){
-                m_CurrentLine[nIndex].State.W1 = nPaddingSpace / 2;
-                m_CurrentLine[nIndex].State.W2 = nPaddingSpace - nPaddingSpace / 2;
-
-                nDWidth        -= nPaddingSpace;
-                m_CurrentWidth += nPaddingSpace;
-                if(nDWidth == 0){
-                    return 0;
-                }
-            }
-        }
-
-        if(nSectionType == 0 || TokenBoxType(m_CurrentLine.back()) & nSectionType){
-            m_CurrentLine.back().State.W1 = nPaddingSpace / 2;
-            m_CurrentLine.back().State.W2 = 0;
-
-            nDWidth        -= nPaddingSpace / 2;
-            m_CurrentWidth += nPaddingSpace / 2;
-            if(nDWidth == 0){
-                return 0;
-            }
-        }
-
-        // second round
-        if(TokenBoxType(m_CurrentLine[0]) != TokenBoxType(m_CurrentLine[1])){
-            if(nSectionType == 0 || TokenBoxType(m_CurrentLine[0]) & nSectionType){
-                m_CurrentLine[0].State.W2++;;
-                nDWidth--;
-                m_CurrentWidth++;
-                if(nDWidth == 0){
-                    return 0;
-                }
-            }
-        }
-
-        for(size_t nIndex = 1; nIndex < m_CurrentLine.size() - 1; ++nIndex){
-            if(nSectionType == 0 || TokenBoxType(m_CurrentLine[nIndex]) & nSectionType){
-                if(m_CurrentLine[nIndex].State.W1 <=  m_CurrentLine[nIndex].State.W2){
-                    m_CurrentLine[nIndex].State.W1++;
-                }else{
-                    m_CurrentLine[nIndex].State.W2++;
-                }
-                nDWidth--;
-                m_CurrentWidth++;
-                if(nDWidth == 0){
-                    return 0;
-                }
-            }
-        }
-
-        if(nSectionType == 0 || TokenBoxType(m_CurrentLine.back()) & nSectionType){
-            m_CurrentLine.back().State.W1++;
-            nDWidth--;
-            m_CurrentWidth++;
-            if(nDWidth == 0){
-                return 0;
-            }
+    // WTF
+    // I forget the reason why I need to check [0].type != [1].type
+    if(TokenBoxType(m_CurrentLine[0]) != TokenBoxType(m_CurrentLine[1])){
+        if(nSectionType == 0 || TokenBoxType(m_CurrentLine[0]) & nSectionType){
+            m_CurrentLine[0].State.W2 += (nPaddingSpace / 2);
+            nDWidth -= nPaddingSpace / 2;
+            if(nDWidth == 0){ return 0; }
         }
     }
+
+    for(size_t nIndex = 1; nIndex < m_CurrentLine.size() - 1; ++nIndex){
+        if(nSectionType == 0 || TokenBoxType(m_CurrentLine[nIndex]) & nSectionType){
+            m_CurrentLine[nIndex].State.W1 += (nPaddingSpace / 2);
+            m_CurrentLine[nIndex].State.W2 += (nPaddingSpace - nPaddingSpace / 2);
+
+            nDWidth -= nPaddingSpace;
+            if(nDWidth == 0){ return 0; }
+        }
+    }
+
+    // why here I won't check type? forget
+    if(nSectionType == 0 || TokenBoxType(m_CurrentLine.back()) & nSectionType){
+        m_CurrentLine.back().State.W1 += (nPaddingSpace / 2);
+        nDWidth -= nPaddingSpace / 2;
+        if(nDWidth == 0){ return 0; }
+    }
+
+    // second round, small update
+    if(TokenBoxType(m_CurrentLine[0]) != TokenBoxType(m_CurrentLine[1])){
+        if(nSectionType == 0 || TokenBoxType(m_CurrentLine[0]) & nSectionType){
+            m_CurrentLine[0].State.W2++;;
+            nDWidth--;
+            if(nDWidth == 0){ return 0; }
+        }
+    }
+
+    for(size_t nIndex = 1; nIndex < m_CurrentLine.size() - 1; ++nIndex){
+        if(nSectionType == 0 || TokenBoxType(m_CurrentLine[nIndex]) & nSectionType){
+            if(m_CurrentLine[nIndex].State.W1 <=  m_CurrentLine[nIndex].State.W2){
+                m_CurrentLine[nIndex].State.W1++;
+            }else{
+                m_CurrentLine[nIndex].State.W2++;
+            }
+            nDWidth--;
+            if(nDWidth == 0){ return 0; }
+        }
+    }
+
+    if(nSectionType == 0 || TokenBoxType(m_CurrentLine.back()) & nSectionType){
+        m_CurrentLine.back().State.W1++;
+        nDWidth--;
+        if(nDWidth == 0){ return 0; }
+    }
+
     return nDWidth;
 }
 
-void TokenBoard::SetTokenBoxStartY(std::vector<TOKENBOX> &vTokenBox, int nBaseLineY)
+void TokenBoard::SetTokenBoxStartY(int nLine, int nBaseLineY)
 {
-    for(auto &stTokenBox: vTokenBox){
-        stTokenBox.Cache.StartY = nBaseLineY - stTokenBox.Cache.H1;
+    if(nLine < 0 || nLine >= m_LineV.size()){ return; }
+    for(auto &rstTokenBox: m_LineV[nLine]){
+        rstTokenBox.Cache.StartY = nBaseLineY - rstTokenBox.Cache.H1;
     }
 }
 
-void TokenBoard::SetTokenBoxStartX(std::vector<TOKENBOX> &vTokenBox)
+void TokenBoard::SetTokenBoxStartX(int nLine)
 {
-    int nCurrentX = 0;
-    for(auto &stTokenBox: vTokenBox){
+    if(nLine < 0 || nLine >= m_LineV.size()){ return; }
+
+    int nCurrentX = m_Margin3;
+    for(auto &rstTokenBox: m_LineV[nLine]){
         nCurrentX += stTokenBox.State.W1;
         stTokenBox.Cache.StartX = nCurrentX;
         nCurrentX += stTokenBox.Cache.W;
@@ -648,28 +772,101 @@ void TokenBoard::SetTokenBoxStartX(std::vector<TOKENBOX> &vTokenBox)
     }
 }
 
-int TokenBoard::SpacePadding(int paddingWidth)
+int TokenBoard::LineFullWidth(int nLine)
 {
-    // return the real line width after padding
-    // if paddingWidth < m_CurrentWidth
-    // this function will do nothing and return m_CurrentWidth
-    //
-    // +----+-------------------+----+
-    // |    |                   |    |
-    // |    | ..........        |    |
-    // +----+-------------------+----+
+    if(nLine < 0 || nLine >= m_LineV.size()){ return -1; }
 
-    int nDWidth = paddingWidth - (m_CurrentWidth + 1);
+    int nWidth = 0;
+    for(auto &rstTB: m_LineV[nLine]){
+        nWidth += (rstTB.Cache.W + rstTB.State.W1 + rstTB.State.W2);
+    }
+    return nWidth;
+}
+
+int TokenBoard::LineRawWidth(int nLine, bool bWithWordSpace)
+{
+    if(nLine < 0 || nLine >= m_LineV.size()){ return -1; }
+
+    switch(m_LineV[nLine].size()){
+        case 0:
+            {
+                // empty line, can only happen at the last line
+                return 0;
+            }
+        case 1:
+            {
+                // only one token, so word space is not counted
+                return m_LineV[nLine][0].Cache.W;
+            }
+        default:
+            {
+                int nWidth = 0;
+                for(auto &rstTB: m_LineV[nLine]){
+                    nWidth += rstTB.Cache.W;
+                }
+
+                if(bWithWordSpace){
+                    nWidth += m_MinMarginBtwBox * ((int)m_LineV[nLine].size() - 1);
+                }
+                return nWidth;
+            }
+    }
+}
+
+int TokenBoard::SetTokenBoxWordSpace(int nLine)
+{
+    if(nLine < 0 || nLine >= m_LineV.size()){ return -1; }
+
+    int nW1 = m_MinMarginBtwBox / 2;
+    int nW2 = m_MinMarginBtwBox - nW1;
+
+    for(auto &rstTB: m_LineV[nLine]){
+        rstTB.State.W1 = nW1;
+        rstTB.State.W2 = nW2;
+    }
+
+    if(!m_LineV[nLine].empty()){
+        m_LineV[nLine][0].State.W1     = 0;
+        m_LineV[nLine].back().State.W2 = 0;
+    }
+
+    return LineRawWidth(nLine, true);
+}
+
+
+// padding with space to make the line be exactly of width m_PW
+// for input:
+//      1. all tokens in current line has W specified
+//      2. W1/W2 is not-inited
+// output:
+//      1. W1/W2 inited
+//      2. return real width after operation of this function
+int TokenBoard::SetTokenBoxPadding(int nLine)
+{
+    if(nLine < 0 || nLine >= m_LineV.size()){ return -1; }
+
+    int nWidth = SetTokenBoxWordSpace(nLine);
+    if(nWidth < 0){ return -1; }
+
+    // if we don't need space padding, that's all
+    if(m_PW <= 0){ return nWidth; }
+
+    // we need word space padding and extra padding
+    int nDWidth = m_PW - nWidth;
+
     if(nDWidth > 0){
-        // try to padding all by emoticons
-        int newDWidth = DoPadding(nDWidth, SECTIONTYPE_EMOTICON);
-        if(newDWidth == nDWidth){
-            // doesn't work, padding by all tokenbox
-            newDWidth = DoPadding(nDWidth, 0);
-            return m_CurrentWidth;
+        // round-1: try to padding by emoticons
+        int nNewWidth = SpacePadding(nLine, nDWidth, SECTIONTYPE_EMOTICON);
+        if(nNewWidth < 0 || nNewWidth == nDWidth){
+            // doesn't work, padding by all boxes
+            nNewWidth = SpacePadding(nLine, nDWidth, 0);
+            if(nNewWidth == 0){
+                return m_PW;
+            }
+            return -1;
         }
     }
-    return m_CurrentWidth;
+    return nWidth;
 }
 
 bool TokenBoard::AddTokenBox(TOKENBOX &stTokenBox)
@@ -730,22 +927,20 @@ int TokenBoard::GetNthLineIntervalMaxH2(int nthLine, int nIntervalStartX, int nI
     //  Here we take the padding space as part of the token box.
     //  If not, token in (n + 1)-th line may go through this space
     //
-    //  keep this as it is, and update it later
+    //  but token in (n + 1)-th line only count for the interval,
+    //  W1/W2 won't count for here, as I denoted
 
-    int   nMaxH2    = -1;
-    int   nCurrentX =  0;
+    int nMaxH2 = -1;
+    for(auto &rstTokenBox: m_LineV[nthLine]){
+        int nX  = rstTokenBox.Cache.StartX;
+        int nW  = rstTokenBox.Cache.W;
+        int nH2 = rstTokenBox.Cache.H2;
+        int nW1 = rstTokenBox.State.W1;
+        int nW2 = rstTokenBox.State.W2;
 
-    for(auto &stTokenBox: m_LineV[nthLine]){
-        int nW  = stTokenBox.Cache.W;
-        int nH2 = stTokenBox.Cache.H2;
-        int nW1 = stTokenBox.State.W1;
-        int nW2 = stTokenBox.State.W2;
-
-        if(IntervalOverlap(nCurrentX, nCurrentX + nW1 + nW + nW2,
-                    nIntervalStartX, nIntervalStartX + nIntervalWidth)){
+        if(IntervalOverlap(nX, nW1 + nW + nW2, nIntervalStartX, nIntervalWidth)){
             nMaxH2 = (std::max)(nMaxH2, nH2);
         }
-        nCurrentX += (nW1 + nW + nW2);
     }
     // maybe the line is not long enough to cover Interval
     // in this case we return -1
@@ -765,9 +960,12 @@ int TokenBoard::GetNthLineTokenBoxStartY(int nthLine, int nStartX, int nBoxWidth
     return nBoxHeight;
 }
 
+// get StartY of current Line
+// assume:
+//      1. 0 ~ (nthLine - 1) are well-prepared with StartX, StartY, W/W1/W2/H1/H2 etc
+//      2. nthLine is padded already, StartX, W/W1/W2 are OK now
 int TokenBoard::GetNthNewLineStartY(int nthLine)
 {
-    // m_CurrentLine is padded already
     //
     //                             
     //           +----------+                  
@@ -784,18 +982,31 @@ int TokenBoard::GetNthNewLineStartY(int nthLine)
     //                          |          |                   
     //                          +----------+                  
     //                                            
+    // for nthLine we use W only, but for nthLine - 1, we use W1 + W + W2
+    // reason is clear since W1/2 of nthLine won't show, then use them are
+    // wasteful for space
     //
-    int nCurrentX =  0;
-    int nCurrentY = -1;
-    for(auto &stTokenBox: m_CurrentLine){
-        int nW  = stTokenBox.Cache.W;
-        int nH1 = stTokenBox.Cache.H1;
-        int nW1 = stTokenBox.State.W1;
-        int nW2 = stTokenBox.State.W2;
+    //          +---+-----+--+---+-------+
+    //          |   |     |  |   |       |
+    //          | 1 |  W  |2 | 1 |   W   |...
+    //          |   |     |  |   |       |
+    //          +---+-----+--+---+-------+
+    //
+    //                   +--------+
+    //                   |        |
+    //                   |   W    |
+    //                   |        |
+    //
 
-        nCurrentY  = (std::max)(nCurrentY,
-                GetNthLineTokenBoxStartY(nthLine, nCurrentX + nW1, nW, nH1));
-        nCurrentX += (nW1 + nW + nW2);
+    if(nLine < 0 || nLine >= m_LineV.size()){ return -1; }
+
+    int nCurrentY = -1;
+    for(auto &rstTokenBox: m_LineV[nLine]){
+        int nX  = rstTokenBox.Cache.StartX;
+        int nW  = rstTokenBox.Cache.W;
+        int nH1 = rstTokenBox.Cache.H1;
+
+        nCurrentY = (std::max)(nCurrentY, GetNthLineTokenBoxStartY(nthLine, nX, nW, nH1));
     }
     return nCurrentY;
 }
@@ -937,33 +1148,70 @@ void TokenBoard::DrawEx(
     }
 }
 
-void TokenBoard::AddNewTokenBoxLine(bool bEndByReturn)
+// calculate all need cache for nLine
+//
+// TBD & TODO & Assume:
+//      1. all needed tokens are already in current line
+//
+//      2. m_EndWithReturn[nLine] specified
+//
+//      3. all other lines (except nLine) are well-prepared
+//         so we can call GetNthNewLineStartY() safely
+//
+//      4. helper containers such as m_LineStartY are prepared for space
+//         the value of it may be invalid
+//
+void TokenBoard::ResetLine(int nLine)
 {
-    if(m_PW > 0 && bEndByReturn == false){
-        SpacePadding(m_PW);
+    if(nLine < 0 || nLine >= (int)m_LineV.size()){ return; }
+
+    SetTokenBoxPadding(nLine);
+    SetTokenBoxStartX(nLine);
+
+    int nWidth = LineFullWidth(nLine);
+    if(m_W < nWidth){
+        m_W = nWidth;
+    }else{
+        // the current width may get from nLine
+        // but nLine resets now, we need to recompute it
+        m_W = -1;
+        for(int nIndex = 0; nIndex < m_LineV.size(); ++nIndex){
+            m_W = (std::max)(m_W, LineFullWidth(nLine));
+        }
     }
 
-    // set X cache
-    SetTokenBoxStartX(m_CurrentLine);
+    // without StartX we can't calculate StartY
+    //      1. for Loading function, this will only be one round
+    //      2. for Insert function, this execute many times to
+    //    re-calculate the StartY.
+    //    
+    // howto
+    // 1. reset nLine, anyway this is needed
+    m_LineStartY[nLine] = GetNthNewLineStartY(nLine);
+    SetTokenBoxStartY(nLine, m_LineStartY[nLine]);
 
-    // always align lines to left
-    // otherwise we need m_LineStartX
-    // but GetNthNewLineStartY() need TOKENBOX::Cache.StartX
-    // kind of inconsistent
+    // 2. reset rest lines, use a trick here
+    //      if last line is full length, we only need to add a delta form now
+    //      otherwise we continue to compute all StartY
+    //
+    int nRestLine  = nLine + 1;
+    int nTrickOn   = 0;
+    int nDStartY   = 0;
+    while(nRestLine < m_LineV.size()){
+        if(nTrickOn){
+            m_LineStartY[nRestLine] += nDStartY;
+        }else{
+            int nOldStartY = m_LineStartY[nRestLine];
+            m_LineStartY[nRestLine] = GetNthNewLineStartY(nRestLine);
+            if(LineFullWidth(nRestLine) == m_W){
+                nTrickOn = 1;
+                nDStartY = m_LineStartY[nRestLine] - nOldStartY;
+            }
+        }
+        SetTokenBoxStartY(nRestLine, m_LineStartY[nRestLine]);
+    }
 
-    m_LineStartY.push_back(GetNthNewLineStartY(m_LineV.size()));
-
-    // set Y cache
-    SetTokenBoxStartY(m_CurrentLine, m_LineStartY.back());
-
-    m_LineV.emplace_back(std::move(m_CurrentLine));
-
-    // for wrap or not
-    m_W = (std::max)(m_W, m_CurrentWidth);
-    m_H = m_LineStartY.back() + m_CurrentLineMaxH2 + 1;
-
-    // this is a must for AddNewTokenBox() to end the recursion
-    ResetCurrentLine();
+    m_H = m_LineStartY.back() + GetNthLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W) + 1;
 }
 
 bool TokenBoard::AddNewTokenBox(TOKENBOX &rstTokenBox)
@@ -1755,5 +2003,37 @@ void TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
             AddTokenBox(nY + 1, 0, m_LineV[nY].back());
             m_LineV[nY].pop_back();
         }
+    }
+}
+
+// put current board in empty but valid state
+// 1. clear all containers
+// 2. reset all variables
+// 3. etc
+//
+void TokenBoard::Clear()
+{
+    m_LineV.clear();
+    m_IDFuncV.clear();
+    m_SectionV.clear();
+    m_LineStartY.clear();
+    m_TokenBoxBitmap.clear();
+
+    m_MaxH1            = 0;
+    m_MaxH2            = 0;
+    m_W                = 0;
+    m_H                = 0;
+    m_SelectState      = 0;
+    m_CurrentWidth     = 0;
+    m_CurrentLineMaxH2 = 0;
+    m_SkipEvent        = false;
+    m_LastTokenBox     = nullptr;
+}
+
+bool TokenBoard::LoadReturnObject()
+{
+    if(!m_LineV.back().empty()){
+        m_EndWithReturn.push_back(true);
+        ResetLine(m_LineV.size() - 1);
     }
 }
