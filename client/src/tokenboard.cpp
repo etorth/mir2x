@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/26/2016 23:31:41
+ *  Last Modified: 03/27/2016 02:00:19
  *
  *    Description: 
  *
@@ -1197,6 +1197,8 @@ void TokenBoard::ResetLine(int nLine)
     int nRestLine  = nLine + 1;
     int nTrickOn   = 0;
     int nDStartY   = 0;
+    // TODO
+    // think about if m_PW < 0 can I save some thing
     while(nRestLine < m_LineV.size()){
         if(nTrickOn){
             m_LineStartY[nRestLine] += nDStartY;
@@ -1847,6 +1849,94 @@ bool TokenBoard::AddTokenBox(TOKENBOX &rstTokenBox, int nX, int nY)
 
     // this won't be executed
     return false;
+}
+
+// Insert a bunch of tokenboxes at any position (nX, nY) inside the text
+// block, this function won't introduce any ``return"
+//
+// Assume:
+//      1. the tokenboard is well-prepared
+//      2. we won't allow empty line since don't know how to set height
+//
+// HowTo:
+//      1. if outside the text block, insert at the beginning or append
+//         at the very end
+//      2. if current line can hold the new box, just insert it
+//      3. if can't
+//          1. if current line ends with return, create a new line ends
+//             with return and contain all needed tokens, insert this 
+//             line next to current line. make current line and the new
+//             line both end with return
+//          2. if not, move token at the end of current line and insert
+//             it at the beginning of next line, until current line has
+//             enough space to hold the new token
+//  return:
+//      1. true most likely
+//      2. false when current token is tooooooo wide that a whole line
+//         even can't hold it
+bool TokenBoard::AddTokenBoxV(int nX, int nY, const std::vector<TOKENBOX> & rstTBV)
+{
+    if(rstTBV.empty()){ return true; }
+
+    if(nY < 0){
+        nX = 0;
+        nY = 0;
+    }else if(nY >= m_LineV.size()){
+        nX = m_LineV.back().size();
+        nY = m_LineV.size() - 1;
+    }
+
+    nX = std::max(std::min(nX, m_LineV[nY].size()), 0);
+
+    // now (nX, nY) are well-defined
+    m_LineV[nY].insert(m_LineV[nY].begin() + nX, rstTBV.begin(), rstTBV.end());
+ 
+    if(m_PW <= 0){
+        // we don't have to wrap, easy case
+        ResetLine(nY);
+        return true;
+    }
+
+    // we need to wrap the text
+    // count the tokens, to put proper tokens in current line
+    int nCount = -1;
+    int nWidth =  0;
+    for(int nIndex = 0; nIndex < m_LineV[nY].size(); ++nIndex){
+        nWidth += m_LineV[nY][nIndex].Cache.W;
+
+        if(nWidth + nIndex * m_MinMarginBtwBox > m_PW){
+            nCount = nIndex;
+            break;
+        }
+    }
+
+    if(nCount == 0){
+        // the tokenbox is toooo wide, just fail and return false
+        return false;
+    }
+
+    if(nCount == -1){
+        // nCount didn't set, mean it can hold the whole v
+        ResetLine(nY);
+        return true;
+    }
+
+    std::vector<TOKENBOX> stRestTBV {
+        m_LineV[nY].begin() + nCount, m_LineV[nY].end()};
+
+    m_LineV[nY].resize(nCount);
+    ResetLine(nY);
+
+    // now the tokenboard is valid again
+    //
+    if(m_EndWithReturn[nY]){
+        m_EndWithReturn[nY] = false;
+        m_LineV.insert(m_LineV.begin() + nY + 1, {});
+        m_EndWithReturn.insert(m_EndWithReturn.begin() + nY + 1, true);
+    }
+
+    // afer this, the tokenboard is valid again
+    return AddTokenBox(nY + 1, 0, stRestTBV);
 }
 
 // Insert a return at any position *inside* a text block
