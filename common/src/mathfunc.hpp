@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 03/20/2016 12:05:55
+ *  Last Modified: 03/26/2016 15:51:05
  *
  *    Description: 
  *
@@ -66,6 +66,7 @@ template<typename T> bool RectangleOverlap(T nfX1, T nfY1, T nfW1, T nfH1, T nfX
             || nfY1 + nfH1 < nfY2);
 }
 
+// check whether R2 is inside R1
 template<typename T> bool RectangleInside(T nfX1, T nfY1, T nfW1, T nfH1, T nfX2, T nfY2, T nfW2, T nfH2)
 {
     // TODO

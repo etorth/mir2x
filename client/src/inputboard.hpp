@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/26/2016 12:07:49
+ *  Last Modified: 03/26/2016 16:59:08
  *
  *    Description: 
  *
@@ -46,7 +46,11 @@ class InputBoard: public InputWidget
             auto pTokenBoard = new TokenBoard(...);
             this->Add(pTokenBoard);
         }
-        virtual ~InputBoard() = default;
+
+        virtual ~InputBoard()
+        {
+            SDL_ShowCursor(1);
+        }
 
     public:
         bool ProcessEvent(const SDL_Event &, bool *);

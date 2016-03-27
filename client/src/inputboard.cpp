@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 7:04:16 PM
- *  Last Modified: 03/26/2016 12:50:29
+ *  Last Modified: 03/26/2016 17:41:57
  *
  *    Description: 
  *
@@ -24,8 +24,8 @@
 #include "inputboard.hpp"
 #include "sdlkeyeventchar.hpp"
 
-int InputBoard::m_ShowSystemCursorCount = 0;
-int InputBoard::m_InputBoxCount         = 0;
+int InputBoard::s_ShowSystemCursorCount = 0;
+int InputBoard::s_InputBoardCount       = 0;
 
 InputBoard::InputBoard(bool bWrap, int nW, int nH,
         int nMinTextMargin, int nMinTextLineSpace,
@@ -47,8 +47,8 @@ InputBoard::InputBoard(bool bWrap, int nW, int nH,
     , m_TokenBoard(bWrap, nW, nMinTextMargin, nMinTextLineSpace)
     , m_IME(nullptr)
 {
-    m_InputBoxCount++;
-    m_ShowSystemCursorCount++;
+    s_InputBoardCount++;
+    s_ShowSystemCursorCount++;
     m_W = nW;
     m_H = nH;
 
@@ -57,8 +57,8 @@ InputBoard::InputBoard(bool bWrap, int nW, int nH,
 
 InputBoard::~InputBoard()
 {
-    m_InputBoxCount--;
-    m_ShowSystemCursorCount--;
+    s_InputBoardCount--;
+    s_ShowSystemCursorCount--;
 }
 
 void InputBoard::Update(Uint32 nMs)
@@ -68,6 +68,8 @@ void InputBoard::Update(Uint32 nMs)
 
 bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
 {
+    if(bValid && !(*bValid)){ return false; }
+
     switch(rstEvent.type){
         case SDL_MOUSEMOTION:
             {
@@ -75,12 +77,12 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                     m_SystemCursorX    = rstEvent.motion.x;
                     m_SystemCursorY    = rstEvent.motion.y;
                     if(!m_DrawOwnSystemCursor){
-                        m_ShowSystemCursorCount--;
+                        s_ShowSystemCursorCount--;
                     }
                     m_DrawOwnSystemCursor = true;
                 }else{
                     if(m_DrawOwnSystemCursor){
-                        m_ShowSystemCursorCount++;
+                        s_ShowSystemCursorCount++;
                     }
                     m_DrawOwnSystemCursor = false;
                 }
@@ -104,34 +106,106 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
             }
         case SDL_KEYDOWN:
             {
-                if(m_Focus){
-                    // clear the count
-                    m_Ticks = 0;
+                if(m_IME && m_IME->Focus()){
+                    // if IME is working
+                    // then all input events should be grabbed by IME
+                    return false;
+                }
 
+                // if IME is disabled, then input board handles key down
+                // tokenboard won't handle this event
+                if(Focus()){
+                    // clear the count no matter what key pressed
+                    m_MS = 0.0;
+                    switch(rstEvent.key.keysym.sym){
+                        case SDLK_UP:
+                            {
+                                int nX, nY;
+                                m_TokenBoard->GetCursor(&nX, &nY);
+                                m_TokenBoard->SetCursor(nX, nY - 1);
+                                break;
+                            }
+                        case SDLK_DOWN:
+                            {
+                                int nX, nY;
+                                m_TokenBoard->GetCursor(&nX, &nY);
+                                m_TokenBoard->SetCursor(nX, nY + 1);
+                                break;
+                            }
 
-                    if(m_IME){
-                        return m_IME->ProcessEvent(rstEvent);
-                    }
+                        case SDLK_LEFT:
+                            {
+                                int nX, nY;
+                                m_TokenBoard->GetCursor(&nX, &nY);
+                                m_TokenBoard->SetCursor(nX - 1, nY);
+                                break;
+                            }
 
-                    char chKeyName = SDLKeyEventChar(rstEvent);
+                        case SDLK_RIGHT:
+                            {
+                                int nX, nY;
+                                m_TokenBoard->GetCursor(&nX, &nY);
+                                m_TokenBoard->SetCursor(nX + 1, nY);
+                                break;
+                            }
 
+                        case SDLK_BACKSPACE:
 
-                    if(chKeyName != '\0'){
-                        m_BindTokenBoxIndex++;
-                        m_Content.insert((std::size_t)(m_BindTokenBoxIndex), (std::size_t)1, chKeyName);
-                        Compile();
-                        ResetShowStartX();
-                        return true;
-                    }
+                            {
+                                m_TokenBoard->Delete(false);
+                                break;
+                            }
 
-                    if(rstEvent.key.keysym.sym == SDLK_BACKSPACE){
-                        if(m_BindTokenBoxIndex >= 0){
-                            m_Content.erase(m_BindTokenBoxIndex, 1);
-                            m_BindTokenBoxIndex--;
-                            Compile();
-                            ResetShowStartX();
-                        }
-                        return true;
+                        case SDLK_ESCAPE:
+                            {
+                                Focus(false);
+                                break;
+                            }
+
+                        case SDLK_x:
+                            {
+                                if(false
+                                        || rstEvent.key.keysym.mod & KMOD_LCTRL
+                                        || rstEvent.key.keysym.mod & KMOD_RCTRL){
+                                    extern Game *g_Game;
+                                    g_Game->Clipboard(m_TokenBoard->GetXML(true));
+                                    m_TokenBoard->Delete(true);
+                                }
+                                break;
+                            }
+
+                        case SDL_c:
+                            {
+                                if(false
+                                        || rstEvent.key.keysym.mod & KMOD_LCTRL
+                                        || rstEvent.key.keysym.mod & KMOD_RCTRL){
+                                    extern Game *g_Game;
+                                    g_Game->Clipboard(m_TokenBoard->GetXML(true));
+                                }
+                                break;
+                            }
+
+                        case SDL_v:
+                            {
+                                if(false
+                                        || rstEvent.key.keysym.mod & KMOD_LCTRL
+                                        || rstEvent.key.keysym.mod & KMOD_RCTRL){
+                                    extern Game *g_Game;
+                                    m_TokenBoard->InsertXML(g_Game->Clipboard());
+                                }
+                                break;
+                            }
+
+                        default:
+                            {
+                                // end of special event handle, normal input
+                                chKeyName = SDLKeyEventChar(rstEvent);
+                                if(chKeyName != '\0'){
+                                    m_TokenBoard->AddUTF8Char(int(chKeyName));
+                                    return true;
+                                }
+                            }
+
                     }
 
                     if(rstEvent.key.keysym.sym == SDLK_LEFT){
@@ -261,131 +335,89 @@ void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
 }
 
 // we always move the cursor point into the visiable region
-// and only do this
+// in this model inputboard is a view window of the tokenboard
+//
 void InputBoard::ResetTokenBoardLoction()
 {
     int nX, nY, nW, nH;
     GetCursorInfo(&nX, &nY, &nW, &nH);
 
+    int nTokenBoardX = m_TokenBoard->X();
+    int nTokenBoardY = m_TokenBoard->Y();
 
+    int nInputBoardX = X();
+    int nInputBoardY = Y();
 
+    // get the relative view window on the tokenboard
+    int nDX = nInputBoardX - nTokenBoardX;
+    int nDY = nInputBoardY - nTokenBoardY;
+    int nDW = W();
+    int nDH = H();
 
-    if(m_TokenBoard.Empty()){
-        m_ShowStartX = 0;
-        m_ShowStartY = 0;
-        return;
-    }
+    if(!RectangleInside(nDX, nDY, nDW, nDH, nX, nY, nW, nH)){
+        // cursor is not contained in the view window, need to be reset
+        if(nX < nDX){
+            m_TokenBoard->Move(nDX - nX, 0);
+        }
 
-    if(m_Line[m_BindTokenBoxIndex].Cache.StartX < m_ShowStartX){
-        m_ShowStartX = m_Line[m_BindTokenBoxIndex].Cache.StartX
-            - m_Line[m_BindTokenBoxIndex].State.W1;
-        return;
-    }
+        if(nX + nW > nDX + nDW){
+            m_TokenBoard->Move(nX + nW - nDX - nDW, 0);
+        }
 
-    int nBoxEndX = m_Line[m_BindTokenBoxIndex].Cache.StartX
-        + m_Line[m_BindTokenBoxIndex].State.W1
-        + m_Line[m_BindTokenBoxIndex].State.W2
-        + m_Line[m_BindTokenBoxIndex].Cache.W - 1;
+        if(nY < nDY){
+            m_TokenBoard->Move(0, nDY - nY);
+        }
 
-    if(nBoxEndX > m_ShowStartX + m_W - 1){
-        m_ShowStartX = nBoxEndX - m_W + 1;
-        return;
-    }
-
-    // otherwise m_BindTokenBoxIndex is ok
-    // do nothing ??
-}
-
-
-void InputBoard::Draw()
-{
-    if(m_TokenBoard.W() + m_CursorWidth <= m_W){
-        m_TokenBoard.Draw(X(), Y());
-    }else{
-        m_TokenBoard.Draw(X(), Y(), 
-                m_W - m_TokenBoard.W() - m_CursorWidth, 0);
+        if(nY + nW > nDY + nDH){
+            m_TokenBoard->Move(0, nY + nW - nDY - nDH):
+        }
     }
 }
 
 void InputBoard::Draw()
 {
-    int  nX = X();
-    int  nY = Y();
-    bool bStartDraw = false;
-
-    for(int nIndex = 0; nIndex < m_Line.size(); ++nIndex){
-        int nBoxStartX = m_Line[nIndex].Cache.StartX;
-        int nBoxStopX  = m_Line[nIndex].Cache.StartX + m_Line[nIndex].Cache.W - 1;
-
-        if(nBoxStopX >= m_ShowStartX || nBoxStartX <= (m_ShowStartX + m_W - 1)){
-            int nCutX1         = (std::max)(0, m_ShowStartX - nBoxStartX);
-            int nCutX2         = (std::max)(0, nBoxStopX - (m_ShowStartX + m_W - 1));
-            int nDrawBoxStartX = nCutX1;
-            int nDrawBoxStopX  = (m_Line[nIndex].Cache.W - 1) - nCutX2;
-
-            SDL_Rect stSrc, stDst;
-
-            stSrc.x = nDrawBoxStartX;
-            stSrc.y = 0;
-            stSrc.w = nDrawBoxStopX - nDrawBoxStartX + 1;
-            stSrc.h = m_Line[nIndex].Cache.H;
-
-            stDst.x = nX + m_Line[nIndex].Cache.StartX + stSrc.x - m_ShowStartX;
-            stDst.y = nY + (m_H - m_Line[nIndex].Cache.H);
-            stDst.w = stSrc.w;
-            stDst.h = stSrc.h;
-
-            SDL_RenderCopy(GetDeviceManager()->GetRenderer(),
-                    m_Line[nIndex].UTF8CharBox.Cache.Texture[0],
-                    &stSrc, &stDst);
-            bStartDraw = true;
-        }else{
-            if(bStartDraw){
-                return;
-            }
-        }
-    }
-    DrawCursor();
-    DrawSystemCursor();
-}
-
-void InputBoard::DeleteBindTokenBox()
-{
-    if(m_BindTokenBoxIndex.second < 0){
-        if(m_BindTokenBoxIndex.first > 0){
-            // at the beginning of some line
-
-            Compile();
-        }
+    if(In(m_TokenBoard->X(), m_TokenBoard->Y(),
+                m_TokenBoard->W(), m_TokenBoard->H())){
+        m_TokenBoard->Draw();
     }else{
-        // bind to some tokenbox for sure
+        int nTokenBoardX = m_TokenBoard->X();
+        int nTokenBoardY = m_TokenBoard->Y();
 
-        Compile();
+        int nInputBoardX = X();
+        int nInputBoardY = Y();
+
+        // get the relative view window on the tokenboard
+        int nDX = nInputBoardX - nTokenBoardX;
+        int nDY = nInputBoardY - nTokenBoardY;
+        int nDW = W();
+        int nDH = H();
+
+        // clip to draw
+        m_TokenBoard->Draw(nDX, nDY, nDW, nDH);
     }
-}
 
-void InputBoard::DrawCursor()
-{
-    if(m_Ticks % 1000 < 500 && m_Focus){
-        if(m_BindTokenBoxIndex.first >= 0 && m_BindTokenBoxIndex.second >= 0){
-            // cursor binding to some box
-            int nStartX, nStartY, nW, nW1, nW2, nH, nH1, nH2;
-            m_TokenBoard.TokenBoxLocationInfo(m_BindTokenBoxIndex.first, m_BindTokenBoxIndex.second,
-                    nStartX, nStartY, nW, nW1, nW2, nH, nH1, nH2);
+    // +-------------------------+
+    // |                         |
+    // |      XXXXXX | XXXXXX    |
+    // |      I                  |
+    // +-------------------------+
+    //
+    // | : blinking cursor in the box
+    // I : mouse pointer to select input cursor position
 
-            fnDrawCursor(X() + nStartX + nW - nW1 - nW2,
-                    Y() + nStartY + nH - nH1 - nH2, m_CursorWidth, m_CursorColor);
+    // 1. draw ``I" cursor
+    int nX, nY, nW, nH;
+    GetCursorInfo(&nX, &nY, &nW, &nH);
 
-        }else{
-            if(m_BindTokenBoxIndex.second < 0){
-                // start with empty line
-            }
-        }
+    if(((int)m_MS % 1000) < 500 && Focus()){
+        SDL_Rect stRect {nX, nY, nW, nH};
+        extern SDLDevice   *g_SDLDevice;
+        g_SDLDevice->PushColor(m_CurorColor.r, m_CurorColor.g, m_CurorColor.b, m_CurorColor.a);
+        g_SDLDevice->FillRectangle(stRect);
     }
-}
 
-void InputBoard::DrawSystemCursor()
-{
+    // 2. draw ``|" cursor
+
     if(m_DrawOwnSystemCursor){
         GetDeviceManager()->SetRenderDrawColor(200, 200, 200, 200);
         SDL_RenderDrawLine(
@@ -407,94 +439,9 @@ void InputBoard::DrawSystemCursor()
         GetDeviceManager()->SetRenderDrawColor(0, 0, 0, 0);
     }
 
-    if(m_ShowSystemCursorCount < m_InputBoxCount){
+    if(s_ShowSystemCursorCount < s_InputBoardCount){
         SDL_ShowCursor(0);
     }else{
         SDL_ShowCursor(1);
     }
-}
-
-void InputBoard::Compile()
-{
-    m_XMLContent.clear();
-
-    m_Line.clear();
-
-    TOKENBOX stTokenBox;
-
-    const char *pStart = m_Content.c_str();
-    const char *pEnd   = pStart;
-
-    while(*pEnd != '\0'){
-        pStart = pEnd;
-        utf8::unchecked::advance(pEnd, 1);
-        std::memset(stTokenBox.UTF8CharBox.Data, 0, 8);
-        if(pEnd - pStart == 1 && (*pStart == '\n' || *pStart == '\t' || *pStart == '\r')){
-            // continue;
-            stTokenBox.UTF8CharBox.Data[0] = ' ';
-        }else{
-            std::memcpy(stTokenBox.UTF8CharBox.Data, pStart, pEnd - pStart);
-        }
-        LoadUTF8CharBoxCache(stTokenBox);
-        PushBack(stTokenBox);
-    }
-    SetTokenBoxStartX();
-}
-
-void InputBoard::SetTokenBoxStartX()
-{
-    int nCurrentX = 0;
-    for(auto &stTokenBox: m_Line){
-        nCurrentX += stTokenBox.State.W1;
-        stTokenBox.Cache.StartX = nCurrentX;
-        nCurrentX += stTokenBox.Cache.W;
-        nCurrentX += stTokenBox.State.W2;
-    }
-}
-
-void InputBoard::PushBack(TOKENBOX &stTokenBox)
-{
-    stTokenBox.State.W1 = 0;
-    // stTokenBox.State.W2 = 0;
-    stTokenBox.State.W2 = 1;
-    m_Line.push_back(stTokenBox);
-}
-
-void InputBoard::LoadUTF8CharBoxCache(TOKENBOX &stTokenBox)
-{
-    std::memcpy(m_CharBoxCache.Data, stTokenBox.UTF8CharBox.Data, 8);
-
-    stTokenBox.UTF8CharBox.Cache.Texture[0] = GetFontTextureManager()->RetrieveTexture(m_CharBoxCache);
-    SDL_QueryTexture(stTokenBox.UTF8CharBox.Cache.Texture[0],
-            nullptr, nullptr, &(stTokenBox.Cache.W), &(stTokenBox.Cache.H));
-    stTokenBox.Cache.H1     = stTokenBox.Cache.H;
-    stTokenBox.Cache.H2     = 0;
-    stTokenBox.Cache.StartY = 0;
-
-    m_H = (std::max)(m_H, stTokenBox.Cache.H);
-}
-
-void InputBoard::SetContent(const char *szInfo)
-{
-    if(szInfo){
-        m_Content = szInfo;
-    }else{
-        m_Content = "";
-    }
-    Compile();
-    m_BindTokenBoxIndex = m_Content.size() - 1;
-    ResetShowStartX();
-}
-
-const char *InputBoard::Content()
-{
-    return m_Content.c_str();
-}
-
-void InputBoard::SetProperH()
-{
-    TOKENBOX stTokenBox;
-    stTokenBox.UTF8CharBox.Data[0] = ' ';
-    stTokenBox.UTF8CharBox.Data[1] = '\0';
-    LoadUTF8CharBoxCache(stTokenBox);
 }

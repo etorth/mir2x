@@ -3,7 +3,7 @@
  *
  *       Filename: widget.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/26/2016 11:54:47
+ *  Last Modified: 03/26/2016 16:30:18
  *
  *    Description: public API for class game only
  *
@@ -77,6 +77,7 @@ class Widget
         // Draw is something that every widget should have
         // so make it pure virtual
         virtual void Draw(int, int) = 0;
+        virtual void Draw(int, int, int, int) = 0;
 
         virtual void Update(double)
         {
@@ -171,6 +172,13 @@ class Widget
         bool Focus()
         {
             return m_Focus;
+        }
+
+        // always relatively move the widget
+        void Move(int nDX, int nDY)
+        {
+            m_X += nDX;
+            m_Y += nDY;
         }
 
     protected:

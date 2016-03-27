@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/26/2016 12:38:36
+ *  Last Modified: 03/26/2016 17:55:38
  *
  *    Description: Design TBD.
  *
@@ -123,7 +123,8 @@
  *
  *                    or use (bSelectable, bWithCursor) with value:
  *                    1. (0, 0): basic button-like text-terminal
- *                    2. (0, 1): can't select, but can put cursor everywhere and insert
+ *                    2. (0, 1): can't select, but can put cursor everywhere and insert, when push
+ *                               and moving mouse, the cursor moving respectively
  *                    3. (1, 0): sent-message box, no cursor shown
  *                    4. (1, 1): classical input box
  *
@@ -156,6 +157,22 @@
 // SECTIONSTATE     : dynamic data
 class TokenBoard: public Widget
 {
+    // +-----------------------------+
+    // |           0                 |
+    // |  +---------------------+    |
+    // |  |XXXXXXXX:)           |    |
+    // |3 |XXXXXXXXXXXXXXX      | 1  |
+    // |  |          XX         |    |
+    // |  +---------------------+    |
+    // |                             |
+    // |           2                 |
+    // +-----------------------------+
+
+    // 1. Marg0 ~ Marg3 is for cursor blitting
+    // 2. Internal box is for tokenbox *only*, |X X X  X|, no extra space
+    //    any more in it beside the boundary
+    // 3. The outer box as a whole to accept events
+
     public:
         // parameters
         //
@@ -167,23 +184,24 @@ class TokenBoard: public Widget
         // nMinTextMargin
         // nMinTextLineSpace
         //
-        TokenBoard(int nX, int nY, bool bSelectable, bool bWithCursor, 
+        TokenBoard(int nX, int nY, bool bSelectable, bool bWithCursor, bool bSpacing,
                 int nMaxWidth = -1, int nMinTextMargin = 0, int nMinTextLineSpace = 0,
+                int nXMargin, int nYMargin,
                 Widget *pWidget = nullptr, bool bFreeWidget = false)
             : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
-            , m_WithCursor(bWithCursor)
-            , m_Selectable(bSelectable)
-            , m_PW(nMaxWidth)
-            , m_CurrentWidth(0)
-            , m_SkipEvent(false)
-            , m_Resolution(20)
-            , m_MinTextMargin(nMinTextMargin)
-            , m_MinTextLineSpace(nMinTextLineSpace)
-        {
-            if(m_PW > 0){
-                m_W = m_PW;
-            }
+              , m_WithCursor(bWithCursor)
+              , m_Selectable(bSelectable)
+              , m_PW(nMaxWidth)
+              , m_CurrentWidth(0)
+              , m_SkipEvent(false)
+              , m_Resolution(20)
+              , m_MinTextMargin(nMinTextMargin)
+              , m_MinTextLineSpace(nMinTextLineSpace)
+    {
+        if(m_PW > 0){
+            m_W = m_PW;
         }
+    }
         virtual ~TokenBoard() = default;
 
     public:
@@ -369,6 +387,8 @@ class TokenBoard: public Widget
         {
             return m_MinMarginBtwLine;
         }
+
+        void Delete(bool);
 
     private:
         int m_MinMarginBtwBox;

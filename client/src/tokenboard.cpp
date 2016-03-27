@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/26/2016 12:31:07
+ *  Last Modified: 03/26/2016 17:31:51
  *
  *    Description: 
  *
@@ -1679,4 +1679,27 @@ bool TokenBoard::GetTokenBoxInfo(int nX, int nY,
     if(pW2  ){ *pW2   = m_LineV[nY][nX].State.W2;                 }
 
     return true;
+}
+
+// remove tokens, for bShadowOnly
+//    1:  only shadow will be deleted, for CTRL-X
+//    0:  if there is shadow, remove shadow, else remove, current cursor bound tokenbox
+void TokenBoard::Delete(bool bShadowOnly)
+{
+    int nX1, nY1, nX2, nY2;
+    if(m_SelectState == 2){
+        nX1 = m_SelectStartLoc.first;
+        nY1 = m_SelectStartLoc.second;
+        nX2 = m_SelectStopLoc.first;
+        nY2 = m_SelectStopLoc.second;
+        DeleteTokenBox(nX1, nY1, nX2, nY2);
+    }else{
+        // so when you selecting and hold the left mouse button
+        // and then press backspace, it won't be deleted
+        if(!bShadowOnly){
+            nX1 = nX2 = m_CursorLoc.first;
+            nY1 = nY2 = m_CursorLoc.second;
+            DeleteTokenBox(nX1, nY1, nX2, nY2);
+        }
+    }
 }
