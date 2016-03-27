@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/26/2016 17:31:51
+ *  Last Modified: 03/26/2016 18:33:28
  *
  *    Description: 
  *
@@ -1700,6 +1700,60 @@ void TokenBoard::Delete(bool bShadowOnly)
             nX1 = nX2 = m_CursorLoc.first;
             nY1 = nY2 = m_CursorLoc.second;
             DeleteTokenBox(nX1, nY1, nX2, nY2);
+        }
+    }
+}
+
+// for delete, (x, y) are location of tokens, not cursor
+// this funciton is for internal use only
+//
+// outer user can only call Delete(bool) to delete by cursor
+// or by selected region
+void TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
+{
+    // TODO & TBD
+    // think about this boundary check
+    //
+    if(nY0 < 0){
+        nX0 = 0;
+        nY0 = 0;
+    }
+
+    if(nY1 >= m_LineV.size()){
+        nX1 = m_LineV.back().size() - 1;
+        nY1 = m_LineV.size() - 1;
+    }
+
+    if((nY0 > nY1) || (nY0 == nY1 && nX0 > nX1)){ return; }
+
+    nY0 = std::max(0, std::min(nY0, m_LineV.size()));
+    nY1 = std::max(0, std::min(nY1, m_LineV.size()));
+    nX0 = std::max(0, std::min(nX0, m_LineV[nY0].size()));
+    nX1 = std::max(0, std::min(nX1, m_LineV[nY1].size()));
+
+    // now (x0, y0, x1, y1) are well-prepared
+    if(nY0 == nY1){
+        m_LineV[nY0].erase(m_LineV[nY0].begin() + nX0, m_LineV[nY0].begin() + nX1 + 1);
+        if(nY0 != m_LineV.size() - 1){
+            m_LineV[nY0].insert(m_LineV[nY0].end(),
+                    m_LineV[nY0 + 1].begin(), m_LineV[nY0 + 1].begin());
+            m_LineV.erase(m_LineV.begin() + nY0 + 1);
+        }
+    }else{
+        m_LineV[nY0].resize(nX0);
+        m_LineV[nY0].insert(m_LineV[nY1].begin() + nX1, m_LineV[nY1].end());
+        m_LineV.erase(m_LineV.begin() + nY0 + 1, m_LineV.begin() + nY1 + 1);
+    }
+
+    while(m_LineV[nY0].size() > 0){
+        nRawLen = LineRawWidth(nY0);
+        if(nRawLen + (m_LineV[nY].size() - 1) * m_MinMarginBtwBox <= m_PW){
+            // we are good
+            ResetLine(nY);
+            break;
+        }else{
+            AddTokenBox(nY + 1, 0, m_LineV[nY].back());
+            m_LineV[nY].pop_back();
         }
     }
 }
