@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/27/2016 12:35:16
+ *  Last Modified: 03/27/2016 23:07:48
  *
  *    Description: 
  *
@@ -226,6 +226,61 @@ bool TokenBoard::InnInsert(const tinyxml2::XMLDocument &rstDoc,
     return bRes;
 }
 
+bool TokenBoard::GetAttributeColor(SDL_Color *pOutColor, const SDL_Color &rstDefaultColor,
+        const tinyxml2::XMLElement &rstObject, const std::vector<std::string> &szQueryStringV)
+{
+    const char *pText = nullptr;
+    for(auto &szKey: szQueryStringV){
+        if((pText) = rstObject.Attribute(szKey.c_str())){
+            break;
+        }
+    }
+
+    if(pText){
+        SDL_Color stColor {0X00, 0X00, 0X00, 0XFF};
+        if(false
+                || !std::strcmp(pText, "RED")
+                || !std::strcmp(pText, "Red")
+                || !std::strcmp(pText, "red")){
+            stColor.r = 0XFF;
+        }else if(false
+                || !std::strcmp(pText, "GREEN")
+                || !std::strcmp(pText, "Green")
+                || !std::strcmp(pText, "green")){
+            stColor.g = 0XFF;
+        }else if(false
+                || !std::strcmp(pText, "BLUE")
+                || !std::strcmp(pText, "Blue")
+                || !std::strcmp(pText, "blue")){
+            stColor.b = 0XFF;
+        }else if(false
+                || !std::strcmp(pText, "YELLOW")
+                || !std::strcmp(pText, "Yellow")
+                || !std::strcmp(pText, "yellow")){
+            stColor.r = 0XFF;
+            stColor.g = 0XFF;
+        }else if(false
+                || !std::strcmp(pText, "PURPLE")
+                || !std::strcmp(pText, "Purple")
+                || !std::strcmp(pText, "purple")){
+            stColor.r = 0X80;
+            stColor.b = 0X80;
+        }else{
+            // TODO
+            // 1. support more color, like pink, purple etc
+            // 2. support alpha
+            // 3. support color like 0X23FF93AB
+        }
+
+        if(pOutColor){ *pOutColor = stColor; }
+        return true;
+    }else{
+        if(pOutColor){ *pOutColor = stDefaultColor; }
+        return false;
+    }
+}
+
+
 // get the intergal attribute
 // 1. if no error occurs, pOut will be the convert result, return true
 // 2. any error, return false and pOut is the default value
@@ -442,9 +497,17 @@ bool TokenBoard::ParseTextObject(
         }
     }
 
-    stSection.Info.Text.Color[0] = GetEventTextCharColor(rstCurrentObject, (szID) ? 0 : (-1));
-    stSection.Info.Text.Color[1] = GetEventTextCharColor(rstCurrentObject, (szID) ? 1 : (-1));
-    stSection.Info.Text.Color[2] = GetEventTextCharColor(rstCurrentObject, (szID) ? 2 : (-1));
+    if(nObjectType == OBJECTTYPE_PLAINTEXT){
+        GetAttributeColor(stSection.Info.Text.Color,
+                {0XFF, 0XFF, 0XFF, 0XFF}, rstCurrentObject, {"COLOR", "Color", "color"});
+    }else{
+        GetAttributeColor(stSection.Info.Text.Color + 0,
+                {0XFF, 0XFF, 0X00, 0XFF}, rstCurrentObject, {"OFF", "Off", "off"});
+        GetAttributeColor(stSection.Info.Text.Color + 1,
+                {0X00, 0XFF, 0X00, 0XFF}, rstCurrentObject, {"OFF", "Off", "off"});
+        GetAttributeColor(stSection.Info.Text.Color + 2,
+                {0XFF, 0X00, 0X00, 0XFF}, rstCurrentObject, {"OFF", "Off", "off"});
+    }
 
     stSection.State.Text.Event = 0;
 
@@ -1880,7 +1943,7 @@ bool TokenBoard::AddTokenBoxV(int nX, int nY, const std::vector<TOKENBOX> & rstT
 
     // now (nX, nY) are well-defined
     m_LineV[nY].insert(m_LineV[nY].begin() + nX, rstTBV.begin(), rstTBV.end());
- 
+
     if(m_PW <= 0){
         // we don't have to wrap, easy case
         ResetLine(nY);
