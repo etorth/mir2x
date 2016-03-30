@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/29/2016 16:45:25
+ *  Last Modified: 03/29/2016 22:02:27
  *
  *    Description: Design TBD.
  *
@@ -130,7 +130,38 @@
  *
  *                    Let's use (bSelectable, bWithCursor), having cursor means editable.
  *
+ * ===================================================
  *
+ *                    Add another flag: bCanThrough, if true
+ *
+ *
+ *                    +-----+  +---+
+ *                    |     |  |   |
+ *                    |     |  |   |  +----+
+ *                L1  +-----+--+   +- |    |  <--- this is can through
+ *                             |   |  |    |
+ *                             +---+  |    |
+ *                           +-----+  |    |
+ *                           |     |  |    |
+ *                           |     |  |    |
+ *                L2  -------+-----+--+----+
+ *
+ *
+ *                    if bCanThrough = false:
+ *
+ *                    +-----+  +---+
+ *                    |     |  |   |
+ *                    |     |  |   | 
+ *                 L1 +-----+--+   +---------
+ *                             |   |
+ *                             +---+
+ *                                    +----+  <--- this is can't through
+ *                                    |    |
+ *                                    |    |
+ *                           +-----+  |    |
+ *                           |     |  |    |
+ *                           |     |  |    |
+ *                 L2 -------+-----+--+----+
  *
  *        Version: 1.0
  *       Revision: none
@@ -197,6 +228,7 @@ class TokenBoard: public Widget
                 bool    bSelectable,
                 bool    bWithCursor,
                 bool    bSpacing,
+                bool    bCanThrough,
                 int     nMaxWidth   = -1,
                 int     nWordSpace  =  0,
                 int     nLineSpace  =  0,
@@ -210,6 +242,7 @@ class TokenBoard: public Widget
               , m_WithCursor(bWithCursor)
               , m_Selectable(bSelectable)
               , m_Spacing(bSpacing)
+              , m_CanThrough(bCanThrough)
               , m_PW(nMaxWidth)
               , m_CurrentWidth(0)
               , m_SkipEvent(false)
@@ -256,6 +289,8 @@ class TokenBoard: public Widget
     private:
         bool    m_WithCursor;
         bool    m_Selectable;
+        bool    m_Spacing;
+        bool    m_CanThrough;
         int     m_MaxH1;
         int     m_MaxH2;
         int     m_CurrentLineMaxH2;
@@ -277,8 +312,6 @@ class TokenBoard: public Widget
 
     private:
         const tinyxml2::XMLElement *NextObject(const tinyxml2::XMLElement *);
-    private:
-        bool IntervalOverlapped(int, int, int, int);
         void AddNewTokenBoxLine(bool);
 
     private:
