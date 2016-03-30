@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/27/2016 11:33:09
+ *  Last Modified: 03/29/2016 16:45:25
  *
  *    Description: Design TBD.
  *
@@ -414,6 +414,21 @@ class TokenBoard: public Widget
         bool AddTokenBoxV(const std::vector<TOKENBOX> &rstTBV)
         {
             return AddTokenBoxV(m_CursorLoc.first, m_CursorLoc.second, rstTBV);
+        }
+
+        // always we need an default environment
+        void SetDefaultFont(
+                uint8_t nFont, uint8_t nSize, uint8_t nStyle, const SDL_Color &rstColor)
+        {
+            m_DefaultFont  = nFont;
+            m_DefaultSize  = nSize;
+            m_DefaultStyle = nStyle;
+            m_DefaultColor = rstColor;
+        }
+
+        bool Empty()
+        {
+            return m_LineV.empty();
         }
 
     private:

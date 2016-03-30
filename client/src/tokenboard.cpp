@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/27/2016 23:07:48
+ *  Last Modified: 03/29/2016 18:11:35
  *
  *    Description: 
  *
@@ -1989,7 +1989,7 @@ bool TokenBoard::AddTokenBoxV(int nX, int nY, const std::vector<TOKENBOX> & rstT
     }
 
     // afer this, the tokenboard is valid again
-    return AddTokenBox(nY + 1, 0, stRestTBV);
+    return AddTokenBoxV(nY + 1, 0, stRestTBV);
 }
 
 // Insert a return at any position *inside* a text block
@@ -2173,10 +2173,53 @@ void TokenBoard::Clear()
     m_LastTokenBox     = nullptr;
 }
 
-bool TokenBoard::LoadReturnObject()
+// add a <CR> before the current cursor, since we defined the concept of ``default font",
+// let's support ``empty line".
+//
+// HOWTO:
+//      1. 
+//
+// assmuption:
+//      1. the current board is valid
+//      2. there is valid buffer for the insertion
+//      3. cursor position is well-defined
+//
+void TokenBoard::ParseReturnObject()
 {
-    if(!m_LineV.back().empty()){
-        m_EndWithReturn.push_back(true);
-        ResetLine(m_LineV.size() - 1);
+    int nX = m_CursorLoc.first;
+    int nY = m_CursorLoc.second;
+
+    if(!(nY >= 0 && nY < m_LineV.size() && nX >= 0 && nX <= m_LineV[nY].size())){
+        // invalid cursor location, bye
+        return;
+    }
+
+    if(nX == m_LineV[nY].size() && m_EndWithReturn[nY]){
+        // currently we are at the end of the line
+    }
+
+    // if we are at the end of the line
+    // then we only have to add a blank space for the next line
+    // we use specified logics to handle this since it helps 
+    if()
+
+    // get the content after the cursor, maybe empty
+    std::vector<TOKENBOX> stTBV(m_LineV[nY].begin() + nX, m_LineV[nY].end());
+    m_LineV[nY].resize(nX);
+
+
+    if(m_EndWithReturn[nY]){
+        m_LineV.insert(m_LineV.begin() + nY, stTBV);
+        m_EndWithReturn.insert(m_EndWithReturn.begin() + nY, true);
+    }
+
+    ResetLine(nY + 1);
+}
+
+void TokenBoard::MoveLine(int nStartLine, int nDY)
+{
+    for(int nIndex = std::max(0, nStartLine); nIndex < (int)m_LineV.size(); ++nIndex){
+        m_LineStartY[nIndex] += nDY;
+        SetTokenBoxStartY(nIndex, m_LineStartY[nIndex]);
     }
 }
