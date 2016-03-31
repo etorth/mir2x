@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/29/2016 22:02:27
+ *  Last Modified: 03/30/2016 15:04:36
  *
  *    Description: Design TBD.
  *
@@ -191,6 +191,7 @@ enum XMLObjectType: int{
     OBJECTTYPE_PLAINTEXT    = 2,
     OBJECTTYPE_EVENTTEXT    = 3,
     OBJECTTYPE_EMOTICON     = 4,
+    OBJECTTYPE_ENDOFLINE    = 5,
 };
 
 class TokenBoard: public Widget

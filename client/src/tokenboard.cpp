@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/29/2016 18:11:35
+ *  Last Modified: 03/30/2016 18:25:09
  *
  *    Description: 
  *
@@ -1217,7 +1217,10 @@ void TokenBoard::ResetLine(int nLine)
 {
     if(nLine < 0 || nLine >= (int)m_LineV.size()){ return; }
 
-    SetTokenBoxPadding(nLine);
+    if(!m_EndWithReturn[nLine]){
+        SetTokenBoxPadding(nLine);
+    }
+
     SetTokenBoxStartX(nLine);
 
     int nWidth = LineFullWidth(nLine);
@@ -2194,26 +2197,45 @@ void TokenBoard::ParseReturnObject()
         return;
     }
 
-    if(nX == m_LineV[nY].size() && m_EndWithReturn[nY]){
-        // currently we are at the end of the line
-    }
+    // anyway we need to handle it case by case
+    // so do it in detail
 
-    // if we are at the end of the line
-    // then we only have to add a blank space for the next line
-    // we use specified logics to handle this since it helps 
-    if()
+    // 1. decide whether last line will be in affect
+    if(nX == 0 && nY > 0 && !m_EndWithReturn[nY - 1]){
+        // 1. cursor it at the beginning
+        // 2. current is not the first line
+        // 3. last line doesn't end with <CR>
+        m_EndWithReturn[nY - 1] = true;
+        ResetOneLine(nY - 1);
+    }
 
     // get the content after the cursor, maybe empty
     std::vector<TOKENBOX> stTBV(m_LineV[nY].begin() + nX, m_LineV[nY].end());
     m_LineV[nY].resize(nX);
 
+    // backup current line end state
+    bool bEndWithReturn = m_EndWithReturn[nY];
 
-    if(m_EndWithReturn[nY]){
+    // 2. reset current line
+    m_EndWithReturn[nY] = true;
+    ResetOneLine(nY);
+
+    // 3. handle following line
+    if(bEndWithReturn){
+        // the original line ends with return, then we insert a new line
+        // actually if the cursor is at the beginning, then we even don't have
+        // to re-padding it
+        //
+        // since only one line, it's OK
         m_LineV.insert(m_LineV.begin() + nY, stTBV);
         m_EndWithReturn.insert(m_EndWithReturn.begin() + nY, true);
-    }
+        ResetOneLine(nY + 1);
 
-    ResetLine(nY + 1);
+        // reset all startY for the rest
+        RestLineStartY(nY + 2);
+    }else{
+        AddTokenBoxV(nY + 1, stTBV);
+    }
 }
 
 void TokenBoard::MoveLine(int nStartLine, int nDY)
@@ -2221,5 +2243,84 @@ void TokenBoard::MoveLine(int nStartLine, int nDY)
     for(int nIndex = std::max(0, nStartLine); nIndex < (int)m_LineV.size(); ++nIndex){
         m_LineStartY[nIndex] += nDY;
         SetTokenBoxStartY(nIndex, m_LineStartY[nIndex]);
+    }
+}
+
+// reset one line for
+// 1. do padding if needed
+// 2. calculate the cache.startx
+// 3. calculate the cache.starty
+//
+// assmuption:
+//      1. Line 0 ~ (nLine - 1) are valid
+//      2.
+//
+// return:
+//      1. Line 0 ~ nLine are valid
+void TokenBoard::ResetOneLine(int nLine)
+{
+    if(nLine < 0 || nLine >= (int)m_LineV.size()){
+        // invalid line, just return
+        return;
+    }
+
+    if(!m_EndWithReturn[nLine]){
+        SetTokenBoxPadding(nLine);
+    }
+    SetTokenBoxStartX(nLine);
+
+    m_LineStartY[nLine] = GetNthNewLineStartY(nLine);
+    SetTokenBoxStartY(nLine, m_LineStartY[nLine]);
+}
+
+// reset the StartY from nStartLine to the end
+//
+// why define this function, because most of the time we update (nStartLine - 1), reset its StartX/Y
+// and then the first half [0, nStartLine - 1] of the board is valid, but we need to adjust the sec-
+// ond part of the board, which only needs recalculate for StartY. We can calculate StartY one line
+// by one line but this is not good though, we can find the longest line of the rest, say line N,
+// then for line [nStartLine, N] we do it one by one, but for [N + 1, end()) we do simplily add nDY
+// for each line and it's good enough.
+//
+// assumption:
+//      1. Line 0 ~ (nStartLine - 1) are valid 
+//      2. if take 0 ~ (nStartLine - 1) out, and reset StartY for nStartLine ~ end() as a new
+//         board, then this new board is also ``valid".
+//
+// return:
+//      1. a valid board
+//
+void TokenBoard::ResetLineStartY(int nStartLine)
+{
+    if(nStartLine < 0 || nStartLine >= m_LineV.size()){
+        // invalid line number, just return
+        return;
+    }
+
+    int nLongestLine  = m_LineV.size() - 1;
+    int nLongestLineW = -1;
+
+    // get the longest line, by assumption we can directly use cache info
+    for(int nIndex = nStartLine; nIndex < m_LineV.size(); ++nIndex){
+        if(!m_LineV[nIndex].empty()){
+            const auto &rstTB = m_LineV[nIndex].back();
+            // actually back().State.W2 is always 0, put it here for nothing
+            int nCurrentWidth = rstTB.Cache.StartX + rstTB.Cache.W + rstTB.State.W2;
+            if(nCurrentWidth > nLongestLineW){
+                nLongestLineW = nCurrentWidth;
+                nLongestLine  = nIndex;
+            }
+        }
+    }
+
+    int nOldLongestLineStartY = m_LineStartY[nLongestLine];
+    for(nIndex = nStartLine; nIndex < m_LineV.size() && nIndex <= nLongestLine; ++nIndex){
+        m_LineStartY[nIndex] = GetNthNewLineStartY(nIndex);
+        SetTokenBoxStartY(nIndex, m_LineStartY[nIndex]);
+    }
+
+    int nDStartY = m_LineStartY[nIndex] - nOldLongestLineStartY;
+    for(int nIndex = nLongestLine + 1; nIndex < m_LineV.size(); ++nIndex){
+        m_LineStartY[nIndex] += nDStartY;
     }
 }
