@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/30/2016 15:04:36
+ *  Last Modified: 03/30/2016 22:34:15
  *
  *    Description: Design TBD.
  *
@@ -224,37 +224,49 @@ class TokenBoard: public Widget
         // nLineSpace
         //
         TokenBoard(
-                int     nX,
-                int     nY,
-                bool    bSelectable,
-                bool    bWithCursor,
-                bool    bSpacing,
-                bool    bCanThrough,
-                int     nMaxWidth   = -1,
-                int     nWordSpace  =  0,
-                int     nLineSpace  =  0,
-                int     nMargin0    =  0,
-                int     nMargin1    =  0,
-                int     nMargin2    =  0,
-                int     nMargin3    =  0,
-                Widget *pWidget     = nullptr,
-                bool    bFreeWidget = false)
-            : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
-              , m_WithCursor(bWithCursor)
-              , m_Selectable(bSelectable)
-              , m_Spacing(bSpacing)
-              , m_CanThrough(bCanThrough)
-              , m_PW(nMaxWidth)
-              , m_CurrentWidth(0)
-              , m_SkipEvent(false)
-              , m_Resolution(20)
-              , m_WordSpace(nWordSpace)
-              , m_LineSpace(nLineSpace)
-    {
-        if(m_PW > 0){
-            m_W = m_PW;
+                int              nX,
+                int              nY,
+                bool             bSelectable,
+                bool             bWithCursor,
+                bool             bSpacing,
+                bool             bCanThrough,
+                int              nMaxWidth       = -1,
+                int              nWordSpace      = 0,
+                int              nLineSpace      = 0,
+                uint8_t          nDefaultFont    = 0,
+                uint8_t          nDefaultSize    = 10,
+                uint8_t          nDefaultStyle   = 0,
+                const SDL_Color &rstDefaultColor = {0XFF, 0XFF, 0XFF, 0XFF},
+                int              nMargin0        = 0,
+                int              nMargin1        = 0,
+                int              nMargin2        = 0,
+                int              nMargin3        = 0,
+                Widget          *pWidget         = nullptr,
+                bool             bFreeWidget     = false):
+            Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
+            , m_WithCursor(bWithCursor)
+            , m_Selectable(bSelectable)
+            , m_Spacing(bSpacing)
+            , m_CanThrough(bCanThrough)
+            , m_PW(nMaxWidth)
+            , m_CurrentWidth(0)
+            , m_SkipEvent(false)
+            , m_Resolution(20)
+            , m_WordSpace(nWordSpace)
+            , m_LineSpace(nLineSpace)
+            , m_CursorLoc(-1, -1)
+            , m_DefaultFont(nDefaultFont)
+            , m_DefaultSize(nDefaultSize)
+            , m_DefaultStyle(nDefaultStyle)
+            , m_DefaultColor(rstDefaultColor)
+            , m_Margin{
+                nMargin0, nMargin1, nMargin2, nMargin3
+            }
+        {
+            if(m_PW > 0){
+                m_W = m_PW;
+            }
         }
-    }
 
         virtual ~TokenBoard() = default;
 
@@ -411,6 +423,31 @@ class TokenBoard: public Widget
         int  m_LineSpace;
 
     private:
+        std::pair<int, int> m_CursorLoc;
+        
+    private:
+        // this is used when insert words, empty lines, etc.
+        uint8_t   m_DefaultFont;
+        uint8_t   m_DefaultSize;
+        uint8_t   m_DefaultStyle;
+        SDL_Color m_DefaultColor;
+
+    private:
+        // margins for the board, this is needed for balabala..
+        //
+        //  +-------------------------+
+        //  |        M0               |
+        //  |  +-------------+        |
+        //  |  |             |        |
+        //  |M3|             |  M1    |
+        //  |  |             |        |
+        //  |  +-------------+        |
+        //  |        M2               |
+        //  +-------------------------+
+        //
+        int  m_Margin[4];
+
+    private:
         // callbacks
         std::vector<std::function<void()>> m_IDFuncV;
 
@@ -424,6 +461,9 @@ class TokenBoard: public Widget
         int GuessResoltion();
 
         void TokenBoxGetMouseButtonUp(const TOKENBOX &, bool);
+
+    public:
+        bool AddTokenBoxV(int, int, const std::vector<TOKENBOX> &);
 
     public:
         void GetCursor(int *pX, int *pY)
@@ -458,11 +498,6 @@ class TokenBoard: public Widget
             m_DefaultSize  = nSize;
             m_DefaultStyle = nStyle;
             m_DefaultColor = rstColor;
-        }
-
-        bool Empty()
-        {
-            return m_LineV.empty();
         }
 
     private:

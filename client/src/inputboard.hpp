@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/26/2016 16:59:08
+ *  Last Modified: 03/31/2016 00:51:39
  *
  *    Description: 
  *
@@ -32,16 +32,27 @@
 class InputBoard: public InputWidget
 {
     public:
-        InputBoard(int nX, int nY,
-                int     nMaxWidth         = -1,
-                int     nMinMarginBtwBox  = 0,
-                int     nMinMarginBtwLine = 0,
-                Widget *pWidget           = nullptr,
-                bool    bFreeWidget       = false)
-            : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
-            , m_PW(nMaxWidth)
-            , m_MinMarginBtwBox(nMinMarginBtwBox)
-            , m_MinMarginBtwLine(nMinMarginBtwLine)
+        InputBoard(
+                int              nX,
+                int              nY,
+                int              nMaxWidth      = -1,
+                int              nWordSpace     = 0,
+                int              nLineSpace     = 0,
+                int              nCursorWidth   = 2,
+                const SDL_Color &rstCursorColor = {0XFF, 0XFF, 0XFF, 0XFF},
+                Widget          *pWidget        = nullptr,
+                bool             bFreeWidget    = false):
+            InputWidget(nX, nY, 0, 0, pWidget, bFreeWidget)
+            , m_TokenBoard(
+                    0,
+                    0,
+                    true,
+                    true,
+                    true,
+                    false,
+                    nMaxWidth,
+                    nWordSpace,
+                    nLineSpace)
         {
             auto pTokenBoard = new TokenBoard(...);
             this->Add(pTokenBoard);
@@ -84,7 +95,7 @@ class InputBoard: public InputWidget
     protected:
         std::vector<TOKENBOX>       m_Line;
         std::string                 m_Content;
-        TokenBoard                 *m_TokenBoard;
+        TokenBoard                  m_TokenBoard;
 
     public:
         static int  m_ShowSystemCursorCount;

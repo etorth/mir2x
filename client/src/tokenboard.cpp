@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/30/2016 18:25:09
+ *  Last Modified: 03/30/2016 22:07:21
  *
  *    Description: 
  *
@@ -197,10 +197,6 @@ bool TokenBoard::InnInsert(const tinyxml2::XMLDocument &rstDoc,
             case OBJECTTYPE_EMOTICON:
                 {
                     bRes = ParseEmoticonObject(*pCurrentObject);
-                    break;
-                }
-                {
-                    bRes = ParseEventTextObject(*pCurrentObject, rstIDHandleMap);
                     break;
                 }
             case OBJECTTYPE_EVENTTEXT:
@@ -468,15 +464,18 @@ bool TokenBoard::ParseTextObject(
 {
     if(nObjectType != OBJECTTYPE_PLAINTEXT || nObjectType != OBJECTTYPE_EVENTTEXT){
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO, "try to parse unknown object type: %d", nObjectType);
+        g_Log->AddLog(LOGTYPE_INFO, "object trying to parse is not text: %d", nObjectType);
         return false;
     }
 
     SECTION stSection;
     std::memset(&stSection, 0, sizeof(stSection));
 
-    // parse event text section desc
-    stSection.Info.Type = SECTIONTYPE_EVENTTEXT;
+    if(nObjectType == OBJECTTYPE_PLAINTEXT){
+        stSection.Info.Type = SECTIONTYPE_PLAINTEXT;
+    }else{
+        stSection.Info.Type = SECTIONTYPE_EVENTTEXT;
+    }
 
     GetAttributeAtoi(&(stSection.Info.Text.Font),
             0, rstCurrentObject, {"FONT", "Font", "font"});
@@ -504,9 +503,9 @@ bool TokenBoard::ParseTextObject(
         GetAttributeColor(stSection.Info.Text.Color + 0,
                 {0XFF, 0XFF, 0X00, 0XFF}, rstCurrentObject, {"OFF", "Off", "off"});
         GetAttributeColor(stSection.Info.Text.Color + 1,
-                {0X00, 0XFF, 0X00, 0XFF}, rstCurrentObject, {"OFF", "Off", "off"});
+                {0X00, 0XFF, 0X00, 0XFF}, rstCurrentObject, {"OVER", "Over", "over"});
         GetAttributeColor(stSection.Info.Text.Color + 2,
-                {0XFF, 0X00, 0X00, 0XFF}, rstCurrentObject, {"OFF", "Off", "off"});
+                {0XFF, 0X00, 0X00, 0XFF}, rstCurrentObject, {"DOWN", "Down", "down"});
     }
 
     stSection.State.Text.Event = 0;
@@ -571,119 +570,34 @@ bool TokenBoard::ParseTextObject(
     return AddTokenBoxV(stTBV);
 }
 
-bool TokenBoard::ParseEventTextObject(const tinyxml2::XMLElement &rstCurrentObject,
-        int nSection, const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
-{
-    SECTION stSection;
-    std::memset(&stSection, 0, sizeof(stSection));
-
-    // parse event text section desc
-    stSection.Info.Type           = SECTIONTYPE_EVENTTEXT;
-    stSection.Info.Text.Font = GetFontIndex(rstCurrentObject);
-    stSection.Info.Text.Style     = GetFontStyle(rstCurrentObject);
-    stSection.Info.Text.Size      = GetFontSize(rstCurrentObject);
-
-    std::function<void()> fnCallback;
-    const char *szID = rstCurrentObject.Attribute("ID");
-
-    if(szID){
-        // add a handler here
-        auto pFuncInst = rstIDHandleMap.find(std::string(szID));
-        if(pFuncInst != rstIDHandleMap.end()){
-            fnCallback = pFuncInst->second;
-        }
-    }
-
-    m_IDFuncV.push_back(fnCallback);
-
-    stSection.Info.Text.Color[0] = GetEventTextCharColor(rstCurrentObject, (szID) ? 0 : (-1));
-    stSection.Info.Text.Color[1] = GetEventTextCharColor(rstCurrentObject, (szID) ? 1 : (-1));
-    stSection.Info.Text.Color[2] = GetEventTextCharColor(rstCurrentObject, (szID) ? 2 : (-1));
-
-    stSection.State.Text.Event = 0;
-    m_SectionV.push_back(stSection);
-
-    // then we parse event text content
-    const char *pStart = rstCurrentObject.GetText();
-    const char *pEnd   = pStart;
-
-    // when get inside this funciton
-    // the section structure has been well-prepared
-    //
-    int nDefaultSize = (int)m_SectionV[nSection].Info.Text.Size;
-
-    uint32_t nFontAttrKey = 0
-        + (((uint32_t)m_SectionV[nSection].Info.Text.Font) << 16)
-        + (((uint32_t)m_SectionV[nSection].Info.Text.Size)      <<  8)
-        + (((uint32_t)m_SectionV[nSection].Info.Text.Style)     <<  0);
-
-
-    while(*pEnd != '\0'){
-        pStart = pEnd;
-        utf8::unchecked::advance(pEnd, 1);
-
-        // should be true
-        assert(pEnd - pStart <= 4);
-
-        uint32_t nUTF8Key = 0;
-        std::memcpy(&nUTF8Key, pStart, pEnd - pStart);
-
-        // fully set the token box unit
-        TOKENBOX stTokenBox;
-        std::memset(&stTokenBox, 0, sizeof(stTokenBox));
-
-        uint64_t nKey = (((uint64_t)nFontAttrKey << 32) + nUTF8Key);
-
-        stTokenBox.Section = nSection;
-        stTokenBox.UTF8CharBox.UTF8Code  = nUTF8Key;
-        stTokenBox.UTF8CharBox.Cache.Key = nKey;
-
-        extern FontexDBN *g_FontexDBN;
-        auto pTexture = g_FontexDBN->Retrieve(nKey);
-        if(pTexture){
-            SDL_QueryTexture(pTexture, nullptr, nullptr, &stTokenBox.Cache.W, &stTokenBox.Cache.H);
-            stTokenBox.Cache.H1    = stTokenBox.Cache.H;
-            stTokenBox.Cache.H2    = 0;
-            stTokenBox.State.Valid = 1;
-        }else{
-            // failed to retrieve, set a []
-            stTokenBox.Cache.W  = nDefaultSize;
-            stTokenBox.Cache.H  = nDefaultSize;
-            stTokenBox.Cache.H1 = nDefaultSize;
-            stTokenBox.Cache.H2 = 0;
-        }
-        if(!AddNewTokenBox(stTokenBox)){
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void TokenBoard::UpdateSection(SECTION &stSection, Uint32 ticks)
-{
-    // only emoticon needs to be updated
-    // but we add API here for further
-    switch(stSection.Info.Type){
-        case SECTIONTYPE_EMOTICON:
-            {
-                Uint32 nMaxTicks     = (Uint32)std::lround(1000.0 / stSection.Info.Emoticon.FPS);
-                Uint32 nCurrentTicks = (Uint32)std::lround(1.0 * ticks + stSection.State.Emoticon.MS);
-                int    nFrameIndex   = stSection.State.Emoticon.FrameIndex + nCurrentTicks / nMaxTicks;
-
-                stSection.State.Emoticon.FrameIndex = nFrameIndex % stSection.Info.Emoticon.FrameCount;
-                stSection.State.Emoticon.MS      = nCurrentTicks % nMaxTicks;
-                break;
-            }
-        default:
-            break;
-    }
-}
-
 void TokenBoard::Update(double fMS)
 {
-    for(auto &stSection: m_SectionV){
-        UpdateSection(stSection, fMS);
+    if(fMS < 0.0 || m_SkipUpdate){ return; }
+
+    for(auto &rstSection: m_SectionV){
+        switch(rstSection.Info.Type){
+            case SECTIONTYPE_EMOTICON:
+                {
+                    // 1.
+                    double fUnitMS     = 1000.0 / rstSection.Info.Emoticon.FPS;
+                    double fCurrentMS  = fMS + rstSection.State.Emoticon.MS;
+                    int    nRawIndex   = (int)std::lround(fCurrentMS / fUnitMS);
+                    int    nFrameCount = rstSection.Info.Emoticon.FrameCount;
+
+                    // 2.
+                    rstSection.State.Emoticon.FrameIndex = nRawIndex % nFrameCount;
+                    rstSection.State.Emoticon.MS         = fCurrentMS;
+
+                    // 3. try to control for the precision
+                    if(rstSection.State.Emoticon.MS > 2000.0 * fUnitMS * nFrameCount){
+                        rstSection.State.Emoticon.MS -= > 1000.0 * fUnitMS * nFrameCount;
+                    }
+
+                    break;
+                }
+            default:
+                break;
+        }
     }
 }
 
@@ -2235,14 +2149,6 @@ void TokenBoard::ParseReturnObject()
         RestLineStartY(nY + 2);
     }else{
         AddTokenBoxV(nY + 1, stTBV);
-    }
-}
-
-void TokenBoard::MoveLine(int nStartLine, int nDY)
-{
-    for(int nIndex = std::max(0, nStartLine); nIndex < (int)m_LineV.size(); ++nIndex){
-        m_LineStartY[nIndex] += nDY;
-        SetTokenBoxStartY(nIndex, m_LineStartY[nIndex]);
     }
 }
 
