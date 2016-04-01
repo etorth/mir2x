@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/30/2016 22:07:21
+ *  Last Modified: 03/31/2016 20:19:58
  *
  *    Description: 
  *
@@ -27,6 +27,8 @@
 #include "utf8char.hpp"
 #include "mathfunc.hpp"
 #include "log.hpp"
+#include "supwarning.hpp"
+#include "colorfunc.hpp"
 
 #include <SDL2/SDL.h>
 #include <algorithm>
@@ -38,91 +40,91 @@
 #include <cassert>
 
 // XML handle functions
-const tinyxml2::XMLElement *TokenBoard::XMLFirstObject(const tinyxml2::XMLElement *pRoot)
+const tinyxml2::XMLElement *TokenBoard::XMLFirstObject(const tinyxml2::XMLElement &rstRoot)
 {
-    const tinyxml2::XMLElement *pCurrentObject = nullptr;
+    const tinyxml2::XMLElement *pObject = nullptr;
 
-    if(!pRoot){
-    }else if((pCurrentObject = pRoot->FirstChildElement("object"))){
-    }else if((pCurrentObject = pRoot->FirstChildElement("Object"))){
-    }else if((pCurrentObject = pRoot->FirstChildElement("OBJECT"))){
+    if(false){
+    }else if((pObject = rstRoot.FirstChildElement("object"))){
+    }else if((pObject = rstRoot.FirstChildElement("Object"))){
+    }else if((pObject = rstRoot.FirstChildElement("OBJECT"))){
     }else{}
 
-    return pCurrentObject;
+    return pObject;
 }
 
-const tinyxml2::XMLElement *TokenBoard::XMLNextObject(const tinyxml2::XMLElement *pCurrentObject)
+const tinyxml2::XMLElement *TokenBoard::XMLNextObject(const tinyxml2::XMLElement &rstObject)
 {
     const tinyxml2::XMLElement *pRet = nullptr;
 
-    if(!pCurrentObject){
-    }else if((pRet = pCurrentObject->NextSiblingElement("OBJECT"))){
-    }else if((pRet = pCurrentObject->NextSiblingElement("Object"))){
-    }else if((pRet = pCurrentObject->NextSiblingElement("object"))){
+    if(false){
+    }else if((pRet = rstObject.NextSiblingElement("OBJECT"))){
+    }else if((pRet = rstObject.NextSiblingElement("Object"))){
+    }else if((pRet = rstObject.NextSiblingElement("object"))){
     }else{}
     return pRet;
 }
 
-int TokenBoard::XMLObjectType(const tinyxml2::XMLElement &rstCurrentObject)
+int TokenBoard::XMLObjectType(const tinyxml2::XMLElement &rstObject)
 {
     if(false
-            || (rstCurrentObject.Attribute("Type") == nullptr)
-            || (rstCurrentObject.Attribute("TYPE") == nullptr)
-            || (rstCurrentObject.Attribute("type") == nullptr)
-            || (rstCurrentObject.Attribute("TYPE", "PLAINTEXT"))
-            || (rstCurrentObject.Attribute("TYPE", "PlainText"))
-            || (rstCurrentObject.Attribute("TYPE", "Plaintext"))
-            || (rstCurrentObject.Attribute("TYPE", "plainText"))
-            || (rstCurrentObject.Attribute("TYPE", "plaintext"))
-            || (rstCurrentObject.Attribute("Type", "PLAINTEXT"))
-            || (rstCurrentObject.Attribute("Type", "PlainText"))
-            || (rstCurrentObject.Attribute("Type", "Plaintext"))
-            || (rstCurrentObject.Attribute("Type", "plainText"))
-            || (rstCurrentObject.Attribute("Type", "plaintext"))
-            || (rstCurrentObject.Attribute("type", "PLAINTEXT"))
-            || (rstCurrentObject.Attribute("type", "PlainText"))
-            || (rstCurrentObject.Attribute("type", "Plaintext"))
-            || (rstCurrentObject.Attribute("type", "plainText"))
-            || (rstCurrentObject.Attribute("type", "plaintext"))){
+            || (rstObject.Attribute("Type") == nullptr)
+            || (rstObject.Attribute("TYPE") == nullptr)
+            || (rstObject.Attribute("type") == nullptr)
+            || (rstObject.Attribute("TYPE", "PLAINTEXT"))
+            || (rstObject.Attribute("TYPE", "PlainText"))
+            || (rstObject.Attribute("TYPE", "Plaintext"))
+            || (rstObject.Attribute("TYPE", "plainText"))
+            || (rstObject.Attribute("TYPE", "plaintext"))
+            || (rstObject.Attribute("Type", "PLAINTEXT"))
+            || (rstObject.Attribute("Type", "PlainText"))
+            || (rstObject.Attribute("Type", "Plaintext"))
+            || (rstObject.Attribute("Type", "plainText"))
+            || (rstObject.Attribute("Type", "plaintext"))
+            || (rstObject.Attribute("type", "PLAINTEXT"))
+            || (rstObject.Attribute("type", "PlainText"))
+            || (rstObject.Attribute("type", "Plaintext"))
+            || (rstObject.Attribute("type", "plainText"))
+            || (rstObject.Attribute("type", "plaintext"))){
         return OBJECTTYPE_PLAINTEXT;
     }else if(false
-            || (rstCurrentObject.Attribute("TYPE", "EVENTTEXT"))
-            || (rstCurrentObject.Attribute("TYPE", "EventText"))
-            || (rstCurrentObject.Attribute("TYPE", "Eventtext"))
-            || (rstCurrentObject.Attribute("TYPE", "eventText"))
-            || (rstCurrentObject.Attribute("TYPE", "eventtext"))
-            || (rstCurrentObject.Attribute("Type", "EVENTTEXT"))
-            || (rstCurrentObject.Attribute("Type", "EventText"))
-            || (rstCurrentObject.Attribute("Type", "Eventtext"))
-            || (rstCurrentObject.Attribute("Type", "eventText"))
-            || (rstCurrentObject.Attribute("Type", "eventtext"))
-            || (rstCurrentObject.Attribute("type", "EVENTTEXT"))
-            || (rstCurrentObject.Attribute("type", "EventText"))
-            || (rstCurrentObject.Attribute("type", "Eventtext"))
-            || (rstCurrentObject.Attribute("type", "eventText"))
-            || (rstCurrentObject.Attribute("type", "eventtext"))){
+            || (rstObject.Attribute("TYPE", "EVENTTEXT"))
+            || (rstObject.Attribute("TYPE", "EventText"))
+            || (rstObject.Attribute("TYPE", "Eventtext"))
+            || (rstObject.Attribute("TYPE", "eventText"))
+            || (rstObject.Attribute("TYPE", "eventtext"))
+            || (rstObject.Attribute("Type", "EVENTTEXT"))
+            || (rstObject.Attribute("Type", "EventText"))
+            || (rstObject.Attribute("Type", "Eventtext"))
+            || (rstObject.Attribute("Type", "eventText"))
+            || (rstObject.Attribute("Type", "eventtext"))
+            || (rstObject.Attribute("type", "EVENTTEXT"))
+            || (rstObject.Attribute("type", "EventText"))
+            || (rstObject.Attribute("type", "Eventtext"))
+            || (rstObject.Attribute("type", "eventText"))
+            || (rstObject.Attribute("type", "eventtext"))){
         return OBJECTTYPE_EVENTTEXT;
     }else if(false
-            || (rstCurrentObject.Attribute("TYPE", "RETURN"))
-            || (rstCurrentObject.Attribute("TYPE", "Return"))
-            || (rstCurrentObject.Attribute("TYPE", "return"))
-            || (rstCurrentObject.Attribute("Type", "RETURN"))
-            || (rstCurrentObject.Attribute("Type", "Return"))
-            || (rstCurrentObject.Attribute("Type", "return"))
-            || (rstCurrentObject.Attribute("type", "RETURN"))
-            || (rstCurrentObject.Attribute("type", "Return"))
-            || (rstCurrentObject.Attribute("type", "return"))){
+            || (rstObject.Attribute("TYPE", "RETURN"))
+            || (rstObject.Attribute("TYPE", "Return"))
+            || (rstObject.Attribute("TYPE", "return"))
+            || (rstObject.Attribute("Type", "RETURN"))
+            || (rstObject.Attribute("Type", "Return"))
+            || (rstObject.Attribute("Type", "return"))
+            || (rstObject.Attribute("type", "RETURN"))
+            || (rstObject.Attribute("type", "Return"))
+            || (rstObject.Attribute("type", "return"))){
         return OBJECTTYPE_RETURN;
     }else if(false
-            || (rstCurrentObject.Attribute("TYPE", "Emoticon"))
-            || (rstCurrentObject.Attribute("TYPE", "emoticon"))
-            || (rstCurrentObject.Attribute("TYPE", "EMOTICON"))
-            || (rstCurrentObject.Attribute("Type", "Emoticon"))
-            || (rstCurrentObject.Attribute("Type", "emoticon"))
-            || (rstCurrentObject.Attribute("Type", "EMOTICON"))
-            || (rstCurrentObject.Attribute("type", "Emoticon"))
-            || (rstCurrentObject.Attribute("type", "emoticon"))
-            || (rstCurrentObject.Attribute("type", "EMOTICON"))){
+            || (rstObject.Attribute("TYPE", "Emoticon"))
+            || (rstObject.Attribute("TYPE", "emoticon"))
+            || (rstObject.Attribute("TYPE", "EMOTICON"))
+            || (rstObject.Attribute("Type", "Emoticon"))
+            || (rstObject.Attribute("Type", "emoticon"))
+            || (rstObject.Attribute("Type", "EMOTICON"))
+            || (rstObject.Attribute("type", "Emoticon"))
+            || (rstObject.Attribute("type", "emoticon"))
+            || (rstObject.Attribute("type", "EMOTICON"))){
         return OBJECTTYPE_EMOTICON;
     }else{
         return OBJECTTYPE_UNKNOWN;
@@ -227,7 +229,7 @@ bool TokenBoard::GetAttributeColor(SDL_Color *pOutColor, const SDL_Color &rstDef
 {
     const char *pText = nullptr;
     for(auto &szKey: szQueryStringV){
-        if((pText) = rstObject.Attribute(szKey.c_str())){
+        if((pText = rstObject.Attribute(szKey.c_str()))){
             break;
         }
     }
@@ -271,7 +273,7 @@ bool TokenBoard::GetAttributeColor(SDL_Color *pOutColor, const SDL_Color &rstDef
         if(pOutColor){ *pOutColor = stColor; }
         return true;
     }else{
-        if(pOutColor){ *pOutColor = stDefaultColor; }
+        if(pOutColor){ *pOutColor = rstDefaultColor; }
         return false;
     }
 }
@@ -285,7 +287,7 @@ bool TokenBoard::GetAttributeAtoi(int *pOut, int nDefaultOut,
 {
     const char *pText = nullptr;
     for(auto &szKey: szQueryStringV){
-        if((pText) = rstObject.Attribute(szKey.c_str())){
+        if((pText = rstObject.Attribute(szKey.c_str()))){
             break;
         }
     }
@@ -477,13 +479,16 @@ bool TokenBoard::ParseTextObject(
         stSection.Info.Type = SECTIONTYPE_EVENTTEXT;
     }
 
-    GetAttributeAtoi(&(stSection.Info.Text.Font),
-            0, rstCurrentObject, {"FONT", "Font", "font"});
+    int nTmpFont = 0;
+    GetAttributeAtoi(&nTmpFont, 0, rstCurrentObject, {"FONT", "Font", "font"});
+    stSection.Info.Text.Font = (uint8_t)nTmpFont;
+
     // TODO: need to support it
     // GetAttributeAtoi(&(stSection.Info.Text.Style),
     //         0, rstCurrentObject, {"STYLE", "Style", "style"});
-    GetAttributeAtoi(&(stSection.Info.Text.Size),
-            0, rstCurrentObject, {"SIZE", "Size", "size"});
+    int nTmpSize = 0;
+    GetAttributeAtoi(&nTmpSize, 0, rstCurrentObject, {"SIZE", "Size", "size"});
+    stSection.Info.Text.Size = (uint8_t)nTmpSize;
 
     std::function<void()> fnCallback;
     const char *szID = rstCurrentObject.Attribute("ID");
@@ -527,7 +532,6 @@ bool TokenBoard::ParseTextObject(
         + (((uint32_t)m_SectionV[nSectionID].Info.Text.Size)  <<  8)
         + (((uint32_t)m_SectionV[nSectionID].Info.Text.Style) <<  0);
 
-
     std::vector<TOKENBOX> stTBV;
     while(*pEnd != '\0'){
         pStart = pEnd;
@@ -545,7 +549,7 @@ bool TokenBoard::ParseTextObject(
 
         uint64_t nKey = (((uint64_t)nFontAttrKey << 32) + nUTF8Key);
 
-        stTokenBox.Section = nSection;
+        stTokenBox.Section = nSectionID;
         stTokenBox.UTF8CharBox.UTF8Code  = nUTF8Key;
         stTokenBox.UTF8CharBox.Cache.Key = nKey;
 
@@ -574,7 +578,8 @@ void TokenBoard::Update(double fMS)
 {
     if(fMS < 0.0 || m_SkipUpdate){ return; }
 
-    for(auto &rstSection: m_SectionV){
+    for(auto &rstInst: m_SectionV){
+        auto &rstSection = rstInst.second;
         switch(rstSection.Info.Type){
             case SECTIONTYPE_EMOTICON:
                 {
@@ -590,7 +595,7 @@ void TokenBoard::Update(double fMS)
 
                     // 3. try to control for the precision
                     if(rstSection.State.Emoticon.MS > 2000.0 * fUnitMS * nFrameCount){
-                        rstSection.State.Emoticon.MS -= > 1000.0 * fUnitMS * nFrameCount;
+                        rstSection.State.Emoticon.MS -= (1000.0 * fUnitMS * nFrameCount);
                     }
 
                     break;
@@ -603,29 +608,53 @@ void TokenBoard::Update(double fMS)
 
 int TokenBoard::SectionTypeCount(int nLine, int nSectionType)
 {
-    if(nLine < 0 || nLine >= m_LineV.size()){ return -1; }
-    int nCount = 0;
-    if(nSectionType != 0){
-        for(const auto &rstTokenBox: m_LineV[nLine]){
-            auto p = m_SectionV.find(rstTokenBox.Section);
-            if(p != m_SectionV.end()){
-                if(p->second.Info.Type & nSectionType){
-                    nCount++;
+    if(nLine < 0 || nLine >= (int)m_LineV.size()){ return -1; }
+
+    auto fnCmp = [](int nType, int nArgType) -> bool {
+        switch(nArgType){
+            case SECTIONTYPE_EMOTICON:
+            case SECTIONTYPE_PLAINTEXT:
+            case SECTIONTYPE_EVENTTEXT:
+                {
+                    return nType == nArgType;
                 }
-            }else{
-                // oooops
-                extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_INFO, "section id can't be find");
-            }
+            case SECTIONTYPE_TEXT:
+                {
+                    return nType == SECTIONTYPE_PLAINTEXT || nType == SECTIONTYPE_EVENTTEXT;
+                }
+            case SECTIONTYPE_ALL:
+                {
+                    return true;
+                }
+            default:
+                {
+                    return false;
+                }
         }
-        return nCount;
-    }else{
+    };
+
+    int nCount = 0;
+    if(nSectionType == SECTIONTYPE_ALL){
         return m_LineV[nLine].size();
     }
+
+    for(const auto &rstTokenBox: m_LineV[nLine]){
+        auto p = m_SectionV.find(rstTokenBox.Section);
+        if(p != m_SectionV.end()){
+            if(fnCmp(p->second.Info.Type, nSectionType)){
+                nCount++;
+            }
+        }else{
+            // oooops
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_INFO, "section id can't be find");
+        }
+    }
+    return nCount;
 }
 
 // padding to set the current line width to be m_PW
-//  1. W1/W2 is prepared for m_MinMarginBtwBox only, we need to increase it
+//  1. W1/W2 is prepared for m_WordSpace only, we need to increase it
 //  2. only do padding, won't calculate StartX/Y for simplity
 //
 //      ++----------+------------+
@@ -642,9 +671,9 @@ int TokenBoard::SectionTypeCount(int nLine, int nSectionType)
 //
 // I even forget  logics in this funciton
 // update it when error occurs
-int TokenBoard::SpacePadding(int nLine, int nDWidth, int nSectionType)
+int TokenBoard::DoLinePadding(int nLine, int nDWidth, int nSectionType)
 {
-    if(nLine < 0 || nLine > m_LineV.size()){ return -1; }
+    if(nLine < 0 || nLine > (int)m_LineV.size()){ return -1; }
     if(nDWidth < 0){ return -1; }
 
     int nCount = SectionTypeCount(nLine, nSectionType);
@@ -719,7 +748,7 @@ int TokenBoard::SpacePadding(int nLine, int nDWidth, int nSectionType)
 
 void TokenBoard::SetTokenBoxStartY(int nLine, int nBaseLineY)
 {
-    if(nLine < 0 || nLine >= m_LineV.size()){ return; }
+    if(nLine < 0 || nLine >= (int)m_LineV.size()){ return; }
     for(auto &rstTokenBox: m_LineV[nLine]){
         rstTokenBox.Cache.StartY = nBaseLineY - rstTokenBox.Cache.H1;
     }
@@ -727,20 +756,20 @@ void TokenBoard::SetTokenBoxStartY(int nLine, int nBaseLineY)
 
 void TokenBoard::SetTokenBoxStartX(int nLine)
 {
-    if(nLine < 0 || nLine >= m_LineV.size()){ return; }
+    if(nLine < 0 || nLine >= (int)m_LineV.size()){ return; }
 
-    int nCurrentX = m_Margin3;
+    int nCurrentX = m_Margin[3];
     for(auto &rstTokenBox: m_LineV[nLine]){
-        nCurrentX += stTokenBox.State.W1;
-        stTokenBox.Cache.StartX = nCurrentX;
-        nCurrentX += stTokenBox.Cache.W;
-        nCurrentX += stTokenBox.State.W2;
+        nCurrentX += rstTokenBox.State.W1;
+        rstTokenBox.Cache.StartX = nCurrentX;
+        nCurrentX += rstTokenBox.Cache.W;
+        nCurrentX += rstTokenBox.State.W2;
     }
 }
 
 int TokenBoard::LineFullWidth(int nLine)
 {
-    if(nLine < 0 || nLine >= m_LineV.size()){ return -1; }
+    if(nLine < 0 || nLine >= (int)m_LineV.size()){ return -1; }
 
     int nWidth = 0;
     for(auto &rstTB: m_LineV[nLine]){
@@ -751,7 +780,7 @@ int TokenBoard::LineFullWidth(int nLine)
 
 int TokenBoard::LineRawWidth(int nLine, bool bWithWordSpace)
 {
-    if(nLine < 0 || nLine >= m_LineV.size()){ return -1; }
+    if(nLine < 0 || nLine >= (int)m_LineV.size()){ return -1; }
 
     switch(m_LineV[nLine].size()){
         case 0:
@@ -772,7 +801,7 @@ int TokenBoard::LineRawWidth(int nLine, bool bWithWordSpace)
                 }
 
                 if(bWithWordSpace){
-                    nWidth += m_MinMarginBtwBox * ((int)m_LineV[nLine].size() - 1);
+                    nWidth += m_WordSpace * ((int)m_LineV[nLine].size() - 1);
                 }
                 return nWidth;
             }
@@ -781,10 +810,10 @@ int TokenBoard::LineRawWidth(int nLine, bool bWithWordSpace)
 
 int TokenBoard::SetTokenBoxWordSpace(int nLine)
 {
-    if(nLine < 0 || nLine >= m_LineV.size()){ return -1; }
+    if(nLine < 0 || nLine >= (int)m_LineV.size()){ return -1; }
 
-    int nW1 = m_MinMarginBtwBox / 2;
-    int nW2 = m_MinMarginBtwBox - nW1;
+    int nW1 = m_WordSpace / 2;
+    int nW2 = m_WordSpace - nW1;
 
     for(auto &rstTB: m_LineV[nLine]){
         rstTB.State.W1 = nW1;
@@ -807,9 +836,9 @@ int TokenBoard::SetTokenBoxWordSpace(int nLine)
 // output:
 //      1. W1/W2 inited
 //      2. return real width after operation of this function
-int TokenBoard::SetTokenBoxPadding(int nLine)
+int TokenBoard::LinePadding(int nLine)
 {
-    if(nLine < 0 || nLine >= m_LineV.size()){ return -1; }
+    if(nLine < 0 || nLine >= (int)m_LineV.size()){ return -1; }
 
     int nWidth = SetTokenBoxWordSpace(nLine);
     if(nWidth < 0){ return -1; }
@@ -822,10 +851,10 @@ int TokenBoard::SetTokenBoxPadding(int nLine)
 
     if(nDWidth > 0){
         // round-1: try to padding by emoticons
-        int nNewWidth = SpacePadding(nLine, nDWidth, SECTIONTYPE_EMOTICON);
+        int nNewWidth = DoLinePadding(nLine, nDWidth, SECTIONTYPE_EMOTICON);
         if(nNewWidth < 0 || nNewWidth == nDWidth){
             // doesn't work, padding by all boxes
-            nNewWidth = SpacePadding(nLine, nDWidth, 0);
+            nNewWidth = DoLinePadding(nLine, nDWidth, 0);
             if(nNewWidth == 0){
                 return m_PW;
             }
@@ -833,34 +862,6 @@ int TokenBoard::SetTokenBoxPadding(int nLine)
         }
     }
     return nWidth;
-}
-
-bool TokenBoard::AddTokenBox(TOKENBOX &stTokenBox)
-{
-    // Emoticon itself has a box
-    // and need to align to the baseline of words
-    //                             
-    //           +----------+             -----
-    //           |          |               |  
-    // +-------+ |          |               | H1
-    // | Words | | Emoticon |  Words        |    
-    // +-------+-+----------+---------------|--
-    //           |          |               | H2
-    //           +----------+             -----
-    //                             
-
-    if(m_PW > 0 && m_CurrentWidth + stTokenBox.Cache.W >= m_PW){
-        // when wrapping, width control is enabled
-        return false;
-    }else{
-        stTokenBox.State.W1 = 0;
-        stTokenBox.State.W2 = 0;
-        // here it's copy
-        m_CurrentLine.push_back(stTokenBox);
-        m_CurrentWidth    += stTokenBox.Cache.W;
-        m_CurrentLineMaxH2 = (std::max)(m_CurrentLineMaxH2, stTokenBox.Cache.H2);
-        return true;
-    }
 }
 
 void TokenBoard::ResetCurrentLine()
@@ -930,7 +931,7 @@ int TokenBoard::GetNthLineTokenBoxStartY(int nthLine, int nStartX, int nBoxWidth
 // assume:
 //      1. 0 ~ (nthLine - 1) are well-prepared with StartX, StartY, W/W1/W2/H1/H2 etc
 //      2. nthLine is padded already, StartX, W/W1/W2 are OK now
-int TokenBoard::GetNthNewLineStartY(int nthLine)
+int TokenBoard::GetNthNewLineStartY(int nLine)
 {
     //
     //                             
@@ -964,7 +965,7 @@ int TokenBoard::GetNthNewLineStartY(int nthLine)
     //                   |        |
     //
 
-    if(nLine < 0 || nLine >= m_LineV.size()){ return -1; }
+    if(nLine < 0 || nLine >= (int)m_LineV.size()){ return -1; }
 
     int nCurrentY = -1;
     for(auto &rstTokenBox: m_LineV[nLine]){
@@ -972,7 +973,7 @@ int TokenBoard::GetNthNewLineStartY(int nthLine)
         int nW  = rstTokenBox.Cache.W;
         int nH1 = rstTokenBox.Cache.H1;
 
-        nCurrentY = (std::max)(nCurrentY, GetNthLineTokenBoxStartY(nthLine, nX, nW, nH1));
+        nCurrentY = (std::max)(nCurrentY, GetNthLineTokenBoxStartY(nLine, nX, nW, nH1));
     }
     return nCurrentY;
 }
@@ -1132,7 +1133,7 @@ void TokenBoard::ResetLine(int nLine)
     if(nLine < 0 || nLine >= (int)m_LineV.size()){ return; }
 
     if(!m_EndWithReturn[nLine]){
-        SetTokenBoxPadding(nLine);
+        LinePadding(nLine);
     }
 
     SetTokenBoxStartX(nLine);
@@ -1144,7 +1145,7 @@ void TokenBoard::ResetLine(int nLine)
         // the current width may get from nLine
         // but nLine resets now, we need to recompute it
         m_W = -1;
-        for(int nIndex = 0; nIndex < m_LineV.size(); ++nIndex){
+        for(int nIndex = 0; nIndex < (int)m_LineV.size(); ++nIndex){
             m_W = (std::max)(m_W, LineFullWidth(nLine));
         }
     }
@@ -1168,7 +1169,7 @@ void TokenBoard::ResetLine(int nLine)
     int nDStartY   = 0;
     // TODO
     // think about if m_PW < 0 can I save some thing
-    while(nRestLine < m_LineV.size()){
+    while(nRestLine < (int)m_LineV.size()){
         if(nTrickOn){
             m_LineStartY[nRestLine] += nDStartY;
         }else{
@@ -1185,41 +1186,34 @@ void TokenBoard::ResetLine(int nLine)
     m_H = m_LineStartY.back() + GetNthLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W) + 1;
 }
 
-bool TokenBoard::AddNewTokenBox(TOKENBOX &rstTokenBox)
+void TokenBoard::TokenBoxGetMouseButtonUp(int nX, int nY, bool bFirstHalf)
 {
-    if(AddTokenBox(rstTokenBox)){
-        return true;
-    }else{
-        // try to add but failed
-        if(m_CurrentLine.empty()){
-            // allowed width is tooo small
-            // won't fix it, just fail and leave
-            return false;
-        }else{
-            // 1. insert a finished line
-            // 2. recursively call itself to add the token again
-            AddNewTokenBoxLine(false);
-            // the depth of recursion at most is 2
-            return AddNewTokenBox(rstTokenBox);
-        }
+    // 1. invalid position
+    if(TokenBoxValid(nX, nY)){ return; }
+
+    // 2. invalid section id
+    int nSection = m_LineV[nY][nX].Section;
+    auto pSectionInst = m_SectionV.find(nSection);
+    if(pSectionInst == m_SectionV.end()){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_INFO, "section id can't find: %d", nSection);
+        return;
     }
-}
 
+    auto &rstSection = pSectionInst->second;
 
-void TokenBoard::TokenBoxGetMouseButtonUp(const TOKENBOX &rstTokenBox, bool bFirstHalf)
-{
-    switch(m_SectionV[rstTokenBox.Section].Info.Type){
+    switch(rstSection.Info.Type){
         case SECTIONTYPE_PLAINTEXT:
         case SECTIONTYPE_EMOTICON:
             {
-                // for plain text and emoticon, we only need to think about dragging
+                // for plain text and emoticon, we only need to think about selecting
                 // and it can't accept other kind of events
-                if(m_Dragging){
+                if(m_SelectState == 1){
                     // 1. stop the dragging
-                    m_Dragging = false;
+                    m_SelectState = 2;
                     // 2. record the end offset of dragging
-                    m_DraggingStop.first  = rstTokenBox.Section;
-                    m_DraggingStop.second = rstTokenBox.Offset - (bFirstHalf ? 1 : 0);
+                    m_SelectLoc[1].first  = nX - (bFirstHalf ? 1 : 0);
+                    m_SelectLoc[1].second = nY;
                 }else{
                     // this should be click, need to do nothing
                 }
@@ -1229,7 +1223,7 @@ void TokenBoard::TokenBoxGetMouseButtonUp(const TOKENBOX &rstTokenBox, bool bFir
             {
                 // 1. may trigger event
                 // 2. may be the end of dragging
-                switch(m_SectionV[.rstTokenBox.Section].State.Text.Event){
+                switch(rstSection.State.Text.Event){
                     case 0:
                         {
                             // impossible generally, only possibility comes with
@@ -1242,12 +1236,12 @@ void TokenBoard::TokenBoxGetMouseButtonUp(const TOKENBOX &rstTokenBox, bool bFir
                     case 1:
                         {
                             // over state and then get release, this only can be dragging
-                            if(m_Dragging){
+                            if(m_SelectState == 1){
                                 // 1. stop the dragging
-                                m_Dragging = false;
+                                m_SelectState = 2;
                                 // 2. record the end offset of dragging
-                                m_DraggingStop.first  = rstTokenBox.Section;
-                                m_DraggingStop.second = rstTokenBox.Offset - (bFirstHalf ? 1 : 0);
+                                m_SelectLoc[1].first  = nX - (bFirstHalf ? 1 : 0);
+                                m_SelectLoc[1].second = nY;
                             }else{
                                 // impossible
                             }
@@ -1257,10 +1251,11 @@ void TokenBoard::TokenBoxGetMouseButtonUp(const TOKENBOX &rstTokenBox, bool bFir
                         {
                             // pressed state, and get released event, need tirgger
                             // 1. make as state ``over"
-                            m_SectionV[m_LastTokenBox->Section].State.Text.Event = 1;
+                            rstSection.State.Text.Event = 1;
                             // 2. trigger registered event handler
-                            if(m_IDFuncV[m_LastTokenBox->Section]){
-                                m_IDFuncV[m_LastTokenBox->Section]();
+                            auto pFuncInst = m_IDFuncV.find(nSection);
+                            if(pFuncInst != m_IDFuncV.end() && pFuncInst->second){
+                                (pFuncInst->second)();
                             }
                             break;
                         }
@@ -1276,22 +1271,31 @@ void TokenBoard::TokenBoxGetMouseButtonUp(const TOKENBOX &rstTokenBox, bool bFir
     }
 }
 
-void TokenBoard::TokenBoxGetMouseButtonDown(const TOKENBOX &rstTokenBox, bool bFirstHalf)
+void TokenBoard::TokenBoxGetMouseButtonDown(int nX, int nY, bool bFirstHalf)
 {
-    switch(m_SectionV[rstTokenBox.Section].Info.Type){
+    // 1. invalid position
+    if(TokenBoxValid(nX, nY)){ return; }
+
+    // 2. invalid section id
+    int nSection = m_LineV[nY][nX].Section;
+    auto pSectionInst = m_SectionV.find(nSection);
+    if(pSectionInst == m_SectionV.end()){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_INFO, "section id can't find: %d", nSection);
+        return;
+    }
+
+    auto &rstSection = pSectionInst->second;
+    switch(rstSection.Info.Type){
         case SECTIONTYPE_PLAINTEXT:
         case SECTIONTYPE_EMOTICON:
             {
                 // 1. always drop the selected result off
                 m_SelectState = 0;
-
-                std::pair<int, int> stCursorLoc = {
-                    rstTokenBox.Section,
-                    rstTokenBox.Offset - (bFirstHalf ? 1 : 0)
-                };
+                std::pair<int, int> stCursorLoc = { nY, nX - (bFirstHalf ? 1 : 0) };
 
                 // 2. mark for the preparing of next selection
-                if(m_Selectable){ m_DraggingStart = stCursorLoc; }
+                if(m_Selectable){ m_SelectLoc[0]  = stCursorLoc; }
                 if(m_WithCursor){ m_CursorLoc     = stCursorLoc; }
 
                 break;
@@ -1299,20 +1303,17 @@ void TokenBoard::TokenBoxGetMouseButtonDown(const TOKENBOX &rstTokenBox, bool bF
         case SECTIONTYPE_EVENTTEXT:
             {
                 // set to be pressed directly
-                m_SectionV[.rstTokenBox.Section].State.Text.Event = 2;
+                rstSection.State.Text.Event = 2;
                 break;
             }
     }
 }
 
-void TokenBoard::TokenBoxGetMouseMotion(const TOKENBOX &rstTokenBox, bool bFirstHalf)
+void TokenBoard::TokenBoxGetMouseMotion(int nX, int nY, bool bFirstHalf)
 {
     if(m_Selectable){
-        m_SelectState = 1;
-        m_SelectStop = {
-            rstTokenBox.Section,
-            rstTokenBox.Offset - (bFirstHalf ? 1 : 0)
-        };
+        m_SelectState  = 1;
+        m_SelectLoc[1] = {nY, nX - (bFirstHalf ? 1 : 0)};
     }
 }
 
@@ -1321,19 +1322,20 @@ void TokenBoard::ProcessEventMouseButtonUp(int nEventDX, int nEventDY)
 
     if(!In(nEventDX, nEventDY)){ return; }
 
-    if(m_LastTokenBox){
-        // 
+    if(LastTokenBoxValid()){
+        auto &rstLastTB = m_LineV[m_LastTokenBoxLoc.second][m_LastTokenBoxLoc.first];
         // W1 and W2 should also count in
         // otherwise mouse can escape from the flaw of two contiguous tokens
         // means when move mouse horizontally, event text will turn on and off
         //
-        int nX = m_LastTokenBox->Cache.StartX - m_LastTokenBox->State.W1;
-        int nY = m_LastTokenBox->Cache.StartY;
-        int nW = m_LastTokenBox->Cache.W;
-        int nH = m_LastTokenBox->Cache.H;
+        int nX = rstLastTB.Cache.StartX - rstLastTB.State.W1;
+        int nY = rstLastTB.Cache.StartY;
+        int nW = rstLastTB.Cache.W;
+        int nH = rstLastTB.Cache.H;
 
         if(PointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
-            TokenBoxGetMouseButtonUp(*m_LastTokenBox, nEventDX < nX + nW / 2 );
+            TokenBoxGetMouseButtonUp(
+                    m_LastTokenBoxLoc.first, m_LastTokenBoxLoc.second, nEventDX < nX + nW / 2 );
         }
     }else{
         int nGridX = nEventDX / m_Resolution;
@@ -1342,45 +1344,44 @@ void TokenBoard::ProcessEventMouseButtonUp(int nEventDX, int nEventDY)
         // only put EventText Section in Bitmap
         // emoticon won't accept events
         //
-        for(auto pTokenBox: m_TokenBoxBitmap[nGridX][nGridY]){
+        for(const auto &stLoc: m_TokenBoxBitmap[nGridX][nGridY]){
             //
             // for each possible tokenbox in the grid
             //
             // this is enough since cover of all tokenboxs in one gird
             // is much larger than the grid itself
-            const auto &rstTokenBox = *pTokenBox;
+            if(!TokenBoxValid(stLoc.first, stLoc.second)){ continue; }
+
+            const auto &rstTokenBox = m_LineV[stLoc.second][stLoc.first];
 
             int nStartX = rstTokenBox.Cache.StartX - rstTokenBox.State.W1;
             int nStartY = rstTokenBox.Cache.StartY;
             int nW      = rstTokenBox.Cache.W;
             int nH      = rstTokenBox.Cache.H;
 
-            if(PointInRectangle(nEventX, nEventY, nStartX, nStartY, nW, nH)){
-                TokenBoxGetMouseButtonUp(rstTokenBox, nEventDX < nStartX + nW / 2);
+            if(PointInRectangle(nEventDX, nEventDY, nStartX, nStartY, nW, nH)){
+                TokenBoxGetMouseButtonUp(stLoc.first, stLoc.second, nEventDX < nStartX + nW / 2);
             }
         }
     }
 }
 
-void TokenBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
+bool TokenBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
 {
     // don't need to handle event or event has been consumed
-    if(m_SkipEvent || (bValid && !(*bValid))){ return; }
+    if(m_SkipEvent || (bValid && !(*bValid))){ return false; }
 
-    uint32_t nEventType;
     int nEventDX, nEventDY;
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEBUTTONDOWN:
             {
-                nEventType = rstEvent.type;
                 nEventDX = rstEvent.button.x - X();
                 nEventDY = rstEvent.button.y - Y();
                 break;
             }
         case SDL_MOUSEMOTION:
             {
-                nEventType = rstEvent.type;
                 nEventDX = rstEvent.motion.x - X();
                 nEventDY = rstEvent.motion.y - Y();
                 break;
@@ -1390,58 +1391,109 @@ void TokenBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                 // TBD
                 // for all other event, won't handle, just return
                 // maybe key up/down event maybe handled in the future
-                return;
+                return false;
             }
     }
 
-    if(m_LastTokenBox){
-        // 
+    // now we get event type and event location
+    //
+    // 1. inside the board or not
+    if(!In(nEventDX, nEventDY)){ return false; }
+
+    auto fnTokenBoxEventHandle = [this](uint32_t nEventType, int nLocX, int nLocY, bool bFirstHalf){
+        switch(nEventType){
+            case SDL_MOUSEMOTION:
+                TokenBoxGetMouseMotion(nLocX, nLocY, bFirstHalf);
+                break;
+            case SDL_MOUSEBUTTONUP:
+                TokenBoxGetMouseButtonUp(nLocX, nLocY, bFirstHalf);
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                TokenBoxGetMouseButtonDown(nLocX, nLocY, bFirstHalf);
+                break;
+            default:
+                break;
+        }
+    };
+
+    // 2. try among all boxes
+    int  nTBLocX    = -1;
+    int  nTBLocY    = -1;
+    bool bFirstHalf = false;
+
+    if(LastTokenBoxValid()){
+        auto &rstLastTB = m_LineV[m_LastTokenBoxLoc.second][m_LastTokenBoxLoc.first];
         // W1 and W2 should also count in
         // otherwise mouse can escape from the flaw of two contiguous tokens
         // means when move mouse horizontally, event text will turn on and off
         //
-        int nX = m_LastTokenBox->Cache.StartX - m_LastTokenBox->State.W1;
-        int nY = m_LastTokenBox->Cache.StartY;
-        int nW = m_LastTokenBox->Cache.W;
-        int nH = m_LastTokenBox->Cache.H;
+        int nX = rstLastTB.Cache.StartX - rstLastTB.State.W1;
+        int nY = rstLastTB.Cache.StartY;
+        int nW = rstLastTB.Cache.W;
+        int nH = rstLastTB.Cache.H;
 
         if(PointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
-            TokenBoxGetEvent(*m_LastTokenBox, nEventDX, nEventDY);
-            return;
-        }else{
-            m_SectionV[m_LastTokenBox->Section].State.Text.Event = 0;
-            m_LastTokenBox = nullptr;
+            nTBLocX    = m_LastTokenBoxLoc.first;
+            nTBLocY    = m_LastTokenBoxLoc.second;
+            bFirstHalf = (nEventDX < nX + nW / 2);
         }
-    }
-
-    if(In(nEventDX, nEventDY)){
+    }else{
         int nGridX = nEventDX / m_Resolution;
         int nGridY = nEventDY / m_Resolution;
 
-        for(auto pTokenBox: m_TokenBoxBitmap[nGridX][nGridY]){
+        // only put EventText Section in Bitmap
+        // emoticon won't accept events
+        //
+        for(const auto &stLoc: m_TokenBoxBitmap[nGridX][nGridY]){
+            //
+            // for each possible tokenbox in the grid
+            //
+            // this is enough since cover of all tokenboxs in one gird
+            // is much larger than the grid itself
+            if(TokenBoxValid(stLoc.first, stLoc.second)){
+                // we may need to re-build event bitmap
+                const auto &rstTokenBox = m_LineV[stLoc.second][stLoc.first];
 
-            int nX = pTokenBox->Cache.StartX - pTokenBox->State.W1;
-            int nY = pTokenBox->Cache.StartY;
-            int nW = pTokenBox->Cache.W;
-            int nH = pTokenBox->Cache.H;
+                int nX = rstTokenBox.Cache.StartX - rstTokenBox.State.W1;
+                int nY = rstTokenBox.Cache.StartY;
+                int nW = rstTokenBox.Cache.W;
+                int nH = rstTokenBox.Cache.H;
 
-            if(PointInRectangle(nEventX, nEventY, nX, nY, nW, nH)){
-                TokenBoxGetEvent(pLastTokenBox, nEventDX, nEventDY);
-                m_LastTokenBox = pTokenBox;
-                // here we don't need to handle last tokenbox
-                // since if we really need, it's already be handled before
-                return;
+                if(PointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
+                    nTBLocX    = stLoc.first;
+                    nTBLocY    = stLoc.second;
+                    bFirstHalf = (nEventDX < nX + nW / 2);
+                    break;
+                }
             }
         }
+    }
 
-        // no box can handle this event, need to check line by line
-        if(m_Selectable || m_WithCursor){
-            // consume this event anyway
-            *bValid = false;
+    if(TokenBoxValid(nTBLocX, nTBLocY)){
+        // we do get some tokenbox
+        fnTokenBoxEventHandle(rstEvent.type, nTBLocX, nTBLocY, bFirstHalf);
+        if(bValid){ *bValid = false; }
+        return true;
+    }
 
-            int nRowIn = -1;
-            for(int nRow = 0; nRow < m_LineStartY.size(); ++nRow){
-                if(m_LineStartY[nRow] > m_LineStartY[nRow]){
+    // whether we need to handle these events not in any boxes
+    bool bNeedOutTB = false;
+    if(m_WithCursor || (m_Selectable && m_SelectState == 1)){
+        bNeedOutTB = true;
+    }
+
+    // then no box can handle this event, need to check line by line
+    if(bNeedOutTB){
+        // consume this event anyway
+        if(bValid){ *bValid = false; }
+
+        // 1. decide which line it's inside
+        int nRowIn = -1;
+        if(!m_LineStartY.empty() && nEventDY > m_LineStartY.back()){
+            nRowIn = (int)m_LineStartY.size() - 1;
+        }else{
+            for(int nRow = 0; nRow < (int)m_LineStartY.size(); ++nRow){
+                if(m_LineStartY[nRow] >= nEventDY){
                     // this may cause a problem:
                     //
                     //
@@ -1462,61 +1514,55 @@ void TokenBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                     break;
                 }
             }
-
-            if(m_LineStartY.size() > 0 && nEventDY > m_LineStartY.back()){
-                // after the last line we count it in the last line
-                nRowIn = m_LineStartY.size() - 1;
-            }
-
-            if(nRowIn < 0){ return; }
-
-            int nTokenBoxBind = -2; // here -1 is valid
-            int nLastCX = -1;
-            for(int nXCnt = 0; nXCnt < m_LineV[nRowIn].size(); ++nXCnt){
-                int nX  = m_LineV[nRowIn][nXCnt].Cache.StartX;
-                int nW  = m_LineV[nRowIn][nXCnt].Cache.W;
-                int nCX = nX + nW / 2;
-
-                if(PointInSegment(nEventDX, nLastCX, nCX - nLastCX + 1)){
-                    nTokenBoxBind = nXCnt - 1;
-                    break;
-                }
-
-                nLastCX = nCX;
-            }
-
-            if(nTokenBoxBind == -2){
-                // if we can't bind, bind it to the last box
-                // this may cause problem:
-                //
-                // +-----------+ +----+
-                // |           | |    |
-                // +-----------+ |    | --------------- Y
-                //               |    |
-                //     +-------+ |    |
-                //     |       | |    |
-                //     |       | |    |
-                //     |       | |    |
-                //     |       | |    | *
-                //     |       | +----+
-                //     +-------+ ---------------------- Y
-                //
-                // when clicking at "*", we get cursor bind
-                // at the second line
-                //
-                nTokenBoxBind = m_LineV[nRowIn].size() - 1;
-            }
-
-            if(m_WithCursor){
-                m_CursorLoc = {nRowIn, nTokenBoxBind};
-            }
-
-            if(m_Selectable){
-                m_SelectStartLoc = {nRowIn, nTokenBoxBind};
-                m_SelectState = 0;
-            }
         }
+
+        // can't capture this event, most-likely error occurs
+        if(nRowIn < 0){ return false; }
+
+        // now try to find nTBLocX for tokenbox binding
+        //
+        int nTokenBoxBind = -1;
+        int nLastCenterX  = -1;
+        for(int nXCnt = 0; nXCnt < (int)m_LineV[nRowIn].size(); ++nXCnt){
+            int nX  = m_LineV[nRowIn][nXCnt].Cache.StartX;
+            int nW  = m_LineV[nRowIn][nXCnt].Cache.W;
+            int nCX = nX + nW / 2;
+
+            if(PointInSegment(nEventDX, nLastCenterX, nCX - nLastCenterX + 1)){
+                nTokenBoxBind = nXCnt;
+                break;
+            }
+
+            nLastCenterX = nCX;
+        }
+
+        if(nTokenBoxBind < 0){
+            // if we can't bind, bind it to the last box
+            // this may cause problem:
+            //
+            // +-----------+ +----+
+            // |           | |    |
+            // +-----------+ |    | --------------- Y
+            //               |    |
+            //     +-------+ |    |
+            //     |       | |    |
+            //     |       | |    |
+            //     |       | |    |
+            //     |       | |    | *
+            //     |       | +----+
+            //     +-------+ ---------------------- Y
+            //
+            // when clicking at "*", we get cursor bind
+            // at the second line
+            //
+            nTokenBoxBind = m_LineV[nRowIn].size();
+        }
+
+        fnTokenBoxEventHandle(rstEvent.type, nTokenBoxBind, nRowIn, false);
+        return false;
     }
+
+    return true;
 }
 
 int TokenBoard::TokenBoxType(const TOKENBOX &rstTokenBox)
@@ -1524,7 +1570,7 @@ int TokenBoard::TokenBoxType(const TOKENBOX &rstTokenBox)
     return m_SectionV[rstTokenBox.Section].Info.Type;
 }
 
-void TokenBoard::MakeEventTextBitmap()
+void TokenBoard::MakeTokenBoxEventBitmap()
 {
     // only make it for EventText since only it accepts event
     //
@@ -1546,16 +1592,14 @@ void TokenBoard::MakeEventTextBitmap()
         m_TokenBoxBitmap[nGX].resize(nGH, {});
     }
 
-    for(auto &rstLine: m_LineV){
-        for(auto &rstTokenBox: rstLine){
-            if(TokenBoxType(rstTokenBox) == SECTIONTYPE_EVENTTEXT){
-                MarkEventTextBitmap(rstTokenBox);
-            }
+    for(int nY = 0; nY < (int)m_LineV.size(); ++nY){
+        for(int nX = 0; nX < (int)m_LineV[nY].size(); ++nX){
+            MarkTokenBoxEventBitmap(nX, nY);
         }
     }
 }
 
-void TokenBoard::MarkEventTextBitmap(const TOKENBOX &rstTokenBox)
+void TokenBoard::MarkTokenBoxEventBitmap(int nLocX, int nLocY)
 {
     // put the whole box (with the margin) to the bitmap
     // not only the real box inside
@@ -1584,6 +1628,10 @@ void TokenBoard::MarkEventTextBitmap(const TOKENBOX &rstTokenBox)
 
     // get the whole box's (x, y, w, h), with the margin
     //
+    if(!TokenBoxValid(nLocX, nLocY)){ return; }
+
+    auto &rstTokenBox = m_LineV[nLocY][nLocX];
+
     int nX = rstTokenBox.Cache.StartX - rstTokenBox.State.W1;
     int nY = rstTokenBox.Cache.StartY;
     int nW = rstTokenBox.Cache.W;
@@ -1598,7 +1646,7 @@ void TokenBoard::MarkEventTextBitmap(const TOKENBOX &rstTokenBox)
 
     for(int nX = nGX1; nX <= nGX2; ++nX){
         for(int nY = nGY1; nY <= nGY2; ++nY){
-            m_TokenBoxBitmap[nX][nY].emplace_back(&rstTokenBox);
+            m_TokenBoxBitmap[nX][nY].emplace_back(nX, nY);
         }
     }
 }
@@ -1607,20 +1655,22 @@ int TokenBoard::GuessResoltion()
 {
     // TODO
     // make this function more reasonable and functional
-    return (m_MaxSize + m_MinSize) / 2;
+    return m_DefaultSize / 2;
 }
 
 bool TokenBoard::ParseXML(const char *szText)
-{}
+{
+    UNUSED(szText);
+    return true;
+}
 
 std::string TokenBoard::GetXML(bool bSelectedOnly)
 {
-    int nX0, nY0, nX1, nY1;
     if(bSelectedOnly){
-        if(m_SelectState = 1 || m_SelectState = 2){
+        if(m_SelectState == 1 || m_SelectState == 2){
             // selecting or selected
-            return InnGetXML(m_SelectStartLoc.first,
-                    m_SelectStartLoc.second, m_SelectStopLoc.first, m_SelectStopLoc.second);
+            return InnGetXML(m_SelectLoc[0].first,
+                    m_SelectLoc[0].second, m_SelectLoc[1].first, m_SelectLoc[1].second);
         }else{
             return "<root></root>";
         }
@@ -1647,7 +1697,7 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
             szXML += "</object>";
         }
 
-        switch(rstSN.Type){
+        switch(rstSN.Info.Type){
             case SECTIONTYPE_EMOTICON:
                 {
                     szXML += "<object type=emoticon set=";
@@ -1669,7 +1719,7 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
                         szXML += std::to_string(rstSN.Info.Text.Font);
                         szXML += " size=";
                         szXML += std::to_string(rstSN.Info.Text.Size);
-                        szXMl += ">";
+                        szXML += ">";
                     }
                     // truncate to get last 32 bits
                     uint32_t nUTF8Code = rstTB.UTF8CharBox.Cache.Key;
@@ -1685,10 +1735,10 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
                         szXML += std::to_string(rstSN.Info.Text.Size);
 
                         char szColor[16];
-                        std::sprintf(szColor, "0x%08x", rstSN.Info.Text.Color[0]);
+                        std::sprintf(szColor, "0x%08x", Color2U32ARGB(rstSN.Info.Text.Color[0]));
                         szXML += " color=";
                         szXML += szColor;
-                        szXMl += ">";
+                        szXML += ">";
                     }
                     // truncate to get last 32 bits
                     uint32_t nUTF8Code = rstTB.UTF8CharBox.Cache.Key;
@@ -1704,121 +1754,24 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
         nLastSection = rstTB.Section;
 
         nX++;
-        if(nX == m_LineV[nY].size()){
+        if(nX == (int)m_LineV[nY].size()){
             nX = 0;
             nY++;
         }
     }
 }
 
-// Insert a tokenbox at any position (nX, nY) inside the text block, this
-// function won't introduce any ``return"
-//
-// Assume:
-//      1. the tokenboard is well-prepared
-//      2. we won't allow empty line since don't know how to set height
-//
-// HowTo:
-//      1. if outside the text block, insert at the beginning or append
-//         at the very end
-//      2. if current line can hold the new box, just insert it
-//      3. if can't
-//          1. if current line ends with return, create a new line ends
-//             with return and contain all needed tokens, insert this 
-//             line next to current line. make current line and the new
-//             line both end with return
-//          2. if not, move token at the end of current line and insert
-//             it at the beginning of next line, until current line has
-//             enough space to hold the new token
-//  return:
-//      1. true most likely
-//      2. false when current token is tooooooo wide that a whole line
-//         even can't hold it
-bool TokenBoard::AddTokenBox(TOKENBOX &rstTokenBox, int nX, int nY)
-{
-    if(m_PW > 0 && m_PW < rstTokenBox.Cache.W){
-        // TODO
-        // just fail and leave, won't do anything
-        return false;
-    }
-
-    if(m_LineV.size() == 0){
-        AddNewLine({rstTokenBox}, 0);
-        m_EndWithReturn.insert(m_EndWithReturn.begin(), m_PW > 0);
-        ResetLine(0);
-        return true;
-    }
-
-    if(nY < 0){
-        nX = 0;
-        nY = 0;
-    }else if(nY >= m_LineV.size()){
-        nX = m_LineV.back().size();
-        nY = m_LineV.size() - 1;
-    }
-
-    nX = std::max(std::min(nX, m_LineV[nY].size()), 0);
-    if(m_PW <= 0){
-        // we don't have to wrap, easy case
-        m_LineV[nY].insert(m_LineV[nY].begin() + nX, rstTokenBox);
-        ResetLine(nY);
-        return true;
-    }
-
-    // we need to wrap the text
-    m_LineV[nY].insert(m_LineV[nY].begin() + nX, rstTokenBox);
-    int nRawLen = LineRawWidth(nY);
-
-    if(nRawLen + (m_LineV[nY].size() - 1) * m_MinMarginBtwBox <= m_PW){
-        // we are good
-        // current line have enough space for the new box
-        ResetLine(nY);
-        return true;
-    }
-
-    // bad luck, we need to move some tokens to next line
-    if(m_EndWithReturn[nY]){
-        // current line ends with return
-        // 1. change current line to be ``not ends with return"
-        m_EndWithReturn[nY] = false;
-        // 2. add a new line, make it end with return
-        AddNewLine({m_LineV[nY].back()}, nY + 1);
-        m_EndWithReturn.insert(m_EndWithReturn.begin() + nY + 1, true);
-        // 3. remove last token from current line
-        m_LineV[nY].pop_back();
-
-        // 4. now we have a ``next line" to put all the rest
-        //    we need at most two ``next line"s, think about
-        //
-        //     +----------+        +----------+
-        //     | xxxxxxxx |  --->  | xxxxxx   | 
-        //     |          |        | +------+ |
-        //                         | |      | |
-        //                         | +------+ |
-        //                         | xx       |
-        //
-        //
-        //    here the inserted token is too large, so we 
-        //    need to extra line for it.
-        //
-        //    but this will handled recursively
-    }
-
-    while(m_LineV[nY].size() > 0){
-        nRawLen = LineRawWidth(nY);
-        if(nRawLen + (m_LineV[nY].size() - 1) * m_MinMarginBtwBox <= m_PW){
-            // we are good
-            ResetLine(nY);
-            return true;
-        }else{
-            AddTokenBox(nY + 1, 0, m_LineV[nY].back());
-            m_LineV[nY].pop_back();
-        }
-    }
-
-    // this won't be executed
-    return false;
-}
+// Emoticon itself has a box
+// and need to align to the baseline of words
+//                             
+//           +----------+             -----
+//           |          |               |  
+// +-------+ |          |               | H1
+// | Words | | Emoticon |  Words        |    
+// +-------+-+----------+---------------|--
+//           |          |               | H2
+//           +----------+             -----
+//                             
 
 // Insert a bunch of tokenboxes at any position (nX, nY) inside the text
 // block, this function won't introduce any ``return"
@@ -1851,12 +1804,12 @@ bool TokenBoard::AddTokenBoxV(int nX, int nY, const std::vector<TOKENBOX> & rstT
     if(nY < 0){
         nX = 0;
         nY = 0;
-    }else if(nY >= m_LineV.size()){
+    }else if(nY >= (int)m_LineV.size()){
         nX = m_LineV.back().size();
         nY = m_LineV.size() - 1;
     }
 
-    nX = std::max(std::min(nX, m_LineV[nY].size()), 0);
+    nX = std::max(std::min(nX, (int)m_LineV[nY].size()), 0);
 
     // now (nX, nY) are well-defined
     m_LineV[nY].insert(m_LineV[nY].begin() + nX, rstTBV.begin(), rstTBV.end());
@@ -1871,10 +1824,10 @@ bool TokenBoard::AddTokenBoxV(int nX, int nY, const std::vector<TOKENBOX> & rstT
     // count the tokens, to put proper tokens in current line
     int nCount = -1;
     int nWidth =  0;
-    for(int nIndex = 0; nIndex < m_LineV[nY].size(); ++nIndex){
+    for(int nIndex = 0; nIndex < (int)m_LineV[nY].size(); ++nIndex){
         nWidth += m_LineV[nY][nIndex].Cache.W;
 
-        if(nWidth + nIndex * m_MinMarginBtwBox > m_PW){
+        if(nWidth + nIndex * m_WordSpace > m_PW){
             nCount = nIndex;
             break;
         }
@@ -1909,102 +1862,44 @@ bool TokenBoard::AddTokenBoxV(int nX, int nY, const std::vector<TOKENBOX> & rstT
     return AddTokenBoxV(nY + 1, 0, stRestTBV);
 }
 
-// Insert a return at any position *inside* a text block
-//
-// Assumption:
-//      1. The current tokenboard is well-prepared
-//      2. We won't allow empty line since don't know how to set height
-//
-// HowTo:
-//      1. if outside the text block, do nothing
-//      2. if insert return at the beginning of a line, make the last line
-//         to be end with return
-//      3. if try to insert return at the end of the line
-//           1. if current line ends with return, do nothing
-//           2. else make current line ends with return
-//      4. try to insert return inside a line, if current line ends with
-//         return then just add a new line next to current line, and make
-//         which ends with return, else
-//           1. make current line ends here with return
-//           2. insert the rest tokens in front of next line
-void TokenBoard::AddReturn(int nX, int nY)
-{
-    if(m_LineV.size() == 0 || nY < 0 || nY >= m_LineV.size()){
-        // outside the text block, do nothing
-        return;
-    }
-
-    if(nX <= 0){
-        // try to insert return at the very beginning
-        if(nY > 0){
-            // make last line ends with return
-            m_EndWithReturn[nY - 1] = true;
-            ResetLine(nY - 1);
-        }
-    }else if(nX >= m_LineV[nY].size()){
-        // try to insert return at the end of the line
-        if(!m_EndWithReturn[nY]){
-            m_EndWithReturn[nY] = true;
-            ResetLine(nY);
-        }
-    }else{
-        // try to insert return in the middle
-        if(m_EndWithReturn[nY]){
-            // current line ends with return
-            std::vector<TOKENBOX> stNewLine(m_LineV[nY].begin() + nX, m_LineV[nY].end());
-            AddNewLine(nY + 1, stNewLine);
-            m_EndWithReturn.insert(m_EndWithReturn.begin() + nY, true);
-            ResetLine(nY + 1);
-            m_LineV[nY].resize(nX);
-            m_EndWithReturn[nY] = true;
-            ResetLine(nY);
-        }else{
-            // it's a long line, process one by one
-            int nCount = m_LineV[nY].size() - nX;
-            for(int nIndex = 0; nIndex < nCount; ++nIndex){
-                AddTokenBox(nY + 1, 0, m_LineV[nY].back());
-                m_LineV[nY].pop_back();
-            }
-            m_EndWithReturn[nY] = true;
-            ResetLine(nY);
-        }
-    }
-}
-
 // get the location and shape info of tokenbox
 bool TokenBoard::GetTokenBoxInfo(int nX, int nY,
         int *pType, int *pX, int *pY, int *pW, int *pH, int *pW1, int *pW2)
 {
-    if(nY < 0 || nY >= m_LineV.size()){ return false; }
-    if(nX < 0 || nX >= m_LineV[nY].size()){ return false; }
+    if(nY < 0 || nY >= (int)m_LineV.size()){ return false; }
+    if(nX < 0 || nX >= (int)m_LineV[nY].size()){ return false; }
 
-    if(pType){ *pType = m_SectionV[m_LineV[nY][nX].Section].Type; }
-    if(pX   ){ *pX    = m_LineV[nY][nX].Cache.StartX;             }
-    if(pY   ){ *pY    = m_LineV[nY][nX].Cache.StartY;             }
-    if(pW   ){ *pW    = m_LineV[nY][nX].Cache.W;                  }
-    if(pH   ){ *pH    = m_LineV[nY][nX].Cache.H;                  }
-    if(pW1  ){ *pW1   = m_LineV[nY][nX].State.W1;                 }
-    if(pW2  ){ *pW2   = m_LineV[nY][nX].State.W2;                 }
+    int  nSection = m_LineV[nY][nX].Section;
+    auto p = m_SectionV.find(nSection);
+    if(p == m_SectionV.end()){ return false; }
+
+    if(pType){ *pType = p->second.Info.Type;          }
+    if(pX   ){ *pX    = m_LineV[nY][nX].Cache.StartX; }
+    if(pY   ){ *pY    = m_LineV[nY][nX].Cache.StartY; }
+    if(pW   ){ *pW    = m_LineV[nY][nX].Cache.W;      }
+    if(pH   ){ *pH    = m_LineV[nY][nX].Cache.H;      }
+    if(pW1  ){ *pW1   = m_LineV[nY][nX].State.W1;     }
+    if(pW2  ){ *pW2   = m_LineV[nY][nX].State.W2;     }
 
     return true;
 }
 
-// remove tokens, for bShadowOnly
+// remove tokens, for bSelectedOnly
 //    1:  only shadow will be deleted, for CTRL-X
 //    0:  if there is shadow, remove shadow, else remove, current cursor bound tokenbox
-void TokenBoard::Delete(bool bShadowOnly)
+void TokenBoard::Delete(bool bSelectedOnly)
 {
     int nX1, nY1, nX2, nY2;
     if(m_SelectState == 2){
-        nX1 = m_SelectStartLoc.first;
-        nY1 = m_SelectStartLoc.second;
-        nX2 = m_SelectStopLoc.first;
-        nY2 = m_SelectStopLoc.second;
+        nX1 = m_SelectLoc[0].first;
+        nY1 = m_SelectLoc[0].second;
+        nX2 = m_SelectLoc[1].first;
+        nY2 = m_SelectLoc[1].second;
         DeleteTokenBox(nX1, nY1, nX2, nY2);
     }else{
         // so when you selecting and hold the left mouse button
         // and then press backspace, it won't be deleted
-        if(!bShadowOnly){
+        if(!bSelectedOnly){
             nX1 = nX2 = m_CursorLoc.first;
             nY1 = nY2 = m_CursorLoc.second;
             DeleteTokenBox(nX1, nY1, nX2, nY2);
@@ -2022,27 +1917,30 @@ void TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
     // TODO & TBD
     // think about this boundary check
     //
-    if(nY0 < 0){
-        nX0 = 0;
-        nY0 = 0;
-    }
+    // nothing to delete
+    if(m_LineV.empty()){ return; }
 
-    if(nY1 >= m_LineV.size()){
-        nX1 = m_LineV.back().size() - 1;
+    // do have something...
+    if(nY0 < 0){ nX0 = 0; nY0 = 0; }
+
+    if(nY1 >= (int)m_LineV.size()){
+        nX1 = m_LineV.back().size();
         nY1 = m_LineV.size() - 1;
     }
 
     if((nY0 > nY1) || (nY0 == nY1 && nX0 > nX1)){ return; }
 
-    nY0 = std::max(0, std::min(nY0, m_LineV.size()));
-    nY1 = std::max(0, std::min(nY1, m_LineV.size()));
-    nX0 = std::max(0, std::min(nX0, m_LineV[nY0].size()));
-    nX1 = std::max(0, std::min(nX1, m_LineV[nY1].size()));
+    nY0 = std::max(0, std::min(nY0, (int)m_LineV.size()));
+    nY1 = std::max(0, std::min(nY1, (int)m_LineV.size()));
+    nX0 = std::max(0, std::min(nX0, (int)m_LineV[nY0].size()));
+    nX1 = std::max(0, std::min(nX1, (int)m_LineV[nY1].size()));
 
     // now (x0, y0, x1, y1) are well-prepared
+    
+    // in one line
     if(nY0 == nY1){
         m_LineV[nY0].erase(m_LineV[nY0].begin() + nX0, m_LineV[nY0].begin() + nX1 + 1);
-        if(nY0 != m_LineV.size() - 1){
+        if(nY0 != (int)m_LineV.size() - 1){
             m_LineV[nY0].insert(m_LineV[nY0].end(),
                     m_LineV[nY0 + 1].begin(), m_LineV[nY0 + 1].begin());
             m_LineV.erase(m_LineV.begin() + nY0 + 1);
@@ -2055,7 +1953,7 @@ void TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
 
     while(m_LineV[nY0].size() > 0){
         nRawLen = LineRawWidth(nY0);
-        if(nRawLen + (m_LineV[nY].size() - 1) * m_MinMarginBtwBox <= m_PW){
+        if(nRawLen + (m_LineV[nY].size() - 1) * m_WordSpace <= m_PW){
             // we are good
             ResetLine(nY);
             break;
@@ -2106,7 +2004,7 @@ void TokenBoard::ParseReturnObject()
     int nX = m_CursorLoc.first;
     int nY = m_CursorLoc.second;
 
-    if(!(nY >= 0 && nY < m_LineV.size() && nX >= 0 && nX <= m_LineV[nY].size())){
+    if(!(nY >= 0 && nY < (int)m_LineV.size() && nX >= 0 && nX <= m_LineV[nY].size())){
         // invalid cursor location, bye
         return;
     }
@@ -2171,7 +2069,7 @@ void TokenBoard::ResetOneLine(int nLine)
     }
 
     if(!m_EndWithReturn[nLine]){
-        SetTokenBoxPadding(nLine);
+        LinePadding(nLine);
     }
     SetTokenBoxStartX(nLine);
 
@@ -2198,7 +2096,7 @@ void TokenBoard::ResetOneLine(int nLine)
 //
 void TokenBoard::ResetLineStartY(int nStartLine)
 {
-    if(nStartLine < 0 || nStartLine >= m_LineV.size()){
+    if(nStartLine < 0 || nStartLine >= (int)m_LineV.size()){
         // invalid line number, just return
         return;
     }
@@ -2207,7 +2105,7 @@ void TokenBoard::ResetLineStartY(int nStartLine)
     int nLongestLineW = -1;
 
     // get the longest line, by assumption we can directly use cache info
-    for(int nIndex = nStartLine; nIndex < m_LineV.size(); ++nIndex){
+    for(int nIndex = nStartLine; nIndex < (int)m_LineV.size(); ++nIndex){
         if(!m_LineV[nIndex].empty()){
             const auto &rstTB = m_LineV[nIndex].back();
             // actually back().State.W2 is always 0, put it here for nothing
@@ -2220,13 +2118,30 @@ void TokenBoard::ResetLineStartY(int nStartLine)
     }
 
     int nOldLongestLineStartY = m_LineStartY[nLongestLine];
-    for(nIndex = nStartLine; nIndex < m_LineV.size() && nIndex <= nLongestLine; ++nIndex){
+    for(nIndex = nStartLine; nIndex < (int)m_LineV.size() && nIndex <= nLongestLine; ++nIndex){
         m_LineStartY[nIndex] = GetNthNewLineStartY(nIndex);
         SetTokenBoxStartY(nIndex, m_LineStartY[nIndex]);
     }
 
     int nDStartY = m_LineStartY[nIndex] - nOldLongestLineStartY;
-    for(int nIndex = nLongestLine + 1; nIndex < m_LineV.size(); ++nIndex){
+    for(int nIndex = nLongestLine + 1; nIndex < (int)m_LineV.size(); ++nIndex){
         m_LineStartY[nIndex] += nDStartY;
     }
+}
+
+int TokenBoard::CreateSection(const SECTION &rstSection, const std::function<void()> &fnCB)
+{
+    // TODO
+    // make it more efficient
+    int nID = 0;
+    while(nID <= std::numeric_limits<int>::max()){
+        if(m_SectionV.find(nID) == m_SectionV.end()){
+            // good
+            m_SectionV[nID] = rstSection;
+            m_IDFuncV[nID]  = fnCB;
+            return nID;
+        }
+        nID++;
+    }
+    return -1;
 }

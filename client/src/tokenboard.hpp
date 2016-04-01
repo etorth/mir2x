@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/30/2016 22:34:15
+ *  Last Modified: 03/31/2016 20:14:19
  *
  *    Description: Design TBD.
  *
@@ -259,6 +259,7 @@ class TokenBoard: public Widget
             , m_DefaultSize(nDefaultSize)
             , m_DefaultStyle(nDefaultStyle)
             , m_DefaultColor(rstDefaultColor)
+            , m_SkipUpdate(false)
             , m_Margin{
                 nMargin0, nMargin1, nMargin2, nMargin3
             }
@@ -293,11 +294,13 @@ class TokenBoard: public Widget
         int  DoPadding(int, int);
         bool InRect(int, int, int, int, int, int);
     private:
-        void SetTokenBoxStartX(std::vector<TOKENBOX> &);
-        void SetTokenBoxStartY(std::vector<TOKENBOX> &, int);
+        void SetTokenBoxStartX(int);
+        void SetTokenBoxStartY(int, int);
 
     public:
-        int     SpacePadding(int);
+        int     LinePadding(int);
+        int     DoLinePadding(int, int, int);
+        void ResetLine(int);
 
     private:
         bool    m_WithCursor;
@@ -339,173 +342,231 @@ class TokenBoard: public Widget
         bool ParseXMLContent(const tinyxml2::XMLElement *);
 
     private:
-        bool ParseEmoticonObject(const tinyxml2::XMLElement &,
+        bool ParseReturnObject();
+        bool ParseEmoticonObject(const tinyxml2::XMLElement &);
+        bool ParseTextObject(const tinyxml2::XMLElement &,
                 int, const std::unordered_map<std::string, std::function<void()>> &);
-        bool ParseEventTextObject(const tinyxml2::XMLElement &,
-                int, const std::unordered_map<std::string, std::function<void()>> &);
 
     private:
-        SDL_Color   GetFontColor(const tinyxml2::XMLElement &);
-        int         GetFontIndex(const tinyxml2::XMLElement &);
-        int         GetFontStyle(const tinyxml2::XMLElement &);
-        int         GetFontSize (const tinyxml2::XMLElement &);
+        int CreateSection(const SECTION &, std::function<void()>);
+    private:
+        bool GetAttributeColor(SDL_Color *, const SDL_Color &,
+                const tinyxml2::XMLElement &, const std::vector<std::string> &);
+        bool GetAttributeAtoi(int *, int,
+                const tinyxml2::XMLElement &, const std::vector<std::string> &);
 
     private:
-        SDL_Color   GetEventTextCharColor(const tinyxml2::XMLElement &);
-        SDL_Color   GetEventTextCharColor(const tinyxml2::XMLElement &, int);
+            SDL_Color   GetFontColor(const tinyxml2::XMLElement &);
+            int         GetFontIndex(const tinyxml2::XMLElement &);
+            int         GetFontStyle(const tinyxml2::XMLElement &);
+            int         GetFontSize (const tinyxml2::XMLElement &);
 
     private:
-        void        ParseTextContentSection(const tinyxml2::XMLElement *, int);
+            SDL_Color   GetEventTextCharColor(const tinyxml2::XMLElement &);
+            SDL_Color   GetEventTextCharColor(const tinyxml2::XMLElement &, int);
 
     private:
-        int         GetEmoticonSet  (const tinyxml2::XMLElement &);
-        int         GetEmoticonIndex(const tinyxml2::XMLElement &);
+            void        ParseTextContentSection(const tinyxml2::XMLElement *, int);
+
+    private:
+            int         GetEmoticonSet  (const tinyxml2::XMLElement &);
+            int         GetEmoticonIndex(const tinyxml2::XMLElement &);
 
     public:
-        bool ObjectEmocticon(const tinyxml2::XMLElement &);
-        bool ObjectReturn(const tinyxml2::XMLElement &);
-        bool ObjectEventText(const tinyxml2::XMLElement &);
+            bool ObjectEmocticon(const tinyxml2::XMLElement &);
+            bool ObjectReturn(const tinyxml2::XMLElement &);
+            bool ObjectEventText(const tinyxml2::XMLElement &);
 
 
     private:
-        void RedrawToken(int, int, TOKENBOX &, bool);
-        bool DrawTextureCache();
+            void RedrawToken(int, int, TOKENBOX &, bool);
+            bool DrawTextureCache();
+
+    private:
+            bool ParseXML(const char *);
 
     public:
-        void Draw(int nX, int nY)
-        {
-            DrawEx(nX, nY, 0, 0, W(), H());
-        }
+            void Draw(int nX, int nY)
+            {
+                DrawEx(nX, nY, 0, 0, W(), H());
+            }
 
     public:
-        void DrawEx(int, int, int, int, int, int);
+            void DrawEx(int, int, int, int, int, int);
 
     private:
-        bool AddNewTokenBox(TOKENBOX &);
+            bool AddNewTokenBox(TOKENBOX &);
 
     public:
 
     private:
-        int GetNthLineIntervalMaxH2(int, int, int);
-        int GetNthLineTokenBoxStartY(int, int, int, int);
-        int GetNthNewLineStartY(int);
+            int GetNthLineIntervalMaxH2(int, int, int);
+            int GetNthLineTokenBoxStartY(int, int, int, int);
+            int GetNthNewLineStartY(int);
 
-        bool GetTokenBoxLocation(int, int, int &, int &, int &, int &);
-        bool GetTokenBoxStartPoint(int, int, int &, int &);
-        void SetDrawToTextureCache();
-        void SetDrawToScreen();
+            bool GetTokenBoxLocation(int, int, int &, int &, int &, int &);
+            bool GetTokenBoxStartPoint(int, int, int &, int &);
+            void SetDrawToTextureCache();
+            void SetDrawToScreen();
 
     private:
-        void ClearCurrentLine();
+            void ClearCurrentLine();
 
     public:
-        int Width();
-        int Height();
+            int Width();
+            int Height();
     private:
-        void RedrawSection(int);
+            void RedrawSection(int);
 
     private:
-        std::vector<std::vector<TOKENBOX>> m_LineV;
-        std::vector<TOKENBOX>              m_CurrentLine;
-        std::vector<SECTION>               m_SectionV;
-        std::vector<int>                   m_LineStartY;
+            std::vector<std::vector<TOKENBOX>> m_LineV;
+            std::vector<TOKENBOX>              m_CurrentLine;
+            std::unordered_map<int, SECTION>   m_SectionV;
+            std::vector<int>                   m_LineStartY;
     private:
-        std::vector<std::vector<std::vector<const TOKENBOX *>>> m_TokenBoxBitmap;
+            std::vector<std::vector<std::vector<std::pair<int, int>>>> m_TokenBoxBitmap;
 
     private:
-        void ResetCurrentLine();
+            void ResetCurrentLine();
 
     private:
-        void MakeEventTextBitmap();
-        void MarkEventTextBitmap(const TOKENBOX &);
-        int  m_Resolution;
-        int  m_WordSpace;
-        int  m_LineSpace;
+            void MakeTokenBoxEventBitmap();
+            void MarkTokenBoxEventBitmap(int, int);
+            int  m_Resolution;
+            int  m_WordSpace;
+            int  m_LineSpace;
 
     private:
-        std::pair<int, int> m_CursorLoc;
-        
-    private:
-        // this is used when insert words, empty lines, etc.
-        uint8_t   m_DefaultFont;
-        uint8_t   m_DefaultSize;
-        uint8_t   m_DefaultStyle;
-        SDL_Color m_DefaultColor;
+            std::pair<int, int> m_CursorLoc;
 
     private:
-        // margins for the board, this is needed for balabala..
-        //
-        //  +-------------------------+
-        //  |        M0               |
-        //  |  +-------------+        |
-        //  |  |             |        |
-        //  |M3|             |  M1    |
-        //  |  |             |        |
-        //  |  +-------------+        |
-        //  |        M2               |
-        //  +-------------------------+
-        //
-        int  m_Margin[4];
+            // this is used when insert words, empty lines, etc.
+            uint8_t   m_DefaultFont;
+            uint8_t   m_DefaultSize;
+            uint8_t   m_DefaultStyle;
+            SDL_Color m_DefaultColor;
+
+            bool      m_SkipUpdate;
 
     private:
-        // callbacks
-        std::vector<std::function<void()>> m_IDFuncV;
+            // margins for the board, this is needed for balabala..
+            //
+            //  +-------------------------+
+            //  |        M0               |
+            //  |  +-------------+        |
+            //  |  |             |        |
+            //  |M3|             |  M1    |
+            //  |  |             |        |
+            //  |  +-------------+        |
+            //  |        M2               |
+            //  +-------------------------+
+            //
+            int  m_Margin[4];
+
+            std::vector<bool> m_EndWithReturn;
 
     private:
-        int SectionTypeCount(const std::vector<TOKENBOX> &, int);
+            // callbacks
+            std::unordered_map<int, std::function<void()>> m_IDFuncV;
 
-        void DrawRectLine(const SDL_Rect &);
+    private:
+            int SectionTypeCount(int, int);
+
+            void DrawRectLine(const SDL_Rect &);
 
     public:
-        const std::string &ContentExport();
-        int GuessResoltion();
+            const std::string &ContentExport();
+            int GuessResoltion();
 
-        void TokenBoxGetMouseButtonUp(const TOKENBOX &, bool);
+            void TokenBoxGetMouseButtonUp(int, int, bool);
+            void TokenBoxGetMouseButtonDown(int, int, bool);
+            void TokenBoxGetMouseMotion(int, int, bool);
+
+            void ProcessEventMouseButtonUp(int, int);
+            void ProcessEventMouseButtonDown(int, int);
+            void ProcessEventMouseMotion(int, int);
 
     public:
-        bool AddTokenBoxV(int, int, const std::vector<TOKENBOX> &);
+            bool AddTokenBoxV(int, int, const std::vector<TOKENBOX> &);
 
     public:
-        void GetCursor(int *pX, int *pY)
-        {
-            if(pX){ *pX = m_CursorLoc.first;  }
-            if(pY){ *pY = m_CursorLoc.second; }
-        }
+            void GetCursor(int *pX, int *pY)
+            {
+                if(pX){ *pX = m_CursorLoc.first;  }
+                if(pY){ *pY = m_CursorLoc.second; }
+            }
 
-        int GetWordSpace()
-        {
-            return m_MinMarginBtwBox;
-        }
+            int GetWordSpace()
+            {
+                return m_WordSpace;
+            }
 
-        int GetLineSpace()
-        {
-            return m_MinMarginBtwLine;
-        }
+            int GetLineSpace()
+            {
+                return m_LineSpace;
+            }
 
-        void Delete(bool);
+            void Delete(bool);
 
 
-        bool AddTokenBoxV(const std::vector<TOKENBOX> &rstTBV)
-        {
-            return AddTokenBoxV(m_CursorLoc.first, m_CursorLoc.second, rstTBV);
-        }
+            bool AddTokenBoxV(const std::vector<TOKENBOX> &rstTBV)
+            {
+                return AddTokenBoxV(m_CursorLoc.first, m_CursorLoc.second, rstTBV);
+            }
 
-        // always we need an default environment
-        void SetDefaultFont(
-                uint8_t nFont, uint8_t nSize, uint8_t nStyle, const SDL_Color &rstColor)
-        {
-            m_DefaultFont  = nFont;
-            m_DefaultSize  = nSize;
-            m_DefaultStyle = nStyle;
-            m_DefaultColor = rstColor;
-        }
+            // always we need an default environment
+            void SetDefaultFont(
+                    uint8_t nFont, uint8_t nSize, uint8_t nStyle, const SDL_Color &rstColor)
+            {
+                m_DefaultFont  = nFont;
+                m_DefaultSize  = nSize;
+                m_DefaultStyle = nStyle;
+                m_DefaultColor = rstColor;
+            }
+
+
+    public:
+            const tinyxml2::XMLElement *XMLFirstObject(const tinyxml2::XMLElement &);
+            const tinyxml2::XMLElement *XMLNextObject(const tinyxml2::XMLElement &);
+            bool  LoadXML(const char *, const std::unordered_map<std::string, std::function<void()>> &);
+            bool  InnInsert(const tinyxml2::XMLDocument &, const std::unordered_map<std::string, std::function<void()>> &);
+
+            int LineFullWidth(int);
+            int LineRawWidth(int, bool);
+            int SetTokenBoxWordSpace(int);
+
+            std::pair<int, int> m_LastTokenBoxLoc;
 
     private:
-        int m_MinMarginBtwBox;
-        int m_MinMarginBtwLine;
+            bool TokenBoxValid(int nX, int nY)
+            {
+                return true
+                    && nY >= 0
+                    && nY < (int)m_LineV.size()
+                    && nX >= 0
+                    && nX < (int)m_LineV[nY].size();
+            }
+
+            bool LastTokenBoxValid()
+            {
+                return TokenBoxValid(m_LastTokenBoxLoc.first, m_LastTokenBoxLoc.second);
+            }
+
+
+            std::string GetXML(bool);
+
+
+            std::string InnGetXML(int, int, int, int);
+
+            bool GetTokenBoxInfo(int, int, int *, int *, int *, int *, int *, int *, int *);
+
+            void DeleteTokenBox(int, int, int, int);
+    private:
+
+            std::pair<int, int> m_SelectLoc[2];
 
     private:
-        int     m_SelectState;  // 0: no selection
-        // 1: selecting
-        // 2: selection done with result available
+            int     m_SelectState;  // 0: no selection
+            // 1: selecting
+            // 2: selection done with result available
 };

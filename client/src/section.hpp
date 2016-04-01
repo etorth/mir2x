@@ -3,7 +3,7 @@
  *
  *       Filename: section.hpp
  *        Created: 8/18/2015 6:56:11 PM
- *  Last Modified: 03/26/2016 00:14:29
+ *  Last Modified: 03/31/2016 15:14:04
  *
  *    Description: 
  *
@@ -50,10 +50,11 @@ typedef struct{
 }TEXTSECTIONINFO;
 
 enum{
-    SECTIONTYPE_ALL         =      0,
-    SECTIONTYPE_PLAINTEXT   = 1 << 1,
-    SECTIONTYPE_EVENTTEXT   = 1 << 2,
-    SECTIONTYPE_EMOTICON    = 1 << 3,
+    SECTIONTYPE_ALL         = 0,
+    SECTIONTYPE_PLAINTEXT   = 1,
+    SECTIONTYPE_EVENTTEXT   = 2,
+    SECTIONTYPE_EMOTICON    = 3,
+    SECTIONTYPE_TEXT        = 4,
 };
 
 typedef union{
