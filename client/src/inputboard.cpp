@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 7:04:16 PM
- *  Last Modified: 03/26/2016 17:41:57
+ *  Last Modified: 04/01/2016 00:24:09
  *
  *    Description: 
  *
@@ -21,49 +21,21 @@
 #include <SDL2/SDL.h>
 #include <utf8.h>
 #include <algorithm>
+#include "game.hpp"
 #include "inputboard.hpp"
 #include "sdlkeyeventchar.hpp"
+#include "fontexdbn.hpp"
+#include "mathfunc.hpp"
 
 int InputBoard::s_ShowSystemCursorCount = 0;
 int InputBoard::s_InputBoardCount       = 0;
 
-InputBoard::InputBoard(bool bWrap, int nW, int nH,
-        int nMinTextMargin, int nMinTextLineSpace,
-        uint8_t nFontSet, uint8_t nFontSize, uint32_t nTextColor,
-        int nCursorWidth, uint32_t nCursorColor)
-    : Widget()
-    , m_CursorWidth(nCursorWidth)
-    , m_CursorColor(nCursorColor)
-    , m_FontSet(nFontSet)
-    , m_Size(nFontSize)
-    , m_TextColor(nTextColor)
-    , m_SystemCursorX(0)
-    , m_SystemCursorY(0)
-    , m_DrawOwnSystemCursor(false)
-    , m_ShowStartX(0)
-    , m_Ticks(0)
-    , m_Focus(false)
-    , m_Content("")
-    , m_TokenBoard(bWrap, nW, nMinTextMargin, nMinTextLineSpace)
-    , m_IME(nullptr)
+void InputBoard::Update(double fMS)
 {
-    s_InputBoardCount++;
-    s_ShowSystemCursorCount++;
-    m_W = nW;
-    m_H = nH;
+    m_MS += fMS;
 
-    SetProperH();
-}
-
-InputBoard::~InputBoard()
-{
-    s_InputBoardCount--;
-    s_ShowSystemCursorCount--;
-}
-
-void InputBoard::Update(Uint32 nMs)
-{
-    m_Ticks += nMs;
+    InputWidget::Update(fMS);
+    m_TokenBoard.Update(fMS);
 }
 
 bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
@@ -121,38 +93,38 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                         case SDLK_UP:
                             {
                                 int nX, nY;
-                                m_TokenBoard->GetCursor(&nX, &nY);
-                                m_TokenBoard->SetCursor(nX, nY - 1);
+                                m_TokenBoard.GetCursor(&nX, &nY);
+                                m_TokenBoard.SetCursor(nX, nY - 1);
                                 break;
                             }
                         case SDLK_DOWN:
                             {
                                 int nX, nY;
-                                m_TokenBoard->GetCursor(&nX, &nY);
-                                m_TokenBoard->SetCursor(nX, nY + 1);
+                                m_TokenBoard.GetCursor(&nX, &nY);
+                                m_TokenBoard.SetCursor(nX, nY + 1);
                                 break;
                             }
 
                         case SDLK_LEFT:
                             {
                                 int nX, nY;
-                                m_TokenBoard->GetCursor(&nX, &nY);
-                                m_TokenBoard->SetCursor(nX - 1, nY);
+                                m_TokenBoard.GetCursor(&nX, &nY);
+                                m_TokenBoard.SetCursor(nX - 1, nY);
                                 break;
                             }
 
                         case SDLK_RIGHT:
                             {
                                 int nX, nY;
-                                m_TokenBoard->GetCursor(&nX, &nY);
-                                m_TokenBoard->SetCursor(nX + 1, nY);
+                                m_TokenBoard.GetCursor(&nX, &nY);
+                                m_TokenBoard.SetCursor(nX + 1, nY);
                                 break;
                             }
 
                         case SDLK_BACKSPACE:
 
                             {
-                                m_TokenBoard->Delete(false);
+                                m_TokenBoard.Delete(false);
                                 break;
                             }
 
@@ -168,30 +140,30 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                                         || rstEvent.key.keysym.mod & KMOD_LCTRL
                                         || rstEvent.key.keysym.mod & KMOD_RCTRL){
                                     extern Game *g_Game;
-                                    g_Game->Clipboard(m_TokenBoard->GetXML(true));
-                                    m_TokenBoard->Delete(true);
+                                    g_Game->Clipboard(m_TokenBoard.GetXML(true));
+                                    m_TokenBoard.Delete(true);
                                 }
                                 break;
                             }
 
-                        case SDL_c:
+                        case SDLK_c:
                             {
                                 if(false
                                         || rstEvent.key.keysym.mod & KMOD_LCTRL
                                         || rstEvent.key.keysym.mod & KMOD_RCTRL){
                                     extern Game *g_Game;
-                                    g_Game->Clipboard(m_TokenBoard->GetXML(true));
+                                    g_Game->Clipboard(m_TokenBoard.GetXML(true));
                                 }
                                 break;
                             }
 
-                        case SDL_v:
+                        case SDLK_v:
                             {
                                 if(false
                                         || rstEvent.key.keysym.mod & KMOD_LCTRL
                                         || rstEvent.key.keysym.mod & KMOD_RCTRL){
                                     extern Game *g_Game;
-                                    m_TokenBoard->InsertXML(g_Game->Clipboard());
+                                    m_TokenBoard.ParseXML(g_Game->Clipboard().c_str());
                                 }
                                 break;
                             }
@@ -199,9 +171,9 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                         default:
                             {
                                 // end of special event handle, normal input
-                                chKeyName = SDLKeyEventChar(rstEvent);
+                                char chKeyName = SDLKeyEventChar(rstEvent);
                                 if(chKeyName != '\0'){
-                                    m_TokenBoard->AddUTF8Char(int(chKeyName));
+                                    m_TokenBoard.AddUTF8Code(uint32_t(chKeyName));
                                     return true;
                                 }
                             }
@@ -232,55 +204,6 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
     return false;
 }
 
-
-void InputBoard::BindCursorTokenBox(int nEventX, int nEventY)
-{
-    // +-------------------------- <------- screen corner
-    // |
-    // |
-    // |   +----------------------+ <------ full tokenbox
-    // |   |                      |
-    // |   |  +--------------+    | <------ the inputboard window
-    // |   |  |              |    |
-    // |   |  |              |    |
-    // |   |  |  x           |    | <------ event point
-    // |   |  |              |    |
-    // |   |  +--------------+    |
-    // |   |                      |
-    // |   |                      |
-    // |   +----------------------+
-
-    int nRow, nCol;
-
-    if(m_TokenBoard.TokenBoxUnderPoint(nEventX, nEventY, nRow, nCol)){
-        m_TokenBoard.TokenBoxLocationInfo(nRow, nCol,
-                nStartX, nStartY, nW, nW1, nW2, nH, nH1, nH2);
-
-        m_BindTokenBoxLocation = {nRow, nCol};
-
-
-    }
-
-    int nX = nEventX - X() + m_ShowStartX;
-    int nY = nEventY - Y() + m_ShowStartY;
-
-    for(int nIndex = 0; nIndex < (int)m_Line.size(); ++nIndex){
-        int nBoxStartX = m_Line[nIndex].Cache.StartX - m_Line[nIndex].State.W1;
-        int nBoxStartY = m_Line[nIndex].Cache.StartY;
-        int nBoxW      = m_Line[nIndex].State.W1 + m_Line[nIndex].Cache.W + m_Line[nIndex].State.W2;
-        int nBoxH      = m_Line[nIndex].Cache.H;
-        if(PointInRect(nX, nY, nBoxStartX, nBoxStartY, nBoxW, nBoxH)){
-            if(PointInRect(nX, nY, nBoxStartX, nBoxStartY, nBoxW / 2, nBoxH)){
-                m_BindTokenBoxIndex = nIndex - 1;
-            }else{
-                m_BindTokenBoxIndex = nIndex;
-            }
-            return;
-        }
-    }
-    m_BindTokenBoxIndex = m_Line.size() - 1;
-}
-
 void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
 {
     // +------------------------------+
@@ -302,24 +225,30 @@ void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
     // location for (x, y)
     //
     int nTBX, nTBY, nTBW, nTBH, nX, nY, nW, nH;
-    m_TokenBoard->GetCursor(&nX, &nY);
 
-    if(m_TokenBoard->GetTokenBoxInfo(nX - 1, nY,
+    nW = m_CursorWidth;
+    m_TokenBoard.GetCursor(&nX, &nY);
+
+    if(m_TokenBoard.GetTokenBoxInfo(nX - 1, nY,
                 nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
         nX = nTBX + nTBW;
         nY = nTBY;
-        nH = nTBH + 2 * m_TokenBoard->GetLineSpace();
-    }else if(m_TokenBoard->GetTokenBoxInfo(nX, nY,
+        nH = nTBH + 2 * m_TokenBoard.GetLineSpace();
+    }else if(m_TokenBoard.GetTokenBoxInfo(nX, nY,
                 nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
         nX = nTBX + nTBW;
         nY = nTBY;
-        nH = nTBH + 2 * m_TokenBoard->GetLineSpace();
+        nH = nTBH + 2 * m_TokenBoard.GetLineSpace();
     }else{
         // should be the empty tokenboard, waiting for the first input
         // use the default setting
+        //
+        // only need to get default font/size/style(style for italy)
+        uint8_t nFont, nFontSize, nFontStyle;
+        m_TokenBoard.GetDefaultFontInfo(&nFont, &nFontSize, &nFontStyle);
+
         extern FontexDBN *g_FontexDBN;
-        auto pTexture = g_FontexDBN->Retrieve(
-                m_DefaultFontIndex, m_DefaultFontSize, m_DefaultFontStyle, (int)'M');
+        auto pTexture = g_FontexDBN->Retrieve( nFont, nFontSize, nFontStyle, (int)'M'); 
 
         int nDefaultH;
         SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nDefaultH);
@@ -342,8 +271,8 @@ void InputBoard::ResetTokenBoardLoction()
     int nX, nY, nW, nH;
     GetCursorInfo(&nX, &nY, &nW, &nH);
 
-    int nTokenBoardX = m_TokenBoard->X();
-    int nTokenBoardY = m_TokenBoard->Y();
+    int nTokenBoardX = m_TokenBoard.X();
+    int nTokenBoardY = m_TokenBoard.Y();
 
     int nInputBoardX = X();
     int nInputBoardY = Y();
@@ -357,31 +286,32 @@ void InputBoard::ResetTokenBoardLoction()
     if(!RectangleInside(nDX, nDY, nDW, nDH, nX, nY, nW, nH)){
         // cursor is not contained in the view window, need to be reset
         if(nX < nDX){
-            m_TokenBoard->Move(nDX - nX, 0);
+            m_TokenBoard.Move(nDX - nX, 0);
         }
 
         if(nX + nW > nDX + nDW){
-            m_TokenBoard->Move(nX + nW - nDX - nDW, 0);
+            m_TokenBoard.Move(nX + nW - nDX - nDW, 0);
         }
 
         if(nY < nDY){
-            m_TokenBoard->Move(0, nDY - nY);
+            m_TokenBoard.Move(0, nDY - nY);
         }
 
         if(nY + nW > nDY + nDH){
-            m_TokenBoard->Move(0, nY + nW - nDY - nDH):
+            m_TokenBoard.Move(0, nY + nW - nDY - nDH);
         }
     }
 }
 
 void InputBoard::Draw()
 {
-    if(In(m_TokenBoard->X(), m_TokenBoard->Y(),
-                m_TokenBoard->W(), m_TokenBoard->H())){
-        m_TokenBoard->Draw();
+    if(RectangleInside(X(), Y(), W(), H(), 
+                m_TokenBoard.X(), m_TokenBoard.Y(),
+                m_TokenBoard.W(), m_TokenBoard.H())){
+        m_TokenBoard.Draw(0, 0);
     }else{
-        int nTokenBoardX = m_TokenBoard->X();
-        int nTokenBoardY = m_TokenBoard->Y();
+        int nTokenBoardX = m_TokenBoard.X();
+        int nTokenBoardY = m_TokenBoard.Y();
 
         int nInputBoardX = X();
         int nInputBoardY = Y();
@@ -393,7 +323,7 @@ void InputBoard::Draw()
         int nDH = H();
 
         // clip to draw
-        m_TokenBoard->Draw(nDX, nDY, nDW, nDH);
+        m_TokenBoard.DrawEx(0, 0, nDX, nDY, nDW, nDH);
     }
 
     // +-------------------------+
@@ -405,38 +335,34 @@ void InputBoard::Draw()
     // | : blinking cursor in the box
     // I : mouse pointer to select input cursor position
 
-    // 1. draw ``I" cursor
+    // 1. draw ``|" cursor
     int nX, nY, nW, nH;
     GetCursorInfo(&nX, &nY, &nW, &nH);
 
     if(((int)m_MS % 1000) < 500 && Focus()){
-        SDL_Rect stRect {nX, nY, nW, nH};
         extern SDLDevice   *g_SDLDevice;
-        g_SDLDevice->PushColor(m_CurorColor.r, m_CurorColor.g, m_CurorColor.b, m_CurorColor.a);
-        g_SDLDevice->FillRectangle(stRect);
+        g_SDLDevice->PushColor(m_CursorColor.r, m_CursorColor.g, m_CursorColor.b, m_CursorColor.a);
+        g_SDLDevice->FillRectangle(nX, nY, nW, nH);
     }
 
-    // 2. draw ``|" cursor
-
+    // 2. draw ``I" cursor
     if(m_DrawOwnSystemCursor){
-        GetDeviceManager()->SetRenderDrawColor(200, 200, 200, 200);
-        SDL_RenderDrawLine(
-                GetDeviceManager()->GetRenderer(),
+        extern SDLDevice   *g_SDLDevice;
+        g_SDLDevice->PushColor(200, 200, 200, 200);
+        g_SDLDevice->DrawLine(
                 m_SystemCursorX, m_SystemCursorY - m_H / 2,
                 m_SystemCursorX, m_SystemCursorY + m_H / 2);
-        SDL_RenderDrawLine(
-                GetDeviceManager()->GetRenderer(),
+        g_SDLDevice->DrawLine(
                 m_SystemCursorX - (std::max)(1, (int)std::lround(m_H * 0.08)),
                 m_SystemCursorY - m_H / 2,
                 m_SystemCursorX + (std::max)(1, (int)std::lround(m_H * 0.08)),
                 m_SystemCursorY - m_H / 2);
-        SDL_RenderDrawLine(
-                GetDeviceManager()->GetRenderer(),
+        g_SDLDevice->DrawLine(
                 m_SystemCursorX - (std::max)(1, (int)std::lround(m_H * 0.08)),
                 m_SystemCursorY + m_H / 2,
                 m_SystemCursorX + (std::max)(1, (int)std::lround(m_H * 0.08)),
                 m_SystemCursorY + m_H / 2);
-        GetDeviceManager()->SetRenderDrawColor(0, 0, 0, 0);
+        g_SDLDevice->PopColor();
     }
 
     if(s_ShowSystemCursorCount < s_InputBoardCount){

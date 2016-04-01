@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/31/2016 20:34:21
+ *  Last Modified: 04/01/2016 01:39:54
  *
  *    Description: 
  *
@@ -1912,13 +1912,13 @@ void TokenBoard::Delete(bool bSelectedOnly)
 //
 // outer user can only call Delete(bool) to delete by cursor
 // or by selected region
-void TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
+bool TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
 {
     // TODO & TBD
     // think about this boundary check
     //
     // nothing to delete
-    if(m_LineV.empty()){ return; }
+    if(m_LineV.empty()){ return true; }
 
     // do have something...
     if(nY0 < 0){ nX0 = 0; nY0 = 0; }
@@ -1928,7 +1928,7 @@ void TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
         nY1 = m_LineV.size() - 1;
     }
 
-    if((nY0 > nY1) || (nY0 == nY1 && nX0 > nX1)){ return; }
+    if((nY0 > nY1) || (nY0 == nY1 && nX0 > nX1)){ return false; }
 
     nY0 = std::max(0, std::min(nY0, (int)m_LineV.size()));
     nY1 = std::max(0, std::min(nY1, (int)m_LineV.size()));
@@ -1944,33 +1944,69 @@ void TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
     //      3. delete all of current line
     // Then we need to put a <CR> at last line and padding it if necessary
     //
-    // in one line
-    if(nY0 == nY1){
-        if(m_EndWithReturn[nY0]){
 
-        }
-        m_LineV[nY0].erase(m_LineV[nY0].begin() + nX0, m_LineV[nY0].begin() + nX1 + 1);
-        if(nY0 != (int)m_LineV.size() - 1){
-            m_LineV[nY0].insert(m_LineV[nY0].end(),
-                    m_LineV[nY0 + 1].begin(), m_LineV[nY0 + 1].begin());
-            m_LineV.erase(m_LineV.begin() + nY0 + 1);
-        }
-    }else{
-        m_LineV[nY0].resize(nX0);
-        m_LineV[nY0].insert(m_LineV[nY1].begin() + nX1, m_LineV[nY1].end());
-        m_LineV.erase(m_LineV.begin() + nY0 + 1, m_LineV.begin() + nY1 + 1);
+    if(m_Spacing &&  m_PW > 0                        // system asks for padding
+
+            &&  nY0 >= 1                             // nY0 is not the first line
+            &&  nX0 == 0                             // delete start from the very beginning
+            &&  nX1 == (int)m_LineV[nY1].size()      // delete ends at the very end
+            &&  m_EndWithReturn[nY1]                 // current line ends with <CR>
+            && !m_EndWithReturn[nY0 - 1]){           // last line is not ends with <CR>
+
+        m_EndWithReturn[nY0 - 1] = true;
+        ResetOneLine(nY0 - 1);
     }
 
-    while(m_LineV[nY0].size() > 0){
-        nRawLen = LineRawWidth(nY0);
-        if(nRawLen + (m_LineV[nY].size() - 1) * m_WordSpace <= m_PW){
-            // we are good
-            ResetLine(nY);
-            break;
-        }else{
-            AddTokenBox(nY + 1, 0, m_LineV[nY].back());
-            m_LineV[nY].pop_back();
-        }
+    // now (0 ~ (nY0 -1)) are well-prepared
+    // 1. delete whole lines, only need to reset startY
+    // 2. line nY1 ends without <CR>:
+    //      1. take pieces from line nY0 and line nY1 and store in one TBV
+    //      2. delete line (nY0 ~ nY1), then line nY1 + 1 becomes nY0
+    //      3. reset line nY0 (only startY) to make current board valid
+    //      4. insert the stored TBV at (0, nY0)
+    // 3. line nY1 ends with <CR>
+    //      1. store pieces from line nY1 in one TBV
+    //      2. delete line (nY0 + 1) ~ nY1
+    //      3. resize line nY0
+    //      4. change line nY0 ends with <CR>
+    //      5. reset line nY0 (all) to make board valid
+    //      6. insert TBV at the end of nY0
+    //
+    // we delete whole lines from nY0 ~ nY1
+
+    auto fnDeleteLine = [this](int nLine0, int nLine1){
+        m_LineV.erase(
+                m_LineV.begin() + nLine0, m_LineV.begin() + nLine1 + 1);
+        m_EndWithReturn.erase(
+                m_EndWithReturn.begin() + nLine0, m_EndWithReturn.begin() + nLine1 + 1);
+    };
+
+    // case 1
+    if(nX0 == 0 && nX1 == (int)m_LineV[nY1].size()){
+        // delete all, just erase this line
+        fnDeleteLine(nY0, nY1);
+        ResetLineStartY(nY0);
+        return true;
+    }
+
+    // case 2
+    if(!m_EndWithReturn[nY1]){
+        std::vector<TOKENBOX> stTBV;
+        stTBV.insert(stTBV.end(), m_LineV[nY0].begin(), m_LineV[nY0].begin() + nX0);
+        stTBV.insert(stTBV.end(), m_LineV[nY1].begin() + nX1 + 1, m_LineV[nY1].end());
+
+        fnDeleteLine(nY0, nY1);
+        ResetLineStartY(nY0);
+        return AddTokenBoxV(0, nY0, stTBV);
+    }else{
+        std::vector<TOKENBOX> stTBV(m_LineV[nY1].begin() + nX1 + 1, m_LineV[nY1].end());
+        fnDeleteLine(nY0 + 1, nY1);
+
+        m_LineV[nY0].resize(nX0);
+        m_EndWithReturn[nY0] = true;
+
+        ResetLine(nY0);
+        return AddTokenBoxV(m_LineV[nY0].size(), nY0, stTBV);
     }
 }
 
@@ -2009,14 +2045,14 @@ void TokenBoard::Clear()
 //      2. there is valid buffer for the insertion
 //      3. cursor position is well-defined
 //
-void TokenBoard::ParseReturnObject()
+bool TokenBoard::ParseReturnObject()
 {
     int nX = m_CursorLoc.first;
     int nY = m_CursorLoc.second;
 
-    if(!(nY >= 0 && nY < (int)m_LineV.size() && nX >= 0 && nX <= m_LineV[nY].size())){
+    if(!(nY >= 0 && nY < (int)m_LineV.size() && nX >= 0 && nX <= (int)m_LineV[nY].size())){
         // invalid cursor location, bye
-        return;
+        return false;
     }
 
     // anyway we need to handle it case by case
@@ -2054,9 +2090,9 @@ void TokenBoard::ParseReturnObject()
         ResetOneLine(nY + 1);
 
         // reset all startY for the rest
-        RestLineStartY(nY + 2);
+        ResetLineStartY(nY + 2);
     }else{
-        AddTokenBoxV(nY + 1, stTBV);
+        AddTokenBoxV(0, nY + 1, stTBV);
     }
 }
 
@@ -2128,7 +2164,7 @@ void TokenBoard::ResetLineStartY(int nStartLine)
     }
 
     int nOldLongestLineStartY = m_LineStartY[nLongestLine];
-    for(nIndex = nStartLine; nIndex < (int)m_LineV.size() && nIndex <= nLongestLine; ++nIndex){
+    for(int nIndex = nStartLine; nIndex < (int)m_LineV.size() && nIndex <= nLongestLine; ++nIndex){
         m_LineStartY[nIndex] = GetNthNewLineStartY(nIndex);
         SetTokenBoxStartY(nIndex, m_LineStartY[nIndex]);
     }
@@ -2154,4 +2190,20 @@ int TokenBoard::CreateSection(const SECTION &rstSection, const std::function<voi
         nID++;
     }
     return -1;
+}
+
+// insert a utf-8 char box
+// assume:
+//      1. valid tokenboard
+bool TokenBoard::AddUTF8Code(uint32_t)
+{
+    TOKENBOX stTB;
+    std::memset(&stTB, 0, sizeof(stTB));
+}
+
+void TokenBoard::GetDefaultFontInfo(uint8_t *pFont, uint8_t *pFontSize, uint8_t *pFontStyle)
+{
+    if(pFont     ){ *pFont      = m_DefaultFont; }
+    if(pFontSize ){ *pFontSize  = m_DefaultFontSize; }
+    if(pFontStyle){ *pFontStyle = m_DefaultFontStyle; }
 }

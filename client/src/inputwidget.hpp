@@ -3,7 +3,7 @@
  *
  *       Filename: inputwidget.hpp
  *        Created: 03/17/2016 00:16:52
- *  Last Modified: 03/20/2016 23:53:55
+ *  Last Modified: 03/31/2016 22:45:14
  *
  *    Description: 
  *
@@ -25,7 +25,15 @@
 class InputWidget: public Widget
 {
     public:
-        InputWidget() = default;
+        InputWidget(
+                int     nX,
+                int     nY,
+                int     nW          = 0,
+                int     nH          = 0,
+                Widget *pWidget     = nullptr,
+                bool    bFreeWidget = false) :
+            Widget(nX, nY, nW, nH, pWidget, bFreeWidget){}
+            
         virtual ~InputWidget() = default;
 
     public:

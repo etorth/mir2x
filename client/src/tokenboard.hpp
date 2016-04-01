@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/31/2016 20:37:08
+ *  Last Modified: 04/01/2016 01:36:18
  *
  *    Description: Design TBD.
  *
@@ -382,7 +382,7 @@ class TokenBoard: public Widget
         void RedrawToken(int, int, TOKENBOX &, bool);
         bool DrawTextureCache();
 
-    private:
+    public:
         bool ParseXML(const char *);
 
     public:
@@ -524,6 +524,10 @@ class TokenBoard: public Widget
             m_DefaultColor = rstColor;
         }
 
+        void SetCursor(int nX, int nY)
+        {
+            m_CursorLoc = {nX, nY};
+        }
 
     public:
         const tinyxml2::XMLElement *XMLFirstObject(const tinyxml2::XMLElement &);
@@ -553,6 +557,7 @@ class TokenBoard: public Widget
         }
 
 
+    public:
         std::string GetXML(bool);
 
 
@@ -560,7 +565,15 @@ class TokenBoard: public Widget
 
         bool GetTokenBoxInfo(int, int, int *, int *, int *, int *, int *, int *, int *);
 
-        void DeleteTokenBox(int, int, int, int);
+        bool DeleteTokenBox(int, int, int, int);
+
+        void GetDefaultFontInfo(uint8_t *, uint8_t *, uint8_t *);
+
+    public:
+        bool AddUTF8Code(uint32_t);
+        void ResetOneLine(int);
+        void ResetLineStartY(int);
+
     private:
 
         std::pair<int, int> m_SelectLoc[2];

@@ -3,7 +3,7 @@
  *
  *       Filename: colorfunc.hpp
  *        Created: 03/31/2016 19:46:27
- *  Last Modified: 03/31/2016 20:03:23
+ *  Last Modified: 04/01/2016 00:06:19
  *
  *    Description: 
  *
@@ -21,6 +21,8 @@
 
 #include <cstdint>
 #include <SDL2/SDL.h>
+
+SDL_Color MakeColor(uint8_t, uint8_t, uint8_t, uint8_t);
 
 uint32_t Color2U32RGBA(const SDL_Color &);
 uint32_t Color2U32ARGB(const SDL_Color &);

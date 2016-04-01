@@ -3,7 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 03/20/2016 18:06:04
+ *  Last Modified: 03/31/2016 23:48:26
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -22,6 +22,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include "inndb.hpp"
+#include <zip.h>
+#include "hexstring.hpp"
 
 
 enum FontStyle: uint8_t{

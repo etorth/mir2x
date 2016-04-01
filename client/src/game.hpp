@@ -25,6 +25,17 @@ class Game
         void MainLoop();
 
     public:
+        void Clipboard(const std::string &szInfo)
+        {
+            m_ClipboardBuf = szInfo;
+        }
+
+        std::string Clipboard()
+        {
+            return m_ClipboardBuf;
+        }
+
+    public:
         bool FPSDelay();
         void SwitchProcess(int);
         void SwitchProcess(int, int);
@@ -65,4 +76,5 @@ class Game
         SDLDevice   *m_SDLDevice;
 
     private:
+        std::string m_ClipboardBuf;
 };

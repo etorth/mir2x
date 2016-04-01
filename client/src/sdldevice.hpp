@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/20/2016 22:10:15
+ *  Last Modified: 04/01/2016 00:18:54
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp
@@ -20,6 +20,8 @@
  */
 
 #pragma once
+#include "colorfunc.hpp"
+#include <vector>
 #include <algorithm>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -70,6 +72,44 @@ class SDLDevice final
        void SetColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
        {
            SDL_SetRenderDrawColor(m_Renderer, nR, nG, nB, nA);
+       }
+
+       void PushColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
+       {
+           uint32_t nRGBA = Color2U32RGBA(MakeColor(nR, nG, nB, nA));
+           if(nRGBA != m_ColorStack.back()){
+               SetColor(nR, nG, nB, nA);
+           }
+           m_ColorStack.push_back(nRGBA);
+       }
+
+       void PopColor()
+       {
+           uint32_t nOldRGBA = m_ColorStack.back();
+           m_ColorStack.pop_back();
+
+           if(m_ColorStack.back() != nOldRGBA){
+               SDL_Color stColor = U32RGBA2Color(m_ColorStack.back());
+               SetColor(stColor.r, stColor.g, stColor.b, stColor.a);
+           }
+       }
+
+       void FillRectangle(int nX, int nY, int nW, int nH)
+       {
+           // TODO
+           // boundary check??
+           SDL_Rect stRect;
+           stRect.x = nX;
+           stRect.y = nY;
+           stRect.w = nW;
+           stRect.h = nH;
+
+           SDL_RenderFillRect(m_Renderer, &stRect);
+       }
+
+       SDL_Color Color()
+       {
+           return U32RGBA2Color(m_ColorStack.back());
        }
 
        void DrawPixel(int nX, int nY)
@@ -123,6 +163,9 @@ class SDLDevice final
        // for graphics hardware
        SDL_Window   *m_Window;
        SDL_Renderer *m_Renderer;
+
+    private:
+       std::vector<uint32_t> m_ColorStack;
 
     private:
        int m_WindowW;

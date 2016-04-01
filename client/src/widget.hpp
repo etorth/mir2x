@@ -3,7 +3,7 @@
  *
  *       Filename: widget.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/26/2016 16:30:18
+ *  Last Modified: 03/31/2016 22:42:01
  *
  *    Description: public API for class game only
  *
@@ -77,7 +77,7 @@ class Widget
         // Draw is something that every widget should have
         // so make it pure virtual
         virtual void Draw(int, int) = 0;
-        virtual void Draw(int, int, int, int) = 0;
+        // virtual void Draw(int, int, int, int) = 0;
 
         virtual void Update(double)
         {

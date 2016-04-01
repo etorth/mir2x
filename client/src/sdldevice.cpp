@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/20/2016 22:08:46
+ *  Last Modified: 04/01/2016 00:01:19
  *
  *    Description: 
  *
@@ -132,6 +132,8 @@ SDLDevice::SDLDevice()
     }
 
     SetWindowIcon();
+
+    PushColor(0XFF, 0XFF, 0XFF, 0XFF);
 }
 
 SDLDevice::~SDLDevice()

@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/31/2016 00:51:39
+ *  Last Modified: 03/31/2016 23:52:53
  *
  *    Description: 
  *
@@ -35,33 +35,61 @@ class InputBoard: public InputWidget
         InputBoard(
                 int              nX,
                 int              nY,
-                int              nMaxWidth      = -1,
-                int              nWordSpace     = 0,
-                int              nLineSpace     = 0,
-                int              nCursorWidth   = 2,
-                const SDL_Color &rstCursorColor = {0XFF, 0XFF, 0XFF, 0XFF},
-                Widget          *pWidget        = nullptr,
-                bool             bFreeWidget    = false):
+                bool             bSpacing,
+                int              nMaxWidth       = -1,
+                int              nWordSpace      =  0,
+                int              nLineSpace      =  0,
+                int              nCursorWidth    =  2,
+                const SDL_Color &rstCursorColor  = {0XFF, 0XFF, 0XFF, 0XFF},
+                uint8_t          nDefaultFont    =  0,
+                uint8_t          nDefaultSize    =  0,
+                uint8_t          nDefaultStyle   =  0,
+                const SDL_Color &rstDefaultColor = {0XFF, 0XFF, 0XFF, 0XFF},
+                Widget          *pWidget         =  nullptr,
+                bool             bFreeWidget     =  false):
             InputWidget(nX, nY, 0, 0, pWidget, bFreeWidget)
             , m_TokenBoard(
                     0,
                     0,
                     true,
                     true,
-                    true,
+                    bSpacing,
                     false,
                     nMaxWidth,
                     nWordSpace,
-                    nLineSpace)
+                    nLineSpace,
+                    nDefaultFont,
+                    nDefaultSize,
+                    nDefaultStyle,
+                    rstDefaultColor,
+                    0,
+                    nCursorWidth,
+                    0,
+                    nCursorWidth,
+                    pWidget,
+                    bFreeWidget)
+            , m_CursorColor(rstCursorColor)
+            , m_CursorWidth{
+                nCursorWidth
+            }
         {
-            auto pTokenBoard = new TokenBoard(...);
-            this->Add(pTokenBoard);
+
+            m_MS = 0.0;
+            s_InputBoardCount++;
+            s_ShowSystemCursorCount++;
+
+            SetProperH();
         }
 
         virtual ~InputBoard()
         {
+            s_InputBoardCount--;
+            s_ShowSystemCursorCount--;
             SDL_ShowCursor(1);
         }
+
+    public:
+        void Update(double);
 
     public:
         bool ProcessEvent(const SDL_Event &, bool *);
@@ -76,9 +104,16 @@ class InputBoard: public InputWidget
         void BindCursorTokenBox(int, int);
         void LoadUTF8CharBoxCache(TOKENBOX &);
 
+
+        void GetCursorInfo(int *, int *, int *, int *);
+        void ResetTokenBoardLoction();
+
+        void Draw();
+
     protected:
+        TokenBoard                  m_TokenBoard;
+        SDL_Color m_CursorColor;
         int      m_CursorWidth;
-        uint32_t m_CursorColor;
         uint8_t  m_FontSet;
         uint8_t  m_Size;
         uint32_t m_TextColor;
@@ -89,17 +124,16 @@ class InputBoard: public InputWidget
         bool    m_DrawOwnSystemCursor;
         int     m_BindTokenBoxIndex;
         int     m_ShowStartX;
-        Uint32  m_Ticks;
         bool    m_Focus;
+        double  m_MS;
 
     protected:
         std::vector<TOKENBOX>       m_Line;
         std::string                 m_Content;
-        TokenBoard                  m_TokenBoard;
 
     public:
-        static int  m_ShowSystemCursorCount;
-        static int  m_InputBoxCount;
+        static int  s_ShowSystemCursorCount;
+        static int  s_InputBoardCount;
 
     private:
         IMEBase *m_IME;
