@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/31/2016 20:19:58
+ *  Last Modified: 03/31/2016 20:34:21
  *
  *    Description: 
  *
@@ -1936,9 +1936,19 @@ void TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
     nX1 = std::max(0, std::min(nX1, (int)m_LineV[nY1].size()));
 
     // now (x0, y0, x1, y1) are well-prepared
-    
+
+    // TBD & TODO
+    // will delete on line N affect line (n - 1)? YES:
+    //      1. current line ends with <CR>
+    //      2. last line doesn't ends with <CR>
+    //      3. delete all of current line
+    // Then we need to put a <CR> at last line and padding it if necessary
+    //
     // in one line
     if(nY0 == nY1){
+        if(m_EndWithReturn[nY0]){
+
+        }
         m_LineV[nY0].erase(m_LineV[nY0].begin() + nX0, m_LineV[nY0].begin() + nX1 + 1);
         if(nY0 != (int)m_LineV.size() - 1){
             m_LineV[nY0].insert(m_LineV[nY0].end(),
