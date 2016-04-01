@@ -3,7 +3,7 @@
  *
  *       Filename: button.hpp
  *        Created: 08/21/2015 04:12:57
- *  Last Modified: 03/25/2016 23:55:31
+ *  Last Modified: 04/01/2016 14:31:29
  *
  *    Description: Button, texture id should be baseID + [0, 1, 2]
  *
@@ -19,7 +19,10 @@
  */
 
 #pragma once
+#include "log.hpp"
 #include "widget.hpp"
+#include "pngtexdbn.hpp"
+#include "sdldevice.hpp"
 
 #include <cstdint>
 #include <functional>
@@ -27,13 +30,38 @@
 class Button: public Widget
 {
     public:
-        Button(int, int, Widget *, bool,
-                uint8_t, uint16_t, const std::function<void()> &);
+        Button(
+                int                          nX,
+                int                          nY,
+                uint8_t                      nFileIndex,
+                uint16_t                     nImageIndex,
+                const std::function<void()> &fnOnClick   = [](){},
+                Widget                      *pWidget     = nullptr,
+                bool                         bFreeWidget = false):
+            Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
+            , m_BaseID((((uint32_t)nFileIndex) << 16) + nImageIndex)
+            , m_State(0)
+            , m_OnClick{
+                fnOnClick
+            }
+        {
+            extern Log       *g_Log;
+            extern PNGTexDBN *g_PNGTexDBN;
+
+            auto pTexture = g_PNGTexDBN->Retrieve(m_BaseID);
+            if(pTexture){
+                if(SDL_QueryTexture(pTexture, nullptr, nullptr, &m_W, &m_H)){
+                    g_Log->AddLog(LOGTYPE_INFO, "Button(%d, %d): X = %d, Y = %d, W = %d, H = %d",
+                            nFileIndex, nImageIndex, m_X, m_Y, m_W, m_H);
+                }
+            }
+        }
         virtual ~Button() = default;
 
     public:
-        void Draw();
-        bool ProcessEvent(const SDL_Event &);
+        using Widget::Draw;
+        void Draw(int, int);
+        bool ProcessEvent(const SDL_Event &, bool *);
 
     private:
         // 0: normal

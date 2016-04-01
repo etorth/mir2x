@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/01/2016 01:39:54
+ *  Last Modified: 04/01/2016 11:43:17
  *
  *    Description: 
  *
@@ -1759,6 +1759,7 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
             nY++;
         }
     }
+    return szXML;
 }
 
 // Emoticon itself has a box
@@ -2094,6 +2095,8 @@ bool TokenBoard::ParseReturnObject()
     }else{
         AddTokenBoxV(0, nY + 1, stTBV);
     }
+
+    return true;
 }
 
 // reset one line for
@@ -2169,7 +2172,7 @@ void TokenBoard::ResetLineStartY(int nStartLine)
         SetTokenBoxStartY(nIndex, m_LineStartY[nIndex]);
     }
 
-    int nDStartY = m_LineStartY[nIndex] - nOldLongestLineStartY;
+    int nDStartY = m_LineStartY[nLongestLine] - nOldLongestLineStartY;
     for(int nIndex = nLongestLine + 1; nIndex < (int)m_LineV.size(); ++nIndex){
         m_LineStartY[nIndex] += nDStartY;
     }
@@ -2199,11 +2202,13 @@ bool TokenBoard::AddUTF8Code(uint32_t)
 {
     TOKENBOX stTB;
     std::memset(&stTB, 0, sizeof(stTB));
+
+    return true;
 }
 
 void TokenBoard::GetDefaultFontInfo(uint8_t *pFont, uint8_t *pFontSize, uint8_t *pFontStyle)
 {
     if(pFont     ){ *pFont      = m_DefaultFont; }
-    if(pFontSize ){ *pFontSize  = m_DefaultFontSize; }
-    if(pFontStyle){ *pFontStyle = m_DefaultFontStyle; }
+    if(pFontSize ){ *pFontSize  = m_DefaultSize; }
+    if(pFontStyle){ *pFontStyle = m_DefaultStyle; }
 }

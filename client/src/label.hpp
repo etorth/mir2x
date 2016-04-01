@@ -3,9 +3,16 @@
  *
  *       Filename: label.hpp
  *        Created: 08/20/2015 08:59:11 PM
- *  Last Modified: 03/20/2016 19:19:59
+ *  Last Modified: 04/01/2016 13:30:37
  *
- *    Description: 
+ *    Description: Label is a class
+ *                      1. without padding
+ *                      2. without wrapping
+ *                      3. non-editable
+ *                      4. non-selectable
+ *                      5. won't accept any events
+ *                      6. only have one type of font
+ *                      7. may contain emoticons
  *
  *        Version: 1.0
  *       Revision: none
@@ -29,6 +36,47 @@
 
 class Label: public Widget
 {
+    public:
+        Label(
+                int              nX,
+                int              nY,
+                const char      *szContent   = "",
+                uint8_t          nFont       = 0,
+                uint8_t          nSize       = 10,
+                uint8_t          nStyle      = 0,
+                const SDL_Color &rstColor    = {0XFF, 0XFF, 0XFF, 0XFF},
+                Widget          *pWidget     = nullptr,
+                bool             bFreeWidget = false):
+            Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
+            , m_FontKey((uint32_t(nFont) << 16) + (uint32_t(nSize) << 8) + nStyle)
+            , m_Color(rstColor)
+            , m_Content(szContent)
+            , m_TokenBoard {
+                0,
+                0,
+                false,
+                false,
+                false,
+                false,
+                -1,
+                0,
+                0,
+                nFont,
+                nSize,
+                nStyle,
+                rstColor,
+                0,
+                0,
+                0,
+                0,
+                nullptr,
+                false
+            }
+        {
+            SetText(szContent);
+        }
+
+
     private:
         uint32_t    m_FontKey;
         SDL_Color   m_Color;

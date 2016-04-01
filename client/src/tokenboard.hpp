@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/01/2016 01:36:18
+ *  Last Modified: 04/01/2016 14:36:51
  *
  *    Description: Design TBD.
  *
@@ -35,50 +35,6 @@
  *                      for 2-b: there is emoticon and normal text. need to support select/edit. as
  *                               analyzed, edit is insert, and insert can be implemented by select.
  *                               so 2-b we need to support select.
- *
- * ================Analysis on 03/22/2016===========================================================
- *                 Analysis: why we use select to support insert:
- *
- *                   for insert, we add new tokens to current board, we can everytime insert a new
- *                   token and re-padding, or we can return the underlying XML/plainText, and then
- *                   re-generate the whole board. Re-generatioin is better since re-padding every-
- *                   time is a re-generation. Even if we implement a new class EditBoard, it's still
- *                   a decision for re-padding and re-generation. So just use TokenBoard.
- *
- *                 For boards need to support insert, we need to supprt insert at anywhere we want,
- *                 this means we need to support select anywhere we want by click at the token of 
- *                 the place. So problem comes with eventtext, which already take click as event tr-
- *                 igger.
- *
- *                   But it's OK since for editable board, we don't need eventtext(hyperlinks), the
- *                 place we need hyperlinks is for case 2-a. This means at which we need to trigger
- *                 event, just trigger it, don't think about place location for insert. Since if we
- *                 really need to insert in current board, this board doesn't need trigger event.
- *
- *                   Another problem, how to support insert before current cursor? We can use func-
- *                 tion like GetXML() or GetPlainText(), but both just return formated text. inside
- *                 the tokenboard, cursor is something like (x, y) or (section, offset). we can't do
- *                 insert based on the returned text.
- *
- *                   Currently what I can get is inside the board class for each section I keep a
- *                 copy of its stinrg content, this helps to return GetXML() and GetPlainText() qui-
- *                 ckly and also we can maintain the mapping inside, and each time warpper class can
- *                 only ask for insert a token or a piece of text. Internal text mapping will handle
- *                 it properly, with update of string copy.
- * 
- *                 BUT, if we use this strategy, why not keep an external copy in the wrapper class
- *                 and just make TokenBoard only support case 1???
- *
- *                 No matter what, we need a string copy seems, since directly insert between token
- *                 cause more re-padding. So keep internal or external? Currently I prefer external,
- *                 and tokenboard is just a show board to reflect the text operation.
- *
- *                 Or just do directly tokenbox insert? because this affect only by para-graph, bet-
- *                 ween paragraphes maybe there is blank space left for the last line of the current
- *                 paragraph then we can just add Y for rest of paragraph? This logic will be much 
- *                 more complicated, but useful, since most likely if we insert, we only insert at
- *                 the end of the current line. And for editable tokenboard, get text is expensive 
- *                 but not very often, we only get it when we need to send it.
  *                   
  *                 Event for handling or not:
  *
@@ -94,7 +50,8 @@
  *                          if it's ctrl-x:
  *                             1. query the tokenboard, if there is selected part, cut it.
  *                             2. otherwise do nothing.
- * ================Analysis on 03/23/2016===========================================================
+ *
+ *                 Some thing to think about:
  *
  *                 1. what's needed?
  *
@@ -129,8 +86,6 @@
  *                    4. (1, 1): classical input box
  *
  *                    Let's use (bSelectable, bWithCursor), having cursor means editable.
- *
- * ===================================================
  *
  *                    Add another flag: bCanThrough, if true
  *
@@ -184,15 +139,15 @@
 #include "widget.hpp"
 #include <unordered_map>
 
-
-    enum XMLObjectType: int{
-        OBJECTTYPE_UNKNOWN      = 0,
-        OBJECTTYPE_RETURN       = 1,
-        OBJECTTYPE_PLAINTEXT    = 2,
-        OBJECTTYPE_EVENTTEXT    = 3,
-        OBJECTTYPE_EMOTICON     = 4,
-        OBJECTTYPE_ENDOFLINE    = 5,
-    };
+enum XMLObjectType: int
+{
+    OBJECTTYPE_UNKNOWN      = 0,
+    OBJECTTYPE_RETURN       = 1,
+    OBJECTTYPE_PLAINTEXT    = 2,
+    OBJECTTYPE_EVENTTEXT    = 3,
+    OBJECTTYPE_EMOTICON     = 4,
+    OBJECTTYPE_ENDOFLINE    = 5,
+};
 
 class TokenBoard: public Widget
 {
@@ -322,10 +277,6 @@ class TokenBoard: public Widget
     private:
         void UpdateSection(SECTION &, Uint32);
 
-    public:
-        int W();
-        int H();
-
     private:
         const tinyxml2::XMLElement *NextObject(const tinyxml2::XMLElement *);
         void AddNewTokenBoxLine(bool);
@@ -348,7 +299,7 @@ class TokenBoard: public Widget
                 int, const std::unordered_map<std::string, std::function<void()>> &);
 
     private:
-        int CreateSection(const SECTION &, std::function<void()>);
+        int CreateSection(const SECTION &, const std::function<void()> &);
     private:
         bool GetAttributeColor(SDL_Color *, const SDL_Color &,
                 const tinyxml2::XMLElement &, const std::vector<std::string> &);

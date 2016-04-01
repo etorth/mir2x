@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 7:04:16 PM
- *  Last Modified: 04/01/2016 00:24:09
+ *  Last Modified: 04/01/2016 14:39:43
  *
  *    Description: 
  *
@@ -69,7 +69,7 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                     bool bInnValid = true;
                     m_TokenBoard.ProcessEvent(rstEvent, &bInnValid);
 
-                    ResetShowStartX();
+                    ResetTokenBoardLocation();
                     return true;
                 }else{
                     m_Focus = false;
@@ -183,7 +183,7 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                     if(rstEvent.key.keysym.sym == SDLK_LEFT){
                         if(m_BindTokenBoxIndex >= 0){
                             m_BindTokenBoxIndex--;
-                            ResetShowStartX();
+                            ResetTokenBoardLocation();
                         }
                         return true;
                     }
@@ -191,7 +191,7 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                     if(rstEvent.key.keysym.sym == SDLK_RIGHT){
                         if((size_t)(m_BindTokenBoxIndex + 1) < m_Content.size()){
                             m_BindTokenBoxIndex++;
-                            ResetShowStartX();
+                            ResetTokenBoardLocation();
                         }
                         return true;
                     }
@@ -266,7 +266,7 @@ void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
 // we always move the cursor point into the visiable region
 // in this model inputboard is a view window of the tokenboard
 //
-void InputBoard::ResetTokenBoardLoction()
+void InputBoard::ResetTokenBoardLocation()
 {
     int nX, nY, nW, nH;
     GetCursorInfo(&nX, &nY, &nW, &nH);

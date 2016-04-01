@@ -3,7 +3,7 @@
  *
  *       Filename: colorfunc.cpp
  *        Created: 03/31/2016 19:48:57
- *  Last Modified: 04/01/2016 00:06:25
+ *  Last Modified: 04/01/2016 14:49:29
  *
  *    Description: 
  *
@@ -21,7 +21,7 @@
 #include <cstring>
 #include "colorfunc.hpp"
 
-SDL_Color MakeColor(uint8_t nR, uint8_t nG, int nB, int nA)
+SDL_Color MakeColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
 {
     SDL_Color stColor;
     stColor.r = nR;

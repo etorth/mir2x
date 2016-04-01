@@ -3,7 +3,7 @@
  *
  *       Filename: button.cpp
  *        Created: 08/21/2015 04:12:57
- *  Last Modified: 03/25/2016 23:51:15
+ *  Last Modified: 04/01/2016 13:55:06
  *
  *    Description: 
  *
@@ -26,47 +26,22 @@
 #include "sdldevice.hpp"
 #include "log.hpp"
 
-Button::Button(int nX, int nY, Widget *pWidget, bool bFreeWidget,
-        uint8_t nFileIndex, uint16_t nImageIndex, const std::function<void()> &fnOnClick)
-    : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
-    , m_BaseID((((uint32_t)nFileIndex) << 16) + nImageIndex)
-    , m_State(0)
-    , m_OnClick(fnOnClick)
-{
-    extern Log       *g_Log;
-    extern PNGTexDBN *g_PNGTexDBN;
-    extern SDLDevice *g_SDLDevice;
 
-    m_X = nX;
-    m_Y = nY;
-
-    auto pTexture = g_PNGTexDBN->Retrieve(m_BaseID);
-    if(pTexture){
-        if(SDL_QueryTexture(pTexture, nullptr, nullptr, &m_W, &m_H)){
-            g_Log->AddLog(LOGTYPE_INFO, "Button(%d, %d): X = %d, Y = %d, W = %d, H = %d",
-                    nFileIndex, nImageIndex, m_X, m_Y, m_W, m_H);
-        }
-    }
-
-    g_SDLDevice->DrawTexture(
-            g_PNGTexDBN->Retrieve(m_BaseID + (uint32_t)m_State),
-            X() + (int)(m_State == 2),
-            Y() + (int)(m_State == 2));
-}
-
-void Button::Draw()
+void Button::Draw(int nX, int nY)
 {
     extern PNGTexDBN *g_PNGTexDBN;
     extern SDLDevice *g_SDLDevice;
 
     g_SDLDevice->DrawTexture(
             g_PNGTexDBN->Retrieve(m_BaseID + (uint32_t)m_State),
-            X() + (int)(m_State == 2),
-            Y() + (int)(m_State == 2));
+            nX + (int)(m_State == 2),
+            nY + (int)(m_State == 2));
 }
 
-bool Button::ProcessEvent(const SDL_Event &rstEvent)
+bool Button::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
 {
+    if(bValid && !(*bValid)){ return false; }
+
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONUP:
             {

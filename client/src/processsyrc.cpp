@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 08/14/2015 2:47:49 PM
- *  Last Modified: 03/20/2016 22:13:56
+ *  Last Modified: 04/01/2016 14:54:38
  *
  *    Description: 
  *
@@ -28,7 +28,7 @@
 ProcessSyrc::ProcessSyrc()
 	: Process()
     , m_Ratio(0)
-    , m_Info(0, 14, 0, {0XFF, 0XFF, 0XFF, 0XFF}, "Connecting...")
+    , m_Info(100, 100, "Connecting...")
 {
 }
 

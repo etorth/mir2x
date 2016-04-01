@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/31/2016 23:52:53
+ *  Last Modified: 04/01/2016 14:40:09
  *
  *    Description: 
  *
@@ -99,7 +99,7 @@ class InputBoard: public InputWidget
         void DrawCursor();
         void DrawSystemCursor();
         void PushBack(TOKENBOX &);
-        void ResetShowStartX();
+        void ResetTokenBoardLocation();
         void SetTokenBoxStartX();
         void BindCursorTokenBox(int, int);
         void LoadUTF8CharBoxCache(TOKENBOX &);

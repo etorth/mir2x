@@ -3,7 +3,7 @@
  *
  *       Filename: widget.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/31/2016 22:42:01
+ *  Last Modified: 04/01/2016 11:49:55
  *
  *    Description: public API for class game only
  *
@@ -43,7 +43,7 @@ class Widget
                 int nW = 0,                 //
                 int nH = 0,                 //
                 Widget * pWidget = nullptr, // by default all widget are independent
-                bool bFreeWidget = true)    // delete automatically when deleting its parent
+                bool bFreeWidget = false)    // delete automatically when deleting its parent
 
             : m_Parent(pWidget)
             , m_Focus(false)

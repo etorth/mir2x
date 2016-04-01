@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 03/20/2016 21:13:50
+ *  Last Modified: 04/01/2016 14:32:29
  *
  *    Description: 
  *
@@ -28,10 +28,10 @@
 
 ProcessLogin::ProcessLogin()
 	: Process()
-	, m_Button1(255,  5, 150, 482, [](){})
-	, m_Button2(255,  8, 352, 482, [](){})
-	, m_Button3(255, 11, 554, 482, [](){ exit(0); })
-    , m_Button4(255, 14, 600, 536, [this](){})
+	, m_Button1(150, 482, 255,  5)
+	, m_Button2(352, 482, 255,  8)
+	, m_Button3(554, 482, 255, 11, [](){ exit(0); })
+    , m_Button4(600, 536, 255, 14)
 	// , m_IDInputBox(146, 14, {0, 14, 0}, {200, 200, 200, 128})
 	// , m_PasswordBox(146, 14, {0, 14, 0}, {200, 200, 200, 128})
 {
@@ -72,11 +72,12 @@ void ProcessLogin::ProcessEvent(const SDL_Event &rstEvent)
     // m_IDInputBox.ProcessEvent(rstEvent);
     // m_PasswordBox.ProcessEvent(rstEvent);
 
+    bool bValid = true;
     if(false
-            || m_Button1.ProcessEvent(rstEvent)
-            || m_Button2.ProcessEvent(rstEvent)
-            || m_Button3.ProcessEvent(rstEvent)
-            || m_Button4.ProcessEvent(rstEvent)){
+            || m_Button1.ProcessEvent(rstEvent, &bValid)
+            || m_Button2.ProcessEvent(rstEvent, &bValid)
+            || m_Button3.ProcessEvent(rstEvent, &bValid)
+            || m_Button4.ProcessEvent(rstEvent, &bValid)){
         return;
     }
 

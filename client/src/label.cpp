@@ -3,9 +3,9 @@
  *
  *       Filename: label.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/20/2016 19:17:14
+ *  Last Modified: 04/01/2016 11:57:21
  *
- *    Description: public API for class game only
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -22,18 +22,6 @@
 #include "tokenboard.hpp"
 #include <unordered_map>
 #include <functional>
-
-Label::Label(uint8_t nFontIndex, uint8_t nFontSize, uint8_t nTextStyle,
-        const SDL_Color &rstColor,
-        const char *szContent)
-    : Widget()
-    , m_FontKey((uint32_t(nFontIndex) << 16) + (uint32_t(nFontSize) << 8) + nTextStyle)
-    , m_Color(rstColor)
-    , m_Content("")
-    , m_TokenBoard(false, -1, 0, 0)
-{
-    SetText(szContent);
-}
 
 void Label::SetText(const char * szInfo)
 {
@@ -58,7 +46,7 @@ void Label::SetText(const char * szInfo)
     szXMLInfo += "\"";
 
     szXMLInfo += ">";
-    
+
     szXMLInfo += m_Content;
 
     szXMLInfo += "</object></root>";
