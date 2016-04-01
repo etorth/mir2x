@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/31/2016 20:26:05
+ *  Last Modified: 03/31/2016 20:37:08
  *
  *    Description: Design TBD.
  *
@@ -69,110 +69,110 @@
  *                 BUT, if we use this strategy, why not keep an external copy in the wrapper class
  *                 and just make TokenBoard only support case 1???
  *
-*                 No matter what, we need a string copy seems, since directly insert between token
-*                 cause more re-padding. So keep internal or external? Currently I prefer external,
-    *                 and tokenboard is just a show board to reflect the text operation.
-    *
-    *                 Or just do directly tokenbox insert? because this affect only by para-graph, bet-
-    *                 ween paragraphes maybe there is blank space left for the last line of the current
-    *                 paragraph then we can just add Y for rest of paragraph? This logic will be much 
-    *                 more complicated, but useful, since most likely if we insert, we only insert at
-    *                 the end of the current line. And for editable tokenboard, get text is expensive 
-    *                 but not very often, we only get it when we need to send it.
-    *                   
-    *                 Event for handling or not:
-    *
-    *                 1. click, motion,  for sure we need to handle it for trigger event, for select.
-    *                 2. ctrl+c/p/x, a/b/c..., Tokenboard won't handle this. alternatively, wrapper of
-    *                    tokenboard handle it and query TokenBoard for proper behavor. IE:
-    *                          ChatBox get event:
-    *                          if it's "a":
-    *                             1. if there is selected part, replace this part with ``a"
-    *                             2. if not, put ``a" before the cursor.
-    *                          if it's click:
-    *                             1. directly pass it to tokenboard, to set cursor.
-    *                          if it's ctrl-x:
-    *                             1. query the tokenboard, if there is selected part, cut it.
-    *                             2. otherwise do nothing.
-    * ================Analysis on 03/23/2016===========================================================
-    *
-    *                 1. what's needed?
-    *
-    *                      What we need is to have class which can support case-1, case-2(a) and case-
-    *                      2-(b), for case-1, we need support click event trigger, and the board is as
-    *                      non-state class. For case-2(a) we need to support click event trigger, sele-
-    *                      ct. For case-2(b) we need to support select, insert.
-    *
-    *                 2. how to support it?
-    *                      Case-1 is simple and already supported. For select, we need to locate the
-    *                      token under pointer. For insert we need to support builtin cursor. Both need
-    *                      a (int, int) to support. Use (x, y) or (section, offset)?
-    *
-    *                      Let's use (x, y), since (x, y)->section is quick, but (section, offset)->
-    *                      (x, y) is slow.
-    *
-    *                 3. let me add a (bSelectable, bEditable) to the class, when disable both, we have
-    *                    the button-like text-terminal.
-    *
-    *                    (bSelectable, bEditable) with value:
-    *
-    *                    1. (0, 0): basic button-like text-terminal
-    *                    2. (0, 1): no idea of this mode
-    *                    3. (1, 0): sent-message box
-    *                    4. (1, 1): input box
-    *
-    *                    or use (bSelectable, bWithCursor) with value:
-    *                    1. (0, 0): basic button-like text-terminal
-    *                    2. (0, 1): can't select, but can put cursor everywhere and insert, when push
-    *                               and moving mouse, the cursor moving respectively
-    *                    3. (1, 0): sent-message box, no cursor shown
-    *                    4. (1, 1): classical input box
-    *
-    *                    Let's use (bSelectable, bWithCursor), having cursor means editable.
-    *
-    * ===================================================
-    *
-    *                    Add another flag: bCanThrough, if true
-    *
-    *
-    *                    +-----+  +---+
-    *                    |     |  |   |
-    *                    |     |  |   |  +----+
-    *                L1  +-----+--+   +- |    |  <--- this is can through
-    *                             |   |  |    |
-    *                             +---+  |    |
-    *                           +-----+  |    |
-    *                           |     |  |    |
-    *                           |     |  |    |
-    *                L2  -------+-----+--+----+
-    *
-    *
-    *                    if bCanThrough = false:
-    *
-    *                    +-----+  +---+
-    *                    |     |  |   |
-    *                    |     |  |   | 
-    *                 L1 +-----+--+   +---------
-    *                             |   |
-    *                             +---+
-    *                                    +----+  <--- this is can't through
-    *                                    |    |
-    *                                    |    |
-    *                           +-----+  |    |
-    *                           |     |  |    |
-    *                           |     |  |    |
-    *                 L2 -------+-----+--+----+
-    *
-    *        Version: 1.0
-    *       Revision: none
-    *       Compiler: gcc
-    *
-    *         Author: ANHONG
-    *          Email: anhonghe@gmail.com
-    *   Organization: USTC
-    *
-    * =====================================================================================
-    */
+ *                 No matter what, we need a string copy seems, since directly insert between token
+ *                 cause more re-padding. So keep internal or external? Currently I prefer external,
+ *                 and tokenboard is just a show board to reflect the text operation.
+ *
+ *                 Or just do directly tokenbox insert? because this affect only by para-graph, bet-
+ *                 ween paragraphes maybe there is blank space left for the last line of the current
+ *                 paragraph then we can just add Y for rest of paragraph? This logic will be much 
+ *                 more complicated, but useful, since most likely if we insert, we only insert at
+ *                 the end of the current line. And for editable tokenboard, get text is expensive 
+ *                 but not very often, we only get it when we need to send it.
+ *                   
+ *                 Event for handling or not:
+ *
+ *                 1. click, motion,  for sure we need to handle it for trigger event, for select.
+ *                 2. ctrl+c/p/x, a/b/c..., Tokenboard won't handle this. alternatively, wrapper of
+ *                    tokenboard handle it and query TokenBoard for proper behavor. IE:
+ *                          ChatBox get event:
+ *                          if it's "a":
+ *                             1. if there is selected part, replace this part with ``a"
+ *                             2. if not, put ``a" before the cursor.
+ *                          if it's click:
+ *                             1. directly pass it to tokenboard, to set cursor.
+ *                          if it's ctrl-x:
+ *                             1. query the tokenboard, if there is selected part, cut it.
+ *                             2. otherwise do nothing.
+ * ================Analysis on 03/23/2016===========================================================
+ *
+ *                 1. what's needed?
+ *
+ *                      What we need is to have class which can support case-1, case-2(a) and case-
+ *                      2-(b), for case-1, we need support click event trigger, and the board is as
+ *                      non-state class. For case-2(a) we need to support click event trigger, sele-
+ *                      ct. For case-2(b) we need to support select, insert.
+ *
+ *                 2. how to support it?
+ *                      Case-1 is simple and already supported. For select, we need to locate the
+ *                      token under pointer. For insert we need to support builtin cursor. Both need
+ *                      a (int, int) to support. Use (x, y) or (section, offset)?
+ *
+ *                      Let's use (x, y), since (x, y)->section is quick, but (section, offset)->
+ *                      (x, y) is slow.
+ *
+ *                 3. let me add a (bSelectable, bEditable) to the class, when disable both, we have
+ *                    the button-like text-terminal.
+ *
+ *                    (bSelectable, bEditable) with value:
+ *
+ *                    1. (0, 0): basic button-like text-terminal
+ *                    2. (0, 1): no idea of this mode
+ *                    3. (1, 0): sent-message box
+ *                    4. (1, 1): input box
+ *
+ *                    or use (bSelectable, bWithCursor) with value:
+ *                    1. (0, 0): basic button-like text-terminal
+ *                    2. (0, 1): can't select, but can put cursor everywhere and insert, when push
+ *                               and moving mouse, the cursor moving respectively
+ *                    3. (1, 0): sent-message box, no cursor shown
+ *                    4. (1, 1): classical input box
+ *
+ *                    Let's use (bSelectable, bWithCursor), having cursor means editable.
+ *
+ * ===================================================
+ *
+ *                    Add another flag: bCanThrough, if true
+ *
+ *
+ *                    +-----+  +---+
+ *                    |     |  |   |
+ *                    |     |  |   |  +----+
+ *                L1  +-----+--+   +- |    |  <--- this is can through
+ *                             |   |  |    |
+ *                             +---+  |    |
+ *                           +-----+  |    |
+ *                           |     |  |    |
+ *                           |     |  |    |
+ *                L2  -------+-----+--+----+
+ *
+ *
+ *                    if bCanThrough = false:
+ *
+ *                    +-----+  +---+
+ *                    |     |  |   |
+ *                    |     |  |   | 
+ *                 L1 +-----+--+   +---------
+ *                             |   |
+ *                             +---+
+ *                                    +----+  <--- this is can't through
+ *                                    |    |
+ *                                    |    |
+ *                           +-----+  |    |
+ *                           |     |  |    |
+ *                           |     |  |    |
+ *                 L2 -------+-----+--+----+
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #pragma once
 
 #include <SDL2/SDL.h>
