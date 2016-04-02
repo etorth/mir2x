@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 04/01/2016 00:18:54
+ *  Last Modified: 04/01/2016 23:54:29
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp
@@ -74,26 +74,6 @@ class SDLDevice final
            SDL_SetRenderDrawColor(m_Renderer, nR, nG, nB, nA);
        }
 
-       void PushColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
-       {
-           uint32_t nRGBA = Color2U32RGBA(MakeColor(nR, nG, nB, nA));
-           if(nRGBA != m_ColorStack.back()){
-               SetColor(nR, nG, nB, nA);
-           }
-           m_ColorStack.push_back(nRGBA);
-       }
-
-       void PopColor()
-       {
-           uint32_t nOldRGBA = m_ColorStack.back();
-           m_ColorStack.pop_back();
-
-           if(m_ColorStack.back() != nOldRGBA){
-               SDL_Color stColor = U32RGBA2Color(m_ColorStack.back());
-               SetColor(stColor.r, stColor.g, stColor.b, stColor.a);
-           }
-       }
-
        void FillRectangle(int nX, int nY, int nW, int nH)
        {
            // TODO
@@ -154,6 +134,9 @@ class SDLDevice final
                return m_WindowH;
            }
        }
+
+       void PushColor(uint8_t, uint8_t, uint8_t, uint8_t);
+       void PopColor();
 
     public:
 

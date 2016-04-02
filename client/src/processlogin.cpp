@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 04/01/2016 14:32:29
+ *  Last Modified: 04/01/2016 23:38:11
  *
  *    Description: 
  *
@@ -32,7 +32,7 @@ ProcessLogin::ProcessLogin()
 	, m_Button2(352, 482, 255,  8)
 	, m_Button3(554, 482, 255, 11, [](){ exit(0); })
     , m_Button4(600, 536, 255, 14)
-	// , m_IDInputBox(146, 14, {0, 14, 0}, {200, 200, 200, 128})
+	, m_IDBox(159, 540, 146, 14, 2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
 	// , m_PasswordBox(146, 14, {0, 14, 0}, {200, 200, 200, 128})
 {
     // m_IDInputBox.SetX(159);

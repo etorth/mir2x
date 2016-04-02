@@ -3,7 +3,7 @@
  *
  *       Filename: xmlobjectlist.cpp
  *        Created: 06/17/2015 06:25:24
- *  Last Modified: 04/01/2016 21:21:17
+ *  Last Modified: 04/02/2016 02:10:30
  *
  *    Description: 
  *
@@ -134,8 +134,16 @@ void XMLObjectList::Add(const std::vector<
             pElement->SetAttribute(stInst.first.c_str(), stInst.second.c_str());
         }
         pElement->SetName("Object");
-
         auto pRoot = m_XMLDoc.RootElement();
+        
+        if(!pRoot){
+            pRoot = m_XMLDoc.NewElement("Root");
+            if(pRoot){
+                m_XMLDoc.InsertEndChild(pRoot);
+            }
+        }
+
+        pRoot = m_XMLDoc.RootElement();
         if(pRoot){
             pRoot->InsertEndChild(pElement);
         }

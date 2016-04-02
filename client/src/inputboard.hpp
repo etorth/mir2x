@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/01/2016 14:40:09
+ *  Last Modified: 04/01/2016 23:38:42
  *
  *    Description: 
  *
@@ -35,9 +35,10 @@ class InputBoard: public InputWidget
         InputBoard(
                 int              nX,
                 int              nY,
+                int              nW,
+                int              nH,
                 bool             bSpacing,
                 int              nMaxWidth       = -1,
-                int              nWordSpace      =  0,
                 int              nLineSpace      =  0,
                 int              nCursorWidth    =  2,
                 const SDL_Color &rstCursorColor  = {0XFF, 0XFF, 0XFF, 0XFF},
@@ -47,7 +48,7 @@ class InputBoard: public InputWidget
                 const SDL_Color &rstDefaultColor = {0XFF, 0XFF, 0XFF, 0XFF},
                 Widget          *pWidget         =  nullptr,
                 bool             bFreeWidget     =  false):
-            InputWidget(nX, nY, 0, 0, pWidget, bFreeWidget)
+            InputWidget(nX, nY, nW, nH, pWidget, bFreeWidget)
             , m_TokenBoard(
                     0,
                     0,
@@ -56,7 +57,7 @@ class InputBoard: public InputWidget
                     bSpacing,
                     false,
                     nMaxWidth,
-                    nWordSpace,
+                    nCursorWidth,
                     nLineSpace,
                     nDefaultFont,
                     nDefaultSize,
@@ -77,8 +78,6 @@ class InputBoard: public InputWidget
             m_MS = 0.0;
             s_InputBoardCount++;
             s_ShowSystemCursorCount++;
-
-            SetProperH();
         }
 
         virtual ~InputBoard()
@@ -109,6 +108,10 @@ class InputBoard: public InputWidget
         void ResetTokenBoardLoction();
 
         void Draw();
+        void Draw(int nX, int nY)
+        {
+            m_TokenBoard.Draw(nX, nY);
+        }
 
     protected:
         TokenBoard                  m_TokenBoard;
@@ -137,4 +140,9 @@ class InputBoard: public InputWidget
 
     private:
         IMEBase *m_IME;
+
+    public:
+        void InsertInfo(const char *)
+        {
+        }
 };

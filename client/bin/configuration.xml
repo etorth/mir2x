@@ -1,5 +1,4 @@
 <Root>
-
     <Window>
         <W>800</W>
         <H>600</H>
@@ -7,7 +6,7 @@
         <!--     0: window -->
         <!--     1: window with full screen size -->
         <!--     2: full screen -->
-        <ScreenMode>2</ScreenMode>
+        <ScreenMode>0</ScreenMode>
 
         <Caption>Mir2X</Caption>
     </Window>

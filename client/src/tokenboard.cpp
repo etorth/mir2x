@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/01/2016 22:40:43
+ *  Last Modified: 04/02/2016 03:28:20
  *
  *    Description: 
  *
@@ -154,6 +154,9 @@ bool TokenBoard::InnInsert(XMLObjectList &rstXMLObjectList,
         }
 
         if(!bRes){ break; }
+
+        // move to next
+        pObject = rstXMLObjectList.Fetch();
     }
 
     return bRes;
@@ -169,43 +172,7 @@ bool TokenBoard::GetAttributeColor(SDL_Color *pOutColor, const SDL_Color &rstDef
         }
     }
 
-    if(pText){
-        SDL_Color stColor {0X00, 0X00, 0X00, 0XFF};
-        if(false
-                || !std::strcmp(pText, "RED")
-                || !std::strcmp(pText, "Red")
-                || !std::strcmp(pText, "red")){
-            stColor.r = 0XFF;
-        }else if(false
-                || !std::strcmp(pText, "GREEN")
-                || !std::strcmp(pText, "Green")
-                || !std::strcmp(pText, "green")){
-            stColor.g = 0XFF;
-        }else if(false
-                || !std::strcmp(pText, "BLUE")
-                || !std::strcmp(pText, "Blue")
-                || !std::strcmp(pText, "blue")){
-            stColor.b = 0XFF;
-        }else if(false
-                || !std::strcmp(pText, "YELLOW")
-                || !std::strcmp(pText, "Yellow")
-                || !std::strcmp(pText, "yellow")){
-            stColor.r = 0XFF;
-            stColor.g = 0XFF;
-        }else if(false
-                || !std::strcmp(pText, "PURPLE")
-                || !std::strcmp(pText, "Purple")
-                || !std::strcmp(pText, "purple")){
-            stColor.r = 0X80;
-            stColor.b = 0X80;
-        }else{
-            // TODO
-            // 1. support more color, like pink, purple etc
-            // 2. support alpha
-            // 3. support color like 0X23FF93AB
-        }
-
-        if(pOutColor){ *pOutColor = stColor; }
+    if(pText && String2Color(pOutColor, pText)){
         return true;
     }else{
         if(pOutColor){ *pOutColor = rstDefaultColor; }
@@ -399,7 +366,7 @@ bool TokenBoard::ParseTextObject(
         const tinyxml2::XMLElement &rstCurrentObject, int nObjectType,
         const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
 {
-    if(nObjectType != OBJECTTYPE_PLAINTEXT || nObjectType != OBJECTTYPE_EVENTTEXT){
+    if(nObjectType != OBJECTTYPE_PLAINTEXT && nObjectType != OBJECTTYPE_EVENTTEXT){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_INFO, "object trying to parse is not text: %d", nObjectType);
         return false;
@@ -975,6 +942,7 @@ void TokenBoard::DrawEx(
 
             switch(m_SectionV[rstTokenBox.Section].Info.Type){
                 case SECTIONTYPE_EVENTTEXT:
+                case SECTIONTYPE_PLAINTEXT:
                     {
                         // I had a hard time here
                         //
@@ -1091,6 +1059,10 @@ void TokenBoard::ResetLine(int nLine)
     //    
     // howto
     // 1. reset nLine, anyway this is needed
+    if((int)m_LineStartY.size() <= nLine){
+        m_LineStartY.resize(nLine + 1);
+    }
+
     m_LineStartY[nLine] = GetNthNewLineStartY(nLine);
     SetTokenBoxStartY(nLine, m_LineStartY[nLine]);
 

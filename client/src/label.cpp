@@ -3,7 +3,7 @@
  *
  *       Filename: label.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 04/01/2016 23:01:36
+ *  Last Modified: 04/02/2016 03:12:46
  *
  *    Description:
  *
@@ -49,4 +49,7 @@ void Label::SetText(const char * szInfo)
             }, m_Content.c_str());
 
     m_TokenBoard.Load(stObjectList);
+
+    m_W = m_TokenBoard.W();
+    m_H = m_TokenBoard.H();
 }

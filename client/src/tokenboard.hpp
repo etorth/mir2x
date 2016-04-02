@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/01/2016 22:46:35
+ *  Last Modified: 04/02/2016 03:20:49
  *
  *    Description: Design TBD.
  *
@@ -267,8 +267,6 @@ class TokenBoard: public Widget
         int     m_MaxH2;
         int     m_CurrentLineMaxH2;
         int     m_PW;
-        int     m_W;
-        int     m_H;
         bool    m_SkipEvent;
 
     private:
