@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/01/2016 14:36:51
+ *  Last Modified: 04/01/2016 16:00:25
  *
  *    Description: Design TBD.
  *
@@ -146,7 +146,6 @@ enum XMLObjectType: int
     OBJECTTYPE_PLAINTEXT    = 2,
     OBJECTTYPE_EVENTTEXT    = 3,
     OBJECTTYPE_EMOTICON     = 4,
-    OBJECTTYPE_ENDOFLINE    = 5,
 };
 
 class TokenBoard: public Widget
@@ -172,8 +171,8 @@ class TokenBoard: public Widget
         //
         // bSelectable:       can select and copy
         // bWithCursor:       enable with: 1. can insert before cursor
-        //                             2. show a cursor
-        //                             3. select has nothing to do with current cursor
+        //                                 2. show a cursor
+        //                                 3. select has nothing to do with current cursor
         // nMaxWidth  :       positive for wrap, non-positive for no-wrap
         // nWordSpace
         // nLineSpace
@@ -183,28 +182,29 @@ class TokenBoard: public Widget
                 int              nY,
                 bool             bSelectable,
                 bool             bWithCursor,
-                bool             bSpacing,
+                bool             bSpacePadding,
                 bool             bCanThrough,
                 int              nMaxWidth       = -1,
-                int              nWordSpace      = 0,
-                int              nLineSpace      = 0,
-                uint8_t          nDefaultFont    = 0,
-                uint8_t          nDefaultSize    = 10,
-                uint8_t          nDefaultStyle   = 0,
-                const SDL_Color &rstDefaultColor = {0XFF, 0XFF, 0XFF, 0XFF},
-                int              nMargin0        = 0,
-                int              nMargin1        = 0,
-                int              nMargin2        = 0,
-                int              nMargin3        = 0,
-                Widget          *pWidget         = nullptr,
-                bool             bFreeWidget     = false):
-            Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
+                int              nWordSpace      =  0,
+                int              nLineSpace      =  0,
+                uint8_t          nDefaultFont    =  0,
+                uint8_t          nDefaultSize    =  10,
+                uint8_t          nDefaultStyle   =  0,
+                const SDL_Color &rstDefaultColor =  {0XFF, 0XFF, 0XFF, 0XFF},
+                int              nMargin0        =  0,
+                int              nMargin1        =  0,
+                int              nMargin2        =  0,
+                int              nMargin3        =  0,
+                Widget          *pWidget         =  nullptr,
+                bool             bFreeWidget     =  false)
+            // don't rely on vim align
+            // if it works terribly, just don't use it
+            : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
             , m_WithCursor(bWithCursor)
             , m_Selectable(bSelectable)
-            , m_Spacing(bSpacing)
+            , m_SpacePadding(bSpacePadding)
             , m_CanThrough(bCanThrough)
             , m_PW(nMaxWidth)
-            , m_CurrentWidth(0)
             , m_SkipEvent(false)
             , m_Resolution(20)
             , m_WordSpace(nWordSpace)
@@ -215,9 +215,8 @@ class TokenBoard: public Widget
             , m_DefaultStyle(nDefaultStyle)
             , m_DefaultColor(rstDefaultColor)
             , m_SkipUpdate(false)
-            , m_Margin{
-                nMargin0, nMargin1, nMargin2, nMargin3
-            }
+            , m_Margin{ nMargin0, nMargin1, nMargin2, nMargin3 }
+            , m_SelectLoc {{-1, -1}, {-1, -1}}
         {
             if(m_PW > 0){
                 m_W = m_PW;
@@ -260,7 +259,7 @@ class TokenBoard: public Widget
     private:
         bool    m_WithCursor;
         bool    m_Selectable;
-        bool    m_Spacing;
+        bool    m_SpacePadding;
         bool    m_CanThrough;
         int     m_MaxH1;
         int     m_MaxH2;
@@ -268,7 +267,6 @@ class TokenBoard: public Widget
         int     m_PW;
         int     m_W;
         int     m_H;
-        int     m_CurrentWidth;
         bool    m_SkipEvent;
 
     private:

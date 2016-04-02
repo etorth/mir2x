@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/01/2016 11:43:17
+ *  Last Modified: 04/01/2016 15:51:37
  *
  *    Description: 
  *
@@ -867,7 +867,6 @@ int TokenBoard::LinePadding(int nLine)
 void TokenBoard::ResetCurrentLine()
 {
     m_CurrentLine.clear();
-    m_CurrentWidth     = 0;
     m_CurrentLineMaxH2 = 0;
 }
 
@@ -1946,7 +1945,7 @@ bool TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
     // Then we need to put a <CR> at last line and padding it if necessary
     //
 
-    if(m_Spacing &&  m_PW > 0                        // system asks for padding
+    if(m_SpacePadding &&  m_PW > 0                   // system asks for padding
 
             &&  nY0 >= 1                             // nY0 is not the first line
             &&  nX0 == 0                             // delete start from the very beginning
@@ -2029,7 +2028,6 @@ void TokenBoard::Clear()
     m_W                = 0;
     m_H                = 0;
     m_SelectState      = 0;
-    m_CurrentWidth     = 0;
     m_CurrentLineMaxH2 = 0;
     m_SkipEvent        = false;
     m_LastTokenBox     = nullptr;
