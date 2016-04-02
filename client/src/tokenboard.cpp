@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/01/2016 15:51:37
+ *  Last Modified: 04/01/2016 22:40:43
  *
  *    Description: 
  *
@@ -29,6 +29,7 @@
 #include "log.hpp"
 #include "supwarning.hpp"
 #include "colorfunc.hpp"
+#include "xmlobjectlist.hpp"
 
 #include <SDL2/SDL.h>
 #include <algorithm>
@@ -38,32 +39,6 @@
 #include <unordered_map>
 #include <string>
 #include <cassert>
-
-// XML handle functions
-const tinyxml2::XMLElement *TokenBoard::XMLFirstObject(const tinyxml2::XMLElement &rstRoot)
-{
-    const tinyxml2::XMLElement *pObject = nullptr;
-
-    if(false){
-    }else if((pObject = rstRoot.FirstChildElement("object"))){
-    }else if((pObject = rstRoot.FirstChildElement("Object"))){
-    }else if((pObject = rstRoot.FirstChildElement("OBJECT"))){
-    }else{}
-
-    return pObject;
-}
-
-const tinyxml2::XMLElement *TokenBoard::XMLNextObject(const tinyxml2::XMLElement &rstObject)
-{
-    const tinyxml2::XMLElement *pRet = nullptr;
-
-    if(false){
-    }else if((pRet = rstObject.NextSiblingElement("OBJECT"))){
-    }else if((pRet = rstObject.NextSiblingElement("Object"))){
-    }else if((pRet = rstObject.NextSiblingElement("object"))){
-    }else{}
-    return pRet;
-}
 
 int TokenBoard::XMLObjectType(const tinyxml2::XMLElement &rstObject)
 {
@@ -131,65 +106,26 @@ int TokenBoard::XMLObjectType(const tinyxml2::XMLElement &rstObject)
     }
 }
 
-// two families of parsing XML
-//  1. LoadXML, etc
-//  2. InsertXML, etc
-//
-//  difference is LoadXXX won't assume current board is valid, so
-//  it's for init when amount of data comes. InsertXXX assume the
-//  current board is valid, it's for edit propose
-//
-//  for loading, we don't use cursor since we always ``insert" at
-//  the end. But for insert we need it
-
-bool TokenBoard::LoadXML(const char *szXML, 
-        const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
-{
-    tinyxml2::XMLDocument stDoc;
-    return !stDoc.Parse(szXML) && Load(stDoc, rstIDHandleMap);
-}
-
-bool TokenBoard::Load(const tinyxml2::XMLDocument &rstDoc,
-        const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
-{
-    // invalid XML, so we return false
-    const tinyxml2::XMLElement *pRoot = rstDoc.RootElement();
-    if(pRoot == nullptr){ return false; }
-
-    // 1. clear all
-    Clear();
-
-    // 2. add a empty line at the first line
-    m_LineV.emplace_back();
-    m_EndWithReturn.push_back(false);
-
-    // 3. set the cursor
-    m_CursorLoc = {0, 0};
-
-    // 4. call internal insert function to load
-    return InnInsert(rstDoc, rstIDHandleMap);
-}
-
 // inn function for LoadXXX and InsertXXX
 // assumption
 //      1. current tokenboard is valid
 //      2. cursor is well-prepared
 //      3. buffer is prepared, i.e. where start from empty board, there is alreay
 //         a empty vector at the end.
-bool TokenBoard::InnInsert(const tinyxml2::XMLDocument &rstDoc,
+bool TokenBoard::InnInsert(XMLObjectList &rstXMLObjectList,
         const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
 {
-    // invalid XML, so we return false
-    const tinyxml2::XMLElement *pRoot = rstDoc.RootElement();
-    if(pRoot == nullptr){ return false; }
+    // 1. prepare for the traverse
+    rstXMLObjectList.Reset();
 
-    // empty object XML, we need to return true
-    const tinyxml2::XMLElement *pCurrentObject = XMLFirstObject(*pRoot);
+    // 2. get the first object
+    const tinyxml2::XMLElement *pObject = rstXMLObjectList.Fetch();
 
-    // put a buffer after to accept coming tokens
-    bool bRes = false;
-    while(pCurrentObject){
-        int nObjectType = XMLObjectType(*pCurrentObject);
+    // 3. if XMLObjectList is empty, this is OK and we return true
+    bool bRes = true;
+
+    while(pObject){
+        int nObjectType = XMLObjectType(*pObject);
         switch(nObjectType){
             case OBJECTTYPE_RETURN:
                 {
@@ -198,13 +134,13 @@ bool TokenBoard::InnInsert(const tinyxml2::XMLDocument &rstDoc,
                 }
             case OBJECTTYPE_EMOTICON:
                 {
-                    bRes = ParseEmoticonObject(*pCurrentObject);
+                    bRes = ParseEmoticonObject(*pObject);
                     break;
                 }
             case OBJECTTYPE_EVENTTEXT:
             case OBJECTTYPE_PLAINTEXT:
                 {
-                    bRes = ParseTextObject(*pCurrentObject, nObjectType, rstIDHandleMap);
+                    bRes = ParseTextObject(*pObject, nObjectType, rstIDHandleMap);
                     break;
                 }
             default:
@@ -220,7 +156,6 @@ bool TokenBoard::InnInsert(const tinyxml2::XMLDocument &rstDoc,
         if(!bRes){ break; }
     }
 
-    // TODO: do I need to check last line?
     return bRes;
 }
 
@@ -2010,17 +1945,19 @@ bool TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
     }
 }
 
-// put current board in empty but valid state
-// 1. clear all containers
-// 2. reset all variables
-// 3. etc
+// this function will delete all previous content and make the board ready for insert, even
+// previous board is not valid, but only clear the tokens, setting won't change
 //
-void TokenBoard::Clear()
+// 1. delete all content
+// 2. put an empty buffer to make it ready for insert
+//
+void TokenBoard::Reset()
 {
     m_LineV.clear();
     m_IDFuncV.clear();
     m_SectionV.clear();
     m_LineStartY.clear();
+    m_EndWithReturn.clear();
     m_TokenBoxBitmap.clear();
 
     m_MaxH1            = 0;
@@ -2030,7 +1967,13 @@ void TokenBoard::Clear()
     m_SelectState      = 0;
     m_CurrentLineMaxH2 = 0;
     m_SkipEvent        = false;
-    m_LastTokenBox     = nullptr;
+    m_SkipUpdate       = false;
+    m_CursorLoc        = {0, 0};
+
+    m_SelectLoc[0] = {-1, -1};
+    m_SelectLoc[1] = {-1, -1};
+    m_LineV.emplace_back();
+    m_EndWithReturn.push_back(true);
 }
 
 // add a <CR> before the current cursor, since we defined the concept of ``default font",
@@ -2209,4 +2152,25 @@ void TokenBoard::GetDefaultFontInfo(uint8_t *pFont, uint8_t *pFontSize, uint8_t 
     if(pFont     ){ *pFont      = m_DefaultFont; }
     if(pFontSize ){ *pFontSize  = m_DefaultSize; }
     if(pFontStyle){ *pFontStyle = m_DefaultStyle; }
+}
+
+// delete empty lines at the end
+void TokenBoard::DeleteEmptyBottomLine()
+{
+    if(m_LineV.empty()){ return; }
+    while(!m_LineV.empty()){
+        if(m_LineV.back().empty()){
+            m_LineV.pop_back();
+            m_EndWithReturn.pop_back();
+            m_LineStartY.pop_back();
+
+            m_H = m_LineStartY.back() + GetNthLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W) + 1;
+        }else{
+            break;
+        }
+    }
+
+    if(!m_LineV.empty() && !m_EndWithReturn.back()){
+        ResetLine(m_LineV.size() - 1);
+    }
 }

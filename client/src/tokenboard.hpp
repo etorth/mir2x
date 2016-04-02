@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/01/2016 16:00:25
+ *  Last Modified: 04/01/2016 22:46:35
  *
  *    Description: Design TBD.
  *
@@ -138,6 +138,7 @@
 #include "tokenbox.hpp"
 #include "widget.hpp"
 #include <unordered_map>
+#include "xmlobjectlist.hpp"
 
 enum XMLObjectType: int
 {
@@ -216,11 +217,12 @@ class TokenBoard: public Widget
             , m_DefaultColor(rstDefaultColor)
             , m_SkipUpdate(false)
             , m_Margin{ nMargin0, nMargin1, nMargin2, nMargin3 }
-            , m_SelectLoc {{-1, -1}, {-1, -1}}
         {
             if(m_PW > 0){
                 m_W = m_PW;
             }
+
+            Reset();
         }
 
         virtual ~TokenBoard() = default;
@@ -233,7 +235,7 @@ class TokenBoard: public Widget
 
     public:
         bool    Add(TOKENBOX &);
-        void    Clear();
+        void    Reset();
         void    Update(double);
         bool    Empty();
         int     MaxHeight();
@@ -270,9 +272,6 @@ class TokenBoard: public Widget
         bool    m_SkipEvent;
 
     private:
-        const TOKENBOX *m_LastTokenBox;
-
-    private:
         void UpdateSection(SECTION &, Uint32);
 
     private:
@@ -283,9 +282,39 @@ class TokenBoard: public Widget
         int  TokenBoxType(const TOKENBOX &);
 
     public:
-        // load the content and it's callback table
-        bool Load(const tinyxml2::XMLDocument &,
-                const std::unordered_map<std::string, std::function<void()>> &);
+        // using alias
+        //      1. only use this in header file
+        //      2. only use it when we have default parameters
+        //      3. only use it when we can use initialization list for that parameter
+        //
+        using IDHandlerMap = std::unordered_map<std::string, std::function<void()>>;
+        // load by XMLObjectList, failed then the tokenboard is undefined
+        // 1. previous content will be destroyed
+        // 2. failed then board is undefined
+        // 3. TBD & TODO:
+        //      if m_WithCursor is false, then last empty line will be deleted
+        bool Load(XMLObjectList &rstXMLObjectList, const IDHandlerMap &rstMap = IDHandlerMap())
+        {
+            Reset();
+            rstXMLObjectList.Reset();
+            bool bRes = InnInsert(rstXMLObjectList, rstMap);
+            if(bRes && !m_WithCursor){
+                DeleteEmptyBottomLine();
+            }
+            return bRes;
+        }
+
+        bool LoadXML(const char *szXML, const IDHandlerMap &rstMap = IDHandlerMap())
+        {
+            XMLObjectList stXMLObjectList;
+            if(stXMLObjectList.Parse(szXML, true)){
+                stXMLObjectList.Reset();
+                return Load(stXMLObjectList, rstMap);
+            }
+
+            return false;
+        }
+
 
     private:
         bool ParseXMLContent(const tinyxml2::XMLElement *);
@@ -479,10 +508,8 @@ class TokenBoard: public Widget
         }
 
     public:
-        const tinyxml2::XMLElement *XMLFirstObject(const tinyxml2::XMLElement &);
-        const tinyxml2::XMLElement *XMLNextObject(const tinyxml2::XMLElement &);
-        bool  LoadXML(const char *, const std::unordered_map<std::string, std::function<void()>> &);
-        bool  InnInsert(const tinyxml2::XMLDocument &, const std::unordered_map<std::string, std::function<void()>> &);
+        bool  InnInsert(XMLObjectList &,
+                const std::unordered_map<std::string, std::function<void()>> &);
 
         int LineFullWidth(int);
         int LineRawWidth(int, bool);
@@ -522,10 +549,11 @@ class TokenBoard: public Widget
         bool AddUTF8Code(uint32_t);
         void ResetOneLine(int);
         void ResetLineStartY(int);
+        void DeleteEmptyBottomLine();
 
     private:
 
-        std::pair<int, int> m_SelectLoc[2];
+        std::array<std::pair<int, int>, 2> m_SelectLoc;
 
     private:
         int     m_SelectState;  // 0: no selection

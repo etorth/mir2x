@@ -3,7 +3,7 @@
  *
  *       Filename: xmlobjectlist.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 04/01/2016 18:35:09
+ *  Last Modified: 04/01/2016 21:22:03
  *
  *    Description: analyze specifically formatted XML
  *                      <ROOT>
@@ -31,13 +31,14 @@
 
 #pragma once
 #include <tinyxml2.h>
+#include <vector>
 
 class XMLObjectList
 {
     protected:
         tinyxml2::XMLDocument m_XMLDoc;
-        tinyxml2::XMLElement *m_Root;
-        tinyxml2::XMLElement *m_CurrentObject;
+        const tinyxml2::XMLElement *m_Root;
+        const tinyxml2::XMLElement *m_CurrentObject;
 
     public:
         XMLObjectList()
@@ -60,7 +61,7 @@ class XMLObjectList
         const tinyxml2::XMLElement *Fetch();
 
     public:
-        void Add(const std::vector<std::pair<std::string, std::string>> &, const std::string &);
+        void Add(const std::vector<std::pair<std::string, std::string>> &, const char *);
         std::string Print();
 
     public:

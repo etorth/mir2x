@@ -3,7 +3,7 @@
  *
  *       Filename: label.hpp
  *        Created: 08/20/2015 08:59:11 PM
- *  Last Modified: 04/01/2016 13:30:37
+ *  Last Modified: 04/01/2016 22:28:24
  *
  *    Description: Label is a class
  *                      1. without padding
@@ -94,6 +94,12 @@ class Label: public Widget
         ~Label() = default;
 
     public:
+        bool Load(XMLObjectList &rstXMLObjectList)
+        {
+            return m_TokenBoard.Load(rstXMLObjectList);
+        }
+
+
         int W()
         {
             return m_TokenBoard.W();

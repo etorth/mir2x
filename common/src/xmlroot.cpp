@@ -3,7 +3,7 @@
  *
  *       Filename: xmlroot.cpp
  *        Created: 06/17/2015 06:25:24
- *  Last Modified: 04/01/2016 16:43:25
+ *  Last Modified: 04/01/2016 21:00:58
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 #include <cstring>
 #include <string>
 #include <stdexcept>
+#include <system_error>
 #include "xmlroot.hpp"
 
 int XMLRoot::NodeAtoi(const char *szPath)

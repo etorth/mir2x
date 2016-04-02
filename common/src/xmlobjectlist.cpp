@@ -3,7 +3,7 @@
  *
  *       Filename: xmlobjectlist.cpp
  *        Created: 06/17/2015 06:25:24
- *  Last Modified: 04/01/2016 18:37:22
+ *  Last Modified: 04/01/2016 21:21:17
  *
  *    Description: 
  *
@@ -21,7 +21,8 @@
 #include <cstring>
 #include <string>
 #include <stdexcept>
-#include "xmlroot.hpp"
+#include "xmlobjectlist.hpp"
+#include "log.hpp"
 
 // assume XMLDocument is already loaded
 bool XMLObjectList::Validate()
@@ -45,8 +46,8 @@ bool XMLObjectList::Validate()
     // make sure every nodes are <OBJECT> nodes
     //
     // 4. compare all nodes
-    const auto pNode0 = pRoot->FirstChild();
-    const auto pNode1 = Fetch();
+    auto pNode0 = pRoot->FirstChild();
+    auto pNode1 = Fetch();
 
     while(true){
         // 1. both are null, return true
@@ -55,8 +56,8 @@ bool XMLObjectList::Validate()
         if(true
                 && pNode0
                 && pNode1
-                && pNode0 == nNode1
-                && ValidObjectNode(pNode0)){
+                && pNode0 == pNode1
+                && ValidObjectNode((tinyxml2::XMLElement *)pNode0)){
             pNode0 = pNode0->NextSibling();
             pNode1 = Fetch();
             continue;
@@ -77,9 +78,9 @@ void XMLObjectList::Reset()
     if(pRoot){
         m_CurrentObject = nullptr;
         if(false){
-        }else if((m_CurrentObject = rstRoot.FirstChildElement("object"))){
-        }else if((m_CurrentObject = rstRoot.FirstChildElement("Object"))){
-        }else if((m_CurrentObject = rstRoot.FirstChildElement("OBJECT"))){
+        }else if((m_CurrentObject = pRoot->FirstChildElement("object"))){
+        }else if((m_CurrentObject = pRoot->FirstChildElement("Object"))){
+        }else if((m_CurrentObject = pRoot->FirstChildElement("OBJECT"))){
         }else{}
     }
 }
@@ -103,7 +104,7 @@ const tinyxml2::XMLElement *XMLObjectList::Fetch()
     return pOldObject;
 }
 
-bool XMLObjectList::ValidObjectNode(tinyxml2::XMLElement *pElement)
+bool XMLObjectList::ValidObjectNode(const tinyxml2::XMLElement *pElement)
 {
     if(pElement){
         // 1. not as <OBJECT><b>bold</b></OBJECT>
@@ -115,9 +116,28 @@ bool XMLObjectList::ValidObjectNode(tinyxml2::XMLElement *pElement)
 }
 
 void XMLObjectList::Add(const std::vector<
-        std::pair<std::string, std::string>> & rstAttrV, const std::string & szContent)
+        std::pair<std::string, std::string>> & rstAttrV, const char *szContent)
 {
     // 1. find last OBJECT
-    auto 
+    if(!szContent || std::strlen(szContent) == 0){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_INFO, "invalid node name");
+        return;
+    }
 
+    auto *pElement = m_XMLDoc.NewElement(szContent);
+    auto *pText    = m_XMLDoc.NewText(szContent);
+
+    if(pElement && pText){
+        pElement->InsertEndChild(pText);
+        for(const auto &stInst: rstAttrV){
+            pElement->SetAttribute(stInst.first.c_str(), stInst.second.c_str());
+        }
+        pElement->SetName("Object");
+
+        auto pRoot = m_XMLDoc.RootElement();
+        if(pRoot){
+            pRoot->InsertEndChild(pElement);
+        }
+    }
 }
