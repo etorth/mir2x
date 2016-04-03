@@ -3,7 +3,7 @@
  *
  *       Filename: emoticondbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 04/02/2016 23:29:26
+ *  Last Modified: 04/03/2016 01:03:38
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #pragma once
 #include "emoticondb.hpp"
+#include <system_error>
 
 #define EMOTICONDBN_LC_DEPTH  (2              )
 #define EMOTICONDBN_LC_LENGTH (2048           )

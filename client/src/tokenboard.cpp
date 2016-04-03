@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/02/2016 22:12:52
+ *  Last Modified: 04/03/2016 02:58:06
  *
  *    Description: 
  *
@@ -899,7 +899,7 @@ void TokenBoard::DrawEx(
 // TBD & TODO & Assume:
 //      1. all needed tokens are already in current line
 //
-//      2. m_EndWithReturn[nLine] specified
+//      2. m_EndWithCR[nLine] specified
 //
 //      3. all other lines (except nLine) are well-prepared
 //         so we can call GetNthNewLineStartY() safely
@@ -911,7 +911,7 @@ void TokenBoard::ResetLine(int nLine)
 {
     if(nLine < 0 || nLine >= (int)m_LineV.size()){ return; }
 
-    if(!m_EndWithReturn[nLine]){
+    if(!m_EndWithCR[nLine]){
         LinePadding(nLine);
     }
 
@@ -1543,28 +1543,18 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
     return szXML;
 }
 
-// Emoticon itself has a box
-// and need to align to the baseline of words
-//                             
-//           +----------+             -----
-//           |          |               |  
-// +-------+ |          |               | H1
-// | Words | | Emoticon |  Words        |    
-// +-------+-+----------+---------------|--
-//           |          |               | H2
-//           +----------+             -----
-//                             
-
-// Insert a bunch of tokenboxes at any position (nX, nY) inside the text
-// block, this function won't introduce any ``return"
+// Insert a bunch of tokenboxes before the cursor, cursor will move to
+// the end of the inserted content after this function. This function
+// won't introduce any new <CR>
 //
-// this function works for *any position* but not only at the m_CursorLoc
-// but it will update m_CursorLoc for sure
+// we cancel the freedom to ``insert at any position", even not before
+// the current cursor, since randomly insertion is hard to adjust the
+// cursor.
 //
 // Assume:
-//      1. the tokenboard is well-prepared
-//      2. we won't allow empty line since don't know how to set height
-//      3. the section info has already been set
+//      1. the tokenboard is valid
+//      2. the section info has already been set, actually this function
+//         always works as a second half of insertion
 //
 // HowTo:
 //      1. if outside the text block, insert at the beginning or append
@@ -1582,27 +1572,20 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
 //      1. true most likely
 //      2. false when current token is tooooooo wide that a whole line
 //         even can't hold it
-bool TokenBoard::AddTokenBoxV(int nX, int nY, const std::vector<TOKENBOX> & rstTBV)
+bool TokenBoard::AddTokenBoxV(const std::vector<TOKENBOX> & rstTBV)
 {
     if(rstTBV.empty()){ return true; }
+    if(!CursorValid()){ Reset(); }
 
-    if(nY < 0){
-        nX = 0;
-        nY = 0;
-    }else if(nY >= (int)m_LineV.size()){
-        nX = m_LineV.back().size();
-        nY = m_LineV.size() - 1;
-    }
+    int nX = m_CursorLoc.first;
+    int nY = m_CursorLoc.second;
 
-    nX = std::max(std::min(nX, (int)m_LineV[nY].size()), 0);
-
-    // now (nX, nY) are well-defined
     m_LineV[nY].insert(m_LineV[nY].begin() + nX, rstTBV.begin(), rstTBV.end());
 
     if(m_PW <= 0){
         // we don't have to wrap, easy case
         ResetLine(nY);
-        AdjustCursorLocation(true, nX, nY, rstTBV.size());
+        m_CursorLoc.first += (int)rstTBV.size();
         return true;
     }
 
@@ -1627,32 +1610,39 @@ bool TokenBoard::AddTokenBoxV(int nX, int nY, const std::vector<TOKENBOX> & rstT
     if(nCount == -1){
         // nCount didn't set, mean it can hold the whole v
         ResetLine(nY);
-        AdjustCursorLocation(true, nX, nY, rstTBV.size());
+        m_CursorLoc.first += (int)rstTBV.size();
         return true;
     }
 
     std::vector<TOKENBOX> stRestTBV {
         m_LineV[nY].begin() + nCount, m_LineV[nY].end()};
 
-    int nOldCount = m_LineV[nY].size();
-
     m_LineV[nY].resize(nCount);
     ResetLine(nY);
 
-    AdjustCursorLocation(nCount > nOldCount, nX, nY, std::abs(nCount - nOldCount));
-
-    // now the tokenboard is valid again
+    // now the tokenboard is valid again, and we put the rest to
+    // the next line
     //
-    if(m_EndWithReturn[nY]){
-        m_EndWithReturn[nY] = false;
+    if(m_EndWithCR[nY]){
+        m_EndWithCR[nY] = false;
         m_LineV.insert(m_LineV.begin() + nY + 1, {});
-        m_EndWithReturn.insert(m_EndWithReturn.begin() + nY + 1, true);
+        m_EndWithCR.insert(m_EndWithCR.begin() + nY + 1, true);
+    }
+
+    // TODO: need to make sure ``next line" exists, aka there should
+    // be a ``nY + 1" line, or m_LineV.size() > nY + 1
+    if((int)m_LineV.size() <= (nY + 1)){
+        m_LineV.resize(nY + 2);
+        m_EndWithCR.resize(nY + 2);
+
+        // always make the empty line ends with <CR> ?
+        m_EndWithCR[nY + 1] = true;
     }
 
     // afer this, the tokenboard is valid again
-    // for wrap, adjustment of cursor is not trival
-    AdjustCursorLocation(true, nX, nY, rstTBV.size());
-    return AddTokenBoxV(nY + 1, 0, stRestTBV);
+    m_CursorLoc = {0, nY + 1};
+
+    return AddTokenBoxV(stRestTBV);
 }
 
 // get the location and shape info of tokenbox
@@ -1680,53 +1670,28 @@ bool TokenBoard::GetTokenBoxInfo(int nX, int nY,
 // remove tokens, for bSelectedOnly
 //    1:  only shadow will be deleted, for CTRL-X
 //    0:  if there is shadow, remove shadow, else remove, current cursor bound tokenbox
-void TokenBoard::Delete(bool bSelectedOnly)
-{
-    int nX1, nY1, nX2, nY2;
-    if(m_SelectState == 2){
-        nX1 = m_SelectLoc[0].first;
-        nY1 = m_SelectLoc[0].second;
-        nX2 = m_SelectLoc[1].first;
-        nY2 = m_SelectLoc[1].second;
-        DeleteTokenBox(nX1, nY1, nX2, nY2);
-    }else{
-        // so when you selecting and hold the left mouse button
-        // and then press backspace, it won't be deleted
-        if(!bSelectedOnly){
-            nX1 = nX2 = m_CursorLoc.first;
-            nY1 = nY2 = m_CursorLoc.second;
-            DeleteTokenBox(nX1, nY1, nX2, nY2);
-        }
-    }
-}
-
-// for delete, (x, y) are location of tokens, not cursor
-// this funciton is for internal use only
+// assumption
+//  1. valid board
+//  2. after this the cursor with at the first locaiton of the deleted box
 //
-// outer user can only call Delete(bool) to delete by cursor
-// or by selected region
-bool TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
+//
+bool TokenBoard::Delete(bool bSelectedOnly)
 {
-    // TODO & TBD
-    // think about this boundary check
-    //
-    // nothing to delete
-    if(m_LineV.empty()){ return true; }
+    int nX0, nY0, nX1, nY1;
+    if(bSelectedOnly && m_SelectState == 0){ return true; }
+    if(m_LineV.empty()){ return false; }
 
-    // do have something...
-    if(nY0 < 0){ nX0 = 0; nY0 = 0; }
-
-    if(nY1 >= (int)m_LineV.size()){
-        nX1 = m_LineV.back().size();
-        nY1 = m_LineV.size() - 1;
+    if(bSelectedOnly && m_SelectState != 0){
+        nX0 = m_SelectLoc[0].first;
+        nY0 = m_SelectLoc[0].second;
+        nX1 = m_SelectLoc[1].first;
+        nY1 = m_SelectLoc[1].second;
+    }else{
+        nX0 = nX1 = m_CursorLoc.first - 1;
+        nY0 = nY1 = m_CursorLoc.second;
     }
 
-    if((nY0 > nY1) || (nY0 == nY1 && nX0 > nX1)){ return false; }
-
-    nY0 = std::max(0, std::min(nY0, (int)m_LineV.size()));
-    nY1 = std::max(0, std::min(nY1, (int)m_LineV.size()));
-    nX0 = std::max(0, std::min(nX0, (int)m_LineV[nY0].size()));
-    nX1 = std::max(0, std::min(nX1, (int)m_LineV[nY1].size()));
+    if(!(TokenBoxValid(nX0, nY0) && TokenBoxValid(nX1, nY1))){ return false; }
 
     // now (x0, y0, x1, y1) are well-prepared
 
@@ -1737,20 +1702,24 @@ bool TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
     //      3. delete all of current line
     // Then we need to put a <CR> at last line and padding it if necessary
     //
+    // TODO
+    //  I am not sure for this case, it's better to leave a blank line
+    //  or delete this whole line and can delete furtuer by another backspace
+    //  which design is better
 
     if(m_SpacePadding &&  m_PW > 0                   // system asks for padding
 
             &&  nY0 >= 1                             // nY0 is not the first line
             &&  nX0 == 0                             // delete start from the very beginning
             &&  nX1 == (int)m_LineV[nY1].size()      // delete ends at the very end
-            &&  m_EndWithReturn[nY1]                 // current line ends with <CR>
-            && !m_EndWithReturn[nY0 - 1]){           // last line is not ends with <CR>
+            &&  m_EndWithCR[nY1]                 // current line ends with <CR>
+            && !m_EndWithCR[nY0 - 1]){           // last line is not ends with <CR>
 
-        m_EndWithReturn[nY0 - 1] = true;
+        m_EndWithCR[nY0 - 1] = true;
         ResetOneLine(nY0 - 1);
     }
 
-    // now (0 ~ (nY0 -1)) are well-prepared
+    // now (0 ~ (nY0 - 1)) are well-prepared
     // 1. delete whole lines, only need to reset startY
     // 2. line nY1 ends without <CR>:
     //      1. take pieces from line nY0 and line nY1 and store in one TBV
@@ -1768,10 +1737,17 @@ bool TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
     // we delete whole lines from nY0 ~ nY1
 
     auto fnDeleteLine = [this](int nLine0, int nLine1){
-        m_LineV.erase(
-                m_LineV.begin() + nLine0, m_LineV.begin() + nLine1 + 1);
-        m_EndWithReturn.erase(
-                m_EndWithReturn.begin() + nLine0, m_EndWithReturn.begin() + nLine1 + 1);
+        if(true
+                && nLine0 >= 0
+                && nLine0 < (int)m_LineV.size()
+                && nLine1 >= 0
+                && nLine1 < (int)m_LineV.size()
+                && nLine0 <= nLine1){
+            m_LineV.erase(
+                    m_LineV.begin() + nLine0, m_LineV.begin() + nLine1 + 1);
+            m_EndWithCR.erase(
+                    m_EndWithCR.begin() + nLine0, m_EndWithCR.begin() + nLine1 + 1);
+        }
     };
 
     // case 1
@@ -1779,27 +1755,30 @@ bool TokenBoard::DeleteTokenBox(int nX0, int nY0, int nX1, int nY1)
         // delete all, just erase this line
         fnDeleteLine(nY0, nY1);
         ResetLineStartY(nY0);
+        m_CursorLoc = {0, nY0};
         return true;
     }
 
     // case 2
-    if(!m_EndWithReturn[nY1]){
+    if(m_EndWithCR[nY1]){
+        std::vector<TOKENBOX> stTBV(m_LineV[nY1].begin() + nX1 + 1, m_LineV[nY1].end());
+        fnDeleteLine(nY0 + 1, nY1);
+
+        m_LineV[nY0].resize(nX0);
+        m_EndWithCR[nY0] = true;
+
+        ResetLine(nY0);
+        m_CursorLoc = {m_LineV[nY0].size(), nY0};
+        return AddTokenBoxV(stTBV);
+    }else{
         std::vector<TOKENBOX> stTBV;
         stTBV.insert(stTBV.end(), m_LineV[nY0].begin(), m_LineV[nY0].begin() + nX0);
         stTBV.insert(stTBV.end(), m_LineV[nY1].begin() + nX1 + 1, m_LineV[nY1].end());
 
         fnDeleteLine(nY0, nY1);
         ResetLineStartY(nY0);
-        return AddTokenBoxV(0, nY0, stTBV);
-    }else{
-        std::vector<TOKENBOX> stTBV(m_LineV[nY1].begin() + nX1 + 1, m_LineV[nY1].end());
-        fnDeleteLine(nY0 + 1, nY1);
-
-        m_LineV[nY0].resize(nX0);
-        m_EndWithReturn[nY0] = true;
-
-        ResetLine(nY0);
-        return AddTokenBoxV(m_LineV[nY0].size(), nY0, stTBV);
+        m_CursorLoc = {0, nY0};
+        return AddTokenBoxV(stTBV);
     }
 }
 
@@ -1815,7 +1794,7 @@ void TokenBoard::Reset()
     m_IDFuncV.clear();
     m_SectionV.clear();
     m_LineStartY.clear();
-    m_EndWithReturn.clear();
+    m_EndWithCR.clear();
     m_TokenBoxBitmap.clear();
 
     m_MaxH1            = 0;
@@ -1831,7 +1810,7 @@ void TokenBoard::Reset()
     m_SelectLoc[0] = {-1, -1};
     m_SelectLoc[1] = {-1, -1};
     m_LineV.emplace_back();
-    m_EndWithReturn.push_back(true);
+    m_EndWithCR.push_back(true);
 }
 
 // add a <CR> before the current cursor, since we defined the concept of ``default font",
@@ -1847,23 +1826,22 @@ void TokenBoard::Reset()
 //
 bool TokenBoard::ParseReturnObject()
 {
-    int nX = m_CursorLoc.first;
-    int nY = m_CursorLoc.second;
-
-    if(!(nY >= 0 && nY < (int)m_LineV.size() && nX >= 0 && nX <= (int)m_LineV[nY].size())){
+    if(!CursorValid()){
         // invalid cursor location, bye
         return false;
     }
+    int nX = m_CursorLoc.first;
+    int nY = m_CursorLoc.second;
 
     // anyway we need to handle it case by case
     // so do it in detail
 
     // 1. decide whether last line will be in affect
-    if(nX == 0 && nY > 0 && !m_EndWithReturn[nY - 1]){
+    if(nX == 0 && nY > 0 && !m_EndWithCR[nY - 1]){
         // 1. cursor it at the beginning
         // 2. current is not the first line
         // 3. last line doesn't end with <CR>
-        m_EndWithReturn[nY - 1] = true;
+        m_EndWithCR[nY - 1] = true;
         ResetOneLine(nY - 1);
     }
 
@@ -1872,30 +1850,31 @@ bool TokenBoard::ParseReturnObject()
     m_LineV[nY].resize(nX);
 
     // backup current line end state
-    bool bEndWithReturn = m_EndWithReturn[nY];
+    bool bEndWithCR = m_EndWithCR[nY];
 
     // 2. reset current line
-    m_EndWithReturn[nY] = true;
+    m_EndWithCR[nY] = true;
     ResetOneLine(nY);
 
     // 3. handle following line
-    if(bEndWithReturn){
+    if(bEndWithCR){
         // the original line ends with return, then we insert a new line
         // actually if the cursor is at the beginning, then we even don't have
         // to re-padding it
         //
         // since only one line, it's OK
         m_LineV.insert(m_LineV.begin() + nY, stTBV);
-        m_EndWithReturn.insert(m_EndWithReturn.begin() + nY, true);
+        m_EndWithCR.insert(m_EndWithCR.begin() + nY, true);
         ResetOneLine(nY + 1);
 
         // reset all startY for the rest
         ResetLineStartY(nY + 2);
+        m_CursorLoc = {0, nY + 1};
+        return true;
     }else{
-        AddTokenBoxV(0, nY + 1, stTBV);
+        m_CursorLoc = {0, nY + 1};
+        return AddTokenBoxV(stTBV);
     }
-
-    return true;
 }
 
 // reset one line for
@@ -1916,7 +1895,7 @@ void TokenBoard::ResetOneLine(int nLine)
         return;
     }
 
-    if(!m_EndWithReturn[nLine]){
+    if(!m_EndWithCR[nLine]){
         LinePadding(nLine);
     }
     SetTokenBoxStartX(nLine);
@@ -2062,7 +2041,7 @@ void TokenBoard::DeleteEmptyBottomLine()
     while(!m_LineV.empty()){
         if(m_LineV.back().empty()){
             m_LineV.pop_back();
-            m_EndWithReturn.pop_back();
+            m_EndWithCR.pop_back();
             m_LineStartY.pop_back();
 
             m_H = m_LineStartY.back() + GetNthLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W) + 1;
@@ -2071,7 +2050,7 @@ void TokenBoard::DeleteEmptyBottomLine()
         }
     }
 
-    if(!m_LineV.empty() && !m_EndWithReturn.back()){
+    if(!m_LineV.empty() && !m_EndWithCR.back()){
         ResetLine(m_LineV.size() - 1);
     }
 }
@@ -2149,64 +2128,4 @@ bool TokenBoard::MakeTokenBox(int nSectionID, uint32_t nKey, TOKENBOX *pTokenBox
                 return false;
             }
     }
-}
-
-// when we insert nCount tokens at (nX, nY), which position now our cursor locates
-// assumptions:
-//      1. valid board
-//      2. 
-void TokenBoard::AdjustCursorLocation(bool bInsert, int nX, int nY, int nCount)
-{
-    // hummmm...
-    if(m_LineV.empty()){
-        m_CursorLoc = {-1, -1};
-        return;
-    }
-
-    // validate arguments
-    if(!CursorValid(nX, nY) || nCount <= 0){ return; }
-    // no matter current modification is insertion/deletion
-    // if (nX, nY) is after current cursor, nothing need to be done
-    if(nY > m_CursorLoc.second
-            || (nY == m_CursorLoc.second && nX > m_CursorLoc.first)){ return; }
-
-
-    // TODO: make this efficient
-    if(bInsert){
-        while(nCount--){
-            m_CursorLoc.first++;
-            if(m_CursorLoc.first > (int)m_LineV[m_CursorLoc.second].size()){
-                // not zero here
-                m_CursorLoc.second++;
-                m_CursorLoc.first = 1;
-                if(!CursorValid()){
-                    break;
-                }
-            }
-        }
-    }else{
-        while(nCount--){
-            m_CursorLoc.first--;
-            if(m_CursorLoc.first <= 0){
-                // may be we need to let it stay at zero
-                m_CursorLoc.second--;
-                m_CursorLoc.first = (int)m_LineV[m_CursorLoc.second].size();
-                if(!CursorValid()){
-                    break;
-                }
-            }
-        }
-
-    }
-
-    int nLocX = m_CursorLoc.first;
-    int nLocY = m_CursorLoc.second;
-
-    if(nLocY < 0){ nLocY = 0; }
-    if(nLocY >= (int)m_LineV.size()) { nLocY = (int)m_LineV.size() - 1; } 
-
-    if(nLocX < 0){ nLocX = 0; }
-    if(nLocX > (int)m_LineV[nLocY].size()){ nLocX = (int)m_LineV[nLocY].size(); }
-
-    m_CursorLoc = { nLocX, nLocY };
 }

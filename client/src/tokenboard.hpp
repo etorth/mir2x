@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/02/2016 21:51:52
+ *  Last Modified: 04/03/2016 02:51:32
  *
  *    Description: Design TBD.
  *
@@ -434,7 +434,7 @@ class TokenBoard: public Widget
         //
         int  m_Margin[4];
 
-        std::vector<bool> m_EndWithReturn;
+        std::vector<bool> m_EndWithCR;
 
     private:
         // callbacks
@@ -458,8 +458,8 @@ class TokenBoard: public Widget
         void ProcessEventMouseMotion(int, int);
 
     public:
-        void AdjustCursorLocation(bool, int, int, int);
-        bool AddTokenBoxV(int, int, const std::vector<TOKENBOX> &);
+        bool AddTokenBoxV(const std::vector<TOKENBOX> &);
+        bool Delete(bool);
 
     public:
         void GetCursor(int *pX, int *pY)
@@ -476,14 +476,6 @@ class TokenBoard: public Widget
         int GetLineSpace()
         {
             return m_LineSpace;
-        }
-
-        void Delete(bool);
-
-
-        bool AddTokenBoxV(const std::vector<TOKENBOX> &rstTBV)
-        {
-            return AddTokenBoxV(m_CursorLoc.first, m_CursorLoc.second, rstTBV);
         }
 
         // always we need an default environment
@@ -548,8 +540,6 @@ class TokenBoard: public Widget
         std::string InnGetXML(int, int, int, int);
 
         bool GetTokenBoxInfo(int, int, int *, int *, int *, int *, int *, int *, int *);
-
-        bool DeleteTokenBox(int, int, int, int);
 
         void GetDefaultFontInfo(uint8_t *, uint8_t *, uint8_t *);
 
