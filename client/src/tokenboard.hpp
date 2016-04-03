@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/02/2016 03:20:49
+ *  Last Modified: 04/02/2016 21:51:52
  *
  *    Description: Design TBD.
  *
@@ -130,6 +130,7 @@
  */
 #pragma once
 
+#include <limits>
 #include <SDL2/SDL.h>
 #include <vector>
 #include <tinyxml2.h>
@@ -139,6 +140,7 @@
 #include "widget.hpp"
 #include <unordered_map>
 #include "xmlobjectlist.hpp"
+
 
 enum XMLObjectType: int
 {
@@ -324,8 +326,6 @@ class TokenBoard: public Widget
                 int, const std::unordered_map<std::string, std::function<void()>> &);
 
     private:
-        int CreateSection(const SECTION &, const std::function<void()> &);
-    private:
         bool GetAttributeColor(SDL_Color *, const SDL_Color &,
                 const tinyxml2::XMLElement &, const std::vector<std::string> &);
         bool GetAttributeAtoi(int *, int,
@@ -336,10 +336,6 @@ class TokenBoard: public Widget
         int         GetFontIndex(const tinyxml2::XMLElement &);
         int         GetFontStyle(const tinyxml2::XMLElement &);
         int         GetFontSize (const tinyxml2::XMLElement &);
-
-    private:
-        SDL_Color   GetEventTextCharColor(const tinyxml2::XMLElement &);
-        SDL_Color   GetEventTextCharColor(const tinyxml2::XMLElement &, int);
 
     private:
         void        ParseTextContentSection(const tinyxml2::XMLElement *, int);
@@ -353,6 +349,8 @@ class TokenBoard: public Widget
         bool ObjectReturn(const tinyxml2::XMLElement &);
         bool ObjectEventText(const tinyxml2::XMLElement &);
 
+    private:
+        bool MakeTokenBox(int, uint32_t, TOKENBOX *);
 
     private:
         void RedrawToken(int, int, TOKENBOX &, bool);
@@ -401,9 +399,6 @@ class TokenBoard: public Widget
         std::vector<int>                   m_LineStartY;
     private:
         std::vector<std::vector<std::vector<std::pair<int, int>>>> m_TokenBoxBitmap;
-
-    private:
-        void ResetCurrentLine();
 
     private:
         void MakeTokenBoxEventBitmap();
@@ -463,6 +458,7 @@ class TokenBoard: public Widget
         void ProcessEventMouseMotion(int, int);
 
     public:
+        void AdjustCursorLocation(bool, int, int, int);
         bool AddTokenBoxV(int, int, const std::vector<TOKENBOX> &);
 
     public:
@@ -516,6 +512,20 @@ class TokenBoard: public Widget
         std::pair<int, int> m_LastTokenBoxLoc;
 
     private:
+        bool CursorValid(int nX, int nY)
+        {
+            return true
+                && nY >= 0
+                && nY < (int)m_LineV.size()
+                && nX >= 0
+                && nX <= (int)m_LineV[nY].size();
+        }
+
+        bool CursorValid()
+        {
+            return CursorValid(m_CursorLoc.first, m_CursorLoc.second);
+        }
+
         bool TokenBoxValid(int nX, int nY)
         {
             return true
@@ -552,6 +562,45 @@ class TokenBoard: public Widget
     private:
 
         std::array<std::pair<int, int>, 2> m_SelectLoc;
+
+    private:
+        bool ValidSection(int nSectionID, bool bCheckSectionType = true)
+        {
+            // 1. invalid id
+            if(nSectionID < 0){ return false; }
+
+            // 2. id not found
+            auto p = m_SectionV.find(nSectionID);
+            if(p == m_SectionV.end()){ return false; }
+
+            if(!bCheckSectionType){ return true; }
+
+            switch(p->second.Info.Type){
+                case SECTIONTYPE_PLAINTEXT:
+                case SECTIONTYPE_EVENTTEXT:
+                case SECTIONTYPE_EMOTICON:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        int CreateSection(const SECTION &rstSection, const std::function<void()> &fnCB = [](){})
+        {
+            // TODO
+            // make it more efficient
+            int nID = 0;
+            while(nID <= std::numeric_limits<int>::max()){
+                if(m_SectionV.find(nID) == m_SectionV.end()){
+                    // good
+                    m_SectionV[nID] = rstSection;
+                    m_IDFuncV[nID]  = fnCB;
+                    return nID;
+                }
+                nID++;
+            }
+            return -1;
+        }
 
     private:
         int     m_SelectState;  // 0: no selection

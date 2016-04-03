@@ -3,7 +3,7 @@
  *
  *       Filename: emoticondbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 03/18/2016 17:03:53
+ *  Last Modified: 04/02/2016 23:29:26
  *
  *    Description: 
  *
@@ -35,7 +35,7 @@ class EmoticonDBN: public EmoticonDBType
         {
             extern EmoticonDBN *g_EmoticonDBN;
             if(g_EmoticonDBN){
-                throw std::runtime_error("one instance for EmoticonDBN please");
+                throw std::error_code();
             }
         }
 

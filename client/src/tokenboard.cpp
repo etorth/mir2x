@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/02/2016 17:50:24
+ *  Last Modified: 04/02/2016 22:12:52
  *
  *    Description: 
  *
@@ -180,7 +180,6 @@ bool TokenBoard::GetAttributeColor(SDL_Color *pOutColor, const SDL_Color &rstDef
     }
 }
 
-
 // get the intergal attribute
 // 1. if no error occurs, pOut will be the convert result, return true
 // 2. any error, return false and pOut is the default value
@@ -210,113 +209,10 @@ bool TokenBoard::GetAttributeAtoi(int *pOut, int nDefaultOut,
     return bRes;
 }
 
-SDL_Color TokenBoard::GetEventTextCharColor(const tinyxml2::XMLElement &rstCurrentObject, int nEvent)
-{
-    if(nEvent < 0 || nEvent > 2){
-        // for non-event text, try to parse ``color" attribute
-        // if failed, return pure white
-        return GetEventTextCharColor(rstCurrentObject);
-    }
-
-    const char *attrText[3][3] = {
-        {"OFF",  "Off",  "off" },
-        {"ON",   "On",   "on"  },
-        {"PUSH", "Push", "push"}
-    };
-
-    SDL_Color defaultColor[3] = {
-        { 0XFF, 0XFF, 0X00, 0XFF },
-        { 0X00, 0XFF, 0X00, 0XFF },
-        { 0XFF, 0X00, 0X00, 0XFF }
-    };
-    const char *pText;
-    SDL_Color   color;
-
-    if(false){
-    }else if((pText = rstCurrentObject.Attribute(attrText[nEvent][0]))){
-    }else if((pText = rstCurrentObject.Attribute(attrText[nEvent][1]))){
-    }else if((pText = rstCurrentObject.Attribute(attrText[nEvent][2]))){
-    }else{
-        return defaultColor[nEvent];
-    }
-
-    color.r = 0x00;
-    color.g = 0x00;
-    color.b = 0x00;
-    color.a = 0xff;
-
-    if(false
-            || !std::strcmp(pText, "RED")
-            || !std::strcmp(pText, "Red")
-            || !std::strcmp(pText, "red")){
-        color.r = 0xff;
-    }else if(false
-            || !std::strcmp(pText, "GREEN")
-            || !std::strcmp(pText, "Green")
-            || !std::strcmp(pText, "green")){
-        color.g = 0xff;
-    }else if(false
-            || !std::strcmp(pText, "BLUE")
-            || !std::strcmp(pText, "Blue")
-            || !std::strcmp(pText, "blue")){
-        color.b = 0xff;
-    }else if(false
-            || !std::strcmp(pText, "YELLOW")
-            || !std::strcmp(pText, "Yellow")
-            || !std::strcmp(pText, "yellow")){
-        color.r = 0xff;
-        color.g = 0xff;
-    }else{
-        // TODO 0xab11df11
-    }
-    return color;
-}
-
-// no event version, try to parse ``color" attribute for non-event text
-SDL_Color TokenBoard::GetEventTextCharColor(const tinyxml2::XMLElement &rstCurrentObject)
-{
-    const char *pText;
-    SDL_Color   color;
-
-    if(false){
-    }else if((pText = rstCurrentObject.Attribute("COLOR"))){
-    }else if((pText = rstCurrentObject.Attribute("Color"))){
-    }else if((pText = rstCurrentObject.Attribute("color"))){
-    }else{
-    }
-    if(pText == nullptr){
-        color.r = 0xff;
-        color.g = 0xff;
-        color.b = 0xff;
-        color.a = 0xff;
-        return color;
-    }
-
-    color.r = 0x00;
-    color.g = 0x00;
-    color.b = 0x00;
-    color.a = 0xff;
-    if(false
-            || !std::strcmp(pText, "RED")
-            || !std::strcmp(pText, "Red")
-            || !std::strcmp(pText, "red")){
-        color.r = 0xff;
-    }else if(false
-            || !std::strcmp(pText, "GREEN")
-            || !std::strcmp(pText, "Green")
-            || !std::strcmp(pText, "green")){
-        color.g = 0xff;
-    }else if(false
-            || !std::strcmp(pText, "BLUE")
-            || !std::strcmp(pText, "Blue")
-            || !std::strcmp(pText, "blue")){
-        color.b = 0xff;
-    }else{
-        // TODO 0xab11df11
-    }
-    return color;
-}
-
+// to insert a emoticon box into the board
+//  1. prepare a section
+//  2. use MakeTokenBox() to allocate an emoticon box
+//  3. insert the box
 bool TokenBoard::ParseEmoticonObject(
         const tinyxml2::XMLElement &rstCurrentObject)
 {
@@ -342,24 +238,28 @@ bool TokenBoard::ParseEmoticonObject(
             0,                                    // first frame of the emoticon
             nullptr,                              // don't need the start info here
             nullptr,                              // don't need the satrt info here
-            &stTokenBox.Cache.W,
-            &stTokenBox.Cache.H,
+            nullptr,
+            nullptr,
             &stSection.Info.Emoticon.FPS,         // o
-            &stTokenBox.Cache.H1,                 // o
+            nullptr,                 // o
             &stSection.Info.Emoticon.FrameCount); // o
 
     if(pTexture){
-        // this emoticon is valid
-        stTokenBox.Cache.H1            = stTokenBox.Cache.H - stTokenBox.Cache.H2;
-        stTokenBox.State.Valid         = 1;
         stSection.State.Emoticon.Valid = 1;
     }
 
-    int nSectionID = CreateSection(stSection, std::function<void()>());
-    if(nSectionID >= 0){
-        stTokenBox.Section = nSectionID;
+    int nSectionID = CreateSection(stSection);
+    if(nSectionID < 0){ return false; }
+
+    // we can use a uint32_t to indicate the emoticon, but it's uncessary
+    // since it already contained in the section info, so just pass the key as zero
+    //
+    if(MakeTokenBox(nSectionID, 0, &stTokenBox)){
         return AddTokenBoxV({stTokenBox});
     }
+
+    // if failed to make the token, ooops don't forget to remove the section id
+    m_SectionV.erase(nSectionID);
     return false;
 }
 
@@ -427,13 +327,6 @@ bool TokenBoard::ParseTextObject(
 
     // when get inside this funciton
     // the section structure has been well-prepared
-    //
-    int nDefaultSize = (int)m_SectionV[nSectionID].Info.Text.Size;
-
-    uint32_t nFontAttrKey = 0
-        + (((uint32_t)m_SectionV[nSectionID].Info.Text.Font)  << 16)
-        + (((uint32_t)m_SectionV[nSectionID].Info.Text.Size)  <<  8)
-        + (((uint32_t)m_SectionV[nSectionID].Info.Text.Style) <<  0);
 
     std::vector<TOKENBOX> stTBV;
     while(*pEnd != '\0'){
@@ -448,30 +341,14 @@ bool TokenBoard::ParseTextObject(
 
         // fully set the token box unit
         TOKENBOX stTokenBox;
-        std::memset(&stTokenBox, 0, sizeof(stTokenBox));
-
-        uint64_t nKey = (((uint64_t)nFontAttrKey << 32) + nUTF8Key);
-
-        stTokenBox.Section = nSectionID;
-        stTokenBox.UTF8CharBox.UTF8Code  = nUTF8Key;
-        stTokenBox.UTF8CharBox.Cache.Key = nKey;
-
-        extern FontexDBN *g_FontexDBN;
-        auto pTexture = g_FontexDBN->Retrieve(nKey);
-        if(pTexture){
-            SDL_QueryTexture(pTexture, nullptr, nullptr, &stTokenBox.Cache.W, &stTokenBox.Cache.H);
-            stTokenBox.Cache.H1    = stTokenBox.Cache.H;
-            stTokenBox.Cache.H2    = 0;
-            stTokenBox.State.Valid = 1;
+        if(MakeTokenBox(nSectionID, nUTF8Key, &stTokenBox)){
+            stTBV.push_back(stTokenBox);
         }else{
-            // failed to retrieve, set a []
-            stTokenBox.Cache.W  = nDefaultSize;
-            stTokenBox.Cache.H  = nDefaultSize;
-            stTokenBox.Cache.H1 = nDefaultSize;
-            stTokenBox.Cache.H2 = 0;
+            // 1. remove the section id
+            m_SectionV.erase(nSectionID);
+            // 2. report error
+            return false;
         }
-
-        stTBV.push_back(stTokenBox);
     }
 
     return AddTokenBoxV(stTBV);
@@ -542,15 +419,14 @@ int TokenBoard::SectionTypeCount(int nLine, int nSectionType)
     }
 
     for(const auto &rstTokenBox: m_LineV[nLine]){
-        auto p = m_SectionV.find(rstTokenBox.Section);
-        if(p != m_SectionV.end()){
-            if(fnCmp(p->second.Info.Type, nSectionType)){
+        if(ValidSection(rstTokenBox.Section, true)){
+            if(fnCmp(m_SectionV[rstTokenBox.Section].Info.Type, nSectionType)){
                 nCount++;
             }
         }else{
             // oooops
             extern Log *g_Log;
-            g_Log->AddLog(LOGTYPE_INFO, "section id can't be find");
+            g_Log->AddLog(LOGTYPE_INFO, "section id invalid: %d", rstTokenBox.Section);
         }
     }
     return nCount;
@@ -767,12 +643,6 @@ int TokenBoard::LinePadding(int nLine)
     return nWidth;
 }
 
-void TokenBoard::ResetCurrentLine()
-{
-    m_CurrentLine.clear();
-    m_CurrentLineMaxH2 = 0;
-}
-
 int TokenBoard::GetNthLineIntervalMaxH2(int nthLine, int nIntervalStartX, int nIntervalWidth)
 {
     //    This function only take care of nthLine
@@ -941,6 +811,12 @@ void TokenBoard::DrawEx(
                 continue;
             }
 
+            if(!ValidSection(rstTokenBox.Section, true)){
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_INFO, "section id invalid: %d", rstTokenBox.Section);
+                return;
+            }
+
             switch(m_SectionV[rstTokenBox.Section].Info.Type){
                 case SECTIONTYPE_EVENTTEXT:
                 case SECTIONTYPE_PLAINTEXT:
@@ -967,7 +843,7 @@ void TokenBoard::DrawEx(
                         //
 
                         int nEvent = m_SectionV[rstTokenBox.Section].State.Text.Event;
-                        auto &rstColor = m_SectionV[nEvent].Info.Text.Color[nEvent];
+                        auto &rstColor = m_SectionV[rstTokenBox.Section].Info.Text.Color[nEvent];
 
                         extern SDLDevice *g_SDLDevice;
                         extern FontexDBN *g_FontexDBN;
@@ -1100,14 +976,13 @@ void TokenBoard::TokenBoxGetMouseButtonUp(int nX, int nY, bool bFirstHalf)
 
     // 2. invalid section id
     int nSection = m_LineV[nY][nX].Section;
-    auto pSectionInst = m_SectionV.find(nSection);
-    if(pSectionInst == m_SectionV.end()){
+    if(!ValidSection(nSection, true)){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_INFO, "section id can't find: %d", nSection);
         return;
     }
 
-    auto &rstSection = pSectionInst->second;
+    auto &rstSection = m_SectionV[nSection];
 
     switch(rstSection.Info.Type){
         case SECTIONTYPE_PLAINTEXT:
@@ -1185,14 +1060,13 @@ void TokenBoard::TokenBoxGetMouseButtonDown(int nX, int nY, bool bFirstHalf)
 
     // 2. invalid section id
     int nSection = m_LineV[nY][nX].Section;
-    auto pSectionInst = m_SectionV.find(nSection);
-    if(pSectionInst == m_SectionV.end()){
+    if(!ValidSection(nSection, true)){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_INFO, "section id can't find: %d", nSection);
         return;
     }
 
-    auto &rstSection = pSectionInst->second;
+    auto &rstSection = m_SectionV[nSection];
     switch(rstSection.Info.Type){
         case SECTIONTYPE_PLAINTEXT:
         case SECTIONTYPE_EMOTICON:
@@ -1684,6 +1558,9 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
 // Insert a bunch of tokenboxes at any position (nX, nY) inside the text
 // block, this function won't introduce any ``return"
 //
+// this function works for *any position* but not only at the m_CursorLoc
+// but it will update m_CursorLoc for sure
+//
 // Assume:
 //      1. the tokenboard is well-prepared
 //      2. we won't allow empty line since don't know how to set height
@@ -1725,6 +1602,7 @@ bool TokenBoard::AddTokenBoxV(int nX, int nY, const std::vector<TOKENBOX> & rstT
     if(m_PW <= 0){
         // we don't have to wrap, easy case
         ResetLine(nY);
+        AdjustCursorLocation(true, nX, nY, rstTBV.size());
         return true;
     }
 
@@ -1749,14 +1627,19 @@ bool TokenBoard::AddTokenBoxV(int nX, int nY, const std::vector<TOKENBOX> & rstT
     if(nCount == -1){
         // nCount didn't set, mean it can hold the whole v
         ResetLine(nY);
+        AdjustCursorLocation(true, nX, nY, rstTBV.size());
         return true;
     }
 
     std::vector<TOKENBOX> stRestTBV {
         m_LineV[nY].begin() + nCount, m_LineV[nY].end()};
 
+    int nOldCount = m_LineV[nY].size();
+
     m_LineV[nY].resize(nCount);
     ResetLine(nY);
+
+    AdjustCursorLocation(nCount > nOldCount, nX, nY, std::abs(nCount - nOldCount));
 
     // now the tokenboard is valid again
     //
@@ -1767,6 +1650,8 @@ bool TokenBoard::AddTokenBoxV(int nX, int nY, const std::vector<TOKENBOX> & rstT
     }
 
     // afer this, the tokenboard is valid again
+    // for wrap, adjustment of cursor is not trival
+    AdjustCursorLocation(true, nX, nY, rstTBV.size());
     return AddTokenBoxV(nY + 1, 0, stRestTBV);
 }
 
@@ -2092,38 +1977,75 @@ void TokenBoard::ResetLineStartY(int nStartLine)
     }
 }
 
-int TokenBoard::CreateSection(const SECTION &rstSection, const std::function<void()> &fnCB)
-{
-    // TODO
-    // make it more efficient
-    int nID = 0;
-    while(nID <= std::numeric_limits<int>::max()){
-        if(m_SectionV.find(nID) == m_SectionV.end()){
-            // good
-            m_SectionV[nID] = rstSection;
-            m_IDFuncV[nID]  = fnCB;
-            return nID;
-        }
-        nID++;
-    }
-    return -1;
-}
-
 // insert a utf-8 char box
 // assume:
 //      1. valid tokenboard
+//      2. always insert into the current section
 bool TokenBoard::AddUTF8Code(uint32_t nUTF8Code)
 {
     TOKENBOX stTB;
     std::memset(&stTB, 0, sizeof(stTB));
 
-    std::string szXML;
-    szXML += "<root><object>";
-    szXML += (char)(nUTF8Code);
-    szXML += "</object></root>";
+    // 1. get the current section ID
+    if(!CursorValid()){ Reset(); }
 
-    LoadXML(szXML.c_str());
-    return true;
+    auto fnGetTextSection = [this](int nTBX, int nTBY) -> int {
+        if(TokenBoxValid(nTBX, nTBY)){
+            int nID = m_LineV[nTBY][nTBX].Section;
+            // oooops, not a valid section id, big error
+            if(!ValidSection(nID, false)){
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_WARNING,
+                        "sectioin id %d not found for token box (%d, %d).", nID, nTBX, nTBY);
+                return -1;
+            }
+
+            // find it, whether it's a text section?
+            auto nType = m_SectionV[nID].Info.Type;
+            if(nType != SECTIONTYPE_EVENTTEXT && nType != SECTIONTYPE_PLAINTEXT){
+                return -1;
+            }
+
+            return nID;
+        }
+        return -1;
+    };
+
+    // 1. try the left/right box's section ID
+    int nSectionID = fnGetTextSection(m_CursorLoc.first - 1, m_CursorLoc.second);
+    if(nSectionID < 0){
+        nSectionID = fnGetTextSection(m_CursorLoc.first, m_CursorLoc.second);
+    }
+
+    // left/right box doesn't work
+    // we need to allocate a new one
+    if(nSectionID < 0){
+        SECTION stSection;
+        std::memset(&stSection, 0, sizeof(stSection));
+
+        stSection.Info.Type          = SECTIONTYPE_PLAINTEXT;
+        stSection.Info.Text.Font     = m_DefaultFont;
+        stSection.Info.Text.Size     = m_DefaultSize;
+        stSection.Info.Text.Style    = m_DefaultStyle;
+        stSection.Info.Text.Color[0] = m_DefaultColor;
+
+        nSectionID = CreateSection(stSection);
+    }
+
+    if(nSectionID < 0){
+        // no hope, just give up
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "can't find a proper section id");
+        return false;
+    }
+
+    // now we have valid section id
+    TOKENBOX stTokenBox;
+    if(MakeTokenBox(nSectionID, nUTF8Code, &stTokenBox)){
+        return AddTokenBoxV({stTokenBox});
+    }
+
+    return false;
 }
 
 void TokenBoard::GetDefaultFontInfo(uint8_t *pFont, uint8_t *pFontSize, uint8_t *pFontStyle)
@@ -2152,4 +2074,139 @@ void TokenBoard::DeleteEmptyBottomLine()
     if(!m_LineV.empty() && !m_EndWithReturn.back()){
         ResetLine(m_LineV.size() - 1);
     }
+}
+
+// make a token box based on the section id
+// assume
+//      1. a SECTION w.r.t nSectionID is already present in m_SectionV and well-inited
+//      2. all content can be specified by a uint32_t
+//      3. can be used to check nSectionID is valid or not
+bool TokenBoard::MakeTokenBox(int nSectionID, uint32_t nKey, TOKENBOX *pTokenBox)
+{
+    if(!ValidSection(nSectionID)){ return false; }
+    if(!pTokenBox){ return true; }
+
+    const auto &rstSection = m_SectionV[nSectionID];
+    std::memset(pTokenBox, 0, sizeof(*pTokenBox));
+    switch(rstSection.Info.Type){
+        case SECTIONTYPE_PLAINTEXT:
+        case SECTIONTYPE_EVENTTEXT:
+            {
+                // 1. set all attributes
+                uint32_t nFontAttrKey = 0
+                    + (((uint32_t)rstSection.Info.Text.Font)  << 16)
+                    + (((uint32_t)rstSection.Info.Text.Size)  <<  8)
+                    + (((uint32_t)rstSection.Info.Text.Style) <<  0);
+                pTokenBox->Section = nSectionID;
+                pTokenBox->UTF8CharBox.UTF8Code  = nKey;
+                pTokenBox->UTF8CharBox.Cache.Key = (((uint64_t)nFontAttrKey << 32) + nKey);
+
+                // 2. set size cache
+                extern FontexDBN *g_FontexDBN;
+                auto pTexture = g_FontexDBN->Retrieve(pTokenBox->UTF8CharBox.Cache.Key);
+                if(pTexture){
+                    SDL_QueryTexture(pTexture,
+                            nullptr, nullptr, &(pTokenBox->Cache.W), &(pTokenBox->Cache.H));
+                    pTokenBox->Cache.H1    = pTokenBox->Cache.H;
+                    pTokenBox->Cache.H2    = 0;
+                    pTokenBox->State.Valid = 1;
+                }else{
+                    // failed to retrieve, set a []
+                    pTokenBox->Cache.W  = m_DefaultSize;
+                    pTokenBox->Cache.H  = m_DefaultSize;
+                    pTokenBox->Cache.H1 = m_DefaultSize;
+                    pTokenBox->Cache.H2 = 0;
+                }
+
+                return true;
+            }
+        case SECTIONTYPE_EMOTICON:
+            {
+                pTokenBox->Section = nSectionID;
+                extern EmoticonDBN *g_EmoticonDBN;
+                auto pTexture = g_EmoticonDBN->Retrieve(
+                        rstSection.Info.Emoticon.Set,         // emoticon set
+                        rstSection.Info.Emoticon.Index,       // emoticon index
+                        0,                                    // first frame of the emoticon
+                        nullptr,                              // don't need the start info here
+                        nullptr,                              // don't need the satrt info here
+                        &(pTokenBox->Cache.W),
+                        &(pTokenBox->Cache.H),
+                        nullptr,
+                        &(pTokenBox->Cache.H1),
+                        nullptr);
+
+                if(pTexture){
+                    // this emoticon is valid
+                    pTokenBox->Cache.H2    = pTokenBox->Cache.H - pTokenBox->Cache.H1;
+                    pTokenBox->State.Valid = 1;
+                }
+
+                return true;
+            }
+        default:
+            {
+                return false;
+            }
+    }
+}
+
+// when we insert nCount tokens at (nX, nY), which position now our cursor locates
+// assumptions:
+//      1. valid board
+//      2. 
+void TokenBoard::AdjustCursorLocation(bool bInsert, int nX, int nY, int nCount)
+{
+    // hummmm...
+    if(m_LineV.empty()){
+        m_CursorLoc = {-1, -1};
+        return;
+    }
+
+    // validate arguments
+    if(!CursorValid(nX, nY) || nCount <= 0){ return; }
+    // no matter current modification is insertion/deletion
+    // if (nX, nY) is after current cursor, nothing need to be done
+    if(nY > m_CursorLoc.second
+            || (nY == m_CursorLoc.second && nX > m_CursorLoc.first)){ return; }
+
+
+    // TODO: make this efficient
+    if(bInsert){
+        while(nCount--){
+            m_CursorLoc.first++;
+            if(m_CursorLoc.first > (int)m_LineV[m_CursorLoc.second].size()){
+                // not zero here
+                m_CursorLoc.second++;
+                m_CursorLoc.first = 1;
+                if(!CursorValid()){
+                    break;
+                }
+            }
+        }
+    }else{
+        while(nCount--){
+            m_CursorLoc.first--;
+            if(m_CursorLoc.first <= 0){
+                // may be we need to let it stay at zero
+                m_CursorLoc.second--;
+                m_CursorLoc.first = (int)m_LineV[m_CursorLoc.second].size();
+                if(!CursorValid()){
+                    break;
+                }
+            }
+        }
+
+    }
+
+    int nLocX = m_CursorLoc.first;
+    int nLocY = m_CursorLoc.second;
+
+    if(nLocY < 0){ nLocY = 0; }
+    if(nLocY >= (int)m_LineV.size()) { nLocY = (int)m_LineV.size() - 1; } 
+
+    if(nLocX < 0){ nLocX = 0; }
+    if(nLocX > (int)m_LineV[nLocY].size()){ nLocX = (int)m_LineV[nLocY].size(); }
+
+    m_CursorLoc = { nLocX, nLocY };
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 7:04:16 PM
- *  Last Modified: 04/02/2016 16:34:45
+ *  Last Modified: 04/02/2016 22:21:31
  *
  *    Description: 
  *
@@ -144,6 +144,8 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                                     extern Game *g_Game;
                                     g_Game->Clipboard(m_TokenBoard.GetXML(true));
                                     m_TokenBoard.Delete(true);
+                                }else{
+                                    m_TokenBoard.AddUTF8Code(uint32_t('x'));
                                 }
                                 break;
                             }
@@ -155,6 +157,8 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                                         || rstEvent.key.keysym.mod & KMOD_RCTRL){
                                     extern Game *g_Game;
                                     g_Game->Clipboard(m_TokenBoard.GetXML(true));
+                                }else{
+                                    m_TokenBoard.AddUTF8Code(uint32_t('c'));
                                 }
                                 break;
                             }
@@ -166,6 +170,8 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                                         || rstEvent.key.keysym.mod & KMOD_RCTRL){
                                     extern Game *g_Game;
                                     m_TokenBoard.ParseXML(g_Game->Clipboard().c_str());
+                                }else{
+                                    m_TokenBoard.AddUTF8Code(uint32_t('v'));
                                 }
                                 break;
                             }
@@ -176,32 +182,21 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                                 char chKeyName = SDLKeyEventChar(rstEvent);
                                 if(chKeyName != '\0'){
                                     m_TokenBoard.AddUTF8Code(uint32_t(chKeyName));
-                                    return true;
                                 }
+                                break;
                             }
 
                     }
 
-                    if(rstEvent.key.keysym.sym == SDLK_LEFT){
-                        if(m_BindTokenBoxIndex >= 0){
-                            m_BindTokenBoxIndex--;
-                            ResetTokenBoardLocation();
-                        }
-                        return true;
-                    }
-
-                    if(rstEvent.key.keysym.sym == SDLK_RIGHT){
-                        if((size_t)(m_BindTokenBoxIndex + 1) < m_Content.size()){
-                            m_BindTokenBoxIndex++;
-                            ResetTokenBoardLocation();
-                        }
-                        return true;
-                    }
+                    ResetTokenBoardLocation();
+                    return true;
                 }
                 break;
             }
         default:
-            break;
+            {
+                break;
+            }
     }
     return false;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 04/02/2016 15:59:15
+ *  Last Modified: 04/02/2016 22:47:23
  *
  *    Description: 
  *
@@ -32,14 +32,11 @@ ProcessLogin::ProcessLogin()
 	, m_Button2(352, 482, 255,  8)
 	, m_Button3(554, 482, 255, 11, [](){ exit(0); })
     , m_Button4(600, 536, 255, 14)
-	, m_IDBox(159, 540, 146, 14, 2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
-	// , m_PasswordBox(146, 14, {0, 14, 0}, {200, 200, 200, 128})
+	, m_IDBox(
+            159, 540, 146, 14,       2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
+	, m_PasswordBox(
+            409, 540, 146, 14, true, 2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
 {
-    // m_IDInputBox.SetX(159);
-    // m_IDInputBox.SetY(540);
-    //
-    // m_PasswordBox.SetX(409);
-    // m_PasswordBox.SetY(540);
 }
 
 void ProcessLogin::Update(double fMS)
@@ -64,7 +61,7 @@ void ProcessLogin::Draw()
     m_Button4.Draw();
 
     m_IDBox.Draw();
-    // m_PasswordBox.Draw();
+    m_PasswordBox.Draw();
     g_SDLDevice->Present();
 }
 
@@ -83,6 +80,10 @@ void ProcessLogin::ProcessEvent(const SDL_Event &rstEvent)
     }
 
     if(m_IDBox.ProcessEvent(rstEvent, &bValid)){
+        return;
+    }
+
+    if(m_PasswordBox.ProcessEvent(rstEvent, &bValid)){
         return;
     }
 
