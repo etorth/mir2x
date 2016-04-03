@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/02/2016 16:41:59
+ *  Last Modified: 04/03/2016 03:08:22
  *
  *    Description: 
  *
@@ -43,7 +43,7 @@ class InputBoard: public InputWidget
                 int              nCursorWidth    =  2,
                 const SDL_Color &rstCursorColor  = {0XFF, 0XFF, 0XFF, 0XFF},
                 uint8_t          nDefaultFont    =  0,
-                uint8_t          nDefaultSize    =  0,
+                uint8_t          nDefaultSize    =  10,
                 uint8_t          nDefaultStyle   =  0,
                 const SDL_Color &rstDefaultColor = {0XFF, 0XFF, 0XFF, 0XFF},
                 Widget          *pWidget         =  nullptr,

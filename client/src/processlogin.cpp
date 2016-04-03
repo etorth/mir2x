@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 04/02/2016 22:47:23
+ *  Last Modified: 04/03/2016 03:12:29
  *
  *    Description: 
  *
@@ -36,6 +36,8 @@ ProcessLogin::ProcessLogin()
             159, 540, 146, 14,       2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
 	, m_PasswordBox(
             409, 540, 146, 14, true, 2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
+    , m_InputBoard(
+            100, 100, 300, 200, true, 300, 0, 2, {0XFF, 0XFF, 0X00, 0XFF}, 0, 20, 0, {0XFF, 0X00, 0X00, 0XFF})
 {
 }
 
@@ -62,6 +64,13 @@ void ProcessLogin::Draw()
 
     m_IDBox.Draw();
     m_PasswordBox.Draw();
+
+    g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
+    g_SDLDevice->DrawRectangle(100, 100, 300, 200);
+    g_SDLDevice->PopColor();
+
+    m_InputBoard.Draw();
+
     g_SDLDevice->Present();
 }
 
@@ -76,6 +85,10 @@ void ProcessLogin::ProcessEvent(const SDL_Event &rstEvent)
             || m_Button2.ProcessEvent(rstEvent, &bValid)
             || m_Button3.ProcessEvent(rstEvent, &bValid)
             || m_Button4.ProcessEvent(rstEvent, &bValid)){
+        return;
+    }
+
+    if(m_InputBoard.ProcessEvent(rstEvent, &bValid)){
         return;
     }
 
