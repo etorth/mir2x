@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/01/2016 23:38:42
+ *  Last Modified: 04/02/2016 16:41:59
  *
  *    Description: 
  *
@@ -70,8 +70,9 @@ class InputBoard: public InputWidget
                     pWidget,
                     bFreeWidget)
             , m_CursorColor(rstCursorColor)
-            , m_CursorWidth{
-                nCursorWidth
+            , m_CursorWidth(nCursorWidth)
+            , m_IME{
+                nullptr
             }
         {
 
@@ -93,7 +94,7 @@ class InputBoard: public InputWidget
     public:
         bool ProcessEvent(const SDL_Event &, bool *);
 
-    protected:
+    public:
         void SetProperH();
         void DrawCursor();
         void DrawSystemCursor();
@@ -127,7 +128,6 @@ class InputBoard: public InputWidget
         bool    m_DrawOwnSystemCursor;
         int     m_BindTokenBoxIndex;
         int     m_ShowStartX;
-        bool    m_Focus;
         double  m_MS;
 
     protected:

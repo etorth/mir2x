@@ -3,7 +3,7 @@
  *
  *       Filename: xmlobjectlist.cpp
  *        Created: 06/17/2015 06:25:24
- *  Last Modified: 04/02/2016 02:10:30
+ *  Last Modified: 04/02/2016 17:04:49
  *
  *    Description: 
  *
@@ -27,6 +27,8 @@
 // assume XMLDocument is already loaded
 bool XMLObjectList::Validate()
 {
+    Reset();
+
     const auto pRoot = Root();
     // 1. root is valid
     if(!pRoot){ return false; }
@@ -110,7 +112,8 @@ bool XMLObjectList::ValidObjectNode(const tinyxml2::XMLElement *pElement)
         // 1. not as <OBJECT><b>bold</b></OBJECT>
         if(!pElement->GetText()){ return false; }
         // 2. not as <OBJECT>hello<b>bold</b></OBJECT>
-        if(pElement->ToText() && pElement->ToText()->NoChildren()){ return true; }
+        if(pElement->ToText() && !pElement->ToText()->NoChildren()){ return false; }
+        return true;
     }
     return false;
 }

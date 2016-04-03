@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/02/2016 03:28:20
+ *  Last Modified: 04/02/2016 17:16:04
  *
  *    Description: 
  *
@@ -205,7 +205,7 @@ bool TokenBoard::GetAttributeAtoi(int *pOut, int nDefaultOut,
         }
     }
 
-    if(bRes && pOut){ *pOut = nOut; }
+    if(pOut){ *pOut = nOut; }
     return bRes;
 }
 
@@ -382,14 +382,14 @@ bool TokenBoard::ParseTextObject(
     }
 
     int nTmpFont = 0;
-    GetAttributeAtoi(&nTmpFont, 0, rstCurrentObject, {"FONT", "Font", "font"});
+    GetAttributeAtoi(&nTmpFont, m_DefaultFont, rstCurrentObject, {"FONT", "Font", "font"});
     stSection.Info.Text.Font = (uint8_t)nTmpFont;
 
     // TODO: need to support it
     // GetAttributeAtoi(&(stSection.Info.Text.Style),
     //         0, rstCurrentObject, {"STYLE", "Style", "style"});
     int nTmpSize = 0;
-    GetAttributeAtoi(&nTmpSize, 0, rstCurrentObject, {"SIZE", "Size", "size"});
+    GetAttributeAtoi(&nTmpSize, m_DefaultSize, rstCurrentObject, {"SIZE", "Size", "size"});
     stSection.Info.Text.Size = (uint8_t)nTmpSize;
 
     std::function<void()> fnCallback;
@@ -2111,11 +2111,17 @@ int TokenBoard::CreateSection(const SECTION &rstSection, const std::function<voi
 // insert a utf-8 char box
 // assume:
 //      1. valid tokenboard
-bool TokenBoard::AddUTF8Code(uint32_t)
+bool TokenBoard::AddUTF8Code(uint32_t nUTF8Code)
 {
     TOKENBOX stTB;
     std::memset(&stTB, 0, sizeof(stTB));
 
+    std::string szXML;
+    szXML += "<root><object>";
+    szXML += (char)(nUTF8Code);
+    szXML += "</object></root>";
+
+    LoadXML(szXML.c_str());
     return true;
 }
 

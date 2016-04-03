@@ -3,7 +3,7 @@
  *
  *       Filename: xmlconf.hpp
  *        Created: 03/16/2016 23:57:57
- *  Last Modified: 03/19/2016 14:18:57
+ *  Last Modified: 04/02/2016 13:03:12
  *
  *    Description: 
  *
@@ -20,15 +20,15 @@
 
 
 #pragma once
-#include "xmlext.hpp"
+#include "xmlroot.hpp"
 #include <system_error>
 #include "log.hpp"
 
-class XMLConf: public XMLExt
+class XMLConf: public XMLRoot
 {
     public:
         XMLConf()
-            : XMLExt()
+            : XMLRoot()
         {
             extern XMLConf *g_XMLConf;
             if(g_XMLConf){
@@ -48,7 +48,7 @@ class XMLConf: public XMLExt
                 // if there is no configuration
                 // we need to generate one with default value and remind user to edit it
                 // then we can make this error as non-fatal
-                throw std::error_code(1, std::system_category());
+                throw std::error_code();
             }
         }
 

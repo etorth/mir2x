@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 04/01/2016 23:38:11
+ *  Last Modified: 04/02/2016 15:59:15
  *
  *    Description: 
  *
@@ -42,8 +42,9 @@ ProcessLogin::ProcessLogin()
     // m_PasswordBox.SetY(540);
 }
 
-void ProcessLogin::Update(double)
+void ProcessLogin::Update(double fMS)
 {
+    m_IDBox.Update(fMS);
 }
 
 void ProcessLogin::Draw()
@@ -62,7 +63,7 @@ void ProcessLogin::Draw()
     m_Button3.Draw();
     m_Button4.Draw();
 
-    // m_IDInputBox.Draw();
+    m_IDBox.Draw();
     // m_PasswordBox.Draw();
     g_SDLDevice->Present();
 }
@@ -78,6 +79,10 @@ void ProcessLogin::ProcessEvent(const SDL_Event &rstEvent)
             || m_Button2.ProcessEvent(rstEvent, &bValid)
             || m_Button3.ProcessEvent(rstEvent, &bValid)
             || m_Button4.ProcessEvent(rstEvent, &bValid)){
+        return;
+    }
+
+    if(m_IDBox.ProcessEvent(rstEvent, &bValid)){
         return;
     }
 

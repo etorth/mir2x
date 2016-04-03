@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 7:04:16 PM
- *  Last Modified: 04/01/2016 14:39:43
+ *  Last Modified: 04/02/2016 16:34:45
  *
  *    Description: 
  *
@@ -26,6 +26,7 @@
 #include "sdlkeyeventchar.hpp"
 #include "fontexdbn.hpp"
 #include "mathfunc.hpp"
+#include "supwarning.hpp"
 
 int InputBoard::s_ShowSystemCursorCount = 0;
 int InputBoard::s_InputBoardCount       = 0;
@@ -70,6 +71,7 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                     m_TokenBoard.ProcessEvent(rstEvent, &bInnValid);
 
                     ResetTokenBoardLocation();
+                    m_Focus = true;
                     return true;
                 }else{
                     m_Focus = false;
@@ -322,8 +324,12 @@ void InputBoard::Draw()
         int nDW = W();
         int nDH = H();
 
+
         // clip to draw
-        m_TokenBoard.DrawEx(0, 0, nDX, nDY, nDW, nDH);
+        // m_TokenBoard.DrawEx(X(), Y(), nDX, nDY, nDW, nDH);
+        UNUSED(nDX);
+        UNUSED(nDY);
+        m_TokenBoard.DrawEx(X(), Y(), 0, 0, nDW, nDH);
     }
 
     // +-------------------------+

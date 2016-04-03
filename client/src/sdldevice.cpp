@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 04/01/2016 23:53:03
+ *  Last Modified: 04/02/2016 13:14:18
  *
  *    Description: 
  *
@@ -65,37 +65,34 @@ SDLDevice::SDLDevice()
     int    nWindowW = 0;
     int    nWindowH = 0;
 
+    extern Log     *g_Log;
     extern XMLConf *g_XMLConf;
-    try{
-        switch(g_XMLConf->NodeAtoi("Root/Window/ScreenMode")){
-            case 0:
-                break;
-            case 1:
-                nFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-                break;
-            case 2:
-                nFlags |= SDL_WINDOW_FULLSCREEN;
-                break;
-            default:
-                break;
-        }
-    }catch(...){
-        // it's ok to miss this index
-        extern Log *g_Log;
+    int nScreenMode = 0;
+    if(g_XMLConf->NodeAtoi("Root/Window/ScreenMode", &nScreenMode, 0)){
+        g_Log->AddLog(LOGTYPE_INFO, "screen mode by configuration file: %d", nScreenMode);
+    }else{
         g_Log->AddLog(LOGTYPE_WARNING, "Failed to select screen mode by configuration file.");
     }
 
-    try{
-        nWindowW = g_XMLConf->NodeAtoi("Root/Window/W");
-        nWindowH = g_XMLConf->NodeAtoi("Root/Window/H");
-    }catch(...){
-        // assign the proper size it later
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "Failed to set window size by configuration file.");
+    switch(nScreenMode){
+        case 0:
+            break;
+        case 1:
+            nFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+            break;
+        case 2:
+            nFlags |= SDL_WINDOW_FULLSCREEN;
+            break;
+        default:
+            break;
     }
 
-    if(!(nWindowW && nWindowH)){
-        extern Log *g_Log;
+    if(true
+            && g_XMLConf->NodeAtoi("Root/Window/W", &nWindowW, 800)
+            && g_XMLConf->NodeAtoi("Root/Window/H", &nWindowH, 600)){
+        g_Log->AddLog(LOGTYPE_INFO,
+                "window size by configuration file: %d x %d", nWindowW, nWindowH);
+    }else{
         g_Log->AddLog(LOGTYPE_INFO, "Use default window size.");
         nWindowW = 800;
         nWindowH = 600;

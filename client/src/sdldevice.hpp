@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 04/01/2016 23:54:29
+ *  Last Modified: 04/02/2016 16:16:03
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp
@@ -64,9 +64,9 @@ class SDLDevice final
            SDL_RenderClear(m_Renderer);
        }
 
-       void DrawLine(int nX, int nY, int nW, int nH)
+       void DrawLine(int nX0, int nY0, int nX1, int nY1)
        {
-           SDL_RenderDrawLine(m_Renderer, nX, nY, nX + nW, nY + nH);
+           SDL_RenderDrawLine(m_Renderer, nX0, nY0, nX1, nY1);
        }
 
        void SetColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
