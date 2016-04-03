@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/02/2016 17:16:04
+ *  Last Modified: 04/02/2016 17:50:24
  *
  *    Description: 
  *
@@ -205,6 +205,7 @@ bool TokenBoard::GetAttributeAtoi(int *pOut, int nDefaultOut,
         }
     }
 
+    // no matter succeed or not, we need to set it if non-null pointer
     if(pOut){ *pOut = nOut; }
     return bRes;
 }
