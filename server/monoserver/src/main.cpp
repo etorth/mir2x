@@ -1,12 +1,19 @@
 #include <ctime>
-#include "asio.hpp"
+#include <asio.hpp>
+
+#include "taskhub.hpp"
 #include "mainwindow.hpp"
+#include "eventtaskhub.hpp"
 #include "addmonsterwindow.hpp"
 #include "serverconfigurewindow.hpp"
 #include "databaseconfigurewindow.hpp"
 
-MonoServer               *g_MonoServer;
+
+TaskHub                  *g_TaskHub;
+EventTaskHub             *g_EventTaskHub;
+
 MainWindow               *g_MainWindow;
+MonoServer               *g_MonoServer;
 AddMonsterWindow         *g_AddMonsterWindow;
 ServerConfigureWindow    *g_ServerConfigureWindow;
 DatabaseConfigureWindow  *g_DatabaseConfigureWindow;
