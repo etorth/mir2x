@@ -3,7 +3,7 @@
  *
  *       Filename: eventtaskhub.hpp
  *        Created: 04/03/2016 22:55:21
- *  Last Modified: 04/04/2016 00:01:52
+ *  Last Modified: 04/04/2016 00:29:14
  *
  *    Description: 
  *
@@ -25,7 +25,6 @@
 #include <condition_variable>
 
 #include "basehub.hpp"
-#include "taskhub.hpp"
 #include "eventtask.hpp"
 
 class EventTaskHub: public BaseHub<EventTaskHub>
@@ -40,18 +39,21 @@ class EventTaskHub: public BaseHub<EventTaskHub>
         };
 
     protected:
-        uint32_t                     m_LastEventID;
-        std::mutex                   m_EventLock;
-        std::condition_variable      m_EventSignal;
-        std::unordered_set<uint32_t> m_EventIDV;
+        uint32_t                         m_LastEventID;
+        std::mutex                       m_EventLock;
+        std::condition_variable          m_EventSignal;
+        std::unordered_set<uint32_t>     m_EventIDV;
+        std::function<void(EventTask *)> m_Exec;
 
     protected:
-        std::priority_queue<EventTask*, std::deque<EventTask*>, TaskComp> m_EventList;
+        std::priority_queue<EventTask*, std::deque<EventTask *>, TaskComp> m_EventList;
 
     public:
-        EventTaskHub()
+        EventTaskHub(std::function<void(EventTask *)>
+                fnExec = [](EventTask *pTask){ if(pTask){ (*pTask)(); } })
             : BaseHub<EventTaskHub>()
             , m_LastEventID(0)
+            , m_Exec(fnExec)
         {}
 
         virtual ~EventTaskHub() = default;
@@ -170,9 +172,10 @@ class EventTaskHub: public BaseHub<EventTaskHub>
                     stEventUniqueLock.unlock();
 
                     // it's time to execute it
-                    pTask->Expire(0);
-                    extern TaskHub *g_TaskHub;
-                    g_TaskHub->Add(pTask, true);
+                    // pTask->Expire(0);
+                    // extern TaskHub *g_TaskHub;
+                    // g_TaskHub->Add(pTask, true);
+                    if(m_Exec){ m_Exec(pTask); }
                 }else{
                     stEventUniqueLock.unlock();
                 }
