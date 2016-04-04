@@ -3,7 +3,7 @@
  *
  *       Filename: eventtask.hpp
  *        Created: 04/03/2016 22:55:21
- *  Last Modified: 04/03/2016 23:03:17
+ *  Last Modified: 04/04/2016 00:01:01
  *
  *    Description: 
  *
@@ -19,17 +19,20 @@
  */
 #pragma once
 
-#include "tasks.hpp"
+#include "task.hpp"
 
 class EventTask: public Task
 {
+    public:
+        friend class EventTaskHub;
+
     protected:
 		uint32_t m_EventID;
 
 	protected:
 		EventTask(uint32_t nDelayMS, const std::function<void (void)>& fnOp)
             : Task(nDelayMS, fnOp)
-            , m_ID(0)
+            , m_EventID(0)
         {}
 
         virtual ~EventTask() = default;

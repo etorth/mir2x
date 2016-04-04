@@ -3,7 +3,7 @@
  *
  *       Filename: basehub.hpp
  *        Created: 04/03/2016 03:49:00
- *  Last Modified: 04/03/2016 22:07:39
+ *  Last Modified: 04/03/2016 23:56:58
  *
  *    Description: 
  *
@@ -37,7 +37,7 @@ class BaseHub
 
     public:
         BaseHub()
-            : m_State(0)
+            : m_ThreadState(0)
         {}
 
         virtual ~BaseHub() = default;

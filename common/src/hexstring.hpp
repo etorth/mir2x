@@ -3,7 +3,7 @@
  *
  *       Filename: hexstring.hpp
  *        Created: 02/06/2016 13:35:51
- *  Last Modified: 03/18/2016 00:06:04
+ *  Last Modified: 04/04/2016 00:05:21
  *
  *    Description: 
  *
@@ -23,6 +23,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <algorithm>
 #include <type_traits>
 
 

@@ -3,7 +3,7 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 04/03/2016 22:53:17
+ *  Last Modified: 04/04/2016 00:04:18
  *
  *    Description: 
  *
@@ -19,6 +19,8 @@
  */
 #pragma once
 
+#include <list>
+#include "task.hpp"
 #include "basehub.hpp"
 #include <condition_variable>
 
@@ -68,7 +70,7 @@ class TaskHub: public BaseHub<TaskHub>
 
         void Add(const std::function<void()> &fnOp, bool bPushHead = false)
         {
-            Add(CreateTask(fnOp, bPushHead));
+            Add(CreateTask(fnOp), bPushHead);
         }
 
         void Add(uint32_t nDuraMS, const std::function<void()> &fnOp, bool bPushHead = false)
@@ -81,6 +83,11 @@ class TaskHub: public BaseHub<TaskHub>
         Task *CreateTask(uint32_t nDuraMS, const std::function<void()> &fnOp)
         {
             return new Task(nDuraMS, fnOp);
+        }
+
+        Task *CreateTask(const std::function<void()> &fnOp)
+        {
+            return new Task(fnOp);
         }
 
         void DeleteTask(Task *pTask)
@@ -108,7 +115,7 @@ class TaskHub: public BaseHub<TaskHub>
 
                 if(m_TaskList.empty()){
                     //if the list is empty, then wait for signal
-                    taskSignal.wait(stTaskUniqueLock);
+                    m_TaskSignal.wait(stTaskUniqueLock);
                 }
 
                 if(!m_TaskList.empty()){
@@ -117,11 +124,9 @@ class TaskHub: public BaseHub<TaskHub>
                     stTaskUniqueLock.unlock();
 
                     if(!pTask->Expired()){
-                        ++dispatcherCycle;
+                        ++m_Cycle;
                         // execute it
                         (*pTask)();
-
-                        g_game.map.clearSpectatorCache();
                     }
                     delete pTask;
                 } else {

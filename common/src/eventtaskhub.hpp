@@ -3,7 +3,7 @@
  *
  *       Filename: eventtaskhub.hpp
  *        Created: 04/03/2016 22:55:21
- *  Last Modified: 04/03/2016 23:36:51
+ *  Last Modified: 04/04/2016 00:01:52
  *
  *    Description: 
  *
@@ -19,13 +19,16 @@
  */
 #pragma once
 
+#include <mutex>
 #include <queue>
 #include <unordered_set>
+#include <condition_variable>
 
-#include "task.hpp"
+#include "basehub.hpp"
+#include "taskhub.hpp"
 #include "eventtask.hpp"
 
-class EventTaskHub: public BaseHub<EventTask>
+class EventTaskHub: public BaseHub<EventTaskHub>
 {
     private:
         struct TaskComp
@@ -37,20 +40,21 @@ class EventTaskHub: public BaseHub<EventTask>
         };
 
     protected:
+        uint32_t                     m_LastEventID;
         std::mutex                   m_EventLock;
-        std::condition_variable      mEventSignal;
-        std::unordered_set<uint32_t> mEventIDV;
+        std::condition_variable      m_EventSignal;
+        std::unordered_set<uint32_t> m_EventIDV;
 
     protected:
         std::priority_queue<EventTask*, std::deque<EventTask*>, TaskComp> m_EventList;
 
     public:
         EventTaskHub()
-            : BaseHub<EventTask>()
-            , m_EventLock(0)
+            : BaseHub<EventTaskHub>()
+            , m_LastEventID(0)
         {}
 
-        virtual EventTaskHub() = default;
+        virtual ~EventTaskHub() = default;
 
     public:
         bool Dismiss(uint32_t nID)
@@ -70,6 +74,12 @@ class EventTaskHub: public BaseHub<EventTask>
         }
 
     public:
+        void DeleteEventTask(EventTask *pTask)
+        {
+            delete pTask;
+        }
+
+    public:
         void Shutdown()
         {
             State(0);
@@ -83,7 +93,7 @@ class EventTaskHub: public BaseHub<EventTask>
 
             m_EventIDV.clear();
             m_EventLock.unlock();
-            mEventSignal.notify_one();
+            m_EventSignal.notify_one();
         }
 
     public:
@@ -121,7 +131,7 @@ class EventTaskHub: public BaseHub<EventTask>
             m_EventLock.unlock();
 
             if (bDoSignal) {
-                mEventSignal.notify_one();
+                m_EventSignal.notify_one();
             }
 
             return pTask->ID();
@@ -135,10 +145,10 @@ class EventTaskHub: public BaseHub<EventTask>
                 std::cv_status stRet = std::cv_status::no_timeout;
                 stEventUniqueLock.lock();
                 if(m_EventList.empty()){
-                    mEventSignal.wait(stEventUniqueLock);
+                    m_EventSignal.wait(stEventUniqueLock);
                 }else{
                     // wait for a shorter time
-                    stRet = mEventSignal.wait_until(stEventUniqueLock, m_EventList.top()->Cycle());
+                    stRet = m_EventSignal.wait_until(stEventUniqueLock, m_EventList.top()->Cycle());
                 }
 
                 // the mutex is locked again now...

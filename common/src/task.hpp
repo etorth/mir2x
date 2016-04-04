@@ -3,7 +3,7 @@
  *
  *       Filename: task.hpp
  *        Created: 04/03/2016 19:40:00
- *  Last Modified: 04/03/2016 21:32:12
+ *  Last Modified: 04/03/2016 23:55:23
  *
  *    Description: 
  *
@@ -47,8 +47,8 @@ class Task
             m_Expiration = LOCAL_SYSTEM_TIME_NEXT(nDuraMS);
         }
 
-        explicit Task(const std::function<void (void)>& nfOp)
-            : m_Expiration(SYSTEM_TIME_ZERO)
+        explicit Task(const std::function<void (void)>& fnOp)
+            : m_Expiration(LOCAL_SYSTEM_TIME_ZERO)
             , m_Func(fnOp)
         {}
 
@@ -66,7 +66,7 @@ class Task
 
         bool Expired()
         {
-            if(m_Expiration == SYSTEM_TIME_ZERO){
+            if(m_Expiration == LOCAL_SYSTEM_TIME_ZERO){
                 return false;
             }
             return m_Expiration < LOCAL_SYSTEM_TIME_NOW;
