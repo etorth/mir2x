@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: eventtask.hpp
- *        Created: 04/03/2016 21:12:59
- *  Last Modified: 04/03/2016 21:34:04
+ *        Created: 04/03/2016 22:55:21
+ *  Last Modified: 04/03/2016 23:03:17
  *
  *    Description: 
  *
@@ -17,17 +17,37 @@
  *
  * =====================================================================================
  */
+#pragma once
 
-#include "task.hpp"
+#include "tasks.hpp"
 
 class EventTask: public Task
 {
-    uint32_t m_ID;
+    protected:
+		uint32_t m_EventID;
 
-    public:
-        EventTask(uint32_t nDelayMS, const std::function<void()> &fnOp)
+	protected:
+		EventTask(uint32_t nDelayMS, const std::function<void (void)>& fnOp)
             : Task(nDelayMS, fnOp)
             , m_ID(0)
+        {}
+
+        virtual ~EventTask() = default;
+
+	public:
+		void ID(uint32_t nID)
         {
+			m_EventID = nID;
+		}
+
+		uint32_t ID() const
+        {
+			return m_EventID;
+		}
+
+        std::chrono::system_clock::time_point Cycle() const
+        {
+            return m_Expiration;
         }
+
 };
