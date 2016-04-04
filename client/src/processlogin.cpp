@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 04/03/2016 03:12:29
+ *  Last Modified: 04/03/2016 17:58:53
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 
+#include <iostream>
 #include "game.hpp"
 #include <cstring>
 #include <algorithm>
@@ -31,13 +32,13 @@ ProcessLogin::ProcessLogin()
 	, m_Button1(150, 482, 255,  5)
 	, m_Button2(352, 482, 255,  8)
 	, m_Button3(554, 482, 255, 11, [](){ exit(0); })
-    , m_Button4(600, 536, 255, 14)
+    , m_Button4(600, 536, 255, 14, [this](){ DoLogin(); })
 	, m_IDBox(
             159, 540, 146, 14,       2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
 	, m_PasswordBox(
             409, 540, 146, 14, true, 2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
     , m_InputBoard(
-            100, 100, 300, 200, true, 300, 0, 2, {0XFF, 0XFF, 0X00, 0XFF}, 0, 20, 0, {0XFF, 0X00, 0X00, 0XFF})
+            100, 100, 300, 200, true, 300, 0, 2, {0XFF, 0XFF, 0X00, 0XFF}, 1, 20, 0, {0XFF, 0X00, 0X00, 0XFF})
 {
 }
 
@@ -108,4 +109,10 @@ void ProcessLogin::ProcessEvent(const SDL_Event &rstEvent)
         default:
             break;
     }
+}
+
+void ProcessLogin::DoLogin()
+{
+    std::string szID = m_IDBox.Print(false);
+    std::cout << szID << std::endl;
 }

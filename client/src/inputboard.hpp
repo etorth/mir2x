@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/03/2016 03:08:22
+ *  Last Modified: 04/03/2016 17:47:03
  *
  *    Description: 
  *
@@ -90,6 +90,11 @@ class InputBoard: public InputWidget
 
     public:
         void Update(double);
+
+    public:
+        std::string Print(bool bSelectedOnly){
+            return m_TokenBoard.Print(bSelectedOnly);
+        }
 
     public:
         bool ProcessEvent(const SDL_Event &, bool *);

@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/03/2016 02:58:06
+ *  Last Modified: 04/03/2016 17:55:01
  *
  *    Description: 
  *
@@ -419,7 +419,7 @@ int TokenBoard::SectionTypeCount(int nLine, int nSectionType)
     }
 
     for(const auto &rstTokenBox: m_LineV[nLine]){
-        if(ValidSection(rstTokenBox.Section, true)){
+        if(SectionValid(rstTokenBox.Section, true)){
             if(fnCmp(m_SectionV[rstTokenBox.Section].Info.Type, nSectionType)){
                 nCount++;
             }
@@ -811,7 +811,7 @@ void TokenBoard::DrawEx(
                 continue;
             }
 
-            if(!ValidSection(rstTokenBox.Section, true)){
+            if(!SectionValid(rstTokenBox.Section, true)){
                 extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_INFO, "section id invalid: %d", rstTokenBox.Section);
                 return;
@@ -976,7 +976,7 @@ void TokenBoard::TokenBoxGetMouseButtonUp(int nX, int nY, bool bFirstHalf)
 
     // 2. invalid section id
     int nSection = m_LineV[nY][nX].Section;
-    if(!ValidSection(nSection, true)){
+    if(!SectionValid(nSection, true)){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_INFO, "section id can't find: %d", nSection);
         return;
@@ -1060,7 +1060,7 @@ void TokenBoard::TokenBoxGetMouseButtonDown(int nX, int nY, bool bFirstHalf)
 
     // 2. invalid section id
     int nSection = m_LineV[nY][nX].Section;
-    if(!ValidSection(nSection, true)){
+    if(!SectionValid(nSection, true)){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_INFO, "section id can't find: %d", nSection);
         return;
@@ -1972,7 +1972,7 @@ bool TokenBoard::AddUTF8Code(uint32_t nUTF8Code)
         if(TokenBoxValid(nTBX, nTBY)){
             int nID = m_LineV[nTBY][nTBX].Section;
             // oooops, not a valid section id, big error
-            if(!ValidSection(nID, false)){
+            if(!SectionValid(nID, false)){
                 extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_WARNING,
                         "sectioin id %d not found for token box (%d, %d).", nID, nTBX, nTBY);
@@ -2062,7 +2062,7 @@ void TokenBoard::DeleteEmptyBottomLine()
 //      3. can be used to check nSectionID is valid or not
 bool TokenBoard::MakeTokenBox(int nSectionID, uint32_t nKey, TOKENBOX *pTokenBox)
 {
-    if(!ValidSection(nSectionID)){ return false; }
+    if(!SectionValid(nSectionID)){ return false; }
     if(!pTokenBox){ return true; }
 
     const auto &rstSection = m_SectionV[nSectionID];
@@ -2128,4 +2128,147 @@ bool TokenBoard::MakeTokenBox(int nSectionID, uint32_t nKey, TOKENBOX *pTokenBox
                 return false;
             }
     }
+}
+
+std::string TokenBoard::Print(bool bSelectOnly)
+{
+    int nX0, nY0, nX1, nY1;
+    XMLObjectList stObjectList;
+
+    if(bSelectOnly){
+        // no selection, return empty XML object list
+        if(m_SelectState == 0){ return stObjectList.Print(); }
+
+        // do have somthing for output
+        nX0 = m_SelectLoc[0].first;
+        nY0 = m_SelectLoc[0].second;
+        nX1 = m_SelectLoc[1].first;
+        nY1 = m_SelectLoc[1].second;
+
+        if(!(TokenBoxValid(nX0, nY0) && TokenBoxValid(nX1, nY1))){
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_WARNING, "invalid selection location, serious failure");
+            return stObjectList.Print();
+        }
+    }else{
+        // output all
+        if(m_LineV.empty()){ return stObjectList.Print(); }
+        nX0 = 0;
+        nY0 = 0;
+        nX1 = (int)m_LineV.back().size() - 1;
+        nY1 = (int)m_LineV.size() - 1;
+    }
+
+    // OK now (nX0, nY0, nX1, nY1) valid, let's start
+    auto fnAddObject = [this](XMLObjectList *pList, const char *szObjectContent, int nSectionID){
+        if(!(pList && SectionValid(nSectionID, false))){ return; }
+        auto const &rstSEC = m_SectionV[nSectionID];
+        switch(rstSEC.Info.Type){
+            case SECTIONTYPE_EMOTICON:
+                {
+                    pList->Add({
+                            {"Type" , "Emoticon"                                },
+                            {"Set"  , std::to_string(rstSEC.Info.Emoticon.Set)  },
+                            {"Index", std::to_string(rstSEC.Info.Emoticon.Index)}
+                            }, nullptr);
+                    break;
+                }
+            case SECTIONTYPE_PLAINTEXT:
+                {
+                    // won't support empty content text object
+                    if(!szObjectContent || !std::strlen(szObjectContent)){ return; }
+                    char szColor[16];
+                    std::sprintf(szColor, "0X%08X", Color2U32ARGB(rstSEC.Info.Text.Color[0]));
+                    pList->Add({
+                            {"Type" , "PlainText"                           },
+                            {"Font" , std::to_string(rstSEC.Info.Text.Font) },
+                            {"Size" , std::to_string(rstSEC.Info.Text.Size) },
+                            {"Style", std::to_string(rstSEC.Info.Text.Style)},
+                            {"Color", std::string(szColor)                  }
+                            }, szObjectContent);
+                    break;
+                }
+            case SECTIONTYPE_EVENTTEXT:
+                {
+                    // won't support empty content text object
+                    if(!szObjectContent || !std::strlen(szObjectContent)){ return; }
+                    char szColor[3][16];
+                    for(int nIndex = 0; nIndex < 3; ++nIndex){
+                        std::sprintf(szColor[nIndex], "0X%08X",
+                                Color2U32ARGB(rstSEC.Info.Text.Color[nIndex]));
+                    }
+                    pList->Add({
+                            {"Type" , "EventText"                           },
+                            {"Font" , std::to_string(rstSEC.Info.Text.Font) },
+                            {"Size" , std::to_string(rstSEC.Info.Text.Size) },
+                            {"Style", std::to_string(rstSEC.Info.Text.Style)},
+                            {"Off"  , std::string(szColor[0])               },
+                            {"Over" , std::string(szColor[1])               },
+                            {"Down" , std::string(szColor[2])               }
+                            }, szObjectContent);
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    };
+
+    int nLastSection = -1;
+    std::string szContent;
+    while(true){
+        const auto &rstTokenBox = m_LineV[nY0][nX0];
+        if(!SectionValid(rstTokenBox.Section, false)){
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_WARNING,
+                    "section id %d invalid for token (%d, %d)", rstTokenBox.Section, nX0, nY0);
+            return stObjectList.Print();
+        }
+
+        // now we are good
+        if(rstTokenBox.Section != nLastSection && nLastSection >= 0){
+            fnAddObject(&stObjectList, szContent.c_str(), nLastSection);
+            szContent.clear();
+        }
+
+        const auto &rstSection = m_SectionV[rstTokenBox.Section];
+        switch(rstSection.Info.Type){
+            case SECTIONTYPE_EMOTICON:
+                {
+                    // do nothing here
+                    break;
+                }
+            case SECTIONTYPE_PLAINTEXT:
+            case SECTIONTYPE_EVENTTEXT:
+                {
+                    szContent += (char *)(&rstTokenBox.UTF8CharBox.UTF8Code);
+                    break;
+                }
+            default:
+                {
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_WARNING,
+                            "oooops unknown section type %d for section %d at token (%d, %d)",
+                            rstSection.Info.Type, rstTokenBox.Section, nX0, nY0);
+                    return stObjectList.Print();
+                }
+        }
+        nLastSection = rstTokenBox.Section;
+
+        if(nX0 == nX1 && nY0 == nY1){ break; }
+        // update token position
+        nX0++;
+        if(nX0 >= (int)m_LineV[nY0].size()){
+            nX0 = 0;
+            nY0++;
+        }
+    }
+
+    // don't forget this
+    if(nLastSection >= 0){
+        fnAddObject(&stObjectList, szContent.c_str(), nLastSection);
+    }
+
+    return stObjectList.Print();
 }

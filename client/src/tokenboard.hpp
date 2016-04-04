@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/03/2016 02:51:32
+ *  Last Modified: 04/03/2016 17:45:25
  *
  *    Description: Design TBD.
  *
@@ -554,7 +554,7 @@ class TokenBoard: public Widget
         std::array<std::pair<int, int>, 2> m_SelectLoc;
 
     private:
-        bool ValidSection(int nSectionID, bool bCheckSectionType = true)
+        bool SectionValid(int nSectionID, bool bCheckSectionType = true)
         {
             // 1. invalid id
             if(nSectionID < 0){ return false; }
@@ -591,6 +591,9 @@ class TokenBoard: public Widget
             }
             return -1;
         }
+
+    public:
+        std::string Print(bool);
 
     private:
         int     m_SelectState;  // 0: no selection

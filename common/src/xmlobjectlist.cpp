@@ -3,7 +3,7 @@
  *
  *       Filename: xmlobjectlist.cpp
  *        Created: 06/17/2015 06:25:24
- *  Last Modified: 04/02/2016 17:04:49
+ *  Last Modified: 04/03/2016 17:35:35
  *
  *    Description: 
  *
@@ -121,22 +121,25 @@ bool XMLObjectList::ValidObjectNode(const tinyxml2::XMLElement *pElement)
 void XMLObjectList::Add(const std::vector<
         std::pair<std::string, std::string>> & rstAttrV, const char *szContent)
 {
-    // 1. find last OBJECT
-    if(!szContent || std::strlen(szContent) == 0){
+    if((!szContent || std::strlen(szContent) == 0) && rstAttrV.empty()){
+        // TODO how about for emoticon object?
+        // which doesn't have any content
+        // 1. <OBJECT TYPE="EMOTICON"></OBJECT>
+        // 2. <OBJECT TYPE="EMOTICON"/>
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO, "invalid node name");
+        g_Log->AddLog(LOGTYPE_INFO, "empty object is not supported");
         return;
     }
 
-    auto *pElement = m_XMLDoc.NewElement(szContent);
-    auto *pText    = m_XMLDoc.NewText(szContent);
+    auto *pElement = m_XMLDoc.NewElement("Object");
+    auto *pText    = m_XMLDoc.NewText(szContent ? szContent : "");
 
     if(pElement && pText){
         pElement->InsertEndChild(pText);
         for(const auto &stInst: rstAttrV){
             pElement->SetAttribute(stInst.first.c_str(), stInst.second.c_str());
         }
-        pElement->SetName("Object");
+        // pElement->SetName("Object");
         auto pRoot = m_XMLDoc.RootElement();
         
         if(!pRoot){

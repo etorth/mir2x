@@ -3,7 +3,7 @@
  *
  *       Filename: xmlobjectlist.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 04/01/2016 21:22:03
+ *  Last Modified: 04/03/2016 17:34:22
  *
  *    Description: analyze specifically formatted XML
  *                      <ROOT>
@@ -62,7 +62,17 @@ class XMLObjectList
 
     public:
         void Add(const std::vector<std::pair<std::string, std::string>> &, const char *);
-        std::string Print();
+
+    public:
+        std::string Print()
+        {
+            if(Validate()){
+                tinyxml2::XMLPrinter stPrinter;
+                m_XMLDoc.Print(&stPrinter);
+                return std::string(stPrinter.CStr());
+            }
+            return std::string("<Root></Root>");
+        }
 
     public:
         bool Load(const char *szFileName, bool bValidate = true)

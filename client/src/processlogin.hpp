@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.hpp
  *        Created: 08/14/2015 02:47:30 PM
- *  Last Modified: 04/03/2016 03:05:29
+ *  Last Modified: 04/03/2016 17:42:44
  *
  *    Description: 
  *
@@ -54,4 +54,7 @@ class ProcessLogin: public Process
         void Update(double);
         void Draw();
         void ProcessEvent(const SDL_Event &);
+
+    private:
+        void DoLogin();
 };
