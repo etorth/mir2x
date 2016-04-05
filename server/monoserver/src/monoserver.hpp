@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/04/2016 18:18:09
+ *  Last Modified: 04/04/2016 19:53:01
  *
  *    Description: 
  *
@@ -88,5 +88,13 @@ class MonoServer final
 
 
     public:
-        template
+        // copy from class Log to support LOGTYPE_XXX
+        template<typename... U> void AddLog(const std::array<std::string, 4> &stLoc, U&&... u)
+        {
+            extern Log *g_Log;
+            g_Log->AddLog(stLoc, std::forward<U>(u)...);
+
+            int nLevel = std::atoi(stLoc[0].c_str());
+            AddLog(nLevel, std::forward<U>(u)...);
+        }
 };
