@@ -3,7 +3,7 @@
  *
  *       Filename: serveronhc.cpp
  *        Created: 02/28/2016 01:37:19
- *  Last Modified: 03/01/2016 00:29:00
+ *  Last Modified: 04/04/2016 17:17:48
  *
  *    Description: 
  *
@@ -37,35 +37,39 @@ void MonoServer::OnLogin(Session *pSession)
     auto fnProcessLogin = [this, pSession](uint8_t *pData, int){
         Log(0, "Login requested from (%s:%d)", pSession->IP(), pSession->Port());
 
-        auto pCMLogin = (CMLogin *)pData;
-        auto pRecord  = m_UserInfoDB->CreateDBRecord();
+        auto stCMLogin = *((CMLogin *)pData);
+        auto fnBDOp = [this, stCMLogin](){
+            auto pRecord  = m_UserInfoDB->CreateDBRecord();
 
-        if(pRecord->Execute( "select * from userinfo where fld_id = '%s' and fld_pwd = '%s'",
-                    pCMLogin->ID, pCMLogin->Password)){
-            if(pRecord->RowCount() != 1){
-                pSession->Send(SM_LOGINFAIL);
-            }else{
-                SMLoginOK stTmpSM;
-                pRecord->Fetch();
+            if(pRecord->Execute( "select * from userinfo where fld_id = '%s' and fld_pwd = '%s'",
+                        pCMLogin->ID, pCMLogin->Password)){
+                if(pRecord->RowCount() != 1){
+                    pSession->Send(SM_LOGINFAIL);
+                }else{
+                    SMLoginOK stTmpSM;
+                    pRecord->Fetch();
 
-                std::strncpy(stTmpSM.CharName, pRecord->Get("fld_name"), sizeof(stTmpSM.CharName));
-                std::strncpy(stTmpSM.MapName , pRecord->Get("fld_map"),  sizeof(stTmpSM.MapName ));
+                    std::strncpy(stTmpSM.CharName, pRecord->Get("fld_name"), sizeof(stTmpSM.CharName));
+                    std::strncpy(stTmpSM.MapName , pRecord->Get("fld_map"),  sizeof(stTmpSM.MapName ));
 
-                stTmpSM.UID       = std::atoi(pRecord->Get("fld_uid"));
-                stTmpSM.SID       = std::atoi(pRecord->Get("fld_sid"));
-                stTmpSM.Level     = std::atoi(pRecord->Get("fld_level"));
-                stTmpSM.MapX      = std::atoi(pRecord->Get("fld_x"));
-                stTmpSM.MapY      = std::atoi(pRecord->Get("fld_y"));
-                stTmpSM.Direction = std::atoi(pRecord->Get("fld_direction"));
+                    stTmpSM.UID       = std::atoi(pRecord->Get("fld_uid"));
+                    stTmpSM.SID       = std::atoi(pRecord->Get("fld_sid"));
+                    stTmpSM.Level     = std::atoi(pRecord->Get("fld_level"));
+                    stTmpSM.MapX      = std::atoi(pRecord->Get("fld_x"));
+                    stTmpSM.MapY      = std::atoi(pRecord->Get("fld_y"));
+                    stTmpSM.Direction = std::atoi(pRecord->Get("fld_direction"));
 
-                // blocking
-                if(PlayerLogin(stTmpSM)){
-                    pSession->Send(SM_LOGINOK, stTmpSM);
+                    // blocking
+                    if(PlayerLogin(stTmpSM)){
+                        pSession->Send(SM_LOGINOK, stTmpSM);
+                    }
                 }
+            }else{
+                Log(2, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
             }
-        }else{
-            Log(2, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
-        }
+        };
+        extern TaskHub *g_TaskHub;
+        g_TaskHub->Add(fnDBOp);
     };
 
     pSession->Read(sizeof(CMLogin), fnProcessLogin);

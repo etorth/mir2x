@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 03/01/2016 03:20:31
+ *  Last Modified: 04/04/2016 17:37:42
  *
  *    Description: 
  *
@@ -27,6 +27,8 @@
 
 #include "database.hpp"
 #include "message.hpp"
+
+#include "log.hpp"
 
 
 class MonoServer final

@@ -49,6 +49,7 @@ void MonoServer::Log(int nLogType, const char *szFormat, ...)
             // additional '\0' takes one char
             // everything works
             g_MainWindow->AddLog(nLogType, m_LogBuf);
+            extern Log *g_Log;
             return;
 
         }else if(nRes < 0){
