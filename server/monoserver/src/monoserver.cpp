@@ -10,6 +10,8 @@
 
 MonoServer::MonoServer()
     : m_SessionIO(nullptr)
+    , m_LogBufSize(0)
+    , m_LogBuf(nullptr)
 {
 }
 
@@ -78,11 +80,11 @@ void MonoServer::CreateDBConnection()
             g_DatabaseConfigureWindow->DatabasePort());
 
     if(m_DBConnection->Valid()){
-        AddLog(0, "Connect to Database (%s:%d) successfully", 
+        AddLog(LOGTYPE_INFO, "Connect to Database (%s:%d) successfully", 
                 g_DatabaseConfigureWindow->DatabaseIP(),
                 g_DatabaseConfigureWindow->DatabasePort());
     }else{
-        AddLog(2, "Can't connect to Database (%s:%d)", 
+        AddLog(LOGTYPE_WARNING, "Can't connect to Database (%s:%d)", 
                 g_DatabaseConfigureWindow->DatabaseIP(),
                 g_DatabaseConfigureWindow->DatabasePort());
     }

@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/04/2016 19:53:01
+ *  Last Modified: 04/04/2016 20:37:38
  *
  *    Description: 
  *
@@ -55,13 +55,13 @@ class MonoServer final
         void ExtendLogBuf(size_t);
 
     private:
-        // for log
-        char    *m_LogBuf;
-        size_t   m_LogBufSize;
-
-    private:
         // for network
         SessionIO   *m_SessionIO;
+
+    private:
+        // for log
+        size_t   m_LogBufSize;
+        char    *m_LogBuf;
 
     private:
         // for DB
