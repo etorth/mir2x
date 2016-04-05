@@ -1,6 +1,7 @@
 #include <ctime>
 #include <asio.hpp>
 
+#include "log.hpp"
 #include "taskhub.hpp"
 #include "mainwindow.hpp"
 #include "eventtaskhub.hpp"
@@ -9,6 +10,7 @@
 #include "databaseconfigurewindow.hpp"
 
 
+Log                      *g_Log;
 TaskHub                  *g_TaskHub;
 EventTaskHub             *g_EventTaskHub;
 

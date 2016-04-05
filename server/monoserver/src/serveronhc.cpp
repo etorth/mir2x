@@ -3,7 +3,7 @@
  *
  *       Filename: serveronhc.cpp
  *        Created: 02/28/2016 01:37:19
- *  Last Modified: 04/04/2016 17:17:48
+ *  Last Modified: 04/04/2016 17:53:42
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 
 #include <cstdint>
+#include "taskhub.hpp"
 #include "message.hpp"
 #include "session.hpp"
 #include "monoserver.hpp"
@@ -35,14 +36,14 @@ void MonoServer::OnPing(Session *pSession)
 void MonoServer::OnLogin(Session *pSession)
 {
     auto fnProcessLogin = [this, pSession](uint8_t *pData, int){
-        Log(0, "Login requested from (%s:%d)", pSession->IP(), pSession->Port());
+        AddLog(0, "Login requested from (%s:%d)", pSession->IP(), pSession->Port());
 
         auto stCMLogin = *((CMLogin *)pData);
-        auto fnBDOp = [this, stCMLogin](){
+        auto fnDBOp = [this, stCMLogin, pSession](){
             auto pRecord  = m_UserInfoDB->CreateDBRecord();
 
             if(pRecord->Execute( "select * from userinfo where fld_id = '%s' and fld_pwd = '%s'",
-                        pCMLogin->ID, pCMLogin->Password)){
+                        stCMLogin.ID, stCMLogin.Password)){
                 if(pRecord->RowCount() != 1){
                     pSession->Send(SM_LOGINFAIL);
                 }else{
@@ -65,7 +66,7 @@ void MonoServer::OnLogin(Session *pSession)
                     }
                 }
             }else{
-                Log(2, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
+                AddLog(2, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
             }
         };
         extern TaskHub *g_TaskHub;

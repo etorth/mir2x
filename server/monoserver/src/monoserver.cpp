@@ -1,5 +1,6 @@
 #include <cstdarg>
 
+#include "log.hpp"
 #include "message.hpp"
 #include "database.hpp"
 #include "mainwindow.hpp"
@@ -26,7 +27,7 @@ void MonoServer::ExtendLogBuf(size_t nNewSize)
     }
 }
 
-void MonoServer::Log(int nLogType, const char *szFormat, ...)
+void MonoServer::AddLog(int nLogType, const char *szFormat, ...)
 {
     extern MainWindow *g_MainWindow;
 
@@ -50,6 +51,18 @@ void MonoServer::Log(int nLogType, const char *szFormat, ...)
             // everything works
             g_MainWindow->AddLog(nLogType, m_LogBuf);
             extern Log *g_Log;
+            switch(nLogType){
+                case 1:
+                    {
+                        g_Log->AddLog(LOGTYPE_WARNING, "%s", m_LogBuf);
+                        break;
+                    }
+                default:
+                    {
+                        g_Log->AddLog(LOGTYPE_INFO, "%s", m_LogBuf);
+                        break;
+                    }
+            }
             return;
 
         }else if(nRes < 0){
@@ -79,11 +92,11 @@ void MonoServer::CreateDBConnection()
             g_DatabaseConfigureWindow->DatabasePort());
 
     if(m_DBConnection->Valid()){
-        Log(0, "Connect to Database (%s:%d) successfully", 
+        AddLog(0, "Connect to Database (%s:%d) successfully", 
                 g_DatabaseConfigureWindow->DatabaseIP(),
                 g_DatabaseConfigureWindow->DatabasePort());
     }else{
-        Log(2, "Can't connect to Database (%s:%d)", 
+        AddLog(2, "Can't connect to Database (%s:%d)", 
                 g_DatabaseConfigureWindow->DatabaseIP(),
                 g_DatabaseConfigureWindow->DatabasePort());
     }

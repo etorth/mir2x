@@ -108,14 +108,14 @@ class AddMonsterWindow {open
   } {
     code {{
 	// TODO: check for redundancy of the map list
-	m_ValidMapList->add(szMapName, 0, OnSelectMap, (void *)(nMapID), 0);
+	m_ValidMapList->add(szMapName, 0, OnSelectMap, (void *)((intptr_t)nMapID), 0);
 }} {}
   }
   Function {AddMonsterList(int nMonsterID, const char *szMonsterName)} {return_type void
   } {
     code {{
 	// TODO: check for redundancy of the map list
-	m_ValidMonsterList->add(szMonsterName, 0, OnSelectMonster, (void *)(nMonsterID), 0);
+        m_ValidMonsterList->add(szMonsterName, 0, OnSelectMonster, (void *)((intptr_t)nMonsterID), 0);
 }} {}
   }
   Function {OnSelectMap(Fl_Widget *, void *)} {return_type {static void}
@@ -148,7 +148,7 @@ class AddMonsterWindow {open
 	
 	for(int nCnt = 0; nCnt <= nValidCount; ++nCnt){
 	  m_ValidMonsterCountList->add(
-	  	std::to_string(nCnt).c_str(), 0, nullptr, (void *)(nCnt), 0);
+	  	std::to_string(nCnt).c_str(), 0, nullptr, (void *)((intptr_t)nCnt), 0);
 	}
 }} {}
   }

@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/04/2016 17:37:42
+ *  Last Modified: 04/04/2016 17:52:55
  *
  *    Description: 
  *
@@ -49,7 +49,7 @@ class MonoServer final
         void CreateDBConnection();
 
     private:
-        void Log(int, const char *, ...);
+        void AddLog(int, const char *, ...);
 
     private:
         void ExtendLogBuf(size_t);
