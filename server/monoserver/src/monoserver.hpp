@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/04/2016 17:52:55
+ *  Last Modified: 04/04/2016 18:18:09
  *
  *    Description: 
  *
@@ -85,4 +85,8 @@ class MonoServer final
 
         void OnPing (Session *);
         void OnLogin(Session *);
+
+
+    public:
+        template
 };

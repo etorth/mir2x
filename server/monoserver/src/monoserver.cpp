@@ -50,18 +50,18 @@ void MonoServer::AddLog(int nLogType, const char *szFormat, ...)
             // additional '\0' takes one char
             // everything works
             g_MainWindow->AddLog(nLogType, m_LogBuf);
-            extern Log *g_Log;
-            switch(nLogType){
-                case 1:
-                    {
-                        g_Log->AddLog(LOGTYPE_WARNING, "%s", m_LogBuf);
-                        break;
-                    }
-                default:
-                    {
-                        g_Log->AddLog(LOGTYPE_INFO, "%s", m_LogBuf);
-                        break;
-                    }
+            // extern Log *g_Log;
+            // switch(nLogType){
+            //     case 1:
+            //         {
+            //             g_Log->AddLog(LOGTYPE_WARNING, "%s", m_LogBuf);
+            //             break;
+            //         }
+            //     default:
+            //         {
+            //             g_Log->AddLog(LOGTYPE_INFO, "%s", m_LogBuf);
+            //             break;
+            //         }
             }
             return;
 
