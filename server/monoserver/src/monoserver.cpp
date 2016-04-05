@@ -1,6 +1,7 @@
 #include <cstdarg>
 
 #include "log.hpp"
+#include "taskhub.hpp"
 #include "message.hpp"
 #include "database.hpp"
 #include "mainwindow.hpp"
@@ -104,6 +105,9 @@ void MonoServer::Launch()
 
     m_SessionIO = new SessionIO(nPort, fnOperateHC);
     m_SessionIO->Launch();
+
+    extern TaskHub *g_TaskHub;
+    g_TaskHub->Launch();
 }
 
 void MonoServer::OnReadHC(uint8_t nMsgHC, Session *pSession)

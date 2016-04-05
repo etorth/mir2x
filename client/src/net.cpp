@@ -3,7 +3,7 @@
  *
  *       Filename: net.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 03/19/2016 02:57:46
+ *  Last Modified: 04/04/2016 22:51:37
  *
  *    Description: 
  *
@@ -29,11 +29,21 @@ void Game::RunASIO()
 
     // TODO
     // may need lock here since g_XMLConf may used in main thread also
+    std::string szIP;
+    std::string szPort;
+
     extern XMLConf *g_XMLConf;
-    m_NetIO.RunIO(
-            g_XMLConf->GetXMLNode("/Root/Network/Server/IP"  )->GetText(),
-            g_XMLConf->GetXMLNode("/Root/Network/Server/Port")->GetText(),
-            [this](uint8_t nHC){ OperateHC(nHC); });
+    auto p1 = g_XMLConf->GetXMLNode("/Root/Network/Server/IP"  );
+    auto p2 = g_XMLConf->GetXMLNode("/Root/Network/Server/Port");
+
+    if(p1 && p2 && p1->GetText() && p2->GetText()){
+        szIP   = p1->GetText();
+        szPort = p2->GetText();
+    }else{
+        szIP   = "127.0.0.1";
+        szPort = "5000";
+    }
+    m_NetIO.RunIO(szIP.c_str(), szPort.c_str(), [this](uint8_t nHC){ OperateHC(nHC); });
 }
 
 void Game::OperateHC(uint8_t nHC)
@@ -49,10 +59,9 @@ void Game::OperateHC(uint8_t nHC)
 
 void Game::OnPing()
 {
-
+    std::cout << "ping from server" << std::endl;
 }
 
 void Game::OnLoginOK()
 {
-
 }

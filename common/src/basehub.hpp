@@ -3,7 +3,7 @@
  *
  *       Filename: basehub.hpp
  *        Created: 04/03/2016 03:49:00
- *  Last Modified: 04/03/2016 23:56:58
+ *  Last Modified: 04/04/2016 23:14:42
  *
  *    Description: 
  *
@@ -46,7 +46,8 @@ class BaseHub
         void Launch()
         {
             State(2);
-            m_Thread = std::thread(&(Derived::Main), static_cast<Derived*>(this));
+            // m_Thread = std::thread(&(Derived::MainLoop), static_cast<Derived*>(this));
+            m_Thread = std::thread([this](){ (static_cast<Derived*>(this))->MainLoop(); });
         }
 
         void Stop()

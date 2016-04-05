@@ -3,7 +3,7 @@
  *
  *       Filename: idbox.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/01/2016 23:39:36
+ *  Last Modified: 04/04/2016 21:50:11
  *
  *    Description: 
  *
@@ -62,4 +62,15 @@ class IDBox: public InputBoard
             {}
 
         virtual ~IDBox() = default;
+
+        const char *Content()
+        {
+            XMLObjectList stList;
+            stList.Parse(Print(false).c_str(), true);
+
+            stList.Reset();
+            auto pObject = stList.Fetch();
+
+            return (pObject ? pObject->GetText() : nullptr);
+        }
 };

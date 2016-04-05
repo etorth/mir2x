@@ -25,6 +25,7 @@ int main()
     std::srand(std::time(nullptr));
 
     g_Log                     = new Log();
+    g_TaskHub                 = new TaskHub();
     g_MainWindow              = new MainWindow();
     g_MonoServer              = new MonoServer();
     g_ServerConfigureWindow   = new ServerConfigureWindow();

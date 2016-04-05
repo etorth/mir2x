@@ -3,7 +3,7 @@
  *
  *       Filename: sessionio.cpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 03/01/2016 02:38:17
+ *  Last Modified: 04/04/2016 22:27:05
  *
  *    Description: 
  *
@@ -17,9 +17,13 @@
  *
  * =====================================================================================
  */
+
+#include <thread>
+
+#include "message.hpp"
 #include "session.hpp"
 #include "sessionio.hpp"
-#include <thread>
+#include "monoserver.hpp"
 
 SessionIO::SessionIO(int nPort, std::function<void(uint8_t, Session *)> fnOperateHC)
     : m_Port(nPort)
@@ -51,10 +55,10 @@ void SessionIO::Accept()
             Stop();
 
         }else{
-
-            // m_MonoServer->Log(0, "Connection requested from (%s:%d)",
-            //         m_Socket.remote_endpoint().address().to_string().c_str(),
-            //         m_Socket.remote_endpoint().port());
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_INFO, "Connection requested from (%s:%d)",
+                    m_Socket.remote_endpoint().address().to_string().c_str(),
+                    m_Socket.remote_endpoint().port());
 
             int nSessionID = m_MaxID;
 
@@ -66,6 +70,7 @@ void SessionIO::Accept()
             m_SessionHub[nSessionID] = pSession;
 
             pSession->Launch();
+            pSession->Send(SM_PING);
         }
 
         Accept();

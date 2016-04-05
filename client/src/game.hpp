@@ -55,6 +55,12 @@ class Game
         void   Update(double);
         void   Draw();
 
+    public:
+        template<typename... U> void Send(U&&... u)
+        {
+            m_NetIO.Send(std::forward<U>(u)...);
+        }
+
     private:
         NetIO   m_NetIO;
 

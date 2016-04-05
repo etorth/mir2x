@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/31/2016 23:24:43
+ *  Last Modified: 04/04/2016 22:39:32
  *
  *    Description: public API for class game only
  *
@@ -92,7 +92,7 @@ void Game::MainLoop()
     //
     SwitchProcess(PROCESSID_LOGO);
 
-    std::async([this](){ RunASIO(); });
+    std::future<void> stFuture = std::async(std::launch::async, [this](){ RunASIO(); });
 
     double fLastMS = GetTimeMS();
 
@@ -125,4 +125,6 @@ void Game::MainLoop()
 
         EventDelay(fExpectedTime);
     }
+
+    stFuture.get();
 }

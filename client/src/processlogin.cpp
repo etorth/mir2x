@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 04/03/2016 17:58:53
+ *  Last Modified: 04/04/2016 21:56:19
  *
  *    Description: 
  *
@@ -113,6 +113,16 @@ void ProcessLogin::ProcessEvent(const SDL_Event &rstEvent)
 
 void ProcessLogin::DoLogin()
 {
-    std::string szID = m_IDBox.Print(false);
-    std::cout << szID << std::endl;
+    if(m_IDBox.Content() && m_PasswordBox.Content()){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_INFO,
+                "login account: (%s:%s)", m_IDBox.Content(), m_PasswordBox.Content());
+
+        CMLogin stLog;
+        std::strncpy(stLog.ID, m_IDBox.Content(), sizeof(stLog.ID) - 1);
+        std::strncpy(stLog.Password, m_PasswordBox.Content(), sizeof(stLog.Password) - 1);
+
+        extern Game *g_Game;
+        g_Game->Send(CM_LOGIN, stLog);
+    }
 }

@@ -2,10 +2,10 @@
  * =====================================================================================
  *
  *       Filename: clientmessage.hpp
- *        Created: 01/11/2016 23:07:02
- *  Last Modified: 01/11/2016 23:22:09
+ *        Created: 01/24/2016 19:30:45
+ *  Last Modified: 04/04/2016 21:44:38
  *
- *    Description: 
+ *    Description: net message used by client and mono-server
  *
  *        Version: 1.0
  *       Revision: none
@@ -21,13 +21,16 @@
 #pragma once
 #include <cstdint>
 
-// message without content
-// should be 1 ~ 255, 0 is prohibited
+enum: uint8_t
+{
+    CM_PING,
+    CM_LOGIN,
+};
 
-const uint16_t  CM_RIDEHORSE       = 1;
+#pragma pack(push, 1)
 
-// message with fixed size content
-// should be 256 ~ 65535
-const uint16_t  CM_PING           = 256;
-const uint16_t  CM_LOGIN          = 257;
-
+typedef struct{
+    char ID[16];
+    char Password[16];
+}CMLogin;
+#pragma pack(pop)
