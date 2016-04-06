@@ -11,18 +11,23 @@ decl {\#include <ctime>} {public global
 decl {\#include <string>} {public global
 } 
 
+decl {\#include <mutex>} {private local
+} 
+
+decl {std::mutex g_LogLock;} {private local
+} 
+
 class MainWindow {open
 } {
-  Function {MainWindow()} {open
-  } {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       label {Scene Server}
       callback {{
 	// do nothing
-}} open
-      xywh {169 274 720 400} type Double labelfont 4 resizable visible
+}}
+      xywh {1465 337 720 400} type Double labelfont 4 resizable visible
     } {
-      Fl_Menu_Bar {} {open selected
+      Fl_Menu_Bar {} {open
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -106,21 +111,24 @@ class MainWindow {open
   } {
     code {// AddLog(int nLogType, const char *szMessage)
 {
-    std::time_t stRes         = std::time(nullptr);
-    std::string szFullMessage = std::asctime(std::localtime(&stRes));
-    szFullMessage.back() = ' ';
-    switch(nLogType){
-        case 0:
-            szFullMessage = "@C4"  + szFullMessage + "  " + szMessage;
-            break;
-        case 1:
-            szFullMessage = "@C9" + szFullMessage + "  " + szMessage;
-            break;
-        default:
-            szFullMessage = "@C1" + szFullMessage + "  " + szMessage;
-            break;
+	std::lock_guard<std::mutex> stLockGuard(g_LogLock);
+	
+	std::time_t stRes = std::time(nullptr);
+	std::string szFullMessage = std::asctime(std::localtime(&stRes));
+	szFullMessage.back() = ' ';
+	switch(nLogType){
+		case 0:
+			szFullMessage = "@C4"  + szFullMessage + "  " + szMessage;
+			break;
+		case 1:
+			szFullMessage = "@C9" + szFullMessage + "  " + szMessage;
+			break;
+		default:
+			szFullMessage = "@C1" + szFullMessage + "  " + szMessage;
+			break;
+		}
+	m_Browser->add(szFullMessage.c_str());
+}} {selected
     }
-    m_Browser->add(szFullMessage.c_str());
-}} {}
   }
 } 

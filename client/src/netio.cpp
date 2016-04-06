@@ -3,7 +3,7 @@
  *
  *       Filename: netio.cpp
  *        Created: 06/29/2015 7:18:27 PM
- *  Last Modified: 03/19/2016 02:43:40
+ *  Last Modified: 04/05/2016 23:15:06
  *
  *    Description: this class won't maintian buffer's validation
  *                 user should maintain it by themself
@@ -24,6 +24,7 @@
 NetIO::NetIO()
     : m_Resolver(m_IO)
     , m_Socket(m_IO)
+    , m_MsgHC(0)
 {
 }
 
@@ -95,6 +96,12 @@ void NetIO::Send(uint8_t nMsgHC, const uint8_t *pBuf, size_t nLen)
     m_IO.post(fnSendHC);
 }
 
+// pBuf is provided by user, NetIO won't maintain its valid state
+// but NetIO will provide a 1-byte buffer for nMsgHC
+// TODO:
+// Can NetIO provide an alway-valid buffer for user?
+// seems it's possible
+//
 void NetIO::Read(uint8_t * pBuf,
         size_t nBufLen, std::function<void()> fnOperateBuf)
 {
@@ -105,22 +112,20 @@ void NetIO::Read(uint8_t * pBuf,
             fnOperateBuf();
         }
     };
-    asio::async_read(m_Socket,
-            asio::buffer(pBuf, nBufLen), fnOnReadBuf);
+    asio::async_read(m_Socket, asio::buffer(pBuf, nBufLen), fnOnReadBuf);
 }
 
 void NetIO::ReadHC(std::function<void(uint8_t)> fnProcessHC)
 {
-    static uint8_t nMsgHC;
     auto fnOnReadHC = [this, fnProcessHC](std::error_code stEC, size_t){
         if(!stEC){
-            fnProcessHC(nMsgHC);
+            fnProcessHC(m_MsgHC);
         }else{
             Close();
         }
     };
 
-    asio::async_read(m_Socket, asio::buffer(&nMsgHC, 1), fnOnReadHC);
+    asio::async_read(m_Socket, asio::buffer(&m_MsgHC, 1), fnOnReadHC);
 }
 
 void NetIO::DoSendNext()
@@ -135,7 +140,7 @@ void NetIO::DoSendBuf()
 {
     if(m_WQ.empty()){ return; }
 
-    if(std::get<0>(m_WQ.front()) && std::get<1>(m_WQ.front())){
+    if(std::get<2>(m_WQ.front()) && std::get<1>(m_WQ.front())){
         auto fnDoSendValidBuf = [this](std::error_code stEC, size_t){
             if(stEC){
                 Close();
@@ -145,7 +150,7 @@ void NetIO::DoSendBuf()
         };
 
         asio::async_write(m_Socket,
-                asio::buffer(&(std::get<1>(m_WQ.front())),
+                asio::buffer((std::get<1>(m_WQ.front())),
                     std::get<2>(m_WQ.front())), fnDoSendValidBuf);
     }else{
         DoSendNext();

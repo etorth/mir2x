@@ -3,7 +3,7 @@
  *
  *       Filename: sessionio.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 02/29/2016 02:20:30
+ *  Last Modified: 04/06/2016 01:33:40
  *
  *    Description: 
  *
@@ -43,6 +43,16 @@ class SessionIO final
 
     private:
         void Accept();
+
+    public:
+        Session *Validate(int nSessionID)
+        {
+            auto pInst = m_SessionHub.find(nSessionID);
+            if(pInst != m_SessionHub.end()){
+                return pInst->second;
+            }
+            return nullptr;
+        }
 
     public:
         size_t SessionCount()

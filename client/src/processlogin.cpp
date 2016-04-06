@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 04/04/2016 21:56:19
+ *  Last Modified: 04/05/2016 23:26:55
  *
  *    Description: 
  *
@@ -118,11 +118,13 @@ void ProcessLogin::DoLogin()
         g_Log->AddLog(LOGTYPE_INFO,
                 "login account: (%s:%s)", m_IDBox.Content(), m_PasswordBox.Content());
 
-        CMLogin stLog;
+        static CMLogin stLog;
         std::strncpy(stLog.ID, m_IDBox.Content(), sizeof(stLog.ID) - 1);
         std::strncpy(stLog.Password, m_PasswordBox.Content(), sizeof(stLog.Password) - 1);
 
         extern Game *g_Game;
+        g_Log->AddLog(LOGTYPE_INFO, "address = %p", &stLog);
+
         g_Game->Send(CM_LOGIN, stLog);
     }
 }

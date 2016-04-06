@@ -24,7 +24,7 @@ int main()
 {
     std::srand(std::time(nullptr));
 
-    g_Log                     = new Log();
+    g_Log                     = new Log("mir2x-monoserver-v0.1");
     g_TaskHub                 = new TaskHub();
     g_MainWindow              = new MainWindow();
     g_MonoServer              = new MonoServer();

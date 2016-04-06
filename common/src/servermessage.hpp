@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 04/04/2016 22:02:48
+ *  Last Modified: 04/06/2016 01:59:44
  *
  *    Description: net message used by client and mono-server
  *
@@ -31,13 +31,13 @@ enum: uint8_t
 #pragma pack(push, 1)
 
 typedef struct{
-    char     CharName[32];
-    char     MapName[16];
-    uint32_t UID;
-    uint32_t SID;
-    uint16_t Level;
-    uint32_t MapX;
-    uint32_t MapY;
-    uint8_t  Direction;
+    char     Name[32];
+    // char     MapName[16];
+    uint32_t GUID;
+    // uint32_t SID;
+    // uint16_t Level;
+    // uint32_t MapX;
+    // uint32_t MapY;
+    // uint8_t  Direction;
 }SMLoginOK;
 #pragma pack(pop)

@@ -37,7 +37,7 @@ int main()
 
     std::atexit(fnAtExit);
 
-    g_Log         = new Log();
+    g_Log         = new Log("mir2x-client-v0.1");
     g_XMLConf     = new XMLConf();
     g_SDLDevice   = new SDLDevice();
     g_PNGTexDBN   = new PNGTexDBN();

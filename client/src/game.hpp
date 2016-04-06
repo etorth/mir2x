@@ -47,6 +47,7 @@ class Game
     private:
         void OnPing();
         void OnLoginOK();
+        void OnLoginFail();
 
     private:
         double GetTimeMS();

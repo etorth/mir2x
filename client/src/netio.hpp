@@ -2,6 +2,7 @@
 #include <queue>
 #include <asio.hpp>
 #include <functional>
+#include <type_traits>
 
 class NetIO final
 {
@@ -33,9 +34,13 @@ class NetIO final
         // user should maintain the validation of the buffer
         void Send(uint8_t, const uint8_t *, size_t);
 
-        template<typename T> void Send(uint8_t nMsgHC, T stMsg)
+        // 1. template T couldn't be copy since NetIO won't maintain
+        //    the send buffer
+        // 2. try to use std::remove_reference_t<T>
+        // 3. try to disable user to pass a rvalue here
+        template<typename T> void Send(uint8_t nMsgHC, T &stMsg)
         {
-            Send(nMsgHC, (uint8_t *)(&stMsg), sizeof(stMsg));
+            Send(nMsgHC, (const uint8_t *)(&stMsg), sizeof(stMsg));
         }
 
         // read a HC
@@ -57,4 +62,7 @@ class NetIO final
         void DoSendHC();
         void DoSendBuf();
         void DoSendNext();
+
+    private:
+        uint8_t m_MsgHC;
 };

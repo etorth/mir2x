@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: net.cpp
+ *       Filename: runasio.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 04/04/2016 22:51:37
+ *  Last Modified: 04/06/2016 00:46:08
  *
  *    Description: 
  *
@@ -20,7 +20,6 @@
 
 #include "game.hpp"
 #include "xmlconf.hpp"
-#include "message.hpp"
 
 void Game::RunASIO()
 {
@@ -44,24 +43,4 @@ void Game::RunASIO()
         szPort = "5000";
     }
     m_NetIO.RunIO(szIP.c_str(), szPort.c_str(), [this](uint8_t nHC){ OperateHC(nHC); });
-}
-
-void Game::OperateHC(uint8_t nHC)
-{
-    switch(nHC){
-        case SM_PING:           OnPing()   ; break;
-        case SM_LOGINOK:        OnLoginOK(); break;
-        default: break;
-    }
-
-    m_NetIO.ReadHC([&](uint8_t nHC){ OperateHC(nHC); });
-}
-
-void Game::OnPing()
-{
-    std::cout << "ping from server" << std::endl;
-}
-
-void Game::OnLoginOK()
-{
 }

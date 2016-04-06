@@ -35,8 +35,26 @@ conn:execute [[use mir2x]]
 --     row = cursor:fetch(row, "a")
 -- end
 
--- try to add a account
+-- try to add an account
 conn:execute [[
     insert tbl_account (fld_account, fld_password) values("test", "123456")
 ]]
 
+-- create table for guid
+status, errmsg = conn:execute [[
+    create table if not exists tbl_guid
+    (
+        fld_guid int unsigned not null auto_increment primary key,
+        fld_name char(32) not null,
+        fld_id   int unsigned not null
+    )
+]]
+
+-- try to add guid
+conn:execute [[
+    insert tbl_guid (fld_name, fld_id) values
+        ("mark"  , 1),
+        ("john"  , 1),
+        ("linda" , 2),
+        ("steven", 2)
+]]

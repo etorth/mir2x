@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/04/2016 20:37:38
+ *  Last Modified: 04/06/2016 00:16:47
  *
  *    Description: 
  *
@@ -65,8 +65,7 @@ class MonoServer final
 
     private:
         // for DB
-        DBConnection    *m_DBConnection;
-        DBConnection    *m_UserInfoDB;
+        DBConnection *m_DBConnection;
 
     private:
         bool PlayerLogin(SMLoginOK)
