@@ -3,7 +3,7 @@
  *
  *       Filename: netio.cpp
  *        Created: 06/29/2015 7:18:27 PM
- *  Last Modified: 04/05/2016 23:15:06
+ *  Last Modified: 04/06/2016 18:12:49
  *
  *    Description: this class won't maintian buffer's validation
  *                 user should maintain it by themself
@@ -25,6 +25,7 @@ NetIO::NetIO()
     : m_Resolver(m_IO)
     , m_Socket(m_IO)
     , m_MsgHC(0)
+    , m_ReadCount(0)
 {
 }
 
@@ -42,7 +43,7 @@ void NetIO::StopIO()
 // I'm not sure whether I can make fnOperateHC as const reference
 // since ...
 void NetIO::RunIO(const char *szIP,
-        const char * szPort, std::function<void(uint8_t)> fnOperateHC)
+        const char * szPort, const std::function<void(uint8_t)> &fnOperateHC)
 {
     // 1. push a connect request into the event queue
     // 2. start the event loop
@@ -103,19 +104,26 @@ void NetIO::Send(uint8_t nMsgHC, const uint8_t *pBuf, size_t nLen)
 // seems it's possible
 //
 void NetIO::Read(uint8_t * pBuf,
-        size_t nBufLen, std::function<void()> fnOperateBuf)
+        size_t nBufLen, const std::function<void()> &fnOperateBuf)
 {
+    // we suppress multi-read at one time
+    // read request should be handled one by one
+    assert(m_ReadCount == 0);
+
     auto fnOnReadBuf = [this, fnOperateBuf](std::error_code stEC, size_t){
         if(stEC){
             Close();
         }else{
             fnOperateBuf();
+            m_ReadCount--;
         }
     };
+
+    m_ReadCount++;
     asio::async_read(m_Socket, asio::buffer(pBuf, nBufLen), fnOnReadBuf);
 }
 
-void NetIO::ReadHC(std::function<void(uint8_t)> fnProcessHC)
+void NetIO::ReadHC(const std::function<void(uint8_t)> &fnProcessHC)
 {
     auto fnOnReadHC = [this, fnProcessHC](std::error_code stEC, size_t){
         if(!stEC){
