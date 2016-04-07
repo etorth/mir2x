@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/06/2016 23:38:20
+ *  Last Modified: 04/06/2016 23:46:28
  *
  *    Description: 
  *
@@ -38,7 +38,7 @@ bool ServerMap::CanMove(int nX, int nY, int nR)
     if(false
             || !(nR > 0)
             || !m_Mir2xMap.Valid()
-            || !m_Mir2xMap.ValidP(nX, nY)
+            // || !m_Mir2xMap.ValidP(nX, nY)
             || !m_Mir2xMap.ValidC(nX, nY)){
         return false;
     }
@@ -61,30 +61,22 @@ bool ServerMap::CanMove(int nX, int nY, int nR)
         for(auto pObject: m_ObjectList[nGridX][nGridY]){
             if(pObject->Type == OT_MOVINGOBJECT){
                 auto pCharObject = (CCharObject*)pObject->Object;
-                if(!p)
+                if(!pCharObject){ continue; }
 
-                {
-                    if (!pCharObject->m_fIsDead && !pCharObject->m_fInspector && !pCharObject->m_fHideMode)
-                    {
-                        if (!fFlag) 
-                        {
-                            fRet = FALSE;
-                            break;
-                        }
+                if(true
+                        && !pCharObject->Dead()
+                        && !pCharObject->Inspector()
+                        && !pCharObject->Hide()){
+                    if(CircleOverlap(nX, nY, nR,
+                                pCharObject->X() , pCharObject->Y(), pCharObject->R())){
+                        return false;
                     }
                 }
             }
+        }
+    }
 
-            pListNode = pMapCellInfo->m_xpObjectList->GetNext(pListNode);
-        } // while (pListNode)
-    } // if (pMapCellInfo->m_pObjectList.GetCount())
-}
-
-//			LeaveCriticalSection(&pMapCellInfo->m_cs);
-}
-}
-
-return fRet;
+    return true;
 }
 
 int ServerMap::CheckDoorEvent(int nX, int nY, int &nEvent)
