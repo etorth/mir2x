@@ -13,15 +13,15 @@ class ServerConfigureWindow {open
   Function {ServerConfigureWindow()} {open
   } {
     Fl_Window m_Window {
-      label ConfigureWindow open selected
-      xywh {89 209 575 305} type Double labelfont 4 modal visible
+      label ConfigureWindow open
+      xywh {1385 404 575 305} type Double labelfont 4 hide modal
     } {
       Fl_Value_Input m_MaxPlayerCount {
         label {Maximal Player: }
         xywh {172 96 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
       }
       Fl_Input m_MapFullName {
-        label {Working Map: }
+        label {Map Path: }
         xywh {172 20 273 24} labelfont 4 textfont 4
       }
       Fl_Value_Input m_EquipRate {
@@ -40,7 +40,7 @@ class ServerConfigureWindow {open
         label {@fileopen}
         callback {{
     Fl_Native_File_Chooser stFileChooser;
-    stFileChooser.title("Set Working Map File...");
+    stFileChooser.title("Set Working Map Path...");
     stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
     stFileChooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
 
@@ -64,7 +64,7 @@ class ServerConfigureWindow {open
                 m_MapFullName->value(szPath.c_str());
             }
     }
-}}
+}} selected
         xywh {451 20 26 23}
         code0 {\#include <string>}
         code1 {\#include <FL/Fl_Native_File_Chooser.H>}
@@ -92,12 +92,11 @@ class ServerConfigureWindow {open
     m_Window->show();
 }} {}
   }
-  Function {MapFullName()} {return_type {const char *}
+  Function {MapPath()} {return_type {const char *}
   } {
     code {{
-    // printf("%d\\n", std::lround(m_VIPort1->value()));
-
-    return m_MapFullName->value();
+	// printf("%d\\n", std::lround(m_VIPort1->value()));
+	return m_MapFullName->value();
 }} {}
   }
   Function {MaxPlayerCount()} {return_type int
