@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/06/2016 23:16:48
+ *  Last Modified: 04/06/2016 23:38:20
  *
  *    Description: 
  *
@@ -54,58 +54,37 @@ bool ServerMap::CanMove(int nX, int nY, int nR)
         int nGridX = stRotateCoord.X();
         int nGridY = stRotateCoord.Y();
 
-    }
-    for(stRotateCoord.Reset(); stRotateCoord.Forward())
+        if(!m_Mir2xMap.CanWalk()){
+            continue;
+        }
 
-    int nSize = 
-    BOOL			fRet = FALSE;
-    CMapCellInfo*	pMapCellInfo = GetMapCellInfo(nX, nY);
-    CCharObject*	pCharObject;
-    _LPTOSOBJECT	pOSObject;
+        for(auto pObject: m_ObjectList[nGridX][nGridY]){
+            if(pObject->Type == OT_MOVINGOBJECT){
+                auto pCharObject = (CCharObject*)pObject->Object;
+                if(!p)
 
-    if (pMapCellInfo)
-    {
-        if (pMapCellInfo->m_chFlag & 0x01)
-        {
-            fRet = TRUE;
-
-            //			EnterCriticalSection(&pMapCellInfo->m_cs);
-
-            if (pMapCellInfo->m_xpObjectList)
-            {	
-                if (pMapCellInfo->m_xpObjectList->GetCount())
                 {
-                    PLISTNODE pListNode = pMapCellInfo->m_xpObjectList->GetHead();
-
-                    while (pListNode)
+                    if (!pCharObject->m_fIsDead && !pCharObject->m_fInspector && !pCharObject->m_fHideMode)
                     {
-                        pOSObject = (_LPTOSOBJECT)pMapCellInfo->m_xpObjectList->GetData(pListNode);
-
-                        if (pOSObject->btType == OS_MOVINGOBJECT)
+                        if (!fFlag) 
                         {
-                            if (pCharObject = (CCharObject*)pOSObject->pObject)
-                            {
-                                if (!pCharObject->m_fIsDead && !pCharObject->m_fInspector && !pCharObject->m_fHideMode)
-                                {
-                                    if (!fFlag) 
-                                    {
-                                        fRet = FALSE;
-                                        break;
-                                    }
-                                }
-                            }
+                            fRet = FALSE;
+                            break;
                         }
-
-                        pListNode = pMapCellInfo->m_xpObjectList->GetNext(pListNode);
-                    } // while (pListNode)
-                } // if (pMapCellInfo->m_pObjectList.GetCount())
+                    }
+                }
             }
 
-            //			LeaveCriticalSection(&pMapCellInfo->m_cs);
-        }
-    }
+            pListNode = pMapCellInfo->m_xpObjectList->GetNext(pListNode);
+        } // while (pListNode)
+    } // if (pMapCellInfo->m_pObjectList.GetCount())
+}
 
-    return fRet;
+//			LeaveCriticalSection(&pMapCellInfo->m_cs);
+}
+}
+
+return fRet;
 }
 
 int ServerMap::CheckDoorEvent(int nX, int nY, int &nEvent)
