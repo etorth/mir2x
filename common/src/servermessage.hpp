@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 04/06/2016 01:59:44
+ *  Last Modified: 04/06/2016 19:32:51
  *
  *    Description: net message used by client and mono-server
  *
@@ -26,6 +26,7 @@ enum: uint8_t
     SM_PING,
     SM_LOGINOK,
     SM_LOGINFAIL,
+    SM_SERVERFULL,
 };
 
 #pragma pack(push, 1)

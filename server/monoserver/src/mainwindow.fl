@@ -25,7 +25,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }}
-      xywh {1465 337 720 400} type Double labelfont 4 resizable visible
+      xywh {285 371 720 400} type Double labelfont 4 resizable visible
     } {
       Fl_Menu_Bar {} {open
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4

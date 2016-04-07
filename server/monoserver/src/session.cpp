@@ -26,19 +26,6 @@ Session::~Session()
     Stop();
 }
 
-void Session::Send(uint8_t nMsgHC, const uint8_t *pData, size_t nLen)
-{
-    // TODO
-    // Send() won't maintain the validation of pData!
-
-    bool bEmpty = m_SendQ.empty();
-    m_SendQ.emplace(nMsgHC, pData, nLen);
-
-    if(bEmpty){
-        DoSendHC();
-    }
-}
-
 void Session::ReadHC()
 {
     auto fnOnReadHC = [this](std::error_code stEC, size_t){
@@ -77,9 +64,15 @@ void Session::Read(size_t nLen, std::function<void(uint8_t *, size_t)> fnProcess
     asio::async_read(m_Socket, asio::buffer(&(m_Buf[0]), nLen), fnOnReadData);
 }
 
+// we assume there always be at least one SendTaskDesc
+// since it's a callback after a send task done
 void Session::DoSendNext()
 {
+    // 1. invoke the callback
+    std::get<3>(m_SendQ.front())();
+    // 2. remove the front
     m_SendQ.pop();
+    // 3. do send if we have more work
     if(!m_SendQ.empty()){
         DoSendHC();
     }

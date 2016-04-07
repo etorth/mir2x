@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/06/2016 00:16:47
+ *  Last Modified: 04/06/2016 19:28:09
  *
  *    Description: 
  *
@@ -20,6 +20,8 @@
 
 
 #pragma once
+#include <mutex>
+
 #include <cstdint>
 #include "mapthread.hpp"
 #include <unordered_map>
@@ -68,10 +70,10 @@ class MonoServer final
         DBConnection *m_DBConnection;
 
     private:
-        bool PlayerLogin(SMLoginOK)
-        {
-            return true;
-        }
+        bool AddPlayer(int, uint32_t);
+
+        std::mutex                        m_OnlinePlayerVLock;
+        std::unordered_map<uint32_t, int> m_OnlinePlayerV;
 
     public:
         // for gui

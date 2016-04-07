@@ -3,7 +3,7 @@
  *
  *       Filename: onhc.cpp
  *        Created: 02/28/2016 01:37:19
- *  Last Modified: 04/06/2016 02:33:47
+ *  Last Modified: 04/06/2016 18:45:46
  *
  *    Description: 
  *
@@ -53,6 +53,7 @@ void MonoServer::OnLogin(Session *pSession)
             auto pSession = m_SessionIO->Validate(nSessionID);
             if(!pSession){
                 AddLog(LOGTYPE_INFO, "Session %d deleted, db query ignored", nSessionID);
+                pSession->Send(SM_LOGINFAIL);
                 return;
             }
 
@@ -64,6 +65,7 @@ void MonoServer::OnLogin(Session *pSession)
             if(!pRecord->Execute("select fld_id from tbl_account "
                         "where fld_account = '%s' and fld_password = '%s'", pID, pPWD)){
                 AddLog(2, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
+                pSession->Send(SM_LOGINFAIL);
                 return;
             }
 
@@ -79,6 +81,7 @@ void MonoServer::OnLogin(Session *pSession)
             int nID = std::atoi(pRecord->Get("fld_id"));
             if(!pRecord->Execute("select * from mir2x.tbl_guid where fld_id = %d", nID)){
                 AddLog(2, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
+                pSession->Send(SM_LOGINFAIL);
                 return;
             }
 
@@ -106,10 +109,17 @@ void MonoServer::OnLogin(Session *pSession)
             // if(PlayerLogin(stSMLoginOK)){
             //     pSession->Send(SM_LOGINOK, stSMLoginOK);
             // }
-            pSession->Send(SM_LOGINOK, stSMLoginOK);
+
+            if(!AddPlayer(nSessionID, stSMLoginOK.GUID)){
+                AddLog(LOGTYPE_INFO, "Add player failed: (%s:%s:%d:%s:%d)",
+                        pID, pPWD, nID, stSMLoginOK.Name, stSMLoginOK.GUID);
+                pSession->Send(SM_LOGINFAIL);
+                return;
+            }
+
             AddLog(LOGTYPE_INFO, "Login succeed: (%s:%s:%d:%s:%d)",
                     pID, pPWD, nID, stSMLoginOK.Name, stSMLoginOK.GUID);
-            pSession->Send(SM_LOGINFAIL);
+            pSession->Send(SM_LOGINOK, stSMLoginOK);
         };
 
         extern TaskHub *g_TaskHub;
