@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/06/2016 19:28:09
+ *  Last Modified: 04/09/2016 22:30:45
  *
  *    Description: 
  *
@@ -21,16 +21,18 @@
 
 #pragma once
 #include <mutex>
-
+#include <type_traits>
 #include <cstdint>
+
+#include "log.hpp"
 #include "mapthread.hpp"
 #include <unordered_map>
 #include "sessionio.hpp"
-
 #include "database.hpp"
 #include "message.hpp"
-
-#include "log.hpp"
+#include "asynchub.hpp"
+#include "asyncobject.hpp"
+#include "objectlockguard.hpp"
 
 
 class MonoServer final
@@ -38,9 +40,6 @@ class MonoServer final
     public:
         MonoServer();
         ~MonoServer();
-
-    private:
-        std::unordered_map<uint16_t, MapThread *>   m_MapPool;
 
     public:
         void Launch();
@@ -72,8 +71,7 @@ class MonoServer final
     private:
         bool AddPlayer(int, uint32_t);
 
-        std::mutex                        m_OnlinePlayerVLock;
-        std::unordered_map<uint32_t, int> m_OnlinePlayerV;
+        AsyncHub<CharObject> m_CharObjectHub;
 
     public:
         // for gui
@@ -87,6 +85,54 @@ class MonoServer final
         void OnPing (Session *);
         void OnLogin(Session *);
 
+    public:
+        // Locked object check out
+        template<typename T, bool bLockIt = true> ObjectLockGuard<T> CheckOut(
+                uint32_t nID, uint32_t nAddTime)
+        {
+            if(nID == 0 || nAddTime == 0){
+                return {nullptr, false};
+            }
+
+            if(std::is_same<T, CharObject>::value){
+                return CheckHub<CharObject, bLockIt>(&m_CharObjectHub, &m_CharObjectHubLock);
+            }
+
+            if(std::is_same<T, Session>::value){
+                return CheckHub<Session, bLockIt>(&m_SessionHub, &m_SessionHubLock);
+            }
+
+            return {nullptr, false};
+        }
+
+        std::unordered_map<uint64_t, std::tuple<CharObject *, std::mutex *, 
+
+
+    private:
+        template<typename T, bool bLockIt = true> ObjectLockGuard<T> Lock(
+                std::unordered_map<T> *pHub, std::mutex *pHubLock)
+        {
+            if(pHub && pHubLock){
+
+                std::lock_guard<std::mutex> stLockGuard<m_CharObjectHubLock>;
+                auto p = m_CharObjectHub.find(nID);
+
+                if(p == m_CharObjectHub.end()){
+                    return {nullptr, false};
+                }else{
+                    if(nAddTime != p.second.second){
+                        return {nullptr, false};
+                    }
+                }
+
+                // OK now we get it
+                if(bLockIt){
+                    p.second.first->Lock();
+                }
+
+                return {p.second.first, bLockIt};
+            }
+        }
 
     public:
         // copy from class Log to support LOGTYPE_XXX

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/08/2016 02:25:14
+ *  Last Modified: 04/09/2016 20:18:01
  *
  *    Description: 
  *
@@ -20,6 +20,46 @@
 
 #include "charobject.hpp"
 
+CharObject()
+    : m_UserInfo(pUserInfo)
+    , m_CurrX(0)
+    , m_CurrY(0)
+    , m_Name("")
+    , m_HealthTick(0)
+    , m_SpellTick(0)
+    , m_TickSec(0)
+    , m_OpenHealth(false)
+    , m_CharStatusEx(false)
+    , m_CharStatus(0)
+    , m_IncHealing(0)
+    , m_IncHealth(0)
+    , m_IncSpell(0)
+    , m_PerHealing(5)
+    , m_PerHealth(5)
+    , m_PerSpell(5)
+    , m_IncHealthSpellTime(0)
+    , m_Event(-1)
+    , m_HitSpeed(0)
+    , m_AbilityMagicBubbleDefence(0)
+    , m_MagicBubbleDefenceLevel(0)
+    , m_Inspector(false)
+    , m_FastTrain(false)
+    , m_Ghost(false)
+    , m_IsNeverDie(false)
+    , m_SpeedPoint(SYS_DEFAULTSPEED)
+    , m_HumanHideMode(false)
+    , m_FixedHideMode(false)
+    , m_StoneMode(false)
+    , m_StickMode(false)
+    , m_MasterObject(nullptr)
+      , m_TargetObject(nullptr)
+{
+    extern MonoServer *g_MonoServer;
+    m_TickSec = g_MonoServer->GetTickCount();
+    m_StateAttrV.fill(0);
+}
+
+
 CharObject::~CharObject()
 {
     std::for_each(
@@ -29,303 +69,54 @@ CharObject::~CharObject()
     m_VisibleObjectList.clear();
 }
 
-void CharObject::SelectTarget(CharObject* pTargetObject)
+void CharObject::DropItem(uint32_t nGUID, int nRange)
 {
-    extern MonoServer *g_MonoServer;
-    m_TargetObject    = pTargetObject;
-    m_TargetFocusTime = g_MonoServer->GetTickCount();
-}
+    int nMapID = m_Map->ID();
 
-int CharObject::GetBack()
-{
-    switch (m_Direction){
-        case DR_UP       : return DR_DOWN;
-        case DR_DOWN     : return DR_UP;
-        case DR_LEFT     : return DR_RIGHT;
-        case DR_RIGHT    : return DR_LEFT;
-        case DR_UPLEFT   : return DR_DOWNRIGHT;
-        case DR_UPRIGHT  : return DR_DOWNLEFT;
-        case DR_DOWNLEFT : return DR_UPRIGHT;
-        case DR_DOWNRIGHT: return DR_UPLEFT;
-        default: break;
-    }
-
-    return nDirection;
-}
-
-// let's make it very complicated later
-// 1. human can't be slave of anyone
-// 2. animal can be slave of human or animal
-// 3. master of animal can be slave of human or animal
-// 4. don't make a loop a->b->c->a
-// 5. etc.
-
-bool CharObject::Friend(CharObject* pCharObject)
-{
-    // assume this or master of this is a human
-    auto fnFriendToHuman = [&fnFriendToHuman](CharObject *pObject){
-        if(pCharObject->Type(OT_HUMAN)){
-            if(pCharObject->UserInfo()){
-                switch(pCharObject->UserInfo()->AttackMode()){
-                    case AM_PEACE: return true;
-                    default:       return false;
-                }
-            }
-            return false;
-        }
-
-        if(pCharObject->Type(OT_ANIMAL)){
-            if(pCharObject->Master()){
-                if(pCharObject->Master()->Type(OT_HUMAN)){
-                    return fnFriendToHuman(pCharObject->Master());
-                }
+    auto fnAddItem = [nMapID, nGUID, nID, nAddTime, nRange, m_CurrX, m_CurrY](){
+        extern MonoServer *g_MonoServer;
+        if(auto pMap = g_MonoServer->MapGrab(nMapID)){
+            int nX, nY;
+            if(pMap->DropLocation(m_CurrY, m_CurrY, nRange, &nX, &nY)){
+                pMap->AddItem(nX, nY, nGUID, nID, nAddTime);
             }
         }
     };
 
-    // assume this is an animal or master of this is an animal
-    auto fnFriendToAnimal = [&fnFriendToHuman, &fnFriendToAnimal](CharObject *pCharObject){
-        if(pCharObject->Type(OT_ANIMAL)){
-            if(pCharObject->Master()){
-                return fnFriendToAnimal(pCharObject->Master());
-            }
-            return true;
-        }
-
-        if(pCharObject->Type(OT_HUMAN)){
-            return false;
-        }
-    };
-
-    if(Type(OT_HUMAN)){
-        return fnFriendToHuman(pCharObject);
-    }else{
-        auto pMasterObject = pCharObject;
-        while(!pMasterObject->Type(OT_HUMAN) && pMasterObject->Master()){
-            pMasterObject = pMasterObject->Master();
-        }
-
-        if(pMasterObject->Type(OT_HUMAN)){
-            return fnFriendToHuman(this);
-        }else{
-            return fnFriendToAnimal(this);
-        }
-    }
-}
-
-bool CharObject::DropItemDown(_LPTUSERITEMRCD lpTItemRcd, int nRange, bool fIsGenItem)
-{
-    CMapItem* xpMapItem = new CMapItem;
-
-    xpMapItem->nCount = 1;
-
-    if(fIsGenItem)
-    {
-        _LPTGENERALITEMRCD lpTGenItemRcd = NULL;
-
-        lpTGenItemRcd = (_LPTGENERALITEMRCD)lpTItemRcd;
-
-        xpMapItem->wLooks		= (WORD)g_pStdItemEtc[lpTGenItemRcd->nStdIndex].dwLooks;
-        xpMapItem->btAniCount	= (BYTE)0;
-
-        xpMapItem->pItem		= (LONG)lpTGenItemRcd;
-        memmove(xpMapItem->szName, g_pStdItemEtc[lpTGenItemRcd->nStdIndex].szName, memlen(g_pStdItemEtc[lpTGenItemRcd->nStdIndex].szName));
-    }
-    else
-    {
-        xpMapItem->wLooks		= (WORD)g_pStdItemSpecial[lpTItemRcd->nStdIndex].dwLooks;
-        xpMapItem->btAniCount	= (BYTE)g_pStdItemSpecial[lpTItemRcd->nStdIndex].wAniCount;
-
-        xpMapItem->pItem		= (LONG)lpTItemRcd;
-
-        if(strlen(lpTItemRcd->szPrefixName))
-        {
-            strcpy(xpMapItem->szName, lpTItemRcd->szPrefixName);
-            strcat(xpMapItem->szName, " ");
-            strcat(xpMapItem->szName, g_pStdItemSpecial[lpTItemRcd->nStdIndex].szName);
-        }
-        else
-            strcpy(xpMapItem->szName, g_pStdItemSpecial[lpTItemRcd->nStdIndex].szName);
-    }
-
-    int nX, nY;
-
-    m_Map->GetDropPosition(m_CurrX, m_CurrY, nRange, nX, nY);
-    m_Map->AddNewObject(nX, nY, OS_ITEMOBJECT, (VOID *)xpMapItem);
-
-    AddRefMsg(RM_ITEMSHOW, xpMapItem->wLooks, (int)xpMapItem, nX, nY, xpMapItem->szName);
-
-    return true;
-}
-
-void CharObject::Run()
-{
-    if(m_OpenHealth)
-    {
-        if(g_MonoServer->GetTickCount() - m_OpenHealthStart > m_OpenHealthTime)
-            BreakOpenHealth();
-    }
-
-    bool fChg = false;
-    bool fNeedRecalc = false;
-
-    for (int i = 0; i < MAX_STATUS_ATTRIBUTE; i++)
-    {
-        if(m_StateAttrV[i] > 0 && m_StateAttrV[i] < 60000)
-        {
-            if(g_MonoServer->GetTickCount() - m_StatusTime[i] > 1000)
-            {
-                m_StateAttrV[i]		-= 1;
-                m_StatusTime[i]	+= 1000;
-
-                if(m_StateAttrV[i] == 0)
-                {
-                    fChg = true;
-
-                    switch (i)
-                    {
-                        case STATE_DEFENCEUP:
-                            fNeedRecalc = true;
-                            SysMsg("방어력 상승 해제", 1);
-                            break;
-                        case STATE_MAGDEFENCEUP:
-                            fNeedRecalc = true;
-                            SysMsg("마항력 상승 해제", 1);
-                            break;
-                            /*                        case STATE_TRANSPARENT:
-                                                      begin
-BoHumHideMode := false;
-end; */
-                        case STATE_BUBBLEDEFENCEUP:
-                            m_AbilMagicBubbleDefence = false;
-                            break;
-                    }
-                }
-            }
-        }
-    }
-
-    if(fChg)
-    {
-        m_CharStatus = GetCharStatus();
-        AddRefMsg(RM_CHARSTATUSCHANGED, m_HitSpeed/*wparam*/, m_CharStatus, 0, 0, NULL);
-    }
-
-    if(fNeedRecalc)
-    {
-        ((CPlayerObject*)this)->RecalcAbilitys();
-        AddProcess(this, RM_ABILITY, 0, 0, 0, 0, NULL);
-    }
+    extern TaskHub *g_TaskHub;
+    g_TaskHub->Add(fnAddItem);
 }
 
 void CharObject::Die()
 {
-    if(m_IsNeverDie) return;
+    if(m_NeverDie){ return; }
 
-    m_IncHealing	= 0;
-    m_IncHealth		= 0;
-    m_IncSpell		= 0;
+    m_Dead = true;
+    extern EventTaskHub *g_EventTaskHub;
 
-    m_DeathTime	= g_MonoServer->GetTickCount();
-
-    if(m_ObjectType & (_OBJECT_ANIMAL | _OBJECT_HUMAN))
-        AddRefMsg(RM_DEATH, m_Direction, m_CurrX, m_CurrY, 1, NULL);
-
-    m_Dead		= true;
+    auto fnMakeGhost = [m_UID, m_AddTime](){
+        extern MonoServer *g_MonoServer;
+        if(auto pObject = g_MonoServer->CharObjectGrab(m_UID, m_AddTime)){
+            pObject->Ghost(true);
+            pObject->Unlock();
+        }
+    };
+    g_EventTaskHub->Add(3 * 60 * 1000, fnMakeGhost);
 }
 
-bool CharObject::GetAvailablePosition(CMirMap* pMap, int &nX, int &nY, int nRange)
+bool CharObject::Locate()
 {
-    if(pMap->CanMove(nX, nY))
-        return true;
+    if(!State(STATE_MOVING)){ return false; }
 
-    int nOrgX		= nX;
-    int nOrgY		= nY;
-    int nLoonCnt	= (4 * nRange) * (nRange + 1);
+    extern MonoServer *g_MonoServer;
+    int nDTime    = g_MonoServer->GetTickCount() - m_LastMoveTime;
+    int nDistance = std::max(1, nDTime * Speed());
 
-    for (int i = 0; i < nLoonCnt; i++)
-    {
-        nX = nOrgX + g_SearchTable[i].x;
-        nY = nOrgY + g_SearchTable[i].y;
-
-        if(pMap->CanMove(nX, nY))
-            return true;
+    if(m_Map->CanMove()){
     }
-
-    nX = nOrgX;
-    nY = nOrgY;
-
-    return false;
 }
 
-bool CharObject::GetNextPosition(int nSX, int nSY, int nDir, int nDistance, int& nX, int& nY)
-{
-    nX = nSX;
-    nY = nSY;
-
-    switch (nDir)
-    {
-        case DR_UP:
-            if(nY > (nDistance - 1)) nY -= nDistance;
-            break;
-        case DR_DOWN:
-            if(nY < m_Map->m_MapFH.shHeight - nDistance) nY += nDistance;
-            break;
-        case DR_LEFT:
-            if(nX > (nDistance - 1)) nX -= nDistance;
-            break;
-        case DR_RIGHT:
-            if(nX < m_Map->m_MapFH.shWidth - nDistance) nX += nDistance;
-            break;
-        case DR_UPLEFT:
-            {
-                if((nX > nDistance - 1) && (nY > nDistance - 1))
-                {
-                    nX -= nDistance;
-                    nY -= nDistance;
-                }
-
-                break;
-            }
-        case DR_UPRIGHT:
-            {
-                if((nX > nDistance - 1) && (nY < m_Map->m_MapFH.shHeight - nDistance))
-                {
-                    nX += nDistance;
-                    nY -= nDistance;
-                }
-
-                break;
-            }
-        case DR_DOWNLEFT:
-            {
-                if((nX < m_Map->m_MapFH.shWidth - nDistance) && (nY > nDistance - 1))
-                {
-                    nX -= nDistance;
-                    nY += nDistance;
-                }
-
-                break;
-            }
-        case DR_DOWNRIGHT:
-            {
-                if((nX < m_Map->m_MapFH.shWidth - nDistance) && (nY < m_Map->m_MapFH.shHeight - nDistance))
-                {
-                    nX += nDistance;
-                    nY += nDistance;
-                }
-
-                break;
-            }
-    }
-
-    if((m_CurrX == nX) && (m_CurrY == nY))
-        return false;
-
-    return true;
-}
-
-int	CharObject::GetNextDirection(int nStartX, int nStartY, int nTargetX, int nTargetY)
+int CharObject::GetNextDirection(int nStartX, int nStartY, int nTargetX, int nTargetY)
 {
     int nFlagX, nFlagY;
 
@@ -377,235 +168,6 @@ CharObject* CharObject::GetFrontObject()
     return NULL;
 }
 
-void CharObject::UpdateDelayProcessCheckParam1(
-        CharObject* pCharObject,
-        WORD wIdent, WORD wParam, 
-        DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData, int nDelay)
-{
-    _LPTPROCESSMSG	lpProcessMsg;
-
-    int nCount = m_DelayProcessQ.GetCount();
-
-    if(nCount)
-    {
-        for (int i = 0; i < nCount; i++)
-        {
-            lpProcessMsg = (_LPTPROCESSMSG)m_DelayProcessQ.PopQ();
-
-            if(lpProcessMsg)
-            {
-                if(lpProcessMsg->wIdent == wIdent && lpProcessMsg->lParam1 == lParam1)
-                {
-                    if(lpProcessMsg->pszData)
-                    {
-                        delete [] lpProcessMsg->pszData;
-                        lpProcessMsg->pszData = NULL;
-                    }
-
-                    delete lpProcessMsg;
-                    lpProcessMsg = NULL;
-                }
-                else
-                    m_DelayProcessQ.PushQ((BYTE *)lpProcessMsg);
-            }
-        }
-    }
-
-    AddDelayProcess(pCharObject, wIdent, wParam, lParam1, lParam2, lParam3, pszData, nDelay);
-}
-
-void CharObject::UpdateProcess(CharObject* pCharObject, WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData)
-{
-    _LPTPROCESSMSG	lpProcessMsg;
-
-    //	EnterCriticalSection(&m_cs);
-
-    int nCount = m_ProcessQ.GetCount();
-
-    if(nCount)
-    {
-        for (int i = 0; i < nCount; i++)
-        {
-            lpProcessMsg = (_LPTPROCESSMSG)m_ProcessQ.PopQ();
-
-            if(lpProcessMsg)
-            {
-                if(lpProcessMsg->wIdent == wIdent)
-                {
-                    if(lpProcessMsg->pszData)
-                    {
-                        delete [] lpProcessMsg->pszData;
-                        lpProcessMsg->pszData = NULL;
-                    }
-
-                    delete lpProcessMsg;
-                    lpProcessMsg = NULL;
-                }
-                else
-                    m_ProcessQ.PushQ((BYTE *)lpProcessMsg);
-            }
-        }
-    }
-
-    //	LeaveCriticalSection(&m_cs);
-
-    AddProcess(pCharObject, wIdent, wParam, lParam1, lParam2, lParam3, pszData);
-}
-
-void CharObject::AddProcess(CharObject* pCharObject, WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData)
-{
-    //	EnterCriticalSection(&m_cs);
-
-    _LPTPROCESSMSG lpProcessMsg = new _TPROCESSMSG;
-
-    if(!m_IsGhost)
-    {
-        if(lpProcessMsg)
-        {
-            lpProcessMsg->wIdent			= wIdent;
-            lpProcessMsg->wParam			= wParam;
-            lpProcessMsg->lParam1			= lParam1;
-            lpProcessMsg->lParam2			= lParam2;
-            lpProcessMsg->lParam3			= lParam3;
-
-            lpProcessMsg->dwDeliveryTime	= 0;
-
-            lpProcessMsg->pCharObject		= pCharObject;
-
-            if(pszData)
-            {
-                int nLen = memlen(pszData);
-
-                lpProcessMsg->pszData = new char[nLen];
-                memmove(lpProcessMsg->pszData, pszData, nLen);
-            }
-            else
-                lpProcessMsg->pszData		= NULL;
-
-            m_ProcessQ.PushQ((BYTE *)lpProcessMsg);
-        }
-    }
-
-    //	LeaveCriticalSection(&m_cs);
-}
-
-void CharObject::AddDelayProcess(CharObject* pCharObject, WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData, int nDelay)
-{
-    //	EnterCriticalSection(&m_cs);
-
-    _LPTPROCESSMSG lpProcessMsg = new _TPROCESSMSG;
-
-    if(lpProcessMsg)
-    {
-        lpProcessMsg->wIdent			= wIdent;
-        lpProcessMsg->wParam			= wParam;
-        lpProcessMsg->lParam1			= lParam1;
-        lpProcessMsg->lParam2			= lParam2;
-        lpProcessMsg->lParam3			= lParam3;
-
-        lpProcessMsg->dwDeliveryTime	= g_MonoServer->GetTickCount() + nDelay;
-
-        lpProcessMsg->pCharObject		= pCharObject;
-
-        if(pszData)
-        {
-            int nLen = memlen(pszData);
-
-            lpProcessMsg->pszData = new char[nLen];
-            memmove(lpProcessMsg->pszData, pszData, nLen);
-        }
-        else
-            lpProcessMsg->pszData		= NULL;
-
-        m_DelayProcessQ.PushQ((BYTE *)lpProcessMsg);
-    }
-
-    //	LeaveCriticalSection(&m_cs);
-}
-
-void CharObject::AddRefMsg(
-        WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData)
-{
-    CMapCellInfo*	pMapCellInfo	= NULL;
-    CharObject*	pCharObject		= NULL;
-
-    int nStartX = m_CurrX - _RANGE_X;
-    int nEndX	= m_CurrX + _RANGE_X;
-    int nStartY = m_CurrY - _RANGE_Y;
-    int nEndY	= m_CurrY + _RANGE_Y;
-
-    if(m_Inspector) return;
-
-    if(g_MonoServer->GetTickCount() - m_CacheTick > _CACHE_TICK || m_CacheObjectList.GetCount() == 0)
-    {
-        m_CacheObjectList.Clear();
-
-        for (int x = nStartX; x <= nEndX; x++)
-        {
-            for (int y = nStartY; y <= nEndY; y++)
-            {
-                if(pMapCellInfo = m_Map->GetMapCellInfo(x, y))
-                {
-                    if(pMapCellInfo->m_ObjectList)
-                    {
-                        if(pMapCellInfo->m_ObjectList->GetCount())
-                        {
-                            PLISTNODE pListNode = pMapCellInfo->m_ObjectList->GetHead();
-
-                            while (pListNode)
-                            {
-                                _LPTOSOBJECT pOSObject = pMapCellInfo->m_ObjectList->GetData(pListNode);
-
-                                if(pOSObject->btType == OS_MOVINGOBJECT)
-                                {
-                                    pCharObject = (CharObject*)pOSObject->pObject;
-
-                                    if(!pCharObject->m_IsGhost)
-                                    {
-                                        if(pCharObject->m_ObjectType & _OBJECT_HUMAN)
-                                        {	
-                                            pCharObject->AddProcess(this, wIdent, wParam, lParam1, lParam2, lParam3, pszData);					
-                                            m_CacheObjectList.AddNewNode(pCharObject);
-                                        }
-                                    }
-                                }
-
-                                pListNode = pMapCellInfo->m_ObjectList->GetNext(pListNode);
-                            } // while (pListNode)
-                        } // if(pMapCellInfo->m_ObjectList.GetCount())
-                    }
-                } // if(pMapCellInfo)
-            }// for (y)
-        } // for (x)
-
-        m_CacheTick = g_MonoServer->GetTickCount();
-    }
-    else
-    {
-        PLISTNODE pListNode = m_CacheObjectList.GetHead();
-
-        while (pListNode)
-        {
-            CharObject* pCharObject = m_CacheObjectList.GetData(pListNode);
-
-            if(!pCharObject->m_IsGhost)
-            {
-                if((pCharObject->m_Map = m_Map) && (abs(pCharObject->m_CurrX - m_CurrX) <= 11) && 
-                        (abs(pCharObject->m_CurrY - m_CurrY) <= 11))
-                {
-                    if(pCharObject->m_ObjectType & _OBJECT_HUMAN)
-                        pCharObject->AddProcess(this, wIdent, wParam, lParam1, lParam2, lParam3, pszData);
-                    //                     end else begin
-                    //                      if cret.WantRefMsg and ((msg = RM_STRUCK) or (msg = RM_HEAR) or (msg = RM_DEATH)) then
-                    //                       cret.SendMsg (self, msg, wparam, lparam1, lparam2, lparam3, str);
-                }
-            }
-
-            pListNode = m_CacheObjectList.GetNext(pListNode);
-        } // while (pListNode)
-    }
-}
-
 void CharObject::SpaceMove(int nX, int nY, CMirMap* pMirMap)
 {
     CVisibleObject* pVisibleObject;
@@ -642,378 +204,231 @@ void CharObject::SpaceMove(int nX, int nY, CMirMap* pMirMap)
     }
 }
 
-void CharObject::UpdateVisibleObject(CharObject* pCharObject)
-{
-    CVisibleObject* pVisibleObject;
 
-    PLISTNODE		pListNode = m_VisibleObjectList.GetHead();
-
-    while (pListNode)
-    {
-        pVisibleObject = m_VisibleObjectList.GetData(pListNode);
-
-        if(pVisibleObject->pObject == pCharObject)
-        {
-            pVisibleObject->nVisibleFlag = 1;
-            return;
-        }
-
-        pListNode = m_VisibleObjectList.GetNext(pListNode);
-    } // while (pListNode)
-
-    CVisibleObject* pNewVisibleObject = new CVisibleObject;
-
-    pNewVisibleObject->nVisibleFlag	= 2;
-    pNewVisibleObject->pObject		= pCharObject;
-
-    m_VisibleObjectList.AddNewNode(pNewVisibleObject);
-}
-
-void CharObject::UpdateVisibleItem(int nX, int nY, CMapItem* pMapItem)
-{
-    CVisibleMapItem* pVisibleItem;
-
-    PLISTNODE		pListNode = m_VisibleItemList.GetHead();
-
-    while (pListNode)
-    {
-        pVisibleItem = m_VisibleItemList.GetData(pListNode);
-
-        if(pVisibleItem->pMapItem == pMapItem)
-        {
-            pVisibleItem->nVisibleFlag = 1;
-            return;
-        }
-
-        pListNode = m_VisibleItemList.GetNext(pListNode);
-    } // while (pListNode)
-
-    CVisibleMapItem* pVisibleNewItem = new CVisibleMapItem;
-
-    pVisibleNewItem->nVisibleFlag	= 2;
-    pVisibleNewItem->wX				= (WORD)nX;
-    pVisibleNewItem->wY				= (WORD)nY;
-    pVisibleNewItem->pMapItem		= pMapItem;
-
-    m_VisibleItemList.AddNewNode(pVisibleNewItem);
-}
-
-void CharObject::UpdateVisibleEvent(CEvent* pEvent)
-{
-    CVisibleEvent* pVisibleEvent;
-
-    PLISTNODE		pListNode = m_VisibleEventList.GetHead();
-
-    while (pListNode)
-    {
-        pVisibleEvent = m_VisibleEventList.GetData(pListNode);
-
-        if(pVisibleEvent->pEvent == pEvent)
-        {
-            pVisibleEvent->nVisibleFlag = 1;
-            return;
-        }
-
-        pListNode = m_VisibleEventList.GetNext(pListNode);
-    } // while (pListNode)
-
-    CVisibleEvent* pVisibleNewEvent = new CVisibleEvent;
-
-    pVisibleNewEvent->nVisibleFlag	= 2;
-    pVisibleNewEvent->pEvent		= pEvent;
-
-    m_VisibleEventList.AddNewNode(pVisibleNewEvent);
-}
-
+// update the view range for each object
+// 1. mark all obects in the list as 0, means in-visible
+// 2. update the range
+//      1. detected new object: create a record and mark it as 2
+//      2. still in the list, mark it as 1
+// 3. for new detected message, send message and mark as 1
+// 4. for objects marked as 0, send message and delete it
 void CharObject::SearchViewRange()
 {
     int nStartX = m_CurrX - m_ViewRange;
-    int nEndX	= m_CurrX + m_ViewRange;
+    int nStopX  = m_CurrX + m_ViewRange;
     int nStartY = m_CurrY - m_ViewRange;
-    int nEndY	= m_CurrY + m_ViewRange;
+    int nStopY  = m_CurrY + m_ViewRange;
 
-    CMapCellInfo*		pMapCellInfo;
-    _LPTOSOBJECT		pOSObject;	
-    CharObject*		pCharObject;
-    CEvent*				pEvent;
-    PLISTNODE			pListNode;
-    CVisibleObject*		pVisibleObject;
-    CVisibleMapItem*	pVisibleItem;
-    CVisibleEvent*		pVisibleEvent;
-
-    // Clear VisibleObjectList
-    if(m_VisibleObjectList.GetCount())
-    {
-        pListNode = m_VisibleObjectList.GetHead();
-
-        while (pListNode)
-        {
-            if(pVisibleObject = m_VisibleObjectList.GetData(pListNode))
-                pVisibleObject->nVisibleFlag = 0;
-
-            pListNode = m_VisibleObjectList.GetNext(pListNode);
-        }
+    // we won't exam the validation of object here
+    for(auto &stRecord: m_VisibleObjectList){
+        std::get<0>(stRecord) = 0;
     }
 
-    // Clear VisibleMapItem
-    if(m_VisibleItemList.GetCount())
-    {
-        pListNode = m_VisibleItemList.GetHead();
-
-        while (pListNode)
-        {
-            if(pVisibleItem = m_VisibleItemList.GetData(pListNode))
-                pVisibleItem->nVisibleFlag = 0;
-
-            pListNode = m_VisibleItemList.GetNext(pListNode);
-        }
+    for(auto &stRecord: m_VisibleItemList){
+        std::get<0>(stRecord) = 0;
     }
 
-    // Clear VisibleEvent
-    if(m_VisibleEventList.GetCount())
-    {
-        pListNode = m_VisibleEventList.GetHead();
-
-        while (pListNode)
-        {
-            if(pVisibleEvent = m_VisibleEventList.GetData(pListNode))
-                pVisibleEvent->nVisibleFlag = 0;
-
-            pListNode = m_VisibleEventList.GetNext(pListNode);
-        }
+    for(auto &stRecord: m_VisibleEventList){
+        std::get<0>(stRecord) = 0;
     }
 
-    // Search VisibleAllObjectList
-    for (int x = nStartX; x <= nEndX; x++)
-    {
-        for (int y = nStartY; y <= nEndY; y++)
-        {
-            pMapCellInfo = m_Map->GetMapCellInfo(x, y);
-
-            if(pMapCellInfo)
-            {
-                if(pMapCellInfo->m_ObjectList)
-                {
-                    if(pMapCellInfo->m_ObjectList->GetCount())
-                    {
-                        pListNode = pMapCellInfo->m_ObjectList->GetHead();
-
-                        while (pListNode)
+    // do the update
+    // need to source global object/item/event list
+    extern MonoServer *g_MonoServer;
+    for(int nX = nStartX; nX <= nStopX; nX++){
+        for(int nY = nStartY; nY <= nStopY; nY++){
+            std::forward_list<CharObjectID> stList;
+            m_Map->GetObjectList(nX, nY, &stList);
+            auto fnQueryObject = [&m_VisibleObjectList, nX, nY](
+                    uint8_t nType, uint32_t nID, uint32_t nAddTime){
+                switch(nType){
+                    case OT_MOVINGOBJECT:
                         {
-                            pOSObject = pMapCellInfo->m_ObjectList->GetData(pListNode);
-
-                            if(pOSObject)
-                            {
-                                if(pOSObject->btType == OS_MOVINGOBJECT)
-                                {
-                                    pCharObject = (CharObject*)pOSObject->pObject;
-
-                                    if(!pCharObject->m_Inspector && !pCharObject->m_IsGhost && !pCharObject->m_HideMode)
-                                        UpdateVisibleObject(pCharObject);
-                                }
-                                else if(pOSObject->btType == OS_ITEMOBJECT)
-                                {
-                                    if(g_MonoServer->GetTickCount() - pOSObject->dwAddTime > 60 * 60 * 1000)
-                                    {
-                                        delete pOSObject;
-                                        pOSObject = NULL;
-
-                                        pListNode = pMapCellInfo->m_ObjectList->RemoveNode(pListNode);
-                                        continue;
+                            // only check exact at this time it's still there
+                            // only grab it, check every time
+                            if(g_MonoServer->CharObjectCheck(nID, nAddTime)){
+                                bool bFind = false;
+                                for(auto &stRecord: m_VisibleObjectList){
+                                    if(true
+                                            && std::get<1>(stRecord.ID)      == nID
+                                            && std::get<1>(stRecord.Type)    == nType
+                                            && std::get<1>(stRecord.AddTime) == nAddTime){
+                                        std::get<0>(stRecord) = 1;
+                                        bFind = true;
                                     }
-                                    else
-                                        UpdateVisibleItem(x, y, (CMapItem*)pOSObject->pObject);
                                 }
-                                else if(pOSObject->btType == OS_EVENTOBJECT)
-                                {
-                                    pEvent = (CEvent*)pOSObject->pObject;
-
-                                    if(pEvent->m_Visible)
-                                        UpdateVisibleEvent(pEvent);
+                                if(!bFind){
+                                    m_VisibleObjectList.emplace_front(2, {nType, nID, nAddTime});
+                                }
+                            }else{
+                                m_Map->DeleteCharObject(nX, nY, nID, nAddTime);
+                            }
+                            break;
+                        }
+                    case OT_ITEMOBJECT:
+                        {
+                            if(g_MonoServer->GetTickCount() - nAddTime > 60 * 60 * 1000){
+                                g_MonoServer->DeleteItem(m_Map->ID(), nID, nAddTime);
+                            }else{
+                                bool bFind = false;
+                                for(auto &stRecord: m_VisibleObjectList){
+                                    if(true
+                                            && std::get<1>(stRecord.ID)      == nID
+                                            && std::get<1>(stRecord.Type)    == nType
+                                            && std::get<1>(stRecord.AddTime) == nAddTime){
+                                        std::get<0>(stRecord) = 1;
+                                        bFind = true;
+                                    }
+                                }
+                                if(!bFind){
+                                    m_VisibleObjectList.emplace_front(2, {nType, nID, nAddTime});
                                 }
                             }
-
-                            pListNode = pMapCellInfo->m_ObjectList->GetNext(pListNode);
-                        } // while (pListNode)
-                    } // if(pMapCellInfo->m_ObjectList.GetCount())
-                }
-            } // if(pMapCellInfo)
-        }// for (y)
-    } // for (x)
-
-    if(m_VisibleObjectList.GetCount())
-    {
-        pListNode = m_VisibleObjectList.GetHead();
-
-        while (pListNode)
-        {
-            if(pVisibleObject = m_VisibleObjectList.GetData(pListNode))
-            {
-                if(pVisibleObject->nVisibleFlag == 0)
-                {
-                    if(!pVisibleObject->pObject->m_HideMode)
-                        AddProcess(pVisibleObject->pObject, RM_DISAPPEAR, 0, 0, 0, 0, NULL);
-
-                    delete pVisibleObject;
-                    pVisibleObject = NULL;
-
-                    pListNode = m_VisibleObjectList.RemoveNode(pListNode);
-
-                    continue;
-                }
-                else
-                {
-                    if(m_ObjectType & _OBJECT_HUMAN)
-                    {
-                        if(pVisibleObject->nVisibleFlag == 2)	// 2:New Object
+                            break;
+                        }
+                    case OT_EVENTOBJECT:
                         {
-                            if(pVisibleObject->pObject != this)
-                            {
-                                if(pVisibleObject->pObject->m_Dead)
-                                {
-                                    AddProcess(pVisibleObject->pObject, RM_DEATH, pVisibleObject->pObject->m_Direction, 
-                                            pVisibleObject->pObject->m_CurrX, pVisibleObject->pObject->m_CurrY, 0, NULL);
-                                }
-                                else
-                                    AddProcess(pVisibleObject->pObject, RM_TURN, pVisibleObject->pObject->m_Direction, 
-                                            pVisibleObject->pObject->m_CurrX, pVisibleObject->pObject->m_CurrY, 
-                                            0, pVisibleObject->pObject->m_Name);
+                            pEvent = (CEvent*)pOSObject->pObject;
+
+                            if(pEvent->m_Visible){
+                                UpdateVisibleEvent(pEvent);
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+            };
+
+            m_Map->QueryObject(nX, nY, fnQueryObject);
+        }
+    }
+
+    auto fnTestObject = [this](const auto &stRecord){
+        switch(std::get<0>(stRecord)){
+            case 0:
+                {
+                    if(Type(OT_HUMAN)){
+                        extern MonoServer *g_MonoServer;
+                        if(auto pSession = g_MonoServer->SessionGrab()){
+                            SMCharObjectDisappear stDisappear = {
+                                .ID      = stRecord.ID,
+                                .AddTime = stRecord.ID,
+                            };
+                            pSession->Send(RM_DISAPPEAR, stDisappear);
+                        }
+                    }
+                    return true;
+                }
+            case 1:
+                {
+                    return false;
+                }
+            case 2:
+                {
+                    if(Type(OT_HUMAN)){
+                        extern MonoServer *g_MonoServer;
+                        if(auto pObject = g_MonoServer->CharObjectGrab(nID, nAddTime)){
+                            if(pObject->Dead()){
+                                g_MonoServer->Send(RM_DEATH, ...);
+                            }else{
+                                g_MonoServer->Send(RM_TURN);
                             }
                         }
                     }
-                } // if(pVisibleObject->nVisibleFlag == 0)
-            } // if(pVisibleObject = m_VisibleObjectList.GetData(pListNode))
-
-            pListNode = m_VisibleObjectList.GetNext(pListNode);
-        } // while (pListNode)
-    }
-
-    // Update Map Item
-    if(m_VisibleItemList.GetCount())
-    {
-        pListNode = m_VisibleItemList.GetHead();
-
-        while (pListNode)
-        {
-            if(pVisibleItem = m_VisibleItemList.GetData(pListNode))
-            {
-                if(pVisibleItem->nVisibleFlag == 0)
-                {
-                    AddProcess(this, RM_ITEMHIDE, 0, (LPARAM)pVisibleItem->pMapItem, pVisibleItem->wX, pVisibleItem->wY, NULL);
-
-                    delete pVisibleItem;
-                    pVisibleItem = NULL;
-
-                    pListNode = m_VisibleItemList.RemoveNode(pListNode);
-
-                    continue;
+                    return true;
                 }
-                else
+        }
+    };
+
+    m_VisibleObjectList.erase(
+            std::remove_if(m_VisibleObjectList.begin(), m_VisibleObjectList.end(), fnTestObject));
+
+    auto fnTestItem = [](){
+        switch(std::get<0>(stRecord)){
+            case 0:
                 {
-                    if(pVisibleItem->nVisibleFlag == 2)	// 2:New Item
-                        AddProcess(this, RM_ITEMSHOW, pVisibleItem->pMapItem->wLooks, (LPARAM)pVisibleItem->pMapItem, 
-                                pVisibleItem->wX, pVisibleItem->wY, pVisibleItem->pMapItem->szName);	
-                } // if(pVisibleObject->nVisibleFlag == 0)
-            } // if(pVisibleObject = m_VisibleItemList.GetData(pListNode))
-
-            pListNode = m_VisibleItemList.GetNext(pListNode);
-        } // while (pListNode)
-    }
-
-    // Update Event Item
-    if(m_VisibleEventList.GetCount())
-    {
-        pListNode = m_VisibleEventList.GetHead();
-
-        while (pListNode)
-        {
-            if(pVisibleEvent = m_VisibleEventList.GetData(pListNode))
-            {
-                if(pVisibleEvent->nVisibleFlag == 0)
-                {
-                    AddProcess(this, RM_HIDEEVENT, 0, (LPARAM)pVisibleEvent->pEvent, pVisibleEvent->pEvent->m_X, pVisibleEvent->pEvent->m_Y);
-
-                    pListNode = m_VisibleEventList.RemoveNode(pListNode);
-
-                    delete pVisibleEvent;
-                    pVisibleEvent = NULL;
-
-                    continue;
+                    // 1. send message of RM_ITEMHIDE
+                    // 2. remove item from current view list
+                    // 3. don't try to delete it here, doesn't see it doesn't means it doesn't exist
+                    return true;
                 }
-                else if(pVisibleEvent->nVisibleFlag == 2) 
+            case 1:
                 {
-                    AddProcess(this, RM_SHOWEVENT, pVisibleEvent->pEvent->m_EventType, (LPARAM)pVisibleEvent->pEvent, 
-                            MAKELONG(pVisibleEvent->pEvent->m_X, pVisibleEvent->pEvent->m_EventParam), pVisibleEvent->pEvent->m_Y);	
+                    return false;
                 }
-            }
+            case 2:
+                {
+                    // 1. send message of RM_ITEMSHOW
+                    // 2. remove item from current view list
+                    // 3. don't try to delete it here, doesn't see it doesn't means it doesn't exist
+                    return false;
+                }
+            default:
+                {
+                    return false;
+                }
+        }
+    };
+    m_VisibleItemList.erase();
 
-            pListNode = m_VisibleEventList.GetNext(pListNode);
-        } // while (pListNode)
-    }
+    auto fnTestItem = [](){
+        switch(std::get<0>(stRecord)){
+            case 0:
+                {
+                    // 1. send message of RM_ITEMHIDE
+                    // 2. remove item from current view list
+                    // 3. don't try to delete it here, doesn't see it doesn't means it doesn't exist
+                    return true;
+                }
+            case 1:
+                {
+                    return false;
+                }
+            case 2:
+                {
+                    // 1. send message of RM_ITEMSHOW
+                    // 2. remove item from current view list
+                    // 3. don't try to delete it here, doesn't see it doesn't means it doesn't exist
+                    return false;
+                }
+            default:
+                {
+                    return false;
+                }
+        }
+    };
+    m_VisibleEventList.erase();
 }
 
-void CharObject::Disappear()
+bool CharObject::Ghost()
 {
-    if(m_Map)
-    {
-        m_Map->RemoveObject(m_CurrX, m_CurrY, OS_MOVINGOBJECT, this);
-        AddRefMsg(RM_DISAPPEAR, 0, 0, 0, 0, NULL);
-    }
+    return m_Ghost;
 }
 
-void CharObject::MakeGhost()
+void CharObject::Ghost(bool bGhost)
 {
-    m_IsGhost		= true;
-    m_GhostTime	= g_MonoServer->GetTickCount();
+    if(!bGhost){ return; }
 
-    Disappear();
+    m_Ghost = true;
+    extern EventTaskHub *g_EventTaskHub;
+    g_EventTaskHub->Add(3 * 60 * 1000, [m_UID, m_AddTime](){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->DeleteCharObject(m_UID, m_AddTime);
+            });
+
+    m_Map->DeleteCharObject(m_CurrX, m_CurrY, OS_MOVINGOBJECT, m_UID, m_AddTime);
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->Send(RM_DISAPPEAR);
 }
 
-void CharObject::TurnTo(int nDir)
+void CharObject::TurnXY(int nX, int nY)
 {
     AddRefMsg(RM_TURN, nDir, m_CurrX, m_CurrY, 0, m_Name);
 
     m_Direction = nDir;
-}
-
-bool CharObject::TurnXY(int nX, int nY, int nDir)
-{
-    if(m_CurrX == nX && m_CurrY == nY)
-    {
-        AddRefMsg(RM_TURN, nDir, m_CurrX, m_CurrY, 0, m_Name);
-
-        m_Direction = nDir;
-
-        return true;
-    }
-
-    return false;
-}
-
-bool CharObject::Walk()
-{
-    int nX, nY;
-
-}
-
-bool CharObject::WalkTo(int nDir)
-{
-    int nX, nY;
-
-    WalkNextPos(nDir, nX, nY);
-
-    bool fResult = WalkXY(nX, nY, nDir);
-
-    if(fResult)
-    {
-        if(m_FixedHideMode)
-        {
-            if(m_HumHideMode)
-                m_StateAttrV[STATE_TRANSPARENT] = 1;
-        }
-    }
-
-    return fResult;
 }
 
 bool CharObject::WalkXY(int nX, int nY)
@@ -1089,13 +504,13 @@ bool CharObject::RangeTask(int nRangeType,
                 if(m_CacheObjectList.empty()
                         || g_MonoServer->GetTickCount() - m_CacheTick > SYS_CACHETICK){
                     int nStartX = m_CurrX - SYS_RANGEX;
-                    int nEndX	= m_CurrX + SYS_RANGEX;
+                    int nStopX  = m_CurrX + SYS_RANGEX;
                     int nStartY = m_CurrY - SYS_RANGEY;
-                    int nEndY	= m_CurrY + SYS_RANGEY;
+                    int nStopY  = m_CurrY + SYS_RANGEY;
 
                     m_CacheObjectList.clear();
-                    for(int nX = nStartX; nX <= nEndX; ++nX){
-                        for(int nY = nStartY; nY <= nEndY; ++nY){
+                    for(int nX = nStartX; nX <= nStopX; ++nX){
+                        for(int nY = nStartY; nY <= nStopY; ++nY){
                             std::forward_list<CharObjectID> stList;
                             m_Map->GetObjectList(nX, nY, &stList);
                             m_CacheObjectList.insert(
@@ -1126,4 +541,36 @@ bool CharObject::RangeTask(int nRangeType,
     }
 
     return false;
+}
+
+ObjectLockGuard CharObject::CheckOut(bool bLockIt, uint32_t nID, uint32_t nAddTime)
+{
+    if(nID == 0 || nAddTime == 0){
+        return {nullptr, false};
+    }
+
+    std::lock_guard<std::mutex> stLockGuard<m_CharObjectHubLock>;
+    auto p = m_CharObjectHub.find(nID);
+
+    if(p == m_CharObjectHub.end()){
+        return {nullptr, false};
+    }else{
+        if(nAddTime != p.second.second){
+            return {nullptr, false};
+        }
+    }
+
+    // OK now we get it
+    if(bLockIt){
+        p.second.first->Lock();
+    }
+
+    return {p.second.first, bLockIt};
+}
+
+void CharObject::Lock()
+{
+    extern MonoServer *g_MonoServer;
+    return g_MonoServer->LockObject(m_ID, m_AddTime);
+
 }

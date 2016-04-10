@@ -3,7 +3,7 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 04/04/2016 00:04:18
+ *  Last Modified: 04/09/2016 22:22:33
  *
  *    Description: 
  *
@@ -146,5 +146,4 @@ class TaskHub: public BaseHub<TaskHub>
             m_TaskList.push_back(pTask);
             m_TaskSignal.notify_one();
         }
-
 };

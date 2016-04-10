@@ -1,441 +1,174 @@
-
-
 #pragma once
 
+#include <vector>
+#include <forward_list>
 
-#include "../def/_orzex/queue.h"
+#include "monoserver.hpp"
 
-
-#define DEFSPEED					14
-
-#define _CHAT_COLOR1				0			//RGB(  0,   0,   0); // 투과색.
-#define _CHAT_COLOR2				1			//RGB( 10,  10,  10); // 검정색.
-#define _CHAT_COLOR3				2			//RGB(255, 255, 255); // 흰색.
-#define _CHAT_COLOR4				3			//RGB(255,   0,   0); // 빨강.
-#define _CHAT_COLOR5				4			//RGB(  0, 255,   0); // 녹색.
-#define _CHAT_COLOR6				5			//RGB(  0,   0, 255); // 푸른색
-#define _CHAT_COLOR7				6			//RGB(255, 255,   0); // 노랑색.
-#define _CHAT_COLOR8				7			//RGB(255, 128,   0); // 주황색
-
-#define DR_UP						0
-#define DR_UPRIGHT					1
-#define DR_RIGHT					2
-#define DR_DOWNRIGHT				3
-#define DR_DOWN						4
-#define DR_DOWNLEFT					5
-#define DR_LEFT						6
-#define DR_UPLEFT					7
-
-#define _DOOR_NOT					0
-#define _DOOR_OPEN					1
-#define _DOOR_MAPMOVE_FRONT			2
-#define _DOOR_MAPMOVE_BACK			3
-
-// Status
-#define MAX_STATUS_ATTRIBUTE		12
-
-#define POISON_DECHEALTH			0
-#define POISON_DAMAGEARMOR			1
-#define POISON_LOCKSPELL			2
-#define POISON_DONTMOVE				4
-#define POISON_STONE				5
-#define STATE_TRANSPARENT			8
-#define STATE_DEFENCEUP				9
-#define STATE_MAGDEFENCEUP			10
-#define STATE_BUBBLEDEFENCEUP		11
-
-#define	STATE_STONE_MODE			0x00000001;
-#define	STATE_OPENHEATH				0x00000002;  //체력 공개상태
-
-class CCharObject;
-class CMirMap;
-class CUserInfo;
-
-typedef struct tag_TPROCESSMSG
-{
-    WORD			wIdent;
-    WORD			wParam;
-    DWORD			lParam1;
-    DWORD			lParam2;
-    DWORD			lParam3;
-
-    DWORD			dwDeliveryTime;
-
-    CCharObject*	pCharObject;
-
-    char			*pszData;
-} _TPROCESSMSG, *_LPTPROCESSMSG;
-
-/*
-*/
-
-#define _OBJECT_HUMAN			1
-#define _OBJECT_MONSTER			2
-#define _OBJECT_ANIMAL			6
-#define _OBJECT_NPC				8
-
-typedef struct tag_TOBJECTFEATURE
-{
-    BYTE		btGender;
-    BYTE		btWear;
-    BYTE		btHair;
-    BYTE		btWeapon;
-} _TOBJECTFEATURE, _LPTOBJECTFEATURE;
-
-typedef struct tag_TOBJECTFEATUREEX
-{
-    BYTE		btHorse;
-    WORD		dwHairColor;
-    WORD		dwWearColor;
-} _TOBJECTFEATUREEX, _LPTOBJECTFEATUREEX;
-
-class CVisibleObject
-{
-    public:
-        int				nVisibleFlag;
-        CCharObject*	pObject;
+enum ObjectType: uint8_t{
+    OT_HUMAN    = 0,
+    OT_PLAYER,
+    OT_NPC,
+    OT_ANIMAL,
+    OT_MONSTER,
 };
 
-class CVisibleEvent
+#pragma pack(push, 1)
+typedef struct{
+    uint8_t     Level;
+    uint16_t    HP;
+    uint16_t    MP;
+    uint16_t    MaxHP;
+    uint16_t    MaxMP;
+    uint16_t    Weight;
+    uint16_t    MaxWeight;
+    uint32_t    Exp;
+    uint32_t    MaxExp;
+
+    uint8_t     WearWeight;
+    uint8_t     MaxWearWeight;
+    uint8_t     HandWeight;
+    uint8_t     MaxHandWeight;
+
+    uint16_t    DC;
+    uint16_t    MC;
+    uint16_t    SC;
+    uint16_t    AC;
+    uint16_t    MAC;
+
+    uint16_t    Water;
+    uint16_t    Fire;
+    uint16_t    Wind;
+    uint16_t    Light;
+    uint16_t    Earth;
+}OBJECTABILITY;
+
+typedef struct{
+    uint16_t    HP;
+    uint16_t    MP;
+    uint16_t    HIT;
+    uint16_t    SPEED;
+    uint16_t    AC;
+    uint16_t    MAC;
+    uint16_t    DC;
+    uint16_t    MC;
+    uint16_t    SC;
+    uint16_t    AntiPoison;
+    uint16_t    PoisonRecover;
+    uint16_t    HealthRecover;
+    uint16_t    SpellRecover;
+    uint16_t    AntiMagic;
+    uint8_t     Luck;
+    uint8_t     UnLuck;
+    uint8_t     WeaponStrong;
+    uint16_t    HitSpeed;
+}OBJECTADDABILITY;
+#pragma pack(pop)
+
+class CharObject
 {
     public:
-        int				nVisibleFlag;
-        CEvent*			pEvent;
-};
+        CharObject();
+        ~CharObject();
 
-class CVisibleMapItem
-{
     public:
-        int				nVisibleFlag;
-        WORD			wX;
-        WORD			wY;
-        CMapItem*		pMapItem;
-};
+        virtual bool Friend(const CharObject *) const = 0;
+        virtual void Operate() = 0;
 
-#pragma pack(1)
-class CObjectAbility
-{
     public:
-        BYTE	Level;
-
-        WORD	HP;
-        WORD	MP;
-        WORD	MaxHP;
-        WORD	MaxMP;
-        WORD	Weight;
-        WORD	MaxWeight;
-
-        DWORD	Exp;
-        DWORD	MaxExp;
-
-        BYTE	WearWeight;
-        BYTE	MaxWearWeight;
-        BYTE	HandWeight;
-        BYTE	MaxHandWeight;
-
-        WORD	DC;
-        WORD	MC;
-        WORD	SC;
-        WORD	AC;
-        WORD	MAC;
-
-        WORD	m_wWater;
-        WORD	m_wFire;
-        WORD	m_wWind;
-        WORD	m_wLight;
-        WORD	m_wEarth;
-};
-
-class CObjectAddAbility	// 아이템 착용으로 늘어나는 능력치
-{
-    public:
-        WORD	HP;
-        WORD	MP;
-        WORD	HIT;
-        WORD	SPEED;
-        WORD	AC;
-        WORD	MAC;
-        WORD	DC;
-        WORD	MC;
-        WORD	SC;
-        WORD	AntiPoison;
-        WORD	PoisonRecover;
-        WORD	HealthRecover;
-        WORD	SpellRecover;
-        WORD	AntiMagic;			//마법 회피율
-        BYTE	Luck;				//행운 포인트
-        BYTE	UnLuck;				//불행 포인트
-        BYTE	WeaponStrong;
-        short	HitSpeed;
-};
-#pragma pack(8)
-
-class CCharObject
-{
-    public:
-        // 1. won't care the return type of the task
-
-            CharObject(UserInfo* pUserInfo)
-                : m_UserInfo(pUserInfo)
-                  , m_CurrX(0)
-                  , m_CurrX(0)
-                  , m_Name("")
-                  , m_HealthTick(0)
-                  , m_SpellTick(0)
-                  , m_TickSec(0)
-                  , m_OpenHealth(false)
-                  , m_CharStatusEx(false)
-                  , m_CharStatus(0)
-                  , m_IncHealing(0)
-                  , m_IncHealth(0)
-                  , m_IncSpell(0)
-                  , m_PerHealing(5)
-                  , m_PerHealth(5)
-                  , m_PerSpell(5)
-                  , m_IncHealthSpellTime(0)
-                  , m_Event(-1)
-                  , m_HitSpeed(0)
-                  , m_AbilityMagicBubbleDefence(0)
-                  , m_MagicBubbleDefenceLevel(0)
-                  , m_Inspector(false)
-                  , m_FastTrain(false)
-                  , m_Ghost(false)
-                  , m_IsNeverDie(false)
-                  , m_SpeedPoint(SYS_DEFAULTSPEED)
-                  , m_HumanHideMode(false)
-                  , m_FixedHideMode(false)
-                  , m_StoneMode(false)
-                  , m_StickMode(false)
-                  , m_MasterObject(nullptr)
-                  , m_TargetObject(nullptr)
-            {
-                extern MonoServer *g_MonoServer;
-                m_TickSec = g_MonoServer->GetTickCount();
-                m_StateAttrV.fill(0);
+        uint8_t GetBack()
+        {
+            switch (m_Direction){
+                case DR_UP       : return DR_DOWN;
+                case DR_DOWN     : return DR_UP;
+                case DR_LEFT     : return DR_RIGHT;
+                case DR_RIGHT    : return DR_LEFT;
+                case DR_UPLEFT   : return DR_DOWNRIGHT;
+                case DR_UPRIGHT  : return DR_DOWNLEFT;
+                case DR_DOWNLEFT : return DR_UPRIGHT;
+                case DR_DOWNRIGHT: return DR_UPLEFT;
+                default: break;
             }
 
-            public:
-            CUserInfo*					m_pUserInfo;
+            // make the compiler happy
+            return m_Direction;
+        }
 
-            CWHQueue					m_ProcessQ;
-            CWHQueue					m_DelayProcessQ;
+    protected:
+        uint16_t m_ObjectType;
 
-            int							m_nCurrX;
-            int							m_nCurrY;
-            int							m_nDirection;
+    public:
+        virtual bool Type(uint8_t) = 0;
 
-            int							m_nEvent;
+    protected:
+        int     m_CurrX;
+        int     m_CurrY;
+        int     m_Direction;
+        int     m_Event;
 
-            BYTE						m_btLight;
+        PLAYERFEATURE               m_Feature;
+        PLAYERFEATUREEX             m_FeatureEx;
+        ServerMap*                  m_Map;
 
-            _TOBJECTFEATURE				m_tFeature;
-            _TOBJECTFEATUREEX			m_tFeatureEx;
+        std::forward_list<std::tuple<uint32_t, uint32_t>> m_VisibleObjectList;
+        std::forward_list<std::tuple<uint32_t, uint32_t>> m_VisibleItemList;
+        std::forward_list<std::tuple<uint32_t, uint32_t>> m_VisibleEventList;
+        std::forward_list<std::tuple<uint32_t, uint32_t>> m_CacheObjectList;
 
-            CMirMap*					m_pMap;
+        OBJECTABILITY               m_Ability;
+        OBJECTABILITY               m_WAbility;
+        OBJECTADDABILITY            m_AddAbility;
 
-            WORD						m_wObjectType;
+        std::array<uint8_t,  256>    m_StateAttrV;
+        std::array<uint32_t, 256>    m_StateTimeV;
 
-            CWHList<CVisibleObject*>	m_xVisibleObjectList;
-            CWHList<CVisibleMapItem*>	m_xVisibleItemList;
-            CWHList<CVisibleEvent*>		m_xVisibleEventList;
-            CWHList<CCharObject*>		m_xCacheObjectList;
-            DWORD						m_dwCacheTick;
+        std::tuple<uint32_t, uint32_t> m_Master;
+        std::tuple<uint32_t, uint32_t> m_Target;
 
-            int							m_nViewRange;
-            DWORD						m_dwSearchTime;
-            DWORD						m_dwSearchTick;
+    public:
 
-            DWORD						m_dwLatestHitTime;
-            UINT						m_nHitTimeOverCount;
+        bool    GetNextPosition(int nSX, int nSY, int nDir, int nDistance, int& nX, int& nY);
+        int     GetNextDirection(int nStartX, int nStartY, int nTargetX, int nTargetY);
+        void    TurnTo(int nDir);
+        bool    TurnXY(int nX, int nY, int nDir);
+        virtual bool    WalkTo(int nDir);
+        bool    WalkXY(int nX, int nY, int nDir);
+        bool    RunTo(int nDir);
+        bool    RunXY(int nX, int nY, int nDir);
+        bool    HitXY(uint16_t wIdent, int nX, int nY, int nDir, int nHitStyle);
 
-            char						m_szName[14];
+        void    Disappear();
+        void    MakeGhost();
 
-            CObjectAbility				m_Ability;
-            CObjectAbility				m_WAbility;
-            CObjectAddAbility			m_AddAbility;
+        bool    DropItem(_LPTUSERITEMRCD lpTItemRcd, int nRange, bool fIsGenItem);
 
-            UINT						m_nCharStatusEx;
-            UINT						m_nCharStatus;
+        CharObject* AddCreatureSysop(int nX, int nY, CMonRaceInfo* pMonRaceInfo, bool fSearch);
 
-            short						m_sHitSpeed;
 
-            int							m_nHitDouble;
+        void    SpaceMove(int nX, int nY, CMirMap* pMirMap);
+        void    Die();
+        virtual int   NameColorType() = 0;
+        virtual const char *CharName()  = 0;
+        virtual void    Operate() = 0;
+        virtual void    SearchViewRange() = 0;
 
-            DWORD						m_dwWalkTime;
-
-            WORD						m_wStatusArr[MAX_STATUS_ATTRIBUTE];
-            DWORD						m_dwStatusTime[MAX_STATUS_ATTRIBUTE];
-
-            BYTE						m_btHitPlus;
-
-            BYTE						m_btAntiMagic;
-            BYTE						m_btHitPoint;
-            BYTE						m_btSpeedPoint;
-            BYTE						m_btAntiPoison;
-            BYTE						m_btPoisonRecover;
-            BYTE						m_btHealthRecover;
-            BYTE						m_btSpellRecover;
-
-            BOOL						m_fIsDead;
-            DWORD						m_dwDeathTime;
-            BOOL						m_fIsGhost;
-            DWORD						m_dwGhostTime;
-
-            BOOL						m_fOpenHealth;
-            DWORD						m_dwOpenHealthStart;
-            DWORD						m_dwOpenHealthTime;
-            DWORD						m_dwIncHealthSpellTime;
-
-            DWORD						m_dwHealthTick;
-            DWORD						m_dwSpellTick;
-            DWORD						m_dwTickSec;
-
-            WORD						m_IncHealing;
-            BYTE						m_btPerHealing;
-            WORD						m_IncHealth;
-            BYTE						m_btPerHealth;
-            WORD						m_IncSpell;
-            BYTE						m_btPerSpell;
-
-            BOOL						m_fAbilMagBubbleDefence;
-            BYTE						m_btMagBubbleDefenceLevel;
-
-            BOOL						m_fInspector;
-            BOOL						m_fFastTrain;
-            BOOL						m_fHideMode;
-            BOOL						m_fIsNeverDie;
-            BOOL						m_fStoneMode;
-            BOOL						m_fStickMode;
-
-            CCharObject*				m_pMasterObject;
-            CCharObject*				m_pTargetObject;
-            CCharObject*				m_pLastHitterObject;
-            CCharObject*				m_pExpHitterObject;
-            DWORD						m_dwTargetFocusTime;
-
-            BOOL						m_fHumHideMode;
-            BOOL						m_fFixedHideMode;
-
-            public:
-            CCharObject(CUserInfo*	pUserInfo);
-            virtual ~CCharObject();
-
-            BOOL	GetBackPosition(int &nX, int &nY);
-            int		GetBack(int nDirection);
-            void	GetFrontPosition(int &nX, int &nY);
-
-            void	UpdateDelayProcessCheckParam1(CCharObject* pCharObject, WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData, int nDelay);
-            void	UpdateProcess(CCharObject* pCharObject, WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData);
-            void	AddProcess(CCharObject* pCharObject, WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData = NULL);
-            void	AddDelayProcess(CCharObject* pCharObject, WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData, int nDelay);
-            void	AddRefMsg(WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData);
-
-            BOOL	GetNextPosition(int nSX, int nSY, int nDir, int nDistance, int& nX, int& nY);
-            __inline BOOL	GetNextPosition(int nDir, int nDistance, int& nX, int& nY)
-            { return GetNextPosition(m_nCurrX, m_nCurrY, nDir, nDistance, nX, nY); }
-            int		GetNextDirection(int nStartX, int nStartY, int nTargetX, int nTargetY);
-            __inline int	GetNextDirection(int nTargetX, int nTargetY)
-            { return GetNextDirection(m_nCurrX, m_nCurrY, nTargetX, nTargetY); }
-
-            void	UpdateVisibleObject(CCharObject* pCharObject);
-            void	UpdateVisibleItem(int nX, int nY, CMapItem* pMapItem);
-            void	UpdateVisibleEvent(CEvent* pEvent);
-
-            void	SelectTarget(CCharObject* pTargetObject);
-
-            void	IncHealthSpell(int nHP, int nMP);
-            void	DamageSpell(int nVal);
-            void	DamageHealth(int nDamage);
-            int		GetMagStruckDamage(int nDamage);
-            void	StruckDamage(int nDamage);
-            int		GetHitStruckDamage(int nDamage);
-            int		GetAttackPower(int nDamage, int nVal);
-            BOOL	_Attack(WORD wHitMode, CCharObject* pObject);
-
-            void	WalkNextPos(int nDir, int& nX, int& nY);
-            void	TurnTo(int nDir);
-            BOOL	TurnXY(int nX, int nY, int nDir);
-            virtual BOOL	WalkTo(int nDir);
-            BOOL	WalkXY(int nX, int nY, int nDir);
-            BOOL	RunTo(int nDir);
-            BOOL	RunXY(int nX, int nY, int nDir);
-            BOOL	HitXY(WORD wIdent, int nX, int nY, int nDir, int nHitStyle);
-
-            void	DoDamageWeapon(int nDamage);
-
-            void	Disappear();
-            void	MakeGhost();
-
-            BOOL	DropItemDown(_LPTUSERITEMRCD lpTItemRcd, int nRange, BOOL fIsGenItem);
-
-            CCharObject* AddCreatureSysop(int nX, int nY, CMonRaceInfo* pMonRaceInfo, BOOL fSearch);
-
-            void	DoPushed(int nDirection);
-            void	DoMotaebo();
-            int		CharPushed(int nDir, int nPushCount);
-            BOOL	DoShowHP(CCharObject* pObject, CMagicInfo* pMagicInfo, int nLevel);
-            void	MakeOpenHealth();
-            void	BreakOpenHealth();
-            int		MagPushArround(int nPushLevel);
-            int		MagPassThroughMagic(int nStartX, int nStartY, int nTargetX, int nTargetY, int nDir, int nPwr, BOOL fUndeadAttack);
-            BOOL	MagBubbleDefenceUp(int nLevel, int nSec);
-            void	DamageBubbleDefence();
-            int		MagMakeFireCross(int nDamage, int nHTime, int nX, int nY);
-            BOOL	DirectAttack(CCharObject* pTargetObject, int nDamage);
-            BOOL	SwordLongAttack(int nDamage);
-            BOOL	SwordWideAttack(int nDamage);
-            BOOL	MagBigExplosion(int nPower, int nX, int nY, int nWide);
-            BOOL	MagBigHealing(int nPower, int nX, int nY);
-            BOOL	MagDefenceUp(int nState, int nSec);
-            BOOL	MagMakeDefenceArea(int nX, int nY, int nRange, int nSec, int nState);
-            BOOL	MagElecBlizzard(int nPower);
-            BOOL	MagMakePrivateTransparent(int nHTime);
-            int		MagMakeHolyCurtain(int nHTime, int nX, int nY);
-            BOOL	MagMakeGroupTransparent(int nX, int nY, int nHTime);
-            BOOL	MagTurnUndead(CCharObject* pTargetObject, int nX, int nY, int nLevel);
-
-            virtual BOOL	IsProperTarget(CCharObject* pCharObject);
-            BOOL	IsFriend(CCharObject* pCharObject);
-            BOOL	IsProperFriend(CCharObject* pCharObject);
-
-            void	SpaceMove(int nX, int nY, CMirMap* pMirMap);
-            void	GoldChanged();
-            void	HealthSpellChanged();
-
-            BOOL	GetAvailablePosition(CMirMap* pMap, int &nX, int &nY, int nRange);
-
-            void	GetQueryUserName(CCharObject* pObject, int nX, int nY);
-
-            void	SendSocket(_LPTDEFAULTMESSAGE lpDefMsg, char *pszPacket);
-
-            void	Die();
-
-            BOOL	RestoreHealSpell();
-
-            UINT	GetCharStatus();
-
-            virtual WORD	GetThisCharColor() = 0;
-            virtual void	GetCharName(char *pszCharName) = 0;
-            virtual void	Run();
-            virtual void	SearchViewRange();
-
-            CCharObject*	GetFrontObject();
-
-            __inline void SysMsg(char *pszMsg, int nMode)
-                /* { ( nMode == 1 ? AddProcess(this, RM_SYSMESSAGE2, 0, 0, 0, 0, pszMsg) : AddProcess(this, RM_SYSMESSAGE, 0, 0, 0, 0, pszMsg)); } */
-            {
-                if(nMode == 1){
-                    AddProcess(this, RM_SYSMESSAGE2, 0, 0, 0, 0, pszMsg);
-                }else{
-                    AddProcess(this, RM_SYSMESSAGE, 0, 0, 0, 0, pszMsg);
-                }
+    public:
+        // it's locked for sure, then all its related variables stay valid
+        void Unlock()
+        {
+            if(m_Lock){
+                m_Lock->lock();
             }
-            __inline LONG GetFeatureToLong()
-            { return (LONG) MAKELONG(MAKEWORD(m_tFeature.btGender, m_tFeature.btWear), MAKEWORD(m_tFeature.btHair, m_tFeature.btWeapon)); }
-            __inline BYTE GetRPow(WORD wPower)
-            { if (HIBYTE(wPower) > LOBYTE(wPower)) return LOBYTE(wPower) + (rand() % (HIBYTE(wPower) - LOBYTE(wPower) + 1)); else return LOBYTE(wPower); }
+        }
 
-            public:
-
-
-        };
+    public:
+        bool Target(uint32_t nID, uint32_t nAddTime)
+        {
+            extern MonoServer *g_MonoServer;
+            if(g_MonoServer->CheckOut<CharObject, false>(nID, nAddTime)){
+                m_Target = {nID, nAddTime};
+                return true;
+            }
+            return false;
+        }
+};
