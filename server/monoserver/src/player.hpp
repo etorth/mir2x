@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 04/09/2016 19:34:22
+ *  Last Modified: 04/09/2016 22:36:37
  *
  *    Description: 
  *
@@ -121,6 +121,9 @@ class Player: public CharObject
         }
 
     public:
+        PLAYERFEATURE               m_Feature;
+        PLAYERFEATUREEX             m_FeatureEx;
+
         CUserInfo*                  m_pUserInfo;
 
         CWHQueue                    m_ProcessQ;

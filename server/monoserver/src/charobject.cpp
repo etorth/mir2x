@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/09/2016 20:18:01
+ *  Last Modified: 04/10/2016 02:29:27
  *
  *    Description: 
  *
@@ -69,7 +69,7 @@ CharObject::~CharObject()
     m_VisibleObjectList.clear();
 }
 
-void CharObject::DropItem(uint32_t nGUID, int nRange)
+void CharObject::DropItem(uint32_t nUID, uint32_t nAddTime, int nRange)
 {
     int nMapID = m_Map->ID();
 

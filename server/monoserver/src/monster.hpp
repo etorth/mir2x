@@ -1,18 +1,70 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: monster.hpp
+ *        Created: 04/10/2016 02:32:45 AM
+ *  Last Modified: 04/10/2016 02:45:22
+ *
+ *    Description: 
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #pragma once
+#include "charobject.hpp"
 
-#include <vector>
-#include <forward_list>
+typedef struct{
+    int     MonsterIndex;
+    int     Type;
+    int     Chance;
+    int     Count;
 
-#include "servermap.hpp"
-#include "monoserver.hpp"
+    MONSTERITEMINFO(int nMonsterIndex = -1)
+        : MonsterIndex(nMonsterIndex)
+    {}
 
-enum CharObjectType: uint8_t{
-    COT_HUMAN,
-    COT_PLAYER,
-    COT_NPC,
-    COT_ANIMAL,
-    COT_MONSTER,
-};
+}MONSTERITEMINFO;
+
+typedef struct{
+    int     Index;
+    int     Race;
+    int     LID;
+    int     Undead;
+    int     Level;
+    int     HP;
+    int     MP;
+    int     AC;
+    int     MAC;
+    int     DC;
+    int     AttackSpead;
+    int     WalkSpead;
+    int     Spead;
+    int     Hit;
+    int     ViewRange;
+    int     RaceIndex;
+    int     Exp;
+    int     Escape;
+    int     Water;
+    int     Fire;
+    int     Wind;
+    int     Light;
+
+    std::string     Name;
+    std::vector<MONSTERITEMINFO> ItemV;
+
+    MONSTERRACEINFO(int nIndex = -1)
+        : Index(nIndex)
+        , Name("")
+    {}
+
+}MONSTERRACEINFO;
 
 #pragma pack(push, 1)
 typedef struct{
@@ -66,11 +118,11 @@ typedef struct{
 }OBJECTADDABILITY;
 #pragma pack(pop)
 
-class CharObject
+class Monster: public CharObject
 {
     public:
-        CharObject();
-        ~CharObject();
+        Monster();
+        ~Monster();
 
     public:
         virtual bool Friend(const CharObject *) const = 0;

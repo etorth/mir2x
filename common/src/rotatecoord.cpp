@@ -3,7 +3,7 @@
  *
  *       Filename: rotatecoord.cpp
  *        Created: 08/15/2015 04:01:57 PM
- *  Last Modified: 04/06/2016 23:08:27
+ *  Last Modified: 04/09/2016 23:04:56
  *
  *    Description: 
  *
@@ -158,8 +158,7 @@ bool RotateCoord::Forward()
                                 nNewY--;
                             }
                             if(PointInRectangle(nNewX, nNewY, m_StartX, m_StartY,
-                                        m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)
-                              ){
+                                        m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
                                 m_Direction = 1;
                                 m_CurrentX  = nNewX;
                                 m_CurrentY  = nNewY;
@@ -320,7 +319,7 @@ bool RotateCoord::Forward()
             case 3:
                 {
                     if(m_StopY >= m_CenterY + m_Distance){
-						// may jump to the end of D3 when invoking Reset()
+                        // may jump to the end of D3 when invoking Reset()
                         // I have updated Reset(), for d 3 to get the smallest direction
                         // then this is impossible
                         // but keep it here as it is
@@ -344,15 +343,15 @@ bool RotateCoord::Forward()
                         }
                     }
                     break;
+                    }
+                    default:
+                    {
+                        return false;
+                    }
                 }
-            default:
-                {
-                    return false;
-                }
+        }else{
+            m_Distance++;
+            CheckOverlap();
+            return MoveToNextRound();
         }
-    }else{
-        m_Distance++;
-        CheckOverlap();
-        return MoveToNextRound();
     }
-}

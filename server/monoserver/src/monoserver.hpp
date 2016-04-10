@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/09/2016 22:30:45
+ *  Last Modified: 04/09/2016 22:35:26
  *
  *    Description: 
  *
@@ -31,6 +31,7 @@
 #include "database.hpp"
 #include "message.hpp"
 #include "asynchub.hpp"
+#include "charobject.hpp"
 #include "asyncobject.hpp"
 #include "objectlockguard.hpp"
 
