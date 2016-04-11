@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/08/2016 22:33:29
+ *  Last Modified: 04/10/2016 23:05:02
  *
  *    Description: 
  *
@@ -18,674 +18,38 @@
  * =====================================================================================
  */
 
+#include "player.hpp"
 #include "charobject.hpp"
 
-Player::~CharObject()
+Player::Player()
+    : CharObject()
 {
-    std::for_each(
-            m_VisibleObjectList.first(),
-            m_VisibleObjectList.end(),
-            [](VisibleObject *pObject){ delete pObject; });
-    m_VisibleObjectList.clear();
 }
 
-void Player::SelectTarget(CharObject* pTargetObject)
-{
-    extern MonoServer *g_MonoServer;
-    m_TargetObject    = pTargetObject;
-    m_TargetFocusTime = g_MonoServer->GetTickCount();
-}
-
-int Player::GetBack()
-{
-    switch (m_Direction){
-        case DR_UP       : return DR_DOWN;
-        case DR_DOWN     : return DR_UP;
-        case DR_LEFT     : return DR_RIGHT;
-        case DR_RIGHT    : return DR_LEFT;
-        case DR_UPLEFT   : return DR_DOWNRIGHT;
-        case DR_UPRIGHT  : return DR_DOWNLEFT;
-        case DR_DOWNLEFT : return DR_UPRIGHT;
-        case DR_DOWNRIGHT: return DR_UPLEFT;
-        default: break;
-    }
-
-    return nDirection;
-}
-
-bool Player::Friend(CharObject* pCharObject)
+bool Player::Friend(const CharObject* pCharObject) const
 {
     if(!pCharObject || pCharObject == this){ return true; }
-    if(pCharObject->Type(OT_ANIMAL)){
-        if(pCharObject->Master()){
-            return Friend(pCharObject->Master());
+
+    if(pCharObject->Type(CHAROBJECT_ANIMAL)){
+        return pCharObject->Friend(this);
+    }
+
+    if(pCharObject->Type(CHAROBJECT_HUMAN)){
+        if(Mode(MODE_ATTACKALL)){
+            return false;
         }
-        return false;
-    }
 
-    if(pCharObject->Type(OT_HUMAN)){
-        if(pCharObject->UserInfo()){
-            switch(pCharObject->UserInfo()->AttackMode()){
-                case AM_PEACE: return true;
-                default:       return false;
-            }
-        }
-        return false;
-    }
-
-    return pCharObject->Friend(this);
-}
-
-bool Player::DropItemDown(_LPTUSERITEMRCD lpTItemRcd, int nRange, bool fIsGenItem)
-{
-    CMapItem* xpMapItem = new CMapItem;
-
-    xpMapItem->nCount = 1;
-
-    if(fIsGenItem)
-    {
-        _LPTGENERALITEMRCD lpTGenItemRcd = NULL;
-
-        lpTGenItemRcd = (_LPTGENERALITEMRCD)lpTItemRcd;
-
-        xpMapItem->wLooks       = (WORD)g_pStdItemEtc[lpTGenItemRcd->nStdIndex].dwLooks;
-        xpMapItem->btAniCount   = (BYTE)0;
-
-        xpMapItem->pItem        = (LONG)lpTGenItemRcd;
-        memmove(xpMapItem->szName, g_pStdItemEtc[lpTGenItemRcd->nStdIndex].szName, memlen(g_pStdItemEtc[lpTGenItemRcd->nStdIndex].szName));
-    }
-    else
-    {
-        xpMapItem->wLooks       = (WORD)g_pStdItemSpecial[lpTItemRcd->nStdIndex].dwLooks;
-        xpMapItem->btAniCount   = (BYTE)g_pStdItemSpecial[lpTItemRcd->nStdIndex].wAniCount;
-
-        xpMapItem->pItem        = (LONG)lpTItemRcd;
-
-        if(strlen(lpTItemRcd->szPrefixName))
-        {
-            strcpy(xpMapItem->szName, lpTItemRcd->szPrefixName);
-            strcat(xpMapItem->szName, " ");
-            strcat(xpMapItem->szName, g_pStdItemSpecial[lpTItemRcd->nStdIndex].szName);
-        }
-        else
-            strcpy(xpMapItem->szName, g_pStdItemSpecial[lpTItemRcd->nStdIndex].szName);
-    }
-
-    int nX, nY;
-
-    m_Map->GetDropPosition(m_CurrX, m_CurrY, nRange, nX, nY);
-    m_Map->AddNewObject(nX, nY, OS_ITEMOBJECT, (VOID *)xpMapItem);
-
-    AddRefMsg(RM_ITEMSHOW, xpMapItem->wLooks, (int)xpMapItem, nX, nY, xpMapItem->szName);
-
-    return true;
-}
-
-void Player::Run()
-{
-    if(m_OpenHealth)
-    {
-        if(g_MonoServer->GetTickCount() - m_OpenHealthStart > m_OpenHealthTime)
-            BreakOpenHealth();
-    }
-
-    bool fChg = false;
-    bool fNeedRecalc = false;
-
-    for (int i = 0; i < MAX_STATUS_ATTRIBUTE; i++)
-    {
-        if(m_StateAttrV[i] > 0 && m_StateAttrV[i] < 60000)
-        {
-            if(g_MonoServer->GetTickCount() - m_StatusTime[i] > 1000)
-            {
-                m_StateAttrV[i]     -= 1;
-                m_StatusTime[i] += 1000;
-
-                if(m_StateAttrV[i] == 0)
-                {
-                    fChg = true;
-
-                    switch (i)
-                    {
-                        case STATE_DEFENCEUP:
-                            fNeedRecalc = true;
-                            SysMsg("방어력 상승 해제", 1);
-                            break;
-                        case STATE_MAGDEFENCEUP:
-                            fNeedRecalc = true;
-                            SysMsg("마항력 상승 해제", 1);
-                            break;
-                            /*                        case STATE_TRANSPARENT:
-                                                      begin
-BoHumHideMode := false;
-end; */
-                        case STATE_BUBBLEDEFENCEUP:
-                            m_AbilMagicBubbleDefence = false;
-                            break;
-                    }
-                }
-            }
-        }
-    }
-
-    if(fChg)
-    {
-        m_CharStatus = GetCharStatus();
-        AddRefMsg(RM_CHARSTATUSCHANGED, m_HitSpeed/*wparam*/, m_CharStatus, 0, 0, NULL);
-    }
-
-    if(fNeedRecalc)
-    {
-        ((CPlayerObject*)this)->RecalcAbilitys();
-        AddProcess(this, RM_ABILITY, 0, 0, 0, 0, NULL);
-    }
-}
-
-void Player::Die()
-{
-    if(m_IsNeverDie) return;
-
-    m_IncHealing    = 0;
-    m_IncHealth     = 0;
-    m_IncSpell      = 0;
-
-    m_DeathTime = g_MonoServer->GetTickCount();
-
-    if(m_ObjectType & (_OBJECT_ANIMAL | _OBJECT_HUMAN))
-        AddRefMsg(RM_DEATH, m_Direction, m_CurrX, m_CurrY, 1, NULL);
-
-    m_Dead      = true;
-}
-
-bool Player::GetAvailablePosition(CMirMap* pMap, int &nX, int &nY, int nRange)
-{
-    if(pMap->CanMove(nX, nY))
-        return true;
-
-    int nOrgX       = nX;
-    int nOrgY       = nY;
-    int nLoonCnt    = (4 * nRange) * (nRange + 1);
-
-    for (int i = 0; i < nLoonCnt; i++)
-    {
-        nX = nOrgX + g_SearchTable[i].x;
-        nY = nOrgY + g_SearchTable[i].y;
-
-        if(pMap->CanMove(nX, nY))
+        if(Mode(MODE_PEACE)){
             return true;
-    }
+        }
 
-    nX = nOrgX;
-    nY = nOrgY;
+        auto pHuman = (Player*)(pCharObject);
+        if(pHuman->Mode(MODE_PEACE)){
+            return true;
+        }
+    }
 
     return false;
-}
-
-bool Player::GetNextPosition(int nSX, int nSY, int nDir, int nDistance, int& nX, int& nY)
-{
-    nX = nSX;
-    nY = nSY;
-
-    switch (nDir)
-    {
-        case DR_UP:
-            if(nY > (nDistance - 1)) nY -= nDistance;
-            break;
-        case DR_DOWN:
-            if(nY < m_Map->m_MapFH.shHeight - nDistance) nY += nDistance;
-            break;
-        case DR_LEFT:
-            if(nX > (nDistance - 1)) nX -= nDistance;
-            break;
-        case DR_RIGHT:
-            if(nX < m_Map->m_MapFH.shWidth - nDistance) nX += nDistance;
-            break;
-        case DR_UPLEFT:
-            {
-                if((nX > nDistance - 1) && (nY > nDistance - 1))
-                {
-                    nX -= nDistance;
-                    nY -= nDistance;
-                }
-
-                break;
-            }
-        case DR_UPRIGHT:
-            {
-                if((nX > nDistance - 1) && (nY < m_Map->m_MapFH.shHeight - nDistance))
-                {
-                    nX += nDistance;
-                    nY -= nDistance;
-                }
-
-                break;
-            }
-        case DR_DOWNLEFT:
-            {
-                if((nX < m_Map->m_MapFH.shWidth - nDistance) && (nY > nDistance - 1))
-                {
-                    nX -= nDistance;
-                    nY += nDistance;
-                }
-
-                break;
-            }
-        case DR_DOWNRIGHT:
-            {
-                if((nX < m_Map->m_MapFH.shWidth - nDistance) && (nY < m_Map->m_MapFH.shHeight - nDistance))
-                {
-                    nX += nDistance;
-                    nY += nDistance;
-                }
-
-                break;
-            }
-    }
-
-    if((m_CurrX == nX) && (m_CurrY == nY))
-        return false;
-
-    return true;
-}
-
-int Player::GetNextDirection(int nStartX, int nStartY, int nTargetX, int nTargetY)
-{
-    int nFlagX, nFlagY;
-
-    if(nStartX < nTargetX) nFlagX = 1;
-    else if(nStartX == nTargetX) nFlagX = 0;
-    else
-        nFlagX = -1;
-
-    if(abs(nStartY - nTargetY) > 2)
-    {
-        if((nStartY >= nTargetY - 1) && (nStartY <= nTargetY + 1))
-            nFlagX = 0;
-    }
-
-    if(nStartY < nTargetY) nFlagY = 1;
-    else if(nStartY == nTargetY) nFlagY = 0;
-    else
-        nFlagY = -1;
-
-    if(abs(nStartX - nTargetX) > 2)
-    {
-        if((nStartX >= nTargetX - 1) && (nStartX <= nTargetX + 1))
-            nFlagY = 0;
-    }
-
-    if((nFlagX == 0) && (nFlagY == -1)) return DR_UP;
-    else if((nFlagX == 1) && (nFlagY == -1)) return DR_UPRIGHT;
-    else if((nFlagX == 1) && (nFlagY == 0)) return DR_RIGHT;
-    else if((nFlagX == 1) && (nFlagY == 1)) return DR_DOWNRIGHT;
-    else if((nFlagX == 0) && (nFlagY == 1)) return DR_DOWN;
-    else if((nFlagX == -1) && (nFlagY == 1)) return DR_DOWNLEFT;
-    else if((nFlagX == -1) && (nFlagY == 0)) return DR_LEFT;
-    else if((nFlagX == -1) && (nFlagY == -1)) return DR_UPLEFT;
-
-    return DR_DOWN;
-}
-
-CharObject* Player::GetFrontObject()
-{
-    int nX, nY;
-
-    GetFrontPosition(nX, nY);
-
-    CharObject* pCharObject = m_Map->GetObject(nX, nY);
-
-    if(pCharObject)
-        return pCharObject;
-
-    return NULL;
-}
-
-void Player::UpdateDelayProcessCheckParam1(
-        CharObject* pCharObject,
-        WORD wIdent, WORD wParam, 
-        DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData, int nDelay)
-{
-    _LPTPROCESSMSG  lpProcessMsg;
-
-    int nCount = m_DelayProcessQ.GetCount();
-
-    if(nCount)
-    {
-        for (int i = 0; i < nCount; i++)
-        {
-            lpProcessMsg = (_LPTPROCESSMSG)m_DelayProcessQ.PopQ();
-
-            if(lpProcessMsg)
-            {
-                if(lpProcessMsg->wIdent == wIdent && lpProcessMsg->lParam1 == lParam1)
-                {
-                    if(lpProcessMsg->pszData)
-                    {
-                        delete [] lpProcessMsg->pszData;
-                        lpProcessMsg->pszData = NULL;
-                    }
-
-                    delete lpProcessMsg;
-                    lpProcessMsg = NULL;
-                }
-                else
-                    m_DelayProcessQ.PushQ((BYTE *)lpProcessMsg);
-            }
-        }
-    }
-
-    AddDelayProcess(pCharObject, wIdent, wParam, lParam1, lParam2, lParam3, pszData, nDelay);
-}
-
-void Player::UpdateProcess(CharObject* pCharObject, WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData)
-{
-    _LPTPROCESSMSG  lpProcessMsg;
-
-    //  EnterCriticalSection(&m_cs);
-
-    int nCount = m_ProcessQ.GetCount();
-
-    if(nCount)
-    {
-        for (int i = 0; i < nCount; i++)
-        {
-            lpProcessMsg = (_LPTPROCESSMSG)m_ProcessQ.PopQ();
-
-            if(lpProcessMsg)
-            {
-                if(lpProcessMsg->wIdent == wIdent)
-                {
-                    if(lpProcessMsg->pszData)
-                    {
-                        delete [] lpProcessMsg->pszData;
-                        lpProcessMsg->pszData = NULL;
-                    }
-
-                    delete lpProcessMsg;
-                    lpProcessMsg = NULL;
-                }
-                else
-                    m_ProcessQ.PushQ((BYTE *)lpProcessMsg);
-            }
-        }
-    }
-
-    //  LeaveCriticalSection(&m_cs);
-
-    AddProcess(pCharObject, wIdent, wParam, lParam1, lParam2, lParam3, pszData);
-}
-
-void Player::AddProcess(CharObject* pCharObject, WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData)
-{
-    //  EnterCriticalSection(&m_cs);
-
-    _LPTPROCESSMSG lpProcessMsg = new _TPROCESSMSG;
-
-    if(!m_IsGhost)
-    {
-        if(lpProcessMsg)
-        {
-            lpProcessMsg->wIdent            = wIdent;
-            lpProcessMsg->wParam            = wParam;
-            lpProcessMsg->lParam1           = lParam1;
-            lpProcessMsg->lParam2           = lParam2;
-            lpProcessMsg->lParam3           = lParam3;
-
-            lpProcessMsg->dwDeliveryTime    = 0;
-
-            lpProcessMsg->pCharObject       = pCharObject;
-
-            if(pszData)
-            {
-                int nLen = memlen(pszData);
-
-                lpProcessMsg->pszData = new char[nLen];
-                memmove(lpProcessMsg->pszData, pszData, nLen);
-            }
-            else
-                lpProcessMsg->pszData       = NULL;
-
-            m_ProcessQ.PushQ((BYTE *)lpProcessMsg);
-        }
-    }
-
-    //  LeaveCriticalSection(&m_cs);
-}
-
-void Player::AddDelayProcess(CharObject* pCharObject, WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData, int nDelay)
-{
-    //  EnterCriticalSection(&m_cs);
-
-    _LPTPROCESSMSG lpProcessMsg = new _TPROCESSMSG;
-
-    if(lpProcessMsg)
-    {
-        lpProcessMsg->wIdent            = wIdent;
-        lpProcessMsg->wParam            = wParam;
-        lpProcessMsg->lParam1           = lParam1;
-        lpProcessMsg->lParam2           = lParam2;
-        lpProcessMsg->lParam3           = lParam3;
-
-        lpProcessMsg->dwDeliveryTime    = g_MonoServer->GetTickCount() + nDelay;
-
-        lpProcessMsg->pCharObject       = pCharObject;
-
-        if(pszData)
-        {
-            int nLen = memlen(pszData);
-
-            lpProcessMsg->pszData = new char[nLen];
-            memmove(lpProcessMsg->pszData, pszData, nLen);
-        }
-        else
-            lpProcessMsg->pszData       = NULL;
-
-        m_DelayProcessQ.PushQ((BYTE *)lpProcessMsg);
-    }
-
-    //  LeaveCriticalSection(&m_cs);
-}
-
-void Player::AddRefMsg(
-        WORD wIdent, WORD wParam, DWORD lParam1, DWORD lParam2, DWORD lParam3, char *pszData)
-{
-    CMapCellInfo*   pMapCellInfo    = NULL;
-    CharObject* pCharObject     = NULL;
-
-    int nStartX = m_CurrX - _RANGE_X;
-    int nStopX  = m_CurrX + _RANGE_X;
-    int nStartY = m_CurrY - _RANGE_Y;
-    int nStopY  = m_CurrY + _RANGE_Y;
-
-    if(m_Inspector) return;
-
-    if(g_MonoServer->GetTickCount() - m_CacheTick > _CACHE_TICK || m_CacheObjectList.GetCount() == 0)
-    {
-        m_CacheObjectList.Clear();
-
-        for (int x = nStartX; x <= nStopX; x++)
-        {
-            for (int y = nStartY; y <= nStopY; y++)
-            {
-                if(pMapCellInfo = m_Map->GetMapCellInfo(x, y))
-                {
-                    if(pMapCellInfo->m_ObjectList)
-                    {
-                        if(pMapCellInfo->m_ObjectList->GetCount())
-                        {
-                            PLISTNODE pListNode = pMapCellInfo->m_ObjectList->GetHead();
-
-                            while (pListNode)
-                            {
-                                _LPTOSOBJECT pOSObject = pMapCellInfo->m_ObjectList->GetData(pListNode);
-
-                                if(pOSObject->btType == OS_MOVINGOBJECT)
-                                {
-                                    pCharObject = (CharObject*)pOSObject->pObject;
-
-                                    if(!pCharObject->m_IsGhost)
-                                    {
-                                        if(pCharObject->m_ObjectType & _OBJECT_HUMAN)
-                                        {   
-                                            pCharObject->AddProcess(this, wIdent, wParam, lParam1, lParam2, lParam3, pszData);                  
-                                            m_CacheObjectList.AddNewNode(pCharObject);
-                                        }
-                                    }
-                                }
-
-                                pListNode = pMapCellInfo->m_ObjectList->GetNext(pListNode);
-                            } // while (pListNode)
-                        } // if(pMapCellInfo->m_ObjectList.GetCount())
-                    }
-                } // if(pMapCellInfo)
-            }// for (y)
-        } // for (x)
-
-        m_CacheTick = g_MonoServer->GetTickCount();
-    }
-    else
-    {
-        PLISTNODE pListNode = m_CacheObjectList.GetHead();
-
-        while (pListNode)
-        {
-            CharObject* pCharObject = m_CacheObjectList.GetData(pListNode);
-
-            if(!pCharObject->m_IsGhost)
-            {
-                if((pCharObject->m_Map = m_Map) && (abs(pCharObject->m_CurrX - m_CurrX) <= 11) && 
-                        (abs(pCharObject->m_CurrY - m_CurrY) <= 11))
-                {
-                    if(pCharObject->m_ObjectType & _OBJECT_HUMAN)
-                        pCharObject->AddProcess(this, wIdent, wParam, lParam1, lParam2, lParam3, pszData);
-                    //                     end else begin
-                    //                      if cret.WantRefMsg and ((msg = RM_STRUCK) or (msg = RM_HEAR) or (msg = RM_DEATH)) then
-                    //                       cret.SendMsg (self, msg, wparam, lparam1, lparam2, lparam3, str);
-                }
-            }
-
-            pListNode = m_CacheObjectList.GetNext(pListNode);
-        } // while (pListNode)
-    }
-}
-
-void Player::SpaceMove(int nX, int nY, CMirMap* pMirMap)
-{
-    CVisibleObject* pVisibleObject;
-
-    if(m_Map->RemoveObject(m_CurrX, m_CurrY, OS_MOVINGOBJECT, this))
-    {
-        PLISTNODE pListNode = m_VisibleObjectList.GetHead();
-
-        while (pListNode)
-        {
-            pVisibleObject = m_VisibleObjectList.GetData(pListNode);
-
-            if(pVisibleObject)
-            {
-                delete pVisibleObject;
-                pVisibleObject = NULL;
-            }
-
-            pListNode = m_VisibleObjectList.RemoveNode(pListNode);
-        } // while (pListNode)
-
-        m_Map = pMirMap;
-
-        m_CurrX = nX;
-        m_CurrY = nY;
-
-        if(m_Map->AddNewObject(m_CurrX, m_CurrY, OS_MOVINGOBJECT, this))
-        {
-            AddProcess(this, RM_CLEAROBJECTS, 0, 0, 0, 0, NULL);
-            AddProcess(this, RM_CHANGEMAP, 0, 0, 0, 0, NULL);
-
-            AddRefMsg(RM_SPACEMOVE_SHOW, m_Direction, m_CurrX, m_CurrY, 0, NULL);
-        }
-    }
-}
-
-void Player::UpdateVisibleObject(CharObject* pCharObject)
-{
-    CVisibleObject* pVisibleObject;
-
-    PLISTNODE       pListNode = m_VisibleObjectList.GetHead();
-
-    while (pListNode)
-    {
-        pVisibleObject = m_VisibleObjectList.GetData(pListNode);
-
-        if(pVisibleObject->pObject == pCharObject)
-        {
-            pVisibleObject->nVisibleFlag = 1;
-            return;
-        }
-
-        pListNode = m_VisibleObjectList.GetNext(pListNode);
-    } // while (pListNode)
-
-    CVisibleObject* pNewVisibleObject = new CVisibleObject;
-
-    pNewVisibleObject->nVisibleFlag = 2;
-    pNewVisibleObject->pObject      = pCharObject;
-
-    m_VisibleObjectList.AddNewNode(pNewVisibleObject);
-}
-
-void Player::UpdateVisibleItem(int nX, int nY, CMapItem* pMapItem)
-{
-    CVisibleMapItem* pVisibleItem;
-
-    PLISTNODE       pListNode = m_VisibleItemList.GetHead();
-
-    while (pListNode)
-    {
-        pVisibleItem = m_VisibleItemList.GetData(pListNode);
-
-        if(pVisibleItem->pMapItem == pMapItem)
-        {
-            pVisibleItem->nVisibleFlag = 1;
-            return;
-        }
-
-        pListNode = m_VisibleItemList.GetNext(pListNode);
-    } // while (pListNode)
-
-    CVisibleMapItem* pVisibleNewItem = new CVisibleMapItem;
-
-    pVisibleNewItem->nVisibleFlag   = 2;
-    pVisibleNewItem->wX             = (WORD)nX;
-    pVisibleNewItem->wY             = (WORD)nY;
-    pVisibleNewItem->pMapItem       = pMapItem;
-
-    m_VisibleItemList.AddNewNode(pVisibleNewItem);
-}
-
-void Player::UpdateVisibleEvent(CEvent* pEvent)
-{
-    CVisibleEvent* pVisibleEvent;
-
-    PLISTNODE       pListNode = m_VisibleEventList.GetHead();
-
-    while (pListNode)
-    {
-        pVisibleEvent = m_VisibleEventList.GetData(pListNode);
-
-        if(pVisibleEvent->pEvent == pEvent)
-        {
-            pVisibleEvent->nVisibleFlag = 1;
-            return;
-        }
-
-        pListNode = m_VisibleEventList.GetNext(pListNode);
-    } // while (pListNode)
-
-    CVisibleEvent* pVisibleNewEvent = new CVisibleEvent;
-
-    pVisibleNewEvent->nVisibleFlag  = 2;
-    pVisibleNewEvent->pEvent        = pEvent;
-
-    m_VisibleEventList.AddNewNode(pVisibleNewEvent);
 }
 
 // update the view range for each object
@@ -697,10 +61,16 @@ void Player::UpdateVisibleEvent(CEvent* pEvent)
 // 4. for objects marked as 0, send message and delete it
 void Player::SearchViewRange()
 {
-    int nStartX = m_CurrX - m_ViewRange;
-    int nStopX  = m_CurrX + m_ViewRange;
-    int nStartY = m_CurrY - m_ViewRange;
-    int nStopY  = m_CurrY + m_ViewRange;
+    int nRange = Range(RANGE_VIEW);
+    int nStartX = m_CurrX - nRange;
+    int nStopX  = m_CurrX + nRange;
+    int nStartY = m_CurrY - nRange;
+    int nStopY  = m_CurrY + nRange;
+
+    int nGridX0 = nStartX / 48;
+    int nGridY0 = nStartY / 32;
+    int nGridX1 = nStopX  / 48;
+    int nGridY1 = nStopY  / 32;
 
     // we won't exam the validation of object here
     for(auto &stRecord: m_VisibleObjectList){
@@ -884,11 +254,45 @@ void Player::SearchViewRange()
         }
     };
     m_VisibleEventList.erase();
-}
 
-bool Player::Ghost()
-{
-    return m_Ghost;
+    // 3. filter the list
+    // use while for detailed debug message, otherwise use algorithm template instead
+    auto pRecord = m_VisibleObjectList.begin();
+    while(pRecord != m_VisibleObjectList.end()){
+        switch(std::get<0>(pRecord)){
+            case 0:
+                {
+                    extern Log *g_Log;
+                    g_Log->AddLog("Object (%d:%d) is out of range of monster (%d:%d)",
+                            std::get<1>(*pRecord), std::get<2>(*pRecord), UID(), AddTime());
+                    pRecord = m_VisibleObjectList.erase(pRecord);
+                    break;
+                }
+            case 1:
+                {
+                    pRecord++;
+                    break;
+                }
+            case 2:
+                {
+                    extern Log *g_Log;
+                    g_Log->AddLog("New object (%d:%d) found in range of monster (%d:%d)",
+                            std::get<1>(*pRecord), std::get<2>(*pRecord), UID(), AddTime());
+                    std::get<0>(*pRecord) = 1;
+                    pRecord++;
+                    break;
+                }
+            default:
+                {
+                    extern Log *g_Log;
+                    g_Log->AddLog("Invalid view tag %d of object (%d:%d) for monster (%d:%d)",
+                            std::get<0>(*pRecord),
+                            std::get<1>(*pRecord), std::get<2>(*pRecord), UID(), AddTime());
+                    pRecord = m_VisibleObjectList.erase(pRecord);
+                    break;
+                }
+        }
+    }
 }
 
 void Player::Ghost(bool bGhost)
@@ -898,9 +302,9 @@ void Player::Ghost(bool bGhost)
     m_Ghost = true;
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Add(3 * 60 * 1000, [m_UID, m_AddTime](){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->DeleteCharObject(m_UID, m_AddTime);
-    });
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->DeleteCharObject(m_UID, m_AddTime);
+            });
 
     m_Map->DeleteCharObject(m_CurrX, m_CurrY, OS_MOVINGOBJECT, m_UID, m_AddTime);
     extern MonoServer *g_MonoServer;

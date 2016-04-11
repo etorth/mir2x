@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/10/2016 02:29:27
+ *  Last Modified: 04/10/2016 21:26:34
  *
  *    Description: 
  *
@@ -573,4 +573,14 @@ void CharObject::Lock()
     extern MonoServer *g_MonoServer;
     return g_MonoServer->LockObject(m_ID, m_AddTime);
 
+}
+
+bool CharObject::Target(uint32_t nID, uint32_t nAddTime)
+{
+    extern MonoServer *g_MonoServer;
+    if(g_MonoServer->CheckOut<CharObject>(nID, nAddTime)){
+        m_Target = std::tuple<uint32_t, uint32_t>(nID, nAddTime);
+        return true;
+    }
+    return false;
 }

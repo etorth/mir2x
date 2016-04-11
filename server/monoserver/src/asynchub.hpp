@@ -3,7 +3,7 @@
  *
  *       Filename: asynchub.hpp
  *        Created: 04/09/2016 20:51:17
- *  Last Modified: 04/09/2016 22:02:37
+ *  Last Modified: 04/10/2016 18:54:16
  *
  *    Description: An async hub is a global container which stays valid during the
  *                 whole process, but item inside may be created/released.
@@ -74,22 +74,26 @@
 #pragma once
 #include <mutex>
 
-#include "sfinaecheck.hpp"
-GENERATE_HAS_MEMBER(BindLock)
+// #include "sfinaecheck.hpp"
+// GENERATE_HAS_MEMBER(BindLock)
 
-template<typename T, bool CheckBindLock = (has_member_BindLock<T>::value)>
+template<typename ResType>
+using AsyncResType = std::tuple<std::shared_ptr<std::mutex>, ResType *>;
+
+// template<typename T, bool CheckBindLock = (has_member_BindLock<T>::value)>
+template<typename T>
 class AsyncHub
 {
     private:
         std::mutex  m_Lock;
-        std::unordered_map<uint64_t, std::tuple<std::mutex *, T *>> m_ObjectHub;
+        std::unordered_map<uint64_t, AsyncResType<T>> m_ObjectHub;
 
     public:
-        AsyncHub()
-        {
-            static_assert(CheckBindLock,
-                    "AsyncHub request memeber function BindLock() for template argument type");
-        }
+        // AsyncHub()
+        // {
+        //     static_assert(CheckBindLock,
+        //             "AsyncHub request memeber function BindLock() for template argument type");
+        // }
     public:
 
         // return false if
@@ -109,15 +113,16 @@ class AsyncHub
             if(stInst != m_ObjectHub.end()){ return false; }
 
             auto pLock = new std::mutex;
-            m_ObjectHub[nKey] = {pLock, pRes};
+            m_ObjectHub[nKey] = {std::make_shared<std::mutex>(), pRes};
 
+            // here we require the async resource type define a BindLock() method
             pRes->BindLock(pLock);
             return true;
         }
 
         // nKey maybe invalid
         // after this, guanteed there is no item w.r.t nKey
-        void Delete(uint64_t nKey,
+        void Remove(uint64_t nKey,
                 const std::function<void(T *)> fnDelete = [](T *pRes){ delete pRes; })
         {
             std::lock_guard<std::mutex> stLockGuard(m_Lock);
@@ -130,7 +135,7 @@ class AsyncHub
                 fnDelete(std::get<1>(stInst.second));
             }
 
-            delete std::get<0>(stInst.second);
+            // the mutex is owned by shared_ptr, no need for explicitly delete
             m_ObjectHub.erase(stInst);
         }
 
@@ -142,8 +147,8 @@ class AsyncHub
             if(stInst == m_ObjectHub.end()){ return nullptr; }
 
             if(bLockIt){
-                std::get<0>(stInst.second)->lock();
+                std::get<0>(stInst->second)->lock();
             }
-            return std::get<1>(stInst.second);
+            return std::get<1>(stInst->second);
         }
 };

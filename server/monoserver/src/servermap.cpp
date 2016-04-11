@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/10/2016 02:04:25
+ *  Last Modified: 04/10/2016 22:21:19
  *
  *    Description: 
  *
@@ -224,4 +224,31 @@ bool ServerMap::RemoveObject(
     std::erase(std::remove_if(
                 m_GridObjectRecordList[nGridX][nGridY].begin(),
                 m_GridObjectRecordList[nGridX][nGridY].end(), fnCmp));
+}
+
+// lock the gird (i, j) and invoke the handler for each object
+// in this function m_GridObjectRecordListV is update by in/out event driven
+// every time there is an object being inside/outside of a grid, the w.r.t.
+// gird will be updated, so (TODO) fnQuery can assume each each object it
+// queried is still in the grid
+//
+// even fnQuery found current object is not in current grid, it can't update
+// the gird list directly since it only got an ID of the object. update done
+// by event driven so it's OK
+//
+bool ServerMap::QueryObject(int nX, int nY,
+        const std::function<void(uint8_t, uint32_t, uint32_t)> &fnQuery)
+{
+    // 1. check arguments
+    if(!m_Mir2xMap.ValidC(nX, nY)){ return false; }
+
+    {
+        // 2. lock cell (i, j)
+        std::lock_guard<std::mutex> stLockGuard(*m_GridObjectRecordListVLock[nY][nX]);
+
+        // 3. invoke the handler
+        for(auto &pRecord: m_GridObjectRecordListV[nY][nX]){
+            fnQuery(std::get<0>(pRecord), std::get<1>(pRecord), std::get<0>(pRecord));
+        }
+    }
 }

@@ -102,6 +102,7 @@ void MonoServer::Launch()
     InitMonsterRace();
     InitMonsterItem();
 
+    extern TaskHub *g_TaskHub;
     g_TaskHub->Shutdown();
     // 3. all-set, start to accept connections from clients
     extern ServerConfigureWindow *g_ServerConfigureWindow;

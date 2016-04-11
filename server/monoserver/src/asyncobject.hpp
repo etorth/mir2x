@@ -3,7 +3,7 @@
  *
  *       Filename: asyncobject.hpp
  *        Created: 04/09/2016 00:20:22
- *  Last Modified: 04/10/2016 02:25:21
+ *  Last Modified: 04/10/2016 20:55:59
  *
  *    Description: Previously I was trying to implement AsyncObject with a mutex
  *                 and let all objects derived from it
@@ -25,12 +25,29 @@
  */
 
 #pragma once
+#include <memory>
+#include <mutex>
 
+// async object itself won't manager a mutex pointer
+// In my design, whether an ojbect is valid only depends whether you can find
+// it in the object pool via MonoServer.
+//
+// class MonoServer take power of add/delete object to/from the pool. when
+// adding a new object, MonoServer
+//      1. allocate the new object
+//      2. allocate the mutex
+//      3. bind the mutex to the object
+//      4. put object/mutex in its internal container
+//
+// when deleting an object
+//      1. find the object and delete it
+//      2. delete the mutex bound to it
+//      3. remove the record in the container
+//
+// for outside user, there are only AddObject()/RemoveObject() available, so
+// every time when refering to an object, it's always an object-mutex pair.
 class AsyncObject
 {
-    protected:
-        std::mutex *m_Lock;
-
     public:
         void Unlock()
         {
@@ -49,15 +66,12 @@ class AsyncObject
         //
         // if use p->TryLock() or p->Lock(), then p is valid and locked for sure
         // otherwise this code is ill-performed, since p can be invalidated at any time
+    protected:
+        std::mutex *m_Lock;
 };
 
 enum ObjectType: uint8_t{
-    OT_CHAROBJECT,
-    OT_ITEMOBJECT,
-    OT_EVENTOBJECT,
+    OBJECT_CHAROBJECT,
+    OBJECT_ITEM,
+    OBJECT_EVENT,
 };
-
-typedef struct{
-    uint32_t UID;
-    uint32_t AddTime;
-}OBJECTRECORD;

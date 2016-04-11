@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/09/2016 22:35:26
+ *  Last Modified: 04/10/2016 18:50:24
  *
  *    Description: 
  *
@@ -25,6 +25,7 @@
 #include <cstdint>
 
 #include "log.hpp"
+#include "monster.hpp"
 #include "mapthread.hpp"
 #include <unordered_map>
 #include "sessionio.hpp"
@@ -34,7 +35,6 @@
 #include "charobject.hpp"
 #include "asyncobject.hpp"
 #include "objectlockguard.hpp"
-
 
 class MonoServer final
 {
@@ -73,6 +73,11 @@ class MonoServer final
         bool AddPlayer(int, uint32_t);
 
         AsyncHub<CharObject> m_CharObjectHub;
+        std::vector<MONSTERRACEINFO> m_MonsterRaceInfoV;
+
+    private:
+        bool InitMonsterRace();
+        bool InitMonsterItem();
 
     public:
         // for gui
@@ -96,43 +101,11 @@ class MonoServer final
             }
 
             if(std::is_same<T, CharObject>::value){
-                return CheckHub<CharObject, bLockIt>(&m_CharObjectHub, &m_CharObjectHubLock);
-            }
-
-            if(std::is_same<T, Session>::value){
-                return CheckHub<Session, bLockIt>(&m_SessionHub, &m_SessionHubLock);
+                return {m_CharObjectHub.Retrieve(
+                        ((uint64_t)nID << 32) + nAddTime, bLockIt), bLockIt};
             }
 
             return {nullptr, false};
-        }
-
-        std::unordered_map<uint64_t, std::tuple<CharObject *, std::mutex *, 
-
-
-    private:
-        template<typename T, bool bLockIt = true> ObjectLockGuard<T> Lock(
-                std::unordered_map<T> *pHub, std::mutex *pHubLock)
-        {
-            if(pHub && pHubLock){
-
-                std::lock_guard<std::mutex> stLockGuard<m_CharObjectHubLock>;
-                auto p = m_CharObjectHub.find(nID);
-
-                if(p == m_CharObjectHub.end()){
-                    return {nullptr, false};
-                }else{
-                    if(nAddTime != p.second.second){
-                        return {nullptr, false};
-                    }
-                }
-
-                // OK now we get it
-                if(bLockIt){
-                    p.second.first->Lock();
-                }
-
-                return {p.second.first, bLockIt};
-            }
         }
 
     public:
