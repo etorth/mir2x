@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/10/2016 18:50:24
+ *  Last Modified: 04/11/2016 02:09:10
  *
  *    Description: 
  *
@@ -21,8 +21,9 @@
 
 #pragma once
 #include <mutex>
-#include <type_traits>
 #include <cstdint>
+#include <chrono>
+#include <type_traits>
 
 #include "log.hpp"
 #include "monster.hpp"
@@ -84,6 +85,12 @@ class MonoServer final
         bool GetValidMapV(std::vector<std::pair<int, std::string>> &);
         bool GetValidMonsterV(int, std::vector<std::pair<int, std::string>> &);
         int  GetValidMonsterCount(int, int);
+
+    public:
+        uint32_t GetTickCount();
+
+    protected:
+        std::chrono::time_point<std::chrono::system_clock> m_StartTime;
 
     private:
         void OnReadHC(uint8_t, Session *);

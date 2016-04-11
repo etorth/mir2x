@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/10/2016 21:26:34
+ *  Last Modified: 04/11/2016 01:48:14
  *
  *    Description: 
  *
@@ -18,44 +18,19 @@
  * =====================================================================================
  */
 
+#include "monoserver.hpp"
 #include "charobject.hpp"
 
-CharObject()
-    : m_UserInfo(pUserInfo)
-    , m_CurrX(0)
+CharObject::CharObject()
+    : m_CurrX(0)
     , m_CurrY(0)
-    , m_Name("")
-    , m_HealthTick(0)
-    , m_SpellTick(0)
-    , m_TickSec(0)
-    , m_OpenHealth(false)
-    , m_CharStatusEx(false)
-    , m_CharStatus(0)
-    , m_IncHealing(0)
-    , m_IncHealth(0)
-    , m_IncSpell(0)
-    , m_PerHealing(5)
-    , m_PerHealth(5)
-    , m_PerSpell(5)
-    , m_IncHealthSpellTime(0)
     , m_Event(-1)
-    , m_HitSpeed(0)
-    , m_AbilityMagicBubbleDefence(0)
-    , m_MagicBubbleDefenceLevel(0)
-    , m_Inspector(false)
-    , m_FastTrain(false)
-    , m_Ghost(false)
-    , m_IsNeverDie(false)
-    , m_SpeedPoint(SYS_DEFAULTSPEED)
-    , m_HumanHideMode(false)
-    , m_FixedHideMode(false)
-    , m_StoneMode(false)
-    , m_StickMode(false)
-    , m_MasterObject(nullptr)
-      , m_TargetObject(nullptr)
+    , m_Master(0, 0)
+    , m_Target(0, 0)
+    , m_Name("")
 {
     extern MonoServer *g_MonoServer;
-    m_TickSec = g_MonoServer->GetTickCount();
+    m_AddTime = g_MonoServer->GetTickCount();
     m_StateAttrV.fill(0);
 }
 

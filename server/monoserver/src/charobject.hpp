@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/10/2016 22:53:34
+ *  Last Modified: 04/11/2016 01:48:09
  *
  *    Description: 
  *
@@ -259,6 +259,11 @@ class CharObject: public AsyncObject
 
         void    SpaceMove(int nX, int nY, ServerMap *);
         void    Die();
+
+    protected:
+        std::string m_Name;
+
+        uint32_t m_AddTime;
 
     public:
 

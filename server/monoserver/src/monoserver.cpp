@@ -14,6 +14,7 @@ MonoServer::MonoServer()
     , m_LogBufSize(0)
     , m_LogBuf(nullptr)
 {
+    m_StartTime = std::chrono::system_clock::now();
 }
 
 MonoServer::~MonoServer()
@@ -127,4 +128,11 @@ void MonoServer::OnReadHC(uint8_t nMsgHC, Session *pSession)
         case CM_LOGIN: { OnLogin(pSession); break; }
         default: break;
     }
+}
+
+uint32_t MonoServer::GetTickCount()
+{
+    // ... so..
+    return (uint32_t)std::chrono::duration_cast<
+        std::chrono::milliseconds>(std::chrono::system_clock::now() - m_StartTime).count();
 }
