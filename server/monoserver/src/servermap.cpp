@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/10/2016 22:21:19
+ *  Last Modified: 04/11/2016 13:20:54
  *
  *    Description: 
  *
@@ -18,26 +18,37 @@
  * =====================================================================================
  */
 
-#include "servermap.hpp"
+#include <algorithm>
 
-bool ServerMap::Load(const char szMapFullName)
+#include "servermap.hpp"
+#include "charobject.hpp"
+#include "rotatecoord.hpp"
+
+bool ServerMap::Load(const char *szMapFullName)
 {
     if(!m_Mir2xMap.Load(szMapFullName)){ return false; }
     int nW = m_Mir2xMap.W();
     int nH = m_Mir2xMap.H();
 
-    mGridObjectList.clear();
-    mGridObjectList.resize(nH);
-    for(auto &stLine: mGridObjectList){
-        stLine.resize(nW);
+    m_GridObjectRecordListV.clear();
+    m_GridObjectRecordListLockV.clear();
+
+    m_GridObjectRecordListV.resize(nH);
+    for(auto &stLine: m_GridObjectRecordListV){ stLine.resize(nW); }
+
+    m_GridObjectRecordListLockV.resize(nH);
+    for(auto &stLine: m_GridObjectRecordListLockV){
+        // TODO do we have an emplace_back() with count?
+        stLine.insert(stLine.begin(), nW, std::make_shared<std::mutex>());
     }
+
 }
 
 // test whether we can make a room for (nUID, nAddTime) at (nX, nY)
 // assumption:
 //      1. cell locked
 //      2. there is only one object (nUID, nAddTime) locked
-bool CanMove(int nX, int nY, int nR, uint32_t nUID, uint32_t nAddTime)
+bool ServerMap::CanMove(int nX, int nY, int nR, uint32_t nUID, uint32_t nAddTime)
 {
     // 1. always check argument
     if(false
@@ -52,18 +63,18 @@ bool CanMove(int nX, int nY, int nR, uint32_t nUID, uint32_t nAddTime)
     int nGridSize = nR / 32 + 1; // to make it safe
 
     RotateCoord stRotateCoord;
-    stRotateCoord.Reset(nCenterX, nCenterY, nCenterX, nCenterY, nGridSize);
+    stRotateCoord.Reset(nCenterX, nCenterY, nCenterX, nCenterY, nGridSize, nGridSize);
 
     do{
         int nGridX = stRotateCoord.X();
         int nGridY = stRotateCoord.Y();
 
-        if(!m_Mir2xMap.ValidC(nGridX, nGridY) || !m_Mir2xMap.CanWalk(nGridX, nGridY)){
+        if(!m_Mir2xMap.ValidC(nGridX, nGridY) || !m_Mir2xMap.CanWalk(nGridX, nGridY, nR)){
             continue;
         }
 
-        auto stInst = m_GridObjectRecordList[nGridX][nGridY].begin();
-        while(stInst != m_GridObjectRecordList.end()){
+        auto stInst = m_GridObjectRecordListV[nGridX][nGridY].begin();
+        while(stInst != m_GridObjectRecordListV.end()){
             if(stInst->Type != OT_CHAROBJECT 
                     || (stInst->UID == nUID && stInst->AddTime == nAddTime)){
                 continue; 
@@ -92,6 +103,99 @@ bool CanMove(int nX, int nY, int nR, uint32_t nUID, uint32_t nAddTime)
     return true;
 }
 
+// move an object to a new position, it's in a try-fail manner, if succeed everyting
+// takes place, if not return false and nothing changes
+// assumption
+//      1. atomic
+//      2. if failed, nothing changed
+//      3. if succeed, position of pObject will be updated
+//      4. pObject is valid for sure
+bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
+{
+    // this funciton require 100% logic correctness
+    // have to lock an area to prevent any update inside
+    if(!m_Mir2xMap.ValidP(nTargetX, nTargetY) || !pObject){
+        return false;
+    }
+
+    // need to use system defined max R for safety
+    int nMaxLD = pObject->R() + SYS_MAXR;
+
+    int nGridX0 = (nTargetX - nMaxLD) / SYS_GRIDXP;
+    int nGridX1 = (nTargetX + nMaxLD) / SYS_GRIDXP;
+    int nGridY0 = (nTargetY - nMaxLD) / SYS_GRIDYP;
+    int nGridY1 = (nTargetY + nMaxLD) / SYS_GRIDYP;
+
+    int nGridW = nGridX1 - nGridX0 + 1;
+    int nGridH = nGridY1 - nGridY0 + 1;
+
+    int nGridXS = pObject->X() / SYS_GRIDXP;
+    int nGridYS = pObject->Y() / SYS_GRIDYP;
+
+    bool bLockS = LockArea(true, nGridXS, nGridYS, 1, 1);
+    bool bLockD = LockArea(true, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS);
+
+    // only work for both s/c locked
+    if(!(bLockS && bLockD)){
+        if(bLockS){ LockArea(false, nGridXS, nGridYS, 1, 1); }
+        if(bLockD){ LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS); }
+    }
+
+    // 1. lock the source
+    if(!LockArea(true, nGridXS, nGridYS, 1, 1)){
+        return false;
+    }
+
+    if(!LockArea(true, nGridX0, nGridY0,
+                nGridX1 - nGridX0 + 1, nGridY1 - nGridY0 + 1, nGridXS, nGridYS)){
+        LockArea(false, nGridXS, nGridYS, 1, 1);
+
+        return false;
+    }
+
+
+    bool bNeedLockSrc = true
+        && nGridXS >= nGridX0
+        && nGridXS <= nGridX1
+        && nGridYS >= nGridY0
+        && nGridYS <= nGridY1;
+
+    if(!bNeedLockSrc){
+        if(!LockArea(true, nGridXS, nGridYS, 1, 1)){
+            return false;
+        }
+    }
+
+    if(!LockArea(true, nGridX0, nGridY0, nGridX1 - nGridX0 + 1, nGridY1 - nGridY0 + 1)){
+        return false;
+    }
+
+
+    if(nGridX0 == nGridX1 && nGridY0 == nGridY1){
+        std::lock_guard<std::mutex> stLockGuard(*m_GridObjectRecordListLockV[nGridX0][nGridY0]);
+        if(!CanMove(nTargetX, nTargetY, pObject->R(), pObject->UID(), pObject->AddTime())){
+            return false;
+        }
+
+        pObject->Move(nTargetX, nTargetY);
+    }else{
+        std::lock_guard<std::mutex> stLockGuard1(*m_GridObjectRecordListLock[nGridX0][nGridY0]);
+        std::lock_guard<std::mutex> stLockGuard2(*m_GridObjectRecordListLock[nGridX1][nGridY1]);
+
+        if(!CanMove(nTargetX, nTargetY, pObject->R(), pObject->UID(), pObject->AddTime())){
+            return false;
+        }
+
+        if(RemoveObject(nGridX0, nGridY0, OT_CHAROBJECT, pObject->UID(), pObject->AddTime())){
+            if(AddObject(nGridX1, nGridY1, OT_CHAROBJECT, pObject->UID(), pObject->AddTime())){
+                return true;
+            }
+            AddObject(nGridX0, nGridY0, OT_CHAROBJECT, pObject->UID(), pObject->AddTime());
+        }
+        return false;
+    }
+}
+
 // move an object to a new position
 // assumption
 //      1. atomic
@@ -110,7 +214,7 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
     int nGridY1 = nTargetY / 32;
 
     if(nGridX0 == nGridX1 && nGridY0 == nGridY1){
-        std::lock_guard<std::mutex> stLockGuard(*m_GridObjectRecordListLock[nGridX0][nGridY0]);
+        std::lock_guard<std::mutex> stLockGuard(*m_GridObjectRecordListLockV[nGridX0][nGridY0]);
         if(!CanMove(nTargetX, nTargetY, pObject->R(), pObject->UID(), pObject->AddTime())){
             return false;
         }
@@ -244,7 +348,7 @@ bool ServerMap::QueryObject(int nX, int nY,
 
     {
         // 2. lock cell (i, j)
-        std::lock_guard<std::mutex> stLockGuard(*m_GridObjectRecordListVLock[nY][nX]);
+        std::lock_guard<std::mutex> stLockGuard(*m_GridObjectRecordListLockV[nY][nX]);
 
         // 3. invoke the handler
         for(auto &pRecord: m_GridObjectRecordListV[nY][nX]){

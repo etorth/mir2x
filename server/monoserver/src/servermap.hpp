@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 04/10/2016 22:58:19
+ *  Last Modified: 04/11/2016 13:14:42
  *
  *    Description: put all non-atomic function as private
  *
@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <list>
+#include <vector>
 #include <cstdint>
 #include <forward_list>
 
@@ -68,7 +70,7 @@ class ServerMap
     private:
 
         Vec2D<ObjectRecordList>  m_GridObjectRecordListV;
-        Vec2D<LockPointer>       m_GridObjectRecordListVLock;
+        Vec2D<LockPointer>       m_GridObjectRecordListLockV;
 
     public:
         bool Load(const char *);
@@ -87,4 +89,28 @@ class ServerMap
 
     public:
         bool DropLocation(int, int, int, int *, int *);
+
+    private:
+        // lock/unlock an area *coverd* by (nX, nY, nW, nH)
+        // return true if covered cells are all lock/unlocked, fails if nothing done
+        bool LockArea(bool bLockIt, int nX, int nY,
+                int nW = 1, int nH = 1, int nIgnoreX = -1, int nIgnoreY = -1)
+        {
+            bool bAffect = false;
+            for(int nCX = nX; nCX < nX + nW; ++nCX){
+                for(int nCY = nY; nCY < nY + nH; ++nCH){
+                    // 1. it's valid
+                    // 2. skip the grid we ask to ignore
+                    if(m_Mir2xMap.ValidC(nCX, nCY) && (nCX != nIgnoreX) && (nCY != nIgnoreY)){
+                        if(bLockIt){
+                            m_GridObjectRecordListLockV[nCY][nCX].lock();
+                        }else{
+                            m_GridObjectRecordListLockV[nCY][nCX].unlock();
+                        }
+                        bAffect = true;
+                    }
+                }
+            }
+            return bAffect;
+        }
 };

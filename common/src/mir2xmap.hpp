@@ -152,7 +152,7 @@ class Mir2xMap
     public:
         bool Overlap(int, int, int, int, int);
 
-    private:
+    public:
         bool CanWalk(int nX, int nY, int nIndex)
         {
             return (CellDesc(nX, nY).Desc & ((0X01) << (nIndex % 4))) != 0;
