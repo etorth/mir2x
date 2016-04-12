@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 04/10/2016 18:47:07
+ *  Last Modified: 04/11/2016 22:49:21
  *
  *    Description: 
  *
@@ -30,6 +30,12 @@ template<typename T> T LDistance2(T nfX, T nfY, T nfX1, T nfY1)
 template<typename T> T LDistance(T nfX, T nfY, T nfX1, T nfY1)
 {
     return T(std::sqrt(LDistance2(nfX, nfY, nfX1, nfY1)));
+}
+
+template<typename T> bool CircleOverlap(T nfX, T nfY, T nfR,  T nfX1, T nfY1, T nfR1)
+{
+    static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
+    return LDistance2(nfX, nfY, nfX1, nfY1) <= (nfR + nfR1) * (nfR + nfR1);
 }
 
 template<typename T> bool PointInSegment(T nfX, T nfStartX, T nfW)

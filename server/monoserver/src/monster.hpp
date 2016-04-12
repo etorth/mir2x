@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/10/2016 23:05:15
+ *  Last Modified: 04/11/2016 22:14:22
  *
  *    Description: 
  *
@@ -55,6 +55,7 @@ typedef struct stMONSTERRACEINFO{
     int     Fire;
     int     Wind;
     int     Light;
+    int     Earth;
 
     std::string     Name;
     std::vector<MONSTERITEMINFO> ItemV;

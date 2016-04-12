@@ -3,7 +3,7 @@
  *
  *       Filename: init.cpp
  *        Created: 04/09/2016 15:12:44
- *  Last Modified: 04/09/2016 22:19:49
+ *  Last Modified: 04/11/2016 23:48:06
  *
  *    Description: all the init work for server launching
  *
@@ -61,17 +61,17 @@ bool MonoServer::InitMonsterRace()
         stRaceInfo.Fire        = std::atoi(pRecord->Get("fld_fire"));
         stRaceInfo.Wind        = std::atoi(pRecord->Get("fld_wind"));
         stRaceInfo.Light       = std::atoi(pRecord->Get("fld_light"));
-        stRaceInfo.Eeath       = std::atoi(pRecord->Get("fld_earth"));
+        stRaceInfo.Earth       = std::atoi(pRecord->Get("fld_earth"));
 
         // 2. make a room in the global table
         m_MonsterRaceInfoV.resize(stRaceInfo.Index + 1, -1);
 
         // 3. store the result
-        m_MonsterRaceInfoV[stRaceInfo.nIndex] = stRaceInfo;
+        m_MonsterRaceInfoV[stRaceInfo.Index] = stRaceInfo;
 
         // 3. log it
         AddLog(LOGTYPE_INFO,
-                "monster added, index = %d, name = %s.", stRaceInfo.Name.c_str(), stRaceInfo.Index);
+                "monster added, index = %d, name = %s.", stRaceInfo.Index, stRaceInfo.Name.c_str());
     }
 
     AddLog(LOGTYPE_INFO, "finished monster info: %d monster added", pRecord->RowCount());
@@ -103,8 +103,8 @@ bool MonoServer::InitMonsterItem()
         // 2. make a room for it
         if(true 
                 && stItemInfo.MonsterIndex > 0
-                && stItemInfo.MonsterIndex < m_MonsterRaceInfoV.size()){
-            stItemInfo.ItemV.push_back(stItemInfo);
+                && stItemInfo.MonsterIndex < (int)m_MonsterRaceInfoV.size()){
+            m_MonsterRaceInfoV[stItemInfo.MonsterIndex].ItemV.push_back(stItemInfo);
         }
     }
     AddLog(LOGTYPE_INFO, "finished monster item: %d added", pRecord->RowCount());

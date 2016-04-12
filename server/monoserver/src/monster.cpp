@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/10/2016 23:06:39
+ *  Last Modified: 04/11/2016 20:56:18
  *
  *    Description: 
  *
@@ -38,11 +38,11 @@ bool Monster::Friend(const CharObject* pCharObject)
     }
 
     // now self is no-master
-    if(pCharObject->Type(CHAROBJECT_HUMAN)){
+    if(pCharObject->Type(OBJECT_HUMAN)){
         return false;
     }
 
-    if(pCharObject->Type(CHAROBJECT_ANIMAL)){
+    if(pCharObject->Type(OBJECT_ANIMAL)){
         return pCharObject->Friend(this);
     }
 

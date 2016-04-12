@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 04/11/2016 13:14:42
+ *  Last Modified: 04/11/2016 22:34:31
  *
  *    Description: put all non-atomic function as private
  *
@@ -34,8 +34,8 @@ class ServerMap
     private:
         // some shortcuts for internal use only
         // for public API don't use it
-        using ObjectRecord     = std::tuple<uint32_t, uint32_t>;
-        using ObjectRecordList = std::forward_list<ObjectRecord>;
+        using ObjectRecord     = std::tuple<uint8_t, uint32_t, uint32_t>;
+        using ObjectRecordList = std::list<ObjectRecord>;
         using LockPointer      = std::shared_ptr<std::mutex>;
         template<typename T> using Vec2D = std::vector<std::vector<T>>;
 
@@ -98,14 +98,14 @@ class ServerMap
         {
             bool bAffect = false;
             for(int nCX = nX; nCX < nX + nW; ++nCX){
-                for(int nCY = nY; nCY < nY + nH; ++nCH){
+                for(int nCY = nY; nCY < nY + nH; ++nCY){
                     // 1. it's valid
                     // 2. skip the grid we ask to ignore
                     if(m_Mir2xMap.ValidC(nCX, nCY) && (nCX != nIgnoreX) && (nCY != nIgnoreY)){
                         if(bLockIt){
-                            m_GridObjectRecordListLockV[nCY][nCX].lock();
+                            m_GridObjectRecordListLockV[nCY][nCX]->lock();
                         }else{
-                            m_GridObjectRecordListLockV[nCY][nCX].unlock();
+                            m_GridObjectRecordListLockV[nCY][nCX]->unlock();
                         }
                         bAffect = true;
                     }

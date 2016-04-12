@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/11/2016 13:20:54
+ *  Last Modified: 04/11/2016 22:50:35
  *
  *    Description: 
  *
@@ -20,8 +20,11 @@
 
 #include <algorithm>
 
+#include "mathfunc.hpp"
+#include "sysconst.hpp"
 #include "servermap.hpp"
 #include "charobject.hpp"
+#include "monoserver.hpp"
 #include "rotatecoord.hpp"
 
 bool ServerMap::Load(const char *szMapFullName)
@@ -42,66 +45,67 @@ bool ServerMap::Load(const char *szMapFullName)
         stLine.insert(stLine.begin(), nW, std::make_shared<std::mutex>());
     }
 
-}
-
-// test whether we can make a room for (nUID, nAddTime) at (nX, nY)
-// assumption:
-//      1. cell locked
-//      2. there is only one object (nUID, nAddTime) locked
-bool ServerMap::CanMove(int nX, int nY, int nR, uint32_t nUID, uint32_t nAddTime)
-{
-    // 1. always check argument
-    if(false
-            || !(nR > 0)
-            || !m_Mir2xMap.Valid()
-            || !m_Mir2xMap.ValidP(nX, nY)){
-        return false;
-    }
-
-    int nCenterX  = nX / 48;
-    int nCenterY  = nY / 32;
-    int nGridSize = nR / 32 + 1; // to make it safe
-
-    RotateCoord stRotateCoord;
-    stRotateCoord.Reset(nCenterX, nCenterY, nCenterX, nCenterY, nGridSize, nGridSize);
-
-    do{
-        int nGridX = stRotateCoord.X();
-        int nGridY = stRotateCoord.Y();
-
-        if(!m_Mir2xMap.ValidC(nGridX, nGridY) || !m_Mir2xMap.CanWalk(nGridX, nGridY, nR)){
-            continue;
-        }
-
-        auto stInst = m_GridObjectRecordListV[nGridX][nGridY].begin();
-        while(stInst != m_GridObjectRecordListV.end()){
-            if(stInst->Type != OT_CHAROBJECT 
-                    || (stInst->UID == nUID && stInst->AddTime == nAddTime)){
-                continue; 
-            }
-
-            extern MonoServer *g_MonoServer;
-            auto pGuard = g_MonoServer->CheckOut<CharObject>(stInst->UID, stInst->AddTime);
-
-            if(!pGuard){
-                stInst = m_GridObjectRecordList[nGridX][nGridY].erase(stInst);
-                continue;
-            }
-
-            // now guard is valid
-            if(true
-                    && !pGuard->Dead()
-                    && !pGuard->Inspector()
-                    && !pGuard->Hide()){
-                if(CircleOverlap(nX, nY, nR, pGuard->X() , pGuard->Y(), pGuard->R())){
-                    return false;
-                }
-            }
-        }
-    }while(stRotateCoord.Forward());
-
     return true;
 }
+
+// // test whether we can make a room for (nUID, nAddTime) at (nX, nY)
+// // assumption:
+// //      1. cell locked
+// //      2. there is only one object (nUID, nAddTime) locked
+// bool ServerMap::CanMove(int nX, int nY, int nR, uint32_t nUID, uint32_t nAddTime)
+// {
+//     // 1. always check argument
+//     if(false
+//             || !(nR > 0)
+//             || !m_Mir2xMap.Valid()
+//             || !m_Mir2xMap.ValidP(nX, nY)){
+//         return false;
+//     }
+//
+//     int nCenterX  = nX / 48;
+//     int nCenterY  = nY / 32;
+//     int nGridSize = nR / 32 + 1; // to make it safe
+//
+//     RotateCoord stRotateCoord;
+//     stRotateCoord.Reset(nCenterX, nCenterY, nCenterX, nCenterY, nGridSize, nGridSize);
+//
+//     do{
+//         int nGridX = stRotateCoord.X();
+//         int nGridY = stRotateCoord.Y();
+//
+//         if(!m_Mir2xMap.ValidC(nGridX, nGridY) || !m_Mir2xMap.CanWalk(nGridX, nGridY, nR)){
+//             continue;
+//         }
+//
+//         auto stInst = m_GridObjectRecordListV[nGridY][nGridX].begin();
+//         while(stInst != m_GridObjectRecordListV[nGridY][nGridX].end()){
+//             if(stInst->Type != OT_CHAROBJECT 
+//                     || (stInst->UID == nUID && stInst->AddTime == nAddTime)){
+//                 continue; 
+//             }
+//
+//             extern MonoServer *g_MonoServer;
+//             auto pGuard = g_MonoServer->CheckOut<CharObject>(stInst->UID, stInst->AddTime);
+//
+//             if(!pGuard){
+//                 stInst = m_GridObjectRecordListV[nGridY][nGridX].erase(stInst);
+//                 continue;
+//             }
+//
+//             // now guard is valid
+//             if(true
+//                     && !pGuard->Dead()
+//                     && !pGuard->Inspector()
+//                     && !pGuard->Hide()){
+//                 if(CircleOverlap(nX, nY, nR, pGuard->X() , pGuard->Y(), pGuard->R())){
+//                     return false;
+//                 }
+//             }
+//         }
+//     }while(stRotateCoord.Forward());
+//
+//     return true;
+// }
 
 // move an object to a new position, it's in a try-fail manner, if succeed everyting
 // takes place, if not return false and nothing changes
@@ -139,103 +143,66 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
     if(!(bLockS && bLockD)){
         if(bLockS){ LockArea(false, nGridXS, nGridYS, 1, 1); }
         if(bLockD){ LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS); }
-    }
-
-    // 1. lock the source
-    if(!LockArea(true, nGridXS, nGridYS, 1, 1)){
         return false;
     }
 
-    if(!LockArea(true, nGridX0, nGridY0,
-                nGridX1 - nGridX0 + 1, nGridY1 - nGridY0 + 1, nGridXS, nGridYS)){
-        LockArea(false, nGridXS, nGridYS, 1, 1);
+    // now srd/dst are both locked
+    for(int nY = nGridY0; nY <= nGridY1; ++nY){
+        for(int nX = nGridX0; nX <= nGridX1; ++nX){
+            auto pRecord = m_GridObjectRecordListV[nY][nX].begin();
+            while(pRecord != m_GridObjectRecordListV[nY][nX].end()){
+                // for item/event object, we won't validate it
+                if(std::get<0>(*pRecord) != OBJECT_CHAROBJECT){
+                    pRecord++;
+                    continue;
+                }
 
-        return false;
-    }
+                // skip self
+                if(std::get<1>(*pRecord) == pObject->UID()
+                        && std::get<2>(*pRecord) == pObject->AddTime()){
+                    pRecord++;
+                    continue;
+                }
+                // else its an valid charobject candidate
+                // 1. validate it
+                // 2. check distance
+                extern MonoServer *g_MonoServer;
+                if(auto pGuard = g_MonoServer->CheckOut<CharObject>(
+                            std::get<1>(*pRecord), std::get<2>(*pRecord))){
+                    // this record is still available
+                    if(CircleOverlap(
+                                pGuard->X(), pGuard->Y(), pGuard->R(),
+                                pObject->X(), pObject->Y(), pObject->R())){
 
-
-    bool bNeedLockSrc = true
-        && nGridXS >= nGridX0
-        && nGridXS <= nGridX1
-        && nGridYS >= nGridY0
-        && nGridYS <= nGridY1;
-
-    if(!bNeedLockSrc){
-        if(!LockArea(true, nGridXS, nGridYS, 1, 1)){
-            return false;
-        }
-    }
-
-    if(!LockArea(true, nGridX0, nGridY0, nGridX1 - nGridX0 + 1, nGridY1 - nGridY0 + 1)){
-        return false;
-    }
-
-
-    if(nGridX0 == nGridX1 && nGridY0 == nGridY1){
-        std::lock_guard<std::mutex> stLockGuard(*m_GridObjectRecordListLockV[nGridX0][nGridY0]);
-        if(!CanMove(nTargetX, nTargetY, pObject->R(), pObject->UID(), pObject->AddTime())){
-            return false;
-        }
-
-        pObject->Move(nTargetX, nTargetY);
-    }else{
-        std::lock_guard<std::mutex> stLockGuard1(*m_GridObjectRecordListLock[nGridX0][nGridY0]);
-        std::lock_guard<std::mutex> stLockGuard2(*m_GridObjectRecordListLock[nGridX1][nGridY1]);
-
-        if(!CanMove(nTargetX, nTargetY, pObject->R(), pObject->UID(), pObject->AddTime())){
-            return false;
-        }
-
-        if(RemoveObject(nGridX0, nGridY0, OT_CHAROBJECT, pObject->UID(), pObject->AddTime())){
-            if(AddObject(nGridX1, nGridY1, OT_CHAROBJECT, pObject->UID(), pObject->AddTime())){
-                return true;
+                        LockArea(false, nGridXS, nGridYS, 1, 1);
+                        LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS);
+                        return false;
+                    }
+                }else{
+                    pRecord = m_GridObjectRecordListV[nY][nX].erase(pRecord);
+                }
             }
-            AddObject(nGridX0, nGridY0, OT_CHAROBJECT, pObject->UID(), pObject->AddTime());
         }
-        return false;
-    }
-}
-
-// move an object to a new position
-// assumption
-//      1. atomic
-//      2. if failed, nothing changed
-//      3. if succeed, position of pObject will be updated
-//      4. pObject is valid for sure
-bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
-{
-    if(!m_Mir2xMap.ValidP(nTargetX, nTargetY) || !pObject){
-        return false;
     }
 
-    int nGridX0 = pObject->X() / 48;
-    int nGridY0 = pObject->Y() / 32;
-    int nGridX1 = nTargetX / 48;
-    int nGridY1 = nTargetY / 32;
+    // test all and didn't find any collision
+    // 1. remove from previous list
+    ObjectRecord stObjectRecord {OBJECT_CHAROBJECT, pObject->UID(), pObject->AddTime()};
+    m_GridObjectRecordListV[nGridYS][nGridXS].erase(std::remove(
+                m_GridObjectRecordListV[nGridYS][nGridXS].begin(),
+                m_GridObjectRecordListV[nGridYS][nGridXS].end(), stObjectRecord));
+                // {OBJECT_CHAROBJECT, pObject->UID(), pObject->AddTime()}));
 
-    if(nGridX0 == nGridX1 && nGridY0 == nGridY1){
-        std::lock_guard<std::mutex> stLockGuard(*m_GridObjectRecordListLockV[nGridX0][nGridY0]);
-        if(!CanMove(nTargetX, nTargetY, pObject->R(), pObject->UID(), pObject->AddTime())){
-            return false;
-        }
+    // 2. add to new cell
+    m_GridObjectRecordListV[nTargetY / SYS_GRIDYP][nTargetX / SYS_GRIDXP].emplace_front(
+            stObjectRecord);
+            // {OBJECT_CHAROBJECT, pObject->UID(), pObject->AddTime()});
 
-        pObject->Move(nTargetX, nTargetY);
-    }else{
-        std::lock_guard<std::mutex> stLockGuard1(*m_GridObjectRecordListLock[nGridX0][nGridY0]);
-        std::lock_guard<std::mutex> stLockGuard2(*m_GridObjectRecordListLock[nGridX1][nGridY1]);
+    // 3. Unlock all cells
+    LockArea(false, nGridXS, nGridYS, 1, 1);
+    LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS);
 
-        if(!CanMove(nTargetX, nTargetY, pObject->R(), pObject->UID(), pObject->AddTime())){
-            return false;
-        }
-
-        if(RemoveObject(nGridX0, nGridY0, OT_CHAROBJECT, pObject->UID(), pObject->AddTime())){
-            if(AddObject(nGridX1, nGridY1, OT_CHAROBJECT, pObject->UID(), pObject->AddTime())){
-                return true;
-            }
-            AddObject(nGridX0, nGridY0, OT_CHAROBJECT, pObject->UID(), pObject->AddTime());
-        }
-        return false;
-    }
+    return true;
 }
 
 // assumption:
@@ -243,92 +210,93 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
 //      2. new object is already present in the object hub
 //      3. won't exam the validation for the new object
 bool ServerMap::AddObject(int nGridX, int nGridY,
-        uint8_t btType, uint32_t nUID, uint32_t nAddTime)
+        uint8_t nType, uint32_t nUID, uint32_t nAddTime)
 {
-    if(!m_Mir2xMap.ValidP(nX, nY) || !m_Mir2xMap.CanWalk(nGridX, nGridY)){
+    if(!m_Mir2xMap.ValidC(nGridX, nGridY) || !m_Mir2xMap.CanWalk(nGridX, nGridY)){
         return false;
     }
-    m_GridObjectRecordList[nGridY][nGridX].emplace_front(nType, pNewObject, nAddTime);
+    m_GridObjectRecordListV[nGridY][nGridX].emplace_front(nType, nUID, nAddTime);
     return true;
 }
 
-// assumption:
-//      1. cell locked
-bool ServerMap::GetObjectList(int nGridX, int nGridY,
-        std::forward_list<OBJECTRECORD> *pList, std::function<bool(uint8_t nType)> fnFindByType)
-{
-    if(!m_Mir2xMa.ValidC(nGridX, nGridY)){
-        return false;
-    }
-
-    auto fnFind = [pList, &fnFindByType](const OBJECTRECORD &rstRecord){
-        return fnFindByType(rstRecord.Type);
-    }
-
-    std::for_each(
-            m_GridObjectRecordList[nGridX][nGridY].begin(),
-            m_GridObjectRecordList[nGridX][nGridY].end(), fnFind);
-    return true;
-}
-
-// assumption:
-//      1. cell locked
-bool ServerMap::CanSafeWalk(int nGridX, int nGridY)
-{
-    if(!m_Mir2xMap.validC(nGridX, nGridY) || !m_Mir2xMap.CanWalk(nGridX, nGridY)){
-        return false;
-    }
-
-    auto fnFind = [](const OBJECTRECORD &rstRecord){
-        if(rstRecord.Type == OT_EVENTOBJECT){
-            extern MonoServer *g_MonoServer;
-            auto pGuard = g_MonoServer->
-                CheckOut<EventObject>(rstRecord.UID, rstRecord.AddTime);
-            if(pGuard && pGuard->Damage() > 0){
-                return true;
-            }
-        }
-    };
-
-
-    auto pFindInst = std::find_if(
-            m_GridObjectRecordList[nGridX][nGridY].begin(),
-            m_GridObjectRecordList[nGridX][nGridY].end(), fnFind);
-
-    if(pFindInst != m_GridObjectRecordList[nGridY][nGridX].end()){
-        return false;
-    }
-
-    return true;
-}
-
-// input may be invalid
-// but this function guarantees no (nUID, nAddTime) after invocation
+// // assumption:
+// //      1. cell locked
+// bool ServerMap::GetObjectList(int nGridX, int nGridY,
+//         std::forward_list<OBJECTRECORD> *pList, std::function<bool(uint8_t nType)> fnFindByType)
+// {
+//     if(!m_Mir2xMa.ValidC(nGridX, nGridY)){
+//         return false;
+//     }
 //
-// assumption
-//      1. cell locked, no else can update it asynchronously
-//      2. won't check validation of object
-bool ServerMap::RemoveObject(
-        int nGridX, int nGridY, uint8_t nType, uint32_t nUID, uint32_t nAddTime)
-{
-    if(false
-            || !m_Mir2xMap.ValidC(nGridX, nGridY)
-            || !m_Mir2xMap.CanWalk(nGridX, nGridY)
-            || !m_GridObjectRecordList.empty()){
-        return false;
-    }
+//     auto fnFind = [pList, &fnFindByType](const OBJECTRECORD &rstRecord){
+//         return fnFindByType(rstRecord.Type);
+//     }
+//
+//     std::for_each(
+//             m_GridObjectRecordListV[nGridX][nGridY].begin(),
+//             m_GridObjectRecordListV[nGridX][nGridY].end(), fnFind);
+//     return true;
+// }
 
-    auto fnCmp = [nType, nUID, nAddTime](const OBJECTRECORD &rscRecord){
-        return true
-            && rstRecord.Type    == nType
-            && rstRecord.UID     == nUID
-            && rstRecord.AddTime == nAddTime;
-    };
+// // assumption:
+// //      1. cell locked
+// bool ServerMap::CanSafeWalk(int nGridX, int nGridY)
+// {
+//     if(!m_Mir2xMap.ValidC(nGridX, nGridY) || !m_Mir2xMap.CanWalk(nGridX, nGridY)){
+//         return false;
+//     }
+//
+//     auto fnFind = [](const OBJECTRECORD &rstRecord){
+//         if(rstRecord.Type == OT_EVENTOBJECT){
+//             extern MonoServer *g_MonoServer;
+//             auto pGuard = g_MonoServer->
+//                 CheckOut<EventObject>(rstRecord.UID, rstRecord.AddTime);
+//             if(pGuard && pGuard->Damage() > 0){
+//                 return true;
+//             }
+//         }
+//     };
+//
+//
+//     auto pFindInst = std::find_if(
+//             m_GridObjectRecordListV[nGridX][nGridY].begin(),
+//             m_GridObjectRecordListV[nGridX][nGridY].end(), fnFind);
+//
+//     if(pFindInst != m_GridObjectRecordListV[nGridY][nGridX].end()){
+//         return false;
+//     }
+//
+//     return true;
+// }
 
-    std::erase(std::remove_if(
-                m_GridObjectRecordList[nGridX][nGridY].begin(),
-                m_GridObjectRecordList[nGridX][nGridY].end(), fnCmp));
-}
+// // input may be invalid
+// // but this function guarantees no (nUID, nAddTime) after invocation
+// //
+// // assumption
+// //      1. cell locked, no else can update it asynchronously
+// //      2. won't check validation of object
+// bool ServerMap::RemoveObject(
+//         int nGridX, int nGridY, uint8_t nType, uint32_t nUID, uint32_t nAddTime)
+// {
+//     if(false
+//             || !m_Mir2xMap.ValidC(nGridX, nGridY)
+//             || !m_Mir2xMap.CanWalk(nGridX, nGridY)
+//             || !m_GridObjectRecordListV.empty()){
+//         return false;
+//     }
+//
+//     auto fnCmp = [nType, nUID, nAddTime](const OBJECTRECORD &rscRecord){
+//         return true
+//             && rstRecord.Type    == nType
+//             && rstRecord.UID     == nUID
+//             && rstRecord.AddTime == nAddTime;
+//     };
+//
+//     m_GridObjectRecordListV[nGridX][nGridY].erase(
+//             std::remove_if(
+//                 m_GridObjectRecordListV[nGridX][nGridY].begin(),
+//                 m_GridObjectRecordListV[nGridX][nGridY].end(), fnCmp));
+// }
 
 // lock the gird (i, j) and invoke the handler for each object
 // in this function m_GridObjectRecordListV is update by in/out event driven
@@ -355,4 +323,6 @@ bool ServerMap::QueryObject(int nX, int nY,
             fnQuery(std::get<0>(pRecord), std::get<1>(pRecord), std::get<0>(pRecord));
         }
     }
+
+    return true;
 }

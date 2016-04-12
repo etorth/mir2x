@@ -58,3 +58,94 @@ conn:execute [[
         ("linda" , 2),
         ("steven", 2)
 ]]
+
+
+-- create table for guid
+status, errmsg = conn:execute [[
+    create table if not exists tbl_monster
+    (
+        fld_index           int unsigned not null auto_increment primary key,
+        fld_name            char(64)     not null,
+        fld_race            int unsigned not null,
+        fld_lid             int unsigned not null,
+        fld_undead          int unsigned not null,
+        fld_level           int unsigned not null,
+        fld_hp              int unsigned not null,
+        fld_mp              int unsigned not null,
+        fld_ac              int unsigned not null,
+        fld_mac             int unsigned not null,
+        fld_dc              int unsigned not null,
+        fld_attackspeed     int unsigned not null,
+        fld_walkspeed       int unsigned not null,
+        fld_speed           int unsigned not null,
+        fld_hit             int unsigned not null,
+        fld_viewrange       int unsigned not null,
+        fld_raceindex       int unsigned not null,
+        fld_exp             int unsigned not null,
+        fld_escape          int unsigned not null,
+        fld_water           int unsigned not null,
+        fld_fire            int unsigned not null,
+        fld_wind            int unsigned not null,
+        fld_light           int unsigned not null,
+        fld_earth           int unsigned not null
+    )
+]]
+
+
+
+-- try to add guid
+status, errmsg = conn:execute [[
+    insert tbl_monster (
+        fld_name,
+        fld_race,
+        fld_lid,
+        fld_undead,
+        fld_level,
+        fld_hp,
+        fld_mp,
+        fld_ac,
+        fld_mac,
+        fld_dc,
+        fld_attackspeed,
+        fld_walkspeed,
+        fld_speed,
+        fld_hit,
+        fld_viewrange,
+        fld_raceindex,
+        fld_exp,
+        fld_escape,
+        fld_water,
+        fld_fire,
+        fld_wind,
+        fld_light,
+        fld_earth) values
+            -- seems there is problem with utf-8
+            ("阿龙怪" , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+            ("阿龙怪2", 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+            ("hello"  , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+            ("world"  , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+]]
+
+-- print(status, errmsg)
+
+
+-- create table for guid
+status, errmsg = conn:execute [[
+    create table if not exists tbl_monsteritem
+    (
+        fld_index   int unsigned not null auto_increment primary key,
+        fld_monster int unsigned not null,
+        fld_type    int unsigned not null,
+        fld_chance  int unsigned not null,
+        fld_count   int unsigned not null
+    )
+]]
+
+-- try to add guid
+conn:execute [[
+    insert tbl_monsteritem (fld_monster, fld_type, fld_chance, fld_count) values
+        (1, 2, 1, 2),
+        (1, 3, 1, 2),
+        (1, 5, 1, 2)
+]]
+

@@ -3,7 +3,7 @@
  *
  *       Filename: actor.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/12/2016 19:22:09
+ *  Last Modified: 04/11/2016 21:18:00
  *
  *    Description: 
  *
@@ -156,22 +156,6 @@ void Actor::UpdateWithNewState()
 
 int Actor::CalculateDirection(int nDX, int nDY)
 {
-    int nDirection = 0;
-    if(nDX == 0){
-        if(nDY > 0){
-            nDirection = 4;
-        }else{
-            nDirection = 0;
-        }
-    }else{
-        double dATan = std::atan(1.0 * nDY / nDX);
-        if(nDX > 0){
-            nDirection = std::lround(2.0 + dATan * 4.0 / 3.1416) % 8;
-        }else{
-            nDirection = std::lround(6.0 + dATan * 4.0 / 3.1416) % 8;
-        }
-    }
-    return nDirection;
 }
 
 void Actor::EstimateNextPosition(int nDistance)

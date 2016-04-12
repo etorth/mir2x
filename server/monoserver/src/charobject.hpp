@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/11/2016 12:17:48
+ *  Last Modified: 04/11/2016 23:00:47
  *
  *    Description: 
  *
@@ -22,43 +22,38 @@
 #include <list>
 #include <vector>
 
-#include "asyncobject.hpp"
+#include "serverobject.hpp"
 #include "servermap.hpp"
-
-enum AttackModeType: uint8_t{
-    MODE_ATTACKALL,
-    MODE_PEACE,
-};
 
 enum RangeType: uint8_t{
     RANGE_VIEW,
+    RANGE_MAP,
+    RANGE_SERVER,
+
     RANGE_ATTACK,
     RANGE_TRACETARGET,
 };
 
-enum CharObjectType: uint8_t{
-    CHAROBJECT_HUMAN,
-    CHAROBJECT_PLAYER,
-    CHAROBJECT_NPC,
-    CHAROBJECT_ANIMAL,
-    CHAROBJECT_MONSTER,
-};
 
-enum CharObjectState: uint8_t{
-    STATE_MOVING,
-    STATE_DEAD,
-    STATE_GHOST,
-};
-
+// define of directioin
+//
+//               0
+//            7     1
+//          6    +-----> 2
+//            5  |  3
+//               |
+//               V
+//               4
+//
 enum Direction: uint8_t{
-    DIR_UP,
-    DIR_DOWN,
-    DIR_LEFT,
-    DIR_RIGHT,
-    DIR_UPLEFT,
-    DIR_UPRIGHT,
-    DIR_DOWNLEFT,
-    DIR_DOWNRIGHT,
+    DIR_UP          = 0,
+    DIR_DOWN        = 4,
+    DIR_LEFT        = 6,
+    DIR_RIGHT       = 2,
+    DIR_UPLEFT      = 7,
+    DIR_UPRIGHT     = 1,
+    DIR_DOWNLEFT    = 5,
+    DIR_DOWNRIGHT   = 3,
 };
 
 #pragma pack(push, 1)
@@ -113,7 +108,7 @@ typedef struct{
 }OBJECTADDABILITY;
 #pragma pack(pop)
 
-class CharObject: public AsyncObject
+class CharObject: public ServerObject
 {
     private:
         // define some shortcuts for internal use only
@@ -167,10 +162,18 @@ class CharObject: public AsyncObject
             return m_CurrY;
         }
 
+        int R()
+        {
+            return m_R;
+        }
+
         uint32_t MapID()
         {
             return (m_Map ? m_Map->ID() : 0);
         }
+
+    protected:
+        int m_R;
 
     public:
         virtual bool Follow(CharObject *, bool)
@@ -183,9 +186,12 @@ class CharObject: public AsyncObject
         virtual bool Friend(const CharObject *) const = 0;
         virtual bool Operate() = 0;
         virtual int  NameColorType() = 0;
-        virtual const char *CharName()  = 0;
+        virtual const char *CharName() = 0;
 
-        virtual bool Mode(uint8_t);
+        virtual bool Mode(uint8_t)
+        {
+            return true;
+        }
 
     public:
         uint8_t GetBack()
@@ -240,12 +246,29 @@ class CharObject: public AsyncObject
         ObjectRecord m_Target;
 
     public:
+        bool SetTarget(uint32_t nUID, uint32_t nAddTime)
+        {
+            std::get<0>(m_Target) = nUID;
+            std::get<1>(m_Target) = nAddTime;
+            return true;
+        }
+
+        bool Target(uint32_t *pUID = nullptr, uint32_t *pAddTime = nullptr)
+        {
+            if(m_Target != EMPTYOBJECTRECORD){
+                if(pUID    ){ *pUID     = std::get<0>(m_Target); }
+                if(pAddTime){ *pAddTime = std::get<1>(m_Target); }
+                return true;
+            }
+            return false;
+        }
+
+    public:
 
         bool    GetNextPosition(int nSX, int nSY, int nDir, int nDistance, int& nX, int& nY);
         int     GetNextDirection(int nStartX, int nStartY, int nTargetX, int nTargetY);
         void    TurnTo(int nDir);
         bool    TurnXY(int nX, int nY, int nDir);
-        virtual bool    WalkTo(int nDir);
         bool    WalkXY(int nX, int nY, int nDir);
         bool    RunTo(int nDir);
         bool    RunXY(int nX, int nY, int nDir);
@@ -254,7 +277,7 @@ class CharObject: public AsyncObject
         void    Disappear();
         void    MakeGhost();
 
-        bool    DropItem(uint32_t, uint32_t, int);
+        // bool    DropItem(uint32_t, uint32_t, int);
 
 
         void    SpaceMove(int nX, int nY, ServerMap *);
@@ -263,7 +286,15 @@ class CharObject: public AsyncObject
     protected:
         std::string m_Name;
 
-        uint32_t m_AddTime;
+    public:
+        void NextLocation(int *, int *, int);
+
+        uint8_t Direction(int, int);
+
+        uint8_t Direction()
+        {
+            return m_Direction;
+        }
 
     public:
 

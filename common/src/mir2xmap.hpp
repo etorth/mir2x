@@ -158,6 +158,14 @@ class Mir2xMap
             return (CellDesc(nX, nY).Desc & ((0X01) << (nIndex % 4))) != 0;
         }
 
+        bool CanWalk(int nX, int nY){
+            return true
+                && CanWalk(nX, nY, 0)
+                && CanWalk(nX, nY, 1)
+                && CanWalk(nX, nY, 2)
+                && CanWalk(nX, nY, 3);
+        }
+
     public:
         void SetViewPoint(int nX, int nY);
 

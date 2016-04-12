@@ -3,7 +3,7 @@
  *
  *       Filename: asyncobject.hpp
  *        Created: 04/09/2016 00:20:22
- *  Last Modified: 04/10/2016 20:55:59
+ *  Last Modified: 04/11/2016 20:54:20
  *
  *    Description: Previously I was trying to implement AsyncObject with a mutex
  *                 and let all objects derived from it
@@ -68,10 +68,4 @@ class AsyncObject
         // otherwise this code is ill-performed, since p can be invalidated at any time
     protected:
         std::mutex *m_Lock;
-};
-
-enum ObjectType: uint8_t{
-    OBJECT_CHAROBJECT,
-    OBJECT_ITEM,
-    OBJECT_EVENT,
 };
