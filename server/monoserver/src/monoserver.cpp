@@ -103,6 +103,8 @@ void MonoServer::Launch()
     InitMonsterRace();
     InitMonsterItem();
 
+    // 3. start AI loop
+   
     extern TaskHub *g_TaskHub;
     g_TaskHub->Shutdown();
     // 3. all-set, start to accept connections from clients

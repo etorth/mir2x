@@ -3,7 +3,7 @@
  *
  *       Filename: init.cpp
  *        Created: 04/09/2016 15:12:44
- *  Last Modified: 04/11/2016 23:48:06
+ *  Last Modified: 04/12/2016 16:16:14
  *
  *    Description: all the init work for server launching
  *
@@ -109,4 +109,9 @@ bool MonoServer::InitMonsterItem()
     }
     AddLog(LOGTYPE_INFO, "finished monster item: %d added", pRecord->RowCount());
     return true;
+}
+
+bool MonoServer::StartMonster()
+{
+
 }
