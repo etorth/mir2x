@@ -3,7 +3,7 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 04/09/2016 22:22:33
+ *  Last Modified: 04/12/2016 18:58:24
  *
  *    Description: 
  *
@@ -137,6 +137,16 @@ class TaskHub: public BaseHub<TaskHub>
 
         void Shutdown()
         {
+            // TODO
+            // we may need to clear the task queue
+            // otherwise we'll run into trouble if we do
+            //
+            //      pTaskHub = new TaskHub();
+            //      pTaskHub->Shutdown();
+            //      pTaskHub->Launch();
+            // think about how to implement it by either
+            //  1. implement an task clean function
+            //  2. let Shutdown() block until all task finished
             auto pTask = CreateTask([this](){
                     State(0);
                     m_TaskSignal.notify_one();

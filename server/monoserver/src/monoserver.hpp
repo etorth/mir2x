@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/11/2016 02:09:10
+ *  Last Modified: 04/12/2016 19:00:36
  *
  *    Description: 
  *
@@ -97,6 +97,9 @@ class MonoServer final
 
         void OnPing (Session *);
         void OnLogin(Session *);
+
+    public:
+        int GetMonsterCount(uint32_t, uint32_t);
 
     public:
         // Locked object check out
