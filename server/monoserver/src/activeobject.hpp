@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/11/2016 19:54:41
- *  Last Modified: 04/13/2016 16:13:18
+ *  Last Modified: 04/13/2016 20:22:08
  *
  *    Description: object with Type()/Mode()/State()
  *
@@ -20,9 +20,10 @@
 
 
 #pragma once
+#include <array>
 #include <cstdint>
 
-#include "asyncobject.hpp"
+#include "serverobject.hpp"
 
 // this design pattern is not perfect, when we define valid state/type/mode for class A, and
 // then we define class B inherient from A, then B may have new state/type/mode available, 
@@ -41,38 +42,46 @@
 //  3. STATE_PHANTOM
 //
 //
-class ActiveObject: public AsyncObject
-{
-    protected:
-        uint32_t m_UID;
-        uint32_t m_AddTime;
 
+enum ObjectType: uint8_t{
+    OBJECT_HUMAN,
+    OBJECT_PLAYER,
+    OBJECT_NPC,
+    OBJECT_ANIMAL,
+    OBJECT_MONSTER,
+};
+
+enum ObjectState: uint8_t{
+    // three states of an active object
+    STATE_EMBRYO,
+    STATE_INCARNATED,
+    STATE_GHOST,
+
+    STATE_MOVING,
+    STATE_DEAD,
+
+
+    STATE_NEVERDIE,
+    STATE_ATTACKALL,
+    STATE_PEACE,
+};
+
+class ActiveObject: public ServerObject
+{
     protected:
         std::array< uint8_t, 255> m_TypeV;
         std::array< uint8_t, 255> m_StateV;
         std::array<uint32_t, 255> m_StateTimeV;
 
     protected:
-        AsyncObject()
+        ActiveObject()
+            : ServerObject()
         {
             m_TypeV.fill(0);
             m_StateV.fill(0);
             m_StateTimeV.fill(0);
 
             m_StateV[STATE_EMBRYO] = 1;
-        }
-            
-
-
-    public:
-        uint32_t UID()
-        {
-            return m_UID;
-        }
-
-        uint32_t AddTime()
-        {
-            return m_AddTime;
         }
 
     public:
@@ -97,31 +106,3 @@ class ActiveObject: public AsyncObject
         virtual bool SetType (uint8_t, bool) = 0;
         virtual bool SetState(uint8_t, bool) = 0;
 };
-
-enum ObjectType: uint8_t{
-    OBJECT_CHAROBJECT,
-    OGJECT_ITEM,
-    OBJECT_EVENT,
-
-    OBJECT_HUMAN,
-    OBJECT_PLAYER,
-    OBJECT_NPC,
-    OBJECT_ANIMAL,
-    OBJECT_MONSTER,
-};
-
-enum ObjectState: uint8_t{
-    // three states of an active object
-    STATE_EMBRYO,
-    STATE_INCARNATED,
-    STATE_GHOST,
-
-    STATE_MOVING,
-    STATE_DEAD,
-
-
-    STATE_NEVERDIE,
-    STATE_ATTACKALL,
-    STATE_PEACE,
-};
-

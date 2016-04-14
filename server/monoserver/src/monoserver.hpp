@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/13/2016 19:24:35
+ *  Last Modified: 04/13/2016 20:30:32
  *
  *    Description: 
  *
@@ -80,6 +80,11 @@ class MonoServer final
         bool InitMonsterRace();
         bool InitMonsterItem();
 
+    private:
+        // I didn't put lock on every map
+        std::mutex m_MapVLock;
+        std::unordered_map<uint32_t, ServerMap *> m_MapV;
+
     public:
         // for gui
         bool GetValidMapV(std::vector<std::pair<int, std::string>> &);
@@ -143,7 +148,7 @@ class MonoServer final
 
         bool MonoServer::AddMonster(uint32_t nMonsterIndex, uint32_t nMapID)
         {
-            return AddMonster(nMonsterInex, nMapID, -1, -1, false, nullptr, nullptr);
+            return AddMonster(nMonsterIndex, nMapID, -1, -1, false, nullptr, nullptr);
         }
 
 };

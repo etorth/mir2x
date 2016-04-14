@@ -3,7 +3,7 @@
  *
  *       Filename: asynchub.hpp
  *        Created: 04/09/2016 20:51:17
- *  Last Modified: 04/13/2016 18:31:27
+ *  Last Modified: 04/13/2016 20:25:03
  *
  *    Description: An async hub is a global container which stays valid during the
  *                 whole process, but item inside may be created/released.
@@ -79,6 +79,7 @@
 
 #pragma once
 #include <mutex>
+#include "objectlockguard.hpp"
 
 // #include "sfinaecheck.hpp"
 // GENERATE_HAS_MEMBER(BindLock)
@@ -187,5 +188,4 @@ class AsyncHub
         {
             return {Retrieve(nKey, bLockIt), bLockIt};
         }
-
 };

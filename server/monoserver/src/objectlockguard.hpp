@@ -3,7 +3,7 @@
  *
  *       Filename: objectlockguard.hpp
  *        Created: 04/09/2016 00:20:22
- *  Last Modified: 04/13/2016 18:55:35
+ *  Last Modified: 04/13/2016 20:46:42
  *
  *    Description: Previously I was trying to implement AsyncObject with a mutex
  *                 and let all objects derived from it

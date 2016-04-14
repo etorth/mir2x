@@ -3,7 +3,7 @@
  *
  *       Filename: addmonster.cpp
  *        Created: 04/12/2016 19:07:52
- *  Last Modified: 04/13/2016 19:20:50
+ *  Last Modified: 04/13/2016 20:27:36
  *
  *    Description: 
  *
@@ -93,7 +93,7 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
     if(!pGuard){
         // strange error, check your logic...
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "strange error, may contains serious logic error..");
+        g_Log->AddLog(LOGTYPE_WARNING, "strange error, may contain serious logic error..");
         Remove<CharObject>(nKey);
         return false;
     }
@@ -110,5 +110,16 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
     if(pUID){ *pUID = nUID; }
     if(pAddTime){ *pAddTime = nAddTime; }
 
-    return false;
+    // now this object is ready
+    pGuard->SetState(STATE_INCARNATED);
+
+    extern TaskHub *g_TaskHub;
+    auto fnOperate = [this, nID, nAddTime]()
+    {
+        ObjectOperate(nID, nAddTime);
+    };
+
+    g_TaskHub->Add(fnOperate);
+
+    return true;
 }

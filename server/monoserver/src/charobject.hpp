@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/13/2016 13:44:48
+ *  Last Modified: 04/13/2016 20:01:31
  *
  *    Description: 
  *
@@ -22,7 +22,7 @@
 #include <list>
 #include <vector>
 
-#include "serverobject.hpp"
+#include "activeobject.hpp"
 #include "servermap.hpp"
 
 enum RangeType: uint8_t{
