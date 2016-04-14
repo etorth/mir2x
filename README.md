@@ -43,6 +43,8 @@ For server object asynchronized access, we designed ObjectLockGuard to help, but
 3. so, since inside object we always have ``this", all *public* member function of object should be thread safe.
 4. if we already have pObject, we constraint usage of (pObject->UID(), pObject->AddTime()), this should only be used for log info output. If we have this (nUID, nAddTime) via pObject, and need to use it the checkout the object again, do it out of the scope of ObjectLockGuard or put the checkout in g_TaskHub/g_EventTaskHub.
 
+sample code:
+
     void f(CharObject *pObject)
     {
         nUID     = pObject->UID();
@@ -65,3 +67,25 @@ For server object asynchronized access, we designed ObjectLockGuard to help, but
         };
         g_TaskHub->Add(fnOperate);
     }
+
+this should save us from dead lock, or
+    void f()
+    {
+        // ...
+        if(auto pGuard = CheckOut<CharObject>(nUID, nAddTime)){
+            nUID     = pGuard->UID();
+            nAddTime = pGuard->AddTime();
+
+            // g() use naked pointer of object
+            g(pGuard.Get());
+        }
+
+        // check out again using nUID, nAddTime, it's OK
+        auto pGuard = CheckOut<CharObject>(nUID, nAddTime);
+        if(pGuard){
+            //...
+        }
+    
+    }
+
+to make it short: ``in one scope there should be only one lock guard of one object". More than 1 lock guard for one object will cause deadlock.
