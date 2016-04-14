@@ -113,4 +113,7 @@ And, when grubbing an object, try your best don't using its UID and AddTime as p
         }
     }
 
-If you really really need to do that, put it in the lambda function and call g_TaskHub, otherwise re-design your logic.
+If you really really need to do that, put it in the lambda function and call g_TaskHub, otherwise re-design your logic. To be short:
+
+1. if current function accept pointer, current thread has already grabbed the object
+2. if current fucntion accept (UID, AddTime), there is no ancesotr in the call tree who is now still grubbing the object.
