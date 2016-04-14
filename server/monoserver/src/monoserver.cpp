@@ -107,7 +107,7 @@ void MonoServer::Launch()
     // 3. start AI loop
    
     extern TaskHub *g_TaskHub;
-    g_TaskHub->Shutdown();
+    // g_TaskHub->Shutdown();
     // 3. all-set, start to accept connections from clients
     extern ServerConfigureWindow *g_ServerConfigureWindow;
     int nPort = g_ServerConfigureWindow->Port();
@@ -122,6 +122,8 @@ void MonoServer::Launch()
 
     extern TaskHub *g_TaskHub;
     g_TaskHub->Launch();
+
+    AddMonster(1, 1);
 }
 
 void MonoServer::OnReadHC(uint8_t nMsgHC, Session *pSession)

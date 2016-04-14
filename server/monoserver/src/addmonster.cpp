@@ -3,7 +3,7 @@
  *
  *       Filename: addmonster.cpp
  *        Created: 04/12/2016 19:07:52
- *  Last Modified: 04/13/2016 23:53:56
+ *  Last Modified: 04/14/2016 01:24:15
  *
  *    Description: 
  *
@@ -63,14 +63,17 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
         pMap = stInst->second.get();
     }
 
-    if(!pMap || !pMap->ValidP(nX, nY)){ return false; }
+    // check the map
+    if(!pMap || pMap->W() == 0 || pMap->H() == 0 || (bStrict && !pMap->ValidP(nX, nY))){
+        return false;
+    }
 
     // 3. try to add to map
     uint32_t nUID     = m_ObjectUID++;
     uint32_t nAddTime = GetTickCount();
 
     // try-catch
-    Monster *pMonster = nullptr;
+    CharObject *pMonster = nullptr;
     try{
         switch(nMonsterInex){
             case MONSTER_DEER:
@@ -91,7 +94,7 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
     uint64_t nKey = ((uint64_t)nUID << 32) + nAddTime;
 
     // now we have a valid monster object with state STATE_EMBRYO
-    if(!m_CharObjectHub.Add(nKey, (CharObject *)pMonster, [](CharObject *pResource){ delete pResource; })){
+    if(!m_CharObjectHub.Add(nKey, pMonster, [](CharObject *pResource){ delete pResource; })){
         delete pMonster;
 
         extern Log *g_Log;
