@@ -91,3 +91,26 @@ this should save us from dead lock, or
     }
 
 to make it short: ``in one scope there should be only one lock guard of one object". More than 1 lock guard for one object will cause deadlock immediately.
+
+And, when grubbing an object, try your best don't using its UID and AddTime as pramaters to call another function. use the pointer as prameter instead, or put the logic in current funtion.
+
+    void f()
+    {
+        // ...
+        if(auto pGuard = CheckOut<CharObject>(nUID, nAddTime)){
+            nUID     = pGuard->UID();
+            nAddTime = pGuard->AddTime();
+    
+            g(nUID, nAddTime);
+        }
+    }
+    
+    void g(uint32_t nUID, uint32_t nAddTime)
+    {
+        // still a terrible problem
+        if(auto pGuard = CheckOut<CharObject>(nUID, nAddTime)){
+            // ....
+        }
+    }
+
+If you really really need to do that, put it in the lambda function and call g_TaskHub, otherwise re-design your logic.
