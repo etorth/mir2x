@@ -3,7 +3,7 @@
  *
  *       Filename: objectlockguard.hpp
  *        Created: 04/09/2016 00:20:22
- *  Last Modified: 04/10/2016 18:43:28
+ *  Last Modified: 04/13/2016 18:55:35
  *
  *    Description: Previously I was trying to implement AsyncObject with a mutex
  *                 and let all objects derived from it
@@ -42,14 +42,15 @@
 //
 // template<typename T, bool CheckFlag = (has_member_Lock<T>::value && has_member_Unlock<T>::value)>
 // template<typename T, bool CheckFlag = (has_member_Unlock<T>::value)>
+
 template<typename T>
 class ObjectLockGuard final
 {
     public:
-        friend class MonoServer;
+        friend class AsyncHub<T>;
 
     private:
-        // constructor, only MonoServer can create it from naked pointer
+        // constructor, only AsyncHub can create it from naked pointer
         //
         // pObject is locked means:
         //      1. no thread other can modify it
@@ -62,6 +63,23 @@ class ObjectLockGuard final
             // if bLockIt is true, then pObject is already locked
             // otherwise error occurs when pObject is modified during the invocation of this ctor
         }
+
+    private:
+    // public:
+        // we can make it's public, this is ok since no object created
+        // this is to enable following pattern:
+        //
+        // ObjectLockGuard pGuard;
+        // if(...){
+        //      pGuard = f();
+        // }else{
+        //      pGuard = g();
+        // }
+        ObjectLockGuard()
+            : m_Object(nullptr)
+            , m_Locked(false)
+        {}
+
 
         // nobody can copy it, otherwise one can unlock a object many times
         ObjectLockGuard(const ObjectLockGuard &) = delete;

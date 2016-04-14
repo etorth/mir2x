@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/12/2016 19:00:36
+ *  Last Modified: 04/13/2016 19:24:35
  *
  *    Description: 
  *
@@ -101,22 +101,18 @@ class MonoServer final
     public:
         int GetMonsterCount(uint32_t, uint32_t);
 
+    private:
+        bool AddObject();
+
     public:
-        // Locked object check out
-        template<typename T, bool bLockIt = true> ObjectLockGuard<T> CheckOut(
+        // all version of check out
+        template<bool bLockIt = true> ObjectLockGuard<CharObject> CheckOut<CharObject, bLockIt>(
                 uint32_t nID, uint32_t nAddTime)
         {
-            if(nID == 0 || nAddTime == 0){
-                return {nullptr, false};
-            }
-
-            if(std::is_same<T, CharObject>::value){
-                return {m_CharObjectHub.Retrieve(
-                        ((uint64_t)nID << 32) + nAddTime, bLockIt), bLockIt};
-            }
-
-            return {nullptr, false};
+            return m_CharObjectHub.CheckOut<bLockIt>(((uint64_t)nID << 32) + nAddTime);
         }
+
+
 
     public:
         // copy from class Log to support LOGTYPE_XXX
@@ -128,4 +124,26 @@ class MonoServer final
             int nLevel = std::atoi(stLoc[0].c_str());
             AddLog(nLevel, std::forward<U>(u)...);
         }
+
+    public:
+        // all methods to add new monster
+        bool AddMonster(uint32_t, uint32_t, int, int, bool, uint32_t *, uint32_t *);
+
+        bool AddMonster(
+                uint32_t nMonsterInex, uint32_t nMapID, int nX, int nY, bool bStrict = false)
+        {
+            return AddMonster(nMonsterInex, nMapID, nX, nY, bStrict, nullptr, nullptr);
+        }
+
+        bool MonoServer::AddMonster(
+                uint32_t nMonsterInex, uint32_t nMapID, uint32_t *pUID, uint32_t *pAddTime)
+        {
+            return AddMonster(nMonsterInex, nMapID, -1, -1, false, pUID, pAddTime);
+        }
+
+        bool MonoServer::AddMonster(uint32_t nMonsterIndex, uint32_t nMapID)
+        {
+            return AddMonster(nMonsterInex, nMapID, -1, -1, false, nullptr, nullptr);
+        }
+
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/12/2016 23:04:57
+ *  Last Modified: 04/13/2016 12:36:07
  *
  *    Description: 
  *
@@ -139,18 +139,23 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
     if(!m_Mir2xMap.ValidP(nTargetX, nTargetY) || !pObject){ return false; }
 
     ServerMap *pSrcMap = nullptr;
-    ServerMap *pDstMap = this;
-
+    // when pObject is not active, it may have or have not an valid map
     if(pObject->MapID() != 0){
         extern MonoServer *g_MonoServer;
         // this function won't add lock to the map
         pSrcMap = g_MonoServer->GetMap(pObject->MapID());
     }
 
-    // new object without map info?
-    bool bNewObject = (pObject->MapID() == 0);
+    // if this object has valid map, exam it
+    if(pSrcMap && !pSrcMap->ValidP(pObject->X(), pObject->Y())){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING,
+                "Invalid locaiton (%d, %d) for object (%d, %d) with a vlaid map %d",
+                pObject->X(), pObject->Y(), pObject->UID(), pObject->AddTime(), pObject->MapID());
+        return false;
+    }
 
-    // need to use system defined max R for safety
+    // need to use system defined max R + 1 for safety
     int nMaxLD = pObject->R() + SYS_MAXR + 1;
 
     int nGridX0 = (nTargetX - nMaxLD) / SYS_GRIDXP;
@@ -161,20 +166,25 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
     int nGridW = nGridX1 - nGridX0 + 1;
     int nGridH = nGridY1 - nGridY0 + 1;
 
-    int nGridXS = (bNewObject ? nTargetX : pObject->X()) / SYS_GRIDXP;
-    int nGridYS = (bNewObject ? nTargetY : pObject->Y()) / SYS_GRIDYP;
+    int nGridXS = (pSrcMap ? pObject->X() : nTargetX) / SYS_GRIDXP;
+    int nGridYS = (pSrcMap ? pObject->Y() : nTargetY) / SYS_GRIDYP;
 
+    // or can compare pSrcMap == this
+    int nSkipGridX = (pObject->MapID() == ID()) ? nGridXS : -1;
+    int nSkipGridY = (pObject->MapID() == ID()) ? nGridXY : -1;
 
-    int nSkipGridX = (pSrcMap == pDstMap) ? nGridXS : -1;
-    int nSkipGridY = (pSrcMap == pDstMap) ? nGridXY : -1;
-
+    bool bLockS = false;
+    bool bLockD = false;
     if(pSrcMap){ bLockS = pSrcMap->LockArea(true, nGridXS, nGridYS); }
 
     bLockD = LockArea(true, nGridX0, nGridY0, nGridW, nGridH, nSkipGridX, nSkipGridY);
 
+    // only work for both src map and dst map locked
     if(!(((pSrcMap != nullptr) == bLockS) && bLockD)){
-        if(bLockS && pSrcMap){ pSrcMap->LockArea(false, nGridXS, nGridYS, 1, 1); }
-        if(bLockD && pDstMap){ pDstMap->LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS); }
+        if(pSrcMap && bLockS){ pSrcMap->LockArea(false, nGridXS, nGridYS, 1, 1); }
+        if(bLockD){
+            pDstMap->LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS);
+        }
         return false;
     }
 

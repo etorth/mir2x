@@ -3,7 +3,7 @@
  *
  *       Filename: asynchub.hpp
  *        Created: 04/09/2016 20:51:17
- *  Last Modified: 04/10/2016 18:54:16
+ *  Last Modified: 04/13/2016 18:31:27
  *
  *    Description: An async hub is a global container which stays valid during the
  *                 whole process, but item inside may be created/released.
@@ -29,6 +29,12 @@
  *                  4. hub maybe rehashed, resized, or even convert to another kind
  *                     of container, it should be transparent to the resource 
  *                     ponter.
+ *
+ *                  5. object hub has no concept of object life circle, in hub the
+ *                     object is valid or not only for the memory purpose
+ *
+ *                  6. inserting object into hub only by pointer, delete object
+ *                     out of hub only by ID
  *
  *                  opreation defined:
  *                      1. when retrieve a pointer by ID from the hub
@@ -77,8 +83,13 @@
 // #include "sfinaecheck.hpp"
 // GENERATE_HAS_MEMBER(BindLock)
 
+// 1. the mutex
+// 2. the res pointer
+// 3. the handler of how to clear the handler
+using ResKeyType = uint64_t;
 template<typename ResType>
-using AsyncResType = std::tuple<std::shared_ptr<std::mutex>, ResType *>;
+using AsyncResType = std::tuple<
+    std::shared_ptr<std::mutex>, ResType *, std::function<void(ResType *)>>;
 
 // template<typename T, bool CheckBindLock = (has_member_BindLock<T>::value)>
 template<typename T>
@@ -86,7 +97,7 @@ class AsyncHub
 {
     private:
         std::mutex  m_Lock;
-        std::unordered_map<uint64_t, AsyncResType<T>> m_ObjectHub;
+        std::unordered_map<ResKeyType, AsyncResType<T>> m_ObjectHub;
 
     public:
         // AsyncHub()
@@ -96,15 +107,28 @@ class AsyncHub
         // }
     public:
 
-        // return false if
+        // give the ownship fully to the hub, from then on, nobody except this hub can this object.
+        //  1. input pointer should be non-null, unlocked
+        //  2. input key should be unique, caller should maintain the uniqueness
+        //  3. this function **won't** lock the object
+        //
+        // this function won't and can't check whether the object is unlocked, if passing a locked
+        // pointer, behavior is undefined, return false if
         //  1. null resource pointer
         //  2. key is already used
         //      here if the key is already taken, we can lock the item w.r.t the
         //      key, and then overwrite it, but it's not necessary. since we use
         //      time as key to make sure we can tell the difference of two item
         //      with the same UID. so just return error
-        //  3. throw error when memory allocatioin failed
-        bool Add(uint64_t nKey, T *pRes)
+        //  3. throw if allocatioin for std::shared_ptr<std::mutex> failed
+        //
+        // object hub has no concept of object life circle.
+        // this is the only interface of inserting an new object to the hub, since now hub has
+        // the fully ownship of the res, we use fnDelete to define how to clear this res, but
+        // it's invoked by the hub only
+        //
+        bool Add(ResKeyType nKey, T *pRes, 
+                const std::function<void(T *)> fnDelete = [](T *pRes){ delete pRes; })
         {
             if(!pRes){ return false; }
             std::lock_guard<std::mutex> stLockGuard(m_Lock);
@@ -112,18 +136,17 @@ class AsyncHub
             auto stInst = m_ObjectHub.find(nKey);
             if(stInst != m_ObjectHub.end()){ return false; }
 
-            auto pLock = new std::mutex;
-            m_ObjectHub[nKey] = {std::make_shared<std::mutex>(), pRes};
+            auto pLock = std::make_shared<std::mutex>();
+            m_ObjectHub[nKey] = {pLock, pRes, fnDelete};
 
             // here we require the async resource type define a BindLock() method
-            pRes->BindLock(pLock);
-            return true;
+            return pRes->BindLock(pLock.get());
         }
 
-        // nKey maybe invalid
+        // this is the only interface to remove an object out of the hub
+        // input nKey maybe invalid
         // after this, guanteed there is no item w.r.t nKey
-        void Remove(uint64_t nKey,
-                const std::function<void(T *)> fnDelete = [](T *pRes){ delete pRes; })
+        void Remove(ResKeyType nKey)
         {
             std::lock_guard<std::mutex> stLockGuard(m_Lock);
 
@@ -132,14 +155,22 @@ class AsyncHub
 
             {
                 std::lock_guard<std::mutex> stItemLockGuard(*std::get<0>(stInst.second));
-                fnDelete(std::get<1>(stInst.second));
+                try{
+                    (std::get<2>(stInst.second))(std::get<1>(stInst.second));
+                }catch(...){
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_WARNING,
+                            "unexpected exception in clear handler for object ID = %d", nKey);
+                }
             }
 
             // the mutex is owned by shared_ptr, no need for explicitly delete
             m_ObjectHub.erase(stInst);
         }
 
-        T *Retrieve(uint64_t nKey, bool bLockIt = true)
+        // return the naked pointer of the object
+        // object is locked that any other thread can't grub it if bLockIt is true
+        T *Retrieve(ResKeyType nKey, bool bLockIt = true)
         {
             std::lock_guard<std::mutex> stLockGuard(m_Lock);
 
@@ -151,4 +182,10 @@ class AsyncHub
             }
             return std::get<1>(stInst->second);
         }
+
+        template<bool bLockIt> ObjectLockGuard<T> CheckOut(ResKeyType nKey)
+        {
+            return {Retrieve(nKey, bLockIt), bLockIt};
+        }
+
 };

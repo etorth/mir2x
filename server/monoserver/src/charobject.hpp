@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/11/2016 23:00:47
+ *  Last Modified: 04/13/2016 13:44:48
  *
  *    Description: 
  *
@@ -108,7 +108,7 @@ typedef struct{
 }OBJECTADDABILITY;
 #pragma pack(pop)
 
-class CharObject: public ServerObject
+class CharObject: public ActiveObject
 {
     private:
         // define some shortcuts for internal use only

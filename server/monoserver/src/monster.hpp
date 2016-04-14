@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/11/2016 22:14:22
+ *  Last Modified: 04/13/2016 13:47:18
  *
  *    Description: 
  *
@@ -67,16 +67,22 @@ typedef struct stMONSTERRACEINFO{
 
 }MONSTERRACEINFO;
 
+class MonoServer;
 class Monster: public CharObject
 {
+    public:
+        friend class MonoServer;
+
     private:
         // shortcuts for internal use only
         using ObjectRecord     = std::tuple<uint32_t, uint32_t>;
         using ObjectRecordList = std::list<ObjectRecord>;
         const ObjectRecord EMPTYOBJECTRECORD {0, 0};
 
-    public:
+    private:
         Monster();
+
+    public:
         ~Monster();
 
     public:

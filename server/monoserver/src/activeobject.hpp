@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: serverobject.hpp
+ *       Filename: activeobject.hpp
  *        Created: 04/11/2016 19:54:41
- *  Last Modified: 04/11/2016 21:00:47
+ *  Last Modified: 04/13/2016 16:13:18
  *
  *    Description: object with Type()/Mode()/State()
  *
@@ -31,12 +31,38 @@
 //
 // since I take charge of all these source code file and I can edit it, it's OK, I like its
 // simplified interface.
-
-class ServerObject: public AsyncObject
+//
+// Let me make State and Type only, and merge Mode into State for less interfaces
+//
+// TODO: define life circle of an active object:
+//
+//  1. STATE_EMBRYO
+//  2. STATE_INCARNATED
+//  3. STATE_PHANTOM
+//
+//
+class ActiveObject: public AsyncObject
 {
     protected:
         uint32_t m_UID;
         uint32_t m_AddTime;
+
+    protected:
+        std::array< uint8_t, 255> m_TypeV;
+        std::array< uint8_t, 255> m_StateV;
+        std::array<uint32_t, 255> m_StateTimeV;
+
+    protected:
+        AsyncObject()
+        {
+            m_TypeV.fill(0);
+            m_StateV.fill(0);
+            m_StateTimeV.fill(0);
+
+            m_StateV[STATE_EMBRYO] = 1;
+        }
+            
+
 
     public:
         uint32_t UID()
@@ -51,20 +77,25 @@ class ServerObject: public AsyncObject
 
     public:
         // getter
-        virtual bool Mode (uint8_t) = 0;
+        // always return values, nonthrow
+        //
+        //   true: the object is in state/type as indicated
+        //  false: the object is not in passed state/type or the passed
+        //               state/type is not supported
+        //
+        // when using this getter function, only return true makes sense
+        //
         virtual bool Type (uint8_t) = 0;
         virtual bool State(uint8_t) = 0;
 
         // setter
-        virtual void SetMode (uint8_t, bool) = 0;
-        virtual void SetType (uint8_t, bool) = 0;
-        virtual void SetState(uint8_t, bool) = 0;
-};
-
-enum ModeType: uint8_t{
-    MODE_NEVERDIE,
-    MODE_ATTACKALL,
-    MODE_PEACE,
+        // always return values, nonthrow, when returning
+        //   true: passed state/type set successfully
+        //  false: can't set passed state/type because not supported or logic constrait
+        //
+        //  only return true the operation makes sense, otherwise nothing changes
+        virtual bool SetType (uint8_t, bool) = 0;
+        virtual bool SetState(uint8_t, bool) = 0;
 };
 
 enum ObjectType: uint8_t{
@@ -80,8 +111,17 @@ enum ObjectType: uint8_t{
 };
 
 enum ObjectState: uint8_t{
+    // three states of an active object
+    STATE_EMBRYO,
+    STATE_INCARNATED,
+    STATE_GHOST,
+
     STATE_MOVING,
     STATE_DEAD,
-    STATE_GHOST,
+
+
+    STATE_NEVERDIE,
+    STATE_ATTACKALL,
+    STATE_PEACE,
 };
 

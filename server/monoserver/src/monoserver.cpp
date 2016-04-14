@@ -148,3 +148,4 @@ int MonoServer::GetMonsterCount(uint32_t nMapID, uint32_t nMonsterIndex, bool bS
 {
     return 0;
 }
+

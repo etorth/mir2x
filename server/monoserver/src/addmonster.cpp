@@ -3,7 +3,7 @@
  *
  *       Filename: addmonster.cpp
  *        Created: 04/12/2016 19:07:52
- *  Last Modified: 04/12/2016 21:59:51
+ *  Last Modified: 04/13/2016 19:20:50
  *
  *    Description: 
  *
@@ -20,16 +20,6 @@
 
 #include "monoserver.hpp"
 
-bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID, int nX, int nY)
-{
-}
-
-bool MonoServer::AddMonster(uint32_t nMonsterInex,
-        uint32_t nMapID, uint32_t *pUID, uint32_t *pAddTime)
-{
-
-}
-
 // create an specified monster at specified place
 // parameters:
 //      nMonsterInex:
@@ -40,7 +30,7 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex,
 //      pUID        :
 //      pAddTime    :
 bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
-        int nX, int nY, bool bStrict, uint32_t *pUID = nullptr, uint32_t *pAddTime = nullptr)
+        int nX, int nY, bool bStrict, uint32_t *pUID, uint32_t *pAddTime)
 {
     // 1. check argument
     if(nMonsterInex == 0 || nMapID == 0){ return false; }
@@ -69,33 +59,56 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
     if(!pMap || !pMap->ValidP(nX, nY)){ return false; }
 
     // 3. try to add to map
-    {
-        uint32_t nUID     = m_ObjectUID++;
-        uint32_t nAddTime = GetTickCount();
+    uint32_t nUID     = m_ObjectUID++;
+    uint32_t nAddTime = GetTickCount();
 
-        // try-catch
-        auto pMonster = std::make_shared<Monster>(nMonsterInex, nUID, nAddTime);
-
-        int nTryLoop = (bStrict ? 1 : 100);
-        while(nTryLoop--){
-            if(pMap->AddObject(nX, nY, pMonster)){
-                return true;
-            }
-            nX = std::rand() % (pMap->W() * SYS_MAPXP);
-            nY = std::rand() % (pMap->H() * SYS_MAPYP);
-        }
-
+    // try-catch
+    Monster *pMonster = nullptr;
+    try{
+        pMonster = new Monster(nMonsterInex, nUID, nAddTime);
+    }catch(...){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING,
+                "add monster with index %d at map %d of location (%d, %d) failed",
+                nMonsterInex, nMapID, nX, nY);
         return false;
-
-
-
-        if(ObjectMove(nX, nY, pMonster)){
-            if(m_CharObjectHub.Add(((uint64_t)nUID << 32) + nAddTime, pMonster))
-        }
-
     }
 
+    // prepare the 64-bit key
+    uint64_t nKey = ((uint64_t)nUID << 32) + nAddTime;
 
-    int nGridX = nX / SYS_MAPXP;
-    int nGridY = nY / SYS_MAPYP;
+    // now we have a valid monster object with state STATE_EMBRYO
+    if(!m_CharObjectHub.Add(nKey, pMonster, [](Monster *pResource){ delete pResource; })){
+        delete pMonster;
+
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING,
+                "create monster with index %d failed", nMonsterInex);
+        return false;
+    }
+
+    // now the monster object is owned by the hub, if we need it
+    // we should retrieve from the hub...
+    auto pGuard = CheckOut<CharObject, true>(nKey);
+    if(!pGuard){
+        // strange error, check your logic...
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "strange error, may contains serious logic error..");
+        Remove<CharObject>(nKey);
+        return false;
+    }
+
+    int nTryLoop = (bStrict ? 1 : 100);
+    while(nTryLoop--){
+        if(pMap->ObjectMove(nX, nY, pGuard.Get())){
+            return true;
+        }
+        nX = std::rand() % (pMap->W() * SYS_MAPXP);
+        nY = std::rand() % (pMap->H() * SYS_MAPYP);
+    }
+
+    if(pUID){ *pUID = nUID; }
+    if(pAddTime){ *pAddTime = nAddTime; }
+
+    return false;
 }
