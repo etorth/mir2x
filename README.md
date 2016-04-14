@@ -35,3 +35,10 @@ General rules:
 3. for constructor, it may throw different type of exceptions.
 
 So if there are constructors in a normal function, we need catch-rethrow if there do exist exceptions, type rethrowed should only be std::error_code()
+
+For server object asynchronized access, we designed ObjectLockGuard to help, but still which can cause dead lock. Put some rule and assumptions here for safe programming:
+
+1. we can only access an object by check out (nUID, nAddTime).
+2. if we already have pObject, that means current thread has already grubbed the lock.
+3. so, since inside object we always have ``this", all *public* member function of object should be thread safe.
+4. if we already have pObject, we constraint usage of (pObject->UID(), pObject->AddTime()), this should only be used for log info output
