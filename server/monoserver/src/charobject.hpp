@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/13/2016 20:01:31
+ *  Last Modified: 04/14/2016 01:04:36
  *
  *    Description: 
  *
@@ -124,13 +124,13 @@ class CharObject: public ActiveObject
         const ObjectRecord EMPTYOBJECTRECORD {0, 0};
 
     public:
-        CharObject();
+        CharObject(uint32_t, uint32_t);
         ~CharObject();
 
     public:
         bool Active()
         {
-            return !State(STATE_DEAD) && !State(STATE_GHOST);
+            return !State(STATE_DEAD) && !State(STATE_PHANTOM);
         }
 
     public:
@@ -183,9 +183,9 @@ class CharObject: public ActiveObject
 
         virtual bool Attack(CharObject *) = 0;
 
-        virtual bool Friend(const CharObject *) const = 0;
-        virtual bool Operate() = 0;
-        virtual int  NameColorType() = 0;
+        virtual bool Friend(CharObject *) = 0;
+        virtual bool      Operate() = 0;
+        virtual uint32_t  NameColor() = 0;
         virtual const char *CharName() = 0;
 
         virtual bool Mode(uint8_t)
@@ -214,11 +214,6 @@ class CharObject: public ActiveObject
 
     protected:
         uint16_t m_ObjectType;
-
-    public:
-        // test function
-        virtual bool Type( uint8_t) const = 0;
-        virtual bool State(uint8_t) const = 0;
 
     public:
         virtual int Range(uint8_t) = 0;

@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 04/11/2016 22:26:10
+ *  Last Modified: 04/13/2016 23:19:10
  *
  *    Description: 
  *
@@ -21,6 +21,6 @@
 #pragma once
 #include <cstdint>
 
-const int SYS_MAXR   = 20;
-const int SYS_GRIDXP = 48;
-const int SYS_GRIDYP = 32;
+const int SYS_MAXR      = 20;
+const int SYS_MAPGRIDXP = 48;
+const int SYS_MAPGRIDYP = 32;

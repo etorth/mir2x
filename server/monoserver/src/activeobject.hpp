@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/11/2016 19:54:41
- *  Last Modified: 04/13/2016 20:22:08
+ *  Last Modified: 04/14/2016 01:00:10
  *
  *    Description: object with Type()/Mode()/State()
  *
@@ -55,7 +55,7 @@ enum ObjectState: uint8_t{
     // three states of an active object
     STATE_EMBRYO,
     STATE_INCARNATED,
-    STATE_GHOST,
+    STATE_PHANTOM,
 
     STATE_MOVING,
     STATE_DEAD,
@@ -69,13 +69,13 @@ enum ObjectState: uint8_t{
 class ActiveObject: public ServerObject
 {
     protected:
-        std::array< uint8_t, 255> m_TypeV;
-        std::array< uint8_t, 255> m_StateV;
+        std::array<    bool, 255> m_TypeV;
+        std::array<    bool, 255> m_StateV;
         std::array<uint32_t, 255> m_StateTimeV;
 
     protected:
-        ActiveObject()
-            : ServerObject()
+        ActiveObject(uint32_t nUID, uint32_t nAddTime)
+            : ServerObject(CATEGORY_ACTIVEOBJECT, nUID, nAddTime)
         {
             m_TypeV.fill(0);
             m_StateV.fill(0);

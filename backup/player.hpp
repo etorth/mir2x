@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 04/10/2016 20:52:36
+ *  Last Modified: 04/14/2016 00:08:56
  *
  *    Description: 
  *
@@ -62,7 +62,7 @@ class Player: public CharObject
         ~Player();
 
     public:
-        virtual bool Friend(const CharObject *);
+        virtual bool Friend(CharObject *);
     public:
         PLAYERFEATURE               m_Feature;
         PLAYERFEATUREEX             m_FeatureEx;

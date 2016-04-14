@@ -3,7 +3,7 @@
  *
  *       Filename: objectlockguard.hpp
  *        Created: 04/09/2016 00:20:22
- *  Last Modified: 04/13/2016 20:46:42
+ *  Last Modified: 04/13/2016 20:53:51
  *
  *    Description: Previously I was trying to implement AsyncObject with a mutex
  *                 and let all objects derived from it
@@ -42,6 +42,8 @@
 //
 // template<typename T, bool CheckFlag = (has_member_Lock<T>::value && has_member_Unlock<T>::value)>
 // template<typename T, bool CheckFlag = (has_member_Unlock<T>::value)>
+
+template<typename U> class AsyncHub;
 
 template<typename T>
 class ObjectLockGuard final

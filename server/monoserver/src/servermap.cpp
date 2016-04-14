@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/13/2016 12:36:07
+ *  Last Modified: 04/14/2016 01:02:44
  *
  *    Description: 
  *
@@ -26,6 +26,11 @@
 #include "charobject.hpp"
 #include "monoserver.hpp"
 #include "rotatecoord.hpp"
+
+ServerMap::ServerMap(uint32_t nMapID)
+    : m_ID(nMapID)
+{
+}
 
 bool ServerMap::Load(const char *szMapFullName)
 {
@@ -136,7 +141,9 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
 {
     // this funciton require 100% logic correctness
     // have to lock an area to prevent any update inside
-    if(!m_Mir2xMap.ValidP(nTargetX, nTargetY) || !pObject){ return false; }
+    if(!m_Mir2xMap.ValidP(nTargetX, nTargetY) || !pObject || pObject->Type(STATE_PHANTOM)){
+        return false;
+    }
 
     ServerMap *pSrcMap = nullptr;
     // when pObject is not active, it may have or have not an valid map
@@ -158,20 +165,20 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
     // need to use system defined max R + 1 for safety
     int nMaxLD = pObject->R() + SYS_MAXR + 1;
 
-    int nGridX0 = (nTargetX - nMaxLD) / SYS_GRIDXP;
-    int nGridX1 = (nTargetX + nMaxLD) / SYS_GRIDXP;
-    int nGridY0 = (nTargetY - nMaxLD) / SYS_GRIDYP;
-    int nGridY1 = (nTargetY + nMaxLD) / SYS_GRIDYP;
+    int nGridX0 = (nTargetX - nMaxLD) / SYS_MAPGRIDXP;
+    int nGridX1 = (nTargetX + nMaxLD) / SYS_MAPGRIDXP;
+    int nGridY0 = (nTargetY - nMaxLD) / SYS_MAPGRIDYP;
+    int nGridY1 = (nTargetY + nMaxLD) / SYS_MAPGRIDYP;
 
     int nGridW = nGridX1 - nGridX0 + 1;
     int nGridH = nGridY1 - nGridY0 + 1;
 
-    int nGridXS = (pSrcMap ? pObject->X() : nTargetX) / SYS_GRIDXP;
-    int nGridYS = (pSrcMap ? pObject->Y() : nTargetY) / SYS_GRIDYP;
+    int nGridXS = (pSrcMap ? pObject->X() : nTargetX) / SYS_MAPGRIDXP;
+    int nGridYS = (pSrcMap ? pObject->Y() : nTargetY) / SYS_MAPGRIDYP;
 
     // or can compare pSrcMap == this
     int nSkipGridX = (pObject->MapID() == ID()) ? nGridXS : -1;
-    int nSkipGridY = (pObject->MapID() == ID()) ? nGridXY : -1;
+    int nSkipGridY = (pObject->MapID() == ID()) ? nGridYS : -1;
 
     bool bLockS = false;
     bool bLockD = false;
@@ -183,7 +190,7 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
     if(!(((pSrcMap != nullptr) == bLockS) && bLockD)){
         if(pSrcMap && bLockS){ pSrcMap->LockArea(false, nGridXS, nGridYS, 1, 1); }
         if(bLockD){
-            pDstMap->LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS);
+            LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS);
         }
         return false;
     }
@@ -194,7 +201,7 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
             auto pRecord = m_GridObjectRecordListV[nY][nX].begin();
             while(pRecord != m_GridObjectRecordListV[nY][nX].end()){
                 // for item/event object, we won't validate it
-                if(std::get<0>(*pRecord) != OBJECT_CHAROBJECT){
+                if(std::get<0>(*pRecord) != CATEGORY_ACTIVEOBJECT){
                     pRecord++;
                     continue;
                 }
@@ -217,7 +224,9 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
                                 pObject->X(), pObject->Y(), pObject->R())){
 
                         if(bLockS && pSrcMap){ pSrcMap->LockArea(false, nGridXS, nGridYS, 1, 1); }
-                        if(bLockD && pDstMap){ pDstMap->LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS); }
+                        if(bLockD){
+                            LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS);
+                        }
                         return false;
                     }
                 }else{
@@ -229,7 +238,7 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
 
     // test all and didn't find any collision
     // 1. remove from previous list
-    ObjectRecord stObjectRecord {OBJECT_CHAROBJECT, pObject->UID(), pObject->AddTime()};
+    ObjectRecord stObjectRecord {CATEGORY_ACTIVEOBJECT, pObject->UID(), pObject->AddTime()};
 
     if(pSrcMap){
         pSrcMap->m_GridObjectRecordListV[nGridYS][nGridXS].erase(std::remove(
@@ -239,71 +248,20 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
     // {OBJECT_CHAROBJECT, pObject->UID(), pObject->AddTime()}));
 
     // 2. add to new cell
-    m_GridObjectRecordListV[nTargetY / SYS_GRIDYP][nTargetX / SYS_GRIDXP].emplace_front(stObjectRecord);
+    m_GridObjectRecordListV[nTargetY / SYS_MAPGRIDYP][nTargetX / SYS_MAPGRIDXP].emplace_front(stObjectRecord);
     // {OBJECT_CHAROBJECT, pObject->UID(), pObject->AddTime()});
 
     // 3. Add to global obj list, must add it before unlock all cells
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->Add(((uint64_t)pObject->ID() << 32) + pObject->AddTime(), pObject);
+    // extern MonoServer *g_MonoServer;
+    // g_MonoServer->Add(((uint64_t)pObject->ID() << 32) + pObject->AddTime(), pObject);
 
     // 4. Unlock all cells
     if(bLockS && pSrcMap){ pSrcMap->LockArea(false, nGridXS, nGridYS, 1, 1); }
-    if(bLockD && pDstMap){ pDstMap->LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS); }
+    if(bLockD){
+        LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS);
+    }
     return true;
 }
-
-// assumption:
-//      1. cell locked
-//      2. new object is already present in the object hub
-//      3. won't exam the validation for the new object
-bool ServerMap::AddObject(int nGridX, int nGridY,
-        uint8_t nType, uint32_t nUID, uint32_t nAddTime)
-{
-    if(!m_Mir2xMap.ValidC(nGridX, nGridY) || !m_Mir2xMap.CanWalk(nGridX, nGridY)){
-        return false;
-    }
-    m_GridObjectRecordListV[nGridY][nGridX].emplace_front(nType, nUID, nAddTime);
-    return true;
-}
-
-bool ServerMap::AddObject(int nTargetX, int nTargetY, CharObject *pObject)
-{
-    if(!ValidP(nTargetX, nTargetY) || !pObject){ return false; }
-
-    if(pObject->MapID() == ID()){
-        return ObjectMove(nTargetX, nTargetY, pObject);
-    }
-
-    int nMaxLD = pObject->R() + SYS_MAXR + 1;
-
-    int nGridX0 = (nTargetX - nMaxLD) / SYS_GRIDXP;
-    int nGridX1 = (nTargetX + nMaxLD) / SYS_GRIDXP;
-    int nGridY0 = (nTargetY - nMaxLD) / SYS_GRIDYP;
-    int nGridY1 = (nTargetY + nMaxLD) / SYS_GRIDYP;
-
-    int nGridW = nGridX1 - nGridX0 + 1;
-    int nGridH = nGridY1 - nGridY0 + 1;
-
-    int nGridXS = pObject->X() / SYS_GRIDXP;
-    int nGridYS = pObject->Y() / SYS_GRIDYP;
-
-    bool bLockS = LockArea(true, nGridXS, nGridYS, 1, 1);
-    bool bLockD = LockArea(true, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS);
-
-    // only work for both s/c locked
-    if(!(bLockS && bLockD)){
-        if(bLockS){ LockArea(false, nGridXS, nGridYS, 1, 1); }
-        if(bLockD){ LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS); }
-        return false;
-    }
-
-
-
-
-
-
-}
-
 
 // // assumption:
 // //      1. cell locked

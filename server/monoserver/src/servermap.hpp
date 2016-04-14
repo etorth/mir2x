@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 04/11/2016 22:34:31
+ *  Last Modified: 04/14/2016 00:48:17
  *
  *    Description: put all non-atomic function as private
  *
@@ -40,8 +40,8 @@ class ServerMap
         template<typename T> using Vec2D = std::vector<std::vector<T>>;
 
     public:
-        ServerMap();
-        ~ServerMap();
+        ServerMap(uint32_t);
+        ~ServerMap() = default;
 
     public:
         uint32_t ID()
@@ -75,7 +75,6 @@ class ServerMap
     public:
         bool Load(const char *);
         bool ObjectMove(int, int, CharObject*);
-        bool AddObject(int, int, uint8_t, uint32_t, uint32_t);
         bool RemoveObject(int, int, uint8_t, uint32_t, uint32_t);
 
     public:
@@ -86,6 +85,17 @@ class ServerMap
 
         bool CanSafeWalk(int, int);
         bool CanMove(int, int, int, uint32_t, uint32_t);
+
+    public:
+        int W()
+        {
+            return m_Mir2xMap.W();
+        }
+
+        int H()
+        {
+            return m_Mir2xMap.H();
+        }
 
     public:
         bool DropLocation(int, int, int, int *, int *);

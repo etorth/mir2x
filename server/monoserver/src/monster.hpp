@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/13/2016 13:47:18
+ *  Last Modified: 04/14/2016 00:08:42
  *
  *    Description: 
  *
@@ -19,6 +19,10 @@
  */
 #pragma once
 #include "charobject.hpp"
+
+enum MonsterType: uint32_t{
+    MONSTER_DEER,
+};
 
 typedef struct stMONSTERITEMINFO{
     int     MonsterIndex;
@@ -73,21 +77,35 @@ class Monster: public CharObject
     public:
         friend class MonoServer;
 
+    protected:
+        Monster(uint32_t, uint32_t, uint32_t);
+
+    public:
+        ~Monster();
+
     private:
         // shortcuts for internal use only
         using ObjectRecord     = std::tuple<uint32_t, uint32_t>;
         using ObjectRecordList = std::list<ObjectRecord>;
         const ObjectRecord EMPTYOBJECTRECORD {0, 0};
 
-    private:
-        Monster();
 
-    public:
-        ~Monster();
+    protected:
+        uint32_t m_MonsterIndex;
 
     public:
         // type test function
-        virtual bool Type(uint8_t) const;
+        virtual bool Type(uint8_t);
+        virtual bool State(uint8_t);
+
+        virtual bool SetType(uint8_t, bool);
+        virtual bool SetState(uint8_t, bool);
+
+        virtual uint32_t NameColor();
+        virtual const char *CharName();
+
+        virtual int Range(uint8_t);
+
         virtual bool Attack(CharObject *);
         virtual bool Follow(CharObject *, bool);
         virtual bool Operate();
@@ -101,7 +119,7 @@ class Monster: public CharObject
         ObjectRecordList m_VisibleObjectList;
 
     public:
-        virtual bool Friend(const CharObject *);
+        virtual bool Friend(CharObject *);
 
     public:
         bool RandomWalk();

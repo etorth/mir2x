@@ -3,7 +3,7 @@
  *
  *       Filename: asyncobject.hpp
  *        Created: 04/09/2016 00:20:22
- *  Last Modified: 04/11/2016 20:54:20
+ *  Last Modified: 04/13/2016 22:58:59
  *
  *    Description: Previously I was trying to implement AsyncObject with a mutex
  *                 and let all objects derived from it
@@ -48,6 +48,9 @@
 // every time when refering to an object, it's always an object-mutex pair.
 class AsyncObject
 {
+    protected:
+        AsyncObject() = default;
+        virtual ~AsyncObject() = default;
     public:
         void Unlock()
         {

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/11/2016 22:12:10
+ *  Last Modified: 04/14/2016 00:35:01
  *
  *    Description: 
  *
@@ -22,8 +22,9 @@
 #include "charobject.hpp"
 #include "eventtaskhub.hpp"
 
-CharObject::CharObject()
-    : m_CurrX(0)
+CharObject::CharObject(uint32_t nUID, uint32_t nAddTime)
+    : ActiveObject(nUID, nAddTime)
+    , m_CurrX(0)
     , m_CurrY(0)
     , m_Event(-1)
     , m_Master(0, 0)
@@ -60,7 +61,7 @@ CharObject::~CharObject()
 
 void CharObject::Die()
 {
-    if(Mode(MODE_NEVERDIE)){ return; }
+    if(Mode(STATE_NEVERDIE)){ return; }
     SetState(STATE_DEAD, true);
 }
 

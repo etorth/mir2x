@@ -11,6 +11,7 @@
 
 MonoServer::MonoServer()
     : m_SessionIO(nullptr)
+    , m_ObjectUID(1)
     , m_LogBufSize(0)
     , m_LogBuf(nullptr)
 {
@@ -137,15 +138,5 @@ uint32_t MonoServer::GetTickCount()
     // ... so..
     return (uint32_t)std::chrono::duration_cast<
         std::chrono::milliseconds>(std::chrono::system_clock::now() - m_StartTime).count();
-}
-
-// get the monster number of the monster
-// parameters
-//     1. nMapID       :  map id, 0 for all map, 
-//     2. nMonsterIndex:  monster index, 0 for all monster
-//     3. bStrict      :  true for exact number, false for estimation
-int MonoServer::GetMonsterCount(uint32_t nMapID, uint32_t nMonsterIndex, bool bStrict = false)
-{
-    return 0;
 }
 

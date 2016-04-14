@@ -3,7 +3,7 @@
  *
  *       Filename: asynchub.hpp
  *        Created: 04/09/2016 20:51:17
- *  Last Modified: 04/13/2016 20:25:03
+ *  Last Modified: 04/13/2016 23:52:45
  *
  *    Description: An async hub is a global container which stays valid during the
  *                 whole process, but item inside may be created/released.
@@ -129,7 +129,7 @@ class AsyncHub
         // it's invoked by the hub only
         //
         bool Add(ResKeyType nKey, T *pRes, 
-                const std::function<void(T *)> fnDelete = [](T *pRes){ delete pRes; })
+                const std::function<void(T *)> &fnDelete = [](T *pRes){ delete pRes; })
         {
             if(!pRes){ return false; }
             std::lock_guard<std::mutex> stLockGuard(m_Lock);
@@ -138,10 +138,11 @@ class AsyncHub
             if(stInst != m_ObjectHub.end()){ return false; }
 
             auto pLock = std::make_shared<std::mutex>();
-            m_ObjectHub[nKey] = {pLock, pRes, fnDelete};
+            m_ObjectHub.emplace(nKey, AsyncResType<T>(pLock, pRes, fnDelete));
 
             // here we require the async resource type define a BindLock() method
-            return pRes->BindLock(pLock.get());
+            pRes->BindLock(pLock.get());
+            return true;
         }
 
         // this is the only interface to remove an object out of the hub
@@ -155,9 +156,9 @@ class AsyncHub
             if(stInst == m_ObjectHub.end()){ return; }
 
             {
-                std::lock_guard<std::mutex> stItemLockGuard(*std::get<0>(stInst.second));
+                std::lock_guard<std::mutex> stItemLockGuard(*std::get<0>(stInst->second));
                 try{
-                    (std::get<2>(stInst.second))(std::get<1>(stInst.second));
+                    (std::get<2>(stInst->second))(std::get<1>(stInst->second));
                 }catch(...){
                     extern Log *g_Log;
                     g_Log->AddLog(LOGTYPE_WARNING,

@@ -3,7 +3,7 @@
  *
  *       Filename: addmonster.cpp
  *        Created: 04/12/2016 19:07:52
- *  Last Modified: 04/13/2016 20:27:36
+ *  Last Modified: 04/13/2016 23:53:56
  *
  *    Description: 
  *
@@ -18,6 +18,9 @@
  * =====================================================================================
  */
 
+#include "log.hpp"
+#include "taskhub.hpp"
+#include "sysconst.hpp"
 #include "monoserver.hpp"
 
 // create an specified monster at specified place
@@ -45,15 +48,19 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
             // try to create an new map, may throw for invalid argument
             // TODO is std::unordered_map exception-safe?
             try{
-                m_MapV[nMapID] = std::make_shared<ServerMap>(nMapID);
+                m_MapV.emplace(nMapID, std::make_shared<ServerMap>(nMapID));
             }catch(...){
                 return false;
             }
         }
         stInst = m_MapV.find(nMapID);
-        if(stInst == m_MapV.end()){ return false; }
+        if(stInst == m_MapV.end()){
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_WARNING, "map error map id = %d", nMapID);
+            return false;
+        }
 
-        pMap = stInst.second.get();
+        pMap = stInst->second.get();
     }
 
     if(!pMap || !pMap->ValidP(nX, nY)){ return false; }
@@ -65,7 +72,13 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
     // try-catch
     Monster *pMonster = nullptr;
     try{
-        pMonster = new Monster(nMonsterInex, nUID, nAddTime);
+        switch(nMonsterInex){
+            case MONSTER_DEER:
+            default:
+                {
+                    pMonster = new Monster(nMonsterInex, nUID, nAddTime);
+                }
+        }
     }catch(...){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_WARNING,
@@ -78,7 +91,7 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
     uint64_t nKey = ((uint64_t)nUID << 32) + nAddTime;
 
     // now we have a valid monster object with state STATE_EMBRYO
-    if(!m_CharObjectHub.Add(nKey, pMonster, [](Monster *pResource){ delete pResource; })){
+    if(!m_CharObjectHub.Add(nKey, (CharObject *)pMonster, [](CharObject *pResource){ delete pResource; })){
         delete pMonster;
 
         extern Log *g_Log;
@@ -89,12 +102,12 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
 
     // now the monster object is owned by the hub, if we need it
     // we should retrieve from the hub...
-    auto pGuard = CheckOut<CharObject, true>(nKey);
+    auto pGuard = CheckOut<CharObject, true>(nUID, nAddTime);
     if(!pGuard){
         // strange error, check your logic...
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_WARNING, "strange error, may contain serious logic error..");
-        Remove<CharObject>(nKey);
+        Remove<CharObject>(nUID, nAddTime);
         return false;
     }
 
@@ -103,20 +116,20 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
         if(pMap->ObjectMove(nX, nY, pGuard.Get())){
             return true;
         }
-        nX = std::rand() % (pMap->W() * SYS_MAPXP);
-        nY = std::rand() % (pMap->H() * SYS_MAPYP);
+        nX = std::rand() % (pMap->W() * SYS_MAPGRIDXP);
+        nY = std::rand() % (pMap->H() * SYS_MAPGRIDYP);
     }
 
     if(pUID){ *pUID = nUID; }
     if(pAddTime){ *pAddTime = nAddTime; }
 
     // now this object is ready
-    pGuard->SetState(STATE_INCARNATED);
+    pGuard->SetState(STATE_INCARNATED, true);
 
     extern TaskHub *g_TaskHub;
-    auto fnOperate = [this, nID, nAddTime]()
+    auto fnOperate = [this, nUID, nAddTime]()
     {
-        ObjectOperate(nID, nAddTime);
+        Operate(nUID, nAddTime);
     };
 
     g_TaskHub->Add(fnOperate);

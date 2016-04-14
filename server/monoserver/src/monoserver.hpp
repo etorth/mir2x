@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/13/2016 20:30:32
+ *  Last Modified: 04/14/2016 01:00:57
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 
 #pragma once
 #include <mutex>
+#include <atomic>
 #include <cstdint>
 #include <chrono>
 #include <type_traits>
@@ -62,6 +63,8 @@ class MonoServer final
         SessionIO   *m_SessionIO;
 
     private:
+        std::atomic<uint32_t> m_ObjectUID;
+    private:
         // for log
         size_t   m_LogBufSize;
         char    *m_LogBuf;
@@ -83,7 +86,7 @@ class MonoServer final
     private:
         // I didn't put lock on every map
         std::mutex m_MapVLock;
-        std::unordered_map<uint32_t, ServerMap *> m_MapV;
+        std::unordered_map<uint32_t, std::shared_ptr<ServerMap>> m_MapV;
 
     public:
         // for gui
@@ -104,20 +107,65 @@ class MonoServer final
         void OnLogin(Session *);
 
     public:
-        int GetMonsterCount(uint32_t, uint32_t);
+        // get the monster number of the monster
+        // parameters
+        //     1. nMapID       :  map id, 0 for all map, 
+        //     2. nMonsterIndex:  monster index, 0 for all monster
+        //     3. bStrict      :  true for exact number, false for estimation
+        int GetMonsterCount(uint32_t nMapID, uint32_t nMonsterIndex, bool bStrict = false)
+        {
+            if(nMapID == 0 || nMonsterIndex == 0 || bStrict){
+                return -1;
+            }
+            return 0;
+        }
+
+    public:
+        ServerMap *GetMap(uint32_t nMapID)
+        {
+            if(nMapID){
+                auto stInst = m_MapV.find(nMapID);
+                if(stInst != m_MapV.end()){
+                    return stInst->second.get();
+                }
+            }
+            return nullptr;
+        }
+
 
     private:
         bool AddObject();
 
     public:
-        // all version of check out
-        template<bool bLockIt = true> ObjectLockGuard<CharObject> CheckOut<CharObject, bLockIt>(
-                uint32_t nID, uint32_t nAddTime)
+        // helper function to run char object
+        void Operate(uint32_t nUID, uint32_t nAddTime)
         {
-            return m_CharObjectHub.CheckOut<bLockIt>(((uint64_t)nID << 32) + nAddTime);
+            auto pGuard = CheckOut<CharObject>(nUID, nAddTime);
+            if(pGuard && pGuard->State(STATE_INCARNATED)){
+                pGuard->Operate(); return;
+            }
+
+            if(pGuard && pGuard->State(STATE_PHANTOM)){
+                Remove<CharObject>(nUID, nAddTime); return;
+            }
         }
 
+    public:
+        template<typename T> void Remove(uint32_t nID, uint32_t nAddTime)
+        {
+            if(std::is_same<T, CharObject>::value){
+                m_CharObjectHub.Remove(((uint64_t)nID << 32) + nAddTime);
+            }
+        }
 
+    public:
+        // all version of check out
+        template<typename T, bool bLockIt = true> ObjectLockGuard<T> CheckOut(uint32_t nID, uint32_t nAddTime)
+        {
+            if(std::is_same<T, CharObject>::value){
+                return m_CharObjectHub.CheckOut<bLockIt>(((uint64_t)nID << 32) + nAddTime);
+            }
+        }
 
     public:
         // copy from class Log to support LOGTYPE_XXX
@@ -140,13 +188,13 @@ class MonoServer final
             return AddMonster(nMonsterInex, nMapID, nX, nY, bStrict, nullptr, nullptr);
         }
 
-        bool MonoServer::AddMonster(
+        bool AddMonster(
                 uint32_t nMonsterInex, uint32_t nMapID, uint32_t *pUID, uint32_t *pAddTime)
         {
             return AddMonster(nMonsterInex, nMapID, -1, -1, false, pUID, pAddTime);
         }
 
-        bool MonoServer::AddMonster(uint32_t nMonsterIndex, uint32_t nMapID)
+        bool AddMonster(uint32_t nMonsterIndex, uint32_t nMapID)
         {
             return AddMonster(nMonsterIndex, nMapID, -1, -1, false, nullptr, nullptr);
         }

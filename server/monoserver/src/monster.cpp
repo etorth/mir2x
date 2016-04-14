@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/11/2016 20:56:18
+ *  Last Modified: 04/14/2016 00:26:15
  *
  *    Description: 
  *
@@ -22,10 +22,19 @@
 #include "mathfunc.hpp"
 #include "monoserver.hpp"
 
+Monster::Monster(uint32_t nMonsterInex, uint32_t nUID, uint32_t nAddTime)
+    : CharObject(nUID, nAddTime)
+    , m_MonsterIndex(nMonsterInex)
+{
+}
+
+Monster::~Monster()
+{}
+
 // TODO & TBD
 // 1. will this cause infin-iteration?
 // 2. will this cause dead lock?
-bool Monster::Friend(const CharObject* pCharObject)
+bool Monster::Friend(CharObject* pCharObject)
 {
     if(!pCharObject || pCharObject == this){ return true; }
     if(m_Master != EMPTYOBJECTRECORD){
@@ -117,22 +126,12 @@ bool Monster::Operate()
     return false;
 }
 
-bool Monster::Type(uint8_t) const
-{
-    return true;
-}
-
 bool Monster::Attack(CharObject *pObject)
 {
     if(pObject) {
         return true;
     }
     return false;
-}
-
-bool Monster::Follow(CharObject *, bool)
-{
-    return true;
 }
 
 bool Monster::RandomWalk()
@@ -165,11 +164,57 @@ void Monster::SearchViewRange()
             if(!m_Map->ValidC(nX, nY)){ continue; }
 
             auto fnQueryObject = [this](uint8_t nType, uint32_t nID, uint32_t nAddTime){
-                if(nType != OBJECT_CHAROBJECT){ return; }
+                if(nType != OBJECT_PLAYER){ return; }
                 m_VisibleObjectList.emplace_back(nID, nAddTime);
             };
 
             m_Map->QueryObject(nX, nY, fnQueryObject);
         }
     }
+}
+
+bool Monster::Type(uint8_t nType)
+{
+    switch(nType){
+        case OBJECT_ANIMAL: return true;
+        default: return false;
+    }
+    return false;
+}
+
+bool Monster::SetType(uint8_t nType, bool bThisType)
+{
+    m_TypeV[nType] = 1;
+    return bThisType;
+}
+
+bool Monster::Follow(CharObject *, bool)
+{
+    return true;
+}
+
+bool Monster::State(uint8_t nState)
+{
+    return m_StateV[nState];
+}
+
+bool Monster::SetState(uint8_t nState, bool bThisState)
+{
+    m_StateV[nState] = bThisState;
+    return bThisState;
+}
+
+uint32_t Monster::NameColor()
+{
+    return 0XFFFFFFFF;
+}
+
+const char *Monster::CharName()
+{
+    return "hello";
+}
+
+int Monster::Range(uint8_t)
+{
+    return 20;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/10/2016 23:05:02
+ *  Last Modified: 04/14/2016 00:09:02
  *
  *    Description: 
  *
@@ -26,7 +26,7 @@ Player::Player()
 {
 }
 
-bool Player::Friend(const CharObject* pCharObject) const
+bool Player::Friend(CharObject* pCharObject) const
 {
     if(!pCharObject || pCharObject == this){ return true; }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: serverobject.hpp
  *        Created: 04/13/2016 20:04:39
- *  Last Modified: 04/13/2016 20:13:52
+ *  Last Modified: 04/14/2016 00:33:30
  *
  *    Description: asyncobject with ID() and AddTime()
  *
@@ -39,11 +39,11 @@ class ServerObject: public AsyncObject
         uint8_t m_Category;
 
     public:
-        ServerObject()
+        ServerObject(uint32_t nCategory, uint32_t nUID, uint32_t nAddTime)
             : AsyncObject()
-            , m_UID(0)
-            , m_AddTime(0)
-            , m_Category(CATEGORY_NONE)
+            , m_UID(nUID)
+            , m_AddTime(nAddTime)
+            , m_Category(nCategory)
         {}
 
         ~ServerObject() = default;
