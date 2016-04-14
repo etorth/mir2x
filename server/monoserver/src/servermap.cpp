@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/14/2016 01:02:44
+ *  Last Modified: 04/14/2016 14:55:46
  *
  *    Description: 
  *
@@ -30,6 +30,7 @@
 ServerMap::ServerMap(uint32_t nMapID)
     : m_ID(nMapID)
 {
+    Load("./DESC.BIN");
 }
 
 bool ServerMap::Load(const char *szMapFullName)
@@ -47,7 +48,15 @@ bool ServerMap::Load(const char *szMapFullName)
     m_GridObjectRecordListLockV.resize(nH);
     for(auto &stLine: m_GridObjectRecordListLockV){
         // TODO do we have an emplace_back() with count?
-        stLine.insert(stLine.begin(), nW, std::make_shared<std::mutex>());
+        // TODO following code is buggy, the whole line will share one lock!!
+        //      congratulations! you learned something new
+        // stLine.insert(stLine.begin(), nW, std::make_shared<std::mutex>());
+        // this is also buggy, which put null pointer inside
+        // stLine.resize();
+        //
+        for(int nIndex = 0; nIndex < nW; ++nIndex){
+            stLine.emplace_back(std::make_shared<std::mutex>());
+        }
     }
 
     return true;

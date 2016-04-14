@@ -3,7 +3,7 @@
  *
  *       Filename: imagecache.cpp
  *        Created: 02/14/2016 15:54:58
- *  Last Modified: 02/26/2016 22:48:07
+ *  Last Modified: 04/14/2016 13:41:56
  *
  *    Description: This class won't handle WilImagePackage directly
  *                 Actually it only deal with all PNG files
@@ -58,7 +58,7 @@ Fl_Shared_Image *ImageCache::Retrieve(uint8_t nFileIndex, uint16_t nImageIndex)
 
     uint32_t nKey = (((uint32_t)nFileIndex) << 16) + nImageIndex;
 
-    printf("0X%08X\n", nKey);
+    // printf("0X%08X\n", nKey);
 
     // retrieve in memory
     auto stItor = m_Cache.find(nKey);

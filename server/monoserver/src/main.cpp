@@ -30,6 +30,7 @@ int main()
     g_MonoServer              = new MonoServer();
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
+    g_EventTaskHub            = new EventTaskHub();
 
     g_MainWindow->ShowAll();
 

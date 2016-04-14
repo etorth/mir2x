@@ -3,7 +3,7 @@
  *
  *       Filename: addmonster.cpp
  *        Created: 04/12/2016 19:07:52
- *  Last Modified: 04/14/2016 01:24:15
+ *  Last Modified: 04/14/2016 16:01:27
  *
  *    Description: 
  *
@@ -117,25 +117,21 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
     int nTryLoop = (bStrict ? 1 : 100);
     while(nTryLoop--){
         if(pMap->ObjectMove(nX, nY, pGuard.Get())){
+            if(pUID){ *pUID = nUID; }
+            if(pAddTime){ *pAddTime = nAddTime; }
+
+            // now this object is ready
+            pGuard->SetState(STATE_INCARNATED, true);
+            Operate(nUID, nAddTime, 100);
+
             return true;
         }
         nX = std::rand() % (pMap->W() * SYS_MAPGRIDXP);
         nY = std::rand() % (pMap->H() * SYS_MAPGRIDYP);
     }
 
-    if(pUID){ *pUID = nUID; }
-    if(pAddTime){ *pAddTime = nAddTime; }
-
-    // now this object is ready
-    pGuard->SetState(STATE_INCARNATED, true);
-
-    extern TaskHub *g_TaskHub;
-    auto fnOperate = [this, nUID, nAddTime]()
-    {
-        Operate(nUID, nAddTime);
-    };
-
-    g_TaskHub->Add(fnOperate);
-
-    return true;
+    extern Log *g_Log;
+    g_Log->AddLog(LOGTYPE_WARNING, "can't find proper room for new object, abort");
+    Remove<CharObject>(nUID, nAddTime);
+    return false;
 }

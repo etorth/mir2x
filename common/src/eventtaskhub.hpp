@@ -3,7 +3,7 @@
  *
  *       Filename: eventtaskhub.hpp
  *        Created: 04/03/2016 22:55:21
- *  Last Modified: 04/04/2016 00:29:14
+ *  Last Modified: 04/14/2016 15:48:16
  *
  *    Description: 
  *
@@ -76,6 +76,11 @@ class EventTaskHub: public BaseHub<EventTaskHub>
         }
 
     public:
+        EventTask *CreateEventTask(uint32_t nDelayMS, const std::function<void()> & fnOp)
+        {
+            return new EventTask(nDelayMS, fnOp);
+        }
+
         void DeleteEventTask(EventTask *pTask)
         {
             delete pTask;
@@ -99,6 +104,11 @@ class EventTaskHub: public BaseHub<EventTaskHub>
         }
 
     public:
+        uint32_t Add(uint32_t nDelayMS, const std::function<void()> &fnOp)
+        {
+            return Add(CreateEventTask(nDelayMS, fnOp));
+        }
+
         uint32_t Add(EventTask *pTask)
         {
             if(!pTask){return 0;}

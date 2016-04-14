@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/14/2016 01:00:57
+ *  Last Modified: 04/14/2016 16:20:51
  *
  *    Description: 
  *
@@ -27,6 +27,7 @@
 #include <type_traits>
 
 #include "log.hpp"
+#include "taskhub.hpp"
 #include "monster.hpp"
 #include "mapthread.hpp"
 #include <unordered_map>
@@ -36,6 +37,7 @@
 #include "asynchub.hpp"
 #include "charobject.hpp"
 #include "asyncobject.hpp"
+#include "eventtaskhub.hpp"
 #include "objectlockguard.hpp"
 
 class MonoServer final
@@ -132,22 +134,30 @@ class MonoServer final
             return nullptr;
         }
 
-
     private:
         bool AddObject();
 
     public:
         // helper function to run char object
-        void Operate(uint32_t nUID, uint32_t nAddTime)
+        void Operate(uint32_t nUID, uint32_t nAddTime, uint32_t nDelay)
         {
-            auto pGuard = CheckOut<CharObject>(nUID, nAddTime);
-            if(pGuard && pGuard->State(STATE_INCARNATED)){
-                pGuard->Operate(); return;
-            }
+            // TODO any side effect to make it static??
+            static std::function<void()> fnOperate = [nUID, nAddTime, nDelay, this](){
+                auto pGuard = CheckOut<CharObject>(nUID, nAddTime);
+                if(pGuard && pGuard->State(STATE_INCARNATED)){
+                    pGuard->Operate();
+                    extern EventTaskHub *g_EventTaskHub;
+                    g_EventTaskHub->Add(nDelay, fnOperate);
+                    return;
+                }
 
-            if(pGuard && pGuard->State(STATE_PHANTOM)){
-                Remove<CharObject>(nUID, nAddTime); return;
-            }
+                if(pGuard && pGuard->State(STATE_PHANTOM)){
+                    Remove<CharObject>(nUID, nAddTime); return;
+                }
+            };
+
+            extern EventTaskHub *g_EventTaskHub;
+            g_EventTaskHub->Add(nDelay, fnOperate);
         }
 
     public:
@@ -198,5 +208,4 @@ class MonoServer final
         {
             return AddMonster(nMonsterIndex, nMapID, -1, -1, false, nullptr, nullptr);
         }
-
 };

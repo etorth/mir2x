@@ -2,6 +2,7 @@
 
 #include "log.hpp"
 #include "taskhub.hpp"
+#include "eventtaskhub.hpp"
 #include "message.hpp"
 #include "database.hpp"
 #include "mainwindow.hpp"
@@ -122,6 +123,9 @@ void MonoServer::Launch()
 
     extern TaskHub *g_TaskHub;
     g_TaskHub->Launch();
+
+    extern EventTaskHub *g_EventTaskHub;
+    g_EventTaskHub->Launch();
 
     AddMonster(1, 1);
 }
