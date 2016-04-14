@@ -68,7 +68,10 @@ sample code:
         g_TaskHub->Add(fnOperate);
     }
 
+
 this should save us from dead lock, or
+
+
     void f()
     {
         // ...
@@ -85,7 +88,6 @@ this should save us from dead lock, or
         if(pGuard){
             //...
         }
-    
     }
 
-to make it short: ``in one scope there should be only one lock guard of one object". More than 1 lock guard for one object will cause deadlock.
+to make it short: ``in one scope there should be only one lock guard of one object". More than 1 lock guard for one object will cause deadlock immediately.
