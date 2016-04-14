@@ -41,4 +41,4 @@ For server object asynchronized access, we designed ObjectLockGuard to help, but
 1. we can only access an object by check out (nUID, nAddTime).
 2. if we already have pObject, that means current thread has already grubbed the lock.
 3. so, since inside object we always have ``this", all *public* member function of object should be thread safe.
-4. if we already have pObject, we constraint usage of (pObject->UID(), pObject->AddTime()), this should only be used for log info output
+4. if we already have pObject, we constraint usage of (pObject->UID(), pObject->AddTime()), this should only be used for log info output. If we have this (nUID, nAddTime) via pObject, and need to use it the checkout the object again, do it out of the scope of ObjectLockGuard or put the checkout in g_TaskHub/g_EventTaskHub.
