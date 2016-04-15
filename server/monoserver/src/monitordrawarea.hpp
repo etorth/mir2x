@@ -3,7 +3,7 @@
  *
  *       Filename: monitordrawarea.hpp
  *        Created: 04/14/2016 04:27:57 AM
- *  Last Modified: 04/14/2016 18:38:48
+ *  Last Modified: 04/14/2016 22:20:38
  *
  *    Description: To handle GUI interaction for server, to monitor objects
  *
@@ -43,7 +43,7 @@ class DrawArea: public Fl_Box
         int m_OffsetY;
 
     private:
-        Fl_Image *m_RC[SYS_MAXR + 1][];
+        Fl_Image *m_RC[SYS_MAXR + 1][256];
 
     private:
         Fl_Image *m_TUC[2][4]; // triangle unit cover

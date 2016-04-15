@@ -5,6 +5,7 @@
 #include "taskhub.hpp"
 #include "mainwindow.hpp"
 #include "eventtaskhub.hpp"
+#include "monitorwindow.hpp"
 #include "addmonsterwindow.hpp"
 #include "serverconfigurewindow.hpp"
 #include "databaseconfigurewindow.hpp"
@@ -16,6 +17,7 @@ EventTaskHub             *g_EventTaskHub;
 
 MainWindow               *g_MainWindow;
 MonoServer               *g_MonoServer;
+MonitorWindow            *g_MonitorWindow;
 AddMonsterWindow         *g_AddMonsterWindow;
 ServerConfigureWindow    *g_ServerConfigureWindow;
 DatabaseConfigureWindow  *g_DatabaseConfigureWindow;
@@ -28,6 +30,7 @@ int main()
     g_TaskHub                 = new TaskHub();
     g_MainWindow              = new MainWindow();
     g_MonoServer              = new MonoServer();
+    g_MonitorWindow           = new MonitorWindow();
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
     g_EventTaskHub            = new EventTaskHub();
