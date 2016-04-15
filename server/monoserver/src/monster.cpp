@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/14/2016 00:26:15
+ *  Last Modified: 04/14/2016 17:33:13
  *
  *    Description: 
  *
@@ -17,6 +17,8 @@
  *
  * =====================================================================================
  */
+
+#include <cstdio>
 
 #include "monster.hpp"
 #include "mathfunc.hpp"
@@ -62,6 +64,8 @@ bool Monster::Operate()
 {
     // don't try to suiside in yourself here
     if(!Active()){ return false; }
+
+    std::printf("moster (%d, %d) is now at (%d, %d)\n", UID(), AddTime(), X(), Y());
 
     extern MonoServer *g_MonoServer;
     // no target, then try to find one from the view range
@@ -136,7 +140,12 @@ bool Monster::Attack(CharObject *pObject)
 
 bool Monster::RandomWalk()
 {
-    return true;
+    if(!State(STATE_INCARNATED)){ return false; }
+
+    int nX, nY;
+    NextLocation(&nX, &nY, Speed());
+
+    return m_Map->ObjectMove(nX, nY, this);
 }
 
 // get a cached object list, by reference only, test each object in the list

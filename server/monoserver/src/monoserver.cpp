@@ -128,6 +128,9 @@ void MonoServer::Launch()
     g_EventTaskHub->Launch();
 
     AddMonster(1, 1);
+    AddMonster(1, 1);
+    AddMonster(1, 1);
+    AddMonster(1, 1);
 }
 
 void MonoServer::OnReadHC(uint8_t nMsgHC, Session *pSession)

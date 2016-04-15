@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/14/2016 01:04:36
+ *  Last Modified: 04/14/2016 17:28:20
  *
  *    Description: 
  *
@@ -132,6 +132,8 @@ class CharObject: public ActiveObject
         {
             return !State(STATE_DEAD) && !State(STATE_PHANTOM);
         }
+
+        virtual int Speed() = 0;
 
     public:
         // this function give an advice for master object

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/14/2016 00:08:42
+ *  Last Modified: 04/14/2016 17:28:47
  *
  *    Description: 
  *
@@ -120,6 +120,12 @@ class Monster: public CharObject
 
     public:
         virtual bool Friend(CharObject *);
+
+    public:
+        int Speed()
+        {
+            return 5;
+        }
 
     public:
         bool RandomWalk();
