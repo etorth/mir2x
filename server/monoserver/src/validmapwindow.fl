@@ -2,25 +2,102 @@
 version 1.0302 
 header_name {.hpp} 
 code_name {.cpp}
-class ValidMapWindow {open
-} {
-  Function {ValidMapWindow()} {open
-  } {
-    Fl_Window {} {open selected
-      xywh {1616 454 245 115} type Double align 4 modal visible
+decl {\#include<vector>} {public global
+} 
+
+class ValidMapWindow {} {
+  Function {ValidMapWindow()} {} {
+    Fl_Window {} {open
+      xywh {847 264 245 115} type Double align 4 modal visible
     } {
-      Fl_Choice {} {
+      Fl_Choice m_MapList {
         label {Map:} open
         xywh {57 25 153 25} down_box BORDER_BOX labelfont 4
       } {}
       Fl_Button {} {
         label Refresh
+        callback {{
+	Refresh();
+}}
         xywh {35 70 70 25} labelfont 4
       }
       Fl_Button {} {
         label Select
+        callback {{
+	m_Window->hide();
+}}
         xywh {137 70 70 25} labelfont 4
       }
     }
   }
+} 
+
+Function {Refresh()} {selected return_type void
+} {
+  code {{// refresh the valid map list
+	using MapRecord = std::tuple<uint32_t, std::string>;
+	extern MonoServer *g_MonoServer;
+	std::vector<MapRecord> stMapV;	
+	g_MonoServer->GetValidMap(&stMapV);
+	
+	int nOldValue = m_MapList->value();	
+	m_MapList->clear();
+	
+	auto fnCmp = [](const MapRecord &rstMap1, const MapRecord &rstMap2){
+		return std::get<0>(rstMap1) < std::get<0>(rstMap2);
+	};
+
+	auto pMaxInst = std::max_element(stMapV.begin(), stMapV.end(), fnCmp);
+
+	Fl_Callback *pCallback = ValidMapWindow::ForceRedraw;	
+	// no valid map, or get error map, ignore it
+	if(pMaxInst == stMapV.end() || std::get<0>(*pMaxInst) == 0){
+		m_MapList->add("(0000): None", 0, pCallback, (void *)0, 0);
+		m_MapList->value(0);
+		return;
+	}
+	
+	// ok it's valid
+	int nDigitLen = (int)std::to_string(std::get<0>(*pMaxInst)).size();
+	char szFormatStr[64];
+	std::sprintf(szFormatStr, "(\\%0%dd): ", nDigitLen);
+	
+	for(auto &rstInst: stMapV){
+		// get map index zero-padded
+		char szAlignedNum[64];
+		std::sprintf(szAlignedNum, szFormatStr, std::get<0>(rstInst));
+
+		// add the map name
+		std::string szFullName = szAlignedNum;
+		szFullName += std::get<1>(rstInst);
+		m_MapList->add(szFullName.c_str(), 0, pCallback, (void *)(std::get<0>(rstInst)), 0);
+	}
+	
+	auto fnFindOld = [nOldValue](const MapRecord &rstRecord){
+		return std::get<0>(rstRecord) == nOldValue;
+	};
+	
+	// set the current selected map
+	auto pFindOld = std::find_if(stMapV.begin(), stMapV.end(), fnFindOld);
+	if(pFindOld == stMapV.end()){
+		m_MapV->value(0);
+	}else{
+		m_MapV->value(std::distance(stMapV.begin(), pFindOld));
+	}
+}} {}
+} 
+
+Function {ForceRedraw(Fl_Widget *, void *)} {return_type {static void}
+} {
+  code {{ // force redraw for the current window
+	extern MonitorMapWindow *g_MonitorMapWindow;
+	g_MonitorMapWindow->Redraw();
+}} {}
+} 
+
+Function {CurrentMap()} {return_type uint32_t
+} {
+  code {{ // return map index of current map, or zero if invalid	
+	return (uint32_t)((uintptr_t)m_MapList->menu[m_MapList->vaule()].user_data());
+}} {}
 } 

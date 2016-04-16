@@ -1,0 +1,113 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0303 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include "mainwindow.hpp"} {private global
+} 
+
+widget_class ShadowEditGroup {open selected
+  xywh {337 97 246 386} type Double visible position_relative
+} {
+  Fl_Button {} {
+    label {@8->}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetShadowOffset(0, 0 - m_VSResolution->value());
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+    xywh {106 22 50 50}
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@2->}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetShadowOffset(0, m_VSResolution->value());
+        extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+
+}}
+    xywh {106 120 50 50}
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@4->}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetShadowOffset(0 - m_VSResolution->value(), 0);
+        extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+
+}}
+    xywh {57 71 50 50}
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@->}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetShadowOffset(m_VSResolution->value(), 0);
+        extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+    xywh {155 71 50 50}
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Value_Slider m_VSResolution {
+    label Resolution
+    xywh {28 315 205 20} type Horizontal labelfont 4 minimum 1 maximum 100 step 1 value 1 textfont 4 textsize 14
+  }
+  Fl_Button {} {
+    label {@|<}
+    callback {extern AnimationSet g_AnimationSet;
+g_AnimationSet.FirstFrame();
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();}
+    xywh {33 217 50 45}
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@<-}
+    callback {extern AnimationSet g_AnimationSet;
+g_AnimationSet.PreviousFrame();
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();}
+    xywh {83 217 50 45}
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@->}
+    callback {extern AnimationSet g_AnimationSet;
+g_AnimationSet.NextFrame();
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();}
+    xywh {133 217 50 45}
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@>|}
+    callback {extern AnimationSet g_AnimationSet;
+g_AnimationSet.LastFrame();
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();}
+    xywh {183 217 50 45}
+    code0 {\#include "animationset.hpp"}
+  }
+} 

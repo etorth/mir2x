@@ -1,0 +1,590 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0303 
+use_FL_COMMAND 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include <ctime>} {private local
+} 
+
+decl {\#include <string>} {private local
+} 
+
+decl {\#include "misc.hpp"} {private local
+} 
+
+decl {\#include <algorithm>} {private local
+} 
+
+decl {\#include <FL/fl_ask.H>} {private local
+} 
+
+decl {\#include "operationarea.hpp"} {public local
+} 
+
+class MainWindow {open
+} {
+  Function {MainWindow()} {open
+  } {
+    Fl_Window m_Window {
+      callback {{
+	exit(0);
+}} open
+      private xywh {106 116 835 474} type Double labelfont 4 visible
+    } {
+      Fl_Menu_Bar m_MenuBar {open
+        private xywh {0 0 1025 30} labelfont 4
+      } {
+        Submenu {} {
+          label File open
+          private xywh {0 0 62 20} labelfont 4
+        } {
+          MenuItem {} {
+            label {Load Database        }
+            callback {{
+    Fl_Native_File_Chooser cFileChooser;
+    cFileChooser.title("Load .WIL File");
+    cFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
+    cFileChooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
+    cFileChooser.directory(".");
+    switch(cFileChooser.show()){
+        case -1:
+            fl_alert(cFileChooser.errmsg());
+            break;
+        case  1:
+            break;
+        default:
+            {
+                std::string szFolderName = cFileChooser.filename();
+                std::replace(szFolderName.begin(), szFolderName.end(), '\\\\', '/');
+                extern ValidWilFileWindow *g_ValidWilFileWindow;
+                g_ValidWilFileWindow->CheckValidWilFile(szFolderName.c_str());
+                g_ValidWilFileWindow->ShowAll();
+            }
+            m_Window->redraw();
+            break;
+    };
+}}
+            private xywh {0 0 30 20} labelfont 4 divider
+            code0 {\#include <FL/Fl_Native_File_Chooser.H>}
+            code1 {\#include <FL/fl_ask.H>}
+            code2 {\#include "validwilfilewindow.hpp"}
+          }
+          MenuItem {} {
+            label {Export        }
+            callback {{
+    // MakeWorkingFolder();
+    extern AnimationSet g_AnimationSet;
+    if(!g_AnimationSet.Export()){
+        fl_alert("Export animation failed!");
+    }
+}}
+            private xywh {10 10 30 20} labelfont 4 divider
+            code0 {\#include "animationset.hpp"}
+            code1 {\#include <FL/fl_ask.H>}
+          }
+          MenuItem {} {
+            label Quit
+            callback {exit(0);}
+            private xywh {0 0 30 20} labelfont 4
+          }
+        }
+        Submenu {} {
+          label Layer open
+          private xywh {15 15 62 20} labelfont 4
+        } {
+          MenuItem m_MenuItemShowBodyLayer {
+            label {Show Body        }
+            private xywh {15 15 30 20} type Toggle value 1 labelfont 4
+            code0 {\#include <FL/Fl_Native_File_Chooser.H>}
+            code1 {\#include <FL/fl_ask.H>}
+            code2 {\#include "validwilfilewindow.hpp"}
+          }
+          MenuItem m_MenuItemShowShadowLayer {
+            label {Show Shadow}
+            private xywh {25 25 30 20} type Toggle labelfont 4
+          }
+        }
+        Submenu {} {
+          label Line
+          private xywh {5 5 62 20} labelfont 4
+        } {
+          MenuItem m_MenuItemRectCover {
+            label {Rectangle Cover              }
+            private xywh {5 5 30 20} type Toggle labelfont 4
+            code0 {\#include <FL/Fl_Native_File_Chooser.H>}
+            code1 {\#include <FL/fl_ask.H>}
+            code2 {\#include "validwilfilewindow.hpp"}
+          }
+          MenuItem m_MenuItemBodyFrame {
+            label {Body Frame}
+            private xywh {5 5 30 20} type Toggle labelfont 4
+          }
+          MenuItem m_MenuItemShadowFrame {
+            label {Shadow Frame}
+            private xywh {15 15 30 20} type Toggle labelfont 4
+          }
+        }
+        Submenu {} {
+          label Edit open
+          private xywh {15 15 62 20} labelfont 4
+        } {
+          MenuItem m_MenuItemEnableEdit {
+            label {Enable Edit     }
+            callback {m_MenuItemEnableAnimation->clear();}
+            private xywh {15 15 30 20} type Toggle labelfont 4 divider
+            code0 {\#include <FL/Fl_Native_File_Chooser.H>}
+            code1 {\#include <FL/fl_ask.H>}
+            code2 {\#include "validwilfilewindow.hpp"}
+          }
+          MenuItem m_MenuItemEnableAnimation {
+            label {Enable Animation}
+            private xywh {25 25 30 20} type Toggle value 1 labelfont 4 divider
+            code0 {\#include <FL/Fl_Native_File_Chooser.H>}
+            code1 {\#include <FL/fl_ask.H>}
+            code2 {\#include "validwilfilewindow.hpp"}
+          }
+          MenuItem m_MenuItemEditCover {
+            label {Align Cover}
+            callback {m_MenuItemEnableEdit->clear();
+m_MenuItemEnableAnimation->clear();
+m_TestGroup->StopTest();
+
+RedrawAll();}
+            private xywh {35 35 30 20} type Radio value 1 labelfont 4
+            code0 {\#include <FL/Fl_Native_File_Chooser.H>}
+            code1 {\#include <FL/fl_ask.H>}
+            code2 {\#include "validwilfilewindow.hpp"}
+            code3 {\#include "actionsettestgroup.hpp"}
+          }
+          MenuItem m_MenuItemEditShadow {
+            label {Align Shadow      }
+            callback {m_MenuItemEnableEdit->clear();
+m_MenuItemEnableAnimation->clear();
+m_TestGroup->StopTest();
+
+RedrawAll();}
+            private xywh {25 25 30 20} type Radio labelfont 4
+            code0 {\#include <FL/Fl_Native_File_Chooser.H>}
+            code1 {\#include <FL/fl_ask.H>}
+            code2 {\#include "validwilfilewindow.hpp"}
+            code3 {\#include "actionsettestgroup.hpp"}
+          }
+          MenuItem m_MenuItemEditFrameAlign {
+            label {Align Frame}
+            callback {m_MenuItemEnableEdit->clear();
+m_MenuItemEnableAnimation->clear();
+m_TestGroup->StopTest();
+
+RedrawAll();}
+            private xywh {15 15 30 20} type Radio labelfont 4
+            code0 {\#include "actionsettestgroup.hpp"}
+          }
+          MenuItem m_MenuItemEditActionSetAlign {
+            label {Align Action Set        }
+            callback {m_MenuItemEnableEdit->clear();
+m_MenuItemEnableAnimation->clear();
+m_TestGroup->StopTest();
+
+RedrawAll();}
+            private xywh {25 25 30 20} type Radio labelfont 4
+            code0 {\#include "actionsettestgroup.hpp"}
+          }
+          MenuItem m_MenuItemDynamicShadow {
+            label {Create Dynamic Shadow  }
+            callback {m_MenuItemEnableEdit->clear();
+m_MenuItemEnableAnimation->clear();
+m_TestGroup->StopTest();
+
+RedrawAll();}
+            private xywh {35 35 30 20} type Radio labelfont 4
+            code0 {\#include "dynamicshadowgroup.hpp"}
+          }
+          MenuItem m_MenuItemTest {
+            label {Test Mode}
+            callback {m_MenuItemEnableEdit->clear();
+m_MenuItemEnableAnimation->clear();
+m_TestGroup->StopTest();
+
+RedrawAll();}
+            private xywh {35 35 30 20} type Radio labelfont 4
+            code0 {\#include "actionsettestgroup.hpp"}
+          }
+        }
+        Submenu {} {
+          label About open
+          private xywh {0 0 62 20} labelfont 4
+        } {
+          MenuItem {} {
+            label {About Me           }
+            callback {extern AboutWindow *g_AboutWindow;
+g_AboutWindow->ShowAll();}
+            private xywh {0 0 30 20} labelfont 4
+            code0 {\#include "aboutwindow.hpp"}
+          }
+        }
+      }
+      Fl_Box m_OperationArea {
+        private xywh {0 30 525 443} box UP_FRAME
+        code0 {\#include "operationarea.hpp"}
+        class OperationArea
+      }
+      Fl_Group m_RectCoverEditGroup {open
+        private xywh {541 30 265 340} labelfont 4
+        code0 {\#include "rectcovereditgroup.hpp"}
+        class RectCoverEditGroup
+      } {}
+      Fl_Group m_ShadowEditGroup {open
+        xywh {541 30 265 340} labelfont 4
+        code0 {\#include "shadoweditgroup.hpp"}
+        class ShadowEditGroup
+      } {}
+      Fl_Group m_FrameAlignGroup {open
+        xywh {541 30 265 340} labelfont 4
+        code0 {\#include "framealigngroup.hpp"}
+        class FrameAlignGroup
+      } {}
+      Fl_Group m_ActionSetAlignGroup {
+        xywh {541 30 265 340} labelfont 4
+        code0 {\#include "actionsetaligngroup.hpp"}
+        class ActionSetAlignGroup
+      } {}
+      Fl_Group m_StatusDirectionGroup {open
+        xywh {535 385 290 85} labelfont 4
+      } {
+        Fl_Choice m_ChoiceStatus {open
+          xywh {549 399 265 20} down_box BORDER_BOX labelfont 4 textfont 4
+        } {}
+        Fl_Choice m_ChoiceDirection {open
+          xywh {549 433 265 20} down_box BORDER_BOX labelfont 4 textfont 4
+        } {}
+      }
+      Fl_Group m_DynamicShadowGroup {open
+        xywh {541 30 259 350} labelfont 4
+        code0 {\#include "dynamicshadowgroup.hpp"}
+        class DynamicShadowGroup
+      } {}
+      Fl_Group m_TestGroup {
+        xywh {541 30 259 350} labelfont 4
+        code0 {\#include "actionsettestgroup.hpp"}
+        class ActionSetTestGroup
+      } {}
+    }
+  }
+  Function {ShowAll()} {return_type void
+  } {
+    code {m_Window->show();} {}
+  }
+  Function {RedrawAll()} {return_type void
+  } {
+    code {if(EditCover())\{
+    m_RectCoverEditGroup->show();
+\}else\{
+    m_RectCoverEditGroup->hide();
+\}
+
+if(EditFrameAlign())\{
+    m_FrameAlignGroup->show();
+\}else\{
+    m_FrameAlignGroup->hide();
+\}
+
+if(EditShadow())\{
+    m_ShadowEditGroup->show();
+\}else\{
+    m_ShadowEditGroup->hide();
+\}
+
+if(EditActionSetAlign())\{
+    m_ActionSetAlignGroup->show();
+\}else\{
+    m_ActionSetAlignGroup->hide();
+\}
+
+// if(TestAnimation())\{
+if(m_MenuItemTest->value())\{
+    m_StatusDirectionGroup->hide();
+    //m_StatusDirectionGroup->deactivate();
+    m_TestGroup->show();
+\}else\{
+    m_StatusDirectionGroup->show();
+    //m_StatusDirectionGroup->activate();
+    m_TestGroup->hide();
+\}
+
+if(m_MenuItemDynamicShadow->value())\{
+    m_DynamicShadowGroup->show();
+\}else\{
+    m_DynamicShadowGroup->hide();
+\}
+
+m_Window->redraw();} {}
+  }
+  Function {LoadAnimationSet()} {return_type void
+  } {
+    code {{
+}} {}
+  }
+  Function {MakeCurrent()} {return_type void
+  } {
+    code {{
+    m_Window->make_current();
+}} {}
+  }
+  Function {ShowRectCover()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemRectCover->value();
+}} {}
+  }
+  Function {ShowBodyLayer()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemShowBodyLayer->value();
+}} {}
+  }
+  Function {ShowBodyFrame()} {selected return_type bool
+  } {
+    code {{
+    return m_MenuItemBodyFrame->value();
+}} {}
+  }
+  Function {ShowShadowLayer()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemShowShadowLayer->value();
+}} {}
+  }
+  Function {ShowShadowFrame()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemShadowFrame->value();
+}} {}
+  }
+  Function {EnableEdit()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemEnableEdit->value();
+}} {}
+  }
+  Function {EnableAnimation(bool bEnable)} {return_type void
+  } {
+    code {{
+    if(bEnable){
+    	m_MenuItemEnableAnimation->set();    
+    }else{
+        m_MenuItemEnableAnimation->clear();
+    }
+}} {}
+  }
+  Function {EditCover()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemEditCover->value();
+}} {}
+  }
+  Function {EditDynamicShadow()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemDynamicShadow->value();
+}} {}
+  }
+  Function {EditFrameAlign()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemEditFrameAlign->value();
+}} {}
+  }
+  Function {EditActionSetAlign()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemEditActionSetAlign->value();
+}} {}
+  }
+  Function {EditShadow()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemEditShadow->value();
+}} {}
+  }
+  Function {NeedUpdateFrame()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemEnableAnimation->value();
+}} {}
+  }
+  Function {RectCoverCopyMethod()} {return_type int
+  } {
+    code {{
+    return m_RectCoverEditGroup->RectCoverCopyMethod();
+}} {}
+  }
+  Function {TestMode()} {return_type bool
+  } {
+    code {{
+    // test group is open but maybe not testing now
+    return m_MenuItemTest->value();
+}} {}
+  }
+  Function {TestAnimation()} {return_type bool
+  } {
+    code {{
+    // now testing
+    extern uint32_t g_TestAnimationCode;
+    return m_MenuItemTest->value() && (g_TestAnimationCode & 0XFF000000);
+}} {}
+  }
+  Function {TestAnimationUpdate()} {return_type void
+  } {
+    code {{
+    extern uint32_t g_TestAnimationCode;
+    // == 1 means we finished last count
+    if((g_TestAnimationCode & 0X000000FF) <= 1){
+        // nIndex =  1, 2, 3, 4, 5
+        uint8_t nIndex = ((g_TestAnimationCode & 0XFF000000) >> 24);
+        if(nIndex == 5){
+            // TODO: end of test, simply repeat
+            m_TestGroup->StartTest();
+            return;
+        }else{
+            while(nIndex + 1 != 6){
+                g_TestAnimationCode = m_TestGroup->GetTestActionSetCode(nIndex + 1);
+                uint32_t nStatus    = ((g_TestAnimationCode & 0X00FF0000) >> 16);
+                uint32_t nDirection = ((g_TestAnimationCode & 0X0000FF00) >>  8);
+                if(nStatus < 100){
+                    extern AnimationSet g_AnimationSet;
+                    g_AnimationSet.SetStatus(nStatus);
+                    g_AnimationSet.SetDirection(nDirection);
+                    return;
+                }else{
+                    nIndex++;
+                }
+            }
+            // TODO: end of test, simply repeat
+            m_TestGroup->StartTest();
+            return;
+        }
+    }else{
+        g_TestAnimationCode--;
+    }
+}} {}
+  }
+  Function {AddStatusItem()} {return_type void
+  } {
+    code {{
+    m_ChoiceStatus->clear();
+    extern AnimationSet g_AnimationSet;
+    for(int nStatus = 0; nStatus < 100; ++nStatus){
+        for(int nDirection = 0; nDirection < 7; ++nDirection){
+            if(g_AnimationSet.Valid(nStatus, nDirection)){
+                extern const char *g_StatusNameList[];
+                m_ChoiceStatus->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)nStatus, 0);
+                break;
+            }
+        }
+    }
+    if(m_ChoiceStatus->size() > 0){
+        m_ChoiceStatus->value(0);
+        if(m_ChoiceStatus->menu()[0].callback()){
+            m_ChoiceStatus->menu()[0].do_callback(nullptr);
+        }
+        m_ChoiceStatus->textfont(4);
+    }
+    
+    m_TestGroup->AddValidStatus();
+    RedrawAll();
+}} {}
+  }
+  Function {AddDirectionItem(int nStatus)} {return_type void
+  } {
+    code {{
+    m_ChoiceDirection->clear();
+    extern AnimationSet g_AnimationSet;
+    for(int nDirection = 0; nDirection < 8; ++nDirection){
+        if(g_AnimationSet.Valid(nStatus, nDirection)){
+            m_ChoiceDirection->add(
+                    (std::string("Direction ") + std::to_string(nDirection)).c_str(),
+                    0, DirectionItemCallback, (void *)nDirection, 0);
+        }
+    }
+    if(m_ChoiceDirection->size() > 0){
+        m_ChoiceDirection->value(0);
+        if(m_ChoiceDirection->menu()[0].callback()){
+            m_ChoiceDirection->menu()[0].do_callback(nullptr);
+        }
+        m_ChoiceDirection->textfont(4);
+    }
+    RedrawAll();
+}} {}
+  }
+  Function {StatusItemCallback(Fl_Widget *, void *pData)} {return_type {static void}
+  } {
+    code {{
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.SetStatus((int)pData);
+    // printf("I am called here with: %d \\n", (int)pData);
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->AddDirectionItem((int)pData);
+}} {}
+  }
+  Function {DirectionItemCallback(Fl_Widget *, void *pData)} {open return_type {static void}
+  } {
+    code {{
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.SetDirection((int)pData);
+    g_AnimationSet.DSetDynamicShadowOffset(false, 0, 0);
+}} {}
+  }
+  Function {MakeWorkingFolder()} {return_type void
+  } {
+    code {{
+      extern std::string g_WorkingPathName;
+      if(g_WorkingPathName == "" || (g_WorkingPathName.size() > 0 && g_WorkingPathName[0] == '.')){
+          time_t     stRawTime;
+          struct tm *stTimeInfo;
+          char       szBuffer[64];
+  
+          time(&stRawTime);
+          stTimeInfo = localtime(&stRawTime);
+          strftime(szBuffer, 64, "%Y%m%d%H%M%S", stTimeInfo);
+          g_WorkingPathName = std::string("./") + szBuffer;
+      }
+  
+      RemoveDir(g_WorkingPathName.c_str());
+      MakeDir(g_WorkingPathName.c_str());
+  
+      std::string szTmpPath = g_WorkingPathName;
+      if(szTmpPath.back() != '/'){
+          szTmpPath += "/";
+      }
+      szTmpPath += "IMG";
+      MakeDir(szTmpPath.c_str());
+  }} {}
+  }
+  Function {OperationRect(int &nX, int &nY, int &nW, int &nH)} {return_type void
+  } {
+    code {{
+    nX = m_OperationArea->x();
+    nY = m_OperationArea->y();
+    nW = m_OperationArea->w();
+    nH = m_OperationArea->h();
+}} {}
+  }
+  Function {DynamicShadowPoint()} {return_type int
+  } {
+    code {{
+    return m_DynamicShadowGroup->Point();
+}} {}
+  }
+  Function {DynamicShadowMethod()} {return_type int
+  } {
+    code {{
+    return m_DynamicShadowGroup->Method();
+}} {}
+  }
+  Function {DynamicShadowMethodReset()} {return_type void
+  } {
+    code {{
+    m_DynamicShadowGroup->Reset();
+}} {}
+  }
+} 
