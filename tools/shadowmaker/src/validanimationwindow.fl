@@ -50,7 +50,7 @@ class ValidAnimationWindow {open
         if(m_ValidAnimationBrowser->selected(i)){
             extern AnimationPreviewWindow *g_AnimationPreviewWindow;
             delete g_AnimationPreviewWindow;
-            g_AnimationPreviewWindow = new AnimationPreviewWindow(m_FileIndex, (int)m_ValidAnimationBrowser->data(i));
+            g_AnimationPreviewWindow = new AnimationPreviewWindow(m_FileIndex, (int)(intptr_t)m_ValidAnimationBrowser->data(i));
             g_AnimationPreviewWindow->ShowAll();
             return;
         }
@@ -94,12 +94,12 @@ class ValidAnimationWindow {open
                 char szInfo[512];
                 std::sprintf(szInfo,
                         "Set/State: (%d:%02d)        %s", nSet, nState, g_StatusNameList[nState]);
-                m_ValidAnimationBrowser->add(szInfo, (void *)(nStartIndex));
+                m_ValidAnimationBrowser->add(szInfo, (void *)(intptr_t)(nStartIndex));
             }else{
                 char szInfo[512];
                 std::sprintf(szInfo,
                         "Set/State: (%d:%02d) (Lost) %s", nSet, nState, g_StatusNameList[nState]);
-                m_ValidAnimationBrowser->add(szInfo, (void *)(nStartIndex));
+                m_ValidAnimationBrowser->add(szInfo, (void *)(intptr_t)(nStartIndex));
             }
         }
     }

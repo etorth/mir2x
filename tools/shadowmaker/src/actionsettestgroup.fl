@@ -112,22 +112,22 @@ widget_class ActionSetTestGroup {open selected
     m_TestRoundCount5->clear();
 
     // add status
-    m_TestStatus1->add("None", 0, StatusItemCallback, (void *)((0X00000001 << 8) + (0X000000FF)), 0);
-    m_TestStatus2->add("None", 0, StatusItemCallback, (void *)((0X00000002 << 8) + (0X000000FF)), 0);
-    m_TestStatus3->add("None", 0, StatusItemCallback, (void *)((0X00000003 << 8) + (0X000000FF)), 0);
-    m_TestStatus4->add("None", 0, StatusItemCallback, (void *)((0X00000004 << 8) + (0X000000FF)), 0);
-    m_TestStatus5->add("None", 0, StatusItemCallback, (void *)((0X00000005 << 8) + (0X000000FF)), 0);
+    m_TestStatus1->add("None", 0, StatusItemCallback, (void *)(uintptr_t)((0X00000001 << 8) + (0X000000FF)), 0);
+    m_TestStatus2->add("None", 0, StatusItemCallback, (void *)(uintptr_t)((0X00000002 << 8) + (0X000000FF)), 0);
+    m_TestStatus3->add("None", 0, StatusItemCallback, (void *)(uintptr_t)((0X00000003 << 8) + (0X000000FF)), 0);
+    m_TestStatus4->add("None", 0, StatusItemCallback, (void *)(uintptr_t)((0X00000004 << 8) + (0X000000FF)), 0);
+    m_TestStatus5->add("None", 0, StatusItemCallback, (void *)(uintptr_t)((0X00000005 << 8) + (0X000000FF)), 0);
 
     extern AnimationSet g_AnimationSet;
     for(uint32_t nStatus = 0; nStatus < 100; ++nStatus){
         for(int nDirection = 0; nDirection < 8; ++nDirection){
             if(g_AnimationSet.Valid(nStatus, nDirection)){
                 extern const char *g_StatusNameList[];
-                m_TestStatus1->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)((0X00000001 << 8) + (nStatus & 0X000000FF)), 0);
-                m_TestStatus2->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)((0X00000002 << 8) + (nStatus & 0X000000FF)), 0);
-                m_TestStatus3->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)((0X00000003 << 8) + (nStatus & 0X000000FF)), 0);
-                m_TestStatus4->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)((0X00000004 << 8) + (nStatus & 0X000000FF)), 0);
-                m_TestStatus5->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)((0X00000005 << 8) + (nStatus & 0X000000FF)), 0);
+                m_TestStatus1->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)(uintptr_t)((0X00000001 << 8) + (nStatus & 0X000000FF)), 0);
+                m_TestStatus2->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)(uintptr_t)((0X00000002 << 8) + (nStatus & 0X000000FF)), 0);
+                m_TestStatus3->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)(uintptr_t)((0X00000003 << 8) + (nStatus & 0X000000FF)), 0);
+                m_TestStatus4->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)(uintptr_t)((0X00000004 << 8) + (nStatus & 0X000000FF)), 0);
+                m_TestStatus5->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)(uintptr_t)((0X00000005 << 8) + (nStatus & 0X000000FF)), 0);
                 break;
             }
         }
@@ -139,11 +139,11 @@ widget_class ActionSetTestGroup {open selected
     m_TestStatus5->value(0);
 
     // add direction
-    m_TestDirection1->add("None", 0, 0, (void *)(0), 0);
-    m_TestDirection2->add("None", 0, 0, (void *)(0), 0);
-    m_TestDirection3->add("None", 0, 0, (void *)(0), 0);
-    m_TestDirection4->add("None", 0, 0, (void *)(0), 0);
-    m_TestDirection5->add("None", 0, 0, (void *)(0), 0);
+    m_TestDirection1->add("None", 0, 0, (void *)(uintptr_t)(0), 0);
+    m_TestDirection2->add("None", 0, 0, (void *)(uintptr_t)(0), 0);
+    m_TestDirection3->add("None", 0, 0, (void *)(uintptr_t)(0), 0);
+    m_TestDirection4->add("None", 0, 0, (void *)(uintptr_t)(0), 0);
+    m_TestDirection5->add("None", 0, 0, (void *)(uintptr_t)(0), 0);
 
     m_TestDirection1->value(0);
     m_TestDirection2->value(0);
@@ -153,11 +153,11 @@ widget_class ActionSetTestGroup {open selected
 
     // add round count
     
-    m_TestRoundCount1->add("0", 0, 0, (void *)(0), 0);
-    m_TestRoundCount2->add("0", 0, 0, (void *)(0), 0);
-    m_TestRoundCount3->add("0", 0, 0, (void *)(0), 0);
-    m_TestRoundCount4->add("0", 0, 0, (void *)(0), 0);
-    m_TestRoundCount5->add("0", 0, 0, (void *)(0), 0);
+    m_TestRoundCount1->add("0", 0, 0, (void *)(uintptr_t)(0), 0);
+    m_TestRoundCount2->add("0", 0, 0, (void *)(uintptr_t)(0), 0);
+    m_TestRoundCount3->add("0", 0, 0, (void *)(uintptr_t)(0), 0);
+    m_TestRoundCount4->add("0", 0, 0, (void *)(uintptr_t)(0), 0);
+    m_TestRoundCount5->add("0", 0, 0, (void *)(uintptr_t)(0), 0);
 
     m_TestRoundCount1->value(0);
     m_TestRoundCount2->value(0);
@@ -171,7 +171,7 @@ widget_class ActionSetTestGroup {open selected
   } {
     code {{
     auto pRoot = (ActionSetTestGroup *)(pWidget->parent());
-    auto nArg  = (uint32_t)pData;
+    auto nArg  = (uint32_t)(uintptr_t)pData;
     pRoot->AddValidDirection((0X0000FF00 & nArg) >> 8, 0X000000FF & nArg);
 }} {}
   }
@@ -205,7 +205,7 @@ widget_class ActionSetTestGroup {open selected
             if(g_AnimationSet.Valid(nStatus, nDirection)){
                 stDirectionChoiceArr[nIndex - 1]->add(
                         (std::string("Direction ") + std::to_string(nDirection)).c_str(), 0, 0, 
-                        (void *)nDirection, 0);
+                        (void *)(intptr_t)nDirection, 0);
             }
         }
     }
@@ -266,19 +266,19 @@ widget_class ActionSetTestGroup {open selected
     { // status
         auto pStatusMenu = stStatusChoiceArr[nIndex - 1]->menu();
         auto nSelected   = stStatusChoiceArr[nIndex - 1]->value();
-        nStatus = (uint32_t)(pStatusMenu[nSelected].user_data());
+        nStatus = (uint32_t)(uintptr_t)(pStatusMenu[nSelected].user_data());
     }
 
     { // direction
         auto pDirectionMenu = stDirectionChoiceArr[nIndex - 1]->menu();
         auto nSelected      = stDirectionChoiceArr[nIndex - 1]->value();
-        nDirection = (uint32_t)(pDirectionMenu[nSelected].user_data());
+        nDirection = (uint32_t)(uintptr_t)(pDirectionMenu[nSelected].user_data());
     }
 
     { // round count
         auto pRoundCountMenu = stRoundCountChoiceArr[nIndex - 1]->menu();
         auto nSelected       = stRoundCountChoiceArr[nIndex - 1]->value();
-        nRoundCount = (uint32_t)(pRoundCountMenu[nSelected].user_data());
+        nRoundCount = (uint32_t)(uintptr_t)(pRoundCountMenu[nSelected].user_data());
     }
 
     return 0
