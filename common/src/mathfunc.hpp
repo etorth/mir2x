@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 04/11/2016 22:49:21
+ *  Last Modified: 04/15/2016 22:29:55
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 #pragma once
+#include <algorithm>
 #include <cmath>
 #include <type_traits>
 

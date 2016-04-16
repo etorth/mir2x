@@ -9,7 +9,7 @@ decl {\#include <ctime>} {private local
 decl {\#include <string>} {private local
 } 
 
-decl {\#include "misc.hpp"} {private local
+decl {\#include "filesys.hpp"} {selected private local
 } 
 
 decl {\#include <algorithm>} {private local
@@ -29,7 +29,7 @@ class MainWindow {open
       callback {{
 	exit(0);
 }} open
-      private xywh {106 116 835 474} type Double labelfont 4 visible
+      private xywh {1131 117 835 474} type Double labelfont 4 visible
     } {
       Fl_Menu_Bar m_MenuBar {open
         private xywh {0 0 1025 30} labelfont 4
@@ -342,7 +342,7 @@ m_Window->redraw();} {}
     return m_MenuItemShowBodyLayer->value();
 }} {}
   }
-  Function {ShowBodyFrame()} {selected return_type bool
+  Function {ShowBodyFrame()} {return_type bool
   } {
     code {{
     return m_MenuItemBodyFrame->value();

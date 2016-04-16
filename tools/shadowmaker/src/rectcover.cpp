@@ -3,7 +3,7 @@
  *
  *       Filename: rectcover.cpp
  *        Created: 8/7/2015 2:36:13 AM
- *  Last Modified: 08/10/2015 5:44:25 PM
+ *  Last Modified: 04/15/2016 22:29:26
  *
  *    Description: 
  *
@@ -18,10 +18,11 @@
  * =====================================================================================
  */
 
+#include <cmath>
 #include "rectcover.hpp"
 #include <limits>
 #include <utility>
-#include "misc.hpp"
+#include "mathfunc.hpp"
 
 RectCover::RectCover()
     : m_X1(0.0)
@@ -78,7 +79,7 @@ std::pair<double, double> RectCover::Point(int nIndex)
     }
 }
 
-bool RectCover::Overlap(const RectCover &cRect)
+bool RectCover::Overlap(const RectCover &/* cRect */)
 {
     return false;
 }

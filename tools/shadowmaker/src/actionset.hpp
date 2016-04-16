@@ -23,25 +23,25 @@ class ActionSet
         void       SetRectCover(const RectCover &);
     private:
         RectCover m_RectCover;
+        int       m_CurrentFrameIndex;
+        int       m_FrameCount;
+        int       m_MaxW;
+        int       m_MaxH;
+        int       m_ImageMaxW;
+        int       m_ImageMaxH;
+        int       m_ActionSetAlignX;
+        int       m_ActionSetAlignY;
+        bool      m_Valid;
         int       m_Direction;
         int       m_Status;
-        int       m_FrameCount;
         int       m_AnimationIndex;
         int       m_FileIndex;
-        int       m_CurrentFrameIndex;
         int       m_DSX[100];
         int       m_DSY[100];
         int       m_PX[100];
         int       m_PY[100];
         int       m_DSDX[2][100];
         int       m_DSDY[2][100];
-        int       m_ActionSetAlignX;
-        int       m_ActionSetAlignY;
-        int       m_MaxW;
-        int       m_MaxH;
-        int       m_ImageMaxW;
-        int       m_ImageMaxH;
-        bool      m_Valid;
     private:
         Fl_Shared_Image *m_PNG[2][100];
     public:

@@ -5,8 +5,8 @@ code_name {.cpp}
 decl {\#include "mainwindow.hpp"} {private global
 } 
 
-widget_class DynamicShadowGroup {open selected
-  xywh {329 150 251 354} type Double visible position_relative
+widget_class DynamicShadowGroup {open
+  xywh {1628 303 250 350} type Double visible position_relative
 } {
   Fl_Button {} {
     label {@8->}
@@ -162,12 +162,15 @@ g_AnimationSet.LastFrame();
       code0 {\#include "animationset.hpp"}
     }
   }
-  Function {Point()} {return_type int
+  Function {Point()} {open return_type int
   } {
     code {{
     if(m_DS1->value()){ return 0; }
     if(m_DS2->value()){ return 1; }
-}} {}
+    // to make the compiler happy
+    return 0;
+}} {selected
+    }
   }
   Function {Method()} {return_type int
   } {

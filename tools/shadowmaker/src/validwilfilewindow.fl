@@ -12,7 +12,10 @@ decl {\#include <algorithm>} {private local
 decl {\#include <FL/fl_ask.H>} {private local
 } 
 
-decl {\#include "misc.hpp"} {private local
+decl {\#include <cstring>} {selected public global
+} 
+
+decl {\#include "filesys.hpp"} {private local
 } 
 
 class ValidWilFileWindow {open
@@ -23,7 +26,7 @@ class ValidWilFileWindow {open
       callback {{
 	// disable the close button
 }} open
-      private xywh {220 159 510 400} type Double labelfont 4 resizable visible
+      private xywh {1247 162 510 400} type Double labelfont 4 resizable visible
     } {
       Fl_Browser m_ValidWilFileBrowser {
         callback {{
@@ -94,7 +97,7 @@ class ValidWilFileWindow {open
             }
         }
     }
-}} selected
+}}
         private xywh {0 0 510 400} type Hold labelfont 4 textfont 4 resizable
         code0 {\#include "wilimagepackage.hpp"}
         code1 {\#include "progressbarwindow.hpp"}

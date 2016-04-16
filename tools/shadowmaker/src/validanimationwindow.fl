@@ -6,7 +6,7 @@ code_name {.cpp}
 decl {\#include <string>} {private local
 } 
 
-decl {\#include "misc.hpp"} {private local
+decl {\#include "filesys.hpp"} {private local
 } 
 
 decl {\#include <algorithm>} {private local
@@ -36,7 +36,7 @@ class ValidAnimationWindow {open
     extern ValidWilFileWindow *g_ValidWilFileWindow;
     g_ValidWilFileWindow->ShowAll();
 }} open
-      private xywh {228 75 482 401} type Double labelfont 4 resizable
+      private xywh {1254 77 482 401} type Double labelfont 4 resizable
       code0 {\#include "validwilfilewindow.hpp"}
       code1 {\#include "animationpreviewwindow.hpp"} visible
     } {
@@ -55,7 +55,7 @@ class ValidAnimationWindow {open
             return;
         }
     }
-}} selected
+}}
         private xywh {0 0 480 400} type Hold labelfont 4 textfont 4 resizable
         code0 {\#include <cstdio>}
         code1 {\#include "animationpreviewwindow.hpp"}
@@ -75,6 +75,9 @@ class ValidAnimationWindow {open
   Function {CheckValidAnimation(int nMaxIndex)} {open return_type void
   } {
     code {{
+    // make the compiler happy
+    nMaxIndex = nMaxIndex;
+    
     m_ValidAnimationBrowser->clear();
     
     // m_AnimationCount = nMaxIndex / 1000 + 1;
@@ -100,7 +103,8 @@ class ValidAnimationWindow {open
             }
         }
     }
-}} {}
+}} {selected
+    }
   }
   Function {SetFileIndex(int nFileIndex)} {return_type void
   } {

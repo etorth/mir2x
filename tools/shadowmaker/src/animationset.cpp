@@ -3,7 +3,7 @@
  *
  *       Filename: animationset.cpp
  *        Created: 8/6/2015 5:43:46 AM
- *  Last Modified: 09/08/2015 1:30:34 AM
+ *  Last Modified: 04/15/2016 22:17:40
  *
  *    Description: 
  *
@@ -81,7 +81,7 @@ void AnimationSet::Draw(int nPosX, int nPosY)
 
 void AnimationSet::DrawRectCover(int nPosX, int nPosY)
 {
-    auto stMPoint = m_ActionSet[m_Status][m_Direction].GetRectCover().Point(0);
+    // auto stMPoint = m_ActionSet[m_Status][m_Direction].GetRectCover().Point(0);
     auto stPoint1 = m_ActionSet[m_Status][m_Direction].GetRectCover().Point(1);
     auto stPoint2 = m_ActionSet[m_Status][m_Direction].GetRectCover().Point(2);
     auto stPoint3 = m_ActionSet[m_Status][m_Direction].GetRectCover().Point(3);

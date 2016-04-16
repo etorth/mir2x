@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 09/08/2015 1:11:48 AM
+ *  Last Modified: 04/15/2016 22:28:58
  *
  *    Description: 
  *
@@ -17,9 +17,11 @@
  *
  * =====================================================================================
  */
+#include "shadow.hpp"
+#include "savepng.hpp"
+#include "filesys.hpp"
 #include "actionset.hpp"
 #include <algorithm>
-#include "misc.hpp"
 #include "wilimagepackage.hpp"
 #include "mainwindow.hpp"
 #include "wilanimationinfo.hpp"
@@ -56,7 +58,7 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
 
     // when call this funcition
     // we assume that g_WilImagePackage has been set to nFileIndex
-    extern WilImagePackage g_WilImagePackage[2];
+    // extern WilImagePackage g_WilImagePackage[2];
 
     std::memset(m_DSDX, 0, 200 * sizeof(int));
     std::memset(m_DSDY, 0, 200 * sizeof(int));
@@ -126,7 +128,7 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
                         pData    = new uint32_t[stInfo0.shWidth * stInfo0.shHeight];
                         nDataLen = stInfo0.shWidth * stInfo0.shHeight;
                     }
-                    g_WilImagePackage[0].Decode(pData, 0XFFFFFFFF, 0XFFFFFFFF);
+                    g_WilImagePackage[0].Decode(pData, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
                     bDecode = true;
                     SaveRGBABufferToPNG((uint8_t *)pData,
                             stInfo0.shWidth, stInfo0.shHeight,
@@ -154,7 +156,7 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
                             pData    = new uint32_t[stInfo0.shWidth * stInfo0.shHeight];
                             nDataLen = stInfo0.shWidth * stInfo0.shHeight;
                         }
-                        g_WilImagePackage[0].Decode(pData, 0XFFFFFFFF, 0XFFFFFFFF);
+                        g_WilImagePackage[0].Decode(pData, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
                     }
                     int  nNewW, nNewH;
                     auto pShadowData = ShadowDecode(true, pData,
@@ -653,7 +655,7 @@ bool ActionSet::Export(
                         nState,
                         nDirection,
                         nFrame);
-                MyCopyFile(szTmpFileName, m_PNG[1][nFrame]->name());
+                DupFile(szTmpFileName, m_PNG[1][nFrame]->name());
             }
 
             {// body layer
@@ -683,7 +685,7 @@ bool ActionSet::Export(
                         nState,
                         nDirection,
                         nFrame);
-                MyCopyFile(szTmpFileName, m_PNG[0][nFrame]->name());
+                DupFile(szTmpFileName, m_PNG[0][nFrame]->name());
             }
         }
         pActionSet->LinkEndChild(pFrame);
@@ -712,7 +714,7 @@ void ActionSet::DSetDynamicShadowOffset(bool bReset, int dX, int dY)
           ){
             auto stInfo0 = g_WilImagePackage[0].CurrentImageInfo();
             pData = new uint32_t[stInfo0.shWidth * stInfo0.shHeight];
-            g_WilImagePackage[0].Decode(pData, 0XFFFFFFFF, 0XFFFFFFFF);
+            g_WilImagePackage[0].Decode(pData, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
         }else{
             return;
         }

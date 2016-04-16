@@ -3,7 +3,7 @@
  *
  *       Filename: animationpreviewwindow.cpp
  *        Created: 7/22/2015 3:16:57 AM
- *  Last Modified: 09/05/2015 5:28:44 PM
+ *  Last Modified: 04/15/2016 22:26:19
  *
  *    Description: 
  *
@@ -24,8 +24,10 @@
 #include "animationpreviewwindow.hpp"
 #include "wilimagepackage.hpp"
 #include "mainwindow.hpp"
-#include "misc.hpp"
 #include <algorithm>
+#include "filesys.hpp"
+#include "savepng.hpp"
+
 
 PreviewWindow::PreviewWindow(int nX, int nY, int nW, int nH)
     : Fl_Double_Window(nX, nY, nW, nH, nullptr)
@@ -69,10 +71,10 @@ AnimationPreviewWindow::AnimationPreviewWindow(uint32_t nFileIndex, uint32_t nAn
     , m_AnimationIndex(0)
     , m_AnimationState(0)
 {
-    std::memset(m_DSX, 100 * sizeof(int), 0);
-    std::memset(m_DSY, 100 * sizeof(int), 0);
-    std::memset(m_PX,  100 * sizeof(int), 0);
-    std::memset(m_PY,  100 * sizeof(int), 0);
+    std::memset(m_DSX, 0, 100 * sizeof(int));
+    std::memset(m_DSY, 0, 100 * sizeof(int));
+    std::memset(m_PX,  0, 100 * sizeof(int));
+    std::memset(m_PY,  0, 100 * sizeof(int));
     for(int i = 0; i < 100; ++i){
         m_PNG[0][i] = nullptr;
         m_PNG[1][i] = nullptr;
@@ -147,7 +149,7 @@ AnimationPreviewWindow::AnimationPreviewWindow(uint32_t nFileIndex, uint32_t nAn
                         pData    = new uint32_t[stInfo0.shWidth * stInfo0.shHeight];
                         nDataLen = stInfo0.shWidth * stInfo0.shHeight;
                     }
-                    g_WilImagePackage[0].Decode(pData, 0XFFFFFFFF, 0XFFFFFFFF);
+                    g_WilImagePackage[0].Decode(pData, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
                     SaveRGBABufferToPNG((uint8_t *)pData,
                             stInfo0.shWidth, stInfo0.shHeight,
                             szSaveFileName);

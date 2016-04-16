@@ -3,7 +3,7 @@
  *
  *       Filename: wilanimationinfo.cpp
  *        Created: 8/8/2015 4:41:53 AM
- *  Last Modified: 08/11/2015 2:57:33 AM
+ *  Last Modified: 04/15/2016 21:44:16
  *
  *    Description: 
  *
@@ -18,10 +18,13 @@
  * =====================================================================================
  */
 
+#include "supwarning.hpp"
 #include "wilanimationinfo.hpp"
 
 int WilAnimationStartBaseIndex(int nFileIndex, int nAnimationIndex, int nStatus, int nDirection)
 {
+    UNUSED(nFileIndex);
+
     if(0){
     }else{
         // default
@@ -31,6 +34,10 @@ int WilAnimationStartBaseIndex(int nFileIndex, int nAnimationIndex, int nStatus,
 
 int WilAnimationFrameCount(int nFileIndex, int nAnimationIndex, int nStatus, int nDirection)
 {
+    UNUSED(nFileIndex);
+    UNUSED(nAnimationIndex);
+    UNUSED(nDirection);
+
     if(0){
     }else{
         // default

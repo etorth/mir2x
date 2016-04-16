@@ -21,6 +21,13 @@ class AnimationPreviewWindow
         PreviewWindow    *m_Window;
         Fl_Shared_Image  *m_PNG[2][100];
     private:
+        int     m_CurrentFrameIndex;
+        int     m_FrameCount;
+        int     m_LastFrameIndex;
+        int     m_MaxW;
+        int     m_MaxH;
+        int     m_ImageMaxW;
+        int     m_ImageMaxH;
         int     m_FileIndex;
         int     m_AnimationIndex;
         int     m_AnimationState;
@@ -28,13 +35,6 @@ class AnimationPreviewWindow
         int     m_DSY[100];
         int     m_PX[100];
         int     m_PY[100];
-        int     m_FrameCount;
-        int     m_LastFrameIndex;
-        int     m_ImageMaxH;
-        int     m_ImageMaxW;
-        int     m_MaxH;
-        int     m_MaxW;
-        int     m_CurrentFrameIndex;
     public:
         AnimationPreviewWindow(uint32_t, uint32_t);
         ~AnimationPreviewWindow();
