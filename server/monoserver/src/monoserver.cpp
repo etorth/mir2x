@@ -127,6 +127,8 @@ void MonoServer::Launch()
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
 
+    // TODO
+    // dead lock when there is too many monsters???
     AddMonster(1, 1);
     AddMonster(1, 1);
     AddMonster(1, 1);

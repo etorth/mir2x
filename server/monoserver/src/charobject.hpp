@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/14/2016 17:28:20
+ *  Last Modified: 04/16/2016 22:34:25
  *
  *    Description: 
  *
@@ -226,7 +226,11 @@ class CharObject: public ActiveObject
         int     m_Direction;
         int     m_Event;
 
+        // I make m_MapID here for hot-saving
+        // means when there is no player on one map for a long time
+        // stop this map, but current I won't use it
         ServerMap*                  m_Map;
+        uint32_t                    m_MapID;
 
         ObjectRecordList m_VisibleObjectList;
         ObjectRecordList m_VisibleItemList;
@@ -291,6 +295,26 @@ class CharObject: public ActiveObject
         uint8_t Direction()
         {
             return m_Direction;
+        }
+
+    public:
+        void SetMap(uint32_t nMapID)
+        {
+            m_MapID = nMapID;
+        }
+
+        // TODO
+        // I need more thinking for this function, who is the caller of this function?
+        // the server map call it when invoking ObjectMove, or this function 
+        //  1. test collision by call ObjectMove()
+        //  2. set x, y, map
+        //
+        //  and also, will this logic cause dead lock??
+        void SetMap(ServerMap *pMap, int nX, int nY)
+        {
+            m_Map   = pMap;
+            m_CurrX = nX;
+            m_CurrY = nY;
         }
 
     public:

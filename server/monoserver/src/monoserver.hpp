@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/14/2016 16:20:51
+ *  Last Modified: 04/17/2016 01:11:06
  *
  *    Description: 
  *
@@ -139,25 +139,41 @@ class MonoServer final
 
     public:
         // helper function to run char object
+        // TODO this funciton causes dead lock.... but I don't get the reason
         void Operate(uint32_t nUID, uint32_t nAddTime, uint32_t nDelay)
         {
-            // TODO any side effect to make it static??
-            static std::function<void()> fnOperate = [nUID, nAddTime, nDelay, this](){
+            // TODO any side effect to make it static? YES, don't use it here
+            // 
+            // 1. get an dynamically allocated handler
+            auto *fnOperate = new std::function<void()>();
+
+            // 2. assign to it
+            *fnOperate = [nUID, nAddTime, nDelay, fnOperate, this](){
+                // TODO
+                // this may cause dead lock?
+                // lock an object A, then try to lock the map in Operate
+                //
+                // another object B lock the map, and when exam objects in the
+                // map cell, try to lock object A
+                //
+                // think of this in more details
                 auto pGuard = CheckOut<CharObject>(nUID, nAddTime);
                 if(pGuard && pGuard->State(STATE_INCARNATED)){
                     pGuard->Operate();
                     extern EventTaskHub *g_EventTaskHub;
-                    g_EventTaskHub->Add(nDelay, fnOperate);
+                    g_EventTaskHub->Add(nDelay, *fnOperate);
                     return;
                 }
 
+                // this object is no longer active
                 if(pGuard && pGuard->State(STATE_PHANTOM)){
-                    Remove<CharObject>(nUID, nAddTime); return;
+                    Remove<CharObject>(nUID, nAddTime);
+                    delete fnOperate;
                 }
             };
 
             extern EventTaskHub *g_EventTaskHub;
-            g_EventTaskHub->Add(nDelay, fnOperate);
+            g_EventTaskHub->Add(nDelay, *fnOperate);
         }
 
     public:

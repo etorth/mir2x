@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/14/2016 14:55:46
+ *  Last Modified: 04/17/2016 01:43:43
  *
  *    Description: 
  *
@@ -191,15 +191,15 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
 
     bool bLockS = false;
     bool bLockD = false;
-    if(pSrcMap){ bLockS = pSrcMap->LockArea(true, nGridXS, nGridYS); }
 
+    if(pSrcMap){ bLockS = pSrcMap->LockArea(true, nGridXS, nGridYS); }
     bLockD = LockArea(true, nGridX0, nGridY0, nGridW, nGridH, nSkipGridX, nSkipGridY);
 
     // only work for both src map and dst map locked
-    if(!(((pSrcMap != nullptr) == bLockS) && bLockD)){
-        if(pSrcMap && bLockS){ pSrcMap->LockArea(false, nGridXS, nGridYS, 1, 1); }
+    if(!((((bool)pSrcMap) == bLockS) && bLockD)){
+        if(pSrcMap && bLockS){ pSrcMap->LockArea(false, nGridXS, nGridYS); }
         if(bLockD){
-            LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS);
+            LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nSkipGridX, nSkipGridY);
         }
         return false;
     }
@@ -231,11 +231,10 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
                     if(CircleOverlap(
                                 pGuard->X(), pGuard->Y(), pGuard->R(),
                                 pObject->X(), pObject->Y(), pObject->R())){
-
-                        if(bLockS && pSrcMap){ pSrcMap->LockArea(false, nGridXS, nGridYS, 1, 1); }
-                        if(bLockD){
-                            LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS);
-                        }
+                        // 1. unlock src if necessary
+                        if(pSrcMap && bLockS){ pSrcMap->LockArea(false, nGridXS, nGridYS); }
+                        // 2. dst should be unlocked for sure
+                        LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nSkipGridX, nSkipGridY);
                         return false;
                     }
                 }else{
@@ -254,21 +253,21 @@ bool ServerMap::ObjectMove(int nTargetX, int nTargetY, CharObject *pObject)
                     pSrcMap->m_GridObjectRecordListV[nGridYS][nGridXS].begin(),
                     pSrcMap->m_GridObjectRecordListV[nGridYS][nGridXS].end(), stObjectRecord));
     }
-    // {OBJECT_CHAROBJECT, pObject->UID(), pObject->AddTime()}));
 
     // 2. add to new cell
-    m_GridObjectRecordListV[nTargetY / SYS_MAPGRIDYP][nTargetX / SYS_MAPGRIDXP].emplace_front(stObjectRecord);
-    // {OBJECT_CHAROBJECT, pObject->UID(), pObject->AddTime()});
+    int nNewCellX = nTargetX / SYS_MAPGRIDXP;
+    int nNewCellY = nTargetY / SYS_MAPGRIDYP;
+    m_GridObjectRecordListV[nNewCellY][nNewCellX].emplace_front(stObjectRecord);
 
-    // 3. Add to global obj list, must add it before unlock all cells
-    // extern MonoServer *g_MonoServer;
-    // g_MonoServer->Add(((uint64_t)pObject->ID() << 32) + pObject->AddTime(), pObject);
+    // 3. Set map to the object
+    // TODO any dead lock here?
+    pObject->SetMap(this, nTargetX, nTargetY);
 
-    // 4. Unlock all cells
-    if(bLockS && pSrcMap){ pSrcMap->LockArea(false, nGridXS, nGridYS, 1, 1); }
-    if(bLockD){
-        LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nGridXS, nGridYS);
-    }
+    // 4. unlock src if necessary
+    if(pSrcMap && bLockS){ pSrcMap->LockArea(false, nGridXS, nGridYS); }
+
+    // 5. dst should be unlocked for sure
+    LockArea(false, nGridX0, nGridY0, nGridW, nGridH, nSkipGridX, nSkipGridY);
     return true;
 }
 

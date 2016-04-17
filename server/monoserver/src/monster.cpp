@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/14/2016 17:33:13
+ *  Last Modified: 04/17/2016 01:49:52
  *
  *    Description: 
  *
@@ -145,7 +145,10 @@ bool Monster::RandomWalk()
     int nX, nY;
     NextLocation(&nX, &nY, Speed());
 
-    return m_Map->ObjectMove(nX, nY, this);
+    bool bRet = m_Map->ObjectMove(nX, nY, this);
+    if(!bRet){ m_Direction = std::rand() % 8; }
+
+    return bRet;
 }
 
 // get a cached object list, by reference only, test each object in the list
