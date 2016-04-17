@@ -3,7 +3,7 @@
  *
  *       Filename: addmonster.cpp
  *        Created: 04/12/2016 19:07:52
- *  Last Modified: 04/16/2016 22:37:04
+ *  Last Modified: 04/17/2016 02:00:00
  *
  *    Description: 
  *
@@ -123,7 +123,7 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID,
             // now this object is ready
             // location and map has been set in ObjectMove()
             pGuard->SetState(STATE_INCARNATED, true);
-            Operate(nUID, nAddTime, 100);
+            Operate(nUID, nAddTime, 90 + std::rand() % 20);
 
             return true;
         }
