@@ -6,6 +6,7 @@
 #include "triangle.hpp"
 #include "mir2xmap.hpp"
 #include "mathfunc.hpp"
+#include "sysconst.hpp"
 
 Mir2xMap::Mir2xMap()
     : m_TileDesc(nullptr)
@@ -266,7 +267,7 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
 //     int nStartCellX = nViewX / 48;
 //     int nStartCellY = nViewY / 32;
 //
-//     int nStopCellX = (nViewX + nViewW) / 68;
+//     int nStopCellX = (nViewX + nViewW) / 48;
 //     int nStopCellY = (nViewY + nViewH) / 32;
 //
 //     for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
@@ -296,6 +297,36 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
 //     DrawExt(nViewX, nViewY, nViewW, nViewH, fnDrawExtFunc);
 // }
 
+void Mir2xMap::Draw(int nViewX, int nViewY, int nViewW, int nViewH, int nMaxObjH,
+        std::function<void(int, int, uint32_t)> fnDrawTileFunc,
+        std::function<void(int, int, uint32_t)> fnDrawObjFunc,
+        std::function<void(int, int)> fnDrawActorFunc,
+        std::function<void(int, int)> fnDrawExtFunc)
+{
+    // to make it safe
+    int nStartCellX = (nViewX - 2 * SYS_MAPGRIDXP                    ) / SYS_MAPGRIDXP;
+    int nStartCellY = (nViewY - 2 * SYS_MAPGRIDYP - nMaxObjH         ) / SYS_MAPGRIDYP;
+    int nStopCellX  = (nViewX + 2 * SYS_MAPGRIDXP            + nViewW) / SYS_MAPGRIDXP;
+    int nStopCellY  = (nViewY + 2 * SYS_MAPGRIDYP + nMaxObjH + nViewH) / SYS_MAPGRIDYP;
+
+    for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
+        for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
+            if(!ValidC(nCellX, nCellY)){ continue; }
+            for(int nIndex = 0; nIndex < 2; ++nIndex){
+                if(GroundObjValid(nCellX, nCellY, nIndex) == bGround){
+                    auto &stDesc = CellDesc(nCellX, nCellY, nIndex);
+                    fnDrawObj(nCellX, nCellY, stDesc.FileIndex, stDesc.ImageIndex);
+                }
+            }
+            fnDrawActorFunc(nCellX, nCellY);
+        }
+    }
+
+    DrawGround(nViewX, nViewY, nViewW, nViewH, fnDrawTileFunc);
+    DrawGroundObj(nViewX, nViewY, nViewW, nViewH, nMaxObjH, fnDrawObjFunc);
+    DrawOverGroundObj(nViewX, nViewY, nViewW, nViewH, nMaxObjH, fnDrawObjFunc, fnDrawActorFunc);
+    DrawExt(nViewX, nViewY, nViewW, nViewH, fnDrawExtFunc);
+}
 
 // void Mir2xMap::DrawExt(int nViewX, int nViewY, int nViewW, int nViewH,
 //         std::function<void(int, int)> fnDrawExtFunc)
@@ -320,7 +351,7 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
 //         }
 //     }
 // }
-
+//
 // void Mir2xMap::DrawGround(int nViewX, int nViewY, int nViewW, int nViewH,
 //         std::function<void(int, int, uint32_t)> fnDrawFunc)
 // {
@@ -341,7 +372,7 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
 //     for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
 //         for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
 //             if(!(nCellY % 2) && !(nCellX % 2) && TileValid(nCellX, nCellY)){
-//                 fnDrawFunc(nCellX * 48 - nViewX, nCellY * 32 - nViewY, TileKey(nCellX, nCellY));
+//                 fnDrawFunc(nCellX * 48 - nViewX, nCellY * 32 - nViewY, Tile(nCellX, nCellY));
 //             }
 //         }
 //     }

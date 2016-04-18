@@ -201,9 +201,6 @@ class Mir2xMap
         }
 
     private:
-        void DrawGround();
-
-    private:
         TILEDESC   *m_TileDesc;
         CELLDESC   *m_CellDesc;
 
