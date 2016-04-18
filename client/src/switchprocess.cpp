@@ -3,7 +3,7 @@
  *
  *       Filename: switchprocess.cpp
  *        Created: 01/23/2016 04:18:45
- *  Last Modified: 03/20/2016 20:38:09
+ *  Last Modified: 04/17/2016 22:55:12
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 
 #include "game.hpp"
+#include "processrun.hpp"
 #include "processlogo.hpp"
 #include "processsyrc.hpp"
 #include "processlogin.hpp"
@@ -104,6 +105,20 @@ void Game::SwitchProcess(int nOldID, int nNewID)
 
                 }
                 break;
+            }
+        case PROCESSID_LOGIN:
+            {
+                switch(nNewID){
+                    case PROCESSID_RUN:
+                        {
+                            m_CurrentProcess = new ProcessRun();
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
             }
         default:
             {

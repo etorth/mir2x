@@ -3,7 +3,7 @@
  *
  *       Filename: onhc.cpp
  *        Created: 02/28/2016 01:37:19
- *  Last Modified: 04/06/2016 18:45:46
+ *  Last Modified: 04/18/2016 00:26:09
  *
  *    Description: 
  *
@@ -91,35 +91,42 @@ void MonoServer::OnLogin(Session *pSession)
                 return;
             }
 
-            SMLoginOK stSMLoginOK;
+            SMLoginOK *pSMLoginOK = new SMLoginOK();
             // currently only handle the first record
             pRecord->Fetch();
-            std::strncpy(stSMLoginOK.Name, pRecord->Get("fld_name"), sizeof(stSMLoginOK.Name));
-            // std::strncpy(stSMLoginOK.MapName,
-            //         pRecord->Get("fld_map"), sizeof(stSMLoginOK.MapName));
+            // std::strncpy(pSMLoginOK->Name, 
+            //         pRecord->Get("fld_name"), sizeof(pSMLoginOK->Name));
 
-            stSMLoginOK.GUID = std::atoi(pRecord->Get("fld_guid"));
-            // stSMLoginOK.SID       = std::atoi(pRecord->Get("fld_sid"));
-            // stSMLoginOK.Level     = std::atoi(pRecord->Get("fld_level"));
-            // stSMLoginOK.MapX      = std::atoi(pRecord->Get("fld_x"));
-            // stSMLoginOK.MapY      = std::atoi(pRecord->Get("fld_y"));
-            // stSMLoginOK.Direction = std::atoi(pRecord->Get("fld_direction"));
+            // std::strncpy(pSMLoginOK->MapName,
+            //         pRecord->Get("fld_map"), sizeof(pSMLoginOK->MapName));
+
+            // TODO
+            // tmp hack
+            std::strncpy(pSMLoginOK->Name,    "test",     sizeof(pSMLoginOK->Name));
+            std::strncpy(pSMLoginOK->MapName, "DESC.BIN", sizeof(pSMLoginOK->MapName));
+
+            pSMLoginOK->GUID = std::atoi(pRecord->Get("fld_guid"));
+            // pSMLoginOK->SID       = std::atoi(pRecord->Get("fld_sid"));
+            // pSMLoginOK->Level     = std::atoi(pRecord->Get("fld_level"));
+            // pSMLoginOK->MapX      = std::atoi(pRecord->Get("fld_x"));
+            // pSMLoginOK->MapY      = std::atoi(pRecord->Get("fld_y"));
+            // pSMLoginOK->Direction = std::atoi(pRecord->Get("fld_direction"));
 
             // blocking
             // if(PlayerLogin(stSMLoginOK)){
             //     pSession->Send(SM_LOGINOK, stSMLoginOK);
             // }
 
-            if(!AddPlayer(nSessionID, stSMLoginOK.GUID)){
+            if(!AddPlayer(nSessionID, pSMLoginOK->GUID)){
                 AddLog(LOGTYPE_INFO, "Add player failed: (%s:%s:%d:%s:%d)",
-                        pID, pPWD, nID, stSMLoginOK.Name, stSMLoginOK.GUID);
+                        pID, pPWD, nID, pSMLoginOK->Name, pSMLoginOK->GUID);
                 pSession->Send(SM_LOGINFAIL);
                 return;
             }
 
             AddLog(LOGTYPE_INFO, "Login succeed: (%s:%s:%d:%s:%d)",
-                    pID, pPWD, nID, stSMLoginOK.Name, stSMLoginOK.GUID);
-            pSession->Send(SM_LOGINOK, stSMLoginOK);
+                    pID, pPWD, nID, pSMLoginOK->Name, pSMLoginOK->GUID);
+            pSession->Send(SM_LOGINOK, *pSMLoginOK, [pSMLoginOK](){ delete pSMLoginOK; });
         };
 
         extern TaskHub *g_TaskHub;

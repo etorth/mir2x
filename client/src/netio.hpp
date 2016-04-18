@@ -3,7 +3,7 @@
  *
  *       Filename: netio.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 04/06/2016 18:26:23
+ *  Last Modified: 04/17/2016 23:57:13
  *
  *    Description: 
  *
@@ -51,6 +51,11 @@ class NetIO final
         void RunIO(const char *, const char *, const std::function<void(uint8_t)> &);
         void StopIO();
 
+        // TODO
+        // this two function is prepare for synchronized process
+        void InitIO(const char *, const char *, const std::function<void(uint8_t)> &);
+        void PollIO();
+
     public:
         // send a body-less head code
         void Send(uint8_t);
@@ -73,16 +78,21 @@ class NetIO final
 
         // read specified length of data to the buffer
         // user should maintain the validation of the buffer
-        void Read(uint8_t *, size_t, const std::function<void()> &);
+        void Read(uint8_t *, size_t, const std::function<void(const uint8_t *, size_t)> &);
 
-        template<typename T> void Read(T stMsg, const std::function<void()> &fnOperateBuf)
+        // TODO
+        // do I really need it?
+        template<typename T> void Read(T &stMsg,
+                const std::function<void(const uint8_t *, size_t)> &fnOperateBuf)
         {
             Read((uint8_t *)(&stMsg), sizeof(stMsg), fnOperateBuf);
         }
 
         // use the internal read buffer, means we have to
         // keep the read request sequentially
-        void Read(size_t nLen, const std::function<void()> &fnOperateBuf)
+        //
+        // and we have to make the handler to accept argument for buffer
+        void Read(size_t nLen, const std::function<void(const uint8_t *, size_t)> &fnOperateBuf)
         {
             // 1. check the buffer
             if(m_Buf.size() < nLen){ m_Buf.resize(nLen); }

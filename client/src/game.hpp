@@ -41,6 +41,9 @@ class Game
         void SwitchProcess(int, int);
 
     public:
+        void InitASIO();
+        void PollASIO();
+
         void RunASIO();
         void OperateHC(uint8_t);
 
@@ -57,13 +60,22 @@ class Game
         void   Draw();
 
     public:
+        void Read(size_t nLen, const std::function<void(const uint8_t *, size_t)> &fnOperate)
+        {
+            if(nLen){
+                m_NetIO.Read(nLen, fnOperate);
+            }
+        }
+
         template<typename... U> void Send(U&&... u)
         {
             m_NetIO.Send(std::forward<U>(u)...);
         }
 
     private:
-        NetIO   m_NetIO;
+        // std::string     m_ServerIP;
+        // std::string     m_ServerPort;
+        NetIO           m_NetIO;
 
     private:
         // ProcessLogin    *m_ProcessLogin;

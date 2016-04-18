@@ -3,7 +3,7 @@
  *
  *       Filename: netio.cpp
  *        Created: 06/29/2015 7:18:27 PM
- *  Last Modified: 04/06/2016 18:12:49
+ *  Last Modified: 04/17/2016 23:59:28
  *
  *    Description: this class won't maintian buffer's validation
  *                 user should maintain it by themself
@@ -34,16 +34,11 @@ NetIO::~NetIO()
     m_IO.stop();
 }
 
-void NetIO::StopIO()
-{
-    m_IO.post([this](){Close();});
-}
-
 // TODO
 // I'm not sure whether I can make fnOperateHC as const reference
 // since ...
-void NetIO::RunIO(const char *szIP,
-        const char * szPort, const std::function<void(uint8_t)> &fnOperateHC)
+void NetIO::RunIO(
+        const char *szIP, const char * szPort, const std::function<void(uint8_t)> &fnOperateHC)
 {
     // 1. push a connect request into the event queue
     // 2. start the event loop
@@ -68,6 +63,12 @@ void NetIO::RunIO(const char *szIP,
 
     // start the even loop and never return when OK
     m_IO.run();
+}
+
+
+void NetIO::StopIO()
+{
+    m_IO.post([this](){Close();});
 }
 
 void NetIO::Close()
@@ -103,18 +104,18 @@ void NetIO::Send(uint8_t nMsgHC, const uint8_t *pBuf, size_t nLen)
 // Can NetIO provide an alway-valid buffer for user?
 // seems it's possible
 //
-void NetIO::Read(uint8_t * pBuf,
-        size_t nBufLen, const std::function<void()> &fnOperateBuf)
+void NetIO::Read(uint8_t * pBuf, size_t nBufLen,
+        const std::function<void(const uint8_t *, size_t)> &fnOperateBuf)
 {
     // we suppress multi-read at one time
     // read request should be handled one by one
     assert(m_ReadCount == 0);
 
-    auto fnOnReadBuf = [this, fnOperateBuf](std::error_code stEC, size_t){
+    auto fnOnReadBuf = [this, fnOperateBuf, pBuf, nBufLen](std::error_code stEC, size_t){
         if(stEC){
             Close();
         }else{
-            fnOperateBuf();
+            fnOperateBuf(pBuf, nBufLen);
             m_ReadCount--;
         }
     };
@@ -177,4 +178,36 @@ void NetIO::DoSendHC()
 
     asio::async_write(m_Socket,
             asio::buffer(&(std::get<0>(m_WQ.front())), 1), fnDoSendBuf);
+}
+
+void NetIO::InitIO(
+        const char *szIP, const char * szPort, const std::function<void(uint8_t)> &fnOperateHC)
+{
+    // 1. push a connect request into the event queue
+    // 2. start the event loop
+    //
+    // TODO
+    //
+    // I have no idea of that
+    // what would happen if I post requests before m_IO.run() started???
+    // or even before asio::async_connect()?
+    //
+    auto stIterator = m_Resolver.resolve({szIP, szPort});
+    auto fnOnConnect = [this, fnOperateHC](std::error_code stEC, asio::ip::tcp::resolver::iterator){
+        if(stEC){
+            Close();
+        }else{
+            ReadHC(fnOperateHC);
+        }
+    };
+
+    // push a connection request
+    asio::async_connect(m_Socket, stIterator, fnOnConnect);
+
+    // now we need to keep polling it
+}
+
+void NetIO::PollIO()
+{
+    m_IO.poll();
 }

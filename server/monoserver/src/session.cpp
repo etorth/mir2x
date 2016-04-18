@@ -92,7 +92,8 @@ void Session::DoSendBuf()
         };
 
         asio::async_write(m_Socket,
-                asio::buffer(&(std::get<1>(m_SendQ.front())), std::get<2>(m_SendQ.front())), fnDoSendValidBuf);
+                asio::buffer(std::get<1>(m_SendQ.front()), std::get<2>(m_SendQ.front())),
+                fnDoSendValidBuf);
     }else{
         DoSendNext();
     }

@@ -3,7 +3,7 @@
  *
  *       Filename: time.cpp
  *        Created: 03/19/2016 00:35:32
- *  Last Modified: 03/19/2016 22:02:19
+ *  Last Modified: 04/18/2016 00:02:47
  *
  *    Description: 
  *
@@ -30,6 +30,9 @@ void Game::EventDelay(double fDelayMS)
     double fStartDelayMS = GetTimeMS();
 
     while(true){
+
+        // always try to poll it
+        PollASIO();
 
         // everytime firstly try to process all pending events
         ProcessEvent();

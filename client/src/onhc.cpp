@@ -3,7 +3,7 @@
  *
  *       Filename: onhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 04/06/2016 02:26:10
+ *  Last Modified: 04/17/2016 22:55:52
  *
  *    Description: 
  *
@@ -17,11 +17,11 @@
  *
  * =====================================================================================
  */
-
 #include "log.hpp"
 #include "game.hpp"
 #include "xmlconf.hpp"
 #include "message.hpp"
+#include "processrun.hpp"
 
 void Game::OperateHC(uint8_t nHC)
 {
@@ -43,8 +43,19 @@ void Game::OnPing()
 
 void Game::OnLoginOK()
 {
-    extern Log *g_Log;
-    g_Log->AddLog(LOGTYPE_INFO, "login succeed");
+    auto fnDoLogin = [this](const uint8_t *pBuf, size_t nLen){
+        SwitchProcess(m_CurrentProcess->ID(), PROCESSID_RUN);
+        auto pRun = (ProcessRun *)m_CurrentProcess;
+
+        extern Log *g_Log;
+        if(pRun && pRun->Load(pBuf, nLen)){
+            g_Log->AddLog(LOGTYPE_INFO, "login succeed");
+        }else{
+            g_Log->AddLog(LOGTYPE_INFO, "failed to jump into main loop");
+        }
+    };
+
+    Read(sizeof(SMLoginOK), fnDoLogin);
 }
 
 void Game::OnLoginFail()

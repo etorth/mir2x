@@ -36,10 +36,12 @@ class Session
            Send(nMsgHC, nullptr, 0, fnDone);
        }
 
+       // TODO
+       // maybe I need make const T here
        template<typename T> void Send(
-               uint8_t nMsgHC, T stMsgT, const std::function<void()> &fnDone = []{})
+               uint8_t nMsgHC, const T &stMsgT, const std::function<void()> &fnDone = []{})
        {
-           Send(nMsgHC, (uint8_t *)(&stMsgT), sizeof(stMsgT), fnDone);
+           Send(nMsgHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT), fnDone);
        }
 
 
