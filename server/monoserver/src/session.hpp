@@ -1,3 +1,22 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: session.hpp
+ *        Created: 09/03/2015 3:48:41 AM
+ *  Last Modified: 04/18/2016 15:22:34
+ *
+ *    Description: 
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #pragma once
 #include <tuple>
 #include <cstdint>

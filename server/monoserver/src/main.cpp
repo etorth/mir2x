@@ -1,3 +1,22 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: main.cpp
+ *        Created: 08/31/2015 08:52:57 PM
+ *  Last Modified: 04/18/2016 15:21:45
+ *
+ *    Description: 
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #include <ctime>
 #include <asio.hpp>
 
@@ -8,7 +27,6 @@
 #include "addmonsterwindow.hpp"
 #include "serverconfigurewindow.hpp"
 #include "databaseconfigurewindow.hpp"
-
 
 Log                      *g_Log;
 TaskHub                  *g_TaskHub;

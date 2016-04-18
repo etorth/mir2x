@@ -1,3 +1,22 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: monoserver.cpp
+ *        Created: 08/31/2015 10:45:48 PM
+ *  Last Modified: 04/18/2016 15:21:05
+ *
+ *    Description: 
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #include <cstdarg>
 
 #include "log.hpp"

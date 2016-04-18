@@ -1,3 +1,23 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: session.cpp
+ *        Created: 9/3/2015 3:48:41 AM
+ *  Last Modified: 04/18/2016 15:23:11
+ *
+ *    Description: 
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
+
 #include <cassert>
 #include "session.hpp"
 #include "sessionio.hpp"

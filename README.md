@@ -117,4 +117,4 @@ If you really really need to do that, put it in the lambda function and call g_T
 
 1. if current function accept pointer, current thread has already grabbed the object.
 2. if current fucntion accept (UID, AddTime), there is no ancesotr in the call tree who is now still grubbing the object.
-3. otherwise think of your logic.
+3. otherwise think of your logic, and test
