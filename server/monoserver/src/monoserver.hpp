@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/17/2016 01:11:06
+ *  Last Modified: 04/18/2016 17:49:03
  *
  *    Description: 
  *
@@ -62,7 +62,7 @@ class MonoServer final
 
     private:
         // for network
-        SessionIO   *m_SessionIO;
+        SessionHub   *m_SessionHub;
 
     private:
         std::atomic<uint32_t> m_ObjectUID;

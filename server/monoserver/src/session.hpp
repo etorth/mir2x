@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 3:48:41 AM
- *  Last Modified: 04/18/2016 15:22:34
+ *  Last Modified: 04/18/2016 17:48:28
  *
  *    Description: 
  *
@@ -24,13 +24,13 @@
 #include <queue>
 #include <functional>
 
-class SessionIO;
+class SessionHub;
 class Session
 {
     public:
         Session(int,    // session id
                 asio::ip::tcp::socket,  // socket
-                SessionIO *,            // parent
+                SessionHub *,            // parent
                 std::function<void(uint8_t, Session *)>);  // handler on header code
 
        ~Session();
@@ -115,7 +115,7 @@ class Session
     private:
        int                     m_ID;
        asio::ip::tcp::socket   m_Socket;
-       SessionIO              *m_SessionIO;
+       SessionHub             *m_SessionHub;
        std::string             m_IP;
        int                     m_Port;
        uint8_t                 m_MessageHC;

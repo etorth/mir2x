@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: sessionio.hpp
+ *       Filename: sessionhub.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 04/06/2016 19:34:45
+ *  Last Modified: 04/18/2016 17:47:03
  *
  *    Description: 
  *
@@ -26,11 +26,11 @@
 #include <unordered_map>
 
 class Session;
-class SessionIO final
+class SessionHub final
 {
     public:
-        SessionIO(int, std::function<void(uint8_t, Session *)>);
-       ~SessionIO();
+        SessionHub(int, std::function<void(uint8_t, Session *)>);
+       ~SessionHub();
 
     public:
         void Launch();

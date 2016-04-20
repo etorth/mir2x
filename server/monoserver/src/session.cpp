@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/18/2016 15:23:11
+ *  Last Modified: 04/18/2016 17:48:44
  *
  *    Description: 
  *
@@ -20,15 +20,15 @@
 
 #include <cassert>
 #include "session.hpp"
-#include "sessionio.hpp"
+#include "sessionhub.hpp"
 
 Session::Session(int nSessionID,
         asio::ip::tcp::socket stSocket,
-        SessionIO *pSessionIO,
+        SessionIO *pSessionHub,
         std::function<void(uint8_t, Session *)> fnOperateHC)
     : m_ID(nSessionID)
     , m_Socket(std::move(stSocket))
-    , m_SessionIO(pSessionIO)
+    , m_SessionHub(pSessionHub)
     , m_IP()
     , m_Port(0)
     , m_MessageHC(0)

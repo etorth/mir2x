@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: sessionio.cpp
+ *       Filename: sessionhub.cpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 04/06/2016 19:34:51
+ *  Last Modified: 04/18/2016 17:47:08
  *
  *    Description: 
  *
@@ -25,7 +25,7 @@
 #include "sessionio.hpp"
 #include "monoserver.hpp"
 
-SessionIO::SessionIO(int nPort, std::function<void(uint8_t, Session *)> fnOperateHC)
+SessionHub::SessionHub(int nPort, std::function<void(uint8_t, Session *)> fnOperateHC)
     : m_Port(nPort)
     , m_EndPoint(asio::ip::tcp::v4(), nPort)
     , m_Acceptor(m_IO, m_EndPoint)
@@ -36,17 +36,17 @@ SessionIO::SessionIO(int nPort, std::function<void(uint8_t, Session *)> fnOperat
 {
 }
 
-SessionIO::~SessionIO()
+SessionHub::~SessionHub()
 {
 }
 
-void SessionIO::Launch()
+void SessionHub::Launch()
 {
     Accept();
     m_Thread = new std::thread([this](){ m_IO.run(); });
 }
 
-void SessionIO::Accept()
+void SessionHub::Accept()
 {
     auto fnAccept = [this](std::error_code stEC){
 
@@ -79,7 +79,7 @@ void SessionIO::Accept()
     m_Acceptor.async_accept(m_Socket, fnAccept);
 }
 
-void SessionIO::Kill(int nSessionID)
+void SessionHub::Kill(int nSessionID)
 {
     if(m_SessionHub.find(nSessionID) != m_SessionHub.end()){
         m_SessionHub[nSessionID]->Stop();
@@ -87,7 +87,7 @@ void SessionIO::Kill(int nSessionID)
     }
 }
 
-void SessionIO::Dispatch(uint8_t nMsgID, const uint8_t *pData, size_t nDataLen)
+void SessionHub::Dispatch(uint8_t nMsgID, const uint8_t *pData, size_t nDataLen)
 {
     for(int nSessionID = 0; nSessionID <= m_MaxID; ++nSessionID){
         auto p = m_SessionHub.find(nSessionID);
@@ -97,7 +97,7 @@ void SessionIO::Dispatch(uint8_t nMsgID, const uint8_t *pData, size_t nDataLen)
     }
 }
 
-void SessionIO::Send(int nSessionID, uint8_t nMsgID, const uint8_t *pData, size_t nDataLen)
+void SessionHub::Send(int nSessionID, uint8_t nMsgID, const uint8_t *pData, size_t nDataLen)
 {
     auto p = m_SessionHub.find(nSessionID);
     if(p != m_SessionHub.end()){
@@ -105,6 +105,6 @@ void SessionIO::Send(int nSessionID, uint8_t nMsgID, const uint8_t *pData, size_
     }
 }
 
-void SessionIO::Stop()
+void SessionHub::Stop()
 {
 }

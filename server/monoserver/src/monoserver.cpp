@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/18/2016 15:21:05
+ *  Last Modified: 04/18/2016 17:49:22
  *
  *    Description: 
  *
@@ -30,7 +30,7 @@
 #include "databaseconfigurewindow.hpp"
 
 MonoServer::MonoServer()
-    : m_SessionIO(nullptr)
+    : m_SessionHub(nullptr)
     , m_ObjectUID(1)
     , m_LogBufSize(0)
     , m_LogBuf(nullptr)
@@ -136,9 +136,9 @@ void MonoServer::Launch()
         OnReadHC(nMsgHC, pSession);
     };
 
-    delete m_SessionIO;
-    m_SessionIO = new SessionIO(nPort, fnOperateHC);
-    m_SessionIO->Launch();
+    delete m_SessionHub;
+    m_SessionHub = new SessionIO(nPort, fnOperateHC);
+    m_SessionHub->Launch();
 
     extern TaskHub *g_TaskHub;
     g_TaskHub->Launch();
