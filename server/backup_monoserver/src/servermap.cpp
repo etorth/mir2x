@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/21/2016 01:31:37
+ *  Last Modified: 04/17/2016 01:43:43
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 
 #include <algorithm>
+
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
 #include "servermap.hpp"
@@ -376,11 +377,4 @@ bool ServerMap::QueryObject(int nX, int nY,
     }
 
     return true;
-}
-
-void ServerMap::Operate(const MessagePack &rstMPK, Theron::Address stFromAddr)
-{
-    switch(rstMPK.Type()){
-        case MPK_NEW:
-    }
 }

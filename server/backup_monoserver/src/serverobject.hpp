@@ -3,7 +3,7 @@
  *
  *       Filename: serverobject.hpp
  *        Created: 04/13/2016 20:04:39
- *  Last Modified: 04/20/2016 23:05:12
+ *  Last Modified: 04/14/2016 00:33:30
  *
  *    Description: asyncobject with ID() and AddTime()
  *
@@ -58,4 +58,5 @@ class ServerObject: public AsyncObject
         {
             return m_AddTime;
         }
+
 };

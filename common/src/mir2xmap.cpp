@@ -297,36 +297,36 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
 //     DrawExt(nViewX, nViewY, nViewW, nViewH, fnDrawExtFunc);
 // }
 
-void Mir2xMap::Draw(int nViewX, int nViewY, int nViewW, int nViewH, int nMaxObjH,
-        std::function<void(int, int, uint32_t)> fnDrawTileFunc,
-        std::function<void(int, int, uint32_t)> fnDrawObjFunc,
-        std::function<void(int, int)> fnDrawActorFunc,
-        std::function<void(int, int)> fnDrawExtFunc)
-{
-    // to make it safe
-    int nStartCellX = (nViewX - 2 * SYS_MAPGRIDXP                    ) / SYS_MAPGRIDXP;
-    int nStartCellY = (nViewY - 2 * SYS_MAPGRIDYP - nMaxObjH         ) / SYS_MAPGRIDYP;
-    int nStopCellX  = (nViewX + 2 * SYS_MAPGRIDXP            + nViewW) / SYS_MAPGRIDXP;
-    int nStopCellY  = (nViewY + 2 * SYS_MAPGRIDYP + nMaxObjH + nViewH) / SYS_MAPGRIDYP;
-
-    for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
-        for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
-            if(!ValidC(nCellX, nCellY)){ continue; }
-            for(int nIndex = 0; nIndex < 2; ++nIndex){
-                if(GroundObjValid(nCellX, nCellY, nIndex) == bGround){
-                    auto &stDesc = CellDesc(nCellX, nCellY, nIndex);
-                    fnDrawObj(nCellX, nCellY, stDesc.FileIndex, stDesc.ImageIndex);
-                }
-            }
-            fnDrawActorFunc(nCellX, nCellY);
-        }
-    }
-
-    DrawGround(nViewX, nViewY, nViewW, nViewH, fnDrawTileFunc);
-    DrawGroundObj(nViewX, nViewY, nViewW, nViewH, nMaxObjH, fnDrawObjFunc);
-    DrawOverGroundObj(nViewX, nViewY, nViewW, nViewH, nMaxObjH, fnDrawObjFunc, fnDrawActorFunc);
-    DrawExt(nViewX, nViewY, nViewW, nViewH, fnDrawExtFunc);
-}
+// void Mir2xMap::Draw(int nViewX, int nViewY, int nViewW, int nViewH, int nMaxObjH,
+//         std::function<void(int, int, uint32_t)> fnDrawTileFunc,
+//         std::function<void(int, int, uint32_t)> fnDrawObjFunc,
+//         std::function<void(int, int)> fnDrawActorFunc,
+//         std::function<void(int, int)> fnDrawExtFunc)
+// {
+//     // to make it safe
+//     int nStartCellX = (nViewX - 2 * SYS_MAPGRIDXP                    ) / SYS_MAPGRIDXP;
+//     int nStartCellY = (nViewY - 2 * SYS_MAPGRIDYP - nMaxObjH         ) / SYS_MAPGRIDYP;
+//     int nStopCellX  = (nViewX + 2 * SYS_MAPGRIDXP            + nViewW) / SYS_MAPGRIDXP;
+//     int nStopCellY  = (nViewY + 2 * SYS_MAPGRIDYP + nMaxObjH + nViewH) / SYS_MAPGRIDYP;
+//
+//     for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
+//         for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
+//             if(!ValidC(nCellX, nCellY)){ continue; }
+//             for(int nIndex = 0; nIndex < 2; ++nIndex){
+//                 if(GroundObjValid(nCellX, nCellY, nIndex) == bGround){
+//                     auto &stDesc = CellDesc(nCellX, nCellY, nIndex);
+//                     fnDrawObj(nCellX, nCellY, stDesc.FileIndex, stDesc.ImageIndex);
+//                 }
+//             }
+//             fnDrawActorFunc(nCellX, nCellY);
+//         }
+//     }
+//
+//     DrawGround(nViewX, nViewY, nViewW, nViewH, fnDrawTileFunc);
+//     DrawGroundObj(nViewX, nViewY, nViewW, nViewH, nMaxObjH, fnDrawObjFunc);
+//     DrawOverGroundObj(nViewX, nViewY, nViewW, nViewH, nMaxObjH, fnDrawObjFunc, fnDrawActorFunc);
+//     DrawExt(nViewX, nViewY, nViewW, nViewH, fnDrawExtFunc);
+// }
 
 // void Mir2xMap::DrawExt(int nViewX, int nViewY, int nViewW, int nViewH,
 //         std::function<void(int, int)> fnDrawExtFunc)

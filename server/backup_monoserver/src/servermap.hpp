@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 04/21/2016 01:30:30
+ *  Last Modified: 04/14/2016 00:48:17
  *
  *    Description: put all non-atomic function as private
  *
@@ -28,17 +28,9 @@
 #include "mir2xmap.hpp"
 #include "asyncobject.hpp"
 
-#include "objectpod.hpp"
-
 class CharObject;
 class ServerMap
 {
-    private:
-        ObjectPod *m_ObjectPod;
-
-    private:
-        void Operate(const MessagePack &, Theron::Address);
-
     private:
         // some shortcuts for internal use only
         // for public API don't use it
