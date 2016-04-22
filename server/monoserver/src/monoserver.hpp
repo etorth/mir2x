@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/19/2016 23:36:31
+ *  Last Modified: 04/22/2016 15:26:15
  *
  *    Description: 
  *
@@ -74,6 +74,16 @@ class MonoServer final
     private:
         // for DB
         DBConnection *m_DBConnection;
+
+    private:
+        Theron::Receiver             m_Receiver;
+        Theron::Catcher<MessagePack> m_Catcher;
+
+    public:
+        Theron::Address GetAddress()
+        {
+            return m_Receiver.GetAddress();
+        }
 
     private:
         bool AddPlayer(int, uint32_t);

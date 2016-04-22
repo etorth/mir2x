@@ -3,7 +3,7 @@
  *
  *       Filename: sessionhub.cpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 04/19/2016 23:37:21
+ *  Last Modified: 04/22/2016 15:18:31
  *
  *    Description: 
  *
@@ -38,6 +38,8 @@ SessionHub::SessionHub(int nPort, std::function<void(uint8_t, Session *)> fnOper
 
 SessionHub::~SessionHub()
 {
+    m_Thread->join();
+    delete m_Thread;
 }
 
 void SessionHub::Launch()

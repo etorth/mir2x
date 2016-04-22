@@ -3,7 +3,7 @@
  *
  *       Filename: addplayer.cpp
  *        Created: 04/06/2016 18:44:28
- *  Last Modified: 04/11/2016 22:59:59
+ *  Last Modified: 04/22/2016 15:27:58
  *
  *    Description: active a player in online mode, player GUID is used
  *
@@ -22,7 +22,7 @@
 #include "monoserver.hpp"
 #include "serverconfigurewindow.hpp"
 
-bool MonoServer::AddPlayer(int, uint32_t)
+bool MonoServer::AddPlayer(int nSID, uint32_t)
 {
     // auto pSession = m_SessionIO->Validate(nSessionID);
     // if(!pSession){

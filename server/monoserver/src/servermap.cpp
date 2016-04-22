@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/21/2016 15:06:10
+ *  Last Modified: 04/22/2016 12:26:11
  *
  *    Description: 
  *
@@ -378,12 +378,54 @@ bool ServerMap::QueryObject(int nX, int nY,
     return true;
 }
 
-void ServerMap::Operate(const MessagePack &rstMPK, Theron::Address stFromAddr)
+void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFromAddr)
 {
+    if(!RegionMonitorReady()){ return; }
+
     extern Log *g_Log;
     switch(rstMPK.Type()){
-        case MPK_NEWPLAYER:     OnMPKNewPlayer (rstMPK, stFromAddr); break;
-        case MPK_NEWMONSTOR:    OnMPKNewMonster(rstMPK, stFromAddr); break;
+        case MPK_METRONOME:
+            {
+                for(auto &rstAddrV: m_MonitorV2D){
+                    for(auto &rstCurrAddr: rstAddrV){
+                        if(rstCurrAddr != Theron::Address::Null()){
+                            m_ObjectPod->Send(MessagePack(MPK_METRONOME), rstCurrAddr);
+                        }
+                    }
+                }
+                break;
+            }
+        case MPK_READY:
+            {
+                AMMonitorReady stAMMR;
+                std::memcpy(&stAMMR, rstMPK.Data(), sizeof(stAMMR));
+                m_RegionMonitorRecordV2D[stAMMR.Y][stAMMR.X].PodAddress = stFromAddr;
+                CheckRegionMonitorReady();
+
+                if(RegionMonitorReady()){
+                    m_ObjectPod->Send(MessagePack(MPK_READY), m_CenterAddr);
+                }
+                break;
+            }
+        case MPK_NEWMONSTOR:
+            {
+                AMNewMonster stAMNM;
+                std::memcpy(&stAMNM, rstMPK.Data(), sizeof(stAMNM));
+
+                // 1. create the monstor
+                auto pNewMonstor = new Monstor(stMPKNM.GUID, stMPKNM.UID, stMPKNM.AddTime);
+                uint64_t nKey = ((uint64_t)stAMNM.UID << 32) + stAMNM.AddTime;
+
+                // 2. put it in the pool
+                m_ActiveObjectV[nKey] = pNewMonstor;
+
+                // 3. add the pointer inside and forward this message to the monitor
+                stAMNM.Data = (void *)pNewMonstor;
+                auto stAddr = RegionMonitorAddressP(stAMNM.X, stAMNM.Y);
+                m_ObjectPod->Send(MessagePack(MPK_NEWMONSTOR, stAMNM), stAddr);
+
+                break;
+            }
         default:
             {
                 g_Log->AddLog(LOGTYPE_WARNING, "unsupported message type: %d", rstMPK.Type());
@@ -392,17 +434,35 @@ void ServerMap::Operate(const MessagePack &rstMPK, Theron::Address stFromAddr)
     }
 }
 
-void ServerMap::OnMPKNewPlayer(const MessagePack &rstMPK, Theron::Address)
+void ServerMap::CheckRegionMonitorNeed()
 {
-    // TODO finish it
-    MPKNewPlayer stMPKNP;
-    std::memcpy(&stMPKNP, rstMPK.Data(), sizeof(stMPKNP));
-}
+    if(!m_Mir2xMap.Valid()){ return; }
 
-void ServerMap::OnMPKNewMonster(const MessagePack &rstMPK)
-{
-    MPKNewMonster stMPKNM;
-    std::memcpy(&stMPKNM, rstMPK.Data(), sizeof(stMPKNM));
+    int nRegionMonitorW = W() / m_RegiongMonitorResolution;
+    int nRegionMonitorH = H() / m_RegiongMonitorResolution;
 
-    auto pNewMonstor = new Monstor(stMPKNM.GUID, stMPKNM.UID, stMPKNM.AddTime);
+    for(int nRegionMonitorY = 0; nRegionMonitorY < nRegionMonitorW; ++nRegionMonitorY){
+        for(int nRegionMonitorX = 0; nRegionMonitorX < nRegionMonitorH; ++nRegionMonitorX){
+            // 1. find all grids it covers
+            int nGridY = nRegionMonitorY * m_RegiongMonitorResolution / SYS_MAPGRIDYP;
+            int nGridX = nRegionMonitorX * m_RegiongMonitorResolution / SYS_MAPGRIDXP;
+            int nGridH = 1 + (m_RegiongMonitorResolution / SYS_MAPGRIDYP);  // make it safe
+            int nGridW = 1 + (m_RegiongMonitorResolution / SYS_MAPGRIDXP);  // make it safe
+
+            // 2. check each
+            for(int nY = nGridY; nY < nGridY + nGridH; ++nY){
+                for(int nX = nGridX; nX < nGridX + nGridW; ++nX){
+                    if(false
+                            || m_Mir2xMap.CanWalk(nX, nY, 0)
+                            || m_Mir2xMap.CanWalk(nX, nY, 1)
+                            || m_Mir2xMap.CanWalk(nX, nY, 2)
+                            || m_Mir2xMap.CanWalk(nX, nY, 3)){
+                        m_RegiongMonitorRecordV2D[nRegionMonitorY][nRegionMonitorX] = true;
+                        goto __LABEL_GOTO_CHECKMONITORNEED_1;
+                    }
+                }
+            }
+__LABEL_GOTO_CHECKMONITORNEED_1:
+        }
+    }
 }

@@ -159,6 +159,9 @@ class Mir2xMap
         }
 
         bool CanWalk(int nX, int nY){
+            // TODO
+            // maybe it should be ``or", not ``and"
+            // go over it later
             return true
                 && CanWalk(nX, nY, 0)
                 && CanWalk(nX, nY, 1)

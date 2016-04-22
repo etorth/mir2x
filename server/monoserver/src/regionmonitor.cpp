@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 04/22/2016 01:47:30
+ *  Last Modified: 04/22/2016 10:52:07
  *
  *    Description: 
  *
@@ -20,20 +20,11 @@
 
 #include "regionmonitor.hpp"
 
-RegionMonitor::RegionMonitor(const Theron::Address &rstMapAddr)
-    : MonitorBase()
-    , m_MapAddress(rstMapAddr)
-{}
-
 void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     switch(rstMPK.Type()){
         case MPK_INITREGIONMONITOR:
             {
-                AMInitRegionMonitor stAMIRM;
-
-
-
                 AMRegion stAMRegion;
                 std::memcpy(&stAMRegion, rstMPK.Data(), sizeof(stAMRegion));
 
@@ -42,16 +33,26 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
                 m_W = stAMRegion.W;
                 m_H = stAMRegion.H;
 
+                m_RegionDone = true;
+                if(m_RegionDone && m_NeighborDone){
+                    m_ObjectPod->Send(MessagePack(MPK_READY), m_MapAddress);
+                }
                 break;
             }
 
         case MPK_NEIGHBOR:
             {
-                char szAddr[128];
-                std::memcpy(szAddr, (const char *)rstMPK.Data(), rstMPK.DataLen());
-                szAddr[rstMPK.DataLen()] = '\0';
+                char  nCount = (rstMPK.Data()[0]);
+                char *pAddr  = (char *)rstMPK.Data() + 1;
+                while(nCount--){
+                    m_NeighborV[(size_t)szAddr[0]] = new Theron::Address(pAddr);
+                    pAddr += (1 + std::strlen(pAddr));
+                }
 
-                m_NeighborV[(size_t)szAddr[0]] = new Theron::Address(szAddr + 1);
+                m_NeighborDone = true;
+                if(m_RegionDone && m_NeighborDone){
+                    m_ObjectPod->Send(MessagePack(MPK_READY), m_MapAddress);
+                }
                 break;
             }
         default:
@@ -61,10 +62,4 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
                 break;
             }
     }
-}
-
-void RegionMonitor::Activate()
-{
-    MonitorBase::Activate();
-    m_ObjectPod->Send(MessagePack(MPK_ACTIVATE));
 }
