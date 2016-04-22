@@ -3,7 +3,7 @@
  *
  *       Filename: metronome.hpp
  *        Created: 04/21/2016 17:29:38
- *  Last Modified: 04/21/2016 18:30:12
+ *  Last Modified: 04/21/2016 21:14:46
  *
  *    Description: generate time tick as MessagePack for actor
  *                 keep it as simple as possible
@@ -23,41 +23,57 @@
 
 #include <mutex>
 #include <vector>
+#include <cstdint>
 #include <Theron/Theron.h>
 
 class Metronome: public Theron::Reveiver
 {
     private:
-        // TODO only use one lock
-        // make it as simple as possible
-        bool m_Active;
-        std::mutex m_Lock;
-        std::vector<Theron::Address> m_AddrV;
+        // TODO only use one lock, make it as simple as possible
+        //
+        uint32_t m_OID;                         // operation ID in the scheduler
+        std::mutex m_Lock;                      // single lock to protect all
+        std::function<void()> *m_Func;          // 
+        std::vector<Theron::Address> m_AddrV;   // only actor address, no receiver's
 
     public:
         Metronome(uint32_t nTick)
             : Theron::Reveiver()
-            , m_Active(true)
+            , m_OID(0)
+            , m_Func(nullptr)
         {
             // immediately ready when created
             extern EventTaskHub *g_EventTaskHub;
-            auto pfnRepeatBeat = new std::function<void()>([this, nTick, pfnRepeatBeat](){
+            m_Func = new std::function<void()>([this, nTick](){
+                // 1. lock the whole class so no address can be added in
                 std::lock_guard<std::mutex> stGuard(m_Lock);
-                if(m_Active){
-                    GenerateBeat();
-                    g_EventTaskHub->Add(nTick, *pfnRepeatBeat);
-                }else{
-                    delete pfnRepeatBeat;
+
+                // 2. send time ticks to all address taking in charge
+                extern Theron::Framework *g_Framework;
+                for(const auto &rstAddr: m_AddrV){
+                    g_Framework->Send(MessagePack(MPK_METRONOME), GetAddress(), rstAddr);
                 }
+
+                // 3. record the ID of next invocation
+                m_OID = g_EventTaskHub->Add(nTick, *m_Func);
             });
 
-            g_EventTaskHub->Add(nTick, *pfnRepeatBeat);
+            // don't need to lock now since it's in ctor
+            m_OID = g_EventTaskHub->Add(nTick, *m_Func);
         }
 
         virtual ~Metronome()
         {
             std::lock_guard<std::mutex> stGuard(m_Lock);
-            m_Active = false;
+
+            // 1. now the handler won't invoke again
+            //    here we need to lock the class
+            //    since m_OID may change during invocaitoin of m_Func
+            extern EventTaskHub *g_EventTaskHub;
+            g_EventTaskHub->Dismiss(m_OID);
+
+            // 2. delete the handler
+            delete m_Func;
         }
 
     public:
@@ -67,17 +83,5 @@ class Metronome: public Theron::Reveiver
             if(std::find(m_AddrV.begin(), m_AddrV.end(), stAddr) == m_AddrV.end()){
                 m_AddrV.push_back(stAddr);
             }
-        }
-
-    protected:
-        void GenerateBeat()
-        {
-            std::for_each(m_AddrV.begin(), m_AddrV.end(), [this](const Theron::Address &rstAddr){
-                // TODO
-                // here should we only use the framework bind to the actor?
-                // or any framework works? I tested seems any framework will work
-                extern Theron::Framework *g_Framework;
-                g_Framework->Send(MessagePack(MPK_METRONOME), GetAddress(), rstAddr);
-            });
         }
 };
