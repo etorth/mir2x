@@ -3,7 +3,7 @@
  *
  *       Filename: eventtask.hpp
  *        Created: 04/03/2016 22:55:21
- *  Last Modified: 04/04/2016 00:01:01
+ *  Last Modified: 04/21/2016 18:11:02
  *
  *    Description: 
  *
@@ -52,5 +52,4 @@ class EventTask: public Task
         {
             return m_Expiration;
         }
-
 };

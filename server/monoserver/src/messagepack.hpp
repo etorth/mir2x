@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 04/20/2016 23:39:13
+ *  Last Modified: 04/21/2016 15:04:52
  *
  *    Description: message class for actor system
  *
@@ -38,6 +38,25 @@ enum MessagePackType: int {
     MPK_UNKNOWN,
     MPK_HELLO,
 };
+
+typedef struct {
+    uint32_t GUID;
+    uint32_t UID;
+    uint32_t AddTime;
+
+    int X;
+    int Y;
+}MPKNewPlayer;
+
+typedef struct {
+    uint32_t GUID;
+    uint32_t UID;
+    uint32_t AddTime;
+
+    int X;
+    int Y;
+}MPKNewPlayer;
+
 
 template<size_t StaticBufSize = 64>
 class MessagePack final

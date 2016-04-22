@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/16/2016 22:15:18
+ *  Last Modified: 04/21/2016 10:44:36
  *
  *    Description: 
  *
@@ -113,7 +113,6 @@ uint8_t CharObject::Direction(int nX, int nY)
     }
     return nDirection;
 }
-
 
 // bool CharObject::RangeTask(uint8_t nRangeType,
 //         std::function<void(CharObjectID, CharObjectID)> fnOp)

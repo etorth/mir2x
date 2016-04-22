@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/14/2016 17:28:47
+ *  Last Modified: 04/21/2016 10:45:08
  *
  *    Description: 
  *
@@ -129,4 +129,7 @@ class Monster: public CharObject
 
     public:
         bool RandomWalk();
+
+    protected:
+        void Operate(const MessagePack &, Theron::Address);
 };

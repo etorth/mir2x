@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/11/2016 19:54:41
- *  Last Modified: 04/14/2016 01:00:10
+ *  Last Modified: 04/21/2016 10:42:32
  *
  *    Description: object with Type()/Mode()/State()
  *
@@ -23,6 +23,7 @@
 #include <array>
 #include <cstdint>
 
+#include "objectpod.hpp"
 #include "serverobject.hpp"
 
 // this design pattern is not perfect, when we define valid state/type/mode for class A, and
@@ -76,6 +77,7 @@ class ActiveObject: public ServerObject
     protected:
         ActiveObject(uint32_t nUID, uint32_t nAddTime)
             : ServerObject(CATEGORY_ACTIVEOBJECT, nUID, nAddTime)
+            , m_ObjectPod(nullptr)
         {
             m_TypeV.fill(0);
             m_StateV.fill(0);
@@ -84,7 +86,7 @@ class ActiveObject: public ServerObject
             m_StateV[STATE_EMBRYO] = 1;
         }
 
-    public:
+    protected:
         // getter
         // always return values, nonthrow
         //
@@ -105,4 +107,26 @@ class ActiveObject: public ServerObject
         //  only return true the operation makes sense, otherwise nothing changes
         virtual bool SetType (uint8_t, bool) = 0;
         virtual bool SetState(uint8_t, bool) = 0;
+
+    protected:
+        void Operate(const MessagePack &, Theron::Address) = 0;
+
+    protected:
+        ObjectPod   *m_ObjectPod;
+
+    public:
+        bool Activate()
+        {
+            try{
+                extern Theron::Framework *g_Framework;
+                m_ObjectPod = new ObjectPod(*g_Framework,
+                    [this](const MessagePack & rstMPK, Theron::Address stFromAddr){
+                        this->Operate(rstMPK, stFromAddr);
+                    });
+            }catch(...){
+                return false;
+            }
+
+            return true;
+        }
 };

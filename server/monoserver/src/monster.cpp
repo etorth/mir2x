@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/17/2016 01:49:52
+ *  Last Modified: 04/21/2016 16:52:59
  *
  *    Description: 
  *
@@ -229,4 +229,8 @@ const char *Monster::CharName()
 int Monster::Range(uint8_t)
 {
     return 20;
+}
+
+void Monster::Operate(const MessagePack &rstMPK, Theron::Address)
+{
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/21/2016 01:31:37
+ *  Last Modified: 04/21/2016 15:06:10
  *
  *    Description: 
  *
@@ -380,7 +380,29 @@ bool ServerMap::QueryObject(int nX, int nY,
 
 void ServerMap::Operate(const MessagePack &rstMPK, Theron::Address stFromAddr)
 {
+    extern Log *g_Log;
     switch(rstMPK.Type()){
-        case MPK_NEW:
+        case MPK_NEWPLAYER:     OnMPKNewPlayer (rstMPK, stFromAddr); break;
+        case MPK_NEWMONSTOR:    OnMPKNewMonster(rstMPK, stFromAddr); break;
+        default:
+            {
+                g_Log->AddLog(LOGTYPE_WARNING, "unsupported message type: %d", rstMPK.Type());
+                break;
+            }
     }
+}
+
+void ServerMap::OnMPKNewPlayer(const MessagePack &rstMPK, Theron::Address)
+{
+    // TODO finish it
+    MPKNewPlayer stMPKNP;
+    std::memcpy(&stMPKNP, rstMPK.Data(), sizeof(stMPKNP));
+}
+
+void ServerMap::OnMPKNewMonster(const MessagePack &rstMPK)
+{
+    MPKNewMonster stMPKNM;
+    std::memcpy(&stMPKNM, rstMPK.Data(), sizeof(stMPKNM));
+
+    auto pNewMonstor = new Monstor(stMPKNM.GUID, stMPKNM.UID, stMPKNM.AddTime);
 }

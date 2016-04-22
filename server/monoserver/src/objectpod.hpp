@@ -3,7 +3,7 @@
  *
  *       Filename: objectpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 04/21/2016 01:26:25
+ *  Last Modified: 04/21/2016 10:27:28
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -33,9 +33,6 @@
 #include "log.hpp"
 #include "messagepack.hpp"
 
-// TODO I have to put it here, kind of dirty
-extern Theron::Framework *g_Framework;
-
 template<MessageType = MessagePack>
 class ActorPod: public Theron::Actor
 {
@@ -43,9 +40,8 @@ class ActorPod: public Theron::Actor
         std::function<void(const MessageType &, Theron::Address)> m_Operate;
 
     public:
-        explicit ActorPod(
-                const std::function<void(const MessageType &, Theron::Address)> & fnOperate,
-                Theron::Framework *pFramework = g_Framework)
+        explicit ActorPod(Theron::Framework *pFramework,
+                const std::function<void(const MessageType &, Theron::Address)> & fnOperate)
             : Theron::Actor(*pFramework)
             , m_Operate(fnOperate)
         {
