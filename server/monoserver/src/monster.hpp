@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/21/2016 10:45:08
+ *  Last Modified: 04/21/2016 22:09:28
  *
  *    Description: 
  *
@@ -84,11 +84,34 @@ class Monster: public CharObject
         ~Monster();
 
     private:
-        // shortcuts for internal use only
-        using ObjectRecord     = std::tuple<uint32_t, uint32_t>;
-        using ObjectRecordList = std::list<ObjectRecord>;
-        const ObjectRecord EMPTYOBJECTRECORD {0, 0};
+        typedef struct _ActorRecord{
+            Theron::Address Addr;       // void to use Address...
+            uint32_t        UID;
+            uint32_t        AddTime;
+            int             X;
+            int             Y;
+            bool            Friend;
 
+            _ActorRecord(const Theron::Address &stAddr = Theron::Address::Null(),
+                    uint32_t nUID     = 0,
+                    uint32_t nAddTime = 0,
+                    int nX = 0,
+                    int nY = 0,
+                    bool bFriend = true)
+                : Addr(stAddr)
+                , UID(nUID)
+                , AddTime(nAddTime)
+                , X(nX)
+                , Y(nY)
+                , Friend(bFriend)
+            {}
+
+            bool Valid()
+            {
+                return Addr == Theron::Address::Null() || UID == 0 || AddTime == 0;
+            }
+
+        }ActorRecord;
 
     protected:
         uint32_t m_MonsterIndex;

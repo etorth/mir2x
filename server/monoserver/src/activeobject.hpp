@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/11/2016 19:54:41
- *  Last Modified: 04/21/2016 10:42:32
+ *  Last Modified: 04/21/2016 23:03:43
  *
  *    Description: object with Type()/Mode()/State()
  *
@@ -67,7 +67,7 @@ enum ObjectState: uint8_t{
     STATE_PEACE,
 };
 
-class ActiveObject: public ServerObject
+class ActiveObject: public ReactObject
 {
     protected:
         std::array<    bool, 255> m_TypeV;

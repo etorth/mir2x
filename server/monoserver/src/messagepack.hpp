@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 04/21/2016 15:04:52
+ *  Last Modified: 04/22/2016 01:33:55
  *
  *    Description: message class for actor system
  *
@@ -35,7 +35,7 @@
 #include <cstdint>
 
 enum MessagePackType: int {
-    MPK_UNKNOWN,
+    MPK_UNKNOWN = 0,
     MPK_HELLO,
 };
 
@@ -70,12 +70,15 @@ class MessagePack final
         size_t      m_StaticBufUsedLen;
         uint8_t     m_StaticBuf[StaticBufSize];
 
+        uint32_t    m_Response;
+
     public:
         MessagePack(int nMsgType = MPK_UNKNOWN)
             : m_Type(nMsgType)
             , m_BufLen(0)
             , m_Buf(nullptr)
             , m_StaticBufUsedLen(0)
+            , m_Response(0)
         {}
 
         MessagePack(const MessagePack &rstMPK)
@@ -158,5 +161,10 @@ class MessagePack final
         size_t Size() const
         {
             return DataLen();
+        }
+
+        uint32_t Response() const
+        {
+            return m_Response;
         }
 };

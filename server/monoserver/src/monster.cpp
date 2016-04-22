@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/21/2016 16:52:59
+ *  Last Modified: 04/21/2016 22:39:59
  *
  *    Description: 
  *
@@ -27,6 +27,7 @@
 Monster::Monster(uint32_t nMonsterInex, uint32_t nUID, uint32_t nAddTime)
     : CharObject(nUID, nAddTime)
     , m_MonsterIndex(nMonsterInex)
+    , m_Metronome(nullptr)
 {
 }
 
@@ -60,74 +61,43 @@ bool Monster::Friend(CharObject* pCharObject)
     return false;
 }
 
-bool Monster::Operate()
+bool Monster::Update()
 {
     // don't try to suiside in yourself here
     if(!Active()){ return false; }
 
     std::printf("moster (%d, %d) is now at (%d, %d)\n", UID(), AddTime(), X(), Y());
 
-    extern MonoServer *g_MonoServer;
-    // no target, then try to find one from the view range
-    if(m_Target == EMPTYOBJECTRECORD && !m_VisibleObjectList.empty()){
-        // have to use while since list may change
-        auto pRecord = m_VisibleObjectList.begin();
-        while(pRecord != m_VisibleObjectList.end()){
-            if(auto pGuard = g_MonoServer->CheckOut<CharObject>(
-                        std::get<0>(*pRecord), std::get<1>(*pRecord))){
-                if(true
-                        && pGuard->Active()
-                        && pGuard->MapID() == m_Map->ID()
-                        && LDistance(pGuard->X(), pGuard->Y(), m_CurrX, m_CurrY) <= Range(RANGE_VIEW)){
-                    // valid target, set it
-                    m_Target = *pRecord;
-                    break;
-                }
-
-            }
-            // not valid or not proper, erase it
-            // valid means still in the object hub
-            // proper means it stays in the view range
-            pRecord = m_VisibleObjectList.erase(pRecord);
-        }
+    // 1. query neighbors
+    for(const auto &rstRecord: m_NeighborV){
+        m_ObjectPod->Send(MessagePack(MPK_QUERYLOCATION), rstRecord.Addr);
     }
 
-    // still need to validate the target
-    if(m_Target != EMPTYOBJECTRECORD){
-        if(auto pGuard = g_MonoServer->CheckOut<CharObject>(
-                    std::get<0>(m_Target), std::get<1>(m_Target))){
-            if(pGuard->Active() && pGuard->MapID() == m_Map->ID()){
-                int nR = LDistance(pGuard->X(), pGuard->Y(), m_CurrX, m_CurrY);
-                if(nR <= Range(RANGE_ATTACK)){
-                    return Attack(pGuard.Get());
-                }
+    // // 2. try to find target, using current info of neighbors
+    // if(!m_TargetRecord.Valid()){
+    //     int nLDis2 = -1;
+    //     for(const auto &rstRecord: m_NeighborV){
+    //         if(rstRecord.Friend){ continue; }
+    //         int nCurrLDis2 = LDistance2(X(), Y(), std::get<4>(rstRecord), std::get<5>(rstRecord));
+    //         if(nCurrLDis2 < nLDis2){
+    //             m_TargetRecord = rstRecord;
+    //             nLDis2 = nCurrLDis2;
+    //         }
+    //     }
+    // }
 
-                if(nR <= Range(RANGE_TRACETARGET)){
-                    return Follow(pGuard.Get(), false);
-                }
-            }
-        }
-    }
+    // // 3. if now we have target
+    // if(m_TargetRecord.Valid()){
+    //     // did the attack
+    //     if(Attack()){ return true;}
+    //
+    //     // can't attack, then follow it
+    // }
 
-    // now we don't have a target
-    m_Target = EMPTYOBJECTRECORD;
+    // if(m_MasterRecord.Valid()){
+    // }
 
-    // try master
-    if(auto pGuard = g_MonoServer->CheckOut<CharObject>(
-                std::get<0>(m_Master), std::get<1>(m_Master))){
-        if(pGuard && pGuard->Active()){
-            return Follow(pGuard.Get(), true);
-        }
-    }
-
-    // no master
-    m_Master = EMPTYOBJECTRECORD;
-
-    if(std::rand() % 5 == 0){
-        return RandomWalk();
-    }
-
-    return false;
+    return RandomWalk();
 }
 
 bool Monster::Attack(CharObject *pObject)
@@ -140,49 +110,30 @@ bool Monster::Attack(CharObject *pObject)
 
 bool Monster::RandomWalk()
 {
+    // with prob. of 20% to trigger this functioin
+    if(std::rand() % 5 > 0) { return false; }
+
     if(!State(STATE_INCARNATED)){ return false; }
+    if(!State(STATE_CANMOVE   )){ return false; }
+    if(!State(STATE_WAITMOVE  )){ return false; }
 
     int nX, nY;
     NextLocation(&nX, &nY, Speed());
+    ReportMove(nX, nY);
 
-    bool bRet = m_Map->ObjectMove(nX, nY, this);
-    if(!bRet){ m_Direction = std::rand() % 8; }
-
-    return bRet;
+    return true;
 }
 
-// get a cached object list, by reference only, test each object in the list
-// before using it, see TODO & TBD in charobject.hpp for this function
-void Monster::SearchViewRange()
+bool ReportMove(int nX, int nY)
 {
-    int nRange = Range(RANGE_VIEW);
+    MPKTryMove stMPKTM = {
+        .OldX = X(),
+        .OldY = Y(),
+        .X    = nX,
+        .Y    = nY,
+    };
 
-    int nStartX = m_CurrX - nRange;
-    int nStopX  = m_CurrX + nRange;
-    int nStartY = m_CurrY - nRange;
-    int nStopY  = m_CurrY + nRange;
-
-    int nGridX0 = nStartX / 48;
-    int nGridY0 = nStartY / 32;
-    int nGridX1 = nStopX  / 48;
-    int nGridY1 = nStopY  / 32;
-
-    // 1. clear the cached object
-    m_VisibleObjectList.clear();
-
-    // 2. update grid one by one
-    for(int nY = nGridY0; nY <= nGridY1; nY++){
-        for(int nX = nGridX0; nX <= nGridX1; nX++){
-            if(!m_Map->ValidC(nX, nY)){ continue; }
-
-            auto fnQueryObject = [this](uint8_t nType, uint32_t nID, uint32_t nAddTime){
-                if(nType != OBJECT_PLAYER){ return; }
-                m_VisibleObjectList.emplace_back(nID, nAddTime);
-            };
-
-            m_Map->QueryObject(nX, nY, fnQueryObject);
-        }
-    }
+    return m_ObjectPod->Send(MessagePack(MPK_TRYMOVE, stMPKTM), m_MonitorAddress);
 }
 
 bool Monster::Type(uint8_t nType)
@@ -233,4 +184,38 @@ int Monster::Range(uint8_t)
 
 void Monster::Operate(const MessagePack &rstMPK, Theron::Address)
 {
+    switch(rstMPK.Type()){
+        case MPK_METRONOME:
+            {
+                Update();
+                break;
+            }
+
+        case MPK_MOVEOK:
+            {
+                MPKMoveOK stMPKMOK;
+                std::memcpy(&stMPKMOK, rstMPK.Data(), sizeof(stMPKMOK));
+
+                // 1. do the move
+                m_CurrX = stMPKMOK.X;
+                m_CurrY = stMPKMOK.Y;
+                SetState(STATE_WAITMOVE, false);
+
+                // 2. commit the move to the monitor
+                MPKCommitMove stMPKCM = {
+                    .X = m_CurrX,
+                    .Y = m_CurrY,
+                };
+                m_ObjectPod->Send(MessagePack(MPK_COMMITMOVE, stMPKCM), m_MonitorAddress);
+
+                break;
+            }
+        default:
+            {
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_WARNING, "unsupported message type: %d", rstMPK.Type());
+                break;
+            }
+
+    }
 }
