@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 04/22/2016 15:20:39
+ *  Last Modified: 04/22/2016 18:10:53
  *
  *    Description: object only react to message, with an object pod
  *                 atoms of an react object:
@@ -39,7 +39,6 @@
  *
  * =====================================================================================
  */
-
 
 class ReactObject: public ServerObject
 {
