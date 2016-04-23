@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/22/2016 22:54:38
+ *  Last Modified: 04/23/2016 02:13:34
  *
  *    Description: 
  *
@@ -237,4 +237,10 @@ class MonoServer final
 
     protected:
         Theron::Address m_ServiceCoreAddress;
+
+    public:
+        size_t MessageSize(uint8_t nMsgHC)
+        {
+            return m_MessageSize[nMsgHC];
+        }
 };

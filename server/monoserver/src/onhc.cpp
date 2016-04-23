@@ -3,7 +3,7 @@
  *
  *       Filename: onhc.cpp
  *        Created: 02/28/2016 01:37:19
- *  Last Modified: 04/23/2016 01:52:32
+ *  Last Modified: 04/23/2016 02:12:28
  *
  *    Description: 
  *
@@ -43,7 +43,7 @@ void MonoServer::OnLogin(Session *pSession)
     //         one in one single thread, this means whening using
     //         pSession, we don't concern it could be delete by
     //         other thread
-    auto fnProcessLogin = [pSession](uint8_t *pData, int){
+    auto fnProcessLogin = [pSession](uint8_t *pData, size_t){
         AddLog(LOGTYPE_INFO, "Login requested from (%s:%d)", pSession->IP(), pSession->Port());
         auto stCMLogin = *((CMLogin *)pData);
 
@@ -144,4 +144,38 @@ void MonoServer::OnLogin(Session *pSession)
     };
 
     pSession->Read(sizeof(CMLogin), fnProcessLogin);
+}
+
+void MonoServer::OnWalk(Session *pSession)
+{
+    auto fnProcessWalk = [this, pSession](const uint8_t *pData, size_t){
+        // 1. get binding player address
+        auto stAddr = pSession->Address();
+        if(stAddr == Theron::Address::Null()){ return; }
+
+        // 2. just forward the message to binding player
+        extern Theron::Framework *g_Framework;
+        g_Framework->Send(MessagePack(MPK_FORWARDCM,
+                    CM_WALK, pData, sizeof(CMWalk)), m_Receiver.GetAddress(), stAddr);
+    };
+    pSession->Read(sizeof(CMWalk), fnProcessWalk);
+}
+
+void MonoServer::OnForward(uint8_t nMsgHC, Session *pSession)
+{
+    extern MonoServer *g_MonoServer;
+    size_t nSize = g_MonoServer->MessageSize(nMsgHC);
+
+    auto fnProcessForward = [this, pSession, nSize](const uint8_t *pData, size_t){
+        // 1. get binding player address
+        auto stAddr = pSession->Address();
+        if(stAddr == Theron::Address::Null()){ return; }
+
+        // 2. just forward the message to binding player
+        extern Theron::Framework *g_Framework;
+        g_Framework->Send(MessagePack(MPK_FORWARDCM,
+                    nMsgHC, pData, nSize), m_Receiver.GetAddress(), stAddr);
+    };
+
+    pSession->Read(nSize, fnProcessForward);
 }
