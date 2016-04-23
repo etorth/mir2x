@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/22/2016 15:26:15
+ *  Last Modified: 04/22/2016 22:54:38
  *
  *    Description: 
  *
@@ -234,4 +234,7 @@ class MonoServer final
         {
             return AddMonster(nMonsterIndex, nMapID, -1, -1, false, nullptr, nullptr);
         }
+
+    protected:
+        Theron::Address m_ServiceCoreAddress;
 };

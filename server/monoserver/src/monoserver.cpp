@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/22/2016 15:27:18
+ *  Last Modified: 04/23/2016 01:28:39
  *
  *    Description: 
  *
@@ -124,27 +124,25 @@ void MonoServer::Launch()
     InitMonsterRace();
     InitMonsterItem();
 
-    // 3. start AI loop
-   
-    extern TaskHub *g_TaskHub;
-    // g_TaskHub->Shutdown();
-    // 3. all-set, start to accept connections from clients
+    // 3. start service core
+    delete m_ServiceCore;
+    m_ServiceCore = new ServiceCore();
+    m_ServiceCoreAddress = m_ServiceCore->Activate();
+
+    // 4. start session hub
     extern ServerConfigureWindow *g_ServerConfigureWindow;
     int nPort = g_ServerConfigureWindow->Port();
-
-    auto fnOperateHC = [this](uint8_t nMsgHC, Session *pSession){
-        OnReadHC(nMsgHC, pSession);
-    };
+    auto fnReadHC = [this](uint8_t nMsgHC, Session *pSession){ OnReadHC(nMsgHC, pSession); };
 
     delete m_SessionHub;
-    m_SessionHub = new SessionHub(nPort, fnOperateHC);
+    m_SessionHub = new SessionHub(nPort, m_ServiceCoreAddress, fnOnReadHC);
     m_SessionHub->Launch();
-
-    extern TaskHub *g_TaskHub;
-    g_TaskHub->Launch();
 
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
+
+    extern ThreadPN *g_ThreadPN;
+    g_ThreadPN->Launch();
 
     // TODO
     // dead lock when there is too many monsters???
@@ -157,15 +155,19 @@ void MonoServer::Launch()
 void MonoServer::OnReadHC(uint8_t nMsgHC, Session *pSession)
 {
     switch(nMsgHC){
-        case CM_PING : { OnPing (pSession); break; }
-        case CM_LOGIN: { OnLogin(pSession); break; }
+        case CM_LOGIN    : { OnLogin    (pSession); return; }
+        case CM_WALK     : { OnWalk     (pSession); return; }
+        case CM_BROADCAST: { OnBroadcast(pSession); return; }
         default: break;
     }
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message type: %03u", nMsgHC);
 }
 
 uint32_t MonoServer::GetTickCount()
 {
-    // ... so..
+    // TODO
+    // make it more simple
     return (uint32_t)std::chrono::duration_cast<
         std::chrono::milliseconds>(std::chrono::system_clock::now() - m_StartTime).count();
 }

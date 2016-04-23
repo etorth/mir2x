@@ -3,7 +3,7 @@
  *
  *       Filename: onhc.cpp
  *        Created: 02/28/2016 01:37:19
- *  Last Modified: 04/19/2016 23:40:26
+ *  Last Modified: 04/23/2016 01:52:32
  *
  *    Description: 
  *
@@ -33,30 +33,21 @@ void MonoServer::OnPing(Session *pSession)
     pSession->Read(4, fnProcessPing);
 }
 
+// when calling this function we need to forward message to service core
+// then the core create player if login succeeds
 void MonoServer::OnLogin(Session *pSession)
 {
-    // TODO
-    // pSession may become invalid when CB actually invoked
-    int nSessionID = pSession->ID();
-
-    auto fnProcessLogin = [this, nSessionID](uint8_t *pData, int){
-        auto pSession = m_SessionHub->Validate(nSessionID);
-        if(!pSession){
-            AddLog(LOGTYPE_INFO, "Session %d deleted, login request ignored", nSessionID);
-            return;
-        }
-
+    // pSession will keep valid always, until we delete it manully, so
+    //      1. we don't need to check its validation
+    //      2. in view of session, read data is processed one by
+    //         one in one single thread, this means whening using
+    //         pSession, we don't concern it could be delete by
+    //         other thread
+    auto fnProcessLogin = [pSession](uint8_t *pData, int){
         AddLog(LOGTYPE_INFO, "Login requested from (%s:%d)", pSession->IP(), pSession->Port());
         auto stCMLogin = *((CMLogin *)pData);
 
-        auto fnDBOperation = [this, stCMLogin, nSessionID](){
-            auto pSession = m_SessionHub->Validate(nSessionID);
-            if(!pSession){
-                AddLog(LOGTYPE_INFO, "Session %d deleted, db query ignored", nSessionID);
-                pSession->Send(SM_LOGINFAIL);
-                return;
-            }
-
+        auto fnDBOperation = [this, stCMLogin, pSession](){
             auto pRecord = m_DBConnection->CreateDBRecord();
 
             const char *pID  = stCMLogin.ID;
@@ -64,7 +55,8 @@ void MonoServer::OnLogin(Session *pSession)
 
             if(!pRecord->Execute("select fld_id from tbl_account "
                         "where fld_account = '%s' and fld_password = '%s'", pID, pPWD)){
-                AddLog(2, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
+                AddLog(LOGTYPE_WARNING,
+                        "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
                 pSession->Send(SM_LOGINFAIL);
                 return;
             }
@@ -80,7 +72,8 @@ void MonoServer::OnLogin(Session *pSession)
             // but doesn't make sense since this function is already slow
             int nID = std::atoi(pRecord->Get("fld_id"));
             if(!pRecord->Execute("select * from mir2x.tbl_guid where fld_id = %d", nID)){
-                AddLog(2, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
+                AddLog(LOGTYPE_WARNING,
+                        "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
                 pSession->Send(SM_LOGINFAIL);
                 return;
             }
@@ -117,20 +110,37 @@ void MonoServer::OnLogin(Session *pSession)
             //     pSession->Send(SM_LOGINOK, stSMLoginOK);
             // }
 
-            if(!AddPlayer(nSessionID, pSMLoginOK->GUID)){
-                AddLog(LOGTYPE_INFO, "Add player failed: (%s:%s:%d:%s:%d)",
+            AMLogin stAML = {
+                .GUID = pSMLoginOK->GUID,
+            }
+
+            MessagePack stMPK;
+            while(true){ if(!m_Catcher.Pop(stMPK, m_ServiceCoreAddress)){ break; } }
+
+            extern Theron::Framework *g_Framework;
+            g_Framework->Send(MessagePack(MPK_LOGIN,
+                        stAML), m_Receiver.GetAddress(), m_ServiceCoreAddress);
+
+            if(true
+                    && m_Receiver.Wait(1) == 1
+                    && m_Catcher.Pop(stMPK, m_ServiceCoreAddress)
+                    && stMPK.Type() == MPK_LOGINOK){
+
+                AddLog(LOGTYPE_INFO, "Login succeed: (%s:%s:%d:%s:%d)",
                         pID, pPWD, nID, pSMLoginOK->Name, pSMLoginOK->GUID);
-                pSession->Send(SM_LOGINFAIL);
+                pSession->Send(SM_LOGINOK, *pSMLoginOK, [pSMLoginOK](){ delete pSMLoginOK; });
+
                 return;
             }
 
-            AddLog(LOGTYPE_INFO, "Login succeed: (%s:%s:%d:%s:%d)",
+            AddLog(LOGTYPE_INFO, "Add player failed: (%s:%s:%d:%s:%d)",
                     pID, pPWD, nID, pSMLoginOK->Name, pSMLoginOK->GUID);
-            pSession->Send(SM_LOGINOK, *pSMLoginOK, [pSMLoginOK](){ delete pSMLoginOK; });
+            pSession->Send(SM_LOGINFAIL);
+            return;
         };
 
-        extern TaskHub *g_TaskHub;
-        g_TaskHub->Add(fnDBOperation);
+        extern ThreadPN *g_ThreadPN;
+        g_ThreadPN->Add(fnDBOperation);
     };
 
     pSession->Read(sizeof(CMLogin), fnProcessLogin);

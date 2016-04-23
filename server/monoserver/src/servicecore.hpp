@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 04/22/2016 18:16:52
+ *  Last Modified: 04/22/2016 22:44:09
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -29,14 +29,15 @@ class ServiceCore
     protected:
         ObjectPod *m_ObjectPod;
 
+    protected:
+        static m_Count {0};
+
     public:
         ServiceCore()
             : m_ObjectPod(nullptr)
         {
-            static int nCount = 0;
-            nCount++;
-
-            if(nCount > 1){
+            m_Count++;
+            if(m_Count > 1){
                 extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_WARNING, "one service core please");
                 throw std::error_code();
@@ -46,6 +47,7 @@ class ServiceCore
         virtual ~ServiceCore()
         {
             delete m_ObjectPod;
+            m_Count--;
         }
 
         Theron::Address Activate()

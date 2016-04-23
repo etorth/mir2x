@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 04/22/2016 01:33:55
+ *  Last Modified: 04/22/2016 23:57:40
  *
  *    Description: message class for actor system
  *
@@ -80,6 +80,23 @@ class MessagePack final
             , m_StaticBufUsedLen(0)
             , m_Response(0)
         {}
+
+        MessagePack(int nMsgType, const uint8_t *pData, size_t nDataLen)
+        {
+            // 1. type
+            m_Type = nMsgType;
+
+            if(pDataLen && nDataLen > 0){
+                if(nDataLen <= StaticBufSize){
+                    std::memcpy(m_StaticBuf, pData, nDataLen);
+                    m_StaticBufUsedLen = nDataLen;
+                }else{
+                    m_Buf = new uint8_t[nDataLen];
+                    m_BufLen = nDataLen;
+                    std::memcpy(m_Buf, pData, nDataLen);
+                }
+            }
+        }
 
         MessagePack(const MessagePack &rstMPK)
         {

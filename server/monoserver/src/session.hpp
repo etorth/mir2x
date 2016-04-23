@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 3:48:41 AM
- *  Last Modified: 04/18/2016 17:48:28
+ *  Last Modified: 04/23/2016 00:31:54
  *
  *    Description: 
  *
@@ -28,9 +28,9 @@ class SessionHub;
 class Session
 {
     public:
-        Session(int,    // session id
+        Session(uint32_t,               // session id
                 asio::ip::tcp::socket,  // socket
-                SessionHub *,            // parent
+                SessionHub *,           // parent
                 std::function<void(uint8_t, Session *)>);  // handler on header code
 
        ~Session();

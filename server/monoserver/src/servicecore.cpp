@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 04/22/2016 18:59:15
+ *  Last Modified: 04/23/2016 00:52:11
  *
  *    Description: 
  *
@@ -40,7 +40,8 @@ bool ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                 std::memcpy(&stAML, rstMPK.Data(), sizeof(stAML));
 
                 extern MonoServer *g_MonoServer;
-                auto pNewPlayer = new Player(stAML.SID, stAML.GUID, g_MonoServer->GetTimeTick());
+                auto pNewPlayer = new Player(stAML.SID, stAML.GUID, 
+                        g_MonoServer->GetTimeTick(), );
 
                 // ... add all dress, inventory, weapon here
                 // ... add all position/direction/map/state here
@@ -49,10 +50,11 @@ bool ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                     .Data = (void *)pNewPlayer,
                 };
 
-                if(m_MapV.find(stAML.MapID) == m_MapV.end()){
+                if(m_MapRecordMap.find(stAML.MapID) == m_MapRecordMap.end()){
                     // load map
                 }
-                m_ObjectPod->Send(MessagePack(MPK_NEWPLAYER, stMNP), m_MapV[stAML.MapID]);
+                m_ObjectPod->Send(MessagePack(MPK_NEWPLAYER,
+                            stMNP), m_MapRecordMap[stAML.MapID].PodAddress);
                 break;
             }
         case MPK_PLAYERPHATOM:
