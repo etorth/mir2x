@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/21/2016 10:44:38
+ *  Last Modified: 04/25/2016 22:32:36
  *
  *    Description: 
  *
@@ -110,19 +110,6 @@ typedef struct{
 
 class CharObject: public ActiveObject
 {
-    private:
-        // define some shortcuts for internal use only
-        // let's use std::list here instead of std::forward_list
-        // std::list is a double linked list and support list.erase()
-        // while forward_list only support list.erase_after()
-        //
-        // memery: list use three times of memery as to forward_list
-        // time  : almost the same
-        using ObjectRecord      = std::tuple<uint32_t, uint32_t>;
-        using ObjectRecordList  = std::list<ObjectRecord>;
-        using CacheObjectRecord = std::tuple<uint8_t, uint8_t, uint32_t, uint32_t>;
-        const ObjectRecord EMPTYOBJECTRECORD {0, 0};
-
     public:
         CharObject(uint32_t, uint32_t);
         ~CharObject();
@@ -134,24 +121,6 @@ class CharObject: public ActiveObject
         }
 
         virtual int Speed() = 0;
-
-    public:
-        // this function give an advice for master object
-        // since it returns ID rather than object pointer
-        // bool Master(uint32_t *pUID = nullptr, uint32_t *pAddTime = nullptr)
-        // {
-        //     if(m_Master == EMPTYOBJECTRECORD){ return false; }
-        //     extern MonoServer *g_MonoServer;
-        //     if(auto pGuard = g_MonoServer->CheckOut<CharObject>(
-        //                 std::get<0>(m_Master), std::get<1>(m_Master))){
-        //         if(pUID    ){ *pUID     = std::get<0>(m_Master); }
-        //         if(pAddTime){ *pAddTime = std::get<1>(m_Master); }
-        //         return true;
-        //     }
-        //
-        //     m_Master = EMPTYOBJECTRECORD;
-        //     return false;
-        // }
 
     public:
         int X()
@@ -167,11 +136,6 @@ class CharObject: public ActiveObject
         int R()
         {
             return m_R;
-        }
-
-        uint32_t MapID()
-        {
-            return (m_Map ? m_Map->ID() : 0);
         }
 
     protected:
@@ -226,43 +190,12 @@ class CharObject: public ActiveObject
         int     m_Direction;
         int     m_Event;
 
-        // I make m_MapID here for hot-saving
-        // means when there is no player on one map for a long time
-        // stop this map, but current I won't use it
-        ServerMap*                  m_Map;
-        uint32_t                    m_MapID;
-
-        ObjectRecordList m_VisibleObjectList;
-        ObjectRecordList m_VisibleItemList;
-        ObjectRecordList m_VisibleEventList;
-
         OBJECTABILITY               m_Ability;
         OBJECTABILITY               m_WAbility;
         OBJECTADDABILITY            m_AddAbility;
 
         std::array<uint8_t,  256>    m_StateAttrV;
         std::array<uint32_t, 256>    m_StateTimeV;
-
-        ObjectRecord m_Master;
-        ObjectRecord m_Target;
-
-    public:
-        bool SetTarget(uint32_t nUID, uint32_t nAddTime)
-        {
-            std::get<0>(m_Target) = nUID;
-            std::get<1>(m_Target) = nAddTime;
-            return true;
-        }
-
-        bool Target(uint32_t *pUID = nullptr, uint32_t *pAddTime = nullptr)
-        {
-            if(m_Target != EMPTYOBJECTRECORD){
-                if(pUID    ){ *pUID     = std::get<0>(m_Target); }
-                if(pAddTime){ *pAddTime = std::get<1>(m_Target); }
-                return true;
-            }
-            return false;
-        }
 
     public:
 
@@ -284,13 +217,15 @@ class CharObject: public ActiveObject
         void    SpaceMove(int nX, int nY, ServerMap *);
         void    Die();
 
+        void Move();
+
     protected:
         std::string m_Name;
 
     public:
         void NextLocation(int *, int *, int);
 
-        uint8_t Direction(int, int);
+        static uint8_t Direction(int, int);
 
         uint8_t Direction()
         {
@@ -298,56 +233,13 @@ class CharObject: public ActiveObject
         }
 
     public:
-        void SetMap(uint32_t nMapID)
+        void SetLocation(const Theron::Address &rstAddress, int nX, int nY)
         {
-            m_MapID = nMapID;
-        }
-
-        // TODO
-        // I need more thinking for this function, who is the caller of this function?
-        // the server map call it when invoking ObjectMove, or this function 
-        //  1. test collision by call ObjectMove()
-        //  2. set x, y, map
-        //
-        //  and also, will this logic cause dead lock??
-        void SetMap(ServerMap *pMap, int nX, int nY)
-        {
-            m_Map   = pMap;
             m_CurrX = nX;
             m_CurrY = nY;
+            m_RegionMonitorAddress = rstAddress;
         }
 
     public:
-
-        // this function make a cache for object/item/event view by objects
-        // we'll repeat to call this function to update it by time, rather
-        // than ``update" it by in/out-sight event driven.
-        //
-        // TODO & TBD for SearchViewRange()
-        //
-        // when check objects inside the area, do we need to lock all the gird
-        // at one time and update the object records in the range, or just do
-        // it one by one?
-        // --------------------------------------------------------------------
-        // method-1                        |   method-2:
-        //     for_each(cell(i, j))        |       for_each(cell(i, j))
-        //     do                          |       do 
-        //         lock(cell(i, j))        |           lock(cell(i, j))
-        //         update(i, j)            |       done
-        //         unlock(cell(i, j))      |   
-        //     done                        |       for_each(cell(i, j))
-        //                                 |           update(i, j)
-        //                                 |       done
-        //                                 |     
-        //                                 |       for_each(cell(i, j))
-        //                                 |       do 
-        //                                 |           unlock(cell(i, j))
-        //                                 |       done
-        // --------------------------------------------------------------------
-        //
-        // currently I use method-1, method-2 guarantees consistancy inside the 
-        // function, however, even we get the 100% correct information, when out
-        // of this function, this correctness immidately becomes vulnerable.
-        //  
         virtual void SearchViewRange() = 0;
 };

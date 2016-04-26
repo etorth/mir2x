@@ -3,7 +3,7 @@
  *
  *       Filename: metronome.hpp
  *        Created: 04/21/2016 17:29:38
- *  Last Modified: 04/21/2016 21:14:46
+ *  Last Modified: 04/25/2016 21:43:23
  *
  *    Description: generate time tick as MessagePack for actor
  *                 keep it as simple as possible
@@ -24,9 +24,12 @@
 #include <mutex>
 #include <vector>
 #include <cstdint>
+
 #include <Theron/Theron.h>
 
-class Metronome: public Theron::Reveiver
+#include "eventtaskhub.hpp"
+
+class Metronome: public Theron::Receiver
 {
     private:
         // TODO only use one lock, make it as simple as possible
@@ -38,7 +41,7 @@ class Metronome: public Theron::Reveiver
 
     public:
         Metronome(uint32_t nTick)
-            : Theron::Reveiver()
+            : Theron::Receiver()
             , m_OID(0)
             , m_Func(nullptr)
         {

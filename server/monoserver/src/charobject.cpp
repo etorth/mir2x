@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/21/2016 10:44:36
+ *  Last Modified: 04/25/2016 22:30:48
  *
  *    Description: 
  *
@@ -67,20 +67,19 @@ void CharObject::Die()
     SetState(STATE_DEAD, true);
 }
 
-// bool CharObject::Move()
-// {
-//     extern MonoServer *g_MonoServer;
-//     uint32_t nNow = g_MonoServer->GetTickCount();
-//
-//     if(m_LastEvent == EVENT_MOVE){
-//         uint32_t nDTick = nNow - m_LastEventTick;
-//         int nDistance = Speed() * (int)nDTick;
-//
-//         int nX, nY;
-//         NextLocation(&nX, &nY, nDistance);
-//     }
-//
-// }
+bool CharObject::RequestMove()
+{
+    int nX, nY;
+    int nSpeed = Speed();
+    NextLocation(&nX, &nY, nSpeed);
+
+    AMRequestMove stAMRM = {
+        .X = nX,
+        .Y = nY,
+    };
+
+    m_ActorPod->Send(MessagePack(MPK_MOVE, stAMRM), m_RegionMonitorAddress);
+}
 
 void CharObject::NextLocation(int *pX, int *pY, int nDistance)
 {
@@ -113,51 +112,3 @@ uint8_t CharObject::Direction(int nX, int nY)
     }
     return nDirection;
 }
-
-// bool CharObject::RangeTask(uint8_t nRangeType,
-//         std::function<void(CharObjectID, CharObjectID)> fnOp)
-// {
-//     switch(nRangeType){
-//         case RT_AROUND:
-//             {
-//                 if(m_CacheObjectList.empty()
-//                         || g_MonoServer->GetTickCount() - m_CacheTick > SYS_CACHETICK){
-//                     int nStartX = m_CurrX - SYS_RANGEX;
-//                     int nStopX  = m_CurrX + SYS_RANGEX;
-//                     int nStartY = m_CurrY - SYS_RANGEY;
-//                     int nStopY  = m_CurrY + SYS_RANGEY;
-//
-//                     m_CacheObjectList.clear();
-//                     for(int nX = nStartX; nX <= nStopX; ++nX){
-//                         for(int nY = nStartY; nY <= nStopY; ++nY){
-//                             std::forward_list<CharObjectID> stList;
-//                             m_Map->GetObjectList(nX, nY, &stList);
-//                             m_CacheObjectList.insert(
-//                                     m_CacheObjectList.end(), stList.begin(), stList.end());
-//                         }
-//                     }
-//                 }
-//
-//                 for(auto &stID: m_CacheObjectList){
-//                     fnOp(m_ObjectID, stID);
-//                 }
-//
-//                 return true;
-//             }
-//
-//         case RT_MAP:
-//             {
-//                 return true;
-//             }
-//         case RT_SERVER:
-//             {
-//                 return true;
-//             }
-//         default:
-//             {
-//                 return false;
-//             }
-//     }
-//
-//     return false;
-// }

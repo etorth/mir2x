@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/22/2016 12:26:11
+ *  Last Modified: 04/25/2016 21:58:55
  *
  *    Description: 
  *
@@ -28,6 +28,8 @@
 
 ServerMap::ServerMap(uint32_t nMapID)
     : m_ID(nMapID)
+    , m_NullAddress(Theron::Address::Null())
+    , m_RegionMonitorReady(false)
 {
     Load("./DESC.BIN");
 }
@@ -465,4 +467,19 @@ void ServerMap::CheckRegionMonitorNeed()
 __LABEL_GOTO_CHECKMONITORNEED_1:
         }
     }
+}
+
+bool RegionMonitor::CheckRegionMonitorReady()
+{
+    for(int nY = 0; nY < H() * SYS_MAPGRIDYP / m_RegiongMonitorResolution; ++nY){
+        for(int nX = 0; nX < W() * SYS_MAPGRIDXP / m_RegiongMonitorResolution; ++nX){
+            if(m_RegiongMonitorRecordV2D[nY][nX].Need
+                    && m_RegiongMonitorRecordV2D[nY][nX] == Theron::Address::Null()){
+                m_RegionMonitorReady = false;
+                return false;
+            }
+        }
+    }
+    m_RegionMonitorReady = true;
+    return true;
 }

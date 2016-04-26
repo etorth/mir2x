@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/23/2016 02:13:34
+ *  Last Modified: 04/25/2016 22:00:12
  *
  *    Description: 
  *
@@ -18,8 +18,8 @@
  * =====================================================================================
  */
 
-
 #pragma once
+
 #include <mutex>
 #include <atomic>
 #include <cstdint>
@@ -29,16 +29,12 @@
 #include "log.hpp"
 #include "taskhub.hpp"
 #include "monster.hpp"
-#include "mapthread.hpp"
 #include <unordered_map>
 #include "sessionhub.hpp"
 #include "database.hpp"
 #include "message.hpp"
-#include "asynchub.hpp"
 #include "charobject.hpp"
-#include "asyncobject.hpp"
 #include "eventtaskhub.hpp"
-#include "objectlockguard.hpp"
 
 class MonoServer final
 {

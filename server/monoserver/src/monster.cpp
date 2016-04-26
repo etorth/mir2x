@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/21/2016 22:39:59
+ *  Last Modified: 04/25/2016 22:55:50
  *
  *    Description: 
  *
@@ -27,38 +27,15 @@
 Monster::Monster(uint32_t nMonsterInex, uint32_t nUID, uint32_t nAddTime)
     : CharObject(nUID, nAddTime)
     , m_MonsterIndex(nMonsterInex)
-    , m_Metronome(nullptr)
 {
 }
 
 Monster::~Monster()
 {}
 
-// TODO & TBD
-// 1. will this cause infin-iteration?
-// 2. will this cause dead lock?
-bool Monster::Friend(CharObject* pCharObject)
+bool Monster::Friend()
 {
-    if(!pCharObject || pCharObject == this){ return true; }
-    if(m_Master != EMPTYOBJECTRECORD){
-        extern MonoServer *g_MonoServer;
-        if(auto pGuard = g_MonoServer->CheckOut<CharObject>(
-                    std::get<0>(m_Master), std::get<1>(m_Master))){
-            return pGuard->Friend(pCharObject);
-        }
-        m_Master = EMPTYOBJECTRECORD;
-    }
-
-    // now self is no-master
-    if(pCharObject->Type(OBJECT_HUMAN)){
-        return false;
-    }
-
-    if(pCharObject->Type(OBJECT_ANIMAL)){
-        return pCharObject->Friend(this);
-    }
-
-    return false;
+    return true;
 }
 
 bool Monster::Update()
@@ -182,7 +159,7 @@ int Monster::Range(uint8_t)
     return 20;
 }
 
-void Monster::Operate(const MessagePack &rstMPK, Theron::Address)
+void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddress)
 {
     switch(rstMPK.Type()){
         case MPK_METRONOME:
@@ -210,12 +187,36 @@ void Monster::Operate(const MessagePack &rstMPK, Theron::Address)
 
                 break;
             }
+
+        case MPK_LOCATIION:
+            {
+                AMLocation stAML;
+                std::memcpy(&stAML, rstMPK.Data(), sizeof(stAML));
+
+                int nRange = Range(RANGE_VIEW);
+                if(LDistance2(stAML.X, stAML.Y, X(), Y()) > nRange * nRange){
+                    std::erase(std::remove(
+                                m_NeighborAddressL.begin(),
+                                m_NeighborAddressL.end(), rstFromAddress));
+                }else{
+                    // TODO
+                    // else we use this info to get target
+                }
+                break;
+            }
+
+        case MPK_MASTERPERSONA:
+            {
+                AMMasterPersona stAMMP;
+                std::memcpy(&stAMMP, rstMPK.Data(), sizeof(stAMMP));
+
+            }
+
         default:
             {
                 extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_WARNING, "unsupported message type: %d", rstMPK.Type());
                 break;
             }
-
     }
 }

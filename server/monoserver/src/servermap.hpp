@@ -3,9 +3,13 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 04/22/2016 12:06:41
+ *  Last Modified: 04/25/2016 21:58:46
  *
  *    Description: put all non-atomic function as private
+ *
+ *                 Map is an transponder, rather than an ReactObject, it has ID() and
+ *                 also timing mechanics, but it's that kind of ``object" like human
+ *                 like monstor etc.
  *
  *        Version: 1.0
  *       Revision: none
@@ -25,17 +29,20 @@
 #include <cstdint>
 #include <forward_list>
 
+#include "sysconst.hpp"
 #include "mir2xmap.hpp"
-#include "asyncobject.hpp"
-
-#include "objectpod.hpp"
+#include "metronome.hpp"
+#include "transponder.hpp"
+#include "regionmonitor.hpp"
 
 class CharObject;
-class ServerMap
+class ServerMap: public Transponder
 {
     private:
-        ObjectPod *m_ObjectPod;     // to receive external events and heart beat
-        Metronome *m_Metronome;     // to generate heart beat for the map
+        bool m_RegionMonitorReady;
+        int        m_RegiongMonitorResolution;
+        Metronome *m_Metronome;
+        Theron::Address m_NullAddress;
 
     private:
         void Operate(const MessagePack &, Theron::Address);
@@ -136,12 +143,12 @@ class ServerMap
     protected:
         // for region monitors
         typedef struct _RegionMonitorRecord {
-            RegionMonitor   *RegionMonitor;
+            RegionMonitor   *Data;
             Theron::Address  PodAddress;
             bool             Need;
 
             _RegionMonitorRecord()
-                : RegionMonitor(nullptr)
+                : Data(nullptr)
                 , PodAddress(Theron::Address::Null())
                 , Need(false)
             {}
@@ -150,20 +157,7 @@ class ServerMap
         Vec2D<RegionMonitorRecord>  m_RegiongMonitorRecordV2D;
 
         void CheckRegionMonitorNeed();
-        bool CheckRegionMonitorReady()
-        {
-            for(int nY = 0; nY < H() * SYS_MAPGRIDYP / m_RegiongMonitorResolution; ++nY){
-                for(int nX = 0; nX < W() * SYS_MAPGRIDXP / m_RegiongMonitorResolution; ++nX){
-                    if(m_RegiongMonitorRecordV2D[nY][nX].Need
-                            && m_RegiongMonitorRecordV2D[nY][nX] == Theron::Address::Null()){
-                        m_RegionMonitorReady = false;
-                        return false;
-                    }
-                }
-            }
-            m_RegionMonitorReady = true;
-            return true;
-        }
+        bool CheckRegionMonitorReady();
 
         const Theron::Address &RegionMonitorAddressP(int nX, int nY)
         {

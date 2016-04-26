@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 04/22/2016 18:10:53
+ *  Last Modified: 04/25/2016 21:34:14
  *
  *    Description: object only react to message, with an object pod
  *                 atoms of an react object:
@@ -40,6 +40,37 @@
  * =====================================================================================
  */
 
+#pragma once
+#include "actorpod.hpp"
+#include "serverobject.hpp"
+
 class ReactObject: public ServerObject
 {
+    protected:
+        ActorPod *m_ActorPod;
+
+    public:
+        ReactObject(uint8_t nCategory, uint32_t nUID, uint32_t nAddTime)
+            : ServerObject(nCategory, nUID, nAddTime)
+            , m_ActorPod(nullptr)
+        {}
+
+        ~ReactObject()
+        {
+            delete m_ActorPod;
+        }
+
+    public:
+        virtual void Operate(const MessagePack &, const Theron::Address &) = 0;
+
+        virtual Theron::Address Activate()
+        {
+            extern Theron::Framework *g_Framework;
+            m_ActorPod = new ActorPod(g_Framework,
+                [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
+                    Operate(rstMPK, stFromAddr);
+                });
+
+            return m_ActorPod->GetAddress();
+        }
 };

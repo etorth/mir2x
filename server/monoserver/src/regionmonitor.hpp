@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 04/22/2016 10:53:36
+ *  Last Modified: 04/25/2016 21:49:44
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -11,9 +11,9 @@
  *                 I need to use message to pass the address to it. Since so, I just
  *                 put all initialization work into message.
  *
- *                 but object with ObjectPod is something init first, and then sumbit
- *                 to interal thread pool. and other thread can't touch this object
- *                 anymore.
+ *                 RegionMonitor is an transponder, which has no UID()/AddTime(), but
+ *                 it has an actor pod to response to message
+ *
  *
  *        Version: 1.0
  *       Revision: none
@@ -31,9 +31,9 @@
 #include <cassert>
 #include <Theron/Theron.h>
 
-#include "monitorbase.hpp"
+#include "transponder.hpp"
 
-class RegionMonitor: public MonitorBase
+class RegionMonitor: public Transponder
 {
     private:
         Theron::Address m_MapAddress;
@@ -60,7 +60,7 @@ class RegionMonitor: public MonitorBase
 
     public:
         RegionMonitor(const Theron::Address &rstMapAddr)
-            : MonitorBase()
+            : Transponder()
             , m_MapAddress(rstMapAddr)
             , m_X(0)
             , m_Y(0)
@@ -72,10 +72,7 @@ class RegionMonitor: public MonitorBase
             m_NeighborV.fill(Theron::Address::Null());
         }
 
-        virtual ~RegionMonitor()
-        {
-            delete m_ObjectPod;
-        }
+        virtual ~RegionMonitor() = default;
 
     public:
         void Operate(const MessagePack &, const Theron::Address &);
@@ -83,9 +80,9 @@ class RegionMonitor: public MonitorBase
     public:
         Theron::Address Activate()
         {
-            auto stAddr = MonitorBase::Activate();
+            auto stAddr = Transponder::Activate();
             if(stAddr != Theron::Address::Null()){
-                m_ObjectPod->Send(MessagePack(MPK_ACTIVATE), m_MapAddress);
+                m_ActorPod->Send(MessagePack(MPK_ACTIVATE), m_MapAddress);
             }
             return stAddr;
         }

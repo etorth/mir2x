@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 04/22/2016 10:52:07
+ *  Last Modified: 04/23/2016 11:43:44
  *
  *    Description: 
  *
@@ -35,7 +35,7 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
 
                 m_RegionDone = true;
                 if(m_RegionDone && m_NeighborDone){
-                    m_ObjectPod->Send(MessagePack(MPK_READY), m_MapAddress);
+                    m_ActorPod->Send(MessagePack(MPK_READY), m_MapAddress);
                 }
                 break;
             }
@@ -51,14 +51,15 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
 
                 m_NeighborDone = true;
                 if(m_RegionDone && m_NeighborDone){
-                    m_ObjectPod->Send(MessagePack(MPK_READY), m_MapAddress);
+                    m_ActorPod->Send(MessagePack(MPK_READY), m_MapAddress);
                 }
                 break;
             }
         default:
             {
-                extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_WARNING, "unsupported message type");
+                // when operating, MonoServer is ready for use
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message type");
                 break;
             }
     }
