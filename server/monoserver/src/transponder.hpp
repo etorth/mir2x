@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.hpp
  *        Created: 04/23/2016 10:51:19
- *  Last Modified: 04/25/2016 21:48:34
+ *  Last Modified: 04/27/2016 00:11:36
  *
  *    Description: base of actor model in mir2x, Theron::Actor acitvated at create
  *                 time so no way to control it, instead Transponder can 
@@ -36,35 +36,21 @@
 
 #pragma once
 
-#include "actorpod.hpp"
 #include <Theron/Theron.h>
 
+class ActorPod;
 class Transponder
 {
     protected:
         ActorPod   *m_ActorPod;
 
     public:
-        Transponder()
-            : m_ActorPod(nullptr)
-        {
-        }
-
-        virtual ~Transponder()
-        {
-            delete m_ActorPod;
-        }
+        Transponder();
+        virtual ~Transponder();
 
     public:
         virtual void Operate(const MessagePack &, const Theron::Address &) = 0;
 
-        virtual Theron::Address Activate()
-        {
-            extern Theron::Framework *g_Framework;
-            m_ActorPod = new ActorPod(g_Framework,
-                [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
-                    Operate(rstMPK, stFromAddr);
-                });
-            return m_ActorPod->GetAddress();
-        }
+    public:
+        virtual Theron::Address Activate();
 };

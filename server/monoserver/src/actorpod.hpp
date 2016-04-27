@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 04/24/2016 00:45:17
+ *  Last Modified: 04/27/2016 00:01:13
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -24,10 +24,10 @@
  *
  * =====================================================================================
  */
-
 #pragma once
 
 #include <functional>
+#include <unordered_map>
 #include <Theron/Theron.h>
 
 #include "monoserver.hpp"
@@ -37,15 +37,50 @@ template<typename MessageType = MessagePack>
 class InnActorPod: public Theron::Actor
 {
     protected:
+        size_t m_RespondCount;
+        std::unordered_map<uint32_t, MessageType> m_RespondMessageM;
         std::function<void(const MessageType &, const Theron::Address &)> m_Operate;
 
     public:
         explicit InnActorPod(Theron::Framework *pFramework,
                 const std::function<void(const MessageType &, const Theron::Address &)> &fnOperate)
             : Theron::Actor(*pFramework)
+            , m_RespondCount(0)
             , m_Operate(fnOperate)
         {
             RegisterHandler(this, &InnActorPod::Handler);
+        }
+
+        virtual ~InnActorPod() = default;
+
+    protected:
+        using Theron::Actor::Send;
+
+    public:
+        bool Send(const MessageType &rstMSG,
+                const Theron::Address &rstFromAddress, uint32_t *pRespond = nullptr)
+        {
+            // for send message we only need to mark the respond flag as non-zero
+            // there will be an internal allocated index for it
+            if(rstMSG.Respond() != 0){
+                m_RespondCount++;
+                auto pMSG = m_RespondMessageM.find(m_RespondCount);
+                if(pMSG != m_RespondMessageM.end()){
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "response requested message overflows");
+                    // TODO
+                    // this function won't return;
+                    g_MonoServer->Restart();
+                }
+
+                m_RespondMessageM[m_RespondCount] = rstMSG;
+                m_RespondMessageM[m_RespondCount].Respond(m_RespondCount);
+            }
+
+            bool bRet = Theron::Actor::Send(rstMSG, rstFromAddress);
+            if(bRet && rstMSG.Respond() && pRespond){ *pRespond = m_RespondCount; }
+
+            return bRet;
         }
 
     protected:
@@ -73,7 +108,7 @@ class InnActorPod: public Theron::Actor
                     // 1. assume monoserver is ready when invoking callback
                     // 2. AddLog() is well defined in multithread environment
                     extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception in actor pod");
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception in ActorPod");
                 }
             }
         }

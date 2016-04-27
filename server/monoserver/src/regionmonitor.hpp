@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 04/25/2016 21:49:44
+ *  Last Modified: 04/27/2016 00:14:02
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -75,15 +75,6 @@ class RegionMonitor: public Transponder
         virtual ~RegionMonitor() = default;
 
     public:
+        Theron::Address Activate();
         void Operate(const MessagePack &, const Theron::Address &);
-
-    public:
-        Theron::Address Activate()
-        {
-            auto stAddr = Transponder::Activate();
-            if(stAddr != Theron::Address::Null()){
-                m_ActorPod->Send(MessagePack(MPK_ACTIVATE), m_MapAddress);
-            }
-            return stAddr;
-        }
 };

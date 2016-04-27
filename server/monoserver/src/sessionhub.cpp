@@ -3,7 +3,7 @@
  *
  *       Filename: sessionhub.cpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 04/23/2016 00:53:14
+ *  Last Modified: 04/27/2016 01:41:55
  *
  *    Description: 
  *
@@ -28,7 +28,8 @@
 SessionHub::SessionHub(int nPort,
         const Theron::Address &rstAddress,
         const std::function<void(uint8_t, Session *)> &fnOperateHC)
-    : m_Port(nPort)
+    : SyncDriver()
+    , m_Port(nPort)
     , m_EndPoint(asio::ip::tcp::v4(), nPort)
     , m_Acceptor(m_IO, m_EndPoint)
     , m_Socket(m_IO)
@@ -37,10 +38,6 @@ SessionHub::SessionHub(int nPort,
     , m_ServiceCoreAddress(rstAddress)
     , m_OperateFunc(fnOperateHC)
 {
-    // TODO
-    // be careful, since SessionHub itself is not an actor
-    // so register catcher for *synchronized* communication with service core
-    m_Receiver.RegisterHandler(&m_Catcher, &Theron::Catcher<MessagePack>::Push);
 }
 
 SessionHub::~SessionHub()
@@ -76,23 +73,21 @@ void SessionHub::Accept()
             // now instead we'll send it to the service core the get confirm or refuse
 
             // 2. clear the catcher
-            MessagePack stMPK;
-            while(true){ if(!m_Catcher.Pop(stMPK, m_ServiceCoreAddress)){ break; } }
+            MessagePack stMPK(MPK_NEWCONNECTION, pNewSession, sizeof(pNewSession), 1);
+            MessagePack stRetMPK;
+            int nRet = Send(stMPK, m_ServiceCoreAddress, &stRetMPK);
 
-            // 3. send message
-            extern Theron::Framework *g_Framework;
-            g_Framework->Send(MessagePack(MPK_NEWCONNECTION, pNewSession,
-                        sizeof(pNewSession)), m_Receiver.GetAddress(), m_ServiceCoreAddress);
-
-            // 4. wait for response
-            m_Receiver.Wait(1);
-
-            // 5. handle response from service core
-            if(m_Catcher.Pop(stMPK, m_ServiceCoreAddress) && stMPK.Type == MPK_OK){
-                // accepted!
+            if(!nRet){
                 g_MonoServer->AddLog(LOGTYPE_INFO, "connection from (%s:%d) allowed",
                         m_Socket.remote_endpoint().address().to_string().c_str(),
                         m_Socket.remote_endpoint().port());
+
+                auto pRecord = m_SessionMap.find(pNewSession->ID());
+                if(pRecord != m_SessionMap.end()){
+                    // ooops, overflow
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "session hub overflows");
+                    g_MonoServer->Restart();
+                }
 
                 // 1. keep it in the hub
                 m_SessionMap[pNewSession->ID()] = pNewSession;
@@ -120,26 +115,6 @@ void SessionHub::Accept()
     };
 
     m_Acceptor.async_accept(m_Socket, fnAccept);
-}
-
-// most likely we won't use it
-// we only use it for whole server boardcast
-void SessionHub::Send(uint32_t nSID, uint8_t nMsgID, const uint8_t *pData, size_t nDataLen)
-{
-    if(nSID != 0){
-        auto pRecord = m_SessionMap.find(nSID);
-        if(pRecord != m_SessionMap.end()){
-            pRecord->second->Send(nMsgID, pData, nDataLen);
-        }
-        return;
-    }
-
-    for(uint32_t nSID = 1; nSID <= m_MaxID; ++nSID){
-        auto pRecord = m_SessionMap.find(nSID);
-        if(pRecord != m_SessionMap.end()){
-            pRecord->second->Send(nMsgID, pData, nDataLen);
-        }
-    }
 }
 
 void SessionHub::Launch()

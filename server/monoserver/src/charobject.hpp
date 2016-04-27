@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/25/2016 22:32:36
+ *  Last Modified: 04/26/2016 21:51:38
  *
  *    Description: 
  *
@@ -110,6 +110,9 @@ typedef struct{
 
 class CharObject: public ActiveObject
 {
+    private:
+        Theron::Address m_RegionMonitorAddress;
+
     public:
         CharObject(uint32_t, uint32_t);
         ~CharObject();

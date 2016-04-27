@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/25/2016 22:00:12
+ *  Last Modified: 04/26/2016 23:13:06
  *
  *    Description: 
  *
@@ -21,23 +21,47 @@
 #pragma once
 
 #include <mutex>
+#include <chrono>
 #include <atomic>
 #include <cstdint>
-#include <chrono>
 #include <type_traits>
+#include <unordered_map>
 
 #include "log.hpp"
-#include "taskhub.hpp"
-#include "monster.hpp"
-#include <unordered_map>
-#include "sessionhub.hpp"
-#include "database.hpp"
 #include "message.hpp"
-#include "charobject.hpp"
+#include "taskhub.hpp"
+#include "database.hpp"
+#include "servermap.hpp"
+#include "sessionhub.hpp"
 #include "eventtaskhub.hpp"
 
 class MonoServer final
 {
+    private:
+        typedef struct _NetMessageDesc{
+            // attributes for 256 network messages
+            size_t Size;
+            bool   FixedSize;
+
+            _NetMessageDesc()
+                : Size(0)
+                , FixedSize(true)
+            {}
+        }NetMessageDesc;
+
+        std::array<NetMessageDesc, 256> m_NetMessageDescV;
+
+    public:
+        size_t MessageSize(uint8_t nMessageID)
+        {
+            return m_NetMessageDescV[nMessageID].Size;
+        }
+
+        bool MessageFixedSize(uint8_t nMessageID)
+        {
+            return m_NetMessageDescV[nMessageID].FixedSize;
+        }
+
     public:
         MonoServer();
         ~MonoServer();
@@ -84,17 +108,9 @@ class MonoServer final
     private:
         bool AddPlayer(int, uint32_t);
 
-        AsyncHub<CharObject> m_CharObjectHub;
-        std::vector<MONSTERRACEINFO> m_MonsterRaceInfoV;
-
     private:
         bool InitMonsterRace();
         bool InitMonsterItem();
-
-    private:
-        // I didn't put lock on every map
-        std::mutex m_MapVLock;
-        std::unordered_map<uint32_t, std::shared_ptr<ServerMap>> m_MapV;
 
     public:
         // for gui
@@ -114,90 +130,8 @@ class MonoServer final
         void OnPing (Session *);
         void OnLogin(Session *);
 
-    public:
-        // get the monster number of the monster
-        // parameters
-        //     1. nMapID       :  map id, 0 for all map, 
-        //     2. nMonsterIndex:  monster index, 0 for all monster
-        //     3. bStrict      :  true for exact number, false for estimation
-        int GetMonsterCount(uint32_t nMapID, uint32_t nMonsterIndex, bool bStrict = false)
-        {
-            if(nMapID == 0 || nMonsterIndex == 0 || bStrict){
-                return -1;
-            }
-            return 0;
-        }
-
-    public:
-        ServerMap *GetMap(uint32_t nMapID)
-        {
-            if(nMapID){
-                auto stInst = m_MapV.find(nMapID);
-                if(stInst != m_MapV.end()){
-                    return stInst->second.get();
-                }
-            }
-            return nullptr;
-        }
-
     private:
         bool AddObject();
-
-    public:
-        // helper function to run char object
-        // TODO this funciton causes dead lock.... but I don't get the reason
-        void Operate(uint32_t nUID, uint32_t nAddTime, uint32_t nDelay)
-        {
-            // TODO any side effect to make it static? YES, don't use it here
-            // 
-            // 1. get an dynamically allocated handler
-            auto *fnOperate = new std::function<void()>();
-
-            // 2. assign to it
-            *fnOperate = [nUID, nAddTime, nDelay, fnOperate, this](){
-                // TODO
-                // this may cause dead lock?
-                // lock an object A, then try to lock the map in Operate
-                //
-                // another object B lock the map, and when exam objects in the
-                // map cell, try to lock object A
-                //
-                // think of this in more details
-                auto pGuard = CheckOut<CharObject>(nUID, nAddTime);
-                if(pGuard && pGuard->State(STATE_INCARNATED)){
-                    pGuard->Operate();
-                    extern EventTaskHub *g_EventTaskHub;
-                    g_EventTaskHub->Add(nDelay, *fnOperate);
-                    return;
-                }
-
-                // this object is no longer active
-                if(pGuard && pGuard->State(STATE_PHANTOM)){
-                    Remove<CharObject>(nUID, nAddTime);
-                    delete fnOperate;
-                }
-            };
-
-            extern EventTaskHub *g_EventTaskHub;
-            g_EventTaskHub->Add(nDelay, *fnOperate);
-        }
-
-    public:
-        template<typename T> void Remove(uint32_t nID, uint32_t nAddTime)
-        {
-            if(std::is_same<T, CharObject>::value){
-                m_CharObjectHub.Remove(((uint64_t)nID << 32) + nAddTime);
-            }
-        }
-
-    public:
-        // all version of check out
-        template<typename T, bool bLockIt = true> ObjectLockGuard<T> CheckOut(uint32_t nID, uint32_t nAddTime)
-        {
-            if(std::is_same<T, CharObject>::value){
-                return m_CharObjectHub.CheckOut<bLockIt>(((uint64_t)nID << 32) + nAddTime);
-            }
-        }
 
     public:
         // copy from class Log to support LOGTYPE_XXX
@@ -233,10 +167,4 @@ class MonoServer final
 
     protected:
         Theron::Address m_ServiceCoreAddress;
-
-    public:
-        size_t MessageSize(uint8_t nMsgHC)
-        {
-            return m_MessageSize[nMsgHC];
-        }
 };

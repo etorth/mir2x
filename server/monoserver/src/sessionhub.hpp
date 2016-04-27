@@ -3,7 +3,7 @@
  *
  *       Filename: sessionhub.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 04/23/2016 00:07:42
+ *  Last Modified: 04/27/2016 01:28:58
  *
  *    Description: session hub, to create and destroy all session's. create with
  *                 callback function fnOperateHC, listen port, and service core
@@ -33,18 +33,18 @@
 
 #pragma once
 
-#include <asio.hpp>
-#include <Theron/Theron.h>
-
 #include <thread>
 #include <cstdint>
+#include <asio.hpp>
 #include <functional>
 #include <unordered_map>
 
 #include "log.hpp"
+#include "syncdriver.hpp"
+#include "messagepack.hpp"
 
 class Session;
-class SessionHub
+class SessionHub: public SyncDriver
 {
     private:
         // facilities for asio
@@ -59,10 +59,7 @@ class SessionHub
         std::thread *m_Thread;
 
     private:
-        // facilities for communication with service core
-        Theron::Address              m_ServiceCoreAddress;
-        Theron::Receiver             m_Receiver;
-        Theron::Catcher<MessagePack> m_Catcher;
+        Theron::Address m_ServiceCoreAddress;
 
     private:
         std::function<void(uint8_t, Session *)> m_OperateFunc;
@@ -84,20 +81,6 @@ class SessionHub
         void Shutdown()
         {
             Shutdown(0);
-        }
-
-    public:
-        // send by SID, rarely used actually
-        void Send(uint32_t, uint8_t, const uint8_t *, size_t);
-
-    public:
-        Session *Validate(int nSID)
-        {
-            auto pRecord = m_SessionMap.find(nSID);
-            if(pRecord != m_SessionMap.end()){
-                return pRecord->second;
-            }
-            return nullptr;
         }
 
     public:

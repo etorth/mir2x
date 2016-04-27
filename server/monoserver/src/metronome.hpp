@@ -3,7 +3,7 @@
  *
  *       Filename: metronome.hpp
  *        Created: 04/21/2016 17:29:38
- *  Last Modified: 04/25/2016 21:43:23
+ *  Last Modified: 04/26/2016 23:12:14
  *
  *    Description: generate time tick as MessagePack for actor
  *                 keep it as simple as possible
@@ -27,6 +27,7 @@
 
 #include <Theron/Theron.h>
 
+#include "messagepack.hpp"
 #include "eventtaskhub.hpp"
 
 class Metronome: public Theron::Receiver

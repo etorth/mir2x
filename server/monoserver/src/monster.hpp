@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/21/2016 22:09:28
+ *  Last Modified: 04/26/2016 21:55:32
  *
  *    Description: 
  *
@@ -137,12 +137,7 @@ class Monster: public CharObject
         virtual void SearchViewRange();
 
     private:
-        // for monster std::list<std::tuple<uint32_t, uint32_t>> is good enough
-        // for monster we don't need to differ show up/off of an object
-        ObjectRecordList m_VisibleObjectList;
-
-    public:
-        virtual bool Friend(CharObject *);
+        std::list<ActorRecord>  m_ActorRecordL;
 
     public:
         int Speed()

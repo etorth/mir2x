@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 04/25/2016 21:47:02
+ *  Last Modified: 04/26/2016 23:33:38
  *
  *    Description: message class for actor system
  *
@@ -37,8 +37,8 @@
 enum MessagePackType: int {
     MPK_UNKNOWN = 0,
     MPK_HELLO,
-    MPK_METRONOME,
     MPK_ACTIVATE,
+    MPK_METRONOME,
 };
 
 typedef struct {
@@ -71,7 +71,7 @@ class InnMessagePack final
         size_t      m_StaticBufUsedLen;
         uint8_t     m_StaticBuf[StaticBufSize];
 
-        uint32_t    m_Response;
+        uint32_t    m_Respond;
 
     public:
         InnMessagePack(int nMsgType = MPK_UNKNOWN)
@@ -79,14 +79,19 @@ class InnMessagePack final
             , m_BufLen(0)
             , m_Buf(nullptr)
             , m_StaticBufUsedLen(0)
-            , m_Response(0)
+            , m_Respond(0)
         {}
 
-        InnMessagePack(int nMsgType, const uint8_t *pData, size_t nDataLen)
+        InnMessagePack(int nMsgType,
+                const uint8_t *pData, size_t nDataLen, uint32_t nRespond = 0)
         {
             // 1. type
             m_Type = nMsgType;
 
+            // 2. response requirement
+            m_Respond = nRespond;
+
+            // 3. message body
             if(pData && nDataLen > 0){
                 if(nDataLen <= StaticBufSize){
                     std::memcpy(m_StaticBuf, pData, nDataLen);
@@ -104,12 +109,15 @@ class InnMessagePack final
             // 1. type
             m_Type = rstMPK.m_Type;
 
-            // 2. static buffer
+            // 2. response requirement
+            m_Respond = rstMPK.m_Respond;
+
+            // 3. static buffer
             if(rstMPK.m_StaticBufUsedLen > 0){
                 std::memcpy(m_StaticBuf, rstMPK.m_StaticBuf, m_StaticBufUsedLen);
             }
 
-            // 3. dynamic buffer
+            // 4. dynamic buffer
             if(rstMPK.m_Buf && rstMPK.m_BufLen > 0){
                 m_Buf = new uint8_t[rstMPK.m_BufLen];
                 m_BufLen = rstMPK.m_BufLen;
@@ -119,9 +127,13 @@ class InnMessagePack final
 
         // don't put pointer in T, this is copied by bytes
         template <typename T>
-        InnMessagePack(int nMsgType, const T &rstPOD)
+        InnMessagePack(int nMsgType, const T &rstPOD, uint32_t nRespond = 0)
         {
             static_assert(std::is_pod<T>::value, "POD data type supported only");
+
+            m_Type = nMsgType;
+            m_Respond = nRespond;
+
             if(sizeof(rstPOD) > StaticBufSize){
                 m_Buf = new uint8_t[sizeof(rstPOD)];
                 m_BufLen = sizeof(rstPOD);
@@ -146,11 +158,13 @@ class InnMessagePack final
 
             m_Type = stMPK.m_Type;
             m_BufLen = stMPK.m_BufLen;
+            m_Respond = stMPK.m_Respond;
             m_StaticBufUsedLen = stMPK.m_StaticBufUsedLen;
 
             if(m_StaticBufUsedLen > 0){
                 std::memcpy(m_StaticBuf, stMPK.m_StaticBuf, m_StaticBufUsedLen);
             }
+
             return *this;
         }
 
@@ -182,9 +196,14 @@ class InnMessagePack final
             return DataLen();
         }
 
-        uint32_t Response() const
+        uint32_t Respond() const
         {
-            return m_Response;
+            return m_Respond;
+        }
+
+        void Respond(uint32_t nRespond)
+        {
+            m_Respond = nRespond;
         }
 };
 
