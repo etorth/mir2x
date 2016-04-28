@@ -3,7 +3,7 @@
  *
  *       Filename: threadpool2.hpp
  *        Created: 02/06/2016 13:43:29
- *  Last Modified: 04/18/2016 17:27:32
+ *  Last Modified: 04/28/2016 00:09:44
  *
  *    Description: copy from https://github.com/progschj/ThreadPool, I editted it
  *                 to make it be simpler which is limited at
@@ -61,7 +61,7 @@ class ThreadPool2
 
     public:
         // the constructor launches some amount of workers
-        ThreadPool2::ThreadPool2(size_t nCount = 0)
+        ThreadPool2(size_t nCount = 0)
             : m_Stop(false)
         {
             // TODO
@@ -99,8 +99,7 @@ class ThreadPool2
             }
         }
 
-    public:
-        ThreadPool2::~ThreadPool2()
+        virtual ~ThreadPool2()
         {
             {
                 std::unique_lock<std::mutex> stUniqueLock(m_QueueMutex);

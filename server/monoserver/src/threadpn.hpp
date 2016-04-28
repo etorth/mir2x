@@ -3,7 +3,7 @@
  *
  *       Filename: threadpn.hpp
  *        Created: 04/19/2016 17:36:43
- *  Last Modified: 04/19/2016 17:41:04
+ *  Last Modified: 04/28/2016 00:11:43
  *
  *    Description: 
  *
@@ -28,13 +28,13 @@
 class ThreadPN: public ThreadPool2
 {
     public:
-        ThreadPN::ThreadPN(size_t nCount)
+        ThreadPN(size_t nCount)
             : ThreadPool2(nCount)
         {
-            extern ThreadNP *g_ThreadPN;
+            extern ThreadPN *g_ThreadPN;
             if(g_ThreadPN){
                 extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE, "Only one thread pool instance please");
+                g_Log->AddLog(LOGTYPE_WARNING, "Only one thread pool instance please");
                 throw std::error_code();
             }
         }

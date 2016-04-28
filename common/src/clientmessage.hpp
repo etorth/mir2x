@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 04/04/2016 21:44:38
+ *  Last Modified: 04/28/2016 00:17:59
  *
  *    Description: net message used by client and mono-server
  *
@@ -23,8 +23,12 @@
 
 enum: uint8_t
 {
+    CM_OK,
+    CM_ERROR,
+    CM_WALK,
     CM_PING,
     CM_LOGIN,
+    CM_BROADCAST,
 };
 
 #pragma pack(push, 1)

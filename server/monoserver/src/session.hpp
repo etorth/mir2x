@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 3:48:41 AM
- *  Last Modified: 04/23/2016 00:31:54
+ *  Last Modified: 04/27/2016 23:12:40
  *
  *    Description: 
  *
@@ -87,6 +87,11 @@ class Session
        }
 
        void Stop()
+       {
+           m_Socket.close();
+       }
+
+       void Shutdown()
        {
            m_Socket.close();
        }

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/26/2016 21:55:32
+ *  Last Modified: 04/27/2016 23:16:33
  *
  *    Description: 
  *
@@ -33,7 +33,6 @@ typedef struct stMONSTERITEMINFO{
     stMONSTERITEMINFO(int nMonsterIndex = -1)
         : MonsterIndex(nMonsterIndex)
     {}
-
 }MONSTERITEMINFO;
 
 typedef struct stMONSTERRACEINFO{
@@ -68,7 +67,6 @@ typedef struct stMONSTERRACEINFO{
         : Index(nIndex)
         , Name("")
     {}
-
 }MONSTERRACEINFO;
 
 class MonoServer;

@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 04/26/2016 23:33:38
+ *  Last Modified: 04/27/2016 23:01:49
  *
  *    Description: message class for actor system
  *
@@ -36,10 +36,25 @@
 
 enum MessagePackType: int {
     MPK_UNKNOWN = 0,
+    MPK_OK,
+    MPK_ERROR,
+    MPK_PING,
     MPK_HELLO,
     MPK_ACTIVATE,
     MPK_METRONOME,
+    MPK_ADDMONSTER,
+    MPK_NEWPLAYER,
+    MPK_NEWCONNECTION,
 };
+
+typedef struct {
+    uint32_t MonsterIndex;
+    uint32_t MapID;
+
+    bool Strict;
+    int  X;
+    int  Y;
+}AMAddMonster;
 
 typedef struct {
     uint32_t GUID;

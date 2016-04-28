@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 04/22/2016 22:44:09
+ *  Last Modified: 04/28/2016 00:28:44
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -20,56 +20,28 @@
  */
 
 #pragma once
-#include <system_erro>
+#include <vector>
+#include "transponder.hpp"
 
-#include "objectpod.hpp"
-
-class ServiceCore
+class ServiceCore: public Transponder
 {
-    protected:
-        ObjectPod *m_ObjectPod;
+    private:
+        typedef struct _PlayerRecord {
+            uint32_t GUID;
+            _PlayerRecord()
+                : GUID(0)
+            {}
+        }PlayerRecord;
 
-    protected:
-        static m_Count {0};
+        std::vector<PlayerRecord> m_PlayerV;
 
     public:
-        ServiceCore()
-            : m_ObjectPod(nullptr)
-        {
-            m_Count++;
-            if(m_Count > 1){
-                extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_WARNING, "one service core please");
-                throw std::error_code();
-            }
-        }
-
-        virtual ~ServiceCore()
-        {
-            delete m_ObjectPod;
-            m_Count--;
-        }
-
-        Theron::Address Activate()
-        {
-            auto fnOperate = [this](const MessagePack &rstMPK, const Theron::Address &rstAddr){
-                this->Operate(rstMPK, rstAddr);
-            };
-
-            m_ObjectPod = new ObjectPod(fnOperate);
-
-            return m_ObjectPod->GetAddress();
-        }
-
-        Theron::Address GetAddress()
-        {
-            if(!m_ObjectPod){
-                return Theron::Address::Null();
-            }
-
-            return m_ObjectPod->GetAddress();
-        }
+        ServiceCore();
+        virtual ~ServiceCore();
 
     public:
         void Operate(const MessagePack &, const Theron::Address &);
+
+    protected:
+        bool LoadMap(uint32_t);
 };

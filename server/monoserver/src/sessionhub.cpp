@@ -3,7 +3,7 @@
  *
  *       Filename: sessionhub.cpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 04/27/2016 01:41:55
+ *  Last Modified: 04/27/2016 23:14:42
  *
  *    Description: 
  *
@@ -73,7 +73,7 @@ void SessionHub::Accept()
             // now instead we'll send it to the service core the get confirm or refuse
 
             // 2. clear the catcher
-            MessagePack stMPK(MPK_NEWCONNECTION, pNewSession, sizeof(pNewSession), 1);
+            MessagePack stMPK(MPK_NEWCONNECTION, pNewSession, 1);
             MessagePack stRetMPK;
             int nRet = Send(stMPK, m_ServiceCoreAddress, &stRetMPK);
 
@@ -131,7 +131,7 @@ void SessionHub::Shutdown(uint32_t nSID)
             // check validation of session ID
             if(rstRecord.first == 0){
                 extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE, "zero id in session map");
+                g_Log->AddLog(LOGTYPE_WARNING, "zero id in session map");
             }
 
             rstRecord.second->Shutdown();
@@ -144,8 +144,8 @@ void SessionHub::Shutdown(uint32_t nSID)
     // shutdown specified session
     auto pRecord = m_SessionMap.find(nSID);
     if(pRecord != m_SessionMap.end()){
-        rstRecord.second->Shutdown();
-        delete rstRecord.second;
+        pRecord->second->Shutdown();
+        delete pRecord->second;
         m_SessionMap.erase(pRecord);
     }
 }

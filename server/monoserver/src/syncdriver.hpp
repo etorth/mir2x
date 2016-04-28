@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: syrcdriver.hpp
+ *       Filename: syncdriver.hpp
  *        Created: 04/27/2016 00:28:05
- *  Last Modified: 04/27/2016 01:17:05
+ *  Last Modified: 04/27/2016 22:28:31
  *
  *    Description: class which behaves as:
  *                      ``send-wait-receive-action-.....-send-wait-receive-action..."
@@ -24,19 +24,19 @@
 
 #include "messagepack.hpp"
 
-class SyrcDriver
+class SyncDriver
 {
     protected:
         Theron::Receiver m_Receiver;
         Theron::Catcher<MessagePack> m_Catcher;
 
     public:
-        SyrcDriver()
+        SyncDriver()
         {
             m_Receiver.RegisterHandler(&m_Catcher, &Theron::Catcher<MessagePack>::Push);
         }
 
-        virtual ~SyrcDriver() = default;
+        virtual ~SyncDriver() = default;
 
     public:
         // define error code of return:
@@ -48,9 +48,10 @@ class SyrcDriver
                 const Theron::Address &rstAddress, MessagePack *pMPK = nullptr)
         {
             MessagePack stTmpMPK;
+            Theron::Address stTmpAddress;
 
             // 1. clean the cather
-            while(true){ if(!m_Catcher.Pop(stTmpMPK, rstAddress)){ break; } }
+            while(true){ if(!m_Catcher.Pop(stTmpMPK, stTmpAddress)){ break; } }
 
             // 2. send message
             extern Theron::Framework *g_Framework;
@@ -68,7 +69,7 @@ class SyrcDriver
 
             // 5. handle response
             //    now we already has 1 response in catcher, just copy it out
-            if(m_Catcher.Pop(stTmpMPK, rstAddress)){
+            if(m_Catcher.Pop(stTmpMPK, stTmpAddress) && stTmpAddress == rstAddress){
                 // so if error occurs at the last step, we still keep pMPK unchanged
                 if(pMPK){ *pMPK = stTmpMPK; }
                 return 0;

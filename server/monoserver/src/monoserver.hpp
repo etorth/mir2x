@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/26/2016 23:13:06
+ *  Last Modified: 04/28/2016 00:22:00
  *
  *    Description: 
  *
@@ -35,8 +35,14 @@
 #include "sessionhub.hpp"
 #include "eventtaskhub.hpp"
 
-class MonoServer final
+
+class ServiceCore;
+class MonoServer: public SyncDriver
 {
+    protected:
+        ServiceCore *m_ServiceCore;
+        Theron::Address m_ServiceCoreAddress;
+
     private:
         typedef struct _NetMessageDesc{
             // attributes for 256 network messages
@@ -67,8 +73,10 @@ class MonoServer final
         ~MonoServer();
 
     public:
-        void Launch();
         void ReadHC();
+
+        void Launch();
+        void Restart();
 
     private:
         void RunASIO();
@@ -127,8 +135,10 @@ class MonoServer final
     private:
         void OnReadHC(uint8_t, Session *);
 
-        void OnPing (Session *);
-        void OnLogin(Session *);
+        void OnWalk     (Session *);
+        void OnPing     (Session *);
+        void OnLogin    (Session *);
+        void OnBroadcast(Session *);
 
     private:
         bool AddObject();
@@ -145,26 +155,9 @@ class MonoServer final
         }
 
     public:
-        // all methods to add new monster
-        bool AddMonster(uint32_t, uint32_t, int, int, bool, uint32_t *, uint32_t *);
-
-        bool AddMonster(
-                uint32_t nMonsterInex, uint32_t nMapID, int nX, int nY, bool bStrict = false)
+        bool AddMonster(uint32_t, uint32_t, int, int, bool);
+        bool AddMonster(uint32_t nMonsterInex, uint32_t nMapID, int nX, int nY)
         {
-            return AddMonster(nMonsterInex, nMapID, nX, nY, bStrict, nullptr, nullptr);
+            return AddMonster(nMonsterInex, nMapID, nX, nY, false);
         }
-
-        bool AddMonster(
-                uint32_t nMonsterInex, uint32_t nMapID, uint32_t *pUID, uint32_t *pAddTime)
-        {
-            return AddMonster(nMonsterInex, nMapID, -1, -1, false, pUID, pAddTime);
-        }
-
-        bool AddMonster(uint32_t nMonsterIndex, uint32_t nMapID)
-        {
-            return AddMonster(nMonsterIndex, nMapID, -1, -1, false, nullptr, nullptr);
-        }
-
-    protected:
-        Theron::Address m_ServiceCoreAddress;
 };

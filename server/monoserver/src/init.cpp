@@ -3,7 +3,7 @@
  *
  *       Filename: init.cpp
  *        Created: 04/09/2016 15:12:44
- *  Last Modified: 04/14/2016 00:35:56
+ *  Last Modified: 04/27/2016 23:30:06
  *
  *    Description: all the init work for server launching
  *
@@ -18,7 +18,18 @@
  * =====================================================================================
  */
 
+#include <vector>
+
+#include "monster.hpp"
 #include "monoserver.hpp"
+
+// I have to put it here, since in actorpod.hpp I used MonoServer::AddLog()
+// then in monoserver.hpp if I use monster.hpp which includes actorpod.hpp
+// it won't compile
+//
+// and it's good for me to make monoserver.hpp to be compact by moving these
+// constant variables out
+static std::vector<MONSTERRACEINFO> s_MonsterRaceInfoV;
 
 bool MonoServer::InitMonsterRace()
 {
@@ -64,10 +75,10 @@ bool MonoServer::InitMonsterRace()
         stRaceInfo.Earth       = std::atoi(pRecord->Get("fld_earth"));
 
         // 2. make a room in the global table
-        m_MonsterRaceInfoV.resize(stRaceInfo.Index + 1, -1);
+        s_MonsterRaceInfoV.resize(stRaceInfo.Index + 1, -1);
 
         // 3. store the result
-        m_MonsterRaceInfoV[stRaceInfo.Index] = stRaceInfo;
+        s_MonsterRaceInfoV[stRaceInfo.Index] = stRaceInfo;
 
         // 3. log it
         AddLog(LOGTYPE_INFO,
@@ -103,8 +114,8 @@ bool MonoServer::InitMonsterItem()
         // 2. make a room for it
         if(true 
                 && stItemInfo.MonsterIndex > 0
-                && stItemInfo.MonsterIndex < (int)m_MonsterRaceInfoV.size()){
-            m_MonsterRaceInfoV[stItemInfo.MonsterIndex].ItemV.push_back(stItemInfo);
+                && stItemInfo.MonsterIndex < (int)s_MonsterRaceInfoV.size()){
+            s_MonsterRaceInfoV[stItemInfo.MonsterIndex].ItemV.push_back(stItemInfo);
         }
     }
     AddLog(LOGTYPE_INFO, "finished monster item: %d added", pRecord->RowCount());

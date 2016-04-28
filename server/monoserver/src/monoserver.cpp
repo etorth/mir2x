@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/23/2016 01:28:39
+ *  Last Modified: 04/28/2016 00:14:19
  *
  *    Description: 
  *
@@ -27,6 +27,8 @@
 #include "mainwindow.hpp"
 #include "monoserver.hpp"
 
+#include "threadpn.hpp"
+#include "servicecore.hpp"
 #include "databaseconfigurewindow.hpp"
 
 MonoServer::MonoServer()
@@ -120,7 +122,6 @@ void MonoServer::Launch()
     CreateDBConnection();
 
     // 2. load monster info
-    m_MonsterRaceInfoV.clear();
     InitMonsterRace();
     InitMonsterItem();
 
@@ -132,7 +133,7 @@ void MonoServer::Launch()
     // 4. start session hub
     extern ServerConfigureWindow *g_ServerConfigureWindow;
     int nPort = g_ServerConfigureWindow->Port();
-    auto fnReadHC = [this](uint8_t nMsgHC, Session *pSession){ OnReadHC(nMsgHC, pSession); };
+    auto fnOnReadHC = [this](uint8_t nMsgHC, Session *pSession){ OnReadHC(nMsgHC, pSession); };
 
     delete m_SessionHub;
     m_SessionHub = new SessionHub(nPort, m_ServiceCoreAddress, fnOnReadHC);
@@ -141,15 +142,8 @@ void MonoServer::Launch()
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
 
-    extern ThreadPN *g_ThreadPN;
-    g_ThreadPN->Launch();
-
     // TODO
     // dead lock when there is too many monsters???
-    AddMonster(1, 1);
-    AddMonster(1, 1);
-    AddMonster(1, 1);
-    AddMonster(1, 1);
 }
 
 void MonoServer::OnReadHC(uint8_t nMsgHC, Session *pSession)
@@ -170,4 +164,9 @@ uint32_t MonoServer::GetTickCount()
     // make it more simple
     return (uint32_t)std::chrono::duration_cast<
         std::chrono::milliseconds>(std::chrono::system_clock::now() - m_StartTime).count();
+}
+
+void MonoServer::Restart()
+{
+
 }

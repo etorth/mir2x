@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 04/23/2016 00:52:11
+ *  Last Modified: 04/28/2016 00:38:50
  *
  *    Description: 
  *
@@ -18,8 +18,33 @@
  * =====================================================================================
  */
 
+#include <system_error>
+
+#include "actorpod.hpp"
+#include "monoserver.hpp"
 #include "servicecore.hpp"
-bool ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddr)
+
+#include "serverconfigurewindow.hpp"
+
+static int s_Count = 0;
+
+ServiceCore::ServiceCore()
+    : Transponder()
+{
+    s_Count++;
+    if(s_Count > 1){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "one service core please");
+        throw std::error_code();
+    }
+}
+
+ServiceCore::~ServiceCore()
+{
+    s_Count--;
+}
+
+void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddr)
 {
     switch(rstMPK.Type()){
         case MPK_NEWCONNECTION:
@@ -27,11 +52,11 @@ bool ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                 extern ServerConfigureWindow *g_ServerConfigureWindow;
                 bool bConnectionOK = true;
                 if(false
-                        || m_PlayerV.size() >= g_ServerConfigureWindow->MaxPlayerCount()
+                        || m_PlayerV.size() >= (size_t)g_ServerConfigureWindow->MaxPlayerCount()
                         || false){ // put all criteria to check here
                     bConnectionOK = false;
                 }
-                m_ObjectPod->Send(MessagePack(bConnectionOK ? MPK_OK : MPK_REFUSE), rstAddr);
+                m_ActorPod->Send(MessagePack(bConnectionOK ? MPK_OK : MPK_REFUSE), rstAddr);
                 break;
             }
         case MPK_LOGIN:
@@ -53,7 +78,7 @@ bool ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                 if(m_MapRecordMap.find(stAML.MapID) == m_MapRecordMap.end()){
                     // load map
                 }
-                m_ObjectPod->Send(MessagePack(MPK_NEWPLAYER,
+                m_ActorPod->Send(MessagePack(MPK_NEWPLAYER,
                             stMNP), m_MapRecordMap[stAML.MapID].PodAddress);
                 break;
             }
