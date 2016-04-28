@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 04/28/2016 00:38:50
+ *  Last Modified: 04/28/2016 00:53:24
  *
  *    Description: 
  *
@@ -52,7 +52,7 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                 extern ServerConfigureWindow *g_ServerConfigureWindow;
                 bool bConnectionOK = true;
                 if(false
-                        || m_PlayerV.size() >= (size_t)g_ServerConfigureWindow->MaxPlayerCount()
+                        || (int)m_PlayerRecordM.size() >= g_ServerConfigureWindow->MaxPlayerCount()
                         || false){ // put all criteria to check here
                     bConnectionOK = false;
                 }
@@ -87,7 +87,7 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                 AMPlayerPhantom stAMPP;
                 std::memcpy(&stAMPP, rstMPK.Data(), sizeof(stAMPP));
 
-                if(m_PlayerRecordMap.find(stAMPP.GUID) != m_PlayerRecordMap.end()){
+                if(m_PlayerRecordM.find(stAMPP.GUID) != m_PlayerRecordM.end()){
                 }
                 break;
             }

@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 04/28/2016 00:28:44
+ *  Last Modified: 04/28/2016 00:53:47
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -21,6 +21,7 @@
 
 #pragma once
 #include <vector>
+#include <unordered_map>
 #include "transponder.hpp"
 
 class ServiceCore: public Transponder
@@ -33,7 +34,7 @@ class ServiceCore: public Transponder
             {}
         }PlayerRecord;
 
-        std::vector<PlayerRecord> m_PlayerV;
+        std::unordered_map<uint32_t, PlayerRecord> m_PlayerRecordM;
 
     public:
         ServiceCore();

@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 04/27/2016 23:01:49
+ *  Last Modified: 04/28/2016 00:54:38
  *
  *    Description: message class for actor system
  *
@@ -45,6 +45,7 @@ enum MessagePackType: int {
     MPK_ADDMONSTER,
     MPK_NEWPLAYER,
     MPK_NEWCONNECTION,
+    MPK_PLAYERPHATOM,
 };
 
 typedef struct {
@@ -73,6 +74,10 @@ typedef struct {
     int X;
     int Y;
 }AMLogin;
+
+typedef struct {
+    uint32_t GUID;
+}AMPlayerPhantom;
 
 template<size_t StaticBufSize = 64>
 class InnMessagePack final
