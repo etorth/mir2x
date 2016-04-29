@@ -14,9 +14,6 @@ decl {\#include <string>} {public global
 decl {\#include <mutex>} {private local
 } 
 
-decl {std::mutex g_LogLock;} {private local
-} 
-
 class MainWindow {open
 } {
   Function {MainWindow()} {} {
@@ -111,8 +108,6 @@ class MainWindow {open
   } {
     code {// AddLog(int nLogType, const char *szMessage)
 {
-	std::lock_guard<std::mutex> stLockGuard(g_LogLock);
-	
 	std::time_t stRes = std::time(nullptr);
 	std::string szFullMessage = std::asctime(std::localtime(&stRes));
 	szFullMessage.back() = ' ';

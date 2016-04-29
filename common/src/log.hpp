@@ -3,7 +3,7 @@
  *
  *       Filename: log.hpp
  *        Created: 03/16/2016 16:05:17
- *  Last Modified: 04/06/2016 02:41:43
+ *  Last Modified: 04/28/2016 19:25:49
  *
  *    Description: log functionality enabled by g3Log
  *
@@ -53,6 +53,12 @@
 
 class Log final
 {
+    public:
+        const int LOGTYPEV_DEBUG   = -1;
+        const int LOGTYPEV_INFO    =  0;
+        const int LOGTYPEV_WARNING =  1;
+        const int LOGTYPEV_FATAL   =  2;
+
     private:
         std::unique_ptr<g3::FileSinkHandle> m_Handler;
         std::unique_ptr<g3::LogWorker>      m_Worker;

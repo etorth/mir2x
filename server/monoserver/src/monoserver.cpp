@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/28/2016 00:14:19
+ *  Last Modified: 04/28/2016 19:31:40
  *
  *    Description: 
  *
@@ -54,41 +54,45 @@ void MonoServer::ExtendLogBuf(size_t nNewSize)
     }
 }
 
-void MonoServer::AddLog(int nLogType, const char *szFormat, ...)
+void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char *szLogFormat, ...)
 {
+    std::lock_guard<std::mutex> stGuard(m_LogLock);
+
+    extern Log *g_Log;
     extern MainWindow *g_MainWindow;
 
-    ExtendLogBuf(128);
-
     va_list ap;
-
     int nMaxParseCount = 0;
+    int nLogType = std::atoi(stLogDesc[0].c_str());
+
+    ExtendLogBuf(128);
 
     // actually it only needs 2 rounds at most
     while(10 > nMaxParseCount++){
 
-        va_start(ap, szFormat);
-
-        int nRes = std::vsnprintf(m_LogBuf, m_LogBufSize, szFormat, ap);
-
+        va_start(ap, szLogFormat);
+        int nRes = std::vsnprintf(m_LogBuf, m_LogBufSize, szLogFormat, ap);
         va_end(ap);
 
         if(nRes > -1 && (size_t)nRes < m_LogBufSize){
-            // additional '\0' takes one char
-            // everything works
-            g_MainWindow->AddLog(nLogType, m_LogBuf);
+            // additional '\0' takes one char, everything works
+            if(nLogType != Log::LOGTYPEV_DEBUG){
+                g_MainWindow->AddLog(nLogType, m_LogBuf);
+            }
+            g_Log->AddLog(stLogDesc, m_LogBuf);
             return;
         }else if(nRes < 0){
             // error occurs in parsing log
             break;
-
         }else{
             // we need a larger buffer
             ExtendLogBuf(nRes + 1);
         }
     }
 
-    g_MainWindow->AddLog(3, "error in parsing log message");
+    const char *szLogError = "MonoServer::AddLog(): Error in parsing log message";
+    g_MainWindow->AddLog(3, szLogError);
+    g_Log->AddLog(stLogDesc, szLogError);
 }
 
 void MonoServer::CreateDBConnection()

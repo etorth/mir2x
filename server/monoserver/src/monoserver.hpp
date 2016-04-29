@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/28/2016 00:22:00
+ *  Last Modified: 04/28/2016 19:19:49
  *
  *    Description: 
  *
@@ -39,6 +39,12 @@
 class ServiceCore;
 class MonoServer: public SyncDriver
 {
+    private:
+        // for log print and synchronization
+        char       *m_LogBuf;
+        size_t      m_LogBufSize;
+        std::mutex  m_LogLock;
+
     protected:
         ServiceCore *m_ServiceCore;
         Theron::Address m_ServiceCoreAddress;
@@ -83,81 +89,81 @@ class MonoServer: public SyncDriver
         void CreateDBConnection();
 
     private:
-        void AddLog(int, const char *, ...);
-
-    private:
         void ExtendLogBuf(size_t);
 
-    private:
-        // for network
-        SessionHub   *m_SessionHub;
+    public:
+        void AddLog(const std::array<std::string, 4> &, const char *, ...);
+
 
     private:
-        std::atomic<uint32_t> m_ObjectUID;
-    private:
-        // for log
-        size_t   m_LogBufSize;
-        char    *m_LogBuf;
+            // for network
+            SessionHub   *m_SessionHub;
 
     private:
-        // for DB
-        DBConnection *m_DBConnection;
+            std::atomic<uint32_t> m_ObjectUID;
+
 
     private:
-        Theron::Receiver             m_Receiver;
-        Theron::Catcher<MessagePack> m_Catcher;
+            // for DB
+            DBConnection *m_DBConnection;
+
+    private:
+            Theron::Receiver             m_Receiver;
+            Theron::Catcher<MessagePack> m_Catcher;
 
     public:
-        Theron::Address GetAddress()
-        {
-            return m_Receiver.GetAddress();
-        }
+            Theron::Address GetAddress()
+            {
+                return m_Receiver.GetAddress();
+            }
 
     private:
-        bool AddPlayer(int, uint32_t);
+            bool AddPlayer(int, uint32_t);
 
     private:
-        bool InitMonsterRace();
-        bool InitMonsterItem();
+            bool InitMonsterRace();
+            bool InitMonsterItem();
 
     public:
-        // for gui
-        bool GetValidMapV(std::vector<std::pair<int, std::string>> &);
-        bool GetValidMonsterV(int, std::vector<std::pair<int, std::string>> &);
-        int  GetValidMonsterCount(int, int);
+            // for gui
+            bool GetValidMapV(std::vector<std::pair<int, std::string>> &);
+            bool GetValidMonsterV(int, std::vector<std::pair<int, std::string>> &);
+            int  GetValidMonsterCount(int, int);
 
     public:
-        uint32_t GetTickCount();
+            uint32_t GetTickCount();
 
     protected:
-        std::chrono::time_point<std::chrono::system_clock> m_StartTime;
+            std::chrono::time_point<std::chrono::system_clock> m_StartTime;
 
     private:
-        void OnReadHC(uint8_t, Session *);
+            void OnReadHC(uint8_t, Session *);
 
-        void OnWalk     (Session *);
-        void OnPing     (Session *);
-        void OnLogin    (Session *);
-        void OnBroadcast(Session *);
+            void OnWalk     (Session *);
+            void OnPing     (Session *);
+            void OnLogin    (Session *);
+            void OnBroadcast(Session *);
 
     private:
-        bool AddObject();
+            bool AddObject();
+
+
 
     public:
-        // copy from class Log to support LOGTYPE_XXX
-        template<typename... U> void AddLog(const std::array<std::string, 4> &stLoc, U&&... u)
-        {
-            extern Log *g_Log;
-            g_Log->AddLog(stLoc, std::forward<U>(u)...);
+            // copy from class Log to support LOGTYPE_XXX
+            template<typename... U> void AddLog(const std::array<std::string, 4> &stLoc, U&&... u)
+            {
+                extern Log *g_Log;
+                g_Log->AddLog(stLoc, std::forward<U>(u)...);
 
-            int nLevel = std::atoi(stLoc[0].c_str());
-            AddLog(nLevel, std::forward<U>(u)...);
-        }
+                int nLevel = std::atoi(stLoc[0].c_str());
+                AddLog(nLevel, std::forward<U>(u)...);
+            }
 
     public:
-        bool AddMonster(uint32_t, uint32_t, int, int, bool);
-        bool AddMonster(uint32_t nMonsterInex, uint32_t nMapID, int nX, int nY)
-        {
-            return AddMonster(nMonsterInex, nMapID, nX, nY, false);
-        }
+            bool AddMonster(uint32_t, uint32_t, int, int, bool);
+            bool AddMonster(uint32_t nMonsterInex, uint32_t nMapID, int nX, int nY)
+            {
+                return AddMonster(nMonsterInex, nMapID, nX, nY, false);
+            }
 };
