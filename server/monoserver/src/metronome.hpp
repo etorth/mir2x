@@ -3,7 +3,7 @@
  *
  *       Filename: metronome.hpp
  *        Created: 04/21/2016 17:29:38
- *  Last Modified: 04/26/2016 23:12:14
+ *  Last Modified: 04/28/2016 23:11:14
  *
  *    Description: generate time tick as MessagePack for actor
  *                 keep it as simple as possible
@@ -24,7 +24,7 @@
 #include <mutex>
 #include <vector>
 #include <cstdint>
-
+#include <algorithm>
 #include <Theron/Theron.h>
 
 #include "messagepack.hpp"
@@ -81,11 +81,11 @@ class Metronome: public Theron::Receiver
         }
 
     public:
-        void Activate(Theron::Address stAddr)
+        void Activate(const Theron::Address &rstAddr)
         {
             std::lock_guard<std::mutex> stGuard(m_Lock);
-            if(std::find(m_AddrV.begin(), m_AddrV.end(), stAddr) == m_AddrV.end()){
-                m_AddrV.push_back(stAddr);
+            if(std::find(m_AddrV.begin(), m_AddrV.end(), rstAddr) == m_AddrV.end()){
+                m_AddrV.push_back(rstAddr);
             }
         }
 };

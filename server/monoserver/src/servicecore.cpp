@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 04/28/2016 00:53:24
+ *  Last Modified: 04/28/2016 23:04:58
  *
  *    Description: 
  *
@@ -20,16 +20,16 @@
 
 #include <system_error>
 
-#include "actorpod.hpp"
+#include "player.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
-
 #include "serverconfigurewindow.hpp"
 
 static int s_Count = 0;
 
 ServiceCore::ServiceCore()
     : Transponder()
+    , m_CurrUID(1)
 {
     s_Count++;
     if(s_Count > 1){
@@ -56,7 +56,7 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                         || false){ // put all criteria to check here
                     bConnectionOK = false;
                 }
-                m_ActorPod->Send(MessagePack(bConnectionOK ? MPK_OK : MPK_REFUSE), rstAddr);
+                Send(MessagePack(bConnectionOK ? MPK_OK : MPK_REFUSE), rstAddr);
                 break;
             }
         case MPK_LOGIN:
@@ -65,21 +65,19 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                 std::memcpy(&stAML, rstMPK.Data(), sizeof(stAML));
 
                 extern MonoServer *g_MonoServer;
-                auto pNewPlayer = new Player(stAML.SID, stAML.GUID, 
-                        g_MonoServer->GetTimeTick(), );
+                auto pNewPlayer = new Player(m_CurrUID++,
+                        g_MonoServer->GetTimeTick(), stAML.GUID, stAML.SID);
 
                 // ... add all dress, inventory, weapon here
                 // ... add all position/direction/map/state here
 
-                AMNewPlayer stAMNP = {
-                    .Data = (void *)pNewPlayer,
-                };
+                AMNewPlayer stAMNP;
+                stAMNP.Data = (void *)pNewPlayer;
 
-                if(m_MapRecordMap.find(stAML.MapID) == m_MapRecordMap.end()){
+                if(m_MapRecordM.find(stAML.MapID) == m_MapRecordM.end()){
                     // load map
                 }
-                m_ActorPod->Send(MessagePack(MPK_NEWPLAYER,
-                            stMNP), m_MapRecordMap[stAML.MapID].PodAddress);
+                Send(MessagePack(MPK_NEWPLAYER, stAMNP), m_MapRecordM[stAML.MapID].PodAddress);
                 break;
             }
         case MPK_PLAYERPHATOM:
@@ -97,4 +95,5 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
 bool ServiceCore::LoadMap(uint32_t nMapID)
 {
     if(nMapID == 0){ return false; }
+    return true;
 }

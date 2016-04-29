@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/19/2016 23:38:52
+ *  Last Modified: 04/29/2016 00:47:02
  *
  *    Description: 
  *
@@ -22,7 +22,7 @@
 #include "session.hpp"
 #include "sessionhub.hpp"
 
-Session::Session(int nSessionID,
+Session::Session(uint32_t nSessionID,
         asio::ip::tcp::socket stSocket,
         SessionHub *pSessionHub,
         std::function<void(uint8_t, Session *)> fnOperateHC)

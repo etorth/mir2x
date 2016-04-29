@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 04/28/2016 00:54:38
+ *  Last Modified: 04/29/2016 00:43:05
  *
  *    Description: message class for actor system
  *
@@ -33,12 +33,17 @@
 #pragma once
 #include <cstring>
 #include <cstdint>
+#include <utility>
+#include <type_traits>
 
 enum MessagePackType: int {
     MPK_UNKNOWN = 0,
     MPK_OK,
     MPK_ERROR,
     MPK_PING,
+    MPK_LOGIN,
+    MPK_REFUSE,
+    MPK_MOVE,
     MPK_HELLO,
     MPK_ACTIVATE,
     MPK_METRONOME,
@@ -46,7 +51,37 @@ enum MessagePackType: int {
     MPK_NEWPLAYER,
     MPK_NEWCONNECTION,
     MPK_PLAYERPHATOM,
+    MPK_QUERYLOCATION,
+    MPK_TRYMOVE,
+    MPK_MOVEOK,
+    MPK_COMMITMOVE,
+    MPK_LOCATIION,
+    MPK_MASTERPERSONA,
+    MPK_INITREGIONMONITOR,
+    MPK_READY,
+    MPK_NEIGHBOR,
 };
+
+typedef struct {
+    int  X;
+    int  Y;
+}AMRequestMove;
+
+typedef struct {
+    int  X;
+    int  Y;
+    int  W;
+    int  H;
+}AMRegion;
+
+typedef struct {
+    uint32_t MonsterIndex;
+    uint32_t MapID;
+
+    bool Strict;
+    int  X;
+    int  Y;
+}AMMasterPersona;
 
 typedef struct {
     uint32_t MonsterIndex;
@@ -58,18 +93,16 @@ typedef struct {
 }AMAddMonster;
 
 typedef struct {
-    uint32_t GUID;
-    uint32_t UID;
-    uint32_t AddTime;
-
-    int X;
-    int Y;
+    void *Data;
 }AMNewPlayer;
 
 typedef struct {
     uint32_t GUID;
     uint32_t UID;
+    uint32_t SID;
     uint32_t AddTime;
+    uint32_t MapID;
+    uint64_t Key;
 
     int X;
     int Y;
@@ -78,6 +111,34 @@ typedef struct {
 typedef struct {
     uint32_t GUID;
 }AMPlayerPhantom;
+
+typedef struct {
+    int X;
+    int Y;
+    int OldX;
+    int OldY;
+}AMTryMove;
+
+typedef struct {
+    int X;
+    int Y;
+    int OldX;
+    int OldY;
+}AMMoveOK;
+
+typedef struct {
+    int X;
+    int Y;
+    int OldX;
+    int OldY;
+}AMCommitMove;
+
+typedef struct {
+    int X;
+    int Y;
+    int OldX;
+    int OldY;
+}AMLocation;
 
 template<size_t StaticBufSize = 64>
 class InnMessagePack final

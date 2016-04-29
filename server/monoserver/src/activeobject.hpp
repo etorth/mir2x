@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/11/2016 19:54:41
- *  Last Modified: 04/25/2016 21:35:02
+ *  Last Modified: 04/28/2016 23:43:27
  *
  *    Description: object with Type()/Mode()/State()
  *
@@ -65,6 +65,8 @@ enum ObjectState: uint8_t{
     STATE_NEVERDIE,
     STATE_ATTACKALL,
     STATE_PEACE,
+    STATE_CANMOVE,
+    STATE_WAITMOVE,
 };
 
 class ActiveObject: public ReactObject

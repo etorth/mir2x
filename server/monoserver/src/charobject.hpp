@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/26/2016 21:51:38
+ *  Last Modified: 04/29/2016 00:45:20
  *
  *    Description: 
  *
@@ -150,13 +150,6 @@ class CharObject: public ActiveObject
             return true;
         }
 
-        virtual bool Attack(CharObject *) = 0;
-
-        virtual bool Friend(CharObject *) = 0;
-        virtual bool      Operate() = 0;
-        virtual uint32_t  NameColor() = 0;
-        virtual const char *CharName() = 0;
-
         virtual bool Mode(uint8_t)
         {
             return true;
@@ -222,13 +215,16 @@ class CharObject: public ActiveObject
 
         void Move();
 
+    public:
+        virtual bool Update() = 0;
+
     protected:
         std::string m_Name;
 
     public:
         void NextLocation(int *, int *, int);
 
-        static uint8_t Direction(int, int);
+        uint8_t Direction(int, int);
 
         uint8_t Direction()
         {
@@ -243,6 +239,5 @@ class CharObject: public ActiveObject
             m_RegionMonitorAddress = rstAddress;
         }
 
-    public:
-        virtual void SearchViewRange() = 0;
+        bool RequestMove();
 };

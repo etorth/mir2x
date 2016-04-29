@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 3:48:41 AM
- *  Last Modified: 04/27/2016 23:12:40
+ *  Last Modified: 04/29/2016 00:47:27
  *
  *    Description: 
  *
@@ -76,7 +76,7 @@ class Session
        void DoSendNext();
 
     public:
-       int  ID()
+       uint32_t  ID()
        {
            return m_ID;
        }
@@ -118,7 +118,7 @@ class Session
        }
 
     private:
-       int                     m_ID;
+       uint32_t                m_ID;
        asio::ip::tcp::socket   m_Socket;
        SessionHub             *m_SessionHub;
        std::string             m_IP;

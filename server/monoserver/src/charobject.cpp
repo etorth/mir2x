@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/25/2016 22:30:48
+ *  Last Modified: 04/29/2016 00:41:19
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #include "monoserver.hpp"
 #include "charobject.hpp"
+#include "messagepack.hpp"
 #include "eventtaskhub.hpp"
 
 CharObject::CharObject(uint32_t nUID, uint32_t nAddTime)
@@ -27,10 +28,6 @@ CharObject::CharObject(uint32_t nUID, uint32_t nAddTime)
     , m_CurrX(0)
     , m_CurrY(0)
     , m_Event(-1)
-    , m_Map(nullptr)
-    , m_MapID(0)
-    , m_Master(0, 0)
-    , m_Target(0, 0)
     , m_Name("")
 {
     extern MonoServer *g_MonoServer;
@@ -73,12 +70,11 @@ bool CharObject::RequestMove()
     int nSpeed = Speed();
     NextLocation(&nX, &nY, nSpeed);
 
-    AMRequestMove stAMRM = {
-        .X = nX,
-        .Y = nY,
-    };
+    AMRequestMove stAMRM;
+    stAMRM.X = nX;
+    stAMRM.Y = nY;
 
-    m_ActorPod->Send(MessagePack(MPK_MOVE, stAMRM), m_RegionMonitorAddress);
+    return Send(MessagePack(MPK_MOVE, stAMRM), m_RegionMonitorAddress);
 }
 
 void CharObject::NextLocation(int *pX, int *pY, int nDistance)

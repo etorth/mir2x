@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 04/27/2016 00:13:44
+ *  Last Modified: 04/29/2016 00:33:20
  *
  *    Description: 
  *
@@ -30,7 +30,7 @@ Theron::Address RegionMonitor::Activate()
     return stAddr;
 }
 
-void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &) //rstFromAddr)
 {
     switch(rstMPK.Type()){
         case MPK_INITREGIONMONITOR:
@@ -52,10 +52,10 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
 
         case MPK_NEIGHBOR:
             {
-                char  nCount = (rstMPK.Data()[0]);
+                char  nCount = (char)(rstMPK.Data()[0]);
                 char *pAddr  = (char *)rstMPK.Data() + 1;
                 while(nCount--){
-                    m_NeighborV[(size_t)szAddr[0]] = new Theron::Address(pAddr);
+                    m_NeighborV[(size_t)pAddr[0]] = Theron::Address(pAddr);
                     pAddr += (1 + std::strlen(pAddr));
                 }
 

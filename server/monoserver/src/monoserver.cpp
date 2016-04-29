@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/28/2016 19:31:40
+ *  Last Modified: 04/28/2016 20:24:49
  *
  *    Description: 
  *
@@ -32,10 +32,11 @@
 #include "databaseconfigurewindow.hpp"
 
 MonoServer::MonoServer()
-    : m_SessionHub(nullptr)
-    , m_ObjectUID(1)
-    , m_LogBufSize(0)
+    : SyncDriver()
     , m_LogBuf(nullptr)
+    , m_LogBufSize(0)
+    , m_SessionHub(nullptr)
+    , m_ObjectUID(1)
 {
     m_StartTime = std::chrono::system_clock::now();
 }

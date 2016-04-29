@@ -3,7 +3,7 @@
  *
  *       Filename: syncdriver.hpp
  *        Created: 04/27/2016 00:28:05
- *  Last Modified: 04/27/2016 22:28:31
+ *  Last Modified: 04/28/2016 23:07:08
  *
  *    Description: class which behaves as:
  *                      ``send-wait-receive-action-.....-send-wait-receive-action..."
@@ -67,7 +67,7 @@ class SyncDriver
             //    now we know send is successful
             if(!(pMPK && nWaitRet)){ return (nWaitRet == 1) ? 0 : 2; }
 
-            // 5. handle response
+            // 6. handle response
             //    now we already has 1 response in catcher, just copy it out
             if(m_Catcher.Pop(stTmpMPK, stTmpAddress) && stTmpAddress == rstAddress){
                 // so if error occurs at the last step, we still keep pMPK unchanged
@@ -75,7 +75,7 @@ class SyncDriver
                 return 0;
             }
 
-            // 6. mysterious errors...
+            // 7. mysterious errors...
             return 3;
         }
 };

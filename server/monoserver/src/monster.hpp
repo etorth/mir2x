@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/27/2016 23:16:33
+ *  Last Modified: 04/29/2016 00:11:37
  *
  *    Description: 
  *
@@ -72,10 +72,9 @@ typedef struct stMONSTERRACEINFO{
 class MonoServer;
 class Monster: public CharObject
 {
-    public:
-        friend class MonoServer;
+    Theron::Address m_MonitorAddress;
 
-    protected:
+    public:
         Monster(uint32_t, uint32_t, uint32_t);
 
     public:
@@ -83,7 +82,7 @@ class Monster: public CharObject
 
     private:
         typedef struct _ActorRecord{
-            Theron::Address Addr;       // void to use Address...
+            Theron::Address PodAddress;       // void to use Address...
             uint32_t        UID;
             uint32_t        AddTime;
             int             X;
@@ -96,7 +95,7 @@ class Monster: public CharObject
                     int nX = 0,
                     int nY = 0,
                     bool bFriend = true)
-                : Addr(stAddr)
+                : PodAddress(stAddr)
                 , UID(nUID)
                 , AddTime(nAddTime)
                 , X(nX)
@@ -106,10 +105,20 @@ class Monster: public CharObject
 
             bool Valid()
             {
-                return Addr == Theron::Address::Null() || UID == 0 || AddTime == 0;
+                return PodAddress == Theron::Address::Null() || UID == 0 || AddTime == 0;
+            }
+
+            bool operator == (const _ActorRecord &rstRecord)
+            {
+                return true
+                    && PodAddress == rstRecord.PodAddress
+                    && UID == rstRecord.UID
+                    && AddTime == rstRecord.AddTime;
             }
 
         }ActorRecord;
+
+        std::vector<ActorRecord> m_NeighborV;
 
     protected:
         uint32_t m_MonsterIndex;
@@ -138,14 +147,18 @@ class Monster: public CharObject
         std::list<ActorRecord>  m_ActorRecordL;
 
     public:
+
+        bool ReportMove(int, int);
         int Speed()
         {
             return 5;
         }
 
+        bool Update();
+
     public:
         bool RandomWalk();
 
     protected:
-        void Operate(const MessagePack &, Theron::Address);
+        void Operate(const MessagePack &, const Theron::Address &);
 };

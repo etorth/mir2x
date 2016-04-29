@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/25/2016 22:55:50
+ *  Last Modified: 04/29/2016 00:12:48
  *
  *    Description: 
  *
@@ -23,20 +23,17 @@
 #include "monster.hpp"
 #include "mathfunc.hpp"
 #include "monoserver.hpp"
+#include "messagepack.hpp"
 
 Monster::Monster(uint32_t nMonsterInex, uint32_t nUID, uint32_t nAddTime)
     : CharObject(nUID, nAddTime)
+    , m_MonitorAddress(Theron::Address::Null())
     , m_MonsterIndex(nMonsterInex)
 {
 }
 
 Monster::~Monster()
 {}
-
-bool Monster::Friend()
-{
-    return true;
-}
 
 bool Monster::Update()
 {
@@ -47,7 +44,7 @@ bool Monster::Update()
 
     // 1. query neighbors
     for(const auto &rstRecord: m_NeighborV){
-        m_ObjectPod->Send(MessagePack(MPK_QUERYLOCATION), rstRecord.Addr);
+        Send(MessagePack(MPK_QUERYLOCATION), rstRecord.PodAddress);
     }
 
     // // 2. try to find target, using current info of neighbors
@@ -101,16 +98,15 @@ bool Monster::RandomWalk()
     return true;
 }
 
-bool ReportMove(int nX, int nY)
+bool Monster::ReportMove(int nX, int nY)
 {
-    MPKTryMove stMPKTM = {
-        .OldX = X(),
-        .OldY = Y(),
-        .X    = nX,
-        .Y    = nY,
-    };
+    AMTryMove stMPKTM;
+    stMPKTM.OldX = X();
+    stMPKTM.OldY = Y();
+    stMPKTM.X    = nX;
+    stMPKTM.Y    = nY;
 
-    return m_ObjectPod->Send(MessagePack(MPK_TRYMOVE, stMPKTM), m_MonitorAddress);
+    return Send(MessagePack(MPK_TRYMOVE, stMPKTM), m_MonitorAddress);
 }
 
 bool Monster::Type(uint8_t nType)
@@ -159,7 +155,7 @@ int Monster::Range(uint8_t)
     return 20;
 }
 
-void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddress)
+void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddress)
 {
     switch(rstMPK.Type()){
         case MPK_METRONOME:
@@ -170,7 +166,7 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromA
 
         case MPK_MOVEOK:
             {
-                MPKMoveOK stMPKMOK;
+                AMMoveOK stMPKMOK;
                 std::memcpy(&stMPKMOK, rstMPK.Data(), sizeof(stMPKMOK));
 
                 // 1. do the move
@@ -179,11 +175,11 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromA
                 SetState(STATE_WAITMOVE, false);
 
                 // 2. commit the move to the monitor
-                MPKCommitMove stMPKCM = {
-                    .X = m_CurrX,
-                    .Y = m_CurrY,
-                };
-                m_ObjectPod->Send(MessagePack(MPK_COMMITMOVE, stMPKCM), m_MonitorAddress);
+                AMCommitMove stAMCM;
+                stAMCM.X = m_CurrX;
+                stAMCM.Y = m_CurrY;
+
+                Send(MessagePack(MPK_COMMITMOVE, stAMCM), m_MonitorAddress);
 
                 break;
             }
@@ -195,9 +191,8 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromA
 
                 int nRange = Range(RANGE_VIEW);
                 if(LDistance2(stAML.X, stAML.Y, X(), Y()) > nRange * nRange){
-                    std::erase(std::remove(
-                                m_NeighborAddressL.begin(),
-                                m_NeighborAddressL.end(), rstFromAddress));
+                    m_NeighborV.erase(std::remove(
+                                m_NeighborV.begin(), m_NeighborV.end(), rstAddress));
                 }else{
                     // TODO
                     // else we use this info to get target
@@ -209,7 +204,7 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromA
             {
                 AMMasterPersona stAMMP;
                 std::memcpy(&stAMMP, rstMPK.Data(), sizeof(stAMMP));
-
+                break;
             }
 
         default:

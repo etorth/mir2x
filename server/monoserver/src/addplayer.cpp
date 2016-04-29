@@ -3,7 +3,7 @@
  *
  *       Filename: addplayer.cpp
  *        Created: 04/06/2016 18:44:28
- *  Last Modified: 04/23/2016 02:14:46
+ *  Last Modified: 04/29/2016 00:21:43
  *
  *    Description: active a player in online mode, player GUID is used
  *
@@ -25,9 +25,14 @@
 bool MonoServer::AddPlayer(uint32_t nSID, uint32_t nUID)
 {
     uint32_t nAddTime = GetTimeTick();
-    uint64_t nKey = ((uint64_t)nUID << 32) + nUID;
+    uint64_t nKey = ((uint64_t)nUID << 32) + nAddTime;
 
+    AMLogin stAMLogin;
+    stAMLogin.SID = nSID;
+    stAMLogin.AddTime = nAddTime;
+    stAMLogin.Key = nKey;
 
+    Send(MessagePack(MPK_NEWPLAYER, stAMLogin), m_ServiceCoreAddress);
 
     return true;
 }
