@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 04/28/2016 23:03:32
+ *  Last Modified: 04/30/2016 01:01:55
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -39,9 +39,11 @@ class ServiceCore: public Transponder
 
         typedef struct _MapRecord {
             uint32_t        MapID;
+            ServerMap      *Map;
             Theron::Address PodAddress;
             _MapRecord(uint32_t nMapID = 0)
                 : MapID(nMapID)
+                , Map(nullptr)
                 , PodAddress(Theron::Address::Null())
             {}
         }MapRecord;

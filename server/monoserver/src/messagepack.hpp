@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 04/29/2016 23:12:59
+ *  Last Modified: 04/30/2016 03:46:13
  *
  *    Description: message class for actor system
  *
@@ -103,6 +103,8 @@ typedef struct {
 typedef struct {
     uint32_t MonsterIndex;
     uint32_t MapID;
+    uint32_t UID;
+    uint32_t AddTime;
 
     bool Strict;
     int  X;
@@ -180,67 +182,43 @@ class InnMessagePack final
             , m_Respond(0)
         {}
 
-        InnMessagePack(int nMsgType,
-                const uint8_t *pData, size_t nDataLen, uint32_t nRespond = 0)
+        // TODO, here's the reason for many bugs
+        // think about how to create a class with many ctor's
+        InnMessagePack(int nMsgType, const uint8_t *pData, size_t nDataLen, uint32_t nRespond = 0)
+            : m_Type(nMsgType)
+            , m_Respond(nRespond)
         {
-            // 1. type
-            m_Type = nMsgType;
-
-            // 2. response requirement
-            m_Respond = nRespond;
-
-            // 3. message body
             if(pData && nDataLen > 0){
                 if(nDataLen <= StaticBufSize){
-                    std::memcpy(m_StaticBuf, pData, nDataLen);
                     m_StaticBufUsedLen = nDataLen;
+                    std::memcpy(m_StaticBuf, pData, nDataLen);
+
+                    m_Buf = nullptr;
+                    m_BufLen = 0;
                 }else{
                     m_Buf = new uint8_t[nDataLen];
                     m_BufLen = nDataLen;
                     std::memcpy(m_Buf, pData, nDataLen);
+
+                    m_StaticBufUsedLen = 0;
                 }
+            }else{
+                m_BufLen = 0;
+                m_Buf = nullptr;
+                m_StaticBufUsedLen = 0;
             }
         }
 
         InnMessagePack(const InnMessagePack &rstMPK)
-        {
-            // 1. type
-            m_Type = rstMPK.m_Type;
-
-            // 2. response requirement
-            m_Respond = rstMPK.m_Respond;
-
-            // 3. static buffer
-            if(rstMPK.m_StaticBufUsedLen > 0){
-                std::memcpy(m_StaticBuf, rstMPK.m_StaticBuf, m_StaticBufUsedLen);
-            }
-
-            // 4. dynamic buffer
-            if(rstMPK.m_Buf && rstMPK.m_BufLen > 0){
-                m_Buf = new uint8_t[rstMPK.m_BufLen];
-                m_BufLen = rstMPK.m_BufLen;
-                std::memcpy(m_Buf, rstMPK.m_Buf, rstMPK.m_BufLen);
-            }
-        }
+            : InnMessagePack(rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen(), rstMPK.Respond())
+        {}
 
         // don't put pointer in T, this is copied by bytes
         template <typename T>
         InnMessagePack(int nMsgType, const T &rstPOD, uint32_t nRespond = 0)
+            : InnMessagePack(nMsgType, (const uint8_t *)&rstPOD, sizeof(rstPOD), nRespond)
         {
             static_assert(std::is_pod<T>::value, "POD data type supported only");
-
-            m_Type = nMsgType;
-            m_Respond = nRespond;
-
-            if(sizeof(rstPOD) > StaticBufSize){
-                m_Buf = new uint8_t[sizeof(rstPOD)];
-                m_BufLen = sizeof(rstPOD);
-
-                std::memcpy(m_Buf, &rstPOD, sizeof(rstPOD));
-            }else{
-                m_StaticBufUsedLen = sizeof(rstPOD);
-                std::memcpy(m_StaticBuf, &rstPOD, sizeof(rstPOD));
-            }
         }
 
         ~InnMessagePack()
@@ -252,12 +230,13 @@ class InnMessagePack final
         // most used, for message forwarding, need optimization
         InnMessagePack &operator = (InnMessagePack stMPK)
         {
-            std::swap(m_Buf, stMPK.m_Buf);
 
-            m_Type = stMPK.m_Type;
-            m_BufLen = stMPK.m_BufLen;
-            m_Respond = stMPK.m_Respond;
-            m_StaticBufUsedLen = stMPK.m_StaticBufUsedLen;
+            std::swap(m_Type, stMPK.m_Type);
+            std::swap(m_Respond, stMPK.m_Respond);
+
+            std::swap(m_Buf, stMPK.m_Buf);
+            std::swap(m_BufLen, stMPK.m_BufLen);
+            std::swap(m_StaticBufUsedLen, stMPK.m_StaticBufUsedLen);
 
             if(m_StaticBufUsedLen > 0){
                 std::memcpy(m_StaticBuf, stMPK.m_StaticBuf, m_StaticBufUsedLen);
@@ -283,7 +262,7 @@ class InnMessagePack final
 
         size_t DataLen() const
         {
-            if(m_StaticBufUsedLen){
+            if(m_StaticBufUsedLen > 0){
                 return m_StaticBufUsedLen;
             }
             return m_BufLen;

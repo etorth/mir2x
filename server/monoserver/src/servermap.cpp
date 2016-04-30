@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/29/2016 22:30:27
+ *  Last Modified: 04/30/2016 01:19:36
  *
  *    Description: 
  *
@@ -41,28 +41,8 @@ ServerMap::ServerMap(uint32_t nMapID)
 bool ServerMap::Load(const char *szMapFullName)
 {
     if(!m_Mir2xMap.Load(szMapFullName)){ return false; }
-    int nW = m_Mir2xMap.W();
-    int nH = m_Mir2xMap.H();
-
-    m_GridObjectRecordListV.clear();
-    m_GridObjectRecordListLockV.clear();
-
-    m_GridObjectRecordListV.resize(nH);
-    for(auto &stLine: m_GridObjectRecordListV){ stLine.resize(nW); }
-
-    m_GridObjectRecordListLockV.resize(nH);
-    for(auto &stLine: m_GridObjectRecordListLockV){
-        // TODO do we have an emplace_back() with count?
-        // TODO following code is buggy, the whole line will share one lock!!
-        //      congratulations! you learned something new
-        // stLine.insert(stLine.begin(), nW, std::make_shared<std::mutex>());
-        // this is also buggy, which put null pointer inside
-        // stLine.resize();
-        //
-        for(int nIndex = 0; nIndex < nW; ++nIndex){
-            stLine.emplace_back(std::make_shared<std::mutex>());
-        }
-    }
+    // int nW = m_Mir2xMap.W();
+    // int nH = m_Mir2xMap.H();
 
     return true;
 }
@@ -96,6 +76,28 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
                 }
                 break;
             }
+
+        case MPK_ADDMONSTER:
+            {
+                AMAddMonster stAMAM;
+                std::memcpy(&stAMAM, rstMPK.Data(), sizeof(stAMAM));
+
+                if(!ValidP(stAMAM.X, stAMAM.Y) && stAMAM.Strict){
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid monster adding request");
+                }else{
+                    Monster *pNewMonster = 
+                        new Monster(stAMAM.MonsterIndex, stAMAM.UID, stAMAM.AddTime);
+                    AMNewMonster stAMNM;
+                    stAMNM.Data = pNewMonster;
+
+                    Send(MessagePack(MPK_NEWMONSTOR, stAMNM),
+                            RegionMonitorAddressP(stAMAM.X, stAMAM.Y));
+                }
+
+                break;
+            }
+
         case MPK_NEWMONSTOR:
             {
                 AMNewMonster stAMNM;

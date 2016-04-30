@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/29/2016 23:29:16
+ *  Last Modified: 04/30/2016 00:24:15
  *
  *    Description: 
  *
@@ -146,6 +146,8 @@ void MonoServer::Launch()
 
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
+
+    AddMonster(1, 1, 100, 100, false);
 
     // TODO
     // dead lock when there is too many monsters???

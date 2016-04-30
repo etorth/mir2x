@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 04/28/2016 23:04:58
+ *  Last Modified: 04/30/2016 00:59:25
  *
  *    Description: 
  *
@@ -47,6 +47,18 @@ ServiceCore::~ServiceCore()
 void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddr)
 {
     switch(rstMPK.Type()){
+        case MPK_ADDMONSTER:
+            {
+                AMAddMonster stAMAM;
+                std::memcpy(&stAMAM, rstMPK.Data(), sizeof(stAMAM));
+
+                if(m_MapRecordM.find(stAMAM.MapID) == m_MapRecordM.end()){
+                    LoadMap(stAMAM.MapID);
+                }
+
+                Send(rstMPK, m_MapRecordM[stAMAM.MapID].PodAddress);
+                break;
+            }
         case MPK_NEWCONNECTION:
             {
                 extern ServerConfigureWindow *g_ServerConfigureWindow;
@@ -95,5 +107,12 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
 bool ServiceCore::LoadMap(uint32_t nMapID)
 {
     if(nMapID == 0){ return false; }
+
+    ServerMap *pNewMap = new ServerMap(nMapID);
+
+    m_MapRecordM[nMapID].MapID      = nMapID;
+    m_MapRecordM[nMapID].Map        = pNewMap;
+    m_MapRecordM[nMapID].PodAddress = pNewMap->Activate();
+
     return true;
 }
