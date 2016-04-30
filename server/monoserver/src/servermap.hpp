@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 04/25/2016 21:58:46
+ *  Last Modified: 04/29/2016 18:36:02
  *
  *    Description: put all non-atomic function as private
  *
@@ -39,21 +39,24 @@ class CharObject;
 class ServerMap: public Transponder
 {
     private:
-        bool m_RegionMonitorReady;
-        int        m_RegiongMonitorResolution;
-        Metronome *m_Metronome;
-        Theron::Address m_NullAddress;
-
-    private:
-        void Operate(const MessagePack &, Theron::Address);
-
-    private:
         // some shortcuts for internal use only
         // for public API don't use it
         using ObjectRecord     = std::tuple<uint8_t, uint32_t, uint32_t>;
         using ObjectRecordList = std::list<ObjectRecord>;
         using LockPointer      = std::shared_ptr<std::mutex>;
         template<typename T> using Vec2D = std::vector<std::vector<T>>;
+
+    private:
+        uint32_t m_ID;
+        Theron::Address m_NullAddress;
+        bool m_RegionMonitorReady;
+        int        m_RegiongMonitorResolution;
+        Metronome *m_Metronome;
+
+
+    private:
+        void Operate(const MessagePack &, const Theron::Address &);
+
 
     public:
         ServerMap(uint32_t);
@@ -64,9 +67,6 @@ class ServerMap: public Transponder
         {
             return m_ID;
         }
-
-    private:
-        uint32_t m_ID;
 
     private:
         Mir2xMap m_Mir2xMap;
@@ -152,9 +152,14 @@ class ServerMap: public Transponder
                 , PodAddress(Theron::Address::Null())
                 , Need(false)
             {}
+
+            bool Valid()
+            {
+                return PodAddress != Theron::Address::Null();
+            }
         } RegionMonitorRecord;
 
-        Vec2D<RegionMonitorRecord>  m_RegiongMonitorRecordV2D;
+        Vec2D<RegionMonitorRecord>  m_RegionMonitorRecordV2D;
 
         void CheckRegionMonitorNeed();
         bool CheckRegionMonitorReady();
@@ -165,7 +170,7 @@ class ServerMap: public Transponder
 
             int nGridX = nX / m_RegiongMonitorResolution;
             int nGridY = nY / m_RegiongMonitorResolution;
-            return m_RegiongMonitorRecordV2D[nGridY][nGridX].PodAddress;
+            return m_RegionMonitorRecordV2D[nGridY][nGridX].PodAddress;
         }
 
         bool RegionMonitorReady()

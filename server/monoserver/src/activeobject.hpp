@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/11/2016 19:54:41
- *  Last Modified: 04/28/2016 23:43:27
+ *  Last Modified: 04/29/2016 18:13:37
  *
  *    Description: object with Type()/Mode()/State()
  *
@@ -76,7 +76,7 @@ class ActiveObject: public ReactObject
         std::array<    bool, 255> m_StateV;
         std::array<uint32_t, 255> m_StateTimeV;
 
-    protected:
+    public:
         ActiveObject(uint32_t nUID, uint32_t nAddTime)
             : ReactObject(CATEGORY_ACTIVEOBJECT, nUID, nAddTime)
         {
@@ -87,7 +87,7 @@ class ActiveObject: public ReactObject
             m_StateV[STATE_EMBRYO] = 1;
         }
 
-    protected:
+    public:
         // getter
         // always return values, nonthrow
         //
