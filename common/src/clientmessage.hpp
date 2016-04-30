@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 04/28/2016 00:17:59
+ *  Last Modified: 04/29/2016 23:16:50
  *
  *    Description: net message used by client and mono-server
  *
@@ -37,4 +37,9 @@ typedef struct{
     char ID[16];
     char Password[16];
 }CMLogin;
+
+typedef struct{
+    int X;
+    int Y;
+}CMWalk;
 #pragma pack(pop)

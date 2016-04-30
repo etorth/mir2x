@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/29/2016 00:11:37
+ *  Last Modified: 04/29/2016 23:40:15
  *
  *    Description: 
  *
@@ -138,7 +138,6 @@ class Monster: public CharObject
 
         virtual bool Attack(CharObject *);
         virtual bool Follow(CharObject *, bool);
-        virtual bool Operate();
 
     public:
         virtual void SearchViewRange();

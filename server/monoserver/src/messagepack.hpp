@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 04/29/2016 00:43:05
+ *  Last Modified: 04/29/2016 23:12:59
  *
  *    Description: message class for actor system
  *
@@ -60,7 +60,24 @@ enum MessagePackType: int {
     MPK_INITREGIONMONITOR,
     MPK_READY,
     MPK_NEIGHBOR,
+    MPK_NEWMONSTOR,
+    MPK_LOGINOK,
+    MPK_FORWARDCM,
 };
+
+typedef struct {
+    uint32_t GUID;
+    uint32_t UID;
+    uint32_t AddTime;
+    int X;
+    int Y;
+    void *Data;
+}AMNewMonster;
+
+typedef struct {
+    int  X;
+    int  Y;
+}AMMonitorReady;
 
 typedef struct {
     int  X;

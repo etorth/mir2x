@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/28/2016 20:24:49
+ *  Last Modified: 04/29/2016 23:29:16
  *
  *    Description: 
  *
@@ -154,13 +154,22 @@ void MonoServer::Launch()
 void MonoServer::OnReadHC(uint8_t nMsgHC, Session *pSession)
 {
     switch(nMsgHC){
-        case CM_LOGIN    : { OnLogin    (pSession); return; }
-        case CM_WALK     : { OnWalk     (pSession); return; }
-        case CM_BROADCAST: { OnBroadcast(pSession); return; }
-        default: break;
+        case CM_LOGIN:
+            {
+                OnLogin(pSession);
+                break;
+            }
+        case CM_BROADCAST:
+            {
+                // OnBroadcast(pSession);
+                break;
+            }
+        default:
+            {
+                OnForward(nMsgHC, pSession);
+                break;
+            }
     }
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message type: %03u", nMsgHC);
 }
 
 uint32_t MonoServer::GetTickCount()

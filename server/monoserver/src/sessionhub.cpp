@@ -3,7 +3,7 @@
  *
  *       Filename: sessionhub.cpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 04/27/2016 23:14:42
+ *  Last Modified: 04/29/2016 23:09:56
  *
  *    Description: 
  *
@@ -93,7 +93,7 @@ void SessionHub::Accept()
                 m_SessionMap[pNewSession->ID()] = pNewSession;
 
                 // 2. echo to the client
-                pNewSession->Send(SM_PING);
+                pNewSession->SendN(SM_PING);
 
                 // 3. ready login information
                 pNewSession->Launch();
@@ -106,7 +106,7 @@ void SessionHub::Accept()
                 m_MaxID--;
 
                 // 2. tell the client you are refused, then delete the session
-                pNewSession->Send(SM_REFUSE, [pNewSession](){ delete pNewSession; });
+                pNewSession->SendN(SM_REFUSE, [pNewSession](){ delete pNewSession; });
             }
 
             // accept next request

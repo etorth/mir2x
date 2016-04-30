@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 04/29/2016 18:36:02
+ *  Last Modified: 04/29/2016 22:23:27
  *
  *    Description: put all non-atomic function as private
  *
@@ -28,6 +28,7 @@
 #include <vector>
 #include <cstdint>
 #include <forward_list>
+#include <unordered_map>
 
 #include "sysconst.hpp"
 #include "mir2xmap.hpp"
@@ -50,8 +51,12 @@ class ServerMap: public Transponder
         uint32_t m_ID;
         Theron::Address m_NullAddress;
         bool m_RegionMonitorReady;
-        int        m_RegiongMonitorResolution;
+        int        m_RegionMonitorResolution;
         Metronome *m_Metronome;
+
+        Theron::Address m_CoreAddress;
+
+        std::unordered_map<uint64_t, CharObject *> m_CharObjectM;
 
 
     private:
@@ -168,8 +173,8 @@ class ServerMap: public Transponder
         {
             if(!ValidP(nX, nY)){ return m_NullAddress; }
 
-            int nGridX = nX / m_RegiongMonitorResolution;
-            int nGridY = nY / m_RegiongMonitorResolution;
+            int nGridX = nX / m_RegionMonitorResolution;
+            int nGridY = nY / m_RegionMonitorResolution;
             return m_RegionMonitorRecordV2D[nGridY][nGridX].PodAddress;
         }
 

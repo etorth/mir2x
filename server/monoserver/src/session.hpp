@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 3:48:41 AM
- *  Last Modified: 04/29/2016 00:47:27
+ *  Last Modified: 04/29/2016 23:07:58
  *
  *    Description: 
  *
@@ -24,8 +24,10 @@
 #include <queue>
 #include <functional>
 
+#include "syncdriver.hpp"
+
 class SessionHub;
-class Session
+class Session: public SyncDriver
 {
     public:
         Session(uint32_t,               // session id
@@ -38,7 +40,7 @@ class Session
     public:
        // TODO
        // Session class won't maintain the validation of pData!
-       void Send(uint8_t nMsgHC, const uint8_t *pData,
+       void SendN(uint8_t nMsgHC, const uint8_t *pData,
                size_t nLen, const std::function<void()> &fnDone = []{})
        {
            bool bEmpty = m_SendQ.empty();
@@ -50,17 +52,17 @@ class Session
        }
 
        // helper functions
-       void Send(uint8_t nMsgHC, const std::function<void()> &fnDone = []{})
+       void SendN(uint8_t nMsgHC, const std::function<void()> &fnDone = []{})
        {
-           Send(nMsgHC, nullptr, 0, fnDone);
+           SendN(nMsgHC, nullptr, 0, fnDone);
        }
 
        // TODO
        // maybe I need make const T here
-       template<typename T> void Send(
+       template<typename T> void SendN(
                uint8_t nMsgHC, const T &stMsgT, const std::function<void()> &fnDone = []{})
        {
-           Send(nMsgHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT), fnDone);
+           SendN(nMsgHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT), fnDone);
        }
 
 
@@ -117,6 +119,11 @@ class Session
            return m_Port;
        }
 
+       Theron::Address PlayerAddress()
+       {
+           return m_PlayerAddress;
+       }
+
     private:
        uint32_t                m_ID;
        asio::ip::tcp::socket   m_Socket;
@@ -125,6 +132,8 @@ class Session
        int                     m_Port;
        uint8_t                 m_MessageHC;
        int                     m_ReadRequest;
+
+       Theron::Address         m_PlayerAddress;
 
     private:
        using SendTaskDesc = std::tuple<uint8_t,

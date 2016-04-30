@@ -3,7 +3,7 @@
  *
  *       Filename: onhc.cpp
  *        Created: 02/28/2016 01:37:19
- *  Last Modified: 04/23/2016 02:12:28
+ *  Last Modified: 04/29/2016 23:31:52
  *
  *    Description: 
  *
@@ -22,12 +22,13 @@
 #include "taskhub.hpp"
 #include "message.hpp"
 #include "session.hpp"
+#include "threadpn.hpp"
 #include "monoserver.hpp"
 
 void MonoServer::OnPing(Session *pSession)
 {
     auto fnProcessPing = [this, pSession](uint8_t *pData, size_t){
-        pSession->Send(SM_PING, pData, 4);
+        pSession->SendN(SM_PING, pData, 4);
     };
 
     pSession->Read(4, fnProcessPing);
@@ -43,7 +44,7 @@ void MonoServer::OnLogin(Session *pSession)
     //         one in one single thread, this means whening using
     //         pSession, we don't concern it could be delete by
     //         other thread
-    auto fnProcessLogin = [pSession](uint8_t *pData, size_t){
+    auto fnProcessLogin = [this, pSession](uint8_t *pData, size_t){
         AddLog(LOGTYPE_INFO, "Login requested from (%s:%d)", pSession->IP(), pSession->Port());
         auto stCMLogin = *((CMLogin *)pData);
 
@@ -57,13 +58,13 @@ void MonoServer::OnLogin(Session *pSession)
                         "where fld_account = '%s' and fld_password = '%s'", pID, pPWD)){
                 AddLog(LOGTYPE_WARNING,
                         "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
-                pSession->Send(SM_LOGINFAIL);
+                pSession->SendN(SM_LOGINFAIL);
                 return;
             }
 
             if(pRecord->RowCount() < 1){
                 AddLog(LOGTYPE_INFO, "can't find account: (%s:%s)", pID, pPWD);
-                pSession->Send(SM_LOGINFAIL);
+                pSession->SendN(SM_LOGINFAIL);
                 return;
             }
 
@@ -74,13 +75,13 @@ void MonoServer::OnLogin(Session *pSession)
             if(!pRecord->Execute("select * from mir2x.tbl_guid where fld_id = %d", nID)){
                 AddLog(LOGTYPE_WARNING,
                         "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
-                pSession->Send(SM_LOGINFAIL);
+                pSession->SendN(SM_LOGINFAIL);
                 return;
             }
 
             if(pRecord->RowCount() < 1){
                 AddLog(LOGTYPE_INFO, "no guid created for this account: (%s:%s)", pID, pPWD);
-                pSession->Send(SM_LOGINFAIL);
+                pSession->SendN(SM_LOGINFAIL);
                 return;
             }
 
@@ -110,32 +111,34 @@ void MonoServer::OnLogin(Session *pSession)
             //     pSession->Send(SM_LOGINOK, stSMLoginOK);
             // }
 
-            AMLogin stAML = {
-                .GUID = pSMLoginOK->GUID,
-            }
+            AMLogin stAML;
+            stAML.GUID = pSMLoginOK->GUID;
 
             MessagePack stMPK;
-            while(true){ if(!m_Catcher.Pop(stMPK, m_ServiceCoreAddress)){ break; } }
+            if(Send(MessagePack(MPK_LOGIN, stAML), m_ServiceCoreAddress, &stMPK)){
+                switch(stMPK.Type()){
+                    case MPK_LOGINOK:
+                        {
+                            AddLog(LOGTYPE_INFO,
+                                    "Login succeed: (%s:%s:%d:%s:%d)",
+                                    pID, pPWD, nID, pSMLoginOK->Name, pSMLoginOK->GUID);
+                            pSession->SendN(SM_LOGINOK, *pSMLoginOK,
+                                    [pSMLoginOK](){ delete pSMLoginOK; });
+                            return;
+                        }
+                    default:
+                        {
+                            AddLog(LOGTYPE_INFO, "Add player failed: (%s:%s:%d:%s:%d)",
+                                    pID, pPWD, nID, pSMLoginOK->Name, pSMLoginOK->GUID);
+                            pSession->SendN(SM_LOGINFAIL);
+                            return;
+                        }
 
-            extern Theron::Framework *g_Framework;
-            g_Framework->Send(MessagePack(MPK_LOGIN,
-                        stAML), m_Receiver.GetAddress(), m_ServiceCoreAddress);
-
-            if(true
-                    && m_Receiver.Wait(1) == 1
-                    && m_Catcher.Pop(stMPK, m_ServiceCoreAddress)
-                    && stMPK.Type() == MPK_LOGINOK){
-
-                AddLog(LOGTYPE_INFO, "Login succeed: (%s:%s:%d:%s:%d)",
-                        pID, pPWD, nID, pSMLoginOK->Name, pSMLoginOK->GUID);
-                pSession->Send(SM_LOGINOK, *pSMLoginOK, [pSMLoginOK](){ delete pSMLoginOK; });
-
-                return;
+                }
             }
 
-            AddLog(LOGTYPE_INFO, "Add player failed: (%s:%s:%d:%s:%d)",
-                    pID, pPWD, nID, pSMLoginOK->Name, pSMLoginOK->GUID);
-            pSession->Send(SM_LOGINFAIL);
+            AddLog(LOGTYPE_INFO, "Send actor message failed");
+            pSession->SendN(SM_LOGINFAIL);
             return;
         };
 
@@ -146,35 +149,23 @@ void MonoServer::OnLogin(Session *pSession)
     pSession->Read(sizeof(CMLogin), fnProcessLogin);
 }
 
-void MonoServer::OnWalk(Session *pSession)
-{
-    auto fnProcessWalk = [this, pSession](const uint8_t *pData, size_t){
-        // 1. get binding player address
-        auto stAddr = pSession->Address();
-        if(stAddr == Theron::Address::Null()){ return; }
-
-        // 2. just forward the message to binding player
-        extern Theron::Framework *g_Framework;
-        g_Framework->Send(MessagePack(MPK_FORWARDCM,
-                    CM_WALK, pData, sizeof(CMWalk)), m_Receiver.GetAddress(), stAddr);
-    };
-    pSession->Read(sizeof(CMWalk), fnProcessWalk);
-}
-
 void MonoServer::OnForward(uint8_t nMsgHC, Session *pSession)
 {
     extern MonoServer *g_MonoServer;
     size_t nSize = g_MonoServer->MessageSize(nMsgHC);
 
-    auto fnProcessForward = [this, pSession, nSize](const uint8_t *pData, size_t){
+    auto fnProcessForward = [this, pSession, nMsgHC](const uint8_t *pData, size_t nLen){
         // 1. get binding player address
-        auto stAddr = pSession->Address();
+        auto stAddr = pSession->PlayerAddress();
         if(stAddr == Theron::Address::Null()){ return; }
 
         // 2. just forward the message to binding player
-        extern Theron::Framework *g_Framework;
-        g_Framework->Send(MessagePack(MPK_FORWARDCM,
-                    nMsgHC, pData, nSize), m_Receiver.GetAddress(), stAddr);
+        std::vector<uint8_t> szTmpBuf;
+        szTmpBuf.resize(nLen + 1);
+        szTmpBuf[0] = nMsgHC;
+
+        std::memcpy(&szTmpBuf[1], pData, nLen);
+        pSession->Send(MessagePack(MPK_FORWARDCM, &szTmpBuf[0], 1 + nLen), stAddr);
     };
 
     pSession->Read(nSize, fnProcessForward);

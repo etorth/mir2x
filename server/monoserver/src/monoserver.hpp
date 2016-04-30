@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/29/2016 00:15:11
+ *  Last Modified: 04/29/2016 23:30:08
  *
  *    Description: 
  *
@@ -139,6 +139,8 @@ class MonoServer: public SyncDriver
         void OnPing     (Session *);
         void OnLogin    (Session *);
         void OnBroadcast(Session *);
+
+        void OnForward(uint8_t, Session *);
 
     private:
         bool AddObject();

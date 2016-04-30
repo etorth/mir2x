@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/18/2016 15:21:45
+ *  Last Modified: 04/29/2016 23:39:21
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 
 #include "log.hpp"
 #include "taskhub.hpp"
+#include "threadpn.hpp"
 #include "mainwindow.hpp"
 #include "eventtaskhub.hpp"
 #include "addmonsterwindow.hpp"
@@ -31,6 +32,8 @@
 Log                      *g_Log;
 TaskHub                  *g_TaskHub;
 EventTaskHub             *g_EventTaskHub;
+Theron::Framework        *g_Framework;
+ThreadPN                 *g_ThreadPN;
 
 MainWindow               *g_MainWindow;
 MonoServer               *g_MonoServer;
@@ -49,6 +52,8 @@ int main()
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
     g_EventTaskHub            = new EventTaskHub();
+    g_Framework               = new Theron::Framework();
+    g_ThreadPN                = new ThreadPN(4);
 
     g_MainWindow->ShowAll();
 

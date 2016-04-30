@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/29/2016 00:12:48
+ *  Last Modified: 04/29/2016 23:40:36
  *
  *    Description: 
  *
@@ -214,4 +214,9 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
                 break;
             }
     }
+}
+
+void Monster::SearchViewRange()
+{
+
 }
