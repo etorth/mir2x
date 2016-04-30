@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 04/28/2016 23:33:02
+ *  Last Modified: 04/30/2016 12:58:33
  *
  *    Description: object only react to message, with an object pod
  *                 atoms of an react object:
@@ -61,9 +61,12 @@ class ReactObject: public ServerObject
         virtual void Operate(const MessagePack &, const Theron::Address &) = 0;
 
     public:
-        virtual bool Send(const MessagePack &, const Theron::Address &, uint32_t *);
-        virtual bool Send(const MessagePack &rstMSG, const Theron::Address &rstAddress)
+        // send with response operation registering
+        bool Send(const MessagePack &, const Theron::Address &,
+                const std::function<void(const MessagePack &, const Theron::Address &)> &);
+        bool Send(const MessagePack &rstMSG, const Theron::Address &rstAddress)
         {
-            return Send(rstMSG, rstAddress, nullptr);
+            std::function<void(const MessagePack &, const Theron::Address &)> fnNullOp;
+            return Send(rstMSG, rstAddress, fnNullOp);
         }
 };

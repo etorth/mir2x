@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 04/28/2016 23:37:46
+ *  Last Modified: 04/30/2016 12:49:04
  *
  *    Description: 
  *
@@ -36,15 +36,15 @@ Theron::Address ReactObject::Activate()
 {
     extern Theron::Framework *g_Framework;
     m_ActorPod = new ActorPod(g_Framework,
-            [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
+        [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
             Operate(rstMPK, stFromAddr);
-            });
+        });
 
     return m_ActorPod->GetAddress();
 }
 
-bool ReactObject::Send(const MessagePack &rstMSG,
-        const Theron::Address &rstFromAddress, uint32_t *pRespond)
+bool ReactObject::Send(const MessagePack &rstMSG, const Theron::Address &rstFromAddress,
+        const std::function<void(const MessagePack &, const Theron::Address &)> &fnRespondOp)
 {
-    return m_ActorPod->Send(rstMSG, rstFromAddress, pRespond);
+    return m_ActorPod->Send(rstMSG, rstFromAddress, fnRespondOp);
 }

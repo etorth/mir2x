@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.cpp
  *        Created: 04/27/2016 00:05:15
- *  Last Modified: 04/28/2016 23:28:22
+ *  Last Modified: 04/30/2016 12:59:25
  *
  *    Description: 
  *
@@ -41,8 +41,8 @@ Theron::Address Transponder::Activate()
     return m_ActorPod->GetAddress();
 }
 
-bool Transponder::Send(const MessagePack &rstMSG,
-        const Theron::Address &rstAddress, uint32_t *pRespond)
+bool Transponder::Send(const MessagePack &rstMSG, const Theron::Address &rstFromAddress,
+        const std::function<void(const MessagePack &, const Theron::Address &)> &fnRespondOp)
 {
-    return m_ActorPod->Send(rstMSG, rstAddress, pRespond);
+    return m_ActorPod->Send(rstMSG, rstFromAddress, fnRespondOp);
 }

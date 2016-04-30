@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 04/28/2016 21:17:59
+ *  Last Modified: 04/30/2016 12:54:26
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -35,10 +35,28 @@
 
 class ActorPod: public Theron::Actor
 {
+    private:
+        using MessagePackOperation
+            = std::function<void(const MessagePack&, const Theron::Address &)>;
+        // no need to keep the message pack itself
+        // since when registering response operation, we always have the message pack avaliable
+        typedef struct _RespondMessageRecord {
+            // MessagePack RespondMessagePack;
+            MessagePackOperation    RespondOperation;
+
+            // _RespondMessageRecord(const MessagePack & rstMPK,
+            //         const MessagePackOperation &rstOperation)
+            //     : RespondMessagePack(rstMPK)
+            //     , RespondOperation(rstOperation)
+            // {}
+            _RespondMessageRecord(const MessagePackOperation &rstOperation)
+                : RespondOperation(rstOperation)
+            {}
+        } RespondMessageRecord;
     protected:
         size_t m_RespondCount;
-        std::unordered_map<uint32_t, MessagePack> m_RespondMessageM;
-        std::function<void(const MessagePack &, const Theron::Address &)> m_Operate;
+        MessagePackOperation m_Operate;
+        std::unordered_map<uint32_t, RespondMessageRecord> m_RespondMessageRecordM;
 
     public:
         explicit ActorPod(Theron::Framework *pFramework,
@@ -47,7 +65,7 @@ class ActorPod: public Theron::Actor
             , m_RespondCount(0)
             , m_Operate(fnOperate)
         {
-            RegisterHandler(this, &ActorPod::Handler);
+            RegisterHandler(this, &ActorPod::InnHandler);
         }
 
         virtual ~ActorPod() = default;
@@ -56,19 +74,48 @@ class ActorPod: public Theron::Actor
         using Theron::Actor::Send;
 
     protected:
-        void Handler(const MessagePack &rstMPK, Theron::Address stFromAddr)
+        void InnHandler(const MessagePack &rstMPK, Theron::Address stFromAddr)
         {
+            if(rstMPK.Respond()){
+                auto pRecord = m_RespondMessageRecordM.find(rstMPK.Respond());
+                if(pRecord != m_RespondMessageRecordM.end()){
+                    // we do have an record for this message
+                    if(pRecord->second.RespondOperation){
+                        try{
+                            pRecord->second.RespondOperation(rstMPK, stFromAddr);
+                        }catch(...){
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING,
+                                    "caught exception in operating response message");
+                        }
+                    }else{
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_WARNING,
+                                "registered response operation is not callable");
+                    }
+                    m_RespondMessageRecordM.erase(pRecord);
+                }else{
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING,
+                            "no registered operation for response message found");
+                }
+                // TODO & TBD
+                // we ignore it or send it to m_Operate??? currently just dropped
+                return;
+            }
+
+            // now message are handling  not on purpose of response only
             if(m_Operate){
                 // in theron address is recommanded to copy rather than ref, but
                 // here we use const ref when passing to m_Operate, because when
                 // calling m_Operate(), address already has a copy when executaion
-                // goes inside Handler(), so always there is a valid copy of
+                // goes inside InnHandler(), so always there is a valid copy of
                 // address for m_Operate()
                 //
                 // if m_Operate() has any other async\ed operation upon the address
                 // inside, it should handler by itself.
                 //
-                // so there is only one copy of Handler() when callback invoked, and
+                // so there is only one copy of InnHandler() when callback invoked, and
                 // don't worry, Theron::Address is actually only a pointer so copying
                 // is really cheap
                 //
@@ -82,33 +129,45 @@ class ActorPod: public Theron::Actor
                     extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception in ActorPod");
                 }
+            }else{
+                // TODO & TBD
+                // this message will show up many and many if not valid handler found
+                // extern MonoServer *g_MonoServer;
+                // g_MonoServer->AddLog(LOGTYPE_WARNING,
+                //         "registered operation for message is not callable");
             }
+
         }
 
     public:
-        virtual bool Send(const MessagePack &rstMSG,
-                const Theron::Address &rstFromAddress, uint32_t *pRespond = nullptr)
+        virtual bool Send(const MessagePack &rstMSG, const Theron::Address &rstFromAddress,
+                const std::function<
+                void(const MessagePack&, const Theron::Address &)> &fnOperateResponse)
         {
             // for send message we only need to mark the respond flag as non-zero
             // there will be an internal allocated index for it
-            if(rstMSG.Respond() != 0){
-                m_RespondCount++;
-                auto pMSG = m_RespondMessageM.find(m_RespondCount);
-                if(pMSG != m_RespondMessageM.end()){
+
+            // 1. send it
+            bool bRet = Theron::Actor::Send(rstMSG, rstFromAddress);
+
+            // 2. if send succeed && we are requiring the response, then register the handler
+            //    we won't exam fnOperateResponse's callability here
+            if(bRet && rstMSG.Respond() != 0){
+                // TODO
+                // think about this functionality, OK when there is no waiting
+                // response? or we just use m_RespondCount++ always;
+                m_RespondCount = (m_RespondMessageRecordM.empty() ? 1 : m_RespondCount + 1);
+                auto pRecord = m_RespondMessageRecordM.find(m_RespondCount);
+                if(pRecord != m_RespondMessageRecordM.end()){
                     extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_WARNING, "response requested message overflows");
                     // TODO
                     // this function won't return;
                     g_MonoServer->Restart();
                 }
-
-                m_RespondMessageM[m_RespondCount] = rstMSG;
-                m_RespondMessageM[m_RespondCount].Respond(m_RespondCount);
+                m_RespondMessageRecordM.emplace(std::make_pair(m_RespondCount, fnOperateResponse));
             }
-
-            bool bRet = Theron::Actor::Send(rstMSG, rstFromAddress);
-            if(bRet && rstMSG.Respond() && pRespond){ *pRespond = m_RespondCount; }
-
+            // return whether we succeed
             return bRet;
         }
 };
