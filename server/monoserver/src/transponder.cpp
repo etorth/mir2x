@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.cpp
  *        Created: 04/27/2016 00:05:15
- *  Last Modified: 04/30/2016 12:59:25
+ *  Last Modified: 05/02/2016 01:03:02
  *
  *    Description: 
  *
@@ -38,7 +38,8 @@ Theron::Address Transponder::Activate()
         [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
             Operate(rstMPK, stFromAddr);
         });
-    return m_ActorPod->GetAddress();
+    m_ThisAddress = m_ActorPod->GetAddress();
+    return m_ThisAddress;
 }
 
 bool Transponder::Send(const MessagePack &rstMSG, const Theron::Address &rstFromAddress,

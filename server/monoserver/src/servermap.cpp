@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/30/2016 01:19:36
+ *  Last Modified: 05/02/2016 01:06:08
  *
  *    Description: 
  *
@@ -36,6 +36,16 @@ ServerMap::ServerMap(uint32_t nMapID)
     , m_Metronome(nullptr)
 {
     Load("./DESC.BIN");
+
+    int nGridW = (W() * SYS_MAPGRIDXP + m_RegionMonitorResolution - 1) / m_RegionMonitorResolution;
+    int nGridH = (H() * SYS_MAPGRIDYP + m_RegionMonitorResolution - 1) / m_RegionMonitorResolution;
+
+    m_RegionMonitorRecordV2D.resize(nGridH);
+    for(auto &rstRecordV: m_RegionMonitorRecordV2D){
+        rstRecordV.resize(nGridW);
+    }
+
+    CheckRegionMonitorNeed();
 }
 
 bool ServerMap::Load(const char *szMapFullName)
@@ -49,7 +59,37 @@ bool ServerMap::Load(const char *szMapFullName)
 
 void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFromAddr)
 {
-    if(!RegionMonitorReady()){ return; }
+    if(!RegionMonitorReady()){
+        if(!CheckRegionMonitorReady()){
+            size_t nGH = m_RegionMonitorRecordV2D.size();
+            size_t nGW = m_RegionMonitorRecordV2D[0].size();
+
+            for(size_t nGY = 0; nGY < nGH; ++nGY){
+                for(size_t nGX = 0; nGX < nGW; ++nGX){
+                    if(m_RegionMonitorRecordV2D[nGY][nGX].Need){
+                        auto pNewMonitor = new RegionMonitor(GetAddress());
+                        m_RegionMonitorRecordV2D[nGY][nGX].Data = pNewMonitor;
+                        m_RegionMonitorRecordV2D[nGY][nGX].PodAddress = pNewMonitor->Activate();
+                    }
+                }
+            }
+
+            for(size_t nGY = 0; nGY < nGH; ++nGY){
+                for(size_t nGX = 0; nGX < nGW; ++nGX){
+                    if(m_RegionMonitorRecordV2D[nGY][nGX].PodAddress != Theron::Address::Null()){
+                        AMRegion stAMRegion;
+                        stAMRegion.X = nGX * m_RegionMonitorResolution;
+                        stAMRegion.Y = nGY * m_RegionMonitorResolution;
+                        stAMRegion.W = m_RegionMonitorResolution;
+                        stAMRegion.H = m_RegionMonitorResolution;
+
+                        Send(MessagePack(MPK_INITREGIONMONITOR,
+                                    stAMRegion), m_RegionMonitorRecordV2D[nGY][nGX].PodAddress);
+                    }
+                }
+            }
+        }
+    }
 
     extern Log *g_Log;
     switch(rstMPK.Type()){
@@ -93,6 +133,7 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
 
                     Send(MessagePack(MPK_NEWMONSTOR, stAMNM),
                             RegionMonitorAddressP(stAMAM.X, stAMAM.Y));
+                    Send(MessagePack(MPK_OK), stFromAddr);
                 }
 
                 break;
@@ -100,9 +141,7 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
 
         case MPK_NEWMONSTOR:
             {
-                AMNewMonster stAMNM;
-                std::memcpy(&stAMNM, rstMPK.Data(), sizeof(stAMNM));
-
+                AMNewMonster stAMNM; std::memcpy(&stAMNM, rstMPK.Data(), sizeof(stAMNM)); 
                 // 1. create the monstor
                 auto pNewMonster = new Monster(stAMNM.GUID, stAMNM.UID, stAMNM.AddTime);
                 uint64_t nKey = ((uint64_t)stAMNM.UID << 32) + stAMNM.AddTime;

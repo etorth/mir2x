@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 04/30/2016 12:54:26
+ *  Last Modified: 05/02/2016 00:16:29
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -54,7 +54,7 @@ class ActorPod: public Theron::Actor
             {}
         } RespondMessageRecord;
     protected:
-        size_t m_RespondCount;
+        size_t m_ValidID;
         MessagePackOperation m_Operate;
         std::unordered_map<uint32_t, RespondMessageRecord> m_RespondMessageRecordM;
 
@@ -62,7 +62,7 @@ class ActorPod: public Theron::Actor
         explicit ActorPod(Theron::Framework *pFramework,
                 const std::function<void(const MessagePack &, const Theron::Address &)> &fnOperate)
             : Theron::Actor(*pFramework)
-            , m_RespondCount(0)
+            , m_ValidID(0)
             , m_Operate(fnOperate)
         {
             RegisterHandler(this, &ActorPod::InnHandler);
@@ -140,34 +140,41 @@ class ActorPod: public Theron::Actor
         }
 
     public:
-        virtual bool Send(const MessagePack &rstMSG, const Theron::Address &rstFromAddress,
-                const std::function<
-                void(const MessagePack&, const Theron::Address &)> &fnOperateResponse)
+        // TODO may be I need to comment it out
+        // send without exptecting a reply, ID() in rstMSG will be ignored
+        bool Send(MessagePack stMSG, const Theron::Address &rstFromAddress)
         {
-            // for send message we only need to mark the respond flag as non-zero
-            // there will be an internal allocated index for it
+            stMSG.ID(0);
+            return Theron::Actor::Send(stMSG, rstFromAddress);
+        }
 
-            // 1. send it
-            bool bRet = Theron::Actor::Send(rstMSG, rstFromAddress);
-
-            // 2. if send succeed && we are requiring the response, then register the handler
-            //    we won't exam fnOperateResponse's callability here
-            if(bRet && rstMSG.Respond() != 0){
+        // send with exptection of replying
+        // external code has no idea of what ID we'll assign for it
+        // so we need to make a copy and assign ID for it
+        bool Send(MessagePack stMSG, const Theron::Address &rstFromAddress,
+                const std::function<void(const MessagePack&, const Theron::Address &)> &fnOPR)
+        {
+            m_ValidID = (m_RespondMessageRecordM.empty() ? 1 : m_ValidID + 1);
+            auto pRecord = m_RespondMessageRecordM.find(m_ValidID);
+            if(pRecord != m_RespondMessageRecordM.end()){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "response requested message overflows");
                 // TODO
-                // think about this functionality, OK when there is no waiting
-                // response? or we just use m_RespondCount++ always;
-                m_RespondCount = (m_RespondMessageRecordM.empty() ? 1 : m_RespondCount + 1);
-                auto pRecord = m_RespondMessageRecordM.find(m_RespondCount);
-                if(pRecord != m_RespondMessageRecordM.end()){
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "response requested message overflows");
-                    // TODO
-                    // this function won't return;
-                    g_MonoServer->Restart();
-                }
-                m_RespondMessageRecordM.emplace(std::make_pair(m_RespondCount, fnOperateResponse));
+                // this function won't return;
+                g_MonoServer->Restart();
             }
-            // return whether we succeed
+
+            stMSG.ID(m_ValidID);
+
+            // 2. send it
+            bool bRet = ActorPod::Send(stMSG, rstFromAddress);
+
+            // 3. if send succeed, then register the handler of responding message
+            //    here we won't exam fnOPR's callability
+            if(bRet){
+                m_RespondMessageRecordM.emplace(std::make_pair(m_ValidID, fnOPR));
+            }
+            // 4. return whether we succeed
             return bRet;
         }
 };

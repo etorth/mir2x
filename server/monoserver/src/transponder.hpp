@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.hpp
  *        Created: 04/23/2016 10:51:19
- *  Last Modified: 04/30/2016 12:58:15
+ *  Last Modified: 05/02/2016 01:01:53
  *
  *    Description: base of actor model in mir2x, Theron::Actor acitvated at create
  *                 time so no way to control it, instead Transponder can 
@@ -44,6 +44,9 @@ class Transponder
 {
     protected:
         ActorPod    *m_ActorPod;
+        // the document of Theron says we can call GetAddress() outside of 
+        // Actor, but is that safe?
+        Theron::Address m_ThisAddress;
 
     public:
         Transponder();
@@ -54,6 +57,11 @@ class Transponder
 
     public:
         virtual Theron::Address Activate();
+
+        Theron::Address GetAddress()
+        {
+            return m_ThisAddress;
+        }
 
     public:
         // send with response operation registering

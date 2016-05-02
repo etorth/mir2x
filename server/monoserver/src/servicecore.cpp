@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 04/30/2016 00:59:25
+ *  Last Modified: 05/01/2016 23:12:33
  *
  *    Description: 
  *
@@ -56,7 +56,23 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                     LoadMap(stAMAM.MapID);
                 }
 
-                Send(rstMPK, m_MapRecordM[stAMAM.MapID].PodAddress);
+                auto fnOPR = [this, rstCopyAddr = rstAddr](
+                        const MessagePack &rstRMPK, const Theron::Address &)
+                {
+                    switch(rstRMPK.Type()){
+                        case MPK_OK:
+                            {
+                                Send(MessagePack(MPK_OK), rstCopyAddr);
+                                break;
+                            }
+                        default:
+                            {
+                                Send(MessagePack(MPK_ERROR), rstCopyAddr);
+                                break;
+                            }
+                    }
+                };
+                Send(rstMPK, m_MapRecordM[stAMAM.MapID].PodAddress, fnOPR);
                 break;
             }
         case MPK_NEWCONNECTION:
