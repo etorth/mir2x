@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 05/02/2016 00:46:05
+ *  Last Modified: 05/02/2016 22:57:36
  *
  *    Description: put all non-atomic function as private
  *
@@ -50,8 +50,10 @@ class ServerMap: public Transponder
     private:
         uint32_t m_ID;
         Theron::Address m_NullAddress;
-        bool m_RegionMonitorReady;
-        int        m_RegionMonitorResolution;
+        bool   m_RegionMonitorReady;
+        size_t m_RegionW;
+        size_t m_RegionH;
+
         Metronome *m_Metronome;
 
         Theron::Address m_CoreAddress;
@@ -121,30 +123,6 @@ class ServerMap: public Transponder
     public:
         bool DropLocation(int, int, int, int *, int *);
 
-    private:
-        // lock/unlock an area *coverd* by (nX, nY, nW, nH)
-        // return true if covered cells are all lock/unlocked, fails if nothing done
-        bool LockArea(bool bLockIt, int nX, int nY,
-                int nW = 1, int nH = 1, int nIgnoreX = -1, int nIgnoreY = -1)
-        {
-            bool bAffect = false;
-            for(int nCX = nX; nCX < nX + nW; ++nCX){
-                for(int nCY = nY; nCY < nY + nH; ++nCY){
-                    // 1. it's valid
-                    // 2. skip the grid we ask to ignore
-                    if(m_Mir2xMap.ValidC(nCX, nCY) && (nCX != nIgnoreX) && (nCY != nIgnoreY)){
-                        if(bLockIt){
-                            m_GridObjectRecordListLockV[nCY][nCX]->lock();
-                        }else{
-                            m_GridObjectRecordListLockV[nCY][nCX]->unlock();
-                        }
-                        bAffect = true;
-                    }
-                }
-            }
-            return bAffect;
-        }
-
     protected:
         // for region monitors
         typedef struct _RegionMonitorRecord {
@@ -160,7 +138,12 @@ class ServerMap: public Transponder
 
             bool Valid()
             {
-                return PodAddress != Theron::Address::Null();
+                return Data && (PodAddress != Theron::Address::Null());
+            }
+
+            bool Ready()
+            {
+                return Need ? Valid() : true;
             }
         } RegionMonitorRecord;
 
@@ -169,12 +152,15 @@ class ServerMap: public Transponder
         void CheckRegionMonitorNeed();
         bool CheckRegionMonitorReady();
 
+        void CreateRegionMonterV2D();
+
         const Theron::Address &RegionMonitorAddressP(int nX, int nY)
         {
             if(!ValidP(nX, nY)){ return m_NullAddress; }
 
-            int nGridX = nX / m_RegionMonitorResolution;
-            int nGridY = nY / m_RegionMonitorResolution;
+            int nGridX = nX / SYS_MAPGRIDXP / m_RegionW;
+            int nGridY = nY / SYS_MAPGRIDYP / m_RegionH;
+
             return m_RegionMonitorRecordV2D[nGridY][nGridX].PodAddress;
         }
 

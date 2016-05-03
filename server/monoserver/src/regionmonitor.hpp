@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 04/27/2016 00:14:02
+ *  Last Modified: 05/02/2016 22:55:05
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -40,13 +40,14 @@ class RegionMonitor: public Transponder
 
     private:
         // +---+---+---+
-        // | 0 | 1 | 2 |
+        // | 0 | 1 | 2 |     arrange it in the form:
+        // +---+---+---+        for(nDY = -1; nDY <= 1; ++nDY){
+        // | 3 | x | 4 |            for(nDX = -1; nDX <= 1; ++nDX){
+        // +---+---+---+                ....
+        // | 5 | 6 | 7 |
         // +---+---+---+
-        // | 7 | x | 3 |
-        // +---+---+---+
-        // | 6 | 5 | 4 |
-        // +---+---+---+
-        std::array<Theron::Address, 8> m_NeighborV;
+        //
+        std::array<std::array<Theron::Address, 3>, 3> m_NeighborV2D;
 
     private:
         // region it takes in charge
@@ -69,7 +70,11 @@ class RegionMonitor: public Transponder
             , m_RegionDone(false)
             , m_NeighborDone(0)
         {
-            m_NeighborV.fill(Theron::Address::Null());
+            for(size_t nY = 0; nY < 3; ++nY){
+                for(size_t nX = 0; nX < 3; ++nX){
+                    m_NeighborV2D[nY][nX] = Theron::Address::Null();
+                }
+            }
         }
 
         virtual ~RegionMonitor() = default;
