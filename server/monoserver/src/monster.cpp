@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/29/2016 23:40:36
+ *  Last Modified: 05/03/2016 15:10:07
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #include <cstdio>
 
+#include "actorpod.hpp"
 #include "monster.hpp"
 #include "mathfunc.hpp"
 #include "monoserver.hpp"
@@ -44,7 +45,7 @@ bool Monster::Update()
 
     // 1. query neighbors
     for(const auto &rstRecord: m_NeighborV){
-        Send(MessagePack(MPK_QUERYLOCATION), rstRecord.PodAddress);
+        m_ActorPod->Forward({MPK_QUERYLOCATION}, rstRecord.PodAddress);
     }
 
     // // 2. try to find target, using current info of neighbors
@@ -106,7 +107,7 @@ bool Monster::ReportMove(int nX, int nY)
     stMPKTM.X    = nX;
     stMPKTM.Y    = nY;
 
-    return Send(MessagePack(MPK_TRYMOVE, stMPKTM), m_MonitorAddress);
+    return m_ActorPod->Forward({MPK_TRYMOVE, stMPKTM}, m_MonitorAddress);
 }
 
 bool Monster::Type(uint8_t nType)
@@ -179,7 +180,7 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
                 stAMCM.X = m_CurrX;
                 stAMCM.Y = m_CurrY;
 
-                Send(MessagePack(MPK_COMMITMOVE, stAMCM), m_MonitorAddress);
+                m_ActorPod->Forward({MPK_COMMITMOVE, stAMCM}, m_MonitorAddress);
 
                 break;
             }

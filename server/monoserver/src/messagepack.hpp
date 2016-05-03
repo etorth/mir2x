@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 05/02/2016 00:09:58
+ *  Last Modified: 05/03/2016 14:23:09
  *
  *    Description: message class for actor system
  *
@@ -95,129 +95,8 @@
 #include <utility>
 #include <type_traits>
 
-enum MessagePackType: int {
-    MPK_UNKNOWN = 0,
-    MPK_OK,
-    MPK_ERROR,
-    MPK_PING,
-    MPK_LOGIN,
-    MPK_REFUSE,
-    MPK_MOVE,
-    MPK_HELLO,
-    MPK_ACTIVATE,
-    MPK_METRONOME,
-    MPK_ADDMONSTER,
-    MPK_NEWPLAYER,
-    MPK_NEWCONNECTION,
-    MPK_PLAYERPHATOM,
-    MPK_QUERYLOCATION,
-    MPK_TRYMOVE,
-    MPK_MOVEOK,
-    MPK_COMMITMOVE,
-    MPK_LOCATIION,
-    MPK_MASTERPERSONA,
-    MPK_INITREGIONMONITOR,
-    MPK_READY,
-    MPK_NEIGHBOR,
-    MPK_NEWMONSTOR,
-    MPK_LOGINOK,
-    MPK_FORWARDCM,
-};
-
-typedef struct {
-    uint32_t GUID;
-    uint32_t UID;
-    uint32_t AddTime;
-    int X;
-    int Y;
-    void *Data;
-}AMNewMonster;
-
-typedef struct {
-    int  X;
-    int  Y;
-}AMMonitorReady;
-
-typedef struct {
-    int  X;
-    int  Y;
-}AMRequestMove;
-
-typedef struct {
-    int  X;
-    int  Y;
-    int  W;
-    int  H;
-}AMRegion;
-
-typedef struct {
-    uint32_t MonsterIndex;
-    uint32_t MapID;
-
-    bool Strict;
-    int  X;
-    int  Y;
-}AMMasterPersona;
-
-typedef struct {
-    uint32_t MonsterIndex;
-    uint32_t MapID;
-    uint32_t UID;
-    uint32_t AddTime;
-
-    bool Strict;
-    int  X;
-    int  Y;
-}AMAddMonster;
-
-typedef struct {
-    void *Data;
-}AMNewPlayer;
-
-typedef struct {
-    uint32_t GUID;
-    uint32_t UID;
-    uint32_t SID;
-    uint32_t AddTime;
-    uint32_t MapID;
-    uint64_t Key;
-
-    int X;
-    int Y;
-}AMLogin;
-
-typedef struct {
-    uint32_t GUID;
-}AMPlayerPhantom;
-
-typedef struct {
-    int X;
-    int Y;
-    int OldX;
-    int OldY;
-}AMTryMove;
-
-typedef struct {
-    int X;
-    int Y;
-    int OldX;
-    int OldY;
-}AMMoveOK;
-
-typedef struct {
-    int X;
-    int Y;
-    int OldX;
-    int OldY;
-}AMCommitMove;
-
-typedef struct {
-    int X;
-    int Y;
-    int OldX;
-    int OldY;
-}AMLocation;
-
+#include "messagebuf.hpp"
+#include "actormessage.hpp"
 
 // define the actor message conveyor
 template<size_t StaticBufSize = 64>
@@ -236,23 +115,16 @@ class InnMessagePack final
         uint32_t    m_Respond;
 
     public:
-        InnMessagePack(int nMsgType = MPK_UNKNOWN)
-            : m_Type(nMsgType)
-            , m_BufLen(0)
-            , m_Buf(nullptr)
-            , m_StaticBufUsedLen(0)
-            , m_ID(0)
-            , m_Respond(0)
-        {}
-
-        // TODO, here's the reason for many bugs
-        // think about how to create a class with many ctor's
-        InnMessagePack(int nMsgType,    // message type
-                const uint8_t *pData,   // 
-                size_t nDataLen,        // 
-                uint32_t nRespond = 0)  // this message is to reply a previously received one
-            : m_Type(nMsgType)
-            , m_ID(0)
+        // TODO & TBD
+        // since we make sender to accept only MessageBuf
+        // then we make ID and Respond to be immutable and can only be set when init\ing
+        InnMessagePack(int nType = MPK_UNKNOWN, // message type
+                const uint8_t *pData = nullptr, // message buffer
+                size_t nDataLen = 0,            // message buffer length
+                uint32_t nID = 0,               // request id
+                uint32_t nRespond = 0)          // reply id
+            : m_Type(nType)
+            , m_ID(nID)
             , m_Respond(nRespond)
         {
             if(pData && nDataLen > 0){
@@ -276,13 +148,10 @@ class InnMessagePack final
             }
         }
 
-        // don't put pointer in T, this is copied by bytes
-        template <typename T>
-        InnMessagePack(int nMsgType, const T &rstPOD, uint32_t nRespond = 0)
-            : InnMessagePack(nMsgType, (const uint8_t *)&rstPOD, sizeof(rstPOD), nRespond)
-        {
-            static_assert(std::is_pod<T>::value, "POD data type supported only");
-        }
+        InnMessagePack(const MessageBuf &rstMB,
+                uint32_t nID = 0, uint32_t nRespond = 0)
+            : InnMessagePack(rstMB.Type(), rstMB.Data(), rstMB.DataLen(), nID, nRespond)
+        {}
 
         InnMessagePack(InnMessagePack &&rstMPK)
             : m_Type(rstMPK.Type())
@@ -320,10 +189,9 @@ class InnMessagePack final
         }
 
         InnMessagePack(const InnMessagePack &rstMPK)
-            : InnMessagePack(rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen(), rstMPK.Respond())
-        {
-            m_ID = rstMPK.ID();
-        }
+            : InnMessagePack(rstMPK.Type(),
+                    rstMPK.Data(), rstMPK.DataLen(), rstMPK.ID(), rstMPK.Respond())
+        {}
 
 
         ~InnMessagePack()
@@ -387,22 +255,6 @@ class InnMessagePack final
         uint32_t ID() const
         {
             return m_ID;
-        }
-
-    protected:
-        // this can only be invocated by ActorPod
-        friend class ActorPod;
-        friend class SyncDriver;
-
-        void Respond(uint32_t nRespond)
-        {
-            m_Respond = nRespond;
-        }
-
-
-        void ID(uint32_t nID)
-        {
-            m_ID = nID;
         }
 };
 

@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.hpp
  *        Created: 04/23/2016 10:51:19
- *  Last Modified: 05/02/2016 01:01:53
+ *  Last Modified: 05/03/2016 14:45:03
  *
  *    Description: base of actor model in mir2x, Theron::Actor acitvated at create
  *                 time so no way to control it, instead Transponder can 
@@ -64,12 +64,12 @@ class Transponder
         }
 
     public:
-        // send with response operation registering
-        bool Send(const MessagePack &, const Theron::Address &,
-                const std::function<void(const MessagePack &, const Theron::Address &)> &);
-        bool Send(const MessagePack &rstMSG, const Theron::Address &rstAddress)
-        {
-            std::function<void(const MessagePack &, const Theron::Address &)> fnNullOp;
-            return Send(rstMSG, rstAddress, fnNullOp);
-        }
+        // // send with response operation registering
+        // bool Send(const MessagePack &, const Theron::Address &,
+        //         const std::function<void(const MessagePack &, const Theron::Address &)> &);
+        // bool Send(const MessagePack &rstMSG, const Theron::Address &rstAddress)
+        // {
+        //     std::function<void(const MessagePack &, const Theron::Address &)> fnNullOp;
+        //     return Send(rstMSG, rstAddress, fnNullOp);
+        // }
 };

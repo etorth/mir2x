@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 04/30/2016 12:49:04
+ *  Last Modified: 05/03/2016 14:26:46
  *
  *    Description: 
  *
@@ -43,8 +43,8 @@ Theron::Address ReactObject::Activate()
     return m_ActorPod->GetAddress();
 }
 
-bool ReactObject::Send(const MessagePack &rstMSG, const Theron::Address &rstFromAddress,
-        const std::function<void(const MessagePack &, const Theron::Address &)> &fnRespondOp)
-{
-    return m_ActorPod->Send(rstMSG, rstFromAddress, fnRespondOp);
-}
+// bool ReactObject::Send(const MessageBuf &rstMB, const Theron::Address &rstFromAddress,
+//         const std::function<void(const MessagePack &, const Theron::Address &)> &fnRespondOp)
+// {
+//     return m_ActorPod->Send(rstMB, rstFromAddress, fnRespondOp);
+// }

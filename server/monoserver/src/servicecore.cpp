@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/01/2016 23:12:33
+ *  Last Modified: 05/03/2016 15:34:41
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 #include <system_error>
 
 #include "player.hpp"
+#include "actorpod.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
 #include "serverconfigurewindow.hpp"
@@ -62,17 +63,18 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                     switch(rstRMPK.Type()){
                         case MPK_OK:
                             {
-                                Send(MessagePack(MPK_OK), rstCopyAddr);
+                                m_ActorPod->Forward(MPK_OK, rstCopyAddr);
                                 break;
                             }
                         default:
                             {
-                                Send(MessagePack(MPK_ERROR), rstCopyAddr);
+                                m_ActorPod->Forward(MPK_ERROR, rstCopyAddr);
                                 break;
                             }
                     }
                 };
-                Send(rstMPK, m_MapRecordM[stAMAM.MapID].PodAddress, fnOPR);
+                m_ActorPod->Forward({rstMPK.Type(), rstMPK.Data(),
+                        rstMPK.DataLen()}, m_MapRecordM[stAMAM.MapID].PodAddress, fnOPR);
                 break;
             }
         case MPK_NEWCONNECTION:
@@ -84,7 +86,7 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                         || false){ // put all criteria to check here
                     bConnectionOK = false;
                 }
-                Send(MessagePack(bConnectionOK ? MPK_OK : MPK_REFUSE), rstAddr);
+                m_ActorPod->Forward(bConnectionOK ? MPK_OK : MPK_REFUSE, rstAddr);
                 break;
             }
         case MPK_LOGIN:
@@ -105,7 +107,7 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                 if(m_MapRecordM.find(stAML.MapID) == m_MapRecordM.end()){
                     // load map
                 }
-                Send(MessagePack(MPK_NEWPLAYER, stAMNP), m_MapRecordM[stAML.MapID].PodAddress);
+                m_ActorPod->Forward({MPK_NEWPLAYER, stAMNP}, m_MapRecordM[stAML.MapID].PodAddress);
                 break;
             }
         case MPK_PLAYERPHATOM:

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/03/2016 02:02:45
+ *  Last Modified: 05/03/2016 15:23:49
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 #include <algorithm>
 
 #include "monster.hpp"
+#include "actorpod.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
 #include "servermap.hpp"
@@ -68,7 +69,7 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
                 for(auto &rstRecordV: m_RegionMonitorRecordV2D){
                     for(auto &rstRecord: rstRecordV){
                         if(rstRecord.Valid()){
-                            Send(MessagePack(MPK_METRONOME), rstRecord.PodAddress);
+                            m_ActorPod->Forward(MPK_METRONOME, rstRecord.PodAddress);
                         }
                     }
                 }
@@ -82,7 +83,7 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
                 CheckRegionMonitorReady();
 
                 if(RegionMonitorReady()){
-                    Send(MessagePack(MPK_READY), m_CoreAddress);
+                    m_ActorPod->Forward(MPK_READY, m_CoreAddress);
                 }
                 break;
             }
@@ -116,10 +117,10 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
                     if(stAddr == Theron::Address::Null()){
                         extern MonoServer *g_MonoServer;
                         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid location for new monstor");
-                        Send(MessagePack(MPK_ERROR), stFromAddr);
+                        m_ActorPod->Forward(MPK_ERROR, stFromAddr);
                     }else{
-                        Send(MessagePack(MPK_NEWMONSTOR, stAMNM), stAddr);
-                        Send(MessagePack(MPK_OK), stFromAddr);
+                        m_ActorPod->Forward({MPK_NEWMONSTOR, stAMNM}, stAddr);
+                        m_ActorPod->Forward(MPK_OK, stFromAddr);
                     }
                 }
 
@@ -139,7 +140,7 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
                 // 3. add the pointer inside and forward this message to the monitor
                 stAMNM.Data = (void *)pNewMonster;
                 auto stAddr = RegionMonitorAddressP(stAMNM.X, stAMNM.Y);
-                Send(MessagePack(MPK_NEWMONSTOR, stAMNM), stAddr);
+                m_ActorPod->Forward({MPK_NEWMONSTOR, stAMNM}, stAddr);
 
                 break;
             }
@@ -226,8 +227,8 @@ void ServerMap::CreateRegionMonterV2D()
             stAMRegion.W = m_RegionW * SYS_MAPGRIDXP;
             stAMRegion.H = m_RegionH * SYS_MAPGRIDYP;
 
-            Send(MessagePack(MPK_INITREGIONMONITOR,
-                        stAMRegion), m_RegionMonitorRecordV2D[nGY][nGX].PodAddress);
+            m_ActorPod->Forward({MPK_INITREGIONMONITOR,
+                    stAMRegion}, m_RegionMonitorRecordV2D[nGY][nGX].PodAddress);
 
             // 2. send neighbor information
             std::vector<char> stStringAddress;
@@ -250,8 +251,8 @@ void ServerMap::CreateRegionMonterV2D()
                 }
             }
 
-            Send(MessagePack(MPK_NEIGHBOR, (const uint8_t *)&stStringAddress[0],
-                        stStringAddress.size()), m_RegionMonitorRecordV2D[nGY][nGX].PodAddress);
+            m_ActorPod->Forward({MPK_NEIGHBOR, (const uint8_t *)&stStringAddress[0],
+                        stStringAddress.size()}, m_RegionMonitorRecordV2D[nGY][nGX].PodAddress);
         }
     }
     m_RegionMonitorReady = true;

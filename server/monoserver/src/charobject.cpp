@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/29/2016 00:41:19
+ *  Last Modified: 05/03/2016 15:36:21
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 
+#include "actorpod.hpp"
 #include "monoserver.hpp"
 #include "charobject.hpp"
 #include "messagepack.hpp"
@@ -74,7 +75,7 @@ bool CharObject::RequestMove()
     stAMRM.X = nX;
     stAMRM.Y = nY;
 
-    return Send(MessagePack(MPK_MOVE, stAMRM), m_RegionMonitorAddress);
+    return m_ActorPod->Forward({MPK_MOVE, stAMRM}, m_RegionMonitorAddress);
 }
 
 void CharObject::NextLocation(int *pX, int *pY, int nDistance)

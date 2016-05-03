@@ -3,7 +3,7 @@
  *
  *       Filename: onhc.cpp
  *        Created: 02/28/2016 01:37:19
- *  Last Modified: 04/29/2016 23:31:52
+ *  Last Modified: 05/03/2016 15:25:36
  *
  *    Description: 
  *
@@ -115,7 +115,7 @@ void MonoServer::OnLogin(Session *pSession)
             stAML.GUID = pSMLoginOK->GUID;
 
             MessagePack stMPK;
-            if(Send(MessagePack(MPK_LOGIN, stAML), m_ServiceCoreAddress, &stMPK)){
+            if(Send(MessageBuf(MPK_LOGIN, stAML), m_ServiceCoreAddress, &stMPK)){
                 switch(stMPK.Type()){
                     case MPK_LOGINOK:
                         {
@@ -165,7 +165,7 @@ void MonoServer::OnForward(uint8_t nMsgHC, Session *pSession)
         szTmpBuf[0] = nMsgHC;
 
         std::memcpy(&szTmpBuf[1], pData, nLen);
-        pSession->Send(MessagePack(MPK_FORWARDCM, &szTmpBuf[0], 1 + nLen), stAddr);
+        pSession->Send(MessageBuf(MPK_FORWARDCM, (const uint8_t *)&szTmpBuf[0], 1 + nLen), stAddr);
     };
 
     pSession->Read(nSize, fnProcessForward);

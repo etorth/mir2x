@@ -3,16 +3,54 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 05/02/2016 00:16:29
+ *  Last Modified: 05/03/2016 15:09:01
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
  *
- *                 Then a server object can  plug to the actor system slot for concurrent
+ *                 Then a server object can plug to the actor system slot for concurrent
  *                 operation, but also some server objects don't need this functionality
  *
  *                 And what's more, if an object is both ServerObject and Actor, we need
  *                 MI, but I really don't want to use MI
+ *
+ *                 TODO & TBD
+ *                 The most important member function of ActorPod is Send(), but I am not
+ *                 sure how should I design this interface, two ways:
+ *
+ *                 0. bool Send(MessagePack, Address)
+ *                 1. bool Send(MessagePack, Address, Respond)
+ *                 2. bool Send(MessageType, MessageBuffer, BufferLen, Address, Respond)
+ *
+ *
+ *                 for case-0 we put Respond inside MessagePack, make it as part of the
+ *                 message, this is OK conceptually.
+ *
+ *                 Real issue is we support ``ID() / Respond()", the id is not allocated
+ *                 by the caller, but by internal logic in ActorPod. However in the view
+ *                 of the caller, it send a ``const" message, but if internal logic should
+ *                 assign ID for the message, we can
+ *                 1. append ID info to the message, then it's not ``const" conceptually
+ *                 2. Make InternalMessagePack(MessagePack), this hurt performance
+ *
+ *                 so if we just send the information to the internal logic and let it
+ *                 make the MessagePack, then we overcome the conceptual crisis, what to
+ *                 supply:
+ *                 0. this message is for responding?
+ *                 1. message type
+ *                 2. buffer of message body
+ *                 3. buffer length
+ *                 4. target actor address for sure
+ *
+ *
+ *                 I decide to use Forward() instead of Send()
+ *                 since for ActorPod, ``Forward()" is more close to its role
+ *
+ *                 and this helps to avoid the override of Theron::Actor::Send(), if you
+ *                 use using Theron::Actor::Send, then any undefined ActorPod::Send()
+ *                 will be redirect to Theron::Actor::Send() since it's a template
+ *
+ *                 Won't make Forward() virtual
  *
  *        Version: 1.0
  *       Revision: none
@@ -30,7 +68,7 @@
 #include <unordered_map>
 #include <Theron/Theron.h>
 
-#include "monoserver.hpp"
+#include "messagebuf.hpp"
 #include "messagepack.hpp"
 
 class ActorPod: public Theron::Actor
@@ -53,6 +91,7 @@ class ActorPod: public Theron::Actor
                 : RespondOperation(rstOperation)
             {}
         } RespondMessageRecord;
+
     protected:
         size_t m_ValidID;
         MessagePackOperation m_Operate;
@@ -71,110 +110,41 @@ class ActorPod: public Theron::Actor
         virtual ~ActorPod() = default;
 
     protected:
-        using Theron::Actor::Send;
-
-    protected:
-        void InnHandler(const MessagePack &rstMPK, Theron::Address stFromAddr)
-        {
-            if(rstMPK.Respond()){
-                auto pRecord = m_RespondMessageRecordM.find(rstMPK.Respond());
-                if(pRecord != m_RespondMessageRecordM.end()){
-                    // we do have an record for this message
-                    if(pRecord->second.RespondOperation){
-                        try{
-                            pRecord->second.RespondOperation(rstMPK, stFromAddr);
-                        }catch(...){
-                            extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_WARNING,
-                                    "caught exception in operating response message");
-                        }
-                    }else{
-                        extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING,
-                                "registered response operation is not callable");
-                    }
-                    m_RespondMessageRecordM.erase(pRecord);
-                }else{
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING,
-                            "no registered operation for response message found");
-                }
-                // TODO & TBD
-                // we ignore it or send it to m_Operate??? currently just dropped
-                return;
-            }
-
-            // now message are handling  not on purpose of response only
-            if(m_Operate){
-                // in theron address is recommanded to copy rather than ref, but
-                // here we use const ref when passing to m_Operate, because when
-                // calling m_Operate(), address already has a copy when executaion
-                // goes inside InnHandler(), so always there is a valid copy of
-                // address for m_Operate()
-                //
-                // if m_Operate() has any other async\ed operation upon the address
-                // inside, it should handler by itself.
-                //
-                // so there is only one copy of InnHandler() when callback invoked, and
-                // don't worry, Theron::Address is actually only a pointer so copying
-                // is really cheap
-                //
-                // for MessagePack copying, since Theron itself using const ref, so I
-                // use const ref here
-                try{
-                    m_Operate(rstMPK, stFromAddr);
-                }catch(...){
-                    // 1. assume monoserver is ready when invoking callback
-                    // 2. AddLog() is well defined in multithread environment
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception in ActorPod");
-                }
-            }else{
-                // TODO & TBD
-                // this message will show up many and many if not valid handler found
-                // extern MonoServer *g_MonoServer;
-                // g_MonoServer->AddLog(LOGTYPE_WARNING,
-                //         "registered operation for message is not callable");
-            }
-
-        }
+        void InnHandler(const MessagePack &, Theron::Address);
 
     public:
-        // TODO may be I need to comment it out
-        // send without exptecting a reply, ID() in rstMSG will be ignored
-        bool Send(MessagePack stMSG, const Theron::Address &rstFromAddress)
+        // send a responding message without asking for reply
+        bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond = 0)
         {
-            stMSG.ID(0);
-            return Theron::Actor::Send(stMSG, rstFromAddress);
+            return Theron::Actor::Send<MessagePack>({rstMB, 0, nRespond}, rstAddr);
         }
 
-        // send with exptection of replying
-        // external code has no idea of what ID we'll assign for it
-        // so we need to make a copy and assign ID for it
-        bool Send(MessagePack stMSG, const Theron::Address &rstFromAddress,
+        // send a non-responding message and exptecting a reply
+        bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr,
                 const std::function<void(const MessagePack&, const Theron::Address &)> &fnOPR)
         {
-            m_ValidID = (m_RespondMessageRecordM.empty() ? 1 : m_ValidID + 1);
-            auto pRecord = m_RespondMessageRecordM.find(m_ValidID);
-            if(pRecord != m_RespondMessageRecordM.end()){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "response requested message overflows");
-                // TODO
-                // this function won't return;
-                g_MonoServer->Restart();
-            }
+            return Forward(rstMB, rstAddr, 0, fnOPR);
+        }
 
-            stMSG.ID(m_ValidID);
+        // send a responding message and exptecting a reply
+        bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond,
+                const std::function<void(const MessagePack&, const Theron::Address &)> &fnOPR)
+        {
+            // 1. get valid ID
+            uint32_t nID = ValidID();
 
             // 2. send it
-            bool bRet = ActorPod::Send(stMSG, rstFromAddress);
+            bool bRet = Theron::Actor::Send<MessagePack>({rstMB, nID, nRespond}, rstAddr);
 
             // 3. if send succeed, then register the handler of responding message
             //    here we won't exam fnOPR's callability
             if(bRet){
-                m_RespondMessageRecordM.emplace(std::make_pair(m_ValidID, fnOPR));
+                m_RespondMessageRecordM.emplace(std::make_pair(nID, fnOPR));
             }
             // 4. return whether we succeed
             return bRet;
         }
+
+    private:
+        uint32_t ValidID();
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: sessionhub.cpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 04/29/2016 23:09:56
+ *  Last Modified: 05/03/2016 15:19:11
  *
  *    Description: 
  *
@@ -72,10 +72,9 @@ void SessionHub::Accept()
             // previously here we start the session fully
             // now instead we'll send it to the service core the get confirm or refuse
 
-            // 2. clear the catcher
-            MessagePack stMPK(MPK_NEWCONNECTION, pNewSession, 1);
+            // 2. send
             MessagePack stRetMPK;
-            int nRet = Send(stMPK, m_ServiceCoreAddress, &stRetMPK);
+            int nRet = Send({MPK_NEWCONNECTION, pNewSession}, m_ServiceCoreAddress, &stRetMPK);
 
             if(!nRet){
                 g_MonoServer->AddLog(LOGTYPE_INFO, "connection from (%s:%d) allowed",
