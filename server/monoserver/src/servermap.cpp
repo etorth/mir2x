@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/02/2016 23:02:48
+ *  Last Modified: 05/03/2016 02:02:45
  *
  *    Description: 
  *
@@ -103,11 +103,24 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
 
                     if(!RegionMonitorReady()){
                         CreateRegionMonterV2D();
+
+                        if(!RegionMonitorReady()){
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING,
+                                    "create region monitors for server map failed");
+                            g_MonoServer->Restart();
+                        }
                     }
 
-                    Send(MessagePack(MPK_NEWMONSTOR, stAMNM),
-                            RegionMonitorAddressP(stAMAM.X, stAMAM.Y));
-                    Send(MessagePack(MPK_OK), stFromAddr);
+                    auto stAddr = RegionMonitorAddressP(stAMAM.X, stAMAM.Y);
+                    if(stAddr == Theron::Address::Null()){
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid location for new monstor");
+                        Send(MessagePack(MPK_ERROR), stFromAddr);
+                    }else{
+                        Send(MessagePack(MPK_NEWMONSTOR, stAMNM), stAddr);
+                        Send(MessagePack(MPK_OK), stFromAddr);
+                    }
                 }
 
                 break;
@@ -208,10 +221,10 @@ void ServerMap::CreateRegionMonterV2D()
 
             // 1. send boundary information
             AMRegion stAMRegion;
-            stAMRegion.X = nGX * m_RegionW * SYS_MAPGRIDXP;
-            stAMRegion.Y = nGY * m_RegionH * SYS_MAPGRIDYP;
+            stAMRegion.X = m_RegionW * SYS_MAPGRIDXP * nGX;
+            stAMRegion.Y = m_RegionH * SYS_MAPGRIDYP * nGY;
             stAMRegion.W = m_RegionW * SYS_MAPGRIDXP;
-            stAMRegion.H = m_RegionW * SYS_MAPGRIDYP;
+            stAMRegion.H = m_RegionH * SYS_MAPGRIDYP;
 
             Send(MessagePack(MPK_INITREGIONMONITOR,
                         stAMRegion), m_RegionMonitorRecordV2D[nGY][nGX].PodAddress);
@@ -220,16 +233,16 @@ void ServerMap::CreateRegionMonterV2D()
             std::vector<char> stStringAddress;
             for(int nDY = -1; nDY <= 1; ++nDY){
                 for(int nDX = -1; nDX <= 1; ++nDX){
-                    if(nDX == 0 && nDY == 0){ continue; }
                     int nRMX = nGX + nDX;
                     int nRMY = nGY + nDY;
 
                     std::string szAddr;
-                    if(nRMY >= 0 && nRMY < (int)m_RegionMonitorRecordV2D.size()
-                            && nRMX >= 0 && nRMX < (int)m_RegionMonitorRecordV2D[0].size()){
+                    if(true
+                            && (nDX || nDY)
+                            && (nRMY >= 0 && nRMY < (int)m_RegionMonitorRecordV2D.size())
+                            && (nRMX >= 0 && nRMX < (int)m_RegionMonitorRecordV2D[0].size())
+                            && m_RegionMonitorRecordV2D[nRMY][nRMX].Valid()){
                         szAddr = m_RegionMonitorRecordV2D[nRMY][nRMX].PodAddress.AsString();
-                    }else{
-                        szAddr = Theron::Address::Null().AsString();
                     }
 
                     stStringAddress.insert(stStringAddress.end(), szAddr.begin(), szAddr.end());
@@ -241,4 +254,5 @@ void ServerMap::CreateRegionMonterV2D()
                         stStringAddress.size()), m_RegionMonitorRecordV2D[nGY][nGX].PodAddress);
         }
     }
+    m_RegionMonitorReady = true;
 }

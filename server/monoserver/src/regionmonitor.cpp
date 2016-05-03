@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/02/2016 22:56:36
+ *  Last Modified: 05/03/2016 01:26:45
  *
  *    Description: 
  *
@@ -59,12 +59,13 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &) 
                 char *pAddr = (char *)rstMPK.Data();
                 for(size_t nY = 0; nY < 3; ++nY){
                     for(size_t nX = 0; nX < 3; ++nX){
-                        if(nX == 1 && nY == 1){
+                        size_t nLen = std::strlen(pAddr);
+                        if(nLen == 0 || (nX == 1 && nY == 1)){
                             m_NeighborV2D[nY][nX] = Theron::Address::Null();
                         }else{
                             m_NeighborV2D[nY][nX] = Theron::Address(pAddr);
-                            pAddr += (1 + std::strlen(pAddr));
                         }
+                        pAddr += (1 + nLen);
                     }
                 }
 
