@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 05/03/2016 15:09:01
+ *  Last Modified: 05/04/2016 13:44:24
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -52,6 +52,62 @@
  *
  *                 Won't make Forward() virtual
  *
+ *
+ *                 TODO & TBD: to support trigger functionality.
+ *                 every time when class state updated, we call the trigger to check what
+ *                 should be done, for actor the only way to update state is to handle
+ *                 message, then:
+ *
+ *                 if(response message){
+ *                     check response pool;
+ *                 }else{
+ *                     call operation handler;
+ *                 }
+ *
+ *                 if(trigger registered){
+ *                     call trigger;
+ *                 }
+ *
+ *                 so the best place to put trigger is inside class ActorPod, this means
+ *                 for Transponder and ReactObject, we can't use trigger before activate
+ *                 it (actiate means call ``new ActorPod"), so we design ActorPod ctor
+ *                 as
+ *
+ *                 ActorPod(Trigger, Operation);
+ *
+ *                 to put the trigger here. Then for Transponder and ReactObject, we
+ *                 provide method to install trigger handler:
+ *
+ *                 Transponder::Install("ClearQueue", fnClearQueue);
+ *                 Transponder::Uninstall("ClearQueue");
+ *
+ *                 ReactObject::Install("ClearQueue", fnClearQueue);
+ *                 ReactObject::Uninstall("ClearQueue");
+ *
+ *                 we need a map:
+ *
+ *                      std::unordered_map<std::string, std::function<void()>
+ *
+ *                 to store all handler, install/uninstall handlers. This map can only
+ *                 be in Transponder/ReactObject, since if we put it in ActorPod, then
+ *                 before Actiate(), Transponder::m_ActorPod is nullptr, how could we
+ *                 put it in?
+ *
+ *                 After Activate(), all interaction between ActorPod *should* be via
+ *                 message, then if we insist on putting this map inside ActorPod, we
+ *                 have to call:
+ *                      m_ActorPod->Install("ClearQueue", fnClearQueue);
+ *                 this violate the rule.
+ *
+ *
+ *                 So we follow the pattern how we define m_Operate, put the virtual
+ *                 function invocation to m_Operate and m_Trigger, then Transponder,
+ *                 ReactObject define how we handle message operation, event trigger
+ *
+ *                 Drawback is we need to copy the code in Transponder and ReactObject
+ *                 to avoid MI.
+ *
+ *
  *        Version: 1.0
  *       Revision: none
  *       Compiler: gcc
@@ -95,14 +151,32 @@ class ActorPod: public Theron::Actor
     protected:
         size_t m_ValidID;
         MessagePackOperation m_Operate;
+        // TODO & TBD
+        // trigger is only for state update, so it won't accept any parameters w.r.t
+        // message or time or xxx
+        // but it will be invoked every time when message handling finished, since
+        // for actor, the only chance to update its state is via message driving.
+        std::function<void()> m_Trigger;
         std::unordered_map<uint32_t, RespondMessageRecord> m_RespondMessageRecordM;
 
     public:
+        // actor without trigger
         explicit ActorPod(Theron::Framework *pFramework,
                 const std::function<void(const MessagePack &, const Theron::Address &)> &fnOperate)
             : Theron::Actor(*pFramework)
             , m_ValidID(0)
             , m_Operate(fnOperate)
+        {
+            RegisterHandler(this, &ActorPod::InnHandler);
+        }
+
+        // actor with trigger
+        explicit ActorPod(Theron::Framework *pFramework, const std::function<void()> &fnTrigger,
+                const std::function<void(const MessagePack &, const Theron::Address &)> &fnOperate)
+            : Theron::Actor(*pFramework)
+            , m_ValidID(0)
+            , m_Operate(fnOperate)
+            , m_Trigger(fnTrigger)
         {
             RegisterHandler(this, &ActorPod::InnHandler);
         }

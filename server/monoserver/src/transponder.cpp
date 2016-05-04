@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.cpp
  *        Created: 04/27/2016 00:05:15
- *  Last Modified: 05/03/2016 14:44:56
+ *  Last Modified: 05/04/2016 13:45:08
  *
  *    Description: 
  *
@@ -34,7 +34,7 @@ Transponder::~Transponder()
 Theron::Address Transponder::Activate()
 {
     extern Theron::Framework *g_Framework;
-    m_ActorPod = new ActorPod(g_Framework,
+    m_ActorPod = new ActorPod(g_Framework, [this](){ InnTrigger(); },
         [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
             Operate(rstMPK, stFromAddr);
         });

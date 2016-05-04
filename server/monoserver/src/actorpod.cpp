@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 05/03/2016 15:03:19
+ *  Last Modified: 05/04/2016 12:20:23
  *
  *    Description: 
  *
@@ -48,7 +48,7 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, Theron::Address stFromAddr)
         }
         // TODO & TBD
         // we ignore it or send it to m_Operate??? currently just dropped
-        return;
+        goto __ACTORPOD_INNHANDLER_CALL_TRIGGER;
     }
 
     // now message are handling  not on purpose of response only
@@ -82,6 +82,12 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, Theron::Address stFromAddr)
         // extern MonoServer *g_MonoServer;
         // g_MonoServer->AddLog(LOGTYPE_WARNING,
         //         "registered operation for message is not callable");
+    }
+
+    // every time when a message caught, we call trigger
+__ACTORPOD_INNHANDLER_CALL_TRIGGER:
+    if(m_Trigger){
+        m_Trigger();
     }
 }
 

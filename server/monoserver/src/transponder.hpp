@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.hpp
  *        Created: 04/23/2016 10:51:19
- *  Last Modified: 05/03/2016 14:45:03
+ *  Last Modified: 05/04/2016 13:59:01
  *
  *    Description: base of actor model in mir2x, Theron::Actor acitvated at create
  *                 time so no way to control it, instead Transponder can 
@@ -44,9 +44,18 @@ class Transponder
 {
     protected:
         ActorPod    *m_ActorPod;
+
         // the document of Theron says we can call GetAddress() outside of 
         // Actor, but is that safe?
         Theron::Address m_ThisAddress;
+
+
+    protected:
+        // TODO & TBD
+        // use trigger here since most of the time we are traversing
+        // rather than install/uninstall trigger
+        std::vector<std::tuple<std::string, std::function<void()>> m_TriggerV;
+        // std::unordered_map<std::string, std::function<void()> m_TriggerMap;
 
     public:
         Transponder();
@@ -61,6 +70,51 @@ class Transponder
         Theron::Address GetAddress()
         {
             return m_ThisAddress;
+        }
+
+    private:
+        void InnTrigger()
+        {
+            if(!m_TriggerV.empty()){
+                for(auto &rstEle: m_TriggerV){
+                    if(std::get<1>(rstEle)){
+                        std::get<1>(rstEle)();
+                    }
+                }
+            }
+        }
+
+    public:
+        void Install(const std::string &szTriggerName, const std::function<void()> &fnTriggerOp)
+        {
+            for(auto &rstEle: m_TriggerV){
+                if(std::get<0>(rstEle) == szTriggerName){
+                    std::get<1>(rstEle) = fnTriggerOp;
+                    return;
+                }
+            }
+            m_TriggerV.emplace_back(std::make_tuple(szTriggerName, fnTriggerOp));
+        }
+
+        void Uninstall(const std::string &szTriggerName)
+        {
+            bool bFind = false;
+            for(auto &rstEle: m_TriggerV){
+                if(std::get<0>(rstEle) == szTriggerName){
+                    std::swap(retEle, m_TriggerV.back());
+                    bFind = true;
+                    break;
+                }
+            }
+
+            if(bFind){
+                m_TriggerV.pop_back();
+            }
+        }
+
+        void Uninstall()
+        {
+            m_TriggerV.clear();
         }
 
     public:
