@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/03/2016 18:50:42
+ *  Last Modified: 05/03/2016 20:59:39
  *
  *    Description: 
  *
@@ -65,77 +65,21 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
     switch(rstMPK.Type()){
         case MPK_METRONOME:
             {
-                for(auto &rstRecordV: m_RegionMonitorRecordV2D){
-                    for(auto &rstRecord: rstRecordV){
-                        if(rstRecord.Valid()){
-                            m_ActorPod->Forward(MPK_METRONOME, rstRecord.PodAddress);
-                        }
-                    }
-                }
+                On_MPK_METRONOME(rstMPK, stFromAddr);
                 break;
             }
         case MPK_REGIONMONITORREADY:
             {
-                AMRegionMonitorReady stAMMR;
-                std::memcpy(&stAMMR, rstMPK.Data(), sizeof(stAMMR));
-                m_RegionMonitorRecordV2D[stAMMR.LocY][stAMMR.LocX].CanRun = true;
-                CheckRegionMonitorReady();
-
-                // if(RegionMonitorReady()){
-                //     m_ActorPod->Forward(MPK_READY, m_CoreAddress);
-                // }
+                On_MPK_REGIONMONITORREADY(rstMPK, stFromAddr);
+                break;
+            }
+        case MPK_ADDMONSTER:
+            {
+                On_MPK_ADDMONSTER(rstMPK, stFromAddr);
                 break;
             }
 
-        case MPK_ADDMONSTER:
             {
-                AMAddMonster stAMAM;
-                std::memcpy(&stAMAM, rstMPK.Data(), sizeof(stAMAM));
-
-                if(!ValidP(stAMAM.X, stAMAM.Y) && stAMAM.Strict){
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid monster adding request");
-                }else{
-                    Monster *pNewMonster = 
-                        new Monster(stAMAM.MonsterIndex, stAMAM.UID, stAMAM.AddTime);
-                    AMNewMonster stAMNM;
-                    stAMNM.Data = pNewMonster;
-
-                    if(!RegionMonitorReady()){
-                        CreateRegionMonterV2D();
-
-                        if(!RegionMonitorReady()){
-                            extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_WARNING,
-                                    "create region monitors for server map failed");
-                            g_MonoServer->Restart();
-                        }
-                    }
-
-                    auto stAddr = RegionMonitorAddressP(stAMAM.X, stAMAM.Y);
-                    if(stAddr == Theron::Address::Null()){
-                        extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid location for new monstor");
-                        m_ActorPod->Forward(MPK_ERROR, stFromAddr,rstMPK.ID());
-                    }else{
-                        auto fnROP = [this, stFromAddr, nID = rstMPK.ID()](
-                                const MessagePack &rstRMPK, const Theron::Address &){
-                            switch(rstRMPK.Type()){
-                                case MPK_OK:
-                                    {
-                                        m_ActorPod->Forward(MPK_OK, stFromAddr, nID);
-                                        break;
-                                    }
-                                default:
-                                    {
-                                        m_ActorPod->Forward(MPK_ERROR, stFromAddr, nID);
-                                        break;
-                                    }
-                            }
-                        };
-                        m_ActorPod->Forward({MPK_NEWMONSTOR, stAMNM}, stAddr, fnROP);
-                    }
-                }
 
                 break;
             }
