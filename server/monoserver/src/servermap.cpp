@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/03/2016 15:23:49
+ *  Last Modified: 05/03/2016 16:14:07
  *
  *    Description: 
  *
@@ -117,10 +117,10 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
                     if(stAddr == Theron::Address::Null()){
                         extern MonoServer *g_MonoServer;
                         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid location for new monstor");
-                        m_ActorPod->Forward(MPK_ERROR, stFromAddr);
+                        m_ActorPod->Forward(MPK_ERROR, stFromAddr,rstMPK.ID());
                     }else{
                         m_ActorPod->Forward({MPK_NEWMONSTOR, stAMNM}, stAddr);
-                        m_ActorPod->Forward(MPK_OK, stFromAddr);
+                        m_ActorPod->Forward(MPK_OK, stFromAddr, rstMPK.ID());
                     }
                 }
 

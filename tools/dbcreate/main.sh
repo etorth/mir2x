@@ -11,4 +11,9 @@ echo '*   2. otherwise do check-and-create.              *'
 echo '*                                                  *'
 echo '****************************************************'
 
-/usr/bin/lua5.1 ./database.lua
+if [ -f /usr/bin/lua5.1 ]
+then
+    /usr/bin/lua5.1 ./database.lua
+else
+    lua ./database.lua
+fi

@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/03/2016 15:34:41
+ *  Last Modified: 05/03/2016 16:16:26
  *
  *    Description: 
  *
