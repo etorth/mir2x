@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/03/2016 22:46:53
+ *  Last Modified: 05/04/2016 00:54:35
  *
  *    Description: 
  *
@@ -89,4 +89,16 @@ void RegionMonitor::On_MPK_METRONOME(const MessagePack &, const Theron::Address 
     for(auto &rstAddress: m_CharObjectAddressL){
         m_ActorPod->Forward(MPK_METRONOME, rstAddress);
     }
+}
+
+void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rsgMPK, const Theron::Address &rstFromAddr)
+{
+    AMTryMove stMPKTM;
+    std::memcpy(&stMPKTM, rstMPK.Data(), sizeof(stMPKTM));
+
+    auto fnROP = [this](const MessagePack &rstMPK, const Theron::Address &rstAddress){
+        m_SuspendMove = false;
+    };
+
+    m_ActorPod->Forward(MPK_MOVEOK, rstFromAddr, rstMPK.ID());
 }

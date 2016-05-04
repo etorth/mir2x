@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/03/2016 22:02:08
+ *  Last Modified: 05/04/2016 00:26:58
  *
  *    Description: 
  *
@@ -31,6 +31,9 @@ Monster::Monster(uint32_t nMonsterInex, uint32_t nUID, uint32_t nAddTime)
     , m_MonitorAddress(Theron::Address::Null())
     , m_MonsterIndex(nMonsterInex)
 {
+    SetState(STATE_INCARNATED, true);
+    SetState(STATE_CANMOVE   , true);
+    SetState(STATE_WAITMOVE  , true);
 }
 
 Monster::~Monster()
