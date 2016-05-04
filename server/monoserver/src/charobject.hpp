@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/29/2016 00:45:20
+ *  Last Modified: 05/03/2016 22:37:13
  *
  *    Description: 
  *
@@ -210,7 +210,6 @@ class CharObject: public ActiveObject
         // bool    DropItem(uint32_t, uint32_t, int);
 
 
-        void    SpaceMove(int nX, int nY, ServerMap *);
         void    Die();
 
         void Move();

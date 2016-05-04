@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/03/2016 15:10:07
+ *  Last Modified: 05/03/2016 22:02:08
  *
  *    Description: 
  *
@@ -39,7 +39,7 @@ Monster::~Monster()
 bool Monster::Update()
 {
     // don't try to suiside in yourself here
-    if(!Active()){ return false; }
+    // if(!Active()){ return false; }
 
     std::printf("moster (%d, %d) is now at (%d, %d)\n", UID(), AddTime(), X(), Y());
 
@@ -161,50 +161,25 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
     switch(rstMPK.Type()){
         case MPK_METRONOME:
             {
-                Update();
+                On_MPK_METRONOME(rstMPK, rstAddress);
                 break;
             }
 
         case MPK_MOVEOK:
             {
-                AMMoveOK stMPKMOK;
-                std::memcpy(&stMPKMOK, rstMPK.Data(), sizeof(stMPKMOK));
-
-                // 1. do the move
-                m_CurrX = stMPKMOK.X;
-                m_CurrY = stMPKMOK.Y;
-                SetState(STATE_WAITMOVE, false);
-
-                // 2. commit the move to the monitor
-                AMCommitMove stAMCM;
-                stAMCM.X = m_CurrX;
-                stAMCM.Y = m_CurrY;
-
-                m_ActorPod->Forward({MPK_COMMITMOVE, stAMCM}, m_MonitorAddress);
-
+                On_MPK_MOVEOK(rstMPK, rstAddress);
                 break;
             }
 
         case MPK_LOCATIION:
             {
-                AMLocation stAML;
-                std::memcpy(&stAML, rstMPK.Data(), sizeof(stAML));
-
-                int nRange = Range(RANGE_VIEW);
-                if(LDistance2(stAML.X, stAML.Y, X(), Y()) > nRange * nRange){
-                    m_NeighborV.erase(std::remove(
-                                m_NeighborV.begin(), m_NeighborV.end(), rstAddress));
-                }else{
-                    // TODO
-                    // else we use this info to get target
-                }
+                On_MPK_LOCATIION(rstMPK, rstAddress);
                 break;
             }
 
         case MPK_MASTERPERSONA:
             {
-                AMMasterPersona stAMMP;
-                std::memcpy(&stAMMP, rstMPK.Data(), sizeof(stAMMP));
+                On_MPK_MASTERPERSONA(rstMPK, rstAddress);
                 break;
             }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/03/2016 20:16:38
+ *  Last Modified: 05/03/2016 22:49:31
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -27,6 +27,7 @@
  */
 
 #pragma once
+#include <list>
 #include <array>
 #include <cassert>
 #include <Theron/Theron.h>
@@ -35,6 +36,9 @@
 
 class RegionMonitor: public Transponder
 {
+    private:
+        std::list<Theron::Address> m_CharObjectAddressL;
+
     private:
         Theron::Address m_MapAddress;
 
@@ -88,6 +92,7 @@ class RegionMonitor: public Transponder
 
     private:
         void On_MPK_NEIGHBOR(const MessagePack &, const Theron::Address &);
-        void On_MPK_NEWMONSTOR(const MessagePack &, const Theron::Address &);
+        void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
+        void On_MPK_NEWMONSTER(const MessagePack &, const Theron::Address &);
         void On_MPK_INITREGIONMONITOR(const MessagePack &, const Theron::Address &);
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/03/2016 20:10:23
+ *  Last Modified: 05/03/2016 22:29:58
  *
  *    Description: 
  *
@@ -34,9 +34,14 @@ Theron::Address RegionMonitor::Activate()
 void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     switch(rstMPK.Type()){
-        case MPK_NEWMONSTOR:
+        case MPK_METRONOME:
             {
-                On_MPK_NEWMONSTOR(rstMPK, rstFromAddr);
+                On_MPK_METRONOME(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_NEWMONSTER:
+            {
+                On_MPK_NEWMONSTER(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_INITREGIONMONITOR:

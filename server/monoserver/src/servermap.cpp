@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/03/2016 20:59:39
+ *  Last Modified: 05/03/2016 22:42:19
  *
  *    Description: 
  *
@@ -28,6 +28,7 @@
 #include "charobject.hpp"
 #include "monoserver.hpp"
 #include "rotatecoord.hpp"
+#include "regionmonitor.hpp"
 
 ServerMap::ServerMap(uint32_t nMapID)
     : m_ID(nMapID)
@@ -59,46 +60,33 @@ bool ServerMap::Load(const char *szMapFullName)
     return true;
 }
 
-void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFromAddr)
+void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     extern Log *g_Log;
     switch(rstMPK.Type()){
+        case MPK_HI:
+            {
+                On_MPK_HI(rstMPK, rstFromAddr);
+                break;
+            }
         case MPK_METRONOME:
             {
-                On_MPK_METRONOME(rstMPK, stFromAddr);
+                On_MPK_METRONOME(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_REGIONMONITORREADY:
             {
-                On_MPK_REGIONMONITORREADY(rstMPK, stFromAddr);
+                On_MPK_REGIONMONITORREADY(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_ADDMONSTER:
             {
-                On_MPK_ADDMONSTER(rstMPK, stFromAddr);
+                On_MPK_ADDMONSTER(rstMPK, rstFromAddr);
                 break;
             }
-
+        case MPK_NEWMONSTER:
             {
-
-                break;
-            }
-
-        case MPK_NEWMONSTOR:
-            {
-                AMNewMonster stAMNM; std::memcpy(&stAMNM, rstMPK.Data(), sizeof(stAMNM)); 
-                // 1. create the monstor
-                auto pNewMonster = new Monster(stAMNM.GUID, stAMNM.UID, stAMNM.AddTime);
-                uint64_t nKey = ((uint64_t)stAMNM.UID << 32) + stAMNM.AddTime;
-
-                // 2. put it in the pool
-                m_CharObjectM[nKey] = pNewMonster;
-
-                // 3. add the pointer inside and forward this message to the monitor
-                stAMNM.Data = (void *)pNewMonster;
-                auto stAddr = RegionMonitorAddressP(stAMNM.X, stAMNM.Y);
-                m_ActorPod->Forward({MPK_NEWMONSTOR, stAMNM}, stAddr);
-
+                On_MPK_NEWMONSTER(rstMPK, rstFromAddr);
                 break;
             }
         default:

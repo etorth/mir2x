@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/03/2016 20:18:54
+ *  Last Modified: 05/03/2016 22:46:53
  *
  *    Description: 
  *
@@ -18,12 +18,21 @@
  * =====================================================================================
  */
 
+#include "monster.hpp"
 #include "actorpod.hpp"
 #include "regionmonitor.hpp"
 
-void RegionMonitor::On_MPK_NEWMONSTOR(
+void RegionMonitor::On_MPK_NEWMONSTER(
         const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
+    AMNewMonster stAMNM;
+    std::memcpy(&stAMNM, rstMPK.Data(), sizeof(stAMNM));
+
+    Monster *pNewMonster = (Monster *)stAMNM.Data;
+    // only keep the address
+    // when master want to kill it or the slave itself want to suicide
+    // it send its ``this" pointer to the master
+    m_CharObjectAddressL.push_back(pNewMonster->Activate());
     m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
 }
 
@@ -72,5 +81,12 @@ void RegionMonitor::On_MPK_NEIGHBOR(
         stReady.LocX = m_LocX;
         stReady.LocY = m_LocY;
         m_ActorPod->Forward(MessageBuf(MPK_REGIONMONITORREADY, stReady), rstFromAddr);
+    }
+}
+
+void RegionMonitor::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
+{
+    for(auto &rstAddress: m_CharObjectAddressL){
+        m_ActorPod->Forward(MPK_METRONOME, rstAddress);
     }
 }

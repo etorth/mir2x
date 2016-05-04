@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 05/03/2016 17:51:41
+ *  Last Modified: 05/03/2016 21:23:04
  *
  *    Description: message class for actor system
  *
@@ -283,7 +283,7 @@ class InnMessagePack final
                 case MPK_INITREGIONMONITOR               : return "MPK_INITREGIONMONITOR";
                 case MPK_READY                           : return "MPK_READY";
                 case MPK_NEIGHBOR                        : return "MPK_NEIGHBOR";
-                case MPK_NEWMONSTOR                      : return "MPK_NEWMONSTOR";
+                case MPK_NEWMONSTER                      : return "MPK_NEWMONSTER";
                 case MPK_LOGINOK                         : return "MPK_LOGINOK";
                 case MPK_FORWARDCM                       : return "MPK_FORWARDCM";
                 default                                  : return "MPK_????";
@@ -317,7 +317,7 @@ class InnMessagePack final
                 case MPK_INITREGIONMONITOR               : return "MPK_INITREGIONMONITOR";
                 case MPK_READY                           : return "MPK_READY";
                 case MPK_NEIGHBOR                        : return "MPK_NEIGHBOR";
-                case MPK_NEWMONSTOR                      : return "MPK_NEWMONSTOR";
+                case MPK_NEWMONSTER                      : return "MPK_NEWMONSTER";
                 case MPK_LOGINOK                         : return "MPK_LOGINOK";
                 case MPK_FORWARDCM                       : return "MPK_FORWARDCM";
                 default                                  : return "MPK_????";

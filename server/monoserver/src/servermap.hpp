@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 05/03/2016 18:47:33
+ *  Last Modified: 05/03/2016 22:38:18
  *
  *    Description: put all non-atomic function as private
  *
@@ -34,9 +34,9 @@
 #include "mir2xmap.hpp"
 #include "metronome.hpp"
 #include "transponder.hpp"
-#include "regionmonitor.hpp"
 
 class CharObject;
+class RegionMonitor;
 class ServerMap: public Transponder
 {
     private:
@@ -63,7 +63,6 @@ class ServerMap: public Transponder
 
     private:
         void Operate(const MessagePack &, const Theron::Address &);
-
 
     public:
         ServerMap(uint32_t);
@@ -170,4 +169,11 @@ class ServerMap: public Transponder
         {
             return m_RegionMonitorReady;
         }
+
+    private:
+        void On_MPK_HI(const MessagePack &, const Theron::Address &);
+        void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
+        void On_MPK_ADDMONSTER(const MessagePack &, const Theron::Address &);
+        void On_MPK_NEWMONSTER(const MessagePack &, const Theron::Address &);
+        void On_MPK_REGIONMONITORREADY(const MessagePack &, const Theron::Address &);
 };

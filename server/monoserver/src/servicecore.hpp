@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 04/30/2016 01:01:55
+ *  Last Modified: 05/03/2016 21:38:57
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include "transponder.hpp"
 
+class ServerMap;
 class ServiceCore: public Transponder
 {
     private:
@@ -61,4 +62,10 @@ class ServiceCore: public Transponder
 
     protected:
         bool LoadMap(uint32_t);
+
+    private:
+        void On_MPK_ADDMONSTER(const MessagePack &, const Theron::Address &);
+        void On_MPK_NEWCONNECTION(const MessagePack &, const Theron::Address &);
+        void On_MPK_LOGIN(const MessagePack &, const Theron::Address &);
+        void On_MPK_PLAYERPHATOM(const MessagePack &, const Theron::Address &);
 };

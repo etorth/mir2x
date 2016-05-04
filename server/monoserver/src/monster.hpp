@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/29/2016 23:40:15
+ *  Last Modified: 05/03/2016 21:55:07
  *
  *    Description: 
  *
@@ -157,6 +157,12 @@ class Monster: public CharObject
 
     public:
         bool RandomWalk();
+
+    private:
+        void On_MPK_MOVEOK(const MessagePack &, const Theron::Address &);
+        void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
+        void On_MPK_LOCATIION(const MessagePack &, const Theron::Address &);
+        void On_MPK_MASTERPERSONA(const MessagePack &, const Theron::Address &);
 
     protected:
         void Operate(const MessagePack &, const Theron::Address &);
