@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/03/2016 13:20:01
+ *  Last Modified: 05/03/2016 18:50:16
  *
  *    Description: 
  *
@@ -44,6 +44,7 @@ enum MessagePackType: int {
     MPK_MASTERPERSONA,
     MPK_INITREGIONMONITOR,
     MPK_READY,
+    MPK_REGIONMONITORREADY,
     MPK_NEIGHBOR,
     MPK_NEWMONSTOR,
     MPK_LOGINOK,
@@ -60,9 +61,9 @@ typedef struct {
 }AMNewMonster;
 
 typedef struct {
-    int  X;
-    int  Y;
-}AMMonitorReady;
+    int  LocX;
+    int  LocY;
+}AMRegionMonitorReady;
 
 typedef struct {
     int  X;
@@ -74,6 +75,8 @@ typedef struct {
     int  Y;
     int  W;
     int  H;
+    int  LocX;
+    int  LocY;
 }AMRegion;
 
 typedef struct {

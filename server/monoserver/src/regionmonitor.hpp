@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/02/2016 22:55:05
+ *  Last Modified: 05/03/2016 18:43:41
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -55,6 +55,8 @@ class RegionMonitor: public Transponder
         int     m_Y;
         int     m_W;
         int     m_H;
+        int     m_LocX;
+        int     m_LocY;
 
         bool    m_RegionDone;
         bool    m_NeighborDone;

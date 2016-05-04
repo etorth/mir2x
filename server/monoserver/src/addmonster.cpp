@@ -3,7 +3,7 @@
  *
  *       Filename: addmonster.cpp
  *        Created: 04/12/2016 19:07:52
- *  Last Modified: 05/03/2016 15:24:54
+ *  Last Modified: 05/03/2016 19:00:52
  *
  *    Description: 
  *
@@ -35,7 +35,7 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID, int nX, int 
     stAMAM.Strict       = bStrict;
 
     MessagePack stResponseMPK;
-    if(!Send(MessageBuf(MPK_ADDMONSTER, stAMAM), m_ServiceCoreAddress, &stResponseMPK)){
+    if(Send(MessageBuf(MPK_ADDMONSTER, stAMAM), m_ServiceCoreAddress, &stResponseMPK)){
         // sent and received
         AddLog(LOGTYPE_WARNING, "message sent for adding monster failed");
         return false;

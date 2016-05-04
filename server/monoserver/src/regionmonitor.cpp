@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/03/2016 15:11:37
+ *  Last Modified: 05/03/2016 18:52:22
  *
  *    Description: 
  *
@@ -31,11 +31,12 @@ Theron::Address RegionMonitor::Activate()
     return stAddr;
 }
 
-void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &) //rstFromAddr)
+void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     switch(rstMPK.Type()){
         case MPK_NEWMONSTOR:
             {
+                m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
                 break;
             }
         case MPK_INITREGIONMONITOR:
@@ -48,9 +49,15 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &) 
                 m_W = stAMRegion.W;
                 m_H = stAMRegion.H;
 
+                m_LocX = stAMRegion.LocX;
+                m_LocY = stAMRegion.LocY;
+
                 m_RegionDone = true;
                 if(m_RegionDone && m_NeighborDone){
-                    m_ActorPod->Forward(MessageBuf(MPK_READY), m_MapAddress);
+                    AMRegionMonitorReady stReady;
+                    stReady.LocX = m_LocX;
+                    stReady.LocY = m_LocY;
+                    m_ActorPod->Forward(MessageBuf(MPK_REGIONMONITORREADY, stReady), m_MapAddress);
                 }
                 break;
             }
@@ -72,7 +79,10 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &) 
 
                 m_NeighborDone = true;
                 if(m_RegionDone && m_NeighborDone){
-                    m_ActorPod->Forward(MPK_READY, m_MapAddress);
+                    AMRegionMonitorReady stReady;
+                    stReady.LocX = m_LocX;
+                    stReady.LocY = m_LocY;
+                    m_ActorPod->Forward(MessageBuf(MPK_REGIONMONITORREADY, stReady), m_MapAddress);
                 }
                 break;
             }

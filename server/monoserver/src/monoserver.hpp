@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/29/2016 23:30:08
+ *  Last Modified: 05/03/2016 17:41:12
  *
  *    Description: 
  *
@@ -68,6 +68,11 @@ class MonoServer: public SyncDriver
         std::array<NetMessageDesc, 256> m_NetMessageDescV;
 
     public:
+        const char *MessageName(uint8_t)
+        {
+            return nullptr;
+        }
+
         size_t MessageSize(uint8_t nMessageID)
         {
             return m_NetMessageDescV[nMessageID].Size;

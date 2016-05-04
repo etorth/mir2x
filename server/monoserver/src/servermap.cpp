@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/03/2016 16:14:07
+ *  Last Modified: 05/03/2016 18:50:42
  *
  *    Description: 
  *
@@ -61,7 +61,6 @@ bool ServerMap::Load(const char *szMapFullName)
 
 void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFromAddr)
 {
-
     extern Log *g_Log;
     switch(rstMPK.Type()){
         case MPK_METRONOME:
@@ -75,16 +74,16 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
                 }
                 break;
             }
-        case MPK_READY:
+        case MPK_REGIONMONITORREADY:
             {
-                AMMonitorReady stAMMR;
+                AMRegionMonitorReady stAMMR;
                 std::memcpy(&stAMMR, rstMPK.Data(), sizeof(stAMMR));
-                m_RegionMonitorRecordV2D[stAMMR.Y][stAMMR.X].PodAddress = stFromAddr;
+                m_RegionMonitorRecordV2D[stAMMR.LocY][stAMMR.LocX].CanRun = true;
                 CheckRegionMonitorReady();
 
-                if(RegionMonitorReady()){
-                    m_ActorPod->Forward(MPK_READY, m_CoreAddress);
-                }
+                // if(RegionMonitorReady()){
+                //     m_ActorPod->Forward(MPK_READY, m_CoreAddress);
+                // }
                 break;
             }
 
@@ -119,8 +118,22 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
                         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid location for new monstor");
                         m_ActorPod->Forward(MPK_ERROR, stFromAddr,rstMPK.ID());
                     }else{
-                        m_ActorPod->Forward({MPK_NEWMONSTOR, stAMNM}, stAddr);
-                        m_ActorPod->Forward(MPK_OK, stFromAddr, rstMPK.ID());
+                        auto fnROP = [this, stFromAddr, nID = rstMPK.ID()](
+                                const MessagePack &rstRMPK, const Theron::Address &){
+                            switch(rstRMPK.Type()){
+                                case MPK_OK:
+                                    {
+                                        m_ActorPod->Forward(MPK_OK, stFromAddr, nID);
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        m_ActorPod->Forward(MPK_ERROR, stFromAddr, nID);
+                                        break;
+                                    }
+                            }
+                        };
+                        m_ActorPod->Forward({MPK_NEWMONSTOR, stAMNM}, stAddr, fnROP);
                     }
                 }
 
@@ -146,7 +159,8 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &stFrom
             }
         default:
             {
-                g_Log->AddLog(LOGTYPE_WARNING, "unsupported message type: %d", rstMPK.Type());
+                g_Log->AddLog(LOGTYPE_WARNING,
+                        "unsupported message type: (%d:%s)", rstMPK.Type(), rstMPK.Name());
                 break;
             }
     }
@@ -226,6 +240,9 @@ void ServerMap::CreateRegionMonterV2D()
             stAMRegion.Y = m_RegionH * SYS_MAPGRIDYP * nGY;
             stAMRegion.W = m_RegionW * SYS_MAPGRIDXP;
             stAMRegion.H = m_RegionH * SYS_MAPGRIDYP;
+
+            stAMRegion.LocX = nGX;
+            stAMRegion.LocY = nGY;
 
             m_ActorPod->Forward({MPK_INITREGIONMONITOR,
                     stAMRegion}, m_RegionMonitorRecordV2D[nGY][nGX].PodAddress);

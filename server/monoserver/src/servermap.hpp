@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 05/03/2016 01:49:59
+ *  Last Modified: 05/03/2016 18:47:33
  *
  *    Description: put all non-atomic function as private
  *
@@ -129,11 +129,13 @@ class ServerMap: public Transponder
             RegionMonitor   *Data;
             Theron::Address  PodAddress;
             bool             Need;
+            bool             CanRun;
 
             _RegionMonitorRecord()
                 : Data(nullptr)
                 , PodAddress(Theron::Address::Null())
                 , Need(false)
+                , CanRun(false)
             {}
 
             bool Valid()
