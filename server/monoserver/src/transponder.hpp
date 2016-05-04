@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.hpp
  *        Created: 04/23/2016 10:51:19
- *  Last Modified: 05/04/2016 13:59:01
+ *  Last Modified: 05/04/2016 14:27:16
  *
  *    Description: base of actor model in mir2x, Theron::Actor acitvated at create
  *                 time so no way to control it, instead Transponder can 
@@ -22,6 +22,9 @@
  *
  *                 ReactObject is not an transponder, it's an ServerObject, because
  *                 I am trying to avoid MI.
+ *
+ *
+ *                 Trigger can be install/uninstall before / after Activate(), good
  *                 
  *        Version: 1.0
  *       Revision: none
@@ -37,6 +40,7 @@
 #pragma once
 #include <Theron/Theron.h>
 
+#include "delaycmd.hpp"
 #include "messagepack.hpp"
 
 class ActorPod;
@@ -54,8 +58,8 @@ class Transponder
         // TODO & TBD
         // use trigger here since most of the time we are traversing
         // rather than install/uninstall trigger
+        std::priority_queue<DelayCmd> m_DelayCmdQ;
         std::vector<std::tuple<std::string, std::function<void()>> m_TriggerV;
-        // std::unordered_map<std::string, std::function<void()> m_TriggerMap;
 
     public:
         Transponder();
@@ -83,6 +87,10 @@ class Transponder
                 }
             }
         }
+
+    public:
+        void Delay(uint32_t, const std::function<void()> &);
+
 
     public:
         void Install(const std::string &szTriggerName, const std::function<void()> &fnTriggerOp)
