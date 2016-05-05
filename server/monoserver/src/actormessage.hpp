@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/03/2016 22:14:20
+ *  Last Modified: 05/04/2016 22:31:34
  *
  *    Description: 
  *
@@ -121,10 +121,14 @@ typedef struct {
 }AMPlayerPhantom;
 
 typedef struct {
+    uint8_t    Type;
+    uint32_t   UID;
+    uint32_t   AddTime;
+    void      *Data;
+
     int X;
     int Y;
-    int OldX;
-    int OldY;
+    int R;
 }AMTryMove;
 
 typedef struct {

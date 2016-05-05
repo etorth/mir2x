@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/04/2016 17:18:43
- *  Last Modified: 05/04/2016 17:22:19
+ *  Last Modified: 05/04/2016 22:59:43
  *
  *    Description: 
  *
@@ -17,16 +17,20 @@
  *
  * =====================================================================================
  */
-
+#include "actorpod.hpp"
 #include "regionmonitor.hpp"
 
+// for broadcast move request, it won't be handled here
+// this is for the ``main" region waiting for response from its neighbors
 void RegionMonitor::For_MoveRequest()
 {
     if(!m_MoveRequest.Valid()){ return; }
+    if(!m_MoveRequest.In){ return; }
 
     for(size_t nY = 0; nY < 3; ++nY){
         for(size_t nX = 0; nX < 3; ++nX){
-            if(m_NeighborV2D[nY][nX].Query == false){
+            if(m_NeighborV2D[nY][nX].Query == -1){
+                // unfinished
                 return;
             }
         }

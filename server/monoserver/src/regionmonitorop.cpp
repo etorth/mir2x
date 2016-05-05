@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/04/2016 18:58:32
+ *  Last Modified: 05/04/2016 22:47:57
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #include "monster.hpp"
 #include "actorpod.hpp"
+#include "reactobject.hpp"
 #include "regionmonitor.hpp"
 
 void RegionMonitor::On_MPK_NEWMONSTER(
@@ -41,7 +42,7 @@ void RegionMonitor::On_MPK_NEWMONSTER(
         m_MoveRequest.UID = stAMNM.UID;
         m_MoveRequest.AddTime = stAMNM.AddTime;
         m_MoveRequest.Data = stAMNM.Data;
-        m_MoveRequest.ID = rstMPK.ID();
+        m_MoveRequest.MPKID = rstMPK.ID();
         m_MoveRequest.PodAddress = rstFromAddr;
 
         // 2. do move request
@@ -80,9 +81,9 @@ void RegionMonitor::On_MPK_NEIGHBOR(
         for(size_t nX = 0; nX < 3; ++nX){
             size_t nLen = std::strlen(pAddr);
             if(nLen == 0 || (nX == 1 && nY == 1)){
-                m_NeighborV2D[nY][nX] = Theron::Address::Null();
+                m_NeighborV2D[nY][nX].PodAddress = Theron::Address::Null();
             }else{
-                m_NeighborV2D[nY][nX] = Theron::Address(pAddr);
+                m_NeighborV2D[nY][nX].PodAddress = Theron::Address(pAddr);
             }
             pAddr += (1 + nLen);
         }
@@ -99,8 +100,8 @@ void RegionMonitor::On_MPK_NEIGHBOR(
 
 void RegionMonitor::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
-    for(auto &rstAddress: m_CharObjectAddressL){
-        m_ActorPod->Forward(MPK_METRONOME, rstAddress);
+    for(auto &rstRecord: m_CharObjectRecordV){
+        m_ActorPod->Forward(MPK_METRONOME, rstRecord.PodAddress);
     }
 }
 
@@ -109,52 +110,22 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
     AMTryMove stAMTM;
     std::memcpy(&stAMTM, rstMPK.Data(), sizeof(stAMTM));
 
-    // someone else is requesting move
-    if(!m_MoveRequest.Valid()){
+    if(m_MoveRequest.Valid()){
+        // ooops someone else is doing move request
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-        return;
-    }
+    }else{
+        // 1. prepare m_MoveRequest
+        m_MoveRequest.Type = OBJECT_UNKNOWN;
+        m_MoveRequest.UID = stAMTM.UID;
+        m_MoveRequest.AddTime = stAMTM.AddTime;
+        m_MoveRequest.Data = stAMTM.Data;
+        m_MoveRequest.MPKID = rstMPK.ID();
+        m_MoveRequest.X = stAMTM.X;
+        m_MoveRequest.Y = stAMTM.Y;
+        m_MoveRequest.R = stAMTM.R;
+        m_MoveRequest.PodAddress = rstFromAddr;
 
-    // 1. ok you take the opportunity to move
-    m_MoveRequest.ID = rstMPK.ID();
-    m_MoveRequest.PodAddress = rstFromAddr;
-
-    // 2. check collision with others
-    for(auto &rstRecord: m_CharObjectRecordV){
-        if(CircleOverlap(stAMTM.X, stAMTM.Y, stAMTM.R, rstRecord.X, rstRecord.Y, rstRecord.R)){
-            m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-            return;
-        }
-    }
-
-    // 3. need to query neighbors?
-    if(RectInside(m_X, m_Y, m_W, m_H,
-                stAMTM.X - stAMTM.R, stAMTM.Y - stAMTM.R, stAMTM.R * 2, stAMTM.R * 2)){
-        // no need
-        m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
-        return;
-    }
-
-    // 4. ok we have to query neighbors
-    for(size_t nY = 0; nY < 3; ++nY){
-        for(size_t nX = 0; nX < 3; ++nX){
-            if(false
-                    || (nX == 1 && nY == 1)
-                    || m_NeighborV2D[nY][nX] == Theron::Address::Null()){
-                m_NeighborV2D[nY][nX].Query = true;
-                continue;
-            }
-            m_NeighborV2D[nY][nX].Query = false;
-
-            int nNeighborX = ((int)nX - 1) * m_W + m_X;
-            int nNeighborY = ((int)nY - 1) * m_H + m_Y;
-
-            if(RectangleOverlap(nNeighborX, nNeighborY, m_W, m_H, m_X, m_Y, m_W, m_H)){
-                auto fnROP = [this, nX, nY](const MessagePack &rstRMPK, const Theron::Address &){
-                    m_NeighborV2D[nY][nX].Query = (rstRMPK.Type() == MPK_OK);
-                };
-                m_ActorPod->Forward(rstMPK, m_NeighborV2D[nY][nX].PodAddress, fnROP);
-            }
-        }
+        // 2. do move request
+        DoMoveRequest();
     }
 }

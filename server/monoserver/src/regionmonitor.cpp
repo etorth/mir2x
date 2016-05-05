@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/04/2016 19:04:30
+ *  Last Modified: 05/04/2016 22:52:11
  *
  *    Description: 
  *
@@ -18,9 +18,10 @@
  * =====================================================================================
  */
 
+#include "mathfunc.hpp"
 #include "actorpod.hpp"
-#include "regionmonitor.hpp"
 #include "monoserver.hpp"
+#include "regionmonitor.hpp"
 
 Theron::Address RegionMonitor::Activate()
 {
@@ -74,17 +75,43 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
 // w.r.t the MessagePack
 //
 // Input:   m_MoveRequest
-// Output:  none
+// Output:  response no matter succeed or failed
 //
 // try to keep it simple, if someone else is moving, just reject this
 // request, you can check the moving object and make sure this moving
 // object won't cause collision, but that adds complexity
+//
+// HOWO:
+// when got MPK_ADDMONSTOR, MPK_ADDPLAYER, or MPK_TRYMOVE in the
+// region monitor, monitor will check whether the corresponding object
+// is in current region, if not, it just check object collosion and
+// ground validation, and respond the ``main" region ERROR or OK
+//
+// if it's in current region, it checks object collision, ground
+// validation, and broadcast this moving request to all its qualified 
+// neighbors.
+//
+// for ADDMSTER, if current monster is not activated, then where you
+// create where you delete it, if activated, just kill it by its master
+// actor.
 void RegionMonitor::DoMoveRequest()
 {
-    // 1. will I collide with any one in current region?
+    bool bMoveOK = false;
+    // 1. check if the ground is OK for current moving request
+    //    no collision check between objects here
+    if(!GroundValid(m_MoveRequest.X, m_MoveRequest.Y, m_MoveRequest.R)){
+        bMoveOK = false;
+        goto __REGIONMONITOR_DOMOVEREQUEST_DONE_1;
+    }
+
+    // 2. will I collide with any one in current region?
     for(auto &rstRecord: m_CharObjectRecordV){
         if(!m_MoveRequest.Data){
             // this is a moving for an existing object
+            //
+            // no matter the region that the monster is in, or
+            // neighbor region, this check is always OK, since
+            // (UID, AddTime) is unique
             if(true
                     && rstRecord.UID == m_MoveRequest.UID
                     && rstRecord.AddTime == m_MoveRequest.AddTime){
@@ -92,26 +119,42 @@ void RegionMonitor::DoMoveRequest()
             }
         }
 
-        if(CircleOverlap(stAMNM.X, stAMNM.Y, stAMNM.R, rstRecord.X, rstRecord.Y, rstRecord.R)){
-            goto __REGIONMONITOR_ADDNEWMONSITER_FAIL_1;
+        if(CircleOverlap(rstRecord.X, rstRecord.Y, rstRecord.R, 
+                    m_MoveRequest.X, m_MoveRequest.Y, m_MoveRequest.R)){
+            bMoveOK = false;
+            goto __REGIONMONITOR_DOMOVEREQUEST_DONE_1;
         }
     }
 
-    // 2. am I in current region only?
+    // 3. is this a moving request by broadcast?
+    //    we need to test this moving request happens in current region
+    //    since region monitor will broadcast moving request among its neighbors
+    if(!PointInRectangle(m_MoveRequest.X, m_MoveRequest.Y, m_X, m_Y, m_W, m_H)){
+        // via broadcast, OK we are all-set
+        // reply to the regioin hoding the moving object
+        bMoveOK = true;
+        goto __REGIONMONITOR_DOMOVEREQUEST_DONE_1;
+    }
+
+    // 4. I am in current region
+    //    check if I am only in current region?
     if(RectangleInside(m_X, m_Y, m_W, m_H,
-                stAMNM.X - stAMNM.R, stAMNM.Y - stAMNM.R, stAMNM.R * 2, stAMNM.R * 2)){
-        // ok we are all set
-        if(rstMPK.ID()){
-            m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
-        }
-        return;
+                m_MoveRequest.X - m_MoveRequest.R,
+                m_MoveRequest.Y - m_MoveRequest.R,
+                2 * m_MoveRequest.R,
+                2 * m_MoveRequest.R)){
+        // yes only in current region
+        // all-set
+        bMoveOK = true;
+        goto __REGIONMONITOR_DOMOVEREQUEST_DONE_1;
     }
 
-    // 3. ooops we need to check neighbors
+    // 5. OK I am in current region and cover some neighbor-regions
+    //    need to check neighbors
     for(size_t nY = 0; nY < 3; ++nY){
         for(size_t nX = 0; nX < 3; ++nX){
             if(nX == 1 && nY == 1){
-                m_NeighborV2D[nY][nX].Query = true;
+                m_NeighborV2D[nY][nX].Query = 1;
                 continue;
             }
 
@@ -121,7 +164,8 @@ void RegionMonitor::DoMoveRequest()
             if(RectangleOverlap(nNeighborX, nNeighborY, m_W, m_H, m_X, m_Y, m_W, m_H)){
                 if(!m_NeighborV2D[nY][nX].Valid()){
                     // ok this neighbor is not valid to hold any objects
-                    goto __REGIONMONITOR_ADDNEWMONSITER_FAIL_1;
+                    bMoveOK = false;
+                    goto __REGIONMONITOR_DOMOVEREQUEST_DONE_1;
                 }
 
                 // we need to ask for opinion from this neighbor
@@ -129,20 +173,33 @@ void RegionMonitor::DoMoveRequest()
                 auto fnROP = [this, nX, nY](const MessagePack &rstRMPK, const Theron::Address &){
                     m_NeighborV2D[nY][nX].Query = (rstRMPK.Type() == MPK_OK ? 1 : 0);
                 };
-                m_ActorPod->Forward(rstMPK, m_NeighborV2D[nY][nX].PodAddress, fnROP);
+
+                AMTryMove stAMTM;
+                stAMTM.X       = m_MoveRequest.X;
+                stAMTM.Y       = m_MoveRequest.Y;
+                stAMTM.R       = m_MoveRequest.R;
+                stAMTM.UID     = m_MoveRequest.UID;
+                stAMTM.AddTime = m_MoveRequest.AddTime;
+
+                m_ActorPod->Forward({MPK_MOVE, stAMTM}, m_NeighborV2D[nY][nX].PodAddress, fnROP);
+            }else{
+                m_NeighborV2D[nY][nX].Query = 1;
             }
-
-            m_CharObjectAddressL.push_back(pNewMonster->Activate());
-            m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
-
-
         }
     }
 
-__REGIONMONITOR_ADDNEWMONSITER_FAIL_1:
-    if(rstMPK.ID()){
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-    }else{
-        delete pNewMonster;
-    }
+    // 6. I have sent query to all my qualified neighbors, I'm done
+    return;
+
+__REGIONMONITOR_DOMOVEREQUEST_DONE_1:
+    auto fnROP = [this](const MessagePack &, const Theron::Address &){
+        m_MoveRequest.Clear();
+    };
+    m_ActorPod->Forward((bMoveOK ? MPK_OK : MPK_ERROR),
+            m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
+}
+
+bool RegionMonitor::GroundValid(int, int, int)
+{
+    return true;
 }

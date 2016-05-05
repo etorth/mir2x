@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/04/2016 17:50:43
+ *  Last Modified: 05/04/2016 22:49:33
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -34,28 +34,48 @@
 #include <Theron/Theron.h>
 
 #include "transponder.hpp"
+#include "activeobject.hpp"
 
 class RegionMonitor: public Transponder
 {
     private:
         typedef struct _MoveRequest{
-            uint32_t ID;
-            Theron::Address PodAddress;
+            void           *Data;           // used when adding new object
+
+            uint8_t         Type;           // object type
+            uint32_t        UID;
+            uint32_t        AddTime;
+            uint32_t        MPKID;          // MessagePack::ID() for response
+
+            int             X;
+            int             Y;
+            int             R;
+
+            Theron::Address PodAddress;     // address for response
 
             _MoveRequest()
-                : ID(0)
+                : Data(nullptr)
+                , Type(OBJECT_UNKNOWN)
+                , UID(0)
+                , AddTime(0)
+                , MPKID(0)
+                , X(0)
+                , Y(0)
+                , R(0)
                 , PodAddress(Theron::Address::Null())
             {}
 
+            // means this record contains a valid record
+            // maybe existing moving obj, or new obj for place
             bool Valid()
             {
-                return ID != 0 && PodAddress != Theron::Address::Null();
+                return UID != 0 && AddTime != 0;
             }
 
             void Clear()
             {
-                ID = 0;
-                PodAddress = Theron::Address::Null();
+                UID = 0;
+                AddTime = 0;
             }
         }MoveRequest;
 
@@ -65,6 +85,7 @@ class RegionMonitor: public Transponder
 
             int X;
             int Y;
+            int R;
 
             Theron::Address PodAddress;
         }CharObjectRecord;
@@ -87,7 +108,21 @@ class RegionMonitor: public Transponder
         // | 5 | 6 | 7 |      }
         // +---+---+---+
         //
-        std::array<std::array<Theron::Address, 3>, 3> m_NeighborV2D;
+        typedef struct _NeighborRecord{
+            int Query;
+            Theron::Address PodAddress;
+
+            _NeighborRecord()
+                : Query(-1)
+                , PodAddress(Theron::Address::Null())
+            {}
+
+            bool Valid()
+            {
+                return PodAddress != Theron::Address::Null();
+            }
+        }NeighborRecord;
+        std::array<std::array<NeighborRecord, 3>, 3> m_NeighborV2D;
 
     private:
         // region it takes in charge
@@ -113,17 +148,14 @@ class RegionMonitor: public Transponder
             , m_RegionDone(false)
             , m_NeighborDone(false)
         {
-            for(size_t nY = 0; nY < 3; ++nY){
-                for(size_t nX = 0; nX < 3; ++nX){
-                    m_NeighborV2D[nY][nX] = Theron::Address::Null();
-                }
-            }
-
             Install("Update", [this](){ For_Update(); });
             Install("MoveRequest", [this](){ For_MoveRequest(); });
         }
 
         virtual ~RegionMonitor() = default;
+
+    protected:
+        void DoMoveRequest();
 
     public:
         Theron::Address Activate();
@@ -135,6 +167,9 @@ class RegionMonitor: public Transponder
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWMONSTER(const MessagePack &, const Theron::Address &);
         void On_MPK_INITREGIONMONITOR(const MessagePack &, const Theron::Address &);
+
+    private:
+        bool GroundValid(int, int, int);
 
     private:
         void For_Update();

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/04/2016 00:26:58
+ *  Last Modified: 05/04/2016 22:34:43
  *
  *    Description: 
  *
@@ -105,10 +105,8 @@ bool Monster::RandomWalk()
 bool Monster::ReportMove(int nX, int nY)
 {
     AMTryMove stMPKTM;
-    stMPKTM.OldX = X();
-    stMPKTM.OldY = Y();
-    stMPKTM.X    = nX;
-    stMPKTM.Y    = nY;
+    stMPKTM.X = nX;
+    stMPKTM.Y = nY;
 
     return m_ActorPod->Forward({MPK_TRYMOVE, stMPKTM}, m_MonitorAddress);
 }

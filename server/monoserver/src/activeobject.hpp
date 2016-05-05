@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/11/2016 19:54:41
- *  Last Modified: 04/29/2016 18:13:37
+ *  Last Modified: 05/04/2016 21:08:17
  *
  *    Description: object with Type()/Mode()/State()
  *
@@ -45,6 +45,7 @@
 //
 
 enum ObjectType: uint8_t{
+    OBJECT_UNKNOWN,
     OBJECT_HUMAN,
     OBJECT_PLAYER,
     OBJECT_NPC,
