@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/03/2016 22:49:31
+ *  Last Modified: 05/04/2016 17:50:43
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -30,6 +30,7 @@
 #include <list>
 #include <array>
 #include <cassert>
+#include <cstdint>
 #include <Theron/Theron.h>
 
 #include "transponder.hpp"
@@ -37,7 +38,42 @@
 class RegionMonitor: public Transponder
 {
     private:
-        std::list<Theron::Address> m_CharObjectAddressL;
+        typedef struct _MoveRequest{
+            uint32_t ID;
+            Theron::Address PodAddress;
+
+            _MoveRequest()
+                : ID(0)
+                , PodAddress(Theron::Address::Null())
+            {}
+
+            bool Valid()
+            {
+                return ID != 0 && PodAddress != Theron::Address::Null();
+            }
+
+            void Clear()
+            {
+                ID = 0;
+                PodAddress = Theron::Address::Null();
+            }
+        }MoveRequest;
+
+        typedef struct _CharObjectRecord{
+            uint32_t UID;
+            uint32_t AddTime;
+
+            int X;
+            int Y;
+
+            Theron::Address PodAddress;
+        }CharObjectRecord;
+
+    protected:
+        MoveRequest m_MoveRequest;
+
+    private:
+        std::vector<CharObjectRecord> m_CharObjectRecordV;
 
     private:
         Theron::Address m_MapAddress;
@@ -82,6 +118,9 @@ class RegionMonitor: public Transponder
                     m_NeighborV2D[nY][nX] = Theron::Address::Null();
                 }
             }
+
+            Install("Update", [this](){ For_Update(); });
+            Install("MoveRequest", [this](){ For_MoveRequest(); });
         }
 
         virtual ~RegionMonitor() = default;
@@ -91,8 +130,13 @@ class RegionMonitor: public Transponder
         void Operate(const MessagePack &, const Theron::Address &);
 
     private:
+        void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_NEIGHBOR(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWMONSTER(const MessagePack &, const Theron::Address &);
         void On_MPK_INITREGIONMONITOR(const MessagePack &, const Theron::Address &);
+
+    private:
+        void For_Update();
+        void For_MoveRequest();
 };

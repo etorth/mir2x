@@ -3,7 +3,7 @@
  *
  *       Filename: delaycmd.hpp
  *        Created: 05/04/2016 14:13:04
- *  Last Modified: 05/04/2016 14:23:24
+ *  Last Modified: 05/04/2016 17:31:22
  *
  *    Description: 
  *
@@ -33,7 +33,7 @@ class DelayCmd
             , m_Cmd(fnCmd)
         {}
 
-        void operator () ()
+        void operator () () const
         {
             if(m_Cmd){
                 m_Cmd();
@@ -41,8 +41,18 @@ class DelayCmd
         }
 
         // a < b means b is more ``urgent"
-        bool operator < (const DelayCmd &rstCmd)
+        bool operator < (const DelayCmd &rstCmd) const
         {
             return m_Tick > rstCmd.m_Tick;
+        }
+
+        uint32_t Tick()
+        {
+            return m_Tick;
+        }
+
+        uint32_t Tick() const
+        {
+            return m_Tick;
         }
 };

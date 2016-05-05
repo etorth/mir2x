@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.cpp
  *        Created: 04/27/2016 00:05:15
- *  Last Modified: 05/04/2016 14:35:53
+ *  Last Modified: 05/04/2016 17:31:45
  *
  *    Description: 
  *
@@ -26,7 +26,7 @@ Transponder::Transponder()
     : m_ActorPod(nullptr)
 {
     auto fnDelayCmdQueue = [this](){
-        if(!m_DelayCmdQ.empty){
+        if(!m_DelayCmdQ.empty()){
             extern MonoServer *g_MonoServer;
             if(m_DelayCmdQ.top().Tick() >= g_MonoServer->GetTickCount()){
                 try{
@@ -57,7 +57,7 @@ Theron::Address Transponder::Activate()
     return m_ThisAddress;
 }
 
-Transponder::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
+void Transponder::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
 {
     extern MonoServer *g_MonoServer;
     m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTickCount(), fnCmd);

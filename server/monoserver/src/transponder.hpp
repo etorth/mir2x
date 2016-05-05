@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.hpp
  *        Created: 04/23/2016 10:51:19
- *  Last Modified: 05/04/2016 14:27:16
+ *  Last Modified: 05/04/2016 17:32:34
  *
  *    Description: base of actor model in mir2x, Theron::Actor acitvated at create
  *                 time so no way to control it, instead Transponder can 
@@ -38,6 +38,11 @@
  */
 
 #pragma once
+#include <queue>
+#include <vector>
+#include <utility>
+#include <functional>
+
 #include <Theron/Theron.h>
 
 #include "delaycmd.hpp"
@@ -59,7 +64,7 @@ class Transponder
         // use trigger here since most of the time we are traversing
         // rather than install/uninstall trigger
         std::priority_queue<DelayCmd> m_DelayCmdQ;
-        std::vector<std::tuple<std::string, std::function<void()>> m_TriggerV;
+        std::vector<std::tuple<std::string, std::function<void()>>> m_TriggerV;
 
     public:
         Transponder();
@@ -109,7 +114,7 @@ class Transponder
             bool bFind = false;
             for(auto &rstEle: m_TriggerV){
                 if(std::get<0>(rstEle) == szTriggerName){
-                    std::swap(retEle, m_TriggerV.back());
+                    std::swap(rstEle, m_TriggerV.back());
                     bFind = true;
                     break;
                 }
