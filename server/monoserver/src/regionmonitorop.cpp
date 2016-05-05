@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/04/2016 22:47:57
+ *  Last Modified: 05/05/2016 01:30:41
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 
 #include "monster.hpp"
+#include "mathfunc.hpp"
 #include "actorpod.hpp"
 #include "reactobject.hpp"
 #include "regionmonitor.hpp"
@@ -31,11 +32,8 @@ void RegionMonitor::On_MPK_NEWMONSTER(
 
     if(m_MoveRequest.Valid()){
         // ooops someone else is doing move request
-        if(rstMPK.ID()){
-            m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-        }else{
-            delete (Monster *)stAMNM.Data;
-        }
+        // for move request, we should respond
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
     }else{
         // 1. prepare m_MoveRequest
         m_MoveRequest.Type = OBJECT_MONSTER;
@@ -44,6 +42,7 @@ void RegionMonitor::On_MPK_NEWMONSTER(
         m_MoveRequest.Data = stAMNM.Data;
         m_MoveRequest.MPKID = rstMPK.ID();
         m_MoveRequest.PodAddress = rstFromAddr;
+        m_MoveRequest.In = PointInRectangle(stAMNM.X, stAMNM.Y, m_X, m_Y, m_W, m_H);
 
         // 2. do move request
         DoMoveRequest();
@@ -124,6 +123,7 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
         m_MoveRequest.Y = stAMTM.Y;
         m_MoveRequest.R = stAMTM.R;
         m_MoveRequest.PodAddress = rstFromAddr;
+        m_MoveRequest.In = PointInRectangle(stAMTM.X, stAMTM.Y, m_X, m_Y, m_W, m_H);
 
         // 2. do move request
         DoMoveRequest();

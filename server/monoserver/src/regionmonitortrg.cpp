@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/04/2016 17:18:43
- *  Last Modified: 05/04/2016 22:59:43
+ *  Last Modified: 05/05/2016 01:31:18
  *
  *    Description: 
  *
@@ -36,5 +36,5 @@ void RegionMonitor::For_MoveRequest()
         }
     }
 
-    m_ActorPod->Forward(MPK_ERROR, m_MoveRequest.PodAddress, m_MoveRequest.ID);
+    m_ActorPod->Forward(MPK_ERROR, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
 }

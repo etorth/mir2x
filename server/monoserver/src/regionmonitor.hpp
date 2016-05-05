@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/04/2016 22:49:33
+ *  Last Modified: 05/05/2016 01:33:26
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -40,16 +40,17 @@ class RegionMonitor: public Transponder
 {
     private:
         typedef struct _MoveRequest{
-            void           *Data;           // used when adding new object
+            void       *Data;           // used when adding new object
 
-            uint8_t         Type;           // object type
-            uint32_t        UID;
-            uint32_t        AddTime;
-            uint32_t        MPKID;          // MessagePack::ID() for response
+            uint8_t     Type;           // object type
+            uint32_t    UID;
+            uint32_t    AddTime;
+            uint32_t    MPKID;          // MessagePack::ID() for response
 
-            int             X;
-            int             Y;
-            int             R;
+            int     X;
+            int     Y;
+            int     R;
+            bool    In;
 
             Theron::Address PodAddress;     // address for response
 
@@ -62,6 +63,7 @@ class RegionMonitor: public Transponder
                 , X(0)
                 , Y(0)
                 , R(0)
+                , In(false)
                 , PodAddress(Theron::Address::Null())
             {}
 
@@ -148,7 +150,7 @@ class RegionMonitor: public Transponder
             , m_RegionDone(false)
             , m_NeighborDone(false)
         {
-            Install("Update", [this](){ For_Update(); });
+            // Install("Update", [this](){ For_Update(); });
             Install("MoveRequest", [this](){ For_MoveRequest(); });
         }
 
