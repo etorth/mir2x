@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/05/2016 01:30:41
+ *  Last Modified: 05/05/2016 11:54:32
  *
  *    Description: 
  *
@@ -124,6 +124,7 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
         m_MoveRequest.R = stAMTM.R;
         m_MoveRequest.PodAddress = rstFromAddr;
         m_MoveRequest.In = PointInRectangle(stAMTM.X, stAMTM.Y, m_X, m_Y, m_W, m_H);
+        m_MoveRequest.CurrIn = PointInRectangle(stAMTM.CurrX, stAMTM.CurrY, m_X, m_Y, m_W, m_H);
 
         // 2. do move request
         DoMoveRequest();

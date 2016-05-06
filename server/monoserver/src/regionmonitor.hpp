@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/05/2016 01:33:26
+ *  Last Modified: 05/05/2016 11:57:50
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -47,10 +47,13 @@ class RegionMonitor: public Transponder
             uint32_t    AddTime;
             uint32_t    MPKID;          // MessagePack::ID() for response
 
+            int     CurrX;
+            int     CurrY;
             int     X;
             int     Y;
             int     R;
             bool    In;
+            bool    CurrIn;
 
             Theron::Address PodAddress;     // address for response
 
@@ -60,10 +63,13 @@ class RegionMonitor: public Transponder
                 , UID(0)
                 , AddTime(0)
                 , MPKID(0)
+                , CurrX(0)
+                , CurrY(0)
                 , X(0)
                 , Y(0)
                 , R(0)
                 , In(false)
+                , CurrIn(false)
                 , PodAddress(Theron::Address::Null())
             {}
 
@@ -90,6 +96,15 @@ class RegionMonitor: public Transponder
             int R;
 
             Theron::Address PodAddress;
+
+            _CharObjectRecord()
+                : UID(0)
+                , AddTime(0)
+                , X(0)
+                , Y(0)
+                , R(0)
+                , PodAddress(Theron::Address::Null())
+            {}
         }CharObjectRecord;
 
     protected:
@@ -150,6 +165,8 @@ class RegionMonitor: public Transponder
             , m_RegionDone(false)
             , m_NeighborDone(false)
         {
+            // in transponder we alreay put ``DelayQueue" trigger inside
+            //
             // Install("Update", [this](){ For_Update(); });
             Install("MoveRequest", [this](){ For_MoveRequest(); });
         }

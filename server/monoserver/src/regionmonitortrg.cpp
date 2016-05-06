@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/04/2016 17:18:43
- *  Last Modified: 05/05/2016 01:31:18
+ *  Last Modified: 05/05/2016 11:40:05
  *
  *    Description: 
  *
@@ -27,14 +27,34 @@ void RegionMonitor::For_MoveRequest()
     if(!m_MoveRequest.Valid()){ return; }
     if(!m_MoveRequest.In){ return; }
 
+    bool bMoveOK = true;
     for(size_t nY = 0; nY < 3; ++nY){
         for(size_t nX = 0; nX < 3; ++nX){
-            if(m_NeighborV2D[nY][nX].Query == -1){
-                // unfinished
-                return;
+            switch(m_NeighborV2D[nY][nX].Query){
+                case -1:
+                    {
+                        // we are not finished, waiting for respond
+                        return;
+                    }
+                case 0:
+                    {
+                        // ooops one neighbor reject this request
+                        bMoveOK = false;
+                        goto __REGIONMONITOR_FOR_MOVE_REQUEST_DONE_1;
+                    }
+                default:
+                    {
+                        // check next
+                        break;
+                    }
             }
         }
     }
 
-    m_ActorPod->Forward(MPK_ERROR, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
+__REGIONMONITOR_FOR_MOVE_REQUEST_DONE_1:
+    auto funROP = [this](const MessagePack &, const Theron::Address &){
+        m_MoveRequest.Clear();
+    };
+    m_ActorPod->Forward((bMoveOK ? MPK_OK : MPK_ERROR),
+            m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
 }
