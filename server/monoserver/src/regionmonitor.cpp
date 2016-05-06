@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/05/2016 17:33:38
+ *  Last Modified: 05/05/2016 19:18:53
  *
  *    Description: 
  *
@@ -475,16 +475,27 @@ void RegionMonitor::DoMoveOutRequest()
         int nX = (m_MoveRequest.X - (m_X - m_W)) / m_W;
         int nY = (m_MoveRequest.Y - (m_Y - m_H)) / m_H;
 
-        if(nX < 0 || nX >= 3)
+        if(nX < 0 || nX >= 3){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Logic error occurs");
+            g_MonoServer->Restart();
+        }
 
         stAddress = m_NeighborV2D[nY][nX].PodAddress;
     }else{
         stAddress = m_MapAddress;
     }
 
+    std::string szObjectAddress = m_MoveRequest.PodAddress.GetAddress().AsString();
+
     AMTryMove stAMTM;
     stAMTM.X = m_MoveRequest.X;
     stAMTM.Y = m_MoveRequest.Y;
+    stAMTM.DataLen = szObjectAddress.size();
+
+    std::vector<uint8_t> stBuf.resize(sizeof(stAMTM) + szObjectAddress.size());
+    std::memcpy(&stBuf[0], &stAMTM, sizeof(stAMTM));
+    std::memcpy(&stBuf[sizeof(stAMTM)], szObjectAddress.c_str(), szObjectAddress.size());
 
     auto fnROP = [this](MessagePack &rstRMPK, Theron::Address &){
         if(rstRMPK.Type() == MPK_OK){
