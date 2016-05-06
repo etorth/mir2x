@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 04/15/2016 22:29:55
+ *  Last Modified: 05/06/2016 00:55:47
  *
  *    Description: 
  *
@@ -33,10 +33,33 @@ template<typename T> T LDistance(T nfX, T nfY, T nfX1, T nfY1)
     return T(std::sqrt(LDistance2(nfX, nfY, nfX1, nfY1)));
 }
 
-template<typename T> bool CircleOverlap(T nfX, T nfY, T nfR,  T nfX1, T nfY1, T nfR1)
+template<typename T> bool CircleOverlap(T nfX, T nfY, T nfR, T nfX1, T nfY1, T nfR1)
 {
     static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
     return LDistance2(nfX, nfY, nfX1, nfY1) <= (nfR + nfR1) * (nfR + nfR1);
+}
+
+template<typename T> bool CircleRectangleOverlap(T nfCX, T nfCY, T nfCR, T nfX, T nfY, T nfW, T nfH)
+{
+    // there may be one pixel problem, keep it in mind
+    T nfRCX = nfX + nfW / 2;
+    T nfRCY = nfY + nfH / 2;
+
+    T nfDX = std::abs(nfCX - nfRCX);
+    T nfDY = std::abs(nfCY - nfRCY);
+
+    if(nfDX > (nfW/2 + nfCR)){ return false; }
+    if(nfDY > (nfH/2 + nfCR)){ return false; }
+
+    if(nfDX <= (nfW/2)){ return true; } 
+    if(nfDY <= (nfH/2)){ return true; }
+
+    return (nfDX - nfW / 2) * (nfDX - nfW / 2) + (nfDY - nfH / 2) * (nfDY - nfH / 2) <= nfCR * nfCR;
+}
+
+template<typename T> bool RectangleCircleOverlap(T nfX, T nfY, T nfW, T nfH, T nfCX, T nfCY, T nfCR)
+{
+    return CircleRectangleOverlap(nfCX, nfCY, nfCR, nfX, nfY, nfW, nfH);
 }
 
 template<typename T> bool PointInSegment(T nfX, T nfStartX, T nfW)

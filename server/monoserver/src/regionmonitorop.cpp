@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/05/2016 11:54:32
+ *  Last Modified: 05/06/2016 00:19:48
  *
  *    Description: 
  *
@@ -104,20 +104,108 @@ void RegionMonitor::On_MPK_METRONOME(const MessagePack &, const Theron::Address 
     }
 }
 
+// handle move request from active object
+// input : rstMPK
+// output: response to the requestor
+//
+// HOWTO
+// 0. if someone else is moving, reject
+// 1. if the object didn't request to move out of current region, then handle it
+//    and return MPK_OK or MPK_ERROR
+// 2. if the object request to move out, return the destination address
+//
 void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
-    AMTryMove stAMTM;
-    std::memcpy(&stAMTM, rstMPK.Data(), sizeof(stAMTM));
-
     if(m_MoveRequest.Valid()){
         // ooops someone else is doing move request
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
     }else{
+        AMTryMove stAMTM;
+        std::memcpy(&stAMTM, rstMPK.Data(), sizeof(stAMTM));
+
+        if(stAMTM.MapID == m_MapID){
+            if(PointInRectangle(stAMTM.CurrX, stAMTM.CurrY, m_X, m_Y, m_W, m_H)){
+                // ok, this region is which the requestor stays in
+                if(PointInRectangle(stAMTM.X, stAMTM.Y, m_X, m_Y, m_W, m_H)){
+                    // moving inside current region
+                }else if(PointInRectangle(stAMTM.X, stAMTM.Y,
+                            m_X - m_W, m_Y - m_H, 3 * m_W, 3 * m_H)){
+                    // local move, we are still ok
+                }else{
+                    AMQueryRMAddress stAMQRA;
+                    stAMQRA.X = stAMTM.X;
+                    stAMQRA.Y = stAMTM.Y;
+                    stAMQRA.MapID = stAMTM.MapID;
+
+                    auto fnROP = [this, rstMPK, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &){
+                        m_ActorPod->Forward({MPK_ADDRESS, rstRMPK.Data(), rstRMPK.DataLen()}, rstFromAdd, rstMPK.ID());
+                    };
+                    m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRA}, m_MapAddress, fnROP);
+                }
+            }else{
+                // this region is not the region that the object stays inside
+                if(PointInRectangle(stAMTM.X, stAMTM.Y, m_X, m_Y, m_W, m_H)){
+                    // object is trying to move into current region
+                }else if()
+
+            }
+        }else{
+        }
+
+
+
+
+
+
+
+
+        if(stAMTM.MapID != m_MapID){
+            // this is a space move for sure
+            AMQueryRMAddress stAMQRA;
+            stAMQRA.MapID = stAMTM.MapID;
+            stAMQRA.X = stAMTM.X;
+            stAMQRA.Y = stAMTM.Y;
+
+            auto fnQuery = [this, rstMPK, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &){
+                if(rstRMPK.Type() == MPK_ADDRESS){
+                    m_ActorPod->Forward({MPK_ADDRESS, rstRMPK.Data(), rstRMPK.DataLen()}, rstFromAddr, rstMPK.ID());
+                }else{
+                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                }
+            };
+            m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRA}, m_MapAddress, fnQuery);
+            return;
+        }
+
+            if(m_ServiceCoreAddress == Theron::Address::Null()){
+                auto fnROP = [this](const MessagePack &rstRMPK, const Theron::Address &){
+                    m_ActorPod->Forward(rstMPK
+                }
+                m_ActorPod->Forward(MPK_QUERYSCADDRESS, m_MapAddress, fnROP);
+            }
+
+
+        // asking move out
+        if(bSrcIn && !bDstIn){
+            if(PointInRectangle(
+                        m_MoveRequest.X, m_MoveRequest.Y, m_X - m_W, m_Y - m_H, 3 * m_W, 3 * m_H)){
+                // local move
+                int nDX = (m_MoveRequest.X - (m_X - m_W)) / m_W;
+                int nDY = (m_MoveRequest.Y - (m_Y - m_H)) / m_H;
+
+                std::string szAddr = m_NeighborV2D[nDY][nDX].PodAddress.AsString();
+                m_ActorPod->Forward({MPK_ADDRESS,
+                        szAddr.c_str(), szAddr.size()}, rstFromAdd, rstMPK.ID());
+            }else{
+                // non-local move, we have to ask help from ServerMap
+            }
+
+
         // 1. prepare m_MoveRequest
         m_MoveRequest.Type = OBJECT_UNKNOWN;
         m_MoveRequest.UID = stAMTM.UID;
         m_MoveRequest.AddTime = stAMTM.AddTime;
-        m_MoveRequest.Data = stAMTM.Data;
+        m_MoveRequest.Data = nullptr;
         m_MoveRequest.MPKID = rstMPK.ID();
         m_MoveRequest.X = stAMTM.X;
         m_MoveRequest.Y = stAMTM.Y;
