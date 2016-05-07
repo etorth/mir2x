@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/03/2016 22:37:13
+ *  Last Modified: 05/07/2016 04:16:54
  *
  *    Description: 
  *
@@ -143,6 +143,7 @@ class CharObject: public ActiveObject
 
     protected:
         int m_R;
+        uint32_t m_MapID;
 
     public:
         virtual bool Follow(CharObject *, bool)
@@ -231,6 +232,16 @@ class CharObject: public ActiveObject
         }
 
     public:
+        void SetR(int nR)
+        {
+            m_R = nR;
+        }
+
+        void SetMapID(uint32_t nMapID)
+        {
+            m_MapID = nMapID;
+        }
+
         void SetLocation(const Theron::Address &rstAddress, int nX, int nY)
         {
             m_CurrX = nX;

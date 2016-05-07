@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/05/2016 11:52:37
+ *  Last Modified: 05/07/2016 04:10:28
  *
  *    Description: 
  *
@@ -44,12 +44,16 @@ enum MessagePackType: int {
     MPK_LOCATIION,
     MPK_MASTERPERSONA,
     MPK_INITREGIONMONITOR,
+    MPK_MAPID,
     MPK_READY,
     MPK_REGIONMONITORREADY,
     MPK_NEIGHBOR,
     MPK_NEWMONSTER,
     MPK_LOGINOK,
     MPK_FORWARDCM,
+    MPK_CHECKCOVER,
+    MPK_QUERYRMADDRESS,
+    MPK_ADDRESS,
 };
 
 typedef struct {
@@ -58,6 +62,7 @@ typedef struct {
     uint32_t AddTime;
     int X;
     int Y;
+    int R;
     void *Data;
 }AMNewMonster;
 
@@ -76,6 +81,7 @@ typedef struct {
     int  Y;
     int  W;
     int  H;
+    uint32_t MapID;
     int  LocX;
     int  LocY;
 }AMRegion;
@@ -90,7 +96,7 @@ typedef struct {
 }AMMasterPersona;
 
 typedef struct {
-    uint32_t MonsterIndex;
+    uint32_t GUID;
     uint32_t MapID;
     uint32_t UID;
     uint32_t AddTime;
@@ -98,6 +104,7 @@ typedef struct {
     bool Strict;
     int  X;
     int  Y;
+    int  R;
 }AMAddMonster;
 
 typedef struct {
@@ -121,9 +128,9 @@ typedef struct {
 }AMPlayerPhantom;
 
 typedef struct {
-    uint8_t    Type;
-    uint32_t   UID;
-    uint32_t   AddTime;
+    uint32_t MapID;
+    uint32_t UID;
+    uint32_t AddTime;
 
     int CurrX;
     int CurrY;
@@ -154,3 +161,15 @@ typedef struct {
     int OldX;
     int OldY;
 }AMLocation;
+
+typedef struct {
+    int X;
+    int Y;
+    int R;
+}AMCheckCover;
+
+typedef struct {
+    int X;
+    int Y;
+    uint32_t MapID;
+}AMQueryRMAddress;

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/03/2016 22:42:19
+ *  Last Modified: 05/07/2016 04:08:23
  *
  *    Description: 
  *
@@ -175,6 +175,8 @@ void ServerMap::CreateRegionMonterV2D()
 
             stAMRegion.LocX = nGX;
             stAMRegion.LocY = nGY;
+
+            stAMRegion.MapID = ID();
 
             m_ActorPod->Forward({MPK_INITREGIONMONITOR,
                     stAMRegion}, m_RegionMonitorRecordV2D[nGY][nGX].PodAddress);

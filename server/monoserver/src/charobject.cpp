@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/03/2016 15:36:21
+ *  Last Modified: 05/07/2016 04:03:06
  *
  *    Description: 
  *
@@ -26,6 +26,8 @@
 
 CharObject::CharObject(uint32_t nUID, uint32_t nAddTime)
     : ActiveObject(nUID, nAddTime)
+    , m_R(0)
+    , m_MapID(0)
     , m_CurrX(0)
     , m_CurrY(0)
     , m_Event(-1)

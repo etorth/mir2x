@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/06/2016 17:39:36
- *  Last Modified: 05/06/2016 18:54:34
+ *  Last Modified: 05/07/2016 00:47:35
  *
  *    Description: The first place I am thinking of using trigger or not.
  *                 
@@ -48,12 +48,19 @@
  *
  * =====================================================================================
  */
-
+#include "actorpod.hpp"
+#include "monoserver.hpp"
+#include "reactobject.hpp"
 #include "regionmonitor.hpp"
 
+// trigger function for move request, this logic only handles
+// the ``get-in" move since it takes the affect of 8 neighbors
 void RegionMonitor::For_MoveRequest()
 {
     if(!m_MoveRequest.Valid()){ return; }
+
+    // only handle the ``get-in" move
+    if(!m_MoveRequest.In){ return; }
 
     bool bCancel = false;
     for(int nY = 0; nY < 3; ++nY){
@@ -77,7 +84,7 @@ __REGIONMONITOR_FOR_MOVEREQUEST_DONE_1:
                     }
                 case QUERY_ERROR:
                     {
-                        // do nothing since it's alraedy error
+                        // do nothing since it's already an error
                         break;
                     }
                 case QUERY_OK:
@@ -103,44 +110,52 @@ __REGIONMONITOR_FOR_MOVEREQUEST_DONE_1:
 
     // no pending state, then
     if(bCancel){
-        m_ActorPod->Forward(MPK_PK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
-        m_MoveRequest.Invalidate();
+        // if this is an ADDMONSTER then the address is from the ServerMap
+        // otherwise it's from the requesting object
+        m_ActorPod->Forward(MPK_ERROR, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
+        m_MoveRequest.Clear();
         return;
     }
 
-    // aha, we are now permit the object to move, finally
-    auto fnROP = [this](const MessagePack &rstRMPK, const Theron::Address &){
-        if(rstRMPK.Type() == MPK_OK){
-            // object pick this chance and moved
-            bool bFind = false;
-            for(auto &rstRecord: m_CharObjectRecordV){
-                if(true
-                        && rstRecord.UID == m_MoveRequest.UID
-                        && rstRecord.AddTime == m_MoveRequest.AddTime){
-                    bFind = true;
-                    rstRecord.X = m_MoveRequest.X;
-                    rstRecord.Y = m_MoveRequest.Y;
-                    break;
+    // aha, we are now grant permission the object to move, finally
+    if(m_MoveRequest.Data){
+        // it's adding new object into current region
+        CharObjectRecord stCORecord;
+        stCORecord.X = m_MoveRequest.X;
+        stCORecord.Y = m_MoveRequest.Y;
+        stCORecord.R = m_MoveRequest.R;
+
+        extern MonoServer *g_MonoServer;
+
+        stCORecord.UID = g_MonoServer->GetUID();
+        stCORecord.AddTime = g_MonoServer->GetTickCount();
+        stCORecord.PodAddress = ((ReactObject *)m_MoveRequest.Data)->Activate();
+
+        m_CharObjectRecordV.push_back(stCORecord);
+
+        // we respond to ServerMap, but it won't respond again
+        m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
+        m_MoveRequest.Clear();
+    }else{
+        // it's an object requesting to move into current region
+        // when we grant the permission, the object should respond to it
+        auto fnROP = [this](const MessagePack &rstRMPK, const Theron::Address &){
+            if(rstRMPK.Type() == MPK_OK){
+                // object picked this chance to move
+                for(auto &rstRecord: m_CharObjectRecordV){
+                    if(true
+                            && rstRecord.UID == m_MoveRequest.UID
+                            && rstRecord.AddTime == m_MoveRequest.AddTime){
+                        rstRecord.X = m_MoveRequest.X;
+                        rstRecord.Y = m_MoveRequest.Y;
+                        break;
+                    }
                 }
             }
-
-            if(!bFind){
-                CharObjectRecord stCORecord;
-                stCORecord.X = m_MoveRequest.X;
-                stCORecord.Y = m_MoveRequest.Y;
-                stCORecord.R = m_MoveRequest.R;
-                stCORecord.UID = m_MoveRequest.UID;
-                stCORecord.AddTime = m_MoveRequest.AddTime;
-                stCORecord.PodAddress = m_MoveRequest.PodAddress;
-
-                m_CharObjectRecordV.push_back(stCORecord);
-            }
-        }
-
-        m_MoveRequest.Invalidate();
-    };
-
-    m_ActorPod->Forward(MPK_PK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
+            m_MoveRequest.Clear();
+        };
+        m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
+    }
 }
 
 void RegionMonitor::For_Update()

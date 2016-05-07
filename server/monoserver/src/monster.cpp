@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/05/2016 11:53:43
+ *  Last Modified: 05/07/2016 04:53:49
  *
  *    Description: 
  *
@@ -30,6 +30,7 @@ Monster::Monster(uint32_t nMonsterInex, uint32_t nUID, uint32_t nAddTime)
     : CharObject(nUID, nAddTime)
     , m_MonitorAddress(Theron::Address::Null())
     , m_MonsterIndex(nMonsterInex)
+    , m_WalkPending(false)
 {
     SetState(STATE_INCARNATED, true);
     SetState(STATE_CANMOVE   , true);
@@ -41,6 +42,7 @@ Monster::~Monster()
 
 bool Monster::Update()
 {
+    if(!m_MapID){ return false; }
     // don't try to suiside in yourself here
     // if(!Active()){ return false; }
 
@@ -89,8 +91,12 @@ bool Monster::Attack(CharObject *pObject)
 bool Monster::RandomWalk()
 {
     // with prob. of 20% to trigger this functioin
-    if(std::rand() % 5 > 0) { return false; }
+    // if(std::rand() % 5 > 0){ return false; }
+    // if(std::rand() % 5 > 0){
+        m_Direction = std::rand() % 8;
+    // }
 
+        if(m_WalkPending){ return false; }
     if(!State(STATE_INCARNATED)){ return false; }
     if(!State(STATE_CANMOVE   )){ return false; }
     if(!State(STATE_WAITMOVE  )){ return false; }
@@ -104,14 +110,29 @@ bool Monster::RandomWalk()
 
 bool Monster::ReportMove(int nX, int nY)
 {
-    AMTryMove stMPKTM;
-    stMPKTM.X = nX;
-    stMPKTM.Y = nY;
+    AMTryMove stAMTM;
+    stAMTM.UID = m_UID;
+    stAMTM.AddTime = m_AddTime;
 
-    stMPKTM.CurrX = X();
-    stMPKTM.CurrY = Y();
+    stAMTM.X = nX;
+    stAMTM.Y = nY;
 
-    return m_ActorPod->Forward({MPK_TRYMOVE, stMPKTM}, m_MonitorAddress);
+    stAMTM.CurrX = X();
+    stAMTM.CurrY = Y();
+
+    stAMTM.MapID = m_MapID;
+
+    auto fnOP = [this, nX, nY](const MessagePack &rstMPK, const Theron::Address &rstAddr){
+        if(rstMPK.Type() == MPK_OK){
+            m_CurrX = nX;
+            m_CurrY = nY;
+            // commit move
+            m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
+        }
+        m_WalkPending = false;
+    };
+    return m_ActorPod->Forward({MPK_TRYMOVE, stAMTM}, m_MonitorAddress, fnOP);
+    m_WalkPending = true;
 }
 
 bool Monster::Type(uint8_t nType)
@@ -166,6 +187,12 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
         case MPK_METRONOME:
             {
                 On_MPK_METRONOME(rstMPK, rstAddress);
+                break;
+            }
+
+        case MPK_HI:
+            {
+                On_MPK_HI(rstMPK, rstAddress);
                 break;
             }
 

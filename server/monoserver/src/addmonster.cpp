@@ -3,7 +3,7 @@
  *
  *       Filename: addmonster.cpp
  *        Created: 04/12/2016 19:07:52
- *  Last Modified: 05/03/2016 19:00:52
+ *  Last Modified: 05/07/2016 03:18:18
  *
  *    Description: 
  *
@@ -24,15 +24,19 @@
 #include "monoserver.hpp"
 #include "messagepack.hpp"
 
-bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID, int nX, int nY, bool bStrict)
+bool MonoServer::AddMonster(uint32_t nGUID, uint32_t nMapID, int nX, int nY, bool bStrict)
 {
     AMAddMonster stAMAM;
 
-    stAMAM.MonsterIndex = nMonsterInex;
-    stAMAM.MapID        = nMapID;
-    stAMAM.X            = nX;
-    stAMAM.Y            = nY;
-    stAMAM.Strict       = bStrict;
+    stAMAM.GUID    = nGUID;
+    stAMAM.MapID   = nMapID;
+    stAMAM.UID     = GetUID();
+    stAMAM.AddTime = GetTickCount();
+
+    stAMAM.Strict = bStrict;
+    stAMAM.X      = nX;
+    stAMAM.Y      = nY;
+    stAMAM.R      = 10;
 
     MessagePack stResponseMPK;
     if(Send(MessageBuf(MPK_ADDMONSTER, stAMAM), m_ServiceCoreAddress, &stResponseMPK)){
@@ -44,7 +48,7 @@ bool MonoServer::AddMonster(uint32_t nMonsterInex, uint32_t nMapID, int nX, int 
     switch(stResponseMPK.Type()){
         case MPK_OK:
             {
-                AddLog(LOGTYPE_INFO, "monster with index = %d added", nMonsterInex);
+                AddLog(LOGTYPE_INFO, "monster with index = %d added", nGUID);
                 return true;
             }
         default:

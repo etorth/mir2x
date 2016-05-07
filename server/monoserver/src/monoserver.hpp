@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/03/2016 17:41:12
+ *  Last Modified: 05/07/2016 00:45:30
  *
  *    Description: 
  *
@@ -48,7 +48,6 @@ class MonoServer: public SyncDriver
         SessionHub  *m_SessionHub;
         std::atomic<uint32_t> m_ObjectUID;
 
-
     protected:
         ServiceCore *m_ServiceCore;
         Theron::Address m_ServiceCoreAddress;
@@ -81,6 +80,11 @@ class MonoServer: public SyncDriver
         bool MessageFixedSize(uint8_t nMessageID)
         {
             return m_NetMessageDescV[nMessageID].FixedSize;
+        }
+
+        uint32_t GetUID()
+        {
+            return m_ObjectUID++;
         }
 
     public:

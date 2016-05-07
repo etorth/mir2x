@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/03/2016 21:46:33
+ *  Last Modified: 05/07/2016 02:41:55
  *
  *    Description: 
  *
@@ -34,18 +34,16 @@ void ServiceCore::On_MPK_ADDMONSTER(
         LoadMap(stAMAM.MapID);
     }
 
-    auto fnOPR = [this, rstCopyAddr = rstFromAddr](
-            const MessagePack &rstRMPK, const Theron::Address &)
-    {
+    auto fnOPR = [this, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &){
         switch(rstRMPK.Type()){
             case MPK_OK:
                 {
-                    m_ActorPod->Forward(MPK_OK, rstCopyAddr);
+                    m_ActorPod->Forward(MPK_OK, rstFromAddr);
                     break;
                 }
             default:
                 {
-                    m_ActorPod->Forward(MPK_ERROR, rstCopyAddr);
+                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr);
                     break;
                 }
         }

@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 05/03/2016 22:00:14
+ *  Last Modified: 05/07/2016 04:18:41
  *
  *    Description: 
  *
@@ -21,6 +21,11 @@
 #include "monster.hpp"
 #include "actorpod.hpp"
 #include "mathfunc.hpp"
+
+void Monster::On_MPK_HI(const MessagePack &, const Theron::Address &rstFromAddr)
+{
+    m_MonitorAddress = rstFromAddr;
+}
 
 void Monster::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {

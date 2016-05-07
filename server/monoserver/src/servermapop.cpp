@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/03/2016 22:25:39
+ *  Last Modified: 05/07/2016 04:33:05
  *
  *    Description: 
  *
@@ -62,10 +62,17 @@ void ServerMap::On_MPK_ADDMONSTER(const MessagePack &rstMPK, const Theron::Addre
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid monster adding request");
     }else{
-        Monster *pNewMonster = 
-            new Monster(stAMAM.MonsterIndex, stAMAM.UID, stAMAM.AddTime);
+        Monster *pNewMonster = new Monster(stAMAM.GUID, stAMAM.UID, stAMAM.AddTime);
         AMNewMonster stAMNM;
+
         stAMNM.Data = pNewMonster;
+        stAMNM.X = stAMAM.X;
+        stAMNM.Y = stAMAM.Y;
+        stAMNM.R = stAMAM.R;
+
+        stAMNM.UID = stAMAM.UID;
+        stAMNM.AddTime = stAMAM.AddTime;
+        stAMNM.GUID = stAMAM.GUID;
 
         if(!RegionMonitorReady()){
             CreateRegionMonterV2D();

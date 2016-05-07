@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/06/2016 18:01:11
+ *  Last Modified: 05/07/2016 01:10:06
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -48,10 +48,14 @@ class RegionMonitor: public Transponder
         };
 
     private:
+        // struct to describe the move
+        //      1. new object to get inside
+        //      2. existing object to get inside
+        //      3. existing object to move outside
+        //      4. successful cover check
         typedef struct _MoveRequest{
             void       *Data;           // used when adding new object
 
-            uint8_t     Type;           // object type
             uint32_t    UID;
             uint32_t    AddTime;
             uint32_t    MPKID;          // MessagePack::ID() for response
@@ -61,36 +65,49 @@ class RegionMonitor: public Transponder
             int     X;
             int     Y;
             int     R;
+
             bool    In;
             bool    CurrIn;
 
-            Theron::Address PodAddress;     // address for response
+            bool    CoverCheck;
+
+            Theron::Address PodAddress; // address for response
 
             _MoveRequest()
                 : Data(nullptr)
-                , Type(OBJECT_UNKNOWN)
                 , UID(0)
                 , AddTime(0)
                 , MPKID(0)
-                , CurrX(0)
-                , CurrY(0)
-                , X(0)
-                , Y(0)
-                , R(0)
+                , CurrX(-1)
+                , CurrY(-1)
+                , X(-1)
+                , Y(-1)
+                , R(-1)
                 , In(false)
                 , CurrIn(false)
+                , CoverCheck(false)
                 , PodAddress(Theron::Address::Null())
             {}
 
             // means this record contains a valid record
-            // maybe existing moving obj, or new obj for place
+            // this has many possibilities
             bool Valid()
             {
-                return UID != 0 && AddTime != 0;
+                // new object adding inside
+                if(Data){ return true; }
+
+                // not an new object, then
+                if(UID && AddTime){ return true; }
+
+                // if now there is a cover check in current region
+                if(CoverCheck){ return true; }
+
+                return false;
             }
 
             void Clear()
             {
+                Data = nullptr;
                 UID = 0;
                 AddTime = 0;
             }
@@ -136,10 +153,12 @@ class RegionMonitor: public Transponder
         //
         typedef struct _NeighborRecord{
             int Query;
+            uint32_t MPKID;
             Theron::Address PodAddress;
 
             _NeighborRecord()
-                : Query(-1)
+                : Query(QUERY_NA)
+                , MPKID(0)
                 , PodAddress(Theron::Address::Null())
             {}
 
@@ -159,9 +178,10 @@ class RegionMonitor: public Transponder
 
         int     m_LocX;
         int     m_LocY;
-
         bool    m_RegionDone;
         bool    m_NeighborDone;
+
+        uint32_t m_MapID;
 
     public:
         RegionMonitor(const Theron::Address &rstMapAddr)
@@ -173,6 +193,7 @@ class RegionMonitor: public Transponder
             , m_H(0)
             , m_RegionDone(false)
             , m_NeighborDone(false)
+            , m_MapID(0)
         {
             // in transponder we alreay put ``DelayQueue" trigger inside
             //
@@ -199,4 +220,11 @@ class RegionMonitor: public Transponder
 
     private:
         bool GroundValid(int, int, int);
+        bool CoverValid(uint32_t, uint32_t, int, int, int);
+
+        Theron::Address NeighborAddress(int, int);
+
+    private:
+        void For_Update();
+        void For_MoveRequest();
 };
