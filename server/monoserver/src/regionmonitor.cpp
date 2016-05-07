@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/05/2016 22:48:34
+ *  Last Modified: 05/06/2016 16:29:39
  *
  *    Description: 
  *
@@ -646,4 +646,53 @@ __REGIONMONITOR_DOMOVEREQUEST_DONE_1:
 
     m_ActorPod->Forward((bMoveOK ? MPK_OK : MPK_ERROR),
             m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
+}
+
+// check the cover is valid for current region
+bool RegionMonitor::CoverValid(uint32_t nUID, uint32_t nAddTime, int nX, int nY, int nR)
+{
+    // 1. valid ground here?
+    if(!GroundValid(nX, nY, nR)){ return false; }
+
+    // 2. will I collide with any one in current region?
+    for(auto &rstRecord: m_CharObjectRecordV){
+        if(true
+                && rstRecord.UID == m_MoveRequest.UID
+                && rstRecord.AddTime == m_MoveRequest.AddTime){
+            continue;
+        }
+
+        if(CircleOverlap(rstRecord.X, rstRecord.Y, rstRecord.R, 
+                    m_MoveRequest.X, m_MoveRequest.Y, m_MoveRequest.R)){
+            return false;
+        }
+    }
+    return true;
+}
+
+Theron::Address RegionMonitor::NeighborAddress(int nX, int nY)
+{
+    int nDX = (nX - (m_X - m_W)) / m_W;
+    int nDY = (nY - (m_Y - m_H)) / m_H;
+
+    if(nDX >= 0 && nDX < 3 && nDY >= 0 && nDY < 3){
+        return Theron::Address::Null();
+    }
+
+    return m_NeighborV2D[nDY][nDX].PodAddress;
+}
+
+// cover check will set m_MoveRequest.Valid(), then this function
+// will release it
+void RegionMonitor::CancelCoverCheck()
+{
+    for(int nY = 0; nY < 3; nY++){
+        for(int nX = 0; nX < 3; ++nX){
+            if(m_NeighborV2D[nY][nX].Query == 1){
+                m_ActorPod->Forward(MPK_ERROR,
+                        m_NeighborV2D[nY][nX].PodAddress, m_NeighborV2D[nY][nX].MPKID);
+                m_NeighborV2D[nY][nX] = 0;
+            }
+        }
+    }
 }

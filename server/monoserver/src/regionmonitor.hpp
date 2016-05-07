@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/05/2016 11:57:50
+ *  Last Modified: 05/06/2016 18:01:11
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -38,6 +38,15 @@
 
 class RegionMonitor: public Transponder
 {
+    private:
+        // used when query neighbor's opinion for cover check
+        enum QueryType: int {
+            QUERY_NA,
+            QUERY_OK,
+            QUERY_ERROR,
+            QUERY_PENDING,
+        };
+
     private:
         typedef struct _MoveRequest{
             void       *Data;           // used when adding new object
@@ -185,12 +194,9 @@ class RegionMonitor: public Transponder
         void On_MPK_NEIGHBOR(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWMONSTER(const MessagePack &, const Theron::Address &);
+        void On_MPK_CHECKCOVER(const MessagePack &, const Theron::Address &);
         void On_MPK_INITREGIONMONITOR(const MessagePack &, const Theron::Address &);
 
     private:
         bool GroundValid(int, int, int);
-
-    private:
-        void For_Update();
-        void For_MoveRequest();
 };
