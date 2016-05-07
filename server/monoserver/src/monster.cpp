@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/07/2016 04:53:49
+ *  Last Modified: 05/07/2016 13:38:47
  *
  *    Description: 
  *
@@ -116,6 +116,7 @@ bool Monster::ReportMove(int nX, int nY)
 
     stAMTM.X = nX;
     stAMTM.Y = nY;
+    stAMTM.R = m_R;
 
     stAMTM.CurrX = X();
     stAMTM.CurrY = Y();
@@ -123,16 +124,30 @@ bool Monster::ReportMove(int nX, int nY)
     stAMTM.MapID = m_MapID;
 
     auto fnOP = [this, nX, nY](const MessagePack &rstMPK, const Theron::Address &rstAddr){
-        if(rstMPK.Type() == MPK_OK){
-            m_CurrX = nX;
-            m_CurrY = nY;
-            // commit move
-            m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
+        switch(rstMPK.Type()){
+            case MPK_OK:
+                {
+                    m_CurrX = nX;
+                    m_CurrY = nY;
+                    // commit move
+                    m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
+                    m_WalkPending = false;
+                    break;
+                }
+            case MPK_ADDRESS:
+                {
+                    // TODO & have no time to handle it now
+                    m_WalkPending = false;
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
         }
-        m_WalkPending = false;
     };
-    return m_ActorPod->Forward({MPK_TRYMOVE, stAMTM}, m_MonitorAddress, fnOP);
     m_WalkPending = true;
+    return m_ActorPod->Forward({MPK_TRYMOVE, stAMTM}, m_MonitorAddress, fnOP);
 }
 
 bool Monster::Type(uint8_t nType)

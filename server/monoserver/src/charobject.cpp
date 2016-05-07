@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/07/2016 04:03:06
+ *  Last Modified: 05/07/2016 13:21:51
  *
  *    Description: 
  *
@@ -33,8 +33,8 @@ CharObject::CharObject(uint32_t nUID, uint32_t nAddTime)
     , m_Event(-1)
     , m_Name("")
 {
-    extern MonoServer *g_MonoServer;
-    m_AddTime = g_MonoServer->GetTickCount();
+    // extern MonoServer *g_MonoServer;
+    // m_AddTime = g_MonoServer->GetTickCount();
     m_StateAttrV.fill(0);
 }
 

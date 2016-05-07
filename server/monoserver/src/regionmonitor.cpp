@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/07/2016 00:55:14
+ *  Last Modified: 05/07/2016 13:27:14
  *
  *    Description: 
  *
@@ -102,8 +102,7 @@ Theron::Address RegionMonitor::NeighborAddress(int nX, int nY)
     int nDY = (nY - (m_Y - m_H)) / m_H;
 
     if(nDX >= 0 && nDX < 3 && nDY >= 0 && nDY < 3){
-        return Theron::Address::Null();
+        return m_NeighborV2D[nDY][nDX].PodAddress;
     }
-
-    return m_NeighborV2D[nDY][nDX].PodAddress;
+    return Theron::Address::Null();
 }

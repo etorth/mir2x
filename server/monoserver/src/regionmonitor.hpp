@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/07/2016 01:10:06
+ *  Last Modified: 05/07/2016 13:01:29
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -110,6 +110,7 @@ class RegionMonitor: public Transponder
                 Data = nullptr;
                 UID = 0;
                 AddTime = 0;
+                CoverCheck = false;
             }
         }MoveRequest;
 

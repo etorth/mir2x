@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/06/2016 17:39:36
- *  Last Modified: 05/07/2016 00:47:35
+ *  Last Modified: 05/07/2016 13:24:06
  *
  *    Description: The first place I am thinking of using trigger or not.
  *                 
@@ -125,10 +125,12 @@ __REGIONMONITOR_FOR_MOVEREQUEST_DONE_1:
         stCORecord.Y = m_MoveRequest.Y;
         stCORecord.R = m_MoveRequest.R;
 
-        extern MonoServer *g_MonoServer;
+        // extern MonoServer *g_MonoServer;
+        // stCORecord.UID = g_MonoServer->GetUID();
+        // stCORecord.AddTime = g_MonoServer->GetTickCount();
 
-        stCORecord.UID = g_MonoServer->GetUID();
-        stCORecord.AddTime = g_MonoServer->GetTickCount();
+        stCORecord.UID = m_MoveRequest.UID;
+        stCORecord.AddTime = m_MoveRequest.AddTime;
         stCORecord.PodAddress = ((ReactObject *)m_MoveRequest.Data)->Activate();
 
         m_CharObjectRecordV.push_back(stCORecord);

@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/07/2016 04:18:11
+ *  Last Modified: 05/07/2016 14:12:12
  *
  *    Description: 
  *
@@ -143,6 +143,7 @@ void RegionMonitor::On_MPK_NEWMONSTER(
             auto fnROP = [this, nX, nY](const MessagePack &rstRMPK, const Theron::Address &){
                 // just make a tag and trigger will do the rest
                 m_NeighborV2D[nY][nX].Query = (rstRMPK.Type() == MPK_OK ? QUERY_OK : QUERY_ERROR);
+                m_NeighborV2D[nY][nX].MPKID = (rstRMPK.Type() == MPK_OK ? rstRMPK.ID() : 0);
             };
 
             AMCheckCover stAMCC;
@@ -314,8 +315,14 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
                     int nNeighborX = ((int)nX - 1) * m_W + m_X;
                     int nNeighborY = ((int)nY - 1) * m_H + m_Y;
 
-                    if(CircleRectangleOverlap(stAMTM.X, stAMTM.Y,
+                    // ok, no overlap, skip it
+                    if(!CircleRectangleOverlap(stAMTM.X, stAMTM.Y,
                                 stAMTM.R, nNeighborX, nNeighborY, m_W, m_H)){
+                        continue;
+                    }
+
+                    // overlap, then whether its qualified?
+                    if(m_NeighborV2D[nY][nX].PodAddress == Theron::Address::Null()){
                         // this neighbor is not valid to hold any objects
                         // TODO & TBD
                         // here is some place I have to use trigger? for neighbor A
@@ -328,7 +335,7 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
                         return;
                     }
 
-                    // we need to ask for opinion from this neighbor
+                    // qualified, we need to ask for opinion from this neighbor
                     auto fnROP = [this, nX, nY](
                             const MessagePack &rstRMPK, const Theron::Address &){
                         // just make a tag and trigger will do the rest
@@ -338,6 +345,8 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
 
                     AMCheckCover stAMCC;
 
+                    // since we know the object is in current region
+                    // we don't have to pass (UID, AddTime) to neighbors
                     stAMCC.X = stAMTM.X;
                     stAMCC.Y = stAMTM.Y;
                     stAMCC.R = stAMTM.R;
