@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/07/2016 14:12:12
+ *  Last Modified: 05/07/2016 15:51:15
  *
  *    Description: 
  *
@@ -308,6 +308,13 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
             }
 
             // 2. check one by one
+
+            // first mark the move request
+            m_MoveRequest.UID = stAMTM.UID;
+            m_MoveRequest.AddTime = stAMTM.AddTime;
+            m_MoveRequest.MPKID = rstMPK.ID();
+            m_MoveRequest.PodAddress = rstFromAddr;
+
             for(size_t nY = 0; nY < 3; ++nY){
                 for(size_t nX = 0; nX < 3; ++nX){
                     if(nX == 1 && nY == 1){ continue; }
@@ -358,8 +365,6 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
 
             // I have send MPK_CHECKCOVER to all qualified neighbors
             // now just wait for the response
-            m_MoveRequest.MPKID = rstMPK.ID();
-            m_MoveRequest.PodAddress = rstFromAddr;
             return;
         }else if(PointInRectangle(stAMTM.X, stAMTM.Y, m_X - m_W, m_Y - m_H, 3 * m_W, 3 * m_H)){
             // not move around in one region, but just a local move

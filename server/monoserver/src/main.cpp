@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/29/2016 23:39:21
+ *  Last Modified: 05/07/2016 17:06:47
  *
  *    Description: 
  *
@@ -32,6 +32,7 @@
 Log                      *g_Log;
 TaskHub                  *g_TaskHub;
 EventTaskHub             *g_EventTaskHub;
+Theron::EndPoint         *g_EndPoint;
 Theron::Framework        *g_Framework;
 ThreadPN                 *g_ThreadPN;
 
@@ -52,7 +53,8 @@ int main()
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
     g_EventTaskHub            = new EventTaskHub();
-    g_Framework               = new Theron::Framework();
+    g_EndPoint                = new Theron::EndPoint("monoserver", "tcp://127.0.0.1:5556");
+    g_Framework               = new Theron::Framework(*g_EndPoint);
     g_ThreadPN                = new ThreadPN(4);
 
     g_MainWindow->ShowAll();
