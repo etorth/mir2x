@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/07/2016 13:01:29
+ *  Last Modified: 05/08/2016 03:13:52
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -13,6 +13,40 @@
  *
  *                 RegionMonitor is an transponder, which has no UID()/AddTime(), but
  *                 it has an actor pod to response to message
+ *
+ *                 TODO & TBD
+ *                 How to handle object move request???
+ *                 1. object ask RM for move
+ *                 2. RM checks after the move, the object will
+ *                          A. still stay inside the RM, and won't overlap with neighbor RM
+ *                          B. still stay inside the RM, but will cover neighbor RM
+ *                          C. out of current RM, maybe different RM on current map or out
+ *                             of current map
+ *
+ *                    for case-A, respond directly with MPK_OK or MPK_ERROR, when responding
+ *                    OK, object will respond again to commit the move or cancel the move,
+ *                    between (RM->Obj: OK) and (Obj->RM: commit / cancel move), the RM will
+ *                    be freezed. if (RM->Obj: ERROR), the object won't respond and no
+ *                    freezing is needed.
+ *
+ *
+ *                    for case-B, first do cover check on current RM, if failed then do
+ *                    (RM->Obj: ERROR) directly. if succeed, find overlapped RM's out of the
+ *                    8 neighbors, if all these selected RM's are valid (not null address),
+ *                    send cover check to them and freeze current RM. otherwise directly do
+ *                    (RM->Obj: ERROR)
+ *
+ *                    for neighbors who got cover check, if check succeeds then freeze the
+ *                    RM and respond MPK_OK, if fails only send MPK_ERROR.
+ *
+ *                    in the move request trigger, if there is no pending, means get all
+ *                    responses already from neighbors, then if there is ERROR, send
+ *                    MPK_ERROR to all RM with QUERY_OK to free them, and send MPK_ERROR
+ *                    to the object requestor who asks for move
+ *
+ *                    TODO
+ *                    for case-C, RM will try to find proper RM address to move in, and send
+ *                    this address to the object, and the object will then do space move
  *
  *
  *        Version: 1.0
@@ -66,10 +100,11 @@ class RegionMonitor: public Transponder
             int     Y;
             int     R;
 
-            bool    In;
+            bool    OnlyIn;
             bool    CurrIn;
-
+            bool    FreezeRM;
             bool    CoverCheck;
+            bool    NeighborCheck;
 
             Theron::Address PodAddress; // address for response
 
@@ -78,39 +113,48 @@ class RegionMonitor: public Transponder
                 , UID(0)
                 , AddTime(0)
                 , MPKID(0)
-                , CurrX(-1)
-                , CurrY(-1)
-                , X(-1)
-                , Y(-1)
-                , R(-1)
-                , In(false)
+                , CurrX(0)
+                , CurrY(0)
+                , X(0)
+                , Y(0)
+                , R(0)
+                , OnlyIn(false)
                 , CurrIn(false)
+                , FreezeRM(false)
                 , CoverCheck(false)
+                , NeighborCheck(false)
                 , PodAddress(Theron::Address::Null())
             {}
 
             // means this record contains a valid record
             // this has many possibilities
-            bool Valid()
+            bool Freezed()
             {
-                // new object adding inside
-                if(Data){ return true; }
+                return FreezeRM;
+            }
 
-                // not an new object, then
-                if(UID && AddTime){ return true; }
-
-                // if now there is a cover check in current region
-                if(CoverCheck){ return true; }
-
-                return false;
+            void Freeze()
+            {
+                FreezeRM = true;
             }
 
             void Clear()
             {
-                Data = nullptr;
-                UID = 0;
-                AddTime = 0;
-                CoverCheck = false;
+                Data          = nullptr;
+                UID           = 0;
+                AddTime       = 0;
+                MPKID         = 0;
+                CurrX         = 0;
+                CurrY         = 0;
+                X             = 0;
+                Y             = 0;
+                R             = 0;
+                OnlyIn        = false;
+                CurrIn        = false;
+                FreezeRM      = false;
+                CoverCheck    = false;
+                NeighborCheck = false;
+                PodAddress    = Theron::Address::Null();
             }
         }MoveRequest;
 
@@ -217,6 +261,7 @@ class RegionMonitor: public Transponder
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWMONSTER(const MessagePack &, const Theron::Address &);
         void On_MPK_CHECKCOVER(const MessagePack &, const Theron::Address &);
+        void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_INITREGIONMONITOR(const MessagePack &, const Theron::Address &);
 
     private:

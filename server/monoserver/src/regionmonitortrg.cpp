@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/06/2016 17:39:36
- *  Last Modified: 05/07/2016 13:24:06
+ *  Last Modified: 05/08/2016 02:57:12
  *
  *    Description: The first place I am thinking of using trigger or not.
  *                 
@@ -53,71 +53,42 @@
 #include "reactobject.hpp"
 #include "regionmonitor.hpp"
 
-// trigger function for move request, this logic only handles
-// the ``get-in" move since it takes the affect of 8 neighbors
 void RegionMonitor::For_MoveRequest()
 {
-    if(!m_MoveRequest.Valid()){ return; }
+    // make sure that we do need the trigger functionality
+    // we only need it when doing cover check for neighbors
+    if(!m_MoveRequest.Freezed() || !m_MoveRequest.NeighborCheck){ return; }
 
-    // only handle the ``get-in" move
-    if(!m_MoveRequest.In){ return; }
-
-    bool bCancel = false;
-    for(int nY = 0; nY < 3; ++nY){
-        for(int nX = 0; nX < 3; ++nX){
-            if(m_NeighborV2D[nY][nX].Query == QUERY_ERROR){
-                bCancel = true;
-                goto __REGIONMONITOR_FOR_MOVEREQUEST_DONE_1;
-            }
-        }
-    }
-
-__REGIONMONITOR_FOR_MOVEREQUEST_DONE_1:
+    bool bCancel  = false;
     bool bPending = false;
+
     for(int nY = 0; nY < 3; ++nY){
         for(int nX = 0; nX < 3; ++nX){
-            switch(m_NeighborV2D[nY][nX].Query){
-                case QUERY_PENDING:
-                    {
-                        bPending = true;
-                        break;
-                    }
-                case QUERY_ERROR:
-                    {
-                        // do nothing since it's already an error
-                        break;
-                    }
-                case QUERY_OK:
-                    {
-                        if(bCancel){
-                            m_ActorPod->Forward(MPK_ERROR,
-                                    m_NeighborV2D[nY][nX].PodAddress, m_NeighborV2D[nY][nX].MPKID);
-                            m_NeighborV2D[nY][nX].Query = QUERY_ERROR;
-                        }
-                        break;
-                    }
-                case QUERY_NA:
-                default:
-                    {
-                        break;
-                    }
-            }
+            bCancel  = (m_NeighborV2D[nY][nX].Query == QUERY_ERROR);
+            bPending = (m_NeighborV2D[nY][nX].Query == QUERY_PENDING);
         }
     }
 
-    // done our job for current status
+    // wait until all response have been got
     if(bPending){ return; }
 
-    // no pending state, then
+    // no pending now and we found errors
     if(bCancel){
-        // if this is an ADDMONSTER then the address is from the ServerMap
-        // otherwise it's from the requesting object
-        m_ActorPod->Forward(MPK_ERROR, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
-        m_MoveRequest.Clear();
+        for(int nY = 0; nY < 3; ++nY){
+            for(int nX = 0; nX < 3; ++nX){
+                // cancel all freezed neighbors
+                if(m_NeighborV2D[nY][nX].Query == QUERY_OK){
+                    m_ActorPod->Forward(MPK_ERROR,
+                            m_NeighborV2D[nY][nX].PodAddress, m_NeighborV2D[nY][nX].MPKID);
+                }
+            }
+        }
         return;
     }
 
     // aha, we are now grant permission the object to move, finally
+    // need to check this is a new obj or an existing obj?
+
     if(m_MoveRequest.Data){
         // it's adding new object into current region
         CharObjectRecord stCORecord;
@@ -125,12 +96,8 @@ __REGIONMONITOR_FOR_MOVEREQUEST_DONE_1:
         stCORecord.Y = m_MoveRequest.Y;
         stCORecord.R = m_MoveRequest.R;
 
-        // extern MonoServer *g_MonoServer;
-        // stCORecord.UID = g_MonoServer->GetUID();
-        // stCORecord.AddTime = g_MonoServer->GetTickCount();
-
-        stCORecord.UID = m_MoveRequest.UID;
-        stCORecord.AddTime = m_MoveRequest.AddTime;
+        stCORecord.UID        = m_MoveRequest.UID;
+        stCORecord.AddTime    = m_MoveRequest.AddTime;
         stCORecord.PodAddress = ((ReactObject *)m_MoveRequest.Data)->Activate();
 
         m_CharObjectRecordV.push_back(stCORecord);
@@ -138,12 +105,18 @@ __REGIONMONITOR_FOR_MOVEREQUEST_DONE_1:
         // we respond to ServerMap, but it won't respond again
         m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
         m_MoveRequest.Clear();
-    }else{
-        // it's an object requesting to move into current region
-        // when we grant the permission, the object should respond to it
-        auto fnROP = [this](const MessagePack &rstRMPK, const Theron::Address &){
-            if(rstRMPK.Type() == MPK_OK){
-                // object picked this chance to move
+
+        return;
+    }
+
+    // it's an object requesting to move into/inside current region
+    // when we grant the permission, the object should respond to it
+
+    auto fnROP = [this](const MessagePack &rstRMPK, const Theron::Address &rstAddr){
+        if(rstRMPK.Type() == MPK_OK){
+            // object picked this chance to move
+            if(m_MoveRequest.CurrIn){
+                // inside
                 for(auto &rstRecord: m_CharObjectRecordV){
                     if(true
                             && rstRecord.UID == m_MoveRequest.UID
@@ -153,11 +126,36 @@ __REGIONMONITOR_FOR_MOVEREQUEST_DONE_1:
                         break;
                     }
                 }
+            }else{
+                // into
+                // then we assume it has removed the old record in its last region
+                CharObjectRecord stCORecord;
+                stCORecord.X = m_MoveRequest.X;
+                stCORecord.Y = m_MoveRequest.Y;
+                stCORecord.R = m_MoveRequest.R;
+
+                stCORecord.PodAddress = rstAddr;
+                stCORecord.UID        = m_MoveRequest.UID;
+                stCORecord.AddTime    = m_MoveRequest.AddTime;
+
+                m_CharObjectRecordV.push_back(stCORecord);
+                m_MoveRequest.Clear();
             }
-            m_MoveRequest.Clear();
-        };
-        m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
-    }
+        }
+
+        // no matter the object decide to move or not, we need to free neighbors
+        for(int nY = 0; nY < 3; ++nY){
+            for(int nX = 0; nX < 3; ++nX){
+                if(m_NeighborV2D[nY][nX].Query == QUERY_OK){
+                    m_ActorPod->Forward(MPK_OK,
+                            m_NeighborV2D[nY][nX].PodAddress, m_NeighborV2D[nY][nX].MPKID);
+                }
+            }
+        }
+
+        m_MoveRequest.Clear();
+    };
+    m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
 }
 
 void RegionMonitor::For_Update()

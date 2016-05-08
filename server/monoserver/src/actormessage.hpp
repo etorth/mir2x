@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/07/2016 04:10:28
+ *  Last Modified: 05/08/2016 03:14:23
  *
  *    Description: 
  *
@@ -39,6 +39,7 @@ enum MessagePackType: int {
     MPK_PLAYERPHATOM,
     MPK_QUERYLOCATION,
     MPK_TRYMOVE,
+    MPK_TRYSPACEMOVE,
     MPK_MOVEOK,
     MPK_COMMITMOVE,
     MPK_LOCATIION,
@@ -126,6 +127,20 @@ typedef struct {
 typedef struct {
     uint32_t GUID;
 }AMPlayerPhantom;
+
+typedef struct {
+    uint32_t MapID;
+    uint32_t UID;
+    uint32_t AddTime;
+
+    int CurrX;
+    int CurrY;
+
+    int X;
+    int Y;
+
+    int R;
+}AMTrySpaceMove;
 
 typedef struct {
     uint32_t MapID;

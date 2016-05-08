@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/07/2016 13:38:47
+ *  Last Modified: 05/08/2016 03:49:29
  *
  *    Description: 
  *
@@ -142,6 +142,7 @@ bool Monster::ReportMove(int nX, int nY)
                 }
             default:
                 {
+                    m_WalkPending = false;
                     break;
                 }
         }

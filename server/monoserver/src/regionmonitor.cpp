@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/07/2016 13:27:14
+ *  Last Modified: 05/08/2016 02:50:14
  *
  *    Description: 
  *
@@ -35,9 +35,19 @@ Theron::Address RegionMonitor::Activate()
 void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     switch(rstMPK.Type()){
+        case MPK_CHECKCOVER:
+            {
+                On_MPK_CHECKCOVER(rstMPK, rstFromAddr);
+                break;
+            }
         case MPK_TRYMOVE:
             {
                 On_MPK_TRYMOVE(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_TRYSPACEMOVE:
+            {
+                On_MPK_TRYSPACEMOVE(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_METRONOME:
@@ -88,8 +98,7 @@ bool RegionMonitor::CoverValid(uint32_t nUID, uint32_t nAddTime, int nX, int nY,
             continue;
         }
 
-        if(CircleOverlap(rstRecord.X, rstRecord.Y, rstRecord.R,
-                    m_MoveRequest.X, m_MoveRequest.Y, m_MoveRequest.R)){
+        if(CircleOverlap(rstRecord.X, rstRecord.Y, rstRecord.R, nX, nY, nR)){
             return false;
         }
     }
