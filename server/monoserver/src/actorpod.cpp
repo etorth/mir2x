@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 05/08/2016 22:53:04
+ *  Last Modified: 05/09/2016 00:06:55
  *
  *    Description: 
  *
@@ -28,6 +28,11 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, Theron::Address stFromAddr)
     // do I need to put logic to avoid sending message to itself?
     //
     if(rstMPK.Respond()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING,
+                "try to respond handler %d, responding message type %s",
+                rstMPK.Respond(), rstMPK.Name());
+
         auto pRecord = m_RespondMessageRecordM.find(rstMPK.Respond());
         if(pRecord != m_RespondMessageRecordM.end()){
             // we do have an record for this message
@@ -96,9 +101,17 @@ __ACTORPOD_INNHANDLER_CALL_TRIGGER:
     }
 }
 
+
+// TODO
+// for debug
+#include <atomic>
+std::atomic<uint32_t> g_Count(1);
+
 // this funciton is not actor-safe, don't call it outside the actor itself
 uint32_t ActorPod::ValidID()
 {
+    return g_Count++;
+
     // m_ValidID++;
     m_ValidID = (m_RespondMessageRecordM.empty() ? 1 : (m_ValidID + 1));
     auto pRecord = m_RespondMessageRecordM.find(m_ValidID);
@@ -120,6 +133,10 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
 {
     // 1. get valid ID
     uint32_t nID = ValidID();
+
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING,
+            "create message handler for %d:%s", nID, MessagePack(rstMB.Type()).Name());
 
     // 2. send it
     bool bRet = Theron::Actor::Send<MessagePack>({rstMB, nID, nRespond}, rstAddr);
