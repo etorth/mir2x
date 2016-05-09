@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/08/2016 03:49:29
+ *  Last Modified: 05/08/2016 14:16:45
  *
  *    Description: 
  *
@@ -28,9 +28,9 @@
 
 Monster::Monster(uint32_t nMonsterInex, uint32_t nUID, uint32_t nAddTime)
     : CharObject(nUID, nAddTime)
-    , m_MonitorAddress(Theron::Address::Null())
+    , m_RMAddress(Theron::Address::Null())
     , m_MonsterIndex(nMonsterInex)
-    , m_WalkPending(false)
+    , m_FreezeWalk(false)
 {
     SetState(STATE_INCARNATED, true);
     SetState(STATE_CANMOVE   , true);
@@ -93,10 +93,10 @@ bool Monster::RandomWalk()
     // with prob. of 20% to trigger this functioin
     // if(std::rand() % 5 > 0){ return false; }
     // if(std::rand() % 5 > 0){
-        m_Direction = std::rand() % 8;
+        // m_Direction = std::rand() % 8;
     // }
 
-        if(m_WalkPending){ return false; }
+        if(m_FreezeWalk){ return false; }
     if(!State(STATE_INCARNATED)){ return false; }
     if(!State(STATE_CANMOVE   )){ return false; }
     if(!State(STATE_WAITMOVE  )){ return false; }
@@ -106,6 +106,54 @@ bool Monster::RandomWalk()
     ReportMove(nX, nY);
 
     return true;
+}
+
+void Monster::SpaceMove(const char *szAddr, int nX, int nY)
+{
+    AMTryMove stAMTSM;
+    stAMTSM.UID = m_UID;
+    stAMTSM.AddTime = m_AddTime;
+
+    stAMTSM.X = nX;
+    stAMTSM.Y = nY;
+    stAMTSM.R = m_R;
+
+    stAMTSM.CurrX = X();
+    stAMTSM.CurrY = Y();
+
+    stAMTSM.MapID = m_MapID;
+
+    auto fnOP = [this, nX, nY](const MessagePack &rstMPK, const Theron::Address &rstAddr){
+        switch(rstMPK.Type()){
+            case MPK_OK:
+                {
+                    auto fnROP = [this, rstAddr, nMPKID = rstMPK.ID()](
+                            const MessagePack &, const Theron::Address &){
+                        // commit the move into new RM
+                        m_ActorPod->Forward(MPK_OK, rstAddr, nMPKID);
+                        m_RMAddress = rstAddr;
+                        m_FreezeWalk = false;
+                    };
+
+                    // leave previous RM
+                    AMLeave stAML;
+                    stAML.UID = m_UID;
+                    stAML.AddTime = m_AddTime;
+                    m_ActorPod->Forward({MPK_LEAVE, stAML}, m_RMAddress, fnROP);
+
+                    break;
+                }
+            default:
+                {
+                    // can only be MPK_ERROR
+                    m_FreezeWalk = false;
+                    break;
+                }
+        }
+    };
+
+    m_ActorPod->Forward({MPK_TRYSPACEMOVE, stAMTSM}, Theron::Address(szAddr), fnOP);
+    m_FreezeWalk = true;
 }
 
 bool Monster::ReportMove(int nX, int nY)
@@ -131,24 +179,30 @@ bool Monster::ReportMove(int nX, int nY)
                     m_CurrY = nY;
                     // commit move
                     m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-                    m_WalkPending = false;
+                    m_FreezeWalk = false;
                     break;
                 }
             case MPK_ADDRESS:
                 {
-                    // TODO & have no time to handle it now
-                    m_WalkPending = false;
+                    // don't have to respond
+                    // make communication to the new RM
+                    std::string szAddr;
+                    szAddr.insert(szAddr.end(), rstMPK.Data(), rstMPK.Data() + rstMPK.DataLen());
+
+                    SpaceMove(szAddr.c_str(), nX, nY);
                     break;
                 }
             default:
                 {
-                    m_WalkPending = false;
+                    // move failed
+                    m_FreezeWalk = false;
                     break;
                 }
         }
     };
-    m_WalkPending = true;
-    return m_ActorPod->Forward({MPK_TRYMOVE, stAMTM}, m_MonitorAddress, fnOP);
+
+    m_FreezeWalk = true;
+    return m_ActorPod->Forward({MPK_TRYMOVE, stAMTM}, m_RMAddress, fnOP);
 }
 
 bool Monster::Type(uint8_t nType)

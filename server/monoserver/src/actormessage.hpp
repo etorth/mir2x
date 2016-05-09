@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/08/2016 03:14:23
+ *  Last Modified: 05/08/2016 11:19:00
  *
  *    Description: 
  *
@@ -33,6 +33,7 @@ enum MessagePackType: int {
     MPK_HELLO,
     MPK_ACTIVATE,
     MPK_METRONOME,
+    MPK_LEAVE,
     MPK_ADDMONSTER,
     MPK_NEWPLAYER,
     MPK_NEWCONNECTION,
@@ -56,6 +57,11 @@ enum MessagePackType: int {
     MPK_QUERYRMADDRESS,
     MPK_ADDRESS,
 };
+
+typedef struct {
+    uint32_t UID;
+    uint32_t AddTime;
+}AMLeave;
 
 typedef struct {
     uint32_t GUID;
@@ -178,6 +184,8 @@ typedef struct {
 }AMLocation;
 
 typedef struct {
+    uint32_t UID;
+    uint32_t AddTime;
     int X;
     int Y;
     int R;

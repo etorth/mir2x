@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 05/06/2016 18:00:04
+ *  Last Modified: 05/08/2016 16:06:18
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -190,6 +190,8 @@ class ActorPod: public Theron::Actor
         // send a responding message without asking for reply
         bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond = 0)
         {
+            // TODO
+            // do I need to put logic to avoid sending message to itself?
             return Theron::Actor::Send<MessagePack>({rstMB, 0, nRespond}, rstAddr);
         }
 
@@ -201,23 +203,8 @@ class ActorPod: public Theron::Actor
         }
 
         // send a responding message and exptecting a reply
-        bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond,
-                const std::function<void(const MessagePack&, const Theron::Address &)> &fnOPR)
-        {
-            // 1. get valid ID
-            uint32_t nID = ValidID();
-
-            // 2. send it
-            bool bRet = Theron::Actor::Send<MessagePack>({rstMB, nID, nRespond}, rstAddr);
-
-            // 3. if send succeed, then register the handler of responding message
-            //    here we won't exam fnOPR's callability
-            if(bRet){
-                m_RespondMessageRecordM.emplace(std::make_pair(nID, fnOPR));
-            }
-            // 4. return whether we succeed
-            return bRet;
-        }
+        bool Forward(const MessageBuf &, const Theron::Address &, uint32_t,
+                const std::function<void(const MessagePack&, const Theron::Address &)> &);
 
     private:
         uint32_t ValidID();

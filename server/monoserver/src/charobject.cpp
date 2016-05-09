@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/07/2016 13:21:51
+ *  Last Modified: 05/08/2016 14:15:36
  *
  *    Description: 
  *
@@ -65,19 +65,6 @@ void CharObject::Die()
 {
     if(Mode(STATE_NEVERDIE)){ return; }
     SetState(STATE_DEAD, true);
-}
-
-bool CharObject::RequestMove()
-{
-    int nX, nY;
-    int nSpeed = Speed();
-    NextLocation(&nX, &nY, nSpeed);
-
-    AMRequestMove stAMRM;
-    stAMRM.X = nX;
-    stAMRM.Y = nY;
-
-    return m_ActorPod->Forward({MPK_MOVE, stAMRM}, m_RegionMonitorAddress);
 }
 
 void CharObject::NextLocation(int *pX, int *pY, int nDistance)

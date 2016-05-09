@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/07/2016 04:33:05
+ *  Last Modified: 05/08/2016 14:21:40
  *
  *    Description: 
  *
@@ -58,57 +58,65 @@ void ServerMap::On_MPK_ADDMONSTER(const MessagePack &rstMPK, const Theron::Addre
     AMAddMonster stAMAM;
     std::memcpy(&stAMAM, rstMPK.Data(), sizeof(stAMAM));
 
+    // point is outside map boundary
     if(!ValidP(stAMAM.X, stAMAM.Y) && stAMAM.Strict){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid monster adding request");
-    }else{
-        Monster *pNewMonster = new Monster(stAMAM.GUID, stAMAM.UID, stAMAM.AddTime);
-        AMNewMonster stAMNM;
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
 
-        stAMNM.Data = pNewMonster;
-        stAMNM.X = stAMAM.X;
-        stAMNM.Y = stAMAM.Y;
-        stAMNM.R = stAMAM.R;
+        return;
+    }
 
-        stAMNM.UID = stAMAM.UID;
-        stAMNM.AddTime = stAMAM.AddTime;
-        stAMNM.GUID = stAMAM.GUID;
+    // ok point is inside map boundary
+    Monster *pNewMonster = new Monster(stAMAM.GUID, stAMAM.UID, stAMAM.AddTime);
+    AMNewMonster stAMNM;
+
+    stAMNM.X = stAMAM.X;
+    stAMNM.Y = stAMAM.Y;
+    stAMNM.R = stAMAM.R;
+
+    stAMNM.Data    = pNewMonster;
+    stAMNM.GUID    = stAMAM.GUID;
+    stAMNM.UID     = stAMAM.UID;
+    stAMNM.AddTime = stAMAM.AddTime;
+
+    if(!RegionMonitorReady()){
+        CreateRegionMonterV2D();
 
         if(!RegionMonitorReady()){
-            CreateRegionMonterV2D();
-
-            if(!RegionMonitorReady()){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING,
-                        "create region monitors for server map failed");
-                g_MonoServer->Restart();
-            }
-        }
-
-        auto stAddr = RegionMonitorAddressP(stAMAM.X, stAMAM.Y);
-        if(stAddr == Theron::Address::Null()){
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid location for new monstor");
-            m_ActorPod->Forward(MPK_ERROR, rstFromAddr,rstMPK.ID());
-        }else{
-            auto fnROP = [this, rstFromAddr, nID = rstMPK.ID()](
-                    const MessagePack &rstRMPK, const Theron::Address &){
-                switch(rstRMPK.Type()){
-                    case MPK_OK:
-                        {
-                            m_ActorPod->Forward(MPK_OK, rstFromAddr, nID);
-                            break;
-                        }
-                    default:
-                        {
-                            m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nID);
-                            break;
-                        }
-                }
-            };
-            m_ActorPod->Forward({MPK_NEWMONSTER, stAMNM}, stAddr, fnROP);
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "create region monitors for server map failed");
+            g_MonoServer->Restart();
         }
     }
+
+    auto stAddr = RegionMonitorAddressP(stAMAM.X, stAMAM.Y);
+    if(stAddr == Theron::Address::Null()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid location for new monstor");
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        delete pNewMonster;
+
+        return;
+    }
+
+    // ok valid RM, we are to try to add it inside
+    auto fnROP = [this, rstFromAddr, nMPKID = rstMPK.ID()](
+            const MessagePack &rstRMPK, const Theron::Address &){
+        switch(rstRMPK.Type()){
+            case MPK_OK:
+                {
+                    m_ActorPod->Forward(MPK_OK, rstFromAddr, nMPKID);
+                    break;
+                }
+            default:
+                {
+                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
+                    break;
+                }
+        }
+    };
+    m_ActorPod->Forward({MPK_NEWMONSTER, stAMNM}, stAddr, fnROP);
 }
 
 void ServerMap::On_MPK_NEWMONSTER(const MessagePack &rstMPK, const Theron::Address &)

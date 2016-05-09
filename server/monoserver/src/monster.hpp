@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 05/07/2016 04:52:35
+ *  Last Modified: 05/08/2016 10:35:40
  *
  *    Description: 
  *
@@ -72,7 +72,7 @@ typedef struct stMONSTERRACEINFO{
 class MonoServer;
 class Monster: public CharObject
 {
-    Theron::Address m_MonitorAddress;
+    Theron::Address m_RMAddress;
 
     public:
         Monster(uint32_t, uint32_t, uint32_t);
@@ -154,10 +154,11 @@ class Monster: public CharObject
         }
 
         // TODO
-        bool m_WalkPending;
+        bool m_FreezeWalk;
         bool Update();
 
     public:
+        void SpaceMove(const char *, int, int);
         bool RandomWalk();
 
     private:

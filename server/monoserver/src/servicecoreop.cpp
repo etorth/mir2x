@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/07/2016 02:41:55
+ *  Last Modified: 05/08/2016 14:05:26
  *
  *    Description: 
  *
@@ -48,7 +48,7 @@ void ServiceCore::On_MPK_ADDMONSTER(
                 }
         }
     };
-    m_ActorPod->Forward({rstMPK.Type(), rstMPK.Data(),
+    m_ActorPod->Forward({MPK_ADDMONSTER, rstMPK.Data(),
             rstMPK.DataLen()}, m_MapRecordM[stAMAM.MapID].PodAddress, fnOPR);
 }
 

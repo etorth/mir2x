@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/07/2016 04:16:54
+ *  Last Modified: 05/08/2016 14:15:46
  *
  *    Description: 
  *
@@ -248,6 +248,4 @@ class CharObject: public ActiveObject
             m_CurrY = nY;
             m_RegionMonitorAddress = rstAddress;
         }
-
-        bool RequestMove();
 };

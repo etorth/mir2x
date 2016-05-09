@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/08/2016 02:50:14
+ *  Last Modified: 05/08/2016 11:26:35
  *
  *    Description: 
  *
@@ -38,6 +38,11 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
         case MPK_CHECKCOVER:
             {
                 On_MPK_CHECKCOVER(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_LEAVE:
+            {
+                On_MPK_LEAVE(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_TRYMOVE:

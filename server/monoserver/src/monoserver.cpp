@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/03/2016 17:23:34
+ *  Last Modified: 05/08/2016 15:00:56
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 #include <cstdarg>
+#include <cstdlib>
 
 #include "log.hpp"
 #include "taskhub.hpp"
@@ -184,5 +185,5 @@ uint32_t MonoServer::GetTickCount()
 
 void MonoServer::Restart()
 {
-
+    exit(0);
 }

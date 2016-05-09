@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 05/07/2016 04:18:41
+ *  Last Modified: 05/08/2016 10:17:17
  *
  *    Description: 
  *
@@ -24,7 +24,7 @@
 
 void Monster::On_MPK_HI(const MessagePack &, const Theron::Address &rstFromAddr)
 {
-    m_MonitorAddress = rstFromAddr;
+    m_RMAddress = rstFromAddr;
 }
 
 void Monster::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
@@ -47,7 +47,7 @@ void Monster::On_MPK_MOVEOK(const MessagePack & rstMPK, const Theron::Address &)
     stAMCM.X = m_CurrX;
     stAMCM.Y = m_CurrY;
 
-    m_ActorPod->Forward({MPK_COMMITMOVE, stAMCM}, m_MonitorAddress);
+    m_ActorPod->Forward({MPK_COMMITMOVE, stAMCM}, m_RMAddress);
 }
 
 void Monster::On_MPK_LOCATIION(const MessagePack &rstMPK, const Theron::Address &rstAddress)

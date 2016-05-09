@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/06/2016 17:39:36
- *  Last Modified: 05/08/2016 02:57:12
+ *  Last Modified: 05/08/2016 17:56:58
  *
  *    Description: The first place I am thinking of using trigger or not.
  *                 
@@ -50,6 +50,7 @@
  */
 #include "actorpod.hpp"
 #include "monoserver.hpp"
+#include "charobject.hpp"
 #include "reactobject.hpp"
 #include "regionmonitor.hpp"
 
@@ -80,10 +81,12 @@ void RegionMonitor::For_MoveRequest()
                 if(m_NeighborV2D[nY][nX].Query == QUERY_OK){
                     m_ActorPod->Forward(MPK_ERROR,
                             m_NeighborV2D[nY][nX].PodAddress, m_NeighborV2D[nY][nX].MPKID);
+                    m_NeighborV2D[nY][nX].Query = QUERY_ERROR;
                 }
             }
+            m_MoveRequest.Clear();
+            return;
         }
-        return;
     }
 
     // aha, we are now grant permission the object to move, finally
@@ -100,11 +103,29 @@ void RegionMonitor::For_MoveRequest()
         stCORecord.AddTime    = m_MoveRequest.AddTime;
         stCORecord.PodAddress = ((ReactObject *)m_MoveRequest.Data)->Activate();
 
+        CharObject *pCObject = (CharObject *)m_MoveRequest.Data;
+        pCObject->SetR(m_MoveRequest.R);
+        pCObject->SetMapID(m_MapID);
+        pCObject->SetLocation(GetAddress(), m_MoveRequest.X, m_MoveRequest.Y);
+
         m_CharObjectRecordV.push_back(stCORecord);
 
         // we respond to ServerMap, but it won't respond again
         m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
+        m_ActorPod->Forward(MPK_HI, stCORecord.PodAddress);
         m_MoveRequest.Clear();
+
+        //also we need to clear the neighbor's cover check
+        for(int nY = 0; nY < 3; ++nY){
+            for(int nX = 0; nX < 3; ++nX){
+                // cancel all freezed neighbors
+                if(m_NeighborV2D[nY][nX].Query == QUERY_OK){
+                    m_ActorPod->Forward(MPK_OK,
+                            m_NeighborV2D[nY][nX].PodAddress, m_NeighborV2D[nY][nX].MPKID);
+                    m_NeighborV2D[nY][nX].Query = QUERY_NA;
+                }
+            }
+        }
 
         return;
     }
@@ -139,9 +160,10 @@ void RegionMonitor::For_MoveRequest()
                 stCORecord.AddTime    = m_MoveRequest.AddTime;
 
                 m_CharObjectRecordV.push_back(stCORecord);
-                m_MoveRequest.Clear();
             }
         }
+
+        m_MoveRequest.Clear();
 
         // no matter the object decide to move or not, we need to free neighbors
         for(int nY = 0; nY < 3; ++nY){
@@ -149,11 +171,10 @@ void RegionMonitor::For_MoveRequest()
                 if(m_NeighborV2D[nY][nX].Query == QUERY_OK){
                     m_ActorPod->Forward(MPK_OK,
                             m_NeighborV2D[nY][nX].PodAddress, m_NeighborV2D[nY][nX].MPKID);
+                    m_NeighborV2D[nY][nX].Query = QUERY_NA;
                 }
             }
         }
-
-        m_MoveRequest.Clear();
     };
     m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
 }
