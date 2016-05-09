@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 05/08/2016 18:20:58
+ *  Last Modified: 05/09/2016 10:43:38
  *
  *    Description: message class for actor system
  *
@@ -336,6 +336,7 @@ class InnMessagePack final
                 case MPK_CHECKCOVER:                   return "MPK_CHECKCOVER";
                 case MPK_QUERYRMADDRESS:               return "MPK_QUERYRMADDRESS";
                 case MPK_ADDRESS:                      return "MPK_ADDRESS";
+                case MPK_CHECKCOVEROK:                 return "MPK_CHECKCOVEROK";
                 default:                               return "MPK_????";
             }
             return "MPK_????";

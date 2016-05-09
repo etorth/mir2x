@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/08/2016 22:25:27
+ *  Last Modified: 05/09/2016 13:31:52
  *
  *    Description: 
  *
@@ -93,7 +93,7 @@ bool Monster::RandomWalk()
     // with prob. of 20% to trigger this functioin
     // if(std::rand() % 5 > 0){ return false; }
     // if(std::rand() % 5 > 0){
-        // m_Direction = std::rand() % 8;
+        m_Direction = std::rand() % 8;
     // }
 
         if(m_FreezeWalk){ return false; }

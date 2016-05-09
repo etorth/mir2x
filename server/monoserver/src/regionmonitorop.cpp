@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/08/2016 17:33:09
+ *  Last Modified: 05/09/2016 13:23:54
  *
  *    Description: 
  *
@@ -208,7 +208,6 @@ void RegionMonitor::On_MPK_NEWMONSTER(
 
             // set current state to be pending
             m_NeighborV2D[nY][nX].Query = QUERY_PENDING;
-            printf("send CoverCheck to (%d, %d)\n", nX, nY);
         }
     }
     // I have send MPK_CHECKCOVER to all qualified neighbors
@@ -459,7 +458,6 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
 
             // set current state to be pending
             m_NeighborV2D[nY][nX].Query = QUERY_PENDING;
-            printf("send CoverCheck to (%d, %d)\n", nX, nY);
         }
     }
 

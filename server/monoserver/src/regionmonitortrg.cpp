@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/06/2016 17:39:36
- *  Last Modified: 05/08/2016 17:56:58
+ *  Last Modified: 05/09/2016 11:43:20
  *
  *    Description: The first place I am thinking of using trigger or not.
  *                 
@@ -65,8 +65,8 @@ void RegionMonitor::For_MoveRequest()
 
     for(int nY = 0; nY < 3; ++nY){
         for(int nX = 0; nX < 3; ++nX){
-            bCancel  = (m_NeighborV2D[nY][nX].Query == QUERY_ERROR);
-            bPending = (m_NeighborV2D[nY][nX].Query == QUERY_PENDING);
+            bCancel  = (bCancel  || m_NeighborV2D[nY][nX].Query == QUERY_ERROR);
+            bPending = (bPending || m_NeighborV2D[nY][nX].Query == QUERY_PENDING);
         }
     }
 
