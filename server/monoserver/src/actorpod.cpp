@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 05/08/2016 18:22:02
+ *  Last Modified: 05/08/2016 18:28:25
  *
  *    Description: 
  *
@@ -99,8 +99,8 @@ __ACTORPOD_INNHANDLER_CALL_TRIGGER:
 // this funciton is not actor-safe, don't call it outside the actor itself
 uint32_t ActorPod::ValidID()
 {
-    m_ValidID++;
-    // m_ValidID = (m_RespondMessageRecordM.empty() ? 1 : (m_ValidID + 1));
+    // m_ValidID++;
+    m_ValidID = (m_RespondMessageRecordM.empty() ? 1 : (m_ValidID + 1));
     auto pRecord = m_RespondMessageRecordM.find(m_ValidID);
     if(pRecord != m_RespondMessageRecordM.end()){
         extern MonoServer *g_MonoServer;
