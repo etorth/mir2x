@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 05/08/2016 18:28:25
+ *  Last Modified: 05/08/2016 22:53:04
  *
  *    Description: 
  *
@@ -114,7 +114,8 @@ uint32_t ActorPod::ValidID()
 }
 
 // send a responding message and exptecting a reply
-bool ActorPod::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond,
+bool ActorPod::Forward(const MessageBuf &rstMB,
+        const Theron::Address &rstAddr, uint32_t nRespond,
         const std::function<void(const MessagePack&, const Theron::Address &)> &fnOPR)
 {
     // 1. get valid ID
