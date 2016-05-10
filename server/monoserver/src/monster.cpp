@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/09/2016 19:42:23
+ *  Last Modified: 05/10/2016 01:04:55
  *
  *    Description: 
  *
@@ -46,13 +46,13 @@ bool Monster::Update()
     // don't try to suiside in yourself here
     // if(!Active()){ return false; }
 
-    // std::printf("moster (%d, %d) is now at (%d, %d)\n", UID(), AddTime(), X(), Y());
-    std::printf("(%d, %d)\n", X(), Y());
+    std::printf("moster (%d, %d) is now at (%d, %d)\n", UID(), AddTime(), X(), Y());
+    // std::printf("(%d, %d)\n", X(), Y());
 
     // 1. query neighbors
-    for(const auto &rstRecord: m_NeighborV){
-        m_ActorPod->Forward({MPK_QUERYLOCATION}, rstRecord.PodAddress);
-    }
+    // for(const auto &rstRecord: m_NeighborV){
+    //     m_ActorPod->Forward({MPK_QUERYLOCATION}, rstRecord.PodAddress);
+    // }
 
     // // 2. try to find target, using current info of neighbors
     // if(!m_TargetRecord.Valid()){
@@ -123,17 +123,23 @@ void Monster::SpaceMove(const char *szAddr, int nX, int nY)
     stAMTSM.CurrX = X();
     stAMTSM.CurrY = Y();
 
+    // TODO
+    // set the proper map id
     stAMTSM.MapID = m_MapID;
 
     auto fnOP = [this, nX, nY](const MessagePack &rstMPK, const Theron::Address &rstAddr){
         switch(rstMPK.Type()){
             case MPK_OK:
                 {
-                    auto fnROP = [this, rstAddr, nMPKID = rstMPK.ID()](
+                    auto fnROP = [this, rstAddr, nMPKID = rstMPK.ID(), nX, nY](
                             const MessagePack &, const Theron::Address &){
                         // commit the move into new RM
                         m_ActorPod->Forward(MPK_OK, rstAddr, nMPKID);
                         m_RMAddress = rstAddr;
+                        m_CurrX = nX;
+                        m_CurrY = nY;
+                        // TODO
+                        // set the proper map id
                         m_FreezeWalk = false;
                     };
 

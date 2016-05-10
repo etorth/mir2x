@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/09/2016 13:23:54
+ *  Last Modified: 05/10/2016 01:14:23
  *
  *    Description: 
  *
@@ -30,10 +30,10 @@ void RegionMonitor::On_MPK_LEAVE(const MessagePack &rstMPK, const Theron::Addres
     AMLeave stAML;
     std::memcpy(&stAML, rstMPK.Data(), rstMPK.DataLen());
 
-    for(auto pRecord = m_CharObjectRecordV.begin();
-            pRecord != m_CharObjectRecordV.end(); ++pRecord){
-        if(pRecord->UID == stAML.UID && pRecord->AddTime == stAML.AddTime){
-            m_CharObjectRecordV.erase(pRecord);
+    for(auto &rstRecord: m_CharObjectRecordV){
+        if(rstRecord.UID == stAML.UID && rstRecord.AddTime == stAML.AddTime){
+            std::swap(rstRecord, m_CharObjectRecordV.back());
+            m_CharObjectRecordV.pop_back();
             break;
         }
     }
