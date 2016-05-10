@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/09/2016 13:31:52
+ *  Last Modified: 05/09/2016 19:42:23
  *
  *    Description: 
  *
@@ -46,7 +46,8 @@ bool Monster::Update()
     // don't try to suiside in yourself here
     // if(!Active()){ return false; }
 
-    std::printf("moster (%d, %d) is now at (%d, %d)\n", UID(), AddTime(), X(), Y());
+    // std::printf("moster (%d, %d) is now at (%d, %d)\n", UID(), AddTime(), X(), Y());
+    std::printf("(%d, %d)\n", X(), Y());
 
     // 1. query neighbors
     for(const auto &rstRecord: m_NeighborV){
@@ -96,7 +97,8 @@ bool Monster::RandomWalk()
         m_Direction = std::rand() % 8;
     // }
 
-        if(m_FreezeWalk){ return false; }
+    if(m_FreezeWalk){ return false; }
+
     if(!State(STATE_INCARNATED)){ return false; }
     if(!State(STATE_CANMOVE   )){ return false; }
     if(!State(STATE_WAITMOVE  )){ return false; }
@@ -295,5 +297,4 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
 
 void Monster::SearchViewRange()
 {
-
 }

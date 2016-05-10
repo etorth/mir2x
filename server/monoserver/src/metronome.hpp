@@ -3,7 +3,7 @@
  *
  *       Filename: metronome.hpp
  *        Created: 04/21/2016 17:29:38
- *  Last Modified: 04/28/2016 23:11:14
+ *  Last Modified: 05/09/2016 20:15:36
  *
  *    Description: generate time tick as MessagePack for actor
  *                 keep it as simple as possible
@@ -49,15 +49,16 @@ class Metronome: public Theron::Receiver
             // immediately ready when created
             extern EventTaskHub *g_EventTaskHub;
             m_Func = new std::function<void()>([this, nTick](){
-                // 1. lock the whole class so no address can be added in
-                std::lock_guard<std::mutex> stGuard(m_Lock);
+                {
+                    // 1. lock the whole class so no address can be added in
+                    std::lock_guard<std::mutex> stGuard(m_Lock);
 
-                // 2. send time ticks to all address taking in charge
-                extern Theron::Framework *g_Framework;
-                for(const auto &rstAddr: m_AddrV){
-                    g_Framework->Send(MessagePack(MPK_METRONOME), GetAddress(), rstAddr);
+                    // 2. send time ticks to all address taking in charge
+                    extern Theron::Framework *g_Framework;
+                    for(const auto &rstAddr: m_AddrV){
+                        g_Framework->Send(MessagePack(MPK_METRONOME), GetAddress(), rstAddr);
+                    }
                 }
-
                 // 3. record the ID of next invocation
                 m_OID = g_EventTaskHub->Add(nTick, *m_Func);
             });
