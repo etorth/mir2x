@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/08/2016 11:26:35
+ *  Last Modified: 05/10/2016 21:13:17
  *
  *    Description: 
  *
@@ -80,7 +80,8 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
                 // when operating, MonoServer is ready for use
                 extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_WARNING,
-                        "unsupported message type (%d:%s)", rstMPK.Type(), rstMPK.Name());
+                        "unsupported message: type = %d, name = %s, id = %d, resp = %d",
+                        rstMPK.Type(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
                 break;
             }
     }

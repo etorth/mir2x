@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 05/10/2016 17:37:21
+ *  Last Modified: 05/10/2016 22:59:57
  *
  *    Description: 
  *
@@ -29,10 +29,10 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, Theron::Address stFromAddr)
     //
     if(rstMPK.Respond()){
 
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING,
-                "try to respond handler %d, responding message type %s, responding id %d, this = %p",
-                rstMPK.Respond(), rstMPK.Name(), rstMPK.ID(), this);
+        // extern MonoServer *g_MonoServer;
+        // g_MonoServer->AddLog(LOGTYPE_WARNING,
+        //         "try to respond handler %d, responding message type %s, responding id %d, this = %p",
+        //         rstMPK.Respond(), rstMPK.Name(), rstMPK.ID(), this);
 
         auto pRecord = m_RespondMessageRecordM.find(rstMPK.Respond());
         if(pRecord != m_RespondMessageRecordM.end()){
@@ -102,13 +102,13 @@ __ACTORPOD_INNHANDLER_CALL_TRIGGER:
     }
 }
 
-#include <atomic>
-std::atomic<uint32_t> g_Count(1);
+// #include <atomic>
+// std::atomic<uint32_t> g_Count(1);
 
 // this funciton is not actor-safe, don't call it outside the actor itself
 uint32_t ActorPod::ValidID()
 {
-    return g_Count++;
+    // return g_Count++;
 
     m_ValidID = (m_RespondMessageRecordM.empty() ? 1 : (m_ValidID + 1));
     auto pRecord = m_RespondMessageRecordM.find(m_ValidID);
@@ -123,6 +123,8 @@ uint32_t ActorPod::ValidID()
     return m_ValidID;
 }
 
+// uint32_t g_RespCount(UINT_MAX);
+
 // send a responding message and exptecting a reply
 bool ActorPod::Forward(const MessageBuf &rstMB,
         const Theron::Address &rstAddr, uint32_t nRespond,
@@ -131,9 +133,18 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
     // 1. get valid ID
     uint32_t nID = ValidID();
 
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING,
-            "send message id = %d, resp = %d, type = %s, this = %p", nID, nRespond, MessagePack(rstMB.Type()).Name(), this);
+    // extern MonoServer *g_MonoServer;
+    // g_MonoServer->AddLog(LOGTYPE_WARNING,
+    //         "send message id = %d, resp = %d, type = %s, this = %p", nID, nRespond, MessagePack(rstMB.Type()).Name(), this);
+
+    // if(g_RespCount == nRespond){
+    //     int a = 1;
+    //     a++;
+    // }else{
+    //     if(nRespond){
+    //         g_RespCount = nRespond;
+    //     }
+    // }
 
     // 2. send it
     bool bRet = Theron::Actor::Send<MessagePack>({rstMB, nID, nRespond}, rstAddr);

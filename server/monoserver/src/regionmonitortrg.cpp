@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/06/2016 17:39:36
- *  Last Modified: 05/10/2016 18:00:42
+ *  Last Modified: 05/10/2016 22:58:33
  *
  *    Description: The first place I am thinking of using trigger or not.
  *                 
@@ -87,7 +87,7 @@ void RegionMonitor::For_MoveRequest()
         }
 
         // reject the object 
-        m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
+        m_ActorPod->Forward(MPK_ERROR, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
         m_MoveRequest.Clear();
         return;
     }
@@ -102,14 +102,14 @@ void RegionMonitor::For_MoveRequest()
         stCORecord.Y = m_MoveRequest.Y;
         stCORecord.R = m_MoveRequest.R;
 
-        stCORecord.UID        = m_MoveRequest.UID;
-        stCORecord.AddTime    = m_MoveRequest.AddTime;
-        stCORecord.PodAddress = ((ReactObject *)m_MoveRequest.Data)->Activate();
-
         CharObject *pCObject = (CharObject *)m_MoveRequest.Data;
         pCObject->SetR(m_MoveRequest.R);
         pCObject->SetMapID(m_MapID);
         pCObject->SetLocation(GetAddress(), m_MoveRequest.X, m_MoveRequest.Y);
+
+        stCORecord.UID        = m_MoveRequest.UID;
+        stCORecord.AddTime    = m_MoveRequest.AddTime;
+        stCORecord.PodAddress = ((ReactObject *)m_MoveRequest.Data)->Activate();
 
         m_CharObjectRecordV.push_back(stCORecord);
 
@@ -179,6 +179,12 @@ void RegionMonitor::For_MoveRequest()
             }
         }
     };
+    // TODO
+    // there was a bug here
+    // when we notified the object, then neighbor check is done
+    // however before the object responded, this RM should still be freezed
+    //
+    m_MoveRequest.NeighborCheck = false;
     m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
 }
 

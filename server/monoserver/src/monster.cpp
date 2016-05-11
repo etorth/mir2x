@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/10/2016 17:19:30
+ *  Last Modified: 05/10/2016 21:11:07
  *
  *    Description: 
  *
@@ -295,7 +295,7 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
         default:
             {
                 extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_WARNING, "unsupported message type: %d", rstMPK.Type());
+                g_Log->AddLog(LOGTYPE_WARNING, "unsupported message: type = %d, id = %d, resp = %d", rstMPK.Type(), rstMPK.ID(), rstMPK.Respond());
                 break;
             }
     }
