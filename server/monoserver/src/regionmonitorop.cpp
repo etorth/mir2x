@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/10/2016 01:14:23
+ *  Last Modified: 05/10/2016 16:06:59
  *
  *    Description: 
  *
@@ -47,24 +47,26 @@ void RegionMonitor::On_MPK_CHECKCOVER(
 {
     if(m_MoveRequest.Freezed()){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
     }
 
     AMCheckCover stAMCC;
     std::memcpy(&stAMCC, rstMPK.Data(), sizeof(stAMCC));
 
-    if(CoverValid(stAMCC.UID, stAMCC.AddTime, stAMCC.X, stAMCC.Y, stAMCC.R)){
-        m_MoveRequest.Clear();
-        m_MoveRequest.CoverCheck = true;
-        m_MoveRequest.Freeze();
-
-        auto fnROP = [this](const MessagePack &, const Theron::Address &){
-            // cover check requestor should response to clear the lock
-            m_MoveRequest.Clear();
-        };
-        m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID(), fnROP);
-    }else{
+    if(!CoverValid(stAMCC.UID, stAMCC.AddTime, stAMCC.X, stAMCC.Y, stAMCC.R)){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
     }
+
+    m_MoveRequest.Clear();
+    m_MoveRequest.CoverCheck = true;
+    m_MoveRequest.Freeze();
+
+    auto fnROP = [this](const MessagePack &, const Theron::Address &){
+        // cover check requestor should response to clear the lock
+        m_MoveRequest.Clear();
+    };
+    m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID(), fnROP);
 }
 
 void RegionMonitor::On_MPK_NEWMONSTER(

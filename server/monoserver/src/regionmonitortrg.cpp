@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/06/2016 17:39:36
- *  Last Modified: 05/09/2016 11:43:20
+ *  Last Modified: 05/10/2016 18:00:42
  *
  *    Description: The first place I am thinking of using trigger or not.
  *                 
@@ -78,15 +78,18 @@ void RegionMonitor::For_MoveRequest()
         for(int nY = 0; nY < 3; ++nY){
             for(int nX = 0; nX < 3; ++nX){
                 // cancel all freezed neighbors
-                if(m_NeighborV2D[nY][nX].Query == QUERY_OK){
+                if(m_NeighborV2D[nY][nX].Valid() && (m_NeighborV2D[nY][nX].Query == QUERY_OK)){
                     m_ActorPod->Forward(MPK_ERROR,
                             m_NeighborV2D[nY][nX].PodAddress, m_NeighborV2D[nY][nX].MPKID);
-                    m_NeighborV2D[nY][nX].Query = QUERY_ERROR;
+                    m_NeighborV2D[nY][nX].Query = QUERY_NA;
                 }
             }
-            m_MoveRequest.Clear();
-            return;
         }
+
+        // reject the object 
+        m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
+        m_MoveRequest.Clear();
+        return;
     }
 
     // aha, we are now grant permission the object to move, finally
