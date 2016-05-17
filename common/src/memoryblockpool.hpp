@@ -3,7 +3,7 @@
  *
  *       Filename: memoryblockpool.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/16/2016 19:58:53
+ *  Last Modified: 05/17/2016 11:17:44
  *
  *    Description: fixed size memory block pool
  *                 simple implementation for performance
@@ -21,6 +21,7 @@
  */
 
 #pragma once
+
 #include <mutex>
 #include <array>
 #include <vector>
@@ -43,7 +44,8 @@ class MemoryBlockPool
         // structure of one buffer, which will be allocated by Get()
         // it will do for memory align automatically
         typedef _InnMemoryBlock{
-            size_t Param;
+            size_t Param;       // inside one memory unit
+            size_t Extend;      // extend for memory pool array for multi-thread performance
             uint8_t Data[BlockSize];
         }InnMemoryBlock;
 
