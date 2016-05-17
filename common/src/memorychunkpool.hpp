@@ -1,11 +1,11 @@
 /*
  * =====================================================================================
  *
- *       Filename: memoryblockpn.hpp
- *        Created: 05/12/2016 23:00:52
- *  Last Modified: 05/16/2016 17:46:23
+ *       Filename: memorychunkpool.hpp
+ *        Created: 05/17/2016 01:23:26
+ *  Last Modified: 05/17/2016 01:24:24
  *
- *    Description: 
+ *    Description: unfixed size memory pool
  *
  *        Version: 1.0
  *       Revision: none
@@ -18,10 +18,6 @@
  * =====================================================================================
  */
 
-
 #pragma once
-#include "memoryblockpool.hpp"
 
-template<size_t BlockSize>
-using MemoryBlockPN = MemoryBlockPool<BlockSize, 1024>;
-
+class MemoryChunkPool

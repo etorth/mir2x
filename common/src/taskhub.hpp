@@ -3,7 +3,7 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 05/16/2016 19:26:50
+ *  Last Modified: 05/16/2016 22:35:21
  *
  *    Description: 
  *
@@ -24,9 +24,9 @@
 
 #include "task.hpp"
 #include "basehub.hpp"
-#include "memoryblockpn.hpp"
+#include "memoryblockpool.hpp"
 
-using TaskBlockPN = MemoryBlockPN<sizeof(Task)>;
+using TaskBlockPN = MemoryBlockPool<sizeof(Task), 1024, true>;
 
 class TaskHub: public BaseHub<TaskHub>
 {
@@ -45,62 +45,48 @@ class TaskHub: public BaseHub<TaskHub>
 
         virtual ~TaskHub() = default;
         
-    public:
+    protected:
         void Add(Task* pTask, bool bPushHead = false)
         {
             if(!pTask){ return; }
 
             bool bDoSignal = false;
-            m_TaskLock.lock();
+            {
+                std::lock_guard<std::mutex> stLockGuard(m_TaskLock);
+                // still we are running
+                if(State() == 2){
+                    bDoSignal = m_TaskList.empty();
 
-            // still we are running
-            if(State() == 2){
-                bDoSignal = m_TaskList.empty();
-
-                if(bPushHead){
-                    m_TaskList.push_front(pTask);
+                    if(bPushHead){
+                        m_TaskList.push_front(pTask);
+                    }else{
+                        m_TaskList.push_back(pTask);
+                    }
                 }else{
-                    m_TaskList.push_back(pTask);
+                    DeleteTask(pTask);
+                    return;
                 }
-            }else{
-                DeleteTask(pTask);
             }
-
-            m_TaskLock.unlock();
 
             if(bDoSignal){
                 m_TaskSignal.notify_one();
             }
         }
 
-        void Add(const std::function<void()> &fnOp, bool bPushHead = false)
+    public:
+        template<typename... Args> void Add(Args &&... args, bool bPushHead = false)
         {
-            Add(CreateTask(fnOp), bPushHead);
-        }
-
-        void Add(uint32_t nDuraMS, const std::function<void()> &fnOp, bool bPushHead = false)
-        {
-            Add(CreateTask(nDuraMS, fnOp), bPushHead);
+            Add(CreateTask(std::forward<Args>(args)...), bPushHead);
         }
 
     public:
-        // TODO do I need to make a pool for this
-        Task *CreateTask(uint32_t nDuraMS, const std::function<void()> &fnOp)
+        template<typename... Args> Task *CreateTask(Args &&... args)
         {
             void *pData = m_MBP.Get();
 
             // passing null argument to placement new is undefined behavior
             if(!pData){ return nullptr; }
-            return new (pData) Task(nDuraMS, fnOp);
-        }
-
-        Task *CreateTask(const std::function<void()> &fnOp)
-        {
-            void *pData = m_MBP.Get();
-
-            // passing null argument to placement new is undefined behavior
-            if(!pData){ return nullptr; }
-            return new (pData) Task(fnOp);
+            return new (pData) Task(std::forward<Args>(args)...);
         }
 
         void DeleteTask(Task *pTask)
@@ -142,8 +128,8 @@ class TaskHub: public BaseHub<TaskHub>
                         // execute it
                         (*pTask)();
                     }
-                    delete pTask;
-                } else {
+                    DeleteTask(pTask);
+                }else{
                     stTaskUniqueLock.unlock();
                 }
             }
@@ -161,10 +147,7 @@ class TaskHub: public BaseHub<TaskHub>
             // think about how to implement it by either
             //  1. implement an task clean function
             //  2. let Shutdown() block until all task finished
-            auto pTask = CreateTask([this](){
-                    State(0);
-                    m_TaskSignal.notify_one();
-                });
+            auto pTask = CreateTask([this](){ State(0); m_TaskSignal.notify_one(); });
 
             std::lock_guard<std::mutex> stLockGuard(m_TaskLock);
             m_TaskList.push_back(pTask);

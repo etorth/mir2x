@@ -3,7 +3,7 @@
  *
  *       Filename: memoryblockpool.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/16/2016 19:58:53
+ *  Last Modified: 05/16/2016 22:05:36
  *
  *    Description: fixed size memory block pool
  *                 simple implementation for performance
@@ -30,7 +30,6 @@
 
 // BlockSize : size of uint8_t for the allocated buffer
 // BlockCount: how many buffer it can allocate for one memory unit
-// ThreadSafe: 
 //
 // And then there is a std::vector which contains many memory units, it dynamically
 // increases to handle unlimited buffer allocation request, but most likely we only
@@ -40,22 +39,41 @@ template<size_t BlockSize, size_t BlockCount, bool ThreadSafe>
 class MemoryBlockPool
 {
     private:
+        // for RTTI to cooperate with thread-safe parameter
+        // this class won't maintain the validation of the mutex it refers to
+        typedef struct _InnLockGuard{
+            std::mutex *Lock;
+
+            _InnLockGuard(std::mutex *pLock = nullptr)
+                : Lock(pLock)
+            {
+                if(ThreadSafe && Lock){
+                    Lock->lock();
+                }
+            }
+
+            ~_InnLockGuard()
+            {
+                if(ThreadSafe && Lock){
+                    Lock->unlock();
+                }
+            }
+        }InnLockGuard;
+
         // structure of one buffer, which will be allocated by Get()
         // it will do for memory align automatically
-        typedef _InnMemoryBlock{
+        typedef struct _InnMemoryBlock{
             size_t Param;
             uint8_t Data[BlockSize];
         }InnMemoryBlock;
 
         // structure of one memory unit
-        typedef _InnMemoryBlockV{
-            std::mutex *Mutex;
+        typedef struct _InnMemoryBlockV{
             CacheQueue<size_t, BlockCount> UsedQ;
             CacheQueue<size_t, BlockCount> UnusedQ;
             std::array<InnMemoryBlock, BlockCount> BlockV;
 
             _InnMemoryBlockV(size_t nParam)
-                : Mutex(nullptr)
             {
                 // TODO & TBD
                 // we can skip these to clears
@@ -65,10 +83,6 @@ class MemoryBlockPool
                 for(size_t nIndex = 0; nIndex < BlockCount; ++nIndex){
                     UnusedQ.PushHead(nIndex);
                     BlockV[nIndex].Param = nParam;
-                }
-
-                if(ThreadSafe){
-                    Mutex = new std::mutex();
                 }
             }
 
@@ -84,6 +98,7 @@ class MemoryBlockPool
         }InnMemoryBlockV;
 
     private:
+        std::mutex m_Lock;
         std::vector<InnMemoryBlockV> m_MBVV;
 
     public:
@@ -94,11 +109,17 @@ class MemoryBlockPool
             static_assert(BlockCount > 0, "non-empty buffer pool unit supported only");
         }
 
-        virtual ~MemoryBlockPool();
+        virtual ~MemoryBlockPool() = default;
 
     public:
+        // TODO & TBD
+        // previously I was thinking of put a mutex to each memroy unit
+        // but it won't work since there is vector appending, which means I have to
+        // use a lock for the vector, then the single lock for each memory unit makes
+        // no sense
         void *Get()
         {
+            InnLockGuard stInnLG(&m_Lock);
             // if the memory holds for a pretty long time, then maybe here we need
             // further optimization, rather than this O(n) approach
             //
@@ -120,6 +141,8 @@ class MemoryBlockPool
         {
             const auto pOff  = (uint8_t *)(&((*((InnMemoryBlock *)(0))).Data[0]));
             const auto pHead = (InnMemoryBlock *)((uint8_t *)pData - pOff);
+
+            InnLockGuard stInnLG(&m_Lock);
 
             // TODO & TBD
             // here m_MBVV.capacity() is non-decreasing
