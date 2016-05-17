@@ -3,7 +3,7 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 04/12/2016 18:58:24
+ *  Last Modified: 05/15/2016 16:39:51
  *
  *    Description: 
  *
@@ -82,7 +82,8 @@ class TaskHub: public BaseHub<TaskHub>
         // TODO do I need to make a pool for this
         Task *CreateTask(uint32_t nDuraMS, const std::function<void()> &fnOp)
         {
-            return new Task(nDuraMS, fnOp);
+            void *pData = m_MBP.Get();
+            return new (pData) Task(nDuraMS, fnOp);
         }
 
         Task *CreateTask(const std::function<void()> &fnOp)
@@ -150,7 +151,7 @@ class TaskHub: public BaseHub<TaskHub>
             auto pTask = CreateTask([this](){
                     State(0);
                     m_TaskSignal.notify_one();
-                    });
+                });
 
             std::lock_guard<std::mutex> stLockGuard(m_TaskLock);
             m_TaskList.push_back(pTask);

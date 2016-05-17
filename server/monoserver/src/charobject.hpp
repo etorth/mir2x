@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/08/2016 14:15:46
+ *  Last Modified: 05/11/2016 15:47:06
  *
  *    Description: 
  *
@@ -231,21 +231,43 @@ class CharObject: public ActiveObject
             return m_Direction;
         }
 
-    public:
-        void SetR(int nR)
+    protected:
+        void InnPermissionCheck();
+
+    protected:
+        void InnSetR(int nR)
         {
             m_R = nR;
         }
 
-        void SetMapID(uint32_t nMapID)
+        void InnSetMapID(uint32_t nMapID)
         {
             m_MapID = nMapID;
         }
 
-        void SetLocation(const Theron::Address &rstAddress, int nX, int nY)
+        void InnSetLocation(const Theron::Address &rstAddress, int nX, int nY)
         {
             m_CurrX = nX;
             m_CurrY = nY;
             m_RegionMonitorAddress = rstAddress;
+        }
+
+    public:
+        void SetR(int nR)
+        {
+            InnPermissionCheck();
+            InnSetR(nR);
+        }
+
+        void SetMapID(uint32_t nMapID)
+        {
+            InnPermissionCheck();
+            InnSetMapID(nMapID);
+        }
+
+        void SetLocation(const Theron::Address &rstAddress, int nX, int nY)
+        {
+            InnPermissionCheck();
+            InnSetLocation(rstAddress, nX, nY);
         }
 };

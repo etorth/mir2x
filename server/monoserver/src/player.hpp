@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 04/28/2016 23:17:07
+ *  Last Modified: 05/11/2016 17:37:07
  *
  *    Description: 
  *
@@ -83,6 +83,9 @@ class Player: public CharObject
         }
 
         bool Update();
+
+    protected:
+        void OperateNet(uint8_t, const uint8_t *, size_t);
 
     protected:
         void Operate(const MessagePack &, const Theron::Address &);

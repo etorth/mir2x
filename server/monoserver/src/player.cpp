@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/29/2016 23:42:43
+ *  Last Modified: 05/11/2016 17:37:29
  *
  *    Description: 
  *
@@ -80,4 +80,9 @@ const char *Player::CharName()
 int Player::Range(uint8_t)
 {
     return 20;
+}
+
+void Player::OperateNet(uint8_t nType, const uint8_t * pData, size_t nDataLen)
+{
+
 }
