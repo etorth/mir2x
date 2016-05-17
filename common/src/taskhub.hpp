@@ -3,7 +3,7 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 05/16/2016 18:23:50
+ *  Last Modified: 05/16/2016 19:26:50
  *
  *    Description: 
  *
@@ -88,17 +88,25 @@ class TaskHub: public BaseHub<TaskHub>
         Task *CreateTask(uint32_t nDuraMS, const std::function<void()> &fnOp)
         {
             void *pData = m_MBP.Get();
+
+            // passing null argument to placement new is undefined behavior
+            if(!pData){ return nullptr; }
             return new (pData) Task(nDuraMS, fnOp);
         }
 
         Task *CreateTask(const std::function<void()> &fnOp)
         {
-            return new Task(fnOp);
+            void *pData = m_MBP.Get();
+
+            // passing null argument to placement new is undefined behavior
+            if(!pData){ return nullptr; }
+            return new (pData) Task(fnOp);
         }
 
         void DeleteTask(Task *pTask)
         {
-            delete pTask;
+            pTask->~Task();
+            m_TaskBlockPN->Free(pTask);
         }
 
     public:

@@ -3,7 +3,7 @@
  *
  *       Filename: cachequeue.hpp
  *        Created: 02/25/2016 01:01:40
- *  Last Modified: 05/16/2016 18:05:16
+ *  Last Modified: 05/16/2016 19:01:46
  *
  *    Description: linear cache queue
  *
@@ -104,6 +104,9 @@ class CacheQueue final
            }
        }
 
+       // TODO
+       // for LRU we don't need this pop function
+       // keep it for completion
        void PopHead()
        {
            // 1. if there is no element, do nothing
