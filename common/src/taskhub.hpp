@@ -3,7 +3,7 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 05/15/2016 16:39:51
+ *  Last Modified: 05/16/2016 18:23:50
  *
  *    Description: 
  *
@@ -20,9 +20,13 @@
 #pragma once
 
 #include <list>
+#include <condition_variable>
+
 #include "task.hpp"
 #include "basehub.hpp"
-#include <condition_variable>
+#include "memoryblockpn.hpp"
+
+using TaskBlockPN = MemoryBlockPN<sizeof(Task)>;
 
 class TaskHub: public BaseHub<TaskHub>
 {
@@ -31,6 +35,7 @@ class TaskHub: public BaseHub<TaskHub>
         std::condition_variable m_TaskSignal;
         std::list<Task*>        m_TaskList;
         uint64_t                m_Cycle;
+        TaskBlockPN             m_TaskBlockPN;
 
     public:
         TaskHub()
