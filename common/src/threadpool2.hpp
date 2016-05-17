@@ -3,7 +3,7 @@
  *
  *       Filename: threadpool2.hpp
  *        Created: 02/06/2016 13:43:29
- *  Last Modified: 04/28/2016 00:09:44
+ *  Last Modified: 05/16/2016 23:03:14
  *
  *    Description: copy from https://github.com/progschj/ThreadPool, I editted it
  *                 to make it be simpler which is limited at
@@ -55,7 +55,7 @@ class ThreadPool2
     private:
         bool                              m_Stop;
         std::mutex                        m_QueueMutex;
-        std::vector<std::thread>          m_WorkThread;
+        std::vector<std::thread>          m_WorkThreadV;
         std::condition_variable           m_Condition;
         std::queue<std::function<void()>> m_TaskQ;
 
@@ -70,12 +70,12 @@ class ThreadPool2
             if(!nCount){ nCount = 4; }
 
             for(size_t nIndex = 0; nIndex < nCount; ++nIndex){
-                m_WorkThread.emplace_back([this]()
+                m_WorkThreadV.emplace_back([this]()
                     {
                         while(true){
                             std::function<void()> fnTask;
                             {
-                                std::unique_lock<std::mutex> stUniqueLock(this->m_QueueMutex);
+                                std::unique_lock<std::mutex> stUniqueLock(m_QueueMutex);
                                 // cv.wait(stLock, fnCheck()) is equivlent to 
                                 //      while(!fnCheck()){
                                 //          cv.wait(stLock);
@@ -85,15 +85,18 @@ class ThreadPool2
                                 // loop will execute until there is no more tasks in the queue or
                                 // m_Stop == true, then cv.wait() takes place
                                 this->m_Condition.wait(stUniqueLock,
-                                    [this]{ return (this->m_Stop || !this->m_TaskQ.empty()); });
+                                        [this](){ return (m_Stop || !m_TaskQ.empty()); });
 
                                 // exit current thread i.i.f. there is no more tasks and
                                 // current thread is required to exit, so it uses ``&&".
-                                if(this->m_Stop && this->m_TaskQ.empty()){ return; };
-                                fnTask = std::move(this->m_TaskQ.front());
-                                this->m_TaskQ.pop();
+                                if(m_Stop && m_TaskQ.empty()){ return; };
+                                fnTask = std::move(m_TaskQ.front());
+                                m_TaskQ.pop();
                             }
-                            fnTask();
+
+                            // if we can be there, then fnTask must be executable
+                            // so actually we don't need checking
+                            if(fnTask){ fnTask(); }
                         }
                     });
             }
@@ -112,7 +115,7 @@ class ThreadPool2
             //
             // TODO
             // do we need a method to force to clear the current task queue?
-            for(auto &stWorker: m_WorkThread){ stWorker.join(); }
+            for(auto &stWorker: m_WorkThreadV){ stWorker.join(); }
         }
 
     public:
