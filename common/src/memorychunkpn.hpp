@@ -1,11 +1,11 @@
 /*
  * =====================================================================================
  *
- *       Filename: memoryblock.hpp
- *        Created: 05/12/2016 22:59:52
- *  Last Modified: 05/12/2016 23:00:18
+ *       Filename: memorychunkpn.hpp
+ *        Created: 05/17/2016 17:20:26
+ *  Last Modified: 05/17/2016 17:24:05
  *
- *    Description: for fixed size memory chunks
+ *    Description: for unfixed size memory pool
  *
  *        Version: 1.0
  *       Revision: none
@@ -19,4 +19,14 @@
  */
 
 #pragma once
+#include "memoryblockpn.hpp"
 
+class MemoryChunkPN
+{
+    private:
+        typedef struct _ChunkList{
+        };
+
+
+
+};
