@@ -3,41 +3,43 @@
  *
  *       Filename: memorychunkpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/18/2016 00:37:19
+ *  Last Modified: 05/18/2016 18:45:08
  *
- *    Description: fixed size memory block pool
- *                 simple implementation for performance
- *                 thread safe is optional, but self-contained
+ *    Description: unfixed-size memory chunk pool, thread safe is optional, but self-contained
+ *                 this algorithm is based on buddy algorithm
+ *
+ *                 copy from https://github.com/wuwenbin/buddy2
+ *                 such a smart implementation of buddy algorithm!
  *
  *
  *                 +---+   +---+   +---+ <----------------------------------
- *                 |   |   |   |   |   | <------ this is one buffer      ^
- *                 |   |   |   |   |   |                                 |
- *                 +---+   +---+   +---+  .....                        this is a memory unit
- *                 |   |   |   |   |   |                                 |
+ *                 |   |   |   |   |   | <------ this is one chunk       ^
+ *                 +---+   |   |   +---+                                 |
+ *                 |   |   +---+   |   |  .....                        this is one memory pool
+ *                 +---+   +---+   |   |                                 |
  *                 |   |   |   |   |   |                                 V
  *                 +---+   +---+   +---+ <----------------------------------
  *                   ^       ^       ^
  *                   |       |       |
  *                 +-----+-------+-----+--
- *   ------+-----> |     |       |     |  ....    <------ this is one pool
+ *   ------+-----> |     |       |     |  ....    <------ this is one branch
  *         |       +-----+-------+-----+--
  *         |
  *         |
  *         |       +---+   +---+ 
  *         |       |   |   |   | 
- *         |       |   |   |   |                   then there are three pools, each pool can
+ *         |       |   |   |   |                   then there are three branches, each branch can
  *         |       +---+   +---+  .....            grow independently and dynamically.
  *         |       |   |   |   |
- *         |       |   |   |   |                   each pool has a lock for multi-thread, if
- *         |       +---+   +---+                   one pool is locked we can try next one
- *         |         ^       ^   
+ *         |       |   |   |   |                   each branch has a lock for multi-thread, if
+ *         |       +---+   +---+                   one branch is locked we can try next one
+ *         |         ^       ^
  *         |         |       |                     actually if use this class in single thread
- *         |       +-----+-----+--                 environment, then one pool is enough
+ *         |       +-----+-----+--                 environment, then one branch is enough
  *         +-----> |     |     |  ....
  *         |       +-----+-----+--
- *         |
- *         |
+ *         |                                       so when using in single thread environment, set
+ *         |                                       BranchSize = 1
  *         |       +---+   +---+   +---+
  *         |       |   |   |   |   |   |
  *         |       |   |   |   |   |   |
@@ -72,234 +74,285 @@
 
 #include "cachequeue.hpp"
 
-// BlockSize : size of buffer allocated in byte
-// BlockCount: how many buffer it can allocate for one static memory unit
-// SlotCount : branches for multi-thread performance
-// ThreadSafe: 
-//
-// And then there is a std::vector which contains many memory units, it dynamically
-// increases to handle unlimited buffer allocation request, but most likely we only
-// have a few memory uints in the vector
-//
-template<size_t UnitSize, size_t UnitCount, size_t BranchCount>
-class MemoryBlockPN
+// UnitSize   :    size of unit in bytes, this is the basic units for buffer length
+// PoolSize   :    how many units in one pool
+// BranchSize :    how many branchs in this PN, for different size
+//                      0 :  invalid
+//                      1 :  single thread
+//                    >=2 :  multi-thread
+//                 since when using multi-thread we can use multiple branches to avoid
+//                 to wait the lock, otherwise all request need to wait for one lock,
+//                 this helps to performance, however, for BranchSize == 1 there is no
+//                 need for thread safity
+//                  
+template<size_t UnitSize, size_t PoolSize, size_t BranchSize>
+class MemoryChunkPN
 {
     private:
-        // tihs struct would never be allocated
-        // just use for offset calculation
-        typedef struct _MemoryChunk{
-            bool In;            // this chunk is allocated in the memory pool
-
-            size_t Offset;      // offset in its memory buffer
-            size_t PoolID;      //
-            size_t BranchID;    //
-
-            uint8_t Data[1];    // offset to the data field
-        }MemoryChunk;
-
-        typedef struct _InnFBTree{
-            uint8_t *Data;
-            std::array<size_t, ((UnitCount << 1) - 1)> Longest;
-
-            static size_t LeftLeaf(size_t nIndex)
-            {
-                return nIndex * 2 + 1;
-            }
-
-            static size_t RightLeaf(size_t nIndex)
-            {
-                return nIndex * 2 + 2;
-            }
-
-            static size_t ParentLeaf(size_t nIndex)
-            {
-                return (nIndex + 1) / 2 - 1;
-            }
-
-            static bool PowerOf2(size_t nParam)
-            {
-                return !(nParam & (nParam - 1));
-            }
-
-            // TODO & TBD
-            // this is portable but not optimized, gcc has builtin functions
-            // as __builtin_clz(), google it, however it's not portable
-            static size_t FixSizeByPower2(size_t nSize)
-            {
-                nSize |= (nSize >> 1);
-                nSize |= (nSize >> 2);
-                nSize |= (nSize >> 4);
-
-                if(sizeof(size_t) >= 2){ nSize |= (nSize >>  8); }
-                if(sizeof(size_t) >= 4){ nSize |= (nSize >> 16); }
-                if(sizeof(size_t) >= 8){ nSize |= (nSize >> 32); }
-
-                return nSize + 1;
-            }
-
-            _InnFBTree()
-            {
-                size_t nNodeSize = UnitCount * 2;
-                for(int nIndex = 0; nIndex < 2 * UnitCount - 1; ++nIndex){
-                    if(PowerOf2(nIndex + 1)){
-                        nNodeSize /= 2;
-                    }
-
-                    Longest[nIndex] = nNodeSize;
-                }
-
-                Data = new uint8_t[UnitSize * UnitCount];
-            }
-
-            ~_InnFBTree()
-            {
-                delete Data;
-            }
-
-            void *Get(size_t nSizeInByte)
-            {
-                constexpr auto pOff = (uint8_t *)(&((*((MemoryChunk *)(0))).Data[0]));
-                size_t nSizeInUnit = ((size_t)(uintptr_t)pOff + nSizeInByte + UnitSize - 1) / UnitSize;
-
-                // then nSizeInUnit == 0 won't happen
-                if(!PowerOf2(nSizeInUnit)){
-                    nSizeInUnit = FixSizeByPower2(nSizeInUnit);
-                }
-
-                // oooops, request tooo large memory chunk
-                // dynamically allocate it and return directly
-                if(nSizeInUnit > UnitCount){
-                    auto pNewChunk = (MemoryChunk *)(new uint8_t[nSizeInUnit * UnitSize]);
-                    pNewChunk->In = false;
-
-                    return &(pNewChunk->Data[0]);
-                }
-
-                // ok try to allocate it in current pool
-                for(size_t nNodeSizeInUnit = UnitCount, nIndex = 0;
-                        nNodeSizeInUnit != nSizeInUnit; nNodeSizeInUnit /= 2){
-                    size_t nLeftLeaf = LeftLeaf(nIndex);
-                    size_t nRightLeaf = RightLeaf(nIndex);
-
-                    if(Longest[nLeftLeaf] >= nNodeSizeInUnit){
-                        if(Longest[nRightLeaf] >= nNodeSizeInUnit){
-                            if(Longest[nLeftLeaf] <= Longest[nRightLeaf]){
-                                nIndex = nLeftLeaf;
-                            }else{
-                                nIndex = nRightLeaf;
-                            }
-                        }else{
-                            // TODO ????
-                            nIndex = nRightLeaf;
-                        }
-                    }else{
-                        nIndex = nRightLeaf;
-                    }
-                }
-            }
-        };
-
-        using InnFBTree = _InnFBTree<UnitCount>
-
-
-
-
-    private:
-        // for RTTI to cooperate with thread-safe parameter
-        // this class won't maintain the validation of the mutex it refers to
+        // inner RTTI support, make it as simple as possible, to
+        // make compiler has a chance to optimize it out when possible
         typedef struct _InnLockGuard{
             std::mutex *Lock;
 
-            _InnLockGuard(std::mutex *pLock)
-                : Lock(pLock)
+            _InnLockGuard(pLock)
             {
-                if(ThreadSafe){
+                if(BranchSize > 1){
+                    Lock = pLock;
                     Lock->lock();
                 }
             }
 
             ~_InnLockGuard()
             {
-                if(ThreadSafe){
+                if(BranchSize > 1){
                     Lock->unlock();
                 }
             }
         }InnLockGuard;
 
-        // structure of one buffer, which will be allocated by Get()
-        // it will do for memory align automatically
-        //
-        // I put a field ``Extend" here to support multi-slot
-        typedef struct _InnMemoryBlock{
-            size_t Param;            // inside one memory unit
-            size_t Extend;           // extend for memory pool array for multi-thread performance
-            uint8_t Data[BlockSize]; // where we put the data
-        }InnMemoryBlock;
+        // this struct would never be allocated, just use for offset calculation, maybe
+        // I need to use uint8_t for saving space, but it's OK since we are avoiding
+        // frequent allocation-dellocation, the memory usage efficiency is next.
+        typedef struct _InnMemoryChunk{
+            bool In;            // this chunk is allocated in the memory pool
 
-        // structure of one memory unit
-        typedef struct _InnMemoryUnit{
-            CacheQueue<size_t, BlockCount> ValidQ;
-            std::array<InnMemoryBlock, BlockCount> BlockV;
+            size_t NodeID;      // node in its memory pool, use it for offset calculation
+            size_t PoolID;      //
+            size_t BranchID;    //
 
-            _InnMemoryUnit(size_t nParam, size_t nExtend = 0)
+            uint8_t Data[4];    // offset to the data field, size is always ok
+        }InnMemoryChunk;
+
+        typedef struct _InnMemoryChunkPool{
+            // big piece of memory, can allocate independently, since anyway
+            // this pool will be created dynamically, I just put it here to
+            // make the CPU cache happy
+            uint8_t Data[UnitSize * PoolSize];
+
+            // this *Longest* array is the most important data structure, each
+            // node has an *longest* valid memory to take in charge, here valid
+            // means its not allocated previously, and it's on two buddies
+            size_t Longest[PoolSize * 2 - 1];
+
+            size_t PoolID;
+            size_t BranchID;
+
+            static size_t LeftNode(size_t nIndex)
             {
-                // TODO & TBD
-                // we can skip these to clears
-                ValidQ.Clear();
+                return nIndex * 2 + 1;
+            }
 
-                for(size_t nIndex = 0; nIndex < BlockCount; ++nIndex){
-                    ValidQ.PushHead(nIndex);
-                    BlockV[nIndex].Param = nParam;
+            static size_t RightNode(size_t nIndex)
+            {
+                return nIndex * 2 + 2;
+            }
 
-                    // uncessary when slot is less than 2
-                    // just put it here since it won't cause much during initialization
-                    BlockV[nIndex].Extend = nExtend;
+            static size_t ParentNode(size_t nIndex)
+            {
+                return (nIndex + 1) / 2 - 1;
+            }
+
+            static size_t Level(size_t nIndex)
+            {
+                const static size_t kLevelV[] = {
+                    0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4,
+                    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5,
+                    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+                    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6,
+                    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+                    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+                    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+                    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7,
+                    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9};
+                // assume nIndex is in [0, 256 * 2 - 2)
+                return kLevelV[nIndex];
+            }
+
+            // TODO & TBD assume nNodeID is in [0, 256 * 2 - 2)
+            static size_t ValidUnit(size_t nNodeID)
+            {
+                return (1 << (Level(2 * PoolSize - 2) - Level(nNodeID)));
+            }
+
+            _InnMemoryChunkPool(size_t nPoolID)
+                : PoolID(nPoolID)
+            {
+                size_t nNodeSize = PoolSize * 2;
+                for(int nIndex = 0; nIndex < 2 * PoolSize - 1; ++nIndex){
+                    if(PowerOf2(nIndex + 1)){
+                        nNodeSize /= 2;
+                    }
+
+                    Longest[nIndex] = nNodeSize;
                 }
             }
 
-            void *InnGet()
+            // all static, nothing to destruct
+            ~_InnMemoryChunkPool() = default;
+
+            // TODO & TBD
+            // internal use, so won't check the validation of the parameter
+            //
+            // assume: 1. nSizeInUnit is proper
+            //         2. nSizeInUnit is in power of 2
+            void *Get(size_t nSizeInUnit)
             {
-                if(ValidQ.Empty()){ return nullptr; }
+                // this pool can satisfy the passing allcation request i.i.f Longest[0]
+                // is >= nSizeInUnit
+                //
+                // failed
+                if(Longest[0] < nSizeInUnit){ return nullptr; }
 
-                auto *pData = &(BlockV[ValidQ.Head()].Data[0]);
-                ValidQ.PopHead();
+                // OK now there is a continuous memory region, we need to find it
+                // and use (part of) it to this allocation request
+                size_t nIndex = 0;
+                size_t nLevelNodeSize = PoolSize;
 
-                return pData;
+                // the loop will always reach the level where nLevelNodeSize == nSizeInUnit, means
+                // if a chunk will be allocated, it will always allocated at the corresponding
+                // level, not higher, not lower, and if it can't, it will be refused at level-0
+                //
+                // do some reasoning here, don't just accept it's true
+                //
+                while(nLevelNodeSize != nSizeInUnit){
+                    size_t nLeftNode = LeftNode(nIndex);
+                    size_t nRightNode = RightNode(nIndex);
+
+                    // keep in mind that it's impossible that both child nodes are
+                    // smaller than nSizeInUnit in the loop
+                    if(Longest[nLeftNode] < Longest[nRightNode]){
+                        if(Longest[nLeftNode] >= nSizeInUnit){
+                            nIndex = nLeftNode;
+                        }else{
+                            nIndex = nRightNode;
+                        }
+                    }else{
+                        if(Longest[nRightNode] >= nSizeInUnit){
+                            nIndex = nRightNode;
+                        }else{
+                            nIndex = nLeftNode;
+                        }
+                    }
+
+                    nLevelNodeSize /= 2;
+                }
+
+                // ok now we are in the proper level and proper node
+                Longest[nIndex] = 0;
+                size_t nOffset = (nIndex + 1) * nLevelNodeSize - PoolSize;
+
+                while(nIndex){
+                    nIndex = ParentNode(nIndex);
+                    Longest[nParentIndex] = std::max(
+                            Longest[LeftNode(nIndex)], Longest[RightNode(nIndex)]);
+                }
+
+                auto pHead = ((InnMemoryChunk *)(Data + nOffset * UnitSize));
+                pHead->In = true;
+                pHead->PoolID = PoolID;
+
+                if(BranchSize > 1){
+                    pHead->BranchID = BranchID;
+                }
+
+                return &(pHead->Data[0]);
             }
-        }InnMemoryUnit;
 
-        typedef struct _InnMemoryBlockPool{
+            // internal use, so there is no parameter check
+            void Free(size_t nNodeID)
+            {
+                // 1. recover the full state of this node
+                //    when pool size is N, then node count is (2 * N - 1)
+                //    and maximal node index is (2 * N - 2)
+                Longest[nNodeID] = ValidUnit(nNodeID);
+
+                while(nNodeID){
+                    // 1. move to parent node
+                    nNodeID = ParentNode(nNodeID);
+
+                    // 2. get protential valid unit count for this node
+                    size_t nUnit = ValidUnit(nNodeID);
+
+                    // 3. its two children
+                    size_t nLeftUnit = Longest[LeftNode(nNodeID)];
+                    size_t nRightUnit = Longest[RightNode(nNodeID)];
+
+
+                    if(nLeftUnit + nRightUnit == nUnit){
+                        // ok now left and right are both *fully* valid
+                        // means no memory in left and right node is allocated
+                        Longest[nNodeID] = nUnit;
+                    }else{
+                        // part or all of the memory it takes in charge is not valid
+                        // mark for the longest valid memory
+                        Longest[nNodeID] = std::max<size_t>(nLeftUnit, nRightUnit);
+                    }
+                }
+            }
+        }InnMemoryChunkPool;
+
+    private:
+        typedef struct _InnMemoryChunkPoolBranch{
+            size_t BranchID;
             std::mutex *Lock;
-            const size_t m_ID;
-            std::vector<std::shared_ptr<InnMemoryUnit>> UnitV;
+            std::vector<std::shared_ptr<InnMemoryUnit>> PoolV;
 
-            _InnMemoryBlockPool(size_t nPoolID = 0)
-                : Lock(ThreadSafe ? (new std::mutex()) : nullptr)
-                , m_ID(nPoolID)
-            {}
-
-            ~_InnMemoryBlockPool()
+            _InnMemoryChunkPoolBranch()
             {
-                delete Lock;
+                // even I won't zero it when in single thread
+                if(BranchSize > 1){
+                    Lock = new std::mutex();
+                }
             }
 
-            // this function never return nullptr
-            void *InnGet()
+            ~_InnMemoryChunkPoolBranch()
             {
-                for(auto pMU = UnitV.rbegin(); pMU != UnitV.rend(); ++pMU){
-                    if(auto pRet = pMU->Get()){
+                if(BranchSize > 1){
+                    delete Lock;
+                }
+            }
+
+            // this function never fail, it always get an memory piece
+            // given proper nSizeInUnit
+            void *InnGet(size_t nSizeInUnit)
+            {
+                for(auto pMP = PoolV.rbegin(); pMP != PoolV.rend(); ++pMP){
+                    if(auto pRet = pMP->Get(nSizeInUnit)){
                         return pRet;
                     }
                 }
 
                 // ooops, need to add a new unit
-                UnitV.emplace_back(std::make_shared<InnMemoryUnit>(UnitV.size(), m_ID));
-                return UnitV.back()->InnGet();
+                PoolV.emplace_back(PoolV.size(), m_BranchID);
+                return PoolV.back()->Get(nSizeInUnit);
             }
 
-            void *Get()
+            void *Get(size_t nSizeInUnit)
             {
-                if(ThreadSafe){
+                if(BranchSize > 1){
                     if(Lock->try_lock()){
                         void *pRet = nullptr;
 
@@ -313,70 +366,99 @@ class MemoryBlockPN
                         Lock->unlock();
                         return pRet;
                     }else{
-                        // if we can't get hold current lock
+                        // if current thread can't get current lock
                         // just return nullptr
                         return nullptr;
                     }
                 }
+
+                // ok just in single thread...
                 return InnGet();
             }
-        }InnMemoryBlockPool;
+        }InnMemoryChunkPoolBranch;
 
     private:
         size_t m_Count;
-        std::array<InnMemoryBlockPool, SlotCount> m_MPV;
+        InnMemoryChunkPoolBranch m_MCPBV[BranchSize];
 
     public:
-        MemoryBlockPN()
+        MemoryChunkPN()
             : m_Count(0)
         {
-            static_assert(true
-                    && BlockSize  > 0
-                    && BlockCount > 0
-                    && SlotCount  > 0, "invalid argument for MemoryBlockPN");
-            }
+            // 1. check parameters
+            static_assert(UnitSize > 0 && UnitSize <= 256
+                    && (!(UnitSize & (UnitSize - 1))), "invalid argument for UnitSize");
 
-        ~MemoryBlockPN() = default;
+            static_assert(PoolSize > 0 && PoolSize <= 256
+                    && (!(PoolSize & (PoolSize - 1))), "invalid argument for PoolSize");
+
+            static_assert(BranchSize > 0, "invalid argument for BranchSize");
+
+            // 2. assign branch id to each branch if necessary
+            if(BranchSize > 1){
+                for(size_t nIndex = 0; nIndex < BranchSize; ++nIndex){
+                    m_MCPBV[nIndex].BranchID = nIndex;
+                }
+            }
+        }
+
+        ~MemoryChunkPN() = default;
 
     public:
-        void *Get()
+        void *Get(size_t nSizeInByte)
         {
-            // don't need those logics
-            if(SlotCount == 1){ return m_MPV[0].Get(); }
+            constexpr auto nOff = (size_t)(uintptr_t)(&((*((InnMemoryChunk *)(0))).Data[0]));
+            size_t nSizeInUnit = (nSizeInByte + nOff + UnitSize - 1) / UnitSize;
 
-            int nIndex = (m_Count++) % m_MPV.size();
+            // then nSizeInUnit == 0 won't happen
+            if(!PowerOf2<size_t>(nSizeInUnit)){
+                nSizeInUnit = RoundByPowerOf2<size_t>(nSizeInUnit);
+            }
+
+            // oooops, request tooo large memory chunk and any pool can't satisfy
+            // dynamically allocate it and return
+            if(nSizeInUnit > PoolSize){
+                auto pNewChunk = (InnMemoryChunk *)(new uint8_t[nSizeInUnit * UnitSize]);
+                pNewChunk->In = false;
+
+                return &(pNewChunk->Data[0]);
+            }
+
+            // size is ok, then now we'll try to allocated in memory pools
+
+            if(BranchSize == 1){ return m_MCPBV[0].Get(nSizeInUnit); }
+
+            int nIndex = (m_Count++) % BranchSize;
             while(true){
-                if(auto pRet = m_MPV[nIndex].Get()){
+                if(auto pRet = m_MCPBV[nIndex].Get(nSizeInUnit)){
                     return pRet;
                 }
 
-                nIndex = (nIndex + 1) % m_MPV.size();
+                nIndex = (nIndex + 1) % BranchSize;
             }
 
+            // to make the compiler happy
             return nullptr;
         }
 
         void Free(void *pData)
         {
-            if(!pData){ return; }
+            if(!pBuf){ return; }
 
-            // pOff is the constant offset of a memory block to its data field
-            // pHead is the starting address of the memory block, w.r.t. the data chunk to free
-            constexpr auto pOff  = (uint8_t *)(&((*((InnMemoryBlock *)(0))).Data[0]));
-            const     auto pHead = (InnMemoryBlock *)((uint8_t *)pData - pOff);
+            constexpr auto pOff = (uint8_t *)(&((*((InnMemoryChunk *)(0))).Data[0]));
+            auto pHead = (InnMemoryChunk *)((uint8_t *)pBuf - pOff);
 
-            // 1. get the pool index
-            size_t nPoolIndex = ((SlotCount > 1) ? (pHead->Extend) : 0);
+            if(!pHead->In){
+                delete [] (uint8_t *)pHead; return;
+            }
 
-            // 2. lock this pool if necessary
-            InnLockGuard stInnLG(&(m_MPV[nPoolIndex].Lock));
+            // when branch count is 1, the branch id is not set
+            if(BranchSize == 1){
+                m_BranchV[0]->PoolV[pHead->PoolID].Free(pHead->NodeID);
+                return;
+            }
 
-            // 3. get the index of memory block in the memory unit
-            //    the internal vector UnitV[...] may expand so don't put it as step-2
-            size_t nUnitIndex = (pHead - 
-                    &(m_MPV[nPoolIndex].UnitV[pHead->Param]->BlockV[0])) / sizeof(InnMemoryBlock);
-
-            // 4. put it as valid
-            m_MPV[nPoolIndex].ValidQ.PushHead(nUnitIndex);
+            InnLockGuard(m_BranchV[pHead->BranchID]->Lock);
+            m_BranchV[pHead->BranchID]->PoolV[pHead->PoolID].Free(pHead->NodeID);
         }
 };

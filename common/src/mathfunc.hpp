@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 05/08/2016 17:23:21
+ *  Last Modified: 05/18/2016 16:01:59
  *
  *    Description: 
  *
@@ -151,4 +151,28 @@ template<typename T> bool RectangleOverlapRegion(
         return true;
     }
     return false;
+}
+
+template<typename T> bool PowerOf2(T nParam)
+{
+    static_assert(std::is_integral<T>::value, "Integral type required...");
+    return !(nParam & (nParam - 1));
+}
+
+// TODO & TBD
+// this is portable but not optimized, gcc has builtin functions
+// as __builtin_clz(), google it, however it's not portable
+template<typename T> bool RoundByPowerOf2(T nParam)
+{
+    static_assert(std::is_integral<T>::value, "Integral type required...");
+
+    nParam |= (nParam >> 1);
+    nParam |= (nParam >> 2);
+
+    if(sizeof(T) >= 1){ nParam |= (nParam >>  4); }
+    if(sizeof(T) >= 2){ nParam |= (nParam >>  8); }
+    if(sizeof(T) >= 4){ nParam |= (nParam >> 16); }
+    if(sizeof(T) >= 8){ nParam |= (nParam >> 32); }
+
+    return nParam + 1;
 }
