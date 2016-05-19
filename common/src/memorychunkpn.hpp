@@ -3,13 +3,12 @@
  *
  *       Filename: memorychunkpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/18/2016 18:45:08
+ *  Last Modified: 05/18/2016 22:32:16
  *
  *    Description: unfixed-size memory chunk pool, thread safe is optional, but self-contained
  *                 this algorithm is based on buddy algorithm
  *
  *                 copy from https://github.com/wuwenbin/buddy2
- *                 such a smart implementation of buddy algorithm!
  *
  *
  *                 +---+   +---+   +---+ <----------------------------------
@@ -28,9 +27,9 @@
  *         |
  *         |       +---+   +---+ 
  *         |       |   |   |   | 
- *         |       |   |   |   |                   then there are three branches, each branch can
- *         |       +---+   +---+  .....            grow independently and dynamically.
- *         |       |   |   |   |
+ *         |       +---+   |   |                   then there are three branches, each branch can
+ *         |       |   |   +---+  .....            grow independently and dynamically.
+ *         |       +---+   +---+
  *         |       |   |   |   |                   each branch has a lock for multi-thread, if
  *         |       +---+   +---+                   one branch is locked we can try next one
  *         |         ^       ^
@@ -42,9 +41,9 @@
  *         |                                       BranchSize = 1
  *         |       +---+   +---+   +---+
  *         |       |   |   |   |   |   |
- *         |       |   |   |   |   |   |
- *         |       +---+   +---+   +---+  .....
- *         |       |   |   |   |   |   |
+ *         |       +---+   |   |   +---+
+ *         |       |   |   +---+   |   |  .....
+ *         |       +---+   +---+   |   |
  *         |       |   |   |   |   |   |
  *         |       +---+   +---+   +---+
  *         |         ^       ^       ^
@@ -152,6 +151,7 @@ class MemoryChunkPN
                 return (nIndex + 1) / 2 - 1;
             }
 
+            // assume nIndex is in [0, 256 * 2 - 2)
             static size_t Level(size_t nIndex)
             {
                 const static size_t kLevelV[] = {
@@ -187,7 +187,6 @@ class MemoryChunkPN
                     8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
                     8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
                     8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9};
-                // assume nIndex is in [0, 256 * 2 - 2)
                 return kLevelV[nIndex];
             }
 
@@ -197,6 +196,7 @@ class MemoryChunkPN
                 return (1 << (Level(2 * PoolSize - 2) - Level(nNodeID)));
             }
 
+            // I didn't put branch ID here
             _InnMemoryChunkPool(size_t nPoolID)
                 : PoolID(nPoolID)
             {
@@ -266,7 +266,7 @@ class MemoryChunkPN
 
                 while(nIndex){
                     nIndex = ParentNode(nIndex);
-                    Longest[nParentIndex] = std::max(
+                    Longest[nParentIndex] = std::max<size_t>(
                             Longest[LeftNode(nIndex)], Longest[RightNode(nIndex)]);
                 }
 
@@ -346,7 +346,11 @@ class MemoryChunkPN
                 }
 
                 // ooops, need to add a new unit
-                PoolV.emplace_back(PoolV.size(), m_BranchID);
+                PoolV.emplace_back(PoolV.size());
+                if(BranchSize > 1){
+                    PoolV.back()->BranchID = BranchID;
+                }
+
                 return PoolV.back()->Get(nSizeInUnit);
             }
 
@@ -373,8 +377,11 @@ class MemoryChunkPN
                 }
 
                 // ok just in single thread...
-                return InnGet();
+                return InnGet(nSizeInUnit);
             }
+
+            // TODO & TBD
+            // no Free() function defined
         }InnMemoryChunkPoolBranch;
 
     private:
@@ -428,7 +435,7 @@ class MemoryChunkPN
 
             if(BranchSize == 1){ return m_MCPBV[0].Get(nSizeInUnit); }
 
-            int nIndex = (m_Count++) % BranchSize;
+            size_t nIndex = (m_Count++) % BranchSize;
             while(true){
                 if(auto pRet = m_MCPBV[nIndex].Get(nSizeInUnit)){
                     return pRet;
@@ -454,11 +461,12 @@ class MemoryChunkPN
 
             // when branch count is 1, the branch id is not set
             if(BranchSize == 1){
-                m_BranchV[0]->PoolV[pHead->PoolID].Free(pHead->NodeID);
+                m_MCPBV[0]->PoolV[pHead->PoolID].Free(pHead->NodeID);
                 return;
             }
 
-            InnLockGuard(m_BranchV[pHead->BranchID]->Lock);
-            m_BranchV[pHead->BranchID]->PoolV[pHead->PoolID].Free(pHead->NodeID);
+            // ok this is in multi-thread environment, we need the lock
+            InnLockGuard(m_MCPBV[pHead->BranchID]->Lock);
+            m_MCPBV[pHead->BranchID]->PoolV[pHead->PoolID].Free(pHead->NodeID);
         }
 };
