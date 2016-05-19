@@ -3,7 +3,7 @@
  *
  *       Filename: memorychunkpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/18/2016 22:32:16
+ *  Last Modified: 05/19/2016 10:52:34
  *
  *    Description: unfixed-size memory chunk pool, thread safe is optional, but self-contained
  *                 this algorithm is based on buddy algorithm
@@ -357,9 +357,9 @@ class MemoryChunkPN
             void *Get(size_t nSizeInUnit)
             {
                 if(BranchSize > 1){
-                    if(Lock->try_lock()){
-                        void *pRet = nullptr;
+                    void *pRet = nullptr;
 
+                    if(Lock->try_lock()){
                         try{
                             pRet = InnGet();
                         }catch(...){

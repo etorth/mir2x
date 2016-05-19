@@ -3,7 +3,7 @@
  *
  *       Filename: memoryblockpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/17/2016 17:17:55
+ *  Last Modified: 05/19/2016 11:13:23
  *
  *    Description: fixed size memory block pool
  *                 simple implementation for performance
@@ -11,29 +11,29 @@
  *
  *
  *                 +---+   +---+   +---+ <----------------------------------
- *                 |   |   |   |   |   | <------ this is one buffer      ^
+ *                 |   |   |   |   |   | <------ this is one block       ^
  *                 |   |   |   |   |   |                                 |
- *                 +---+   +---+   +---+  .....                        this is a memory unit
+ *                 +---+   +---+   +---+  .....                        this is a memory pool
  *                 |   |   |   |   |   |                                 |
  *                 |   |   |   |   |   |                                 V
  *                 +---+   +---+   +---+ <----------------------------------
  *                   ^       ^       ^
  *                   |       |       |
  *                 +-----+-------+-----+--
- *   ------+-----> |     |       |     |  ....    <------ this is one pool
+ *   ------+-----> |     |       |     |  ....    <------ this is one memory branch
  *         |       +-----+-------+-----+--
  *         |
  *         |
  *         |       +---+   +---+ 
  *         |       |   |   |   | 
- *         |       |   |   |   |                   then there are three pools, each pool can
+ *         |       |   |   |   |                   then there are three branches, each branch can
  *         |       +---+   +---+  .....            grow independently and dynamically.
  *         |       |   |   |   |
- *         |       |   |   |   |                   each pool has a lock for multi-thread, if
- *         |       +---+   +---+                   one pool is locked we can try next one
+ *         |       |   |   |   |                   each branch has a lock for multi-thread, if
+ *         |       +---+   +---+                   one branch is locked we can try next one
  *         |         ^       ^   
  *         |         |       |                     actually if use this class in single thread
- *         |       +-----+-----+--                 environment, then one pool is enough
+ *         |       +-----+-----+--                 environment, then one branch is enough
  *         +-----> |     |     |  ....
  *         |       +-----+-----+--
  *         |
@@ -66,22 +66,19 @@
 #pragma once
 
 #include <mutex>
-#include <array>
 #include <vector>
 #include <cstdint>
 
 #include "cachequeue.hpp"
 
-// BlockSize : size of buffer allocated in byte
-// BlockCount: how many buffer it can allocate for one static memory unit
-// SlotCount : branches for multi-thread performance
-// ThreadSafe: 
+// BlockSize  : size of memory block in byte, fixed
+// PoolSize   : how many blocks in one pool, allocated statically
+// BranchSize : branches for multi-thread performance, can be
+//                  0   : invalid
+//                  1   : single-thread
+//               >= 2   : multi-thread environment
 //
-// And then there is a std::vector which contains many memory units, it dynamically
-// increases to handle unlimited buffer allocation request, but most likely we only
-// have a few memory uints in the vector
-//
-template<size_t BlockSize, size_t BlockCount, size_t SlotCount, bool ThreadSafe>
+template<size_t BlockSize, size_t PoolSize, size_t BranchSize>
 class MemoryBlockPN
 {
     private:
@@ -91,9 +88,9 @@ class MemoryBlockPN
             std::mutex *Lock;
 
             _InnLockGuard(std::mutex *pLock)
-                : Lock(pLock)
             {
-                if(ThreadSafe){
+                if(BranchSize > 1){
+                    Lock = pLock;
                     Lock->lock();
                 }
             }
@@ -106,38 +103,43 @@ class MemoryBlockPN
             }
         }InnLockGuard;
 
+    private:
         // structure of one buffer, which will be allocated by Get()
         // it will do for memory align automatically
         //
-        // I put a field ``Extend" here to support multi-slot
+        // I put a field ``BranchID" here to support multi-branches
         typedef struct _InnMemoryBlock{
-            size_t Param;            // inside one memory unit
-            size_t Extend;           // extend for memory pool array for multi-thread performance
-            uint8_t Data[BlockSize]; // where we put the data
+            size_t PoolID;            // inside one branch, which pool it's in
+            size_t BranchID;          // extend for memory branch
+            uint8_t Data[BlockSize];  // where we put the data
         }InnMemoryBlock;
 
-        // structure of one memory unit
-        typedef struct _InnMemoryUnit{
-            CacheQueue<size_t, BlockCount> ValidQ;
-            std::array<InnMemoryBlock, BlockCount> BlockV;
+        // structure of one memory pool
+        typedef struct _InnMemoryBlockPool{
+            InnMemoryBlock BlockV[PoolSize];        // data position
+            CacheQueue<size_t, PoolSize> ValidQ;    // marker queue
 
-            _InnMemoryUnit(size_t nParam, size_t nExtend = 0)
+            // actually maybe we won't need to assign branch id here
+            // but it's ok since this is only being done at initialization
+            //
+            // not like MemoryChunkPN which done at each allocation
+            _InnMemoryBlockPool(size_t nPoolID, size_t nBranchID = 0)
             {
                 // TODO & TBD
                 // we can skip these to clears
                 ValidQ.Clear();
 
-                for(size_t nIndex = 0; nIndex < BlockCount; ++nIndex){
+                for(size_t nIndex = 0; nIndex < PoolSize; ++nIndex){
                     ValidQ.PushHead(nIndex);
-                    BlockV[nIndex].Param = nParam;
+                    BlockV[nIndex].PoolID = nPoolID;
 
-                    // uncessary when slot is less than 2
-                    // just put it here since it won't cause much during initialization
-                    BlockV[nIndex].Extend = nExtend;
+                    if(BranchSize > 1){
+                        BlockV[nIndex].BranchID = nBranchID;
+                    }
                 }
             }
 
-            void *InnGet()
+            void *Get()
             {
                 if(ValidQ.Empty()){ return nullptr; }
 
@@ -146,43 +148,53 @@ class MemoryBlockPN
 
                 return pData;
             }
-        }InnMemoryUnit;
 
-        typedef struct _InnMemoryBlockPool{
+            // TODO & TBD
+            // we don't have a Free() here
+        }InnMemoryBlockPool;
+
+    private:
+        typedef struct _InnMemoryBlockPoolBranch{
+            size_t BranchID;
             std::mutex *Lock;
-            const size_t m_ID;
-            std::vector<std::shared_ptr<InnMemoryUnit>> UnitV;
+            std::vector<std::shared_ptr<InnMemoryBlockPool>> PoolV;
 
-            _InnMemoryBlockPool(size_t nPoolID = 0)
-                : Lock(ThreadSafe ? (new std::mutex()) : nullptr)
-                , m_ID(nPoolID)
-            {}
-
-            ~_InnMemoryBlockPool()
+            // didn't assign BranchID here, it's in a raw array
+            // and hard to use ctor with parameters
+            _InnMemoryBlockPoolBranch()
             {
-                delete Lock;
+                if(BranchSize > 1){
+                    Lock = new std::mutex();
+                }
+            }
+
+            ~_InnMemoryBlockPoolBranch()
+            {
+                if(BranchSize > 1){
+                    delete Lock;
+                }
             }
 
             // this function never return nullptr
             void *InnGet()
             {
-                for(auto pMU = UnitV.rbegin(); pMU != UnitV.rend(); ++pMU){
-                    if(auto pRet = pMU->Get()){
+                for(auto pMP = PoolV.rbegin(); pMP != PoolV.rend(); ++pMP){
+                    if(auto pRet = pMP->Get()){
                         return pRet;
                     }
                 }
 
-                // ooops, need to add a new unit
-                UnitV.emplace_back(std::make_shared<InnMemoryUnit>(UnitV.size(), m_ID));
-                return UnitV.back()->InnGet();
+                // ooops, need to add a new pool
+                PoolV.emplace_back(PoolV.size(), (BranchSize > 1) ? BranchID : 0);
+                return PoolV.back()->Get();
             }
 
             void *Get()
             {
-                if(ThreadSafe){
-                    if(Lock->try_lock()){
-                        void *pRet = nullptr;
+                if(BranchSize > 1){
+                    void *pRet = nullptr;
 
+                    if(Lock->try_lock()){
                         try{
                             pRet = InnGet();
                         }catch(...){
@@ -198,13 +210,15 @@ class MemoryBlockPN
                         return nullptr;
                     }
                 }
+
+                // it's single thread so
                 return InnGet();
             }
-        }InnMemoryBlockPool;
+        }InnMemoryBlockPoolBranch;
 
     private:
         size_t m_Count;
-        std::array<InnMemoryBlockPool, SlotCount> m_MPV;
+        InnMemoryBlockPoolBranch m_MBPBV[BranchSize];
 
     public:
         MemoryBlockPN()
@@ -212,9 +226,9 @@ class MemoryBlockPN
         {
             static_assert(true
                     && BlockSize  > 0
-                    && BlockCount > 0
-                    && SlotCount  > 0, "invalid argument for MemoryBlockPN");
-            }
+                    && PoolSize   > 0
+                    && BranchSize > 0, "invalid argument for MemoryBlockPN");
+        }
 
         ~MemoryBlockPN() = default;
 
@@ -222,17 +236,18 @@ class MemoryBlockPN
         void *Get()
         {
             // don't need those logics
-            if(SlotCount == 1){ return m_MPV[0].Get(); }
+            if(BranchSize == 1){ return m_MBPBV[0].Get(); }
 
-            int nIndex = (m_Count++) % m_MPV.size();
+            int nIndex = (m_Count++) % BranchSize;
             while(true){
-                if(auto pRet = m_MPV[nIndex].Get()){
+                if(auto pRet = m_MBPBV[nIndex].Get()){
                     return pRet;
                 }
 
-                nIndex = (nIndex + 1) % m_MPV.size();
+                nIndex = (nIndex + 1) % BranchSize;
             }
 
+            // to make the compiler happy
             return nullptr;
         }
 
@@ -245,18 +260,21 @@ class MemoryBlockPN
             constexpr auto pOff  = (uint8_t *)(&((*((InnMemoryBlock *)(0))).Data[0]));
             const     auto pHead = (InnMemoryBlock *)((uint8_t *)pData - pOff);
 
-            // 1. get the pool index
-            size_t nPoolIndex = ((SlotCount > 1) ? (pHead->Extend) : 0);
+            // 1. get the branch index
+            size_t nBranchIndex = ((BranchSize > 1) ? (pHead->BranchID) : 0);
 
             // 2. lock this pool if necessary
-            InnLockGuard stInnLG(&(m_MPV[nPoolIndex].Lock));
+            //    if BranchSize == 1 this lock will do nothing
+            InnLockGuard stInnLG(&(m_MBPBV[nBranchIndex].Lock));
 
-            // 3. get the index of memory block in the memory unit
-            //    the internal vector UnitV[...] may expand so don't put it as step-2
-            size_t nUnitIndex = (pHead - 
-                    &(m_MPV[nPoolIndex].UnitV[pHead->Param]->BlockV[0])) / sizeof(InnMemoryBlock);
+            // 3. get the index of memory block in the memory pool
+            //    the internal vector PoolV[...] may expand so don't put it as step-2
+            //
+            //    since it's already pointer of type InnMemoryBlock
+            //    no need for devision of sizeof(InnMemoryBlock)
+            size_t nBlockID = pHead - &(m_MBPBV[0].PoolV[pHead->PoolID]->BlockV[0]);
 
             // 4. put it as valid
-            m_MPV[nPoolIndex].ValidQ.PushHead(nUnitIndex);
+            m_MBPBV[0].PoolV[pHead->PoolID].ValidQ.PushHead(nBlockID);
         }
 };
