@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 3:48:41 AM
- *  Last Modified: 04/29/2016 23:07:58
+ *  Last Modified: 05/19/2016 14:47:07
  *
  *    Description: 
  *
@@ -40,7 +40,7 @@ class Session: public SyncDriver
     public:
        // TODO
        // Session class won't maintain the validation of pData!
-       void SendN(uint8_t nMsgHC, const uint8_t *pData,
+       void Send(uint8_t nMsgHC, const uint8_t *pData,
                size_t nLen, const std::function<void()> &fnDone = []{})
        {
            bool bEmpty = m_SendQ.empty();
@@ -52,17 +52,17 @@ class Session: public SyncDriver
        }
 
        // helper functions
-       void SendN(uint8_t nMsgHC, const std::function<void()> &fnDone = []{})
+       void Send(uint8_t nMsgHC, const std::function<void()> &fnDone = []{})
        {
-           SendN(nMsgHC, nullptr, 0, fnDone);
+           Send(nMsgHC, nullptr, 0, fnDone);
        }
 
        // TODO
        // maybe I need make const T here
-       template<typename T> void SendN(
+       template<typename T> void Send(
                uint8_t nMsgHC, const T &stMsgT, const std::function<void()> &fnDone = []{})
        {
-           SendN(nMsgHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT), fnDone);
+           Send(nMsgHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT), fnDone);
        }
 
 
@@ -71,6 +71,14 @@ class Session: public SyncDriver
        void ReadHC();
        // read data, operation is defined by functional argument
        void Read(size_t, std::function<void(uint8_t *, size_t)>);
+
+       // to register new handler to handle message header
+       // reasone I add this new API is for session it firstly communicate with
+       // monoserver and then with player
+       void Operate(const std::function<void(uint8_t, Session *)> &fnOperateHC)
+       {
+           m_OperateFunc = fnOperateHC;
+       }
 
     private:
        void DoSendHC();

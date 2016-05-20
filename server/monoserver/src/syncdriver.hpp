@@ -3,7 +3,7 @@
  *
  *       Filename: syncdriver.hpp
  *        Created: 04/27/2016 00:28:05
- *  Last Modified: 05/03/2016 14:23:36
+ *  Last Modified: 05/19/2016 14:34:14
  *
  *    Description: class which behaves as:
  *                      ``send-wait-receive-action-.....-send-wait-receive-action..."
@@ -48,7 +48,7 @@ class SyncDriver
         // return value:
         //      0. no error
         //      1. send failed
-        int Send(const MessageBuf &rstMB, const Theron::Address &rstAddr)
+        int Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr)
         {
             extern Theron::Framework *g_Framework;
             return g_Framework->Send<MessagePack>(
@@ -67,7 +67,7 @@ class SyncDriver
         //      1   : send failed
         //      2   : send succeed but wait for response failed
         //      3   : other unknown errors
-        int Send(const MessageBuf &rstMB, const Theron::Address &rstAddr, MessagePack *pMPK)
+        int Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, MessagePack *pMPK)
         {
             MessagePack stTmpMPK;
             Theron::Address stTmpAddress;

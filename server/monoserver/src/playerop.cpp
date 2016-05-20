@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/11/2016 17:47:33
+ *  Last Modified: 05/19/2016 15:25:31
  *
  *    Description: 
  *
@@ -18,25 +18,15 @@
  * =====================================================================================
  */
 
-void Player::On_MPK_NETMESSAGE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
-    AMNetMessageContext stAMNMC;
-    std::memcpy(&stAMNMC, rstMPK.Data(), sizeof(AMNetMessageContext));
+    AMNetPackage stAMNP;
+    std::memcpy(&stAMNP, rstMPK.Data(), sizeof(AMNetPackage));
 
-    // TODO
-    // here we use the buffer in class Session, this is dirty since we are
-    // using shared memory, we can copy the net message body in the MPK but
-    // I am for performance.
-    //
-    // to make it safe, we should
-    // 1. class Session shouldn't read a new message unless notified by class Player
-    // 2. never copy the data pointer stAMNMC.Data
-    //
-    // aha so smelly here
-    OperateNet(stAMNMC.Type, stAMNMC.Data, stAMNMC.DataLen);
+    OperateNet(stAMNP.Type, stAMNP.Data, stAMNP.DataLen);
 
-    // notify the session that I have consumed this data
-    // then session can do everything to the buffer, maybe release it or put new stuff
-    // inside
-    m_ActorPod->Forward(MPK_OK, rstFromAddr);
+    if(stAMNP.Data){
+        extern MemoryChunkPN *g_MemoryChunkPN;
+        g_MemoryChunkPN->Free(stAMNP.Data);
+    }
 }
