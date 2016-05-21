@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/03/2016 22:19:48
+ *  Last Modified: 05/20/2016 18:18:08
  *
  *    Description: 
  *
@@ -87,4 +87,32 @@ bool ServiceCore::LoadMap(uint32_t nMapID)
     m_ActorPod->Forward(MPK_HI, m_MapRecordM[nMapID].PodAddress);
 
     return true;
+}
+
+Theron::Address ServiceCore::GetRMAddress(uint32_t nMapID, int nMapX, int nMapY)
+{
+    if(m_MapRecordM.find(stAMAM.MapID) == m_MapRecordM.end()){
+        if(!LoadMap(stAMAM.MapID)){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "load map %u failed", nMapID);
+            return Theron::Address::Null();
+        }
+    }
+
+    uint16_t nGridX = nMapX / SYS_MAPGRIDXP;
+    uint16_t nGridY = nMapY / SYS_MAPGRIDYP;
+
+    uint32_t nGridID = ((uint32_t)nGridX << 16) + nGridY;
+    if(m_MapRecordM[nMapID].RMAddressCache[nGridID])
+
+
+
+
+
+
+
+
+
+
+
 }

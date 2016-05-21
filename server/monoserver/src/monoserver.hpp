@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/07/2016 00:45:30
+ *  Last Modified: 05/20/2016 16:34:19
  *
  *    Description: 
  *
@@ -165,5 +165,11 @@ class MonoServer: public SyncDriver
         uint32_t GetTimeTick()
         {
             return 0;
+        }
+
+    public:
+        DBPod::DBHDR CreateDBHDR()
+        {
+            return m_DBPod->CreateDBHDR();
         }
 };

@@ -5,10 +5,6 @@ class DBConnection;
 class DBRecord final
 {
     private:
-        DBRecord(DBConnection *);
-        ~DBRecord();
-
-    private:
         MYSQL_RES      *m_SQLRES;
         MYSQL_ROW       m_CurrentRow;
         DBConnection   *m_Connection;
@@ -19,6 +15,10 @@ class DBRecord final
         bool    m_ValidExecuteString;
         bool    m_Valid;
         bool    m_QuerySucceed;
+
+    private:
+        DBRecord(DBConnection *);
+        ~DBRecord();
 
     public:
         bool Execute(const char *, ...);

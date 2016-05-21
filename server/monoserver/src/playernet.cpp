@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 05/19/2016 15:27:29
+ *  Last Modified: 05/20/2016 13:41:44
  *
  *    Description: how player respond for different net package
  *
@@ -17,5 +17,7 @@
  *
  * =====================================================================================
  */
-
-    
+ 
+void Player::Net_CM_MOTION(uint8_t, const uint8_t *pDat, size_t)
+{
+}

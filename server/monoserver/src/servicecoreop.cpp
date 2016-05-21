@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/08/2016 14:05:26
+ *  Last Modified: 05/20/2016 18:03:54
  *
  *    Description: 
  *
@@ -24,8 +24,22 @@
 #include "servicecore.hpp"
 #include "serverconfigurewindow.hpp"
 
-void ServiceCore::On_MPK_ADDMONSTER(
-        const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+// ServiceCore accepts net packages from *many* sessions and based on it to create
+// the player object for a one to one map
+//
+// So servicecore <-> session is 1 to N, means we have to put put pointer of session
+// in the net package otherwise we can't find the session even we have session's 
+// address, session is a sync-driver, even we have it's address we can't find it
+//
+void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+{
+    AMServiceCoreNetPackage stAMSCNP;
+    std::memcpy(&stAMSCNP, rstMPK.Data(), sizeof(stAMSCNP));
+
+    OperateNet(stAMSCNP.Session, stAMSCNP.Type, stAMSCNP.Data, stAMSCNP.DataLen);
+}
+
+void ServiceCore::On_MPK_ADDMONSTER(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     AMAddMonster stAMAM;
     std::memcpy(&stAMAM, rstMPK.Data(), sizeof(stAMAM));

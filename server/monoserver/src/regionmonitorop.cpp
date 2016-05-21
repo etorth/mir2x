@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/10/2016 16:06:59
+ *  Last Modified: 05/20/2016 11:10:45
  *
  *    Description: 
  *
@@ -621,4 +621,164 @@ void RegionMonitor::On_MPK_TRYSPACEMOVE(
     }
     // I have send MPK_CHECKCOVER to all qualified neighbors
     // now just wait for the response
+}
+
+// try to add a new player in current RM, if succeed, it make the player incarnated = false
+// this won't test the object collision since you know the reason
+//
+// 1. test the ground is ok
+// 2. add it
+// 3. set incarnated = false
+// 4. if moved to a valid place, set incarnated = true;
+//
+// during a object with state incarnated = false, it can't do anything, otherwise player can
+// cheat
+//
+// this function won't affect any object with incarnated = true
+void RegionMonitor::On_MPK_NEWPLAYER(
+        const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+{
+    if(m_MoveRequest.Freezed()){
+        // ooops someone else is doing move request
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    AMNewCharObject stAMNCO;
+    std::memcpy(&stAMNCO, rstMPK.Data(), sizeof(stAMNCO));
+
+    // for MPK_NEWMONSTER we don't have to check whether the object is to be
+    // inside current region, when ServerMap do the routine, it makes sure
+    if(!CoverValid(stAMNCO.UID, stAMNCO.AddTime, stAMNCO.X, stAMNCO.Y, stAMNCO.R)){
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    // check if I am only in current region?
+    int nObjX = stAMNCO.X - stAMNCO.R;
+    int nObjY = stAMNCO.Y - stAMNCO.R;
+    int nObjW = 2 * stAMNCO.R;
+    int nObjH = 2 * stAMNCO.R;
+    if(RectangleInside(m_X, m_Y, m_W, m_H, nObjX, nObjY, nObjW, nObjH)){
+        CharObjectRecord stCORecord;
+        stCORecord.X = stAMNCO.X;
+        stCORecord.Y = stAMNCO.Y;
+        stCORecord.R = stAMNCO.R;
+
+        stCORecord.UID = stAMNCO.UID;
+        stCORecord.AddTime = stAMNCO.AddTime;
+
+        ((CharObject *)stAMNCO.Data)->SetR(stAMNCO.R);
+        ((CharObject *)stAMNCO.Data)->SetMapID(m_MapID);
+        ((CharObject *)stAMNCO.Data)->SetLocation(GetAddress(), stAMNCO.X, stAMNCO.Y);
+        stCORecord.PodAddress = ((ReactObject *)stAMNCO.Data)->Activate();
+
+        m_CharObjectRecordV.push_back(stCORecord);
+
+        // we respond to ServerMap, but it won't respond again
+        // TODO & TBD
+        // here maybe protential bug:
+        // 1. message to creater did arrival yet
+        // 2. but the actor has already been working
+        //
+        m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
+
+        // actually here we don't need to create the RM address and send it
+        // since for the receiving object, it can take the address of the Operate()
+        m_ActorPod->Forward(MPK_HI, stCORecord.PodAddress);
+        return;
+    }
+
+    // oooops, have to ask neighbor's opinion for cover
+    // not only in the single region, then need cover check
+    // all needed RM are qualified?
+    bool bAllQualified = true;
+    for(size_t nY = 0; nY < 3 && bAllQualified; ++nY){
+        for(size_t nX = 0; nX < 3 && bAllQualified; ++nX){
+            if(nX == 1 && nY == 1){ continue; }
+
+            int nNbrX = ((int)nX - 1) * m_W + m_X;
+            int nNbrY = ((int)nY - 1) * m_H + m_Y;
+
+            // ok, no overlap, skip it
+            if(CircleRectangleOverlap(stAMNCO.X, stAMNCO.Y, stAMNCO.R, nNbrX, nNbrY, m_W, m_H)
+                    && m_NeighborV2D[nY][nX].PodAddress == Theron::Address::Null()){
+                bAllQualified = false;
+                break;
+            }
+        }
+    }
+
+    // some needed neighbors are not qualified
+    // then we need to inform the ServerMap who creates this monster
+    if(!bAllQualified){
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    // prepare the MoveRequest
+    m_MoveRequest.Clear();
+
+    m_MoveRequest.Data          = stAMNCO.Data;
+    m_MoveRequest.X             = stAMNCO.X;
+    m_MoveRequest.Y             = stAMNCO.Y;
+    m_MoveRequest.R             = stAMNCO.R;
+    m_MoveRequest.UID           = stAMNCO.UID;
+    m_MoveRequest.AddTime       = stAMNCO.AddTime;
+    m_MoveRequest.MPKID         = rstMPK.ID();
+    m_MoveRequest.PodAddress    = rstFromAddr;
+    m_MoveRequest.CurrIn        = false;
+    m_MoveRequest.OnlyIn        = false;
+    m_MoveRequest.NeighborCheck = true;
+
+    m_MoveRequest.Freeze();
+
+    // send cover check to neighbors
+    for(size_t nY = 0; nY < 3; ++nY){
+        for(size_t nX = 0; nX < 3; ++nX){
+            // skip this...
+            if(nX == 1 && nY == 1){
+                m_NeighborV2D[nY][nX].Query = QUERY_NA;
+                continue;
+            }
+
+            int nNbrX = ((int)nX - 1) * m_W + m_X;
+            int nNbrY = ((int)nY - 1) * m_H + m_Y;
+
+            // no overlap, skip it
+            if(!CircleRectangleOverlap(stAMNCO.X, stAMNCO.Y, stAMNCO.R, nNbrX, nNbrY, m_W, m_H)){
+                m_NeighborV2D[nY][nX].Query = QUERY_NA;
+                continue;
+            }
+
+            // qualified, send the cover check request
+
+            auto fnROP = [this, nX, nY](const MessagePack &rstRMPK, const Theron::Address &){
+                if(rstRMPK.Type() == MPK_OK){
+                    m_NeighborV2D[nY][nX].Query = QUERY_OK;
+                    m_NeighborV2D[nY][nX].MPKID = rstRMPK.ID(); // used when cancel the freeze
+                }else{
+                    m_NeighborV2D[nY][nX].Query = QUERY_ERROR;
+                }
+            };
+
+            AMCheckCover stAMCC;
+
+            // since we know the object is in current region
+            // we don't have to pass (UID, AddTime) to neighbors
+            stAMCC.UID = stAMNCO.UID;
+            stAMCC.AddTime = stAMNCO.AddTime;
+            stAMCC.X = stAMNCO.X;
+            stAMCC.Y = stAMNCO.Y;
+            stAMCC.R = stAMNCO.R;
+
+            m_ActorPod->Forward({MPK_CHECKCOVER, stAMCC}, m_NeighborV2D[nY][nX].PodAddress, fnROP);
+
+            // set current state to be pending
+            m_NeighborV2D[nY][nX].Query = QUERY_PENDING;
+        }
+    }
+    // I have send MPK_CHECKCOVER to all qualified neighbors
+    // now just wait for the response
+    return;
 }
