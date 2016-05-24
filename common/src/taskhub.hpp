@@ -3,9 +3,16 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 05/16/2016 22:35:21
+ *  Last Modified: 05/24/2016 00:23:16
  *
- *    Description: 
+ *    Description: this makes me very confused, std::function may use internally
+ *                 dynamically allocated memory, if so, it's nonsense of using
+ *                 the MemoryBlockPN to allocated std::function itself
+ *
+ *                 OK do as much as you can
+ *
+ *                 I am not confident enough to update this class
+ *
  *
  *        Version: 1.0
  *       Revision: none
@@ -24,25 +31,21 @@
 
 #include "task.hpp"
 #include "basehub.hpp"
-#include "memoryblockpool.hpp"
+#include "memoryblockpn.hpp"
 
-using TaskBlockPN = MemoryBlockPool<sizeof(Task), 1024, true>;
-
+using TaskBlockPN = MemoryBlockPN<sizeof(Task), 1024, 4>;
 class TaskHub: public BaseHub<TaskHub>
 {
     protected:
         std::mutex              m_TaskLock;
-        std::condition_variable m_TaskSignal;
+        std::condition_variable m_TaskCV;
         std::list<Task*>        m_TaskList;
-        uint64_t                m_Cycle;
         TaskBlockPN             m_TaskBlockPN;
 
     public:
         TaskHub()
             : BaseHub<TaskHub>()
-            , m_Cycle(0)
         {}
-
         virtual ~TaskHub() = default;
         
     protected:
@@ -69,7 +72,7 @@ class TaskHub: public BaseHub<TaskHub>
             }
 
             if(bDoSignal){
-                m_TaskSignal.notify_one();
+                m_TaskCV.notify_one();
             }
         }
 
@@ -82,7 +85,7 @@ class TaskHub: public BaseHub<TaskHub>
     public:
         template<typename... Args> Task *CreateTask(Args &&... args)
         {
-            void *pData = m_MBP.Get();
+            void *pData = m_TaskBlockPN.Get();
 
             // passing null argument to placement new is undefined behavior
             if(!pData){ return nullptr; }
@@ -93,14 +96,6 @@ class TaskHub: public BaseHub<TaskHub>
         {
             pTask->~Task();
             m_TaskBlockPN->Free(pTask);
-        }
-
-    public:
-
-        // I have no idea of the purpose for the m-func
-        uint64_t Cycle() const
-        {
-            return m_Cycle;
         }
 
     public:
@@ -115,7 +110,7 @@ class TaskHub: public BaseHub<TaskHub>
 
                 if(m_TaskList.empty()){
                     //if the list is empty, then wait for signal
-                    m_TaskSignal.wait(stTaskUniqueLock);
+                    m_TaskCV.wait(stTaskUniqueLock);
                 }
 
                 if(!m_TaskList.empty()){
@@ -123,11 +118,8 @@ class TaskHub: public BaseHub<TaskHub>
                     m_TaskList.pop_front();
                     stTaskUniqueLock.unlock();
 
-                    if(!pTask->Expired()){
-                        ++m_Cycle;
-                        // execute it
-                        (*pTask)();
-                    }
+                    if(!pTask->Expired()){ (*pTask)(); }
+
                     DeleteTask(pTask);
                 }else{
                     stTaskUniqueLock.unlock();
@@ -147,10 +139,10 @@ class TaskHub: public BaseHub<TaskHub>
             // think about how to implement it by either
             //  1. implement an task clean function
             //  2. let Shutdown() block until all task finished
-            auto pTask = CreateTask([this](){ State(0); m_TaskSignal.notify_one(); });
+            auto pTask = CreateTask([this](){ State(0); m_TaskCV.notify_one(); });
 
             std::lock_guard<std::mutex> stLockGuard(m_TaskLock);
             m_TaskList.push_back(pTask);
-            m_TaskSignal.notify_one();
+            m_TaskCV.notify_one();
         }
 };

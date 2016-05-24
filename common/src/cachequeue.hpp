@@ -3,7 +3,7 @@
  *
  *       Filename: cachequeue.hpp
  *        Created: 02/25/2016 01:01:40
- *  Last Modified: 05/16/2016 19:01:46
+ *  Last Modified: 05/23/2016 23:16:30
  *
  *    Description: linear cache queue
  *
@@ -50,6 +50,11 @@ class CacheQueue final
        bool Size()
        {
            return m_Size;
+       }
+
+       bool Empty()
+       {
+           return m_Size == 0;
        }
 
        bool Full()

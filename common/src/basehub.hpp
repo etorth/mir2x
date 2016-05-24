@@ -3,7 +3,7 @@
  *
  *       Filename: basehub.hpp
  *        Created: 04/03/2016 03:49:00
- *  Last Modified: 05/16/2016 22:26:18
+ *  Last Modified: 05/24/2016 00:00:12
  *
  *    Description: 
  *
@@ -69,5 +69,4 @@ class BaseHub
         {
             m_ThreadState.store(nNewState, std::memory_order_relaxed);
         }
-
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: memoryblockpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/19/2016 11:13:23
+ *  Last Modified: 05/23/2016 23:16:53
  *
  *    Description: fixed size memory block pool
  *                 simple implementation for performance
@@ -97,7 +97,7 @@ class MemoryBlockPN
 
             ~_InnLockGuard()
             {
-                if(ThreadSafe){
+                if(BranchSize > 1){
                     Lock->unlock();
                 }
             }

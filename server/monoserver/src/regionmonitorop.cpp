@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/23/2016 18:11:06
+ *  Last Modified: 05/23/2016 22:52:23
  *
  *    Description: 
  *
@@ -814,21 +814,31 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
         return;
     }
 
-    // ok now we can do something
+    // ok now we can do something now
 
-    // allow void state
-    // we even don't care about if current cover is freezed or not
-    if(stAMNCO.AllowVoid){
+    // find conditions that we can finish the adding in this function
+    // 1. allow void state, we even don't care about if current cover is freezed or not
+    // 2. the new char object is only in current RM
+
+    int nObjX = stAMACO.MapX - stAMACO.R;
+    int nObjY = stAMACO.MapY - stAMACO.R;
+    int nObjW = 2 * stAMACO.R;
+    int nObjH = 2 * stAMACO.R;
+
+    bool bAllowVoid = stAMACO.AllowVoid;
+    bool bOnlyIn    = RectangleInside(m_X, m_Y, m_W, m_H, nObjX, nObjY, nObjW, nObjH);
+
+    if(bAllowVoid || bOnlyIn){
         CharObject *pCharObject = nullptr;
         switch(stAMACO.Type){
             case OBJECT_MONSTER:
                 {
-                    pCharObject = new Monster(stAMACO.GUID, GetAddress(), stAMACO.MapX, stAMACO.MapY);
+                    pCharObject = new Monster(stAMACO.GeneralID);
                     break;
                 }
             case OBJECT_PLAYER:
                 {
-                    pCharObject = new Player();
+                    pCharObject = new Player(stAMACO.GeneralID, stAMACO.SubID);
                     break;
                 }
             default:
@@ -837,25 +847,29 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
                 }
         }
 
-        // incarnated but not active
-        pCharObject->ResetState(STATE_INCARNATED, true);
+        if(!pCharObject){
+            m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+            return;
+        }
+
+        // if it's only in then we can set it as active immediately
+        pCharObject->ResetState(bOnlyIn ? STATE_ACTIVE : STATE_INCARNATED, true);
+        pCharObject->ResetR(stAMACO.R);
+        pCharObject->Locate(m_MapID, stAMACO.MapX, stAMACO.MapY);
+        pCharObject->Locate(GetAddress());
 
         CharObjectRecord stCORecord;
         stCORecord.X = pCharObject->X();
         stCORecord.Y = pCharObject->Y();
         stCORecord.R = pCharObject->R();
 
-        stCORecord.UID     = pCharObject->UID();
-        stCORecord.AddTime = pCharObject->AddTime();
-
-        ((CharObject *)stAMNM.Data)->SetR(stAMNM.R);
-        ((CharObject *)stAMNM.Data)->SetMapID(m_MapID);
-        ((CharObject *)stAMNM.Data)->SetLocation(GetAddress(), stAMNM.X, stAMNM.Y);
-        stCORecord.PodAddress = ((ReactObject *)stAMNM.Data)->Activate();
+        stCORecord.UID        = pCharObject->UID();
+        stCORecord.AddTime    = pCharObject->AddTime();
+        stCORecord.PodAddress = pCharObject->Activate();
 
         m_CharObjectRecordV.push_back(stCORecord);
 
-        // we respond to ServerMap, but it won't respond again
+        // we respond to ServiceCore, but it won't respond again
         // TODO & TBD
         // here maybe protential bug:
         // 1. message to creater did arrival yet
@@ -869,67 +883,38 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
         return;
     }
 
-    AMNewMonster stAMNM;
-    std::memcpy(&stAMNM, rstMPK.Data(), sizeof(stAMNM));
+    // don't allow void state, and the object is not only in one RM
+    // thing be more complicated we have to ask neighbor's opinion for cover
 
-    // for MPK_NEWMONSTER we don't have to check whether the object is to be
-    // inside current region, when ServerMap do the routine, it makes sure
-    if(!CoverValid(stAMNM.UID, stAMNM.AddTime, stAMNM.X, stAMNM.Y, stAMNM.R)){
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-        return;
-    }
-
-    // check if I am only in current region?
-    int nObjX = stAMNM.X - stAMNM.R;
-    int nObjY = stAMNM.Y - stAMNM.R;
-    int nObjW = 2 * stAMNM.R;
-    int nObjH = 2 * stAMNM.R;
-    if(RectangleInside(m_X, m_Y, m_W, m_H, nObjX, nObjY, nObjW, nObjH)){
-        CharObjectRecord stCORecord;
-        stCORecord.X = stAMNM.X;
-        stCORecord.Y = stAMNM.Y;
-        stCORecord.R = stAMNM.R;
-
-        stCORecord.UID = stAMNM.UID;
-        stCORecord.AddTime = stAMNM.AddTime;
-
-        ((CharObject *)stAMNM.Data)->SetR(stAMNM.R);
-        ((CharObject *)stAMNM.Data)->SetMapID(m_MapID);
-        ((CharObject *)stAMNM.Data)->SetLocation(GetAddress(), stAMNM.X, stAMNM.Y);
-        stCORecord.PodAddress = ((ReactObject *)stAMNM.Data)->Activate();
-
-        m_CharObjectRecordV.push_back(stCORecord);
-
-        // we respond to ServerMap, but it won't respond again
-        // TODO & TBD
-        // here maybe protential bug:
-        // 1. message to creater did arrival yet
-        // 2. but the actor has already been working
-        //
-        m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
-
-        // actually here we don't need to create the RM address and send it
-        // since for the receiving object, it can take the address of the Operate()
-        m_ActorPod->Forward(MPK_HI, stCORecord.PodAddress);
-        return;
-    }
-
-    // oooops, have to ask neighbor's opinion for cover
-    // not only in the single region, then need cover check
     // all needed RM are qualified?
     bool bAllQualified = true;
     for(size_t nY = 0; nY < 3 && bAllQualified; ++nY){
         for(size_t nX = 0; nX < 3 && bAllQualified; ++nX){
-            if(nX == 1 && nY == 1){ continue; }
+            if(nX == 1 && nY == 1){
+                m_NeighborV2D[nY][nX].Query = QUERY_NA;
+                continue;
+            }
 
             int nNbrX = ((int)nX - 1) * m_W + m_X;
             int nNbrY = ((int)nY - 1) * m_H + m_Y;
 
-            // ok, no overlap, skip it
-            if(CircleRectangleOverlap(stAMNM.X, stAMNM.Y, stAMNM.R, nNbrX, nNbrY, m_W, m_H)
-                    && m_NeighborV2D[nY][nX].PodAddress == Theron::Address::Null()){
-                bAllQualified = false;
-                break;
+            // check overlap, skip it
+            int nMapX = stAMACO.MapX;
+            int nMapY = stAMACO.MapY;
+            int nR    = stAMACO.R;
+
+            if(CircleRectangleOverlap(nMapX, nMapY, nR, nNbrX, nNbrY, m_W, m_H)){
+                if(m_NeighborV2D[nY][nX].PodAddress != Theron::Address::Null()){
+                    // overlap, and qualified
+                    m_NeighborV2D[nY][nX].Query = QUERY_OK;
+                }else{
+                    // overlap and not qualified
+                    m_NeighborV2D[nY][nX].Query = QUERY_NA;
+                    bAllQualified = false;
+                    break;
+                }
+            }else{
+                m_NeighborV2D[nY][nX].Query = QUERY_NA;
             }
         }
     }
@@ -941,15 +926,16 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
         return;
     }
 
+    // all 3 x 3 are marked as QUERY_NA or QUERY_OK
     // prepare the MoveRequest
     m_MoveRequest.Clear();
 
-    m_MoveRequest.Data          = stAMNM.Data;
-    m_MoveRequest.X             = stAMNM.X;
-    m_MoveRequest.Y             = stAMNM.Y;
-    m_MoveRequest.R             = stAMNM.R;
-    m_MoveRequest.UID           = stAMNM.UID;
-    m_MoveRequest.AddTime       = stAMNM.AddTime;
+    m_MoveRequest.Data          = nullptr;
+    m_MoveRequest.X             = stAMACO.MapX;
+    m_MoveRequest.Y             = stAMACO.MapY;
+    m_MoveRequest.R             = stAMACO.R;
+    m_MoveRequest.UID           = 0; // pending
+    m_MoveRequest.AddTime       = 0; // pending
     m_MoveRequest.MPKID         = rstMPK.ID();
     m_MoveRequest.PodAddress    = rstFromAddr;
     m_MoveRequest.CurrIn        = false;
@@ -961,20 +947,8 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
     // send cover check to neighbors
     for(size_t nY = 0; nY < 3; ++nY){
         for(size_t nX = 0; nX < 3; ++nX){
-            // skip this...
-            if(nX == 1 && nY == 1){
-                m_NeighborV2D[nY][nX].Query = QUERY_NA;
-                continue;
-            }
-
-            int nNbrX = ((int)nX - 1) * m_W + m_X;
-            int nNbrY = ((int)nY - 1) * m_H + m_Y;
-
-            // no overlap, skip it
-            if(!CircleRectangleOverlap(stAMNM.X, stAMNM.Y, stAMNM.R, nNbrX, nNbrY, m_W, m_H)){
-                m_NeighborV2D[nY][nX].Query = QUERY_NA;
-                continue;
-            }
+            // skip those un-needed RM's
+            if(m_NeighborV2D[nY][nX].Query == QUERY_NA){ continue; }
 
             // qualified, send the cover check request
 
@@ -991,11 +965,11 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
 
             // since we know the object is in current region
             // we don't have to pass (UID, AddTime) to neighbors
-            stAMCC.UID = stAMNM.UID;
-            stAMCC.AddTime = stAMNM.AddTime;
-            stAMCC.X = stAMNM.X;
-            stAMCC.Y = stAMNM.Y;
-            stAMCC.R = stAMNM.R;
+            stAMCC.X       = stAMACO.MapX;
+            stAMCC.Y       = stAMACO.MapY;
+            stAMCC.R       = stAMACO.R;
+            stAMCC.UID     = 0;
+            stAMCC.AddTime = 0;
 
             m_ActorPod->Forward({MPK_CHECKCOVER, stAMCC}, m_NeighborV2D[nY][nX].PodAddress, fnROP);
 
@@ -1006,6 +980,4 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
     // I have send MPK_CHECKCOVER to all qualified neighbors
     // now just wait for the response
     return;
-
-
 }

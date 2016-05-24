@@ -3,7 +3,7 @@
  *
  *       Filename: eventtaskhub.hpp
  *        Created: 04/03/2016 22:55:21
- *  Last Modified: 04/14/2016 15:48:16
+ *  Last Modified: 05/24/2016 00:47:52
  *
  *    Description: 
  *
@@ -27,6 +27,7 @@
 #include "basehub.hpp"
 #include "eventtask.hpp"
 
+using EventTaskBlockPN = MemoryBlockPN<sizeof(EventTask), 1024, 4>;
 class EventTaskHub: public BaseHub<EventTaskHub>
 {
     private:
@@ -41,7 +42,7 @@ class EventTaskHub: public BaseHub<EventTaskHub>
     protected:
         uint32_t                         m_LastEventID;
         std::mutex                       m_EventLock;
-        std::condition_variable          m_EventSignal;
+        std::condition_variable          m_EventCV;
         std::unordered_set<uint32_t>     m_EventIDV;
         std::function<void(EventTask *)> m_Exec;
 
@@ -49,8 +50,8 @@ class EventTaskHub: public BaseHub<EventTaskHub>
         std::priority_queue<EventTask*, std::deque<EventTask *>, TaskComp> m_EventList;
 
     public:
-        EventTaskHub(std::function<void(EventTask *)>
-                fnExec = [](EventTask *pTask){ if(pTask){ (*pTask)(); } })
+        EventTaskHub(const std::function<void(EventTask *)>
+                &fnExec = [](EventTask *pTask){ if(pTask){ (*pTask)(); } })
             : BaseHub<EventTaskHub>()
             , m_LastEventID(0)
             , m_Exec(fnExec)
@@ -59,31 +60,33 @@ class EventTaskHub: public BaseHub<EventTaskHub>
         virtual ~EventTaskHub() = default;
 
     public:
+        // try to cancel one operation before its invocation
         bool Dismiss(uint32_t nID)
         {
-            if(nID == 0){
-                return false;
-            }
+            if(nID == 0){ return false; }
 
             std::lock_guard<std::mutex> stLockGuard(m_EventLock);
-            auto stInst = m_EventIDV.find(nID);
-            if(stInst == m_EventIDV.end()){
-                return false;
-            }
+            auto pRecord = m_EventIDV.find(nID);
 
-            m_EventIDV.erase(stInst);
+            if(pRecord == m_EventIDV.end()){ return false; }
+
+            m_EventIDV.erase(pRecord);
             return true;
         }
 
     public:
         EventTask *CreateEventTask(uint32_t nDelayMS, const std::function<void()> & fnOp)
         {
-            return new EventTask(nDelayMS, fnOp);
+            auto pData = m_EventTaskBlockPN.Get();
+            if(!pData){ return nullptr; }
+
+            return new (pData) EventTask(nDelayMS, fnOp);
         }
 
         void DeleteEventTask(EventTask *pTask)
         {
-            delete pTask;
+            pTask->~EventTask();
+            m_EventTaskBlockPN->Free(pTask);
         }
 
     public:
@@ -100,7 +103,7 @@ class EventTaskHub: public BaseHub<EventTaskHub>
 
             m_EventIDV.clear();
             m_EventLock.unlock();
-            m_EventSignal.notify_one();
+            m_EventCV.notify_one();
         }
 
     public:
@@ -143,7 +146,7 @@ class EventTaskHub: public BaseHub<EventTaskHub>
             m_EventLock.unlock();
 
             if (bDoSignal) {
-                m_EventSignal.notify_one();
+                m_EventCV.notify_one();
             }
 
             return pTask->ID();
@@ -152,15 +155,15 @@ class EventTaskHub: public BaseHub<EventTaskHub>
     public:
         void MainLoop()
         {
-            std::unique_lock<std::mutex> stEventUniqueLock(m_EventLock, std::defer_lock);
+            std::unique_lock<std::mutex> stUniqueLock(m_EventLock, std::defer_lock);
             while(State()){
                 std::cv_status stRet = std::cv_status::no_timeout;
-                stEventUniqueLock.lock();
+                stUniqueLock.lock();
                 if(m_EventList.empty()){
-                    m_EventSignal.wait(stEventUniqueLock);
+                    m_EventCV.wait(stUniqueLock);
                 }else{
                     // wait for a shorter time
-                    stRet = m_EventSignal.wait_until(stEventUniqueLock, m_EventList.top()->Cycle());
+                    stRet = m_EventCV.wait_until(stUniqueLock, m_EventList.top()->Cycle());
                 }
 
                 // the mutex is locked again now...
@@ -172,14 +175,14 @@ class EventTaskHub: public BaseHub<EventTaskHub>
                     m_EventList.pop();
 
                     // check if the event was stopped
-                    auto stInst = m_EventIDV.find(pTask->ID());
-                    if(stInst == m_EventIDV.end()){
-                        stEventUniqueLock.unlock();
+                    auto pRecord = m_EventIDV.find(pTask->ID());
+                    if(pRecord == m_EventIDV.end()){
+                        stUniqueLock.unlock();
                         DeleteEventTask(pTask);
                         continue;
                     }
-                    m_EventIDV.erase(stInst);
-                    stEventUniqueLock.unlock();
+                    m_EventIDV.erase(pRecord);
+                    stUniqueLock.unlock();
 
                     // it's time to execute it
                     // pTask->Expire(0);
@@ -187,7 +190,7 @@ class EventTaskHub: public BaseHub<EventTaskHub>
                     // g_TaskHub->Add(pTask, true);
                     if(m_Exec){ m_Exec(pTask); }
                 }else{
-                    stEventUniqueLock.unlock();
+                    stUniqueLock.unlock();
                 }
             }
         }
