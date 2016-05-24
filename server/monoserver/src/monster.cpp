@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/10/2016 21:11:07
+ *  Last Modified: 05/23/2016 18:37:33
  *
  *    Description: 
  *
@@ -26,15 +26,20 @@
 #include "monoserver.hpp"
 #include "messagepack.hpp"
 
-Monster::Monster(uint32_t nMonsterInex, uint32_t nUID, uint32_t nAddTime)
+Monster::Monster(uint32_t nMID, uint32_t nUID, uint32_t nAddTime)
     : CharObject(nUID, nAddTime)
     , m_RMAddress(Theron::Address::Null())
     , m_MonsterIndex(nMonsterInex)
     , m_FreezeWalk(false)
 {
-    SetState(STATE_INCARNATED, true);
-    SetState(STATE_CANMOVE   , true);
-    SetState(STATE_WAITMOVE  , true);
+    extern MonoServer *g_MonoServer;
+
+
+
+    ResetState(STATE_INCARNATED, true );
+    ResetState(STATE_ACTIVE    , false);
+    ResetState(STATE_CANMOVE   ,  true);
+    ResetState(STATE_WAITMOVE  ,  true);
 }
 
 Monster::~Monster()

@@ -3,7 +3,7 @@
  *
  *       Filename: servicecorenet.cpp
  *        Created: 05/20/2016 17:09:13
- *  Last Modified: 05/20/2016 18:11:31
+ *  Last Modified: 05/23/2016 14:42:44
  *
  *    Description: interaction btw SessionHub and ServiceCore
  *
@@ -18,9 +18,10 @@
  * =====================================================================================
  */
 
-ServiceCore::Net_CM_Login(Session *pSession, uint8_t, const uint8_t *pData, size_t nDataLen)
+ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pData, size_t nDataLen)
 {
     // message structure:  IP\0Port\0ID\0PWD\0
+    // copy it out since pData is temperal
     std::string szIP   = (char *)pData;    pData += std::strlen((char *)pData);
     std::string szPort = (char *)pData;    pData += std::strlen((char *)pData);
     std::string szID   = (char *)pData;    pData += std::strlen((char *)pData);
@@ -32,7 +33,10 @@ ServiceCore::Net_CM_Login(Session *pSession, uint8_t, const uint8_t *pData, size
 
     // don't block ServiceCore too much, so we put rest of it 
     // in the thread pool since it's db query and slow
-    auto fnDBOperation = [this, pSession, szID, szPWD](){
+    //
+    // here we put pSession, but how about this session has been killed
+    // when this lambda invoked
+    auto fnDBOperation = [nSessionID, stSCAddr = GetAddress(), szID, szPWD](){
         extern MonoServer *g_MonoServer;
         auto pDBHDR = g_MonoServer->CreateDBHDR();
 
@@ -40,13 +44,13 @@ ServiceCore::Net_CM_Login(Session *pSession, uint8_t, const uint8_t *pData, size
                     "fld_account = '%s' and fld_password = '%s'", szID.c_str(), szPWD.c_str())){
             g_MonoServer->AddLog(LOGTYPE_WARNING,
                     "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-            pSession->Forward(SM_LOGINFAIL);
+            SyncDriver().Forward(SM_LOGINFAIL, nSessionID, stSCAddr);
             return;
         }
 
         if(pDBHDR->RowCount() < 1){
             g_MonoServer->AddLog(LOGTYPE_INFO, "can't find account: (%s:%s)", pID, pPWD);
-            pSession->Forward(SM_LOGINFAIL);
+            SyncDriver().Forward(SM_LOGINFAIL, nSessionID, stSCAddr);
             return;
         }
 
@@ -57,74 +61,33 @@ ServiceCore::Net_CM_Login(Session *pSession, uint8_t, const uint8_t *pData, size
         if(!pDBHDR->Execute("select * from mir2x.tbl_guid where fld_id = %d", nID)){
             g_MonoServer->AddLog(LOGTYPE_WARNING,
                     "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-            pSession->Forward(SM_LOGINFAIL);
+            SyncDriver().Forward(SM_LOGINFAIL, nSessionID, stSCAddr);
             return;
         }
 
         if(pDBHDR->RowCount() < 1){
             g_MonoServer->AddLog(LOGTYPE_INFO,
                     "no guid created for this account: (%s:%s)", pID, pPWD);
-            pSession->Forward(SM_LOGINFAIL);
+            SyncDriver().Forward(SM_LOGINFAIL, nSessionID, stSCAddr);
             return;
         }
 
-        SMLoginOK *pSMLoginOK = new SMLoginOK();
+        // ok now we found the record
         // currently only handle the first record
-        pDBHDR->Fetch();
-        // std::strncpy(pSMLoginOK->Name, 
-        //         pDBHDR->Get("fld_name"), sizeof(pSMLoginOK->Name));
 
-        // std::strncpy(pSMLoginOK->MapName,
-        //         pDBHDR->Get("fld_map"), sizeof(pSMLoginOK->MapName));
+        AMLoginQueryDB stAMLQDB;
 
-        // TODO
-        // tmp hack
-        std::strncpy(pSMLoginOK->Name,    "test",     sizeof(pSMLoginOK->Name));
-        std::strncpy(pSMLoginOK->MapName, "DESC.BIN", sizeof(pSMLoginOK->MapName));
+        stAMLQDB.GUID  = std::atoi(pDBHDR->Get("fld_guid"));
+        stAMLQDB.MapID = std::atoi(pDBHDR->Get("fld_mapid"));
+        stAMLQDB.MapX  = std::atoi(pDBHDR->Get("fld_mapx"));
+        stAMLQDB.MapY  = std::atoi(pDBHDR->Get("fld_mapy"));
 
-        pSMLoginOK->GUID = std::atoi(pDBHDR->Get("fld_guid"));
-        // pSMLoginOK->SID       = std::atoi(pDBHDR->Get("fld_sid"));
-        // pSMLoginOK->Level     = std::atoi(pDBHDR->Get("fld_level"));
-        // pSMLoginOK->MapX      = std::atoi(pDBHDR->Get("fld_x"));
-        // pSMLoginOK->MapY      = std::atoi(pDBHDR->Get("fld_y"));
-        // pSMLoginOK->Direction = std::atoi(pDBHDR->Get("fld_direction"));
+        stAMLQDB.Level  = std::atoi(pDBHDR->Get("fld_level"));
+        stAMLQDB.Job    = std::atoi(pDBHDR->Get("fld_level"));
+        stAMLQDB.Direction = std::atoi(pDBHDR->Get("fld_level"));
 
-        // blocking
-        // if(PlayerLogin(stSMLoginOK)){
-        //     pSession->Send(SM_LOGINOK, stSMLoginOK);
-        // }
-
-        m_MapRMCache
-
-        AMLogin stAML;
-        stAML.GUID = pSMLoginOK->GUID;
-
-        MessagePack stMPK;
-        if(Send(MessageBuf(MPK_LOGIN, stAML), m_ServiceCoreAddress, &stMPK)){
-            switch(stMPK.Type()){
-                case MPK_LOGINOK:
-                    {
-                        g_MonoServer->AddLog(LOGTYPE_INFO,
-                                "Login succeed: (%s:%s:%d:%s:%d)",
-                                pID, pPWD, nID, pSMLoginOK->Name, pSMLoginOK->GUID);
-                        pSession->Forward(SM_LOGINOK, *pSMLoginOK,
-                                [pSMLoginOK](){ delete pSMLoginOK; });
-                        return;
-                    }
-                default:
-                    {
-                        g_MonoServer->AddLog(LOGTYPE_INFO, "Add player failed: (%s:%s:%d:%s:%d)",
-                                pID, pPWD, nID, pSMLoginOK->Name, pSMLoginOK->GUID);
-                        pSession->Forward(SM_LOGINFAIL);
-                        return;
-                    }
-
-            }
-        }
-
-        g_MonoServer->AddLog(LOGTYPE_INFO, "Send actor message failed");
-        pSession->Forward(SM_LOGINFAIL);
-        return;
+        std::strncpy(stAMLQDB.Name, pDBHDR->Get("fld_guid"), sizeof(stAMLQDB.Name));
+        SyncDriver().Forward(AM_LOGINQUERYDB, stAMLQDB, stSCAddr);
     };
 
     extern ThreadPN *g_ThreadPN;

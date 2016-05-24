@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/09/2016 10:43:04
+ *  Last Modified: 05/23/2016 15:32:06
  *
  *    Description: 
  *
@@ -102,6 +102,16 @@ typedef struct {
     int  X;
     int  Y;
 }AMMasterPersona;
+
+typedef union {
+    uint8_t  Type;
+    uint32_t GUID;
+    uint32_t MapID;
+
+    struct _AddMonster{
+    }Monster;
+
+}AMAddCharObject;
 
 typedef struct {
     uint32_t GUID;

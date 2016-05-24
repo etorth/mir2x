@@ -3,7 +3,7 @@
  *
  *       Filename: syncdriver.hpp
  *        Created: 04/27/2016 00:28:05
- *  Last Modified: 05/19/2016 14:34:14
+ *  Last Modified: 05/23/2016 10:48:02
  *
  *    Description: class which behaves as:
  *                      ``send-wait-receive-action-.....-send-wait-receive-action..."
@@ -39,9 +39,6 @@ class SyncDriver
         virtual ~SyncDriver() = default;
 
     public:
-        // TODO
-        // it's very easy to be blocked if we don't put a timeout functionality here
-
         // send without waiting for response
         // also for SyncDriver we have no registed response handler
         //
@@ -56,6 +53,8 @@ class SyncDriver
         }
 
         // send with expection of response message
+        // TODO
+        // it's very easy to be blocked if we don't put a timeout functionality here
         // input argument
         //      rstMPK      :
         //      rstAddr  :
@@ -72,7 +71,7 @@ class SyncDriver
             MessagePack stTmpMPK;
             Theron::Address stTmpAddress;
 
-            // 1. clean the cather
+            // 1. clean the catcher
             while(true){ if(!m_Catcher.Pop(stTmpMPK, stTmpAddress)){ break; } }
 
             // 2. send message

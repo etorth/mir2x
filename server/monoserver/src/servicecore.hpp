@@ -3,10 +3,15 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 05/20/2016 16:53:04
+ *  Last Modified: 05/23/2016 10:53:32
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
+ *
+ *                 TODO & TBD
+ *                 everytime when creating a lambda in an actor to use ThreadPN to
+ *                 invoke, never use [this, ...] since this will access the internal
+ *                 state from another thread
  *
  *        Version: 1.0
  *       Revision: none

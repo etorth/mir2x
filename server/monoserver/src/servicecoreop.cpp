@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/20/2016 18:03:54
+ *  Last Modified: 05/23/2016 15:14:47
  *
  *    Description: 
  *
@@ -99,12 +99,76 @@ void ServiceCore::On_MPK_LOGIN(const MessagePack &rstMPK, const Theron::Address 
     m_ActorPod->Forward({MPK_NEWPLAYER, stAMNP}, m_MapRecordM[stAML.MapID].PodAddress);
 }
 
-void ServiceCore::On_MPK_PLAYERPHATOM(
-        const MessagePack &rstMPK, const Theron::Address &)
+void ServiceCore::On_MPK_PLAYERPHATOM(const MessagePack &rstMPK, const Theron::Address &)
 {
     AMPlayerPhantom stAMPP;
     std::memcpy(&stAMPP, rstMPK.Data(), sizeof(stAMPP));
 
     if(m_PlayerRecordM.find(stAMPP.GUID) != m_PlayerRecordM.end()){
     }
+}
+
+// don't try to find its sender, it's from a temp SyncDriver in the lambda
+void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMLoginQueryDB stAMLQDB;
+    std::memcpy(&stAMLQDB, rstMPK.Data(), sizeof(stAMLQDB));
+
+    auto pMap = m_MapRecordM.find(stAMLQDB.MapID);
+
+    // we didn't try to load it yet
+    if(pMap == m_MapRecordM.end()){
+        LoadMap(stAMLQDB.MapID);
+        pMap = m_MapRecordM.find(stAMLQDB.MapID);
+    }
+
+    // mysterious error occurs...
+    if(pMap == m_MapRecordM.end()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "...");
+        g_MonoServer->Restart();
+    }
+
+    // tried, but turns out it's not valid
+    if(pMap->PodAddress == Theron::Address::Null()){
+        // this is not a valid map id
+        m_SessionHub->Send(stAMLQDB.SessionID, SM_LOGINFAIL);
+        return;
+    }
+
+    // ok, do something
+    uint64_t nRMCacheKey = ((uint64_t)stAMLQDB.MapID << 32)
+        + ((uint64_t)stAMLQDB.MapX << 16) + ((uint64_t)stAMLQDB.MapY);
+
+    auto pRM = m_RMCache.find(nRMCacheKey);
+
+    if(pRM != m_RMCache.end()){
+        Forward(stRMAddr, stAMLQDB);
+        return;
+    }
+
+    // ok we need to get the address first
+    AMQueryRMAddress stAMQRMA;
+    stAMLQDB.MapID = stAMLQDB.MapID;
+    stAMLQDB.MapX  = stAMLQDB.MapX;
+    stAMLQDB.MapY  = stAMLQDB.MapY;
+
+    auto fnOnR = [this, stAMLQDB, nRMCacheKey](
+            const MessagePack &rstRMPK, const Theron::Address &){
+        switch(rstRMPK.Type()){
+            case MPK_ADDRESS:
+                {
+                    Theron::Address stRMAddr = Theron::Address((char *)rstRMPK.Data());
+                    m_RMCache[nRMCacheKey] = stRMAddr;
+                    Forward(stRMAddr, stAMLQDB);
+                    break;
+                }
+            default:
+                {
+                    m_RMCache[nRMCacheKey] = Theron::Address::Null();
+                    break;
+                }
+        }
+    };
+    Forward({MPK_QUERYRMADDRESS, stAMLQDB}, pMap->PodAddress, fnOnR);
 }

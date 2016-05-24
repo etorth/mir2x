@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/11/2016 16:03:38
+ *  Last Modified: 05/23/2016 18:30:37
  *
  *    Description: 
  *
@@ -24,18 +24,16 @@
 #include "messagepack.hpp"
 #include "eventtaskhub.hpp"
 
-CharObject::CharObject(uint32_t nUID, uint32_t nAddTime)
-    : ActiveObject(nUID, nAddTime)
+// for an char object, don't make it locate on nowhere
+CharObject::CharObject(const Theron::Address &rstRMAddr, uint32_t nMapID, int nMapX, int nMapY)
+    : ActiveObject()
     , m_R(0)
-    , m_MapID(0)
-    , m_CurrX(0)
-    , m_CurrY(0)
-    , m_Event(-1)
+    , m_MapID(nMapID)
+    , m_CurrX(nMapX)
+    , m_CurrY(nMapY)
     , m_Name("")
 {
-    // extern MonoServer *g_MonoServer;
-    // m_AddTime = g_MonoServer->GetTickCount();
-    m_StateAttrV.fill(0);
+    m_StateAttrV.fill(false);
 }
 
 

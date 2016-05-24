@@ -3,7 +3,7 @@
  *
  *       Filename: sessionhub.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 04/27/2016 01:28:58
+ *  Last Modified: 05/23/2016 14:21:08
  *
  *    Description: session hub, to create and destroy all session's. create with
  *                 callback function fnOperateHC, listen port, and service core
@@ -19,6 +19,9 @@
  *                 player object. when the life cycle of the player object ends,
  *                 this pointer will be pass back and destroyed (with its record in
  *                 the map) by session hub.
+ *
+ *                 I made an internal array of session pointer then this helps I use
+ *                 SessionID always instead of session pointer outside, it's dangerous
  *
  *        Version: 1.0
  *       Revision: none
@@ -39,7 +42,7 @@
 #include <functional>
 #include <unordered_map>
 
-#include "log.hpp"
+#include "cachequeue.hpp"
 #include "syncdriver.hpp"
 #include "messagepack.hpp"
 
@@ -55,15 +58,15 @@ class SessionHub: public SyncDriver
         asio::ip::tcp::socket   m_Socket;
 
     private:
-        uint32_t     m_MaxID;
+        CacheQueue   m_ValidQ;
         std::thread *m_Thread;
 
     private:
         Theron::Address m_ServiceCoreAddress;
 
     private:
+        std::vector<Session *> m_SessionMap;
         std::function<void(uint8_t, Session *)> m_OperateFunc;
-        std::unordered_map<uint32_t, Session *> m_SessionMap;
 
     public:
         SessionHub(int, const Theron::Address &, const std::function<void(uint8_t, Session *)> &);
@@ -83,10 +86,47 @@ class SessionHub: public SyncDriver
             Shutdown(0);
         }
 
+        template<typename... Args>
+        void Send(uint32_t nSessionID, Args&&... args)
+        {
+            // 1. find the corresponding session
+        }
+
     public:
         size_t SessionCount()
         {
             return m_SessionMap.size();
+        }
+
+        Session *Validate(uint32_t nSessionID)
+        {
+            if(nSessionID > 0 && nSessionID < m_SessionV.size()){
+                return m_SessionV[nSessionID];
+            }
+
+            return nullptr;
+        }
+
+        template<typename... Args> bool Send(uint32_t nSessionID, Args&&... args)
+        {
+            // it's a broadcast
+            if(!nSessionID){
+                for(auto pSession: m_SessionV){
+                    if(pSession){
+                        pSession->Send(std::forward<Args>(args)...);
+                    }
+                }
+                // done
+                return true;
+            }
+
+            auto *pSession = Validate(nSessionID);
+            // didn't find it
+            if(!pSession){ return false; }
+
+            // ok we find it
+            pSession->Send(std::forward<Args>(args)...);
+            return true;
         }
 
     private:
