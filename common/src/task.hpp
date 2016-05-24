@@ -3,7 +3,7 @@
  *
  *       Filename: task.hpp
  *        Created: 04/03/2016 19:40:00
- *  Last Modified: 04/03/2016 23:55:23
+ *  Last Modified: 05/24/2016 13:34:49
  *
  *    Description: 
  *
@@ -34,22 +34,26 @@
 class Task
 {
     protected:
-        std::chrono::system_clock::time_point m_Expiration;
         std::function<void()>                 m_Func;
+        std::chrono::system_clock::time_point m_Expiration;
 
     public:
+        Task(uint32_t nDuraMS, std::function<void()>&& fnOp)
+            : m_Func(std::move(fnOp))
+            , m_Expiration(LOCAL_SYSTEM_TIME_NEXT(nDuraMS))
+        {}
+
         Task(uint32_t nDuraMS, const std::function<void()>& fnOp)
+            : Task(nDuraMS, std::function<void()>(fnOp))
+        {}
+
+        explicit Task(std::function<void (void)>&& fnOp)
             : m_Func(fnOp)
-        {
-            // TBD & TODO:
-            // they don't put this in the initialization list
-            // maybe in case copy of fnOp takes time?
-            m_Expiration = LOCAL_SYSTEM_TIME_NEXT(nDuraMS);
-        }
+            , m_Expiration(LOCAL_SYSTEM_TIME_ZERO)
+        {}
 
         explicit Task(const std::function<void (void)>& fnOp)
-            : m_Expiration(LOCAL_SYSTEM_TIME_ZERO)
-            , m_Func(fnOp)
+            : Task(std::function<void()>(fnOp))
         {}
 
         virtual ~Task() = default;

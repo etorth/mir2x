@@ -3,9 +3,18 @@
  *
  *       Filename: eventtaskhub.hpp
  *        Created: 04/03/2016 22:55:21
- *  Last Modified: 05/24/2016 00:47:52
+ *  Last Modified: 05/24/2016 14:40:22
  *
- *    Description: 
+ *    Description: this class support event executation after a delay
+ *                 so don't think too much of performance
+ *
+ *                 this class support operations:
+ *                 1. Launch()          : state the whole hub and make it's running
+ *                 2. Dismiss(nID)      : cancel one handler when 
+ *                 3. Shutdown(bClear)  : terminated the hub, clear all handlers
+ *
+ *                 I don't want to make a Suspend() / Restart() since doesn't make
+ *                 sense
  *
  *        Version: 1.0
  *       Revision: none
@@ -33,6 +42,7 @@ class EventTaskHub: public BaseHub<EventTaskHub>
     private:
         struct TaskComp
         {
+            // won't check empty pointer
             bool operator()(const EventTask* pLHS, const EventTask* pRHS) const
             {
                 return pLHS->Cycle() > pRHS->Cycle();
@@ -61,6 +71,8 @@ class EventTaskHub: public BaseHub<EventTaskHub>
 
     public:
         // try to cancel one operation before its invocation
+        // here m_EventIDV is actually an unordered_set, if in demand of perfrmance
+        // we can limit the number of handlers and put them in a real vector
         bool Dismiss(uint32_t nID)
         {
             if(nID == 0){ return false; }
@@ -75,24 +87,38 @@ class EventTaskHub: public BaseHub<EventTaskHub>
         }
 
     public:
-        EventTask *CreateEventTask(uint32_t nDelayMS, const std::function<void()> & fnOp)
+        EventTask *CreateEventTask(uint32_t nDelayMS, std::function<void()> && fnOp)
         {
             auto pData = m_EventTaskBlockPN.Get();
             if(!pData){ return nullptr; }
 
-            return new (pData) EventTask(nDelayMS, fnOp);
+            return new (pData) EventTask(nDelayMS, std::move(fnOp));
+        }
+
+        EventTask *CreateEventTask(uint32_t nDelayMS, const std::function<void()> & fnOp)
+        {
+            return CreateEventTask(nDelayMS, std::function<void()>(fnOp));
         }
 
         void DeleteEventTask(EventTask *pTask)
         {
+            if(!pTask){ return; }
+
             pTask->~EventTask();
             m_EventTaskBlockPN->Free(pTask);
         }
 
     public:
+        // this function will clear the un-invoked handlers and stop the hub
+        // by stopping the executing thread, previously I was thinking of adding
+        // a parameter to decide if clear the handler list or not, but finally I
+        // decide to always clear it
         void Shutdown()
         {
-            State(0);
+            // 1. set it as terminated
+            State(false);
+
+            // 2. clear all un-invoked handlers
             m_EventLock.lock();
 
             //this list should already be empty
@@ -107,9 +133,14 @@ class EventTaskHub: public BaseHub<EventTaskHub>
         }
 
     public:
+        uint32_t Add(uint32_t nDelayMS, std::function<void()> &&fnOp)
+        {
+            return Add(CreateEventTask(nDelayMS, std::move(fnOp)));
+        }
+
         uint32_t Add(uint32_t nDelayMS, const std::function<void()> &fnOp)
         {
-            return Add(CreateEventTask(nDelayMS, fnOp));
+            return Add(nDelayMS, std::function<void()>(fnOp));
         }
 
         uint32_t Add(EventTask *pTask)
@@ -117,39 +148,57 @@ class EventTaskHub: public BaseHub<EventTaskHub>
             if(!pTask){return 0;}
 
             bool bDoSignal = false;
+            uint32_t nValidID = 0;
             m_EventLock.lock();
 
-            if(State() == 2){
+            if(State()){
                 // check if the event has a valid id
                 if(pTask->ID() == 0){
                     // if not generate one
-                    m_LastEventID++;
-                    if(m_LastEventID == 0){
-                        m_LastEventID = 1;
-                    }
+                    m_LastEventID = (m_EventIDV.empty() ? 1 : (m_LastEventID + 1));
 
+                    // overflowed, find a valid ID here by testing in a loop
+                    if(!m_LastEventID){
+                        for(uint32_t nID = 1; nID; ++nID){
+                            if(m_EventIDV.find(nID) == m_EventIDV.end()){
+                                m_LastEventID = nID;
+                                break;
+                            }
+                        }
+
+                        // still we can't get a valid ID, could merely happen
+                        if(!m_LastEventID){
+                            m_EventLock.unlock();
+                            DeleteEventTask(pTask);
+                            return 0;
+                        }
+                    }
                     pTask->ID(m_LastEventID);
                 }
 
-                m_EventIDV.insert(pTask->ID());
+                // ok now pTask has a valid ID
+
+                nValidID = pTask->ID();
+                m_EventIDV.insert(nValidID);
                 m_EventList.push(pTask);
 
                 // if the list was empty or this event is the top in the list
-                // we have to signal stInst
+                // means we need to take care of the newly added handler, we have to notify
                 bDoSignal = (pTask == m_EventList.top());
             }else{
+                // the hub is temerminated or stopped
                 m_EventLock.unlock();
                 DeleteEventTask(pTask);
                 return 0;
             }
 
             m_EventLock.unlock();
+            if(bDoSignal){ m_EventCV.notify_one(); }
 
-            if (bDoSignal) {
-                m_EventCV.notify_one();
-            }
-
-            return pTask->ID();
+            // return pTask->ID();
+            // this ``return pTask->ID()" I think it's a bug since after the ``unlock()"
+            // there is no guarantee that the pointer pTask would stay valid
+            return nValidID;
         }
 
     public:
@@ -160,9 +209,10 @@ class EventTaskHub: public BaseHub<EventTaskHub>
                 std::cv_status stRet = std::cv_status::no_timeout;
                 stUniqueLock.lock();
                 if(m_EventList.empty()){
+                    // wait until new handler added in
                     m_EventCV.wait(stUniqueLock);
                 }else{
-                    // wait for a shorter time
+                    // or wait for a shorter time
                     stRet = m_EventCV.wait_until(stUniqueLock, m_EventList.top()->Cycle());
                 }
 
@@ -185,9 +235,6 @@ class EventTaskHub: public BaseHub<EventTaskHub>
                     stUniqueLock.unlock();
 
                     // it's time to execute it
-                    // pTask->Expire(0);
-                    // extern TaskHub *g_TaskHub;
-                    // g_TaskHub->Add(pTask, true);
                     if(m_Exec){ m_Exec(pTask); }
                 }else{
                     stUniqueLock.unlock();

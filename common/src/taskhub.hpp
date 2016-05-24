@@ -3,7 +3,7 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 05/24/2016 00:23:16
+ *  Last Modified: 05/24/2016 14:57:30
  *
  *    Description: this makes me very confused, std::function may use internally
  *                 dynamically allocated memory, if so, it's nonsense of using
@@ -57,7 +57,7 @@ class TaskHub: public BaseHub<TaskHub>
             {
                 std::lock_guard<std::mutex> stLockGuard(m_TaskLock);
                 // still we are running
-                if(State() == 2){
+                if(State()){
                     bDoSignal = m_TaskList.empty();
 
                     if(bPushHead){
@@ -71,9 +71,7 @@ class TaskHub: public BaseHub<TaskHub>
                 }
             }
 
-            if(bDoSignal){
-                m_TaskCV.notify_one();
-            }
+            if(bDoSignal){ m_TaskCV.notify_one(); }
         }
 
     public:
@@ -94,6 +92,8 @@ class TaskHub: public BaseHub<TaskHub>
 
         void DeleteTask(Task *pTask)
         {
+            if(!pTask){ return; }
+
             pTask->~Task();
             m_TaskBlockPN->Free(pTask);
         }
@@ -104,7 +104,7 @@ class TaskHub: public BaseHub<TaskHub>
             // NOTE: second argument defer_lock is to prevent from immediate locking
             std::unique_lock<std::mutex> stTaskUniqueLock(m_TaskLock, std::defer_lock);
 
-            while(State() != 0){
+            while(State()){
                 // check if there are tasks waiting
                 stTaskUniqueLock.lock();
 
@@ -113,6 +113,7 @@ class TaskHub: public BaseHub<TaskHub>
                     m_TaskCV.wait(stTaskUniqueLock);
                 }
 
+                // for spurious wake-up
                 if(!m_TaskList.empty()){
                     auto pTask = m_TaskList.front();
                     m_TaskList.pop_front();
@@ -129,20 +130,15 @@ class TaskHub: public BaseHub<TaskHub>
 
         void Shutdown()
         {
-            // TODO
-            // we may need to clear the task queue
-            // otherwise we'll run into trouble if we do
-            //
-            //      pTaskHub = new TaskHub();
-            //      pTaskHub->Shutdown();
-            //      pTaskHub->Launch();
-            // think about how to implement it by either
-            //  1. implement an task clean function
-            //  2. let Shutdown() block until all task finished
-            auto pTask = CreateTask([this](){ State(0); m_TaskCV.notify_one(); });
-
+            State(false);
             std::lock_guard<std::mutex> stLockGuard(m_TaskLock);
-            m_TaskList.push_back(pTask);
+
+            for(auto pTask: m_TaskList){
+                DeleteTask(pTask);
+            }
+
+            m_TaskList.clear();
+
             m_TaskCV.notify_one();
         }
 };
