@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 05/10/2016 17:14:59
+ *  Last Modified: 05/24/2016 19:21:37
  *
  *    Description: 
  *
@@ -40,7 +40,7 @@ void Monster::On_MPK_MOVEOK(const MessagePack & rstMPK, const Theron::Address &)
     // 1. do the move
     m_CurrX = stMPKMOK.X;
     m_CurrY = stMPKMOK.Y;
-    SetState(STATE_WAITMOVE, false);
+    ResetState(STATE_WAITMOVE, false);
 
     // 2. commit the move to the monitor
     AMCommitMove stAMCM;

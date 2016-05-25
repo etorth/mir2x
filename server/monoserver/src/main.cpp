@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/24/2016 18:08:30
+ *  Last Modified: 05/24/2016 19:22:41
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 
 #include "log.hpp"
 #include "taskhub.hpp"
+#include "memorypn.hpp"
 #include "threadpn.hpp"
 #include "mainwindow.hpp"
 #include "eventtaskhub.hpp"
@@ -31,6 +32,7 @@
 
 Log                      *g_Log;
 TaskHub                  *g_TaskHub;
+MemoryPN                 *g_MemoryPN;
 EventTaskHub             *g_EventTaskHub;
 Theron::EndPoint         *g_EndPoint;
 Theron::Framework        *g_Framework;
@@ -42,7 +44,6 @@ AddMonsterWindow         *g_AddMonsterWindow;
 ServerConfigureWindow    *g_ServerConfigureWindow;
 DatabaseConfigureWindow  *g_DatabaseConfigureWindow;
 
-MemoryChunkPN
 
 int main()
 {
@@ -52,6 +53,7 @@ int main()
     g_TaskHub                 = new TaskHub();
     g_MainWindow              = new MainWindow();
     g_MonoServer              = new MonoServer();
+    g_MemoryPN                = new MemoryPN();
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
     g_EventTaskHub            = new EventTaskHub();

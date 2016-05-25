@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/24/2016 18:06:46
+ *  Last Modified: 05/24/2016 19:33:55
  *
  *    Description: 
  *
@@ -223,6 +223,13 @@ typedef struct {
 
 typedef struct {
     uint8_t Type;
-    const uint8_t *Data;
+    uint8_t *Data; // don't make it const, otherwise we need explicit when Free(void *)
     size_t DataLen;
 }AMNetPackage;
+
+typedef struct {
+    uint32_t MapID;
+    uint32_t MapX;
+    uint32_t MapY;
+    uint32_t R;
+}AMNewCharObject;

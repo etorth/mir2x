@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/23/2016 22:52:23
+ *  Last Modified: 05/24/2016 19:34:59
  *
  *    Description: 
  *
@@ -649,20 +649,20 @@ void RegionMonitor::On_MPK_NEWPLAYER(
 
     // for MPK_NEWMONSTER we don't have to check whether the object is to be
     // inside current region, when ServerMap do the routine, it makes sure
-    if(!CoverValid(stAMNCO.UID, stAMNCO.AddTime, stAMNCO.X, stAMNCO.Y, stAMNCO.R)){
+    if(!CoverValid(0, 0, stAMNCO.MapX, stAMNCO.MapY, stAMNCO.R)){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
 
     // check if I am only in current region?
-    int nObjX = stAMNCO.X - stAMNCO.R;
-    int nObjY = stAMNCO.Y - stAMNCO.R;
+    int nObjX = stAMNCO.MapX - stAMNCO.R;
+    int nObjY = stAMNCO.MapY - stAMNCO.R;
     int nObjW = 2 * stAMNCO.R;
     int nObjH = 2 * stAMNCO.R;
     if(RectangleInside(m_X, m_Y, m_W, m_H, nObjX, nObjY, nObjW, nObjH)){
         CharObjectRecord stCORecord;
-        stCORecord.X = stAMNCO.X;
-        stCORecord.Y = stAMNCO.Y;
+        stCORecord.X = stAMNCO.MapX;
+        stCORecord.Y = stAMNCO.MapY;
         stCORecord.R = stAMNCO.R;
 
         stCORecord.UID = stAMNCO.UID;
