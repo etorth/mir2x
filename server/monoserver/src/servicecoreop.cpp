@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/23/2016 15:14:47
+ *  Last Modified: 05/24/2016 15:17:30
  *
  *    Description: 
  *
@@ -138,7 +138,8 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
 
     // ok, do something
     uint64_t nRMCacheKey = ((uint64_t)stAMLQDB.MapID << 32)
-        + ((uint64_t)stAMLQDB.MapX << 16) + ((uint64_t)stAMLQDB.MapY);
+        + ((uint64_t)(stAMLQDB.MapX / SYS_MAPGRIDXP) << 16)
+        + ((uint64_t)(stAMLQDB.MapY / SYS_MAPGRIDYP) <<  0);
 
     auto pRM = m_RMCache.find(nRMCacheKey);
 

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/23/2016 18:37:33
+ *  Last Modified: 05/24/2016 17:08:07
  *
  *    Description: 
  *
@@ -29,13 +29,9 @@
 Monster::Monster(uint32_t nMID, uint32_t nUID, uint32_t nAddTime)
     : CharObject(nUID, nAddTime)
     , m_RMAddress(Theron::Address::Null())
-    , m_MonsterIndex(nMonsterInex)
+    , m_MonsterIndex(nMID)
     , m_FreezeWalk(false)
 {
-    extern MonoServer *g_MonoServer;
-
-
-
     ResetState(STATE_INCARNATED, true );
     ResetState(STATE_ACTIVE    , false);
     ResetState(STATE_CANMOVE   ,  true);
@@ -227,7 +223,7 @@ bool Monster::Type(uint8_t nType)
     return false;
 }
 
-bool Monster::SetType(uint8_t nType, bool bThisType)
+bool Monster::ResetType(uint8_t nType, bool bThisType)
 {
     m_TypeV[nType] = 1;
     return bThisType;
@@ -243,7 +239,7 @@ bool Monster::State(uint8_t nState)
     return m_StateV[nState];
 }
 
-bool Monster::SetState(uint8_t nState, bool bThisState)
+bool Monster::ResetState(uint8_t nState, bool bThisState)
 {
     m_StateV[nState] = bThisState;
     return bThisState;

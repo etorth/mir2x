@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/23/2016 15:32:06
+ *  Last Modified: 05/24/2016 18:06:46
  *
  *    Description: 
  *
@@ -57,6 +57,8 @@ enum MessagePackType: int {
     MPK_CHECKCOVER,
     MPK_QUERYRMADDRESS,
     MPK_ADDRESS,
+    MPK_LOGINQUERYDB,
+    MPK_NETPACKAGE,
 };
 
 typedef struct {
@@ -207,3 +209,20 @@ typedef struct {
     int Y;
     uint32_t MapID;
 }AMQueryRMAddress;
+
+typedef struct {
+    uint32_t GUID;
+    uint32_t MapID;
+    int      MapX;
+    int      MapY;
+    int      Level;
+    int      Job;
+    int      Direction;
+    char     Name[64];
+}AMLoginQueryDB;
+
+typedef struct {
+    uint8_t Type;
+    const uint8_t *Data;
+    size_t DataLen;
+}AMNetPackage;

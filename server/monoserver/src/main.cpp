@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/23/2016 23:13:22
+ *  Last Modified: 05/24/2016 18:08:30
  *
  *    Description: 
  *
@@ -41,6 +41,8 @@ MonoServer               *g_MonoServer;
 AddMonsterWindow         *g_AddMonsterWindow;
 ServerConfigureWindow    *g_ServerConfigureWindow;
 DatabaseConfigureWindow  *g_DatabaseConfigureWindow;
+
+MemoryChunkPN
 
 int main()
 {

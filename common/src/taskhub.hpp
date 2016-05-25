@@ -3,7 +3,7 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 05/24/2016 14:57:30
+ *  Last Modified: 05/24/2016 15:39:47
  *
  *    Description: this makes me very confused, std::function may use internally
  *                 dynamically allocated memory, if so, it's nonsense of using
@@ -95,7 +95,7 @@ class TaskHub: public BaseHub<TaskHub>
             if(!pTask){ return; }
 
             pTask->~Task();
-            m_TaskBlockPN->Free(pTask);
+            m_TaskBlockPN.Free(pTask);
         }
 
     public:

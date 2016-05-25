@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 05/23/2016 17:03:47
+ *  Last Modified: 05/24/2016 15:33:52
  *
  *    Description: 
  *
@@ -114,7 +114,6 @@ void Session::DoReadAfterHC(size_t nMsgLen)
 
     asio::async_read(m_Socket, asio::buffer(pData, nMsgLen), fnDoneReadLen);
 }
-
 
 void Session::Read()
 {

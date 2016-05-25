@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 05/23/2016 17:10:06
+ *  Last Modified: 05/24/2016 15:34:45
  *
  *    Description: TODO & TBD
  *                 I have a decision, now class session *only* communicate with actor
@@ -126,14 +126,6 @@ class Session: public SyncDriver
         void ReadHC();
         // read data, operation is defined by functional argument
         void Read(size_t, std::function<void(uint8_t *, size_t)>);
-
-        // to register new handler to handle message header
-        // reasone I add this new API is for session it firstly communicate with
-        // monoserver and then with player
-        void Operate(const std::function<void(uint8_t, Session *)> &fnOperateHC)
-        {
-            m_OperateFunc = fnOperateHC;
-        }
 
     private:
         void DoSendHC();

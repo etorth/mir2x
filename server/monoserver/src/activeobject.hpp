@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/11/2016 19:54:41
- *  Last Modified: 05/04/2016 21:08:17
+ *  Last Modified: 05/24/2016 17:07:16
  *
  *    Description: object with Type()/Mode()/State()
  *
@@ -61,7 +61,7 @@ enum ObjectState: uint8_t{
 
     STATE_MOVING,
     STATE_DEAD,
-
+    STATE_ACTIVE,
 
     STATE_NEVERDIE,
     STATE_ATTACKALL,
@@ -107,6 +107,6 @@ class ActiveObject: public ReactObject
         //  false: can't set passed state/type because not supported or logic constrait
         //
         //  only return true the operation makes sense, otherwise nothing changes
-        virtual bool SetType (uint8_t, bool) = 0;
-        virtual bool SetState(uint8_t, bool) = 0;
+        virtual bool ResetType (uint8_t, bool) = 0;
+        virtual bool ResetState(uint8_t, bool) = 0;
 };

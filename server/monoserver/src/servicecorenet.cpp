@@ -3,7 +3,7 @@
  *
  *       Filename: servicecorenet.cpp
  *        Created: 05/20/2016 17:09:13
- *  Last Modified: 05/23/2016 14:42:44
+ *  Last Modified: 05/24/2016 16:08:49
  *
  *    Description: interaction btw SessionHub and ServiceCore
  *
@@ -17,8 +17,11 @@
  *
  * =====================================================================================
  */
+#include "threadpn.hpp"
+#include "monoserver.hpp"
+#include "servicecore.hpp"
 
-ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pData, size_t nDataLen)
+void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pData, size_t)
 {
     // message structure:  IP\0Port\0ID\0PWD\0
     // copy it out since pData is temperal
@@ -44,13 +47,14 @@ ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pData, si
                     "fld_account = '%s' and fld_password = '%s'", szID.c_str(), szPWD.c_str())){
             g_MonoServer->AddLog(LOGTYPE_WARNING,
                     "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-            SyncDriver().Forward(SM_LOGINFAIL, nSessionID, stSCAddr);
+            SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
 
         if(pDBHDR->RowCount() < 1){
-            g_MonoServer->AddLog(LOGTYPE_INFO, "can't find account: (%s:%s)", pID, pPWD);
-            SyncDriver().Forward(SM_LOGINFAIL, nSessionID, stSCAddr);
+            g_MonoServer->AddLog(LOGTYPE_INFO,
+                    "can't find account: (%s:%s)", szID.c_str(), szPWD.c_str());
+            SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
 
@@ -61,14 +65,14 @@ ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pData, si
         if(!pDBHDR->Execute("select * from mir2x.tbl_guid where fld_id = %d", nID)){
             g_MonoServer->AddLog(LOGTYPE_WARNING,
                     "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-            SyncDriver().Forward(SM_LOGINFAIL, nSessionID, stSCAddr);
+            SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
 
         if(pDBHDR->RowCount() < 1){
             g_MonoServer->AddLog(LOGTYPE_INFO,
-                    "no guid created for this account: (%s:%s)", pID, pPWD);
-            SyncDriver().Forward(SM_LOGINFAIL, nSessionID, stSCAddr);
+                    "no guid created for this account: (%s:%s)", szID.c_str(), szPWD.c_str());
+            SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
 
@@ -87,7 +91,7 @@ ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pData, si
         stAMLQDB.Direction = std::atoi(pDBHDR->Get("fld_level"));
 
         std::strncpy(stAMLQDB.Name, pDBHDR->Get("fld_guid"), sizeof(stAMLQDB.Name));
-        SyncDriver().Forward(AM_LOGINQUERYDB, stAMLQDB, stSCAddr);
+        SyncDriver().Forward({MPK_LOGINQUERYDB, stAMLQDB}, stSCAddr);
     };
 
     extern ThreadPN *g_ThreadPN;

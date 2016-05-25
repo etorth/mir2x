@@ -3,7 +3,7 @@
  *
  *       Filename: eventtaskhub.hpp
  *        Created: 04/03/2016 22:55:21
- *  Last Modified: 05/24/2016 14:40:22
+ *  Last Modified: 05/24/2016 17:02:25
  *
  *    Description: this class support event executation after a delay
  *                 so don't think too much of performance
@@ -35,6 +35,7 @@
 
 #include "basehub.hpp"
 #include "eventtask.hpp"
+#include "memoryblockpn.hpp"
 
 using EventTaskBlockPN = MemoryBlockPN<sizeof(EventTask), 1024, 4>;
 class EventTaskHub: public BaseHub<EventTaskHub>
@@ -55,6 +56,7 @@ class EventTaskHub: public BaseHub<EventTaskHub>
         std::condition_variable          m_EventCV;
         std::unordered_set<uint32_t>     m_EventIDV;
         std::function<void(EventTask *)> m_Exec;
+        EventTaskBlockPN                 m_EventTaskBlockPN;
 
     protected:
         std::priority_queue<EventTask*, std::deque<EventTask *>, TaskComp> m_EventList;
@@ -105,7 +107,7 @@ class EventTaskHub: public BaseHub<EventTaskHub>
             if(!pTask){ return; }
 
             pTask->~EventTask();
-            m_EventTaskBlockPN->Free(pTask);
+            m_EventTaskBlockPN.Free(pTask);
         }
 
     public:

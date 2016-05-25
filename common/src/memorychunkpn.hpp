@@ -3,7 +3,7 @@
  *
  *       Filename: memorychunkpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/19/2016 10:52:34
+ *  Last Modified: 05/24/2016 18:03:13
  *
  *    Description: unfixed-size memory chunk pool, thread safe is optional, but self-contained
  *                 this algorithm is based on buddy algorithm
@@ -71,6 +71,7 @@
 #include <vector>
 #include <cstdint>
 
+#include "mathfunc.hpp"
 #include "cachequeue.hpp"
 
 // UnitSize   :    size of unit in bytes, this is the basic units for buffer length
@@ -93,7 +94,7 @@ class MemoryChunkPN
         typedef struct _InnLockGuard{
             std::mutex *Lock;
 
-            _InnLockGuard(pLock)
+            _InnLockGuard(std::mutex *pLock)
             {
                 if(BranchSize > 1){
                     Lock = pLock;
@@ -266,7 +267,7 @@ class MemoryChunkPN
 
                 while(nIndex){
                     nIndex = ParentNode(nIndex);
-                    Longest[nParentIndex] = std::max<size_t>(
+                    Longest[nIndex] = std::max<size_t>(
                             Longest[LeftNode(nIndex)], Longest[RightNode(nIndex)]);
                 }
 
@@ -318,7 +319,7 @@ class MemoryChunkPN
         typedef struct _InnMemoryChunkPoolBranch{
             size_t BranchID;
             std::mutex *Lock;
-            std::vector<std::shared_ptr<InnMemoryUnit>> PoolV;
+            std::vector<std::shared_ptr<InnMemoryChunkPool>> PoolV;
 
             _InnMemoryChunkPoolBranch()
             {
@@ -448,7 +449,7 @@ class MemoryChunkPN
             return nullptr;
         }
 
-        void Free(void *pData)
+        void Free(void *pBuf)
         {
             if(!pBuf){ return; }
 

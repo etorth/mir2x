@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 05/08/2016 10:35:40
+ *  Last Modified: 05/24/2016 17:06:23
  *
  *    Description: 
  *
@@ -128,8 +128,8 @@ class Monster: public CharObject
         virtual bool Type(uint8_t);
         virtual bool State(uint8_t);
 
-        virtual bool SetType(uint8_t, bool);
-        virtual bool SetState(uint8_t, bool);
+        virtual bool ResetType(uint8_t, bool);
+        virtual bool ResetState(uint8_t, bool);
 
         virtual uint32_t NameColor();
         virtual const char *CharName();

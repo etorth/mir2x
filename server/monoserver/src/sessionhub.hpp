@@ -3,7 +3,7 @@
  *
  *       Filename: sessionhub.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 05/23/2016 14:21:08
+ *  Last Modified: 05/24/2016 17:25:53
  *
  *    Description: session hub, to create and destroy all session's. create with
  *                 callback function fnOperateHC, listen port, and service core
@@ -42,11 +42,13 @@
 #include <functional>
 #include <unordered_map>
 
+#include "session.hpp"
 #include "cachequeue.hpp"
 #include "syncdriver.hpp"
 #include "messagepack.hpp"
 
 class Session;
+using SessionQ = CacheQueue<Session *, 8192>;
 class SessionHub: public SyncDriver
 {
     private:
@@ -58,18 +60,16 @@ class SessionHub: public SyncDriver
         asio::ip::tcp::socket   m_Socket;
 
     private:
-        CacheQueue   m_ValidQ;
+        SessionQ     m_ValidQ;
+        uint32_t     m_Count;
         std::thread *m_Thread;
 
     private:
-        Theron::Address m_ServiceCoreAddress;
-
-    private:
-        std::vector<Session *> m_SessionMap;
-        std::function<void(uint8_t, Session *)> m_OperateFunc;
+        Theron::Address         m_SCAddress;
+        std::vector<Session *>  m_SessionV;
 
     public:
-        SessionHub(int, const Theron::Address &, const std::function<void(uint8_t, Session *)> &);
+        SessionHub(int, const Theron::Address &);
         virtual ~SessionHub();
 
     public:
@@ -92,12 +92,27 @@ class SessionHub: public SyncDriver
             // 1. find the corresponding session
         }
 
-    public:
-        size_t SessionCount()
+    private:
+        uint32_t ValidID()
         {
-            return m_SessionMap.size();
+            uint32_t nID = m_Count + 1;
+            while(true){
+                if(!m_SessionV[nID]){ m_Count = nID; return nID; }
+
+                nID++;
+                if(nID == m_SessionV.size()){ nID = 1; }
+                if(nID == m_Count){ return 0;}
+            }
+            return 0;
         }
 
+    public:
+        void Bind(const Theron::Address &rstAddr)
+        {
+            m_SCAddress = rstAddr;
+        }
+
+    public:
         Session *Validate(uint32_t nSessionID)
         {
             if(nSessionID > 0 && nSessionID < m_SessionV.size()){

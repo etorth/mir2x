@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/20/2016 16:34:19
+ *  Last Modified: 05/24/2016 15:53:14
  *
  *    Description: 
  *
@@ -28,6 +28,7 @@
 #include <unordered_map>
 
 #include "log.hpp"
+#include "dbpod.hpp"
 #include "message.hpp"
 #include "taskhub.hpp"
 #include "database.hpp"
@@ -47,6 +48,8 @@ class MonoServer: public SyncDriver
 
         SessionHub  *m_SessionHub;
         std::atomic<uint32_t> m_ObjectUID;
+
+        DBPodN  *m_DBPodN;
 
     protected:
         ServiceCore *m_ServiceCore;
@@ -168,8 +171,8 @@ class MonoServer: public SyncDriver
         }
 
     public:
-        DBPod::DBHDR CreateDBHDR()
+        DBPodN::DBHDR CreateDBHDR()
         {
-            return m_DBPod->CreateDBHDR();
+            return m_DBPodN->CreateDBHDR();
         }
 };

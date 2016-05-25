@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/19/2016 15:25:31
+ *  Last Modified: 05/24/2016 17:52:39
  *
  *    Description: 
  *
@@ -17,6 +17,9 @@
  *
  * =====================================================================================
  */
+
+#include "player.hpp"
+#include "memorychunkpn.hpp"
 
 void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {

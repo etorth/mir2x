@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 05/18/2016 16:01:59
+ *  Last Modified: 05/24/2016 18:00:08
  *
  *    Description: 
  *
@@ -162,7 +162,7 @@ template<typename T> bool PowerOf2(T nParam)
 // TODO & TBD
 // this is portable but not optimized, gcc has builtin functions
 // as __builtin_clz(), google it, however it's not portable
-template<typename T> bool RoundByPowerOf2(T nParam)
+template<typename T> T RoundByPowerOf2(T nParam)
 {
     static_assert(std::is_integral<T>::value, "Integral type required...");
 

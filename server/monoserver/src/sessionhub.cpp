@@ -3,7 +3,7 @@
  *
  *       Filename: sessionhub.cpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 05/03/2016 15:19:11
+ *  Last Modified: 05/24/2016 17:51:59
  *
  *    Description: 
  *
@@ -25,18 +25,15 @@
 #include "sessionhub.hpp"
 #include "monoserver.hpp"
 
-SessionHub::SessionHub(int nPort,
-        const Theron::Address &rstAddress,
-        const std::function<void(uint8_t, Session *)> &fnOperateHC)
+SessionHub::SessionHub(int nPort, const Theron::Address &rstAddress)
     : SyncDriver()
     , m_Port(nPort)
     , m_EndPoint(asio::ip::tcp::v4(), nPort)
     , m_Acceptor(m_IO, m_EndPoint)
     , m_Socket(m_IO)
-    , m_MaxID(1)
+    , m_Count(1)
     , m_Thread(nullptr)
-    , m_ServiceCoreAddress(rstAddress)
-    , m_OperateFunc(fnOperateHC)
+    , m_SCAddress(rstAddress)
 {
 }
 
@@ -67,46 +64,31 @@ void SessionHub::Accept()
 
             // 1. create and put into the hub
             //    overwrite existing slot if wrapped back
-            auto pNewSession = new Session(m_MaxID++, std::move(m_Socket), this, m_OperateFunc);
+            auto pNewSession = new Session(ValidID(), std::move(m_Socket), this);
+
+            if(!pNewSession->ID()){
+                g_MonoServer->AddLog(LOGTYPE_INFO, "No valid connection slot, refused");
+                pNewSession->Send(SM_REFUSE, [pNewSession](){ delete pNewSession; });
+
+                // this deletion will happen in the same thread, but out of class Session
+                // since it's in asio's main loop, should be OK
+                return;
+            }
 
             // previously here we start the session fully
             // now instead we'll send it to the service core the get confirm or refuse
+            // TODO & TBD: add more info if needed and send it to ServiceCore, to 
+            //             implement more like IP ban, user priority etc. currently
+            //             I only put the SessionID here
 
-            // 2. send
-            MessagePack stRetMPK;
-            int nRet = Send({MPK_NEWCONNECTION, pNewSession}, m_ServiceCoreAddress, &stRetMPK);
-
-            if(!nRet){
-                g_MonoServer->AddLog(LOGTYPE_INFO, "connection from (%s:%d) allowed",
-                        m_Socket.remote_endpoint().address().to_string().c_str(),
-                        m_Socket.remote_endpoint().port());
-
-                auto pRecord = m_SessionMap.find(pNewSession->ID());
-                if(pRecord != m_SessionMap.end()){
-                    // ooops, overflow
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "session hub overflows");
-                    g_MonoServer->Restart();
-                }
-
-                // 1. keep it in the hub
-                m_SessionMap[pNewSession->ID()] = pNewSession;
-
-                // 2. echo to the client
-                pNewSession->SendN(SM_PING);
-
-                // 3. ready login information
-                pNewSession->Launch();
-            }else{
-                // refused or errors
-                g_MonoServer->AddLog(LOGTYPE_INFO, "connection from (%s:%d) dropped",
-                        m_Socket.remote_endpoint().address().to_string().c_str(),
-                        m_Socket.remote_endpoint().port());
-                // 1. so we can't use this ID
-                m_MaxID--;
-
-                // 2. tell the client you are refused, then delete the session
-                pNewSession->SendN(SM_REFUSE, [pNewSession](){ delete pNewSession; });
+            // forward and no wait here
+            uint32_t nSessionID = pNewSession->ID();
+            if(Forward({MPK_NEWCONNECTION, nSessionID}, m_SCAddress)){
+                delete pNewSession; return;
             }
+
+            // then we put it in the hub, and when the SC respond we can launch it
+            m_SessionV[pNewSession->ID()] = pNewSession;
 
             // accept next request
             Accept();
@@ -118,33 +100,25 @@ void SessionHub::Accept()
 
 void SessionHub::Launch()
 {
-    Accept();
-    m_Thread = new std::thread([this](){ m_IO.run(); });
+    if(m_SCAddress != Theron::Address::Null()){
+        Accept();
+        m_Thread = new std::thread([this](){ m_IO.run(); });
+    }
 }
 
 void SessionHub::Shutdown(uint32_t nSID)
 {
     // shutdown all sessions
     if(nSID == 0){
-        for(auto &rstRecord: m_SessionMap){
-            // check validation of session ID
-            if(rstRecord.first == 0){
-                extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_WARNING, "zero id in session map");
-            }
-
-            rstRecord.second->Shutdown();
-            delete rstRecord.second;
+        for(auto &pSession: m_SessionV){
+            pSession->Shutdown();
+            delete pSession;
+            pSession = nullptr;
         }
-        m_SessionMap.clear();
         return;
     }
 
-    // shutdown specified session
-    auto pRecord = m_SessionMap.find(nSID);
-    if(pRecord != m_SessionMap.end()){
-        pRecord->second->Shutdown();
-        delete pRecord->second;
-        m_SessionMap.erase(pRecord);
-    }
+    m_SessionV[nSID]->Shutdown();
+    delete m_SessionV[nSID];
+    m_SessionV[nSID] = nullptr;
 }

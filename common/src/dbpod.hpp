@@ -3,7 +3,7 @@
  *
  *       Filename: dbpod.hpp
  *        Created: 05/20/2016 14:31:19
- *  Last Modified: 05/20/2016 16:29:40
+ *  Last Modified: 05/24/2016 16:47:10
  *
  *    Description: so many db interaction, so enable the multi-thread support
  *                 when got a DBRecord, the corresponding DBConnection would
@@ -22,15 +22,18 @@
  */
 
 #pragma once
+#include <memory>
+
 #include "dbrecord.hpp"
 #include "dbconnection.hpp"
+#include "memoryblockpn.hpp"
 
 // ConnSize gives the number of internal connection handler
 //       0 : invalid
 //       1 : single thread
 //    >= 2 : support multi-thread
 //
-template<ConnSize = 4>
+template<size_t ConnSize = 4>
 class DBPod final
 {
     private:
@@ -40,6 +43,7 @@ class DBPod final
         class InnDeleter
         {
             private:
+                std::mutex *m_Lock;
                 DBRecordPN *m_DBRPN;
 
             public:
@@ -68,9 +72,10 @@ class DBPod final
         };
 
     public:
-        using DBHDR = unique_ptr<DBRecord, InnDeleter>;
+        using DBHDR = std::unique_ptr<DBRecord, InnDeleter>;
 
     private:
+        size_t m_Count;
         std::mutex *m_LockV[ConnSize];
         DBRecordPN m_DBRPNV[ConnSize];
         DBConnection *m_DBConnV[ConnSize];
@@ -103,7 +108,7 @@ class DBPod final
                 pRecord = nullptr;
             }
 
-            return DBHDR(pRecord, InnDeleter(&(m_LockV[nPodIndex]), &(m_DBRPN[nPodIndex])));
+            return DBHDR(pRecord, InnDeleter(m_LockV[nPodIndex], &(m_DBRPNV[nPodIndex])));
         }
 
         DBHDR CreateDBHDR()
@@ -117,7 +122,7 @@ class DBPod final
                 if(m_LockV[nIndex]->try_lock()){
                     // see here, we don't unlock when return
                     // it unlocks when HDR is destructing
-                    return InnCreateDBRecord(nIndex);
+                    return InnCreateDBHDR(nIndex);
                 }
 
                 nIndex = (nIndex + 1) % ConnSize;
@@ -127,3 +132,5 @@ class DBPod final
             return DBHDR(nullptr, InnDeleter(nullptr));
         }
 };
+
+using DBPodN = DBPod<4>;

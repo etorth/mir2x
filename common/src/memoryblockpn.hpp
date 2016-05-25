@@ -3,7 +3,7 @@
  *
  *       Filename: memoryblockpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/23/2016 23:16:53
+ *  Last Modified: 05/24/2016 17:01:54
  *
  *    Description: fixed size memory block pool
  *                 simple implementation for performance
@@ -179,13 +179,14 @@ class MemoryBlockPN
             void *InnGet()
             {
                 for(auto pMP = PoolV.rbegin(); pMP != PoolV.rend(); ++pMP){
-                    if(auto pRet = pMP->Get()){
+                    if(auto pRet = (*pMP)->Get()){
                         return pRet;
                     }
                 }
 
                 // ooops, need to add a new pool
-                PoolV.emplace_back(PoolV.size(), (BranchSize > 1) ? BranchID : 0);
+                PoolV.emplace_back(std::make_shared<
+                        InnMemoryBlockPool>(PoolV.size(), (BranchSize > 1) ? BranchID : 0));
                 return PoolV.back()->Get();
             }
 
@@ -265,7 +266,7 @@ class MemoryBlockPN
 
             // 2. lock this pool if necessary
             //    if BranchSize == 1 this lock will do nothing
-            InnLockGuard stInnLG(&(m_MBPBV[nBranchIndex].Lock));
+            InnLockGuard stInnLG(m_MBPBV[nBranchIndex].Lock);
 
             // 3. get the index of memory block in the memory pool
             //    the internal vector PoolV[...] may expand so don't put it as step-2
@@ -275,6 +276,6 @@ class MemoryBlockPN
             size_t nBlockID = pHead - &(m_MBPBV[0].PoolV[pHead->PoolID]->BlockV[0]);
 
             // 4. put it as valid
-            m_MBPBV[0].PoolV[pHead->PoolID].ValidQ.PushHead(nBlockID);
+            m_MBPBV[nBranchIndex].PoolV[pHead->PoolID]->ValidQ.PushHead(nBlockID);
         }
 };
