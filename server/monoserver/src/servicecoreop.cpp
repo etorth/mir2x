@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/24/2016 15:17:30
+ *  Last Modified: 05/24/2016 22:12:28
  *
  *    Description: 
  *
@@ -31,12 +31,12 @@
 // in the net package otherwise we can't find the session even we have session's 
 // address, session is a sync-driver, even we have it's address we can't find it
 //
-void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMServiceCoreNetPackage stAMSCNP;
-    std::memcpy(&stAMSCNP, rstMPK.Data(), sizeof(stAMSCNP));
+    AMNetPackage stAMNP;
+    std::memcpy(&stAMNP, rstMPK.Data(), sizeof(stAMNP));
 
-    OperateNet(stAMSCNP.Session, stAMSCNP.Type, stAMSCNP.Data, stAMSCNP.DataLen);
+    OperateNet((Session *)(stAMNP.Session), stAMNP.Type, stAMNP.Data, stAMNP.DataLen);
 }
 
 void ServiceCore::On_MPK_ADDMONSTER(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -125,7 +125,7 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
     // mysterious error occurs...
     if(pMap == m_MapRecordM.end()){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "...");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "mysterious errors when loading map");
         g_MonoServer->Restart();
     }
 

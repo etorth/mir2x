@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/24/2016 19:22:41
+ *  Last Modified: 05/24/2016 22:55:28
  *
  *    Description: 
  *
@@ -37,6 +37,7 @@ EventTaskHub             *g_EventTaskHub;
 Theron::EndPoint         *g_EndPoint;
 Theron::Framework        *g_Framework;
 ThreadPN                 *g_ThreadPN;
+NetPodHub                *g_NetPodHub;
 
 MainWindow               *g_MainWindow;
 MonoServer               *g_MonoServer;

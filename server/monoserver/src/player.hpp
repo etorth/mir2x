@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 05/24/2016 18:04:52
+ *  Last Modified: 05/24/2016 21:42:14
  *
  *    Description: 
  *
@@ -52,24 +52,25 @@ typedef struct stPLAYERFEATUREEX{
 
 class Player: public CharObject
 {
-    uint32_t m_SID;
-    uint32_t m_GUID;
+    protected:
+        uint32_t m_GUID;
+        uint32_t m_JobID;
+
+    protected:
+        PLAYERFEATURE   m_Feature;
+        PLAYERFEATUREEX m_FeatureEx;
 
     public:
-        Player(uint32_t, uint32_t, uint32_t, uint32_t);
+        Player(uint32_t, uint32_t);
         ~Player();
-
-    public:
-        PLAYERFEATURE       m_Feature;
-        PLAYERFEATUREEX     m_FeatureEx;
 
     public:
         // type test function
         virtual bool Type(uint8_t);
         virtual bool State(uint8_t);
 
-        virtual bool SetType(uint8_t, bool);
-        virtual bool SetState(uint8_t, bool);
+        virtual bool ResetType(uint8_t, bool);
+        virtual bool ResetState(uint8_t, bool);
 
         virtual uint32_t NameColor();
         virtual const char *CharName();
@@ -95,4 +96,10 @@ class Player: public CharObject
 
     private:
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
+
+    private:
+        void Net_CM_MOTION(uint8_t, const uint8_t *, size_t);
+
+    private:
+        void For_CheckTime();
 };

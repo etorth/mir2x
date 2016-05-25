@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/23/2016 18:30:37
+ *  Last Modified: 05/24/2016 21:49:30
  *
  *    Description: 
  *
@@ -24,13 +24,12 @@
 #include "messagepack.hpp"
 #include "eventtaskhub.hpp"
 
-// for an char object, don't make it locate on nowhere
-CharObject::CharObject(const Theron::Address &rstRMAddr, uint32_t nMapID, int nMapX, int nMapY)
+CharObject::CharObject()
     : ActiveObject()
     , m_R(0)
-    , m_MapID(nMapID)
-    , m_CurrX(nMapX)
-    , m_CurrY(nMapY)
+    , m_MapID(0)
+    , m_CurrX(0)
+    , m_CurrY(0)
     , m_Name("")
 {
     m_StateAttrV.fill(false);
@@ -62,7 +61,7 @@ CharObject::~CharObject()
 void CharObject::Die()
 {
     if(Mode(STATE_NEVERDIE)){ return; }
-    SetState(STATE_DEAD, true);
+    ResetState(STATE_DEAD, true);
 }
 
 void CharObject::NextLocation(int *pX, int *pY, int nDistance)

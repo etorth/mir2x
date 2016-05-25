@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/24/2016 15:53:14
+ *  Last Modified: 05/24/2016 22:29:06
  *
  *    Description: 
  *
@@ -85,11 +85,6 @@ class MonoServer: public SyncDriver
             return m_NetMessageDescV[nMessageID].FixedSize;
         }
 
-        uint32_t GetUID()
-        {
-            return m_ObjectUID++;
-        }
-
     public:
         MonoServer();
         ~MonoServer();
@@ -138,9 +133,6 @@ class MonoServer: public SyncDriver
         bool GetValidMonsterV(int, std::vector<std::pair<int, std::string>> &);
         int  GetValidMonsterCount(int, int);
 
-    public:
-        uint32_t GetTickCount();
-
     protected:
         std::chrono::time_point<std::chrono::system_clock> m_StartTime;
 
@@ -165,10 +157,18 @@ class MonoServer: public SyncDriver
         }
 
     public:
+        uint32_t GetUID()
+        {
+            return m_ObjectUID++;
+        }
+
         uint32_t GetTimeTick()
         {
             return 0;
         }
+
+    public:
+        NETHDR GetNetPod
 
     public:
         DBPodN::DBHDR CreateDBHDR()

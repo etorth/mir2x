@@ -3,7 +3,7 @@
  *
  *       Filename: serverobject.cpp
  *        Created: 05/23/2016 18:22:01
- *  Last Modified: 05/23/2016 18:24:04
+ *  Last Modified: 05/24/2016 21:50:59
  *
  *    Description: 
  *
@@ -24,6 +24,6 @@ ServerObject::ServerObject(uint8_t nCategory)
     : m_Category(nCategory)
 {
     extern MonoServer *g_MonoServer;
-    m_UID     = g_MonoServer->ValidID();
+    m_UID     = g_MonoServer->GetUID();
     m_AddTime = g_MonoServer->GetTimeTick();
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/24/2016 19:33:55
+ *  Last Modified: 05/24/2016 22:03:00
  *
  *    Description: 
  *
@@ -222,6 +222,7 @@ typedef struct {
 }AMLoginQueryDB;
 
 typedef struct {
+    void *Session;
     uint8_t Type;
     uint8_t *Data; // don't make it const, otherwise we need explicit when Free(void *)
     size_t DataLen;

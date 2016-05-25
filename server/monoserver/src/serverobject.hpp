@@ -3,7 +3,7 @@
  *
  *       Filename: serverobject.hpp
  *        Created: 04/13/2016 20:04:39
- *  Last Modified: 04/21/2016 10:39:42
+ *  Last Modified: 05/24/2016 21:46:02
  *
  *    Description: basis of all objects in monoserver, with
  *
@@ -50,12 +50,7 @@ class ServerObject
 
 
     public:
-        explicit ServerObject(uint8_t nCategory, uint32_t nUID, uint32_t nAddTime)
-            : m_Category(nCategory)
-            , m_UID(nUID)
-            , m_AddTime(nAddTime)
-        {}
-
+        explicit ServerObject(uint8_t);
         virtual ~ServerObject() = default;
 
     public:

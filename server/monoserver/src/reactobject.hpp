@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 05/11/2016 16:01:19
+ *  Last Modified: 05/24/2016 21:47:34
  *
  *    Description: object only react to message, with an object pod
  *                 atoms of an react object:
@@ -41,8 +41,10 @@
  */
 
 #pragma once
+#include <queue>
 #include <Theron/Theron.h>
 
+#include "delaycmd.hpp"
 #include "messagepack.hpp"
 #include "serverobject.hpp"
 
@@ -53,11 +55,65 @@ class ReactObject: public ServerObject
         ActorPod *m_ActorPod;
 
     protected:
-        bool AccessCheck();
+        std::priority_queue<DelayCmd> m_DelayCmdQ;
+        std::vector<std::tuple<std::string, std::function<void()>>> m_TriggerV;
 
     public:
-        ReactObject(uint8_t, uint32_t, uint32_t);
+        ReactObject(uint8_t);
         ~ReactObject();
+
+
+    private:
+        void InnTrigger()
+        {
+            if(!m_TriggerV.empty()){
+                for(auto &rstEle: m_TriggerV){
+                    if(std::get<1>(rstEle)){
+                        std::get<1>(rstEle)();
+                    }
+                }
+            }
+        }
+
+    public:
+        void Delay(uint32_t, const std::function<void()> &);
+
+
+    public:
+        void Install(const std::string &szTriggerName, const std::function<void()> &fnTriggerOp)
+        {
+            for(auto &rstEle: m_TriggerV){
+                if(std::get<0>(rstEle) == szTriggerName){
+                    std::get<1>(rstEle) = fnTriggerOp;
+                    return;
+                }
+            }
+            m_TriggerV.emplace_back(std::make_tuple(szTriggerName, fnTriggerOp));
+        }
+
+        void Uninstall(const std::string &szTriggerName)
+        {
+            bool bFind = false;
+            for(auto &rstEle: m_TriggerV){
+                if(std::get<0>(rstEle) == szTriggerName){
+                    std::swap(rstEle, m_TriggerV.back());
+                    bFind = true;
+                    break;
+                }
+            }
+
+            if(bFind){
+                m_TriggerV.pop_back();
+            }
+        }
+
+        void Uninstall()
+        {
+            m_TriggerV.clear();
+        }
+
+    protected:
+        bool AccessCheck();
 
     public:
         virtual Theron::Address Activate();

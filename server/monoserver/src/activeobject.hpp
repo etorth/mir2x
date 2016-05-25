@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/11/2016 19:54:41
- *  Last Modified: 05/24/2016 17:07:16
+ *  Last Modified: 05/24/2016 21:48:51
  *
  *    Description: object with Type()/Mode()/State()
  *
@@ -78,8 +78,8 @@ class ActiveObject: public ReactObject
         std::array<uint32_t, 255> m_StateTimeV;
 
     public:
-        ActiveObject(uint32_t nUID, uint32_t nAddTime)
-            : ReactObject(CATEGORY_ACTIVEOBJECT, nUID, nAddTime)
+        ActiveObject()
+            : ReactObject(CATEGORY_ACTIVEOBJECT)
         {
             m_TypeV.fill(0);
             m_StateV.fill(0);

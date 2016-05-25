@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 04/29/2016 23:16:50
+ *  Last Modified: 05/24/2016 21:07:36
  *
  *    Description: net message used by client and mono-server
  *
@@ -29,6 +29,7 @@ enum: uint8_t
     CM_PING,
     CM_LOGIN,
     CM_BROADCAST,
+    CM_MOTION,
 };
 
 #pragma pack(push, 1)

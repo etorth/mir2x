@@ -3,25 +3,32 @@
  *
  *       Filename: sessionhub.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 05/24/2016 17:25:53
+ *  Last Modified: 05/24/2016 20:53:31
  *
- *    Description: session hub, to create and destroy all session's. create with
- *                 callback function fnOperateHC, listen port, and service core
- *                 address.
- *
- *                 when launched, sessioin hub will listen on the port, if accepted
+ *    Description: when launched, sessioin hub will listen on the port, if accepted
  *                 any connection request, forward it to service core for comfirm
  *                 or refuse.
  *
- *                 if refused, delete the temporary session, otherwise wait further
- *                 operation of the session. when get all needed information, pass
- *                 the session pointer to service, it will forward eventually to a
- *                 player object. when the life cycle of the player object ends,
- *                 this pointer will be pass back and destroyed (with its record in
- *                 the map) by session hub.
- *
  *                 I made an internal array of session pointer then this helps I use
  *                 SessionID always instead of session pointer outside, it's dangerous
+ *
+ *                 TODO & TBD
+ *                 where to put SessionHub? it's really an annoying problem
+ *
+ *                 1. put it in class MonoServer
+ *                    I was thinking of only put those const, log and tips in MonoServer,
+ *                    and obviously SessionHub is a complex class.
+ *
+ *                 2. put it in ServiceCore
+ *                    then it can use SyncDirver <-> Actor channel. But this require that
+ *                    ServiceCore need to forward pointer of Session to class Player, and
+ *                    validate of the pointer is complex
+ *
+ *                 3. put it as a global variable
+ *                    1. create after ServiceCore inited
+ *                    2. only keep ServiceCore's address
+ *                    3. all net package will be sent by it, player won't hold the pointer
+ *                       of session too long. just termporially
  *
  *        Version: 1.0
  *       Revision: none

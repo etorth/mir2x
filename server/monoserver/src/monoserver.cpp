@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/10/2016 00:48:04
+ *  Last Modified: 05/24/2016 21:52:07
  *
  *    Description: 
  *
@@ -178,7 +178,7 @@ void MonoServer::OnReadHC(uint8_t nMsgHC, Session *pSession)
     }
 }
 
-uint32_t MonoServer::GetTickCount()
+uint32_t MonoServer::GetTimeTick()
 {
     // TODO
     // make it more simple

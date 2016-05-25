@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 05/11/2016 16:03:15
+ *  Last Modified: 05/24/2016 21:47:58
  *
  *    Description: 
  *
@@ -22,10 +22,25 @@
 #include "monoserver.hpp"
 #include "reactobject.hpp"
 
-ReactObject::ReactObject(uint8_t nCategory, uint32_t nUID, uint32_t nAddTime)
-    : ServerObject(nCategory, nUID, nAddTime)
+ReactObject::ReactObject(uint8_t nCategory)
+    : ServerObject(nCategory)
     , m_ActorPod(nullptr)
-{}
+{
+    auto fnDelayCmdQueue = [this](){
+        if(!m_DelayCmdQ.empty()){
+            extern MonoServer *g_MonoServer;
+            if(m_DelayCmdQ.top().Tick() >= g_MonoServer->GetTickCount()){
+                try{
+                    m_DelayCmdQ.top()();
+                }catch(...){
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception for delay cmd");
+                }
+                m_DelayCmdQ.pop();
+            }
+        }
+    };
+    Install("DelayCmdQueue", fnDelayCmdQueue);
+}
 
 ReactObject::~ReactObject()
 {
@@ -66,4 +81,10 @@ bool ReactObject::AccessCheck()
         return false;
     }
     return true;
+}
+
+void ReactObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
+{
+    extern MonoServer *g_MonoServer;
+    m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTickCount(), fnCmd);
 }
