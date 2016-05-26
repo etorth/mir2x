@@ -3,7 +3,7 @@
  *
  *       Filename: servicecorenet.cpp
  *        Created: 05/20/2016 17:09:13
- *  Last Modified: 05/25/2016 18:34:02
+ *  Last Modified: 05/26/2016 00:51:20
  *
  *    Description: interaction btw SessionHub and ServiceCore
  *
@@ -93,7 +93,6 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
         stAMLQDB.Job    = std::atoi(pDBHDR->Get("fld_level"));
         stAMLQDB.Direction = std::atoi(pDBHDR->Get("fld_level"));
 
-        std::strncpy(stAMLQDB.Name, pDBHDR->Get("fld_guid"), sizeof(stAMLQDB.Name));
         SyncDriver().Forward({MPK_LOGINQUERYDB, stAMLQDB}, stSCAddr);
     };
 

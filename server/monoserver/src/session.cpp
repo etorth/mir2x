@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 05/24/2016 15:33:52
+ *  Last Modified: 05/26/2016 00:48:39
  *
  *    Description: 
  *
@@ -39,7 +39,7 @@ Session::~Session()
 
 void Session::DoReadHC()
 {
-    auto fnOnReadHC = [this](std::error_code stEC, size_t){
+    auto fnDoneReadHC = [this](std::error_code stEC, size_t){
         // ok we get error
         if(stEC){ Stop(); return; }
 
@@ -48,7 +48,7 @@ void Session::DoReadHC()
         size_t nLen = g_MonoServer->MessageSize(m_MessageHC);
 
         // ok it's a non-empty message with fixed body
-        if(nLen > 0){ DoReadBody(nLen); return; }
+        if(nLen > 0){ DoReadBody(nLen); DoReadHC(); return; }
 
         // ok it's a empty message
         if(g_MonoServer->MessageFixedSize(m_MessageHC)){
@@ -60,14 +60,33 @@ void Session::DoReadHC()
 
             // no handler for response, just send
             Forward(m_TargetAddress, {MPK_NETPACKAGE, stAMNP});
+            DoReadHC();
             return;
         }
         
         // it's a unfixed-length net package
-        DoReadBody(m_MessageHC, 0);
+        // 1. read length
+        // 2. read body (still maybe zero-length of the body)
+        auto fnDoneReadLen = [this](std::error_code stEC, size_t){
+            if(stEC){ Stop(); return; }
+            if(m_BodyLen){ DoReadBody(m_BodyLen); DoReadHC(); return; }
+
+            // ooops, you promised this is a unfixed size message
+            // but you send a empty message, ok...
+            AMNetPackage stAMNP;
+            stAMNP.SessionID = m_ID;
+            stAMNP.HC        = m_MessageHC;
+            stAMNP.Data      = nullptr;
+            stAMNP.DataLen   = 0;
+
+            // no handler for response, just send
+            Forward(m_TargetAddress, {MPK_NETPACKAGE, stAMNP});
+            DoReadHC();
+        };
+        asio::async_read(m_Socket, asio::buffer(&m_BodyLen, sizeof(m_BodyLen)), fnDoneReadLen);
     };
 
-    asio::async_read(m_Socket, asio::buffer(&m_MessageHC, 1), fnOnReadHC);
+    asio::async_read(m_Socket, asio::buffer(&m_MessageHC, 1), fnDoneReadHC);
 }
 
 void Session::DoReadBody(size_t nBodyLen)
@@ -97,34 +116,6 @@ void Session::DoReadBody(size_t nBodyLen)
     };
 
     asio::async_read(m_Socket, asio::buffer(pData, nBodyLen), fnDoneReadBody);
-}
-
-void Session::DoReadAfterHC(size_t nMsgLen)
-{
-    // ok a fixed size message, read it directly
-    if(nMsgLen){ DoReadBody(nMsgLen); return; }
-
-    // we need to get the length firstly
-    auto fnDoneReadLen = [this](std::error_code stEC, size_t){
-        if(stEC){ Stop(); return; }
-
-        // now we have the length, read and make a package
-        DoReadBody(m_BodyLen);
-    };
-
-    asio::async_read(m_Socket, asio::buffer(pData, nMsgLen), fnDoneReadLen);
-}
-
-void Session::Read()
-{
-    // I decided that Session only communicate with actor
-    // then if the target address is not set there is no point to read
-    //
-    // TODO & TBD
-    // this is a big change, the internal buffer mech is abondoned
-    if(m_TargetAddress == Theron::Address::Null()){ return; }
-
-    DoReadHC();
 }
 
 // we assume there always be at least one SendTaskDesc

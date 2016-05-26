@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 05/25/2016 18:33:04
+ *  Last Modified: 05/26/2016 00:12:49
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -35,27 +35,60 @@ class ServerMap;
 class ServiceCore: public Transponder
 {
     private:
-        typedef struct _PlayerRecord {
+        // TODO & TBD
+        // I decide to put a record of player in service core
+        // otherwise if we want a player, we have no idea where to find it since
+        // it's created locally in the corresponding region monitor
+        typedef struct _PlayerRecord{
             uint32_t GUID;
-            _PlayerRecord()
-                : GUID(0)
+            uint32_t UID;
+            uint32_t AddTime;
+            Theron::Address PodAddress;
+
+            _PlayerRecord(uint32_t nGUID = 0,
+                    uint32_t nUID = 0, uint32_t nAddTime = 0,
+                    const Theron::Address &rstAddr = Theron::Address::Null())
+                : GUID(nGUID)
+                , UID(nUID)
+                , AddTime(nAddTime)
+                , PodAddress(rstAddr)
             {}
         }PlayerRecord;
 
-        typedef struct _MapRecord {
+        typedef struct _MapRecord{
             uint32_t        MapID;
             ServerMap      *Map;
             Theron::Address PodAddress;
-            _MapRecord(uint32_t nMapID = 0)
+            _MapRecord(uint32_t nMapID = 0, ServerMap *pMap = nullptr,
+                    const Theron::Address &rstAddr = Theron::Address::Null())
                 : MapID(nMapID)
-                , Map(nullptr)
-                , PodAddress(Theron::Address::Null())
+                , Map(pMap)
+                , PodAddress(rstAddr)
             {}
         }MapRecord;
 
-        std::unordered_map<uint32_t, MapRecord>    m_MapRecordM;
-        std::unordered_map<uint32_t, PlayerRecord> m_PlayerRecordM;
+        // TODO & TBD
+        // there is a RM cache for RM's so we don't have to pass
+        // the address everytime
+        typedef struct _RMRecord{
+            uint32_t MapID;
+            int      RMX;
+            int      RMY;
+            Theron::Address PodAddress;
 
+            _RMRecord(uint32_t nMapID = 0, int nRMX = 0, int nRMY = 0,
+                    const Theron::Address &rstAddr = Theron::Address::Null())
+                : MapID(nMapID)
+                , RMX(nRMX)
+                , RMY(nRMY)
+                , PodAddress(rstAddr)
+            {}
+        }RMRecord;
+
+    protected:
+        std::unordered_map<uint32_t, MapRecord>    m_MapRecordMap;
+        std::unordered_map<uint32_t, PlayerRecord> m_PlayerRecordMap;
+        std::unordered_map<uint64_t, RMRecord>     m_RMRecordMap;
 
     public:
         ServiceCore();
@@ -73,6 +106,7 @@ class ServiceCore: public Transponder
         void On_MPK_LOGIN(const MessagePack &, const Theron::Address &);
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDMONSTER(const MessagePack &, const Theron::Address &);
+        void On_MPK_LOGINQUERYDB(const MessagePack &, const Theron::Address &);
         void On_MPK_PLAYERPHATOM(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWCONNECTION(const MessagePack &, const Theron::Address &);
 

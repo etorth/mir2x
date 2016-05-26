@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/25/2016 18:31:48
+ *  Last Modified: 05/26/2016 00:51:58
  *
  *    Description: 
  *
@@ -79,11 +79,11 @@ bool ServiceCore::LoadMap(uint32_t nMapID)
 
     ServerMap *pNewMap = new ServerMap(nMapID);
 
-    m_MapRecordM[nMapID].MapID      = nMapID;
-    m_MapRecordM[nMapID].Map        = pNewMap;
-    m_MapRecordM[nMapID].PodAddress = pNewMap->Activate();
+    m_MapRecordMap[nMapID].MapID      = nMapID;
+    m_MapRecordMap[nMapID].Map        = pNewMap;
+    m_MapRecordMap[nMapID].PodAddress = pNewMap->Activate();
 
-    m_ActorPod->Forward(MPK_HI, m_MapRecordM[nMapID].PodAddress);
+    m_ActorPod->Forward(MPK_HI, m_MapRecordMap[nMapID].PodAddress);
 
     return true;
 }

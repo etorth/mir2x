@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 05/24/2016 15:34:45
+ *  Last Modified: 05/26/2016 00:48:47
  *
  *    Description: TODO & TBD
  *                 I have a decision, now class session *only* communicate with actor
@@ -121,13 +121,9 @@ class Session: public SyncDriver
             Send(nMsgHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT));
         }
 
-    public:
-        // read header code, operation is defined in constructor
-        void ReadHC();
-        // read data, operation is defined by functional argument
-        void Read(size_t, std::function<void(uint8_t *, size_t)>);
-
     private:
+        void DoReadHC();
+
         void DoSendHC();
         void DoSendBuf();
         void DoSendNext();
@@ -138,9 +134,15 @@ class Session: public SyncDriver
             return m_ID;
         }
 
-        void Launch()
+        // return value:
+        //  0 : OK
+        //  1 : invalid arguments
+        int Launch(const Theron::Address &rstAddr)
         {
-            ReadHC();
+            if(rstAddr == Theron::Address::Null()){ return 1; }
+            DoReadHC();
+
+            return 0;
         }
 
         void Stop()

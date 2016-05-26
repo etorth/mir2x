@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/24/2016 22:03:00
+ *  Last Modified: 05/26/2016 00:17:48
  *
  *    Description: 
  *
@@ -21,7 +21,7 @@
 #pragma once
 #include <cstdint>
 
-enum MessagePackType: int {
+enum MessagePackType: int{
     MPK_UNKNOWN = 0,
     MPK_HI,
     MPK_OK,
@@ -59,14 +59,16 @@ enum MessagePackType: int {
     MPK_ADDRESS,
     MPK_LOGINQUERYDB,
     MPK_NETPACKAGE,
+    MPK_CHAROBJECTINFO,
+    MPK_ADDCHAROBJECT,
 };
 
-typedef struct {
+typedef struct{
     uint32_t UID;
     uint32_t AddTime;
 }AMLeave;
 
-typedef struct {
+typedef struct{
     uint32_t GUID;
     uint32_t UID;
     uint32_t AddTime;
@@ -76,17 +78,17 @@ typedef struct {
     void *Data;
 }AMNewMonster;
 
-typedef struct {
+typedef struct{
     int  LocX;
     int  LocY;
 }AMRegionMonitorReady;
 
-typedef struct {
+typedef struct{
     int  X;
     int  Y;
 }AMRequestMove;
 
-typedef struct {
+typedef struct{
     int  X;
     int  Y;
     int  W;
@@ -96,7 +98,7 @@ typedef struct {
     int  LocY;
 }AMRegion;
 
-typedef struct {
+typedef struct{
     uint32_t MonsterIndex;
     uint32_t MapID;
 
@@ -106,16 +108,34 @@ typedef struct {
 }AMMasterPersona;
 
 typedef union {
-    uint8_t  Type;
-    uint32_t GUID;
-    uint32_t MapID;
+    uint32_t Type;
 
-    struct _AddMonster{
+    struct _Monster{
+        uint32_t Type;
+        uint32_t MonsterID;
+        int MapID;
+        int MapX;
+        int MapY;
     }Monster;
 
+    struct _Player{
+        uint32_t Type;
+        uint32_t GUID;
+        uint32_t MapID;
+        int MapX;
+        int MapY;
+        int Level;
+        int Job;
+        int Direction;
+    }Player;
+
+    struct _NPC{
+        uint32_t Type;
+        uint32_t NPCID;
+    }NPC;
 }AMAddCharObject;
 
-typedef struct {
+typedef struct{
     uint32_t GUID;
     uint32_t MapID;
     uint32_t UID;
@@ -127,11 +147,11 @@ typedef struct {
     int  R;
 }AMAddMonster;
 
-typedef struct {
+typedef struct{
     void *Data;
 }AMNewPlayer;
 
-typedef struct {
+typedef struct{
     uint32_t GUID;
     uint32_t UID;
     uint32_t SID;
@@ -143,11 +163,11 @@ typedef struct {
     int Y;
 }AMLogin;
 
-typedef struct {
+typedef struct{
     uint32_t GUID;
 }AMPlayerPhantom;
 
-typedef struct {
+typedef struct{
     uint32_t MapID;
     uint32_t UID;
     uint32_t AddTime;
@@ -161,7 +181,7 @@ typedef struct {
     int R;
 }AMTrySpaceMove;
 
-typedef struct {
+typedef struct{
     uint32_t MapID;
     uint32_t UID;
     uint32_t AddTime;
@@ -175,28 +195,28 @@ typedef struct {
     int R;
 }AMTryMove;
 
-typedef struct {
+typedef struct{
     int X;
     int Y;
     int OldX;
     int OldY;
 }AMMoveOK;
 
-typedef struct {
+typedef struct{
     int X;
     int Y;
     int OldX;
     int OldY;
 }AMCommitMove;
 
-typedef struct {
+typedef struct{
     int X;
     int Y;
     int OldX;
     int OldY;
 }AMLocation;
 
-typedef struct {
+typedef struct{
     uint32_t UID;
     uint32_t AddTime;
     int X;
@@ -204,13 +224,15 @@ typedef struct {
     int R;
 }AMCheckCover;
 
-typedef struct {
-    int X;
-    int Y;
+typedef struct{
+    int RMX;
+    int RMY;
     uint32_t MapID;
 }AMQueryRMAddress;
 
-typedef struct {
+typedef struct{
+    uint32_t SessionID;
+
     uint32_t GUID;
     uint32_t MapID;
     int      MapX;
@@ -218,19 +240,29 @@ typedef struct {
     int      Level;
     int      Job;
     int      Direction;
-    char     Name[64];
 }AMLoginQueryDB;
 
-typedef struct {
+typedef struct{
     void *Session;
     uint8_t Type;
     uint8_t *Data; // don't make it const, otherwise we need explicit when Free(void *)
     size_t DataLen;
 }AMNetPackage;
 
-typedef struct {
+typedef struct{
     uint32_t MapID;
     uint32_t MapX;
     uint32_t MapY;
     uint32_t R;
 }AMNewCharObject;
+
+typedef union{
+    uint8_t Type;
+
+    struct _Player{
+        uint8_t Type;
+        uint32_t GUID;
+        uint32_t UID;
+        uint32_t AddTime;
+    }Player;
+}AMCharObjectInfo;

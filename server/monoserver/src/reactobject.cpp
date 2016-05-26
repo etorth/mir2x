@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 05/24/2016 21:47:58
+ *  Last Modified: 05/26/2016 00:53:27
  *
  *    Description: 
  *
@@ -29,7 +29,7 @@ ReactObject::ReactObject(uint8_t nCategory)
     auto fnDelayCmdQueue = [this](){
         if(!m_DelayCmdQ.empty()){
             extern MonoServer *g_MonoServer;
-            if(m_DelayCmdQ.top().Tick() >= g_MonoServer->GetTickCount()){
+            if(m_DelayCmdQ.top().Tick() >= g_MonoServer->GetTimeTick()){
                 try{
                     m_DelayCmdQ.top()();
                 }catch(...){
@@ -86,5 +86,5 @@ bool ReactObject::AccessCheck()
 void ReactObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
 {
     extern MonoServer *g_MonoServer;
-    m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTickCount(), fnCmd);
+    m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTimeTick(), fnCmd);
 }

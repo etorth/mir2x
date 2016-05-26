@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/09/2016 23:14:41
+ *  Last Modified: 05/25/2016 22:05:01
  *
  *    Description: 
  *
@@ -54,85 +54,85 @@ void ServerMap::On_MPK_REGIONMONITORREADY(const MessagePack &rstMPK, const Thero
     // }
 }
 
-void ServerMap::On_MPK_ADDMONSTER(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
-{
-    AMAddMonster stAMAM;
-    std::memcpy(&stAMAM, rstMPK.Data(), sizeof(stAMAM));
+// void ServerMap::On_MPK_ADDMONSTER(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+// {
+//     AMAddMonster stAMAM;
+//     std::memcpy(&stAMAM, rstMPK.Data(), sizeof(stAMAM));
+//
+//     // point is outside map boundary
+//     if(!ValidP(stAMAM.X, stAMAM.Y) && stAMAM.Strict){
+//         extern MonoServer *g_MonoServer;
+//         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid monster adding request");
+//         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+//
+//         return;
+//     }
+//
+//     // ok point is inside map boundary
+//     Monster *pNewMonster = new Monster(stAMAM.GUID, stAMAM.UID, stAMAM.AddTime);
+//     AMNewMonster stAMNM;
+//
+//     stAMNM.X = stAMAM.X;
+//     stAMNM.Y = stAMAM.Y;
+//     stAMNM.R = stAMAM.R;
+//
+//     stAMNM.Data    = pNewMonster;
+//     stAMNM.GUID    = stAMAM.GUID;
+//     stAMNM.UID     = stAMAM.UID;
+//     stAMNM.AddTime = stAMAM.AddTime;
+//
+//     if(!RegionMonitorReady()){
+//         CreateRegionMonterV2D();
+//
+//         if(!RegionMonitorReady()){
+//             extern MonoServer *g_MonoServer;
+//             g_MonoServer->AddLog(LOGTYPE_WARNING, "create region monitors for server map failed");
+//             g_MonoServer->Restart();
+//         }
+//     }
+//
+//     auto stAddr = RegionMonitorAddressP(stAMAM.X, stAMAM.Y);
+//     if(stAddr == Theron::Address::Null()){
+//         extern MonoServer *g_MonoServer;
+//         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid location for new monstor");
+//         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+//         delete pNewMonster;
+//
+//         return;
+//     }
+//
+//     // ok valid RM, we are to try to add it inside
+//     auto fnROP = [this, rstFromAddr, nMPKID = rstMPK.ID()](
+//             const MessagePack &rstRMPK, const Theron::Address &){
+//         switch(rstRMPK.Type()){
+//             case MPK_OK:
+//                 {
+//                     m_ActorPod->Forward(MPK_OK, rstFromAddr, nMPKID);
+//                     break;
+//                 }
+//             default:
+//                 {
+//                     m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
+//                     break;
+//                 }
+//         }
+//     };
+//     m_ActorPod->Forward({MPK_NEWMONSTER, stAMNM}, stAddr, fnROP);
+// }
 
-    // point is outside map boundary
-    if(!ValidP(stAMAM.X, stAMAM.Y) && stAMAM.Strict){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid monster adding request");
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-
-        return;
-    }
-
-    // ok point is inside map boundary
-    Monster *pNewMonster = new Monster(stAMAM.GUID, stAMAM.UID, stAMAM.AddTime);
-    AMNewMonster stAMNM;
-
-    stAMNM.X = stAMAM.X;
-    stAMNM.Y = stAMAM.Y;
-    stAMNM.R = stAMAM.R;
-
-    stAMNM.Data    = pNewMonster;
-    stAMNM.GUID    = stAMAM.GUID;
-    stAMNM.UID     = stAMAM.UID;
-    stAMNM.AddTime = stAMAM.AddTime;
-
-    if(!RegionMonitorReady()){
-        CreateRegionMonterV2D();
-
-        if(!RegionMonitorReady()){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "create region monitors for server map failed");
-            g_MonoServer->Restart();
-        }
-    }
-
-    auto stAddr = RegionMonitorAddressP(stAMAM.X, stAMAM.Y);
-    if(stAddr == Theron::Address::Null()){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid location for new monstor");
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-        delete pNewMonster;
-
-        return;
-    }
-
-    // ok valid RM, we are to try to add it inside
-    auto fnROP = [this, rstFromAddr, nMPKID = rstMPK.ID()](
-            const MessagePack &rstRMPK, const Theron::Address &){
-        switch(rstRMPK.Type()){
-            case MPK_OK:
-                {
-                    m_ActorPod->Forward(MPK_OK, rstFromAddr, nMPKID);
-                    break;
-                }
-            default:
-                {
-                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
-                    break;
-                }
-        }
-    };
-    m_ActorPod->Forward({MPK_NEWMONSTER, stAMNM}, stAddr, fnROP);
-}
-
-void ServerMap::On_MPK_NEWMONSTER(const MessagePack &rstMPK, const Theron::Address &)
-{
-    AMNewMonster stAMNM;
-    std::memcpy(&stAMNM, rstMPK.Data(), sizeof(stAMNM)); 
-    // 1. create the monstor
-    auto pNewMonster = new Monster(stAMNM.GUID, stAMNM.UID, stAMNM.AddTime);
-    uint64_t nKey = ((uint64_t)stAMNM.UID << 32) + stAMNM.AddTime;
-
-    // 2. put it in the pool
-    m_CharObjectM[nKey] = pNewMonster;
-
-    // 3. add the pointer inside and forward this message to the monitor
-    stAMNM.Data = (void *)pNewMonster;
-    auto stAddr = RegionMonitorAddressP(stAMNM.X, stAMNM.Y);
-    m_ActorPod->Forward({MPK_NEWMONSTER, stAMNM}, stAddr);
-}
+// void ServerMap::On_MPK_NEWMONSTER(const MessagePack &rstMPK, const Theron::Address &)
+// {
+//     AMNewMonster stAMNM;
+//     std::memcpy(&stAMNM, rstMPK.Data(), sizeof(stAMNM)); 
+//     // 1. create the monstor
+//     auto pNewMonster = new Monster(stAMNM.GUID, stAMNM.UID, stAMNM.AddTime);
+//     uint64_t nKey = ((uint64_t)stAMNM.UID << 32) + stAMNM.AddTime;
+//
+//     // 2. put it in the pool
+//     m_CharObjectM[nKey] = pNewMonster;
+//
+//     // 3. add the pointer inside and forward this message to the monitor
+//     stAMNM.Data = (void *)pNewMonster;
+//     auto stAddr = RegionMonitorAddressP(stAMNM.X, stAMNM.Y);
+//     m_ActorPod->Forward({MPK_NEWMONSTER, stAMNM}, stAddr);
+// }

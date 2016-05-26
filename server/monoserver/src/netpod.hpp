@@ -3,7 +3,7 @@
  *
  *       Filename: netpod.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 05/25/2016 19:11:42
+ *  Last Modified: 05/26/2016 00:49:43
  *
  *    Description: this will serve as a stand-alone plugin for monoserver, it creates
  *                 with general info. and nothing will be done till Launch()
@@ -103,13 +103,27 @@ template<size_t PodSize> class NetPod: public SyncDriver
             if(m_Thread.joinable()){ m_Thread.join(); }
         }
 
+    protected:
+        Session *Validate(uint32_t nSessionID, bool bValid)
+        {
+            if(nSessionID > 0 && nSessionID < PodSize){
+                return m_SessionV[bValid ? 1 : 0][nSessionID];
+            }
+
+            return nullptr;
+        }
+
     public:
         // before call this function, the service core should be already
         // after it connection request will be accepted and forward to the core
+        //
+        // return value:
+        //      0: OK
+        //      1: invalid argument
         void Launch(const Theron::Address &rstSCAddr)
         {
             // 1. check parameter
-            if(rstSCAddr == Theron::Address::Null()){ return; }
+            if(rstSCAddr == Theron::Address::Null()){ return 1; }
 
             // 2. assign the target address
             m_SCAddress = rstSCAddr;
@@ -122,6 +136,40 @@ template<size_t PodSize> class NetPod: public SyncDriver
 
             // 5. start the internal thread
             m_Thread = std::thread([this](){ m_IO.run(); });
+
+            // 6. all Launch() function will return 0 when succceeds
+            return 0;
+        }
+
+        // start the specified session with specified actor address
+        // return value
+        //      0: OK
+        //      1: invalid argument
+        //      2: there is no half-done session in the slot
+        //      3: this session is running
+        //      4: session launch error
+        int Launch(uint32_t nSessionID, const Theron::Address &rstTargetAddress)
+        {
+            // 1. check argument
+            if(false
+                    || nSessionID == 0
+                    || nSessionID >= PodSize
+                    || rstTargetAddress == Theron::Address::Null()){
+                return 1;
+            }
+
+            // 2. get pointer
+            if(!m_SessionV[0][nSessionID]){ return 2; }
+
+            // 3. corresponding running slot is empty?
+            if(m_SessionV[1][nSessionID]){ return 3; }
+
+            // 4. start it and move it to the running slot
+            if(m_SessionV[0][nSessionID]->Launch(rstTargetAddress)){ return 4; }
+
+            // 5. launch ok
+            std::swap(m_SessionV[0][nSessionID], m_SessionV[1][nSessionID]);
+            return 0;
         }
 
         bool Shutdown(uint32_t nSessionID = 0)
@@ -167,12 +215,13 @@ template<size_t PodSize> class NetPod: public SyncDriver
             return false;
         }
 
+
     public:
         template<typename... Args> bool Send(uint32_t nSessionID, Args&&... args)
         {
             // it's a broadcast
             if(!nSessionID){
-                for(int nSID = 1; nSID < PodSize; ++nSID){
+                for(int nSID = 1; nSID < (int)PodSize; ++nSID){
                     if(m_SessionV[1][nSID]){
                         m_SessionV[1][nSID]->Send(std::forward<Args>(args)...);
                     }
