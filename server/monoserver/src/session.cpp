@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 05/26/2016 00:48:39
+ *  Last Modified: 05/26/2016 15:17:33
  *
  *    Description: 
  *
@@ -20,12 +20,12 @@
 
 #include <cassert>
 #include "session.hpp"
-#include "sessionhub.hpp"
+#include "memorypn.hpp"
+#include "monoserver.hpp"
 
-Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket, SessionHub *pSessionHub)
+Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
     : m_ID(nSessionID)
     , m_Socket(std::move(stSocket))
-    , m_SessionHub(pSessionHub)
     , m_IP(m_Socket.remote_endpoint().address().to_string())
     , m_Port(m_Socket.remote_endpoint().port())
     , m_MessageHC(0)
@@ -34,14 +34,14 @@ Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket, SessionHub
 
 Session::~Session()
 {
-    Stop();
+    Shutdown();
 }
 
 void Session::DoReadHC()
 {
     auto fnDoneReadHC = [this](std::error_code stEC, size_t){
         // ok we get error
-        if(stEC){ Stop(); return; }
+        if(stEC){ Shutdown(); return; }
 
         // now we need to check body
         extern MonoServer *g_MonoServer;
@@ -54,12 +54,12 @@ void Session::DoReadHC()
         if(g_MonoServer->MessageFixedSize(m_MessageHC)){
             AMNetPackage stAMNP;
             stAMNP.SessionID = m_ID;
-            stAMNP.HC        = m_MessageHC;
+            stAMNP.Type      = m_MessageHC;
             stAMNP.Data      = nullptr;
             stAMNP.DataLen   = 0;
 
             // no handler for response, just send
-            Forward(m_TargetAddress, {MPK_NETPACKAGE, stAMNP});
+            Forward({MPK_NETPACKAGE, stAMNP}, m_TargetAddress);
             DoReadHC();
             return;
         }
@@ -68,19 +68,19 @@ void Session::DoReadHC()
         // 1. read length
         // 2. read body (still maybe zero-length of the body)
         auto fnDoneReadLen = [this](std::error_code stEC, size_t){
-            if(stEC){ Stop(); return; }
+            if(stEC){ Shutdown(); return; }
             if(m_BodyLen){ DoReadBody(m_BodyLen); DoReadHC(); return; }
 
             // ooops, you promised this is a unfixed size message
             // but you send a empty message, ok...
             AMNetPackage stAMNP;
             stAMNP.SessionID = m_ID;
-            stAMNP.HC        = m_MessageHC;
+            stAMNP.Type      = m_MessageHC;
             stAMNP.Data      = nullptr;
             stAMNP.DataLen   = 0;
 
             // no handler for response, just send
-            Forward(m_TargetAddress, {MPK_NETPACKAGE, stAMNP});
+            Forward({MPK_NETPACKAGE, stAMNP}, m_TargetAddress);
             DoReadHC();
         };
         asio::async_read(m_Socket, asio::buffer(&m_BodyLen, sizeof(m_BodyLen)), fnDoneReadLen);
@@ -97,22 +97,22 @@ void Session::DoReadBody(size_t nBodyLen)
         g_MonoServer->Restart();
     }
 
-    extern MemoryChunkPN *g_MemoryChunkPN;
-    auto pData = (uint8_t *)g_MemoryChunkPN->Get(nBodyLen);
+    extern MemoryPN *g_MemoryPN;
+    auto pData = (uint8_t *)g_MemoryPN->Get(nBodyLen);
 
     // this actually won't happen
-    if(!pData){ Stop(); return; }
+    if(!pData){ Shutdown(); return; }
 
     auto fnDoneReadBody = [this, nBodyLen, pData](std::error_code stEC, size_t){
-        if(stEC){ Stop(); return; }
+        if(stEC){ Shutdown(); return; }
 
         AMNetPackage stAMNP;
         stAMNP.SessionID = m_ID;
-        stAMNP.HC        = m_MessageHC;
+        stAMNP.Type      = m_MessageHC;
         stAMNP.Data      = pData;
         stAMNP.DataLen   = nBodyLen;
 
-        Forward(m_TargetAddress, {MPK_NETPACKAGE, stAMNP});
+        Forward({MPK_NETPACKAGE, stAMNP}, m_TargetAddress);
     };
 
     asio::async_read(m_Socket, asio::buffer(pData, nBodyLen), fnDoneReadBody);
@@ -138,7 +138,7 @@ void Session::DoSendBuf()
 
     if(std::get<1>(m_SendQ.front()) && (std::get<2>(m_SendQ.front()) > 0)){
         auto fnDoSendValidBuf = [this](std::error_code stEC, size_t){
-            if(stEC){ Stop(); }else{ DoSendNext(); }
+            if(stEC){ Shutdown(); }else{ DoSendNext(); }
         };
 
         asio::async_write(m_Socket,
@@ -154,7 +154,7 @@ void Session::DoSendHC()
     if(m_SendQ.empty()){ return; }
 
     auto fnDoSendBuf = [this](std::error_code stEC, size_t){
-        if(stEC){ Stop(); }else{ DoSendBuf(); }
+        if(stEC){ Shutdown(); }else{ DoSendBuf(); }
     };
 
     asio::async_write(m_Socket, asio::buffer(&(std::get<0>(m_SendQ.front())), 1), fnDoSendBuf);

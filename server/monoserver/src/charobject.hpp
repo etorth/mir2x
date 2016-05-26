@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/25/2016 18:55:54
+ *  Last Modified: 05/26/2016 15:46:15
  *
  *    Description: 
  *
@@ -237,9 +237,6 @@ class CharObject: public ActiveObject
         }
 
     protected:
-        void InnPermissionCheck();
-
-    protected:
         void InnSetR(int nR)
         {
             m_R = nR;
@@ -258,21 +255,28 @@ class CharObject: public ActiveObject
         }
 
     public:
-        void SetR(int nR)
+        // TODO & TBD
+        // do I need to check whether it's proper?
+        void Locate(uint32_t nMapID, int nMapX, int nMapY)
         {
-            InnPermissionCheck();
-            InnSetR(nR);
+            if(AccessCheck()){
+                m_MapID = nMapID;
+                m_CurrX = nMapX;
+                m_CurrY = nMapY;
+            }
         }
 
-        void SetMapID(uint32_t nMapID)
+        void Locate(const Theron::Address &rstAddr)
         {
-            InnPermissionCheck();
-            InnSetMapID(nMapID);
+            if(AccessCheck()){
+                m_RMAddress = rstAddr;
+            }
         }
 
-        void SetLocation(const Theron::Address &rstAddress, int nX, int nY)
+        void ResetR(int nR)
         {
-            InnPermissionCheck();
-            InnSetLocation(rstAddress, nX, nY);
+            if(AccessCheck()){
+                InnSetR(nR);
+            }
         }
 };

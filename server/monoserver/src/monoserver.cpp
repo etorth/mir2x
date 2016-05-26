@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/24/2016 21:52:07
+ *  Last Modified: 05/26/2016 14:14:28
  *
  *    Description: 
  *
@@ -17,26 +17,27 @@
  *
  * =====================================================================================
  */
+#include <vector>
 #include <cstdarg>
 #include <cstdlib>
 
 #include "log.hpp"
+#include "dbpod.hpp"
 #include "taskhub.hpp"
-#include "eventtaskhub.hpp"
 #include "message.hpp"
+#include "monster.hpp"
 #include "database.hpp"
 #include "mainwindow.hpp"
 #include "monoserver.hpp"
+#include "eventtaskhub.hpp"
 
 #include "threadpn.hpp"
 #include "servicecore.hpp"
 #include "databaseconfigurewindow.hpp"
 
 MonoServer::MonoServer()
-    : SyncDriver()
-    , m_LogBuf(nullptr)
+    : m_LogBuf(nullptr)
     , m_LogBufSize(0)
-    , m_SessionHub(nullptr)
     , m_ObjectUID(1)
 {
     m_StartTime = std::chrono::system_clock::now();
@@ -99,51 +100,59 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
 
 void MonoServer::CreateDBConnection()
 {
+    extern DBPodN *g_DBPodN;
     extern DatabaseConfigureWindow *g_DatabaseConfigureWindow;
 
-    // delete m_UserInfoDB;
-
-    m_DBConnection = new DBConnection(
+    if(g_DBPodN->Launch(
             g_DatabaseConfigureWindow->DatabaseIP(),
             g_DatabaseConfigureWindow->UserName(),
             g_DatabaseConfigureWindow->Password(),
             g_DatabaseConfigureWindow->DatabaseName(),
-            g_DatabaseConfigureWindow->DatabasePort());
-
-    if(m_DBConnection->Valid()){
+            g_DatabaseConfigureWindow->DatabasePort())){
+        AddLog(LOGTYPE_WARNING, "DBPod can't connect to Database (%s:%d)", 
+                g_DatabaseConfigureWindow->DatabaseIP(),
+                g_DatabaseConfigureWindow->DatabasePort());
+        // no database we just restart the monoserver
+        Restart();
+    }else{
         AddLog(LOGTYPE_INFO, "Connect to Database (%s:%d) successfully", 
                 g_DatabaseConfigureWindow->DatabaseIP(),
                 g_DatabaseConfigureWindow->DatabasePort());
-    }else{
-        AddLog(LOGTYPE_WARNING, "Can't connect to Database (%s:%d)", 
-                g_DatabaseConfigureWindow->DatabaseIP(),
-                g_DatabaseConfigureWindow->DatabasePort());
+    }
+}
+
+void MonoServer::CreateServiceCore()
+{
+    delete m_ServiceCore;
+    m_ServiceCore = new ServiceCore();
+    m_ServiceCoreAddress = m_ServiceCore->Activate();
+}
+
+void MonoServer::StartNetwork()
+{
+    extern NetPodN *g_NetPodN;
+    extern ServerConfigureWindow *g_ServerConfigureWindow;
+
+    uint32_t nPort = g_ServerConfigureWindow->Port();
+    if(g_NetPodN->Launch(nPort, m_ServiceCoreAddress)){
+        AddLog(LOGTYPE_WARNING, "launching network failed");
+        Restart();
     }
 }
 
 void MonoServer::Launch()
 {
     // 1. create db connection
-    delete m_DBConnection;
     CreateDBConnection();
 
     // 2. load monster info
-    InitMonsterRace();
-    InitMonsterItem();
+    LoadMonsterRecord();
 
-    // 3. start service core
-    delete m_ServiceCore;
-    m_ServiceCore = new ServiceCore();
-    m_ServiceCoreAddress = m_ServiceCore->Activate();
+    // 3. create service core
+    CreateServiceCore();
 
-    // 4. start session hub
-    extern ServerConfigureWindow *g_ServerConfigureWindow;
-    int nPort = g_ServerConfigureWindow->Port();
-    auto fnOnReadHC = [this](uint8_t nMsgHC, Session *pSession){ OnReadHC(nMsgHC, pSession); };
-
-    delete m_SessionHub;
-    m_SessionHub = new SessionHub(nPort, m_ServiceCoreAddress, fnOnReadHC);
-    m_SessionHub->Launch();
+    // 4. start network
+    StartNetwork();
 
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
@@ -157,36 +166,106 @@ void MonoServer::Launch()
     // dead lock when there is too many monsters???
 }
 
-void MonoServer::OnReadHC(uint8_t nMsgHC, Session *pSession)
-{
-    switch(nMsgHC){
-        case CM_LOGIN:
-            {
-                OnLogin(pSession);
-                break;
-            }
-        case CM_BROADCAST:
-            {
-                // OnBroadcast(pSession);
-                break;
-            }
-        default:
-            {
-                OnForward(nMsgHC, pSession);
-                break;
-            }
-    }
-}
-
-uint32_t MonoServer::GetTimeTick()
-{
-    // TODO
-    // make it more simple
-    return (uint32_t)std::chrono::duration_cast<
-        std::chrono::milliseconds>(std::chrono::system_clock::now() - m_StartTime).count();
-}
-
 void MonoServer::Restart()
 {
     exit(0);
+}
+
+// I have to put it here, since in actorpod.hpp I used MonoServer::AddLog()
+// then in monoserver.hpp if I use monster.hpp which includes actorpod.hpp
+// it won't compile
+//
+// and it's good for me to make monoserver.hpp to be compact by moving these
+// constant variables out
+static std::vector<MONSTERRACEINFO> s_MonsterRaceInfoV;
+
+bool MonoServer::InitMonsterRace()
+{
+    auto pRecord = m_DBConnection->CreateDBRecord();
+    if(!pRecord->Execute("select * from mir2x.tbl_monster order by fld_index")){
+        AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
+        return false;
+    }
+
+    if(pRecord->RowCount() < 1){
+        AddLog(LOGTYPE_INFO, "no monster info found");
+        return true;
+    }
+
+    AddLog(LOGTYPE_INFO, "starting add monster info:");
+
+    while(pRecord->Fetch()){
+        MONSTERRACEINFO stRaceInfo;
+        // 1. record the monster race info
+        stRaceInfo.Name        = std::string(pRecord->Get("fld_name"));
+        stRaceInfo.Index       = std::atoi(pRecord->Get("fld_index"));
+        stRaceInfo.Race        = std::atoi(pRecord->Get("fld_race"));
+        stRaceInfo.LID         = std::atoi(pRecord->Get("fld_lid"));
+        stRaceInfo.Undead      = std::atoi(pRecord->Get("fld_undead"));
+        stRaceInfo.Level       = std::atoi(pRecord->Get("fld_level"));
+        stRaceInfo.HP          = std::atoi(pRecord->Get("fld_hp"));
+        stRaceInfo.MP          = std::atoi(pRecord->Get("fld_mp"));
+        stRaceInfo.AC          = std::atoi(pRecord->Get("fld_ac"));
+        stRaceInfo.MAC         = std::atoi(pRecord->Get("fld_mac"));
+        stRaceInfo.DC          = std::atoi(pRecord->Get("fld_dc"));
+        stRaceInfo.AttackSpead = std::atoi(pRecord->Get("fld_attackspeed"));
+        stRaceInfo.WalkSpead   = std::atoi(pRecord->Get("fld_walkspeed"));
+        stRaceInfo.Spead       = std::atoi(pRecord->Get("fld_speed"));
+        stRaceInfo.Hit         = std::atoi(pRecord->Get("fld_hit"));
+        stRaceInfo.ViewRange   = std::atoi(pRecord->Get("fld_viewrange"));
+        stRaceInfo.RaceIndex   = std::atoi(pRecord->Get("fld_raceindex"));
+        stRaceInfo.Exp         = std::atoi(pRecord->Get("fld_exp"));
+        stRaceInfo.Escape      = std::atoi(pRecord->Get("fld_escape"));
+        stRaceInfo.Water       = std::atoi(pRecord->Get("fld_water"));
+        stRaceInfo.Fire        = std::atoi(pRecord->Get("fld_fire"));
+        stRaceInfo.Wind        = std::atoi(pRecord->Get("fld_wind"));
+        stRaceInfo.Light       = std::atoi(pRecord->Get("fld_light"));
+        stRaceInfo.Earth       = std::atoi(pRecord->Get("fld_earth"));
+
+        // 2. make a room in the global table
+        s_MonsterRaceInfoV.resize(stRaceInfo.Index + 1, -1);
+
+        // 3. store the result
+        s_MonsterRaceInfoV[stRaceInfo.Index] = stRaceInfo;
+
+        // 3. log it
+        AddLog(LOGTYPE_INFO,
+                "monster added, index = %d, name = %s.", stRaceInfo.Index, stRaceInfo.Name.c_str());
+    }
+
+    AddLog(LOGTYPE_INFO, "finished monster info: %d monster added", pRecord->RowCount());
+    return true;
+}
+
+bool MonoServer::InitMonsterItem()
+{
+    auto pRecord = m_DBConnection->CreateDBRecord();
+    if(!pRecord->Execute("select * from mir2x.tbl_monsteritem")){
+        AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
+        return false;
+    }
+
+    if(pRecord->RowCount() < 1){
+        AddLog(LOGTYPE_INFO, "no monster item found");
+        return true;
+    }
+
+    AddLog(LOGTYPE_INFO, "starting add monster item:");
+
+    while(pRecord->Fetch()){
+        MONSTERITEMINFO stItemInfo;
+        // 1. get the item desc
+        stItemInfo.MonsterIndex = std::atoi(pRecord->Get("fld_monster"));
+        stItemInfo.Type         = std::atoi(pRecord->Get("fld_type"));
+        stItemInfo.Chance       = std::atoi(pRecord->Get("fld_chance"));
+        stItemInfo.Count        = std::atoi(pRecord->Get("fld_count"));
+        // 2. make a room for it
+        if(true 
+                && stItemInfo.MonsterIndex > 0
+                && stItemInfo.MonsterIndex < (int)s_MonsterRaceInfoV.size()){
+            s_MonsterRaceInfoV[stItemInfo.MonsterIndex].ItemV.push_back(stItemInfo);
+        }
+    }
+    AddLog(LOGTYPE_INFO, "finished monster item: %d added", pRecord->RowCount());
+    return true;
 }

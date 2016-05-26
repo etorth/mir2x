@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 05/24/2016 21:47:34
+ *  Last Modified: 05/26/2016 15:44:32
  *
  *    Description: object only react to message, with an object pod
  *                 atoms of an react object:

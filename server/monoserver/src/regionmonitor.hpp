@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/24/2016 19:24:06
+ *  Last Modified: 05/26/2016 11:02:59
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -68,6 +68,7 @@
 #include <cstdint>
 #include <Theron/Theron.h>
 
+#include "mathfunc.hpp"
 #include "transponder.hpp"
 #include "activeobject.hpp"
 
@@ -252,6 +253,14 @@ class RegionMonitor: public Transponder
 
     protected:
         void DoMoveRequest();
+
+    protected:
+        bool In(uint32_t nMapID, int nMapX, int nMapY)
+        {
+            if(nMapID != m_MapID){ return false; }
+            if(PointInRectangle(nMapX, nMapY, m_X, m_Y, m_W, m_H)){ return true; }
+            return false;
+        }
 
     public:
         Theron::Address Activate();

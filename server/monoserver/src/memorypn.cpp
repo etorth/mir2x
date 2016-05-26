@@ -3,7 +3,7 @@
  *
  *       Filename: memorypn.cpp
  *        Created: 05/24/2016 19:14:52
- *  Last Modified: 05/24/2016 19:17:12
+ *  Last Modified: 05/26/2016 15:15:39
  *
  *    Description: 
  *
@@ -22,7 +22,7 @@
 #include "monoserver.hpp"
 
 MemoryPN::MemoryPN()
-    : MemoryBlockPN<64, 1024, 4>()
+    : MemoryChunkPN<64, 256, 4>()
 {
     extern MemoryPN *g_MemoryPN;
     if(g_MemoryPN){

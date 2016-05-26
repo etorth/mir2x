@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 05/26/2016 00:12:49
+ *  Last Modified: 05/26/2016 15:31:45
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -96,7 +96,7 @@ class ServiceCore: public Transponder
 
     public:
         void Operate(const MessagePack &, const Theron::Address &);
-        void OperateNet(Session*, uint8_t, const uint8_t *, size_t);
+        void OperateNet(uint32_t, uint8_t, const uint8_t *, size_t);
 
     protected:
         bool LoadMap(uint32_t);

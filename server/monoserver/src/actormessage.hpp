@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/26/2016 00:17:48
+ *  Last Modified: 05/26/2016 15:36:17
  *
  *    Description: 
  *
@@ -108,29 +108,32 @@ typedef struct{
 }AMMasterPersona;
 
 typedef union {
-    uint32_t Type;
+    uint8_t Type;
 
-    struct _Monster{
-        uint32_t Type;
-        uint32_t MonsterID;
-        int MapID;
-        int MapX;
-        int MapY;
-    }Monster;
-
-    struct _Player{
-        uint32_t Type;
-        uint32_t GUID;
+    struct _Common{
+        uint8_t Type;
+        bool AllowVoid;
         uint32_t MapID;
         int MapX;
         int MapY;
+        int R;
+    }Common;
+
+    struct _Monster{
+        struct _Common _MemoryAlign;
+        uint32_t MonsterID;
+    }Monster;
+
+    struct _Player{
+        struct _Common _MemoryAlign;
+        uint32_t GUID;
+        uint32_t JobID;
         int Level;
-        int Job;
         int Direction;
     }Player;
 
     struct _NPC{
-        uint32_t Type;
+        struct _Common _MemoryAlign;
         uint32_t NPCID;
     }NPC;
 }AMAddCharObject;
@@ -238,12 +241,12 @@ typedef struct{
     int      MapX;
     int      MapY;
     int      Level;
-    int      Job;
+    int      JobID;
     int      Direction;
 }AMLoginQueryDB;
 
 typedef struct{
-    void *Session;
+    uint32_t SessionID;
     uint8_t Type;
     uint8_t *Data; // don't make it const, otherwise we need explicit when Free(void *)
     size_t DataLen;

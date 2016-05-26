@@ -3,7 +3,7 @@
  *
  *       Filename: memoryblockpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/24/2016 17:01:54
+ *  Last Modified: 05/26/2016 11:32:24
  *
  *    Description: fixed size memory block pool
  *                 simple implementation for performance
@@ -67,6 +67,7 @@
 
 #include <mutex>
 #include <vector>
+#include <memory>
 #include <cstdint>
 
 #include "cachequeue.hpp"

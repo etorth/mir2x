@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/26/2016 00:18:03
+ *  Last Modified: 05/26/2016 15:38:42
  *
  *    Description: 
  *
@@ -35,7 +35,7 @@ void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Add
     AMNetPackage stAMNP;
     std::memcpy(&stAMNP, rstMPK.Data(), sizeof(stAMNP));
 
-    OperateNet((Session *)(stAMNP.Session), stAMNP.Type, stAMNP.Data, stAMNP.DataLen);
+    OperateNet(stAMNP.SessionID, stAMNP.Type, stAMNP.Data, stAMNP.DataLen);
 }
 
 void ServiceCore::On_MPK_ADDMONSTER(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -149,12 +149,12 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
     if(pRM != m_RMRecordMap.end()){
         AMAddCharObject stAMACO;
         stAMACO.Type = OBJECT_PLAYER;
+        stAMACO.Common.MapID     = stAMLQDB.MapID;
+        stAMACO.Common.MapX      = stAMLQDB.MapX;
+        stAMACO.Common.MapY      = stAMLQDB.MapY;
         stAMACO.Player.GUID      = stAMLQDB.GUID;
-        stAMACO.Player.MapID     = stAMLQDB.MapID;
-        stAMACO.Player.MapX      = stAMLQDB.MapX;
-        stAMACO.Player.MapY      = stAMLQDB.MapY;
         stAMACO.Player.Level     = stAMLQDB.Level;
-        stAMACO.Player.Job       = stAMLQDB.Job;
+        stAMACO.Player.JobID     = stAMLQDB.JobID;
         stAMACO.Player.Direction = stAMLQDB.Direction;
 
         m_ActorPod->Forward({MPK_LOGIN, stAMACO}, pMap->second.PodAddress);
@@ -191,12 +191,12 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
 
                     AMAddCharObject stAMACO;
                     stAMACO.Type = OBJECT_PLAYER;
+                    stAMACO.Common.MapID     = stAMLQDB.MapID;
+                    stAMACO.Common.MapX      = stAMLQDB.MapX;
+                    stAMACO.Common.MapY      = stAMLQDB.MapY;
                     stAMACO.Player.GUID      = stAMLQDB.GUID;
-                    stAMACO.Player.MapID     = stAMLQDB.MapID;
-                    stAMACO.Player.MapX      = stAMLQDB.MapX;
-                    stAMACO.Player.MapY      = stAMLQDB.MapY;
                     stAMACO.Player.Level     = stAMLQDB.Level;
-                    stAMACO.Player.Job       = stAMLQDB.Job;
+                    stAMACO.Player.JobID     = stAMLQDB.JobID;
                     stAMACO.Player.Direction = stAMLQDB.Direction;
 
                     // when adding succeed, the new object will respond

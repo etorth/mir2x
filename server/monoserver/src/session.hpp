@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 05/26/2016 00:48:47
+ *  Last Modified: 05/26/2016 14:35:13
  *
  *    Description: TODO & TBD
  *                 I have a decision, now class session *only* communicate with actor
@@ -35,6 +35,7 @@
 #include <asio.hpp>
 #include <queue>
 #include <functional>
+#include <Theron/Theron.h>
 
 #include "syncdriver.hpp"
 
@@ -47,18 +48,16 @@ class Session: public SyncDriver
     private:
         uint32_t                                m_ID;
         asio::ip::tcp::socket                   m_Socket;
-        SessionHub                             *m_SessionHub;
 
         std::string                             m_IP;
-        int                                     m_Port;
+        uint32_t                                m_Port;
         uint8_t                                 m_MessageHC;
-        int                                     m_ReadRequest;
+        uint32_t                                m_BodyLen;
         Theron::Address                         m_TargetAddress;
         std::queue<SendTaskDesc>                m_SendQ;
-        std::vector<uint8_t>                    m_Buf;
 
     public:
-        Session(uint32_t, asio::ip::tcp::socket, SessionHub *);
+        Session(uint32_t, asio::ip::tcp::socket);
         ~Session();
 
     public:
@@ -123,6 +122,7 @@ class Session: public SyncDriver
 
     private:
         void DoReadHC();
+        void DoReadBody(size_t);
 
         void DoSendHC();
         void DoSendBuf();
@@ -143,11 +143,6 @@ class Session: public SyncDriver
             DoReadHC();
 
             return 0;
-        }
-
-        void Stop()
-        {
-            m_Socket.close();
         }
 
         void Shutdown()
@@ -171,7 +166,7 @@ class Session: public SyncDriver
             return m_IP.c_str();
         }
 
-        int Port()
+        uint32_t Port()
         {
             return m_Port;
         }

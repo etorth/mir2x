@@ -3,7 +3,7 @@
  *
  *       Filename: memorychunkpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/24/2016 19:09:55
+ *  Last Modified: 05/26/2016 15:28:46
  *
  *    Description: unfixed-size memory chunk pool, thread safe is optional, but self-contained
  *                 this algorithm is based on buddy algorithm
@@ -69,6 +69,7 @@
 #include <mutex>
 #include <array>
 #include <vector>
+#include <memory>
 #include <cstdint>
 
 #include "mathfunc.hpp"
@@ -202,7 +203,7 @@ class MemoryChunkPN
                 : PoolID(nPoolID)
             {
                 size_t nNodeSize = PoolSize * 2;
-                for(int nIndex = 0; nIndex < 2 * PoolSize - 1; ++nIndex){
+                for(size_t nIndex = 0; nIndex < 2 * PoolSize - 1; ++nIndex){
                     if(PowerOf2(nIndex + 1)){
                         nNodeSize /= 2;
                     }
@@ -341,13 +342,13 @@ class MemoryChunkPN
             void *InnGet(size_t nSizeInUnit)
             {
                 for(auto pMP = PoolV.rbegin(); pMP != PoolV.rend(); ++pMP){
-                    if(auto pRet = pMP->Get(nSizeInUnit)){
+                    if(auto pRet = (*pMP)->Get(nSizeInUnit)){
                         return pRet;
                     }
                 }
 
                 // ooops, need to add a new unit
-                PoolV.emplace_back(PoolV.size());
+                PoolV.emplace_back(std::make_shared<InnMemoryChunkPool>(PoolV.size()));
                 if(BranchSize > 1){
                     PoolV.back()->BranchID = BranchID;
                 }
@@ -362,7 +363,7 @@ class MemoryChunkPN
 
                     if(Lock->try_lock()){
                         try{
-                            pRet = InnGet();
+                            pRet = InnGet(nSizeInUnit);
                         }catch(...){
                             Lock->unlock();
                             return nullptr;
@@ -462,12 +463,12 @@ class MemoryChunkPN
 
             // when branch count is 1, the branch id is not set
             if(BranchSize == 1){
-                m_MCPBV[0]->PoolV[pHead->PoolID].Free(pHead->NodeID);
+                m_MCPBV[0].PoolV[pHead->PoolID]->Free(pHead->NodeID);
                 return;
             }
 
             // ok this is in multi-thread environment, we need the lock
-            InnLockGuard(m_MCPBV[pHead->BranchID]->Lock);
-            m_MCPBV[pHead->BranchID]->PoolV[pHead->PoolID].Free(pHead->NodeID);
+            InnLockGuard(m_MCPBV[pHead->BranchID].Lock);
+            m_MCPBV[pHead->BranchID].PoolV[pHead->PoolID]->Free(pHead->NodeID);
         }
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: addmonster.cpp
  *        Created: 04/12/2016 19:07:52
- *  Last Modified: 05/26/2016 00:54:15
+ *  Last Modified: 05/26/2016 11:31:56
  *
  *    Description: 
  *
@@ -19,27 +19,28 @@
  */
 
 #include "log.hpp"
+#include "monster.hpp"
 #include "taskhub.hpp"
 #include "sysconst.hpp"
 #include "monoserver.hpp"
+#include "syncdriver.hpp"
 #include "messagepack.hpp"
 
-bool MonoServer::AddMonster(uint32_t nGUID, uint32_t nMapID, int nX, int nY, bool bStrict)
+bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bAllowVoid)
 {
-    AMAddMonster stAMAM;
+    AMAddCharObject stAMACO;
+    stAMACO.Type = OBJECT_MONSTER;
 
-    stAMAM.GUID    = nGUID;
-    stAMAM.MapID   = nMapID;
-    stAMAM.UID     = GetUID();
-    stAMAM.AddTime = GetTimeTick();
+    stAMACO.Common.MapID     = nMapID;
+    stAMACO.Common.MapX      = nX;
+    stAMACO.Common.MapY      = nY;
+    stAMACO.Common.R         = 10; // TODO
+    stAMACO.Common.AllowVoid = bAllowVoid;
 
-    stAMAM.Strict = bStrict;
-    stAMAM.X      = nX;
-    stAMAM.Y      = nY;
-    stAMAM.R      = 10;
+    stAMACO.Monster.MonsterID = nMonsterID;
 
     MessagePack stResponseMPK;
-    if(Forward(MessageBuf(MPK_ADDMONSTER, stAMAM), m_ServiceCoreAddress, &stResponseMPK)){
+    if(SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_ServiceCoreAddress, &stResponseMPK)){
         // sent and received
         AddLog(LOGTYPE_WARNING, "message sent for adding monster failed");
         return false;
@@ -48,7 +49,7 @@ bool MonoServer::AddMonster(uint32_t nGUID, uint32_t nMapID, int nX, int nY, boo
     switch(stResponseMPK.Type()){
         case MPK_OK:
             {
-                AddLog(LOGTYPE_INFO, "monster with index = %d added", nGUID);
+                AddLog(LOGTYPE_INFO, "monster with index = %d added", nMonsterID);
                 return true;
             }
         default:

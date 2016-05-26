@@ -3,7 +3,7 @@
  *
  *       Filename: dbpod.hpp
  *        Created: 05/20/2016 14:31:19
- *  Last Modified: 05/24/2016 16:47:10
+ *  Last Modified: 05/26/2016 14:17:06
  *
  *    Description: so many db interaction, so enable the multi-thread support
  *                 when got a DBRecord, the corresponding DBConnection would
@@ -75,6 +75,13 @@ class DBPod final
         using DBHDR = std::unique_ptr<DBRecord, InnDeleter>;
 
     private:
+        std::string m_HostName;
+        std::string m_UserName;
+        std::string m_Password;
+        std::string m_DBName;
+
+        unsigned int m_Port;
+
         size_t m_Count;
         std::mutex *m_LockV[ConnSize];
         DBRecordPN m_DBRPNV[ConnSize];
@@ -82,20 +89,44 @@ class DBPod final
 
     public:
         // I didn't check validation of connection here
-        DBPod(const char *szHostName, const char *szUserName,
-                const char *szPassword, const char *szDBName, unsigned int nPort)
+        DBPod()
             : m_Count(0)
         {
-            static_assert(ConnSize > 0,
-                    "DBPod should contain at least one connection handler");
+            static_assert(ConnSize > 0, "DBPod should contain at least one connection handler");
 
             for(int nIndex = 0; nIndex < ConnSize; ++nIndex){
-                m_DBConnV[nIndex] = new DBConnection(
-                        szHostName, szUserName, szPassword, szDBName, nPort);
-                if(ConnSize > 1){
-                    m_LockV[nIndex] = new std::mutex();
-                }
+                m_LockV[nIndex]   = nullptr;
+                m_DBConnV[nIndex] = nullptr;
             }
+        }
+
+        // launch the db connection
+        // return value
+        //      0: OK
+        //      1: invalid argument
+        //      2: failed in connection
+        //      3: mysterious errors
+        int Launch(const char *szHostName, const char *szUserName,
+                const char *szPassword, const char *szDBName, unsigned int nPort)
+        {
+            // TODO add argument check here
+            if(false){ return 1; }
+
+            m_HostName = szHostName;
+            m_UserName = szUserName;
+            m_Password = szPassword;
+            m_DBName   = szDBName;
+            m_Port     = nPort;
+
+            for(int nIndex = 0; nIndex < (int)ConnSize; ++nIndex){
+                auto pConn = new DBConnection(szHostName, szUserName, szPassword, szDBName, nPort);
+                if(!pConn->Valid()){ delete pConn; return 2;}
+
+                m_DBConnV[nIndex] = pConn;
+                if(ConnSize > 1){ m_LockV[nIndex] = new std::mutex(); }
+            }
+
+            return 0;
         }
 
         // make sure it's non-throw

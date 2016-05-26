@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/06/2016 17:39:36
- *  Last Modified: 05/10/2016 22:58:33
+ *  Last Modified: 05/26/2016 15:40:29
  *
  *    Description: The first place I am thinking of using trigger or not.
  *                 
@@ -103,9 +103,9 @@ void RegionMonitor::For_MoveRequest()
         stCORecord.R = m_MoveRequest.R;
 
         CharObject *pCObject = (CharObject *)m_MoveRequest.Data;
-        pCObject->SetR(m_MoveRequest.R);
-        pCObject->SetMapID(m_MapID);
-        pCObject->SetLocation(GetAddress(), m_MoveRequest.X, m_MoveRequest.Y);
+        pCObject->ResetR(m_MoveRequest.R);
+        pCObject->Locate(m_MapID, m_MoveRequest.X, m_MoveRequest.Y);
+        pCObject->Locate(GetAddress());
 
         stCORecord.UID        = m_MoveRequest.UID;
         stCORecord.AddTime    = m_MoveRequest.AddTime;

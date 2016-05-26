@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/26/2016 00:51:58
+ *  Last Modified: 05/26/2016 15:50:43
  *
  *    Description: 
  *
@@ -56,14 +56,29 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                 On_MPK_NEWCONNECTION(rstMPK, rstAddr);
                 break;
             }
-        case MPK_LOGIN:
-            {
-                On_MPK_LOGIN(rstMPK, rstAddr);
-                break;
-            }
+        // case MPK_LOGIN:
+        //     {
+        //         On_MPK_LOGIN(rstMPK, rstAddr);
+        //         break;
+        //     }
         case MPK_PLAYERPHATOM:
             {
                 On_MPK_PLAYERPHATOM(rstMPK, rstAddr);
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+}
+
+void ServiceCore::OperateNet(uint32_t nSID, uint8_t nType, const uint8_t *pData, size_t nDataLen)
+{
+    switch(nType){
+        case CM_LOGIN:
+            {
+                Net_CM_Login(nSID, nType, pData, nDataLen);
                 break;
             }
         default:

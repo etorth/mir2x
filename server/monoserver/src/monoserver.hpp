@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/25/2016 18:28:05
+ *  Last Modified: 05/26/2016 14:12:16
  *
  *    Description: 
  *
@@ -91,6 +91,7 @@ class MonoServer final
 
     private:
         void RunASIO();
+        void CreateServiceCore();
         void CreateDBConnection();
 
     private:
@@ -109,6 +110,13 @@ class MonoServer final
     private:
         bool InitMonsterRace();
         bool InitMonsterItem();
+        bool LoadMonsterRecord()
+        {
+           return InitMonsterRace() && InitMonsterItem();
+        }
+
+    private:
+        void StartNetwork();
 
     public:
         // for gui
@@ -137,6 +145,9 @@ class MonoServer final
 
         uint32_t GetTimeTick()
         {
-            return 0;
+            // TODO
+            // make it more simple
+            return (uint32_t)std::chrono::duration_cast<
+                std::chrono::milliseconds>(std::chrono::system_clock::now() - m_StartTime).count();
         }
 };

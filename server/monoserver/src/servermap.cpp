@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/07/2016 04:08:23
+ *  Last Modified: 05/26/2016 15:42:29
  *
  *    Description: 
  *
@@ -79,16 +79,16 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
                 On_MPK_REGIONMONITORREADY(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_ADDMONSTER:
-            {
-                On_MPK_ADDMONSTER(rstMPK, rstFromAddr);
-                break;
-            }
-        case MPK_NEWMONSTER:
-            {
-                On_MPK_NEWMONSTER(rstMPK, rstFromAddr);
-                break;
-            }
+        // case MPK_ADDMONSTER:
+        //     {
+        //         On_MPK_ADDMONSTER(rstMPK, rstFromAddr);
+        //         break;
+        //     }
+        // case MPK_NEWMONSTER:
+        //     {
+        //         On_MPK_NEWMONSTER(rstMPK, rstFromAddr);
+        //         break;
+        //     }
         default:
             {
                 g_Log->AddLog(LOGTYPE_WARNING,
