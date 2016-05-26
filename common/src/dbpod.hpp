@@ -3,7 +3,7 @@
  *
  *       Filename: dbpod.hpp
  *        Created: 05/20/2016 14:31:19
- *  Last Modified: 05/26/2016 14:17:06
+ *  Last Modified: 05/26/2016 16:01:43
  *
  *    Description: so many db interaction, so enable the multi-thread support
  *                 when got a DBRecord, the corresponding DBConnection would
@@ -94,7 +94,7 @@ class DBPod final
         {
             static_assert(ConnSize > 0, "DBPod should contain at least one connection handler");
 
-            for(int nIndex = 0; nIndex < ConnSize; ++nIndex){
+            for(size_t nIndex = 0; nIndex < ConnSize; ++nIndex){
                 m_LockV[nIndex]   = nullptr;
                 m_DBConnV[nIndex] = nullptr;
             }

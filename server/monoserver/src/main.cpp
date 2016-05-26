@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/25/2016 19:03:25
+ *  Last Modified: 05/26/2016 15:59:46
  *
  *    Description: 
  *
@@ -64,6 +64,7 @@ int main()
     g_EndPoint                = new Theron::EndPoint("monoserver", "tcp://127.0.0.1:5556");
     g_Framework               = new Theron::Framework(*g_EndPoint);
     g_ThreadPN                = new ThreadPN(4);
+    g_DBPodN                  = new DBPodN();
     g_NetPodN                 = new NetPodN();
 
     g_MainWindow->ShowAll();
