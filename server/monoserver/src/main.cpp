@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/24/2016 22:55:28
+ *  Last Modified: 05/25/2016 19:03:25
  *
  *    Description: 
  *
@@ -21,6 +21,8 @@
 #include <asio.hpp>
 
 #include "log.hpp"
+#include "dbpod.hpp"
+#include "netpod.hpp"
 #include "taskhub.hpp"
 #include "memorypn.hpp"
 #include "threadpn.hpp"
@@ -37,7 +39,8 @@ EventTaskHub             *g_EventTaskHub;
 Theron::EndPoint         *g_EndPoint;
 Theron::Framework        *g_Framework;
 ThreadPN                 *g_ThreadPN;
-NetPodHub                *g_NetPodHub;
+NetPodN                  *g_NetPodN;
+DBPodN                   *g_DBPodN;
 
 MainWindow               *g_MainWindow;
 MonoServer               *g_MonoServer;
@@ -61,6 +64,7 @@ int main()
     g_EndPoint                = new Theron::EndPoint("monoserver", "tcp://127.0.0.1:5556");
     g_Framework               = new Theron::Framework(*g_EndPoint);
     g_ThreadPN                = new ThreadPN(4);
+    g_NetPodN                 = new NetPodN();
 
     g_MainWindow->ShowAll();
 

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 05/24/2016 17:06:23
+ *  Last Modified: 05/25/2016 18:59:06
  *
  *    Description: 
  *
@@ -72,14 +72,6 @@ typedef struct stMONSTERRACEINFO{
 class MonoServer;
 class Monster: public CharObject
 {
-    Theron::Address m_RMAddress;
-
-    public:
-        Monster(uint32_t, uint32_t, uint32_t);
-
-    public:
-        ~Monster();
-
     private:
         typedef struct _ActorRecord{
             Theron::Address PodAddress;       // void to use Address...
@@ -87,20 +79,20 @@ class Monster: public CharObject
             uint32_t        AddTime;
             int             X;
             int             Y;
-            bool            Friend;
+            uint8_t         FriendType;
 
             _ActorRecord(const Theron::Address &stAddr = Theron::Address::Null(),
                     uint32_t nUID     = 0,
                     uint32_t nAddTime = 0,
                     int nX = 0,
                     int nY = 0,
-                    bool bFriend = true)
+                    uint8_t nFriendType = FRIEND_HUMAN)
                 : PodAddress(stAddr)
-                , UID(nUID)
-                , AddTime(nAddTime)
-                , X(nX)
-                , Y(nY)
-                , Friend(bFriend)
+                  , UID(nUID)
+                  , AddTime(nAddTime)
+                  , X(nX)
+                  , Y(nY)
+                  , FriendType(nFriendType)
             {}
 
             bool Valid()
@@ -118,32 +110,33 @@ class Monster: public CharObject
 
         }ActorRecord;
 
+    protected:
+        uint32_t                 m_MonsterID;
+        Theron::Address          m_RMAddress;
         std::vector<ActorRecord> m_NeighborV;
 
-    protected:
-        uint32_t m_MonsterIndex;
+    public:
+        Monster(uint32_t);
+        ~Monster();
 
     public:
-        // type test function
-        virtual bool Type(uint8_t);
-        virtual bool State(uint8_t);
+        bool Type(uint8_t);
+        bool State(uint8_t);
 
-        virtual bool ResetType(uint8_t, bool);
-        virtual bool ResetState(uint8_t, bool);
-
-        virtual uint32_t NameColor();
-        virtual const char *CharName();
-
-        virtual int Range(uint8_t);
-
-        virtual bool Attack(CharObject *);
-        virtual bool Follow(CharObject *, bool);
+        bool ResetType(uint8_t, bool);
+        bool ResetState(uint8_t, bool);
 
     public:
-        virtual void SearchViewRange();
+        uint32_t NameColor();
+        const char *CharName();
 
-    private:
-        std::list<ActorRecord>  m_ActorRecordL;
+        int Range(uint8_t);
+
+        bool Attack(CharObject *);
+        bool Follow(CharObject *, bool);
+
+    public:
+        void SearchViewRange();
 
     public:
 

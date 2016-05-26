@@ -2,10 +2,39 @@
  * =====================================================================================
  *
  *       Filename: netpod.hpp
- *        Created: 05/24/2016 22:29:29
- *  Last Modified: 05/24/2016 22:45:54
+ *        Created: 08/14/2015 11:34:33
+ *  Last Modified: 05/25/2016 19:11:42
  *
- *    Description: wrapper for Session
+ *    Description: this will serve as a stand-alone plugin for monoserver, it creates
+ *                 with general info. and nothing will be done till Launch()
+ *
+ *                 when Launch(Theron::Address) with an actor address, this pod will
+ *                 start a new thrad and run asio::run() with it, all accepted conn-
+ *                 ection request will be send to this actor address
+ *
+ *                 if the connection request is accpeted, then the pod create a
+ *                 session with NetID inside, all communication will through this ID
+ *
+ *                 NetPod doesn't need a Bind() method since it only communicates with
+ *                 ServiceCore, only this address, we provide with Launch()
+ *
+ *                 TODO & TBD
+ *                 make it global, I think it for a long time. reason:
+ *
+ *                 1. put it in class MonoServer
+ *                    I was thinking of only put those const, log and tips in MonoServer,
+ *                    and obviously NetPod is a complex class.
+ *
+ *                 2. put it in ServiceCore
+ *                    then it can use SyncDirver <-> Actor channel. But this require that
+ *                    ServiceCore need to forward pointer of Session to class Player, and
+ *                    validate of the pointer is complex. what's more, if an actor want
+ *                    to send a net message, it need to send a actor message to SC first.
+ *
+ *                 3. put it as a global variable
+ *                    drawbacks: I have a rule that a global class is a self-contained
+ *                    class, however NetPod need the address of ServiceCore before
+ *                    activated. currently I have to make it as a parameter for Launch()
  *
  *        Version: 1.0
  *       Revision: none
@@ -18,109 +47,203 @@
  * =====================================================================================
  */
 
-#include "netpodhub.hpp"
+#pragma once
 
-class NetPod
+#include <thread>
+#include <cstdint>
+#include <asio.hpp>
+
+#include "session.hpp"
+#include "monoserver.hpp"
+#include "cachequeue.hpp"
+#include "syncdriver.hpp"
+#include "messagepack.hpp"
+
+class Session;
+template<size_t PodSize> class NetPod: public SyncDriver
 {
     private:
-        std::mutex *m_Lock;
-        Session    *m_Session;
+        // facilities for asio
+        asio::io_service            m_IO;
+        int                         m_Port;
+        asio::ip::tcp::endpoint     m_EndPoint;
+        asio::ip::tcp::acceptor     m_Acceptor;
+        asio::ip::tcp::socket       m_Socket;
+
+        // for session slot
+        std::thread                 m_Thread;
+        CacheQueue<size_t, PodSize> m_ValidQ;
+        Session                    *m_SessionV[2][PodSize];
+        std::mutex                  m_LockV[PodSize];
+
+        // for service core address
+        Theron::Address             m_SCAddress;
 
     public:
-        NetPod(uint32_t nNetID)
+        NetPod(int nPort = 5500)
+            : SyncDriver()
+            , m_IO()
+            , m_Port(nPort)
+            , m_EndPoint(asio::ip::tcp::v4(), nPort)
+            , m_Acceptor(m_IO, m_EndPoint)
+            , m_Socket(m_IO)
+            , m_Thread()
+            , m_ValidQ()
+            , m_SCAddress(Theron::Address::Null())
         {
-            if(g_NetPodHub->Get)
-        }
-
-    public:
-        friend class AsyncHub<T>;
-
-    private:
-        // constructor, only AsyncHub can create it from naked pointer
-        //
-        // pObject is locked means:
-        //      1. no thread other can modify it
-        //      2. no thread other can remove it from the hub
-        // In one word, it always remains valid if locked
-        /* explicit */ NetPod(T *pObject, bool bLockIt)
-            : m_Object(pObject)
-            , m_Locked(bLockIt)
-        {
-            // if bLockIt is true, then pObject is already locked
-            // otherwise error occurs when pObject is modified during the invocation of this ctor
-        }
-
-    private:
-    // public:
-        // we can make it's public, this is ok since no object created
-        // this is to enable following pattern:
-        //
-        // NetPod pGuard;
-        // if(...){
-        //      pGuard = f();
-        // }else{
-        //      pGuard = g();
-        // }
-        NetPod()
-            : m_Object(nullptr)
-            , m_Locked(false)
-        {}
-
-
-        // nobody can copy it, otherwise one can unlock a object many times
-        NetPod(const NetPod &) = delete;
-
-    public:
-        NetPod(NetPod &&stLockGuard)
-        {
-            m_Object = stLockGuard.m_Object;
-            m_Locked = stLockGuard.m_Locked;
-
-            stLockGuard.m_Object = nullptr;
-            stLockGuard.m_Locked = false;
-        }
-
-    public:
-        // then it can be released publically
-        ~NetPod()
-        {
-            if(m_Locked && m_){
-                m_Object->Unlock();
+            for(size_t nSID = 0; nSID < PodSize; ++nSID){
+                m_SessionV[0][nSID] = nullptr;
+                m_SessionV[1][nSID] = nullptr;
             }
         }
 
-    protected:
-        Session *m_Session;
-        bool     m_Locked;
-
-    public:
-        void *operator new(size_t) = delete;
-        void operator delete(void *) = delete;
-        
-        NetPod &operator = (NetPod stObject)
+        virtual ~NetPod()
         {
-            std::swap(m_Object, stObject.m_Object);
-            std::swap(m_Locked, stObject.m_Locked);
-
-            return *this;
+            Shutdown(0);
+            if(m_Thread.joinable()){ m_Thread.join(); }
         }
 
     public:
-        // check whether it contains a valid object pointer
-        operator bool() const
+        // before call this function, the service core should be already
+        // after it connection request will be accepted and forward to the core
+        void Launch(const Theron::Address &rstSCAddr)
         {
-            return m_Session != nullptr;
+            // 1. check parameter
+            if(rstSCAddr == Theron::Address::Null()){ return; }
+
+            // 2. assign the target address
+            m_SCAddress = rstSCAddr;
+
+            // 3. make sure the internal thread has ended
+            if(m_Thread.joinable()){ m_Thread.join(); }
+
+            // 4. put one accept handler inside the event loop
+            Accept();
+
+            // 5. start the internal thread
+            m_Thread = std::thread([this](){ m_IO.run(); });
         }
 
-        template<typename... Args> void Send(Args args...)
+        bool Shutdown(uint32_t nSessionID = 0)
         {
-            if(m_Session){
-                m_Session->Send(std::forward<Args>(args)...);
+            if(!nSessionID){
+                for(uint32_t nSID = 1; nSID < PodSize; ++nSID){
+                    if(m_SessionV[0][nSID]){
+                        delete m_SessionV[0][nSID];
+                        m_SessionV[0][nSID] = nullptr;
+                    }
+
+                    if(m_SessionV[1][nSID]){
+                        m_SessionV[1][nSID]->Shutdown();
+                        delete m_SessionV[1][nSID];
+                        m_SessionV[1][nSID] = nullptr;
+                    }
+                }
+
+                // stop the net IO
+                m_IO.stop();
+                if(m_Thread.joinable()){ m_Thread.join(); }
+
+                return true;
             }
+
+            if(nSessionID < PodSize){
+                m_SessionV[1][nSessionID]->Shutdown();
+                delete m_SessionV[1][nSessionID];
+                m_SessionV[1][nSessionID] = nullptr;
+
+                return true;
+            }
+
+            return false;
         }
 
-        bool Locked()
+        bool Bind(uint32_t nSessionID, const Theron::Address &rstBindAddr)
         {
-            return m_Locked;
+            if(nSessionID > 0 && nSessionID < PodSize && m_SessionV[1][nSessionID]){
+                m_SessionV[1][nSessionID]->Bind(rstBindAddr);
+                return true;
+            }
+            return false;
+        }
+
+    public:
+        template<typename... Args> bool Send(uint32_t nSessionID, Args&&... args)
+        {
+            // it's a broadcast
+            if(!nSessionID){
+                for(int nSID = 1; nSID < PodSize; ++nSID){
+                    if(m_SessionV[1][nSID]){
+                        m_SessionV[1][nSID]->Send(std::forward<Args>(args)...);
+                    }
+                }
+                return true;
+            }
+
+            if(nSessionID < PodSize && m_SessionV[1][nSessionID]){
+                m_SessionV[1][nSessionID]->Send(std::forward<Args>(args)...);
+                return true;
+            }
+
+            // something happens...
+            return false;
+        }
+
+    private:
+        void Accept()
+        {
+            auto fnAccept = [this](std::error_code stEC){
+                extern MonoServer *g_MonoServer;
+                if(stEC){
+                    // error occurs, stop the network
+                    // assume g_MonoServer is ready for log
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "network error when accepting");
+                    Shutdown();
+
+                    // we won't put Accept() in the event loop again
+                    // then the IO will stop after this
+                    return;
+                }
+
+                g_MonoServer->AddLog(LOGTYPE_INFO, "Connection requested from (%s:%d)",
+                        m_Socket.remote_endpoint().address().to_string().c_str(),
+                        m_Socket.remote_endpoint().port());
+
+                if(m_ValidQ.Full()){
+                    g_MonoServer->AddLog(LOGTYPE_INFO,
+                            "No valid slot for new connection request, refused");
+                    return;
+                }
+
+                uint32_t nValidID = m_ValidQ.Head();
+                m_ValidQ.PopHead();
+
+                if(!nValidID){
+                    g_MonoServer->AddLog(LOGTYPE_INFO, "Mystious error, could never happen");
+                    return;
+                }
+
+                // create the new session and put it in V[0]
+                m_SessionV[0][nValidID] = new Session(nValidID, std::move(m_Socket), this);
+
+                // inform the serice core that there is a new connection
+                if(Forward({MPK_NEWCONNECTION, nValidID}, m_SCAddress)){
+                    delete m_SessionV[0][nValidID];
+                    m_SessionV[0][nValidID] = nullptr;
+
+                    m_ValidQ.PushHead(nValidID);
+                    g_MonoServer->AddLog(LOGTYPE_INFO, "Can't inform ServiceCore a new connection");
+                    return;
+                }
+
+                g_MonoServer->AddLog(LOGTYPE_INFO, "Informed ServiceCore for a new connection");
+
+                // accept next request
+                Accept();
+            };
+
+            m_Acceptor.async_accept(m_Socket, fnAccept);
         }
 };
+
+using NetPodN = NetPod<8192>;

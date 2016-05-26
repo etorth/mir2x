@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/24/2016 22:29:06
+ *  Last Modified: 05/25/2016 18:28:05
  *
  *    Description: 
  *
@@ -28,17 +28,14 @@
 #include <unordered_map>
 
 #include "log.hpp"
-#include "dbpod.hpp"
 #include "message.hpp"
 #include "taskhub.hpp"
 #include "database.hpp"
 #include "servermap.hpp"
-#include "sessionhub.hpp"
 #include "eventtaskhub.hpp"
 
-
 class ServiceCore;
-class MonoServer: public SyncDriver
+class MonoServer final
 {
     private:
         // for log print and synchronization
@@ -46,10 +43,7 @@ class MonoServer: public SyncDriver
         size_t      m_LogBufSize;
         std::mutex  m_LogLock;
 
-        SessionHub  *m_SessionHub;
         std::atomic<uint32_t> m_ObjectUID;
-
-        DBPodN  *m_DBPodN;
 
     protected:
         ServiceCore *m_ServiceCore;
@@ -105,20 +99,9 @@ class MonoServer: public SyncDriver
     public:
         void AddLog(const std::array<std::string, 4> &, const char *, ...);
 
-
     private:
         // for DB
         DBConnection *m_DBConnection;
-
-    private:
-        Theron::Receiver             m_Receiver;
-        Theron::Catcher<MessagePack> m_Catcher;
-
-    public:
-        Theron::Address GetAddress()
-        {
-            return m_Receiver.GetAddress();
-        }
 
     private:
         bool AddPlayer(uint32_t, uint32_t);
@@ -135,16 +118,6 @@ class MonoServer: public SyncDriver
 
     protected:
         std::chrono::time_point<std::chrono::system_clock> m_StartTime;
-
-    private:
-        void OnReadHC(uint8_t, Session *);
-
-        void OnWalk     (Session *);
-        void OnPing     (Session *);
-        void OnLogin    (Session *);
-        void OnBroadcast(Session *);
-
-        void OnForward(uint8_t, Session *);
 
     private:
         bool AddObject();
@@ -165,14 +138,5 @@ class MonoServer: public SyncDriver
         uint32_t GetTimeTick()
         {
             return 0;
-        }
-
-    public:
-        NETHDR GetNetPod
-
-    public:
-        DBPodN::DBHDR CreateDBHDR()
-        {
-            return m_DBPodN->CreateDBHDR();
         }
 };

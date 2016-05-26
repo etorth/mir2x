@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/23/2016 15:53:12
+ *  Last Modified: 05/25/2016 18:31:48
  *
  *    Description: 
  *
@@ -29,7 +29,6 @@ static int s_Count = 0;
 
 ServiceCore::ServiceCore()
     : Transponder()
-    , m_CurrUID(1)
 {
     s_Count++;
     if(s_Count > 1){

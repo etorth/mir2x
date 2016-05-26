@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 05/24/2016 22:04:59
+ *  Last Modified: 05/25/2016 18:33:04
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -28,16 +28,12 @@
 #include <vector>
 #include <unordered_map>
 
-#include "sessionhub.hpp"
+#include "netpod.hpp"
 #include "transponder.hpp"
 
 class ServerMap;
 class ServiceCore: public Transponder
 {
-    private:
-        uint32_t m_CurrUID;
-        SessionHub *m_SessionHub;
-
     private:
         typedef struct _PlayerRecord {
             uint32_t GUID;
@@ -66,13 +62,6 @@ class ServiceCore: public Transponder
         virtual ~ServiceCore();
 
     public:
-        void Bind(SessionHub *pHub)
-        {
-            m_SessionHub = pHub;
-            pHub->Bind(GetAddress());
-        }
-
-    public:
         void Operate(const MessagePack &, const Theron::Address &);
         void OperateNet(Session*, uint8_t, const uint8_t *, size_t);
 
@@ -88,5 +77,5 @@ class ServiceCore: public Transponder
         void On_MPK_NEWCONNECTION(const MessagePack &, const Theron::Address &);
 
     private:
-        void Net_CM_Login(Session *, uint8_t, const uint8_t *, size_t);
+        void Net_CM_Login(uint32_t, uint8_t, const uint8_t *, size_t);
 };

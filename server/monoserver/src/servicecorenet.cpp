@@ -3,7 +3,7 @@
  *
  *       Filename: servicecorenet.cpp
  *        Created: 05/20/2016 17:09:13
- *  Last Modified: 05/24/2016 16:08:49
+ *  Last Modified: 05/25/2016 18:34:02
  *
  *    Description: interaction btw SessionHub and ServiceCore
  *
@@ -17,6 +17,7 @@
  *
  * =====================================================================================
  */
+#include "dbpod.hpp"
 #include "threadpn.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
@@ -40,8 +41,10 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
     // here we put pSession, but how about this session has been killed
     // when this lambda invoked
     auto fnDBOperation = [nSessionID, stSCAddr = GetAddress(), szID, szPWD](){
+        extern DBPodN *g_DBPodN;
         extern MonoServer *g_MonoServer;
-        auto pDBHDR = g_MonoServer->CreateDBHDR();
+
+        auto pDBHDR = g_DBPodN->CreateDBHDR();
 
         if(!pDBHDR->Execute("select fld_id from tbl_account where "
                     "fld_account = '%s' and fld_password = '%s'", szID.c_str(), szPWD.c_str())){

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/24/2016 21:34:22
+ *  Last Modified: 05/25/2016 18:55:54
  *
  *    Description: 
  *
@@ -25,7 +25,12 @@
 #include "activeobject.hpp"
 #include "servermap.hpp"
 
-enum RangeType: uint8_t{
+enum _FriendType: uint8_t{
+    FRIEND_HUMAN,
+    FRIEND_ANIMAL,
+};
+
+enum _RangeType: uint8_t{
     RANGE_VIEW,
     RANGE_MAP,
     RANGE_SERVER,
@@ -45,7 +50,7 @@ enum RangeType: uint8_t{
 //               V
 //               4
 //
-enum Direction: uint8_t{
+enum _Direction: uint8_t{
     DIR_UP          = 0,
     DIR_DOWN        = 4,
     DIR_LEFT        = 6,
