@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/26/2016 14:14:28
+ *  Last Modified: 05/26/2016 16:54:06
  *
  *    Description: 
  *
@@ -181,7 +181,14 @@ static std::vector<MONSTERRACEINFO> s_MonsterRaceInfoV;
 
 bool MonoServer::InitMonsterRace()
 {
-    auto pRecord = m_DBConnection->CreateDBRecord();
+    extern DBPodN *g_DBPodN;
+    auto pRecord = g_DBPodN->CreateDBHDR();
+
+    if(!pRecord){
+        AddLog(LOGTYPE_WARNING, "create database handler failed");
+        return false;
+    }
+
     if(!pRecord->Execute("select * from mir2x.tbl_monster order by fld_index")){
         AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
         return false;
@@ -239,7 +246,8 @@ bool MonoServer::InitMonsterRace()
 
 bool MonoServer::InitMonsterItem()
 {
-    auto pRecord = m_DBConnection->CreateDBRecord();
+    extern DBPodN *g_DBPodN;
+    auto pRecord = g_DBPodN->CreateDBHDR();
     if(!pRecord->Execute("select * from mir2x.tbl_monsteritem")){
         AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
         return false;

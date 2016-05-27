@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/26/2016 15:38:42
+ *  Last Modified: 05/26/2016 19:12:48
  *
  *    Description: 
  *
@@ -38,32 +38,32 @@ void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Add
     OperateNet(stAMNP.SessionID, stAMNP.Type, stAMNP.Data, stAMNP.DataLen);
 }
 
-void ServiceCore::On_MPK_ADDMONSTER(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
-{
-    AMAddMonster stAMAM;
-    std::memcpy(&stAMAM, rstMPK.Data(), sizeof(stAMAM));
-
-    if(m_MapRecordMap.find(stAMAM.MapID) == m_MapRecordMap.end()){
-        LoadMap(stAMAM.MapID);
-    }
-
-    auto fnOPR = [this, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &){
-        switch(rstRMPK.Type()){
-            case MPK_OK:
-                {
-                    m_ActorPod->Forward(MPK_OK, rstFromAddr);
-                    break;
-                }
-            default:
-                {
-                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr);
-                    break;
-                }
-        }
-    };
-    m_ActorPod->Forward({MPK_ADDMONSTER, rstMPK.Data(),
-            rstMPK.DataLen()}, m_MapRecordMap[stAMAM.MapID].PodAddress, fnOPR);
-}
+// void ServiceCore::On_MPK_ADDMONSTER(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+// {
+//     AMAddMonster stAMAM;
+//     std::memcpy(&stAMAM, rstMPK.Data(), sizeof(stAMAM));
+//
+//     if(m_MapRecordMap.find(stAMAM.MapID) == m_MapRecordMap.end()){
+//         LoadMap(stAMAM.MapID);
+//     }
+//
+//     auto fnOPR = [this, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &){
+//         switch(rstRMPK.Type()){
+//             case MPK_OK:
+//                 {
+//                     m_ActorPod->Forward(MPK_OK, rstFromAddr);
+//                     break;
+//                 }
+//             default:
+//                 {
+//                     m_ActorPod->Forward(MPK_ERROR, rstFromAddr);
+//                     break;
+//                 }
+//         }
+//     };
+//     m_ActorPod->Forward({MPK_ADDMONSTER, rstMPK.Data(),
+//             rstMPK.DataLen()}, m_MapRecordMap[stAMAM.MapID].PodAddress, fnOPR);
+// }
 
 // TODO
 // based on the information of coming connection
@@ -97,6 +97,32 @@ void ServiceCore::On_MPK_NEWCONNECTION(const MessagePack &rstMPK, const Theron::
 //     }
 //     m_ActorPod->Forward({MPK_NEWPLAYER, stAMNP}, m_MapRecordMap[stAML.MapID].PodAddress);
 // }
+
+// monoserver ask for adding a new monster, need response,  make it as simple as
+// possible, since if the user found adding failed, they will add again, so
+// there is no need to make a pending list of adding,if failed we just report
+// the error to monoserver layer
+void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Address &rstAddr)
+{
+    AMAddCharObject stAMACO;
+    std::memcpy(&stAMACO, rstMPK.Data(), sizeof(stAMACO));
+
+    // hummm, different map may have different size of RM
+    auto stRMAddr = GetRMAddress(stAMACO.Common.MapID, stAMACO.Common.MapX, stAMACO.Common.MapY);
+
+    // the RM address is not valid now, you can try later
+    if(stRMAddr == Theron::Address::Null()){
+        m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
+        return;
+    }
+
+    // TODO: before this lambda, the monoserver layer will be blocked, dangerous
+    auto fnDone = [this, rstAddr](const MessagePack &rstRMPK, const Theron::Address &){
+        m_ActorPod->Forward((rstRMPK.Type() == MPK_OK ? MPK_OK : MPK_ERROR), rstAddr);
+    };
+
+    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, stRMAddr, fnDone);
+}
 
 void ServiceCore::On_MPK_PLAYERPHATOM(const MessagePack &rstMPK, const Theron::Address &)
 {

@@ -1,3 +1,22 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: dbconnection.cpp
+ *        Created: 09/03/2015 03:49:00 AM
+ *  Last Modified: 05/26/2016 16:38:08
+ *
+ *    Description: 
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #include <mariadb/mysql.h>
 #include "dbrecord.hpp"
 #include "dbconnection.hpp"
@@ -35,11 +54,6 @@ DBConnection::~DBConnection()
 bool DBConnection::Valid()
 {
     return m_Valid;
-}
-
-DBRecord *DBConnection::CreateDBRecord()
-{
-    return (new DBRecord(this));
 }
 
 void DBConnection::DestroyDBRecord(DBRecord *pDBRecord)

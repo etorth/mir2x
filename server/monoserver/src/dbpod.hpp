@@ -3,7 +3,7 @@
  *
  *       Filename: dbpod.hpp
  *        Created: 05/20/2016 14:31:19
- *  Last Modified: 05/26/2016 16:01:43
+ *  Last Modified: 05/26/2016 16:30:46
  *
  *    Description: so many db interaction, so enable the multi-thread support
  *                 when got a DBRecord, the corresponding DBConnection would
@@ -134,7 +134,10 @@ class DBPod final
         {
             DBRecord *pRecord;
             try{
-                pRecord = m_DBConnV[nPodIndex]->CreateDBRecord();
+                auto pBuf = m_DBRPNV[nPodIndex].Get();
+                if(!pBuf){ return DBHDR(nullptr, InnDeleter()); }
+
+                pRecord = m_DBConnV[nPodIndex]->CreateDBRecord((DBRecord *)pBuf);
             }catch(...){
                 pRecord = nullptr;
             }
@@ -160,7 +163,7 @@ class DBPod final
             }
 
             // never be here
-            return DBHDR(nullptr, InnDeleter(nullptr));
+            return DBHDR(nullptr, InnDeleter());
         }
 };
 

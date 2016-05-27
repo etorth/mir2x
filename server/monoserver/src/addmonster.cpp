@@ -3,7 +3,7 @@
  *
  *       Filename: addmonster.cpp
  *        Created: 04/12/2016 19:07:52
- *  Last Modified: 05/26/2016 11:31:56
+ *  Last Modified: 05/26/2016 17:08:10
  *
  *    Description: 
  *
@@ -39,6 +39,8 @@ bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
 
     stAMACO.Monster.MonsterID = nMonsterID;
 
+    // TODO
+    // do we need the response? I haven't decide yet, but I prefer yes
     MessagePack stResponseMPK;
     if(SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_ServiceCoreAddress, &stResponseMPK)){
         // sent and received
