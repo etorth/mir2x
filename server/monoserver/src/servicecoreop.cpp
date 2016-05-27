@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/26/2016 19:12:48
+ *  Last Modified: 05/27/2016 01:43:01
  *
  *    Description: 
  *
@@ -17,6 +17,7 @@
  *
  * =====================================================================================
  */
+#include <string>
 
 #include "player.hpp"
 #include "actorpod.hpp"
@@ -38,10 +39,21 @@ void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Add
     OperateNet(stAMNP.SessionID, stAMNP.Type, stAMNP.Data, stAMNP.DataLen);
 }
 
+// this can only come from MonoServer layer, monster should be add internally
 // void ServiceCore::On_MPK_ADDMONSTER(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 // {
 //     AMAddMonster stAMAM;
 //     std::memcpy(&stAMAM, rstMPK.Data(), sizeof(stAMAM));
+//
+//     // hummm, different map may have different size of RM
+//     auto stRMAddr = GetRMAddress(stAMAM.MapID, stAMAM.X, stAMAM.Y);
+//     if(stRMAddr == Theron::Address::Null()){
+//         if(rstMPK.ID()){
+//             m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
+//         }
+//     }
+//
+//
 //
 //     if(m_MapRecordMap.find(stAMAM.MapID) == m_MapRecordMap.end()){
 //         LoadMap(stAMAM.MapID);
@@ -107,21 +119,82 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::
     AMAddCharObject stAMACO;
     std::memcpy(&stAMACO, rstMPK.Data(), sizeof(stAMACO));
 
-    // hummm, different map may have different size of RM
-    auto stRMAddr = GetRMAddress(stAMACO.Common.MapID, stAMACO.Common.MapX, stAMACO.Common.MapY);
+    uint32_t nMapID = stAMACO.Common.MapID;
+    int nMapX = stAMACO.Common.MapX;
+    int nMapY = stAMACO.Common.MapY;
 
-    // the RM address is not valid now, you can try later
-    if(stRMAddr == Theron::Address::Null()){
-        m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
+    if(!ValidP(nMapID, nMapX, nMapY)){
+        if(rstMPK.ID()){
+            m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
+        }
         return;
     }
 
-    // TODO: before this lambda, the monoserver layer will be blocked, dangerous
-    auto fnDone = [this, rstAddr](const MessagePack &rstRMPK, const Theron::Address &){
-        m_ActorPod->Forward((rstRMPK.Type() == MPK_OK ? MPK_OK : MPK_ERROR), rstAddr);
-    };
+    const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
+    switch(rstRMRecord.Query){
+        case QUERY_NA:
+            {
+                // this RM is not walkable
+                // TODO: this is a serious error actually
+                //       we need take action rather than just report failure
+                if(rstMPK.ID()){
+                    m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
+                }
+                return;
+            }
+        case QUERY_OK:
+            {
+                // valid RM, try to login
+                //
+                // TODO just make sure...
+                // if this happend, this is a serious error and actioin need be taken
+                if(rstRMRecord.PodAddress == Theron::Address::Null()){
+                    if(rstMPK.ID()){
+                        m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
+                    }
+                    return;
+                }
 
-    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, stRMAddr, fnDone);
+                // just forward, we don't need the response
+                // if adding succeeds, the player will report itself to SC
+                m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
+                return;
+            }
+        case QUERY_PENDING:
+            {
+                // the RM address is on the way
+                // we need to adding the player when SC get this RM address
+                std::string szRandomName;
+                while(true){
+                    szRandomName.clear();
+                    for(int nCount = 0; nCount < 20; ++nCount){
+                        szRandomName.push_back('A' + (std::rand() % ('Z' - 'A' + 1)));
+                    }
+                    if(!Installed(szRandomName)){ break; }
+                }
+
+                auto fnOnGetRMAddress = [stAMACO, nMapID, nMapX, nMapY, szRandomName, this](){
+                    const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
+
+                    // still waiting
+                    if(!rstRMRecord.Valid()){ return; }
+
+                    // ok the address is ready
+                    // when adding succeed, the new object will respond
+                    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
+                    Uninstall(szRandomName, true);
+                };
+
+                Install(szRandomName, fnOnGetRMAddress);
+                break;
+            }
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid query state");
+                g_MonoServer->Restart();
+            }
+    }
 }
 
 void ServiceCore::On_MPK_PLAYERPHATOM(const MessagePack &rstMPK, const Theron::Address &)
@@ -139,82 +212,64 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
     AMLoginQueryDB stAMLQDB;
     std::memcpy(&stAMLQDB, rstMPK.Data(), sizeof(stAMLQDB));
 
-    auto pMap = m_MapRecordMap.find(stAMLQDB.MapID);
+    uint32_t nMapID = stAMLQDB.MapID;
+    int nMapX = stAMLQDB.MapX;
+    int nMapY = stAMLQDB.MapY;
 
-    // we didn't try to load it yet
-    if(pMap == m_MapRecordMap.end()){
-        LoadMap(stAMLQDB.MapID);
-        pMap = m_MapRecordMap.find(stAMLQDB.MapID);
-    }
+    if(!ValidP(nMapID, nMapX, nMapY)){ return; }
 
-    // mysterious error occurs...
-    if(pMap == m_MapRecordMap.end()){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "mysterious errors when loading map");
-        g_MonoServer->Restart();
-    }
-
-    // tried, but turns out it's not valid
-    if(pMap->second.PodAddress == Theron::Address::Null()){
-        // this is not a valid map id
-        // TODO: this is a serious error
-        //       we need take action rather than just report failure
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(stAMLQDB.SessionID, SM_LOGINFAIL,
-                [nSID = stAMLQDB.SessionID](){g_NetPodN->Shutdown(nSID);});
-        return;
-    }
-
-    // ok, do something
-    uint64_t nRMCacheKey = ((uint64_t)stAMLQDB.MapID << 32)
-        + ((uint64_t)(stAMLQDB.MapX / SYS_MAPGRIDXP) << 16)
-        + ((uint64_t)(stAMLQDB.MapY / SYS_MAPGRIDYP) <<  0);
-
-    auto pRM = m_RMRecordMap.find(nRMCacheKey);
-
-    if(pRM != m_RMRecordMap.end()){
-        AMAddCharObject stAMACO;
-        stAMACO.Type = OBJECT_PLAYER;
-        stAMACO.Common.MapID     = stAMLQDB.MapID;
-        stAMACO.Common.MapX      = stAMLQDB.MapX;
-        stAMACO.Common.MapY      = stAMLQDB.MapY;
-        stAMACO.Player.GUID      = stAMLQDB.GUID;
-        stAMACO.Player.Level     = stAMLQDB.Level;
-        stAMACO.Player.JobID     = stAMLQDB.JobID;
-        stAMACO.Player.Direction = stAMLQDB.Direction;
-
-        m_ActorPod->Forward({MPK_LOGIN, stAMACO}, pMap->second.PodAddress);
-        return;
-    }
-
-    // when adding succeeds, the char object will response with this message
-    auto fnOnCOInfo = [this](const MessagePack &rstRMPK, const Theron::Address &rstAddr){
-        if(rstRMPK.Type() == MPK_CHAROBJECTINFO){
-            AMCharObjectInfo stAMCOI;
-            std::memcpy(&stAMCOI, rstRMPK.Data(), sizeof(stAMCOI));
-
-            if(stAMCOI.Type == OBJECT_PLAYER){
-                m_PlayerRecordMap[stAMCOI.Player.GUID] = {
-                    stAMCOI.Player.GUID, stAMCOI.Player.UID, stAMCOI.Player.AddTime, rstAddr };
+    const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
+    switch(rstRMRecord.Query){
+        case QUERY_NA:
+            {
+                // this RM is not walkable
+                // TODO: this is a serious error actually
+                //       we need take action rather than just report failure
+                extern NetPodN *g_NetPodN;
+                g_NetPodN->Send(stAMLQDB.SessionID, SM_LOGINFAIL,
+                        [nSID = stAMLQDB.SessionID](){g_NetPodN->Shutdown(nSID);});
+                return;
             }
-        }
-    };
+        case QUERY_OK:
+            {
+                // valid RM, try to login
+                if(rstRMRecord.PodAddress == Theron::Address::Null()){ return; }
 
-    // ok we need to get the address first
-    AMQueryRMAddress stAMQRMA;
-    stAMQRMA.MapID = stAMLQDB.MapID;
-    stAMQRMA.RMX  = stAMLQDB.MapX / SYS_MAPGRIDXP;
-    stAMQRMA.RMY  = stAMLQDB.MapY / SYS_MAPGRIDYP;
+                AMAddCharObject stAMACO;
+                stAMACO.Type = OBJECT_PLAYER;
+                stAMACO.Common.MapID     = stAMLQDB.MapID;
+                stAMACO.Common.MapX      = stAMLQDB.MapX;
+                stAMACO.Common.MapY      = stAMLQDB.MapY;
+                stAMACO.Player.GUID      = stAMLQDB.GUID;
+                stAMACO.Player.Level     = stAMLQDB.Level;
+                stAMACO.Player.JobID     = stAMLQDB.JobID;
+                stAMACO.Player.Direction = stAMLQDB.Direction;
 
-    auto fnOnR = [this, stAMLQDB, nRMCacheKey, fnOnCOInfo](
-            const MessagePack &rstRMPK, const Theron::Address &){
-        switch(rstRMPK.Type()){
-            case MPK_ADDRESS:
-                {
-                    Theron::Address stRMAddr = Theron::Address((char *)rstRMPK.Data());
-                    m_RMRecordMap[nRMCacheKey] = {stAMLQDB.MapID,
-                        (stAMLQDB.MapX / SYS_MAPGRIDXP), (stAMLQDB.MapY / SYS_MAPGRIDYP), stRMAddr};
+                // we don't need the response
+                // if adding succeeds, the player will report itself to SC
+                m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
+                return;
+            }
+        case QUERY_PENDING:
+            {
+                // the RM address is on the way
+                // we need to adding the player when SC get this RM address
+                std::string szRandomName;
+                while(true){
+                    szRandomName.clear();
+                    for(int nCount = 0; nCount < 20; ++nCount){
+                        szRandomName.push_back('A' + (std::rand() % ('Z' - 'A' + 1)));
+                    }
+                    if(!Installed(szRandomName)){ break; }
+                }
 
+                auto fnOnGetRMAddress = [stAMLQDB, nMapID, nMapX, nMapY, szRandomName, this](){
+                    const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
+
+                    // still waiting
+                    if(!rstRMRecord.Valid()){ return; }
+
+                    // ok the address is ready
                     AMAddCharObject stAMACO;
                     stAMACO.Type = OBJECT_PLAYER;
                     stAMACO.Common.MapID     = stAMLQDB.MapID;
@@ -226,15 +281,19 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
                     stAMACO.Player.Direction = stAMLQDB.Direction;
 
                     // when adding succeed, the new object will respond
-                    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, stRMAddr, fnOnCOInfo);
-                    break;
-                }
-            default:
-                {
-                    m_RMRecordMap[nRMCacheKey] = {};
-                    break;
-                }
-        }
-    };
-    m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRMA}, pMap->second.PodAddress, fnOnR);
+                    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
+
+                    Uninstall(szRandomName, true);
+                };
+
+                Install(szRandomName, fnOnGetRMAddress);
+                break;
+            }
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid query state");
+                g_MonoServer->Restart();
+            }
+    }
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 05/24/2016 18:00:08
+ *  Last Modified: 05/27/2016 01:07:17
  *
  *    Description: 
  *
@@ -172,7 +172,7 @@ template<typename T> T RoundByPowerOf2(T nParam)
     if(sizeof(T) >= 1){ nParam |= (nParam >>  4); }
     if(sizeof(T) >= 2){ nParam |= (nParam >>  8); }
     if(sizeof(T) >= 4){ nParam |= (nParam >> 16); }
-    if(sizeof(T) >= 8){ nParam |= (nParam >> 32); }
+    // if(sizeof(T) >= 8){ nParam |= (nParam >> 32); }
 
     return nParam + 1;
 }

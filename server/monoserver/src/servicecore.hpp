@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 05/26/2016 18:38:32
+ *  Last Modified: 05/27/2016 00:53:31
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -55,6 +55,13 @@ class ServiceCore: public Transponder
             {}
         }PlayerRecord;
 
+        enum QueryType: int{
+            QUERY_NA = 0,
+            QUERY_OK,
+            QUERY_ERROR,
+            QUERY_PENDING,
+        };
+
         // TODO & TBD
         // there is a RM cache for RM's so we don't have to pass
         // the address everytime
@@ -62,15 +69,41 @@ class ServiceCore: public Transponder
             uint32_t MapID;
             int      RMX;
             int      RMY;
+            int      Query;
             Theron::Address PodAddress;
 
-            _RMRecord(uint32_t nMapID = 0, int nRMX = 0, int nRMY = 0,
+            _RMRecord(uint32_t nMapID = 0,
+                    int nRMX = 0, int nRMY = 0, int nQuery = QUERY_NA,
                     const Theron::Address &rstAddr = Theron::Address::Null())
                 : MapID(nMapID)
                 , RMX(nRMX)
                 , RMY(nRMY)
+                , Query(nQuery)
                 , PodAddress(rstAddr)
             {}
+
+            // check whether it's an empty record
+            bool Empty()
+            {
+                return MapID == 0; 
+            }
+
+            bool Empty() const
+            {
+                return MapID == 0; 
+            }
+
+            bool Valid()
+            {
+                // didn't check validation of RMX, RMY but this is enough
+                return MapID && Query == QUERY_OK && PodAddress != Theron::Address::Null();
+            }
+
+            bool Valid() const
+            {
+                // didn't check validation of RMX, RMY but this is enough
+                return MapID && Query == QUERY_OK && PodAddress != Theron::Address::Null();
+            }
         }RMRecord;
 
         typedef struct _MapRecord{
@@ -107,13 +140,18 @@ class ServiceCore: public Transponder
         ServiceCore();
         virtual ~ServiceCore();
 
+    protected:
+
     public:
         void Operate(const MessagePack &, const Theron::Address &);
         void OperateNet(uint32_t, uint8_t, const uint8_t *, size_t);
 
     protected:
         bool LoadMap(uint32_t);
-        Theron::Address GetRMAddress(uint32_t, int, int);
+        bool ValidP(uint32_t, int, int);
+
+    private:
+        const RMRecord &GetRMRecord(uint32_t, int, int);
 
     private:
         void On_MPK_LOGIN(const MessagePack &, const Theron::Address &);

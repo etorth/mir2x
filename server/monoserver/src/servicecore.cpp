@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/26/2016 18:43:48
+ *  Last Modified: 05/27/2016 01:35:46
  *
  *    Description: 
  *
@@ -46,11 +46,11 @@ ServiceCore::~ServiceCore()
 void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddr)
 {
     switch(rstMPK.Type()){
-        // case MPK_ADDMONSTER:
-        //     {
-        //         On_MPK_ADDMONSTER(rstMPK, rstAddr);
-        //         break;
-        //     }
+        case MPK_ADDCHAROBJECT:
+            {
+                On_MPK_ADDCHAROBJECT(rstMPK, rstAddr);
+                break;
+            }
         case MPK_NEWCONNECTION:
             {
                 On_MPK_NEWCONNECTION(rstMPK, rstAddr);
@@ -94,19 +94,24 @@ bool ServiceCore::LoadMap(uint32_t nMapID)
 
     ServerMap *pNewMap = new ServerMap(nMapID);
 
-    m_MapRecordMap[nMapID].MapID      = nMapID;
-    m_MapRecordMap[nMapID].Map        = pNewMap;
-    m_MapRecordMap[nMapID].PodAddress = pNewMap->Activate();
+    auto &rstMapRecord = m_MapRecordMap[nMapID];
+    rstMapRecord.MapID      = nMapID;
+    rstMapRecord.Map        = pNewMap;
+    rstMapRecord.GridW      = pNewMap->W();
+    rstMapRecord.GridH      = pNewMap->H();
+    rstMapRecord.RMW        = 1;
+    rstMapRecord.RMH        = 1;
+    rstMapRecord.PodAddress = pNewMap->Activate();
 
-    m_ActorPod->Forward(MPK_HI, m_MapRecordMap[nMapID].PodAddress);
+    m_ActorPod->Forward(MPK_HI, rstMapRecord.PodAddress);
 
     return true;
 }
 
-Theron::Address ServiceCore::GetRMAddress(uint32_t nMapID, int nRMX, int nRMY)
+bool ServiceCore::ValidP(uint32_t nMapID, int nMapX, int nMapY)
 {
-    // parameter check
-    if(!nMapID || nRMX < 0 || nRMY < 0){ return Theron::Address::Null(); }
+    // argument check
+    if(nMapID == 0 || nMapX < 0 || nMapY < 0){ return false; }
 
     auto pMap = m_MapRecordMap.find(nMapID);
 
@@ -125,30 +130,66 @@ Theron::Address ServiceCore::GetRMAddress(uint32_t nMapID, int nRMX, int nRMY)
     }
 
     // tried, but turns out it's only a place holder, not valid
-    if(pMap->second.PodAddress == Theron::Address::Null()){
-        return Theron::Address::Null();
+    if(pMap->second.PodAddress == Theron::Address::Null()){ return false; }
+
+    // it's a valid map, try to figure the RM parameters
+    int nRMW   = pMap->second.RMW;
+    int nRMH   = pMap->second.RMH;
+    int nGridW = pMap->second.GridW;
+    int nGridH = pMap->second.GridH;
+
+    if(nRMW <= 0 || nRMH <= 0 || nGridW <= 0 || nGridH <= 0){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "logic error: region monitor parameter invalid");
+        g_MonoServer->Restart();
     }
 
-    // this RM is not valid for current map
-    if((size_t)nRMX >= pMap->second.RMW || (size_t)nRMY >= pMap->second.RMH){
-        return Theron::Address::Null();
-    }
+    int nGridX = nMapX / SYS_MAPGRIDXP;
+    int nGridY = nMapX / SYS_MAPGRIDYP;
+
+    // ooops outside
+    if(nGridX >= nGridW || nGridY >= nGridH){ return false; }
+
+    return true;
+}
+
+const ServiceCore::RMRecord &ServiceCore::GetRMRecord(uint32_t nMapID, int nMapX, int nMapY)
+{
+    const static RMRecord s_EmptyRMRecord;
+
+    // don't bother if the argument is not valid
+    // this validation function will check everything of the record
+    //
+    if(!ValidP(nMapID, nMapX, nMapY)){ return s_EmptyRMRecord; }
+
+    // OK valid
+    auto &rstMapRecord = m_MapRecordMap[nMapID];
+
+    int nRMX = nMapX / SYS_MAPGRIDXP / rstMapRecord.RMW;
+    int nRMY = nMapX / SYS_MAPGRIDYP / rstMapRecord.RMH;
 
     // the map is valid and the coord is ok
-    uint64_t nRMCacheKey = ((uint32_t)(nRMX) << 16) + ((uint32_t)nRMY);
-    auto pRM = pMap->second.RMRecordMap.find(nRMCacheKey);
+    uint32_t nRMCacheKey = ((uint32_t)(nRMX) << 16) + ((uint32_t)nRMY);
+    auto pRM = rstMapRecord.RMRecordMap.find(nRMCacheKey);
 
-    // there is a record already, maybe still null but at least the addres is OTW
-    if(pRM != pMap->second.RMRecordMap.end()){
-        return pRM->second.PodAddress;
-    }
+    // there is a record already, possible
+    //      1. this is a record with pending state
+    //      2. this is a checked record, but it's empty because non-walkable
+    //      3. this is a well-prepared record
+    //
+    // we only return this record and let outside logic check the state
+    //
+    if(pRM != rstMapRecord.RMRecordMap.end()){ return pRM->second; }
 
-    // current the nMapID, nRMX, nRMY all are legal, so capture it directly
-    auto &rstRMRecord = (pMap->second.RMRecordMap)[nRMCacheKey];
+    // current the nMapID, nRMX, nRMY all are legal, but we haven't acquire the RM yet
 
+    // create a record firstly
+    auto &rstRMRecord = rstMapRecord.RMRecordMap[nRMCacheKey];
+
+    rstRMRecord.MapID      = nMapID;
     rstRMRecord.RMX        = nRMX;
     rstRMRecord.RMY        = nRMY;
-    rstRMRecord.MapID      = nMapID;
+    rstRMRecord.Query      = QUERY_PENDING;
     rstRMRecord.PodAddress = Theron::Address::Null();
 
     // we need to ask from the map
@@ -157,12 +198,18 @@ Theron::Address ServiceCore::GetRMAddress(uint32_t nMapID, int nRMX, int nRMY)
     stAMQRMA.RMY   = nRMY;
     stAMQRMA.MapID = nMapID;
 
-    auto fnDoneQuery = [this, nMapID, nRMCacheKey](
-            const MessagePack &rstMPK, const Theron::Address &){
-        Theron::Address rstRMAddr((char *)rstMPK.Data());
-        m_MapRecordMap[nMapID].RMRecordMap[nRMCacheKey].PodAddress = rstRMAddr;
+    auto fnDone = [this, nMapID, nRMCacheKey](const MessagePack &rstRMPK, const Theron::Address &){
+        auto &rstRMRecord = m_MapRecordMap[nMapID].RMRecordMap[nRMCacheKey];
+
+        if((char)(rstRMPK.Data()[0]) == '\0'){
+            rstRMRecord.Query = QUERY_NA;
+            rstRMRecord.PodAddress = Theron::Address::Null();
+        }else{
+            rstRMRecord.Query = QUERY_OK;
+            rstRMRecord.PodAddress = Theron::Address((char *)rstRMPK.Data());
+        }
     };
 
-    m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRMA}, pMap->second.PodAddress, fnDoneQuery);
-    return Theron::Address::Null();
+    m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRMA}, m_MapRecordMap[nMapID].PodAddress, fnDone);
+    return rstRMRecord;
 }

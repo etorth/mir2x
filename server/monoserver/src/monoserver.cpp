@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/26/2016 16:54:06
+ *  Last Modified: 05/26/2016 19:50:04
  *
  *    Description: 
  *
@@ -276,4 +276,42 @@ bool MonoServer::InitMonsterItem()
     }
     AddLog(LOGTYPE_INFO, "finished monster item: %d added", pRecord->RowCount());
     return true;
+}
+
+bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bAllowVoid)
+{
+    AMAddCharObject stAMACO;
+    stAMACO.Type = OBJECT_MONSTER;
+
+    stAMACO.Common.MapID     = nMapID;
+    stAMACO.Common.MapX      = nX;
+    stAMACO.Common.MapY      = nY;
+    stAMACO.Common.R         = 10; // TODO
+    stAMACO.Common.AllowVoid = bAllowVoid;
+
+    stAMACO.Monster.MonsterID = nMonsterID;
+
+    // TODO
+    // do we need the response? I haven't decide yet, but I prefer yes
+    MessagePack stResponseMPK;
+    if(SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_ServiceCoreAddress, &stResponseMPK)){
+        // sent and received
+        AddLog(LOGTYPE_WARNING, "message sent for adding monster failed");
+        return false;
+    }
+
+    switch(stResponseMPK.Type()){
+        case MPK_OK:
+            {
+                AddLog(LOGTYPE_INFO, "monster with index = %d added", nMonsterID);
+                return true;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    AddLog(LOGTYPE_INFO, "adding monster failed");
+    return false;
 }
