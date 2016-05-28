@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.hpp
  *        Created: 04/23/2016 10:51:19
- *  Last Modified: 05/27/2016 00:34:51
+ *  Last Modified: 05/28/2016 00:06:50
  *
  *    Description: base of actor model in mir2x, Theron::Actor acitvated at create
  *                 time so no way to control it, instead Transponder can 
@@ -84,19 +84,21 @@ class Transponder
     private:
         void InnTrigger()
         {
-            auto pTrigger = m_TriggerV.begin();
-            while(pTrigger != m_TriggerV.end()){
-                // this trigger is disabled
-                if(!std::get<2>(*pTrigger)){
-                    std::swap(*pTrigger, m_TriggerV.back());
-                    m_TriggerV.pop_back();
-                    pTrigger = m_TriggerV.begin();
+            size_t nIndex = 0;
+            while(nIndex < m_TriggerV.size()){
+                if(true
+                        && std::get<1>(m_TriggerV[nIndex])    // callable
+                        && std::get<2>(m_TriggerV[nIndex])){  // active
+                    std::get<1>(m_TriggerV[nIndex])();
+                    nIndex++;
                     continue;
                 }
 
-                if(std::get<1>(*pTrigger)){
-                    std::get<1>(*pTrigger)();
-                }
+                // ok current trigger handler should be deleted
+                // we delete disabled & invalid handler everytime we found it
+
+                std::swap(m_TriggerV[nIndex], m_TriggerV.back());
+                m_TriggerV.pop_back();
             }
         }
 
@@ -105,6 +107,7 @@ class Transponder
 
 
     public:
+        // just try to match, and overwrite the matched slot
         void Install(const std::string &szTriggerName, const std::function<void()> &fnTriggerOp)
         {
             for(auto &rstEle: m_TriggerV){
@@ -117,10 +120,16 @@ class Transponder
             m_TriggerV.emplace_back(std::make_tuple(szTriggerName, fnTriggerOp, true));
         }
 
+        // disabled or invalid handler won't count
         bool Installed(const std::string &szTriggerName)
         {
             for(auto &rstEle: m_TriggerV){
-                if(std::get<0>(rstEle) == szTriggerName){ return true; }
+                if(true
+                        && (std::get<0>(rstEle) == szTriggerName)   // name matching
+                        && (std::get<1>(rstEle))                    // callable
+                        && (std::get<2>(rstEle))){                  // still active
+                    return true;
+                }
             }
             return false;
         }
@@ -131,28 +140,29 @@ class Transponder
         //              : false will make the trigger deleted immediately
         void Uninstall(const std::string &szTriggerName, bool bInside = true)
         {
-            if(m_TriggerV.empty()){ return; }
+            size_t nIndex = 0;
+            while(nIndex < m_TriggerV.size()){
+                if(true
+                        && (std::get<0>(m_TriggerV[nIndex]) != szTriggerName) // not the one
+                        && (std::get<1>(m_TriggerV[nIndex]))                  // callable
+                        && (std::get<2>(m_TriggerV[nIndex]))){                // active
+                    nIndex++;
+                    continue;
+                }
 
-            // if the last one is already disabled
-            if(!std::get<2>(m_TriggerV.back())){ m_TriggerV.pop_back(); }
+                // ok current trigger handler should be deleted
+                // we delete disabled & invalid handler everytime we found it
 
-            // now handle current one
-            // there won't be duplicated names, so if found we directly break
-            bool bFind = false;
-            for(auto &rstEle: m_TriggerV){
-                if(std::get<0>(rstEle) == szTriggerName){
-                    // 1. disable it
-                    std::get<2>(rstEle) = false;
-                    // 2. swap it to the end
-                    std::swap(rstEle, m_TriggerV.back());
-                    // 3. we find it
-                    bFind = true;
-                    // 4. no duplicates, directly break
-                    break;
+                // 1. disable it always
+                std::get<2>(m_TriggerV[nIndex]) = false;
+
+                // 2. if we are not calling this funciton inside the trigger
+                //    we can directly remove it, otherwise we can only mark it
+                if(!bInside){
+                    std::swap(m_TriggerV[nIndex], m_TriggerV.back());
+                    m_TriggerV.pop_back();
                 }
             }
-
-            if(bFind && !bInside){ m_TriggerV.pop_back(); }
         }
 
         void Uninstall(bool bInside = true)

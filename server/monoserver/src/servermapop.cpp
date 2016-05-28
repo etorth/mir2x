@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/27/2016 11:29:21
+ *  Last Modified: 05/28/2016 00:36:37
  *
  *    Description: 
  *
@@ -20,16 +20,16 @@
 
 #include "monster.hpp"
 #include "actorpod.hpp"
+#include "metronome.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
 
-void ServerMap::On_MPK_HI(const MessagePack &, const Theron::Address &)
+void ServerMap::On_MPK_HI(const MessagePack &, const Theron::Address &rstFromAddr)
 {
+    m_SCAddress = rstFromAddr;
     if(!m_Metronome){
         m_Metronome = new Metronome(100);
     }
-
-    // m_ActorPod->Forward(MPK_HI, rstFromAddr);
     m_Metronome->Activate(m_ActorPod->GetAddress());
 }
 
@@ -50,10 +50,6 @@ void ServerMap::On_MPK_REGIONMONITORREADY(const MessagePack &rstMPK, const Thero
     std::memcpy(&stAMMR, rstMPK.Data(), sizeof(stAMMR));
     m_RegionMonitorRecordV2D[stAMMR.LocY][stAMMR.LocX].CanRun = true;
     CheckRegionMonitorReady();
-
-    // if(RegionMonitorReady()){
-    //     m_ActorPod->Forward(MPK_READY, m_CoreAddress);
-    // }
 }
 
 // void ServerMap::On_MPK_ADDMONSTER(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -156,10 +152,11 @@ void ServerMap::On_MPK_QUERYRMADDRESS(const MessagePack &rstMPK, const Theron::A
 
     auto rstRMAddr = RegionMonitorAddress(stAMQRA.RMX, stAMQRA.RMY);
     if(rstRMAddr == Theron::Address::Null()){
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr); return;
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
     }
 
     std::string szRMAddr = rstRMAddr.AsString();
     m_ActorPod->Forward({MPK_ADDRESS,
-            (const uint8_t *)szRMAddr.c_str(), szRMAddr.size()}, rstFromAddr);
+            (const uint8_t *)szRMAddr.c_str(), 1 + szRMAddr.size()}, rstFromAddr, rstMPK.ID());
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/26/2016 15:41:46
+ *  Last Modified: 05/28/2016 00:47:48
  *
  *    Description: 
  *
@@ -22,15 +22,6 @@
 #include "actorpod.hpp"
 #include "monoserver.hpp"
 #include "regionmonitor.hpp"
-
-Theron::Address RegionMonitor::Activate()
-{
-    auto stAddr = Transponder::Activate();
-    if(stAddr != Theron::Address::Null()){
-        m_ActorPod->Forward(MPK_ACTIVATE, m_MapAddress);
-    }
-    return stAddr;
-}
 
 void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {

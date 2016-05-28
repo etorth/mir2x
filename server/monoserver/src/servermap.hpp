@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 05/27/2016 14:07:36
+ *  Last Modified: 05/27/2016 22:21:49
  *
  *    Description: put all non-atomic function as private
  *
@@ -75,16 +75,12 @@ class ServerMap: public Transponder
 
     private:
         uint32_t m_ID;
-        Theron::Address m_NullAddress;
         bool   m_RegionMonitorReady;
         size_t m_RegionW;
         size_t m_RegionH;
 
+        Theron::Address m_SCAddress;
         Metronome *m_Metronome;
-
-        Theron::Address m_CoreAddress;
-
-        std::unordered_map<uint64_t, CharObject *> m_CharObjectM;
 
     private:
         void Operate(const MessagePack &, const Theron::Address &);
@@ -163,7 +159,7 @@ class ServerMap: public Transponder
                     || nRMY >= (int)m_RegionMonitorRecordV2D.size()
                     || nRMX < 0
                     || nRMX >= (int)m_RegionMonitorRecordV2D[0].size()){
-                return m_NullAddress;
+                return Theron::Address::Null();
             }
 
             return m_RegionMonitorRecordV2D[nRMY][nRMX].PodAddress;
@@ -171,7 +167,7 @@ class ServerMap: public Transponder
 
         const Theron::Address &RegionMonitorAddressC(int nX, int nY)
         {
-            if(!ValidC(nX, nY)){ return m_NullAddress; }
+            if(!ValidC(nX, nY)){ return Theron::Address::Null(); }
 
             int nGridX = nX / m_RegionW;
             int nGridY = nY / m_RegionH;
@@ -181,7 +177,7 @@ class ServerMap: public Transponder
 
         const Theron::Address &RegionMonitorAddressP(int nX, int nY)
         {
-            if(!ValidP(nX, nY)){ return m_NullAddress; }
+            if(!ValidP(nX, nY)){ return Theron::Address::Null(); }
 
             int nGridX = nX / SYS_MAPGRIDXP / m_RegionW;
             int nGridY = nY / SYS_MAPGRIDYP / m_RegionH;

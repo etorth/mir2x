@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/27/2016 18:53:27
+ *  Last Modified: 05/28/2016 01:08:28
  *
  *    Description: 
  *
@@ -191,10 +191,13 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::
                     const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
 
                     // still waiting
-                    if(!rstRMRecord.Valid()){ return; }
+                    if(rstRMRecord.Query == QUERY_PENDING){ return; }
 
-                    // ok the address is ready
-                    // when adding succeed, the new object will respond
+                    // ok we get valid address
+                    if(rstRMRecord.Valid()){
+                        m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
+                    }
+
                     m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
                     Uninstall(szRandomName, true);
                 };
@@ -281,22 +284,27 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
                 auto fnOnGetRMAddress = [stAMLQDB, nMapID, nMapX, nMapY, szRandomName, this](){
                     const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
 
-                    // still waiting
-                    if(!rstRMRecord.Valid()){ return; }
+                    // still pending
+                    if(rstRMRecord.Query == QUERY_PENDING){ return; }
 
-                    // ok the address is ready
-                    AMAddCharObject stAMACO;
-                    stAMACO.Type = OBJECT_PLAYER;
-                    stAMACO.Common.MapID     = stAMLQDB.MapID;
-                    stAMACO.Common.MapX      = stAMLQDB.MapX;
-                    stAMACO.Common.MapY      = stAMLQDB.MapY;
-                    stAMACO.Player.GUID      = stAMLQDB.GUID;
-                    stAMACO.Player.Level     = stAMLQDB.Level;
-                    stAMACO.Player.JobID     = stAMLQDB.JobID;
-                    stAMACO.Player.Direction = stAMLQDB.Direction;
+                    // OK we get the valid address
+                    if(rstRMRecord.Valid()){
+                        AMAddCharObject stAMACO;
+                        stAMACO.Type = OBJECT_PLAYER;
+                        stAMACO.Common.MapID     = stAMLQDB.MapID;
+                        stAMACO.Common.MapX      = stAMLQDB.MapX;
+                        stAMACO.Common.MapY      = stAMLQDB.MapY;
+                        stAMACO.Player.GUID      = stAMLQDB.GUID;
+                        stAMACO.Player.Level     = stAMLQDB.Level;
+                        stAMACO.Player.JobID     = stAMLQDB.JobID;
+                        stAMACO.Player.Direction = stAMLQDB.Direction;
 
-                    // when adding succeed, the new object will respond
-                    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
+                        // when adding succeed, the new object will respond
+                        m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
+                    }
+
+                    // TODO & TBD
+                    // otherwise we just drop this operation
 
                     Uninstall(szRandomName, true);
                 };

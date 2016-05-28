@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/27/2016 18:56:51
+ *  Last Modified: 05/28/2016 01:36:49
  *
  *    Description: 
  *
@@ -157,10 +157,62 @@ void MonoServer::Launch()
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
 
-    AddMonster(1, 1, 765, 573, false);
-    AddMonster(1, 1, 442, 713, false);
-    AddMonster(1, 1, 836, 530, false);
-    AddMonster(1, 1, 932, 622, false);
+    uint32_t nUID       = 0;
+    uint32_t nAddTime   = 0;
+    uint32_t nMonsterID = 0;
+
+    {
+        nUID       = GetUID();
+        nAddTime   = GetTimeTick();
+        nMonsterID = 1;
+
+        AddMonster(1, nUID, nAddTime, 1, 765, 573, false);
+        if(MonsterValid(nUID, nAddTime)){
+            AddLog(LOGTYPE_INFO,
+                    "Added: (MonsterID, UID, AddTime) = (%d, %d, %d)", nMonsterID, nUID, nAddTime);
+        }
+    }
+
+    {
+        nUID       = GetUID();
+        nAddTime   = GetTimeTick();
+        nMonsterID = 1;
+
+        AddMonster(1, nUID, nAddTime, 1, 442, 713, false);
+        if(MonsterValid(nUID, nAddTime)){
+            AddLog(LOGTYPE_INFO,
+                    "Added: (MonsterID, UID, AddTime) = (%d, %d, %d)", nMonsterID, nUID, nAddTime);
+        }
+    }
+
+    {
+        nUID       = GetUID();
+        nAddTime   = GetTimeTick();
+        nMonsterID = 1;
+
+        AddMonster(1, nUID, nAddTime, 1, 836, 530, false);
+        if(MonsterValid(nUID, nAddTime)){
+            AddLog(LOGTYPE_INFO,
+                    "Added: (MonsterID, UID, AddTime) = (%d, %d, %d)", nMonsterID, nUID, nAddTime);
+        }
+    }
+
+    {
+        nUID       = GetUID();
+        nAddTime   = GetTimeTick();
+        nMonsterID = 1;
+
+        AddMonster(1, nUID, nAddTime, 1, 932, 622, false);
+        if(MonsterValid(nUID, nAddTime)){
+            AddLog(LOGTYPE_INFO,
+                    "Added: (MonsterID, UID, AddTime) = (%d, %d, %d)", nMonsterID, nUID, nAddTime);
+        }
+    }
+
+    // AddMonster(1, nUID, nAddTime, 1, 765, 573, false);
+    // AddMonster(1, nUID, nAddTime, 1, 442, 713, false);
+    // AddMonster(1, nUID, nAddTime, 1, 836, 530, false);
+    // AddMonster(1, nUID, nAddTime, 1, 932, 622, false);
 
     // TODO
     // dead lock when there is too many monsters???
@@ -278,11 +330,31 @@ bool MonoServer::InitMonsterItem()
     return true;
 }
 
-bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bAllowVoid)
+// request adding a new monster without response, after this the externa layer
+// can check whether the monster exists
+//
+// TODO & TBD
+//
+// I don't like the response here, since this introduce huge complexity
+// if I am waiting for a response, then following thing should be considered
+//
+// 1. map is not ready
+// 2. requested RM on the map is not ready
+//
+// to handle these we have use many response callback, and since when RM is
+// not ready it's in QUERY_PENDING state, I have to use anomyous trigger to
+// handle it.
+//
+// instead I specified the monster with (UID, AddTime), and check whether
+// this monster exist? this should be much simpler
+void MonoServer::AddMonster(uint32_t nMonsterID,
+        uint32_t nUID, uint32_t nAddTime, uint32_t nMapID, int nX, int nY, bool bAllowVoid)
 {
     AMAddCharObject stAMACO;
     stAMACO.Type = OBJECT_MONSTER;
 
+    stAMACO.Common.UID       = nUID;
+    stAMACO.Common.AddTime   = nAddTime;
     stAMACO.Common.MapID     = nMapID;
     stAMACO.Common.MapX      = nX;
     stAMACO.Common.MapY      = nY;
@@ -292,29 +364,4 @@ bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
     stAMACO.Monster.MonsterID = nMonsterID;
 
     SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_SCAddress);
-    return true;
-
-    // TODO
-    // do we need the response? I haven't decide yet, but I prefer yes
-    MessagePack stResponseMPK;
-    if(SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_SCAddress, &stResponseMPK)){
-        // sent and received
-        AddLog(LOGTYPE_WARNING, "message sent for adding monster failed");
-        return false;
-    }
-
-    switch(stResponseMPK.Type()){
-        case MPK_OK:
-            {
-                AddLog(LOGTYPE_INFO, "monster with index = %d added", nMonsterID);
-                return true;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
-    AddLog(LOGTYPE_INFO, "adding monster failed");
-    return false;
 }

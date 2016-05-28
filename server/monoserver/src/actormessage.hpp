@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/26/2016 15:36:17
+ *  Last Modified: 05/28/2016 01:26:31
  *
  *    Description: 
  *
@@ -113,6 +113,10 @@ typedef union {
     struct _Common{
         uint8_t Type;
         bool AllowVoid;
+
+        uint32_t UID;
+        uint32_t AddTime;
+
         uint32_t MapID;
         int MapX;
         int MapY;

@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/26/2016 15:59:46
+ *  Last Modified: 05/27/2016 22:16:39
  *
  *    Description: 
  *
@@ -26,6 +26,7 @@
 #include "taskhub.hpp"
 #include "memorypn.hpp"
 #include "threadpn.hpp"
+#include "metronome.hpp"
 #include "mainwindow.hpp"
 #include "eventtaskhub.hpp"
 #include "addmonsterwindow.hpp"

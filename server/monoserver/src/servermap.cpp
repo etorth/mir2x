@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/27/2016 18:24:17
+ *  Last Modified: 05/27/2016 22:21:14
  *
  *    Description: 
  *
@@ -33,10 +33,10 @@
 ServerMap::ServerMap(uint32_t nMapID)
     : Transponder()
     , m_ID(nMapID)
-    , m_NullAddress(Theron::Address::Null())
     , m_RegionMonitorReady(false)
     , m_RegionW(1)
     , m_RegionH(1)
+    , m_SCAddress(Theron::Address::Null())
     , m_Metronome(nullptr)
 {
     Load("./DESC.BIN");
@@ -55,8 +55,6 @@ ServerMap::ServerMap(uint32_t nMapID)
 bool ServerMap::Load(const char *szMapFullName)
 {
     if(!m_Mir2xMap.Load(szMapFullName)){ return false; }
-    // int nW = m_Mir2xMap.W();
-    // int nH = m_Mir2xMap.H();
 
     return true;
 }

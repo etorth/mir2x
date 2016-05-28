@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/26/2016 11:02:59
+ *  Last Modified: 05/28/2016 00:47:53
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -263,7 +263,6 @@ class RegionMonitor: public Transponder
         }
 
     public:
-        Theron::Address Activate();
         void Operate(const MessagePack &, const Theron::Address &);
 
     private:

@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/27/2016 17:17:13
+ *  Last Modified: 05/27/2016 22:27:04
  *
  *    Description: 
  *
@@ -23,6 +23,7 @@
 
 #include "player.hpp"
 #include "actorpod.hpp"
+#include "metronome.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
 
@@ -113,7 +114,6 @@ bool ServiceCore::LoadMap(uint32_t nMapID)
     rstMapRecord.PodAddress = pNewMap->Activate();
 
     m_ActorPod->Forward(MPK_HI, rstMapRecord.PodAddress);
-    // SyncDriver().Forward(MPK_HI, rstMapRecord.PodAddress, nullptr);
 
     return true;
 }
