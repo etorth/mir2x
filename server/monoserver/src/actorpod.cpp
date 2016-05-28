@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 05/10/2016 22:59:57
+ *  Last Modified: 05/27/2016 14:30:15
  *
  *    Description: 
  *
@@ -22,7 +22,7 @@
 #include "actorpod.hpp"
 #include "monoserver.hpp"
 
-void ActorPod::InnHandler(const MessagePack &rstMPK, Theron::Address stFromAddr)
+void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFromAddr)
 {
     // TODO
     // do I need to put logic to avoid sending message to itself?

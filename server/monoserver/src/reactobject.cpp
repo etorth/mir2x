@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 05/26/2016 15:44:25
+ *  Last Modified: 05/27/2016 15:50:38
  *
  *    Description: 
  *
@@ -61,13 +61,15 @@ Theron::Address ReactObject::Activate()
 {
     if(!m_ActorPod){
         extern Theron::Framework *g_Framework;
-        m_ActorPod = new ActorPod(g_Framework,
-            [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
-                Operate(rstMPK, stFromAddr);
-            });
+        m_ActorPod = new ActorPod(g_Framework, [this](){ InnTrigger(); },
+                [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
+                this->Operate(rstMPK, stFromAddr);
+                });
+        m_ThisAddress = m_ActorPod->GetAddress();
     }
 
-    return m_ActorPod->GetAddress();
+    // TODO & TBD no idea of whether this is needed
+    return m_ThisAddress;
 }
 
 bool ReactObject::AccessCheck()

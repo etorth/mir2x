@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/26/2016 19:50:04
+ *  Last Modified: 05/27/2016 18:56:51
  *
  *    Description: 
  *
@@ -125,7 +125,7 @@ void MonoServer::CreateServiceCore()
 {
     delete m_ServiceCore;
     m_ServiceCore = new ServiceCore();
-    m_ServiceCoreAddress = m_ServiceCore->Activate();
+    m_SCAddress = m_ServiceCore->Activate();
 }
 
 void MonoServer::StartNetwork()
@@ -134,7 +134,7 @@ void MonoServer::StartNetwork()
     extern ServerConfigureWindow *g_ServerConfigureWindow;
 
     uint32_t nPort = g_ServerConfigureWindow->Port();
-    if(g_NetPodN->Launch(nPort, m_ServiceCoreAddress)){
+    if(g_NetPodN->Launch(nPort, m_SCAddress)){
         AddLog(LOGTYPE_WARNING, "launching network failed");
         Restart();
     }
@@ -291,10 +291,13 @@ bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
 
     stAMACO.Monster.MonsterID = nMonsterID;
 
+    SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_SCAddress);
+    return true;
+
     // TODO
     // do we need the response? I haven't decide yet, but I prefer yes
     MessagePack stResponseMPK;
-    if(SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_ServiceCoreAddress, &stResponseMPK)){
+    if(SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_SCAddress, &stResponseMPK)){
         // sent and received
         AddLog(LOGTYPE_WARNING, "message sent for adding monster failed");
         return false;

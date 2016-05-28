@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/26/2016 15:42:29
+ *  Last Modified: 05/27/2016 18:24:17
  *
  *    Description: 
  *
@@ -31,7 +31,8 @@
 #include "regionmonitor.hpp"
 
 ServerMap::ServerMap(uint32_t nMapID)
-    : m_ID(nMapID)
+    : Transponder()
+    , m_ID(nMapID)
     , m_NullAddress(Theron::Address::Null())
     , m_RegionMonitorReady(false)
     , m_RegionW(1)
@@ -62,7 +63,6 @@ bool ServerMap::Load(const char *szMapFullName)
 
 void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
-    extern Log *g_Log;
     switch(rstMPK.Type()){
         case MPK_HI:
             {
@@ -72,6 +72,11 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
         case MPK_METRONOME:
             {
                 On_MPK_METRONOME(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_QUERYRMADDRESS:
+            {
+                On_MPK_QUERYRMADDRESS(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_REGIONMONITORREADY:
@@ -91,7 +96,8 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
         //     }
         default:
             {
-                g_Log->AddLog(LOGTYPE_WARNING,
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING,
                         "unsupported message type: (%d:%s)", rstMPK.Type(), rstMPK.Name());
                 break;
             }
@@ -109,6 +115,9 @@ void ServerMap::CheckRegionMonitorNeed()
                 for(size_t nX = 0; nX < m_RegionW; ++nX){
                     size_t nGX = nX + nRMX * m_RegionW;
                     size_t nGY = nY + nRMY * m_RegionH;
+                    if(false
+                            || nGY >= (size_t)m_Mir2xMap.H()
+                            || nGX >= (size_t)m_Mir2xMap.W()){ continue; }
                     if(false
                             || m_Mir2xMap.CanWalk(nGX, nGY, 0)
                             || m_Mir2xMap.CanWalk(nGX, nGY, 1)

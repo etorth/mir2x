@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/25/2016 22:05:01
+ *  Last Modified: 05/27/2016 11:29:21
  *
  *    Description: 
  *
@@ -25,7 +25,9 @@
 
 void ServerMap::On_MPK_HI(const MessagePack &, const Theron::Address &)
 {
-    m_Metronome = new Metronome(100);
+    if(!m_Metronome){
+        m_Metronome = new Metronome(100);
+    }
 
     // m_ActorPod->Forward(MPK_HI, rstFromAddr);
     m_Metronome->Activate(m_ActorPod->GetAddress());
@@ -136,3 +138,28 @@ void ServerMap::On_MPK_REGIONMONITORREADY(const MessagePack &rstMPK, const Thero
 //     auto stAddr = RegionMonitorAddressP(stAMNM.X, stAMNM.Y);
 //     m_ActorPod->Forward({MPK_NEWMONSTER, stAMNM}, stAddr);
 // }
+//
+void ServerMap::On_MPK_QUERYRMADDRESS(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+{
+    AMQueryRMAddress stAMQRA;
+    std::memcpy(&stAMQRA, rstMPK.Data(), sizeof(stAMQRA));
+
+    if(!RegionMonitorReady()){
+        CreateRegionMonterV2D();
+
+        if(!RegionMonitorReady()){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "create region monitors for server map failed");
+            g_MonoServer->Restart();
+        }
+    }
+
+    auto rstRMAddr = RegionMonitorAddress(stAMQRA.RMX, stAMQRA.RMY);
+    if(rstRMAddr == Theron::Address::Null()){
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr); return;
+    }
+
+    std::string szRMAddr = rstRMAddr.AsString();
+    m_ActorPod->Forward({MPK_ADDRESS,
+            (const uint8_t *)szRMAddr.c_str(), szRMAddr.size()}, rstFromAddr);
+}

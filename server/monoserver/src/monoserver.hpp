@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/26/2016 14:12:16
+ *  Last Modified: 05/27/2016 16:01:51
  *
  *    Description: 
  *
@@ -47,7 +47,7 @@ class MonoServer final
 
     protected:
         ServiceCore *m_ServiceCore;
-        Theron::Address m_ServiceCoreAddress;
+        Theron::Address m_SCAddress;
 
     private:
         typedef struct _NetMessageDesc{

@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/27/2016 01:43:01
+ *  Last Modified: 05/27/2016 18:53:27
  *
  *    Description: 
  *
@@ -147,7 +147,7 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::
                 // valid RM, try to login
                 //
                 // TODO just make sure...
-                // if this happend, this is a serious error and actioin need be taken
+                // if this happend, this is a serious error and actioin should be taken
                 if(rstRMRecord.PodAddress == Theron::Address::Null()){
                     if(rstMPK.ID()){
                         m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
@@ -155,9 +155,23 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::
                     return;
                 }
 
-                // just forward, we don't need the response
-                // if adding succeeds, the player will report itself to SC
-                m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
+                // no respond, just forward, we don't need the response
+                if(!rstMPK.ID()){
+                    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
+                    return;
+                }
+
+                // need respond
+                auto fnDone = [nMPKID = rstMPK.ID(), rstAddr, this](
+                        const MessagePack &rstRMPK, const Theron::Address &){
+                    if(rstRMPK.Type() == MPK_OK){
+                        m_ActorPod->Forward(MPK_OK, rstAddr, nMPKID);
+                    }else{
+                        m_ActorPod->Forward(MPK_ERROR, rstAddr, nMPKID);
+                    }
+                };
+
+                m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress, fnDone);
                 return;
             }
         case QUERY_PENDING:
@@ -186,13 +200,14 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::
                 };
 
                 Install(szRandomName, fnOnGetRMAddress);
-                break;
+                return;
             }
         default:
             {
                 extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid query state");
                 g_MonoServer->Restart();
+                return;
             }
     }
 }

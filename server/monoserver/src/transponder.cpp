@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.cpp
  *        Created: 04/27/2016 00:05:15
- *  Last Modified: 05/25/2016 19:01:46
+ *  Last Modified: 05/27/2016 15:48:00
  *
  *    Description: 
  *
@@ -24,6 +24,7 @@
 
 Transponder::Transponder()
     : m_ActorPod(nullptr)
+    , m_ThisAddress(Theron::Address::Null())
 {
     auto fnDelayCmdQueue = [this](){
         if(!m_DelayCmdQ.empty()){
@@ -48,12 +49,16 @@ Transponder::~Transponder()
 
 Theron::Address Transponder::Activate()
 {
-    extern Theron::Framework *g_Framework;
-    m_ActorPod = new ActorPod(g_Framework, [this](){ InnTrigger(); },
-        [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
-            Operate(rstMPK, stFromAddr);
-        });
-    m_ThisAddress = m_ActorPod->GetAddress();
+    if(!m_ActorPod){
+        extern Theron::Framework *g_Framework;
+        m_ActorPod = new ActorPod(g_Framework, [this](){ InnTrigger(); },
+                [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
+                this->Operate(rstMPK, stFromAddr);
+                });
+        m_ThisAddress = m_ActorPod->GetAddress();
+    }
+
+    // TODO & TBD no idea of whether this is needed
     return m_ThisAddress;
 }
 

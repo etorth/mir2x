@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 05/03/2016 22:38:18
+ *  Last Modified: 05/27/2016 14:07:36
  *
  *    Description: put all non-atomic function as private
  *
@@ -47,6 +47,32 @@ class ServerMap: public Transponder
         using LockPointer      = std::shared_ptr<std::mutex>;
         template<typename T> using Vec2D = std::vector<std::vector<T>>;
 
+    protected:
+        // for region monitors
+        typedef struct _RegionMonitorRecord{
+            RegionMonitor   *Data;
+            Theron::Address  PodAddress;
+            bool             Need;
+            bool             CanRun;
+
+            _RegionMonitorRecord()
+                : Data(nullptr)
+                , PodAddress(Theron::Address::Null())
+                , Need(false)
+                , CanRun(false)
+            {}
+
+            bool Valid()
+            {
+                return Data && (PodAddress != Theron::Address::Null());
+            }
+
+            bool Ready()
+            {
+                return Need ? Valid() : true;
+            }
+        }RegionMonitorRecord;
+
     private:
         uint32_t m_ID;
         Theron::Address m_NullAddress;
@@ -59,7 +85,6 @@ class ServerMap: public Transponder
         Theron::Address m_CoreAddress;
 
         std::unordered_map<uint64_t, CharObject *> m_CharObjectM;
-
 
     private:
         void Operate(const MessagePack &, const Theron::Address &);
@@ -122,38 +147,37 @@ class ServerMap: public Transponder
     public:
         bool DropLocation(int, int, int, int *, int *);
 
+
     protected:
-        // for region monitors
-        typedef struct _RegionMonitorRecord {
-            RegionMonitor   *Data;
-            Theron::Address  PodAddress;
-            bool             Need;
-            bool             CanRun;
-
-            _RegionMonitorRecord()
-                : Data(nullptr)
-                , PodAddress(Theron::Address::Null())
-                , Need(false)
-                , CanRun(false)
-            {}
-
-            bool Valid()
-            {
-                return Data && (PodAddress != Theron::Address::Null());
-            }
-
-            bool Ready()
-            {
-                return Need ? Valid() : true;
-            }
-        } RegionMonitorRecord;
-
         Vec2D<RegionMonitorRecord>  m_RegionMonitorRecordV2D;
 
         void CheckRegionMonitorNeed();
         bool CheckRegionMonitorReady();
 
         void CreateRegionMonterV2D();
+
+        const Theron::Address &RegionMonitorAddress(int nRMX, int nRMY)
+        {
+            if(false
+                    || nRMY < 0
+                    || nRMY >= (int)m_RegionMonitorRecordV2D.size()
+                    || nRMX < 0
+                    || nRMX >= (int)m_RegionMonitorRecordV2D[0].size()){
+                return m_NullAddress;
+            }
+
+            return m_RegionMonitorRecordV2D[nRMY][nRMX].PodAddress;
+        }
+
+        const Theron::Address &RegionMonitorAddressC(int nX, int nY)
+        {
+            if(!ValidC(nX, nY)){ return m_NullAddress; }
+
+            int nGridX = nX / m_RegionW;
+            int nGridY = nY / m_RegionH;
+
+            return RegionMonitorAddress(nGridX, nGridY);
+        }
 
         const Theron::Address &RegionMonitorAddressP(int nX, int nY)
         {
@@ -162,7 +186,7 @@ class ServerMap: public Transponder
             int nGridX = nX / SYS_MAPGRIDXP / m_RegionW;
             int nGridY = nY / SYS_MAPGRIDYP / m_RegionH;
 
-            return m_RegionMonitorRecordV2D[nGridY][nGridX].PodAddress;
+            return RegionMonitorAddress(nGridX, nGridY);
         }
 
         bool RegionMonitorReady()
@@ -175,5 +199,6 @@ class ServerMap: public Transponder
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDMONSTER(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWMONSTER(const MessagePack &, const Theron::Address &);
+        void On_MPK_QUERYRMADDRESS(const MessagePack &, const Theron::Address &);
         void On_MPK_REGIONMONITORREADY(const MessagePack &, const Theron::Address &);
 };

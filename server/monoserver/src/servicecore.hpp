@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 05/27/2016 00:53:31
+ *  Last Modified: 05/27/2016 15:31:55
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -133,6 +133,7 @@ class ServiceCore: public Transponder
         }MapRecord;
 
     protected:
+        const RMRecord m_EmptyRMRecord;
         std::unordered_map<uint32_t, MapRecord>    m_MapRecordMap;
         std::unordered_map<uint32_t, PlayerRecord> m_PlayerRecordMap;
 

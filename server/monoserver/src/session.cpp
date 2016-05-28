@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 05/26/2016 15:17:33
+ *  Last Modified: 05/27/2016 15:39:46
  *
  *    Description: 
  *
@@ -24,7 +24,8 @@
 #include "monoserver.hpp"
 
 Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
-    : m_ID(nSessionID)
+    : SyncDriver()
+    , m_ID(nSessionID)
     , m_Socket(std::move(stSocket))
     , m_IP(m_Socket.remote_endpoint().address().to_string())
     , m_Port(m_Socket.remote_endpoint().port())

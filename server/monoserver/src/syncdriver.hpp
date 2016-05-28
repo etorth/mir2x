@@ -3,7 +3,7 @@
  *
  *       Filename: syncdriver.hpp
  *        Created: 04/27/2016 00:28:05
- *  Last Modified: 05/23/2016 10:48:02
+ *  Last Modified: 05/27/2016 18:43:02
  *
  *    Description: class which behaves as:
  *                      ``send-wait-receive-action-.....-send-wait-receive-action..."
@@ -52,12 +52,23 @@ class SyncDriver
                     {rstMB, 0, 0}, m_Receiver.GetAddress(), rstAddr) ? 0 : 1;
         }
 
-        // send with expection of response message
+        // send with expection of response message. this function firstly clear all cached
+        // message in the receiver, then send 1 and wait to the response, TODO there could
+        // be a potential bug that A send B a message without waiting for response, then A
+        // send B a message without waiting for response, however, B reply A incorrectly 
+        // for the first sending, and this response was caught during the waiting in the 
+        // second sending, then it's bug
+        //
+        // so if we sending a message to a actor without expection of a repsonse, we use
+        // SyncDriver().Forward(MPK, Addr); this would never cause problem since everytime
+        // the receiver's address is different (not sure, it's randomly generated)
+        //
         // TODO
         // it's very easy to be blocked if we don't put a timeout functionality here
+        //
         // input argument
         //      rstMPK      :
-        //      rstAddr  :
+        //      rstAddr     :
         //      pMPK        : to copy the respond message out
         //                    null if we need reponse but don't care what's the response is
         //
@@ -65,7 +76,8 @@ class SyncDriver
         //      0   : no error
         //      1   : send failed
         //      2   : send succeed but wait for response failed
-        //      3   : other unknown errors
+        //      3   : fail to pop the received message
+        //      4   : mysterious error, can rarely happen
         int Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, MessagePack *pMPK)
         {
             MessagePack stTmpMPK;
@@ -83,18 +95,26 @@ class SyncDriver
             if(!bSendRet){ return 1; }
 
             // 4. send succeed, wait for response
-            uint32_t nWaitRet = m_Receiver.Wait(1);
+            while(true){
+                uint32_t nWaitRet = m_Receiver.Wait(1);
 
-            if(nWaitRet != 1){ return 2; }
+                if(nWaitRet != 1){ return 2; }
 
-            // 6. handle response
-            //    now we already has 1 response in catcher, just copy it out
-            if(m_Catcher.Pop(stTmpMPK, stTmpAddress) && stTmpAddress == rstAddr){
+                // handle response
+                // now we already has >= 1 response in catcher
+                if(!m_Catcher.Pop(stTmpMPK, stTmpAddress)){ return 3; }
+
+                // since the syncdriver may send / receive multiple messages
+                // and we got a message from other than rstAddr occasioinally
+                if(stTmpAddress != rstAddr){ continue; }
+
+                // ok finally we get what we want
                 if(pMPK){ *pMPK = stTmpMPK; }
+
                 return 0;
             }
 
-            // 7. mysterious errors...
-            return 3;
+            // 5. mysterious errors...
+            return 4;
         }
 };

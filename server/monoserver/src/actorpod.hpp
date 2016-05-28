@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 05/08/2016 16:06:18
+ *  Last Modified: 05/27/2016 14:29:39
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -184,7 +184,7 @@ class ActorPod: public Theron::Actor
         virtual ~ActorPod() = default;
 
     protected:
-        void InnHandler(const MessagePack &, Theron::Address);
+        void InnHandler(const MessagePack &, const Theron::Address);
 
     public:
         // send a responding message without asking for reply

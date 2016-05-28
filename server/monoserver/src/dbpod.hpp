@@ -3,12 +3,16 @@
  *
  *       Filename: dbpod.hpp
  *        Created: 05/20/2016 14:31:19
- *  Last Modified: 05/26/2016 16:30:46
+ *  Last Modified: 05/27/2016 10:31:30
  *
  *    Description: so many db interaction, so enable the multi-thread support
  *                 when got a DBRecord, the corresponding DBConnection would
  *                 be locked, this is the reason I have to introduce DBHDR, by
  *                 the way I hate the name DBPod<N>::DBHDR
+ *
+ *                 do I really need a memory pool inside? NO, but since I need
+ *                 put RTTI support for the db unlock, which needs unique
+ *                 pointer with deleter, so I just make a memory pool inside.
  *
  *        Version: 1.0
  *       Revision: none
