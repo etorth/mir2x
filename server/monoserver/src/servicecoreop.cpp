@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/28/2016 01:08:28
+ *  Last Modified: 05/29/2016 02:29:59
  *
  *    Description: 
  *
@@ -23,6 +23,12 @@
 #include "actorpod.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
+
+void ServiceCore::On_MPK_DUMMY(const MessagePack &, const Theron::Address &)
+{
+    // do nothing since this is message send by anyomous SyncDriver
+    // to drive the anyomous trigger
+}
 
 // ServiceCore accepts net packages from *many* sessions and based on it to create
 // the player object for a one to one map
@@ -110,11 +116,8 @@ void ServiceCore::On_MPK_NEWCONNECTION(const MessagePack &rstMPK, const Theron::
 //     m_ActorPod->Forward({MPK_NEWPLAYER, stAMNP}, m_MapRecordMap[stAML.MapID].PodAddress);
 // }
 
-// monoserver ask for adding a new monster, need response,  make it as simple as
-// possible, since if the user found adding failed, they will add again, so
-// there is no need to make a pending list of adding,if failed we just report
-// the error to monoserver layer
-void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Address &rstAddr)
+void ServiceCore::On_MPK_ADDCHAROBJECT(
+        const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     AMAddCharObject stAMACO;
     std::memcpy(&stAMACO, rstMPK.Data(), sizeof(stAMACO));
@@ -124,54 +127,22 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::
     int nMapY = stAMACO.Common.MapY;
 
     if(!ValidP(nMapID, nMapX, nMapY)){
-        if(rstMPK.ID()){
-            m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
-        }
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
 
     const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
     switch(rstRMRecord.Query){
-        case QUERY_NA:
-            {
-                // this RM is not walkable
-                // TODO: this is a serious error actually
-                //       we need take action rather than just report failure
-                if(rstMPK.ID()){
-                    m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
-                }
-                return;
-            }
         case QUERY_OK:
             {
-                // valid RM, try to login
-                //
-                // TODO just make sure...
-                // if this happend, this is a serious error and actioin should be taken
+                // merely happen
                 if(rstRMRecord.PodAddress == Theron::Address::Null()){
-                    if(rstMPK.ID()){
-                        m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
-                    }
+                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
                     return;
                 }
 
-                // no respond, just forward, we don't need the response
-                if(!rstMPK.ID()){
-                    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
-                    return;
-                }
-
-                // need respond
-                auto fnDone = [nMPKID = rstMPK.ID(), rstAddr, this](
-                        const MessagePack &rstRMPK, const Theron::Address &){
-                    if(rstRMPK.Type() == MPK_OK){
-                        m_ActorPod->Forward(MPK_OK, rstAddr, nMPKID);
-                    }else{
-                        m_ActorPod->Forward(MPK_ERROR, rstAddr, nMPKID);
-                    }
-                };
-
-                m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress, fnDone);
+                m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
+                m_ActorPod->Forward(MPK_PENDING, rstRMRecord.PodAddress, rstMPK.ID());
                 return;
             }
         case QUERY_PENDING:
@@ -189,27 +160,28 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::
 
                 auto fnOnGetRMAddress = [stAMACO, nMapID, nMapX, nMapY, szRandomName, this](){
                     const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
+                    // 0. drive this anyomous trigger
+                    SyncDriver().Forward(MPK_DUMMY, m_ActorPod->GetAddress());
 
-                    // still waiting
+                    // 1. still waiting
                     if(rstRMRecord.Query == QUERY_PENDING){ return; }
 
-                    // ok we get valid address
+                    // 2. otherwise we won't need this trigger handler anymore
+                    Uninstall(szRandomName, true);
+
+                    // 3. ok to add the object
                     if(rstRMRecord.Valid()){
                         m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
                     }
-
-                    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
-                    Uninstall(szRandomName, true);
                 };
 
                 Install(szRandomName, fnOnGetRMAddress);
+                m_ActorPod->Forward(MPK_PENDING, rstFromAddr, rstMPK.ID());
                 return;
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid query state");
-                g_MonoServer->Restart();
+                m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
                 return;
             }
     }
@@ -283,6 +255,8 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
 
                 auto fnOnGetRMAddress = [stAMLQDB, nMapID, nMapX, nMapY, szRandomName, this](){
                     const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
+                    // drive this anyomous trigger
+                    SyncDriver().Forward(MPK_DUMMY, m_ActorPod->GetAddress());
 
                     // still pending
                     if(rstRMRecord.Query == QUERY_PENDING){ return; }
@@ -310,13 +284,14 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
                 };
 
                 Install(szRandomName, fnOnGetRMAddress);
-                break;
+                m_ActorPod->Forward(MPK_PENDING, rstRMRecord.PodAddress, rstMPK.ID());
+                return;
             }
         default:
             {
                 extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid query state");
-                g_MonoServer->Restart();
+                return;
             }
     }
 }

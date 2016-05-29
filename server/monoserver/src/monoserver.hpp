@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/28/2016 01:27:38
+ *  Last Modified: 05/29/2016 01:00:12
  *
  *    Description: 
  *
@@ -43,6 +43,7 @@ class MonoServer final
         size_t      m_LogBufSize;
         std::mutex  m_LogLock;
 
+        std::mutex  m_DlgLock; // for fl_alert()
         std::atomic<uint32_t> m_ObjectUID;
 
     protected:
@@ -127,11 +128,8 @@ class MonoServer final
     protected:
         std::chrono::time_point<std::chrono::system_clock> m_StartTime;
 
-    private:
-        bool AddObject();
-
     public:
-        bool AddMonster(uint32_t, uint32_t, uint32_t, uint32_t, int, int, bool);
+        void AddMonster(uint32_t, uint32_t, int, int, bool);
 
     public:
         uint32_t GetUID()

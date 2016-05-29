@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 05/27/2016 22:21:49
+ *  Last Modified: 05/29/2016 04:41:08
  *
  *    Description: put all non-atomic function as private
  *
@@ -48,39 +48,65 @@ class ServerMap: public Transponder
         template<typename T> using Vec2D = std::vector<std::vector<T>>;
 
     protected:
-        // for region monitors
         typedef struct _RegionMonitorRecord{
-            RegionMonitor   *Data;
-            Theron::Address  PodAddress;
-            bool             Need;
-            bool             CanRun;
+            RegionMonitor   *Data;              // pointer to RM
+            bool             Need;              // this RM can contain object
+            bool             Inform;            // we have informed the RM with the neighbor list
+            bool             RMReady;           // the RM actor is ready for message
+            Theron::Address  PodAddress;        // RM address
 
             _RegionMonitorRecord()
                 : Data(nullptr)
-                , PodAddress(Theron::Address::Null())
                 , Need(false)
-                , CanRun(false)
+                , Inform(false)
+                , RMReady(false)
+                , PodAddress(Theron::Address::Null())
             {}
 
+            // this RM is fully ready and valid for accepting message
             bool Valid()
             {
-                return Data && (PodAddress != Theron::Address::Null());
+                return true
+                    && Data    // allocated the instance
+                    && Need    // it's capable for containing objects
+                    && Inform  // we have sent the neighbor list
+                    && RMReady // the RM got the list and make self ready for accepting messages
+                    && (PodAddress != Theron::Address::Null()); // we have the RM's address
             }
 
+            // this RM won't need further initialization, it's possible to be invalid, invalid
+            // is always ``ready" since it needs no initialization
             bool Ready()
             {
                 return Need ? Valid() : true;
             }
+
+            // half-inited, we did everything, sent neighbor list, and now we are waiting 
+            // for RM's response for READY
+            bool Pending()
+            {
+                return true
+                    && Data     // allocated the instance
+                    && Need     // it's capable for containing objects
+                    && Inform   // we have sent the neighbor list
+                    && !RMReady // the RM got the list and make self ready for accepting messages
+                    && (PodAddress != Theron::Address::Null()); // we have the RM's address
+            }
         }RegionMonitorRecord;
 
     private:
-        uint32_t m_ID;
+        uint32_t m_MapID;
         bool   m_RegionMonitorReady;
         size_t m_RegionW;
         size_t m_RegionH;
 
         Theron::Address m_SCAddress;
         Metronome *m_Metronome;
+
+        // TODO
+        // RM V2D can only be create on time
+        // do I need to put the v 2d initialization in the constructor?
+        bool m_RMV2DCreated;
 
     private:
         void Operate(const MessagePack &, const Theron::Address &);
@@ -92,7 +118,7 @@ class ServerMap: public Transponder
     public:
         uint32_t ID()
         {
-            return m_ID;
+            return m_MapID;
         }
 
     private:

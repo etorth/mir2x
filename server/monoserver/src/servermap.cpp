@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/27/2016 22:21:14
+ *  Last Modified: 05/29/2016 04:49:11
  *
  *    Description: 
  *
@@ -32,12 +32,13 @@
 
 ServerMap::ServerMap(uint32_t nMapID)
     : Transponder()
-    , m_ID(nMapID)
+    , m_MapID(nMapID)
     , m_RegionMonitorReady(false)
     , m_RegionW(1)
     , m_RegionH(1)
     , m_SCAddress(Theron::Address::Null())
     , m_Metronome(nullptr)
+    , m_RMV2DCreated(false)
 {
     Load("./DESC.BIN");
 
@@ -122,73 +123,75 @@ void ServerMap::CheckRegionMonitorNeed()
                             || m_Mir2xMap.CanWalk(nGX, nGY, 2)
                             || m_Mir2xMap.CanWalk(nGX, nGY, 3)){
                         m_RegionMonitorRecordV2D[nRMY][nRMX].Need = true;
-                        goto __LABEL_GOTO_CHECKMONITORNEED_1;
+                        goto __LABEL_GOTO_SERVERMAP_CHECKREGIONMONITORNEED_DONE_1;
                     }
                 }
             }
-__LABEL_GOTO_CHECKMONITORNEED_1:;
+__LABEL_GOTO_SERVERMAP_CHECKREGIONMONITORNEED_DONE_1:;
         }
     }
 }
 
 bool ServerMap::CheckRegionMonitorReady()
 {
+    bool bReady = true;
     for(size_t nY = 0; nY < m_RegionMonitorRecordV2D.size(); ++nY){
         for(size_t nX = 0; nX < m_RegionMonitorRecordV2D[0].size(); ++nX){
             if(!m_RegionMonitorRecordV2D[nY][nX].Ready()){
-                m_RegionMonitorReady = false;
-                return false;
+                bReady = false;
+                goto __LABEL_GOTO_SERVERMAP_CHECKREGIONMONITORREADY_DONE_1;
             }
         }
     }
-    m_RegionMonitorReady = true;
-    return true;
+
+__LABEL_GOTO_SERVERMAP_CHECKREGIONMONITORREADY_DONE_1:
+    m_RegionMonitorReady = bReady;
+    return bReady;
 }
 
+// this function can only invoke one time
 void ServerMap::CreateRegionMonterV2D()
 {
-    if(RegionMonitorReady()){ return; }
-    if(CheckRegionMonitorReady()){ return; }
+    if(m_RMV2DCreated){ return; }
 
     for(size_t nGY = 0; nGY < m_RegionMonitorRecordV2D.size(); ++nGY){
         for(size_t nGX = 0; nGX < m_RegionMonitorRecordV2D[0].size(); ++nGX){
+            // 1. won't apply
+            if(!m_RegionMonitorRecordV2D[nGY][nGX].Need){ continue; }
+
+            // 2. won't need further initialization
             if(m_RegionMonitorRecordV2D[nGY][nGX].Ready()){ continue; }
 
-            auto pNewMonitor = new RegionMonitor(GetAddress());
-            auto stAddress   = pNewMonitor->Activate();
+            // ok now it applies and need further initialization
+            
+            // 3. clear the previous one
+            delete m_RegionMonitorRecordV2D[nGY][nGX].Data;
 
-            m_RegionMonitorRecordV2D[nGY][nGX].Data = pNewMonitor;
-            m_RegionMonitorRecordV2D[nGY][nGX].PodAddress = stAddress;
+            // 4. create the new one
+            auto pNewMonitor = new RegionMonitor(GetAddress(),
+                    m_MapID, nGX * m_RegionW, nGY * m_RegionH, m_RegionW, m_RegionH);
+
+            m_RegionMonitorRecordV2D[nGY][nGX].Data       = pNewMonitor;
+            m_RegionMonitorRecordV2D[nGY][nGX].Need       = true;
+            m_RegionMonitorRecordV2D[nGY][nGX].Inform     = false;
+            m_RegionMonitorRecordV2D[nGY][nGX].RMReady    = false;
+            m_RegionMonitorRecordV2D[nGY][nGX].PodAddress = pNewMonitor->Activate();
         }
     }
 
     for(size_t nGY = 0; nGY < m_RegionMonitorRecordV2D.size(); ++nGY){
         for(size_t nGX = 0; nGX < m_RegionMonitorRecordV2D[0].size(); ++nGX){
+            // 1. won't apply
             if(!m_RegionMonitorRecordV2D[nGY][nGX].Need){ continue; }
-            if(!m_RegionMonitorRecordV2D[nGY][nGX].Ready()){
-                // should be error
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "init region monitor failed");
-                m_RegionMonitorReady = false;
-                return;
-            }
 
-            // 1. send boundary information
-            AMRegion stAMRegion;
-            stAMRegion.X = m_RegionW * SYS_MAPGRIDXP * nGX;
-            stAMRegion.Y = m_RegionH * SYS_MAPGRIDYP * nGY;
-            stAMRegion.W = m_RegionW * SYS_MAPGRIDXP;
-            stAMRegion.H = m_RegionH * SYS_MAPGRIDYP;
+            // 2. no need for further initialization
+            if(m_RegionMonitorRecordV2D[nGY][nGX].Ready()){ continue; }
 
-            stAMRegion.LocX = nGX;
-            stAMRegion.LocY = nGY;
+            // 3. pending, half-inited
+            if(m_RegionMonitorRecordV2D[nGY][nGX].Pending()){ continue; }
 
-            stAMRegion.MapID = ID();
+            // ok now we need to send neighbor list
 
-            m_ActorPod->Forward({MPK_INITREGIONMONITOR,
-                    stAMRegion}, m_RegionMonitorRecordV2D[nGY][nGX].PodAddress);
-
-            // 2. send neighbor information
             std::vector<char> stStringAddress;
             for(int nDY = -1; nDY <= 1; ++nDY){
                 for(int nDX = -1; nDX <= 1; ++nDX){
@@ -209,9 +212,24 @@ void ServerMap::CreateRegionMonterV2D()
                 }
             }
 
+            auto fnOnR = [this, nGX, nGY](const MessagePack &rstMPK, const Theron::Address &){
+                if(rstMPK.Type() == MPK_OK && m_RegionMonitorRecordV2D[nGY][nGX].Pending()){
+                    m_RegionMonitorRecordV2D[nGY][nGX].RMReady = true;
+                    CheckRegionMonitorReady();
+                    return;
+                }
+
+                // ooops we have errors
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "init region monitor failed");
+                g_MonoServer->Restart();
+            };
+
             m_ActorPod->Forward({MPK_NEIGHBOR, (const uint8_t *)&stStringAddress[0],
-                        stStringAddress.size()}, m_RegionMonitorRecordV2D[nGY][nGX].PodAddress);
+                    stStringAddress.size()}, m_RegionMonitorRecordV2D[nGY][nGX].PodAddress, fnOnR);
+            m_RegionMonitorRecordV2D[nGY][nGX].Inform = true;
         }
     }
-    m_RegionMonitorReady = true;
+
+    m_RMV2DCreated = true;
 }

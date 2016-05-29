@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/28/2016 00:47:48
+ *  Last Modified: 05/28/2016 12:05:58
  *
  *    Description: 
  *
@@ -56,11 +56,11 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
         //         On_MPK_NEWMONSTER(rstMPK, rstFromAddr);
         //         break;
         //     }
-        case MPK_INITREGIONMONITOR:
-            {
-                On_MPK_INITREGIONMONITOR(rstMPK, rstFromAddr);
-                break;
-            }
+        // case MPK_INITREGIONMONITOR:
+        //     {
+        //         On_MPK_INITREGIONMONITOR(rstMPK, rstFromAddr);
+        //         break;
+        //     }
         case MPK_NEIGHBOR:
             {
                 On_MPK_NEIGHBOR(rstMPK, rstFromAddr);

@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/27/2016 22:16:39
+ *  Last Modified: 05/29/2016 01:30:26
  *
  *    Description: 
  *
@@ -54,6 +54,9 @@ int main()
 {
     std::srand(std::time(nullptr));
 
+    // start FLTK multithreading support
+    Fl::lock();
+
     g_Log                     = new Log("mir2x-monoserver-v0.1");
     g_TaskHub                 = new TaskHub();
     g_MainWindow              = new MainWindow();
@@ -70,5 +73,12 @@ int main()
 
     g_MainWindow->ShowAll();
 
-    return Fl::run();
+    while(Fl::wait() > 0){
+        if(Fl::thread_message()){
+            fl_alert("system request for restart");
+            exit(0);
+        }
+    }
+
+    return 0;
 }

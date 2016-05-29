@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/28/2016 00:47:53
+ *  Last Modified: 05/28/2016 13:02:28
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -76,7 +76,7 @@ class RegionMonitor: public Transponder
 {
     private:
         // used when query neighbor's opinion for cover check
-        enum QueryType: int {
+        enum QueryType: int{
             QUERY_NA,
             QUERY_OK,
             QUERY_ERROR,
@@ -180,15 +180,6 @@ class RegionMonitor: public Transponder
             {}
         }CharObjectRecord;
 
-    protected:
-        MoveRequest m_MoveRequest;
-
-    private:
-        std::vector<CharObjectRecord> m_CharObjectRecordV;
-
-    private:
-        Theron::Address m_MapAddress;
-
     private:
         // +---+---+---+      arrange it in the form:
         // | 0 | 1 | 2 |      for(nDY = -1; nDY <= 1; ++nDY){
@@ -214,33 +205,31 @@ class RegionMonitor: public Transponder
                 return PodAddress != Theron::Address::Null();
             }
         }NeighborRecord;
-        std::array<std::array<NeighborRecord, 3>, 3> m_NeighborV2D;
 
     private:
-        // region it takes in charge
-        int     m_X;
-        int     m_Y;
-        int     m_W;
-        int     m_H;
+        const uint32_t m_MapID;
 
-        int     m_LocX;
-        int     m_LocY;
-        bool    m_RegionDone;
-        bool    m_NeighborDone;
+        const int m_X;
+        const int m_Y;
+        const int m_W;
+        const int m_H;
 
-        uint32_t m_MapID;
+        const Theron::Address m_MapAddress;
+
+        MoveRequest m_MoveRequest;
+        std::vector<CharObjectRecord> m_CharObjectRecordV;
+        std::array<std::array<NeighborRecord, 3>, 3> m_NeighborV2D;
 
     public:
-        RegionMonitor(const Theron::Address &rstMapAddr)
+        RegionMonitor(const Theron::Address &rstMapAddr,
+                uint32_t nMapID, int nX, int nY, int nW, int nH)
             : Transponder()
+            , m_MapID(nMapID)
+            , m_X(nX)
+            , m_Y(nY)
+            , m_W(nW)
+            , m_H(nH)
             , m_MapAddress(rstMapAddr)
-            , m_X(0)
-            , m_Y(0)
-            , m_W(0)
-            , m_H(0)
-            , m_RegionDone(false)
-            , m_NeighborDone(false)
-            , m_MapID(0)
         {
             m_MoveRequest.Clear();
             // in transponder we alreay put ``DelayQueue" trigger inside
@@ -275,7 +264,7 @@ class RegionMonitor: public Transponder
         void On_MPK_CHECKCOVER(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
-        void On_MPK_INITREGIONMONITOR(const MessagePack &, const Theron::Address &);
+        // void On_MPK_INITREGIONMONITOR(const MessagePack &, const Theron::Address &);
 
     private:
         bool GroundValid(int, int, int);

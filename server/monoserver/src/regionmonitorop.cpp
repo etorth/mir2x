@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/26/2016 11:23:40
+ *  Last Modified: 05/28/2016 13:01:54
  *
  *    Description: 
  *
@@ -218,33 +218,7 @@ void RegionMonitor::On_MPK_CHECKCOVER(
 //     return;
 // }
 
-void RegionMonitor::On_MPK_INITREGIONMONITOR(
-        const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
-{
-    AMRegion stAMRegion;
-    std::memcpy(&stAMRegion, rstMPK.Data(), sizeof(stAMRegion));
-
-    m_X = stAMRegion.X;
-    m_Y = stAMRegion.Y;
-    m_W = stAMRegion.W;
-    m_H = stAMRegion.H;
-
-    m_MapID = stAMRegion.MapID;
-
-    m_LocX = stAMRegion.LocX;
-    m_LocY = stAMRegion.LocY;
-
-    m_RegionDone = true;
-    if(m_RegionDone && m_NeighborDone){
-        AMRegionMonitorReady stReady;
-        stReady.LocX = m_LocX;
-        stReady.LocY = m_LocY;
-        m_ActorPod->Forward(MessageBuf(MPK_REGIONMONITORREADY, stReady), rstFromAddr);
-    }
-}
-
-void RegionMonitor::On_MPK_NEIGHBOR(
-        const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void RegionMonitor::On_MPK_NEIGHBOR(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     char *pAddr = (char *)rstMPK.Data();
     for(size_t nY = 0; nY < 3; ++nY){
@@ -259,13 +233,8 @@ void RegionMonitor::On_MPK_NEIGHBOR(
         }
     }
 
-    m_NeighborDone = true;
-    if(m_RegionDone && m_NeighborDone){
-        AMRegionMonitorReady stReady;
-        stReady.LocX = m_LocX;
-        stReady.LocY = m_LocY;
-        m_ActorPod->Forward(MessageBuf(MPK_REGIONMONITORREADY, stReady), rstFromAddr);
-    }
+    // response with OK
+    m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
 }
 
 void RegionMonitor::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)

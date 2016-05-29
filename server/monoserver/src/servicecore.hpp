@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 05/27/2016 15:31:55
+ *  Last Modified: 05/29/2016 03:56:56
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -93,6 +93,18 @@ class ServiceCore: public Transponder
                 return MapID == 0; 
             }
 
+            bool Ready()
+            {
+                if(!MapID){ return false; }
+                return (Query == QUERY_NA) ? true : Valid();
+            }
+
+            bool Ready() const
+            {
+                if(!MapID){ return false; }
+                return (Query == QUERY_NA) ? true : Valid();
+            }
+
             bool Valid()
             {
                 // didn't check validation of RMX, RMY but this is enough
@@ -153,9 +165,11 @@ class ServiceCore: public Transponder
 
     private:
         const RMRecord &GetRMRecord(uint32_t, int, int);
+        int QueryRMAddress(uint32_t, int, int, bool);  // dangerious function...
 
     private:
         void On_MPK_LOGIN(const MessagePack &, const Theron::Address &);
+        void On_MPK_DUMMY(const MessagePack &, const Theron::Address &);
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
         void On_MPK_LOGINQUERYDB(const MessagePack &, const Theron::Address &);
         void On_MPK_PLAYERPHATOM(const MessagePack &, const Theron::Address &);

@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/28/2016 00:36:37
+ *  Last Modified: 05/29/2016 04:51:42
  *
  *    Description: 
  *
@@ -48,7 +48,8 @@ void ServerMap::On_MPK_REGIONMONITORREADY(const MessagePack &rstMPK, const Thero
 {
     AMRegionMonitorReady stAMMR;
     std::memcpy(&stAMMR, rstMPK.Data(), sizeof(stAMMR));
-    m_RegionMonitorRecordV2D[stAMMR.LocY][stAMMR.LocX].CanRun = true;
+
+    m_RegionMonitorRecordV2D[stAMMR.LocY][stAMMR.LocX].RMReady = true;
     CheckRegionMonitorReady();
 }
 
@@ -135,28 +136,50 @@ void ServerMap::On_MPK_REGIONMONITORREADY(const MessagePack &rstMPK, const Thero
 //     m_ActorPod->Forward({MPK_NEWMONSTER, stAMNM}, stAddr);
 // }
 //
+
+// query the RM address, respondse
+// 1. none          didn't ask for response
+// 2. MPK_ADDRESS   everything is ready
+// 4. MPK_ERROR     failed
+// 5. MPK_PENDING   the RM record is not ready yet, ask later
+//
 void ServerMap::On_MPK_QUERYRMADDRESS(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     AMQueryRMAddress stAMQRA;
     std::memcpy(&stAMQRA, rstMPK.Data(), sizeof(stAMQRA));
 
-    if(!RegionMonitorReady()){
-        CreateRegionMonterV2D();
-
-        if(!RegionMonitorReady()){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "create region monitors for server map failed");
-            g_MonoServer->Restart();
-        }
-    }
-
-    auto rstRMAddr = RegionMonitorAddress(stAMQRA.RMX, stAMQRA.RMY);
-    if(rstRMAddr == Theron::Address::Null()){
+    // 1. check parameters
+    if(stAMQRA.MapID != m_MapID
+            || stAMQRA.RMY < 0 || (size_t)stAMQRA.RMY >= m_RegionMonitorRecordV2D.size()
+            || stAMQRA.RMX < 0 || (size_t)stAMQRA.RMX >= m_RegionMonitorRecordV2D[0].size()){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
 
+    // 2. pending state
+    if(!(RegionMonitorReady() || CheckRegionMonitorReady())){
+        // TODO: why I didn't put it in the ctor?
+        // when create the RM's in CreateRegionMonterV2D(), I need to access
+        // m_ActorPod->GetAddress() and pass it as one parameter to RM, but
+        // inside the ctor the ServerMap is not activated yet, it's activated
+        // by ServiceCore outside
+        //
+        CreateRegionMonterV2D();
+        m_ActorPod->Forward(MPK_PENDING, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    // 3. all set we can anwser this query
+    if(!m_RegionMonitorRecordV2D[stAMQRA.RMY][stAMQRA.RMX].Valid()){
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+    }
+
+    auto rstRMAddr = m_RegionMonitorRecordV2D[stAMQRA.RMY][stAMQRA.RMX].PodAddress;
+    if(rstRMAddr == Theron::Address::Null()){
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+    }
+
     std::string szRMAddr = rstRMAddr.AsString();
     m_ActorPod->Forward({MPK_ADDRESS,
-            (const uint8_t *)szRMAddr.c_str(), 1 + szRMAddr.size()}, rstFromAddr, rstMPK.ID());
+            (const uint8_t *)szRMAddr.c_str(), szRMAddr.size() + 1}, rstFromAddr, rstMPK.ID());
 }

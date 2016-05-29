@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 05/27/2016 14:30:15
+ *  Last Modified: 05/29/2016 05:04:43
  *
  *    Description: 
  *
@@ -85,7 +85,8 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFro
             // 1. assume monoserver is ready when invoking callback
             // 2. AddLog() is well defined in multithread environment
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception in ActorPod");
+            g_MonoServer->AddLog(LOGTYPE_WARNING,
+                    "caught exception in ActorPod: %s", rstMPK.Name());
         }
     }else{
         // TODO & TBD
@@ -98,7 +99,14 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFro
     // every time when a message caught, we call trigger
 __ACTORPOD_INNHANDLER_CALL_TRIGGER:
     if(m_Trigger){
-        m_Trigger();
+        try{
+            m_Trigger();
+        }catch(...){
+            // 1. assume monoserver is ready when invoking callback
+            // 2. AddLog() is well defined in multithread environment
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception in ActorPod trigger");
+        }
     }
 }
 

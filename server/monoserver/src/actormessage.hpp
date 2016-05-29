@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/28/2016 01:26:31
+ *  Last Modified: 05/29/2016 02:26:16
  *
  *    Description: 
  *
@@ -20,13 +20,16 @@
 
 #pragma once
 #include <cstdint>
-
 enum MessagePackType: int{
     MPK_UNKNOWN = 0,
-    MPK_HI,
+    MPK_DUMMY,
     MPK_OK,
-    MPK_CHECKCOVEROK,
     MPK_ERROR,
+    MPK_BADARG,
+    MPK_NA,
+    MPK_PENDING,
+    MPK_HI,
+    MPK_CHECKCOVEROK,
     MPK_PING,
     MPK_LOGIN,
     MPK_REFUSE,
@@ -113,9 +116,6 @@ typedef union {
     struct _Common{
         uint8_t Type;
         bool AllowVoid;
-
-        uint32_t UID;
-        uint32_t AddTime;
 
         uint32_t MapID;
         int MapX;

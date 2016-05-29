@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 05/09/2016 10:43:38
+ *  Last Modified: 05/29/2016 02:26:49
  *
  *    Description: message class for actor system
  *
@@ -260,41 +260,50 @@ class InnMessagePack final
         const char *Name()
         {
             switch(m_Type){
-                case MPK_UNKNOWN:                      return "MPK_UNKNOWN";
-                case MPK_HI:                           return "MPK_HI";
-                case MPK_OK:                           return "MPK_OK";
-                case MPK_ERROR:                        return "MPK_ERROR";
-                case MPK_PING:                         return "MPK_PING";
-                case MPK_LOGIN:                        return "MPK_LOGIN";
-                case MPK_REFUSE:                       return "MPK_REFUSE";
-                case MPK_MOVE:                         return "MPK_MOVE";
-                case MPK_HELLO:                        return "MPK_HELLO";
-                case MPK_ACTIVATE:                     return "MPK_ACTIVATE";
-                case MPK_METRONOME:                    return "MPK_METRONOME";
-                case MPK_ADDMONSTER:                   return "MPK_ADDMONSTER";
-                case MPK_NEWPLAYER:                    return "MPK_NEWPLAYER";
-                case MPK_NEWCONNECTION:                return "MPK_NEWCONNECTION";
-                case MPK_PLAYERPHATOM:                 return "MPK_PLAYERPHATOM";
-                case MPK_QUERYLOCATION:                return "MPK_QUERYLOCATION";
-                case MPK_TRYMOVE:                      return "MPK_TRYMOVE";
-                case MPK_TRYSPACEMOVE:                 return "MPK_TRYSPACEMOVE";
-                case MPK_MOVEOK:                       return "MPK_MOVEOK";
-                case MPK_COMMITMOVE:                   return "MPK_COMMITMOVE";
-                case MPK_LOCATIION:                    return "MPK_LOCATIION";
-                case MPK_MASTERPERSONA:                return "MPK_MASTERPERSONA";
-                case MPK_INITREGIONMONITOR:            return "MPK_INITREGIONMONITOR";
-                case MPK_MAPID:                        return "MPK_MAPID";
-                case MPK_READY:                        return "MPK_READY";
-                case MPK_LEAVE:                        return "MPK_LEAVE";
-                case MPK_REGIONMONITORREADY:           return "MPK_REGIONMONITORREADY";
-                case MPK_NEIGHBOR:                     return "MPK_NEIGHBOR";
-                case MPK_NEWMONSTER:                   return "MPK_NEWMONSTER";
-                case MPK_LOGINOK:                      return "MPK_LOGINOK";
-                case MPK_FORWARDCM:                    return "MPK_FORWARDCM";
-                case MPK_CHECKCOVER:                   return "MPK_CHECKCOVER";
-                case MPK_QUERYRMADDRESS:               return "MPK_QUERYRMADDRESS";
-                case MPK_ADDRESS:                      return "MPK_ADDRESS";
-                default:                               return "MPK_????";
+                case MPK_UNKNOWN:                     return "MPK_UNKNOWN";
+                case MPK_DUMMY:                       return "MPK_DUMMY";
+                case MPK_OK:                          return "MPK_OK";
+                case MPK_ERROR:                       return "MPK_ERROR";
+                case MPK_BADARG:                      return "MPK_BADARG";
+                case MPK_NA:                          return "MPK_NA";
+                case MPK_PENDING:                     return "MPK_PENDING";
+                case MPK_HI:                          return "MPK_HI";
+                case MPK_CHECKCOVEROK:                return "MPK_CHECKCOVEROK";
+                case MPK_PING:                        return "MPK_PING";
+                case MPK_LOGIN:                       return "MPK_LOGIN";
+                case MPK_REFUSE:                      return "MPK_REFUSE";
+                case MPK_MOVE:                        return "MPK_MOVE";
+                case MPK_HELLO:                       return "MPK_HELLO";
+                case MPK_ACTIVATE:                    return "MPK_ACTIVATE";
+                case MPK_METRONOME:                   return "MPK_METRONOME";
+                case MPK_LEAVE:                       return "MPK_LEAVE";
+                case MPK_ADDMONSTER:                  return "MPK_ADDMONSTER";
+                case MPK_NEWPLAYER:                   return "MPK_NEWPLAYER";
+                case MPK_NEWCONNECTION:               return "MPK_NEWCONNECTION";
+                case MPK_PLAYERPHATOM:                return "MPK_PLAYERPHATOM";
+                case MPK_QUERYLOCATION:               return "MPK_QUERYLOCATION";
+                case MPK_TRYMOVE:                     return "MPK_TRYMOVE";
+                case MPK_TRYSPACEMOVE:                return "MPK_TRYSPACEMOVE";
+                case MPK_MOVEOK:                      return "MPK_MOVEOK";
+                case MPK_COMMITMOVE:                  return "MPK_COMMITMOVE";
+                case MPK_LOCATIION:                   return "MPK_LOCATIION";
+                case MPK_MASTERPERSONA:               return "MPK_MASTERPERSONA";
+                case MPK_INITREGIONMONITOR:           return "MPK_INITREGIONMONITOR";
+                case MPK_MAPID:                       return "MPK_MAPID";
+                case MPK_READY:                       return "MPK_READY";
+                case MPK_REGIONMONITORREADY:          return "MPK_REGIONMONITORREADY";
+                case MPK_NEIGHBOR:                    return "MPK_NEIGHBOR";
+                case MPK_NEWMONSTER:                  return "MPK_NEWMONSTER";
+                case MPK_LOGINOK:                     return "MPK_LOGINOK";
+                case MPK_FORWARDCM:                   return "MPK_FORWARDCM";
+                case MPK_CHECKCOVER:                  return "MPK_CHECKCOVER";
+                case MPK_QUERYRMADDRESS:              return "MPK_QUERYRMADDRESS";
+                case MPK_ADDRESS:                     return "MPK_ADDRESS";
+                case MPK_LOGINQUERYDB:                return "MPK_LOGINQUERYDB";
+                case MPK_NETPACKAGE:                  return "MPK_NETPACKAGE";
+                case MPK_CHAROBJECTINFO:              return "MPK_CHAROBJECTINFO";
+                case MPK_ADDCHAROBJECT:               return "MPK_ADDCHAROBJECT";
+                default:                              return "MPK_????";
             }
             return "MPK_????";
         }
@@ -302,42 +311,50 @@ class InnMessagePack final
         const char *Name() const
         {
             switch(m_Type){
-                case MPK_UNKNOWN:                      return "MPK_UNKNOWN";
-                case MPK_HI:                           return "MPK_HI";
-                case MPK_OK:                           return "MPK_OK";
-                case MPK_ERROR:                        return "MPK_ERROR";
-                case MPK_PING:                         return "MPK_PING";
-                case MPK_LOGIN:                        return "MPK_LOGIN";
-                case MPK_REFUSE:                       return "MPK_REFUSE";
-                case MPK_MOVE:                         return "MPK_MOVE";
-                case MPK_HELLO:                        return "MPK_HELLO";
-                case MPK_ACTIVATE:                     return "MPK_ACTIVATE";
-                case MPK_METRONOME:                    return "MPK_METRONOME";
-                case MPK_ADDMONSTER:                   return "MPK_ADDMONSTER";
-                case MPK_NEWPLAYER:                    return "MPK_NEWPLAYER";
-                case MPK_NEWCONNECTION:                return "MPK_NEWCONNECTION";
-                case MPK_PLAYERPHATOM:                 return "MPK_PLAYERPHATOM";
-                case MPK_QUERYLOCATION:                return "MPK_QUERYLOCATION";
-                case MPK_TRYMOVE:                      return "MPK_TRYMOVE";
-                case MPK_TRYSPACEMOVE:                 return "MPK_TRYSPACEMOVE";
-                case MPK_MOVEOK:                       return "MPK_MOVEOK";
-                case MPK_COMMITMOVE:                   return "MPK_COMMITMOVE";
-                case MPK_LOCATIION:                    return "MPK_LOCATIION";
-                case MPK_MASTERPERSONA:                return "MPK_MASTERPERSONA";
-                case MPK_INITREGIONMONITOR:            return "MPK_INITREGIONMONITOR";
-                case MPK_MAPID:                        return "MPK_MAPID";
-                case MPK_READY:                        return "MPK_READY";
-                case MPK_LEAVE:                        return "MPK_LEAVE";
-                case MPK_REGIONMONITORREADY:           return "MPK_REGIONMONITORREADY";
-                case MPK_NEIGHBOR:                     return "MPK_NEIGHBOR";
-                case MPK_NEWMONSTER:                   return "MPK_NEWMONSTER";
-                case MPK_LOGINOK:                      return "MPK_LOGINOK";
-                case MPK_FORWARDCM:                    return "MPK_FORWARDCM";
-                case MPK_CHECKCOVER:                   return "MPK_CHECKCOVER";
-                case MPK_QUERYRMADDRESS:               return "MPK_QUERYRMADDRESS";
-                case MPK_ADDRESS:                      return "MPK_ADDRESS";
-                case MPK_CHECKCOVEROK:                 return "MPK_CHECKCOVEROK";
-                default:                               return "MPK_????";
+                case MPK_UNKNOWN:                     return "MPK_UNKNOWN";
+                case MPK_DUMMY:                       return "MPK_DUMMY";
+                case MPK_OK:                          return "MPK_OK";
+                case MPK_ERROR:                       return "MPK_ERROR";
+                case MPK_BADARG:                      return "MPK_BADARG";
+                case MPK_NA:                          return "MPK_NA";
+                case MPK_PENDING:                     return "MPK_PENDING";
+                case MPK_HI:                          return "MPK_HI";
+                case MPK_CHECKCOVEROK:                return "MPK_CHECKCOVEROK";
+                case MPK_PING:                        return "MPK_PING";
+                case MPK_LOGIN:                       return "MPK_LOGIN";
+                case MPK_REFUSE:                      return "MPK_REFUSE";
+                case MPK_MOVE:                        return "MPK_MOVE";
+                case MPK_HELLO:                       return "MPK_HELLO";
+                case MPK_ACTIVATE:                    return "MPK_ACTIVATE";
+                case MPK_METRONOME:                   return "MPK_METRONOME";
+                case MPK_LEAVE:                       return "MPK_LEAVE";
+                case MPK_ADDMONSTER:                  return "MPK_ADDMONSTER";
+                case MPK_NEWPLAYER:                   return "MPK_NEWPLAYER";
+                case MPK_NEWCONNECTION:               return "MPK_NEWCONNECTION";
+                case MPK_PLAYERPHATOM:                return "MPK_PLAYERPHATOM";
+                case MPK_QUERYLOCATION:               return "MPK_QUERYLOCATION";
+                case MPK_TRYMOVE:                     return "MPK_TRYMOVE";
+                case MPK_TRYSPACEMOVE:                return "MPK_TRYSPACEMOVE";
+                case MPK_MOVEOK:                      return "MPK_MOVEOK";
+                case MPK_COMMITMOVE:                  return "MPK_COMMITMOVE";
+                case MPK_LOCATIION:                   return "MPK_LOCATIION";
+                case MPK_MASTERPERSONA:               return "MPK_MASTERPERSONA";
+                case MPK_INITREGIONMONITOR:           return "MPK_INITREGIONMONITOR";
+                case MPK_MAPID:                       return "MPK_MAPID";
+                case MPK_READY:                       return "MPK_READY";
+                case MPK_REGIONMONITORREADY:          return "MPK_REGIONMONITORREADY";
+                case MPK_NEIGHBOR:                    return "MPK_NEIGHBOR";
+                case MPK_NEWMONSTER:                  return "MPK_NEWMONSTER";
+                case MPK_LOGINOK:                     return "MPK_LOGINOK";
+                case MPK_FORWARDCM:                   return "MPK_FORWARDCM";
+                case MPK_CHECKCOVER:                  return "MPK_CHECKCOVER";
+                case MPK_QUERYRMADDRESS:              return "MPK_QUERYRMADDRESS";
+                case MPK_ADDRESS:                     return "MPK_ADDRESS";
+                case MPK_LOGINQUERYDB:                return "MPK_LOGINQUERYDB";
+                case MPK_NETPACKAGE:                  return "MPK_NETPACKAGE";
+                case MPK_CHAROBJECTINFO:              return "MPK_CHAROBJECTINFO";
+                case MPK_ADDCHAROBJECT:               return "MPK_ADDCHAROBJECT";
+                default:                              return "MPK_????";
             }
             return "MPK_????";
         }

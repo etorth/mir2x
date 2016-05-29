@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/28/2016 01:36:49
+ *  Last Modified: 05/29/2016 01:31:51
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 #include <vector>
 #include <cstdarg>
 #include <cstdlib>
+#include <FL/fl_ask.H>
 
 #include "log.hpp"
 #include "dbpod.hpp"
@@ -157,70 +158,27 @@ void MonoServer::Launch()
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
 
-    uint32_t nUID       = 0;
-    uint32_t nAddTime   = 0;
-    uint32_t nMonsterID = 0;
-
-    {
-        nUID       = GetUID();
-        nAddTime   = GetTimeTick();
-        nMonsterID = 1;
-
-        AddMonster(1, nUID, nAddTime, 1, 765, 573, false);
-        if(MonsterValid(nUID, nAddTime)){
-            AddLog(LOGTYPE_INFO,
-                    "Added: (MonsterID, UID, AddTime) = (%d, %d, %d)", nMonsterID, nUID, nAddTime);
-        }
-    }
-
-    {
-        nUID       = GetUID();
-        nAddTime   = GetTimeTick();
-        nMonsterID = 1;
-
-        AddMonster(1, nUID, nAddTime, 1, 442, 713, false);
-        if(MonsterValid(nUID, nAddTime)){
-            AddLog(LOGTYPE_INFO,
-                    "Added: (MonsterID, UID, AddTime) = (%d, %d, %d)", nMonsterID, nUID, nAddTime);
-        }
-    }
-
-    {
-        nUID       = GetUID();
-        nAddTime   = GetTimeTick();
-        nMonsterID = 1;
-
-        AddMonster(1, nUID, nAddTime, 1, 836, 530, false);
-        if(MonsterValid(nUID, nAddTime)){
-            AddLog(LOGTYPE_INFO,
-                    "Added: (MonsterID, UID, AddTime) = (%d, %d, %d)", nMonsterID, nUID, nAddTime);
-        }
-    }
-
-    {
-        nUID       = GetUID();
-        nAddTime   = GetTimeTick();
-        nMonsterID = 1;
-
-        AddMonster(1, nUID, nAddTime, 1, 932, 622, false);
-        if(MonsterValid(nUID, nAddTime)){
-            AddLog(LOGTYPE_INFO,
-                    "Added: (MonsterID, UID, AddTime) = (%d, %d, %d)", nMonsterID, nUID, nAddTime);
-        }
-    }
-
-    // AddMonster(1, nUID, nAddTime, 1, 765, 573, false);
-    // AddMonster(1, nUID, nAddTime, 1, 442, 713, false);
-    // AddMonster(1, nUID, nAddTime, 1, 836, 530, false);
-    // AddMonster(1, nUID, nAddTime, 1, 932, 622, false);
-
-    // TODO
-    // dead lock when there is too many monsters???
+    AddMonster(1, 1, 765, 573, false);
+    // AddMonster(1, 1, 442, 713, false);
+    // AddMonster(1, 1, 836, 530, false);
+    // AddMonster(1, 1, 932, 622, false);
 }
 
 void MonoServer::Restart()
 {
-    exit(0);
+    AddLog(LOGTYPE_WARNING, "system request for restart");
+    {
+        std::lock_guard<std::mutex> stLG(m_DlgLock);
+
+        // TODO: FLTK multi-threading support is weak, see:
+        // http://www.fltk.org/doc-1.3/advanced.html#advanced_multithreading
+
+        static int nDumb = 0;
+
+        Fl::lock();
+        Fl::awake(&nDumb);
+        Fl::unlock();
+    }
 }
 
 // I have to put it here, since in actorpod.hpp I used MonoServer::AddLog()
@@ -330,31 +288,24 @@ bool MonoServer::InitMonsterItem()
     return true;
 }
 
-// request adding a new monster without response, after this the externa layer
-// can check whether the monster exists
+// request to add a new monster, this function won't expect a response
 //
-// TODO & TBD
+// TODO & TBD: why I won't put a response here? it will introduce huge complexity
+// for me if this function can be informed with success or failure. i.e.
+// 1. the map is invalid currently
+// 2. the coresponding RM is invalid currently
 //
-// I don't like the response here, since this introduce huge complexity
-// if I am waiting for a response, then following thing should be considered
+// the I need two-hop response callback, and if map is valid but RM address is
+// PENDING, then I have to make a anomyous trigger to add the monster in, and
+// respond here we ask for it.
 //
-// 1. map is not ready
-// 2. requested RM on the map is not ready
-//
-// to handle these we have use many response callback, and since when RM is
-// not ready it's in QUERY_PENDING state, I have to use anomyous trigger to
-// handle it.
-//
-// instead I specified the monster with (UID, AddTime), and check whether
-// this monster exist? this should be much simpler
-void MonoServer::AddMonster(uint32_t nMonsterID,
-        uint32_t nUID, uint32_t nAddTime, uint32_t nMapID, int nX, int nY, bool bAllowVoid)
+// but if no response, we never know this function is successful or not because
+// we won't store monster (UID, AddTime)
+void MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bAllowVoid)
 {
     AMAddCharObject stAMACO;
     stAMACO.Type = OBJECT_MONSTER;
 
-    stAMACO.Common.UID       = nUID;
-    stAMACO.Common.AddTime   = nAddTime;
     stAMACO.Common.MapID     = nMapID;
     stAMACO.Common.MapX      = nX;
     stAMACO.Common.MapY      = nY;
@@ -363,5 +314,30 @@ void MonoServer::AddMonster(uint32_t nMonsterID,
 
     stAMACO.Monster.MonsterID = nMonsterID;
 
-    SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_SCAddress);
+    AddLog(LOGTYPE_INFO, "add monster, MonsterID = %d", nMonsterID);
+
+    MessagePack stRMPK;
+    SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_SCAddress, &stRMPK);
+    switch(stRMPK.Type()){
+        case MPK_OK:
+            {
+                AddLog(LOGTYPE_INFO, "add monster: adding succeeds");
+                break;
+            }
+        case MPK_PENDING:
+            {
+                AddLog(LOGTYPE_INFO, "add monster: operation pending");
+                break;
+            }
+        case MPK_ERROR:
+            {
+                AddLog(LOGTYPE_WARNING, "add monster: operation failed");
+                break;
+            }
+        default:
+            {
+                AddLog(LOGTYPE_WARNING, "unsupported message: %s", stRMPK.Name());
+                break;
+            }
+    }
 }
