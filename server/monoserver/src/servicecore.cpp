@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/29/2016 13:30:03
+ *  Last Modified: 05/30/2016 01:25:04
  *
  *    Description: 
  *
@@ -65,6 +65,11 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
         case MPK_NEWCONNECTION:
             {
                 On_MPK_NEWCONNECTION(rstMPK, rstAddr);
+                break;
+            }
+        case MPK_NETPACKAGE:
+            {
+                On_MPK_NETPACKAGE(rstMPK, rstAddr);
                 break;
             }
         // case MPK_LOGIN:

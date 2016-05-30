@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/29/2016 17:22:15
+ *  Last Modified: 05/29/2016 23:35:36
  *
  *    Description: 
  *
@@ -41,7 +41,18 @@ MonoServer::MonoServer()
     , m_LogBufSize(0)
     , m_ObjectUID(1)
 {
+    // 1. initialization of time point
     m_StartTime = std::chrono::system_clock::now();
+
+    // 2. initialization of client message desc
+    m_NetMessageDescV[CM_UNKNOWN  ] = {CM_UNKNOWN,   0, true,  "CM_UNKNOWN"  };
+    m_NetMessageDescV[CM_OK       ] = {CM_OK,        0, true,  "CM_OK"       };
+    m_NetMessageDescV[CM_ERROR    ] = {CM_ERROR,     0, true,  "CM_ERROR"    };
+    m_NetMessageDescV[CM_WALK     ] = {CM_WALK,      0, true,  "CM_WALK"     };
+    m_NetMessageDescV[CM_PING     ] = {CM_PING,      0, true,  "CM_PING"     };
+    m_NetMessageDescV[CM_LOGIN    ] = {CM_LOGIN,     0, false, "CM_LOGIN"    };
+    m_NetMessageDescV[CM_BROADCAST] = {CM_BROADCAST, 0, true,  "CM_BROADCAST"};
+    m_NetMessageDescV[CM_MOTION   ] = {CM_MOTION,    0, true,  "CM_MOTION"   };
 }
 
 MonoServer::~MonoServer()

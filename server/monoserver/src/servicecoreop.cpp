@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/29/2016 18:41:03
+ *  Last Modified: 05/29/2016 23:10:45
  *
  *    Description: 
  *
@@ -91,7 +91,7 @@ void ServiceCore::On_MPK_NEWCONNECTION(const MessagePack &rstMPK, const Theron::
     uint32_t nSessionID = *((uint32_t *)rstMPK.Data());
     if(nSessionID){
         extern NetPodN *g_NetPodN;
-        g_NetPodN->Launch(nSessionID, GetAddress());
+        g_NetPodN->Activate(nSessionID, GetAddress());
     }
 }
 

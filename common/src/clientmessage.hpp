@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 05/24/2016 21:07:36
+ *  Last Modified: 05/29/2016 23:43:12
  *
  *    Description: net message used by client and mono-server
  *
@@ -23,6 +23,7 @@
 
 enum: uint8_t
 {
+    CM_UNKNOWN = 0,
     CM_OK,
     CM_ERROR,
     CM_WALK,

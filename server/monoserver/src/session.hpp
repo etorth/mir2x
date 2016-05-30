@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 05/26/2016 14:35:13
+ *  Last Modified: 05/30/2016 01:12:40
  *
  *    Description: TODO & TBD
  *                 I have a decision, now class session *only* communicate with actor
@@ -140,19 +140,21 @@ class Session: public SyncDriver
         int Launch(const Theron::Address &rstAddr)
         {
             if(rstAddr == Theron::Address::Null()){ return 1; }
-            DoReadHC();
+            m_TargetAddress = rstAddr;
 
+            DoReadHC();
             return 0;
         }
 
         void Shutdown()
         {
             m_Socket.close();
+            m_TargetAddress = Theron::Address::Null();
         }
 
         bool Valid()
         {
-            return m_Socket.is_open();
+            return m_Socket.is_open() && m_TargetAddress != Theron::Address::Null();
         }
 
     public:

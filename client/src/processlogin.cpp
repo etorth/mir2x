@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 04/05/2016 23:26:55
+ *  Last Modified: 05/30/2016 00:51:45
  *
  *    Description: 
  *
@@ -118,13 +118,22 @@ void ProcessLogin::DoLogin()
         g_Log->AddLog(LOGTYPE_INFO,
                 "login account: (%s:%s)", m_IDBox.Content(), m_PasswordBox.Content());
 
-        static CMLogin stLog;
-        std::strncpy(stLog.ID, m_IDBox.Content(), sizeof(stLog.ID) - 1);
-        std::strncpy(stLog.Password, m_PasswordBox.Content(), sizeof(stLog.Password) - 1);
+        std::string szID  = m_IDBox.Content();
+        std::string szPWD = m_PasswordBox.Content();
+
+        static std::vector<char> stLoginInfo;
+        stLoginInfo.resize(4); // reserve for length
+
+        stLoginInfo.insert(stLoginInfo.end(), szID.begin(), szID.end());
+        stLoginInfo.push_back('\0');
+
+        stLoginInfo.insert(stLoginInfo.end(), szPWD.begin(), szPWD.end());
+        stLoginInfo.push_back('\0');
+
+        // TODO: I ignored the big endian little endian problem
+        (*(uint32_t *)(&stLoginInfo[0])) = (uint32_t)(stLoginInfo.size() - 4);
 
         extern Game *g_Game;
-        g_Log->AddLog(LOGTYPE_INFO, "address = %p", &stLog);
-
-        g_Game->Send(CM_LOGIN, stLog);
+        g_Game->Send(CM_LOGIN, (const uint8_t *)(&stLoginInfo[0]), stLoginInfo.size());
     }
 }

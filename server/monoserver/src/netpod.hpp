@@ -3,7 +3,7 @@
  *
  *       Filename: netpod.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 05/26/2016 14:28:59
+ *  Last Modified: 05/30/2016 01:19:56
  *
  *    Description: this will serve as a stand-alone plugin for monoserver, it creates
  *                 with general info. and nothing will be done till Launch()
@@ -52,6 +52,7 @@
 #include <thread>
 #include <cstdint>
 #include <asio.hpp>
+#include <Theron/Theron.h>
 
 #include "session.hpp"
 #include "monoserver.hpp"
@@ -59,7 +60,6 @@
 #include "syncdriver.hpp"
 #include "messagepack.hpp"
 
-class Session;
 template<size_t PodSize> class NetPod: public SyncDriver
 {
     private:
@@ -186,16 +186,22 @@ template<size_t PodSize> class NetPod: public SyncDriver
             // 3. make sure the internal thread has ended
             if(m_Thread.joinable()){ m_Thread.join(); }
 
-            // 4. init ASIO
+            // 4. prepare valid session ID
+            m_ValidQ.Clear();
+            for(uint32_t nID = 1; nID < PodSize; ++nID){
+                m_ValidQ.PushHead(nID);
+            }
+
+            // 5. init ASIO
             if(!InitASIO(nPort)){ return 2; }
 
-            // 5. put one accept handler inside the event loop
+            // 6. put one accept handler inside the event loop
             Accept();
 
-            // 6. start the internal thread
+            // 7. start the internal thread
             m_Thread = std::thread([this](){ m_IO->run(); });
 
-            // 7. all Launch() function will return 0 when succceeds
+            // 8. all Launch() function will return 0 when succceeds
             return 0;
         }
 
@@ -227,6 +233,8 @@ template<size_t PodSize> class NetPod: public SyncDriver
 
             // 5. launch ok
             std::swap(m_SessionV[0][nSessionID], m_SessionV[1][nSessionID]);
+            m_SessionV[0][nSessionID] = nullptr;
+
             return 0;
         }
 
@@ -249,7 +257,6 @@ template<size_t PodSize> class NetPod: public SyncDriver
                 // stop the net IO
                 m_IO->stop();
                 if(m_Thread.joinable()){ m_Thread.join(); }
-
                 return true;
             }
 
@@ -257,7 +264,7 @@ template<size_t PodSize> class NetPod: public SyncDriver
                 m_SessionV[1][nSessionID]->Shutdown();
                 delete m_SessionV[1][nSessionID];
                 m_SessionV[1][nSessionID] = nullptr;
-
+                m_ValidQ.PushHead(nSessionID);
                 return true;
             }
 
@@ -304,8 +311,8 @@ template<size_t PodSize> class NetPod: public SyncDriver
                 if(stEC){
                     // error occurs, stop the network
                     // assume g_MonoServer is ready for log
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "network error when accepting");
-                    Shutdown();
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error when accepting");
+                    g_MonoServer->Restart();
 
                     // we won't put Accept() in the event loop again
                     // then the IO will stop after this
@@ -316,7 +323,7 @@ template<size_t PodSize> class NetPod: public SyncDriver
                         m_Socket->remote_endpoint().address().to_string().c_str(),
                         m_Socket->remote_endpoint().port());
 
-                if(m_ValidQ.Full()){
+                if(m_ValidQ.Empty()){
                     g_MonoServer->AddLog(LOGTYPE_INFO,
                             "No valid slot for new connection request, refused");
                     return;

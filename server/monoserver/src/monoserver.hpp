@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/29/2016 01:00:12
+ *  Last Modified: 05/29/2016 23:36:54
  *
  *    Description: 
  *
@@ -53,21 +53,30 @@ class MonoServer final
     private:
         typedef struct _NetMessageDesc{
             // attributes for 256 network messages
+            uint8_t Type;
             size_t Size;
             bool   FixedSize;
+            std::string Name;
 
-            _NetMessageDesc()
-                : Size(0)
-                  , FixedSize(true)
+            _NetMessageDesc(uint8_t nType = CM_UNKNOWN,
+                    size_t nSize = 0,
+                    bool bFixedSize = true,
+                    const std::string &szName = "CM_UNKNOWN")
+                : Type(nType)
+                , Size(nSize)
+                , FixedSize(bFixedSize)
+                , Name(szName)
             {}
         }NetMessageDesc;
 
+        // desc for *client* message
+        // for server message we can directly get it's desc
         std::array<NetMessageDesc, 256> m_NetMessageDescV;
 
     public:
-        const char *MessageName(uint8_t)
+        const char *MessageName(uint8_t nMessageID)
         {
-            return nullptr;
+            return m_NetMessageDescV[nMessageID].Name.c_str();
         }
 
         size_t MessageSize(uint8_t nMessageID)
