@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/29/2016 17:20:31
+ *  Last Modified: 05/29/2016 18:41:03
  *
  *    Description: 
  *
@@ -141,12 +141,21 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(
                     return;
                 }
 
-                auto fnOnR = [stAMACO, this](const MessagePack &, const Theron::Address &){
+                auto fnOnR = [stAMACO, this](const MessagePack &rstRMPK, const Theron::Address &){
                     // TODO: do nothing, but put a callback
                     // reason is for RM it can accept MPK_ADDCHAROBJECT from many actors
                     // besides servicecore, those all expect a callback, so here we keep
                     // the interface consistant
                     extern MonoServer *g_MonoServer;
+                    if(rstRMPK.Type() != MPK_OK){
+                        g_MonoServer->AddLog(LOGTYPE_WARNING,
+                                "add monster failed: MonsterID = %d, MapID = %d, X = %d, Y = %d",
+                                stAMACO.Monster.MonsterID,
+                                stAMACO.Common.MapID, stAMACO.Common.MapX, stAMACO.Common.MapY);
+                        return;
+                    }
+
+                    // ok we succeed
                     g_MonoServer->AddLog(LOGTYPE_INFO,
                             "add monster succeed: MonsterID = %d, MapID = %d, X = %d, Y = %d",
                             stAMACO.Monster.MonsterID,
@@ -179,8 +188,8 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(
                         // ok we have to continue to drive this trigger
                         extern EventTaskHub *g_EventTaskHub;
                         g_EventTaskHub->Add(200, [stAddr = m_ActorPod->GetAddress()](){
-                            SyncDriver().Forward(MPK_DUMMY, stAddr);
-                        });
+                                SyncDriver().Forward(MPK_DUMMY, stAddr);
+                                });
 
                         return;
                     }
@@ -288,8 +297,8 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
                         // drive this anyomous trigger
                         extern EventTaskHub *g_EventTaskHub;
                         g_EventTaskHub->Add(200, [stAddr = m_ActorPod->GetAddress()](){
-                            SyncDriver().Forward(MPK_DUMMY, stAddr);
-                        });
+                                SyncDriver().Forward(MPK_DUMMY, stAddr);
+                                });
 
                         return;
                     }

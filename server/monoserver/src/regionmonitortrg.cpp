@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/06/2016 17:39:36
- *  Last Modified: 05/26/2016 15:40:29
+ *  Last Modified: 05/29/2016 22:07:08
  *
  *    Description: The first place I am thinking of using trigger or not.
  *                 
@@ -48,6 +48,8 @@
  *
  * =====================================================================================
  */
+#include "player.hpp"
+#include "monster.hpp"
 #include "actorpod.hpp"
 #include "monoserver.hpp"
 #include "charobject.hpp"
@@ -57,7 +59,7 @@
 void RegionMonitor::For_MoveRequest()
 {
     // make sure that we do need the trigger functionality
-    // we only need it when doing cover check for neighbors
+    // we only need it when doing *cover check* for neighbors
     if(!m_MoveRequest.Freezed() || !m_MoveRequest.NeighborCheck){ return; }
 
     bool bCancel  = false;
@@ -70,7 +72,8 @@ void RegionMonitor::For_MoveRequest()
         }
     }
 
-    // wait until all response have been got
+    // wait until all response have been got, even we already get errors, we
+    // have to wait since we can't cancel those request already sent
     if(bPending){ return; }
 
     // no pending now and we found errors
@@ -92,24 +95,46 @@ void RegionMonitor::For_MoveRequest()
         return;
     }
 
-    // aha, we are now grant permission the object to move, finally
+    // aha, we are now grant permission the object to move / add, finally
     // need to check this is a new obj or an existing obj?
 
-    if(m_MoveRequest.Data){
+    if(!(m_MoveRequest.UID && m_MoveRequest.AddTime)){
         // it's adding new object into current region
+        CharObject *pCharObject = nullptr;
+        switch(m_MoveRequest.Type){
+            case OBJECT_MONSTER:
+                {
+                    pCharObject = new Monster(m_MoveRequest.Monster.MonsterID);
+                    break;
+                }
+            case OBJECT_PLAYER:
+                {
+                    pCharObject = new Player(m_MoveRequest.Player.GUID, m_MoveRequest.Player.JobID);
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+
+        if(!pCharObject){
+            m_ActorPod->Forward(MPK_ERROR, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
+            return;
+        }
+
         CharObjectRecord stCORecord;
         stCORecord.X = m_MoveRequest.X;
         stCORecord.Y = m_MoveRequest.Y;
         stCORecord.R = m_MoveRequest.R;
 
-        CharObject *pCObject = (CharObject *)m_MoveRequest.Data;
-        pCObject->ResetR(m_MoveRequest.R);
-        pCObject->Locate(m_MapID, m_MoveRequest.X, m_MoveRequest.Y);
-        pCObject->Locate(GetAddress());
+        pCharObject->ResetR(m_MoveRequest.R);
+        pCharObject->Locate(m_MapID, m_MoveRequest.X, m_MoveRequest.Y);
+        pCharObject->Locate(GetAddress());
 
         stCORecord.UID        = m_MoveRequest.UID;
         stCORecord.AddTime    = m_MoveRequest.AddTime;
-        stCORecord.PodAddress = ((ReactObject *)m_MoveRequest.Data)->Activate();
+        stCORecord.PodAddress = pCharObject->Activate();
 
         m_CharObjectRecordV.push_back(stCORecord);
 

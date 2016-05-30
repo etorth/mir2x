@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/28/2016 13:02:28
+ *  Last Modified: 05/29/2016 21:56:11
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -90,10 +90,31 @@ class RegionMonitor: public Transponder
         //      3. existing object to move outside
         //      4. successful cover check
         typedef struct _MoveRequest{
-            void       *Data;           // used when adding new object
+            uint8_t Type;               // object type
 
-            uint32_t    UID;
-            uint32_t    AddTime;
+            // TODO I did't make it as a union
+            //      I can but since I'm not concerned about the memory
+            //      just let it as it is
+            struct _Monster{
+                uint32_t MonsterID;
+
+                _Monster(uint32_t nMonsterID = 0)
+                    : MonsterID(nMonsterID)
+                {}
+            }Monster;
+
+            struct _Player{
+                uint32_t GUID;
+                uint32_t JobID;
+
+                _Player(uint32_t nGUID = 0, uint32_t nJobID = 0)
+                    : GUID(nGUID)
+                    , JobID(nJobID)
+                {}
+            }Player;
+
+            uint32_t    UID;            // zero for new object
+            uint32_t    AddTime;        // zero for new object
             uint32_t    MPKID;          // MessagePack::ID() for response
 
             int     CurrX;
@@ -111,7 +132,9 @@ class RegionMonitor: public Transponder
             Theron::Address PodAddress; // address for response
 
             _MoveRequest()
-                : Data(nullptr)
+                : Type(OBJECT_UNKNOWN)
+                , Monster()
+                , Player()
                 , UID(0)
                 , AddTime(0)
                 , MPKID(0)
@@ -142,21 +165,24 @@ class RegionMonitor: public Transponder
 
             void Clear()
             {
-                Data          = nullptr;
-                UID           = 0;
-                AddTime       = 0;
-                MPKID         = 0;
-                CurrX         = 0;
-                CurrY         = 0;
-                X             = 0;
-                Y             = 0;
-                R             = 0;
-                OnlyIn        = false;
-                CurrIn        = false;
-                FreezeRM      = false;
-                CoverCheck    = false;
-                NeighborCheck = false;
-                PodAddress    = Theron::Address::Null();
+                Type              = OBJECT_UNKNOWN;
+                Monster.MonsterID = 0;
+                Player.GUID       = 0;
+                Player.JobID      = 0;
+                UID               = 0;
+                AddTime           = 0;
+                MPKID             = 0;
+                CurrX             = 0;
+                CurrY             = 0;
+                X                 = 0;
+                Y                 = 0;
+                R                 = 0;
+                OnlyIn            = false;
+                CurrIn            = false;
+                FreezeRM          = false;
+                CoverCheck        = false;
+                NeighborCheck     = false;
+                PodAddress        = Theron::Address::Null();
             }
         }MoveRequest;
 

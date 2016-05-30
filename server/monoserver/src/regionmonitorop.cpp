@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/29/2016 15:24:35
+ *  Last Modified: 05/29/2016 22:04:41
  *
  *    Description: 
  *
@@ -741,7 +741,7 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
     // prepare the MoveRequest
     m_MoveRequest.Clear();
 
-    m_MoveRequest.Data          = nullptr;
+    m_MoveRequest.Type          = stAMACO.Type;
     m_MoveRequest.X             = stAMACO.Common.MapX;
     m_MoveRequest.Y             = stAMACO.Common.MapY;
     m_MoveRequest.R             = stAMACO.Common.R;
@@ -752,6 +752,33 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
     m_MoveRequest.CurrIn        = false;
     m_MoveRequest.OnlyIn        = false;
     m_MoveRequest.NeighborCheck = true;
+
+    // for adding new object, we have to keep these info
+    // since for just moving, we can ask the actor, here we keep it as arguments
+    // when creating the new object
+    switch(m_MoveRequest.Type){
+        case OBJECT_PLAYER:
+            {
+                m_MoveRequest.Player.GUID  = stAMACO.Player.GUID;
+                m_MoveRequest.Player.JobID = stAMACO.Player.JobID;
+                break;
+            }
+        case OBJECT_MONSTER:
+            {
+                m_MoveRequest.Monster.MonsterID = stAMACO.Monster.MonsterID;
+                break;
+            }
+        default:
+            {
+                // unsupported object type
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported object type");
+                g_MonoServer->Restart();
+
+                // make the compiler happy
+                break;
+            }
+    }
 
     m_MoveRequest.Freeze();
 
