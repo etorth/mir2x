@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/29/2016 04:51:42
+ *  Last Modified: 05/29/2016 11:38:01
  *
  *    Description: 
  *
@@ -172,11 +172,13 @@ void ServerMap::On_MPK_QUERYRMADDRESS(const MessagePack &rstMPK, const Theron::A
     // 3. all set we can anwser this query
     if(!m_RegionMonitorRecordV2D[stAMQRA.RMY][stAMQRA.RMX].Valid()){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
     }
 
     auto rstRMAddr = m_RegionMonitorRecordV2D[stAMQRA.RMY][stAMQRA.RMX].PodAddress;
     if(rstRMAddr == Theron::Address::Null()){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
     }
 
     std::string szRMAddr = rstRMAddr.AsString();

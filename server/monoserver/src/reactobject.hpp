@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 05/28/2016 00:05:49
+ *  Last Modified: 05/29/2016 12:28:27
  *
  *    Description: object only react to message, with an object pod
  *                 atoms of an react object:
@@ -155,12 +155,12 @@ class ReactObject: public ServerObject
                 // 1. disable it always
                 std::get<2>(m_TriggerV[nIndex]) = false;
 
-                // 2. if we are not calling this funciton inside the trigger
-                //    we can directly remove it, otherwise we can only mark it
-                if(!bInside){
-                    std::swap(m_TriggerV[nIndex], m_TriggerV.back());
-                    m_TriggerV.pop_back();
-                }
+                // 2. if inside we have to jump to next
+                if(bInside){ nIndex++; continue; }
+
+                // 3. otherwise we delete now
+                std::swap(m_TriggerV[nIndex], m_TriggerV.back());
+                m_TriggerV.pop_back();
             }
         }
 

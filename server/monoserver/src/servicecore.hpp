@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 05/29/2016 03:56:56
+ *  Last Modified: 05/29/2016 12:13:56
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -164,8 +164,9 @@ class ServiceCore: public Transponder
         bool ValidP(uint32_t, int, int);
 
     private:
-        const RMRecord &GetRMRecord(uint32_t, int, int);
-        int QueryRMAddress(uint32_t, int, int, bool);  // dangerious function...
+        // dangerious functions, can add self-driven tigger
+        const RMRecord &GetRMRecord(uint32_t, int, int, bool);
+        int QueryRMAddress(uint32_t, int, int, bool);
 
     private:
         void On_MPK_LOGIN(const MessagePack &, const Theron::Address &);

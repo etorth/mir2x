@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/29/2016 02:29:59
+ *  Last Modified: 05/29/2016 17:20:31
  *
  *    Description: 
  *
@@ -131,7 +131,7 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(
         return;
     }
 
-    const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
+    const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY, false);
     switch(rstRMRecord.Query){
         case QUERY_OK:
             {
@@ -141,7 +141,18 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(
                     return;
                 }
 
-                m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
+                auto fnOnR = [stAMACO, this](const MessagePack &, const Theron::Address &){
+                    // TODO: do nothing, but put a callback
+                    // reason is for RM it can accept MPK_ADDCHAROBJECT from many actors
+                    // besides servicecore, those all expect a callback, so here we keep
+                    // the interface consistant
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_INFO,
+                            "add monster succeed: MonsterID = %d, MapID = %d, X = %d, Y = %d",
+                            stAMACO.Monster.MonsterID,
+                            stAMACO.Common.MapID, stAMACO.Common.MapX, stAMACO.Common.MapY);
+                };
+                m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress, fnOnR);
                 m_ActorPod->Forward(MPK_PENDING, rstRMRecord.PodAddress, rstMPK.ID());
                 return;
             }
@@ -159,20 +170,36 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(
                 }
 
                 auto fnOnGetRMAddress = [stAMACO, nMapID, nMapX, nMapY, szRandomName, this](){
-                    const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
-                    // 0. drive this anyomous trigger
-                    SyncDriver().Forward(MPK_DUMMY, m_ActorPod->GetAddress());
+                    // since this trigger will be driven by itself, we don't need
+                    // to install a trigger in GetRMRecord()
+                    const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY, false);
 
                     // 1. still waiting
-                    if(rstRMRecord.Query == QUERY_PENDING){ return; }
+                    if(rstRMRecord.Query == QUERY_PENDING){
+                        // ok we have to continue to drive this trigger
+                        extern EventTaskHub *g_EventTaskHub;
+                        g_EventTaskHub->Add(200, [stAddr = m_ActorPod->GetAddress()](){
+                            SyncDriver().Forward(MPK_DUMMY, stAddr);
+                        });
+
+                        return;
+                    }
 
                     // 2. otherwise we won't need this trigger handler anymore
                     Uninstall(szRandomName, true);
+                    if(!rstRMRecord.Valid()){ return; }
 
-                    // 3. ok to add the object
-                    if(rstRMRecord.Valid()){
-                        m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
-                    }
+                    // 3. ok ready to add the object
+                    auto fnOnR = [stAMACO, this](const MessagePack &, const Theron::Address &){
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_INFO,
+                                "add monster succeed: MonsterID = %d, MapID = %d, X = %d, Y = %d",
+                                stAMACO.Monster.MonsterID,
+                                stAMACO.Common.MapID, stAMACO.Common.MapX, stAMACO.Common.MapY);
+                    };
+
+                    m_ActorPod->Forward({MPK_ADDCHAROBJECT,
+                            stAMACO}, rstRMRecord.PodAddress, fnOnR);
                 };
 
                 Install(szRandomName, fnOnGetRMAddress);
@@ -208,7 +235,7 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
 
     if(!ValidP(nMapID, nMapX, nMapY)){ return; }
 
-    const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
+    const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY, false);
     switch(rstRMRecord.Query){
         case QUERY_NA:
             {
@@ -254,12 +281,18 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
                 }
 
                 auto fnOnGetRMAddress = [stAMLQDB, nMapID, nMapX, nMapY, szRandomName, this](){
-                    const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY);
-                    // drive this anyomous trigger
-                    SyncDriver().Forward(MPK_DUMMY, m_ActorPod->GetAddress());
+                    const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY, false);
 
                     // still pending
-                    if(rstRMRecord.Query == QUERY_PENDING){ return; }
+                    if(rstRMRecord.Query == QUERY_PENDING){
+                        // drive this anyomous trigger
+                        extern EventTaskHub *g_EventTaskHub;
+                        g_EventTaskHub->Add(200, [stAddr = m_ActorPod->GetAddress()](){
+                            SyncDriver().Forward(MPK_DUMMY, stAddr);
+                        });
+
+                        return;
+                    }
 
                     // OK we get the valid address
                     if(rstRMRecord.Valid()){

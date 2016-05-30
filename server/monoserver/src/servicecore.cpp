@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/29/2016 04:11:38
+ *  Last Modified: 05/29/2016 13:30:03
  *
  *    Description: 
  *
@@ -160,7 +160,7 @@ bool ServiceCore::ValidP(uint32_t nMapID, int nMapX, int nMapY)
     }
 
     int nGridX = nMapX / SYS_MAPGRIDXP;
-    int nGridY = nMapX / SYS_MAPGRIDYP;
+    int nGridY = nMapY / SYS_MAPGRIDYP;
 
     // ooops outside
     if(nGridX >= nGridW || nGridY >= nGridH){ return false; }
@@ -342,15 +342,19 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
 
                     // since we get a pending answer, we have to ask again
                     auto fnTmpTrigger = [this, szRandomName, nMapID, nRMX, nRMY](){
-                        // 1. drive this anyomous trigger
-                        SyncDriver().Forward(MPK_DUMMY, m_ActorPod->GetAddress());
-
-                        // 2. query again if necessary, but this query would never
+                        // 1. query again if necessary, but this query would never
                         // add trigger again, since the trigger who trigger this trigger
                         // still works
                         if(QueryRMAddress(nMapID, nRMX, nRMY, false) != QUERY_PENDING){
                             Uninstall(szRandomName, true);
+                            return;
                         }
+
+                        // 2. otherwise we still need to drive this anyomous trigger
+                        extern EventTaskHub *g_EventTaskHub;
+                        g_EventTaskHub->Add(200, [stAddr = m_ActorPod->GetAddress()](){
+                            SyncDriver().Forward(MPK_DUMMY, stAddr);
+                        });
                     };
 
                     Install(szRandomName, fnTmpTrigger);
@@ -370,7 +374,8 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
     return QUERY_PENDING;
 }
 
-const ServiceCore::RMRecord &ServiceCore::GetRMRecord(uint32_t nMapID, int nMapX, int nMapY)
+const ServiceCore::RMRecord &ServiceCore::GetRMRecord(
+        uint32_t nMapID, int nMapX, int nMapY, bool bAddTrigger)
 {
     // don't bother if the argument is not valid
     // this validation function will check everything of the record
@@ -381,11 +386,11 @@ const ServiceCore::RMRecord &ServiceCore::GetRMRecord(uint32_t nMapID, int nMapX
     auto &rstMapRecord = m_MapRecordMap[nMapID];
 
     int nRMX = nMapX / SYS_MAPGRIDXP / rstMapRecord.RMW;
-    int nRMY = nMapX / SYS_MAPGRIDYP / rstMapRecord.RMH;
+    int nRMY = nMapY / SYS_MAPGRIDYP / rstMapRecord.RMH;
 
     // to make (nMapID, nRMX, nRMY) valid in the cache
     // add a trigger for the RM address
-    QueryRMAddress(nMapID, nRMX, nRMY, true);
+    QueryRMAddress(nMapID, nRMX, nRMY, bAddTrigger);
 
     return m_MapRecordMap[nMapID].RMRecordMap[((uint32_t)(nRMX) << 16) + ((uint32_t)nRMY)];
 }

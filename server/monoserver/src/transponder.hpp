@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.hpp
  *        Created: 04/23/2016 10:51:19
- *  Last Modified: 05/28/2016 00:06:50
+ *  Last Modified: 05/29/2016 12:27:22
  *
  *    Description: base of actor model in mir2x, Theron::Actor acitvated at create
  *                 time so no way to control it, instead Transponder can 
@@ -156,12 +156,12 @@ class Transponder
                 // 1. disable it always
                 std::get<2>(m_TriggerV[nIndex]) = false;
 
-                // 2. if we are not calling this funciton inside the trigger
-                //    we can directly remove it, otherwise we can only mark it
-                if(!bInside){
-                    std::swap(m_TriggerV[nIndex], m_TriggerV.back());
-                    m_TriggerV.pop_back();
-                }
+                // 2. if inside we have to jump to next
+                if(bInside){ nIndex++; continue; }
+
+                // 3. otherwise we delete now
+                std::swap(m_TriggerV[nIndex], m_TriggerV.back());
+                m_TriggerV.pop_back();
             }
         }
 
