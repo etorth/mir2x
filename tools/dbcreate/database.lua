@@ -10,8 +10,6 @@ status, errmsg = conn:execute [[
     create database if not exists mir2x character set utf8
 ]]
 
-
-
 -- create table for user account info
 status, errmsg = conn:execute [[
     create table if not exists tbl_account
@@ -36,28 +34,38 @@ conn:execute [[use mir2x]]
 -- end
 
 -- try to add an account
-conn:execute [[
+status, errmsg = conn:execute [[
     insert tbl_account (fld_account, fld_password) values("test", "123456")
 ]]
+
+if errmsg then print(status, errmsg) end
 
 -- create table for guid
 status, errmsg = conn:execute [[
     create table if not exists tbl_guid
     (
-        fld_guid int unsigned not null auto_increment primary key,
-        fld_name char(32) not null,
-        fld_id   int unsigned not null
+        fld_guid      int unsigned not null auto_increment primary key,
+        fld_id        int unsigned not null,
+        fld_mapid     int unsigned not null,
+        fld_mapx      int unsigned not null,
+        fld_mapy      int unsigned not null,
+        fld_level     int unsigned not null,
+        fld_jobid     int unsigned not null,
+        fld_direction int unsigned not null,
+        fld_name      char(32) not null
     )
 ]]
 
+if errmsg then print(status, errmsg) end
+
 -- try to add guid
-conn:execute [[
-    insert tbl_guid (fld_name, fld_id) values
-        ("mark"  , 1),
-        ("john"  , 1),
-        ("linda" , 2),
-        ("steven", 2)
+status, errmsg = conn:execute [[
+    insert tbl_guid (fld_id, fld_mapid, fld_mapx, fld_mapy, fld_level, fld_jobid, fld_direction, fld_name) values
+        (1, 1, 966, 652, 1, 1, 1, "mark"),
+        (2, 1, 574, 705, 1, 1, 1, "john")
 ]]
+
+if errmsg then print(status, errmsg) end
 
 
 -- create table for guid
@@ -90,7 +98,6 @@ status, errmsg = conn:execute [[
         fld_earth           int unsigned not null
     )
 ]]
-
 
 
 -- try to add guid

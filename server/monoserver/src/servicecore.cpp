@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/30/2016 01:25:04
+ *  Last Modified: 05/30/2016 11:30:47
  *
  *    Description: 
  *
@@ -55,6 +55,11 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
         case MPK_DUMMY:
             {
                 On_MPK_DUMMY(rstMPK, rstAddr);
+                break;
+            }
+        case MPK_LOGINQUERYDB:
+            {
+                On_MPK_LOGINQUERYDB(rstMPK, rstAddr);
                 break;
             }
         case MPK_ADDCHAROBJECT:

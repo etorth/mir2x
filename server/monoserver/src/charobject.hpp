@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/26/2016 15:46:15
+ *  Last Modified: 05/30/2016 12:21:32
  *
  *    Description: 
  *
@@ -115,7 +115,7 @@ typedef struct{
 
 class CharObject: public ActiveObject
 {
-    private:
+    protected:
         Theron::Address m_RMAddress;
 
     public:

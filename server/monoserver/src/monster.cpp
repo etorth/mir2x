@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/25/2016 19:00:04
+ *  Last Modified: 05/30/2016 12:41:32
  *
  *    Description: 
  *
@@ -29,9 +29,11 @@
 Monster::Monster(uint32_t nMonsterID)
     : CharObject()
     , m_MonsterID(nMonsterID)
-    , m_RMAddress(Theron::Address::Null())
     , m_FreezeWalk(false)
 {
+
+    m_RMAddress = Theron::Address::Null();
+
     ResetState(STATE_INCARNATED, true );
     ResetState(STATE_ACTIVE    , false);
     ResetState(STATE_CANMOVE   ,  true);
@@ -295,8 +297,8 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
 
         default:
             {
-                extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_WARNING, "unsupported message: type = %d, id = %d, resp = %d", rstMPK.Type(), rstMPK.ID(), rstMPK.Respond());
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message: type = %d, id = %d, resp = %d", rstMPK.Type(), rstMPK.ID(), rstMPK.Respond());
                 break;
             }
     }

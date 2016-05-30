@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/29/2016 23:10:45
+ *  Last Modified: 05/30/2016 13:05:33
  *
  *    Description: 
  *
@@ -188,8 +188,8 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(
                         // ok we have to continue to drive this trigger
                         extern EventTaskHub *g_EventTaskHub;
                         g_EventTaskHub->Add(200, [stAddr = m_ActorPod->GetAddress()](){
-                                SyncDriver().Forward(MPK_DUMMY, stAddr);
-                                });
+                            SyncDriver().Forward(MPK_DUMMY, stAddr);
+                        });
 
                         return;
                     }
@@ -199,10 +199,24 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(
                     if(!rstRMRecord.Valid()){ return; }
 
                     // 3. ok ready to add the object
-                    auto fnOnR = [stAMACO, this](const MessagePack &, const Theron::Address &){
+                    auto fnOnR = [stAMACO, this](
+                            const MessagePack &rstRMPK, const Theron::Address &){
+                        // TODO: do nothing, but put a callback
+                        // reason is for RM it can accept MPK_ADDCHAROBJECT from many actors
+                        // besides servicecore, those all expect a callback, so here we keep
+                        // the interface consistant
                         extern MonoServer *g_MonoServer;
+                        if(rstRMPK.Type() != MPK_OK){
+                            g_MonoServer->AddLog(LOGTYPE_WARNING,
+                                    "add monster error: MonsterID = %d, MapID = %d, X = %d, Y = %d",
+                                    stAMACO.Monster.MonsterID,
+                                    stAMACO.Common.MapID, stAMACO.Common.MapX, stAMACO.Common.MapY);
+                            return;
+                        }
+
+                        // ok we succeed
                         g_MonoServer->AddLog(LOGTYPE_INFO,
-                                "add monster succeed: MonsterID = %d, MapID = %d, X = %d, Y = %d",
+                                "add monster ok: MonsterID = %d, MapID = %d, X = %d, Y = %d",
                                 stAMACO.Monster.MonsterID,
                                 stAMACO.Common.MapID, stAMACO.Common.MapX, stAMACO.Common.MapY);
                     };
@@ -270,6 +284,7 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
                 stAMACO.Player.Level     = stAMLQDB.Level;
                 stAMACO.Player.JobID     = stAMLQDB.JobID;
                 stAMACO.Player.Direction = stAMLQDB.Direction;
+                stAMACO.Player.SessionID = stAMLQDB.SessionID;
 
                 // we don't need the response
                 // if adding succeeds, the player will report itself to SC
@@ -297,36 +312,54 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
                         // drive this anyomous trigger
                         extern EventTaskHub *g_EventTaskHub;
                         g_EventTaskHub->Add(200, [stAddr = m_ActorPod->GetAddress()](){
-                                SyncDriver().Forward(MPK_DUMMY, stAddr);
-                                });
+                            SyncDriver().Forward(MPK_DUMMY, stAddr);
+                        });
 
                         return;
                     }
 
-                    // OK we get the valid address
-                    if(rstRMRecord.Valid()){
-                        AMAddCharObject stAMACO;
-                        stAMACO.Type = OBJECT_PLAYER;
-                        stAMACO.Common.MapID     = stAMLQDB.MapID;
-                        stAMACO.Common.MapX      = stAMLQDB.MapX;
-                        stAMACO.Common.MapY      = stAMLQDB.MapY;
-                        stAMACO.Player.GUID      = stAMLQDB.GUID;
-                        stAMACO.Player.Level     = stAMLQDB.Level;
-                        stAMACO.Player.JobID     = stAMLQDB.JobID;
-                        stAMACO.Player.Direction = stAMLQDB.Direction;
-
-                        // when adding succeed, the new object will respond
-                        m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress);
-                    }
-
-                    // TODO & TBD
-                    // otherwise we just drop this operation
-
                     Uninstall(szRandomName, true);
+                    if(!rstRMRecord.Valid()){ return; }
+
+                    // OK we get the valid address
+                    AMAddCharObject stAMACO;
+                    stAMACO.Type = OBJECT_PLAYER;
+                    stAMACO.Common.MapID     = stAMLQDB.MapID;
+                    stAMACO.Common.MapX      = stAMLQDB.MapX;
+                    stAMACO.Common.MapY      = stAMLQDB.MapY;
+                    stAMACO.Player.GUID      = stAMLQDB.GUID;
+                    stAMACO.Player.Level     = stAMLQDB.Level;
+                    stAMACO.Player.JobID     = stAMLQDB.JobID;
+                    stAMACO.Player.Direction = stAMLQDB.Direction;
+                    stAMACO.Player.SessionID = stAMLQDB.SessionID;
+
+                    // 3. ok ready to add the object
+                    auto fnOnR = [stAMACO, this](
+                            const MessagePack &rstRMPK, const Theron::Address &){
+                        // TODO: do nothing, but put a callback
+                        // reason is for RM it can accept MPK_ADDCHAROBJECT from many actors
+                        // besides servicecore, those all expect a callback, so here we keep
+                        // the interface consistant
+                        extern MonoServer *g_MonoServer;
+                        if(rstRMPK.Type() != MPK_OK){
+                            g_MonoServer->AddLog(LOGTYPE_WARNING,
+                                    "add player failed: GUID = %d, JobID = %d, MapID = %d, X = %d, Y = %d",
+                                    stAMACO.Player.GUID, stAMACO.Player.JobID, stAMACO.Common.MapID, stAMACO.Common.MapX, stAMACO.Common.MapY);
+                            return;
+                        }
+
+                        // ok we succeed
+                            g_MonoServer->AddLog(LOGTYPE_INFO,
+                                    "add player succeed: GUID = %d, JobID = %d, MapID = %d, X = %d, Y = %d",
+                                    stAMACO.Player.GUID, stAMACO.Player.JobID, stAMACO.Common.MapID, stAMACO.Common.MapX, stAMACO.Common.MapY);
+                    };
+
+                    // when adding succeed, the new object will respond
+                    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress, fnOnR);
                 };
 
                 Install(szRandomName, fnOnGetRMAddress);
-                m_ActorPod->Forward(MPK_PENDING, rstRMRecord.PodAddress, rstMPK.ID());
+                // don't response this message, it's send by temp SyncDriver()
                 return;
             }
         default:

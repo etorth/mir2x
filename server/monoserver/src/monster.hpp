@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 05/25/2016 18:59:06
+ *  Last Modified: 05/30/2016 12:37:07
  *
  *    Description: 
  *
@@ -112,7 +112,6 @@ class Monster: public CharObject
 
     protected:
         uint32_t                 m_MonsterID;
-        Theron::Address          m_RMAddress;
         std::vector<ActorRecord> m_NeighborV;
 
     public:

@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 05/25/2016 19:02:32
+ *  Last Modified: 05/30/2016 13:17:20
  *
  *    Description: 
  *
@@ -55,6 +55,7 @@ class Player: public CharObject
     protected:
         uint32_t m_GUID;
         uint32_t m_JobID;
+        uint8_t m_SessionID;
 
     protected:
         PLAYERFEATURE   m_Feature;
@@ -85,6 +86,8 @@ class Player: public CharObject
 
         bool Update();
 
+        bool Bind(uint32_t);
+
     protected:
         void OperateNet(uint8_t, const uint8_t *, size_t);
 
@@ -92,7 +95,10 @@ class Player: public CharObject
         void Operate(const MessagePack &, const Theron::Address &);
 
     private:
+        void On_MPK_HI(const MessagePack &, const Theron::Address &);
+        void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
+        void On_MPK_BINDSESSION(const MessagePack &, const Theron::Address &);
 
     private:
         void Net_CM_MOTION(uint8_t, const uint8_t *, size_t);

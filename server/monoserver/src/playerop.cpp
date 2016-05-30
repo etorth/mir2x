@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/24/2016 19:20:47
+ *  Last Modified: 05/30/2016 13:03:28
  *
  *    Description: 
  *
@@ -18,8 +18,23 @@
  * =====================================================================================
  */
 
+#include "netpod.hpp"
 #include "player.hpp"
 #include "memorypn.hpp"
+
+void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address &)
+{
+    Bind(*((uint32_t *)rstMPK.Data()));
+}
+
+void Player::On_MPK_HI(const MessagePack &, const Theron::Address &rstFromAddr)
+{
+    m_RMAddress = rstFromAddr;
+}
+
+void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
+{
+}
 
 void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &)
 {

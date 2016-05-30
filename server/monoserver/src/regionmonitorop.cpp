@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/29/2016 22:04:41
+ *  Last Modified: 05/30/2016 13:13:19
  *
  *    Description: 
  *
@@ -691,6 +691,9 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
         // actually here we don't need to create the RM address and send it
         // since for the receiving object, it can take the address of the Operate()
         m_ActorPod->Forward(MPK_HI, stCORecord.PodAddress);
+        if(pCharObject->Type(OBJECT_PLAYER)){
+            m_ActorPod->Forward({MPK_BINDSESSION, stAMACO.Player.SessionID}, stCORecord.PodAddress);
+        }
         return;
     }
 

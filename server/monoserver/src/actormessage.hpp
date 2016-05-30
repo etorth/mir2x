@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/29/2016 02:26:16
+ *  Last Modified: 05/30/2016 13:13:43
  *
  *    Description: 
  *
@@ -64,6 +64,7 @@ enum MessagePackType: int{
     MPK_NETPACKAGE,
     MPK_CHAROBJECTINFO,
     MPK_ADDCHAROBJECT,
+    MPK_BINDSESSION,
 };
 
 typedef struct{
@@ -134,6 +135,7 @@ typedef union {
         uint32_t JobID;
         int Level;
         int Direction;
+        uint32_t SessionID;
     }Player;
 
     struct _NPC{
@@ -273,3 +275,7 @@ typedef union{
         uint32_t AddTime;
     }Player;
 }AMCharObjectInfo;
+
+typedef struct{
+    uint32_t SessionID;
+}AMBindSession;

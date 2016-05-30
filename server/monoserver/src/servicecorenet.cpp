@@ -3,7 +3,7 @@
  *
  *       Filename: servicecorenet.cpp
  *        Created: 05/20/2016 17:09:13
- *  Last Modified: 05/26/2016 15:36:39
+ *  Last Modified: 05/30/2016 11:26:24
  *
  *    Description: interaction btw SessionHub and ServiceCore
  *
@@ -24,16 +24,10 @@
 
 void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pData, size_t)
 {
-    // message structure:  IP\0Port\0ID\0PWD\0
-    // copy it out since pData is temperal
-    std::string szIP   = (char *)pData;    pData += std::strlen((char *)pData);
-    std::string szPort = (char *)pData;    pData += std::strlen((char *)pData);
-    std::string szID   = (char *)pData;    pData += std::strlen((char *)pData);
-    std::string szPWD  = (char *)pData; // pData += std::strlen((char *)pData);
-
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_INFO,
-            "Login requested from (%s:%s)", szIP.c_str(), szPort.c_str());
+    // message structure:  ID\0PWD\0, copy it out since pData is temperal
+    // TODO: client can put more info following ID/PWD and we will analyze it here
+    std::string szID   = (char *)pData;    pData += (1 + std::strlen((char *)pData));
+    std::string szPWD  = (char *)pData; // pData += (1 + std::strlen((char *)pData));
 
     // don't block ServiceCore too much, so we put rest of it 
     // in the thread pool since it's db query and slow
@@ -44,6 +38,7 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
         extern DBPodN *g_DBPodN;
         extern MonoServer *g_MonoServer;
 
+        g_MonoServer->AddLog(LOGTYPE_INFO, "Login requested: (%s:%s)", szID.c_str(), szPWD.c_str());
         auto pDBHDR = g_DBPodN->CreateDBHDR();
 
         if(!pDBHDR->Execute("select fld_id from tbl_account where "
@@ -79,19 +74,27 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
             return;
         }
 
-        // ok now we found the record
-        // currently only handle the first record
+        // structure of database:
+        // (id, pwd) -> fld_id
+        // fld_id    -> fld_guid
+        // fld_guid  -> everything of this char object
 
+        // ok now we find the record coresponding to the id
         AMLoginQueryDB stAMLQDB;
 
+        // 1. session
+        stAMLQDB.SessionID = nSessionID;
+
+        // 2. needed information to create co
         stAMLQDB.GUID  = std::atoi(pDBHDR->Get("fld_guid"));
         stAMLQDB.MapID = std::atoi(pDBHDR->Get("fld_mapid"));
         stAMLQDB.MapX  = std::atoi(pDBHDR->Get("fld_mapx"));
         stAMLQDB.MapY  = std::atoi(pDBHDR->Get("fld_mapy"));
 
-        stAMLQDB.Level  = std::atoi(pDBHDR->Get("fld_level"));
-        stAMLQDB.JobID  = std::atoi(pDBHDR->Get("fld_job"));
-        stAMLQDB.Direction = std::atoi(pDBHDR->Get("fld_level"));
+        // 3. additional information, we can retrieve it later
+        stAMLQDB.Level     = std::atoi(pDBHDR->Get("fld_level"));
+        stAMLQDB.JobID     = std::atoi(pDBHDR->Get("fld_jobid"));
+        stAMLQDB.Direction = std::atoi(pDBHDR->Get("fld_direction"));
 
         SyncDriver().Forward({MPK_LOGINQUERYDB, stAMLQDB}, stSCAddr);
     };
