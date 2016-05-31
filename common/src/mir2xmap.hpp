@@ -70,11 +70,11 @@ class Mir2xMap
         bool Load(const char *);
 
     public:
-        void Draw(int, int, int, int, int,
-                std::function<void(int, int, uint32_t)>,
-                std::function<void(int, int, uint32_t)>,
-                std::function<void(int, int)>,
-                std::function<void(int, int)>);
+        void Draw(int, int, int, int, int, int,
+                const std::function<void(int, int, uint32_t)> &,
+                const std::function<void(int, int, uint32_t)> &,
+                const std::function<void(int, int)> &,
+                const std::function<void(int, int)> &);
 
     private:
         void DrawGround(int, int, int, int, std::function<void(int, int, uint32_t)>);

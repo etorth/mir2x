@@ -6,8 +6,8 @@
         <!--     0: window -->
         <!--     1: window with full screen size -->
         <!--     2: full screen -->
-        <ScreenMode>0</ScreenMode>
-        <!-- <ScreenMode>2</ScreenMode> -->
+        <!-- <ScreenMode>0</ScreenMode> -->
+        <ScreenMode>2</ScreenMode>
 
         <Caption>Mir2X</Caption>
     </Window>

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/30/2016 18:11:51
+ *  Last Modified: 05/31/2016 14:31:32
  *
  *    Description: 
  *
@@ -20,10 +20,14 @@
 
 #include <memory>
 #include <cstring>
+#include "sysconst.hpp"
+#include "pngtexdbn.hpp"
 #include "processrun.hpp"
 
 ProcessRun::ProcessRun()
     : Process()
+    , m_ViewX(0)
+    , m_ViewY(0)
 {
 }
 
@@ -97,41 +101,41 @@ void ProcessRun::Update(double)
 //
 void ProcessRun::Draw()
 {
-    // RollScreen();
-    // // what we want
-    // int nStartX = m_Map.ViewX();
-    // int nStartY = m_Map.ViewY();
-    //
-    // int nStartCellX = (std::max)(0, (nStartX / 48) - 4);
-    // int nStartCellY = (std::max)(0, (nStartY / 32) - 4);
-    // int nStopCellX  = (std::min)(m_Map.W() - 1, (nStartX / 48) + 44);
-    // int nStopCellY  = (std::min)(m_Map.H() - 1, (nStartY / 32) + 44);
-    //
-    // m_Map.DrawBaseTile(nStartCellX, nStartCellY, nStopCellX, nStopCellY);
-    // m_Map.DrawGroundObject(nStartCellX, nStartCellY, nStopCellX, nStopCellY);
-    //
-    // {
-    //     std::lock_guard<std::mutex> stGuard(m_ActorListMutex);
-	// 	m_ActorList.sort([](Actor *pA1, Actor *pA2){return pA1->Y() < pA2->Y(); });
-    // }
-    //
-    // auto fnExtDraw = [this](int nX, int nY){
-    //     { // draw my hero
-    //         std::lock_guard<std::mutex> stGuard(m_MyHeroMutex);
-    //         if(m_MyHero->X() / 48 == nX && m_MyHero->Y() / 32 == nY){
-    //             m_MyHero->Draw();
-    //         }
-    //     }
-    //     { // draw all actors
-    //         std::lock_guard<std::mutex> stGuard(m_ActorListMutex);
-    //         for(auto pActor: m_ActorList){
-    //             if(pActor->X() / 48 == nX && pActor->Y() / 32 == nY){
-    //                 pActor->Draw();
-    //             }
-    //         }
-    //     }
-    // };
-    // m_Map.DrawOverGroundObject(nStartCellX, nStartCellY, nStopCellX, nStopCellY, fnExtDraw);
+    static auto fnGeneralDraw = [](int nPX, int nPY, uint32_t nKey){
+        extern PNGTexDBN *g_PNGTexDBN;
+        // 1. retrieve texture
+        auto pTexture = g_PNGTexDBN->Retrieve(nKey);
+        if(!pTexture){ return; }
+
+        // 2. draw it
+        extern SDLDevice *g_SDLDevice;
+        g_SDLDevice->DrawTexture(pTexture, nPX, nPY);
+    };
+
+    static auto fnDrawTile = [this](int nGX, int nGY, uint32_t nIMGHDR){
+        fnGeneralDraw(nGX * SYS_MAPGRIDXP - m_ViewX, nGY * SYS_MAPGRIDYP - m_ViewY, nIMGHDR);
+    };
+
+    static auto fnDrawObj = [this](int nGX, int nGY, uint32_t nIMGHDR){
+        fnGeneralDraw(nGX * SYS_MAPGRIDXP - m_ViewX, (nGY + 1) * SYS_MAPGRIDYP - m_ViewY, nIMGHDR);
+    };
+
+    static auto fnDrawActor = [this](int nGX, int nGY){
+        if(nGX >= 0 && nGY >= 0){
+        }
+    };
+
+    static auto fnDrawExt = [this](int nGX, int nGY){
+        if(nGX >= 0 && nGY >= 0){
+        }
+    };
+
+    if(m_Map.Valid()){
+        extern SDLDevice *g_SDLDevice;
+        m_Map.Draw(m_ViewX, m_ViewY,
+                g_SDLDevice->WindowW(false), g_SDLDevice->WindowH(false),
+                SYS_OBJMAXW, SYS_OBJMAXH, fnDrawTile, fnDrawObj, fnDrawActor, fnDrawExt);
+    }
 }
 //
 // void ProcessRun::UpdateActor()

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 04/17/2016 23:01:28
+ *  Last Modified: 05/31/2016 14:22:12
  *
  *    Description: 
  *
@@ -26,6 +26,8 @@ class ProcessRun: public Process
 {
     private:
         Mir2xMap    m_Map;
+        int         m_ViewX;
+        int         m_ViewY;
 
     public:
         ProcessRun();
