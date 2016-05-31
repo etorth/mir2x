@@ -3,7 +3,7 @@
  *
  *       Filename: onhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 04/17/2016 22:55:52
+ *  Last Modified: 05/30/2016 17:55:54
  *
  *    Description: 
  *
@@ -43,7 +43,7 @@ void Game::OnPing()
 
 void Game::OnLoginOK()
 {
-    auto fnDoLogin = [this](const uint8_t *pBuf, size_t nLen){
+    auto fnDoLoginOK = [this](const uint8_t *pBuf, size_t nLen){
         SwitchProcess(m_CurrentProcess->ID(), PROCESSID_RUN);
         auto pRun = (ProcessRun *)m_CurrentProcess;
 
@@ -55,7 +55,7 @@ void Game::OnLoginOK()
         }
     };
 
-    Read(sizeof(SMLoginOK), fnDoLogin);
+    Read(sizeof(SMLoginOK), fnDoLoginOK);
 }
 
 void Game::OnLoginFail()

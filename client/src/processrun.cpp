@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/17/2016 23:04:07
+ *  Last Modified: 05/30/2016 18:11:51
  *
  *    Description: 
  *
@@ -285,7 +285,7 @@ bool ProcessRun::Load(const uint8_t *pBuf, size_t nLen)
     SMLoginOK stLoginOK;
     std::memcpy(&stLoginOK, pBuf, nLen);
 
-    m_Map.Load(stLoginOK.MapName);
+    m_Map.Load("./DESC.BIN");
     // m_MyHero.SetGUID(stLoginOK.GUID);
     // m_MyHero.SetDirection(stLoginOK.Direction);
 

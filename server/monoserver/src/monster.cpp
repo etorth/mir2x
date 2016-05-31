@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/30/2016 12:41:32
+ *  Last Modified: 05/30/2016 17:33:39
  *
  *    Description: 
  *
@@ -218,16 +218,12 @@ bool Monster::ReportMove(int nX, int nY)
 
 bool Monster::Type(uint8_t nType)
 {
-    switch(nType){
-        case OBJECT_ANIMAL: return true;
-        default: return false;
-    }
-    return false;
+    return m_TypeV[nType];
 }
 
 bool Monster::ResetType(uint8_t nType, bool bThisType)
 {
-    m_TypeV[nType] = 1;
+    m_TypeV[nType] = bThisType;
     return bThisType;
 }
 

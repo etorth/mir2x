@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/30/2016 13:25:38
+ *  Last Modified: 05/30/2016 18:17:36
  *
  *    Description: 
  *
@@ -27,11 +27,13 @@ Player::Player(uint32_t nGUID, uint32_t nJobID)
     , m_GUID(nGUID)
     , m_JobID(nJobID)
     , m_SessionID(0)
+    , m_Level(0)
 {
     m_RMAddress = Theron::Address::Null();
     Install("CheckTime", [this](){ For_CheckTime(); });
 
     ResetType(OBJECT_PLAYER, true);
+    ResetType(OBJECT_HUMAN,  true);
 }
 
 Player::~Player()
@@ -72,11 +74,7 @@ bool Player::Update()
 
 bool Player::Type(uint8_t nType)
 {
-    switch(nType){
-        case OBJECT_ANIMAL: return true;
-        default: return false;
-    }
-    return false;
+    return m_TypeV[nType];
 }
 
 bool Player::ResetType(uint8_t nType, bool bThisType)

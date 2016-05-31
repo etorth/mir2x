@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/11/2016 19:54:41
- *  Last Modified: 05/24/2016 21:48:51
+ *  Last Modified: 05/30/2016 17:27:31
  *
  *    Description: object with Type()/Mode()/State()
  *
@@ -81,8 +81,8 @@ class ActiveObject: public ReactObject
         ActiveObject()
             : ReactObject(CATEGORY_ACTIVEOBJECT)
         {
-            m_TypeV.fill(0);
-            m_StateV.fill(0);
+            m_TypeV.fill(false);
+            m_StateV.fill(false);
             m_StateTimeV.fill(0);
 
             m_StateV[STATE_EMBRYO] = 1;

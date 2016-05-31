@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 05/30/2016 13:17:20
+ *  Last Modified: 05/30/2016 18:17:26
  *
  *    Description: 
  *
@@ -55,7 +55,8 @@ class Player: public CharObject
     protected:
         uint32_t m_GUID;
         uint32_t m_JobID;
-        uint8_t m_SessionID;
+        uint32_t m_SessionID;
+        uint32_t m_Level;
 
     protected:
         PLAYERFEATURE   m_Feature;
