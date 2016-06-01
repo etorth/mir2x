@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/19/2016 21:29:31
+ *  Last Modified: 06/01/2016 11:17:09
  *
  *    Description: 
  *
@@ -89,9 +89,9 @@ class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMax
                                 && stZIPStat.valid & ZIP_STAT_SIZE
                                 && stZIPStat.valid & ZIP_STAT_NAME){
                             //
-                            // [0 ~ 5] [6] [7] [08 ~ 11] [12 ~ 15]
+                            // [0 ~ 7] [8] [9] [10 ~ 13] [14 ~ 17]
                             //  <KEY>  <S> <S>   <+DX>     <+DY>
-                            //    3    1/2 1/2     2         2
+                            //    4    1/2 1/2     2         2
                             //   
                             //   KEY: 3 bytes
                             //   S  : sign of DX, take 1 char, 1/2 byte
@@ -100,14 +100,14 @@ class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMax
                             //   +DY: abs(DY) take 4 chars, 2 bytes
                             //
                             // for key
-                            uint32_t nKey = StringHex<uint32_t, 3>(stZIPStat.name);
+                            uint32_t nKey = StringHex<uint32_t, 4>(stZIPStat.name);
                             // for DX, DY
                             int nDX, nDY;
-                            nDX = (stZIPStat.name[6] == '0') ? 1 : (-1);
-                            nDY = (stZIPStat.name[7] == '0') ? 1 : (-1);
+                            nDX = (stZIPStat.name[8] == '0') ? 1 : (-1);
+                            nDY = (stZIPStat.name[9] == '0') ? 1 : (-1);
 
-                            nDX *= (int)StringHex<uint32_t, 2>(stZIPStat.name +  8);
-                            nDY *= (int)StringHex<uint32_t, 2>(stZIPStat.name + 12);
+                            nDX *= (int)StringHex<uint32_t, 2>(stZIPStat.name + 10);
+                            nDY *= (int)StringHex<uint32_t, 2>(stZIPStat.name + 14);
 
                             m_ZIPItemInfoCache[nKey] = {
                                 stZIPStat.index, (size_t)stZIPStat.size, nDX, nDY};
