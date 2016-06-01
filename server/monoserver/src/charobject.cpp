@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/24/2016 21:49:30
+ *  Last Modified: 05/31/2016 18:43:33
  *
  *    Description: 
  *
@@ -94,4 +94,28 @@ uint8_t CharObject::Direction(int nX, int nY)
         }
     }
     return nDirection;
+}
+
+void CharObject::DispatchMotion()
+{
+    if(!(m_ActorPod && m_ActorPod->GetAddress())){ return; }
+    AMMotionState stAMMS;
+
+    stAMMS.X = m_CurrX;
+    stAMMS.Y = m_CurrY;
+
+    if(m_MapAddress){
+        m_ActorPod->Forward({MPK_MOTIONSTATE, stAMMS}, m_MapAddress);
+        return;
+    }
+
+    if(m_MapID != 0){
+        auto fnOnGetMapAddr = [this, stAMMS](const MessagePack & rstRMPK, const Theron::Address &){
+            if(rstRMPK.Type() != MPK_ADDRESS){ return; }
+            m_MapAddress = Theron::Address((const char *)(rstRMPK.Data()));
+
+            m_ActorPod->Forward({MPK_MOTIONSTATE, stAMMS}, m_MapAddress);
+        };
+        m_ActorPod->Forward({MPK_QUERYMAPADDRESS, m_MapID}, m_SCAddress, fnOnGetMapAddr);
+    }
 }

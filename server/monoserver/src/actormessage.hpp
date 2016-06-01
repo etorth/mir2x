@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/30/2016 13:13:43
+ *  Last Modified: 05/31/2016 18:41:33
  *
  *    Description: 
  *
@@ -59,12 +59,14 @@ enum MessagePackType: int{
     MPK_FORWARDCM,
     MPK_CHECKCOVER,
     MPK_QUERYRMADDRESS,
+    MPK_QUERYMAPADDRESS,
     MPK_ADDRESS,
     MPK_LOGINQUERYDB,
     MPK_NETPACKAGE,
     MPK_CHAROBJECTINFO,
     MPK_ADDCHAROBJECT,
     MPK_BINDSESSION,
+    MPK_MOTIONSTATE,
 };
 
 typedef struct{
@@ -279,3 +281,15 @@ typedef union{
 typedef struct{
     uint32_t SessionID;
 }AMBindSession;
+
+typedef struct{
+    uint8_t Type;
+    uint8_t State;
+    uint8_t Direction;
+
+    uint32_t UID;
+    uint32_t AddTime;
+    uint32_t Speed;
+    int X;
+    int Y;
+}AMMotionState;

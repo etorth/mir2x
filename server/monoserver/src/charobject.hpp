@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/30/2016 12:21:32
+ *  Last Modified: 05/31/2016 15:36:56
  *
  *    Description: 
  *
@@ -117,6 +117,8 @@ class CharObject: public ActiveObject
 {
     protected:
         Theron::Address m_RMAddress;
+        Theron::Address m_MapAddress;
+        Theron::Address m_SCAddress;
 
     public:
         CharObject();
@@ -279,4 +281,7 @@ class CharObject: public ActiveObject
                 InnSetR(nR);
             }
         }
+
+    protected:
+        void DispatchMotion();
 };

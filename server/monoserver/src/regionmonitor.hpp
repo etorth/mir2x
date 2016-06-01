@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/29/2016 21:56:11
+ *  Last Modified: 05/31/2016 18:16:17
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -187,6 +187,7 @@ class RegionMonitor: public Transponder
         }MoveRequest;
 
         typedef struct _CharObjectRecord{
+            uint8_t Type;
             uint32_t UID;
             uint32_t AddTime;
 
@@ -204,7 +205,7 @@ class RegionMonitor: public Transponder
                 , R(0)
                 , PodAddress(Theron::Address::Null())
             {}
-        }CharObjectRecord;
+        }CORecord;
 
     private:
         // +---+---+---+      arrange it in the form:
@@ -240,10 +241,11 @@ class RegionMonitor: public Transponder
         const int m_W;
         const int m_H;
 
+        const Theron::Address m_SCAddress;
         const Theron::Address m_MapAddress;
 
         MoveRequest m_MoveRequest;
-        std::vector<CharObjectRecord> m_CharObjectRecordV;
+        std::vector<CORecord> m_CORecordV;
         std::array<std::array<NeighborRecord, 3>, 3> m_NeighborV2D;
 
     public:
@@ -288,6 +290,7 @@ class RegionMonitor: public Transponder
         void On_MPK_NEWPLAYER(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWMONSTER(const MessagePack &, const Theron::Address &);
         void On_MPK_CHECKCOVER(const MessagePack &, const Theron::Address &);
+        void On_MPK_MOTIONSTATE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
         // void On_MPK_INITREGIONMONITOR(const MessagePack &, const Theron::Address &);

@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/30/2016 13:13:19
+ *  Last Modified: 05/31/2016 18:20:08
  *
  *    Description: 
  *
@@ -31,10 +31,10 @@ void RegionMonitor::On_MPK_LEAVE(const MessagePack &rstMPK, const Theron::Addres
     AMLeave stAML;
     std::memcpy(&stAML, rstMPK.Data(), rstMPK.DataLen());
 
-    for(auto &rstRecord: m_CharObjectRecordV){
+    for(auto &rstRecord: m_CORecordV){
         if(rstRecord.UID == stAML.UID && rstRecord.AddTime == stAML.AddTime){
-            std::swap(rstRecord, m_CharObjectRecordV.back());
-            m_CharObjectRecordV.pop_back();
+            std::swap(rstRecord, m_CORecordV.back());
+            m_CORecordV.pop_back();
             break;
         }
     }
@@ -95,7 +95,7 @@ void RegionMonitor::On_MPK_CHECKCOVER(
 //     int nObjW = 2 * stAMNM.R;
 //     int nObjH = 2 * stAMNM.R;
 //     if(RectangleInside(m_X, m_Y, m_W, m_H, nObjX, nObjY, nObjW, nObjH)){
-//         CharObjectRecord stCORecord;
+//         CORecord stCORecord;
 //         stCORecord.X = stAMNM.X;
 //         stCORecord.Y = stAMNM.Y;
 //         stCORecord.R = stAMNM.R;
@@ -108,7 +108,7 @@ void RegionMonitor::On_MPK_CHECKCOVER(
 //         ((CharObject *)stAMNM.Data)->SetLocation(GetAddress(), stAMNM.X, stAMNM.Y);
 //         stCORecord.PodAddress = ((ReactObject *)stAMNM.Data)->Activate();
 //
-//         m_CharObjectRecordV.push_back(stCORecord);
+//         m_CORecordV.push_back(stCORecord);
 //
 //         // we respond to ServerMap, but it won't respond again
 //         // TODO & TBD
@@ -239,7 +239,7 @@ void RegionMonitor::On_MPK_NEIGHBOR(const MessagePack &rstMPK, const Theron::Add
 
 void RegionMonitor::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
-    for(auto &rstRecord: m_CharObjectRecordV){
+    for(auto &rstRecord: m_CORecordV){
         m_ActorPod->Forward(MPK_METRONOME, rstRecord.PodAddress);
     }
 }
@@ -327,7 +327,7 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
         auto fnROP = [this](const MessagePack &rstRMPK, const Theron::Address &){
             // object moved, so we need to update the location
             if(rstRMPK.Type() == MPK_OK){
-                for(auto &rstRecord: m_CharObjectRecordV){
+                for(auto &rstRecord: m_CORecordV){
                     if(true
                             && rstRecord.UID == m_MoveRequest.UID
                             && rstRecord.AddTime == m_MoveRequest.AddTime){
@@ -482,7 +482,7 @@ void RegionMonitor::On_MPK_TRYSPACEMOVE(
 
         auto fnROP = [this](const MessagePack &rstRMPK, const Theron::Address &rstAddr){
             if(rstRMPK.ID() == MPK_OK){
-                CharObjectRecord stCORecord;
+                CORecord stCORecord;
                 stCORecord.X = m_MoveRequest.X;
                 stCORecord.Y = m_MoveRequest.Y;
                 stCORecord.R = m_MoveRequest.R;
@@ -492,7 +492,7 @@ void RegionMonitor::On_MPK_TRYSPACEMOVE(
                 stCORecord.PodAddress = rstAddr;
 
                 // put the new record into current region
-                m_CharObjectRecordV.push_back(stCORecord);
+                m_CORecordV.push_back(stCORecord);
             }
             m_MoveRequest.Clear();
 
@@ -669,7 +669,7 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
         pCharObject->Locate(m_MapID, stAMACO.Common.MapX, stAMACO.Common.MapY);
         pCharObject->Locate(GetAddress());
 
-        CharObjectRecord stCORecord;
+        CORecord stCORecord;
         stCORecord.X = pCharObject->X();
         stCORecord.Y = pCharObject->Y();
         stCORecord.R = pCharObject->R();
@@ -678,7 +678,7 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
         stCORecord.AddTime    = pCharObject->AddTime();
         stCORecord.PodAddress = pCharObject->Activate();
 
-        m_CharObjectRecordV.push_back(stCORecord);
+        m_CORecordV.push_back(stCORecord);
 
         // we respond to ServiceCore, but it won't respond again
         // TODO & TBD
@@ -821,4 +821,13 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
     // I have send MPK_CHECKCOVER to all qualified neighbors
     // now just wait for the response
     return;
+}
+
+void RegionMonitor::On_MPK_MOTIONSTATE(const MessagePack &rstMPK, const Theron::Address &)
+{
+    for(auto &rstCORecord: m_CORecordV){
+        if(rstCORecord.Type == OBJECT_PLAYER && rstCORecord.PodAddress){
+            m_ActorPod->Forward({MPK_MOTIONSTATE, rstMPK.Data(), rstMPK.DataLen()}, rstCORecord.PodAddress);
+        }
+    }
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/29/2016 16:21:49
+ *  Last Modified: 05/31/2016 18:25:59
  *
  *    Description: 
  *
@@ -45,8 +45,8 @@ ServerMap::ServerMap(uint32_t nMapID)
     int nGridW = (W() + m_RegionW - 1) / m_RegionW;
     int nGridH = (H() + m_RegionH - 1) / m_RegionH;
 
-    m_RegionMonitorRecordV2D.resize(nGridH);
-    for(auto &rstRecordV: m_RegionMonitorRecordV2D){
+    m_RMRecordV2D.resize(nGridH);
+    for(auto &rstRecordV: m_RMRecordV2D){
         rstRecordV.resize(nGridW);
     }
 
@@ -66,6 +66,11 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
         case MPK_HI:
             {
                 On_MPK_HI(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_MOTIONSTATE:
+            {
+                On_MPK_MOTIONSTATE(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_METRONOME:
@@ -107,8 +112,8 @@ void ServerMap::CheckRegionMonitorNeed()
 {
     if(!m_Mir2xMap.Valid()){ return; }
 
-    for(size_t nRMY = 0; nRMY < m_RegionMonitorRecordV2D.size(); ++nRMY){
-        for(size_t nRMX = 0; nRMX < m_RegionMonitorRecordV2D[0].size(); ++nRMX){
+    for(size_t nRMY = 0; nRMY < m_RMRecordV2D.size(); ++nRMY){
+        for(size_t nRMX = 0; nRMX < m_RMRecordV2D[0].size(); ++nRMX){
 
             for(size_t nY = 0; nY < m_RegionH; ++nY){
                 for(size_t nX = 0; nX < m_RegionW; ++nX){
@@ -121,7 +126,7 @@ void ServerMap::CheckRegionMonitorNeed()
                             || m_Mir2xMap.CanWalk(nGX, nGY, 1)
                             || m_Mir2xMap.CanWalk(nGX, nGY, 2)
                             || m_Mir2xMap.CanWalk(nGX, nGY, 3)){
-                        m_RegionMonitorRecordV2D[nRMY][nRMX].Need = true;
+                        m_RMRecordV2D[nRMY][nRMX].Need = true;
                         goto __LABEL_GOTO_SERVERMAP_CHECKREGIONMONITORNEED_DONE_1;
                     }
                 }
@@ -134,9 +139,9 @@ __LABEL_GOTO_SERVERMAP_CHECKREGIONMONITORNEED_DONE_1:; // ok we check the next
 bool ServerMap::CheckRegionMonitorReady()
 {
     bool bReady = true;
-    for(size_t nY = 0; nY < m_RegionMonitorRecordV2D.size(); ++nY){
-        for(size_t nX = 0; nX < m_RegionMonitorRecordV2D[0].size(); ++nX){
-            if(!m_RegionMonitorRecordV2D[nY][nX].Ready()){
+    for(size_t nY = 0; nY < m_RMRecordV2D.size(); ++nY){
+        for(size_t nX = 0; nX < m_RMRecordV2D[0].size(); ++nX){
+            if(!m_RMRecordV2D[nY][nX].Ready()){
                 bReady = false;
                 goto __LABEL_GOTO_SERVERMAP_CHECKREGIONMONITORREADY_DONE_1;
             }
@@ -153,18 +158,18 @@ void ServerMap::CreateRegionMonterV2D()
 {
     if(m_RMV2DCreated){ return; }
 
-    for(size_t nRMY = 0; nRMY < m_RegionMonitorRecordV2D.size(); ++nRMY){
-        for(size_t nRMX = 0; nRMX < m_RegionMonitorRecordV2D[0].size(); ++nRMX){
+    for(size_t nRMY = 0; nRMY < m_RMRecordV2D.size(); ++nRMY){
+        for(size_t nRMX = 0; nRMX < m_RMRecordV2D[0].size(); ++nRMX){
             // 1. won't apply
-            if(!m_RegionMonitorRecordV2D[nRMY][nRMX].Need){ continue; }
+            if(!m_RMRecordV2D[nRMY][nRMX].Need){ continue; }
 
             // 2. won't need further initialization
-            if(m_RegionMonitorRecordV2D[nRMY][nRMX].Ready()){ continue; }
+            if(m_RMRecordV2D[nRMY][nRMX].Ready()){ continue; }
 
             // ok now it applies and need further initialization
             
             // 3. clear the previous one
-            delete m_RegionMonitorRecordV2D[nRMY][nRMX].Data;
+            delete m_RMRecordV2D[nRMY][nRMX].Data;
 
             // 4. create the new one
             auto pNewMonitor = new RegionMonitor(GetAddress(), m_MapID,
@@ -173,24 +178,24 @@ void ServerMap::CreateRegionMonterV2D()
                     m_RegionW * SYS_MAPGRIDXP,        // size in pixel
                     m_RegionH * SYS_MAPGRIDYP);
 
-            m_RegionMonitorRecordV2D[nRMY][nRMX].Data       = pNewMonitor;
-            m_RegionMonitorRecordV2D[nRMY][nRMX].Need       = true;
-            m_RegionMonitorRecordV2D[nRMY][nRMX].Inform     = false;
-            m_RegionMonitorRecordV2D[nRMY][nRMX].RMReady    = false;
-            m_RegionMonitorRecordV2D[nRMY][nRMX].PodAddress = pNewMonitor->Activate();
+            m_RMRecordV2D[nRMY][nRMX].Data       = pNewMonitor;
+            m_RMRecordV2D[nRMY][nRMX].Need       = true;
+            m_RMRecordV2D[nRMY][nRMX].Inform     = false;
+            m_RMRecordV2D[nRMY][nRMX].RMReady    = false;
+            m_RMRecordV2D[nRMY][nRMX].PodAddress = pNewMonitor->Activate();
         }
     }
 
-    for(size_t nRMY = 0; nRMY < m_RegionMonitorRecordV2D.size(); ++nRMY){
-        for(size_t nRMX = 0; nRMX < m_RegionMonitorRecordV2D[0].size(); ++nRMX){
+    for(size_t nRMY = 0; nRMY < m_RMRecordV2D.size(); ++nRMY){
+        for(size_t nRMX = 0; nRMX < m_RMRecordV2D[0].size(); ++nRMX){
             // 1. won't apply
-            if(!m_RegionMonitorRecordV2D[nRMY][nRMX].Need){ continue; }
+            if(!m_RMRecordV2D[nRMY][nRMX].Need){ continue; }
 
             // 2. no need for further initialization
-            if(m_RegionMonitorRecordV2D[nRMY][nRMX].Ready()){ continue; }
+            if(m_RMRecordV2D[nRMY][nRMX].Ready()){ continue; }
 
             // 3. pending, half-inited
-            if(m_RegionMonitorRecordV2D[nRMY][nRMX].Pending()){ continue; }
+            if(m_RMRecordV2D[nRMY][nRMX].Pending()){ continue; }
 
             // ok now we need to send neighbor list
 
@@ -205,13 +210,13 @@ void ServerMap::CreateRegionMonterV2D()
 
                     if(true
                             && (nDX || nDY)
-                            && (nTRMY >= 0 && nTRMY < (int)m_RegionMonitorRecordV2D.size())
-                            && (nTRMX >= 0 && nTRMX < (int)m_RegionMonitorRecordV2D[0].size())){
+                            && (nTRMY >= 0 && nTRMY < (int)m_RMRecordV2D.size())
+                            && (nTRMX >= 0 && nTRMX < (int)m_RMRecordV2D[0].size())){
                         // here don't use RMRecord.Valid() to validate the address since
                         // RMReady is not set yet, RMReady is created and activated, but
                         // it's not valid until we get the response for neighbor list
                         //
-                        auto &rstAddr = m_RegionMonitorRecordV2D[nTRMY][nTRMX].PodAddress;
+                        auto &rstAddr = m_RMRecordV2D[nTRMY][nTRMX].PodAddress;
                         if(rstAddr != Theron::Address::Null()){ szAddr = rstAddr.AsString(); }
                     }
 
@@ -221,8 +226,8 @@ void ServerMap::CreateRegionMonterV2D()
             }
 
             auto fnOnR = [this, nRMX, nRMY](const MessagePack &rstMPK, const Theron::Address &){
-                if(rstMPK.Type() == MPK_OK && m_RegionMonitorRecordV2D[nRMY][nRMX].Pending()){
-                    m_RegionMonitorRecordV2D[nRMY][nRMX].RMReady = true;
+                if(rstMPK.Type() == MPK_OK && m_RMRecordV2D[nRMY][nRMX].Pending()){
+                    m_RMRecordV2D[nRMY][nRMX].RMReady = true;
                     CheckRegionMonitorReady();
                     return;
                 }
@@ -235,8 +240,8 @@ void ServerMap::CreateRegionMonterV2D()
 
             m_ActorPod->Forward({MPK_NEIGHBOR,
                     (const uint8_t *)&stStringAddress[0], stStringAddress.size()},
-                    m_RegionMonitorRecordV2D[nRMY][nRMX].PodAddress, fnOnR);
-            m_RegionMonitorRecordV2D[nRMY][nRMX].Inform = true;
+                    m_RMRecordV2D[nRMY][nRMX].PodAddress, fnOnR);
+            m_RMRecordV2D[nRMY][nRMX].Inform = true;
         }
     }
 

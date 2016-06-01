@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitortrg.cpp
  *        Created: 05/06/2016 17:39:36
- *  Last Modified: 05/29/2016 22:07:08
+ *  Last Modified: 05/31/2016 18:45:54
  *
  *    Description: The first place I am thinking of using trigger or not.
  *                 
@@ -123,7 +123,7 @@ void RegionMonitor::For_MoveRequest()
             return;
         }
 
-        CharObjectRecord stCORecord;
+        CORecord stCORecord;
         stCORecord.X = m_MoveRequest.X;
         stCORecord.Y = m_MoveRequest.Y;
         stCORecord.R = m_MoveRequest.R;
@@ -136,7 +136,7 @@ void RegionMonitor::For_MoveRequest()
         stCORecord.AddTime    = m_MoveRequest.AddTime;
         stCORecord.PodAddress = pCharObject->Activate();
 
-        m_CharObjectRecordV.push_back(stCORecord);
+        m_CORecordV.push_back(stCORecord);
 
         // we respond to ServerMap, but it won't respond again
         m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID);
@@ -166,7 +166,7 @@ void RegionMonitor::For_MoveRequest()
             // object picked this chance to move
             if(m_MoveRequest.CurrIn){
                 // inside
-                for(auto &rstRecord: m_CharObjectRecordV){
+                for(auto &rstRecord: m_CORecordV){
                     if(true
                             && rstRecord.UID == m_MoveRequest.UID
                             && rstRecord.AddTime == m_MoveRequest.AddTime){
@@ -178,7 +178,7 @@ void RegionMonitor::For_MoveRequest()
             }else{
                 // into
                 // then we assume it has removed the old record in its last region
-                CharObjectRecord stCORecord;
+                CORecord stCORecord;
                 stCORecord.X = m_MoveRequest.X;
                 stCORecord.Y = m_MoveRequest.Y;
                 stCORecord.R = m_MoveRequest.R;
@@ -187,7 +187,7 @@ void RegionMonitor::For_MoveRequest()
                 stCORecord.UID        = m_MoveRequest.UID;
                 stCORecord.AddTime    = m_MoveRequest.AddTime;
 
-                m_CharObjectRecordV.push_back(stCORecord);
+                m_CORecordV.push_back(stCORecord);
             }
         }
 

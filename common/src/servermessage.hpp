@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 05/30/2016 18:08:09
+ *  Last Modified: 05/31/2016 18:07:10
  *
  *    Description: net message used by client and mono-server
  *
@@ -30,6 +30,7 @@ enum: uint8_t
     SM_LOGINOK,
     SM_LOGINFAIL,
     SM_SERVERFULL,
+    SM_MOTIONSTATE,
 };
 
 #pragma pack(push, 1)
@@ -53,4 +54,16 @@ typedef struct{
     uint32_t MapY;
     uint32_t Direction;
 }SMLoginOK;
+
+typedef struct{
+    uint8_t Type;
+    uint8_t State;
+    uint8_t Direction;
+
+    uint32_t UID;
+    uint32_t AddTime;
+    uint32_t Speed;
+    uint32_t X;
+    uint32_t Y;
+}SMMotionState;
 #pragma pack(pop)

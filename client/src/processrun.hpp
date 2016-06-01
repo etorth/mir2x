@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 05/31/2016 14:22:12
+ *  Last Modified: 05/31/2016 18:48:46
  *
  *    Description: 
  *
@@ -45,5 +45,6 @@ class ProcessRun: public Process
         virtual void ProcessEvent(const SDL_Event &);
 
     public:
-        bool Load(const uint8_t *, size_t);
+        void Net_LoginOK(const uint8_t *, size_t);
+        void Net_MotionState(const uint8_t *, size_t);
 };

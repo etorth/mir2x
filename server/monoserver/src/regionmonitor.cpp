@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 05/29/2016 13:34:40
+ *  Last Modified: 05/31/2016 18:16:54
  *
  *    Description: 
  *
@@ -95,7 +95,7 @@ bool RegionMonitor::CoverValid(uint32_t nUID, uint32_t nAddTime, int nX, int nY,
     if(!GroundValid(nX, nY, nR)){ return false; }
 
     // 2. will I collide with any one in current region?
-    for(auto &rstRecord: m_CharObjectRecordV){
+    for(auto &rstRecord: m_CORecordV){
         if(rstRecord.UID == nUID && rstRecord.AddTime == nAddTime){
             continue;
         }

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 05/29/2016 04:41:08
+ *  Last Modified: 05/31/2016 18:25:44
  *
  *    Description: put all non-atomic function as private
  *
@@ -171,7 +171,7 @@ class ServerMap: public Transponder
 
 
     protected:
-        Vec2D<RegionMonitorRecord>  m_RegionMonitorRecordV2D;
+        Vec2D<RegionMonitorRecord>  m_RMRecordV2D;
 
         void CheckRegionMonitorNeed();
         bool CheckRegionMonitorReady();
@@ -182,13 +182,13 @@ class ServerMap: public Transponder
         {
             if(false
                     || nRMY < 0
-                    || nRMY >= (int)m_RegionMonitorRecordV2D.size()
+                    || nRMY >= (int)m_RMRecordV2D.size()
                     || nRMX < 0
-                    || nRMX >= (int)m_RegionMonitorRecordV2D[0].size()){
+                    || nRMX >= (int)m_RMRecordV2D[0].size()){
                 return Theron::Address::Null();
             }
 
-            return m_RegionMonitorRecordV2D[nRMY][nRMX].PodAddress;
+            return m_RMRecordV2D[nRMY][nRMX].PodAddress;
         }
 
         const Theron::Address &RegionMonitorAddressC(int nX, int nY)
@@ -221,6 +221,7 @@ class ServerMap: public Transponder
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDMONSTER(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWMONSTER(const MessagePack &, const Theron::Address &);
+        void On_MPK_MOTIONSTATE(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYRMADDRESS(const MessagePack &, const Theron::Address &);
         void On_MPK_REGIONMONITORREADY(const MessagePack &, const Theron::Address &);
 };

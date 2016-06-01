@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 05/27/2016 15:50:38
+ *  Last Modified: 05/31/2016 15:38:30
  *
  *    Description: 
  *
@@ -76,8 +76,7 @@ bool ReactObject::AccessCheck()
 {
     if(m_ActorPod){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING,
-                "Direct access internal state of an actor after activation");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Direct access internal state of an actor after activation");
         g_MonoServer->Restart();
 
         return false;

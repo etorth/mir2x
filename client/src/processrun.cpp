@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/31/2016 14:31:32
+ *  Last Modified: 05/31/2016 18:50:03
  *
  *    Description: 
  *
@@ -282,9 +282,9 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
 }
 
 // we get all needed initialization info for init the process run
-bool ProcessRun::Load(const uint8_t *pBuf, size_t nLen)
+void ProcessRun::Net_LoginOK(const uint8_t *pBuf, size_t nLen)
 {
-    if(!(pBuf && nLen && nLen == sizeof(SMLoginOK))){ return false; }
+    if(!(pBuf && nLen && nLen == sizeof(SMLoginOK))){ return; }
 
     SMLoginOK stLoginOK;
     std::memcpy(&stLoginOK, pBuf, nLen);
@@ -292,6 +292,21 @@ bool ProcessRun::Load(const uint8_t *pBuf, size_t nLen)
     m_Map.Load("./DESC.BIN");
     // m_MyHero.SetGUID(stLoginOK.GUID);
     // m_MyHero.SetDirection(stLoginOK.Direction);
+}
 
-    return true;
+void ProcessRun::Net_MotionState(const uint8_t *pBuf, size_t)
+{
+    SMMotionState stSMMS = *((const SMMotionState *)pBuf);
+    auto pRecord = m_CreatureMap.find(((uint64_t)stSMMS.UID << 32) + stSMMS.AddTime);
+
+    if(stSMMS.MapID != m_MapID){ return; }
+
+    if(true
+            && pRecord != m_CreatureMap.end()
+            && pRecord.second
+            && pRecord.second->Type(stSMMS.Type)){
+        auto pCreature = pRecord.second;
+
+        pCreature->ResetMotionState(stSMMS.State)
+    }
 }
