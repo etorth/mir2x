@@ -3,7 +3,7 @@
  *
  *       Filename: onsmhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 05/31/2016 17:14:16
+ *  Last Modified: 05/31/2016 21:56:08
  *
  *    Description: 
  *
@@ -48,7 +48,8 @@ void Game::OnLoginOK()
         auto pRun = (ProcessRun *)m_CurrentProcess;
 
         extern Log *g_Log;
-        if(pRun && pRun->Load(pBuf, nLen)){
+        if(pRun){
+            pRun->Net_LoginOK(pBuf, nLen);
             g_Log->AddLog(LOGTYPE_INFO, "login succeed");
         }else{
             g_Log->AddLog(LOGTYPE_INFO, "failed to jump into main loop");
@@ -73,7 +74,7 @@ void Game::OnMotionState()
 
         // 2. ok we are in running state
         auto pRun = (ProcessRun *)m_CurrentProcess;
-        pRun->UpdateMotionState(pBuf, nLen);
+        pRun->Net_MotionState(pBuf, nLen);
     };
 
     Read(sizeof(SMLoginOK), fnMotionState);

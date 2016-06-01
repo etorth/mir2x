@@ -51,6 +51,7 @@ class Game
         void OnPing();
         void OnLoginOK();
         void OnLoginFail();
+        void OnMotionState();
 
     private:
         double GetTimeMS();

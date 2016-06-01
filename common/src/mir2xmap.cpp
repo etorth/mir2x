@@ -320,7 +320,7 @@ void Mir2xMap::Draw(int nViewX, int nViewY, int nViewW, int nViewH, // view regi
 
             // 3. for tile
             if(!(nCellY % 2) && !(nCellX % 2) && TileValid(nCellX, nCellY)){
-                fnDrawTile(nCellX / 2, nCellY / 2, Tile(nCellX, nCellY));
+                fnDrawTile(nCellX, nCellY, Tile(nCellX, nCellY));
             }
 
             // 4. draw ground cell object

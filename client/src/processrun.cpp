@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/31/2016 18:50:03
+ *  Last Modified: 05/31/2016 23:02:43
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 #include <cstring>
 #include "sysconst.hpp"
 #include "pngtexdbn.hpp"
+#include "sdldevice.hpp"
 #include "processrun.hpp"
 
 ProcessRun::ProcessRun()
@@ -101,23 +102,38 @@ void ProcessRun::Update(double)
 //
 void ProcessRun::Draw()
 {
-    static auto fnGeneralDraw = [](int nPX, int nPY, uint32_t nKey){
+    static auto fnDrawTile = [this](int nGX, int nGY, uint32_t nKey){
         extern PNGTexDBN *g_PNGTexDBN;
         // 1. retrieve texture
         auto pTexture = g_PNGTexDBN->Retrieve(nKey);
         if(!pTexture){ return; }
 
-        // 2. draw it
+        // 2. get the start point
+        int nPX = nGX * SYS_MAPGRIDXP - m_ViewX;
+        int nPY = nGY * SYS_MAPGRIDYP - m_ViewY;
+
+        // 3. draw it
         extern SDLDevice *g_SDLDevice;
         g_SDLDevice->DrawTexture(pTexture, nPX, nPY);
     };
 
-    static auto fnDrawTile = [this](int nGX, int nGY, uint32_t nIMGHDR){
-        fnGeneralDraw(nGX * SYS_MAPGRIDXP - m_ViewX, nGY * SYS_MAPGRIDYP - m_ViewY, nIMGHDR);
-    };
+    static auto fnDrawObj = [this](int nGX, int nGY, uint32_t nKey){
+        extern PNGTexDBN *g_PNGTexDBN;
+        // 1. retrieve texture
+        auto pTexture = g_PNGTexDBN->Retrieve(nKey);
+        if(!pTexture){ return; }
 
-    static auto fnDrawObj = [this](int nGX, int nGY, uint32_t nIMGHDR){
-        fnGeneralDraw(nGX * SYS_MAPGRIDXP - m_ViewX, (nGY + 1) * SYS_MAPGRIDYP - m_ViewY, nIMGHDR);
+        // 2. we need it's height
+        int nH = 0;
+        SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH);
+
+        // 3. get the start point
+        int nPX = nGX * SYS_MAPGRIDXP - m_ViewX;
+        int nPY = nGY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP - nH;
+
+        // 4. draw it
+        extern SDLDevice *g_SDLDevice;
+        g_SDLDevice->DrawTexture(pTexture, nPX, nPY);
     };
 
     static auto fnDrawActor = [this](int nGX, int nGY){
@@ -130,12 +146,17 @@ void ProcessRun::Draw()
         }
     };
 
+    extern SDLDevice *g_SDLDevice;
+    g_SDLDevice->ClearScreen();
+
     if(m_Map.Valid()){
         extern SDLDevice *g_SDLDevice;
         m_Map.Draw(m_ViewX, m_ViewY,
                 g_SDLDevice->WindowW(false), g_SDLDevice->WindowH(false),
                 SYS_OBJMAXW, SYS_OBJMAXH, fnDrawTile, fnDrawObj, fnDrawActor, fnDrawExt);
     }
+
+    g_SDLDevice->Present();
 }
 //
 // void ProcessRun::UpdateActor()
@@ -294,19 +315,21 @@ void ProcessRun::Net_LoginOK(const uint8_t *pBuf, size_t nLen)
     // m_MyHero.SetDirection(stLoginOK.Direction);
 }
 
+#include <cstdio>
 void ProcessRun::Net_MotionState(const uint8_t *pBuf, size_t)
 {
     SMMotionState stSMMS = *((const SMMotionState *)pBuf);
-    auto pRecord = m_CreatureMap.find(((uint64_t)stSMMS.UID << 32) + stSMMS.AddTime);
-
-    if(stSMMS.MapID != m_MapID){ return; }
-
-    if(true
-            && pRecord != m_CreatureMap.end()
-            && pRecord.second
-            && pRecord.second->Type(stSMMS.Type)){
-        auto pCreature = pRecord.second;
-
-        pCreature->ResetMotionState(stSMMS.State)
-    }
+    std::printf("location = (%d, %d)\n", stSMMS.X, stSMMS.Y);
+    // auto pRecord = m_CreatureMap.find(((uint64_t)stSMMS.UID << 32) + stSMMS.AddTime);
+    //
+    // if(stSMMS.MapID != m_MapID){ return; }
+    //
+    // if(true
+    //         && pRecord != m_CreatureMap.end()
+    //         && pRecord.second
+    //         && pRecord.second->Type(stSMMS.Type)){
+    //     auto pCreature = pRecord.second;
+    //
+    //     pCreature->ResetMotionState(stSMMS.State)
+    // }
 }
