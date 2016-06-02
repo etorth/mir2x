@@ -27,6 +27,9 @@ decl {\#include "mathfunc.hpp"} {public local
 decl {\#include "filesys.hpp"} {public local
 } 
 
+decl {\#include "controlwindow.hpp"} {public local
+} 
+
 class MainWindow {open
 } {
   Function {MainWindow()} {open
@@ -34,8 +37,8 @@ class MainWindow {open
     Fl_Window m_Window {
       callback {{
 	exit(0);
-}} open
-      private xywh {102 103 854 474} type Double labelfont 4 visible
+}} open selected
+      private xywh {104 105 854 474} type Double labelfont 4 visible
     } {
       Fl_Menu_Bar m_MenuBar {
         private xywh {0 0 1025 30} labelfont 4
@@ -153,7 +156,8 @@ class MainWindow {open
             label Cover
             callback {m_MenuItemEnableEdit->clear();
 m_MenuItemEnableAnimation->clear();
-m_TestGroup->StopTest();
+    extern ControlWindow *g_ControlWindow;
+g_ControlWindow->m_TestGroup->StopTest();
 
 RedrawAll();}
             private xywh {35 35 30 20} type Radio value 1 labelfont 4
@@ -166,7 +170,8 @@ RedrawAll();}
             label {Shadow      }
             callback {m_MenuItemEnableEdit->clear();
 m_MenuItemEnableAnimation->clear();
-m_TestGroup->StopTest();
+    extern ControlWindow *g_ControlWindow;
+g_ControlWindow->m_TestGroup->StopTest();
 
 RedrawAll();}
             private xywh {25 25 30 20} type Radio labelfont 4
@@ -179,7 +184,8 @@ RedrawAll();}
             label {Align Frame}
             callback {m_MenuItemEnableEdit->clear();
 m_MenuItemEnableAnimation->clear();
-m_TestGroup->StopTest();
+    extern ControlWindow *g_ControlWindow;
+g_ControlWindow->m_TestGroup->StopTest();
 
 RedrawAll();}
             private xywh {15 15 30 20} type Radio labelfont 4
@@ -189,7 +195,8 @@ RedrawAll();}
             label {Align Action Set        }
             callback {m_MenuItemEnableEdit->clear();
 m_MenuItemEnableAnimation->clear();
-m_TestGroup->StopTest();
+    extern ControlWindow *g_ControlWindow;
+g_ControlWindow->m_TestGroup->StopTest();
 
 RedrawAll();}
             private xywh {25 25 30 20} type Radio labelfont 4
@@ -199,7 +206,8 @@ RedrawAll();}
             label {Test Mode}
             callback {m_MenuItemEnableEdit->clear();
 m_MenuItemEnableAnimation->clear();
-m_TestGroup->StopTest();
+    extern ControlWindow *g_ControlWindow;
+g_ControlWindow->m_TestGroup->StopTest();
 
 RedrawAll();}
             private xywh {35 35 30 20} type Radio labelfont 4
@@ -224,60 +232,16 @@ g_AboutWindow->ShowAll();}
         code0 {\#include "operationarea.hpp"}
         class OperationArea
       }
-      Fl_Tabs {} {open
-        xywh {525 30 325 440}
-      } {
-        Fl_Group m_StatusDirectionGroup {
-          label State
-          xywh {525 55 325 415} labelfont 4 hide
-        } {
-          Fl_Choice m_ChoiceStatus {open
-            xywh {550 96 265 20} down_box BORDER_BOX labelfont 4 textfont 4
-          } {}
-          Fl_Choice m_ChoiceDirection {open
-            xywh {550 130 265 20} down_box BORDER_BOX labelfont 4 textfont 4
-          } {}
-        }
-        Fl_Group m_RectCoverEditGroup {
-          label { RC } open
-          private xywh {525 55 325 415} labelfont 4 hide
-          code0 {\#include "rectcovereditgroup.hpp"}
-          class RectCoverEditGroup
-        } {}
-        Fl_Group m_ActionSetAlignGroup {
-          label Action open
-          xywh {525 55 325 415} labelfont 4 hide
-          code0 {\#include "actionsetaligngroup.hpp"}
-          class ActionSetAlignGroup
-        } {}
-        Fl_Group m_FrameAlignGroup {
-          label Frame open
-          xywh {525 55 325 415} labelfont 4 hide
-          code0 {\#include "framealigngroup.hpp"}
-          class FrameAlignGroup
-        } {}
-        Fl_Group m_ShadowEditGroup {
-          label Shadow open
-          xywh {525 55 325 415} labelfont 4 hide
-          code0 {\#include "shadoweditgroup.hpp"}
-          class ShadowEditGroup
-        } {}
-        Fl_Group m_TestGroup {
-          label Test open
-          xywh {525 55 325 415} labelfont 4
-          code0 {\#include "actionsettestgroup.hpp"}
-          class ActionSetTestGroup
-        } {}
-      }
     }
   }
   Function {ShowAll()} {return_type void
   } {
     code {m_Window->show();} {}
   }
-  Function {RedrawAll()} {return_type void
+  Function {RedrawAll()} {open return_type void
   } {
-    code {if(EditCover())\{
+    code {/*
+if(EditCover())\{
     m_RectCoverEditGroup->show();
 \}else\{
     m_RectCoverEditGroup->hide();
@@ -305,16 +269,16 @@ if(EditActionSetAlign())\{
 if(m_MenuItemTest->value())\{
     m_StatusDirectionGroup->hide();
     //m_StatusDirectionGroup->deactivate();
-    m_TestGroup->show();
+    g_ControlWindow->m_TestGroup->show();
 \}else\{
     m_StatusDirectionGroup->show();
     //m_StatusDirectionGroup->activate();
-    m_TestGroup->hide();
+    g_ControlWindow->m_TestGroup->hide();
 \}
-
+*/
 m_Window->redraw();} {}
   }
-  Function {LoadAnimationSet()} {selected return_type void
+  Function {LoadAnimationSet()} {return_type void
   } {
     code {{
 }} {}
@@ -404,7 +368,8 @@ m_Window->redraw();} {}
   Function {RectCoverCopyMethod()} {return_type int
   } {
     code {{
-    return m_RectCoverEditGroup->RectCoverCopyMethod();
+        extern ControlWindow *g_ControlWindow;
+    return g_ControlWindow->m_RectCoverEditGroup->RectCoverCopyMethod();
 }} {}
   }
   Function {TestMode()} {return_type bool
@@ -432,11 +397,13 @@ m_Window->redraw();} {}
         uint8_t nIndex = ((g_TestAnimationCode & 0XFF000000) >> 24);
         if(nIndex == 5){
             // TODO: end of test, simply repeat
-            m_TestGroup->StartTest();
+    extern ControlWindow *g_ControlWindow;
+            g_ControlWindow->m_TestGroup->StartTest();
             return;
         }else{
             while(nIndex + 1 != 6){
-                g_TestAnimationCode = m_TestGroup->GetTestActionSetCode(nIndex + 1);
+    extern ControlWindow *g_ControlWindow;
+                g_TestAnimationCode = g_ControlWindow->m_TestGroup->GetTestActionSetCode(nIndex + 1);
                 uint32_t nStatus    = ((g_TestAnimationCode & 0X00FF0000) >> 16);
                 uint32_t nDirection = ((g_TestAnimationCode & 0X0000FF00) >>  8);
                 if(nStatus < 100){
@@ -449,7 +416,8 @@ m_Window->redraw();} {}
                 }
             }
             // TODO: end of test, simply repeat
-            m_TestGroup->StartTest();
+    extern ControlWindow *g_ControlWindow;
+            g_ControlWindow->m_TestGroup->StartTest();
             return;
         }
     }else{
@@ -460,47 +428,50 @@ m_Window->redraw();} {}
   Function {AddStatusItem()} {return_type void
   } {
     code {{
-    m_ChoiceStatus->clear();
+        extern ControlWindow *g_ControlWindow;
+    g_ControlWindow->m_ChoiceStatus->clear();
     extern AnimationSet g_AnimationSet;
     for(int nStatus = 0; nStatus < 100; ++nStatus){
         for(int nDirection = 0; nDirection < 7; ++nDirection){
             if(g_AnimationSet.Valid(nStatus, nDirection)){
                 extern const char *g_StatusNameList[];
-                m_ChoiceStatus->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)(uintptr_t)nStatus, 0);
+                g_ControlWindow->m_ChoiceStatus->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)(uintptr_t)nStatus, 0);
                 break;
             }
         }
     }
-    if(m_ChoiceStatus->size() > 0){
-        m_ChoiceStatus->value(0);
-        if(m_ChoiceStatus->menu()[0].callback()){
-            m_ChoiceStatus->menu()[0].do_callback(nullptr);
+    if(g_ControlWindow->m_ChoiceStatus->size() > 0){
+        g_ControlWindow->m_ChoiceStatus->value(0);
+        if(g_ControlWindow->m_ChoiceStatus->menu()[0].callback()){
+            g_ControlWindow->m_ChoiceStatus->menu()[0].do_callback(nullptr);
         }
-        m_ChoiceStatus->textfont(4);
+        g_ControlWindow->m_ChoiceStatus->textfont(4);
     }
     
-    m_TestGroup->AddValidStatus();
+    extern ControlWindow *g_ControlWindow;
+    g_ControlWindow->m_TestGroup->AddValidStatus();
     RedrawAll();
 }} {}
   }
   Function {AddDirectionItem(int nStatus)} {return_type void
   } {
     code {{
-    m_ChoiceDirection->clear();
     extern AnimationSet g_AnimationSet;
+    extern ControlWindow *g_ControlWindow;
+    g_ControlWindow->m_ChoiceDirection->clear();
     for(int nDirection = 0; nDirection < 8; ++nDirection){
         if(g_AnimationSet.Valid(nStatus, nDirection)){
-            m_ChoiceDirection->add(
+            g_ControlWindow->m_ChoiceDirection->add(
                     (std::string("Direction ") + std::to_string(nDirection)).c_str(),
                     0, DirectionItemCallback, (void *)(uintptr_t)nDirection, 0);
         }
     }
-    if(m_ChoiceDirection->size() > 0){
-        m_ChoiceDirection->value(0);
-        if(m_ChoiceDirection->menu()[0].callback()){
-            m_ChoiceDirection->menu()[0].do_callback(nullptr);
+    if(g_ControlWindow->m_ChoiceDirection->size() > 0){
+        g_ControlWindow->m_ChoiceDirection->value(0);
+        if(g_ControlWindow->m_ChoiceDirection->menu()[0].callback()){
+            g_ControlWindow->m_ChoiceDirection->menu()[0].do_callback(nullptr);
         }
-        m_ChoiceDirection->textfont(4);
+        g_ControlWindow->m_ChoiceDirection->textfont(4);
     }
     RedrawAll();
 }} {}

@@ -5,6 +5,7 @@
 #include "mainwindow.hpp"
 #include "aboutwindow.hpp"
 #include "animationset.hpp"
+#include "controlwindow.hpp"
 #include "wilimagepackage.hpp"
 #include "progressbarwindow.hpp"
 #include "validwilfilewindow.hpp"
@@ -12,6 +13,7 @@
 #include "animationpreviewwindow.hpp"
 
 SIDWindow              *g_SIDWindow;
+ControlWindow          *g_ControlWindow;
 WilImagePackage         g_WilImagePackage[2];
 MainWindow             *g_MainWindow;
 ValidWilFileWindow     *g_ValidWilFileWindow;
@@ -61,6 +63,7 @@ int main()
     MakeDir("./IMG");
     fl_register_images();
 
+    g_ControlWindow          = new ControlWindow();
     g_TestAnimationCode      = 0;
     g_AnimationSetPositionX  = 200;
     g_AnimationSetPositionY  = 200;
@@ -73,6 +76,7 @@ int main()
     g_ProgressBarWindow      = new ProgressBarWindow;
     g_AnimationPreviewWindow = nullptr;
 
+    g_ControlWindow->ShowAll();
     g_MainWindow->ShowAll();
 
     return Fl::run();

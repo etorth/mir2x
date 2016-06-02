@@ -1,0 +1,65 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+use_FL_COMMAND 
+header_name {.hpp} 
+code_name {.cpp}
+class ControlWindow {open
+} {
+  Function {ControlWindow()} {open
+  } {
+    Fl_Window m_Window {open selected
+      xywh {1814 273 390 550} type Double visible
+    } {
+      Fl_Tabs {} {open
+        xywh {0 0 390 550}
+      } {
+        Fl_Group m_StatusDirectionGroup {
+          label State open
+          xywh {0 25 390 525}
+        } {
+          Fl_Choice m_ChoiceStatus {open
+            xywh {70 126 265 20} down_box BORDER_BOX labelfont 4 textfont 4
+          } {}
+          Fl_Choice m_ChoiceDirection {open
+            xywh {70 160 265 20} down_box BORDER_BOX labelfont 4 textfont 4
+          } {}
+        }
+        Fl_Group m_RectCoverEditGroup {
+          label Cover open
+          xywh {0 25 390 525} labelfont 4 hide
+          code0 {\#include "rectcovereditgroup.hpp"}
+          class RectCoverEditGroup
+        } {}
+        Fl_Group m_ActionSetAlignGroup {
+          label Action open
+          xywh {0 25 390 525} labelfont 4 hide
+          code0 {\#include "actionsetaligngroup.hpp"}
+          class ActionSetAlignGroup
+        } {}
+        Fl_Group m_FrameAlignGroup {
+          label Frame open
+          xywh {0 25 390 525} labelfont 4 hide
+          code0 {\#include "framealigngroup.hpp"}
+          class FrameAlignGroup
+        } {}
+        Fl_Group m_ShadowEditGroup {
+          label Shadow open
+          xywh {0 25 390 525} labelfont 4 hide
+          code0 {\#include "shadoweditgroup.hpp"}
+          class ShadowEditGroup
+        } {}
+        Fl_Group m_TestGroup {
+          label Test open
+          xywh {0 25 390 525} labelfont 4 hide
+          code0 {\#include "actionsettestgroup.hpp"}
+          class ActionSetTestGroup
+        } {}
+      }
+    }
+  }
+  Function {ShowAll()} {} {
+    code {{
+	m_Window->show();
+}} {}
+  }
+} 
