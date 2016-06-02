@@ -1,0 +1,206 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include "mainwindow.hpp"} {private global
+} 
+
+widget_class RectCoverEditGroup {open selected
+  xywh {365 143 268 387} type Double visible position_relative
+} {
+  Fl_Button {} {
+    label {@8->}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetOffset(0, m_VSResolution->value());
+        extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+    xywh {106 22 50 50}
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@2->}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetOffset(0, 0 - m_VSResolution->value());
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+
+}}
+    xywh {106 120 50 50}
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@4->}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetOffset(m_VSResolution->value(), 0);
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+
+}}
+    xywh {57 71 50 50}
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@->}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetOffset(0 - m_VSResolution->value(), 0);
+        extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+    xywh {155 71 50 50}
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@-1|<}
+    callback {extern AnimationSet g_AnimationSet;
+g_AnimationSet.FirstFrame();
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();}
+    xywh {15 184 60 40} labelfont 4
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@-1<-}
+    callback {extern AnimationSet g_AnimationSet;
+g_AnimationSet.PreviousFrame();
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();}
+    xywh {75 184 60 40} labelfont 4
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@-1->}
+    callback {extern AnimationSet g_AnimationSet;
+g_AnimationSet.NextFrame();
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();}
+    xywh {135 184 60 40} labelfont 4
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@-1>|}
+    callback {extern AnimationSet g_AnimationSet;
+g_AnimationSet.LastFrame();
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();}
+    xywh {195 184 60 40} labelfont 4
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Value_Slider m_VSResolution {
+    label Resolution
+    xywh {28 315 205 20} type Horizontal labelfont 4 minimum 1 maximum 100 step 1 value 1 textfont 4 textsize 14
+  }
+  Fl_Group {} {open
+    xywh {15 245 230 55} labelfont 4
+  } {
+    Fl_Round_Button m_RadioBtnNoneCopy {
+      label None
+      xywh {40 281 64 15} type Radio down_box ROUND_DOWN_BOX labelfont 4
+    }
+    Fl_Round_Button m_RadioBtnSameCopy {
+      label Same
+      xywh {105 281 64 15} type Radio down_box ROUND_DOWN_BOX labelfont 4
+    }
+    Fl_Round_Button m_RadioBtnDualCopy {
+      label Dual
+      xywh {170 281 64 15} type Radio down_box ROUND_DOWN_BOX value 1 labelfont 4
+    }
+  }
+  Function {RectCoverCopyMethod()} {return_type int
+  } {
+    code {{
+    if(m_RadioBtnNoneCopy->value()){
+        return 0;
+    }else if(m_RadioBtnSameCopy->value()){
+        return 1;
+    }else{
+        return 2;
+    }
+}} {}
+  }
+  Fl_Button {} {
+    label {-W}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetW(0 - m_VSResolution->value());
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+
+}}
+    xywh {15 224 60 40} labelfont 4
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {+W}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetW(m_VSResolution->value());
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+
+}}
+    xywh {75 224 60 40} labelfont 4
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {-H}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetH(0 - m_VSResolution->value());
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+
+
+}}
+    xywh {135 224 60 40} labelfont 4
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {+H}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetH(m_VSResolution->value());
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+
+}}
+    xywh {195 224 60 40} labelfont 4
+    code0 {\#include "animationset.hpp"}
+  }
+} 
