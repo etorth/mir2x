@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 06/02/2016 00:42:32
+ *  Last Modified: 06/02/2016 00:58:35
  *
  *    Description: 
  *
@@ -704,7 +704,7 @@ bool ActionSet::Export(
                 std::sprintf(szTmpHexStringFileName,
                         "%s/00ZZZ%s%s%s%04X%04X.PNG",
                         szIMGFolderName,
-                        szTmpHexStringStateDirectionFrame + 2, // skip two zeros
+                        szTmpHexStringStateDirectionFrame + 1, // skip one zero for first 4 bits
                         ((-nDX > 0) ? "1" : "0"),              // sign
                         ((-nDY > 0) ? "1" : "0"),              // sign
                         std::abs(-nDX),
