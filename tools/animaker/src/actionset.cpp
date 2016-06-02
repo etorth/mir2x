@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 06/01/2016 17:53:06
+ *  Last Modified: 06/02/2016 00:42:32
  *
  *    Description: 
  *
@@ -23,6 +23,7 @@
 #include <algorithm>
 #include "wilimagepackage.hpp"
 #include "mainwindow.hpp"
+#include "hexstring.hpp"
 #include "wilanimationinfo.hpp"
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
@@ -536,7 +537,7 @@ bool ActionSet::Valid()
 
 bool ActionSet::Export(
         const char *szIMGFolderName,
-		int nSID,
+		int /* nSID */,
         int nState,
         int nDirection,
         int nCenterX,
@@ -559,12 +560,13 @@ bool ActionSet::Export(
         {
             { // shadow layer
                 // offset info
+                int nDX = nCenterX - (m_ActionSetAlignX + m_PX[nFrame] + m_DSX[nFrame]);
+                int nDY = nCenterY - (m_ActionSetAlignY + m_PY[nFrame] + m_DSY[nFrame]);
+
                 auto pShadow = pDoc->NewElement("Shadow");
                 {
                     auto pDX = pDoc->NewElement("DX");
                     auto pDY = pDoc->NewElement("DY");
-                    int  nDX = nCenterX -(m_ActionSetAlignX + m_PX[nFrame] + m_DSX[nFrame]);
-                    int  nDY = nCenterY -(m_ActionSetAlignY + m_PY[nFrame] + m_DSY[nFrame]);
                     pDX->LinkEndChild(pDoc->NewText(std::to_string(-nDX).c_str()));
                     pDY->LinkEndChild(pDoc->NewText(std::to_string(-nDY).c_str()));
 
@@ -600,28 +602,61 @@ bool ActionSet::Export(
                 //                                         then is:
                 //    00 ~ 49       0~7           0 ~ 99 : max is 49799 < 65535: good enough
 
-                char szTmpFileName[64];
-                std::sprintf(szTmpFileName,
-                        "%s/02%04d%02d%d%02d.PNG",
-                        // 02 for shadow(6 bits), %04d for SID(10 bits), %02d%d%02d for ImageIndex (16 bits)
-                        // then to binary code: 0X FC000000 : precode
-                        //                      0X 03FF0000 : sid
-                        //                      0X 0000FFFF : image index
+                // old dup file name format
+                // char szTmpFileName[64];
+                // std::sprintf(szTmpFileName,
+                //         "%s/02%04d%02d%d%02d.PNG",
+                //         // 02 for shadow(6 bits), %04d for SID(10 bits), %02d%d%02d for ImageIndex (16 bits)
+                //         // then to binary code: 0X FC000000 : precode
+                //         //                      0X 03FF0000 : sid
+                //         //                      0X 0000FFFF : image index
+                //         szIMGFolderName,
+				// 		nSID,
+                //         nState,
+                //         nDirection,
+                //         nFrame);
+                // DupFile(szTmpFileName, m_PNG[1][nFrame]->name());
+
+                // new dup file name format
+                char szTmpHexStringFileName[128];
+                // uint32_t as Key, then:
+                // FF FF FF FF
+                // 01 ZZ Z- --
+                //
+                //  01  : for monster shadow
+                // ZZZ  : for LookID
+                // ---  : 12 bits: 12 ~ 09: 4 bits for states,     in total 16 states
+                //                 08 ~ 06: 3 bits for directions, in total 08 directions
+                //                 05 ~ 01: 5 bits for frames,     in total 32 frames
+                //
+                uint32_t nStateDirectionFrame = 0
+                    + ((((uint32_t)nState)     & 0X0000000F) << 8)
+                    + ((((uint32_t)nDirection) & 0X00000007) << 5)
+                    + ((((uint32_t)nFrame)     & 0X0000001F) << 0);
+
+                char szTmpHexStringStateDirectionFrame[16];
+                HexString<uint32_t, 2>(nStateDirectionFrame, szTmpHexStringStateDirectionFrame);
+                szTmpHexStringStateDirectionFrame[4] = '\0';
+
+                std::sprintf(szTmpHexStringFileName,
+                        "%s/01ZZZ%s%s%s%04X%04X.PNG",
                         szIMGFolderName,
-						nSID,
-                        nState,
-                        nDirection,
-                        nFrame);
-                DupFile(szTmpFileName, m_PNG[1][nFrame]->name());
+                        szTmpHexStringStateDirectionFrame + 1, // skip one zero for first 4 bits
+                        ((-nDX > 0) ? "1" : "0"),              // sign
+                        ((-nDY > 0) ? "1" : "0"),              // sign
+                        std::abs(-nDX),
+                        std::abs(-nDY));
+                DupFile(szTmpHexStringFileName, m_PNG[1][nFrame]->name());
             }
 
             {// body layer
+                int nDX = nCenterX - (m_ActionSetAlignX + m_PX[nFrame]);
+                int nDY = nCenterY - (m_ActionSetAlignY + m_PY[nFrame]);
+
                 auto pBody = pDoc->NewElement("Body");
                 {
                     auto pDX = pDoc->NewElement("DX");
                     auto pDY = pDoc->NewElement("DY");
-                    int  nDX = nCenterX -(m_ActionSetAlignX + m_PX[nFrame]);
-                    int  nDY = nCenterY -(m_ActionSetAlignY + m_PY[nFrame]);
                     pDX->LinkEndChild(pDoc->NewText(std::to_string(-nDX).c_str()));
                     pDY->LinkEndChild(pDoc->NewText(std::to_string(-nDY).c_str()));
 
@@ -630,19 +665,51 @@ bool ActionSet::Export(
                 }
                 pFrame->LinkEndChild(pBody);
 
-                char szTmpFileName[64];
-                std::sprintf(szTmpFileName,
-                        "%s/01%04d%02d%d%02d.PNG",
-                        // 02 for shadow(6 bits), %04d for SID(10 bits), %02d%d%02d for ImageIndex (16 bits)
-                        // then to binary code: 0X FC000000 : precode
-                        //                      0X 03FF0000 : sid
-                        //                      0X 0000FFFF : image index
+                // old dup file name format
+                // char szTmpFileName[64];
+                // std::sprintf(szTmpFileName,
+                //         "%s/01%04d%02d%d%02d.PNG",
+                //         // 02 for shadow(6 bits), %04d for SID(10 bits), %02d%d%02d for ImageIndex (16 bits)
+                //         // then to binary code: 0X FC000000 : precode
+                //         //                      0X 03FF0000 : sid
+                //         //                      0X 0000FFFF : image index
+                //         szIMGFolderName,
+				// 		nSID,
+                //         nState,
+                //         nDirection,
+                //         nFrame);
+                // DupFile(szTmpFileName, m_PNG[0][nFrame]->name());
+
+                // new dup file name format
+                char szTmpHexStringFileName[128];
+                // uint32_t as Key, then:
+                // FF FF FF FF
+                // 01 ZZ Z- --
+                //
+                //  01  : for monster shadow
+                // ZZZ  : for LookID
+                // ---  : 12 bits: 12 ~ 09: 4 bits for states,     in total 16 states
+                //                 08 ~ 06: 3 bits for directions, in total 08 directions
+                //                 05 ~ 01: 5 bits for frames,     in total 32 frames
+                //
+                uint32_t nStateDirectionFrame = 0
+                    + ((((uint32_t)nState)     & 0X0000000F) << 8)
+                    + ((((uint32_t)nDirection) & 0X00000007) << 5)
+                    + ((((uint32_t)nFrame)     & 0X0000001F) << 0);
+
+                char szTmpHexStringStateDirectionFrame[16];
+                HexString<uint32_t, 2>(nStateDirectionFrame, szTmpHexStringStateDirectionFrame);
+                szTmpHexStringStateDirectionFrame[4] = '\0';
+
+                std::sprintf(szTmpHexStringFileName,
+                        "%s/00ZZZ%s%s%s%04X%04X.PNG",
                         szIMGFolderName,
-						nSID,
-                        nState,
-                        nDirection,
-                        nFrame);
-                DupFile(szTmpFileName, m_PNG[0][nFrame]->name());
+                        szTmpHexStringStateDirectionFrame + 2, // skip two zeros
+                        ((-nDX > 0) ? "1" : "0"),              // sign
+                        ((-nDY > 0) ? "1" : "0"),              // sign
+                        std::abs(-nDX),
+                        std::abs(-nDY));
+                DupFile(szTmpHexStringFileName, m_PNG[0][nFrame]->name());
             }
         }
         pActionSet->LinkEndChild(pFrame);
