@@ -3,7 +3,7 @@
  *
  *       Filename: rectcover.cpp
  *        Created: 8/7/2015 2:36:13 AM
- *  Last Modified: 06/01/2016 17:51:03
+ *  Last Modified: 06/01/2016 18:00:37
  *
  *    Description: 
  *
@@ -22,7 +22,6 @@
 #include <algorithm>
 #include <limits>
 #include <utility>
-#include "misc.hpp"
 #include "mathfunc.hpp"
 
 RectCover::RectCover()

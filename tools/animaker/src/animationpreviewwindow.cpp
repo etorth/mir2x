@@ -3,7 +3,7 @@
  *
  *       Filename: animationpreviewwindow.cpp
  *        Created: 7/22/2015 3:16:57 AM
- *  Last Modified: 06/01/2016 17:31:35
+ *  Last Modified: 06/01/2016 18:05:36
  *
  *    Description: 
  *
@@ -18,13 +18,14 @@
  * =====================================================================================
  */
 
+#include "savepng.hpp"
+#include "filesys.hpp"
 #include "wilanimationinfo.hpp"
 #include "animationinfowindow.hpp"
 #include "animationset.hpp"
 #include "animationpreviewwindow.hpp"
 #include "wilimagepackage.hpp"
 #include "mainwindow.hpp"
-#include "misc.hpp"
 #include <algorithm>
 
 PreviewWindow::PreviewWindow(int nX, int nY, int nW, int nH)
