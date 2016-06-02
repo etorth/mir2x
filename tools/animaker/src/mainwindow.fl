@@ -35,9 +35,9 @@ class MainWindow {open
       callback {{
 	exit(0);
 }} open
-      private xywh {101 102 854 474} type Double labelfont 4 visible
+      private xywh {102 103 854 474} type Double labelfont 4 visible
     } {
-      Fl_Menu_Bar m_MenuBar {open
+      Fl_Menu_Bar m_MenuBar {
         private xywh {0 0 1025 30} labelfont 4
       } {
         Submenu {} {
@@ -219,44 +219,54 @@ g_AboutWindow->ShowAll();}
           }
         }
       }
-      Fl_Box m_OperationArea {selected
+      Fl_Box m_OperationArea {
         private xywh {0 30 525 443} box UP_FRAME
         code0 {\#include "operationarea.hpp"}
         class OperationArea
       }
-      Fl_Group m_RectCoverEditGroup {open
-        private xywh {541 30 265 340} labelfont 4
-        code0 {\#include "rectcovereditgroup.hpp"}
-        class RectCoverEditGroup
-      } {}
-      Fl_Group m_ShadowEditGroup {open
-        xywh {541 30 265 340} labelfont 4
-        code0 {\#include "shadoweditgroup.hpp"}
-        class ShadowEditGroup
-      } {}
-      Fl_Group m_FrameAlignGroup {open
-        xywh {541 30 265 340} labelfont 4
-        code0 {\#include "framealigngroup.hpp"}
-        class FrameAlignGroup
-      } {}
-      Fl_Group m_ActionSetAlignGroup {open
-        xywh {541 30 265 340} labelfont 4
-        code0 {\#include "actionsetaligngroup.hpp"}
-        class ActionSetAlignGroup
-      } {}
-      Fl_Group m_TestGroup {open
-        xywh {541 30 259 350} labelfont 4
-        code0 {\#include "actionsettestgroup.hpp"}
-        class ActionSetTestGroup
-      } {}
-      Fl_Group m_StatusDirectionGroup {
-        xywh {535 385 290 85} labelfont 4
+      Fl_Tabs {} {open
+        xywh {525 30 325 440}
       } {
-        Fl_Choice m_ChoiceStatus {open
-          xywh {549 399 265 20} down_box BORDER_BOX labelfont 4 textfont 4
+        Fl_Group m_StatusDirectionGroup {
+          label State
+          xywh {525 55 325 415} labelfont 4 hide
+        } {
+          Fl_Choice m_ChoiceStatus {open
+            xywh {550 96 265 20} down_box BORDER_BOX labelfont 4 textfont 4
+          } {}
+          Fl_Choice m_ChoiceDirection {open
+            xywh {550 130 265 20} down_box BORDER_BOX labelfont 4 textfont 4
+          } {}
+        }
+        Fl_Group m_RectCoverEditGroup {
+          label { RC } open
+          private xywh {525 55 325 415} labelfont 4 hide
+          code0 {\#include "rectcovereditgroup.hpp"}
+          class RectCoverEditGroup
         } {}
-        Fl_Choice m_ChoiceDirection {open
-          xywh {549 433 265 20} down_box BORDER_BOX labelfont 4 textfont 4
+        Fl_Group m_ActionSetAlignGroup {
+          label Action open
+          xywh {525 55 325 415} labelfont 4 hide
+          code0 {\#include "actionsetaligngroup.hpp"}
+          class ActionSetAlignGroup
+        } {}
+        Fl_Group m_FrameAlignGroup {
+          label Frame open
+          xywh {525 55 325 415} labelfont 4 hide
+          code0 {\#include "framealigngroup.hpp"}
+          class FrameAlignGroup
+        } {}
+        Fl_Group m_ShadowEditGroup {
+          label Shadow open
+          xywh {525 55 325 415} labelfont 4 hide
+          code0 {\#include "shadoweditgroup.hpp"}
+          class ShadowEditGroup
+        } {}
+        Fl_Group m_TestGroup {
+          label Test open
+          xywh {525 55 325 415} labelfont 4
+          code0 {\#include "actionsettestgroup.hpp"}
+          class ActionSetTestGroup
         } {}
       }
     }
@@ -304,7 +314,7 @@ if(m_MenuItemTest->value())\{
 
 m_Window->redraw();} {}
   }
-  Function {LoadAnimationSet()} {return_type void
+  Function {LoadAnimationSet()} {selected return_type void
   } {
     code {{
 }} {}
