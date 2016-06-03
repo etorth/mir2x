@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19 PM
- *  Last Modified: 06/02/2016 23:38:58
+ *  Last Modified: 06/03/2016 12:08:08
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
@@ -22,6 +22,7 @@
 #pragma once
 #include "game.hpp"
 #include "creature.hpp"
+#include "protocoldef.hpp"
 #include "monsterginfo.hpp"
 #include "clientmessage.hpp"
 
@@ -36,6 +37,13 @@ class Monster: public Creature
         ~Monster();
 
     public:
+        int Type()
+        {
+            return CREATURE_MONSTER;
+        }
+
+    public:
+        void Draw();
         void Update();
 
     public:
@@ -45,22 +53,17 @@ class Monster: public Creature
         }
 
     public:
-        void UpdateCurrentState();
-        void UpdateWithNewState();
-
-    public:
         size_t FrameCount()
         {
             return GetGInfoRecord(m_MonsterID).FrameCount(m_LookIDN, m_State, m_Direction);
         }
 
     public:
-        template<typename... T> static void CreateGInfoRecord(uint32_t nMonsterID, T&&... stT)
+        template<typename... T> static void ResetGInfoRecord(uint32_t nMonsterID, int nLookIDN, T&&... stT)
         {
-            s_MonsterGInfoMap[nMonsterID] = MonsterGInfo(nMonsterID, std::forward<T>(stT)...);
+            GetGInfoRecord(nMonsterID).ResetLookID(nLookIDN, std::forward<T>(stT)...);
         }
 
-    public:
         static MonsterGInfo &GetGInfoRecord(uint32_t nMonsterID)
         {
             auto pRecord = s_MonsterGInfoMap.find(nMonsterID);
@@ -83,9 +86,6 @@ class Monster: public Creature
             extern Game *g_Game;
             g_Game->Send(CM_QUERYMONSTERGINFO, stCMQMGI);
         }
-
-    public:
-        void Draw();
 
     protected:
         static std::unordered_map<uint32_t, MonsterGInfo> s_MonsterGInfoMap;

@@ -48,10 +48,11 @@ class Game
         void OperateHC(uint8_t);
 
     private:
-        void OnPing();
-        void OnLoginOK();
-        void OnLoginFail();
-        void OnMotionState();
+        void Net_PING();
+        void Net_LOGINOK();
+        void Net_LOGINFAIL();
+        void Net_MOTIONSTATE();
+        void Net_MONSTERGINFO();
 
     private:
         double GetTimeMS();
@@ -59,6 +60,12 @@ class Game
         void   ProcessEvent();
         void   Update(double);
         void   Draw();
+
+    public:
+        bool ProcessValid(int nProcessID)
+        {
+            return (m_CurrentProcess && m_CurrentProcess->ID() == nProcessID);
+        }
 
     public:
         void Read(size_t nLen, const std::function<void(const uint8_t *, size_t)> &fnOperate)

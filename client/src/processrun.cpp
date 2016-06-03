@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/02/2016 23:33:55
+ *  Last Modified: 06/03/2016 11:55:53
  *
  *    Description: 
  *
@@ -327,7 +327,8 @@ void ProcessRun::Net_MotionState(const uint8_t *pBuf, size_t)
     if(true
             && pRecord != m_CreatureMap.end()
             && pRecord->second
-            && pRecord->second->Type(stSMMS.Type)){
+            && pRecord->second->Type() == stSMMS.Type
+            && pRecord->second->MapID() == stSMMS.MapID){
         auto pCreature = pRecord->second;
 
         pCreature->ResetR(stSMMS.State);

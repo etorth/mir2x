@@ -3,7 +3,7 @@
  *
  *       Filename: onsmhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 06/02/2016 15:29:38
+ *  Last Modified: 06/03/2016 11:07:34
  *
  *    Description: 
  *
@@ -26,24 +26,24 @@
 void Game::OperateHC(uint8_t nHC)
 {
     switch(nHC){
-        case SM_PING:           On_PING();         break;
-        case SM_LOGINOK:        On_LOGINOK();      break;
-        case SM_LOGINFAIL:      On_LOGINFAIL();    break;
-        case SM_MOTIONSTATE:    On_MOTIONSTATE();  break;
-        case SM_MONSTERGINFO:   On_MONSTERGINFO(); break;
+        case SM_PING:           Net_PING();         break;
+        case SM_LOGINOK:        Net_LOGINOK();      break;
+        case SM_LOGINFAIL:      Net_LOGINFAIL();    break;
+        case SM_MOTIONSTATE:    Net_MOTIONSTATE();  break;
+        case SM_MONSTERGINFO:   Net_MONSTERGINFO(); break;
         default: break;
     }
 
     m_NetIO.ReadHC([&](uint8_t nHC){ OperateHC(nHC); });
 }
 
-void Game::OnPing()
+void Game::Net_PING()
 {
     extern Log *g_Log;
     g_Log->AddLog(LOGTYPE_INFO, "on ping");
 }
 
-void Game::OnLoginOK()
+void Game::Net_LOGINOK()
 {
     auto fnDoLoginOK = [this](const uint8_t *pBuf, size_t nLen){
         SwitchProcess(m_CurrentProcess->ID(), PROCESSID_RUN);
@@ -61,13 +61,13 @@ void Game::OnLoginOK()
     Read(sizeof(SMLoginOK), fnDoLoginOK);
 }
 
-void Game::OnLoginFail()
+void Game::Net_LOGINFAIL()
 {
     extern Log *g_Log;
     g_Log->AddLog(LOGTYPE_INFO, "login failed");
 }
 
-void Game::OnMotionState()
+void Game::Net_MOTIONSTATE()
 {
     auto fnMotionState = [this](const uint8_t *pBuf, size_t nLen){
         // 1. receive object motion state update while game is not in running state
@@ -79,14 +79,16 @@ void Game::OnMotionState()
         pRun->Net_MotionState(pBuf, nLen);
     };
 
-    Read(sizeof(SMMOtionState), fnMotionState);
+    Read(sizeof(SMMotionState), fnMotionState);
 }
 
-void Game::On_MONSTERGINFO()
+void Game::Net_MONSTERGINFO()
 {
     if(!ProcessValid(PROCESSID_RUN)){ return; }
-    auto fnOnGetMonsterGInfo = [](const uint8_t *pBuf, size_t nLen){
+    auto fnOnGetMonsterGInfo = [this](const uint8_t *pBuf, size_t nLen){
         if(!ProcessValid(PROCESSID_RUN)){ return; }
-        ((ProcessRun *)m_CurrentProcess)->On_MONSTERGINFO(pBuf, nLen);
+        ((ProcessRun *)m_CurrentProcess)->Net_MONSTERGINFO(pBuf, nLen);
     };
+
+    Read(sizeof(CMQueryMonsterGInfo), fnOnGetMonsterGInfo);
 }

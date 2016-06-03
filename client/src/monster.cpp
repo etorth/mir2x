@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 8/31/2015 8:26:57 PM
- *  Last Modified: 06/02/2016 22:53:07
+ *  Last Modified: 06/03/2016 12:10:13
  *
  *    Description: 
  *
@@ -20,15 +20,21 @@
 #include "monster.hpp"
 #include <SDL2/SDL.h>
 
+// static monster global info map
+std::unordered_map<uint32_t, MonsterGInfo> Monster::s_MonsterGInfoMap;
+
 Monster::Monster(uint32_t nUID, uint32_t nAddTime, uint32_t nMonsterID)
     : Creature(nUID, nAddTime)
     , m_MonsterID(nMonsterID)
     , m_LookIDN(0)
 {}
 
+Monster::~Monster()
+{}
+
 void Monster::Update()
 {
-    if(SDL_GetTicks() < m_UpdateTime + m_FrameUpdateDelay){ return; }
+    if(SDL_GetTicks() < m_UpdateTime + m_FrameDelay){ return; }
 
     // ok now it's time to update
     m_UpdateTime = SDL_GetTicks();

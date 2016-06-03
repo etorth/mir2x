@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/03/2016 00:18:23
+ *  Last Modified: 06/03/2016 11:59:15
  *
  *    Description: 
  *
@@ -19,7 +19,7 @@
  */
 
 #include <string>
-
+#include <algorithm>
 #include <tinyxml2.h>
 #include <SDL2/SDL.h>
 
@@ -43,68 +43,25 @@ Creature::Creature(uint32_t nUID, uint32_t nAddTime)
     , m_AddTime(nAddTime)
     , m_X(0)
     , m_Y(0)
-    , m_FrameUpdateDelay(120.0)
+    , m_R(0)
+    , m_MapID(0)
+    , m_UpdateTime(0.0)
+    , m_FrameDelay(120.0)
     , m_Frame(0)
-    , m_Direction(0)
     , m_State(0)
-    , m_Speed(100)
-{
-}
+    , m_Speed(0)
+    , m_Direction(0)
+    , m_MotionState(0)
+{}
 
 Creature::~Creature()
 {}
 
-void Creature::SetNextPosition(int nX, int nY)
-{
-    m_X = nX;
-    m_Y = nY;
-}
-
-void Creature::SetNextState(int nState)
-{
-    m_State = nState;
-}
-
-void Creature::SetState(int nState){
-    m_State = nState;
-}
-
-void Creature::SetDirection(int nDir)
-{
-    m_Direction = nDir;
-}
-
-void Creature::SetMap(int nX, int nY, Mir2xMapExt *pMapExt)
-{
-    m_X   = nX;
-    m_Y   = nY;
-    m_MapExt = pMapExt;
-}
-
-void Creature::UpdateCurrentState()
-{
-    m_FrameIndex = ((m_FrameIndex + 1) % FrameCount());
-}
-
-void Creature::UpdateWithNewState()
-{
-}
-
-int Creature::CalculateDirection(int nDX, int nDY)
-{
-}
-
-void Creature::EstimateNextPosition(int nDistance)
+void Creature::EstimateLocation(int nDistance, int *pNextX, int *pNextY)
 {
     double dDX[] = {+0.000, +0.707, +1.000, +0.707, +0.000, -0.707, -1.000, -0.707};
     double dDY[] = {-1.000, -0.707, +0.000, +0.707, +1.000, +0.707, +0.000, -0.707};
 
-    m_EstimateNextX = m_X + std::lround(dDX[m_Direction] * nDistance);
-    m_EstimateNextY = m_Y + std::lround(dDY[m_Direction] * nDistance);
-}
-
-bool Creature::TryStepMove(int nDistance)
-{
-    EstimateNextPosition(nDistance);
-    return m_MapExt->ValidPosition(m_EstimateNextX, m_EstimateNextY, *this);
+    if(pNextX){ *pNextX = m_X + std::lround(dDX[m_Direction] * nDistance); }
+    if(pNextY){ *pNextY = m_Y + std::lround(dDY[m_Direction] * nDistance); }
 }

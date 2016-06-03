@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/03/2016 00:16:44
+ *  Last Modified: 06/03/2016 11:56:50
  *
  *    Description: 
  *
@@ -29,56 +29,52 @@ class Creature
         uint32_t m_UID;
         uint32_t m_AddTime;
 
-        int m_R;
         int m_X;
         int m_Y;
+        int m_R;
+
         uint32_t m_MapID;
 
     protected:
-        int m_MotionState;
-
-    protected:
-        double m_FrameUpdateDelay;
+        double m_UpdateTime;
+        double m_FrameDelay;
 
     protected:
         int    m_Frame;
-        int    m_Direction;
         int    m_State;
-        int    m_NextState;
-        double m_UpdateTime;
         int    m_Speed;
-
-    private:
-        bool    m_RedPoision;
-        bool    m_GreenPoision;
-        bool    m_StonePoision;
-
-        bool    m_WhiteBody;
-        bool    m_Holy;
-
-    private:
-        int     m_EstimateNextX;
-        int     m_EstimateNextY;
-
-        int     m_TargetX;
-        int     m_targetY;
-
-    protected:
-        bool m_TypeV[256];
+        int    m_Direction;
+        int    m_MotionState;
 
     public:
         Creature(uint32_t, uint32_t);
         virtual ~Creature();
 
     public:
+        uint32_t MapID()
+        {
+            return m_MapID;
+        }
+
+    public:
+        void ResetMotionState(int nMotionState)
+        {
+            m_MotionState = nMotionState;
+        }
+
         void ResetR(uint32_t nR)
         {
             m_R = nR;
         }
 
-        void ResetMotionState(uint8_t nMotionState)
+        void ResetSpeed(int nSpeed)
         {
-            m_MotionState = nMotionState;
+            m_Speed = nSpeed;
+        }
+
+        void ResetDirection(int nDirection)
+        {
+            m_Direction = nDirection;
         }
 
         void ResetLocation(uint32_t nMapID, int nX, int nY)
@@ -100,21 +96,6 @@ class Creature
         }
 
     public:
-
-        int EstimateNextX()
-        {
-            return m_EstimateNextX;
-        }
-
-        int EstimateNextY()
-        {
-            return m_EstimateNextY;
-        }
-
-    public:
-        bool TryStepMove(int);
-
-    public:
         int UID()
         {
             return m_UID;
@@ -126,46 +107,14 @@ class Creature
         }
 
     public:
-        bool Type(uint8_t nType)
-        {
-            return m_TypeV[nType];
-        }
-
-        void ResetType(uint8_t nType, bool bThisType)
-        {
-            m_TypeV[nType] = bThisType;
-        }
-
-    public:
-        int  CalculateDirection(int, int);
-
         // update the next possible position based on current state
-        void EstimateNextPosition(int);
+        void EstimateLocation(int, int *, int *);
 
     public:
-        virtual uint32_t FrameCount() = 0;
+        virtual int Type() = 0;
+        virtual size_t FrameCount() = 0;
 
     public:
         virtual void Draw() = 0;
         virtual void Update() = 0;
-
-    public:
-        void UpdateCurrentState();
-        void UpdateWithNewState();
-
-    protected:
-        void UpdateMotion(int);
-
-    public:
-        virtual void SetNextState(int);
-        virtual void SetNextPosition(int, int);
-        virtual void SetPosition(int, int);
-        virtual void SetDirection(int);
-        virtual void SetState(int);
-
-    public:
-        void SetHP(int);
-
-    public:
-        virtual void Goto(int, int);
 };
