@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 05/29/2016 23:43:12
+ *  Last Modified: 06/02/2016 22:52:14
  *
  *    Description: net message used by client and mono-server
  *
@@ -31,6 +31,7 @@ enum: uint8_t
     CM_LOGIN,
     CM_BROADCAST,
     CM_MOTION,
+    CM_QUERYMONSTERGINFO,
 };
 
 #pragma pack(push, 1)
@@ -44,4 +45,9 @@ typedef struct{
     int X;
     int Y;
 }CMWalk;
+
+typedef struct{
+    uint32_t MonsterID;
+    uint32_t LookIDN;
+}CMQueryMonsterGInfo;
 #pragma pack(pop)

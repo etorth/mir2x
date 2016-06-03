@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/02/2016 17:43:40
+ *  Last Modified: 06/02/2016 23:33:55
  *
  *    Description: 
  *
@@ -20,6 +20,8 @@
 
 #include <memory>
 #include <cstring>
+
+#include "monster.hpp"
 #include "sysconst.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
@@ -41,13 +43,13 @@ void ProcessRun::Update(double)
 //     LoadMap(stCMLS.szMapName);
 //     delete m_MyHero;
 //     m_MyHero = new MyHero(stCMLS.nSID, stCMLS.nUID, stCMLS.nGenTime);
-//     m_MyHero->SetMap(stCMLS.nMapX, stCMLS.nMapY, &m_Map);
+//     m_MyHero->SetMap(stCMLS.nMapX, stCMLS.nMapY, &m_ClientMap);
 //     m_MyHero->SetDirection(stCMLS.nDirection);
 //
-//     int nStartX = (std::min)((std::max)(0, m_MyHero->X() - m_WindowW / 2), m_Map.W() * 48 - m_WindowW);
-//     int nStartY = (std::min)((std::max)(0, m_MyHero->Y() - m_WindowH / 2), m_Map.H() * 32 - m_WindowH);
+//     int nStartX = (std::min)((std::max)(0, m_MyHero->X() - m_WindowW / 2), m_ClientMap.W() * 48 - m_WindowW);
+//     int nStartY = (std::min)((std::max)(0, m_MyHero->Y() - m_WindowH / 2), m_ClientMap.H() * 32 - m_WindowH);
 //
-//     m_Map.SetViewPoint(nStartX, nStartY);
+//     m_ClientMap.SetViewPoint(nStartX, nStartY);
 // }
 //     m_WindowW = GetConfigurationManager()->GetInt("Root/Window/SizeW");
 //     m_WindowH = GetConfigurationManager()->GetInt("Root/Window/SizeH");
@@ -74,18 +76,18 @@ void ProcessRun::Update(double)
 // {
 //     // extern XMLConf *g_XMLConf;
 //     // std::string szMapFullFileName = g_XMLConf->GetXMLNode("Root/Map/Path");
-//     m_Map.Load("./DESC.BIN");
+//     m_ClientMap.Load("./DESC.BIN");
 // }
 //
 //
 // void ProcessRun::RollScreen()
 // {
 //     // what we should have
-//     int nDX = m_MyHero->X() - m_WindowW / 2 - m_Map.ViewX();
-//     int nDY = m_MyHero->Y() - m_WindowH / 2 - m_Map.ViewY();
+//     int nDX = m_MyHero->X() - m_WindowW / 2 - m_ClientMap.ViewX();
+//     int nDY = m_MyHero->Y() - m_WindowH / 2 - m_ClientMap.ViewY();
 //
-//     int nCurrentViewX = m_Map.ViewX();
-//     int nCurrentViewY = m_Map.ViewY();
+//     int nCurrentViewX = m_ClientMap.ViewX();
+//     int nCurrentViewY = m_ClientMap.ViewY();
 //
 //     if(std::abs(nDX) > 20){
 //         nCurrentViewX += std::lround(std::copysign(1.0, nDX));
@@ -94,10 +96,10 @@ void ProcessRun::Update(double)
 //         nCurrentViewY += std::lround(std::copysign(1.0, nDY));
 //     }
 //
-//     int nStartX = (std::min)((std::max)(0, nCurrentViewX), m_Map.W() * 48 - m_WindowW);
-//     int nStartY = (std::min)((std::max)(0, nCurrentViewY), m_Map.H() * 32 - m_WindowH);
+//     int nStartX = (std::min)((std::max)(0, nCurrentViewX), m_ClientMap.W() * 48 - m_WindowW);
+//     int nStartY = (std::min)((std::max)(0, nCurrentViewY), m_ClientMap.H() * 32 - m_WindowH);
 //
-//     m_Map.SetViewPoint(nStartX, nStartY);
+//     m_ClientMap.SetViewPoint(nStartX, nStartY);
 // }
 //
 void ProcessRun::Draw()
@@ -149,9 +151,9 @@ void ProcessRun::Draw()
     extern SDLDevice *g_SDLDevice;
     g_SDLDevice->ClearScreen();
 
-    if(m_Map.Valid()){
+    if(m_ClientMap.Valid()){
         extern SDLDevice *g_SDLDevice;
-        m_Map.Draw(m_ViewX, m_ViewY,
+        m_ClientMap.Draw(m_ViewX, m_ViewY,
                 g_SDLDevice->WindowW(false), g_SDLDevice->WindowH(false),
                 SYS_OBJMAXW, SYS_OBJMAXH, fnDrawTile, fnDrawObj, fnDrawActor, fnDrawExt);
     }
@@ -235,7 +237,7 @@ void ProcessRun::Draw()
 // 					pActor->SetDirection(stTmpCM.nDirection);
 // 					pActor->SetNextState(stTmpCM.nState);
 // 					// pActor->SetNextPosition(stTmpCM.nX, stTmpCM.nY);
-// 					pActor->SetMap(stTmpCM.nX, stTmpCM.nY, &m_Map);
+// 					pActor->SetMap(stTmpCM.nX, stTmpCM.nY, &m_ClientMap);
 // 					m_ActorList.push_back(pActor);
 // 					// pActor->SetHP(stTmpCM.nHP);
 // 				}
@@ -307,12 +309,12 @@ void ProcessRun::Net_LoginOK(const uint8_t *pBuf, size_t nLen)
 {
     if(!(pBuf && nLen && nLen == sizeof(SMLoginOK))){ return; }
 
-    SMLoginOK stLoginOK;
-    std::memcpy(&stLoginOK, pBuf, nLen);
+    SMLoginOK stLOK;
+    std::memcpy(&stLOK, pBuf, nLen);
 
-    m_Map.Load("./DESC.BIN");
-    // m_MyHero.SetGUID(stLoginOK.GUID);
-    // m_MyHero.SetDirection(stLoginOK.Direction);
+    m_ClientMap.Load(stLOK.MapID);
+    // m_MyHero.SetGUID(stLOK.GUID);
+    // m_MyHero.SetDirection(stLOK.Direction);
 }
 
 #include <cstdio>
@@ -324,9 +326,9 @@ void ProcessRun::Net_MotionState(const uint8_t *pBuf, size_t)
     auto pRecord = m_CreatureMap.find(((uint64_t)stSMMS.UID << 32) + stSMMS.AddTime);
     if(true
             && pRecord != m_CreatureMap.end()
-            && pRecord.second
-            && pRecord.second->Type(stSMMS.Type)){
-        auto pCreature = pRecord.second;
+            && pRecord->second
+            && pRecord->second->Type(stSMMS.Type)){
+        auto pCreature = pRecord->second;
 
         pCreature->ResetR(stSMMS.State);
         pCreature->ResetMotionState(stSMMS.State);
@@ -336,11 +338,6 @@ void ProcessRun::Net_MotionState(const uint8_t *pBuf, size_t)
 
 void ProcessRun::Net_MONSTERGINFO(const uint8_t *pBuf, size_t)
 {
-    auto *pInfo = (MonsterGInfo *)pBuf;
-    Monster::CreateGInfoRecord(
-            pInfo->MonsterID,
-            pInfo->LookID[0],
-            pInfo->LookID[1],
-            pInfo->LookID[2],
-            pInfo->LookID[3]); 
+    auto *pInfo = (SMMonsterGInfo *)pBuf;
+    Monster::GetGInfoRecord(pInfo->MonsterID).ResetLookID(pInfo->LookIDN, pInfo->LookID, pInfo->R);
 }

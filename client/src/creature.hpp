@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/02/2016 14:59:40
+ *  Last Modified: 06/03/2016 00:16:44
  *
  *    Description: 
  *
@@ -25,29 +25,23 @@
 
 class Creature
 {
-    public:
-        Creature(uint32_t, uint32_t);
-        virtual ~Creature();
-
-    public:
-        void ResetR(int);
-        void ResetMotionState(uint8_t);
-        void ResetLocation(uint32_t, int, int);
-
     protected:
-        int m_LID;
-        int m_SID;
-        int m_UID;
-        int m_GenTime;
+        uint32_t m_UID;
+        uint32_t m_AddTime;
+
+        int m_R;
         int m_X;
         int m_Y;
-        int m_HP;
+        uint32_t m_MapID;
+
+    protected:
+        int m_MotionState;
 
     protected:
         double m_FrameUpdateDelay;
 
     protected:
-        int    m_FrameIndex;
+        int    m_Frame;
         int    m_Direction;
         int    m_State;
         int    m_NextState;
@@ -69,6 +63,42 @@ class Creature
         int     m_TargetX;
         int     m_targetY;
 
+    protected:
+        bool m_TypeV[256];
+
+    public:
+        Creature(uint32_t, uint32_t);
+        virtual ~Creature();
+
+    public:
+        void ResetR(uint32_t nR)
+        {
+            m_R = nR;
+        }
+
+        void ResetMotionState(uint8_t nMotionState)
+        {
+            m_MotionState = nMotionState;
+        }
+
+        void ResetLocation(uint32_t nMapID, int nX, int nY)
+        {
+            m_MapID = nMapID;
+            m_X = nX;
+            m_Y = nY;
+        }
+
+    public:
+        int X()
+        {
+            return m_X;
+        }
+
+        int Y()
+        {
+            return m_Y;
+        }
+
     public:
 
         int EstimateNextX()
@@ -85,13 +115,26 @@ class Creature
         bool TryStepMove(int);
 
     public:
-        int SID();
-        int UID();
-        int GenTime();
-        int X();
-        int Y();
-        int ScreenX();
-        int ScreenY();
+        int UID()
+        {
+            return m_UID;
+        }
+
+        int AddTime()
+        {
+            return m_AddTime;
+        }
+
+    public:
+        bool Type(uint8_t nType)
+        {
+            return m_TypeV[nType];
+        }
+
+        void ResetType(uint8_t nType, bool bThisType)
+        {
+            m_TypeV[nType] = bThisType;
+        }
 
     public:
         int  CalculateDirection(int, int);
@@ -100,13 +143,7 @@ class Creature
         void EstimateNextPosition(int);
 
     public:
-        virtual int FrameCount() = 0;
-
-    protected:
-        int FrameCount(int, int);
-
-    protected:
-        void InnDraw(bool, const std::function<void(int, int, uint32_t, uint32_t)> &);
+        virtual uint32_t FrameCount() = 0;
 
     public:
         virtual void Draw() = 0;

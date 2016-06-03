@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 06/01/2016 11:17:09
+ *  Last Modified: 06/02/2016 21:54:22
  *
  *    Description: 
  *
@@ -19,10 +19,14 @@
  */
 
 #pragma once
-#include "inndb.hpp"
-#include <unordered_map>
-#include "hexstring.hpp"
 #include <zip.h>
+#include <SDL2/SDL.h>
+#include <unordered_map>
+
+#include "inndb.hpp"
+#include "hexstring.hpp"
+#include "sdldevice.hpp"
+
 
 typedef struct{
     SDL_Texture *Texture;

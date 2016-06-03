@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: monster.hpp
- *        Created: 08/31/2015 8:26:19 PM
- *  Last Modified: 06/02/2016 17:50:08
+ *        Created: 08/31/2015 08:26:19 PM
+ *  Last Modified: 06/02/2016 23:38:58
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
@@ -20,32 +20,39 @@
  */
 
 #pragma once
+#include "game.hpp"
 #include "creature.hpp"
 #include "monsterginfo.hpp"
+#include "clientmessage.hpp"
 
-class Monster: public Actor
+class Monster: public Creature
 {
+    protected:
+        uint32_t m_MonsterID;       // monster id
+        uint32_t m_LookIDN;         // look effect index 0 ~ 3
+
     public:
-        Monster(int, int, int);
+        Monster(uint32_t, uint32_t, uint32_t);
         ~Monster();
 
     public:
         void Update();
-        int  GenTime();
 
     public:
-        void Draw();
-        int  FrameCount();
+        uint32_t LookID()
+        {
+            return GetGInfoRecord(m_MonsterID).LookID(m_LookIDN);
+        }
 
     public:
         void UpdateCurrentState();
         void UpdateWithNewState();
 
     public:
-        void QueryMonsterGInfo(uint32_t);
-
-    protected:
-        static MonsterGInfo m_MonsterGInfo[0X1000];
+        size_t FrameCount()
+        {
+            return GetGInfoRecord(m_MonsterID).FrameCount(m_LookIDN, m_State, m_Direction);
+        }
 
     public:
         template<typename... T> static void CreateGInfoRecord(uint32_t nMonsterID, T&&... stT)
@@ -53,10 +60,32 @@ class Monster: public Actor
             s_MonsterGInfoMap[nMonsterID] = MonsterGInfo(nMonsterID, std::forward<T>(stT)...);
         }
 
-        const MonsterGInfo &GetGInfoRecord(uint32_t nMonsterID)
+    public:
+        static MonsterGInfo &GetGInfoRecord(uint32_t nMonsterID)
         {
+            auto pRecord = s_MonsterGInfoMap.find(nMonsterID);
+            if(pRecord != s_MonsterGInfoMap.end()){
+                return pRecord->second;
+            }
+
+            // 1. we need to create a record
+            s_MonsterGInfoMap.emplace(nMonsterID, nMonsterID);
             return s_MonsterGInfoMap[nMonsterID];
         }
+
+        static void QueryGInfoRecord(uint32_t nMonsterID, uint32_t nLookIDN)
+        {
+            CMQueryMonsterGInfo stCMQMGI;
+
+            stCMQMGI.MonsterID = nMonsterID;
+            stCMQMGI.LookIDN   = nLookIDN;
+
+            extern Game *g_Game;
+            g_Game->Send(CM_QUERYMONSTERGINFO, stCMQMGI);
+        }
+
+    public:
+        void Draw();
 
     protected:
         static std::unordered_map<uint32_t, MonsterGInfo> s_MonsterGInfoMap;

@@ -3,7 +3,7 @@
  *
  *       Filename: clientmap.cpp
  *        Created: 06/02/2016 14:10:46
- *  Last Modified: 06/02/2016 14:13:07
+ *  Last Modified: 06/02/2016 23:12:40
  *
  *    Description: 
  *
@@ -23,6 +23,8 @@
 
 bool ClientMap::Load(uint32_t nMapID)
 {
+    m_MapID = nMapID;
+
     auto pMapName = SYS_MAPNAME(nMapID);
     return pMapName ? m_Mir2xMap.Load(pMapName) : false;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 8/31/2015 8:26:57 PM
- *  Last Modified: 06/02/2016 15:23:59
+ *  Last Modified: 06/02/2016 22:53:07
  *
  *    Description: 
  *
@@ -18,78 +18,40 @@
  * =====================================================================================
  */
 #include "monster.hpp"
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
-Monster::Monster(int nSID, int nUID, int nGenTime)
-    : Actor(nSID, nUID, nGenTime)
+Monster::Monster(uint32_t nUID, uint32_t nAddTime, uint32_t nMonsterID)
+    : Creature(nUID, nAddTime)
+    , m_MonsterID(nMonsterID)
+    , m_LookIDN(0)
 {}
-
-void Monster::UpdateCurrentState()
-{
-    m_FrameIndex = ((m_FrameIndex + 1) % FrameCount());
-    // switch(m_CurrentState){
-    //     case STATE_STAND:
-    //         {
-    //             m_CurrentFrameIndex = 
-    //                 (m_CurrentFrameIndex + 1) % m_CurrentActionSet->FrameCount();
-    //             break;
-    //         }
-    //     case STATE_WALK:
-    //         {
-    //             if(!TryNextWalk()){
-    //             }
-    //         }
-    //     default:
-    //         break;
-    // }
-}
-
-void Monster::UpdateWithNewState()
-{
-}
 
 void Monster::Update()
 {
-	// printf("monster update here\n");
-    if(SDL_GetTicks() < m_UpdateTime + m_FrameUpdateDelay){
-        return;
-    }
+    if(SDL_GetTicks() < m_UpdateTime + m_FrameUpdateDelay){ return; }
 
+    // ok now it's time to update
     m_UpdateTime = SDL_GetTicks();
-
-    if(m_NextState < 0){
-        // no required state, keep what'd going on
-        UpdateCurrentState();
-    }else{
-        UpdateWithNewState();
+    uint32_t nFrameCount = FrameCount();
+    if(nFrameCount){
+        m_Frame = (m_Frame + 1) % nFrameCount;
     }
-}
-
-int Monster::GenTime()
-{
-    return m_GenTime;
 }
 
 void Monster::Draw()
 {
-    InnDraw(1, m_SID & 0X00000CFF, m_State, m_Direction, m_FrameIndex, m_X, m_Y);
-}
+    uint32_t nBaseKey = (LookID() << 12) + (m_State << 8) + (m_Direction << 5);
+    uint32_t nKey0 = 0X00000000 + nBaseKey + m_Frame; // body
+    uint32_t nKey1 = 0X01000000 + nBaseKey + m_Frame; // shadow
 
-int Monster::FrameCount()
-{
-    // int nPrecode = ((uint32_t)m_SID & 0XFFFFFC00) >> 10;
-    // int nLID     = ((uint32_t)m_SID & 0X000003FF);
-    return Actor::FrameCount(1, (uint32_t)m_SID & 0X000003FF);
-}
+    int nDX = 0;
+    int nDY = 0;
 
-void Monster::Draw(std::function<void(uint64_t, int, int)> fnDraw)
-{
-    fnDraw(ShadowKey(), m_X, m_Y);
-    fnDraw(BodyKey(), m_X, m_Y);
-}
+    extern PNGTexOffDBN *g_PNGTexOffDBN;
+    auto pFrame0 = g_PNGTexOffDBN->Retrieve(nKey0, &nDX, &nDY);
+    auto pFrame1 = g_PNGTexOffDBN->Retrieve(nKey1, &nDX, &nDY);
 
-void Monster::QueryMonsterGInfo(uint32_t nMonsterID)
-{
-    extern Game *g_Game;
-    g_Game->Send(CM_QUERYMONSTERGINFO, nMonsterID);
+    extern SDLDevice *g_SDLDevice;
+    g_SDLDevice->DrawTexture(pFrame1, m_X + nDX, m_Y + nDY);
+    g_SDLDevice->DrawTexture(pFrame0, m_X + nDX, m_Y + nDY);
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 06/02/2016 15:30:25
+ *  Last Modified: 06/02/2016 22:56:21
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 #pragma once
 #include <cstdint>
+#include <unordered_map>
 
 #include "process.hpp"
 #include "message.hpp"
