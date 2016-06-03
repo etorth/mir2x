@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/31/2016 18:24:01
+ *  Last Modified: 06/03/2016 12:36:54
  *
  *    Description: 
  *
@@ -31,8 +31,8 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     stAMLOK.GUID      = m_GUID;
     stAMLOK.JobID     = m_JobID;
     stAMLOK.Level     = m_Level;
-    stAMLOK.MapX      = m_CurrX;
-    stAMLOK.MapY      = m_CurrY;
+    stAMLOK.X         = m_CurrX;
+    stAMLOK.Y         = m_CurrY;
     stAMLOK.Direction = m_Direction;
     g_NetPodN->Send(m_SessionID, SM_LOGINOK, stAMLOK);
 }

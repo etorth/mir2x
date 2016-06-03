@@ -10,12 +10,12 @@ class SIDWindow {open
   Function {SIDWindow()} {open
   } {
     Fl_Window m_Window {
-      label {Please Set Monster SID} open selected
-      xywh {304 208 294 125} type Double visible
+      label {Please Set Monster SID} open
+      xywh {305 209 294 125} type Double visible
     } {
       Fl_Value_Input m_Input {
-        label {SID:}
-        xywh {99 27 115 24} labelfont 4 value 1024 textfont 4
+        label {SID:} selected
+        xywh {99 27 115 24} labelfont 4 textfont 4
       }
       Fl_Button {} {
         label OK

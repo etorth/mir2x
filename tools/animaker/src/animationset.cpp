@@ -3,7 +3,7 @@
  *
  *       Filename: animationset.cpp
  *        Created: 8/6/2015 5:43:46 AM
- *  Last Modified: 06/01/2016 23:33:30
+ *  Last Modified: 06/03/2016 14:31:20
  *
  *    Description: 
  *
@@ -38,7 +38,7 @@ bool AnimationSet::ImportMir2Animation(int nFileIndex, int nAnimationIndex)
 {
 
     for(int nDirection = 0; nDirection < 8; ++nDirection){
-        m_ActionSet[0][nDirection].ImportMir2Action( nFileIndex, nAnimationIndex, 0, nDirection);
+        m_ActionSet[0][nDirection].ImportMir2Action(nFileIndex, nAnimationIndex, 0, nDirection);
         m_ActionSet[0][nDirection].EstimateRectCover(0.0, 0.0);
     }
 
@@ -282,6 +282,8 @@ bool AnimationSet::Valid(int nStatus, int nDirection)
 
 bool AnimationSet::Export()
 {
+    // TODO just put it here
+    // I don't want to check it anymore
     extern SIDWindow *g_SIDWindow;
     if(g_SIDWindow->SID() < 0 || g_SIDWindow->SID() >= 1024){
         g_SIDWindow->ShowAll();

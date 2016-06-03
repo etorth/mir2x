@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 06/02/2016 00:58:35
+ *  Last Modified: 06/03/2016 14:54:48
  *
  *    Description: 
  *
@@ -555,6 +555,12 @@ bool ActionSet::Export(
         return false;
     }
 
+    // seems m_FileIndex starts from 1
+    uint32_t nLookID = (uint32_t)((m_FileIndex - 1) * 10 + m_AnimationIndex) & 0X00000FFF;
+    char szLookID[16];
+    HexString<uint32_t, 2>(nLookID, szLookID);
+    szLookID[4] = '\0';
+
     for(int nFrame = 0; nFrame < FrameCount(); ++nFrame){
         auto pFrame = pDoc->NewElement("Frame");
         {
@@ -639,8 +645,9 @@ bool ActionSet::Export(
                 szTmpHexStringStateDirectionFrame[4] = '\0';
 
                 std::sprintf(szTmpHexStringFileName,
-                        "%s/01ZZZ%s%s%s%04X%04X.PNG",
+                        "%s/01%s%s%s%s%04X%04X.PNG",
                         szIMGFolderName,
+                        szLookID + 1,
                         szTmpHexStringStateDirectionFrame + 1, // skip one zero for first 4 bits
                         ((-nDX > 0) ? "1" : "0"),              // sign
                         ((-nDY > 0) ? "1" : "0"),              // sign
@@ -702,8 +709,9 @@ bool ActionSet::Export(
                 szTmpHexStringStateDirectionFrame[4] = '\0';
 
                 std::sprintf(szTmpHexStringFileName,
-                        "%s/00ZZZ%s%s%s%04X%04X.PNG",
+                        "%s/00%s%s%s%s%04X%04X.PNG",
                         szIMGFolderName,
+                        szLookID + 1,
                         szTmpHexStringStateDirectionFrame + 1, // skip one zero for first 4 bits
                         ((-nDX > 0) ? "1" : "0"),              // sign
                         ((-nDY > 0) ? "1" : "0"),              // sign
