@@ -3,7 +3,7 @@
  *
  *       Filename: animationset.cpp
  *        Created: 8/6/2015 5:43:46 AM
- *  Last Modified: 06/03/2016 14:31:20
+ *  Last Modified: 06/03/2016 15:24:08
  *
  *    Description: 
  *
@@ -18,7 +18,6 @@
  * =====================================================================================
  */
 
-#include "sidwindow.hpp"
 #include "animationset.hpp"
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
@@ -282,14 +281,6 @@ bool AnimationSet::Valid(int nStatus, int nDirection)
 
 bool AnimationSet::Export()
 {
-    // TODO just put it here
-    // I don't want to check it anymore
-    extern SIDWindow *g_SIDWindow;
-    if(g_SIDWindow->SID() < 0 || g_SIDWindow->SID() >= 1024){
-        g_SIDWindow->ShowAll();
-        return false;
-    }
-
 	bool bValid = false;
     for(int nStatus = 0; nStatus < 100; ++nStatus){
         for(int nDir = 0; nDir < 10; ++nDir){
@@ -348,7 +339,6 @@ _AnimationSet_Export_Continue:
                     pActionSet->SetAttribute("Direction", (std::to_string(nDir).c_str()));
                     m_ActionSet[nStatus][nDir].Export(
                             szIMGPathFolderName.c_str(),
-                            g_SIDWindow->SID(),
                             nStatus,
                             nDir,
                             m_DX,
@@ -361,9 +351,7 @@ _AnimationSet_Export_Continue:
                 { // for directive rectangle cover
                     int nW = m_ActionSet[nStatus][nDir].GetRectCover().W();
                     int nH = m_ActionSet[nStatus][nDir].GetRectCover().H();
-                    fprintf(pFile, 
-                            "%d,%d,%d,%d,%d\n",
-                            g_SIDWindow->SID(), nStatus, nDir, nW, nH);
+                    fprintf(pFile, "%d,%d,%d,%d\n", nStatus, nDir, nW, nH);
                 }
             }
         }

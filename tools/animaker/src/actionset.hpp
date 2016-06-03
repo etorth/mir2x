@@ -57,5 +57,5 @@ class ActionSet
         void DSetActionSetAlign(int, int);
 
     public:
-        bool Export(const char *, int, int, int, int, int, tinyxml2::XMLDocument *, tinyxml2::XMLElement *);
+        bool Export(const char *, int, int, int, int, tinyxml2::XMLDocument *, tinyxml2::XMLElement *);
 };

@@ -1,7 +1,6 @@
 #include <string>
 #include <cstdint>
 #include "filesys.hpp"
-#include "sidwindow.hpp"
 #include "mainwindow.hpp"
 #include "aboutwindow.hpp"
 #include "animationset.hpp"
@@ -11,7 +10,6 @@
 #include "validanimationwindow.hpp"
 #include "animationpreviewwindow.hpp"
 
-SIDWindow              *g_SIDWindow;
 WilImagePackage         g_WilImagePackage[2];
 MainWindow             *g_MainWindow;
 ValidWilFileWindow     *g_ValidWilFileWindow;
@@ -65,7 +63,6 @@ int main()
     g_AnimationSetPositionX  = 200;
     g_AnimationSetPositionY  = 200;
     g_WorkingPathName        = ".";
-    g_SIDWindow              = new SIDWindow;
     g_MainWindow             = new MainWindow;
     g_ValidWilFileWindow     = new ValidWilFileWindow;
     g_ValidAnimationWindow   = new ValidAnimationWindow;

@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 06/03/2016 14:54:48
+ *  Last Modified: 06/03/2016 15:29:39
  *
  *    Description: 
  *
@@ -199,10 +199,7 @@ void ActionSet::Draw(int nVStartPX, int nVStartPY)
         return;
     }
 
-    if(true
-            && m_PNG[0][m_CurrentFrameIndex] != nullptr
-            && m_PNG[1][m_CurrentFrameIndex] != nullptr
-      ){
+    if(m_PNG[0][m_CurrentFrameIndex] && m_PNG[1][m_CurrentFrameIndex]){
         extern MainWindow *g_MainWindow;
         if(g_MainWindow->ShowShadowLayer()){
             m_PNG[1][m_CurrentFrameIndex]->draw(
@@ -537,7 +534,6 @@ bool ActionSet::Valid()
 
 bool ActionSet::Export(
         const char *szIMGFolderName,
-		int /* nSID */,
         int nState,
         int nDirection,
         int nCenterX,
@@ -581,49 +577,6 @@ bool ActionSet::Export(
                 }
                 pFrame->LinkEndChild(pShadow);
 
-                // graphics
-                // move from ./IMG/XXXX.PNG to ./workingfolder/IMG/YYYY.PNG
-                //
-                // format of ./IMG/XXXX.PNG
-                // std::sprintf(szSaveFileName, "./IMG/0%02d%02d%02d%d%02d.PNG",
-                //         m_FileIndex, m_AnimationIndex, m_Status, m_Direction, nFrame);
-                //
-                // format of ./workingfolder/IMG/YYYY>PNG
-                // precode | monster SID | Image Index
-                //  0 ~ 63 |    0 ~ 1023 |  0 ~ 65535
-                // 2 bytes      4 bytes      5 bytes  of char
-                // 
-                // shadow:
-                //       2 |    SID      |  ImageIndex
-                // body:
-                //       1 |    SID      |  ImageIndex
-                //
-                // ImageIndex: 100 frames, 8 directions, 50 states
-                //
-                // |   State   |  Direction  |  FrameIndex  |
-                //     2 bytes      1 byte         2 bytes
-                //    00 ~ 99      0 ~ 9          0 ~ 99 : so max is 99 9 99 > 65535
-                //                                         but we limit state to be 0 ~49
-                //                                                   direction to be 0 ~7
-                //                                         then is:
-                //    00 ~ 49       0~7           0 ~ 99 : max is 49799 < 65535: good enough
-
-                // old dup file name format
-                // char szTmpFileName[64];
-                // std::sprintf(szTmpFileName,
-                //         "%s/02%04d%02d%d%02d.PNG",
-                //         // 02 for shadow(6 bits), %04d for SID(10 bits), %02d%d%02d for ImageIndex (16 bits)
-                //         // then to binary code: 0X FC000000 : precode
-                //         //                      0X 03FF0000 : sid
-                //         //                      0X 0000FFFF : image index
-                //         szIMGFolderName,
-				// 		nSID,
-                //         nState,
-                //         nDirection,
-                //         nFrame);
-                // DupFile(szTmpFileName, m_PNG[1][nFrame]->name());
-
-                // new dup file name format
                 char szTmpHexStringFileName[128];
                 // uint32_t as Key, then:
                 // FF FF FF FF
@@ -672,22 +625,6 @@ bool ActionSet::Export(
                 }
                 pFrame->LinkEndChild(pBody);
 
-                // old dup file name format
-                // char szTmpFileName[64];
-                // std::sprintf(szTmpFileName,
-                //         "%s/01%04d%02d%d%02d.PNG",
-                //         // 02 for shadow(6 bits), %04d for SID(10 bits), %02d%d%02d for ImageIndex (16 bits)
-                //         // then to binary code: 0X FC000000 : precode
-                //         //                      0X 03FF0000 : sid
-                //         //                      0X 0000FFFF : image index
-                //         szIMGFolderName,
-				// 		nSID,
-                //         nState,
-                //         nDirection,
-                //         nFrame);
-                // DupFile(szTmpFileName, m_PNG[0][nFrame]->name());
-
-                // new dup file name format
                 char szTmpHexStringFileName[128];
                 // uint32_t as Key, then:
                 // FF FF FF FF
