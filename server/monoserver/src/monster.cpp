@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/30/2016 17:33:39
+ *  Last Modified: 06/02/2016 12:06:03
  *
  *    Description: 
  *
@@ -144,6 +144,9 @@ void Monster::SpaceMove(const char *szAddr, int nX, int nY)
                         // TODO
                         // set the proper map id
                         m_FreezeWalk = false;
+
+                        // 2. dispatch motion
+                        DispatchMotion();
                     };
 
                     // leave previous RM
@@ -188,9 +191,12 @@ bool Monster::ReportMove(int nX, int nY)
                 {
                     m_CurrX = nX;
                     m_CurrY = nY;
-                    // commit move
+                    // 1. commit move
                     m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
                     m_FreezeWalk = false;
+
+                    // 2. dispatch motion
+                    DispatchMotion();
                     break;
                 }
             case MPK_ADDRESS:

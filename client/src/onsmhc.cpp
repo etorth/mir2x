@@ -3,7 +3,7 @@
  *
  *       Filename: onsmhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 05/31/2016 21:56:08
+ *  Last Modified: 06/02/2016 15:29:38
  *
  *    Description: 
  *
@@ -26,9 +26,11 @@
 void Game::OperateHC(uint8_t nHC)
 {
     switch(nHC){
-        case SM_PING:           OnPing();      break;
-        case SM_LOGINOK:        OnLoginOK();   break;
-        case SM_LOGINFAIL:      OnLoginFail(); break;
+        case SM_PING:           On_PING();         break;
+        case SM_LOGINOK:        On_LOGINOK();      break;
+        case SM_LOGINFAIL:      On_LOGINFAIL();    break;
+        case SM_MOTIONSTATE:    On_MOTIONSTATE();  break;
+        case SM_MONSTERGINFO:   On_MONSTERGINFO(); break;
         default: break;
     }
 
@@ -77,5 +79,14 @@ void Game::OnMotionState()
         pRun->Net_MotionState(pBuf, nLen);
     };
 
-    Read(sizeof(SMLoginOK), fnMotionState);
+    Read(sizeof(SMMOtionState), fnMotionState);
+}
+
+void Game::On_MONSTERGINFO()
+{
+    if(!ProcessValid(PROCESSID_RUN)){ return; }
+    auto fnOnGetMonsterGInfo = [](const uint8_t *pBuf, size_t nLen){
+        if(!ProcessValid(PROCESSID_RUN)){ return; }
+        ((ProcessRun *)m_CurrentProcess)->On_MONSTERGINFO(pBuf, nLen);
+    };
 }

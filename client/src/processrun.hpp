@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 05/31/2016 18:48:46
+ *  Last Modified: 06/02/2016 15:30:25
  *
  *    Description: 
  *
@@ -18,16 +18,23 @@
  * =====================================================================================
  */
 #pragma once
+#include <cstdint>
+
 #include "process.hpp"
 #include "message.hpp"
 #include "mir2xmap.hpp"
+#include "creature.hpp"
+#include "clientmap.hpp"
 
 class ProcessRun: public Process
 {
     private:
-        Mir2xMap    m_Map;
+        ClientMap   m_ClientMap;
         int         m_ViewX;
         int         m_ViewY;
+
+    private:
+        std::unordered_map<uint64_t, Creature*> m_CreatureMap;
 
     public:
         ProcessRun();
@@ -47,4 +54,5 @@ class ProcessRun: public Process
     public:
         void Net_LoginOK(const uint8_t *, size_t);
         void Net_MotionState(const uint8_t *, size_t);
+        void Net_MONSTERGINFO(const uint8_t *, size_t);
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/31/2016 23:02:43
+ *  Last Modified: 06/02/2016 17:43:40
  *
  *    Description: 
  *
@@ -319,17 +319,28 @@ void ProcessRun::Net_LoginOK(const uint8_t *pBuf, size_t nLen)
 void ProcessRun::Net_MotionState(const uint8_t *pBuf, size_t)
 {
     SMMotionState stSMMS = *((const SMMotionState *)pBuf);
-    std::printf("location = (%d, %d)\n", stSMMS.X, stSMMS.Y);
-    // auto pRecord = m_CreatureMap.find(((uint64_t)stSMMS.UID << 32) + stSMMS.AddTime);
-    //
-    // if(stSMMS.MapID != m_MapID){ return; }
-    //
-    // if(true
-    //         && pRecord != m_CreatureMap.end()
-    //         && pRecord.second
-    //         && pRecord.second->Type(stSMMS.Type)){
-    //     auto pCreature = pRecord.second;
-    //
-    //     pCreature->ResetMotionState(stSMMS.State)
-    // }
+    if(stSMMS.MapID != m_ClientMap.ID()){ return; }
+
+    auto pRecord = m_CreatureMap.find(((uint64_t)stSMMS.UID << 32) + stSMMS.AddTime);
+    if(true
+            && pRecord != m_CreatureMap.end()
+            && pRecord.second
+            && pRecord.second->Type(stSMMS.Type)){
+        auto pCreature = pRecord.second;
+
+        pCreature->ResetR(stSMMS.State);
+        pCreature->ResetMotionState(stSMMS.State);
+        pCreature->ResetLocation(stSMMS.MapID, stSMMS.X, stSMMS.Y);
+    }
+}
+
+void ProcessRun::Net_MONSTERGINFO(const uint8_t *pBuf, size_t)
+{
+    auto *pInfo = (MonsterGInfo *)pBuf;
+    Monster::CreateGInfoRecord(
+            pInfo->MonsterID,
+            pInfo->LookID[0],
+            pInfo->LookID[1],
+            pInfo->LookID[2],
+            pInfo->LookID[3]); 
 }
