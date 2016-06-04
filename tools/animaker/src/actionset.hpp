@@ -14,15 +14,8 @@ class ActionSet
         void Draw(int, int);
         bool ImportMir2Action(int, int, int, int);
         bool Valid();
-        void EstimateRectCover(double, double);
         void UpdateFrame();
-    public:
-        void  SetCover(double, double, double, double);
-    public:
-        RectCover &GetRectCover();
-        void       SetRectCover(const RectCover &);
     private:
-        RectCover m_RectCover;
         int       m_Direction;
         int       m_Status;
         int       m_AnimationIndex;
@@ -43,10 +36,6 @@ class ActionSet
     private:
         Fl_Shared_Image *m_PNG[2][100];
     public:
-        void MoveRectCover(double, double);
-        void DSetW(double);
-        void DSetH(double);
-        bool InCover(double, double);
         int  FrameCount();
         void FirstFrame();
         void PreviousFrame();

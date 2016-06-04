@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 06/03/2016 15:29:39
+ *  Last Modified: 06/03/2016 17:59:18
  *
  *    Description: 
  *
@@ -183,8 +183,6 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
 
     m_Valid = (m_FrameCount > 0);
 
-    // EstimateRectCover();
-
     return m_Valid;
 }
 
@@ -224,10 +222,31 @@ void ActionSet::Draw(int nVStartPX, int nVStartPY)
 
         extern MainWindow *g_MainWindow;
         if(g_MainWindow->ShowBodyLayer()){
-        m_PNG[0][m_CurrentFrameIndex]->draw(
-                m_ActionSetAlignX + m_PX[m_CurrentFrameIndex] + nVStartPX, 
-                m_ActionSetAlignY + m_PY[m_CurrentFrameIndex] + nVStartPY);
+            m_PNG[0][m_CurrentFrameIndex]->draw(
+                    m_ActionSetAlignX + m_PX[m_CurrentFrameIndex] + nVStartPX, 
+                    m_ActionSetAlignY + m_PY[m_CurrentFrameIndex] + nVStartPY);
+
+            int nX = m_ActionSetAlignX + nVStartPX;
+            int nY = m_ActionSetAlignY + nVStartPY;
+
+            auto nOldColor = fl_color();
+
+            fl_color(FL_YELLOW);
+
+            fl_begin_polygon();
+            fl_arc(nX * 1.0, nY * 1.0, 20.0, 0.0, 360.0);
+            fl_end_polygon();
+
+            fl_color(FL_BLUE);
+
+            fl_begin_line();
+            fl_arc(nX * 1.0, nY * 1.0, 20.0, 0.0, 360.0);
+            fl_end_line();
+
+            fl_color(nOldColor);
         }
+
+
         if(g_MainWindow->ShowBodyFrame()){
             int nX1, nX2, nY1, nY2;
             nX1 = m_ActionSetAlignX + m_PX[m_CurrentFrameIndex] + nVStartPX;
@@ -246,171 +265,6 @@ void ActionSet::Draw(int nVStartPX, int nVStartPY)
     }else{
         // printf("oooooooops\n");
     }
-}
-
-void ActionSet::EstimateRectCover(double fX, double fY)
-{
-    if(m_PNG[0][0]){
-        switch(m_Direction){
-            case 0:
-            case 4:
-                {
-                    SetCover(fX, fY, m_PNG[0][0]->w() / 3, m_PNG[0][0]->h() / 4);
-                    break;
-                }
-            case 1:
-            case 5:
-            case 3:
-            case 7:
-                SetCover(fX, fY, m_PNG[0][0]->w() / 3, m_PNG[0][0]->h() / 4);
-                break;
-            case 2:
-            case 6:
-                SetCover(fX, fY, m_PNG[0][0]->w() / 3, m_PNG[0][0]->h() / 4);
-                break;
-            default:
-                break;
-        }
-    }
-}
-
-void ActionSet::SetCover(double fMidX, double fMidY, double fW, double fH)
-{
-    fW = (std::max)(fW, 0.0);
-    fH = (std::max)(fH, 0.0);
-
-    double fX1 = 0.0;
-    double fX2 = 0.0;
-    double fY1 = 0.0;
-    double fY2 = 0.0;
-
-    switch(m_Direction){
-        case 0:
-            {
-                fX1 = fMidX - fW / 2.0;
-                fY1 = fMidY - fH / 2.0;
-                fX2 = fMidX + fW / 2.0;
-                fY2 = fMidY - fH / 2.0;
-                break;
-            }
-        case 2:
-            {
-                fX1 = fMidX + fH / 2.0;
-                fY1 = fMidY - fW / 2.0;
-                fX2 = fMidX + fH / 2.0;
-                fY2 = fMidY + fW / 2.0;
-                break;
-            }
-        case 4:
-            {
-                fX1 = fMidX + fW / 2.0;
-                fY1 = fMidY + fH / 2.0;
-                fX2 = fMidX - fW / 2.0;
-                fY2 = fMidY + fH / 2.0;
-                break;
-            }
-        case 6:
-            {
-                fX1 = fMidX - fH / 2.0;
-                fY1 = fMidY + fW / 2.0;
-                fX2 = fMidX - fH / 2.0;
-                fY2 = fMidY - fW / 2.0;
-                break;
-            }
-        case 1:
-            {
-                double fL    = std::sqrt((fW * fW + fH * fH) / 4.0 - fW * fH * 0.38461538461 * 0.50);
-                double fCosb = (fH * fH + 4.0 * fL * fL - fW * fW) / (4.0 * fH * fL);
-                double fSinb = std::sqrt(1.0 - fCosb * fCosb); // always positive
-                double fDX1  = 0 + fL * (0.83205029433 * fCosb - 0.55470019622 * fSinb);
-                double fDY1  = 0 - std::sqrt(fL * fL - fDX1 * fDX1);
-                double fTX   = fMidX + fH * 0.50 * 0.83205029433;
-                double fTY   = fMidY - fH * 0.50 * 0.55470019622;
-
-                double fTX1  = fMidX + fDX1;
-                double fTY1  = fMidY + fDY1;
-                double fTX2  = 2.0 * fTX - fTX1;
-                double fTY2  = 2.0 * fTY - fTY1;
-
-                fX1 = fTX1;
-                fY1 = fTY1;
-                fX2 = fTX2;
-                fY2 = fTY2;
-
-                break;
-            }
-        case 3:
-            {
-                std::swap(fW, fH);
-                double fL    = std::sqrt((fW * fW + fH * fH) / 4.0 - fW * fH * 0.38461538461 * 0.50);
-                double fCosb = (fH * fH + 4.0 * fL * fL - fW * fW) / (4.0 * fH * fL);
-                double fSinb = std::sqrt(1.0 - fCosb * fCosb); // always positive
-                double fDX1  = 0 + fL * (0.83205029433 * fCosb - 0.55470019622 * fSinb);
-                double fDY1  = 0 - std::sqrt(fL * fL - fDX1 * fDX1);
-                double fTX   = fMidX + fH * 0.50 * 0.83205029433;
-                double fTY   = fMidY - fH * 0.50 * 0.55470019622;
-
-                double fTX1  = fMidX + fDX1;
-                double fTY1  = fMidY + fDY1;
-                double fTX2  = 2.0 * fTX - fTX1;
-                double fTY2  = 2.0 * fTY - fTY1;
-
-                fX1   = fTX2;
-                fY1   = fTY2;
-                fX2   = 2.0 * fMidX - fTX1;
-                fY2   = 2.0 * fMidY - fTY1;
-
-                break;
-            }
-        case 5:
-            {
-                double fL    = std::sqrt((fW * fW + fH * fH) / 4.0 - fW * fH * 0.38461538461 * 0.50);
-                double fCosb = (fH * fH + 4.0 * fL * fL - fW * fW) / (4.0 * fH * fL);
-                double fSinb = std::sqrt(1.0 - fCosb * fCosb); // always positive
-                double fDX1  = 0 + fL * (0.83205029433 * fCosb - 0.55470019622 * fSinb);
-                double fDY1  = 0 - std::sqrt(fL * fL - fDX1 * fDX1);
-                double fTX   = fMidX + fH * 0.50 * 0.83205029433;
-                double fTY   = fMidY - fH * 0.50 * 0.55470019622;
-                double fTX1  = fMidX + fDX1;
-                double fTY1  = fMidY + fDY1;
-                double fTX2  = 2.0 * fTX - fTX1;
-                double fTY2  = 2.0 * fTY - fTY1;
-
-                fX1   = 2.0 * fMidX - fTX1;
-                fY1   = 2.0 * fMidY - fTY1;
-                fX2   = 2.0 * fMidX - fTX2;
-                fY2   = 2.0 * fMidY - fTY2;
-
-                break;
-            }
-        case 7:
-            {
-                std::swap(fW, fH);
-                double fL    = std::sqrt((fW * fW + fH * fH) / 4.0 - fW * fH * 0.38461538461 * 0.50);
-                double fCosb = (fH * fH + 4.0 * fL * fL - fW * fW) / (4.0 * fH * fL);
-                double fSinb = std::sqrt(1.0 - fCosb * fCosb); // always positive
-                double fDX1  = 0 + fL * (0.83205029433 * fCosb - 0.55470019622 * fSinb);
-                double fDY1  = 0 - std::sqrt(fL * fL - fDX1 * fDX1);
-                double fTX   = fMidX + fH * 0.50 * 0.83205029433;
-                double fTY   = fMidY - fH * 0.50 * 0.55470019622;
-                double fTX1  = fMidX + fDX1;
-                double fTY1  = fMidY + fDY1;
-                double fTX2  = 2.0 * fTX - fTX1;
-                double fTY2  = 2.0 * fTY - fTY1;
-
-                fX1   = 2.0 * fMidX - fTX2;
-                fY1   = 2.0 * fMidY - fTY2;
-                fX2   = fTX1;
-                fY2   = fTY1;
-
-                break;
-            }
-        default:
-            break;
-    }
-
-    m_RectCover.Set(fX1, fY1, fX2, fY2, fMidX, fMidY);
-
 }
 
 void ActionSet::UpdateFrame()
@@ -446,38 +300,6 @@ void ActionSet::UpdateFrame()
             g_MainWindow->TestAnimationUpdate();
         }
     }
-}
-
-void ActionSet::MoveRectCover(double fDX, double fDY)
-{
-    m_RectCover.Move(fDX, fDY);
-}
-
-void ActionSet::DSetW(double fDW)
-{
-    auto stMPoint = m_RectCover.Point(0);
-    SetCover(stMPoint.first, stMPoint.second, m_RectCover.W() + fDW, m_RectCover.H());
-}
-
-void ActionSet::DSetH(double fDH)
-{
-    auto stMPoint = m_RectCover.Point(0);
-    SetCover(stMPoint.first, stMPoint.second, m_RectCover.W(), m_RectCover.H() + fDH);
-}
-
-bool ActionSet::InCover(double fX, double fY)
-{
-    return m_RectCover.In(fX, fY);
-}
-
-RectCover &ActionSet::GetRectCover()
-{
-    return m_RectCover;
-}
-
-void ActionSet::SetRectCover(const RectCover &cRect)
-{
-    m_RectCover = cRect;
 }
 
 int ActionSet::FrameCount()

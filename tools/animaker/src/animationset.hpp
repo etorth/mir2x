@@ -11,7 +11,7 @@ class AnimationSet
         bool ImportMir2Animation(int, int);
     public:
         void Draw(int nPosX, int nPosY);
-        void DrawRectCover(int nPosX, int nPosY);
+        void DrawCover(int nPosX, int nPosY);
         void Clear();
     public:
         void SetDirection(int);
@@ -23,6 +23,7 @@ class AnimationSet
         ActionSet   m_ActionSet[100][10];
         int         m_Direction;
         int         m_Status;
+        int         m_R;
     private:
         int         m_DX;
         int         m_DY;
@@ -36,6 +37,18 @@ class AnimationSet
         void DSetFrameAlign(int, int);
         void DSetActionSetAlign(int, int);
         bool Valid(int, int);
+
+    public:
+        int R()
+        {
+            return m_R;
+        }
+
+        void ResetR(int nR)
+        {
+            m_R = nR;
+        }
+
     public:
         void FirstFrame();
         void PreviousFrame();

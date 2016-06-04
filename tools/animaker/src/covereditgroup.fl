@@ -1,0 +1,68 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include "mainwindow.hpp"} {private global
+} 
+
+widget_class CoverEditGroup {open
+  xywh {457 437 245 385} type Double visible position_relative
+} {
+  Fl_Value_Slider m_VSResolution {
+    label Resolution
+    xywh {28 133 205 20} type Horizontal labelfont 4 minimum 1 maximum 50 step 1 value 1 textfont 4 textsize 14
+  }
+  Fl_Button {} {
+    label {@|<}
+    callback {{
+	extern AnimationSet g_AnimationSet;
+	g_AnimationSet.ResetR(0);
+	
+    	extern MainWindow *g_MainWindow;
+    	g_MainWindow->RedrawAll();
+}}
+    xywh {33 54 50 45}
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@<-}
+    callback {{
+	extern AnimationSet g_AnimationSet;
+	int nNewR = (int)g_AnimationSet.R() - (int)m_VSResolution->value();
+	g_AnimationSet.ResetR(nNewR >= 0 ? nNewR : 0);
+	
+    	extern MainWindow *g_MainWindow;
+    	g_MainWindow->RedrawAll();
+}}
+    xywh {83 54 50 45}
+    code0 {\#include "animationset.hpp"}
+    code1 {\#include "sysconst.hpp"}
+  }
+  Fl_Button {} {
+    label {@->}
+    callback {{
+	extern AnimationSet g_AnimationSet;
+	int nNewR = (int)g_AnimationSet.R() + (int)m_VSResolution->value();
+	g_AnimationSet.ResetR(nNewR <= SYS_MAXR ? nNewR : SYS_MAXR);
+	
+    	extern MainWindow *g_MainWindow;
+    	g_MainWindow->RedrawAll();
+}}
+    xywh {133 54 50 45}
+    code0 {\#include "animationset.hpp"}
+    code1 {\#include "sysconst.hpp"}
+  }
+  Fl_Button {} {
+    label {@>|}
+    callback {{
+	extern AnimationSet g_AnimationSet;
+	g_AnimationSet.ResetR(SYS_MAXR);
+	
+    	extern MainWindow *g_MainWindow;
+    	g_MainWindow->RedrawAll();
+}} selected
+    xywh {183 54 50 45}
+    code0 {\#include "animationset.hpp"}
+    code1 {\#include "sysconst.hpp"}
+  }
+} 

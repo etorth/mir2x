@@ -3,7 +3,7 @@
  *
  *       Filename: animationset.cpp
  *        Created: 8/6/2015 5:43:46 AM
- *  Last Modified: 06/03/2016 15:24:08
+ *  Last Modified: 06/03/2016 17:35:47
  *
  *    Description: 
  *
@@ -26,7 +26,8 @@
 #include <tinyxml2.h>
 
 AnimationSet::AnimationSet()
-    : m_DX(0)
+    : m_R(0)
+    , m_DX(0)
     , m_DY(0)
 {}
 
@@ -38,16 +39,11 @@ bool AnimationSet::ImportMir2Animation(int nFileIndex, int nAnimationIndex)
 
     for(int nDirection = 0; nDirection < 8; ++nDirection){
         m_ActionSet[0][nDirection].ImportMir2Action(nFileIndex, nAnimationIndex, 0, nDirection);
-        m_ActionSet[0][nDirection].EstimateRectCover(0.0, 0.0);
     }
 
     for(int nDirection = 0; nDirection < 8; ++nDirection){
-        auto stRectCover = m_ActionSet[0][nDirection].GetRectCover();
         for(int nStatus = 1; nStatus < 100; ++nStatus){
-            m_ActionSet[nStatus][nDirection].ImportMir2Action(
-                    nFileIndex, nAnimationIndex, nStatus, nDirection);
-            // m_ActionSet[nStatus][nDirection].EstimateRectCover(0.0, 0.0);
-            m_ActionSet[nStatus][nDirection].SetRectCover(stRectCover);
+            m_ActionSet[nStatus][nDirection].ImportMir2Action(nFileIndex, nAnimationIndex, nStatus, nDirection);
         }
     }
     return true;
@@ -69,68 +65,32 @@ void AnimationSet::Draw(int nPosX, int nPosY)
 {
     // (nPosX - m_DX, nPosY - m_DY) is the start point of virtual image start point
     extern MainWindow *g_MainWindow;
-    if(g_MainWindow->ShowRectCover()){
+    if(g_MainWindow->ShowCover()){
         if(g_MainWindow->TestMode() && !g_MainWindow->TestAnimation()){
             return;
         }else{
-            DrawRectCover(nPosX, nPosY);
+            DrawCover(nPosX, nPosY);
         }
     }
     m_ActionSet[m_Status][m_Direction].Draw(nPosX - m_DX, nPosY - m_DY);
 }
 
-void AnimationSet::DrawRectCover(int nPosX, int nPosY)
+void AnimationSet::DrawCover(int nPosX, int nPosY)
 {
-    // auto stMPoint = m_ActionSet[m_Status][m_Direction].GetRectCover().Point(0);
-    auto stPoint1 = m_ActionSet[m_Status][m_Direction].GetRectCover().Point(1);
-    auto stPoint2 = m_ActionSet[m_Status][m_Direction].GetRectCover().Point(2);
-    auto stPoint3 = m_ActionSet[m_Status][m_Direction].GetRectCover().Point(3);
-    auto stPoint4 = m_ActionSet[m_Status][m_Direction].GetRectCover().Point(4);
-
     auto nOldColor = fl_color();
-    fl_color(FL_YELLOW);
-    fl_polygon(
-            (int)(nPosX + stPoint1.first),
-            (int)(nPosY + stPoint1.second),
-            (int)(nPosX + stPoint2.first),
-            (int)(nPosY + stPoint2.second),
-            (int)(nPosX + stPoint3.first),
-            (int)(nPosY + stPoint3.second),
-            (int)(nPosX + stPoint4.first),
-            (int)(nPosY + stPoint4.second));
-    fl_color(FL_BLUE);
-    // line right
-    fl_line((int)(nPosX + stPoint2.first),
-            (int)(nPosY + stPoint2.second),
-            (int)(nPosX + stPoint3.first),
-            (int)(nPosY + stPoint3.second));
-    // line left
-    fl_line((int)(nPosX + stPoint1.first),
-            (int)(nPosY + stPoint1.second),
-            (int)(nPosX + stPoint4.first),
-            (int)(nPosY + stPoint4.second));
-    // line bottom
-    fl_line((int)(nPosX + stPoint3.first),
-            (int)(nPosY + stPoint3.second),
-            (int)(nPosX + stPoint4.first),
-            (int)(nPosY + stPoint4.second));
-    // for middle point: line 1
-    fl_line((int)(nPosX + stPoint1.first),
-            (int)(nPosY + stPoint1.second),
-            (int)(nPosX + stPoint3.first),
-            (int)(nPosY + stPoint3.second));
-    // for middle point: line 2
-    fl_line((int)(nPosX + stPoint2.first),
-            (int)(nPosY + stPoint2.second),
-            (int)(nPosX + stPoint4.first),
-            (int)(nPosY + stPoint4.second));
 
-    fl_color(FL_RED);
-    // line top
-    fl_line((int)(nPosX + stPoint1.first),
-            (int)(nPosY + stPoint1.second),
-            (int)(nPosX + stPoint2.first),
-            (int)(nPosY + stPoint2.second));
+    fl_color(FL_YELLOW);
+
+    fl_begin_polygon();
+    fl_arc(nPosX * 1.0, nPosY * 1.0, m_R * 1.0, 0.0, 360.0);
+    fl_end_polygon();
+
+    fl_color(FL_BLUE);
+
+    fl_begin_line();
+    fl_arc(nPosX * 1.0, nPosY * 1.0, m_R * 1.0, 0.0, 360.0);
+    fl_end_line();
+
     fl_color(nOldColor);
 }
 
@@ -153,82 +113,6 @@ void AnimationSet::TimeoutCallback(void *pArg)
 
 void AnimationSet::Clear()
 {
-}
-
-void AnimationSet::MoveRectCover(double nDX, double nDY)
-{
-    m_ActionSet[m_Status][m_Direction].MoveRectCover(nDX, nDY);
-}
-
-void AnimationSet::DSetW(double nDW)
-{
-    extern MainWindow *g_MainWindow;
-    switch(g_MainWindow->RectCoverCopyMethod()){
-        case 2:
-            {
-                for(int nStatus = 0; nStatus < 100; ++nStatus){
-                    if(m_ActionSet[nStatus][m_Direction].Valid()){
-                        m_ActionSet[nStatus][m_Direction].DSetW(nDW);
-                        m_ActionSet[nStatus][(m_Direction + 4) % 8].DSetW(nDW);
-                    }
-                }
-                break;
-            }
-        case 1:
-            {
-                for(int nStatus = 0; nStatus < 100; ++nStatus){
-                    if(m_ActionSet[nStatus][m_Direction].Valid()){
-                        m_ActionSet[nStatus][m_Direction].DSetW(nDW);
-                    }
-                }
-                break;
-            }
-        case 0:
-            {
-                m_ActionSet[m_Status][m_Direction].DSetW(nDW);
-                break;
-            }
-        default:
-            break;
-    }
-}
-
-void AnimationSet::DSetH(double nDH)
-{
-    extern MainWindow *g_MainWindow;
-    switch(g_MainWindow->RectCoverCopyMethod()){
-        case 2:
-            {
-                for(int nStatus = 0; nStatus < 100; ++nStatus){
-                    if(m_ActionSet[nStatus][m_Direction].Valid()){
-                        m_ActionSet[nStatus][m_Direction].DSetH(nDH);
-                        m_ActionSet[nStatus][(m_Direction + 4) % 8].DSetH(nDH);
-                    }
-                }
-                break;
-            }
-        case 1:
-            {
-                for(int nStatus = 0; nStatus < 100; ++nStatus){
-                    if(m_ActionSet[nStatus][m_Direction].Valid()){
-                        m_ActionSet[nStatus][m_Direction].DSetH(nDH);
-                    }
-                }
-                break;
-            }
-        case 0:
-            {
-                m_ActionSet[m_Status][m_Direction].DSetH(nDH);
-                break;
-            }
-        default:
-            break;
-    }
-}
-
-bool AnimationSet::InCover(double fX, double fY)
-{
-    return m_ActionSet[m_Status][m_Direction].InCover(fX, fY);
 }
 
 void AnimationSet::DSetOffset(int dX, int dY)
@@ -322,10 +206,6 @@ _AnimationSet_Export_Continue:
 
     tinyxml2::XMLDocument stXMLDoc;
     tinyxml2::XMLDocument *pDoc = &stXMLDoc;
-    FILE *pFile = fopen(szRCFileFullName.c_str(), "w+");
-    if(!pFile){
-        return false;
-    }
 
     tinyxml2::XMLElement *pRoot = pDoc->NewElement("Root");
     pDoc->LinkEndChild(pRoot);
@@ -348,15 +228,9 @@ _AnimationSet_Export_Continue:
                     pRoot->LinkEndChild(pActionSet);
                 }
 
-                { // for directive rectangle cover
-                    int nW = m_ActionSet[nStatus][nDir].GetRectCover().W();
-                    int nH = m_ActionSet[nStatus][nDir].GetRectCover().H();
-                    fprintf(pFile, "%d,%d,%d,%d\n", nStatus, nDir, nW, nH);
-                }
             }
         }
     }
-    fclose(pFile);
     pDoc->SaveFile(szXMLFileFullName.c_str());
     return true;
 }

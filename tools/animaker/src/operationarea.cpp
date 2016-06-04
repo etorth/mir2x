@@ -63,19 +63,9 @@ int OperationArea::handle(int nEvent)
             }
         case FL_PUSH:
             {
-                // printf("%3d %3d\n", nMouseX - x(), nMouseY - y());
                 extern MainWindow *g_MainWindow;
                 if(g_MainWindow->EnableEdit()){
-                    extern int          g_AnimationSetPositionX;
-                    extern int          g_AnimationSetPositionY;
-					extern AnimationSet g_AnimationSet;
-                    if(true
-                            && g_MainWindow->EditCover()
-                            && g_AnimationSet.InCover(
-                                nMouseX - x() - g_AnimationSetPositionX,
-                                nMouseY - y() - g_AnimationSetPositionY)){
-                        fl_cursor(FL_CURSOR_MOVE);
-                    }
+                    if(g_MainWindow->EditCover()){ fl_cursor(FL_CURSOR_MOVE); }
                 }
                 nRet = 1;
                 break;

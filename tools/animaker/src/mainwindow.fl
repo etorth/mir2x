@@ -29,13 +29,12 @@ decl {\#include "filesys.hpp"} {public local
 
 class MainWindow {open
 } {
-  Function {MainWindow()} {open
-  } {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       callback {{
 	exit(0);
 }} open
-      private xywh {101 102 854 474} type Double labelfont 4 visible
+      private xywh {107 108 854 474} type Double labelfont 4 visible
     } {
       Fl_Menu_Bar m_MenuBar {open
         private xywh {0 0 1025 30} labelfont 4
@@ -156,7 +155,7 @@ m_MenuItemEnableAnimation->clear();
 m_TestGroup->StopTest();
 
 RedrawAll();}
-            private xywh {35 35 30 20} type Radio value 1 labelfont 4
+            private xywh {45 45 30 20} type Radio value 1 labelfont 4
             code0 {\#include <FL/Fl_Native_File_Chooser.H>}
             code1 {\#include <FL/fl_ask.H>}
             code2 {\#include "validwilfilewindow.hpp"}
@@ -219,15 +218,15 @@ g_AboutWindow->ShowAll();}
           }
         }
       }
-      Fl_Box m_OperationArea {selected
+      Fl_Box m_OperationArea {
         private xywh {0 30 525 443} box UP_FRAME
         code0 {\#include "operationarea.hpp"}
         class OperationArea
       }
-      Fl_Group m_RectCoverEditGroup {open
-        private xywh {541 30 265 340} labelfont 4
-        code0 {\#include "rectcovereditgroup.hpp"}
-        class RectCoverEditGroup
+      Fl_Group m_CoverEditGroup {open
+        xywh {551 40 265 340} labelfont 4
+        code0 {\#include "covereditgroup.hpp"}
+        class CoverEditGroup
       } {}
       Fl_Group m_ShadowEditGroup {open
         xywh {541 30 265 340} labelfont 4
@@ -268,9 +267,9 @@ g_AboutWindow->ShowAll();}
   Function {RedrawAll()} {return_type void
   } {
     code {if(EditCover())\{
-    m_RectCoverEditGroup->show();
+    m_CoverEditGroup->show();
 \}else\{
-    m_RectCoverEditGroup->hide();
+    m_CoverEditGroup->hide();
 \}
 
 if(EditFrameAlign())\{
@@ -315,10 +314,10 @@ m_Window->redraw();} {}
     m_Window->make_current();
 }} {}
   }
-  Function {ShowRectCover()} {return_type bool
+  Function {ShowCover()} {return_type bool
   } {
     code {{
-    return m_MenuItemRectCover->value();
+    return m_MenuItemEditCover->value();
 }} {}
   }
   Function {ShowBodyLayer()} {return_type bool
@@ -333,7 +332,7 @@ m_Window->redraw();} {}
     return m_MenuItemBodyFrame->value();
 }} {}
   }
-  Function {ShowShadowLayer()} {return_type bool
+  Function {ShowShadowLayer()} {selected return_type bool
   } {
     code {{
     return m_MenuItemShowShadowLayer->value();
@@ -389,12 +388,6 @@ m_Window->redraw();} {}
   } {
     code {{
     return m_MenuItemEnableAnimation->value();
-}} {}
-  }
-  Function {RectCoverCopyMethod()} {return_type int
-  } {
-    code {{
-    return m_RectCoverEditGroup->RectCoverCopyMethod();
 }} {}
   }
   Function {TestMode()} {return_type bool
@@ -512,7 +505,7 @@ m_Window->redraw();} {}
     g_AnimationSet.SetDirection((int)(uintptr_t)pData);
 }} {}
   }
-  Function {MakeWorkingFolder()} {open return_type void
+  Function {MakeWorkingFolder()} {return_type void
   } {
     code {{
       extern std::string g_WorkingPathName;
