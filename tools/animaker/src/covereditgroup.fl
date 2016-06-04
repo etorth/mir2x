@@ -5,15 +5,15 @@ code_name {.cpp}
 decl {\#include "mainwindow.hpp"} {private global
 } 
 
-widget_class CoverEditGroup {open
-  xywh {457 437 245 385} type Double visible position_relative
+widget_class CoverEditGroup {open selected
+  xywh {1648 235 245 385} type Double visible position_relative
 } {
   Fl_Value_Slider m_VSResolution {
     label Resolution
-    xywh {28 133 205 20} type Horizontal labelfont 4 minimum 1 maximum 50 step 1 value 1 textfont 4 textsize 14
+    xywh {28 202 205 20} type Horizontal labelfont 4 minimum 1 maximum 50 step 1 value 1 textfont 4 textsize 14
   }
   Fl_Button {} {
-    label {@|<}
+    label {R-MIN}
     callback {{
 	extern AnimationSet g_AnimationSet;
 	g_AnimationSet.ResetR(0);
@@ -21,48 +21,112 @@ widget_class CoverEditGroup {open
     	extern MainWindow *g_MainWindow;
     	g_MainWindow->RedrawAll();
 }}
-    xywh {33 54 50 45}
+    xywh {33 286 50 45} labelfont 4
     code0 {\#include "animationset.hpp"}
   }
   Fl_Button {} {
-    label {@<-}
+    label {R-}
     callback {{
 	extern AnimationSet g_AnimationSet;
-	int nNewR = (int)g_AnimationSet.R() - (int)m_VSResolution->value();
+	int nNewR = (int)g_AnimationSet.R() - 1;
 	g_AnimationSet.ResetR(nNewR >= 0 ? nNewR : 0);
 	
     	extern MainWindow *g_MainWindow;
     	g_MainWindow->RedrawAll();
 }}
-    xywh {83 54 50 45}
+    xywh {83 286 50 45} labelfont 4
     code0 {\#include "animationset.hpp"}
     code1 {\#include "sysconst.hpp"}
   }
   Fl_Button {} {
-    label {@->}
+    label {R+}
     callback {{
 	extern AnimationSet g_AnimationSet;
-	int nNewR = (int)g_AnimationSet.R() + (int)m_VSResolution->value();
+	int nNewR = (int)g_AnimationSet.R() + 1;
 	g_AnimationSet.ResetR(nNewR <= SYS_MAXR ? nNewR : SYS_MAXR);
 	
     	extern MainWindow *g_MainWindow;
     	g_MainWindow->RedrawAll();
 }}
-    xywh {133 54 50 45}
+    xywh {133 286 50 45} labelfont 4
     code0 {\#include "animationset.hpp"}
     code1 {\#include "sysconst.hpp"}
   }
   Fl_Button {} {
-    label {@>|}
+    label {R-MAX}
     callback {{
 	extern AnimationSet g_AnimationSet;
 	g_AnimationSet.ResetR(SYS_MAXR);
 	
     	extern MainWindow *g_MainWindow;
     	g_MainWindow->RedrawAll();
-}} selected
-    xywh {183 54 50 45}
+}}
+    xywh {183 286 50 45} labelfont 4
     code0 {\#include "animationset.hpp"}
     code1 {\#include "sysconst.hpp"}
+  }
+  Fl_Button {} {
+    label {@8->}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetOffset(0, 0 - m_VSResolution->value());
+    g_MainWindow->RedrawAll();
+}}
+    xywh {108 27 50 50} labelfont 4
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@2->}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetOffset(0, m_VSResolution->value());
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+
+}}
+    xywh {108 125 50 50} labelfont 4
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@4->}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetOffset(0 - m_VSResolution->value(), 0);
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+    xywh {59 76 50 50} labelfont 4
+    code0 {\#include "animationset.hpp"}
+  }
+  Fl_Button {} {
+    label {@->}
+    callback {{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->EnableEdit()){
+        return;
+    }
+    
+    extern AnimationSet g_AnimationSet;
+    g_AnimationSet.DSetOffset(m_VSResolution->value(), 0);
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->RedrawAll();
+}}
+    xywh {157 76 50 50} labelfont 4
+    code0 {\#include "animationset.hpp"}
   }
 } 

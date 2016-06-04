@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: actionset.cpp
- *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 06/03/2016 17:59:18
+ *        Created: 08/05/2015 11:22:52 PM
+ *  Last Modified: 06/04/2016 00:12:48
  *
  *    Description: 
  *
@@ -17,16 +17,19 @@
  *
  * =====================================================================================
  */
-#include "filesys.hpp"
-#include "savepng.hpp"
-#include "actionset.hpp"
+
 #include <algorithm>
-#include "wilimagepackage.hpp"
-#include "mainwindow.hpp"
-#include "hexstring.hpp"
-#include "wilanimationinfo.hpp"
+
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
+
+#include "filesys.hpp"
+#include "savepng.hpp"
+#include "hexstring.hpp"
+#include "actionset.hpp"
+#include "mainwindow.hpp"
+#include "wilimagepackage.hpp"
+#include "wilanimationinfo.hpp"
 
 ActionSet::ActionSet()
     : m_CurrentFrameIndex(0)
@@ -39,9 +42,9 @@ ActionSet::ActionSet()
     , m_ActionSetAlignY(0)
     , m_Valid(false)
 {
-    for(int i = 0; i < 100; ++i){
-        m_PNG[0][i] = nullptr;
-        m_PNG[1][i] = nullptr;
+    for(int nIndex = 0; nIndex < 100; ++nIndex){
+        m_PNG[0][nIndex] = nullptr;
+        m_PNG[1][nIndex] = nullptr;
     }
 }
 
@@ -60,18 +63,10 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
     // we assume that g_WilImagePackage has been set to nFileIndex
     // extern WilImagePackage g_WilImagePackage[2];
 
-    std::memset(m_DSX, 0, 10 * sizeof(int));
-    std::memset(m_DSY, 0, 10 * sizeof(int));
-    std::memset(m_PX,  0, 10 * sizeof(int));
-    std::memset(m_PY,  0, 10 * sizeof(int));
-
-    // parameter nFileIndex, nAnimationIndex is for caching
-    // otherwise we can just use nAnimationIndex
-
-    // only init this class by click on AnimationPreviewWindow
-    // so we can assume nFileIndex and nAnimationIndex are always valid
-    m_FileIndex      = nFileIndex;
-    m_AnimationIndex = nAnimationIndex;
+    std::memset(m_DSX, 0, 100 * sizeof(int));
+    std::memset(m_DSY, 0, 100 * sizeof(int));
+    std::memset(m_PX,  0, 100 * sizeof(int));
+    std::memset(m_PY,  0, 100 * sizeof(int));
 
     int       nMaxW    = 0;
     int       nMaxH    = 0;
@@ -86,11 +81,10 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
     int nBaseIndex  = WilAnimationStartBaseIndex(m_FileIndex, m_AnimationIndex, m_Status, m_Direction);
     int nFrameCount = WilAnimationFrameCount(m_FileIndex, m_AnimationIndex, m_Status, m_Direction);
 
-    // assume largest framecount is 100: 0~99
+    // assume largest framecount is 100: 0 ~ 99
     // and they are continuously located in the .wil file
     // otherwise for each nFileIndex/nAnimationIndex/nStatus/nDirection we need to set it
     for(int nFrame = 0; nFrame < nFrameCount; ++nFrame){
-
         extern WilImagePackage g_WilImagePackage[2];
         if(true
                 && g_WilImagePackage[0].SetIndex(nFrame + nBaseIndex + nBase0)
@@ -161,9 +155,10 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
             // m_PNG[0]: start: (x - dx, y - dy)
             // m_PNG[1]: start: (x     , y     )
 
-            if(m_PNG[0][nFrame] == nullptr || m_PNG[1][nFrame] == nullptr){
-                continue;
-            }
+            if(!(m_PNG[0][nFrame] && m_PNG[1][nFrame])){ continue; }
+
+            // TODO
+            // here I calculated the metrics, but seems I didn't use this info
             int nMinX = (std::min)(0 - m_DSX[nFrame], 0);
             int nMinY = (std::min)(0 - m_DSY[nFrame], 0);
             int nMaxX = (std::max)(0 - m_DSX[nFrame] + m_PNG[0][nFrame]->w(), 0 + m_PNG[1][nFrame]->w());
@@ -180,22 +175,17 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
 
     delete pData;
 
-
     m_Valid = (m_FrameCount > 0);
 
     return m_Valid;
 }
 
+// (nVStartPX, nVStartPY) is location for the actionset, the
+// animation offset has already be counted in
 void ActionSet::Draw(int nVStartPX, int nVStartPY)
 {
-    // nVStartPX: x position on the virtual canvas, (0, 0) is on top-left
-    // nVStartPY: y position on the virtual canvas
-    // 
     extern MainWindow *g_MainWindow;
-    if(g_MainWindow->TestMode() && !g_MainWindow->TestAnimation()){
-        //selecting action set to show
-        return;
-    }
+    if(g_MainWindow->TestMode() && !g_MainWindow->TestAnimation()){ return; }
 
     if(m_PNG[0][m_CurrentFrameIndex] && m_PNG[1][m_CurrentFrameIndex]){
         extern MainWindow *g_MainWindow;
@@ -204,6 +194,7 @@ void ActionSet::Draw(int nVStartPX, int nVStartPY)
                     m_ActionSetAlignX + m_PX[m_CurrentFrameIndex] + m_DSX[m_CurrentFrameIndex] + nVStartPX, 
                     m_ActionSetAlignY + m_PY[m_CurrentFrameIndex] + m_DSY[m_CurrentFrameIndex] + nVStartPY);
         }
+
         if(g_MainWindow->ShowShadowFrame()){
             int nX1, nX2, nY1, nY2;
             nX1 = m_ActionSetAlignX + m_PX[m_CurrentFrameIndex] + m_DSX[m_CurrentFrameIndex] + nVStartPX;
@@ -225,25 +216,6 @@ void ActionSet::Draw(int nVStartPX, int nVStartPY)
             m_PNG[0][m_CurrentFrameIndex]->draw(
                     m_ActionSetAlignX + m_PX[m_CurrentFrameIndex] + nVStartPX, 
                     m_ActionSetAlignY + m_PY[m_CurrentFrameIndex] + nVStartPY);
-
-            int nX = m_ActionSetAlignX + nVStartPX;
-            int nY = m_ActionSetAlignY + nVStartPY;
-
-            auto nOldColor = fl_color();
-
-            fl_color(FL_YELLOW);
-
-            fl_begin_polygon();
-            fl_arc(nX * 1.0, nY * 1.0, 20.0, 0.0, 360.0);
-            fl_end_polygon();
-
-            fl_color(FL_BLUE);
-
-            fl_begin_line();
-            fl_arc(nX * 1.0, nY * 1.0, 20.0, 0.0, 360.0);
-            fl_end_line();
-
-            fl_color(nOldColor);
         }
 
 

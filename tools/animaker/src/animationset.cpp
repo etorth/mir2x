@@ -3,7 +3,7 @@
  *
  *       Filename: animationset.cpp
  *        Created: 8/6/2015 5:43:46 AM
- *  Last Modified: 06/03/2016 17:35:47
+ *  Last Modified: 06/04/2016 02:58:12
  *
  *    Description: 
  *
@@ -18,15 +18,18 @@
  * =====================================================================================
  */
 
-#include "animationset.hpp"
-#include <FL/Fl.H>
-#include <FL/fl_draw.H>
-#include "mainwindow.hpp"
 #include <string>
+
+#include <FL/Fl.H>
 #include <tinyxml2.h>
+#include <FL/fl_draw.H>
+
+#include "sysconst.hpp"
+#include "mainwindow.hpp"
+#include "animationset.hpp"
 
 AnimationSet::AnimationSet()
-    : m_R(0)
+    : m_R(SYS_MAXR)
     , m_DX(0)
     , m_DY(0)
 {}
@@ -37,6 +40,12 @@ AnimationSet::~AnimationSet()
 bool AnimationSet::ImportMir2Animation(int nFileIndex, int nAnimationIndex)
 {
 
+    for(int nDirection = 0; nDirection < 8; ++nDirection){
+        m_DirectionAlignX[nDirection] = 0;
+        m_DirectionAlignY[nDirection] = 0;
+    }
+
+    // TODO I have no idea why I need to split it into 0 and 1 ~ 100
     for(int nDirection = 0; nDirection < 8; ++nDirection){
         m_ActionSet[0][nDirection].ImportMir2Action(nFileIndex, nAnimationIndex, 0, nDirection);
     }
@@ -61,8 +70,12 @@ void AnimationSet::SetDirection(int nDirection)
     m_ActionSet[m_Status][m_Direction].FirstFrame();
 }
 
+// (nPosX, nPosY) are center position of animation on current *window*
+// means we already add the Fl_Box::x() and Fl_Box::y()
 void AnimationSet::Draw(int nPosX, int nPosY)
 {
+    if(!m_ActionSet[m_Status][m_Direction].Valid()){ return; }
+
     // (nPosX - m_DX, nPosY - m_DY) is the start point of virtual image start point
     extern MainWindow *g_MainWindow;
     if(g_MainWindow->ShowCover()){
@@ -72,7 +85,10 @@ void AnimationSet::Draw(int nPosX, int nPosY)
             DrawCover(nPosX, nPosY);
         }
     }
-    m_ActionSet[m_Status][m_Direction].Draw(nPosX - m_DX, nPosY - m_DY);
+
+    int nX = nPosX + m_DX + m_DirectionAlignX[m_Direction];
+    int nY = nPosY + m_DY + m_DirectionAlignY[m_Direction];
+    m_ActionSet[m_Status][m_Direction].Draw(nX, nY);
 }
 
 void AnimationSet::DrawCover(int nPosX, int nPosY)
@@ -151,6 +167,12 @@ void AnimationSet::DSetFrameAlign(int dX, int dY)
     m_ActionSet[m_Status][m_Direction].DSetFrameAlign(dX, dY);
 }
 
+void AnimationSet::DSetDirectionAlign(int dX, int dY)
+{
+    m_DirectionAlignX[m_Direction] += dX;
+    m_DirectionAlignY[m_Direction] += dY;
+}
+
 void AnimationSet::DSetActionSetAlign(int dX, int dY)
 {
     m_ActionSet[m_Status][m_Direction].DSetActionSetAlign(dX, dY);
@@ -161,6 +183,11 @@ bool AnimationSet::Valid(int nStatus, int nDirection)
     nStatus    %= 100;
     nDirection %= 10;
     return m_ActionSet[nStatus][nDirection].Valid();
+}
+
+bool AnimationSet::Valid()
+{
+    return Valid(m_Status, m_Direction);
 }
 
 bool AnimationSet::Export()

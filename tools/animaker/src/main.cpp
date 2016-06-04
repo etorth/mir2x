@@ -1,5 +1,56 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: main.cpp
+ *        Created: 09/03/2015 03:49:00 AM
+ *  Last Modified: 06/04/2016 03:38:32
+ *
+ *    Description: set all kinds of align, for animation center (X, Y)
+ *                 1. animation align:
+ *                      the offset for all actionsets in this animation, like for a
+ *                      bird, the graphcal center is always upper to its animation
+ *                      center. this is mostly used
+ *
+ *                 2. direction align:
+ *                      all actionset on one direction will get an align, this is
+ *                      based on the fact that for one direction, the switch for
+ *                      different action is pretty smooth. but when changing the
+ *                      direction, the cover between two direction is not good, so
+ *                      we add the align, and since changing direction can tolerate
+ *                      some ``non-smothness", this helps to make the cover to be
+ *                      better
+ *
+ *                 2. actionset align:
+ *                      offset for this actionset only, for one monster stand and
+ *                      the start to move, this offset make the state switch to be
+ *                      smooth, not like stand->jump->walk
+ *
+ *                 3. body frame align:
+ *                      the additional align for body frame. because mir2 comes
+ *                      with an align alreay. this align is merely used since for
+ *                      the actionset I checked the frame serial is pretty good! so
+ *                      this frame align is disabled
+ *
+ *                 4. shadow frame align
+ *                      the additional align for shadow frame, mir2 alreayd provides
+ *                      shadow align. this additional align is used when we need to
+ *                      dynamically create shadows for the monster. otherwise it's
+ *                      disabled
+ *
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #include <string>
 #include <cstdint>
+
 #include "filesys.hpp"
 #include "mainwindow.hpp"
 #include "aboutwindow.hpp"
@@ -18,8 +69,8 @@ AboutWindow            *g_AboutWindow;
 ProgressBarWindow      *g_ProgressBarWindow;
 AnimationPreviewWindow *g_AnimationPreviewWindow;
 AnimationSet            g_AnimationSet;
-int                     g_AnimationSetPositionX;
-int                     g_AnimationSetPositionY;
+int                     g_AnimationSetWinCenterX;   // center X on win
+int                     g_AnimationSetWinCenterY;   // center Y on win
 uint32_t                g_TestAnimationCode;
 std::string             g_WorkingPathName;
 
@@ -60,8 +111,8 @@ int main()
     fl_register_images();
 
     g_TestAnimationCode      = 0;
-    g_AnimationSetPositionX  = 200;
-    g_AnimationSetPositionY  = 200;
+    g_AnimationSetWinCenterX = 0;
+    g_AnimationSetWinCenterY = 0;
     g_WorkingPathName        = ".";
     g_MainWindow             = new MainWindow;
     g_ValidWilFileWindow     = new ValidWilFileWindow;

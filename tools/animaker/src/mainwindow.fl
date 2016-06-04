@@ -32,9 +32,9 @@ class MainWindow {open
   Function {MainWindow()} {} {
     Fl_Window m_Window {
       callback {{
-	exit(0);
+	// don't quit directly
 }} open
-      private xywh {107 108 854 474} type Double labelfont 4 visible
+      private xywh {1681 277 850 470} type Double labelfont 4 visible
     } {
       Fl_Menu_Bar m_MenuBar {open
         private xywh {0 0 1025 30} labelfont 4
@@ -89,7 +89,9 @@ class MainWindow {open
           }
           MenuItem {} {
             label Quit
-            callback {exit(0);}
+            callback {{
+	exit(0);
+}}
             private xywh {0 0 30 20} labelfont 4
           }
         }
@@ -114,7 +116,7 @@ class MainWindow {open
           private xywh {5 5 62 20} labelfont 4
         } {
           MenuItem m_MenuItemRectCover {
-            label {Rectangle Cover              }
+            label {Cover Circle        }
             private xywh {5 5 30 20} type Toggle value 1 labelfont 4
             code0 {\#include <FL/Fl_Native_File_Chooser.H>}
             code1 {\#include <FL/fl_ask.H>}
@@ -142,7 +144,7 @@ class MainWindow {open
             code2 {\#include "validwilfilewindow.hpp"}
           }
           MenuItem m_MenuItemEnableAnimation {
-            label {Enable Animation}
+            label {Enable Animation    }
             private xywh {25 25 30 20} type Toggle value 1 labelfont 4 divider
             code0 {\#include <FL/Fl_Native_File_Chooser.H>}
             code1 {\#include <FL/fl_ask.H>}
@@ -161,6 +163,39 @@ RedrawAll();}
             code2 {\#include "validwilfilewindow.hpp"}
             code3 {\#include "actionsettestgroup.hpp"}
           }
+          MenuItem m_MenuItemEditDirection {
+            label Direction
+            callback {m_MenuItemEnableEdit->clear();
+m_MenuItemEnableAnimation->clear();
+m_TestGroup->StopTest();
+
+RedrawAll();}
+            private xywh {55 55 30 20} type Radio labelfont 4
+            code0 {\#include <FL/Fl_Native_File_Chooser.H>}
+            code1 {\#include <FL/fl_ask.H>}
+            code2 {\#include "validwilfilewindow.hpp"}
+            code3 {\#include "actionsettestgroup.hpp"}
+          }
+          MenuItem m_MenuItemEditActionSetAlign {
+            label Action
+            callback {m_MenuItemEnableEdit->clear();
+m_MenuItemEnableAnimation->clear();
+m_TestGroup->StopTest();
+
+RedrawAll();}
+            private xywh {25 25 30 20} type Radio labelfont 4
+            code0 {\#include "actionsettestgroup.hpp"}
+          }
+          MenuItem m_MenuItemEditFrameAlign {
+            label Frame
+            callback {m_MenuItemEnableEdit->clear();
+m_MenuItemEnableAnimation->clear();
+m_TestGroup->StopTest();
+
+RedrawAll();}
+            private xywh {15 15 30 20} type Radio labelfont 4
+            code0 {\#include "actionsettestgroup.hpp"}
+          }
           MenuItem m_MenuItemEditShadow {
             label {Shadow      }
             callback {m_MenuItemEnableEdit->clear();
@@ -174,26 +209,6 @@ RedrawAll();}
             code2 {\#include "validwilfilewindow.hpp"}
             code3 {\#include "actionsettestgroup.hpp"}
           }
-          MenuItem m_MenuItemEditFrameAlign {
-            label {Align Frame}
-            callback {m_MenuItemEnableEdit->clear();
-m_MenuItemEnableAnimation->clear();
-m_TestGroup->StopTest();
-
-RedrawAll();}
-            private xywh {15 15 30 20} type Radio labelfont 4
-            code0 {\#include "actionsettestgroup.hpp"}
-          }
-          MenuItem m_MenuItemEditActionSetAlign {
-            label {Align Action Set        }
-            callback {m_MenuItemEnableEdit->clear();
-m_MenuItemEnableAnimation->clear();
-m_TestGroup->StopTest();
-
-RedrawAll();}
-            private xywh {25 25 30 20} type Radio labelfont 4
-            code0 {\#include "actionsettestgroup.hpp"}
-          }
           MenuItem m_MenuItemTest {
             label {Test Mode}
             callback {m_MenuItemEnableEdit->clear();
@@ -201,12 +216,19 @@ m_MenuItemEnableAnimation->clear();
 m_TestGroup->StopTest();
 
 RedrawAll();}
-            private xywh {35 35 30 20} type Radio labelfont 4
+            private xywh {35 35 30 20} type Radio labelfont 4 divider
             code0 {\#include "actionsettestgroup.hpp"}
+          }
+          MenuItem {} {
+            label Reset
+            callback {{
+	fl_alert("you are sure to reset?");
+}}
+            xywh {0 0 34 20}
           }
         }
         Submenu {} {
-          label About open
+          label About
           private xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -219,7 +241,7 @@ g_AboutWindow->ShowAll();}
         }
       }
       Fl_Box m_OperationArea {
-        private xywh {0 30 525 443} box UP_FRAME
+        private xywh {0 30 525 440} box UP_FRAME
         code0 {\#include "operationarea.hpp"}
         class OperationArea
       }
@@ -227,6 +249,11 @@ g_AboutWindow->ShowAll();}
         xywh {551 40 265 340} labelfont 4
         code0 {\#include "covereditgroup.hpp"}
         class CoverEditGroup
+      } {}
+      Fl_Group m_DirectionAlignGroup {
+        xywh {551 40 265 340} labelfont 4
+        code0 {\#include "directionaligngroup.hpp"}
+        class DirectionAlignGroup
       } {}
       Fl_Group m_ShadowEditGroup {open
         xywh {541 30 265 340} labelfont 4
@@ -264,12 +291,18 @@ g_AboutWindow->ShowAll();}
   } {
     code {m_Window->show();} {}
   }
-  Function {RedrawAll()} {return_type void
+  Function {RedrawAll()} {open return_type void
   } {
     code {if(EditCover())\{
     m_CoverEditGroup->show();
 \}else\{
     m_CoverEditGroup->hide();
+\}
+
+if(EditDirection())\{
+    m_DirectionAlignGroup->show();
+\}else\{
+    m_DirectionAlignGroup->hide();
 \}
 
 if(EditFrameAlign())\{
@@ -314,7 +347,7 @@ m_Window->redraw();} {}
     m_Window->make_current();
 }} {}
   }
-  Function {ShowCover()} {return_type bool
+  Function {ShowCover()} {selected return_type bool
   } {
     code {{
     return m_MenuItemEditCover->value();
@@ -332,7 +365,7 @@ m_Window->redraw();} {}
     return m_MenuItemBodyFrame->value();
 }} {}
   }
-  Function {ShowShadowLayer()} {selected return_type bool
+  Function {ShowShadowLayer()} {return_type bool
   } {
     code {{
     return m_MenuItemShowShadowLayer->value();
@@ -364,6 +397,12 @@ m_Window->redraw();} {}
   } {
     code {{
     return m_MenuItemEditCover->value();
+}} {}
+  }
+  Function {EditDirection()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemEditDirection->value();
 }} {}
   }
   Function {EditFrameAlign()} {return_type bool
@@ -454,6 +493,7 @@ m_Window->redraw();} {}
             }
         }
     }
+
     if(m_ChoiceStatus->size() > 0){
         m_ChoiceStatus->value(0);
         if(m_ChoiceStatus->menu()[0].callback()){
@@ -469,6 +509,12 @@ m_Window->redraw();} {}
   Function {AddDirectionItem(int nStatus)} {return_type void
   } {
     code {{
+    // keep the old choice if possible
+    int nOldChoice = -1;
+    if(m_ChoiceDirection->size() > 0){
+        nOldChoice = m_ChoiceDirection->value();
+    }
+
     m_ChoiceDirection->clear();
     extern AnimationSet g_AnimationSet;
     for(int nDirection = 0; nDirection < 8; ++nDirection){
@@ -478,10 +524,23 @@ m_Window->redraw();} {}
                     0, DirectionItemCallback, (void *)(uintptr_t)nDirection, 0);
         }
     }
+
+    // if(m_ChoiceDirection->size() > 0){
+    //     m_ChoiceDirection->value(0);
+    //     if(m_ChoiceDirection->menu()[0].callback()){
+    //         m_ChoiceDirection->menu()[0].do_callback(nullptr);
+    //     }
+    //     m_ChoiceDirection->textfont(4);
+    // }
+
     if(m_ChoiceDirection->size() > 0){
-        m_ChoiceDirection->value(0);
-        if(m_ChoiceDirection->menu()[0].callback()){
-            m_ChoiceDirection->menu()[0].do_callback(nullptr);
+        // set to the old value if possible
+        if(nOldChoice < 0){ nOldChoice = 0; }
+        if(nOldChoice >= m_ChoiceDirection->size()){ nOldChoice = 0; }
+
+        m_ChoiceDirection->value(nOldChoice);
+        if(m_ChoiceDirection->menu()[nOldChoice].callback()){
+            m_ChoiceDirection->menu()[nOldChoice].do_callback(nullptr);
         }
         m_ChoiceDirection->textfont(4);
     }

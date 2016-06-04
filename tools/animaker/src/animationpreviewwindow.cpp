@@ -3,7 +3,7 @@
  *
  *       Filename: animationpreviewwindow.cpp
  *        Created: 7/22/2015 3:16:57 AM
- *  Last Modified: 06/01/2016 18:05:36
+ *  Last Modified: 06/04/2016 03:22:19
  *
  *    Description: 
  *
@@ -31,6 +31,7 @@
 PreviewWindow::PreviewWindow(int nX, int nY, int nW, int nH)
     : Fl_Double_Window(nX, nY, nW, nH, nullptr)
 {
+    // Fl_Double_Window::set_modal();
 }
 
 int PreviewWindow::handle(int nEvent)
@@ -51,6 +52,7 @@ int PreviewWindow::handle(int nEvent)
                     pWin->RedrawAll();
                     pWin->ShowAll();
                 }
+                hide();
             }
             break;
         default:

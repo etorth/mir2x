@@ -7,36 +7,43 @@ class AnimationSet
     public:
         AnimationSet();
         ~AnimationSet();
+
     public:
         bool ImportMir2Animation(int, int);
+
     public:
         void Draw(int nPosX, int nPosY);
         void DrawCover(int nPosX, int nPosY);
         void Clear();
+
     public:
         void SetDirection(int);
         void SetStatus(int);
         void UpdateFrame();
+
     public:
         static void TimeoutCallback(void *);
+
     private:
         ActionSet   m_ActionSet[100][10];
+        int         m_DirectionAlignX[10];
+        int         m_DirectionAlignY[10];
         int         m_Direction;
         int         m_Status;
         int         m_R;
+
     private:
         int         m_DX;
         int         m_DY;
+
     public:
-        void MoveRectCover(double, double);
-        void DSetW(double);
-        void DSetH(double);
-        bool InCover(double, double);
         void DSetOffset(int, int);
         void DSetShadowOffset(int, int);
+        void DSetDirectionAlign(int, int);
         void DSetFrameAlign(int, int);
         void DSetActionSetAlign(int, int);
         bool Valid(int, int);
+        bool Valid();
 
     public:
         int R()
