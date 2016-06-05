@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/31/2016 18:25:59
+ *  Last Modified: 06/05/2016 11:51:57
  *
  *    Description: 
  *
@@ -29,6 +29,12 @@
 #include "monoserver.hpp"
 #include "rotatecoord.hpp"
 #include "regionmonitor.hpp"
+
+ServerMap::ServerMap(const Theron::Address &rstSCAddress, uint32_t nMapID)
+    : ServerMap(nMapID)
+{
+    m_SCAddress = rstSCAddress;
+}
 
 ServerMap::ServerMap(uint32_t nMapID)
     : Transponder()
@@ -76,6 +82,11 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
         case MPK_METRONOME:
             {
                 On_MPK_METRONOME(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_QUERYSCADDRESS:
+            {
+                On_MPK_QUERYSCADDRESS(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_QUERYRMADDRESS:

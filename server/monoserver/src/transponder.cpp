@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.cpp
  *        Created: 04/27/2016 00:05:15
- *  Last Modified: 06/05/2016 03:41:40
+ *  Last Modified: 06/05/2016 12:23:13
  *
  *    Description: 
  *
@@ -41,7 +41,7 @@ Transponder::Transponder()
 
         return false;
     };
-    m_Trigger.Install("DelayCmdQueue", fnDelayCmdQueue);
+    m_Hook.Install("DelayCmdQueue", fnDelayCmdQueue);
 }
 
 Transponder::~Transponder()
@@ -53,7 +53,7 @@ Theron::Address Transponder::Activate()
 {
     if(!m_ActorPod){
         extern Theron::Framework *g_Framework;
-        m_ActorPod = new ActorPod(g_Framework, [this](){ m_Trigger.Execute(); },
+        m_ActorPod = new ActorPod(g_Framework, [this](){ m_Hook.Execute(); },
                 [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
                 this->Operate(rstMPK, stFromAddr);
                 });

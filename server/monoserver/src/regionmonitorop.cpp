@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 06/05/2016 03:50:14
+ *  Last Modified: 06/05/2016 12:22:28
  *
  *    Description: 
  *
@@ -852,7 +852,7 @@ void RegionMonitor::On_MPK_QUERYSCADDRESS(const MessagePack &rstMPK, const Thero
             return false;
         };
 
-        m_Trigger.Install(fnResp);
+        m_Hook.Install(fnResp);
     }
 
     // oooops we have no SC address, ask map for sc address

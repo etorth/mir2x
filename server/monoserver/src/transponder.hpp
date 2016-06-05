@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.hpp
  *        Created: 04/23/2016 10:51:19
- *  Last Modified: 06/05/2016 02:56:10
+ *  Last Modified: 06/05/2016 12:13:34
  *
  *    Description: base of actor model in mir2x, Theron::Actor acitvated at create
  *                 time so no way to control it, instead Transponder can 
@@ -24,7 +24,7 @@
  *                 I am trying to avoid MI.
  *
  *
- *                 Trigger can be install/uninstall before / after Activate(), good
+ *                 Hook can be install/uninstall before / after Activate(), good
  *                 
  *        Version: 1.0
  *       Revision: none
@@ -45,7 +45,7 @@
 
 #include <Theron/Theron.h>
 
-#include "trigger.hpp"
+#include "hook.hpp"
 #include "delaycmd.hpp"
 #include "messagepack.hpp"
 
@@ -64,7 +64,7 @@ class Transponder
         // TODO & TBD
         // use trigger here since most of the time we are traversing
         // rather than install/uninstall trigger
-        Trigger m_Trigger;
+        Hook m_Hook;
         std::priority_queue<DelayCmd> m_DelayCmdQ;
 
     public:

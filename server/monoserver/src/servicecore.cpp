@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 06/05/2016 03:28:07
+ *  Last Modified: 06/05/2016 12:16:23
  *
  *    Description: 
  *
@@ -357,7 +357,7 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
                         return false;
                     };
 
-                    m_Trigger.Install(fnTmpTrigger);
+                    m_Hook.Install(fnTmpTrigger);
                     return;
                 }
             default:

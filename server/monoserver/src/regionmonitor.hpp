@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 06/05/2016 03:39:19
+ *  Last Modified: 06/05/2016 12:15:48
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -267,7 +267,7 @@ class RegionMonitor: public Transponder
             // in transponder we alreay put ``DelayQueue" trigger inside
             //
             // Install("Update", [this](){ For_Update(); });
-            m_Trigger.Install("MoveRequest", [this](){ For_MoveRequest(); return false; });
+            m_Hook.Install("MoveRequest", [this](){ For_MoveRequest(); return false; });
         }
 
         virtual ~RegionMonitor() = default;

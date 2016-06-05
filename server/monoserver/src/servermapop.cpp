@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/31/2016 18:37:49
+ *  Last Modified: 06/05/2016 11:51:24
  *
  *    Description: 
  *
@@ -223,4 +223,16 @@ void ServerMap::On_MPK_MOTIONSTATE(const MessagePack &rstMPK, const Theron::Addr
             }
         }
     }
+}
+
+void ServerMap::On_MPK_QUERYSCADDRESS(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+{
+    if(!m_SCAddress){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "activated server map works without SC address");
+        g_MonoServer->Restart();
+    }
+
+    std::string szAddr = m_SCAddress.AsString();
+    m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szAddr.c_str()), 1 + szAddr.size()}, rstFromAddr, rstMPK.ID());
 }

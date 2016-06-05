@@ -1,15 +1,15 @@
 /*
  * =====================================================================================
  *
- *       Filename: trigger.hpp
+ *       Filename: hook.hpp
  *        Created: 06/05/2016 02:03:44
- *  Last Modified: 06/05/2016 02:58:32
+ *  Last Modified: 06/05/2016 12:03:21
  *
- *    Description: I decide to make a general class with name trigger, trigger should
+ *    Description: I decide to make a general class with name hook, hook should
  *                 be driven by other loop, like actor message operation handling, or
- *                 time loop, etc, trigger won't occupy a thread to execute
+ *                 time loop, etc, hook won't occupy a thread to execute
  *
- *                 class Trigger will hold a operation queue, each operation is a
+ *                 class Hook will hold a operation queue, each operation is a
  *                 std::function<bool()>, when return true, means this operation has
  *                 been ``done" and should be deleted from the queue, otherwise it's
  *                 should be envaluated again next time when calling Execute().
@@ -49,7 +49,7 @@
 #include <utility>
 #include <functional>
 
-class Trigger final
+class Hook final
 {
     private:
         // record for an operation
@@ -62,11 +62,11 @@ class Trigger final
         std::vector<OperationRecord> m_OperationV;
 
     public:
-        Trigger()
+        Hook()
             : m_OperationV()
         {}
 
-        ~Trigger() = default;
+        ~Hook() = default;
 
     public:
         void Execute()
@@ -88,7 +88,7 @@ class Trigger final
                     continue;
                 }
 
-                // ok current trigger handler should be deleted
+                // ok current hook handler should be deleted
                 // we delete disabled & invalid handler everytime we found it
 
                 std::swap(m_OperationV[nIndex], m_OperationV.back());
@@ -114,20 +114,20 @@ class Trigger final
         }
 
         // just try to match, and overwrite the matched slot
-        void Install(const std::string &szOperationName, const std::function<bool()> &fnTriggerOp)
+        void Install(const std::string &szOperationName, const std::function<bool()> &fnHookOp)
         {
             for(auto &rstEle: m_OperationV){
                 if(std::get<0>(rstEle) == szOperationName){
-                    std::get<1>(rstEle) = fnTriggerOp;
+                    std::get<1>(rstEle) = fnHookOp;
                     std::get<2>(rstEle) = true;
                     return;
                 }
             }
-            m_OperationV.emplace_back(std::make_tuple(szOperationName, fnTriggerOp, true));
+            m_OperationV.emplace_back(std::make_tuple(szOperationName, fnHookOp, true));
         }
 
         // anymous operation, can only be removed by return value
-        void Install(const std::function<bool()> &fnTriggerOp)
+        void Install(const std::function<bool()> &fnHookOp)
         {
             std::string szRandomName;
             while(true){
@@ -139,7 +139,7 @@ class Trigger final
                 if(!Installed(szRandomName)){ break; }
             }
 
-            Install(szRandomName, fnTriggerOp);
+            Install(szRandomName, fnHookOp);
         }
 
         // disabled or invalid handler won't count
@@ -156,10 +156,10 @@ class Trigger final
             return false;
         }
 
-        // uninstall a trigger, parameters
-        // szOperationName: trigger to be uninstalled
+        // uninstall a hook, parameters
+        // szOperationName: hook to be uninstalled
         // bInside        : true if we only disable it and the pod will delete next time
-        //                : false will make the trigger deleted immediately
+        //                : false will make the hook deleted immediately
         //
         // call Uninstall("Name", true) is the same as the operation return true
         void Uninstall(const std::string &szOperationName, bool bInside = true)
@@ -174,7 +174,7 @@ class Trigger final
                     continue;
                 }
 
-                // ok current trigger handler should be deleted
+                // ok current hook handler should be deleted
                 // we delete disabled & invalid handler everytime we found it
 
                 // 1. disable it always

@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 06/05/2016 03:30:11
+ *  Last Modified: 06/05/2016 12:16:49
  *
  *    Description: 
  *
@@ -43,7 +43,7 @@ ReactObject::ReactObject(uint8_t nCategory)
         return false;
     };
 
-    m_Trigger.Install("DelayCmdQueue", fnDelayCmdQueue);
+    m_Hook.Install("DelayCmdQueue", fnDelayCmdQueue);
 }
 
 ReactObject::~ReactObject()
@@ -65,7 +65,7 @@ Theron::Address ReactObject::Activate()
 {
     if(!m_ActorPod){
         extern Theron::Framework *g_Framework;
-        m_ActorPod = new ActorPod(g_Framework, [this](){ m_Trigger.Execute(); },
+        m_ActorPod = new ActorPod(g_Framework, [this](){ m_Hook.Execute(); },
                 [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
                 this->Operate(rstMPK, stFromAddr);
                 });
