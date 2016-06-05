@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 05/31/2016 18:20:08
+ *  Last Modified: 06/05/2016 03:50:14
  *
  *    Description: 
  *
@@ -830,4 +830,61 @@ void RegionMonitor::On_MPK_MOTIONSTATE(const MessagePack &rstMPK, const Theron::
             m_ActorPod->Forward({MPK_MOTIONSTATE, rstMPK.Data(), rstMPK.DataLen()}, rstCORecord.PodAddress);
         }
     }
+}
+
+void RegionMonitor::On_MPK_QUERYSCADDRESS(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+{
+    if(m_SCAddress){
+        std::string szAddr = m_SCAddress.AsString();
+        m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szAddr.c_str()), szAddr.size()}, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    // sc address is not valid, but it's on the way
+    if(m_SCAddressQuery == QUERY_PENDING){
+        auto fnResp = [this, rstFromAddr, rstMPK](){
+            if(m_SCAddress){
+                std::string szAddr = m_SCAddress.AsString();
+                m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szAddr.c_str()), 1 + szAddr.size()}, rstFromAddr, rstMPK.ID());
+                return true;
+            }
+
+            return false;
+        };
+
+        m_Trigger.Install(fnResp);
+    }
+
+    // oooops we have no SC address, ask map for sc address
+    if(!m_MapAddress){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "activated RM works without valid map address");
+        g_MonoServer->Restart();
+    }
+
+    auto fnOnR = [nMPKID = rstMPK.ID(), rstFromAddr, this](const MessagePack &rstRMPK, const Theron::Address &){
+        if(rstRMPK.Type() == MPK_ADDRESS){
+            m_SCAddress = Theron::Address((const char *)rstRMPK.Data());
+            m_ActorPod->Forward({MPK_ADDRESS, rstRMPK.Data(), rstRMPK.DataLen()}, rstFromAddr, nMPKID);
+            return;
+        }
+
+        // failed
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
+    };
+
+    m_ActorPod->Forward(MPK_QUERYSCADDRESS, m_MapAddress, fnOnR);
+}
+
+void RegionMonitor::On_MPK_QUERYMAPADDRESS(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+{
+    uint32_t nMapID = *((uint32_t *)rstMPK.Data());
+    if(nMapID == m_MapID){
+        std::string szMapAddr = m_MapAddress.AsString();
+        m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szMapAddr.c_str(), szMapAddr.size() + 1)}, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    // TODO
+    // add logic here for other map id
 }

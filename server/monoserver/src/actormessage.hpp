@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/31/2016 18:41:33
+ *  Last Modified: 06/05/2016 01:31:12
  *
  *    Description: 
  *
@@ -59,6 +59,7 @@ enum MessagePackType: int{
     MPK_FORWARDCM,
     MPK_CHECKCOVER,
     MPK_QUERYRMADDRESS,
+    MPK_QUERYSCADDRESS,
     MPK_QUERYMAPADDRESS,
     MPK_ADDRESS,
     MPK_LOGINQUERYDB,

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/31/2016 15:36:56
+ *  Last Modified: 06/05/2016 01:27:50
  *
  *    Description: 
  *
@@ -116,9 +116,21 @@ typedef struct{
 class CharObject: public ActiveObject
 {
     protected:
+        enum QueryType: int{
+            QUERY_NA,
+            QUERY_OK,
+            QUERY_ERROR,
+            QUERY_PENDING,
+        };
+
+    protected:
+        Theron::Address m_EmptyAddress; // to return ref to null
         Theron::Address m_RMAddress;
         Theron::Address m_MapAddress;
         Theron::Address m_SCAddress;
+
+        int m_MapAddressQuery;
+        int m_SCAddressQuery;
 
     public:
         CharObject();
@@ -280,6 +292,16 @@ class CharObject: public ActiveObject
             if(AccessCheck()){
                 InnSetR(nR);
             }
+        }
+
+        // when the char object get lost, it need somebody to ask
+        const Theron::Address &QueryAddress()
+        {
+            if(m_RMAddress ){ return m_RMAddress;  }
+            if(m_MapAddress){ return m_MapAddress; }
+            if(m_SCAddress ){ return m_SCAddress;  }
+
+            return m_EmptyAddress;
         }
 
     protected:

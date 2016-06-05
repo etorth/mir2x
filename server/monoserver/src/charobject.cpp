@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/31/2016 18:43:33
+ *  Last Modified: 06/05/2016 01:28:28
  *
  *    Description: 
  *
@@ -26,6 +26,8 @@
 
 CharObject::CharObject()
     : ActiveObject()
+    , m_MapAddressQuery(QUERY_NA)
+    , m_SCAddressQuery(QUERY_NA)
     , m_R(0)
     , m_MapID(0)
     , m_CurrX(0)
@@ -98,24 +100,40 @@ uint8_t CharObject::Direction(int nX, int nY)
 
 void CharObject::DispatchMotion()
 {
-    if(!(m_ActorPod && m_ActorPod->GetAddress())){ return; }
-    AMMotionState stAMMS;
+    if(!ActorPodValid()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "actor pod is not valid");
+        g_MonoServer->Restart();
+    }
 
+    AMMotionState stAMMS;
     stAMMS.X = m_CurrX;
     stAMMS.Y = m_CurrY;
 
+    // ok we have map address
     if(m_MapAddress){
         m_ActorPod->Forward({MPK_MOTIONSTATE, stAMMS}, m_MapAddress);
         return;
     }
 
-    if(m_MapID != 0){
-        auto fnOnGetMapAddr = [this, stAMMS](const MessagePack & rstRMPK, const Theron::Address &){
-            if(rstRMPK.Type() != MPK_ADDRESS){ return; }
-            m_MapAddress = Theron::Address((const char *)(rstRMPK.Data()));
-
-            m_ActorPod->Forward({MPK_MOTIONSTATE, stAMMS}, m_MapAddress);
-        };
-        m_ActorPod->Forward({MPK_QUERYMAPADDRESS, m_MapID}, m_SCAddress, fnOnGetMapAddr);
+    // no we don't have map address
+    if(!m_MapID){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "logic error, charobject with zero map id");
+        g_MonoServer->Restart();
     }
+
+    if(!m_RMAddress){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "activated char object with null RM address");
+        g_MonoServer->Restart();
+    }
+
+    auto fnOnR = [this, stAMMS](const MessagePack & rstRMPK, const Theron::Address &){
+        if(rstRMPK.Type() != MPK_ADDRESS){ return; }
+        m_MapAddress = Theron::Address((const char *)(rstRMPK.Data()));
+
+        m_ActorPod->Forward({MPK_MOTIONSTATE, stAMMS}, m_MapAddress);
+    };
+    m_ActorPod->Forward({MPK_QUERYMAPADDRESS, m_MapID}, m_RMAddress, fnOnR);
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/30/2016 18:17:36
+ *  Last Modified: 06/05/2016 03:01:34
  *
  *    Description: 
  *
@@ -30,7 +30,7 @@ Player::Player(uint32_t nGUID, uint32_t nJobID)
     , m_Level(0)
 {
     m_RMAddress = Theron::Address::Null();
-    Install("CheckTime", [this](){ For_CheckTime(); });
+    m_Trigger.Install("CheckTime", [this](){ For_CheckTime(); return false; });
 
     ResetType(OBJECT_PLAYER, true);
     ResetType(OBJECT_HUMAN,  true);

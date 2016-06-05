@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/30/2016 11:30:47
+ *  Last Modified: 06/05/2016 03:28:07
  *
  *    Description: 
  *
@@ -338,26 +338,14 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
                     
                     if(!bAddTrigger){ return; }
 
-                    std::string szRandomName;
-                    while(true){
-                        szRandomName.clear();
-                        for(int nCount = 0; nCount < 20; ++nCount){
-                            szRandomName.push_back('A' + std::rand() % ('Z' - 'A' + 1));
-                        }
-                        if(!Installed(szRandomName)){ break; }
-                    }
-
                     // since this is not in the message pack operation function
                     SyncDriver().Forward(MPK_DUMMY, m_ActorPod->GetAddress());
 
                     // since we get a pending answer, we have to ask again
-                    auto fnTmpTrigger = [this, szRandomName, nMapID, nRMX, nRMY](){
-                        // 1. query again if necessary, but this query would never
-                        // add trigger again, since the trigger who trigger this trigger
-                        // still works
+                    auto fnTmpTrigger = [this, nMapID, nRMX, nRMY](){
+                        // 1. done
                         if(QueryRMAddress(nMapID, nRMX, nRMY, false) != QUERY_PENDING){
-                            Uninstall(szRandomName, true);
-                            return;
+                            return true;
                         }
 
                         // 2. otherwise we still need to drive this anyomous trigger
@@ -365,16 +353,17 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
                         g_EventTaskHub->Add(200, [stAddr = m_ActorPod->GetAddress()](){
                             SyncDriver().Forward(MPK_DUMMY, stAddr);
                         });
+
+                        return false;
                     };
 
-                    Install(szRandomName, fnTmpTrigger);
+                    m_Trigger.Install(fnTmpTrigger);
                     return;
                 }
             default:
                 {
                     extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING,
-                            "unsupported message type %s", rstRMPK.Name());
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message type %s", rstRMPK.Name());
                     return;
                 }
         }

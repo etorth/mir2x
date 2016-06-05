@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 05/31/2016 15:38:30
+ *  Last Modified: 06/05/2016 03:30:11
  *
  *    Description: 
  *
@@ -38,8 +38,12 @@ ReactObject::ReactObject(uint8_t nCategory)
                 m_DelayCmdQ.pop();
             }
         }
+
+        // it's never done
+        return false;
     };
-    Install("DelayCmdQueue", fnDelayCmdQueue);
+
+    m_Trigger.Install("DelayCmdQueue", fnDelayCmdQueue);
 }
 
 ReactObject::~ReactObject()
@@ -61,7 +65,7 @@ Theron::Address ReactObject::Activate()
 {
     if(!m_ActorPod){
         extern Theron::Framework *g_Framework;
-        m_ActorPod = new ActorPod(g_Framework, [this](){ InnTrigger(); },
+        m_ActorPod = new ActorPod(g_Framework, [this](){ m_Trigger.Execute(); },
                 [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
                 this->Operate(rstMPK, stFromAddr);
                 });
@@ -74,7 +78,7 @@ Theron::Address ReactObject::Activate()
 
 bool ReactObject::AccessCheck()
 {
-    if(m_ActorPod){
+    if(ActorPodValid()){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Direct access internal state of an actor after activation");
         g_MonoServer->Restart();
@@ -88,4 +92,9 @@ void ReactObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
 {
     extern MonoServer *g_MonoServer;
     m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTimeTick(), fnCmd);
+}
+
+bool ReactObject::ActorPodValid()
+{
+    return m_ActorPod && m_ActorPod->GetAddress();
 }

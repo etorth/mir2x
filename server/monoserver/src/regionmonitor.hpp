@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 05/31/2016 18:16:17
+ *  Last Modified: 06/05/2016 03:39:19
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -241,8 +241,11 @@ class RegionMonitor: public Transponder
         const int m_W;
         const int m_H;
 
-        const Theron::Address m_SCAddress;
-        const Theron::Address m_MapAddress;
+        int m_SCAddressQuery;
+
+        Theron::Address m_SCAddress;
+        Theron::Address m_MapAddress;
+
 
         MoveRequest m_MoveRequest;
         std::vector<CORecord> m_CORecordV;
@@ -257,13 +260,14 @@ class RegionMonitor: public Transponder
             , m_Y(nY)
             , m_W(nW)
             , m_H(nH)
+            , m_SCAddressQuery(QUERY_NA)
             , m_MapAddress(rstMapAddr)
         {
             m_MoveRequest.Clear();
             // in transponder we alreay put ``DelayQueue" trigger inside
             //
             // Install("Update", [this](){ For_Update(); });
-            Install("MoveRequest", [this](){ For_MoveRequest(); });
+            m_Trigger.Install("MoveRequest", [this](){ For_MoveRequest(); return false; });
         }
 
         virtual ~RegionMonitor() = default;
@@ -293,6 +297,8 @@ class RegionMonitor: public Transponder
         void On_MPK_MOTIONSTATE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
+        void On_MPK_QUERYSCADDRESS(const MessagePack &, const Theron::Address &);
+        void On_MPK_QUERYMAPADDRESS(const MessagePack &, const Theron::Address &);
         // void On_MPK_INITREGIONMONITOR(const MessagePack &, const Theron::Address &);
 
     private:

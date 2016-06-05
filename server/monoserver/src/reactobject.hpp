@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 05/29/2016 12:28:27
+ *  Last Modified: 06/05/2016 02:53:38
  *
  *    Description: object only react to message, with an object pod
  *                 atoms of an react object:
@@ -44,6 +44,7 @@
 #include <queue>
 #include <Theron/Theron.h>
 
+#include "trigger.hpp"
 #include "delaycmd.hpp"
 #include "messagepack.hpp"
 #include "serverobject.hpp"
@@ -59,8 +60,8 @@ class ReactObject: public ServerObject
         Theron::Address m_ThisAddress;
 
     protected:
+        Trigger m_Trigger;
         std::priority_queue<DelayCmd> m_DelayCmdQ;
-        std::vector<std::tuple<std::string, std::function<void()>, bool>> m_TriggerV;
 
     public:
         ReactObject(uint8_t);
@@ -68,6 +69,7 @@ class ReactObject: public ServerObject
 
     protected:
         bool AccessCheck();
+        bool ActorPodValid();
 
     public:
         virtual Theron::Address Activate();
@@ -80,96 +82,6 @@ class ReactObject: public ServerObject
     public:
         virtual void Operate(const MessagePack &, const Theron::Address &) = 0;
 
-    private:
-        void InnTrigger()
-        {
-            size_t nIndex = 0;
-            while(nIndex < m_TriggerV.size()){
-                if(true
-                        && std::get<1>(m_TriggerV[nIndex])    // callable
-                        && std::get<2>(m_TriggerV[nIndex])){  // active
-                    std::get<1>(m_TriggerV[nIndex])();
-                    nIndex++;
-                    continue;
-                }
-
-                // ok current trigger handler should be deleted
-                // we delete disabled & invalid handler everytime we found it
-
-                std::swap(m_TriggerV[nIndex], m_TriggerV.back());
-                m_TriggerV.pop_back();
-            }
-        }
-
     public:
         void Delay(uint32_t, const std::function<void()> &);
-
-
-    public:
-        // just try to match, and overwrite the matched slot
-        void Install(const std::string &szTriggerName, const std::function<void()> &fnTriggerOp)
-        {
-            for(auto &rstEle: m_TriggerV){
-                if(std::get<0>(rstEle) == szTriggerName){
-                    std::get<1>(rstEle) = fnTriggerOp;
-                    std::get<2>(rstEle) = true;
-                    return;
-                }
-            }
-            m_TriggerV.emplace_back(std::make_tuple(szTriggerName, fnTriggerOp, true));
-        }
-
-        // disabled or invalid handler won't count
-        bool Installed(const std::string &szTriggerName)
-        {
-            for(auto &rstEle: m_TriggerV){
-                if(true
-                        && (std::get<0>(rstEle) == szTriggerName)   // name matching
-                        && (std::get<1>(rstEle))                    // callable
-                        && (std::get<2>(rstEle))){                  // still active
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        // uninstall a trigger, parameters
-        // szTriggerName: trigger to be uninstalled
-        // bInside      : true if we only disable it and the pod will delete next time
-        //              : false will make the trigger deleted immediately
-        void Uninstall(const std::string &szTriggerName, bool bInside = true)
-        {
-            size_t nIndex = 0;
-            while(nIndex < m_TriggerV.size()){
-                if(true
-                        && (std::get<0>(m_TriggerV[nIndex]) != szTriggerName) // not the one
-                        && (std::get<1>(m_TriggerV[nIndex]))                  // callable
-                        && (std::get<2>(m_TriggerV[nIndex]))){                // active
-                    nIndex++;
-                    continue;
-                }
-
-                // ok current trigger handler should be deleted
-                // we delete disabled & invalid handler everytime we found it
-
-                // 1. disable it always
-                std::get<2>(m_TriggerV[nIndex]) = false;
-
-                // 2. if inside we have to jump to next
-                if(bInside){ nIndex++; continue; }
-
-                // 3. otherwise we delete now
-                std::swap(m_TriggerV[nIndex], m_TriggerV.back());
-                m_TriggerV.pop_back();
-            }
-        }
-
-        void Uninstall(bool bInside = true)
-        {
-            if(!bInside){ m_TriggerV.clear(); return; }
-
-            for(auto &rstEle: m_TriggerV){
-                Uninstall(std::get<0>(rstEle), true);
-            }
-        }
 };

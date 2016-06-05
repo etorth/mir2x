@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/30/2016 13:05:33
+ *  Last Modified: 06/05/2016 03:21:59
  *
  *    Description: 
  *
@@ -136,7 +136,7 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(
         case QUERY_OK:
             {
                 // merely happen
-                if(rstRMRecord.PodAddress == Theron::Address::Null()){
+                if(!rstRMRecord.PodAddress){
                     m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
                     return;
                 }
@@ -169,16 +169,7 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(
             {
                 // the RM address is on the way
                 // we need to adding the player when SC get this RM address
-                std::string szRandomName;
-                while(true){
-                    szRandomName.clear();
-                    for(int nCount = 0; nCount < 20; ++nCount){
-                        szRandomName.push_back('A' + (std::rand() % ('Z' - 'A' + 1)));
-                    }
-                    if(!Installed(szRandomName)){ break; }
-                }
-
-                auto fnOnGetRMAddress = [stAMACO, nMapID, nMapX, nMapY, szRandomName, this](){
+                auto fnOnGetRMAddress = [stAMACO, nMapID, nMapX, nMapY, this]() -> bool{
                     // since this trigger will be driven by itself, we don't need
                     // to install a trigger in GetRMRecord()
                     const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY, false);
@@ -191,16 +182,21 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(
                             SyncDriver().Forward(MPK_DUMMY, stAddr);
                         });
 
-                        return;
+                        return false;
                     }
 
                     // 2. otherwise we won't need this trigger handler anymore
-                    Uninstall(szRandomName, true);
-                    if(!rstRMRecord.Valid()){ return; }
+                    if(!rstRMRecord.Valid()){
+                        // 1. report it
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_INFO,
+                                "RM is not valid corresponding to (map, x, y) = (%d, %d, %d)", nMapID, nMapX, nMapY);
+                        // 2. delete this opertion handler
+                        return true;
+                    }
 
                     // 3. ok ready to add the object
-                    auto fnOnR = [stAMACO, this](
-                            const MessagePack &rstRMPK, const Theron::Address &){
+                    auto fnOnR = [stAMACO, this](const MessagePack &rstRMPK, const Theron::Address &){
                         // TODO: do nothing, but put a callback
                         // reason is for RM it can accept MPK_ADDCHAROBJECT from many actors
                         // besides servicecore, those all expect a callback, so here we keep
@@ -221,11 +217,11 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(
                                 stAMACO.Common.MapID, stAMACO.Common.MapX, stAMACO.Common.MapY);
                     };
 
-                    m_ActorPod->Forward({MPK_ADDCHAROBJECT,
-                            stAMACO}, rstRMRecord.PodAddress, fnOnR);
+                    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress, fnOnR);
+                    return true;
                 };
 
-                Install(szRandomName, fnOnGetRMAddress);
+                m_Trigger.Install(fnOnGetRMAddress);
                 m_ActorPod->Forward(MPK_PENDING, rstFromAddr, rstMPK.ID());
                 return;
             }
@@ -295,16 +291,7 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
             {
                 // the RM address is on the way
                 // we need to adding the player when SC get this RM address
-                std::string szRandomName;
-                while(true){
-                    szRandomName.clear();
-                    for(int nCount = 0; nCount < 20; ++nCount){
-                        szRandomName.push_back('A' + (std::rand() % ('Z' - 'A' + 1)));
-                    }
-                    if(!Installed(szRandomName)){ break; }
-                }
-
-                auto fnOnGetRMAddress = [stAMLQDB, nMapID, nMapX, nMapY, szRandomName, this](){
+                auto fnOnGetRMAddress = [stAMLQDB, nMapID, nMapX, nMapY, this]() -> bool{
                     const auto &rstRMRecord = GetRMRecord(nMapID, nMapX, nMapY, false);
 
                     // still pending
@@ -315,11 +302,17 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
                             SyncDriver().Forward(MPK_DUMMY, stAddr);
                         });
 
-                        return;
+                        return false;
                     }
 
-                    Uninstall(szRandomName, true);
-                    if(!rstRMRecord.Valid()){ return; }
+                    if(!rstRMRecord.Valid()){
+                        // 1. report it
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_INFO,
+                                "RM is not valid corresponding to (map, x, y) = (%d, %d, %d)", nMapID, nMapX, nMapY);
+                        // 2. delete this opertion handler
+                        return true;
+                    }
 
                     // OK we get the valid address
                     AMAddCharObject stAMACO;
@@ -334,8 +327,7 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
                     stAMACO.Player.SessionID = stAMLQDB.SessionID;
 
                     // 3. ok ready to add the object
-                    auto fnOnR = [stAMACO, this](
-                            const MessagePack &rstRMPK, const Theron::Address &){
+                    auto fnOnR = [stAMACO, this](const MessagePack &rstRMPK, const Theron::Address &){
                         // TODO: do nothing, but put a callback
                         // reason is for RM it can accept MPK_ADDCHAROBJECT from many actors
                         // besides servicecore, those all expect a callback, so here we keep
@@ -356,9 +348,12 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
 
                     // when adding succeed, the new object will respond
                     m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, rstRMRecord.PodAddress, fnOnR);
+
+                    // don't forget it
+                    return true;
                 };
 
-                Install(szRandomName, fnOnGetRMAddress);
+                m_Trigger.Install(fnOnGetRMAddress);
                 // don't response this message, it's send by temp SyncDriver()
                 return;
             }
