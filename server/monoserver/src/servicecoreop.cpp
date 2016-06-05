@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 06/05/2016 12:15:25
+ *  Last Modified: 06/05/2016 16:29:03
  *
  *    Description: 
  *
@@ -221,7 +221,7 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(
                     return true;
                 };
 
-                m_Hook.Install(fnOnGetRMAddress);
+                m_StateHook.Install(fnOnGetRMAddress);
                 m_ActorPod->Forward(MPK_PENDING, rstFromAddr, rstMPK.ID());
                 return;
             }
@@ -353,7 +353,7 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
                     return true;
                 };
 
-                m_Hook.Install(fnOnGetRMAddress);
+                m_StateHook.Install(fnOnGetRMAddress);
                 // don't response this message, it's send by temp SyncDriver()
                 return;
             }

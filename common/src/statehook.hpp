@@ -1,15 +1,18 @@
 /*
  * =====================================================================================
  *
- *       Filename: hook.hpp
+ *       Filename: statehook.hpp
  *        Created: 06/05/2016 02:03:44
- *  Last Modified: 06/05/2016 12:03:21
+ *  Last Modified: 06/05/2016 14:13:20
  *
- *    Description: I decide to make a general class with name hook, hook should
+ *    Description: I decide to make a general class with name StateHook, hook should
  *                 be driven by other loop, like actor message operation handling, or
  *                 time loop, etc, hook won't occupy a thread to execute
  *
- *                 class Hook will hold a operation queue, each operation is a
+ *                 TODO
+ *                 as its name shows, StateHook works when state changes
+ *
+ *                 class StateHook will hold a operation queue, each operation is a
  *                 std::function<bool()>, when return true, means this operation has
  *                 been ``done" and should be deleted from the queue, otherwise it's
  *                 should be envaluated again next time when calling Execute().
@@ -49,7 +52,7 @@
 #include <utility>
 #include <functional>
 
-class Hook final
+class StateHook final
 {
     private:
         // record for an operation
@@ -62,11 +65,11 @@ class Hook final
         std::vector<OperationRecord> m_OperationV;
 
     public:
-        Hook()
+        StateHook()
             : m_OperationV()
         {}
 
-        ~Hook() = default;
+        ~StateHook() = default;
 
     public:
         void Execute()
@@ -99,7 +102,7 @@ class Hook final
         // 1. inactive operation won't count
         // 2. I return a copy rather than a reference since the operation
         //    may soon be deleted
-        std::function<bool()> Operation(const std::string &szOperationName)
+        std::function<bool()> Hook(const std::string &szOperationName)
         {
             for(auto &rstEle: m_OperationV){
                 if(true

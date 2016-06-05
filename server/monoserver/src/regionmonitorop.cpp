@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 06/05/2016 12:22:28
+ *  Last Modified: 06/05/2016 14:46:58
  *
  *    Description: 
  *
@@ -836,7 +836,7 @@ void RegionMonitor::On_MPK_QUERYSCADDRESS(const MessagePack &rstMPK, const Thero
 {
     if(m_SCAddress){
         std::string szAddr = m_SCAddress.AsString();
-        m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szAddr.c_str()), szAddr.size()}, rstFromAddr, rstMPK.ID());
+        m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szAddr.c_str()), 1 + szAddr.size()}, rstFromAddr, rstMPK.ID());
         return;
     }
 
@@ -852,7 +852,7 @@ void RegionMonitor::On_MPK_QUERYSCADDRESS(const MessagePack &rstMPK, const Thero
             return false;
         };
 
-        m_Hook.Install(fnResp);
+        m_StateHook.Install(fnResp);
     }
 
     // oooops we have no SC address, ask map for sc address
@@ -880,9 +880,16 @@ void RegionMonitor::On_MPK_QUERYMAPADDRESS(const MessagePack &rstMPK, const Ther
 {
     uint32_t nMapID = *((uint32_t *)rstMPK.Data());
     if(nMapID == m_MapID){
-        std::string szMapAddr = m_MapAddress.AsString();
-        m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szMapAddr.c_str(), szMapAddr.size() + 1)}, rstFromAddr, rstMPK.ID());
-        return;
+        if(m_MapAddress){
+            std::string szMapAddr = m_MapAddress.AsString();
+            m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szMapAddr.c_str(), szMapAddr.size() + 1)}, rstFromAddr, rstMPK.ID());
+            return;
+        }
+
+        // otherwise it's should be an error
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "activated RM works without valid map address");
+        g_MonoServer->Restart();
     }
 
     // TODO

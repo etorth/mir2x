@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.hpp
  *        Created: 04/23/2016 10:51:19
- *  Last Modified: 06/05/2016 12:13:34
+ *  Last Modified: 06/05/2016 13:50:29
  *
  *    Description: base of actor model in mir2x, Theron::Actor acitvated at create
  *                 time so no way to control it, instead Transponder can 
@@ -45,7 +45,7 @@
 
 #include <Theron/Theron.h>
 
-#include "hook.hpp"
+#include "statehook.hpp"
 #include "delaycmd.hpp"
 #include "messagepack.hpp"
 
@@ -64,7 +64,7 @@ class Transponder
         // TODO & TBD
         // use trigger here since most of the time we are traversing
         // rather than install/uninstall trigger
-        Hook m_Hook;
+        StateHook m_StateHook;
         std::priority_queue<DelayCmd> m_DelayCmdQ;
 
     public:

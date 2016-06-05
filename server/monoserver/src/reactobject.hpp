@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 06/05/2016 12:13:52
+ *  Last Modified: 06/05/2016 13:50:51
  *
  *    Description: object only react to message, with an object pod
  *                 atoms of an react object:
@@ -44,7 +44,7 @@
 #include <queue>
 #include <Theron/Theron.h>
 
-#include "hook.hpp"
+#include "statehook.hpp"
 #include "delaycmd.hpp"
 #include "messagepack.hpp"
 #include "serverobject.hpp"
@@ -60,7 +60,7 @@ class ReactObject: public ServerObject
         Theron::Address m_ThisAddress;
 
     protected:
-        Hook m_Hook;
+        StateHook m_StateHook;
         std::priority_queue<DelayCmd> m_DelayCmdQ;
 
     public:

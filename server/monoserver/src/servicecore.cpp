@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 06/05/2016 12:16:23
+ *  Last Modified: 06/05/2016 17:01:18
  *
  *    Description: 
  *
@@ -288,8 +288,7 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
     stAMQRMA.MapID = nMapID;
 
     // 3. define the resp handler, we need ask again if we get pending answer
-    auto fnOnR = [this, nMapID, nRMX, nRMY, nRMCacheKey, bAddTrigger](
-            const MessagePack &rstRMPK, const Theron::Address &){
+    auto fnOnR = [this, nMapID, nRMX, nRMY, nRMCacheKey, bAddTrigger](const MessagePack &rstRMPK, const Theron::Address &){
         // assume (nMapID, nRMCacheKey) is always valid now
         auto &rstRMRecord = m_MapRecordMap[nMapID].RMRecordMap[nRMCacheKey];
         switch(rstRMPK.Type()){
@@ -342,11 +341,9 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
                     SyncDriver().Forward(MPK_DUMMY, m_ActorPod->GetAddress());
 
                     // since we get a pending answer, we have to ask again
-                    auto fnTmpTrigger = [this, nMapID, nRMX, nRMY](){
+                    auto fnTmpTrigger = [this, nMapID, nRMX, nRMY]() -> bool{
                         // 1. done
-                        if(QueryRMAddress(nMapID, nRMX, nRMY, false) != QUERY_PENDING){
-                            return true;
-                        }
+                        if(QueryRMAddress(nMapID, nRMX, nRMY, false) != QUERY_PENDING){ return true; }
 
                         // 2. otherwise we still need to drive this anyomous trigger
                         extern EventTaskHub *g_EventTaskHub;
@@ -357,7 +354,7 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
                         return false;
                     };
 
-                    m_Hook.Install(fnTmpTrigger);
+                    m_StateHook.Install(fnTmpTrigger);
                     return;
                 }
             default:
@@ -373,8 +370,7 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
     return QUERY_PENDING;
 }
 
-const ServiceCore::RMRecord &ServiceCore::GetRMRecord(
-        uint32_t nMapID, int nMapX, int nMapY, bool bAddTrigger)
+const ServiceCore::RMRecord &ServiceCore::GetRMRecord(uint32_t nMapID, int nMapX, int nMapY, bool bAddTrigger)
 {
     // don't bother if the argument is not valid
     // this validation function will check everything of the record
