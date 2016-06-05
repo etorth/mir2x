@@ -3,9 +3,10 @@
  *
  *       Filename: actionset.hpp
  *        Created: 08/05/2015 11:22:52 PM
- *  Last Modified: 06/03/2016 23:15:58
+ *  Last Modified: 06/04/2016 19:00:46
  *
- *    Description: 
+ *    Description: actionset only take care of actionset align, body frame align, and
+ *                 shadow frame align
  *
  *        Version: 1.0
  *       Revision: none

@@ -3,7 +3,7 @@
  *
  *       Filename: animationset.cpp
  *        Created: 8/6/2015 5:43:46 AM
- *  Last Modified: 06/04/2016 02:58:12
+ *  Last Modified: 06/04/2016 19:31:37
  *
  *    Description: 
  *
@@ -76,14 +76,12 @@ void AnimationSet::Draw(int nPosX, int nPosY)
 {
     if(!m_ActionSet[m_Status][m_Direction].Valid()){ return; }
 
-    // (nPosX - m_DX, nPosY - m_DY) is the start point of virtual image start point
     extern MainWindow *g_MainWindow;
+    if(g_MainWindow->TestMode() && !g_MainWindow->TestAnimation()){ return; }
+
+    // (nPosX - m_DX, nPosY - m_DY) is the start point of virtual image start point
     if(g_MainWindow->ShowCover()){
-        if(g_MainWindow->TestMode() && !g_MainWindow->TestAnimation()){
-            return;
-        }else{
-            DrawCover(nPosX, nPosY);
-        }
+        DrawCover(nPosX, nPosY);
     }
 
     int nX = nPosX + m_DX + m_DirectionAlignX[m_Direction];
@@ -248,8 +246,8 @@ _AnimationSet_Export_Continue:
                             szIMGPathFolderName.c_str(),
                             nStatus,
                             nDir,
-                            m_DX,
-                            m_DY,
+                            m_DX + m_DirectionAlignX[nDir],
+                            m_DY + m_DirectionAlignY[nDir],
                             pDoc,
                             pActionSet);
                     pRoot->LinkEndChild(pActionSet);

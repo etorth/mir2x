@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 06/02/2016 21:54:22
+ *  Last Modified: 06/04/2016 19:15:55
  *
  *    Description: 
  *
@@ -98,7 +98,7 @@ class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMax
                             //    4    1/2 1/2     2         2
                             //   
                             //   KEY: 3 bytes
-                            //   S  : sign of DX, take 1 char, 1/2 byte
+                            //   S  : sign of DX, take 1 char, 1/2 byte, + for 1, - for 0
                             //   S  : sign of DY, take 1 char, 1/2 byte
                             //   +DX: abs(DX) take 4 chars, 2 bytes
                             //   +DY: abs(DY) take 4 chars, 2 bytes
@@ -107,8 +107,8 @@ class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMax
                             uint32_t nKey = StringHex<uint32_t, 4>(stZIPStat.name);
                             // for DX, DY
                             int nDX, nDY;
-                            nDX = (stZIPStat.name[8] == '0') ? 1 : (-1);
-                            nDY = (stZIPStat.name[9] == '0') ? 1 : (-1);
+                            nDX = (stZIPStat.name[8] != '0') ? 1 : (-1);
+                            nDY = (stZIPStat.name[9] != '0') ? 1 : (-1);
 
                             nDX *= (int)StringHex<uint32_t, 2>(stZIPStat.name + 10);
                             nDY *= (int)StringHex<uint32_t, 2>(stZIPStat.name + 14);

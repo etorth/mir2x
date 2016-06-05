@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 08/05/2015 11:22:52 PM
- *  Last Modified: 06/04/2016 00:12:48
+ *  Last Modified: 06/04/2016 19:16:28
  *
  *    Description: 
  *
@@ -182,6 +182,8 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
 
 // (nVStartPX, nVStartPY) is location for the actionset, the
 // animation offset has already be counted in
+// nVStartPX = g_AnimationSetWinCenterX + nExternalOffsetX
+// nVStartPY = g_AnimationSetWinCenterY + nExternalOffsetY
 void ActionSet::Draw(int nVStartPX, int nVStartPY)
 {
     extern MainWindow *g_MainWindow;
@@ -330,8 +332,8 @@ bool ActionSet::Export(
         const char *szIMGFolderName,
         int nState,
         int nDirection,
-        int nCenterX,
-        int nCenterY,
+        int nExternalOffsetX,
+        int nExternalOffsetY,
         tinyxml2::XMLDocument *pDoc,
         tinyxml2::XMLElement *pActionSet)
 {
@@ -356,15 +358,15 @@ bool ActionSet::Export(
         {
             { // shadow layer
                 // offset info
-                int nDX = nCenterX - (m_ActionSetAlignX + m_PX[nFrame] + m_DSX[nFrame]);
-                int nDY = nCenterY - (m_ActionSetAlignY + m_PY[nFrame] + m_DSY[nFrame]);
+                int nDX = nExternalOffsetX + (m_ActionSetAlignX + m_PX[nFrame] + m_DSX[nFrame]);
+                int nDY = nExternalOffsetY + (m_ActionSetAlignY + m_PY[nFrame] + m_DSY[nFrame]);
 
                 auto pShadow = pDoc->NewElement("Shadow");
                 {
                     auto pDX = pDoc->NewElement("DX");
                     auto pDY = pDoc->NewElement("DY");
-                    pDX->LinkEndChild(pDoc->NewText(std::to_string(-nDX).c_str()));
-                    pDY->LinkEndChild(pDoc->NewText(std::to_string(-nDY).c_str()));
+                    pDX->LinkEndChild(pDoc->NewText(std::to_string(nDX).c_str()));
+                    pDY->LinkEndChild(pDoc->NewText(std::to_string(nDY).c_str()));
 
                     pShadow->LinkEndChild(pDX);
                     pShadow->LinkEndChild(pDY);
@@ -394,25 +396,25 @@ bool ActionSet::Export(
                 std::sprintf(szTmpHexStringFileName,
                         "%s/01%s%s%s%s%04X%04X.PNG",
                         szIMGFolderName,
-                        szLookID + 1,
+                        szLookID + 1,                          // skip one zero
                         szTmpHexStringStateDirectionFrame + 1, // skip one zero for first 4 bits
-                        ((-nDX > 0) ? "1" : "0"),              // sign
-                        ((-nDY > 0) ? "1" : "0"),              // sign
-                        std::abs(-nDX),
-                        std::abs(-nDY));
+                        ((nDX > 0) ? "1" : "0"),              // sign
+                        ((nDY > 0) ? "1" : "0"),              // sign
+                        std::abs(nDX),
+                        std::abs(nDY));
                 DupFile(szTmpHexStringFileName, m_PNG[1][nFrame]->name());
             }
 
             {// body layer
-                int nDX = nCenterX - (m_ActionSetAlignX + m_PX[nFrame]);
-                int nDY = nCenterY - (m_ActionSetAlignY + m_PY[nFrame]);
+                int nDX = nExternalOffsetX + (m_ActionSetAlignX + m_PX[nFrame]);
+                int nDY = nExternalOffsetY + (m_ActionSetAlignY + m_PY[nFrame]);
 
                 auto pBody = pDoc->NewElement("Body");
                 {
                     auto pDX = pDoc->NewElement("DX");
                     auto pDY = pDoc->NewElement("DY");
-                    pDX->LinkEndChild(pDoc->NewText(std::to_string(-nDX).c_str()));
-                    pDY->LinkEndChild(pDoc->NewText(std::to_string(-nDY).c_str()));
+                    pDX->LinkEndChild(pDoc->NewText(std::to_string(nDX).c_str()));
+                    pDY->LinkEndChild(pDoc->NewText(std::to_string(nDY).c_str()));
 
                     pBody->LinkEndChild(pDX);
                     pBody->LinkEndChild(pDY);
@@ -444,10 +446,10 @@ bool ActionSet::Export(
                         szIMGFolderName,
                         szLookID + 1,
                         szTmpHexStringStateDirectionFrame + 1, // skip one zero for first 4 bits
-                        ((-nDX > 0) ? "1" : "0"),              // sign
-                        ((-nDY > 0) ? "1" : "0"),              // sign
-                        std::abs(-nDX),
-                        std::abs(-nDY));
+                        ((nDX > 0) ? "1" : "0"),              // sign, postive for 1
+                        ((nDY > 0) ? "1" : "0"),              // sign
+                        std::abs(nDX),
+                        std::abs(nDY));
                 DupFile(szTmpHexStringFileName, m_PNG[0][nFrame]->name());
             }
         }

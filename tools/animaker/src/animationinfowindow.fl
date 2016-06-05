@@ -13,7 +13,7 @@ class AnimationInfoWindow {open
   } {
     code {m_Buffer = new Fl_Text_Buffer();} {}
     Fl_Window m_Window {open
-      xywh {230 165 451 350} type Double labelfont 4 visible
+      xywh {1672 335 450 350} type Double labelfont 4 hide
     } {
       Fl_Text_Display m_Display {
         xywh {0 0 450 300} labelfont 4 textfont 4
@@ -23,12 +23,16 @@ class AnimationInfoWindow {open
         callback {{
     extern AnimationSet g_AnimationSet;
     extern MainWindow *g_MainWindow;
+    extern AnimationPreviewWindow *g_AnimationPreviewWindow;
+    
     m_Window->hide();
     g_MainWindow->LoadAnimationSet();
     g_MainWindow->RedrawAll();
 
     Fl::remove_timeout(AnimationSet::TimeoutCallback);
     Fl::add_timeout(0.2, AnimationSet::TimeoutCallback, &g_AnimationSet);
+    g_AnimationPreviewWindow->HideAll();
+    
     g_MainWindow->AddStatusItem();
     g_MainWindow->ShowAll();
 }} selected

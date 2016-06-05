@@ -34,7 +34,7 @@ class MainWindow {open
       callback {{
 	// don't quit directly
 }} open
-      private xywh {1681 277 850 470} type Double labelfont 4 visible
+      private xywh {1708 249 850 470} type Double labelfont 4 visible
     } {
       Fl_Menu_Bar m_MenuBar {open
         private xywh {0 0 1025 30} labelfont 4
@@ -82,6 +82,8 @@ class MainWindow {open
     if(!g_AnimationSet.Export()){
         fl_alert("Export animation failed!");
     }
+    
+    fl_alert("Export succeed!");
 }}
             private xywh {10 10 30 20} labelfont 4 divider
             code0 {\#include "animationset.hpp"}
@@ -115,7 +117,7 @@ class MainWindow {open
           label Line
           private xywh {5 5 62 20} labelfont 4
         } {
-          MenuItem m_MenuItemRectCover {
+          MenuItem m_MenuItemCoverCircle {
             label {Cover Circle        }
             private xywh {5 5 30 20} type Toggle value 1 labelfont 4
             code0 {\#include <FL/Fl_Native_File_Chooser.H>}
@@ -240,7 +242,7 @@ g_AboutWindow->ShowAll();}
           }
         }
       }
-      Fl_Box m_OperationArea {
+      Fl_Box m_OperationArea {selected
         private xywh {0 30 525 440} box UP_FRAME
         code0 {\#include "operationarea.hpp"}
         class OperationArea
@@ -291,7 +293,7 @@ g_AboutWindow->ShowAll();}
   } {
     code {m_Window->show();} {}
   }
-  Function {RedrawAll()} {open return_type void
+  Function {RedrawAll()} {return_type void
   } {
     code {if(EditCover())\{
     m_CoverEditGroup->show();
@@ -347,10 +349,10 @@ m_Window->redraw();} {}
     m_Window->make_current();
 }} {}
   }
-  Function {ShowCover()} {selected return_type bool
+  Function {ShowCover()} {open return_type bool
   } {
     code {{
-    return m_MenuItemEditCover->value();
+    return (m_MenuItemEditCover->value() || m_MenuItemCoverCircle->value());
 }} {}
   }
   Function {ShowBodyLayer()} {return_type bool

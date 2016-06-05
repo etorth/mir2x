@@ -28,8 +28,8 @@ class ValidWilFileWindow {open
     Fl_Window m_Window {
       callback {{
 	// disable the close button
-}} open selected
-      private xywh {269 174 487 376} type Double labelfont 4 hide resizable
+}} open
+      private xywh {1367 268 485 375} type Double labelfont 4 resizable visible
     } {
       Fl_Browser m_ValidWilFileBrowser {
         callback {{
@@ -95,8 +95,8 @@ class ValidWilFileWindow {open
             }
         }
     }
-}}
-        private xywh {0 0 510 400} type Hold labelfont 4 textfont 4 resizable
+}} selected
+        private xywh {0 0 485 375} type Hold labelfont 4 textfont 4 resizable
         code0 {\#include "wilimagepackage.hpp"}
         code1 {\#include "progressbarwindow.hpp"}
         code2 {\#include "validanimationwindow.hpp"}
@@ -104,13 +104,13 @@ class ValidWilFileWindow {open
       }
     }
   }
-  Function {ShowAll()} {return_type void
+  Function {ShowAll()} {open return_type void
   } {
     code {{
 	m_Window->show();
 }} {}
   }
-  Function {CheckValidWilFile(const char *szWilFolderName)} {open return_type void
+  Function {CheckValidWilFile(const char *szWilFolderName)} {return_type void
   } {
     code {{
     extern const char *g_MonsterWilFileNameList[];

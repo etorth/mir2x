@@ -29,6 +29,7 @@ FOREACH(FLTK_SRC ${FLTK_ALL_SRC})
     # this is needed before build, to execute some commands
     ADD_CUSTOM_COMMAND(TARGET ${T_BASENAME}.${T_RSTRING}.hcpp
         PRE_BUILD 
+        DEPENDS ${FLTK_SRC}
         COMMAND fluid -c -o ${T_OUT_CPPNAME} -h ${T_OUT_HPPNAME} ${FLTK_SRC}
         # COMMENT "THIS COMMAND WILL BE EXECUTED BEFORE BUILDING TARGET TEST1"
         )
