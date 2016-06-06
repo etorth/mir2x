@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/29/2016 23:35:36
+ *  Last Modified: 06/05/2016 21:50:09
  *
  *    Description: 
  *
@@ -56,8 +56,7 @@ MonoServer::MonoServer()
 }
 
 MonoServer::~MonoServer()
-{
-}
+{}
 
 void MonoServer::ExtendLogBuf(size_t nNewSize)
 {

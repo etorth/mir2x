@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 05/27/2016 14:29:39
+ *  Last Modified: 06/05/2016 19:18:13
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -15,12 +15,12 @@
  *                 MI, but I really don't want to use MI
  *
  *                 TODO & TBD
- *                 The most important member function of ActorPod is Send(), but I am not
- *                 sure how should I design this interface, two ways:
+ *                 The most important member function of ActorPod is Forward(), but I am
+ *                 not sure how should I design this interface, two ways:
  *
- *                 0. bool Send(MessagePack, Address)
- *                 1. bool Send(MessagePack, Address, Respond)
- *                 2. bool Send(MessageType, MessageBuffer, BufferLen, Address, Respond)
+ *                 0. bool Forward(MessagePack, Address)
+ *                 1. bool Forward(MessagePack, Address, Respond)
+ *                 2. bool Forward(MessageType, MessageBuffer, BufferLen, Address, Respond)
  *
  *
  *                 for case-0 we put Respond inside MessagePack, make it as part of the
@@ -51,6 +51,16 @@
  *                 will be redirect to Theron::Actor::Send() since it's a template
  *
  *                 Won't make Forward() virtual
+ *
+ *                 ^
+ *                 |
+ *                 +---- this problem is solved perfectly by
+ *                       1. Forward()
+ *                       2. class MessageBuf
+ *                       3. class MessagePack
+ *
+ *                       Forward accept a MessageBuf and inside it it makes a
+ *                       class MessagePack and add ID/Resp info
  *
  *
  *                 TODO & TBD: to support trigger functionality.
@@ -97,8 +107,7 @@
  *                 message, then if we insist on putting this map inside ActorPod, we
  *                 have to call:
  *                      m_ActorPod->Install("ClearQueue", fnClearQueue);
- *                 this violate the rule.
- *
+ *                 this violate the rule since we refer to internal state m_ActorPod.
  *
  *                 So we follow the pattern how we define m_Operate, put the virtual
  *                 function invocation to m_Operate and m_Trigger, then Transponder,
@@ -106,7 +115,21 @@
  *
  *                 Drawback is we need to copy the code in Transponder and ReactObject
  *                 to avoid MI.
+ *                 ^
+ *                 |
+ *                 +-- the method currently I used:
  *
+ *                      1. define class StateHook, which invoked on state changed
+ *                      2. define ReactObject / Transponder as
+ *                            ReactObject::m_ActorPod = new ActorPod(
+ *                                  [this](){ ReactObject::Operate();  },
+ *                                  [this](){ ReactObject::m_StateHook::Execute(); }
+ *                            );
+ *                      3. m_ActorPod->Activate(), then we can only communicate to
+ *                         actor with messages
+ *
+ *                 by this I can put trigger logic in StateHook and won't copy-paste
+ *                 code between ReactObject / Transponder.
  *
  *        Version: 1.0
  *       Revision: none
@@ -130,11 +153,10 @@
 class ActorPod: public Theron::Actor
 {
     private:
-        using MessagePackOperation
-            = std::function<void(const MessagePack&, const Theron::Address &)>;
+        using MessagePackOperation = std::function<void(const MessagePack&, const Theron::Address &)>;
         // no need to keep the message pack itself
         // since when registering response operation, we always have the message pack avaliable
-        typedef struct _RespondMessageRecord {
+        typedef struct _RespondMessageRecord{
             // MessagePack RespondMessagePack;
             MessagePackOperation    RespondOperation;
 
@@ -146,7 +168,7 @@ class ActorPod: public Theron::Actor
             _RespondMessageRecord(const MessagePackOperation &rstOperation)
                 : RespondOperation(rstOperation)
             {}
-        } RespondMessageRecord;
+        }RespondMessageRecord;
 
     protected:
         size_t m_ValidID;
@@ -156,20 +178,16 @@ class ActorPod: public Theron::Actor
         // message or time or xxx
         // but it will be invoked every time when message handling finished, since
         // for actor, the only chance to update its state is via message driving.
+        //
+        // here trigger is only a function, everytime when a message pased, it should
+        // be invoked, however what to do during the invocation is defined by the handler
+        // when create the actor
+        //
+        // most likely here we use StateHook::Execute();
         std::function<void()> m_Trigger;
         std::unordered_map<uint32_t, RespondMessageRecord> m_RespondMessageRecordM;
 
     public:
-        // actor without trigger
-        explicit ActorPod(Theron::Framework *pFramework,
-                const std::function<void(const MessagePack &, const Theron::Address &)> &fnOperate)
-            : Theron::Actor(*pFramework)
-            , m_ValidID(0)
-            , m_Operate(fnOperate)
-        {
-            RegisterHandler(this, &ActorPod::InnHandler);
-        }
-
         // actor with trigger
         explicit ActorPod(Theron::Framework *pFramework, const std::function<void()> &fnTrigger,
                 const std::function<void(const MessagePack &, const Theron::Address &)> &fnOperate)
@@ -181,12 +199,23 @@ class ActorPod: public Theron::Actor
             RegisterHandler(this, &ActorPod::InnHandler);
         }
 
+        // actor without trigger, we just put a empty handler here
+        explicit ActorPod(Theron::Framework *pFramework,
+                const std::function<void(const MessagePack &, const Theron::Address &)> &fnOperate)
+            : ActorPod(pFramework, std::function<void()>(), fnOperate)
+        {}
+
         virtual ~ActorPod() = default;
 
     protected:
+        uint32_t ValidID();
         void InnHandler(const MessagePack &, const Theron::Address);
 
     public:
+        // TODO
+        // it's user's responability to prevent send message to itself, for Theron this
+        // behaivor is undefined, but ActorPod won't check it
+
         // send a responding message without asking for reply
         bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond = 0)
         {
@@ -205,7 +234,4 @@ class ActorPod: public Theron::Actor
         // send a responding message and exptecting a reply
         bool Forward(const MessageBuf &, const Theron::Address &, uint32_t,
                 const std::function<void(const MessagePack&, const Theron::Address &)> &);
-
-    private:
-        uint32_t ValidID();
 };

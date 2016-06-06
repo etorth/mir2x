@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 06/05/2016 14:33:01
+ *  Last Modified: 06/05/2016 19:39:25
  *
  *    Description: 
  *
@@ -22,12 +22,13 @@
 #include <list>
 #include <vector>
 
-#include "activeobject.hpp"
 #include "servermap.hpp"
+#include "activeobject.hpp"
 
 enum _FriendType: uint8_t{
     FRIEND_HUMAN,
     FRIEND_ANIMAL,
+    FRIEND_NEUTRAL,
 };
 
 enum _RangeType: uint8_t{
@@ -44,13 +45,12 @@ enum _RangeType: uint8_t{
 //
 //               0
 //            7     1
-//          6    +-----> 2
+//          6    +--> 2
 //            5  |  3
-//               |
 //               V
 //               4
 //
-enum _Direction: uint8_t{
+enum _Direction: int{
     DIR_UP          = 0,
     DIR_DOWN        = 4,
     DIR_LEFT        = 6,
@@ -125,12 +125,29 @@ class CharObject: public ActiveObject
 
     protected:
         Theron::Address m_EmptyAddress; // to return ref to null
-        Theron::Address m_RMAddress;
-        Theron::Address m_MapAddress;
-        Theron::Address m_SCAddress;
+        Theron::Address m_RMAddress;    //
+        Theron::Address m_MapAddress;   //
+        Theron::Address m_SCAddress;    //
 
-        int m_MapAddressQuery;
-        int m_SCAddressQuery;
+        int m_RMAddressQuery;           // should always be ok
+        int m_MapAddressQuery;          //
+        int m_SCAddressQuery;           //
+
+    protected:
+        uint32_t m_MapID;
+
+    protected:
+        int     m_CurrX;
+        int     m_CurrY;
+        int     m_R;
+        int     m_Direction;
+
+        OBJECTABILITY       m_Ability;
+        OBJECTABILITY       m_WAbility;
+        OBJECTADDABILITY    m_AddAbility;
+
+    protected:
+        std::string m_Name;
 
     public:
         CharObject();
@@ -160,19 +177,9 @@ class CharObject: public ActiveObject
             return m_R;
         }
 
-    protected:
-        int m_R;
-        uint32_t m_MapID;
-
-    public:
-        virtual bool Follow(CharObject *, bool)
+        int Direction()
         {
-            return true;
-        }
-
-        virtual bool Mode(uint8_t)
-        {
-            return true;
+            return m_Direction;
         }
 
     public:
@@ -194,107 +201,60 @@ class CharObject: public ActiveObject
             return m_Direction;
         }
 
-    protected:
-        uint16_t m_ObjectType;
+    public:
+        virtual int  Range(uint8_t) = 0;
+        virtual bool Update()       = 0;
 
     public:
-        virtual int Range(uint8_t) = 0;
-
-    protected:
-        int     m_CurrX;
-        int     m_CurrY;
-        int     m_Direction;
-        int     m_Event;
-
-        OBJECTABILITY               m_Ability;
-        OBJECTABILITY               m_WAbility;
-        OBJECTADDABILITY            m_AddAbility;
-
-        std::array<uint8_t,  256>    m_StateAttrV;
-        std::array<uint32_t, 256>    m_StateTimeV;
-
-    public:
-
-        bool    GetNextPosition(int nSX, int nSY, int nDir, int nDistance, int& nX, int& nY);
-        int     GetNextDirection(int nStartX, int nStartY, int nTargetX, int nTargetY);
-        void    TurnTo(int nDir);
-        bool    TurnXY(int nX, int nY, int nDir);
-        bool    WalkXY(int nX, int nY, int nDir);
-        bool    RunTo(int nDir);
-        bool    RunXY(int nX, int nY, int nDir);
-        bool    HitXY(uint16_t wIdent, int nX, int nY, int nDir, int nHitStyle);
-
-        void    Disappear();
-        void    MakeGhost();
-
-        // bool    DropItem(uint32_t, uint32_t, int);
-
-
-        void    Die();
-
-        void Move();
-
-    public:
-        virtual bool Update() = 0;
-
-    protected:
-        std::string m_Name;
-
-    public:
-        void NextLocation(int *, int *, int);
-
         uint8_t Direction(int, int);
-
-        uint8_t Direction()
-        {
-            return m_Direction;
-        }
+        void    NextLocation(int *, int *, int);
 
     protected:
-        void InnSetR(int nR)
+        void InnResetR(int nR)
         {
             m_R = nR;
         }
 
-        void InnSetMapID(uint32_t nMapID)
+        void InnResetMapID(uint32_t nMapID)
         {
             m_MapID = nMapID;
         }
 
-        void InnSetLocation(const Theron::Address &rstAddress, int nX, int nY)
+        void InnLocate(const Theron::Address &rstRMAddr)
         {
+            m_RMAddress = rstRMAddr;
+        }
+
+        void InnLocate(uint32_t nMapID, int nX, int nY)
+        {
+            m_MapID = nMapID;
             m_CurrX = nX;
             m_CurrY = nY;
-            m_RMAddress = rstAddress;
         }
 
     public:
-        // TODO & TBD
-        // do I need to check whether it's proper?
-        void Locate(uint32_t nMapID, int nMapX, int nMapY)
+        template<typename... T> void Locate(T&&... stT)
         {
             if(AccessCheck()){
-                m_MapID = nMapID;
-                m_CurrX = nMapX;
-                m_CurrY = nMapY;
+                InnLocate(std::forward<T>(stT)...);
             }
         }
 
-        void Locate(const Theron::Address &rstAddr)
+        template<typename... T> void ResetMapID(T&&... stT)
         {
             if(AccessCheck()){
-                m_RMAddress = rstAddr;
+                InnResetMapID(std::forward<T>(stT)...);
             }
         }
 
-        void ResetR(int nR)
+        template<typename... T> void ResetR(T&&... stT)
         {
             if(AccessCheck()){
-                InnSetR(nR);
+                InnResetR(std::forward<T>(stT)...);
             }
         }
 
-        // when the char object get lost, it need somebody to ask
+    public:
         const Theron::Address &QueryAddress()
         {
             if(m_RMAddress ){ return m_RMAddress;  }

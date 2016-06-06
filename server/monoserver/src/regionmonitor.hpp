@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 06/05/2016 13:52:51
+ *  Last Modified: 06/05/2016 22:53:11
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -186,7 +186,7 @@ class RegionMonitor: public Transponder
             }
         }MoveRequest;
 
-        typedef struct _CharObjectRecord{
+        typedef struct _CORecord{
             uint8_t Type;
             uint32_t UID;
             uint32_t AddTime;
@@ -197,7 +197,7 @@ class RegionMonitor: public Transponder
 
             Theron::Address PodAddress;
 
-            _CharObjectRecord()
+            _CORecord()
                 : UID(0)
                 , AddTime(0)
                 , X(0)
@@ -245,6 +245,7 @@ class RegionMonitor: public Transponder
 
         Theron::Address m_SCAddress;
         Theron::Address m_MapAddress;
+        Theron::Address m_EmptyAddress;
 
 
         MoveRequest m_MoveRequest;
@@ -261,26 +262,21 @@ class RegionMonitor: public Transponder
             , m_W(nW)
             , m_H(nH)
             , m_SCAddressQuery(QUERY_NA)
+            , m_SCAddress(Theron::Address::Null())
             , m_MapAddress(rstMapAddr)
+            , m_EmptyAddress(Theron::Address::Null())
         {
             m_MoveRequest.Clear();
             // in transponder we alreay put ``DelayQueue" trigger inside
-            //
-            // Install("Update", [this](){ For_Update(); });
             m_StateHook.Install("MoveRequest", [this](){ For_MoveRequest(); return false; });
         }
 
         virtual ~RegionMonitor() = default;
 
     protected:
-        void DoMoveRequest();
-
-    protected:
         bool In(uint32_t nMapID, int nMapX, int nMapY)
         {
-            if(nMapID != m_MapID){ return false; }
-            if(PointInRectangle(nMapX, nMapY, m_X, m_Y, m_W, m_H)){ return true; }
-            return false;
+            return (nMapID == m_MapID) && PointInRectangle(nMapX, nMapY, m_X, m_Y, m_W, m_H);
         }
 
     public:
@@ -292,20 +288,18 @@ class RegionMonitor: public Transponder
         void On_MPK_NEIGHBOR(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWPLAYER(const MessagePack &, const Theron::Address &);
-        void On_MPK_NEWMONSTER(const MessagePack &, const Theron::Address &);
         void On_MPK_CHECKCOVER(const MessagePack &, const Theron::Address &);
         void On_MPK_MOTIONSTATE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYSCADDRESS(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYMAPADDRESS(const MessagePack &, const Theron::Address &);
-        // void On_MPK_INITREGIONMONITOR(const MessagePack &, const Theron::Address &);
 
     private:
         bool GroundValid(int, int, int);
         bool CoverValid(uint32_t, uint32_t, int, int, int);
 
-        Theron::Address NeighborAddress(int, int);
+        const Theron::Address &NeighborAddress(int, int);
 
     private:
         void For_Update();

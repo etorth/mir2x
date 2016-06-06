@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 05/29/2016 05:04:43
+ *  Last Modified: 06/05/2016 19:17:20
  *
  *    Description: 
  *
@@ -24,16 +24,7 @@
 
 void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFromAddr)
 {
-    // TODO
-    // do I need to put logic to avoid sending message to itself?
-    //
     if(rstMPK.Respond()){
-
-        // extern MonoServer *g_MonoServer;
-        // g_MonoServer->AddLog(LOGTYPE_WARNING,
-        //         "try to respond handler %d, responding message type %s, responding id %d, this = %p",
-        //         rstMPK.Respond(), rstMPK.Name(), rstMPK.ID(), this);
-
         auto pRecord = m_RespondMessageRecordM.find(rstMPK.Respond());
         if(pRecord != m_RespondMessageRecordM.end()){
             // we do have an record for this message
@@ -42,27 +33,30 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFro
                     pRecord->second.RespondOperation(rstMPK, stFromAddr);
                 }catch(...){
                     extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING,
-                            "caught exception in operating response message");
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception in operating response message");
+                    g_MonoServer->Restart();
                 }
             }else{
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING,
-                        "registered response operation is not callable");
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "registered response operation is not callable");
+                g_MonoServer->Restart();
             }
             m_RespondMessageRecordM.erase(pRecord);
         }else{
+            // print detailed info for this message for debug
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING,
                     "no registered operation for response message: id = %u, resp = %u type = %s, this = %p, sent from: %s, to %s",
                     rstMPK.ID(), rstMPK.Respond(), rstMPK.Name(), this, stFromAddr.AsString(), GetAddress().AsString());
+            // TODO & TBD, here we directly die or continue?
+            g_MonoServer->Restart();
         }
-        // TODO & TBD
-        // we ignore it or send it to m_Operate??? currently just dropped
+
+        // for trigger function envaluation
         goto __ACTORPOD_INNHANDLER_CALL_TRIGGER;
     }
 
-    // now message are handling  not on purpose of response only
+    // now message are handling not on purpose of response
     if(m_Operate){
         // in theron address is recommanded to copy rather than ref, but
         // here we use const ref when passing to m_Operate, because when
@@ -85,18 +79,18 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFro
             // 1. assume monoserver is ready when invoking callback
             // 2. AddLog() is well defined in multithread environment
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING,
-                    "caught exception in ActorPod: %s", rstMPK.Name());
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception in ActorPod: %s", rstMPK.Name());
+            g_MonoServer->Restart();
         }
     }else{
         // TODO & TBD
         // this message will show up many and many if not valid handler found
-        // extern MonoServer *g_MonoServer;
-        // g_MonoServer->AddLog(LOGTYPE_WARNING,
-        //         "registered operation for message is not callable");
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "registered operation for message is not callable");
+        g_MonoServer->Restart();
     }
 
-    // every time when a message caught, we call trigger
+    // every time when a message caught, we call trigger for condition check
 __ACTORPOD_INNHANDLER_CALL_TRIGGER:
     if(m_Trigger){
         try{
@@ -106,12 +100,12 @@ __ACTORPOD_INNHANDLER_CALL_TRIGGER:
             // 2. AddLog() is well defined in multithread environment
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception in ActorPod trigger");
+            g_MonoServer->Restart();
         }
+    }else{
+        // TODO: it's ok to work without trigger for an actorpod
     }
 }
-
-// #include <atomic>
-// std::atomic<uint32_t> g_Count(1);
 
 // this funciton is not actor-safe, don't call it outside the actor itself
 uint32_t ActorPod::ValidID()
@@ -123,8 +117,6 @@ uint32_t ActorPod::ValidID()
     if(pRecord != m_RespondMessageRecordM.end()){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "response requested message overflows");
-        // TODO
-        // this function won't return;
         g_MonoServer->Restart();
     }
 
@@ -141,19 +133,6 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
     // 1. get valid ID
     uint32_t nID = ValidID();
 
-    // extern MonoServer *g_MonoServer;
-    // g_MonoServer->AddLog(LOGTYPE_WARNING,
-    //         "send message id = %d, resp = %d, type = %s, this = %p", nID, nRespond, MessagePack(rstMB.Type()).Name(), this);
-
-    // if(g_RespCount == nRespond){
-    //     int a = 1;
-    //     a++;
-    // }else{
-    //     if(nRespond){
-    //         g_RespCount = nRespond;
-    //     }
-    // }
-
     // 2. send it
     bool bRet = Theron::Actor::Send<MessagePack>({rstMB, nID, nRespond}, rstAddr);
 
@@ -163,9 +142,10 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
         m_RespondMessageRecordM.emplace(std::make_pair(nID, fnOPR));
     }else{
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING,
-                "ooops send message failed: %s", MessagePack(rstMB.Type()).Name());
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "ooops send message failed: %s", MessagePack(rstMB.Type()).Name());
+        g_MonoServer->Restart();
     }
+
     // 4. return whether we succeed
     return bRet;
 }

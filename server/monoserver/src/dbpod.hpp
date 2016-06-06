@@ -3,7 +3,7 @@
  *
  *       Filename: dbpod.hpp
  *        Created: 05/20/2016 14:31:19
- *  Last Modified: 05/27/2016 10:31:30
+ *  Last Modified: 06/05/2016 21:40:13
  *
  *    Description: so many db interaction, so enable the multi-thread support
  *                 when got a DBRecord, the corresponding DBConnection would
@@ -32,12 +32,12 @@
 #include "dbconnection.hpp"
 #include "memoryblockpn.hpp"
 
-// ConnSize gives the number of internal connection handler
+// ConnectionSize gives the number of internal connection handler
 //       0 : invalid
 //       1 : single thread
 //    >= 2 : support multi-thread
 //
-template<size_t ConnSize = 4>
+template<size_t ConnectionSize = 4>
 class DBPod final
 {
     private:
@@ -71,7 +71,7 @@ class DBPod final
                 // 2. unlock the corresponding DBConnection
                 //    not a good design since lock() / unlock() are in different scope
                 //    be careful when using it
-                if(ConnSize > 1 && m_Lock){ m_Lock->unlock(); }
+                if(ConnectionSize > 1 && m_Lock){ m_Lock->unlock(); }
             }
         };
 
@@ -87,18 +87,18 @@ class DBPod final
         unsigned int m_Port;
 
         size_t m_Count;
-        std::mutex *m_LockV[ConnSize];
-        DBRecordPN m_DBRPNV[ConnSize];
-        DBConnection *m_DBConnV[ConnSize];
+        std::mutex *m_LockV[ConnectionSize];
+        DBRecordPN m_DBRPNV[ConnectionSize];
+        DBConnection *m_DBConnV[ConnectionSize];
 
     public:
         // I didn't check validation of connection here
         DBPod()
             : m_Count(0)
         {
-            static_assert(ConnSize > 0, "DBPod should contain at least one connection handler");
+            static_assert(ConnectionSize > 0, "DBPod should contain at least one connection handler");
 
-            for(size_t nIndex = 0; nIndex < ConnSize; ++nIndex){
+            for(size_t nIndex = 0; nIndex < ConnectionSize; ++nIndex){
                 m_LockV[nIndex]   = nullptr;
                 m_DBConnV[nIndex] = nullptr;
             }
@@ -122,12 +122,12 @@ class DBPod final
             m_DBName   = szDBName;
             m_Port     = nPort;
 
-            for(int nIndex = 0; nIndex < (int)ConnSize; ++nIndex){
+            for(int nIndex = 0; nIndex < (int)ConnectionSize; ++nIndex){
                 auto pConn = new DBConnection(szHostName, szUserName, szPassword, szDBName, nPort);
                 if(!pConn->Valid()){ delete pConn; return 2;}
 
                 m_DBConnV[nIndex] = pConn;
-                if(ConnSize > 1){ m_LockV[nIndex] = new std::mutex(); }
+                if(ConnectionSize > 1){ m_LockV[nIndex] = new std::mutex(); }
             }
 
             return 0;
@@ -152,10 +152,10 @@ class DBPod final
         DBHDR CreateDBHDR()
         {
             // for single thread only, we don't need the lock protection
-            if(ConnSize == 1){ return InnCreateDBHDR(0); }
+            if(ConnectionSize == 1){ return InnCreateDBHDR(0); }
 
             // ok we need to handle multi-thread
-            size_t nIndex = (m_Count++) % ConnSize;
+            size_t nIndex = (m_Count++) % ConnectionSize;
             while(true){
                 if(m_LockV[nIndex]->try_lock()){
                     // see here, we don't unlock when return
@@ -163,7 +163,7 @@ class DBPod final
                     return InnCreateDBHDR(nIndex);
                 }
 
-                nIndex = (nIndex + 1) % ConnSize;
+                nIndex = (nIndex + 1) % ConnectionSize;
             }
 
             // never be here

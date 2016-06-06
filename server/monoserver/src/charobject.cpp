@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/05/2016 01:28:28
+ *  Last Modified: 06/05/2016 19:46:09
  *
  *    Description: 
  *
@@ -26,45 +26,23 @@
 
 CharObject::CharObject()
     : ActiveObject()
+    , m_EmptyAddress(Theron::Address::Null())
+    , m_RMAddress(Theron::Address::Null())
+    , m_MapAddress(Theron::Address::Null())
+    , m_SCAddress(Theron::Address::Null())
+    , m_RMAddressQuery(QUERY_NA)
     , m_MapAddressQuery(QUERY_NA)
     , m_SCAddressQuery(QUERY_NA)
-    , m_R(0)
     , m_MapID(0)
     , m_CurrX(0)
     , m_CurrY(0)
+    , m_R(0)
+    , m_Direction(DIR_UP)
     , m_Name("")
-{
-    m_StateAttrV.fill(false);
-}
-
+{}
 
 CharObject::~CharObject()
-{
-}
-
-// void CharObject::DropItem(uint32_t nUID, uint32_t nAddTime, int nRange)
-// {
-//     int nMapID = m_Map->ID();
-//
-//     auto fnAddItem = [nMapID, nGUID, nID, nAddTime, nRange, m_CurrX, m_CurrY](){
-//         extern MonoServer *g_MonoServer;
-//         if(auto pMap = g_MonoServer->MapGrab(nMapID)){
-//             int nX, nY;
-//             if(pMap->DropLocation(m_CurrY, m_CurrY, nRange, &nX, &nY)){
-//                 pMap->AddItem(nX, nY, nGUID, nID, nAddTime);
-//             }
-//         }
-//     };
-//
-//     extern TaskHub *g_TaskHub;
-//     g_TaskHub->Add(fnAddItem);
-// }
-
-void CharObject::Die()
-{
-    if(Mode(STATE_NEVERDIE)){ return; }
-    ResetState(STATE_DEAD, true);
-}
+{}
 
 void CharObject::NextLocation(int *pX, int *pY, int nDistance)
 {
@@ -102,7 +80,7 @@ void CharObject::DispatchMotion()
 {
     if(!ActorPodValid()){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "actor pod is not valid");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "motion dispatching require actor to be activated");
         g_MonoServer->Restart();
     }
 
@@ -119,7 +97,7 @@ void CharObject::DispatchMotion()
     // no we don't have map address
     if(!m_MapID){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "logic error, charobject with zero map id");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "logic error, activated charobject are with zero map id");
         g_MonoServer->Restart();
     }
 
@@ -129,10 +107,12 @@ void CharObject::DispatchMotion()
         g_MonoServer->Restart();
     }
 
-    auto fnOnR = [this, stAMMS](const MessagePack & rstRMPK, const Theron::Address &){
+    auto fnOnR = [this, stAMMS](const MessagePack &rstRMPK, const Theron::Address &){
+        // 0. even failed, we won't repeat the request
         if(rstRMPK.Type() != MPK_ADDRESS){ return; }
+        // 1. keep the record
         m_MapAddress = Theron::Address((const char *)(rstRMPK.Data()));
-
+        // 2. dispatch
         m_ActorPod->Forward({MPK_MOTIONSTATE, stAMMS}, m_MapAddress);
     };
     m_ActorPod->Forward({MPK_QUERYMAPADDRESS, m_MapID}, m_RMAddress, fnOnR);

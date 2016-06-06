@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 06/05/2016 01:39:46
+ *  Last Modified: 06/05/2016 22:53:01
  *
  *    Description: 
  *
@@ -51,16 +51,6 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
                 On_MPK_METRONOME(rstMPK, rstFromAddr);
                 break;
             }
-        // case MPK_NEWMONSTER:
-        //     {
-        //         On_MPK_NEWMONSTER(rstMPK, rstFromAddr);
-        //         break;
-        //     }
-        // case MPK_INITREGIONMONITOR:
-        //     {
-        //         On_MPK_INITREGIONMONITOR(rstMPK, rstFromAddr);
-        //         break;
-        //     }
         case MPK_NEIGHBOR:
             {
                 On_MPK_NEIGHBOR(rstMPK, rstFromAddr);
@@ -106,18 +96,15 @@ bool RegionMonitor::CoverValid(uint32_t nUID, uint32_t nAddTime, int nX, int nY,
 
     // 2. will I collide with any one in current region?
     for(auto &rstRecord: m_CORecordV){
-        if(rstRecord.UID == nUID && rstRecord.AddTime == nAddTime){
-            continue;
-        }
-
-        if(CircleOverlap(rstRecord.X, rstRecord.Y, rstRecord.R, nX, nY, nR)){
-            return false;
-        }
+        if(rstRecord.UID == nUID && rstRecord.AddTime == nAddTime){ continue; }
+        if(CircleOverlap(rstRecord.X, rstRecord.Y, rstRecord.R, nX, nY, nR)){ return false; }
     }
+
+    // 3. OK
     return true;
 }
 
-Theron::Address RegionMonitor::NeighborAddress(int nX, int nY)
+const Theron::Address &RegionMonitor::NeighborAddress(int nX, int nY)
 {
     int nDX = (nX - (m_X - m_W)) / m_W;
     int nDY = (nY - (m_Y - m_H)) / m_H;
@@ -125,5 +112,6 @@ Theron::Address RegionMonitor::NeighborAddress(int nX, int nY)
     if(nDX >= 0 && nDX < 3 && nDY >= 0 && nDY < 3){
         return m_NeighborV2D[nDY][nDX].PodAddress;
     }
-    return Theron::Address::Null();
+
+    return m_EmptyAddress;
 }

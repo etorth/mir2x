@@ -3,7 +3,7 @@
  *
  *       Filename: messagebuf.hpp
  *        Created: 05/03/2016 13:14:40
- *  Last Modified: 05/03/2016 14:17:19
+ *  Last Modified: 06/05/2016 21:48:52
  *
  *    Description: used to shorten the argument list, so keep it simple
  *                 MessageBuf won't maintain the validation of the pointer
@@ -48,8 +48,7 @@ class MessageBuf
         //
         // since we defined MessageBuf(int, const uint8_t *, size_t)
         // this won't cause ambiguity
-        template <typename T>
-        MessageBuf(int nMsgType, const T &rstPOD)
+        template <typename T> MessageBuf(int nMsgType, const T &rstPOD)
             : MessageBuf(nMsgType, (const uint8_t *)&rstPOD, sizeof(rstPOD))
         {
             static_assert(std::is_pod<T>::value, "POD data type supported only");

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/05/2016 13:51:13
+ *  Last Modified: 06/05/2016 22:36:31
  *
  *    Description: 
  *
@@ -43,6 +43,11 @@ Player::~Player()
 void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     switch(rstMPK.Type()){
+        case MPK_HI:
+            {
+                On_MPK_HI(rstMPK, rstFromAddr);
+                break;
+            }
         case MPK_METRONOME:
             {
                 On_MPK_METRONOME(rstMPK, rstFromAddr);
@@ -51,11 +56,6 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         case MPK_BINDSESSION:
             {
                 On_MPK_BINDSESSION(rstMPK, rstFromAddr);
-                break;
-            }
-        case MPK_HI:
-            {
-                On_MPK_HI(rstMPK, rstFromAddr);
                 break;
             }
         default:

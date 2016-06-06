@@ -3,7 +3,7 @@
  *
  *       Filename: delaycmd.hpp
  *        Created: 05/04/2016 14:13:04
- *  Last Modified: 05/04/2016 17:31:22
+ *  Last Modified: 06/05/2016 21:41:40
  *
  *    Description: 
  *
@@ -35,9 +35,7 @@ class DelayCmd
 
         void operator () () const
         {
-            if(m_Cmd){
-                m_Cmd();
-            }
+            if(m_Cmd){ m_Cmd(); }
         }
 
         // a < b means b is more ``urgent"

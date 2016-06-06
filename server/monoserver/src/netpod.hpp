@@ -3,7 +3,7 @@
  *
  *       Filename: netpod.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 05/30/2016 01:19:56
+ *  Last Modified: 06/05/2016 22:34:36
  *
  *    Description: this will serve as a stand-alone plugin for monoserver, it creates
  *                 with general info. and nothing will be done till Launch()
@@ -324,8 +324,7 @@ template<size_t PodSize> class NetPod: public SyncDriver
                         m_Socket->remote_endpoint().port());
 
                 if(m_ValidQ.Empty()){
-                    g_MonoServer->AddLog(LOGTYPE_INFO,
-                            "No valid slot for new connection request, refused");
+                    g_MonoServer->AddLog(LOGTYPE_INFO, "No valid slot for new connection request, refused");
                     return;
                 }
 

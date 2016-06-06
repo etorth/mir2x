@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/02/2016 12:06:03
+ *  Last Modified: 06/05/2016 22:29:25
  *
  *    Description: 
  *
@@ -28,16 +28,17 @@
 
 Monster::Monster(uint32_t nMonsterID)
     : CharObject()
-    , m_MonsterID(nMonsterID)
     , m_FreezeWalk(false)
+    , m_MonsterID(nMonsterID)
+    , m_ActorRecordV()
 {
 
     m_RMAddress = Theron::Address::Null();
 
-    ResetState(STATE_INCARNATED, true );
-    ResetState(STATE_ACTIVE    , false);
-    ResetState(STATE_CANMOVE   ,  true);
-    ResetState(STATE_WAITMOVE  ,  true);
+    ResetState(STATE_ACTIVE, false);
+    ResetState(STATE_CANMOVE, true);
+    ResetState(STATE_WAITMOVE, true);
+    ResetState(STATE_INCARNATED, true);
 }
 
 Monster::~Monster()
@@ -46,50 +47,9 @@ Monster::~Monster()
 bool Monster::Update()
 {
     if(!m_MapID){ return false; }
-    // don't try to suiside in yourself here
-    // if(!Active()){ return false; }
 
     std::printf("moster (%d, %d) is now at (%d, %d)\n", UID(), AddTime(), X(), Y());
-    // std::printf("(%d, %d)\n", X(), Y());
-
-    // 1. query neighbors
-    // for(const auto &rstRecord: m_NeighborV){
-    //     m_ActorPod->Forward({MPK_QUERYLOCATION}, rstRecord.PodAddress);
-    // }
-
-    // // 2. try to find target, using current info of neighbors
-    // if(!m_TargetRecord.Valid()){
-    //     int nLDis2 = -1;
-    //     for(const auto &rstRecord: m_NeighborV){
-    //         if(rstRecord.Friend){ continue; }
-    //         int nCurrLDis2 = LDistance2(X(), Y(), std::get<4>(rstRecord), std::get<5>(rstRecord));
-    //         if(nCurrLDis2 < nLDis2){
-    //             m_TargetRecord = rstRecord;
-    //             nLDis2 = nCurrLDis2;
-    //         }
-    //     }
-    // }
-
-    // // 3. if now we have target
-    // if(m_TargetRecord.Valid()){
-    //     // did the attack
-    //     if(Attack()){ return true;}
-    //
-    //     // can't attack, then follow it
-    // }
-
-    // if(m_MasterRecord.Valid()){
-    // }
-
     return RandomWalk();
-}
-
-bool Monster::Attack(CharObject *pObject)
-{
-    if(pObject) {
-        return true;
-    }
-    return false;
 }
 
 bool Monster::RandomWalk()
@@ -125,24 +85,21 @@ void Monster::SpaceMove(const char *szAddr, int nX, int nY)
 
     stAMTSM.CurrX = X();
     stAMTSM.CurrY = Y();
-
-    // TODO
-    // set the proper map id
     stAMTSM.MapID = m_MapID;
 
     auto fnOP = [this, nX, nY](const MessagePack &rstMPK, const Theron::Address &rstAddr){
         switch(rstMPK.Type()){
             case MPK_OK:
                 {
-                    auto fnROP = [this, rstAddr, nMPKID = rstMPK.ID(), nX, nY](
-                            const MessagePack &, const Theron::Address &){
+                    auto fnROP = [this, rstAddr, nMPKID = rstMPK.ID(), nX, nY](const MessagePack &, const Theron::Address &){
                         // commit the move into new RM
                         m_ActorPod->Forward(MPK_OK, rstAddr, nMPKID);
                         m_RMAddress = rstAddr;
                         m_CurrX = nX;
                         m_CurrY = nY;
+
                         // TODO
-                        // set the proper map id
+                        // set the proper map id if needed
                         m_FreezeWalk = false;
 
                         // 2. dispatch motion
@@ -166,8 +123,8 @@ void Monster::SpaceMove(const char *szAddr, int nX, int nY)
         }
     };
 
-    m_ActorPod->Forward({MPK_TRYSPACEMOVE, stAMTSM}, Theron::Address(szAddr), fnOP);
     m_FreezeWalk = true;
+    m_ActorPod->Forward({MPK_TRYSPACEMOVE, stAMTSM}, Theron::Address(szAddr), fnOP);
 }
 
 bool Monster::ReportMove(int nX, int nY)
@@ -203,10 +160,7 @@ bool Monster::ReportMove(int nX, int nY)
                 {
                     // don't have to respond
                     // make communication to the new RM
-                    std::string szAddr;
-                    szAddr.insert(szAddr.end(), rstMPK.Data(), rstMPK.Data() + rstMPK.DataLen());
-
-                    SpaceMove(szAddr.c_str(), nX, nY);
+                    SpaceMove((const char *)rstMPK.Data(), nX, nY);
                     break;
                 }
             default:
@@ -231,11 +185,6 @@ bool Monster::ResetType(uint8_t nType, bool bThisType)
 {
     m_TypeV[nType] = bThisType;
     return bThisType;
-}
-
-bool Monster::Follow(CharObject *, bool)
-{
-    return true;
 }
 
 bool Monster::State(uint8_t nState)
@@ -272,31 +221,11 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
                 On_MPK_METRONOME(rstMPK, rstAddress);
                 break;
             }
-
         case MPK_HI:
             {
                 On_MPK_HI(rstMPK, rstAddress);
                 break;
             }
-
-        case MPK_MOVEOK:
-            {
-                On_MPK_MOVEOK(rstMPK, rstAddress);
-                break;
-            }
-
-        case MPK_LOCATIION:
-            {
-                On_MPK_LOCATIION(rstMPK, rstAddress);
-                break;
-            }
-
-        case MPK_MASTERPERSONA:
-            {
-                On_MPK_MASTERPERSONA(rstMPK, rstAddress);
-                break;
-            }
-
         default:
             {
                 extern MonoServer *g_MonoServer;

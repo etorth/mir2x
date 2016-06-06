@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 05/30/2016 12:37:07
+ *  Last Modified: 06/05/2016 22:29:33
  *
  *    Description: 
  *
@@ -79,25 +79,25 @@ class Monster: public CharObject
             uint32_t        AddTime;
             int             X;
             int             Y;
-            uint8_t         FriendType;
+            int             FriendType;
 
             _ActorRecord(const Theron::Address &stAddr = Theron::Address::Null(),
                     uint32_t nUID     = 0,
                     uint32_t nAddTime = 0,
                     int nX = 0,
                     int nY = 0,
-                    uint8_t nFriendType = FRIEND_HUMAN)
+                    int nFriendType = FRIEND_HUMAN)
                 : PodAddress(stAddr)
-                  , UID(nUID)
-                  , AddTime(nAddTime)
-                  , X(nX)
-                  , Y(nY)
-                  , FriendType(nFriendType)
+                , UID(nUID)
+                , AddTime(nAddTime)
+                , X(nX)
+                , Y(nY)
+                , FriendType(nFriendType)
             {}
 
             bool Valid()
             {
-                return PodAddress == Theron::Address::Null() || UID == 0 || AddTime == 0;
+                return PodAddress && UID && AddTime;
             }
 
             bool operator == (const _ActorRecord &rstRecord)
@@ -111,8 +111,9 @@ class Monster: public CharObject
         }ActorRecord;
 
     protected:
-        uint32_t                 m_MonsterID;
-        std::vector<ActorRecord> m_NeighborV;
+        bool m_FreezeWalk;
+        uint32_t m_MonsterID;
+        std::vector<ActorRecord> m_ActorRecordV;
 
     public:
         Monster(uint32_t);
@@ -131,9 +132,6 @@ class Monster: public CharObject
 
         int Range(uint8_t);
 
-        bool Attack(CharObject *);
-        bool Follow(CharObject *, bool);
-
     public:
         void SearchViewRange();
 
@@ -146,7 +144,6 @@ class Monster: public CharObject
         }
 
         // TODO
-        bool m_FreezeWalk;
         bool Update();
 
     public:
@@ -155,10 +152,7 @@ class Monster: public CharObject
 
     private:
         void On_MPK_HI(const MessagePack &, const Theron::Address &);
-        void On_MPK_MOVEOK(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
-        void On_MPK_LOCATIION(const MessagePack &, const Theron::Address &);
-        void On_MPK_MASTERPERSONA(const MessagePack &, const Theron::Address &);
 
     protected:
         void Operate(const MessagePack &, const Theron::Address &);
