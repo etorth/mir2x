@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 06/05/2016 23:52:43
+ *  Last Modified: 06/06/2016 00:43:25
  *
  *    Description: 
  *
@@ -141,7 +141,59 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
         stAMQRA.RMY   = stAMTM.Y / SYS_MAPGRIDYP;
         stAMQRA.MapID = stAMTM.MapID;
 
-        auto fnROP = [this, nMPKID = rstMPK.ID(), rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &){
+        // trigger to query the RM address
+        // TODO: don't use static or global variable for nQuery
+        auto fnQueryRMAddr = [this, rstFromAddr, nQuery = QUERY_PENDING, stRMAddr = Theron::Address::Null(), nMPKID = rstMPK.ID()]() mutable -> bool {
+            switch(nQuery){
+                case QUERY_OK:
+                    {
+                        if(!stRMAddr){
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "inconsistant logic");
+                            g_MonoServer->Restart();
+                        }
+
+                        std::string szRMAddr = stRMAddr.AsString();
+                        m_ActorPod->Forward({MPK_ADDRESS, szRMAddr.c_str(), 1 + szRMAdd.size()}, rstFromAddr, nMPKID);
+                        return true;
+                    }
+                case QUERY_PENDING:
+                    {
+                        // we ask again here
+                        auto fnROP = [this, &stRMAddr, &nQuery](const MessagePack &rstRMPK, const Theron::Address &){
+                            switch(rstRRMPK.Type()){
+                                case MPK_ADDRESS:
+                                    {
+                                        nQuery = QUERY_OK;
+                                        stRMAddr = Theron::Address((char *)rstRRMPK.Data());
+                                        break;
+                                    }
+                                case MPK_PENDING:
+                                    {
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        nQuery = QUERY_ERROR;
+                                        break;
+                                    }
+                            }
+                        };
+
+                        // just return the requestor the proper address
+                        // we assume the current map address is always valid!
+                        m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRA}, m_MapAddress, fnROP);
+                        return false;
+                    }
+                default:
+                    {
+                        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
+                        return true;
+                    }
+            }
+        };
+
+        auto fnROP = [this, fnQueryRMAddr, rstFromAddr, nMPKID = rstMPK.ID()](const MessagePack &rstRMPK, const Theron::Address &){
             switch(rstRMPK.Type()){
                 case MPK_ADDRESS:
                     {
@@ -152,51 +204,7 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
                 case MPK_PENDING:
                     {
                         // the RM address asked is not ready now, we need to ask again....
-                        // let's use a cool feature of lambda here
-                        auto fnQueryRMAddr = [nQuery = QUERY_PENDING, stRMAddr = Theron::Address::Null(), this]() mutable -> bool {
-                            switch(nQuery){
-                                case QUERY_OK:
-                                    {
-                                        std::string szRMAddr = stRMAddr.AsString();
-                                        m_ActorPod->Forward({MPK_ADDRESS, szRMAddr.c_str(), 1 + szRMAdd.size()}, rstFromAddr, nMPKID);
-                                        return true;
-                                    }
-                                case QUERY_PENDING:
-                                    {
-                                        // we ask again here
-                                        auto fnRROP = [this, &stRMAddr](const MessagePack &rstRRMPK, const Theron::Address &){
-                                            switch(rstRRMPK.Type()){
-                                                case MPK_ADDRESS:
-                                                    {
-                                                        nQuery = QUERY_OK;
-                                                        stRMAddr = Theron::Address((char *)rstRRMPK.Data());
-                                                        break;
-                                                    }
-                                                case MPK_PENDING:
-                                                    {
-                                                        break;
-                                                    }
-                                                default:
-                                                    {
-                                                        nQuery = QUERY_ERROR;
-                                                        break;
-                                                    }
-                                            }
-                                        };
-
-                                        // just return the requestor the proper address
-                                        // we assume the current map address is always valid!
-                                        m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRA}, m_MapAddress, fnRROP);
-                                        return false;
-                                    }
-                                default:
-                                    {
-                                        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
-                                        return true;
-                                    }
-                            }
-                        };
-
+                        // ok install the handler
                         m_StateHook.Install(fnQueryRMAddr);
                         break;
                     }
