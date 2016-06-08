@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 06/07/2016 19:04:09
+ *  Last Modified: 06/08/2016 01:26:09
  *
  *    Description: 
  *
@@ -89,6 +89,7 @@ void RegionMonitor::On_MPK_CHECKCOVER(const MessagePack &rstMPK, const Theron::A
 
 void RegionMonitor::On_MPK_NEIGHBOR(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
+    // 1. parse the data
     char *pAddr = (char *)rstMPK.Data();
     for(size_t nY = 0; nY < 3; ++nY){
         for(size_t nX = 0; nX < 3; ++nX){
@@ -102,7 +103,10 @@ void RegionMonitor::On_MPK_NEIGHBOR(const MessagePack &rstMPK, const Theron::Add
         }
     }
 
-    // response with OK
+    // 2. init the center pod for NeighborAddress()
+    m_NeighborV2D[1][1].PodAddress = m_ActorPod->GetAddress();
+
+    // 3. report finished to server map
     m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
 }
 
@@ -113,10 +117,65 @@ void RegionMonitor::On_MPK_METRONOME(const MessagePack &, const Theron::Address 
     }
 }
 
-// object send a try move request, if it's a local move, handle it
-// otherwise respond with the proper remote address
+// object send a try move request, if it's a local move, handle it otherwise respond with
+// the proper remote address, we may need to get sc address first
 void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
+    AMTryMove stAMTM;
+    std::memcpy(&stAMTM, rstMPK.Data(), sizeof(stAMTM));
+
+    // 0-1. check whether the reqestor is in void state
+    bool bVoidState = (stAMTM.R == 0);
+
+    // 0-2. yes it's in void state
+    if(bVoidState){
+        // for void state, In() is good enough, we don't need neighbor's permission
+        if(In(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
+            for(auto &rstRecord: m_CORecordV){
+                if(rstRecord.UID == stAMTM.UID && rstRecord.AddTime == stAMTM.AddTime){
+                    rstRecord.X = stAMTM.X;
+                    rstRecord.Y = stAMTM.Y;
+                    rstRecord.R = 0;
+
+                    // TODO: here we don't check automatically whether the co still
+                    //       need the void state, the co should send void check
+                    //       request sperately
+                    return;
+                }
+            }
+
+            // otherwise this should be an error
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "couldn't find this char object record");
+            g_MonoServer->Restart();
+        }
+
+        if(NeighborIn(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
+
+            ///////////////////
+            //dffffffffffffffffffffffffffffff
+        }
+
+
+
+
+
+        if(NeighborIn(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
+            // return the RM address
+            auto stAddress = NeighborAddress(stAMTM.X, stAMTM.Y);
+            if(!stAddress){
+                // this neighbor is not capable to holding the object
+                m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                return;
+            }
+
+            std::string szAddress = stAddress.AsString();
+            m_ActorPod->Forward({MPK_ADDRESS, (uint8_t *)szAddress.c_str(), 1 + szAddress.size()}, rstFromAddr, rstMPK.ID());
+            return;
+        }
+    }
+
+
     // 0. reject any move request
     if(m_MoveRequest.Freezed()){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
@@ -125,6 +184,20 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
 
     AMTryMove stAMTM;
     std::memcpy(&stAMTM, rstMPK.Data(), sizeof(stAMTM));
+
+    if(!(stAMTM.MapID && stAMTM.X >= 0 && stAMTM.Y >= 0 && stAMTM.R >= 0)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog("invalid move request");
+        g_MonoServer->Restart();
+    }
+
+    if(!(m_MapID && m_MapAddress)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog("region monitor activated with invalid state");
+        g_MonoServer->Restart();
+    }
+
+    // ok now it's valid request and valid RM
 
     // 1. only in current RM, best situation
     if(OnlyIn(stAMTM.MapID, stAMTM.X, stAMTM.Y, stAMTM.R)){
@@ -255,115 +328,140 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
         return;
     }
 
-    // this is a space move and not in any one of its neighbor
+    // now this move request has nothing to do with current RM, then it's a space move, we have 
+    // to know the destination RM address, we design a logic which can take care of it
 
-    // set the ``best" address to query
-    if(stAMTM.MapID && (stAMTM.MapID != m_MapID) && )
-    Theron::Address stAskAddr = (stAMTM.MapID == m_MapID && m_MapAddress) ? m_MapAddress : m_SCAddress;
-
-    if(stAMTM.MapID == m_MapID){
-        stAskAddr = m_MapAddress;
-
-    }
-    ? m_MapAddress : m_SCAddress;
-    if(stAMTM.MapID == m_MapID){
-    }
-    = (stAMTM.MapID == m_MapID) ? 
-    // server map doesn't change, send request to server map instead of service core
-    if(stAMTM.MapID == m_MapID){
-    }
-
-    // ask servermap for proper RM address, don't freeze current RM here
-
-    if(!m_MapAddress){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "activated RM is with invalid map address");
-        g_MonoServer->Restart();
-    }
-
-    AMQueryRMAddress stAMQRA;
-    stAMQRA.RMX   = stAMTM.X / SYS_MAPGRIDXP;
-    stAMQRA.RMY   = stAMTM.Y / SYS_MAPGRIDYP;
-    stAMQRA.MapID = stAMTM.MapID;
-
-    // trigger to query the RM address
-    // TODO: don't use static or global variable for nQuery
-    auto fnQueryRMAddr = [this, rstFromAddr, nQuery = QUERY_PENDING, stRMAddr = Theron::Address::Null(), nMPKID = rstMPK.ID()]() mutable -> bool {
-        switch(nQuery){
-            case QUERY_OK:
-                {
-                    if(!stRMAddr){
-                        extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "inconsistant logic");
-                        g_MonoServer->Restart();
-                    }
-
-                    std::string szRMAddr = stRMAddr.AsString();
-                    m_ActorPod->Forward({MPK_ADDRESS, szRMAddr.c_str(), 1 + szRMAdd.size()}, rstFromAddr, nMPKID);
-                    return true;
-                }
-            case QUERY_PENDING:
-                {
-                    // we ask again here
-                    auto fnROP = [this, &stRMAddr, &nQuery](const MessagePack &rstRMPK, const Theron::Address &){
-                        switch(rstRRMPK.Type()){
-                            case MPK_ADDRESS:
-                                {
-                                    nQuery = QUERY_OK;
-                                    stRMAddr = Theron::Address((char *)rstRRMPK.Data());
-                                    break;
-                                }
-                            case MPK_PENDING:
-                                {
-                                    break;
-                                }
-                            default:
-                                {
-                                    nQuery = QUERY_ERROR;
-                                    break;
-                                }
-                        }
-                    };
-
-                    // just return the requestor the proper address
-                    // we assume the current map address is always valid!
-                    m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRA}, m_MapAddress, fnROP);
-                    return false;
-                }
-            default:
-                {
-                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
-                    return true;
-                }
+    // return       void
+    // parameter    address of destination RM
+    auto fnOnGetRMAddr = [this, rstFromAddr, nMPKID = rstMPK.ID()](const Theron::Address &rstRMAddr){
+        if(rstRMAddr){
+            std::string szAddr = rstRMAddr.AsString();
+            m_ActorPod->Forward({MPK_ADDRESS, szAddr.c_str(), 1 + szAddr.size()}, rstFromAddr, nMPKID);
+            return;
         }
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid RM address");
+        g_MonoServer->Restart();
     };
 
-    auto fnROP = [this, fnQueryRMAddr, rstFromAddr, nMPKID = rstMPK.ID()](const MessagePack &rstRMPK, const Theron::Address &){
-        switch(rstRMPK.Type()){
+    auto fnQueryRMAddr = [this](const Theron::Address &rstAskAddr){
+        if(!rstAskAddr){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid address provided to query");
+            g_MonoServer->Restart();
+        }
+
+        auto fnQueryRMAddr = [this, rstFromAddr, nQuery = QUERY_PENDING, stRMAddr = Theron::Address::Null(), nMPKID = rstMPK.ID()]() mutable -> bool {
+            switch(nQuery){
+                case QUERY_OK:
+                    {
+                        if(!stRMAddr){
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "inconsistant logic");
+                            g_MonoServer->Restart();
+                        }
+
+                        std::string szRMAddr = stRMAddr.AsString();
+                        m_ActorPod->Forward({MPK_ADDRESS, szRMAddr.c_str(), 1 + szRMAdd.size()}, rstFromAddr, nMPKID);
+                        return true;
+                    }
+                case QUERY_PENDING:
+                    {
+                        // we ask (again) here
+                        auto fnROP = [this, &stRMAddr, &nQuery](const MessagePack &rstRMPK, const Theron::Address &){
+                            switch(rstRRMPK.Type()){
+                                case MPK_ADDRESS:
+                                    {
+                                        nQuery = QUERY_OK;
+                                        stRMAddr = Theron::Address((char *)rstRRMPK.Data());
+                                        break;
+                                    }
+                                case MPK_PENDING:
+                                    {
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        nQuery = QUERY_ERROR;
+                                        break;
+                                    }
+                            }
+                        };
+
+                        // just return the requestor the proper address
+                        // we assume the current map address is always valid!
+                        m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRA}, m_MapAddress, fnROP);
+                        return false;
+                    }
+                default:
+                    {
+                        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
+                        return true;
+                    }
+            }
+        };
+
+        auto fnROP = [this, fnQueryRMAddr, rstFromAddr, nMPKID = rstMPK.ID()](const MessagePack &rstRMPK, const Theron::Address &){
+            switch(rstRMPK.Type()){
+                case MPK_ADDRESS:
+                    {
+                        // best anwser we get, we can directly reply
+                        m_ActorPod->Forward({MPK_ADDRESS, rstRMPK.Data(), rstRMPK.DataLen()}, rstFromAddr, nMPKID);
+                        return;
+                    }
+                case MPK_PENDING:
+                    {
+                        // the RM address asked is not ready now, we need to ask again....
+                        // ok install the handler
+                        m_StateHook.Install(fnQueryRMAddr);
+                        break;
+                    }
+                default:
+                    {
+                        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
+                        break;
+                    }
+            }
+        };
+    };
+
+    if(m_MapID == stAMTM.MapID || m_SCAddress){
+        // I have checked the validness of (m_Map && m_MapAddress)
+        // so here just use it
+        fnQueryRMAddr((m_MapID == stAMTM.MapID) ? m_MapAddress :  m_SCAddress);
+        return;
+    }
+
+    // ok the last annoying condition, current RM has no service address and the request is
+    // for space move, have to get it from server map
+    //
+    // TODO: if I set sc address as global variable maybe I can get rid of this
+    auto fnOnGetSCAddr = [this](const MessagePack &rstMPK, const Theron::Address &){
+        switch(rstMPK.Type()){
             case MPK_ADDRESS:
                 {
-                    // best anwser we get, we can directly reply
-                    m_ActorPod->Forward({MPK_ADDRESS, rstRMPK.Data(), rstRMPK.DataLen()}, rstFromAddr, nMPKID);
+                    m_SCAddress = Theron::Address((const *)rstMPK.Data());
+                    fnQueryRMAddr(m_SCAddress);
                     return;
                 }
+            case MPK_ERROR:
             case MPK_PENDING:
-                {
-                    // the RM address asked is not ready now, we need to ask again....
-                    // ok install the handler
-                    m_StateHook.Install(fnQueryRMAddr);
-                    break;
-                }
             default:
                 {
-                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
-                    break;
+                    // when we asking for sc address we should always get it
+                    // any resp such as pending / error is un-acceptable
+
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "query for service core address failed");
+                    g_MonoServer->Restart();
+
                 }
         }
     };
 
-    // just return the requestor the proper address
-    // we assume the current map address is always valid!
-    m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRA}, m_MapAddress, fnROP);
+    m_ActorPod->Forward(MPK_QUERYSCADDRESS, m_MapAddress, fnOnGetSCAddr);
+
+    // finally we are done here, no more possibilities
 }
 
 // object send a try move request, if it's a local move, handle it
