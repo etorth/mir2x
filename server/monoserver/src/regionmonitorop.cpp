@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 06/06/2016 00:43:25
+ *  Last Modified: 06/07/2016 19:04:09
  *
  *    Description: 
  *
@@ -54,13 +54,13 @@ void RegionMonitor::On_MPK_LEAVE(const MessagePack &rstMPK, const Theron::Addres
 
 void RegionMonitor::On_MPK_CHECKCOVER(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
-    // 1. there is checking in current RM
+    // 1. there is working in current RM
     if(m_MoveRequest.Freezed()){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
 
-    // 2. ok do it
+    // 2. ok let's do it
     AMCheckCover stAMCC;
     std::memcpy(&stAMCC, rstMPK.Data(), sizeof(stAMCC));
 
@@ -117,6 +117,7 @@ void RegionMonitor::On_MPK_METRONOME(const MessagePack &, const Theron::Address 
 // otherwise respond with the proper remote address
 void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
+    // 0. reject any move request
     if(m_MoveRequest.Freezed()){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
@@ -125,11 +126,261 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
     AMTryMove stAMTM;
     std::memcpy(&stAMTM, rstMPK.Data(), sizeof(stAMTM));
 
-    if(false
-            || stAMTM.MapID != m_MapID // no the same map ...
-            || !PointInRectangle(stAMTM.X, stAMTM.Y, m_X - m_W, m_Y - m_H, 3 * m_W, 3 * m_H)){
-        // this is a space move
-        // ask ServerMap for proper RM address, don't freeze current RM here
+    // 1. only in current RM, best situation
+    if(OnlyIn(stAMTM.MapID, stAMTM.X, stAMTM.Y, stAMTM.R)){
+        m_MoveRequest.Clear();
+        m_MoveRequest.WaitCO = true;
+        m_MoveRequest.Freeze();
+
+        auto fnROP = [stAMTM, this](const MessagePack &rstRMPK, const Theron::Address &){
+            // object moved, so we need to update the location
+            if(rstRMPK.Type() == MPK_OK){
+                for(auto &rstRecord: m_CORecordV){
+                    if(rstRecord.UID == stAMTM.UID && rstRecord.AddTime == stAMTM.AddTime){
+                        rstRecord.X = stAMTM.X;
+                        rstRecord.Y = stAMTM.Y;
+                        break;
+                    }
+                }
+            }else{
+                // object doesn't move actually
+                // it gives up the chance to move, do nothing
+            }
+
+            // no matter moved or not, release the current RM
+            m_MoveRequest.Clear();
+        };
+
+        m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID(), fnROP);
+        return;
+    }
+
+    // 2. in current RM but overlap with neighbors
+    if(In(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
+        // some needed neighbors are not qualified
+        if(!NeighborValid(stAMTM.X, stAMTM.Y, stAMTM.R, true)){
+            m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+            return;
+        }
+
+        // ok now we need to prepare for the move request
+
+        // 01. now we are to do neighbor check
+        m_MoveRequest.Clear();
+        m_MoveRequest.NeighborCheck = true;
+        m_MoveRequest.Freeze();
+
+        // 02. send cover check to neighbors
+        NeighborSendCheck(stAMTM.UID, stAMTM.AddTime, stAMTM.X, stAMTM.Y, stAMTM.R, true);
+
+        // 03. make sure there is only one move request working
+        if(m_StateHook.Installed("MoveRequest")){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog("try to install move request trigger while there's still one unfinished");
+            g_MonoServer->Restart();
+        }
+
+        // 03. install trigger to check the CC response
+        auto fnMoveRequest = [stAMTM, this]() -> bool(){
+            switch(NeighborQueryCheck()){
+                case QUERY_OK:
+                    {
+                        // we grant permission and now it's time
+                        auto fnROP = [stAMTM, this](const MessagePack &rstRMPK, const Theron::Address &rstAddr){
+                            if(rstRMPK.Type() == MPK_OK){
+                                // object picked this chance to move
+                                for(auto &rstRecord: m_CORecordV){
+                                    if(rstRecord.UID == stAMTM.UID && rstRecord.AddTime == stAMTM.AddTime){
+                                        rstRecord.X = stAMTM.X;
+                                        rstRecord.Y = stAMTM.Y;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // no matter the object decide to move or not, we need to free neighbors
+                            NeighborClearCheck();
+                            m_MoveRequest.Clear();
+                        };
+                        // TODO
+                        // there was a bug here
+                        // when we notified the object, then neighbor check is done
+                        // however before the object responded, this RM should still be freezed
+                        //
+                        m_MoveRequest.Clear();
+                        m_MoveRequest.WaitCO = true;
+                        m_MoveRequest.Freeze();
+
+                        m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
+                        return true;
+                    }
+                case QUERY_ERROR:
+                    {
+                        // no matter the object decide to move or not, we need to free neighbors
+                        NeighborClearCheck();
+                        m_MoveRequest.Clear();
+
+                        m_ActorPod->Forward(MPK_ERROR, m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
+                        return true;
+                    }
+                default:
+                    {
+                        // didn't finish it yet
+                        return false;
+                    }
+            }
+
+            // to make the compiler happy
+            return false;
+        };
+
+        m_StateHook.Install("MoveRequest", fnMoveRequest);
+        return;
+    }
+
+    // trying to move to one of its neighbor
+    // this is already a space move but we don't need to query the RM address since we have it
+
+    if(NeighborIn(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
+        // return the RM address
+        auto stAddress = NeighborAddress(stAMTM.X, stAMTM.Y);
+        if(!stAddress){
+            // this neighbor is not capable to holding the object
+            m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+            return;
+        }
+
+        std::string szAddress = stAddress.AsString();
+        m_ActorPod->Forward({MPK_ADDRESS, (uint8_t *)szAddress.c_str(), 1 + szAddress.size()}, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    // this is a space move and not in any one of its neighbor
+
+    // set the ``best" address to query
+    if(stAMTM.MapID && (stAMTM.MapID != m_MapID) && )
+    Theron::Address stAskAddr = (stAMTM.MapID == m_MapID && m_MapAddress) ? m_MapAddress : m_SCAddress;
+
+    if(stAMTM.MapID == m_MapID){
+        stAskAddr = m_MapAddress;
+
+    }
+    ? m_MapAddress : m_SCAddress;
+    if(stAMTM.MapID == m_MapID){
+    }
+    = (stAMTM.MapID == m_MapID) ? 
+    // server map doesn't change, send request to server map instead of service core
+    if(stAMTM.MapID == m_MapID){
+    }
+
+    // ask servermap for proper RM address, don't freeze current RM here
+
+    if(!m_MapAddress){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "activated RM is with invalid map address");
+        g_MonoServer->Restart();
+    }
+
+    AMQueryRMAddress stAMQRA;
+    stAMQRA.RMX   = stAMTM.X / SYS_MAPGRIDXP;
+    stAMQRA.RMY   = stAMTM.Y / SYS_MAPGRIDYP;
+    stAMQRA.MapID = stAMTM.MapID;
+
+    // trigger to query the RM address
+    // TODO: don't use static or global variable for nQuery
+    auto fnQueryRMAddr = [this, rstFromAddr, nQuery = QUERY_PENDING, stRMAddr = Theron::Address::Null(), nMPKID = rstMPK.ID()]() mutable -> bool {
+        switch(nQuery){
+            case QUERY_OK:
+                {
+                    if(!stRMAddr){
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "inconsistant logic");
+                        g_MonoServer->Restart();
+                    }
+
+                    std::string szRMAddr = stRMAddr.AsString();
+                    m_ActorPod->Forward({MPK_ADDRESS, szRMAddr.c_str(), 1 + szRMAdd.size()}, rstFromAddr, nMPKID);
+                    return true;
+                }
+            case QUERY_PENDING:
+                {
+                    // we ask again here
+                    auto fnROP = [this, &stRMAddr, &nQuery](const MessagePack &rstRMPK, const Theron::Address &){
+                        switch(rstRRMPK.Type()){
+                            case MPK_ADDRESS:
+                                {
+                                    nQuery = QUERY_OK;
+                                    stRMAddr = Theron::Address((char *)rstRRMPK.Data());
+                                    break;
+                                }
+                            case MPK_PENDING:
+                                {
+                                    break;
+                                }
+                            default:
+                                {
+                                    nQuery = QUERY_ERROR;
+                                    break;
+                                }
+                        }
+                    };
+
+                    // just return the requestor the proper address
+                    // we assume the current map address is always valid!
+                    m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRA}, m_MapAddress, fnROP);
+                    return false;
+                }
+            default:
+                {
+                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
+                    return true;
+                }
+        }
+    };
+
+    auto fnROP = [this, fnQueryRMAddr, rstFromAddr, nMPKID = rstMPK.ID()](const MessagePack &rstRMPK, const Theron::Address &){
+        switch(rstRMPK.Type()){
+            case MPK_ADDRESS:
+                {
+                    // best anwser we get, we can directly reply
+                    m_ActorPod->Forward({MPK_ADDRESS, rstRMPK.Data(), rstRMPK.DataLen()}, rstFromAddr, nMPKID);
+                    return;
+                }
+            case MPK_PENDING:
+                {
+                    // the RM address asked is not ready now, we need to ask again....
+                    // ok install the handler
+                    m_StateHook.Install(fnQueryRMAddr);
+                    break;
+                }
+            default:
+                {
+                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
+                    break;
+                }
+        }
+    };
+
+    // just return the requestor the proper address
+    // we assume the current map address is always valid!
+    m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRA}, m_MapAddress, fnROP);
+}
+
+// object send a try move request, if it's a local move, handle it
+// otherwise respond with the proper remote address
+void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+{
+    if(m_MoveRequest.Freezed()){
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    AMTryMove stAMTM;
+    std::memcpy(&stAMTM, rstMPK.Data(), sizeof(stAMTM));
+
+    // this is a space move
+    // ask ServerMap for proper RM address, don't freeze current RM here
+    if(!NeighborIn(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
         if(!m_MapAddress){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "activated RM is with empty map address");
@@ -225,10 +476,10 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
     // ok it's a local move request
 
     // object is trying to move outside of the current region
-    if(!PointInRectangle(stAMTM.X, stAMTM.Y, m_X, m_Y, m_W, m_H)){
+    if(!In(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
         // return the RM address
         auto stAddress = NeighborAddress(stAMTM.X, stAMTM.Y);
-        if(stAddress == Theron::Address::Null()){
+        if(!stAddress){
             // this neighbor is not capable to holding the object
             m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
             return;
@@ -236,7 +487,7 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
 
         std::string szAddress = stAddress.AsString();
         m_ActorPod->Forward({MPK_ADDRESS,
-                (uint8_t *)szAddress.c_str(), szAddress.size()}, rstFromAddr, rstMPK.ID());
+                (uint8_t *)szAddress.c_str(), 1 + szAddress.size()}, rstFromAddr, rstMPK.ID());
         return;
     }
 
@@ -292,32 +543,17 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
         return;
     }
 
-    // whether I need the cover check, this is a complex function
-    // the avoid using goto
-    bool bAllQualified = true;
-    for(size_t nY = 0; nY < 3 && bAllQualified; ++nY){
-        for(size_t nX = 0; nX < 3 && bAllQualified; ++nX){
-            if(nX == 1 && nY == 1){ continue; }
-
-            int nNbrX = ((int)nX - 1) * m_W + m_X;
-            int nNbrY = ((int)nY - 1) * m_H + m_Y;
-
-            // ok, no overlap, skip it
-            if(CircleRectangleOverlap(stAMTM.X, stAMTM.Y, stAMTM.R, nNbrX, nNbrY, m_W, m_H)
-                    && m_NeighborV2D[nY][nX].PodAddress == Theron::Address::Null()){
-                bAllQualified = false;
-                break;
-            }
-        }
-    }
-
     // some needed neighbors are not qualified
-    if(!bAllQualified){
+    if(!NeighborCheckQualified(stAMTM.X, stAMTM.Y, stAMTM.R)){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
 
-    // prepare the MoveRequest
+    // ok now we need to prepare for the move request
+
+    // 1. make sure there is only one move request working
+
+    // 1. prepare the MoveRequest
     m_MoveRequest.Clear();
 
     m_MoveRequest.X             = stAMTM.X;
@@ -334,57 +570,72 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
     m_MoveRequest.Freeze();
 
     // send cover check to neighbors
-    for(size_t nY = 0; nY < 3; ++nY){
-        for(size_t nX = 0; nX < 3; ++nX){
-            // skip this...
-            if(nX == 1 && nY == 1){
-                m_NeighborV2D[nY][nX].Query = QUERY_NA;
-                continue;
-            }
-
-            int nNbrX = ((int)nX - 1) * m_W + m_X;
-            int nNbrY = ((int)nY - 1) * m_H + m_Y;
-
-            // no overlap, skip it
-            if(!CircleRectangleOverlap(stAMTM.X, stAMTM.Y, stAMTM.R, nNbrX, nNbrY, m_W, m_H)){
-                m_NeighborV2D[nY][nX].Query = QUERY_NA;
-                continue;
-            }
-
-            // qualified, send the cover check request
-
-            auto fnROP = [this, nX, nY](const MessagePack &rstRMPK, const Theron::Address &){
-                if(rstRMPK.Type() == MPK_OK){
-                    m_NeighborV2D[nY][nX].Query = QUERY_OK;
-                    m_NeighborV2D[nY][nX].MPKID = rstRMPK.ID(); // used when cancel the freeze
-                }else{
-                    m_NeighborV2D[nY][nX].Query = QUERY_ERROR;
-                }
-            };
-
-            AMCheckCover stAMCC;
-
-            // since we know the object is in current region
-            // we don't have to pass (UID, AddTime) to neighbors
-            stAMCC.UID = stAMTM.UID;
-            stAMCC.AddTime = stAMTM.AddTime;
-            stAMCC.X = stAMTM.X;
-            stAMCC.Y = stAMTM.Y;
-            stAMCC.R = stAMTM.R;
-
-            m_ActorPod->Forward({MPK_CHECKCOVER, stAMCC}, m_NeighborV2D[nY][nX].PodAddress, fnROP);
-
-            // set current state to be pending
-            m_NeighborV2D[nY][nX].Query = QUERY_PENDING;
-        }
-    }
+    NeighborSendCoverCheck(stAMTM.UID, stAMTM.AddTime, stAMTM.X, stAMTM.Y, stAMTM.R);
 
     // I have send MPK_CHECKCOVER to all qualified neighbors
-    // now just wait for the response
+    // now just wait for the response, install trigger here for it
+    if(m_StateHook.Installed("MoveRequest")){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog("try to install move request trigger while there still be one unfinished");
+        g_MonoServer->Restart();
+    }
+
+    auto fnMoveRequest = [this]() -> bool(){
+        switch(NeighborCheck()){
+            case QUERY_OK:
+                {
+                    // we grant permission and now it's time
+                    auto fnROP = [this](const MessagePack &rstRMPK, const Theron::Address &rstAddr){
+                        if(rstRMPK.Type() == MPK_OK){
+                            // object picked this chance to move
+                            if(m_MoveRequest.CurrIn){
+                                // inside
+                                for(auto &rstRecord: m_CORecordV){
+                                    if(true
+                                            && rstRecord.UID == m_MoveRequest.UID
+                                            && rstRecord.AddTime == m_MoveRequest.AddTime){
+                                        rstRecord.X = m_MoveRequest.X;
+                                        rstRecord.Y = m_MoveRequest.Y;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        m_MoveRequest.Clear();
+
+                        // no matter the object decide to move or not, we need to free neighbors
+                        NeighborClearQuery();
+                    };
+                    // TODO
+                    // there was a bug here
+                    // when we notified the object, then neighbor check is done
+                    // however before the object responded, this RM should still be freezed
+                    //
+                    m_MoveRequest.NeighborCheck = false;
+                    m_ActorPod->Forward(MPK_OK, m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
+                    return true;
+                }
+            case QUERY_ERROR:
+                {
+                    m_MoveRequest.Clear();
+
+                    // no matter the object decide to move or not, we need to free neighbors
+                    NeighborClearQuery();
+                    m_ActorPod->Forward(MPK_ERROR, m_MoveRequest.PodAddress, m_MoveRequest.MPKID, fnROP);
+                    return true;
+                }
+            default:
+                {
+                    return false;
+                }
+        }
+    };
+
+    m_StateHook.Install("MoveRequest", fnMoveRequest);
 }
 
-void RegionMonitor::On_MPK_TRYSPACEMOVE(
-        const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void RegionMonitor::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     if(m_MoveRequest.Freezed()){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
@@ -539,9 +790,7 @@ void RegionMonitor::On_MPK_TRYSPACEMOVE(
     // now just wait for the response
 }
 
-// add a completely new object into current region
-void RegionMonitor::On_MPK_ADDCHAROBJECT(
-        const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void RegionMonitor::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     AMAddCharObject stAMACO;
     std::memcpy(&stAMACO, rstMPK.Data(), sizeof(stAMACO));
@@ -565,8 +814,7 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
     }
 
     // try to be in a place taken by others
-    if(!stAMACO.Common.AllowVoid &&
-            !CoverValid(0, 0, stAMACO.Common.MapX, stAMACO.Common.MapY, stAMACO.Common.R)){
+    if(!stAMACO.Common.AllowVoid && !CoverValid(0, 0, stAMACO.Common.MapX, stAMACO.Common.MapY, stAMACO.Common.R)){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
@@ -577,13 +825,8 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
     // 1. allow void state, we even don't care about if current cover is freezed or not
     // 2. the new char object is only in current RM
 
-    int nObjX = stAMACO.Common.MapX - stAMACO.Common.R;
-    int nObjY = stAMACO.Common.MapY - stAMACO.Common.R;
-    int nObjW = 2 * stAMACO.Common.R;
-    int nObjH = 2 * stAMACO.Common.R;
-
     bool bAllowVoid = stAMACO.Common.AllowVoid;
-    bool bOnlyIn    = RectangleInside(m_X, m_Y, m_W, m_H, nObjX, nObjY, nObjW, nObjH);
+    bool bOnlyIn    = OnlyIn(stAMACO.Common.MapX, stAMACO.Common.MapY, stAMACO.Common.R);
 
     if(bAllowVoid || bOnlyIn){
         CharObject *pCharObject = nullptr;
@@ -646,7 +889,12 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(
     // don't allow void state, and the object is not only in one RM
     // thing be more complicated we have to ask neighbor's opinion for cover
 
-    // all needed RM are qualified?
+    // some needed neighbors are not qualified
+    if(!NeighborCheckQualified(stAMACO.X, stAMACO.Y, stAMACO.R)){
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
     bool bAllQualified = true;
     for(size_t nY = 0; nY < 3 && bAllQualified; ++nY){
         for(size_t nX = 0; nX < 3 && bAllQualified; ++nX){
@@ -799,36 +1047,45 @@ void RegionMonitor::On_MPK_QUERYSCADDRESS(const MessagePack &rstMPK, const Thero
         };
 
         m_StateHook.Install(fnResp);
+        return;
     }
 
     // oooops we have no SC address, ask map for sc address
-    if(!m_MapAddress){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "activated RM works without valid map address");
-        g_MonoServer->Restart();
+    if(m_MapAddress){
+        auto fnOnR = [nMPKID = rstMPK.ID(), rstFromAddr, this](const MessagePack &rstRMPK, const Theron::Address &){
+            switch(rstRMPK.Type()){
+                case MPK_ADDRESS:
+                    {
+                        m_SCAddress = Theron::Address((const char *)rstRMPK.Data());
+                        m_ActorPod->Forward({MPK_ADDRESS, rstRMPK.Data(), rstRMPK.DataLen()}, rstFromAddr, nMPKID);
+                        break;
+                    }
+                default:
+                    {
+                        // sc address query failed, couldn't happen
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "query service core address failed, couldn't happen");
+                        g_MonoServer->Restart();
+                        break;
+                    }
+            }
+        };
+        m_ActorPod->Forward(MPK_QUERYSCADDRESS, m_MapAddress, fnOnR);
     }
 
-    auto fnOnR = [nMPKID = rstMPK.ID(), rstFromAddr, this](const MessagePack &rstRMPK, const Theron::Address &){
-        if(rstRMPK.Type() == MPK_ADDRESS){
-            m_SCAddress = Theron::Address((const char *)rstRMPK.Data());
-            m_ActorPod->Forward({MPK_ADDRESS, rstRMPK.Data(), rstRMPK.DataLen()}, rstFromAddr, nMPKID);
-            return;
-        }
-
-        // failed
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
-    };
-
-    m_ActorPod->Forward(MPK_QUERYSCADDRESS, m_MapAddress, fnOnR);
+    // otherwise it's should be an error
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "activated RM works without valid map address");
+    g_MonoServer->Restart();
 }
 
 void RegionMonitor::On_MPK_QUERYMAPADDRESS(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
-    uint32_t nMapID = *((uint32_t *)rstMPK.Data());
+    auto nMapID = *((uint32_t *)rstMPK.Data());
     if(nMapID == m_MapID){
         if(m_MapAddress){
             std::string szMapAddr = m_MapAddress.AsString();
-            m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szMapAddr.c_str(), szMapAddr.size() + 1)}, rstFromAddr, rstMPK.ID());
+            m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szMapAddr.c_str(), 1 + szMapAddr.size())}, rstFromAddr, rstMPK.ID());
             return;
         }
 
@@ -838,6 +1095,8 @@ void RegionMonitor::On_MPK_QUERYMAPADDRESS(const MessagePack &rstMPK, const Ther
         g_MonoServer->Restart();
     }
 
-    // TODO
-    // add logic here for other map id
+    // you should ask sc directly
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "not RM's map address, ask service core for this instead");
+    g_MonoServer->Restart();
 }

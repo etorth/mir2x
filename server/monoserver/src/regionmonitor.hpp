@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 06/05/2016 22:53:11
+ *  Last Modified: 06/07/2016 18:17:54
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -125,6 +125,7 @@ class RegionMonitor: public Transponder
 
             bool    OnlyIn;
             bool    CurrIn;
+            bool    WaitCOR;             // all set, wait co's response to this move
             bool    FreezeRM;
             bool    CoverCheck;
             bool    NeighborCheck;
@@ -274,9 +275,19 @@ class RegionMonitor: public Transponder
         virtual ~RegionMonitor() = default;
 
     protected:
+        bool OnlyIn(uint32_t nMapID, int nMapX, int nMapY, int nMapR)
+        {
+            return (nMapID == m_MapID) && RectangleInside(m_X, m_Y, m_W, m_H, nMapX - nMapR, nMapY - nMapR, 2 * nMapR, 2 * nMapR);
+        }
+
         bool In(uint32_t nMapID, int nMapX, int nMapY)
         {
             return (nMapID == m_MapID) && PointInRectangle(nMapX, nMapY, m_X, m_Y, m_W, m_H);
+        }
+
+        bool NeighborIn(uint32_t nMapID, int nMapX, int nMapY)
+        {
+            return (nMapID == m_MapID) && PointInRectangle(nMapX, nMapY, m_X - m_W, m_Y - m_H, 3 * m_W, 3 * m_H);
         }
 
     public:
