@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 06/08/2016 23:16:43
+ *  Last Modified: 06/09/2016 15:25:16
  *
  *    Description: 
  *
@@ -109,10 +109,6 @@ class MonoServer final
 
     public:
         void AddLog(const std::array<std::string, 4> &, const char *, ...);
-
-    private:
-        // for DB
-        DBConnection *m_DBConnection;
 
     private:
         bool AddPlayer(uint32_t, uint32_t);

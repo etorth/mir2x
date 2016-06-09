@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/08/2016 18:16:49
+ *  Last Modified: 06/09/2016 15:34:13
  *
  *    Description: 
  *
@@ -162,7 +162,7 @@ bool Monster::ReportMove(int nX, int nY)
                 }
             default:
                 {
-                    // move failed
+                    // move failed, could be ERROR / PENDING
                     m_FreezeWalk = false;
                     break;
                 }
@@ -226,7 +226,8 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
         default:
             {
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message: type = %d, id = %d, resp = %d", rstMPK.Type(), rstMPK.ID(), rstMPK.Respond());
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message: %s", rstMPK.Name());
+                g_MonoServer->Restart();
                 break;
             }
     }

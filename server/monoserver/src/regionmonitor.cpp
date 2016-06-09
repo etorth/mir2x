@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 06/08/2016 22:26:20
+ *  Last Modified: 06/09/2016 15:52:24
  *
  *    Description: 
  *
@@ -76,9 +76,8 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
             {
                 // when operating, MonoServer is ready for use
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING,
-                        "unsupported message: type = %d, name = %s, id = %d, resp = %d",
-                        rstMPK.Type(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message: name = %s", rstMPK.Name());
+                g_MonoServer->Restart();
                 break;
             }
     }
@@ -262,12 +261,26 @@ void RegionMonitor::NeighborSendCheck(uint32_t nUID, uint32_t nAddTime, int nPos
             // QUERY_PENDING -> exit(0)
             //
             auto fnROP = [this, nX, nY](const MessagePack &rstRMPK, const Theron::Address &){
-                if(rstRMPK.Type() == MPK_OK){
-                    m_NeighborV2D[nY][nX].Query = QUERY_OK;
-                    m_NeighborV2D[nY][nX].MPKID = rstRMPK.ID(); // used when cancel the freeze
-                }else{
-                    m_NeighborV2D[nY][nX].Query = QUERY_ERROR;
-                    m_NeighborV2D[nY][nX].MPKID = 0;
+                switch(rstRMPK.Type()){
+                    case MPK_OK:
+                        {
+                            m_NeighborV2D[nY][nX].Query = QUERY_OK;
+                            m_NeighborV2D[nY][nX].MPKID = rstRMPK.ID(); // used when cancel the freeze
+                            break;
+                        }
+                    case MPK_ERROR:
+                        {
+                            m_NeighborV2D[nY][nX].Query = QUERY_ERROR;
+                            m_NeighborV2D[nY][nX].MPKID = 0;
+                            break;
+                        }
+                    default:
+                        {
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported response type");
+                            g_MonoServer->Restart();
+                            break;
+                        }
                 }
             };
 
@@ -347,14 +360,56 @@ void RegionMonitor::NeighborSendCheck(uint32_t nUID, uint32_t nAddTime, int nPos
 //     we already sent query for it and it's OTW, but now if use synchronizd, we wirte m_SCAddress, then the response which
 //     we sent before, will overwrite this, which should be OK but I want to avoid it.
 //
+// TODO: detailed description:
+//       this function try to query for RM, and apply the result to the fnUseRMAddr(nQuery, stRMAddr), when the bAddTrigger
+//       is set, this procedure will repeat until it got an non-PENDING result, and apply it to fnUseRMAddr(), otherwise it
+//       will do a one-shoot query and apply fnUseRMAddr(), the nQuery could be PENDING so.
+//          
+//              while(true){
+//                  nQuery, stRMAddr = GetRMAddress();
+//                  if(nQuery == PENDING){
+//                      if(!bAddTrigger){
+//                          fnUseRMAddr(PENDING, Null());
+//                          return;
+//                      }else{
+//                          continue;
+//                      }
+//                  }else{
+//                      fnUseRMAddr(PENDING, Null());
+//                      return;
+//                  }
+//              }
+//
+// maybe I should inform the fnUseRMAddr() everytime when I do a query, but current the described logic is most desired so
+// I design this function in this way
+//
 // arguments:       nMapID      :
 //                  nMapX       : mentioned, we may have no info of map RM metrics of nMapID
-//                  nMapY       :
-//                  fnUseRMAddr : callback when we got this RM address
-//                                TODO: currently I didn't check the invocability of it, if not callable then
-//                                      just drive the corresponding RM to be ready
-int RegionMonitor::QueryRMAddress(uint32_t nMapID, int nMapX, int nMapY, const std::function<void(const Theron::Address &)> &fnUseRMAddr)
+//                  nMapY       : as above
+//                  bAddTrigger : we'll add a trigger to repeat to get non-PENDING result and apply the callback if true
+//                  fnUseRMAddr : callback to handle when we get meaningful state in form:
+//                                  fnUseRMAddr(int nQuery, Address stRMAddr);
+//                                      nQuery      : support OK, PENDING, ERROR to show one-shoot query result:
+//                                                      QUERY_OK      : current rm is ready for use
+//                                                      QUERY_PENDING : sorry it's not ready now, we can't provide it
+//                                                      QUERY_ERROR   : now we are sure the rm you want is invalid
+//                                      stRMAddr    : valid address or empty decided by nQuery
+//
+// legal return value:
+//  QUERY_OK        : only happen when the queried rm is in the 3 * 3 matrix, means we queried and get the result and applied
+//                    it to fnUseRMAddr(), even the query result could be invalid, means the neighbor is not capable
+//  QUERY_PENDING   : can't decide yet, need more info
+//
+// TODO: currently I didn't check the invocability of fnUseRMAddr, if not callable then just drive the corresponding RM to
+//       be ready, and this function is quite complecated
+//
+int RegionMonitor::QueryRMAddress(uint32_t nMapID, int nMapX, int nMapY, bool bAddTrigger, const std::function<void(int, const Theron::Address &)> &fnUseRMAddr)
 {
+    if(!ActorPodValid()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "try to send query when actor is not activated");
+        g_MonoServer->Restart();
+    }
     // 1. check arguments
     //    TODO: do I need to check whether  fnUseRMAddr is callable???
     if(!(nMapID > 0 && nMapX >= 0 && nMapY >= 0 /* && fnUseRMAddr */)){
@@ -372,118 +427,90 @@ int RegionMonitor::QueryRMAddress(uint32_t nMapID, int nMapX, int nMapY, const s
 
     // for those RM's we already have address, short it, this NeighborAddress() will
     // return all corresponding address in the 3 * 3 matrix even for (1, 1)
-    if(NeighborIn(nMapID, nMapX, nMapY)){ 
+    if(NeighborIn(nMapID, nMapX, nMapY)){
         if(fnUseRMAddr){
-            fnUseRMAddr(NeighborAddress(nMapX, nMapY));
+            auto rstNRMAddr = NeighborAddress(nMapX, nMapY);
+            fnUseRMAddr(rstNRMAddr ? QUERY_OK : QUERY_ERROR, rstNRMAddr);
         }
         return QUERY_OK;
     }
 
     // 3. we need the service core address for rm address
-    if(m_MapID != nMapID && !m_SCAddress){
-        switch(m_SCAddressQuery){
-            case QUERY_NA:
-                {
-                    // we haven't ask for the service core address yet
-                    // prepare callback when we got the service core address
-                    auto fnOnR = [this, nMapID, nMapX, nMapY, fnUseRMAddr](const MessagePack &rstRMPK, const Theron::Address &){
-                        switch(rstRMPK.Type()){
-                            case MPK_ADDRESS:
-                                {
-                                    m_SCAddressQuery = QUERY_OK;
-                                    m_SCAddress = Theron::Address((char *)(rstRMPK.Data()));
-
-                                    // since now service core address is ready, we call itself again
-                                    QueryRMAddress(nMapID, nMapX, nMapY, fnUseRMAddr);
-                                    break;
-                                }
-                            default:
-                                {
-                                    // TODO strict condition
-                                    //      query service core address won't tolerate any error / failure
-                                    extern MonoServer *g_MonoServer;
-                                    g_MonoServer->AddLog(LOGTYPE_WARNING, "query service core address failed");
-                                    g_MonoServer->Restart();
-                                    break;
-                                }
-                        }
-                    };
-
-                    AMQueryRMAddress stAMQRMA;
-                    stAMQRMA.MapID = nMapID;
-                    stAMQRMA.MapX  = nMapX;
-                    stAMQRMA.MapY  = nMapY;
-
-                    m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRMA}, m_MapAddress, fnOnR);
-                    break;
+    //    check service core address validness
+    switch(QuerySCAddress()){
+        case QUERY_OK:
+            {
+                // ok service core address is ready to use, let's jump out of here to avoid
+                // to put all rest logic in current pareenthesis
+                if(m_SCAddress){
+                    goto __REGIONMONITOR_QUERYRMADDRESS_JUMP_LABEL_1;
                 }
-            case QUERY_PENDING:
-                {
-                    // we asked the service core address before and now it's OTW
-                    // since we don't want to ask one more time, register an anyomous trigger
-                    auto fnOnSCValid = [this, nMapID, nMapX, nMapY, fnUseRMAddr]() -> bool{
-                        switch(m_SCAddressQuery){
+
+                // otherwise this should be an error
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "inconsistant internal logic");
+                g_MonoServer->Restart();
+                break;
+            }
+        case QUERY_PENDING:
+            {
+                // the service core address is not ready now, but it's OTW, so if we are asked to install
+                // a trigger, we will make it to repeat to check whether the service core address is
+                // ready, if yes, we call QueryRMAddres() again to finish the task
+                if(bAddTrigger){
+                    auto fnOnSCValid = [this, nMapID, nMapX, nMapY, bAddTrigger, fnUseRMAddr]() -> bool{
+                        switch(QuerySCAddress()){
                             case QUERY_OK:
                                 {
-                                    if(m_SCAddress){
-                                        // service core address is ready, call it again
-                                        QueryRMAddress(nMapID, nMapX, nMapY, fnUseRMAddr);
-                                        // uninstall current trigger, but the work of fnUseRMAddr
-                                        // may still be unfinished
-                                        return true;
-                                    }
-
-                                    // you promise the sc address is valid but actually it's not
-                                    extern MonoServer *g_MonoServer;
-                                    g_MonoServer->AddLog(LOGTYPE_WARNING, "internal logic error");
-                                    g_MonoServer->Restart();
-
-                                    // to make the compiler happy
-                                    break;
+                                    QueryRMAddress(nMapID, nMapX, nMapY, bAddTrigger, fnUseRMAddr);
+                                    return true;
                                 }
                             case QUERY_PENDING:
                                 {
-                                    // do nothing, just wait
                                     return false;
                                 }
                             default:
                                 {
-                                    // couldn't be any other state, the m_SCAddressQuery can only be
-                                    // NA, OK, PENDING, since we start from PENDING, it can only be
-                                    // PENDING and OK
                                     extern MonoServer *g_MonoServer;
-                                    g_MonoServer->AddLog(LOGTYPE_WARNING, "unexpected logic");
+                                    g_MonoServer->AddLog(LOGTYPE_WARNING, "inconsistant internal logic");
                                     g_MonoServer->Restart();
                                     break;
                                 }
                         }
-
-                        // make the compiler happy
-                        return true;
+                        // to makethe complier happy
+                        return false;
                     };
 
+                    // install this trigger
                     m_StateHook.Install(fnOnSCValid);
-                    break;
-                }
-            default:
-                {
-                    // m_SCAddressQuery can only be NA or PENDING when m_SCAddress is empty
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid state for m_SCAddressQuery");
-                    g_MonoServer->Restart();
-                    break;
-                }
-        }
 
-        // current call of QueryRMAddress() ends because of invalidness of service core
-        // but we installed trigger / callback to call this function again when service
-        // core address is ready
-        return QUERY_PENDING;
+                    // then return QUERY_PENDING
+                }else{
+                    // don't need the trigger, since QuerySCAddress() already done the job for service core
+                    // address query, then we finished here, so QueryRMAddress(..., false, stEmtpyHandler)
+                    // won't make any sense expect help to call QuerySCAddress()
+
+                    // then return QUERY_PENDING
+                }
+                break;
+            }
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "inconsistant internal logic");
+                g_MonoServer->Restart();
+                break;
+            }
+
+            // for QueryRMAddress() if the point is not in the 3 * 3 matrix then we always return QUERY_PENDING
+            return QUERY_PENDING;
     }
 
-    // ok for here service core address and map address are both ready
+__REGIONMONITOR_QUERYRMADDRESS_JUMP_LABEL_1:
+    // after this there is valid service core address to use
 
-    // 4. set address to ask
+    // 4. ok for here service core address and map address are both ready
+    //    set address to ask
     Theron::Address stAskAddr = ((nMapID == m_MapID) ? m_MapAddress : m_SCAddress);
     if(!stAskAddr){
         extern MonoServer *g_MonoServer;
@@ -535,7 +562,7 @@ int RegionMonitor::QueryRMAddress(uint32_t nMapID, int nMapX, int nMapY, const s
                 {
                     // ready to use
                     if(fnUseRMAddr){
-                        fnUseRMAddr(stRMAddr);
+                        fnUseRMAddr(QUERY_OK, stRMAddr);
                     }
                     return true;
                 }
@@ -544,7 +571,7 @@ int RegionMonitor::QueryRMAddress(uint32_t nMapID, int nMapX, int nMapY, const s
                     // we apply it to the null address and won't ask again
                     // can only be ERROR, this could happen since we may try to get an address not capable
                     if(fnUseRMAddr){
-                        fnUseRMAddr(Theron::Address::Null());
+                        fnUseRMAddr(QUERY_ERROR, Theron::Address::Null());
                     }
                     return true;
                 }
@@ -552,24 +579,26 @@ int RegionMonitor::QueryRMAddress(uint32_t nMapID, int nMapX, int nMapY, const s
     };
 
     // 6. prepare for the callback of the fisrst shoot, could be one shoot done
-    auto fnOnRRR = [this, fnGetRMAddr, fnUseRMAddr](const MessagePack &rstRRRMPK, const Theron::Address &){
+    auto fnOnRRR = [this, bAddTrigger, fnGetRMAddr, fnUseRMAddr](const MessagePack &rstRRRMPK, const Theron::Address &){
         switch(rstRRRMPK.Type()){
             case MPK_ADDRESS:
                 {
                     if(fnUseRMAddr){
-                        fnUseRMAddr(Theron::Address((char *)(rstRRRMPK.Data())));
+                        fnUseRMAddr(QUERY_OK, Theron::Address((char *)(rstRRRMPK.Data())));
                     }
                     break;
                 }
             case MPK_PENDING:
                 {
-                    m_StateHook.Install(fnGetRMAddr);
+                    if(bAddTrigger){
+                        m_StateHook.Install(fnGetRMAddr);
+                    }
                     break;
                 }
             default:
                 {
                     if(fnUseRMAddr){
-                        fnUseRMAddr(Theron::Address::Null());
+                        fnUseRMAddr(QUERY_ERROR, Theron::Address::Null());
                     }
                     break;
                 }
@@ -578,4 +607,107 @@ int RegionMonitor::QueryRMAddress(uint32_t nMapID, int nMapX, int nMapY, const s
 
     m_ActorPod->Forward(MPK_QUERYRMADDRESS, stAskAddr, fnOnRRR);
     return QUERY_PENDING;
+}
+
+// try to query the service core address, and since we have place to hold this result
+// we don't need to provide a callback here
+//
+// TODO I tolerated the PENDING state when ask service core address from server map
+//      is this proper???
+//
+// legal return:
+//              QUERY_OK         : ready to use
+//              QUERY_PENDING    : still on the way
+int RegionMonitor::QuerySCAddress()
+{
+    switch(m_SCAddressQuery){
+        case QUERY_OK:
+            {
+                return QUERY_OK;
+            }
+        case QUERY_PENDING:
+            {
+                return QUERY_PENDING;
+            }
+        case QUERY_NA:
+            {
+                // 1. check state for currnet actor
+                if(!ActorPodValid()){
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "try to send message before activated");
+                    g_MonoServer->Restart();
+                }
+
+                if(!(m_MapID && m_MapAddress)){
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "activated rm works with invalid state");
+                    g_MonoServer->Restart();
+                }
+
+                // 2. ask for service core address
+                auto fnOnR = [this](const MessagePack &rstRMPK, const Theron::Address &){
+                    switch(rstRMPK.Type()){
+                        case MPK_ADDRESS:
+                            {
+                                m_SCAddress = Theron::Address((const char *)rstRMPK.Data());
+                                m_SCAddressQuery = QUERY_OK;
+                                break;
+                            }
+                        case MPK_PENDING:
+                            {
+                                // ask server map for service core address but the map said it's not ready currently, we
+                                // need to ask again if we need it, so we have to put NA to m_SCAddressQuery
+                                //
+                                // TODO do I need to tolerate the PENDING here?
+                                //      previously I take PENDING of sc address query as serious error
+
+                                // 1. put NA to m_SCAddressQuery to ask agin for QuerySCAddress()
+                                m_SCAddressQuery = QUERY_NA;
+
+                                // 2. query again, we have two ways to ask
+                                //      1. directly ask for it
+                                //          QuerySCAddress();
+                                //      2. put it in the trigger
+                                //          m_StateHook.Install([this](){
+                                //              return QuerySCAddress() == QUERY_OK;
+                                //          });
+                                //
+                                //    but don't use EventTaskHub to ask since it interfer the interal state
+                                //          g_EventTaskHub->Add(200, [this](){ QuerySCAddress(); });
+                                //
+                                //    method-1 is better since it only repeat on server map's response, method-2 will be
+                                //    triggered every time the actor got a message
+                                //
+                                QuerySCAddress();
+                                break;
+                            }
+                        default:
+                            {
+                                // sc address query failed, couldn't happen
+                                extern MonoServer *g_MonoServer;
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "query service core address failed, couldn't happen");
+                                g_MonoServer->Restart();
+                                break;
+                            }
+                    }
+                };
+
+                m_ActorPod->Forward(MPK_QUERYSCADDRESS, m_MapAddress, fnOnR);
+                m_SCAddressQuery = QUERY_PENDING;
+
+                // we are still pending now
+                return QUERY_PENDING;
+            }
+        default:
+            {
+                // otherwise it's should be an error
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "activated RM works without valid map address");
+                g_MonoServer->Restart();
+                return QUERY_ERROR;
+            }
+    }
+
+    // to make the compiler happy
+    return QUERY_ERROR;
 }

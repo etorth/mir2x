@@ -21,8 +21,7 @@ ENDIF()
 
 SET(CMAKE_BUILD_TYPE "Debug")
 # disable optimization for the debug mode
-# SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -Wextra -Wunused -g2 -ggdb3 -pedantic -Werror")
-SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -Wall -Wextra -Wunused -g2 -ggdb3 -pedantic -Werror")
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -Wall -Wextra -Wunused -g3 -ggdb3 -pedantic -Werror -DMIR2X_DEBUG")
 SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
 SET(COMMON_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/common/src)
@@ -32,7 +31,6 @@ FIND_PACKAGE(OpenGL REQUIRED)
 
 # for libthread, compile arguments matching is required
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DTHERON_CPP11=1 -DTHERON_POSIX=0 -DTHERON_XS=1")
-# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DTHERON_CPP11=0 -DTHERON_POSIX=1")
 
 ADD_SUBDIRECTORY(tools)
 ADD_SUBDIRECTORY(common)

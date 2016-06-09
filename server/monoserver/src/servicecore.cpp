@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 06/08/2016 22:10:51
+ *  Last Modified: 06/09/2016 15:37:46
  *
  *    Description: 
  *
@@ -90,8 +90,8 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
         default:
             {
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING,
-                        "unsupported message type: (%d:%s)", rstMPK.Type(), rstMPK.Name());
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message: %s", rstMPK.Name());
+                g_MonoServer->Restart();
                 break;
             }
     }
@@ -373,6 +373,7 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nMapX, int nMapY, bool bAdd
                 {
                     extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message type %s", rstRMPK.Name());
+                    g_MonoServer->Restart();
                     return;
                 }
         }

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 06/05/2016 11:51:57
+ *  Last Modified: 06/09/2016 15:36:11
  *
  *    Description: 
  *
@@ -112,8 +112,8 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
         default:
             {
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING,
-                        "unsupported message type: (%d:%s)", rstMPK.Type(), rstMPK.Name());
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message: %s", rstMPK.Name());
+                g_MonoServer->Restart();
                 break;
             }
     }

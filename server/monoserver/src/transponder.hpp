@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.hpp
  *        Created: 04/23/2016 10:51:19
- *  Last Modified: 06/05/2016 13:50:29
+ *  Last Modified: 06/09/2016 15:09:24
  *
  *    Description: base of actor model in mir2x, Theron::Actor acitvated at create
  *                 time so no way to control it, instead Transponder can 
@@ -71,6 +71,9 @@ class Transponder
         Transponder();
         virtual ~Transponder();
 
+    public:
+        bool ActorPodValid();
+        
     public:
         virtual void Operate(const MessagePack &, const Theron::Address &) = 0;
 

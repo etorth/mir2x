@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.cpp
  *        Created: 04/27/2016 00:05:15
- *  Last Modified: 06/05/2016 13:55:30
+ *  Last Modified: 06/09/2016 15:09:43
  *
  *    Description: 
  *
@@ -68,6 +68,11 @@ void Transponder::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
 {
     extern MonoServer *g_MonoServer;
     m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTimeTick(), fnCmd);
+}
+
+bool Transponder::ActorPodValid()
+{
+    return m_ActorPod && m_ActorPod->GetAddress();
 }
 
 // bool Transponder::Send(const MessagePack &rstMSG, const Theron::Address &rstFromAddress,

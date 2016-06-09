@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 06/08/2016 23:14:01
+ *  Last Modified: 06/09/2016 14:59:55
  *
  *    Description: 
  *
@@ -162,14 +162,41 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
     }
 
     // 0-2. define the lambda to send address string, will be used many times
-    auto fnSendRMAddr = [this, rstFromAddr, nMPKID = rstMPK.ID()](const Theron::Address & stRMAddr){
-        if(stRMAddr){
-            std::string szAddr = stRMAddr.AsString();
-            m_ActorPod->Forward({MPK_ADDRESS, (uint8_t *)szAddr.c_str(), 1 + szAddr.size()}, rstFromAddr, nMPKID);
-        }else{
-            // we report error if with empty address, so if other logic is needed
-            // check stRMAddr before invoke this lambda
-            m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
+    auto fnSendRMAddr = [this, rstFromAddr, nMPKID = rstMPK.ID()](int nQuery, const Theron::Address & stRMAddr){
+        switch(nQuery){
+            case QUERY_OK:
+                {
+                    if(stRMAddr){
+                        std::string szAddr = stRMAddr.AsString();
+                        m_ActorPod->Forward({MPK_ADDRESS, (uint8_t *)szAddr.c_str(), 1 + szAddr.size()}, rstFromAddr, nMPKID);
+                        return;
+                    }
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "inconsistant logic: invalid argument for lambda");
+                    g_MonoServer->Restart();
+                    break;
+                }
+            case QUERY_PENDING:
+                {
+                    // the rm address is pending and we just report it
+                    // TODO: I decide to obey the pending rule, always
+                    m_ActorPod->Forward(MPK_PENDING, rstFromAddr, nMPKID);
+                    break;
+                }
+            case QUERY_ERROR:
+                {
+                    // the rm queried is not valid, not capable to hold co
+                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, nMPKID);
+                    break;
+                }
+            case QUERY_NA:
+            default:
+                {
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported query state");
+                    g_MonoServer->Restart();
+                    break;
+                }
         }
     };
 
@@ -229,15 +256,15 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
         // 1-1-2. not in current RM but in neighbor?
         if(NeighborIn(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
             // return the RM address
-            // couldn't return (1, 1) since we have checked In()
-            // fnSendRMAddr() send MPK_ERROR to co, means this neighbor is not capable to hoid the co
-            fnSendRMAddr(NeighborAddress(stAMTM.X, stAMTM.Y));
+            // this won't return (1, 1) since we have shorted it by checking In()
+            auto rstNRMAddr = NeighborAddress(stAMTM.X, stAMTM.Y);
+            fnSendRMAddr(rstNRMAddr ? QUERY_OK : QUERY_ERROR, rstNRMAddr);
             return;
         }
 
         // 1-1-3. even not in neighbor, this is a space move request, ooops it's annoying
         //        I use GetRMAddress() function to register state hooks
-        QueryRMAddress(stAMTM.MapID, stAMTM.X, stAMTM.Y, fnSendRMAddr);
+        QueryRMAddress(stAMTM.MapID, stAMTM.X, stAMTM.Y, false, fnSendRMAddr);
         return;
     }
 
@@ -383,16 +410,16 @@ void RegionMonitor::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Addr
 
     if(NeighborIn(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
         // return the RM address
-        // couldn't return (1, 1) since we have checked In()
-        // fnSendRMAddr() send MPK_ERROR to co, means this neighbor is not capable to hoid the co
-        fnSendRMAddr(NeighborAddress(stAMTM.X, stAMTM.Y));
+        // this won't return (1, 1) since we have shorted it by checking In()
+        auto rstNRMAddr = NeighborAddress(stAMTM.X, stAMTM.Y);
+        fnSendRMAddr(rstNRMAddr ? QUERY_OK : QUERY_ERROR, rstNRMAddr);
         return;
     }
 
     // now this move request has nothing to do with current RM, then it's a space move, we have 
     // to know the destination RM address, we design a logic which can take care of it
 
-    QueryRMAddress(stAMTM.MapID, stAMTM.X, stAMTM.Y, fnSendRMAddr);
+    QueryRMAddress(stAMTM.MapID, stAMTM.X, stAMTM.Y, false, fnSendRMAddr);
 }
 
 void RegionMonitor::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -835,6 +862,7 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron
         m_StateHook.Install("AddCO", fnAddCO);
         return;
     }
+
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "internal logic error, shouldn't be here");
     g_MonoServer->Restart();
@@ -851,75 +879,52 @@ void RegionMonitor::On_MPK_MOTIONSTATE(const MessagePack &rstMPK, const Theron::
 
 void RegionMonitor::On_MPK_QUERYSCADDRESS(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
-    if(m_SCAddress){
-        std::string szAddr = m_SCAddress.AsString();
-        m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szAddr.c_str()), 1 + szAddr.size()}, rstFromAddr, rstMPK.ID());
-        return;
-    }
-
-    // sc address is not valid, but it's on the way
-    if(m_SCAddressQuery == QUERY_PENDING){
-        auto fnResp = [this, rstFromAddr, rstMPK](){
-            if(m_SCAddress){
-                std::string szAddr = m_SCAddress.AsString();
-                m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szAddr.c_str()), 1 + szAddr.size()}, rstFromAddr, rstMPK.ID());
-                return true;
+    switch(QuerySCAddress()){
+        case QUERY_OK:
+            {
+                if(m_SCAddress){
+                    std::string szAddr = m_SCAddress.AsString();
+                    m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szAddr.c_str()), 1 + szAddr.size()}, rstFromAddr, rstMPK.ID());
+                    return;
+                }
+                // else this should be an error
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "internal logic doesn't agree");
+                g_MonoServer->Restart();
+                break;
             }
-
-            return false;
-        };
-
-        m_StateHook.Install(fnResp);
-        return;
-    }
-
-    // oooops we have no SC address, ask map for sc address
-    if(m_MapAddress){
-        auto fnOnR = [nMPKID = rstMPK.ID(), rstFromAddr, this](const MessagePack &rstRMPK, const Theron::Address &){
-            switch(rstRMPK.Type()){
-                case MPK_ADDRESS:
-                    {
-                        m_SCAddress = Theron::Address((const char *)rstRMPK.Data());
-                        m_ActorPod->Forward({MPK_ADDRESS, rstRMPK.Data(), rstRMPK.DataLen()}, rstFromAddr, nMPKID);
-                        break;
-                    }
-                default:
-                    {
-                        // sc address query failed, couldn't happen
-                        extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "query service core address failed, couldn't happen");
-                        g_MonoServer->Restart();
-                        break;
-                    }
+        case QUERY_PENDING:
+            {
+                m_ActorPod->Forward(MPK_PENDING, rstFromAddr, rstMPK.ID());
+                break;
             }
-        };
-        m_ActorPod->Forward(MPK_QUERYSCADDRESS, m_MapAddress, fnOnR);
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "unexcepted return state for query service core address");
+                g_MonoServer->Restart();
+                break;
+            }
     }
-
-    // otherwise it's should be an error
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "activated RM works without valid map address");
-    g_MonoServer->Restart();
 }
 
 void RegionMonitor::On_MPK_QUERYMAPADDRESS(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
-    auto nMapID = *((uint32_t *)rstMPK.Data());
-    if(nMapID == m_MapID){
-        if(m_MapAddress){
-            std::string szMapAddr = m_MapAddress.AsString();
-            m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szMapAddr.c_str(), 1 + szMapAddr.size())}, rstFromAddr, rstMPK.ID());
-            return;
-        }
-
+    if(!(m_MapID && m_MapAddress)){
         // otherwise it's should be an error
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "activated RM works without valid map address");
         g_MonoServer->Restart();
     }
 
+    if(*((uint32_t *)rstMPK.Data()) == m_MapID){
+        std::string szMapAddr = m_MapAddress.AsString();
+        m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szMapAddr.c_str(), 1 + szMapAddr.size())}, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
     // you should ask sc directly
     extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "not RM's map address, ask service core for this instead");
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "not current RM's map address, ask service core for this instead");
     g_MonoServer->Restart();
 }

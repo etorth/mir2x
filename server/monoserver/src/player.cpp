@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/05/2016 22:36:31
+ *  Last Modified: 06/09/2016 15:34:56
  *
  *    Description: 
  *
@@ -61,7 +61,8 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         default:
             {
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message: type = %d, id = %d, resp = %d", rstMPK.Type(), rstMPK.ID(), rstMPK.Respond());
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message: %s", rstMPK.Name());
+                g_MonoServer->Restart();
                 break;
             }
     }

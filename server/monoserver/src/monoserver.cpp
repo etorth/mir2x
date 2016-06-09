@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/08/2016 23:18:25
+ *  Last Modified: 06/09/2016 15:24:52
  *
  *    Description: 
  *
@@ -40,6 +40,8 @@ MonoServer::MonoServer()
     : m_LogBuf(nullptr)
     , m_LogBufSize(0)
     , m_ObjectUID(1)
+    , m_ServiceCore(nullptr)
+    , m_SCAddress(Theron::Address::Null())
 {
     // 1. initialization of time point
     m_StartTime = std::chrono::system_clock::now();
@@ -169,9 +171,9 @@ void MonoServer::Launch()
     g_EventTaskHub->Launch();
 
     AddMonster(1, 1, 765, 573);
-    AddMonster(1, 1, 442, 713);
-    AddMonster(1, 1, 836, 530);
-    AddMonster(1, 1, 932, 622);
+    // AddMonster(1, 1, 442, 713);
+    // AddMonster(1, 1, 836, 530);
+    // AddMonster(1, 1, 932, 622);
 }
 
 void MonoServer::Restart()
