@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/29/2016 23:36:54
+ *  Last Modified: 06/08/2016 23:16:43
  *
  *    Description: 
  *
@@ -138,7 +138,7 @@ class MonoServer final
         std::chrono::time_point<std::chrono::system_clock> m_StartTime;
 
     public:
-        void AddMonster(uint32_t, uint32_t, int, int, bool);
+        void AddMonster(uint32_t, uint32_t, int, int);
 
     public:
         uint32_t GetUID()

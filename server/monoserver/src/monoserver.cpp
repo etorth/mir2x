@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/05/2016 21:50:09
+ *  Last Modified: 06/08/2016 23:18:25
  *
  *    Description: 
  *
@@ -168,10 +168,10 @@ void MonoServer::Launch()
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
 
-    AddMonster(1, 1, 765, 573, false);
-    AddMonster(1, 1, 442, 713, false);
-    AddMonster(1, 1, 836, 530, false);
-    AddMonster(1, 1, 932, 622, false);
+    AddMonster(1, 1, 765, 573);
+    AddMonster(1, 1, 442, 713);
+    AddMonster(1, 1, 836, 530);
+    AddMonster(1, 1, 932, 622);
 }
 
 void MonoServer::Restart()
@@ -311,7 +311,7 @@ bool MonoServer::InitMonsterItem()
 //
 // but if no response, we never know this function is successful or not because
 // we won't store monster (UID, AddTime)
-void MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bAllowVoid)
+void MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY)
 {
     AMAddCharObject stAMACO;
     stAMACO.Type = OBJECT_MONSTER;
@@ -319,8 +319,7 @@ void MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
     stAMACO.Common.MapID     = nMapID;
     stAMACO.Common.MapX      = nX;
     stAMACO.Common.MapY      = nY;
-    stAMACO.Common.R         = 10; // TODO
-    stAMACO.Common.AllowVoid = bAllowVoid;
+    stAMACO.Common.R         = 10;
 
     stAMACO.Monster.MonsterID = nMonsterID;
 

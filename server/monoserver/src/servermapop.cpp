@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 06/05/2016 11:51:24
+ *  Last Modified: 06/08/2016 21:53:03
  *
  *    Description: 
  *
@@ -146,18 +146,33 @@ void ServerMap::On_MPK_REGIONMONITORREADY(const MessagePack &rstMPK, const Thero
 //
 void ServerMap::On_MPK_QUERYRMADDRESS(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
-    AMQueryRMAddress stAMQRA;
-    std::memcpy(&stAMQRA, rstMPK.Data(), sizeof(stAMQRA));
+    AMQueryRMAddress stAMQRMA;
+    std::memcpy(&stAMQRMA, rstMPK.Data(), sizeof(stAMQRMA));
 
-    // 1. check parameters
-    if(stAMQRA.MapID != m_MapID
-            || stAMQRA.RMY < 0 || (size_t)stAMQRA.RMY >= m_RMRecordV2D.size()
-            || stAMQRA.RMX < 0 || (size_t)stAMQRA.RMX >= m_RMRecordV2D[0].size()){
+    // 1. check map id
+    if(stAMQRMA.MapID != m_MapID){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "query rm address with another map id, ask sc directly");
+        g_MonoServer->Restart();
+    }
+
+    // 2. check boundary
+    if(!((stAMQRMA.MapX >= 0 && stAMQRMA.MapX < W() * SYS_MAPGRIDXP) && (stAMQRMA.MapY >= 0 && stAMQRMA.MapY < H() * SYS_MAPGRIDYP))){
+        // TODO: out of bounday, should I kill current process or just return ERROR???
+        //       RM and CO has no idea of map size, so this check could happen...
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
 
-    // 2. pending state
+    int nRMX = stAMQRMA.MapX / SYS_MAPGRIDXP / m_RegionW;
+    int nRMY = stAMQRMA.MapY / SYS_MAPGRIDYP / m_RegionH;
+
+    if(!((nRMY >= 0 && nRMY < (int)m_RMRecordV2D.size()) && (nRMX >= 0 && nRMX < (int)m_RMRecordV2D[0].size()))){
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    // 3. pending state
     if(!(RegionMonitorReady() || CheckRegionMonitorReady())){
         // TODO: why I didn't put it in the ctor?
         // when create the RM's in CreateRegionMonterV2D(), I need to access
@@ -171,21 +186,19 @@ void ServerMap::On_MPK_QUERYRMADDRESS(const MessagePack &rstMPK, const Theron::A
     }
 
     // 3. all set we can anwser this query
-    if(!m_RMRecordV2D[stAMQRA.RMY][stAMQRA.RMX].Valid()){
+    if(!m_RMRecordV2D[nRMY][nRMX].Valid()){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
 
-    auto rstRMAddr = m_RMRecordV2D[stAMQRA.RMY][stAMQRA.RMX].PodAddress;
-    // if(rstRMAddr == Theron::Address::Null()){
+    auto &rstRMAddr = m_RMRecordV2D[nRMY][nRMX].PodAddress;
     if(!rstRMAddr){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
 
     std::string szRMAddr = rstRMAddr.AsString();
-    m_ActorPod->Forward({MPK_ADDRESS,
-            (const uint8_t *)szRMAddr.c_str(), szRMAddr.size() + 1}, rstFromAddr, rstMPK.ID());
+    m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)szRMAddr.c_str(), 1 + szRMAddr.size()}, rstFromAddr, rstMPK.ID());
 }
 
 // I was tring to use a routing protocol to dispatch this state locally, then I found it's

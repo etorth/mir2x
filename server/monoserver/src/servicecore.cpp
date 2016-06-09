@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 06/05/2016 17:01:18
+ *  Last Modified: 06/08/2016 22:10:51
  *
  *    Description: 
  *
@@ -182,8 +182,8 @@ bool ServiceCore::ValidP(uint32_t nMapID, int nMapX, int nMapY)
 // send query to corresponding map pod
 //
 //  nMapID      :
-//  nRMX        :
-//  nRMY        :
+//  nMapX       :
+//  nMapY       :
 //  bAddTrigger : if false, only do local query and one possible remote query. if
 //                true, after the remote query, if we get PENDING response, this
 //                function will put a self-driven anynomous trigger to continue
@@ -195,13 +195,13 @@ bool ServiceCore::ValidP(uint32_t nMapID, int nMapX, int nMapY)
 //                and this trigger get pending again , then it add a trigger...
 //                
 // return QUERY_XXX, after this function, the nMapID always has a record, even
-// it may only be a place holder, and if (nMapID, nRMX, nRMY) valid then it also
+// it may only be a place holder, and if (nMapID, nMapX, nMapY) valid then it also
 // create a RM record for it.
 //
-int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTrigger)
+int ServiceCore::QueryRMAddress(uint32_t nMapID, int nMapX, int nMapY, bool bAddTrigger)
 {
     // argument check
-    if(nMapID == 0 || nRMX < 0 || nRMY < 0){ return QUERY_ERROR; }
+    if(nMapID == 0 || nMapX < 0 || nMapY < 0){ return QUERY_ERROR; }
 
     auto pMap = m_MapRecordMap.find(nMapID);
 
@@ -223,7 +223,7 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
     auto &rstMapRecord = m_MapRecordMap[nMapID];
 
     // tried, but turns out it's only a place holder, not valid
-    if(rstMapRecord.PodAddress == Theron::Address::Null()){ return QUERY_ERROR; }
+    if(!rstMapRecord.PodAddress){ return QUERY_ERROR; }
 
     // it's a valid map, try to figure the RM parameters
     int nRMW = rstMapRecord.RMW;
@@ -237,6 +237,9 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
 
     int nRMXEnd = (rstMapRecord.GridW + nRMW - 1) / nRMW;
     int nRMYEnd = (rstMapRecord.GridH + nRMH - 1) / nRMH;
+
+    int nRMX = nMapX / SYS_MAPGRIDXP / nRMW;
+    int nRMY = nMapY / SYS_MAPGRIDYP / nRMH;
 
     // ooops outside
     if(nRMX >= nRMXEnd || nRMY >= nRMYEnd){ return QUERY_ERROR; }
@@ -283,12 +286,12 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
 
     // 2. ask the corresponding map
     AMQueryRMAddress stAMQRMA;
-    stAMQRMA.RMX   = nRMX;
-    stAMQRMA.RMY   = nRMY;
+    stAMQRMA.MapX  = nMapX;
+    stAMQRMA.MapY  = nMapY;
     stAMQRMA.MapID = nMapID;
 
     // 3. define the resp handler, we need ask again if we get pending answer
-    auto fnOnR = [this, nMapID, nRMX, nRMY, nRMCacheKey, bAddTrigger](const MessagePack &rstRMPK, const Theron::Address &){
+    auto fnOnR = [this, nMapID, nMapX, nMapY, nRMCacheKey, bAddTrigger](const MessagePack &rstRMPK, const Theron::Address &){
         // assume (nMapID, nRMCacheKey) is always valid now
         auto &rstRMRecord = m_MapRecordMap[nMapID].RMRecordMap[nRMCacheKey];
         switch(rstRMPK.Type()){
@@ -311,8 +314,17 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
                 }
             case MPK_ERROR:
                 {
-                    // ok this RM is not valid
-                    // TODO: we have no further info for the failure
+                    // TODO: here we don't have further information
+                    //       for server map if queried RM is out of boundary it won't kill process
+                    //       instead it return an ERROR, and if the queried RM is invalid, it aslo
+                    //       return an ERROR
+                    //
+                    //       so if there is any inconsitancy of current map record between, then
+                    //       we couldn't handle this ERROR correctly
+                    //
+                    //       but if current record (cache) is good, then there could not be any
+                    //       problem of ``out of boundary" since we checked it before sending this
+                    //       query
                     rstRMRecord.Query = QUERY_NA;
                     rstRMRecord.PodAddress = Theron::Address::Null();
                     return;
@@ -341,9 +353,9 @@ int ServiceCore::QueryRMAddress(uint32_t nMapID, int nRMX, int nRMY, bool bAddTr
                     SyncDriver().Forward(MPK_DUMMY, m_ActorPod->GetAddress());
 
                     // since we get a pending answer, we have to ask again
-                    auto fnTmpTrigger = [this, nMapID, nRMX, nRMY]() -> bool{
+                    auto fnTmpTrigger = [this, nMapID, nMapX, nMapY]() -> bool{
                         // 1. done
-                        if(QueryRMAddress(nMapID, nRMX, nRMY, false) != QUERY_PENDING){ return true; }
+                        if(QueryRMAddress(nMapID, nMapX, nMapY, false) != QUERY_PENDING){ return true; }
 
                         // 2. otherwise we still need to drive this anyomous trigger
                         extern EventTaskHub *g_EventTaskHub;
@@ -385,7 +397,7 @@ const ServiceCore::RMRecord &ServiceCore::GetRMRecord(uint32_t nMapID, int nMapX
 
     // to make (nMapID, nRMX, nRMY) valid in the cache
     // add a trigger for the RM address
-    QueryRMAddress(nMapID, nRMX, nRMY, bAddTrigger);
+    QueryRMAddress(nMapID, nMapX, nMapY, bAddTrigger);
 
     return m_MapRecordMap[nMapID].RMRecordMap[((uint32_t)(nRMX) << 16) + ((uint32_t)nRMY)];
 }

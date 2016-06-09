@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 06/08/2016 18:47:33
+ *  Last Modified: 06/08/2016 22:09:13
  *
  *    Description: 
  *
@@ -234,16 +234,10 @@ typedef struct{
 }AMCheckCover;
 
 typedef struct{
-    int RMX;
-    int RMY;
-    uint32_t MapID;
-}AMQueryRMAddress;
-
-typedef struct{
-    int MapX;   // sometimes one actor has no idea of the metrics of one map
+    int MapX;
     int MapY;
     uint32_t MapID;
-}AMQueryPointRMAddress;
+}AMQueryRMAddress;
 
 typedef struct{
     uint32_t SessionID;

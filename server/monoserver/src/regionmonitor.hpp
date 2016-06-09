@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 06/08/2016 18:21:22
+ *  Last Modified: 06/08/2016 23:20:20
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -209,8 +209,6 @@ class RegionMonitor: public Transponder
             , m_EmptyAddress(Theron::Address::Null())
         {
             m_MoveRequest.Clear();
-            // in transponder we alreay put ``DelayQueue" trigger inside
-            m_StateHook.Install("MoveRequest", [this](){ For_MoveRequest(); return false; });
         }
 
         virtual ~RegionMonitor() = default;
@@ -264,6 +262,5 @@ class RegionMonitor: public Transponder
         void NeighborSendCheck(uint32_t, uint32_t, int, int, int, bool);
 
     private:
-        int GetRMAddress(uint32_t, int, int, Theron::Address *);
-        int GetRMAddress(uint32_t, int, int, const std::function<void(const Theron::Address &)> &);
+        int QueryRMAddress(uint32_t, int, int, const std::function<void(const Theron::Address &)> &);
 };
