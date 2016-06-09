@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 06/08/2016 15:18:59
+ *  Last Modified: 06/08/2016 19:55:25
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #include "mathfunc.hpp"
 #include "actorpod.hpp"
+#include "syncdriver.hpp"
 #include "monoserver.hpp"
 #include "regionmonitor.hpp"
 
@@ -83,8 +84,10 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
     }
 }
 
-bool RegionMonitor::GroundValid(int, int, int)
+bool RegionMonitor::GroundValid(int, int, int nR)
 {
+    // void state
+    if(nR == 0){ return true; }
     return true;
 }
 
@@ -142,8 +145,8 @@ int RegionMonitor::NeighborQueryCheck()
 
     for(int nY = 0; nY < 3; ++nY){
         for(int nX = 0; nX < 3; ++nX){
-            bError   = (bError   || m_NeighborV2D[nY][nX].Query == QUERY_ERROR);
-            bPending = (bPending || m_NeighborV2D[nY][nX].Query == QUERY_PENDING);
+            bError   = (bError   || (m_NeighborV2D[nY][nX].Query == QUERY_ERROR));
+            bPending = (bPending || (m_NeighborV2D[nY][nX].Query == QUERY_PENDING));
         }
     }
 
@@ -190,7 +193,7 @@ void RegionMonitor::NeighborClearCheck()
 // when bMakr is not set, this function just return true / false
 bool RegionMonitor::NeighborValid(int nPosX, int nPosY, int nPosR, bool bMark)
 {
-    if(!(PointInRectangle(nPosX, nPosY, m_X, m_Y, m_W, m_H) && nPosR >= 0)){
+    if(!(In(m_MapID, nPosX, nPosY) && (nPosR >= 0))){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid arguments");
         g_MonoServer->Restart();
@@ -225,7 +228,7 @@ bool RegionMonitor::NeighborValid(int nPosX, int nPosY, int nPosR, bool bMark)
             }
         }
     }
-    return bValid;
+    return bAllValid;
 }
 
 // send cover check to neighbors, if bByMark is set, use the cached Query, otherwise this
@@ -327,10 +330,10 @@ void RegionMonitor::NeighborSendCheck(uint32_t nUID, uint32_t nAddTime, int nPos
 //          2. more important, current RM has no idea of other map's metrics of size, RM size etc. then if keep this
 //             cache, we have to query for that, otherwise we have (MapID, MapX, MapY) cache instead of the cache
 //             in (MapID, RMX, RMY), which is definitely un-acceptable
-int RegionMonitor::GetRMAddress(uint32_t nMapID, int nMapX, int nMapY, Theron::Address *pRMAddr)
+int RegionMonitor::GetRMAddress(uint32_t nMapID, int nRMX, int nRMY, Theron::Address *pRMAddr)
 {
     // 1. check arguments
-    if(!(nMapID > 0 && nMapX >= 0 && nMapY >= 0)){
+    if(!(nMapID > 0 && nRM >= 0 && nRMY >= 0)){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid argument");
         g_MonoServer->Restart();
@@ -344,7 +347,7 @@ int RegionMonitor::GetRMAddress(uint32_t nMapID, int nMapX, int nMapY, Theron::A
     }
 
     // 3. get proper actor address to ask
-    if(nMapID != m_MapAddress){
+    if(nMapID != m_MapID){
         MessagePack stMPK;
         if(SyncDriver().Forward(MPK_QUERYSCADDRESS, m_MapAddress, &stMPK) || (stMPK.Type() != MPK_ADDRESS)){
             extern MonoServer *g_MonoServer;
@@ -354,8 +357,8 @@ int RegionMonitor::GetRMAddress(uint32_t nMapID, int nMapX, int nMapY, Theron::A
 
         // TODO
         // the service core address may be on the way
-        // this will overwirte it, should be OK...
-        m_SCAddress = Theron::Address((char *)(rstMPK.Data()));
+        // this will overwirte it, should be OK, this is the reason I write another asynchronous method
+        m_SCAddress = Theron::Address((char *)(stMPK.Data()));
         m_SCAddressQuery = QUERY_OK;
     }
 
@@ -368,7 +371,13 @@ int RegionMonitor::GetRMAddress(uint32_t nMapID, int nMapX, int nMapY, Theron::A
 
     while(true){
         MessagePack stMPK;
-        if(SyncDriver().Forward(MPK_QUERYRMADDRESS, stAskAddr, &stMPK)){
+        AMQueryRMAddress stAMQRMA;
+        stAMQRMA.RMX = nRMX;
+        stAMQRMA.RMY = nRMY;
+        stAMQRMA.MapID = nMapID;
+
+        // synchronizd query
+        if(SyncDriver().Forward({MPK_QUERYRMADDRESS, stAMQRMA}, stAskAddr, &stMPK)){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "query rm address failed, actor system error");
             g_MonoServer->Restart();
@@ -398,11 +407,11 @@ int RegionMonitor::GetRMAddress(uint32_t nMapID, int nMapX, int nMapY, Theron::A
 }
 
 // asynchronous method to query rm address and then apply the trigger fnUseRMAddr
-void RegionMonitor::GetRMAddress(uint32_t nMapID, int nMapX, int nMapY, const std::function<void(const Theron::Address &)> &fnUseRMAddr)
+int RegionMonitor::GetRMAddress(uint32_t nMapID, int nRMX, int nRMY, const std::function<void(const Theron::Address &)> &fnUseRMAddr)
 {
     // 1. check arguments
     //    TODO: do I need to check whether  fnUseRMAddr is callable???
-    if(!(nMapID > 0 && nMapX >= 0 && nMapY >= 0 /* && fnUseRMAddr */)){
+    if(!(nMapID > 0 && nRMX >= 0 && nRMY >= 0 /* && fnUseRMAddr */)){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid argument");
         g_MonoServer->Restart();
@@ -418,7 +427,7 @@ void RegionMonitor::GetRMAddress(uint32_t nMapID, int nMapX, int nMapY, const st
     // for those RM's we already have address
     if(NeighborIn(nMapID, nMapX, nMapY)){ 
         fnUseRMAddr(NeighborAddress(nMapX, nMapY));
-        return;
+        return QUERY_OK;
     }
 
     // 3. we need the service core address for rm address
@@ -449,8 +458,8 @@ void RegionMonitor::GetRMAddress(uint32_t nMapID, int nMapX, int nMapY, const st
 
                     AMQueryRMAddress stAMQRMA;
                     stAMQRMA.MapID = nMapID;
-                    stAMQRMA.X = nMapX;
-                    stAMQRMA.Y = nMapY;
+                    stAMQRMA.MapX  = nMapX;
+                    stAMQRMA.MapY  = nMapY;
 
                     m_ActorPod->Forward({MPK_QUERYRMADDRESS, stAMQRMA}, m_MapAddress, fnOnGetSCAddr);
                     break;
@@ -506,10 +515,12 @@ void RegionMonitor::GetRMAddress(uint32_t nMapID, int nMapX, int nMapY, const st
                     break;
                 }
         }
+
+        return QUERY_PENDING;
     }
 
     // 4. needed address for asking is ready, set address to ask
-    Theron::Address  stAskAddr = ((nMapID == m_MapID) ? m_MapAddress : m_SCAddress);
+    Theron::Address stAskAddr = ((nMapID == m_MapID) ? m_MapAddress : m_SCAddress);
 
     // 5. prepare for trigger, (nQuery, stRMAddr) are the state of the lambda
     auto fnGetRMAddr = [this, fnUseRMAddr, stAskAddr, nQuery = QUERY_NA, stRMAddr = Theron::Address::Null()]() mutable -> bool {
@@ -587,4 +598,5 @@ void RegionMonitor::GetRMAddress(uint32_t nMapID, int nMapX, int nMapY, const st
     };
 
     m_ActorPod->Forward(MPK_QUERYRMADDRESS, stAddrToAsk, fnOnR);
+    return QUERY_PENDING;
 }

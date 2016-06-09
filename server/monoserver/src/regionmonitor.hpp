@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 06/07/2016 18:17:54
+ *  Last Modified: 06/08/2016 18:21:22
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -69,6 +69,7 @@
 #include <Theron/Theron.h>
 
 #include "mathfunc.hpp"
+#include "monoserver.hpp"
 #include "transponder.hpp"
 #include "activeobject.hpp"
 
@@ -84,76 +85,22 @@ class RegionMonitor: public Transponder
         };
 
     private:
-        // struct to describe the move
-        //      1. new object to get inside
-        //      2. existing object to get inside
-        //      3. existing object to move outside
-        //      4. successful cover check
         typedef struct _MoveRequest{
-            uint8_t Type;               // object type
+            // current region monitor is locked because:
 
-            // TODO I did't make it as a union
-            //      I can but since I'm not concerned about the memory
-            //      just let it as it is
-            struct _Monster{
-                uint32_t MonsterID;
+            bool    WaitCO;             // of waiting for co's response to ths the move permission
+            bool    CoverCheck;         // of successful cover check
+            bool    NeighborCheck;      // of waiting neighbors' response of the sent cover checks
 
-                _Monster(uint32_t nMonsterID = 0)
-                    : MonsterID(nMonsterID)
-                {}
-            }Monster;
-
-            struct _Player{
-                uint32_t GUID;
-                uint32_t JobID;
-
-                _Player(uint32_t nGUID = 0, uint32_t nJobID = 0)
-                    : GUID(nGUID)
-                    , JobID(nJobID)
-                {}
-            }Player;
-
-            uint32_t    UID;            // zero for new object
-            uint32_t    AddTime;        // zero for new object
-            uint32_t    MPKID;          // MessagePack::ID() for response
-
-            int     CurrX;
-            int     CurrY;
-            int     X;
-            int     Y;
-            int     R;
-
-            bool    OnlyIn;
-            bool    CurrIn;
-            bool    WaitCOR;             // all set, wait co's response to this move
             bool    FreezeRM;
-            bool    CoverCheck;
-            bool    NeighborCheck;
-
-            Theron::Address PodAddress; // address for response
 
             _MoveRequest()
-                : Type(OBJECT_UNKNOWN)
-                , Monster()
-                , Player()
-                , UID(0)
-                , AddTime(0)
-                , MPKID(0)
-                , CurrX(0)
-                , CurrY(0)
-                , X(0)
-                , Y(0)
-                , R(0)
-                , OnlyIn(false)
-                , CurrIn(false)
-                , FreezeRM(false)
+                : WaitCO(false)
                 , CoverCheck(false)
                 , NeighborCheck(false)
-                , PodAddress(Theron::Address::Null())
+                , FreezeRM(false)
             {}
 
-            // means this record contains a valid record
-            // this has many possibilities
             bool Freezed()
             {
                 return FreezeRM;
@@ -161,29 +108,23 @@ class RegionMonitor: public Transponder
 
             void Freeze()
             {
-                FreezeRM = true;
+                if(CoverCheck || NeighborCheck || WaitCO){
+                    FreezeRM = true;
+                    return;
+                }
+
+                // otherwise it's an error
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "can't freeze current RM");
+                g_MonoServer->Restart();
             }
 
             void Clear()
             {
-                Type              = OBJECT_UNKNOWN;
-                Monster.MonsterID = 0;
-                Player.GUID       = 0;
-                Player.JobID      = 0;
-                UID               = 0;
-                AddTime           = 0;
-                MPKID             = 0;
-                CurrX             = 0;
-                CurrY             = 0;
-                X                 = 0;
-                Y                 = 0;
-                R                 = 0;
-                OnlyIn            = false;
-                CurrIn            = false;
-                FreezeRM          = false;
+                WaitCO            = false;
                 CoverCheck        = false;
                 NeighborCheck     = false;
-                PodAddress        = Theron::Address::Null();
+                FreezeRM          = false;
             }
         }MoveRequest;
 
@@ -315,4 +256,14 @@ class RegionMonitor: public Transponder
     private:
         void For_Update();
         void For_MoveRequest();
+
+    private:
+        int  NeighborQueryCheck();
+        void NeighborClearCheck();
+        bool NeighborValid(int, int, int, bool);
+        void NeighborSendCheck(uint32_t, uint32_t, int, int, int, bool);
+
+    private:
+        int GetRMAddress(uint32_t, int, int, Theron::Address *);
+        int GetRMAddress(uint32_t, int, int, const std::function<void(const Theron::Address &)> &);
 };

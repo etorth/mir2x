@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/05/2016 22:29:25
+ *  Last Modified: 06/08/2016 18:16:49
  *
  *    Description: 
  *
@@ -75,8 +75,8 @@ bool Monster::RandomWalk()
 
 void Monster::SpaceMove(const char *szAddr, int nX, int nY)
 {
-    AMTryMove stAMTSM;
-    stAMTSM.UID = m_UID;
+    AMTrySpaceMove stAMTSM;
+    stAMTSM.UID     = m_UID;
     stAMTSM.AddTime = m_AddTime;
 
     stAMTSM.X = nX;
@@ -136,9 +136,6 @@ bool Monster::ReportMove(int nX, int nY)
     stAMTM.X = nX;
     stAMTM.Y = nY;
     stAMTM.R = m_R;
-
-    stAMTM.CurrX = X();
-    stAMTM.CurrY = Y();
 
     stAMTM.MapID = m_MapID;
 
