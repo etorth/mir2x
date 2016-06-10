@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.hpp
  *        Created: 04/23/2016 10:51:19
- *  Last Modified: 06/09/2016 15:09:24
+ *  Last Modified: 06/09/2016 17:17:26
  *
  *    Description: base of actor model in mir2x, Theron::Actor acitvated at create
  *                 time so no way to control it, instead Transponder can 
@@ -87,4 +87,9 @@ class Transponder
 
     public:
         void Delay(uint32_t, const std::function<void()> &);
+
+#ifdef MIR2X_DEBUG
+    protected:
+        virtual const char *ClassName() = 0;
+#endif
 };

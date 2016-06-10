@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 06/05/2016 19:17:20
+ *  Last Modified: 06/09/2016 18:02:55
  *
  *    Description: 
  *
@@ -24,6 +24,13 @@
 
 void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFromAddr)
 {
+#ifdef MIR2X_DEBUG
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_INFO,
+            "(Pod: %p, Name: %s, UID: %u, AddTime: %u) <- (Type: %s, ID: %u, Resp: %u)",
+            this, Name(), UID(), AddTime(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+#endif
+
     if(rstMPK.Respond()){
         auto pRecord = m_RespondMessageRecordM.find(rstMPK.Respond());
         if(pRecord != m_RespondMessageRecordM.end()){
@@ -107,11 +114,17 @@ __ACTORPOD_INNHANDLER_CALL_TRIGGER:
     }
 }
 
+#ifdef MIR2X_DEBUG
+#include <atomic>
+std::atomic<uint32_t> g_ValidID(1);
+#endif
+
 // this funciton is not actor-safe, don't call it outside the actor itself
 uint32_t ActorPod::ValidID()
 {
-    // return g_Count++;
-
+#ifdef MIR2X_DEBUG
+    return g_ValidID++;
+#endif
     m_ValidID = (m_RespondMessageRecordM.empty() ? 1 : (m_ValidID + 1));
     auto pRecord = m_RespondMessageRecordM.find(m_ValidID);
     if(pRecord != m_RespondMessageRecordM.end()){
@@ -123,6 +136,18 @@ uint32_t ActorPod::ValidID()
     return m_ValidID;
 }
 
+bool ActorPod::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond)
+{
+#ifdef MIR2X_DEBUG
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_INFO,
+            "(Pod: %p, Name: %s, UID: %u, AddTime: %u) -> (Type: %s, ID: %u, Resp: %u)",
+            this, Name(), UID(), AddTime(), MessagePack(rstMB.Type()).Name(), 0, nRespond);
+#endif
+
+    return Theron::Actor::Send<MessagePack>({rstMB, 0, nRespond}, rstAddr);
+}
+
 // uint32_t g_RespCount(UINT_MAX);
 
 // send a responding message and exptecting a reply
@@ -132,6 +157,13 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
 {
     // 1. get valid ID
     uint32_t nID = ValidID();
+
+#ifdef MIR2X_DEBUG
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_INFO,
+            "(Pod: %p, Name: %s, UID: %u, AddTime: %u) -> (Type: %s, ID: %u, Resp: %u)",
+            this, Name(), UID(), AddTime(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
+#endif
 
     // 2. send it
     bool bRet = Theron::Actor::Send<MessagePack>({rstMB, nID, nRespond}, rstAddr);

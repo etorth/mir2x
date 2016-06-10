@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 06/05/2016 22:29:33
+ *  Last Modified: 06/09/2016 17:27:04
  *
  *    Description: 
  *
@@ -156,4 +156,12 @@ class Monster: public CharObject
 
     protected:
         void Operate(const MessagePack &, const Theron::Address &);
+
+#ifdef MIR2X_DEBUG
+    protected:
+        const char *ClassName()
+        {
+            return "Monster";
+        }
+#endif
 };

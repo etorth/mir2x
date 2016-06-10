@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 05/31/2016 17:59:59
+ *  Last Modified: 06/09/2016 17:27:00
  *
  *    Description: 
  *
@@ -107,4 +107,12 @@ class Player: public CharObject
 
     private:
         void For_CheckTime();
+
+#ifdef MIR2X_DEBUG
+    protected:
+        const char *ClassName()
+        {
+            return "Monster";
+        }
+#endif
 };

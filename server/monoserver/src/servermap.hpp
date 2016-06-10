@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 06/05/2016 11:47:43
+ *  Last Modified: 06/09/2016 17:22:05
  *
  *    Description: put all non-atomic function as private
  *
@@ -226,4 +226,12 @@ class ServerMap: public Transponder
         void On_MPK_QUERYSCADDRESS(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYRMADDRESS(const MessagePack &, const Theron::Address &);
         void On_MPK_REGIONMONITORREADY(const MessagePack &, const Theron::Address &);
+
+#ifdef MIR2X_DEBUG
+    protected:
+        const char *ClassName()
+        {
+            return "ServerMap";
+        }
+#endif
 };

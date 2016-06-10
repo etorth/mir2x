@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 06/05/2016 19:18:13
+ *  Last Modified: 06/09/2016 17:16:08
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -187,6 +187,15 @@ class ActorPod: public Theron::Actor
         std::function<void()> m_Trigger;
         std::unordered_map<uint32_t, RespondMessageRecord> m_RespondMessageRecordM;
 
+#ifdef MIR2X_DEBUG
+    protected:
+        uint32_t    m_UID;
+        uint32_t    m_AddTime;
+        // typeid(obj) can only reveal the delcared type
+        // so if you declare a pointer and allocate a subclass, typeid() won't work
+        std::string m_Name;
+#endif
+
     public:
         // actor with trigger
         explicit ActorPod(Theron::Framework *pFramework, const std::function<void()> &fnTrigger,
@@ -195,6 +204,11 @@ class ActorPod: public Theron::Actor
             , m_ValidID(0)
             , m_Operate(fnOperate)
             , m_Trigger(fnTrigger)
+#ifdef MIR2X_DEBUG
+            , m_UID(0)
+            , m_AddTime(0)
+            , m_Name("ActorPod")
+#endif
         {
             RegisterHandler(this, &ActorPod::InnHandler);
         }
@@ -216,13 +230,14 @@ class ActorPod: public Theron::Actor
         // it's user's responability to prevent send message to itself, for Theron this
         // behaivor is undefined, but ActorPod won't check it
 
-        // send a responding message without asking for reply
-        bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond = 0)
+        // just send a message, not a response, and won't exptect a reply
+        bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr)
         {
-            // TODO
-            // do I need to put logic to avoid sending message to itself?
-            return Theron::Actor::Send<MessagePack>({rstMB, 0, nRespond}, rstAddr);
+            return Theron::Actor::Send<MessagePack>({rstMB, 0, 0}, rstAddr);
         }
+
+        // sending a response, won't exptect a reply
+        bool Forward(const MessageBuf &, const Theron::Address &, uint32_t);
 
         // send a non-responding message and exptecting a reply
         bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr,
@@ -234,4 +249,29 @@ class ActorPod: public Theron::Actor
         // send a responding message and exptecting a reply
         bool Forward(const MessageBuf &, const Theron::Address &, uint32_t,
                 const std::function<void(const MessagePack&, const Theron::Address &)> &);
+
+#ifdef MIR2X_DEBUG
+    public:
+        const char *Name()
+        {
+            return m_Name.c_str();
+        }
+
+        uint32_t UID()
+        {
+            return m_UID;
+        }
+
+        uint32_t AddTime()
+        {
+            return m_AddTime;
+        }
+
+        void BindPod(uint32_t nUID, uint32_t nAddTime, const char *szName)
+        {
+            m_UID = nUID;
+            m_AddTime = nAddTime;
+            m_Name = szName;
+        }
+#endif
 };

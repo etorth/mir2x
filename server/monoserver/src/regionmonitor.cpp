@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 06/09/2016 15:52:24
+ *  Last Modified: 06/09/2016 18:16:17
  *
  *    Description: 
  *
@@ -294,6 +294,7 @@ void RegionMonitor::NeighborSendCheck(uint32_t nUID, uint32_t nAddTime, int nPos
                     case QUERY_OK:
                         {
                             if(m_NeighborV2D[nY][nX].PodAddress){
+                                m_NeighborV2D[nY][nX].Query = QUERY_PENDING;
                                 m_ActorPod->Forward({MPK_CHECKCOVER, stAMCC}, m_NeighborV2D[nY][nX].PodAddress, fnROP);
                             }else{
                                 extern MonoServer *g_MonoServer;
