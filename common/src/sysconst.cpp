@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.cpp
  *        Created: 06/02/2016 11:43:04
- *  Last Modified: 06/02/2016 14:33:18
+ *  Last Modified: 06/11/2016 00:10:56
  *
  *    Description: don't refer to monoserver->AddLog() or something
  *
@@ -32,6 +32,8 @@ const static char *g_MapName[] = {
 
 const char *SYS_MAPNAME(uint32_t nMapID)
 {
+    return "DESC.BIN";
+
     if(!g_MaxValidMapID){
         g_MaxValidMapID = 1;
         auto pName = g_MapName + 1;

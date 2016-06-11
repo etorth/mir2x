@@ -14,8 +14,7 @@ DBRecord::DBRecord(DBConnection * pConnection)
     , m_ValidExecuteString(true)
     , m_Valid(false)
     , m_QuerySucceed(false)
-{
-}
+{}
 
 DBRecord::~DBRecord()
 {
@@ -27,6 +26,7 @@ void DBRecord::ExtendQueryBuf(size_t nNewLen)
     if(nNewLen > m_QueryBufLen){
         delete m_QueryBuf;
         size_t nNewLen8 = ((nNewLen + 7) / 8) * 8;
+
         m_QueryBuf    = new char[nNewLen8];
         m_QueryBufLen = nNewLen8;
     }
@@ -34,11 +34,7 @@ void DBRecord::ExtendQueryBuf(size_t nNewLen)
 
 bool DBRecord::Execute(const char *szQueryCmd, ...)
 {
-    // ExtendQueryBuf(std::strlen(szQueryCmd) * 2 + 64);
-    // anyway std::vsnprintf will give me right buffer length
-    // so just give a large buffer
-    //
-    ExtendQueryBuf(128);
+    ExtendQueryBuf(256);
 
     va_list ap;
 
@@ -68,16 +64,30 @@ bool DBRecord::Execute(const char *szQueryCmd, ...)
 
 bool DBRecord::Query(const char *szQueryCmd)
 {
-    // szQueryCmd should be ``valid"
-    // since this function won't check it
-    if(m_Connection && m_Connection->m_SQL){
-        if(!mysql_query(m_Connection->m_SQL, szQueryCmd)){
-            m_QuerySucceed = true;
-            return true;
-        }
-    }
+    // 1. make a default false state
     m_QuerySucceed = false;
-    return false;
+
+    // 2. check parameter
+    if(!(szQueryCmd && (std::strlen(szQueryCmd) > 0))){
+        goto __DBRECORD_QUERY_DONE_QUERY_LABEL_1;
+    }
+
+    // 3. validate the connection record
+    if(!(m_Connection && m_Connection->m_SQL && m_Connection->Valid())){
+        goto __DBRECORD_QUERY_DONE_QUERY_LABEL_1;
+    }
+
+    // ok now we can do the query 
+
+    // 4. query
+    if(!mysql_query(m_Connection->m_SQL, szQueryCmd)){
+        m_QuerySucceed = true;
+        goto __DBRECORD_QUERY_DONE_QUERY_LABEL_1;
+    }
+
+__DBRECORD_QUERY_DONE_QUERY_LABEL_1:
+    // here we already tried our best for this query
+    return m_QuerySucceed;
 }
 
 bool DBRecord::Valid()
@@ -88,6 +98,7 @@ bool DBRecord::Valid()
     return true
         && m_Connection
         && m_Connection->m_SQL
+        && m_Connection->Valid()
         && m_QuerySucceed;
 }
 
@@ -103,24 +114,35 @@ bool DBRecord::StoreResult()
 
 bool DBRecord::Fetch()
 {
-    return (m_CurrentRow = mysql_fetch_row(m_SQLRES)) != nullptr;
+    return true
+        && Valid()                  // valid record
+        && (m_SQLRES != nullptr)    // valid result set
+        && ((m_CurrentRow = mysql_fetch_row(m_SQLRES)) != nullptr);  // don't have to free the row
 }
 
 const char *DBRecord::Get(const char *szColumnName)
 {
-    if(m_CurrentRow){
-        int nIndex = 0;
-        MYSQL_FIELD *stCurrentField = nullptr;
+    // 1. parameter check
+    if(!(szColumnName && std::strlen(szColumnName))){ return nullptr; }
 
-        mysql_field_seek(m_SQLRES, 0);
+    // 2. check cursor
+    if(!m_CurrentRow){ return nullptr; }
 
-        while((stCurrentField = mysql_fetch_field(m_SQLRES)) != nullptr){
-            if(!std::strcmp(stCurrentField->name, szColumnName)){
-                return m_CurrentRow[nIndex];
-            }
-            nIndex++;
+    // ok find the index of the field name
+
+    // 3. reset the seek point
+    mysql_field_seek(m_SQLRES, 0);
+
+    int nIndex = 0;
+    MYSQL_FIELD *stCurrentField = nullptr;
+    while((stCurrentField = mysql_fetch_field(m_SQLRES)) != nullptr){
+        if((stCurrentField->name) && (!std::strcmp(stCurrentField->name, szColumnName))){
+            return m_CurrentRow[nIndex];
         }
+        nIndex++;
     }
+
+    // 5. ooop we didn't find it
     return nullptr;
 }
 

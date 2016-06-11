@@ -3,7 +3,7 @@
  *
  *       Filename: dbconnection.cpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 05/26/2016 16:38:08
+ *  Last Modified: 06/10/2016 19:52:55
  *
  *    Description: 
  *
@@ -37,8 +37,7 @@ DBConnection::DBConnection(
     mysql_options(m_SQL, MYSQL_INIT_COMMAND, "SET NAMES utf8"); 
 
     if(m_SQL){
-        if(mysql_real_connect(m_SQL, szHostName,
-                    szUserName, szPassword, szDBName, nPort, nullptr, 0)){
+        if(mysql_real_connect(m_SQL, szHostName, szUserName, szPassword, szDBName, nPort, nullptr, 0)){
             m_Valid = true;
         }
     }

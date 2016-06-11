@@ -3,9 +3,9 @@
  *
  *       Filename: servicecorenet.cpp
  *        Created: 05/20/2016 17:09:13
- *  Last Modified: 05/30/2016 11:26:24
+ *  Last Modified: 06/10/2016 19:46:22
  *
- *    Description: interaction btw SessionHub and ServiceCore
+ *    Description: interaction btw NetPod and ServiceCore
  *
  *        Version: 1.0
  *       Revision: none
@@ -41,17 +41,14 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
         g_MonoServer->AddLog(LOGTYPE_INFO, "Login requested: (%s:%s)", szID.c_str(), szPWD.c_str());
         auto pDBHDR = g_DBPodN->CreateDBHDR();
 
-        if(!pDBHDR->Execute("select fld_id from tbl_account where "
-                    "fld_account = '%s' and fld_password = '%s'", szID.c_str(), szPWD.c_str())){
-            g_MonoServer->AddLog(LOGTYPE_WARNING,
-                    "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+        if(!pDBHDR->Execute("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", szID.c_str(), szPWD.c_str())){
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
             SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
 
         if(pDBHDR->RowCount() < 1){
-            g_MonoServer->AddLog(LOGTYPE_INFO,
-                    "can't find account: (%s:%s)", szID.c_str(), szPWD.c_str());
+            g_MonoServer->AddLog(LOGTYPE_INFO, "can't find account: (%s:%s)", szID.c_str(), szPWD.c_str());
             SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
@@ -61,15 +58,13 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
         // but doesn't make sense since this function is already slow
         int nID = std::atoi(pDBHDR->Get("fld_id"));
         if(!pDBHDR->Execute("select * from mir2x.tbl_guid where fld_id = %d", nID)){
-            g_MonoServer->AddLog(LOGTYPE_WARNING,
-                    "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
             SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
 
         if(pDBHDR->RowCount() < 1){
-            g_MonoServer->AddLog(LOGTYPE_INFO,
-                    "no guid created for this account: (%s:%s)", szID.c_str(), szPWD.c_str());
+            g_MonoServer->AddLog(LOGTYPE_INFO, "no guid created for this account: (%s:%s)", szID.c_str(), szPWD.c_str());
             SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }

@@ -16,13 +16,14 @@ decl {\#include <mutex>} {private local
 
 class MainWindow {open
 } {
-  Function {MainWindow()} {} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_Window {
       label {Scene Server}
       callback {{
 	// do nothing
-}}
-      xywh {1583 424 720 400} type Double labelfont 4 resizable visible
+}} open
+      xywh {1584 425 720 400} type Double labelfont 4 resizable visible
     } {
       Fl_Menu_Bar {} {open
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
@@ -123,6 +124,7 @@ class MainWindow {open
 			break;
 		}
 	m_Browser->add(szFullMessage.c_str());
+	m_Browser->bottomline(m_Browser->size());
 	// TODO
 	// just for debug, to flush the output
 	m_Window->redraw();

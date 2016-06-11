@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 06/09/2016 18:30:19
+ *  Last Modified: 06/10/2016 23:59:52
  *
  *    Description: 
  *
@@ -25,7 +25,6 @@
 
 void Monster::On_MPK_HI(const MessagePack &, const Theron::Address &rstFromAddr)
 {
-    // set the RM address, it's the source of information
     m_RMAddress = rstFromAddr;
 
     QuerySCAddress();
