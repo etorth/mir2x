@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/03/2016 11:55:53
+ *  Last Modified: 06/11/2016 02:21:22
  *
  *    Description: 
  *
@@ -305,7 +305,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
 }
 
 // we get all needed initialization info for init the process run
-void ProcessRun::Net_LoginOK(const uint8_t *pBuf, size_t nLen)
+void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
 {
     if(!(pBuf && nLen && nLen == sizeof(SMLoginOK))){ return; }
 
@@ -318,7 +318,7 @@ void ProcessRun::Net_LoginOK(const uint8_t *pBuf, size_t nLen)
 }
 
 #include <cstdio>
-void ProcessRun::Net_MotionState(const uint8_t *pBuf, size_t)
+void ProcessRun::Net_MOTIONSTATE(const uint8_t *pBuf, size_t)
 {
     SMMotionState stSMMS = *((const SMMotionState *)pBuf);
     if(stSMMS.MapID != m_ClientMap.ID()){ return; }
@@ -341,4 +341,10 @@ void ProcessRun::Net_MONSTERGINFO(const uint8_t *pBuf, size_t)
 {
     auto *pInfo = (SMMonsterGInfo *)pBuf;
     Monster::GetGInfoRecord(pInfo->MonsterID).ResetLookID(pInfo->LookIDN, pInfo->LookID, pInfo->R);
+}
+
+void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
+{
+    SMCORecord stSMCOR;
+    std::memcpy(&stSMCOR, pBuf, sizeof(stSMCOR));
 }

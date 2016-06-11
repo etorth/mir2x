@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 06/08/2016 21:53:03
+ *  Last Modified: 06/11/2016 02:36:13
  *
  *    Description: 
  *
@@ -248,4 +248,38 @@ void ServerMap::On_MPK_QUERYSCADDRESS(const MessagePack &rstMPK, const Theron::A
 
     std::string szAddr = m_SCAddress.AsString();
     m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szAddr.c_str()), 1 + szAddr.size()}, rstFromAddr, rstMPK.ID());
+}
+
+void ServerMap::On_MPK_UPDATECOINFO(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMUpdateCOInfo stAMUCOI;
+    std::memcpy(&stAMUCOI, rstMPK.Data(), sizeof(stAMUCOI));
+
+    // 1. argument check here
+    if(stAMUCOI.UID && stAMUCOI.AddTime && stAMUCOI.MapID && stAMUCOI.SessionID && stAMUCOI.MapID == m_MapID
+                && stAMUCOI.X >= 0 && stAMUCOI.X < W() * SYS_MAPGRIDXP && stAMUCOI.Y >= 0 && stAMUCOI.Y < H() * SYS_MAPGRIDYP){
+        int nRMX = stAMUCOI.X / SYS_MAPGRIDXP / m_RegionW;
+        int nRMY = stAMUCOI.Y / SYS_MAPGRIDYP / m_RegionH;
+
+        int nMinRMX = nRMX - SYS_MAPVISIBLEW / SYS_MAPGRIDXP;
+        int nMaxRMX = nRMX + SYS_MAPVISIBLEW / SYS_MAPGRIDXP;
+        int nMinRMY = nRMY - SYS_MAPVISIBLEH / SYS_MAPGRIDYP;
+        int nMaxRMY = nRMY + SYS_MAPVISIBLEH / SYS_MAPGRIDYP;
+
+        for(int nCurrRMY = nMinRMY; nCurrRMY <= nMaxRMY; ++nCurrRMY){
+            for(int nCurrRMX = nMinRMX; nCurrRMX <= nMaxRMX; ++nCurrRMX){
+                if(nCurrRMY >= 0 && nCurrRMY < (int)m_RMRecordV2D.size() && nCurrRMX >= 0 && nCurrRMX < (int)m_RMRecordV2D[0].size()){
+                    if(m_RMRecordV2D[nCurrRMY][nCurrRMX].Valid()){
+                        m_ActorPod->Forward({MPK_UPDATECOINFO, stAMUCOI}, m_RMRecordV2D[nCurrRMY][nCurrRMX].PodAddress);
+                    }
+                }
+            }
+        }
+
+        return;
+    }
+
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid argument in message package");
+    g_MonoServer->Restart();
 }

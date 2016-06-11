@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/10/2016 17:12:47
+ *  Last Modified: 06/11/2016 03:18:14
  *
  *    Description: 
  *
@@ -20,9 +20,11 @@
 
 #include <cstdio>
 
-#include "actorpod.hpp"
+#include "netpod.hpp"
 #include "monster.hpp"
+#include "actorpod.hpp"
 #include "mathfunc.hpp"
+#include "memorypn.hpp"
 #include "monoserver.hpp"
 #include "messagepack.hpp"
 
@@ -236,6 +238,11 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
                 On_MPK_HI(rstMPK, rstAddress);
                 break;
             }
+        case MPK_UPDATECOINFO:
+            {
+                On_MPK_UPDATECOINFO(rstMPK, rstAddress);
+                break;
+            }
         default:
             {
                 extern MonoServer *g_MonoServer;
@@ -248,4 +255,29 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
 
 void Monster::SearchViewRange()
 {
+}
+
+void Monster::ReportCORecord(uint32_t nSessionID)
+{
+    if(nSessionID){
+        extern MemoryPN *g_MemoryPN;
+        auto pMem = (SMCORecord *)g_MemoryPN->Get(sizeof(SMCORecord));
+
+        pMem->Type = OBJECT_MONSTER;
+
+        pMem->Common.MapX  = X();
+        pMem->Common.MapY  = Y();
+        pMem->Common.R     = R();
+        pMem->Common.MapID = MapID();
+
+        pMem->Monster.MonsterID = m_MonsterID;
+
+        extern NetPodN *g_NetPodN;
+        g_NetPodN->Send(nSessionID, SM_CORECORD, (uint8_t *)pMem, sizeof(SMCORecord), [pMem](){ g_MemoryPN->Free(pMem); });
+        return;
+    }
+
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
+    g_MonoServer->Restart();
 }

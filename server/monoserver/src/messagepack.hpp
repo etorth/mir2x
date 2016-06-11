@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 06/09/2016 15:32:58
+ *  Last Modified: 06/11/2016 02:07:18
  *
  *    Description: message class for actor system
  *
@@ -308,6 +308,7 @@ class InnMessagePack final
                 case MPK_ADDCHAROBJECT:               return "MPK_ADDCHAROBJECT";
                 case MPK_BINDSESSION:                 return "MPK_BINDSESSION";
                 case MPK_MOTIONSTATE:                 return "MPK_MOTIONSTATE";
+                case MPK_UPDATECOINFO:                return "MPK_UPDATECOINFO";
                 default:                              return "MPK_????";
             }
             return "MPK_????";
@@ -364,6 +365,7 @@ class InnMessagePack final
                 case MPK_ADDCHAROBJECT:               return "MPK_ADDCHAROBJECT";
                 case MPK_BINDSESSION:                 return "MPK_BINDSESSION";
                 case MPK_MOTIONSTATE:                 return "MPK_MOTIONSTATE";
+                case MPK_UPDATECOINFO:                return "MPK_UPDATECOINFO";
                 default:                              return "MPK_????";
             }
             return "MPK_????";

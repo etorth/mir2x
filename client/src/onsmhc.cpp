@@ -3,7 +3,7 @@
  *
  *       Filename: onsmhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 06/03/2016 11:07:34
+ *  Last Modified: 06/11/2016 03:41:28
  *
  *    Description: 
  *
@@ -28,6 +28,7 @@ void Game::OperateHC(uint8_t nHC)
     switch(nHC){
         case SM_PING:           Net_PING();         break;
         case SM_LOGINOK:        Net_LOGINOK();      break;
+        case SM_CORECORD:       Net_CORECORD();     break;
         case SM_LOGINFAIL:      Net_LOGINFAIL();    break;
         case SM_MOTIONSTATE:    Net_MOTIONSTATE();  break;
         case SM_MONSTERGINFO:   Net_MONSTERGINFO(); break;
@@ -51,7 +52,7 @@ void Game::Net_LOGINOK()
 
         extern Log *g_Log;
         if(pRun){
-            pRun->Net_LoginOK(pBuf, nLen);
+            pRun->Net_LOGINOK(pBuf, nLen);
             g_Log->AddLog(LOGTYPE_INFO, "login succeed");
         }else{
             g_Log->AddLog(LOGTYPE_INFO, "failed to jump into main loop");
@@ -76,7 +77,7 @@ void Game::Net_MOTIONSTATE()
 
         // 2. ok we are in running state
         auto pRun = (ProcessRun *)m_CurrentProcess;
-        pRun->Net_MotionState(pBuf, nLen);
+        pRun->Net_MOTIONSTATE(pBuf, nLen);
     };
 
     Read(sizeof(SMMotionState), fnMotionState);
@@ -90,5 +91,16 @@ void Game::Net_MONSTERGINFO()
         ((ProcessRun *)m_CurrentProcess)->Net_MONSTERGINFO(pBuf, nLen);
     };
 
-    Read(sizeof(CMQueryMonsterGInfo), fnOnGetMonsterGInfo);
+    Read(sizeof(SMMonsterGInfo), fnOnGetMonsterGInfo);
+}
+
+void Game::Net_CORECORD()
+{
+    if(!ProcessValid(PROCESSID_RUN)){ return; }
+    auto fnOnGetCORecord = [this](const uint8_t *pBuf, size_t nLen){
+        if(!ProcessValid(PROCESSID_RUN)){ return; }
+        ((ProcessRun *)m_CurrentProcess)->Net_CORECORD(pBuf, nLen);
+    };
+
+    Read(sizeof(SMCORecord), fnOnGetCORecord);
 }

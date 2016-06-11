@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 06/10/2016 17:34:16
+ *  Last Modified: 06/11/2016 02:53:54
  *
  *    Description: 
  *
@@ -952,5 +952,26 @@ void RegionMonitor::On_MPK_QUERYMAPADDRESS(const MessagePack &rstMPK, const Ther
     // you should ask sc directly
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "not current RM's map address, ask service core for this instead");
+    g_MonoServer->Restart();
+}
+
+void RegionMonitor::On_MPK_UPDATECOINFO(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMUpdateCOInfo stAMUCOI;
+    std::memcpy(&stAMUCOI, rstMPK.Data(), sizeof(stAMUCOI));
+
+    // 1. argument check here, we can ignore since server map has alreayd checked it for us
+    if(stAMUCOI.UID && stAMUCOI.AddTime && stAMUCOI.MapID && stAMUCOI.SessionID && stAMUCOI.MapID == m_MapID && stAMUCOI.X >= 0 && stAMUCOI.Y >= 0){
+        for(auto &rstCORecord: m_CORecordV){
+            if(rstCORecord.Valid() && (rstCORecord.UID != stAMUCOI.UID) && (rstCORecord.AddTime != stAMUCOI.AddTime)){
+                m_ActorPod->Forward({MPK_UPDATECOINFO, stAMUCOI}, rstCORecord.PodAddress);
+            }
+        }
+        return;
+    }
+
+    // 2. othewise it's an error
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid argument in message package");
     g_MonoServer->Restart();
 }

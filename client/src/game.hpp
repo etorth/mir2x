@@ -50,6 +50,7 @@ class Game
     private:
         void Net_PING();
         void Net_LOGINOK();
+        void Net_CORECORD();
         void Net_LOGINFAIL();
         void Net_MOTIONSTATE();
         void Net_MONSTERGINFO();

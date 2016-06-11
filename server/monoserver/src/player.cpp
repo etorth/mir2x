@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/09/2016 15:34:56
+ *  Last Modified: 06/11/2016 03:26:17
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #include "netpod.hpp"
 #include "player.hpp"
+#include "memorypn.hpp"
 #include "charobject.hpp"
 
 Player::Player(uint32_t nGUID, uint32_t nJobID)
@@ -56,6 +57,11 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         case MPK_BINDSESSION:
             {
                 On_MPK_BINDSESSION(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_UPDATECOINFO:
+            {
+                On_MPK_UPDATECOINFO(rstMPK, rstFromAddr);
                 break;
             }
         default:
@@ -129,4 +135,32 @@ bool Player::Bind(uint32_t nSessionID)
     extern NetPodN *g_NetPodN;
     g_NetPodN->Bind(m_SessionID, GetAddress());
     return true;
+}
+
+void Player::ReportCORecord(uint32_t nSessionID)
+{
+    if(nSessionID){
+        extern MemoryPN *g_MemoryPN;
+        auto pMem = (SMCORecord *)g_MemoryPN->Get(sizeof(SMCORecord));
+
+        pMem->Type = OBJECT_PLAYER;
+
+        pMem->Common.MapX  = X();
+        pMem->Common.MapY  = Y();
+        pMem->Common.R     = R();
+        pMem->Common.MapID = MapID();
+
+        pMem->Player.GUID      = m_GUID;
+        pMem->Player.JobID     = m_JobID;
+        pMem->Player.Level     = m_Level;
+        pMem->Player.Direction = m_Direction;
+
+        extern NetPodN *g_NetPodN;
+        g_NetPodN->Send(nSessionID, SM_CORECORD, (uint8_t *)pMem, sizeof(SMCORecord), [pMem](){ g_MemoryPN->Free(pMem); });
+        return;
+    }
+
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
+    g_MonoServer->Restart();
 }

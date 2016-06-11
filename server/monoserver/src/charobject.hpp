@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 06/09/2016 18:25:34
+ *  Last Modified: 06/11/2016 02:09:37
  *
  *    Description: 
  *
@@ -181,6 +181,11 @@ class CharObject: public ActiveObject
             return m_Direction;
         }
 
+        uint32_t MapID()
+        {
+            return m_MapID;
+        }
+
     public:
         uint8_t GetBack()
         {
@@ -262,6 +267,9 @@ class CharObject: public ActiveObject
 
             return m_EmptyAddress;
         }
+
+    protected:
+        virtual void ReportCORecord(uint32_t) = 0;
 
     protected:
         int QuerySCAddress();

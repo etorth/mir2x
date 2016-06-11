@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 06/10/2016 23:59:52
+ *  Last Modified: 06/11/2016 02:41:24
  *
  *    Description: 
  *
@@ -34,4 +34,14 @@ void Monster::On_MPK_HI(const MessagePack &, const Theron::Address &rstFromAddr)
 void Monster::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
     Update();
+}
+
+void Monster::On_MPK_UPDATECOINFO(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMUpdateCOInfo stAMUCOI;
+    std::memcpy(&stAMUCOI, rstMPK.Data(), sizeof(stAMUCOI));
+    if(stAMUCOI.UID && stAMUCOI.AddTime && stAMUCOI.MapID && stAMUCOI.SessionID
+            && stAMUCOI.MapID == m_MapID && stAMUCOI.X >= 0 && stAMUCOI.Y >= 0 && stAMUCOI.UID != UID() && stAMUCOI.AddTime != AddTime()){
+        ReportCORecord(stAMUCOI.SessionID);
+    }
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 06/09/2016 17:19:17
+ *  Last Modified: 06/11/2016 01:34:54
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -147,6 +147,13 @@ class RegionMonitor: public Transponder
                 , R(0)
                 , PodAddress(Theron::Address::Null())
             {}
+
+            // TODO: maybe this name is not good
+            //       maybe still invalid but this is the most we can check here
+            bool Valid()
+            {
+                return UID && AddTime && PodAddress && (X >= 0) && (Y >= 0);
+            }
         }CORecord;
 
     private:
@@ -240,6 +247,7 @@ class RegionMonitor: public Transponder
         void On_MPK_NEWPLAYER(const MessagePack &, const Theron::Address &);
         void On_MPK_CHECKCOVER(const MessagePack &, const Theron::Address &);
         void On_MPK_MOTIONSTATE(const MessagePack &, const Theron::Address &);
+        void On_MPK_UPDATECOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYSCADDRESS(const MessagePack &, const Theron::Address &);
