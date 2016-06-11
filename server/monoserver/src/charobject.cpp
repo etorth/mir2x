@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/09/2016 18:34:34
+ *  Last Modified: 06/10/2016 17:20:49
  *
  *    Description: 
  *
@@ -83,38 +83,36 @@ void CharObject::DispatchMotion()
         g_MonoServer->Restart();
     }
 
-    AMMotionState stAMMS;
-    stAMMS.X = m_CurrX;
-    stAMMS.Y = m_CurrY;
+    switch(QueryMapAddress()){
+        case QUERY_OK:
+            {
+                if(m_MapAddress){
+                    AMMotionState stAMMS;
+                    stAMMS.X = m_CurrX;
+                    stAMMS.Y = m_CurrY;
+                    m_ActorPod->Forward({MPK_MOTIONSTATE, stAMMS}, m_MapAddress);
+                    return;
+                }
 
-    // ok we have map address
-    if(m_MapAddress){
-        m_ActorPod->Forward({MPK_MOTIONSTATE, stAMMS}, m_MapAddress);
-        return;
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "internal logic error");
+                g_MonoServer->Restart();
+                break;
+            }
+        case QUERY_PENDING:
+            {
+                // TODO: currently I just ignore this motion
+                //       since it's just a state boardcat, no need to install a trigger
+                break;
+            }
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "unexpected state for map address query");
+                g_MonoServer->Restart();
+                break;
+            }
     }
-
-    // no we don't have map address
-    if(!m_MapID){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "logic error, activated charobject are with zero map id");
-        g_MonoServer->Restart();
-    }
-
-    if(!m_RMAddress){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "activated char object with null RM address");
-        g_MonoServer->Restart();
-    }
-
-    auto fnOnR = [this, stAMMS](const MessagePack &rstRMPK, const Theron::Address &){
-        // 0. even failed, we won't repeat the request
-        if(rstRMPK.Type() != MPK_ADDRESS){ return; }
-        // 1. keep the record
-        m_MapAddress = Theron::Address((const char *)(rstRMPK.Data()));
-        // 2. dispatch
-        m_ActorPod->Forward({MPK_MOTIONSTATE, stAMMS}, m_MapAddress);
-    };
-    m_ActorPod->Forward({MPK_QUERYMAPADDRESS, m_MapID}, m_RMAddress, fnOnR);
 }
 
 int CharObject::QuerySCAddress()

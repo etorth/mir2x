@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 06/09/2016 18:02:55
+ *  Last Modified: 06/10/2016 13:08:22
  *
  *    Description: 
  *
@@ -145,6 +145,18 @@ bool ActorPod::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, 
             this, Name(), UID(), AddTime(), MessagePack(rstMB.Type()).Name(), 0, nRespond);
 #endif
 
+    if(!rstAddr){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "trying to send message to an invalid address");
+        g_MonoServer->Restart();
+    }
+
+    if(rstAddr == GetAddress()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "trying to send message to itself");
+        g_MonoServer->Restart();
+    }
+
     return Theron::Actor::Send<MessagePack>({rstMB, 0, nRespond}, rstAddr);
 }
 
@@ -164,6 +176,18 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
             "(Pod: %p, Name: %s, UID: %u, AddTime: %u) -> (Type: %s, ID: %u, Resp: %u)",
             this, Name(), UID(), AddTime(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
 #endif
+
+    if(!rstAddr){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "trying to send message to an invalid address");
+        g_MonoServer->Restart();
+    }
+
+    if(rstAddr == GetAddress()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "trying to send message to itself");
+        g_MonoServer->Restart();
+    }
 
     // 2. send it
     bool bRet = Theron::Actor::Send<MessagePack>({rstMB, nID, nRespond}, rstAddr);

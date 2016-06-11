@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 06/09/2016 14:59:55
+ *  Last Modified: 06/10/2016 17:34:16
  *
  *    Description: 
  *
@@ -80,9 +80,21 @@ void RegionMonitor::On_MPK_CHECKCOVER(const MessagePack &rstMPK, const Theron::A
     m_MoveRequest.CoverCheck = true;
     m_MoveRequest.Freeze();
 
-    auto fnROP = [this](const MessagePack &, const Theron::Address &){
-        // cover check requestor should response to clear the lock
-        m_MoveRequest.Clear();
+    auto fnROP = [this](const MessagePack &rstRMPK, const Theron::Address &){
+        switch(rstRMPK.Type()){
+            case MPK_OK:
+                {
+                    m_MoveRequest.Clear();
+                    break;
+                }
+            default:
+                {
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "only support MPK_OK to clear locked rm");
+                    g_MonoServer->Restart();
+                    break;
+                }
+        }
     };
     m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID(), fnROP);
 }
@@ -478,26 +490,38 @@ void RegionMonitor::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK, const Theron:
         g_MonoServer->Restart();
     }
 
-    // 1-0. check whether the reqestor is in void state
-    bool bVoidState = (stAMTSM.R == 0);
+    // prepare the lambda for commit move callback
+    auto fnOnCommitMove = [this, stAMTSM](const MessagePack &rstRMPK, const Theron::Address &rstAddr){
+        // 1. when get move commit, the rm should be locked
+        //    actually here is WaitCO == true
+        if(!m_MoveRequest.Freezed()){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "unlocked rm get a commit move message");
+            g_MonoServer->Restart();
+        }
 
-    // 1-1. yes it's in void state
-    if(bVoidState){
-        // 1-1-1. for void state, In() is good enough, we don't need neighbor's permission since
-        //        the R now is zero, couldn't affect any neighbor
-        if(In(stAMTSM.MapID, stAMTSM.X, stAMTSM.Y)){
-            // even it's void state, we should check current requested point is valid
-            if(!GroundValid(stAMTSM.X, stAMTSM.Y, stAMTSM.R)){
-                m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-                return;
+        // 2. unlock this rm
+        m_MoveRequest.Clear();
+
+        // 3. make sure this record is not in current rm since this is a space move
+        bool bFind = false;
+        for(auto &rstRecord: m_CORecordV){
+            if(rstRecord.UID == stAMTSM.UID && rstRecord.AddTime == stAMTSM.AddTime){
+                bFind = true;
+                break;
             }
+        }
 
-            // ok current point is valid
-            auto fnOnR = [this, stAMTSM](const MessagePack &rstRMPK, const Theron::Address &rstAddr){
-                // 1. clear the lock
-                m_MoveRequest.Clear();
-                // 2. update the record
-                if(rstRMPK.Type() == MPK_OK){
+        if(bFind){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "char object are requesting space move");
+            g_MonoServer->Restart();
+        }
+
+        // 4. ok now we make a record here
+        switch(rstRMPK.Type()){
+            case MPK_OK:
+                {
                     CORecord stCORecord;
                     stCORecord.X = stAMTSM.X;
                     stCORecord.Y = stAMTSM.Y;
@@ -513,15 +537,44 @@ void RegionMonitor::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK, const Theron:
                     // TODO: here we don't check automatically whether the co still
                     //       need to be void state, the co should send void check
                     //       request sperately and by itself
+                    break;
                 }
-            };
+            case MPK_ERROR:
+                {
+                    // refust to move, ok
+                    break;
+                }
+            default:
+                {
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "only support MPK_OK / MPK_ERROR for commit move");
+                    g_MonoServer->Restart();
+                    break;
+                }
+        }
+    };
 
+    // 1-0. check whether the reqestor is in void state
+    bool bVoidState = (stAMTSM.R == 0);
+
+    // 1-1. yes it's in void state
+    if(bVoidState){
+        // 1-1-1. for void state, In() is good enough, we don't need neighbor's permission since
+        //        the R now is zero, couldn't affect any neighbor
+        if(In(stAMTSM.MapID, stAMTSM.X, stAMTSM.Y)){
+            // even it's void state, we should check current requested point is valid
+            if(!GroundValid(stAMTSM.X, stAMTSM.Y, stAMTSM.R)){
+                m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                return;
+            }
+
+            // ok current point is valid
             m_MoveRequest.Clear();
             m_MoveRequest.WaitCO = true;
             m_MoveRequest.Freeze();
 
             // permit this request, and wait for co's commit
-            m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID(), fnOnR);
+            m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID(), fnOnCommitMove);
             return;
         }
 
@@ -545,26 +598,7 @@ void RegionMonitor::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK, const Theron:
         m_MoveRequest.WaitCO = true;
         m_MoveRequest.Freeze();
 
-        auto fnROP = [stAMTSM, this](const MessagePack &rstRMPK, const Theron::Address &){
-            // object moved, so we need to update the location
-            if(rstRMPK.Type() == MPK_OK){
-                for(auto &rstRecord: m_CORecordV){
-                    if(rstRecord.UID == stAMTSM.UID && rstRecord.AddTime == stAMTSM.AddTime){
-                        rstRecord.X = stAMTSM.X;
-                        rstRecord.Y = stAMTSM.Y;
-                        break;
-                    }
-                }
-            }else{
-                // object doesn't move actually
-                // it gives up the chance to move, do nothing
-            }
-
-            // no matter moved or not, release the current RM
-            m_MoveRequest.Clear();
-        };
-
-        m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID(), fnROP);
+        m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID(), fnOnCommitMove);
         return;
     }
 
@@ -602,37 +636,29 @@ void RegionMonitor::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK, const Theron:
         }
 
         // 03. install trigger to check the CC response
-        auto fnMoveRequest = [this, stAMTSM, rstFromAddr, nMPKID = rstMPK.ID()]() -> bool {
+        auto fnMoveRequest = [this, stAMTSM, rstFromAddr, fnOnCommitMove, nMPKID = rstMPK.ID()]() -> bool {
             switch(NeighborQueryCheck()){
                 case QUERY_OK:
                     {
                         // we grant permission and now it's time
-                        auto fnROP = [stAMTSM, this](const MessagePack &rstRMPK, const Theron::Address &){
-                            if(rstRMPK.Type() == MPK_OK){
-                                // object picked this chance to move
-                                for(auto &rstRecord: m_CORecordV){
-                                    if(rstRecord.UID == stAMTSM.UID && rstRecord.AddTime == stAMTSM.AddTime){
-                                        rstRecord.X = stAMTSM.X;
-                                        rstRecord.Y = stAMTSM.Y;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            // no matter the object decide to move or not, we need to free neighbors
+                        // 1. need add new record to commit this move
+                        // 2. need to clear the neighbor check
+                        auto fnOnAdvancedCommitMove = [this, fnOnCommitMove](const MessagePack &rstRMPK, const Theron::Address &rstRAddr){
                             NeighborClearCheck();
-                            m_MoveRequest.Clear();
+                            fnOnCommitMove(rstRMPK, rstRAddr);
                         };
+
                         // TODO
                         // there was a bug here
                         // when we notified the object, then neighbor check is done
                         // however before the object responded, this RM should still be freezed
                         //
+                        // clear the neighbor check flag here, set the waitco flag
                         m_MoveRequest.Clear();
                         m_MoveRequest.WaitCO = true;
                         m_MoveRequest.Freeze();
 
-                        m_ActorPod->Forward(MPK_OK, rstFromAddr, nMPKID, fnROP);
+                        m_ActorPod->Forward(MPK_OK, rstFromAddr, nMPKID, fnOnAdvancedCommitMove);
                         return true;
                     }
                 case QUERY_ERROR:
@@ -919,7 +945,7 @@ void RegionMonitor::On_MPK_QUERYMAPADDRESS(const MessagePack &rstMPK, const Ther
 
     if(*((uint32_t *)rstMPK.Data()) == m_MapID){
         std::string szMapAddr = m_MapAddress.AsString();
-        m_ActorPod->Forward({MPK_ADDRESS, (const uint8_t *)(szMapAddr.c_str(), 1 + szMapAddr.size())}, rstFromAddr, rstMPK.ID());
+        m_ActorPod->Forward({MPK_ADDRESS, (uint8_t *)(szMapAddr.c_str()), 1 + szMapAddr.size()}, rstFromAddr, rstMPK.ID());
         return;
     }
 

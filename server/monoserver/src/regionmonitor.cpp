@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 06/09/2016 18:16:17
+ *  Last Modified: 06/10/2016 12:34:16
  *
  *    Description: 
  *
@@ -172,7 +172,7 @@ void RegionMonitor::NeighborClearCheck()
         for(int nX = 0; nX < 3; ++nX){
             // cancel all freezed neighbors
             if(m_NeighborV2D[nY][nX].Valid() && (m_NeighborV2D[nY][nX].Query == QUERY_OK)){
-                m_ActorPod->Forward(MPK_ERROR, m_NeighborV2D[nY][nX].PodAddress, m_NeighborV2D[nY][nX].MPKID);
+                m_ActorPod->Forward(MPK_OK, m_NeighborV2D[nY][nX].PodAddress, m_NeighborV2D[nY][nX].MPKID);
                 m_NeighborV2D[nY][nX].Query = QUERY_NA;
             }
         }

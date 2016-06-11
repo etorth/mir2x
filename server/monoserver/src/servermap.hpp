@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 06/09/2016 17:22:05
+ *  Last Modified: 06/10/2016 13:01:19
  *
  *    Description: put all non-atomic function as private
  *

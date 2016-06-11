@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/09/2016 15:34:13
+ *  Last Modified: 06/10/2016 17:12:47
  *
  *    Description: 
  *
@@ -114,11 +114,17 @@ void Monster::SpaceMove(const char *szAddr, int nX, int nY)
 
                     break;
                 }
-            default:
+            case MPK_ERROR:
+            case MPK_PENDING:
                 {
-                    // can only be MPK_ERROR
                     m_FreezeWalk = false;
                     break;
+                }
+            default:
+                {
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported response type for MPK_TRYSPACEMOVE: %s", rstMPK.Name());
+                    g_MonoServer->Restart();
                 }
         }
     };
@@ -160,11 +166,18 @@ bool Monster::ReportMove(int nX, int nY)
                     SpaceMove((const char *)rstMPK.Data(), nX, nY);
                     break;
                 }
-            default:
+            case MPK_ERROR:
+            case MPK_PENDING:
                 {
-                    // move failed, could be ERROR / PENDING
+                    // move failed
                     m_FreezeWalk = false;
                     break;
+                }
+            default:
+                {
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported response type for MPK_TRYMOVE: %s", rstMPK.Name());
+                    g_MonoServer->Restart();
                 }
         }
     };
