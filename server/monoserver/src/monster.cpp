@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/11/2016 03:18:14
+ *  Last Modified: 06/11/2016 12:23:27
  *
  *    Description: 
  *
@@ -18,7 +18,7 @@
  * =====================================================================================
  */
 
-#include <cstdio>
+// #include <cstdio>
 
 #include "netpod.hpp"
 #include "monster.hpp"
@@ -50,7 +50,7 @@ bool Monster::Update()
 {
     if(!m_MapID){ return false; }
 
-    std::printf("moster (%d, %d) is now at (%d, %d)\n", UID(), AddTime(), X(), Y());
+    // std::printf("moster (%d, %d) is now at (%d, %d)\n", UID(), AddTime(), X(), Y());
     return RandomWalk();
 }
 
