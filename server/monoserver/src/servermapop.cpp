@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 06/11/2016 02:36:13
+ *  Last Modified: 06/11/2016 16:28:26
  *
  *    Description: 
  *
@@ -29,7 +29,7 @@ void ServerMap::On_MPK_HI(const MessagePack &, const Theron::Address &rstFromAdd
 {
     m_SCAddress = rstFromAddr;
     if(!m_Metronome){
-        m_Metronome = new Metronome(100);
+        m_Metronome = new Metronome(1000);
     }
     m_Metronome->Activate(m_ActorPod->GetAddress());
 }

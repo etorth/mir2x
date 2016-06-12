@@ -3,7 +3,7 @@
  *
  *       Filename: memorychunkpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/26/2016 15:28:46
+ *  Last Modified: 06/11/2016 23:07:49
  *
  *    Description: unfixed-size memory chunk pool, thread safe is optional, but self-contained
  *                 this algorithm is based on buddy algorithm
@@ -99,14 +99,18 @@ class MemoryChunkPN
             {
                 if(BranchSize > 1){
                     Lock = pLock;
-                    Lock->lock();
+                    if(Lock){
+                        Lock->lock();
+                    }
                 }
             }
 
             ~_InnLockGuard()
             {
                 if(BranchSize > 1){
-                    Lock->unlock();
+                    if(Lock){
+                        Lock->unlock();
+                    }
                 }
             }
         }InnLockGuard;
@@ -115,7 +119,8 @@ class MemoryChunkPN
         // I need to use uint8_t for saving space, but it's OK since we are avoiding
         // frequent allocation-dellocation, the memory usage efficiency is next.
         typedef struct _InnMemoryChunk{
-            bool In;            // this chunk is allocated in the memory pool
+            bool In;            // this to indicate the chunk is allocated in the memory pool
+                                // actually we can compare pointer range to decide
 
             size_t NodeID;      // node in its memory pool, use it for offset calculation
             size_t PoolID;      //
@@ -198,10 +203,12 @@ class MemoryChunkPN
                 return (1 << (Level(2 * PoolSize - 2) - Level(nNodeID)));
             }
 
-            // I didn't put branch ID here
+            // I didn't put branch ID here since not sure it's multi-branches for
+            // multi-thread or only single branch for single thread
             _InnMemoryChunkPool(size_t nPoolID)
                 : PoolID(nPoolID)
             {
+                // or we can just use function ValidUnit(nIndex)
                 size_t nNodeSize = PoolSize * 2;
                 for(size_t nIndex = 0; nIndex < 2 * PoolSize - 1; ++nIndex){
                     if(PowerOf2(nIndex + 1)){
@@ -266,18 +273,23 @@ class MemoryChunkPN
                 Longest[nIndex] = 0;
                 size_t nOffset = (nIndex + 1) * nLevelNodeSize - PoolSize;
 
-                while(nIndex){
-                    nIndex = ParentNode(nIndex);
-                    Longest[nIndex] = std::max<size_t>(
-                            Longest[LeftNode(nIndex)], Longest[RightNode(nIndex)]);
-                }
-
+                // mark it in the structure pointer, in the wuwenbin/buddy2 implementation, the auther
+                // return the offset and find the proper nNodeID whose Longest[nNodeID] == 0, but here
+                // I record the nNodeID directly to avoid the retrieving
+                //
                 auto pHead = ((InnMemoryChunk *)(Data + nOffset * UnitSize));
                 pHead->In = true;
+                pHead->NodeID = nIndex; 
                 pHead->PoolID = PoolID;
 
                 if(BranchSize > 1){
                     pHead->BranchID = BranchID;
+                }
+
+                // set all its ancestor for right capacity
+                while(nIndex){
+                    nIndex = ParentNode(nIndex);
+                    Longest[nIndex] = std::max<size_t>(Longest[LeftNode(nIndex)], Longest[RightNode(nIndex)]);
                 }
 
                 return &(pHead->Data[0]);
@@ -286,9 +298,18 @@ class MemoryChunkPN
             // internal use, so there is no parameter check
             void Free(size_t nNodeID)
             {
+                // TODO: by our implementation, for one nNodeID to free, its Longest should
+                //       always be zero to indicate it's already allocated before
+                //
+                //       so actually here we should throw an exception since it's to free a
+                //       node which never be allocated!
+                //
+                if(Longest[nNodeID]){ return; }
+
                 // 1. recover the full state of this node
                 //    when pool size is N, then node count is (2 * N - 1)
                 //    and maximal node index is (2 * N - 2)
+
                 Longest[nNodeID] = ValidUnit(nNodeID);
 
                 while(nNodeID){
@@ -395,12 +416,8 @@ class MemoryChunkPN
             : m_Count(0)
         {
             // 1. check parameters
-            static_assert(UnitSize > 0 && UnitSize <= 256
-                    && (!(UnitSize & (UnitSize - 1))), "invalid argument for UnitSize");
-
-            static_assert(PoolSize > 0 && PoolSize <= 256
-                    && (!(PoolSize & (PoolSize - 1))), "invalid argument for PoolSize");
-
+            static_assert(UnitSize > 0 && UnitSize <= 256 && (!(UnitSize & (UnitSize - 1))), "invalid argument for UnitSize");
+            static_assert(PoolSize > 0 && PoolSize <= 256 && (!(PoolSize & (PoolSize - 1))), "invalid argument for PoolSize");
             static_assert(BranchSize > 0, "invalid argument for BranchSize");
 
             // 2. assign branch id to each branch if necessary

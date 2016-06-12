@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/06/2016 22:30:40
+ *  Last Modified: 06/11/2016 15:05:09
  *
  *    Description: 
  *
@@ -20,8 +20,8 @@
 
 #include "myhero.hpp"
 
-MyHero::MyHero(int nSID, int nUID, int nGenTime)
-	: Hero(nSID, nUID, nGenTime)
+MyHero::MyHero(uint32_t nGUID, uint32_t nUID, uint32_t nGenTime, bool bMale)
+	: Hero(nGUID, nUID, nGenTime, bMale)
 {}
 
 MyHero::~MyHero()

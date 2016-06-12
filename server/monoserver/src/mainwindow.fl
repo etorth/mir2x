@@ -123,9 +123,11 @@ class MainWindow {open
 			szFullMessage = "@C1" + szFullMessage + "  " + szMessage;
 			break;
 		}
-	if(m_Browser->size() > 500){
-		m_Browser->remove(1);
-	}
+
+	// if(m_Browser->size() > 500){
+	// 	m_Browser->remove(1);
+	// }
+
 	m_Browser->add(szFullMessage.c_str());
 	m_Browser->bottomline(m_Browser->size());
 

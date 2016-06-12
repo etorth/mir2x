@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 06/11/2016 02:02:06
+ *  Last Modified: 06/11/2016 14:39:54
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <unordered_map>
 
+#include "myhero.hpp"
 #include "process.hpp"
 #include "message.hpp"
 #include "mir2xmap.hpp"
@@ -29,6 +30,9 @@
 
 class ProcessRun: public Process
 {
+    private:
+        MyHero     *m_MyHero;
+
     private:
         ClientMap   m_ClientMap;
         int         m_ViewX;

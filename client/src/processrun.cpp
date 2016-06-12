@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/11/2016 02:21:22
+ *  Last Modified: 06/11/2016 15:02:19
  *
  *    Description: 
  *
@@ -29,6 +29,7 @@
 
 ProcessRun::ProcessRun()
     : Process()
+    , m_MyHero(nullptr)
     , m_ViewX(0)
     , m_ViewY(0)
 {
@@ -36,6 +37,11 @@ ProcessRun::ProcessRun()
 
 void ProcessRun::Update(double)
 {
+    if(m_MyHero){
+        extern SDLDevice *g_SDLDevice;
+        m_ViewX = m_MyHero->X() - g_SDLDevice->WindowW(false) / 2;
+        m_ViewY = m_MyHero->Y() - g_SDLDevice->WindowH(false) / 2;
+    }
 }
 
 // ProcessRun::Start()
@@ -309,12 +315,16 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
 {
     if(!(pBuf && nLen && nLen == sizeof(SMLoginOK))){ return; }
 
-    SMLoginOK stLOK;
-    std::memcpy(&stLOK, pBuf, nLen);
+    SMLoginOK stSMLOK;
+    std::memcpy(&stSMLOK, pBuf, nLen);
 
-    m_ClientMap.Load(stLOK.MapID);
-    // m_MyHero.SetGUID(stLOK.GUID);
-    // m_MyHero.SetDirection(stLOK.Direction);
+    m_ClientMap.Load(stSMLOK.MapID);
+    m_MyHero = new MyHero(stSMLOK.GUID, stSMLOK.UID, stSMLOK.AddTime, (bool)(stSMLOK.Male));
+
+    m_MyHero->ResetLocation(stSMLOK.MapID, (int)(stSMLOK.X), (int)(stSMLOK.Y));
+    m_MyHero->ResetDirection((int)(stSMLOK.Direction));
+    m_MyHero->ResetLevel((int)(stSMLOK.Level));
+    m_MyHero->ResetJob((int)(stSMLOK.JobID));
 }
 
 #include <cstdio>

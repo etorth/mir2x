@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/03/2016 11:56:50
+ *  Last Modified: 06/11/2016 15:32:24
  *
  *    Description: 
  *
@@ -22,6 +22,8 @@
 
 #include <array>
 #include <vector>
+
+#include "protocoldef.hpp"
 
 class Creature
 {

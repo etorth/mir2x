@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/03/2016 11:59:15
+ *  Last Modified: 06/11/2016 14:35:58
  *
  *    Description: 
  *
@@ -24,19 +24,6 @@
 #include <SDL2/SDL.h>
 
 #include "creature.hpp"
-
-//  +----------+-------+-----------+-------+--------+-----+
-//  | reserved | state | direction | frame | shadow | LID |
-//  +----------+-------+-----------+-------+--------+-----+
-//  | 32       | 29    | 23        | 20    | 14     | 13  |
-//  +----------+-------+-----------+-------+--------+-----+
-//
-//  4 bits:   16: reserved for colouration effect
-//  5 bits:   32: state
-//  3 bits:    8: direction
-//  6 bits:   64: frame
-//  1 bits:    2: shadow/body
-// 13 bits: 8192: LID
 
 Creature::Creature(uint32_t nUID, uint32_t nAddTime)
     : m_UID(nUID)

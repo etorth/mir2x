@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: hero.hpp
- *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 01/29/2016 20:41:58
+ *       Filename: myhero.hpp
+ *        Created: 04/07/2016 03:48:41 AM
+ *  Last Modified: 06/11/2016 15:05:25
  *
  *    Description: 
  *
@@ -18,26 +18,15 @@
  * =====================================================================================
  */
 
-#pragma once 
-#include "actor.hpp"
+#pragma once
+#include "hero.hpp"
 
-class Hero: public Actor
+class MyHero: public Hero
 {
     public:
-        Hero(int, int, int);
-        ~Hero();
+        MyHero(uint32_t, uint32_t, uint32_t, bool);
+        ~MyHero();
 
     public:
-        void Draw();
         void Update();
-
-    public:
-        int FrameCount();
-
-    public:
-        void UpdateCurrentState();
-        void UpdateWithNewState();
-
-    public:
-        uint32_t    m_LookID;
 };
