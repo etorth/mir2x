@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/11/2016 03:26:17
+ *  Last Modified: 06/12/2016 01:09:54
  *
  *    Description: 
  *
@@ -145,10 +145,12 @@ void Player::ReportCORecord(uint32_t nSessionID)
 
         pMem->Type = OBJECT_PLAYER;
 
-        pMem->Common.MapX  = X();
-        pMem->Common.MapY  = Y();
-        pMem->Common.R     = R();
-        pMem->Common.MapID = MapID();
+        pMem->Common.UID     = UID();
+        pMem->Common.AddTime = AddTime();
+        pMem->Common.MapX    = X();
+        pMem->Common.MapY    = Y();
+        pMem->Common.R       = R();
+        pMem->Common.MapID   = MapID();
 
         pMem->Player.GUID      = m_GUID;
         pMem->Player.JobID     = m_JobID;

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/11/2016 15:02:19
+ *  Last Modified: 06/12/2016 02:00:02
  *
  *    Description: 
  *
@@ -357,4 +357,36 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
 {
     SMCORecord stSMCOR;
     std::memcpy(&stSMCOR, pBuf, sizeof(stSMCOR));
+
+    Creature *pCreature = nullptr;
+    uint64_t nCOKey = ((((uint64_t)stSMCOR.Common.UID) << 32) + stSMCOR.Common.AddTime);
+
+    auto pRecord = m_CreatureMap.find(nCOKey);
+    if(pRecord != m_CreatureMap.end()){
+        pCreature = pRecord->second;
+    }else{
+        switch(stSMCOR.Type){
+            case CREATURE_MONSTER:
+                {
+                    pCreature = new Monster(stSMCOR.Monster.MonsterID, stSMCOR.Common.UID, stSMCOR.Common.AddTime);
+                    break;
+                }
+            case CREATURE_PLAYER:
+                {
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    }
+
+    if(pCreature){
+        pCreature->ResetR((int)stSMCOR.Common.R);
+        pCreature->ResetDirection((int)stSMCOR.Common.Direction);
+        pCreature->ResetLocation(stSMCOR.Common.MapID, (int)stSMCOR.Common.MapX, (int)stSMCOR.Common.MapY);
+
+        m_CreatureMap[nCOKey] = pCreature;
+    }
 }

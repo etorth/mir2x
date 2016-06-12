@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 05/30/2016 01:12:40
+ *  Last Modified: 06/12/2016 01:40:37
  *
  *    Description: TODO & TBD
  *                 I have a decision, now class session *only* communicate with actor
@@ -31,6 +31,7 @@
  */
 #pragma once
 #include <tuple>
+#include <mutex>
 #include <cstdint>
 #include <asio.hpp>
 #include <queue>
@@ -56,6 +57,9 @@ class Session: public SyncDriver
         Theron::Address                         m_TargetAddress;
         std::queue<SendTaskDesc>                m_SendQ;
 
+        // for multithread
+        std::mutex                              m_Lock;
+
     public:
         Session(uint32_t, asio::ip::tcp::socket);
         ~Session();
@@ -65,18 +69,22 @@ class Session: public SyncDriver
         // TODO & TBD
         // Session class won't maintain the validation of pData!
 
-        // send with a r-ref callback
+        // send with a r-ref callback, this is the base of all send function
         void Send(uint8_t nMsgHC, const uint8_t *pData, size_t nLen, std::function<void()> &&fnDone)
         {
+            // 1. we have to lock it
+            std::lock_guard<std::mutex> stLockGuard(m_Lock);
+
+            // 2. put the send request
             bool bEmpty = m_SendQ.empty();
             m_SendQ.emplace(nMsgHC, pData, nLen, std::move(fnDone));
 
+            // 3. if this is the only request, do it now
             if(bEmpty){ DoSendHC(); }
         }
 
         // send with a const-ref callback
-        void Send(uint8_t nMsgHC, const uint8_t *pData,
-                size_t nLen, const std::function<void()> &fnDone)
+        void Send(uint8_t nMsgHC, const uint8_t *pData, size_t nLen, const std::function<void()> &fnDone)
         {
             Send(nMsgHC, pData, nLen, std::function<void()>(fnDone));
         }
@@ -101,15 +109,13 @@ class Session: public SyncDriver
         }
 
         // send a strcutre
-        template<typename T> void Send(uint8_t nMsgHC,
-                const T &stMsgT, const std::function<void()> &fnDone)
+        template<typename T> void Send(uint8_t nMsgHC, const T &stMsgT, const std::function<void()> &fnDone)
         {
             Send(nMsgHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT), fnDone);
         }
 
         // send a strcutre
-        template<typename T> void Send(uint8_t nMsgHC,
-                const T &stMsgT, std::function<void()> &&fnDone)
+        template<typename T> void Send(uint8_t nMsgHC, const T &stMsgT, std::function<void()> &&fnDone)
         {
             Send(nMsgHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT), std::move(fnDone));
         }

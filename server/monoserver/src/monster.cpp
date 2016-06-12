@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/11/2016 12:23:27
+ *  Last Modified: 06/12/2016 01:09:21
  *
  *    Description: 
  *
@@ -27,6 +27,7 @@
 #include "memorypn.hpp"
 #include "monoserver.hpp"
 #include "messagepack.hpp"
+#include "protocoldef.hpp"
 
 Monster::Monster(uint32_t nMonsterID)
     : CharObject()
@@ -263,12 +264,16 @@ void Monster::ReportCORecord(uint32_t nSessionID)
         extern MemoryPN *g_MemoryPN;
         auto pMem = (SMCORecord *)g_MemoryPN->Get(sizeof(SMCORecord));
 
-        pMem->Type = OBJECT_MONSTER;
+        // TODO: don't use OBJECT_MONSTER, we need translation
+        //       rule of communication, the sender is responsible to translate
+        pMem->Type = CREATURE_MONSTER;
 
-        pMem->Common.MapX  = X();
-        pMem->Common.MapY  = Y();
-        pMem->Common.R     = R();
-        pMem->Common.MapID = MapID();
+        pMem->Common.UID     = UID();
+        pMem->Common.AddTime = AddTime();
+        pMem->Common.MapX    = X();
+        pMem->Common.MapY    = Y();
+        pMem->Common.R       = R();
+        pMem->Common.MapID   = MapID();
 
         pMem->Monster.MonsterID = m_MonsterID;
 

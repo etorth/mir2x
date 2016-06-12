@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 06/11/2016 14:59:44
+ *  Last Modified: 06/12/2016 01:58:57
  *
  *    Description: net message used by client and mono-server
  *
@@ -87,10 +87,15 @@ typedef union {
     struct _Common{
         uint8_t Type;
 
+        uint32_t UID;
+        uint32_t AddTime;
+
         uint32_t MapID;
         uint32_t MapX;
         uint32_t MapY;
         uint32_t R;
+
+        uint32_t Direction;
     }Common;
 
     struct _Monster{
