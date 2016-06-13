@@ -11,8 +11,7 @@ DBRecord::DBRecord(DBConnection * pConnection)
     , m_Connection(pConnection)
     , m_QueryBuf(nullptr)
     , m_QueryBufLen(0)
-    , m_ValidExecuteString(true)
-    , m_Valid(false)
+    , m_ValidCmd(true) // if no cmd queried, we make true by default
     , m_QuerySucceed(false)
 {}
 
@@ -38,7 +37,7 @@ bool DBRecord::Execute(const char *szQueryCmd, ...)
 
     va_list ap;
 
-    while(1){
+    while(true){
 
         va_start(ap, szQueryCmd);
 
@@ -51,7 +50,10 @@ bool DBRecord::Execute(const char *szQueryCmd, ...)
             // everything works
             break;
         }else if(nRes < 0){
-            // error occurs
+            // 1. mark current cmd is invalid
+            m_ValidCmd = false;
+
+            // 2. just stop here
             return false;
         }else{
             // we need a larger buffer
@@ -62,10 +64,28 @@ bool DBRecord::Execute(const char *szQueryCmd, ...)
     return Query(m_QueryBuf) && Valid() && StoreResult();
 }
 
+// TODO: we already put the query cmd in internal buffer, so here do I
+//       need to put the argument szQueryCmd?
+//
+//       I was planning to make Query() public then we can do some
+//       query without result store like
+//
+//          Query("use database mir2x");
+//
+//       but currently I haven't done it yet since I have no idea that
+//       this is necessary or not
 bool DBRecord::Query(const char *szQueryCmd)
 {
     // 1. make a default false state
     m_QuerySucceed = false;
+
+    // if we are using the internal buffer, we have to make sure the query
+    // cmd inside is correct
+    if((szQueryCmd == m_QueryBuf)){
+        if(!m_ValidCmd){
+            goto __DBRECORD_QUERY_DONE_QUERY_LABEL_1;
+        }
+    }
 
     // 2. check parameter
     if(!(szQueryCmd && (std::strlen(szQueryCmd) > 0))){
@@ -188,7 +208,7 @@ int DBRecord::ColumnCount()
 
 int DBRecord::ErrorID()
 {
-    if(m_ValidExecuteString){
+    if(m_ValidCmd){
         if(m_Connection){
             // -1, 0, ...
             return m_Connection->ErrorID();
@@ -206,13 +226,13 @@ int DBRecord::ErrorID()
 
 const char *DBRecord::ErrorInfo()
 {
-    if(m_ValidExecuteString){
+    if(m_ValidCmd){
         if(m_Connection){
             // -1, 0, ...
             return m_Connection->ErrorInfo();
         }else{
             // error in initialization
-            return "null connection pointer in record";
+            return "null connection pointer in current record";
         }
     }else{
         return "error in parsing execute command in vsnprintf()";

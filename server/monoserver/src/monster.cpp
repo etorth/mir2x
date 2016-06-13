@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/12/2016 01:09:21
+ *  Last Modified: 06/13/2016 13:08:09
  *
  *    Description: 
  *
@@ -266,15 +266,20 @@ void Monster::ReportCORecord(uint32_t nSessionID)
 
         // TODO: don't use OBJECT_MONSTER, we need translation
         //       rule of communication, the sender is responsible to translate
+
+        // 1. set type
         pMem->Type = CREATURE_MONSTER;
 
-        pMem->Common.UID     = UID();
-        pMem->Common.AddTime = AddTime();
-        pMem->Common.MapX    = X();
-        pMem->Common.MapY    = Y();
-        pMem->Common.R       = R();
-        pMem->Common.MapID   = MapID();
+        // 2. set common info
+        pMem->Common.UID       = UID();
+        pMem->Common.AddTime   = AddTime();
+        pMem->Common.MapID     = MapID();
+        pMem->Common.MapX      = X();
+        pMem->Common.MapY      = Y();
+        pMem->Common.R         = R();
+        pMem->Common.Direction = Direction();
 
+        // 3. set specified info
         pMem->Monster.MonsterID = m_MonsterID;
 
         extern NetPodN *g_NetPodN;

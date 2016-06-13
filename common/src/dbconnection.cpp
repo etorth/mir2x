@@ -3,7 +3,7 @@
  *
  *       Filename: dbconnection.cpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 06/10/2016 19:52:55
+ *  Last Modified: 06/13/2016 11:11:06
  *
  *    Description: 
  *
@@ -65,7 +65,7 @@ const char *DBConnection::ErrorInfo()
     if(m_SQL){
         return mysql_error(m_SQL);
     }
-    return "";
+    return "no valid SQL handler for current connection";
 }
 
 int DBConnection::ErrorID()

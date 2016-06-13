@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.hpp
  *        Created: 8/14/2015 2:47:30 PM
- *  Last Modified: 03/20/2016 19:01:46
+ *  Last Modified: 06/13/2016 11:01:26
  *
  *    Description: 
  *
@@ -28,8 +28,8 @@
 class ProcessSyrc: public Process
 {
     private:
-        std::atomic<int> m_Ratio;
-        Label            m_Info;
+        int     m_Ratio;
+        Label   m_Info;
 
 
     public:

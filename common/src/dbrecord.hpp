@@ -12,8 +12,7 @@ class DBRecord final
     private:
         char   *m_QueryBuf;
         size_t  m_QueryBufLen;
-        bool    m_ValidExecuteString;
-        bool    m_Valid;
+        bool    m_ValidCmd;
         bool    m_QuerySucceed;
 
     private:
