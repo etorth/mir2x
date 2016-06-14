@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 06/10/2016 23:40:28
+ *  Last Modified: 06/14/2016 00:17:46
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 #include <string>
 
 #include "player.hpp"
+#include "memorypn.hpp"
 #include "actorpod.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
@@ -355,4 +356,26 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
 
     // do a one-shoot try, install trigger if failed
     if(!fnUseDBRecord()){ m_StateHook.Install(fnUseDBRecord); }
+}
+
+void ServiceCore::On_MPK_QUERYMONSTERGINFO(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMQueryMonsterGInfo stAMQMGI;
+    std::memcpy(&stAMQMGI, rstMPK.Data(), sizeof(stAMQMGI));
+
+    extern MonoServer *g_MonoServer;
+    auto &rstRecord = g_MonoServer->MonsterGInfo(stAMQMGI.MonsterID); 
+
+    if(!rstRecord.Valid()){ return; }
+
+    extern MemoryPN *g_MemoryPN;
+    auto pBuf = (SMMonsterGInfo *)(g_MemoryPN->Get(sizeof(SMMonsterGInfo)));
+
+    pBuf->MonsterID = stAMQMGI.MonsterID;
+    pBuf->LookIDN   = stAMQMGI.LookIDN;
+    pBuf->LookID   = rstRecord.LookID((int)stAMQMGI.LookIDN);
+    pBuf->R        = rstRecord.R((int)stAMQMGI.LookIDN);
+
+    extern NetPodN *g_NetPodN;
+    g_NetPodN->Send(stAMQMGI.SessionID, SM_MONSTERGINFO, (uint8_t *)pBuf, sizeof(SMMonsterGInfo), [pBuf](){ g_MemoryPN->Free(pBuf); });
 }

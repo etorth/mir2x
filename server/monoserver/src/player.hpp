@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 06/11/2016 02:42:59
+ *  Last Modified: 06/13/2016 22:44:04
  *
  *    Description: 
  *
@@ -105,6 +105,7 @@ class Player: public CharObject
 
     private:
         void Net_CM_MOTION(uint8_t, const uint8_t *, size_t);
+        void Net_CM_QUERYMONSTERGINFO(uint8_t, const uint8_t *, size_t);
 
     private:
         void For_CheckTime();

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/12/2016 01:09:54
+ *  Last Modified: 06/14/2016 00:56:15
  *
  *    Description: 
  *
@@ -57,6 +57,11 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         case MPK_BINDSESSION:
             {
                 On_MPK_BINDSESSION(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_NETPACKAGE:
+            {
+                On_MPK_NETPACKAGE(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_UPDATECOINFO:
@@ -119,7 +124,9 @@ int Player::Range(uint8_t)
 void Player::OperateNet(uint8_t nType, const uint8_t * pData, size_t nDataLen)
 {
     switch(nType){
-        case CM_MOTION: Net_CM_MOTION(nType, pData, nDataLen); break;
+        case CM_MOTION:            Net_CM_MOTION(nType, pData, nDataLen);            break;
+        case CM_QUERYMONSTERGINFO: Net_CM_QUERYMONSTERGINFO(nType, pData, nDataLen); break;
+
         default: break;
     }
 }

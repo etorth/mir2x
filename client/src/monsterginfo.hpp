@@ -3,7 +3,7 @@
  *
  *       Filename: monsterginfo.hpp
  *        Created: 06/02/2016 15:08:56
- *  Last Modified: 06/13/2016 18:12:01
+ *  Last Modified: 06/14/2016 01:17:28
  *
  *    Description: monster global info
  *
@@ -19,8 +19,10 @@
  */
 
 #pragma once
+#include <cassert>
 #include <cstdint>
 
+#include "message.hpp"
 #include "sysconst.hpp"
 #include "pngtexoffdbn.hpp"
 
@@ -56,17 +58,27 @@ class MonsterGInfo final
                 return Query() == QUERY_OK;
             }
 
-            void Reset(uint32_t nR, uint32_t nLookID)
+            void Reset(uint32_t nLookID, uint32_t nR)
             {
                 CurrQuery = QUERY_OK;
 
-                R = nR;
                 CurrLookID = nLookID;
+                R = nR;
             }
 
             int Query()
             {
                 return CurrQuery;
+            }
+
+            void Query(int nQuery)
+            {
+                CurrQuery = nQuery;
+            }
+
+            uint32_t LookID()
+            {
+                return CurrLookID;
             }
         }InnNetData;
 
@@ -135,10 +147,16 @@ class MonsterGInfo final
         bool Valid(uint32_t nLIDN, bool bCacheValid = false)
         {
             // 1. parameter check
-            if(nLIDN >= 4){ return false; }
+            assert(nLIDN < 4);
 
             // 2. check the branch
-            return m_NetData[nLIDN].Valid() && (bCacheValid ? m_CacheData[nLIDN].Valid() : true);
+            if(m_NetData[nLIDN].Valid()){
+                return (bCacheValid ? m_CacheData[nLIDN].Valid() : true);
+            }
+
+            // 3. oooops now the NetData is not valid, we need to load it
+            Load(nLIDN);
+            return false;
         }
 
         bool Valid(bool bCacheValid = false)
@@ -158,10 +176,37 @@ class MonsterGInfo final
         template<typename... T> void ResetLookID(uint32_t nLIDN, uint32_t nLookID, T&&... stT)
         {
             // 1. parameter check
-            if(nLIDN >= 4 || nLookID >= 0X00001000){ return; }
+            assert(nLIDN < 4 && nLookID < 0X00001000);
 
             // 2. set the NetData
             m_NetData[nLIDN].Reset(nLookID, std::forward<T>(stT)...);
+        }
+
+    protected:
+        void Load(uint32_t nLIDN)
+        {
+            // 1. check parameter
+            assert(nLIDN);
+
+            // 2. if the net data is not ready we return
+            switch(m_NetData[nLIDN].Query()){
+                case QUERY_NA:
+                    {
+                        CMQueryMonsterGInfo stCMQMGI;
+                        stCMQMGI.MonsterID = m_MonsterID;
+                        stCMQMGI.LookIDN   = nLIDN;
+
+                        extern Game *g_Game;
+                        g_Game->Send(CM_QUERYMONSTERGINFO, stCMQMGI);
+
+                        m_NetData[nLIDN].Query(QUERY_PENDING);
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
         }
 
     public:
@@ -181,18 +226,19 @@ class MonsterGInfo final
                     }
                 case QUERY_NA:
                     {
-                        CMQueryMonsterGInfo stCMQMGI;
-                        stCMQMGI.MonsterID = m_MonsterID;
-                        stCMQMGI.LookIDN   = nLIDN;
-
-                        xxxxxx
+                        Load(nLIDN);
+                        return 0;
+                    }
+                default:
+                    {
+                        return 0;
                     }
             }
-__MONSTERGINFO_FRAMECOUNT_NETDATAVALID_LABEL_1:
 
+__MONSTERGINFO_FRAMECOUNT_NETDATAVALID_LABEL_1:
             // 2. check cache
             if(!m_CacheData[nLIDN].Valid()){
-                m_CacheData[nLIDN].Load(m_LookIDV[nLIDN]);
+                m_CacheData[nLIDN].Load(m_NetData[nLIDN].LookID());
             }
 
             // 3. ok now cache is valid

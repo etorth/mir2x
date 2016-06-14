@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 06/02/2016 22:52:14
+ *  Last Modified: 06/13/2016 22:38:58
  *
  *    Description: net message used by client and mono-server
  *
@@ -50,4 +50,11 @@ typedef struct{
     uint32_t MonsterID;
     uint32_t LookIDN;
 }CMQueryMonsterGInfo;
+
+typedef struct{
+    uint32_t MonsterID;
+    uint32_t LookIDN;
+    uint32_t LookID;
+    uint32_t R;
+}CMMonsterGInfo;
 #pragma pack(pop)

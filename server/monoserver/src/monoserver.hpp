@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 06/09/2016 15:25:16
+ *  Last Modified: 06/14/2016 00:03:08
  *
  *    Description: 
  *
@@ -33,6 +33,7 @@
 #include "database.hpp"
 #include "servermap.hpp"
 #include "eventtaskhub.hpp"
+#include "monsterginforecord.hpp"
 
 class ServiceCore;
 class MonoServer final
@@ -72,6 +73,20 @@ class MonoServer final
         // desc for *client* message
         // for server message we can directly get it's desc
         std::array<NetMessageDesc, 256> m_NetMessageDescV;
+
+    private:
+        MonsterGInfoRecord m_EmptyMonsterGInfoRecord;
+        std::unordered_map<uint32_t, MonsterGInfoRecord> m_MonsterGInfoRecordMap;
+
+    public:
+        const MonsterGInfoRecord &MonsterGInfo(uint32_t nMonsterID)
+        {
+            if(m_MonsterGInfoRecordMap.find(nMonsterID) != m_MonsterGInfoRecordMap.end()){
+                return m_MonsterGInfoRecordMap[nMonsterID];
+            }
+
+            return m_EmptyMonsterGInfoRecord;
+        }
 
     public:
         const char *MessageName(uint8_t nMessageID)

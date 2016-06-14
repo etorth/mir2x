@@ -37,13 +37,14 @@ int main()
 
     std::atexit(fnAtExit);
 
-    g_Log         = new Log("mir2x-client-v0.1");
-    g_XMLConf     = new XMLConf();
-    g_SDLDevice   = new SDLDevice();
-    g_PNGTexDBN   = new PNGTexDBN();
-    g_FontexDBN   = new FontexDBN();
-    g_EmoticonDBN = new EmoticonDBN();
-    g_Game        = new Game();
+    g_Log          = new Log("mir2x-client-v0.1");
+    g_XMLConf      = new XMLConf();
+    g_SDLDevice    = new SDLDevice();
+    g_PNGTexDBN    = new PNGTexDBN();
+    g_PNGTexOffDBN = new PNGTexOffDBN();
+    g_FontexDBN    = new FontexDBN();
+    g_EmoticonDBN  = new EmoticonDBN();
+    g_Game         = new Game();
 
     g_Game->MainLoop();
 

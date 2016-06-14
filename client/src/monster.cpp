@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 06/13/2016 17:19:45
+ *  Last Modified: 06/14/2016 01:10:56
  *
  *    Description: 
  *
@@ -23,7 +23,7 @@
 // static monster global info map
 std::unordered_map<uint32_t, MonsterGInfo> Monster::s_MonsterGInfoMap;
 
-Monster::Monster(uint32_t nUID, uint32_t nAddTime, uint32_t nMonsterID)
+Monster::Monster(uint32_t nMonsterID, uint32_t nUID, uint32_t nAddTime)
     : Creature(nUID, nAddTime)
     , m_MonsterID(nMonsterID)
     , m_LookIDN(0)

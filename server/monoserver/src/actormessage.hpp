@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 06/11/2016 02:07:41
+ *  Last Modified: 06/13/2016 22:59:35
  *
  *    Description: 
  *
@@ -70,6 +70,7 @@ enum MessagePackType: int{
     MPK_BINDSESSION,
     MPK_MOTIONSTATE,
     MPK_UPDATECOINFO,
+    MPK_QUERYMONSTERGINFO,
 };
 
 typedef struct{
@@ -301,3 +302,9 @@ typedef struct{
     int Y;
     uint32_t MapID;
 }AMUpdateCOInfo;
+
+typedef struct{
+    uint32_t MonsterID;
+    int      LookIDN;
+    uint32_t SessionID;
+}AMQueryMonsterGInfo;

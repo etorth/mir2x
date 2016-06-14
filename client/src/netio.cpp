@@ -3,7 +3,7 @@
  *
  *       Filename: netio.cpp
  *        Created: 06/29/2015 7:18:27 PM
- *  Last Modified: 04/17/2016 23:59:28
+ *  Last Modified: 06/13/2016 22:19:59
  *
  *    Description: this class won't maintian buffer's validation
  *                 user should maintain it by themself
@@ -19,15 +19,15 @@
  * =====================================================================================
  */
 
+#include <cassert>
 #include "netio.hpp"
 
 NetIO::NetIO()
-    : m_Resolver(m_IO)
+    : m_IO()
+    , m_Resolver(m_IO)
     , m_Socket(m_IO)
     , m_MsgHC(0)
-    , m_ReadCount(0)
-{
-}
+{}
 
 NetIO::~NetIO()
 {
@@ -37,8 +37,7 @@ NetIO::~NetIO()
 // TODO
 // I'm not sure whether I can make fnOperateHC as const reference
 // since ...
-void NetIO::RunIO(
-        const char *szIP, const char * szPort, const std::function<void(uint8_t)> &fnOperateHC)
+void NetIO::RunIO(const char *szIP, const char * szPort, const std::function<void(uint8_t)> &fnOperateHC)
 {
     // 1. push a connect request into the event queue
     // 2. start the event loop
@@ -76,61 +75,64 @@ void NetIO::Close()
     m_Socket.close();
 }
 
-void NetIO::Send(uint8_t nMsgHC)
+void NetIO::Send(uint8_t nMsgHC, const uint8_t *pBuf, size_t nLen, std::function<void()> &&fnDone)
 {
-    Send(nMsgHC, nullptr, 0);
-}
-
-// validation of pBuf is maintained by caller!
-// just like asio::buffer()
-void NetIO::Send(uint8_t nMsgHC, const uint8_t *pBuf, size_t nLen)
-{
-    auto fnSendHC = [this, nMsgHC, pBuf, nLen](){
+    auto fnSendHC = [this, nMsgHC, pBuf, nLen, fnDone = std::move(fnDone)](){
         bool bEmpty = m_WQ.empty();
-        m_WQ.emplace(nMsgHC, pBuf, nLen);
+        m_WQ.emplace(nMsgHC, pBuf, nLen, std::move(fnDone));
         if(bEmpty){
-            // if this is the only package then send it immediately
-            // otherwise previously called DoSend() will continue to send
-            // this guarantee data will be sent in order
+            // if this is the only package then send it immediately, otherwise previously called
+            // DoSend() will continue to send this guarantee data will be sent in order
             DoSendHC();
         }
     };
+
     m_IO.post(fnSendHC);
 }
 
-// pBuf is provided by user, NetIO won't maintain its valid state
-// but NetIO will provide a 1-byte buffer for nMsgHC
-// TODO:
-// Can NetIO provide an alway-valid buffer for user?
-// seems it's possible
-//
-void NetIO::Read(uint8_t * pBuf, size_t nBufLen,
-        const std::function<void(const uint8_t *, size_t)> &fnOperateBuf)
+// this function read data to fullfil a buffer provided, if the provided buffer is nullptr, then we have
+// to new a buffer to store result for the callback, after the callback we need to free it, this helps
+// to handle more than one read request at one time in the ASIO queue
+//          Read(nullptr,  2, fnOperate1);
+//          Read(nullptr, 16, fnOperate2);
+//          Read(nullptr, 24, fnOperate3);
+// if we use internal buffer, we have to do it like this
+//          Read(xxx, 2, [](xxx, 2){ Read(xxx, 16); });
+//          
+void NetIO::Read(uint8_t *pBuf, size_t nBufLen, std::function<void(const uint8_t *, size_t)> &&fnOperateBuf)
 {
-    // we suppress multi-read at one time
-    // read request should be handled one by one
-    assert(m_ReadCount == 0);
+    // TODO: we need to report this error actually
+    assert(nBufLen);
 
-    auto fnOnReadBuf = [this, fnOperateBuf, pBuf, nBufLen](std::error_code stEC, size_t){
+    bool bDelete = (pBuf ? false : true);
+    uint8_t *pNewBuf = (pBuf ? pBuf : (new uint8_t[nBufLen]));
+
+    auto fnOnReadBuf = [this, pNewBuf, nBufLen, bDelete, fnOperateBuf = std::move(fnOperateBuf)](std::error_code stEC, size_t){
         if(stEC){
             Close();
         }else{
-            fnOperateBuf(pBuf, nBufLen);
-            m_ReadCount--;
+            // 1. invoke the callback
+            if(fnOperateBuf){
+                fnOperateBuf(pNewBuf, nBufLen);
+            }
+
+            // 2. delete the buffer if needed
+            if(bDelete){ delete [] pNewBuf; }
         }
     };
 
-    m_ReadCount++;
-    asio::async_read(m_Socket, asio::buffer(pBuf, nBufLen), fnOnReadBuf);
+    asio::async_read(m_Socket, asio::buffer(pNewBuf, nBufLen), fnOnReadBuf);
 }
 
-void NetIO::ReadHC(const std::function<void(uint8_t)> &fnProcessHC)
+void NetIO::ReadHC(std::function<void(uint8_t)> &&fnProcessHC)
 {
-    auto fnOnReadHC = [this, fnProcessHC](std::error_code stEC, size_t){
-        if(!stEC){
-            fnProcessHC(m_MsgHC);
-        }else{
+    auto fnOnReadHC = [this, fnProcessHC = std::move(fnProcessHC)](std::error_code stEC, size_t){
+        if(stEC){
             Close();
+        }else{
+            if(fnProcessHC){
+                fnProcessHC(m_MsgHC);
+            }
         }
     };
 
@@ -139,29 +141,40 @@ void NetIO::ReadHC(const std::function<void(uint8_t)> &fnProcessHC)
 
 void NetIO::DoSendNext()
 {
+    // 1. pop the old message, callback has been invoked
     m_WQ.pop();
-    if(!m_WQ.empty()){
-        DoSendHC();
-    }
+
+    // 2. if there isn't any message, stop here
+    //    so when call Send(), we need to check whether it's empty
+    if(!m_WQ.empty()){ DoSendHC(); }
 }
 
 void NetIO::DoSendBuf()
 {
+    // can't happen actually since DoSendBuf() called always by DoSendHC()
     if(m_WQ.empty()){ return; }
 
-    if(std::get<2>(m_WQ.front()) && std::get<1>(m_WQ.front())){
+    if(std::get<1>(m_WQ.front()) && std::get<2>(m_WQ.front())){
         auto fnDoSendValidBuf = [this](std::error_code stEC, size_t){
             if(stEC){
                 Close();
             }else{
+                // 1. invoke the callback
+                if(std::get<3>(m_WQ.front())){
+                    std::get<3>(m_WQ.front())();
+                }
+                // 2. send the next one
                 DoSendNext();
             }
         };
 
-        asio::async_write(m_Socket,
-                asio::buffer((std::get<1>(m_WQ.front())),
-                    std::get<2>(m_WQ.front())), fnDoSendValidBuf);
+        asio::async_write(m_Socket, asio::buffer((std::get<1>(m_WQ.front())), std::get<2>(m_WQ.front())), fnDoSendValidBuf);
     }else{
+        // 1. invoke the callback
+        if(std::get<3>(m_WQ.front())){
+            std::get<3>(m_WQ.front())();
+        }
+        // 2. send the next one
         DoSendNext();
     }
 }
@@ -176,12 +189,10 @@ void NetIO::DoSendHC()
         }
     };
 
-    asio::async_write(m_Socket,
-            asio::buffer(&(std::get<0>(m_WQ.front())), 1), fnDoSendBuf);
+    asio::async_write(m_Socket, asio::buffer(&(std::get<0>(m_WQ.front())), 1), fnDoSendBuf);
 }
 
-void NetIO::InitIO(
-        const char *szIP, const char * szPort, const std::function<void(uint8_t)> &fnOperateHC)
+void NetIO::InitIO(const char *szIP, const char * szPort, const std::function<void(uint8_t)> &fnOperateHC)
 {
     // 1. push a connect request into the event queue
     // 2. start the event loop

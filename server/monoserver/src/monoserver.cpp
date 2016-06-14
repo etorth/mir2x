@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/11/2016 12:23:02
+ *  Last Modified: 06/14/2016 00:30:38
  *
  *    Description: 
  *
@@ -42,19 +42,25 @@ MonoServer::MonoServer()
     , m_ObjectUID(1)
     , m_ServiceCore(nullptr)
     , m_SCAddress(Theron::Address::Null())
+    , m_EmptyMonsterGInfoRecord(0)
 {
     // 1. initialization of time point
     m_StartTime = std::chrono::system_clock::now();
 
     // 2. initialization of client message desc
-    m_NetMessageDescV[CM_UNKNOWN  ] = {CM_UNKNOWN,   0, true,  "CM_UNKNOWN"  };
-    m_NetMessageDescV[CM_OK       ] = {CM_OK,        0, true,  "CM_OK"       };
-    m_NetMessageDescV[CM_ERROR    ] = {CM_ERROR,     0, true,  "CM_ERROR"    };
-    m_NetMessageDescV[CM_WALK     ] = {CM_WALK,      0, true,  "CM_WALK"     };
-    m_NetMessageDescV[CM_PING     ] = {CM_PING,      0, true,  "CM_PING"     };
-    m_NetMessageDescV[CM_LOGIN    ] = {CM_LOGIN,     0, false, "CM_LOGIN"    };
-    m_NetMessageDescV[CM_BROADCAST] = {CM_BROADCAST, 0, true,  "CM_BROADCAST"};
-    m_NetMessageDescV[CM_MOTION   ] = {CM_MOTION,    0, true,  "CM_MOTION"   };
+    m_NetMessageDescV[CM_UNKNOWN          ] = {CM_UNKNOWN,                                     0, true,  "CM_UNKNOWN"  };
+    m_NetMessageDescV[CM_OK               ] = {CM_OK,                                          0, true,  "CM_OK"       };
+    m_NetMessageDescV[CM_ERROR            ] = {CM_ERROR,                                       0, true,  "CM_ERROR"    };
+    m_NetMessageDescV[CM_WALK             ] = {CM_WALK,                                        0, true,  "CM_WALK"     };
+    m_NetMessageDescV[CM_PING             ] = {CM_PING,                                        0, true,  "CM_PING"     };
+    m_NetMessageDescV[CM_LOGIN            ] = {CM_LOGIN,                                       0, false, "CM_LOGIN"    };
+    m_NetMessageDescV[CM_BROADCAST        ] = {CM_BROADCAST,                                   0, true,  "CM_BROADCAST"};
+    m_NetMessageDescV[CM_MOTION           ] = {CM_MOTION,                                      0, true,  "CM_MOTION"   };
+
+    m_NetMessageDescV[CM_QUERYMONSTERGINFO] = {CM_QUERYMONSTERGINFO, sizeof(CMQueryMonsterGInfo), true,  "CM_QUERYMONSTERGINFO"};
+
+    // 3. initialization of monster ginfo record
+    m_MonsterGInfoRecordMap[1] = {1, /* LookID */ 0X0015, 0, 0, 0, /* R */ 10, 10, 10, 10};
 }
 
 MonoServer::~MonoServer()

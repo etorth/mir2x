@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 06/09/2016 15:37:46
+ *  Last Modified: 06/13/2016 23:10:17
  *
  *    Description: 
  *
@@ -77,11 +77,11 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
                 On_MPK_NETPACKAGE(rstMPK, rstAddr);
                 break;
             }
-        // case MPK_LOGIN:
-        //     {
-        //         On_MPK_LOGIN(rstMPK, rstAddr);
-        //         break;
-        //     }
+        case MPK_QUERYMONSTERGINFO:
+            {
+                On_MPK_QUERYMONSTERGINFO(rstMPK, rstAddr);
+                break;
+            }
         case MPK_PLAYERPHATOM:
             {
                 On_MPK_PLAYERPHATOM(rstMPK, rstAddr);
