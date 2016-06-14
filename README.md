@@ -9,7 +9,7 @@ client, server, tools for cross-platform mir2. Using asio, SDL, FLTK, libzip, et
 6. monoserver
 
 Try to make all I learned into practice
-![image](https://github.com/etorth/mir2x/master/readme/screenshot.png)
+![image](https://github.com/etorth/mir2x/raw/master/readme/screenshot.png)
 
 
 global variables:
