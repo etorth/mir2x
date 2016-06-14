@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 06/14/2016 01:10:56
+ *  Last Modified: 06/14/2016 14:32:40
  *
  *    Description: 
  *
@@ -55,14 +55,16 @@ void Monster::Draw(int nViewX, int nViewY)
     uint32_t nKey0 = 0X00000000 + nBaseKey + m_Frame; // body
     uint32_t nKey1 = 0X01000000 + nBaseKey + m_Frame; // shadow
 
-    int nDX = 0;
-    int nDY = 0;
+    int nDX0 = 0;
+    int nDY0 = 0;
+    int nDX1 = 0;
+    int nDY1 = 0;
 
     extern PNGTexOffDBN *g_PNGTexOffDBN;
-    auto pFrame0 = g_PNGTexOffDBN->Retrieve(nKey0, &nDX, &nDY);
-    auto pFrame1 = g_PNGTexOffDBN->Retrieve(nKey1, &nDX, &nDY);
+    auto pFrame0 = g_PNGTexOffDBN->Retrieve(nKey0, &nDX0, &nDY0);
+    auto pFrame1 = g_PNGTexOffDBN->Retrieve(nKey1, &nDX1, &nDY1);
 
     extern SDLDevice *g_SDLDevice;
-    g_SDLDevice->DrawTexture(pFrame1, m_X + nDX - nViewX, m_Y + nDY - nViewY);
-    g_SDLDevice->DrawTexture(pFrame0, m_X + nDX - nViewX, m_Y + nDY - nViewY);
+    g_SDLDevice->DrawTexture(pFrame1, m_X + nDX1 - nViewX, m_Y + nDY1 - nViewY);
+    g_SDLDevice->DrawTexture(pFrame0, m_X + nDX0 - nViewX, m_Y + nDY0 - nViewY);
 }

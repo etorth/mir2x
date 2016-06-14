@@ -255,48 +255,6 @@ void Mir2xMap::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &n
     }
 }
 
-// void Mir2xMap::DrawObject(
-//         int nViewX, int nViewY, int nViewW, int nViewH,
-//         int nMaxObjW, int nMaxObjH, bool bGround,
-//         std::function<void(int, int, uint8_t, uint16_t)> fnDrawObj,
-//         std::function<void(int, int)> fnDrawActor)
-// {
-//     // TODO
-//     UNUSED(nViewW); UNUSED(nViewH);
-//
-//     int nStartCellX = nViewX / 48;
-//     int nStartCellY = nViewY / 32;
-//
-//     int nStopCellX = (nViewX + nViewW) / 48;
-//     int nStopCellY = (nViewY + nViewH) / 32;
-//
-//     for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
-//         for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
-//             for(int nIndex = 0; nIndex < 2; ++nIndex){
-//                 if(GroundObjValid(nCellX, nCellY, nIndex) == bGround){
-//                     auto &stDesc = CellDesc(nCellX, nCellY, nIndex);
-//                     fnDrawObj(nCellX, nCellY, stDesc.FileIndex, stDesc.ImageIndex);
-//                 }
-//             }
-//             fnDrawActorFunc(nCellX, nCellY);
-//         }
-//     }
-// }
-
-// void Mir2xMap::Draw(
-//         int nViewX, int nViewY, int nViewW, int nViewH,      //
-//         int nMaxObjH,                                       // 
-//         std::function<void(int, int, uint32_t)> fnDrawTileFunc,
-//         std::function<void(int, int, uint32_t)> fnDrawObjFunc,
-//         std::function<void(int, int)> fnDrawActorFunc,
-//         std::function<void(int, int)> fnDrawExtFunc)
-// {
-//     DrawGround(nViewX, nViewY, nViewW, nViewH, fnDrawTileFunc);
-//     DrawGroundObj(nViewX, nViewY, nViewW, nViewH, nMaxObjH, fnDrawObjFunc);
-//     DrawOverGroundObj(nViewX, nViewY, nViewW, nViewH, nMaxObjH, fnDrawObjFunc, fnDrawActorFunc);
-//     DrawExt(nViewX, nViewY, nViewW, nViewH, fnDrawExtFunc);
-// }
-
 void Mir2xMap::Draw(int nViewX, int nViewY, int nViewW, int nViewH, // view region
         int nMaxObjW, int nMaxObjH,                                 // operation addition margin
         const std::function<void(int, int, uint32_t)> &fnDrawTile,  //
@@ -310,88 +268,48 @@ void Mir2xMap::Draw(int nViewX, int nViewY, int nViewW, int nViewH, // view regi
     int nStopCellX  = (nViewX + 2 * SYS_MAPGRIDXP + nMaxObjW + nViewW) / SYS_MAPGRIDXP;
     int nStopCellY  = (nViewY + 2 * SYS_MAPGRIDYP + nMaxObjH + nViewH) / SYS_MAPGRIDYP;
 
+    // 1. draw tile, this should be done seperately
     for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
         for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
-            // 1. we need to call ext-draw func even the Cell is invalid
-            fnDrawExt(nCellX, nCellY);
-
-            // 2. validate the cell
+            // 1. boundary check
             if(!ValidC(nCellX, nCellY)){ continue; }
 
-            // 3. for tile
+            // 2. for tile
             if(!(nCellY % 2) && !(nCellX % 2) && TileValid(nCellX, nCellY)){
                 fnDrawTile(nCellX, nCellY, Tile(nCellX, nCellY));
             }
+        }
+    }
 
-            // 4. draw ground cell object
-            for(int nIndex = 0; nIndex < 2; ++nIndex){
-                if(GroundObjectValid(nCellX, nCellY, nIndex)){
-                    fnDrawObj(nCellX, nCellY, Object(nCellX, nCellY, nIndex));
+    // 2. draw everything on ground
+    for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
+        for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
+            // 1. validate the cell, draw overgournd objects here
+            if(ValidC(nCellX, nCellY)){
+                // 1-1. draw ground cell object
+                for(int nIndex = 0; nIndex < 2; ++nIndex){
+                    if(GroundObjectValid(nCellX, nCellY, nIndex)){
+                        fnDrawObj(nCellX, nCellY, Object(nCellX, nCellY, nIndex));
+                    }
+                }
+
+                // 1-2. draw actor
+                fnDrawActor(nCellX, nCellY);
+
+                // 1-3. draw over ground cell object
+                for(int nIndex = 0; nIndex < 2; ++nIndex){
+                    if(!GroundObjectValid(nCellX, nCellY, nIndex)){
+                        fnDrawObj(nCellX, nCellY, Object(nCellX, nCellY, nIndex));
+                    }
                 }
             }
 
-            // 5. draw actor
-            fnDrawActor(nCellX, nCellY);
+            // 2. draw ext, even the cell is not valid we need to draw it
+            fnDrawExt(nCellX, nCellY);
 
-            // 6. draw over ground cell object
-            for(int nIndex = 0; nIndex < 2; ++nIndex){
-                if(!GroundObjectValid(nCellX, nCellY, nIndex)){
-                    fnDrawObj(nCellX, nCellY, Object(nCellX, nCellY, nIndex));
-                }
-            }
         }
     }
 }
-
-// void Mir2xMap::DrawExt(int nViewX, int nViewY, int nViewW, int nViewH,
-//         std::function<void(int, int)> fnDrawExtFunc)
-// {
-//     // a typical fnDrawFunc should be
-//     // auto fnDrawFunc = [this](int nX, int nY, uint32_t nKey){
-//     //     auto stItor = m_TileTexCache.find(nKey);
-//     //     if(stItor != m_TileTexCache.end()){
-//     //         m_DeviceManager->Render(stItor.second, nX, nY, 96, 64, 0, 0, 96, 64);
-//     //     }
-//     // };
-//
-//     int nStartCellX = nViewX / 96;
-//     int nStartCellY = nViewY / 64;
-//
-//     int nStopCellX = (nViewX + nViewW) / 96;
-//     int nStopCellY = (nViewY + nViewH) / 64;
-//
-//     for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
-//         for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
-//             fnDrawExtFunc(nCellX, nCellY);
-//         }
-//     }
-// }
-//
-// void Mir2xMap::DrawGround(int nViewX, int nViewY, int nViewW, int nViewH,
-//         std::function<void(int, int, uint32_t)> fnDrawFunc)
-// {
-//     // a typical fnDrawFunc should be
-//     // auto fnDrawFunc = [this](int nX, int nY, uint32_t nKey){
-//     //     auto stItor = m_TileTexCache.find(nKey);
-//     //     if(stItor != m_TileTexCache.end()){
-//     //         m_DeviceManager->Render(stItor.second, nX, nY, 96, 64, 0, 0, 96, 64);
-//     //     }
-//     // };
-//
-//     int nStartCellX = nViewX / 96;
-//     int nStartCellY = nViewY / 64;
-//
-//     int nStopCellX = (nViewX + nViewW) / 96;
-//     int nStopCellY = (nViewY + nViewH) / 64;
-//
-//     for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
-//         for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
-//             if(!(nCellY % 2) && !(nCellX % 2) && TileValid(nCellX, nCellY)){
-//                 fnDrawFunc(nCellX * 48 - nViewX, nCellY * 32 - nViewY, Tile(nCellX, nCellY));
-//             }
-//         }
-//     }
-// }
 
 bool Mir2xMap::Overlap(int nX, int nY, int nCX, int nCY, int nR)
 {
@@ -493,7 +411,6 @@ bool Mir2xMap::LoadLight(uint8_t * &pData)
         return true;
     }
 }
-
 
 void Mir2xMap::ParseObj(int nX, int nY, int nSize, int nObjIndex,
         const uint8_t *pMark, long &nMarkOff, const uint8_t *pData, long &nDataOff)
