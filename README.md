@@ -8,7 +8,7 @@ client, server, tools for cross-platform mir2. Using asio, SDL, FLTK, libzip, et
 5. client
 6. monoserver
 
-Try to make all I learned into practice
+Try to make all I learned into practice, as the screenshot:
 ![image](https://github.com/etorth/mir2x/raw/master/readme/screenshot.png)
 
 
