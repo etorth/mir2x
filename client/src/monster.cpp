@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 06/12/2016 01:03:00
+ *  Last Modified: 06/13/2016 17:19:45
  *
  *    Description: 
  *
@@ -44,8 +44,13 @@ void Monster::Update()
     }
 }
 
-void Monster::Draw()
+void Monster::Draw(int nViewX, int nViewY)
 {
+    // 0. check the validness of graphical resource
+    //    please check it or all you get will be LookID = 0
+    if(!ValidG()){ return; }
+
+    // 1. ok draw it
     uint32_t nBaseKey = (LookID() << 12) + (m_State << 8) + (m_Direction << 5);
     uint32_t nKey0 = 0X00000000 + nBaseKey + m_Frame; // body
     uint32_t nKey1 = 0X01000000 + nBaseKey + m_Frame; // shadow
@@ -58,6 +63,6 @@ void Monster::Draw()
     auto pFrame1 = g_PNGTexOffDBN->Retrieve(nKey1, &nDX, &nDY);
 
     extern SDLDevice *g_SDLDevice;
-    g_SDLDevice->DrawTexture(pFrame1, m_X + nDX, m_Y + nDY);
-    g_SDLDevice->DrawTexture(pFrame0, m_X + nDX, m_Y + nDY);
+    g_SDLDevice->DrawTexture(pFrame1, m_X + nDX - nViewX, m_Y + nDY - nViewY);
+    g_SDLDevice->DrawTexture(pFrame0, m_X + nDX - nViewX, m_Y + nDY - nViewY);
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/11/2016 15:32:24
+ *  Last Modified: 06/13/2016 17:21:41
  *
  *    Description: 
  *
@@ -117,6 +117,7 @@ class Creature
         virtual size_t FrameCount() = 0;
 
     public:
-        virtual void Draw() = 0;
+        virtual bool ValidG() = 0;
+        virtual void Draw(int, int) = 0;
         virtual void Update() = 0;
 };

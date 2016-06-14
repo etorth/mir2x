@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 06/11/2016 15:06:37
+ *  Last Modified: 06/13/2016 16:52:03
  *
  *    Description: 
  *
@@ -29,7 +29,7 @@ Hero::Hero(uint32_t nGUID, uint32_t nUID, uint32_t nGenTime, bool bMale)
 Hero::~Hero()
 {}
 
-void Hero::Draw()
+void Hero::Draw(int, int)
 {
 }
 

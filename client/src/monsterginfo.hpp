@@ -3,7 +3,7 @@
  *
  *       Filename: monsterginfo.hpp
  *        Created: 06/02/2016 15:08:56
- *  Last Modified: 06/02/2016 23:32:14
+ *  Last Modified: 06/13/2016 18:12:01
  *
  *    Description: monster global info
  *
@@ -34,24 +34,39 @@ class MonsterGInfo final
             QUERY_PENDING,
         };
 
+        // 1. make it static so nested class can have it
+        // 2. make it initialized in defination
+        // 3. if(nLookID >= MAX_LOOKID){ return error; }
+        const static uint32_t MAX_LOOKID { 0X00001000};
+
     protected:
         typedef struct _InnNetData{
-            int Query;  // query the server
+            int CurrQuery;  // query the server
             uint32_t R;
+            uint32_t CurrLookID;
 
             _InnNetData()
-                : Query(QUERY_NA)
+                : CurrQuery(QUERY_NA)
+                , R(0)
+                , CurrLookID(MAX_LOOKID)
             {}
 
             bool Valid()
             {
-                return Query == QUERY_OK;
+                return Query() == QUERY_OK;
             }
 
-            void Reset(uint32_t nR)
+            void Reset(uint32_t nR, uint32_t nLookID)
             {
+                CurrQuery = QUERY_OK;
+
                 R = nR;
-                Query = QUERY_OK;
+                CurrLookID = nLookID;
+            }
+
+            int Query()
+            {
+                return CurrQuery;
             }
         }InnNetData;
 
@@ -71,6 +86,8 @@ class MonsterGInfo final
 
             bool Load(uint32_t nLookID)
             {
+                if(Valid()){ return true; }
+
                 if(nLookID > 0X00000FFF){ return false; }
                 // 1. create retrieving key, using body frame count
                 //    0X FF FF FF FF
@@ -121,8 +138,7 @@ class MonsterGInfo final
             if(nLIDN >= 4){ return false; }
 
             // 2. check the branch
-            return m_NetData[nLIDN].Valid()
-                && (bCacheValid ? m_CacheData[nLIDN].Valid() : true);
+            return m_NetData[nLIDN].Valid() && (bCacheValid ? m_CacheData[nLIDN].Valid() : true);
         }
 
         bool Valid(bool bCacheValid = false)
@@ -135,7 +151,7 @@ class MonsterGInfo final
     public:
         uint32_t LookID(uint32_t nLIDN)
         {
-            return m_LookIDV[nLIDN];
+            return m_NetData[nLIDN].LookID();
         }
 
     public:
@@ -144,11 +160,8 @@ class MonsterGInfo final
             // 1. parameter check
             if(nLIDN >= 4 || nLookID >= 0X00001000){ return; }
 
-            // 2. set the LookIDV
-            m_LookIDV[nLIDN] = nLookID;
-
-            // 3. set the NetData
-            m_NetData[nLIDN].Reset(std::forward<T>(stT)...);
+            // 2. set the NetData
+            m_NetData[nLIDN].Reset(nLookID, std::forward<T>(stT)...);
         }
 
     public:
@@ -159,6 +172,23 @@ class MonsterGInfo final
             //      2. it can have up to 16 states (00 ~ 15) while human can have up to xxx states
             //      3. it can have up to 8 directions (0 ~7)
             if(nLIDN >= 4 || nState >= 16 || nDirection >= 8){ return 0; }
+
+            // 2. if the net data is not ready we return
+            switch(m_NetData[nLIDN].Query()){
+                case QUERY_OK:
+                    {
+                        goto __MONSTERGINFO_FRAMECOUNT_NETDATAVALID_LABEL_1;
+                    }
+                case QUERY_NA:
+                    {
+                        CMQueryMonsterGInfo stCMQMGI;
+                        stCMQMGI.MonsterID = m_MonsterID;
+                        stCMQMGI.LookIDN   = nLIDN;
+
+                        xxxxxx
+                    }
+            }
+__MONSTERGINFO_FRAMECOUNT_NETDATAVALID_LABEL_1:
 
             // 2. check cache
             if(!m_CacheData[nLIDN].Valid()){

@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 06/11/2016 15:36:17
+ *  Last Modified: 06/13/2016 17:21:58
  *
  *    Description: 
  *
@@ -34,7 +34,7 @@ class Hero: public Creature
         ~Hero();
 
     public:
-        void Draw();
+        void Draw(int, int);
         void Update();
 
     public:
@@ -57,5 +57,11 @@ class Hero: public Creature
         void ResetJob(int nJobID)
         {
             m_Job = nJobID;
+        }
+
+    public:
+        bool ValidG()
+        {
+            return true;
         }
 };

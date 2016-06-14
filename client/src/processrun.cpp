@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/12/2016 02:00:02
+ *  Last Modified: 06/13/2016 16:49:06
  *
  *    Description: 
  *
@@ -146,6 +146,13 @@ void ProcessRun::Draw()
 
     static auto fnDrawActor = [this](int nGX, int nGY){
         if(nGX >= 0 && nGY >= 0){
+            for(auto &pRecord: m_CreatureMap){
+                if(pRecord.second
+                        && ((pRecord.second->X() / SYS_MAPGRIDXP) == nGX)
+                        && ((pRecord.second->Y() / SYS_MAPGRIDYP) == nGY)){
+                    pRecord.second->Draw(m_ViewX, m_ViewY);
+                }
+            }
         }
     };
 
