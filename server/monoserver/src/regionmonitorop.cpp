@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitorop.cpp
  *        Created: 05/03/2016 19:59:02
- *  Last Modified: 06/11/2016 02:53:54
+ *  Last Modified: 06/15/2016 02:00:27
  *
  *    Description: 
  *
@@ -757,7 +757,12 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron
         }
 
         // if it's only in then we can set it as active immediately
-        pCharObject->ResetState(bVoidState ? STATE_INCARNATED : STATE_ACTIVE, true);
+        pCharObject->ResetState(STATE_ACTION, STATE_STAND);
+        pCharObject->ResetStateTime(STATE_ACTION);
+
+        pCharObject->ResetState(STATE_LIFE, (bVoidState ? STATE_EMBRYO : STATE_INCARNATED));
+        pCharObject->ResetStateTime(STATE_LIFE);
+
         pCharObject->ResetR(stAMACO.Common.R);
         pCharObject->Locate(m_MapID, stAMACO.Common.MapX, stAMACO.Common.MapY);
         pCharObject->Locate(GetAddress());
@@ -770,6 +775,17 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron
         stCORecord.UID        = pCharObject->UID();
         stCORecord.AddTime    = pCharObject->AddTime();
         stCORecord.PodAddress = pCharObject->Activate();
+
+        // set type
+        if(pCharObject->Type(OBJECT_PLAYER)){
+            stCORecord.Type = OBJECT_PLAYER;
+        }else if(pCharObject->Type(OBJECT_MONSTER)){
+            stCORecord.Type = OBJECT_MONSTER;
+        }else{
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported char object type");
+            g_MonoServer->Restart();
+        }
 
         m_CORecordV.push_back(stCORecord);
 
@@ -894,11 +910,11 @@ void RegionMonitor::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron
     g_MonoServer->Restart();
 }
 
-void RegionMonitor::On_MPK_MOTIONSTATE(const MessagePack &rstMPK, const Theron::Address &)
+void RegionMonitor::On_MPK_ACTIONSTATE(const MessagePack &rstMPK, const Theron::Address &)
 {
     for(auto &rstCORecord: m_CORecordV){
         if(rstCORecord.Type == OBJECT_PLAYER && rstCORecord.PodAddress){
-            m_ActorPod->Forward({MPK_MOTIONSTATE, rstMPK.Data(), rstMPK.DataLen()}, rstCORecord.PodAddress);
+            m_ActorPod->Forward({MPK_ACTIONSTATE, rstMPK.Data(), rstMPK.DataLen()}, rstCORecord.PodAddress);
         }
     }
 }

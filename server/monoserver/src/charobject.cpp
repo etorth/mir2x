@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/11/2016 01:52:11
+ *  Last Modified: 06/14/2016 23:24:44
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 #include "monoserver.hpp"
 #include "charobject.hpp"
 #include "messagepack.hpp"
+#include "protocoldef.hpp"
 #include "eventtaskhub.hpp"
 
 CharObject::CharObject()
@@ -75,11 +76,11 @@ uint8_t CharObject::Direction(int nX, int nY)
     return nDirection;
 }
 
-void CharObject::DispatchMotion()
+void CharObject::DispatchAction()
 {
     if(!ActorPodValid()){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "motion dispatching require actor to be activated");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "action dispatching require actor to be activated");
         g_MonoServer->Restart();
     }
 
@@ -87,10 +88,19 @@ void CharObject::DispatchMotion()
         case QUERY_OK:
             {
                 if(m_MapAddress){
-                    AMMotionState stAMMS;
-                    stAMMS.X = m_CurrX;
-                    stAMMS.Y = m_CurrY;
-                    m_ActorPod->Forward({MPK_MOTIONSTATE, stAMMS}, m_MapAddress);
+                    AMActionState stAMAS;
+                    stAMAS.UID     = UID();
+                    stAMAS.AddTime = AddTime();
+                    stAMAS.Speed   = Speed();
+
+                    stAMAS.X     = X();
+                    stAMAS.Y     = Y();
+                    stAMAS.MapID = MapID();
+
+                    stAMAS.Action    = (uint32_t)Action();
+                    stAMAS.Direction = Direction();
+
+                    m_ActorPod->Forward({MPK_ACTIONSTATE, stAMAS}, m_MapAddress);
                     return;
                 }
 
@@ -301,4 +311,43 @@ int CharObject::QueryMapAddress()
 
     // to make the compiler happy
     return QUERY_ERROR;
+}
+
+int CharObject::Action()
+{
+    switch(State(STATE_ACTION)){
+        case STATE_ACTION:
+            {
+                // undefined
+                return ACTION_UNKNOWN;
+            }
+        case STATE_STAND:
+            {
+                return ACTION_STAND;
+            }
+        case STATE_WALK:
+            {
+                return ACTION_WALK;
+            }
+        case STATE_ATTACK:
+            {
+                return ACTION_ATTACK;
+            }
+        case STATE_DIE:
+            {
+                return ACTION_DIE;
+            }
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "unknown action state");
+                g_MonoServer->Restart();
+
+                // to make the compiler happy
+                return ACTION_UNKNOWN;
+            }
+    }
+
+    // to make the compiler happy
+    return ACTION_UNKNOWN;
 }

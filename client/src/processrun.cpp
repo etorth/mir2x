@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/13/2016 16:49:06
+ *  Last Modified: 06/15/2016 02:02:33
  *
  *    Description: 
  *
@@ -41,6 +41,12 @@ void ProcessRun::Update(double)
         extern SDLDevice *g_SDLDevice;
         m_ViewX = m_MyHero->X() - g_SDLDevice->WindowW(false) / 2;
         m_ViewY = m_MyHero->Y() - g_SDLDevice->WindowH(false) / 2;
+    }
+
+    for(auto &pRecord: m_CreatureMap){
+        if(pRecord.second){
+            pRecord.second->Update();
+        }
     }
 }
 
@@ -334,23 +340,23 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
     m_MyHero->ResetJob((int)(stSMLOK.JobID));
 }
 
-#include <cstdio>
-void ProcessRun::Net_MOTIONSTATE(const uint8_t *pBuf, size_t)
+void ProcessRun::Net_ACTIONSTATE(const uint8_t *pBuf, size_t)
 {
-    SMMotionState stSMMS = *((const SMMotionState *)pBuf);
-    if(stSMMS.MapID != m_ClientMap.ID()){ return; }
+    SMActionState stSMAS = *((const SMActionState *)pBuf);
+    if(stSMAS.MapID != m_ClientMap.ID()){ return; }
 
-    auto pRecord = m_CreatureMap.find(((uint64_t)stSMMS.UID << 32) + stSMMS.AddTime);
+    auto pRecord = m_CreatureMap.find(((uint64_t)stSMAS.UID << 32) + stSMAS.AddTime);
     if(true
             && pRecord != m_CreatureMap.end()
             && pRecord->second
-            && pRecord->second->Type() == stSMMS.Type
-            && pRecord->second->MapID() == stSMMS.MapID){
+            && pRecord->second->MapID() == stSMAS.MapID){
         auto pCreature = pRecord->second;
 
-        pCreature->ResetR(stSMMS.State);
-        pCreature->ResetMotionState(stSMMS.State);
-        pCreature->ResetLocation(stSMMS.MapID, stSMMS.X, stSMMS.Y);
+        pCreature->ResetR(stSMAS.R);
+        pCreature->ResetSpeed(stSMAS.R);
+        pCreature->ResetAction(stSMAS.Action);
+        pCreature->ResetDirection((int)stSMAS.Direction);
+        pCreature->ResetLocation(stSMAS.MapID, stSMAS.X, stSMAS.Y);
     }
 }
 
@@ -391,6 +397,8 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
 
     if(pCreature){
         pCreature->ResetR((int)stSMCOR.Common.R);
+        pCreature->ResetSpeed((int)stSMCOR.Common.Speed);
+        pCreature->ResetAction(stSMCOR.Common.Action);
         pCreature->ResetDirection((int)stSMCOR.Common.Direction);
         pCreature->ResetLocation(stSMCOR.Common.MapID, (int)stSMCOR.Common.MapX, (int)stSMCOR.Common.MapY);
 

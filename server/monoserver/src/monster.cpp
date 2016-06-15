@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/13/2016 13:08:09
+ *  Last Modified: 06/15/2016 01:47:15
  *
  *    Description: 
  *
@@ -35,13 +35,9 @@ Monster::Monster(uint32_t nMonsterID)
     , m_MonsterID(nMonsterID)
     , m_ActorRecordV()
 {
-
     m_RMAddress = Theron::Address::Null();
-
-    ResetState(STATE_ACTIVE, false);
-    ResetState(STATE_CANMOVE, true);
-    ResetState(STATE_WAITMOVE, true);
-    ResetState(STATE_INCARNATED, true);
+    ResetType(OBJECT_ANIMAL,  1);
+    ResetType(OBJECT_MONSTER, 1);
 }
 
 Monster::~Monster()
@@ -51,24 +47,95 @@ bool Monster::Update()
 {
     if(!m_MapID){ return false; }
 
-    // std::printf("moster (%d, %d) is now at (%d, %d)\n", UID(), AddTime(), X(), Y());
-    return RandomWalk();
+    switch(State(STATE_ACTION)){
+        case STATE_STAND:
+        case STATE_WALK:
+            {
+                return RandomWalk();
+            }
+        default:
+            {
+                // TODO ...
+                return true;
+            }
+    }
+
+    return true;
 }
 
 bool Monster::RandomWalk()
 {
-    // with prob. of 20% to trigger this functioin
-    // if(std::rand() % 5 > 0){ return false; }
-    // if(std::rand() % 5 > 0){
-        m_Direction = std::rand() % 8;
-    // }
-
     if(m_FreezeWalk){ return false; }
+    switch(State(STATE_ACTION)){
+        case STATE_STAND:
+            {
+                // 1. can stand for 1s at most
+                if(StateTime(STATE_ACTION) < 1000){ return true; }
 
-    if(!State(STATE_INCARNATED)){ return false; }
-    if(!State(STATE_CANMOVE   )){ return false; }
-    if(!State(STATE_WAITMOVE  )){ return false; }
+                // 2. ok we have a chance to stop standing
+                //    most likely the monster just start to walk ahead
+                if((std::rand() % 100) < 20){
+                    // we just stand here, this is with small possibility
+                    ResetStateTime(STATE_ACTION);
+                }else{
+                    // we decide to walk, most likely we just walk ``ahead"
+                    if((std::rand() % 100) < 50){
+                        m_Direction = (std::rand() % 8);
+                    }
 
+                    ResetState(STATE_ACTION, STATE_WALK);
+                    ResetStateTime(STATE_ACTION);
+
+                    DispatchAction();
+                    UpdateLocation();
+                }
+                return true;
+            }
+        case STATE_WALK:
+            {
+                // 1. to indicate if we keep walking
+                bool bWalk   = true;
+                bool bUpdate = false;
+
+                // 2. only happen after 2s
+                if(StateTime(STATE_ACTION) >= 2000){
+                    if((std::rand() % 100) < 50){
+                        // ok we decide to continue to move
+                        ResetStateTime(STATE_ACTION);
+                    }else{
+                        // we decide to update motion state
+                        if((std::rand() % 100) < 50){
+                            // ok we decide to change to stand
+                            ResetState(STATE_ACTION, STATE_STAND);
+                            ResetStateTime(STATE_ACTION);
+
+                            // mark that we stopped
+                            bWalk   = false;
+                            bUpdate = true;
+                        }else{
+                            // we change direction to move
+                            m_Direction = (std::rand() % 8);
+                            ResetStateTime(STATE_ACTION);
+                            bUpdate = true;
+                        }
+                    }
+                }
+
+                if(bWalk  ){ UpdateLocation(); }
+                if(bUpdate){ DispatchAction(); }
+
+                return true;
+            }
+        default:
+            {
+                return true;
+            }
+    }
+    return false;
+}
+
+bool Monster::UpdateLocation()
+{
     int nX, nY;
     NextLocation(&nX, &nY, Speed());
     ReportMove(nX, nY);
@@ -106,7 +173,7 @@ void Monster::SpaceMove(const char *szAddr, int nX, int nY)
                         m_FreezeWalk = false;
 
                         // 2. dispatch motion
-                        DispatchMotion();
+                        DispatchAction();
                     };
 
                     // leave previous RM
@@ -159,7 +226,7 @@ bool Monster::ReportMove(int nX, int nY)
                     m_FreezeWalk = false;
 
                     // 2. dispatch motion
-                    DispatchMotion();
+                    DispatchAction();
                     break;
                 }
             case MPK_ADDRESS:
@@ -189,26 +256,26 @@ bool Monster::ReportMove(int nX, int nY)
     return m_ActorPod->Forward({MPK_TRYMOVE, stAMTM}, m_RMAddress, fnOP);
 }
 
-bool Monster::Type(uint8_t nType)
+uint8_t Monster::Type(uint8_t nType)
 {
     return m_TypeV[nType];
 }
 
-bool Monster::ResetType(uint8_t nType, bool bThisType)
+bool Monster::ResetType(uint8_t nType, uint8_t nThisType)
 {
-    m_TypeV[nType] = bThisType;
-    return bThisType;
+    m_TypeV[nType] = nThisType;
+    return true;
 }
 
-bool Monster::State(uint8_t nState)
+uint8_t Monster::State(uint8_t nState)
 {
     return m_StateV[nState];
 }
 
-bool Monster::ResetState(uint8_t nState, bool bThisState)
+bool Monster::ResetState(uint8_t nState, uint8_t nThisState)
 {
-    m_StateV[nState] = bThisState;
-    return bThisState;
+    m_StateV[nState] = nThisState;
+    return true;
 }
 
 uint32_t Monster::NameColor()
@@ -277,7 +344,9 @@ void Monster::ReportCORecord(uint32_t nSessionID)
         pMem->Common.MapX      = X();
         pMem->Common.MapY      = Y();
         pMem->Common.R         = R();
+        pMem->Common.Action    = (uint32_t)Action();
         pMem->Common.Direction = Direction();
+        pMem->Common.Speed     = Speed();
 
         // 3. set specified info
         pMem->Monster.MonsterID = m_MonsterID;

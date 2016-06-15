@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/11/2016 19:54:41
- *  Last Modified: 06/05/2016 18:31:02
+ *  Last Modified: 06/14/2016 23:13:35
  *
  *    Description: object with Type()/Mode()/State()
  *
@@ -55,14 +55,24 @@ enum ObjectType: uint8_t{
 
 enum ObjectState: uint8_t{
     // three states of an active object
+    STATE_NONE = 0,
+
+    STATE_LIFE,
     STATE_EMBRYO,
     STATE_INCARNATED,
     STATE_PHANTOM,
 
+    STATE_MOTION,
     STATE_MOVING,
     STATE_DEAD,
-    STATE_ACTIVE,
 
+    STATE_ACTION,
+    STATE_STAND,
+    STATE_WALK,
+    STATE_ATTACK,
+    STATE_DIE,
+
+    STATE_MODE,
     STATE_NEVERDIE,
     STATE_ATTACKALL,
     STATE_PEACE,
@@ -73,19 +83,17 @@ enum ObjectState: uint8_t{
 class ActiveObject: public ReactObject
 {
     protected:
-        std::array<    bool, 255> m_TypeV;
-        std::array<    bool, 255> m_StateV;
-        std::array<uint32_t, 255> m_StateTimeV;
+        std::array<uint8_t, 255> m_TypeV;
+        std::array<uint8_t, 255> m_StateV;
+        std::array< double, 255> m_StateTimeV;
 
     public:
         ActiveObject()
             : ReactObject(CATEGORY_ACTIVEOBJECT)
         {
-            m_TypeV.fill(false);
-            m_StateV.fill(false);
-            m_StateTimeV.fill(0);
-
-            m_StateV[STATE_EMBRYO] = true;
+            m_TypeV.fill(0);
+            m_StateV.fill(0);
+            m_StateTimeV.fill(0.0);
         }
 
     public:
@@ -98,8 +106,8 @@ class ActiveObject: public ReactObject
         //
         // when using this getter function, only return true makes sense
         //
-        virtual bool Type (uint8_t) = 0;
-        virtual bool State(uint8_t) = 0;
+        virtual uint8_t Type (uint8_t) = 0;
+        virtual uint8_t State(uint8_t) = 0;
 
         // setter
         // always return values, nonthrow, when returning
@@ -107,6 +115,10 @@ class ActiveObject: public ReactObject
         //  false: can't set passed state/type because not supported or logic constrait
         //
         //  only return true the operation makes sense, otherwise nothing changes
-        virtual bool ResetType (uint8_t, bool) = 0;
-        virtual bool ResetState(uint8_t, bool) = 0;
+        virtual bool ResetType (uint8_t, uint8_t) = 0;
+        virtual bool ResetState(uint8_t, uint8_t) = 0;
+
+    public:
+        double StateTime(uint8_t);
+        void ResetStateTime(uint8_t);
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/11/2016 14:35:58
+ *  Last Modified: 06/15/2016 00:03:28
  *
  *    Description: 
  *
@@ -35,10 +35,9 @@ Creature::Creature(uint32_t nUID, uint32_t nAddTime)
     , m_UpdateTime(0.0)
     , m_FrameDelay(120.0)
     , m_Frame(0)
-    , m_State(0)
     , m_Speed(0)
+    , m_Action(0)
     , m_Direction(0)
-    , m_MotionState(0)
 {}
 
 Creature::~Creature()

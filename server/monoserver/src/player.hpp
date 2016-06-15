@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 06/13/2016 22:44:04
+ *  Last Modified: 06/15/2016 00:07:48
  *
  *    Description: 
  *
@@ -68,11 +68,11 @@ class Player: public CharObject
 
     public:
         // type test function
-        virtual bool Type(uint8_t);
-        virtual bool State(uint8_t);
+        virtual uint8_t Type(uint8_t);
+        virtual uint8_t State(uint8_t);
 
-        virtual bool ResetType(uint8_t, bool);
-        virtual bool ResetState(uint8_t, bool);
+        virtual bool ResetType(uint8_t, uint8_t);
+        virtual bool ResetState(uint8_t, uint8_t);
 
         virtual uint32_t NameColor();
         virtual const char *CharName();
@@ -100,7 +100,7 @@ class Player: public CharObject
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
         void On_MPK_BINDSESSION(const MessagePack &, const Theron::Address &);
-        void On_MPK_MOTIONSTATE(const MessagePack &, const Theron::Address &);
+        void On_MPK_ACTIONSTATE(const MessagePack &, const Theron::Address &);
         void On_MPK_UPDATECOINFO(const MessagePack &, const Theron::Address &);
 
     private:

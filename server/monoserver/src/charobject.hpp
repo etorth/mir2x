@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 06/11/2016 02:09:37
+ *  Last Modified: 06/14/2016 23:18:10
  *
  *    Description: 
  *
@@ -206,6 +206,9 @@ class CharObject: public ActiveObject
         }
 
     public:
+        int Action();
+
+    public:
         virtual int  Range(uint8_t) = 0;
         virtual bool Update()       = 0;
 
@@ -276,5 +279,5 @@ class CharObject: public ActiveObject
         int QueryMapAddress();
 
     protected:
-        void DispatchMotion();
+        void DispatchAction();
 };

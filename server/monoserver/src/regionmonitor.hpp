@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 06/11/2016 01:34:54
+ *  Last Modified: 06/15/2016 01:06:31
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -129,9 +129,10 @@ class RegionMonitor: public Transponder
         }MoveRequest;
 
         typedef struct _CORecord{
-            uint8_t Type;
             uint32_t UID;
             uint32_t AddTime;
+
+            uint8_t Type;
 
             int X;
             int Y;
@@ -142,6 +143,7 @@ class RegionMonitor: public Transponder
             _CORecord()
                 : UID(0)
                 , AddTime(0)
+                , Type(OBJECT_UNKNOWN)
                 , X(0)
                 , Y(0)
                 , R(0)
@@ -246,7 +248,7 @@ class RegionMonitor: public Transponder
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWPLAYER(const MessagePack &, const Theron::Address &);
         void On_MPK_CHECKCOVER(const MessagePack &, const Theron::Address &);
-        void On_MPK_MOTIONSTATE(const MessagePack &, const Theron::Address &);
+        void On_MPK_ACTIONSTATE(const MessagePack &, const Theron::Address &);
         void On_MPK_UPDATECOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);

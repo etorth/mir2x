@@ -3,7 +3,7 @@
  *
  *       Filename: onsmhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 06/14/2016 00:25:11
+ *  Last Modified: 06/15/2016 00:04:01
  *
  *    Description: 
  *
@@ -30,7 +30,7 @@ void Game::OperateHC(uint8_t nHC)
         case SM_LOGINOK:        Net_LOGINOK();      break;
         case SM_CORECORD:       Net_CORECORD();     break;
         case SM_LOGINFAIL:      Net_LOGINFAIL();    break;
-        case SM_MOTIONSTATE:    Net_MOTIONSTATE();  break;
+        case SM_ACTIONSTATE:    Net_ACTIONSTATE();  break;
         case SM_MONSTERGINFO:   Net_MONSTERGINFO(); break;
         default: break;
     }
@@ -68,19 +68,19 @@ void Game::Net_LOGINFAIL()
     g_Log->AddLog(LOGTYPE_INFO, "login failed");
 }
 
-void Game::Net_MOTIONSTATE()
+void Game::Net_ACTIONSTATE()
 {
-    auto fnMotionState = [this](const uint8_t *pBuf, size_t nLen){
+    auto fnActionState = [this](const uint8_t *pBuf, size_t nLen){
         // 1. receive object motion state update while game is not in running state
         //    do we need to inform server?
         if(!(m_CurrentProcess && m_CurrentProcess->ID() == PROCESSID_RUN)){ return; }
 
         // 2. ok we are in running state
         auto pRun = (ProcessRun *)m_CurrentProcess;
-        pRun->Net_MOTIONSTATE(pBuf, nLen);
+        pRun->Net_ACTIONSTATE(pBuf, nLen);
     };
 
-    Read(sizeof(SMMotionState), fnMotionState);
+    Read(sizeof(SMActionState), fnActionState);
 }
 
 void Game::Net_MONSTERGINFO()

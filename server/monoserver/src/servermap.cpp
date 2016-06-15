@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 06/11/2016 02:29:52
+ *  Last Modified: 06/14/2016 23:27:32
  *
  *    Description: 
  *
@@ -74,9 +74,9 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
                 On_MPK_HI(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_MOTIONSTATE:
+        case MPK_ACTIONSTATE:
             {
-                On_MPK_MOTIONSTATE(rstMPK, rstFromAddr);
+                On_MPK_ACTIONSTATE(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_UPDATECOINFO:

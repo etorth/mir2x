@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/14/2016 00:56:15
+ *  Last Modified: 06/15/2016 01:08:36
  *
  *    Description: 
  *
@@ -33,8 +33,8 @@ Player::Player(uint32_t nGUID, uint32_t nJobID)
     m_RMAddress = Theron::Address::Null();
     m_StateHook.Install("CheckTime", [this](){ For_CheckTime(); return false; });
 
-    ResetType(OBJECT_PLAYER, true);
-    ResetType(OBJECT_HUMAN,  true);
+    ResetType(OBJECT_PLAYER, 1);
+    ResetType(OBJECT_HUMAN,  1);
 }
 
 Player::~Player()
@@ -47,6 +47,11 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         case MPK_HI:
             {
                 On_MPK_HI(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_ACTIONSTATE:
+            {
+                On_MPK_ACTIONSTATE(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_METRONOME:
@@ -84,26 +89,26 @@ bool Player::Update()
     return true;
 }
 
-bool Player::Type(uint8_t nType)
+uint8_t Player::Type(uint8_t nType)
 {
     return m_TypeV[nType];
 }
 
-bool Player::ResetType(uint8_t nType, bool bThisType)
+bool Player::ResetType(uint8_t nType, uint8_t nThisType)
 {
-    m_TypeV[nType] = bThisType;
-    return bThisType;
+    m_TypeV[nType] = nThisType;
+    return true;
 }
 
-bool Player::State(uint8_t nState)
+uint8_t Player::State(uint8_t nState)
 {
     return m_StateV[nState];
 }
 
-bool Player::ResetState(uint8_t nState, bool bThisState)
+bool Player::ResetState(uint8_t nState, uint8_t nThisState)
 {
-    m_StateV[nState] = bThisState;
-    return bThisState;
+    m_StateV[nState] = nThisState;
+    return true;
 }
 
 uint32_t Player::NameColor()
@@ -152,17 +157,17 @@ void Player::ReportCORecord(uint32_t nSessionID)
 
         pMem->Type = OBJECT_PLAYER;
 
-        pMem->Common.UID     = UID();
-        pMem->Common.AddTime = AddTime();
-        pMem->Common.MapX    = X();
-        pMem->Common.MapY    = Y();
-        pMem->Common.R       = R();
-        pMem->Common.MapID   = MapID();
+        pMem->Common.UID       = UID();
+        pMem->Common.AddTime   = AddTime();
+        pMem->Common.MapX      = X();
+        pMem->Common.MapY      = Y();
+        pMem->Common.R         = R();
+        pMem->Common.MapID     = MapID();
+        pMem->Common.Direction = m_Direction;
 
         pMem->Player.GUID      = m_GUID;
         pMem->Player.JobID     = m_JobID;
         pMem->Player.Level     = m_Level;
-        pMem->Player.Direction = m_Direction;
 
         extern NetPodN *g_NetPodN;
         g_NetPodN->Send(nSessionID, SM_CORECORD, (uint8_t *)pMem, sizeof(SMCORecord), [pMem](){ g_MemoryPN->Free(pMem); });

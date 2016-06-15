@@ -52,7 +52,7 @@ class Game
         void Net_LOGINOK();
         void Net_CORECORD();
         void Net_LOGINFAIL();
-        void Net_MOTIONSTATE();
+        void Net_ACTIONSTATE();
         void Net_MONSTERGINFO();
 
     private:

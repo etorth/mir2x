@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 06/11/2016 02:42:45
+ *  Last Modified: 06/15/2016 01:31:02
  *
  *    Description: 
  *
@@ -120,11 +120,11 @@ class Monster: public CharObject
         ~Monster();
 
     public:
-        bool Type(uint8_t);
-        bool State(uint8_t);
+        uint8_t Type(uint8_t);
+        uint8_t State(uint8_t);
 
-        bool ResetType(uint8_t, bool);
-        bool ResetState(uint8_t, bool);
+        bool ResetType(uint8_t, uint8_t);
+        bool ResetState(uint8_t, uint8_t);
 
     public:
         uint32_t NameColor();
@@ -140,7 +140,7 @@ class Monster: public CharObject
         bool ReportMove(int, int);
         int Speed()
         {
-            return 5;
+            return 20;
         }
 
         // TODO
@@ -149,6 +149,9 @@ class Monster: public CharObject
     public:
         void SpaceMove(const char *, int, int);
         bool RandomWalk();
+
+    private:
+        bool UpdateLocation();
 
     private:
         void On_MPK_HI(const MessagePack &, const Theron::Address &);

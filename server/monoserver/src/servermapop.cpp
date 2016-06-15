@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 06/11/2016 16:28:26
+ *  Last Modified: 06/15/2016 00:43:41
  *
  *    Description: 
  *
@@ -214,15 +214,15 @@ void ServerMap::On_MPK_QUERYRMADDRESS(const MessagePack &rstMPK, const Theron::A
 //
 //  so I decide to report motion state directly to ServerMap and this class will dispatch
 //  the state update to proper RMs
-void ServerMap::On_MPK_MOTIONSTATE(const MessagePack &rstMPK, const Theron::Address &)
+void ServerMap::On_MPK_ACTIONSTATE(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMMotionState stAMMS;
-    std::memcpy(&stAMMS, rstMPK.Data(), sizeof(stAMMS));
+    AMActionState stAMAS;
+    std::memcpy(&stAMAS, rstMPK.Data(), sizeof(stAMAS));
 
-    int nRMX0 = (stAMMS.X - SYS_MAPVISIBLEW) / m_RegionW;
-    int nRMX1 = (stAMMS.X + SYS_MAPVISIBLEW) / m_RegionW;
-    int nRMY0 = (stAMMS.Y - SYS_MAPVISIBLEH) / m_RegionH;
-    int nRMY1 = (stAMMS.Y + SYS_MAPVISIBLEH) / m_RegionH;
+    int nRMX0 = (stAMAS.X - SYS_MAPVISIBLEW) / SYS_MAPGRIDXP / m_RegionW;
+    int nRMX1 = (stAMAS.X + SYS_MAPVISIBLEW) / SYS_MAPGRIDXP / m_RegionW;
+    int nRMY0 = (stAMAS.Y - SYS_MAPVISIBLEH) / SYS_MAPGRIDYP / m_RegionH;
+    int nRMY1 = (stAMAS.Y + SYS_MAPVISIBLEH) / SYS_MAPGRIDYP / m_RegionH;
 
     for(int nY = nRMY0; nY <= nRMY1; ++nY){
         for(int nX = nRMX0; nX < nRMX1; ++nX){
@@ -232,7 +232,7 @@ void ServerMap::On_MPK_MOTIONSTATE(const MessagePack &rstMPK, const Theron::Addr
                     && nX >= 0
                     && nX <  (int)m_RMRecordV2D[0].size()
                     && m_RMRecordV2D[nY][nX].Valid()){      // RM should be valid
-                m_ActorPod->Forward({MPK_MOTIONSTATE, stAMMS}, m_RMRecordV2D[nY][nX].PodAddress);
+                m_ActorPod->Forward({MPK_ACTIONSTATE, stAMAS}, m_RMRecordV2D[nY][nX].PodAddress);
             }
         }
     }

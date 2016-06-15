@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/13/2016 17:21:41
+ *  Last Modified: 06/15/2016 01:43:23
  *
  *    Description: 
  *
@@ -43,10 +43,9 @@ class Creature
 
     protected:
         int    m_Frame;
-        int    m_State;
         int    m_Speed;
+        int    m_Action;
         int    m_Direction;
-        int    m_MotionState;
 
     public:
         Creature(uint32_t, uint32_t);
@@ -58,10 +57,15 @@ class Creature
             return m_MapID;
         }
 
-    public:
-        void ResetMotionState(int nMotionState)
+        int Speed()
         {
-            m_MotionState = nMotionState;
+            return m_Speed;
+        }
+
+    public:
+        void ResetAction(int nAction)
+        {
+            m_Action = nAction;
         }
 
         void ResetR(uint32_t nR)

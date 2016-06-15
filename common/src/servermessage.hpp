@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 06/12/2016 01:58:57
+ *  Last Modified: 06/15/2016 01:44:57
  *
  *    Description: net message used by client and mono-server
  *
@@ -30,7 +30,7 @@ enum: uint8_t
     SM_LOGINOK,
     SM_LOGINFAIL,
     SM_SERVERFULL,
-    SM_MOTIONSTATE,
+    SM_ACTIONSTATE,
     SM_MONSTERGINFO,
     SM_CORECORD,
 };
@@ -62,17 +62,19 @@ typedef struct{
 }SMLoginOK;
 
 typedef struct{
-    uint8_t Type;
-    uint8_t State;
-    uint8_t Direction;
-
     uint32_t UID;
     uint32_t AddTime;
-    uint32_t Speed;
+
     uint32_t X;
     uint32_t Y;
+    uint32_t R;
     uint32_t MapID;
-}SMMotionState;
+
+    uint8_t Action;
+    uint8_t Direction;
+
+    uint32_t Speed;
+}SMActionState;
 
 typedef struct{
     uint32_t MonsterID;
@@ -95,6 +97,8 @@ typedef union {
         uint32_t MapY;
         uint32_t R;
 
+        uint32_t Speed;
+        uint32_t Action;
         uint32_t Direction;
     }Common;
 
@@ -108,7 +112,6 @@ typedef union {
         uint32_t GUID;
         uint32_t JobID;
         uint32_t Level;
-        uint32_t Direction;
     }Player;
 
     struct _NPC{

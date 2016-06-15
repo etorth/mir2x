@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19 PM
- *  Last Modified: 06/13/2016 17:18:04
+ *  Last Modified: 06/14/2016 23:54:45
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
@@ -60,7 +60,7 @@ class Monster: public Creature
     public:
         size_t FrameCount()
         {
-            return GetGInfoRecord(m_MonsterID).FrameCount(m_LookIDN, m_State, m_Direction);
+            return GetGInfoRecord(m_MonsterID).FrameCount(m_LookIDN, m_Action, m_Direction);
         }
 
     public:

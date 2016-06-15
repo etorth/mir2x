@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 06/14/2016 14:32:40
+ *  Last Modified: 06/15/2016 01:42:10
  *
  *    Description: 
  *
@@ -34,13 +34,26 @@ Monster::~Monster()
 
 void Monster::Update()
 {
-    if(SDL_GetTicks() < m_UpdateTime + m_FrameDelay){ return; }
+    // 1. check time to make sure it's time to update logic
+    auto nNowTime = SDL_GetTicks();
+    if(nNowTime < m_UpdateTime + m_FrameDelay){ return; }
 
-    // ok now it's time to update
-    m_UpdateTime = SDL_GetTicks();
-    uint32_t nFrameCount = FrameCount();
-    if(nFrameCount){
-        m_Frame = (m_Frame + 1) % nFrameCount;
+    // ok now it's time to update logic
+
+    // 2. check time for frame update
+    auto nDiffTime = nNowTime - m_UpdateTime;
+    m_UpdateTime = nNowTime;
+
+    if(nDiffTime > 1000 / 5){
+        uint32_t nFrameCount = FrameCount();
+        if(nFrameCount){
+            m_Frame = (m_Frame + 1) % nFrameCount;
+
+            // TODO we just take it and server will correct it
+            int nX, nY;
+            EstimateLocation((int)(Speed() * 1.0 * nDiffTime / 1000.0), &nX, &nY);
+            ResetLocation(MapID(), nX, nY);
+        }
     }
 }
 
@@ -50,8 +63,20 @@ void Monster::Draw(int nViewX, int nViewY)
     //    please check it or all you get will be LookID = 0
     if(!ValidG()){ return; }
 
-    // 1. ok draw it
-    uint32_t nBaseKey = (LookID() << 12) + (m_State << 8) + (m_Direction << 5);
+    // 1. ok draw it, check table
+    //    this table is cooperate with enum ActionType
+    static int nActionTableV[] = {
+       -1,      // [0]: ACTION_UNKNOWN
+        0,      // [1]: ACTION_STAND
+        1,      // [1]: ACTION_WALK
+        2,      // [1]: ACTION_ATTACK
+        3,      // [1]: ACTION_DIE
+    };
+
+    // 2. to check whether the graphical resource support this action
+    if(nActionTableV[m_Action] < 0){ return; }
+
+    uint32_t nBaseKey = (LookID() << 12) + (((uint32_t)(nActionTableV[m_Action])) << 8) + (m_Direction << 5);
     uint32_t nKey0 = 0X00000000 + nBaseKey + m_Frame; // body
     uint32_t nKey1 = 0X01000000 + nBaseKey + m_Frame; // shadow
 

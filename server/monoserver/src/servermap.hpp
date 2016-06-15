@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 06/11/2016 01:02:20
+ *  Last Modified: 06/14/2016 23:27:20
  *
  *    Description: put all non-atomic function as private
  *
@@ -222,7 +222,7 @@ class ServerMap: public Transponder
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDMONSTER(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWMONSTER(const MessagePack &, const Theron::Address &);
-        void On_MPK_MOTIONSTATE(const MessagePack &, const Theron::Address &);
+        void On_MPK_ACTIONSTATE(const MessagePack &, const Theron::Address &);
         void On_MPK_UPDATECOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYSCADDRESS(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYRMADDRESS(const MessagePack &, const Theron::Address &);
