@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/15/2016 01:43:23
+ *  Last Modified: 06/15/2016 22:46:24
  *
  *    Description: 
  *
@@ -38,8 +38,11 @@ class Creature
         uint32_t m_MapID;
 
     protected:
-        double m_UpdateTime;
+        // we split logic update and frame update here
+        double m_LogicDelay;
         double m_FrameDelay;
+        double m_LogicUpdateTime;
+        double m_FrameUpdateTime;
 
     protected:
         int    m_Frame;
@@ -65,6 +68,7 @@ class Creature
     public:
         void ResetAction(int nAction)
         {
+            m_Frame = 0;
             m_Action = nAction;
         }
 
@@ -80,6 +84,7 @@ class Creature
 
         void ResetDirection(int nDirection)
         {
+            m_Frame = 0;
             m_Direction = nDirection;
         }
 

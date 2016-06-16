@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 06/15/2016 01:42:10
+ *  Last Modified: 06/15/2016 22:48:28
  *
  *    Description: 
  *
@@ -34,26 +34,31 @@ Monster::~Monster()
 
 void Monster::Update()
 {
-    // 1. check time to make sure it's time to update logic
-    auto nNowTime = SDL_GetTicks();
-    if(nNowTime < m_UpdateTime + m_FrameDelay){ return; }
+    // 1. get current time, we split logic and frame update
+    double fTimeNow = SDL_GetTicks() * 1.0;
 
-    // ok now it's time to update logic
+    // 2. time for logic update
+    if(fTimeNow > m_LogicUpdateTime + m_LogicDelay){
+        double fDiffTime = fTimeNow - m_LogicUpdateTime;
 
-    // 2. check time for frame update
-    auto nDiffTime = nNowTime - m_UpdateTime;
-    m_UpdateTime = nNowTime;
+        // location estimation
+        if(m_Action == ACTION_WALK){
+            int nX, nY;
+            EstimateLocation((int)(Speed() * fDiffTime / 1000.0), &nX, &nY);
+            ResetLocation(MapID(), nX, nY);
+        }
 
-    if(nDiffTime > 1000 / 5){
+        m_LogicUpdateTime = fTimeNow;
+    }
+
+    // 2. time for frame update
+    if(fTimeNow > m_FrameUpdateTime + m_FrameDelay){
         uint32_t nFrameCount = FrameCount();
         if(nFrameCount){
             m_Frame = (m_Frame + 1) % nFrameCount;
-
-            // TODO we just take it and server will correct it
-            int nX, nY;
-            EstimateLocation((int)(Speed() * 1.0 * nDiffTime / 1000.0), &nX, &nY);
-            ResetLocation(MapID(), nX, nY);
         }
+
+        m_FrameUpdateTime = fTimeNow;
     }
 }
 
