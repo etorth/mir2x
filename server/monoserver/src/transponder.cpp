@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.cpp
  *        Created: 04/27/2016 00:05:15
- *  Last Modified: 06/09/2016 17:18:20
+ *  Last Modified: 06/16/2016 23:13:34
  *
  *    Description: 
  *
@@ -57,7 +57,7 @@ Theron::Address Transponder::Activate()
                 [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
                 this->Operate(rstMPK, stFromAddr);
                 });
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
         // transponder won't have (UID, AddTime), it has name though
         // define ClassName() rather than Name() since for class Player it has a Name() function
         m_ActorPod->BindPod(0, 0, ClassName());

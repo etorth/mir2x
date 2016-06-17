@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 06/09/2016 17:28:44
+ *  Last Modified: 06/16/2016 23:12:57
  *
  *    Description: 
  *
@@ -69,7 +69,7 @@ Theron::Address ReactObject::Activate()
                 [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
                 this->Operate(rstMPK, stFromAddr);
                 });
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
         m_ActorPod->BindPod(UID(), AddTime(), ClassName());
 #endif
         m_ThisAddress = m_ActorPod->GetAddress();

@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 06/15/2016 00:07:48
+ *  Last Modified: 06/16/2016 23:12:52
  *
  *    Description: 
  *
@@ -113,7 +113,7 @@ class Player: public CharObject
     protected:
         void ReportCORecord(uint32_t);
 
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     protected:
         const char *ClassName()
         {

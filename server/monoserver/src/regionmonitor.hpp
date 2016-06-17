@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 06/15/2016 01:06:31
+ *  Last Modified: 06/16/2016 23:13:09
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -274,7 +274,7 @@ class RegionMonitor: public Transponder
     private:
         int QuerySCAddress();
         int QueryRMAddress(uint32_t, int, int, bool, const std::function<void(int, const Theron::Address &)> &);
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     protected:
         const char *ClassName()
         {

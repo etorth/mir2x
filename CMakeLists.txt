@@ -1,7 +1,7 @@
 PROJECT(MIR2X)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
-# add c++11 support
+# 1. add c++11 support, if no then exit
 INCLUDE(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
@@ -17,21 +17,30 @@ ELSE()
     MESSAGE(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 ENDIF()
 
-# support debug mode
+# 2. check build mode and validate MIR2X_DEBUG
+IF(DEFINED MIR2X_DEBUG)
+    IF(((MIR2X_DEBUG GREATER 0) OR (MIR2X_DEBUG EQUAL 0)) AND ((MIR2X_DEBUG LESS 10) OR (MIR2X_DEBUG EQUAL 10)))
+        SET(CMAKE_BUILD_TYPE "Debug")
+        SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -Wall -Wextra -Wunused -g3 -ggdb3 -pedantic -Werror -DMIR2X_DEBUG=${MIR2X_DEBUG}")
+    ELSE()
+        MESSAGE(FATAL_ERROR "Invalid MIR2X_DEBUG, should be digits in [0, 10]")
+    ENDIF()
+ELSE()
+    SET(CMAKE_BUILD_TYPE "Release")
+    SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
+ENDIF()
 
-SET(CMAKE_BUILD_TYPE "Debug")
-# disable optimization for the debug mode
-SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -Wall -Wextra -Wunused -g3 -ggdb3 -pedantic -Werror -DMIR2X_DEBUG")
-SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
-
+# 3. set common source used in client, server, tools
 SET(COMMON_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/common/src)
 
+# 4. to include external cmake packages
 FIND_PACKAGE(FLTK   REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
 
-# for libthread, compile arguments matching is required
+# 5. for libthread, compile arguments matching is required
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DTHERON_CPP11=1 -DTHERON_POSIX=0 -DTHERON_XS=1")
 
+# 6. add tasks to build, each in a sub-dir
 ADD_SUBDIRECTORY(tools)
 ADD_SUBDIRECTORY(common)
 ADD_SUBDIRECTORY(server)

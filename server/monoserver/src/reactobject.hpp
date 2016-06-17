@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 06/09/2016 17:25:22
+ *  Last Modified: 06/16/2016 23:13:01
  *
  *    Description: object only react to message, with an object pod
  *                 atoms of an react object:
@@ -85,7 +85,7 @@ class ReactObject: public ServerObject
     public:
         void Delay(uint32_t, const std::function<void()> &);
 
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     protected:
         virtual const char *ClassName() = 0;
 #endif

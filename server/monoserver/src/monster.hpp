@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 06/15/2016 01:31:02
+ *  Last Modified: 06/16/2016 23:12:49
  *
  *    Description: 
  *
@@ -164,7 +164,7 @@ class Monster: public CharObject
     protected:
         void ReportCORecord(uint32_t);
 
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     protected:
         const char *ClassName()
         {

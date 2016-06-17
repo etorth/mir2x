@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 06/11/2016 16:15:57
+ *  Last Modified: 06/16/2016 23:12:29
  *
  *    Description: 
  *
@@ -24,7 +24,7 @@
 
 void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFromAddr)
 {
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_INFO,
             "(Pod: %p, Name: %s, UID: %u, AddTime: %u) <- (Type: %s, ID: %u, Resp: %u)",
@@ -114,7 +114,7 @@ __ACTORPOD_INNHANDLER_CALL_TRIGGER:
     }
 }
 
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
 #include <atomic>
 std::atomic<uint32_t> g_ValidID(1);
 #endif
@@ -122,7 +122,7 @@ std::atomic<uint32_t> g_ValidID(1);
 // this funciton is not actor-safe, don't call it outside the actor itself
 uint32_t ActorPod::ValidID()
 {
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     return g_ValidID++;
 #endif
     m_ValidID = (m_RespondMessageRecordM.empty() ? 1 : (m_ValidID + 1));
@@ -138,7 +138,7 @@ uint32_t ActorPod::ValidID()
 
 bool ActorPod::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond)
 {
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_INFO,
             "(Pod: %p, Name: %s, UID: %u, AddTime: %u) -> (Type: %s, ID: %u, Resp: %u)",
@@ -170,7 +170,7 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
     // 1. get valid ID
     uint32_t nID = ValidID();
 
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_INFO,
             "(Pod: %p, Name: %s, UID: %u, AddTime: %u) -> (Type: %s, ID: %u, Resp: %u)",

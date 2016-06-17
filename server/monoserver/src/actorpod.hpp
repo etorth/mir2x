@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 06/09/2016 17:16:08
+ *  Last Modified: 06/16/2016 23:12:45
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -187,7 +187,7 @@ class ActorPod: public Theron::Actor
         std::function<void()> m_Trigger;
         std::unordered_map<uint32_t, RespondMessageRecord> m_RespondMessageRecordM;
 
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     protected:
         uint32_t    m_UID;
         uint32_t    m_AddTime;
@@ -204,7 +204,7 @@ class ActorPod: public Theron::Actor
             , m_ValidID(0)
             , m_Operate(fnOperate)
             , m_Trigger(fnTrigger)
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
             , m_UID(0)
             , m_AddTime(0)
             , m_Name("ActorPod")
@@ -250,7 +250,7 @@ class ActorPod: public Theron::Actor
         bool Forward(const MessageBuf &, const Theron::Address &, uint32_t,
                 const std::function<void(const MessagePack&, const Theron::Address &)> &);
 
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     public:
         const char *Name()
         {

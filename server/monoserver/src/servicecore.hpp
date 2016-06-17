@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 06/13/2016 23:10:06
+ *  Last Modified: 06/16/2016 23:13:17
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -181,7 +181,7 @@ class ServiceCore: public Transponder
     private:
         void Net_CM_Login(uint32_t, uint8_t, const uint8_t *, size_t);
 
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     protected:
         const char *ClassName()
         {

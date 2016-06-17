@@ -3,7 +3,7 @@
  *
  *       Filename: syncdriver.cpp
  *        Created: 06/09/2016 17:32:50
- *  Last Modified: 06/09/2016 18:02:00
+ *  Last Modified: 06/16/2016 23:13:29
  *
  *    Description: 
  *
@@ -29,7 +29,7 @@
 //      1. send failed
 int SyncDriver::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr)
 {
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_INFO,
             "(Driver: %p, Name: SyncDriver, UID: 0, AddTime: 0) -> (Type: %s, ID: 0, Resp: 0)", this, MessagePack(rstMB.Type()).Name());
@@ -72,7 +72,7 @@ int SyncDriver::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr,
     // 1. clean the catcher
     while(true){ if(!m_Catcher.Pop(stTmpMPK, stTmpAddress)){ break; } }
 
-#ifdef MIR2X_DEBUG
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_INFO,
             "(Driver: %p, Name: SyncDriver, UID: 0, AddTime: 0) -> (Type: %s, ID: 1, Resp: 0)", this, MessagePack(rstMB.Type()).Name());
