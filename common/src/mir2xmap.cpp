@@ -1,6 +1,7 @@
 #include <memory.h>
 #include <cstring>
 #include <cstdint>
+#include <cassert>
 #include <algorithm>
 #include <vector>
 #include "triangle.hpp"
@@ -577,4 +578,68 @@ void Mir2xMap::SetTile(int nX, int nY, int nSize, const uint8_t *pData, long &nD
             }
         }
     }
+}
+
+bool Mir2xMap::CanWalkP(int nPX, int nPY, int nPR)
+{
+    // 1. we make strict parameter check here
+    assert(nRR >= 0);
+
+    // 2. valid point?
+    if(!ValidP(nPX, nPY)){ return false; }
+
+    // 3. ok it's a real ``cover"
+    if(nPR){
+        int nPX0 = nPX - nPR;
+        int nPX1 = nPX + nPR;
+        int nPY0 = nPY - nPR;
+        int nPY1 = nPY + nPR;
+
+        // 3. the cover should fully in the map
+        if(!RectangleInside(0, 0, W() * SYS_MAPGRIDXP, H(), SYS_MAPGRIDYP, nPX0, nPY0, nPX1, nPY1)){ return false; }
+
+        // ok now it's in the map, we check each covered grid
+        for(int nGY = nPY0 / SYS_MAPGRIDYP; nGY <= nPY1 / SYS_MAPGRIDYP; ++nGY){
+            for(int nGX = nPX0 / SYS_MAPGRIDXP; nGX <= nPX1 / SYS_MAPGRIDXP; ++nGX){
+                // 1. couldn't happen
+                if(!ValidC(nGX, nGY)){ continue; }
+
+                int nGPX0 = nGX * SYS_MAPGRIDXP;
+                int nGPY0 = nGY * SYS_MAPGRIDYP;
+
+                // 2. check if circle overlaps with this grid
+                if(!CircleRectangleOverlap(nPX, nPY, nPR, nGPX0, nGPY0, SYS_MAPGRIDXP, SYS_MAPGRIDYP)){ continue; }
+
+                int nGPX1 = nGX * SYS_MAPGRIDXP + SYS_MAPGRIDXP;
+                int nGPY1 = nGY * SYS_MAPGRIDYP + SYS_MAPGRIDYP;
+
+                int nGPMX = (nGPX0 + nGPX1) / 2;
+                int nGPMY = (nGPY0 + nGPY1) / 2;
+
+                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX0, nGPY0, nGPX1, nGPY0)){ if(!CanWalk(nGX, nGY, 0)){ return false; } }
+                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX1, nGPY0, nGPX1, nGPY1)){ if(!CanWalk(nGX, nGY, 1)){ return false; } }
+                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX1, nGPY1, nGPX0, nGPY1)){ if(!CanWalk(nGX, nGY, 2)){ return false; } }
+                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX0, nGPY1, nGPX0, nGPY0)){ if(!CanWalk(nGX, nGY, 3)){ return false; } }
+            }
+        }
+
+        // all overlapped grids pass the check
+        return true;
+    }
+
+    // just a point
+    int nDX = nPX % SYS_MAPGRIDXP;
+    int nDY = nPY % SYS_MAPGRIDYP;
+
+    int nBit0 = ((SYS_MAPGRIDXP * nDY <= SYS_MAPGRIDYP * nDX) ? 1 : 0); // or just take it as int...
+    int nBit1 = ((SYS_MAPGRIDXP * nDY <= SYS_MAPGRIDYP * (SYS_MAPGRIDXP - nDX)) ? 1 : 0);
+
+    static int knReginIndex = {
+        2, // 0
+        1, // 1
+        3, // 2
+        0  // 3
+    };
+
+    return CanWalk(nPX / SYS_MAPGRIDXP, nPY / SYS_MAPGRIDYP, knReginIndex[nBit1 * 2 + nBit0]);
 }

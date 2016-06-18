@@ -169,6 +169,8 @@ class Mir2xMap
                 && CanWalk(nX, nY, 3);
         }
 
+        bool CanWalkP(int, int, int);
+
     public:
         void SetViewPoint(int nX, int nY);
 
