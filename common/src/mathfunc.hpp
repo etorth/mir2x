@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 05/27/2016 01:07:17
+ *  Last Modified: 06/17/2016 16:54:47
  *
  *    Description: 
  *
@@ -176,3 +176,95 @@ template<typename T> T RoundByPowerOf2(T nParam)
 
     return nParam + 1;
 }
+
+// TODO: 1. R is positive
+//       2. two points are distinct to form a line
+template<typename T> bool CircleLineOverlap(T nfCX, T nfCY, T nfCR, T nfX0, T nfY0, T nfX1, T nfY1)
+{
+    static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
+    if(PointInCircle(nfX0, nfY0, nfCX, nfCY, nfCR) || PointInCircle(nfX0, nfY0, nfCX, nfCY, nfCR)){ return true; }
+
+    T nfDX = nfX1 - nfX0;
+    T nfDY = nfY1 - nfY0;
+
+    // I can't put assertion here since T could be double
+    // assert(nfDX && nfDY);
+
+    T nfNX0 = nfX0 - nfCX;
+    T nfNX1 = nfX1 - nfCX;
+    T nfNY0 = nfY0 - nfCX;
+    T nfNY1 = nfY1 - nfCX;
+
+    T nfDD = nfNX1 * nfNY2 - nfNX2 * nfNY1;
+
+    return nfCR * nfCR * (nfDX * nfDX + nfDY * nfDY) - nfDD * nfDD;
+}
+
+// TODO: 1. R is positive
+//       2. two points are distinct to form a line
+template<typename T> bool CircleSegmentOverlap(T nfCX, T nfCY, T nfCR, T nfX0, T nfY0, T nfX1, T nfY1)
+{
+    static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
+    if(PointInCircle(nfX0, nfY0, nfCX, nfCY, nfCR) || PointInCircle(nfX0, nfY0, nfCX, nfCY, nfCR)){ return true; }
+
+    T nfDX = nfX1 - nfX0;
+    T nfDY = nfY1 - nfY0;
+
+    // I can't put assertion here since T could be double
+    // assert(nfDX && nfDY);
+
+    T nfNX0 = nfX0 - nfCX;
+    T nfNX1 = nfX1 - nfCX;
+    T nfNY0 = nfY0 - nfCX;
+    T nfNY1 = nfY1 - nfCX;
+
+    T nfDD = nfNX1 * nfNY2 - nfNX2 * nfNY1;
+
+    return nfCR * nfCR * (nfDX * nfDX + nfDY * nfDY) - nfDD * nfDD;
+}
+
+
+// determine whether a circle is overlapped with a triangle
+// TODO 1. assume three distinct points to form an un-degraded triangle
+//      2. assume the R is positive
+//
+// algorithm is from:
+// 1. http://stackoverflow.com/questions/540014/compute-the-area-of-intersection-between-a-circle-and-a-triangle
+// 2. http://mathworld.wolfram.com/Circle-LineIntersection.html
+//
+template<typename T> bool CircleTriangleOverlap(T nfCX, T nfCY, T nfCR, T nfX0, T nfY0, T nfX1, T nfY1, T nfX2, T nfY2)
+{
+    // 1. first check whether there is any point in the circle
+    if(false
+            || PointInCircle(nfX0, nfY0, nfCX, nfCY, nfCR)
+            || PointInCircle(nfX1, nfY1, nfCX, nfCY, nfCR)
+            || PointInCircle(nfX2, nfY2, nfCX, nfCY, nfCR)){
+        return true;
+    }
+
+    // 2. ok there isn't any point in the circle, check whether we have edges intersect with the circle
+    //    actually we can skip check-1 and do this but this is expensive so...
+    if(false
+            || CircleLineOverlap(nfCX, nfCY, nfCR, nfX0, nfY0, nfX1, nfY1)
+            || CircleLineOverlap(nfCX, nfCY, nfCR, nfX1, nfY1, nfX2, nfY2)
+            || CircleLineOverlap(nfCX, nfCY, nfCR, nfX2, nfY2, nfX0, nfY0)){
+        return true;
+    }
+
+    // 3. ok no point inside circle and no circle-edge intersection
+
+    T nfRCX = nfX + nfW / 2;
+    T nfRCY = nfY + nfH / 2;
+
+    T nfDX = std::abs(nfCX - nfRCX);
+    T nfDY = std::abs(nfCY - nfRCY);
+
+    if(nfDX > (nfW/2 + nfCR)){ return false; }
+    if(nfDY > (nfH/2 + nfCR)){ return false; }
+
+    if(nfDX <= (nfW/2)){ return true; } 
+    if(nfDY <= (nfH/2)){ return true; }
+
+    return (nfDX - nfW / 2) * (nfDX - nfW / 2) + (nfDY - nfH / 2) * (nfDY - nfH / 2) <= nfCR * nfCR;
+}
+
