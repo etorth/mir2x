@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 06/16/2016 23:13:09
+ *  Last Modified: 06/18/2016 18:05:05
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -185,6 +185,27 @@ class RegionMonitor: public Transponder
         }NeighborRecord;
 
     private:
+        // the static map data, won't change after initialization
+        typedef struct _GroundAtrribute{
+            bool CanWalk[4];
+
+            _GroundAtrribute()
+                : CanWalk {false, false, false, false}
+            {}
+
+            void ResetAttribute(size_t nIndex, bool bCanWalk)
+            {
+                if(nIndex >= 4){
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid arguments");
+                    g_MonoServer->Restart();
+                }
+
+                GroundCanWalk[nIndex] = bCanWalk;
+            }
+        }GroundAttribute;
+
+    private:
         const uint32_t m_MapID;
 
         const int m_X;
@@ -202,10 +223,11 @@ class RegionMonitor: public Transponder
         MoveRequest m_MoveRequest;
         std::vector<CORecord> m_CORecordV;
         std::array<std::array<NeighborRecord, 3>, 3> m_NeighborV2D;
+        std::vector<std::vector<GroundValid>> m_GroundAtributeV2D;
 
     public:
-        RegionMonitor(const Theron::Address &rstMapAddr,
-                uint32_t nMapID, int nX, int nY, int nW, int nH)
+        // constructor, here (nX, nY, nW, nH) are in pixel
+        RegionMonitor(const Theron::Address &rstMapAddr, uint32_t nMapID, int nX, int nY, int nW, int nH)
             : Transponder()
             , m_MapID(nMapID)
             , m_X(nX)
@@ -218,6 +240,20 @@ class RegionMonitor: public Transponder
             , m_EmptyAddress(Theron::Address::Null())
         {
             m_MoveRequest.Clear();
+
+            size_t nGW = nW / SYS_MAPGRIDXP;
+            size_t nGH = nH / SYS_MAPGRIDYP;
+
+            if(!(nGW && nGH)){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid arguments");
+                g_MonoServer->Restart();
+            }
+
+            m_GroundAtributeV2D.resize(nGH);
+            for(auto &stGroundAttributeV: m_GroundAtributeV2D){
+                stGroundAttributeV.resize(nGW);
+            }
         }
 
         virtual ~RegionMonitor() = default;
@@ -236,6 +272,26 @@ class RegionMonitor: public Transponder
         bool NeighborIn(uint32_t nMapID, int nMapX, int nMapY)
         {
             return (nMapID == m_MapID) && PointInRectangle(nMapX, nMapY, m_X - m_W, m_Y - m_H, 3 * m_W, 3 * m_H);
+        }
+
+        uint32_t MapID()
+        {
+            return m_MapID;
+        }
+
+    public:
+        template<typename... T> void ResetAttribute(size_t nGX, size_t nGY, T&&... stT)
+        {
+            if(!(nGY < m_GroundAtributeV2D.size() && nGX < m_GroundAtributeV2D[0].size())){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid arguments");
+                g_MonoServer->Restart();
+            }
+
+            // if access check failed it will exit
+            if(AccessCheck()){
+                m_GroundAtributeV2D[nGY][nGX].ResetAttribute(stT);
+            }
         }
 
     public:
@@ -260,6 +316,8 @@ class RegionMonitor: public Transponder
         bool CoverValid(uint32_t, uint32_t, int, int, int);
 
         const Theron::Address &NeighborAddress(int, int);
+
+    private:
 
     private:
         void For_Update();

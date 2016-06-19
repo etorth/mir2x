@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 06/14/2016 23:27:32
+ *  Last Modified: 06/18/2016 13:49:03
  *
  *    Description: 
  *
@@ -193,6 +193,16 @@ void ServerMap::CreateRegionMonterV2D()
                     nRMY * m_RegionH * SYS_MAPGRIDYP, //
                     m_RegionW * SYS_MAPGRIDXP,        // size in pixel
                     m_RegionH * SYS_MAPGRIDYP);
+
+            // copy the static data of server map to region monitor
+            for(size_t nGY = 0; nGY < m_RegionH; ++nGY){
+                for(size_t nGX = 0; nGX < m_RegionW; ++nGX){
+                    for(size_t nIndex = 0; nIndex < 4; ++nIndex){
+                        pNewMonitor->ResetAttribute(nGX, nGY, nIndex,
+                                m_Mir2xMap.CanWalk(nGX + nRMX * m_RegionW, nGX + nRMY * m_RegionH, nIndex));
+                    }
+                }
+            }
 
             m_RMRecordV2D[nRMY][nRMX].Data       = pNewMonitor;
             m_RMRecordV2D[nRMY][nRMX].Need       = true;

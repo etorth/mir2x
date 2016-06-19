@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 06/14/2016 23:40:31
+ *  Last Modified: 06/18/2016 20:41:36
  *
  *    Description: 
  *
@@ -93,11 +93,75 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
     }
 }
 
-bool RegionMonitor::GroundValid(int, int, int nR)
+// TODO: this function check the overlap of current rm and the provided cover
+//       it won't require that the cover should fully inside current region monitor
+bool RegionMonitor::GroundValid(int nX, int nY, int nR)
 {
-    // void state
-    if(nR == 0){ return true; }
-    return true;
+    if(!(In(MapID(), nX, nY) && nR >= 0)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid argument");
+        g_MonoServer->Restart();
+    }
+
+    // ok this is a real ``cover"
+    if(nR){
+        int nDX = nX - m_X;
+        int nDY = nY - m_Y;
+
+        int nDX0 = nDX - nR;
+        int nDY0 = nDY - nR;
+        int nDX1 = nDX + nR;
+        int nDY1 = nDY + nR;
+
+        for(int nGY = nDY0 / SYS_MAPGRIDYP; nGY <= nDY1 / SYS_MAPGRIDYP; ++nGY){
+            for(int nGX = nDX0 / SYS_MAPGRIDXP; nGX <= nDX1 / SYS_MAPGRIDXP; ++nGX){
+                // 1. check if this grid is in current region monitor
+                if(!(nGX >= 0 && nGX < m_W / SYS_MAPGRIDXP && nGY >= 0 && nGY / m_H < SYS_MAPGRIDYP)){ continue; }
+
+                int nGPX0 = nGX * SYS_MAPGRIDXP;
+                int nGPY0 = nGY * SYS_MAPGRIDYP;
+
+                // 2. check if circle overlaps with this grid
+                if(!CircleRectangleOverlap(nDX, nDY, nPR, nGPX0, nGPY0, SYS_MAPGRIDXP, SYS_MAPGRIDYP)){ continue; }
+
+                int nGPX1 = nGX * SYS_MAPGRIDXP + SYS_MAPGRIDXP;
+                int nGPY1 = nGY * SYS_MAPGRIDYP + SYS_MAPGRIDYP;
+
+                int nGPMX = (nGPX0 + nGPX1) / 2;
+                int nGPMY = (nGPY0 + nGPY1) / 2;
+
+                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX0, nGPY0, nGPX1, nGPY0)){ if(!CanWalk(nGX, nGY, 0)){ return false; } }
+                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX1, nGPY0, nGPX1, nGPY1)){ if(!CanWalk(nGX, nGY, 1)){ return false; } }
+                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX1, nGPY1, nGPX0, nGPY1)){ if(!CanWalk(nGX, nGY, 2)){ return false; } }
+                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX0, nGPY1, nGPX0, nGPY0)){ if(!CanWalk(nGX, nGY, 3)){ return false; } }
+            }
+        }
+
+        return true;
+    }
+
+    // ok just a point, it should be in current regionmonitor, otherwise it's a routing error
+    if(In(MapID(), nX, nY)){
+        int nDX = (nX - m_X) % SYS_MAPGRIDXP;
+        int nDY = (nY - m_Y) % SYS_MAPGRIDYP;
+
+        int nBit0 = ((SYS_MAPGRIDXP * nDY <= SYS_MAPGRIDYP * nDX) ? 1 : 0); // or just take it as int...
+        int nBit1 = ((SYS_MAPGRIDXP * nDY <= SYS_MAPGRIDYP * (SYS_MAPGRIDXP - nDX)) ? 1 : 0);
+
+        static int knReginIndex = {
+            2, // 0
+            1, // 1
+            3, // 2
+            0  // 3
+        };
+
+        return CanWalk((nX - m_X) / SYS_MAPGRIDXP, (nY - m_Y) / SYS_MAPGRIDYP, knReginIndex[nBit1 * 2 + nBit0]);
+    }
+
+    // ooops this should be an routing error
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "routing error, current point is not in this regionmonitor");
+    g_MonoServer->Restart();
 }
 
 // check the cover is valid for current region
