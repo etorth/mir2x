@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 06/18/2016 23:45:10
+ *  Last Modified: 06/19/2016 00:12:35
  *
  *    Description: 
  *
@@ -97,11 +97,12 @@ void RegionMonitor::Operate(const MessagePack &rstMPK, const Theron::Address &rs
 //       it won't require that the cover should fully inside current region monitor
 bool RegionMonitor::GroundValid(int nX, int nY, int nR)
 {
-    if(!(In(MapID(), nX, nY) && nR >= 0)){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid argument");
-        g_MonoServer->Restart();
-    }
+    // won't require that the center point is inside the regionmonitor
+    // if(!(In(MapID(), nX, nY) && nR >= 0)){
+    //     extern MonoServer *g_MonoServer;
+    //     g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid argument");
+    //     g_MonoServer->Restart();
+    // }
 
     // ok this is a real ``cover"
     if(nR){
@@ -116,7 +117,7 @@ bool RegionMonitor::GroundValid(int nX, int nY, int nR)
         for(int nGY = nDY0 / SYS_MAPGRIDYP; nGY <= nDY1 / SYS_MAPGRIDYP; ++nGY){
             for(int nGX = nDX0 / SYS_MAPGRIDXP; nGX <= nDX1 / SYS_MAPGRIDXP; ++nGX){
                 // 1. check if this grid is in current region monitor
-                if(!(nGX >= 0 && nGX < m_W / SYS_MAPGRIDXP && nGY >= 0 && nGY / m_H < SYS_MAPGRIDYP)){ continue; }
+                if(!(nGX >= 0 && nGX < m_W / SYS_MAPGRIDXP && nGY >= 0 && nGY < m_H / SYS_MAPGRIDYP)){ continue; }
 
                 int nGPX0 = nGX * SYS_MAPGRIDXP;
                 int nGPY0 = nGY * SYS_MAPGRIDYP;
