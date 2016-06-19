@@ -10,6 +10,7 @@ client, server, tools for cross-platform mir2. Using asio, SDL, FLTK, libzip, et
 
 Try to make all I learned into practice, as the screenshot:
 ![image](https://github.com/etorth/mir2x/raw/master/readme/screenshot.png)
+
 ![image](https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png)
 
 
