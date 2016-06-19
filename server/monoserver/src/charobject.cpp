@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/14/2016 23:24:44
+ *  Last Modified: 06/19/2016 11:53:01
  *
  *    Description: 
  *
@@ -95,6 +95,7 @@ void CharObject::DispatchAction()
 
                     stAMAS.X     = X();
                     stAMAS.Y     = Y();
+                    stAMAS.R     = R();
                     stAMAS.MapID = MapID();
 
                     stAMAS.Action    = (uint32_t)Action();

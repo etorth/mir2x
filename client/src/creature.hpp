@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/15/2016 22:46:24
+ *  Last Modified: 06/19/2016 11:55:47
  *
  *    Description: 
  *
@@ -68,6 +68,10 @@ class Creature
     public:
         void ResetAction(int nAction)
         {
+            if(nAction == m_Action){ return; }
+            // TODO: this frame issue is a bug
+            //       here we reset it to zero, but in Update() it then will be 1, so
+            //       the first frame can't be shown
             m_Frame = 0;
             m_Action = nAction;
         }
@@ -84,6 +88,9 @@ class Creature
 
         void ResetDirection(int nDirection)
         {
+            if(nDirection == m_Direction){ return; }
+
+            // TODO: bug for frame
             m_Frame = 0;
             m_Direction = nDirection;
         }

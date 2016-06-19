@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/18/2016 23:47:37
+ *  Last Modified: 06/19/2016 11:56:20
  *
  *    Description: 
  *
@@ -86,18 +86,20 @@ bool Monster::RandomWalk()
         case STATE_STAND:
             {
                 // 1. if we are standing, it lasts at least for 0.5 s
-                //    then we update state with probability p(t)
-                if(StateTime(STATE_ACTION) < 500){ return true; }
-                if(std::rand() % 1000 < StateTime(STATE_ACTION)){ return true; }
+                if(StateTime(STATE_ACTION) < 500.0){ return true; }
 
-                // 2. we decide to walk, most likely we just walk ``ahead" or do a little turn
+                // 2. already 0.5s, then we have probability of 0.1 to turn state, this probability
+                // is small since the Update() call is so frequent
+                if(std::rand() % 100 > 30){ return true; }
+
+                // 3. we decide to walk, most likely we just walk ``ahead" or do a little turn
                 int nOldDir = m_Direction;
                 m_Direction = ((m_Direction + stRandomPick.Pick()) % 8);
 
-                // 3. ooop nothing changes
+                // 4. ooop nothing changes
                 if(nOldDir == m_Direction){ return true; }
 
-                // 4. we do have a direction update
+                // 5. we do have a direction update
                 ResetState(STATE_ACTION, STATE_WALK);
                 ResetStateTime(STATE_ACTION);
 

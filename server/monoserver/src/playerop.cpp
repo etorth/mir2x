@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 06/15/2016 00:10:38
+ *  Last Modified: 06/19/2016 11:53:32
  *
  *    Description: 
  *
@@ -119,6 +119,7 @@ void Player::On_MPK_ACTIONSTATE(const MessagePack &rstMPK, const Theron::Address
 
     pMem->X     = stAMAS.X;
     pMem->Y     = stAMAS.Y;
+    pMem->R     = stAMAS.R;
     pMem->MapID = stAMAS.MapID;
 
     pMem->Action = stAMAS.Action;
