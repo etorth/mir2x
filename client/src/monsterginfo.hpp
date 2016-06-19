@@ -3,7 +3,7 @@
  *
  *       Filename: monsterginfo.hpp
  *        Created: 06/02/2016 15:08:56
- *  Last Modified: 06/14/2016 01:17:28
+ *  Last Modified: 06/19/2016 11:01:25
  *
  *    Description: monster global info
  *
@@ -110,16 +110,16 @@ class MonsterGInfo final
                 //       || ++-+-------+ for monster id, upto 4096 monster look effects
                 //       ++------------+ 00 for monster body ID
                 //
-                for(uint32_t nState = 0; nState < 16; ++nState){
+                for(uint32_t nAction = 0; nAction < 16; ++nAction){
                     for(uint32_t nDirection = 0; nDirection < 8; ++nDirection){
                         // 1. calculate the key
-                        uint32_t nKey = (nLookID << 12) + (nState << 8) + (nDirection << 5);
+                        uint32_t nKey = (nLookID << 12) + (nAction << 8) + (nDirection << 5);
                         extern PNGTexOffDBN *g_PNGTexOffDBN;
 
                         // 1. initialization of count, zero is invalid but legal
-                        FrameCount[nState][nDirection] = 0;
+                        FrameCount[nAction][nDirection] = 0;
                         while(g_PNGTexOffDBN->Retrieve(nKey++, nullptr, nullptr)){
-                            FrameCount[nState][nDirection]++;
+                            FrameCount[nAction][nDirection]++;
                         }
                     }
                 }
@@ -210,13 +210,13 @@ class MonsterGInfo final
         }
 
     public:
-        size_t FrameCount(uint32_t nLIDN, uint32_t nState, uint32_t nDirection)
+        size_t FrameCount(uint32_t nLIDN, uint32_t nAction, uint32_t nDirection)
         {
             // 1. check parameter, for monster:
             //      1. it can own 4 different look effect
             //      2. it can have up to 16 states (00 ~ 15) while human can have up to xxx states
             //      3. it can have up to 8 directions (0 ~7)
-            if(nLIDN >= 4 || nState >= 16 || nDirection >= 8){ return 0; }
+            if(nLIDN >= 4 || nAction >= 16 || nDirection >= 8){ return 0; }
 
             // 2. if the net data is not ready we return
             switch(m_NetData[nLIDN].Query()){
@@ -243,7 +243,7 @@ __MONSTERGINFO_FRAMECOUNT_NETDATAVALID_LABEL_1:
 
             // 3. ok now cache is valid
             if(m_CacheData[nLIDN].Valid()){
-                return m_CacheData[nLIDN].FrameCount[nState][nDirection];
+                return m_CacheData[nLIDN].FrameCount[nAction][nDirection];
             }
 
             // even we tried, but the cache loading failed

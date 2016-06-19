@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 06/16/2016 23:27:55
+ *  Last Modified: 06/19/2016 11:00:45
  *
  *    Description: 
  *
@@ -22,6 +22,17 @@
 
 // static monster global info map
 std::unordered_map<uint32_t, MonsterGInfo> Monster::s_MonsterGInfoMap;
+
+// this table is cooperate with enum ActionType
+// I think this would cause tons of bugs to me :(
+static int s_knActionTableV[] = {
+   -1,      // [0]: ACTION_UNKNOWN
+    0,      // [1]: ACTION_STAND
+    1,      // [1]: ACTION_WALK
+    2,      // [1]: ACTION_ATTACK
+    3       // [1]: ACTION_DIE
+};
+
 
 Monster::Monster(uint32_t nMonsterID, uint32_t nUID, uint32_t nAddTime)
     : Creature(nUID, nAddTime)
@@ -69,19 +80,10 @@ void Monster::Draw(int nViewX, int nViewY)
     if(!ValidG()){ return; }
 
     // 1. ok draw it, check table
-    //    this table is cooperate with enum ActionType
-    static int nActionTableV[] = {
-       -1,      // [0]: ACTION_UNKNOWN
-        0,      // [1]: ACTION_STAND
-        1,      // [1]: ACTION_WALK
-        2,      // [1]: ACTION_ATTACK
-        3,      // [1]: ACTION_DIE
-    };
-
     // 2. to check whether the graphical resource support this action
-    if(nActionTableV[m_Action] < 0){ return; }
+    if(s_knActionTableV[m_Action] < 0){ return; }
 
-    uint32_t nBaseKey = (LookID() << 12) + (((uint32_t)(nActionTableV[m_Action])) << 8) + (m_Direction << 5);
+    uint32_t nBaseKey = (LookID() << 12) + (((uint32_t)(s_knActionTableV[m_Action])) << 8) + (m_Direction << 5);
     uint32_t nKey0 = 0X00000000 + nBaseKey + m_Frame; // body
     uint32_t nKey1 = 0X01000000 + nBaseKey + m_Frame; // shadow
 
@@ -98,4 +100,10 @@ void Monster::Draw(int nViewX, int nViewY)
     if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
     g_SDLDevice->DrawTexture(pFrame1, m_X + nDX1 - nViewX, m_Y + nDY1 - nViewY);
     g_SDLDevice->DrawTexture(pFrame0, m_X + nDX0 - nViewX, m_Y + nDY0 - nViewY);
+}
+
+size_t Monster::FrameCount()
+{
+    if(s_knActionTableV[m_Action] < 0){ return 0; }
+    return GetGInfoRecord(m_MonsterID).FrameCount(m_LookIDN, s_knActionTableV[m_Action], m_Direction);
 }

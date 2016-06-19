@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19 PM
- *  Last Modified: 06/14/2016 23:54:45
+ *  Last Modified: 06/19/2016 11:02:26
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
@@ -58,10 +58,7 @@ class Monster: public Creature
         }
 
     public:
-        size_t FrameCount()
-        {
-            return GetGInfoRecord(m_MonsterID).FrameCount(m_LookIDN, m_Action, m_Direction);
-        }
+        size_t FrameCount();
 
     public:
         template<typename... T> static void ResetGInfoRecord(uint32_t nMonsterID, int nLookIDN, T&&... stT)
