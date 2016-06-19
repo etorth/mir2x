@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 06/18/2016 00:38:51
+ *  Last Modified: 06/18/2016 23:51:31
  *
  *    Description: 
  *
@@ -18,8 +18,9 @@
  * =====================================================================================
  */
 #pragma once
-#include <algorithm>
 #include <cmath>
+#include <cassert>
+#include <algorithm>
 #include <type_traits>
 
 template<typename T> T LDistance2(T nfX, T nfY, T nfX1, T nfY1)
@@ -205,7 +206,7 @@ template<typename T> bool CircleLineOverlap(T nfCX, T nfCY, T nfCR, T nfX0, T nf
     T nfNY0 = nfY0 - nfCX;
     T nfNY1 = nfY1 - nfCX;
 
-    T nfDD = nfNX1 * nfNY2 - nfNX2 * nfNY1;
+    T nfDD = nfNX0 * nfNY1 - nfNX1 * nfNY0;
 
     return nfCR * nfCR * (nfDX * nfDX + nfDY * nfDY) - nfDD * nfDD;
 }

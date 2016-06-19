@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 06/18/2016 18:05:05
+ *  Last Modified: 06/18/2016 23:45:43
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -187,10 +187,10 @@ class RegionMonitor: public Transponder
     private:
         // the static map data, won't change after initialization
         typedef struct _GroundAtrribute{
-            bool CanWalk[4];
+            bool GroundCanWalk[4];
 
             _GroundAtrribute()
-                : CanWalk {false, false, false, false}
+                : GroundCanWalk {false, false, false, false}
             {}
 
             void ResetAttribute(size_t nIndex, bool bCanWalk)
@@ -223,7 +223,7 @@ class RegionMonitor: public Transponder
         MoveRequest m_MoveRequest;
         std::vector<CORecord> m_CORecordV;
         std::array<std::array<NeighborRecord, 3>, 3> m_NeighborV2D;
-        std::vector<std::vector<GroundValid>> m_GroundAtributeV2D;
+        std::vector<std::vector<GroundAttribute>> m_GroundAtributeV2D;
 
     public:
         // constructor, here (nX, nY, nW, nH) are in pixel
@@ -290,8 +290,23 @@ class RegionMonitor: public Transponder
 
             // if access check failed it will exit
             if(AccessCheck()){
-                m_GroundAtributeV2D[nGY][nGX].ResetAttribute(stT);
+                m_GroundAtributeV2D[nGY][nGX].ResetAttribute(std::forward<T>(stT)...);
             }
+        }
+
+    public:
+        bool CanWalk(size_t nX, size_t nY, size_t nIndex)
+        {
+            if(nY < m_GroundAtributeV2D.size() && nX < m_GroundAtributeV2D[0].size() && nIndex < 4){
+                return m_GroundAtributeV2D[nY][nX].GroundCanWalk;
+            }
+
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid argument");
+            g_MonoServer->Restart();
+
+            // to make the compiler happy
+            return false;
         }
 
     public:

@@ -3,7 +3,7 @@
  *
  *       Filename: transponder.cpp
  *        Created: 04/27/2016 00:05:15
- *  Last Modified: 06/16/2016 23:13:34
+ *  Last Modified: 06/18/2016 23:37:34
  *
  *    Description: 
  *
@@ -78,6 +78,18 @@ void Transponder::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
 bool Transponder::ActorPodValid()
 {
     return m_ActorPod && m_ActorPod->GetAddress();
+}
+
+bool Transponder::AccessCheck()
+{
+    if(ActorPodValid()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Direct access internal state of an actor after activation");
+        g_MonoServer->Restart();
+
+        return false;
+    }
+    return true;
 }
 
 // bool Transponder::Send(const MessagePack &rstMSG, const Theron::Address &rstFromAddress,

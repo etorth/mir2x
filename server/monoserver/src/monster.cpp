@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/15/2016 01:47:15
+ *  Last Modified: 06/18/2016 23:47:37
  *
  *    Description: 
  *
@@ -25,6 +25,7 @@
 #include "actorpod.hpp"
 #include "mathfunc.hpp"
 #include "memorypn.hpp"
+#include "randompick.hpp"
 #include "monoserver.hpp"
 #include "messagepack.hpp"
 #include "protocoldef.hpp"
@@ -65,30 +66,44 @@ bool Monster::Update()
 
 bool Monster::RandomWalk()
 {
+    // 1. if current the moving is in progress
     if(m_FreezeWalk){ return false; }
+
+    // 2. ok we make a direction generator
+    RandomPick<int> stRandomPick;
+
+    stRandomPick.Add(160 + 20, 0);
+    stRandomPick.Add( 80 + 20, 1);
+    stRandomPick.Add( 80 + 20, 7);
+    stRandomPick.Add( 40 + 20, 2);
+    stRandomPick.Add( 40 + 20, 6);
+    stRandomPick.Add( 20 + 20, 3);
+    stRandomPick.Add( 20 + 20, 5);
+    stRandomPick.Add( 10 + 20, 4);
+
+    // 3. decide to walk
     switch(State(STATE_ACTION)){
         case STATE_STAND:
             {
-                // 1. can stand for 1s at most
-                if(StateTime(STATE_ACTION) < 1000){ return true; }
+                // 1. if we are standing, it lasts at least for 0.5 s
+                //    then we update state with probability p(t)
+                if(StateTime(STATE_ACTION) < 500){ return true; }
+                if(std::rand() % 1000 < StateTime(STATE_ACTION)){ return true; }
 
-                // 2. ok we have a chance to stop standing
-                //    most likely the monster just start to walk ahead
-                if((std::rand() % 100) < 20){
-                    // we just stand here, this is with small possibility
-                    ResetStateTime(STATE_ACTION);
-                }else{
-                    // we decide to walk, most likely we just walk ``ahead"
-                    if((std::rand() % 100) < 50){
-                        m_Direction = (std::rand() % 8);
-                    }
+                // 2. we decide to walk, most likely we just walk ``ahead" or do a little turn
+                int nOldDir = m_Direction;
+                m_Direction = ((m_Direction + stRandomPick.Pick()) % 8);
 
-                    ResetState(STATE_ACTION, STATE_WALK);
-                    ResetStateTime(STATE_ACTION);
+                // 3. ooop nothing changes
+                if(nOldDir == m_Direction){ return true; }
 
-                    DispatchAction();
-                    UpdateLocation();
-                }
+                // 4. we do have a direction update
+                ResetState(STATE_ACTION, STATE_WALK);
+                ResetStateTime(STATE_ACTION);
+
+                DispatchAction();
+                UpdateLocation();
+
                 return true;
             }
         case STATE_WALK:
@@ -114,9 +129,15 @@ bool Monster::RandomWalk()
                             bUpdate = true;
                         }else{
                             // we change direction to move
-                            m_Direction = (std::rand() % 8);
-                            ResetStateTime(STATE_ACTION);
-                            bUpdate = true;
+                            int nOldDir = m_Direction;
+                            m_Direction = ((m_Direction + stRandomPick.Pick()) % 8);
+
+                            if(nOldDir == m_Direction){
+                                bUpdate = false;
+                            }else{
+                                ResetStateTime(STATE_ACTION);
+                                bUpdate = true;
+                            }
                         }
                     }
                 }
@@ -187,7 +208,13 @@ void Monster::SpaceMove(const char *szAddr, int nX, int nY)
             case MPK_ERROR:
             case MPK_PENDING:
                 {
+                    // space move failed
                     m_FreezeWalk = false;
+
+                    // we turn back to go or just stand??
+                    m_Direction = ((m_Direction + 4) % 8);
+                    ResetStateTime(STATE_ACTION);
+                    DispatchAction();
                     break;
                 }
             default:
@@ -241,6 +268,11 @@ bool Monster::ReportMove(int nX, int nY)
                 {
                     // move failed
                     m_FreezeWalk = false;
+
+                    // we trun back to go
+                    m_Direction = ((m_Direction + 4) % 8);
+                    ResetStateTime(STATE_ACTION);
+                    DispatchAction();
                     break;
                 }
             default:

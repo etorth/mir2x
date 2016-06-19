@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/03/2016 17:55:01
+ *  Last Modified: 06/18/2016 23:50:39
  *
  *    Description: 
  *
@@ -805,8 +805,7 @@ void TokenBoard::DrawEx(
 
             bool bCheckOverlap = bCheckInside && !RectangleInside(0, 0, W(), H(), nX, nY, nW, nH);
 
-            if(bCheckOverlap && !RectangleOverlapRegion(
-                        nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){
+            if(bCheckOverlap && !RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){
                 // need to check overlap and it's outside
                 continue;
             }

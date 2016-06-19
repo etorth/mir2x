@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.cpp
  *        Created: 04/22/2016 01:15:24
- *  Last Modified: 06/18/2016 20:41:36
+ *  Last Modified: 06/18/2016 23:45:10
  *
  *    Description: 
  *
@@ -122,7 +122,7 @@ bool RegionMonitor::GroundValid(int nX, int nY, int nR)
                 int nGPY0 = nGY * SYS_MAPGRIDYP;
 
                 // 2. check if circle overlaps with this grid
-                if(!CircleRectangleOverlap(nDX, nDY, nPR, nGPX0, nGPY0, SYS_MAPGRIDXP, SYS_MAPGRIDYP)){ continue; }
+                if(!CircleRectangleOverlap(nDX, nDY, nR, nGPX0, nGPY0, SYS_MAPGRIDXP, SYS_MAPGRIDYP)){ continue; }
 
                 int nGPX1 = nGX * SYS_MAPGRIDXP + SYS_MAPGRIDXP;
                 int nGPY1 = nGY * SYS_MAPGRIDYP + SYS_MAPGRIDYP;
@@ -130,10 +130,10 @@ bool RegionMonitor::GroundValid(int nX, int nY, int nR)
                 int nGPMX = (nGPX0 + nGPX1) / 2;
                 int nGPMY = (nGPY0 + nGPY1) / 2;
 
-                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX0, nGPY0, nGPX1, nGPY0)){ if(!CanWalk(nGX, nGY, 0)){ return false; } }
-                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX1, nGPY0, nGPX1, nGPY1)){ if(!CanWalk(nGX, nGY, 1)){ return false; } }
-                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX1, nGPY1, nGPX0, nGPY1)){ if(!CanWalk(nGX, nGY, 2)){ return false; } }
-                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX0, nGPY1, nGPX0, nGPY0)){ if(!CanWalk(nGX, nGY, 3)){ return false; } }
+                if(CircleTriangleOverlap(nDX, nDY, nR, nGPMX, nGPMY, nGPX0, nGPY0, nGPX1, nGPY0)){ if(!CanWalk(nGX, nGY, 0)){ return false; } }
+                if(CircleTriangleOverlap(nDX, nDY, nR, nGPMX, nGPMY, nGPX1, nGPY0, nGPX1, nGPY1)){ if(!CanWalk(nGX, nGY, 1)){ return false; } }
+                if(CircleTriangleOverlap(nDX, nDY, nR, nGPMX, nGPMY, nGPX1, nGPY1, nGPX0, nGPY1)){ if(!CanWalk(nGX, nGY, 2)){ return false; } }
+                if(CircleTriangleOverlap(nDX, nDY, nR, nGPMX, nGPMY, nGPX0, nGPY1, nGPX0, nGPY0)){ if(!CanWalk(nGX, nGY, 3)){ return false; } }
             }
         }
 
@@ -148,7 +148,7 @@ bool RegionMonitor::GroundValid(int nX, int nY, int nR)
         int nBit0 = ((SYS_MAPGRIDXP * nDY <= SYS_MAPGRIDYP * nDX) ? 1 : 0); // or just take it as int...
         int nBit1 = ((SYS_MAPGRIDXP * nDY <= SYS_MAPGRIDYP * (SYS_MAPGRIDXP - nDX)) ? 1 : 0);
 
-        static int knReginIndex = {
+        static int knReginIndex[] = {
             2, // 0
             1, // 1
             3, // 2
@@ -162,6 +162,9 @@ bool RegionMonitor::GroundValid(int nX, int nY, int nR)
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "routing error, current point is not in this regionmonitor");
     g_MonoServer->Restart();
+
+    // to make the compiler happy
+    return false;
 }
 
 // check the cover is valid for current region

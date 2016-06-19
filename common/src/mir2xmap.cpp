@@ -596,7 +596,7 @@ bool Mir2xMap::CanWalkP(int nPX, int nPY, int nPR)
         int nPY1 = nPY + nPR;
 
         // 3. the cover should fully in the map
-        if(!RectangleInside(0, 0, W() * SYS_MAPGRIDXP, H(), SYS_MAPGRIDYP, nPX0, nPY0, nPX1, nPY1)){ return false; }
+        if(!RectangleInside(0, 0, W() * SYS_MAPGRIDXP, H() * SYS_MAPGRIDYP, nPX0, nPY0, nPX1, nPY1)){ return false; }
 
         // ok now it's in the map, we check each covered grid
         for(int nGY = nPY0 / SYS_MAPGRIDYP; nGY <= nPY1 / SYS_MAPGRIDYP; ++nGY){
@@ -634,7 +634,7 @@ bool Mir2xMap::CanWalkP(int nPX, int nPY, int nPR)
     int nBit0 = ((SYS_MAPGRIDXP * nDY <= SYS_MAPGRIDYP * nDX) ? 1 : 0); // or just take it as int...
     int nBit1 = ((SYS_MAPGRIDXP * nDY <= SYS_MAPGRIDYP * (SYS_MAPGRIDXP - nDX)) ? 1 : 0);
 
-    static int knReginIndex = {
+    static int knReginIndex[] = {
         2, // 0
         1, // 1
         3, // 2
