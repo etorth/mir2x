@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/19/2016 11:53:01
+ *  Last Modified: 06/19/2016 12:20:03
  *
  *    Description: 
  *
@@ -91,15 +91,16 @@ void CharObject::DispatchAction()
                     AMActionState stAMAS;
                     stAMAS.UID     = UID();
                     stAMAS.AddTime = AddTime();
-                    stAMAS.Speed   = Speed();
 
                     stAMAS.X     = X();
                     stAMAS.Y     = Y();
                     stAMAS.R     = R();
                     stAMAS.MapID = MapID();
 
-                    stAMAS.Action    = (uint32_t)Action();
-                    stAMAS.Direction = Direction();
+                    stAMAS.Action    = (uint8_t)Action();
+                    stAMAS.Direction = (uint8_t)Direction();
+
+                    stAMAS.Speed = Speed();
 
                     m_ActorPod->Forward({MPK_ACTIONSTATE, stAMAS}, m_MapAddress);
                     return;

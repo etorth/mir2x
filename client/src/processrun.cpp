@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/15/2016 02:02:33
+ *  Last Modified: 06/19/2016 12:22:03
  *
  *    Description: 
  *
@@ -352,11 +352,13 @@ void ProcessRun::Net_ACTIONSTATE(const uint8_t *pBuf, size_t)
             && pRecord->second->MapID() == stSMAS.MapID){
         auto pCreature = pRecord->second;
 
-        pCreature->ResetR(stSMAS.R);
-        pCreature->ResetSpeed(stSMAS.R);
-        pCreature->ResetAction(stSMAS.Action);
-        pCreature->ResetDirection((int)stSMAS.Direction);
+        pCreature->ResetR((int)stSMAS.R);
         pCreature->ResetLocation(stSMAS.MapID, stSMAS.X, stSMAS.Y);
+
+        pCreature->ResetAction((int)stSMAS.Action);
+        pCreature->ResetDirection((int)stSMAS.Direction);
+
+        pCreature->ResetSpeed((int)stSMAS.Speed);
     }
 }
 
@@ -397,10 +399,12 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
 
     if(pCreature){
         pCreature->ResetR((int)stSMCOR.Common.R);
-        pCreature->ResetSpeed((int)stSMCOR.Common.Speed);
-        pCreature->ResetAction(stSMCOR.Common.Action);
-        pCreature->ResetDirection((int)stSMCOR.Common.Direction);
         pCreature->ResetLocation(stSMCOR.Common.MapID, (int)stSMCOR.Common.MapX, (int)stSMCOR.Common.MapY);
+
+        pCreature->ResetAction((int)stSMCOR.Common.Action);
+        pCreature->ResetDirection((int)stSMCOR.Common.Direction);
+
+        pCreature->ResetSpeed((int)stSMCOR.Common.Speed);
 
         m_CreatureMap[nCOKey] = pCreature;
     }

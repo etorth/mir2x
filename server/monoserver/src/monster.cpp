@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/19/2016 11:56:20
+ *  Last Modified: 06/19/2016 12:13:45
  *
  *    Description: 
  *
@@ -134,9 +134,7 @@ bool Monster::RandomWalk()
                             int nOldDir = m_Direction;
                             m_Direction = ((m_Direction + stRandomPick.Pick()) % 8);
 
-                            if(nOldDir == m_Direction){
-                                bUpdate = false;
-                            }else{
+                            if(nOldDir != m_Direction){
                                 ResetStateTime(STATE_ACTION);
                                 bUpdate = true;
                             }
@@ -144,8 +142,8 @@ bool Monster::RandomWalk()
                     }
                 }
 
-                if(bWalk  ){ UpdateLocation(); }
                 if(bUpdate){ DispatchAction(); }
+                if(bWalk  ){ UpdateLocation(); }
 
                 return true;
             }

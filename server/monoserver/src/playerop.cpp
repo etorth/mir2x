@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 06/19/2016 11:53:32
+ *  Last Modified: 06/19/2016 12:20:56
  *
  *    Description: 
  *
@@ -122,7 +122,9 @@ void Player::On_MPK_ACTIONSTATE(const MessagePack &rstMPK, const Theron::Address
     pMem->R     = stAMAS.R;
     pMem->MapID = stAMAS.MapID;
 
-    pMem->Action = stAMAS.Action;
+    pMem->Action    = stAMAS.Action;
+    pMem->Direction = stAMAS.Direction;
+
     pMem->Speed  = stAMAS.Speed;
 
     if(std::abs(m_CurrX - stAMAS.X) <= SYS_MAPVISIBLEW && std::abs(m_CurrY - stAMAS.Y) <= SYS_MAPVISIBLEH){
