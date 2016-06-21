@@ -25,13 +25,15 @@ ImageCache                       g_ImageCache;
 
 std::string                      g_WilFilePathName;
 std::string                      g_WorkingPathName;
+std::string                      g_TestAnimationPathName;
 
 int main()
 {
     fl_register_images();
 
-    g_WilFilePathName  = "";
-    g_WorkingPathName  = "";
+    g_WilFilePathName       = "";
+    g_WorkingPathName       = "";
+    g_TestAnimationPathName = "";
 
     g_MainWindow            = new MainWindow();
     g_SelectSettingWindow   = new SelectSettingWindow();
