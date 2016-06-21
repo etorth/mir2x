@@ -3,7 +3,7 @@
  *
  *       Filename: animation.cpp
  *        Created: 06/20/2016 19:56:07
- *  Last Modified: 06/20/2016 20:55:29
+ *  Last Modified: 06/20/2016 21:59:06
  *
  *    Description: 
  *
@@ -51,35 +51,37 @@ bool Animation::FrameValid()
         return false;
     }
 
-    if(m_AnimationFrameV2D[m_Action][m_Frame].Image == nullptr){
-        if(m_AnimationFrameV2D[m_Action][m_Frame].ImageName == ""){
-            fl_alert("internal error in Animation::Draw(): invalid image name");
+    for(size_t nIndex = 0; nIndex < 2; ++nIndex){
+        if(m_AnimationFrameV2D[m_Action][m_Frame][nIndex].Image == nullptr){
+            if(m_AnimationFrameV2D[m_Action][m_Frame][nIndex].ImageName == ""){
+                fl_alert("internal error in Animation::Draw(): invalid image name");
+                return false;
+            }
+
+            m_AnimationFrameV2D[m_Action][m_Frame][nIndex].Image = Fl_Share_Image::get(m_AnimationFrameV2D[m_Action][m_Frame][nIndex].ImageName.c_str());
+        }
+
+        if(m_AnimationFrameV2D[m_Action][m_Frame][nIndex].Image == nullptr){
+            fl_alert("internal error in Animation::Draw(): invalid image file name: %s", m_AnimationFrameV2D[m_Action][m_Frame][nIndex].ImageName.c_str());
             return false;
         }
 
-        m_AnimationFrameV2D[m_Action][m_Frame].Image = Fl_Share_Image::get(m_AnimationFrameV2D[m_Action][m_Frame].ImageName.c_str());
-    }
+        if(m_AnimationFrameV2D[m_Action][m_Frame].Image == nullptr){
+            if(m_AnimationFrameV2D[m_Action][m_Frame].ImageName == ""){
+                fl_alert("internal error in Animation::Draw(): invalid image name");
+                return false;
+            }
 
-    if(m_AnimationFrameV2D[m_Action][m_Frame].Image == nullptr){
-        fl_alert("internal error in Animation::Draw(): invalid image file name: %s", m_AnimationFrameV2D[m_Action][m_Frame].ImageName.c_str());
-        return false;
-    }
+            m_AnimationFrameV2D[m_Action][m_Frame].Image = Fl_Share_Image::get(m_AnimationFrameV2D[m_Action][m_Frame].ImageName.c_str());
+        }
 
-    if(m_AnimationFrameV2D[m_Action][m_Frame].Image == nullptr){
-        if(m_AnimationFrameV2D[m_Action][m_Frame].ImageName == ""){
-            fl_alert("internal error in Animation::Draw(): invalid image name");
+        if(m_AnimationFrameV2D[m_Action][m_Frame].Image == nullptr){
+            fl_alert("internal error in Animation::Draw(): invalid image file name: %s", m_AnimationFrameV2D[m_Action][m_Frame].ImageName.c_str());
             return false;
         }
 
-        m_AnimationFrameV2D[m_Action][m_Frame].Image = Fl_Share_Image::get(m_AnimationFrameV2D[m_Action][m_Frame].ImageName.c_str());
+
     }
-
-    if(m_AnimationFrameV2D[m_Action][m_Frame].Image == nullptr){
-        fl_alert("internal error in Animation::Draw(): invalid image file name: %s", m_AnimationFrameV2D[m_Action][m_Frame].ImageName.c_str());
-        return false;
-    }
-
-
     return true;
 }
 
