@@ -11,6 +11,9 @@ decl {\#include <ctime>} {private local
 decl {\#include <vector>} {public local
 } 
 
+decl {\#include <dirent>} {public local
+} 
+
 decl {\#include <array>} {private local
 } 
 
@@ -60,7 +63,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {176 138 985 665} type Double resizable visible
+      xywh {177 139 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -528,6 +531,110 @@ if(g_EditorMap.Valid()){
     m_DrawArea->redraw();
 }} {}
   }
+  Function {LoadTestAnimation()} {open return_type bool
+  } {
+    code {{
+    extern std::string g_TestAnimationPathName;
+
+    // when calling this function, outside logic should set g_TestAnimationPathName
+    if(g_TestAnimationPathName == ""){
+        fl_alert("empty animation path");
+        return false;
+    }
+
+    auto *pDir = opendir(g_TestAnimationPath.c_str());
+    if(pDir == nullptr){
+        fl_alert("invalid animation path");
+        return false;
+    }
+
+    std::string szDirName = g_TestAnimationPathName;
+    if(szDirName.back() != '/'){ szDirName += "/"; }
+
+    bool bValidDir = false;
+    auto *stDirItem = nullptr;
+    while((stDirItem = readdir(pDir)) != nullptr){
+        if(!std::strcmp(stDirItem->d_name,  ".")){ continue; }
+        if(!std::strcmp(stDirItem->d_name, "..")){ continue; }
+
+        if(stDirItem->d_type != DT_REG){
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG > 1)
+            fl_alert("unsupported file type in animation folder, ignored");
+#endif
+            continue;
+        }
+
+        // ok now we get a regular file
+        // we need to analysis the file name
+        std::string szFileName = stDirItem->d_name;
+
+        
+
+
+            if(!RemoveDir((g_TestAnimationPath + stDirItem->d_name).c_str())){
+                return false;
+            }else{
+                rewinddir(pDir);
+                continue;
+            }
+        }
+
+        // not std::remove(), they are different functions
+        if(remove((g_TestAnimationPath + stDirItem->d_name).c_str()) != 0){
+            return false;
+		}else{
+			rewinddir(pDir);
+			continue;
+		}
+    }
+    return !closedir(pDir) &&
+#ifdef _WIN32
+        !_rmdir
+#else
+        !rmdir
+#endif
+        (g_TestAnimationPath.c_str());
+
+
+
+
+
+
+    extern EditorMap g_EditorMap;
+
+    Fl_Native_File_Chooser fileChooser;
+    fileChooser.title("Select .map file");
+    fileChooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
+
+    char matchedFileNames[] =
+        "MAP\\t*.map\\n"
+        ;
+
+    fileChooser.filter(matchedFileNames);
+    fileChooser.directory(".");
+    switch(fileChooser.show()){
+        case -1:
+            fl_alert(fileChooser.errmsg());
+            break;
+        case  1:
+            break;
+        default:
+            {
+                if(!g_EditorMap.LoadMir2Map(fileChooser.filename())){
+                    fl_alert("Load mir2 map %s failed...", fileChooser.filename());
+                }
+                
+                AfterLoadMir2Map();
+
+                Fl::remove_timeout(UpdateFrame);
+                Fl::add_timeout(0.5, UpdateFrame);
+            }
+            break;
+    }
+    m_DrawArea->redraw();
+}} {selected
+    }
+  }
   Function {AfterLoadMir2Map()} {return_type void
   } {
     code {{
@@ -704,7 +811,7 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemEnableSelect->value();
 }} {}
   }
-  Function {EnableTest()} {selected return_type bool
+  Function {EnableTest()} {return_type bool
   } {
     code {{
     return m_MenuItemEnableTest->value();
