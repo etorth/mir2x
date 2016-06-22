@@ -60,14 +60,14 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {173 135 985 665} type Double resizable visible
+      xywh {176 138 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
       }
-      Fl_Menu_Bar m_MenuBar {open selected
+      Fl_Menu_Bar m_MenuBar {open
         xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -417,8 +417,12 @@ if(g_SelectSettingWindow){
           label Test open
           xywh {0 0 70 20}
         } {
+          MenuItem m_MenuItemEnableTest {
+            label {Enable Test                }
+            xywh {0 0 34 20} type Toggle divider
+          }
           MenuItem {} {
-            label {Select Animation                 }
+            label Select
             xywh {0 0 34 20}
           }
         }
@@ -524,7 +528,7 @@ if(g_EditorMap.Valid()){
     m_DrawArea->redraw();
 }} {}
   }
-  Function {AfterLoadMir2Map()} {open return_type void
+  Function {AfterLoadMir2Map()} {return_type void
   } {
     code {{
 	// previously this function is to set global variables after loading
@@ -698,6 +702,12 @@ if(g_EditorMap.Valid()){
   } {
     code {{
 	return m_MenuItemEnableSelect->value();
+}} {}
+  }
+  Function {EnableTest()} {selected return_type bool
+  } {
+    code {{
+    return m_MenuItemEnableTest->value();
 }} {}
   }
   Function {SelectByAttribute()} {return_type bool

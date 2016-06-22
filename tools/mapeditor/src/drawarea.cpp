@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 02/19/2016 01:05:56
+ *  Last Modified: 06/21/2016 12:03:13
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -39,6 +39,7 @@
 #include "attributeselectwindow.hpp"
 #include "mathfunc.hpp"
 #include "editormap.hpp"
+#include "animation.hpp"
 
 #include "imagedb.hpp"
 #include "imagecache.hpp"
@@ -438,6 +439,25 @@ void DrawArea::DrawObject(bool bGround)
     auto fnDrawObj = [this, bGround](uint8_t nFileIndex, uint16_t nImageIndex, int nXCnt, int nYCnt){
         auto p = RetrievePNG(nFileIndex, nImageIndex);
         if(p){
+            // 1. first draw actor
+            if(!bGround){
+                extern MainWindow *g_MainWindow;
+                if(g_MainWindow->EnableTest()){
+                    extern Animation g_TestAnimation;
+                    int nPX = g_TestAnimation.X();
+                    int nPY = g_TestAnimation.Y();
+
+                    if(nPX / 48 == nXCnt && nPY / 32 == nYCnt){
+                        g_TestAnimation.Draw();
+                    }
+                }
+            }
+
+            // 2. draw ground / overground object
+
+            // TODO: till now I still have no idea of this offset (-200, -157), I think maybe it's
+            //       nothing and I can just ignore it
+            //
             // int nStartX = nXCnt * 48 - 200;
             // int nStartY = nYCnt * 32 - 157 + 32 - p->h();
             int nStartX = nXCnt * 48 - m_OffsetX;
@@ -449,6 +469,7 @@ void DrawArea::DrawObject(bool bGround)
                     DrawRectangle(nStartX, nStartY, p->w(), p->h());
                 }
             }else{
+                // ok we're drawing over-ground object
                 if(g_MainWindow->ShowOverGroundObjectLine()){
                     DrawRectangle(nStartX, nStartY, p->w(), p->h());
                 }
@@ -457,8 +478,7 @@ void DrawArea::DrawObject(bool bGround)
     };
 
     extern EditorMap g_EditorMap;
-    g_EditorMap.DrawObject(
-            m_OffsetX / 48 - 10, m_OffsetY / 32 - 20, w() / 48 + 20, h() / 32 + 40, bGround, fnDrawObj);
+    g_EditorMap.DrawObject(m_OffsetX / 48 - 10, m_OffsetY / 32 - 20, w() / 48 + 20, h() / 32 + 40, bGround, fnDrawObj);
 
     fl_color(wColor);
 }
@@ -667,6 +687,10 @@ int DrawArea::handle(int nEvent)
                 }else if(g_MainWindow->EnableEdit()){
                     // TODO
                     //
+                }else if(g_MainWindow->EnableTest()){
+                    // we are moving the animation to a proper place
+                    extern Animation g_TestAnimation;
+                    g_TestAnimation.ResetLocation(-(m_MouseX - mouseX), true, -(m_MouseY - mouseY), true);
                 }else{
                     if(Fl::event_state() & FL_CTRL){
                         // bug of fltk here for windows, when some key is pressed, 
@@ -970,8 +994,7 @@ void DrawArea::DrawLoop(int nAX1, int nAY1, int nAX2, int nAY2, int nAX3, int nA
     DrawLine(nAX3, nAY3, nAX1, nAY1);
 }
 
-void DrawArea::AttributeCoverOperation(
-        int nMouseXOnMap, int nMouseYOnMap, int nSize, std::function<void(int, int, int)> fnOperation)
+void DrawArea::AttributeCoverOperation(int nMouseXOnMap, int nMouseYOnMap, int nSize, std::function<void(int, int, int)> fnOperation)
 {
     if(nSize <= 0){ return; }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: animation.cpp
  *        Created: 06/20/2016 19:56:07
- *  Last Modified: 06/20/2016 21:59:06
+ *  Last Modified: 06/21/2016 11:16:03
  *
  *    Description: 
  *
@@ -51,42 +51,37 @@ bool Animation::FrameValid()
         return false;
     }
 
+    auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Frame];
     for(size_t nIndex = 0; nIndex < 2; ++nIndex){
-        if(m_AnimationFrameV2D[m_Action][m_Frame][nIndex].Image == nullptr){
-            if(m_AnimationFrameV2D[m_Action][m_Frame][nIndex].ImageName == ""){
+        if(rstFrame[nIndex].Image == nullptr){
+            if(rstFrame[nIndex].ImageName == ""){
                 fl_alert("internal error in Animation::Draw(): invalid image name");
                 return false;
             }
 
-            m_AnimationFrameV2D[m_Action][m_Frame][nIndex].Image = Fl_Share_Image::get(m_AnimationFrameV2D[m_Action][m_Frame][nIndex].ImageName.c_str());
+            rstFrame[nIndex].Image = Fl_Share_Image::get(rstFrame[nIndex].ImageName.c_str());
         }
 
-        if(m_AnimationFrameV2D[m_Action][m_Frame][nIndex].Image == nullptr){
-            fl_alert("internal error in Animation::Draw(): invalid image file name: %s", m_AnimationFrameV2D[m_Action][m_Frame][nIndex].ImageName.c_str());
+        if(rstFrame[nIndex].Image == nullptr){
+            fl_alert("internal error in Animation::Draw(): invalid image file name: %s", rstFrame[nIndex].ImageName.c_str());
             return false;
         }
-
-        if(m_AnimationFrameV2D[m_Action][m_Frame].Image == nullptr){
-            if(m_AnimationFrameV2D[m_Action][m_Frame].ImageName == ""){
-                fl_alert("internal error in Animation::Draw(): invalid image name");
-                return false;
-            }
-
-            m_AnimationFrameV2D[m_Action][m_Frame].Image = Fl_Share_Image::get(m_AnimationFrameV2D[m_Action][m_Frame].ImageName.c_str());
-        }
-
-        if(m_AnimationFrameV2D[m_Action][m_Frame].Image == nullptr){
-            fl_alert("internal error in Animation::Draw(): invalid image file name: %s", m_AnimationFrameV2D[m_Action][m_Frame].ImageName.c_str());
-            return false;
-        }
-
-
     }
     return true;
 }
 
 void Animation::Draw()
 {
-    // ok now we are legal to draw it
-    m_AnimationFrameV2D[m_Action][m_Frame].Image->draw(m_X + m_AnimationFrameV2D[m_Action][m_Frame].DX, m_Y + m_AnimationFrameV2D[m_Action][m_Frame].DY);
+    if(FrameValid()){
+        auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Frame];
+        rstFrame[1].Image->draw(m_X + rstFrame[1].DX, m_Y + rstFrame[1].DY);    // shadow
+        rstFrame[0].Image->draw(m_X + rstFrame[0].DX, m_Y + rstFrame[0].DY);    // body
+    }
+}
+
+void Animation::Update()
+{
+    if(FrameValid()){
+        m_Frame = ((m_Frame + 1) % m_AnimationFrameV2D[m_Action][m_Frame].size());
+    }
 }
