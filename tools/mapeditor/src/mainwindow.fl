@@ -558,80 +558,66 @@ if(g_EditorMap.Valid()){
         if(!std::strcmp(stDirItem->d_name, "..")){ continue; }
 
         if(stDirItem->d_type != DT_REG){
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG > 1)
-            fl_alert("unsupported file type in animation folder, ignored");
-#endif
+// #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG > 1)
+//             fl_alert("unsupported file type in animation folder, ignored");
+// #endif
             continue;
         }
 
         // ok now we get a regular file
         // we need to analysis the file name
         std::string szFileName = stDirItem->d_name;
+        if(false
+                || szFileName.size() != (18 + 4)                    //  don't forget ".PNG" for 4 bytes
+                || szFileName[0] != '0'                             //  "00" or "01"
+                || (szFileName[1] != '0' && szFileName[1] != '1')){ //  "00" or "01"
+// #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG > 1)
+//             fl_alert("invalid file name for information parse: %s", szFileName.c_str());
+// #endif
+            continue;
+        }
 
-        
+        uint32_t nMonsterID = 0;
+        uint32_t nAction    = 0;
+        uint32_t nDirection = 0;
+        uint32_t nFrame     = 0;
 
+        uint32_t nDesc = StringHex<uint32_t, 4>(szFileName.c_str());
 
-            if(!RemoveDir((g_TestAnimationPath + stDirItem->d_name).c_str())){
-                return false;
-            }else{
-                rewinddir(pDir);
-                continue;
+        nMonsterID = ((nDesc & 0X00FFF000) >> 12);
+        nAction    = ((nDesc & 0X00000F00) >>  8);
+        nDirection = ((nDesc & 0X000000E0) >>  5);
+        nFrame     = ((nDesc & 0X0000001F) >>  0);
+
+        // we refuse to accept frame with MonsterID == 0
+        if(nMonsterID == 0){ continue; }
+
+        nDesc = StringHex<uint32_t, 4>(szFileName.c_str() + 10);
+
+        int nDX = ((szFileName[8] == '0') ? -1 : 1) * (int)((nDesc & 0XFFFF0000) >> 16);
+        int nDY = ((szFileName[9] == '0') ? -1 : 1) * (int)((nDesc & 0X0000FFFF) >>  0);
+
+        extern std::vector<Animation> g_AnimationV;
+        bool bFind = false;
+        for(auto &rstAnimation: g_AnimationV){
+            if(rstAnimation.MonsterID() == nMonsterID){
+                // 1. set find flag
+                bFind = true;
+
+                // 2. add this record
+                rstAnimation.Add(nAction, nDirection, nFrame, (szFileName[1] == '1'), nDX, nDY, (szDirName + szFileName));
+                break;
             }
         }
 
-        // not std::remove(), they are different functions
-        if(remove((g_TestAnimationPath + stDirItem->d_name).c_str()) != 0){
-            return false;
-		}else{
-			rewinddir(pDir);
-			continue;
-		}
+        if(!bFind){
+            g_AnimationV.emplace_back(nMonsterID);
+            g_AnimationV.back().Add(nAction, nDirection, nFrame, (szFileName[1] == '1'), nDX, nDY, (szDirName + szFileName));
+        }
+        // since we didn't update this directory, so we don't need rewinddir()
     }
-    return !closedir(pDir) &&
-#ifdef _WIN32
-        !_rmdir
-#else
-        !rmdir
-#endif
-        (g_TestAnimationPath.c_str());
 
-
-
-
-
-
-    extern EditorMap g_EditorMap;
-
-    Fl_Native_File_Chooser fileChooser;
-    fileChooser.title("Select .map file");
-    fileChooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
-
-    char matchedFileNames[] =
-        "MAP\\t*.map\\n"
-        ;
-
-    fileChooser.filter(matchedFileNames);
-    fileChooser.directory(".");
-    switch(fileChooser.show()){
-        case -1:
-            fl_alert(fileChooser.errmsg());
-            break;
-        case  1:
-            break;
-        default:
-            {
-                if(!g_EditorMap.LoadMir2Map(fileChooser.filename())){
-                    fl_alert("Load mir2 map %s failed...", fileChooser.filename());
-                }
-                
-                AfterLoadMir2Map();
-
-                Fl::remove_timeout(UpdateFrame);
-                Fl::add_timeout(0.5, UpdateFrame);
-            }
-            break;
-    }
-    m_DrawArea->redraw();
+    return !closedir(pDir);
 }} {selected
     }
   }

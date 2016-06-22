@@ -3,7 +3,7 @@
  *
  *       Filename: animation.hpp
  *        Created: 06/20/2016 19:41:08
- *  Last Modified: 06/21/2016 19:42:38
+ *  Last Modified: 06/21/2016 22:52:58
  *
  *    Description: animation for test
  *
@@ -57,7 +57,7 @@ class Animation
         void Update();
 
     public:
-        template<typename... T> void Add(size_t nAction, size_t nDirection, size_t nFrame, bool bFShadow, T... stT)
+        template<typename... T> void Add(uint32_t nAction, uint32_t nDirection, uint32_t nFrame, bool bFShadow, T... stT)
         {
             if(nAction >= m_AnimationFrameV2D.size()){
                 m_AnimationFrameV2D.resize((size_t)nAction);
