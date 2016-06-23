@@ -26,6 +26,8 @@ ImageCache                       g_ImageCache;
 std::string                      g_WilFilePathName;
 std::string                      g_WorkingPathName;
 std::string                      g_TestAnimationPathName;
+std::vector<Animation>           g_AnimationV;
+int                      
 
 int main()
 {

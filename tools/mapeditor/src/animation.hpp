@@ -3,9 +3,10 @@
  *
  *       Filename: animation.hpp
  *        Created: 06/20/2016 19:41:08
- *  Last Modified: 06/21/2016 22:52:58
+ *  Last Modified: 06/22/2016 18:04:18
  *
- *    Description: animation for test
+ *    Description: animation for test, we only support monster animation currently
+ *                 how about for human with weapon? do I need to support it?
  *
  *        Version: 1.0
  *       Revision: none
@@ -48,30 +49,32 @@ class Animation
         }AnimationFrame;
 
     protected:
-        uint32_t m_ID;
-        uint32_t m_SubID;
-        std::vector<std::vector<AnimationFrame>> m_AnimationFrameV2D;
+        uint32_t m_MonsterID;
+        int      m_X;
+        int      m_Y;
+
+        std::vector<std::vector<std::vector<std::array<AnimationFrame, 2>>>> m_AnimationFrameV2D;
 
     public:
         void Add(int, int, int, int, Fl_Shared_Image *);
         void Update();
 
     public:
-        template<typename... T> void Add(uint32_t nAction, uint32_t nDirection, uint32_t nFrame, bool bFShadow, T... stT)
+        template<typename... T> void Add(uint32_t nAction, uint32_t nDirection, uint32_t nFrame, bool bShadow, T... stT)
         {
-            if(nAction >= m_AnimationFrameV2D.size()){
-                m_AnimationFrameV2D.resize((size_t)nAction);
+            if(nAction >= (uint32_t)m_AnimationFrameV2D.size()){
+                m_AnimationFrameV2D.resize((size_t)nAction + 1);
             }
 
-            if(nDirection >= m_AnimationFrameV2D[nAction].size()){
-                m_AnimationFrameV2D[nAction].resize((size_t)nDirection);
+            if(nDirection >= (uint32_t)m_AnimationFrameV2D[nAction].size()){
+                m_AnimationFrameV2D[nAction].resize((size_t)nDirection + 1);
             }
 
-            if(nFrame >= m_AnimationFrameV2D[nAction][nDirection]){
-                m_AnimationFrameV2D[nAction][nDirection].resize((size_t)nFrame);
+            if(nFrame >= (uint32_t)m_AnimationFrameV2D[nAction][nDirection].size()){
+                m_AnimationFrameV2D[nAction][nDirection].resize((size_t)nFrame + 1);
             }
 
-            m_AnimationFrameV2D[nAction][nDirection][bShadow ? 1 : 0].ResetFrame(std::forward<T>(stT)...);
+            m_AnimationFrameV2D[nAction][nDirection][nFrame][bShadow ? 1 : 0].ResetFrame(std::forward<T>(stT)...);
         }
 
     public:
