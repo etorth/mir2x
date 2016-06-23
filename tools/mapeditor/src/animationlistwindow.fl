@@ -1,0 +1,81 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include "animationdb.hpp"} {private local
+} 
+
+decl {\#include "animationpreviewwindow.hpp"} {private local
+} 
+
+class AnimationListWindow {open
+} {
+  Function {AnimationListWindow()} {open
+  } {
+    Fl_Window m_Window {open
+      xywh {1156 214 340 500} type Double visible
+    } {
+      Fl_Browser m_Browser {
+        callback {{
+    // when clicked, show a preview window
+    if(!Fl::event_clicks()){
+        return;
+    }
+    
+    for(int i = 1; i <= m_Browser->size(); ++i){
+        if(m_Browser->selected(i)){
+            uint32_t nMonsterID = (uint32_t)(uintptr_t)m_Browser->data(i);
+            extern AnimationPreviewWindow *g_AnimationPreviewWindow;
+            g_AnimationPreviewWindow->ResetMonsterID(nMonsterID);
+
+            HideAll();
+            g_AnimationPreviewWindow->ShowAll();
+            return;
+        }
+    }
+}}
+        xywh {0 0 340 500} type Hold
+      }
+    }
+  }
+  Function {ClearAll()} {return_type void
+  } {
+    code {{
+    m_Browser->clear();
+}} {}
+  }
+  Function {Load()} {return_type void
+  } {
+    code {{
+    ClearAll();
+    
+    extern AnimationDB g_AnimationDB;
+    size_t nSize = g_AnimationDB.Size();
+    
+    for(size_t nVID = 0; nVID < nSize; ++nVID){
+        char szMonsterID[32];
+        std::sprintf(szMonsterID, "Monster ID: %04d", g_AnimationDB.Get(nVID).MonsterID());
+        
+        m_Browser->add(szMonsterID, (void *)(uintptr_t)(g_AnimationDB.Get(nVID).MonsterID()));
+    }
+}} {}
+  }
+  Function {ShowAll()} {return_type void
+  } {
+    code {{
+    m_Window->show();
+}} {}
+  }
+  Function {HideAll()} {return_type void
+  } {
+    code {{
+    m_Window->hide();
+}} {}
+  }
+  Function {RedrawAll()} {return_type void
+  } {
+    code {{
+    m_Window->redraw();
+}} {}
+  }
+} 

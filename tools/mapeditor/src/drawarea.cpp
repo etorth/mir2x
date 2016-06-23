@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 06/21/2016 12:03:13
+ *  Last Modified: 06/22/2016 22:34:40
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -40,6 +40,7 @@
 #include "mathfunc.hpp"
 #include "editormap.hpp"
 #include "animation.hpp"
+#include "animationdraw.hpp"
 
 #include "imagedb.hpp"
 #include "imagecache.hpp"
@@ -443,12 +444,14 @@ void DrawArea::DrawObject(bool bGround)
             if(!bGround){
                 extern MainWindow *g_MainWindow;
                 if(g_MainWindow->EnableTest()){
-                    extern Animation g_TestAnimation;
-                    int nPX = g_TestAnimation.X();
-                    int nPY = g_TestAnimation.Y();
+                    extern AnimationDB g_AnimationDB;
+                    extern AnimationDraw g_AnimationDraw;
 
-                    if(nPX / 48 == nXCnt && nPY / 32 == nYCnt){
-                        g_TestAnimation.Draw();
+                    if(g_AnimationDraw.MonsterID){
+                        auto &rstAnimation = g_AnimationDB.RetrieveAnimation(g_AnimationDraw.MonsterID);
+                        if(g_AnimationDraw.X / 48 == nXCnt && g_AnimationDraw.Y / 32 == nYCnt){
+                            rstAnimation.Draw(g_AnimationDraw.X, g_AnimationDraw.Y);
+                        }
                     }
                 }
             }
@@ -689,8 +692,9 @@ int DrawArea::handle(int nEvent)
                     //
                 }else if(g_MainWindow->EnableTest()){
                     // we are moving the animation to a proper place
-                    extern Animation g_TestAnimation;
-                    g_TestAnimation.ResetLocation(-(m_MouseX - mouseX), true, -(m_MouseY - mouseY), true);
+                    extern AnimationDraw g_AnimationDraw;
+                    g_AnimationDraw.X += (-(m_MouseX - mouseX));
+                    g_AnimationDraw.Y += (-(m_MouseY - mouseY));
                 }else{
                     if(Fl::event_state() & FL_CTRL){
                         // bug of fltk here for windows, when some key is pressed, 

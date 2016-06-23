@@ -3,7 +3,7 @@
  *
  *       Filename: animation.hpp
  *        Created: 06/20/2016 19:41:08
- *  Last Modified: 06/22/2016 18:04:18
+ *  Last Modified: 06/23/2016 01:00:21
  *
  *    Description: animation for test, we only support monster animation currently
  *                 how about for human with weapon? do I need to support it?
@@ -20,7 +20,9 @@
  */
 
 #pragma once
+#include <array>
 #include <vector>
+#include <string>
 #include <FL/Fl_Shared_Image.H>
 
 class Animation
@@ -49,19 +51,32 @@ class Animation
         }AnimationFrame;
 
     protected:
+        uint32_t m_Frame;
+        uint32_t m_Action;
+        uint32_t m_Direction;
         uint32_t m_MonsterID;
-        int      m_X;
-        int      m_Y;
-
         std::vector<std::vector<std::vector<std::array<AnimationFrame, 2>>>> m_AnimationFrameV2D;
+
+    public:
+        Animation(uint32_t nMonsterID = 0)
+            : m_MonsterID(nMonsterID)
+        {}
+        ~Animation() = default;
 
     public:
         void Add(int, int, int, int, Fl_Shared_Image *);
         void Update();
 
     public:
-        template<typename... T> void Add(uint32_t nAction, uint32_t nDirection, uint32_t nFrame, bool bShadow, T... stT)
+        uint32_t MonsterID()
         {
+            return m_MonsterID;
+        }
+
+    public:
+        template<typename... T> bool Add(uint32_t nAction, uint32_t nDirection, uint32_t nFrame, bool bShadow, T... stT)
+        {
+            if(nAction >= 16 || nDirection >= 8 || nFrame >= 32){ return false; }
             if(nAction >= (uint32_t)m_AnimationFrameV2D.size()){
                 m_AnimationFrameV2D.resize((size_t)nAction + 1);
             }
@@ -75,21 +90,27 @@ class Animation
             }
 
             m_AnimationFrameV2D[nAction][nDirection][nFrame][bShadow ? 1 : 0].ResetFrame(std::forward<T>(stT)...);
+            return true;
         }
 
     public:
-        void ResetLocation(int nX, bool bXRelative, int nY, bool bYRelative)
+        bool Valid()
         {
-            if(bXRelative){
-                m_X += nX;
-            }else{
-                m_X = nX;
-            }
-
-            if(bYRelative){
-                m_Y += nY;
-            }else{
-                m_Y = nY;
-            }
+            return m_MonsterID != 0;
         }
+
+    public:
+        void Draw(int, int);
+
+        bool ActionValid();
+        bool DirectionValid();
+        bool FrameValid();
+
+    public:
+        bool ResetAction(uint32_t);
+        bool ResetDirection(uint32_t);
+
+    public:
+        int AnimationW(uint32_t, uint32_t);
+        int AnimationH(uint32_t, uint32_t);
 };

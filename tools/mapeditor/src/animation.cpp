@@ -3,7 +3,7 @@
  *
  *       Filename: animation.cpp
  *        Created: 06/20/2016 19:56:07
- *  Last Modified: 06/21/2016 19:42:34
+ *  Last Modified: 06/23/2016 01:04:07
  *
  *    Description: 
  *
@@ -21,10 +21,6 @@
 #include "animation.hpp"
 #include <FL/fl_ask.H>
 
-Animation::Animation()
-{
-}
-
 bool Animation::ActionValid()
 {
     if(m_Action >= m_AnimationFrameV2D.size()){
@@ -40,18 +36,35 @@ bool Animation::ActionValid()
     return true;
 }
 
-bool Animation::FrameValid()
+bool Animation::DirectionValid()
 {
-    // 1. check action
     if(!ActionValid()){ return false; }
 
-    // 2. ok check frame
-    if(m_Frame >= m_AnimationFrameV2D[m_Action].size()){
-        fl_alert("internal error in Animation::Draw(): invalid frame indexing");
+    if(m_Direction >= m_AnimationFrameV2D[m_Action].size()){
+        fl_alert("internal error in Animation::Draw(): invalid direction code");
         return false;
     }
 
-    auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Frame];
+    if(m_AnimationFrameV2D[m_Action][m_Direction].size() == 0){
+        fl_alert("internal error in Animation::Draw(): current direction is invalid");
+        return false;
+    }
+
+    return true;
+}
+
+bool Animation::FrameValid()
+{
+    // 1. check action
+    if(!(ActionValid() && DirectionValid())){ return false; }
+
+    // 2. ok check frame
+    if(m_Frame >= m_AnimationFrameV2D[m_Action][m_Direction].size()){
+        fl_alert("internal error in Animation::Draw(): invalid frame index");
+        return false;
+    }
+
+    auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Direction][m_Frame];
     for(size_t nIndex = 0; nIndex < 2; ++nIndex){
         if(rstFrame[nIndex].Image == nullptr){
             if(rstFrame[nIndex].ImageName == ""){
@@ -59,7 +72,7 @@ bool Animation::FrameValid()
                 return false;
             }
 
-            rstFrame[nIndex].Image = Fl_Share_Image::get(rstFrame[nIndex].ImageName.c_str());
+            rstFrame[nIndex].Image = Fl_Shared_Image::get(rstFrame[nIndex].ImageName.c_str());
         }
 
         if(rstFrame[nIndex].Image == nullptr){
@@ -70,18 +83,46 @@ bool Animation::FrameValid()
     return true;
 }
 
-void Animation::Draw()
+void Animation::Draw(int nX, int nY)
 {
     if(FrameValid()){
-        auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Frame];
-        rstFrame[1].Image->draw(m_X + rstFrame[1].DX, m_Y + rstFrame[1].DY);    // shadow
-        rstFrame[0].Image->draw(m_X + rstFrame[0].DX, m_Y + rstFrame[0].DY);    // body
+        auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Direction][m_Frame];
+        rstFrame[1].Image->draw(nX + rstFrame[1].DX, nY + rstFrame[1].DY);    // shadow
+        rstFrame[0].Image->draw(nX + rstFrame[0].DX, nY + rstFrame[0].DY);    // body
     }
 }
 
 void Animation::Update()
 {
     if(FrameValid()){
-        m_Frame = ((m_Frame + 1) % m_AnimationFrameV2D[m_Action][m_Frame].size());
+        m_Frame = ((m_Frame + 1) % m_AnimationFrameV2D[m_Action][m_Direction][m_Frame].size());
     }
+}
+
+bool Animation::ResetAction(uint32_t nAction)
+{
+    if(nAction < 16){
+        m_Frame = 0;
+        m_Action = nAction;
+    }
+
+    return true;
+}
+
+bool Animation::ResetDirection(uint32_t nDirection)
+{
+    if(nDirection < 8){
+        m_Frame = 0;
+        m_Direction = nDirection;
+    }
+
+    return true;
+}
+
+int Animation::AnimationW(uint32_t nAction, uint32_t nDirection)
+{
+    if(!(nAction < 16 && nDirection < 8)){ return 0; }
+
+
+    xxxxxxx
 }
