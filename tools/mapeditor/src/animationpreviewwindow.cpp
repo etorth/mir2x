@@ -3,7 +3,7 @@
  *
  *       Filename: animationpreviewwindow.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/23/2016 00:59:46
+ *  Last Modified: 06/23/2016 20:03:22
  *
  *    Description: 
  *
@@ -144,15 +144,22 @@ void AnimationPreviewWindow::ResetMonsterID(uint32_t nMonsterID)
 
     // 3. if empty monster id we stop here, so we can use this function
     //    to disable all functionality of AnimationPreviewWindow
-    if(!m_MonsterID){ return; }
+    if(!nMonsterID){ return; }
 
     extern AnimationDB g_AnimationDB;
-    auto &rstRecord = g_AnimationDB.RetrieveAnimation(m_MonsterID);
+    auto &rstRecord = g_AnimationDB.RetrieveAnimation(nMonsterID);
 
     if(!rstRecord.Valid()){ return; }
 
     int nAnimationW = rstRecord.AnimationW(0, 0);
     int nAnimationH = rstRecord.AnimationH(0, 0);
+
+    if(nAnimationW <= 0 || nAnimationH <= 0){
+        m_MonsterID = 0;
+        return;
+    }
+
+    m_MonsterID = nMonsterID;
 
     m_Window = new PreviewWindow(0, 0, nAnimationW + 20 * 2, nAnimationH + 20 * 2);
     m_Window->labelfont(4);

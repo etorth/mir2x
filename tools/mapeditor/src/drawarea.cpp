@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 06/22/2016 22:34:40
+ *  Last Modified: 06/23/2016 19:04:51
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -40,6 +40,7 @@
 #include "mathfunc.hpp"
 #include "editormap.hpp"
 #include "animation.hpp"
+#include "animationdb.hpp"
 #include "animationdraw.hpp"
 
 #include "imagedb.hpp"

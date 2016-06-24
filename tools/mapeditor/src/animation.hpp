@@ -3,7 +3,7 @@
  *
  *       Filename: animation.hpp
  *        Created: 06/20/2016 19:41:08
- *  Last Modified: 06/23/2016 01:00:21
+ *  Last Modified: 06/23/2016 19:46:17
  *
  *    Description: animation for test, we only support monster animation currently
  *                 how about for human with weapon? do I need to support it?
@@ -32,21 +32,43 @@ class Animation
             int DX;
             int DY;
             std::string ImageName;
+
+            bool BadImageName;
             Fl_Shared_Image *Image;
 
-            _AnimationFrame(int nDX = 0, int nDY = 0,
-                    std::string szImageName = "", Fl_Shared_Image *pImage = nullptr)
+            _AnimationFrame(int nDX = 0, int nDY = 0, std::string szImageName = "")
                 : DX(nDX)
                 , DY(nDY)
                 , ImageName(std::move(szImageName))
-                , Image(pImage)
+                , BadImageName(false)
+                , Image(nullptr)
             {}
 
             void ResetFrame(int nDX, int nDY, std::string szImageName)
             {
                 DX = nDX;
                 DY = nDY;
-                ImageName = szImageName;
+                ImageName = std::move(szImageName);
+
+                BadImageName = false;
+                Image = nullptr;
+            }
+
+            bool Valid()
+            {
+                if(Image){ return true; }
+                if(BadImageName){ return false; }
+
+                if(ImageName.empty()){
+                    BadImageName = true;
+                    return false;
+                }
+
+                Image = Fl_Shared_Image::get(ImageName.c_str());
+                if(Image){ return true; }
+
+                BadImageName = true;
+                return false;
             }
         }AnimationFrame;
 
@@ -102,9 +124,28 @@ class Animation
     public:
         void Draw(int, int);
 
-        bool ActionValid();
-        bool DirectionValid();
-        bool FrameValid();
+    public:
+        bool ActionValid(uint32_t);
+        bool ActionValid()
+        {
+            return ActionValid(m_Action);
+        }
+
+        bool DirectionValid(uint32_t, uint32_t);
+        bool DirectionValid()
+        {
+            return DirectionValid(m_Action, m_Direction);
+        }
+
+        bool FrameValid(uint32_t, uint32_t, uint32_t, bool);
+        bool FrameValid(bool bShadow)
+        {
+            return FrameValid(m_Action, m_Direction, m_Frame, bShadow);
+        }
+        bool FrameValid()
+        {
+            return FrameValid(false) && FrameValid(true);
+        }
 
     public:
         bool ResetAction(uint32_t);
