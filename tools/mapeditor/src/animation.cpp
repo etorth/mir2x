@@ -3,7 +3,7 @@
  *
  *       Filename: animation.cpp
  *        Created: 06/20/2016 19:56:07
- *  Last Modified: 06/23/2016 19:47:08
+ *  Last Modified: 06/23/2016 22:36:33
  *
  *    Description: 
  *
@@ -96,6 +96,22 @@ void Animation::Draw(int nX, int nY)
     if(FrameValid(m_Action, m_Direction, m_Frame, false)){
         auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Direction][m_Frame];
         rstFrame[0].Image->draw(nX + rstFrame[0].DX, nY + rstFrame[0].DY);
+    }
+}
+
+
+void Animation::Draw(int nX, int nY, std::function<void(Fl_Shared_Image *, int, int)> fnDraw)
+{
+    // shadow
+    if(FrameValid(m_Action, m_Direction, m_Frame, true)){
+        auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Direction][m_Frame];
+        fnDraw(rstFrame[1].Image,nX + rstFrame[1].DX, nY + rstFrame[1].DY);
+    }
+
+    // body
+    if(FrameValid(m_Action, m_Direction, m_Frame, false)){
+        auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Direction][m_Frame];
+        fnDraw(rstFrame[0].Image, nX + rstFrame[0].DX, nY + rstFrame[0].DY);
     }
 }
 

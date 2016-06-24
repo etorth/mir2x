@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 06/23/2016 19:04:51
+ *  Last Modified: 06/23/2016 23:13:26
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -438,27 +438,33 @@ void DrawArea::DrawObject(bool bGround)
         fl_color(FL_GREEN);
     }
 
-    auto fnDrawObj = [this, bGround](uint8_t nFileIndex, uint16_t nImageIndex, int nXCnt, int nYCnt){
-        auto p = RetrievePNG(nFileIndex, nImageIndex);
-        if(p){
-            // 1. first draw actor
-            if(!bGround){
-                extern MainWindow *g_MainWindow;
-                if(g_MainWindow->EnableTest()){
-                    extern AnimationDB g_AnimationDB;
-                    extern AnimationDraw g_AnimationDraw;
+    auto fnDrawExt = [this, bGround](int nXCnt, int nYCnt){
+        if(!bGround){
+            extern MainWindow *g_MainWindow;
+            if(g_MainWindow->EnableTest()){
+                extern AnimationDB g_AnimationDB;
+                extern AnimationDraw g_AnimationDraw;
 
-                    if(g_AnimationDraw.MonsterID){
-                        auto &rstAnimation = g_AnimationDB.RetrieveAnimation(g_AnimationDraw.MonsterID);
-                        if(g_AnimationDraw.X / 48 == nXCnt && g_AnimationDraw.Y / 32 == nYCnt){
-                            rstAnimation.Draw(g_AnimationDraw.X, g_AnimationDraw.Y);
-                        }
+                if(g_AnimationDraw.MonsterID){
+                    auto &rstAnimation = g_AnimationDB.RetrieveAnimation(g_AnimationDraw.MonsterID);
+                    if(g_AnimationDraw.X / 48 == nXCnt && g_AnimationDraw.Y / 32 == nYCnt){
+                        rstAnimation.ResetAction(0);
+                        rstAnimation.ResetDirection(5);
+
+                        auto fnDraw = [this](Fl_Shared_Image *pPNG, int nMapX, int nMapY){
+                            DrawImage(pPNG, nMapX - m_OffsetX, nMapY - m_OffsetY);
+                        };
+
+                        rstAnimation.Draw(g_AnimationDraw.X, g_AnimationDraw.Y, fnDraw);
                     }
                 }
             }
+        }
+    };
 
-            // 2. draw ground / overground object
-
+    auto fnDrawObj = [this, bGround](uint8_t nFileIndex, uint16_t nImageIndex, int nXCnt, int nYCnt){
+        auto p = RetrievePNG(nFileIndex, nImageIndex);
+        if(p){
             // TODO: till now I still have no idea of this offset (-200, -157), I think maybe it's
             //       nothing and I can just ignore it
             //
@@ -482,7 +488,7 @@ void DrawArea::DrawObject(bool bGround)
     };
 
     extern EditorMap g_EditorMap;
-    g_EditorMap.DrawObject(m_OffsetX / 48 - 10, m_OffsetY / 32 - 20, w() / 48 + 20, h() / 32 + 40, bGround, fnDrawObj);
+    g_EditorMap.DrawObject(m_OffsetX / 48 - 10, m_OffsetY / 32 - 20, w() / 48 + 20, h() / 32 + 40, bGround, fnDrawObj, fnDrawExt);
 
     fl_color(wColor);
 }
@@ -694,8 +700,8 @@ int DrawArea::handle(int nEvent)
                 }else if(g_MainWindow->EnableTest()){
                     // we are moving the animation to a proper place
                     extern AnimationDraw g_AnimationDraw;
-                    g_AnimationDraw.X += (-(m_MouseX - mouseX));
-                    g_AnimationDraw.Y += (-(m_MouseY - mouseY));
+                    g_AnimationDraw.X += (m_MouseX - mouseX);
+                    g_AnimationDraw.Y += (m_MouseY - mouseY);
                 }else{
                     if(Fl::event_state() & FL_CTRL){
                         // bug of fltk here for windows, when some key is pressed, 

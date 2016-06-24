@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/21/2016 23:42:05
+ *  Last Modified: 06/23/2016 22:29:52
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -138,12 +138,20 @@ void EditorMap::ExtractObject(std::function<void(uint8_t, uint16_t, uint32_t)> f
     }
 }
 
-void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH,
-        bool bGround, std::function<void(uint8_t, uint16_t, int, int)> fnDrawObj)
+void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
+        std::function<void(uint8_t, uint16_t, int, int)> fnDrawObj, std::function<void(int, int)> fnDrawExt)
 {
     if(!Valid()){ return; }
     for(int nYCnt = nCY; nYCnt < nCY + nCH; ++nYCnt){
         for(int nXCnt = nCX; nXCnt < nCX + nCW; ++nXCnt){
+            // 1. we draw actor, ext, even the grid is not valid
+            //    and we only draw it when drawing overground objects
+            //    draw it before drawing overground objects
+            if(!bGround){
+                fnDrawExt(nXCnt, nYCnt);
+            }
+
+            // 2. regular draw
             for(int nIndex = 0; nIndex < 2; ++nIndex){
                 if(ValidC(nXCnt, nYCnt)
                         && ObjectValid(nXCnt, nYCnt, nIndex)

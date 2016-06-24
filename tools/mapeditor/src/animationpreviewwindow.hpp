@@ -3,7 +3,7 @@
  *
  *       Filename: animationpreviewwindow.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/23/2016 00:50:44
+ *  Last Modified: 06/23/2016 21:12:20
  *
  *    Description: to preview animation to test
  *
@@ -33,6 +33,9 @@ class AnimationPreviewWindow
 
             private:
                 int handle(int);
+
+            protected:
+                virtual void draw();
         };
 
     private:

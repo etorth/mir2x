@@ -47,13 +47,16 @@ decl {\#include "editormap.hpp"} {private local
 decl {\#include "hexstring.hpp"} {private local
 } 
 
+decl {\#include "animationdraw.hpp"} {private local
+} 
+
 decl {\#include <FL/fl_draw.H>} {public local
 } 
 
 decl {\#include <FL/Fl_Shared_Image.H>} {public local
 } 
 
-decl {\#include "animationlistwindow.hpp"} {selected private local
+decl {\#include "animationlistwindow.hpp"} {private local
 } 
 
 class MainWindow {open
@@ -64,8 +67,8 @@ class MainWindow {open
     Fl_Window m_Window {
       callback {{
 	// do nothing
-}}
-      xywh {1625 110 985 665} type Double resizable visible
+}} open
+      xywh {1421 144 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -424,6 +427,9 @@ if(g_SelectSettingWindow){
         } {
           MenuItem m_MenuItemEnableTest {
             label {Enable Test                }
+            callback {{
+    CenterAnimation();
+}}
             xywh {0 0 34 20} type Toggle divider
           }
           MenuItem {} {
@@ -622,7 +628,7 @@ if(g_EditorMap.Valid()){
     }
 }} {}
   }
-  Function {SetWilFilePathName()} {open return_type void
+  Function {SetWilFilePathName()} {return_type void
   } {
     code {{
     extern std::string g_WilFilePathName;
@@ -765,7 +771,7 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemSelectByRhombus->value();
 }} {}
   }
-  Function {SelectByRectangle()} {return_type bool
+  Function {SelectByRectangle()} {selected return_type bool
   } {
     code {{
 	return m_MenuItemSelectByRectangle->value();
@@ -840,6 +846,19 @@ if(g_EditorMap.Valid()){
   } {
     code {{
     return m_MenuItemReversed->value();
+}} {}
+  }
+  Function {CenterAnimation()} {return_type void
+  } {
+    code {{
+    extern AnimationDraw g_AnimationDraw;
+    if(g_AnimationDraw.MonsterID){
+        int nX = m_DrawArea->OffsetX() + m_Window->w() / 2;
+        int nY = m_DrawArea->OffsetY() + m_Window->h() / 2;
+    
+        g_AnimationDraw.X = nX;
+        g_AnimationDraw.Y = nY;
+    }
 }} {}
   }
 } 

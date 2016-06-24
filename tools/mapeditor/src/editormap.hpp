@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/21/2016 22:30:58
+ *  Last Modified: 06/23/2016 22:27:27
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -195,7 +195,7 @@ class EditorMap
         // draw map
         // external class will provide handlers for physical draw function
         void DrawTile(int, int, int, int, std::function<void(uint8_t, uint16_t, int, int)>);
-        void DrawObject(int, int, int, int, bool, std::function<void(uint8_t, uint16_t, int, int)>);
+        void DrawObject(int, int, int, int, bool, std::function<void(uint8_t, uint16_t, int, int)>, std::function<void(int, int)>);
         void DrawLight(int, int, int, int, std::function<void(int, int)>);
         void DrawSelectGround(int, int, int, int, std::function<void(int, int, int)>);
         void DrawSelectPoint(std::function<void(const std::vector<std::pair<int, int>> &)>);

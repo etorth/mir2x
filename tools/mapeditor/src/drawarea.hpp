@@ -31,6 +31,17 @@ class DrawArea: public Fl_Box
     public:
         void SetOffset(int, bool, int, bool);
 
+        int OffsetX()
+        {
+            return m_OffsetX;
+        }
+
+        int OffsetY()
+        {
+            return m_OffsetY;
+        }
+
+
 
     private:
         void DrawAttributeGrid();

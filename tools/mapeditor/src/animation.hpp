@@ -3,7 +3,7 @@
  *
  *       Filename: animation.hpp
  *        Created: 06/20/2016 19:41:08
- *  Last Modified: 06/23/2016 19:46:17
+ *  Last Modified: 06/23/2016 22:39:05
  *
  *    Description: animation for test, we only support monster animation currently
  *                 how about for human with weapon? do I need to support it?
@@ -23,6 +23,8 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <functional>
+
 #include <FL/Fl_Shared_Image.H>
 
 class Animation
@@ -73,15 +75,18 @@ class Animation
         }AnimationFrame;
 
     protected:
-        uint32_t m_Frame;
+        uint32_t m_MonsterID;
         uint32_t m_Action;
         uint32_t m_Direction;
-        uint32_t m_MonsterID;
+        uint32_t m_Frame;
         std::vector<std::vector<std::vector<std::array<AnimationFrame, 2>>>> m_AnimationFrameV2D;
 
     public:
         Animation(uint32_t nMonsterID = 0)
             : m_MonsterID(nMonsterID)
+            , m_Action(0)
+            , m_Direction(0)
+            , m_Frame(0)
         {}
         ~Animation() = default;
 
@@ -123,6 +128,8 @@ class Animation
 
     public:
         void Draw(int, int);
+        // to get rid of the bug of FLTK under linux
+        void Draw(int, int, std::function<void(Fl_Shared_Image *, int, int)>);
 
     public:
         bool ActionValid(uint32_t);
