@@ -3,7 +3,7 @@
  *
  *       Filename: animation.cpp
  *        Created: 06/20/2016 19:56:07
- *  Last Modified: 06/23/2016 22:36:33
+ *  Last Modified: 06/23/2016 23:38:31
  *
  *    Description: 
  *
@@ -151,7 +151,7 @@ int Animation::AnimationW(uint32_t nAction, uint32_t nDirection)
 
         auto &rstFrameV = m_AnimationFrameV2D[nAction][nDirection];
         for(auto &rstFrame: rstFrameV){
-            for(int nIndex = 0; nIndex <= 2; ++nIndex){
+            for(int nIndex = 0; nIndex < 2; ++nIndex){
                 if(rstFrame[nIndex].Valid()){
                     nMinX = std::min<int>(nMinX, rstFrame[nIndex].DX);
                     nMaxX = std::max<int>(nMaxX, rstFrame[nIndex].DX + rstFrame[nIndex].Image->w());
@@ -174,7 +174,7 @@ int Animation::AnimationH(uint32_t nAction, uint32_t nDirection)
 
         auto &rstFrameV = m_AnimationFrameV2D[nAction][nDirection];
         for(auto &rstFrame: rstFrameV){
-            for(int nIndex = 0; nIndex <= 2; ++nIndex){
+            for(int nIndex = 0; nIndex < 2; ++nIndex){
                 if(rstFrame[nIndex].Valid()){
                     nMinY = std::min<int>(nMinY, rstFrame[nIndex].DY);
                     nMaxY = std::max<int>(nMaxY, rstFrame[nIndex].DY + rstFrame[nIndex].Image->h());
