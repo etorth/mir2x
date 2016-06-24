@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 06/23/2016 23:13:26
+ *  Last Modified: 06/24/2016 12:37:53
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -95,12 +95,14 @@ void DrawArea::draw()
     }
 
     DrawTile();
+
+    DrawAttributeGrid();
+
     DrawObject(true);
     DrawObject(false);
 
     DrawLight();
 
-    DrawAttributeGrid();
     DrawGrid();
 
     DrawSelect();
