@@ -35,6 +35,7 @@ The function who throws always think it's a fatal error so it just throw, but ho
 For modules like mapeditor which doesn't have a log system, always put assertion to check parameters. If functions invoked with invalid parameters, fail assertion and let it crash.
 
 General rules for functions:
+
 1. put strict parameters check above doing actual logic;
 2. take invalid argument as severe error, just log the error and let it crash;
 3. never give assumption for argument;
