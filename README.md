@@ -10,9 +10,7 @@ client, server, tools for cross-platform mir2. Using asio, SDL, FLTK, libzip, et
 
 Try to make all I learned into practice, as the screenshot:
 ![image](https://github.com/etorth/mir2x/raw/master/readme/screenshot.png)
-
 ![image](https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png)
-
 
 global variables:
 
@@ -25,19 +23,20 @@ actually:
 2. only reference it by ``extern g_VarXXX";
 3. no local function for operation on global variable only, means:
 4. all operations over global variables should be self-contained;
+5. all global variable pointers stay valid during the whole procedure;
 
-Since there have both log system and exception system
+Since I already have a powerful log system, I won't use exception. If un-recoverable error happens
 
-1. log system handle all detailed info
-2. exception system only throw/catch std::error_code()
+1. log system record the detailed info;
+2. then just let it crash, or use exit(0) to force killing;
 
 The function who throws always think it's a fatal error so it just throw, but how to handle this ``fatal" error or do catch sub-clause really takes it as fatal is decided not by the thrower, but the catcher.
 
-General rules:
+For modules like mapeditor which doesn't have a log system, always put assertion to check parameters. If functions invoked with invalid parameters, fail assertion and let it crash.
 
-1. only throw std::error_code() and log detailed information.
-2. for functions which throws, the throwed type should be specified.
-3. for constructor, it may throw different type of exceptions.
-
-So if there are constructors in a normal function, we need catch-rethrow if there do exist exceptions, type rethrowed should only be std::error_code()
+General rules for functions:
+1. put strict parameters check above doing actual logic;
+2. take invalid argument as severe error, just log the error and let it crash;
+3. never give assumption for argument;
+4. try best to make each memeber function self-contained to avoid first-half / second-half splitted functions;
 
