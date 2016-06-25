@@ -7,12 +7,6 @@
 
 client, server, tools for cross-platform mir2. Using asio, SDL, FLTK, libzip, etc..
 
-<a href="https://scan.coverity.com/projects/etorth-mir2x">
-  <img alt="Coverity Scan Build Status"
-       src="https://img.shields.io/coverity/scan/9270.svg"/>
-</a>
-
-
 1. pkgviewer
 2. animaker
 3. shadowmaker
