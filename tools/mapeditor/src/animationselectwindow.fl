@@ -1,0 +1,38 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+header_name {.hpp} 
+code_name {.cpp}
+class AnimationSelectWindow {open
+} {
+  Function {AnimationSelectWindow()} {open
+  } {
+    Fl_Window m_Window {open
+      xywh {1308 105 650 500} type Double visible
+    } {
+      Fl_Browser m_BrowserAnimation {
+        xywh {0 0 300 500} type Hold labelfont 4 textfont 4
+      }
+      Fl_Box m_AnimationPreviewArea {selected
+        xywh {300 0 350 280} box UP_BOX labelfont 4
+        code0 {\#include "animationpreviewarea.hpp"}
+        class AnimationPreviewArea
+      }
+      Fl_Browser m_BrowserAction {
+        xywh {300 300 350 100} type Hold labelfont 4 textfont 4
+      }
+      Fl_Browser m_BrowserDirection {
+        xywh {300 400 350 100} type Hold labelfont 4 textfont 4
+      }
+      Fl_Slider m_SliderR {
+        label R
+        xywh {300 280 350 20} type Horizontal labelfont 4 align 0 maximum 100 step 1 slider_size 0.1
+      }
+    }
+  }
+  Function {ShowAll()} {return_type void
+  } {
+    code {{
+    m_Window->show();
+}} {}
+  }
+} 

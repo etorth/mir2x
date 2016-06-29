@@ -10,6 +10,7 @@
 #include "selectsettingwindow.hpp"
 #include "animationlistwindow.hpp"
 #include "animationpreviewwindow.hpp"
+#include "animationselectwindow.hpp"
 #include "editormap.hpp"
 
 #include "imagedb.hpp"
@@ -21,6 +22,7 @@ MainWindow                      *g_MainWindow;
 SelectSettingWindow             *g_SelectSettingWindow;
 AnimationListWindow             *g_AnimationListWindow;
 AnimationPreviewWindow          *g_AnimationPreviewWindow;
+AnimationSelectWindow           *g_AnimationSelectWindow;
 AboutWindow                     *g_AboutWindow;
 MapInfoWindow                   *g_MapInfoWindow;
 AttributeSelectWindow           *g_AttributeSelectWindow;
@@ -46,6 +48,7 @@ int main()
     g_SelectSettingWindow    = new SelectSettingWindow();
     g_AnimationListWindow    = new AnimationListWindow();
     g_AnimationPreviewWindow = new AnimationPreviewWindow();
+    g_AnimationSelectWindow  = new AnimationSelectWindow();
     g_MapInfoWindow          = new MapInfoWindow();
     g_AboutWindow            = new AboutWindow();
     g_AttributeSelectWindow  = new AttributeSelectWindow();

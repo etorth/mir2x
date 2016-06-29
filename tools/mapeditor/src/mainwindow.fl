@@ -59,6 +59,9 @@ decl {\#include <FL/Fl_Shared_Image.H>} {public local
 decl {\#include "animationlistwindow.hpp"} {private local
 } 
 
+decl {\#include "animationselectwindow.hpp"} {private local
+} 
+
 class MainWindow {open
 } {
   decl {std::string m_WilFilePathName} {private local
@@ -68,9 +71,9 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {1421 144 985 665} type Double resizable visible
+      xywh {1422 145 985 665} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {
+      Fl_Box m_DrawArea {selected
         xywh {0 20 965 627} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
@@ -467,6 +470,9 @@ if(g_SelectSettingWindow){
                 g_AnimationListWindow->Load();
                 g_AnimationListWindow->ShowAll();
 
+                extern AnimationSelectWindow *g_AnimationSelectWindow;
+                g_AnimationSelectWindow->ShowAll();
+
                 break;
             }
     }
@@ -771,7 +777,7 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemSelectByRhombus->value();
 }} {}
   }
-  Function {SelectByRectangle()} {selected return_type bool
+  Function {SelectByRectangle()} {return_type bool
   } {
     code {{
 	return m_MenuItemSelectByRectangle->value();
