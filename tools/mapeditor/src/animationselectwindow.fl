@@ -2,22 +2,83 @@
 version 1.0302 
 header_name {.hpp} 
 code_name {.cpp}
+decl {\#include <cstdint>} {public global
+} 
+
+decl {\#include "animationdb.hpp"} {private local
+} 
+
 class AnimationSelectWindow {open
 } {
   Function {AnimationSelectWindow()} {open
   } {
     Fl_Window m_Window {open
-      xywh {1308 105 650 500} type Double visible
+      xywh {374 203 650 500} type Double visible
     } {
       Fl_Browser m_BrowserAnimation {
+        callback {{
+    // if(!Fl::event_clicks()){
+    //     return;
+    // }
+    
+    // every time when we get a click, we clear the action & direction
+    // even if this click is null
+    m_BrowserAction->clear();
+    m_BrowserDirection->clear();
+    
+    uint32_t nMonsterID = MonsterID();
+    if(!nMonsterID){ return; }
+            
+    extern AnimationDB g_AnimationDB;
+    for(uint32_t nAction = 0; nAction < 16; ++nAction){
+        if(g_AnimationDB.RetrieveAnimation(nMonsterID).ActionValid(nAction)){
+            char szAction[64];
+            std::sprintf(szAction, "Action: %02d", nAction);
+            m_BrowserAction->add(szAction, (void *)(uintptr_t)(nAction));
+        }
+    }    
+    
+    RedrawAll();
+}} selected
         xywh {0 0 300 500} type Hold labelfont 4 textfont 4
       }
-      Fl_Box m_AnimationPreviewArea {selected
+      Fl_Box m_AnimationPreviewArea {
         xywh {300 0 350 280} box UP_BOX labelfont 4
         code0 {\#include "animationpreviewarea.hpp"}
         class AnimationPreviewArea
       }
       Fl_Browser m_BrowserAction {
+        callback {{
+    // if(!Fl::event_clicks()){
+    //     return;
+    // }
+    
+    uint32_t nMonsterID = MonsterID();
+    if(!nMonsterID){ return; }
+    
+    // we do have a valid monster id
+    int nSelectedActionIndex = 0;
+    for(int i = 1; i <= m_BrowserAction->size(); ++i){
+        if(m_BrowserAction->selected(i)){
+            nSelectedActionIndex = i;
+            break;
+        }
+     }
+     
+     // we do select an action
+     if(nSelectedActionIndex){
+         m_BrowserDirection->clear();
+         uint32_t nAction = (uint32_t)(uintptr_t)m_BrowserAction->data(nSelectedActionIndex);
+         for(uint32_t nDirection = 0; nDirection < 8; ++nDirection){
+             extern AnimationDB g_AnimationDB;
+             if(g_AnimationDB.RetrieveAnimation(nMonsterID).DirectionValid(nAction, nDirection)){
+                 char szDirection[64];
+                 std::sprintf(szDirection, "Direction: %d", nDirection);
+                 m_BrowserDirection->add(szDirection, (void *)(uintptr_t)(nDirection));
+             }
+         }
+     }
+}}
         xywh {300 300 350 100} type Hold labelfont 4 textfont 4
       }
       Fl_Browser m_BrowserDirection {
@@ -29,10 +90,60 @@ class AnimationSelectWindow {open
       }
     }
   }
+  Function {Load()} {return_type void
+  } {
+    code {{
+    ClearAll();
+    
+    extern AnimationDB g_AnimationDB;
+    size_t nSize = g_AnimationDB.Size();
+    
+    for(size_t nVID = 0; nVID < nSize; ++nVID){
+        char szMonsterID[32];
+        std::sprintf(szMonsterID, "Monster ID: %04d", g_AnimationDB.Get(nVID).MonsterID());
+        
+        m_BrowserAnimation->add(szMonsterID, (void *)(uintptr_t)(g_AnimationDB.Get(nVID).MonsterID()));
+    }
+}} {}
+  }
+  Function {HideAll()} {return_type void
+  } {
+    code {{
+    m_Window->hide();
+}} {}
+  }
+  Function {ClearAll()} {return_type void
+  } {
+    code {{
+    m_BrowserAnimation->clear();
+    m_BrowserAction->clear();
+    m_BrowserDirection->clear();
+}} {}
+  }
   Function {ShowAll()} {return_type void
   } {
     code {{
     m_Window->show();
+}} {}
+  }
+  Function {RedrawAll()} {return_type void
+  } {
+    code {{
+    m_Window->redraw();
+}} {}
+  }
+  Function {MonsterID()} {open return_type uint32_t
+  } {
+    code {{
+    uint32_t nMonsterID = 0;
+    
+    for(int i = 1; i <= m_BrowserAnimation->size(); ++i){
+        if(m_BrowserAnimation->selected(i)){
+            nMonsterID = (uint32_t)(uintptr_t)m_BrowserAnimation->data(i);
+        }
+    }
+    
+    return nMonsterID;
 }} {}
   }
 } 

@@ -471,6 +471,7 @@ if(g_SelectSettingWindow){
                 g_AnimationListWindow->ShowAll();
 
                 extern AnimationSelectWindow *g_AnimationSelectWindow;
+                g_AnimationSelectWindow->Load();
                 g_AnimationSelectWindow->ShowAll();
 
                 break;
