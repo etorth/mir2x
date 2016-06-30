@@ -3,7 +3,7 @@
  *
  *       Filename: animation.hpp
  *        Created: 06/20/2016 19:41:08
- *  Last Modified: 06/23/2016 22:39:05
+ *  Last Modified: 06/30/2016 01:14:45
  *
  *    Description: animation for test, we only support monster animation currently
  *                 how about for human with weapon? do I need to support it?
@@ -98,6 +98,16 @@ class Animation
         uint32_t MonsterID()
         {
             return m_MonsterID;
+        }
+
+        uint32_t Action()
+        {
+            return m_Action;
+        }
+
+        uint32_t Direction()
+        {
+            return m_Direction;
         }
 
     public:

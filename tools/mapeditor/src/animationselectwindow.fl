@@ -13,7 +13,7 @@ class AnimationSelectWindow {open
   Function {AnimationSelectWindow()} {open
   } {
     Fl_Window m_Window {open
-      xywh {374 203 650 500} type Double visible
+      xywh {1263 133 650 500} type Double modal visible
     } {
       Fl_Browser m_BrowserAnimation {
         callback {{
@@ -57,31 +57,27 @@ class AnimationSelectWindow {open
     if(!nMonsterID){ return; }
     
     // we do have a valid monster id
-    int nSelectedActionIndex = 0;
-    for(int i = 1; i <= m_BrowserAction->size(); ++i){
-        if(m_BrowserAction->selected(i)){
-            nSelectedActionIndex = i;
-            break;
+    int nAction0 = Action();
+    if(nAction0 < 0){ return; }
+    
+    uint32_t nAction = (uint32_t)(nAction0);
+    for(uint32_t nDirection = 0; nDirection < 8; ++nDirection){
+        extern AnimationDB g_AnimationDB;
+        if(g_AnimationDB.RetrieveAnimation(nMonsterID).DirectionValid(nAction, nDirection)){
+            char szDirection[64];
+            std::sprintf(szDirection, "Direction: %d", nDirection);
+            m_BrowserDirection->add(szDirection, (void *)(uintptr_t)(nDirection));
         }
-     }
+    }
      
-     // we do select an action
-     if(nSelectedActionIndex){
-         m_BrowserDirection->clear();
-         uint32_t nAction = (uint32_t)(uintptr_t)m_BrowserAction->data(nSelectedActionIndex);
-         for(uint32_t nDirection = 0; nDirection < 8; ++nDirection){
-             extern AnimationDB g_AnimationDB;
-             if(g_AnimationDB.RetrieveAnimation(nMonsterID).DirectionValid(nAction, nDirection)){
-                 char szDirection[64];
-                 std::sprintf(szDirection, "Direction: %d", nDirection);
-                 m_BrowserDirection->add(szDirection, (void *)(uintptr_t)(nDirection));
-             }
-         }
-     }
+    RedrawAll();
 }}
         xywh {300 300 350 100} type Hold labelfont 4 textfont 4
       }
       Fl_Browser m_BrowserDirection {
+        callback {{
+    RedrawAll();
+}}
         xywh {300 400 350 100} type Hold labelfont 4 textfont 4
       }
       Fl_Slider m_SliderR {
@@ -144,6 +140,51 @@ class AnimationSelectWindow {open
     }
     
     return nMonsterID;
+}} {}
+  }
+  Function {Action()} {return_type int
+  } {
+    code {{
+    if(!MonsterID()){ return -1; }
+    
+    // we do have a valid monster id
+    int nSelectedActionIndex = 0;
+    for(int i = 1; i <= m_BrowserAction->size(); ++i){
+        if(m_BrowserAction->selected(i)){
+            nSelectedActionIndex = i;
+            break;
+        }
+    }
+     
+    // we do select an action
+    if(nSelectedActionIndex){
+        return (int)(intptr_t)m_BrowserAction->data(nSelectedActionIndex);
+    }
+     
+    return -1;
+}} {}
+  }
+  Function {Direction()} {return_type int
+  } {
+    code {{
+    if(!MonsterID()){ return -1; }
+    if(Action() < 0){ return -1; }
+    
+    // we do have a valid monster id
+    int nSelectedDirectionIndex = 0;
+    for(int i = 1; i <= m_BrowserDirection->size(); ++i){
+        if(m_BrowserDirection->selected(i)){
+            nSelectedDirectionIndex = i;
+            break;
+        }
+    }
+     
+    // we do select an action
+    if(nSelectedDirectionIndex){
+        return (int)(intptr_t)m_BrowserDirection->data(nSelectedDirectionIndex);
+    }
+     
+    return -1;
 }} {}
   }
 } 

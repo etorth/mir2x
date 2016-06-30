@@ -3,7 +3,7 @@
  *
  *       Filename: animationpreviewarea.hpp
  *        Created: 06/28/2016 23:27:58
- *  Last Modified: 06/28/2016 23:31:20
+ *  Last Modified: 06/30/2016 00:55:47
  *
  *    Description: 
  *
@@ -27,4 +27,11 @@ class AnimationPreviewArea: public Fl_Box
 {
     public:
         AnimationPreviewArea(int, int, int, int);
+        ~AnimationPreviewArea();
+
+    private:
+        int handle(int);
+
+    protected:
+        virtual void draw();
 };
