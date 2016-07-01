@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 06/30/2016 17:24:41
+ *  Last Modified: 06/30/2016 23:13:47
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -688,6 +688,15 @@ int DrawArea::handle(int nEvent)
             break;
 
         case FL_MOVE:
+            {
+                if(false /* g_MainWindow->EditGroundInfo() */){
+                }else if(g_MainWindow->EditObjectGrid()){
+                    int nGridX, nGridY, nObjIdx;
+                    if(g_EditorMap.LocateObject(m_MouseX + m_OffsetX, m_MouseY + m_OffsetY, &nGridX, &nGridY, &nObjIdx, m_OffsetY, h())){
+                    }
+                }else{
+                }
+            }
             break;
 
         case FL_DRAG:
@@ -697,7 +706,6 @@ int DrawArea::handle(int nEvent)
                     AddSelect();
                 }else if(g_MainWindow->EnableEdit()){
                     // TODO
-                    //
                 }else if(g_MainWindow->EnableTest()){
                     // we are moving the animation to a proper place
                     extern AnimationDraw g_AnimationDraw;

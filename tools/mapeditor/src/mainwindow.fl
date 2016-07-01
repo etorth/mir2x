@@ -71,7 +71,7 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {935 146 985 665} type Double resizable visible
+      xywh {1771 126 985 665} type Double hide resizable
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -347,11 +347,15 @@ fl_alert("Haven't implement yet!");}
         } {
           MenuItem m_MenuItemEnableEdit {
             label {Enable Edit                    }
-            xywh {20 20 30 20} type Toggle labelfont 4
+            xywh {20 20 30 20} type Toggle labelfont 4 divider
           }
           MenuItem m_MenuItemEditGround {
             label {Edit Ground Info}
-            xywh {30 30 30 20} type Toggle labelfont 4 divider
+            xywh {30 30 30 20} type Radio labelfont 4
+          }
+          MenuItem m_MenuItemEditObjectGrid {
+            label {Edit Object Grid}
+            xywh {40 40 30 20} type Radio labelfont 4 divider
           }
           MenuItem {} {
             label Optimize
@@ -721,7 +725,7 @@ if(g_EditorMap.Valid()){
     g_MainWindow->RedrawAll();
 }} {}
   }
-  Function {ShowBaseTileLine()} {selected return_type bool
+  Function {ShowBaseTileLine()} {return_type bool
   } {
     code {{
 	return m_MenuItemBaseTileLine->value();
@@ -780,6 +784,13 @@ if(g_EditorMap.Valid()){
     code {{
 	return m_MenuItemEnableEdit->value();
 }} {}
+  }
+  Function {EditObjectGrid()} {open return_type bool
+  } {
+    code {{
+	return m_MenuItemEditObjectGrid->value();
+}} {selected
+    }
   }
   Function {EnableSelect()} {return_type bool
   } {

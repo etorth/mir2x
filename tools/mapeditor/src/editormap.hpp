@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 06/23/2016 22:27:27
+ *  Last Modified: 07/01/2016 00:16:16
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -45,25 +45,26 @@ class EditorMap
 
     private:
         // buffers
-        std::vector<std::vector<int>>                       m_BufLightMark;
-        std::vector<std::vector<uint16_t>>                  m_BufLight;
+        std::vector<std::vector<int>>                             m_BufLightMark;
+        std::vector<std::vector<uint16_t>>                        m_BufLight;
 
-        std::vector<std::vector<int>>                       m_BufTileMark;
-        std::vector<std::vector<uint32_t>>                  m_BufTile;
+        std::vector<std::vector<int>>                             m_BufTileMark;
+        std::vector<std::vector<uint32_t>>                        m_BufTile;
 
-        std::vector<std::vector<std::array<int, 2>>>        m_BufObjMark;
-        std::vector<std::vector<std::array<int, 2>>>        m_BufGroundObjMark;
-        std::vector<std::vector<std::array<int, 2>>>        m_BufAlphaObjMark;
-        std::vector<std::vector<std::array<int, 2>>>        m_BufAniObjMark;
-        std::vector<std::vector<std::array<uint32_t, 2>>>   m_BufObj;
+        std::vector<std::vector<std::array<int, 2>>>              m_BufObjMark;
+        std::vector<std::vector<std::array<int, 2>>>              m_BufGroundObjMark;
+        std::vector<std::vector<std::array<int, 2>>>              m_BufAlphaObjMark;
+        std::vector<std::vector<std::array<int, 2>>>              m_BufAniObjMark;
+        std::vector<std::vector<std::array<uint32_t, 2>>>         m_BufObj;
+        std::vector<std::vector<std::array<std::vector<int>, 2>>> m_BufObjGridTag; // this is the new attribute I introduced
 
-        std::vector<std::vector<std::array<uint8_t, 4>>>    m_BufGround;
-        std::vector<std::vector<std::array<int, 4>>>        m_BufGroundMark;
-        std::vector<std::vector<std::array<int, 4>>>        m_BufGroundSelectMark;
+        std::vector<std::vector<std::array<uint8_t, 4>>>          m_BufGround;
+        std::vector<std::vector<std::array<int, 4>>>              m_BufGroundMark;
+        std::vector<std::vector<std::array<int, 4>>>              m_BufGroundSelectMark;
 
     private:
         // for ground select
-        std::vector<std::pair<int, int>>                    m_SelectPointV;
+        std::vector<std::pair<int, int>> m_SelectPointV;
 
     public:
         EditorMap();
@@ -239,8 +240,7 @@ class EditorMap
         bool Save(const char *);
 
     private:
-        void PushData(const std::vector<bool> &,
-                const std::vector<uint8_t> &, std::vector<uint8_t> &);
+        void PushData(const std::vector<bool> &, const std::vector<uint8_t> &, std::vector<uint8_t> &);
         void PushBit(const std::vector<bool> &, std::vector<uint8_t> &);
 
     public:
@@ -260,4 +260,7 @@ class EditorMap
 
     public:
         std::string MapInfo();
+
+    public:
+        bool LocateObject(int, int, int *, int *, int *, int, int);
 };
