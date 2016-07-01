@@ -3,7 +3,7 @@
  *
  *       Filename: animation.cpp
  *        Created: 06/20/2016 19:56:07
- *  Last Modified: 06/23/2016 23:38:31
+ *  Last Modified: 06/30/2016 17:03:13
  *
  *    Description: 
  *
@@ -50,13 +50,13 @@ bool Animation::FrameValid(uint32_t nAction, uint32_t nDirection, uint32_t nFram
     if(nDirection >= 8){ return false; }
     if(nFrame >= 32){ return false; }
 
-    if(!ActionValid()){ return false; }
-    if(!DirectionValid()){ return false; }
+    if(!ActionValid(nAction)){ return false; }
+    if(!DirectionValid(nAction, nDirection)){ return false; }
 
-    if(m_Frame >= m_AnimationFrameV2D[m_Action][m_Direction].size()){ return false; }
+    if(nFrame >= m_AnimationFrameV2D[nAction][nDirection].size()){ return false; }
 
     // then we will check the image pointer, here we always try to load shadow and body
-    auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Direction][m_Frame];
+    auto &rstFrame = m_AnimationFrameV2D[nAction][nDirection][nFrame];
     for(size_t nIndex = 0; nIndex < 2; ++nIndex){
         // try to load it if not loaded
         if(!rstFrame[nIndex].Image){
@@ -186,4 +186,17 @@ int Animation::AnimationH(uint32_t nAction, uint32_t nDirection)
     }
 
     return 0;
+}
+
+bool Animation::ResetFrame(uint32_t nAction, uint32_t nDirection, uint32_t nFrame)
+{
+    if(FrameValid(nAction, nDirection, nFrame, true) && FrameValid(nAction, nDirection, nFrame, false)){
+        m_Action = nAction;
+        m_Direction = nDirection;
+        m_Frame = nFrame;
+
+        return true;
+    }
+
+    return false;
 }

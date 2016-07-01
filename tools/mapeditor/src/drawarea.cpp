@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 06/24/2016 12:37:53
+ *  Last Modified: 06/30/2016 17:24:41
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -450,14 +450,13 @@ void DrawArea::DrawObject(bool bGround)
                 if(g_AnimationDraw.MonsterID){
                     auto &rstAnimation = g_AnimationDB.RetrieveAnimation(g_AnimationDraw.MonsterID);
                     if(g_AnimationDraw.X / 48 == nXCnt && g_AnimationDraw.Y / 32 == nYCnt){
-                        rstAnimation.ResetAction(0);
-                        rstAnimation.ResetDirection(5);
+                        if(rstAnimation.ResetFrame(g_AnimationDraw.Action, g_AnimationDraw.Direction, g_AnimationDraw.Frame)){
+                            auto fnDraw = [this](Fl_Shared_Image *pPNG, int nMapX, int nMapY){
+                                DrawImage(pPNG, nMapX - m_OffsetX, nMapY - m_OffsetY);
+                            };
 
-                        auto fnDraw = [this](Fl_Shared_Image *pPNG, int nMapX, int nMapY){
-                            DrawImage(pPNG, nMapX - m_OffsetX, nMapY - m_OffsetY);
-                        };
-
-                        rstAnimation.Draw(g_AnimationDraw.X, g_AnimationDraw.Y, fnDraw);
+                            rstAnimation.Draw(g_AnimationDraw.X, g_AnimationDraw.Y, fnDraw);
+                        }
                     }
                 }
             }

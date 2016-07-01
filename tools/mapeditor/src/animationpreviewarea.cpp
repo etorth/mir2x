@@ -3,7 +3,7 @@
  *
  *       Filename: animationpreviewarea.cpp
  *        Created: 06/28/2016 23:29:25
- *  Last Modified: 06/30/2016 01:15:32
+ *  Last Modified: 06/30/2016 18:00:59
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 #include <FL/Fl.H>
 #include <Fl/fl_draw.H>
 
+#include "mainwindow.hpp"
 #include "animationdb.hpp"
 #include "animationdraw.hpp"
 #include "animationpreviewarea.hpp"
@@ -38,10 +39,28 @@ int AnimationPreviewArea::handle(int nEvent)
     switch(nEvent){
         case FL_PUSH:
             if(Fl::event_clicks()){
-                // 1. set the selected monster id
                 extern AnimationDraw g_AnimationDraw;
                 extern AnimationSelectWindow *g_AnimationSelectWindow;
-                g_AnimationDraw.MonsterID = g_AnimationSelectWindow->MonsterID();
+                uint32_t nMonsterID = g_AnimationSelectWindow->MonsterID();
+                int nAction0 = g_AnimationSelectWindow->Action();
+                int nDirection0 = g_AnimationSelectWindow->Direction();
+
+                // we have a new setting, use it, otherwise just keep the old one
+                if(nMonsterID && nAction0 >= 0 && nDirection0 >= 0){
+                    g_AnimationDraw.MonsterID = nMonsterID;
+                    g_AnimationDraw.Action    = (uint32_t)(nAction0);
+                    g_AnimationDraw.Direction = (uint32_t)(nDirection0);
+                }
+
+                // 1. remove animationselectwindow's callback
+                Fl::remove_timeout(AnimationSelectWindow::TimeoutCallback);
+
+                // 2. add new timeout for mainwindow draw
+                Fl::remove_timeout(MainWindow::UpdateAnimationFrame);
+                Fl::add_timeout(0.2, MainWindow::UpdateAnimationFrame, nullptr);
+
+                extern AnimationSelectWindow *g_AnimationSelectWindow;
+                g_AnimationSelectWindow->HideAll();
             }
             break;
         default:
@@ -54,28 +73,22 @@ void AnimationPreviewArea::draw()
 {
     Fl_Box::draw();
     extern AnimationSelectWindow *g_AnimationSelectWindow;
+    int nFrame0 = g_AnimationSelectWindow->Frame();
     int nAction0 = g_AnimationSelectWindow->Action();
     int nDirection0 = g_AnimationSelectWindow->Direction();
     uint32_t nMonsterID = g_AnimationSelectWindow->MonsterID();
 
-    if(nMonsterID == 0 || nAction0 < 0 || nDirection0 < 0){ return; }
+    if(nMonsterID == 0 || nAction0 < 0 || nDirection0 < 0 || nFrame0 < 0){ return; }
 
-    uint32_t nAction = (uint32_t)nAction0;
-    uint32_t nDirection = (uint32_t)nDirection0;
-
+    uint32_t nFrame = (uint32_t)(nFrame0);
+    uint32_t nAction = (uint32_t)(nAction0);
+    uint32_t nDirection = (uint32_t)(nDirection0);
 
     extern AnimationDB g_AnimationDB;
     auto & rstRecord = g_AnimationDB.RetrieveAnimation(nMonsterID);
 
     if(!rstRecord.Valid()){ return; }
-
-    if(nAction != rstRecord.Action()){
-        rstRecord.ResetAction(nAction);
-    }
-
-    if(nDirection != rstRecord.Direction()){
-        rstRecord.ResetDirection(nDirection);
-    }
+    if(!rstRecord.ResetFrame(nAction, nDirection, nFrame)){ return; }
 
     int nW = w();
     int nH = h();

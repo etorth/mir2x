@@ -71,9 +71,9 @@ class MainWindow {open
       callback {{
 	// do nothing
 }} open
-      xywh {1422 145 985 665} type Double resizable visible
+      xywh {935 146 985 665} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {selected
+      Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
@@ -691,10 +691,37 @@ if(g_EditorMap.Valid()){
         extern MainWindow *g_MainWindow;
         g_MainWindow->RedrawAll();
     }
-    Fl::repeat_timeout(0.5, UpdateFrame);
+    Fl::repeat_timeout(0.50, UpdateFrame);
 }} {}
   }
-  Function {ShowBaseTileLine()} {return_type bool
+  Function {UpdateAnimationFrame(void *)} {return_type {static void}
+  } {
+    code {{
+    extern EditorMap g_EditorMap;
+    extern MainWindow *g_MainWindow;
+    extern AnimationDB g_AnimationDB;
+    extern AnimationDraw g_AnimationDraw;
+    
+    if(g_EditorMap.Valid() && g_AnimationDraw.MonsterID){
+        auto &rstRecord = g_AnimationDB.RetrieveAnimation(g_AnimationDraw.MonsterID);
+        if(rstRecord.Valid() && rstRecord.DirectionValid(g_AnimationDraw.Action, g_AnimationDraw.Direction)){
+            if(rstRecord.FrameValid(g_AnimationDraw.Action, g_AnimationDraw.Direction, g_AnimationDraw.Frame + 1, true) && rstRecord.FrameValid(g_AnimationDraw.Action, g_AnimationDraw.Direction, g_AnimationDraw.Frame + 1, false)){
+                g_AnimationDraw.Frame = g_AnimationDraw.Frame + 1;
+            }else{
+                g_AnimationDraw.Frame = 0;
+            }
+            
+            Fl::repeat_timeout(0.50, UpdateAnimationFrame);
+            g_MainWindow->RedrawAll();
+            return;
+        }
+    }
+    
+    Fl::remove_timeout(UpdateAnimationFrame);
+    g_MainWindow->RedrawAll();
+}} {}
+  }
+  Function {ShowBaseTileLine()} {selected return_type bool
   } {
     code {{
 	return m_MenuItemBaseTileLine->value();

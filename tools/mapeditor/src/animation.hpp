@@ -3,7 +3,7 @@
  *
  *       Filename: animation.hpp
  *        Created: 06/20/2016 19:41:08
- *  Last Modified: 06/30/2016 01:14:45
+ *  Last Modified: 06/30/2016 16:18:06
  *
  *    Description: animation for test, we only support monster animation currently
  *                 how about for human with weapon? do I need to support it?
@@ -167,6 +167,7 @@ class Animation
     public:
         bool ResetAction(uint32_t);
         bool ResetDirection(uint32_t);
+        bool ResetFrame(uint32_t, uint32_t, uint32_t);
 
     public:
         int AnimationW(uint32_t, uint32_t);

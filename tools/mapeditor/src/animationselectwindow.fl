@@ -10,10 +10,15 @@ decl {\#include "animationdb.hpp"} {private local
 
 class AnimationSelectWindow {open
 } {
+  decl {uint32_t m_Frame;} {private local
+  }
   Function {AnimationSelectWindow()} {open
   } {
+    code {m_Frame = -1; // to pointer to first frame
+              // this variable will be updated by time callback functioin
+              // we don't have m_Action and m_Direction since it can be read from the browser->selected(i)} {}
     Fl_Window m_Window {open
-      xywh {250 124 650 500} type Double modal visible
+      xywh {246 276 650 500} type Double modal visible
     } {
       Fl_Browser m_BrowserAnimation {
         callback {{
@@ -52,6 +57,7 @@ class AnimationSelectWindow {open
     // if(!Fl::event_clicks()){
     //     return;
     // }
+    m_BrowserDirection->clear();
     
     uint32_t nMonsterID = MonsterID();
     if(nMonsterID){
@@ -71,13 +77,26 @@ class AnimationSelectWindow {open
     }
     
     RedrawAll();
-}}
+}} selected
         xywh {300 300 350 100} type Hold labelfont 4 textfont 4
       }
       Fl_Browser m_BrowserDirection {
         callback {{
+    Fl::remove_timeout(TimeoutCallback);
+    m_Frame = -1;
+    
+    if(MonsterID() && Action() >= 0 && Direction() >= 0){
+        extern AnimationDB g_AnimationDB;
+        auto &rstRecord = g_AnimationDB.RetrieveAnimation(MonsterID());
+        if(rstRecord.Valid() && rstRecord.DirectionValid((uint32_t)(Action()), (uint32_t)(Direction()))){
+            // ok we have a valid animation, reset it's frame index
+            m_Frame = 0;
+            Fl::add_timeout(0.2, TimeoutCallback, nullptr);
+        }
+    }
+    
     RedrawAll();
-}} selected
+}}
         xywh {300 400 350 100} type Hold labelfont 4 textfont 4
       }
       Fl_Slider m_SliderR {
@@ -128,7 +147,7 @@ class AnimationSelectWindow {open
     m_Window->redraw();
 }} {}
   }
-  Function {MonsterID()} {open return_type uint32_t
+  Function {MonsterID()} {return_type uint32_t
   } {
     code {{
     uint32_t nMonsterID = 0;
@@ -185,6 +204,59 @@ class AnimationSelectWindow {open
     }
      
     return -1;
+}} {}
+  }
+  Function {Frame()} {return_type int
+  } {
+    code {{
+    return m_Frame;
+}} {}
+  }
+  Function {TimeoutCallback(void *)} {return_type {static void}
+  } {
+    code {{
+    extern AnimationSelectWindow *g_AnimationSelectWindow;
+    if(true
+        && g_AnimationSelectWindow->MonsterID()
+        && g_AnimationSelectWindow->Action() >= 0
+        && g_AnimationSelectWindow->Direction() >= 0){
+        
+        // ok currently we have a valid choice
+        g_AnimationSelectWindow->UpdateFrame();
+        Fl::repeat_timeout(0.2, TimeoutCallback, nullptr);
+    }else{
+        Fl::remove_timeout(TimeoutCallback);
+    }
+
+    g_AnimationSelectWindow->RedrawAll();
+}} {}
+  }
+  Function {UpdateFrame()} {return_type void
+  } {
+    code {{
+    if(MonsterID() && Action() >= 0 && Direction() >= 0){
+        uint32_t nMonsterID = MonsterID();
+        uint32_t nAction = (uint32_t)(Action());
+        uint32_t nDirection = (uint32_t)(Direction());
+
+        extern AnimationDB g_AnimationDB;
+        auto &rstRecord = g_AnimationDB.RetrieveAnimation(nMonsterID);
+        if(rstRecord.Valid() && rstRecord.DirectionValid(nAction, nDirection)){
+            // we assume the frame is contingous, then if one frame is not ok, we just reset it to 0
+            // this will also handle if current m_Frame is -1
+            if(rstRecord.FrameValid(nAction, nDirection, m_Frame + 1, true) && rstRecord.FrameValid(nAction, nDirection, m_Frame + 1, false)){
+                m_Frame = m_Frame + 1;
+            }else{
+                m_Frame = 0;
+            }
+
+            // done here
+            return;
+        }
+    }
+
+    // otherwise we set a error flag
+    m_Frame = -1;
 }} {}
   }
 } 
