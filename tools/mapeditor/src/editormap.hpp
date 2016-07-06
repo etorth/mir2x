@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 06/23/2016 22:27:27
+ *  Last Modified: 07/02/2016 14:56:17
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -29,6 +29,17 @@
 #include <functional>
 #include <vector>
 #include <utility>
+
+// TODO I defined an OBJGRID_NA state here, but seems I can't solve the ``tre problem"
+// to avoid some null drawing operation, for the object
+//      texture for trees, old logic try to 
+//
+enum ObjectGridType: int{
+    OBJGRID_NA          = 0,
+    OBJGRID_GROUND      = 1,
+    OGJGRID_OBERGROUND  = 2,
+    OBJGRID_ROOF        = 3,
+};
 
 class EditorMap
 {
