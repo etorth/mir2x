@@ -3,7 +3,11 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/06/2016 09:21:13
+<<<<<<< HEAD
+ *  Last Modified: 07/02/2016 14:56:17
+=======
+ *  Last Modified: 07/01/2016 00:16:16
+>>>>>>> 6d47bac0bbad01abce0187caf90ff8ed8adba84c
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc

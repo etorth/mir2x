@@ -17,8 +17,8 @@ class AnimationSelectWindow {open
     code {m_Frame = -1; // to pointer to first frame
               // this variable will be updated by time callback functioin
               // we don't have m_Action and m_Direction since it can be read from the browser->selected(i)} {}
-    Fl_Window m_Window {open
-      xywh {246 276 650 500} type Double modal visible
+    Fl_Window m_Window {open selected
+      xywh {1605 245 650 500} type Double visible
     } {
       Fl_Browser m_BrowserAnimation {
         callback {{
@@ -77,7 +77,7 @@ class AnimationSelectWindow {open
     }
     
     RedrawAll();
-}} selected
+}}
         xywh {300 300 350 100} type Hold labelfont 4 textfont 4
       }
       Fl_Browser m_BrowserDirection {

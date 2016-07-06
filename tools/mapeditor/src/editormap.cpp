@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 06/23/2016 22:29:52
+ *  Last Modified: 07/01/2016 01:01:02
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -18,10 +18,12 @@
  * =====================================================================================
  */
 #include "mir2map.hpp"
+#include "sysconst.hpp"
 #include "mir2xmap.hpp"
 #include "editormap.hpp"
 #include "supwarning.hpp"
 
+#include <cassert>
 #include <memory.h>
 #include "assert.h"
 #include <cstring>
@@ -76,8 +78,7 @@ void EditorMap::ExtractTile(std::function<void(uint8_t, uint16_t)> fnWritePNG)
     }
 }
 
-void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH,
-        std::function<void(uint8_t, uint16_t, int, int)> fnDrawTile)
+void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH, std::function<void(uint8_t, uint16_t, int, int)> fnDrawTile)
 {
     if(!Valid()){ return; }
 
@@ -251,6 +252,7 @@ bool EditorMap::Resize(
     auto stOldBufAlphaObjMark     = m_BufAlphaObjMark;
     auto stOldBufAniObjMark       = m_BufAniObjMark;
     auto stOldBufObj              = m_BufObj;
+    auto stOldBufObjGridTag       = m_BufObjGridTag;
 
     auto stOldBufGround           = m_BufGround;
     auto stOldBufGroundMark       = m_BufGroundMark;
@@ -273,11 +275,15 @@ bool EditorMap::Resize(
                     m_BufTileMark[nDstX / 2][nDstY / 2] = stOldBufTileMark[nSrcX / 2][nSrcY / 2];
                 }
 
+                // TODO bug here? why I divide by 2?
                 m_BufLight            [nDstX / 2][nDstY / 2]    = stOldBufLight            [nSrcX / 2][nSrcY / 2]   ;
                 m_BufLightMark        [nDstX / 2][nDstY / 2]    = stOldBufLightMark        [nSrcX / 2][nSrcY / 2]   ;
 
                 m_BufObj              [nDstX / 2][nDstY / 2][0] = stOldBufObj              [nSrcX / 2][nSrcY / 2][0];
                 m_BufObj              [nDstX / 2][nDstY / 2][1] = stOldBufObj              [nSrcX / 2][nSrcY / 2][1];
+
+                m_BufObjGridTag       [nDstX / 2][nDstY / 2][0] = stOldBufObjGridTag       [nSrcX / 2][nSrcY / 2][0];
+                m_BufObjGridTag       [nDstX / 2][nDstY / 2][1] = stOldBufObjGridTag       [nSrcX / 2][nSrcY / 2][1];
 
                 m_BufObjMark          [nDstX / 2][nDstY / 2][0] = stOldBufObjMark          [nSrcX / 2][nSrcY / 2][0];
                 m_BufObjMark          [nDstX / 2][nDstY / 2][1] = stOldBufObjMark          [nSrcX / 2][nSrcY / 2][1];
@@ -915,6 +921,7 @@ void EditorMap::ClearBuf()
     m_BufTile.clear();
     m_BufTileMark.clear();
     m_BufObj.clear();
+    m_BufObjGridTag.clear();
     m_BufObjMark.clear();
     m_BufGroundObjMark.clear();
     m_BufAlphaObjMark.clear();
@@ -969,7 +976,7 @@ void EditorMap::MakeBuf(int nW, int nH)
     // make a buffer for loading new map
     // or extend / crop old map
     ClearBuf();
-    if(nW == 0 || nH == 0 || nW % 2 || nH % 2){ return; }
+    assert(!(nW == 0 || nH == 0 || nW % 2 || nH % 2));
 
     // m_BufLight[nX][nY]
     m_BufLight = std::vector<std::vector<uint16_t>>(nW, std::vector<uint16_t>(nH, 0));
@@ -982,30 +989,24 @@ void EditorMap::MakeBuf(int nW, int nH)
     m_BufTileMark = std::vector<std::vector<int>>(nW / 2, std::vector<int>(nH / 2, 0));
 
     // m_BufObj[nX][nY][0]
-    m_BufObj = std::vector<std::vector<std::array<uint32_t, 2>>>(
-            nW, std::vector<std::array<uint32_t, 2>>(nH, {0, 0}));
+    m_BufObj = std::vector<std::vector<std::array<uint32_t, 2>>>(nW, std::vector<std::array<uint32_t, 2>>(nH, {0, 0}));
     // m_BufObjMark[nX][nY][0]
-    m_BufObjMark = std::vector<std::vector<std::array<int, 2>>>(
-            nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
+    m_BufObjMark = std::vector<std::vector<std::array<int, 2>>>(nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
+    // m_BufObjGridTag[nX][nY][1][xxx]
+    m_BufObjGridTag = std::vector<std::vector<std::array<std::vector<int>, 2>>>(nW, std::vector<std::array<std::vector<int>, 2>>());
     // m_BufGroundObjMark[nX][nY][0]
-    m_BufGroundObjMark = std::vector<std::vector<std::array<int, 2>>>(
-            nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
+    m_BufGroundObjMark = std::vector<std::vector<std::array<int, 2>>>(nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
     // m_BufAlphaObjMark[nX][nY][0]
-    m_BufAlphaObjMark = std::vector<std::vector<std::array<int, 2>>>(
-            nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
+    m_BufAlphaObjMark = std::vector<std::vector<std::array<int, 2>>>(nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
     // m_BufAniObjMark[nX][nY][0]
-    m_BufAniObjMark = std::vector<std::vector<std::array<int, 2>>>(
-            nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
+    m_BufAniObjMark = std::vector<std::vector<std::array<int, 2>>>(nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
 
     // m_BufGround[nX][nY][0]
-    m_BufGround = std::vector<std::vector<std::array<uint8_t, 4>>>(
-            nW, std::vector<std::array<uint8_t, 4>>(nH, {0, 0, 0, 0}));
+    m_BufGround = std::vector<std::vector<std::array<uint8_t, 4>>>(nW, std::vector<std::array<uint8_t, 4>>(nH, {0, 0, 0, 0}));
     // m_BufGroundMark[nX][nY][0]
-    m_BufGroundMark = std::vector<std::vector<std::array<int, 4>>>(
-            nW, std::vector<std::array<int, 4>>(nH, {0, 0, 0, 0}));
+    m_BufGroundMark = std::vector<std::vector<std::array<int, 4>>>(nW, std::vector<std::array<int, 4>>(nH, {0, 0, 0, 0}));
     // m_BufGroundSelectMark[nX][nY][0]
-    m_BufGroundSelectMark = std::vector<std::vector<std::array<int, 4>>>(
-            nW, std::vector<std::array<int, 4>>(nH, {0, 0, 0, 0}));
+    m_BufGroundSelectMark = std::vector<std::vector<std::array<int, 4>>>(nW, std::vector<std::array<int, 4>>(nH, {0, 0, 0, 0}));
 }
 
 void EditorMap::SetBufTile(int nX, int nY)
@@ -1308,4 +1309,65 @@ void EditorMap::DrawLight(int nX, int nY, int nW, int nH, std::function<void(int
             }
         }
     }
+}
+
+bool EditorMap::LocateObject(int nX, int nY, int *pGX, int *pGY, int *pObjIndex, int nH, const std::function<int(uint32_t)> &fnObjLen)
+{
+    if(!ValidP(nX, nY)){ return false; }
+
+    // by default we scan from last row
+    int nScanMinY = nY / SYS_MAPGRIDYP;
+    int nScanMaxY = H();
+    if(nH > 0 && nH / SYS_MAPGRIDYP > 0){
+        nScanMaxY = std::min(nScanMaxY, (nY + nH) / SYS_MAPGRIDYP + 10);
+    }
+
+    int nRetGY = -1;
+    int nRetIndex = -1;
+
+    int nScanX = nX / SYS_MAPGRIDXP;
+    for(int nScanY = nScanMaxY; nScanY >= nScanMinY; --nScanY){
+        if(!ValidC(nScanX, nScanY)){ continue; }
+
+        int nObjLen0 = -1;
+        int nObjLen1 = -1;
+
+        if(m_BufObjMark[nScanX][nScanY][0]){ nObjLen0 = fnObjLen(m_BufObj[nScanX][nScanY][0]); }
+        if(m_BufObjMark[nScanX][nScanY][1]){ nObjLen1 = fnObjLen(m_BufObj[nScanX][nScanY][1]); }
+
+        bool bIn0 = false;
+        bool bIn1 = false;
+
+        if(nObjLen0 > 0){ bIn0 = PointInRectangle(nX, nY, nScanX * SYS_MAPGRIDXP, nScanY * SYS_MAPGRIDYP - nObjLen0, SYS_MAPGRIDXP, nObjLen0); }
+        if(nObjLen1 > 0){ bIn1 = PointInRectangle(nX, nY, nScanX * SYS_MAPGRIDXP, nScanY * SYS_MAPGRIDYP - nObjLen1, SYS_MAPGRIDXP, nObjLen1); }
+
+        if(bIn0 || bIn1){
+            nRetY = nScanY;
+
+            if(bIn0 && bIn1){
+                // if current grid has two object with exactly the same size, and the point is inside
+                // just randomly pick one object, and try multiple time to get what you want
+                if(nObjLen0 == nObjLen1){
+                    nRetIndex = std::rand() % 2;
+                }else{
+                    // select the smaller one
+                    nRetIndex = (nObjLen0 < nObjLen1) ? 0 : 1;
+                }
+            }else{
+                // select the longer one
+                nRetIndex = (nObjLen0 > nObjLen1) ? 0 : 1;
+            }
+        }
+    }
+
+    if(nRetGY >= 0){
+        // we got one
+        if(pGX      ){ *pGX       = nScanX;    }
+        if(pGY      ){ *pGY       = nRetY;     }
+        if(pObjIndex){ *pObjIndex = nRetIndex; }
+
+        return true;
+    }
+
+    return false;
 }
