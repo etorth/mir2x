@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 07/06/2016 09:20:30
+ *  Last Modified: 07/06/2016 09:35:40
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -130,8 +130,7 @@ void DrawArea::AddSelectBySingle()
     }
 }
 
-void DrawArea::RhombusCoverOperation(int nMX, int nMY, int nSize,
-        std::function<void(int, int, int)> fnOperation)
+void DrawArea::RhombusCoverOperation(int nMX, int nMY, int nSize, std::function<void(int, int, int)> fnOperation)
 {
     if(nSize <= 0){ return; }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/01/2016 01:01:02
+ *  Last Modified: 07/06/2016 09:30:49
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -33,6 +33,7 @@
 #include <vector>
 #include "savepng.hpp"
 #include "filesys.hpp"
+#include "mathfunc.hpp"
 
 #include <FL/fl_ask.H>
 
@@ -1342,7 +1343,7 @@ bool EditorMap::LocateObject(int nX, int nY, int *pGX, int *pGY, int *pObjIndex,
         if(nObjLen1 > 0){ bIn1 = PointInRectangle(nX, nY, nScanX * SYS_MAPGRIDXP, nScanY * SYS_MAPGRIDYP - nObjLen1, SYS_MAPGRIDXP, nObjLen1); }
 
         if(bIn0 || bIn1){
-            nRetY = nScanY;
+            nRetGY = nScanY;
 
             if(bIn0 && bIn1){
                 // if current grid has two object with exactly the same size, and the point is inside
@@ -1363,7 +1364,7 @@ bool EditorMap::LocateObject(int nX, int nY, int *pGX, int *pGY, int *pObjIndex,
     if(nRetGY >= 0){
         // we got one
         if(pGX      ){ *pGX       = nScanX;    }
-        if(pGY      ){ *pGY       = nRetY;     }
+        if(pGY      ){ *pGY       = nRetGY;    }
         if(pObjIndex){ *pObjIndex = nRetIndex; }
 
         return true;

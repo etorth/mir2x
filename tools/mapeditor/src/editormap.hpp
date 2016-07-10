@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/06/2016 09:21:13
+ *  Last Modified: 07/06/2016 09:29:50
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -273,5 +273,5 @@ class EditorMap
         std::string MapInfo();
 
     public:
-        bool LocateObject(int, int, int *, int *, int *, int, int);
+        bool LocateObject(int, int, int *, int *, int *, int, const std::function<int(uint32_t)> &);
 };
