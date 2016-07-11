@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/10/2016 22:19:17
+ *  Last Modified: 07/10/2016 23:09:30
  *
  *    Description: class EditorMap has no idea of ImageDB, WilImagePackage, etc., it
  *                 use function handler to handle drawing, caching, etc..
@@ -122,39 +122,61 @@ class EditorMap
             OGJGRID_OVERGROUND  = 3,
         };
 
+        // TODO finally I decide to make a compact cell descriptor, this is a lesson to me
+        typedef struct _EditCellDesc{
+            // tile
+            // only use 1 / 4 of this
+            uint32_t Tile;
+            int      TileMark;
+
+            // ground
+            uint8_t  Ground[4];
+            int      GroundMark[4];
+            int      GroundSelectMark[4];
+
+            // light
+            uint16_t Light;
+            int      LightMark;
+
+            // object
+            uint32_t Object[2];
+            int      ObjectMark[2];
+            int      AlphaObjectMark[2];
+            int      AnimatedObjectMark[2];
+
+            // object grid
+            std::vector<int> ObjectGridTypeV[2];
+
+            _EditCellDesc()
+                : Tile(0)
+                , TileMark(0)
+                , Ground {0, 0, 0, 0}
+                , GroundMark {0, 0, 0, 0}
+                , GroundSelectMark {0, 0, 0, 0}
+                , Light(0)
+                , LightMark(0)
+                , Object {0, 0}
+                , ObjectMark {0, 0}
+                , AlphaObjectMark {0, 0}
+                , AnimatedObjectMark {0, 0}
+                , ObjectGridTypeV()
+            {}
+        }EditCellDesc;
+
     private:
         int             m_W;
         int             m_H;
         bool            m_Valid;
-        uint32_t        m_dwAniSaveTime[8];
-        uint8_t         m_bAniTileFrame[8][16];
+        uint32_t        m_AniSaveTime[8];
+        uint8_t         m_AniTileFrame[8][16];
 
     private:
         Mir2Map        *m_OldMir2Map;
         Mir2xMap       *m_Mir2xMap;
 
     private:
-        // buffers
-        std::vector<std::vector<int>>                             m_BufLightMark;
-        std::vector<std::vector<uint16_t>>                        m_BufLight;
-
-        std::vector<std::vector<int>>                             m_BufTileMark;
-        std::vector<std::vector<uint32_t>>                        m_BufTile;
-
-        std::vector<std::vector<std::array<int, 2>>>              m_BufObjMark;
-        std::vector<std::vector<std::array<int, 2>>>              m_BufGroundObjMark;
-        std::vector<std::vector<std::array<int, 2>>>              m_BufAlphaObjMark;
-        std::vector<std::vector<std::array<int, 2>>>              m_BufAniObjMark;
-        std::vector<std::vector<std::array<uint32_t, 2>>>         m_BufObj;
-        std::vector<std::vector<std::array<std::vector<int>, 2>>> m_BufObjGridTag; // this is the new attribute I introduced
-
-        std::vector<std::vector<std::array<uint8_t, 4>>>          m_BufGround;
-        std::vector<std::vector<std::array<int, 4>>>              m_BufGroundMark;
-        std::vector<std::vector<std::array<int, 4>>>              m_BufGroundSelectMark;
-
-    private:
-        // for ground select
-        std::vector<std::pair<int, int>> m_SelectPointV;
+        std::vector<std::tuple<int, int>> m_SelectPointV;
+        std::vector<std::vector<EditCellDesc>> m_BufEditCellDescV2D;
 
     public:
         EditorMap();
@@ -194,62 +216,62 @@ class EditorMap
 
         int TileValid(int nX, int nY)
         {
-            return m_BufTileMark[nX / 2][nY / 2];
+            return m_BufEditCellDescV2D[nX / 2][nY / 2].TileMark;
         }
 
         uint32_t Tile(int nX, int nY)
         {
-            return m_BufTile[nX / 2][nY / 2];
+            return m_BufEditCellDescV2D[nX / 2][nY / 2].Tile;
         }
 
         int ObjectValid(int nX, int nY, int nIndex)
         {
-            return m_BufObjMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D.ObjMark[nX][nY][nIndex];
         }
 
         uint32_t Object(int nX, int nY, int nIndex)
         {
-            return m_BufObj[nX][nY][nIndex];
+            return m_BufEditCellDescV2D.Obj[nX][nY][nIndex];
         }
 
         int GroundObjectValid(int nX, int nY,  int nIndex)
         {
-            return m_BufGroundObjMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D.GroundObjMark[nX][nY][nIndex];
         }
 
         int AlphaObjectValid(int nX, int nY,  int nIndex)
         {
-            return m_BufAlphaObjMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D.AlphaObjMark[nX][nY][nIndex];
         }
 
         int GroundSelect(int nX, int nY, int nIndex)
         {
-            return m_BufGroundSelectMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D.GroundSelectMark[nX][nY][nIndex];
         }
 
         bool AniObjectValid(int nX, int nY, int nIndex)
         {
-            return m_BufAniObjMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D.AniObjMark[nX][nY][nIndex];
         }
 
         int LightValid(int nX, int nY)
         {
-            return m_BufLightMark[nX][nY];
+            return m_BufEditCellDescV2D.LightMark[nX][nY];
         }
 
         uint16_t Light(int nX, int nY)
         {
-            return m_BufLight[nX][nY];
+            return m_BufEditCellDescV2D.Light[nX][nY];
         }
 
         int GroundValid(int nX, int nY, int nIndex)
         {
-            return m_BufGroundMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D.GroundMark[nX][nY][nIndex];
         }
 
         uint8_t Ground(int nX, int nY, int nIndex)
         {
-            return m_BufGround[nX][nY][nIndex];
+            return m_BufEditCellDescV2D.Ground[nX][nY][nIndex];
         }
 
         uint16_t ObjectOff(int nAniType, int nAniCnt)
@@ -259,19 +281,19 @@ class EditorMap
 
         void SetGround(int nX, int nY, int nIndex, bool bValid, uint8_t nDesc)
         {
-            m_BufGroundMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
-            m_BufGround[nX][nY][nIndex]     = nDesc;
+            m_BufEditCellDescV2D.GroundMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
+            m_BufEditCellDescV2D.Ground[nX][nY][nIndex]     = nDesc;
         }
 
         void SetObject(int nX, int nY, int nIndex, bool bValid, uint32_t nDesc)
         {
-            m_BufObjMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
-            m_BufObj[nX][nY][nIndex]     = nDesc;
+            m_BufEditCellDescV2D.ObjMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
+            m_BufEditCellDescV2D.Obj[nX][nY][nIndex]     = nDesc;
         }
 
         void SetGroundObject(int nX, int nY, int nIndex, int nGroundObj)
         {
-            m_BufGroundObjMark[nX][nY][nIndex] = nGroundObj;
+            m_BufEditCellDescV2D.GroundObjMark[nX][nY][nIndex] = nGroundObj;
         }
 
     public:
