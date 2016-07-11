@@ -3,10 +3,44 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/06/2016 09:29:50
+ *  Last Modified: 07/10/2016 22:19:17
  *
- *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
- *                 Use function handler to handle draw, cache, etc
+ *    Description: class EditorMap has no idea of ImageDB, WilImagePackage, etc., it
+ *                 use function handler to handle drawing, caching, etc..
+ *
+ *                 I introduced a new concept: ``object grid" to get rid of the problem
+ *                 with this:
+ *                             
+ *                             |     |
+ *                             |     |
+ *                             |  A  |     |
+ *                             +-----+     |
+ *                                   |     |
+ *                                   |  B  |     |
+ *                                   +-----+     |    <---- L-1
+ *                                       K |     |
+ *                                         |  C  |
+ *                                         +-----+    <---- L-2
+ *
+ *                 say now A, B, C are all wall slices, then it should be set asoverground
+ *                 object slice, now if at point K stands an object, then K will be drawed
+ *                 after B, but before C
+ *
+ *                 now if object at K is wide enough that its right part is under C, then
+ *                 we get visual disorder since part of the object is covered by C, then
+ *                 the object is partially visiable to us, the way I designed to prevent
+ *                 this problem is to introduce the ``object grid", and put the lowest part
+ *                 of C as ``always ground", and won't draw is at the overground object
+ *                 drawing step
+ *
+ *                 and now slice C should be aligned with the new ``start point", from L-1
+ *                 rather than L-2, then for object stand at K, it's always properly drawed
+ *
+ *                 this need cooperation with ground walkable mask, we should set the part
+ *                 of object slice C between L1 and L2 as ``non-walkable", otherwise if we
+ *                 have an object stand there, meaning an object stand behind the wall, it
+ *                 will shows in-properly
+ *
  *
  *        Version: 1.0
  *       Revision: none
@@ -20,29 +54,74 @@
  */
 #pragma once
 
+#include <vector>
+#include <string>
+#include <cstdint>
+#include <utility>
+#include <functional>
+
 #include "mir2map.hpp"
 #include "mir2xmap.hpp"
-
-#include <string>
 #include "wilimagepackage.hpp"
-#include <cstdint>
-#include <functional>
-#include <vector>
-#include <utility>
-
-// TODO I defined an OBJGRID_NA state here, but seems I can't solve the ``tre problem"
-// to avoid some null drawing operation, for the object
-//      texture for trees, old logic try to 
-//
-enum ObjectGridType: int{
-    OBJGRID_NA          = 0,
-    OBJGRID_GROUND      = 1,
-    OGJGRID_OBERGROUND  = 2,
-    OBJGRID_ROOF        = 3,
-};
 
 class EditorMap
 {
+    private:
+        // TODO new feature for mir2x map, use two bits to desc object with ``grid", they
+        //      are NA, GROUND, OVERGROUND, EMPTY, I hope this design could help
+        //
+        // for original mir2 map, there are only GROUND and OVERGROUND object, and there
+        // is no concept of ``grid object", but now I need it
+        //
+        // 1. GROUND and tile are drawed at the same step
+        // 2. OVERGROUND and creatures are drawed at the same step
+        // 3. we can micmic ROOF with OVERGROUND and EMPTY, using long object
+        // 4. EMPTY grid also helps to reduce unnecessary rendering
+        //
+        //
+        // for original mir2 map resource, empty part are always at the second half of the
+        // object texture, the first pixel line of a texture should always be non-empty, so
+        // with current NA, EMPTY, GROUND, OVERGROUND we can describe all grids
+        //
+        //
+        //                   NA, to end the object slice
+        //        +--------+
+        //        |        |
+        //        |        | GROUND / OVERGROUND
+        //        |        |
+        //        +--------+
+        //        |        |
+        //        |        | GROUND / OVERGROUND
+        //        |        |
+        //        +--------+
+        //        |   .    |
+        //
+        //        |   .    |
+        //        |   .    |
+        //        +--------+
+        //        |        |
+        //        |        | EMPTY
+        //        |        |
+        //        +--------+
+        //        |        |
+        //        |        | EMPTY
+        //        |        |
+        //        +--------+
+        //
+        // how to draw this piece:
+        // 1. for ground object grid, draw it at place
+        // 2. for overground object grid, draw it with align point at the new ``bottom line", see
+        //    explanition above in the file description
+        // 3. for empty object grid, won't draw it
+        //
+
+        enum ObjectGridType: int{
+            OBJGRID_NA          = 0,
+            OBJGRID_EMPTY       = 1,
+            OBJGRID_GROUND      = 2,
+            OGJGRID_OVERGROUND  = 3,
+        };
+
     private:
         int             m_W;
         int             m_H;
