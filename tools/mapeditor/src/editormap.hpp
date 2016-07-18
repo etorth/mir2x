@@ -3,12 +3,12 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/17/2016 21:25:10
+ *  Last Modified: 07/17/2016 23:06:32
  *
  *    Description: class EditorMap has no idea of ImageDB, WilImagePackage, etc., it use
  *                 function handler to handle drawing, caching, etc..
  *
- *                 previously there are problems when drawing, illustrated as following:
+ *                 previously there are problems for rendering, illustrated as following:
  *                             
  *                             |     |     |     |
  *                             |*****|     |     |
@@ -30,18 +30,29 @@
  *                 covered by C, then the object is partially visiable to us
  *
  *                 to avoid this problem I introduced the ``object grid", and put the
- *                 lowest part of C as ``always ground", and won't draw is at the
- *                 overground object drawing step
+ *                 lowest part of C as ``fake ground", and won't draw is at the overground
+ *                 object drawing step, the draw step is
+ *
+ *                 1. draw 2 * 2 tiles
+ *                 2. draw grounded object
+ *                 3. for(row:needed){
+ *                        for(col:needed){
+ *                            1. draw fake ground
+ *                            2. draw actor
+ *                            3. draw new over-ground
+ *                        }
+ *                    }
+ *                 4. draw roof
+ *
  *
  *                 and now slice C should be aligned with the new ``start point", from L-1
  *                 rather than L-2, then for object stand at K, it's always properly drawed
  *
  *                 this need cooperation with ground walkable mask, we should set the part
  *                 of object slice C between L1 and L2 as ``non-walkable", otherwise if we
- *                 have an object stand there, meaning an object stand behind the wall, it
- *                 will shows in-properly
+ *                 have an object stand there, then it's on the overground object, mess up
  *
- *                 this method introduce another problem: if at point M there stands an
+ *                 and this method solved another problem: if at point M there stands an
  *                 object shaped as
  *                                          +-----+
  *                                          |     |
@@ -50,13 +61,12 @@
  *                                          |  X  | <----
  *                                          |     |      part causes trouble
  *                                          +-----+ <----
+ *
  *                 this object is ``thin" enough that below its center point X there is
- *                 more part as illustrated. when this object stand at point M, if we draw
- *                 L1 ~ L2 first then object at M, then rest of slice C, we get problem
- *                 that second half of the object is shown but first half is covered
- *
- *
- *
+ *                 more to draw, by this method, since the second half of C always draws
+ *                 after the object at M, then the ``fake ground" part will cover the object
+ *                 and the ``new overground" part will draw after object drawing, the the
+ *                 object will be cover by C, that's what we want
  *
  *        Version: 1.0
  *       Revision: none
