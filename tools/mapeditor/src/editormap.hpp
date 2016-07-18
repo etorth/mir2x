@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/17/2016 16:22:36
+ *  Last Modified: 07/17/2016 21:25:10
  *
  *    Description: class EditorMap has no idea of ImageDB, WilImagePackage, etc., it use
  *                 function handler to handle drawing, caching, etc..
@@ -242,22 +242,22 @@ class EditorMap
 
         int ObjectValid(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D.ObjMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D[nX][nY].ObjectMark[nIndex];
         }
 
         uint32_t Object(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D.Obj[nX][nY][nIndex];
+            return m_BufEditCellDescV2D[nX][nY].Obj[nIndex];
         }
 
         int GroundObjectValid(int nX, int nY,  int nIndex)
         {
-            return m_BufEditCellDescV2D.GroundObjMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D.GroundObjectMark[nX][nY][nIndex];
         }
 
         int AlphaObjectValid(int nX, int nY,  int nIndex)
         {
-            return m_BufEditCellDescV2D.AlphaObjMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D.AlphaObjectMark[nX][nY][nIndex];
         }
 
         int GroundSelect(int nX, int nY, int nIndex)
@@ -267,7 +267,7 @@ class EditorMap
 
         bool AniObjectValid(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D.AniObjMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D.AniObjectMark[nX][nY][nIndex];
         }
 
         int LightValid(int nX, int nY)
@@ -303,13 +303,13 @@ class EditorMap
 
         void SetObject(int nX, int nY, int nIndex, bool bValid, uint32_t nDesc)
         {
-            m_BufEditCellDescV2D.ObjMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
+            m_BufEditCellDescV2D.ObjectMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
             m_BufEditCellDescV2D.Obj[nX][nY][nIndex]     = nDesc;
         }
 
         void SetGroundObject(int nX, int nY, int nIndex, int nGroundObj)
         {
-            m_BufEditCellDescV2D.GroundObjMark[nX][nY][nIndex] = nGroundObj;
+            m_BufEditCellDescV2D.GroundObjectMark[nX][nY][nIndex] = nGroundObj;
         }
 
     public:
