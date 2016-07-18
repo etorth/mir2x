@@ -3,35 +3,35 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/10/2016 23:09:30
+ *  Last Modified: 07/17/2016 16:22:36
  *
- *    Description: class EditorMap has no idea of ImageDB, WilImagePackage, etc., it
- *                 use function handler to handle drawing, caching, etc..
+ *    Description: class EditorMap has no idea of ImageDB, WilImagePackage, etc., it use
+ *                 function handler to handle drawing, caching, etc..
  *
- *                 I introduced a new concept: ``object grid" to get rid of the problem
- *                 with this:
+ *                 previously there are problems when drawing, illustrated as following:
  *                             
- *                             |     |
- *                             |     |
- *                             |  A  |     |
- *                             +-----+     |
- *                                   |     |
- *                                   |  B  |     |
+ *                             |     |     |     |
+ *                             |*****|     |     |
+ *                             |**A**|     |     |
+ *                             +-----+     |     |
+ *                                   |*****|     |
+ *                                   |**B**|  M  |
  *                                   +-----+     |    <---- L-1
- *                                       K |     |
- *                                         |  C  |
+ *                                      K  |*****|
+ *                                         |**C**|
  *                                         +-----+    <---- L-2
  *
- *                 say now A, B, C are all wall slices, then it should be set asoverground
- *                 object slice, now if at point K stands an object, then K will be drawed
- *                 after B, but before C
+ *                 say now A, B, C are all wall slices, then they should be as overground
+ *                 object slices, now if at point K stands an object, then K would be
+ *                 drawed after B, but before C
  *
- *                 now if object at K is wide enough that its right part is under C, then
- *                 we get visual disorder since part of the object is covered by C, then
- *                 the object is partially visiable to us, the way I designed to prevent
- *                 this problem is to introduce the ``object grid", and put the lowest part
- *                 of C as ``always ground", and won't draw is at the overground object
- *                 drawing step
+ *                 now if object at K is ``fat" enough that its right part is partially
+ *                 under C, then we get visual disorder since part of the object will be
+ *                 covered by C, then the object is partially visiable to us
+ *
+ *                 to avoid this problem I introduced the ``object grid", and put the
+ *                 lowest part of C as ``always ground", and won't draw is at the
+ *                 overground object drawing step
  *
  *                 and now slice C should be aligned with the new ``start point", from L-1
  *                 rather than L-2, then for object stand at K, it's always properly drawed
@@ -40,6 +40,22 @@
  *                 of object slice C between L1 and L2 as ``non-walkable", otherwise if we
  *                 have an object stand there, meaning an object stand behind the wall, it
  *                 will shows in-properly
+ *
+ *                 this method introduce another problem: if at point M there stands an
+ *                 object shaped as
+ *                                          +-----+
+ *                                          |     |
+ *                                          |     |
+ *                                          |     |
+ *                                          |  X  | <----
+ *                                          |     |      part causes trouble
+ *                                          +-----+ <----
+ *                 this object is ``thin" enough that below its center point X there is
+ *                 more part as illustrated. when this object stand at point M, if we draw
+ *                 L1 ~ L2 first then object at M, then rest of slice C, we get problem
+ *                 that second half of the object is shown but first half is covered
+ *
+ *
  *
  *
  *        Version: 1.0
