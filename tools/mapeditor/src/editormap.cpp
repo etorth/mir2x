@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/10/2016 22:57:49
+ *  Last Modified: 07/20/2016 19:41:24
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -44,7 +44,7 @@ EditorMap::EditorMap()
     , m_OldMir2Map(nullptr)
     , m_Mir2xMap(nullptr)
 {
-    std::memset(m_AniTileFrame, 0, sizeof(uint8_t) * 8 * 16);
+    std::memset(m_AnimatedTileFrame, 0, sizeof(uint8_t) * 8 * 16);
     std::memset(m_AniSaveTime, 0, sizeof(uint32_t) * 8);
 }
 
@@ -178,7 +178,7 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
 
 void EditorMap::UpdateFrame(int nLoopTime)
 {
-    // m_AniTileFrame[i][j]:
+    // m_AnimatedTileFrame[i][j]:
     //     i: denotes how fast the animation is.
     //     j: denotes how many frames the animation has.
 
@@ -190,9 +190,9 @@ void EditorMap::UpdateFrame(int nLoopTime)
         m_AniSaveTime[nCnt] += nLoopTime;
         if(m_AniSaveTime[nCnt] > dwDelayMS[nCnt]){
             for(int nFrame = 0; nFrame < 16; ++nFrame){
-                m_AniTileFrame[nCnt][nFrame]++;
-                if(m_AniTileFrame[nCnt][nFrame] >= nFrame){
-                    m_AniTileFrame[nCnt][nFrame] = 0;
+                m_AnimatedTileFrame[nCnt][nFrame]++;
+                if(m_AnimatedTileFrame[nCnt][nFrame] >= nFrame){
+                    m_AnimatedTileFrame[nCnt][nFrame] = 0;
                 }
             }
             m_AniSaveTime[nCnt] = 0;

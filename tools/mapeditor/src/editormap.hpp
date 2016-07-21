@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/17/2016 23:06:32
+ *  Last Modified: 07/20/2016 19:41:08
  *
  *    Description: class EditorMap has no idea of ImageDB, WilImagePackage, etc., it use
  *                 function handler to handle drawing, caching, etc..
@@ -141,11 +141,19 @@ class EditorMap
         // 3. for empty object grid, won't draw it
         //
 
+        // 0 ~ 15 for object grid attribute description and control words
         enum ObjectGridType: int{
-            OBJGRID_NA          = 0,
-            OBJGRID_EMPTY       = 1,
-            OBJGRID_GROUND      = 2,
-            OGJGRID_OVERGROUND  = 3,
+            OBJGRID_NA          = 0,    // end of attribute stream
+            OBJGRID_EMPTY       = 1,    // place holder without graphical data
+            OBJGRID_BASETILE    = 2,    // won't use it, used by base tile
+            OBJGRID_GROUND      = 3,    // smallest grid of size 48 * 32, draw immediately after base tiles
+            OBJGRID_GRIDGROUND  = 4,    // new concepts, draw first for each grid, then draw actor
+            OBJGRID_OVERGROUND  = 5,    // new over-ground, draw after actor drawing
+            OBJGRID_ROOF        = 6,    // always over ground, draw in another loop, roof, like ground
+
+            OBJGRID_DUPLICATE   = 10,   // attribute duplication: dup attr n: n attributes from current pos
+                                        // when n == 0, means for all the rest grids, and the stream ends
+                                        // this agrees with 0 is end of description
         };
 
         // TODO finally I decide to make a compact cell descriptor, this is a lesson to me
@@ -194,7 +202,7 @@ class EditorMap
         int             m_H;
         bool            m_Valid;
         uint32_t        m_AniSaveTime[8];
-        uint8_t         m_AniTileFrame[8][16];
+        uint8_t         m_AnimatedTileFrame[8][16];
 
     private:
         Mir2Map        *m_OldMir2Map;
@@ -257,70 +265,70 @@ class EditorMap
 
         uint32_t Object(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D[nX][nY].Obj[nIndex];
+            return m_BufEditCellDescV2D[nX][nY].Object[nIndex];
         }
 
-        int GroundObjectValid(int nX, int nY,  int nIndex)
-        {
-            return m_BufEditCellDescV2D.GroundObjectMark[nX][nY][nIndex];
-        }
+        // int GroundObjectValid(int nX, int nY,  int nIndex)
+        // {
+        //     return m_BufEditCellDescV2D.GroundObjectMark[nX][nY][nIndex];
+        // }
 
         int AlphaObjectValid(int nX, int nY,  int nIndex)
         {
-            return m_BufEditCellDescV2D.AlphaObjectMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D[nX][nY].AlphaObjectMark[nIndex];
         }
 
         int GroundSelect(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D.GroundSelectMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D[nX][nY].GroundSelectMark[nIndex];
         }
 
         bool AniObjectValid(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D.AniObjectMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D[nX][nY].AnimatedObjectMark[nIndex];
         }
 
         int LightValid(int nX, int nY)
         {
-            return m_BufEditCellDescV2D.LightMark[nX][nY];
+            return m_BufEditCellDescV2D[nX][nY].LightMark;
         }
 
         uint16_t Light(int nX, int nY)
         {
-            return m_BufEditCellDescV2D.Light[nX][nY];
+            return m_BufEditCellDescV2D[nX][nY].Light;
         }
 
         int GroundValid(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D.GroundMark[nX][nY][nIndex];
+            return m_BufEditCellDescV2D[nX][nY].GroundMark[nIndex];
         }
 
         uint8_t Ground(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D.Ground[nX][nY][nIndex];
+            return m_BufEditCellDescV2D[nX][nY].Ground[nIndex];
         }
 
         uint16_t ObjectOff(int nAniType, int nAniCnt)
         {
-            return (uint16_t)(m_bAniTileFrame[nAniType][nAniCnt]);
+            return (uint16_t)(m_AnimatedTileFrame[nAniType][nAniCnt]);
         }
 
         void SetGround(int nX, int nY, int nIndex, bool bValid, uint8_t nDesc)
         {
-            m_BufEditCellDescV2D.GroundMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
-            m_BufEditCellDescV2D.Ground[nX][nY][nIndex]     = nDesc;
+            m_BufEditCellDescV2D[nX][nY].GroundMark[nIndex] = ((bValid) ? 1 : 0);
+            m_BufEditCellDescV2D[nX][nY].Ground[nIndex]     = nDesc;
         }
 
         void SetObject(int nX, int nY, int nIndex, bool bValid, uint32_t nDesc)
         {
-            m_BufEditCellDescV2D.ObjectMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
-            m_BufEditCellDescV2D.Obj[nX][nY][nIndex]     = nDesc;
+            m_BufEditCellDescV2D[nX][nY].ObjectMark[nIndex] = ((bValid) ? 1 : 0);
+            m_BufEditCellDescV2D[nX][nY].Object[nIndex]     = nDesc;
         }
 
-        void SetGroundObject(int nX, int nY, int nIndex, int nGroundObj)
-        {
-            m_BufEditCellDescV2D.GroundObjectMark[nX][nY][nIndex] = nGroundObj;
-        }
+        // void SetGroundObject(int nX, int nY, int nIndex, int nGroundObj)
+        // {
+        //     m_BufEditCellDescV2D[nX][nY].GroundObjectMark[nIndex] = nGroundObj;
+        // }
 
     public:
         // for map resource extraction
