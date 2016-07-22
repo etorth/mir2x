@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 07/06/2016 09:35:40
+ *  Last Modified: 07/21/2016 23:52:23
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -96,6 +96,10 @@ void DrawArea::draw()
     DrawTile();
 
     DrawAttributeGrid();
+
+    DrawGroundObject();
+    DrawOverGroundObject();
+    DrawRoofObject();
 
     DrawObject(true);
     DrawObject(false);
@@ -424,6 +428,131 @@ void DrawArea::DrawTextBox()
     fl_draw(szInfo, 10 + x(), 80 + y());
 
     fl_color(wColor);
+}
+
+void DrawArea::DrawGroundObject()
+{
+    extern MainWindow *g_MainWindow;
+    if(!g_MainWindow->ShowGroundObjectLayer()){ return; }
+
+    auto stOldColor = fl_color();
+    fl_color(FL_RED);
+
+    auto fnDrawGroundObject = [this](int nXCnt, int nYCnt){
+        extern EditorMap g_EditorMap;
+        if(!g_EditorMap.ValidC(nXCnt, nYCnt)){ return; }
+
+
+        if(!bGround){
+            extern MainWindow *g_MainWindow;
+            if(g_MainWindow->EnableTest()){
+                extern AnimationDB g_AnimationDB;
+                extern AnimationDraw g_AnimationDraw;
+
+                if(g_AnimationDraw.MonsterID){
+                    auto &rstAnimation = g_AnimationDB.RetrieveAnimation(g_AnimationDraw.MonsterID);
+                    if(g_AnimationDraw.X / 48 == nXCnt && g_AnimationDraw.Y / 32 == nYCnt){
+                        if(rstAnimation.ResetFrame(g_AnimationDraw.Action, g_AnimationDraw.Direction, g_AnimationDraw.Frame)){
+                            auto fnDraw = [this](Fl_Shared_Image *pPNG, int nMapX, int nMapY){
+                                DrawImage(pPNG, nMapX - m_OffsetX, nMapY - m_OffsetY);
+                            };
+
+                            rstAnimation.Draw(g_AnimationDraw.X, g_AnimationDraw.Y, fnDraw);
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+
+    // draw part of the object PNG, region defined in the parameters, the nBottomOffset is starting at the bottom of the PNG and
+    // counts in SYS_MAPGRIDYP
+    //        
+    //        |<---- w() ---->|
+    //
+    //      (0, 0)
+    //        *---------------+          ---
+    //        |               |           ^
+    //        |               |           |
+    //        |               |           |
+    //        +---------------+ <-- 2     |
+    //        |***************|           h()
+    //        |***************|           |
+    //        +---------------+ <-- 1     |
+    //        |               |           |
+    //        |               |           V
+    //        +---------------+ <-- 0    ---
+    //
+    // now if I need to draw the shadow area, its coordinate should be (X, Y, W, H) = 
+    //
+    //    (0, h() - (nBottomOffset + 1) * SYS_MAPGRIDYP), w(), nGridCount * SYS_MAPGRIDYP)
+    //
+    // in the DrawImage() (X, Y, W, H) will be properly reset to get the sub-area inside the PNG
+    //
+    auto fnDrawGroundObject = [this](int nXCnt, int nYCnt, uint8_t nFileIndex, uint16_t nImageIndex)
+    auto fnDrawGridObj = [this, nObjGridAttr](uint8_t nFileIndex, uint16_t nImageIndex, int nXCnt, int nYCnt, int nBottomOffset, int nGridCount){
+        auto p = RetrievePNG(nFileIndex, nImageIndex);
+        if(p){
+            // always do strict parameter check, here the (nBottomOffset, nGridCount) should be a 100% proper sub-area descriptor
+            // I don't want to put any flexibility here since that cause toooo much complexity
+            int nPNGGridSize = (h->h() + SYS_MAPGRIDYP - 1) / SYS_MAPGRIDYP;
+            if(false
+                    || (nGridCount                 <= 0 || nGridCount                 >  nPNGGridSize)             // check size()
+                    || (nBottomOffset              <  0 || nBottomOffset              >= nPNGGridSize)             // check begin()
+                    || (nBottomOffset + nGridCount <= 0 || nBottomOffset + nGridCount >  nPNGGridSize)){ return; } // check end()
+
+
+            // to get the start point on the DrawArea w.r.t the (0, 0) on the PNG
+            // TODO: till now I still have no idea of this offset (-200, -157), I think maybe it's
+            //       nothing and I can just ignore it
+            //
+            // int nStartX = nXCnt * 48 - 200;
+            // int nStartY = nYCnt * 32 - 157 + 32 - p->h();
+            int nStartX = nXCnt * 48 - m_OffsetX;
+            int nStartY = nYCnt * 32 + 32 - p->h() - m_OffsetY;
+
+            // 1. move nStartY firstly down to its bottom
+            // 2. then move it up to the start of ROI of the PNG
+            nStartY = nStartY + p->h() - (nBottomOffset + 1) * SYS_MAPGRIDYP;
+            DrawImage(p, nStartX, nStartY, 0, p->h() - (nBottomOffset + 1) * SYS_MAPGRIDYP, p->w(), nBottomOffset * nGridCount);
+
+            extern MainWindow *g_MainWindow;
+            if(g_MainWindow->ShowObjectGridLine(nObjGridAttr)){
+                DrawRectangle(nStartX, nStartY, p->w(), nBottomOffset * nGridCount)
+            }
+        }
+    };
+
+    auto fnDrawObj = [this, bGround](uint8_t nFileIndex, uint16_t nImageIndex, int nXCnt, int nYCnt){
+        auto p = RetrievePNG(nFileIndex, nImageIndex);
+        if(p){
+            // TODO: till now I still have no idea of this offset (-200, -157), I think maybe it's
+            //       nothing and I can just ignore it
+            //
+            // int nStartX = nXCnt * 48 - 200;
+            // int nStartY = nYCnt * 32 - 157 + 32 - p->h();
+            int nStartX = nXCnt * 48 - m_OffsetX;
+            int nStartY = nYCnt * 32 + 32 - p->h() - m_OffsetY;
+            DrawImage(p, nStartX, nStartY);
+            extern MainWindow *g_MainWindow;
+            if(bGround){
+                if(g_MainWindow->ShowGroundObjectLine()){
+                    DrawRectangle(nStartX, nStartY, p->w(), p->h());
+                }
+            }else{
+                // ok we're drawing over-ground object
+                if(g_MainWindow->ShowOverGroundObjectLine()){
+                    DrawRectangle(nStartX, nStartY, p->w(), p->h());
+                }
+            }
+        }
+    };
+
+    extern EditorMap g_EditorMap;
+    g_EditorMap.DrawObject(m_OffsetX / 48 - 10, m_OffsetY / 32 - 20, w() / 48 + 20, h() / 32 + 40, fnDrawObj);
+
+    fl_color(stOldColor);
 }
 
 void DrawArea::DrawObject(int nObjGridAttr)
@@ -961,64 +1090,99 @@ bool DrawArea::LocateGroundSubCell(int nXOnMap, int nYOnMap, int &nX, int &nY, i
     return false;
 }
 
-void DrawArea::GetTriangleOnMap(
-        int nCellX, int nCellY, int nIndex, // ientfy cell
-        int &nX0, int &nY0,  // 0
-        int &nX1, int &nY1,  // 1
-        int &nX2, int &nY2)  // 2
+// get vertices of the triangle identified by the tuple (nCellX, nCellY, nIndex) on the *map*
+// 1. for triangle index in a grid:
+//          ------->   0 
+//          -------> 3   1
+//          ------->   2
+//
+// 2. for points in a triangle: use clock-wise:
+//        1
+//       /|
+//      0 |    1-------2
+//       \|     \     /
+//        2      \   /
+//                \ /
+//                 0
+// parameters:
+//      nCellX  :
+//      nCellY  :
+//      nIndex  :
+//      pX0     : middle point X
+//      pY0     : middle point Y
+//      pX1     : first vertex from middle point by clock-wise direction
+//      pY1     : ...
+//      pX2     : second ...
+//      pY2     : second ...
+//
+// return:
+//  true if all input arguments are valid
+// 
+// reminder:
+//  this function get the coordinates which take the left-top of the map as origin
+bool DrawArea::GetTriangleOnMap(int nCellX, int nCellY, int nIndex, int *pX0, int *pY0, int *pX1, int *pY1, int *pX2, int *pY2)
 {
-    // for triangle index in a grid:
-    //------->   0 
-    //-------> 3   1
-    //------->   2
-    //
-    //for points in a triangle: use clock-wise:
-    //  1
-    // /|
-    //0 |    1-------2
-    // \|     \     /
-    //  2      \   /
-    //          \ /
-    //           0
+    if(!(ValidC(nCellY, nCellY) && nIndex >= 0 && nIndex < 4)){ return false; }
 
-    // int nStartX = nX * 48 + x() - m_OffsetX;
-    // int nStartY = nY * 32 + y() - m_OffsetY;
     int nStartX = nCellX * 48;
     int nStartY = nCellY * 32;
     int nStopX  = nStartX + 48;
     int nStopY  = nStartY + 32;
 
-    nX0 = (nStartX + nStopX) / 2;
-    nY0 = (nStartY + nStopY) / 2;
+    int nX0 = (nStartX + nStopX) / 2;
+    int nY0 = (nStartY + nStopY) / 2;
 
-    switch(nIndex % 4){
+    int nX1, nY1, nX2, nY2;
+    switch(nIndex){
         case 0:
-            nX1 = nStartX;
-            nY1 = nStartY;
-            nX2 = nStopX;
-            nY2 = nStartY;
-            break;
+            {
+                nX1 = nStartX;
+                nY1 = nStartY;
+                nX2 = nStopX;
+                nY2 = nStartY;
+                break;
+            }
         case 1:
-            nX1 = nStopX;
-            nY1 = nStartY;
-            nX2 = nStopX;
-            nY2 = nStopY;
-            break;
+            {
+                nX1 = nStopX;
+                nY1 = nStartY;
+                nX2 = nStopX;
+                nY2 = nStopY;
+                break;
+            }
         case 2:
-            nX1 = nStopX;
-            nY1 = nStopY;
-            nX2 = nStartX;
-            nY2 = nStopY;
-            break;
+            {
+                nX1 = nStopX;
+                nY1 = nStopY;
+                nX2 = nStartX;
+                nY2 = nStopY;
+                break;
+            }
         case 3:
-            nX1 = nStartX;
-            nY1 = nStopY;
-            nX2 = nStartX;
-            nY2 = nStartY;
-            break;
+            {
+                nX1 = nStartX;
+                nY1 = nStopY;
+                nX2 = nStartX;
+                nY2 = nStartY;
+                break;
+            }
         default:
-            break;
+            {
+                // to make the compiler happy
+                return false;
+            }
     }
+
+    if(pX0){ *pX0 = nX0; }
+    if(pY0){ *pY0 = nY0; }
+    if(pX1){ *pX1 = nX1; }
+    if(pY1){ *pY1 = nY1; }
+    if(pX2){ *pX2 = nX2; }
+    if(pY2){ *pY2 = nY2; }
+    if(pX3){ *pX3 = nX3; }
+    if(pY3){ *pY3 = nY3; }
+
+    return true;
 }
 
 Fl_Image *DrawArea::CreateTUC(int nIndex, bool bSelect)

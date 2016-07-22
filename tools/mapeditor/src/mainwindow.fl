@@ -71,10 +71,10 @@ class MainWindow {open
     Fl_Window m_Window {
       callback {{
 	// do nothing
-}} open
-      xywh {935 127 985 665} type Double resizable visible
+}}
+      xywh {126 217 985 665} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {selected
+      Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
@@ -778,6 +778,24 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemGroundObjectLayer->value();
 }} {}
   }
+  Function {ShowObjectGridLine(int nObjectGridAttr)} {open return_type bool
+  } {
+    code {{
+	switch(nObjectGridAttr){
+		case OBJGRID_NA:
+			{
+				return false;
+			}
+		default:
+			{
+				return true;
+			}
+	}
+	
+	return true;
+}} {selected
+    }
+  }
   Function {ShowOverGroundObjectLayer()} {return_type bool
   } {
     code {{
@@ -790,7 +808,7 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemEnableEdit->value();
 }} {}
   }
-  Function {EditObjectGrid()} {open return_type bool
+  Function {EditObjectGrid()} {return_type bool
   } {
     code {{
 	return m_MenuItemEditObjectGrid->value();
