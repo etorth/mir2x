@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 07/21/2016 23:52:23
+ *  Last Modified: 07/22/2016 20:54:46
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -430,6 +430,30 @@ void DrawArea::DrawTextBox()
     fl_color(wColor);
 }
 
+// draw part of the object PNG, region defined in the parameters, the nBottomOffset is starting at the bottom of the PNG and
+// counts in SYS_MAPGRIDYP
+//        
+//        |<---- w() ---->|
+//
+//      (0, 0)
+//        *---------------+          ---
+//        |               |           ^
+//        |               |           |
+//        |               |           |
+//        +---------------+ <-- 2     |
+//        |***************|           h()
+//        |***************|           |
+//        +---------------+ <-- 1     |
+//        |               |           |
+//        |               |           V
+//        +---------------+ <-- 0    ---
+//
+// now if I need to draw the shadow area, its coordinate should be (X, Y, W, H) = 
+//
+//    (0, h() - (nBottomOffset + 1) * SYS_MAPGRIDYP), w(), nGridCount * SYS_MAPGRIDYP)
+//
+// in the DrawImage() (X, Y, W, H) will be properly reset to get the sub-area inside the PNG
+//
 void DrawArea::DrawGroundObject()
 {
     extern MainWindow *g_MainWindow;
@@ -466,74 +490,49 @@ void DrawArea::DrawGroundObject()
     };
 
 
-    // draw part of the object PNG, region defined in the parameters, the nBottomOffset is starting at the bottom of the PNG and
-    // counts in SYS_MAPGRIDYP
-    //        
-    //        |<---- w() ---->|
-    //
-    //      (0, 0)
-    //        *---------------+          ---
-    //        |               |           ^
-    //        |               |           |
-    //        |               |           |
-    //        +---------------+ <-- 2     |
-    //        |***************|           h()
-    //        |***************|           |
-    //        +---------------+ <-- 1     |
-    //        |               |           |
-    //        |               |           V
-    //        +---------------+ <-- 0    ---
-    //
-    // now if I need to draw the shadow area, its coordinate should be (X, Y, W, H) = 
-    //
-    //    (0, h() - (nBottomOffset + 1) * SYS_MAPGRIDYP), w(), nGridCount * SYS_MAPGRIDYP)
-    //
-    // in the DrawImage() (X, Y, W, H) will be properly reset to get the sub-area inside the PNG
-    //
-    auto fnDrawGroundObject = [this](int nXCnt, int nYCnt, uint8_t nFileIndex, uint16_t nImageIndex)
-    auto fnDrawGridObj = [this, nObjGridAttr](uint8_t nFileIndex, uint16_t nImageIndex, int nXCnt, int nYCnt, int nBottomOffset, int nGridCount){
-        auto p = RetrievePNG(nFileIndex, nImageIndex);
-        if(p){
-            // always do strict parameter check, here the (nBottomOffset, nGridCount) should be a 100% proper sub-area descriptor
-            // I don't want to put any flexibility here since that cause toooo much complexity
-            int nPNGGridSize = (h->h() + SYS_MAPGRIDYP - 1) / SYS_MAPGRIDYP;
-            if(false
-                    || (nGridCount                 <= 0 || nGridCount                 >  nPNGGridSize)             // check size()
-                    || (nBottomOffset              <  0 || nBottomOffset              >= nPNGGridSize)             // check begin()
-                    || (nBottomOffset + nGridCount <= 0 || nBottomOffset + nGridCount >  nPNGGridSize)){ return; } // check end()
+    auto fnDrawGridObject = [this](uint8_t nFileIndex, uint16_t nImageIndex, int nXCnt, int nYCnt, int nBottomOffset, int nGridCount){
+            auto p = RetrievePNG(nFileIndex, nImageIndex);
+            if(p){
+                // always do strict parameter check, here the (nBottomOffset, nGridCount) should be a 100% proper sub-area descriptor
+                // I don't want to put any flexibility here since that cause toooo much complexity
+                int nPNGGridSize = (h->h() + SYS_MAPGRIDYP - 1) / SYS_MAPGRIDYP;
+                if(false
+                        || (nGridCount                 <= 0 || nGridCount                 >  nPNGGridSize)             // check size()
+                        || (nBottomOffset              <  0 || nBottomOffset              >= nPNGGridSize)             // check begin()
+                        || (nBottomOffset + nGridCount <= 0 || nBottomOffset + nGridCount >  nPNGGridSize)){ return; } // check end()
 
 
-            // to get the start point on the DrawArea w.r.t the (0, 0) on the PNG
-            // TODO: till now I still have no idea of this offset (-200, -157), I think maybe it's
-            //       nothing and I can just ignore it
-            //
-            // int nStartX = nXCnt * 48 - 200;
-            // int nStartY = nYCnt * 32 - 157 + 32 - p->h();
-            int nStartX = nXCnt * 48 - m_OffsetX;
-            int nStartY = nYCnt * 32 + 32 - p->h() - m_OffsetY;
+                // to get the start point on the DrawArea w.r.t the (0, 0) on the PNG
+                // TODO: till now I still have no idea of this offset (-200, -157), I think maybe it's
+                //       nothing and I can just ignore it
+                //
+                // int nStartX = nXCnt * 48 - 200;
+                // int nStartY = nYCnt * 32 - 157 + 32 - p->h();
+                int nStartX = nXCnt * 48 - m_OffsetX;
+                int nStartY = nYCnt * 32 + 32 - p->h() - m_OffsetY;
 
-            // 1. move nStartY firstly down to its bottom
-            // 2. then move it up to the start of ROI of the PNG
-            nStartY = nStartY + p->h() - (nBottomOffset + 1) * SYS_MAPGRIDYP;
-            DrawImage(p, nStartX, nStartY, 0, p->h() - (nBottomOffset + 1) * SYS_MAPGRIDYP, p->w(), nBottomOffset * nGridCount);
+                // 1. move nStartY firstly down to its bottom
+                // 2. then move it up to the start of ROI of the PNG
+                nStartY = nStartY + p->h() - (nBottomOffset + 1) * SYS_MAPGRIDYP;
+                DrawImage(p, nStartX, nStartY, 0, p->h() - (nBottomOffset + 1) * SYS_MAPGRIDYP, p->w(), nBottomOffset * nGridCount);
 
-            extern MainWindow *g_MainWindow;
-            if(g_MainWindow->ShowObjectGridLine(nObjGridAttr)){
-                DrawRectangle(nStartX, nStartY, p->w(), nBottomOffset * nGridCount)
+                extern MainWindow *g_MainWindow;
+                if(g_MainWindow->ShowObjectGridLine(nObjGridAttr)){
+                    DrawRectangle(nStartX, nStartY, p->w(), nBottomOffset * nGridCount)
+                }
             }
-        }
-    };
+        };
 
-    auto fnDrawObj = [this, bGround](uint8_t nFileIndex, uint16_t nImageIndex, int nXCnt, int nYCnt){
+    auto fnDrawGridObject = [this](uint8_t nFileIndex, uint16_t nImageIndex, int nCX, int nCY, int nGridY0, int nGridY1){
         auto p = RetrievePNG(nFileIndex, nImageIndex);
         if(p){
             // TODO: till now I still have no idea of this offset (-200, -157), I think maybe it's
             //       nothing and I can just ignore it
             //
-            // int nStartX = nXCnt * 48 - 200;
-            // int nStartY = nYCnt * 32 - 157 + 32 - p->h();
-            int nStartX = nXCnt * 48 - m_OffsetX;
-            int nStartY = nYCnt * 32 + 32 - p->h() - m_OffsetY;
+            // int nStartX = nCX * 48 - 200;
+            // int nStartY = nCY * 32 - 157 + 32 - p->h();
+            int nStartX = nCX * 48 - m_OffsetX;
+            int nStartY = nCY * 32 + 32 - p->h() - m_OffsetY;
             DrawImage(p, nStartX, nStartY);
             extern MainWindow *g_MainWindow;
             if(bGround){
