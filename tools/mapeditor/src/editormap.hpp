@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/20/2016 19:41:08
+ *  Last Modified: 07/23/2016 19:25:48
  *
  *    Description: class EditorMap has no idea of ImageDB, WilImagePackage, etc., it use
  *                 function handler to handle drawing, caching, etc..
@@ -30,11 +30,11 @@
  *                 covered by C, then the object is partially visiable to us
  *
  *                 to avoid this problem I introduced the ``object grid", and put the
- *                 lowest part of C as ``fake ground", and won't draw is at the overground
+ *                 lowest part of C as ``fake ground", and won't draw it at the overground
  *                 object drawing step, the draw step is
  *
- *                 1. draw 2 * 2 tiles
- *                 2. draw grounded object
+ *                 1. loop to draw 2 * 2 tiles
+ *                 2. loop to draw *real* grounded object
  *                 3. for(row:needed){
  *                        for(col:needed){
  *                            1. draw fake ground
@@ -42,7 +42,7 @@
  *                            3. draw new over-ground
  *                        }
  *                    }
- *                 4. draw roof
+ *                 4. loop to draw roof
  *
  *
  *                 and now slice C should be aligned with the new ``start point", from L-1

@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/20/2016 19:41:24
+ *  Last Modified: 07/23/2016 19:18:51
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -152,6 +152,50 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
             if(!bGround){
                 fnDrawExt(nXCnt, nYCnt);
             }
+
+            // 2. regular draw
+            for(int nIndex = 0; nIndex < 2; ++nIndex){
+                if(ValidC(nXCnt, nYCnt)
+                        && ObjectValid(nXCnt, nYCnt, nIndex)
+                        && bGround == GroundObjectValid(nXCnt, nYCnt, nIndex)){
+
+                    uint32_t nKey         = Object(nXCnt, nYCnt, nIndex);
+                    uint8_t  nFileIndex   = ((nKey & 0X00FF0000) >> 16);
+                    uint16_t nImageIndex  = ((nKey & 0X0000FFFF));
+                    int      nAniType     = ((nKey & 0X70000000) >> 28);
+                    int      nAniCnt      = ((nKey & 0X0F000000) >> 24);
+
+                    if(AniObjectValid(nXCnt, nYCnt, nIndex)){
+                        nImageIndex += ObjectOff(nAniType, nAniCnt);
+                    }
+
+                    fnDrawObj(nFileIndex, nImageIndex, nXCnt, nYCnt);
+                }
+            }
+        }
+    }
+}
+
+// draw grid object for the ROC: (nCX, nCY, nCW, nCH)
+// parameters:
+//      nCX                 :
+//      nCY                 :
+//      nCW                 :
+//      nCH                 :
+//      fnDrawGridObject    :
+//      fnDrawExt           :
+// return:
+//      return none
+void EditorMap::DrawGridObject( int nCX, int nCY, int nCW, int nCH,                 // focus region
+        const std::function<void(uint8_t, uint16_t, int, int)> &fnDrawGridObject,   // grid ogject draw handler
+        const std::function<void(int, int)> &fnDrawExt)                             // extension draw handler
+{
+    if(!Valid()){ return; }
+    for(int nYCnt = nCY; nYCnt < nCY + nCH; ++nYCnt){
+        for(int nXCnt = nCX; nXCnt < nCX + nCW; ++nXCnt){
+            // 1. we always draw extension before any other drawing, so for magic draw
+            //    we need to have another round
+            if(fnDrawExt){ fnDrawExt(nXCnt, nYCnt); }
 
             // 2. regular draw
             for(int nIndex = 0; nIndex < 2; ++nIndex){
