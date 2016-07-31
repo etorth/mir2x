@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/23/2016 19:18:51
+ *  Last Modified: 06/23/2016 22:29:52
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -18,12 +18,10 @@
  * =====================================================================================
  */
 #include "mir2map.hpp"
-#include "sysconst.hpp"
 #include "mir2xmap.hpp"
 #include "editormap.hpp"
 #include "supwarning.hpp"
 
-#include <cassert>
 #include <memory.h>
 #include "assert.h"
 #include <cstring>
@@ -33,7 +31,6 @@
 #include <vector>
 #include "savepng.hpp"
 #include "filesys.hpp"
-#include "mathfunc.hpp"
 
 #include <FL/fl_ask.H>
 
@@ -44,8 +41,8 @@ EditorMap::EditorMap()
     , m_OldMir2Map(nullptr)
     , m_Mir2xMap(nullptr)
 {
-    std::memset(m_AnimatedTileFrame, 0, sizeof(uint8_t) * 8 * 16);
-    std::memset(m_AniSaveTime, 0, sizeof(uint32_t) * 8);
+    std::memset(m_bAniTileFrame, 0, sizeof(uint8_t) * 8 * 16);
+    std::memset(m_dwAniSaveTime, 0, sizeof(uint32_t) * 8);
 }
 
 EditorMap::~EditorMap()
@@ -79,7 +76,8 @@ void EditorMap::ExtractTile(std::function<void(uint8_t, uint16_t)> fnWritePNG)
     }
 }
 
-void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH, std::function<void(uint8_t, uint16_t, int, int)> fnDrawTile)
+void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH,
+        std::function<void(uint8_t, uint16_t, int, int)> fnDrawTile)
 {
     if(!Valid()){ return; }
 
@@ -176,53 +174,9 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
     }
 }
 
-// draw grid object for the ROC: (nCX, nCY, nCW, nCH)
-// parameters:
-//      nCX                 :
-//      nCY                 :
-//      nCW                 :
-//      nCH                 :
-//      fnDrawGridObject    :
-//      fnDrawExt           :
-// return:
-//      return none
-void EditorMap::DrawGridObject( int nCX, int nCY, int nCW, int nCH,                 // focus region
-        const std::function<void(uint8_t, uint16_t, int, int)> &fnDrawGridObject,   // grid ogject draw handler
-        const std::function<void(int, int)> &fnDrawExt)                             // extension draw handler
-{
-    if(!Valid()){ return; }
-    for(int nYCnt = nCY; nYCnt < nCY + nCH; ++nYCnt){
-        for(int nXCnt = nCX; nXCnt < nCX + nCW; ++nXCnt){
-            // 1. we always draw extension before any other drawing, so for magic draw
-            //    we need to have another round
-            if(fnDrawExt){ fnDrawExt(nXCnt, nYCnt); }
-
-            // 2. regular draw
-            for(int nIndex = 0; nIndex < 2; ++nIndex){
-                if(ValidC(nXCnt, nYCnt)
-                        && ObjectValid(nXCnt, nYCnt, nIndex)
-                        && bGround == GroundObjectValid(nXCnt, nYCnt, nIndex)){
-
-                    uint32_t nKey         = Object(nXCnt, nYCnt, nIndex);
-                    uint8_t  nFileIndex   = ((nKey & 0X00FF0000) >> 16);
-                    uint16_t nImageIndex  = ((nKey & 0X0000FFFF));
-                    int      nAniType     = ((nKey & 0X70000000) >> 28);
-                    int      nAniCnt      = ((nKey & 0X0F000000) >> 24);
-
-                    if(AniObjectValid(nXCnt, nYCnt, nIndex)){
-                        nImageIndex += ObjectOff(nAniType, nAniCnt);
-                    }
-
-                    fnDrawObj(nFileIndex, nImageIndex, nXCnt, nYCnt);
-                }
-            }
-        }
-    }
-}
-
 void EditorMap::UpdateFrame(int nLoopTime)
 {
-    // m_AnimatedTileFrame[i][j]:
+    // m_bAniTileFrame[i][j]:
     //     i: denotes how fast the animation is.
     //     j: denotes how many frames the animation has.
 
@@ -231,15 +185,15 @@ void EditorMap::UpdateFrame(int nLoopTime)
     uint32_t dwDelayMS[] = {150, 200, 250, 300, 350, 400, 420, 450};
 
     for(int nCnt = 0; nCnt < 8; ++nCnt){
-        m_AniSaveTime[nCnt] += nLoopTime;
-        if(m_AniSaveTime[nCnt] > dwDelayMS[nCnt]){
+        m_dwAniSaveTime[nCnt] += nLoopTime;
+        if(m_dwAniSaveTime[nCnt] > dwDelayMS[nCnt]){
             for(int nFrame = 0; nFrame < 16; ++nFrame){
-                m_AnimatedTileFrame[nCnt][nFrame]++;
-                if(m_AnimatedTileFrame[nCnt][nFrame] >= nFrame){
-                    m_AnimatedTileFrame[nCnt][nFrame] = 0;
+                m_bAniTileFrame[nCnt][nFrame]++;
+                if(m_bAniTileFrame[nCnt][nFrame] >= nFrame){
+                    m_bAniTileFrame[nCnt][nFrame] = 0;
                 }
             }
-            m_AniSaveTime[nCnt] = 0;
+            m_dwAniSaveTime[nCnt] = 0;
         }
     }
 }
@@ -286,22 +240,21 @@ bool EditorMap::Resize(
     }
 
     // start for new memory allocation
-    auto stOldBufLightMark        = m_BufEditCellDescV2D.LightMark;
-    auto stOldBufLight            = m_BufEditCellDescV2D.Light;
+    auto stOldBufLightMark        = m_BufLightMark;
+    auto stOldBufLight            = m_BufLight;
 
-    auto stOldBufTileMark         = m_BufEditCellDescV2D.TileMark;
-    auto stOldBufTile             = m_BufEditCellDescV2D.Tile;
+    auto stOldBufTileMark         = m_BufTileMark;
+    auto stOldBufTile             = m_BufTile;
 
-    auto stOldBufObjMark          = m_BufEditCellDescV2D.ObjMark;
-    auto stOldBufGroundObjMark    = m_BufEditCellDescV2D.GroundObjMark;
-    auto stOldBufAlphaObjMark     = m_BufEditCellDescV2D.AlphaObjMark;
-    auto stOldBufAniObjMark       = m_BufEditCellDescV2D.AniObjMark;
-    auto stOldBufObj              = m_BufEditCellDescV2D.Obj;
-    auto stOldBufObjGridTag       = m_BufEditCellDescV2D.ObjGridTag;
+    auto stOldBufObjMark          = m_BufObjMark;
+    auto stOldBufGroundObjMark    = m_BufGroundObjMark;
+    auto stOldBufAlphaObjMark     = m_BufAlphaObjMark;
+    auto stOldBufAniObjMark       = m_BufAniObjMark;
+    auto stOldBufObj              = m_BufObj;
 
-    auto stOldBufGround           = m_BufEditCellDescV2D.Ground;
-    auto stOldBufGroundMark       = m_BufEditCellDescV2D.GroundMark;
-    auto stOldBufGroundSelectMark = m_BufEditCellDescV2D.GroundSelectMark;
+    auto stOldBufGround           = m_BufGround;
+    auto stOldBufGroundMark       = m_BufGroundMark;
+    auto stOldBufGroundSelectMark = m_BufGroundSelectMark;
 
     // this function will clear the new buffer
     // with all zeros
@@ -316,46 +269,42 @@ bool EditorMap::Resize(
 
             if(nDstX >= 0 && nDstX < nNewW && nDstY >= 0 && nDstY < nNewH){
                 if(!(nDstX % 2) && !(nDstY % 2) && !(nSrcX % 2) && !(nSrcY % 2)){
-                    m_BufEditCellDescV2D.Tile    [nDstX / 2][nDstY / 2] = stOldBufTile    [nSrcX / 2][nSrcY / 2];
-                    m_BufEditCellDescV2D.TileMark[nDstX / 2][nDstY / 2] = stOldBufTileMark[nSrcX / 2][nSrcY / 2];
+                    m_BufTile    [nDstX / 2][nDstY / 2] = stOldBufTile    [nSrcX / 2][nSrcY / 2];
+                    m_BufTileMark[nDstX / 2][nDstY / 2] = stOldBufTileMark[nSrcX / 2][nSrcY / 2];
                 }
 
-                // TODO bug here? why I divide by 2?
-                m_BufEditCellDescV2D.Light            [nDstX / 2][nDstY / 2]    = stOldBufLight            [nSrcX / 2][nSrcY / 2]   ;
-                m_BufEditCellDescV2D.LightMark        [nDstX / 2][nDstY / 2]    = stOldBufLightMark        [nSrcX / 2][nSrcY / 2]   ;
+                m_BufLight            [nDstX / 2][nDstY / 2]    = stOldBufLight            [nSrcX / 2][nSrcY / 2]   ;
+                m_BufLightMark        [nDstX / 2][nDstY / 2]    = stOldBufLightMark        [nSrcX / 2][nSrcY / 2]   ;
 
-                m_BufEditCellDescV2D.Obj              [nDstX / 2][nDstY / 2][0] = stOldBufObj              [nSrcX / 2][nSrcY / 2][0];
-                m_BufEditCellDescV2D.Obj              [nDstX / 2][nDstY / 2][1] = stOldBufObj              [nSrcX / 2][nSrcY / 2][1];
+                m_BufObj              [nDstX / 2][nDstY / 2][0] = stOldBufObj              [nSrcX / 2][nSrcY / 2][0];
+                m_BufObj              [nDstX / 2][nDstY / 2][1] = stOldBufObj              [nSrcX / 2][nSrcY / 2][1];
 
-                m_BufEditCellDescV2D.ObjGridTag       [nDstX / 2][nDstY / 2][0] = stOldBufObjGridTag       [nSrcX / 2][nSrcY / 2][0];
-                m_BufEditCellDescV2D.ObjGridTag       [nDstX / 2][nDstY / 2][1] = stOldBufObjGridTag       [nSrcX / 2][nSrcY / 2][1];
+                m_BufObjMark          [nDstX / 2][nDstY / 2][0] = stOldBufObjMark          [nSrcX / 2][nSrcY / 2][0];
+                m_BufObjMark          [nDstX / 2][nDstY / 2][1] = stOldBufObjMark          [nSrcX / 2][nSrcY / 2][1];
 
-                m_BufEditCellDescV2D.ObjMark          [nDstX / 2][nDstY / 2][0] = stOldBufObjMark          [nSrcX / 2][nSrcY / 2][0];
-                m_BufEditCellDescV2D.ObjMark          [nDstX / 2][nDstY / 2][1] = stOldBufObjMark          [nSrcX / 2][nSrcY / 2][1];
+                m_BufGroundObjMark    [nDstX / 2][nDstY / 2][0] = stOldBufGroundObjMark    [nSrcX / 2][nSrcY / 2][0];
+                m_BufGroundObjMark    [nDstX / 2][nDstY / 2][1] = stOldBufGroundObjMark    [nSrcX / 2][nSrcY / 2][1];
 
-                m_BufEditCellDescV2D.GroundObjMark    [nDstX / 2][nDstY / 2][0] = stOldBufGroundObjMark    [nSrcX / 2][nSrcY / 2][0];
-                m_BufEditCellDescV2D.GroundObjMark    [nDstX / 2][nDstY / 2][1] = stOldBufGroundObjMark    [nSrcX / 2][nSrcY / 2][1];
+                m_BufAlphaObjMark     [nDstX / 2][nDstY / 2][0] = stOldBufAlphaObjMark     [nSrcX / 2][nSrcY / 2][0];
+                m_BufAlphaObjMark     [nDstX / 2][nDstY / 2][1] = stOldBufAlphaObjMark     [nSrcX / 2][nSrcY / 2][1];
 
-                m_BufEditCellDescV2D.AlphaObjMark     [nDstX / 2][nDstY / 2][0] = stOldBufAlphaObjMark     [nSrcX / 2][nSrcY / 2][0];
-                m_BufEditCellDescV2D.AlphaObjMark     [nDstX / 2][nDstY / 2][1] = stOldBufAlphaObjMark     [nSrcX / 2][nSrcY / 2][1];
+                m_BufAniObjMark       [nDstX / 2][nDstY / 2][0] = stOldBufAniObjMark       [nSrcX / 2][nSrcY / 2][0];
+                m_BufAniObjMark       [nDstX / 2][nDstY / 2][1] = stOldBufAniObjMark       [nSrcX / 2][nSrcY / 2][1];
 
-                m_BufEditCellDescV2D.AniObjMark       [nDstX / 2][nDstY / 2][0] = stOldBufAniObjMark       [nSrcX / 2][nSrcY / 2][0];
-                m_BufEditCellDescV2D.AniObjMark       [nDstX / 2][nDstY / 2][1] = stOldBufAniObjMark       [nSrcX / 2][nSrcY / 2][1];
+                m_BufGround           [nDstX / 2][nDstY / 2][0] = stOldBufGround           [nSrcX / 2][nSrcY / 2][0];
+                m_BufGround           [nDstX / 2][nDstY / 2][1] = stOldBufGround           [nSrcX / 2][nSrcY / 2][1];
+                m_BufGround           [nDstX / 2][nDstY / 2][2] = stOldBufGround           [nSrcX / 2][nSrcY / 2][2];
+                m_BufGround           [nDstX / 2][nDstY / 2][3] = stOldBufGround           [nSrcX / 2][nSrcY / 2][3];
 
-                m_BufEditCellDescV2D.Ground           [nDstX / 2][nDstY / 2][0] = stOldBufGround           [nSrcX / 2][nSrcY / 2][0];
-                m_BufEditCellDescV2D.Ground           [nDstX / 2][nDstY / 2][1] = stOldBufGround           [nSrcX / 2][nSrcY / 2][1];
-                m_BufEditCellDescV2D.Ground           [nDstX / 2][nDstY / 2][2] = stOldBufGround           [nSrcX / 2][nSrcY / 2][2];
-                m_BufEditCellDescV2D.Ground           [nDstX / 2][nDstY / 2][3] = stOldBufGround           [nSrcX / 2][nSrcY / 2][3];
+                m_BufGroundMark       [nDstX / 2][nDstY / 2][0] = stOldBufGroundMark       [nSrcX / 2][nSrcY / 2][0];
+                m_BufGroundMark       [nDstX / 2][nDstY / 2][1] = stOldBufGroundMark       [nSrcX / 2][nSrcY / 2][1];
+                m_BufGroundMark       [nDstX / 2][nDstY / 2][2] = stOldBufGroundMark       [nSrcX / 2][nSrcY / 2][2];
+                m_BufGroundMark       [nDstX / 2][nDstY / 2][3] = stOldBufGroundMark       [nSrcX / 2][nSrcY / 2][3];
 
-                m_BufEditCellDescV2D.GroundMark       [nDstX / 2][nDstY / 2][0] = stOldBufGroundMark       [nSrcX / 2][nSrcY / 2][0];
-                m_BufEditCellDescV2D.GroundMark       [nDstX / 2][nDstY / 2][1] = stOldBufGroundMark       [nSrcX / 2][nSrcY / 2][1];
-                m_BufEditCellDescV2D.GroundMark       [nDstX / 2][nDstY / 2][2] = stOldBufGroundMark       [nSrcX / 2][nSrcY / 2][2];
-                m_BufEditCellDescV2D.GroundMark       [nDstX / 2][nDstY / 2][3] = stOldBufGroundMark       [nSrcX / 2][nSrcY / 2][3];
-
-                m_BufEditCellDescV2D.GroundSelectMark [nDstX / 2][nDstY / 2][0] = stOldBufGroundSelectMark [nSrcX / 2][nSrcY / 2][0];
-                m_BufEditCellDescV2D.GroundSelectMark [nDstX / 2][nDstY / 2][1] = stOldBufGroundSelectMark [nSrcX / 2][nSrcY / 2][1];
-                m_BufEditCellDescV2D.GroundSelectMark [nDstX / 2][nDstY / 2][2] = stOldBufGroundSelectMark [nSrcX / 2][nSrcY / 2][2];
-                m_BufEditCellDescV2D.GroundSelectMark [nDstX / 2][nDstY / 2][3] = stOldBufGroundSelectMark [nSrcX / 2][nSrcY / 2][3];
+                m_BufGroundSelectMark [nDstX / 2][nDstY / 2][0] = stOldBufGroundSelectMark [nSrcX / 2][nSrcY / 2][0];
+                m_BufGroundSelectMark [nDstX / 2][nDstY / 2][1] = stOldBufGroundSelectMark [nSrcX / 2][nSrcY / 2][1];
+                m_BufGroundSelectMark [nDstX / 2][nDstY / 2][2] = stOldBufGroundSelectMark [nSrcX / 2][nSrcY / 2][2];
+                m_BufGroundSelectMark [nDstX / 2][nDstY / 2][3] = stOldBufGroundSelectMark [nSrcX / 2][nSrcY / 2][3];
 
             }
         }
@@ -961,17 +910,16 @@ void EditorMap::ClearBuf()
     m_H = 0;
     m_Valid = false;
 
-    m_BufEditCellDescV2D.Light.clear();
-    m_BufEditCellDescV2D.LightMark.clear();
-    m_BufEditCellDescV2D.Tile.clear();
-    m_BufEditCellDescV2D.TileMark.clear();
-    m_BufEditCellDescV2D.Obj.clear();
-    m_BufEditCellDescV2D.ObjGridTag.clear();
-    m_BufEditCellDescV2D.ObjMark.clear();
-    m_BufEditCellDescV2D.GroundObjMark.clear();
-    m_BufEditCellDescV2D.AlphaObjMark.clear();
-    m_BufEditCellDescV2D.Ground.clear();
-    m_BufEditCellDescV2D.GroundMark.clear();
+    m_BufLight.clear();
+    m_BufLightMark.clear();
+    m_BufTile.clear();
+    m_BufTileMark.clear();
+    m_BufObj.clear();
+    m_BufObjMark.clear();
+    m_BufGroundObjMark.clear();
+    m_BufAlphaObjMark.clear();
+    m_BufGround.clear();
+    m_BufGroundMark.clear();
 }
 
 bool EditorMap::InitBuf()
@@ -1021,37 +969,43 @@ void EditorMap::MakeBuf(int nW, int nH)
     // make a buffer for loading new map
     // or extend / crop old map
     ClearBuf();
-    assert(!(nW == 0 || nH == 0 || nW % 2 || nH % 2));
+    if(nW == 0 || nH == 0 || nW % 2 || nH % 2){ return; }
 
-    // m_BufEditCellDescV2D.Light[nX][nY]
-    m_BufEditCellDescV2D.Light = std::vector<std::vector<uint16_t>>(nW, std::vector<uint16_t>(nH, 0));
-    // m_BufEditCellDescV2D.LightMark[nX][nY]
-    m_BufEditCellDescV2D.LightMark = std::vector<std::vector<int>>(nW, std::vector<int>(nH, 0));
+    // m_BufLight[nX][nY]
+    m_BufLight = std::vector<std::vector<uint16_t>>(nW, std::vector<uint16_t>(nH, 0));
+    // m_BufLightMark[nX][nY]
+    m_BufLightMark = std::vector<std::vector<int>>(nW, std::vector<int>(nH, 0));
 
-    // m_BufEditCellDescV2D.Tile[nX][nY]
-    m_BufEditCellDescV2D.Tile = std::vector<std::vector<uint32_t>>(nW / 2, std::vector<uint32_t>(nH / 2, 0));
-    // m_BufEditCellDescV2D.TileMark[nX][nY]
-    m_BufEditCellDescV2D.TileMark = std::vector<std::vector<int>>(nW / 2, std::vector<int>(nH / 2, 0));
+    // m_BufTile[nX][nY]
+    m_BufTile = std::vector<std::vector<uint32_t>>(nW / 2, std::vector<uint32_t>(nH / 2, 0));
+    // m_BufTileMark[nX][nY]
+    m_BufTileMark = std::vector<std::vector<int>>(nW / 2, std::vector<int>(nH / 2, 0));
 
-    // m_BufEditCellDescV2D.Obj[nX][nY][0]
-    m_BufEditCellDescV2D.Obj = std::vector<std::vector<std::array<uint32_t, 2>>>(nW, std::vector<std::array<uint32_t, 2>>(nH, {0, 0}));
-    // m_BufEditCellDescV2D.ObjMark[nX][nY][0]
-    m_BufEditCellDescV2D.ObjMark = std::vector<std::vector<std::array<int, 2>>>(nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
-    // m_BufEditCellDescV2D.ObjGridTag[nX][nY][1][xxx]
-    m_BufEditCellDescV2D.ObjGridTag = std::vector<std::vector<std::array<std::vector<int>, 2>>>(nW, std::vector<std::array<std::vector<int>, 2>>());
-    // m_BufEditCellDescV2D.GroundObjMark[nX][nY][0]
-    m_BufEditCellDescV2D.GroundObjMark = std::vector<std::vector<std::array<int, 2>>>(nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
-    // m_BufEditCellDescV2D.AlphaObjMark[nX][nY][0]
-    m_BufEditCellDescV2D.AlphaObjMark = std::vector<std::vector<std::array<int, 2>>>(nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
-    // m_BufEditCellDescV2D.AniObjMark[nX][nY][0]
-    m_BufEditCellDescV2D.AniObjMark = std::vector<std::vector<std::array<int, 2>>>(nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
+    // m_BufObj[nX][nY][0]
+    m_BufObj = std::vector<std::vector<std::array<uint32_t, 2>>>(
+            nW, std::vector<std::array<uint32_t, 2>>(nH, {0, 0}));
+    // m_BufObjMark[nX][nY][0]
+    m_BufObjMark = std::vector<std::vector<std::array<int, 2>>>(
+            nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
+    // m_BufGroundObjMark[nX][nY][0]
+    m_BufGroundObjMark = std::vector<std::vector<std::array<int, 2>>>(
+            nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
+    // m_BufAlphaObjMark[nX][nY][0]
+    m_BufAlphaObjMark = std::vector<std::vector<std::array<int, 2>>>(
+            nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
+    // m_BufAniObjMark[nX][nY][0]
+    m_BufAniObjMark = std::vector<std::vector<std::array<int, 2>>>(
+            nW, std::vector<std::array<int, 2>>(nH, {0, 0}));
 
-    // m_BufEditCellDescV2D.Ground[nX][nY][0]
-    m_BufEditCellDescV2D.Ground = std::vector<std::vector<std::array<uint8_t, 4>>>(nW, std::vector<std::array<uint8_t, 4>>(nH, {0, 0, 0, 0}));
-    // m_BufEditCellDescV2D.GroundMark[nX][nY][0]
-    m_BufEditCellDescV2D.GroundMark = std::vector<std::vector<std::array<int, 4>>>(nW, std::vector<std::array<int, 4>>(nH, {0, 0, 0, 0}));
-    // m_BufEditCellDescV2D.GroundSelectMark[nX][nY][0]
-    m_BufEditCellDescV2D.GroundSelectMark = std::vector<std::vector<std::array<int, 4>>>(nW, std::vector<std::array<int, 4>>(nH, {0, 0, 0, 0}));
+    // m_BufGround[nX][nY][0]
+    m_BufGround = std::vector<std::vector<std::array<uint8_t, 4>>>(
+            nW, std::vector<std::array<uint8_t, 4>>(nH, {0, 0, 0, 0}));
+    // m_BufGroundMark[nX][nY][0]
+    m_BufGroundMark = std::vector<std::vector<std::array<int, 4>>>(
+            nW, std::vector<std::array<int, 4>>(nH, {0, 0, 0, 0}));
+    // m_BufGroundSelectMark[nX][nY][0]
+    m_BufGroundSelectMark = std::vector<std::vector<std::array<int, 4>>>(
+            nW, std::vector<std::array<int, 4>>(nH, {0, 0, 0, 0}));
 }
 
 void EditorMap::SetBufTile(int nX, int nY)
@@ -1059,14 +1013,14 @@ void EditorMap::SetBufTile(int nX, int nY)
     if(m_Mir2xMap && m_Mir2xMap->Valid()){
         // mir2x map
         if(m_Mir2xMap->TileValid(nX, nY)){
-            m_BufEditCellDescV2D.Tile    [nX / 2][nY / 2] = m_Mir2xMap->Tile(nX, nY);
-            m_BufEditCellDescV2D.TileMark[nX / 2][nY / 2] = 1;
+            m_BufTile    [nX / 2][nY / 2] = m_Mir2xMap->Tile(nX, nY);
+            m_BufTileMark[nX / 2][nY / 2] = 1;
         }
     }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
         extern ImageDB g_ImageDB;
         if(m_OldMir2Map->TileValid(nX, nY, g_ImageDB)){
-            m_BufEditCellDescV2D.Tile    [nX / 2][nY / 2] = m_OldMir2Map->Tile(nX, nY);
-            m_BufEditCellDescV2D.TileMark[nX / 2][nY / 2] = 1;
+            m_BufTile    [nX / 2][nY / 2] = m_OldMir2Map->Tile(nX, nY);
+            m_BufTileMark[nX / 2][nY / 2] = 1;
         }
     }
 }
@@ -1076,14 +1030,14 @@ void EditorMap::SetBufGround(int nX, int nY, int nIndex)
     if(m_Mir2xMap && m_Mir2xMap->Valid()){
         // mir2x map
         if(m_Mir2xMap->GroundValid(nX, nY, nIndex)){
-            m_BufEditCellDescV2D.GroundMark[nX][nY][nIndex] = 1;
-            m_BufEditCellDescV2D.Ground[nX][nY][nIndex] = m_Mir2xMap->Ground(nX, nY, nIndex);
+            m_BufGroundMark[nX][nY][nIndex] = 1;
+            m_BufGround[nX][nY][nIndex] = m_Mir2xMap->Ground(nX, nY, nIndex);
         }
     }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
         // mir2 map
         if(m_OldMir2Map->GroundValid(nX, nY)){
-            m_BufEditCellDescV2D.GroundMark[nX][nY][nIndex] = 1;
-            m_BufEditCellDescV2D.Ground[nX][nY][nIndex] = 0X0000; // set by myselt
+            m_BufGroundMark[nX][nY][nIndex] = 1;
+            m_BufGround[nX][nY][nIndex] = 0X0000; // set by myselt
         }
     }
 }
@@ -1133,11 +1087,11 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
         }
     }
 
-    m_BufEditCellDescV2D.Obj          [nX][nY][nIndex] = nObj;
-    m_BufEditCellDescV2D.ObjMark      [nX][nY][nIndex] = nObjValid;
-    m_BufEditCellDescV2D.GroundObjMark[nX][nY][nIndex] = nGroundObj;
-    m_BufEditCellDescV2D.AniObjMark   [nX][nY][nIndex] = nAniObj;
-    m_BufEditCellDescV2D.AlphaObjMark [nX][nY][nIndex] = nAlphaObj;
+    m_BufObj          [nX][nY][nIndex] = nObj;
+    m_BufObjMark      [nX][nY][nIndex] = nObjValid;
+    m_BufGroundObjMark[nX][nY][nIndex] = nGroundObj;
+    m_BufAniObjMark   [nX][nY][nIndex] = nAniObj;
+    m_BufAlphaObjMark [nX][nY][nIndex] = nAlphaObj;
 }
 
 void EditorMap::SetBufLight(int nX, int nY)
@@ -1145,8 +1099,8 @@ void EditorMap::SetBufLight(int nX, int nY)
     if(m_Mir2xMap && m_Mir2xMap->Valid()){
         // mir2x map
         if(m_Mir2xMap->LightValid(nX, nY)){
-            m_BufEditCellDescV2D.Light[nX][nY]     = m_Mir2xMap->Light(nX, nY);
-            m_BufEditCellDescV2D.LightMark[nX][nY] = 1;
+            m_BufLight[nX][nY]     = m_Mir2xMap->Light(nX, nY);
+            m_BufLightMark[nX][nY] = 1;
         }
     }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
         // mir2 map
@@ -1162,8 +1116,8 @@ void EditorMap::SetBufLight(int nX, int nY)
 
             UNUSED(nUnused);
 
-            m_BufEditCellDescV2D.Light[nX][nY] = ((nSizeType & 0X0007) << 7) + ((nAlphaIndex & 0X0003) << 4) + ((nColorIndex & 0X000F));
-            m_BufEditCellDescV2D.LightMark[nX][nY] = 1;
+            m_BufLight[nX][nY] = ((nSizeType & 0X0007) << 7) + ((nAlphaIndex & 0X0003) << 4) + ((nColorIndex & 0X000F));
+            m_BufLightMark[nX][nY] = 1;
         }
     }
 }
@@ -1208,7 +1162,7 @@ void EditorMap::DrawSelectGround(int nX, int nY, int nW, int nH,
     for(int nTX = nX; nTX < nX + nW; ++nTX){
         for(int nTY = nY; nTY < nY + nH; ++nTY){
             for(int nIndex = 0; nIndex < 4; ++nIndex){
-                if(ValidC(nTX, nTY) && m_BufEditCellDescV2D.GroundSelectMark[nTX][nTY][nIndex]){
+                if(ValidC(nTX, nTY) && m_BufGroundSelectMark[nTX][nTY][nIndex]){
                     fnDrawSelectGround(nX, nY, nIndex);
                 }
             }
@@ -1229,7 +1183,7 @@ void EditorMap::ClearGroundSelect()
 
 void EditorMap::SetGroundSelect(int nX, int nY, int nIndex, int nSelect)
 {
-    m_BufEditCellDescV2D.GroundSelectMark[nX][nY][nIndex] = nSelect;
+    m_BufGroundSelectMark[nX][nY][nIndex] = nSelect;
 }
 
 bool EditorMap::Save(const char *szFullName)
@@ -1354,65 +1308,4 @@ void EditorMap::DrawLight(int nX, int nY, int nW, int nH, std::function<void(int
             }
         }
     }
-}
-
-bool EditorMap::LocateObject(int nX, int nY, int *pGX, int *pGY, int *pObjIndex, int nH, const std::function<int(uint32_t)> &fnObjLen)
-{
-    if(!ValidP(nX, nY)){ return false; }
-
-    // by default we scan from last row
-    int nScanMinY = nY / SYS_MAPGRIDYP;
-    int nScanMaxY = H();
-    if(nH > 0 && nH / SYS_MAPGRIDYP > 0){
-        nScanMaxY = std::min(nScanMaxY, (nY + nH) / SYS_MAPGRIDYP + 10);
-    }
-
-    int nRetGY = -1;
-    int nRetIndex = -1;
-
-    int nScanX = nX / SYS_MAPGRIDXP;
-    for(int nScanY = nScanMaxY; nScanY >= nScanMinY; --nScanY){
-        if(!ValidC(nScanX, nScanY)){ continue; }
-
-        int nObjLen0 = -1;
-        int nObjLen1 = -1;
-
-        if(m_BufEditCellDescV2D.ObjMark[nScanX][nScanY][0]){ nObjLen0 = fnObjLen(m_BufEditCellDescV2D.Obj[nScanX][nScanY][0]); }
-        if(m_BufEditCellDescV2D.ObjMark[nScanX][nScanY][1]){ nObjLen1 = fnObjLen(m_BufEditCellDescV2D.Obj[nScanX][nScanY][1]); }
-
-        bool bIn0 = false;
-        bool bIn1 = false;
-
-        if(nObjLen0 > 0){ bIn0 = PointInRectangle(nX, nY, nScanX * SYS_MAPGRIDXP, nScanY * SYS_MAPGRIDYP - nObjLen0, SYS_MAPGRIDXP, nObjLen0); }
-        if(nObjLen1 > 0){ bIn1 = PointInRectangle(nX, nY, nScanX * SYS_MAPGRIDXP, nScanY * SYS_MAPGRIDYP - nObjLen1, SYS_MAPGRIDXP, nObjLen1); }
-
-        if(bIn0 || bIn1){
-            nRetGY = nScanY;
-
-            if(bIn0 && bIn1){
-                // if current grid has two object with exactly the same size, and the point is inside
-                // just randomly pick one object, and try multiple time to get what you want
-                if(nObjLen0 == nObjLen1){
-                    nRetIndex = std::rand() % 2;
-                }else{
-                    // select the smaller one
-                    nRetIndex = (nObjLen0 < nObjLen1) ? 0 : 1;
-                }
-            }else{
-                // select the longer one
-                nRetIndex = (nObjLen0 > nObjLen1) ? 0 : 1;
-            }
-        }
-    }
-
-    if(nRetGY >= 0){
-        // we got one
-        if(pGX      ){ *pGX       = nScanX;    }
-        if(pGY      ){ *pGY       = nRetGY;    }
-        if(pObjIndex){ *pObjIndex = nRetIndex; }
-
-        return true;
-    }
-
-    return false;
 }

@@ -49,7 +49,6 @@ class DrawArea: public Fl_Box
         void DrawTile();
         void DrawLight();
         void DrawObject(bool);
-        void DrawObject(int);
         void DrawGround();
 
     private:

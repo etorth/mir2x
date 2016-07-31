@@ -3,70 +3,10 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/23/2016 19:25:48
+ *  Last Modified: 06/23/2016 22:27:27
  *
- *    Description: class EditorMap has no idea of ImageDB, WilImagePackage, etc., it use
- *                 function handler to handle drawing, caching, etc..
- *
- *                 previously there are problems for rendering, illustrated as following:
- *                             
- *                             |     |     |     |
- *                             |*****|     |     |
- *                             |**A**|     |     |
- *                             +-----+     |     |
- *                                   |*****|     |
- *                                   |**B**|  M  |
- *                                   +-----+     |    <---- L-1
- *                                      K  |*****|
- *                                         |**C**|
- *                                         +-----+    <---- L-2
- *
- *                 say now A, B, C are all wall slices, then they should be as overground
- *                 object slices, now if at point K stands an object, then K would be
- *                 drawed after B, but before C
- *
- *                 now if object at K is ``fat" enough that its right part is partially
- *                 under C, then we get visual disorder since part of the object will be
- *                 covered by C, then the object is partially visiable to us
- *
- *                 to avoid this problem I introduced the ``object grid", and put the
- *                 lowest part of C as ``fake ground", and won't draw it at the overground
- *                 object drawing step, the draw step is
- *
- *                 1. loop to draw 2 * 2 tiles
- *                 2. loop to draw *real* grounded object
- *                 3. for(row:needed){
- *                        for(col:needed){
- *                            1. draw fake ground
- *                            2. draw actor
- *                            3. draw new over-ground
- *                        }
- *                    }
- *                 4. loop to draw roof
- *
- *
- *                 and now slice C should be aligned with the new ``start point", from L-1
- *                 rather than L-2, then for object stand at K, it's always properly drawed
- *
- *                 this need cooperation with ground walkable mask, we should set the part
- *                 of object slice C between L1 and L2 as ``non-walkable", otherwise if we
- *                 have an object stand there, then it's on the overground object, mess up
- *
- *                 and this method solved another problem: if at point M there stands an
- *                 object shaped as
- *                                          +-----+
- *                                          |     |
- *                                          |     |
- *                                          |     |
- *                                          |  X  | <----
- *                                          |     |      part causes trouble
- *                                          +-----+ <----
- *
- *                 this object is ``thin" enough that below its center point X there is
- *                 more to draw, by this method, since the second half of C always draws
- *                 after the object at M, then the ``fake ground" part will cover the object
- *                 and the ``new overground" part will draw after object drawing, the the
- *                 object will be cover by C, that's what we want
+ *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
+ *                 Use function handler to handle draw, cache, etc
  *
  *        Version: 1.0
  *       Revision: none
@@ -80,137 +20,50 @@
  */
 #pragma once
 
-#include <vector>
-#include <string>
-#include <cstdint>
-#include <utility>
-#include <functional>
-
 #include "mir2map.hpp"
 #include "mir2xmap.hpp"
+
+#include <string>
 #include "wilimagepackage.hpp"
+#include <cstdint>
+#include <functional>
+#include <vector>
+#include <utility>
 
 class EditorMap
 {
     private:
-        // TODO new feature for mir2x map, use two bits to desc object with ``grid", they
-        //      are NA, GROUND, OVERGROUND, EMPTY, I hope this design could help
-        //
-        // for original mir2 map, there are only GROUND and OVERGROUND object, and there
-        // is no concept of ``grid object", but now I need it
-        //
-        // 1. GROUND and tile are drawed at the same step
-        // 2. OVERGROUND and creatures are drawed at the same step
-        // 3. we can micmic ROOF with OVERGROUND and EMPTY, using long object
-        // 4. EMPTY grid also helps to reduce unnecessary rendering
-        //
-        //
-        // for original mir2 map resource, empty part are always at the second half of the
-        // object texture, the first pixel line of a texture should always be non-empty, so
-        // with current NA, EMPTY, GROUND, OVERGROUND we can describe all grids
-        //
-        //
-        //                   NA, to end the object slice
-        //        +--------+
-        //        |        |
-        //        |        | GROUND / OVERGROUND
-        //        |        |
-        //        +--------+
-        //        |        |
-        //        |        | GROUND / OVERGROUND
-        //        |        |
-        //        +--------+
-        //        |   .    |
-        //
-        //        |   .    |
-        //        |   .    |
-        //        +--------+
-        //        |        |
-        //        |        | EMPTY
-        //        |        |
-        //        +--------+
-        //        |        |
-        //        |        | EMPTY
-        //        |        |
-        //        +--------+
-        //
-        // how to draw this piece:
-        // 1. for ground object grid, draw it at place
-        // 2. for overground object grid, draw it with align point at the new ``bottom line", see
-        //    explanition above in the file description
-        // 3. for empty object grid, won't draw it
-        //
-
-        // 0 ~ 15 for object grid attribute description and control words
-        enum ObjectGridType: int{
-            OBJGRID_NA          = 0,    // end of attribute stream
-            OBJGRID_EMPTY       = 1,    // place holder without graphical data
-            OBJGRID_BASETILE    = 2,    // won't use it, used by base tile
-            OBJGRID_GROUND      = 3,    // smallest grid of size 48 * 32, draw immediately after base tiles
-            OBJGRID_GRIDGROUND  = 4,    // new concepts, draw first for each grid, then draw actor
-            OBJGRID_OVERGROUND  = 5,    // new over-ground, draw after actor drawing
-            OBJGRID_ROOF        = 6,    // always over ground, draw in another loop, roof, like ground
-
-            OBJGRID_DUPLICATE   = 10,   // attribute duplication: dup attr n: n attributes from current pos
-                                        // when n == 0, means for all the rest grids, and the stream ends
-                                        // this agrees with 0 is end of description
-        };
-
-        // TODO finally I decide to make a compact cell descriptor, this is a lesson to me
-        typedef struct _EditCellDesc{
-            // tile
-            // only use 1 / 4 of this
-            uint32_t Tile;
-            int      TileMark;
-
-            // ground
-            uint8_t  Ground[4];
-            int      GroundMark[4];
-            int      GroundSelectMark[4];
-
-            // light
-            uint16_t Light;
-            int      LightMark;
-
-            // object
-            uint32_t Object[2];
-            int      ObjectMark[2];
-            int      AlphaObjectMark[2];
-            int      AnimatedObjectMark[2];
-
-            // object grid
-            std::vector<int> ObjectGridTypeV[2];
-
-            _EditCellDesc()
-                : Tile(0)
-                , TileMark(0)
-                , Ground {0, 0, 0, 0}
-                , GroundMark {0, 0, 0, 0}
-                , GroundSelectMark {0, 0, 0, 0}
-                , Light(0)
-                , LightMark(0)
-                , Object {0, 0}
-                , ObjectMark {0, 0}
-                , AlphaObjectMark {0, 0}
-                , AnimatedObjectMark {0, 0}
-                , ObjectGridTypeV()
-            {}
-        }EditCellDesc;
-
-    private:
         int             m_W;
         int             m_H;
         bool            m_Valid;
-        uint32_t        m_AniSaveTime[8];
-        uint8_t         m_AnimatedTileFrame[8][16];
+        uint32_t        m_dwAniSaveTime[8];
+        uint8_t         m_bAniTileFrame[8][16];
 
     private:
         Mir2Map        *m_OldMir2Map;
         Mir2xMap       *m_Mir2xMap;
 
     private:
-        std::vector<std::tuple<int, int>> m_SelectPointV;
-        std::vector<std::vector<EditCellDesc>> m_BufEditCellDescV2D;
+        // buffers
+        std::vector<std::vector<int>>                       m_BufLightMark;
+        std::vector<std::vector<uint16_t>>                  m_BufLight;
+
+        std::vector<std::vector<int>>                       m_BufTileMark;
+        std::vector<std::vector<uint32_t>>                  m_BufTile;
+
+        std::vector<std::vector<std::array<int, 2>>>        m_BufObjMark;
+        std::vector<std::vector<std::array<int, 2>>>        m_BufGroundObjMark;
+        std::vector<std::vector<std::array<int, 2>>>        m_BufAlphaObjMark;
+        std::vector<std::vector<std::array<int, 2>>>        m_BufAniObjMark;
+        std::vector<std::vector<std::array<uint32_t, 2>>>   m_BufObj;
+
+        std::vector<std::vector<std::array<uint8_t, 4>>>    m_BufGround;
+        std::vector<std::vector<std::array<int, 4>>>        m_BufGroundMark;
+        std::vector<std::vector<std::array<int, 4>>>        m_BufGroundSelectMark;
+
+    private:
+        // for ground select
+        std::vector<std::pair<int, int>>                    m_SelectPointV;
 
     public:
         EditorMap();
@@ -250,85 +103,85 @@ class EditorMap
 
         int TileValid(int nX, int nY)
         {
-            return m_BufEditCellDescV2D[nX / 2][nY / 2].TileMark;
+            return m_BufTileMark[nX / 2][nY / 2];
         }
 
         uint32_t Tile(int nX, int nY)
         {
-            return m_BufEditCellDescV2D[nX / 2][nY / 2].Tile;
+            return m_BufTile[nX / 2][nY / 2];
         }
 
         int ObjectValid(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D[nX][nY].ObjectMark[nIndex];
+            return m_BufObjMark[nX][nY][nIndex];
         }
 
         uint32_t Object(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D[nX][nY].Object[nIndex];
+            return m_BufObj[nX][nY][nIndex];
         }
 
-        // int GroundObjectValid(int nX, int nY,  int nIndex)
-        // {
-        //     return m_BufEditCellDescV2D.GroundObjectMark[nX][nY][nIndex];
-        // }
+        int GroundObjectValid(int nX, int nY,  int nIndex)
+        {
+            return m_BufGroundObjMark[nX][nY][nIndex];
+        }
 
         int AlphaObjectValid(int nX, int nY,  int nIndex)
         {
-            return m_BufEditCellDescV2D[nX][nY].AlphaObjectMark[nIndex];
+            return m_BufAlphaObjMark[nX][nY][nIndex];
         }
 
         int GroundSelect(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D[nX][nY].GroundSelectMark[nIndex];
+            return m_BufGroundSelectMark[nX][nY][nIndex];
         }
 
         bool AniObjectValid(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D[nX][nY].AnimatedObjectMark[nIndex];
+            return m_BufAniObjMark[nX][nY][nIndex];
         }
 
         int LightValid(int nX, int nY)
         {
-            return m_BufEditCellDescV2D[nX][nY].LightMark;
+            return m_BufLightMark[nX][nY];
         }
 
         uint16_t Light(int nX, int nY)
         {
-            return m_BufEditCellDescV2D[nX][nY].Light;
+            return m_BufLight[nX][nY];
         }
 
         int GroundValid(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D[nX][nY].GroundMark[nIndex];
+            return m_BufGroundMark[nX][nY][nIndex];
         }
 
         uint8_t Ground(int nX, int nY, int nIndex)
         {
-            return m_BufEditCellDescV2D[nX][nY].Ground[nIndex];
+            return m_BufGround[nX][nY][nIndex];
         }
 
         uint16_t ObjectOff(int nAniType, int nAniCnt)
         {
-            return (uint16_t)(m_AnimatedTileFrame[nAniType][nAniCnt]);
+            return (uint16_t)(m_bAniTileFrame[nAniType][nAniCnt]);
         }
 
         void SetGround(int nX, int nY, int nIndex, bool bValid, uint8_t nDesc)
         {
-            m_BufEditCellDescV2D[nX][nY].GroundMark[nIndex] = ((bValid) ? 1 : 0);
-            m_BufEditCellDescV2D[nX][nY].Ground[nIndex]     = nDesc;
+            m_BufGroundMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
+            m_BufGround[nX][nY][nIndex]     = nDesc;
         }
 
         void SetObject(int nX, int nY, int nIndex, bool bValid, uint32_t nDesc)
         {
-            m_BufEditCellDescV2D[nX][nY].ObjectMark[nIndex] = ((bValid) ? 1 : 0);
-            m_BufEditCellDescV2D[nX][nY].Object[nIndex]     = nDesc;
+            m_BufObjMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
+            m_BufObj[nX][nY][nIndex]     = nDesc;
         }
 
-        // void SetGroundObject(int nX, int nY, int nIndex, int nGroundObj)
-        // {
-        //     m_BufEditCellDescV2D[nX][nY].GroundObjectMark[nIndex] = nGroundObj;
-        // }
+        void SetGroundObject(int nX, int nY, int nIndex, int nGroundObj)
+        {
+            m_BufGroundObjMark[nX][nY][nIndex] = nGroundObj;
+        }
 
     public:
         // for map resource extraction
@@ -386,7 +239,8 @@ class EditorMap
         bool Save(const char *);
 
     private:
-        void PushData(const std::vector<bool> &, const std::vector<uint8_t> &, std::vector<uint8_t> &);
+        void PushData(const std::vector<bool> &,
+                const std::vector<uint8_t> &, std::vector<uint8_t> &);
         void PushBit(const std::vector<bool> &, std::vector<uint8_t> &);
 
     public:
@@ -406,7 +260,4 @@ class EditorMap
 
     public:
         std::string MapInfo();
-
-    public:
-        bool LocateObject(int, int, int *, int *, int *, int, const std::function<int(uint32_t)> &);
 };

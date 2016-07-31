@@ -66,13 +66,12 @@ class MainWindow {open
 } {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {open
-  } {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       callback {{
 	// do nothing
-}}
-      xywh {126 217 985 665} type Double resizable visible
+}} open
+      xywh {935 146 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -271,11 +270,7 @@ fl_alert("Haven't implement yet!");}
           }
           MenuItem m_MenuItemOverGroundObjectLine {
             label {Over Ground Object          }
-            xywh {20 20 30 20} type Toggle labelfont 4 divider
-          }
-          MenuItem m_MenuItemGridObjectRoof {
-            label {Roof         }
-            xywh {30 30 30 20} type Toggle labelfont 4
+            xywh {20 20 30 20} type Toggle labelfont 4
           }
         }
         Submenu {} {
@@ -352,15 +347,11 @@ fl_alert("Haven't implement yet!");}
         } {
           MenuItem m_MenuItemEnableEdit {
             label {Enable Edit                    }
-            xywh {20 20 30 20} type Toggle labelfont 4 divider
+            xywh {20 20 30 20} type Toggle labelfont 4
           }
           MenuItem m_MenuItemEditGround {
             label {Edit Ground Info}
-            xywh {30 30 30 20} type Radio labelfont 4
-          }
-          MenuItem m_MenuItemEditObjectGrid {
-            label {Edit Object Grid}
-            xywh {40 40 30 20} type Radio labelfont 4 divider
+            xywh {30 30 30 20} type Toggle labelfont 4 divider
           }
           MenuItem {} {
             label Optimize
@@ -730,7 +721,7 @@ if(g_EditorMap.Valid()){
     g_MainWindow->RedrawAll();
 }} {}
   }
-  Function {ShowBaseTileLine()} {return_type bool
+  Function {ShowBaseTileLine()} {selected return_type bool
   } {
     code {{
 	return m_MenuItemBaseTileLine->value();
@@ -778,24 +769,6 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemGroundObjectLayer->value();
 }} {}
   }
-  Function {ShowObjectGridLine(int nObjectGridAttr)} {open return_type bool
-  } {
-    code {{
-	switch(nObjectGridAttr){
-		case OBJGRID_NA:
-			{
-				return false;
-			}
-		default:
-			{
-				return true;
-			}
-	}
-	
-	return true;
-}} {selected
-    }
-  }
   Function {ShowOverGroundObjectLayer()} {return_type bool
   } {
     code {{
@@ -806,12 +779,6 @@ if(g_EditorMap.Valid()){
   } {
     code {{
 	return m_MenuItemEnableEdit->value();
-}} {}
-  }
-  Function {EditObjectGrid()} {return_type bool
-  } {
-    code {{
-	return m_MenuItemEditObjectGrid->value();
 }} {}
   }
   Function {EnableSelect()} {return_type bool
