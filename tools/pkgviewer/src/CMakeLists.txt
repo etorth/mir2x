@@ -45,4 +45,4 @@ TARGET_LINK_LIBRARIES(pkgviewer ${FLTK_LIBRARIES}  )
 TARGET_LINK_LIBRARIES(pkgviewer ${OPENGL_LIBRARIES})
 TARGET_LINK_LIBRARIES(pkgviewer dl                 )
 TARGET_LINK_LIBRARIES(pkgviewer common             )
-
+TARGET_LINK_LIBRARIES(pkgviewer png                )

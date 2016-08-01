@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 06/23/2016 22:29:52
+ *  Last Modified: 08/01/2016 05:15:49
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -1189,7 +1189,7 @@ void EditorMap::SetGroundSelect(int nX, int nY, int nIndex, int nSelect)
 bool EditorMap::Save(const char *szFullName)
 {
     if(!Valid()){
-        fl_alert("Invalid map!");
+        fl_alert("%s", "Invalid map!");
         return false;
     }
 

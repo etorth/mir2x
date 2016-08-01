@@ -59,7 +59,7 @@ exit(0);} open
     fileChooser.directory(".");
     switch(fileChooser.show()){
         case -1:
-            fl_alert(fileChooser.errmsg());
+            fl_alert("%s", fileChooser.errmsg());
             break;
         case  1:
             break;
@@ -142,7 +142,7 @@ exit(0);} open
     fileChooser.directory(".");
     switch(fileChooser.show()){
         case -1:
-            fl_alert(fileChooser.errmsg());
+            fl_alert("%s", fileChooser.errmsg());
             break;
         case  1:
             break;
@@ -181,7 +181,7 @@ exit(0);} open
 	fileChooser.directory(".");
 	switch(fileChooser.show()){
 		case -1:
-			fl_alert(fileChooser.errmsg());
+			fl_alert("%s", fileChooser.errmsg());
 			break;
         	case  1:
             		break;

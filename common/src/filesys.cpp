@@ -3,7 +3,7 @@
  *
  *       Filename: filesys.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 02/14/2016 19:43:48
+ *  Last Modified: 08/01/2016 05:30:41
  *
  *    Description: 
  *
@@ -127,11 +127,11 @@ bool DupFile(const char *szDst, const char *szSrc)
     fseek(fSrc, 0L, SEEK_SET);
 
     for(int i = 0; i < fileSize / 4096; ++i){
-        fread( fileBuf, 4096, 1, fSrc);
+        (void)(1 + fread(fileBuf, 4096, 1, fSrc));
         fwrite(fileBuf, 4096, 1, fDst);
     }
 
-    fread( fileBuf, fileSize % 4096, 1, fSrc);
+    (void)(1 + fread( fileBuf, fileSize % 4096, 1, fSrc));
     fwrite(fileBuf, fileSize % 4096, 1, fDst);
     fclose(fSrc);
     fclose(fDst);

@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 06/16/2016 23:04:18
+ *  Last Modified: 08/01/2016 05:14:47
  *
  *    Description: 
  *
@@ -75,7 +75,7 @@ int main()
 
     while(Fl::wait() > 0){
         if(Fl::thread_message()){
-            fl_alert("system request for restart");
+            fl_alert("%s", "system request for restart");
             exit(0);
         }
     }

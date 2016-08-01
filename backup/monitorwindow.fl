@@ -198,7 +198,7 @@ if(g_EditorMap.Valid()){
     fileChooser.directory(".");
     switch(fileChooser.show()){
         case -1:
-            fl_alert(fileChooser.errmsg());
+            fl_alert("%s", fileChooser.errmsg());
             break;
         case  1:
             break;
@@ -249,7 +249,7 @@ if(g_EditorMap.Valid()){
     switch(stFileChooser.show()){
         case -1:
             {
-                fl_alert(stFileChooser.errmsg());
+                fl_alert("%s", stFileChooser.errmsg());
                 break;
             }
         case 1:
@@ -283,7 +283,7 @@ if(g_EditorMap.Valid()){
     switch(stFileChooser.show()){
         case -1:
             {
-                fl_alert(stFileChooser.errmsg());
+                fl_alert("%s", stFileChooser.errmsg());
                 break;
             }
         case 1:
@@ -461,7 +461,7 @@ if(g_EditorMap.Valid()){
     		fl_message("Map file saved in mir2x format successfully!");
     		
 	}else{
-		fl_alert("Currently no operating map!");
+		fl_alert("%s", "Currently no operating map!");
 	}
 }} {}
   }

@@ -3,7 +3,7 @@
  *
  *       Filename: log.hpp
  *        Created: 03/16/2016 16:05:17
- *  Last Modified: 04/28/2016 20:26:47
+ *  Last Modified: 08/01/2016 05:13:15
  *
  *    Description: log functionality enabled by g3Log
  *
@@ -25,6 +25,7 @@
 #include <thread>
 #include <iostream>
 #include <string>
+#include <cstring>
 
 #if (defined(WIN32) || defined(_WIN32) || defined(__WIN32__))
 #define LOG_PATH "./"
@@ -42,18 +43,14 @@
 #endif
 
 
-#define LOGTYPE_DEBUG   {std::string("-1"),\
-    std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_INFO    {std::string("0" ), \
-    std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_WARNING {std::string("1" ), \
-    std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_FATAL   {std::string("2" ), \
-    std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_DEBUG   {std::string("-1"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_INFO    {std::string( "0"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_WARNING {std::string( "1"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_FATAL   {std::string( "2"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
 
 class Log final
 {
-    public:
+    private:
         enum {
             LOGTYPEV_DEBUG   = -1,
             LOGTYPEV_INFO    =  0,
@@ -91,32 +88,34 @@ class Log final
         ~Log() = default;
 
     public:
-
         const char *FileName() const
         {
             return m_LogFileName.c_str();
         }
 
-    public:
+    private:
+        decltype(INFO) GetLevel(const char *szLevel)
+        {
+            if(!std::strcmp(szLevel, "0")){ return INFO;    }
+            if(!std::strcmp(szLevel, "1")){ return WARNING; }
+            if(!std::strcmp(szLevel, "2")){ return FATAL;   }
 
-        template<typename... U> void AddLog(
-                const std::array<std::string, 4> & stLoc, // use defined to subsistute __LINE__ etc.
-                const char *szLogFormat, U&&... u)        // varidic for internal printf(...)
+            return DEBUG;
+        }
+
+    public:
+        // to get rid of ``format-security" warning
+        void AddLog(const std::array<std::string, 4> & stLoc, const char *szInfo)
         {
             int nLine = std::atoi(stLoc[2].c_str());
+            auto stLevel = GetLevel(stLoc[0].c_str());
+            LogCapture(stLoc[1].c_str(), nLine, stLoc[3].c_str(), stLevel).capturef("%s", szInfo);
+        }
 
-            auto stLevel = INFO;
-            if(stLoc[0] == "0"){
-                stLevel = INFO;
-            }else if(stLoc[0] == "1"){
-                stLevel = WARNING;
-            }else if(stLoc[0] == "2"){
-                stLevel = FATAL;
-            }else{
-                stLevel = DEBUG;
-            }
-
-            LogCapture(stLoc[1].c_str(),
-                    nLine, stLoc[3].c_str(), stLevel).capturef(szLogFormat, std::forward<U>(u)...);
+        template<typename... U> void AddLog(const std::array<std::string, 4> &stLoc, const char *szLogFormat, U&&... u)
+        {
+            int nLine = std::atoi(stLoc[2].c_str());
+            auto stLevel = GetLevel(stLoc[0].c_str());
+            LogCapture(stLoc[1].c_str(), nLine, stLoc[3].c_str(), stLevel).capturef(szLogFormat, std::forward<U>(u)...);
         }
 };

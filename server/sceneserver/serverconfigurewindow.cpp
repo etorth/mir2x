@@ -14,7 +14,7 @@ void ServerConfigureWindow::cb_fileopen_i(Fl_Button*, void*) {
     switch(stFileChooser.show()){
         case -1:
             {
-                fl_alert(stFileChooser.errmsg());
+                fl_alert("%s", stFileChooser.errmsg());
                 break;
             }
         case 1:

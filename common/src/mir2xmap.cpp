@@ -41,7 +41,7 @@ bool Mir2xMap::Load(const char *szFullName)
     fseek(pFile, 0, SEEK_SET);
 
     ExtendBuf(nSize);
-    fread(m_Buf, nSize, 1, pFile);
+    (void)(1 + fread(m_Buf, nSize, 1, pFile));
     fclose(pFile);
 
     uint8_t *pCurDat = m_Buf;

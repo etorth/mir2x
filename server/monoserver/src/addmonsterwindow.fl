@@ -85,7 +85,7 @@ class AddMonsterWindow {open
 			AddMapList(stPair.first, stPair.second.c_str());
 		}
 	}else{
-		fl_alert("No valid map currently");
+		fl_alert("%s", "No valid map currently");
 	}
 }} {}
   }
@@ -100,7 +100,7 @@ class AddMonsterWindow {open
 			AddMonsterList(stPair.first, stPair.second.c_str());
 		}
 	}else{
-		fl_alert("No valid monster for current map");
+		fl_alert("%s", "No valid monster for current map");
 	}
 }} {}
   }

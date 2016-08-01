@@ -53,7 +53,7 @@ class MainWindow {open
     cFileChooser.directory(".");
     switch(cFileChooser.show()){
         case -1:
-            fl_alert(cFileChooser.errmsg());
+            fl_alert("%s", cFileChooser.errmsg());
             break;
         case  1:
             break;
@@ -80,10 +80,10 @@ class MainWindow {open
     // MakeWorkingFolder();
     extern AnimationSet g_AnimationSet;
     if(!g_AnimationSet.Export()){
-        fl_alert("Export animation failed!");
+        fl_alert("%s", "Export animation failed!");
     }
     
-    fl_alert("Export succeed!");
+    fl_alert("%s", "Export succeed!");
 }}
             private xywh {10 10 30 20} labelfont 4 divider
             code0 {\#include "animationset.hpp"}
@@ -224,7 +224,7 @@ RedrawAll();}
           MenuItem {} {
             label Reset
             callback {{
-	fl_alert("you are sure to reset?");
+	fl_alert("%s", "you are sure to reset?");
 }}
             xywh {0 0 34 20}
           }
