@@ -3,10 +3,70 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 06/23/2016 22:27:27
+ *  Last Modified: 08/02/2016 01:00:13
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
+ *
+ *                 I spent really a long time to think about this part, for how to
+ *                 arrange the object and show it correctly, following are some
+ *                 problems I need to handle.
+ *
+ *                 =====================================================================
+ *                 Problem 1:
+ *                             
+ *                             |     |     |     |
+ *                             |*****|     |     |
+ *                             |**A**|     |     |
+ *                             +-----+     |     |
+ *                                   |*****|     |
+ *                                   |**B**|  M  |
+ *                                   +-----+     |    <---- L-1
+ *                                      K  |*****|
+ *                                         |**C**|
+ *                                         +-----+    <---- L-2
+ *
+ *                 say now A, B, C are all wall slices, then they should be as overground
+ *                 object slices, now if at point K stands an object, then by the old
+ *                 rendering method, K will be rendered after B, but before C.
+ *
+ *                 now if object at K is ``fat" enough that its right part partially
+ *                 coincides with C, then we get problem since C is drawn after the object
+ *                 and the coinciding part of it will be covered by C
+ *
+ *                 =====================================================================
+ *                 Problem 2:
+ *
+ *                                          |  .  |
+ *                                          |  .  |
+ *                                          |  .  |
+ *                                          |*****|
+ *                                          |*****|  2
+ *                                          |*****|
+ *                                          |-----|
+ *                                          |*****|
+ *                                          |**** |  1
+ *                                          |***  |
+ *                                          |-----|
+ *                                          |*    |
+ *                                          |     |  0
+ *                                          | K   |
+ *                                          +-----+
+ *
+ *                 This problem is caused by how the visual data arranged in mir2, as
+ *                 above now this is an object slice, we cut it into small cells of size
+ *                 48 * 32, then even if there is only a very small part of the visable
+ *                 object available inside grid 0, still we have an whole grid and make
+ *                 it as ``over-ground"
+ *
+ *                 Now if there is a object standing at point K, then we expect that it
+ *                 should stand in front of the slice, but sadly by current rendering
+ *                 rule since we will draw object first and then slice, then the object
+ *                 will be covered by the slice
+ *
+ *                 =====================================================================
+ *                 Problem 2:
+ *
  *
  *        Version: 1.0
  *       Revision: none
@@ -32,6 +92,15 @@
 
 class EditorMap
 {
+    private:
+        typedef struct _GridObjectSlice{
+        }GridObjectSlice;
+        typedef struct _EditCellDesc{
+            uint32_t Tile;              // only use 1 / 4 of it
+
+            uint32_t Cell;
+        }EditCellDesc;
+
     private:
         int             m_W;
         int             m_H;

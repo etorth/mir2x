@@ -3,7 +3,7 @@
  *
  *       Filename: log.hpp
  *        Created: 03/16/2016 16:05:17
- *  Last Modified: 08/01/2016 05:13:15
+ *  Last Modified: 08/01/2016 23:59:48
  *
  *    Description: log functionality enabled by g3Log
  *
@@ -50,7 +50,7 @@
 
 class Log final
 {
-    private:
+    public:
         enum {
             LOGTYPEV_DEBUG   = -1,
             LOGTYPEV_INFO    =  0,
