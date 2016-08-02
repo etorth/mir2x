@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 06/13/2016 17:56:21
+ *  Last Modified: 08/02/2016 01:40:48
  *
  *    Description: 
  *
@@ -20,6 +20,12 @@
 
 #pragma once
 #include <cstdint>
+
+// In code of mirx, the MAX_Y_COUNT_FOR_OBJ_H is 44, means we need to check 44 * 32 in
+// height when drawing map because of the long object slice. Do some math the screen
+// height is 600, then for object slice it's (44 * 32 - 600) / 32 = 25.25, means there
+// are 26 cells of one object slice at most, then design data structure for object
+// rendering method based on this information
 
 const int SYS_OBJMAXW     = 48;
 const int SYS_OBJMAXH     = 96;
