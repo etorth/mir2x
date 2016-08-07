@@ -56,22 +56,19 @@ decl {\#include <FL/fl_draw.H>} {public local
 decl {\#include <FL/Fl_Shared_Image.H>} {public local
 } 
 
-decl {\#include "animationlistwindow.hpp"} {private local
-} 
-
 decl {\#include "animationselectwindow.hpp"} {private local
 } 
 
-class MainWindow {open
-} {
+class MainWindow {} {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_Window {
       callback {{
 	// do nothing
 }} open
-      xywh {935 146 985 665} type Double resizable visible
+      xywh {1939 317 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -466,10 +463,6 @@ if(g_SelectSettingWindow){
                     fl_alert("%s", "Load test animation database failed");
                 }
 
-                extern AnimationListWindow *g_AnimationListWindow;
-                g_AnimationListWindow->Load();
-                g_AnimationListWindow->ShowAll();
-
                 extern AnimationSelectWindow *g_AnimationSelectWindow;
                 g_AnimationSelectWindow->Load();
                 g_AnimationSelectWindow->ShowAll();
@@ -480,6 +473,14 @@ if(g_SelectSettingWindow){
 }}
             xywh {0 0 34 20}
             code0 {\#include "animationdb.hpp"}
+          }
+          MenuItem {} {
+            label {Configure Animation              }
+            callback {{
+    extern AnimationSelectWindow *g_AnimationSelectWindow;
+    g_AnimationSelectWindow->ShowAll();
+}}
+            xywh {10 10 34 20}
           }
         }
         Submenu {} {
@@ -721,7 +722,7 @@ if(g_EditorMap.Valid()){
     g_MainWindow->RedrawAll();
 }} {}
   }
-  Function {ShowBaseTileLine()} {selected return_type bool
+  Function {ShowBaseTileLine()} {return_type bool
   } {
     code {{
 	return m_MenuItemBaseTileLine->value();

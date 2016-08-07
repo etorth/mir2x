@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 06/30/2016 17:24:41
+ *  Last Modified: 08/07/2016 11:28:33
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -37,6 +37,7 @@
 #include <functional>
 #include "mainwindow.hpp"
 #include "attributeselectwindow.hpp"
+#include "animationselectwindow.hpp"
 #include "mathfunc.hpp"
 #include "editormap.hpp"
 #include "animation.hpp"
@@ -455,6 +456,13 @@ void DrawArea::DrawObject(bool bGround)
                                 DrawImage(pPNG, nMapX - m_OffsetX, nMapY - m_OffsetY);
                             };
 
+                            // use R from the AnimationSelectWindow, rather than the copy in AnimationDraw
+                            // this enables me to adjust R without reset the animation MonsterID
+                            extern AnimationSelectWindow *g_AnimationSelectWindow;
+                            int nAnimationX = g_AnimationDraw.X - m_OffsetX;
+                            int nAnimationY = g_AnimationDraw.Y - m_OffsetY;
+                            int nAnimationR = g_AnimationSelectWindow->R();
+                            fl_pie(nAnimationX, nAnimationY, 2 * nAnimationR, 2 * nAnimationR, 0.0, 360.0);
                             rstAnimation.Draw(g_AnimationDraw.X, g_AnimationDraw.Y, fnDraw);
                         }
                     }
@@ -1045,6 +1053,5 @@ void DrawArea::DrawLight()
     };
 
     extern EditorMap g_EditorMap;
-    g_EditorMap.DrawLight(
-            m_OffsetX / 48 - 2, m_OffsetY / 32 - 2, w() / 48 + 4, h() / 32 + 4, fnDrawLight);
+    g_EditorMap.DrawLight(m_OffsetX / 48 - 2, m_OffsetY / 32 - 2, w() / 48 + 4, h() / 32 + 4, fnDrawLight);
 }

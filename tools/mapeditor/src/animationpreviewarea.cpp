@@ -3,7 +3,7 @@
  *
  *       Filename: animationpreviewarea.cpp
  *        Created: 06/28/2016 23:29:25
- *  Last Modified: 06/30/2016 18:00:59
+ *  Last Modified: 08/07/2016 10:59:21
  *
  *    Description: 
  *
@@ -59,6 +59,7 @@ int AnimationPreviewArea::handle(int nEvent)
                 Fl::remove_timeout(MainWindow::UpdateAnimationFrame);
                 Fl::add_timeout(0.2, MainWindow::UpdateAnimationFrame, nullptr);
 
+                // 3. hide all windows for animation selection
                 extern AnimationSelectWindow *g_AnimationSelectWindow;
                 g_AnimationSelectWindow->HideAll();
             }

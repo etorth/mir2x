@@ -3,7 +3,7 @@
  *
  *       Filename: animationpreviewwindow.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/23/2016 22:14:48
+ *  Last Modified: 08/07/2016 11:32:32
  *
  *    Description: 
  *
@@ -25,6 +25,7 @@
 
 #include "animationdb.hpp"
 #include "animationdraw.hpp"
+#include "animationselectwindow.hpp"
 #include "animationpreviewwindow.hpp"
 
 AnimationPreviewWindow::PreviewWindow::PreviewWindow(int nX, int nY, int nW, int nH)
@@ -44,7 +45,10 @@ int AnimationPreviewWindow::PreviewWindow::handle(int nEvent)
             if(Fl::event_clicks()){
                 // 1. set the selected monster id
                 extern AnimationDraw g_AnimationDraw;
+                extern AnimationSelectWindow * g_AnimationSelectWindow;
                 extern AnimationPreviewWindow *g_AnimationPreviewWindow;
+
+                g_AnimationDraw.R         = g_AnimationSelectWindow->R();
                 g_AnimationDraw.MonsterID = g_AnimationPreviewWindow->MonsterID();
 
                 // 2. disable the timeout function to prevent it update the g_AnimationDB
