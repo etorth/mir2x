@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 08/08/2016 00:20:46
+ *  Last Modified: 08/08/2016 00:26:51
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -738,7 +738,7 @@ int DrawArea::handle(int nEvent)
                             int nY0 = g_AnimationDraw.Y;
                             int nX1 = nNewX;
                             int nY1 = nNewY;
-                            while((std::abs(nX1 - nX0) >= 2) && (std::abs(nY1 - nY0) >= 2)){
+                            while((std::abs(nX1 - nX0) >= 2) || (std::abs(nY1 - nY0) >= 2)){
                                 int nMidX = (nX0 + nX1) / 2;
                                 int nMidY = (nY0 + nY1) / 2;
 
