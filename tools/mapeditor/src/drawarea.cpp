@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 08/07/2016 23:24:57
+ *  Last Modified: 08/08/2016 00:20:46
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -732,6 +732,26 @@ int DrawArea::handle(int nEvent)
                         if(CoverValid(nNewX, nNewY, g_AnimationSelectWindow->R())){
                             g_AnimationDraw.X = nNewX;
                             g_AnimationDraw.Y = nNewY;
+                        }else{
+                            // try to find a feasible internal point by binary search
+                            int nX0 = g_AnimationDraw.X;
+                            int nY0 = g_AnimationDraw.Y;
+                            int nX1 = nNewX;
+                            int nY1 = nNewY;
+                            while((std::abs(nX1 - nX0) >= 2) && (std::abs(nY1 - nY0) >= 2)){
+                                int nMidX = (nX0 + nX1) / 2;
+                                int nMidY = (nY0 + nY1) / 2;
+
+                                if(CoverValid(nMidX, nMidY, g_AnimationSelectWindow->R())){
+                                    nX0 = nMidX;
+                                    nY0 = nMidY;
+                                }else{
+                                    nX1 = nMidX;
+                                    nY1 = nMidY;
+                                }
+                            }
+                            g_AnimationDraw.X = nX0;
+                            g_AnimationDraw.Y = nY0;
                         }
                     }else{
                         // always allowed
