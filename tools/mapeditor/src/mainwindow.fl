@@ -59,16 +59,16 @@ decl {\#include <FL/Fl_Shared_Image.H>} {public local
 decl {\#include "animationselectwindow.hpp"} {private local
 } 
 
-class MainWindow {} {
+class MainWindow {open
+} {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {open
-  } {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       callback {{
 	// do nothing
 }} open
-      xywh {1939 317 985 665} type Double resizable visible
+      xywh {2000 180 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -883,7 +883,7 @@ if(g_EditorMap.Valid()){
     return m_MenuItemReversed->value();
 }} {}
   }
-  Function {CenterAnimation()} {return_type void
+  Function {CenterAnimation()} {open return_type void
   } {
     code {{
     extern AnimationDraw g_AnimationDraw;
@@ -894,6 +894,7 @@ if(g_EditorMap.Valid()){
         g_AnimationDraw.X = nX;
         g_AnimationDraw.Y = nY;
     }
-}} {}
+}} {selected
+    }
   }
 } 

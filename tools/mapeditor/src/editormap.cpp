@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/01/2016 05:15:49
+ *  Last Modified: 08/07/2016 23:50:04
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -31,6 +31,8 @@
 #include <vector>
 #include "savepng.hpp"
 #include "filesys.hpp"
+#include "sysconst.hpp"
+#include "mathfunc.hpp"
 
 #include <FL/fl_ask.H>
 
@@ -144,12 +146,9 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
     if(!Valid()){ return; }
     for(int nYCnt = nCY; nYCnt < nCY + nCH; ++nYCnt){
         for(int nXCnt = nCX; nXCnt < nCX + nCW; ++nXCnt){
-            // 1. we draw actor, ext, even the grid is not valid
-            //    and we only draw it when drawing overground objects
-            //    draw it before drawing overground objects
-            if(!bGround){
-                fnDrawExt(nXCnt, nYCnt);
-            }
+            // // we should draw actors, extensions here, but I delay it after the over-ground
+            // // object drawing, it's really wired but works
+            // if(!bGround){ fnDrawExt(nXCnt, nYCnt); }
 
             // 2. regular draw
             for(int nIndex = 0; nIndex < 2; ++nIndex){
@@ -170,6 +169,10 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
                     fnDrawObj(nFileIndex, nImageIndex, nXCnt, nYCnt);
                 }
             }
+
+            // put the actors, extensions rendering here, it's really really wired but
+            // works, tricky part for mir2 resource maker
+            if(!bGround){ fnDrawExt(nXCnt, nYCnt); }
         }
     }
 }
@@ -1308,4 +1311,45 @@ void EditorMap::DrawLight(int nX, int nY, int nW, int nH, std::function<void(int
             }
         }
     }
+}
+
+bool EditorMap::CoverValid(int nX, int nY, int nR)
+{
+    if(nR  < 0){ return false;          }
+    if(nR == 0){ return ValidP(nX, nY); }
+
+    // ok now we are taking a real cover
+    int nDX0 = nX - nR;
+    int nDY0 = nY - nR;
+    int nDX1 = nX + nR;
+    int nDY1 = nY + nR;
+
+    if(RectangleInside(0, 0, m_W * SYS_MAPGRIDXP, m_H * SYS_MAPGRIDYP, nDX0, nDY0, nR * 2, nR * 2)){
+        for(int nGY = nDY0 / SYS_MAPGRIDYP; nGY <= nDY1 / SYS_MAPGRIDYP; ++nGY){
+            for(int nGX = nDX0 / SYS_MAPGRIDXP; nGX <= nDX1 / SYS_MAPGRIDXP; ++nGX){
+                // get each small rectangle in (nX - nR, nY - nR, nX + nR, nY + nR)
+                int nGPX0 = nGX * SYS_MAPGRIDXP;
+                int nGPY0 = nGY * SYS_MAPGRIDYP;
+
+                // check if circle overlaps with this grid
+                if(!CircleRectangleOverlap(nX, nY, nR, nGPX0, nGPY0, SYS_MAPGRIDXP, SYS_MAPGRIDYP)){ continue; }
+
+                int nGPX1 = nGX * SYS_MAPGRIDXP + SYS_MAPGRIDXP;
+                int nGPY1 = nGY * SYS_MAPGRIDYP + SYS_MAPGRIDYP;
+
+                int nGPMX = (nGPX0 + nGPX1) / 2;
+                int nGPMY = (nGPY0 + nGPY1) / 2;
+
+                if(CircleTriangleOverlap(nX, nY, nR, nGPMX, nGPMY, nGPX0, nGPY0, nGPX1, nGPY0)){ if(!CanWalk(nGX, nGY, 0)){ return false; } }
+                if(CircleTriangleOverlap(nX, nY, nR, nGPMX, nGPMY, nGPX1, nGPY0, nGPX1, nGPY1)){ if(!CanWalk(nGX, nGY, 1)){ return false; } }
+                if(CircleTriangleOverlap(nX, nY, nR, nGPMX, nGPMY, nGPX1, nGPY1, nGPX0, nGPY1)){ if(!CanWalk(nGX, nGY, 2)){ return false; } }
+                if(CircleTriangleOverlap(nX, nY, nR, nGPMX, nGPMY, nGPX0, nGPY1, nGPX0, nGPY0)){ if(!CanWalk(nGX, nGY, 3)){ return false; } }
+            }
+        }
+
+        return true;
+    }
+
+    // we require the whole cover inside the map
+    return false;
 }

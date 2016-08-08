@@ -3,7 +3,7 @@
  *
  *       Filename: animationdraw.hpp
  *        Created: 06/22/2016 22:24:59
- *  Last Modified: 08/07/2016 11:14:07
+ *  Last Modified: 08/07/2016 22:15:55
  *
  *    Description: 
  *
@@ -26,9 +26,10 @@ typedef struct _AnimationDraw{
     uint32_t Direction;
     uint32_t Frame;
 
-    int      X;
-    int      Y;
-    int      R;
+    // position for drawing animation
+    int     X;
+    int     Y;
+    int     R;
 
     _AnimationDraw(uint32_t nMonsterID = 0, int nX = 0, int nY = 0, int nR = 0)
         : MonsterID(nMonsterID)

@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 08/07/2016 11:28:33
+ *  Last Modified: 08/07/2016 23:24:57
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -43,6 +43,7 @@
 #include "animation.hpp"
 #include "animationdb.hpp"
 #include "animationdraw.hpp"
+#include "sysconst.hpp"
 
 #include "imagedb.hpp"
 #include "imagecache.hpp"
@@ -56,6 +57,7 @@ DrawArea::DrawArea(int x, int y, int w, int h)
     , m_TUC{{nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr}}
     , m_TextBoxBG(nullptr)
     , m_LightUC(nullptr)
+    , m_CoverV(SYS_MAXR + 1, nullptr)
 {
     m_TUC[0][0] = CreateTUC(0, true);
     m_TUC[0][1] = CreateTUC(1, true);
@@ -66,6 +68,10 @@ DrawArea::DrawArea(int x, int y, int w, int h)
     m_TUC[1][1] = CreateTUC(1, false);
     m_TUC[1][2] = CreateTUC(2, false);
     m_TUC[1][3] = CreateTUC(3, false);
+
+    for(int nR = 0; nR < (int)m_CoverV.size(); ++nR){
+        m_CoverV[nR] = CreateCover(nR);
+    }
 }
 
 DrawArea::~DrawArea()
@@ -80,6 +86,10 @@ DrawArea::~DrawArea()
     delete m_TUC[1][1];
     delete m_TUC[1][2];
     delete m_TUC[1][3];
+
+    for(int nR = 0; nR < (int)m_CoverV.size(); ++nR){
+        delete m_CoverV[nR];
+    }
 }
 
 void DrawArea::draw()
@@ -462,7 +472,11 @@ void DrawArea::DrawObject(bool bGround)
                             int nAnimationX = g_AnimationDraw.X - m_OffsetX;
                             int nAnimationY = g_AnimationDraw.Y - m_OffsetY;
                             int nAnimationR = g_AnimationSelectWindow->R();
-                            fl_pie(nAnimationX, nAnimationY, 2 * nAnimationR, 2 * nAnimationR, 0.0, 360.0);
+
+                            // draw funcitons take coordinates w.r.t the window rather than the widget
+                            // fl_circle(x() + nAnimationX * 1.0, y() + nAnimationY * 1.0, nAnimationR * 1.0);
+                            DrawImage(m_CoverV[nAnimationR], nAnimationX - nAnimationR, nAnimationY - nAnimationR);
+                            fl_circle(x() + nAnimationX * 1.0, y() + nAnimationY * 1.0, nAnimationR * 1.0);
                             rstAnimation.Draw(g_AnimationDraw.X, g_AnimationDraw.Y, fnDraw);
                         }
                     }
@@ -506,16 +520,14 @@ void DrawArea::DrawObject(bool bGround)
 // not for map or window
 void DrawArea::DrawImage(Fl_Image *pImage, int nAX, int nAY)
 {
+    if(pImage == nullptr
+            || nAX >= w() || nAX + pImage->w() <= 0
+            || nAY >= h() || nAY + pImage->h() <= 0){ return; }
+
     int nX = nAX + x();
     int nY = nAY + y();
     int nW = pImage->w();
     int nH = pImage->h();
-
-    if(pImage == nullptr
-            || nAX >= w() || nAX + pImage->w() <= 0
-            || nAY >= h() || nAY + pImage->h() <= 0){
-        return;
-    }
 
     int nSX = 0;
     int nSY = 0;
@@ -564,8 +576,7 @@ void DrawArea::DrawAttributeGrid()
                         int nMidX, nMidY, nX1, nY1, nX2, nY2;
                         GetTriangleOnMap(nCX, nCY, nIndex, nMidX, nMidY, nX1, nY1, nX2, nY2);
                         // TODO
-                        DrawLoop(nMidX - m_OffsetX, nMidY - m_OffsetY,
-                                nX1 - m_OffsetX, nY1 - m_OffsetY, nX2 - m_OffsetX, nY2 - m_OffsetY);
+                        DrawLoop(nMidX - m_OffsetX, nMidY - m_OffsetY, nX1 - m_OffsetX, nY1 - m_OffsetY, nX2 - m_OffsetX, nY2 - m_OffsetY);
                     }
                 }
             }
@@ -708,9 +719,25 @@ int DrawArea::handle(int nEvent)
                     //
                 }else if(g_MainWindow->EnableTest()){
                     // we are moving the animation to a proper place
+                    // if current position is invalid, then we permit any moving to get a valid
+                    // position, but if current position is valid, we reject any move request
+                    // which make the position invlaid again
+
                     extern AnimationDraw g_AnimationDraw;
-                    g_AnimationDraw.X += (m_MouseX - mouseX);
-                    g_AnimationDraw.Y += (m_MouseY - mouseY);
+                    extern AnimationSelectWindow *g_AnimationSelectWindow;
+                    int nNewX = g_AnimationDraw.X + (m_MouseX - mouseX);
+                    int nNewY = g_AnimationDraw.Y + (m_MouseY - mouseY);
+
+                    if(CoverValid(g_AnimationDraw.X, g_AnimationDraw.Y, g_AnimationSelectWindow->R())){
+                        if(CoverValid(nNewX, nNewY, g_AnimationSelectWindow->R())){
+                            g_AnimationDraw.X = nNewX;
+                            g_AnimationDraw.Y = nNewY;
+                        }
+                    }else{
+                        // always allowed
+                        g_AnimationDraw.X = nNewX;
+                        g_AnimationDraw.Y = nNewY;
+                    }
                 }else{
                     if(Fl::event_state() & FL_CTRL){
                         // bug of fltk here for windows, when some key is pressed, 
@@ -1054,4 +1081,31 @@ void DrawArea::DrawLight()
 
     extern EditorMap g_EditorMap;
     g_EditorMap.DrawLight(m_OffsetX / 48 - 2, m_OffsetY / 32 - 2, w() / 48 + 4, h() / 32 + 4, fnDrawLight);
+}
+
+bool DrawArea::CoverValid(int nX, int nY, int nR)
+{
+    extern EditorMap g_EditorMap;
+    return g_EditorMap.Valid() && g_EditorMap.CoverValid(nX, nY, nR);
+}
+
+Fl_Image *DrawArea::CreateCover(int nR)
+{
+    uint32_t nCB = 0X00000000;
+    uint32_t nCF = 0X8000090F;
+    if(nR){
+        int nSize = 2 * nR + 1;
+        std::vector<uint32_t> bfData(nSize * nSize, nCB);
+        for(int nY = 0; nY < nSize; ++nY){
+            for(int nX = 0; nX < nSize; ++nX){
+                if(LDistance2(nX, nY, nR, nR) <= nR * nR){
+                    bfData[nY * nSize + nX] = nCF;
+                }
+            }
+        }
+
+        return Fl_RGB_Image((uchar *)(&bfData[0]), nSize, nSize, 4, 0).copy(nSize, nSize);
+    }
+
+    return nullptr;
 }

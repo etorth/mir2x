@@ -3,7 +3,7 @@
  *
  *       Filename: animation.cpp
  *        Created: 06/20/2016 19:56:07
- *  Last Modified: 06/30/2016 17:03:13
+ *  Last Modified: 08/07/2016 18:34:35
  *
  *    Description: 
  *
@@ -99,13 +99,12 @@ void Animation::Draw(int nX, int nY)
     }
 }
 
-
 void Animation::Draw(int nX, int nY, std::function<void(Fl_Shared_Image *, int, int)> fnDraw)
 {
     // shadow
     if(FrameValid(m_Action, m_Direction, m_Frame, true)){
         auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Direction][m_Frame];
-        fnDraw(rstFrame[1].Image,nX + rstFrame[1].DX, nY + rstFrame[1].DY);
+        fnDraw(rstFrame[1].Image, nX + rstFrame[1].DX, nY + rstFrame[1].DY);
     }
 
     // body

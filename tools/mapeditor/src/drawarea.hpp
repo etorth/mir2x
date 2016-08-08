@@ -19,6 +19,9 @@ class DrawArea: public Fl_Box
         Fl_Image *m_TextBoxBG;     // backgound for living text
         Fl_Image *m_LightUC;
 
+    private:
+        std::vector<Fl_Image *> m_CoverV;
+
     public:
         DrawArea(int, int, int, int);
         ~DrawArea();
@@ -96,9 +99,13 @@ class DrawArea: public Fl_Box
         void GetTriangleOnMap(int, int, int, int &, int &, int &, int &, int &, int &);
         bool LocateLineSegment(int &, int &, int &, int &);
         bool LocateGroundSubCell(int, int, int &, int &, int &);
+        bool LocateAnimation(int, int);
 
     public:
         void SetScrollBar();
+
+    public:
+        bool CoverValid(int, int, int);
 
     public:
         void DrawTUC(int, int, int, bool);
@@ -106,5 +113,6 @@ class DrawArea: public Fl_Box
     public:
         // helper function
         Fl_Image *CreateTUC(int, bool);
+        Fl_Image *CreateCover(int);
         Fl_Image *RetrievePNG(uint8_t, uint16_t);
 };

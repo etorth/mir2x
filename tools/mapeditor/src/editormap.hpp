@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/02/2016 01:00:13
+ *  Last Modified: 08/07/2016 22:14:59
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -252,6 +252,11 @@ class EditorMap
             m_BufGroundObjMark[nX][nY][nIndex] = nGroundObj;
         }
 
+        bool CanWalk(int nX, int nY, int nIndex)
+        {
+            return GroundValid(nX, nY, nIndex);
+        }
+
     public:
         // for map resource extraction
         void ExtractOneTile(int, int, std::function<void(uint8_t, uint16_t)>);
@@ -307,10 +312,12 @@ class EditorMap
         // save to mir2x compact format
         bool Save(const char *);
 
+    public:
+        bool CoverValid(int, int, int);
+
     private:
-        void PushData(const std::vector<bool> &,
-                const std::vector<uint8_t> &, std::vector<uint8_t> &);
         void PushBit(const std::vector<bool> &, std::vector<uint8_t> &);
+        void PushData(const std::vector<bool> &, const std::vector<uint8_t> &, std::vector<uint8_t> &);
 
     public:
         void Optimize();
