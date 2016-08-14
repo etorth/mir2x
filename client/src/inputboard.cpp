@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 7:04:16 PM
- *  Last Modified: 04/02/2016 22:21:31
+ *  Last Modified: 08/14/2016 12:28:00
  *
  *    Description: 
  *
@@ -245,7 +245,7 @@ void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
         m_TokenBoard.GetDefaultFontInfo(&nFont, &nFontSize, &nFontStyle);
 
         extern FontexDBN *g_FontexDBN;
-        auto pTexture = g_FontexDBN->Retrieve( nFont, nFontSize, nFontStyle, (int)'M'); 
+        auto pTexture = g_FontexDBN->Retrieve(nFont, nFontSize, nFontStyle, (int)'M'); 
 
         int nDefaultH;
         SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nDefaultH);
