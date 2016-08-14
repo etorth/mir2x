@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 06/18/2016 23:50:39
+ *  Last Modified: 08/14/2016 12:23:00
  *
  *    Description: 
  *
@@ -753,63 +753,27 @@ int TokenBoard::GetNthNewLineStartY(int nLine)
 // everything dynamic and can be retrieve is in Cache
 //            dynamic but can not be retrieved is in State
 //            static is in Info
+// we assume all token box are well-prepared here!
+// means cache, state, info are all valid now when invoke this function
 void TokenBoard::DrawEx(
         int nDstX, int nDstY, // start position of drawing on the screen
         int nSrcX, int nSrcY, // region to draw, a cropped region on the token board
         int nSrcW, int nSrcH)
 {
-    // we assume all token box are well-prepared here!
-    // means cache, state, info are all valid now when invoke this function
-    //
+    // 1. if no overlapping at all then directly return
+    if(!RectangleOverlap(nSrcX, nSrcY, nSrcW, nSrcH, 0, 0, W(), H())){ return; }
 
-    // if(false
-    //         || nSrcX >= m_W
-    //         || nSrcY >= m_H
-    //         || nSrcX + nDstW <= 0
-    //         || nSrcY + nDstH <= 0){
-    //     return;
-    // }
-    //
-    // if(nSrcX < 0){
-    //     nSrcW += nSrcX;
-    //     nSrcX  = 0;
-    // }
-    //
-    // if(nSrcY < 0){
-    //     nSrcH += nSrcY;
-    //     nSrcY  = 0;
-    // }
-    //
-    // if(nSrcX + nSrcW > m_W){
-    //     nSrcW = m_W - nSrcX;
-    // }
-    //
-    // if(nSrcY + nSrcH > m_H){
-    //     nSrcH = m_H - nSrcY;
-    // }
-
-    // now nSrc(X, Y, W, H) is a sub-area on the board
-
-    // we need to check it since for each tokenbox, overlap checking is expensive
-    bool bCheckInside = !(nSrcX == 0 && nSrcY == 0 && nSrcW == W() && nSrcH == H());
-
+    // 2. check tokenbox one by one, this is expensive
     for(int nLine = 0; nLine < (int)m_LineV.size(); ++nLine){
         for(auto &rstTokenBox: m_LineV[nLine]){
-
-            // get tokenbox size info, this is uniform for Text/Emoticon
             int nX, nY, nW, nH;
             nX = rstTokenBox.Cache.StartX;
             nY = rstTokenBox.Cache.StartY;
             nW = rstTokenBox.Cache.W - rstTokenBox.State.W1 - rstTokenBox.State.W2;
             nH = rstTokenBox.Cache.H;
 
-            bool bCheckOverlap = bCheckInside && !RectangleInside(0, 0, W(), H(), nX, nY, nW, nH);
-
-            if(bCheckOverlap && !RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){
-                // need to check overlap and it's outside
-                continue;
-            }
-
+            // try to get the clipped region of the tokenbox
+            if(!RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){ continue; }
             if(!SectionValid(rstTokenBox.Section, true)){
                 extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_INFO, "section id invalid: %d", rstTokenBox.Section);
@@ -820,11 +784,7 @@ void TokenBoard::DrawEx(
                 case SECTIONTYPE_EVENTTEXT:
                 case SECTIONTYPE_PLAINTEXT:
                     {
-                        // I had a hard time here
-                        //
-                        // TODO
-                        //
-                        // the purpose of introducing FontexDB is for saving video memory
+                        // the purpose of introducing FontexDB is for saving video memory, it's
                         // not to support hot source data switch!
                         //
                         // assumptions:
@@ -852,8 +812,7 @@ void TokenBoard::DrawEx(
                             SDL_SetTextureColorMod(pTexture, rstColor.r, rstColor.g, rstColor.b);
                             int nDX = nX - rstTokenBox.Cache.StartX;
                             int nDY = nY - rstTokenBox.Cache.StartY;
-                            g_SDLDevice->DrawTexture(pTexture,
-                                    nX + nDstX, nY + nDstY, nDX, nDY, nW, nH);
+                            g_SDLDevice->DrawTexture(pTexture, nX + nDstX, nY + nDstY, nDX, nDY, nW, nH);
                         }else{
                             // TODO
                             // draw a box here to indicate errors

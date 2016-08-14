@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 06/18/2016 23:51:31
+ *  Last Modified: 08/14/2016 11:22:31
  *
  *    Description: 
  *
@@ -99,14 +99,8 @@ template<typename T> bool PointInCircle(T nfX, T nfY, T nfCX, T nfCY, T nfR)
 
 template<typename T> bool RectangleOverlap(T nfX1, T nfY1, T nfW1, T nfH1, T nfX2, T nfY2, T nfW2, T nfH2)
 {
-    // TODO
-    // finish code
     static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
-    return !(true
-            || nfX1 >= nfX2 + nfW2
-            || nfY1 >= nfY2 + nfH2
-            || nfX1 + nfW1 < nfX2
-            || nfY1 + nfH1 < nfY2);
+    return !((nfX1 >= nfX2 + nfW2) || (nfX1 + nfW1 < nfX2) || (nfY1 >= nfY2 + nfH2) || (nfY1 + nfH1 < nfY2));
 }
 
 // check whether R2 is inside R1
