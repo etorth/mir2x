@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 06/14/2016 01:31:26
+ *  Last Modified: 08/14/2016 01:46:26
  *
  *    Description: public API for class game only
  *
@@ -101,48 +101,28 @@ void Game::Draw()
 
 void Game::MainLoop()
 {
-    // for first time entry, setup threads etc..
-    //
     SwitchProcess(PROCESSID_LOGO);
-
-    // I hate the asynchronized way
-    // std::future<void> stFuture = std::async(std::launch::async, [this](){ RunASIO(); });
-
     InitASIO();
 
     double fLastMS = GetTimeMS();
-
     while(m_CurrentProcess->ID() != PROCESSID_EXIT){
-
         PollASIO();
-
-        // process *all* pending event
         ProcessEvent();
         
         double fCurrentMS = GetTimeMS();
-
-        // time has passed by Delta MS from last update
         Update(fCurrentMS - fLastMS);
-
         Draw();
 
         m_DelayTimeCQ.PushHead(fCurrentMS - fLastMS);
-
         fLastMS = fCurrentMS;
 
         // try to expect next delay time interval
         double fTimeSum = 0.0;
         for(m_DelayTimeCQ.Reset(); !m_DelayTimeCQ.Done(); m_DelayTimeCQ.Forward()){
-            // TODO
-            // we assume the time queue is always full!
-            // so just fullfil the queue during initialization
             fTimeSum += m_DelayTimeCQ.Current();
         }
 
         double fExpectedTime = (1.0 + m_DelayTimeCQ.Size()) * 1000.0 / m_FPS - fTimeSum;
-
         EventDelay(fExpectedTime);
     }
-
-    // stFuture.get();
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: time.cpp
  *        Created: 03/19/2016 00:35:32
- *  Last Modified: 04/18/2016 00:02:47
+ *  Last Modified: 08/14/2016 01:06:32
  *
  *    Description: 
  *
@@ -38,20 +38,14 @@ void Game::EventDelay(double fDelayMS)
         ProcessEvent();
 
         double fCurrentMS = GetTimeMS();
+        double fDelayDone = fCurrentMS - fStartDelayMS;
 
-        if(fCurrentMS - fStartDelayMS > fDelayMS){
-            break;
-        }
+        if(fDelayDone > fDelayMS){ break; }
 
-        // still we need to delay, so just delay
-        // delay half the time
-        //
-        // TODO
-        //
         // here we check the delay time
         // since SDL_Delay(0) may run into problem
-        //
-        Uint32 nDelayMSCount = (Uint32)(fCurrentMS - fStartDelayMS / 2.0);
+
+        Uint32 nDelayMSCount = (Uint32)(std::lround((fDelayMS - fDelayDone) * 0.50));
 
         if(nDelayMSCount > 0){
             SDL_Delay(nDelayMSCount);

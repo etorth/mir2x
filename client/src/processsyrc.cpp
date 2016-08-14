@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 08/14/2015 2:47:49 PM
- *  Last Modified: 04/01/2016 14:54:38
+ *  Last Modified: 08/14/2016 01:08:16
  *
  *    Description: 
  *
@@ -53,10 +53,9 @@ void ProcessSyrc::ProcessEvent(const SDL_Event &rstEvent)
 
 void ProcessSyrc::Update(double fDeltaMS)
 {
-    m_Ratio += (fDeltaMS > 10.0);
+    m_Ratio += ((fDeltaMS > 10.0) ? 1 : 0);
 
     if(m_Ratio >= 100){
-        // m_Ratio = m_Ratio - 100;
         extern Game *g_Game;
         g_Game->SwitchProcess(PROCESSID_SYRC, PROCESSID_LOGIN);
     }
