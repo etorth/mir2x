@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/14/2016 14:21:23
+ *  Last Modified: 08/14/2016 15:28:19
  *
  *    Description: 
  *
@@ -543,6 +543,7 @@ void TokenBoard::SetTokenBoxStartX(int nLine)
         rstTokenBox.Cache.StartX = nCurrentX;
         nCurrentX += rstTokenBox.Cache.W;
         nCurrentX += rstTokenBox.State.W2;
+        nCurrentX += m_WordSpace;
     }
 }
 
@@ -552,9 +553,10 @@ int TokenBoard::LineFullWidth(int nLine)
 
     int nWidth = 0;
     for(auto &rstTB: m_LineV[nLine]){
-        nWidth += (rstTB.Cache.W + rstTB.State.W1 + rstTB.State.W2);
+        nWidth += (rstTB.Cache.W + rstTB.State.W1 + rstTB.State.W2 + m_WordSpace);
     }
-    return nWidth;
+
+    return nWidth - m_WordSpace;
 }
 
 int TokenBoard::LineRawWidth(int nLine, bool bWithWordSpace)
@@ -585,6 +587,9 @@ int TokenBoard::LineRawWidth(int nLine, bool bWithWordSpace)
                 return nWidth;
             }
     }
+
+    // to make the compiler happy
+    return -1;
 }
 
 int TokenBoard::SetTokenBoxWordSpace(int nLine)
@@ -1573,10 +1578,10 @@ bool TokenBoard::AddTokenBoxV(const std::vector<TOKENBOX> & rstTBV)
         return true;
     }
 
-    std::vector<TOKENBOX> stRestTBV {
-        m_LineV[nY].begin() + nCount, m_LineV[nY].end()};
-
+    // backup the token need to put into next line
+    std::vector<TOKENBOX> stRestTBV {m_LineV[nY].begin() + nCount, m_LineV[nY].end()};
     m_LineV[nY].resize(nCount);
+
     ResetLine(nY);
 
     // now the tokenboard is valid again, and we put the rest to
