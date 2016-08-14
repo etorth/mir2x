@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: inputboard.cpp
- *        Created: 08/21/2015 7:04:16 PM
- *  Last Modified: 08/14/2016 12:28:00
+ *        Created: 08/21/2015 07:04:16 PM
+ *  Last Modified: 08/14/2016 13:39:02
  *
  *    Description: 
  *
@@ -302,10 +302,10 @@ void InputBoard::ResetTokenBoardLocation()
 
 void InputBoard::Draw()
 {
-    if(RectangleInside(X(), Y(), W(), H(), 
+    if(RectangleInside(X(), Y(), W(), H(),
                 m_TokenBoard.X(), m_TokenBoard.Y(),
                 m_TokenBoard.W(), m_TokenBoard.H())){
-        m_TokenBoard.Draw(0, 0);
+        m_TokenBoard.Draw(X(), Y());
     }else{
         int nTokenBoardX = m_TokenBoard.X();
         int nTokenBoardY = m_TokenBoard.Y();

@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/03/2016 17:47:03
+ *  Last Modified: 08/14/2016 13:41:06
  *
  *    Description: 
  *
@@ -47,8 +47,8 @@ class InputBoard: public InputWidget
                 uint8_t          nDefaultStyle   =  0,
                 const SDL_Color &rstDefaultColor = {0XFF, 0XFF, 0XFF, 0XFF},
                 Widget          *pWidget         =  nullptr,
-                bool             bFreeWidget     =  false):
-            InputWidget(nX, nY, nW, nH, pWidget, bFreeWidget)
+                bool             bFreeWidget     =  false)
+            : InputWidget(nX, nY, nW, nH, pWidget, bFreeWidget)
             , m_TokenBoard(
                     0,
                     0,
@@ -71,9 +71,7 @@ class InputBoard: public InputWidget
                     bFreeWidget)
             , m_CursorColor(rstCursorColor)
             , m_CursorWidth(nCursorWidth)
-            , m_IME{
-                nullptr
-            }
+            , m_IME(nullptr)
         {
 
             m_MS = 0.0;

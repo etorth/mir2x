@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/14/2016 12:23:00
+ *  Last Modified: 08/14/2016 14:21:23
  *
  *    Description: 
  *
@@ -876,15 +876,16 @@ void TokenBoard::ResetLine(int nLine)
     SetTokenBoxStartX(nLine);
 
     int nWidth = LineFullWidth(nLine);
-    if(m_W < nWidth){
-        m_W = nWidth;
+    if(m_W < nWidth + m_Margin[1] + m_Margin[3]){
+        m_W = nWidth + m_Margin[1] + m_Margin[3];
     }else{
         // the current width may get from nLine
         // but nLine resets now, we need to recompute it
         m_W = -1;
         for(int nIndex = 0; nIndex < (int)m_LineV.size(); ++nIndex){
-            m_W = (std::max)(m_W, LineFullWidth(nLine));
+            m_W = (std::max)(m_W, LineFullWidth(nIndex));
         }
+        m_W += (m_Margin[1] + m_Margin[3]);
     }
 
     // without StartX we can't calculate StartY
@@ -916,7 +917,7 @@ void TokenBoard::ResetLine(int nLine)
         }else{
             int nOldStartY = m_LineStartY[nRestLine];
             m_LineStartY[nRestLine] = GetNthNewLineStartY(nRestLine);
-            if(LineFullWidth(nRestLine) == m_W){
+            if(LineFullWidth(nRestLine) + m_Margin[1] + m_Margin[3] == m_W){
                 nTrickOn = 1;
                 nDStartY = m_LineStartY[nRestLine] - nOldStartY;
             }

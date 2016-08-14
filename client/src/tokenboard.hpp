@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 04/03/2016 17:45:25
+ *  Last Modified: 08/14/2016 14:08:06
  *
  *    Description: Design TBD.
  *
@@ -220,10 +220,7 @@ class TokenBoard: public Widget
             , m_SkipUpdate(false)
             , m_Margin{ nMargin0, nMargin1, nMargin2, nMargin3 }
         {
-            if(m_PW > 0){
-                m_W = m_PW;
-            }
-
+            if(m_PW > 0){ m_W = m_Margin[1] + m_PW + m_Margin[3]; }
             Reset();
         }
 
@@ -256,8 +253,8 @@ class TokenBoard: public Widget
         void SetTokenBoxStartY(int, int);
 
     public:
-        int     LinePadding(int);
-        int     DoLinePadding(int, int, int);
+        int  LinePadding(int);
+        int  DoLinePadding(int, int, int);
         void ResetLine(int);
 
     private:
@@ -594,6 +591,12 @@ class TokenBoard: public Widget
 
     public:
         std::string Print(bool);
+
+    public:
+        int Margin(int nIndex)
+        {
+            return (nIndex >= 0 && nIndex < 4) ? m_Margin[nIndex] : -1;
+        }
 
     private:
         int     m_SelectState;  // 0: no selection
