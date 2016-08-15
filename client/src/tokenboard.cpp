@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/14/2016 17:45:08
+ *  Last Modified: 08/14/2016 23:11:09
  *
  *    Description: 
  *
@@ -463,7 +463,7 @@ int TokenBoard::DoLinePadding(int nLine, int nDWidth, int nSectionType)
         return nDWidth;
     }
 
-    auto stCurrLine = m_LineV[nLine];
+    auto &stCurrLine = m_LineV[nLine];
     int nPaddingSpace = nDWidth / nCount;
 
     // first round
@@ -635,11 +635,11 @@ int TokenBoard::LinePadding(int nLine)
 
     if(nDWidth > 0){
         // round-1: try to padding by emoticons
-        int nNewWidth = DoLinePadding(nLine, nDWidth, SECTIONTYPE_EMOTICON);
-        if(nNewWidth < 0 || nNewWidth == nDWidth){
+        int nNewDWidth = DoLinePadding(nLine, nDWidth, SECTIONTYPE_EMOTICON);
+        if(nNewDWidth < 0 || nNewDWidth == nDWidth){
             // doesn't work, padding by all boxes
-            nNewWidth = DoLinePadding(nLine, nDWidth, 0);
-            if(nNewWidth == 0){
+            nNewDWidth = DoLinePadding(nLine, nDWidth, 0);
+            if(nNewDWidth == 0){
                 return m_PW;
             }
             return -1;
@@ -742,8 +742,13 @@ int TokenBoard::GetNthNewLineStartY(int nLine)
     //                   |        |
     //
 
+    // 1. parameters check
     if(nLine < 0 || nLine >= (int)m_LineV.size()){ return -1; }
 
+    // 2. we allow empty line for logic consistency
+    if(m_LineV[nLine].empty()){ return (nLine == 0) ? 0 : m_LineStartY[nLine - 1]; }
+
+    // 3. get the best start point
     int nCurrentY = -1;
     for(auto &rstTokenBox: m_LineV[nLine]){
         int nX  = rstTokenBox.Cache.StartX;
@@ -904,6 +909,7 @@ void TokenBoard::ResetLine(int nLine)
     //    
     // howto
     // 1. reset nLine, anyway this is needed
+    //    actually we should report as an error here
     if((int)m_LineStartY.size() <= nLine){
         m_LineStartY.resize(nLine + 1);
     }
@@ -934,7 +940,7 @@ void TokenBoard::ResetLine(int nLine)
         SetTokenBoxStartY(nRestLine, m_LineStartY[nRestLine]);
     }
 
-    m_H = m_LineStartY.back() + GetNthLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W) + 1;
+    m_H = m_LineStartY.back() + 1 + (m_LineV.back().empty() ? 0 : GetNthLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W));
 }
 
 void TokenBoard::TokenBoxGetMouseButtonUp(int nX, int nY, bool bFirstHalf)
@@ -1599,8 +1605,9 @@ bool TokenBoard::AddTokenBoxV(const std::vector<TOKENBOX> & rstTBV)
     // now the tokenboard is valid again, and we put the rest to the next line
     if(bCurrEndWithCR){
         // 1. when curent line ends up with CR, we put a new line next to it
-        m_LineV.insert(m_LineV.begin() + nY + 1, {});
+        m_LineV.insert(m_LineV.begin() + nY + 1, {{}});
         m_EndWithCR.insert(m_EndWithCR.begin() + nY + 1, true);
+        m_LineStartY.insert(m_LineStartY.begin() + nY + 1, m_LineStartY[nY]);
 
         // now there is a new empty, and we need to reset this line to make
         // the board to be valid again
