@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/14/2016 14:08:06
+ *  Last Modified: 08/14/2016 16:14:07
  *
  *    Description: Design TBD.
  *
@@ -391,7 +391,6 @@ class TokenBoard: public Widget
 
     private:
         std::vector<std::vector<TOKENBOX>> m_LineV;
-        std::vector<TOKENBOX>              m_CurrentLine;
         std::unordered_map<int, SECTION>   m_SectionV;
         std::vector<int>                   m_LineStartY;
     private:

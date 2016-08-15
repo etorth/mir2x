@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/14/2016 15:28:19
+ *  Last Modified: 08/14/2016 17:45:08
  *
  *    Description: 
  *
@@ -463,6 +463,7 @@ int TokenBoard::DoLinePadding(int nLine, int nDWidth, int nSectionType)
         return nDWidth;
     }
 
+    auto stCurrLine = m_LineV[nLine];
     int nPaddingSpace = nDWidth / nCount;
 
     // first round
@@ -470,18 +471,18 @@ int TokenBoard::DoLinePadding(int nLine, int nDWidth, int nSectionType)
     //
     // WTF
     // I forget the reason why I need to check [0].type != [1].type
-    if(TokenBoxType(m_CurrentLine[0]) != TokenBoxType(m_CurrentLine[1])){
-        if(nSectionType == 0 || TokenBoxType(m_CurrentLine[0]) & nSectionType){
-            m_CurrentLine[0].State.W2 += (nPaddingSpace / 2);
+    if(TokenBoxType(stCurrLine[0]) != TokenBoxType(stCurrLine[1])){
+        if(nSectionType == 0 || TokenBoxType(stCurrLine[0]) & nSectionType){
+            stCurrLine[0].State.W2 += (nPaddingSpace / 2);
             nDWidth -= nPaddingSpace / 2;
             if(nDWidth == 0){ return 0; }
         }
     }
 
-    for(size_t nIndex = 1; nIndex < m_CurrentLine.size() - 1; ++nIndex){
-        if(nSectionType == 0 || TokenBoxType(m_CurrentLine[nIndex]) & nSectionType){
-            m_CurrentLine[nIndex].State.W1 += (nPaddingSpace / 2);
-            m_CurrentLine[nIndex].State.W2 += (nPaddingSpace - nPaddingSpace / 2);
+    for(size_t nIndex = 1; nIndex < stCurrLine.size() - 1; ++nIndex){
+        if(nSectionType == 0 || TokenBoxType(stCurrLine[nIndex]) & nSectionType){
+            stCurrLine[nIndex].State.W1 += (nPaddingSpace / 2);
+            stCurrLine[nIndex].State.W2 += (nPaddingSpace - nPaddingSpace / 2);
 
             nDWidth -= nPaddingSpace;
             if(nDWidth == 0){ return 0; }
@@ -489,35 +490,35 @@ int TokenBoard::DoLinePadding(int nLine, int nDWidth, int nSectionType)
     }
 
     // why here I won't check type? forget
-    if(nSectionType == 0 || TokenBoxType(m_CurrentLine.back()) & nSectionType){
-        m_CurrentLine.back().State.W1 += (nPaddingSpace / 2);
+    if(nSectionType == 0 || TokenBoxType(stCurrLine.back()) & nSectionType){
+        stCurrLine.back().State.W1 += (nPaddingSpace / 2);
         nDWidth -= nPaddingSpace / 2;
         if(nDWidth == 0){ return 0; }
     }
 
     // second round, small update
-    if(TokenBoxType(m_CurrentLine[0]) != TokenBoxType(m_CurrentLine[1])){
-        if(nSectionType == 0 || TokenBoxType(m_CurrentLine[0]) & nSectionType){
-            m_CurrentLine[0].State.W2++;;
+    if(TokenBoxType(stCurrLine[0]) != TokenBoxType(stCurrLine[1])){
+        if(nSectionType == 0 || TokenBoxType(stCurrLine[0]) & nSectionType){
+            stCurrLine[0].State.W2++;;
             nDWidth--;
             if(nDWidth == 0){ return 0; }
         }
     }
 
-    for(size_t nIndex = 1; nIndex < m_CurrentLine.size() - 1; ++nIndex){
-        if(nSectionType == 0 || TokenBoxType(m_CurrentLine[nIndex]) & nSectionType){
-            if(m_CurrentLine[nIndex].State.W1 <=  m_CurrentLine[nIndex].State.W2){
-                m_CurrentLine[nIndex].State.W1++;
+    for(size_t nIndex = 1; nIndex < stCurrLine.size() - 1; ++nIndex){
+        if(nSectionType == 0 || TokenBoxType(stCurrLine[nIndex]) & nSectionType){
+            if(stCurrLine[nIndex].State.W1 <=  stCurrLine[nIndex].State.W2){
+                stCurrLine[nIndex].State.W1++;
             }else{
-                m_CurrentLine[nIndex].State.W2++;
+                stCurrLine[nIndex].State.W2++;
             }
             nDWidth--;
             if(nDWidth == 0){ return 0; }
         }
     }
 
-    if(nSectionType == 0 || TokenBoxType(m_CurrentLine.back()) & nSectionType){
-        m_CurrentLine.back().State.W1++;
+    if(nSectionType == 0 || TokenBoxType(stCurrLine.back()) & nSectionType){
+        stCurrLine.back().State.W1++;
         nDWidth--;
         if(nDWidth == 0){ return 0; }
     }
@@ -543,7 +544,6 @@ void TokenBoard::SetTokenBoxStartX(int nLine)
         rstTokenBox.Cache.StartX = nCurrentX;
         nCurrentX += rstTokenBox.Cache.W;
         nCurrentX += rstTokenBox.State.W2;
-        nCurrentX += m_WordSpace;
     }
 }
 
@@ -553,10 +553,10 @@ int TokenBoard::LineFullWidth(int nLine)
 
     int nWidth = 0;
     for(auto &rstTB: m_LineV[nLine]){
-        nWidth += (rstTB.Cache.W + rstTB.State.W1 + rstTB.State.W2 + m_WordSpace);
+        nWidth += (rstTB.Cache.W + rstTB.State.W1 + rstTB.State.W2);
     }
 
-    return nWidth - m_WordSpace;
+    return nWidth;
 }
 
 int TokenBoard::LineRawWidth(int nLine, bool bWithWordSpace)
@@ -774,7 +774,7 @@ void TokenBoard::DrawEx(
             int nX, nY, nW, nH;
             nX = rstTokenBox.Cache.StartX;
             nY = rstTokenBox.Cache.StartY;
-            nW = rstTokenBox.Cache.W - rstTokenBox.State.W1 - rstTokenBox.State.W2;
+            nW = rstTokenBox.Cache.W;
             nH = rstTokenBox.Cache.H;
 
             // try to get the clipped region of the tokenbox
@@ -874,7 +874,11 @@ void TokenBoard::ResetLine(int nLine)
 {
     if(nLine < 0 || nLine >= (int)m_LineV.size()){ return; }
 
-    if(!m_EndWithCR[nLine]){
+    if(m_EndWithCR[nLine]){
+        // ends with CR, do word space padding only
+        SetTokenBoxWordSpace(nLine);
+    }else{
+        // else do word space and W1-W2 padding
         LinePadding(nLine);
     }
 
@@ -922,7 +926,7 @@ void TokenBoard::ResetLine(int nLine)
         }else{
             int nOldStartY = m_LineStartY[nRestLine];
             m_LineStartY[nRestLine] = GetNthNewLineStartY(nRestLine);
-            if(LineFullWidth(nRestLine) + m_Margin[1] + m_Margin[3] == m_W){
+            if(LineFullWidth(nRestLine) + (m_Margin[1] + m_Margin[3])== m_W){
                 nTrickOn = 1;
                 nDStartY = m_LineStartY[nRestLine] - nOldStartY;
             }
@@ -1559,11 +1563,12 @@ bool TokenBoard::AddTokenBoxV(const std::vector<TOKENBOX> & rstTBV)
     int nWidth =  0;
     for(int nIndex = 0; nIndex < (int)m_LineV[nY].size(); ++nIndex){
         nWidth += m_LineV[nY][nIndex].Cache.W;
-
-        if(nWidth + nIndex * m_WordSpace > m_PW){
+        if(nWidth > m_PW){
             nCount = nIndex;
             break;
         }
+
+        nWidth += m_WordSpace;
     }
 
     if(nCount == 0){
@@ -1578,29 +1583,37 @@ bool TokenBoard::AddTokenBoxV(const std::vector<TOKENBOX> & rstTBV)
         return true;
     }
 
+    // can't hold so many tokens in current line
     // backup the token need to put into next line
     std::vector<TOKENBOX> stRestTBV {m_LineV[nY].begin() + nCount, m_LineV[nY].end()};
     m_LineV[nY].resize(nCount);
 
+    // no matter current ends up with CR or not, now we need to make current
+    // line not-ends-up-with-CR
+    bool bCurrEndWithCR = m_EndWithCR[nY];
+    m_EndWithCR[nY] = false;
+
+    // reset current line, do padding, align, etc.
     ResetLine(nY);
 
-    // now the tokenboard is valid again, and we put the rest to
-    // the next line
-    //
-    if(m_EndWithCR[nY]){
-        m_EndWithCR[nY] = false;
+    // now the tokenboard is valid again, and we put the rest to the next line
+    if(bCurrEndWithCR){
+        // 1. when curent line ends up with CR, we put a new line next to it
         m_LineV.insert(m_LineV.begin() + nY + 1, {});
         m_EndWithCR.insert(m_EndWithCR.begin() + nY + 1, true);
-    }
 
-    // TODO: need to make sure ``next line" exists, aka there should
-    // be a ``nY + 1" line, or m_LineV.size() > nY + 1
-    if((int)m_LineV.size() <= (nY + 1)){
-        m_LineV.resize(nY + 2);
-        m_EndWithCR.resize(nY + 2);
-
-        // always make the empty line ends with <CR> ?
-        m_EndWithCR[nY + 1] = true;
+        // now there is a new empty, and we need to reset this line to make
+        // the board to be valid again
+        ResetLine(nY + 1);
+    }else{
+        // 2. when not, we need to make sure current line has a ``next line" since
+        //    since if current line is the last line, it should end with CR
+        //
+        //    if not, this should be an error!
+        if((int)m_LineV.size() <= (nY + 1)){
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_FATAL, "Invalid logic in tokenboard: last line ends with non-CR");
+        }
     }
 
     // afer this, the tokenboard is valid again
@@ -1859,9 +1872,14 @@ void TokenBoard::ResetOneLine(int nLine)
         return;
     }
 
-    if(!m_EndWithCR[nLine]){
+    if(m_EndWithCR[nLine]){
+        // ends with CR, do word space padding only
+        SetTokenBoxWordSpace(nLine);
+    }else{
+        // else do word space and W1-W2 padding
         LinePadding(nLine);
     }
+
     SetTokenBoxStartX(nLine);
 
     m_LineStartY[nLine] = GetNthNewLineStartY(nLine);
