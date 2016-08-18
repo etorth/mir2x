@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/14/2016 23:11:09
+ *  Last Modified: 08/18/2016 01:26:43
  *
  *    Description: 
  *
@@ -1630,11 +1630,9 @@ bool TokenBoard::AddTokenBoxV(const std::vector<TOKENBOX> & rstTBV)
 }
 
 // get the location and shape info of tokenbox
-bool TokenBoard::GetTokenBoxInfo(int nX, int nY,
-        int *pType, int *pX, int *pY, int *pW, int *pH, int *pW1, int *pW2)
+bool TokenBoard::GetTokenBoxInfo(int nX, int nY, int *pType, int *pX, int *pY, int *pW, int *pH, int *pW1, int *pW2)
 {
-    if(nY < 0 || nY >= (int)m_LineV.size()){ return false; }
-    if(nX < 0 || nX >= (int)m_LineV[nY].size()){ return false; }
+    if(!TokenBoxValid(nX, nY)){ return false; }
 
     int  nSection = m_LineV[nY][nX].Section;
     auto p = m_SectionV.find(nSection);
@@ -1677,49 +1675,60 @@ bool TokenBoard::Delete(bool bSelectedOnly)
 
     if(!(TokenBoxValid(nX0, nY0) && TokenBoxValid(nX1, nY1))){ return false; }
 
-    // now (x0, y0, x1, y1) are well-prepared
-
-    // TBD & TODO
     // will delete on line N affect line (n - 1)? YES:
     //      1. current line ends with <CR>
     //      2. last line doesn't ends with <CR>
     //      3. delete all of current line
     // Then we need to put a <CR> at last line and padding it if necessary
     //
-    // TODO
-    //  I am not sure for this case, it's better to leave a blank line
-    //  or delete this whole line and can delete furtuer by another backspace
-    //  which design is better
+    // when delete all content in current line:
+    // 1. if last line ends with <CR>, leave a blank line for current line, cursor
+    //    is still in current line
+    // 2. else, delete the whole current line and move cursor at the end of last line
 
-    if(m_SpacePadding &&  m_PW > 0                   // system asks for padding
+#if 0
+    // make a record to help us to decide if we need to leave a blank line, because
+    // when update line (nY0 ~ nY1) affect line (nY0 -1), we should first make line
+    // (0 ~ (nY0 - 1)) well prepared, then after this preparing we lost info, so we
+    // have to keep a record
+    // state define:
+    // -1: no last line
+    //  0: last line ends without <CR>
+    //  1: last line ends with <CR>
+    int nAboveLineState = ((nY0 > 0) ? (m_EndWithCR[nY0 - 1] ? 1 : 0) : -1);
+#endif
 
-            &&  nY0 >= 1                             // nY0 is not the first line
-            &&  nX0 == 0                             // delete start from the very beginning
-            &&  nX1 == (int)m_LineV[nY1].size()      // delete ends at the very end
-            &&  m_EndWithCR[nY1]                 // current line ends with <CR>
-            && !m_EndWithCR[nY0 - 1]){           // last line is not ends with <CR>
-
+    // modify line (nY0 - 1) if necessary
+    // to make (0 ~ (nY0 - 1)) well-prepared
+    if(m_SpacePadding && m_PW > 0                     // system asks for padding
+            &&  nY0 >= 1                              // nY0 is not the first line
+            &&  nX0 == 0                              // delete start from the very beginning
+            &&  nX1 == (int)(m_LineV[nY1].size() - 1) // delete to the very end
+            &&  m_EndWithCR[nY1]                      // current line ends with <CR>
+            && !m_EndWithCR[nY0 - 1]){                // last line is not ends with <CR>
         m_EndWithCR[nY0 - 1] = true;
         ResetOneLine(nY0 - 1);
     }
 
-    // now (0 ~ (nY0 - 1)) are well-prepared
-    // 1. delete whole lines, only need to reset startY
-    // 2. line nY1 ends without <CR>:
-    //      1. take pieces from line nY0 and line nY1 and store in one TBV
-    //      2. delete line (nY0 ~ nY1), then line nY1 + 1 becomes nY0
-    //      3. reset line nY0 (only startY) to make current board valid
-    //      4. insert the stored TBV at (0, nY0)
-    // 3. line nY1 ends with <CR>
+    // now (0 ~ (nY0 - 1)) are well-prepared for this delete
+
+    // 1. line nY1 ends with <CR>
     //      1. store pieces from line nY1 in one TBV
     //      2. delete line (nY0 + 1) ~ nY1
     //      3. resize line nY0
     //      4. change line nY0 ends with <CR>
     //      5. reset line nY0 (all) to make board valid
     //      6. insert TBV at the end of nY0
+    // 2. line nY1 ends without <CR>:
+    //      1. take pieces from line nY0 and line nY1 and store in one TBV
+    //      2. delete line (nY0 ~ nY1), then line nY1 + 1 becomes nY0
+    //      3. reset line nY0 (only startY) to make current board valid
+    //      4. insert the stored TBV at (0, nY0)
     //
-    // we delete whole lines from nY0 ~ nY1
+    // so if we decide to remove all content for line (nY0, nY1), if it's
+    // case 1, we got a blank line, this is what we want
 
+    // we delete whole lines from nY0 ~ nY1
     auto fnDeleteLine = [this](int nLine0, int nLine1){
         if(true
                 && nLine0 >= 0
@@ -1727,23 +1736,11 @@ bool TokenBoard::Delete(bool bSelectedOnly)
                 && nLine1 >= 0
                 && nLine1 < (int)m_LineV.size()
                 && nLine0 <= nLine1){
-            m_LineV.erase(
-                    m_LineV.begin() + nLine0, m_LineV.begin() + nLine1 + 1);
-            m_EndWithCR.erase(
-                    m_EndWithCR.begin() + nLine0, m_EndWithCR.begin() + nLine1 + 1);
+            m_LineV.erase(m_LineV.begin() + nLine0, m_LineV.begin() + nLine1 + 1);
+            m_EndWithCR.erase(m_EndWithCR.begin() + nLine0, m_EndWithCR.begin() + nLine1 + 1);
         }
     };
 
-    // case 1
-    if(nX0 == 0 && nX1 == (int)m_LineV[nY1].size()){
-        // delete all, just erase this line
-        fnDeleteLine(nY0, nY1);
-        ResetLineStartY(nY0);
-        m_CursorLoc = {0, nY0};
-        return true;
-    }
-
-    // case 2
     if(m_EndWithCR[nY1]){
         std::vector<TOKENBOX> stTBV(m_LineV[nY1].begin() + nX1 + 1, m_LineV[nY1].end());
         fnDeleteLine(nY0 + 1, nY1);

@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/14/2016 13:41:06
+ *  Last Modified: 08/17/2016 19:48:25
  *
  *    Description: 
  *
@@ -67,8 +67,8 @@ class InputBoard: public InputWidget
                     nCursorWidth,
                     0,
                     nCursorWidth,
-                    pWidget,
-                    bFreeWidget)
+                    nullptr,
+                    false)
             , m_CursorColor(rstCursorColor)
             , m_CursorWidth(nCursorWidth)
             , m_IME(nullptr)

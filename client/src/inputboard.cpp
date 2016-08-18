@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16 PM
- *  Last Modified: 08/14/2016 13:39:02
+ *  Last Modified: 08/18/2016 01:41:29
  *
  *    Description: 
  *
@@ -221,24 +221,23 @@ void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
     // concept of ``width of cursor", to tokenboard cursor is a
     // location for (x, y)
     //
-    int nTBX, nTBY, nTBW, nTBH, nX, nY, nW, nH;
+    int nCursorX, nCursorY, nTBX, nTBY, nTBW, nTBH, nX, nY, nH;
+    m_TokenBoard.GetCursor(&nCursorX, &nCursorY);
 
-    nW = m_CursorWidth;
-    m_TokenBoard.GetCursor(&nX, &nY);
-
-    if(m_TokenBoard.GetTokenBoxInfo(nX - 1, nY,
-                nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
+    if(m_TokenBoard.GetTokenBoxInfo(nCursorX - 1, nCursorY, nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
         nX = nTBX + nTBW;
-        nY = nTBY;
-        nH = nTBH + 2 * m_TokenBoard.GetLineSpace();
-    }else if(m_TokenBoard.GetTokenBoxInfo(nX, nY,
-                nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
-        nX = nTBX + nTBW;
-        nY = nTBY;
-        nH = nTBH + 2 * m_TokenBoard.GetLineSpace();
+        nY = nTBY - m_TokenBoard.GetLineSpace() / 2;
+        nH = nTBH + m_TokenBoard.GetLineSpace();
+    }else if(m_TokenBoard.GetTokenBoxInfo(nCursorX, nCursorY, nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
+        nX = nTBX - m_CursorWidth;
+        nY = nTBY - m_TokenBoard.GetLineSpace() / 2;
+        nH = nTBH + m_TokenBoard.GetLineSpace();
     }else{
-        // should be the empty tokenboard, waiting for the first input
-        // use the default setting
+        // even both sides give me failure, still the board may be non-empty
+        // i.e. when the cursor is at the beginning of an blank line
+        // but this board also contains non-empty lines
+        //
+        // int nStartY = GetStartY(nCursorY);
         //
         // only need to get default font/size/style(style for italy)
         uint8_t nFont, nFontSize, nFontStyle;
@@ -249,15 +248,15 @@ void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
 
         int nDefaultH;
         SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nDefaultH);
-        nX = 0;
-        nY = 0;
-        nH = nDefaultH;
+        nX = m_TokenBoard.Margin(3);
+        nY = m_TokenBoard.Margin(0) - m_TokenBoard.GetLineSpace() / 2;
+        nH = nDefaultH + m_TokenBoard.GetLineSpace();
     }
 
-    if(*pX){ *pX = nX; }
-    if(*pY){ *pY = nY; }
-    if(*pW){ *pW = nW; }
-    if(*pH){ *pH = nH; }
+    if(pX){ *pX = nX;            }
+    if(pY){ *pY = nY;            }
+    if(pW){ *pW = m_CursorWidth; }
+    if(pH){ *pH = nH;            }
 }
 
 // we always move the cursor point into the visiable region
@@ -265,66 +264,60 @@ void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
 //
 void InputBoard::ResetTokenBoardLocation()
 {
+    // cursor is a rectangle, and (nX, nY, nW, nH) are the coordinate
+    // and size of it, with top-left originated on TokenBoard
+    // 
+    // +------------------------
+    // | InputBoard
+    // |
+    // |   (0, 0)
+    // |    +-------------------
+    // |    | TokenBoard
+    // |    |
+    // |    |     (X, Y)
+    // |    |     +-+
+    // |    |     | |
+    // |    |     | |
     int nX, nY, nW, nH;
     GetCursorInfo(&nX, &nY, &nW, &nH);
 
-    int nTokenBoardX = m_TokenBoard.X();
-    int nTokenBoardY = m_TokenBoard.Y();
+    // make (nX, nY) to be the coordinate w.r.t. InputBoard
+    nX += m_TokenBoard.X();
+    nY += m_TokenBoard.Y();
 
-    int nInputBoardX = X();
-    int nInputBoardY = Y();
-
-    // get the relative view window on the tokenboard
-    int nDX = nInputBoardX - nTokenBoardX;
-    int nDY = nInputBoardY - nTokenBoardY;
-    int nDW = W();
-    int nDH = H();
-
-    if(!RectangleInside(nDX, nDY, nDW, nDH, nX, nY, nW, nH)){
-        // cursor is not contained in the view window, need to be reset
-        if(nX < nDX){
-            m_TokenBoard.Move(nDX - nX, 0);
+    // cursor is not contained in the view window, need to be reset
+    if(!RectangleInside(0, 0, W(), H(), nX, nY, nW, nH)){
+        if(nX < 0){
+            m_TokenBoard.Move(-nX, 0);
         }
 
-        if(nX + nW > nDX + nDW){
-            m_TokenBoard.Move(nX + nW - nDX - nDW, 0);
+        if(nX + nW > W()){
+            m_TokenBoard.Move(W() - (nX + nW), 0);
         }
 
-        if(nY < nDY){
-            m_TokenBoard.Move(0, nDY - nY);
+        if(nY < 0){
+            m_TokenBoard.Move(0, -nY);
         }
 
-        if(nY + nW > nDY + nDH){
-            m_TokenBoard.Move(0, nY + nW - nDY - nDH);
+        if(nY + nH > H()){
+            m_TokenBoard.Move(0, H() - (nY + nH));
         }
     }
 }
 
 void InputBoard::Draw()
 {
-    if(RectangleInside(X(), Y(), W(), H(),
-                m_TokenBoard.X(), m_TokenBoard.Y(),
-                m_TokenBoard.W(), m_TokenBoard.H())){
-        m_TokenBoard.Draw(X(), Y());
-    }else{
-        int nTokenBoardX = m_TokenBoard.X();
-        int nTokenBoardY = m_TokenBoard.Y();
+    // m_TokenBoard and InputBoard are of the ``has-a" relationship
+    // and coordinate of TokenBoard is relative to top-left of InputBoard
+    int nTBDX = m_TokenBoard.X();
+    int nTBDY = m_TokenBoard.Y();
+    int nTBW  = m_TokenBoard.W();
+    int nTBH  = m_TokenBoard.H();
 
-        int nInputBoardX = X();
-        int nInputBoardY = Y();
-
-        // get the relative view window on the tokenboard
-        int nDX = nInputBoardX - nTokenBoardX;
-        int nDY = nInputBoardY - nTokenBoardY;
-        int nDW = W();
-        int nDH = H();
-
-
-        // clip to draw
-        // m_TokenBoard.DrawEx(X(), Y(), nDX, nDY, nDW, nDH);
-        UNUSED(nDX);
-        UNUSED(nDY);
-        m_TokenBoard.DrawEx(X(), Y(), 0, 0, nDW, nDH);
+    if(RectangleOverlapRegion(0, 0, W(), H(), &nTBDX, &nTBDY, &nTBW, &nTBH)){
+        int nTBX = nTBDX - m_TokenBoard.X();
+        int nTBY = nTBDY - m_TokenBoard.Y();
+        m_TokenBoard.DrawEx(nTBDX + X(), nTBDY + Y(), nTBX, nTBY, nTBW, nTBH);
     }
 
     // +-------------------------+
@@ -341,9 +334,10 @@ void InputBoard::Draw()
     GetCursorInfo(&nX, &nY, &nW, &nH);
 
     if(((int)m_MS % 1000) < 500 && Focus()){
-        extern SDLDevice   *g_SDLDevice;
+        extern SDLDevice *g_SDLDevice;
         g_SDLDevice->PushColor(m_CursorColor.r, m_CursorColor.g, m_CursorColor.b, m_CursorColor.a);
-        g_SDLDevice->FillRectangle(nX, nY, nW, nH);
+        g_SDLDevice->FillRectangle(X() + nX, Y() + nY, nW, nH);
+        g_SDLDevice->PopColor();
     }
 
     // 2. draw ``I" cursor
