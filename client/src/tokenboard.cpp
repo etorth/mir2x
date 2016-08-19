@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/18/2016 01:26:43
+ *  Last Modified: 08/19/2016 01:25:23
  *
  *    Description: 
  *
@@ -746,7 +746,14 @@ int TokenBoard::GetNthNewLineStartY(int nLine)
     if(nLine < 0 || nLine >= (int)m_LineV.size()){ return -1; }
 
     // 2. we allow empty line for logic consistency
-    if(m_LineV[nLine].empty()){ return (nLine == 0) ? 0 : m_LineStartY[nLine - 1]; }
+    if(m_LineV[nLine].empty()){
+        int nBlankLineH = GetBlankLineHeight();
+        if(nLine == 0){
+            return m_Margin[0] + m_LineSpace / 2 + nBlankLineH;
+        }else{
+            return m_LineStartY[nLine - 1] + m_LineSpace + nBlankLineH;
+        }
+    }
 
     // 3. get the best start point
     int nCurrentY = -1;
@@ -757,7 +764,8 @@ int TokenBoard::GetNthNewLineStartY(int nLine)
 
         nCurrentY = (std::max)(nCurrentY, GetNthLineTokenBoxStartY(nLine, nX, nW, nH1));
     }
-    return nCurrentY;
+
+    return nCurrentY + m_LineSpace;
 }
 
 // everything dynamic and can be retrieve is in Cache
@@ -772,6 +780,10 @@ void TokenBoard::DrawEx(
 {
     // 1. if no overlapping at all then directly return
     if(!RectangleOverlap(nSrcX, nSrcY, nSrcW, nSrcH, 0, 0, W(), H())){ return; }
+
+    // get the coordinate of the top-left corner point on the dst
+    int nDstDX = nDstX - nSrcX;
+    int nDstDY = nDstY - nSrcY;
 
     // 2. check tokenbox one by one, this is expensive
     for(int nLine = 0; nLine < (int)m_LineV.size(); ++nLine){
@@ -822,7 +834,7 @@ void TokenBoard::DrawEx(
                             SDL_SetTextureColorMod(pTexture, rstColor.r, rstColor.g, rstColor.b);
                             int nDX = nX - rstTokenBox.Cache.StartX;
                             int nDY = nY - rstTokenBox.Cache.StartY;
-                            g_SDLDevice->DrawTexture(pTexture, nX + nDstX, nY + nDstY, nDX, nDY, nW, nH);
+                            g_SDLDevice->DrawTexture(pTexture, nX + nDstDX, nY + nDstDY, nDX, nDY, nW, nH);
                         }else{
                             // TODO
                             // draw a box here to indicate errors
@@ -838,16 +850,12 @@ void TokenBoard::DrawEx(
                         extern SDLDevice   *g_SDLDevice;
 
                         int nXOnTex, nYOnTex;
-                        auto pTexture = g_EmoticonDBN->Retrieve(
-                                rstTokenBox.EmoticonBox.Cache.Key + nFrameIndex,
-                                &nXOnTex, &nYOnTex,
-                                nullptr, nullptr, nullptr, nullptr, nullptr);
+                        auto pTexture = g_EmoticonDBN->Retrieve(rstTokenBox.EmoticonBox.Cache.Key + nFrameIndex, &nXOnTex, &nYOnTex, nullptr, nullptr, nullptr, nullptr, nullptr);
 
                         if(pTexture){
                             int nDX = nX - rstTokenBox.Cache.StartX;
                             int nDY = nY - rstTokenBox.Cache.StartY;
-                            g_SDLDevice->DrawTexture(pTexture,
-                                    nX + nDstX, nY + nDstY, nXOnTex + nDX, nYOnTex + nDY, nW, nH);
+                            g_SDLDevice->DrawTexture(pTexture, nX + nDstDX, nY + nDstDY, nXOnTex + nDX, nYOnTex + nDY, nW, nH);
                         }else{
                             // TODO
                             // draw a box to indicate errors
@@ -1686,20 +1694,8 @@ bool TokenBoard::Delete(bool bSelectedOnly)
     //    is still in current line
     // 2. else, delete the whole current line and move cursor at the end of last line
 
-#if 0
-    // make a record to help us to decide if we need to leave a blank line, because
-    // when update line (nY0 ~ nY1) affect line (nY0 -1), we should first make line
-    // (0 ~ (nY0 - 1)) well prepared, then after this preparing we lost info, so we
-    // have to keep a record
-    // state define:
-    // -1: no last line
-    //  0: last line ends without <CR>
-    //  1: last line ends with <CR>
-    int nAboveLineState = ((nY0 > 0) ? (m_EndWithCR[nY0 - 1] ? 1 : 0) : -1);
-#endif
-
-    // modify line (nY0 - 1) if necessary
-    // to make (0 ~ (nY0 - 1)) well-prepared
+    // modify line (nY0 - 1) if necessary to make (0 ~ (nY0 - 1)) well-prepared
+    bool bAboveLineAdjusted = false;
     if(m_SpacePadding && m_PW > 0                     // system asks for padding
             &&  nY0 >= 1                              // nY0 is not the first line
             &&  nX0 == 0                              // delete start from the very beginning
@@ -1708,6 +1704,9 @@ bool TokenBoard::Delete(bool bSelectedOnly)
             && !m_EndWithCR[nY0 - 1]){                // last line is not ends with <CR>
         m_EndWithCR[nY0 - 1] = true;
         ResetOneLine(nY0 - 1);
+
+        // keep a record to decide do I need to keep the blank line
+        bAboveLineAdjusted = true;
     }
 
     // now (0 ~ (nY0 - 1)) are well-prepared for this delete
@@ -1726,7 +1725,7 @@ bool TokenBoard::Delete(bool bSelectedOnly)
     //      4. insert the stored TBV at (0, nY0)
     //
     // so if we decide to remove all content for line (nY0, nY1), if it's
-    // case 1, we got a blank line, this is what we want
+    // case 1, we got a blank line, we need to decide to keep it or not
 
     // we delete whole lines from nY0 ~ nY1
     auto fnDeleteLine = [this](int nLine0, int nLine1){
@@ -1740,6 +1739,27 @@ bool TokenBoard::Delete(bool bSelectedOnly)
             m_EndWithCR.erase(m_EndWithCR.begin() + nLine0, m_EndWithCR.begin() + nLine1 + 1);
         }
     };
+
+    // delete the whole line, erase the line and decide whether I should
+    // keep a blank line here
+    if(nX0 == 0 && nX1 == (int)(m_LineV[nY1].size() - 1)){
+        if(bAboveLineAdjusted){
+            // would NOT leave a blank line
+            fnDeleteLine(nY0, nY1);
+            ResetLineStartY(nY0);
+            m_CursorLoc = {m_LineV[nY0 - 1].size(), nY0 - 1};
+        }else{
+            // we should leave a blank line
+            // this can be handled by case-1, but we do it here
+            fnDeleteLine(nY0 + 1, nY1);
+            m_LineV[nY0].clear();
+            ResetLine(nY0);
+            m_CursorLoc = {0, nY0};
+        }
+
+        // done
+        return true;
+    }
 
     if(m_EndWithCR[nY1]){
         std::vector<TOKENBOX> stTBV(m_LineV[nY1].begin() + nX1 + 1, m_LineV[nY1].end());
@@ -1792,6 +1812,8 @@ void TokenBoard::Reset()
     m_SelectLoc[1] = {-1, -1};
     m_LineV.emplace_back();
     m_EndWithCR.push_back(true);
+
+    ResetLine(0);
 }
 
 // add a <CR> before the current cursor, since we defined the concept of ``default font",
@@ -2257,4 +2279,23 @@ std::string TokenBoard::Print(bool bSelectOnly)
     }
 
     return stObjectList.Print();
+}
+
+int TokenBoard::GetLineStartY(int nLine)
+{
+    if(nLine >= 0 && nLine < (int)(m_LineV.size())){
+        return m_LineStartY[nLine];
+    }
+    return -1;
+}
+
+int TokenBoard::GetBlankLineHeight()
+{
+    extern FontexDBN *g_FontexDBN;
+    auto pTexture = g_FontexDBN->Retrieve(m_DefaultFont, m_DefaultSize, m_DefaultStyle, (int)'H'); 
+
+    int nDefaultH;
+    SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nDefaultH);
+
+    return nDefaultH;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/14/2016 23:19:23
+ *  Last Modified: 08/18/2016 21:42:55
  *
  *    Description: Design TBD.
  *
@@ -528,6 +528,8 @@ class TokenBoard: public Widget
             return TokenBoxValid(m_LastTokenBoxLoc.first, m_LastTokenBoxLoc.second);
         }
 
+    public:
+        int GetBlankLineHeight();
 
     public:
         std::string GetXML(bool);
@@ -544,6 +546,9 @@ class TokenBoard: public Widget
         void ResetOneLine(int);
         void ResetLineStartY(int);
         void DeleteEmptyBottomLine();
+
+    public:
+        int GetLineStartY(int);
 
     private:
 

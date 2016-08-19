@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16 PM
- *  Last Modified: 08/18/2016 01:41:29
+ *  Last Modified: 08/19/2016 00:36:32
  *
  *    Description: 
  *
@@ -237,20 +237,12 @@ void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
         // i.e. when the cursor is at the beginning of an blank line
         // but this board also contains non-empty lines
         //
-        // int nStartY = GetStartY(nCursorY);
-        //
-        // only need to get default font/size/style(style for italy)
-        uint8_t nFont, nFontSize, nFontStyle;
-        m_TokenBoard.GetDefaultFontInfo(&nFont, &nFontSize, &nFontStyle);
+        int nStartY = m_TokenBoard.GetLineStartY(nCursorY);
+        int nBlankLineH = m_TokenBoard.GetBlankLineHeight();
 
-        extern FontexDBN *g_FontexDBN;
-        auto pTexture = g_FontexDBN->Retrieve(nFont, nFontSize, nFontStyle, (int)'M'); 
-
-        int nDefaultH;
-        SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nDefaultH);
         nX = m_TokenBoard.Margin(3);
-        nY = m_TokenBoard.Margin(0) - m_TokenBoard.GetLineSpace() / 2;
-        nH = nDefaultH + m_TokenBoard.GetLineSpace();
+        nY = nStartY - nBlankLineH - m_TokenBoard.GetLineSpace() / 2;
+        nH = nBlankLineH + m_TokenBoard.GetLineSpace();
     }
 
     if(pX){ *pX = nX;            }
