@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16 PM
- *  Last Modified: 08/20/2016 00:39:28
+ *  Last Modified: 08/20/2016 02:42:04
  *
  *    Description: 
  *
@@ -90,26 +90,24 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                 // tokenboard won't handle this event
                 if(Focus()){
                     // clear the count no matter what key pressed
-
-                    // debug
-                    std::printf("%d\n", m_TokenBoard.H());
-
-
-
                     m_MS = 0.0;
                     switch(rstEvent.key.keysym.sym){
                         case SDLK_UP:
                             {
                                 int nX, nY;
                                 m_TokenBoard.GetCursor(&nX, &nY);
-                                m_TokenBoard.SetCursor(nX, nY - 1);
+                                if(!m_TokenBoard.SetCursor(nX, nY - 1)){
+                                    m_TokenBoard.SetCursor(m_TokenBoard.GetLineTokenBoxCount(nY - 1), nY - 1);
+                                }
                                 break;
                             }
                         case SDLK_DOWN:
                             {
                                 int nX, nY;
                                 m_TokenBoard.GetCursor(&nX, &nY);
-                                m_TokenBoard.SetCursor(nX, nY + 1);
+                                if(!m_TokenBoard.SetCursor(nX, nY + 1)){
+                                    m_TokenBoard.SetCursor(m_TokenBoard.GetLineTokenBoxCount(nY + 1), nY + 1);
+                                }
                                 break;
                             }
 
@@ -117,7 +115,12 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                             {
                                 int nX, nY;
                                 m_TokenBoard.GetCursor(&nX, &nY);
-                                m_TokenBoard.SetCursor(nX - 1, nY);
+                                if(!m_TokenBoard.SetCursor(nX - 1, nY)){
+                                    if(nY > 0){
+                                        nX = m_TokenBoard.GetLineTokenBoxCount(nY - 1);
+                                        m_TokenBoard.SetCursor(nX, nY - 1);
+                                    }
+                                }
                                 break;
                             }
 
@@ -125,7 +128,11 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                             {
                                 int nX, nY;
                                 m_TokenBoard.GetCursor(&nX, &nY);
-                                m_TokenBoard.SetCursor(nX + 1, nY);
+                                if(!m_TokenBoard.SetCursor(nX + 1, nY)){
+                                    if(nY + 1 < m_TokenBoard.GetLineCount()){
+                                        m_TokenBoard.SetCursor(0, nY + 1);
+                                    }
+                                }
                                 break;
                             }
 
@@ -133,6 +140,12 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
 
                             {
                                 m_TokenBoard.Delete(false);
+                                break;
+                            }
+
+                        case SDLK_RETURN:
+                            {
+                                m_TokenBoard.BreakLine();
                                 break;
                             }
 
@@ -151,7 +164,13 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                                     g_Game->Clipboard(m_TokenBoard.GetXML(true));
                                     m_TokenBoard.Delete(true);
                                 }else{
-                                    m_TokenBoard.AddUTF8Code(uint32_t('x'));
+                                    if(false
+                                            || rstEvent.key.keysym.mod & KMOD_LSHIFT
+                                            || rstEvent.key.keysym.mod & KMOD_RSHIFT){
+                                        m_TokenBoard.AddUTF8Code(uint32_t('X'));
+                                    }else{
+                                        m_TokenBoard.AddUTF8Code(uint32_t('x'));
+                                    }
                                 }
                                 break;
                             }
@@ -183,7 +202,13 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                                     extern Game *g_Game;
                                     m_TokenBoard.ParseXML(g_Game->Clipboard().c_str());
                                 }else{
-                                    m_TokenBoard.AddUTF8Code(uint32_t('v'));
+                                    if(false
+                                            || rstEvent.key.keysym.mod & KMOD_LSHIFT
+                                            || rstEvent.key.keysym.mod & KMOD_RSHIFT){
+                                        m_TokenBoard.AddUTF8Code(uint32_t('V'));
+                                    }else{
+                                        m_TokenBoard.AddUTF8Code(uint32_t('v'));
+                                    }
                                 }
                                 break;
                             }

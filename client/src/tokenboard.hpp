@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/20/2016 01:55:51
+ *  Last Modified: 08/20/2016 02:54:39
  *
  *    Description: Design TBD.
  *
@@ -464,11 +464,13 @@ class TokenBoard: public Widget
             if(pY){ *pY = m_CursorLoc.second; }
         }
 
-        void SetCursor(int nX, int nY)
+        bool SetCursor(int nX, int nY)
         {
             if(CursorValid(nX, nY)){
                 m_CursorLoc = {nX, nY};
+                return true;
             }
+            return false;
         }
 
         int GetWordSpace()
@@ -481,9 +483,24 @@ class TokenBoard: public Widget
             return m_LineSpace;
         }
 
+        int GetLineTokenBoxCount(int nLine)
+        {
+            if(nLine >= 0 && nLine < (int)(m_LineV.size())){
+                return (int)(m_LineV[nLine].size());
+            }
+
+            return -1;
+        }
+
+        int GetLineCount()
+        {
+            return (int)(m_LineV.size());
+        }
+
+        int BreakLine();
+
         // always we need an default environment
-        void SetDefaultFont(
-                uint8_t nFont, uint8_t nSize, uint8_t nStyle, const SDL_Color &rstColor)
+        void SetDefaultFont(uint8_t nFont, uint8_t nSize, uint8_t nStyle, const SDL_Color &rstColor)
         {
             m_DefaultFont  = nFont;
             m_DefaultSize  = nSize;
@@ -492,8 +509,7 @@ class TokenBoard: public Widget
         }
 
     public:
-        bool  InnInsert(XMLObjectList &,
-                const std::unordered_map<std::string, std::function<void()>> &);
+        bool  InnInsert(XMLObjectList &, const std::unordered_map<std::string, std::function<void()>> &);
 
         int LineFullWidth(int);
         int LineRawWidth(int, bool);

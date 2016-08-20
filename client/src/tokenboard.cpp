@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/20/2016 02:07:47
+ *  Last Modified: 08/20/2016 03:58:22
  *
  *    Description: 
  *
@@ -945,7 +945,9 @@ void TokenBoard::ResetLine(int nLine)
                 nDStartY = m_LineStartY[nRestLine] - nOldStartY;
             }
         }
+
         SetTokenBoxStartY(nRestLine, m_LineStartY[nRestLine]);
+        nRestLine++;
     }
 
     m_H = GetNewHBasedOnLastLine();
@@ -1783,7 +1785,12 @@ bool TokenBoard::Delete(bool bSelectedOnly)
 
         ResetLine(nY0);
         m_CursorLoc = {m_LineV[nY0].size(), nY0};
-        return AddTokenBoxV(stTBV);
+        auto stOldCursorLoc = m_CursorLoc;
+
+        // do the insertion and reset the cursor
+        int nRet = AddTokenBoxV(stTBV);
+        m_CursorLoc = stOldCursorLoc;
+        return nRet;
     }else{
         std::vector<TOKENBOX> stTBV;
         stTBV.insert(stTBV.end(), m_LineV[nY0].begin(), m_LineV[nY0].begin() + nX0);
@@ -1792,7 +1799,10 @@ bool TokenBoard::Delete(bool bSelectedOnly)
         fnDeleteLine(nY0, nY1);
         ResetLineStartY(nY0);
         m_CursorLoc = {0, nY0};
-        return AddTokenBoxV(stTBV);
+        int nRet = AddTokenBoxV(stTBV);
+
+        m_CursorLoc = {0, nY0};
+        return nRet;
     }
 }
 
@@ -2322,4 +2332,37 @@ int TokenBoard::GetNewHBasedOnLastLine()
     // so this could not happen, but put it here
     if(m_LineV.empty()){ return m_Margin[0] + m_Margin[2]; }
     return m_LineStartY.back() + 1 + (m_LineV.back().empty() ? 0 : GetNthLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W)) + m_Margin[2];
+}
+
+int TokenBoard::BreakLine()
+{
+    int nX = m_CursorLoc.first;
+    int nY = m_CursorLoc.second;
+    if(!CursorValid(nX, nY)){ Reset(); }
+
+    std::vector<TOKENBOX> stTBV(m_LineV[nY].begin() + nX, m_LineV[nY].end());
+    m_LineV[nY].resize(nX);
+
+    bool bAboveEndWithCR = m_EndWithCR[nY];
+    m_EndWithCR[nY] = true;
+
+    ResetLine(nY);
+
+    // now the board is valid again
+    // if nY ends with <CR> we insert a new blank line
+    if(bAboveEndWithCR){
+        m_LineV.insert(m_LineV.begin() + nY + 1, {{}});
+        m_EndWithCR.insert(m_EndWithCR.begin() + nY + 1, true);
+        m_LineStartY.insert(m_LineStartY.begin() + nY + 1, -1);
+
+        ResetLine(nY + 1);
+    }
+
+    // now the board is valid again
+    m_CursorLoc = {0, nY + 1};
+    int nRet = AddTokenBoxV(stTBV);
+
+    // we need to move cursor to the head again
+    m_CursorLoc = {0, nY + 1};
+    return nRet;
 }
