@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/20/2016 02:54:39
+ *  Last Modified: 08/20/2016 13:04:44
  *
  *    Description: Design TBD.
  *
@@ -371,9 +371,9 @@ class TokenBoard: public Widget
     public:
 
     private:
-        int GetNthLineIntervalMaxH2(int, int, int);
-        int GetNthLineTokenBoxStartY(int, int, int, int);
-        int GetNthNewLineStartY(int);
+        int GetLineIntervalMaxH2(int, int, int);
+        int GetLineTokenBoxStartY(int, int, int, int);
+        int GetNewLineStartY(int);
 
         bool GetTokenBoxLocation(int, int, int &, int &, int &, int &);
         bool GetTokenBoxStartPoint(int, int, int &, int &);
@@ -532,6 +532,11 @@ class TokenBoard: public Widget
             return CursorValid(m_CursorLoc.first, m_CursorLoc.second);
         }
 
+        bool LineValid(int nLine)
+        {
+            return nLine >= 0 && nLine < (int)(m_LineV.size());
+        }
+
         bool TokenBoxValid(int nX, int nY)
         {
             return true
@@ -570,6 +575,7 @@ class TokenBoard: public Widget
 
     public:
         int GetLineStartY(int);
+        int GetLineMaxH1(int);
 
     private:
 

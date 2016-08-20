@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/20/2016 03:58:22
+ *  Last Modified: 08/20/2016 13:20:24
  *
  *    Description: 
  *
@@ -648,7 +648,7 @@ int TokenBoard::LinePadding(int nLine)
     return nWidth;
 }
 
-int TokenBoard::GetNthLineIntervalMaxH2(int nthLine, int nIntervalStartX, int nIntervalWidth)
+int TokenBoard::GetLineIntervalMaxH2(int nthLine, int nIntervalStartX, int nIntervalWidth)
 {
     //    This function only take care of nthLine
     //    has nothing to do with (n-1)th or (n+1)th Line
@@ -691,24 +691,50 @@ int TokenBoard::GetNthLineIntervalMaxH2(int nthLine, int nIntervalStartX, int nI
     return nMaxH2;
 }
 
-int TokenBoard::GetNthLineTokenBoxStartY(int nthLine, int nStartX, int nBoxWidth, int nBoxHeight)
+int TokenBoard::GetLineTokenBoxStartY(int nthLine, int nStartX, int nBoxWidth, int nBoxHeight)
 {
     while(nthLine - 1 >= 0){
-        int nMaxH2 = GetNthLineIntervalMaxH2(nthLine - 1, nStartX, nBoxWidth);
+        int nMaxH2 = GetLineIntervalMaxH2(nthLine - 1, nStartX, nBoxWidth);
         if(nMaxH2 >= 0){
-            return m_LineStartY[nthLine - 1] + nBoxHeight + nMaxH2;
+            return m_LineStartY[nthLine - 1] + nMaxH2 + m_LineSpace + nBoxHeight;
+        }else{
+            // OK current line is not long enough
+            // check whether we permit the token box go through
+            //           +----------+                  
+            //           |          |                  
+            // +-------+ |          |                   
+            // | Words | | Emoticon |  Words             
+            // +-------+-+----------+------------------
+            //           |          |   +----------+  
+            //           +----------+   |          |
+            //                          |   TB0    |                  
+            //                +-------+ |          |                   
+            //                | Words | | Emoticon |  Words             
+            //                +-------+-+----------+-------           
+            //                          |          |                   
+            //                          +----------+                  
+            //
+            //  if bCanThrough is true, then we let TB0 go through last line
+            //  else we just return, for bCanThrough == false, we always do
+            //  one test and return
+            //
+            if(!m_CanThrough){
+                return m_LineStartY[nthLine - 1] + m_LineSpace + nBoxHeight;
+            }
+
+            // else we'll go through last line
         }
         nthLine--;
     }
     // there is no line upside
-    return nBoxHeight;
+    return m_Margin[0] + m_LineSpace / 2 + nBoxHeight;
 }
 
 // get StartY of current Line
 // assume:
 //      1. 0 ~ (nthLine - 1) are well-prepared with StartX, StartY, W/W1/W2/H1/H2 etc
 //      2. nthLine is padded already, StartX, W/W1/W2 are OK now
-int TokenBoard::GetNthNewLineStartY(int nLine)
+int TokenBoard::GetNewLineStartY(int nLine)
 {
     //
     //                             
@@ -756,16 +782,40 @@ int TokenBoard::GetNthNewLineStartY(int nLine)
     }
 
     // 3. get the best start point
+    //    there is a in-consistency here, when we set bCanThrough as true but
+    //    we also permit blank line, then (nLine + 1) will cover nLine if
+    //    nLine is empty, this means we can't draw a proper blank line
+    //
+    //    so if nLine is emtpy, we always temporarily disable (nLine-1) to go
+    //    through nLine, to reserver the blank line space
+    //
+    //    seems allow bCanThrough as true is a bad design, keep it but alway
+    //    set it as false.
+
+    // now nLine is not empty
+    // last line is empty, then we always disable the bCanThrough
+    if(nLine - 1 >= 0 && m_LineV[nLine - 1].empty()){
+        int nCurrMaxH1 = GetLineMaxH1(nLine);
+        if(nCurrMaxH1 >= 0){
+            return m_LineStartY[nLine - 1] + m_LineSpace + nCurrMaxH1;
+        }
+        // current line is invalid or empty, both are impossible
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "mysterious logic error");
+    }
+
+    // ok current line is not empty, last line is not empty
     int nCurrentY = -1;
     for(auto &rstTokenBox: m_LineV[nLine]){
         int nX  = rstTokenBox.Cache.StartX;
         int nW  = rstTokenBox.Cache.W;
         int nH1 = rstTokenBox.Cache.H1;
 
-        nCurrentY = (std::max)(nCurrentY, GetNthLineTokenBoxStartY(nLine, nX, nW, nH1));
+        // GetLineTokenBoxStartY() already take m_LineSpace into consideration
+        nCurrentY = (std::max)(nCurrentY, GetLineTokenBoxStartY(nLine, nX, nW, nH1));
     }
 
-    return nCurrentY + m_LineSpace;
+    return nCurrentY;
 }
 
 // everything dynamic and can be retrieve is in Cache
@@ -878,7 +928,7 @@ void TokenBoard::DrawEx(
 //      2. m_EndWithCR[nLine] specified
 //
 //      3. all other lines (except nLine) are well-prepared
-//         so we can call GetNthNewLineStartY() safely
+//         so we can call GetNewLineStartY() safely
 //
 //      4. helper containers such as m_LineStartY are prepared for space
 //         the value of it may be invalid
@@ -922,7 +972,7 @@ void TokenBoard::ResetLine(int nLine)
         m_LineStartY.resize(nLine + 1);
     }
 
-    m_LineStartY[nLine] = GetNthNewLineStartY(nLine);
+    m_LineStartY[nLine] = GetNewLineStartY(nLine);
     SetTokenBoxStartY(nLine, m_LineStartY[nLine]);
 
     // 2. reset rest lines, use a trick here
@@ -939,7 +989,7 @@ void TokenBoard::ResetLine(int nLine)
             m_LineStartY[nRestLine] += nDStartY;
         }else{
             int nOldStartY = m_LineStartY[nRestLine];
-            m_LineStartY[nRestLine] = GetNthNewLineStartY(nRestLine);
+            m_LineStartY[nRestLine] = GetNewLineStartY(nRestLine);
             if(LineFullWidth(nRestLine) + (m_Margin[1] + m_Margin[3])== m_W){
                 nTrickOn = 1;
                 nDStartY = m_LineStartY[nRestLine] - nOldStartY;
@@ -1683,6 +1733,39 @@ bool TokenBoard::Delete(bool bSelectedOnly)
         nY0 = nY1 = m_CursorLoc.second;
     }
 
+    // helper function, we delete whole lines from nY0 ~ nY1
+    auto fnDeleteLine = [this](int nLine0, int nLine1){
+        if(LineValid(nLine0) && LineValid(nLine1) && (nLine0 <= nLine1)){
+            m_LineV.erase(m_LineV.begin() + nLine0, m_LineV.begin() + nLine1 + 1);
+            m_EndWithCR.erase(m_EndWithCR.begin() + nLine0, m_EndWithCR.begin() + nLine1 + 1);
+            m_LineStartY.erase(m_LineStartY.begin() + nLine0, m_LineStartY.begin() + nLine1 + 1);
+        }
+    };
+
+    // if we are about to delete a blank line
+    // then the (nX0, nY0) and (nX1, nY1) are invalid
+    if(true
+            && (nX0 == -1 && LineValid(nY0))
+            && (nX1 == -1 && LineValid(nY1))
+            && (nY0 == nY1) && (nY0 >= 1)){
+        // 1. delete line nY0
+        fnDeleteLine(nY0, nY0);
+
+        // 2. reset the rest line
+        if(LineValid(nY0)){
+            ResetLineStartY(nY0);
+        }else{
+            // ok there is no line nY0 any more
+            // we should reset the height of the board
+            m_H = GetNewHBasedOnLastLine();
+        }
+
+        // 3. reset the cursor and return
+        m_CursorLoc = {m_LineV[nY0 - 1].size(), nY0 - 1};
+        return true;
+    }
+
+    // if not a blank line deletion, then tokenbox should be valid
     if(!(TokenBoxValid(nX0, nY0) && TokenBoxValid(nX1, nY1))){ return false; }
 
     // will delete on line N affect line (n - 1)? YES:
@@ -1729,20 +1812,6 @@ bool TokenBoard::Delete(bool bSelectedOnly)
     // so if we decide to remove all content for line (nY0, nY1), if it's
     // case 1, we got a blank line, we need to decide to keep it or not
 
-    // we delete whole lines from nY0 ~ nY1
-    auto fnDeleteLine = [this](int nLine0, int nLine1){
-        if(true
-                && nLine0 >= 0
-                && nLine0 < (int)m_LineV.size()
-                && nLine1 >= 0
-                && nLine1 < (int)m_LineV.size()
-                && nLine0 <= nLine1){
-            m_LineV.erase(m_LineV.begin() + nLine0, m_LineV.begin() + nLine1 + 1);
-            m_EndWithCR.erase(m_EndWithCR.begin() + nLine0, m_EndWithCR.begin() + nLine1 + 1);
-            m_LineStartY.erase(m_LineStartY.begin() + nLine0, m_LineStartY.begin() + nLine1 + 1);
-        }
-    };
-
     // delete the whole line, erase the line and decide whether I should
     // keep a blank line here
     if(nX0 == 0 && nX1 == (int)(m_LineV[nY1].size() - 1)){
@@ -1776,6 +1845,7 @@ bool TokenBoard::Delete(bool bSelectedOnly)
         return true;
     }
 
+    int nRet = 0; 
     if(m_EndWithCR[nY1]){
         std::vector<TOKENBOX> stTBV(m_LineV[nY1].begin() + nX1 + 1, m_LineV[nY1].end());
         fnDeleteLine(nY0 + 1, nY1);
@@ -1784,13 +1854,8 @@ bool TokenBoard::Delete(bool bSelectedOnly)
         m_EndWithCR[nY0] = true;
 
         ResetLine(nY0);
-        m_CursorLoc = {m_LineV[nY0].size(), nY0};
-        auto stOldCursorLoc = m_CursorLoc;
-
-        // do the insertion and reset the cursor
-        int nRet = AddTokenBoxV(stTBV);
-        m_CursorLoc = stOldCursorLoc;
-        return nRet;
+        m_CursorLoc = {nX0, nY0};
+        nRet = AddTokenBoxV(stTBV);
     }else{
         std::vector<TOKENBOX> stTBV;
         stTBV.insert(stTBV.end(), m_LineV[nY0].begin(), m_LineV[nY0].begin() + nX0);
@@ -1799,11 +1864,12 @@ bool TokenBoard::Delete(bool bSelectedOnly)
         fnDeleteLine(nY0, nY1);
         ResetLineStartY(nY0);
         m_CursorLoc = {0, nY0};
-        int nRet = AddTokenBoxV(stTBV);
-
-        m_CursorLoc = {0, nY0};
-        return nRet;
+        nRet = AddTokenBoxV(stTBV);
     }
+
+    // after insertion we reset the cursor
+    m_CursorLoc = {nX0, nY0};
+    return nRet;
 }
 
 // this function will delete all previous content and make the board ready for insert, even
@@ -1931,7 +1997,7 @@ void TokenBoard::ResetOneLine(int nLine)
 
     SetTokenBoxStartX(nLine);
 
-    m_LineStartY[nLine] = GetNthNewLineStartY(nLine);
+    m_LineStartY[nLine] = GetNewLineStartY(nLine);
     SetTokenBoxStartY(nLine, m_LineStartY[nLine]);
 }
 
@@ -1977,7 +2043,7 @@ void TokenBoard::ResetLineStartY(int nStartLine)
 
     int nOldLongestLineStartY = m_LineStartY[nLongestLine];
     for(int nIndex = nStartLine; nIndex < (int)m_LineV.size() && nIndex <= nLongestLine; ++nIndex){
-        m_LineStartY[nIndex] = GetNthNewLineStartY(nIndex);
+        m_LineStartY[nIndex] = GetNewLineStartY(nIndex);
         SetTokenBoxStartY(nIndex, m_LineStartY[nIndex]);
     }
 
@@ -2331,7 +2397,7 @@ int TokenBoard::GetNewHBasedOnLastLine()
     // there is at least one blank line for the board
     // so this could not happen, but put it here
     if(m_LineV.empty()){ return m_Margin[0] + m_Margin[2]; }
-    return m_LineStartY.back() + 1 + (m_LineV.back().empty() ? 0 : GetNthLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W)) + m_Margin[2];
+    return m_LineStartY.back() + 1 + (m_LineV.back().empty() ? 0 : GetLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W)) + m_Margin[2];
 }
 
 int TokenBoard::BreakLine()
@@ -2365,4 +2431,15 @@ int TokenBoard::BreakLine()
     // we need to move cursor to the head again
     m_CursorLoc = {0, nY + 1};
     return nRet;
+}
+
+int TokenBoard::GetLineMaxH1(int nLine)
+{
+    int nCurrMaxH1 = -1;
+    if(nLine >= 0 && nLine < (int)(m_LineV.size())){
+        for(auto &rstTokenBox: m_LineV[nLine]){
+            nCurrMaxH1 = (std::max)(nCurrMaxH1, rstTokenBox.Cache.H1);
+        }
+    }
+    return nCurrMaxH1;
 }
