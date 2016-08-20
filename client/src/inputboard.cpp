@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16 PM
- *  Last Modified: 08/19/2016 00:36:32
+ *  Last Modified: 08/19/2016 20:19:26
  *
  *    Description: 
  *
@@ -328,7 +328,7 @@ void InputBoard::Draw()
     if(((int)m_MS % 1000) < 500 && Focus()){
         extern SDLDevice *g_SDLDevice;
         g_SDLDevice->PushColor(m_CursorColor.r, m_CursorColor.g, m_CursorColor.b, m_CursorColor.a);
-        g_SDLDevice->FillRectangle(X() + nX, Y() + nY, nW, nH);
+        g_SDLDevice->FillRectangle(X() + m_TokenBoard.X() + nX, Y() + m_TokenBoard.Y() + nY, nW, nH);
         g_SDLDevice->PopColor();
     }
 

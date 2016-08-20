@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/18/2016 21:42:55
+ *  Last Modified: 08/19/2016 20:57:10
  *
  *    Description: Design TBD.
  *
@@ -464,6 +464,13 @@ class TokenBoard: public Widget
             if(pY){ *pY = m_CursorLoc.second; }
         }
 
+        void SetCursor(int nX, int nY)
+        {
+            if(CursorValid(nX, nY)){
+                m_CursorLoc = {nX, nY};
+            }
+        }
+
         int GetWordSpace()
         {
             return m_WordSpace;
@@ -482,11 +489,6 @@ class TokenBoard: public Widget
             m_DefaultSize  = nSize;
             m_DefaultStyle = nStyle;
             m_DefaultColor = rstColor;
-        }
-
-        void SetCursor(int nX, int nY)
-        {
-            m_CursorLoc = {nX, nY};
         }
 
     public:
