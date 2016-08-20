@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/19/2016 01:25:23
+ *  Last Modified: 08/20/2016 02:07:47
  *
  *    Description: 
  *
@@ -948,7 +948,7 @@ void TokenBoard::ResetLine(int nLine)
         SetTokenBoxStartY(nRestLine, m_LineStartY[nRestLine]);
     }
 
-    m_H = m_LineStartY.back() + 1 + (m_LineV.back().empty() ? 0 : GetNthLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W));
+    m_H = GetNewHBasedOnLastLine();
 }
 
 void TokenBoard::TokenBoxGetMouseButtonUp(int nX, int nY, bool bFirstHalf)
@@ -1737,6 +1737,7 @@ bool TokenBoard::Delete(bool bSelectedOnly)
                 && nLine0 <= nLine1){
             m_LineV.erase(m_LineV.begin() + nLine0, m_LineV.begin() + nLine1 + 1);
             m_EndWithCR.erase(m_EndWithCR.begin() + nLine0, m_EndWithCR.begin() + nLine1 + 1);
+            m_LineStartY.erase(m_LineStartY.begin() + nLine0, m_LineStartY.begin() + nLine1 + 1);
         }
     };
 
@@ -1746,7 +1747,19 @@ bool TokenBoard::Delete(bool bSelectedOnly)
         if(bAboveLineAdjusted){
             // would NOT leave a blank line
             fnDeleteLine(nY0, nY1);
-            ResetLineStartY(nY0);
+
+            // after we remove line nY0 ~ nY1, then there may or may not
+            // be a new ``line nY0", if YES, we do reset the start Y for
+            // nY0 to the end
+            if(nY0 < (int)(m_LineV.size())){
+                // this will reset the H
+                ResetLineStartY(nY0);
+            }else{
+                // else don't for reset H
+                m_H = GetNewHBasedOnLastLine();
+            }
+
+            // reset the cursor to the last line
             m_CursorLoc = {m_LineV[nY0 - 1].size(), nY0 - 1};
         }else{
             // we should leave a blank line
@@ -1962,6 +1975,9 @@ void TokenBoard::ResetLineStartY(int nStartLine)
     for(int nIndex = nLongestLine + 1; nIndex < (int)m_LineV.size(); ++nIndex){
         m_LineStartY[nIndex] += nDStartY;
     }
+
+    // don't forget to update the height
+    m_H = GetNewHBasedOnLastLine();
 }
 
 // insert a utf-8 char box
@@ -2052,7 +2068,7 @@ void TokenBoard::DeleteEmptyBottomLine()
             m_EndWithCR.pop_back();
             m_LineStartY.pop_back();
 
-            m_H = m_LineStartY.back() + GetNthLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W) + 1;
+            m_H = GetNewHBasedOnLastLine();
         }else{
             break;
         }
@@ -2298,4 +2314,12 @@ int TokenBoard::GetBlankLineHeight()
     SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nDefaultH);
 
     return nDefaultH;
+}
+
+int TokenBoard::GetNewHBasedOnLastLine()
+{
+    // there is at least one blank line for the board
+    // so this could not happen, but put it here
+    if(m_LineV.empty()){ return m_Margin[0] + m_Margin[2]; }
+    return m_LineStartY.back() + 1 + (m_LineV.back().empty() ? 0 : GetNthLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W)) + m_Margin[2];
 }

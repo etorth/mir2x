@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/19/2016 20:57:10
+ *  Last Modified: 08/20/2016 01:55:51
  *
  *    Description: Design TBD.
  *
@@ -529,6 +529,9 @@ class TokenBoard: public Widget
         {
             return TokenBoxValid(m_LastTokenBoxLoc.first, m_LastTokenBoxLoc.second);
         }
+
+    private:
+        int GetNewHBasedOnLastLine();
 
     public:
         int GetBlankLineHeight();

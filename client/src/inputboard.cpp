@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16 PM
- *  Last Modified: 08/19/2016 20:19:26
+ *  Last Modified: 08/20/2016 00:39:28
  *
  *    Description: 
  *
@@ -90,6 +90,12 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                 // tokenboard won't handle this event
                 if(Focus()){
                     // clear the count no matter what key pressed
+
+                    // debug
+                    std::printf("%d\n", m_TokenBoard.H());
+
+
+
                     m_MS = 0.0;
                     switch(rstEvent.key.keysym.sym){
                         case SDLK_UP:
@@ -158,7 +164,13 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                                     extern Game *g_Game;
                                     g_Game->Clipboard(m_TokenBoard.GetXML(true));
                                 }else{
-                                    m_TokenBoard.AddUTF8Code(uint32_t('c'));
+                                    if(false
+                                            || rstEvent.key.keysym.mod & KMOD_LSHIFT
+                                            || rstEvent.key.keysym.mod & KMOD_RSHIFT){
+                                        m_TokenBoard.AddUTF8Code(uint32_t('C'));
+                                    }else{
+                                        m_TokenBoard.AddUTF8Code(uint32_t('c'));
+                                    }
                                 }
                                 break;
                             }
