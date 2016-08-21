@@ -3,7 +3,7 @@
  *
  *       Filename: previewwindow.cpp
  *        Created: 7/22/2015 3:16:57 AM
- *  Last Modified: 02/15/2016 17:21:33
+ *  Last Modified: 08/21/2016 12:22:03
  *
  *    Description: 
  *
@@ -43,26 +43,35 @@ PreviewWindow::~PreviewWindow()
 void PreviewWindow::draw()
 {
 	Fl_Double_Window::draw();
+    fl_rectf(0, 0, w(), h(), 0, 0, 0);
 
     extern WilImagePackage  g_WilPackage;
     extern MainWindow      *g_MainWindow;
 
-    if(!m_Inited ||
-            (m_Inited && m_ImageIndex != g_MainWindow->SelectedImageIndex())){
+    if(!m_Inited || (m_Inited && m_ImageIndex != g_MainWindow->SelectedImageIndex())){
         LoadImage();
     }
 
     if(m_Inited && m_ImageIndex == g_MainWindow->SelectedImageIndex() && m_Image){
 
+        // for howto use make_current(), see my understanding as comments in:
+        //      tools/apeditor/src/animationpreviewarea.cpp
+        // put this here as unchanged since it works properly
         if(PlatformWindows() && !PlatformLinux()){
             // wtf
             make_current();
         }
 
-        m_Image->draw(
-                (w() - m_Image->w()) / 2,
-                (h() - m_Image->h()) / 2,
-                m_Image->w(), m_Image->h());
+        int nX = (w() - m_Image->w()) / 2;
+        int nY = (h() - m_Image->h()) / 2;
+        int nW = m_Image->w();
+        int nH = m_Image->h();
+
+        m_Image->draw(nX, nY, nW, nH);
+        auto stColor = fl_color();
+        fl_color(FL_RED);
+        fl_rect(nX, nY, nW, nH);
+        fl_color(stColor);
     }
 }
 

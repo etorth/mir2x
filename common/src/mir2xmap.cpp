@@ -295,7 +295,7 @@ void Mir2xMap::Draw(int nViewX, int nViewY, int nViewW, int nViewH, // view regi
                 }
 
                 // 1-2. draw actor
-                fnDrawActor(nCellX, nCellY);
+                // fnDrawActor(nCellX, nCellY);
 
                 // 1-3. draw over ground cell object
                 for(int nIndex = 0; nIndex < 2; ++nIndex){
@@ -303,6 +303,10 @@ void Mir2xMap::Draw(int nViewX, int nViewY, int nViewW, int nViewH, // view regi
                         fnDrawObj(nCellX, nCellY, Object(nCellX, nCellY, nIndex));
                     }
                 }
+
+                // tricky part for mir2 map data
+                // we have to draw actor after all map objects
+                fnDrawActor(nCellX, nCellY);
             }
 
             // 2. draw ext, even the cell is not valid we need to draw it

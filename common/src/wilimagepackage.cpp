@@ -115,8 +115,7 @@ bool WilImagePackage::SetIndex(uint32_t dwIndex)
         }
     }
 
-    if(fread(m_CurrentImageBuffer, sizeof(uint16_t),
-                m_CurrentWilImageInfo.dwImageLength, m_FP) != m_CurrentWilImageInfo.dwImageLength){
+    if(fread(m_CurrentImageBuffer, sizeof(uint16_t), m_CurrentWilImageInfo.dwImageLength, m_FP) != m_CurrentWilImageInfo.dwImageLength){
         m_CurrentImageValid = false;
         return false;
     }
@@ -202,14 +201,14 @@ const WILIMAGEINFO &WilImagePackage::CurrentImageInfo()
 
 void WilImagePackage::Decode(uint32_t *rectImageBuffer, uint32_t dwColor0, uint32_t dwColor1, uint32_t dwColor2)
 {
-    auto    pwSrc   = m_CurrentImageBuffer;
-    int16_t nWidth  = m_CurrentWilImageInfo.shWidth;
-    int16_t nHeight = m_CurrentWilImageInfo.shHeight;
+    auto pwSrc   = m_CurrentImageBuffer;
+    int  nWidth  = m_CurrentWilImageInfo.shWidth;
+    int  nHeight = m_CurrentWilImageInfo.shHeight;
 
-    uint16_t srcBeginPos    = 0;
-    uint16_t srcEndPos      = 0;
-    uint16_t srcNowPos      = 0;
-    uint16_t dstNowPosInRow = 0;
+    size_t srcBeginPos    = 0;
+    size_t srcEndPos      = 0;
+    size_t srcNowPos      = 0;
+    size_t dstNowPosInRow = 0;
 
     for(int nRow = 0; nRow < nHeight; ++nRow){
         srcEndPos     += pwSrc[srcBeginPos++];
@@ -293,79 +292,4 @@ bool WilImagePackage::CurrentImageValid()
 int16_t WilImagePackage::Version()
 {
     return m_Version;
-}
-
-void WilImagePackage::ShadowDecode(uint32_t *rectImageBuffer, bool, uint32_t dwColor1, uint32_t dwColor2)
-{
-    auto    pwSrc   = m_CurrentImageBuffer;
-    int16_t nWidth  = m_CurrentWilImageInfo.shWidth;
-    int16_t nHeight = m_CurrentWilImageInfo.shHeight;
-
-    uint16_t srcBeginPos    = 0;
-    uint16_t srcEndPos      = 0;
-    uint16_t srcNowPos      = 0;
-    uint16_t dstNowPosInRow = 0;
-
-    for(int nRow = 0; nRow < nHeight; ++nRow){
-        srcEndPos     += pwSrc[srcBeginPos++];
-        srcNowPos      = srcBeginPos;
-        dstNowPosInRow = 0;
-
-        while(srcNowPos < srcEndPos){
-            uint16_t  hdCode  = pwSrc[srcNowPos++];
-            uint16_t  cntCopy = pwSrc[srcNowPos++];
-
-            switch(hdCode){
-                case 0XC0: // jump code
-                    MemSet32(rectImageBuffer + nRow * nWidth + dstNowPosInRow, cntCopy, 0X00000000);
-                    break;
-                case 0XC1:
-                    Memcpy16To32(rectImageBuffer + nRow * nWidth + dstNowPosInRow, pwSrc + srcNowPos, cntCopy, 0XFFFFFFFF);
-                    srcNowPos += cntCopy;
-                    break;
-                case 0XC2:
-                    Memcpy16To32(rectImageBuffer + nRow * nWidth + dstNowPosInRow, pwSrc + srcNowPos, cntCopy, dwColor1);
-                    srcNowPos += cntCopy;
-                    break;
-                case 0XC3:
-                    Memcpy16To32(rectImageBuffer + nRow * nWidth + dstNowPosInRow, pwSrc + srcNowPos, cntCopy, dwColor2);
-                    srcNowPos += cntCopy;
-                    break;
-                default:
-                    // printf("Warning: unexpected hard code in WilImagePackage::Decode()\n");
-                    break;
-            }
-            dstNowPosInRow += cntCopy;
-        }
-
-        // actually I don't think it's needed here, but put it here
-        MemSet32(rectImageBuffer + nRow * nWidth + dstNowPosInRow, nWidth - dstNowPosInRow, 0X00000000);
-        srcEndPos++;
-        srcBeginPos = srcEndPos;
-    }
-
-    // remove the shadow
-
-    // for(int y = 1; y < nHeight - 2; ++y){
-    //     for(int x = 1; x < nWidth - 2; ++x){
-    //         auto p0 = *(rectImageBuffer + (y + 0) * nWidth + (x + 0)) & 0XFFFFFF00;
-    //         auto p1 = *(rectImageBuffer + (y - 1) * nWidth + (x - 1)) & 0XFFFFFF00;
-    //         auto p2 = *(rectImageBuffer + (y - 1) * nWidth + (x + 1)) & 0XFFFFFF00;
-    //         auto p3 = *(rectImageBuffer + (y + 1) * nWidth + (x - 1)) & 0XFFFFFF00;
-    //         auto p4 = *(rectImageBuffer + (y + 1) * nWidth + (x + 1)) & 0XFFFFFF00;
-
-    //         if(true
-    //                 && p0 == p1
-    //                 && p0 == p2
-    //                 && p0 == p3
-    //                 && p0 == p4
-    //           ){
-    //             for(int i = -1; i <= 2; ++i){
-    //                 for(int j = -1; j <= 2; ++j){
-    //                     *(rectImageBuffer + (y + i) * nWidth + (x + j)) = 0X80000000;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 }
