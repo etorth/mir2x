@@ -22,15 +22,12 @@ class MainWindow {open
   Function {MainWindow()} {open
   } {
     Fl_Window m_Window {
-      callback {/*
-if(fl_ask("Quit?")){
-    exit(0);
-}
-*/
-
-exit(0);} open
-      private xywh {395 91 555 605} type Double labelfont 4 hide
-      code0 {\#include <FL/fl_ask.H>}
+      callback {{
+	// don't exit directly
+	// exit(0);
+}} open selected
+      private xywh {1676 92 555 605} type Double labelfont 4
+      code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_MenuBar {open
         private xywh {0 0 600 20} box FLAT_BOX labelfont 4 textfont 4
@@ -166,7 +163,7 @@ exit(0);} open
             }
             break;
     }
-}} selected
+}}
             xywh {0 0 30 20} shortcut 0x40078 labelfont 4
             code0 {\#include <cstdint>}
             code1 {\#include "wilimagepackage.hpp"}

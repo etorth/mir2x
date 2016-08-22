@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/19/2016 12:22:03
+ *  Last Modified: 08/21/2016 21:39:46
  *
  *    Description: 
  *
@@ -32,6 +32,7 @@ ProcessRun::ProcessRun()
     , m_MyHero(nullptr)
     , m_ViewX(0)
     , m_ViewY(0)
+    , m_ControbBoard(0, 0, nullptr, false)
 {
 }
 
@@ -176,6 +177,8 @@ void ProcessRun::Draw()
                 g_SDLDevice->WindowW(false), g_SDLDevice->WindowH(false),
                 SYS_OBJMAXW, SYS_OBJMAXH, fnDrawTile, fnDrawObj, fnDrawActor, fnDrawExt);
     }
+
+    m_ControbBoard.Draw(0, 0);
 
     g_SDLDevice->Present();
 }

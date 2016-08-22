@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 06/14/2016 23:48:32
+ *  Last Modified: 08/21/2016 21:35:49
  *
  *    Description: 
  *
@@ -27,6 +27,7 @@
 #include "mir2xmap.hpp"
 #include "creature.hpp"
 #include "clientmap.hpp"
+#include "controlboard.hpp"
 
 class ProcessRun: public Process
 {
@@ -37,6 +38,9 @@ class ProcessRun: public Process
         ClientMap   m_ClientMap;
         int         m_ViewX;
         int         m_ViewY;
+
+    private:
+        ControlBoard    m_ControbBoard;
 
     private:
         std::unordered_map<uint64_t, Creature*> m_CreatureMap;

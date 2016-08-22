@@ -3,7 +3,7 @@
  *
  *       Filename: button.hpp
  *        Created: 08/21/2015 04:12:57
- *  Last Modified: 04/01/2016 14:31:29
+ *  Last Modified: 08/21/2016 20:54:03
  *
  *    Description: Button, texture id should be baseID + [0, 1, 2]
  *
@@ -41,9 +41,7 @@ class Button: public Widget
             Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
             , m_BaseID((((uint32_t)nFileIndex) << 16) + nImageIndex)
             , m_State(0)
-            , m_OnClick{
-                fnOnClick
-            }
+            , m_OnClick(fnOnClick)
         {
             extern Log       *g_Log;
             extern PNGTexDBN *g_PNGTexDBN;
