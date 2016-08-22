@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/07/2016 23:50:04
+ *  Last Modified: 08/21/2016 18:52:52
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -108,8 +108,7 @@ void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH,
     }
 }
 
-void EditorMap::ExtractOneObject(
-        int nXCnt, int nYCnt, int nIndex, std::function<void(uint8_t, uint16_t, uint32_t)> fnWritePNG)
+void EditorMap::ExtractOneObject(int nXCnt, int nYCnt, int nIndex, std::function<void(uint8_t, uint16_t, uint32_t)> fnWritePNG)
 {
     if(!Valid() || !ValidC(nXCnt, nYCnt) || !ObjectValid(nXCnt, nYCnt, nIndex)){ return; }
 
@@ -172,6 +171,10 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
 
             // put the actors, extensions rendering here, it's really really wired but
             // works, tricky part for mir2 resource maker
+            // if(!bGround){ fnDrawExt(nXCnt, nYCnt); }
+        }
+
+        for(int nXCnt = nCX; nXCnt < nCX + nCW; ++nXCnt){
             if(!bGround){ fnDrawExt(nXCnt, nYCnt); }
         }
     }

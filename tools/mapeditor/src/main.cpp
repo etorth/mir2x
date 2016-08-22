@@ -8,7 +8,6 @@
 #include "cropconfigurewindow.hpp"
 #include "mapinfowindow.hpp"
 #include "selectsettingwindow.hpp"
-#include "animationpreviewwindow.hpp"
 #include "animationselectwindow.hpp"
 #include "editormap.hpp"
 
@@ -19,7 +18,6 @@
 
 MainWindow                      *g_MainWindow;
 SelectSettingWindow             *g_SelectSettingWindow;
-AnimationPreviewWindow          *g_AnimationPreviewWindow;
 AnimationSelectWindow           *g_AnimationSelectWindow;
 AboutWindow                     *g_AboutWindow;
 MapInfoWindow                   *g_MapInfoWindow;
@@ -44,7 +42,6 @@ int main()
 
     g_MainWindow             = new MainWindow();
     g_SelectSettingWindow    = new SelectSettingWindow();
-    g_AnimationPreviewWindow = new AnimationPreviewWindow();
     g_AnimationSelectWindow  = new AnimationSelectWindow();
     g_MapInfoWindow          = new MapInfoWindow();
     g_AboutWindow            = new AboutWindow();

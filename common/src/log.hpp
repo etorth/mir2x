@@ -3,7 +3,7 @@
  *
  *       Filename: log.hpp
  *        Created: 03/16/2016 16:05:17
- *  Last Modified: 08/01/2016 23:59:48
+ *  Last Modified: 08/21/2016 16:46:50
  *
  *    Description: log functionality enabled by g3Log
  *
@@ -105,7 +105,7 @@ class Log final
 
     public:
         // to get rid of ``format-security" warning
-        void AddLog(const std::array<std::string, 4> & stLoc, const char *szInfo)
+        void AddLog(const std::array<std::string, 4> &stLoc, const char *szInfo)
         {
             int nLine = std::atoi(stLoc[2].c_str());
             auto stLevel = GetLevel(stLoc[0].c_str());

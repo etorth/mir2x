@@ -3,7 +3,7 @@
  *
  *       Filename: animationpreviewarea.cpp
  *        Created: 06/28/2016 23:29:25
- *  Last Modified: 08/07/2016 10:59:21
+ *  Last Modified: 08/21/2016 18:43:41
  *
  *    Description: 
  *
@@ -103,5 +103,24 @@ void AnimationPreviewArea::draw()
     //       }
     // make_current();
     Fl::check();
-    rstRecord.Draw(x() + nW / 2, y() + nH - 100);
+
+    extern AnimationSelectWindow *g_AnimationSelectWindow;
+    int nCenterX = nW / 2;
+    int nCenterY = nH - 100;
+    int nCenterR = g_AnimationSelectWindow->R(); 
+
+    auto stOldColor = fl_color();
+    fl_color(FL_YELLOW);
+    fl_pie(x() + nCenterX - nCenterR, y() + nCenterY - nCenterR, 2 * nCenterR, 2 * nCenterR, 0.0, 360.0);
+    fl_color(FL_BLUE);
+    fl_circle(x() + nCenterX * 1.0, y() + nCenterY * 1.0, nCenterR * 1.0);
+    {
+        char szRInfo[64];
+        std::sprintf(szRInfo, "R: %d", nCenterR);
+        fl_color(FL_RED);
+        fl_draw(szRInfo, x() + 15, y() + nH - 15);
+    }
+    fl_color(stOldColor);
+
+    rstRecord.Draw(x() + nCenterX, y() + nCenterY);
 }
