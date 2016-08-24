@@ -3,7 +3,7 @@
  *
  *       Filename: button.hpp
  *        Created: 08/21/2015 04:12:57
- *  Last Modified: 08/21/2016 20:54:03
+ *  Last Modified: 08/24/2016 01:08:51
  *
  *    Description: Button, texture id should be baseID + [0, 1, 2]
  *
@@ -49,8 +49,7 @@ class Button: public Widget
             auto pTexture = g_PNGTexDBN->Retrieve(m_BaseID);
             if(pTexture){
                 if(SDL_QueryTexture(pTexture, nullptr, nullptr, &m_W, &m_H)){
-                    g_Log->AddLog(LOGTYPE_INFO, "Button(%d, %d): X = %d, Y = %d, W = %d, H = %d",
-                            nFileIndex, nImageIndex, m_X, m_Y, m_W, m_H);
+                    g_Log->AddLog(LOGTYPE_INFO, "Button(%d, %d): X = %d, Y = %d, W = %d, H = %d", nFileIndex, nImageIndex, m_X, m_Y, m_W, m_H);
                 }
             }
         }
