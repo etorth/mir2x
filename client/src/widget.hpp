@@ -69,15 +69,16 @@ class Widget
     public:
         virtual void Draw()
         {
-            Draw(X(), Y());
+            DrawEx(X(), Y(), 0, 0, W(), H());
         }
 
     public:
-        // TBD
-        // Draw is something that every widget should have
-        // so make it pure virtual
-        virtual void Draw(int, int) = 0;
-        // virtual void Draw(int, int, int, int) = 0;
+        virtual void DrawEx(int,        // dst x on the screen coordinate
+                            int,        // dst y on the screen coordinate
+                            int,        // src x on the widget, take top-left as origin
+                            int,        // src y on the widget, take top-left as origin
+                            int,        // size to draw
+                            int) = 0;   // size to draw
 
         virtual void Update(double)
         {
