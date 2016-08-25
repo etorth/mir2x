@@ -15,6 +15,9 @@
  *                 this class ask user to configure whether the on->click is triggered
  *                 at the PRESS or RELEASE event.
  *
+ *                 I require the size of three texture should be approximately the same
+ *                 to avoid unnecessay complexity
+ *
  *        Version: 1.0
  *       Revision: none
  *       Compiler: gcc
@@ -37,6 +40,15 @@
 
 class ButtonBase: public Widget
 {
+    private:
+        // 0: off
+        // 1: over
+        // 2: pressed
+        int                    m_State;
+        uint32_t               m_TexIDV[3];
+        std::function<void()>  m_OnOver;
+        std::function<void()>  m_OnClick;
+        
     public:
         ButtonBase(
                 int                          nX,
@@ -44,24 +56,43 @@ class ButtonBase: public Widget
                 uint32_t                     nTexID0,
                 uint32_t                     nTexID1,
                 uint32_t                     nTexID2,
-                const std::function<void()> &fnOnOver,
-                const std::function<void()> &fnOnClick   = [](){},
-                Widget                      *pWidget     = nullptr,
-                bool                         bFreeWidget = false):
+                const std::function<void()> &fnOnOver     = [](){},
+                const std::function<void()> &fnOnClick    = [](){},
+                bool                         bOnClickDone = true,
+                Widget                      *pWidget      = nullptr,
+                bool                         bFreeWidget  = false):
             Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
-            , m_BaseID((((uint32_t)nFileIndex) << 16) + nImageIndex)
-            , m_State(0)
+            : m_State(0)
+            , m_TexIDV {nTexID0, nTexID1, nTexID2}
+            , m_OnOver(fnOnOver)
             , m_OnClick(fnOnClick)
         {
             extern Log       *g_Log;
             extern PNGTexDBN *g_PNGTexDBN;
-
-            auto pTexture = g_PNGTexDBN->Retrieve(m_BaseID);
-            if(pTexture){
-                if(SDL_QueryTexture(pTexture, nullptr, nullptr, &m_W, &m_H)){
-                    g_Log->AddLog(LOGTYPE_INFO, "Button(%d, %d): X = %d, Y = %d, W = %d, H = %d", nFileIndex, nImageIndex, m_X, m_Y, m_W, m_H);
+            
+            int nW = -1;
+            int nH = -1;
+            for(int nState = 0; nState < 2; ++nState){
+                if(m_TexIDV[nState]){
+                    auto pTexture = g_PNGTexDBN->Retrieve(m_TexIDV[nState]);
+                    if(pTexture){
+                        int nCurrW, nCurrH;
+                        if(SDL_QueryTexture(pTexture, nullptr, nullptr, &nCurrW, &nCurrH)){
+                            nW = std::max(nCurrW, nW);
+                            nH = std::max(nCurrH, nH);
+                            g_Log->AddLog(LOGTYPE_INFO, "Load button texture, ID = 0X%08X, W = %d, H = %d", m_TexIDV[nState], nCurrW, nCurrH);
+                        }
+                    }
                 }
             }
+            
+            // if we can't load properly, die immediately
+            if(nW <= 0 || nH <= 0){
+                g_Log->AddLog(LOGTYPE_FATAL, "Invalid button texutre defination");
+            }
+            
+            m_W = nW;
+            m_H = nH;
         }
         virtual ~Button() = default;
 
@@ -69,12 +100,4 @@ class ButtonBase: public Widget
         using Widget::Draw;
         void Draw(int, int);
         bool ProcessEvent(const SDL_Event &, bool *);
-
-    private:
-        // 0: normal
-        // 1: on
-        // 2: pressed
-        uint32_t               m_BaseID;
-        int                    m_State;
-        std::function<void()>  m_OnClick;
 };
