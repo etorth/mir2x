@@ -43,7 +43,7 @@ class Widget
                 int nW = 0,                 //
                 int nH = 0,                 //
                 Widget * pWidget = nullptr, // by default all widget are independent
-                bool bFreeWidget = false)    // delete automatically when deleting its parent
+                bool bFreeWidget = false)   // delete automatically when deleting its parent
 
             : m_Parent(pWidget)
             , m_Focus(false)
