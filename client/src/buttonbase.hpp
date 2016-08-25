@@ -93,7 +93,6 @@ class ButtonBase: public Widget
         virtual ~Button() = default;
 
     public:
-        using Widget::Draw;
-        void Draw(int, int);
+        void DrawEx(int, int, int, int, int, int);
         bool ProcessEvent(const SDL_Event &, bool *);
 };
