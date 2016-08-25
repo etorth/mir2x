@@ -70,8 +70,8 @@ class ButtonBase: public Widget
             extern Log       *g_Log;
             extern PNGTexDBN *g_PNGTexDBN;
             
-            int nW = -1;
-            int nH = -1;
+            int nW = 0;
+            int nH = 0;
             for(int nState = 0; nState < 2; ++nState){
                 if(m_TexIDV[nState]){
                     auto pTexture = g_PNGTexDBN->Retrieve(m_TexIDV[nState]);
@@ -80,17 +80,13 @@ class ButtonBase: public Widget
                         if(SDL_QueryTexture(pTexture, nullptr, nullptr, &nCurrW, &nCurrH)){
                             nW = std::max(nCurrW, nW);
                             nH = std::max(nCurrH, nH);
-                            g_Log->AddLog(LOGTYPE_INFO, "Load button texture, ID = 0X%08X, W = %d, H = %d", m_TexIDV[nState], nCurrW, nCurrH);
                         }
                     }
                 }
             }
             
-            // if we can't load properly, die immediately
-            if(nW <= 0 || nH <= 0){
-                g_Log->AddLog(LOGTYPE_FATAL, "Invalid button texutre defination");
-            }
-            
+            // we allow buttons without any valid texture, in that case some extra work
+            // can be done for special drawing
             m_W = nW;
             m_H = nH;
         }
