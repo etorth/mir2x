@@ -6,6 +6,14 @@
  *  Last Modified: 08/24/2016 01:08:51
  *
  *    Description: basic button class to handle event logic only
+ *                 there are three {nTexID0, nTexID1, nTexID2} texture ID's to represetn
+ *                 three states, since in the PNGTexDBN, all texutres for GUI are with
+ *                 nFileIndex = 0XFF, then here nTexID == 0 means there is no visual
+ *                 for current state.
+ *                 
+ *                 I support two callbaks only: off->on and on->click
+ *                 this class ask user to configure whether the on->click is triggered
+ *                 at the PRESS or RELEASE event.
  *
  *        Version: 1.0
  *       Revision: none
@@ -19,22 +27,24 @@
  */
 
 #pragma once
+#include <cstdint>
+#include <functional>
+
 #include "log.hpp"
 #include "widget.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
 
-#include <cstdint>
-#include <functional>
-
-class Button: public Widget
+class ButtonBase: public Widget
 {
     public:
-        Button(
+        ButtonBase(
                 int                          nX,
                 int                          nY,
-                uint8_t                      nFileIndex,
-                uint16_t                     nImageIndex,
+                uint32_t                     nTexID0,
+                uint32_t                     nTexID1,
+                uint32_t                     nTexID2,
+                const std::function<void()> &fnOnOver,
                 const std::function<void()> &fnOnClick   = [](){},
                 Widget                      *pWidget     = nullptr,
                 bool                         bFreeWidget = false):
