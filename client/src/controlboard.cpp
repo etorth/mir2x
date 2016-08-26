@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 08/21/2016 22:01:48
+ *  Last Modified: 08/26/2016 12:58:14
  *
  *    Description:
  *
@@ -32,7 +32,7 @@ ControlBoard::ControlBoard(int nX, int nY, Widget *pWidget, bool bAutoDelete)
 {
 }
 
-void ControlBoard::Draw(int, int)
+void ControlBoard::DrawEx(int, int, int, int, int, int)
 {
     extern PNGTexDBN *g_PNGTexDBN;
     extern SDLDevice *g_SDLDevice;

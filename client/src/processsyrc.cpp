@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 08/14/2015 2:47:49 PM
- *  Last Modified: 08/14/2016 01:08:16
+ *  Last Modified: 08/26/2016 13:05:29
  *
  *    Description: 
  *
@@ -81,7 +81,9 @@ void ProcessSyrc::Draw()
             nH);  // src h
     g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve(255, 1), 0, 0);
 
-    extern SDLDevice  *g_SDLDevice;
-    m_Info.Draw((g_SDLDevice->WindowW(false) - m_Info.W()) / 2, 528 + (nH - m_Info.H()) / 2);
+    int nInfoX = (g_SDLDevice->WindowW(false) - m_Info.W()) / 2;
+    int nInfoY = 528 + (nH - m_Info.H()) / 2;
+
+    m_Info.DrawEx(nInfoX, nInfoY, 0, 0, m_Info.W(), m_Info.H());
     g_SDLDevice->Present();
 }

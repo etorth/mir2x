@@ -3,7 +3,7 @@
  *
  *       Filename: button.cpp
  *        Created: 08/21/2015 04:12:57
- *  Last Modified: 04/01/2016 13:55:06
+ *  Last Modified: 08/26/2016 13:13:15
  *
  *    Description: 
  *
@@ -25,7 +25,6 @@
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
 #include "log.hpp"
-
 
 void Button::Draw(int nX, int nY)
 {

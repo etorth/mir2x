@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 08/21/2016 21:39:46
+ *  Last Modified: 08/26/2016 12:59:18
  *
  *    Description: 
  *
@@ -178,7 +178,7 @@ void ProcessRun::Draw()
                 SYS_OBJMAXW, SYS_OBJMAXH, fnDrawTile, fnDrawObj, fnDrawActor, fnDrawExt);
     }
 
-    m_ControbBoard.Draw(0, 0);
+    m_ControbBoard.Draw();
 
     g_SDLDevice->Present();
 }

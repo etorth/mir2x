@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: button.hpp
+ *       Filename: buttonbase.hpp
  *        Created: 08/25/2016 04:12:57
- *  Last Modified: 08/24/2016 01:08:51
+ *  Last Modified: 08/26/2016 13:28:33
  *
  *    Description: basic button class to handle event logic only
  *                 there are three {nTexID0, nTexID1, nTexID2} texture ID's to represetn
@@ -60,9 +60,9 @@ class ButtonBase: public Widget
                 const std::function<void()> &fnOnClick    = [](){},
                 bool                         bOnClickDone = true,
                 Widget                      *pWidget      = nullptr,
-                bool                         bFreeWidget  = false):
-            Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
-            : m_State(0)
+                bool                         bFreeWidget  = false)
+            : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
+            , m_State(0)
             , m_TexIDV {nTexID0, nTexID1, nTexID2}
             , m_OnOver(fnOnOver)
             , m_OnClick(fnOnClick)

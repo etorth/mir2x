@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.hpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 08/24/2016 01:23:16
+ *  Last Modified: 08/26/2016 12:56:42
  *
  *    Description: main control pannel for running game
  *                 this is a fixed-size board, if use game screen size other than
@@ -36,6 +36,6 @@ class ControlBoard: public Widget
         ~ControlBoard() = default;
 
     public:
-        void Draw(int, int);
+        void DrawEx(int, int, int, int, int, int);
         bool ProcessEvent(const SDL_Event &, bool *);
 };

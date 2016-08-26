@@ -3,9 +3,12 @@
  *
  *       Filename: button.hpp
  *        Created: 08/21/2015 04:12:57
- *  Last Modified: 08/24/2016 01:08:51
+ *  Last Modified: 08/26/2016 14:20:05
  *
- *    Description: Button, texture id should be baseID + [0, 1, 2]
+ *    Description: basic button class, this class is abstract and only provides
+ *                 event handling functionality, it won't handle the rendering
+ *                 issue, since some button only use texture, some button use
+ *                 text info, etc.
  *
  *        Version: 1.0
  *       Revision: none
@@ -56,8 +59,7 @@ class Button: public Widget
         virtual ~Button() = default;
 
     public:
-        using Widget::Draw;
-        void Draw(int, int);
+        void DrawEx(int, int, int, int, int, int);
         bool ProcessEvent(const SDL_Event &, bool *);
 
     private:

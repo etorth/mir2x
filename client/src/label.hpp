@@ -3,7 +3,7 @@
  *
  *       Filename: label.hpp
  *        Created: 08/20/2015 08:59:11 PM
- *  Last Modified: 04/02/2016 03:12:53
+ *  Last Modified: 08/26/2016 13:06:51
  *
  *    Description: Label is a class
  *                      1. without padding
@@ -36,6 +36,12 @@
 
 class Label: public Widget
 {
+    private:
+        uint32_t    m_FontKey;
+        SDL_Color   m_Color;
+        std::string m_Content;
+        TokenBoard  m_TokenBoard;
+
     public:
         Label(
                 int              nX,
@@ -77,12 +83,6 @@ class Label: public Widget
         }
 
 
-    private:
-        uint32_t    m_FontKey;
-        SDL_Color   m_Color;
-        std::string m_Content;
-        TokenBoard  m_TokenBoard;
-
     public:
         Label(
                 uint8_t,           // font index
@@ -106,8 +106,11 @@ class Label: public Widget
 
         void SetText(const char *);
 
-        void Draw(int nX, int nY)
+    public:
+        void DrawEx(int nX, int nY, int, int, int, int)
         {
-            m_TokenBoard.Draw(nX, nY);
+            int nTBW = m_TokenBoard.W();
+            int nTBH = m_TokenBoard.H();
+            m_TokenBoard.DrawEx(nX, nY, 0, 0, nTBW, nTBH);
         }
 };
