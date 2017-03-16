@@ -1,18 +1,42 @@
 #!/bin/bash
 
-BuildLinux()
+BuildLinuxClient()
 {
-    mkdir -p build/linux
+    mkdir -p build/linux/client
 }
 
-BuildAndroid()
+BuildLinuxServer()
 {
-    mkdir -p build/android
+    mkdir -p build/linux/server
+}
+
+BuildLinux()
+{
+    BuildLinuxClient
+    BuildLinuxServer
+    BuildAndroidClient
+}
+
+BuildWindowsClient()
+{
+    mkdir -p build/windows/client
+}
+
+BuildWindowsServer()
+{
+    mkdir -p build/windows/server
 }
 
 BuildWindows()
 {
-    mkdir -p build/windows
+    BuildWindowsClient
+    BuildWindowsServer
+    BuildAndroidClient
+}
+
+BuildAndroidClient()
+{
+    mkdir -p build/android/client
 }
 
 BuildClean()
