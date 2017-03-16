@@ -858,7 +858,7 @@ if(g_EditorMap.Valid()){
         		szTmpFileName += "/DESC.BIN";
     		}
     		g_EditorMap.Save(szTmpFileName.c_str());
-    		fl_message("Map file saved in mir2x format successfully!");
+    		fl_message("Save map file in mir2x format successfully!");
     		
 	}else{
 		fl_alert("%s", "Currently no operating map!");

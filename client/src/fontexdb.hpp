@@ -3,7 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 04/03/2016 13:01:21
+ *  Last Modified: 03/16/2017 13:18:25
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -19,10 +19,12 @@
  * =====================================================================================
  */
 
+#include <zip.h>
+#include <cstring>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+
 #include "inndb.hpp"
-#include <zip.h>
 #include "hexstring.hpp"
 
 
@@ -254,14 +256,14 @@ class FontexDB: public InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>
             SDL_Surface *pSurface = nullptr;
             char szUTF8[8];
 
-            *((uint32_t *)szUTF8) = nUTF8Code;
+            // to avoid strict aliasing problem
+            std::memcpy(szUTF8, &nUTF8Code, sizeof(nUTF8Code));
             szUTF8[4] = 0;
 
             if(nFontStyle & FONTSTYLE_SOLID){
                 pSurface = TTF_RenderUTF8_Solid(pFont, szUTF8, {0XFF, 0XFF, 0XFF, 0XFF});
             }else if(nFontStyle & FONTSTYLE_SHADED){
-                pSurface = TTF_RenderUTF8_Shaded(
-                        pFont, szUTF8, {0XFF, 0XFF, 0XFF, 0XFF}, {0X00, 0X00, 0X00, 0X00});
+                pSurface = TTF_RenderUTF8_Shaded(pFont, szUTF8, {0XFF, 0XFF, 0XFF, 0XFF}, {0X00, 0X00, 0X00, 0X00});
             }else{
                 // blended is by default by of lowest priority
                 // means if we really need to set SOLID/SHADOWED/BLENDED
