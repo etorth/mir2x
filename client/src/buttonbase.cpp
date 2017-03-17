@@ -3,7 +3,7 @@
  *
  *       Filename: buttonbase.cpp
  *        Created: 08/21/2015 04:12:57
- *  Last Modified: 03/16/2017 14:09:24
+ *  Last Modified: 03/16/2017 15:08:05
  *
  *    Description: 
  *
@@ -23,23 +23,11 @@
 #include <functional>
 
 #include "log.hpp"
-#include "button.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
+#include "buttonbase.hpp"
 
-
-void Button::Draw(int nX, int nY)
-{
-    extern PNGTexDBN *g_PNGTexDBN;
-    extern SDLDevice *g_SDLDevice;
-
-    g_SDLDevice->DrawTexture(
-            g_PNGTexDBN->Retrieve(m_BaseID + (uint32_t)m_State),
-            nX + (int)(m_State == 2),
-            nY + (int)(m_State == 2));
-}
-
-bool Button::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
+bool ButtonBase::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
 {
     if(bValid && !(*bValid)){ return false; }
 
@@ -47,7 +35,7 @@ bool Button::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
         case SDL_MOUSEBUTTONUP:
             {
                 if(In(rstEvent.button.x, rstEvent.button.y)){
-                    m_OnClick();
+                    if(m_OnClickDone){ m_OnClick(); }
                     m_State = 1;
                     return true;
                 }else{
@@ -60,6 +48,7 @@ bool Button::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
         case SDL_MOUSEBUTTONDOWN:
             {
                 if(In(rstEvent.button.x, rstEvent.button.y)){
+                    if(!m_OnClickDone){ m_OnClick(); }
                     m_State = 2;
                     return true;
                 }else{

@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/17/2016 19:48:25
+ *  Last Modified: 03/16/2017 17:02:43
  *
  *    Description: 
  *
@@ -112,10 +112,7 @@ class InputBoard: public InputWidget
         void ResetTokenBoardLoction();
 
         void Draw();
-        void Draw(int nX, int nY)
-        {
-            m_TokenBoard.Draw(nX, nY);
-        }
+        void DrawEx(int, int, int, int, int, int);
 
     protected:
         TokenBoard                  m_TokenBoard;

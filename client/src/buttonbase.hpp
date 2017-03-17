@@ -3,7 +3,7 @@
  *
  *       Filename: buttonbase.hpp
  *        Created: 08/25/2016 04:12:57
- *  Last Modified: 08/26/2016 13:28:33
+ *  Last Modified: 03/16/2017 15:08:56
  *
  *    Description: basic button class to handle event logic only
  *                 there are three {nTexID0, nTexID1, nTexID2} texture ID's to represetn
@@ -45,6 +45,7 @@ class ButtonBase: public Widget
         // 1: over
         // 2: pressed
         int                    m_State;
+        bool                   m_OnClickDone;
         uint32_t               m_TexIDV[3];
         std::function<void()>  m_OnOver;
         std::function<void()>  m_OnClick;
@@ -63,13 +64,13 @@ class ButtonBase: public Widget
                 bool                         bFreeWidget  = false)
             : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
             , m_State(0)
+            , m_OnClickDone(bOnClickDone)
             , m_TexIDV {nTexID0, nTexID1, nTexID2}
             , m_OnOver(fnOnOver)
             , m_OnClick(fnOnClick)
         {
-            extern Log       *g_Log;
             extern PNGTexDBN *g_PNGTexDBN;
-            
+
             int nW = 0;
             int nH = 0;
             for(int nState = 0; nState < 2; ++nState){
@@ -90,9 +91,8 @@ class ButtonBase: public Widget
             m_W = nW;
             m_H = nH;
         }
-        virtual ~Button() = default;
+        virtual ~ButtonBase() = default;
 
     public:
-        void DrawEx(int, int, int, int, int, int);
         bool ProcessEvent(const SDL_Event &, bool *);
 };

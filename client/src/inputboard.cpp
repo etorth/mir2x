@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16 PM
- *  Last Modified: 08/20/2016 12:57:06
+ *  Last Modified: 03/16/2017 17:04:21
  *
  *    Description: 
  *
@@ -394,4 +394,12 @@ void InputBoard::Draw()
     }else{
         SDL_ShowCursor(1);
     }
+}
+
+void InputBoard::DrawEx(
+        int nDstX, int nDstY, // start position of drawing on the screen
+        int nSrcX, int nSrcY, // region to draw, a cropped region on the token board
+        int nSrcW, int nSrcH)
+{
+    m_TokenBoard.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nSrcW, nSrcH);
 }
