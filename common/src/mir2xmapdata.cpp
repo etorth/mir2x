@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.cpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 03/17/2017 00:50:46
+ *  Last Modified: 03/18/2017 00:29:29
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -21,8 +21,8 @@
 
 #include <vector>
 #include <memory>
-#include <cstring>
 #include <cstdint>
+#include <cstring>
 #include <cassert>
 #include <algorithm>
 
@@ -30,7 +30,7 @@
 #include "mathfunc.hpp"
 #include "mir2xmapdata.hpp"
 
-bool Mir2xMapData::Load(const char *szFullName)
+int Mir2xMapData::Load(const char *szFullName)
 {
     m_Data.clear();
     if(auto pFile = std::fopen(szFullName, "rb")){
@@ -41,409 +41,165 @@ bool Mir2xMapData::Load(const char *szFullName)
         std::vector<uint8_t> bufMapData;
         bufMapData.resize(nFileSize);
 
-        std::fread(&(bufMapData[0]), nFileSize, 1, pFile);
+        void(1 + std::fread(&(bufMapData[0]), nFileSize, 1, pFile));
         std::fclose(pFile);
 
-        auto *pCurDat = &(bufMapData[0]);
-        bool bValid = LoadHead(pCurDat) && LoadGround(pCurDat) && LoadLight(pCurDat) && LoadTile(pCurDat) && LoadObj(pCurDat, 0) && LoadObj(pCurDat, 1);
+        // tile
+        auto fnSetTile = [this](int nX, int nY, int nSize, const uint8_t *, size_t &, const uint8_t *pData, size_t &nDataOff){
+            return SetTile(nX, nY, nSize, pData, nDataOff);
+        };
 
-        if(!bValid){ m_Data.clear(); }
-        return bValid;
+        auto fnParseTile = [this, fnSetTile](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff){
+            return ParseGrid(nX, nY, nSize, 2, pMark, nMarkOff, pData, nDataOff, fnSetTile);
+        };
+
+        // cell
+        auto fnSetCell = [this](int nX, int nY, int nSize, const uint8_t *, size_t &, const uint8_t *pData, size_t &nDataOff){
+            return SetCell(nX, nY, nSize, pData, nDataOff);
+        };
+
+        auto fnParseCell = [this, fnSetCell](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff){
+            return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetCell);
+        };
+
+        // obj0
+        auto fnSetObj0 = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff){
+            return SetObj(nX, nY, 0, nSize, pMark, nMarkOff, pData, nDataOff);
+        };
+
+        auto fnParseObj0 = [this, fnSetObj0](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff){
+            return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetObj0);
+        };
+
+        // obj1
+        auto fnSetObj1 = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff){
+            return SetObj(nX, nY, 1, nSize, pMark, nMarkOff, pData, nDataOff);
+        };
+
+        auto fnParseObj1 = [this, fnSetObj1](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff){
+            return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetObj1);
+        };
+
+        auto pCurDat = &(bufMapData[0]);
+        if(true
+                && LoadHead(pCurDat)
+                && LoadGrid(pCurDat, 2, fnParseTile)
+                && LoadGrid(pCurDat, 1, fnParseCell)
+                && LoadGrid(pCurDat, 1, fnParseObj0)
+                && LoadGrid(pCurDat, 1, fnParseObj1)){ return 0; }
+
+        m_Data.clear();
     }
-    return false;
+    return -1;
 }
 
-void Mir2xMapData::SetGround(int nX, int nY, int nSize, bool bHasInfo, uint8_t nGroundInfo)
+
+int Mir2xMapData::LoadHead(uint8_t * &pData)
 {
-    for(int nTY = nY; nTY < nY + nSize; ++nTY){
-        for(int nTX = nX; nTX < nX + nSize; ++nTX){
-            if(!ValidC(nTX, nTY)){ continue; }
-            SetOneGround(nTX, nTY, 0, bHasInfo, nGroundInfo);
-            SetOneGround(nTX, nTY, 1, bHasInfo, nGroundInfo);
-            SetOneGround(nTX, nTY, 2, bHasInfo, nGroundInfo);
-            SetOneGround(nTX, nTY, 3, bHasInfo, nGroundInfo);
-        }
-    }
-}
+    std::memcpy(&m_W, pData + 0, 2);
+    std::memcpy(&m_H, pData + 2, 2);
 
-// TODO: need to deal with walkable grid attributes:
-//       cave floor
-//       indoor floor
-//       grass
-//       etc.
-//
-//       differ ocean/lake/pond so sound can be different for even one tile
-//
-//       this is for different sound effect and more
-void Mir2xMapData::ParseGround(int nX, int nY, int nSize,
-        const uint8_t *pMark, long &nMarkOff, const uint8_t *pData, long &nDataOff)
-{
-    // 1: there is data in current grid
-    // 0: no
-    //
-    // 1: current grid is combined, means it's filled partically
-    // 0: no
-    //
-    // 1: ground info in full-filled grid are of different attributes
-    // 0: no
-    if(!ValidC(nX, nY)){ return; }
+    pData += 4;
+    m_Data.resize((m_W / 2) * (m_H / 2));
 
-    if(PickOneBit(pMark, nMarkOff++)){
-        // there is information in current grid
-        if(nSize == 1){
-            // last level of grid consists of four smallest subgrids divided by X-cross
-            if(PickOneBit(pMark, nMarkOff++)){
-                // it's a/0 combined or a/b combined at last level
-                // should parse one by one
-                for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    if(PickOneBit(pMark, nMarkOff++)){
-                        SetOneGround(nX, nY, nIndex, true, pData[nDataOff++]);
-                    }else{
-                        SetOneGround(nX, nY, nIndex, false, 0);
-                    }
-                }
-            }else{
-                // it's not combined, and there is info, so it only can be all full-filled
-                SetGround(nX, nY, 1, true, pData[nDataOff++]);
-            }
-        }else{
-            // not the last level of grid, and there is information in current gird
-            if(PickOneBit(pMark, nMarkOff++)){
-                // there is data, and it's combined, need further parsing
-                // maybe filled/empty, or fullfilled of different attributes
-                ParseGround(nX,             nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                ParseGround(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                ParseGround(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                ParseGround(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-            }else{
-                // there is information, but it's not combined, can only be full-filled
-                SetGround(nX, nY, nSize, true, pData[nDataOff++]);
-            }
-        }
-    }else{
-        // no data here, always unset the desc field for the whole grid
-        SetGround(nX, nY, nSize, false, 0);
-    }
-}
-
-// light is the simplest
-void Mir2xMapData::ParseLight(int nX, int nY, int nSize,
-        const uint8_t *pMark, long &nMarkOff, const uint8_t *pData, long &nDataOff)
-{
-    // 1: there is data in current grid
-    // 0: no
-    //
-    // 1: current grid is combined, means it's filled partically
-    // 0: no
-    //
-    // 1: light in full-filled grid are of different attributes
-    // 0: no
-    if(!ValidC(nX, nY)){ return; }
-
-    if(PickOneBit(pMark, nMarkOff++)){
-        // there is information in current grid
-        if(nSize == 1){
-            // there is info and it's last level
-            // end of recursion
-            SetLight(nX, nY, 1, pData, nDataOff);
-        }else{
-            // not the last level of grid, and there is information in current gird
-            if(PickOneBit(pMark, nMarkOff++)){
-                // there is info, and it's combined, need further parsing
-                // maybe a/0 or a/b combination
-                ParseLight(nX,             nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                ParseLight(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                ParseLight(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                ParseLight(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-            }else{
-                // there is info, but not a/0 or a/b combined
-                // can only be a/a full-filled
-                SetLight(nX, nY, nSize, pData, nDataOff);
-            }
-        }
-    }else{
-        // no data here, always unset the desc field for the whole grid
-        SetLight(nX, nY, nSize, nullptr, nDataOff);
-    }
-}
-
-void Mir2xMapData::SetObj(int nX, int nY, int nObjIndex, int nSize,
-        const uint8_t *pMark, long &nMarkOff, const uint8_t *pData, long &nDataOff)
-{
-    // we define two objects are *the same* in:
-    //  1. animation desc
-    //  2. file index
-    //  3. image index
-    //  4. layer
-    //  5. alpha obj
-    //
-    OBJDESC stObjDesc  = {0, 0, 0};
-    bool    bIsObj     = false;
-    bool    bGroundObj = false;
-    bool    bAlphaObj  = false;
-
-    if(pMark && pData){
-        stObjDesc.Desc       = pData[nDataOff++];
-        stObjDesc.FileIndex  = pData[nDataOff++];
-        stObjDesc.ImageIndex = *((uint16_t *)(pData + nDataOff));
-
-        nDataOff += 2;
-        bIsObj = true; // mark for validation
-
-        bGroundObj = PickOneBit(pMark, nMarkOff++);
-        bAlphaObj  = PickOneBit(pMark, nMarkOff++);
-    }
-
-    for(int nTY = nY; nTY < nY + nSize; ++nTY){
-        for(int nTX = nX; nTX < nX + nSize; ++nTX){
-            if(!ValidC(nTX, nTY)){ continue; }
-
-            CellDesc(nTX, nTY).Obj[nObjIndex] = stObjDesc;
-            if(bIsObj){
-                // mark it as valid
-                CellDesc(nTX, nTY).Desc |= ((nObjIndex == 0) ? 0X0100 : 0X1000);
-
-                if(bGroundObj){
-                    CellDesc(nTX, nTY).Desc |= ((nObjIndex == 0) ? 0X0200 : 0X2000);
-                }else{
-                    CellDesc(nTX, nTY).Desc &= ((nObjIndex == 0) ? 0XFDFF : 0XDFFF);
-                }
-
-                if(bAlphaObj){
-                    CellDesc(nTX, nTY).Desc |= ((nObjIndex == 0) ? 0X0800 : 0X8000);
-                }else{
-                    CellDesc(nTX, nTY).Desc &= ((nObjIndex == 0) ? 0XF7FF : 0X7FFF);
-                }
-            }else{
-                CellDesc(nTX, nTY).Desc &= ((nObjIndex == 0) ? 0XFEFF : 0XEFFF);
-            }
-        }
-    }
-}
-
-void Mir2xMapData::SetLight(int nX, int nY, int nSize, const uint8_t *pData, long &nDataOff)
-{
-    // full-filled current grid defined by the same attributes
-    uint16_t nLightAttr = 0;
-
-    if(pData){
-        nLightAttr = *((uint16_t *)(pData + nDataOff));
-        nDataOff += 2;
-    }
-
-    for(int nTY = nY; nTY < nY + nSize; ++nTY){
-        for(int nTX = nX; nTX < nX + nSize; ++nTX){
-            if(!ValidC(nTX, nTY)){ continue; }
-
-            if(pData){
-                CellDesc(nTX, nTY).Desc |= 0X0080;
-            }else{
-                CellDesc(nTX, nTY).Desc &= 0XFF7F;
-            }
-            CellDesc(nTX, nTY).Light = nLightAttr;
-        }
-    }
-}
-
-void Mir2xMapData::Draw(int nViewX, int nViewY, int nViewW, int nViewH, // view region
-        int nMaxObjW, int nMaxObjH,                                 // operation addition margin
-        const std::function<void(int, int, uint32_t)> &fnDrawTile,  //
-        const std::function<void(int, int, uint32_t)> &fnDrawObj,   //
-        const std::function<void(int, int)> &fnDrawActor,           //
-        const std::function<void(int, int)> &fnDrawExt)             //
-{
-    // to make it safe
-    int nStartCellX = (nViewX - 2 * SYS_MAPGRIDXP - nMaxObjW         ) / SYS_MAPGRIDXP;
-    int nStartCellY = (nViewY - 2 * SYS_MAPGRIDYP - nMaxObjH         ) / SYS_MAPGRIDYP;
-    int nStopCellX  = (nViewX + 2 * SYS_MAPGRIDXP + nMaxObjW + nViewW) / SYS_MAPGRIDXP;
-    int nStopCellY  = (nViewY + 2 * SYS_MAPGRIDYP + nMaxObjH + nViewH) / SYS_MAPGRIDYP;
-
-    // 1. draw tile, this should be done seperately
-    for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
-        for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
-            // 1. boundary check
-            if(!ValidC(nCellX, nCellY)){ continue; }
-
-            // 2. for tile
-            if(!(nCellY % 2) && !(nCellX % 2) && TileValid(nCellX, nCellY)){
-                fnDrawTile(nCellX, nCellY, Tile(nCellX, nCellY));
-            }
-        }
-    }
-
-    // 2. draw everything on ground
-    for(int nCellY = nStartCellY; nCellY <= nStopCellY; ++nCellY){
-        for(int nCellX = nStartCellX; nCellX <= nStopCellX; ++nCellX){
-            // 1. validate the cell, draw overgournd objects here
-            if(ValidC(nCellX, nCellY)){
-                // 1-1. draw ground cell object
-                for(int nIndex = 0; nIndex < 2; ++nIndex){
-                    if(GroundObjectValid(nCellX, nCellY, nIndex)){
-                        fnDrawObj(nCellX, nCellY, Object(nCellX, nCellY, nIndex));
-                    }
-                }
-
-                // 1-2. draw actor
-                // fnDrawActor(nCellX, nCellY);
-
-                // 1-3. draw over ground cell object
-                for(int nIndex = 0; nIndex < 2; ++nIndex){
-                    if(!GroundObjectValid(nCellX, nCellY, nIndex)){
-                        fnDrawObj(nCellX, nCellY, Object(nCellX, nCellY, nIndex));
-                    }
-                }
-
-                // tricky part for mir2 map data
-                // we have to draw actor after all map objects
-                fnDrawActor(nCellX, nCellY);
-            }
-
-            // 2. draw ext, even the cell is not valid we need to draw it
-            fnDrawExt(nCellX, nCellY);
-
-        }
-    }
-}
-
-bool Mir2xMapData::Overlap(int nX, int nY, int nCX, int nCY, int nR)
-{
-    if(ValidP(nX, nY) && nR > 0){
-    }
-
-    int nMinX = nX - nR;
-    int nMinY = nY - nR;
-    int nMaxX = nX + nR;
-    int nMaxY = nY + nR;
-
-    int nCellStartX = nMinX / 48;
-    int nCellStartY = nMinY / 32;
-    int nCellStopX  = nMaxX / 32;
-    int nCellStopY  = nMaxY / 32;
-
-    for(int nCellX = nCellStartX; nCellX <= nCellStopX; ++nCellX){
-        for(int nCellY = nCellStartY; nCellY <= nCellStopY; ++nCellY){
-            int nBdX[4] = {(nCellX + 0) * 48, (nCellX + 1) * 48, (nCellX + 1) * 48, (nCellX + 0) * 48};
-            int nBdY[4] = {(nCellY + 0) * 32, (nCellY + 0) * 32, (nCellY + 1) * 32, (nCellY + 1) * 32};
-            int nMidX = nX * 48 + 24;
-            int nMidY = nY * 32 + 16;
-
-            bool bMidIn = PointInCircle(nMidX, nMidY, nCX, nCY, nR);
-            for(int nIndex = 0; nIndex < 4; ++nIndex){
-                if(!CanWalk(nCellX, nCellY, nIndex)
-                        && (bMidIn || PointInCircle(nBdX[nIndex], nBdY[nIndex], nCX, nCY, nR)
-                            || PointInCircle(nBdX[(nIndex + 1) % 4], nBdY[(nIndex + 1) % 4], nCX, nCY, nR))){
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-
-bool Mir2xMapData::LoadHead(uint8_t * &pData)
-{
-    m_W = *((uint16_t *)pData); pData += 2;
-    m_H = *((uint16_t *)pData); pData += 2;
-
-    m_TileDesc = new TILEDESC[m_W * m_H / 4];
-    m_CellDesc = new CELLDESC[m_W * m_H    ];
+    if(m_Data.empty()){ return -1; }
 
     if(pData[0] != 0){
-        return false;
+        return -1;
     }else{
         pData++;
-        return true;
+        return 0;
     }
 }
 
-bool Mir2xMapData::LoadGround(uint8_t * &pData)
+int Mir2xMapData::SetTile(int nX, int nY, int nSize, const uint8_t *pData, size_t &nDataOff)
 {
-    uint32_t nMarkLen = *((uint32_t *)(pData + 0));
-    uint32_t nDataLen = *((uint32_t *)(pData + 4));
+    if(ValidC(nX, nY) && (nSize > 0)){
+        uint32_t nParam = 0;
+        if(pData){
+            std::memcpy(&nParam, pData, 4);
+            nDataOff += 4;
 
-    long nMarkOff = 0;
-    long nDataOff = 0;
-
-    for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
-        for(int nBlkX = 0; nBlkX < (m_W + 7) / 8; ++nBlkX){
-            ParseGround(nBlkX * 8, nBlkY * 8, 8, pData + 8, nMarkOff, pData + 8 + nMarkLen, nDataOff);
+            // data check here
+            // saved tile parameter should have validness mark set
+            // don't use g_Log since this will be linked to serveral binaries
+            assert(nParam & 0X80000000);
         }
-    }
 
-    pData += (8 + nMarkLen + nDataLen);
-    if(pData[0] != 0
-            || (long)nMarkLen != (nMarkOff + 7) / 8
-            || (long)nDataLen != nDataOff){
-        return false;
-    }else{
-        pData++;
-        return true;
-    }
-}
-
-bool Mir2xMapData::LoadLight(uint8_t * &pData)
-{
-    uint32_t nMarkLen = *((uint32_t *)(pData + 0));
-    uint32_t nDataLen = *((uint32_t *)(pData + 4));
-
-    long nMarkOff = 0;
-    long nDataOff = 0;
-
-    for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
-        for(int nBlkX = 0; nBlkX < (m_W + 7) / 8; ++nBlkX){
-            ParseLight(nBlkX * 8, nBlkY * 8, 8, pData + 8, nMarkOff, pData + 8 + nMarkLen, nDataOff);
-        }
-    }
-
-    pData += (8 + nMarkLen + nDataLen);
-    if(pData[0] != 0
-            || (long)nMarkLen != (nMarkOff + 7) / 8
-            || (long)nDataLen != nDataOff){
-        return false;
-    }else{
-        pData++;
-        return true;
-    }
-}
-
-void Mir2xMapData::ParseObj(int nX, int nY, int nSize, int nObjIndex, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
-{
-    // 1: there is data in current grid
-    // 0: no
-    //
-    // 1: current grid is combined, means it's filled partically
-    // 0: no
-    //
-    // 1: current obj is for over ground layer
-    // 0: for ground layer
-
-    if(ValidC(nX, nY)){
-        if(PickOneBit(pMark, nMarkOff++)){
-            // there is information in current grid
-            if(nSize == 1){
-                // last level of grid, and there is data, so fill it directly
-                // need to read one more bit for ground / wall layer decision
-                SetObj(nX, nY, nObjIndex, 1, pMark, nMarkOff, pData, nDataOff);
-            }else{
-                // not the last level of grid, and there is information in current gird
-                if(PickOneBit(pMark, nMarkOff++)){
-                    // there is data in current grid and it's combined, further parse it
-                    ParseObj(nX,             nY,             nSize / 2, nObjIndex, pMark, nMarkOff, pData, nDataOff);
-                    ParseObj(nX + nSize / 2, nY,             nSize / 2, nObjIndex, pMark, nMarkOff, pData, nDataOff);
-                    ParseObj(nX,             nY + nSize / 2, nSize / 2, nObjIndex, pMark, nMarkOff, pData, nDataOff);
-                    ParseObj(nX + nSize / 2, nY + nSize / 2, nSize / 2, nObjIndex, pMark, nMarkOff, pData, nDataOff);
-                }else{
-                    SetObj(nX, nY, nObjIndex, nSize, pMark, nMarkOff, pData, nDataOff);
+        for(int nTY = nY; nTY < nY + nSize; ++nTY){
+            for(int nTX = nX; nTX < nX + nSize; ++nTX){
+                if(ValidC(nTX, nTY) && (!(nTX % 2)) && (!(nTY % 2))){
+                    Tile(nTX, nTY).Param = nParam;
                 }
             }
-        }else{
-            // no data here, always unset the desc field for the whole grid
-            SetObj(nX, nY, nObjIndex, nSize, nullptr, nMarkOff, nullptr, nDataOff);
         }
+        return 0;
     }
+    return -1;
 }
 
-bool Mir2xMapData::LoadObj(uint8_t * &pData, int nObjIndex)
+int Mir2xMapData::SetCell(int nX, int nY, int nSize, const uint8_t *pData, size_t &nDataOff)
+{
+    if(ValidC(nX, nY) && (nSize > 0)){
+        uint32_t nParam = 0;
+        if(pData){
+            std::memcpy(&nParam, pData, 4);
+            nDataOff += 4;
+
+            // data check here
+            // saved tile parameter should have validness mark set
+            // don't use g_Log since this will be linked to serveral binaries
+            assert(nParam & 0X80000000);
+        }
+
+        for(int nTY = nY; nTY < nY + nSize; ++nTY){
+            for(int nTX = nX; nTX < nX + nSize; ++nTX){
+                if(ValidC(nTX, nTY)){
+                    Cell(nTX, nTY).Param = nParam;
+                }
+            }
+        }
+        return 0;
+    }
+    return -1;
+}
+
+int Mir2xMapData::SetObj(int nX, int nY, int nObjIndex, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+{
+    // we define two objects are *the same* in:
+    //  1. image
+    //  2. animation
+    //  3. blending method
+    //  4. layer
+
+    if(ValidC(nX, nY) && (nObjIndex == 0 || nObjIndex == 1) && (nSize > 0)){
+        uint32_t nObjParam = 0;         // for OBJ::Param
+        uint16_t nCellObjParam = 0;     // for CELL::ObjParam
+
+        if(pMark && pData){
+            std::memcpy(&nObjParam,      pData + 0, 4);  nDataOff += 4;
+            std::memcpy(&nCellObjParam,  pData + 4, 2);  nDataOff += 2;
+
+            assert(nObjParam & 0X80000000);
+        }
+
+        for(int nTY = nY; nTY < nY + nSize; ++nTY){
+            for(int nTX = nX; nTX < nX + nSize; ++nTX){
+                if(ValidC(nTX, nTY)){
+                    if(nObjParam & 0X80000000){
+                        Cell(nTX, nTY).Obj[nObjIndex].Param = nObjParam;
+                        Cell(nTX, nTY).ObjParam &= (nObjIndex ? 0XFFFF0000 : 0X0000FFFF);
+                        Cell(nTX, nTY).ObjParam |= (((uint32_t)(nCellObjParam)) << (nObjIndex ? 16 : 0));
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+    return -1;
+}
+
+int Mir2xMapData::LoadGrid(uint8_t * &pData, int nFinalSize, std::function<int(int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &)> fnParseGrid)
 {
     uint32_t nMarkLen;
     uint32_t nDataLen;
@@ -451,165 +207,563 @@ bool Mir2xMapData::LoadObj(uint8_t * &pData, int nObjIndex)
     std::memcpy(&nMarkLen, pData + 0, 4);
     std::memcpy(&nDataLen, pData + 4, 4);
 
-    uint32_t nMarkOff = 0;
-    uint32_t nDataOff = 0;
+    size_t nMarkOff = 0;
+    size_t nDataOff = 0;
 
-    for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
-        for(int nBlkX = 0; nBlkX < (m_W + 7) / 8; ++nBlkX){
-            ParseObj(nBlkX * 8, nBlkY * 8, 8, nObjIndex, pData + 8, nMarkOff, pData + 8 + nMarkLen, nDataOff);
+    for(int nY= 0; nY < m_H; nY += 8){
+        for(int nX= 0; nX < m_W; nX += 8){
+            if(fnParseGrid(nX, nY, 8, pData + 8, nMarkOff, pData + 8 + nMarkLen, nDataOff)){ return -1; }
         }
     }
 
     pData += (8 + nMarkLen + nDataLen);
-    if(pData[0] || (nMarkLen != (nMarkOff + 7) / 8) || (nDataLen != nDataOff)){
-        return false;
+    if(pData[0] || ((size_t)(nMarkLen) != (nMarkOff + 7) / 8) || ((size_t)(nDataLen) != nDataOff)){
+        return -1;
     }else{
         pData++;
-        return true;
+        return 0;
     }
 }
 
-void Mir2xMapData::ParseTile(int nX, int nY, int nSize, const uint8_t *pMark, uint32_t &nMarkOff, const uint8_t *pData, uint32_t &nDataOff)
+int Mir2xMapData::ParseGrid(int nX, int nY, int nSize, int nFinalSize,
+        const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff,
+        std::function<int(int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &)> fnSet)
 {
-    // 1: there is data in current grid
+    // 1: current grid has data
     // 0: no
     //
-    // 1: current grid is combined, means it's filled partically
-    // 0: no
-    //
-    // 1: lights in full-filled grid are of different attributes
+    // 1: current grid is combined
     // 0: no
 
-    if(ValidC(nX, nY)){
-        if(PickOneBit(pMark, nMarkOff++)){
-            // there is information in current grid
-            if(nSize == 2){
-                // last level of grid, and there is data, so fill it directly
-                SetTile(nX, nY, 2, pData, nDataOff);
-            }else{
-                // not the last level of grid, and there is information in current gird
-                if(PickOneBit(pMark, nMarkOff++)){
-                    // there is data in current grid and it's combined, further parse it
-                    ParseTile(nX,             nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                    ParseTile(nX + nSize / 2, nY,             nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                    ParseTile(nX,             nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
-                    ParseTile(nX + nSize / 2, nY + nSize / 2, nSize / 2, pMark, nMarkOff, pData, nDataOff);
+    if((nX >= 0) && (nY >= 0) && (nSize > 0) && (nFinalSize > 0) && (nSize >= nFinalSize) && !(nX % nFinalSize) && !(nY % nFinalSize)){
+        if(ValidC(nX, nY)){
+            if(PickOneBit(pMark, nMarkOff++)){
+                // there is information in current grid
+                if(nSize > nFinalSize){
+                    // not the last level of grid, and there is information in current gird
+                    if(PickOneBit(pMark, nMarkOff++)){
+                        // there is data in current grid and it's combined, further parse it
+                        if(ParseGrid(nX,             nY,             nSize / 2, nFinalSize, pMark, nMarkOff, pData, nDataOff, fnSet)){ return -1; }
+                        if(ParseGrid(nX + nSize / 2, nY,             nSize / 2, nFinalSize, pMark, nMarkOff, pData, nDataOff, fnSet)){ return -1; }
+                        if(ParseGrid(nX,             nY + nSize / 2, nSize / 2, nFinalSize, pMark, nMarkOff, pData, nDataOff, fnSet)){ return -1; }
+                        if(ParseGrid(nX + nSize / 2, nY + nSize / 2, nSize / 2, nFinalSize, pMark, nMarkOff, pData, nDataOff, fnSet)){ return -1; }
+                    }else{
+                        // there is data in current grid and it's not combined
+                        // so full-filled with same attribute
+                        return fnSet(nX, nY, nSize, pMark, nMarkOff, pData, nDataOff);
+                    }
                 }else{
-                    // full-filled grid with lights of the same attributes
-                    SetTile(nX, nY, nSize, pData, nDataOff);
+                    // last level of grid, and there is data, so fill it directly
+                    return fnSet(nX, nY, nSize, pMark, nMarkOff, pData, nDataOff);
                 }
+            }else{
+                // no data here, always unset the desc field for the whole grid
+                return fnSet(nX, nY, nSize, nullptr, nMarkOff, nullptr, nDataOff);
+            }
+        }
+        return 0;
+    }
+
+    // invalid argument
+    return -1;
+}
+
+int Mir2xMapData::Save(const char *szFullName)
+{
+    if(Valid()){
+        std::vector<bool>    stMarkV;
+        std::vector<uint8_t> stDataV;
+        std::vector<uint8_t> stOutV;
+
+        // header, w then h
+        {
+            stOutV.push_back((uint8_t)((m_W & 0X00FF)     ));
+            stOutV.push_back((uint8_t)((m_W & 0XFF00) >> 8));
+            stOutV.push_back((uint8_t)((m_H & 0X00FF)     ));
+            stOutV.push_back((uint8_t)((m_H & 0XFF00) >> 8));
+            stOutV.push_back((uint8_t)(0));
+        }
+
+        // tile
+        {
+            stMarkV.clear();
+            stDataV.clear();
+
+            auto fnGridChecker = [this, nParam = (uint32_t)(0)](int nX, int nY) mutable -> int {
+                if(ValidC(nX, nY) && !(nX % 2) && !(nY % 2)){
+                    auto nCurrParam = Tile(nX, nY).Param;
+                    if(nCurrParam & 0X80000000){
+                        if(nParam & 0X80000000){
+                            if(nParam == nCurrParam){
+                                // not the first time, but it's the same
+                                return 2;
+                            }else{
+                                // not the first time, and it's different
+                                return 3;
+                            }
+                        }else{
+                            nParam = nCurrParam;
+
+                            // first time to see it
+                            return 1;
+                        }
+                    }else{
+                        // empty
+                        return 0;
+                    }
+                }
+                return -1;
+            };
+
+            auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize){
+                // fnGridChecker is stateful but fnAttrGridType is stateless
+                // because every time when call fnAttrGridType, we use a copy of fnGridChecker at its initial state
+                return GridAttrType(nX, nY, nSize, 2, fnGridChecker);
+            };
+
+            auto fnRecord = [this](int nX, int nY, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+                if(ValidC(nX, nY)){
+                    stMarkV.push_back(true);
+                    auto pBuf = (uint8_t *)(&(Tile(nX, nY).Param));
+                    stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
+                    return 0;
+                }
+                return -1;
+            };
+
+            auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+                return CompressGrid(nX, nY, nSize, 2, stMarkV, stDataV, fnAttrGridType, fnRecord);
+            };
+
+            SaveGrid(stMarkV, stDataV, fnCompressGrid);
+            PushData(stMarkV, stDataV, stOutV);
+        }
+
+        // cell
+        {
+            stMarkV.clear();
+            stDataV.clear();
+
+            auto fnGridChecker = [this, nParam = (uint32_t)(0)](int nX, int nY) mutable -> int {
+                if(ValidC(nX, nY)){
+                    auto nCurrParam = Cell(nX, nY).Param;
+                    if(nCurrParam & 0X80000000){
+                        if(nParam & 0X80000000){
+                            if(nParam == nCurrParam){
+                                // not the first time, but it's the same
+                                return 2;
+                            }else{
+                                // not the first time, and it's different
+                                return 3;
+                            }
+                        }else{
+                            nParam = nCurrParam;
+
+                            // first time to see it
+                            return 1;
+                        }
+                    }else{
+                        // empty
+                        return 0;
+                    }
+                }
+                return -1;
+            };
+
+            auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize){
+                // fnGridChecker is stateful but fnAttrGridType is stateless
+                // because every time when call fnAttrGridType, we use a copy of fnGridChecker at its initial state
+                return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
+            };
+
+            auto fnRecord = [this](int nX, int nY, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+                if(ValidC(nX, nY)){
+                    stMarkV.push_back(true);
+                    auto pBuf = (uint8_t *)(&(Cell(nX, nY).Param));
+                    stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
+                    return 0;
+                }
+                return -1;
+            };
+
+            auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+                return CompressGrid(nX, nY, nSize, 1, stMarkV, stDataV, fnAttrGridType, fnRecord);
+            };
+
+            SaveGrid(stMarkV, stDataV, fnCompressGrid);
+            PushData(stMarkV, stDataV, stOutV);
+        }
+
+        // can walk
+        {
+            stMarkV.clear();
+            stDataV.clear();
+
+            auto fnGridChecker = [this, nParam = (uint32_t)(0)](int nX, int nY) mutable -> int {
+                if(ValidC(nX, nY)){
+                    auto nCurrParam = Cell(nX, nY).Param;
+                    if(nCurrParam & 0X80000000){
+                        if(nParam & 0X80000000){
+                            if(nParam == nCurrParam){
+                                // not the first time, but it's the same
+                                return 2;
+                            }else{
+                                // not the first time, and it's different
+                                return 3;
+                            }
+                        }else{
+                            nParam = nCurrParam;
+
+                            // first time to see it
+                            return 1;
+                        }
+                    }else{
+                        // empty
+                        return 0;
+                    }
+                }
+                return -1;
+            };
+
+            auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize){
+                // fnGridChecker is stateful but fnAttrGridType is stateless
+                // because every time when call fnAttrGridType, we use a copy of fnGridChecker at its initial state
+                return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
+            };
+
+            auto fnRecord = [this](int nX, int nY, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+                if(ValidC(nX, nY)){
+                    stMarkV.push_back(true);
+                    auto pBuf = (uint8_t *)(&(Cell(nX, nY).Param));
+                    stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
+                    return 0;
+                }
+                return -1;
+            };
+
+            auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+                return CompressGrid(nX, nY, nSize, 1, stMarkV, stDataV, fnAttrGridType, fnRecord);
+            };
+
+            SaveGrid(stMarkV, stDataV, fnCompressGrid);
+            PushData(stMarkV, stDataV, stOutV);
+        }
+
+        // obj0
+        {
+            stMarkV.clear();
+            stDataV.clear();
+
+            auto fnGridChecker = [this, nObjParam = (uint32_t)(0), nCellObjParam = (uint16_t)(0)](int nX, int nY) mutable -> int {
+                if(ValidC(nX, nY)){
+                    auto nCurrObjParam = (uint32_t)(Cell(nX, nY).Obj[0].Param);
+                    if(nCurrObjParam & 0X80000000){
+                        auto nCurrCellObjParam = (uint16_t)(Cell(nX, nY).ObjParam & 0X0000FFFF);
+                        if(nObjParam & 0X80000000){
+                            if(nObjParam == nCurrObjParam && nCellObjParam == nCurrCellObjParam){
+                                // not the first time, but it's the same
+                                return 2;
+                            }else{
+                                // not the first time, and it's different
+                                return 3;
+                            }
+                        }else{
+                            nObjParam = nCurrObjParam;
+                            nCellObjParam = nCurrCellObjParam;
+
+                            // first time to see it
+                            return 1;
+                        }
+                    }else{
+                        // empty
+                        return 0;
+                    }
+                }
+                return -1;
+            };
+
+            auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize){
+                // fnGridChecker is stateful but fnAttrGridType is stateless
+                // because every time when call fnAttrGridType, we use a copy of fnGridChecker at its initial state
+                return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
+            };
+
+            auto fnRecord = [this](int nX, int nY, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+                if(ValidC(nX, nY)){
+                    stMarkV.push_back(true);
+                    // 1. record object image info
+                    {
+                        auto pBuf = (uint8_t *)(&(Cell(nX, nY).Obj[0].Param));
+                        stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
+                    }
+
+                    // 2. record blending & animation info
+                    {
+                        auto pBuf = (uint8_t *)(&(Cell(nX, nY).ObjParam));
+                        stDataV.insert(stDataV.end(), pBuf, pBuf + 2);
+                    }
+                    return 0;
+                }
+                return -1;
+            };
+
+            auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+                return CompressGrid(nX, nY, nSize, 1, stMarkV, stDataV, fnAttrGridType, fnRecord);
+            };
+
+            SaveGrid(stMarkV, stDataV, fnCompressGrid);
+            PushData(stMarkV, stDataV, stOutV);
+        }
+
+        // obj1
+        {
+            stMarkV.clear();
+            stDataV.clear();
+
+            auto fnGridChecker = [this, nObjParam = (uint32_t)(0), nCellObjParam = (uint16_t)(0)](int nX, int nY) mutable -> int {
+                if(ValidC(nX, nY)){
+                    auto nCurrObjParam = (uint32_t)(Cell(nX, nY).Obj[0].Param);
+                    if(nCurrObjParam & 0X80000000){
+                        auto nCurrCellObjParam = (uint16_t)((Cell(nX, nY).ObjParam & 0XFFFF0000) >> 16);
+                        if(nObjParam & 0X80000000){
+                            if(nObjParam == nCurrObjParam && nCellObjParam == nCurrCellObjParam){
+                                // not the first time, but it's the same
+                                return 2;
+                            }else{
+                                // not the first time, and it's different
+                                return 3;
+                            }
+                        }else{
+                            nObjParam = nCurrObjParam;
+                            nCellObjParam = nCurrCellObjParam;
+
+                            // first time to see it
+                            return 1;
+                        }
+                    }else{
+                        // empty
+                        return 0;
+                    }
+                }
+                return -1;
+            };
+
+            auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize){
+                // fnGridChecker is stateful but fnAttrGridType is stateless
+                // because every time when call fnAttrGridType, we use a copy of fnGridChecker at its initial state
+                return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
+            };
+
+            auto fnRecord = [this](int nX, int nY, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+                if(ValidC(nX, nY)){
+                    stMarkV.push_back(true);
+                    // 1. record object image info
+                    {
+                        auto pBuf = (uint8_t *)(&(Cell(nX, nY).Obj[0].Param));
+                        stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
+                    }
+
+                    // 2. record blending & animation info
+                    {
+                        auto pBuf = (uint8_t *)(&(Cell(nX, nY).ObjParam));
+                        stDataV.insert(stDataV.end(), pBuf + 2, pBuf + 4);
+                    }
+                    return 0;
+                }
+                return -1;
+            };
+
+            auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+                return CompressGrid(nX, nY, nSize, 1, stMarkV, stDataV, fnAttrGridType, fnRecord);
+            };
+
+            SaveGrid(stMarkV, stDataV, fnCompressGrid);
+            PushData(stMarkV, stDataV, stOutV);
+        }
+
+        return 0;
+    }
+
+    return -1;
+}
+
+int Mir2xMapData::SaveGrid(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV, std::function<int(int, int, int, std::vector<bool> &, std::vector<uint8_t> &)> fnCompressGrid)
+{
+    stMarkV.clear();
+    stDataV.clear();
+    for(int nY = 0; nY < H(); nY += 8){
+        for(int nX = 0; nX < W(); nX += 8){
+            if(fnCompressGrid(nX, nY, 8, stMarkV, stDataV)){ return -1; }
+        }
+    }
+    return 0;
+}
+
+// return -1 : error
+//         0 : empty
+//         1 : full-filled and unified
+//         2 : full-filled but with diverse
+//         3 : partically filled
+// parameter :
+//         nStartX    : 
+//         nStartY    :
+//         nSize      :
+//         nFinalSize :
+//         fnChecker  : *stateful* checker to indicate for current state
+//                    : fnChecker should always be at initialization state when call GridAttrType()
+//                      returns -1 : error
+//                               0 : current is empty, but we can have no-empty content detected before
+//                               1 : the first time to see it
+//                               2 : not the first time, but the same
+//                               3 : not the first time, but with difference
+int Mir2xMapData::GridAttrType(int nStartX, int nStartY, int nSize, int nFinalSize, std::function<int(int, int)> fnChecker)
+{
+    if(ValidC(nStartX, nStartY) && !(nStartX % nFinalSize) && !(nStartY % nFinalSize)){
+        if(nSize == nFinalSize){
+            switch(fnChecker(nStartX, nStartY)){
+                case 0  : return  0;
+                case 1  : return  1;
+                case 2  : return  1;
+                case 3  : return  1;
+                default : return -1;
             }
         }else{
-            // no data here, always unset the desc field for the whole grid
-            SetTile(nX, nY, nSize, nullptr, nDataOff);
-        }
-    }
-}
+            bool bFindEmpty = false;
+            bool bFindFill  = false;
+            bool bFindDiff  = false;
 
-bool Mir2xMapData::LoadTile(uint8_t * &pData)
-{
-    uint32_t nMarkLen;
-    uint32_t nDataLen;
+            for(int nY = 0; nY < nSize; ++nY){
+                for(int nX = 0; nX < nSize; ++nX){
+                    if(ValidC(nX + nStartX, nY + nStartY) && !((nX + nStartX) % 2) && !((nY + nStartY) % 2)){
+                        switch(fnChecker(nX + nStartX, nY + nStartY)){
+                            case 0: // empty
+                                {
+                                    bFindEmpty = true;
+                                    break;
+                                }
+                            case 1: // the first time to see it
+                                {
+                                    bFindFill = true;
+                                    break;
+                                }
+                            case 2: // not the first time, but it's the same
+                                {
+                                    bFindFill = true;
+                                    break;
+                                }
+                            case 3: // not the first time, and it's different!
+                                {
+                                    bFindFill = true;
+                                    bFindDiff = true;
+                                    break;
+                                }
+                            default:
+                                {
+                                    return -1;
+                                }
+                        }
+                    }
+                }
+            }
 
-    std::memcpy(&nMarkLen, pData + 0, 4);
-    std::memcpy(&nDataLen, pData + 4, 4);
-
-    uint32_t nMarkOff = 0;
-    uint32_t nDataOff = 0;
-
-    for(int nBlkY = 0; nBlkY < (m_H + 7) / 8; ++nBlkY){
-        for(int nBlkX = 0; nBlkX < (m_W + 7) / 8; ++nBlkX){
-            ParseTile(nBlkX * 8, nBlkY * 8, 8, pData + 8, nMarkOff, pData + 8 + nMarkLen, nDataOff);
-        }
-    }
-
-    pData += (8 + nMarkLen + nDataLen);
-    if(pData[0] || (nMarkLen != (nMarkOff + 7) / 8) || (nDataLen != nDataOff)){
-        return false;
-    }else{
-        pData++;
-        return true;
-    }
-}
-
-void Mir2xMapData::SetTile(int nX, int nY, int nSize, const uint8_t *pData, uint32_t &nDataOff)
-{
-    uint32_t nParam = 0;
-    if(pData){
-        std::memset(&nParam, pData, 4);
-        nParam   |= 0X80000000;
-        nDataOff += 4;
-    }
-
-    for(int nTY = nY; nTY < nY + nSize; ++nTY){
-        for(int nTX = nX; nTX < nX + nSize; ++nTX){
-            if(ValidC(nTX, nTY) && (!(nTX % 2)) && (!(nTY % 2))){
-                Tile(nTX, nTY).Param = nParam;
+            if(bFindFill == false){
+                // no information at all
+                return 0;
+            }else{
+                // do have information
+                if(bFindEmpty == false){
+                    // all filled
+                    if(bFindDiff == false){
+                        // all filled and no difference exists
+                        return 1;
+                    }else{
+                        // all filled and there is difference
+                        return 2;
+                    }
+                }else{
+                    // there are filled and empty, combined
+                    return 3;
+                }
             }
         }
     }
+
+    return -1;
 }
 
-bool Mir2xMapData::CanWalkP(int nPX, int nPY, int nPR)
+int Mir2xMapData::CompressGrid(int nX, int nY, int nSize, int nFinalSize, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV, std::function<int(int, int, int)> fnAttrGridType, std::function<int(int, int, std::vector<bool> &, std::vector<uint8_t> &)> fnRecord)
 {
-    // 1. we make strict parameter check here
-    assert(nRR >= 0);
+    if(ValidC(nX, nY) && (nSize > 0) && (nFinalSize > 0) && (nSize >= nFinalSize) && !(nX % nFinalSize) && !(nY % nFinalSize)){
+        switch(auto nType = fnAttrGridType(nX, nY, nSize)){
+            case -1:
+                {
+                    return 0;
+                }
+            case 0:
+                {
+                    stMarkV.push_back(false);
+                    return 0;
+                }
+            default:
+                {
+                    stMarkV.push_back(true);
+                    if(nSize == nFinalSize){
+                        // there is info and it's last level, so nType can only be 1
+                        // end of recursion
+                        return fnRecord(nX, nY, stMarkV, stDataV);
+                    }else{
 
-    // 2. valid point?
-    if(!ValidP(nPX, nPY)){ return false; }
+                        // there is info, and it's not the last level
+                        if(nType == 2 || nType == 3){
+                            stMarkV.push_back(true);
 
-    // 3. ok it's a real ``cover"
-    if(nPR){
-        int nPX0 = nPX - nPR;
-        int nPX1 = nPX + nPR;
-        int nPY0 = nPY - nPR;
-        int nPY1 = nPY + nPR;
+                            if(CompressGrid(nX            , nY            , nSize / 2, nFinalSize, stMarkV, stDataV, fnAttrGridType, fnRecord)){ return -1; }
+                            if(CompressGrid(nX + nSize / 2, nY            , nSize / 2, nFinalSize, stMarkV, stDataV, fnAttrGridType, fnRecord)){ return -1; }
+                            if(CompressGrid(nX            , nY + nSize / 2, nSize / 2, nFinalSize, stMarkV, stDataV, fnAttrGridType, fnRecord)){ return -1; }
+                            if(CompressGrid(nX + nSize / 2, nY + nSize / 2, nSize / 2, nFinalSize, stMarkV, stDataV, fnAttrGridType, fnRecord)){ return -1; }
+                        }else{
+                            // nType == 1 here, filled with the same info
+                            stMarkV.push_back(false);
+                            return fnRecord(nX, nY, stMarkV, stDataV);
+                        }
+                    }
 
-        // 3. the cover should fully in the map
-        if(!RectangleInside(0, 0, W() * SYS_MAPGRIDXP, H() * SYS_MAPGRIDYP, nPX0, nPY0, nPX1, nPY1)){ return false; }
-
-        // ok now it's in the map, we check each covered grid
-        for(int nGY = nPY0 / SYS_MAPGRIDYP; nGY <= nPY1 / SYS_MAPGRIDYP; ++nGY){
-            for(int nGX = nPX0 / SYS_MAPGRIDXP; nGX <= nPX1 / SYS_MAPGRIDXP; ++nGX){
-                // 1. couldn't happen
-                if(!ValidC(nGX, nGY)){ continue; }
-
-                int nGPX0 = nGX * SYS_MAPGRIDXP;
-                int nGPY0 = nGY * SYS_MAPGRIDYP;
-
-                // 2. check if circle overlaps with this grid
-                if(!CircleRectangleOverlap(nPX, nPY, nPR, nGPX0, nGPY0, SYS_MAPGRIDXP, SYS_MAPGRIDYP)){ continue; }
-
-                int nGPX1 = nGX * SYS_MAPGRIDXP + SYS_MAPGRIDXP;
-                int nGPY1 = nGY * SYS_MAPGRIDYP + SYS_MAPGRIDYP;
-
-                int nGPMX = (nGPX0 + nGPX1) / 2;
-                int nGPMY = (nGPY0 + nGPY1) / 2;
-
-                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX0, nGPY0, nGPX1, nGPY0)){ if(!CanWalk(nGX, nGY, 0)){ return false; } }
-                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX1, nGPY0, nGPX1, nGPY1)){ if(!CanWalk(nGX, nGY, 1)){ return false; } }
-                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX1, nGPY1, nGPX0, nGPY1)){ if(!CanWalk(nGX, nGY, 2)){ return false; } }
-                if(CircleTriangleOverlap(nPX, nPY, nPR, nGPMX, nGPMY, nGPX0, nGPY1, nGPX0, nGPY0)){ if(!CanWalk(nGX, nGY, 3)){ return false; } }
-            }
+                    return 0;
+                }
         }
-
-        // all overlapped grids pass the check
-        return true;
     }
 
-    // just a point
-    int nDX = nPX % SYS_MAPGRIDXP;
-    int nDY = nPY % SYS_MAPGRIDYP;
+    return 0;
+}
 
-    int nBit0 = ((SYS_MAPGRIDXP * nDY <= SYS_MAPGRIDYP * nDX) ? 1 : 0); // or just take it as int...
-    int nBit1 = ((SYS_MAPGRIDXP * nDY <= SYS_MAPGRIDYP * (SYS_MAPGRIDXP - nDX)) ? 1 : 0);
+void Mir2xMapData::PushBit(const std::vector<bool> &stMarkV, std::vector<uint8_t> &stOutV)
+{
+    size_t nIndex = 0;
+    while(nIndex < stMarkV.size()){
+        uint8_t nRes = 0X00;
+        for(int nBit = 0; nBit < 8; ++nBit){
+            nRes = (nRes >> 1) + ((nIndex < stMarkV.size() && stMarkV[nIndex++]) ? 0X80 : 0X00);
+        }
+        stOutV.push_back(nRes);
+    }
+}
 
-    static int knReginIndex[] = {
-        2, // 0
-        1, // 1
-        3, // 2
-        0  // 3
-    };
+void Mir2xMapData::PushData(const std::vector<bool> &stMarkV, const std::vector<uint8_t> &stDataV, std::vector<uint8_t> &stOutV)
+{
+    auto nMarkLen = (uint32_t)((stMarkV.size() + 7) / 8);
+    auto nDataLen = (uint32_t)((stDataV.size()));
 
-    return CanWalk(nPX / SYS_MAPGRIDXP, nPY / SYS_MAPGRIDYP, knReginIndex[nBit1 * 2 + nBit0]);
+    stOutV.push_back((uint8_t)((nMarkLen & 0X000000FF) >>  0));
+    stOutV.push_back((uint8_t)((nMarkLen & 0X0000FF00) >>  8));
+    stOutV.push_back((uint8_t)((nMarkLen & 0X00FF0000) >> 16));
+    stOutV.push_back((uint8_t)((nMarkLen & 0XFF000000) >> 24));
+
+    stOutV.push_back((uint8_t)((nDataLen & 0X000000FF) >>  0));
+    stOutV.push_back((uint8_t)((nDataLen & 0X0000FF00) >>  8));
+    stOutV.push_back((uint8_t)((nDataLen & 0X00FF0000) >> 16));
+    stOutV.push_back((uint8_t)((nDataLen & 0XFF000000) >> 24));
+
+    PushBit(stMarkV, stOutV);
+    stOutV.insert(stOutV.end(), stDataV.begin(), stDataV.end());
+    stOutV.push_back(0);
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.hpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 03/16/2017 23:30:56
+ *  Last Modified: 03/18/2017 00:33:58
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -20,124 +20,71 @@
  */
 
 #pragma once
+#include <vector>
 #include <cstdint>
 #include <functional>
 
 class Mir2xMapData
 {
-    private:
-        uint16_t m_W;
-        uint16_t m_H;
-
-    private:
-        std::vector<BLOCK> m_Data;
-
-    private:
+    public:
         // pod types
         // can be initialized by { xx, xx, xxx }
         typedef struct
         {
             uint32_t Param;     // bit field definition:
                                 //      31 : valid
-                                // 30 - 24 :
+                                // 30 - 28 :
+                                // 27 - 24 : index
                                 // 23 - 16 : index for file
                                 // 15 -  0 : index for image
-            auto Valid()
-            {
-                return Param & 0X80000000;
-            }
-
-            auto TexID()
-            {
-                return Param & 0X00FFFFFF;
-            }
-
-            void Init(bool bValid, uint32_t nTexID)
-            {
-                Param = (bValid ? 0X80000000 : 0X00000000) | (nTexID & 0X00FFFFFF);
-            }
         }TILE;
 
+        // define OBJ as ``one frame of OBJ"
+        // then move the animation information out
+        // since we can define a sequence of animated obj as an animation
         typedef struct
         {
             uint32_t Param;     // bit field definition:
-                                //      31 : animated
-                                // 30 - 28 : tick type for animation FPS
-                                // 27 - 24 : frame count, max = 16
+                                //      31 : valid
+                                // 30 - 28 :
+                                // 27 - 24 : index
                                 // 23 - 16 : index for file
                                 // 15 -  0 : index for image
-            auto Animated()
-            {
-                return Param & 0X80000000;
-            }
-
-            auto TickType()
-            {
-                return (Param & 0X70000000) >> 28;
-            }
-
-            auto FrameCount()
-            {
-                return (Param & 0X0F000000) >> 24;
-            }
-
-            auto TexID()
-            {
-                return Param & 0X00FFFFFF;
-            }
-
-            void Init(bool bAnimated, int nTickType, int nFrameCount, uint32_t nTexID)
-            {
-                Param = (bAnimated ? 0X80000000 : 0X00000000) | ((((uint32_t)(nTickType)) & 0X07) << 28) | ((((uint32_t)(nFrameCount)) & 0X0F) << 24) | (nTexID & 0X00FFFFFF);
-            }
         }OBJ;
 
         typedef struct
         {
-            uint32_t Param;     // bit field definition:
-                                //      31 : obj-1 is alpha blended
-                                //      30 :
-                                //      29 : obj-1 is ground
-                                //      28 : obj-1 is valid
+            uint32_t Param;     // bit field definition
+                                //      31 : valid
+                                // 30 - 24 :
                                 //
-                                //      27 : obj-0 is alpha blended
-                                //      26 :
-                                //      25 : obj-0 is ground
-                                //      24 : obj-0 is valid
+                                //      23 : can walk
+                                // 22 - 16 :
                                 //
-                                //      23 : light
-                                //      15 : can walk
-                                // 14 -  0 :
+                                //      15 : valid light
+                                // 14 - 08 :
+                                //
+                                // 07 - 00 :
 
-            // object 1, 2
-            // validness information stays in Param
-            // OBJ has no member to indicate its validness
+            uint32_t ObjParam;  // define how to use the Obj in current cell
+                                // bit field definition:
+                                //      31 : obj-1 : animated
+                                // 30 - 28 :       : tick type of animation
+                                // 27 - 24 :       : frame count, max = 16
+                                //      23 :       : alpha
+                                //      22 :       : ground
+                                // 21 - 16 :       :
+                                //
+                                //      15 : obj-2 : animated
+                                // 14 - 12 :       : tick type of animation
+                                // 11 - 08 :       : frame count, max = 16
+                                //      07 :       : alpha
+                                //      06 :       : ground
+                                // 05 - 00 :       :
+
+            // information of ``one frame" of object
+            // animation infomation and blending infomation are in ObjParam
             OBJ Obj[2];
-
-            auto AlphaObjectValid(int nIndex)
-            {
-                return Param & (nIndex ? 0X80000000 : 0X08000000);
-            }
-
-            auto GroundObjectValid(int nIndex)
-            {
-                return Param & (nIndex ? 0X20000000 : 0X02000000);
-            }
-
-            auto ObjectValid(int nIndex)
-            {
-                return Param & (nIndex ? 0X10000000 : 0X01000000);
-            }
-
-            auto Light()
-            {
-                return Param & 0X00800000;
-            }
-
-            auto CanWalk()
-            {
-                return Param & 0X00008000;
-            }
         }CELL;
 
         typedef struct
@@ -146,6 +93,15 @@ class Mir2xMapData
             CELL   Cell[4];
         }BLOCK;
 
+    private:
+        uint16_t m_W;
+        uint16_t m_H;
+
+    private:
+        // previously I would use std::vector<uint8_t> to work as a buffer
+        // but never since now it's undefined because of the strict aliasing rule
+        std::vector<BLOCK> m_Data;
+
     public:
         Mir2xMapData()
             : m_W(0)
@@ -153,24 +109,22 @@ class Mir2xMapData
             , m_Data()
         {}
 
-    private:
-        auto &Block(int nX, int nY)
-        {
-            return m_Data[nX / 2 + (nY / 2) * m_W / 2];
-        }
-
     public:
-        auto &Tile(int nX, int nY)
+        bool Valid()
         {
-            return Block(nX, nY).Tile[0];
+            return !m_Data.empty();
         }
 
-        auto &Cell(int nX, int nY)
+        size_t Size()
         {
-            return Block(nX, nY).Cell[(nY % 2) * 2 + (nX % 2)];
+            return m_Data.size();
         }
 
-    public:
+        const uint8_t *Data()
+        {
+            return (uint8_t *)(&m_Data[0]);
+        }
+
         int W()
         {
             return m_W;
@@ -182,24 +136,35 @@ class Mir2xMapData
         }
 
     public:
-        bool Load(const char *);
+        auto &Block(int nX, int nY)
+        {
+            return m_Data[nX / 2 + (nY / 2) * m_W / 2];
+        }
+
+        auto &Tile(int nX, int nY)
+        {
+            return Block(nX, nY).Tile[0];
+        }
+
+        auto &Cell(int nX, int nY)
+        {
+            return Block(nX, nY).Cell[(nY % 2) * 2 + (nX % 2)];
+        }
+
+    public:
+        int Load(const char *);
+        int Save(const char *);
 
     private:
-        bool PickOneBit(const uint8_t *pData, long nOffset)
+        bool PickOneBit(const uint8_t *pData, size_t nOffset)
         {
             return (pData[nOffset / 8] & (0X01 << (nOffset) % 8)) != 0;
         }
 
     public:
-        bool Overlap(int, int, int, int, int);
-
-    public:
-        bool CanWalkP(int, int, int);
-
-    public:
-        bool Valid()
+        bool ValidC(int nX, int nY)
         {
-            return !m_Data.empty();
+            return nX >= 0 && nX < m_W && nY >= 0 && nY < m_H;
         }
 
         bool ValidP(int nX, int nY)
@@ -207,34 +172,20 @@ class Mir2xMapData
             return nX >= 0 && nX < m_W * 48 && nY >= 0 && nY < m_H * 32;
         }
 
-        bool ValidC(int nX, int nY)
-        {
-            return nX >= 0 && nX < m_W && nY >= 0 && nY < m_H;
-        }
+    private:
+        int LoadHead(uint8_t * &);
+        int LoadGrid(uint8_t * &, int, std::function<int(int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &)>);
+        int ParseGrid(int, int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &, std::function<int(int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &)>);
+
+        int GridAttrType(int, int, int, int, std::function<int(int, int)>);
+        int SaveGrid(std::vector<bool> &, std::vector<uint8_t> &, std::function<int(int, int, int, std::vector<bool> &, std::vector<uint8_t> &)>);
+        int CompressGrid(int, int, int, int, std::vector<bool> &, std::vector<uint8_t> &, std::function<int(int, int, int)>, std::function<int(int, int, std::vector<bool> &, std::vector<uint8_t> &)>);
+
+        int SetTile(int, int, int, const uint8_t *, size_t &);
+        int SetCell(int, int, int, const uint8_t *, size_t &);
+        int SetObj(int, int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &);
 
     private:
-        bool LoadHead(uint8_t * &);
-
-    private:
-        bool LoadTile(uint8_t * &);
-        void ParseTile(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
-        void SetTile(int, int, int, const uint8_t *, long &);
-
-    private:
-        bool LoadLight(uint8_t * &);
-        void ParseLight(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
-        void SetLight(int, int, int, const uint8_t *, long &);
-
-    private:
-        bool LoadGround(uint8_t * &);
-        void ParseGround(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
-        void SetGround(int, int, int, bool, uint8_t);
-        void SetOneGround(int, int, int, bool, uint8_t);
-
-    private:
-        bool LoadObj(uint8_t * &, int);
-        void ParseObj(int, int, int, int, const uint8_t *, long &, const uint8_t *, long &);
-        void SetObj(int, int, int, int, const uint8_t *, long &, const uint8_t *, long &);
-        void SetOneObj(int, int, int, const uint8_t *, long &, const uint8_t *, long &);
-        void SetOneObjMask(int, int, int, bool, bool);
+        void PushBit(const std::vector<bool> &, std::vector<uint8_t> &);
+        void PushData(const std::vector<bool> &, const std::vector<uint8_t> &, std::vector<uint8_t> &);
 };
