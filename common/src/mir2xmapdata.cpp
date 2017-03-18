@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.cpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 03/18/2017 00:29:29
+ *  Last Modified: 03/18/2017 01:04:43
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -83,10 +83,10 @@ int Mir2xMapData::Load(const char *szFullName)
         auto pCurDat = &(bufMapData[0]);
         if(true
                 && LoadHead(pCurDat)
-                && LoadGrid(pCurDat, 2, fnParseTile)
-                && LoadGrid(pCurDat, 1, fnParseCell)
-                && LoadGrid(pCurDat, 1, fnParseObj0)
-                && LoadGrid(pCurDat, 1, fnParseObj1)){ return 0; }
+                && LoadGrid(pCurDat, fnParseTile)
+                && LoadGrid(pCurDat, fnParseCell)
+                && LoadGrid(pCurDat, fnParseObj0)
+                && LoadGrid(pCurDat, fnParseObj1)){ return 0; }
 
         m_Data.clear();
     }
@@ -164,7 +164,7 @@ int Mir2xMapData::SetCell(int nX, int nY, int nSize, const uint8_t *pData, size_
     return -1;
 }
 
-int Mir2xMapData::SetObj(int nX, int nY, int nObjIndex, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+int Mir2xMapData::SetObj(int nX, int nY, int nObjIndex, int nSize, const uint8_t *, size_t &, const uint8_t *pData, size_t &nDataOff)
 {
     // we define two objects are *the same* in:
     //  1. image
@@ -176,7 +176,7 @@ int Mir2xMapData::SetObj(int nX, int nY, int nObjIndex, int nSize, const uint8_t
         uint32_t nObjParam = 0;         // for OBJ::Param
         uint16_t nCellObjParam = 0;     // for CELL::ObjParam
 
-        if(pMark && pData){
+        if(pData){
             std::memcpy(&nObjParam,      pData + 0, 4);  nDataOff += 4;
             std::memcpy(&nCellObjParam,  pData + 4, 2);  nDataOff += 2;
 
@@ -199,7 +199,7 @@ int Mir2xMapData::SetObj(int nX, int nY, int nObjIndex, int nSize, const uint8_t
     return -1;
 }
 
-int Mir2xMapData::LoadGrid(uint8_t * &pData, int nFinalSize, std::function<int(int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &)> fnParseGrid)
+int Mir2xMapData::LoadGrid(uint8_t * &pData, std::function<int(int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &)> fnParseGrid)
 {
     uint32_t nMarkLen;
     uint32_t nDataLen;
@@ -581,7 +581,11 @@ int Mir2xMapData::Save(const char *szFullName)
             PushData(stMarkV, stDataV, stOutV);
         }
 
-        return 0;
+        if(auto fp = std::fopen(szFullName, "wb")){
+            std::fwrite(&(stOutV[0]), stOutV.size() * sizeof(stOutV[0]), 1, fp);
+            std::fclose(fp);
+            return 0;
+        }
     }
 
     return -1;

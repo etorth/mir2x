@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.hpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 03/18/2017 00:33:58
+ *  Last Modified: 03/18/2017 01:01:52
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -174,7 +174,7 @@ class Mir2xMapData
 
     private:
         int LoadHead(uint8_t * &);
-        int LoadGrid(uint8_t * &, int, std::function<int(int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &)>);
+        int LoadGrid(uint8_t * &, std::function<int(int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &)>);
         int ParseGrid(int, int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &, std::function<int(int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &)>);
 
         int GridAttrType(int, int, int, int, std::function<int(int, int)>);

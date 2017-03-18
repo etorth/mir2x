@@ -3,7 +3,7 @@
  *
  *       Filename: clientmap.hpp
  *        Created: 06/02/2016 14:01:46
- *  Last Modified: 06/02/2016 23:13:23
+ *  Last Modified: 03/18/2017 01:06:43
  *
  *    Description: wrapper of mir2xmap for client
  *
