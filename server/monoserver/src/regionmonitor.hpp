@@ -3,7 +3,7 @@
  *
  *       Filename: regionmonitor.hpp
  *        Created: 04/21/2016 12:09:03
- *  Last Modified: 06/18/2016 23:45:43
+ *  Last Modified: 03/18/2017 21:22:46
  *
  *    Description: at the beginning I was thinking to init region monitro first, to
  *                 set all region/neighbor, and then call Activate(), then I found
@@ -77,7 +77,8 @@ class RegionMonitor: public Transponder
 {
     private:
         // used when query neighbor's opinion for cover check
-        enum QueryType: int{
+        enum QueryType: int
+        {
             QUERY_NA,
             QUERY_OK,
             QUERY_ERROR,
@@ -85,7 +86,8 @@ class RegionMonitor: public Transponder
         };
 
     private:
-        typedef struct _MoveRequest{
+        typedef struct _MoveRequest
+        {
             // current region monitor is locked because:
 
             bool    WaitCO;             // of waiting for co's response to ths the move permission
@@ -167,7 +169,8 @@ class RegionMonitor: public Transponder
         // | 5 | 6 | 7 |      }
         // +---+---+---+
         //
-        typedef struct _NeighborRecord{
+        typedef struct _NeighborRecord
+        {
             int Query;
             uint32_t MPKID;
             Theron::Address PodAddress;
@@ -186,7 +189,8 @@ class RegionMonitor: public Transponder
 
     private:
         // the static map data, won't change after initialization
-        typedef struct _GroundAtrribute{
+        typedef struct _GroundAtrribute
+        {
             bool GroundCanWalk[4];
 
             _GroundAtrribute()
