@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 06/16/2016 23:12:57
+ *  Last Modified: 03/22/2017 16:26:18
  *
  *    Description: 
  *
@@ -72,32 +72,13 @@ Theron::Address ReactObject::Activate()
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
         m_ActorPod->BindPod(UID(), AddTime(), ClassName());
 #endif
-        m_ThisAddress = m_ActorPod->GetAddress();
     }
 
-    // TODO & TBD no idea of whether this is needed
-    return m_ThisAddress;
-}
-
-bool ReactObject::AccessCheck()
-{
-    if(ActorPodValid()){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Direct access internal state of an actor after activation");
-        g_MonoServer->Restart();
-
-        return false;
-    }
-    return true;
+    return GetAddress();
 }
 
 void ReactObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
 {
     extern MonoServer *g_MonoServer;
     m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTimeTick(), fnCmd);
-}
-
-bool ReactObject::ActorPodValid()
-{
-    return m_ActorPod && m_ActorPod->GetAddress();
 }

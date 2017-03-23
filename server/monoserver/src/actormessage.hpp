@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 06/19/2016 11:53:08
+ *  Last Modified: 03/22/2017 18:41:39
  *
  *    Description: 
  *
@@ -76,6 +76,9 @@ enum MessagePackType: int{
 typedef struct{
     uint32_t UID;
     uint32_t AddTime;
+
+    int X;
+    int Y;
 }AMLeave;
 
 typedef struct{

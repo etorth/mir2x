@@ -3,13 +3,13 @@
  *
  *       Filename: serverobject.hpp
  *        Created: 04/13/2016 20:04:39
- *  Last Modified: 05/24/2016 21:46:02
+ *  Last Modified: 03/21/2017 22:30:53
  *
  *    Description: basis of all objects in monoserver, with
  *
+ *                   --Category()
  *                   --ID()
  *                   --AddTime()
- *                   --Category()
  *
  *                 previous I made an AsyncObject, and ServerObject derived from
  *                 AsyncObject, since now I employed actors, I make ServerObject
@@ -32,40 +32,44 @@
 #pragma once
 #include <cstdint>
 
-enum ObjectCategory: uint8_t {
-    CATEGORY_NONE,
-    CATEGORY_ITEM,
-    CATEGORY_EVENT,
-    CATEGORY_ACTIVEOBJECT,
+enum ObjectCategory: uint8_t
+{
+    CATEGORY_NONE           = 0,
+    CATEGORY_ITEM           = 1,
+    CATEGORY_EVENT          = 2,
+    CATEGORY_ACTIVEOBJECT   = 3,
 };
 
 class ServerObject
 {
     protected:
-        uint8_t  m_Category;
-
-    protected:
-        uint32_t m_UID;
-        uint32_t m_AddTime;
-
+        const uint8_t  m_Category;
+        const uint32_t m_UID;
+        const uint32_t m_AddTime;
 
     public:
+        explicit ServerObject(uint8_t nCategory, uint32_t nUID, uint32_t nAddTime)
+            : m_Category(nCategory)
+            , m_UID(nUID)
+            , m_AddTime(nAddTime)
+        {}
+
         explicit ServerObject(uint8_t);
         virtual ~ServerObject() = default;
 
     public:
-        uint32_t UID()
+        uint8_t Category() const
+        {
+            return m_Category;
+        }
+
+        uint32_t UID() const
         {
             return m_UID;
         }
 
-        uint32_t AddTime()
+        uint32_t AddTime() const
         {
             return m_AddTime;
-        }
-
-        uint8_t Category()
-        {
-            return m_Category;
         }
 };

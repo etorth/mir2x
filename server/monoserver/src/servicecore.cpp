@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 06/13/2016 23:10:17
+ *  Last Modified: 03/22/2017 17:38:27
  *
  *    Description: 
  *
@@ -117,7 +117,7 @@ bool ServiceCore::LoadMap(uint32_t nMapID)
     if(nMapID == 0){ return false; }
     if(m_MapRecordMap.find(nMapID) != m_MapRecordMap.end()){ return false; }
 
-    ServerMap *pNewMap = new ServerMap(nMapID);
+    ServerMap *pNewMap = new ServerMap(this, nMapID);
     auto &rstMapRecord = m_MapRecordMap[nMapID];
 
     rstMapRecord.MapID      = nMapID;

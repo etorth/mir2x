@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.hpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 03/18/2017 01:01:52
+ *  Last Modified: 03/22/2017 18:12:16
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -29,6 +29,7 @@ class Mir2xMapData
     public:
         // pod types
         // can be initialized by { xx, xx, xxx }
+#pragma pack(push, 1)
         typedef struct
         {
             uint32_t Param;     // bit field definition:
@@ -92,6 +93,7 @@ class Mir2xMapData
             TILE   Tile[1];
             CELL   Cell[4];
         }BLOCK;
+#pragma pack(pop)
 
     private:
         uint16_t m_W;
@@ -110,30 +112,19 @@ class Mir2xMapData
         {}
 
     public:
-        bool Valid()
-        {
-            return !m_Data.empty();
-        }
-
-        size_t Size()
-        {
-            return m_Data.size();
-        }
-
-        const uint8_t *Data()
+        const uint8_t *Data() const
         {
             return (uint8_t *)(&m_Data[0]);
         }
 
-        int W()
+        size_t Size() const
         {
-            return m_W;
+            return m_Data.size();
         }
 
-        int H()
-        {
-            return m_H;
-        }
+    public:
+        int W() const { return m_W; }
+        int H() const { return m_H; }
 
     public:
         auto &Block(int nX, int nY)
@@ -162,12 +153,17 @@ class Mir2xMapData
         }
 
     public:
-        bool ValidC(int nX, int nY)
+        bool Valid() const
+        {
+            return !m_Data.empty();
+        }
+
+        bool ValidC(int nX, int nY) const
         {
             return nX >= 0 && nX < m_W && nY >= 0 && nY < m_H;
         }
 
-        bool ValidP(int nX, int nY)
+        bool ValidP(int nX, int nY) const
         {
             return nX >= 0 && nX < m_W * 48 && nY >= 0 && nY < m_H * 32;
         }

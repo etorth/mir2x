@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 06/13/2016 23:07:42
+ *  Last Modified: 03/22/2017 17:27:44
  *
  *    Description: how player respond for different net package
  *
@@ -33,53 +33,12 @@ void Player::Net_CM_QUERYMONSTERGINFO(uint8_t, const uint8_t *pBuf, size_t)
     stAMQMGI.LookIDN   = (int)((CMQueryMonsterGInfo *)(pBuf))->LookIDN;
     stAMQMGI.SessionID = m_SessionID;
 
-    switch(QuerySCAddress()){
-        case QUERY_OK:
-            {
-                if(m_SCAddress){
-                    m_ActorPod->Forward({MPK_QUERYMONSTERGINFO, stAMQMGI}, m_SCAddress);
-                    return;
-                }
-
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "unexpected internal error");
-                g_MonoServer->Restart();
-                break;
-            }
-        case QUERY_PENDING:
-            {
-                auto fnOnSCAddr = [this, stAMQMGI]() -> bool{
-                    switch(QuerySCAddress()){
-                        case QUERY_OK:
-                            {
-                                m_ActorPod->Forward({MPK_QUERYMONSTERGINFO, stAMQMGI}, m_SCAddress);
-                                return true;
-                            }
-                        case QUERY_PENDING:
-                            {
-                                return false;
-                            }
-                        default:
-                            {
-                                extern MonoServer *g_MonoServer;
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "unexpected internal error");
-                                g_MonoServer->Restart();
-                                // to make the compiler happy
-                                return false;
-                            }
-                    }
-                    // to make the compiler happy
-                    return false;
-                };
-                m_StateHook.Install(fnOnSCAddr);
-                return;
-            }
-        default:
-            {
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "unexpected internal error");
-                g_MonoServer->Restart();
-                break;
-            }
+    if(ActorPodValid() && m_ServiceCore && m_ServiceCore->ActorPodValid()){
+        m_ActorPod->Forward({MPK_QUERYMONSTERGINFO, stAMQMGI}, m_ServiceCore->GetAddress());
+        return;
     }
+
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "unexpected internal error");
+    g_MonoServer->Restart();
 }

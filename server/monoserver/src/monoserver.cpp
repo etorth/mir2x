@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/19/2016 12:55:27
+ *  Last Modified: 03/22/2017 17:24:36
  *
  *    Description: 
  *
@@ -322,7 +322,7 @@ bool MonoServer::InitMonsterItem()
 void MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY)
 {
     AMAddCharObject stAMACO;
-    stAMACO.Type = OBJECT_MONSTER;
+    stAMACO.Type = TYPE_MONSTER;
 
     stAMACO.Common.MapID     = nMapID;
     stAMACO.Common.MapX      = nX;

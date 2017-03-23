@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 06/11/2016 02:41:24
+ *  Last Modified: 03/22/2017 18:54:21
  *
  *    Description: 
  *
@@ -23,12 +23,8 @@
 #include "mathfunc.hpp"
 #include "monoserver.hpp"
 
-void Monster::On_MPK_HI(const MessagePack &, const Theron::Address &rstFromAddr)
+void Monster::On_MPK_HI(const MessagePack &, const Theron::Address &)
 {
-    m_RMAddress = rstFromAddr;
-
-    QuerySCAddress();
-    QueryMapAddress();
 }
 
 void Monster::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
@@ -40,8 +36,5 @@ void Monster::On_MPK_UPDATECOINFO(const MessagePack &rstMPK, const Theron::Addre
 {
     AMUpdateCOInfo stAMUCOI;
     std::memcpy(&stAMUCOI, rstMPK.Data(), sizeof(stAMUCOI));
-    if(stAMUCOI.UID && stAMUCOI.AddTime && stAMUCOI.MapID && stAMUCOI.SessionID
-            && stAMUCOI.MapID == m_MapID && stAMUCOI.X >= 0 && stAMUCOI.Y >= 0 && stAMUCOI.UID != UID() && stAMUCOI.AddTime != AddTime()){
-        ReportCORecord(stAMUCOI.SessionID);
-    }
+    ReportCORecord(stAMUCOI.SessionID);
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/15/2016 01:08:36
+ *  Last Modified: 03/22/2017 18:45:02
  *
  *    Description: 
  *
@@ -23,18 +23,26 @@
 #include "memorypn.hpp"
 #include "charobject.hpp"
 
-Player::Player(uint32_t nGUID, uint32_t nJobID)
-    : CharObject()
+Player::Player(uint32_t nGUID,
+        uint32_t        nJobID,
+        uint32_t        nSessionID,
+        ServiceCore    *pServiceCore,
+        ServerMap      *pServerMap,
+        int             nMapX,
+        int             nMapY,
+        int             nDirection,
+        uint8_t         nLifeState,
+        uint8_t         nActionState)
+    : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState, nActionState)
     , m_GUID(nGUID)
     , m_JobID(nJobID)
-    , m_SessionID(0)
+    , m_SessionID(nSessionID)
     , m_Level(0)
 {
-    m_RMAddress = Theron::Address::Null();
     m_StateHook.Install("CheckTime", [this](){ For_CheckTime(); return false; });
 
-    ResetType(OBJECT_PLAYER, 1);
-    ResetType(OBJECT_HUMAN,  1);
+    ResetType(TYPE_PLAYER, 1);
+    ResetType(TYPE_HUMAN,  1);
 }
 
 Player::~Player()
@@ -126,7 +134,7 @@ int Player::Range(uint8_t)
     return 20;
 }
 
-void Player::OperateNet(uint8_t nType, const uint8_t * pData, size_t nDataLen)
+void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
         case CM_MOTION:            Net_CM_MOTION(nType, pData, nDataLen);            break;
@@ -155,13 +163,12 @@ void Player::ReportCORecord(uint32_t nSessionID)
         extern MemoryPN *g_MemoryPN;
         auto pMem = (SMCORecord *)g_MemoryPN->Get(sizeof(SMCORecord));
 
-        pMem->Type = OBJECT_PLAYER;
+        pMem->Type = TYPE_PLAYER;
 
         pMem->Common.UID       = UID();
         pMem->Common.AddTime   = AddTime();
         pMem->Common.MapX      = X();
         pMem->Common.MapY      = Y();
-        pMem->Common.R         = R();
         pMem->Common.MapID     = MapID();
         pMem->Common.Direction = m_Direction;
 

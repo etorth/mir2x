@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 06/16/2016 23:12:49
+ *  Last Modified: 03/22/2017 17:00:26
  *
  *    Description: 
  *
@@ -20,11 +20,13 @@
 #pragma once
 #include "charobject.hpp"
 
-enum MonsterType: uint32_t{
+enum MonsterType: uint32_t
+{
     MONSTER_DEER,
 };
 
-typedef struct stMONSTERITEMINFO{
+typedef struct stMONSTERITEMINFO
+{
     int     MonsterIndex;
     int     Type;
     int     Chance;
@@ -35,7 +37,8 @@ typedef struct stMONSTERITEMINFO{
     {}
 }MONSTERITEMINFO;
 
-typedef struct stMONSTERRACEINFO{
+typedef struct stMONSTERRACEINFO
+{
     int     Index;
     int     Race;
     int     LID;
@@ -60,7 +63,7 @@ typedef struct stMONSTERRACEINFO{
     int     Light;
     int     Earth;
 
-    std::string     Name;
+    std::string Name;
     std::vector<MONSTERITEMINFO> ItemV;
 
     stMONSTERRACEINFO(int nIndex = -1)
@@ -69,62 +72,22 @@ typedef struct stMONSTERRACEINFO{
     {}
 }MONSTERRACEINFO;
 
-class MonoServer;
 class Monster: public CharObject
 {
-    private:
-        typedef struct _ActorRecord{
-            Theron::Address PodAddress;       // void to use Address...
-            uint32_t        UID;
-            uint32_t        AddTime;
-            int             X;
-            int             Y;
-            int             FriendType;
-
-            _ActorRecord(const Theron::Address &stAddr = Theron::Address::Null(),
-                    uint32_t nUID     = 0,
-                    uint32_t nAddTime = 0,
-                    int nX = 0,
-                    int nY = 0,
-                    int nFriendType = FRIEND_HUMAN)
-                : PodAddress(stAddr)
-                , UID(nUID)
-                , AddTime(nAddTime)
-                , X(nX)
-                , Y(nY)
-                , FriendType(nFriendType)
-            {}
-
-            bool Valid()
-            {
-                return PodAddress && UID && AddTime;
-            }
-
-            bool operator == (const _ActorRecord &rstRecord)
-            {
-                return true
-                    && PodAddress == rstRecord.PodAddress
-                    && UID == rstRecord.UID
-                    && AddTime == rstRecord.AddTime;
-            }
-
-        }ActorRecord;
-
     protected:
-        bool m_FreezeWalk;
-        uint32_t m_MonsterID;
-        std::vector<ActorRecord> m_ActorRecordV;
+        uint32_t    m_MonsterID;
+        bool        m_FreezeWalk;
 
     public:
-        Monster(uint32_t);
-        ~Monster();
-
-    public:
-        uint8_t Type(uint8_t);
-        uint8_t State(uint8_t);
-
-        bool ResetType(uint8_t, uint8_t);
-        bool ResetState(uint8_t, uint8_t);
+        Monster(uint32_t,               // monster id
+                ServiceCore *,          // service core
+                ServerMap *,            // server map
+                int,                    // map x
+                int,                    // map y
+                int,                    // direction
+                uint8_t,                // life cycle state
+                uint8_t);               // action state
+       ~Monster() = default;
 
     public:
         uint32_t NameColor();
@@ -137,7 +100,7 @@ class Monster: public CharObject
 
     public:
 
-        bool ReportMove(int, int);
+        bool RequestMove(int, int);
         int Speed()
         {
             return 20;
@@ -147,7 +110,7 @@ class Monster: public CharObject
         bool Update();
 
     public:
-        void SpaceMove(const char *, int, int);
+        void RequestSpaceMove(const char *, int, int);
         bool RandomWalk();
 
     private:

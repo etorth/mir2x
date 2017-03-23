@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 03/18/2017 19:04:10
+ *  Last Modified: 03/22/2017 18:40:30
  *
  *    Description: put all non-atomic function as private
  *
@@ -36,198 +36,75 @@
 #include "transponder.hpp"
 #include "mir2xmapdata.hpp"
 
-class CharObject;
-class RegionMonitor;
+class ServiceCore;
+class ServerObject;
 class ServerMap: public Transponder
 {
     private:
-        // some shortcuts for internal use only
-        // for public API don't use it
-        using ObjectRecord     = std::tuple<uint8_t, uint32_t, uint32_t>;
-        using ObjectRecordList = std::list<ObjectRecord>;
-        using LockPointer      = std::shared_ptr<std::mutex>;
-        template<typename T> using Vec2D = std::vector<std::vector<T>>;
+        template<typename T> using Vec2D  = std::vector<std::vector<T>>;
+        typedef struct _CellState
+        {
+            bool Freezed;
 
-    protected:
-        typedef struct _RegionMonitorRecord{
-            RegionMonitor   *Data;              // pointer to RM
-            bool             Need;              // this RM can contain object
-            bool             Inform;            // we have informed the RM with the neighbor list
-            bool             RMReady;           // the RM actor is ready for message
-            Theron::Address  PodAddress;        // RM address
-
-            _RegionMonitorRecord()
-                : Data(nullptr)
-                , Need(false)
-                , Inform(false)
-                , RMReady(false)
-                , PodAddress(Theron::Address::Null())
+            _CellState()
+                : Freezed(false)
             {}
-
-            // this RM is fully ready and valid for accepting message
-            bool Valid()
-            {
-                return true
-                    && Data    // allocated the instance
-                    && Need    // it's capable for containing objects
-                    && Inform  // we have sent the neighbor list
-                    && RMReady // the RM got the list and make self ready for accepting messages
-                    && (PodAddress != Theron::Address::Null()); // we have the RM's address
-            }
-
-            // this RM won't need further initialization, it's possible to be invalid, invalid
-            // is always ``ready" since it needs no initialization
-            bool Ready()
-            {
-                return Need ? Valid() : true;
-            }
-
-            // half-inited, we did everything, sent neighbor list, and now we are waiting 
-            // for RM's response for READY
-            bool Pending()
-            {
-                return true
-                    && Data     // allocated the instance
-                    && Need     // it's capable for containing objects
-                    && Inform   // we have sent the neighbor list
-                    && !RMReady // the RM got the list and make self ready for accepting messages
-                    && (PodAddress != Theron::Address::Null()); // we have the RM's address
-            }
-        }RegionMonitorRecord;
+        }CellState;
 
     private:
-        uint32_t m_MapID;
-        bool   m_RegionMonitorReady;
-        size_t m_RegionW;
-        size_t m_RegionH;
+        uint32_t        m_ID;
+        Mir2xMapData    m_Mir2xMapData;
+        Metronome      *m_Metronome;
+        ServiceCore    *m_ServiceCore;
 
-        Theron::Address m_SCAddress;
-        Metronome *m_Metronome;
-
-        // TODO
-        // RM V2D can only be create on time
-        // do I need to put the v 2d initialization in the constructor?
-        bool m_RMV2DCreated;
+    private:
+        Vec2D<CellState> m_CellState;
+        Vec2D<std::vector<ServerObject *>> m_ObjectV2D;
 
     private:
         void Operate(const MessagePack &, const Theron::Address &);
 
     public:
-        ServerMap(uint32_t);
-        ServerMap(const Theron::Address&, uint32_t);
+        ServerMap(ServiceCore *, uint32_t);
        ~ServerMap() = default;
 
     public:
-        uint32_t ID()
-        {
-            return m_MapID;
-        }
-
-    private:
-        Mir2xMap m_Mir2xMap;
+        uint32_t ID() { return m_ID; }
 
     public:
-        bool ValidC(int nX, int nY)
-        {
-            return m_Mir2xMap.ValidC(nX, nY);
-        }
-
-        bool ValidP(int nX, int nY)
-        {
-            return m_Mir2xMap.ValidP(nX, nY);
-        }
-
-
-    private:
-
-        Vec2D<ObjectRecordList>  m_GridObjectRecordListV;
-        Vec2D<LockPointer>       m_GridObjectRecordListLockV;
+        bool ValidC(int nX, int nY) const { return m_Mir2xMapData.ValidC(nX, nY); }
+        bool ValidP(int nX, int nY) const { return m_Mir2xMapData.ValidP(nX, nY); }
 
     public:
         bool Load(const char *);
-        bool ObjectMove(int, int, CharObject*);
-        bool RemoveObject(int, int, uint8_t, uint32_t, uint32_t);
 
     public:
         bool QueryObject(int, int, const std::function<void(uint8_t, uint32_t, uint32_t)> &);
 
-    private:
-        bool GetObjectList(int, int, std::list<ObjectRecord> *, std::function<bool(uint8_t nType)>);
-
-        bool CanSafeWalk(int, int);
         bool CanMove(int, int, int, uint32_t, uint32_t);
 
     public:
-        int W()
+        int W() const { return m_Mir2xMapData.W(); }
+        int H() const { return m_Mir2xMapData.H(); }
+        
+    public:
+        bool In(uint32_t nMapID, int nX, int nY) const
         {
-            return m_Mir2xMap.W();
-        }
-
-        int H()
-        {
-            return m_Mir2xMap.H();
+            return (nMapID == m_ID) && ValidC(nX, nY);
         }
 
     public:
-        bool DropLocation(int, int, int, int *, int *);
-
-
-    protected:
-        Vec2D<RegionMonitorRecord>  m_RMRecordV2D;
-
-        void CheckRegionMonitorNeed();
-        bool CheckRegionMonitorReady();
-
-        void CreateRegionMonterV2D();
-
-        const Theron::Address &RegionMonitorAddress(int nRMX, int nRMY)
-        {
-            if(false
-                    || nRMY < 0
-                    || nRMY >= (int)m_RMRecordV2D.size()
-                    || nRMX < 0
-                    || nRMX >= (int)m_RMRecordV2D[0].size()){
-                return Theron::Address::Null();
-            }
-
-            return m_RMRecordV2D[nRMY][nRMX].PodAddress;
-        }
-
-        const Theron::Address &RegionMonitorAddressC(int nX, int nY)
-        {
-            if(!ValidC(nX, nY)){ return Theron::Address::Null(); }
-
-            int nGridX = nX / m_RegionW;
-            int nGridY = nY / m_RegionH;
-
-            return RegionMonitorAddress(nGridX, nGridY);
-        }
-
-        const Theron::Address &RegionMonitorAddressP(int nX, int nY)
-        {
-            if(!ValidP(nX, nY)){ return Theron::Address::Null(); }
-
-            int nGridX = nX / SYS_MAPGRIDXP / m_RegionW;
-            int nGridY = nY / SYS_MAPGRIDYP / m_RegionH;
-
-            return RegionMonitorAddress(nGridX, nGridY);
-        }
-
-        bool RegionMonitorReady()
-        {
-            return m_RegionMonitorReady;
-        }
+        bool GroundValid(int, int);
 
     private:
         void On_MPK_HI(const MessagePack &, const Theron::Address &);
+        void On_MPK_LEAVE(const MessagePack &, const Theron::Address &);
+        void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
-        void On_MPK_ADDMONSTER(const MessagePack &, const Theron::Address &);
-        void On_MPK_NEWMONSTER(const MessagePack &, const Theron::Address &);
         void On_MPK_ACTIONSTATE(const MessagePack &, const Theron::Address &);
         void On_MPK_UPDATECOINFO(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYSCADDRESS(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYRMADDRESS(const MessagePack &, const Theron::Address &);
-        void On_MPK_REGIONMONITORREADY(const MessagePack &, const Theron::Address &);
+        void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
+        void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
 
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     protected:

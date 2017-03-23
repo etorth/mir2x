@@ -3,7 +3,7 @@
  *
  *       Filename: randompick.hpp
  *        Created: 06/18/2016 21:53:32
- *  Last Modified: 06/18/2016 23:49:37
+ *  Last Modified: 03/21/2017 11:09:52
  *
  *    Description: 
  *
@@ -33,7 +33,7 @@ class RandomPick
 
     public:
         RandomPick() = default;
-        ~RandomPick() = default;
+       ~RandomPick() = default;
 
     public:
         template<typename... T> void Add(uint32_t nProb, T&&... stT)
@@ -63,7 +63,7 @@ class RandomPick
             assert(Size() > 0);
 
             // 2. get random number
-            double fPick = std::rand() * 1.0 / std::numeric_limits<int>::max();
+            double fPick = (std::rand() % 99991) * 1.0 / 99991.0;
 
             // 3. do pick
             for(size_t nIndex = 0; nIndex < m_CProbV.size(); ++nIndex){

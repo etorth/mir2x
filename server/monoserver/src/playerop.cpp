@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 06/19/2016 12:20:56
+ *  Last Modified: 03/22/2017 18:52:04
  *
  *    Description: 
  *
@@ -28,64 +28,33 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
 {
     Bind(*((uint32_t *)rstMPK.Data()));
     extern NetPodN *g_NetPodN;
-    extern MemoryPN *g_MemoryPN;
-
-    auto pMem = (SMLoginOK *)g_MemoryPN->Get(sizeof(SMLoginOK));
+    auto pMem = new SMLoginOK();
 
     pMem->GUID      = m_GUID;
     pMem->JobID     = m_JobID;
     pMem->Level     = m_Level;
     pMem->X         = m_CurrX;
     pMem->Y         = m_CurrY;
-    pMem->MapID     = m_MapID;
+    pMem->MapID     = m_Map->ID();
     pMem->Direction = m_Direction;
 
-    g_NetPodN->Send(m_SessionID, SM_LOGINOK, (uint8_t *)pMem, sizeof(SMLoginOK), [pMem](){ g_MemoryPN->Free(pMem); });
+    g_NetPodN->Send(m_SessionID, SM_LOGINOK, (uint8_t *)pMem, sizeof(SMLoginOK), [pMem](){ delete pMem; });
 
-    // install a trigger to collect neighbors every 1s
-    auto fnDoUpdate = [this](){
-        if(QueryMapAddress() == QUERY_OK){
-            if(m_MapAddress){
-                AMUpdateCOInfo stAMUCOI;
-                stAMUCOI.UID       = UID();
-                stAMUCOI.AddTime   = AddTime();
-                stAMUCOI.X         = X();
-                stAMUCOI.Y         = Y();
-                stAMUCOI.MapID     = m_MapID;
-                stAMUCOI.SessionID = m_SessionID;
+    if(ActorPodValid() && m_Map->ActorPodValid()){
+        AMUpdateCOInfo stAMUCOI;
+        stAMUCOI.UID       = UID();
+        stAMUCOI.AddTime   = AddTime();
+        stAMUCOI.X         = X();
+        stAMUCOI.Y         = Y();
+        stAMUCOI.MapID     = m_Map->ID();
+        stAMUCOI.SessionID = m_SessionID;
 
-                m_ActorPod->Forward({MPK_UPDATECOINFO, stAMUCOI}, m_MapAddress);
-                return;
-            }
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "unexpected internal logic error");
-            g_MonoServer->Restart();
-        }
-    };
-
-    extern MonoServer *g_MonoServer;
-    uint32_t nLastUpdateTick = g_MonoServer->GetTimeTick();
-    auto fnUpdateNeighbor = [this, nLastUpdateTick, fnDoUpdate]() mutable -> bool{
-        // 1. check time and do update
-        uint32_t nCurrentTick = g_MonoServer->GetTimeTick();
-        if(nCurrentTick - nLastUpdateTick >= 2000){
-            nLastUpdateTick = nCurrentTick;
-            fnDoUpdate();
-        }
-
-        // 2. never return true
-        return false;
-    };
-
-    m_StateHook.Install(fnUpdateNeighbor);
+        m_ActorPod->Forward({MPK_UPDATECOINFO, stAMUCOI}, m_Map->GetAddress());
+    }
 }
 
-void Player::On_MPK_HI(const MessagePack &, const Theron::Address &rstFromAddr)
+void Player::On_MPK_HI(const MessagePack &, const Theron::Address &)
 {
-    m_RMAddress = rstFromAddr;
-
-    QuerySCAddress();
-    QueryMapAddress();
 }
 
 void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
@@ -137,8 +106,5 @@ void Player::On_MPK_UPDATECOINFO(const MessagePack &rstMPK, const Theron::Addres
 {
     AMUpdateCOInfo stAMUCOI;
     std::memcpy(&stAMUCOI, rstMPK.Data(), sizeof(stAMUCOI));
-    if(stAMUCOI.UID && stAMUCOI.AddTime && stAMUCOI.MapID && stAMUCOI.SessionID
-            && stAMUCOI.MapID == m_MapID && stAMUCOI.X >= 0 && stAMUCOI.Y >= 0 && stAMUCOI.UID != UID() && stAMUCOI.AddTime != AddTime()){
-        ReportCORecord(stAMUCOI.SessionID);
-    }
+    ReportCORecord(stAMUCOI.SessionID);
 }

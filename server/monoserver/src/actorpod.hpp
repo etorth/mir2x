@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 06/16/2016 23:12:45
+ *  Last Modified: 03/22/2017 14:25:59
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -156,15 +156,10 @@ class ActorPod: public Theron::Actor
         using MessagePackOperation = std::function<void(const MessagePack&, const Theron::Address &)>;
         // no need to keep the message pack itself
         // since when registering response operation, we always have the message pack avaliable
-        typedef struct _RespondMessageRecord{
-            // MessagePack RespondMessagePack;
-            MessagePackOperation    RespondOperation;
+        typedef struct _RespondMessageRecord
+        {
+            MessagePackOperation RespondOperation;
 
-            // _RespondMessageRecord(const MessagePack & rstMPK,
-            //         const MessagePackOperation &rstOperation)
-            //     : RespondMessagePack(rstMPK)
-            //     , RespondOperation(rstOperation)
-            // {}
             _RespondMessageRecord(const MessagePackOperation &rstOperation)
                 : RespondOperation(rstOperation)
             {}
@@ -191,8 +186,6 @@ class ActorPod: public Theron::Actor
     protected:
         uint32_t    m_UID;
         uint32_t    m_AddTime;
-        // typeid(obj) can only reveal the delcared type
-        // so if you declare a pointer and allocate a subclass, typeid() won't work
         std::string m_Name;
 #endif
 
@@ -269,9 +262,9 @@ class ActorPod: public Theron::Actor
 
         void BindPod(uint32_t nUID, uint32_t nAddTime, const char *szName)
         {
-            m_UID = nUID;
-            m_AddTime = nAddTime;
-            m_Name = szName;
+            m_UID      = nUID;
+            m_AddTime  = nAddTime;
+            m_Name     = szName;
         }
 #endif
 };

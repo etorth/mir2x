@@ -3,7 +3,7 @@
  *
  *       Filename: reactobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 06/16/2016 23:13:01
+ *  Last Modified: 03/22/2017 16:23:54
  *
  *    Description: object only react to message, with an object pod
  *                 atoms of an react object:
@@ -44,20 +44,16 @@
 #include <queue>
 #include <Theron/Theron.h>
 
+#include "actorpod.hpp"
 #include "statehook.hpp"
 #include "delaycmd.hpp"
 #include "messagepack.hpp"
 #include "serverobject.hpp"
 
-class ActorPod;
 class ReactObject: public ServerObject
 {
     protected:
         ActorPod *m_ActorPod;
-
-        // the document of Theron says we can call GetAddress() outside of 
-        // Actor, but is that safe?
-        Theron::Address m_ThisAddress;
 
     protected:
         StateHook m_StateHook;
@@ -65,18 +61,20 @@ class ReactObject: public ServerObject
 
     public:
         ReactObject(uint8_t);
-        ~ReactObject();
-
-    protected:
-        bool AccessCheck();
-        bool ActorPodValid();
+       ~ReactObject();
 
     public:
-        virtual Theron::Address Activate();
+        Theron::Address Activate();
 
-        Theron::Address GetAddress()
+    public:
+        bool ActorPodValid() const
         {
-            return m_ThisAddress;
+            return GetAddress() == Theron::Address::Null();
+        }
+
+        Theron::Address GetAddress() const
+        {
+            return m_ActorPod ? m_ActorPod->GetAddress() : Theron::Address::Null();
         }
 
     public:

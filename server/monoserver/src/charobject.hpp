@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 06/14/2016 23:18:10
+ *  Last Modified: 03/22/2017 17:24:11
  *
  *    Description: 
  *
@@ -23,15 +23,18 @@
 #include <vector>
 
 #include "servermap.hpp"
+#include "servicecore.hpp"
 #include "activeobject.hpp"
 
-enum _FriendType: uint8_t{
+enum _FriendType: uint8_t
+{
     FRIEND_HUMAN,
     FRIEND_ANIMAL,
     FRIEND_NEUTRAL,
 };
 
-enum _RangeType: uint8_t{
+enum _RangeType: uint8_t
+{
     RANGE_VIEW,
     RANGE_MAP,
     RANGE_SERVER,
@@ -50,7 +53,8 @@ enum _RangeType: uint8_t{
 //               V
 //               4
 //
-enum _Direction: int{
+enum _Direction: int
+{
     DIR_UP          = 0,
     DIR_DOWN        = 4,
     DIR_LEFT        = 6,
@@ -59,10 +63,12 @@ enum _Direction: int{
     DIR_UPRIGHT     = 1,
     DIR_DOWNLEFT    = 5,
     DIR_DOWNRIGHT   = 3,
+    DIR_UNKNOWN     = 8,
 };
 
 #pragma pack(push, 1)
-typedef struct{
+typedef struct
+{
     uint8_t     Level;
     uint16_t    HP;
     uint16_t    MP;
@@ -91,7 +97,8 @@ typedef struct{
     uint16_t    Earth;
 }OBJECTABILITY;
 
-typedef struct{
+typedef struct
+{
     uint16_t    HP;
     uint16_t    MP;
     uint16_t    HIT;
@@ -116,41 +123,28 @@ typedef struct{
 class CharObject: public ActiveObject
 {
     protected:
-        enum QueryType: int{
-            QUERY_NA,
-            QUERY_OK,
-            QUERY_ERROR,
-            QUERY_PENDING,
-        };
+        ServiceCore *m_ServiceCore;
+        ServerMap   *m_Map;
 
     protected:
-        Theron::Address m_EmptyAddress; // to return ref to null
-        Theron::Address m_RMAddress;    //
-        Theron::Address m_MapAddress;   //
-        Theron::Address m_SCAddress;    //
-
-        int m_MapAddressQuery;          //
-        int m_SCAddressQuery;           //
+        int m_CurrX;
+        int m_CurrY;
+        int m_Direction;
 
     protected:
-        uint32_t m_MapID;
-
-    protected:
-        int     m_CurrX;
-        int     m_CurrY;
-        int     m_R;
-        int     m_Direction;
-
         OBJECTABILITY       m_Ability;
         OBJECTABILITY       m_WAbility;
         OBJECTADDABILITY    m_AddAbility;
 
-    protected:
-        std::string m_Name;
-
     public:
-        CharObject();
-        ~CharObject();
+        CharObject(ServiceCore *,       // service core
+                ServerMap *,            // server map
+                int,                    // map x
+                int,                    // map y
+                int,                    // direction
+                uint8_t,                // life cycle state
+                uint8_t);               // action state
+       ~CharObject() = default;
 
     public:
         bool Active()
@@ -167,13 +161,8 @@ class CharObject: public ActiveObject
         }
 
         int Y()
-        {
+        {   
             return m_CurrY;
-        }
-
-        int R()
-        {
-            return m_R;
         }
 
         int Direction()
@@ -183,7 +172,7 @@ class CharObject: public ActiveObject
 
         uint32_t MapID()
         {
-            return m_MapID;
+            return m_Map ? m_Map->ID() : 0;
         }
 
     public:
@@ -198,11 +187,8 @@ class CharObject: public ActiveObject
                 case DIR_UPRIGHT  : return DIR_DOWNLEFT;
                 case DIR_DOWNLEFT : return DIR_UPRIGHT;
                 case DIR_DOWNRIGHT: return DIR_UPLEFT;
-                default: break;
+                default           : return DIR_UNKNOWN;
             }
-
-            // make the compiler happy
-            return m_Direction;
         }
 
     public:
@@ -214,69 +200,10 @@ class CharObject: public ActiveObject
 
     public:
         uint8_t Direction(int, int);
-        void    NextLocation(int *, int *, int);
-
-    protected:
-        void InnResetR(int nR)
-        {
-            m_R = nR;
-        }
-
-        void InnResetMapID(uint32_t nMapID)
-        {
-            m_MapID = nMapID;
-        }
-
-        void InnLocate(const Theron::Address &rstRMAddr)
-        {
-            m_RMAddress = rstRMAddr;
-        }
-
-        void InnLocate(uint32_t nMapID, int nX, int nY)
-        {
-            m_MapID = nMapID;
-            m_CurrX = nX;
-            m_CurrY = nY;
-        }
-
-    public:
-        template<typename... T> void Locate(T&&... stT)
-        {
-            if(AccessCheck()){
-                InnLocate(std::forward<T>(stT)...);
-            }
-        }
-
-        template<typename... T> void ResetMapID(T&&... stT)
-        {
-            if(AccessCheck()){
-                InnResetMapID(std::forward<T>(stT)...);
-            }
-        }
-
-        template<typename... T> void ResetR(T&&... stT)
-        {
-            if(AccessCheck()){
-                InnResetR(std::forward<T>(stT)...);
-            }
-        }
-
-    public:
-        const Theron::Address &QueryAddress()
-        {
-            if(m_RMAddress ){ return m_RMAddress;  }
-            if(m_MapAddress){ return m_MapAddress; }
-            if(m_SCAddress ){ return m_SCAddress;  }
-
-            return m_EmptyAddress;
-        }
+        bool    NextLocation(int *, int *, int);
 
     protected:
         virtual void ReportCORecord(uint32_t) = 0;
-
-    protected:
-        int QuerySCAddress();
-        int QueryMapAddress();
 
     protected:
         void DispatchAction();

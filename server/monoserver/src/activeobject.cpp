@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 06/14/2016 23:11:17
- *  Last Modified: 06/15/2016 00:13:33
+ *  Last Modified: 03/22/2017 16:18:29
  *
  *    Description: 
  *
@@ -21,14 +21,20 @@
 #include "monoserver.hpp"
 #include "activeobject.hpp"
 
-void ActiveObject::ResetStateTime(uint8_t nState)
+uint8_t ActiveObject::State(uint8_t nState)
 {
-    extern MonoServer *g_MonoServer;
-    m_StateTimeV[nState] = g_MonoServer->GetTimeTick();
+    return m_StateV[nState];
 }
 
-double ActiveObject::StateTime(uint8_t nState)
+uint32_t ActiveObject::StateTime(uint8_t nState)
 {
     extern MonoServer *g_MonoServer;
     return g_MonoServer->GetTimeTick() - m_StateTimeV[nState];
+}
+
+void ActiveObject::ResetState(uint8_t nStateLoc, uint8_t nStateValue)
+{
+    extern MonoServer *g_MonoServer;
+    m_StateV[nStateLoc] = nStateValue;
+    m_StateTimeV[nStateLoc] = g_MonoServer->GetTimeTick();
 }

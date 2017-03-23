@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 06/16/2016 23:12:52
+ *  Last Modified: 03/22/2017 18:24:15
  *
  *    Description: 
  *
@@ -26,7 +26,8 @@
 #include "charobject.hpp"
 
 #pragma pack(push, 1)
-typedef struct stPLAYERFEATURE{
+typedef struct stPLAYERFEATURE
+{
     uint8_t     Gender;
     uint8_t     Wear;
     uint8_t     Hair;
@@ -38,7 +39,8 @@ typedef struct stPLAYERFEATURE{
     }
 }PLAYERFEATURE;
 
-typedef struct stPLAYERFEATUREEX{
+typedef struct stPLAYERFEATUREEX
+{
     uint8_t     Horse;
     uint32_t    HairColor;
     uint32_t    WearColor;
@@ -63,8 +65,17 @@ class Player: public CharObject
         PLAYERFEATUREEX m_FeatureEx;
 
     public:
-        Player(uint32_t, uint32_t);
-        ~Player();
+        Player(uint32_t,                // GUID
+                uint32_t,               // JobID
+                uint32_t,               // SessionID
+                ServiceCore *,          //
+                ServerMap *,            //
+                int,                    // map x
+                int,                    // map y
+                int,                    // direction
+                uint8_t,                // life cycle state
+                uint8_t);               // action state
+       ~Player();
 
     public:
         // type test function
