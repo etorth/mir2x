@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 03/22/2017 18:43:35
+ *  Last Modified: 03/23/2017 00:12:29
  *
  *    Description: 
  *
@@ -36,8 +36,8 @@ void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
     for(auto &rstRecordLine: m_ObjectV2D){
         for(auto &rstRecordV: rstRecordLine){
             for(auto pObject: rstRecordV){
-                if(pObject && (pObject->Category() == CATEGORY_ACTIVEOBJECT)){
-                    m_ActorPod->Forward(MPK_METRONOME, ((ReactObject *)(pObject))->GetAddress());
+                if(pObject && pObject->Active()){
+                    m_ActorPod->Forward(MPK_METRONOME, ((ActiveObject *)(pObject))->GetAddress());
                 }
             }
         }
@@ -58,7 +58,7 @@ void ServerMap::On_MPK_ACTIONSTATE(const MessagePack &rstMPK, const Theron::Addr
         for(int nY = nY0; nY <= nY1; ++nY){
             if(ValidC(nX, nY) && (LDistance2(nX, nY, stAMAS.X, stAMAS.Y) <= SYS_MAPVISIBLECD * SYS_MAPVISIBLECD)){
                 for(auto pObject: m_ObjectV2D[nX][nY]){
-                    if(pObject && (pObject->Category() == CATEGORY_ACTIVEOBJECT)){
+                    if(pObject && pObject->Active()){
                         if(((ActiveObject *)(pObject))->Type(TYPE_HUMAN)){
                             m_ActorPod->Forward({MPK_ACTIONSTATE, stAMAS}, ((ActiveObject *)(pObject))->GetAddress());
                         }
@@ -83,7 +83,7 @@ void ServerMap::On_MPK_UPDATECOINFO(const MessagePack &rstMPK, const Theron::Add
         for(int nY = nY0; nY <= nY1; ++nY){
             if(ValidC(nX, nY) && (LDistance2(nX, nY, stAMUCOI.X, stAMUCOI.Y) <= SYS_MAPVISIBLECD * SYS_MAPVISIBLECD)){
                 for(auto pObject: m_ObjectV2D[nX][nY]){
-                    if(pObject && (pObject->Category() == CATEGORY_ACTIVEOBJECT)){
+                    if(pObject && pObject->Active()){
                         if(((ActiveObject *)(pObject))->Type(TYPE_HUMAN)){
                             m_ActorPod->Forward({MPK_UPDATECOINFO, stAMUCOI}, ((ActiveObject *)(pObject))->GetAddress());
                         }
@@ -488,19 +488,23 @@ void ServerMap::On_MPK_LEAVE(const MessagePack &rstMPK, const Theron::Address &r
     auto &rstObjectV = m_ObjectV2D[stAML.X][stAML.Y];
 
     for(auto pObject: rstObjectV){
-        if(pObject->UID() == stAML.UID && pObject->AddTime() == stAML.AddTime){
+        if((uintptr_t)(pObject) == (uintptr_t)(stAML.This)){
+            // 1. mark as find
             bFind = true;
+
+            // 2. remove from the object list
             std::swap(rstObjectV.back(), pObject);
             rstObjectV.pop_back();
+
+            // 3. inform the co that now you can leave
+            m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
+            break;
         }
     }
 
     if(!bFind){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "char object uid = %d, addtime = %d is not in current RM", stAML.UID, stAML.AddTime);
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "char object %p is not in current map", stAML.This);
         g_MonoServer->Restart();
     }
-
-    // commit the leave, then the object can move into another RM
-    m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
 }

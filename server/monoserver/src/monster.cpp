@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/22/2017 17:19:57
+ *  Last Modified: 03/23/2017 11:28:33
  *
  *    Description: 
  *
@@ -42,7 +42,8 @@ Monster::Monster(uint32_t   nMonsterID,
     , m_MonsterID(nMonsterID)
     , m_FreezeWalk(false)
 {
-    ResetType(TYPE_CREATURE, CREATURE_MONSTER);
+    ResetType(TYPE_CHAR, TYPE_MONSTER);
+    ResetType(TYPE_CREATURE, TYPE_ANIMAL);
 }
 
 bool Monster::Update()

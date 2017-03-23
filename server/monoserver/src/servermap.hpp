@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: servermap.hpp
- *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 03/22/2017 18:40:30
+ *        Created: 09/03/2015 03:49:00
+ *  Last Modified: 03/23/2017 15:51:01
  *
  *    Description: put all non-atomic function as private
  *
@@ -24,21 +24,18 @@
 
 #pragma once
 
-#include <list>
 #include <vector>
 #include <cstdint>
-#include <forward_list>
 #include <unordered_map>
 
 #include "sysconst.hpp"
-#include "mir2xmap.hpp"
 #include "metronome.hpp"
-#include "transponder.hpp"
+#include "activeobject.hpp"
 #include "mir2xmapdata.hpp"
 
 class ServiceCore;
 class ServerObject;
-class ServerMap: public Transponder
+class ServerMap: public ActiveObject
 {
     private:
         template<typename T> using Vec2D  = std::vector<std::vector<T>>;
@@ -72,21 +69,15 @@ class ServerMap: public Transponder
         uint32_t ID() { return m_ID; }
 
     public:
+        int W() const { return m_Mir2xMapData.W(); }
+        int H() const { return m_Mir2xMapData.H(); }
+
         bool ValidC(int nX, int nY) const { return m_Mir2xMapData.ValidC(nX, nY); }
         bool ValidP(int nX, int nY) const { return m_Mir2xMapData.ValidP(nX, nY); }
 
     public:
         bool Load(const char *);
 
-    public:
-        bool QueryObject(int, int, const std::function<void(uint8_t, uint32_t, uint32_t)> &);
-
-        bool CanMove(int, int, int, uint32_t, uint32_t);
-
-    public:
-        int W() const { return m_Mir2xMapData.W(); }
-        int H() const { return m_Mir2xMapData.H(); }
-        
     public:
         bool In(uint32_t nMapID, int nX, int nY) const
         {

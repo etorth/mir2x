@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 03/22/2017 18:41:39
+ *  Last Modified: 03/23/2017 15:12:37
  *
  *    Description: 
  *
@@ -73,9 +73,9 @@ enum MessagePackType: int{
     MPK_QUERYMONSTERGINFO,
 };
 
-typedef struct{
-    uint32_t UID;
-    uint32_t AddTime;
+typedef struct
+{
+    uintptr_t This;
 
     int X;
     int Y;
@@ -129,7 +129,6 @@ typedef union {
         uint32_t MapID;
         int MapX;
         int MapY;
-        int R;
     }Common;
 
     struct _Monster{

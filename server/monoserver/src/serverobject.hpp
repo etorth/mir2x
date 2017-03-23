@@ -3,20 +3,18 @@
  *
  *       Filename: serverobject.hpp
  *        Created: 04/13/2016 20:04:39
- *  Last Modified: 03/21/2017 22:30:53
+ *  Last Modified: 03/23/2017 00:02:00
  *
  *    Description: basis of all objects in monoserver, with
  *
- *                   --Category()
  *                   --ID()
  *                   --AddTime()
+ *                   --Active()
  *
  *                 previous I made an AsyncObject, and ServerObject derived from
  *                 AsyncObject, since now I employed actors, I make ServerObject
  *                 as the basic of all objects in monoserver, rather than the
  *                 AsyncObject anymore
- *
- *
  *
  *        Version: 1.0
  *       Revision: none
@@ -32,35 +30,29 @@
 #pragma once
 #include <cstdint>
 
-enum ObjectCategory: uint8_t
-{
-    CATEGORY_NONE           = 0,
-    CATEGORY_ITEM           = 1,
-    CATEGORY_EVENT          = 2,
-    CATEGORY_ACTIVEOBJECT   = 3,
-};
-
 class ServerObject
 {
+    private:
+        const bool m_Active;
+
     protected:
-        const uint8_t  m_Category;
         const uint32_t m_UID;
         const uint32_t m_AddTime;
 
     public:
-        explicit ServerObject(uint8_t nCategory, uint32_t nUID, uint32_t nAddTime)
-            : m_Category(nCategory)
+        explicit ServerObject(bool bActive, uint32_t nUID, uint32_t nAddTime)
+            : m_Active(bActive)
             , m_UID(nUID)
             , m_AddTime(nAddTime)
         {}
 
-        explicit ServerObject(uint8_t);
+        explicit ServerObject(bool);
         virtual ~ServerObject() = default;
 
     public:
-        uint8_t Category() const
+        bool Active() const
         {
-            return m_Category;
+            return m_Active;
         }
 
         uint32_t UID() const

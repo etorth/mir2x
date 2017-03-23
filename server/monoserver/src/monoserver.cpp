@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/22/2017 17:24:36
+ *  Last Modified: 03/23/2017 15:08:28
  *
  *    Description: 
  *
@@ -176,10 +176,7 @@ void MonoServer::Launch()
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
 
-    AddMonster(1, 1, 765, 573);
-    AddMonster(1, 1, 442, 713);
-    AddMonster(1, 1, 836, 530);
-    AddMonster(1, 1, 932, 622);
+    AddMonster(1, 1, 16, 18);
 }
 
 void MonoServer::Restart()
@@ -327,10 +324,8 @@ void MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
     stAMACO.Common.MapID     = nMapID;
     stAMACO.Common.MapX      = nX;
     stAMACO.Common.MapY      = nY;
-    stAMACO.Common.R         = 20;
 
     stAMACO.Monster.MonsterID = nMonsterID;
-
     AddLog(LOGTYPE_INFO, "add monster, MonsterID = %d", nMonsterID);
 
     MessagePack stRMPK;

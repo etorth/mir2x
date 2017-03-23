@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 03/22/2017 17:00:26
+ *  Last Modified: 03/23/2017 11:21:21
  *
  *    Description: 
  *
@@ -98,9 +98,9 @@ class Monster: public CharObject
     public:
         void SearchViewRange();
 
-    public:
-
+    protected:
         bool RequestMove(int, int);
+        void RequestSpaceMove(const char *, int, int);
         int Speed()
         {
             return 20;
@@ -109,8 +109,7 @@ class Monster: public CharObject
         // TODO
         bool Update();
 
-    public:
-        void RequestSpaceMove(const char *, int, int);
+    protected:
         bool RandomWalk();
 
     private:

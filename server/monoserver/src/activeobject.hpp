@@ -2,13 +2,31 @@
  * =====================================================================================
  *
  *       Filename: activeobject.hpp
- *        Created: 04/11/2016 19:54:41
- *  Last Modified: 03/22/2017 17:21:47
+ *        Created: 04/21/2016 23:02:31
+ *  Last Modified: 03/23/2017 15:58:25
  *
- *    Description: server object with
- *              
- *                  --Type()
- *                  --State()
+ *    Description: server object with active state
+ *                      1. it's active via actor pod
+ *                      2. it's stateful
+ *
+ *                 actually stateless object can be implemented as a static object
+ *                 after activated this kind of object can only be modified via messages
+ *
+ *                 This prevent me implement MonoServer as react object. For MonoServer
+ *                 it needs to manager SessionHub. However SessionHub is not an actor, so
+ *                 if MonoServer is an react object, we have to launch SessionHub before
+ *                 calling of MonoServer::Activate(), but, before activation of MonoServer
+ *                 we don't have the address of Mo MonoServer to pass to SessionHub!
+ *
+ *                 In my design, SessionHub create Session's with SID and pass it to the
+ *                 MonoServer, then MonoServer check info of this connection from DB and
+ *                 create player object, bind Session pointer to the player and send the
+ *                 player to proper RegionMonitor via ServerMap object.
+ *
+ *                 Another thing is for g_MonoServer->AddLog(...), if make MonoServer as
+ *                 a react object, we can't use it anymore
+ *
+ *                 So let's make MonoServer as a receriver instead.
  *
  *        Version: 1.0
  *       Revision: none
@@ -22,37 +40,42 @@
  */
 
 #pragma once
-#include <array>
-#include <cstdint>
+#include <queue>
+#include <Theron/Theron.h>
 
-#include "reactobject.hpp"
+#include "actorpod.hpp"
+#include "statehook.hpp"
+#include "delaycmd.hpp"
+#include "messagepack.hpp"
 #include "serverobject.hpp"
-
-// this design pattern is not perfect, when we define valid state/type/mode for class A, and
-// then we define class B inherient from A, then B may have new state/type/mode available, 
-// what we should do? if we take this pattern, we need to list all state/type/mode here for
-// class A and all possible derived class B, C, D....
-//
-// since I take charge of all these source code file and I can edit it, it's OK, I like its
-// simplified interface.
-//
-// TODO: define life circle of an active object:
-//
-//  1. STATE_EMBRYO
-//  2. STATE_INCARNATED
-//  3. STATE_PHANTOM
-//
-//
 
 enum ObjectType: uint8_t
 {
     TYPE_NONE,
+    TYPE_INFO,
 
-    TYPE_CREATURE,
-    TYPE_MONSTER,
-    TYPE_HUMAN,
-    TYPE_PLAYER,
+    TYPE_CHAR,
+    TYPE_EVENT,
+    TYPE_UTILITY,
+    
+    // char information
     TYPE_NPC,
+    TYPE_PLAYER,
+    TYPE_MONSTER,
+
+    // event information
+    TYPE_MAGIC,
+    TYPE_XXXXX,
+
+    // utility information
+    TYPE_SERVERMAP,
+    TYPE_SERVICECORE,
+
+    // creature information
+    TYPE_CREATURE,
+
+    TYPE_HUMAN,
+    TYPE_UNDEAD,
     TYPE_ANIMAL,
 };
 
@@ -84,21 +107,23 @@ enum ObjectState: uint8_t
     STATE_WAITMOVE,
 };
 
-class ActiveObject: public ReactObject
+class ActiveObject: public ServerObject
 {
     protected:
         std::array< uint8_t, 255> m_TypeV;
         std::array< uint8_t, 255> m_StateV;
         std::array<uint32_t, 255> m_StateTimeV;
 
+    protected:
+        ActorPod *m_ActorPod;
+
+    protected:
+        StateHook m_StateHook;
+        std::priority_queue<DelayCmd> m_DelayCmdQ;
+
     public:
-        ActiveObject()
-            : ReactObject(CATEGORY_ACTIVEOBJECT)
-        {
-            m_TypeV.fill(0);
-            m_StateV.fill(0);
-            m_StateTimeV.fill(0);
-        }
+        ActiveObject();
+       ~ActiveObject();
 
     public:
         // static type information
@@ -127,4 +152,29 @@ class ActiveObject: public ReactObject
         uint8_t  State(uint8_t);
         uint32_t StateTime(uint8_t);
         void     ResetState(uint8_t, uint8_t);
+
+    public:
+        Theron::Address Activate();
+
+    public:
+        bool ActorPodValid() const
+        {
+            return GetAddress() == Theron::Address::Null();
+        }
+
+        Theron::Address GetAddress() const
+        {
+            return m_ActorPod ? m_ActorPod->GetAddress() : Theron::Address::Null();
+        }
+
+    public:
+        virtual void Operate(const MessagePack &, const Theron::Address &) = 0;
+
+    public:
+        void Delay(uint32_t, const std::function<void()> &);
+
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
+    protected:
+        virtual const char *ClassName() = 0;
+#endif
 };
