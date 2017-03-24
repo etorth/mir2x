@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/21/2016 18:52:52
+ *  Last Modified: 03/23/2017 23:10:31
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -40,8 +40,9 @@ EditorMap::EditorMap()
     : m_W(0)
     , m_H(0)
     , m_Valid(false)
-    , m_OldMir2Map(nullptr)
+    , m_Mir2Map(nullptr)
     , m_Mir2xMap(nullptr)
+    , m_Mir2xMapData(nullptr)
 {
     std::memset(m_bAniTileFrame, 0, sizeof(uint8_t) * 8 * 16);
     std::memset(m_dwAniSaveTime, 0, sizeof(uint32_t) * 8);
@@ -49,8 +50,9 @@ EditorMap::EditorMap()
 
 EditorMap::~EditorMap()
 {
-    delete m_Mir2xMap  ; m_Mir2xMap   = nullptr;
-    delete m_OldMir2Map; m_OldMir2Map = nullptr;
+    delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
+    delete m_Mir2xMap    ; m_Mir2xMap     = nullptr;
+    delete m_Mir2Map     ; m_Mir2Map      = nullptr;
 }
 
 void EditorMap::ExtractOneTile(int nXCnt, int nYCnt, std::function<void(uint8_t, uint16_t)> fnWritePNG)
@@ -852,10 +854,28 @@ void EditorMap::CompressTile(std::vector<bool> &stMarkV, std::vector<uint8_t> &s
     }
 }
 
+bool EditorMap::LoadMir2Map(const char *szFullName)
+{
+    delete m_Mir2Map     ; m_Mir2Map      = new Mir2Map();
+    delete m_Mir2xMap    ; m_Mir2xMap     = nullptr;
+    delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
+
+    if(m_Mir2Map->Load(szFullName)){
+        MakeBuf(m_Mir2Map->W(), m_Mir2Map->H());
+        InitBuf();
+    }
+
+    delete m_Mir2Map;
+    m_Mir2Map = nullptr;
+
+    return Valid();
+}
+
 bool EditorMap::LoadMir2xMap(const char *szFullName)
 {
-    delete m_OldMir2Map; m_OldMir2Map = nullptr;
-    delete m_Mir2xMap  ; m_Mir2xMap   = new Mir2xMap();
+    delete m_Mir2Map     ; m_Mir2Map      = nullptr;
+    delete m_Mir2xMap    ; m_Mir2xMap     = new Mir2xMap();
+    delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
 
     if(m_Mir2xMap->Load(szFullName)){
         MakeBuf(m_Mir2xMap->W(), m_Mir2xMap->H());
@@ -868,18 +888,19 @@ bool EditorMap::LoadMir2xMap(const char *szFullName)
     return Valid();
 }
 
-bool EditorMap::LoadMir2Map(const char *szFullName)
+bool EditorMap::LoadMir2xMapData(const char *szFullName)
 {
-    delete m_OldMir2Map; m_OldMir2Map = new Mir2Map();
-    delete m_Mir2xMap  ; m_Mir2xMap   = nullptr;
+    delete m_Mir2Map     ; m_Mir2Map      = nullptr;
+    delete m_Mir2xMap    ; m_Mir2xMap     = nullptr;
+    delete m_Mir2xMapData; m_Mir2xMapData = new Mir2xMapData();
 
-    if(m_OldMir2Map->Load(szFullName)){
-        MakeBuf(m_OldMir2Map->W(), m_OldMir2Map->H());
+    if(m_Mir2xMapData->Load(szFullName)){
+        MakeBuf(m_Mir2xMapData->W(), m_Mir2xMapData->H());
         InitBuf();
     }
 
-    delete m_OldMir2Map;
-    m_OldMir2Map = nullptr;
+    delete m_Mir2xMapData;
+    m_Mir2xMapData = nullptr;
 
     return Valid();
 }
@@ -938,9 +959,9 @@ bool EditorMap::InitBuf()
     if(m_Mir2xMap && m_Mir2xMap->Valid()){
         nW = m_Mir2xMap->W();
         nH = m_Mir2xMap->H();
-    }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
-        nW = m_OldMir2Map->W();
-        nH = m_OldMir2Map->H();
+    }else if(m_Mir2Map && m_Mir2Map->Valid()){
+        nW = m_Mir2Map->W();
+        nH = m_Mir2Map->H();
     }else{
         return false;
     }
@@ -1022,10 +1043,10 @@ void EditorMap::SetBufTile(int nX, int nY)
             m_BufTile    [nX / 2][nY / 2] = m_Mir2xMap->Tile(nX, nY);
             m_BufTileMark[nX / 2][nY / 2] = 1;
         }
-    }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
+    }else if(m_Mir2Map && m_Mir2Map->Valid()){
         extern ImageDB g_ImageDB;
-        if(m_OldMir2Map->TileValid(nX, nY, g_ImageDB)){
-            m_BufTile    [nX / 2][nY / 2] = m_OldMir2Map->Tile(nX, nY);
+        if(m_Mir2Map->TileValid(nX, nY, g_ImageDB)){
+            m_BufTile    [nX / 2][nY / 2] = m_Mir2Map->Tile(nX, nY);
             m_BufTileMark[nX / 2][nY / 2] = 1;
         }
     }
@@ -1039,9 +1060,9 @@ void EditorMap::SetBufGround(int nX, int nY, int nIndex)
             m_BufGroundMark[nX][nY][nIndex] = 1;
             m_BufGround[nX][nY][nIndex] = m_Mir2xMap->Ground(nX, nY, nIndex);
         }
-    }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
+    }else if(m_Mir2Map && m_Mir2Map->Valid()){
         // mir2 map
-        if(m_OldMir2Map->GroundValid(nX, nY)){
+        if(m_Mir2Map->GroundValid(nX, nY)){
             m_BufGroundMark[nX][nY][nIndex] = 1;
             m_BufGround[nX][nY][nIndex] = 0X0000; // set by myselt
         }
@@ -1069,18 +1090,18 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
             nAlphaObj = m_Mir2xMap->AlphaObjectValid(nX, nY, nIndex);
             nObj      = m_Mir2xMap->Object(nX, nY, nIndex);
         }
-    }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
+    }else if(m_Mir2Map && m_Mir2Map->Valid()){
         // mir2 map
         extern ImageDB g_ImageDB;
-        if(m_OldMir2Map->ObjectValid(nX, nY, nIndex, g_ImageDB)){
+        if(m_Mir2Map->ObjectValid(nX, nY, nIndex, g_ImageDB)){
             nObjValid = 1;
-            if(m_OldMir2Map->GroundObjectValid(nX, nY, nIndex, g_ImageDB)){
+            if(m_Mir2Map->GroundObjectValid(nX, nY, nIndex, g_ImageDB)){
                 nGroundObj = 1;
             }
-            if(m_OldMir2Map->AniObjectValid(nX, nY, nIndex, g_ImageDB)){
+            if(m_Mir2Map->AniObjectValid(nX, nY, nIndex, g_ImageDB)){
                 nAniObj = 1;
             }
-            nObj = m_OldMir2Map->Object(nX, nY, nIndex);
+            nObj = m_Mir2Map->Object(nX, nY, nIndex);
             // for Mir2Map, Object is arranged in different bit-order
 
             if(nAniObj == 1){
@@ -1108,11 +1129,11 @@ void EditorMap::SetBufLight(int nX, int nY)
             m_BufLight[nX][nY]     = m_Mir2xMap->Light(nX, nY);
             m_BufLightMark[nX][nY] = 1;
         }
-    }else if(m_OldMir2Map && m_OldMir2Map->Valid()){
+    }else if(m_Mir2Map && m_Mir2Map->Valid()){
         // mir2 map
-        if(m_OldMir2Map->LightValid(nX, nY)){
+        if(m_Mir2Map->LightValid(nX, nY)){
             // we deprecate it
-            // uint16_t nLight = m_OldMir2Map->Light(nX, nY);
+            // uint16_t nLight = m_Mir2Map->Light(nX, nY);
             //
             // make light frog by myself
             uint16_t nColorIndex = 128;  // 0, 1, 2, 3, ..., 15  4 bits
@@ -1192,7 +1213,7 @@ void EditorMap::SetGroundSelect(int nX, int nY, int nIndex, int nSelect)
     m_BufGroundSelectMark[nX][nY][nIndex] = nSelect;
 }
 
-bool EditorMap::Save(const char *szFullName)
+bool EditorMap::SaveMir2xMap(const char *szFullName)
 {
     if(!Valid()){
         fl_alert("%s", "Invalid map!");
@@ -1265,6 +1286,76 @@ bool EditorMap::Save(const char *szFullName)
     fclose(pFile);
 
     return true;
+}
+
+bool EditorMap::SaveMir2xMapData(const char *szFullName)
+{
+    if(!Valid()){
+        fl_alert("%s", "Invalid map!");
+        return false;
+    }
+
+    auto pFile = fopen(szFullName, "wb");
+    if(pFile == nullptr){
+        fl_alert("Fail to open %s for writing!", szFullName);
+        fclose(pFile);
+        return false;
+    }
+
+    Mir2xMapData stMapData;
+    stMapData.Allocate(W(), H());
+
+    for(int nX = 0; nX < W(); ++nX){
+        for(int nY = 0; nY < H(); ++nY){
+
+            // tile
+            if(!(nX % 2) && !(nY % 2)){
+                stMapData.Tile(nX, nY).Param = TileValid(nX, nY) ? (0X80000000 | (Tile(nX, nY) & 0X0FFFFFFF)) : 0;
+            }
+
+            // cell
+            auto &rstCell = stMapData.Cell(nX, nY);
+            std::memset(&rstCell, 0, sizeof(rstCell));
+
+            if(LightValid(nX, nY)){
+                rstCell.Param |= (0X00008000 | (Light(nX, nY) & 0X7F));
+            }
+
+            if(CanWalk(nX, nY, 0) || CanWalk(nX, nY, 1) || CanWalk(nX, nY, 2) || CanWalk(nX, nY, 3)){
+                rstCell.Param |= 0X00800000;
+            }
+
+            if(ObjectValid(nX, nY, 0)){
+                auto nObj = Object(nX, nY, 0);
+                rstCell.Obj[0].Param |= (0X80000000 | (nObj & 0X00FFFFFF));
+                if(AniObjectValid(nX, nY, 0)){
+                    rstCell.ObjParam |= ((0X80000000 | (nObj & 0X7F000000)) >> 16);
+                }
+                if(AlphaObjectValid(nX, nY, 0)){
+                    rstCell.ObjParam |= ((uint32_t)(1) << 7);
+                }
+                if(GroundObjectValid(nX, nY, 0)){
+                    rstCell.ObjParam |= ((uint32_t)(1) << 6);
+                }
+            }
+
+            if(ObjectValid(nX, nY, 1)){
+                auto nObj = Object(nX, nY, 1);
+                rstCell.Obj[1].Param |= (0X80000000 | (nObj & 0X00FFFFFF));
+                if(AniObjectValid(nX, nY, 1)){
+                    rstCell.ObjParam |= (0X80000000 | (nObj & 0X7F000000));
+                }
+                if(AlphaObjectValid(nX, nY, 1)){
+                    rstCell.ObjParam |= ((uint32_t)(1) << 23);
+                }
+                if(GroundObjectValid(nX, nY, 1)){
+                    rstCell.ObjParam |= ((uint32_t)(1) << 22);
+                }
+            }
+        }
+    }
+
+    return stMapData.Save(szFullName) ? false : true;
 }
 
 void EditorMap::PushBit(const std::vector<bool> &stMarkV, std::vector<uint8_t> &stOutV)

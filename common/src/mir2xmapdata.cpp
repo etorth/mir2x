@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.cpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 03/18/2017 01:04:43
+ *  Last Modified: 03/23/2017 23:57:01
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -82,11 +82,11 @@ int Mir2xMapData::Load(const char *szFullName)
 
         auto pCurDat = &(bufMapData[0]);
         if(true
-                && LoadHead(pCurDat)
-                && LoadGrid(pCurDat, fnParseTile)
-                && LoadGrid(pCurDat, fnParseCell)
-                && LoadGrid(pCurDat, fnParseObj0)
-                && LoadGrid(pCurDat, fnParseObj1)){ return 0; }
+                && !LoadHead(pCurDat)
+                && !LoadGrid(pCurDat, fnParseTile)
+                && !LoadGrid(pCurDat, fnParseCell)
+                && !LoadGrid(pCurDat, fnParseObj0)
+                && !LoadGrid(pCurDat, fnParseObj1)){ return 0; }
 
         m_Data.clear();
     }
@@ -770,4 +770,18 @@ void Mir2xMapData::PushData(const std::vector<bool> &stMarkV, const std::vector<
     PushBit(stMarkV, stOutV);
     stOutV.insert(stOutV.end(), stDataV.begin(), stDataV.end());
     stOutV.push_back(0);
+}
+
+bool Mir2xMapData::Allocate(uint16_t nW, uint16_t nH)
+{
+    if(nW % 2 || nH % 2){ return false; }
+    if(nW * nH){
+        m_W = nW;
+        m_H = nH;
+
+        m_Data.resize(m_W * m_H / 4);
+        std::memset(&(m_Data[0]), 0, sizeof(m_Data[0]) * m_Data.size());
+        return true;
+    }
+    return false;
 }

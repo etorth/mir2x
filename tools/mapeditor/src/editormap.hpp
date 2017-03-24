@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/07/2016 22:14:59
+ *  Last Modified: 03/23/2017 23:07:06
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -82,6 +82,7 @@
 
 #include "mir2map.hpp"
 #include "mir2xmap.hpp"
+#include "mir2xmapdata.hpp"
 
 #include <string>
 #include "wilimagepackage.hpp"
@@ -109,13 +110,14 @@ class EditorMap
         uint8_t         m_bAniTileFrame[8][16];
 
     private:
-        Mir2Map        *m_OldMir2Map;
+        Mir2Map        *m_Mir2Map;
         Mir2xMap       *m_Mir2xMap;
+        Mir2xMapData   *m_Mir2xMapData;
 
     private:
         // buffers
         std::vector<std::vector<int>>                       m_BufLightMark;
-        std::vector<std::vector<uint16_t>>                  m_BufLight;
+        std::vector<std::vector<uint16_t>>                  m_BufLight;         // restrict to only use last 7 bits
 
         std::vector<std::vector<int>>                       m_BufTileMark;
         std::vector<std::vector<uint32_t>>                  m_BufTile;
@@ -136,11 +138,12 @@ class EditorMap
 
     public:
         EditorMap();
-        ~EditorMap();
+       ~EditorMap();
 
     public:
         bool LoadMir2Map(const char *);
         bool LoadMir2xMap(const char *);
+        bool LoadMir2xMapData(const char *);
 
     public:
         // fast api
@@ -310,7 +313,8 @@ class EditorMap
 
     public:
         // save to mir2x compact format
-        bool Save(const char *);
+        bool SaveMir2xMap(const char *);
+        bool SaveMir2xMapData(const char *);
 
     public:
         bool CoverValid(int, int, int);

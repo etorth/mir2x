@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302 
+version 1.0303 
 header_name {.hpp} 
 code_name {.cpp}
 decl {\#include <cstdint>} {private local
@@ -63,14 +63,15 @@ class MainWindow {open
 } {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_Window {
       callback {{
 	// do nothing
 }} open
-      xywh {2000 180 985 665} type Double resizable visible
+      xywh {562 146 985 665} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {
+      Fl_Box m_DrawArea {selected
         xywh {0 20 965 627} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
@@ -86,10 +87,31 @@ class MainWindow {open
             label New
             callback {SetWorkingPathName();
 fl_alert("%s", "Haven't implement yet!");}
-            xywh {0 0 30 20} labelfont 4
+            xywh {0 0 30 20} labelfont 4 divider
           }
           MenuItem {} {
-            label Load
+            label {Load Mir2Map}
+            callback {{
+    // maybe default or setted one, depends
+    MakeWorkingFolder();
+
+    extern std::string g_WilFilePathName;
+    if(g_WilFilePathName == ""){
+        SetWilFilePathName();
+    }
+
+    if(g_WilFilePathName != ""){
+        LoadMir2Map();
+    }
+}}
+            xywh {0 0 30 20} labelfont 4
+            code0 {\#include <string>}
+            code1 {\#include <FL/Fl_Native_File_Chooser.H>}
+            code2 {\#include <FL/fl_ask.H>}
+            code3 {\#include <algorithm>}
+          }
+          MenuItem {} {
+            label {Load Mir2xMap}
             callback {{
     extern std::string g_WilFilePathName;
     if(g_WilFilePathName == ""){
@@ -131,7 +153,7 @@ fl_alert("%s", "Haven't implement yet!");}
                 if(FileExist(szPath.c_str())){
                     extern EditorMap g_EditorMap;
                     if(!g_EditorMap.LoadMir2xMap(szPath.c_str()) || !g_EditorMap.Valid()){
-                        fl_alert("Load mir2x map %s failed", szPath.c_str());
+                        fl_alert("Failed to load Mir2xMap: %s", szPath.c_str());
                     }
                     
                     AfterLoadMir2Map();
@@ -139,7 +161,7 @@ fl_alert("%s", "Haven't implement yet!");}
                     Fl::add_timeout(0.5, UpdateFrame);
                     
                 }else{
-                    fl_alert("Invalid mir2x map folder: %s", szPath.c_str());
+                    fl_alert("Invalid Mir2xMap folder: %s", szPath.c_str());
                 }
             }
     }
@@ -149,25 +171,78 @@ fl_alert("%s", "Haven't implement yet!");}
             code1 {\#include "editormap.hpp"}
           }
           MenuItem {} {
-            label {Load Mir2EI Map   }
+            label {Load Mir2xMapData}
             callback {{
-    // maybe default or setted one, depends
-    MakeWorkingFolder();
-
     extern std::string g_WilFilePathName;
     if(g_WilFilePathName == ""){
         SetWilFilePathName();
     }
 
-    if(g_WilFilePathName != ""){
-        LoadMir2Map();
+    Fl_Native_File_Chooser stFileChooser;
+    stFileChooser.title("Set Map File Path...");
+    stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
+    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
+
+    stFileChooser.directory(".");
+
+    switch(stFileChooser.show()){
+        case -1:
+            {
+                fl_alert("%s", stFileChooser.errmsg());
+                break;
+            }
+        case 1:
+            {
+                break;
+            }
+        default:
+            {
+                extern std::string g_WorkingPathName;
+                g_WorkingPathName = "";
+                MakeWorkingFolder();
+
+                std::string szPath = stFileChooser.filename();
+                std::replace(szPath.begin(), szPath.end(), '\\\\', '/');
+
+                if(szPath.back() == '/'){
+                    szPath += "DESC.BIN";
+                }else{
+                    szPath += "/DESC.BIN";
+                }
+
+                if(FileExist(szPath.c_str())){
+                    extern EditorMap g_EditorMap;
+                    if(!g_EditorMap.LoadMir2xMapData(szPath.c_str()) || !g_EditorMap.Valid()){
+                        fl_alert("Failed to load Mir2xMapData: %s", szPath.c_str());
+                    }
+                    
+                    AfterLoadMir2Map();
+                    Fl::remove_timeout(UpdateFrame);
+                    Fl::add_timeout(0.5, UpdateFrame);
+                    
+                }else{
+                    fl_alert("Invalid Mir2xMapData folder: %s", szPath.c_str());
+                }
+            }
     }
 }}
-            xywh {0 0 30 20} labelfont 4
+            xywh {10 10 30 20} shortcut 0x4006f labelfont 4 divider
             code0 {\#include <string>}
-            code1 {\#include <FL/Fl_Native_File_Chooser.H>}
-            code2 {\#include <FL/fl_ask.H>}
-            code3 {\#include <algorithm>}
+            code1 {\#include "editormap.hpp"}
+          }
+          MenuItem {} {
+            label {Save Mir2xMap}
+            callback {{
+    SaveMir2xMap();
+}}
+            xywh {0 0 30 20} labelfont 4
+          }
+          MenuItem {} {
+            label {Save Mir2xMapData}
+            callback {{
+    SaveMir2xMapData();
+}}
+            xywh {10 10 30 20} labelfont 4 divider
           }
           MenuItem {} {
             label {Extract PNG}
@@ -215,18 +290,11 @@ fl_alert("%s", "Haven't implement yet!");}
     g_EditorMap.ExtractTile(fnSaveTilePNG);
     g_EditorMap.ExtractObject(fnSaveObjPNG);
 }}
-            xywh {10 10 30 20} labelfont 4
+            xywh {10 10 30 20} labelfont 4 divider
             code0 {\#include <string>}
             code1 {\#include <FL/Fl_Native_File_Chooser.H>}
             code2 {\#include "imagecache.hpp"}
             code3 {\#include "imagedb.hpp"}
-          }
-          MenuItem {} {
-            label Save
-            callback {{
-    SaveMap();
-}}
-            xywh {0 0 30 20} shortcut 0x40073 labelfont 4
           }
           MenuItem {} {
             label {Save As}
@@ -844,7 +912,7 @@ if(g_EditorMap.Valid()){
     MakeDir(szTmpPath.c_str());
 }} {}
   }
-  Function {SaveMap()} {return_type void
+  Function {SaveMir2xMap()} {return_type void
   } {
     code {{
 	extern EditorMap g_EditorMap;
@@ -857,8 +925,29 @@ if(g_EditorMap.Valid()){
     		}else{
         		szTmpFileName += "/DESC.BIN";
     		}
-    		g_EditorMap.Save(szTmpFileName.c_str());
-    		fl_message("Save map file in mir2x format successfully!");
+    		g_EditorMap.SaveMir2xMap(szTmpFileName.c_str());
+    		fl_message("Save map file in mir2xmap format successfully!");
+    		
+	}else{
+		fl_alert("%s", "Currently no operating map!");
+	}
+}} {}
+  }
+  Function {SaveMir2xMapData()} {open return_type void
+  } {
+    code {{
+	extern EditorMap g_EditorMap;
+	if(g_EditorMap.Valid()){
+		extern std::string g_WorkingPathName;
+    		std::string szTmpFileName = g_WorkingPathName;
+	
+		if(szTmpFileName.back() == '/'){
+        		szTmpFileName += "DESC.BIN";
+    		}else{
+        		szTmpFileName += "/DESC.BIN";
+    		}
+    		g_EditorMap.SaveMir2xMapData(szTmpFileName.c_str());
+    		fl_message("Save map file in mir2xmapdata format successfully!");
     		
 	}else{
 		fl_alert("%s", "Currently no operating map!");
@@ -883,7 +972,7 @@ if(g_EditorMap.Valid()){
     return m_MenuItemReversed->value();
 }} {}
   }
-  Function {CenterAnimation()} {open return_type void
+  Function {CenterAnimation()} {return_type void
   } {
     code {{
     extern AnimationDraw g_AnimationDraw;
@@ -894,7 +983,6 @@ if(g_EditorMap.Valid()){
         g_AnimationDraw.X = nX;
         g_AnimationDraw.Y = nY;
     }
-}} {selected
-    }
+}} {}
   }
 } 

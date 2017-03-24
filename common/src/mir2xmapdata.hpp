@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.hpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 03/22/2017 18:12:16
+ *  Last Modified: 03/23/2017 17:28:46
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -76,7 +76,7 @@ class Mir2xMapData
                                 //      22 :       : ground
                                 // 21 - 16 :       :
                                 //
-                                //      15 : obj-2 : animated
+                                //      15 : obj-0 : animated
                                 // 14 - 12 :       : tick type of animation
                                 // 11 - 08 :       : frame count, max = 16
                                 //      07 :       : alpha
@@ -121,6 +121,9 @@ class Mir2xMapData
         {
             return m_Data.size();
         }
+
+    public:
+        bool Allocate(uint16_t, uint16_t);
 
     public:
         int W() const { return m_W; }
