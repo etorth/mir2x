@@ -3,7 +3,7 @@
  *
  *       Filename: buttonbase.hpp
  *        Created: 08/25/2016 04:12:57
- *  Last Modified: 03/16/2017 15:08:56
+ *  Last Modified: 03/24/2017 18:12:57
  *
  *    Description: basic button class to handle event logic only
  *                 there are three {nTexID0, nTexID1, nTexID2} texture ID's to represetn
@@ -40,7 +40,7 @@
 
 class ButtonBase: public Widget
 {
-    private:
+    protected:
         // 0: off
         // 1: over
         // 2: pressed
@@ -78,7 +78,7 @@ class ButtonBase: public Widget
                     auto pTexture = g_PNGTexDBN->Retrieve(m_TexIDV[nState]);
                     if(pTexture){
                         int nCurrW, nCurrH;
-                        if(SDL_QueryTexture(pTexture, nullptr, nullptr, &nCurrW, &nCurrH)){
+                        if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nCurrW, &nCurrH)){
                             nW = std::max(nCurrW, nW);
                             nH = std::max(nCurrH, nH);
                         }

@@ -61,8 +61,8 @@ if errmsg then print(status, errmsg) end
 -- try to add guid
 status, errmsg = conn:execute [[
     insert tbl_guid (fld_id, fld_mapid, fld_mapx, fld_mapy, fld_level, fld_jobid, fld_direction, fld_name) values
-        (1, 1, 966, 652, 1, 1, 1, "mark"),
-        (2, 1, 574, 705, 1, 1, 1, "john")
+        (1, 1, 12, 21, 1, 1, 1, "mark"),
+        (2, 1, 14, 19, 1, 1, 1, "john")
 ]]
 
 if errmsg then print(status, errmsg) end
