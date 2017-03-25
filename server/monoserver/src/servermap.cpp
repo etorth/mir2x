@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 03/23/2017 16:03:46
+ *  Last Modified: 03/24/2017 17:46:15
  *
  *    Description: 
  *
@@ -34,11 +34,13 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     , m_Mir2xMapData()
     , m_Metronome(nullptr)
     , m_ServiceCore(pServiceCore)
+    , m_CellStateV2D()
+    , m_ObjectV2D()
 {
     ResetType(TYPE_INFO,    TYPE_UTILITY);
     ResetType(TYPE_UTILITY, TYPE_SERVERMAP);
 
-    Load("./test.map");
+    Load("./DESC.BIN");
 }
 
 bool ServerMap::Load(const char *szMapFullName)
@@ -52,13 +54,22 @@ bool ServerMap::Load(const char *szMapFullName)
     m_ObjectV2D.clear();
 
     if(m_Mir2xMapData.Load(szMapFullName)){
-        m_ObjectV2D.resize(W());
-        for(auto &rstObjectLine: m_ObjectV2D){
-            rstObjectLine.resize(H());
-        }
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Load map %s failed", szMapFullName);
+        g_MonoServer->Restart();
     }
 
-    return false;
+    m_ObjectV2D.resize(m_Mir2xMapData.W());
+    for(auto &rstObjectLine: m_ObjectV2D){
+        rstObjectLine.resize(m_Mir2xMapData.H());
+    }
+
+    m_CellStateV2D.resize(m_Mir2xMapData.W());
+    for(auto &rstStateLine: m_CellStateV2D){
+        rstStateLine.resize(m_Mir2xMapData.H());
+    }
+
+    return true;
 }
 
 void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)

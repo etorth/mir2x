@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 03/23/2017 15:51:01
+ *  Last Modified: 03/24/2017 17:44:43
  *
  *    Description: put all non-atomic function as private
  *
@@ -55,7 +55,7 @@ class ServerMap: public ActiveObject
         ServiceCore    *m_ServiceCore;
 
     private:
-        Vec2D<CellState> m_CellState;
+        Vec2D<CellState> m_CellStateV2D;
         Vec2D<std::vector<ServerObject *>> m_ObjectV2D;
 
     private:
@@ -69,8 +69,8 @@ class ServerMap: public ActiveObject
         uint32_t ID() { return m_ID; }
 
     public:
-        int W() const { return m_Mir2xMapData.W(); }
-        int H() const { return m_Mir2xMapData.H(); }
+        int W() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0; }
+        int H() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.H() : 0; }
 
         bool ValidC(int nX, int nY) const { return m_Mir2xMapData.ValidC(nX, nY); }
         bool ValidP(int nX, int nY) const { return m_Mir2xMapData.ValidP(nX, nY); }
