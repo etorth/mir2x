@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.hpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 03/23/2017 17:28:46
+ *  Last Modified: 03/24/2017 13:43:31
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -119,7 +119,7 @@ class Mir2xMapData
 
         size_t Size() const
         {
-            return m_Data.size();
+            return m_Data.size() * sizeof(m_Data[0]);
         }
 
     public:
@@ -132,7 +132,7 @@ class Mir2xMapData
     public:
         auto &Block(int nX, int nY)
         {
-            return m_Data[nX / 2 + (nY / 2) * m_W / 2];
+            return m_Data[nX / 2 + (nY / 2) * (m_W / 2)];
         }
 
         auto &Tile(int nX, int nY)

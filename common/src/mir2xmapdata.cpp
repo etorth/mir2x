@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.cpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 03/23/2017 23:57:01
+ *  Last Modified: 03/24/2017 17:03:30
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -117,7 +117,7 @@ int Mir2xMapData::SetTile(int nX, int nY, int nSize, const uint8_t *pData, size_
     if(ValidC(nX, nY) && (nSize > 0)){
         uint32_t nParam = 0;
         if(pData){
-            std::memcpy(&nParam, pData, 4);
+            std::memcpy(&nParam, pData + nDataOff, 4);
             nDataOff += 4;
 
             // data check here
@@ -143,7 +143,7 @@ int Mir2xMapData::SetCell(int nX, int nY, int nSize, const uint8_t *pData, size_
     if(ValidC(nX, nY) && (nSize > 0)){
         uint32_t nParam = 0;
         if(pData){
-            std::memcpy(&nParam, pData, 4);
+            std::memcpy(&nParam, pData + nDataOff, 4);
             nDataOff += 4;
 
             // data check here
@@ -177,10 +177,13 @@ int Mir2xMapData::SetObj(int nX, int nY, int nObjIndex, int nSize, const uint8_t
         uint16_t nCellObjParam = 0;     // for CELL::ObjParam
 
         if(pData){
-            std::memcpy(&nObjParam,      pData + 0, 4);  nDataOff += 4;
-            std::memcpy(&nCellObjParam,  pData + 4, 2);  nDataOff += 2;
+            std::memcpy(&nObjParam,      pData + nDataOff, 4);  nDataOff += 4;
+            std::memcpy(&nCellObjParam,  pData + nDataOff, 2);  nDataOff += 2;
 
+            // we can also assert here Cell::Param & 0X80000000 should be set
+            // since we say if there is object in current cell, then the cell is not null
             assert(nObjParam & 0X80000000);
+            assert(Cell(nX, nY).Param & 0X80000000);
         }
 
         for(int nTY = nY; nTY < nY + nSize; ++nTY){
@@ -273,15 +276,15 @@ int Mir2xMapData::Save(const char *szFullName)
     if(Valid()){
         std::vector<bool>    stMarkV;
         std::vector<uint8_t> stDataV;
-        std::vector<uint8_t> stOutV;
+        std::vector<uint8_t> stByteV;
 
         // header, w then h
         {
-            stOutV.push_back((uint8_t)((m_W & 0X00FF)     ));
-            stOutV.push_back((uint8_t)((m_W & 0XFF00) >> 8));
-            stOutV.push_back((uint8_t)((m_H & 0X00FF)     ));
-            stOutV.push_back((uint8_t)((m_H & 0XFF00) >> 8));
-            stOutV.push_back((uint8_t)(0));
+            stByteV.push_back((uint8_t)((m_W & 0X00FF)     ));
+            stByteV.push_back((uint8_t)((m_W & 0XFF00) >> 8));
+            stByteV.push_back((uint8_t)((m_H & 0X00FF)     ));
+            stByteV.push_back((uint8_t)((m_H & 0XFF00) >> 8));
+            stByteV.push_back((uint8_t)(0));
         }
 
         // tile
@@ -321,9 +324,8 @@ int Mir2xMapData::Save(const char *szFullName)
                 return GridAttrType(nX, nY, nSize, 2, fnGridChecker);
             };
 
-            auto fnRecord = [this](int nX, int nY, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+            auto fnRecord = [this](int nX, int nY, std::vector<bool> &, std::vector<uint8_t> &stDataV){
                 if(ValidC(nX, nY)){
-                    stMarkV.push_back(true);
                     auto pBuf = (uint8_t *)(&(Tile(nX, nY).Param));
                     stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
                     return 0;
@@ -336,7 +338,7 @@ int Mir2xMapData::Save(const char *szFullName)
             };
 
             SaveGrid(stMarkV, stDataV, fnCompressGrid);
-            PushData(stMarkV, stDataV, stOutV);
+            PushData(stMarkV, stDataV, stByteV);
         }
 
         // cell
@@ -376,9 +378,8 @@ int Mir2xMapData::Save(const char *szFullName)
                 return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
             };
 
-            auto fnRecord = [this](int nX, int nY, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+            auto fnRecord = [this](int nX, int nY, std::vector<bool> &, std::vector<uint8_t> &stDataV){
                 if(ValidC(nX, nY)){
-                    stMarkV.push_back(true);
                     auto pBuf = (uint8_t *)(&(Cell(nX, nY).Param));
                     stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
                     return 0;
@@ -391,62 +392,7 @@ int Mir2xMapData::Save(const char *szFullName)
             };
 
             SaveGrid(stMarkV, stDataV, fnCompressGrid);
-            PushData(stMarkV, stDataV, stOutV);
-        }
-
-        // can walk
-        {
-            stMarkV.clear();
-            stDataV.clear();
-
-            auto fnGridChecker = [this, nParam = (uint32_t)(0)](int nX, int nY) mutable -> int {
-                if(ValidC(nX, nY)){
-                    auto nCurrParam = Cell(nX, nY).Param;
-                    if(nCurrParam & 0X80000000){
-                        if(nParam & 0X80000000){
-                            if(nParam == nCurrParam){
-                                // not the first time, but it's the same
-                                return 2;
-                            }else{
-                                // not the first time, and it's different
-                                return 3;
-                            }
-                        }else{
-                            nParam = nCurrParam;
-
-                            // first time to see it
-                            return 1;
-                        }
-                    }else{
-                        // empty
-                        return 0;
-                    }
-                }
-                return -1;
-            };
-
-            auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize){
-                // fnGridChecker is stateful but fnAttrGridType is stateless
-                // because every time when call fnAttrGridType, we use a copy of fnGridChecker at its initial state
-                return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
-            };
-
-            auto fnRecord = [this](int nX, int nY, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
-                if(ValidC(nX, nY)){
-                    stMarkV.push_back(true);
-                    auto pBuf = (uint8_t *)(&(Cell(nX, nY).Param));
-                    stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
-                    return 0;
-                }
-                return -1;
-            };
-
-            auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
-                return CompressGrid(nX, nY, nSize, 1, stMarkV, stDataV, fnAttrGridType, fnRecord);
-            };
-
-            SaveGrid(stMarkV, stDataV, fnCompressGrid);
-            PushData(stMarkV, stDataV, stOutV);
+            PushData(stMarkV, stDataV, stByteV);
         }
 
         // obj0
@@ -488,9 +434,8 @@ int Mir2xMapData::Save(const char *szFullName)
                 return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
             };
 
-            auto fnRecord = [this](int nX, int nY, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+            auto fnRecord = [this](int nX, int nY, std::vector<bool> &, std::vector<uint8_t> &stDataV){
                 if(ValidC(nX, nY)){
-                    stMarkV.push_back(true);
                     // 1. record object image info
                     {
                         auto pBuf = (uint8_t *)(&(Cell(nX, nY).Obj[0].Param));
@@ -512,7 +457,7 @@ int Mir2xMapData::Save(const char *szFullName)
             };
 
             SaveGrid(stMarkV, stDataV, fnCompressGrid);
-            PushData(stMarkV, stDataV, stOutV);
+            PushData(stMarkV, stDataV, stByteV);
         }
 
         // obj1
@@ -522,7 +467,7 @@ int Mir2xMapData::Save(const char *szFullName)
 
             auto fnGridChecker = [this, nObjParam = (uint32_t)(0), nCellObjParam = (uint16_t)(0)](int nX, int nY) mutable -> int {
                 if(ValidC(nX, nY)){
-                    auto nCurrObjParam = (uint32_t)(Cell(nX, nY).Obj[0].Param);
+                    auto nCurrObjParam = (uint32_t)(Cell(nX, nY).Obj[1].Param);
                     if(nCurrObjParam & 0X80000000){
                         auto nCurrCellObjParam = (uint16_t)((Cell(nX, nY).ObjParam & 0XFFFF0000) >> 16);
                         if(nObjParam & 0X80000000){
@@ -554,12 +499,11 @@ int Mir2xMapData::Save(const char *szFullName)
                 return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
             };
 
-            auto fnRecord = [this](int nX, int nY, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
+            auto fnRecord = [this](int nX, int nY, std::vector<bool> &, std::vector<uint8_t> &stDataV){
                 if(ValidC(nX, nY)){
-                    stMarkV.push_back(true);
                     // 1. record object image info
                     {
-                        auto pBuf = (uint8_t *)(&(Cell(nX, nY).Obj[0].Param));
+                        auto pBuf = (uint8_t *)(&(Cell(nX, nY).Obj[1].Param));
                         stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
                     }
 
@@ -578,11 +522,11 @@ int Mir2xMapData::Save(const char *szFullName)
             };
 
             SaveGrid(stMarkV, stDataV, fnCompressGrid);
-            PushData(stMarkV, stDataV, stOutV);
+            PushData(stMarkV, stDataV, stByteV);
         }
 
         if(auto fp = std::fopen(szFullName, "wb")){
-            std::fwrite(&(stOutV[0]), stOutV.size() * sizeof(stOutV[0]), 1, fp);
+            std::fwrite(&(stByteV[0]), stByteV.size() * sizeof(stByteV[0]), 1, fp);
             std::fclose(fp);
             return 0;
         }
@@ -627,8 +571,8 @@ int Mir2xMapData::GridAttrType(int nStartX, int nStartY, int nSize, int nFinalSi
             switch(fnChecker(nStartX, nStartY)){
                 case 0  : return  0;
                 case 1  : return  1;
-                case 2  : return  1;
-                case 3  : return  1;
+                case 2  : return -1;
+                case 3  : return -1;
                 default : return -1;
             }
         }else{
@@ -638,7 +582,7 @@ int Mir2xMapData::GridAttrType(int nStartX, int nStartY, int nSize, int nFinalSi
 
             for(int nY = 0; nY < nSize; ++nY){
                 for(int nX = 0; nX < nSize; ++nX){
-                    if(ValidC(nX + nStartX, nY + nStartY) && !((nX + nStartX) % 2) && !((nY + nStartY) % 2)){
+                    if(ValidC(nX + nStartX, nY + nStartY) && !((nX + nStartX) % nFinalSize) && !((nY + nStartY) % nFinalSize)){
                         switch(fnChecker(nX + nStartX, nY + nStartY)){
                             case 0: // empty
                                 {
@@ -701,7 +645,7 @@ int Mir2xMapData::CompressGrid(int nX, int nY, int nSize, int nFinalSize, std::v
         switch(auto nType = fnAttrGridType(nX, nY, nSize)){
             case -1:
                 {
-                    return 0;
+                    return -1;
                 }
             case 0:
                 {
@@ -740,7 +684,7 @@ int Mir2xMapData::CompressGrid(int nX, int nY, int nSize, int nFinalSize, std::v
     return 0;
 }
 
-void Mir2xMapData::PushBit(const std::vector<bool> &stMarkV, std::vector<uint8_t> &stOutV)
+void Mir2xMapData::PushBit(const std::vector<bool> &stMarkV, std::vector<uint8_t> &stByteV)
 {
     size_t nIndex = 0;
     while(nIndex < stMarkV.size()){
@@ -748,28 +692,28 @@ void Mir2xMapData::PushBit(const std::vector<bool> &stMarkV, std::vector<uint8_t
         for(int nBit = 0; nBit < 8; ++nBit){
             nRes = (nRes >> 1) + ((nIndex < stMarkV.size() && stMarkV[nIndex++]) ? 0X80 : 0X00);
         }
-        stOutV.push_back(nRes);
+        stByteV.push_back(nRes);
     }
 }
 
-void Mir2xMapData::PushData(const std::vector<bool> &stMarkV, const std::vector<uint8_t> &stDataV, std::vector<uint8_t> &stOutV)
+void Mir2xMapData::PushData(const std::vector<bool> &stMarkV, const std::vector<uint8_t> &stDataV, std::vector<uint8_t> &stByteV)
 {
     auto nMarkLen = (uint32_t)((stMarkV.size() + 7) / 8);
     auto nDataLen = (uint32_t)((stDataV.size()));
 
-    stOutV.push_back((uint8_t)((nMarkLen & 0X000000FF) >>  0));
-    stOutV.push_back((uint8_t)((nMarkLen & 0X0000FF00) >>  8));
-    stOutV.push_back((uint8_t)((nMarkLen & 0X00FF0000) >> 16));
-    stOutV.push_back((uint8_t)((nMarkLen & 0XFF000000) >> 24));
+    stByteV.push_back((uint8_t)((nMarkLen & 0X000000FF) >>  0));
+    stByteV.push_back((uint8_t)((nMarkLen & 0X0000FF00) >>  8));
+    stByteV.push_back((uint8_t)((nMarkLen & 0X00FF0000) >> 16));
+    stByteV.push_back((uint8_t)((nMarkLen & 0XFF000000) >> 24));
 
-    stOutV.push_back((uint8_t)((nDataLen & 0X000000FF) >>  0));
-    stOutV.push_back((uint8_t)((nDataLen & 0X0000FF00) >>  8));
-    stOutV.push_back((uint8_t)((nDataLen & 0X00FF0000) >> 16));
-    stOutV.push_back((uint8_t)((nDataLen & 0XFF000000) >> 24));
+    stByteV.push_back((uint8_t)((nDataLen & 0X000000FF) >>  0));
+    stByteV.push_back((uint8_t)((nDataLen & 0X0000FF00) >>  8));
+    stByteV.push_back((uint8_t)((nDataLen & 0X00FF0000) >> 16));
+    stByteV.push_back((uint8_t)((nDataLen & 0XFF000000) >> 24));
 
-    PushBit(stMarkV, stOutV);
-    stOutV.insert(stOutV.end(), stDataV.begin(), stDataV.end());
-    stOutV.push_back(0);
+    PushBit(stMarkV, stByteV);
+    stByteV.insert(stByteV.end(), stDataV.begin(), stDataV.end());
+    stByteV.push_back(0);
 }
 
 bool Mir2xMapData::Allocate(uint16_t nW, uint16_t nH)
