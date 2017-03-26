@@ -3,7 +3,7 @@
  *
  *       Filename: clientmap.hpp
  *        Created: 06/02/2016 14:01:46
- *  Last Modified: 03/18/2017 01:06:43
+ *  Last Modified: 03/25/2017 12:19:25
  *
  *    Description: wrapper of mir2xmap for client
  *
@@ -19,43 +19,38 @@
  */
 
 #pragma once
-
-#include "mir2xmap.hpp"
+#include "mir2xmapdata.hpp"
 
 class ClientMap
 {
     private:
         uint32_t m_MapID;
-        Mir2xMap m_Mir2xMap;
+        Mir2xMapData m_Mir2xMapData;
 
     public:
         ClientMap()
             : m_MapID(0)
         {}
 
-        ~ClientMap() = default;
+       ~ClientMap() = default;
 
     public:
-        bool Load(uint32_t);
-        bool Valid()
-        {
-            return m_Mir2xMap.Valid();
-        }
-
         uint32_t ID()
         {
             return m_MapID;
         }
 
     public:
-        void Draw(int nViewX, int nViewY, int nViewW, int nViewH,           // view region
-                int nMaxObjW, int nMaxObjH,                                 // operation addition margin
-                const std::function<void(int, int, uint32_t)> &fnDrawTile,  //
-                const std::function<void(int, int, uint32_t)> &fnDrawObj,   //
-                const std::function<void(int, int)> &fnDrawActor,           //
-                const std::function<void(int, int)> &fnDrawExt)             //
+        bool Load(uint32_t);
+        bool Valid()
         {
-            m_Mir2xMap.Draw(nViewX, nViewY, nViewW, nViewH,
-                    nMaxObjW, nMaxObjH, fnDrawTile, fnDrawObj, fnDrawActor, fnDrawExt);
+            return ID() && m_Mir2xMap.Valid();
         }
+
+    public:
+        void Draw(int, int, int, int, int, int,                     // region and operation margin
+                const std::function<void(int, int, uint32_t)> &,    // draw tile
+                const std::function<void(int, int, uint32_t)> &,    // draw object
+                const std::function<void(int, int)> &,              // draw actor
+                const std::function<void(int, int)> &);             // draw ext
 };
