@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 03/22/2017 18:24:15
+ *  Last Modified: 03/26/2017 02:36:51
  *
  *    Description: 
  *
@@ -128,7 +128,7 @@ class Player: public CharObject
     protected:
         const char *ClassName()
         {
-            return "Monster";
+            return "Player";
         }
 #endif
 };

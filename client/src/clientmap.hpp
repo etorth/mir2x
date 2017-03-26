@@ -3,7 +3,7 @@
  *
  *       Filename: clientmap.hpp
  *        Created: 06/02/2016 14:01:46
- *  Last Modified: 03/25/2017 12:19:25
+ *  Last Modified: 03/26/2017 02:32:47
  *
  *    Description: wrapper of mir2xmap for client
  *
@@ -42,15 +42,16 @@ class ClientMap
 
     public:
         bool Load(uint32_t);
-        bool Valid()
-        {
-            return ID() && m_Mir2xMap.Valid();
-        }
 
     public:
-        void Draw(int, int, int, int, int, int,                     // region and operation margin
-                const std::function<void(int, int, uint32_t)> &,    // draw tile
-                const std::function<void(int, int, uint32_t)> &,    // draw object
-                const std::function<void(int, int)> &,              // draw actor
-                const std::function<void(int, int)> &);             // draw ext
+        bool Valid()
+        {
+            return ID() && m_Mir2xMapData.Valid();
+        }
+
+        bool ValidP(int nX, int nY) { return ID() && m_Mir2xMapData.ValidP(nX, nY); }
+        bool ValidC(int nX, int nY) { return ID() && m_Mir2xMapData.ValidC(nX, nY); }
+
+    public:
+        void Draw(int, int, int, int, int, int);
 };

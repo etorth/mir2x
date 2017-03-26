@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 03/23/2017 11:27:49
+ *  Last Modified: 03/26/2017 02:25:06
  *
  *    Description: 
  *
@@ -27,11 +27,11 @@
 // are 26 cells of one object slice at most, then design data structure for object
 // rendering method based on this information
 
+const int SYS_MAPGRIDXP    = 48;
+const int SYS_MAPGRIDYP    = 32;
 const int SYS_OBJMAXW      = 48;
 const int SYS_OBJMAXH      = 96;
 const int SYS_MAXR         = 40;
-const int SYS_MAPGRIDXP    = 48;
-const int SYS_MAPGRIDYP    = 32;
 const int SYS_MAPVISIBLEW  = 500;
 const int SYS_MAPVISIBLEH  = 400;
 const int SYS_MAPVISIBLECD = 100;

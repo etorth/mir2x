@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 08/08/2016 00:26:51
+ *  Last Modified: 03/26/2017 02:23:32
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap

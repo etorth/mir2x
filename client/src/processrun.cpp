@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 08/26/2016 12:59:18
+ *  Last Modified: 03/26/2017 02:40:49
  *
  *    Description: 
  *
@@ -38,17 +38,17 @@ ProcessRun::ProcessRun()
 
 void ProcessRun::Update(double)
 {
-    if(m_MyHero){
-        extern SDLDevice *g_SDLDevice;
-        m_ViewX = m_MyHero->X() - g_SDLDevice->WindowW(false) / 2;
-        m_ViewY = m_MyHero->Y() - g_SDLDevice->WindowH(false) / 2;
-    }
-
-    for(auto &pRecord: m_CreatureMap){
-        if(pRecord.second){
-            pRecord.second->Update();
-        }
-    }
+    // if(m_MyHero){
+    //     extern SDLDevice *g_SDLDevice;
+    //     m_ViewX = m_MyHero->X() - g_SDLDevice->WindowW(false) / 2;
+    //     m_ViewY = m_MyHero->Y() - g_SDLDevice->WindowH(false) / 2;
+    // }
+    //
+    // for(auto &pRecord: m_CreatureMap){
+    //     if(pRecord.second){
+    //         pRecord.second->Update();
+    //     }
+    // }
 }
 
 // ProcessRun::Start()
@@ -117,71 +117,16 @@ void ProcessRun::Update(double)
 //
 void ProcessRun::Draw()
 {
-    static auto fnDrawTile = [this](int nGX, int nGY, uint32_t nKey){
-        extern PNGTexDBN *g_PNGTexDBN;
-        // 1. retrieve texture
-        auto pTexture = g_PNGTexDBN->Retrieve(nKey);
-        if(!pTexture){ return; }
-
-        // 2. get the start point
-        int nPX = nGX * SYS_MAPGRIDXP - m_ViewX;
-        int nPY = nGY * SYS_MAPGRIDYP - m_ViewY;
-
-        // 3. draw it
-        extern SDLDevice *g_SDLDevice;
-        g_SDLDevice->DrawTexture(pTexture, nPX, nPY);
-    };
-
-    static auto fnDrawObj = [this](int nGX, int nGY, uint32_t nKey){
-        extern PNGTexDBN *g_PNGTexDBN;
-        // 1. retrieve texture
-        auto pTexture = g_PNGTexDBN->Retrieve(nKey);
-        if(!pTexture){ return; }
-
-        // 2. we need it's height
-        int nH = 0;
-        SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH);
-
-        // 3. get the start point
-        int nPX = nGX * SYS_MAPGRIDXP - m_ViewX;
-        int nPY = nGY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP - nH;
-
-        // 4. draw it
-        extern SDLDevice *g_SDLDevice;
-        g_SDLDevice->DrawTexture(pTexture, nPX, nPY);
-    };
-
-    static auto fnDrawActor = [this](int nGX, int nGY){
-        if(nGX >= 0 && nGY >= 0){
-            for(auto &pRecord: m_CreatureMap){
-                if(pRecord.second
-                        && ((pRecord.second->X() / SYS_MAPGRIDXP) == nGX)
-                        && ((pRecord.second->Y() / SYS_MAPGRIDYP) == nGY)){
-                    pRecord.second->Draw(m_ViewX, m_ViewY);
-                }
-            }
-        }
-    };
-
-    static auto fnDrawExt = [this](int nGX, int nGY){
-        if(nGX >= 0 && nGY >= 0){
-        }
-    };
-
     extern SDLDevice *g_SDLDevice;
+
     g_SDLDevice->ClearScreen();
 
-    if(m_ClientMap.Valid()){
-        extern SDLDevice *g_SDLDevice;
-        m_ClientMap.Draw(m_ViewX, m_ViewY,
-                g_SDLDevice->WindowW(false), g_SDLDevice->WindowH(false),
-                SYS_OBJMAXW, SYS_OBJMAXH, fnDrawTile, fnDrawObj, fnDrawActor, fnDrawExt);
-    }
-
+    m_ClientMap.Draw(m_ViewX, m_ViewY, g_SDLDevice->WindowW(false), g_SDLDevice->WindowH(false), 0, 0);
     m_ControbBoard.Draw();
 
     g_SDLDevice->Present();
 }
+
 //
 // void ProcessRun::UpdateActor()
 // {
