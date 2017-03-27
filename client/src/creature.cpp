@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/15/2016 22:59:52
+ *  Last Modified: 03/26/2017 12:06:09
  *
  *    Description: 
  *
@@ -30,7 +30,6 @@ Creature::Creature(uint32_t nUID, uint32_t nAddTime)
     , m_AddTime(nAddTime)
     , m_X(0)
     , m_Y(0)
-    , m_R(0)
     , m_MapID(0)
     , m_LogicDelay(120.0)
     , m_FrameDelay(180.0)
@@ -47,9 +46,9 @@ Creature::~Creature()
 
 void Creature::EstimateLocation(int nDistance, int *pNextX, int *pNextY)
 {
-    double dDX[] = {+0.000, +0.707, +1.000, +0.707, +0.000, -0.707, -1.000, -0.707};
-    double dDY[] = {-1.000, -0.707, +0.000, +0.707, +1.000, +0.707, +0.000, -0.707};
+    int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
+    int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
 
-    if(pNextX){ *pNextX = m_X + std::lround(dDX[m_Direction] * nDistance); }
-    if(pNextY){ *pNextY = m_Y + std::lround(dDY[m_Direction] * nDistance); }
+    if(pNextX){ *pNextX = m_X + nDistance * nDX[m_Direction]; }
+    if(pNextY){ *pNextY = m_Y + nDistance * nDY[m_Direction]; }
 }

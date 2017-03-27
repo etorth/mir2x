@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 03/24/2017 17:44:43
+ *  Last Modified: 03/26/2017 18:05:31
  *
  *    Description: put all non-atomic function as private
  *
@@ -92,6 +92,7 @@ class ServerMap: public ActiveObject
         void On_MPK_LEAVE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
+        void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_ACTIONSTATE(const MessagePack &, const Theron::Address &);
         void On_MPK_UPDATECOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);

@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/19/2016 11:55:47
+ *  Last Modified: 03/26/2017 12:06:04
  *
  *    Description: 
  *
@@ -33,7 +33,6 @@ class Creature
 
         int m_X;
         int m_Y;
-        int m_R;
 
         uint32_t m_MapID;
 
@@ -74,11 +73,6 @@ class Creature
             //       the first frame can't be shown
             m_Frame = 0;
             m_Action = nAction;
-        }
-
-        void ResetR(uint32_t nR)
-        {
-            m_R = nR;
         }
 
         void ResetSpeed(int nSpeed)

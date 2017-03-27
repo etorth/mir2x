@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 03/22/2017 18:52:04
+ *  Last Modified: 03/26/2017 18:25:02
  *
  *    Description: 
  *
@@ -28,7 +28,9 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
 {
     Bind(*((uint32_t *)rstMPK.Data()));
     extern NetPodN *g_NetPodN;
-    auto pMem = new SMLoginOK();
+    extern MemoryPN *g_MemoryPN;
+
+    auto pMem = (SMLoginOK *)(g_MemoryPN->Get(sizeof(SMLoginOK)));
 
     pMem->GUID      = m_GUID;
     pMem->JobID     = m_JobID;
@@ -38,7 +40,7 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     pMem->MapID     = m_Map->ID();
     pMem->Direction = m_Direction;
 
-    g_NetPodN->Send(m_SessionID, SM_LOGINOK, (uint8_t *)pMem, sizeof(SMLoginOK), [pMem](){ delete pMem; });
+    g_NetPodN->Send(m_SessionID, SM_LOGINOK, (uint8_t *)pMem, sizeof(SMLoginOK), [pMem](){ g_MemoryPN->Free(pMem); });
 
     if(ActorPodValid() && m_Map->ActorPodValid()){
         AMUpdateCOInfo stAMUCOI;
@@ -59,6 +61,10 @@ void Player::On_MPK_HI(const MessagePack &, const Theron::Address &)
 
 void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
+    AMPullCOInfo stAMPCOI;
+    stAMPCOI.SessionID = m_SessionID;
+
+    m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
 }
 
 void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &)
@@ -107,4 +113,13 @@ void Player::On_MPK_UPDATECOINFO(const MessagePack &rstMPK, const Theron::Addres
     AMUpdateCOInfo stAMUCOI;
     std::memcpy(&stAMUCOI, rstMPK.Data(), sizeof(stAMUCOI));
     ReportCORecord(stAMUCOI.SessionID);
+}
+
+void Player::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMPullCOInfo stAMPCOI;
+    std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
+    if(stAMPCOI.SessionID != m_SessionID){
+        ReportCORecord(stAMPCOI.SessionID);
+    }
 }

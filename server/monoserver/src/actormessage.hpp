@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 03/23/2017 15:12:37
+ *  Last Modified: 03/26/2017 18:04:36
  *
  *    Description: 
  *
@@ -71,6 +71,7 @@ enum MessagePackType: int{
     MPK_ACTIONSTATE,
     MPK_UPDATECOINFO,
     MPK_QUERYMONSTERGINFO,
+    MPK_PULLCOINFO,
 };
 
 typedef struct
@@ -313,3 +314,8 @@ typedef struct{
     int      LookIDN;
     uint32_t SessionID;
 }AMQueryMonsterGInfo;
+
+typedef struct
+{
+    uint32_t SessionID;
+}AMPullCOInfo;

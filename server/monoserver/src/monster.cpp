@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/23/2017 11:28:33
+ *  Last Modified: 03/26/2017 18:08:21
  *
  *    Description: 
  *
@@ -220,6 +220,11 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
                 On_MPK_HI(rstMPK, rstAddress);
                 break;
             }
+        case MPK_PULLCOINFO:
+            {
+                On_MPK_PULLCOINFO(rstMPK, rstAddress);
+                break;
+            }
         case MPK_UPDATECOINFO:
             {
                 On_MPK_UPDATECOINFO(rstMPK, rstAddress);
@@ -242,7 +247,8 @@ void Monster::SearchViewRange()
 void Monster::ReportCORecord(uint32_t nSessionID)
 {
     if(nSessionID){
-        auto pMem = new SMCORecord();
+        extern MemoryPN *g_MemoryPN;
+        auto pMem = (SMCORecord *)g_MemoryPN->Get(sizeof(SMCORecord));
 
         // TODO: don't use OBJECT_MONSTER, we need translation
         //       rule of communication, the sender is responsible to translate
@@ -264,7 +270,7 @@ void Monster::ReportCORecord(uint32_t nSessionID)
         pMem->Monster.MonsterID = m_MonsterID;
 
         extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(nSessionID, SM_CORECORD, (uint8_t *)pMem, sizeof(SMCORecord), [pMem](){ delete pMem; });
+        g_NetPodN->Send(nSessionID, SM_CORECORD, (uint8_t *)pMem, sizeof(SMCORecord), [pMem](){ g_MemoryPN->Free(pMem); });
         return;
     }
 

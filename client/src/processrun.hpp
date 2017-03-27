@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 08/21/2016 21:35:49
+ *  Last Modified: 03/26/2017 12:03:00
  *
  *    Description: 
  *
@@ -35,15 +35,15 @@ class ProcessRun: public Process
         MyHero     *m_MyHero;
 
     private:
-        ClientMap   m_ClientMap;
         int         m_ViewX;
         int         m_ViewY;
+        ClientMap   m_ClientMap;
 
     private:
         ControlBoard    m_ControbBoard;
 
     private:
-        std::unordered_map<uint64_t, Creature*> m_CreatureMap;
+        std::unordered_map<uint64_t, Creature*> m_CreatureRecord;
 
     public:
         ProcessRun();

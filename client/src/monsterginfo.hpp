@@ -3,7 +3,7 @@
  *
  *       Filename: monsterginfo.hpp
  *        Created: 06/02/2016 15:08:56
- *  Last Modified: 06/19/2016 11:01:25
+ *  Last Modified: 03/26/2017 16:28:09
  *
  *    Description: monster global info
  *
@@ -29,7 +29,8 @@
 class MonsterGInfo final
 {
     protected:
-        enum QueryType: int{
+        enum QueryType: int
+        {
             QUERY_NA,
             QUERY_OK,
             QUERY_ERROR,
@@ -42,7 +43,8 @@ class MonsterGInfo final
         const static uint32_t MAX_LOOKID { 0X00001000};
 
     protected:
-        typedef struct _InnNetData{
+        typedef struct _InnNetData
+        {
             int CurrQuery;  // query the server
             uint32_t R;
             uint32_t CurrLookID;
@@ -82,8 +84,9 @@ class MonsterGInfo final
             }
         }InnNetData;
 
-        typedef struct _InnCacheData{
-            int Query;          // query the local database
+        typedef struct _InnCacheData
+        {
+            int Query;
             size_t FrameCount[16][8];
 
             _InnCacheData()
@@ -92,7 +95,6 @@ class MonsterGInfo final
 
             bool Valid()
             {
-                // TODO didn't check since it's expensive
                 return Query == QUERY_OK;
             }
 
@@ -141,7 +143,14 @@ class MonsterGInfo final
             : m_MonsterID(nMonsterID)
         {}
 
-        ~MonsterGInfo() = default;
+       ~MonsterGInfo() = default;
+
+    public:
+       static const MonsterGInfo &Null()
+       {
+           static MonsterGInfo stNullRecord;
+           return stNullRecord;
+       }
 
     public:
         bool Valid(uint32_t nLIDN, bool bCacheValid = false)

@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 03/16/2017 15:17:59
+ *  Last Modified: 03/26/2017 18:47:23
  *
  *    Description: 
  *
@@ -114,8 +114,7 @@ void ProcessLogin::DoLogin()
 {
     if(m_IDBox.Content() && m_PasswordBox.Content()){
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO,
-                "login account: (%s:%s)", m_IDBox.Content(), m_PasswordBox.Content());
+        g_Log->AddLog(LOGTYPE_INFO, "login account: (%s:%s)", m_IDBox.Content(), m_PasswordBox.Content());
 
         std::string szID  = m_IDBox.Content();
         std::string szPWD = m_PasswordBox.Content();

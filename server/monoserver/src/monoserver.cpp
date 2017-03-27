@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/23/2017 15:08:28
+ *  Last Modified: 03/26/2017 16:25:33
  *
  *    Description: 
  *
@@ -37,82 +37,65 @@
 #include "databaseconfigurewindow.hpp"
 
 MonoServer::MonoServer()
-    : m_LogBuf(nullptr)
-    , m_LogBufSize(0)
-    , m_ObjectUID(1)
+    : m_LogLock()
+    , m_DlgLock()
+    , m_LogBuf(128)
     , m_ServiceCore(nullptr)
-    , m_SCAddress(Theron::Address::Null())
-    , m_EmptyMonsterGInfoRecord(0)
+    , m_GlobalUID(0)
+    , m_StartTime()
+    , m_NetMessageAttributeV()
+    , m_MonsterGInfoRecord()
 {
     // 1. initialization of time point
     m_StartTime = std::chrono::system_clock::now();
 
     // 2. initialization of client message desc
-    m_NetMessageDescV[CM_UNKNOWN          ] = {CM_UNKNOWN,                                     0, true,  "CM_UNKNOWN"  };
-    m_NetMessageDescV[CM_OK               ] = {CM_OK,                                          0, true,  "CM_OK"       };
-    m_NetMessageDescV[CM_ERROR            ] = {CM_ERROR,                                       0, true,  "CM_ERROR"    };
-    m_NetMessageDescV[CM_WALK             ] = {CM_WALK,                                        0, true,  "CM_WALK"     };
-    m_NetMessageDescV[CM_PING             ] = {CM_PING,                                        0, true,  "CM_PING"     };
-    m_NetMessageDescV[CM_LOGIN            ] = {CM_LOGIN,                                       0, false, "CM_LOGIN"    };
-    m_NetMessageDescV[CM_BROADCAST        ] = {CM_BROADCAST,                                   0, true,  "CM_BROADCAST"};
-    m_NetMessageDescV[CM_MOTION           ] = {CM_MOTION,                                      0, true,  "CM_MOTION"   };
+    m_NetMessageAttributeV[CM_NONE             ] = {CM_NONE,                                        0, true,  "CM_NONE"     };
+    m_NetMessageAttributeV[CM_OK               ] = {CM_OK,                                          0, true,  "CM_OK"       };
+    m_NetMessageAttributeV[CM_ERROR            ] = {CM_ERROR,                                       0, true,  "CM_ERROR"    };
+    m_NetMessageAttributeV[CM_WALK             ] = {CM_WALK,                                        0, true,  "CM_WALK"     };
+    m_NetMessageAttributeV[CM_PING             ] = {CM_PING,                                        0, true,  "CM_PING"     };
+    m_NetMessageAttributeV[CM_LOGIN            ] = {CM_LOGIN,                                       0, false, "CM_LOGIN"    };
+    m_NetMessageAttributeV[CM_BROADCAST        ] = {CM_BROADCAST,                                   0, true,  "CM_BROADCAST"};
+    m_NetMessageAttributeV[CM_MOTION           ] = {CM_MOTION,                                      0, true,  "CM_MOTION"   };
 
-    m_NetMessageDescV[CM_QUERYMONSTERGINFO] = {CM_QUERYMONSTERGINFO, sizeof(CMQueryMonsterGInfo), true,  "CM_QUERYMONSTERGINFO"};
+    m_NetMessageAttributeV[CM_QUERYMONSTERGINFO] = {CM_QUERYMONSTERGINFO, sizeof(CMQueryMonsterGInfo), true,  "CM_QUERYMONSTERGINFO"};
 
     // 3. initialization of monster ginfo record
-    m_MonsterGInfoRecordMap[1] = {1, /* LookID */ 0X0015, 0, 0, 0, /* R */ 10, 10, 10, 10};
-}
-
-MonoServer::~MonoServer()
-{}
-
-void MonoServer::ExtendLogBuf(size_t nNewSize)
-{
-    if(nNewSize > m_LogBufSize){
-        delete[] m_LogBuf;
-        size_t nNewSize8 = ((nNewSize + 7) / 8) * 8;
-        m_LogBuf     = new char[nNewSize8];
-        m_LogBufSize = nNewSize8;
-    }
+    m_MonsterGInfoRecord[1] = {1, 0X0015, 0, 0, 0};
 }
 
 void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char *szLogFormat, ...)
 {
-    std::lock_guard<std::mutex> stGuard(m_LogLock);
-
     extern Log *g_Log;
     extern MainWindow *g_MainWindow;
+    std::lock_guard<std::mutex> stGuard(m_LogLock);
 
     va_list ap;
-    int nMaxParseCount = 0;
     int nLogType = std::atoi(stLogDesc[0].c_str());
 
-    ExtendLogBuf(128);
+    m_LogBuf.resize(128);
 
-    // actually it only needs 2 rounds at most
-    while(10 > nMaxParseCount++){
-
+    while(true){
         va_start(ap, szLogFormat);
-        int nRes = std::vsnprintf(m_LogBuf, m_LogBufSize, szLogFormat, ap);
+        int nRes = std::vsnprintf(&(m_LogBuf[0]), m_LogBuf.size(), szLogFormat, ap);
         va_end(ap);
 
-        if(nRes > -1 && (size_t)nRes < m_LogBufSize){
-            // additional '\0' takes one char, everything works
-            if(nLogType != Log::LOGTYPEV_DEBUG){
-                g_MainWindow->AddLog(nLogType, m_LogBuf);
+        if((nRes >= 0)){
+            if((size_t)(nRes + 1) < m_LogBuf.size()){
+                if(nLogType != Log::LOGTYPEV_DEBUG){
+                    g_MainWindow->AddLog(nLogType, &(m_LogBuf[0]));
+                }
+                g_Log->AddLog(stLogDesc, &(m_LogBuf[0]));
+                return;
+            }else{
+                m_LogBuf.resize(nRes + 1);
+                continue;
             }
-            g_Log->AddLog(stLogDesc, m_LogBuf);
-            return;
-        }else if(nRes < 0){
-            // error occurs in parsing log
-            break;
-        }else{
-            // we need a larger buffer
-            ExtendLogBuf(nRes + 1);
-        }
+        }else{ break; }
     }
 
-    const char *szLogError = "MonoServer::AddLog(): Error in parsing log message";
+    auto szLogError = "MonoServer::AddLog(): Error in parsing log message";
     g_MainWindow->AddLog(3, szLogError);
     g_Log->AddLog(stLogDesc, szLogError);
 }
@@ -144,7 +127,7 @@ void MonoServer::CreateServiceCore()
 {
     delete m_ServiceCore;
     m_ServiceCore = new ServiceCore();
-    m_SCAddress = m_ServiceCore->Activate();
+    m_ServiceCore->Activate();
 }
 
 void MonoServer::StartNetwork()
@@ -153,8 +136,8 @@ void MonoServer::StartNetwork()
     extern ServerConfigureWindow *g_ServerConfigureWindow;
 
     uint32_t nPort = g_ServerConfigureWindow->Port();
-    if(g_NetPodN->Launch(nPort, m_SCAddress)){
-        AddLog(LOGTYPE_WARNING, "launching network failed");
+    if(g_NetPodN->Launch(nPort, m_ServiceCore->GetAddress())){
+        AddLog(LOGTYPE_FATAL, "Failed to launch the network");
         Restart();
     }
 }
@@ -329,7 +312,7 @@ void MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
     AddLog(LOGTYPE_INFO, "add monster, MonsterID = %d", nMonsterID);
 
     MessagePack stRMPK;
-    SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_SCAddress, &stRMPK);
+    SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_ServiceCore->GetAddress(), &stRMPK);
     switch(stRMPK.Type()){
         case MPK_OK:
             {

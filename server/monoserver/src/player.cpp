@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/22/2017 18:45:02
+ *  Last Modified: 03/26/2017 18:22:13
  *
  *    Description: 
  *
@@ -80,6 +80,11 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         case MPK_UPDATECOINFO:
             {
                 On_MPK_UPDATECOINFO(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_PULLCOINFO:
+            {
+                On_MPK_PULLCOINFO(rstMPK, rstFromAddr);
                 break;
             }
         default:

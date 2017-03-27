@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 03/24/2017 17:46:15
+ *  Last Modified: 03/26/2017 18:05:03
  *
  *    Description: 
  *
@@ -113,6 +113,11 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
         case MPK_ADDCHAROBJECT:
             {
                 On_MPK_ADDCHAROBJECT(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_PULLCOINFO:
+            {
+                On_MPK_PULLCOINFO(rstMPK, rstFromAddr);
                 break;
             }
         default:

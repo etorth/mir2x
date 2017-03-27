@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 03/23/2017 15:58:25
+ *  Last Modified: 03/26/2017 17:31:41
  *
  *    Description: server object with active state
  *                      1. it's active via actor pod
@@ -159,7 +159,7 @@ class ActiveObject: public ServerObject
     public:
         bool ActorPodValid() const
         {
-            return GetAddress() == Theron::Address::Null();
+            return GetAddress() != Theron::Address::Null();
         }
 
         Theron::Address GetAddress() const

@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 03/24/2017 17:45:26
+ *  Last Modified: 03/26/2017 18:20:09
  *
  *    Description: 
  *
@@ -29,6 +29,9 @@
 
 void ServerMap::On_MPK_HI(const MessagePack &, const Theron::Address &)
 {
+    delete m_Metronome;
+    m_Metronome = new Metronome(1000);
+    m_Metronome->Activate(GetAddress());
 }
 
 void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
@@ -74,6 +77,9 @@ void ServerMap::On_MPK_UPDATECOINFO(const MessagePack &rstMPK, const Theron::Add
     AMUpdateCOInfo stAMUCOI;
     std::memcpy(&stAMUCOI, rstMPK.Data(), sizeof(stAMUCOI));
 
+    // 1. update cache info for co's
+
+    // 2. broadcast this info to proper neighbors
     int nX0 = (stAMUCOI.X - SYS_MAPVISIBLECD);
     int nX1 = (stAMUCOI.X + SYS_MAPVISIBLECD);
     int nY0 = (stAMUCOI.Y - SYS_MAPVISIBLECD);
@@ -506,5 +512,21 @@ void ServerMap::On_MPK_LEAVE(const MessagePack &rstMPK, const Theron::Address &r
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_FATAL, "char object %p is not in current map", stAML.This);
         g_MonoServer->Restart();
+    }
+}
+
+void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMPullCOInfo stAMPCOI;
+    std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
+
+    for(auto &rstRecordLine: m_ObjectV2D){
+        for(auto &rstRecordV: rstRecordLine){
+            for(auto pObject: rstRecordV){
+                if(pObject && pObject->Active()){
+                    m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI.SessionID}, ((ActiveObject *)(pObject))->GetAddress());
+                }
+            }
+        }
     }
 }

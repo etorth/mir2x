@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/26/2017 02:40:49
+ *  Last Modified: 03/26/2017 17:43:13
  *
  *    Description: 
  *
@@ -38,61 +38,21 @@ ProcessRun::ProcessRun()
 
 void ProcessRun::Update(double)
 {
+    m_ViewX = 300;
+    m_ViewY = 300;
     // if(m_MyHero){
     //     extern SDLDevice *g_SDLDevice;
     //     m_ViewX = m_MyHero->X() - g_SDLDevice->WindowW(false) / 2;
     //     m_ViewY = m_MyHero->Y() - g_SDLDevice->WindowH(false) / 2;
     // }
     //
-    // for(auto &pRecord: m_CreatureMap){
+    // for(auto &pRecord: m_CreatureRecord){
     //     if(pRecord.second){
     //         pRecord.second->Update();
     //     }
     // }
 }
 
-// ProcessRun::Start()
-//
-//     LoadMap(stCMLS.szMapName);
-//     delete m_MyHero;
-//     m_MyHero = new MyHero(stCMLS.nSID, stCMLS.nUID, stCMLS.nGenTime);
-//     m_MyHero->SetMap(stCMLS.nMapX, stCMLS.nMapY, &m_ClientMap);
-//     m_MyHero->SetDirection(stCMLS.nDirection);
-//
-//     int nStartX = (std::min)((std::max)(0, m_MyHero->X() - m_WindowW / 2), m_ClientMap.W() * 48 - m_WindowW);
-//     int nStartY = (std::min)((std::max)(0, m_MyHero->Y() - m_WindowH / 2), m_ClientMap.H() * 32 - m_WindowH);
-//
-//     m_ClientMap.SetViewPoint(nStartX, nStartY);
-// }
-//     m_WindowW = GetConfigurationManager()->GetInt("Root/Window/SizeW");
-//     m_WindowH = GetConfigurationManager()->GetInt("Root/Window/SizeH");
-// }
-//
-// ProcessRun::~ProcessRun()
-// {}
-//
-// void ProcessRun::Enter()
-// {
-// 	Process::Enter();
-//
-//     // delete m_MyHero;
-//     // m_MyHero = new MyHero(0, 0, 0);
-//     // m_MyHero->SetPosition(800, 400);
-// }
-//
-// void ProcessRun::Exit()
-// {
-// 	Process::Exit();
-// }
-//
-// void ProcessRun::LoadMap(const char #<{(| szMapFileName |)}>#)
-// {
-//     // extern XMLConf *g_XMLConf;
-//     // std::string szMapFullFileName = g_XMLConf->GetXMLNode("Root/Map/Path");
-//     m_ClientMap.Load("./DESC.BIN");
-// }
-//
-//
 // void ProcessRun::RollScreen()
 // {
 //     // what we should have
@@ -293,14 +253,13 @@ void ProcessRun::Net_ACTIONSTATE(const uint8_t *pBuf, size_t)
     SMActionState stSMAS = *((const SMActionState *)pBuf);
     if(stSMAS.MapID != m_ClientMap.ID()){ return; }
 
-    auto pRecord = m_CreatureMap.find(((uint64_t)stSMAS.UID << 32) + stSMAS.AddTime);
+    auto pRecord = m_CreatureRecord.find(((uint64_t)stSMAS.UID << 32) + stSMAS.AddTime);
     if(true
-            && pRecord != m_CreatureMap.end()
+            && pRecord != m_CreatureRecord.end()
             && pRecord->second
             && pRecord->second->MapID() == stSMAS.MapID){
         auto pCreature = pRecord->second;
 
-        pCreature->ResetR((int)stSMAS.R);
         pCreature->ResetLocation(stSMAS.MapID, stSMAS.X, stSMAS.Y);
 
         pCreature->ResetAction((int)stSMAS.Action);
@@ -324,10 +283,8 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
     Creature *pCreature = nullptr;
     uint64_t nCOKey = ((((uint64_t)stSMCOR.Common.UID) << 32) + stSMCOR.Common.AddTime);
 
-    auto pRecord = m_CreatureMap.find(nCOKey);
-    if(pRecord != m_CreatureMap.end()){
-        pCreature = pRecord->second;
-    }else{
+    auto pRecord = m_CreatureRecord.find(nCOKey);
+    if(pRecord == m_CreatureRecord.end()){
         switch(stSMCOR.Type){
             case CREATURE_MONSTER:
                 {
@@ -343,10 +300,11 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
                     break;
                 }
         }
+    }else{
+        pCreature = pRecord->second;
     }
 
     if(pCreature){
-        pCreature->ResetR((int)stSMCOR.Common.R);
         pCreature->ResetLocation(stSMCOR.Common.MapID, (int)stSMCOR.Common.MapX, (int)stSMCOR.Common.MapY);
 
         pCreature->ResetAction((int)stSMCOR.Common.Action);
@@ -354,6 +312,6 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
 
         pCreature->ResetSpeed((int)stSMCOR.Common.Speed);
 
-        m_CreatureMap[nCOKey] = pCreature;
+        m_CreatureRecord[nCOKey] = pCreature;
     }
 }

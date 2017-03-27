@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 03/23/2017 15:22:26
+ *  Last Modified: 03/26/2017 16:26:11
  *
  *    Description: 
  *
@@ -176,7 +176,6 @@ void ServiceCore::On_MPK_QUERYMONSTERGINFO(const MessagePack &rstMPK, const Ther
     pBuf->MonsterID = stAMQMGI.MonsterID;
     pBuf->LookIDN   = stAMQMGI.LookIDN;
     pBuf->LookID   = rstRecord.LookID((int)stAMQMGI.LookIDN);
-    pBuf->R        = rstRecord.R((int)stAMQMGI.LookIDN);
 
     extern NetPodN *g_NetPodN;
     g_NetPodN->Send(stAMQMGI.SessionID, SM_MONSTERGINFO, (uint8_t *)pBuf, sizeof(SMMonsterGInfo), [pBuf](){ g_MemoryPN->Free(pBuf); });
