@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/27/2017 11:18:06
+ *  Last Modified: 03/27/2017 13:01:13
  *
  *    Description: 
  *
@@ -180,7 +180,9 @@ void ProcessRun::Draw()
 
                 // draw actors
                 {
-
+                    for(auto pCreature: m_CreatureRecord){
+                        pCreature.second->Draw(nX, nY);
+                    }
                 }
 
             }

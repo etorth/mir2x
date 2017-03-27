@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <mariadb/mysql.h>
 
 class DBConnection;
@@ -10,14 +11,13 @@ class DBRecord final
         DBConnection   *m_Connection;
 
     private:
-        char   *m_QueryBuf;
-        size_t  m_QueryBufLen;
-        bool    m_ValidCmd;
-        bool    m_QuerySucceed;
+        bool m_ValidCmd;
+        bool m_QuerySucceed;
+        std::vector<char> m_QueryBuf;
 
     private:
         DBRecord(DBConnection *);
-        ~DBRecord();
+       ~DBRecord() = default;
 
     public:
         bool Execute(const char *, ...);
@@ -34,7 +34,6 @@ class DBRecord final
         const char *ErrorInfo();
 
     private:
-        void ExtendQueryBuf(size_t);
         bool Query(const char *);
         bool StoreResult();
 

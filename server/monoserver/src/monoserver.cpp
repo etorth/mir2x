@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/26/2017 16:25:33
+ *  Last Modified: 03/27/2017 13:32:02
  *
  *    Description: 
  *
@@ -88,10 +88,7 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
                 }
                 g_Log->AddLog(stLogDesc, &(m_LogBuf[0]));
                 return;
-            }else{
-                m_LogBuf.resize(nRes + 1);
-                continue;
-            }
+            }else{ m_LogBuf.resize(nRes + 1); }
         }else{ break; }
     }
 

@@ -2,6 +2,7 @@
 #include <cstdarg>
 #include <cstring>
 #include <mariadb/mysql.h>
+
 #include "dbrecord.hpp"
 #include "dbconnection.hpp"
 
@@ -9,59 +10,31 @@ DBRecord::DBRecord(DBConnection * pConnection)
     : m_SQLRES(nullptr)
     , m_CurrentRow(nullptr)
     , m_Connection(pConnection)
-    , m_QueryBuf(nullptr)
-    , m_QueryBufLen(0)
     , m_ValidCmd(true) // if no cmd queried, we make true by default
     , m_QuerySucceed(false)
+    , m_QueryBuf(128)
 {}
-
-DBRecord::~DBRecord()
-{
-    delete m_QueryBuf;
-}
-
-void DBRecord::ExtendQueryBuf(size_t nNewLen)
-{
-    if(nNewLen > m_QueryBufLen){
-        delete m_QueryBuf;
-        size_t nNewLen8 = ((nNewLen + 7) / 8) * 8;
-
-        m_QueryBuf    = new char[nNewLen8];
-        m_QueryBufLen = nNewLen8;
-    }
-}
 
 bool DBRecord::Execute(const char *szQueryCmd, ...)
 {
-    ExtendQueryBuf(256);
+    m_QueryBuf.resize(128);
 
     va_list ap;
-
     while(true){
-
         va_start(ap, szQueryCmd);
-
-        int nRes = std::vsnprintf(m_QueryBuf, m_QueryBufLen, szQueryCmd, ap);
-
+        int nRes = std::vsnprintf(&(m_QueryBuf[0]), m_QueryBuf.size(), szQueryCmd, ap);
         va_end(ap);
 
-        if(nRes > -1 && (size_t)nRes < m_QueryBufLen){
-            // additional '\0' takes one char
-            // everything works
-            break;
-        }else if(nRes < 0){
-            // 1. mark current cmd is invalid
-            m_ValidCmd = false;
-
-            // 2. just stop here
-            return false;
+        if(nRes >= 0){
+            if((size_t)(nRes + 1) < m_QueryBuf.size()){ break; }
+            else{ m_QueryBuf.resize(nRes + 1); }
         }else{
-            // we need a larger buffer
-            ExtendQueryBuf(nRes + 1);
+            m_ValidCmd = false;
+            return false;
         }
     }
 
-    return Query(m_QueryBuf) && Valid() && StoreResult();
+    return Query(&(m_QueryBuf[0])) && Valid() && StoreResult();
 }
 
 // TODO: we already put the query cmd in internal buffer, so here do I
@@ -81,10 +54,8 @@ bool DBRecord::Query(const char *szQueryCmd)
 
     // if we are using the internal buffer, we have to make sure the query
     // cmd inside is correct
-    if((szQueryCmd == m_QueryBuf)){
-        if(!m_ValidCmd){
-            goto __DBRECORD_QUERY_DONE_QUERY_LABEL_1;
-        }
+    if((szQueryCmd == &(m_QueryBuf[0]))){
+        if(!m_ValidCmd){ goto __DBRECORD_QUERY_DONE_QUERY_LABEL_1; }
     }
 
     // 2. check parameter
@@ -142,27 +113,20 @@ bool DBRecord::Fetch()
 
 const char *DBRecord::Get(const char *szColumnName)
 {
-    // 1. parameter check
-    if(!(szColumnName && std::strlen(szColumnName))){ return nullptr; }
+    if(szColumnName && std::strlen(szColumnName)){
+        if(m_CurrentRow){
+            mysql_field_seek(m_SQLRES, 0);
 
-    // 2. check cursor
-    if(!m_CurrentRow){ return nullptr; }
-
-    // ok find the index of the field name
-
-    // 3. reset the seek point
-    mysql_field_seek(m_SQLRES, 0);
-
-    int nIndex = 0;
-    MYSQL_FIELD *stCurrentField = nullptr;
-    while((stCurrentField = mysql_fetch_field(m_SQLRES)) != nullptr){
-        if((stCurrentField->name) && (!std::strcmp(stCurrentField->name, szColumnName))){
-            return m_CurrentRow[nIndex];
+            int nIndex = 0;
+            MYSQL_FIELD *pCurrField = nullptr;
+            while((pCurrField = mysql_fetch_field(m_SQLRES)) != nullptr){
+                if((pCurrField->name) && (!std::strcmp(pCurrField->name, szColumnName))){
+                    return m_CurrentRow[nIndex];
+                }
+                nIndex++;
+            }
         }
-        nIndex++;
     }
-
-    // 5. ooop we didn't find it
     return nullptr;
 }
 
@@ -173,9 +137,7 @@ int DBRecord::RowCount()
     if(m_SQLRES){
         return (int)mysql_num_rows(m_SQLRES);
     }else{
-        if(ColumnCount() >= 0){
-            return 0;
-        }
+        if(ColumnCount() >= 0){ return 0; }
     }
     return -1;
 }
@@ -219,9 +181,6 @@ int DBRecord::ErrorID()
     }else{
         return -3;
     }
-
-    // dead code here
-    return 0;
 }
 
 const char *DBRecord::ErrorInfo()
@@ -237,7 +196,4 @@ const char *DBRecord::ErrorInfo()
     }else{
         return "error in parsing execute command in vsnprintf()";
     }
-
-    // dead code
-    return "no error";
 }

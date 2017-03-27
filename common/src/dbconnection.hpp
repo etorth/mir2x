@@ -3,7 +3,7 @@
  *
  *       Filename: dbconnection.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 05/26/2016 16:41:32
+ *  Last Modified: 03/27/2017 13:18:52
  *
  *    Description: 
  *
@@ -32,11 +32,11 @@ class DBConnection
     // then each DBConnection has a specified database name
     //
     public:
-        DBConnection( const char *, const char *, const char *, const char *, unsigned int);
-        ~DBConnection();
+        DBConnection(const char *, const char *, const char *, const char *, unsigned int);
+       ~DBConnection();
 
     public:
-        bool    Valid();
+        bool Valid(){ return m_Valid; }
 
     public:
         int ErrorID();
@@ -45,8 +45,7 @@ class DBConnection
     public:
         DBRecord *CreateDBRecord(DBRecord *pBuf = nullptr)
         {
-            if(pBuf){ return (new (pBuf) DBRecord(this)); }
-            return (new DBRecord(this));
+            return pBuf ? (new (pBuf) DBRecord(this)) : (new DBRecord(this));
         }
 
         void DestroyDBRecord(DBRecord *);

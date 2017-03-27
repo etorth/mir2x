@@ -3,7 +3,7 @@
  *
  *       Filename: dbconnection.cpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 06/13/2016 11:11:06
+ *  Last Modified: 03/27/2017 13:20:07
  *
  *    Description: 
  *
@@ -45,14 +45,7 @@ DBConnection::DBConnection(
 
 DBConnection::~DBConnection()
 {
-    if(m_SQL){
-        mysql_close(m_SQL);
-    }
-}
-
-bool DBConnection::Valid()
-{
-    return m_Valid;
+    if(m_SQL){ mysql_close(m_SQL); }
 }
 
 void DBConnection::DestroyDBRecord(DBRecord *pDBRecord)
@@ -62,16 +55,10 @@ void DBConnection::DestroyDBRecord(DBRecord *pDBRecord)
 
 const char *DBConnection::ErrorInfo()
 {
-    if(m_SQL){
-        return mysql_error(m_SQL);
-    }
-    return "no valid SQL handler for current connection";
+    return m_SQL ? mysql_error(m_SQL) : "no valid SQL handler for current connection";
 }
 
 int DBConnection::ErrorID()
 {
-    if(m_SQL){
-        return (int)mysql_errno(m_SQL);
-    }
-    return -1;
+    return m_SQL ? (int)(mysql_errno(m_SQL)) : -1;
 }
