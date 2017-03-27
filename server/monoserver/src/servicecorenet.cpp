@@ -3,7 +3,7 @@
  *
  *       Filename: servicecorenet.cpp
  *        Created: 05/20/2016 17:09:13
- *  Last Modified: 06/10/2016 19:46:22
+ *  Last Modified: 03/27/2017 16:57:09
  *
  *    Description: interaction btw NetPod and ServiceCore
  *
@@ -79,6 +79,8 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
 
         // 1. session
         stAMLQDB.SessionID = nSessionID;
+
+        pDBHDR->Fetch();
 
         // 2. needed information to create co
         stAMLQDB.GUID  = std::atoi(pDBHDR->Get("fld_guid"));

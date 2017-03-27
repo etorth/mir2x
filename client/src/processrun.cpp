@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/27/2017 13:01:13
+ *  Last Modified: 03/27/2017 16:19:01
  *
  *    Description: 
  *
@@ -46,11 +46,11 @@ void ProcessRun::Update(double)
     //     m_ViewY = m_MyHero->Y() - g_SDLDevice->WindowH(false) / 2;
     // }
     //
-    // for(auto &pRecord: m_CreatureRecord){
-    //     if(pRecord.second){
-    //         pRecord.second->Update();
-    //     }
-    // }
+    for(auto pRecord: m_CreatureRecord){
+        if(pRecord.second){
+            pRecord.second->Update();
+        }
+    }
 }
 
 // void ProcessRun::RollScreen()
@@ -181,7 +181,9 @@ void ProcessRun::Draw()
                 // draw actors
                 {
                     for(auto pCreature: m_CreatureRecord){
-                        pCreature.second->Draw(nX, nY);
+                        if(pCreature.second && (pCreature.second->X() == nX) && (pCreature.second->Y() == nY)){
+                            pCreature.second->Draw(300, 300);
+                        }
                     }
                 }
 

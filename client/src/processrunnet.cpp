@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/27/2017 11:08:27
+ *  Last Modified: 03/27/2017 14:16:06
  *
  *    Description: 
  *
@@ -67,8 +67,8 @@ void ProcessRun::Net_ACTIONSTATE(const uint8_t *pBuf, size_t)
 
 void ProcessRun::Net_MONSTERGINFO(const uint8_t *pBuf, size_t)
 {
-    auto *pInfo = (SMMonsterGInfo *)pBuf;
-    Monster::GetGInfoRecord(pInfo->MonsterID).ResetLookID(pInfo->LookIDN, pInfo->LookID, pInfo->R);
+    auto pInfo = (SMMonsterGInfo *)pBuf;
+    Monster::GetGInfoRecord(pInfo->MonsterID).ResetLookID(pInfo->LookIDN, pInfo->LookID);
 }
 
 void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)

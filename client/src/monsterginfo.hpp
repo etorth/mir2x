@@ -3,7 +3,7 @@
  *
  *       Filename: monsterginfo.hpp
  *        Created: 06/02/2016 15:08:56
- *  Last Modified: 03/26/2017 16:28:09
+ *  Last Modified: 03/27/2017 14:14:49
  *
  *    Description: monster global info
  *
@@ -45,13 +45,11 @@ class MonsterGInfo final
     protected:
         typedef struct _InnNetData
         {
-            int CurrQuery;  // query the server
-            uint32_t R;
+            int CurrQuery;
             uint32_t CurrLookID;
 
             _InnNetData()
                 : CurrQuery(QUERY_NA)
-                , R(0)
                 , CurrLookID(MAX_LOOKID)
             {}
 
@@ -60,12 +58,10 @@ class MonsterGInfo final
                 return Query() == QUERY_OK;
             }
 
-            void Reset(uint32_t nLookID, uint32_t nR)
+            void Reset(uint32_t nLookID)
             {
                 CurrQuery = QUERY_OK;
-
                 CurrLookID = nLookID;
-                R = nR;
             }
 
             int Query()
@@ -148,7 +144,7 @@ class MonsterGInfo final
     public:
        static const MonsterGInfo &Null()
        {
-           static MonsterGInfo stNullRecord;
+           static MonsterGInfo stNullRecord(0);
            return stNullRecord;
        }
 
@@ -182,20 +178,17 @@ class MonsterGInfo final
         }
 
     public:
-        template<typename... T> void ResetLookID(uint32_t nLIDN, uint32_t nLookID, T&&... stT)
+        void ResetLookID(uint32_t nLIDN, uint32_t nLookID)
         {
-            // 1. parameter check
-            assert(nLIDN < 4 && nLookID < 0X00001000);
-
-            // 2. set the NetData
-            m_NetData[nLIDN].Reset(nLookID, std::forward<T>(stT)...);
+            assert((nLIDN < 4) && (nLookID < MAX_LOOKID));
+            m_NetData[nLIDN].Reset(nLookID);
         }
 
     protected:
         void Load(uint32_t nLIDN)
         {
             // 1. check parameter
-            assert(nLIDN);
+            assert(nLIDN < 4);
 
             // 2. if the net data is not ready we return
             switch(m_NetData[nLIDN].Query()){

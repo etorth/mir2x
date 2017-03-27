@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 03/26/2017 16:26:11
+ *  Last Modified: 03/27/2017 14:31:48
  *
  *    Description: 
  *
@@ -168,15 +168,20 @@ void ServiceCore::On_MPK_QUERYMONSTERGINFO(const MessagePack &rstMPK, const Ther
     extern MonoServer *g_MonoServer;
     auto &rstRecord = g_MonoServer->MonsterGInfo(stAMQMGI.MonsterID); 
 
-    if(!rstRecord.Valid()){ return; }
+    if(rstRecord.Valid()){
+        extern MemoryPN *g_MemoryPN;
+        auto pBuf = (SMMonsterGInfo *)(g_MemoryPN->Get(sizeof(SMMonsterGInfo)));
 
-    extern MemoryPN *g_MemoryPN;
-    auto pBuf = (SMMonsterGInfo *)(g_MemoryPN->Get(sizeof(SMMonsterGInfo)));
+        pBuf->MonsterID = stAMQMGI.MonsterID;
+        pBuf->LookIDN   = stAMQMGI.LookIDN;
+        pBuf->LookID   = rstRecord.LookID((int)stAMQMGI.LookIDN);
 
-    pBuf->MonsterID = stAMQMGI.MonsterID;
-    pBuf->LookIDN   = stAMQMGI.LookIDN;
-    pBuf->LookID   = rstRecord.LookID((int)stAMQMGI.LookIDN);
+        extern NetPodN *g_NetPodN;
+        g_NetPodN->Send(stAMQMGI.SessionID, SM_MONSTERGINFO, (uint8_t *)pBuf, sizeof(SMMonsterGInfo), [pBuf](){ g_MemoryPN->Free(pBuf); });
+        return;
+    }
 
-    extern NetPodN *g_NetPodN;
-    g_NetPodN->Send(stAMQMGI.SessionID, SM_MONSTERGINFO, (uint8_t *)pBuf, sizeof(SMMonsterGInfo), [pBuf](){ g_MemoryPN->Free(pBuf); });
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_FATAL, "Query monster global information failed");
+    g_MonoServer->Restart();
 }
