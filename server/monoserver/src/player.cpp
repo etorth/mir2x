@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/26/2017 18:22:13
+ *  Last Modified: 03/26/2017 23:25:12
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 #include "player.hpp"
 #include "memorypn.hpp"
 #include "charobject.hpp"
+#include "protocoldef.hpp"
 
 Player::Player(uint32_t nGUID,
         uint32_t        nJobID,
@@ -168,7 +169,7 @@ void Player::ReportCORecord(uint32_t nSessionID)
         extern MemoryPN *g_MemoryPN;
         auto pMem = (SMCORecord *)g_MemoryPN->Get(sizeof(SMCORecord));
 
-        pMem->Type = TYPE_PLAYER;
+        pMem->Type = CREATURE_PLAYER;
 
         pMem->Common.UID       = UID();
         pMem->Common.AddTime   = AddTime();

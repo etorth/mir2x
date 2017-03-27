@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/26/2017 17:43:13
+ *  Last Modified: 03/27/2017 11:18:06
  *
  *    Description: 
  *
@@ -77,13 +77,117 @@ void ProcessRun::Update(double)
 //
 void ProcessRun::Draw()
 {
+    extern PNGTexDBN *g_PNGTexDBN;
     extern SDLDevice *g_SDLDevice;
-
     g_SDLDevice->ClearScreen();
 
-    m_ClientMap.Draw(m_ViewX, m_ViewY, g_SDLDevice->WindowW(false), g_SDLDevice->WindowH(false), 0, 0);
-    m_ControbBoard.Draw();
+    // 1. draw map + object
+    {
+        int nX0 = (m_ViewX - 2 * SYS_MAPGRIDXP - SYS_OBJMAXW) / SYS_MAPGRIDXP;
+        int nY0 = (m_ViewY - 2 * SYS_MAPGRIDYP - SYS_OBJMAXH) / SYS_MAPGRIDYP;
+        int nX1 = (m_ViewX + 2 * SYS_MAPGRIDXP + SYS_OBJMAXW + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
+        int nY1 = (m_ViewY + 2 * SYS_MAPGRIDYP + SYS_OBJMAXH + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
 
+        // tiles
+        for(int nY = nY0; nY <= nY1; ++nY){
+            for(int nX = nX0; nX <= nX1; ++nX){
+                if(m_Mir2xMapData.ValidC(nX, nY) && !(nX % 2) && !(nY % 2)){
+                    auto nParam = m_Mir2xMapData.Tile(nX, nY).Param;
+                    if(nParam & 0X80000000){
+                        if(auto pTexture = g_PNGTexDBN->Retrieve(nParam& 0X00FFFFFF)){
+                            g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY);
+                        }
+                    }
+                }
+            }
+        }
+
+        // ground objects
+        for(int nY = nY0; nY <= nY1; ++nY){
+            for(int nX = nX0; nX <= nX1; ++nX){
+                if(m_Mir2xMapData.ValidC(nX, nY) && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)){
+                    // for obj-0
+                    {
+                        auto nParam = m_Mir2xMapData.Cell(nX, nY).Obj[0].Param;
+                        if(nParam & 0X80000000){
+                            auto nObjParam = m_Mir2xMapData.Cell(nX, nY).ObjParam;
+                            if(nObjParam & ((uint32_t)(1) << 22)){
+                                if(auto pTexture = g_PNGTexDBN->Retrieve(nParam & 0X00FFFFFF)){
+                                    int nH = 0;
+                                    if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
+                                        g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // for obj-1
+                    {
+                        auto nParam = m_Mir2xMapData.Cell(nX, nY).Obj[0].Param;
+                        if(nParam & 0X80000000){
+                            auto nObjParam = m_Mir2xMapData.Cell(nX, nY).ObjParam;
+                            if(nObjParam & ((uint32_t)(1) << 6)){
+                                if(auto pTexture = g_PNGTexDBN->Retrieve(nParam & 0X00FFFFFF)){
+                                    int nH = 0;
+                                    if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
+                                        g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // over-ground objects
+        for(int nY = nY0; nY <= nY1; ++nY){
+            for(int nX = nX0; nX <= nX1; ++nX){
+                if(m_Mir2xMapData.ValidC(nX, nY) && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)){
+                    // for obj-0
+                    {
+                        auto nParam = m_Mir2xMapData.Cell(nX, nY).Obj[0].Param;
+                        if(nParam & 0X80000000){
+                            auto nObjParam = m_Mir2xMapData.Cell(nX, nY).ObjParam;
+                            if(!(nObjParam & ((uint32_t)(1) << 22))){
+                                if(auto pTexture = g_PNGTexDBN->Retrieve(nParam & 0X00FFFFFF)){
+                                    int nH = 0;
+                                    if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
+                                        g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // for obj-1
+                    {
+                        auto nParam = m_Mir2xMapData.Cell(nX, nY).Obj[0].Param;
+                        if(nParam & 0X80000000){
+                            auto nObjParam = m_Mir2xMapData.Cell(nX, nY).ObjParam;
+                            if(!(nObjParam & ((uint32_t)(1) << 6))){
+                                if(auto pTexture = g_PNGTexDBN->Retrieve(nParam & 0X00FFFFFF)){
+                                    int nH = 0;
+                                    if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
+                                        g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // draw actors
+                {
+
+                }
+
+            }
+        }
+    }
+
+    m_ControbBoard.Draw();
     g_SDLDevice->Present();
 }
 
@@ -231,87 +335,13 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
     }
 }
 
-// we get all needed initialization info for init the process run
-void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
+int ProcessRun::LoadMap(uint32_t nMapID)
 {
-    if(!(pBuf && nLen && nLen == sizeof(SMLoginOK))){ return; }
-
-    SMLoginOK stSMLOK;
-    std::memcpy(&stSMLOK, pBuf, nLen);
-
-    m_ClientMap.Load(stSMLOK.MapID);
-    m_MyHero = new MyHero(stSMLOK.GUID, stSMLOK.UID, stSMLOK.AddTime, (bool)(stSMLOK.Male));
-
-    m_MyHero->ResetLocation(stSMLOK.MapID, (int)(stSMLOK.X), (int)(stSMLOK.Y));
-    m_MyHero->ResetDirection((int)(stSMLOK.Direction));
-    m_MyHero->ResetLevel((int)(stSMLOK.Level));
-    m_MyHero->ResetJob((int)(stSMLOK.JobID));
-}
-
-void ProcessRun::Net_ACTIONSTATE(const uint8_t *pBuf, size_t)
-{
-    SMActionState stSMAS = *((const SMActionState *)pBuf);
-    if(stSMAS.MapID != m_ClientMap.ID()){ return; }
-
-    auto pRecord = m_CreatureRecord.find(((uint64_t)stSMAS.UID << 32) + stSMAS.AddTime);
-    if(true
-            && pRecord != m_CreatureRecord.end()
-            && pRecord->second
-            && pRecord->second->MapID() == stSMAS.MapID){
-        auto pCreature = pRecord->second;
-
-        pCreature->ResetLocation(stSMAS.MapID, stSMAS.X, stSMAS.Y);
-
-        pCreature->ResetAction((int)stSMAS.Action);
-        pCreature->ResetDirection((int)stSMAS.Direction);
-
-        pCreature->ResetSpeed((int)stSMAS.Speed);
-    }
-}
-
-void ProcessRun::Net_MONSTERGINFO(const uint8_t *pBuf, size_t)
-{
-    auto *pInfo = (SMMonsterGInfo *)pBuf;
-    Monster::GetGInfoRecord(pInfo->MonsterID).ResetLookID(pInfo->LookIDN, pInfo->LookID, pInfo->R);
-}
-
-void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
-{
-    SMCORecord stSMCOR;
-    std::memcpy(&stSMCOR, pBuf, sizeof(stSMCOR));
-
-    Creature *pCreature = nullptr;
-    uint64_t nCOKey = ((((uint64_t)stSMCOR.Common.UID) << 32) + stSMCOR.Common.AddTime);
-
-    auto pRecord = m_CreatureRecord.find(nCOKey);
-    if(pRecord == m_CreatureRecord.end()){
-        switch(stSMCOR.Type){
-            case CREATURE_MONSTER:
-                {
-                    pCreature = new Monster(stSMCOR.Monster.MonsterID, stSMCOR.Common.UID, stSMCOR.Common.AddTime);
-                    break;
-                }
-            case CREATURE_PLAYER:
-                {
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
+    if(nMapID){
+        m_MapID = nMapID;
+        if(auto pMapName = SYS_MAPNAME(nMapID)){
+            return m_Mir2xMapData.Load(pMapName);
         }
-    }else{
-        pCreature = pRecord->second;
     }
-
-    if(pCreature){
-        pCreature->ResetLocation(stSMCOR.Common.MapID, (int)stSMCOR.Common.MapX, (int)stSMCOR.Common.MapY);
-
-        pCreature->ResetAction((int)stSMCOR.Common.Action);
-        pCreature->ResetDirection((int)stSMCOR.Common.Direction);
-
-        pCreature->ResetSpeed((int)stSMCOR.Common.Speed);
-
-        m_CreatureRecord[nCOKey] = pCreature;
-    }
+    return -1;
 }

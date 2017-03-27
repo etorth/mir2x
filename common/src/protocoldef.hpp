@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 06/14/2016 23:58:07
+ *  Last Modified: 03/26/2017 23:22:57
  *
  *    Description: 
  *
@@ -22,7 +22,8 @@
 
 // since we have stand / walk / attack / dead for monster, so call
 // it ``motion state" may be inproper, action state is better
-enum ActionType: int{
+enum ActionType: int
+{
     ACTION_UNKNOWN = 0,
 
     ACTION_STAND   = 1,  // monster
@@ -31,8 +32,9 @@ enum ActionType: int{
     ACTION_DIE     = 4,  // monster
 };
 
-enum CreatureType: int{
-    CREATURE_UNKNOWN = 0,
+enum CreatureType: int
+{
+    CREATURE_NONE = 0,
     CREATURE_PLAYER,
     CREATURE_MONSTER,
 };
