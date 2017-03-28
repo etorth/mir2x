@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 08/14/2016 01:46:26
+ *  Last Modified: 03/27/2017 21:21:46
  *
  *    Description: public API for class game only
  *
@@ -29,6 +29,7 @@
 
 Game::Game()
     : m_FPS(30.0)
+    , m_NetPackTick(-1.0)
     , m_CurrentProcess(nullptr)
 {
     // fullfil the time cq
@@ -104,12 +105,18 @@ void Game::MainLoop()
     SwitchProcess(PROCESSID_LOGO);
     InitASIO();
 
-    double fLastMS = GetTimeMS();
+    auto fLastMS = GetTimeTick();
     while(m_CurrentProcess->ID() != PROCESSID_EXIT){
         PollASIO();
         ProcessEvent();
         
-        double fCurrentMS = GetTimeMS();
+        double fCurrentMS = GetTimeTick();
+        if(m_NetPackTick > 0.0){
+            if(fCurrentMS - m_NetPackTick > 5.0 * 1000){
+                std::exit(0);
+            }
+        }
+
         Update(fCurrentMS - fLastMS);
         Draw();
 

@@ -3,7 +3,7 @@
  *
  *       Filename: onsmhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 06/15/2016 00:04:01
+ *  Last Modified: 03/27/2017 21:23:29
  *
  *    Description: 
  *
@@ -35,7 +35,8 @@ void Game::OperateHC(uint8_t nHC)
         default: break;
     }
 
-    m_NetIO.ReadHC([&](uint8_t nHC){ OperateHC(nHC); });
+    m_NetIO.ReadHC([this](uint8_t nHC){ OperateHC(nHC); });
+    m_NetPackTick = GetTimeTick();
 }
 
 void Game::Net_PING()

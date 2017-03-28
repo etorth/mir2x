@@ -13,6 +13,7 @@ class Game
 {
     private:
         double m_FPS;
+        double m_NetPackTick;
 
     private:
         std::atomic<bool> m_LoginOK;
@@ -56,7 +57,7 @@ class Game
         void Net_MONSTERGINFO();
 
     private:
-        double GetTimeMS();
+        double GetTimeTick();
         void   EventDelay(double);
         void   ProcessEvent();
         void   Update(double);
@@ -71,9 +72,7 @@ class Game
     public:
         void Read(size_t nLen, const std::function<void(const uint8_t *, size_t)> &fnOperate)
         {
-            if(nLen){
-                m_NetIO.Read(nLen, fnOperate);
-            }
+            if(nLen){ m_NetIO.Read(nLen, fnOperate); }
         }
 
         template<typename... U> void Send(U&&... u)

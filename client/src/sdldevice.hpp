@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 04/02/2016 16:16:03
+ *  Last Modified: 03/27/2017 21:47:48
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp
@@ -107,10 +107,7 @@ class SDLDevice final
 
        SDL_Texture *CreateTextureFromSurface(SDL_Surface * pSurface)
        {
-           if(pSurface){
-               return SDL_CreateTextureFromSurface(m_Renderer, pSurface);
-           }
-           return nullptr;
+           return pSurface ? SDL_CreateTextureFromSurface(m_Renderer, pSurface) : nullptr;
        }
 
        int WindowW(bool bRealWindowSizeInPixel)

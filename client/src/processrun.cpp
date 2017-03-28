@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/27/2017 16:19:01
+ *  Last Modified: 03/27/2017 22:00:40
  *
  *    Description: 
  *
@@ -190,6 +190,25 @@ void ProcessRun::Draw()
             }
         }
     }
+
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG == 10)
+    {
+        int nX0 = m_ViewX / SYS_MAPGRIDXP;
+        int nY0 = m_ViewY / SYS_MAPGRIDYP;
+
+        int nX1 = (m_ViewX + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
+        int nY1 = (m_ViewY + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
+
+        g_SDLDevice->PushColor(128, 0, 0, 128);
+        for(int nX = nX0; nX <= nX1; ++nX){
+            g_SDLDevice->DrawLine(nX * SYS_MAPGRIDXP - m_ViewX, 0, nX * SYS_MAPGRIDXP - m_ViewX, g_SDLDevice->WindowH(false));
+        }
+        for(int nY = nY0; nY <= nY1; ++nY){
+            g_SDLDevice->DrawLine(0, nY * SYS_MAPGRIDYP - m_ViewY, g_SDLDevice->WindowW(false), nY * SYS_MAPGRIDYP - m_ViewY);
+        }
+        g_SDLDevice->PopColor();
+    }
+#endif
 
     m_ControbBoard.Draw();
     g_SDLDevice->Present();
