@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 03/27/2017 14:26:09
+ *  Last Modified: 03/27/2017 17:25:41
  *
  *    Description: 
  *
@@ -98,7 +98,7 @@ void Monster::Draw(int nViewX, int nViewY)
 
     extern SDLDevice *g_SDLDevice;
     if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
-    g_SDLDevice->DrawTexture(pFrame1, m_X * SYS_MAPGRIDXP + nDX1 - nViewX, m_Y * SYS_MAPGRIDXP + nDY1 - nViewY);
+    g_SDLDevice->DrawTexture(pFrame1, m_X * SYS_MAPGRIDXP + nDX1 - nViewX, m_Y * SYS_MAPGRIDYP + nDY1 - nViewY);
     g_SDLDevice->DrawTexture(pFrame0, m_X * SYS_MAPGRIDXP + nDX0 - nViewX, m_Y * SYS_MAPGRIDYP + nDY0 - nViewY);
 }
 
