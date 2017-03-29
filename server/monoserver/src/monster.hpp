@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 03/26/2017 18:07:53
+ *  Last Modified: 03/28/2017 12:38:59
  *
  *    Description: 
  *
@@ -101,19 +101,15 @@ class Monster: public CharObject
     protected:
         bool RequestMove(int, int);
         void RequestSpaceMove(const char *, int, int);
-        int Speed()
-        {
-            return 20;
-        }
 
         // TODO
         bool Update();
 
     protected:
-        bool RandomWalk();
+        int Speed();
 
-    private:
-        bool UpdateLocation();
+    protected:
+        bool RandomWalk();
 
     private:
         void On_MPK_HI(const MessagePack &, const Theron::Address &);

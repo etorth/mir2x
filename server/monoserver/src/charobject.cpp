@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/22/2017 17:23:26
+ *  Last Modified: 03/28/2017 18:06:35
  *
  *    Description: 
  *
@@ -49,8 +49,8 @@ CharObject::CharObject(ServiceCore *pServiceCore,
 bool CharObject::NextLocation(int *pX, int *pY, int nDistance)
 {
     if(m_Direction >= 0 && m_Direction < 8){
-        int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
-        int nDY[] = {-1,  0,  0, +1, +1,  0,  0, -1};
+        static const int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
+        static const int nDY[] = {-1,  0,  0, +1, +1,  0,  0, -1};
 
         if(pX){ *pX = m_CurrX + (nDX[m_Direction] * nDistance); }
         if(pY){ *pY = m_CurrY + (nDY[m_Direction] * nDistance); }
@@ -90,17 +90,14 @@ void CharObject::DispatchAction()
         AMActionState stAMAS;
         std::memset(&stAMAS, 0, sizeof(stAMAS));
 
-        stAMAS.UID     = UID();
-        stAMAS.AddTime = AddTime();
-
+        stAMAS.UID   = UID();
         stAMAS.X     = X();
         stAMAS.Y     = Y();
         stAMAS.MapID = m_Map->ID();
 
-        stAMAS.Action    = (uint8_t)Action();
-        stAMAS.Direction = (uint8_t)Direction();
-
-        stAMAS.Speed = Speed();
+        stAMAS.Speed     = Speed();
+        stAMAS.Action    = (uint8_t)(Action());
+        stAMAS.Direction = (uint8_t)(Direction());
 
         m_ActorPod->Forward({MPK_ACTIONSTATE, stAMAS}, m_Map->GetAddress());
         return;

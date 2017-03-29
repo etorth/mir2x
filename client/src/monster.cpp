@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 03/27/2017 17:25:41
+ *  Last Modified: 03/28/2017 12:24:06
  *
  *    Description: 
  *
@@ -50,23 +50,29 @@ void Monster::Update()
 
     // 2. time for logic update
     if(fTimeNow > m_LogicUpdateTime + m_LogicDelay){
-        double fDiffTime = fTimeNow - m_LogicUpdateTime;
-
-        // location estimation
-        if(m_Action == ACTION_WALK){
-            int nX, nY;
-            EstimateLocation((int)(Speed() * fDiffTime / 1000.0), &nX, &nY);
-            ResetLocation(MapID(), nX, nY);
-        }
-
         m_LogicUpdateTime = fTimeNow;
     }
 
     // 2. time for frame update
     if(fTimeNow > m_FrameUpdateTime + m_FrameDelay){
-        uint32_t nFrameCount = FrameCount();
+        auto nFrameCount = (int)(FrameCount());
         if(nFrameCount){
             m_Frame = (m_Frame + 1) % nFrameCount;
+            switch(m_Action){
+                case ACTION_WALK:
+                    {
+                        if(m_Frame == nFrameCount - m_FrameCountInNextCell){
+                            int nX, nY;
+                            EstimateLocation(Speed(), &nX, &nY);
+                            ResetLocation(MapID(), nX, nY);
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
         }
 
         m_FrameUpdateTime = fTimeNow;
@@ -96,10 +102,14 @@ void Monster::Draw(int nViewX, int nViewY)
     auto pFrame0 = g_PNGTexOffDBN->Retrieve(nKey0, &nDX0, &nDY0);
     auto pFrame1 = g_PNGTexOffDBN->Retrieve(nKey1, &nDX1, &nDY1);
 
+    int nShiftX = 0;
+    int nShiftY = 0;
+    EstimatePixelShift(&nShiftX, &nShiftY);
+
     extern SDLDevice *g_SDLDevice;
     if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
-    g_SDLDevice->DrawTexture(pFrame1, m_X * SYS_MAPGRIDXP + nDX1 - nViewX, m_Y * SYS_MAPGRIDYP + nDY1 - nViewY);
-    g_SDLDevice->DrawTexture(pFrame0, m_X * SYS_MAPGRIDXP + nDX0 - nViewX, m_Y * SYS_MAPGRIDYP + nDY0 - nViewY);
+    g_SDLDevice->DrawTexture(pFrame1, m_X * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, m_Y * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
+    g_SDLDevice->DrawTexture(pFrame0, m_X * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, m_Y * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
 }
 
 size_t Monster::FrameCount()

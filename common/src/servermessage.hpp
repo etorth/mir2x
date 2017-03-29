@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 06/19/2016 12:25:38
+ *  Last Modified: 03/28/2017 15:53:57
  *
  *    Description: net message used by client and mono-server
  *
@@ -61,9 +61,9 @@ typedef struct{
     uint32_t Direction;
 }SMLoginOK;
 
-typedef struct{
+typedef struct
+{
     uint32_t UID;
-    uint32_t AddTime;
 
     uint32_t X;
     uint32_t Y;

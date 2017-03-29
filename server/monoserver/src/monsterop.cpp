@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 03/26/2017 18:09:22
+ *  Last Modified: 03/28/2017 12:33:35
  *
  *    Description: 
  *
@@ -30,7 +30,6 @@ void Monster::On_MPK_HI(const MessagePack &, const Theron::Address &)
 void Monster::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
     Update();
-    DispatchAction();
 }
 
 void Monster::On_MPK_UPDATECOINFO(const MessagePack &rstMPK, const Theron::Address &)

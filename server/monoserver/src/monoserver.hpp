@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 03/26/2017 16:23:20
+ *  Last Modified: 03/28/2017 15:31:47
  *
  *    Description: 
  *
@@ -145,15 +145,13 @@ class MonoServer final
         void AddMonster(uint32_t, uint32_t, int, int);
 
     public:
+        uint32_t GetUID()
+        {
+            return m_GlobalUID.fetch_add(1);
+        }
+
         uint32_t GetTimeTick()
         {
             return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - m_StartTime).count();
         }
-
-    public:
-        uint64_t GetUID()
-        {
-            return ((uint64_t)(GetTimeTick()) << 32) + m_GlobalUID.fetch_add(1);
-        }
-
 };

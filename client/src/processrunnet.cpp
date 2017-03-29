@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/27/2017 14:16:06
+ *  Last Modified: 03/28/2017 16:11:45
  *
  *    Description: 
  *
@@ -46,22 +46,18 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
 
 void ProcessRun::Net_ACTIONSTATE(const uint8_t *pBuf, size_t)
 {
-    SMActionState stSMAS = *((const SMActionState *)pBuf);
-    if(stSMAS.MapID != m_MapID){ return; }
+    SMActionState stSMAS;
+    std::memcpy(&stSMAS, pBuf, sizeof(stSMAS));
 
-    auto pRecord = m_CreatureRecord.find(((uint64_t)stSMAS.UID << 32) + stSMAS.AddTime);
-    if(true
-            && pRecord != m_CreatureRecord.end()
-            && pRecord->second
-            && pRecord->second->MapID() == stSMAS.MapID){
-        auto pCreature = pRecord->second;
-
-        pCreature->ResetLocation(stSMAS.MapID, stSMAS.X, stSMAS.Y);
-
-        pCreature->ResetAction((int)stSMAS.Action);
-        pCreature->ResetDirection((int)stSMAS.Direction);
-
-        pCreature->ResetSpeed((int)stSMAS.Speed);
+    if(stSMAS.MapID == m_MapID){
+        auto pRecord = m_CreatureRecord.find(stSMAS.UID);
+        if(pRecord != m_CreatureRecord.end()){
+            if(auto pCreature = pRecord->second){
+                if(pCreature->MapID() == stSMAS.MapID){
+                    pCreature->ResetActionState((int)(stSMAS.Action), (int)(stSMAS.Direction), stSMAS.Speed, stSMAS.X, stSMAS.Y);
+                }
+            }
+        }
     }
 }
 

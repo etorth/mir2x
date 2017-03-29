@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 03/26/2017 23:22:57
+ *  Last Modified: 03/28/2017 11:51:27
  *
  *    Description: 
  *
@@ -37,4 +37,26 @@ enum CreatureType: int
     CREATURE_NONE = 0,
     CREATURE_PLAYER,
     CREATURE_MONSTER,
+};
+
+// define of directioin
+//
+//               0
+//            7     1
+//          6    +--> 2
+//            5  |  3
+//               V
+//               4
+//
+enum _Direction: int
+{
+    DIR_UP          = 0,
+    DIR_DOWN        = 4,
+    DIR_LEFT        = 6,
+    DIR_RIGHT       = 2,
+    DIR_UPLEFT      = 7,
+    DIR_UPRIGHT     = 1,
+    DIR_DOWNLEFT    = 5,
+    DIR_DOWNRIGHT   = 3,
+    DIR_UNKNOWN     = 8,
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/26/2017 18:08:21
+ *  Last Modified: 03/28/2017 13:31:42
  *
  *    Description: 
  *
@@ -85,10 +85,26 @@ bool Monster::RandomWalk()
     switch(State(STATE_ACTION)){
         case STATE_STAND:
             {
+                if((std::rand() % 99991) < (99991 / 10)){
+                    int nNextX = 0;
+                    int nNextY = 0;
+                    if(NextLocation(&nNextX, &nNextY, Speed())){
+                        RequestMove(nNextX, nNextY);
+                    }
+                }else{
+                    if(std::rand() % 99991 < (99991 / 10)){
+                        m_Direction = stRandomPick.Pick();
+                        DispatchAction();
+                    }
+                }
                 return true;
             }
         case STATE_WALK:
             {
+                if((std::rand() % 99991) < (99991 / 10)){
+                    ResetState(STATE_ACTION, STATE_STAND);
+                    DispatchAction();
+                }
                 return true;
             }
         default:
@@ -96,15 +112,6 @@ bool Monster::RandomWalk()
                 return false;
             }
     }
-}
-
-bool Monster::UpdateLocation()
-{
-    int nX, nY;
-    NextLocation(&nX, &nY, Speed());
-    RequestMove(nX, nY);
-
-    return true;
 }
 
 void Monster::RequestSpaceMove(const char *szAddr, int nX, int nY)
@@ -156,11 +163,14 @@ bool Monster::RequestMove(int nX, int nY)
     AMTryMove stAMTM;
     std::memset(&stAMTM, 0, sizeof(stAMTM));
 
+    stAMTM.This    = (uintptr_t)(this);
     stAMTM.UID     = m_UID;
     stAMTM.AddTime = m_AddTime;
     stAMTM.X       = nX;
     stAMTM.Y       = nY;
     stAMTM.MapID   = m_Map->ID();
+    stAMTM.CurrX   = m_CurrX;
+    stAMTM.CurrY   = m_CurrY;
 
     auto fnOP = [this, nX, nY](const MessagePack &rstMPK, const Theron::Address &rstAddr){
         switch(rstMPK.Type()){
@@ -169,6 +179,8 @@ bool Monster::RequestMove(int nX, int nY)
                     m_CurrX = nX;
                     m_CurrY = nY;
                     m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
+                    ResetState(STATE_ACTION, STATE_WALK);
+                    DispatchAction();
 
                     m_FreezeWalk = false;
                     break;
@@ -277,4 +289,9 @@ void Monster::ReportCORecord(uint32_t nSessionID)
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
     g_MonoServer->Restart();
+}
+
+int Monster::Speed()
+{
+    return 1;
 }

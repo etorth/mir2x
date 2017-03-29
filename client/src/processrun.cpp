@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/27/2017 22:00:40
+ *  Last Modified: 03/28/2017 10:40:04
  *
  *    Description: 
  *
@@ -199,7 +199,7 @@ void ProcessRun::Draw()
         int nX1 = (m_ViewX + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
         int nY1 = (m_ViewY + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
 
-        g_SDLDevice->PushColor(128, 0, 0, 128);
+        g_SDLDevice->PushColor(0, 128, 0, 30);
         for(int nX = nX0; nX <= nX1; ++nX){
             g_SDLDevice->DrawLine(nX * SYS_MAPGRIDXP - m_ViewX, 0, nX * SYS_MAPGRIDXP - m_ViewX, g_SDLDevice->WindowH(false));
         }

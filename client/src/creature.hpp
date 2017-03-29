@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/26/2017 12:06:04
+ *  Last Modified: 03/28/2017 16:12:39
  *
  *    Description: 
  *
@@ -45,6 +45,9 @@ class Creature
 
     protected:
         int    m_Frame;
+        int    m_FrameCountInNextCell;
+
+    protected:
         int    m_Speed;
         int    m_Action;
         int    m_Direction;
@@ -97,6 +100,9 @@ class Creature
         }
 
     public:
+        virtual void OnActionState(int, int, int, int, int);
+
+    public:
         int X()
         {
             return m_X;
@@ -121,6 +127,7 @@ class Creature
     public:
         // update the next possible position based on current state
         void EstimateLocation(int, int *, int *);
+        void EstimatePixelShift(int *, int *);
 
     public:
         virtual int Type() = 0;

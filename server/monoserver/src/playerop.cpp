@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 03/26/2017 18:25:02
+ *  Last Modified: 03/28/2017 15:53:07
  *
  *    Description: 
  *
@@ -85,24 +85,19 @@ void Player::On_MPK_ACTIONSTATE(const MessagePack &rstMPK, const Theron::Address
     AMActionState stAMAS;
     std::memcpy(&stAMAS, rstMPK.Data(), sizeof(stAMAS));
 
-    // prepare the server message to send
-    extern MemoryPN *g_MemoryPN;
-    auto pMem = (SMActionState *)g_MemoryPN->Get(sizeof(SMActionState));
+    if((std::abs(stAMAS.X - m_CurrX) <= SYS_MAPVISIBLEW) && (std::abs(stAMAS.Y - m_CurrY) <= SYS_MAPVISIBLEH)){
+        extern MemoryPN *g_MemoryPN;
+        auto pMem = (SMActionState *)g_MemoryPN->Get(sizeof(SMActionState));
 
-    pMem->UID     = stAMAS.UID;
-    pMem->AddTime = stAMAS.AddTime;
+        pMem->UID   = stAMAS.UID;
+        pMem->X     = stAMAS.X;
+        pMem->Y     = stAMAS.Y;
+        pMem->MapID = stAMAS.MapID;
 
-    pMem->X     = stAMAS.X;
-    pMem->Y     = stAMAS.Y;
-    pMem->R     = stAMAS.R;
-    pMem->MapID = stAMAS.MapID;
+        pMem->Speed     = stAMAS.Speed;
+        pMem->Action    = stAMAS.Action;
+        pMem->Direction = stAMAS.Direction;
 
-    pMem->Action    = stAMAS.Action;
-    pMem->Direction = stAMAS.Direction;
-
-    pMem->Speed  = stAMAS.Speed;
-
-    if(std::abs(m_CurrX - stAMAS.X) <= SYS_MAPVISIBLEW && std::abs(m_CurrY - stAMAS.Y) <= SYS_MAPVISIBLEH){
         extern NetPodN *g_NetPodN;
         g_NetPodN->Send(m_SessionID, SM_ACTIONSTATE, (uint8_t *)pMem, sizeof(SMActionState), [pMem](){ g_MemoryPN->Free(pMem); });
     }

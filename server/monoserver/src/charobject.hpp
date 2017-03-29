@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 03/22/2017 17:24:11
+ *  Last Modified: 03/28/2017 11:51:25
  *
  *    Description: 
  *
@@ -24,6 +24,7 @@
 
 #include "servermap.hpp"
 #include "servicecore.hpp"
+#include "protocoldef.hpp"
 #include "activeobject.hpp"
 
 enum _FriendType: uint8_t
@@ -41,29 +42,6 @@ enum _RangeType: uint8_t
 
     RANGE_ATTACK,
     RANGE_TRACETARGET,
-};
-
-
-// define of directioin
-//
-//               0
-//            7     1
-//          6    +--> 2
-//            5  |  3
-//               V
-//               4
-//
-enum _Direction: int
-{
-    DIR_UP          = 0,
-    DIR_DOWN        = 4,
-    DIR_LEFT        = 6,
-    DIR_RIGHT       = 2,
-    DIR_UPLEFT      = 7,
-    DIR_UPRIGHT     = 1,
-    DIR_DOWNLEFT    = 5,
-    DIR_DOWNRIGHT   = 3,
-    DIR_UNKNOWN     = 8,
 };
 
 #pragma pack(push, 1)

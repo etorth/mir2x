@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 03/26/2017 18:04:36
+ *  Last Modified: 03/28/2017 13:08:10
  *
  *    Description: 
  *
@@ -199,12 +199,17 @@ typedef struct{
 }AMTrySpaceMove;
 
 typedef struct{
+    uintptr_t This;
+
     uint32_t MapID;
     uint32_t UID;
     uint32_t AddTime;
 
     int X;
     int Y;
+
+    int CurrX;
+    int CurrY;
 
     int R;
 }AMTryMove;
