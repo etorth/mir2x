@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 03/30/2017 14:06:19
+ *  Last Modified: 03/30/2017 14:22:29
  *
  *    Description: 
  *
@@ -65,7 +65,7 @@ void Monster::Update()
             switch(m_Action){
                 case ACTION_WALK:
                     {
-                        if(m_Frame == (nFrameCount - (((m_Direction == DIR_UPLEFT) ? 5 : 2) + 1))){
+                        if(m_Frame == (nFrameCount - (((m_Direction == DIR_UPLEFT) ? 2 : 5) + 1))){
                             int nX, nY;
                             EstimateLocation(Speed(), &nX, &nY);
                             if(m_ProcessRun->CanMove(true, nX, nY)){
@@ -164,6 +164,5 @@ void Monster::Draw(int nViewX, int nViewY)
 
 size_t Monster::FrameCount()
 {
-    if(s_knActionTableV[m_Action] < 0){ return 0; }
-    return GetGInfoRecord(m_MonsterID).FrameCount(m_LookIDN, s_knActionTableV[m_Action], m_Direction);
+    return (s_knActionTableV[m_Action] >= 0) ? GetGInfoRecord(m_MonsterID).FrameCount(m_LookIDN, s_knActionTableV[m_Action], m_Direction) : 0;
 }

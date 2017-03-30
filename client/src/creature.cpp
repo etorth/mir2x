@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/30/2017 14:06:44
+ *  Last Modified: 03/30/2017 14:29:23
  *
  *    Description: 
  *
@@ -24,8 +24,10 @@
 #include <tinyxml2.h>
 #include <SDL2/SDL.h>
 
+#include "log.hpp"
 #include "creature.hpp"
 #include "sysconst.hpp"
+#include "processrun.hpp"
 
 Creature::Creature(uint32_t nUID, ProcessRun *pRun)
     : m_UID(nUID)
@@ -61,7 +63,7 @@ void Creature::EstimateLocation(int nDistance, int *pNextX, int *pNextY)
 
 void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
 {
-    int nFrameCountInNextCell = (m_Direction == DIR_UPLEFT) ? 5 : 2;
+    int nFrameCountInNextCell = (m_Direction == DIR_UPLEFT) ? 2 : 5;
     switch(m_Action){
         case ACTION_WALK:
             {
@@ -221,12 +223,17 @@ void Creature::OnActionState(int nAction, int nDirection, int nSpeed, int nX, in
                     case ACTION_STAND:
                         {
                             if((X() != nX) || (Y() != nY)){
-                                m_MoveDstX = nX;
-                                m_MoveDstY = nY;
-                                
-                                m_Frame  = 0;
-                                m_Speed  = nSpeed;
-                                m_Action = ACTION_WALK;
+                                if(m_ProcessRun->CanMove(false, nX, nY)){
+                                    m_MoveDstX = nX;
+                                    m_MoveDstY = nY;
+
+                                    m_Frame  = 0;
+                                    m_Speed  = nSpeed;
+                                    m_Action = ACTION_WALK;
+                                }else{
+                                    extern Log *g_Log;
+                                    g_Log->AddLog(LOGTYPE_INFO, "server request to move to an invalid position: UID = %d, X = %d, Y = %d", UID(), nX, nY);
+                                }
                             }else{
                                 m_Speed = nSpeed;
                                 m_Direction = nDirection;
@@ -252,14 +259,19 @@ void Creature::OnActionState(int nAction, int nDirection, int nSpeed, int nX, in
                     case ACTION_STAND:
                         {
                             if((X() != nX) || (Y() != nY)){
-                                m_MoveDstX = nX;
-                                m_MoveDstY = nY;
+                                if(m_ProcessRun->CanMove(false, nX, nY)){
+                                    m_MoveDstX = nX;
+                                    m_MoveDstY = nY;
 
-                                m_Frame  = 0;
-                                m_Speed  = nSpeed;
-                                m_Action = ACTION_WALK;
+                                    m_Frame  = 0;
+                                    m_Speed  = nSpeed;
+                                    m_Action = ACTION_WALK;
+                                }else{
+                                    extern Log *g_Log;
+                                    g_Log->AddLog(LOGTYPE_INFO, "server request to move to an invalid position: UID = %d, X = %d, Y = %d", UID(), nX, nY);
+                                }
                             }else{
-                                m_Speed  = nSpeed;
+                                m_Speed = nSpeed;
                                 m_Direction = nDirection;
                             }
                             break;

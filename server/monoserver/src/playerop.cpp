@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 03/30/2017 11:58:19
+ *  Last Modified: 03/30/2017 14:44:44
  *
  *    Description: 
  *
@@ -30,8 +30,7 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     extern NetPodN *g_NetPodN;
     extern MemoryPN *g_MemoryPN;
 
-    auto pMem = (SMLoginOK *)(g_MemoryPN->Get(sizeof(SMLoginOK)));
-
+    auto pMem = g_MemoryPN->Get<SMLoginOK>();
     pMem->GUID      = m_GUID;
     pMem->JobID     = m_JobID;
     pMem->Level     = m_Level;
@@ -40,7 +39,7 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     pMem->MapID     = m_Map->ID();
     pMem->Direction = m_Direction;
 
-    g_NetPodN->Send(m_SessionID, SM_LOGINOK, (uint8_t *)pMem, sizeof(SMLoginOK), [pMem](){ g_MemoryPN->Free(pMem); });
+    g_NetPodN->Send(m_SessionID, SM_LOGINOK, (uint8_t *)(pMem), sizeof(SMLoginOK), [pMem](){ g_MemoryPN->Free(pMem); });
 
     if(ActorPodValid() && m_Map->ActorPodValid()){
         AMPullCOInfo stAMPCOI;
@@ -59,11 +58,10 @@ void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
     extern MemoryPN *g_MemoryPN;
     extern MonoServer *g_MonoServer;
 
-    auto pMem = (SMPing *)(g_MemoryPN->Get(sizeof(SMPing)));
+    auto pMem = g_MemoryPN->Get<SMPing>();
     pMem->Tick = g_MonoServer->GetTimeTick();
 
-    extern NetPodN *g_NetPodN;
-    g_NetPodN->Send(m_SessionID, SM_PING, (uint8_t *)pMem, sizeof(SMPing), [pMem](){ g_MemoryPN->Free(pMem); });
+    g_NetPodN->Send(m_SessionID, SM_PING, (uint8_t *)(pMem), sizeof(SMPing), [pMem](){ g_MemoryPN->Free(pMem); });
     // AMPullCOInfo stAMPCOI;
     // stAMPCOI.SessionID = m_SessionID;
 
@@ -90,7 +88,7 @@ void Player::On_MPK_ACTIONSTATE(const MessagePack &rstMPK, const Theron::Address
 
     if((std::abs(stAMAS.X - m_CurrX) <= SYS_MAPVISIBLEW) && (std::abs(stAMAS.Y - m_CurrY) <= SYS_MAPVISIBLEH)){
         extern MemoryPN *g_MemoryPN;
-        auto pMem = (SMActionState *)g_MemoryPN->Get(sizeof(SMActionState));
+        auto pMem = g_MemoryPN->Get<SMActionState>();
 
         pMem->UID   = stAMAS.UID;
         pMem->X     = stAMAS.X;
