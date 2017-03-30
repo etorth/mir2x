@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 03/26/2017 18:05:03
+ *  Last Modified: 03/29/2017 14:15:19
  *
  *    Description: 
  *
@@ -130,15 +130,19 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
     }
 }
 
-bool ServerMap::GroundValid(int nX, int nY)
+bool ServerMap::CanMove(bool bCheckCO, int nX, int nY)
 {
     if(ValidC(nX, nY)){
-        for(auto pObject: m_ObjectV2D[nX][nY]){
-            if(pObject->Active() && ((ActiveObject *)(pObject))->Type(TYPE_CHAR)){
-                return false;
+        if(m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000){
+            if(bCheckCO){
+                for(auto pObject: m_ObjectV2D[nX][nY]){
+                    if(pObject->Active() && ((ActiveObject *)(pObject))->Type(TYPE_CHAR)){
+                        return false;
+                    }
+                }
             }
+            return true;
         }
-        return true;
     }
     return false;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/28/2017 11:05:46
+ *  Last Modified: 03/29/2017 18:09:54
  *
  *    Description: 
  *
@@ -157,7 +157,7 @@ void MonoServer::Launch()
     g_EventTaskHub->Launch();
 
     AddMonster(1, 1, 16, 18);
-    AddMonster(1, 1, 15, 17);
+    // AddMonster(1, 1, 15, 17);
 }
 
 void MonoServer::Restart()

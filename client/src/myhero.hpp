@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/11/2016 15:05:25
+ *  Last Modified: 03/29/2017 15:39:28
  *
  *    Description: 
  *
@@ -24,8 +24,8 @@
 class MyHero: public Hero
 {
     public:
-        MyHero(uint32_t, uint32_t, uint32_t, bool);
-        ~MyHero();
+        MyHero(uint32_t, uint32_t, bool, ProcessRun *);
+       ~MyHero();
 
     public:
         void Update();

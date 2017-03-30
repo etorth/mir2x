@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19 PM
- *  Last Modified: 06/19/2016 11:02:26
+ *  Last Modified: 03/29/2017 15:36:50
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
@@ -33,8 +33,8 @@ class Monster: public Creature
         uint32_t m_LookIDN;         // look effect index 0 ~ 3
 
     public:
-        Monster(uint32_t, uint32_t, uint32_t);
-        ~Monster();
+        Monster(uint32_t, uint32_t, ProcessRun *);
+       ~Monster();
 
     public:
         int Type()

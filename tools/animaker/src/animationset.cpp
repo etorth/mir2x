@@ -3,7 +3,7 @@
  *
  *       Filename: animationset.cpp
  *        Created: 8/6/2015 5:43:46 AM
- *  Last Modified: 03/26/2017 02:24:23
+ *  Last Modified: 03/29/2017 13:26:17
  *
  *    Description: 
  *
@@ -104,6 +104,10 @@ void AnimationSet::DrawCover(int nPosX, int nPosY)
     fl_begin_line();
     fl_arc(nPosX * 1.0, nPosY * 1.0, m_R * 1.0, 0.0, 360.0);
     fl_end_line();
+
+    // we put a cross to indicate the location
+    fl_line(nPosX, nPosY - m_R, nPosX, nPosY + m_R);
+    fl_line(nPosX - m_R, nPosY, nPosX + m_R, nPosY);
 
     fl_color(nOldColor);
 }

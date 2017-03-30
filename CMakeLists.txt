@@ -30,8 +30,15 @@ ELSE()
     SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 ENDIF()
 
-# 3. set common source used in client, server, tools
+# 3. set common / external source used in client, server, tools
 SET(COMMON_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/common/src)
+SET(EXTERNAL_INCLUDE_DIR "")
+FILE(GLOB EXTERNAL_ALL_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/external/*)
+FOREACH(EXTERNAL_SUBDIR ${EXTERNAL_ALL_SUBDIR})
+    IF(IS_DIRECTORY ${EXTERNAL_SUBDIR})
+        SET(EXTERNAL_INCLUDE_DIR ${EXTERNAL_INCLUDE_DIR} ${EXTERNAL_SUBDIR})
+    ENDIF()
+ENDFOREACH()
 
 # 4. to include external cmake packages
 FIND_PACKAGE(FLTK   REQUIRED)

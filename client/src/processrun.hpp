@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 03/27/2017 11:07:54
+ *  Last Modified: 03/29/2017 15:41:47
  *
  *    Description: 
  *
@@ -46,7 +46,7 @@ class ProcessRun: public Process
         ControlBoard    m_ControbBoard;
 
     private:
-        std::unordered_map<uint64_t, Creature*> m_CreatureRecord;
+        std::unordered_map<uint32_t, Creature*> m_CreatureRecord;
 
     private:
         int LoadMap(uint32_t);
@@ -71,4 +71,8 @@ class ProcessRun: public Process
         void Net_CORECORD(const uint8_t *, size_t);
         void Net_ACTIONSTATE(const uint8_t *, size_t);
         void Net_MONSTERGINFO(const uint8_t *, size_t);
+
+    public:
+        bool CanMove(bool, int, int);
+        bool CanMove(bool, int, int, int, int);
 };

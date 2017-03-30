@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 06/13/2016 17:21:58
+ *  Last Modified: 03/29/2017 15:38:36
  *
  *    Description: 
  *
@@ -30,7 +30,7 @@ class Hero: public Creature
         int         m_Job;
 
     public:
-        Hero(uint32_t, uint32_t, uint32_t, bool);
+        Hero(uint32_t, uint32_t, bool, ProcessRun *);
         ~Hero();
 
     public:

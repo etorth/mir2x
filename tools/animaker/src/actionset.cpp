@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 08/05/2015 11:22:52 PM
- *  Last Modified: 06/04/2016 19:16:28
+ *  Last Modified: 03/29/2017 13:03:49
  *
  *    Description: 
  *
@@ -46,6 +46,11 @@ ActionSet::ActionSet()
         m_PNG[0][nIndex] = nullptr;
         m_PNG[1][nIndex] = nullptr;
     }
+
+    std::memset(m_DSX, 0, 100 * sizeof(int));
+    std::memset(m_DSY, 0, 100 * sizeof(int));
+    std::memset(m_PX,  0, 100 * sizeof(int));
+    std::memset(m_PY,  0, 100 * sizeof(int));
 }
 
 ActionSet::~ActionSet()

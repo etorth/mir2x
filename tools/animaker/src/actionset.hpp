@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.hpp
  *        Created: 08/05/2015 11:22:52 PM
- *  Last Modified: 06/04/2016 19:00:46
+ *  Last Modified: 03/29/2017 13:37:36
  *
  *    Description: actionset only take care of actionset align, body frame align, and
  *                 shadow frame align
@@ -35,14 +35,36 @@ class ActionSet
         int       m_FileIndex;
         int       m_CurrentFrameIndex;
         int       m_FrameCount;
+
+        // (virtual start point, (0, 0))
+        //     +-------------------------------
+        //     |
+        //     |     (image start point, (ActionSet::m_DX[m_CurrentFrameIndex], ActionSet::m_DY[m_CurrentFrameIndex]))
+        //     |      +------------------------
+        //     |      |
+        //     |      |
+        //     |      |       (center point, (AnimationSet::m_DX, AnimationSet::m_DY))
+        //     |      |          +
+
+        // sometimes I think the shadow position is not good
+        // so I add m_DSX and m_DSY to give an offset to make it better
+        // bad idea?
         int       m_DSX[100];
         int       m_DSY[100];
+
+        // shadow <-> body offset
+        // this is read from the mil and mix files
         int       m_PX[100];
         int       m_PY[100];
+
         int       m_MaxW;
         int       m_MaxH;
         int       m_ImageMaxW;
         int       m_ImageMaxH;
+
+        // actionset is one set in animation set
+        // so I make this set can be moved by offset m_ActionSetAlignX and Y
+        // then all frames have this offset relative to other action sets
         int       m_ActionSetAlignX;
         int       m_ActionSetAlignY;
         bool      m_Valid;
@@ -52,7 +74,7 @@ class ActionSet
 
     public:
         ActionSet();
-        ~ActionSet();
+       ~ActionSet();
 
     public:
         bool Valid();

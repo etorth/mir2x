@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/28/2017 10:40:04
+ *  Last Modified: 03/29/2017 16:31:29
  *
  *    Description: 
  *
@@ -141,6 +141,25 @@ void ProcessRun::Draw()
             }
         }
 
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG == 10)
+        {
+            int nX0 = m_ViewX / SYS_MAPGRIDXP;
+            int nY0 = m_ViewY / SYS_MAPGRIDYP;
+
+            int nX1 = (m_ViewX + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
+            int nY1 = (m_ViewY + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
+
+            g_SDLDevice->PushColor(0, 255, 0, 128);
+            for(int nX = nX0; nX <= nX1; ++nX){
+                g_SDLDevice->DrawLine(nX * SYS_MAPGRIDXP - m_ViewX, 0, nX * SYS_MAPGRIDXP - m_ViewX, g_SDLDevice->WindowH(false));
+            }
+            for(int nY = nY0; nY <= nY1; ++nY){
+                g_SDLDevice->DrawLine(0, nY * SYS_MAPGRIDYP - m_ViewY, g_SDLDevice->WindowW(false), nY * SYS_MAPGRIDYP - m_ViewY);
+            }
+            g_SDLDevice->PopColor();
+        }
+#endif
+
         // over-ground objects
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
@@ -176,13 +195,39 @@ void ProcessRun::Draw()
                             }
                         }
                     }
+
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG == 10)
+                    {
+                        if(m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000){
+                            g_SDLDevice->PushColor(0, 255, 255, 128);
+                            int nX0 = nX * SYS_MAPGRIDXP - m_ViewX;
+                            int nY0 = nY * SYS_MAPGRIDYP - m_ViewX;
+                            int nX1 = (nX + 1) * SYS_MAPGRIDXP - m_ViewY;
+                            int nY1 = (nY + 1) * SYS_MAPGRIDYP - m_ViewY;
+                            g_SDLDevice->DrawLine(nX0, nY0, nX1, nY0);
+                            g_SDLDevice->DrawLine(nX1, nY0, nX1, nY1);
+                            g_SDLDevice->DrawLine(nX1, nY1, nX0, nY1);
+                            g_SDLDevice->DrawLine(nX0, nY1, nX0, nY0);
+                            g_SDLDevice->DrawLine(nX0, nY0, nX1, nY1);
+                            g_SDLDevice->DrawLine(nX1, nY0, nX0, nY1);
+                            g_SDLDevice->PopColor();
+                        }
+                    }
+#endif
                 }
 
                 // draw actors
                 {
                     for(auto pCreature: m_CreatureRecord){
                         if(pCreature.second && (pCreature.second->X() == nX) && (pCreature.second->Y() == nY)){
-                            pCreature.second->Draw(300, 300);
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG == 10)
+                            {
+                                g_SDLDevice->PushColor(0, 0, 255, 30);
+                                g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
+                                g_SDLDevice->PopColor();
+                            }
+#endif
+                            pCreature.second->Draw(m_ViewX, m_ViewY);
                         }
                     }
                 }
@@ -190,25 +235,6 @@ void ProcessRun::Draw()
             }
         }
     }
-
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG == 10)
-    {
-        int nX0 = m_ViewX / SYS_MAPGRIDXP;
-        int nY0 = m_ViewY / SYS_MAPGRIDYP;
-
-        int nX1 = (m_ViewX + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
-        int nY1 = (m_ViewY + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
-
-        g_SDLDevice->PushColor(0, 128, 0, 30);
-        for(int nX = nX0; nX <= nX1; ++nX){
-            g_SDLDevice->DrawLine(nX * SYS_MAPGRIDXP - m_ViewX, 0, nX * SYS_MAPGRIDXP - m_ViewX, g_SDLDevice->WindowH(false));
-        }
-        for(int nY = nY0; nY <= nY1; ++nY){
-            g_SDLDevice->DrawLine(0, nY * SYS_MAPGRIDYP - m_ViewY, g_SDLDevice->WindowW(false), nY * SYS_MAPGRIDYP - m_ViewY);
-        }
-        g_SDLDevice->PopColor();
-    }
-#endif
 
     m_ControbBoard.Draw();
     g_SDLDevice->Present();
@@ -367,4 +393,30 @@ int ProcessRun::LoadMap(uint32_t nMapID)
         }
     }
     return -1;
+}
+
+bool ProcessRun::CanMove(bool bCheckCreature, int nX, int nY){
+    if(m_Mir2xMapData.ValidC(nX, nY)
+            && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)
+            && (m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000)){
+        if(bCheckCreature){
+            for(auto pCreature: m_CreatureRecord){
+                if(pCreature.second && (pCreature.second->X() == nX) && (pCreature.second->Y() == nY)){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+bool ProcessRun::CanMove(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1)
+{
+    if(m_Mir2xMapData.ValidC(nX0, nY0)){
+        if(m_Mir2xMapData.ValidC(nX1, nY1) && (std::abs(nX0 - nX1) <= 1) && (std::abs(nY0 - nY1) <= 1)){
+            return CanMove(bCheckCreature, nX1, nY1);
+        }
+    }
+    return false;
 }

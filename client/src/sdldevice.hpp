@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 03/27/2017 21:47:48
+ *  Last Modified: 03/29/2017 14:35:07
  *
  *    Description: copy from flare-engine:
  *				   SDLHardwareRenderDevice.h/cpp
@@ -20,11 +20,13 @@
  */
 
 #pragma once
-#include "colorfunc.hpp"
+#include <array>
 #include <vector>
 #include <algorithm>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+
+#include "colorfunc.hpp"
 
 class SDLDevice final
 {
@@ -89,7 +91,7 @@ class SDLDevice final
 
        SDL_Color Color()
        {
-           return U32RGBA2Color(m_ColorStack.back());
+           return U32RGBA2Color(m_ColorStack.back()[0]);
        }
 
        void DrawPixel(int nX, int nY)
@@ -145,7 +147,7 @@ class SDLDevice final
        SDL_Renderer *m_Renderer;
 
     private:
-       std::vector<uint32_t> m_ColorStack;
+       std::vector<std::array<uint32_t, 2>> m_ColorStack;
 
     private:
        int m_WindowW;

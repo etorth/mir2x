@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 03/28/2017 12:24:06
+ *  Last Modified: 03/29/2017 17:07:52
  *
  *    Description: 
  *
@@ -17,8 +17,12 @@
  *
  * =====================================================================================
  */
-#include "monster.hpp"
 #include <SDL2/SDL.h>
+
+#include "monster.hpp"
+#include "processrun.hpp"
+#include "protocoldef.hpp"
+#include "clientpathfinder.hpp"
 
 // static monster global info map
 std::unordered_map<uint32_t, MonsterGInfo> Monster::s_MonsterGInfoMap;
@@ -34,8 +38,8 @@ static int s_knActionTableV[] = {
 };
 
 
-Monster::Monster(uint32_t nMonsterID, uint32_t nUID, uint32_t nAddTime)
-    : Creature(nUID, nAddTime)
+Monster::Monster(uint32_t nMonsterID, uint32_t nUID, ProcessRun *pRun)
+    : Creature(nUID, pRun)
     , m_MonsterID(nMonsterID)
     , m_LookIDN(0)
 {}
@@ -57,15 +61,55 @@ void Monster::Update()
     if(fTimeNow > m_FrameUpdateTime + m_FrameDelay){
         auto nFrameCount = (int)(FrameCount());
         if(nFrameCount){
-            m_Frame = (m_Frame + 1) % nFrameCount;
             switch(m_Action){
                 case ACTION_WALK:
                     {
-                        if(m_Frame == nFrameCount - m_FrameCountInNextCell){
+                        if(m_Frame == (nFrameCount - ((m_Direction == DIR_UPLEFT) ? 2 : 5))){
                             int nX, nY;
                             EstimateLocation(Speed(), &nX, &nY);
-                            ResetLocation(MapID(), nX, nY);
+                            if(m_ProcessRun->CanMove(true, nX, nY)){
+                                ResetLocation(nX, nY);
+                                m_Frame = (m_Frame + 1) % nFrameCount;
+                            }else if(m_ProcessRun->CanMove(false, nX, nY)){
+                                // move-able but some one is on the way
+                                // we just stay here and wait
+                            }else{
+                                m_Frame  = 0;
+                                m_Action = ACTION_STAND;
+                            }
+                        }else if(m_Frame == ((int)(FrameCount()) - 1)){
+                            m_Frame  = 0;
+                            m_Action = ACTION_STAND;
+
+                            // if((X() != m_MoveDstX) || (Y() != m_MoveDstY)){
+                            //     ClientPathFinder stPathFinder(false);
+                            //     if(stPathFinder.Search(X(), Y(), m_MoveDstX, m_MoveDstX)){
+                            //         if(auto pNode = stPathFinder.GetSolutionStart()){
+                            //             if((pNode = stPathFinder.GetSolutionNext())){
+                            //                 int nDX = pNode->X() - X() + 1;
+                            //                 int nDY = pNode->Y() - Y() + 1;
+                            //
+                            //                 const static int nDirV[][3] = {
+                            //                     {DIR_UPLEFT,    DIR_UP,         DIR_UPRIGHT  },
+                            //                     {DIR_LEFT,      DIR_UNKNOWN,    DIR_RIGHT    },
+                            //                     {DIR_DOWNLEFT,  DIR_DOWN,       DIR_DOWNRIGHT}};
+                            //                 m_Speed     = m_NextSpeed;
+                            //                 m_Direction = nDirV[nDY][nDX];
+                            //             }
+                            //         }
+                            //     }
+                            // }else{
+                            //     m_Frame  = 0;
+                            //     m_Action = ACTION_STAND;
+                            // }
+                        }else{
+                            m_Frame = (m_Frame + 1 ) % ((int)(FrameCount()));
                         }
+                        break;
+                    }
+                case ACTION_STAND:
+                    {
+                        m_Frame = (m_Frame + 1 ) % ((int)(FrameCount()));
                         break;
                     }
                 default:

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 03/26/2017 18:05:31
+ *  Last Modified: 03/29/2017 14:15:33
  *
  *    Description: put all non-atomic function as private
  *
@@ -85,7 +85,7 @@ class ServerMap: public ActiveObject
         }
 
     public:
-        bool GroundValid(int, int);
+        bool CanMove(bool, int, int);
 
     private:
         void On_MPK_HI(const MessagePack &, const Theron::Address &);

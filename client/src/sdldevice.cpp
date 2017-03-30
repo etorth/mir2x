@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 04/02/2016 13:14:18
+ *  Last Modified: 03/29/2017 14:51:14
  *
  *    Description: 
  *
@@ -18,9 +18,10 @@
  * =====================================================================================
  */
 
+#include <cassert>
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 #include <system_error>
+#include <SDL2/SDL_image.h>
 
 #include "xmlconf.hpp"
 #include "sdldevice.hpp"
@@ -129,8 +130,7 @@ SDLDevice::SDLDevice()
     }
 
     SetWindowIcon();
-
-    PushColor(0XFF, 0XFF, 0XFF, 0XFF);
+    PushColor(0, 0, 0, 0);
 }
 
 SDLDevice::~SDLDevice()
@@ -293,24 +293,30 @@ TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontP
 void SDLDevice::PushColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
 {
     uint32_t nARGB = Color2U32ARGB(MakeColor(nR, nG, nB, nA));
-    if(m_ColorStack.empty() || nARGB != m_ColorStack.back()){
+    if(m_ColorStack.empty() || nARGB != m_ColorStack.back()[0]){
         SetColor(nR, nG, nB, nA);
-        m_ColorStack.push_back(nARGB);
+        m_ColorStack.push_back({nARGB, 1});
+    }else{
+        ++m_ColorStack.back()[1];
     }
 }
 
 void SDLDevice::PopColor()
 {
-    if(m_ColorStack.size() >= 2){
-        uint32_t nOldARGB = m_ColorStack.back();
-        m_ColorStack.pop_back();
-        if(m_ColorStack.back() != nOldARGB){
-            SDL_Color stColor = U32ARGB2Color(m_ColorStack.back());
-            SetColor(stColor.r, stColor.g, stColor.b, stColor.a);
-        }
+    if(m_ColorStack.empty()){
+        PushColor(0, 0, 0, 0);
     }else{
-        m_ColorStack.clear();
-        PushColor(0X00, 0X00, 0X00, 0X00);
+        assert(m_ColorStack.back()[1]);
+        if(m_ColorStack.back()[1] == 1){
+            m_ColorStack.pop_back();
+            if(m_ColorStack.empty()){
+                PushColor(0, 0, 0, 0);
+            }else{
+                SDL_Color stColor = U32ARGB2Color(m_ColorStack.back()[0]);
+                SetColor(stColor.r, stColor.g, stColor.b, stColor.a);
+            }
+        }else{
+            --m_ColorStack.back()[1];
+        }
     }
 }
-

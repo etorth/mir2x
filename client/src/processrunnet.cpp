@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/28/2017 16:11:45
+ *  Last Modified: 03/29/2017 16:53:58
  *
  *    Description: 
  *
@@ -36,9 +36,9 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
     std::memcpy(&stSMLOK, pBuf, nLen);
 
     LoadMap(stSMLOK.MapID);
-    m_MyHero = new MyHero(stSMLOK.GUID, stSMLOK.UID, stSMLOK.AddTime, (bool)(stSMLOK.Male));
+    m_MyHero = new MyHero(stSMLOK.GUID, stSMLOK.UID, (bool)(stSMLOK.Male), this);
 
-    m_MyHero->ResetLocation(stSMLOK.MapID, (int)(stSMLOK.X), (int)(stSMLOK.Y));
+    m_MyHero->ResetLocation((int)(stSMLOK.X), (int)(stSMLOK.Y));
     m_MyHero->ResetDirection((int)(stSMLOK.Direction));
     m_MyHero->ResetLevel((int)(stSMLOK.Level));
     m_MyHero->ResetJob((int)(stSMLOK.JobID));
@@ -53,9 +53,7 @@ void ProcessRun::Net_ACTIONSTATE(const uint8_t *pBuf, size_t)
         auto pRecord = m_CreatureRecord.find(stSMAS.UID);
         if(pRecord != m_CreatureRecord.end()){
             if(auto pCreature = pRecord->second){
-                if(pCreature->MapID() == stSMAS.MapID){
-                    pCreature->ResetActionState((int)(stSMAS.Action), (int)(stSMAS.Direction), stSMAS.Speed, stSMAS.X, stSMAS.Y);
-                }
+                pCreature->OnActionState((int)(stSMAS.Action), (int)(stSMAS.Direction), stSMAS.Speed, stSMAS.X, stSMAS.Y);
             }
         }
     }
@@ -72,38 +70,42 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
     SMCORecord stSMCOR;
     std::memcpy(&stSMCOR, pBuf, sizeof(stSMCOR));
 
-    Creature *pCreature = nullptr;
-    uint64_t nCOKey = ((((uint64_t)stSMCOR.Common.UID) << 32) + stSMCOR.Common.AddTime);
+    if(stSMCOR.Common.MapID == m_MapID){
+        int nX = stSMCOR.Common.MapX;
+        int nY = stSMCOR.Common.MapY;
 
-    auto pRecord = m_CreatureRecord.find(nCOKey);
-    if(pRecord == m_CreatureRecord.end()){
-        switch(stSMCOR.Type){
-            case CREATURE_MONSTER:
-                {
-                    pCreature = new Monster(stSMCOR.Monster.MonsterID, stSMCOR.Common.UID, stSMCOR.Common.AddTime);
-                    break;
-                }
-            case CREATURE_PLAYER:
-                {
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
+        int nSpeed     = stSMCOR.Common.Speed;
+        int nAction    = stSMCOR.Common.Action;
+        int nDirection = stSMCOR.Common.Direction;
+
+        auto pRecord = m_CreatureRecord.find(stSMCOR.Common.UID);
+        if(pRecord == m_CreatureRecord.end()){
+            switch(stSMCOR.Type){
+                case CREATURE_MONSTER:
+                    {
+                        auto pMonster = new Monster(stSMCOR.Monster.MonsterID, stSMCOR.Common.UID, this);
+
+                        pMonster->ResetSpeed(nSpeed);
+                        pMonster->ResetAction(nAction);
+                        pMonster->ResetLocation(nX, nY);
+                        pMonster->ResetDirection(nDirection);
+
+                        m_CreatureRecord[stSMCOR.Common.UID] = pMonster;
+                        break;
+                    }
+                case CREATURE_PLAYER:
+                    {
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }else{
+            if(pRecord->second){
+                pRecord->second->OnCORecord(nAction, nDirection, nSpeed, nX, nY);
+            }
         }
-    }else{
-        pCreature = pRecord->second;
-    }
-
-    if(pCreature){
-        pCreature->ResetLocation(stSMCOR.Common.MapID, (int)stSMCOR.Common.MapX, (int)stSMCOR.Common.MapY);
-
-        pCreature->ResetAction((int)stSMCOR.Common.Action);
-        pCreature->ResetDirection((int)stSMCOR.Common.Direction);
-
-        pCreature->ResetSpeed((int)stSMCOR.Common.Speed);
-
-        m_CreatureRecord[nCOKey] = pCreature;
     }
 }

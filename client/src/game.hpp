@@ -64,9 +64,9 @@ class Game
         void   Draw();
 
     public:
-        bool ProcessValid(int nProcessID)
+        Process *ProcessValid(int nProcessID)
         {
-            return (m_CurrentProcess && m_CurrentProcess->ID() == nProcessID);
+            return (m_CurrentProcess && m_CurrentProcess->ID() == nProcessID) ? m_CurrentProcess : nullptr;
         }
 
     public:

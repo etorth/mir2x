@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 03/28/2017 11:51:25
+ *  Last Modified: 03/29/2017 18:43:58
  *
  *    Description: 
  *
@@ -120,14 +120,16 @@ class CharObject: public ActiveObject
                 int,                    // map x
                 int,                    // map y
                 int,                    // direction
-                uint8_t,                // life cycle state
-                uint8_t);               // action state
+                uint8_t);               // life cycle state
        ~CharObject() = default;
 
     public:
         bool Active()
         {
-            return !State(STATE_DEAD) && !State(STATE_PHANTOM);
+            if(State(STATE_DEAD   )){ return false; }
+            if(State(STATE_PHANTOM)){ return false; }
+
+            return true;
         }
 
         virtual int Speed() = 0;
@@ -168,9 +170,6 @@ class CharObject: public ActiveObject
                 default           : return DIR_UNKNOWN;
             }
         }
-
-    public:
-        int Action();
 
     public:
         virtual int  Range(uint8_t) = 0;

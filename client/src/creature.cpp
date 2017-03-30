@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/28/2017 18:06:13
+ *  Last Modified: 03/29/2017 16:53:05
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 
 #include <string>
+#include <cassert>
 #include <algorithm>
 #include <tinyxml2.h>
 #include <SDL2/SDL.h>
@@ -26,22 +27,25 @@
 #include "creature.hpp"
 #include "sysconst.hpp"
 
-Creature::Creature(uint32_t nUID, uint32_t nAddTime)
+Creature::Creature(uint32_t nUID, ProcessRun *pRun)
     : m_UID(nUID)
-    , m_AddTime(nAddTime)
     , m_X(0)
     , m_Y(0)
-    , m_MapID(0)
+    , m_MoveDstX(0)
+    , m_MoveDstY(0)
+    , m_ProcessRun(pRun)
     , m_LogicDelay(120.0)
     , m_FrameDelay(180.0)
     , m_LogicUpdateTime(0.0)
     , m_FrameUpdateTime(0.0)
     , m_Frame(0)
-    , m_FrameCountInNextCell(5)
     , m_Speed(0)
+    , m_NextSpeed(0)
     , m_Action(0)
     , m_Direction(0)
-{}
+{
+    assert(m_ProcessRun);
+}
 
 Creature::~Creature()
 {}
@@ -57,6 +61,7 @@ void Creature::EstimateLocation(int nDistance, int *pNextX, int *pNextY)
 
 void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
 {
+    int nFrameCountInNextCell = (m_Direction == DIR_UPLEFT) ? 2 : 5;
     switch(m_Action){
         case ACTION_WALK:
             {
@@ -66,7 +71,7 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                         {
                             if(pShiftX){ *pShiftX = 0; }
                             if(pShiftY){
-                                if(m_Frame < nFrameCount - m_FrameCountInNextCell){
+                                if(m_Frame < nFrameCount - nFrameCountInNextCell){
                                     *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (m_Frame + 1) * Speed());
                                 }else{
                                     *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_Frame + 1)) * Speed());
@@ -77,14 +82,14 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                     case DIR_UPRIGHT:
                         {
                             if(pShiftX){
-                                if(m_Frame < nFrameCount - m_FrameCountInNextCell){
+                                if(m_Frame < nFrameCount - nFrameCountInNextCell){
                                     *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (m_Frame + 1) * Speed());
                                 }else{
                                     *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_Frame + 1)) * Speed());
                                 }
                             }
                             if(pShiftY){
-                                if(m_Frame < nFrameCount - m_FrameCountInNextCell){
+                                if(m_Frame < nFrameCount - nFrameCountInNextCell){
                                     *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (m_Frame + 1) * Speed());
                                 }else{
                                     *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_Frame + 1)) * Speed());
@@ -95,7 +100,7 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                     case DIR_RIGHT:
                         {
                             if(pShiftX){
-                                if(m_Frame < nFrameCount - m_FrameCountInNextCell){
+                                if(m_Frame < nFrameCount - nFrameCountInNextCell){
                                     *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (m_Frame + 1) * Speed());
                                 }else{
                                     *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_Frame + 1)) * Speed());
@@ -107,14 +112,14 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                     case DIR_DOWNRIGHT:
                         {
                             if(pShiftX){
-                                if(m_Frame < nFrameCount - m_FrameCountInNextCell){
+                                if(m_Frame < nFrameCount - nFrameCountInNextCell){
                                     *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (m_Frame + 1) * Speed());
                                 }else{
                                     *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_Frame + 1)) * Speed());
                                 }
                             }
                             if(pShiftY){
-                                if(m_Frame < nFrameCount - m_FrameCountInNextCell){
+                                if(m_Frame < nFrameCount - nFrameCountInNextCell){
                                     *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (m_Frame + 1) * Speed());
                                 }else{
                                     *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_Frame + 1)) * Speed());
@@ -126,7 +131,7 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                         {
                             if(pShiftX){ *pShiftX = 0; }
                             if(pShiftY){
-                                if(m_Frame < nFrameCount - m_FrameCountInNextCell){
+                                if(m_Frame < nFrameCount - nFrameCountInNextCell){
                                     *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (m_Frame + 1) * Speed());
                                 }else{
                                     *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_Frame + 1)) * Speed());
@@ -137,14 +142,14 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                     case DIR_DOWNLEFT:
                         {
                             if(pShiftX){
-                                if(m_Frame < nFrameCount - m_FrameCountInNextCell){
+                                if(m_Frame < nFrameCount - nFrameCountInNextCell){
                                     *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (m_Frame + 1) * Speed());
                                 }else{
                                     *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_Frame + 1)) * Speed());
                                 }
                             }
                             if(pShiftY){
-                                if(m_Frame < nFrameCount - m_FrameCountInNextCell){
+                                if(m_Frame < nFrameCount - nFrameCountInNextCell){
                                     *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (m_Frame + 1) * Speed());
                                 }else{
                                     *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_Frame + 1)) * Speed());
@@ -155,7 +160,7 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                     case DIR_LEFT:
                         {
                             if(pShiftX){
-                                if(m_Frame < nFrameCount - m_FrameCountInNextCell){
+                                if(m_Frame < nFrameCount - nFrameCountInNextCell){
                                     *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (m_Frame + 1) * Speed());
                                 }else{
                                     *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_Frame + 1)) * Speed());
@@ -167,14 +172,14 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                     case DIR_UPLEFT:
                         {
                             if(pShiftX){
-                                if(m_Frame < nFrameCount - m_FrameCountInNextCell){
+                                if(m_Frame < nFrameCount - nFrameCountInNextCell){
                                     *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (m_Frame + 1) * Speed());
                                 }else{
                                     *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_Frame + 1)) * Speed());
                                 }
                             }
                             if(pShiftY){
-                                if(m_Frame < nFrameCount - m_FrameCountInNextCell){
+                                if(m_Frame < nFrameCount - nFrameCountInNextCell){
                                     *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (m_Frame + 1) * Speed());
                                 }else{
                                     *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_Frame + 1)) * Speed());
@@ -197,4 +202,82 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                 return;
             }
     }
+}
+
+void Creature::OnActionState(int nAction, int nDirection, int nSpeed, int nX, int nY)
+{
+    switch(nAction){
+        case ACTION_WALK:
+            {
+                switch(m_Action){
+                    case ACTION_WALK:
+                        {
+                            m_MoveDstX = nX;
+                            m_MoveDstY = nY;
+
+                            m_NextSpeed = nSpeed;
+                            break;
+                        }
+                    case ACTION_STAND:
+                        {
+                            if((X() != nX) || (Y() != nY)){
+                                m_MoveDstX = nX;
+                                m_MoveDstY = nY;
+                                
+                                m_Frame  = 0;
+                                m_Speed  = nSpeed;
+                                m_Action = ACTION_WALK;
+                            }else{
+                                m_Speed = nSpeed;
+                                m_Direction = nDirection;
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+                break;
+            }
+        case ACTION_STAND:
+            {
+                switch(m_Action){
+                    case ACTION_WALK:
+                        {
+                            m_MoveDstX = nX;
+                            m_MoveDstY = nY;
+                            break;
+                        }
+                    case ACTION_STAND:
+                        {
+                            if((X() != nX) || (Y() != nY)){
+                                m_MoveDstX = nX;
+                                m_MoveDstY = nY;
+
+                                m_Frame  = 0;
+                                m_Speed  = nSpeed;
+                                m_Action = ACTION_WALK;
+                            }else{
+                                m_Speed  = nSpeed;
+                                m_Direction = nDirection;
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+            }
+        default:
+            {
+                break;
+            }
+    }
+}
+
+void Creature::OnCORecord(int nAction, int nDirection, int nSpeed, int nX, int nY)
+{
+    OnActionState(nAction, nDirection, nSpeed, nX, nY);
 }

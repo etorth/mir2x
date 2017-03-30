@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/28/2017 16:12:39
+ *  Last Modified: 03/29/2017 16:51:41
  *
  *    Description: 
  *
@@ -25,16 +25,20 @@
 
 #include "protocoldef.hpp"
 
+class ProcessRun;
 class Creature
 {
     protected:
         uint32_t m_UID;
-        uint32_t m_AddTime;
 
         int m_X;
         int m_Y;
 
-        uint32_t m_MapID;
+        int m_MoveDstX;
+        int m_MoveDstY;
+
+    protected:
+        ProcessRun *m_ProcessRun;
 
     protected:
         // we split logic update and frame update here
@@ -45,23 +49,18 @@ class Creature
 
     protected:
         int    m_Frame;
-        int    m_FrameCountInNextCell;
 
     protected:
         int    m_Speed;
+        int    m_NextSpeed;
         int    m_Action;
         int    m_Direction;
 
     public:
-        Creature(uint32_t, uint32_t);
+        Creature(uint32_t, ProcessRun *);
         virtual ~Creature();
 
     public:
-        uint32_t MapID()
-        {
-            return m_MapID;
-        }
-
         int Speed()
         {
             return m_Speed;
@@ -92,14 +91,14 @@ class Creature
             m_Direction = nDirection;
         }
 
-        void ResetLocation(uint32_t nMapID, int nX, int nY)
+        void ResetLocation(int nX, int nY)
         {
-            m_MapID = nMapID;
             m_X = nX;
             m_Y = nY;
         }
 
     public:
+        virtual void OnCORecord(int, int, int, int, int);
         virtual void OnActionState(int, int, int, int, int);
 
     public:
@@ -114,14 +113,9 @@ class Creature
         }
 
     public:
-        int UID()
+        uint32_t UID()
         {
             return m_UID;
-        }
-
-        int AddTime()
-        {
-            return m_AddTime;
         }
 
     public:

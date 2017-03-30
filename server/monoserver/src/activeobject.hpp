@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 03/26/2017 17:31:41
+ *  Last Modified: 03/29/2017 18:27:05
  *
  *    Description: server object with active state
  *                      1. it's active via actor pod
@@ -92,12 +92,6 @@ enum ObjectState: uint8_t
     STATE_MOTION,
     STATE_MOVING,
     STATE_DEAD,
-
-    STATE_ACTION,
-    STATE_STAND,
-    STATE_WALK,
-    STATE_ATTACK,
-    STATE_DIE,
 
     STATE_MODE,
     STATE_NEVERDIE,

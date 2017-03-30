@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 03/28/2017 19:50:57
+ *  Last Modified: 03/29/2017 00:59:50
  *
  *    Description: A-Star algorithm for path find
  *
@@ -145,16 +145,3 @@ class AStarPathFinderNode
             return (m_CurrX == rstNode.m_CurrX) && (m_CurrY == rstNode.m_CurrY);
         }
 };
-
-bool AStarPathFinder::Search(int nX0, int nY0, int nX1, int nY1)
-{
-    AStarPathFinderNode stNode0 {nX0, nY0, this};
-    AStarPathFinderNode stNode1 {nX1, nY1, this};
-    SetStartAndGoalStates(stNode0, stNode1);
-
-    unsigned int nSearchState;
-    do{
-        nSearchState = SearchStep();
-    }while(nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SEARCHING);
-    return nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SUCCEEDED;
-}

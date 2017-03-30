@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 03/28/2017 15:51:05
+ *  Last Modified: 03/29/2017 14:17:29
  *
  *    Description: 
  *
@@ -111,7 +111,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
         g_MonoServer->Restart();
     }
 
-    if(!GroundValid(stAMACO.Common.MapX, stAMACO.Common.MapY)){
+    if(!CanMove(true, stAMACO.Common.MapX, stAMACO.Common.MapY)){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
@@ -196,7 +196,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
         g_MonoServer->Restart();
     }
 
-    if(!GroundValid(stAMTM.X, stAMTM.Y)){
+    if(!CanMove(true, stAMTM.X, stAMTM.Y)){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }

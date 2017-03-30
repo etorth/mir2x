@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/28/2017 13:31:42
+ *  Last Modified: 03/29/2017 18:37:42
  *
  *    Description: 
  *
@@ -48,70 +48,20 @@ Monster::Monster(uint32_t   nMonsterID,
 
 bool Monster::Update()
 {
-    switch(State(STATE_ACTION)){
-        case STATE_STAND:
-        case STATE_WALK:
-            {
-                return RandomWalk();
-            }
-        default:
-            {
-                // TODO ...
-                return true;
-            }
+    if((std::rand() % 99991) < (99991 / 2)){
+        int nNextX = 0;
+        int nNextY = 0;
+        if(NextLocation(&nNextX, &nNextY, Speed())){
+            RequestMove(nNextX, nNextY);
+        }
+    }else{
+        if(std::rand() % 99991 < (99991 / 2)){
+            m_Direction = std::rand() % 8;
+            DispatchAction();
+        }
     }
 
     return true;
-}
-
-bool Monster::RandomWalk()
-{
-    // 1. if current the moving is in progress
-    if(m_FreezeWalk){ return false; }
-
-    // 2. ok we make a direction generator
-    RandomPick<int> stRandomPick;
-
-    stRandomPick.Add(160 + 20, 0);
-    stRandomPick.Add( 80 + 20, 1);
-    stRandomPick.Add( 80 + 20, 7);
-    stRandomPick.Add( 40 + 20, 2);
-    stRandomPick.Add( 40 + 20, 6);
-    stRandomPick.Add( 20 + 20, 3);
-    stRandomPick.Add( 20 + 20, 5);
-    stRandomPick.Add( 10 + 20, 4);
-
-    // 3. decide to walk
-    switch(State(STATE_ACTION)){
-        case STATE_STAND:
-            {
-                if((std::rand() % 99991) < (99991 / 10)){
-                    int nNextX = 0;
-                    int nNextY = 0;
-                    if(NextLocation(&nNextX, &nNextY, Speed())){
-                        RequestMove(nNextX, nNextY);
-                    }
-                }else{
-                    if(std::rand() % 99991 < (99991 / 10)){
-                        m_Direction = stRandomPick.Pick();
-                        DispatchAction();
-                    }
-                }
-                return true;
-            }
-        case STATE_WALK:
-            {
-                if((std::rand() % 99991) < (99991 / 10)){
-                    ResetState(STATE_ACTION, STATE_STAND);
-                    DispatchAction();
-                }
-                return true;
-            }
-        default:
-            {
-                return false;
-            }
-    }
 }
 
 void Monster::RequestSpaceMove(const char *szAddr, int nX, int nY)
@@ -165,7 +115,6 @@ bool Monster::RequestMove(int nX, int nY)
 
     stAMTM.This    = (uintptr_t)(this);
     stAMTM.UID     = m_UID;
-    stAMTM.AddTime = m_AddTime;
     stAMTM.X       = nX;
     stAMTM.Y       = nY;
     stAMTM.MapID   = m_Map->ID();
@@ -179,7 +128,6 @@ bool Monster::RequestMove(int nX, int nY)
                     m_CurrX = nX;
                     m_CurrY = nY;
                     m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-                    ResetState(STATE_ACTION, STATE_WALK);
                     DispatchAction();
 
                     m_FreezeWalk = false;
@@ -270,11 +218,10 @@ void Monster::ReportCORecord(uint32_t nSessionID)
 
         // 2. set common info
         pMem->Common.UID       = UID();
-        pMem->Common.AddTime   = AddTime();
         pMem->Common.MapID     = MapID();
         pMem->Common.MapX      = X();
         pMem->Common.MapY      = Y();
-        pMem->Common.Action    = (uint32_t)Action();
+        pMem->Common.Action    = (uint32_t)(Action());
         pMem->Common.Direction = Direction();
         pMem->Common.Speed     = Speed();
 

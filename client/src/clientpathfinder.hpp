@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: hero.cpp
- *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 03/29/2017 15:38:20
+ *       Filename: clientpathfinder.hpp
+ *        Created: 03/28/2017 21:13:11
+ *  Last Modified: 03/29/2017 00:19:44
  *
  *    Description: 
  *
@@ -18,21 +18,15 @@
  * =====================================================================================
  */
 
-#include "hero.hpp"
+#pragma once
+#include "pathfinder.hpp"
 
-Hero::Hero(uint32_t nGUID, uint32_t nUID, bool bMale, ProcessRun *pRun)
-    : Creature(nUID, pRun)
-    , m_GUID(nGUID)
-    , m_Male(bMale)
-{}
-
-Hero::~Hero()
-{}
-
-void Hero::Draw(int, int)
+class ClientPathFinder: public AStarPathFinder
 {
-}
+    private:
+        bool m_CheckCreature;
 
-void Hero::Update()
-{
-}
+    public:
+        ClientPathFinder(bool);
+       ~ClientPathFinder() = default;
+};
