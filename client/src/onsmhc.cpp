@@ -3,7 +3,7 @@
  *
  *       Filename: onsmhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 03/27/2017 21:23:29
+ *  Last Modified: 03/30/2017 14:14:51
  *
  *    Description: 
  *
@@ -41,21 +41,22 @@ void Game::OperateHC(uint8_t nHC)
 
 void Game::Net_PING()
 {
-    extern Log *g_Log;
-    g_Log->AddLog(LOGTYPE_INFO, "on ping");
+    auto fnDoPing = [this](const uint8_t *, size_t){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_INFO, "on ping");
+    };
+
+    Read(sizeof(SMPing), fnDoPing);
 }
 
 void Game::Net_LOGINOK()
 {
     auto fnDoLoginOK = [this](const uint8_t *pBuf, size_t nLen){
         SwitchProcess(m_CurrentProcess->ID(), PROCESSID_RUN);
-        auto pRun = (ProcessRun *)m_CurrentProcess;
-
-        extern Log *g_Log;
-        if(pRun){
+        if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
             pRun->Net_LOGINOK(pBuf, nLen);
-            g_Log->AddLog(LOGTYPE_INFO, "login succeed");
         }else{
+            extern Log *g_Log;
             g_Log->AddLog(LOGTYPE_INFO, "failed to jump into main loop");
         }
     };
@@ -72,13 +73,9 @@ void Game::Net_LOGINFAIL()
 void Game::Net_ACTIONSTATE()
 {
     auto fnActionState = [this](const uint8_t *pBuf, size_t nLen){
-        // 1. receive object motion state update while game is not in running state
-        //    do we need to inform server?
-        if(!(m_CurrentProcess && m_CurrentProcess->ID() == PROCESSID_RUN)){ return; }
-
-        // 2. ok we are in running state
-        auto pRun = (ProcessRun *)m_CurrentProcess;
-        pRun->Net_ACTIONSTATE(pBuf, nLen);
+        if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+            pRun->Net_ACTIONSTATE(pBuf, nLen);
+        }
     };
 
     Read(sizeof(SMActionState), fnActionState);
@@ -86,10 +83,10 @@ void Game::Net_ACTIONSTATE()
 
 void Game::Net_MONSTERGINFO()
 {
-    if(!ProcessValid(PROCESSID_RUN)){ return; }
     auto fnOnGetMonsterGInfo = [this](const uint8_t *pBuf, size_t nLen){
-        if(!ProcessValid(PROCESSID_RUN)){ return; }
-        ((ProcessRun *)m_CurrentProcess)->Net_MONSTERGINFO(pBuf, nLen);
+        if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+            pRun->Net_MONSTERGINFO(pBuf, nLen);
+        }
     };
 
     Read(sizeof(SMMonsterGInfo), fnOnGetMonsterGInfo);
@@ -97,10 +94,10 @@ void Game::Net_MONSTERGINFO()
 
 void Game::Net_CORECORD()
 {
-    if(!ProcessValid(PROCESSID_RUN)){ return; }
     auto fnOnGetCORecord = [this](const uint8_t *pBuf, size_t nLen){
-        if(!ProcessValid(PROCESSID_RUN)){ return; }
-        ((ProcessRun *)m_CurrentProcess)->Net_CORECORD(pBuf, nLen);
+        if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+            pRun->Net_CORECORD(pBuf, nLen);
+        }
     };
 
     Read(sizeof(SMCORecord), fnOnGetCORecord);

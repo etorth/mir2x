@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/30/2017 01:53:19
+ *  Last Modified: 03/30/2017 13:52:27
  *
  *    Description: 
  *
@@ -52,12 +52,11 @@ bool Monster::Update()
             RequestMove(nNextX, nNextY);
         }
     }else{
-        if(std::rand() % 99991 < (99991 / 2)){
+        if((std::rand() % 99991) < (99991 / 4)){
             m_Direction = std::rand() % 8;
-            DispatchAction();
+            DispatchAction(ACTION_STAND);
         }
     }
-
     return true;
 }
 
@@ -123,13 +122,15 @@ bool Monster::RequestMove(int nX, int nY)
                     m_CurrX = nX;
                     m_CurrY = nY;
                     m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-                    DispatchAction();
+                    DispatchAction(ACTION_WALK);
 
                     m_FreezeWalk = false;
                     break;
                 }
             case MPK_ERROR:
                 {
+                    m_Direction = GetBack();
+                    DispatchAction(ACTION_STAND);
                     m_FreezeWalk = false;
                     break;
                 }
@@ -203,6 +204,7 @@ void Monster::ReportCORecord(uint32_t nSessionID)
         pMem->Common.MapY      = Y();
         pMem->Common.Direction = Direction();
         pMem->Common.Speed     = Speed();
+        pMem->Common.Action    = ACTION_STAND;
 
         // 3. set specified info
         pMem->Monster.MonsterID = m_MonsterID;

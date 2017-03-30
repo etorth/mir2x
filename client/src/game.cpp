@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/27/2017 21:21:46
+ *  Last Modified: 03/30/2017 14:16:44
  *
  *    Description: public API for class game only
  *
@@ -112,7 +112,7 @@ void Game::MainLoop()
         
         double fCurrentMS = GetTimeTick();
         if(m_NetPackTick > 0.0){
-            if(fCurrentMS - m_NetPackTick > 5.0 * 1000){
+            if(fCurrentMS - m_NetPackTick > 15.0 * 1000){
                 std::exit(0);
             }
         }

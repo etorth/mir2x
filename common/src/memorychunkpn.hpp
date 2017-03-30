@@ -3,10 +3,12 @@
  *
  *       Filename: memorychunkpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 06/11/2016 23:07:49
+ *  Last Modified: 03/30/2017 12:32:35
  *
  *    Description: unfixed-size memory chunk pool, thread safe is optional, but self-contained
  *                 this algorithm is based on buddy algorithm
+ *
+ *                 TODO: get ride of strict aliasing issue
  *
  *                 copy from https://github.com/wuwenbin/buddy2
  *
@@ -465,6 +467,11 @@ class MemoryChunkPN
 
             // to make the compiler happy
             return nullptr;
+        }
+
+        template<typename T> T *Get()
+        {
+            return (T *)(Get(sizeof(T)));
         }
 
         void Free(void *pBuf)

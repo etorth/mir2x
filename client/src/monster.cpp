@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 03/29/2017 17:07:52
+ *  Last Modified: 03/30/2017 14:06:19
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 #include <SDL2/SDL.h>
 
+#include "log.hpp"
 #include "monster.hpp"
 #include "processrun.hpp"
 #include "protocoldef.hpp"
@@ -64,7 +65,7 @@ void Monster::Update()
             switch(m_Action){
                 case ACTION_WALK:
                     {
-                        if(m_Frame == (nFrameCount - ((m_Direction == DIR_UPLEFT) ? 2 : 5))){
+                        if(m_Frame == (nFrameCount - (((m_Direction == DIR_UPLEFT) ? 5 : 2) + 1))){
                             int nX, nY;
                             EstimateLocation(Speed(), &nX, &nY);
                             if(m_ProcessRun->CanMove(true, nX, nY)){
@@ -103,7 +104,7 @@ void Monster::Update()
                             //     m_Action = ACTION_STAND;
                             // }
                         }else{
-                            m_Frame = (m_Frame + 1 ) % ((int)(FrameCount()));
+                            m_Frame = (m_Frame + 1 ) % nFrameCount;
                         }
                         break;
                     }
@@ -149,6 +150,11 @@ void Monster::Draw(int nViewX, int nViewY)
     int nShiftX = 0;
     int nShiftY = 0;
     EstimatePixelShift(&nShiftX, &nShiftY);
+
+    {
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_INFO, "X = %d, Y = %d, Action = %d, Frame = %d, ShiftX = %d, ShiftY = %d", X(), Y(), m_Action, m_Frame, nShiftX, nShiftY);
+    }
 
     extern SDLDevice *g_SDLDevice;
     if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }

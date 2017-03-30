@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/29/2017 16:53:05
+ *  Last Modified: 03/30/2017 14:06:44
  *
  *    Description: 
  *
@@ -41,7 +41,7 @@ Creature::Creature(uint32_t nUID, ProcessRun *pRun)
     , m_Frame(0)
     , m_Speed(0)
     , m_NextSpeed(0)
-    , m_Action(0)
+    , m_Action(ACTION_NONE)
     , m_Direction(0)
 {
     assert(m_ProcessRun);
@@ -61,7 +61,7 @@ void Creature::EstimateLocation(int nDistance, int *pNextX, int *pNextY)
 
 void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
 {
-    int nFrameCountInNextCell = (m_Direction == DIR_UPLEFT) ? 2 : 5;
+    int nFrameCountInNextCell = (m_Direction == DIR_UPLEFT) ? 5 : 2;
     switch(m_Action){
         case ACTION_WALK:
             {
@@ -272,6 +272,11 @@ void Creature::OnActionState(int nAction, int nDirection, int nSpeed, int nX, in
             }
         default:
             {
+                ResetAction(nAction);
+                ResetSpeed(nSpeed);
+                ResetLocation(nX, nY);
+                ResetDirection(nDirection);
+
                 break;
             }
     }

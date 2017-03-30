@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 03/28/2017 15:53:57
+ *  Last Modified: 03/30/2017 11:17:27
  *
  *    Description: net message used by client and mono-server
  *
@@ -23,6 +23,7 @@
 
 enum: uint8_t
 {
+    SM_NONE,
     SM_OK,
     SM_ERROR,
     SM_REFUSE,
@@ -60,6 +61,11 @@ typedef struct{
     uint32_t MapID;
     uint32_t Direction;
 }SMLoginOK;
+
+typedef struct
+{
+    uint32_t Tick;
+}SMPing;
 
 typedef struct
 {

@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 03/30/2017 01:50:59
+ *  Last Modified: 03/30/2017 11:58:19
  *
  *    Description: 
  *
@@ -43,14 +43,9 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     g_NetPodN->Send(m_SessionID, SM_LOGINOK, (uint8_t *)pMem, sizeof(SMLoginOK), [pMem](){ g_MemoryPN->Free(pMem); });
 
     if(ActorPodValid() && m_Map->ActorPodValid()){
-        AMUpdateCOInfo stAMUCOI;
-        stAMUCOI.UID       = UID();
-        stAMUCOI.X         = X();
-        stAMUCOI.Y         = Y();
-        stAMUCOI.MapID     = m_Map->ID();
-        stAMUCOI.SessionID = m_SessionID;
-
-        m_ActorPod->Forward({MPK_UPDATECOINFO, stAMUCOI}, m_Map->GetAddress());
+        AMPullCOInfo stAMPCOI;
+        stAMPCOI.SessionID = m_SessionID;
+        m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
     }
 }
 
@@ -60,10 +55,19 @@ void Player::On_MPK_HI(const MessagePack &, const Theron::Address &)
 
 void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
-    AMPullCOInfo stAMPCOI;
-    stAMPCOI.SessionID = m_SessionID;
+    extern NetPodN *g_NetPodN;
+    extern MemoryPN *g_MemoryPN;
+    extern MonoServer *g_MonoServer;
 
-    m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
+    auto pMem = (SMPing *)(g_MemoryPN->Get(sizeof(SMPing)));
+    pMem->Tick = g_MonoServer->GetTimeTick();
+
+    extern NetPodN *g_NetPodN;
+    g_NetPodN->Send(m_SessionID, SM_PING, (uint8_t *)pMem, sizeof(SMPing), [pMem](){ g_MemoryPN->Free(pMem); });
+    // AMPullCOInfo stAMPCOI;
+    // stAMPCOI.SessionID = m_SessionID;
+
+    // m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
 }
 
 void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &)
