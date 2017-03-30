@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/29/2017 18:09:54
+ *  Last Modified: 03/30/2017 00:24:17
  *
  *    Description: 
  *
@@ -41,7 +41,7 @@ MonoServer::MonoServer()
     , m_DlgLock()
     , m_LogBuf(128)
     , m_ServiceCore(nullptr)
-    , m_GlobalUID(0)
+    , m_GlobalUID(1)
     , m_StartTime()
     , m_NetMessageAttributeV()
     , m_MonsterGInfoRecord()

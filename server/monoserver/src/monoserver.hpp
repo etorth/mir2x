@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 03/28/2017 15:31:47
+ *  Last Modified: 03/30/2017 00:24:00
  *
  *    Description: 
  *
@@ -152,6 +152,6 @@ class MonoServer final
 
         uint32_t GetTimeTick()
         {
-            return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - m_StartTime).count();
+            return (uint32_t)(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - m_StartTime).count());
         }
 };

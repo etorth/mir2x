@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 03/28/2017 12:38:59
+ *  Last Modified: 03/30/2017 01:46:45
  *
  *    Description: 
  *
@@ -85,15 +85,8 @@ class Monster: public CharObject
                 int,                    // map x
                 int,                    // map y
                 int,                    // direction
-                uint8_t,                // life cycle state
-                uint8_t);               // action state
+                uint8_t);               // life cycle state
        ~Monster() = default;
-
-    public:
-        uint32_t NameColor();
-        const char *CharName();
-
-        int Range(uint8_t);
 
     public:
         void SearchViewRange();
@@ -102,14 +95,11 @@ class Monster: public CharObject
         bool RequestMove(int, int);
         void RequestSpaceMove(const char *, int, int);
 
-        // TODO
         bool Update();
 
     protected:
+        int Range(uint8_t);
         int Speed();
-
-    protected:
-        bool RandomWalk();
 
     private:
         void On_MPK_HI(const MessagePack &, const Theron::Address &);

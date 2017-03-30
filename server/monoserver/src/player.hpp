@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 03/26/2017 18:23:08
+ *  Last Modified: 03/30/2017 01:44:50
  *
  *    Description: 
  *
@@ -73,9 +73,8 @@ class Player: public CharObject
                 int,                    // map x
                 int,                    // map y
                 int,                    // direction
-                uint8_t,                // life cycle state
-                uint8_t);               // action state
-       ~Player();
+                uint8_t);               // life cycle state
+       ~Player() = default;
 
     public:
         // type test function

@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 03/29/2017 14:17:29
+ *  Last Modified: 03/30/2017 00:16:43
  *
  *    Description: 
  *
@@ -139,8 +139,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
                         stAMACO.Common.MapX,
                         stAMACO.Common.MapY,
                         0,
-                        STATE_INCARNATED,
-                        STATE_STAND);
+                        STATE_INCARNATED);
                 pCO->Activate();
                 m_ObjectV2D[stAMACO.Common.MapX][stAMACO.Common.MapY].push_back(pCO);
                 m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
@@ -156,8 +155,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
                         stAMACO.Common.MapX,
                         stAMACO.Common.MapY,
                         0,
-                        STATE_INCARNATED,
-                        STATE_STAND);
+                        STATE_INCARNATED);
                 pCO->Activate();
                 m_ActorPod->Forward({MPK_BINDSESSION, stAMACO.Player.SessionID}, pCO->GetAddress());
                 m_ObjectV2D[stAMACO.Common.MapX][stAMACO.Common.MapY].push_back(pCO);

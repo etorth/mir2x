@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 03/28/2017 13:08:10
+ *  Last Modified: 03/30/2017 02:00:34
  *
  *    Description: 
  *
@@ -85,7 +85,6 @@ typedef struct
 typedef struct{
     uint32_t GUID;
     uint32_t UID;
-    uint32_t AddTime;
     int X;
     int Y;
     int R;
@@ -156,7 +155,6 @@ typedef struct{
     uint32_t GUID;
     uint32_t MapID;
     uint32_t UID;
-    uint32_t AddTime;
 
     bool Strict;
     int  X;
@@ -172,7 +170,6 @@ typedef struct{
     uint32_t GUID;
     uint32_t UID;
     uint32_t SID;
-    uint32_t AddTime;
     uint32_t MapID;
     uint64_t Key;
 
@@ -187,7 +184,6 @@ typedef struct{
 typedef struct{
     uint32_t MapID;
     uint32_t UID;
-    uint32_t AddTime;
 
     int CurrX;
     int CurrY;
@@ -203,7 +199,6 @@ typedef struct{
 
     uint32_t MapID;
     uint32_t UID;
-    uint32_t AddTime;
 
     int X;
     int Y;
@@ -234,20 +229,6 @@ typedef struct{
     int OldX;
     int OldY;
 }AMLocation;
-
-typedef struct{
-    uint32_t UID;
-    uint32_t AddTime;
-    int X;
-    int Y;
-    int R;
-}AMCheckCover;
-
-typedef struct{
-    int MapX;
-    int MapY;
-    uint32_t MapID;
-}AMQueryRMAddress;
 
 typedef struct{
     uint32_t SessionID;
@@ -282,7 +263,6 @@ typedef union{
         uint8_t Type;
         uint32_t GUID;
         uint32_t UID;
-        uint32_t AddTime;
     }Player;
 }AMCharObjectInfo;
 
@@ -292,22 +272,19 @@ typedef struct{
 
 typedef struct{
     uint32_t UID;
-    uint32_t AddTime;
+    uint32_t MapID;
 
     int X;
     int Y;
-    int R;
-    uint32_t MapID;
 
-    uint8_t Action;
-    uint8_t Direction;
+    int Action;
 
     uint32_t Speed;
+    uint8_t Direction;
 }AMActionState;
 
 typedef struct{
     uint32_t UID;
-    uint32_t AddTime;
     uint32_t SessionID;
     int X;
     int Y;

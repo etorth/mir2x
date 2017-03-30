@@ -3,7 +3,7 @@
  *
  *       Filename: serverobject.cpp
  *        Created: 05/23/2016 18:22:01
- *  Last Modified: 03/23/2017 00:10:11
+ *  Last Modified: 03/30/2017 00:22:07
  *
  *    Description: 
  *
@@ -22,5 +22,5 @@
 
 extern MonoServer *g_MonoServer;
 ServerObject::ServerObject(bool bActive)
-    : ServerObject(bActive, g_MonoServer->GetUID(), g_MonoServer->GetTimeTick())
+    : ServerObject(bActive, g_MonoServer->GetUID())
 {}

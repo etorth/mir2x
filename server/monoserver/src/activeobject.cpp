@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 03/23/2017 15:53:00
+ *  Last Modified: 03/30/2017 01:50:38
  *
  *    Description: 
  *
@@ -75,11 +75,11 @@ Theron::Address ActiveObject::Activate()
     if(!m_ActorPod){
         extern Theron::Framework *g_Framework;
         m_ActorPod = new ActorPod(g_Framework, [this](){ m_StateHook.Execute(); },
-                [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){
-                this->Operate(rstMPK, stFromAddr);
-                });
+                [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){ Operate(rstMPK, stFromAddr); });
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-        m_ActorPod->BindPod(UID(), AddTime(), ClassName());
+        {
+            m_ActorPod->BindPod(UID(), ClassName());
+        }
 #endif
     }
 

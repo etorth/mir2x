@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/28/2017 18:06:35
+ *  Last Modified: 03/30/2017 01:50:11
  *
  *    Description: 
  *
@@ -30,8 +30,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
         int                         nMapX,
         int                         nMapY,
         int                         nDirection,
-        uint8_t                     nLifeState,
-        uint8_t                     nActionState)
+        uint8_t                     nLifeState)
     : ActiveObject()
     , m_ServiceCore(pServiceCore)
     , m_Map(pServerMap)
@@ -43,7 +42,6 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_AddAbility()
 {
     ResetState(STATE_LIFECYCLE, nLifeState);
-    ResetState(STATE_ACTION,    nActionState);
 }
 
 bool CharObject::NextLocation(int *pX, int *pY, int nDistance)
@@ -96,7 +94,6 @@ void CharObject::DispatchAction()
         stAMAS.MapID = m_Map->ID();
 
         stAMAS.Speed     = Speed();
-        stAMAS.Action    = (uint8_t)(Action());
         stAMAS.Direction = (uint8_t)(Direction());
 
         m_ActorPod->Forward({MPK_ACTIONSTATE, stAMAS}, m_Map->GetAddress());
@@ -106,35 +103,4 @@ void CharObject::DispatchAction()
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "can't dispatch action state");
     g_MonoServer->Restart();
-}
-
-int CharObject::Action()
-{
-    switch(State(STATE_ACTION)){
-        case STATE_STAND:
-            {
-                return ACTION_STAND;
-            }
-        case STATE_WALK:
-            {
-                return ACTION_WALK;
-            }
-        case STATE_ATTACK:
-            {
-                return ACTION_ATTACK;
-            }
-        case STATE_DIE:
-            {
-                return ACTION_DIE;
-            }
-        default:
-            {
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "unknown action state");
-                g_MonoServer->Restart();
-
-                // to make the compiler happy
-                return ACTION_UNKNOWN;
-            }
-    }
 }

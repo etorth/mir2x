@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 03/28/2017 15:53:07
+ *  Last Modified: 03/30/2017 01:50:59
  *
  *    Description: 
  *
@@ -45,7 +45,6 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     if(ActorPodValid() && m_Map->ActorPodValid()){
         AMUpdateCOInfo stAMUCOI;
         stAMUCOI.UID       = UID();
-        stAMUCOI.AddTime   = AddTime();
         stAMUCOI.X         = X();
         stAMUCOI.Y         = Y();
         stAMUCOI.MapID     = m_Map->ID();

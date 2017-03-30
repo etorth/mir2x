@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/29/2017 18:37:42
+ *  Last Modified: 03/30/2017 01:53:19
  *
  *    Description: 
  *
@@ -17,8 +17,6 @@
  *
  * =====================================================================================
  */
-
-// #include <cstdio>
 
 #include "netpod.hpp"
 #include "monster.hpp"
@@ -36,9 +34,8 @@ Monster::Monster(uint32_t   nMonsterID,
         int                 nMapX,
         int                 nMapY,
         int                 nDirection,
-        uint8_t             nLifeState,
-        uint8_t             nActionState)
-    : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState, nActionState)
+        uint8_t             nLifeState)
+    : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
     , m_MonsterID(nMonsterID)
     , m_FreezeWalk(false)
 {
@@ -69,11 +66,9 @@ void Monster::RequestSpaceMove(const char *szAddr, int nX, int nY)
     AMTrySpaceMove stAMTSM;
     std::memset(&stAMTSM, 0, sizeof(stAMTSM));
 
-    stAMTSM.UID     = m_UID;
-    stAMTSM.AddTime = m_AddTime;
-
-    stAMTSM.X = nX;
-    stAMTSM.Y = nY;
+    stAMTSM.UID = UID();
+    stAMTSM.X   = nY;
+    stAMTSM.Y   = nY;
 
     stAMTSM.CurrX = X();
     stAMTSM.CurrY = Y();
@@ -114,12 +109,12 @@ bool Monster::RequestMove(int nX, int nY)
     std::memset(&stAMTM, 0, sizeof(stAMTM));
 
     stAMTM.This    = (uintptr_t)(this);
-    stAMTM.UID     = m_UID;
+    stAMTM.UID     = UID();
     stAMTM.X       = nX;
     stAMTM.Y       = nY;
     stAMTM.MapID   = m_Map->ID();
-    stAMTM.CurrX   = m_CurrX;
-    stAMTM.CurrY   = m_CurrY;
+    stAMTM.CurrX   = X();
+    stAMTM.CurrY   = Y();
 
     auto fnOP = [this, nX, nY](const MessagePack &rstMPK, const Theron::Address &rstAddr){
         switch(rstMPK.Type()){
@@ -150,21 +145,6 @@ bool Monster::RequestMove(int nX, int nY)
 
     m_FreezeWalk = true;
     return m_ActorPod->Forward({MPK_TRYMOVE, stAMTM}, m_Map->GetAddress(), fnOP);
-}
-
-uint32_t Monster::NameColor()
-{
-    return 0XFFFFFFFF;
-}
-
-const char *Monster::CharName()
-{
-    return "hello";
-}
-
-int Monster::Range(uint8_t)
-{
-    return 20;
 }
 
 void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddress)
@@ -221,7 +201,6 @@ void Monster::ReportCORecord(uint32_t nSessionID)
         pMem->Common.MapID     = MapID();
         pMem->Common.MapX      = X();
         pMem->Common.MapY      = Y();
-        pMem->Common.Action    = (uint32_t)(Action());
         pMem->Common.Direction = Direction();
         pMem->Common.Speed     = Speed();
 
@@ -236,6 +215,11 @@ void Monster::ReportCORecord(uint32_t nSessionID)
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
     g_MonoServer->Restart();
+}
+
+int Monster::Range(uint8_t)
+{
+    return 20;
 }
 
 int Monster::Speed()

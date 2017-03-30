@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/26/2017 23:25:12
+ *  Last Modified: 03/30/2017 01:48:18
  *
  *    Description: 
  *
@@ -32,9 +32,8 @@ Player::Player(uint32_t nGUID,
         int             nMapX,
         int             nMapY,
         int             nDirection,
-        uint8_t         nLifeState,
-        uint8_t         nActionState)
-    : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState, nActionState)
+        uint8_t         nLifeState)
+    : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
     , m_GUID(nGUID)
     , m_JobID(nJobID)
     , m_SessionID(nSessionID)
@@ -42,12 +41,9 @@ Player::Player(uint32_t nGUID,
 {
     m_StateHook.Install("CheckTime", [this](){ For_CheckTime(); return false; });
 
+    ResetType(TYPE_CREATURE, TYPE_HUMAN);
     ResetType(TYPE_PLAYER, 1);
     ResetType(TYPE_HUMAN,  1);
-}
-
-Player::~Player()
-{
 }
 
 void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -172,7 +168,6 @@ void Player::ReportCORecord(uint32_t nSessionID)
         pMem->Type = CREATURE_PLAYER;
 
         pMem->Common.UID       = UID();
-        pMem->Common.AddTime   = AddTime();
         pMem->Common.MapX      = X();
         pMem->Common.MapY      = Y();
         pMem->Common.MapID     = MapID();
