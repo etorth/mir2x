@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 03/29/2017 14:15:33
+ *  Last Modified: 03/30/2017 16:49:17
  *
  *    Description: put all non-atomic function as private
  *
@@ -66,17 +66,7 @@ class ServerMap: public ActiveObject
        ~ServerMap() = default;
 
     public:
-        uint32_t ID() { return m_ID; }
-
-    public:
-        int W() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0; }
-        int H() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.H() : 0; }
-
-        bool ValidC(int nX, int nY) const { return m_Mir2xMapData.ValidC(nX, nY); }
-        bool ValidP(int nX, int nY) const { return m_Mir2xMapData.ValidP(nX, nY); }
-
-    public:
-        bool Load(const char *);
+        uint32_t ID() const { return m_ID; }
 
     public:
         bool In(uint32_t nMapID, int nX, int nY) const
@@ -85,6 +75,16 @@ class ServerMap: public ActiveObject
         }
 
     public:
+        int W() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0; }
+        int H() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.H() : 0; }
+
+        bool ValidC(int nX, int nY) const { return m_Mir2xMapData.ValidC(nX, nY); }
+        bool ValidP(int nX, int nY) const { return m_Mir2xMapData.ValidP(nX, nY); }
+
+    private:
+        bool Load(const char *);
+
+    private:
         bool CanMove(bool, int, int);
 
     private:

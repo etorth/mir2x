@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/30/2017 10:59:02
+ *  Last Modified: 03/30/2017 16:50:10
  *
  *    Description: 
  *

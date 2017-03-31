@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19 PM
- *  Last Modified: 03/29/2017 15:36:50
+ *  Last Modified: 03/31/2017 00:38:12
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
@@ -32,9 +32,20 @@ class Monster: public Creature
         uint32_t m_MonsterID;       // monster id
         uint32_t m_LookIDN;         // look effect index 0 ~ 3
 
+    protected:
+        double m_UpdateDelay;
+        double m_LastUpdateTime;
+
     public:
-        Monster(uint32_t, uint32_t, ProcessRun *);
-       ~Monster();
+        Monster(uint32_t,       // UID
+                uint32_t,       // Monster ID
+                ProcessRun *,   // 
+                int,            // map x
+                int,            // map y
+                int,            // action
+                int,            // direction
+                int);           // speed
+       ~Monster() = default;
 
     public:
         int Type()

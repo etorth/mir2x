@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 03/29/2017 14:15:19
+ *  Last Modified: 03/30/2017 16:47:49
  *
  *    Description: 
  *
@@ -133,7 +133,7 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
 bool ServerMap::CanMove(bool bCheckCO, int nX, int nY)
 {
     if(ValidC(nX, nY)){
-        if(m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000){
+        if((m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000) && (m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000)){
             if(bCheckCO){
                 for(auto pObject: m_ObjectV2D[nX][nY]){
                     if(pObject->Active() && ((ActiveObject *)(pObject))->Type(TYPE_CHAR)){

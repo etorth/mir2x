@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/29/2017 16:31:29
+ *  Last Modified: 03/30/2017 16:31:08
  *
  *    Description: 
  *
@@ -199,7 +199,7 @@ void ProcessRun::Draw()
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG == 10)
                     {
                         if(m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000){
-                            g_SDLDevice->PushColor(0, 255, 255, 128);
+                            g_SDLDevice->PushColor(255, 0, 0, 128);
                             int nX0 = nX * SYS_MAPGRIDXP - m_ViewX;
                             int nY0 = nY * SYS_MAPGRIDYP - m_ViewX;
                             int nX1 = (nX + 1) * SYS_MAPGRIDXP - m_ViewY;

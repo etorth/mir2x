@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 03/30/2017 10:58:29
+ *  Last Modified: 03/31/2017 00:35:04
  *
  *    Description: 
  *
@@ -167,7 +167,7 @@ class CharObject: public ActiveObject
                 case DIR_UPRIGHT  : return DIR_DOWNLEFT;
                 case DIR_DOWNLEFT : return DIR_UPRIGHT;
                 case DIR_DOWNRIGHT: return DIR_UPLEFT;
-                default           : return DIR_UNKNOWN;
+                default           : return DIR_NONE;
             }
         }
 
