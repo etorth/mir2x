@@ -3,7 +3,7 @@
  *
  *       Filename: onsmhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 03/30/2017 14:14:51
+ *  Last Modified: 03/31/2017 12:39:03
  *
  *    Description: 
  *
@@ -41,11 +41,7 @@ void Game::OperateHC(uint8_t nHC)
 
 void Game::Net_PING()
 {
-    auto fnDoPing = [this](const uint8_t *, size_t){
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO, "on ping");
-    };
-
+    auto fnDoPing = [this](const uint8_t *, size_t){};
     Read(sizeof(SMPing), fnDoPing);
 }
 

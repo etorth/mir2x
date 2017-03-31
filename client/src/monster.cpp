@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 03/31/2017 11:47:20
+ *  Last Modified: 03/31/2017 12:38:23
  *
  *    Description: 
  *
@@ -106,11 +106,6 @@ void Monster::Draw(int nViewX, int nViewY)
     int nShiftX = 0;
     int nShiftY = 0;
     EstimatePixelShift(&nShiftX, &nShiftY);
-
-    {
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO, "X = %d, Y = %d, Action = %d, Frame = %d, ShiftX = %d, ShiftY = %d", X(), Y(), m_Action, m_Frame, nShiftX, nShiftY);
-    }
 
     extern SDLDevice *g_SDLDevice;
     if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
