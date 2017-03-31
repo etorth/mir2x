@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 03/30/2017 01:46:45
+ *  Last Modified: 03/31/2017 13:01:02
  *
  *    Description: 
  *
@@ -105,7 +105,6 @@ class Monster: public CharObject
         void On_MPK_HI(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
-        void On_MPK_UPDATECOINFO(const MessagePack &, const Theron::Address &);
 
     protected:
         void Operate(const MessagePack &, const Theron::Address &);

@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 03/30/2017 14:44:44
+ *  Last Modified: 03/31/2017 13:22:46
  *
  *    Description: 
  *
@@ -81,34 +81,27 @@ void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address 
     }
 }
 
-void Player::On_MPK_ACTIONSTATE(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMActionState stAMAS;
-    std::memcpy(&stAMAS, rstMPK.Data(), sizeof(stAMAS));
+    AMAction stAMA;
+    std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    if((std::abs(stAMAS.X - m_CurrX) <= SYS_MAPVISIBLEW) && (std::abs(stAMAS.Y - m_CurrY) <= SYS_MAPVISIBLEH)){
+    if((std::abs(stAMA.X - m_CurrX) <= SYS_MAPVISIBLEW) && (std::abs(stAMA.Y - m_CurrY) <= SYS_MAPVISIBLEH)){
         extern MemoryPN *g_MemoryPN;
-        auto pMem = g_MemoryPN->Get<SMActionState>();
+        auto pMem = g_MemoryPN->Get<SMAction>();
 
-        pMem->UID   = stAMAS.UID;
-        pMem->X     = stAMAS.X;
-        pMem->Y     = stAMAS.Y;
-        pMem->MapID = stAMAS.MapID;
+        pMem->UID   = stAMA.UID;
+        pMem->X     = stAMA.X;
+        pMem->Y     = stAMA.Y;
+        pMem->MapID = stAMA.MapID;
 
-        pMem->Speed     = stAMAS.Speed;
-        pMem->Action    = stAMAS.Action;
-        pMem->Direction = stAMAS.Direction;
+        pMem->Speed     = stAMA.Speed;
+        pMem->Action    = stAMA.Action;
+        pMem->Direction = stAMA.Direction;
 
         extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(m_SessionID, SM_ACTIONSTATE, (uint8_t *)pMem, sizeof(SMActionState), [pMem](){ g_MemoryPN->Free(pMem); });
+        g_NetPodN->Send(m_SessionID, SM_ACTION, (uint8_t *)pMem, sizeof(SMAction), [pMem](){ g_MemoryPN->Free(pMem); });
     }
-}
-
-void Player::On_MPK_UPDATECOINFO(const MessagePack &rstMPK, const Theron::Address &)
-{
-    AMUpdateCOInfo stAMUCOI;
-    std::memcpy(&stAMUCOI, rstMPK.Data(), sizeof(stAMUCOI));
-    ReportCORecord(stAMUCOI.SessionID);
 }
 
 void Player::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address &)

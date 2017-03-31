@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 03/30/2017 16:49:17
+ *  Last Modified: 03/31/2017 14:01:08
  *
  *    Description: put all non-atomic function as private
  *
@@ -49,8 +49,10 @@ class ServerMap: public ActiveObject
         }CellState;
 
     private:
-        uint32_t        m_ID;
-        Mir2xMapData    m_Mir2xMapData;
+        const uint32_t     m_ID;
+        const Mir2xMapData m_Mir2xMapData;
+
+    private:
         Metronome      *m_Metronome;
         ServiceCore    *m_ServiceCore;
 
@@ -75,6 +77,16 @@ class ServerMap: public ActiveObject
         }
 
     public:
+        bool GroundValid(int nX, int nY) const
+        {
+            return true
+                && (m_Mir2xMapData.Valid())
+                && (m_Mir2xMapData.ValidC(nX, nY))
+                && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)
+                && (m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000);
+        }
+
+    public:
         int W() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0; }
         int H() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.H() : 0; }
 
@@ -85,16 +97,15 @@ class ServerMap: public ActiveObject
         bool Load(const char *);
 
     private:
-        bool CanMove(bool, int, int);
+        bool CanMove(int, int);
 
     private:
         void On_MPK_HI(const MessagePack &, const Theron::Address &);
         void On_MPK_LEAVE(const MessagePack &, const Theron::Address &);
+        void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
-        void On_MPK_ACTIONSTATE(const MessagePack &, const Theron::Address &);
-        void On_MPK_UPDATECOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
 

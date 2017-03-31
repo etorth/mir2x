@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/31/2017 12:19:27
+ *  Last Modified: 03/31/2017 16:38:04
  *
  *    Description: 
  *
@@ -401,7 +401,7 @@ void Creature::OnWalk()
             MoveNextFrame(1);
         }else if(m_ProcessRun->CanMove(false, nEstimatedX, nEstimatedY)){
             // move-able but some one is on the way
-            // we just stay here and wait
+            // can't just stay here and wait, since it gives dead-lock
         }else{
             ReportBadAction();
             m_NextActionV.clear();

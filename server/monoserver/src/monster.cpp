@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/30/2017 13:52:27
+ *  Last Modified: 03/31/2017 16:15:52
  *
  *    Description: 
  *
@@ -49,14 +49,15 @@ bool Monster::Update()
         int nNextX = 0;
         int nNextY = 0;
         if(NextLocation(&nNextX, &nNextY, Speed())){
-            RequestMove(nNextX, nNextY);
-        }
-    }else{
-        if((std::rand() % 99991) < (99991 / 4)){
-            m_Direction = std::rand() % 8;
-            DispatchAction(ACTION_STAND);
+            if(m_Map->GroundValid(nNextX, nNextY)){
+                RequestMove(nNextX, nNextY);
+                return true;
+            }
         }
     }
+
+    m_Direction = std::rand() % 8;
+    DispatchAction(ACTION_STAND);
     return true;
 }
 
@@ -107,7 +108,7 @@ bool Monster::RequestMove(int nX, int nY)
     AMTryMove stAMTM;
     std::memset(&stAMTM, 0, sizeof(stAMTM));
 
-    stAMTM.This    = (uintptr_t)(this);
+    stAMTM.This    = this;
     stAMTM.UID     = UID();
     stAMTM.X       = nX;
     stAMTM.Y       = nY;
@@ -164,11 +165,6 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
         case MPK_PULLCOINFO:
             {
                 On_MPK_PULLCOINFO(rstMPK, rstAddress);
-                break;
-            }
-        case MPK_UPDATECOINFO:
-            {
-                On_MPK_UPDATECOINFO(rstMPK, rstAddress);
                 break;
             }
         default:

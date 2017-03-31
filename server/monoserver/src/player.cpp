@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/30/2017 01:48:18
+ *  Last Modified: 03/31/2017 13:17:26
  *
  *    Description: 
  *
@@ -54,9 +54,9 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
                 On_MPK_HI(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_ACTIONSTATE:
+        case MPK_ACTION:
             {
-                On_MPK_ACTIONSTATE(rstMPK, rstFromAddr);
+                On_MPK_ACTION(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_METRONOME:
@@ -72,11 +72,6 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         case MPK_NETPACKAGE:
             {
                 On_MPK_NETPACKAGE(rstMPK, rstFromAddr);
-                break;
-            }
-        case MPK_UPDATECOINFO:
-            {
-                On_MPK_UPDATECOINFO(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_PULLCOINFO:

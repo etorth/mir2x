@@ -3,7 +3,7 @@
  *
  *       Filename: onsmhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 03/31/2017 12:39:03
+ *  Last Modified: 03/31/2017 13:21:22
  *
  *    Description: 
  *
@@ -30,7 +30,7 @@ void Game::OperateHC(uint8_t nHC)
         case SM_LOGINOK:        Net_LOGINOK();      break;
         case SM_CORECORD:       Net_CORECORD();     break;
         case SM_LOGINFAIL:      Net_LOGINFAIL();    break;
-        case SM_ACTIONSTATE:    Net_ACTIONSTATE();  break;
+        case SM_ACTION:         Net_ACTION();       break;
         case SM_MONSTERGINFO:   Net_MONSTERGINFO(); break;
         default: break;
     }
@@ -66,15 +66,15 @@ void Game::Net_LOGINFAIL()
     g_Log->AddLog(LOGTYPE_INFO, "login failed");
 }
 
-void Game::Net_ACTIONSTATE()
+void Game::Net_ACTION()
 {
-    auto fnActionState = [this](const uint8_t *pBuf, size_t nLen){
+    auto fnAction = [this](const uint8_t *pBuf, size_t nLen){
         if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-            pRun->Net_ACTIONSTATE(pBuf, nLen);
+            pRun->Net_ACTION(pBuf, nLen);
         }
     };
 
-    Read(sizeof(SMActionState), fnActionState);
+    Read(sizeof(SMAction), fnAction);
 }
 
 void Game::Net_MONSTERGINFO()

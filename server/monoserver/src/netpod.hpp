@@ -3,7 +3,7 @@
  *
  *       Filename: netpod.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 06/05/2016 22:34:36
+ *  Last Modified: 03/31/2017 13:12:13
  *
  *    Description: this will serve as a stand-alone plugin for monoserver, it creates
  *                 with general info. and nothing will be done till Launch()
@@ -340,7 +340,10 @@ template<size_t PodSize> class NetPod: public SyncDriver
                 m_SessionV[0][nValidID] = new Session(nValidID, std::move(*m_Socket));
 
                 // inform the serice core that there is a new connection
-                if(Forward({MPK_NEWCONNECTION, nValidID}, m_SCAddress)){
+                AMNewConnection stAMNC;
+                stAMNC.SessionID = nValidID;
+
+                if(Forward({MPK_NEWCONNECTION, stAMNC}, m_SCAddress)){
                     delete m_SessionV[0][nValidID];
                     m_SessionV[0][nValidID] = nullptr;
 

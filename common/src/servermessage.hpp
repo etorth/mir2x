@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 03/30/2017 11:17:27
+ *  Last Modified: 03/31/2017 13:21:35
  *
  *    Description: net message used by client and mono-server
  *
@@ -26,12 +26,12 @@ enum: uint8_t
     SM_NONE,
     SM_OK,
     SM_ERROR,
-    SM_REFUSE,
     SM_PING,
     SM_LOGINOK,
     SM_LOGINFAIL,
     SM_SERVERFULL,
-    SM_ACTIONSTATE,
+    SM_STATE,
+    SM_ACTION,
     SM_MONSTERGINFO,
     SM_CORECORD,
 };
@@ -80,7 +80,7 @@ typedef struct
     uint8_t Direction;
 
     uint32_t Speed;
-}SMActionState;
+}SMAction;
 
 typedef struct{
     uint32_t MonsterID;

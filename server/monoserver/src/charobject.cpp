@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/30/2017 16:50:10
+ *  Last Modified: 03/31/2017 13:01:40
  *
  *    Description: 
  *
@@ -85,19 +85,19 @@ uint8_t CharObject::Direction(int nX, int nY)
 void CharObject::DispatchAction(uint8_t nAction)
 {
     if(ActorPodValid() && m_Map->ActorPodValid()){
-        AMActionState stAMAS;
-        std::memset(&stAMAS, 0, sizeof(stAMAS));
+        AMAction stAMA;
+        std::memset(&stAMA, 0, sizeof(stAMA));
 
-        stAMAS.UID   = UID();
-        stAMAS.X     = X();
-        stAMAS.Y     = Y();
-        stAMAS.MapID = m_Map->ID();
+        stAMA.UID   = UID();
+        stAMA.X     = X();
+        stAMA.Y     = Y();
+        stAMA.MapID = m_Map->ID();
 
-        stAMAS.Action    = nAction;
-        stAMAS.Speed     = Speed();
-        stAMAS.Direction = (uint8_t)(Direction());
+        stAMA.Action    = nAction;
+        stAMA.Speed     = Speed();
+        stAMA.Direction = (uint8_t)(Direction());
 
-        m_ActorPod->Forward({MPK_ACTIONSTATE, stAMAS}, m_Map->GetAddress());
+        m_ActorPod->Forward({MPK_ACTION, stAMA}, m_Map->GetAddress());
         return;
     }
 

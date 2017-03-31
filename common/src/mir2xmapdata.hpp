@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.hpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 03/24/2017 13:43:31
+ *  Last Modified: 03/31/2017 15:43:00
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -111,6 +111,12 @@ class Mir2xMapData
             , m_Data()
         {}
 
+        Mir2xMapData(const char *pName)
+            : Mir2xMapData()
+        {
+            Load(pName);
+        }
+
     public:
         const uint8_t *Data() const
         {
@@ -141,6 +147,22 @@ class Mir2xMapData
         }
 
         auto &Cell(int nX, int nY)
+        {
+            return Block(nX, nY).Cell[(nY % 2) * 2 + (nX % 2)];
+        }
+
+    public:
+        const auto &Block(int nX, int nY) const
+        {
+            return m_Data[nX / 2 + (nY / 2) * (m_W / 2)];
+        }
+
+        const auto &Tile(int nX, int nY) const
+        {
+            return Block(nX, nY).Tile[0];
+        }
+
+        const auto &Cell(int nX, int nY) const
         {
             return Block(nX, nY).Cell[(nY % 2) * 2 + (nX % 2)];
         }

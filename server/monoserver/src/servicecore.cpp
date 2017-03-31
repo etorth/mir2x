@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 03/23/2017 16:02:00
+ *  Last Modified: 03/31/2017 13:12:40
  *
  *    Description: 
  *
@@ -38,11 +38,6 @@ ServiceCore::ServiceCore()
 void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddr)
 {
     switch(rstMPK.Type()){
-        case MPK_DUMMY:
-            {
-                On_MPK_DUMMY(rstMPK, rstAddr);
-                break;
-            }
         case MPK_LOGINQUERYDB:
             {
                 On_MPK_LOGINQUERYDB(rstMPK, rstAddr);
@@ -66,11 +61,6 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
         case MPK_QUERYMONSTERGINFO:
             {
                 On_MPK_QUERYMONSTERGINFO(rstMPK, rstAddr);
-                break;
-            }
-        case MPK_PLAYERPHATOM:
-            {
-                On_MPK_PLAYERPHATOM(rstMPK, rstAddr);
                 break;
             }
         default:

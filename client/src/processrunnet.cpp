@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/31/2017 00:52:09
+ *  Last Modified: 03/31/2017 13:24:40
  *
  *    Description: 
  *
@@ -39,23 +39,23 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
     m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.GUID, (bool)(stSMLOK.Male), this, 0, 0, 0, 0, 0);
 }
 
-void ProcessRun::Net_ACTIONSTATE(const uint8_t *pBuf, size_t)
+void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
 {
-    SMActionState stSMAS;
-    std::memcpy(&stSMAS, pBuf, sizeof(stSMAS));
+    SMAction stSMA;
+    std::memcpy(&stSMA, pBuf, sizeof(stSMA));
 
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     {
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO, "ACTIONSTATE: X = %d, Y = %d, Action = %d, Direction = %d", stSMAS.X, stSMAS.Y, stSMAS.Action, stSMAS.Direction);
+        g_Log->AddLog(LOGTYPE_INFO, "ACTION: X = %d, Y = %d, Action = %d, Direction = %d", stSMA.X, stSMA.Y, stSMA.Action, stSMA.Direction);
     }
 #endif
 
-    if(stSMAS.MapID == m_MapID){
-        auto pRecord = m_CreatureRecord.find(stSMAS.UID);
+    if(stSMA.MapID == m_MapID){
+        auto pRecord = m_CreatureRecord.find(stSMA.UID);
         if(pRecord != m_CreatureRecord.end()){
             if(auto pCreature = pRecord->second){
-                pCreature->OnReportAction((int)(stSMAS.Action), (int)(stSMAS.Direction), stSMAS.Speed, stSMAS.X, stSMAS.Y);
+                pCreature->OnReportAction((int)(stSMA.Action), (int)(stSMA.Direction), stSMA.Speed, stSMA.X, stSMA.Y);
             }
         }
     }

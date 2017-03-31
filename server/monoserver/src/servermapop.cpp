@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 03/30/2017 00:16:43
+ *  Last Modified: 03/31/2017 16:17:32
  *
  *    Description: 
  *
@@ -47,15 +47,15 @@ void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
     }
 }
 
-void ServerMap::On_MPK_ACTIONSTATE(const MessagePack &rstMPK, const Theron::Address &)
+void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMActionState stAMAS;
-    std::memcpy(&stAMAS, rstMPK.Data(), sizeof(stAMAS));
+    AMAction stAMA;
+    std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    int nX0 = (stAMAS.X - SYS_MAPVISIBLEW);
-    int nX1 = (stAMAS.X + SYS_MAPVISIBLEW);
-    int nY0 = (stAMAS.Y - SYS_MAPVISIBLEH);
-    int nY1 = (stAMAS.Y + SYS_MAPVISIBLEH);
+    int nX0 = (stAMA.X - SYS_MAPVISIBLEW);
+    int nX1 = (stAMA.X + SYS_MAPVISIBLEW);
+    int nY0 = (stAMA.Y - SYS_MAPVISIBLEH);
+    int nY1 = (stAMA.Y + SYS_MAPVISIBLEH);
 
     for(int nX = nX0; nX <= nX1; ++nX){
         for(int nY = nY0; nY <= nY1; ++nY){
@@ -63,35 +63,7 @@ void ServerMap::On_MPK_ACTIONSTATE(const MessagePack &rstMPK, const Theron::Addr
                 for(auto pObject: m_ObjectV2D[nX][nY]){
                     if(pObject && pObject->Active()){
                         if(((ActiveObject *)(pObject))->Type(TYPE_HUMAN)){
-                            m_ActorPod->Forward({MPK_ACTIONSTATE, stAMAS}, ((ActiveObject *)(pObject))->GetAddress());
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-void ServerMap::On_MPK_UPDATECOINFO(const MessagePack &rstMPK, const Theron::Address &)
-{
-    AMUpdateCOInfo stAMUCOI;
-    std::memcpy(&stAMUCOI, rstMPK.Data(), sizeof(stAMUCOI));
-
-    // 1. update cache info for co's
-
-    // 2. broadcast this info to proper neighbors
-    int nX0 = (stAMUCOI.X - SYS_MAPVISIBLECD);
-    int nX1 = (stAMUCOI.X + SYS_MAPVISIBLECD);
-    int nY0 = (stAMUCOI.Y - SYS_MAPVISIBLECD);
-    int nY1 = (stAMUCOI.Y + SYS_MAPVISIBLECD);
-
-    for(int nX = nX0; nX <= nX1; ++nX){
-        for(int nY = nY0; nY <= nY1; ++nY){
-            if(ValidC(nX, nY) && (LDistance2(nX, nY, stAMUCOI.X, stAMUCOI.Y) <= SYS_MAPVISIBLECD * SYS_MAPVISIBLECD)){
-                for(auto pObject: m_ObjectV2D[nX][nY]){
-                    if(pObject && pObject->Active()){
-                        if(((ActiveObject *)(pObject))->Type(TYPE_HUMAN)){
-                            m_ActorPod->Forward({MPK_UPDATECOINFO, stAMUCOI}, ((ActiveObject *)(pObject))->GetAddress());
+                            m_ActorPod->Forward({MPK_ACTION, stAMA}, ((ActiveObject *)(pObject))->GetAddress());
                         }
                     }
                 }
@@ -111,7 +83,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
         g_MonoServer->Restart();
     }
 
-    if(!CanMove(true, stAMACO.Common.MapX, stAMACO.Common.MapY)){
+    if(!CanMove(stAMACO.Common.MapX, stAMACO.Common.MapY)){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
@@ -194,21 +166,12 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
         g_MonoServer->Restart();
     }
 
-    if(!CanMove(true, stAMTM.X, stAMTM.Y)){
+    if(m_CellStateV2D[stAMTM.X][stAMTM.Y].Freezed){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
 
-    for(auto pObject: m_ObjectV2D[stAMTM.X][stAMTM.Y]){
-        if(pObject && pObject->Active()){
-            if(((ActiveObject *)(pObject))->Type(TYPE_INFO) == TYPE_CHAR){
-                m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-                return;
-            }
-        }
-    }
-
-    if(m_CellStateV2D[stAMTM.X][stAMTM.Y].Freezed){
+    if(!CanMove(stAMTM.X, stAMTM.Y)){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
@@ -225,13 +188,13 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                         bool bFind = false;
                         auto &rstObjectV = m_ObjectV2D[stAMTM.CurrX][stAMTM.CurrY];
 
-                        for(auto pObject: rstObjectV){
-                            if((uintptr_t)(pObject) == (uintptr_t)(stAMTM.This)){
+                        for(auto &pObject: rstObjectV){
+                            if((void *)(pObject) == stAMTM.This){
                                 // 1. mark as find
                                 bFind = true;
 
                                 // 2. remove from the object list
-                                std::swap(rstObjectV.back(), pObject);
+                                std::swap(pObject, rstObjectV.back());
                                 rstObjectV.pop_back();
 
                                 break;
@@ -269,7 +232,7 @@ void ServerMap::On_MPK_LEAVE(const MessagePack &rstMPK, const Theron::Address &r
     auto &rstObjectV = m_ObjectV2D[stAML.X][stAML.Y];
 
     for(auto pObject: rstObjectV){
-        if((uintptr_t)(pObject) == (uintptr_t)(stAML.This)){
+        if((void *)(pObject) == stAML.This){
             // 1. mark as find
             bFind = true;
 

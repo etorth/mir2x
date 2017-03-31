@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 03/27/2017 14:31:48
+ *  Last Modified: 03/31/2017 13:13:25
  *
  *    Description: 
  *
@@ -25,12 +25,6 @@
 #include "monoserver.hpp"
 #include "servicecore.hpp"
 
-void ServiceCore::On_MPK_DUMMY(const MessagePack &, const Theron::Address &)
-{
-    // do nothing since this is message send by anyomous SyncDriver
-    // to drive the anyomous trigger
-}
-
 // ServiceCore accepts net packages from *many* sessions and based on it to create
 // the player object for a one to one map
 //
@@ -51,10 +45,11 @@ void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Add
 // do IP banning etc. currently only activate this session
 void ServiceCore::On_MPK_NEWCONNECTION(const MessagePack &rstMPK, const Theron::Address &)
 {
-    uint32_t nSessionID = *((uint32_t *)rstMPK.Data());
-    if(nSessionID){
+    AMNewConnection stAMNC;
+    std::memcpy(&stAMNC, rstMPK.Data(), sizeof(stAMNC));
+    if(stAMNC.SessionID){
         extern NetPodN *g_NetPodN;
-        g_NetPodN->Activate(nSessionID, GetAddress());
+        g_NetPodN->Activate(stAMNC.SessionID, GetAddress());
     }
 }
 
@@ -87,12 +82,6 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::
 
     // invalid map id, report error
     m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-}
-
-void ServiceCore::On_MPK_PLAYERPHATOM(const MessagePack &rstMPK, const Theron::Address &)
-{
-    AMPlayerPhantom stAMPP;
-    std::memcpy(&stAMPP, rstMPK.Data(), sizeof(stAMPP));
 }
 
 // don't try to find its sender, it's from a temp SyncDriver in the lambda
