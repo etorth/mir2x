@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/31/2017 16:38:04
+ *  Last Modified: 04/01/2017 02:05:54
  *
  *    Description: 
  *
@@ -258,13 +258,15 @@ void Creature::ReportBadAction()
 
 void Creature::ReportBadActionNode(size_t nNode)
 {
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     if(nNode < m_NextActionV.size()){
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO, "Wrong action node for ID = %d, current : X = %4d, Y = %4d, Action = %d, Direction = %d, Speed = %d", X(), Y(), Action(), Direction(), Speed());
-        g_Log->AddLog(LOGTYPE_INFO, "                                  next : X = %4d, Y = %4d, Action = %d, Direction = %d, Speed = %d", m_NextActionV[nNode].X, m_NextActionV[nNode].Y, m_NextActionV[nNode].Action, m_NextActionV[nNode].Direction, m_NextActionV[nNode].Speed);
-    }
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
+        {
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_INFO, "Wrong action node for ID = %d, current : X = %4d, Y = %4d, Action = %d, Direction = %d, Speed = %d", X(), Y(), Action(), Direction(), Speed());
+            g_Log->AddLog(LOGTYPE_INFO, "                                  next : X = %4d, Y = %4d, Action = %d, Direction = %d, Speed = %d", m_NextActionV[nNode].X, m_NextActionV[nNode].Y, m_NextActionV[nNode].Action, m_NextActionV[nNode].Direction, m_NextActionV[nNode].Speed);
+        }
 #endif
+    }
 }
 
 void Creature::MoveNextFrame(int nDFrame)

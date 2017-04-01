@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 03/30/2017 01:31:03
+ *  Last Modified: 04/01/2017 02:03:58
  *
  *    Description: 
  *
@@ -143,6 +143,7 @@ uint32_t ActorPod::ValidID()
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "response requested message overflows");
         g_MonoServer->Restart();
+        return 0;
     }
 }
 
