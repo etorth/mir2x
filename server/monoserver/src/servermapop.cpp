@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 03/31/2017 16:17:32
+ *  Last Modified: 03/31/2017 23:08:44
  *
  *    Description: 
  *
@@ -88,15 +88,6 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
         return;
     }
 
-    for(auto pObject: m_ObjectV2D[stAMACO.Common.MapX][stAMACO.Common.MapY]){
-        if(pObject && pObject->Active()){
-            if(((ActiveObject *)(pObject))->Type(TYPE_INFO) == TYPE_CHAR){
-                m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-                return;
-            }
-        }
-    }
-
     if(m_CellStateV2D[stAMACO.Common.MapX][stAMACO.Common.MapY].Freezed){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
@@ -112,8 +103,8 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
                         stAMACO.Common.MapY,
                         0,
                         STATE_INCARNATED);
-                pCO->Activate();
                 m_ObjectV2D[stAMACO.Common.MapX][stAMACO.Common.MapY].push_back(pCO);
+                pCO->Activate();
                 m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
                 break;
             }
@@ -128,17 +119,16 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
                         stAMACO.Common.MapY,
                         0,
                         STATE_INCARNATED);
-                pCO->Activate();
-                m_ActorPod->Forward({MPK_BINDSESSION, stAMACO.Player.SessionID}, pCO->GetAddress());
                 m_ObjectV2D[stAMACO.Common.MapX][stAMACO.Common.MapY].push_back(pCO);
+                pCO->Activate();
                 m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
+                m_ActorPod->Forward({MPK_BINDSESSION, stAMACO.Player.SessionID}, pCO->GetAddress());
                 break;
             }
         default:
             {
-                // no idea what you want to create
-                // return ERROR directly
                 m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                break;
             }
     }
 }
@@ -166,12 +156,12 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
         g_MonoServer->Restart();
     }
 
-    if(m_CellStateV2D[stAMTM.X][stAMTM.Y].Freezed){
+    if(!CanMove(stAMTM.X, stAMTM.Y)){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
 
-    if(!CanMove(stAMTM.X, stAMTM.Y)){
+    if(m_CellStateV2D[stAMTM.X][stAMTM.Y].Freezed){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
@@ -220,6 +210,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
         m_CellStateV2D[stAMTM.X][stAMTM.Y].Freezed = false;
     };
 
+    m_CellStateV2D[stAMTM.X][stAMTM.Y].Freezed = true;
     m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID(), fnOnR);
 }
 
@@ -231,7 +222,7 @@ void ServerMap::On_MPK_LEAVE(const MessagePack &rstMPK, const Theron::Address &r
     bool bFind = false;
     auto &rstObjectV = m_ObjectV2D[stAML.X][stAML.Y];
 
-    for(auto pObject: rstObjectV){
+    for(auto &pObject: rstObjectV){
         if((void *)(pObject) == stAML.This){
             // 1. mark as find
             bFind = true;

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/31/2017 13:17:26
+ *  Last Modified: 04/01/2017 00:49:35
  *
  *    Description: 
  *
@@ -49,19 +49,14 @@ Player::Player(uint32_t nGUID,
 void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     switch(rstMPK.Type()){
-        case MPK_HI:
+        case MPK_METRONOME:
             {
-                On_MPK_HI(rstMPK, rstFromAddr);
+                On_MPK_METRONOME(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_ACTION:
             {
                 On_MPK_ACTION(rstMPK, rstFromAddr);
-                break;
-            }
-        case MPK_METRONOME:
-            {
-                On_MPK_METRONOME(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_BINDSESSION:

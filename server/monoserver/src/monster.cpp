@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 03/31/2017 16:15:52
+ *  Last Modified: 04/01/2017 00:48:51
  *
  *    Description: 
  *
@@ -155,11 +155,6 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
         case MPK_METRONOME:
             {
                 On_MPK_METRONOME(rstMPK, rstAddress);
-                break;
-            }
-        case MPK_HI:
-            {
-                On_MPK_HI(rstMPK, rstAddress);
                 break;
             }
         case MPK_PULLCOINFO:

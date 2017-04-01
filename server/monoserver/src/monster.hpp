@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 03/31/2017 13:01:02
+ *  Last Modified: 04/01/2017 00:48:23
  *
  *    Description: 
  *
@@ -102,7 +102,6 @@ class Monster: public CharObject
         int Speed();
 
     private:
-        void On_MPK_HI(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
 

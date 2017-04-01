@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 03/31/2017 13:22:46
+ *  Last Modified: 04/01/2017 00:50:08
  *
  *    Description: 
  *
@@ -23,6 +23,18 @@
 #include "memorypn.hpp"
 #include "actorpod.hpp"
 #include "monoserver.hpp"
+
+void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
+{
+    extern NetPodN *g_NetPodN;
+    extern MemoryPN *g_MemoryPN;
+    extern MonoServer *g_MonoServer;
+
+    auto pMem = g_MemoryPN->Get<SMPing>();
+    pMem->Tick = g_MonoServer->GetTimeTick();
+
+    g_NetPodN->Send(m_SessionID, SM_PING, (uint8_t *)(pMem), sizeof(SMPing), [pMem](){ g_MemoryPN->Free(pMem); });
+}
 
 void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address &)
 {
@@ -46,26 +58,6 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
         stAMPCOI.SessionID = m_SessionID;
         m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
     }
-}
-
-void Player::On_MPK_HI(const MessagePack &, const Theron::Address &)
-{
-}
-
-void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
-{
-    extern NetPodN *g_NetPodN;
-    extern MemoryPN *g_MemoryPN;
-    extern MonoServer *g_MonoServer;
-
-    auto pMem = g_MemoryPN->Get<SMPing>();
-    pMem->Tick = g_MonoServer->GetTimeTick();
-
-    g_NetPodN->Send(m_SessionID, SM_PING, (uint8_t *)(pMem), sizeof(SMPing), [pMem](){ g_MemoryPN->Free(pMem); });
-    // AMPullCOInfo stAMPCOI;
-    // stAMPCOI.SessionID = m_SessionID;
-
-    // m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
 }
 
 void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &)
