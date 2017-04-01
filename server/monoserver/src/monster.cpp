@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/01/2017 00:48:51
+ *  Last Modified: 04/01/2017 01:18:40
  *
  *    Description: 
  *
@@ -45,19 +45,20 @@ Monster::Monster(uint32_t   nMonsterID,
 
 bool Monster::Update()
 {
-    if((std::rand() % 99991) < (99991 / 2)){
-        int nNextX = 0;
-        int nNextY = 0;
-        if(NextLocation(&nNextX, &nNextY, Speed())){
-            if(m_Map->GroundValid(nNextX, nNextY)){
-                RequestMove(nNextX, nNextY);
-                return true;
+    if(!m_FreezeWalk){
+        if((std::rand() % 99991) < (99991 / 2)){
+            int nNextX = 0;
+            int nNextY = 0;
+            if(NextLocation(&nNextX, &nNextY, Speed())){
+                if(m_Map->GroundValid(nNextX, nNextY)){
+                    return RequestMove(nNextX, nNextY);
+                }
             }
         }
-    }
 
-    m_Direction = std::rand() % 8;
-    DispatchAction(ACTION_STAND);
+        m_Direction = std::rand() % 8;
+        DispatchAction(ACTION_STAND);
+    }
     return true;
 }
 
@@ -105,6 +106,16 @@ void Monster::RequestSpaceMove(const char *szAddr, int nX, int nY)
 
 bool Monster::RequestMove(int nX, int nY)
 {
+    if(m_FreezeWalk){
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
+        {
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_INFO, "shouldn't request move when walk freezed");
+        }
+#endif
+        return false;
+    }
+
     AMTryMove stAMTM;
     std::memset(&stAMTM, 0, sizeof(stAMTM));
 
