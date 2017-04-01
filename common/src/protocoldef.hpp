@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 03/31/2017 00:34:40
+ *  Last Modified: 03/31/2017 16:51:01
  *
  *    Description: 
  *
@@ -47,7 +47,7 @@ enum CreatureType: int
 //               V
 //               4
 //
-enum _Direction: int
+enum DirectionType: int
 {
     DIR_UP          = 0,
     DIR_DOWN        = 4,

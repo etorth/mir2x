@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 03/31/2017 12:38:23
+ *  Last Modified: 03/31/2017 18:02:03
  *
  *    Description: 
  *
@@ -56,6 +56,22 @@ void Monster::Update()
         m_LastUpdateTime = fTimeNow;
 
         // 2. logic update
+        if(m_Action == ACTION_WALK){
+            switch(LDistance2(m_NextActionV[0].X, m_NextActionV[0].Y, X(), Y())){
+                case 0:
+                case 1:
+                case 2:
+                    {
+                        m_UpdateDelay = 100.0;
+                        break;
+                    }
+                default:
+                    {
+                        m_UpdateDelay = 20.0;
+                        break;
+                    }
+            }
+        }
 
         // 3. frame update
         auto nFrameCount = (int)(FrameCount());
