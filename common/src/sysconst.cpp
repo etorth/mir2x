@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.cpp
  *        Created: 06/02/2016 11:43:04
- *  Last Modified: 03/23/2017 11:27:46
+ *  Last Modified: 04/01/2017 19:29:17
  *
  *    Description: don't refer to monoserver->AddLog() or something
  *
@@ -18,33 +18,45 @@
  * =====================================================================================
  */
 
+#include <string>
 #include <cstdint>
 #include <cstddef>
+#include <unordered_map>
+
 #include "sysconst.hpp"
 
-// I need to make sure for array access range
-static size_t g_MaxValidMapID = 0;
-const static char *g_MapName[] = {
-    nullptr,        // 0
-    "DESC.BIN",     // 1
-    nullptr,
-};
+typedef struct _MapRecord
+{
+    const std::string Name;
+    const std::string FileName;
+
+    _MapRecord(const char *szName, const char *szFileName)
+        : Name(szName)
+        , FileName(szFileName)
+    {}
+}MapRecord;
+
+const static std::unordered_map<uint32_t, MapRecord> s_MapRecord = {
+    {0,  {"", ""}},
+    {1,  {"test", "DESC.BIN"}}};
 
 const char *SYS_MAPNAME(uint32_t nMapID)
 {
-    return "DESC.BIN";
-
-    if(!g_MaxValidMapID){
-        g_MaxValidMapID = 1;
-        auto pName = g_MapName + 1;
-        while(*pName){
-            pName++;
-            g_MaxValidMapID++;
+    if(nMapID){
+        if(s_MapRecord.find(nMapID) != s_MapRecord.end()){
+            return s_MapRecord.at(nMapID).Name.c_str();
         }
     }
 
-    if(nMapID < g_MaxValidMapID){
-        return g_MapName[g_MaxValidMapID];
+    return nullptr;
+}
+
+const char *SYS_MAPFILENAME(uint32_t nMapID)
+{
+    if(nMapID){
+        if(s_MapRecord.find(nMapID) != s_MapRecord.end()){
+            return s_MapRecord.at(nMapID).FileName.c_str();
+        }
     }
 
     return nullptr;

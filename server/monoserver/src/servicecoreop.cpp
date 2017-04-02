@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 03/31/2017 13:13:25
+ *  Last Modified: 04/01/2017 21:30:41
  *
  *    Description: 
  *
@@ -173,4 +173,19 @@ void ServiceCore::On_MPK_QUERYMONSTERGINFO(const MessagePack &rstMPK, const Ther
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_FATAL, "Query monster global information failed");
     g_MonoServer->Restart();
+}
+
+void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+{
+    AMMapList stAMML;
+    std::memset(&stAMML, 0, sizeof(stAMML));
+
+    int nIndex = 0;
+    for(auto pMap: m_MapRecord){
+        if(pMap.second && pMap.second->ID()){
+            stAMML.MapList[nIndex++] = pMap.second->ID();
+        }
+    }
+
+    m_ActorPod->Forward({MPK_MAPLIST, stAMML}, rstFromAddr, rstMPK.ID());
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 03/31/2017 16:15:05
+ *  Last Modified: 04/01/2017 21:14:31
  *
  *    Description: 
  *
@@ -45,6 +45,8 @@ enum MessagePackType: int
     MPK_QUERYMONSTERGINFO,
     MPK_PULLCOINFO,
     MPK_NEWCONNECTION,
+    MPK_QUERYMAPLIST,
+    MPK_MAPLIST,
 };
 
 typedef struct
@@ -196,3 +198,8 @@ typedef struct
 {
     uint32_t SessionID;
 }AMNewConnection;
+
+typedef struct
+{
+    uint32_t MapList[256];
+}AMMapList;

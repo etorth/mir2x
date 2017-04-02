@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 03/31/2017 19:25:16
+ *  Last Modified: 04/01/2017 21:17:56
  *
  *    Description: 
  *
@@ -337,11 +337,6 @@ void MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
                 AddLog(LOGTYPE_INFO, "add monster: adding succeeds");
                 break;
             }
-        case MPK_PENDING:
-            {
-                AddLog(LOGTYPE_INFO, "add monster: operation pending");
-                break;
-            }
         case MPK_ERROR:
             {
                 AddLog(LOGTYPE_WARNING, "add monster: operation failed");
@@ -353,4 +348,42 @@ void MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
                 break;
             }
     }
+}
+
+std::vector<uint32_t> MonoServer::GetActiveMapList()
+{
+    MessagePack stRMPK;
+    SyncDriver().Forward(MPK_QUERYMAPLIST, m_ServiceCore->GetAddress(), &stRMPK);
+    switch(stRMPK.Type()){
+        case MPK_MAPLIST:
+            {
+                AMMapList stAMML;
+                std::memcpy(&stAMML, stRMPK.Data(), sizeof(stAMML));
+
+                std::vector<uint32_t> stMapList;
+                for(size_t nIndex = 0; nIndex < sizeof(stAMML.MapList) / sizeof(stAMML.MapList[0]); ++nIndex){
+                    if(stAMML.MapList[nIndex]){
+                        stMapList.push_back(stAMML.MapList[nIndex]);
+                    }else{
+                        break;
+                    }
+                }
+                return stMapList;
+            }
+        default:
+            {
+                return {};
+            }
+    }
+}
+
+bool MonoServer::GetValidMonsterList(uint32_t, std::vector<uint32_t> &stMonsterV)
+{
+    stMonsterV.clear();
+    return true;
+}
+
+int MonoServer::GetValidMonsterCount(int, int)
+{
+    return 1;
 }

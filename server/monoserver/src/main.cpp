@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 08/01/2016 05:14:47
+ *  Last Modified: 04/01/2017 19:01:34
  *
  *    Description: 
  *
@@ -61,6 +61,7 @@ int main()
     g_TaskHub                 = new TaskHub();
     g_MainWindow              = new MainWindow();
     g_MonoServer              = new MonoServer();
+    g_AddMonsterWindow        = new AddMonsterWindow();
     g_MemoryPN                = new MemoryPN();
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();

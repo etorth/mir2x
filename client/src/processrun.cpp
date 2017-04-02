@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/30/2017 16:31:08
+ *  Last Modified: 04/01/2017 19:26:52
  *
  *    Description: 
  *
@@ -388,7 +388,7 @@ int ProcessRun::LoadMap(uint32_t nMapID)
 {
     if(nMapID){
         m_MapID = nMapID;
-        if(auto pMapName = SYS_MAPNAME(nMapID)){
+        if(auto pMapName = SYS_MAPFILENAME(nMapID)){
             return m_Mir2xMapData.Load(pMapName);
         }
     }

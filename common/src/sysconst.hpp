@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 03/28/2017 11:14:21
+ *  Last Modified: 04/01/2017 19:10:25
  *
  *    Description: 
  *
@@ -37,3 +37,4 @@ const int SYS_MAPVISIBLEH  = 400;
 const int SYS_MAPVISIBLECD = 100;
 
 const char *SYS_MAPNAME(uint32_t);
+const char *SYS_MAPFILENAME(uint32_t);

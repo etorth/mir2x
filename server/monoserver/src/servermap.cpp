@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 03/31/2017 16:12:15
+ *  Last Modified: 04/01/2017 19:26:31
  *
  *    Description: 
  *
@@ -31,7 +31,7 @@
 ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     : ActiveObject()
     , m_ID(nMapID)
-    , m_Mir2xMapData(SYS_MAPNAME(nMapID))
+    , m_Mir2xMapData(SYS_MAPFILENAME(nMapID))
     , m_Metronome(nullptr)
     , m_ServiceCore(pServiceCore)
     , m_CellStateV2D()
@@ -54,7 +54,7 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
         }
     }else{
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Load map failed: ID = %d, Name = %s", nMapID, SYS_MAPNAME(nMapID) ? SYS_MAPNAME(nMapID) : "");
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Load map failed: ID = %d, Name = %s", nMapID, SYS_MAPFILENAME(nMapID) ? SYS_MAPFILENAME(nMapID) : "");
         g_MonoServer->Restart();
     }
 }

@@ -23,6 +23,9 @@ decl {\#include <Fl/fl_ask.H>} {public global
 decl {\#include "monoserver.hpp"} {private local
 } 
 
+decl {\#include "sysconst.hpp"} {private local
+} 
+
 class AddMonsterWindow {open
 } {
   Function {AddMonsterWindow()} {open
@@ -78,26 +81,27 @@ class AddMonsterWindow {open
 	m_ValidMapList->clear();
 	
 	extern MonoServer *g_MonoServer;
-	std::vector<std::pair<int, std::string>> stValidMapV;
-	
-	if(g_MonoServer->GetValidMapV(stValidMapV)){
-		for(auto stPair: stValidMapV){
-			AddMapList(stPair.first, stPair.second.c_str());
-		}
-	}else{
-		fl_alert("%s", "No valid map currently");
-	}
+    auto stMapList = g_MonoServer->GetActiveMapList();
+
+    if(stMapList.empty()){
+        fl_alert("%s", "No valid map currently");
+    }else{
+        for(auto nMapID: stMapList){
+            AddMapList((int)(nMapID), SYS_MAPNAME(nMapID));
+        }
+    }
 }} {}
   }
   Function {SetMonsterList()} {return_type void
   } {
     code {{
 	extern MonoServer *g_MonoServer;
-	std::vector<std::pair<int, std::string>> stMonsterV;
+	std::vector<uint32_t> stMonsterV;
 	
-	if(g_MonoServer->GetValidMonsterV(CurrentMapID(), stMonsterV)){
-		for(auto stPair: stMonsterV){
-			AddMonsterList(stPair.first, stPair.second.c_str());
+	if(g_MonoServer->GetValidMonsterList((uint32_t)(CurrentMapID()), stMonsterV)){
+		for(auto nMonsterID: stMonsterV){
+            // fast hack here
+			AddMonsterList((int)(nMonsterID), "deer");
 		}
 	}else{
 		fl_alert("%s", "No valid monster for current map");
@@ -108,7 +112,7 @@ class AddMonsterWindow {open
   } {
     code {{
 	// TODO: check for redundancy of the map list
-	m_ValidMapList->add(szMapName, 0, OnSelectMap, (void *)((intptr_t)nMapID), 0);
+	m_ValidMapList->add(szMapName, 0, OnSelectMap, (void *)((intptr_t)(nMapID)), 0);
 }} {}
   }
   Function {AddMonsterList(int nMonsterID, const char *szMonsterName)} {return_type void
@@ -147,8 +151,7 @@ class AddMonsterWindow {open
 	m_ValidMonsterCountList->clear();
 	
 	for(int nCnt = 0; nCnt <= nValidCount; ++nCnt){
-	  m_ValidMonsterCountList->add(
-	  	std::to_string(nCnt).c_str(), 0, nullptr, (void *)((intptr_t)nCnt), 0);
+	  m_ValidMonsterCountList->add(std::to_string(nCnt).c_str(), 0, nullptr, (void *)((intptr_t)nCnt), 0);
 	}
 }} {}
   }

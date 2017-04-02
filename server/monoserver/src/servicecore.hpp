@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 03/31/2017 13:12:51
+ *  Last Modified: 04/01/2017 21:22:44
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -53,6 +53,7 @@ class ServiceCore: public ActiveObject
         void On_MPK_LOGIN(const MessagePack &, const Theron::Address &);
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
         void On_MPK_LOGINQUERYDB(const MessagePack &, const Theron::Address &);
+        void On_MPK_QUERYMAPLIST(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWCONNECTION(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYMONSTERGINFO(const MessagePack &, const Theron::Address &);
