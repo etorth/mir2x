@@ -95,17 +95,16 @@ class AddMonsterWindow {open
   Function {SetMonsterList()} {return_type void
   } {
     code {{
+    m_ValidMonsterList->clear();
 	extern MonoServer *g_MonoServer;
-	std::vector<uint32_t> stMonsterV;
-	
-	if(g_MonoServer->GetValidMonsterList((uint32_t)(CurrentMapID()), stMonsterV)){
-		for(auto nMonsterID: stMonsterV){
-            // fast hack here
-			AddMonsterList((int)(nMonsterID), "deer");
-		}
-	}else{
-		fl_alert("%s", "No valid monster for current map");
-	}
+    auto stMonsterList = g_MonoServer->GetValidMonsterList((uint32_t)(CurrentMapID()));
+    for(auto nMonsterID: stMonsterList){
+        AddMonsterList((int)(nMonsterID), "deer");
+    }
+
+    if(m_ValidMonsterList->size() <= 1){
+        fl_alert("%s", "No valid monster for current map");
+    }
 }} {}
   }
   Function {AddMapList(int nMapID, const char *szMapName)} {return_type void

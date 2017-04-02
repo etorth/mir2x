@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/01/2017 21:17:56
+ *  Last Modified: 04/01/2017 23:16:37
  *
  *    Description: 
  *
@@ -377,10 +377,9 @@ std::vector<uint32_t> MonoServer::GetActiveMapList()
     }
 }
 
-bool MonoServer::GetValidMonsterList(uint32_t, std::vector<uint32_t> &stMonsterV)
+std::vector<uint32_t> MonoServer::GetValidMonsterList(uint32_t)
 {
-    stMonsterV.clear();
-    return true;
+    return {1};
 }
 
 int MonoServer::GetValidMonsterCount(int, int)
