@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 04/01/2017 21:30:41
+ *  Last Modified: 04/01/2017 22:17:10
  *
  *    Description: 
  *
@@ -180,12 +180,17 @@ void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK, const Theron::A
     AMMapList stAMML;
     std::memset(&stAMML, 0, sizeof(stAMML));
 
-    int nIndex = 0;
+    size_t nIndex = 0;
     for(auto pMap: m_MapRecord){
         if(pMap.second && pMap.second->ID()){
-            stAMML.MapList[nIndex++] = pMap.second->ID();
+            if(nIndex < (sizeof(stAMML.MapList) / sizeof(stAMML.MapList[0]))){
+                stAMML.MapList[nIndex++] = pMap.second->ID();
+            }else{
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Need larger map list size in AMMapList");
+                g_MonoServer->Restart();
+            }
         }
     }
-
     m_ActorPod->Forward({MPK_MAPLIST, stAMML}, rstFromAddr, rstMPK.ID());
 }
