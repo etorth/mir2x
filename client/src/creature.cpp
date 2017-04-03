@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/02/2017 17:22:44
+ *  Last Modified: 04/03/2017 10:41:21
  *
  *    Description: 
  *
@@ -509,37 +509,75 @@ void Creature::OnWalk()
     }
 }
 
-int Creature::GfxID()
+bool Creature::ActionValid(int nAction, int nDirection)
 {
-    switch(m_Action){
-        case ACTION_NONE:
+    switch(nAction){
+        case ACTION_STAND:
+        case ACTION_WALK:
+        case ACTION_ATTACK:
+        case ACTION_DIE:
             {
-                return -1;
+                switch(nDirection){
+                    case DIR_UP:
+                    case DIR_UPRIGHT:
+                    case DIR_RIGHT:
+                    case DIR_DOWNRIGHT:
+                    case DIR_DOWN:
+                    case DIR_DOWNLEFT:
+                    case DIR_LEFT:
+                    case DIR_UPLEFT:
+                        {
+                            return true;
+                        }
+                    case DIR_NONE:
+                    default:
+                        {
+                            return false;
+                        }
+                }
+                break;
             }
         default:
             {
-                static const std::unordered_map<int, int> stActionGfxIDRecord = {
-                    {ACTION_STAND,      0},
-                    {ACTION_WALK,       1},
-                    {ACTION_ATTACK,     2},
-                    {ACTION_DIE,        3}};
-
-                if(stActionGfxIDRecord.find(m_Action) != stActionGfxIDRecord.end()){
-                    switch(m_Direction){
-                        case DIR_UP         : return ( 0 + (stActionGfxIDRecord.at(m_Action) << 3));
-                        case DIR_DOWN       : return ( 4 + (stActionGfxIDRecord.at(m_Action) << 3));
-                        case DIR_LEFT       : return ( 6 + (stActionGfxIDRecord.at(m_Action) << 3));
-                        case DIR_RIGHT      : return ( 2 + (stActionGfxIDRecord.at(m_Action) << 3));
-                        case DIR_UPLEFT     : return ( 7 + (stActionGfxIDRecord.at(m_Action) << 3));
-                        case DIR_UPRIGHT    : return ( 1 + (stActionGfxIDRecord.at(m_Action) << 3));
-                        case DIR_DOWNLEFT   : return ( 5 + (stActionGfxIDRecord.at(m_Action) << 3));
-                        case DIR_DOWNRIGHT  : return ( 3 + (stActionGfxIDRecord.at(m_Action) << 3));
-                        case DIR_NONE       : return (-1 + 0);
-                        default             : return (-1 + 0);
-                    }
-                }
-
-                return -1;
+                return false;
             }
     }
+}
+
+int Creature::GfxID()
+{
+    if(ActionValid(m_Action, m_Direction)){
+        switch(m_Action){
+            case ACTION_NONE:
+                {
+                    return -1;
+                }
+            default:
+                {
+                    static const std::unordered_map<int, int> stActionGfxIDRecord = {
+                        {ACTION_STAND,      0},
+                        {ACTION_WALK,       1},
+                        {ACTION_ATTACK,     2},
+                        {ACTION_DIE,        3}};
+
+                    if(stActionGfxIDRecord.find(m_Action) != stActionGfxIDRecord.end()){
+                        switch(m_Direction){
+                            case DIR_UP         : return ( 0 + (stActionGfxIDRecord.at(m_Action) << 3));
+                            case DIR_DOWN       : return ( 4 + (stActionGfxIDRecord.at(m_Action) << 3));
+                            case DIR_LEFT       : return ( 6 + (stActionGfxIDRecord.at(m_Action) << 3));
+                            case DIR_RIGHT      : return ( 2 + (stActionGfxIDRecord.at(m_Action) << 3));
+                            case DIR_UPLEFT     : return ( 7 + (stActionGfxIDRecord.at(m_Action) << 3));
+                            case DIR_UPRIGHT    : return ( 1 + (stActionGfxIDRecord.at(m_Action) << 3));
+                            case DIR_DOWNLEFT   : return ( 5 + (stActionGfxIDRecord.at(m_Action) << 3));
+                            case DIR_DOWNRIGHT  : return ( 3 + (stActionGfxIDRecord.at(m_Action) << 3));
+                            case DIR_NONE       : return (-1 + 0);
+                            default             : return (-1 + 0);
+                        }
+                    }
+
+                    return -1;
+                }
+        }
+    }
+    return -1;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 03/31/2017 00:52:04
+ *  Last Modified: 04/03/2017 10:40:48
  *
  *    Description: 
  *
@@ -20,9 +20,9 @@
 
 #include "hero.hpp"
 
-Hero::Hero(uint32_t nUID, uint32_t nGUID, bool bMale, ProcessRun *pRun, int nX, int nY, int nAction, int nDirection, int nSpeed)
+Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bMale, ProcessRun *pRun, int nX, int nY, int nAction, int nDirection, int nSpeed)
     : Creature(nUID, pRun, nX, nY, nAction, nDirection, nSpeed)
-    , m_GUID(nGUID)
+    , m_DBID(nDBID)
     , m_Male(bMale)
 {}
 

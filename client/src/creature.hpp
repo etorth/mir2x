@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/02/2017 16:29:00
+ *  Last Modified: 04/03/2017 10:41:40
  *
  *    Description: 
  *
@@ -118,6 +118,9 @@ class Creature
         virtual bool ValidG() = 0;
         virtual void Draw(int, int) = 0;
         virtual void Update() = 0;
+
+    public:
+        virtual bool ActionValid(int, int);
 
     public:
         virtual int GfxID();

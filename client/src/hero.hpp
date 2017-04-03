@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 03/31/2017 00:48:33
+ *  Last Modified: 04/03/2017 10:41:08
  *
  *    Description: 
  *
@@ -24,10 +24,10 @@
 class Hero: public Creature
 {
     protected:
-        uint32_t    m_GUID;
-        bool        m_Male;
-        int         m_Level;
-        int         m_Job;
+        uint32_t m_DBID;
+
+    protected:
+        bool m_Male;
 
     public:
         Hero(uint32_t, uint32_t, bool, ProcessRun *, int, int, int, int, int);
@@ -46,17 +46,6 @@ class Hero: public Creature
         size_t FrameCount()
         {
             return 1;
-        }
-
-    public:
-        void ResetLevel(int nLevel)
-        {
-            m_Level = ((nLevel >= 0) ? nLevel : 0);
-        }
-
-        void ResetJob(int nJobID)
-        {
-            m_Job = nJobID;
         }
 
     public:
