@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/01/2017 02:05:54
+ *  Last Modified: 04/02/2017 17:22:44
  *
  *    Description: 
  *
@@ -506,5 +506,40 @@ void Creature::OnWalk()
         }
     }else{
         MoveNextFrame(1);
+    }
+}
+
+int Creature::GfxID()
+{
+    switch(m_Action){
+        case ACTION_NONE:
+            {
+                return -1;
+            }
+        default:
+            {
+                static const std::unordered_map<int, int> stActionGfxIDRecord = {
+                    {ACTION_STAND,      0},
+                    {ACTION_WALK,       1},
+                    {ACTION_ATTACK,     2},
+                    {ACTION_DIE,        3}};
+
+                if(stActionGfxIDRecord.find(m_Action) != stActionGfxIDRecord.end()){
+                    switch(m_Direction){
+                        case DIR_UP         : return ( 0 + (stActionGfxIDRecord.at(m_Action) << 3));
+                        case DIR_DOWN       : return ( 4 + (stActionGfxIDRecord.at(m_Action) << 3));
+                        case DIR_LEFT       : return ( 6 + (stActionGfxIDRecord.at(m_Action) << 3));
+                        case DIR_RIGHT      : return ( 2 + (stActionGfxIDRecord.at(m_Action) << 3));
+                        case DIR_UPLEFT     : return ( 7 + (stActionGfxIDRecord.at(m_Action) << 3));
+                        case DIR_UPRIGHT    : return ( 1 + (stActionGfxIDRecord.at(m_Action) << 3));
+                        case DIR_DOWNLEFT   : return ( 5 + (stActionGfxIDRecord.at(m_Action) << 3));
+                        case DIR_DOWNRIGHT  : return ( 3 + (stActionGfxIDRecord.at(m_Action) << 3));
+                        case DIR_NONE       : return (-1 + 0);
+                        default             : return (-1 + 0);
+                    }
+                }
+
+                return -1;
+            }
     }
 }

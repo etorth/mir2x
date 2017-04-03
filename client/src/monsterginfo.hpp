@@ -3,7 +3,7 @@
  *
  *       Filename: monsterginfo.hpp
  *        Created: 06/02/2016 15:08:56
- *  Last Modified: 03/27/2017 14:14:49
+ *  Last Modified: 04/02/2017 17:20:47
  *
  *    Description: monster global info
  *
@@ -212,43 +212,44 @@ class MonsterGInfo final
         }
 
     public:
+        size_t FrameCount(uint32_t nLIDN, int nGfxID)
+        {
+            return ((nLIDN < 4) && (nGfxID >= 0)) ? FrameCount(nLIDN, nGfxID >> 3, nGfxID & 0X07) : 0;
+        }
+
         size_t FrameCount(uint32_t nLIDN, uint32_t nAction, uint32_t nDirection)
         {
             // 1. check parameter, for monster:
             //      1. it can own 4 different look effect
             //      2. it can have up to 16 states (00 ~ 15) while human can have up to xxx states
-            //      3. it can have up to 8 directions (0 ~7)
-            if(nLIDN >= 4 || nAction >= 16 || nDirection >= 8){ return 0; }
+            //      3. it can have up to 8 directions (0 ~ 7)
+            if((nLIDN < 4) && (nAction < 16) && (nDirection < 8)){
+                // 2. if the net data is not ready we return
+                switch(m_NetData[nLIDN].Query()){
+                    case QUERY_OK:
+                        {
+                            if(!m_CacheData[nLIDN].Valid()){
+                                m_CacheData[nLIDN].Load(m_NetData[nLIDN].LookID());
+                            }
 
-            // 2. if the net data is not ready we return
-            switch(m_NetData[nLIDN].Query()){
-                case QUERY_OK:
-                    {
-                        goto __MONSTERGINFO_FRAMECOUNT_NETDATAVALID_LABEL_1;
-                    }
-                case QUERY_NA:
-                    {
-                        Load(nLIDN);
-                        return 0;
-                    }
-                default:
-                    {
-                        return 0;
-                    }
+                            if(m_CacheData[nLIDN].Valid()){
+                                return m_CacheData[nLIDN].FrameCount[nAction][nDirection];
+                            }
+
+                            return 0;
+                        }
+                    case QUERY_NA:
+                        {
+                            Load(nLIDN);
+                            return 0;
+                        }
+                    default:
+                        {
+                            return 0;
+                        }
+                }
             }
 
-__MONSTERGINFO_FRAMECOUNT_NETDATAVALID_LABEL_1:
-            // 2. check cache
-            if(!m_CacheData[nLIDN].Valid()){
-                m_CacheData[nLIDN].Load(m_NetData[nLIDN].LookID());
-            }
-
-            // 3. ok now cache is valid
-            if(m_CacheData[nLIDN].Valid()){
-                return m_CacheData[nLIDN].FrameCount[nAction][nDirection];
-            }
-
-            // even we tried, but the cache loading failed
             return 0;
         }
 };

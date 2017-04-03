@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19 PM
- *  Last Modified: 03/31/2017 00:38:12
+ *  Last Modified: 04/02/2017 16:57:14
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
