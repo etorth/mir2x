@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 03/31/2017 10:12:16
+ *  Last Modified: 04/03/2017 16:19:18
  *
  *    Description: public API for class game only
  *
@@ -39,6 +39,7 @@ Game::Game()
 
     // load PNGTexDB
     extern PNGTexDBN    *g_PNGTexDBN;
+    extern PNGTexOffDBN *g_HeroGfxDBN;
     extern PNGTexOffDBN *g_PNGTexOffDBN;
     extern FontexDBN    *g_FontexDBN;
     extern XMLConf      *g_XMLConf;
@@ -70,6 +71,15 @@ Game::Game()
     }
     g_Log->AddLog(LOGTYPE_INFO, "PNGTexOffDBN path: %s", pNode->GetText());
     g_PNGTexOffDBN->Load(pNode->GetText());
+
+    // hero gfx resource
+    pNode = g_XMLConf->GetXMLNode("Root/Texture/HeroGfxDBN");
+    if(!pNode){
+        g_Log->AddLog(LOGTYPE_WARNING, "No HeroGfxDBN path found in configuration.");
+        throw std::error_code();
+    }
+    g_Log->AddLog(LOGTYPE_INFO, "HeroGfxDBN path: %s", pNode->GetText());
+    g_HeroGfxDBN->Load(pNode->GetText());
 }
 
 Game::~Game()

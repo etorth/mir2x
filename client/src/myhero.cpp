@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 03/31/2017 00:52:33
+ *  Last Modified: 04/03/2017 17:11:09
  *
  *    Description: 
  *
@@ -20,8 +20,8 @@
 
 #include "myhero.hpp"
 
-MyHero::MyHero(uint32_t nUID, uint32_t nGUID, bool bMale, ProcessRun *pRun, int nX, int nY, int nAction, int nDirection, int nSpeed)
-	: Hero(nUID, nGUID, bMale, pRun, nX, nY, nAction, nDirection, nSpeed)
+MyHero::MyHero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, ProcessRun *pRun, int nX, int nY, int nAction, int nDirection, int nSpeed)
+	: Hero(nUID, nDBID, bMale, nDressID, pRun, nX, nY, nAction, nDirection, nSpeed)
 {}
 
 void MyHero::Update()

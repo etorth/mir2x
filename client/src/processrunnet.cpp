@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 03/31/2017 13:24:40
+ *  Last Modified: 04/03/2017 17:19:03
  *
  *    Description: 
  *
@@ -36,7 +36,7 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
     std::memcpy(&stSMLOK, pBuf, nLen);
 
     LoadMap(stSMLOK.MapID);
-    m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.GUID, (bool)(stSMLOK.Male), this, 0, 0, 0, 0, 0);
+    m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.GUID, (bool)(stSMLOK.Male), 0, this, 0, 0, 0, 0, 0);
 }
 
 void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)

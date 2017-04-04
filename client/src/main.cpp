@@ -12,6 +12,7 @@
 Log            *g_Log           = nullptr; // log information handler, must be inited first
 PNGTexDBN      *g_PNGTexDBN     = nullptr; // database for all PNG texture only
 PNGTexOffDBN   *g_PNGTexOffDBN  = nullptr; // database for all PNG texture and offset information
+PNGTexOffDBN   *g_HeroGfxDBN    = nullptr; // database for hero
 EmoticonDBN    *g_EmoticonDBN   = nullptr; // database for emoticons
 FontexDBN      *g_FontexDBN     = nullptr;
 XMLConf        *g_XMLConf       = nullptr; // for game configure XML parsing
@@ -30,6 +31,7 @@ int main()
         delete g_XMLConf     ; g_XMLConf     = nullptr;
         delete g_SDLDevice   ; g_SDLDevice   = nullptr;
         delete g_PNGTexDBN   ; g_PNGTexDBN   = nullptr;
+        delete g_HeroGfxDBN  ; g_HeroGfxDBN  = nullptr;
         delete g_FontexDBN   ; g_FontexDBN   = nullptr;
         delete g_EmoticonDBN ; g_EmoticonDBN = nullptr;
         delete g_Game        ; g_Game        = nullptr;
@@ -41,6 +43,7 @@ int main()
     g_XMLConf      = new XMLConf();
     g_SDLDevice    = new SDLDevice();
     g_PNGTexDBN    = new PNGTexDBN();
+    g_HeroGfxDBN   = new PNGTexOffDBN();
     g_PNGTexOffDBN = new PNGTexOffDBN();
     g_FontexDBN    = new FontexDBN();
     g_EmoticonDBN  = new EmoticonDBN();

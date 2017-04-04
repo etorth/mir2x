@@ -19,6 +19,7 @@
     <Font><FontexDBN>Res/Font/FontexDBN.ZIP</FontexDBN></Font>
     <Texture>
         <PNGTexDBN>Res/Texture/PNGTexDBN.ZIP</PNGTexDBN>
+        <HeroGfxDBN>Res/Texture/HeroGfxDBN.ZIP</HeroGfxDBN>
         <PNGTexOffDBN>Res/Texture/PNGTexOffDBN.ZIP</PNGTexOffDBN>
         <Path>Res/Texture</Path>
     </Texture>

@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/03/2017 10:41:08
+ *  Last Modified: 04/03/2017 17:10:20
  *
  *    Description: 
  *
@@ -29,8 +29,11 @@ class Hero: public Creature
     protected:
         bool m_Male;
 
+    protected:
+        uint32_t m_DressID;
+
     public:
-        Hero(uint32_t, uint32_t, bool, ProcessRun *, int, int, int, int, int);
+        Hero(uint32_t, uint32_t, bool, uint32_t, ProcessRun *, int, int, int, int, int);
        ~Hero() = default;
 
     public:
