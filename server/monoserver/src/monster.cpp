@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/01/2017 01:18:40
+ *  Last Modified: 04/04/2017 14:11:05
  *
  *    Description: 
  *
@@ -57,7 +57,7 @@ bool Monster::Update()
         }
 
         m_Direction = std::rand() % 8;
-        DispatchAction(ACTION_STAND);
+        DispatchAction(ACTION_STAND, 0);
     }
     return true;
 }
@@ -134,7 +134,7 @@ bool Monster::RequestMove(int nX, int nY)
                     m_CurrX = nX;
                     m_CurrY = nY;
                     m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-                    DispatchAction(ACTION_WALK);
+                    DispatchAction(ACTION_WALK, 0);
 
                     m_FreezeWalk = false;
                     break;
@@ -142,7 +142,7 @@ bool Monster::RequestMove(int nX, int nY)
             case MPK_ERROR:
                 {
                     m_Direction = GetBack();
-                    DispatchAction(ACTION_STAND);
+                    DispatchAction(ACTION_STAND, 0);
                     m_FreezeWalk = false;
                     break;
                 }

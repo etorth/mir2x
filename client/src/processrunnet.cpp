@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/03/2017 17:19:03
+ *  Last Modified: 04/04/2017 14:14:37
  *
  *    Description: 
  *
@@ -55,7 +55,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         auto pRecord = m_CreatureRecord.find(stSMA.UID);
         if(pRecord != m_CreatureRecord.end()){
             if(auto pCreature = pRecord->second){
-                pCreature->OnReportAction((int)(stSMA.Action), (int)(stSMA.Direction), stSMA.Speed, stSMA.X, stSMA.Y);
+                pCreature->OnReportAction((int)(stSMA.Action), (int)(stSMA.ActionParam), (int)(stSMA.Direction), stSMA.Speed, stSMA.X, stSMA.Y);
             }
         }
     }
@@ -109,7 +109,7 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
             }
         }else{
             if(pRecord->second){
-                pRecord->second->OnReportAction(nAction, nDirection, nSpeed, nX, nY);
+                pRecord->second->OnReportAction(nAction, 0, nDirection, nSpeed, nX, nY);
             }
         }
     }

@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 03/31/2017 13:21:35
+ *  Last Modified: 04/04/2017 13:58:19
  *
  *    Description: net message used by client and mono-server
  *
@@ -77,6 +77,7 @@ typedef struct
     uint32_t MapID;
 
     uint8_t Action;
+    uint8_t ActionParam;
     uint8_t Direction;
 
     uint32_t Speed;

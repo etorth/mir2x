@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/03/2017 10:41:21
+ *  Last Modified: 04/04/2017 14:13:50
  *
  *    Description: 
  *
@@ -202,7 +202,7 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
     }
 }
 
-void Creature::OnReportAction(int nAction, int nDirection, int nSpeed, int nX, int nY)
+void Creature::OnReportAction(int nAction, int, int nDirection, int nSpeed, int nX, int nY)
 {
     // the first action node is the ``current action"
     // could be empty then current action by default is ACTION_STAND

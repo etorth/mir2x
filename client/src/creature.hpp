@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/03/2017 10:41:40
+ *  Last Modified: 04/04/2017 14:13:40
  *
  *    Description: 
  *
@@ -89,7 +89,7 @@ class Creature
 
     public:
         virtual void OnReportState();
-        virtual void OnReportAction(int, int, int, int, int);
+        virtual void OnReportAction(int, int, int, int, int, int);
 
     public:
         uint32_t UID() { return m_UID; }

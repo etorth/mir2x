@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 04/01/2017 21:14:31
+ *  Last Modified: 04/04/2017 14:11:31
  *
  *    Description: 
  *
@@ -177,6 +177,7 @@ typedef struct
     int Y;
 
     int Action;
+    int ActionParam;
 
     uint32_t Speed;
     uint8_t Direction;
