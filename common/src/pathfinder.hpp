@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 03/29/2017 00:59:50
+ *  Last Modified: 04/04/2017 11:45:40
  *
  *    Description: A-Star algorithm for path find
  *
@@ -95,7 +95,8 @@ class AStarPathFinderNode
     public:
         float GoalDistanceEstimate(AStarPathFinderNode &rstGoalNode)
         {
-            return 1.0 * (std::abs(rstGoalNode.m_CurrX - m_CurrX) + std::abs(rstGoalNode.m_CurrY - m_CurrY));
+            // we use Chebyshev's distance instead of Manhattan distance
+            return std::max<float>(std::abs(rstGoalNode.m_CurrX - m_CurrX), std::abs(rstGoalNode.m_CurrY - m_CurrY));
         }
 
         bool IsGoal(AStarPathFinderNode &rstGoalNode)
