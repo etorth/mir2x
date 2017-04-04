@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 04/02/2017 17:21:12
+ *  Last Modified: 04/04/2017 14:20:31
  *
  *    Description: 
  *
@@ -54,7 +54,7 @@ void Monster::Update()
                         OnStand();
                         break;
                     }
-                case ACTION_WALK:
+                case ACTION_MOVE:
                     {
                         OnWalk();
                         break;

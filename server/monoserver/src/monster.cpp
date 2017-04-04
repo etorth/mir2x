@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/04/2017 14:11:05
+ *  Last Modified: 04/04/2017 14:18:07
  *
  *    Description: 
  *
@@ -134,7 +134,7 @@ bool Monster::RequestMove(int nX, int nY)
                     m_CurrX = nX;
                     m_CurrY = nY;
                     m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-                    DispatchAction(ACTION_WALK, 0);
+                    DispatchAction(ACTION_MOVE, 0);
 
                     m_FreezeWalk = false;
                     break;

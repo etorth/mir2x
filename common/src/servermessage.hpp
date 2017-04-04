@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 04/04/2017 13:58:19
+ *  Last Modified: 04/04/2017 14:41:18
  *
  *    Description: net message used by client and mono-server
  *
@@ -69,12 +69,33 @@ typedef struct
 
 typedef struct
 {
-    uint32_t UID;
+    uint8_t Type;
+    
+    struct _Common
+    {
+        uint8_t _Type;
 
-    uint32_t X;
-    uint32_t Y;
-    uint32_t R;
-    uint32_t MapID;
+        uint32_t UID;
+
+        uint32_t CurrX;
+        uint32_t CurrY;
+        uint32_t MapID;
+    }Common;
+
+    struct _Attack
+    {
+        struct _Common _MemoryAlign;
+    }Attack;
+
+    struct _Move
+    {
+        struct _Common _MemoryAlign;
+
+        uint16_t X;
+        uint16_t Y;
+
+        uint8_t Param;
+    }Move;
 
     uint8_t Action;
     uint8_t ActionParam;
@@ -90,10 +111,12 @@ typedef struct{
     uint32_t R;
 }SMMonsterGInfo;
 
-typedef union {
+typedef union
+{
     uint8_t Type;
 
-    struct _Common{
+    struct _Common
+    {
         uint8_t Type;
 
         uint32_t UID;
@@ -110,19 +133,22 @@ typedef union {
         uint32_t Speed;
     }Common;
 
-    struct _Monster{
+    struct _Monster
+    {
         struct _Common _MemoryAlign;
         uint32_t MonsterID;
     }Monster;
 
-    struct _Player{
+    struct _Player
+    {
         struct _Common _MemoryAlign;
         uint32_t GUID;
         uint32_t JobID;
         uint32_t Level;
     }Player;
 
-    struct _NPC{
+    struct _NPC
+    {
         struct _Common _MemoryAlign;
         uint32_t NPCID;
     }NPC;

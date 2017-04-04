@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/04/2017 14:13:50
+ *  Last Modified: 04/04/2017 14:20:17
  *
  *    Description: 
  *
@@ -61,7 +61,7 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
 {
     int nFrameCountInNextCell = (m_Direction == DIR_UPLEFT) ? 2 : 5;
     switch(m_Action){
-        case ACTION_WALK:
+        case ACTION_MOVE:
             {
                 auto nFrameCount = (int)(FrameCount());
                 switch(m_Direction){
@@ -221,18 +221,18 @@ void Creature::OnReportAction(int nAction, int, int nDirection, int nSpeed, int 
                         }
                     default:
                         {
-                            m_NextActionV.push_back({ACTION_WALK, DIR_NONE, nSpeed, nX, nY});
+                            m_NextActionV.push_back({ACTION_MOVE, DIR_NONE, nSpeed, nX, nY});
                             m_NextActionV.push_back({ACTION_STAND, nDirection, nSpeed, nX, nY});
                             break;
                         }
                 }
                 break;
             }
-        case ACTION_WALK:
+        case ACTION_MOVE:
             {
                 // push ACTION_WALK even if (X(), Y()) == (nX, nY)
                 // since the creature could be leaving and should be called back
-                m_NextActionV.push_back({ACTION_WALK, DIR_NONE, nSpeed, nX, nY});
+                m_NextActionV.push_back({ACTION_MOVE, DIR_NONE, nSpeed, nX, nY});
                 break;
             }
         default:
@@ -326,7 +326,7 @@ void Creature::OnStand()
                     }
                     break;
                 }
-            case ACTION_WALK:
+            case ACTION_MOVE:
                 {
                     switch(LDistance2(X(), Y(), m_NextActionV[0].X, m_NextActionV[0].Y)){
                         case 0:
@@ -352,7 +352,7 @@ void Creature::OnStand()
 
                                             bFindPath   = true;
                                             m_Frame     = 0;
-                                            m_Action    = ACTION_WALK;
+                                            m_Action    = ACTION_MOVE;
                                             m_Direction = nDirV[nDY][nDX];
                                             m_Speed     = m_NextActionV[0].Speed;
                                         }
@@ -382,7 +382,7 @@ void Creature::OnStand()
 
 void Creature::OnWalk()
 {
-    if(m_Action != ACTION_WALK){
+    if(m_Action != ACTION_MOVE){
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
         {
             extern Log *g_Log;
@@ -443,7 +443,7 @@ void Creature::OnWalk()
                                     bDone = true;
                                     break;
                                 }
-                            case ACTION_WALK:
+                            case ACTION_MOVE:
                                 {
                                     switch(LDistance2(m_NextActionV[0].X, m_NextActionV[0].Y, X(), Y())){
                                         case 0:
@@ -471,7 +471,7 @@ void Creature::OnWalk()
 
                                                             bFindPath   = true;
                                                             m_Frame     = 0;
-                                                            m_Action    = ACTION_WALK;
+                                                            m_Action    = ACTION_MOVE;
                                                             m_Direction = nDirV[nDY][nDX];
                                                             m_Speed     = m_NextActionV[0].Speed;
 
@@ -513,7 +513,7 @@ bool Creature::ActionValid(int nAction, int nDirection)
 {
     switch(nAction){
         case ACTION_STAND:
-        case ACTION_WALK:
+        case ACTION_MOVE:
         case ACTION_ATTACK:
         case ACTION_DIE:
             {
@@ -556,7 +556,7 @@ int Creature::GfxID()
                 {
                     static const std::unordered_map<int, int> stActionGfxIDRecord = {
                         {ACTION_STAND,      0},
-                        {ACTION_WALK,       1},
+                        {ACTION_MOVE,       1},
                         {ACTION_ATTACK,     2},
                         {ACTION_DIE,        3}};
 
