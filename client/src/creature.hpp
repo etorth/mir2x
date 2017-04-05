@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/04/2017 14:13:40
+ *  Last Modified: 04/05/2017 14:25:41
  *
  *    Description: 
  *
@@ -20,36 +20,17 @@
 
 #pragma once
 
-#include <array>
-#include <vector>
+#include <list>
+#include <cstdint>
+#include <cstddef>
 
+#include "motionnode.hpp"
 #include "protocoldef.hpp"
 
 class ProcessRun;
 class Creature
 {
     protected:
-        typedef struct _ActionNode
-        {
-            int Action;
-            int Direction;
-            int Speed;
-
-            int X;
-            int Y;
-
-            _ActionNode(int nAction, int nDirection, int nSpeed, int nX, int nY)
-                : Action(nAction)
-                , Direction(nDirection)
-                , Speed(nSpeed)
-                , X(nX)
-                , Y(nY)
-            {}
-
-            _ActionNode()
-                : Action(ACTION_NONE)
-            {}
-        }ActionNode;
 
     protected:
         const uint32_t m_UID;
@@ -66,7 +47,7 @@ class Creature
         int m_Speed;
 
     protected:
-        std::vector<ActionNode> m_NextActionV;
+        std::list<MotionNode> m_MotionList;
 
     protected:
         int m_Frame;
@@ -88,8 +69,8 @@ class Creature
         }
 
     public:
-        virtual void OnReportState();
-        virtual void OnReportAction(int, int, int, int, int, int);
+        virtual bool OnReportState() = 0;
+        virtual bool OnReportAction(int, int, int, int, int, int) = 0;
 
     public:
         uint32_t UID() { return m_UID; }
@@ -109,10 +90,18 @@ class Creature
 
     public:
         virtual int Type() = 0;
-        virtual size_t FrameCount() = 0;
+        virtual size_t MotionFrameCount() = 0;
 
     protected:
-        virtual void MoveNextFrame(int);
+        virtual bool UpdateMotion() = 0;
+        virtual bool AdvanceMotionFrame(int);
+
+    protected:
+        virtual bool UpdateMotionOnStand()       = 0;
+        virtual bool UpdateMotionOnWalk()        = 0;
+        virtual bool UpdateMotionOnAttack()      = 0;
+        virtual bool UpdateMotionOnUnderAttack() = 0;
+        virtual bool UpdateMotionOnDie()         = 0;
 
     public:
         virtual bool ValidG() = 0;
@@ -120,16 +109,14 @@ class Creature
         virtual void Update() = 0;
 
     public:
-        virtual bool ActionValid(int, int);
+        virtual bool MoveNextMotion();
+        virtual bool EraseNextMotion();
+        virtual bool ParseMovePath(int, int, int, int, int, int);
 
     public:
         virtual int GfxID();
 
     public:
-        virtual void ReportBadAction();
-        virtual void ReportBadActionNode(size_t);
-
-    public:
-        virtual void OnWalk();
-        virtual void OnStand();
+        virtual bool MotionValid(int, int);
+        virtual bool ActionValid(int, int);
 };

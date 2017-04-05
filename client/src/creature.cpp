@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/04/2017 14:20:17
+ *  Last Modified: 04/05/2017 14:08:45
  *
  *    Description: 
  *
@@ -25,6 +25,7 @@
 #include <SDL2/SDL.h>
 
 #include "log.hpp"
+#include "motion.hpp"
 #include "mathfunc.hpp"
 #include "creature.hpp"
 #include "sysconst.hpp"
@@ -40,7 +41,7 @@ Creature::Creature(uint32_t nUID, ProcessRun *pRun, int nX, int nY, int nAction,
     , m_Action(nAction)
     , m_Direction(nDirection)
     , m_Speed(nSpeed)
-    , m_NextActionV()
+    , m_MotionList()
     , m_Frame(0)
 {
     assert(true
@@ -63,7 +64,7 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
     switch(m_Action){
         case ACTION_MOVE:
             {
-                auto nFrameCount = (int)(FrameCount());
+                auto nFrameCount = (int)(MotionFrameCount());
                 switch(m_Direction){
                     case DIR_UP:
                         {
@@ -202,310 +203,95 @@ void Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
     }
 }
 
-void Creature::OnReportAction(int nAction, int, int nDirection, int nSpeed, int nX, int nY)
+bool Creature::MoveNextMotion()
 {
-    // the first action node is the ``current action"
-    // could be empty then current action by default is ACTION_STAND
-    if(m_NextActionV.size() >= 1){
-        m_NextActionV.erase(m_NextActionV.begin() + 1, m_NextActionV.end());
-    }
-
-    switch(nAction){
-        case ACTION_STAND:
+    switch(m_MotionList.size()){
+        case 0:
             {
-                switch(LDistance2(nX, nY, X(), Y())){
-                    case 0:
-                        {
-                            m_NextActionV.push_back({ACTION_STAND, nDirection, nSpeed, nX, nY});
-                            break;
-                        }
-                    default:
-                        {
-                            m_NextActionV.push_back({ACTION_MOVE, DIR_NONE, nSpeed, nX, nY});
-                            m_NextActionV.push_back({ACTION_STAND, nDirection, nSpeed, nX, nY});
-                            break;
-                        }
-                }
-                break;
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_FATAL, "Empty motion list");
+                return false;
             }
-        case ACTION_MOVE:
+        case 1:
             {
-                // push ACTION_WALK even if (X(), Y()) == (nX, nY)
-                // since the creature could be leaving and should be called back
-                m_NextActionV.push_back({ACTION_MOVE, DIR_NONE, nSpeed, nX, nY});
-                break;
+                m_MotionList.push_back({MOTION_STAND, m_MotionList.front().Direction, m_MotionList.front().NextX, m_MotionList.front().NextY});
+                m_MotionList.pop_front();
+                return true;
             }
         default:
             {
-                break;
+                m_MotionList.pop_front();
+                return true;
             }
     }
 }
 
-void Creature::OnReportState()
-{}
-
-
-void Creature::ReportBadAction()
+bool Creature::EraseNextMotion()
 {
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    {
+    switch(m_MotionList.size()){
+        case 0:
+            {
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_FATAL, "Empty motion list");
+                return false;
+            }
+        case 1:
+            {
+                return true;
+            }
+        default:
+            {
+                m_MotionList.erase(std::next(m_MotionList.begin(), 1), m_MotionList.end());
+                return true;
+            }
+    }
+}
+
+bool Creature::AdvanceMotionFrame(int nDFrame)
+{
+    auto nFrameCount = (int)(MotionFrameCount());
+    if(nFrameCount > 0){
+        m_Frame = (m_Frame + nDFrame    ) % nFrameCount;
+        m_Frame = (m_Frame + nFrameCount) % nFrameCount;
+        return true;
+    }else{
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO, "Wrong action for ID = %d, X = %4d, Y = %4d, Action = %d, Direction = %d, Speed = %d", X(), Y(), Action(), Direction(), Speed());
-    }
-#endif
-}
-
-void Creature::ReportBadActionNode(size_t nNode)
-{
-    if(nNode < m_NextActionV.size()){
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-        {
-            extern Log *g_Log;
-            g_Log->AddLog(LOGTYPE_INFO, "Wrong action node for ID = %d, current : X = %4d, Y = %4d, Action = %d, Direction = %d, Speed = %d", X(), Y(), Action(), Direction(), Speed());
-            g_Log->AddLog(LOGTYPE_INFO, "                                  next : X = %4d, Y = %4d, Action = %d, Direction = %d, Speed = %d", m_NextActionV[nNode].X, m_NextActionV[nNode].Y, m_NextActionV[nNode].Action, m_NextActionV[nNode].Direction, m_NextActionV[nNode].Speed);
-        }
-#endif
+        g_Log->AddLog(LOGTYPE_FATAL, "Invalid arguments to MoveNextFrame(FrameCount = %d, DFrame = %d)", nFrameCount, nDFrame);
+        return false;
     }
 }
 
-void Creature::MoveNextFrame(int nDFrame)
+bool Creature::MotionValid(int nMotion, int nDirection)
 {
-    auto nFrameCount = (int)(FrameCount());
-    if((nFrameCount > 0) && (std::abs(nDFrame) <= nFrameCount)){
-        m_Frame = (m_Frame + nDFrame + nFrameCount) % nFrameCount;
-    }else{
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-        {
-            extern Log *g_Log;
-            g_Log->AddLog(LOGTYPE_FATAL, "Invalid arguments to MoveNextFrame(FrameCount = %d, DFrame = %d)", nFrameCount, nDFrame);
-        }
-#endif
-    }
-}
-
-void Creature::OnStand()
-{
-    if(m_Action != ACTION_STAND){
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-        {
-            extern Log *g_Log;
-            g_Log->AddLog(LOGTYPE_INFO, "shouldn't call this function");
-        }
-#endif
-        return;
-    }
-
-    if(m_NextActionV.empty()){
-        MoveNextFrame(1);
-    }else{
-        // when in stand action
-        // we will immediately switch to other action if requested
-        switch(m_NextActionV[0].Action){
-            case ACTION_STAND:
-                {
-                    switch(LDistance2(X(), Y(), m_NextActionV[0].X, m_NextActionV[0].Y)){
-                        case 0:
-                            {
-                                m_Frame     = 0;
-                                m_Action    = ACTION_STAND;
-                                m_Direction = m_NextActionV[0].Direction;
-                                m_Speed     = m_NextActionV[0].Speed;
-
-                                m_NextActionV.clear();
-                                break;
-                            }
-                        default:
-                            {
-                                ReportBadActionNode(0);
-                                MoveNextFrame(1);
-
-                                m_NextActionV.clear();
-                                break;
-                            }
-                    }
-                    break;
-                }
-            case ACTION_MOVE:
-                {
-                    switch(LDistance2(X(), Y(), m_NextActionV[0].X, m_NextActionV[0].Y)){
-                        case 0:
-                            {
-                                MoveNextFrame(1);
-                                m_NextActionV.erase(m_NextActionV.begin());
-                                break;
-                            }
-                        default:
-                            {
-                                bool bFindPath = false;
-                                ClientPathFinder stPathFinder(false);
-                                if(stPathFinder.Search(X(), Y(), m_NextActionV[0].X, m_NextActionV[0].Y)){
-                                    if(stPathFinder.GetSolutionStart()){
-                                        if(auto pNode1 = stPathFinder.GetSolutionNext()){
-                                            int nDX = pNode1->X() - X() + 1;
-                                            int nDY = pNode1->Y() - Y() + 1;
-
-                                            static const int nDirV[][3] = {
-                                                {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
-                                                {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
-                                                {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
-
-                                            bFindPath   = true;
-                                            m_Frame     = 0;
-                                            m_Action    = ACTION_MOVE;
-                                            m_Direction = nDirV[nDY][nDX];
-                                            m_Speed     = m_NextActionV[0].Speed;
-                                        }
-                                    }
-                                }
-
-                                if(bFindPath){
-                                }else{
-                                    ReportBadActionNode(0);
-                                    m_NextActionV.clear();
-                                    MoveNextFrame(1);
-                                }
-                                break;
-                            }
-                    }
-                    break;
-                }
-            default:
-                {
-                    MoveNextFrame(1);
-                    m_NextActionV.clear();
-                    break;
-                }
-        }
-    }
-}
-
-void Creature::OnWalk()
-{
-    if(m_Action != ACTION_MOVE){
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-        {
-            extern Log *g_Log;
-            g_Log->AddLog(LOGTYPE_INFO, "shouldn't call this function");
-        }
-#endif
-        return;
-    }
-
-    auto nFrameCount = (int)(FrameCount());
-    if(m_Frame == (nFrameCount - (((m_Direction == DIR_UPLEFT) ? 2 : 5) + 1))){
-        int nEstimatedX = 0;
-        int nEstimatedY = 0;
-        EstimateLocation(Speed(), &nEstimatedX, &nEstimatedY);
-        if(m_ProcessRun->CanMove(true, nEstimatedX, nEstimatedY)){
-            m_X = nEstimatedX;
-            m_Y = nEstimatedY;
-            MoveNextFrame(1);
-        }else if(m_ProcessRun->CanMove(false, nEstimatedX, nEstimatedY)){
-            // move-able but some one is on the way
-            // can't just stay here and wait, since it gives dead-lock
-        }else{
-            ReportBadAction();
-            m_NextActionV.clear();
-            m_Frame  = 0;
-            m_Action = ACTION_STAND;
-        }
-    }else if(m_Frame == ((int)(FrameCount()) - 1)){
-        switch(m_NextActionV.size()){
-            case 0:
-            case 1:
-                {
-                    m_NextActionV.clear();
-                    m_Frame  = 0;
-                    m_Action = ACTION_STAND;
-                    break;
-                }
-            default:
-                {
-                    m_NextActionV.erase(m_NextActionV.begin());
-                    while(true){
-                        if(m_NextActionV.empty()){
-                            m_Frame  = 0;
-                            m_Action = ACTION_STAND;
-                            break;
+    switch(nMotion){
+        case MOTION_STAND:
+        case MOTION_WALK:
+        case MOTION_ATTACK:
+        case MOTION_UNDERATTACK:
+        case MOTION_DIE:
+            {
+                switch(nDirection){
+                    case DIR_UP:
+                    case DIR_UPRIGHT:
+                    case DIR_RIGHT:
+                    case DIR_DOWNRIGHT:
+                    case DIR_DOWN:
+                    case DIR_DOWNLEFT:
+                    case DIR_LEFT:
+                    case DIR_UPLEFT:
+                        {
+                            return true;
                         }
-
-                        bool bDone = false;
-                        switch(m_NextActionV[0].Action){
-                            case ACTION_STAND:
-                                {
-                                    m_Frame     = 0;
-                                    m_Action    = ACTION_STAND;
-                                    m_Direction = m_NextActionV[0].Direction;
-                                    m_Speed     = m_NextActionV[0].Speed;
-
-                                    m_NextActionV.clear();
-                                    bDone = true;
-                                    break;
-                                }
-                            case ACTION_MOVE:
-                                {
-                                    switch(LDistance2(m_NextActionV[0].X, m_NextActionV[0].Y, X(), Y())){
-                                        case 0:
-                                            {
-                                                m_NextActionV.erase(m_NextActionV.begin());
-                                                bDone = false;
-                                                break;
-                                            }
-                                        case 1:
-                                        case 2:
-                                        default:
-                                            {
-                                                bool bFindPath = false;
-                                                ClientPathFinder stPathFinder(false);
-                                                if(stPathFinder.Search(X(), Y(), m_NextActionV[0].X, m_NextActionV[0].Y)){
-                                                    if(stPathFinder.GetSolutionStart()){
-                                                        if(auto pNode1 = stPathFinder.GetSolutionNext()){
-                                                            int nDX = pNode1->X() - X() + 1;
-                                                            int nDY = pNode1->Y() - Y() + 1;
-
-                                                            static const int nDirV[][3] = {
-                                                                {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
-                                                                {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
-                                                                {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
-
-                                                            bFindPath   = true;
-                                                            m_Frame     = 0;
-                                                            m_Action    = ACTION_MOVE;
-                                                            m_Direction = nDirV[nDY][nDX];
-                                                            m_Speed     = m_NextActionV[0].Speed;
-
-                                                        }
-                                                    }
-                                                }
-
-                                                bDone = true;
-                                                if(bFindPath){
-                                                }else{
-                                                    m_NextActionV.clear();
-                                                    m_Frame  = 0;
-                                                    m_Action = ACTION_STAND;
-                                                }
-
-                                                break;
-                                            }
-                                    }
-                                    break;
-                                }
-                            default:
-                                {
-                                    m_NextActionV.erase(m_NextActionV.begin());
-                                    break;
-                                }
+                    default:
+                        {
+                            return false;
                         }
-
-                        if(bDone){ break; }
-                    }
-                    break;
                 }
-        }
-    }else{
-        MoveNextFrame(1);
+            }
+        default:
+            {
+                return false;
+            }
     }
 }
 
@@ -580,4 +366,57 @@ int Creature::GfxID()
         }
     }
     return -1;
+}
+
+bool Creature::ParseMovePath(int nMotion, int nSpeed, int nX0, int nY0, int nX1, int nY1)
+{
+    switch(LDistance2(nX0, nY0, nX1, nY1)){
+        case 0:
+            {
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_FATAL, "Invalid argument: (%d, %d, %d, %d)", nX0, nY0, nX1, nY1);
+                return false;
+            }
+        case 1:
+        case 2:
+        default:
+            {
+                ClientPathFinder stPathFinder(false);
+                if(stPathFinder.Search(nX0, nY0, nX1, nY1)){
+                    if(stPathFinder.GetSolutionStart()){
+                        int nCurrX = nX0;
+                        int nCurrY = nY0;
+                        while(auto pNode1 = stPathFinder.GetSolutionNext()){
+                            int nNextX = pNode1->X();
+                            int nNextY = pNode1->Y();
+                            switch(LDistance2(nCurrX, nCurrY, nNextX, nNextY)){
+                                case 1:
+                                case 2:
+                                    {
+                                        static const int nDirV[][3] = {
+                                            {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
+                                            {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
+                                            {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
+
+                                        int nDX = nNextX - nCurrX + 1;
+                                        int nDY = nNextY - nCurrY + 1;
+                                        m_MotionList.push_back({nMotion, nDirV[nDY][nDX], nSpeed, nCurrX, nCurrY, nNextX, nNextY});
+
+                                        break;
+                                    }
+                                case 0:
+                                default:
+                                    {
+                                        extern Log *g_Log;
+                                        g_Log->AddLog(LOGTYPE_FATAL, "Invalid path find result");
+                                        return false;
+                                    }
+                            }
+                        }
+                        return true;
+                    }
+                }
+                return false;
+            }
+    }
 }

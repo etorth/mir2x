@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 04/04/2017 14:20:31
+ *  Last Modified: 04/05/2017 14:30:44
  *
  *    Description: 
  *
@@ -36,6 +36,45 @@ Monster::Monster(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun, int nX, i
     , m_LastUpdateTime(0.0)
 {}
 
+bool Monster::UpdateMotion()
+{
+    if(m_MotionList.empty()){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "Empty motion list");
+        return false;
+    }
+
+    if(MotionValid(m_MotionList.front().Motion, m_MotionList.front().Direction)){
+        switch(m_MotionList.front().Motion){
+            case MOTION_STAND:
+                {
+                    return UpdateMotionOnStand();
+                }
+            case MOTION_WALK:
+                {
+                    return UpdateMotionOnWalk();
+                }
+            case MOTION_ATTACK:
+                {
+                    return UpdateMotionOnAttack();
+                }
+            case MOTION_UNDERATTACK:
+                {
+                    return UpdateMotionOnUnderAttack();
+                }
+            case MOTION_DIE:
+                {
+                    return UpdateMotionOnDie();
+                }
+            default:
+                {
+                    return false;
+                }
+        }
+    }
+    return false;
+}
+
 void Monster::Update()
 {
     double fTimeNow = SDL_GetTicks() * 1.0;
@@ -45,26 +84,8 @@ void Monster::Update()
 
         // 2. logic update
 
-        // 3. frame update
-        auto nFrameCount = (int)(FrameCount());
-        if(nFrameCount){
-            switch(m_Action){
-                case ACTION_STAND:
-                    {
-                        OnStand();
-                        break;
-                    }
-                case ACTION_MOVE:
-                    {
-                        OnWalk();
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
-        }
+        // 3. motion update
+        UpdateMotion();
     }
 }
 
@@ -97,7 +118,147 @@ void Monster::Draw(int nViewX, int nViewY)
     }
 }
 
-size_t Monster::FrameCount()
+size_t Monster::MotionFrameCount()
 {
     return (GfxID() < 0) ? 0 : GetGInfoRecord(m_MonsterID).FrameCount(m_LookIDN, GfxID());
+}
+
+bool Monster::OnReportAction(int nAction, int, int nDirection, int nSpeed, int nX, int nY)
+{
+    if(EraseNextMotion()){
+        if(LDistance2(m_MotionList.front().NextX, m_MotionList.front().NextY, nX, nY)){
+            if(!ParseMovePath(MOTION_WALK, nSpeed, m_MotionList.front().NextX, m_MotionList.front().NextY, nX, nY)){
+                return false;
+            }
+        }
+
+        switch(nAction){
+            case ACTION_STAND:
+                {
+                    m_MotionList.push_back({MOTION_STAND, nDirection, 0, nX, nY, nX, nY});
+                    return true;
+                }
+            case ACTION_MOVE:
+                {
+                    m_MotionList.push_back({MOTION_STAND, m_MotionList.back().Direction, 0, nX, nY, nX, nY});
+                    return true;
+                }
+            case ACTION_ATTACK:
+                {
+                    m_MotionList.push_back({MOTION_ATTACK, nDirection, 0, nX, nY, nX, nY});
+                    return true;
+                }
+            case ACTION_UNDERATTACK:
+                {
+                    m_MotionList.push_back({MOTION_UNDERATTACK, nDirection, 0, nX, nY, nX, nY});
+                    return true;
+                }
+            case ACTION_DIE:
+                {
+                    m_MotionList.push_back({MOTION_DIE, nDirection, 0, nX, nY, nX, nY});
+                    return true;
+                }
+            default:
+                {
+                    return false;
+                }
+        }
+    }
+    return false;
+}
+
+bool Monster::UpdateMotionOnStand()
+{
+    switch(m_MotionList.size()){
+        case 0:
+            {
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_FATAL, "Empty motion list");
+                return false;
+            }
+        case 1:
+            {
+                if(true
+                        && m_MotionList.front().Motion == MOTION_STAND
+                        && m_MotionList.front().X      == X()
+                        && m_MotionList.front().Y      == Y()){
+                    return AdvanceMotionFrame(1);
+                }else{
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_FATAL, "Invalid motion list");
+                    return false;
+                }
+            }
+        default:
+            {
+                if(true
+                        && (std::next(m_MotionList.begin(), 0)->Motion == MOTION_STAND)
+                        && (std::next(m_MotionList.begin(), 0)->X      == X())
+                        && (std::next(m_MotionList.begin(), 0)->Y      == Y())
+                        && (std::next(m_MotionList.begin(), 1)->X      == X())
+                        && (std::next(m_MotionList.begin(), 1)->Y      == Y())){
+                    m_Frame = 0;
+                    m_MotionList.pop_front();
+                    return true;
+                }else{
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_FATAL, "Invalid motion list");
+                    return false;
+                }
+            }
+    }
+}
+
+bool Monster::UpdateMotionOnWalk()
+{
+    switch(m_MotionList.size()){
+        case 0:
+            {
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_FATAL, "Empty motion list");
+                return false;
+            }
+        default:
+            {
+                if((m_MotionList.front().Motion == MOTION_WALK)){
+                    auto nFrameCount = (int)(MotionFrameCount());
+                    if(nFrameCount > 0){
+                        if(m_Frame == (nFrameCount - 1)){
+                            return MoveNextMotion();
+                        }else{
+                            if(m_Frame == (nFrameCount - (((m_MotionList.front().Direction == DIR_UPLEFT) ? 2 : 5) + 1))){
+                                m_X = m_MotionList.front().NextX;
+                                m_Y = m_MotionList.front().NextY;
+                            }
+                            return AdvanceMotionFrame(1);
+                        }
+                    }
+                }
+
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_FATAL, "Invalid motion list");
+                return false;
+
+            }
+    }
+}
+
+bool Monster::UpdateMotionOnAttack()
+{
+    return false;
+}
+
+bool Monster::UpdateMotionOnUnderAttack()
+{
+    return false;
+}
+
+bool Monster::UpdateMotionOnDie()
+{
+    return false;
+}
+
+bool Monster::OnReportState()
+{
+    return false;
 }

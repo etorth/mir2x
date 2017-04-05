@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19 PM
- *  Last Modified: 04/02/2017 16:57:14
+ *  Last Modified: 04/05/2017 13:52:37
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
@@ -57,6 +57,20 @@ class Monster: public Creature
         void Draw(int, int);
         void Update();
 
+    protected:
+        bool UpdateMotionOnStand();
+        bool UpdateMotionOnWalk();
+        bool UpdateMotionOnAttack();
+        bool UpdateMotionOnUnderAttack();
+        bool UpdateMotionOnDie();
+
+    public:
+        bool UpdateMotion();
+
+    public:
+        bool OnReportState();
+        bool OnReportAction(int, int, int, int, int, int);
+
     public:
         bool ValidG()
         {
@@ -69,7 +83,7 @@ class Monster: public Creature
         }
 
     public:
-        size_t FrameCount();
+        size_t MotionFrameCount();
 
     public:
         template<typename... T> static void ResetGInfoRecord(uint32_t nMonsterID, int nLookIDN, T&&... stT)

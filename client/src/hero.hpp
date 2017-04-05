@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/03/2017 17:10:20
+ *  Last Modified: 04/05/2017 14:29:37
  *
  *    Description: 
  *
@@ -41,12 +41,26 @@ class Hero: public Creature
         void Update();
 
     public:
+        bool UpdateMotion();
+
+    public:
+        bool UpdateMotionOnStand();
+        bool UpdateMotionOnWalk();
+        bool UpdateMotionOnAttack();
+        bool UpdateMotionOnUnderAttack();
+        bool UpdateMotionOnDie();
+
+    public:
+        bool OnReportState();
+        bool OnReportAction(int, int, int, int, int, int);
+
+    public:
         int Type()
         {
             return CREATURE_PLAYER;
         }
 
-        size_t FrameCount()
+        size_t MotionFrameCount()
         {
             return 1;
         }

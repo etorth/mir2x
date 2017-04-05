@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 04/04/2017 14:41:18
+ *  Last Modified: 04/05/2017 12:12:10
  *
  *    Description: net message used by client and mono-server
  *
@@ -69,39 +69,16 @@ typedef struct
 
 typedef struct
 {
-    uint8_t Type;
-    
-    struct _Common
-    {
-        uint8_t _Type;
+    uint32_t UID;
 
-        uint32_t UID;
-
-        uint32_t CurrX;
-        uint32_t CurrY;
-        uint32_t MapID;
-    }Common;
-
-    struct _Attack
-    {
-        struct _Common _MemoryAlign;
-    }Attack;
-
-    struct _Move
-    {
-        struct _Common _MemoryAlign;
-
-        uint16_t X;
-        uint16_t Y;
-
-        uint8_t Param;
-    }Move;
+    uint16_t X;
+    uint16_t Y;
+    uint32_t MapID;
 
     uint8_t Action;
     uint8_t ActionParam;
+    uint8_t Speed;
     uint8_t Direction;
-
-    uint32_t Speed;
 }SMAction;
 
 typedef struct{
