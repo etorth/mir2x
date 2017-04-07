@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 04/05/2017 12:09:53
+ *  Last Modified: 04/07/2017 11:39:46
  *
  *    Description: 
  *
@@ -43,7 +43,7 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     extern MemoryPN *g_MemoryPN;
 
     auto pMem = g_MemoryPN->Get<SMLoginOK>();
-    pMem->GUID      = m_GUID;
+    pMem->DBID      = m_DBID;
     pMem->JobID     = m_JobID;
     pMem->Level     = m_Level;
     pMem->X         = m_CurrX;

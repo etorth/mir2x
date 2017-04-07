@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: myhero.hpp
- *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/07/2017 13:10:40
+ *       Filename: statenode.hpp
+ *        Created: 04/06/2017 23:31:17
+ *  Last Modified: 04/06/2017 23:32:02
  *
  *    Description: 
  *
@@ -19,14 +19,8 @@
  */
 
 #pragma once
-#include "hero.hpp"
+#include <cstdint>
 
-class MyHero: public Hero
+struct StateNode
 {
-    public:
-        MyHero(uint32_t, uint32_t, bool, uint32_t, ProcessRun *);
-       ~MyHero() = default;
-
-    public:
-        bool Update();
 };

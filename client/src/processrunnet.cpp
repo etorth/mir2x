@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/04/2017 14:14:37
+ *  Last Modified: 04/07/2017 13:08:43
  *
  *    Description: 
  *
@@ -36,7 +36,8 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
     std::memcpy(&stSMLOK, pBuf, nLen);
 
     LoadMap(stSMLOK.MapID);
-    m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.GUID, (bool)(stSMLOK.Male), 0, this, 0, 0, 0, 0, 0);
+    m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.DBID, (bool)(stSMLOK.Male), 0, this);
+    m_MyHero->ParseNewAction({ACTION_STAND, 0, 0, DIR_UP, 0, 0, 0, 0});
 }
 
 void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
@@ -44,19 +45,23 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
     SMAction stSMA;
     std::memcpy(&stSMA, pBuf, sizeof(stSMA));
 
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    {
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO, "ACTION: X = %d, Y = %d, Action = %d, Direction = %d", stSMA.X, stSMA.Y, stSMA.Action, stSMA.Direction);
-    }
-#endif
-
     if(stSMA.MapID == m_MapID){
         auto pRecord = m_CreatureRecord.find(stSMA.UID);
-        if(pRecord != m_CreatureRecord.end()){
-            if(auto pCreature = pRecord->second){
-                pCreature->OnReportAction((int)(stSMA.Action), (int)(stSMA.ActionParam), (int)(stSMA.Direction), stSMA.Speed, stSMA.X, stSMA.Y);
-            }
+        if((pRecord != m_CreatureRecord.end()) && pRecord->second){
+            ActionNode stAction;
+            stAction.Action      = stSMA.Action;
+            stAction.ActionParam = stSMA.ActionParam;
+            stAction.Speed       = stSMA.Speed;
+            stAction.Direction   = stSMA.Direction;
+            stAction.X           = stSMA.X;
+            stAction.Y           = stSMA.Y;
+            stAction.EndX        = stSMA.EndX;
+            stAction.EndY        = stSMA.EndY;
+
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
+            stAction.Print();
+#endif
+            pRecord->second->ParseNewAction(stAction);
         }
     }
 }
@@ -73,28 +78,26 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMCOR, pBuf, sizeof(stSMCOR));
 
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    {
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO,
-                "CORECORD: X = %d, Y = %d, Action = %d, Direction = %d",
-                stSMCOR.Common.MapX, stSMCOR.Common.MapY, stSMCOR.Common.Action, stSMCOR.Common.Direction);
-    }
 #endif
 
     if(stSMCOR.Common.MapID == m_MapID){
-        int nX = stSMCOR.Common.MapX;
-        int nY = stSMCOR.Common.MapY;
-
-        int nAction    = stSMCOR.Common.Action;
-        int nDirection = stSMCOR.Common.Direction;
-        int nSpeed     = stSMCOR.Common.Speed;
+        ActionNode stAction;
+        stAction.Action      = stSMCOR.Common.Action;
+        stAction.ActionParam = stSMCOR.Common.ActionParam;
+        stAction.X           = stSMCOR.Common.X;
+        stAction.Y           = stSMCOR.Common.Y;
+        stAction.EndX        = stSMCOR.Common.EndX;
+        stAction.EndY        = stSMCOR.Common.EndY;
+        stAction.Direction   = stSMCOR.Common.Direction;
+        stAction.Speed       = stSMCOR.Common.Speed;
 
         auto pRecord = m_CreatureRecord.find(stSMCOR.Common.UID);
         if(pRecord == m_CreatureRecord.end()){
             switch(stSMCOR.Type){
                 case CREATURE_MONSTER:
                     {
-                        auto pMonster = new Monster(stSMCOR.Common.UID, stSMCOR.Monster.MonsterID, this, nX, nY, nAction, nDirection, nSpeed);
+                        auto pMonster = new Monster(stSMCOR.Common.UID, stSMCOR.Monster.MonsterID, this);
+                        pMonster->ParseNewAction(stAction);
                         m_CreatureRecord[stSMCOR.Common.UID] = pMonster;
                         break;
                     }
@@ -109,7 +112,7 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
             }
         }else{
             if(pRecord->second){
-                pRecord->second->OnReportAction(nAction, 0, nDirection, nSpeed, nX, nY);
+                pRecord->second->ParseNewAction(stAction);
             }
         }
     }

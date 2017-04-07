@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 04/05/2017 14:29:51
+ *  Last Modified: 04/07/2017 13:45:33
  *
  *    Description: 
  *
@@ -25,169 +25,264 @@
 #include "motionnode.hpp"
 #include "pngtexoffdbn.hpp"
 
-Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, ProcessRun *pRun, int nX, int nY, int nAction, int nDirection, int nSpeed)
-    : Creature(nUID, pRun, nX, nY, nAction, nDirection, nSpeed)
+Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, ProcessRun *pRun)
+    : Creature(nUID, pRun)
     , m_DBID(nDBID)
     , m_Male(bMale)
     , m_DressID(nDressID)
 {}
 
-void Hero::Draw(int nViewX, int nViewY)
+bool Hero::Draw(int nViewX, int nViewY)
 {
-    auto nGfxID = GfxID();
-    if(nGfxID >= 0){
-        // human gfx indexing
-        // 04 - 00 :     frame : max =  32
-        // 07 - 05 : direction : max =  08 : +
-        // 13 - 08 :     state : max =  64 : +----> GfxID
-        // 21 - 14 :     dress : max = 256 
-        //      22 :       sex :
-        //      23 :    shadow :
-        uint32_t nKey0 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Male ? 1 : 0)) << 22) + ((uint32_t)(m_DressID & 0XFF) << 14) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_Frame; // body
-        uint32_t nKey1 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Male ? 1 : 0)) << 22) + ((uint32_t)(m_DressID & 0XFF) << 14) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_Frame; // body
+    auto nDress     = m_DressID;
+    auto nMotion    = m_CurrMotion.Motion;
+    auto nDirection = m_CurrMotion.Direction;
 
-        int nDX0 = 0;
-        int nDY0 = 0;
-        int nDX1 = 0;
-        int nDY1 = 0;
-
-        extern PNGTexOffDBN *g_HeroGfxDBN;
-        auto pFrame0 = g_HeroGfxDBN->Retrieve(nKey0, &nDX0, &nDY0);
-        auto pFrame1 = g_HeroGfxDBN->Retrieve(nKey1, &nDX1, &nDY1);
-
-        int nShiftX = 0;
-        int nShiftY = 0;
-        EstimatePixelShift(&nShiftX, &nShiftY);
-
-        extern SDLDevice *g_SDLDevice;
-        if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
-        g_SDLDevice->DrawTexture(pFrame1, m_X * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, m_Y * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
-        g_SDLDevice->DrawTexture(pFrame0, m_X * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, m_Y * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
+    auto nGfxID = GfxID(nDress, nMotion, nDirection);
+    if(nGfxID < 0){
+        m_CurrMotion.Print();
+        return false;
     }
+
+    // human gfx indexing
+    // 04 - 00 :     frame : max =  32
+    // 07 - 05 : direction : max =  08 : +
+    // 13 - 08 :    motion : max =  64 : +----> GfxID
+    // 21 - 14 :     dress : max = 256 
+    //      22 :       sex :
+    //      23 :    shadow :
+    uint32_t nKey0 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Male ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_CurrMotion.Frame;
+    uint32_t nKey1 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Male ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_CurrMotion.Frame;
+
+    int nDX0 = 0;
+    int nDY0 = 0;
+    int nDX1 = 0;
+    int nDY1 = 0;
+
+    extern PNGTexOffDBN *g_HeroGfxDBN;
+    auto pFrame0 = g_HeroGfxDBN->Retrieve(nKey0, &nDX0, &nDY0);
+    auto pFrame1 = g_HeroGfxDBN->Retrieve(nKey1, &nDX1, &nDY1);
+
+    int nShiftX = 0;
+    int nShiftY = 0;
+    EstimatePixelShift(&nShiftX, &nShiftY);
+
+    extern SDLDevice *g_SDLDevice;
+    if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
+    g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
+    g_SDLDevice->DrawTexture(pFrame0, X() * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
+
+    return true;
 }
 
-void Hero::Update()
-{
-}
-
-bool Hero::OnReportAction(int nAction, int, int nDirection, int nSpeed, int nX, int nY)
-{
-    if(EraseNextMotion()){
-        switch(nAction){
-            case ACTION_STAND:
-                {
-                    switch(LDistance2(X(), Y(), nX, nY)){
-                        case 0:
-                            {
-                                m_MotionList.push_back({MOTION_STAND, nDirection, nX, nY});
-                                return true;
-                            }
-                        default:
-                            {
-                                ParseMovePath(MOTION_WALK, 5, X(), Y(), nX, nY);
-                                m_MotionList.push_back({MOTION_STAND, nDirection, nX, nY});
-                                return true;
-                            }
-                    }
-                }
-            case ACTION_MOVE:
-                {
-                    return ParseMovePath(MOTION_WALK, nSpeed, m_MotionList.front().NextX, m_MotionList.front().NextY, nX, nY);
-                }
-            case ACTION_ATTACK:
-                {
-                    switch(LDistance2(X(), Y(), nX, nY)){
-                        case 0:
-                            {
-                                m_MotionList.push_back({MOTION_ATTACK, nDirection, nX, nY});
-                                return true;
-                            }
-                        default:
-                            {
-                                if(ParseMovePath(MOTION_WALK, 5, X(), Y(), nX, nY)){
-                                    m_MotionList.push_back({MOTION_ATTACK, nDirection, nX, nY});
-                                    return true;
-                                }
-                                return false;
-                            }
-                    }
-                }
-            case ACTION_UNDERATTACK:
-                {
-                    switch(LDistance2(X(), Y(), nX, nY)){
-                        case 0:
-                            {
-                                m_MotionList.push_back({MOTION_UNDERATTACK, nDirection, nX, nY});
-                                return true;
-                            }
-                        default:
-                            {
-                                if(ParseMovePath(MOTION_WALK, 5, X(), Y(), nX, nY)){
-                                    m_MotionList.push_back({MOTION_UNDERATTACK, nDirection, nX, nY});
-                                    return true;
-                                }
-                                return false;
-                            }
-                    }
-                }
-            case ACTION_DIE:
-                {
-                    switch(LDistance2(X(), Y(), nX, nY)){
-                        case 0:
-                            {
-                                m_MotionList.push_back({MOTION_DIE, nDirection, nX, nY});
-                                return true;
-                            }
-                        default:
-                            {
-                                if(ParseMovePath(MOTION_WALK, 5, X(), Y(), nX, nY)){
-                                    m_MotionList.push_back({MOTION_DIE, nDirection, nX, nY});
-                                    return true;
-                                }
-                                return false;
-                            }
-                    }
-                }
-            default:
-                {
-                    return false;
-                }
-        }
-    }
-    return false;
-}
-
-bool Hero::OnReportState()
+bool Hero::Update()
 {
     return true;
 }
 
-bool Hero::UpdateMotionOnStand()
+int32_t Hero::GfxID(int nDress, int nMotion, int nDirection)
 {
-    return false;
+    static const std::unordered_map<int, int> stMotionGfxIDRecord = {
+        {MOTION_STAND,              0},
+        {MOTION_WALK,               1},
+        {MOTION_RUN,                2},
+
+        {MOTION_CASTMAGIC0,         3},
+        {MOTION_CASTMAGIC1,         4},
+
+        {MOTION_BEFOREATTACK,       5},
+        {MOTION_UNDERATTACK,        6},
+        {MOTION_DIE,                7},
+
+        {MOTION_ONEHANDATTACK0,     8},
+        {MOTION_ONEHANDATTACK1,     9},
+        {MOTION_ONEHANDATTACK2,    10},
+        {MOTION_ONEHANDATTACK3,    11},
+
+        {MOTION_TWOHANDATTACK0,    12},
+        {MOTION_TWOHANDATTACK1,    13},
+        {MOTION_TWOHANDATTACK2,    14},
+        {MOTION_TWOHANDATTACK3,    15}};
+
+    if(stMotionGfxIDRecord.find(nMotion) != stMotionGfxIDRecord.end()){
+        switch(nDirection){
+            case DIR_UP         : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 0;
+            case DIR_DOWN       : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 4;
+            case DIR_LEFT       : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 6;
+            case DIR_RIGHT      : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 2;
+            case DIR_UPLEFT     : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 7;
+            case DIR_UPRIGHT    : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 1;
+            case DIR_DOWNLEFT   : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 5;
+            case DIR_DOWNRIGHT  : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 3;
+            case DIR_NONE       : break;
+            default             : break;
+        }
+    }
+
+    return -1;
 }
 
-bool Hero::UpdateMotionOnWalk()
+bool Hero::MotionValid(const MotionNode &rstMotion)
 {
-    return false;
+    auto nDistance = LDistance2(rstMotion.X, rstMotion.Y, rstMotion.EndX, rstMotion.EndY);
+    switch(rstMotion.Motion){
+        case MOTION_STAND:
+
+        case MOTION_CASTMAGIC0:
+        case MOTION_CASTMAGIC1:
+
+        case MOTION_BEFOREATTACK:
+        case MOTION_UNDERATTACK:
+        case MOTION_DIE:
+
+        case MOTION_ONEHANDATTACK0:
+        case MOTION_ONEHANDATTACK1:
+        case MOTION_ONEHANDATTACK2:
+        case MOTION_ONEHANDATTACK3:
+        case MOTION_TWOHANDATTACK0:
+        case MOTION_TWOHANDATTACK1:
+        case MOTION_TWOHANDATTACK2:
+        case MOTION_TWOHANDATTACK3:
+            {
+                switch(rstMotion.Direction){
+                    case DIR_UP:
+                    case DIR_UPRIGHT:
+                    case DIR_RIGHT:
+                    case DIR_DOWNRIGHT:
+                    case DIR_DOWN:
+                    case DIR_DOWNLEFT:
+                    case DIR_LEFT:
+                    case DIR_UPLEFT:
+                        {
+                            return nDistance ? false : true;
+                        }
+                    case DIR_NONE:
+                    default:
+                        {
+                            return false;
+                        }
+                }
+            }
+        case MOTION_WALK:
+        case MOTION_RUN:
+            {
+                switch(rstMotion.Direction){
+                    case DIR_UP:
+                    case DIR_UPRIGHT:
+                    case DIR_RIGHT:
+                    case DIR_DOWNRIGHT:
+                    case DIR_DOWN:
+                    case DIR_DOWNLEFT:
+                    case DIR_LEFT:
+                    case DIR_UPLEFT:
+                        {
+                            return ((nDistance == 1) || (nDistance == 2)) ? true : false;
+                        }
+                    case DIR_NONE:
+                    default:
+                        {
+                            return false;
+                        }
+                }
+            }
+        default:
+            {
+                return false;
+            }
+    }
 }
 
-bool Hero::UpdateMotionOnAttack()
+bool Hero::ParseNewState(const StateNode &)
 {
-    return false;
+    return true;
 }
 
-bool Hero::UpdateMotionOnUnderAttack()
+bool Hero::ParseNewAction(const ActionNode &)
 {
-    return false;
+    return true;
 }
 
-bool Hero::UpdateMotionOnDie()
+bool Hero::Location(int *pX, int *pY)
 {
-    return false;
+    switch(m_CurrMotion.Motion){
+        case MOTION_WALK:
+            {
+                auto nX0        = m_CurrMotion.X;
+                auto nY0        = m_CurrMotion.Y;
+                auto nX1        = m_CurrMotion.EndX;
+                auto nY1        = m_CurrMotion.EndY;
+                auto nFrame     = m_CurrMotion.Frame;
+                auto nDirection = m_CurrMotion.Direction;
+
+
+                if(pX){ *pX = (nFrame < ((int)(MotionFrameCount()) - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 1))) ? nX0 : nX1; }
+                if(pY){ *pY = (nFrame < ((int)(MotionFrameCount()) - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 1))) ? nY0 : nY1; }
+
+                return true;
+            }
+        default:
+            {
+                if(pX){ *pX = m_CurrMotion.X; }
+                if(pY){ *pY = m_CurrMotion.Y; }
+
+                return true;
+            }
+    }
 }
 
-bool Hero::UpdateMotion()
+bool Hero::ActionValid(const ActionNode &rstAction)
 {
-    return false;
+    auto nDistance = LDistance2(rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY);
+    switch(rstAction.Action){
+        case ACTION_STAND:
+        case ACTION_ATTACK:
+        case ACTION_UNDERATTACK:
+        case ACTION_DIE:
+            {
+                switch(rstAction.Direction){
+                    case DIR_UP:
+                    case DIR_UPRIGHT:
+                    case DIR_RIGHT:
+                    case DIR_DOWNRIGHT:
+                    case DIR_DOWN:
+                    case DIR_DOWNLEFT:
+                    case DIR_LEFT:
+                    case DIR_UPLEFT:
+                        {
+                            return nDistance ? false : true;
+                        }
+                    case DIR_NONE:
+                    default:
+                        {
+                            return false;
+                        }
+                }
+            }
+        case ACTION_MOVE:
+            {
+                switch(rstAction.Direction){
+                    case DIR_UP:
+                    case DIR_UPRIGHT:
+                    case DIR_RIGHT:
+                    case DIR_DOWNRIGHT:
+                    case DIR_DOWN:
+                    case DIR_DOWNLEFT:
+                    case DIR_LEFT:
+                    case DIR_UPLEFT:
+                        {
+                            return ((nDistance == 1) || (nDistance == 2)) ? true : false;
+                        }
+                    case DIR_NONE:
+                    default:
+                        {
+                            return false;
+                        }
+                }
+                break;
+            }
+        default:
+            {
+                return false;
+            }
+    }
 }

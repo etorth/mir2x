@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 04/05/2017 12:12:10
+ *  Last Modified: 04/07/2017 13:00:18
  *
  *    Description: net message used by client and mono-server
  *
@@ -50,16 +50,17 @@ enum: uint8_t
 //
 // currently just always use uncompressed package
 typedef struct{
-    uint32_t GUID;
     uint32_t UID;
-    uint32_t AddTime;
-    uint32_t Male;
+    uint32_t DBID;
+    uint32_t MapID;
+    uint16_t X;
+    uint16_t Y;
+
+    uint8_t Male;
+    uint8_t Direction;
+
     uint32_t JobID;
     uint32_t Level;
-    uint32_t X;
-    uint32_t Y;
-    uint32_t MapID;
-    uint32_t Direction;
 }SMLoginOK;
 
 typedef struct
@@ -70,15 +71,17 @@ typedef struct
 typedef struct
 {
     uint32_t UID;
-
-    uint16_t X;
-    uint16_t Y;
     uint32_t MapID;
 
     uint8_t Action;
     uint8_t ActionParam;
     uint8_t Speed;
     uint8_t Direction;
+
+    uint16_t X;
+    uint16_t Y;
+    uint16_t EndX;
+    uint16_t EndY;
 }SMAction;
 
 typedef struct{
@@ -94,20 +97,20 @@ typedef union
 
     struct _Common
     {
-        uint8_t Type;
+        uint8_t _MemoryAlign;
 
         uint32_t UID;
-        uint32_t AddTime;
-
-        uint32_t R;
-        uint32_t MapX;
-        uint32_t MapY;
         uint32_t MapID;
 
-        uint32_t Action;
-        uint32_t Direction;
+        uint8_t Action;
+        uint8_t ActionParam;
+        uint8_t Speed;
+        uint8_t Direction;
 
-        uint32_t Speed;
+        uint16_t X;
+        uint16_t Y;
+        uint16_t EndX;
+        uint16_t EndY;
     }Common;
 
     struct _Monster
@@ -119,7 +122,7 @@ typedef union
     struct _Player
     {
         struct _Common _MemoryAlign;
-        uint32_t GUID;
+        uint32_t DBID;
         uint32_t JobID;
         uint32_t Level;
     }Player;

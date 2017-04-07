@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/05/2017 14:29:37
+ *  Last Modified: 04/07/2017 13:27:53
  *
  *    Description: 
  *
@@ -33,15 +33,28 @@ class Hero: public Creature
         uint32_t m_DressID;
 
     public:
-        Hero(uint32_t, uint32_t, bool, uint32_t, ProcessRun *, int, int, int, int, int);
+        Hero(uint32_t, uint32_t, bool, uint32_t, ProcessRun *);
        ~Hero() = default;
 
     public:
-        void Draw(int, int);
-        void Update();
+       bool Location(int *, int *);
+
+    public:
+        bool Draw(int, int);
+        bool Update();
+
+    public:
+        bool ActionValid(const ActionNode &);
+        bool MotionValid(const MotionNode &);
+
+    public:
+        virtual int32_t GfxID(int, int, int);
 
     public:
         bool UpdateMotion();
+
+    public:
+        bool UpdateMotionOnGeneralMotion(int);
 
     public:
         bool UpdateMotionOnStand();
@@ -53,6 +66,9 @@ class Hero: public Creature
     public:
         bool OnReportState();
         bool OnReportAction(int, int, int, int, int, int);
+
+        bool ParseNewState (const StateNode  &);
+        bool ParseNewAction(const ActionNode &);
 
     public:
         int Type()

@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 04/01/2017 00:49:10
+ *  Last Modified: 04/07/2017 11:40:46
  *
  *    Description: 
  *
@@ -55,7 +55,7 @@ typedef struct stPLAYERFEATUREEX
 class Player: public CharObject
 {
     protected:
-        uint32_t m_GUID;
+        uint32_t m_DBID;
         uint32_t m_JobID;
         uint32_t m_SessionID;
         uint32_t m_Level;

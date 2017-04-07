@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19 PM
- *  Last Modified: 04/05/2017 13:52:37
+ *  Last Modified: 04/07/2017 13:43:31
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
@@ -29,22 +29,28 @@
 class Monster: public Creature
 {
     protected:
-        uint32_t m_MonsterID;       // monster id
-        uint32_t m_LookIDN;         // look effect index 0 ~ 3
+        const uint32_t m_MonsterID;
 
     protected:
         double m_UpdateDelay;
         double m_LastUpdateTime;
 
+    protected:
+        uint32_t m_LookIDN;
+
     public:
-        Monster(uint32_t,       // UID
-                uint32_t,       // Monster ID
-                ProcessRun *,   // 
-                int,            // map x
-                int,            // map y
-                int,            // action
-                int,            // direction
-                int);           // speed
+        Monster(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun)
+            : Creature(nUID, pRun)
+            , m_MonsterID(nMonsterID)
+            , m_UpdateDelay(0.0)
+            , m_LastUpdateTime(0.0)
+            , m_LookIDN(0)
+        {
+            assert(nUID);
+            assert(nMonsterID);
+            assert(pRu);
+        }
+
        ~Monster() = default;
 
     public:
@@ -54,18 +60,27 @@ class Monster: public Creature
         }
 
     public:
-        void Draw(int, int);
-        void Update();
+        bool Draw(int, int);
+        bool Update();
 
     protected:
-        bool UpdateMotionOnStand();
-        bool UpdateMotionOnWalk();
-        bool UpdateMotionOnAttack();
-        bool UpdateMotionOnUnderAttack();
-        bool UpdateMotionOnDie();
+        virtual int32_t GfxID(int, int);
+
+    protected:
+
+
+    protected:
+        bool Location(int *, int *);
 
     public:
-        bool UpdateMotion();
+        // this is the only function we have to take care of MOTION_NONE
+        // for all rest part we always assume current object is in valid state
+        bool ParseNewState (const StateNode  &);
+        bool ParseNewAction(const ActionNode &);
+
+    public:
+        bool ActionValid(const ActionNode &);
+        bool MotionValid(const MotionNode &);
 
     public:
         bool OnReportState();

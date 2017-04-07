@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/01/2017 00:49:35
+ *  Last Modified: 04/07/2017 13:03:49
  *
  *    Description: 
  *
@@ -24,7 +24,7 @@
 #include "charobject.hpp"
 #include "protocoldef.hpp"
 
-Player::Player(uint32_t nGUID,
+Player::Player(uint32_t nDBID,
         uint32_t        nJobID,
         uint32_t        nSessionID,
         ServiceCore    *pServiceCore,
@@ -34,7 +34,7 @@ Player::Player(uint32_t nGUID,
         int             nDirection,
         uint8_t         nLifeState)
     : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
-    , m_GUID(nGUID)
+    , m_DBID(nDBID)
     , m_JobID(nJobID)
     , m_SessionID(nSessionID)
     , m_Level(0)
@@ -153,17 +153,21 @@ void Player::ReportCORecord(uint32_t nSessionID)
 {
     if(nSessionID){
         extern MemoryPN *g_MemoryPN;
-        auto pMem = (SMCORecord *)g_MemoryPN->Get(sizeof(SMCORecord));
+        auto pMem = g_MemoryPN->Get<SMCORecord>();
 
         pMem->Type = CREATURE_PLAYER;
 
         pMem->Common.UID       = UID();
-        pMem->Common.MapX      = X();
-        pMem->Common.MapY      = Y();
         pMem->Common.MapID     = MapID();
-        pMem->Common.Direction = m_Direction;
+        pMem->Common.X         = X();
+        pMem->Common.Y         = Y();
+        pMem->Common.EndX      = X();
+        pMem->Common.EndY      = Y();
+        pMem->Common.Direction = Direction();
+        pMem->Common.Speed     = Speed();
+        pMem->Common.Action    = ACTION_STAND;
 
-        pMem->Player.GUID      = m_GUID;
+        pMem->Player.DBID      = m_DBID;
         pMem->Player.JobID     = m_JobID;
         pMem->Player.Level     = m_Level;
 

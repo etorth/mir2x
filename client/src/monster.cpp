@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 04/05/2017 14:30:44
+ *  Last Modified: 04/07/2017 13:28:50
  *
  *    Description: 
  *
@@ -28,54 +28,7 @@
 
 // static monster global info map
 std::unordered_map<uint32_t, MonsterGInfo> Monster::s_MonsterGInfoMap;
-Monster::Monster(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun, int nX, int nY, int nAction, int nDirection, int nSpeed)
-    : Creature(nUID, pRun, nX, nY, nAction, nDirection, nSpeed)
-    , m_MonsterID(nMonsterID)
-    , m_LookIDN(0)
-    , m_UpdateDelay(200.0)
-    , m_LastUpdateTime(0.0)
-{}
-
-bool Monster::UpdateMotion()
-{
-    if(m_MotionList.empty()){
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "Empty motion list");
-        return false;
-    }
-
-    if(MotionValid(m_MotionList.front().Motion, m_MotionList.front().Direction)){
-        switch(m_MotionList.front().Motion){
-            case MOTION_STAND:
-                {
-                    return UpdateMotionOnStand();
-                }
-            case MOTION_WALK:
-                {
-                    return UpdateMotionOnWalk();
-                }
-            case MOTION_ATTACK:
-                {
-                    return UpdateMotionOnAttack();
-                }
-            case MOTION_UNDERATTACK:
-                {
-                    return UpdateMotionOnUnderAttack();
-                }
-            case MOTION_DIE:
-                {
-                    return UpdateMotionOnDie();
-                }
-            default:
-                {
-                    return false;
-                }
-        }
-    }
-    return false;
-}
-
-void Monster::Update()
+bool Monster::Update()
 {
     double fTimeNow = SDL_GetTicks() * 1.0;
     if(fTimeNow > m_UpdateDelay + m_LastUpdateTime){
@@ -85,17 +38,27 @@ void Monster::Update()
         // 2. logic update
 
         // 3. motion update
-        UpdateMotion();
+        switch(m_CurrMotion.Motion){
+            case MOTION_STAND:
+                {
+                    return MoveNextMotion();
+                }
+            default:
+                {
+                    return UpdateGeneralMotion(false);
+                }
+        }
     }
+    return true;
 }
 
-void Monster::Draw(int nViewX, int nViewY)
+bool Monster::Draw(int nViewX, int nViewY)
 {
     if(ValidG()){
-        auto nGfxID = GfxID();
+        auto nGfxID = GfxID(m_CurrMotion.Motion, m_CurrMotion.Direction);
         if(nGfxID >= 0){
-            uint32_t nKey0 = 0X00000000 + (LookID() << 12) + ((uint32_t)(nGfxID) << 5) + m_Frame; // body
-            uint32_t nKey1 = 0X01000000 + (LookID() << 12) + ((uint32_t)(nGfxID) << 5) + m_Frame; // shadow
+            uint32_t nKey0 = 0X00000000 + (LookID() << 12) + ((uint32_t)(nGfxID) << 5) + m_CurrMotion.Frame; // body
+            uint32_t nKey1 = 0X01000000 + (LookID() << 12) + ((uint32_t)(nGfxID) << 5) + m_CurrMotion.Frame; // shadow
 
             int nDX0 = 0;
             int nDY0 = 0;
@@ -112,153 +75,257 @@ void Monster::Draw(int nViewX, int nViewY)
 
             extern SDLDevice *g_SDLDevice;
             if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
-            g_SDLDevice->DrawTexture(pFrame1, m_X * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, m_Y * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
-            g_SDLDevice->DrawTexture(pFrame0, m_X * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, m_Y * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
+            g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
+            g_SDLDevice->DrawTexture(pFrame0, X() * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
         }
     }
+
+    return true;
 }
 
 size_t Monster::MotionFrameCount()
 {
-    return (GfxID() < 0) ? 0 : GetGInfoRecord(m_MonsterID).FrameCount(m_LookIDN, GfxID());
+    return (GfxID(m_CurrMotion.Motion, m_CurrMotion.Direction) < 0) ? 0 : GetGInfoRecord(m_MonsterID).FrameCount(m_LookIDN, GfxID(m_CurrMotion.Motion, m_CurrMotion.Direction));
 }
 
-bool Monster::OnReportAction(int nAction, int, int nDirection, int nSpeed, int nX, int nY)
+bool Monster::ParseNewAction(const ActionNode &rstAction)
 {
-    if(EraseNextMotion()){
-        if(LDistance2(m_MotionList.front().NextX, m_MotionList.front().NextY, nX, nY)){
-            if(!ParseMovePath(MOTION_WALK, nSpeed, m_MotionList.front().NextX, m_MotionList.front().NextY, nX, nY)){
+    m_MotionQueue.clear();
+    if(ActionValid(rstAction)){
+        // current motion should always be valid or at MOTION_NONE for initialization
+        if((m_CurrMotion.Motion != MOTION_NONE) && LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
+            if(!ParseMovePath(MOTION_WALK, 5, m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
                 return false;
             }
         }
 
-        switch(nAction){
+        switch(rstAction.Action){
             case ACTION_STAND:
                 {
-                    m_MotionList.push_back({MOTION_STAND, nDirection, 0, nX, nY, nX, nY});
-                    return true;
+                    m_MotionQueue.push_back({MOTION_STAND, rstAction.Direction, rstAction.X, rstAction.Y});
+                    break;
                 }
             case ACTION_MOVE:
                 {
-                    m_MotionList.push_back({MOTION_STAND, m_MotionList.back().Direction, 0, nX, nY, nX, nY});
-                    return true;
+                    switch(LDistance2(rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY)){
+                        case 1:
+                        case 2:
+                            {
+                                auto nX0 = (m_CurrMotion.Motion == MOTION_NONE) ? rstAction.X : m_CurrMotion.EndX;
+                                auto nY0 = (m_CurrMotion.Motion == MOTION_NONE) ? rstAction.Y : m_CurrMotion.EndY;
+                                if(!ParseMovePath(MOTION_WALK, rstAction.Speed, nX0, nY0, rstAction.EndX, rstAction.EndY)){
+                                    return false;
+                                }
+                                break;
+                            }
+                        case 0:
+                        default:
+                            {
+                                rstAction.Print();
+                                return false;
+                            }
+                    }
                 }
             case ACTION_ATTACK:
                 {
-                    m_MotionList.push_back({MOTION_ATTACK, nDirection, 0, nX, nY, nX, nY});
-                    return true;
+                    m_MotionQueue.push_back({MOTION_ATTACK, rstAction.Direction, rstAction.X, rstAction.Y});
+                    break;
                 }
             case ACTION_UNDERATTACK:
                 {
-                    m_MotionList.push_back({MOTION_UNDERATTACK, nDirection, 0, nX, nY, nX, nY});
-                    return true;
+                    m_MotionQueue.push_back({MOTION_UNDERATTACK, rstAction.Direction, rstAction.X, rstAction.Y});
+                    break;
                 }
             case ACTION_DIE:
                 {
-                    m_MotionList.push_back({MOTION_DIE, nDirection, 0, nX, nY, nX, nY});
-                    return true;
+                    m_MotionQueue.push_back({MOTION_DIE, rstAction.Direction, rstAction.X, rstAction.Y});
+                    break;
                 }
             default:
                 {
                     return false;
                 }
         }
+
+        if(m_CurrMotion.Motion == MOTION_NONE){
+            m_CurrMotion = m_MotionQueue.front();
+            m_MotionQueue.pop_front();
+        }
+
+        return MotionQueueValid();
     }
     return false;
 }
 
-bool Monster::UpdateMotionOnStand()
+bool Monster::Location(int *pX, int *pY)
 {
-    switch(m_MotionList.size()){
-        case 0:
+    switch(m_CurrMotion.Motion){
+        case MOTION_WALK:
             {
-                extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_FATAL, "Empty motion list");
-                return false;
-            }
-        case 1:
-            {
-                if(true
-                        && m_MotionList.front().Motion == MOTION_STAND
-                        && m_MotionList.front().X      == X()
-                        && m_MotionList.front().Y      == Y()){
-                    return AdvanceMotionFrame(1);
-                }else{
-                    extern Log *g_Log;
-                    g_Log->AddLog(LOGTYPE_FATAL, "Invalid motion list");
-                    return false;
-                }
+                auto nX0        = m_CurrMotion.X;
+                auto nY0        = m_CurrMotion.Y;
+                auto nX1        = m_CurrMotion.EndX;
+                auto nY1        = m_CurrMotion.EndY;
+                auto nFrame     = m_CurrMotion.Frame;
+                auto nDirection = m_CurrMotion.Direction;
+
+
+                if(pX){ *pX = (nFrame < ((int)(MotionFrameCount()) - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 1))) ? nX0 : nX1; }
+                if(pY){ *pY = (nFrame < ((int)(MotionFrameCount()) - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 1))) ? nY0 : nY1; }
+
+                return true;
             }
         default:
             {
-                if(true
-                        && (std::next(m_MotionList.begin(), 0)->Motion == MOTION_STAND)
-                        && (std::next(m_MotionList.begin(), 0)->X      == X())
-                        && (std::next(m_MotionList.begin(), 0)->Y      == Y())
-                        && (std::next(m_MotionList.begin(), 1)->X      == X())
-                        && (std::next(m_MotionList.begin(), 1)->Y      == Y())){
-                    m_Frame = 0;
-                    m_MotionList.pop_front();
-                    return true;
-                }else{
-                    extern Log *g_Log;
-                    g_Log->AddLog(LOGTYPE_FATAL, "Invalid motion list");
-                    return false;
-                }
+                if(pX){ *pX = m_CurrMotion.X; }
+                if(pY){ *pY = m_CurrMotion.Y; }
+
+                return true;
             }
     }
 }
 
-bool Monster::UpdateMotionOnWalk()
+int32_t Monster::GfxID(int nMotion, int nDirection)
 {
-    switch(m_MotionList.size()){
-        case 0:
+    static const std::unordered_map<int, int> stActionGfxIDRecord = {
+        {MOTION_STAND,       0},
+        {MOTION_WALK,        1},
+        {MOTION_ATTACK,      2},
+        {MOTION_UNDERATTACK, 3},
+        {MOTION_DIE,         4}};
+
+    if(stActionGfxIDRecord.find(nMotion) != stActionGfxIDRecord.end()){
+        switch(nDirection){
+            case DIR_UP         : return ( 0 + (stActionGfxIDRecord.at(nMotion) << 3));
+            case DIR_DOWN       : return ( 4 + (stActionGfxIDRecord.at(nMotion) << 3));
+            case DIR_LEFT       : return ( 6 + (stActionGfxIDRecord.at(nMotion) << 3));
+            case DIR_RIGHT      : return ( 2 + (stActionGfxIDRecord.at(nMotion) << 3));
+            case DIR_UPLEFT     : return ( 7 + (stActionGfxIDRecord.at(nMotion) << 3));
+            case DIR_UPRIGHT    : return ( 1 + (stActionGfxIDRecord.at(nMotion) << 3));
+            case DIR_DOWNLEFT   : return ( 5 + (stActionGfxIDRecord.at(nMotion) << 3));
+            case DIR_DOWNRIGHT  : return ( 3 + (stActionGfxIDRecord.at(nMotion) << 3));
+            case DIR_NONE       : return (-1 + 0);
+            default             : return (-1 + 0);
+        }
+    }
+
+    return -1;
+}
+
+bool Monster::ActionValid(const ActionNode &rstAction)
+{
+    auto nDistance = LDistance2(rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY);
+    switch(rstAction.Action){
+        case ACTION_STAND:
+        case ACTION_ATTACK:
+        case ACTION_UNDERATTACK:
+        case ACTION_DIE:
             {
-                extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_FATAL, "Empty motion list");
-                return false;
-            }
-        default:
-            {
-                if((m_MotionList.front().Motion == MOTION_WALK)){
-                    auto nFrameCount = (int)(MotionFrameCount());
-                    if(nFrameCount > 0){
-                        if(m_Frame == (nFrameCount - 1)){
-                            return MoveNextMotion();
-                        }else{
-                            if(m_Frame == (nFrameCount - (((m_MotionList.front().Direction == DIR_UPLEFT) ? 2 : 5) + 1))){
-                                m_X = m_MotionList.front().NextX;
-                                m_Y = m_MotionList.front().NextY;
-                            }
-                            return AdvanceMotionFrame(1);
+                switch(rstAction.Direction){
+                    case DIR_UP:
+                    case DIR_UPRIGHT:
+                    case DIR_RIGHT:
+                    case DIR_DOWNRIGHT:
+                    case DIR_DOWN:
+                    case DIR_DOWNLEFT:
+                    case DIR_LEFT:
+                    case DIR_UPLEFT:
+                        {
+                            return nDistance ? false : true;
                         }
-                    }
+                    case DIR_NONE:
+                    default:
+                        {
+                            return false;
+                        }
                 }
-
-                extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_FATAL, "Invalid motion list");
+            }
+        case ACTION_MOVE:
+            {
+                switch(rstAction.Direction){
+                    case DIR_UP:
+                    case DIR_UPRIGHT:
+                    case DIR_RIGHT:
+                    case DIR_DOWNRIGHT:
+                    case DIR_DOWN:
+                    case DIR_DOWNLEFT:
+                    case DIR_LEFT:
+                    case DIR_UPLEFT:
+                        {
+                            return ((nDistance == 1) || (nDistance == 2)) ? true : false;
+                        }
+                    case DIR_NONE:
+                    default:
+                        {
+                            return false;
+                        }
+                }
+                break;
+            }
+        default:
+            {
                 return false;
-
             }
     }
 }
 
-bool Monster::UpdateMotionOnAttack()
+bool Monster::MotionValid(const MotionNode &rstMotion)
 {
-    return false;
+    auto nDistance = LDistance2(rstMotion.X, rstMotion.Y, rstMotion.EndX, rstMotion.EndY);
+    switch(rstMotion.Motion){
+        case MOTION_STAND:
+        case MOTION_ATTACK:
+        case MOTION_UNDERATTACK:
+        case MOTION_DIE:
+            {
+                switch(rstMotion.Direction){
+                    case DIR_UP:
+                    case DIR_UPRIGHT:
+                    case DIR_RIGHT:
+                    case DIR_DOWNRIGHT:
+                    case DIR_DOWN:
+                    case DIR_DOWNLEFT:
+                    case DIR_LEFT:
+                    case DIR_UPLEFT:
+                        {
+                            return nDistance ? false : true;
+                        }
+                    case DIR_NONE:
+                    default:
+                        {
+                            return false;
+                        }
+                }
+            }
+        case MOTION_WALK:
+            {
+                switch(rstMotion.Direction){
+                    case DIR_UP:
+                    case DIR_UPRIGHT:
+                    case DIR_RIGHT:
+                    case DIR_DOWNRIGHT:
+                    case DIR_DOWN:
+                    case DIR_DOWNLEFT:
+                    case DIR_LEFT:
+                    case DIR_UPLEFT:
+                        {
+                            return ((nDistance == 1) || (nDistance == 2)) ? true : false;
+                        }
+                    case DIR_NONE:
+                    default:
+                        {
+                            return false;
+                        }
+                }
+            }
+        default:
+            {
+                return false;
+            }
+    }
 }
 
-bool Monster::UpdateMotionOnUnderAttack()
+bool Monster::ParseNewState(const StateNode &)
 {
-    return false;
-}
-
-bool Monster::UpdateMotionOnDie()
-{
-    return false;
-}
-
-bool Monster::OnReportState()
-{
-    return false;
+    return true;
 }

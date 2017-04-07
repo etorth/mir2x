@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/04/2017 14:18:07
+ *  Last Modified: 04/07/2017 13:02:00
  *
  *    Description: 
  *
@@ -202,8 +202,10 @@ void Monster::ReportCORecord(uint32_t nSessionID)
         // 2. set common info
         pMem->Common.UID       = UID();
         pMem->Common.MapID     = MapID();
-        pMem->Common.MapX      = X();
-        pMem->Common.MapY      = Y();
+        pMem->Common.X         = X();
+        pMem->Common.Y         = Y();
+        pMem->Common.EndX      = X();
+        pMem->Common.EndY      = Y();
         pMem->Common.Direction = Direction();
         pMem->Common.Speed     = Speed();
         pMem->Common.Action    = ACTION_STAND;

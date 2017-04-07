@@ -3,7 +3,7 @@
  *
  *       Filename: motionnode.cpp
  *        Created: 04/05/2017 12:40:09
- *  Last Modified: 04/05/2017 12:45:00
+ *  Last Modified: 04/07/2017 13:27:05
  *
  *    Description: 
  *
@@ -29,6 +29,6 @@ void MotionNode::Print()
     g_Log->AddLog(LOGTYPE_INFO, "          ::Speed     = %d", Speed);
     g_Log->AddLog(LOGTYPE_INFO, "          ::X         = %d", X);
     g_Log->AddLog(LOGTYPE_INFO, "          ::Y         = %d", Y);
-    g_Log->AddLog(LOGTYPE_INFO, "          ::NextX     = %d", NextX);
-    g_Log->AddLog(LOGTYPE_INFO, "          ::NextY     = %d", NextY);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::EndX      = %d", EndX);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::EndY      = %d", EndY);
 }
