@@ -3,7 +3,7 @@
  *
  *       Filename: motion.hpp
  *        Created: 04/04/2017 23:57:00
- *  Last Modified: 04/07/2017 00:59:15
+ *  Last Modified: 04/08/2017 17:01:54
  *
  *    Description: 
  *
@@ -63,6 +63,8 @@ enum MotionType: int
     MOTION_HORSERUN,
     MOTION_HORSEDIE,
     MOTION_HORSEUNDERATTACK,
+
+    MOTION_PETRIFIED,
 
     MOTION_MAX,
 };

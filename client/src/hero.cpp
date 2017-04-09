@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 04/07/2017 13:45:33
+ *  Last Modified: 04/09/2017 00:46:38
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 
+#include "log.hpp"
 #include "hero.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
@@ -25,12 +26,25 @@
 #include "motionnode.hpp"
 #include "pngtexoffdbn.hpp"
 
-Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, ProcessRun *pRun)
+Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, ProcessRun *pRun, const ActionNode &rstAction)
     : Creature(nUID, pRun)
     , m_DBID(nDBID)
     , m_Male(bMale)
     , m_DressID(nDressID)
-{}
+{
+    m_CurrMotion.Motion    = MOTION_STAND;
+    m_CurrMotion.Speed     = 0;
+    m_CurrMotion.Direction = DIR_UP;
+    m_CurrMotion.X         = rstAction.X;
+    m_CurrMotion.Y         = rstAction.Y;
+    m_CurrMotion.EndX      = rstAction.EndX;
+    m_CurrMotion.EndY      = rstAction.EndY;
+
+    if(!ParseNewAction(rstAction)){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "Construct hero failed");
+    }
+}
 
 bool Hero::Draw(int nViewX, int nViewY)
 {

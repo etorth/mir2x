@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 04/04/2017 14:17:00
+ *  Last Modified: 04/09/2017 00:44:27
  *
  *    Description: 
  *
@@ -58,4 +58,15 @@ enum CreatureType: int
     CREATURE_PLAYER,
     CREATURE_MONSTER,
     CREATURE_NPC,
+};
+
+enum MonsterIDType: uint32_t
+{
+    MONSTERID_NONE,
+    MONSTERID_DEER,
+    MONSTERID_PHEASANT,
+    MONSTERID_ZUMA0,
+    MONSTERID_ZUMA1,
+    MONSTERID_ZUMA2,
+    MONSTERID_ZUMA3,
 };

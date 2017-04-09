@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 04/07/2017 13:43:08
+ *  Last Modified: 04/08/2017 02:30:19
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -34,22 +34,75 @@
  *                      is a specified monster which can't walk. then in the ctor:
  *
  *                          MonsterD(nUID, pRun, stAction)
- *                              : Monster(nUID, pRun, stAction)
+ *                              : Monster(nUID, pRun, stAction) // <-- fail
  *                          {...}
  *
  *                      then here we call Monster() and it fails
  *
- *                      So if we split Action handling from construction from it,
- *                      as the interface
+ *                      My object is to find a method to ensure that if a creature
+ *                      is created by new, then it's already in valid state.
  *
- *                          p = new Monster(nUID, pRun);
+ *                      this helps to simplify the logic, everytime if we have new
+ *                      input, we always are sure current it's valid, and if the
+ *                      input is valid, then it keeps valid after the operation.
+ *
+ *                      so we should define a valid motion to *all* creatures, then
+ *                      when constructed it's automatically in that motion state.
+ *
+ *                      so I use MOTION_NONE
+ *
+ *                      factory method works as a two phases solution:
+ *
+ *                          Monster *Create(nUID, pRun, stAction)
+ *                          {
+ *                              p = new Monster(nUID, pRun);
+ *                              p->PrivateParseNewAction(stAction);
+ *
+ *                              return p;
+ *                          }
+ *
+ *                      then when get p, it's already in valid stAction. but this
+ *                      need to define PrivateParseNewAction(), which can handle
+ *                      creature in invalid state.
+ *
+ *                      PrivateParseNewAction() first check if current state valid? if
+ *                      not, make it valid and then call the public ParseNewAction()
+ *
+ *                      but at the beginning how we to make it valid?? We have to make
+ *                      one explicitly, which means we have to define a motion valid
+ *                      for *all* creatures. MOTION_STAND? no, some creatures may not
+ *                      stand even. actually this is the hard step.
+ *
+ *                      then immediately I will use MOTION_NONE
+ *                      but if MOTION_NONE is valid, we can just use
+ *
+ *                          auto p = new Monster(nUID, pRun);
  *                          p->ParseNewAction(stAction);
  *
- *                      then what's the motion when it's created? I have no idea
- *                      but put a MOTION_NONE there
+ *                      we don't even need the factory method any more. the cost is for
+ *                      all function of Monster, we have to take care of MOTION_NONE,
+ *                      this is a nightmare, every place I have to check for MOTION_NONE
+ *                      
+ *                      to get rid of this noise, currently how work around
+ *                          Monster *Create(nUID, pRun, stAction)
+ *                          {
+ *                              1. p = new Monster(nUID, pRun);
+ *                              2. p->MakeMotion(MOTION_STAND, stAction.X, stAciton.Y)
+ *                              3. p->ParseNewAction(stAction)
  *
- *                      but if I have to use factory mode, why not just use the two
- *                      phases method?
+ *                              return p;
+ *                          }
+ *
+ *                       
+ *                      this method will make up a motion based on stAction, nasty hack
+ *                      but this can give use the assume:
+ *
+ *                          1. all creatures are made by Create(nUID, ...)
+ *                          2. once made, it's guarenteed to be in valid state
+ *
+ *                      then only constructor can leave creature with MOTION_NONE, but
+ *                      we make it protected, and make interface as Monster::Create()
+ *
  *
  *        Version: 1.0
  *       Revision: none
@@ -113,7 +166,6 @@ class Creature
         virtual bool Location(int *, int *) = 0;
 
     public:
-        bool EstimateLocation(int, int *, int *);
         bool EstimatePixelShift(int *, int *);
 
     public:

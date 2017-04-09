@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/07/2017 13:08:43
+ *  Last Modified: 04/09/2017 00:32:43
  *
  *    Description: 
  *
@@ -30,14 +30,22 @@
 // we get all needed initialization info for init the process run
 void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
 {
-    if(!(pBuf && nLen && nLen == sizeof(SMLoginOK))){ return; }
+    if(pBuf && nLen && (nLen == sizeof(SMLoginOK))){
+        SMLoginOK stSMLOK;
+        std::memcpy(&stSMLOK, pBuf, nLen);
 
-    SMLoginOK stSMLOK;
-    std::memcpy(&stSMLOK, pBuf, nLen);
-
-    LoadMap(stSMLOK.MapID);
-    m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.DBID, (bool)(stSMLOK.Male), 0, this);
-    m_MyHero->ParseNewAction({ACTION_STAND, 0, 0, DIR_UP, 0, 0, 0, 0});
+        LoadMap(stSMLOK.MapID);
+        ActionNode stAction;
+        stAction.Action      = ACTION_STAND;
+        stAction.ActionParam = 0;
+        stAction.Direction   = stSMLOK.Direction;
+        stAction.Speed       = 0;
+        stAction.X           = stSMLOK.X;
+        stAction.Y           = stSMLOK.Y;
+        stAction.EndX        = stSMLOK.X;
+        stAction.EndY        = stSMLOK.Y;
+        m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.DBID, (bool)(stSMLOK.Male), 0, this, stAction);
+    }
 }
 
 void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
@@ -96,9 +104,9 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
             switch(stSMCOR.Type){
                 case CREATURE_MONSTER:
                     {
-                        auto pMonster = new Monster(stSMCOR.Common.UID, stSMCOR.Monster.MonsterID, this);
-                        pMonster->ParseNewAction(stAction);
-                        m_CreatureRecord[stSMCOR.Common.UID] = pMonster;
+                        if(auto pMonster = Monster::Create(stSMCOR.Common.UID, stSMCOR.Monster.MonsterID, this, stAction)){
+                            m_CreatureRecord[stSMCOR.Common.UID] = pMonster;
+                        }
                         break;
                     }
                 case CREATURE_PLAYER:

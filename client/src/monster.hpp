@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19 PM
- *  Last Modified: 04/07/2017 13:43:31
+ *  Last Modified: 04/09/2017 00:34:56
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
@@ -38,7 +38,7 @@ class Monster: public Creature
     protected:
         uint32_t m_LookIDN;
 
-    public:
+    protected:
         Monster(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun)
             : Creature(nUID, pRun)
             , m_MonsterID(nMonsterID)
@@ -48,10 +48,13 @@ class Monster: public Creature
         {
             assert(nUID);
             assert(nMonsterID);
-            assert(pRu);
+            assert(pRun);
         }
 
        ~Monster() = default;
+
+    public:
+       static Monster *Create(uint32_t, uint32_t, ProcessRun *, const ActionNode &);
 
     public:
         int Type()
@@ -66,8 +69,11 @@ class Monster: public Creature
     protected:
         virtual int32_t GfxID(int, int);
 
-    protected:
-
+    public:
+        uint32_t MonsterID() const
+        {
+            return m_MonsterID;
+        }
 
     protected:
         bool Location(int *, int *);

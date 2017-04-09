@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 04/07/2017 13:28:50
+ *  Last Modified: 04/08/2017 17:01:09
  *
  *    Description: 
  *
@@ -27,6 +27,7 @@
 #include "clientpathfinder.hpp"
 
 // static monster global info map
+//
 std::unordered_map<uint32_t, MonsterGInfo> Monster::s_MonsterGInfoMap;
 bool Monster::Update()
 {

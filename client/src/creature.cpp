@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/07/2017 13:13:51
+ *  Last Modified: 04/07/2017 17:16:11
  *
  *    Description: 
  *
@@ -30,17 +30,6 @@
 #include "processrun.hpp"
 #include "protocoldef.hpp"
 #include "clientpathfinder.hpp"
-
-bool Creature::EstimateLocation(int nDistance, int *pEndX, int *pEndY)
-{
-    static const int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
-    static const int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
-
-    if(pEndX){ *pEndX = m_CurrMotion.X + nDistance * nDX[m_CurrMotion.Direction]; }
-    if(pEndY){ *pEndY = m_CurrMotion.Y + nDistance * nDY[m_CurrMotion.Direction]; }
-
-    return true;
-}
 
 bool Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
 {
