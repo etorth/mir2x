@@ -3,7 +3,7 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 04/07/2017 13:21:57
+ *  Last Modified: 04/09/2017 01:56:01
  *
  *    Description: 
  *
@@ -56,6 +56,10 @@ struct ActionNode
         // assert((nEndX        >= 0) && (nEndX        <= (int)(std::numeric_limits<decltype(EndX       )>::max())));
         // assert((nEndY        >= 0) && (nEndY        <= (int)(std::numeric_limits<decltype(EndY       )>::max())));
     }
+
+    ActionNode(int nAction, int nActionParam, int nDirection, int nX, int nY)
+        : ActionNode(nAction, nActionParam, 0, nDirection, nX, nY, nX, nY)
+    {}
 
     ActionNode()
         : ActionNode(ACTION_NONE, 0, 0, 0, 0, 0, 0, 0)

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 04/08/2017 17:01:09
+ *  Last Modified: 04/09/2017 04:51:55
  *
  *    Description: 
  *
@@ -93,9 +93,8 @@ bool Monster::ParseNewAction(const ActionNode &rstAction)
 {
     m_MotionQueue.clear();
     if(ActionValid(rstAction)){
-        // current motion should always be valid or at MOTION_NONE for initialization
-        if((m_CurrMotion.Motion != MOTION_NONE) && LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
-            if(!ParseMovePath(MOTION_WALK, 5, m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
+        if(LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
+            if(!ParseMovePath(MOTION_WALK, 1, m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
                 return false;
             }
         }
@@ -108,24 +107,8 @@ bool Monster::ParseNewAction(const ActionNode &rstAction)
                 }
             case ACTION_MOVE:
                 {
-                    switch(LDistance2(rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY)){
-                        case 1:
-                        case 2:
-                            {
-                                auto nX0 = (m_CurrMotion.Motion == MOTION_NONE) ? rstAction.X : m_CurrMotion.EndX;
-                                auto nY0 = (m_CurrMotion.Motion == MOTION_NONE) ? rstAction.Y : m_CurrMotion.EndY;
-                                if(!ParseMovePath(MOTION_WALK, rstAction.Speed, nX0, nY0, rstAction.EndX, rstAction.EndY)){
-                                    return false;
-                                }
-                                break;
-                            }
-                        case 0:
-                        default:
-                            {
-                                rstAction.Print();
-                                return false;
-                            }
-                    }
+                    m_MotionQueue.push_back({MOTION_WALK, rstAction.Direction, rstAction.Speed, rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY});
+                    break;
                 }
             case ACTION_ATTACK:
                 {
@@ -146,11 +129,6 @@ bool Monster::ParseNewAction(const ActionNode &rstAction)
                 {
                     return false;
                 }
-        }
-
-        if(m_CurrMotion.Motion == MOTION_NONE){
-            m_CurrMotion = m_MotionQueue.front();
-            m_MotionQueue.pop_front();
         }
 
         return MotionQueueValid();

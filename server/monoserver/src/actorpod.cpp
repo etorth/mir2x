@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 04/01/2017 02:03:58
+ *  Last Modified: 04/09/2017 01:32:08
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 #include <cstdio>
+#include <cinttypes>
 
 #include "actorpod.hpp"
 #include "monoserver.hpp"
@@ -27,9 +28,8 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFro
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     {
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_INFO,
-                "(Pod: %p, Name: %s, UID: %u) <- (Type: %s, ID: %u, Resp: %u)",
-                this, Name(), UID(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+        g_MonoServer->AddLog(LOGTYPE_INFO, "(Pod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) <- (Type: %s, ID: %u, Resp: %u)",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
     }
 #endif
 
@@ -152,9 +152,8 @@ bool ActorPod::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, 
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     {
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_INFO,
-                "(Pod: %p, Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u)",
-                this, Name(), UID(), MessagePack(rstMB.Type()).Name(), 0, nRespond);
+        g_MonoServer->AddLog(LOGTYPE_INFO, "(Pod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u)",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), 0, nRespond);
     }
 #endif
 
@@ -184,9 +183,8 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     {
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_INFO,
-                "(Pod: %p, Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u)",
-                this, Name(), UID(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
+        g_MonoServer->AddLog(LOGTYPE_INFO, "(Pod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u)",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
     }
 #endif
 

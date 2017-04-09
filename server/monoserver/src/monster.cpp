@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/07/2017 13:02:00
+ *  Last Modified: 04/09/2017 02:29:49
  *
  *    Description: 
  *
@@ -57,7 +57,7 @@ bool Monster::Update()
         }
 
         m_Direction = std::rand() % 8;
-        DispatchAction(ACTION_STAND, 0);
+        DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y()});
     }
     return true;
 }
@@ -131,18 +131,36 @@ bool Monster::RequestMove(int nX, int nY)
         switch(rstMPK.Type()){
             case MPK_OK:
                 {
+                    static const int nDirV[][3] = {
+                        {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
+                        {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
+                        {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
+
+                    int nDX = nX - m_CurrX + 1;
+                    int nDY = nY - m_CurrY + 1;
+
+                    ActionNode stAction;
+                    stAction.Action      = ACTION_MOVE;
+                    stAction.ActionParam = 0;
+                    stAction.Speed       = 1;
+                    stAction.Direction   = nDirV[nDY][nDX];
+                    stAction.X           = m_CurrX;
+                    stAction.Y           = m_CurrY;
+                    stAction.EndX        = nX;
+                    stAction.EndY        = nY;
+
                     m_CurrX = nX;
                     m_CurrY = nY;
                     m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-                    DispatchAction(ACTION_MOVE, 0);
 
+                    DispatchAction(stAction);
                     m_FreezeWalk = false;
                     break;
                 }
             case MPK_ERROR:
                 {
                     m_Direction = GetBack();
-                    DispatchAction(ACTION_STAND, 0);
+                    DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y()});
                     m_FreezeWalk = false;
                     break;
                 }
@@ -200,15 +218,18 @@ void Monster::ReportCORecord(uint32_t nSessionID)
         pMem->Type = CREATURE_MONSTER;
 
         // 2. set common info
-        pMem->Common.UID       = UID();
-        pMem->Common.MapID     = MapID();
-        pMem->Common.X         = X();
-        pMem->Common.Y         = Y();
-        pMem->Common.EndX      = X();
-        pMem->Common.EndY      = Y();
-        pMem->Common.Direction = Direction();
-        pMem->Common.Speed     = Speed();
-        pMem->Common.Action    = ACTION_STAND;
+        pMem->Common.UID   = UID();
+        pMem->Common.MapID = MapID();
+
+        pMem->Common.Action      = ACTION_STAND;
+        pMem->Common.ActionParam = 0;
+        pMem->Common.Speed       = 0;
+        pMem->Common.Direction   = Direction();
+
+        pMem->Common.X    = X();
+        pMem->Common.Y    = Y();
+        pMem->Common.EndX = X();
+        pMem->Common.EndY = Y();
 
         // 3. set specified info
         pMem->Monster.MonsterID = m_MonsterID;

@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/07/2017 17:16:11
+ *  Last Modified: 04/09/2017 04:49:03
  *
  *    Description: 
  *
@@ -254,8 +254,11 @@ bool Creature::ParseMovePath(int nMotion, int nSpeed, int nX0, int nY0, int nX1,
 
                                         int nDX = nEndX - nCurrX + 1;
                                         int nDY = nEndY - nCurrY + 1;
+
                                         m_MotionQueue.push_back({nMotion, nDirV[nDY][nDX], nSpeed, nCurrX, nCurrY, nEndX, nEndY});
 
+                                        nCurrX = nEndX;
+                                        nCurrY = nEndY;
                                         break;
                                     }
                                 case 0:
@@ -277,8 +280,9 @@ bool Creature::ParseMovePath(int nMotion, int nSpeed, int nX0, int nY0, int nX1,
 
 bool Creature::UpdateGeneralMotion(bool bLooped)
 {
-    if(MotionValid(m_CurrMotion)){
-        if(bLooped || (m_CurrMotion.Frame < (int)(MotionFrameCount()))){
+    auto nFrameCount = (int)(MotionFrameCount());
+    if(nFrameCount >= 0){
+        if(bLooped || (m_CurrMotion.Frame < (nFrameCount - 1))){
             return AdvanceMotionFrame(1);
         }
 
@@ -287,32 +291,11 @@ bool Creature::UpdateGeneralMotion(bool bLooped)
             m_CurrMotion.X      = m_CurrMotion.EndX;
             m_CurrMotion.Y      = m_CurrMotion.EndX;
             m_CurrMotion.Frame  = 0;
-
-            return true;
-        }
-
-        if(true
-                && (m_CurrMotion.EndX == m_MotionQueue.front().X)
-                && (m_CurrMotion.EndY == m_MotionQueue.front().Y)){
+        }else{
             m_CurrMotion = m_MotionQueue.front();
-            return true;
-        }
-
-        m_CurrMotion.Print();
-        m_MotionQueue.front().Print();
-        {
-            extern Log *g_Log;
-            g_Log->AddLog(LOGTYPE_FATAL, "Current motion is not valid");
-            return false;
         }
     }
-
-    m_CurrMotion.Print();
-    {
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "Current motion is not valid");
-        return false;
-    }
+    return true;
 }
 
 bool Creature::MotionQueueValid()

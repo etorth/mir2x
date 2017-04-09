@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 04/07/2017 11:39:46
+ *  Last Modified: 04/09/2017 02:01:36
  *
  *    Description: 
  *
@@ -83,14 +83,17 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
         auto pMem = g_MemoryPN->Get<SMAction>();
 
         pMem->UID   = stAMA.UID;
-        pMem->X     = stAMA.X;
-        pMem->Y     = stAMA.Y;
         pMem->MapID = stAMA.MapID;
 
         pMem->Action      = stAMA.Action;
         pMem->ActionParam = stAMA.ActionParam;
         pMem->Speed       = stAMA.Speed;
         pMem->Direction   = stAMA.Direction;
+
+        pMem->X    = stAMA.X;
+        pMem->Y    = stAMA.Y;
+        pMem->EndX = stAMA.EndX;
+        pMem->EndY = stAMA.EndY;
 
         extern NetPodN *g_NetPodN;
         g_NetPodN->Send(m_SessionID, SM_ACTION, (uint8_t *)pMem, sizeof(SMAction), [pMem](){ g_MemoryPN->Free(pMem); });

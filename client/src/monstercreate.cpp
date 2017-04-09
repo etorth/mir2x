@@ -3,7 +3,7 @@
  *
  *       Filename: monstercreate.cpp
  *        Created: 04/08/2017 17:00:20
- *  Last Modified: 04/09/2017 00:40:46
+ *  Last Modified: 04/09/2017 01:36:41
  *
  *    Description: factory model for all monster
  *                 make this file stand alone since it will include all monster types
@@ -31,12 +31,22 @@ Monster *Monster::Create(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun, c
             {
                 return ZumaMonster::Create(nUID, nMonsterID, pRun, rstAction);
             }
-        case MONSTERID_DEER:
-            {
-                return Monster::Create(nUID, nMonsterID, pRun, rstAction);
-            }
         default:
             {
+                auto pNew = new Monster(nUID, nMonsterID, pRun);
+                pNew->m_CurrMotion.Motion    = MOTION_STAND;
+                pNew->m_CurrMotion.Speed     = 0;
+                pNew->m_CurrMotion.Direction = DIR_UP;
+                pNew->m_CurrMotion.X         = rstAction.X;
+                pNew->m_CurrMotion.Y         = rstAction.Y;
+                pNew->m_CurrMotion.EndX      = rstAction.EndX;
+                pNew->m_CurrMotion.EndY      = rstAction.EndY;
+
+                if(pNew->ParseNewAction(rstAction)){
+                    return pNew;
+                }
+
+                delete pNew;
                 return nullptr;
             }
     }

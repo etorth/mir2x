@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 04/05/2017 12:15:51
+ *  Last Modified: 04/09/2017 01:57:35
  *
  *    Description: 
  *
@@ -173,14 +173,17 @@ typedef struct
     uint32_t UID;
     uint32_t MapID;
 
-    int X;
-    int Y;
-
     int Action;
     int ActionParam;
 
     int Speed;
     int Direction;
+
+    int X;
+    int Y;
+    
+    int EndX;
+    int EndY;
 }AMAction;
 
 typedef struct

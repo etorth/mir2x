@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/04/2017 14:10:10
+ *  Last Modified: 04/09/2017 01:53:42
  *
  *    Description: 
  *
@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "servermap.hpp"
+#include "actionnode.hpp"
 #include "servicecore.hpp"
 #include "protocoldef.hpp"
 #include "activeobject.hpp"
@@ -183,5 +184,5 @@ class CharObject: public ActiveObject
         virtual void ReportCORecord(uint32_t) = 0;
 
     protected:
-        void DispatchAction(uint8_t, uint8_t);
+        void DispatchAction(const ActionNode &);
 };

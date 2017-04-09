@@ -3,7 +3,7 @@
  *
  *       Filename: syncdriver.cpp
  *        Created: 06/09/2016 17:32:50
- *  Last Modified: 06/16/2016 23:13:29
+ *  Last Modified: 04/09/2017 01:31:55
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 
+#include <cinttypes>
 #include "monoserver.hpp"
 #include "syncdriver.hpp"
 
@@ -30,9 +31,11 @@
 int SyncDriver::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr)
 {
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_INFO,
-            "(Driver: %p, Name: SyncDriver, UID: 0, AddTime: 0) -> (Type: %s, ID: 0, Resp: 0)", this, MessagePack(rstMB.Type()).Name());
+    {
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_INFO, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: X) -> (Type: %s, ID: 0, Resp: 0)",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name());
+    }
 #endif
     extern Theron::Framework *g_Framework;
     return g_Framework->Send<MessagePack>({rstMB, 0, 0}, m_Receiver.GetAddress(), rstAddr) ? 0 : 1;
@@ -73,9 +76,11 @@ int SyncDriver::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr,
     while(true){ if(!m_Catcher.Pop(stTmpMPK, stTmpAddress)){ break; } }
 
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_INFO,
-            "(Driver: %p, Name: SyncDriver, UID: 0, AddTime: 0) -> (Type: %s, ID: 1, Resp: 0)", this, MessagePack(rstMB.Type()).Name());
+    {
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_INFO, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: X) -> (Type: %s, ID: 0, Resp: 0)",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name());
+    }
 #endif
 
     // 2. send message
