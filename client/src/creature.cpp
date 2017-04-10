@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/10/2017 11:55:17
+ *  Last Modified: 04/10/2017 12:53:36
  *
  *    Description: 
  *
@@ -183,9 +183,9 @@ bool Creature::MoveNextMotion()
 {
     if(m_MotionQueue.empty()){
         m_CurrMotion.Motion = MOTION_STAND;
+        m_CurrMotion.Speed  = 0;
         m_CurrMotion.X      = m_CurrMotion.EndX;
         m_CurrMotion.Y      = m_CurrMotion.EndY;
-        m_CurrMotion.Speed  = 0;
         m_CurrMotion.Frame  = 0;
 
         return true;
@@ -284,15 +284,8 @@ bool Creature::UpdateGeneralMotion(bool bLooped)
     if(nFrameCount >= 0){
         if(bLooped || (m_CurrMotion.Frame < (nFrameCount - 1))){
             return AdvanceMotionFrame(1);
-        }
-
-        if(m_MotionQueue.empty()){
-            m_CurrMotion.Motion = MOTION_STAND;
-            m_CurrMotion.X      = m_CurrMotion.EndX;
-            m_CurrMotion.Y      = m_CurrMotion.EndY;
-            m_CurrMotion.Frame  = 0;
         }else{
-            m_CurrMotion = m_MotionQueue.front();
+            return MoveNextMotion();
         }
     }
     return true;
