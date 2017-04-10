@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19 PM
- *  Last Modified: 04/09/2017 00:34:56
+ *  Last Modified: 04/09/2017 23:57:36
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
@@ -42,7 +42,7 @@ class Monster: public Creature
         Monster(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun)
             : Creature(nUID, pRun)
             , m_MonsterID(nMonsterID)
-            , m_UpdateDelay(0.0)
+            , m_UpdateDelay(30.0)
             , m_LastUpdateTime(0.0)
             , m_LookIDN(0)
         {

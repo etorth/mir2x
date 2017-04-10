@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 04/09/2017 00:44:27
+ *  Last Modified: 04/09/2017 23:23:27
  *
  *    Description: 
  *
@@ -32,13 +32,13 @@ enum DirectionType: int
 {
     DIR_NONE = 0,
     DIR_UP,
-    DIR_DOWN,
-    DIR_LEFT,
-    DIR_RIGHT,
-    DIR_UPLEFT,
     DIR_UPRIGHT,
-    DIR_DOWNLEFT,
+    DIR_RIGHT,
     DIR_DOWNRIGHT,
+    DIR_DOWN,
+    DIR_DOWNLEFT,
+    DIR_LEFT,
+    DIR_UPLEFT,
 };
 
 enum ActionType: int

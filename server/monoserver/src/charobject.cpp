@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/09/2017 01:59:38
+ *  Last Modified: 04/09/2017 23:27:55
  *
  *    Description: 
  *
@@ -46,40 +46,29 @@ CharObject::CharObject(ServiceCore *pServiceCore,
 
 bool CharObject::NextLocation(int *pX, int *pY, int nDistance)
 {
-    if(m_Direction >= 0 && m_Direction < 8){
-        static const int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
-        static const int nDY[] = {-1,  0,  0, +1, +1,  0,  0, -1};
+    switch(m_Direction){
+        case DIR_UP:
+        case DIR_UPRIGHT:
+        case DIR_RIGHT:
+        case DIR_DOWNRIGHT:
+        case DIR_DOWN:
+        case DIR_DOWNLEFT:
+        case DIR_LEFT:
+        case DIR_UPLEFT:
+            {
+                static const int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
+                static const int nDY[] = {-1,  0,  0, +1, +1,  0,  0, -1};
 
-        if(pX){ *pX = m_CurrX + (nDX[m_Direction] * nDistance); }
-        if(pY){ *pY = m_CurrY + (nDY[m_Direction] * nDistance); }
+                if(pX){ *pX = m_CurrX + (nDX[m_Direction] * nDistance); }
+                if(pY){ *pY = m_CurrY + (nDY[m_Direction] * nDistance); }
 
-        return true;
+                return true;
+            }
+        default:
+            {
+                return false;
+            }
     }
-
-    return false;
-}
-
-uint8_t CharObject::Direction(int nX, int nY)
-{
-    int nDX = nX - m_CurrX;
-    int nDY = nY - m_CurrY;
-
-    uint8_t nDirection = 0;
-    if(nDX == 0){
-        if(nDY > 0){
-            nDirection = 4;
-        }else{
-            nDirection = 0;
-        }
-    }else{
-        double dATan = std::atan(1.0 * nDY / nDX);
-        if(nDX > 0){
-            nDirection = (uint8_t)(std::lround(2.0 + dATan * 4.0 / 3.1416) % 8);
-        }else{
-            nDirection = (uint8_t)(std::lround(6.0 + dATan * 4.0 / 3.1416) % 8);
-        }
-    }
-    return nDirection;
 }
 
 void CharObject::DispatchAction(const ActionNode &rstAction)

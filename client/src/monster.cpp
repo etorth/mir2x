@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 04/09/2017 04:51:55
+ *  Last Modified: 04/09/2017 23:58:53
  *
  *    Description: 
  *
@@ -147,7 +147,6 @@ bool Monster::Location(int *pX, int *pY)
                 auto nY1        = m_CurrMotion.EndY;
                 auto nFrame     = m_CurrMotion.Frame;
                 auto nDirection = m_CurrMotion.Direction;
-
 
                 if(pX){ *pX = (nFrame < ((int)(MotionFrameCount()) - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 1))) ? nX0 : nX1; }
                 if(pY){ *pY = (nFrame < ((int)(MotionFrameCount()) - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 1))) ? nY0 : nY1; }

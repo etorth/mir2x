@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/09/2017 04:49:03
+ *  Last Modified: 04/09/2017 23:47:53
  *
  *    Description: 
  *
@@ -184,7 +184,7 @@ bool Creature::MoveNextMotion()
     if(m_MotionQueue.empty()){
         m_CurrMotion.Motion = MOTION_STAND;
         m_CurrMotion.X      = m_CurrMotion.EndX;
-        m_CurrMotion.Y      = m_CurrMotion.EndX;
+        m_CurrMotion.Y      = m_CurrMotion.EndY;
         m_CurrMotion.Speed  = 0;
         m_CurrMotion.Frame  = 0;
 

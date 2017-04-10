@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/09/2017 01:53:42
+ *  Last Modified: 04/09/2017 23:25:52
  *
  *    Description: 
  *
@@ -177,8 +177,7 @@ class CharObject: public ActiveObject
         virtual bool Update()       = 0;
 
     public:
-        uint8_t Direction(int, int);
-        bool    NextLocation(int *, int *, int);
+        bool NextLocation(int *, int *, int);
 
     protected:
         virtual void ReportCORecord(uint32_t) = 0;
