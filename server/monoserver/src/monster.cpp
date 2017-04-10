@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/10/2017 11:44:15
+ *  Last Modified: 04/10/2017 12:16:13
  *
  *    Description: 
  *
@@ -49,7 +49,7 @@ bool Monster::Update()
         if((std::rand() % 99991) < (99991 / 2)){
             int nNextX = 0;
             int nNextY = 0;
-            if(NextLocation(&nNextX, &nNextY, Speed())){
+            if(NextLocation(&nNextX, &nNextY, 1)){
                 if(m_Map->GroundValid(nNextX, nNextY)){
                     return RequestMove(nNextX, nNextY);
                 }
