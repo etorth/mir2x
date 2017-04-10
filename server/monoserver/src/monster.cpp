@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/10/2017 00:26:09
+ *  Last Modified: 04/10/2017 11:44:15
  *
  *    Description: 
  *
@@ -56,7 +56,7 @@ bool Monster::Update()
             }
         }
 
-        {
+        if((std::rand() % 99991) < (99991 / 2)){
             int nDirV[] = {
                 DIR_UP,
                 DIR_UPRIGHT,
@@ -67,8 +67,12 @@ bool Monster::Update()
                 DIR_LEFT,
                 DIR_UPLEFT,
             };
-            m_Direction = nDirV[std::rand() % 8];
-            DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y()});
+
+            auto nDirection = nDirV[std::rand() % (sizeof(nDirV) / sizeof(nDirV[0]))];
+            if(m_Direction != nDirection){
+                m_Direction = nDirection;
+                DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y()});
+            }
         }
     }
     return true;

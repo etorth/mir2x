@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/09/2017 23:47:53
+ *  Last Modified: 04/10/2017 11:55:17
  *
  *    Description: 
  *
@@ -289,7 +289,7 @@ bool Creature::UpdateGeneralMotion(bool bLooped)
         if(m_MotionQueue.empty()){
             m_CurrMotion.Motion = MOTION_STAND;
             m_CurrMotion.X      = m_CurrMotion.EndX;
-            m_CurrMotion.Y      = m_CurrMotion.EndX;
+            m_CurrMotion.Y      = m_CurrMotion.EndY;
             m_CurrMotion.Frame  = 0;
         }else{
             m_CurrMotion = m_MotionQueue.front();

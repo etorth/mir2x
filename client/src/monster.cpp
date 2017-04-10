@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 04/10/2017 01:21:51
+ *  Last Modified: 04/10/2017 11:53:29
  *
  *    Description: 
  *
@@ -42,7 +42,16 @@ bool Monster::Update()
         switch(m_CurrMotion.Motion){
             case MOTION_STAND:
                 {
-                    return MoveNextMotion();
+                    if(m_MotionQueue.empty()){
+                        return AdvanceMotionFrame(1);
+                    }else{
+                        // move to next motion will reset frame as 0
+                        // if current there is no more motion pending
+                        // it will add a MOTION_STAND
+                        //
+                        // we don't want to reset the frame here
+                        return MoveNextMotion();
+                    }
                 }
             default:
                 {
