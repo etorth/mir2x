@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/10/2017 16:35:35
+ *  Last Modified: 04/11/2017 11:51:44
  *
  *    Description: 
  *
@@ -186,7 +186,7 @@ bool Monster::RequestMove(int nX, int nY)
             default:
                 {
                     extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported response type for MPK_TRYMOVE: %s", rstMPK.Name());
+                    g_MonoServer->AddLog(LOGTYPE_FATAL, "unsupported response type for MPK_TRYMOVE: %s", rstMPK.Name());
                     g_MonoServer->Restart();
                     break;
                 }
