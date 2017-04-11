@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 04/10/2017 11:53:29
+ *  Last Modified: 04/11/2017 11:59:40
  *
  *    Description: 
  *
@@ -100,6 +100,9 @@ size_t Monster::MotionFrameCount()
 
 bool Monster::ParseNewAction(const ActionNode &rstAction)
 {
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
+    rstAction.Print();
+#endif
     m_MotionQueue.clear();
     if(ActionValid(rstAction)){
         if(LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/11/2017 11:51:44
+ *  Last Modified: 04/11/2017 12:28:08
  *
  *    Description: 
  *
@@ -60,7 +60,7 @@ bool Monster::Update()
         // if current direction leads to a *impossible* place
         // then randomly take a new direction to try
         {
-            const int nDirV[] = {
+            static const int nDirV[] = {
                 DIR_UP,
                 DIR_UPRIGHT,
                 DIR_RIGHT,
@@ -71,10 +71,28 @@ bool Monster::Update()
                 DIR_UPLEFT,
             };
 
-            auto nDirection = nDirV[std::rand() % (sizeof(nDirV) / sizeof(nDirV[0]))];
-            if(m_Direction != nDirection){
-                m_Direction = nDirection;
-                DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y()});
+            auto nDirCount = (int)(sizeof(nDirV) / sizeof(nDirV[0]));
+            auto nDirStart = (int)(std::rand() % nDirCount);
+
+            for(int nIndex = 0; nIndex < nDirCount; ++nIndex){
+                auto nDirection = nDirV[(nDirStart + nIndex) % nDirCount];
+                if(nDirection != m_Direction){
+                    int nNextX = 0;
+                    int nNextY = 0;
+                    if(NextLocation(&nNextX, &nNextY, nDirection, 1)){
+                        if(m_Map->GroundValid(nNextX, nNextY)){
+                            m_Direction = nDirection;
+                            DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y()});
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // need future work here
+            // ooops, we are at a place can't move
+            {
+                return false;
             }
         }
     }

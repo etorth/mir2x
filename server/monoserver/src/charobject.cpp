@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/09/2017 23:27:55
+ *  Last Modified: 04/11/2017 12:47:00
  *
  *    Description: 
  *
@@ -44,31 +44,26 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     ResetState(STATE_LIFECYCLE, nLifeState);
 }
 
-bool CharObject::NextLocation(int *pX, int *pY, int nDistance)
+bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
 {
-    switch(m_Direction){
-        case DIR_UP:
-        case DIR_UPRIGHT:
-        case DIR_RIGHT:
-        case DIR_DOWNRIGHT:
-        case DIR_DOWN:
-        case DIR_DOWNLEFT:
-        case DIR_LEFT:
-        case DIR_UPLEFT:
-            {
-                static const int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
-                static const int nDY[] = {-1,  0,  0, +1, +1,  0,  0, -1};
-
-                if(pX){ *pX = m_CurrX + (nDX[m_Direction] * nDistance); }
-                if(pY){ *pY = m_CurrY + (nDY[m_Direction] * nDistance); }
-
-                return true;
-            }
-        default:
-            {
-                return false;
-            }
+    int nDX = 0;
+    int nDY = 0;
+    switch(nDirection){
+        case DIR_UP:        { nDX =  0; nDY = -1; break; }
+        case DIR_UPRIGHT:   { nDX = +1; nDY = -1; break; }
+        case DIR_RIGHT:     { nDX = +1; nDY =  0; break; }
+        case DIR_DOWNRIGHT: { nDX = +1; nDY = +1; break; }
+        case DIR_DOWN:      { nDX =  0; nDY = +1; break; }
+        case DIR_DOWNLEFT:  { nDX = -1; nDY = +1; break; }
+        case DIR_LEFT:      { nDX = -1; nDY =  0; break; }
+        case DIR_UPLEFT:    { nDX = -1; nDY = -1; break; }
+        default:            { return false;              }
     }
+
+    if(pX){ *pX = m_CurrX + (nDX * nDistance); }
+    if(pY){ *pY = m_CurrY + (nDY * nDistance); }
+
+    return true;
 }
 
 void CharObject::DispatchAction(const ActionNode &rstAction)
