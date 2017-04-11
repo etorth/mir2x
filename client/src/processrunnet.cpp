@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/09/2017 00:32:43
+ *  Last Modified: 04/10/2017 16:38:33
  *
  *    Description: 
  *
@@ -67,7 +67,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
             stAction.EndY        = stSMA.EndY;
 
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-            stAction.Print();
+            // stAction.Print();
 #endif
             pRecord->second->ParseNewAction(stAction);
         }

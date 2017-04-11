@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/10/2017 12:16:13
+ *  Last Modified: 04/10/2017 16:35:35
  *
  *    Description: 
  *
@@ -46,7 +46,8 @@ Monster::Monster(uint32_t   nMonsterID,
 bool Monster::Update()
 {
     if(!m_FreezeWalk){
-        if((std::rand() % 99991) < (99991 / 2)){
+        // always try to move if possible
+        {
             int nNextX = 0;
             int nNextY = 0;
             if(NextLocation(&nNextX, &nNextY, 1)){
@@ -56,8 +57,10 @@ bool Monster::Update()
             }
         }
 
-        if((std::rand() % 99991) < (99991 / 2)){
-            int nDirV[] = {
+        // if current direction leads to a *impossible* place
+        // then randomly take a new direction to try
+        {
+            const int nDirV[] = {
                 DIR_UP,
                 DIR_UPRIGHT,
                 DIR_RIGHT,

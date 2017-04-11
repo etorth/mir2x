@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 03/30/2017 01:50:38
+ *  Last Modified: 04/10/2017 16:56:09
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 
+#include <cinttypes>
 #include "actorpod.hpp"
 #include "monoserver.hpp"
 #include "activeobject.hpp"
@@ -53,6 +54,22 @@ ActiveObject::ActiveObject()
     };
 
     m_StateHook.Install("DelayCmdQueue", fnDelayCmdQueue);
+
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
+    auto fnPrintAMCount = [this](){
+        if(ActorPodValid()){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_INFO,
+                    "(ActiveObject: 0X%0*" PRIXPTR ", Name: %s, UID: %u, Length: %" PRIu32 ")",
+                    (int)(sizeof(this) * 2), (uintptr_t)(this), ClassName(), UID(), m_ActorPod->GetNumQueuedMessages());
+        }
+
+        // it's never done
+        return false;
+    };
+
+    m_StateHook.Install("PrintAMCount", fnPrintAMCount);
+#endif
 }
 
 ActiveObject::~ActiveObject()
