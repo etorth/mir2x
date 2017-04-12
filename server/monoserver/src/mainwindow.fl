@@ -130,13 +130,6 @@ class MainWindow {open
 
 	m_Browser->add(szFullMessage.c_str());
 	m_Browser->bottomline(m_Browser->size());
-
-    {
-        // don't call exit(0), only redraw the window
-        // this helps to update the browser every time after insertion
-        static char nDumb = 1;
-        Fl::awake(&nDumb);
-    }
 }} {selected
     }
   }

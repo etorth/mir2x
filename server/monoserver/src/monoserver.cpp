@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/12/2017 12:37:19
+ *  Last Modified: 04/12/2017 13:30:16
  *
  *    Description: 
  *
@@ -88,6 +88,13 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
                     Fl::lock();
                     g_MainWindow->AddLog(nLogType, &(m_LogBuf[0]));
                     Fl::unlock();
+
+                    {
+                        // don't call exit(0), only redraw the window
+                        // this helps to update the browser every time after insertion
+                        static char nDumb = 1;
+                        Fl::awake(&nDumb);
+                    }
                 }
                 g_Log->AddLog(stLogDesc, &(m_LogBuf[0]));
                 return;
