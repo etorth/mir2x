@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/11/2017 17:51:29
+ *  Last Modified: 04/12/2017 12:23:18
  *
  *    Description: 
  *
@@ -62,7 +62,8 @@ MonoServer::MonoServer()
     m_NetMessageAttributeV[CM_QUERYMONSTERGINFO] = {CM_QUERYMONSTERGINFO, sizeof(CMQueryMonsterGInfo), true,  "CM_QUERYMONSTERGINFO"};
 
     // 3. initialization of monster ginfo record
-    m_MonsterGInfoRecord[1] = {1, 0X0015, 0, 0, 0};
+    m_MonsterGInfoRecord[ 1] = { 1, 0X0015, 0, 0, 0};
+    m_MonsterGInfoRecord[10] = {10, 0X009F, 0, 0, 0};
 }
 
 void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char *szLogFormat, ...)
@@ -93,7 +94,9 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
     }
 
     auto szLogError = "MonoServer::AddLog(): Error in parsing log message";
+    Fl::lock();
     g_MainWindow->AddLog(3, szLogError);
+    Fl::unlock();
     g_Log->AddLog(stLogDesc, szLogError);
 }
 
@@ -156,28 +159,28 @@ void MonoServer::Launch()
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
 
-    AddMonster(1, 1, 19, 19);
-    AddMonster(1, 1, 19, 18);
-    AddMonster(1, 1, 17, 15);
-    AddMonster(1, 1, 16, 18);
-    AddMonster(1, 1, 15, 17);
-    AddMonster(1, 1, 16, 16);
-    AddMonster(1, 1, 11, 21);
-    AddMonster(1, 1, 20, 19);
-    AddMonster(1, 1, 20, 20);
-    AddMonster(1, 1, 20, 21);
-    AddMonster(1, 1, 21, 21);
-    AddMonster(1, 1,  8, 21);
-    AddMonster(1, 1,  8, 22);
-    AddMonster(1, 1,  9, 21);
-    AddMonster(1, 1,  9, 22);
-    AddMonster(1, 1,  9, 23);
-    AddMonster(1, 1,  9, 24);
-    AddMonster(1, 1, 14, 16);
-    AddMonster(1, 1, 14, 17);
-    AddMonster(1, 1, 14, 18);
-    AddMonster(1, 1, 14, 19);
-    AddMonster(1, 1, 14, 20);
+    AddMonster( 1, 1, 19, 19);
+    AddMonster( 1, 1, 19, 18);
+    AddMonster( 1, 1, 17, 15);
+    AddMonster( 1, 1, 16, 18);
+    AddMonster( 1, 1, 15, 17);
+    AddMonster( 1, 1, 16, 16);
+    AddMonster( 1, 1, 11, 21);
+    AddMonster( 1, 1, 20, 19);
+    AddMonster( 1, 1, 20, 20);
+    AddMonster( 1, 1, 20, 21);
+    AddMonster( 1, 1, 21, 21);
+    AddMonster(10, 1,  8, 21);
+    AddMonster(10, 1,  8, 22);
+    AddMonster(10, 1,  9, 21);
+    AddMonster(10, 1,  9, 22);
+    AddMonster(10, 1,  9, 23);
+    AddMonster(10, 1,  9, 24);
+    AddMonster(10, 1, 14, 16);
+    AddMonster(10, 1, 14, 17);
+    AddMonster(10, 1, 14, 18);
+    AddMonster(10, 1, 14, 19);
+    AddMonster(10, 1, 14, 20);
 }
 
 void MonoServer::Restart()
@@ -264,8 +267,7 @@ bool MonoServer::InitMonsterRace()
         s_MonsterRaceInfoV[stRaceInfo.Index] = stRaceInfo;
 
         // 3. log it
-        AddLog(LOGTYPE_INFO,
-                "monster added, index = %d, name = %s.", stRaceInfo.Index, stRaceInfo.Name.c_str());
+        AddLog(LOGTYPE_INFO, "monster added, index = %d, name = %s.", stRaceInfo.Index, stRaceInfo.Name.c_str());
     }
 
     AddLog(LOGTYPE_INFO, "finished monster info: %d monster added", pRecord->RowCount());
