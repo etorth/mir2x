@@ -14,7 +14,6 @@ client, server, tools for cross-platform mir2. Using asio, SDL, FLTK, libzip, et
 5. client
 6. monoserver
 
-Try to make all I learned into practice, as the screenshot:
 ![image](https://github.com/etorth/mir2x/raw/master/readme/screenshot.png)
 ![image](https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png)
 
@@ -33,8 +32,8 @@ actually:
 
 Since I already have a powerful log system, I won't use exception. If un-recoverable error happens
 
-1. log system record the detailed info;
-2. then just let it crash, or use exit(0) to force killing;
+1. log system record the detailed info by LOGTYPE_FATAL;
+2. then just let it crash, or use exit(0) to do forced kill;
 
 The function who throws always think it's a fatal error so it just throw, but how to handle this ``fatal" error or do catch sub-clause really takes it as fatal is decided not by the thrower, but the catcher.
 
