@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/01/2017 19:01:34
+ *  Last Modified: 04/11/2017 17:46:00
  *
  *    Description: 
  *
@@ -75,9 +75,23 @@ int main()
     g_MainWindow->ShowAll();
 
     while(Fl::wait() > 0){
-        if(Fl::thread_message()){
-            fl_alert("%s", "system request for restart");
-            exit(0);
+        if(auto pMessage = (char *)(Fl::thread_message())){
+            switch(*pMessage){
+                case 0:
+                    {
+                        fl_alert("%s", "system request for restart");
+                        exit(0);
+                        break;
+                    }
+                case 1:
+                    {
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
         }
     }
 

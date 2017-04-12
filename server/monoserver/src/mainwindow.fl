@@ -114,7 +114,7 @@ class MainWindow {open
 	szFullMessage.back() = ' ';
 	switch(nLogType){
 		case 0:
-			szFullMessage = "@C4"  + szFullMessage + "  " + szMessage;
+			szFullMessage = "@C4" + szFullMessage + "  " + szMessage;
 			break;
 		case 1:
 			szFullMessage = "@C9" + szFullMessage + "  " + szMessage;
@@ -124,16 +124,19 @@ class MainWindow {open
 			break;
 		}
 
-	// if(m_Browser->size() > 500){
-	// 	m_Browser->remove(1);
-	// }
+    if(m_Browser->size() > 1000){
+        m_Browser->remove(1);
+    }
 
 	m_Browser->add(szFullMessage.c_str());
 	m_Browser->bottomline(m_Browser->size());
 
-    // TODO: I hope the window could be updated automatically
-    //       tried check(), damage(), none of them works
-	m_Window->redraw();
+    {
+        // don't call exit(0), only redraw the window
+        // this helps to update the browser every time after insertion
+        static char nDumb = 1;
+        Fl::awake(&nDumb);
+    }
 }} {selected
     }
   }

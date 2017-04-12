@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/11/2017 12:01:19
+ *  Last Modified: 04/11/2017 17:51:29
  *
  *    Description: 
  *
@@ -189,7 +189,9 @@ void MonoServer::Restart()
         // TODO: FLTK multi-threading support is weak, see:
         // http://www.fltk.org/doc-1.3/advanced.html#advanced_multithreading
 
-        static int nDumb = 0;
+        // Fl::awake() will send message to main loop
+        // pass 0 to main thread will cause to call exit(0)
+        static char nDumb = 0;
 
         Fl::lock();
         Fl::awake(&nDumb);
