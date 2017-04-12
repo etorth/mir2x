@@ -3,7 +3,7 @@
  *
  *       Filename: netpod.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 03/31/2017 13:12:13
+ *  Last Modified: 04/11/2017 20:00:49
  *
  *    Description: this will serve as a stand-alone plugin for monoserver, it creates
  *                 with general info. and nothing will be done till Launch()
@@ -124,7 +124,7 @@ template<size_t PodSize> class NetPod: public SyncDriver
         {
             if(nPort <= 1024){
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Don't use reserved port");
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Don't use reserved port: %d", (int)(nPort));
                 return false;
             }
 
@@ -142,8 +142,8 @@ template<size_t PodSize> class NetPod: public SyncDriver
 
             if(!CheckPort(nPort)){
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid port provided");
-                return false;
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid port provided");
+                g_MonoServer->Restart();
             }
 
             m_Port = nPort;

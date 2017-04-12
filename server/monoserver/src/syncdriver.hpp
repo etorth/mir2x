@@ -3,7 +3,7 @@
  *
  *       Filename: syncdriver.hpp
  *        Created: 04/27/2016 00:28:05
- *  Last Modified: 06/09/2016 17:35:14
+ *  Last Modified: 04/11/2017 19:54:40
  *
  *    Description: class which behaves as:
  *                      ``send-wait-receive-action-.....-send-wait-receive-action..."
@@ -21,7 +21,6 @@
 
 #pragma once
 #include <Theron/Theron.h>
-
 #include "messagepack.hpp"
 
 class SyncDriver
