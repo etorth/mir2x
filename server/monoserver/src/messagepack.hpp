@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 04/10/2017 22:20:18
+ *  Last Modified: 04/11/2017 21:02:19
  *
  *    Description: message class for actor system
  *
@@ -203,19 +203,19 @@ class InnMessagePack final
     public:
        ~InnMessagePack()
         {
-            delete m_DBuf;
+            delete [] m_DBuf;
         }
 
     public:
        InnMessagePack &operator = (InnMessagePack stMPK)
        {
-           m_Type    = stMPK.m_Type;
-           m_ID      = stMPK.m_ID;
-           m_Respond = stMPK.m_Respond;
+           std::swap(m_Type         , stMPK.m_Type       );
+           std::swap(m_ID           , stMPK.m_ID         );
+           std::swap(m_Respond      , stMPK.m_Respond    );
 
-           m_SBufUsedLen = stMPK.m_SBufUsedLen;
-           m_DBuf        = stMPK.m_DBuf;
-           m_DBufLen     = stMPK.m_DBufLen;
+           std::swap(m_SBufUsedLen  , stMPK.m_SBufUsedLen);
+           std::swap(m_DBuf         , stMPK.m_DBuf       );
+           std::swap(m_DBufLen      , stMPK.m_DBufLen    );
 
            if(m_SBufUsedLen){
                std::memcpy(m_SBuf, stMPK.m_SBuf, m_SBufUsedLen);
