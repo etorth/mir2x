@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 04/10/2017 16:56:04
+ *  Last Modified: 04/11/2017 17:08:47
  *
  *    Description: 
  *
@@ -52,10 +52,10 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    int nX0 = (stAMA.X - SYS_MAPVISIBLEW);
-    int nX1 = (stAMA.X + SYS_MAPVISIBLEW);
-    int nY0 = (stAMA.Y - SYS_MAPVISIBLEH);
-    int nY1 = (stAMA.Y + SYS_MAPVISIBLEH);
+    auto nX0 = std::max<int>(0,   (stAMA.X - SYS_MAPVISIBLEW));
+    auto nX1 = std::max<int>(0,   (stAMA.X + SYS_MAPVISIBLEW));
+    auto nY0 = std::min<int>(W(), (stAMA.Y - SYS_MAPVISIBLEH));
+    auto nY1 = std::min<int>(H(), (stAMA.Y + SYS_MAPVISIBLEH));
 
     for(int nX = nX0; nX <= nX1; ++nX){
         for(int nY = nY0; nY <= nY1; ++nY){
