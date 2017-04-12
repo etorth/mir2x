@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/12/2017 12:23:18
+ *  Last Modified: 04/12/2017 12:37:19
  *
  *    Description: 
  *
@@ -85,7 +85,9 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
         if((nRes >= 0)){
             if((size_t)(nRes + 1) < m_LogBuf.size()){
                 if(nLogType != Log::LOGTYPEV_DEBUG){
+                    Fl::lock();
                     g_MainWindow->AddLog(nLogType, &(m_LogBuf[0]));
+                    Fl::unlock();
                 }
                 g_Log->AddLog(stLogDesc, &(m_LogBuf[0]));
                 return;
