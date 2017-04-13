@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/13/2017 00:28:36
+ *  Last Modified: 04/13/2017 00:39:59
  *
  *    Description: 
  *
@@ -87,8 +87,17 @@ int main()
                 }
             case 1:
                 {
+                    // request to stop
+                    // FLTK will abort() if got 1
                     fl_alert("%s", "system request for restart");
                     exit(0);
+                    break;
+                }
+            case 2:
+                {
+                    // to show log info
+                    // can't do it in child thread since it blocks, why?
+                    g_MonoServer->FlushLogGUI();
                     break;
                 }
             default:

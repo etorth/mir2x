@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/13/2017 00:29:16
+ *  Last Modified: 04/13/2017 00:52:07
  *
  *    Description: 
  *
@@ -38,7 +38,9 @@
 #include "databaseconfigurewindow.hpp"
 
 MonoServer::MonoServer()
-    : m_ServiceCore(nullptr)
+    : m_LogLock()
+    , m_LogBuf()
+    , m_ServiceCore(nullptr)
     , m_GlobalUID(1)
     , m_StartTime()
     , m_NetMessageAttributeV()
@@ -69,9 +71,8 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
     int nLogSize = 0;
     int nLogType = std::atoi(stLogDesc[0].c_str());
 
-    auto fnRecordLog = [&stLogDesc](int nLogType, const char *szLogInfo){
+    auto fnRecordLog = [this, &stLogDesc](int nLogType, const char *szLogInfo){
         extern Log *g_Log;
-        extern MainWindow *g_MainWindow;
         switch(nLogType){
             case Log::LOGTYPEV_DEBUG:
                 {
@@ -82,12 +83,10 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
                 {
                     g_Log->AddLog(stLogDesc, szLogInfo);
                     {
-                        Fl::lock();
-                        g_MainWindow->AddLog(nLogType, szLogInfo);
-                        Fl::unlock();
-
-                        Fl::awake((void *)(uintptr_t)(0));
+                        std::lock_guard<std::mutex> stLockGuard(m_LogLock);
+                        m_LogBuf.emplace_back(nLogType, szLogInfo);
                     }
+                    Fl::awake((void *)(uintptr_t)(2));
                     break;
                 }
         }
@@ -425,4 +424,14 @@ std::vector<uint32_t> MonoServer::GetValidMonsterList(uint32_t)
 int MonoServer::GetValidMonsterCount(int, int)
 {
     return 1;
+}
+
+void MonoServer::FlushLogGUI()
+{
+    std::lock_guard<std::mutex> stLockGuard(m_LogLock);
+    for(auto &rstLog: m_LogBuf){
+        extern MainWindow *g_MainWindow;
+        g_MainWindow->AddLog(rstLog.Type, rstLog.Log.c_str());
+    }
+    m_LogBuf.clear();
 }
