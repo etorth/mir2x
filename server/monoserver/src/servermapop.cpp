@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 04/11/2017 17:08:47
+ *  Last Modified: 04/13/2017 01:10:23
  *
  *    Description: 
  *
@@ -52,18 +52,20 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    auto nX0 = std::max<int>(0,   (stAMA.X - SYS_MAPVISIBLEW));
-    auto nX1 = std::max<int>(0,   (stAMA.X + SYS_MAPVISIBLEW));
-    auto nY0 = std::min<int>(W(), (stAMA.Y - SYS_MAPVISIBLEH));
-    auto nY1 = std::min<int>(H(), (stAMA.Y + SYS_MAPVISIBLEH));
+    if(ValidC(stAMA.X, stAMA.Y)){
+        auto nX0 = std::max<int>(0,   (stAMA.X - SYS_MAPVISIBLEW));
+        auto nY0 = std::max<int>(0,   (stAMA.Y - SYS_MAPVISIBLEH));
+        auto nX1 = std::min<int>(W(), (stAMA.X + SYS_MAPVISIBLEW));
+        auto nY1 = std::min<int>(H(), (stAMA.Y + SYS_MAPVISIBLEH));
 
-    for(int nX = nX0; nX <= nX1; ++nX){
-        for(int nY = nY0; nY <= nY1; ++nY){
-            if(ValidC(nX, nY)){
-                for(auto pObject: m_ObjectV2D[nX][nY]){
-                    if(pObject && pObject->Active()){
-                        if(((ActiveObject *)(pObject))->Type(TYPE_HUMAN)){
-                            m_ActorPod->Forward({MPK_ACTION, stAMA}, ((ActiveObject *)(pObject))->GetAddress());
+        for(int nX = nX0; nX <= nX1; ++nX){
+            for(int nY = nY0; nY <= nY1; ++nY){
+                if(ValidC(nX, nY)){
+                    for(auto pObject: m_ObjectV2D[nX][nY]){
+                        if(pObject && pObject->Active()){
+                            if(((ActiveObject *)(pObject))->Type(TYPE_HUMAN)){
+                                m_ActorPod->Forward({MPK_ACTION, stAMA}, ((ActiveObject *)(pObject))->GetAddress());
+                            }
                         }
                     }
                 }
