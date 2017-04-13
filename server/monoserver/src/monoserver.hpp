@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/01/2017 23:06:49
+ *  Last Modified: 04/13/2017 00:03:38
  *
  *    Description: 
  *
@@ -57,12 +57,6 @@ class MonoServer final
                 , Name(szName)
             {}
         }NetMessageAttribute;
-
-    private:
-        // for log print and synchronization
-        std::mutex m_LogLock;
-        std::mutex m_DlgLock;
-        std::vector<char> m_LogBuf;
 
     private:
         ServiceCore *m_ServiceCore;

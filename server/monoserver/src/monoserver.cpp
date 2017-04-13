@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/12/2017 13:30:16
+ *  Last Modified: 04/13/2017 00:29:16
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 #include <vector>
+#include <string>
 #include <cstdarg>
 #include <cstdlib>
 #include <FL/fl_ask.H>
@@ -37,10 +38,7 @@
 #include "databaseconfigurewindow.hpp"
 
 MonoServer::MonoServer()
-    : m_LogLock()
-    , m_DlgLock()
-    , m_LogBuf(128)
-    , m_ServiceCore(nullptr)
+    : m_ServiceCore(nullptr)
     , m_GlobalUID(1)
     , m_StartTime()
     , m_NetMessageAttributeV()
@@ -68,45 +66,79 @@ MonoServer::MonoServer()
 
 void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char *szLogFormat, ...)
 {
-    extern Log *g_Log;
-    extern MainWindow *g_MainWindow;
-    std::lock_guard<std::mutex> stGuard(m_LogLock);
-
-    va_list ap;
+    int nLogSize = 0;
     int nLogType = std::atoi(stLogDesc[0].c_str());
 
-    m_LogBuf.resize(128);
+    auto fnRecordLog = [&stLogDesc](int nLogType, const char *szLogInfo){
+        extern Log *g_Log;
+        extern MainWindow *g_MainWindow;
+        switch(nLogType){
+            case Log::LOGTYPEV_DEBUG:
+                {
+                    g_Log->AddLog(stLogDesc, szLogInfo);
+                    break;
+                }
+            default:
+                {
+                    g_Log->AddLog(stLogDesc, szLogInfo);
+                    {
+                        Fl::lock();
+                        g_MainWindow->AddLog(nLogType, szLogInfo);
+                        Fl::unlock();
 
-    while(true){
+                        Fl::awake((void *)(uintptr_t)(0));
+                    }
+                    break;
+                }
+        }
+    };
+
+    // 1. try static buffer
+    //    give a enough size so we can hopefully stop here
+    {
+        char szSBuf[1024];
+
+        va_list ap;
         va_start(ap, szLogFormat);
-        int nRes = std::vsnprintf(&(m_LogBuf[0]), m_LogBuf.size(), szLogFormat, ap);
+        nLogSize = std::vsnprintf(szSBuf, (sizeof(szSBuf) / sizeof(szSBuf[0])), szLogFormat, ap);
         va_end(ap);
 
-        if((nRes >= 0)){
-            if((size_t)(nRes + 1) < m_LogBuf.size()){
-                if(nLogType != Log::LOGTYPEV_DEBUG){
-                    Fl::lock();
-                    g_MainWindow->AddLog(nLogType, &(m_LogBuf[0]));
-                    Fl::unlock();
-
-                    {
-                        // don't call exit(0), only redraw the window
-                        // this helps to update the browser every time after insertion
-                        static char nDumb = 1;
-                        Fl::awake(&nDumb);
-                    }
-                }
-                g_Log->AddLog(stLogDesc, &(m_LogBuf[0]));
+        if(nLogSize >= 0){
+            if((size_t)(nLogSize + 1) < (sizeof(szSBuf) / sizeof(szSBuf[0]))){
+                fnRecordLog(nLogType, szSBuf);
                 return;
-            }else{ m_LogBuf.resize(nRes + 1); }
-        }else{ break; }
+            }else{
+                // do nothing
+                // have to try the dynamic buffer method
+            }
+        }else{
+            fnRecordLog(Log::LOGTYPEV_FATAL, (std::string("Parse log info failed: ") + szLogFormat).c_str());
+            return;
+        }
     }
 
-    auto szLogError = "MonoServer::AddLog(): Error in parsing log message";
-    Fl::lock();
-    g_MainWindow->AddLog(3, szLogError);
-    Fl::unlock();
-    g_Log->AddLog(stLogDesc, szLogError);
+    // 2. try dynamic buffer
+    //    use the parsed buffer size above to get enough memory
+    while(true){
+        std::vector<char> szDBuf(nLogSize + 1 + 64);
+
+        va_list ap;
+        va_start(ap, szLogFormat);
+        nLogSize = std::vsnprintf(&(szDBuf[0]), szDBuf.size(), szLogFormat, ap);
+        va_end(ap);
+
+        if(nLogSize >= 0){
+            if((size_t)(nLogSize + 1) < szDBuf.size()){
+                fnRecordLog(nLogType, &(szDBuf[0]));
+                return;
+            }else{
+                szDBuf.resize(nLogSize + 1 + 64);
+            }
+        }else{
+            fnRecordLog(Log::LOGTYPEV_FATAL, (std::string("Parse log info failed: ") + szLogFormat).c_str());
+            return;
+        }
+    }
 }
 
 void MonoServer::CreateDBConnection()
@@ -194,21 +226,16 @@ void MonoServer::Launch()
 
 void MonoServer::Restart()
 {
-    AddLog(LOGTYPE_WARNING, "system request for restart");
-    {
-        std::lock_guard<std::mutex> stLG(m_DlgLock);
+    // TODO: FLTK multi-threading support is weak, see:
+    // http://www.fltk.org/doc-1.3/advanced.html#advanced_multithreading
 
-        // TODO: FLTK multi-threading support is weak, see:
-        // http://www.fltk.org/doc-1.3/advanced.html#advanced_multithreading
+    // Fl::awake() will send message to main loop
+    // define the main loop to call exit(0) when pass 1 to main thread
 
-        // Fl::awake() will send message to main loop
-        // pass 0 to main thread will cause to call exit(0)
-        static char nDumb = 0;
-
-        Fl::lock();
-        Fl::awake(&nDumb);
-        Fl::unlock();
-    }
+    // this function itself can be called from
+    //   1. main loop
+    //   2. child thread
+    Fl::awake((void *)(uintptr_t)(1));
 }
 
 // I have to put it here, since in actorpod.hpp I used MonoServer::AddLog()

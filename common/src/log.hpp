@@ -3,7 +3,7 @@
  *
  *       Filename: log.hpp
  *        Created: 03/16/2016 16:05:17
- *  Last Modified: 08/21/2016 16:46:50
+ *  Last Modified: 04/12/2017 22:38:56
  *
  *    Description: log functionality enabled by g3Log
  *
@@ -19,13 +19,13 @@
  */
 
 #pragma once
-#include <g3log/g3log.hpp>
-#include <g3log/logworker.hpp>
-#include <iomanip>
 #include <thread>
-#include <iostream>
 #include <string>
 #include <cstring>
+#include <iomanip>
+#include <iostream>
+#include <g3log/g3log.hpp>
+#include <g3log/logworker.hpp>
 
 #if (defined(WIN32) || defined(_WIN32) || defined(__WIN32__))
 #define LOG_PATH "./"

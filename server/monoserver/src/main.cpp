@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/11/2017 17:46:00
+ *  Last Modified: 04/13/2017 00:28:36
  *
  *    Description: 
  *
@@ -75,23 +75,26 @@ int main()
     g_MainWindow->ShowAll();
 
     while(Fl::wait() > 0){
-        if(auto pMessage = (char *)(Fl::thread_message())){
-            switch(*pMessage){
-                case 0:
-                    {
-                        fl_alert("%s", "system request for restart");
-                        exit(0);
-                        break;
-                    }
-                case 1:
-                    {
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
+        switch((uintptr_t)(Fl::thread_message())){
+            case 0:
+                {
+                    // FLTK will send 0 automatically
+                    // to update the widgets and handle events
+                    //
+                    // if main loop or child thread need to flush
+                    // call Fl::awake(0) to force Fl::wait() to terminate
+                    break;
+                }
+            case 1:
+                {
+                    fl_alert("%s", "system request for restart");
+                    exit(0);
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
         }
     }
 
