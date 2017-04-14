@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/14/2017 00:07:40
+ *  Last Modified: 04/14/2017 12:38:53
  *
  *    Description: 
  *
@@ -32,8 +32,8 @@ Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
     , m_MessageHC(0)
     , m_BodyLen(0)
     , m_BindAddress(Theron::Address::Null())
-    , m_Lock()
-    , m_SendFlag(0)
+    , m_FlushFlag(false)
+    , m_NextQLock()
     , m_SendQBuf0()
     , m_SendQBuf1()
     , m_CurrSendQ(&(m_SendQBuf0))
@@ -128,6 +128,7 @@ void Session::DoReadBody(size_t nBodyLen)
 
 void Session::DoSendNext()
 {
+    assert(m_FlushFlag);
     assert(!m_CurrSendQ->empty());
     if(std::get<3>(m_CurrSendQ->front())){
         std::get<3>(m_CurrSendQ->front())();
@@ -139,6 +140,7 @@ void Session::DoSendNext()
 
 void Session::DoSendBuf()
 {
+    assert(m_FlushFlag);
     assert(!m_CurrSendQ->empty());
     if(std::get<1>(m_CurrSendQ->front()) && (std::get<2>(m_CurrSendQ->front()) > 0)){
         auto fnDoneSend = [this](std::error_code stEC, size_t){
@@ -152,23 +154,61 @@ void Session::DoSendBuf()
 
 void Session::DoSendHC()
 {
+    // when we are here
+    // we should already have m_FlushFlag set as true
+    assert(m_FlushFlag);
+
+    // we check m_CurrSendQ and if it empty we swap with the pending queue
+    // we move this swap thing to the handler in FlushSendQ()
+    // means we only handle m_CurrSendQ in DoSendHC()
+    // but which means after we done m_CurrSendQ we have to wait next FlushSendQ() to drive the send
     if(m_CurrSendQ->empty()){
-        std::lock_guard<std::mutex> stLockGuard(m_Lock);
+        std::lock_guard<std::mutex> stLockGuard(m_NextQLock);
         if(m_NextSendQ->empty()){
             // neither queue contains pending packages
-            // mark m_SendFlag as no one accessing m_CurrSendQ and return
-            m_SendFlag.store(0);
+            // mark m_FlushFlag as no one accessing m_CurrSendQ and return
+            m_FlushFlag = false;
             return;
         }else{
             // else we still need to access m_CurrSendQ 
-            // keep m_SendFlag to pervent other thread to call DoSendHC()
+            // keep m_FlushFlag to pervent other thread to call DoSendHC()
             std::swap(m_CurrSendQ, m_NextSendQ);
         }
     }
 
-    auto fnDoSendBuf = [this](std::error_code stEC, size_t){
-        if(stEC){ Shutdown(); } else{ DoSendBuf(); }
-    };
     assert(!m_CurrSendQ->empty());
+    auto fnDoSendBuf = [this](std::error_code stEC, size_t){
+        if(stEC){ Shutdown(); } else { DoSendBuf(); }
+    };
     asio::async_write(m_Socket, asio::buffer(&(std::get<0>(m_CurrSendQ->front())), 1), fnDoSendBuf);
+}
+
+void Session::FlushSendQ()
+{
+    auto fnFlushSendQ = [this](){
+        // m_CurrSendQ assessing should always be in the asio main loop
+        // the Session::Send() should only access m_NextSendQ
+        // 
+        // then we don't have to put lock to protect m_CurrSendQ
+        // but we need lock for m_NextSendQ, in child threads, in asio main loop
+        //
+        // but we need to make sure there is only one procedure in asio main loop accessing m_CurrSendQ
+        // because packages in m_CurrSendQ are divided into  two parts: HC / Data 
+        // one package only get erased after Data is sent
+        // then  multiple procesdure in asio main loop may send HC / Data more than one time
+        if(!m_FlushFlag){
+            //  mark as current some one is accessing it
+            //  we don't even need to make m_FlushFlag atomic since it's in one thread
+            m_FlushFlag = true;
+            DoSendHC();
+        }
+    };
+
+    // FlushSendQ() is called by child threads only
+    // so we prevent it from access m_CurrSendQ
+    // instead everytime we post a handler to asio main loop
+    //
+    // this hurts the performance but make a better logic framework
+    // we can also make m_FlushFlag atomic and use it to protect m_CurrSendQ
+    m_Socket.get_io_service().post(fnFlushSendQ);
 }

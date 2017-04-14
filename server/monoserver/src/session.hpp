@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 04/14/2017 00:11:07
+ *  Last Modified: 04/14/2017 12:20:30
  *
  *    Description: TODO & TBD
  *                 I have a decision, now class session *only* communicate with actor
@@ -61,14 +61,15 @@ class Session: public SyncDriver
         Theron::Address m_BindAddress;
 
     private:
-        // 1. m_Lock protect the pending queue: m_NextSendQ
-        //    m_NextSendQ will be accessed in multi-threading way
+        // 1. m_FlushFlag indicates there is procedure accessing m_CurrSendQ in asio main loop
+        //    m_FlushFlag prevents more than one procedure from accessing m_CurrSendQ
         //
-        // 2. m_SendFlag to indicate current the m_CurrSendQ is sending packages
-        //    m_CurrSendQ will only be accessed in ASIO main loop
-        //    and it only allow one procedure to access it
-        std::mutex                m_Lock;
-        std::atomic<int>          m_SendFlag;
+        // 2. m_NextQLock protect the pending queue: m_NextSendQ
+        //    m_NextSendQ will be accessed in multi-threading manner
+        bool       m_FlushFlag;
+        std::mutex m_NextQLock;
+
+    private:
         std::queue<SendTaskDesc>  m_SendQBuf0;
         std::queue<SendTaskDesc>  m_SendQBuf1;
         std::queue<SendTaskDesc> *m_CurrSendQ;
@@ -95,31 +96,13 @@ class Session: public SyncDriver
         {
             // 1. push packages to the pending queue
             {
-                std::lock_guard<std::mutex> stLockGuard(m_Lock);
+                std::lock_guard<std::mutex> stLockGuard(m_NextQLock);
                 m_NextSendQ->emplace(nMsgHC, pData, nLen, std::move(fnDone));
             }
 
-            // 2. try to send if possible
-            //    DoSendHC() will finish current sending queue first
-            //    then when sending queue is done, it will try the pending queue
-            //    if both queue are empty, it will return
-            //
-            //    every time after we push a new pending package
-            //    we should try to call DoSendHC() to drive the whole sending process
-            //    but there could only be one sending process, otherwise we get data race
-            switch(m_SendFlag.exchange(1)){
-                case 0:
-                    {
-                        DoSendHC();
-                        return;
-                    }
-                default:
-                    {
-                        // think about that could there be any possibilities that m_SendFlag is 1
-                        // but there is actually no one accessing m_CurrSendQ ???
-                        return;
-                    }
-            }
+            // 2. flush pending packages
+            //    FlushSendQ() just post a handler to asio main loop
+            FlushSendQ();
         }
 
         // send with a const-ref callback
@@ -172,6 +155,9 @@ class Session: public SyncDriver
         void DoSendHC();
         void DoSendBuf();
         void DoSendNext();
+
+    private:
+        void FlushSendQ();
 
     public:
         uint32_t ID() const
