@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 04/13/2017 21:28:30
+ *  Last Modified: 04/13/2017 23:46:40
  *
  *    Description: TODO & TBD
  *                 I have a decision, now class session *only* communicate with actor
@@ -33,6 +33,7 @@
 #include <queue>
 #include <tuple>
 #include <mutex>
+#include <atomic>
 #include <cstdint>
 #include <asio.hpp>
 #include <functional>
@@ -60,7 +61,14 @@ class Session: public SyncDriver
         Theron::Address m_BindAddress;
 
     private:
+        // 1. m_Lock protect the pending queue: m_NextSendQ
+        //    m_NextSendQ will be accessed in multi-threading way
+        //
+        // 2. m_SendFlag to indicate current the m_CurrSendQ is sending packages
+        //    m_CurrSendQ will only be accessed in ASIO main loop
+        //    and it only allow one procedure to access it
         std::mutex                m_Lock;
+        std::atomic<int>          m_SendFlag;
         std::queue<SendTaskDesc>  m_SendQBuf0;
         std::queue<SendTaskDesc>  m_SendQBuf1;
         std::queue<SendTaskDesc> *m_CurrSendQ;
@@ -91,14 +99,25 @@ class Session: public SyncDriver
                 m_NextSendQ->emplace(nMsgHC, pData, nLen, std::move(fnDone));
             }
 
-            // 2. try to send
+            // 2. try to send if possible
             //    DoSendHC() will finish current sending queue first
             //    then when sending queue is done, it will try the pending queue
             //    if both queue are empty, it will return
             //
             //    every time after we push a new pending package
-            //    we should call DoSendHC() to drive the whole sending process
-            DoSendHC();
+            //    we should try to call DoSendHC() to drive the whole sending process
+            //    but there could only be one sending process, otherwise we get data race
+            switch(m_SendFlag.exchange(1)){
+                case 0:
+                    {
+                        DoSendHC();
+                        return;
+                    }
+                default:
+                    {
+                        return;
+                    }
+            }
         }
 
         // send with a const-ref callback

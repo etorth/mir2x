@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/13/2017 21:17:40
+ *  Last Modified: 04/13/2017 23:48:55
  *
  *    Description: 
  *
@@ -33,6 +33,7 @@ Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
     , m_BodyLen(0)
     , m_BindAddress(Theron::Address::Null())
     , m_Lock()
+    , m_SendFlag(0)
     , m_SendQBuf0()
     , m_SendQBuf1()
     , m_CurrSendQ(&(m_SendQBuf0))
@@ -153,8 +154,12 @@ void Session::DoSendHC()
 {
     if(m_CurrSendQ->empty()){
         std::lock_guard<std::mutex> stLockGuard(m_Lock);
-        if(m_NextSendQ->empty()){ return; }
-        else{
+        if(m_NextSendQ->empty()){
+            // neither queue contains pending packages
+            // mark m_SendFlag no one accessing m_CurrSendQ and return
+            m_SendFlag.store(0);
+            return;
+        }else{
             std::swap(m_CurrSendQ, m_NextSendQ);
         }
     }
