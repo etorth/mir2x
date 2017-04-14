@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 03/26/2017 15:50:20
+ *  Last Modified: 04/13/2017 18:59:54
  *
  *    Description: 
  *
@@ -31,6 +31,11 @@ Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
     , m_Port(m_Socket.remote_endpoint().port())
     , m_MessageHC(0)
     , m_BodyLen(0)
+    , m_TargetAddress(Theron::Address::Null())
+    , m_Lock()
+    , m_SendQBuf0()
+    , m_SendQBuf1()
+    , m_CurrSendQ(&(m_SendQBuf0))
 {}
 
 Session::~Session()
@@ -135,28 +140,26 @@ void Session::DoSendNext()
 
 void Session::DoSendBuf()
 {
-    if(m_SendQ.empty()){ return; }
+    if(!m_SendQ.empty()){
+        if(std::get<1>(m_SendQ.front()) && (std::get<2>(m_SendQ.front()) > 0)){
+            auto fnDoneSend = [this](std::error_code stEC, size_t){
+                if(stEC){ Shutdown(); }else{ DoSendNext(); }
+            };
 
-    if(std::get<1>(m_SendQ.front()) && (std::get<2>(m_SendQ.front()) > 0)){
-        auto fnDoSendValidBuf = [this](std::error_code stEC, size_t){
-            if(stEC){ Shutdown(); }else{ DoSendNext(); }
-        };
-
-        asio::async_write(m_Socket,
-                asio::buffer(std::get<1>(m_SendQ.front()), std::get<2>(m_SendQ.front())),
-                fnDoSendValidBuf);
-    }else{
-        DoSendNext();
+            asio::async_write(m_Socket, asio::buffer(std::get<1>(m_SendQ.front()), std::get<2>(m_SendQ.front())), fnDoneSend);
+        }else{
+            DoSendNext();
+        }
     }
 }
 
 void Session::DoSendHC()
 {
-    if(m_SendQ.empty()){ return; }
+    if(!m_SendQ.empty()){
+        auto fnDoSendBuf = [this](std::error_code stEC, size_t){
+            if(stEC){ Shutdown(); }else{ DoSendBuf(); }
+        };
 
-    auto fnDoSendBuf = [this](std::error_code stEC, size_t){
-        if(stEC){ Shutdown(); }else{ DoSendBuf(); }
-    };
-
-    asio::async_write(m_Socket, asio::buffer(&(std::get<0>(m_SendQ.front())), 1), fnDoSendBuf);
+        asio::async_write(m_Socket, asio::buffer(&(std::get<0>(m_SendQ.front())), 1), fnDoSendBuf);
+    }
 }

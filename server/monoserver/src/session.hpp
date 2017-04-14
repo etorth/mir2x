@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 04/13/2017 17:53:15
+ *  Last Modified: 04/13/2017 18:53:01
  *
  *    Description: TODO & TBD
  *                 I have a decision, now class session *only* communicate with actor
@@ -30,11 +30,11 @@
  * =====================================================================================
  */
 #pragma once
+#include <queue>
 #include <tuple>
 #include <mutex>
 #include <cstdint>
 #include <asio.hpp>
-#include <queue>
 #include <functional>
 #include <Theron/Theron.h>
 
@@ -51,8 +51,8 @@ class Session: public SyncDriver
 
     private:
         asio::ip::tcp::socket m_Socket;
-        std::string           m_IP;
-        uint32_t              m_Port;
+        const std::string     m_IP;
+        const uint32_t        m_Port;
 
     private:
         uint8_t         m_MessageHC;
@@ -69,10 +69,17 @@ class Session: public SyncDriver
 
     public:
         // family of send facilities
-        // TODO & TBD
         // Session class won't maintain the validation of pData!
 
         // send with a r-ref callback, this is the base of all send function
+        // TODO current implementation is based on an internal queue to send all packages
+        //      this is really slow since it serialize all send request since all should acquire the lock
+        //
+        //      another implementation can be found here
+        //      https://stackoverflow.com/questions/4029448/thread-safety-for-stl-queue
+        //
+        //      this implementation use two queues and should be very efficient
+        //      but hard to use this idea directly for my current framework of the network support
         void Send(uint8_t nMsgHC, const uint8_t *pData, size_t nLen, std::function<void()> &&fnDone)
         {
             // 1. we have to lock it
@@ -169,11 +176,6 @@ class Session: public SyncDriver
     public:
         const char *IP()
         {
-            // bug here: to_string create a temp std::string
-            // and this object destructed when this line end
-            // so c_str() is undefined
-            //
-            // return m_Socket.remote_endpoint().address().to_string().c_str();
             return m_IP.c_str();
         }
 
