@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/13/2017 00:39:59
+ *  Last Modified: 04/13/2017 12:07:04
  *
  *    Description: 
  *
@@ -97,7 +97,7 @@ int main()
                 {
                     // to show log info
                     // can't do it in child thread since it blocks, why?
-                    g_MonoServer->FlushLogGUI();
+                    g_MonoServer->FlushBrowser();
                     break;
                 }
             default:

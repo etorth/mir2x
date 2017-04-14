@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/13/2017 00:52:07
+ *  Last Modified: 04/13/2017 12:05:52
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 #include <vector>
 #include <string>
+#include <cstring>
 #include <cstdarg>
 #include <cstdlib>
 #include <FL/fl_ask.H>
@@ -84,7 +85,8 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
                     g_Log->AddLog(stLogDesc, szLogInfo);
                     {
                         std::lock_guard<std::mutex> stLockGuard(m_LogLock);
-                        m_LogBuf.emplace_back(nLogType, szLogInfo);
+                        m_LogBuf.push_back((char)(nLogType));
+                        m_LogBuf.insert(m_LogBuf.end(), szLogInfo, szLogInfo + std::strlen(szLogInfo) + 1);
                     }
                     Fl::awake((void *)(uintptr_t)(2));
                     break;
@@ -426,12 +428,16 @@ int MonoServer::GetValidMonsterCount(int, int)
     return 1;
 }
 
-void MonoServer::FlushLogGUI()
+void MonoServer::FlushBrowser()
 {
     std::lock_guard<std::mutex> stLockGuard(m_LogLock);
-    for(auto &rstLog: m_LogBuf){
-        extern MainWindow *g_MainWindow;
-        g_MainWindow->AddLog(rstLog.Type, rstLog.Log.c_str());
+    {
+        auto nCurrLoc = (size_t)(0);
+        while(nCurrLoc < m_LogBuf.size()){
+            extern MainWindow *g_MainWindow;
+            g_MainWindow->AddLog((int)(m_LogBuf[nCurrLoc]), &(m_LogBuf[nCurrLoc + 1]));
+            nCurrLoc += (1 + 1 + std::strlen(&(m_LogBuf[nCurrLoc + 1])));
+        }
+        m_LogBuf.clear();
     }
-    m_LogBuf.clear();
 }

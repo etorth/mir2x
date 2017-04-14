@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/13/2017 00:47:52
+ *  Last Modified: 04/13/2017 12:06:04
  *
  *    Description: 
  *
@@ -58,20 +58,9 @@ class MonoServer final
             {}
         }NetMessageAttribute;
 
-        typedef struct _LogEntry
-        {
-            int Type;
-            std::string Log;
-
-            _LogEntry(int nType = 0, const char *szLog = "")
-                : Type(nType)
-                , Log(szLog)
-            {}
-        }LogEntry;
-
     private:
         std::mutex m_LogLock;
-        std::vector<LogEntry> m_LogBuf;
+        std::vector<char> m_LogBuf;
 
     private:
         ServiceCore *m_ServiceCore;
@@ -85,7 +74,7 @@ class MonoServer final
         std::unordered_map<uint32_t, MonsterGInfoRecord> m_MonsterGInfoRecord;
 
     public:
-        void FlushLogGUI();
+        void FlushBrowser();
 
     public:
         const MonsterGInfoRecord &MonsterGInfo(uint32_t nMonsterID) const

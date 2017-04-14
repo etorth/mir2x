@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 06/12/2016 01:40:37
+ *  Last Modified: 04/13/2017 17:53:15
  *
  *    Description: TODO & TBD
  *                 I have a decision, now class session *only* communicate with actor
@@ -47,22 +47,25 @@ class Session: public SyncDriver
         using SendTaskDesc = std::tuple<uint8_t, const uint8_t *, size_t, std::function<void()>>;
 
     private:
-        uint32_t                                m_ID;
-        asio::ip::tcp::socket                   m_Socket;
+        const uint32_t m_ID;
 
-        std::string                             m_IP;
-        uint32_t                                m_Port;
-        uint8_t                                 m_MessageHC;
-        uint32_t                                m_BodyLen;
-        Theron::Address                         m_TargetAddress;
-        std::queue<SendTaskDesc>                m_SendQ;
+    private:
+        asio::ip::tcp::socket m_Socket;
+        std::string           m_IP;
+        uint32_t              m_Port;
 
-        // for multithread
-        std::mutex                              m_Lock;
+    private:
+        uint8_t         m_MessageHC;
+        uint32_t        m_BodyLen;
+        Theron::Address m_TargetAddress;
+
+    private:
+        std::mutex               m_Lock;
+        std::queue<SendTaskDesc> m_SendQ;
 
     public:
         Session(uint32_t, asio::ip::tcp::socket);
-        ~Session();
+       ~Session();
 
     public:
         // family of send facilities
