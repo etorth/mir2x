@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 04/13/2017 23:46:40
+ *  Last Modified: 04/14/2017 00:11:07
  *
  *    Description: TODO & TBD
  *                 I have a decision, now class session *only* communicate with actor
@@ -115,6 +115,8 @@ class Session: public SyncDriver
                     }
                 default:
                     {
+                        // think about that could there be any possibilities that m_SendFlag is 1
+                        // but there is actually no one accessing m_CurrSendQ ???
                         return;
                     }
             }

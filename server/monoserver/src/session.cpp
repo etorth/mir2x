@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/13/2017 23:48:55
+ *  Last Modified: 04/14/2017 00:07:40
  *
  *    Description: 
  *
@@ -156,10 +156,12 @@ void Session::DoSendHC()
         std::lock_guard<std::mutex> stLockGuard(m_Lock);
         if(m_NextSendQ->empty()){
             // neither queue contains pending packages
-            // mark m_SendFlag no one accessing m_CurrSendQ and return
+            // mark m_SendFlag as no one accessing m_CurrSendQ and return
             m_SendFlag.store(0);
             return;
         }else{
+            // else we still need to access m_CurrSendQ 
+            // keep m_SendFlag to pervent other thread to call DoSendHC()
             std::swap(m_CurrSendQ, m_NextSendQ);
         }
     }
