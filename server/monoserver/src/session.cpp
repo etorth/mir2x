@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/13/2017 18:59:54
+ *  Last Modified: 04/13/2017 21:17:40
  *
  *    Description: 
  *
@@ -31,11 +31,12 @@ Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
     , m_Port(m_Socket.remote_endpoint().port())
     , m_MessageHC(0)
     , m_BodyLen(0)
-    , m_TargetAddress(Theron::Address::Null())
+    , m_BindAddress(Theron::Address::Null())
     , m_Lock()
     , m_SendQBuf0()
     , m_SendQBuf1()
     , m_CurrSendQ(&(m_SendQBuf0))
+    , m_NextSendQ(&(m_SendQBuf1))
 {}
 
 Session::~Session()
@@ -65,7 +66,7 @@ void Session::DoReadHC()
             stAMNP.DataLen   = 0;
 
             // no handler for response, just send
-            Forward({MPK_NETPACKAGE, stAMNP}, m_TargetAddress);
+            Forward({MPK_NETPACKAGE, stAMNP}, m_BindAddress);
             DoReadHC();
             return;
         }
@@ -86,7 +87,7 @@ void Session::DoReadHC()
             stAMNP.DataLen   = 0;
 
             // no handler for response, just send
-            Forward({MPK_NETPACKAGE, stAMNP}, m_TargetAddress);
+            Forward({MPK_NETPACKAGE, stAMNP}, m_BindAddress);
             DoReadHC();
         };
         asio::async_read(m_Socket, asio::buffer(&m_BodyLen, sizeof(m_BodyLen)), fnDoneReadLen);
@@ -118,48 +119,49 @@ void Session::DoReadBody(size_t nBodyLen)
         stAMNP.Data      = pData;
         stAMNP.DataLen   = nBodyLen;
 
-        Forward({MPK_NETPACKAGE, stAMNP}, m_TargetAddress);
+        Forward({MPK_NETPACKAGE, stAMNP}, m_BindAddress);
     };
 
     asio::async_read(m_Socket, asio::buffer(pData, nBodyLen), fnDoneReadBody);
 }
 
-// we assume there always be at least one SendTaskDesc
-// since it's a callback after a send task done
 void Session::DoSendNext()
 {
-    // 1. invoke the callback if needed
-    if(std::get<3>(m_SendQ.front())){ std::get<3>(m_SendQ.front())(); }
+    assert(!m_CurrSendQ->empty());
+    if(std::get<3>(m_CurrSendQ->front())){
+        std::get<3>(m_CurrSendQ->front())();
+    }
 
-    // 2. remove the front
-    m_SendQ.pop();
-
-    // 3. do send if we have more work
-    if(!m_SendQ.empty()){ DoSendHC(); }
+    m_CurrSendQ->pop();
+    DoSendHC();
 }
 
 void Session::DoSendBuf()
 {
-    if(!m_SendQ.empty()){
-        if(std::get<1>(m_SendQ.front()) && (std::get<2>(m_SendQ.front()) > 0)){
-            auto fnDoneSend = [this](std::error_code stEC, size_t){
-                if(stEC){ Shutdown(); }else{ DoSendNext(); }
-            };
-
-            asio::async_write(m_Socket, asio::buffer(std::get<1>(m_SendQ.front()), std::get<2>(m_SendQ.front())), fnDoneSend);
-        }else{
-            DoSendNext();
-        }
+    assert(!m_CurrSendQ->empty());
+    if(std::get<1>(m_CurrSendQ->front()) && (std::get<2>(m_CurrSendQ->front()) > 0)){
+        auto fnDoneSend = [this](std::error_code stEC, size_t){
+            if(stEC){ Shutdown(); }else{ DoSendNext(); }
+        };
+        asio::async_write(m_Socket, asio::buffer(std::get<1>(m_CurrSendQ->front()), std::get<2>(m_CurrSendQ->front())), fnDoneSend);
+    }else{
+        DoSendNext();
     }
 }
 
 void Session::DoSendHC()
 {
-    if(!m_SendQ.empty()){
-        auto fnDoSendBuf = [this](std::error_code stEC, size_t){
-            if(stEC){ Shutdown(); }else{ DoSendBuf(); }
-        };
-
-        asio::async_write(m_Socket, asio::buffer(&(std::get<0>(m_SendQ.front())), 1), fnDoSendBuf);
+    if(m_CurrSendQ->empty()){
+        std::lock_guard<std::mutex> stLockGuard(m_Lock);
+        if(m_NextSendQ->empty()){ return; }
+        else{
+            std::swap(m_CurrSendQ, m_NextSendQ);
+        }
     }
+
+    auto fnDoSendBuf = [this](std::error_code stEC, size_t){
+        if(stEC){ Shutdown(); } else{ DoSendBuf(); }
+    };
+    assert(!m_CurrSendQ->empty());
+    asio::async_write(m_Socket, asio::buffer(&(std::get<0>(m_CurrSendQ->front())), 1), fnDoSendBuf);
 }

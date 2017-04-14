@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 04/13/2017 18:53:01
+ *  Last Modified: 04/13/2017 21:28:30
  *
  *    Description: TODO & TBD
  *                 I have a decision, now class session *only* communicate with actor
@@ -57,11 +57,14 @@ class Session: public SyncDriver
     private:
         uint8_t         m_MessageHC;
         uint32_t        m_BodyLen;
-        Theron::Address m_TargetAddress;
+        Theron::Address m_BindAddress;
 
     private:
-        std::mutex               m_Lock;
-        std::queue<SendTaskDesc> m_SendQ;
+        std::mutex                m_Lock;
+        std::queue<SendTaskDesc>  m_SendQBuf0;
+        std::queue<SendTaskDesc>  m_SendQBuf1;
+        std::queue<SendTaskDesc> *m_CurrSendQ;
+        std::queue<SendTaskDesc> *m_NextSendQ;
 
     public:
         Session(uint32_t, asio::ip::tcp::socket);
@@ -72,25 +75,30 @@ class Session: public SyncDriver
         // Session class won't maintain the validation of pData!
 
         // send with a r-ref callback, this is the base of all send function
-        // TODO current implementation is based on an internal queue to send all packages
-        //      this is really slow since it serialize all send request since all should acquire the lock
+        // current implementation is based on double-queue method
+        // one queue (Q1)is used for store new packages in parallel
+        // the other (Q2) queue is used to send all packages in ASIO main loop
         //
-        //      another implementation can be found here
-        //      https://stackoverflow.com/questions/4029448/thread-safety-for-stl-queue
+        // then Q1 needs to be protected from data race
+        // but for Q2 since it's only used in ASIO main loop, we don't need to protect it
         //
-        //      this implementation use two queues and should be very efficient
-        //      but hard to use this idea directly for my current framework of the network support
+        // idea from: https://stackoverflow.com/questions/4029448/thread-safety-for-stl-queue
         void Send(uint8_t nMsgHC, const uint8_t *pData, size_t nLen, std::function<void()> &&fnDone)
         {
-            // 1. we have to lock it
-            std::lock_guard<std::mutex> stLockGuard(m_Lock);
+            // 1. push packages to the pending queue
+            {
+                std::lock_guard<std::mutex> stLockGuard(m_Lock);
+                m_NextSendQ->emplace(nMsgHC, pData, nLen, std::move(fnDone));
+            }
 
-            // 2. put the send request
-            bool bEmpty = m_SendQ.empty();
-            m_SendQ.emplace(nMsgHC, pData, nLen, std::move(fnDone));
-
-            // 3. if this is the only request, do it now
-            if(bEmpty){ DoSendHC(); }
+            // 2. try to send
+            //    DoSendHC() will finish current sending queue first
+            //    then when sending queue is done, it will try the pending queue
+            //    if both queue are empty, it will return
+            //
+            //    every time after we push a new pending package
+            //    we should call DoSendHC() to drive the whole sending process
+            DoSendHC();
         }
 
         // send with a const-ref callback
@@ -145,7 +153,7 @@ class Session: public SyncDriver
         void DoSendNext();
 
     public:
-        uint32_t ID()
+        uint32_t ID() const
         {
             return m_ID;
         }
@@ -155,9 +163,8 @@ class Session: public SyncDriver
         //  1 : invalid arguments
         int Launch(const Theron::Address &rstAddr)
         {
-            if(rstAddr == Theron::Address::Null()){ return 1; }
-            m_TargetAddress = rstAddr;
-
+            if(!rstAddr){ return 1; }
+            m_BindAddress = rstAddr;
             DoReadHC();
             return 0;
         }
@@ -165,12 +172,12 @@ class Session: public SyncDriver
         void Shutdown()
         {
             m_Socket.close();
-            m_TargetAddress = Theron::Address::Null();
+            m_BindAddress = Theron::Address::Null();
         }
 
         bool Valid()
         {
-            return m_Socket.is_open() && m_TargetAddress != Theron::Address::Null();
+            return m_Socket.is_open() && m_BindAddress != Theron::Address::Null();
         }
 
     public:
@@ -186,11 +193,11 @@ class Session: public SyncDriver
 
         void Bind(const Theron::Address &rstAddr)
         {
-            m_TargetAddress = rstAddr;
+            m_BindAddress = rstAddr;
         }
 
         Theron::Address Bind()
         {
-            return m_TargetAddress;
+            return m_BindAddress;
         }
 };
