@@ -67,7 +67,10 @@ class MainWindow {open
   } {
     Fl_Window m_Window {
       callback {{
-	// do nothing
+	switch(fl_choice("Quit map editor?", nullptr, " No", " Yes ")){
+		case 2  : exit(0); break;
+		default :          break;
+	}
 }} open
       xywh {562 146 985 665} type Double resizable visible
     } {
