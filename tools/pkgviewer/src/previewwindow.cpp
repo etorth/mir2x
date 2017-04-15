@@ -3,7 +3,7 @@
  *
  *       Filename: previewwindow.cpp
  *        Created: 7/22/2015 3:16:57 AM
- *  Last Modified: 08/21/2016 12:22:03
+ *  Last Modified: 04/14/2017 22:16:48
  *
  *    Description: 
  *
@@ -55,7 +55,7 @@ void PreviewWindow::draw()
     if(m_Inited && m_ImageIndex == g_MainWindow->SelectedImageIndex() && m_Image){
 
         // for howto use make_current(), see my understanding as comments in:
-        //      tools/apeditor/src/animationpreviewarea.cpp
+        //      tools/mapeditor/src/animationpreviewarea.cpp
         // put this here as unchanged since it works properly
         if(PlatformWindows() && !PlatformLinux()){
             // wtf

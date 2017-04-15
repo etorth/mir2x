@@ -3,7 +3,7 @@
  *
  *       Filename: animationpreviewarea.cpp
  *        Created: 06/28/2016 23:29:25
- *  Last Modified: 08/21/2016 18:43:41
+ *  Last Modified: 04/14/2017 22:17:42
  *
  *    Description: 
  *
@@ -94,7 +94,7 @@ void AnimationPreviewArea::draw()
     int nW = w();
     int nH = h();
 
-    // TODO: I have already get the of make_current()
+    // TODO: I have already understand how to use make_current()
     //       if we are drawing inside the draw() of the window, never call
     //       this function, if out side the class, we need to call it
     //

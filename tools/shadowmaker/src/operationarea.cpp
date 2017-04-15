@@ -28,7 +28,6 @@ void OperationArea::DrawAnimation()
 	extern MainWindow   *g_MainWindow;
     extern int           g_AnimationSetPositionX;
     extern int           g_AnimationSetPositionY;
-    g_MainWindow->MakeCurrent();
     g_AnimationSet.Draw(x() + g_AnimationSetPositionX, y() + g_AnimationSetPositionY);
 
     // if(g_MainWindow->EditDynamicShadow()){
