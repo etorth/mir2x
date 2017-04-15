@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/10/2017 16:38:33
+ *  Last Modified: 04/15/2017 00:28:20
  *
  *    Description: 
  *
@@ -45,6 +45,8 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         stAction.EndX        = stSMLOK.X;
         stAction.EndY        = stSMLOK.Y;
         m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.DBID, (bool)(stSMLOK.Male), 0, this, stAction);
+
+        m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
     }
 }
 

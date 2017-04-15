@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 04/15/2016 22:28:58
+ *  Last Modified: 04/15/2017 00:12:59
  *
  *    Description: 
  *
@@ -17,16 +17,18 @@
  *
  * =====================================================================================
  */
+#include <FL/Fl.H>
+#include <algorithm>
+#include <cinttypes>
+#include <FL/fl_draw.H>
+
 #include "shadow.hpp"
 #include "savepng.hpp"
 #include "filesys.hpp"
 #include "actionset.hpp"
-#include <algorithm>
-#include "wilimagepackage.hpp"
 #include "mainwindow.hpp"
+#include "wilimagepackage.hpp"
 #include "wilanimationinfo.hpp"
-#include <FL/Fl.H>
-#include <FL/fl_draw.H>
 
 ActionSet::ActionSet()
     : m_CurrentFrameIndex(0)
@@ -656,6 +658,37 @@ bool ActionSet::Export(
                         nDirection,
                         nFrame);
                 DupFile(szTmpFileName, m_PNG[1][nFrame]->name());
+
+                // export for HumanGfxDBN
+                // refer to client/src/hero.cpp to get encoding strategy
+                {
+                    uint32_t nEncodeShadow    = 1;
+                    uint32_t nEncodeSex       = 1;
+                    uint32_t nEncodeDress     = 0;
+                    uint32_t nEncodeMotion    = nState;
+                    uint32_t nEncodeDirection = nDirection;
+                    uint32_t nEncodeFrame     = nFrame;
+                    uint32_t nEncode = 0
+                        | (nEncodeShadow    << 23)
+                        | (nEncodeSex       << 22)
+                        | (nEncodeDress     << 14)
+                        | (nEncodeMotion    <<  8)
+                        | (nEncodeDirection <<  5)
+                        | (nEncodeFrame     <<  0);
+
+                    int nDX = nCenterX - (m_ActionSetAlignX + m_PX[nFrame] + m_DSX[nFrame]);
+                    int nDY = nCenterY - (m_ActionSetAlignY + m_PY[nFrame] + m_DSY[nFrame]);
+
+                    char szFileName[512];
+                    std::sprintf(szFileName, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
+                            szIMGFolderName,
+                            nEncode, 
+                            ((nDX > 0) ? "1" : "0"),
+                            ((nDY > 0) ? "1" : "0"),
+                            std::abs(nDX),
+                            std::abs(nDY));
+                    DupFile(szFileName, m_PNG[1][nFrame]->name());
+                }
             }
 
             {// body layer
@@ -686,6 +719,37 @@ bool ActionSet::Export(
                         nDirection,
                         nFrame);
                 DupFile(szTmpFileName, m_PNG[0][nFrame]->name());
+
+                // export for HumanGfxDBN
+                // refer to client/src/hero.cpp to get encoding strategy
+                {
+                    uint32_t nEncodeShadow    = 0;
+                    uint32_t nEncodeSex       = 1;
+                    uint32_t nEncodeDress     = 0;
+                    uint32_t nEncodeMotion    = nState;
+                    uint32_t nEncodeDirection = nDirection;
+                    uint32_t nEncodeFrame     = nFrame;
+                    uint32_t nEncode = 0
+                        | (nEncodeShadow    << 23)
+                        | (nEncodeSex       << 22)
+                        | (nEncodeDress     << 14)
+                        | (nEncodeMotion    <<  8)
+                        | (nEncodeDirection <<  5)
+                        | (nEncodeFrame     <<  0);
+
+                    int nDX = nCenterX - (m_ActionSetAlignX + m_PX[nFrame] + m_DSX[nFrame]);
+                    int nDY = nCenterY - (m_ActionSetAlignY + m_PY[nFrame] + m_DSY[nFrame]);
+
+                    char szFileName[512];
+                    std::sprintf(szFileName, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
+                            szIMGFolderName,
+                            nEncode, 
+                            ((nDX > 0) ? "1" : "0"),
+                            ((nDY > 0) ? "1" : "0"),
+                            std::abs(nDX),
+                            std::abs(nDY));
+                    DupFile(szFileName, m_PNG[1][nFrame]->name());
+                }
             }
         }
         pActionSet->LinkEndChild(pFrame);
