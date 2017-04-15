@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302 
+version 1.0303 
 use_FL_COMMAND 
 header_name {.hpp} 
 code_name {.cpp}
@@ -21,16 +21,19 @@ decl {\#include <FL/fl_ask.H>} {private local
 decl {\#include "operationarea.hpp"} {public local
 } 
 
-class MainWindow {open
-} {
-  Function {MainWindow()} {} {
+class MainWindow {} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_Window {
       callback {{
-	exit(0);
+	switch(fl_choice("Quit shadow maker?", nullptr, " No", " Yes ")){
+		case 2  : exit(0); break;
+		default :          break;
+	}
 }} open
-      private xywh {1085 120 835 474} type Double labelfont 4 visible
+      private xywh {636 194 835 470} type Double labelfont 4 visible
     } {
-      Fl_Menu_Bar m_MenuBar {open
+      Fl_Menu_Bar m_MenuBar {open selected
         private xywh {0 0 1025 30} labelfont 4
       } {
         Submenu {} {
@@ -92,14 +95,14 @@ class MainWindow {open
           private xywh {15 15 62 20} labelfont 4
         } {
           MenuItem m_MenuItemShowBodyLayer {
-            label {Show Body        }
+            label {Body        }
             private xywh {15 15 30 20} type Toggle value 1 labelfont 4
             code0 {\#include <FL/Fl_Native_File_Chooser.H>}
             code1 {\#include <FL/fl_ask.H>}
             code2 {\#include "validwilfilewindow.hpp"}
           }
           MenuItem m_MenuItemShowShadowLayer {
-            label {Show Shadow}
+            label Shadow
             private xywh {25 25 30 20} type Toggle labelfont 4
           }
         }
@@ -214,7 +217,7 @@ RedrawAll();}
           private xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
-            label {About Me           }
+            label {About Me   }
             callback {extern AboutWindow *g_AboutWindow;
 g_AboutWindow->ShowAll();}
             private xywh {0 0 30 20} labelfont 4
@@ -223,7 +226,7 @@ g_AboutWindow->ShowAll();}
         }
       }
       Fl_Box m_OperationArea {
-        private xywh {0 30 525 443} box UP_FRAME
+        private xywh {0 30 525 440} box UP_FRAME
         code0 {\#include "operationarea.hpp"}
         class OperationArea
       }
@@ -531,8 +534,7 @@ m_Window->redraw();} {}
     extern AnimationSet g_AnimationSet;
     g_AnimationSet.SetDirection((int)(intptr_t)pData);
     g_AnimationSet.DSetDynamicShadowOffset(false, 0, 0);
-}} {selected
-    }
+}} {}
   }
   Function {MakeWorkingFolder()} {return_type void
   } {
