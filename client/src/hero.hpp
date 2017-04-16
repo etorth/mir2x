@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/09/2017 00:33:18
+ *  Last Modified: 04/16/2017 00:34:59
  *
  *    Description: 
  *
@@ -39,7 +39,7 @@ class Hero: public Creature
        ~Hero() = default;
 
     public:
-       bool Location(int *, int *);
+        bool Location(int *, int *);
 
     public:
         bool Draw(int, int);
@@ -78,10 +78,8 @@ class Hero: public Creature
             return CREATURE_PLAYER;
         }
 
-        size_t MotionFrameCount()
-        {
-            return 1;
-        }
+    public:
+        size_t MotionFrameCount();
 
     public:
         bool ValidG()

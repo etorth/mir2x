@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 08/05/2015 11:22:52 PM
- *  Last Modified: 03/29/2017 13:03:49
+ *  Last Modified: 04/15/2017 23:51:08
  *
  *    Description: 
  *
@@ -347,10 +347,7 @@ bool ActionSet::Export(
             ||  std::strlen(szIMGFolderName) <= 0
             || !pDoc
             || !pActionSet
-            ||  FrameCount() <= 0
-      ){
-        return false;
-    }
+            ||  FrameCount() <= 0){ return false; }
 
     // seems m_FileIndex starts from 1
     uint32_t nLookID = (uint32_t)((m_FileIndex - 1) * 10 + m_AnimationIndex) & 0X00000FFF;

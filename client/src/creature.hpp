@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 04/08/2017 02:30:19
+ *  Last Modified: 04/16/2017 00:26:09
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -142,11 +142,17 @@ class Creature
         std::deque<MotionNode> m_MotionQueue;
 
     protected:
+        double m_UpdateDelay;
+        double m_LastUpdateTime;
+
+    protected:
         Creature(uint32_t nUID, ProcessRun *pRun)
             : m_UID(nUID)
             , m_ProcessRun(pRun)
             , m_CurrMotion()
             , m_MotionQueue()
+            , m_UpdateDelay(100.0)
+            , m_LastUpdateTime(0.0)
         {
             assert(m_UID);
             assert(m_ProcessRun);

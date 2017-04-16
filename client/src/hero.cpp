@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 04/15/2017 17:03:57
+ *  Last Modified: 04/16/2017 00:40:54
  *
  *    Description: 
  *
@@ -91,6 +91,34 @@ bool Hero::Draw(int nViewX, int nViewY)
 
 bool Hero::Update()
 {
+    double fTimeNow = SDL_GetTicks() * 1.0;
+    if(fTimeNow > m_UpdateDelay + m_LastUpdateTime){
+        // 1. record the update time
+        m_LastUpdateTime = fTimeNow;
+
+        // 2. logic update
+
+        // 3. motion update
+        switch(m_CurrMotion.Motion){
+            case MOTION_STAND:
+                {
+                    if(m_MotionQueue.empty()){
+                        return AdvanceMotionFrame(1);
+                    }else{
+                        // move to next motion will reset frame as 0
+                        // if current there is no more motion pending
+                        // it will add a MOTION_STAND
+                        //
+                        // we don't want to reset the frame here
+                        return MoveNextMotion();
+                    }
+                }
+            default:
+                {
+                    return UpdateGeneralMotion(false);
+                }
+        }
+    }
     return true;
 }
 
@@ -299,4 +327,16 @@ bool Hero::ActionValid(const ActionNode &rstAction)
                 return false;
             }
     }
+}
+
+size_t Hero::MotionFrameCount()
+{
+    if(GfxID(m_DressID, m_CurrMotion.Motion, m_CurrMotion.Direction) >= 0){
+        switch(m_CurrMotion.Motion){
+            case MOTION_STAND : { return 4; }
+            case MOTION_WALK  : { return 6; }
+            case MOTION_RUN   : { return 6; }
+            default           : { return 1; }
+        }
+    }else{ return 0; }
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 04/15/2017 17:42:29
+ *  Last Modified: 04/16/2017 00:11:21
  *
  *    Description: 
  *
@@ -220,10 +220,7 @@ void ActionSet::Draw(int nVStartPX, int nVStartPY)
         return;
     }
 
-    if(true
-            && m_PNG[0][m_CurrentFrameIndex] != nullptr
-            && m_PNG[1][m_CurrentFrameIndex] != nullptr
-      ){
+    if(m_PNG[0][m_CurrentFrameIndex] && m_PNG[1][m_CurrentFrameIndex]){
         extern MainWindow *g_MainWindow;
         if(g_MainWindow->ShowShadowLayer()){
             m_PNG[1][m_CurrentFrameIndex]->draw(
@@ -594,22 +591,19 @@ bool ActionSet::Export(
             ||  std::strlen(szIMGFolderName) <= 0
             || !pDoc
             || !pActionSet
-            ||  FrameCount() <= 0
-      ){
-        return false;
-    }
+            ||  FrameCount() <= 0){ return false; }
 
     for(int nFrame = 0; nFrame < FrameCount(); ++nFrame){
         auto pFrame = pDoc->NewElement("Frame");
         {
-            { // shadow layer
-                // offset info
+            // shadow layer
+            {
                 auto pShadow = pDoc->NewElement("Shadow");
                 {
                     auto pDX = pDoc->NewElement("DX");
                     auto pDY = pDoc->NewElement("DY");
-                    int  nDX = nCenterX -(m_ActionSetAlignX + m_PX[nFrame] + m_DSX[nFrame]);
-                    int  nDY = nCenterY -(m_ActionSetAlignY + m_PY[nFrame] + m_DSY[nFrame]);
+                    int  nDX = nCenterX - (m_ActionSetAlignX + m_PX[nFrame] + m_DSX[nFrame]);
+                    int  nDY = nCenterY - (m_ActionSetAlignY + m_PY[nFrame] + m_DSY[nFrame]);
                     pDX->LinkEndChild(pDoc->NewText(std::to_string(-nDX).c_str()));
                     pDY->LinkEndChild(pDoc->NewText(std::to_string(-nDY).c_str()));
 
@@ -676,8 +670,8 @@ bool ActionSet::Export(
                         | (nEncodeDirection <<  5)
                         | (nEncodeFrame     <<  0);
 
-                    int nDX = nCenterX - (m_ActionSetAlignX + m_PX[nFrame] + m_DSX[nFrame]);
-                    int nDY = nCenterY - (m_ActionSetAlignY + m_PY[nFrame] + m_DSY[nFrame]);
+                    int nDX = nCenterX + (m_ActionSetAlignX + m_PX[nFrame] + m_DSX[nFrame]);
+                    int nDY = nCenterY + (m_ActionSetAlignY + m_PY[nFrame] + m_DSY[nFrame]);
 
                     char szFileName[512];
                     std::sprintf(szFileName, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
@@ -691,13 +685,14 @@ bool ActionSet::Export(
                 }
             }
 
-            {// body layer
+            // body layer
+            {
                 auto pBody = pDoc->NewElement("Body");
                 {
                     auto pDX = pDoc->NewElement("DX");
                     auto pDY = pDoc->NewElement("DY");
-                    int  nDX = nCenterX -(m_ActionSetAlignX + m_PX[nFrame]);
-                    int  nDY = nCenterY -(m_ActionSetAlignY + m_PY[nFrame]);
+                    int  nDX = nCenterX - (m_ActionSetAlignX + m_PX[nFrame]);
+                    int  nDY = nCenterY - (m_ActionSetAlignY + m_PY[nFrame]);
                     pDX->LinkEndChild(pDoc->NewText(std::to_string(-nDX).c_str()));
                     pDY->LinkEndChild(pDoc->NewText(std::to_string(-nDY).c_str()));
 
@@ -737,8 +732,8 @@ bool ActionSet::Export(
                         | (nEncodeDirection <<  5)
                         | (nEncodeFrame     <<  0);
 
-                    int nDX = nCenterX - (m_ActionSetAlignX + m_PX[nFrame] + m_DSX[nFrame]);
-                    int nDY = nCenterY - (m_ActionSetAlignY + m_PY[nFrame] + m_DSY[nFrame]);
+                    int nDX = nCenterX + (m_ActionSetAlignX + m_PX[nFrame]);
+                    int nDY = nCenterY + (m_ActionSetAlignY + m_PY[nFrame]);
 
                     char szFileName[512];
                     std::sprintf(szFileName, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
