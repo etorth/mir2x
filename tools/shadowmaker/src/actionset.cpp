@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 04/15/2017 00:12:59
+ *  Last Modified: 04/15/2017 17:42:29
  *
  *    Description: 
  *
@@ -748,7 +748,7 @@ bool ActionSet::Export(
                             ((nDY > 0) ? "1" : "0"),
                             std::abs(nDX),
                             std::abs(nDY));
-                    DupFile(szFileName, m_PNG[1][nFrame]->name());
+                    DupFile(szFileName, m_PNG[0][nFrame]->name());
                 }
             }
         }

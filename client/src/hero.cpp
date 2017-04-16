@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 04/09/2017 00:46:38
+ *  Last Modified: 04/15/2017 17:03:57
  *
  *    Description: 
  *
@@ -65,8 +65,8 @@ bool Hero::Draw(int nViewX, int nViewY)
     // 21 - 14 :     dress : max = 256 
     //      22 :       sex :
     //      23 :    shadow :
-    uint32_t nKey0 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Male ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_CurrMotion.Frame;
-    uint32_t nKey1 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Male ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_CurrMotion.Frame;
+    uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Male ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_CurrMotion.Frame;
+    uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Male ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_CurrMotion.Frame;
 
     int nDX0 = 0;
     int nDY0 = 0;

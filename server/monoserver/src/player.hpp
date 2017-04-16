@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 04/07/2017 11:40:46
+ *  Last Modified: 04/15/2017 16:51:51
  *
  *    Description: 
  *
@@ -55,8 +55,10 @@ typedef struct stPLAYERFEATUREEX
 class Player: public CharObject
 {
     protected:
-        uint32_t m_DBID;
-        uint32_t m_JobID;
+        const uint32_t m_DBID;
+        const uint32_t m_JobID;
+
+    protected:
         uint32_t m_SessionID;
         uint32_t m_Level;
 
@@ -75,6 +77,17 @@ class Player: public CharObject
                 int,                    // direction
                 uint8_t);               // life cycle state
        ~Player() = default;
+
+    public:
+        uint32_t DBID() const
+        {
+            return m_DBID;
+        }
+
+        uint32_t JobID() const
+        {
+            return m_JobID;
+        }
 
     public:
         // type test function

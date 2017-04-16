@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 04/15/2017 00:33:35
+ *  Last Modified: 04/15/2017 11:57:46
  *
  *    Description: 
  *
@@ -116,11 +116,8 @@ void ProcessLogin::DoLogin()
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_INFO, "login account: (%s:%s)", m_IDBox.Content(), m_PasswordBox.Content());
 
-        // std::string szID  = m_IDBox.Content();
-        // std::string szPWD = m_PasswordBox.Content();
-
-        std::string szID  = "test";
-        std::string szPWD = "123456";
+        std::string szID  = m_IDBox.Content();
+        std::string szPWD = m_PasswordBox.Content();
 
         static std::vector<char> stLoginInfo;
         stLoginInfo.resize(4); // reserve for length

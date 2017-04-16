@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 04/07/2017 13:00:18
+ *  Last Modified: 04/15/2017 16:53:20
  *
  *    Description: net message used by client and mono-server
  *
@@ -49,7 +49,8 @@ enum: uint8_t
 // 3. read message body
 //
 // currently just always use uncompressed package
-typedef struct{
+typedef struct
+{
     uint32_t UID;
     uint32_t DBID;
     uint32_t MapID;
