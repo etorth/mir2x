@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/11/2017 12:47:00
+ *  Last Modified: 04/16/2017 00:52:12
  *
  *    Description: 
  *
@@ -41,6 +41,9 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_WAbility()
     , m_AddAbility()
 {
+    ResetType(TYPE_INFO, TYPE_CHAR);
+    ResetType(TYPE_CHAR, TYPE_CHAR);
+
     ResetState(STATE_LIFECYCLE, nLifeState);
 }
 

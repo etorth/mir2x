@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/07/2017 13:03:49
+ *  Last Modified: 04/16/2017 00:54:21
  *
  *    Description: 
  *
@@ -41,9 +41,11 @@ Player::Player(uint32_t nDBID,
 {
     m_StateHook.Install("CheckTime", [this](){ For_CheckTime(); return false; });
 
+    ResetType(TYPE_CHAR, TYPE_PLAYER);
+    ResetType(TYPE_PLAYER, TYPE_PLAYER);
+
     ResetType(TYPE_CREATURE, TYPE_HUMAN);
-    ResetType(TYPE_PLAYER, 1);
-    ResetType(TYPE_HUMAN,  1);
+    ResetType(TYPE_HUMAN,  TYPE_HUMAN);
 }
 
 void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
