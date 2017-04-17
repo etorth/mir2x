@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/16/2017 00:20:29
+ *  Last Modified: 04/17/2017 00:59:31
  *
  *    Description: 
  *
@@ -201,28 +201,28 @@ void MonoServer::Launch()
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
 
-    AddMonster( 1, 1, 19, 19);
-    AddMonster( 1, 1, 19, 18);
-    AddMonster( 1, 1, 17, 15);
-    AddMonster( 1, 1, 16, 18);
-    AddMonster( 1, 1, 15, 17);
-    AddMonster( 1, 1, 16, 16);
-    AddMonster( 1, 1, 11, 21);
-    AddMonster( 1, 1, 20, 19);
-    AddMonster( 1, 1, 20, 20);
-    AddMonster( 1, 1, 20, 21);
-    AddMonster( 1, 1, 21, 21);
-    AddMonster(10, 1,  8, 21);
-    AddMonster(10, 1,  8, 22);
-    AddMonster(10, 1,  9, 21);
-    AddMonster(10, 1,  9, 22);
-    AddMonster(10, 1,  9, 23);
-    AddMonster(10, 1,  9, 24);
-    AddMonster(10, 1, 14, 16);
-    AddMonster(10, 1, 14, 17);
-    AddMonster(10, 1, 14, 18);
-    AddMonster(10, 1, 14, 19);
-    AddMonster(10, 1, 14, 20);
+    // AddMonster( 1, 1, 19, 19);
+    // AddMonster( 1, 1, 19, 18);
+    // AddMonster( 1, 1, 17, 15);
+    // AddMonster( 1, 1, 16, 18);
+    // AddMonster( 1, 1, 15, 17);
+    // AddMonster( 1, 1, 16, 16);
+    // AddMonster( 1, 1, 11, 21);
+    // AddMonster( 1, 1, 20, 19);
+    // AddMonster( 1, 1, 20, 20);
+    // AddMonster( 1, 1, 20, 21);
+    // AddMonster( 1, 1, 21, 21);
+    // AddMonster(10, 1,  8, 21);
+    // AddMonster(10, 1,  8, 22);
+    // AddMonster(10, 1,  9, 21);
+    // AddMonster(10, 1,  9, 22);
+    // AddMonster(10, 1,  9, 23);
+    // AddMonster(10, 1,  9, 24);
+    // AddMonster(10, 1, 14, 16);
+    // AddMonster(10, 1, 14, 17);
+    // AddMonster(10, 1, 14, 18);
+    // AddMonster(10, 1, 14, 19);
+    // AddMonster(10, 1, 14, 20);
 }
 
 void MonoServer::Restart()

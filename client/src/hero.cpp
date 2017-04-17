@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 04/16/2017 00:40:54
+ *  Last Modified: 04/16/2017 23:58:00
  *
  *    Description: 
  *
@@ -126,13 +126,13 @@ int32_t Hero::GfxID(int nDress, int nMotion, int nDirection)
 {
     static const std::unordered_map<int, int> stMotionGfxIDRecord = {
         {MOTION_STAND,              0},
-        {MOTION_WALK,               1},
-        {MOTION_RUN,                2},
+        {MOTION_WALK,              21},
+        {MOTION_RUN,               22},
 
-        {MOTION_CASTMAGIC0,         3},
-        {MOTION_CASTMAGIC1,         4},
+        {MOTION_CASTMAGIC0,         2},
+        {MOTION_CASTMAGIC1,         3},
 
-        {MOTION_BEFOREATTACK,       5},
+        {MOTION_BEFOREATTACK,       7},
         {MOTION_UNDERATTACK,        6},
         {MOTION_DIE,                7},
 
@@ -257,8 +257,8 @@ bool Hero::Location(int *pX, int *pY)
                 auto nDirection = m_CurrMotion.Direction;
 
 
-                if(pX){ *pX = (nFrame < ((int)(MotionFrameCount()) - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 1))) ? nX0 : nX1; }
-                if(pY){ *pY = (nFrame < ((int)(MotionFrameCount()) - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 1))) ? nY0 : nY1; }
+                if(pX){ *pX = (nFrame < ((int)(MotionFrameCount()) - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 0))) ? nX0 : nX1; }
+                if(pY){ *pY = (nFrame < ((int)(MotionFrameCount()) - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 0))) ? nY0 : nY1; }
 
                 return true;
             }

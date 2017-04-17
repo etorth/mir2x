@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/01/2017 19:26:52
+ *  Last Modified: 04/16/2017 23:37:13
  *
  *    Description: 
  *
@@ -356,9 +356,19 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                 switch(rstEvent.button.button){
                     case SDL_BUTTON_RIGHT:
                         {
-                            // int nDX = pEvent->button.x - m_MyHero->ScreenX();
-                            // int nDY = pEvent->button.y - m_MyHero->ScreenY();
-                            // m_MyHero->DGoto(nDX, nDY);
+                            // in mir2ei how human moves
+                            // 1. client send motion request to server
+                            // 2. client put motion lock to human
+                            // 3. server response with "+GOOD" or "+FAIL" to client
+                            // 4. if "+GOOD" client will release the motion lock
+                            // 5. if "+FAIL" client will use the backup position and direction
+
+                            int nX = -1;
+                            int nY = -1;
+                            if(LocatePoint(rstEvent.button.x, rstEvent.button.y, &nX, &nY)){
+                                m_MyHero->RequestMove(nX, nY);
+                            }
+
                             break;
                         }
                     default:
@@ -419,4 +429,12 @@ bool ProcessRun::CanMove(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1
         }
     }
     return false;
+}
+
+bool ProcessRun::LocatePoint(int nPX, int nPY, int *pX, int *pY)
+{
+    if(pX){ *pX = (nPX + m_ViewX) / SYS_MAPGRIDXP; }
+    if(pY){ *pY = (nPY + m_ViewY) / SYS_MAPGRIDYP; }
+
+    return true;
 }

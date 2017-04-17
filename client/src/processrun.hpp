@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 04/08/2017 16:51:46
+ *  Last Modified: 04/16/2017 23:21:51
  *
  *    Description: 
  *
@@ -65,6 +65,9 @@ class ProcessRun: public Process
         virtual void Update(double);
         virtual void Draw();
         virtual void ProcessEvent(const SDL_Event &);
+
+    public:
+        bool LocatePoint(int, int, int *, int *);
 
     public:
         void Net_LOGINOK(const uint8_t *, size_t);
