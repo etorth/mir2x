@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/16/2017 23:37:13
+ *  Last Modified: 04/17/2017 13:06:35
  *
  *    Description: 
  *
@@ -32,20 +32,43 @@ ProcessRun::ProcessRun()
     , m_MyHero(nullptr)
     , m_ViewX(0)
     , m_ViewY(0)
+    , m_RollMap(false)
     , m_ControbBoard(0, 0, nullptr, false)
 {
 }
 
 void ProcessRun::Update(double)
 {
-    m_ViewX = 300;
-    m_ViewY = 300;
-    // if(m_MyHero){
-    //     extern SDLDevice *g_SDLDevice;
-    //     m_ViewX = m_MyHero->X() - g_SDLDevice->WindowW(false) / 2;
-    //     m_ViewY = m_MyHero->Y() - g_SDLDevice->WindowH(false) / 2;
-    // }
-    //
+    if(m_MyHero){
+        extern SDLDevice *g_SDLDevice;
+        int nViewX = m_MyHero->X() * SYS_MAPGRIDXP - g_SDLDevice->WindowW(false) / 2;
+        int nViewY = m_MyHero->Y() * SYS_MAPGRIDYP - g_SDLDevice->WindowH(false) / 2;
+
+        int nDViewX = nViewX - m_ViewX;
+        int nDViewY = nViewY - m_ViewY;
+
+        if(m_RollMap
+                ||  (std::abs(nDViewX) > g_SDLDevice->WindowW(false) / 4)
+                ||  (std::abs(nDViewY) > g_SDLDevice->WindowH(false) / 4)){
+
+            m_RollMap = true;
+
+            if(std::abs<int>(nDViewX) > 12){
+                m_ViewX += 12 * nDViewX / std::abs<int>(nDViewX);
+            }else{
+                m_ViewX += nDViewX;
+            }
+
+            if(std::abs<int>(nDViewY) > 8){
+                m_ViewY += 8 * nDViewY / std::abs<int>(nDViewY);
+            }else{
+                m_ViewY += nDViewY;
+            }
+        }
+
+        if((nDViewX == 0) && (nDViewY == 0)){ m_RollMap = false; }
+    }
+
     for(auto pRecord: m_CreatureRecord){
         if(pRecord.second){
             pRecord.second->Update();
@@ -53,28 +76,6 @@ void ProcessRun::Update(double)
     }
 }
 
-// void ProcessRun::RollScreen()
-// {
-//     // what we should have
-//     int nDX = m_MyHero->X() - m_WindowW / 2 - m_ClientMap.ViewX();
-//     int nDY = m_MyHero->Y() - m_WindowH / 2 - m_ClientMap.ViewY();
-//
-//     int nCurrentViewX = m_ClientMap.ViewX();
-//     int nCurrentViewY = m_ClientMap.ViewY();
-//
-//     if(std::abs(nDX) > 20){
-//         nCurrentViewX += std::lround(std::copysign(1.0, nDX));
-//     }
-//     if(std::abs(nDY) > 20){
-//         nCurrentViewY += std::lround(std::copysign(1.0, nDY));
-//     }
-//
-//     int nStartX = (std::min)((std::max)(0, nCurrentViewX), m_ClientMap.W() * 48 - m_WindowW);
-//     int nStartY = (std::min)((std::max)(0, nCurrentViewY), m_ClientMap.H() * 32 - m_WindowH);
-//
-//     m_ClientMap.SetViewPoint(nStartX, nStartY);
-// }
-//
 void ProcessRun::Draw()
 {
     extern PNGTexDBN *g_PNGTexDBN;
@@ -201,8 +202,8 @@ void ProcessRun::Draw()
                         if(m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000){
                             g_SDLDevice->PushColor(255, 0, 0, 128);
                             int nX0 = nX * SYS_MAPGRIDXP - m_ViewX;
-                            int nY0 = nY * SYS_MAPGRIDYP - m_ViewX;
-                            int nX1 = (nX + 1) * SYS_MAPGRIDXP - m_ViewY;
+                            int nY0 = nY * SYS_MAPGRIDYP - m_ViewY;
+                            int nX1 = (nX + 1) * SYS_MAPGRIDXP - m_ViewX;
                             int nY1 = (nY + 1) * SYS_MAPGRIDYP - m_ViewY;
                             g_SDLDevice->DrawLine(nX0, nY0, nX1, nY0);
                             g_SDLDevice->DrawLine(nX1, nY0, nX1, nY1);

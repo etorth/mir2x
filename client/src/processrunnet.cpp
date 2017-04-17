@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/15/2017 00:28:20
+ *  Last Modified: 04/17/2017 12:44:43
  *
  *    Description: 
  *
@@ -24,6 +24,7 @@
 #include "monster.hpp"
 #include "sysconst.hpp"
 #include "pngtexdbn.hpp"
+#include "sdldevice.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 
@@ -47,6 +48,12 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.DBID, (bool)(stSMLOK.Male), 0, this, stAction);
 
         m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
+
+        {
+            extern SDLDevice *g_SDLDevice;
+            m_ViewX = m_MyHero->X() * SYS_MAPGRIDXP - g_SDLDevice->WindowW(false) / 2;
+            m_ViewY = m_MyHero->Y() * SYS_MAPGRIDYP - g_SDLDevice->WindowH(false) / 2;
+        }
     }
 }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 04/16/2017 23:21:51
+ *  Last Modified: 04/17/2017 12:54:53
  *
  *    Description: 
  *
@@ -36,14 +36,15 @@ class ProcessRun: public Process
         Mir2xMapData m_Mir2xMapData;
 
     private:
-        MyHero     *m_MyHero;
+        MyHero *m_MyHero;
 
     private:
-        int         m_ViewX;
-        int         m_ViewY;
+        int  m_ViewX;
+        int  m_ViewY;
+        bool m_RollMap;
 
     private:
-        ControlBoard    m_ControbBoard;
+        ControlBoard m_ControbBoard;
 
     private:
         std::unordered_map<uint32_t, Creature*> m_CreatureRecord;
