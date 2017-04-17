@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 04/17/2017 11:14:37
+ *  Last Modified: 04/17/2017 11:45:15
  *
  *    Description: A-Star algorithm for path find
  *
@@ -39,8 +39,8 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
         friend class AStarPathFinderNode;
 
     private:
-        std::function<bool(int, int, int, int)> m_MoveChecker;
-        std::function<int (int, int, int, int)> m_MoveCost;
+        std::function<bool  (int, int, int, int)> m_MoveChecker;
+        std::function<double(int, int, int, int)> m_MoveCost;
 
     public:
         AStarPathFinder(std::function<bool(int, int, int, int)> fnMoveChecker)
@@ -51,7 +51,7 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
             assert(fnMoveChecker);
         }
 
-        AStarPathFinder(std::function<bool(int, int, int, int)> fnMoveChecker, std::function<int(int, int, int, int)> fnMoveCost)
+        AStarPathFinder(std::function<bool(int, int, int, int)> fnMoveChecker, std::function<double(int, int, int, int)> fnMoveCost)
             : AStarSearch<AStarPathFinderNode>()
             , m_MoveChecker(fnMoveChecker)
             , m_MoveCost(fnMoveCost)
@@ -76,8 +76,8 @@ class AStarPathFinderNode
         friend class AStarSearch<AStarPathFinderNode>;
 
     private:
-        int m_CurrX;
-        int m_CurrY;
+        int m_X;
+        int m_Y;
 
     private:
         AStarPathFinder *m_Finder;
@@ -85,8 +85,8 @@ class AStarPathFinderNode
     private:
         AStarPathFinderNode() = default;
         AStarPathFinderNode(int nX, int nY, AStarPathFinder *pFinder)
-            : m_CurrX(nX)
-            , m_CurrY(nY)
+            : m_X(nX)
+            , m_Y(nY)
             , m_Finder(pFinder)
         {
             assert(pFinder);
@@ -96,19 +96,19 @@ class AStarPathFinderNode
        ~AStarPathFinderNode() = default;
 
     public:
-       int X(){ return m_CurrX; }
-       int Y(){ return m_CurrY; }
+       int X(){ return m_X; }
+       int Y(){ return m_Y; }
 
     public:
         float GoalDistanceEstimate(AStarPathFinderNode &rstGoalNode)
         {
             // we use Chebyshev's distance instead of Manhattan distance
-            return std::max<float>(std::abs(rstGoalNode.m_CurrX - m_CurrX), std::abs(rstGoalNode.m_CurrY - m_CurrY));
+            return std::max<float>(std::abs(rstGoalNode.m_X - m_X), std::abs(rstGoalNode.m_Y - m_Y));
         }
 
         bool IsGoal(AStarPathFinderNode &rstGoalNode)
         {
-            return (m_CurrX == rstGoalNode.m_CurrX) && (m_CurrY == rstGoalNode.m_CurrY);
+            return (m_X == rstGoalNode.m_X) && (m_Y == rstGoalNode.m_Y);
         }
 
         bool GetSuccessors(AStarSearch<AStarPathFinderNode> *pAStarSearch, AStarPathFinderNode *pParentNode)
@@ -117,8 +117,8 @@ class AStarPathFinderNode
             static const int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
 
             for(int nIndex = 0; nIndex < 8; ++nIndex){
-                int nNewX = m_CurrX + nDX[nIndex];
-                int nNewY = m_CurrY + nDY[nIndex];
+                int nNewX = m_X + nDX[nIndex];
+                int nNewY = m_Y + nDY[nIndex];
 
                 if(true
                         && pParentNode
@@ -127,7 +127,7 @@ class AStarPathFinderNode
 
                 // m_MoveChecker() directly refuse invalid (nX, nY) as false
                 // this ensures if pParentNode not null then pParentNode->(X, Y) is always valid
-                if(m_Finder->m_MoveChecker(m_CurrX, m_CurrY, nNewX, nNewY)){
+                if(m_Finder->m_MoveChecker(m_X, m_Y, nNewX, nNewY)){
                     AStarPathFinderNode stFinderNode {nNewX, nNewY, m_Finder};
                     pAStarSearch->AddSuccessor(stFinderNode);
                 }
@@ -141,8 +141,8 @@ class AStarPathFinderNode
         float GetCost(AStarPathFinderNode &rstNode)
         {
             if(m_Finder->m_MoveCost){
-                auto nCost = m_Finder->m_MoveCost(m_CurrX, m_CurrY, rstNode.m_CurrX, rstNode.m_CurrY);
-                return (nCost > 0) ? (nCost * 1.0) : 1.0;
+                auto nCost = m_Finder->m_MoveCost(m_X, m_Y, rstNode.m_X, rstNode.m_Y);
+                return (nCost > 0) ? (float)(nCost) : 1.0;
             }else{
                 return 1.0;
             }
@@ -150,6 +150,6 @@ class AStarPathFinderNode
 
         bool IsSameState(AStarPathFinderNode &rstNode)
         {
-            return (m_CurrX == rstNode.m_CurrX) && (m_CurrY == rstNode.m_CurrY);
+            return (m_X == rstNode.m_X) && (m_Y == rstNode.m_Y);
         }
 };
