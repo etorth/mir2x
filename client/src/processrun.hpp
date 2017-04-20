@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 04/17/2017 12:54:53
+ *  Last Modified: 04/19/2017 23:10:39
  *
  *    Description: 
  *
@@ -39,8 +39,10 @@ class ProcessRun: public Process
         MyHero *m_MyHero;
 
     private:
-        int  m_ViewX;
-        int  m_ViewY;
+        int m_ViewX;
+        int m_ViewY;
+
+    private:
         bool m_RollMap;
 
     private:

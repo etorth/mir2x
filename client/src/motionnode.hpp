@@ -3,7 +3,7 @@
  *
  *       Filename: motionnode.hpp
  *        Created: 04/05/2017 12:38:46
- *  Last Modified: 04/07/2017 13:26:33
+ *  Last Modified: 04/20/2017 00:13:32
  *
  *    Description: 
  *

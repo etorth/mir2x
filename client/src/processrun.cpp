@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/19/2017 18:11:14
+ *  Last Modified: 04/19/2017 23:13:23
  *
  *    Description: 
  *
@@ -53,8 +53,8 @@ void ProcessRun::Update(double)
 
             m_RollMap = true;
 
-            m_ViewX += (int)(std::lround(std::copysign(std::min<int>(12, std::abs(nDViewX)), nDViewX)));
-            m_ViewY += (int)(std::lround(std::copysign(std::min<int>( 8, std::abs(nDViewY)), nDViewY)));
+            m_ViewX += (int)(std::lround(std::copysign(std::min<int>(3, std::abs(nDViewX)), nDViewX)));
+            m_ViewY += (int)(std::lround(std::copysign(std::min<int>(2, std::abs(nDViewY)), nDViewY)));
 
             m_ViewX = std::max<int>(0, m_ViewX);
             m_ViewY = std::max<int>(0, m_ViewY);

@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: session.cpp
- *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/14/2017 12:38:53
+ *        Created: 09/03/2015 03:48:41 AM
+ *  Last Modified: 04/20/2017 00:17:03
  *
  *    Description: 
  *
@@ -31,6 +31,7 @@ Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
     , m_Port(m_Socket.remote_endpoint().port())
     , m_MessageHC(0)
     , m_BodyLen(0)
+    , m_Delay(0)
     , m_BindAddress(Theron::Address::Null())
     , m_FlushFlag(false)
     , m_NextQLock()

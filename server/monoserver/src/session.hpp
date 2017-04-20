@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 04/14/2017 12:20:30
+ *  Last Modified: 04/19/2017 23:39:57
  *
  *    Description: TODO & TBD
  *                 I have a decision, now class session *only* communicate with actor
@@ -58,6 +58,7 @@ class Session: public SyncDriver
     private:
         uint8_t         m_MessageHC;
         uint32_t        m_BodyLen;
+        uint32_t        m_Delay;
         Theron::Address m_BindAddress;
 
     private:
@@ -185,6 +186,11 @@ class Session: public SyncDriver
         bool Valid()
         {
             return m_Socket.is_open() && m_BindAddress != Theron::Address::Null();
+        }
+
+        uint32_t Delay()
+        {
+            return m_Delay;
         }
 
     public:

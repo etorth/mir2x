@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 04/03/2017 16:19:18
+ *  Last Modified: 04/19/2017 23:20:10
  *
  *    Description: public API for class game only
  *
@@ -18,10 +18,11 @@
  * =====================================================================================
  */
 
-#include "game.hpp"
 #include <thread>
 #include <future>
+
 #include "log.hpp"
+#include "game.hpp"
 #include "xmlconf.hpp"
 #include "pngtexdbn.hpp"
 #include "fontexdbn.hpp"
@@ -29,7 +30,8 @@
 
 Game::Game()
     : m_FPS(30.0)
-    , m_NetPackTick(-1.0)
+    , m_ServerDelay( 0.00)
+    , m_NetPackTick(-1.00)
     , m_CurrentProcess(nullptr)
 {
     // fullfil the time cq

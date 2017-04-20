@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 03/26/2017 15:54:18
+ *  Last Modified: 04/20/2017 00:16:08
  *
  *    Description: net message used by client and mono-server
  *
@@ -35,6 +35,10 @@ enum: uint8_t
 };
 
 #pragma pack(push, 1)
+typedef struct
+{
+    uint32_t Tick;
+}CMPing;
 
 typedef struct{
     char ID[16];

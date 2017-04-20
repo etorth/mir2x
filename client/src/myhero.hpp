@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/16/2017 23:24:35
+ *  Last Modified: 04/20/2017 00:04:06
  *
  *    Description: 
  *
@@ -35,4 +35,7 @@ class MyHero: public Hero
 
     public:
         bool Update();
+
+    public:
+        bool MoveNextMotion();
 };

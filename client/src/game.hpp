@@ -13,6 +13,7 @@ class Game
 {
     private:
         double m_FPS;
+        double m_ServerDelay;
         double m_NetPackTick;
 
     private:
@@ -56,8 +57,13 @@ class Game
         void Net_ACTION();
         void Net_MONSTERGINFO();
 
+    public:
+        double GetTimeTick()
+        {
+            return SDL_GetPerformanceCounter() * 1000.0 / SDL_GetPerformanceFrequency();
+        }
+
     private:
-        double GetTimeTick();
         void   EventDelay(double);
         void   ProcessEvent();
         void   Update(double);
