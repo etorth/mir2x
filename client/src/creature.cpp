@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/10/2017 12:53:36
+ *  Last Modified: 04/19/2017 18:23:35
  *
  *    Description: 
  *
@@ -197,15 +197,17 @@ bool Creature::MoveNextMotion()
         return true;
     }
 
+    // oops we get invalid motion queue
+    extern Log *g_Log;
+    g_Log->AddLog(LOGTYPE_INFO, "Invalid motion queue:");
+
     m_CurrMotion.Print();
     for(auto &rstMotion: m_MotionQueue){
         rstMotion.Print();
     }
 
-    {
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "Current motion is not valid");
-    }
+    extern Log *g_Log;
+    g_Log->AddLog(LOGTYPE_FATAL, "Current motion is not valid");
     return false;
 }
 

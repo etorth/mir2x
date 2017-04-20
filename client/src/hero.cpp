@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 04/16/2017 23:58:00
+ *  Last Modified: 04/19/2017 18:06:50
  *
  *    Description: 
  *
@@ -339,4 +339,11 @@ size_t Hero::MotionFrameCount()
             default           : { return 1; }
         }
     }else{ return 0; }
+}
+
+bool Hero::Moving()
+{
+    return false
+        || m_CurrMotion.Motion == MOTION_RUN
+        || m_CurrMotion.Motion == MOTION_WALK;
 }

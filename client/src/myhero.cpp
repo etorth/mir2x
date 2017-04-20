@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/16/2017 23:32:16
+ *  Last Modified: 04/19/2017 18:27:34
  *
  *    Description: 
  *
@@ -31,5 +31,6 @@ bool MyHero::Update()
 
 bool MyHero::RequestMove(int nX, int nY)
 {
+    m_MotionQueue.clear();
     return ParseMovePath(MOTION_WALK, 1, m_CurrMotion.EndX, m_CurrMotion.EndY, nX, nY);
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/16/2017 00:34:59
+ *  Last Modified: 04/19/2017 18:06:39
  *
  *    Description: 
  *
@@ -77,6 +77,9 @@ class Hero: public Creature
         {
             return CREATURE_PLAYER;
         }
+
+    public:
+        bool Moving();
 
     public:
         size_t MotionFrameCount();

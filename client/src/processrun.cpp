@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/17/2017 13:20:19
+ *  Last Modified: 04/19/2017 18:11:14
  *
  *    Description: 
  *
@@ -55,9 +55,15 @@ void ProcessRun::Update(double)
 
             m_ViewX += (int)(std::lround(std::copysign(std::min<int>(12, std::abs(nDViewX)), nDViewX)));
             m_ViewY += (int)(std::lround(std::copysign(std::min<int>( 8, std::abs(nDViewY)), nDViewY)));
+
+            m_ViewX = std::max<int>(0, m_ViewX);
+            m_ViewY = std::max<int>(0, m_ViewY);
         }
 
-        if((nDViewX == 0) && (nDViewY == 0)){ m_RollMap = false; }
+        // stop rolling the map when
+        //   1. the hero is at the required position
+        //   2. the hero is not moving
+        if((nDViewX == 0) && (nDViewY == 0) && !m_MyHero->Moving()){ m_RollMap = false; }
     }
 
     for(auto pRecord: m_CreatureRecord){
