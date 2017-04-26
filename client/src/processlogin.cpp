@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 04/15/2017 11:57:46
+ *  Last Modified: 04/25/2017 11:02:43
  *
  *    Description: 
  *
@@ -119,19 +119,19 @@ void ProcessLogin::DoLogin()
         std::string szID  = m_IDBox.Content();
         std::string szPWD = m_PasswordBox.Content();
 
-        static std::vector<char> stLoginInfo;
-        stLoginInfo.resize(4); // reserve for length
+        CMLogin stCML;
+        std::memset(&stCML, 0, sizeof(stCML));
 
-        stLoginInfo.insert(stLoginInfo.end(), szID.begin(), szID.end());
-        stLoginInfo.push_back('\0');
+        if((szID.size() >= sizeof(stCML.ID)) || (szPWD.size() >= sizeof(stCML.Password))){
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_WARNING, "Too long ID/PWD provided");
+            return;
+        }
 
-        stLoginInfo.insert(stLoginInfo.end(), szPWD.begin(), szPWD.end());
-        stLoginInfo.push_back('\0');
-
-        // TODO: I ignored the big endian little endian problem
-        (*(uint32_t *)(&stLoginInfo[0])) = (uint32_t)(stLoginInfo.size() - 4);
+        std::memcpy(stCML.ID, szID.c_str(), szID.size());
+        std::memcpy(stCML.Password, szPWD.c_str(), szPWD.size());
 
         extern Game *g_Game;
-        g_Game->Send(CM_LOGIN, (const uint8_t *)(&stLoginInfo[0]), stLoginInfo.size());
+        g_Game->Send(CM_LOGIN, stCML);
     }
 }

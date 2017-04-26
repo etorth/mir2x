@@ -2,11 +2,10 @@
  * =====================================================================================
  *
  *       Filename: netio.cpp
- *        Created: 06/29/2015 7:18:27 PM
- *  Last Modified: 06/13/2016 22:19:59
+ *        Created: 06/29/2015 07:18:27 PM
+ *  Last Modified: 04/26/2017 12:23:23
  *
- *    Description: this class won't maintian buffer's validation
- *                 user should maintain it by themself
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -19,14 +18,98 @@
  * =====================================================================================
  */
 
-#include <cassert>
+#include "log.hpp"
 #include "netio.hpp"
+#include "message.hpp"
+#include "compress.hpp"
+
+NetIO::SendPack::SendPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnOnDone)
+    : HC(nHC)
+    , Data(pData)
+    , DataLen(nDataLen)
+    , OnDone(std::move(fnOnDone))
+{
+    auto fnReportAndExit = [this](){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "Invalid client message: (%d, %p, %d)", (int)(HC), Data, (int)(DataLen));
+        std::abort();
+    };
+
+    CMSGParam stCMSG(HC);
+    switch(stCMSG.Type()){
+        case 0:
+            {
+                // empty message, shouldn't contain anything
+                if(Data || DataLen){ fnReportAndExit(); return; }
+                break;
+            }
+        case 1:
+            {
+                // not empty, fixed size and compressed
+                // data stream structure: [DataLen, Mask, Data]
+                int nSizeLen = 0;
+                int nCompLen = 0;
+                int nMaskCnt = 0;
+
+                if(Data[0] == 255){
+                    nSizeLen = 2;
+                    nCompLen = 255 + (int)(Data[1]);
+                    nMaskCnt = Compress::CountMask(Data + 2, stCMSG.MaskLen());
+                }else{
+                    nSizeLen = 1;
+                    nCompLen = (int)(Data[0]);
+                    nMaskCnt = Compress::CountMask(Data + 1, stCMSG.MaskLen());
+                }
+
+                if(false
+                        || (nMaskCnt < 0)
+                        || (nCompLen != nMaskCnt)
+                        || (DataLen != ((size_t)(nSizeLen) + stCMSG.MaskLen() + (size_t)(nCompLen)))){
+                    fnReportAndExit();
+                    return;
+                }
+                break;
+            }
+        case 2:
+            {
+                // not empty, fixed size and not compressed
+                if(!(Data && (DataLen == stCMSG.DataLen()))){ fnReportAndExit(); return; }
+                break;
+            }
+        case 3:
+            {
+                // not empty, not fixed size and not compressed
+                if(!(Data && (DataLen >= 4))){
+                    fnReportAndExit();
+                    return;
+                }else{
+                    uint32_t nDataLenU32 = 0;
+                    std::memcpy(&nDataLenU32, Data, 4);
+                    if(((size_t)(nDataLenU32) + 4) != DataLen){
+                        fnReportAndExit();
+                        return;
+                    }
+                }
+                break;
+            }
+        default:
+            {
+                fnReportAndExit();
+                break;
+            }
+    }
+}
 
 NetIO::NetIO()
     : m_IO()
     , m_Resolver(m_IO)
     , m_Socket(m_IO)
-    , m_MsgHC(0)
+    , m_ReadHC(0)
+    , m_ReadLen {0, 0, 0, 0}
+    , m_ReadBuf(1024)
+    , m_OnReadDone()
+    , m_SendQueue()
+    , m_MemoryPN()
 {}
 
 NetIO::~NetIO()
@@ -34,191 +117,477 @@ NetIO::~NetIO()
     m_IO.stop();
 }
 
-// TODO
-// I'm not sure whether I can make fnOperateHC as const reference
-// since ...
-void NetIO::RunIO(const char *szIP, const char * szPort, const std::function<void(uint8_t)> &fnOperateHC)
-{
-    // 1. push a connect request into the event queue
-    // 2. start the event loop
-    //
-    // TODO
-    //
-    // I have no idea of that
-    // what would happen if I post requests before m_IO.run() started???
-    // or even before asio::async_connect()?
-    //
-    auto stIterator = m_Resolver.resolve({szIP, szPort});
-    auto fnOnConnect = [this, fnOperateHC](std::error_code stEC, asio::ip::tcp::resolver::iterator){
-        if(stEC){
-            Close();
-        }else{
-            ReadHC(fnOperateHC);
-        }
-    };
-
-    // push a connection request
-    asio::async_connect(m_Socket, stIterator, fnOnConnect);
-
-    // start the even loop and never return when OK
-    m_IO.run();
-}
-
-
-void NetIO::StopIO()
-{
-    m_IO.post([this](){Close();});
-}
-
-void NetIO::Close()
+void NetIO::Shutdown()
 {
     m_Socket.close();
 }
 
-void NetIO::Send(uint8_t nMsgHC, const uint8_t *pBuf, size_t nLen, std::function<void()> &&fnDone)
+void NetIO::DoReadHC()
 {
-    auto fnSendHC = [this, nMsgHC, pBuf, nLen, fnDone = std::move(fnDone)](){
-        bool bEmpty = m_WQ.empty();
-        m_WQ.emplace(nMsgHC, pBuf, nLen, std::move(fnDone));
-        if(bEmpty){
-            // if this is the only package then send it immediately, otherwise previously called
-            // DoSend() will continue to send this guarantee data will be sent in order
-            DoSendHC();
+    auto fnReportCurrentMessage = [this](){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Current SMSGParam::HC      = %d", (int)(m_ReadHC));
+        g_Log->AddLog(LOGTYPE_WARNING, "                 ::Type    = %d", (int)(SMSGParam(m_ReadHC).Type()));
+        g_Log->AddLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", (int)(SMSGParam(m_ReadHC).MaskLen()));
+        g_Log->AddLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(SMSGParam(m_ReadHC).DataLen()));
+    };
+
+    auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code stEC){
+        if(stEC){
+            // 1. close the asio socket
+            Shutdown();
+
+            // 2. record the error code to log
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_WARNING, "Network error: %s", stEC.message().c_str());
+            fnReportCurrentMessage();
         }
     };
 
-    m_IO.post(fnSendHC);
+    auto fnOnReadHC = [this, fnOnNetError, fnReportCurrentMessage](std::error_code stEC, size_t){
+        if(stEC){ fnOnNetError(stEC); }
+        else{
+            SMSGParam stSMSG(m_ReadHC);
+            switch(stSMSG.Type()){
+                case 0:
+                    {
+                        if(m_OnReadDone){ m_OnReadDone(m_ReadHC, nullptr, 0); }
+                        DoReadHC();
+                        break;
+                    }
+                case 1:
+                    {
+                        auto fnOnReadLen0 = [this, stSMSG, fnOnNetError, fnReportCurrentMessage](std::error_code stEC, size_t){
+                            if(stEC){ fnOnNetError(stEC); }
+                            else{
+                                if(m_ReadLen[0] != 255){
+                                    if((size_t)(m_ReadLen[0]) > stSMSG.DataLen()){
+                                        // 1. close the asio socket
+                                        Shutdown();
+
+                                        // 2. record the error code but not exit?
+                                        extern Log *g_Log;
+                                        g_Log->AddLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", (int)(m_ReadLen[0]));
+                                        fnReportCurrentMessage();
+
+                                        // 3. we stop here
+                                        //    should we have some method to save it?
+                                        return;
+                                    }else{
+                                        DoReadBody(stSMSG.MaskLen(), m_ReadLen[0]);
+                                        DoReadHC();
+                                    }
+                                }else{
+                                    auto fnOnReadLen1 = [this, stSMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t){
+                                        if(stEC){ fnOnNetError(stEC); }
+                                        else{
+                                            assert(m_ReadLen[0] == 255);
+                                            auto nCompLen = (size_t)(m_ReadLen[1]) + 255;
+
+                                            if(nCompLen > stSMSG.DataLen()){
+                                                // 1. close the asio socket
+                                                Shutdown();
+
+                                                // 2. record the error code but not exit?
+                                                extern Log *g_Log;
+                                                g_Log->AddLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", (int)(nCompLen));
+                                                fnReportCurrentMessage();
+
+                                                // 3. we stop here
+                                                //    should we have some method to save it?
+                                                return;
+                                            }else{
+                                                DoReadBody(stSMSG.MaskLen(), nCompLen);
+                                                DoReadHC();
+                                            }
+                                        }
+                                    };
+                                    asio::async_read(m_Socket, asio::buffer(m_ReadLen + 1, 1), fnOnReadLen1);
+                                }
+                            }
+                        };
+                        asio::async_read(m_Socket, asio::buffer(m_ReadLen, 1), fnOnReadLen0);
+                        break;
+                    }
+                case 2:
+                    {
+                        DoReadBody(0, stSMSG.DataLen());
+                        DoReadHC();
+                        break;
+                    }
+                case 3:
+                    {
+                        auto fnOnReadLen = [this, fnOnNetError](std::error_code stEC, size_t){
+                            if(stEC){ fnOnNetError(stEC); }
+                            else{
+                                uint32_t nDataLenU32 = 0;
+                                std::memcpy(&nDataLenU32, m_ReadLen, 4);
+                                DoReadBody(0, nDataLenU32);
+                                DoReadHC();
+                            }
+                        };
+                        asio::async_read(m_Socket, asio::buffer(m_ReadLen, 4), fnOnReadLen);
+                        break;
+                    }
+                default:
+                    {
+                        Shutdown();
+                        fnReportCurrentMessage();
+                        break;
+                    }
+            }
+        }
+    };
+    asio::async_read(m_Socket, asio::buffer(&m_ReadHC, 1), fnOnReadHC);
 }
 
-// this function read data to fullfil a buffer provided, if the provided buffer is nullptr, then we have
-// to new a buffer to store result for the callback, after the callback we need to free it, this helps
-// to handle more than one read request at one time in the ASIO queue
-//          Read(nullptr,  2, fnOperate1);
-//          Read(nullptr, 16, fnOperate2);
-//          Read(nullptr, 24, fnOperate3);
-// if we use internal buffer, we have to do it like this
-//          Read(xxx, 2, [](xxx, 2){ Read(xxx, 16); });
-//          
-void NetIO::Read(uint8_t *pBuf, size_t nBufLen, std::function<void(const uint8_t *, size_t)> &&fnOperateBuf)
+bool NetIO::DoReadBody(size_t nMaskLen, size_t nBodyLen)
 {
-    // TODO: we need to report this error actually
-    assert(nBufLen);
+    auto fnReportCurrentMessage = [this](){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Current SMSGParam::HC      = %d", (int)(m_ReadHC));
+        g_Log->AddLog(LOGTYPE_WARNING, "                 ::Type    = %d", (int)(SMSGParam(m_ReadHC).Type()));
+        g_Log->AddLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", (int)(SMSGParam(m_ReadHC).MaskLen()));
+        g_Log->AddLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(SMSGParam(m_ReadHC).DataLen()));
+    };
 
-    bool bDelete = (pBuf ? false : true);
-    uint8_t *pNewBuf = (pBuf ? pBuf : (new uint8_t[nBufLen]));
-
-    auto fnOnReadBuf = [this, pNewBuf, nBufLen, bDelete, fnOperateBuf = std::move(fnOperateBuf)](std::error_code stEC, size_t){
+    auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code stEC){
         if(stEC){
-            Close();
-        }else{
-            // 1. invoke the callback
-            if(fnOperateBuf){
-                fnOperateBuf(pNewBuf, nBufLen);
-            }
+            // 1. close the asio socket
+            Shutdown();
 
-            // 2. delete the buffer if needed
-            if(bDelete){ delete [] pNewBuf; }
+            // 2. record the error code to log
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_WARNING, "Network error: %s", stEC.message().c_str());
+            fnReportCurrentMessage();
         }
     };
 
-    asio::async_read(m_Socket, asio::buffer(pNewBuf, nBufLen), fnOnReadBuf);
-}
-
-void NetIO::ReadHC(std::function<void(uint8_t)> &&fnProcessHC)
-{
-    auto fnOnReadHC = [this, fnProcessHC = std::move(fnProcessHC)](std::error_code stEC, size_t){
-        if(stEC){
-            Close();
-        }else{
-            if(fnProcessHC){
-                fnProcessHC(m_MsgHC);
-            }
-        }
+    auto fnReportInvalidArg = [nMaskLen, nBodyLen, fnReportCurrentMessage]()
+    {
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Invalid argument to DoReadBody(MaskLen = %d, BodyLen = %d)", (int)(nMaskLen), (int)(nBodyLen));
+        fnReportCurrentMessage();
     };
 
-    asio::async_read(m_Socket, asio::buffer(&m_MsgHC, 1), fnOnReadHC);
+    SMSGParam stSMSG(m_ReadHC);
+    switch(stSMSG.Type()){
+        case 0:
+            {
+                fnReportInvalidArg();
+                return false;
+            }
+        case 1:
+            {
+                if(!((nMaskLen == stSMSG.MaskLen()) && (nBodyLen <= stSMSG.DataLen()))){
+                    fnReportInvalidArg();
+                    return false;
+                }
+                m_ReadBuf.resize(nMaskLen + nBodyLen + 8 + stSMSG.DataLen());
+                break;
+            }
+        case 2:
+            {
+                if(nMaskLen || (nBodyLen != stSMSG.DataLen())){
+                    fnReportInvalidArg();
+                    return false;
+                }
+                m_ReadBuf.resize(stSMSG.DataLen());
+                break;
+            }
+        case 3:
+            {
+                if(nMaskLen || (nBodyLen > 0XFFFFFFFF)){
+                    fnReportInvalidArg();
+                    return false;
+                }
+                m_ReadBuf.resize(stSMSG.DataLen());
+                break;
+            }
+        default:
+            {
+                fnReportInvalidArg();
+                return false;
+            }
+    }
+
+    if(auto nDataLen = nMaskLen + nBodyLen){
+        auto fnDoneReadData = [this, nMaskLen, nBodyLen, stSMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t){
+            if(stEC){ fnOnNetError(stEC); }
+            else{
+                if(nMaskLen){
+                    auto nMaskCount = Compress::CountMask(&(m_ReadBuf[0]), nMaskLen);
+                    if(nMaskCount != (int)(nBodyLen)){
+                        // we get corrupted data
+                        // should we ignore current package or kill the process?
+
+                        // 1. keep a log for the corrupted message
+                        extern Log *g_Log;
+                        g_Log->AddLog(LOGTYPE_WARNING, "Corrupted data: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
+                        fnReportCurrentMessage();
+
+                        // 2. we ignore this message
+                        //    won't shutdown current session, just return?
+                        return;
+                    }
+
+                    if(nBodyLen <= stSMSG.DataLen()){
+                        auto pMaskData = &(m_ReadBuf[0]);
+                        auto pCompData = &(m_ReadBuf[nMaskLen]);
+                        auto pOrigData = &(m_ReadBuf[((nMaskLen + nBodyLen + 7) / 8) * 8]);
+                        if(Compress::Decode(pOrigData, stSMSG.DataLen(), pMaskData, pCompData) != (int)(nBodyLen)){
+                            extern Log *g_Log;
+                            g_Log->AddLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
+                            fnReportCurrentMessage();
+                            return;
+                        }
+
+                    }else{
+                        extern Log *g_Log;
+                        g_Log->AddLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", (int)(stSMSG.DataLen()), (int)(nBodyLen));
+                        fnReportCurrentMessage();
+                        return;
+                    }
+                }
+
+                // no matter decoding is needed or not
+                // we should call the completion handler here
+                if(m_OnReadDone){
+                    m_OnReadDone(m_ReadHC, &(m_ReadBuf[nMaskLen ? ((nMaskLen + nBodyLen + 7) / 8 * 8) : 0]), stSMSG.DataLen());
+                }
+            }
+        };
+        asio::async_read(m_Socket, asio::buffer(&(m_ReadBuf[0]), nDataLen), fnDoneReadData);
+        return true;
+    }
+
+    // I report error when read boyd at mode-0 
+    // but still if in mode3 and we're transfering empty message we can reach here
+    if(m_OnReadDone){ m_OnReadDone(m_ReadHC, nullptr, 0); }
+    return true;
 }
 
 void NetIO::DoSendNext()
 {
-    // 1. pop the old message, callback has been invoked
-    m_WQ.pop();
+    assert(!m_SendQueue.empty());
 
-    // 2. if there isn't any message, stop here
-    //    so when call Send(), we need to check whether it's empty
-    if(!m_WQ.empty()){ DoSendHC(); }
+    if(m_SendQueue.front().OnDone){
+        m_SendQueue.front().OnDone();
+    }
+
+    if(m_SendQueue.front().Data){
+        m_MemoryPN.Free(const_cast<uint8_t *>(m_SendQueue.front().Data));
+    }
+
+    m_SendQueue.pop();
+    if(!m_SendQueue.empty()){ DoSendHC(); }
 }
 
 void NetIO::DoSendBuf()
 {
-    // can't happen actually since DoSendBuf() called always by DoSendHC()
-    if(m_WQ.empty()){ return; }
-
-    if(std::get<1>(m_WQ.front()) && std::get<2>(m_WQ.front())){
+    assert(!m_SendQueue.empty());
+    if(m_SendQueue.front().Data && m_SendQueue.front().DataLen){
         auto fnDoSendValidBuf = [this](std::error_code stEC, size_t){
             if(stEC){
-                Close();
-            }else{
-                // 1. invoke the callback
-                if(std::get<3>(m_WQ.front())){
-                    std::get<3>(m_WQ.front())();
-                }
-                // 2. send the next one
-                DoSendNext();
-            }
-        };
+                // 1. close the asio socket
+                Shutdown();
 
-        asio::async_write(m_Socket, asio::buffer((std::get<1>(m_WQ.front())), std::get<2>(m_WQ.front())), fnDoSendValidBuf);
-    }else{
-        // 1. invoke the callback
-        if(std::get<3>(m_WQ.front())){
-            std::get<3>(m_WQ.front())();
-        }
-        // 2. send the next one
-        DoSendNext();
-    }
+                // 2. record the error code and exit
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_WARNING, "Network error: %s", stEC.message().c_str());
+            }else{ DoSendNext(); }
+        };
+        asio::async_write(m_Socket, asio::buffer(m_SendQueue.front().Data, m_SendQueue.front().DataLen), fnDoSendValidBuf);
+    }else{ DoSendNext(); }
 }
 
 void NetIO::DoSendHC()
 {
-    auto fnDoSendBuf = [this](std::error_code stEC, size_t){
-        if(stEC){
-            Close();
-        }else{
-            DoSendBuf();
-        }
-    };
+    asio::async_write(m_Socket, asio::buffer(&(m_SendQueue.front().HC), 1),
+        [this](std::error_code stEC, size_t){
+            if(stEC){
+                // 1. close the asio socket
+                Shutdown();
 
-    asio::async_write(m_Socket, asio::buffer(&(std::get<0>(m_WQ.front())), 1), fnDoSendBuf);
+                // 2. record the error code and exit
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_WARNING, "Network error: %s", stEC.message().c_str());
+            }else{ DoSendBuf(); }
+        }
+    );
 }
 
-void NetIO::InitIO(const char *szIP, const char * szPort, const std::function<void(uint8_t)> &fnOperateHC)
+bool NetIO::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnDone)
 {
-    // 1. push a connect request into the event queue
-    // 2. start the event loop
-    //
-    // TODO
-    //
-    // I have no idea of that
-    // what would happen if I post requests before m_IO.run() started???
-    // or even before asio::async_connect()?
-    //
-    auto stIterator = m_Resolver.resolve({szIP, szPort});
-    auto fnOnConnect = [this, fnOperateHC](std::error_code stEC, asio::ip::tcp::resolver::iterator){
-        if(stEC){
-            Close();
-        }else{
-            ReadHC(fnOperateHC);
-        }
+    uint8_t *pEncodeData = nullptr;
+    size_t   nEncodeSize = 0;
+
+    auto fnReportError = [nHC, pData, nDataLen](){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Invalid message to send: HC = %d, Data = %p, DataLen = %d", (int)(nHC), pData, (int)(nDataLen));
     };
 
-    // push a connection request
-    asio::async_connect(m_Socket, stIterator, fnOnConnect);
+    CMSGParam stCMSG(nHC);
+    switch(stCMSG.Type()){
+        case 0:
+            {
+                if(pData || nDataLen){
+                    fnReportError();
+                    return false;
+                }
+                break;
+            }
+        case 1:
+            {
+                if(!(pData && (stCMSG.DataLen() == nDataLen))){
+                    fnReportError();
+                    return false;
+                }
 
-    // now we need to keep polling it
+                auto nCountData = Compress::CountData(pData, nDataLen);
+                if((nCountData < 0) || (nCountData > (int)(stCMSG.DataLen()))){
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_WARNING, "Count failed: HC = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
+                    return false;
+                }else if(nCountData <= 254){
+                    pEncodeData = (uint8_t *)(m_MemoryPN.Get(stCMSG.MaskLen() + (size_t)(nCountData) + 1));
+                    if(Compress::Encode(pEncodeData + 1, pData, nDataLen) != nCountData){
+                        extern Log *g_Log;
+                        g_Log->AddLog(LOGTYPE_WARNING, "Count failed: HC = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
+
+                        m_MemoryPN.Free(pEncodeData);
+                        return false;
+                    }
+
+                    pEncodeData[0] = (uint8_t)(nCountData);
+                    nEncodeSize    = 1 + stCMSG.MaskLen() + (size_t)(nCountData);
+                }else if(nCountData <= (255 + 255)){
+                    pEncodeData = (uint8_t *)(m_MemoryPN.Get(stCMSG.MaskLen() + (size_t)(nCountData) + 2));
+                    if(Compress::Encode(pEncodeData + 2, pData, nDataLen) != nCountData){
+                        extern Log *g_Log;
+                        g_Log->AddLog(LOGTYPE_WARNING, "Count failed: HC = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
+
+                        m_MemoryPN.Free(pEncodeData);
+                        return false;
+                    }
+
+                    pEncodeData[0] = 255;
+                    pEncodeData[1] = (uint8_t)(nCountData - 255);
+                    nEncodeSize    = 2 + stCMSG.MaskLen() + (size_t)(nCountData);
+                }else{
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_WARNING, "Count overflows: HC = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
+
+                    m_MemoryPN.Free(pEncodeData);
+                    return false;
+                }
+            }
+        case 2:
+            {
+                if(!(pData && (nDataLen == stCMSG.DataLen()))){
+                    fnReportError();
+                    return false;
+                }
+
+                pEncodeData = (uint8_t *)(m_MemoryPN.Get(nDataLen));
+                nEncodeSize = nDataLen;
+                std::memcpy(pEncodeData, pData, nDataLen);
+                break;
+            }
+        case 3:
+            {
+                if(pData){
+                    if((nDataLen == 0) || (nDataLen > 0XFFFFFFFF)){
+                        fnReportError();
+                        return false;
+                    }
+                }else{
+                    if(nDataLen){
+                        fnReportError();
+                        return false;
+                    }
+                }
+
+                pEncodeData = (uint8_t *)(m_MemoryPN.Get(nDataLen + 4));
+                nEncodeSize = nDataLen + 4;
+
+                // 1. setup the message length encoding
+                {
+                    auto nDataLenU32 = (uint32_t)(nDataLen);
+                    std::memcpy(pEncodeData, &nDataLenU32, sizeof(nDataLenU32));
+                }
+
+                // 2. copy data if there is
+                if(pData){ std::memcpy(pEncodeData + 4, pData, nDataLen); }
+                break;
+            }
+        default:
+            {
+                fnReportError();
+                return false;
+            }
+    }
+
+    // post the handler to the main loop
+    // we'll change fnDone in lambda so have to make it mutable
+    m_IO.post([this, nHC, pEncodeData, nEncodeSize, fnDone = std::move(fnDone)]() mutable {
+        bool bEmpty = m_SendQueue.empty();
+        m_SendQueue.emplace(nHC, pEncodeData, nEncodeSize, std::move(fnDone));
+
+        //  if this is the only task
+        //  we should start the flush procedure
+        if(bEmpty){ DoSendHC(); }
+    });
+    return true;
+}
+
+bool NetIO::InitIO(const char *szIP, const char * szPort, const std::function<void(uint8_t, const uint8_t *, size_t)> &fnOnDone)
+{
+    // check arguments, should do further check
+    // like IP address is valid and Port > 1024 etc.
+    if(!(szIP && szPort)){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Invalid endpoint providen: (%s:%s)", szIP ? szIP : "", szPort ? szPort : "");
+        return false;
+    }
+
+    // 1. register the completion handler
+    m_OnReadDone = fnOnDone;
+    if(!m_OnReadDone){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_WARNING, "Register completion handler not executable");
+        return false;
+    }
+
+    // 2. try to connect to server
+    //    this just put an handler in the event pool, should pool to drive it
+    asio::async_connect(m_Socket, m_Resolver.resolve({szIP, szPort}),
+        [this](std::error_code stEC, asio::ip::tcp::resolver::iterator){
+            if(stEC){
+                // 1. close the asio socket
+                Shutdown();
+
+                // 2. record the error code and exit
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_WARNING, "Network error: %s", stEC.message().c_str());
+
+                // 3. the main loop can check socket::is_open()
+                //    to inform the user that current socket is working or run into errors
+            }else{ DoReadHC(); }
+        }
+    );
+
+    // 3. we won't call asio::io_service::run() here
+    //    instead we'll explicitly call asio::io_service::poll() in Game::MainLoop()
+    return true;
 }
 
 void NetIO::PollIO()
 {
     m_IO.poll();
+}
+
+void NetIO::StopIO()
+{
+    m_IO.post([this](){ Shutdown(); });
 }

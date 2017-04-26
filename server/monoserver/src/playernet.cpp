@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 03/22/2017 17:27:44
+ *  Last Modified: 04/24/2017 18:49:21
  *
  *    Description: how player respond for different net package
  *
@@ -22,9 +22,6 @@
 #include "message.hpp"
 #include "actorpod.hpp"
 #include "monoserver.hpp"
-void Player::Net_CM_MOTION(uint8_t, const uint8_t *, size_t)
-{
-}
 
 void Player::Net_CM_QUERYMONSTERGINFO(uint8_t, const uint8_t *pBuf, size_t)
 {

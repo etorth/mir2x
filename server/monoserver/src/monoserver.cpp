@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/17/2017 00:59:31
+ *  Last Modified: 04/21/2017 00:23:00
  *
  *    Description: 
  *
@@ -44,23 +44,9 @@ MonoServer::MonoServer()
     , m_ServiceCore(nullptr)
     , m_GlobalUID(1)
     , m_StartTime()
-    , m_NetMessageAttributeV()
     , m_MonsterGInfoRecord()
 {
-    // 1. initialization of time point
     m_StartTime = std::chrono::system_clock::now();
-
-    // 2. initialization of client message desc
-    m_NetMessageAttributeV[CM_NONE             ] = {CM_NONE,                                        0, true,  "CM_NONE"     };
-    m_NetMessageAttributeV[CM_OK               ] = {CM_OK,                                          0, true,  "CM_OK"       };
-    m_NetMessageAttributeV[CM_ERROR            ] = {CM_ERROR,                                       0, true,  "CM_ERROR"    };
-    m_NetMessageAttributeV[CM_WALK             ] = {CM_WALK,                                        0, true,  "CM_WALK"     };
-    m_NetMessageAttributeV[CM_PING             ] = {CM_PING,                                        0, true,  "CM_PING"     };
-    m_NetMessageAttributeV[CM_LOGIN            ] = {CM_LOGIN,                                       0, false, "CM_LOGIN"    };
-    m_NetMessageAttributeV[CM_BROADCAST        ] = {CM_BROADCAST,                                   0, true,  "CM_BROADCAST"};
-    m_NetMessageAttributeV[CM_MOTION           ] = {CM_MOTION,                                      0, true,  "CM_MOTION"   };
-
-    m_NetMessageAttributeV[CM_QUERYMONSTERGINFO] = {CM_QUERYMONSTERGINFO, sizeof(CMQueryMonsterGInfo), true,  "CM_QUERYMONSTERGINFO"};
 
     // 3. initialization of monster ginfo record
     m_MonsterGInfoRecord[ 1] = { 1, 0X0015, 0, 0, 0};

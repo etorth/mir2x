@@ -3,7 +3,7 @@
  *
  *       Filename: zumamonster.cpp
  *        Created: 04/08/2017 16:34:50
- *  Last Modified: 04/09/2017 00:49:04
+ *  Last Modified: 04/25/2017 01:22:31
  *
  *    Description: 
  *
@@ -56,7 +56,7 @@ ZumaMonster *ZumaMonster::Create(uint32_t nUID, uint32_t nMonsterID, ProcessRun 
                         }
                 }
 
-                if(pNew->ParseNewAction(rstAction)){
+                if(pNew->ParseNewAction(rstAction, true)){
                     return pNew;
                 }
 

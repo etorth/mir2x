@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/19/2017 23:13:23
+ *  Last Modified: 04/25/2017 00:24:17
  *
  *    Description: 
  *
@@ -364,7 +364,16 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             int nX = -1;
                             int nY = -1;
                             if(LocatePoint(rstEvent.button.x, rstEvent.button.y, &nX, &nY)){
-                                m_MyHero->RequestMove(nX, nY);
+                                ActionNode stAction;
+                                stAction.Action      = ACTION_MOVE;
+                                stAction.ActionParam = 0;
+                                stAction.Speed       = 1;
+                                stAction.Direction   = DIR_NONE;
+                                stAction.X           = m_MyHero->CurrMotion().EndX;
+                                stAction.Y           = m_MyHero->CurrMotion().EndY;
+                                stAction.EndX        = nX;
+                                stAction.EndY        = nY;
+                                m_MyHero->ParseNewAction(stAction, false);
                             }
 
                             break;

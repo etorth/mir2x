@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: message.hpp
- *        Created: 04/04/2016 21:43:17
- *  Last Modified: 04/24/2017 21:56:09
+ *       Filename: compress.hpp
+ *        Created: 04/23/2017 21:33:02
+ *  Last Modified: 04/24/2017 15:33:52
  *
  *    Description: 
  *
@@ -17,7 +17,16 @@
  *
  * =====================================================================================
  */
-#pragma once
 
-#include "clientmessage.hpp"
-#include "servermessage.hpp"
+#pragma once
+#include <cstdint>
+#include <cstddef>
+
+namespace Compress
+{
+    int CountMask(const uint8_t *, size_t);
+    int CountData(const uint8_t *, size_t);
+
+    int Encode(uint8_t *, const uint8_t *, size_t);
+    int Decode(uint8_t *, size_t, const uint8_t *, const uint8_t *);
+}

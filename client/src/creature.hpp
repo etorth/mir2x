@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 04/16/2017 00:26:09
+ *  Last Modified: 04/25/2017 00:24:56
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -169,6 +169,12 @@ class Creature
         int Y() { int nY; return Location(nullptr, &nY) ? nY : -1; }
 
     public:
+        const MotionNode &CurrMotion()
+        {
+            return m_CurrMotion;
+        }
+
+    public:
         virtual bool Location(int *, int *) = 0;
 
     public:
@@ -179,8 +185,8 @@ class Creature
         virtual size_t MotionFrameCount() = 0;
 
     public:
-        virtual bool ParseNewState (const StateNode &) = 0;
-        virtual bool ParseNewAction(const ActionNode&) = 0;
+        virtual bool ParseNewState (const  StateNode &, bool) = 0;
+        virtual bool ParseNewAction(const ActionNode &, bool) = 0;
 
     protected:
         virtual bool AdvanceMotionFrame(int);

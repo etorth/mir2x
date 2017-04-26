@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 04/01/2017 22:17:10
+ *  Last Modified: 04/26/2017 12:42:00
  *
  *    Description: 
  *
@@ -121,7 +121,7 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
             stAMACO.Common.MapID     = stAMLQDB.MapID;
             stAMACO.Common.MapX      = stAMLQDB.MapX;
             stAMACO.Common.MapY      = stAMLQDB.MapY;
-            stAMACO.Player.GUID      = stAMLQDB.GUID;
+            stAMACO.Player.DBID      = stAMLQDB.DBID;
             stAMACO.Player.Level     = stAMLQDB.Level;
             stAMACO.Player.JobID     = stAMLQDB.JobID;
             stAMACO.Player.Direction = stAMLQDB.Direction;

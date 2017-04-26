@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: hero.hpp
- *        Created: 9/3/2015 3:48:41 AM
- *  Last Modified: 04/19/2017 18:06:39
+ *        Created: 09/03/2015 03:48:41 AM
+ *  Last Modified: 04/25/2017 00:12:58
  *
  *    Description: 
  *
@@ -59,18 +59,8 @@ class Hero: public Creature
         bool UpdateMotionOnGeneralMotion(int);
 
     public:
-        bool UpdateMotionOnStand();
-        bool UpdateMotionOnWalk();
-        bool UpdateMotionOnAttack();
-        bool UpdateMotionOnUnderAttack();
-        bool UpdateMotionOnDie();
-
-    public:
-        bool OnReportState();
-        bool OnReportAction(int, int, int, int, int, int);
-
-        bool ParseNewState (const StateNode  &);
-        bool ParseNewAction(const ActionNode &);
+        bool ParseNewAction(const ActionNode &, bool);
+        bool ParseNewState (const  StateNode &, bool);
 
     public:
         int Type()

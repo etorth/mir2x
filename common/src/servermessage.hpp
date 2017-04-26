@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 04/19/2017 23:32:16
+ *  Last Modified: 04/24/2017 21:55:12
  *
  *    Description: net message used by client and mono-server
  *
@@ -20,35 +20,26 @@
 
 #pragma once
 #include <cstdint>
+#include <unordered_map>
+#include "messagebase.hpp"
 
 enum: uint8_t
 {
-    SM_NONE,
-    SM_OK,
-    SM_ERROR,
+    SM_NONE = 0,
     SM_PING,
     SM_LOGINOK,
     SM_LOGINFAIL,
-    SM_SERVERFULL,
-    SM_STATE,
     SM_ACTION,
     SM_MONSTERGINFO,
     SM_CORECORD,
 };
 
 #pragma pack(push, 1)
+typedef struct
+{
+    uint32_t Tick;
+}SMPing;
 
-// TODO
-// for this kind of package with str, enable compress
-// 1. send byte HC =  SMLoginOK
-// 2. send byte Compress flag:
-//      0: uncompressed
-//  not 0: compressed, then check the length
-//          0X80 & byte == 0: length = (0X7F & byte)
-//                      != 0: length = (length << 7) + (0X7F & byte)
-// 3. read message body
-//
-// currently just always use uncompressed package
 typedef struct
 {
     uint32_t UID;
@@ -66,8 +57,8 @@ typedef struct
 
 typedef struct
 {
-    uint32_t Tick;
-}SMPing;
+    uint32_t FailID;
+}SMLoginFail;
 
 typedef struct
 {
@@ -85,11 +76,11 @@ typedef struct
     uint16_t EndY;
 }SMAction;
 
-typedef struct{
+typedef struct
+{
     uint32_t MonsterID;
     uint32_t LookIDN;
     uint32_t LookID;
-    uint32_t R;
 }SMMonsterGInfo;
 
 typedef union
@@ -135,3 +126,33 @@ typedef union
     }NPC;
 }SMCORecord;
 #pragma pack(pop)
+
+class SMSGParam: public MessageBase
+{
+    public:
+        SMSGParam(uint8_t nHC)
+            : MessageBase(nHC)
+        {}
+
+    private:
+        const MessageAttribute &GetAttribute(uint8_t nHC) const
+        {
+            static const std::unordered_map<uint8_t, MessageAttribute> s_AttributeTable
+            {
+                //  0    :     empty
+                //  1    : not empty,     fixed size,     compressed
+                //  2    : not empty,     fixed size, not compressed
+                //  3    : not empty, not fixed size, not compressed
+
+                {SM_NONE,               {0,  0,                              "SM_NONE"                   }},
+                {SM_PING,               {2,  sizeof(SMPing),                 "SM_PING"                   }},
+                {SM_LOGINOK,            {1,  sizeof(SMLoginOK),              "SM_LOGINOK"                }},
+                {SM_LOGINFAIL,          {2,  sizeof(SMLoginFail),            "SM_LOGINFAIL"              }},
+                {SM_ACTION,             {1,  sizeof(SMAction),               "SM_ACTION"                 }},
+                {SM_MONSTERGINFO,       {1,  sizeof(SMMonsterGInfo),         "SM_MONSTERGINFO"           }},
+                {SM_CORECORD,           {1,  sizeof(SMCORecord),             "SM_CORECORD"               }},
+            };
+
+            return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(SM_NONE) : nHC);
+        }
+};

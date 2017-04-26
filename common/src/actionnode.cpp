@@ -3,7 +3,7 @@
  *
  *       Filename: actionnode.cpp
  *        Created: 04/07/2017 12:46:54
- *  Last Modified: 04/07/2017 13:41:57
+ *  Last Modified: 04/25/2017 01:13:13
  *
  *    Description: 
  *
@@ -17,6 +17,9 @@
  *
  * =====================================================================================
  */
+
+#include <cstdint>
+#include <cinttypes>
 
 #include "log.hpp"
 #include "actionnode.hpp"
@@ -33,4 +36,5 @@ void ActionNode::Print() const
     g_Log->AddLog(LOGTYPE_INFO, "          ::Y           = %d", Y);
     g_Log->AddLog(LOGTYPE_INFO, "          ::EndX        = %d", EndX);
     g_Log->AddLog(LOGTYPE_INFO, "          ::EndY        = %d", EndY);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::ID          = %" PRIu32, ID);
 }

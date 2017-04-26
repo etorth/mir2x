@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 04/13/2017 01:10:23
+ *  Last Modified: 04/26/2017 12:48:59
  *
  *    Description: 
  *
@@ -103,7 +103,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
                         this,
                         stAMACO.Common.MapX,
                         stAMACO.Common.MapY,
-                        0,
+                        DIR_UP,
                         STATE_INCARNATED);
                 m_ObjectV2D[stAMACO.Common.MapX][stAMACO.Common.MapY].push_back(pCO);
                 pCO->Activate();
@@ -112,14 +112,12 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
             }
         case TYPE_PLAYER:
             {
-                auto pCO = new Player(stAMACO.Player.GUID,
-                        stAMACO.Player.JobID,
-                        0,
+                auto pCO = new Player(stAMACO.Player.DBID,
                         m_ServiceCore,
                         this,
                         stAMACO.Common.MapX,
                         stAMACO.Common.MapY,
-                        0,
+                        stAMACO.Player.Direction,
                         STATE_INCARNATED);
                 m_ObjectV2D[stAMACO.Common.MapX][stAMACO.Common.MapY].push_back(pCO);
                 pCO->Activate();

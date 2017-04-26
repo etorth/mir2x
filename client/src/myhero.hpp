@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/20/2017 00:04:06
+ *  Last Modified: 04/25/2017 01:19:51
  *
  *    Description: 
  *
@@ -24,6 +24,12 @@
 
 class MyHero: public Hero
 {
+    private:
+        std::deque<ActionNode> m_ActionQueue;
+
+    private:
+        uint32_t m_ActionCounter;
+
     public:
         MyHero(uint32_t, uint32_t, bool, uint32_t, ProcessRun *, const ActionNode &);
 
@@ -38,4 +44,11 @@ class MyHero: public Hero
 
     public:
         bool MoveNextMotion();
+
+    public:
+        bool ParseNewState (const  StateNode &, bool);
+        bool ParseNewAction(const ActionNode &, bool);
+
+    public:
+        bool ParseActionQueue();
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19 PM
- *  Last Modified: 04/16/2017 00:26:47
+ *  Last Modified: 04/25/2017 00:21:05
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
@@ -75,8 +75,8 @@ class Monster: public Creature
     public:
         // this is the only function we have to take care of MOTION_NONE
         // for all rest part we always assume current object is in valid state
-        bool ParseNewState (const StateNode  &);
-        bool ParseNewAction(const ActionNode &);
+        bool ParseNewState (const  StateNode &, bool);
+        bool ParseNewAction(const ActionNode &, bool);
 
     public:
         bool ActionValid(const ActionNode &);

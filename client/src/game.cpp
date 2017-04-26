@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 04/19/2017 23:20:10
+ *  Last Modified: 04/26/2017 11:58:49
  *
  *    Description: public API for class game only
  *
@@ -144,4 +144,45 @@ void Game::MainLoop()
         double fExpectedTime = (1.0 + m_DelayTimeCQ.Size()) * 1000.0 / m_FPS - fTimeSum;
         EventDelay(fExpectedTime);
     }
+}
+
+void Game::InitASIO()
+{
+    // this function will run in another thread
+    // make sure there is no data race
+
+    // TODO
+    // may need lock here since g_XMLConf may used in main thread also
+    std::string szIP;
+    std::string szPort;
+
+    extern XMLConf *g_XMLConf;
+    auto p1 = g_XMLConf->GetXMLNode("/Root/Network/Server/IP"  );
+    auto p2 = g_XMLConf->GetXMLNode("/Root/Network/Server/Port");
+
+    if(p1 && p2 && p1->GetText() && p2->GetText()){
+        szIP   = p1->GetText();
+        szPort = p2->GetText();
+    }else{
+        szIP   = "127.0.0.1";
+        szPort = "5000";
+    }
+
+    m_NetIO.InitIO(szIP.c_str(), szPort.c_str(),
+        [this](uint8_t nHC, const uint8_t *pData, size_t nDataLen){
+            // core should handle on fully recieved message from the serer
+            // previously there are two steps (HC, Body) seperately handled, error-prone
+            OnServerMessage(nHC, pData, nDataLen);
+        }
+    );
+}
+
+void Game::PollASIO()
+{
+    m_NetIO.PollIO();
+}
+
+void Game::StopASIO()
+{
+    m_NetIO.StopIO();
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 04/09/2017 01:57:35
+ *  Last Modified: 04/26/2017 12:50:00
  *
  *    Description: 
  *
@@ -79,7 +79,7 @@ typedef union
     struct _Player
     {
         struct _Common _MemoryAlign;
-        uint32_t GUID;
+        uint32_t DBID;
         uint32_t JobID;
         int Level;
         int Direction;
@@ -95,7 +95,7 @@ typedef union
 
 typedef struct
 {
-    uint32_t GUID;
+    uint32_t DBID;
     uint32_t UID;
     uint32_t SID;
     uint32_t MapID;
@@ -137,7 +137,7 @@ typedef struct
 {
     uint32_t SessionID;
 
-    uint32_t GUID;
+    uint32_t DBID;
     uint32_t MapID;
     int      MapX;
     int      MapY;
@@ -149,8 +149,9 @@ typedef struct
 typedef struct
 {
     uint32_t SessionID;
-    uint8_t Type;
-    uint8_t *Data;
+    uint8_t  Type;
+
+    const uint8_t *Data;
     size_t DataLen;
 }AMNetPackage;
 

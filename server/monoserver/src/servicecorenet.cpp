@@ -3,7 +3,7 @@
  *
  *       Filename: servicecorenet.cpp
  *        Created: 05/20/2016 17:09:13
- *  Last Modified: 03/27/2017 16:57:09
+ *  Last Modified: 04/26/2017 12:40:30
  *
  *    Description: interaction btw NetPod and ServiceCore
  *
@@ -24,31 +24,27 @@
 
 void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pData, size_t)
 {
-    // message structure:  ID\0PWD\0, copy it out since pData is temperal
-    // TODO: client can put more info following ID/PWD and we will analyze it here
-    std::string szID   = (char *)pData;    pData += (1 + std::strlen((char *)pData));
-    std::string szPWD  = (char *)pData; // pData += (1 + std::strlen((char *)pData));
+    CMLogin stCML;
+    std::memcpy(&stCML, pData, sizeof(stCML));
 
     // don't block ServiceCore too much, so we put rest of it 
     // in the thread pool since it's db query and slow
-    //
-    // here we put pSession, but how about this session has been killed
-    // when this lambda invoked
-    auto fnDBOperation = [nSessionID, stSCAddr = GetAddress(), szID, szPWD](){
+
+    auto fnDBOperation = [nSessionID, stSCAddr = GetAddress(), stCML](){
         extern DBPodN *g_DBPodN;
         extern MonoServer *g_MonoServer;
 
-        g_MonoServer->AddLog(LOGTYPE_INFO, "Login requested: (%s:%s)", szID.c_str(), szPWD.c_str());
+        g_MonoServer->AddLog(LOGTYPE_INFO, "Login requested: (%s:%s)", stCML.ID, stCML.Password);
         auto pDBHDR = g_DBPodN->CreateDBHDR();
 
-        if(!pDBHDR->Execute("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", szID.c_str(), szPWD.c_str())){
+        if(!pDBHDR->Execute("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", stCML.ID, stCML.Password)){
             g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
             SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
 
         if(pDBHDR->RowCount() < 1){
-            g_MonoServer->AddLog(LOGTYPE_INFO, "can't find account: (%s:%s)", szID.c_str(), szPWD.c_str());
+            g_MonoServer->AddLog(LOGTYPE_INFO, "can't find account: (%s:%s)", stCML.ID, stCML.Password);
             SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
@@ -64,7 +60,7 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
         }
 
         if(pDBHDR->RowCount() < 1){
-            g_MonoServer->AddLog(LOGTYPE_INFO, "no guid created for this account: (%s:%s)", szID.c_str(), szPWD.c_str());
+            g_MonoServer->AddLog(LOGTYPE_INFO, "no guid created for this account: (%s:%s)", stCML.ID, stCML.Password);
             SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
@@ -83,7 +79,7 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
         pDBHDR->Fetch();
 
         // 2. needed information to create co
-        stAMLQDB.GUID  = std::atoi(pDBHDR->Get("fld_guid"));
+        stAMLQDB.DBID  = std::atoi(pDBHDR->Get("fld_guid"));
         stAMLQDB.MapID = std::atoi(pDBHDR->Get("fld_mapid"));
         stAMLQDB.MapX  = std::atoi(pDBHDR->Get("fld_mapx"));
         stAMLQDB.MapY  = std::atoi(pDBHDR->Get("fld_mapy"));

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/16/2017 00:54:21
+ *  Last Modified: 04/26/2017 12:52:04
  *
  *    Description: 
  *
@@ -25,8 +25,6 @@
 #include "protocoldef.hpp"
 
 Player::Player(uint32_t nDBID,
-        uint32_t        nJobID,
-        uint32_t        nSessionID,
         ServiceCore    *pServiceCore,
         ServerMap      *pServerMap,
         int             nMapX,
@@ -35,9 +33,9 @@ Player::Player(uint32_t nDBID,
         uint8_t         nLifeState)
     : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
     , m_DBID(nDBID)
-    , m_JobID(nJobID)
-    , m_SessionID(nSessionID)
-    , m_Level(0)
+    , m_JobID(0)        // will provide after bind
+    , m_SessionID(0)    // provide by bind
+    , m_Level(0)        // after bind
 {
     m_StateHook.Install("CheckTime", [this](){ For_CheckTime(); return false; });
 
@@ -131,7 +129,6 @@ int Player::Range(uint8_t)
 void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
-        case CM_MOTION:            Net_CM_MOTION(nType, pData, nDataLen);            break;
         case CM_QUERYMONSTERGINFO: Net_CM_QUERYMONSTERGINFO(nType, pData, nDataLen); break;
 
         default: break;

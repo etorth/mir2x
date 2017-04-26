@@ -46,3 +46,10 @@ General rules for functions:
 3. never give assumption for argument;
 4. try best to make each memeber function self-contained to avoid first-half / second-half splitted functions;
 
+General rules for classes:
+
+1. an object should be in legal state when created, by factory method or constructor;
+2. an object should stay valid if no input provided;
+3. put strict parameters check when provide input to objects, and reject immedately if not valid;
+4. avoid to do state validation outside an object;
+5. external call of member function should never break current object, keep log instead;

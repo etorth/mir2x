@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 04/15/2017 16:51:51
+ *  Last Modified: 04/26/2017 12:51:20
  *
  *    Description: 
  *
@@ -68,8 +68,6 @@ class Player: public CharObject
 
     public:
         Player(uint32_t,                // GUID
-                uint32_t,               // JobID
-                uint32_t,               // SessionID
                 ServiceCore *,          //
                 ServerMap *,            //
                 int,                    // map x
@@ -126,7 +124,6 @@ class Player: public CharObject
         void On_MPK_BINDSESSION(const MessagePack &, const Theron::Address &);
 
     private:
-        void Net_CM_MOTION(uint8_t, const uint8_t *, size_t);
         void Net_CM_QUERYMONSTERGINFO(uint8_t, const uint8_t *, size_t);
 
     private:

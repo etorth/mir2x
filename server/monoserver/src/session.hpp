@@ -3,21 +3,15 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 04/19/2017 23:39:57
+ *  Last Modified: 04/24/2017 18:37:56
  *
- *    Description: TODO & TBD
- *                 I have a decision, now class session *only* communicate with actor
- *                 advantages of it:
- *                 1. no need to assign new handler, since it's fixed
- *                 2. we only need to assign a new actor address when logic changes
- *                 3. every time when Session informs Actor, it comes with an fully
- *                    reveived message, not just an header code or something
+ *    Description: actor <-> session <--- network ---> client
+ *                 1. each session binds to an actor
+ *                 2. session send AMNetPackage to actor by Forward()
  *
- *                 disadvantages:
- *                 1. now we need MessageSize(MessageHC) and MessageFixedSize(MessageHC)
- *                    to take care of the message structure, in other word, the logic of
- *                    messge structure now coupling with logic of session
- *                 2. all buffers can only be assigned by g_MemoryChunkPN
+ *                 requirements:
+ *                 1. session only sends fully received messages to actors
+ *                 2. AMNetPackage contains a buffer allocated by g_MemoryPN
  *
  *        Version: 1.0
  *       Revision: none
@@ -41,11 +35,22 @@
 
 #include "syncdriver.hpp"
 
-class SessionHub;
 class Session: public SyncDriver
 {
     private:
-        using SendTaskDesc = std::tuple<uint8_t, const uint8_t *, size_t, std::function<void()>>;
+        struct SendTask
+        {
+            uint8_t HC;
+
+            const uint8_t *Data;
+            size_t         DataLen;
+
+            std::function<void()> OnDone;
+
+            // there are argument check when constructing SendTask
+            // so put the implementation of the constructor in session.cpp
+            SendTask(uint8_t, const uint8_t *, size_t, std::function<void()> &&);
+        };
 
     private:
         const uint32_t m_ID;
@@ -56,7 +61,8 @@ class Session: public SyncDriver
         const uint32_t        m_Port;
 
     private:
-        uint8_t         m_MessageHC;
+        uint8_t         m_ReadHC;
+        uint8_t         m_ReadLen[4];
         uint32_t        m_BodyLen;
         uint32_t        m_Delay;
         Theron::Address m_BindAddress;
@@ -71,10 +77,10 @@ class Session: public SyncDriver
         std::mutex m_NextQLock;
 
     private:
-        std::queue<SendTaskDesc>  m_SendQBuf0;
-        std::queue<SendTaskDesc>  m_SendQBuf1;
-        std::queue<SendTaskDesc> *m_CurrSendQ;
-        std::queue<SendTaskDesc> *m_NextSendQ;
+        std::queue<SendTask>  m_SendQBuf0;
+        std::queue<SendTask>  m_SendQBuf1;
+        std::queue<SendTask> *m_CurrSendQ;
+        std::queue<SendTask> *m_NextSendQ;
 
     public:
         Session(uint32_t, asio::ip::tcp::socket);
@@ -82,83 +88,75 @@ class Session: public SyncDriver
 
     public:
         // family of send facilities
-        // Session class won't maintain the validation of pData!
+        // Session class accepts buffer and make a copy of it internally
+        // Session class will do compression if needed based on message header code
 
         // send with a r-ref callback, this is the base of all send function
         // current implementation is based on double-queue method
-        // one queue (Q1)is used for store new packages in parallel
+        // one queue (Q1) is used for store new packages in parallel
         // the other (Q2) queue is used to send all packages in ASIO main loop
         //
         // then Q1 needs to be protected from data race
         // but for Q2 since it's only used in ASIO main loop, we don't need to protect it
         //
         // idea from: https://stackoverflow.com/questions/4029448/thread-safety-for-stl-queue
-        void Send(uint8_t nMsgHC, const uint8_t *pData, size_t nLen, std::function<void()> &&fnDone)
-        {
-            // 1. push packages to the pending queue
-            {
-                std::lock_guard<std::mutex> stLockGuard(m_NextQLock);
-                m_NextSendQ->emplace(nMsgHC, pData, nLen, std::move(fnDone));
-            }
+       bool Send(uint8_t nHC, const uint8_t *pData, size_t nLen, std::function<void()> &&fnDone);
 
-            // 2. flush pending packages
-            //    FlushSendQ() just post a handler to asio main loop
-            FlushSendQ();
-        }
-
+    public:
         // send with a const-ref callback
-        void Send(uint8_t nMsgHC, const uint8_t *pData, size_t nLen, const std::function<void()> &fnDone)
+        bool Send(uint8_t nHC, const uint8_t *pData, size_t nLen, const std::function<void()> &fnDone)
         {
-            Send(nMsgHC, pData, nLen, std::function<void()>(fnDone));
+            return Send(nHC, pData, nLen, std::function<void()>(fnDone));
         }
 
         // send without a callback
-        void Send(uint8_t nMsgHC, const uint8_t *pData, size_t nLen)
+        bool Send(uint8_t nHC, const uint8_t *pData, size_t nLen)
         {
-            Send(nMsgHC, pData, nLen, std::function<void()>());
+            return Send(nHC, pData, nLen, std::function<void()>());
         }
 
         // send a message header code without a body
-        void Send(uint8_t nMsgHC, std::function<void()> &&fnDone)
+        bool Send(uint8_t nHC, std::function<void()> &&fnDone)
         {
             // ``r-ref itself is a l-ref", finally I understand it here
-            Send(nMsgHC, nullptr, 0, std::move(fnDone));
+            return Send(nHC, nullptr, 0, std::move(fnDone));
         }
 
         // send a message header code without a body
-        void Send(uint8_t nMsgHC, const std::function<void()> &fnDone)
+        bool Send(uint8_t nHC, const std::function<void()> &fnDone)
         {
-            Send(nMsgHC, nullptr, 0, std::function<void()>(fnDone));
+            return Send(nHC, nullptr, 0, std::function<void()>(fnDone));
         }
 
         // send a strcutre
-        template<typename T> void Send(uint8_t nMsgHC, const T &stMsgT, const std::function<void()> &fnDone)
+        template<typename T> bool Send(uint8_t nHC, const T &stMsgT, const std::function<void()> &fnDone)
         {
-            Send(nMsgHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT), fnDone);
+            return Send(nHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT), fnDone);
         }
 
         // send a strcutre
-        template<typename T> void Send(uint8_t nMsgHC, const T &stMsgT, std::function<void()> &&fnDone)
+        template<typename T> bool Send(uint8_t nHC, const T &stMsgT, std::function<void()> &&fnDone)
         {
-            Send(nMsgHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT), std::move(fnDone));
+            return Send(nHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT), std::move(fnDone));
         }
 
         // send a strcutre
-        template<typename T> void Send(uint8_t nMsgHC, const T &stMsgT)
+        template<typename T> bool Send(uint8_t nHC, const T &stMsgT)
         {
-            Send(nMsgHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT));
+            return Send(nHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT));
         }
 
     private:
         void DoReadHC();
-        void DoReadBody(size_t);
+        bool DoReadBody(size_t, size_t);
 
+    private:
         void DoSendHC();
         void DoSendBuf();
         void DoSendNext();
 
     private:
-        void FlushSendQ();
+        bool FlushSendQ();
 
     public:
         uint32_t ID() const
@@ -213,4 +211,7 @@ class Session: public SyncDriver
         {
             return m_BindAddress;
         }
+
+    public:
+        bool ForwardActorMessage(uint8_t, const uint8_t *, size_t);
 };

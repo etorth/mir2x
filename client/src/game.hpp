@@ -45,17 +45,18 @@ class Game
     public:
         void InitASIO();
         void PollASIO();
-
-        void RunASIO();
-        void OperateHC(uint8_t);
+        void StopASIO();
 
     private:
-        void Net_PING();
-        void Net_LOGINOK();
-        void Net_CORECORD();
-        void Net_LOGINFAIL();
-        void Net_ACTION();
-        void Net_MONSTERGINFO();
+        void OnServerMessage(uint8_t, const uint8_t *, size_t);
+
+    private:
+        void Net_PING           (const uint8_t *, size_t);
+        void Net_LOGINOK        (const uint8_t *, size_t);
+        void Net_CORECORD       (const uint8_t *, size_t);
+        void Net_LOGINFAIL      (const uint8_t *, size_t);
+        void Net_ACTION         (const uint8_t *, size_t);
+        void Net_MONSTERGINFO   (const uint8_t *, size_t);
 
     public:
         double GetTimeTick()
@@ -76,11 +77,6 @@ class Game
         }
 
     public:
-        void Read(size_t nLen, const std::function<void(const uint8_t *, size_t)> &fnOperate)
-        {
-            if(nLen){ m_NetIO.Read(nLen, fnOperate); }
-        }
-
         template<typename... U> void Send(U&&... u)
         {
             m_NetIO.Send(std::forward<U>(u)...);

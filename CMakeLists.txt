@@ -1,3 +1,21 @@
+#=======================================================================================
+#
+#        Filename: CMakeLists.txt
+#         Created: 05/03/2016 13:19:07
+#   Last Modified: 04/23/2017 21:52:21
+#
+#     Description: -fno-strict-aliasing
+#
+#         Version: 1.0
+#        Revision: none
+#        Compiler: cmake
+#
+#          Author: ANHONG
+#           Email: anhonghe@gmail.com
+#    Organization: USTC
+#
+#=======================================================================================
+
 PROJECT(MIR2X)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
@@ -23,6 +41,7 @@ IF(DEFINED MIR2X_DEBUG)
         SET(CMAKE_BUILD_TYPE "Debug")
         SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
         SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
+        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
         SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -fno-inline-functions")
         SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DMIR2X_DEBUG=${MIR2X_DEBUG}")
         SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werror")
@@ -35,7 +54,7 @@ IF(DEFINED MIR2X_DEBUG)
     ENDIF()
 ELSE()
     SET(CMAKE_BUILD_TYPE "Release")
-    SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
+    SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall -fno-strict-aliasing")
 ENDIF()
 
 # 3. set common / external source used in client, server, tools

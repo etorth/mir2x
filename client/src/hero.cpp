@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 04/19/2017 18:06:50
+ *  Last Modified: 04/26/2017 13:01:33
  *
  *    Description: 
  *
@@ -40,7 +40,7 @@ Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, Process
     m_CurrMotion.EndX      = rstAction.EndX;
     m_CurrMotion.EndY      = rstAction.EndY;
 
-    if(!ParseNewAction(rstAction)){
+    if(!ParseNewAction(rstAction, true)){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_FATAL, "Construct hero failed");
     }
@@ -234,14 +234,61 @@ bool Hero::MotionValid(const MotionNode &rstMotion)
     }
 }
 
-bool Hero::ParseNewState(const StateNode &)
+bool Hero::ParseNewState(const StateNode &, bool)
 {
     return true;
 }
 
-bool Hero::ParseNewAction(const ActionNode &)
+bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
 {
-    return true;
+#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
+    rstAction.Print();
+#endif
+    if(bRemote){
+        m_MotionQueue.clear();
+        if(ActionValid(rstAction)){
+            if(LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
+                if(!ParseMovePath(MOTION_WALK, 1, m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
+                    return false;
+                }
+            }
+
+            switch(rstAction.Action){
+                case ACTION_STAND:
+                    {
+                        m_MotionQueue.push_back({MOTION_STAND, rstAction.Direction, rstAction.X, rstAction.Y});
+                        break;
+                    }
+                case ACTION_MOVE:
+                    {
+                        m_MotionQueue.push_back({MOTION_WALK, rstAction.Direction, rstAction.Speed, rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY});
+                        break;
+                    }
+                case ACTION_ATTACK:
+                    {
+                        m_MotionQueue.push_back({MOTION_ATTACK, rstAction.Direction, rstAction.X, rstAction.Y});
+                        break;
+                    }
+                case ACTION_UNDERATTACK:
+                    {
+                        m_MotionQueue.push_back({MOTION_UNDERATTACK, rstAction.Direction, rstAction.X, rstAction.Y});
+                        break;
+                    }
+                case ACTION_DIE:
+                    {
+                        m_MotionQueue.push_back({MOTION_DIE, rstAction.Direction, rstAction.X, rstAction.Y});
+                        break;
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+
+            return MotionQueueValid();
+        }
+    }
+    return false;
 }
 
 bool Hero::Location(int *pX, int *pY)
@@ -303,6 +350,12 @@ bool Hero::ActionValid(const ActionNode &rstAction)
         case ACTION_MOVE:
             {
                 switch(rstAction.Direction){
+                    case DIR_NONE:
+                        {
+                            // for action move we shouldn't have direction
+                            // direction should be parsed in MotionNode
+                            return true;
+                        }
                     case DIR_UP:
                     case DIR_UPRIGHT:
                     case DIR_RIGHT:
@@ -311,10 +364,6 @@ bool Hero::ActionValid(const ActionNode &rstAction)
                     case DIR_DOWNLEFT:
                     case DIR_LEFT:
                     case DIR_UPLEFT:
-                        {
-                            return ((nDistance == 1) || (nDistance == 2)) ? true : false;
-                        }
-                    case DIR_NONE:
                     default:
                         {
                             return false;

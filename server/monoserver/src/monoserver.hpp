@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 04/13/2017 12:06:04
+ *  Last Modified: 04/21/2017 00:22:39
  *
  *    Description: 
  *
@@ -39,26 +39,6 @@ class ServiceCore;
 class MonoServer final
 {
     private:
-        typedef struct _NetMessageAttribute
-        {
-            uint8_t Type;
-
-            size_t Size;
-            bool FixedSize;
-            std::string Name;
-
-            _NetMessageAttribute(uint8_t nType = CM_NONE,
-                    size_t nSize = 0,
-                    bool bFixedSize = true,
-                    const std::string &szName = "CM_NONE")
-                : Type(nType)
-                , Size(nSize)
-                , FixedSize(bFixedSize)
-                , Name(szName)
-            {}
-        }NetMessageAttribute;
-
-    private:
         std::mutex m_LogLock;
         std::vector<char> m_LogBuf;
 
@@ -70,7 +50,6 @@ class MonoServer final
         std::chrono::time_point<std::chrono::system_clock> m_StartTime;
 
     private:
-        std::array<NetMessageAttribute, 256> m_NetMessageAttributeV;
         std::unordered_map<uint32_t, MonsterGInfoRecord> m_MonsterGInfoRecord;
 
     public:
@@ -85,22 +64,6 @@ class MonoServer final
             }
 
             return pGInfoFind->second;
-        }
-
-    public:
-        const char *MessageName(uint8_t nMessageID) const
-        {
-            return m_NetMessageAttributeV[nMessageID].Name.c_str();
-        }
-
-        size_t MessageSize(uint8_t nMessageID)
-        {
-            return m_NetMessageAttributeV[nMessageID].Size;
-        }
-
-        bool MessageFixedSize(uint8_t nMessageID)
-        {
-            return m_NetMessageAttributeV[nMessageID].FixedSize;
         }
 
     public:

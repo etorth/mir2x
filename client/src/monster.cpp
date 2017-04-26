@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 04/11/2017 11:59:40
+ *  Last Modified: 04/25/2017 01:21:25
  *
  *    Description: 
  *
@@ -98,7 +98,7 @@ size_t Monster::MotionFrameCount()
     return (GfxID(m_CurrMotion.Motion, m_CurrMotion.Direction) < 0) ? 0 : GetGInfoRecord(m_MonsterID).FrameCount(m_LookIDN, GfxID(m_CurrMotion.Motion, m_CurrMotion.Direction));
 }
 
-bool Monster::ParseNewAction(const ActionNode &rstAction)
+bool Monster::ParseNewAction(const ActionNode &rstAction, bool)
 {
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     rstAction.Print();
@@ -315,7 +315,7 @@ bool Monster::MotionValid(const MotionNode &rstMotion)
     }
 }
 
-bool Monster::ParseNewState(const StateNode &)
+bool Monster::ParseNewState(const StateNode &, bool)
 {
     return true;
 }

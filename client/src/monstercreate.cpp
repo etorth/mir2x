@@ -3,7 +3,7 @@
  *
  *       Filename: monstercreate.cpp
  *        Created: 04/08/2017 17:00:20
- *  Last Modified: 04/09/2017 01:36:41
+ *  Last Modified: 04/25/2017 01:21:56
  *
  *    Description: factory model for all monster
  *                 make this file stand alone since it will include all monster types
@@ -42,7 +42,7 @@ Monster *Monster::Create(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun, c
                 pNew->m_CurrMotion.EndX      = rstAction.EndX;
                 pNew->m_CurrMotion.EndY      = rstAction.EndY;
 
-                if(pNew->ParseNewAction(rstAction)){
+                if(pNew->ParseNewAction(rstAction, true)){
                     return pNew;
                 }
 

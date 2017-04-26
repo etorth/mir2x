@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 04/15/2017 16:54:14
+ *  Last Modified: 04/24/2017 18:50:26
  *
  *    Description: 
  *
@@ -71,7 +71,7 @@ void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address 
 
     if(stAMNP.Data){
         extern MemoryPN *g_MemoryPN;
-        g_MemoryPN->Free(stAMNP.Data);
+        g_MemoryPN->Free(const_cast<uint8_t *>(stAMNP.Data));
     }
 }
 

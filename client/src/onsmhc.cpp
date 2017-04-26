@@ -3,7 +3,7 @@
  *
  *       Filename: onsmhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 04/19/2017 23:35:04
+ *  Last Modified: 04/26/2017 12:05:19
  *
  *    Description: 
  *
@@ -23,78 +23,61 @@
 #include "message.hpp"
 #include "processrun.hpp"
 
-void Game::OperateHC(uint8_t nHC)
+void Game::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
-    switch(nHC){
-        case SM_PING:           Net_PING();         break;
-        case SM_LOGINOK:        Net_LOGINOK();      break;
-        case SM_CORECORD:       Net_CORECORD();     break;
-        case SM_LOGINFAIL:      Net_LOGINFAIL();    break;
-        case SM_ACTION:         Net_ACTION();       break;
-        case SM_MONSTERGINFO:   Net_MONSTERGINFO(); break;
-        default: break;
-    }
-
-    m_NetIO.ReadHC([this](uint8_t nHC){ OperateHC(nHC); });
+    // 1. update the time when last message received
     m_NetPackTick = GetTimeTick();
+
+    // 2. handle messages
+    switch(nHC){
+        case SM_PING:           Net_PING         (pData, nDataLen); break;
+        case SM_LOGINOK:        Net_LOGINOK      (pData, nDataLen); break;
+        case SM_CORECORD:       Net_CORECORD     (pData, nDataLen); break;
+        case SM_LOGINFAIL:      Net_LOGINFAIL    (pData, nDataLen); break;
+        case SM_ACTION:         Net_ACTION       (pData, nDataLen); break;
+        case SM_MONSTERGINFO:   Net_MONSTERGINFO (pData, nDataLen); break;
+        default:                                                    break;
+    }
 }
 
-void Game::Net_PING()
+void Game::Net_PING(const uint8_t *, size_t)
 {
-    auto fnDoPing = [this](const uint8_t *, size_t){};
-    Read(sizeof(SMPing), fnDoPing);
 }
 
-void Game::Net_LOGINOK()
+void Game::Net_LOGINOK(const uint8_t *pData, size_t nDataLen)
 {
-    auto fnDoLoginOK = [this](const uint8_t *pBuf, size_t nLen){
-        SwitchProcess(m_CurrentProcess->ID(), PROCESSID_RUN);
-        if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-            pRun->Net_LOGINOK(pBuf, nLen);
-        }else{
-            extern Log *g_Log;
-            g_Log->AddLog(LOGTYPE_INFO, "failed to jump into main loop");
-        }
-    };
-
-    Read(sizeof(SMLoginOK), fnDoLoginOK);
+    SwitchProcess(m_CurrentProcess->ID(), PROCESSID_RUN);
+    if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+        pRun->Net_LOGINOK(pData, nDataLen);
+    }else{
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_INFO, "failed to jump into main loop");
+    }
 }
 
-void Game::Net_LOGINFAIL()
+void Game::Net_LOGINFAIL(const uint8_t *pData, size_t)
 {
     extern Log *g_Log;
-    g_Log->AddLog(LOGTYPE_INFO, "login failed");
+    g_Log->AddLog(LOGTYPE_WARNING, "login failed: ID = %d", (int)(((SMLoginFail *)(pData))->FailID));
 }
 
-void Game::Net_ACTION()
+void Game::Net_ACTION(const uint8_t *pData, size_t nDataLen)
 {
-    auto fnAction = [this](const uint8_t *pBuf, size_t nLen){
-        if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-            pRun->Net_ACTION(pBuf, nLen);
-        }
-    };
-
-    Read(sizeof(SMAction), fnAction);
+    if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+        pRun->Net_ACTION(pData, nDataLen);
+    }
 }
 
-void Game::Net_MONSTERGINFO()
+void Game::Net_MONSTERGINFO(const uint8_t *pData, size_t nDataLen)
 {
-    auto fnOnGetMonsterGInfo = [this](const uint8_t *pBuf, size_t nLen){
-        if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-            pRun->Net_MONSTERGINFO(pBuf, nLen);
-        }
-    };
-
-    Read(sizeof(SMMonsterGInfo), fnOnGetMonsterGInfo);
+    if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+        pRun->Net_MONSTERGINFO(pData, nDataLen);
+    }
 }
 
-void Game::Net_CORECORD()
+void Game::Net_CORECORD(const uint8_t *pData, size_t nDataLen)
 {
-    auto fnOnGetCORecord = [this](const uint8_t *pBuf, size_t nLen){
-        if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-            pRun->Net_CORECORD(pBuf, nLen);
-        }
-    };
-
-    Read(sizeof(SMCORecord), fnOnGetCORecord);
+    if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+        pRun->Net_CORECORD(pData, nDataLen);
+    }
 }
