@@ -3,7 +3,7 @@
  *
  *       Filename: motionnode.hpp
  *        Created: 04/05/2017 12:38:46
- *  Last Modified: 04/20/2017 00:13:32
+ *  Last Modified: 04/26/2017 16:05:43
  *
  *    Description: 
  *
@@ -35,6 +35,8 @@ struct MotionNode
 
     int Frame;
 
+    uint32_t ID;
+
     MotionNode(int nMotion, int nDirection, int nSpeed, int nX, int nY, int nEndX, int nEndY)
         : Motion(nMotion)
         , Direction(nDirection)
@@ -44,6 +46,7 @@ struct MotionNode
         , EndX(nEndX)
         , EndY(nEndY)
         , Frame(0)
+        , ID(0)
     {}
 
     MotionNode(int nMotion, int nDirection, int nX, int nY)

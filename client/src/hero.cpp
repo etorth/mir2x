@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 04/26/2017 13:01:33
+ *  Last Modified: 04/26/2017 17:23:42
  *
  *    Description: 
  *
@@ -239,55 +239,71 @@ bool Hero::ParseNewState(const StateNode &, bool)
     return true;
 }
 
-bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
+bool Hero::ParseNewAction(const ActionNode &rstAction, bool)
 {
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     rstAction.Print();
 #endif
-    if(bRemote){
-        m_MotionQueue.clear();
-        if(ActionValid(rstAction)){
-            if(LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
-                if(!ParseMovePath(MOTION_WALK, 1, m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
-                    return false;
-                }
-            }
 
-            switch(rstAction.Action){
-                case ACTION_STAND:
-                    {
-                        m_MotionQueue.push_back({MOTION_STAND, rstAction.Direction, rstAction.X, rstAction.Y});
-                        break;
-                    }
-                case ACTION_MOVE:
-                    {
-                        m_MotionQueue.push_back({MOTION_WALK, rstAction.Direction, rstAction.Speed, rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY});
-                        break;
-                    }
-                case ACTION_ATTACK:
-                    {
-                        m_MotionQueue.push_back({MOTION_ATTACK, rstAction.Direction, rstAction.X, rstAction.Y});
-                        break;
-                    }
-                case ACTION_UNDERATTACK:
-                    {
-                        m_MotionQueue.push_back({MOTION_UNDERATTACK, rstAction.Direction, rstAction.X, rstAction.Y});
-                        break;
-                    }
-                case ACTION_DIE:
-                    {
-                        m_MotionQueue.push_back({MOTION_DIE, rstAction.Direction, rstAction.X, rstAction.Y});
-                        break;
-                    }
-                default:
-                    {
+    // currently we ignore the local or remote flag for Hero
+    // at it later if we support ACTION_PUSH which changes hero locations
+
+    // 1. clean current motion queue
+    //    any new action will erase all pending motions
+    m_MotionQueue.clear();
+
+    // 2. parse action into motions
+    //    and assign the ActionNode::ID -> MotionNode::ID
+    if(ActionValid(rstAction)){
+        if(LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
+            if(!ParseMovePath(MOTION_WALK, 1, m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
+                return false;
+            }
+        }
+
+        switch(rstAction.Action){
+            case ACTION_STAND:
+                {
+                    m_MotionQueue.push_back({MOTION_STAND, rstAction.Direction, rstAction.X, rstAction.Y});
+                    break;
+                }
+            case ACTION_MOVE:
+                {
+                    if(!ParseMovePath(MOTION_WALK, rstAction.Speed, rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY)){
+                        extern Log *g_Log;
+                        g_Log->AddLog(LOGTYPE_WARNING, "Parse ACTION_MOVE to MOTION_WALK failed");
+                        rstAction.Print();
+
                         return false;
                     }
-            }
-
-            return MotionQueueValid();
+                    break;
+                }
+            case ACTION_ATTACK:
+                {
+                    m_MotionQueue.push_back({MOTION_ATTACK, rstAction.Direction, rstAction.X, rstAction.Y});
+                    break;
+                }
+            case ACTION_UNDERATTACK:
+                {
+                    m_MotionQueue.push_back({MOTION_UNDERATTACK, rstAction.Direction, rstAction.X, rstAction.Y});
+                    break;
+                }
+            case ACTION_DIE:
+                {
+                    m_MotionQueue.push_back({MOTION_DIE, rstAction.Direction, rstAction.X, rstAction.Y});
+                    break;
+                }
+            default:
+                {
+                    return false;
+                }
         }
+
+        // assign motion ID from action ID
+        for(auto &rstMotion: m_MotionQueue){ rstMotion.ID = rstAction.ID; }
+        return MotionQueueValid();
     }
+
     return false;
 }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: netio.cpp
  *        Created: 06/29/2015 07:18:27 PM
- *  Last Modified: 04/26/2017 12:23:23
+ *  Last Modified: 04/26/2017 17:14:38
  *
  *    Description:
  *
@@ -481,6 +481,7 @@ bool NetIO::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::functi
                     m_MemoryPN.Free(pEncodeData);
                     return false;
                 }
+                break;
             }
         case 2:
             {

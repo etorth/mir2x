@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/26/2017 13:16:04
+ *  Last Modified: 04/26/2017 17:41:14
  *
  *    Description: 
  *
@@ -48,9 +48,7 @@ bool MyHero::Update()
                         if(m_ActionQueue.empty()){
                             return AdvanceMotionFrame(1);
                         }else{
-                            auto rstAction = m_ActionQueue.front();
-                            m_ActionQueue.pop_front();
-                            return ParseNewAction(rstAction, false);
+                            return ParseActionQueue();
                         }
                     }else{
                         // move to next motion will reset frame as 0
@@ -112,76 +110,28 @@ bool MyHero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
 {
     if(ActionValid(rstAction)){
         if(bRemote){
-            return Hero::ParseNewAction(rstAction, true);
+            if(rstAction.ID){
+                if(m_CurrMotion.ID >= rstAction.ID){
+                    return true;
+                }else{
+                    return Hero::ParseNewAction(rstAction, true);
+                }
+            }else{
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_WARNING, "Remote action with ID = %" PRIu32, rstAction.ID);
+                rstAction.Print();
+                return false;
+            }
         }
 
-        switch(rstAction.Action){
-            case ACTION_MOVE:
-                {
-                    int nX0 = rstAction.X;
-                    int nY0 = rstAction.Y;
-                    int nX1 = rstAction.EndX;
-                    int nY1 = rstAction.EndY;
-
-                    ClientPathFinder stPathFinder(true);
-                    if(stPathFinder.Search(nX0, nY0, nX1, nY1)){
-                        if(stPathFinder.GetSolutionStart()){
-                            if(auto pNode1 = stPathFinder.GetSolutionNext()){
-                                int nEndX = pNode1->X();
-                                int nEndY = pNode1->Y();
-                                switch(LDistance2(nX0, nY0, nEndX, nEndY)){
-                                    case 1:
-                                    case 2:
-                                        {
-                                            ActionNode stActionPart0 {
-                                                rstAction.Action,
-                                                rstAction.ActionParam,
-                                                rstAction.Speed,
-                                                DIR_NONE,
-                                                nX0,
-                                                nY0,
-                                                nEndX,
-                                                nEndY
-                                            };
-
-                                            ActionNode stActionPart1 {
-                                                rstAction.Action,
-                                                rstAction.ActionParam,
-                                                rstAction.Speed,
-                                                DIR_NONE,
-                                                nEndX,
-                                                nEndY,
-                                                nX1,
-                                                nY1
-                                            };
-
-                                            m_ActionQueue.push_back(stActionPart0);
-                                            m_ActionQueue.push_back(stActionPart1);
-                                            return true;
-                                        }
-                                    default:
-                                        {
-                                            extern Log *g_Log;
-                                            g_Log->AddLog(LOGTYPE_FATAL, "Invalid path node");
-                                            return false;
-                                        }
-                                }
-                            }
-                        }
-                    }
-
-                    // we failed to get a path to destination currently
-                    // just put the action in the action queue
-                    m_ActionQueue.push_back(rstAction);
-                    return true;
-                }
-            default:
-                {
-                    m_ActionQueue.push_back(rstAction);
-                    return true;
-                }
-        }
+        // OK it's a local action
+        // put it into the action queue for next update
+        m_ActionQueue.clear();
+        m_ActionQueue.push_back(rstAction);
+        return true;
     }
+
+    rstAction.Print();
     return false;
 }
 
@@ -196,32 +146,113 @@ bool MyHero::ParseActionQueue()
         return true;
     }
 
+    // all actions in action queue is local and un-verfified
+    // 1. decompose action into simple action if needed
+    // 2. send the simple action to server for verification
+    // 3. at the same time present the actions
+
     // 1. assign first pending action node an ID
-    m_ActionQueue.front().ID = (m_ActionCounter++);
+    //    then decompose current action with the same ID
+    if(m_ActionQueue.front().ID){
+    }else{
+        m_ActionQueue.front().ID = (m_ActionCounter++);
+    }
+
+    switch(m_ActionQueue.front().Action){
+        case ACTION_MOVE:
+            {
+                int nX0 = m_ActionQueue.front().X;
+                int nY0 = m_ActionQueue.front().Y;
+                int nX1 = m_ActionQueue.front().EndX;
+                int nY1 = m_ActionQueue.front().EndY;
+
+                if(LDistance2(nX0, nY0, nX1, nY1) > 2){
+                    ClientPathFinder stPathFinder(true);
+                    if(stPathFinder.Search(nX0, nY0, nX1, nY1)){
+                        if(stPathFinder.GetSolutionStart()){
+                            if(auto pNode1 = stPathFinder.GetSolutionNext()){
+                                int nEndX = pNode1->X();
+                                int nEndY = pNode1->Y();
+                                switch(LDistance2(nX0, nY0, nEndX, nEndY)){
+                                    case 1:
+                                    case 2:
+                                        {
+                                            ActionNode stActionPart0 {
+                                                m_ActionQueue.front().Action,
+                                                m_ActionQueue.front().ActionParam,
+                                                m_ActionQueue.front().Speed,
+                                                DIR_NONE,
+                                                nX0,
+                                                nY0,
+                                                nEndX,
+                                                nEndY
+                                            };
+
+                                            ActionNode stActionPart1 {
+                                                m_ActionQueue.front().Action,
+                                                m_ActionQueue.front().ActionParam,
+                                                m_ActionQueue.front().Speed,
+                                                DIR_NONE,
+                                                nEndX,
+                                                nEndY,
+                                                nX1,
+                                                nY1
+                                            };
+
+                                            stActionPart0.ID = m_ActionQueue.front().ID;
+                                            stActionPart1.ID = m_ActionQueue.front().ID;
+
+                                            m_ActionQueue.pop_front();
+                                            m_ActionQueue.push_front(stActionPart1);
+                                            m_ActionQueue.push_front(stActionPart0);
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            extern Log *g_Log;
+                                            g_Log->AddLog(LOGTYPE_WARNING, "Invalid path node");
+                                            return false;
+                                        }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 1. succefully decomposed
+                // 2. only single-hop and no decomposition needed
+                // 3. failed to get a path to destination currently
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    // pop if off to parse it
+    auto stAction = m_ActionQueue.front();
+    m_ActionQueue.pop_front();
 
     // 2. send this action to server for verification
     {
         CMAction stCMA;
-        stCMA.Action      = m_ActionQueue.front().Action;
-        stCMA.ActionParam = m_ActionQueue.front().ActionParam;
-        stCMA.Speed       = m_ActionQueue.front().Speed;
-        stCMA.Direction   = m_ActionQueue.front().Direction;
-        stCMA.X           = m_ActionQueue.front().X;
-        stCMA.Y           = m_ActionQueue.front().Y;
-        stCMA.EndX        = m_ActionQueue.front().EndX;
-        stCMA.EndY        = m_ActionQueue.front().EndY;
-        stCMA.ID          = m_ActionQueue.front().ID;
+        stCMA.Action      = stAction.Action;
+        stCMA.ActionParam = stAction.ActionParam;
+        stCMA.Speed       = stAction.Speed;
+        stCMA.Direction   = stAction.Direction;
+        stCMA.X           = stAction.X;
+        stCMA.Y           = stAction.Y;
+        stCMA.EndX        = stAction.EndX;
+        stCMA.EndY        = stAction.EndY;
+        stCMA.ID          = stAction.ID;
 
         extern Game *g_Game;
         g_Game->Send(CM_ACTION, (const uint8_t *)(&stCMA), sizeof(stCMA));
     }
 
-    // 3. parse local action to motion
+    // 3. present current *local* action
     //    we show the action without server verification
     //    later if server refused current action we'll do correction
-    {
-        auto stAction = m_ActionQueue.front();
-        m_ActionQueue.pop_front();
-        return ParseNewAction(stAction, false);
-    }
+    return Hero::ParseNewAction(stAction, false);
 }

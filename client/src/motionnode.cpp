@@ -3,7 +3,7 @@
  *
  *       Filename: motionnode.cpp
  *        Created: 04/05/2017 12:40:09
- *  Last Modified: 04/20/2017 00:12:53
+ *  Last Modified: 04/26/2017 16:49:34
  *
  *    Description: 
  *
@@ -17,6 +17,7 @@
  *
  * =====================================================================================
  */
+#include <cinttypes>
 #include "log.hpp"
 #include "motionnode.hpp"
 
@@ -31,4 +32,5 @@ void MotionNode::Print()
     g_Log->AddLog(LOGTYPE_INFO, "          ::Y         = %d", Y);
     g_Log->AddLog(LOGTYPE_INFO, "          ::EndX      = %d", EndX);
     g_Log->AddLog(LOGTYPE_INFO, "          ::EndY      = %d", EndY);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::ID        = %" PRIu32, ID);
 }
