@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/26/2017 17:41:14
+ *  Last Modified: 04/28/2017 02:08:15
  *
  *    Description: 
  *
@@ -216,12 +216,15 @@ bool MyHero::ParseActionQueue()
                                 }
                             }
                         }
+                    }else{
+                        // return and try next time
+                        // currently I can't find a way to do one-hop move
+                        return true;
                     }
                 }
 
                 // 1. succefully decomposed
                 // 2. only single-hop and no decomposition needed
-                // 3. failed to get a path to destination currently
                 break;
             }
         default:
@@ -247,8 +250,12 @@ bool MyHero::ParseActionQueue()
         stCMA.EndY        = stAction.EndY;
         stCMA.ID          = stAction.ID;
 
+        if(LDistance2(stAction.X, stAction.Y, stAction.EndX, stAction.EndY) > 2){
+            stAction.Print();
+        }
+
         extern Game *g_Game;
-        g_Game->Send(CM_ACTION, (const uint8_t *)(&stCMA), sizeof(stCMA));
+        g_Game->Send(CM_ACTION, stCMA);
     }
 
     // 3. present current *local* action
