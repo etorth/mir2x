@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/27/2017 17:33:01
+ *  Last Modified: 04/28/2017 00:40:48
  *
  *    Description: 
  *
@@ -37,7 +37,6 @@ Monster::Monster(uint32_t   nMonsterID,
         uint8_t             nLifeState)
     : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
     , m_MonsterID(nMonsterID)
-    , m_FreezeWalk(false)
 {
     ResetType(TYPE_CHAR, TYPE_MONSTER);
     ResetType(TYPE_MONSTER, TYPE_MONSTER);
@@ -48,7 +47,7 @@ Monster::Monster(uint32_t   nMonsterID,
 
 bool Monster::Update()
 {
-    if(!m_FreezeWalk){
+    if(CanMove()){
         // always try to move if possible
         {
             int nNextX = 0;

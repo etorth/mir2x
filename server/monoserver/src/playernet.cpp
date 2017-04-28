@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 04/27/2017 17:38:38
+ *  Last Modified: 04/28/2017 01:29:26
  *
  *    Description: how player respond for different net package
  *
@@ -44,19 +44,19 @@ void Player::Net_CM_QUERYMONSTERGINFO(uint8_t, const uint8_t *pBuf, size_t)
 
 void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
 {
-    SMAction stSMA;
-    std::memcpy(&stSMA, pBuf, sizeof(stSMA));
+    CMAction stCMA;
+    std::memcpy(&stCMA, pBuf, sizeof(stCMA));
 
     if(true
             && m_Map
-            && m_Map->ValidC(stSMA.X, stSMA.Y)
-            && m_Map->ValidC(stSMA.EndX, stSMA.EndY)){
-        switch((int)(stSMA.Action)){
+            && m_Map->ValidC(stCMA.X, stCMA.Y)
+            && m_Map->ValidC(stCMA.EndX, stCMA.EndY)){
+        switch((int)(stCMA.Action)){
             case ACTION_MOVE:
                 {
                     // server won't do any path finding
                     // client should sent action with only one-hop movement
-                    switch(LDistance2(stSMA.X, stSMA.Y, stSMA.EndX, stSMA.EndY)){
+                    switch(LDistance2(stCMA.X, stCMA.Y, stCMA.EndX, stCMA.EndY)){
                         case 1:
                         case 2:
                             {
@@ -65,17 +65,15 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                         default:
                             {
                                 extern MonoServer *g_MonoServer;
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid SMAction::UID         = %d", stSMA.UID);
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid SMAction::MapID       = %d", stSMA.MapID);
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid SMAction::Action      = %d", stSMA.Action);
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid SMAction::ActionParam = %d", stSMA.ActionParam);
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid SMAction::Speed       = %d", stSMA.Speed);
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid SMAction::Direction   = %d", stSMA.Direction);
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid SMAction::X           = %d", stSMA.X);
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid SMAction::Y           = %d", stSMA.Y);
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid SMAction::EndX        = %d", stSMA.EndX);
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid SMAction::EndY        = %d", stSMA.EndY);
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid SMAction::ID          = %" PRIu32, stSMA.ID);
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Action      = %d", (int)(stCMA.Action));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::ActionParam = %d", (int)(stCMA.ActionParam));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Speed       = %d", (int)(stCMA.Speed));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Direction   = %d", (int)(stCMA.Direction));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::X           = %d", (int)(stCMA.X));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Y           = %d", (int)(stCMA.Y));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndX        = %d", (int)(stCMA.EndX));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndY        = %d", (int)(stCMA.EndY));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::ID          = %d", (int)(stCMA.ID));
                                 return;
                             }
                     }
@@ -86,7 +84,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                     // 1. if apples, apply it without response, but dispatch it to neighbors
                     // 2. else send the pull back message
 
-                    switch(LDistance2(X(), Y(), (int)(stSMA.X), (int)(stSMA.Y))){
+                    switch(LDistance2(X(), Y(), (int)(stCMA.X), (int)(stCMA.Y))){
                         case 0:
                             {
                                 auto fnOnMoveOK = [](){
@@ -112,7 +110,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                                     extern NetPodN *g_NetPodN;
                                     g_NetPodN->Send(m_SessionID, SM_ACTION, stSMActionStand);
                                 };
-                                RequestMove((int)(stSMA.EndX), (int)(stSMA.EndY), fnOnMoveOK, fnOnMoveError);
+                                RequestMove((int)(stCMA.EndX), (int)(stCMA.EndY), fnOnMoveOK, fnOnMoveError);
                                 return;
                             }
                         case 1:
@@ -120,7 +118,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                             {
                                 // there is one hop delay, acceptable
                                 // try to do the one-hop and then try the client action if possible
-                                auto fnOnFirstMoveOK = [this, stSMA](){
+                                auto fnOnFirstMoveOK = [this, stCMA](){
                                     auto fnOnSecondMoveOK = [](){
                                         // do nothing
                                     };
@@ -144,7 +142,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                                         extern NetPodN *g_NetPodN;
                                         g_NetPodN->Send(m_SessionID, SM_ACTION, stSMActionStand);
                                     };
-                                    RequestMove((int)(stSMA.EndX), (int)(stSMA.EndY), fnOnSecondMoveOK, fnOnSecondMoveError);
+                                    RequestMove((int)(stCMA.EndX), (int)(stCMA.EndY), fnOnSecondMoveOK, fnOnSecondMoveError);
                                 };
 
                                 auto fnOnFirstMoveError = [this](){
@@ -165,7 +163,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                                     g_NetPodN->Send(m_SessionID, SM_ACTION, stSMActionStand);
                                 };
 
-                                RequestMove((int)(stSMA.X), (int)(stSMA.Y), fnOnFirstMoveOK, fnOnFirstMoveError);
+                                RequestMove((int)(stCMA.X), (int)(stCMA.Y), fnOnFirstMoveOK, fnOnFirstMoveError);
                                 return;
                             }
                         default:

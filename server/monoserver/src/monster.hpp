@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/27/2017 17:33:43
+ *  Last Modified: 04/28/2017 00:39:57
  *
  *    Description: 
  *
@@ -76,8 +76,7 @@ typedef struct stMONSTERRACEINFO
 class Monster: public CharObject
 {
     protected:
-        uint32_t    m_MonsterID;
-        bool        m_FreezeWalk;
+        const uint32_t m_MonsterID;
 
     public:
         Monster(uint32_t,               // monster id
