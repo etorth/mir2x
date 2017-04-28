@@ -2,7 +2,7 @@
 #
 #        Filename: CMakeLists.txt
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 04/23/2017 21:52:21
+#   Last Modified: 04/27/2017 23:25:00
 #
 #     Description: -fno-strict-aliasing
 #
@@ -40,9 +40,9 @@ IF(DEFINED MIR2X_DEBUG)
     IF(((MIR2X_DEBUG GREATER 0) OR (MIR2X_DEBUG EQUAL 0)) AND ((MIR2X_DEBUG LESS 10) OR (MIR2X_DEBUG EQUAL 10)))
         SET(CMAKE_BUILD_TYPE "Debug")
         SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
+        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
         SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
         SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
-        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -fno-inline-functions")
         SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DMIR2X_DEBUG=${MIR2X_DEBUG}")
         SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werror")
 

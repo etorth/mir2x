@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/26/2017 12:52:04
+ *  Last Modified: 04/27/2017 15:17:25
  *
  *    Description: 
  *
@@ -130,8 +130,8 @@ void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
         case CM_QUERYMONSTERGINFO: Net_CM_QUERYMONSTERGINFO(nType, pData, nDataLen); break;
-
-        default: break;
+        case CM_ACTION           : Net_CM_ACTION           (nType, pData, nDataLen); break;
+        default                  :                                                   break;
     }
 }
 
@@ -151,31 +151,29 @@ bool Player::Bind(uint32_t nSessionID)
 void Player::ReportCORecord(uint32_t nSessionID)
 {
     if(nSessionID){
-        extern MemoryPN *g_MemoryPN;
-        auto pMem = g_MemoryPN->Get<SMCORecord>();
+        SMCORecord stSMCOR;
 
-        pMem->Type = CREATURE_PLAYER;
+        stSMCOR.Type = CREATURE_PLAYER;
 
-        pMem->Common.UID       = UID();
-        pMem->Common.MapID     = MapID();
-        pMem->Common.X         = X();
-        pMem->Common.Y         = Y();
-        pMem->Common.EndX      = X();
-        pMem->Common.EndY      = Y();
-        pMem->Common.Direction = Direction();
-        pMem->Common.Speed     = Speed();
-        pMem->Common.Action    = ACTION_STAND;
+        stSMCOR.Common.UID       = UID();
+        stSMCOR.Common.MapID     = MapID();
+        stSMCOR.Common.X         = X();
+        stSMCOR.Common.Y         = Y();
+        stSMCOR.Common.EndX      = X();
+        stSMCOR.Common.EndY      = Y();
+        stSMCOR.Common.Direction = Direction();
+        stSMCOR.Common.Speed     = Speed();
+        stSMCOR.Common.Action    = ACTION_STAND;
 
-        pMem->Player.DBID      = m_DBID;
-        pMem->Player.JobID     = m_JobID;
-        pMem->Player.Level     = m_Level;
+        stSMCOR.Player.DBID      = m_DBID;
+        stSMCOR.Player.JobID     = m_JobID;
+        stSMCOR.Player.Level     = m_Level;
 
         extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(nSessionID, SM_CORECORD, (uint8_t *)pMem, sizeof(SMCORecord), [pMem](){ g_MemoryPN->Free(pMem); });
-        return;
+        g_NetPodN->Send(nSessionID, SM_CORECORD, stSMCOR);
+    }else{
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
+        g_MonoServer->Restart();
     }
-
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
-    g_MonoServer->Restart();
 }

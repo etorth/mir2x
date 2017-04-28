@@ -3,7 +3,7 @@
  *
  *       Filename: netio.cpp
  *        Created: 06/29/2015 07:18:27 PM
- *  Last Modified: 04/26/2017 17:14:38
+ *  Last Modified: 04/28/2017 00:18:43
  *
  *    Description:
  *
@@ -153,7 +153,7 @@ void NetIO::DoReadHC()
                     {
                         if(m_OnReadDone){ m_OnReadDone(m_ReadHC, nullptr, 0); }
                         DoReadHC();
-                        break;
+                        return;
                     }
                 case 1:
                     {
@@ -173,10 +173,7 @@ void NetIO::DoReadHC()
                                         // 3. we stop here
                                         //    should we have some method to save it?
                                         return;
-                                    }else{
-                                        DoReadBody(stSMSG.MaskLen(), m_ReadLen[0]);
-                                        DoReadHC();
-                                    }
+                                    }else{ DoReadBody(stSMSG.MaskLen(), m_ReadLen[0]); }
                                 }else{
                                     auto fnOnReadLen1 = [this, stSMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t){
                                         if(stEC){ fnOnNetError(stEC); }
@@ -196,10 +193,7 @@ void NetIO::DoReadHC()
                                                 // 3. we stop here
                                                 //    should we have some method to save it?
                                                 return;
-                                            }else{
-                                                DoReadBody(stSMSG.MaskLen(), nCompLen);
-                                                DoReadHC();
-                                            }
+                                            }else{ DoReadBody(stSMSG.MaskLen(), nCompLen); }
                                         }
                                     };
                                     asio::async_read(m_Socket, asio::buffer(m_ReadLen + 1, 1), fnOnReadLen1);
@@ -207,13 +201,12 @@ void NetIO::DoReadHC()
                             }
                         };
                         asio::async_read(m_Socket, asio::buffer(m_ReadLen, 1), fnOnReadLen0);
-                        break;
+                        return;
                     }
                 case 2:
                     {
                         DoReadBody(0, stSMSG.DataLen());
-                        DoReadHC();
-                        break;
+                        return;
                     }
                 case 3:
                     {
@@ -223,17 +216,16 @@ void NetIO::DoReadHC()
                                 uint32_t nDataLenU32 = 0;
                                 std::memcpy(&nDataLenU32, m_ReadLen, 4);
                                 DoReadBody(0, nDataLenU32);
-                                DoReadHC();
                             }
                         };
                         asio::async_read(m_Socket, asio::buffer(m_ReadLen, 4), fnOnReadLen);
-                        break;
+                        return;
                     }
                 default:
                     {
                         Shutdown();
                         fnReportCurrentMessage();
-                        break;
+                        return;
                     }
             }
         }
@@ -341,7 +333,6 @@ bool NetIO::DoReadBody(size_t nMaskLen, size_t nBodyLen)
                             fnReportCurrentMessage();
                             return;
                         }
-
                     }else{
                         extern Log *g_Log;
                         g_Log->AddLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", (int)(stSMSG.DataLen()), (int)(nBodyLen));
@@ -352,9 +343,14 @@ bool NetIO::DoReadBody(size_t nMaskLen, size_t nBodyLen)
 
                 // no matter decoding is needed or not
                 // we should call the completion handler here
+
+                // 1. call completion on decompressed data
                 if(m_OnReadDone){
-                    m_OnReadDone(m_ReadHC, &(m_ReadBuf[nMaskLen ? ((nMaskLen + nBodyLen + 7) / 8 * 8) : 0]), stSMSG.DataLen());
+                    m_OnReadDone(m_ReadHC, &(m_ReadBuf[nMaskLen ? ((nMaskLen + nBodyLen + 7) / 8 * 8) : 0]), nMaskLen ? stSMSG.DataLen() : nBodyLen);
                 }
+
+                // 2. read next DoReadHC()
+                DoReadHC();
             }
         };
         asio::async_read(m_Socket, asio::buffer(&(m_ReadBuf[0]), nDataLen), fnDoneReadData);
@@ -364,6 +360,7 @@ bool NetIO::DoReadBody(size_t nMaskLen, size_t nBodyLen)
     // I report error when read boyd at mode-0 
     // but still if in mode3 and we're transfering empty message we can reach here
     if(m_OnReadDone){ m_OnReadDone(m_ReadHC, nullptr, 0); }
+    DoReadHC();
     return true;
 }
 
@@ -574,6 +571,9 @@ bool NetIO::InitIO(const char *szIP, const char * szPort, const std::function<vo
 
                 // 3. the main loop can check socket::is_open()
                 //    to inform the user that current socket is working or run into errors
+
+                // 4. else call DoReadHC() to get the first HC
+                //    all DoReadHC() should be called after the invocation of completion handler
             }else{ DoReadHC(); }
         }
     );

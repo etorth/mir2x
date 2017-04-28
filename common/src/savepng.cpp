@@ -3,7 +3,7 @@
  *
  *       Filename: savepng.cpp
  *        Created: 02/06/2016 04:25:40
- *  Last Modified: 02/14/2016 20:22:16
+ *  Last Modified: 04/27/2017 22:27:35
  *
  *    Description: 
  *
@@ -22,12 +22,16 @@
 
 bool SaveRGBABufferToPNG(const uint8_t *rgbaBuff, uint32_t nW, uint32_t nH, const char *fileFullName)
 {
-    png_structp   png_ptr      = nullptr;
-    png_infop     info_ptr     = nullptr;
     int           nPixelSize   = 4;
-    png_byte    **row_pointers = nullptr;
     FILE         *fp           = nullptr;
-    bool          status       = false;
+    png_byte    **row_pointers = nullptr;
+    png_infop     info_ptr     = nullptr;
+    png_structp   png_ptr      = nullptr;
+
+    // will assign bRet as true after setjmp
+    // bRet could be optimized into a register while setjmp only save current stack
+    // then when jump back bRet may lost or invalid
+    volatile bool bRet = false;
 
     if((fp = fopen(fileFullName, "wb")) == nullptr){
         goto SaveRGBABufferToPNG_fopen_failed;
@@ -43,12 +47,12 @@ bool SaveRGBABufferToPNG(const uint8_t *rgbaBuff, uint32_t nW, uint32_t nH, cons
         goto SaveRGBABufferToPNG_png_create_info_struct_failed;
     }
 
-    /* Set up error handling. */
+    // Set up error handling
     if(setjmp(png_jmpbuf(png_ptr))){
         goto SaveRGBABufferToPNG_png_failure;
     }
 
-    /* Set image attributes. */
+    // Set image attributes
     png_set_IHDR(png_ptr, info_ptr,
             nW, nH, 8,
             PNG_COLOR_TYPE_RGBA,
@@ -56,7 +60,7 @@ bool SaveRGBABufferToPNG(const uint8_t *rgbaBuff, uint32_t nW, uint32_t nH, cons
             PNG_COMPRESSION_TYPE_DEFAULT,
             PNG_FILTER_TYPE_DEFAULT);
 
-    /* Initialize rows of PNG. */
+    // Initialize rows of PNG
     row_pointers =(png_byte **)png_malloc(png_ptr, nH * sizeof(png_byte *));
     for(int y = 0; y < (int)nH; ++y){
         png_byte *row =(png_byte *)png_malloc(png_ptr, sizeof(uint8_t) * nW * nPixelSize);
@@ -64,13 +68,12 @@ bool SaveRGBABufferToPNG(const uint8_t *rgbaBuff, uint32_t nW, uint32_t nH, cons
         row_pointers[y] = row;
     }
 
-    /* Write the image data to "fp". */
-
+    // Write the image data to fp
     png_init_io(png_ptr, fp);
     png_set_rows(png_ptr, info_ptr, row_pointers);
     png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, nullptr);
 
-    status = true;
+    bRet = true;
 
     for(int y = 0; y < (int)nH; y++){
         png_free(png_ptr, row_pointers[y]);
@@ -84,5 +87,5 @@ SaveRGBABufferToPNG_png_create_info_struct_failed:
 SaveRGBABufferToPNG_png_create_write_struct_failed:
     fclose(fp);
 SaveRGBABufferToPNG_fopen_failed:
-    return status;
+    return bRet;
 }

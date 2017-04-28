@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 04/24/2017 18:50:26
+ *  Last Modified: 04/27/2017 15:20:10
  *
  *    Description: 
  *
@@ -39,21 +39,20 @@ void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address &)
 {
     Bind(*((uint32_t *)rstMPK.Data()));
+
+    SMLoginOK stSMLOK;
+    stSMLOK.UID       = UID();
+    stSMLOK.DBID      = DBID();
+    stSMLOK.MapID     = m_Map->ID();
+    stSMLOK.X         = m_CurrX;
+    stSMLOK.Y         = m_CurrY;
+    stSMLOK.Male      = true;
+    stSMLOK.Direction = m_Direction;
+    stSMLOK.JobID     = m_JobID;
+    stSMLOK.Level     = m_Level;
+
     extern NetPodN *g_NetPodN;
-    extern MemoryPN *g_MemoryPN;
-
-    auto pMem = g_MemoryPN->Get<SMLoginOK>();
-    pMem->UID       = UID();
-    pMem->DBID      = DBID();
-    pMem->MapID     = m_Map->ID();
-    pMem->X         = m_CurrX;
-    pMem->Y         = m_CurrY;
-    pMem->Male      = true;
-    pMem->Direction = m_Direction;
-    pMem->JobID     = m_JobID;
-    pMem->Level     = m_Level;
-
-    g_NetPodN->Send(m_SessionID, SM_LOGINOK, (uint8_t *)(pMem), sizeof(SMLoginOK), [pMem](){ g_MemoryPN->Free(pMem); });
+    g_NetPodN->Send(m_SessionID, SM_LOGINOK, stSMLOK);
 
     if(ActorPodValid() && m_Map->ActorPodValid()){
         AMPullCOInfo stAMPCOI;
@@ -81,24 +80,23 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
     if((std::abs(stAMA.X - m_CurrX) <= SYS_MAPVISIBLEW) && (std::abs(stAMA.Y - m_CurrY) <= SYS_MAPVISIBLEH)){
-        extern MemoryPN *g_MemoryPN;
-        auto pMem = g_MemoryPN->Get<SMAction>();
+        SMAction stSMA;
 
-        pMem->UID   = stAMA.UID;
-        pMem->MapID = stAMA.MapID;
+        stSMA.UID   = stAMA.UID;
+        stSMA.MapID = stAMA.MapID;
 
-        pMem->Action      = stAMA.Action;
-        pMem->ActionParam = stAMA.ActionParam;
-        pMem->Speed       = stAMA.Speed;
-        pMem->Direction   = stAMA.Direction;
+        stSMA.Action      = stAMA.Action;
+        stSMA.ActionParam = stAMA.ActionParam;
+        stSMA.Speed       = stAMA.Speed;
+        stSMA.Direction   = stAMA.Direction;
 
-        pMem->X    = stAMA.X;
-        pMem->Y    = stAMA.Y;
-        pMem->EndX = stAMA.EndX;
-        pMem->EndY = stAMA.EndY;
+        stSMA.X    = stAMA.X;
+        stSMA.Y    = stAMA.Y;
+        stSMA.EndX = stAMA.EndX;
+        stSMA.EndY = stAMA.EndY;
 
         extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(m_SessionID, SM_ACTION, (uint8_t *)pMem, sizeof(SMAction), [pMem](){ g_MemoryPN->Free(pMem); });
+        g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);
     }
 }
 

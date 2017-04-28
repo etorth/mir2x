@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 08/14/2016 11:22:31
+ *  Last Modified: 04/27/2017 16:53:36
  *
  *    Description: 
  *
@@ -26,6 +26,11 @@
 template<typename T> T LDistance2(T nfX, T nfY, T nfX1, T nfY1)
 {
     static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
+    if(std::is_unsigned<T>::value){
+        // for unsigned intergal and bool
+        if(nfX < nfX1){ std::swap(nfX, nfX1); }
+        if(nfY < nfY1){ std::swap(nfY, nfY1); }
+    }
     return (nfX - nfX1) * (nfX - nfX1) + (nfY - nfY1) * (nfY - nfY1);
 }
 
@@ -46,16 +51,18 @@ template<typename T> bool CircleRectangleOverlap(T nfCX, T nfCY, T nfCR, T nfX, 
     T nfRCX = nfX + nfW / 2;
     T nfRCY = nfY + nfH / 2;
 
-    T nfDX = std::abs(nfCX - nfRCX);
-    T nfDY = std::abs(nfCY - nfRCY);
+    // be careful for the unsigned issue
+    // std::abs(a - b) won't give you correct result if a < b and a, b are unisgned
+    T nfDX = (nfRCX >= nfCX) ? (nfRCX - nfCX) : (nfCX - nfRCX);
+    T nfDY = (nfRCY >= nfCY) ? (nfRCY - nfCY) : (nfCY - nfRCY);
 
-    if(nfDX > (nfW/2 + nfCR)){ return false; }
-    if(nfDY > (nfH/2 + nfCR)){ return false; }
+    if(nfDX > (nfW / 2 + nfCR)){ return false; }
+    if(nfDY > (nfH / 2 + nfCR)){ return false; }
 
-    if(nfDX <= (nfW/2)){ return true; } 
-    if(nfDY <= (nfH/2)){ return true; }
+    if(nfDX <= (nfW / 2)){ return true; } 
+    if(nfDY <= (nfH / 2)){ return true; }
 
-    return (nfDX - nfW / 2) * (nfDX - nfW / 2) + (nfDY - nfH / 2) * (nfDY - nfH / 2) <= nfCR * nfCR;
+    return LDistance2(nfDX, nfDY, nfW / 2, nfH / 2) <= nfCR * nfCR;
 }
 
 template<typename T> bool RectangleCircleOverlap(T nfX, T nfY, T nfW, T nfH, T nfCX, T nfCY, T nfCR)
@@ -78,23 +85,36 @@ template<typename T> bool PointInTriangle(T nfX, T nfY, T nfX1, T nfY1, T nfX2, 
 {
     static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
 
-    auto bSign = [](T p1X, T p1Y, T p2X, T p2Y, T p3X, T p3Y) -> T{
-        return (p1X - p3X) * (p2Y - p3Y) - (p2X - p3X) * (p1Y - p3Y);
-    };
+    bool b1 = false;
+    bool b2 = false;
+    bool b3 = false;
 
-    bool b1 = (bSign(nfX, nfY, nfX1, nfY1, nfX2, nfY2) <= (T)(0));
-    bool b2 = (bSign(nfX, nfY, nfX2, nfY2, nfX3, nfY3) <= (T)(0));
-    bool b3 = (bSign(nfX, nfY, nfX3, nfY3, nfX1, nfY1) <= (T)(0));
+    if(std::is_unsigned<T>::value){
+        // for unsigned we have to conver it to double since we use substraction
+        auto bSign = [](double p1X, double p1Y, double p2X, double p2Y, double p3X, double p3Y) -> double
+        {
+            return (p1X - p3X) * (p2Y - p3Y) - (p2X - p3X) * (p1Y - p3Y);
+        };
+
+        b1 = (bSign(nfX, nfY, nfX1, nfY1, nfX2, nfY2) <= 0.0);
+        b2 = (bSign(nfX, nfY, nfX2, nfY2, nfX3, nfY3) <= 0.0);
+        b3 = (bSign(nfX, nfY, nfX3, nfY3, nfX1, nfY1) <= 0.0);
+    }else{
+        auto bSign = [](T p1X, T p1Y, T p2X, T p2Y, T p3X, T p3Y) -> T{
+            return (p1X - p3X) * (p2Y - p3Y) - (p2X - p3X) * (p1Y - p3Y);
+        };
+
+        b1 = (bSign(nfX, nfY, nfX1, nfY1, nfX2, nfY2) <= (T)(0));
+        b2 = (bSign(nfX, nfY, nfX2, nfY2, nfX3, nfY3) <= (T)(0));
+        b3 = (bSign(nfX, nfY, nfX3, nfY3, nfX1, nfY1) <= (T)(0));
+    }
 
     return ((b1 == b2) && (b2 == b3));
 }
 
 template<typename T> bool PointInCircle(T nfX, T nfY, T nfCX, T nfCY, T nfR)
 {
-    static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
-    T dX = nfX - nfCX;
-    T dY = nfY - nfCY;
-    return dX * dX + dY * dY <= nfR * nfR;
+    return LDistance2(nfX, nfY, nfCX, nfCY) <= nfR * nfR;
 }
 
 template<typename T> bool RectangleOverlap(T nfX1, T nfY1, T nfW1, T nfH1, T nfX2, T nfY2, T nfW2, T nfH2)
@@ -134,6 +154,7 @@ template<typename T> bool RectangleOverlapRegion(T nfX1, T nfY1, T nfW1, T nfH1,
         // TODO
         //
         // we assume W, H are always non-negative
+        // then even if we have substraction here, it's guarenteed to be safe
 
         nfRX = std::max(nfX1, *nfX2);
         nfRY = std::max(nfY1, *nfY2);
@@ -189,20 +210,23 @@ template<typename T> bool CircleLineOverlap(T nfCX, T nfCY, T nfCR, T nfX0, T nf
             || PointInCircle(nfX0, nfY0, nfCX, nfCY, nfCR)
             || PointInCircle(nfX0, nfY0, nfCX, nfCY, nfCR)){ return true; }
 
-    T nfDX = nfX1 - nfX0;
-    T nfDY = nfY1 - nfY0;
+    if(std::is_unsigned<T>::value){
+        auto nfNX0 = (double)(nfX0) - (double)(nfCX);
+        auto nfNX1 = (double)(nfX1) - (double)(nfCX);
+        auto nfNY0 = (double)(nfY0) - (double)(nfCX);
+        auto nfNY1 = (double)(nfY1) - (double)(nfCX);
 
-    // I can't put assertion here since T could be double
-    // assert(nfDX && nfDY);
+        auto nfDD = nfNX0 * nfNY1 - nfNX1 * nfNY0;
+        return nfCR * nfCR * LDistance2(nfX0, nfY0, nfX1, nfY1) - nfDD * nfDD;
+    }else{
+        T nfNX0 = nfX0 - nfCX;
+        T nfNX1 = nfX1 - nfCX;
+        T nfNY0 = nfY0 - nfCX;
+        T nfNY1 = nfY1 - nfCX;
 
-    T nfNX0 = nfX0 - nfCX;
-    T nfNX1 = nfX1 - nfCX;
-    T nfNY0 = nfY0 - nfCX;
-    T nfNY1 = nfY1 - nfCX;
-
-    T nfDD = nfNX0 * nfNY1 - nfNX1 * nfNY0;
-
-    return nfCR * nfCR * (nfDX * nfDX + nfDY * nfDY) - nfDD * nfDD;
+        T nfDD = nfNX0 * nfNY1 - nfNX1 * nfNY0;
+        return nfCR * nfCR * LDistance2(nfX0, nfY0, nfX1, nfY1) - nfDD * nfDD;
+    }
 }
 
 // This function check whether the segment locates inside the circle, or intersects with the circle by one
@@ -231,14 +255,25 @@ template<typename T> bool CircleSegmentOverlap(T nfCX, T nfCY, T nfCR, T nfX0, T
     //      c. 0 <= (-b / 2a) <= 1 
     //    here a, b are already ok, so only for c
 
-    T nfNX0 = nfX0 - nfCX;
-    T nfNX1 = nfX1 - nfCX;
-    T nfNY0 = nfY0 - nfCX;
-    T nfNY1 = nfY1 - nfCX;
+    if(std::is_unsigned<T>::value){
+        auto nfNX0 = (double)(nfX0) - (double)(nfCX);
+        auto nfNX1 = (double)(nfX1) - (double)(nfCX);
+        auto nfNY0 = (double)(nfY0) - (double)(nfCX);
+        auto nfNY1 = (double)(nfY1) - (double)(nfCX);
 
-    return true
-        && (nfNX0 * nfNX0 - nfNX0 * nfNX1 + nfNY0 * nfNY0 - nfNY0 * nfNY1 >= 0)
-        && (nfNX1 * nfNX1 - nfNX0 * nfNX1 + nfNY1 * nfNY1 - nfNY0 * nfNY1 >= 0);
+        return true
+            && (nfNX0 * nfNX0 - nfNX0 * nfNX1 + nfNY0 * nfNY0 - nfNY0 * nfNY1 >= 0.0)
+            && (nfNX1 * nfNX1 - nfNX0 * nfNX1 + nfNY1 * nfNY1 - nfNY0 * nfNY1 >= 0.0);
+    }else{
+        T nfNX0 = nfX0 - nfCX;
+        T nfNX1 = nfX1 - nfCX;
+        T nfNY0 = nfY0 - nfCX;
+        T nfNY1 = nfY1 - nfCX;
+
+        return true
+            && (nfNX0 * nfNX0 - nfNX0 * nfNX1 + nfNY0 * nfNY0 - nfNY0 * nfNY1 >= 0)
+            && (nfNX1 * nfNX1 - nfNX0 * nfNX1 + nfNY1 * nfNY1 - nfNY0 * nfNY1 >= 0);
+    }
 }
 
 // determine whether a circle is overlapped with a triangle

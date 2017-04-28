@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 04/01/2017 00:48:23
+ *  Last Modified: 04/27/2017 17:33:43
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 #pragma once
+#include <functional>
 #include "charobject.hpp"
 
 enum MonsterType: uint32_t
@@ -90,11 +91,6 @@ class Monster: public CharObject
 
     public:
         void SearchViewRange();
-
-    protected:
-        bool RequestMove(int, int);
-        void RequestSpaceMove(const char *, int, int);
-
         bool Update();
 
     protected:

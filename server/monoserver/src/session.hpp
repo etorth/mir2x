@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 04/24/2017 18:37:56
+ *  Last Modified: 04/27/2017 15:09:17
  *
  *    Description: actor <-> session <--- network ---> client
  *                 1. each session binds to an actor
@@ -11,7 +11,8 @@
  *
  *                 requirements:
  *                 1. session only sends fully received messages to actors
- *                 2. AMNetPackage contains a buffer allocated by g_MemoryPN
+ *                 2. AMNetPackage contains a buffer allocated by g_MemoryPN to actors
+ *                 3. use internal memory pool for send messages
  *
  *        Version: 1.0
  *       Revision: none
@@ -34,8 +35,9 @@
 #include <Theron/Theron.h>
 
 #include "syncdriver.hpp"
+#include "memorychunkpn.hpp"
 
-class Session: public SyncDriver
+class Session final: public SyncDriver
 {
     private:
         struct SendTask
@@ -81,6 +83,12 @@ class Session: public SyncDriver
         std::queue<SendTask>  m_SendQBuf1;
         std::queue<SendTask> *m_CurrSendQ;
         std::queue<SendTask> *m_NextSendQ;
+
+    private:
+        // used for internal pending message storage
+        // support multi-thread since external thread call Send which refers to it
+        // then every session have an internal memory pool, too many?
+        MemoryChunkPN<64, 256, 2> m_MemoryPN;
 
     public:
         Session(uint32_t, asio::ip::tcp::socket);
@@ -212,6 +220,6 @@ class Session: public SyncDriver
             return m_BindAddress;
         }
 
-    public:
+    private:
         bool ForwardActorMessage(uint8_t, const uint8_t *, size_t);
 };

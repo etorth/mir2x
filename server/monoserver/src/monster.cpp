@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/16/2017 00:54:49
+ *  Last Modified: 04/27/2017 17:33:01
  *
  *    Description: 
  *
@@ -55,7 +55,7 @@ bool Monster::Update()
             int nNextY = 0;
             if(NextLocation(&nNextX, &nNextY, 1)){
                 if(m_Map->GroundValid(nNextX, nNextY)){
-                    return RequestMove(nNextX, nNextY);
+                    return RequestMove(nNextX, nNextY, [](){}, [](){});
                 }
             }
         }
@@ -102,122 +102,6 @@ bool Monster::Update()
     return true;
 }
 
-void Monster::RequestSpaceMove(const char *szAddr, int nX, int nY)
-{
-    AMTrySpaceMove stAMTSM;
-    std::memset(&stAMTSM, 0, sizeof(stAMTSM));
-
-    stAMTSM.UID = UID();
-    stAMTSM.X   = nY;
-    stAMTSM.Y   = nY;
-
-    stAMTSM.CurrX = X();
-    stAMTSM.CurrY = Y();
-    stAMTSM.MapID = m_Map->ID();
-
-    auto fnOP = [this, nX, nY](const MessagePack &rstMPK, const Theron::Address &rstAddr){
-        switch(rstMPK.Type()){
-            case MPK_OK:
-                {
-                    m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-                    m_CurrX = nX;
-                    m_CurrY = nY;
-
-                    m_FreezeWalk = false;
-                    break;
-                }
-            case MPK_ERROR:
-                {
-                    m_FreezeWalk = false;
-                    break;
-                }
-            default:
-                {
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported response type for MPK_TRYSPACEMOVE: %s", rstMPK.Name());
-                    g_MonoServer->Restart();
-                }
-        }
-    };
-
-    m_FreezeWalk = true;
-    m_ActorPod->Forward({MPK_TRYSPACEMOVE, stAMTSM}, Theron::Address(szAddr), fnOP);
-}
-
-bool Monster::RequestMove(int nX, int nY)
-{
-    if(m_FreezeWalk){
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-        {
-            extern Log *g_Log;
-            g_Log->AddLog(LOGTYPE_INFO, "shouldn't request move when walk freezed");
-        }
-#endif
-        return false;
-    }
-
-    AMTryMove stAMTM;
-    std::memset(&stAMTM, 0, sizeof(stAMTM));
-
-    stAMTM.This    = this;
-    stAMTM.UID     = UID();
-    stAMTM.X       = nX;
-    stAMTM.Y       = nY;
-    stAMTM.MapID   = m_Map->ID();
-    stAMTM.CurrX   = X();
-    stAMTM.CurrY   = Y();
-
-    auto fnOP = [this, nX, nY](const MessagePack &rstMPK, const Theron::Address &rstAddr){
-        switch(rstMPK.Type()){
-            case MPK_OK:
-                {
-                    static const int nDirV[][3] = {
-                        {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
-                        {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
-                        {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
-
-                    int nDX = nX - m_CurrX + 1;
-                    int nDY = nY - m_CurrY + 1;
-
-                    ActionNode stAction;
-                    stAction.Action      = ACTION_MOVE;
-                    stAction.ActionParam = 0;
-                    stAction.Speed       = 1;
-                    stAction.Direction   = nDirV[nDY][nDX];
-                    stAction.X           = m_CurrX;
-                    stAction.Y           = m_CurrY;
-                    stAction.EndX        = nX;
-                    stAction.EndY        = nY;
-
-                    m_CurrX = nX;
-                    m_CurrY = nY;
-                    m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-
-                    DispatchAction(stAction);
-                    m_FreezeWalk = false;
-                    break;
-                }
-            case MPK_ERROR:
-                {
-                    m_Direction = GetBack();
-                    DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y()});
-                    m_FreezeWalk = false;
-                    break;
-                }
-            default:
-                {
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_FATAL, "unsupported response type for MPK_TRYMOVE: %s", rstMPK.Name());
-                    g_MonoServer->Restart();
-                    break;
-                }
-        }
-    };
-
-    m_FreezeWalk = true;
-    return m_ActorPod->Forward({MPK_TRYMOVE, stAMTM}, m_Map->GetAddress(), fnOP);
-}
-
 void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddress)
 {
     switch(rstMPK.Type()){
@@ -248,40 +132,37 @@ void Monster::SearchViewRange()
 void Monster::ReportCORecord(uint32_t nSessionID)
 {
     if(nSessionID){
-        extern MemoryPN *g_MemoryPN;
-        auto pMem = (SMCORecord *)g_MemoryPN->Get(sizeof(SMCORecord));
-
+        SMCORecord stSMCOR;
         // TODO: don't use OBJECT_MONSTER, we need translation
         //       rule of communication, the sender is responsible to translate
 
         // 1. set type
-        pMem->Type = CREATURE_MONSTER;
+        stSMCOR.Type = CREATURE_MONSTER;
 
         // 2. set common info
-        pMem->Common.UID   = UID();
-        pMem->Common.MapID = MapID();
+        stSMCOR.Common.UID   = UID();
+        stSMCOR.Common.MapID = MapID();
 
-        pMem->Common.Action      = ACTION_STAND;
-        pMem->Common.ActionParam = 0;
-        pMem->Common.Speed       = 0;
-        pMem->Common.Direction   = Direction();
+        stSMCOR.Common.Action      = ACTION_STAND;
+        stSMCOR.Common.ActionParam = 0;
+        stSMCOR.Common.Speed       = 0;
+        stSMCOR.Common.Direction   = Direction();
 
-        pMem->Common.X    = X();
-        pMem->Common.Y    = Y();
-        pMem->Common.EndX = X();
-        pMem->Common.EndY = Y();
+        stSMCOR.Common.X    = X();
+        stSMCOR.Common.Y    = Y();
+        stSMCOR.Common.EndX = X();
+        stSMCOR.Common.EndY = Y();
 
         // 3. set specified info
-        pMem->Monster.MonsterID = m_MonsterID;
+        stSMCOR.Monster.MonsterID = m_MonsterID;
 
         extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(nSessionID, SM_CORECORD, (uint8_t *)pMem, sizeof(SMCORecord), [pMem](){ g_MemoryPN->Free(pMem); });
-        return;
+        g_NetPodN->Send(nSessionID, SM_CORECORD, stSMCOR);
+    }else{
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
+        g_MonoServer->Restart();
     }
-
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
-    g_MonoServer->Restart();
 }
 
 int Monster::Range(uint8_t)

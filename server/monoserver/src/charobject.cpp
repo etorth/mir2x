@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/16/2017 00:52:12
+ *  Last Modified: 04/27/2017 17:34:43
  *
  *    Description: 
  *
@@ -37,6 +37,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_CurrX(nMapX)
     , m_CurrY(nMapY)
     , m_Direction(nDirection)
+    , m_FreezeMove(false)
     , m_Ability()
     , m_WAbility()
     , m_AddAbility()
@@ -95,4 +96,78 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "can't dispatch action state");
     g_MonoServer->Restart();
+}
+
+bool CharObject::RequestMove(int nX, int nY, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
+{
+    if(CanMove()){
+        AMTryMove stAMTM;
+        std::memset(&stAMTM, 0, sizeof(stAMTM));
+
+        stAMTM.This    = this;
+        stAMTM.UID     = UID();
+        stAMTM.X       = nX;
+        stAMTM.Y       = nY;
+        stAMTM.MapID   = m_Map->ID();
+        stAMTM.CurrX   = X();
+        stAMTM.CurrY   = Y();
+
+        auto fnOP = [this, nX, nY, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK, const Theron::Address &rstAddr){
+            switch(rstMPK.Type()){
+                case MPK_OK:
+                    {
+                        static const int nDirV[][3] = {
+                            {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
+                            {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
+                            {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
+
+                        int nDX = nX - m_CurrX + 1;
+                        int nDY = nY - m_CurrY + 1;
+
+                        ActionNode stAction;
+                        stAction.Action      = ACTION_MOVE;
+                        stAction.ActionParam = 0;
+                        stAction.Speed       = 1;
+                        stAction.Direction   = nDirV[nDY][nDX];
+                        stAction.X           = m_CurrX;
+                        stAction.Y           = m_CurrY;
+                        stAction.EndX        = nX;
+                        stAction.EndY        = nY;
+
+                        m_CurrX = nX;
+                        m_CurrY = nY;
+                        m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
+
+                        DispatchAction(stAction);
+                        if(fnOnMoveOK){ fnOnMoveOK(); }
+                        m_FreezeMove = false;
+                        break;
+                    }
+                case MPK_ERROR:
+                    {
+                        m_Direction = GetBack();
+                        DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y()});
+                        if(fnOnMoveError){ fnOnMoveError(); }
+                        m_FreezeMove = false;
+                        break;
+                    }
+                default:
+                    {
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_FATAL, "unsupported response type for MPK_TRYMOVE: %s", rstMPK.Name());
+                        g_MonoServer->Restart();
+                        break;
+                    }
+            }
+        };
+
+        m_FreezeMove = true;
+        return m_ActorPod->Forward({MPK_TRYMOVE, stAMTM}, m_Map->GetAddress(), fnOP);
+    }
+    return false;
+}
+
+bool CharObject::CanMove()
+{
+    return !m_FreezeMove;
 }

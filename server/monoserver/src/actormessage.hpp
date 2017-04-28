@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 04/26/2017 12:50:00
+ *  Last Modified: 04/26/2017 23:05:13
  *
  *    Description: 
  *
@@ -185,6 +185,8 @@ typedef struct
     
     int EndX;
     int EndY;
+
+    uint32_t ID;
 }AMAction;
 
 typedef struct

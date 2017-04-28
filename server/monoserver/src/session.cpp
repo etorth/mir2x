@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 04/25/2017 18:45:07
+ *  Last Modified: 04/28/2017 00:16:45
  *
  *    Description: 
  *
@@ -79,7 +79,17 @@ Session::SendTask::SendTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, 
         case 3:
             {
                 // not empty, not fixed size and not compressed
-                if(!(Data && (DataLen >= 4))){ fnReportAndExit(); return; }
+                if(!(Data && (DataLen >= 4))){
+                    fnReportAndExit();
+                    return;
+                }else{
+                    uint32_t nDataLenU32 = 0;
+                    std::memcpy(&nDataLenU32, Data, 4);
+                    if(((size_t)(nDataLenU32) + 4) != DataLen){
+                        fnReportAndExit();
+                        return;
+                    }
+                }
                 break;
             }
         default:
@@ -106,6 +116,7 @@ Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
     , m_SendQBuf1()
     , m_CurrSendQ(&(m_SendQBuf0))
     , m_NextSendQ(&(m_SendQBuf1))
+    , m_MemoryPN()
 {}
 
 Session::~Session()
@@ -168,118 +179,127 @@ bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
 
 void Session::DoReadHC()
 {
-    auto fnDoneReadHC = [this](std::error_code stEC, size_t){
+    auto fnReportCurrentMessage = [this](){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Current CMSGParam::HC      = %d", (int)(m_ReadHC));
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::Type    = %d", (int)(CMSGParam(m_ReadHC).Type()));
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", (int)(CMSGParam(m_ReadHC).MaskLen()));
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(CMSGParam(m_ReadHC).DataLen()));
+    };
+
+    auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code stEC){
         if(stEC){
-            // 1. shutdown current connection
+            // 1. close the asio socket
             Shutdown();
 
-            // 2. report message and abort current process
+            // 2. record the error code to log
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_FATAL, "Network error: %s", stEC.message().c_str());
-            g_MonoServer->Restart();
-            return;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error: %s", stEC.message().c_str());
+            fnReportCurrentMessage();
         }
+    };
 
-        CMSGParam stCMSG(m_ReadHC);
-        switch(stCMSG.Type()){
-            case 0:
-                {
-                    ForwardActorMessage(m_ReadHC, nullptr, 0);
-                    DoReadHC();
-                    return;
-                }
-            case 1:
-                {
-                    // not empty, fixed size, compressed
-                    auto fnDoneReadLen0 = [this, stCMSG](std::error_code stEC, size_t){
-                        if(stEC){
-                            // 1. shutdown current connection
-                            Shutdown();
-
-                            // 2. report message and abort current process
-                            extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_FATAL, "Network error: %s", stEC.message().c_str());
-                            g_MonoServer->Restart();
-                            return;
-                        }
-
-                        if(m_ReadLen[0] != 255){
-                            DoReadBody(stCMSG.MaskLen(), m_ReadLen[0]);
-                            DoReadHC();
-                            return;
-                        }
-
-                        // oooops, bytes[0] is 255
-                        // we got a long message and need to read bytes[1]
-                        auto fnDoneReadLen1 = [this, stCMSG](std::error_code stEC, size_t){
-                            if(stEC){
-                                // 1. shutdown current connection
-                                Shutdown();
-
-                                // 2. report message and abort current process
-                                extern MonoServer *g_MonoServer;
-                                g_MonoServer->AddLog(LOGTYPE_FATAL, "Network error: %s", stEC.message().c_str());
-                                g_MonoServer->Restart();
-                                return;
-                            }
-
-                            // we won't check bytes[1] since it can take 0 ~ 255
-                            // and if more than 255 + 255 need to transfer, we shouldn't use this mode
-                            DoReadBody(stCMSG.MaskLen(), 255 + (size_t)(m_ReadLen[1]));
-                            DoReadHC();
-                        };
-                        asio::async_read(m_Socket, asio::buffer(m_ReadLen + 1, 1), fnDoneReadLen1);
-                    };
-                    asio::async_read(m_Socket, asio::buffer(m_ReadLen, 1), fnDoneReadLen0);
-                    return;
-                }
-            case 2:
-                {
-                    // not empty, fixed size, not compressed
-
-                    // it has no overhead, fast
-                    // this mode should be used for small messages
-                    DoReadBody(0, stCMSG.DataLen());
-                    DoReadHC();
-                    return;
-                }
-            case 3:
-                {
-                    // not empty, not fixed size, not compressed
-
-                    // directly read four bytes as length
-                    // this mode is designed for transfering big chunk
-                    // for even bigger chunk we should send more than one time
-
-                    // and if we want to send big chunk of compressed data
-                    // we should compress it by other method and send it via this channel
-                    auto fnDoneReadLen = [this, stCMSG](std::error_code stEC, size_t){
-                        if(stEC){
-                            // 1. shutdown current connection
-                            Shutdown();
-
-                            // 2. report message and abort current process
-                            extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_FATAL, "Network error: %s", stEC.message().c_str());
-                            g_MonoServer->Restart();
-                            return;
-                        }
-
-                        uint32_t nDataLenU32 = 0;
-                        std::memcpy(&nDataLenU32, m_ReadLen, 4);
-
-                        DoReadBody(0, (size_t)(nDataLenU32));
+    auto fnDoneReadHC = [this, fnOnNetError, fnReportCurrentMessage](std::error_code stEC, size_t){
+        if(stEC){ fnOnNetError(stEC); }
+        else{
+            CMSGParam stCMSG(m_ReadHC);
+            switch(stCMSG.Type()){
+                case 0:
+                    {
+                        ForwardActorMessage(m_ReadHC, nullptr, 0);
                         DoReadHC();
-                    };
-                    asio::async_read(m_Socket, asio::buffer(m_ReadLen, 4), fnDoneReadLen);
-                    return;
-                }
-            default:
-                {
-                    // impossible type
-                    // should abort at construction of CMSGParam
-                    return;
-                }
+                        return;
+                    }
+                case 1:
+                    {
+                        // not empty, fixed size, compressed
+                        auto fnDoneReadLen0 = [this, stCMSG, fnOnNetError, fnReportCurrentMessage](std::error_code stEC, size_t){
+                            if(stEC){ fnOnNetError(stEC); }
+                            else{
+                                if(m_ReadLen[0] != 255){
+                                    if((size_t)(m_ReadLen[0]) > stCMSG.DataLen()){
+                                        // 1. close the asio socket
+                                        Shutdown();
+
+                                        // 2. record the error code but not exit?
+                                        extern MonoServer *g_MonoServer;
+                                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", (int)(m_ReadLen[0]));
+                                        fnReportCurrentMessage();
+
+                                        // 3. we stop here
+                                        //    should we have some method to save it?
+                                        return;
+                                    }else{ DoReadBody(stCMSG.MaskLen(), m_ReadLen[0]); }
+                                }else{
+                                    // oooops, bytes[0] is 255
+                                    // we got a long message and need to read bytes[1]
+                                    auto fnDoneReadLen1 = [this, stCMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t){
+                                        if(stEC){ fnOnNetError(stEC); }
+                                        else{
+                                            assert(m_ReadLen[0] == 255);
+                                            auto nCompLen = (size_t)(m_ReadLen[1]) + 255;
+
+                                            if(nCompLen > stCMSG.DataLen()){
+                                                // 1. close the asio socket
+                                                Shutdown();
+
+                                                // 2. record the error code but not exit?
+                                                extern MonoServer *g_MonoServer;
+                                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", (int)(nCompLen));
+                                                fnReportCurrentMessage();
+
+                                                // 3. we stop here
+                                                //    should we have some method to save it?
+                                                return;
+                                            }else{ DoReadBody(stCMSG.MaskLen(), nCompLen); }
+                                        }
+                                    };
+                                    asio::async_read(m_Socket, asio::buffer(m_ReadLen + 1, 1), fnDoneReadLen1);
+                                }
+                            }
+                        };
+                        asio::async_read(m_Socket, asio::buffer(m_ReadLen, 1), fnDoneReadLen0);
+                        return;
+                    }
+                case 2:
+                    {
+                        // not empty, fixed size, not compressed
+
+                        // it has no overhead, fast
+                        // this mode should be used for small messages
+                        DoReadBody(0, stCMSG.DataLen());
+                        return;
+                    }
+                case 3:
+                    {
+                        // not empty, not fixed size, not compressed
+
+                        // directly read four bytes as length
+                        // this mode is designed for transfering big chunk
+                        // for even bigger chunk we should send more than one time
+
+                        // and if we want to send big chunk of compressed data
+                        // we should compress it by other method and send it via this channel
+                        auto fnDoneReadLen = [this, fnOnNetError](std::error_code stEC, size_t){
+                            if(stEC){ fnOnNetError(stEC); }
+                            else{
+                                uint32_t nDataLenU32 = 0;
+                                std::memcpy(&nDataLenU32, m_ReadLen, 4);
+                                DoReadBody(0, (size_t)(nDataLenU32));
+                            }
+                        };
+                        asio::async_read(m_Socket, asio::buffer(m_ReadLen, 4), fnDoneReadLen);
+                        return;
+                    }
+                default:
+                    {
+                        // impossible type
+                        // should abort at construction of CMSGParam
+                        Shutdown();
+                        fnReportCurrentMessage();
+                        return;
+                    }
+            }
         }
     };
     asio::async_read(m_Socket, asio::buffer(&m_ReadHC, 1), fnDoneReadHC);
@@ -287,21 +307,45 @@ void Session::DoReadHC()
 
 bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
 {
+    auto fnReportCurrentMessage = [this](){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Current SMSGParam::HC      = %d", (int)(m_ReadHC));
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::Type    = %d", (int)(CMSGParam(m_ReadHC).Type()));
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", (int)(CMSGParam(m_ReadHC).MaskLen()));
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(CMSGParam(m_ReadHC).DataLen()));
+    };
+
+    auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code stEC){
+        if(stEC){
+            // 1. close the asio socket
+            Shutdown();
+
+            // 2. record the error code to log
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error: %s", stEC.message().c_str());
+            fnReportCurrentMessage();
+        }
+    };
+
+    auto fnReportInvalidArg = [nMaskLen, nBodyLen, fnReportCurrentMessage]()
+    {
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument to DoReadBody(MaskLen = %d, BodyLen = %d)", (int)(nMaskLen), (int)(nBodyLen));
+        fnReportCurrentMessage();
+    };
     // argument check
     // check if (nMaskLen, nBodyLen) is proper based on current m_ReadHC
     CMSGParam stCMSG(m_ReadHC);
     switch(stCMSG.Type()){
         case 0:
             {
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Should not call DoReadBody() with empty client message type");
+                fnReportInvalidArg();
                 return false;
             }
         case 1:
             {
                 if(!((nMaskLen == stCMSG.MaskLen()) && (nBodyLen <= stCMSG.DataLen()))){
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument to DoReadBody(MaskLen = %d, BodyLen = %d)", (int)(nMaskLen), (int)(nBodyLen));
+                    fnReportInvalidArg();
                     return false;
                 }
                 break;
@@ -309,8 +353,7 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
         case 2:
             {
                 if(nMaskLen || (nBodyLen != stCMSG.DataLen())){
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument to DoReadBody(MaskLen = %d, BodyLen = %d)", (int)(nMaskLen), (int)(nBodyLen));
+                    fnReportInvalidArg();
                     return false;
                 }
                 break;
@@ -318,88 +361,78 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
         case 3:
             {
                 if(nMaskLen || (nBodyLen > 0XFFFFFFFF)){
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument to DoReadBody(MaskLen = %d, BodyLen = %d)", (int)(nMaskLen), (int)(nBodyLen));
+                    fnReportInvalidArg();
                     return false;
                 }
                 break;
             }
         default:
             {
+                fnReportInvalidArg();
                 return false;
             }
     }
 
-    auto nDataLen = nMaskLen + nBodyLen;
-    if(nDataLen){
+    if(auto nDataLen = nMaskLen + nBodyLen){
+        // we use global memory pool for read
+        // since the allocated buffer will be passed to actor
+        // and it's de-allocated by actor message handler, not here
         extern MemoryPN *g_MemoryPN;
         auto pMem = (uint8_t *)(g_MemoryPN->Get(nDataLen));
 
-        auto fnDoneReadData = [this, nMaskLen, nBodyLen, pMem, stCMSG](std::error_code stEC, size_t){
-            if(stEC){
-                // 1. shutdown current connection
-                Shutdown();
+        auto fnDoneReadData = [this, nMaskLen, nBodyLen, pMem, stCMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t){
+            if(stEC){ fnOnNetError(stEC); }
+            else{
+                uint8_t *pDecodeMem = nullptr;
+                if(nMaskLen){
+                    auto nMaskCount = Compress::CountMask(pMem, nMaskLen);
+                    if(nMaskCount != (int)(nBodyLen)){
+                        // we get corrupted data
+                        // should we ignore current package or kill the process?
 
-                // 2. report message and abort current process
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_FATAL, "Network error: %s", stEC.message().c_str());
-                g_MonoServer->Restart();
-                return;
-            }
-
-            uint8_t *pDecodeMem = nullptr;
-            if(nMaskLen){
-                auto nMaskCount = Compress::CountMask(pMem, nMaskLen);
-                if(nMaskCount != (int)(nBodyLen)){
-                    // we get corrupted data
-                    // should we ignore current package or kill the process?
-
-                    // 1. keep a log for the corrupted message
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Corrupted client message: MaskLen = %d, MaskCount = %d, BodyLen = %d", (int)(nMaskLen), nMaskCount, (int)(nBodyLen));
-
-                    // 2. we ignore this message
-                    //    won't shutdown current session, just return?
-                    return;
-                }
-
-                // we need to decode it
-                // we do have a compressed version of data
-                if(nBodyLen < stCMSG.DataLen()){
-                    extern MemoryPN *g_MemoryPN;
-                    pDecodeMem = (uint8_t *)(g_MemoryPN->Get(stCMSG.DataLen()));
-                    if(Compress::Decode(pDecodeMem, stCMSG.DataLen(), pMem, pMem + nMaskLen) < 0){
-                        // 1. keep a record for this failure
+                        // 1. keep a log for the corrupted message
                         extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Decode failed for client message: MaskLen = %d, MaskCount = %d, BodyLen = %d", (int)(nMaskLen), nMaskCount, (int)(nBodyLen));
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Corrupted data: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
 
-                        // 2. free memory
-                        g_MemoryPN->Free(pMem);
-                        g_MemoryPN->Free(pDecodeMem);
-
-                        // 3. do nothing but return directly
+                        // 2. we ignore this message
+                        //    won't shutdown current session, just return?
                         return;
                     }
 
-                    // ok decoding succeed, free pMem
-                    g_MemoryPN->Free(pMem);
-                }else if(nBodyLen == stCMSG.DataLen()){
-                    // compression won't save any bytes
-                    // we can anyway decode it but here we re-use the buffer
-                    //
-                    // don't forward pointer pMem + nMaskLen directly!!!
-                    // since this pointer will be used to free the buffer in actor
-                    // offset makes it impossible to find which memory pool it comes from
-                    std::memmove(pMem, pMem + stCMSG.MaskLen(), stCMSG.DataLen());
-                }else{
-                    // impossible
-                    return;
-                }
-            }
+                    // we need to decode it
+                    // we do have a compressed version of data
+                    if(nBodyLen <= stCMSG.DataLen()){
+                        extern MemoryPN *g_MemoryPN;
+                        pDecodeMem = (uint8_t *)(g_MemoryPN->Get(stCMSG.DataLen()));
+                        if(Compress::Decode(pDecodeMem, stCMSG.DataLen(), pMem, pMem + nMaskLen) != (int)(nBodyLen)){
+                            // 1. keep a record for this failure
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
+                            fnReportCurrentMessage();
 
-            // decoding and verification done
-            // we pass the pointer to actor and it's released inside actor
-            ForwardActorMessage(m_ReadHC, pDecodeMem ? pDecodeMem : pMem, nBodyLen);
+                            // 2. free memory
+                            g_MemoryPN->Free(pMem);
+                            g_MemoryPN->Free(pDecodeMem);
+
+                            // 3. do nothing but return directly
+                            return;
+                        }else{
+                            // ok decoding succeed, free pMem
+                            g_MemoryPN->Free(pMem);
+                        }
+                    }else{
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", (int)(stCMSG.DataLen()), (int)(nBodyLen));
+                        fnReportCurrentMessage();
+                        return;
+                    }
+                }
+
+                // decoding and verification done
+                // we pass the pointer to actor and it's released inside actor
+                ForwardActorMessage(m_ReadHC, pDecodeMem ? pDecodeMem : pMem, nMaskLen ? stCMSG.DataLen() : nBodyLen);
+                DoReadHC();
+            }
         };
         asio::async_read(m_Socket, asio::buffer(pMem, nDataLen), fnDoneReadData);
         return true;
@@ -408,6 +441,8 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
     // possibilities to reach here
     // 1. call DoReadBody() with m_ReadHC as empty message type
     // 2. read a body with empty body in mode 3
+    ForwardActorMessage(m_ReadHC, nullptr, 0);
+    DoReadHC();
     return true;
 }
 
@@ -416,17 +451,12 @@ void Session::DoSendNext()
     assert(m_FlushFlag);
     assert(!m_CurrSendQ->empty());
 
-    // clean work for last task
-    // 1. release the buffer allocated by MemoryPN
-    //    we use const_cast here since we know it's from MemoryPN
-    if(m_CurrSendQ->front().Data && m_CurrSendQ->front().DataLen){
-        extern MemoryPN *g_MemoryPN;
-        g_MemoryPN->Free(const_cast<uint8_t *>(m_CurrSendQ->front().Data));
-    }
-
-    // 2. invoke callback registered
     if(m_CurrSendQ->front().OnDone){
         m_CurrSendQ->front().OnDone();
+    }
+
+    if(m_CurrSendQ->front().Data && m_CurrSendQ->front().DataLen){
+        m_MemoryPN.Free(const_cast<uint8_t *>(m_CurrSendQ->front().Data));
     }
 
     m_CurrSendQ->pop();
@@ -574,15 +604,14 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
                     return false;
                 }else if(nCountData <= 254){
                     // we need only one byte for length info
-                    extern MemoryPN *g_MemoryPN;
-                    pEncodeData = (uint8_t *)(g_MemoryPN->Get(stSMSG.MaskLen() + (size_t)(nCountData) + 1));
-                    if(Compress::Encode(pEncodeData + 1, pData, nDataLen) < 0){
+                    pEncodeData = (uint8_t *)(m_MemoryPN.Get(stSMSG.MaskLen() + (size_t)(nCountData) + 1));
+                    if(Compress::Encode(pEncodeData + 1, pData, nDataLen) != nCountData){
                         // 1. keep a record for the failure
                         extern MonoServer *g_MonoServer;
                         g_MonoServer->AddLog(LOGTYPE_WARNING, "Compress failed: HC = %d, Data = %p, DataLen = %d", (int)(nHC), pData, (int)(nDataLen));
 
                         // free memory allocated and return immediately
-                        g_MemoryPN->Free(pEncodeData);
+                        m_MemoryPN.Free(pEncodeData);
                         return false;
                     }
 
@@ -590,15 +619,14 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
                     nEncodeSize    = 1 + stSMSG.MaskLen() + (size_t)(nCountData);
                 }else if(nCountData <= (255 + 255)){
                     // we need two byte for length info
-                    extern MemoryPN *g_MemoryPN;
-                    pEncodeData = (uint8_t *)(g_MemoryPN->Get(stSMSG.MaskLen() + (size_t)(nCountData) + 2));
+                    pEncodeData = (uint8_t *)(m_MemoryPN.Get(stSMSG.MaskLen() + (size_t)(nCountData) + 2));
                     if(!Compress::Encode(pEncodeData + 2, pData, nDataLen)){
                         // 1. keep a record for the failure
                         extern MonoServer *g_MonoServer;
                         g_MonoServer->AddLog(LOGTYPE_WARNING, "Compress failed: HC = %d, Data = %p, DataLen = %d", (int)(nHC), pData, (int)(nDataLen));
 
                         // free memory allocated and return immediately
-                        g_MemoryPN->Free(pEncodeData);
+                        m_MemoryPN.Free(pEncodeData);
                         return false;
                     }
 
@@ -614,8 +642,7 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
                     g_MonoServer->AddLog(LOGTYPE_WARNING, "Compressed data too long: HC = %d, Data = %p, DataLen = %d", (int)(nHC), pData, (int)(nDataLen));
 
                     // free memory allocated and return immediately
-                    extern MemoryPN *g_MemoryPN;
-                    g_MemoryPN->Free(pEncodeData);
+                    m_MemoryPN.Free(pEncodeData);
                     return false;
                 }
                 break;
@@ -625,8 +652,7 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
                 // not empty, fixed size, not compressed
                 if(!(pData && (nDataLen == stSMSG.DataLen()))){ fnReportError(); return false; }
 
-                extern MemoryPN *g_MemoryPN;
-                pEncodeData = (uint8_t *)(g_MemoryPN->Get(nDataLen));
+                pEncodeData = (uint8_t *)(m_MemoryPN.Get(nDataLen));
                 nEncodeSize = stSMSG.DataLen();
 
                 // for fixed size and uncompressed message
@@ -643,8 +669,7 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
                     if(nDataLen){ fnReportError(); return false; }
                 }
 
-                extern MemoryPN *g_MemoryPN;
-                pEncodeData = (uint8_t *)(g_MemoryPN->Get(nDataLen + 4));
+                pEncodeData = (uint8_t *)(m_MemoryPN.Get(nDataLen + 4));
                 nEncodeSize = nDataLen + 4;
 
                 // 1. setup the message length encoding

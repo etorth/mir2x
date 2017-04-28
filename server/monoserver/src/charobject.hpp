@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 04/11/2017 12:18:43
+ *  Last Modified: 04/27/2017 17:34:09
  *
  *    Description: 
  *
@@ -111,6 +111,9 @@ class CharObject: public ActiveObject
         int m_Direction;
 
     protected:
+        bool m_FreezeMove;
+
+    protected:
         OBJECTABILITY       m_Ability;
         OBJECTABILITY       m_WAbility;
         OBJECTADDABILITY    m_AddAbility;
@@ -190,4 +193,8 @@ class CharObject: public ActiveObject
 
     protected:
         void DispatchAction(const ActionNode &);
+
+    protected:
+        virtual bool CanMove();
+        virtual bool RequestMove(int, int, std::function<void()>, std::function<void()>);
 };
