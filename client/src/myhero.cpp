@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/28/2017 02:39:37
+ *  Last Modified: 04/28/2017 12:58:53
  *
  *    Description: 
  *
@@ -77,15 +77,17 @@ bool MyHero::RequestMove(int nX, int nY)
 bool MyHero::MoveNextMotion()
 {
     if(m_MotionQueue.empty()){
-        if(ParseActionQueue()){
-            return true;
-        }else{
+        if(m_ActionQueue.empty()){
             m_CurrMotion.Motion = MOTION_STAND;
             m_CurrMotion.Speed  = 0;
             m_CurrMotion.X      = m_CurrMotion.EndX;
             m_CurrMotion.Y      = m_CurrMotion.EndY;
             m_CurrMotion.Frame  = 0;
             return true;
+        }else{
+            // there is pending action in the queue
+            // try to present it and return false if failed
+            return ParseActionQueue();
         }
     }
 
@@ -260,5 +262,10 @@ bool MyHero::ParseActionQueue()
     // 3. present current *local* action
     //    we show the action without server verification
     //    later if server refused current action we'll do correction
-    return Hero::ParseNewAction(stAction, false);
+    if(Hero::ParseNewAction(stAction, false)){
+        m_CurrMotion = m_MotionQueue.front();
+        m_MotionQueue.pop_front();
+    }
+
+    return true;
 }
