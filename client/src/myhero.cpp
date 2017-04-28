@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/28/2017 02:08:15
+ *  Last Modified: 04/28/2017 02:39:37
  *
  *    Description: 
  *
@@ -77,13 +77,16 @@ bool MyHero::RequestMove(int nX, int nY)
 bool MyHero::MoveNextMotion()
 {
     if(m_MotionQueue.empty()){
-        m_CurrMotion.Motion = MOTION_STAND;
-        m_CurrMotion.Speed  = 0;
-        m_CurrMotion.X      = m_CurrMotion.EndX;
-        m_CurrMotion.Y      = m_CurrMotion.EndY;
-        m_CurrMotion.Frame  = 0;
-
-        return true;
+        if(ParseActionQueue()){
+            return true;
+        }else{
+            m_CurrMotion.Motion = MOTION_STAND;
+            m_CurrMotion.Speed  = 0;
+            m_CurrMotion.X      = m_CurrMotion.EndX;
+            m_CurrMotion.Y      = m_CurrMotion.EndY;
+            m_CurrMotion.Frame  = 0;
+            return true;
+        }
     }
 
     if(MotionQueueValid()){
@@ -249,10 +252,6 @@ bool MyHero::ParseActionQueue()
         stCMA.EndX        = stAction.EndX;
         stCMA.EndY        = stAction.EndY;
         stCMA.ID          = stAction.ID;
-
-        if(LDistance2(stAction.X, stAction.Y, stAction.EndX, stAction.EndY) > 2){
-            stAction.Print();
-        }
 
         extern Game *g_Game;
         g_Game->Send(CM_ACTION, stCMA);
