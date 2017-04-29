@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 04/26/2017 12:48:59
+ *  Last Modified: 04/28/2017 22:58:34
  *
  *    Description: 
  *
@@ -90,7 +90,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
         return;
     }
 
-    if(m_CellStateV2D[stAMACO.Common.MapX][stAMACO.Common.MapY].Freezed){
+    if(m_CellRecordV2D[stAMACO.Common.MapX][stAMACO.Common.MapY].Freezed){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
@@ -161,7 +161,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
         return;
     }
 
-    if(m_CellStateV2D[stAMTM.X][stAMTM.Y].Freezed){
+    if(m_CellRecordV2D[stAMTM.X][stAMTM.Y].Freezed){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
@@ -199,7 +199,14 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                     }
 
                     // 2. push it to the new cell
+                    //    check if it should switch the map
                     m_ObjectV2D[stAMTM.X][stAMTM.Y].push_back((ServerObject *)(stAMTM.This));
+                    if(m_CellRecordV2D[stAMTM.X][stAMTM.Y].MapID){
+                        assert((ServerObject *)(stAMTM.This)->Active());
+                        AMMapSwitch stAMMS;
+                        stAMMS.MapID = m_CellRecordV2D[stAMTM.X][stAMTM.Y].MapID;
+                        m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, ((ActiveObject *)(stAMTM.This))->GetAddress());
+                    }
                     break;
                 }
             default:
@@ -207,10 +214,10 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                     break;
                 }
         }
-        m_CellStateV2D[stAMTM.X][stAMTM.Y].Freezed = false;
+        m_CellRecordV2D[stAMTM.X][stAMTM.Y].Freezed = false;
     };
 
-    m_CellStateV2D[stAMTM.X][stAMTM.Y].Freezed = true;
+    m_CellRecordV2D[stAMTM.X][stAMTM.Y].Freezed = true;
     m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID(), fnOnR);
 }
 

@@ -92,11 +92,11 @@ class ServerConfigureWindow {open
     m_Window->show();
 }} {}
   }
-  Function {MapPath()} {return_type {const char *}
+  Function {GetMapPath()} {return_type {const char *}
   } {
     code {{
 	// printf("%d\\n", std::lround(m_VIPort1->value()));
-	return m_MapFullName->value();
+	return m_MapFullName->value() ? m_MapFullName->value() : "";
 }} {}
   }
   Function {MaxPlayerCount()} {return_type int

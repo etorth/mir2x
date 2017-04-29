@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 03/31/2017 14:01:08
+ *  Last Modified: 04/28/2017 22:18:21
  *
  *    Description: put all non-atomic function as private
  *
@@ -38,15 +38,19 @@ class ServerObject;
 class ServerMap: public ActiveObject
 {
     private:
-        template<typename T> using Vec2D  = std::vector<std::vector<T>>;
-        typedef struct _CellState
+        struct CellRecord
         {
             bool Freezed;
+            uint32_t MapID;
 
-            _CellState()
+            CellRecord()
                 : Freezed(false)
+                , MapID(0)
             {}
-        }CellState;
+        };
+
+    private:
+        template<typename T> using Vec2D = std::vector<std::vector<T>>;
 
     private:
         const uint32_t     m_ID;
@@ -57,7 +61,7 @@ class ServerMap: public ActiveObject
         ServiceCore    *m_ServiceCore;
 
     private:
-        Vec2D<CellState> m_CellStateV2D;
+        Vec2D<CellRecord> m_CellRecordV2D;
         Vec2D<std::vector<ServerObject *>> m_ObjectV2D;
 
     private:

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/27/2017 15:17:25
+ *  Last Modified: 04/28/2017 22:55:20
  *
  *    Description: 
  *
@@ -52,6 +52,11 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         case MPK_METRONOME:
             {
                 On_MPK_METRONOME(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_MAPSWITCH:
+            {
+                On_MPK_MAPSWITCH(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_ACTION:

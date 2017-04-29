@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 04/27/2017 15:20:10
+ *  Last Modified: 04/28/2017 22:53:09
  *
  *    Description: 
  *
@@ -107,4 +107,8 @@ void Player::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address 
     if(stAMPCOI.SessionID != m_SessionID){
         ReportCORecord(stAMPCOI.SessionID);
     }
+}
+
+void Player::On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &)
+{
 }

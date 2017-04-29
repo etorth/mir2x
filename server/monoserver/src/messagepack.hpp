@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 04/11/2017 21:02:19
+ *  Last Modified: 04/28/2017 22:50:45
  *
  *    Description: message class for actor system
  *
@@ -258,29 +258,31 @@ class InnMessagePack final
         const char *Name() const
         {
             switch(m_Type){
-                case MPK_NONE:                        return "MPK_NONE";
-                case MPK_OK:                          return "MPK_OK";
-                case MPK_ERROR:                       return "MPK_ERROR";
-                case MPK_NA:                          return "MPK_NA";
-                case MPK_PENDING:                     return "MPK_PENDING";
-                case MPK_HI:                          return "MPK_HI";
-                case MPK_PING:                        return "MPK_PING";
-                case MPK_LOGIN:                       return "MPK_LOGIN";
-                case MPK_METRONOME:                   return "MPK_METRONOME";
-                case MPK_LEAVE:                       return "MPK_LEAVE";
-                case MPK_TRYMOVE:                     return "MPK_TRYMOVE";
-                case MPK_TRYSPACEMOVE:                return "MPK_TRYSPACEMOVE";
-                case MPK_LOGINOK:                     return "MPK_LOGINOK";
-                case MPK_LOGINQUERYDB:                return "MPK_LOGINQUERYDB";
-                case MPK_NETPACKAGE:                  return "MPK_NETPACKAGE";
-                case MPK_ADDCHAROBJECT:               return "MPK_ADDCHAROBJECT";
-                case MPK_BINDSESSION:                 return "MPK_BINDSESSION";
-                case MPK_ACTION:                      return "MPK_ACTION";
-                case MPK_STATE:                       return "MPK_STATE";
-                case MPK_QUERYMONSTERGINFO:           return "MPK_QUERYMONSTERGINFO";
-                case MPK_PULLCOINFO:                  return "MPK_PULLCOINFO";
-                case MPK_NEWCONNECTION:               return "MPK_NEWCONNECTION";
-                default:                              return "MPK_UNKNOWN";
+                case MPK_NONE:                      return "MPK_NONE";
+                case MPK_OK:                        return "MPK_OK";
+                case MPK_ERROR:                     return "MPK_ERROR";
+                case MPK_NA:                        return "MPK_NA";
+                case MPK_PENDING:                   return "MPK_PENDING";
+                case MPK_HI:                        return "MPK_HI";
+                case MPK_PING:                      return "MPK_PING";
+                case MPK_LOGIN:                     return "MPK_LOGIN";
+                case MPK_METRONOME:                 return "MPK_METRONOME";
+                case MPK_LEAVE:                     return "MPK_LEAVE";
+                case MPK_TRYMOVE:                   return "MPK_TRYMOVE";
+                case MPK_TRYSPACEMOVE:              return "MPK_TRYSPACEMOVE";
+                case MPK_LOGINOK:                   return "MPK_LOGINOK";
+                case MPK_LOGINQUERYDB:              return "MPK_LOGINQUERYDB";
+                case MPK_NETPACKAGE:                return "MPK_NETPACKAGE";
+                case MPK_ADDCHAROBJECT:             return "MPK_ADDCHAROBJECT";
+                case MPK_BINDSESSION:               return "MPK_BINDSESSION";
+                case MPK_ACTION:                    return "MPK_ACTION";
+                case MPK_STATE:                     return "MPK_STATE";
+                case MPK_QUERYMONSTERGINFO:         return "MPK_QUERYMONSTERGINFO";
+                case MPK_PULLCOINFO:                return "MPK_PULLCOINFO";
+                case MPK_NEWCONNECTION:             return "MPK_NEWCONNECTION";
+                case MPK_MAPLIST:                   return "MPK_MAPLIST";
+                case MPK_MAPSWITCH:                 return "MPK_MAPSWITCH";
+                default:                            return "MPK_UNKNOWN";
             }
         }
 };

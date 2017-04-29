@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 04/26/2017 23:05:13
+ *  Last Modified: 04/28/2017 22:49:12
  *
  *    Description: 
  *
@@ -47,6 +47,7 @@ enum MessagePackType: int
     MPK_NEWCONNECTION,
     MPK_QUERYMAPLIST,
     MPK_MAPLIST,
+    MPK_MAPSWITCH,
 };
 
 typedef struct
@@ -210,3 +211,8 @@ typedef struct
 {
     uint32_t MapList[256];
 }AMMapList;
+
+typedef struct
+{
+    uint32_t MapID;
+}AMMapSwitch;

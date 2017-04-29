@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 04/11/2017 17:08:13
+ *  Last Modified: 04/28/2017 23:45:05
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 
 #pragma once
+#include <vector>
 #include <cstdint>
 
 // In code of mirx, the MAX_Y_COUNT_FOR_OBJ_H is 44, means we need to check 44 * 32 in
@@ -38,3 +39,17 @@ const int SYS_MAPVISIBLECD = 100;
 
 const char *SYS_MAPNAME(uint32_t);
 const char *SYS_MAPFILENAME(uint32_t);
+
+struct SwitchMapLoc
+{
+    int X;
+    int Y;
+
+    uint32_t MapID;
+    SwitchMapLoc(int nX, int nY, uint32_t nMapID)
+        : X(nX)
+        , Y(nY)
+        , MapID(nMapID)
+    {}
+};
+const std::vector<SwitchMapLoc> &SYS_MAPSWITCHLOC(uint32_t);

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/11/2017 11:22:13
+ *  Last Modified: 04/28/2017 23:49:12
  *
  *    Description: 
  *
@@ -27,14 +27,16 @@
 #include "servermap.hpp"
 #include "charobject.hpp"
 #include "monoserver.hpp"
+#include "serverconfigurewindow.hpp"
 
+extern ServerConfigureWindow *g_ServerConfigureWindow;
 ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     : ActiveObject()
     , m_ID(nMapID)
-    , m_Mir2xMapData(SYS_MAPFILENAME(nMapID))
+    , m_Mir2xMapData((std::string(g_ServerConfigureWindow->GetMapPath()) + SYS_MAPFILENAME(nMapID)).c_str())
     , m_Metronome(nullptr)
     , m_ServiceCore(pServiceCore)
-    , m_CellStateV2D()
+    , m_CellRecordV2D()
     , m_ObjectV2D()
 {
     ResetType(TYPE_INFO,    TYPE_UTILITY);
@@ -48,14 +50,20 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
             rstObjectLine.resize(m_Mir2xMapData.H());
         }
 
-        m_CellStateV2D.resize(m_Mir2xMapData.W());
-        for(auto &rstStateLine: m_CellStateV2D){
+        m_CellRecordV2D.resize(m_Mir2xMapData.W());
+        for(auto &rstStateLine: m_CellRecordV2D){
             rstStateLine.resize(m_Mir2xMapData.H());
         }
     }else{
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_FATAL, "Load map failed: ID = %d, Name = %s", nMapID, SYS_MAPFILENAME(nMapID) ? SYS_MAPFILENAME(nMapID) : "");
         g_MonoServer->Restart();
+    }
+
+    for(auto stLoc: SYS_MAPSWITCHLOC(nMapID)){
+        if(ValidC(stLoc.X, stLoc.Y)){
+            m_CellRecordV2D[stLoc.X][stLoc.Y].MapID = stLoc.MapID;
+        }
     }
 }
 
