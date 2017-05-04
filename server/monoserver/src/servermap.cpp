@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/04/2017 01:00:43
+ *  Last Modified: 05/04/2017 12:10:51
  *
  *    Description: 
  *
@@ -59,7 +59,9 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
 
     for(auto stLoc: SYS_MAPSWITCHLOC(nMapID)){
         if(ValidC(stLoc.X, stLoc.Y)){
+            m_CellRecordV2D[stLoc.X][stLoc.Y].UID   = 0;
             m_CellRecordV2D[stLoc.X][stLoc.Y].MapID = stLoc.MapID;
+            m_CellRecordV2D[stLoc.X][stLoc.Y].Query = QUERY_NA;
         }
     }
 
@@ -146,4 +148,38 @@ bool ServerMap::CanMove(int nX, int nY)
         return true;
     }
     return false;
+}
+
+bool ServerMap::RandomLocation(int *pX, int *pY)
+{
+    for(int nX = 0; nX < W(); ++nX){
+        for(int nY = 0; nY < H(); ++nY){
+            if(CanMove(nX, nY)){
+                if(pX){ *pX = nX; }
+                if(pY){ *pY = nY; }
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool ServerMap::Empty()
+{
+    for(int nX = 0; nX < W(); ++nX){
+        for(int nY = 0; nY < H(); ++nY){
+            if(GroundValid(nX, nY)){
+                if(m_CellRecordV2D[nX][nY].Freezed){
+                    return false;
+                }
+                for(auto nUID: m_UIDRecordV2D[nX][nY]){
+                    extern MonoServer *g_MonoServer;
+                    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return true;
 }

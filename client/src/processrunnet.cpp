@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/25/2017 00:22:21
+ *  Last Modified: 05/04/2017 13:23:45
  *
  *    Description: 
  *
@@ -62,23 +62,37 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
     SMAction stSMA;
     std::memcpy(&stSMA, pBuf, sizeof(stSMA));
 
+    ActionNode stAction;
+    stAction.Action      = stSMA.Action;
+    stAction.ActionParam = stSMA.ActionParam;
+    stAction.Speed       = stSMA.Speed;
+    stAction.Direction   = stSMA.Direction;
+    stAction.X           = stSMA.X;
+    stAction.Y           = stSMA.Y;
+    stAction.EndX        = stSMA.EndX;
+    stAction.EndY        = stSMA.EndY;
+
     if(stSMA.MapID == m_MapID){
         auto pRecord = m_CreatureRecord.find(stSMA.UID);
         if((pRecord != m_CreatureRecord.end()) && pRecord->second){
-            ActionNode stAction;
-            stAction.Action      = stSMA.Action;
-            stAction.ActionParam = stSMA.ActionParam;
-            stAction.Speed       = stSMA.Speed;
-            stAction.Direction   = stSMA.Direction;
-            stAction.X           = stSMA.X;
-            stAction.Y           = stSMA.Y;
-            stAction.EndX        = stSMA.EndX;
-            stAction.EndY        = stSMA.EndY;
+            pRecord->second->ParseNewAction(stAction, true);
+        }
+    }else{
+        if(m_MyHero && m_MyHero->UID() == stSMA.UID){
+            LoadMap(stSMA.MapID);
 
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-            // stAction.Print();
-#endif
-            pRecord->second->ParseNewAction(stAction, false);
+            auto nUID   = m_MyHero->UID();
+            auto nDBID  = m_MyHero->DBID();
+            auto bMale  = m_MyHero->Male();
+            auto nDress = m_MyHero->DressID();
+
+            for(auto pRecord: m_CreatureRecord){
+                delete pRecord.second;
+            }
+            m_CreatureRecord.clear();
+
+            m_MyHero = new MyHero(nUID, nDBID, bMale, nDress, this, stAction);
+            m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
         }
     }
 }

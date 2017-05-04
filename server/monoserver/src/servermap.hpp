@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 05/03/2017 22:59:38
+ *  Last Modified: 05/04/2017 12:11:08
  *
  *    Description:
  *
@@ -35,16 +35,31 @@ class ServerObject;
 class ServerMap: public ActiveObject
 {
     private:
+        enum QueryType: int
+        {
+            QUERY_NA,
+            QUERY_PENDING,
+            QUERY_OK,
+            QUERY_ERROR,
+        };
+
+    private:
         struct CellRecord
         {
             bool Freezed;
             uint32_t UID;
             uint32_t MapID;
 
+            // query service core for the map UID
+            // for a map switch point record it's query state
+            // can't use pServiceCore->GetMapUID() since map in service core could load / unload
+            int Query;
+
             CellRecord()
                 : Freezed(false)
                 , UID(0)
                 , MapID(0)
+                , Query(QUERY_NA)
             {}
         };
 
@@ -100,7 +115,9 @@ class ServerMap: public ActiveObject
         bool Load(const char *);
 
     private:
+        bool Empty();
         bool CanMove(int, int);
+        bool RandomLocation(int *, int *);
 
     private:
         void On_MPK_HI(const MessagePack &, const Theron::Address &);

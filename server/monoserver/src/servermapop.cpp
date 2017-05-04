@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/03/2017 23:32:46
+ *  Last Modified: 05/04/2017 13:11:01
  *
  *    Description: 
  *
@@ -217,11 +217,53 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                     extern MonoServer *g_MonoServer;
                     if(auto stRecord = g_MonoServer->GetUIDRecord(stAMTM.UID)){
                         m_UIDRecordV2D[stAMTM.EndX][stAMTM.EndY].push_back(stRecord.UID);
-                        if(m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].MapID){
-                            AMMapSwitch stAMMS;
-                            stAMMS.UID   = m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].UID;
-                            stAMMS.MapID = m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].MapID;
-                            m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.Address);
+                        if(true
+                                && stRecord.ClassFrom<Player>()
+                                && m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].MapID){
+                            if(m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].UID){
+                                AMMapSwitch stAMMS;
+                                stAMMS.UID   = m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].UID;
+                                stAMMS.MapID = m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].MapID;
+                                m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.Address);
+                            }else{
+                                switch(m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].Query){
+                                    case QUERY_NA:
+                                        {
+                                            auto fnOnResp = [this, stAMTM](const MessagePack &rstMPK, const Theron::Address &){
+                                                switch(rstMPK.Type()){
+                                                    case MPK_UID:
+                                                        {
+                                                            AMUID stAMUID;
+                                                            std::memcpy(&stAMUID, rstMPK.Data(), sizeof(stAMUID));
+
+                                                            // no matter the uid is valid or not
+                                                            m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].UID   = stAMUID.UID;
+                                                            m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].Query = QUERY_OK;
+                                                            break;
+                                                        }
+                                                    default:
+                                                        {
+                                                            m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].UID   = 0;
+                                                            m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].Query = QUERY_ERROR;
+                                                            break;
+                                                        }
+                                                }
+                                            };
+
+                                            AMQueryMapUID stAMQMUID;
+                                            stAMQMUID.MapID = m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].MapID;
+                                            m_ActorPod->Forward({MPK_QUERYMAPUID, stAMQMUID}, m_ServiceCore->GetAddress(), fnOnResp);
+                                            m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].Query = QUERY_PENDING;
+                                        }
+                                    case QUERY_PENDING:
+                                    case QUERY_OK:
+                                    case QUERY_ERROR:
+                                    default:
+                                        {
+                                            break;
+                                        }
+                                }
+                            }
                         }
                     }
                     break;
@@ -281,8 +323,40 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Addre
     }
 }
 
-void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Address &)
+void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     AMTryMapSwitch stAMTMS;
     std::memcpy(&stAMTMS, rstMPK.Data(), sizeof(stAMTMS));
+
+    int nX = -1;
+    int nY = -1;
+    if(RandomLocation(&nX, &nY)){
+        AMMapSwitchOK stAMMSOK;
+        stAMMSOK.Data = this;
+        stAMMSOK.X    = nX;
+        stAMMSOK.Y    = nY;
+
+        auto fnOnResp = [this, stAMTMS, stAMMSOK](const MessagePack &rstRMPK, const Theron::Address &){
+            switch(rstRMPK.Type()){
+                case MPK_OK:
+                    {
+                        extern MonoServer *g_MonoServer;
+                        if(auto stRecord = g_MonoServer->GetUIDRecord(stAMTMS.UID)){
+                            m_UIDRecordV2D[stAMMSOK.X][stAMMSOK.Y].push_back(stRecord.UID);
+                        }
+                        // won't check map switch here
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+            m_CellRecordV2D[stAMMSOK.X][stAMMSOK.Y].Freezed = false;
+        };
+        m_CellRecordV2D[nX][nY].Freezed = true;
+        m_ActorPod->Forward({MPK_MAPSWITCHOK, stAMMSOK}, rstFromAddr, rstMPK.ID(), fnOnResp);
+    }else{
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+    }
 }

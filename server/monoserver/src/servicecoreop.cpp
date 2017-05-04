@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/02/2017 16:19:44
+ *  Last Modified: 05/04/2017 11:48:53
  *
  *    Description: 
  *
@@ -212,8 +212,8 @@ void ServiceCore::On_MPK_QUERYMAPUID(const MessagePack &rstMPK, const Theron::Ad
     if(auto pMap = RetrieveMap(stAMQMUID.MapID)){
         AMUID stAMUID;
         stAMUID.UID = pMap->UID();
-        m_ActorPod->Forward({MPK_UID, stAMUID}, rstFromAddr);
+        m_ActorPod->Forward({MPK_UID, stAMUID}, rstFromAddr, rstMPK.ID());
     }else{
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr);
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
     }
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/02/2017 23:15:14
+ *  Last Modified: 05/04/2017 13:07:31
  *
  *    Description: 
  *
@@ -174,6 +174,22 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
 
                                                 DispatchAction(stAction);
                                                 m_ActorPod->Forward(MPK_OK, ((ServerMap *)(stAMMSOK.Data))->GetAddress(), rstRMPK.ID());
+
+                                                SMAction stSMActionStand;
+                                                stSMActionStand.UID         = UID();
+                                                stSMActionStand.MapID       = MapID();
+                                                stSMActionStand.Action      = ACTION_STAND;
+                                                stSMActionStand.ActionParam = 0;
+                                                stSMActionStand.Speed       = 0;
+                                                stSMActionStand.Direction   = Direction();
+                                                stSMActionStand.X           = X();
+                                                stSMActionStand.Y           = Y();
+                                                stSMActionStand.EndX        = X();
+                                                stSMActionStand.EndY        = Y();
+                                                stSMActionStand.ID          = 0;
+
+                                                extern NetPodN *g_NetPodN;
+                                                g_NetPodN->Send(m_SessionID, SM_ACTION, stSMActionStand);
                                                 break;
                                             }
                                         default:
