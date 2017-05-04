@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 03/29/2017 18:27:05
+ *  Last Modified: 05/04/2017 01:01:49
  *
  *    Description: server object with active state
  *                      1. it's active via actor pod
@@ -26,7 +26,12 @@
  *                 Another thing is for g_MonoServer->AddLog(...), if make MonoServer as
  *                 a react object, we can't use it anymore
  *
- *                 So let's make MonoServer as a receriver instead.
+ *                 access control protocol for ActiveObject
+ *                 for active object A and B, A can access B through b->func() iif
+ *                    1. B outlives A
+ *                    2. B::func() is constant qualified
+ *                 otherwise any time if A need to access B, should use GetUIDRecord() and
+ *                 forward a message to B for response
  *
  *        Version: 1.0
  *       Revision: none
@@ -104,7 +109,6 @@ enum ObjectState: uint8_t
 class ActiveObject: public ServerObject
 {
     protected:
-        std::array< uint8_t, 255> m_TypeV;
         std::array< uint8_t, 255> m_StateV;
         std::array<uint32_t, 255> m_StateTimeV;
 
@@ -118,29 +122,6 @@ class ActiveObject: public ServerObject
     public:
         ActiveObject();
        ~ActiveObject();
-
-    public:
-        // static type information
-        // can safely called outside of ActiveObject
-        // always return values, nonthrow, holds two types of type_info
-        //      1. Type(EYE_COLOR)  : EYE_RED
-        //                            EYE_BLACK
-        //                            EYE_BROWN
-        //
-        //      2. Type(TYPE_HUMAN) : x // yes
-        //                            0 // no
-        // for type_info with a parameter, it use uint8_t as 255 possibilities
-        // for type_info with 0 / 1 result it return 0 / x as false / true
-        uint8_t Type(uint8_t nType) const
-        {
-            return m_TypeV[nType];
-        }
-
-    protected:
-        void ResetType(uint8_t nTypeLoc, uint8_t nTypeValue)
-        {
-            m_TypeV[nTypeLoc] = nTypeValue;
-        }
 
     protected:
         uint8_t  State(uint8_t);
@@ -166,9 +147,4 @@ class ActiveObject: public ServerObject
 
     public:
         void Delay(uint32_t, const std::function<void()> &);
-
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    protected:
-        virtual const char *ClassName() = 0;
-#endif
 };

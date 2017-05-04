@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 04/28/2017 22:53:33
+ *  Last Modified: 05/04/2017 01:07:35
  *
  *    Description: 
  *
@@ -89,10 +89,7 @@ class Player: public CharObject
 
     public:
         // type test function
-        virtual uint8_t Type(uint8_t);
         virtual uint8_t State(uint8_t);
-
-        virtual bool ResetType(uint8_t, uint8_t);
         virtual bool ResetState(uint8_t, uint8_t);
 
         virtual uint32_t NameColor();
@@ -133,12 +130,4 @@ class Player: public CharObject
 
     protected:
         void ReportCORecord(uint32_t);
-
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    protected:
-        const char *ClassName()
-        {
-            return "Player";
-        }
-#endif
 };

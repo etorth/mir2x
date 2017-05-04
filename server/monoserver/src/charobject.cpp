@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/27/2017 17:34:43
+ *  Last Modified: 05/04/2017 00:59:49
  *
  *    Description: 
  *
@@ -34,6 +34,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     : ActiveObject()
     , m_ServiceCore(pServiceCore)
     , m_Map(pServerMap)
+    , m_MapCache()
     , m_CurrX(nMapX)
     , m_CurrY(nMapY)
     , m_Direction(nDirection)
@@ -42,10 +43,20 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_WAbility()
     , m_AddAbility()
 {
-    ResetType(TYPE_INFO, TYPE_CHAR);
-    ResetType(TYPE_CHAR, TYPE_CHAR);
-
     ResetState(STATE_LIFECYCLE, nLifeState);
+
+    assert(m_Map);
+    m_MapCache[m_Map->ID()] = m_Map;
+
+    auto fnRegisterClass = [this]() -> void {
+        if(!RegisterClass<CharObject, ActiveObject>()){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <CharObject, ActiveObject> failed");
+            g_MonoServer->Restart();
+        }
+    };
+    static std::once_flag stFlag;
+    std::call_once(stFlag, fnRegisterClass);
 }
 
 bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
@@ -100,17 +111,17 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
 
 bool CharObject::RequestMove(int nX, int nY, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
-    if(CanMove()){
-        AMTryMove stAMTM;
-        std::memset(&stAMTM, 0, sizeof(stAMTM));
+    if(true
+            && CanMove()
+            && m_Map->ValidC(nX, nY)){
 
-        stAMTM.This    = this;
+        AMTryMove stAMTM;
         stAMTM.UID     = UID();
-        stAMTM.X       = nX;
-        stAMTM.Y       = nY;
         stAMTM.MapID   = m_Map->ID();
-        stAMTM.CurrX   = X();
-        stAMTM.CurrY   = Y();
+        stAMTM.X       = X();
+        stAMTM.Y       = Y();
+        stAMTM.EndX    = nX;
+        stAMTM.EndY    = nY;
 
         auto fnOP = [this, nX, nY, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK, const Theron::Address &rstAddr){
             switch(rstMPK.Type()){

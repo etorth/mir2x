@@ -3,13 +3,9 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 04/28/2017 22:18:21
+ *  Last Modified: 05/03/2017 22:59:38
  *
- *    Description: put all non-atomic function as private
- *
- *                 Map is an transponder, rather than an ReactObject, it has ID() and
- *                 also timing mechanics, but it's that kind of ``object" like human
- *                 like monstor etc.
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -29,9 +25,10 @@
 #include <unordered_map>
 
 #include "sysconst.hpp"
+#include "uidrecord.hpp"
 #include "metronome.hpp"
-#include "activeobject.hpp"
 #include "mir2xmapdata.hpp"
+#include "activeobject.hpp"
 
 class ServiceCore;
 class ServerObject;
@@ -41,10 +38,12 @@ class ServerMap: public ActiveObject
         struct CellRecord
         {
             bool Freezed;
+            uint32_t UID;
             uint32_t MapID;
 
             CellRecord()
                 : Freezed(false)
+                , UID(0)
                 , MapID(0)
             {}
         };
@@ -57,12 +56,12 @@ class ServerMap: public ActiveObject
         const Mir2xMapData m_Mir2xMapData;
 
     private:
-        Metronome      *m_Metronome;
-        ServiceCore    *m_ServiceCore;
+        Metronome   *m_Metronome;
+        ServiceCore *m_ServiceCore;
 
     private:
         Vec2D<CellRecord> m_CellRecordV2D;
-        Vec2D<std::vector<ServerObject *>> m_ObjectV2D;
+        Vec2D<std::vector<uint32_t>> m_UIDRecordV2D;
 
     private:
         void Operate(const MessagePack &, const Theron::Address &);
@@ -105,19 +104,12 @@ class ServerMap: public ActiveObject
 
     private:
         void On_MPK_HI(const MessagePack &, const Theron::Address &);
-        void On_MPK_LEAVE(const MessagePack &, const Theron::Address &);
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
+        void On_MPK_TRYLEAVE(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
+        void On_MPK_TRYMAPSWITCH(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
-
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    protected:
-        const char *ClassName()
-        {
-            return "ServerMap";
-        }
-#endif
 };

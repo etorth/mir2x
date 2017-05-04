@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 04/01/2017 21:28:52
+ *  Last Modified: 05/04/2017 01:03:08
  *
  *    Description: 
  *
@@ -31,8 +31,15 @@ ServiceCore::ServiceCore()
     : ActiveObject()
     , m_MapRecord()
 {
-    ResetType(TYPE_INFO,    TYPE_UTILITY);
-    ResetType(TYPE_UTILITY, TYPE_SERVICECORE);
+    auto fnRegisterClass = [this]() -> void {
+        if(!RegisterClass<ServiceCore, ActiveObject>()){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <ServiceCore, ActiveObject> failed");
+            g_MonoServer->Restart();
+        }
+    };
+    static std::once_flag stFlag;
+    std::call_once(stFlag, fnRegisterClass);
 }
 
 void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddr)
@@ -46,6 +53,11 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
         case MPK_ADDCHAROBJECT:
             {
                 On_MPK_ADDCHAROBJECT(rstMPK, rstAddr);
+                break;
+            }
+        case MPK_TRYMAPSWITCH:
+            {
+                On_MPK_TRYMAPSWITCH(rstMPK, rstAddr);
                 break;
             }
         case MPK_NEWCONNECTION:
@@ -66,6 +78,11 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
         case MPK_QUERYMAPLIST:
             {
                 On_MPK_QUERYMAPLIST(rstMPK, rstAddr);
+                break;
+            }
+        case MPK_QUERYMAPUID:
+            {
+                On_MPK_QUERYMAPUID(rstMPK, rstAddr);
                 break;
             }
         default:

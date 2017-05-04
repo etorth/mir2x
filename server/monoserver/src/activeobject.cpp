@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 04/10/2017 23:16:51
+ *  Last Modified: 05/04/2017 10:54:27
  *
  *    Description: 
  *
@@ -24,15 +24,13 @@
 #include "activeobject.hpp"
 
 ActiveObject::ActiveObject()
-    : ServerObject(true)
-    , m_TypeV()
+    : ServerObject()
     , m_StateV()
     , m_StateTimeV()
     , m_ActorPod(nullptr)
     , m_StateHook()
     , m_DelayCmdQ()
 {
-    m_TypeV.fill(0);
     m_StateV.fill(0);
     m_StateTimeV.fill(0);
 
@@ -60,8 +58,8 @@ ActiveObject::ActiveObject()
         if(ActorPodValid()){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_INFO,
-                    "(ActiveObject: 0X%0*" PRIXPTR ", Name: %s, UID: %u, Length: %" PRIu32 ")",
-                    (int)(sizeof(this) * 2), (uintptr_t)(this), ClassName(), UID(), m_ActorPod->GetNumQueuedMessages());
+                    "(%s: 0X%0*" PRIXPTR ", Name: %s, UID: %u, Length: %" PRIu32 ")",
+                    "ActorPod", (int)(sizeof(this) * 2), (uintptr_t)(this), ClassName(), UID(), m_ActorPod->GetNumQueuedMessages());
         }
 
         // it's never done
@@ -70,6 +68,16 @@ ActiveObject::ActiveObject()
 
     m_StateHook.Install("PrintAMCount", fnPrintAMCount);
 #endif
+
+    auto fnRegisterClass = [this]() -> void {
+        if(!RegisterClass<ActiveObject, ServerObject>()){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <ActiveObject, ServerObject> failed");
+            g_MonoServer->Restart();
+        }
+    };
+    static std::once_flag stFlag;
+    std::call_once(stFlag, fnRegisterClass);
 }
 
 ActiveObject::~ActiveObject()

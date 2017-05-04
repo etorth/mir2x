@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 04/27/2017 15:22:39
+ *  Last Modified: 05/02/2017 16:19:44
  *
  *    Description: 
  *
@@ -60,7 +60,7 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::
 
     if(stAMACO.Common.MapID){
         auto pMap = RetrieveMap(stAMACO.Common.MapID);
-        if(pMap && pMap->In(stAMACO.Common.MapID, stAMACO.Common.MapX, stAMACO.Common.MapY)){
+        if(pMap && pMap->In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y)){
             auto fnOP = [this, stAMACO, rstMPK, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &){
                 switch(rstRMPK.Type()){
                     case MPK_OK:
@@ -119,8 +119,8 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
             AMAddCharObject stAMACO;
             stAMACO.Type = TYPE_PLAYER;
             stAMACO.Common.MapID     = stAMLQDB.MapID;
-            stAMACO.Common.MapX      = stAMLQDB.MapX;
-            stAMACO.Common.MapY      = stAMLQDB.MapY;
+            stAMACO.Common.X         = stAMLQDB.MapX;
+            stAMACO.Common.Y         = stAMLQDB.MapY;
             stAMACO.Player.DBID      = stAMLQDB.DBID;
             stAMACO.Player.Level     = stAMLQDB.Level;
             stAMACO.Player.JobID     = stAMLQDB.JobID;
@@ -190,4 +190,30 @@ void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK, const Theron::A
         }
     }
     m_ActorPod->Forward({MPK_MAPLIST, stAMML}, rstFromAddr, rstMPK.ID());
+}
+
+void ServiceCore::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMTryMapSwitch stAMTMS;
+    std::memcpy(&stAMTMS, rstMPK.Data(), sizeof(stAMTMS));
+
+    if(stAMTMS.MapID){
+        if(auto pMap = RetrieveMap(stAMTMS.MapID)){
+            m_ActorPod->Forward({MPK_TRYMAPSWITCH, stAMTMS}, pMap->GetAddress());
+        }
+    }
+}
+
+void ServiceCore::On_MPK_QUERYMAPUID(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+{
+    AMQueryMapUID stAMQMUID;
+    std::memcpy(&stAMQMUID, rstMPK.Data(), sizeof(stAMQMUID));
+
+    if(auto pMap = RetrieveMap(stAMQMUID.MapID)){
+        AMUID stAMUID;
+        stAMUID.UID = pMap->UID();
+        m_ActorPod->Forward({MPK_UID, stAMUID}, rstFromAddr);
+    }else{
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr);
+    }
 }

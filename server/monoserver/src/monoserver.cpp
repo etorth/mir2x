@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 04/28/2017 02:32:03
+ *  Last Modified: 05/03/2017 22:57:39
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 #include <cstring>
 #include <cstdarg>
 #include <cstdlib>
+#include <cinttypes>
 #include <FL/fl_ask.H>
 
 #include "log.hpp"
@@ -30,19 +31,20 @@
 #include "message.hpp"
 #include "monster.hpp"
 #include "database.hpp"
+#include "threadpn.hpp"
+#include "uidrecord.hpp"
 #include "mainwindow.hpp"
 #include "monoserver.hpp"
-#include "eventtaskhub.hpp"
-
-#include "threadpn.hpp"
 #include "servicecore.hpp"
+#include "eventtaskhub.hpp"
 #include "databaseconfigurewindow.hpp"
 
 MonoServer::MonoServer()
     : m_LogLock()
     , m_LogBuf()
     , m_ServiceCore(nullptr)
-    , m_GlobalUID(1)
+    , m_GlobalUID {1}
+    , m_UIDArray()
     , m_StartTime()
     , m_MonsterGInfoRecord()
 {
@@ -232,7 +234,6 @@ void MonoServer::Restart()
 // and it's good for me to make monoserver.hpp to be compact by moving these
 // constant variables out
 static std::vector<MONSTERRACEINFO> s_MonsterRaceInfoV;
-
 bool MonoServer::InitMonsterRace()
 {
     extern DBPodN *g_DBPodN;
@@ -349,9 +350,9 @@ void MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
     AMAddCharObject stAMACO;
     stAMACO.Type = TYPE_MONSTER;
 
-    stAMACO.Common.MapID     = nMapID;
-    stAMACO.Common.MapX      = nX;
-    stAMACO.Common.MapY      = nY;
+    stAMACO.Common.MapID  = nMapID;
+    stAMACO.Common.X      = nX;
+    stAMACO.Common.Y      = nY;
 
     stAMACO.Monster.MonsterID = nMonsterID;
     AddLog(LOGTYPE_INFO, "add monster, MonsterID = %d", nMonsterID);
@@ -426,4 +427,80 @@ void MonoServer::FlushBrowser()
         }
         m_LogBuf.clear();
     }
+}
+
+uint32_t MonoServer::GetUID()
+{
+    return m_GlobalUID.fetch_add(1);
+}
+
+bool MonoServer::LinkUID(uint32_t nUID, ServerObject *pObject)
+{
+    if(nUID && pObject){
+        auto &rstRecord = m_UIDArray[nUID % m_UIDArray.size()];
+        {
+            std::lock_guard<std::mutex> stLockGuard(rstRecord.Lock);
+            auto stFind = rstRecord.Record.find(nUID);
+            if(stFind == rstRecord.Record.end()){
+                rstRecord.Record[nUID] = pObject;
+                return true;
+            }else{
+                AddLog(LOGTYPE_WARNING, "UIDArray duplicated UID: (%" PRIu32 ", %p, %p)", nUID, stFind->second, pObject);
+                return false;
+            }
+        }
+    }
+
+    AddLog(LOGTYPE_WARNING, "Invalid argument LinkUID(UID = %" PRIu32 ", ServerObject = %p)", nUID, pObject);
+    return false;
+}
+
+void MonoServer::EraseUID(uint32_t nUID)
+{
+    if(nUID){
+        auto &rstRecord = m_UIDArray[nUID % m_UIDArray.size()];
+        {
+            std::lock_guard<std::mutex> stLockGuard(rstRecord.Lock);
+            auto stFind = rstRecord.Record.find(nUID);
+            if(stFind != rstRecord.Record.end()){
+                if(stFind->second){
+                    delete stFind->second;
+                    if(stFind->second->UID() != nUID){
+                        AddLog(LOGTYPE_WARNING, "UIDArray mismatch: UID = (%" PRIu32 ", %" PRIu32 ")", nUID, stFind->second->UID());
+                    }
+                }
+                rstRecord.Record.erase(stFind);
+            }
+        }
+    }
+}
+
+UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
+{
+    if(nUID){
+        auto &rstRecord = m_UIDArray[nUID % m_UIDArray.size()];
+        {
+            std::lock_guard<std::mutex> stLockGuard(rstRecord.Lock);
+            auto stFind = rstRecord.Record.find(nUID);
+            if(stFind != rstRecord.Record.end()){
+                if(stFind->second){
+                    if(stFind->second->UID() == nUID){
+                        auto bActive   = stFind->second->ClassFrom<ActiveObject>();
+                        auto stAddress = bActive ? ((ActiveObject *)(stFind->second))->GetAddress() : Theron::Address::Null();
+                        return {nUID, stAddress, stFind->second->ClassEntry()};
+                    }else{
+                        AddLog(LOGTYPE_WARNING, "UIDArray mismatch: UID = (%" PRIu32 ", %" PRIu32 ")", nUID, stFind->second->UID());
+                    }
+                }
+            }
+        }
+    }
+
+    // for all other cases, return empty record
+    // 1. provided uid as zero
+    // 2. record doesn't exist
+    // 3. record contains an empty pointer
+    // 4. record mismatch
+    static const std::vector<ServerObject::ClassCodeName> stNullEntry {};
+    return UIDRecord(0, Theron::Address::Null(), stNullEntry);
 }

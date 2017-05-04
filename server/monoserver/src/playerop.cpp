@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 04/28/2017 22:53:09
+ *  Last Modified: 05/02/2017 23:15:14
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 
+#include <cinttypes>
 #include "netpod.hpp"
 #include "player.hpp"
 #include "memorypn.hpp"
@@ -109,6 +110,108 @@ void Player::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address 
     }
 }
 
-void Player::On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &)
+void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &)
 {
+    AMMapSwitch stAMMS;
+    std::memcpy(&stAMMS, rstMPK.Data(), sizeof(stAMMS));
+
+    if(stAMMS.UID && stAMMS.MapID){
+        extern MonoServer *g_MonoServer;
+        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMMS.UID)){
+            AMTryMapSwitch stAMTMS;
+            stAMTMS.UID    = UID();
+            stAMTMS.MapID  = m_Map->ID();
+            stAMTMS.MapUID = m_Map->UID();
+
+            stAMTMS.X = X();
+            stAMTMS.Y = Y();
+
+            // 1. send request to the new map
+            //    if request rejected then it stays in current map
+            auto fnOnResp = [this, stUIDRecord](const MessagePack &rstRMPK, const Theron::Address &){
+                switch(rstRMPK.Type()){
+                    case MPK_MAPSWITCHOK:
+                        {
+                            // new map permit this switch request
+                            // new map will guarante to outlive current object
+                            AMMapSwitchOK stAMMSOK;
+                            std::memcpy(&stAMMSOK, rstRMPK.Data(), sizeof(stAMMSOK));
+                            if(true
+                                    && ((ServerMap *)(stAMMSOK.Data))
+                                    && ((ServerMap *)(stAMMSOK.Data))->ID()
+                                    && ((ServerMap *)(stAMMSOK.Data))->UID()
+                                    && ((ServerMap *)(stAMMSOK.Data))->ValidC(stAMMSOK.X, stAMMSOK.Y)){
+
+                                AMTryLeave stAMTL;
+                                stAMTL.UID   = UID();
+                                stAMTL.MapID = m_Map->ID();
+                                stAMTL.X     = X();
+                                stAMTL.Y     = Y();
+
+                                // current map respond for the leave request
+                                // dangerous here, we should keep m_Map always valid
+                                auto fnOnLeaveResp = [this, stAMMSOK, rstRMPK](const MessagePack &rstLeaveRMPK, const Theron::Address &){
+                                    switch(rstLeaveRMPK.Type()){
+                                        case MPK_OK:
+                                            {
+                                                // OK you are free to leave
+                                                // for MPK_TRYLEAVE this is the only valid response
+                                                m_Map   = (ServerMap *)(stAMMSOK.Data);
+                                                m_CurrX = stAMMSOK.X;
+                                                m_CurrY = stAMMSOK.Y;
+
+                                                ActionNode stAction;
+                                                stAction.Action      = ACTION_STAND;
+                                                stAction.ActionParam = 0;
+                                                stAction.Speed       = 0;
+                                                stAction.Direction   = Direction();
+                                                stAction.X           = X();
+                                                stAction.Y           = Y();
+                                                stAction.EndX        = X();
+                                                stAction.EndY        = Y();
+                                                stAction.MapID       = m_Map->ID();
+                                                stAction.ID          = 0;
+
+                                                DispatchAction(stAction);
+                                                m_ActorPod->Forward(MPK_OK, ((ServerMap *)(stAMMSOK.Data))->GetAddress(), rstRMPK.ID());
+                                                break;
+                                            }
+                                        default:
+                                            {
+                                                // can't leave???
+                                                // this is really illegal
+                                                // server map won't respond any other message not MPK_OK
+                                                // dangerous issue since we then can never inform the new map ``we can't come to you"
+                                                m_ActorPod->Forward(MPK_ERROR, ((ServerMap *)(stAMMSOK.Data))->GetAddress(), rstRMPK.ID());
+
+                                                extern MonoServer *g_MonoServer;
+                                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Leave request failed: (UID = %" PRIu32 ", MapID = %" PRIu32 ")", UID(), ((ServerMap *)(stAMMSOK.Data))->ID());
+                                                break;
+                                            }
+                                    }
+                                };
+                                m_ActorPod->Forward({MPK_TRYLEAVE, stAMTL}, m_Map->GetAddress(), fnOnLeaveResp);
+                                return;
+                            }
+
+                            // AMMapSwitchOK invalid
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid AMMapSwitchOK: Map = %p", stAMMSOK.Data);
+                            return;
+                        }
+                    default:
+                        {
+                            // do nothing
+                            // new map reject this switch request
+                            return;
+                        }
+                }
+            };
+            m_ActorPod->Forward({MPK_TRYMAPSWITCH, stAMTMS}, stUIDRecord.Address, fnOnResp);
+            return;
+        }
+    }
+
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %" PRIu32 ", MapID = %" PRIu32 ")", stAMMS.UID, stAMMS.MapID);
 }

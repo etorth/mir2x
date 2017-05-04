@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 04/28/2017 22:50:45
+ *  Last Modified: 05/02/2017 22:08:25
  *
  *    Description: message class for actor system
  *
@@ -261,14 +261,13 @@ class InnMessagePack final
                 case MPK_NONE:                      return "MPK_NONE";
                 case MPK_OK:                        return "MPK_OK";
                 case MPK_ERROR:                     return "MPK_ERROR";
-                case MPK_NA:                        return "MPK_NA";
-                case MPK_PENDING:                   return "MPK_PENDING";
+                case MPK_UID:                       return "MPK_UID";
                 case MPK_HI:                        return "MPK_HI";
                 case MPK_PING:                      return "MPK_PING";
                 case MPK_LOGIN:                     return "MPK_LOGIN";
                 case MPK_METRONOME:                 return "MPK_METRONOME";
-                case MPK_LEAVE:                     return "MPK_LEAVE";
                 case MPK_TRYMOVE:                   return "MPK_TRYMOVE";
+                case MPK_TRYLEAVE:                  return "MPK_TRYLEAVE";
                 case MPK_TRYSPACEMOVE:              return "MPK_TRYSPACEMOVE";
                 case MPK_LOGINOK:                   return "MPK_LOGINOK";
                 case MPK_LOGINQUERYDB:              return "MPK_LOGINQUERYDB";
@@ -282,6 +281,8 @@ class InnMessagePack final
                 case MPK_NEWCONNECTION:             return "MPK_NEWCONNECTION";
                 case MPK_MAPLIST:                   return "MPK_MAPLIST";
                 case MPK_MAPSWITCH:                 return "MPK_MAPSWITCH";
+                case MPK_TRYMAPSWITCH:              return "MPK_TRYMAPSWITCH";
+                case MPK_QUERYMAPUID:               return "MPK_QUERYMAPUID";
                 default:                            return "MPK_UNKNOWN";
             }
         }

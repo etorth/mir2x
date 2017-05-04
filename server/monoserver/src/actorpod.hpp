@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 03/30/2017 01:35:06
+ *  Last Modified: 05/03/2017 11:00:42
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -164,20 +164,20 @@ class ActorPod final: public Theron::Actor
 
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     public:
-        const char *Name()
+        const char *Name() const
         {
             return m_Name.c_str();
         }
 
-        uint32_t UID()
+        uint32_t UID() const
         {
             return m_UID;
         }
 
         void BindPod(uint32_t nUID, const char *szName)
         {
-            m_UID      = nUID;
-            m_Name     = szName;
+            m_UID  = nUID;
+            m_Name = szName;
         }
 #endif
 };

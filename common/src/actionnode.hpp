@@ -3,7 +3,7 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 04/25/2017 01:11:59
+ *  Last Modified: 05/02/2017 22:31:45
  *
  *    Description: 
  *
@@ -37,6 +37,7 @@ struct ActionNode
     int EndX;
     int EndY;
 
+    uint32_t MapID;
     uint32_t ID;
 
     ActionNode(int nAction, int nActionParam, int nSpeed, int nDirection, int nX, int nY, int nEndX, int nEndY)

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/28/2017 23:06:04
+ *  Last Modified: 05/04/2017 00:50:56
  *
  *    Description: 
  *
@@ -38,11 +38,15 @@ Monster::Monster(uint32_t   nMonsterID,
     : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
     , m_MonsterID(nMonsterID)
 {
-    ResetType(TYPE_CHAR, TYPE_MONSTER);
-    ResetType(TYPE_MONSTER, TYPE_MONSTER);
-
-    ResetType(TYPE_CREATURE, TYPE_ANIMAL);
-    ResetType(TYPE_ANIMAL, TYPE_ANIMAL);
+    auto fnRegisterClass = [this]() -> void {
+        if(!RegisterClass<Monster, CharObject>()){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <Monster, CharObject> failed");
+            g_MonoServer->Restart();
+        }
+    };
+    static std::once_flag stFlag;
+    std::call_once(stFlag, fnRegisterClass);
 }
 
 bool Monster::Update()

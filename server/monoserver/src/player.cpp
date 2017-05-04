@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 04/28/2017 22:55:20
+ *  Last Modified: 05/04/2017 01:06:06
  *
  *    Description: 
  *
@@ -38,12 +38,15 @@ Player::Player(uint32_t nDBID,
     , m_Level(0)        // after bind
 {
     m_StateHook.Install("CheckTime", [this](){ For_CheckTime(); return false; });
-
-    ResetType(TYPE_CHAR, TYPE_PLAYER);
-    ResetType(TYPE_PLAYER, TYPE_PLAYER);
-
-    ResetType(TYPE_CREATURE, TYPE_HUMAN);
-    ResetType(TYPE_HUMAN,  TYPE_HUMAN);
+    auto fnRegisterClass = [this]() -> void {
+        if(!RegisterClass<Player, CharObject>()){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <Player, CharObject> failed");
+            g_MonoServer->Restart();
+        }
+    };
+    static std::once_flag stFlag;
+    std::call_once(stFlag, fnRegisterClass);
 }
 
 void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -91,17 +94,6 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
 
 bool Player::Update()
 {
-    return true;
-}
-
-uint8_t Player::Type(uint8_t nType)
-{
-    return m_TypeV[nType];
-}
-
-bool Player::ResetType(uint8_t nType, uint8_t nThisType)
-{
-    m_TypeV[nType] = nThisType;
     return true;
 }
 

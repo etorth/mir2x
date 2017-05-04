@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 04/28/2017 22:49:12
+ *  Last Modified: 05/02/2017 23:45:59
  *
  *    Description: 
  *
@@ -25,14 +25,13 @@ enum MessagePackType: int
     MPK_NONE = 0,
     MPK_OK,
     MPK_ERROR,
-    MPK_NA,
-    MPK_PENDING,
+    MPK_UID,
     MPK_HI,
     MPK_PING,
     MPK_LOGIN,
     MPK_METRONOME,
-    MPK_LEAVE,
     MPK_TRYMOVE,
+    MPK_TRYLEAVE,
     MPK_TRYSPACEMOVE,
     MPK_LOGINOK,
     MPK_ADDRESS,
@@ -48,15 +47,19 @@ enum MessagePackType: int
     MPK_QUERYMAPLIST,
     MPK_MAPLIST,
     MPK_MAPSWITCH,
+    MPK_MAPSWITCHOK,
+    MPK_TRYMAPSWITCH,
+    MPK_QUERYMAPUID,
 };
 
 typedef struct
 {
-    void *This;
+    uint32_t UID;
+    uint32_t MapID;
 
     int X;
     int Y;
-}AMLeave;
+}AMTryLeave;
 
 typedef union
 {
@@ -67,8 +70,8 @@ typedef union
         uint8_t Type;
 
         uint32_t MapID;
-        int MapX;
-        int MapY;
+        int X;
+        int Y;
     }Common;
 
     struct _Monster
@@ -122,16 +125,14 @@ typedef struct
 
 typedef struct
 {
-    void *This;
-
-    uint32_t MapID;
     uint32_t UID;
+    uint32_t MapID;
 
     int X;
     int Y;
 
-    int CurrX;
-    int CurrY;
+    int EndX;
+    int EndY;
 }AMTryMove;
 
 typedef struct
@@ -215,4 +216,33 @@ typedef struct
 typedef struct
 {
     uint32_t MapID;
+    uint32_t UID;
 }AMMapSwitch;
+
+typedef struct
+{
+    uint32_t UID;
+    uint32_t MapID;
+    uint32_t MapUID;
+
+    int X;
+    int Y;
+}AMTryMapSwitch;
+
+typedef struct
+{
+    uint32_t MapID;
+}AMQueryMapUID;
+
+typedef struct
+{
+    uint32_t UID;
+}AMUID;
+
+typedef struct
+{
+    void *Data;
+
+    int X;
+    int Y;
+}AMMapSwitchOK;

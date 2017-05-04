@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 04/28/2017 23:49:12
+ *  Last Modified: 05/04/2017 01:00:43
  *
  *    Description: 
  *
@@ -37,17 +37,14 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     , m_Metronome(nullptr)
     , m_ServiceCore(pServiceCore)
     , m_CellRecordV2D()
-    , m_ObjectV2D()
+    , m_UIDRecordV2D()
 {
-    ResetType(TYPE_INFO,    TYPE_UTILITY);
-    ResetType(TYPE_UTILITY, TYPE_SERVERMAP);
-
     if(m_Mir2xMapData.Valid()){
-        m_ObjectV2D.clear();
+        m_UIDRecordV2D.clear();
 
-        m_ObjectV2D.resize(m_Mir2xMapData.W());
-        for(auto &rstObjectLine: m_ObjectV2D){
-            rstObjectLine.resize(m_Mir2xMapData.H());
+        m_UIDRecordV2D.resize(m_Mir2xMapData.W());
+        for(auto &rstRecordLine: m_UIDRecordV2D){
+            rstRecordLine.resize(m_Mir2xMapData.H());
         }
 
         m_CellRecordV2D.resize(m_Mir2xMapData.W());
@@ -65,6 +62,16 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
             m_CellRecordV2D[stLoc.X][stLoc.Y].MapID = stLoc.MapID;
         }
     }
+
+    auto fnRegisterClass = [this]() -> void {
+        if(!RegisterClass<ServerMap, ActiveObject>()){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <ServerMap, ActiveObject> failed");
+            g_MonoServer->Restart();
+        }
+    };
+    static std::once_flag stFlag;
+    std::call_once(stFlag, fnRegisterClass);
 }
 
 void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -75,9 +82,9 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
                 On_MPK_HI(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_LEAVE:
+        case MPK_TRYLEAVE:
             {
-                On_MPK_LEAVE(rstMPK, rstFromAddr);
+                On_MPK_TRYLEAVE(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_ACTION:
@@ -88,6 +95,11 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
         case MPK_TRYMOVE:
             {
                 On_MPK_TRYMOVE(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_TRYMAPSWITCH:
+            {
+                On_MPK_TRYMAPSWITCH(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_METRONOME:
@@ -123,9 +135,12 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
 bool ServerMap::CanMove(int nX, int nY)
 {
     if(GroundValid(nX, nY)){
-        for(auto pObject: m_ObjectV2D[nX][nY]){
-            if(pObject && pObject->Active() && ((ActiveObject *)(pObject))->Type(TYPE_CHAR)){
-                return false;
+        for(auto nUID: m_UIDRecordV2D[nX][nY]){
+            extern MonoServer *g_MonoServer;
+            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                if(stUIDRecord.ClassFrom<CharObject>()){
+                    return false;
+                }
             }
         }
         return true;
