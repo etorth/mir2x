@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/04/2017 13:07:31
+ *  Last Modified: 05/04/2017 15:08:55
  *
  *    Description: 
  *
@@ -154,12 +154,13 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
                                     switch(rstLeaveRMPK.Type()){
                                         case MPK_OK:
                                             {
-                                                // OK you are free to leave
-                                                // for MPK_TRYLEAVE this is the only valid response
+                                                // 1. response to new map ``I am here"
                                                 m_Map   = (ServerMap *)(stAMMSOK.Data);
                                                 m_CurrX = stAMMSOK.X;
                                                 m_CurrY = stAMMSOK.Y;
+                                                m_ActorPod->Forward(MPK_OK, m_Map->GetAddress(), rstRMPK.ID());
 
+                                                // 2. notify all players on the new map
                                                 ActionNode stAction;
                                                 stAction.Action      = ACTION_STAND;
                                                 stAction.ActionParam = 0;
@@ -171,10 +172,9 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
                                                 stAction.EndY        = Y();
                                                 stAction.MapID       = m_Map->ID();
                                                 stAction.ID          = 0;
-
                                                 DispatchAction(stAction);
-                                                m_ActorPod->Forward(MPK_OK, ((ServerMap *)(stAMMSOK.Data))->GetAddress(), rstRMPK.ID());
 
+                                                // 3. inform the client for map swith
                                                 SMAction stSMActionStand;
                                                 stSMActionStand.UID         = UID();
                                                 stSMActionStand.MapID       = MapID();
@@ -190,6 +190,12 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
 
                                                 extern NetPodN *g_NetPodN;
                                                 g_NetPodN->Send(m_SessionID, SM_ACTION, stSMActionStand);
+
+                                                // 4. pull all co's on the new map
+                                                AMPullCOInfo stAMPCOI;
+                                                stAMPCOI.SessionID = m_SessionID;
+                                                m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
+
                                                 break;
                                             }
                                         default:
