@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/02/2017 23:45:59
+ *  Last Modified: 05/04/2017 20:58:59
  *
  *    Description: 
  *
@@ -50,6 +50,10 @@ enum MessagePackType: int
     MPK_MAPSWITCHOK,
     MPK_TRYMAPSWITCH,
     MPK_QUERYMAPUID,
+    MPK_QUERYLOCATION,
+    MPK_LOCATION,
+    MPK_PATHFIND,
+    MPK_PATHFINDOK,
 };
 
 typedef struct
@@ -246,3 +250,43 @@ typedef struct
     int X;
     int Y;
 }AMMapSwitchOK;
+
+typedef struct
+{
+    uint32_t UID;
+    uint32_t MapID;
+}AMQueryLocation;
+
+typedef struct
+{
+    uint32_t UID;
+    uint32_t MapID;
+    
+    int X;
+    int Y;
+}AMLocation;
+
+typedef struct
+{
+    uint32_t UID;
+    uint32_t MapID;
+
+    bool CheckCO;
+
+    int X;
+    int Y;
+    int EndX;
+    int EndY;
+}AMPathFind;
+
+typedef struct
+{
+    uint32_t UID;
+    uint32_t MapID;
+
+    struct _Point
+    {
+        int X;
+        int Y;
+    }Point[2];
+}AMPathFindOK;

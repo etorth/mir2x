@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/04/2017 00:59:49
+ *  Last Modified: 05/04/2017 17:03:52
  *
  *    Description: 
  *
@@ -39,6 +39,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_CurrY(nMapY)
     , m_Direction(nDirection)
     , m_FreezeMove(false)
+    , m_TargetInfo()
     , m_Ability()
     , m_WAbility()
     , m_AddAbility()

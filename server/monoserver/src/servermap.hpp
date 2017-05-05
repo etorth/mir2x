@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 05/04/2017 12:11:08
+ *  Last Modified: 05/05/2017 00:36:14
  *
  *    Description:
  *
@@ -27,6 +27,7 @@
 #include "sysconst.hpp"
 #include "uidrecord.hpp"
 #include "metronome.hpp"
+#include "pathfinder.hpp"
 #include "mir2xmapdata.hpp"
 #include "activeobject.hpp"
 
@@ -34,6 +35,20 @@ class ServiceCore;
 class ServerObject;
 class ServerMap: public ActiveObject
 {
+    private:
+        // bind to servermap
+        // only for server map internal usage
+        class ServerPathFinder: public AStarPathFinder
+        {
+            public:
+                ServerPathFinder(ServerMap*, bool);
+               ~ServerPathFinder() = default;
+        };
+
+        // the server pathfinder will call CanMove() etc
+        // which I refuse to set as public since it's dynamically updated
+        friend class ServerPathFinder;
+
     private:
         enum QueryType: int
         {
@@ -124,6 +139,7 @@ class ServerMap: public ActiveObject
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYLEAVE(const MessagePack &, const Theron::Address &);
+        void On_MPK_PATHFIND(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYMAPSWITCH(const MessagePack &, const Theron::Address &);

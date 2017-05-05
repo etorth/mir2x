@@ -3,7 +3,7 @@
  *
  *       Filename: clientpathfinder.cpp
  *        Created: 03/28/2017 21:15:25
- *  Last Modified: 04/17/2017 11:54:23
+ *  Last Modified: 05/04/2017 19:35:00
  *
  *    Description: 
  *
@@ -75,5 +75,4 @@ ClientPathFinder::ClientPathFinder(bool bCheckCreature)
                 }
             }
       )
-    , m_CheckCreature(bCheckCreature)
 {}

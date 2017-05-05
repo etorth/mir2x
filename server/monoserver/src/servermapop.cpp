@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/04/2017 13:11:01
+ *  Last Modified: 05/05/2017 01:04:41
  *
  *    Description: 
  *
@@ -65,10 +65,12 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &
             for(int nY = nY0; nY <= nY1; ++nY){
                 if(ValidC(nX, nY)){
                     for(auto nUID: m_UIDRecordV2D[nX][nY]){
-                        extern MonoServer *g_MonoServer;
-                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(stUIDRecord.ClassFrom<Player>()){
-                                m_ActorPod->Forward({MPK_ACTION, stAMA}, stUIDRecord.Address);
+                        if(nUID != stAMA.UID){
+                            extern MonoServer *g_MonoServer;
+                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                                if(stUIDRecord.ClassFrom<CharObject>()){
+                                    m_ActorPod->Forward({MPK_ACTION, stAMA}, stUIDRecord.Address);
+                                }
                             }
                         }
                     }
@@ -359,4 +361,70 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Add
     }else{
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
     }
+}
+
+void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+{
+    AMPathFind stAMPF;
+    std::memcpy(&stAMPF, rstMPK.Data(), sizeof(stAMPF));
+
+    int nX0 = stAMPF.X;
+    int nY0 = stAMPF.Y;
+    int nX1 = stAMPF.EndX;
+    int nY1 = stAMPF.EndY;
+
+    AMPathFindOK stAMPFOK;
+    stAMPFOK.UID   = stAMPF.UID;
+    stAMPFOK.MapID = ID();
+
+    // we fill all slots with -1 for initialization
+    // won't keep a record of ``how many path nodes are valid"
+    auto nPathCount = (int)(sizeof(stAMPFOK.Point) / sizeof(stAMPFOK.Point[0]));
+    for(int nIndex = 0; nIndex < nPathCount; ++nIndex){
+        stAMPFOK.Point[nIndex].X = -1;
+        stAMPFOK.Point[nIndex].Y = -1;
+    }
+
+    ServerPathFinder stPathFinder(this, stAMPF.CheckCO);
+    if(stPathFinder.Search(nX0, nY0, nX1, nY1)){
+        if(stPathFinder.GetSolutionStart()){
+            int nCurrN = 0;
+            int nCurrX = nX0;
+            int nCurrY = nY0;
+
+            while(auto pNode1 = stPathFinder.GetSolutionNext()){
+                if(nCurrN >= nPathCount){ break; }
+                int nEndX = pNode1->X();
+                int nEndY = pNode1->Y();
+                switch(LDistance2(nCurrX, nCurrY, nEndX, nEndY)){
+                    case 1:
+                    case 2:
+                        {
+                            stAMPFOK.Point[nCurrN].X = nCurrX;
+                            stAMPFOK.Point[nCurrN].Y = nCurrY;
+
+                            nCurrN++;
+
+                            nCurrX = nEndX;
+                            nCurrY = nEndY;
+                            break;
+                        }
+                    case 0:
+                    default:
+                        {
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid path node");
+                            break;
+                        }
+                }
+            }
+
+            // we filled all possible nodes to the message
+            m_ActorPod->Forward({MPK_PATHFINDOK, stAMPFOK}, rstFromAddr, rstMPK.ID());
+            return;
+        }
+    }
+
+    // failed to find a path
+    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
 }

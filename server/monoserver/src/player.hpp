@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 05/04/2017 01:07:35
+ *  Last Modified: 05/04/2017 17:29:22
  *
  *    Description: 
  *
@@ -120,6 +120,7 @@ class Player: public CharObject
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
         void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_BINDSESSION(const MessagePack &, const Theron::Address &);
+        void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);
 
     private:
         void Net_CM_QUERYMONSTERGINFO(uint8_t, const uint8_t *, size_t);

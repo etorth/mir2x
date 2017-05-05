@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 04/25/2017 00:24:17
+ *  Last Modified: 05/04/2017 19:56:04
  *
  *    Description: 
  *
@@ -373,7 +373,9 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                 stAction.Y           = m_MyHero->CurrMotion().EndY;
                                 stAction.EndX        = nX;
                                 stAction.EndY        = nY;
-                                m_MyHero->ParseNewAction(stAction, false);
+                                if(LDistance2(stAction.X, stAction.Y, stAction.EndX, stAction.EndY)){
+                                    m_MyHero->ParseNewAction(stAction, false);
+                                }
                             }
 
                             break;

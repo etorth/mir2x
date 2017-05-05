@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/04/2017 00:50:56
+ *  Last Modified: 05/05/2017 01:00:57
  *
  *    Description: 
  *
@@ -52,6 +52,89 @@ Monster::Monster(uint32_t   nMonsterID,
 bool Monster::Update()
 {
     if(CanMove()){
+        // 1. track the target if possible
+        if(m_TargetInfo.UID){
+            extern MonoServer *g_MonoServer;
+            if(auto stRecord = g_MonoServer->GetUIDRecord(m_TargetInfo.UID)){
+                AMQueryLocation stAMQL;
+                stAMQL.UID   = UID();
+                stAMQL.MapID = MapID();
+
+                auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &){
+                    switch(rstRMPK.Type()){
+                        case MPK_LOCATION:
+                            {
+                                AMLocation stAML;
+                                std::memcpy(&stAML, rstRMPK.Data(), sizeof(stAML));
+
+                                if(stAML.MapID == MapID()){
+                                    m_TargetInfo.MapID = stAML.MapID;
+                                    m_TargetInfo.X     = stAML.X;
+                                    m_TargetInfo.Y     = stAML.Y;
+
+                                    switch(LDistance2(m_TargetInfo.X, m_TargetInfo.Y, X(), Y())){
+                                        case 0:
+                                            {
+                                                break;
+                                            }
+                                        case 1:
+                                        case 2:
+                                            {
+                                                break;
+                                            }
+                                        default:
+                                            {
+                                                // find a path and ignore the objects on the way
+                                                // if not ignore, we use ServerMap::CanMove() instead of GroundValid()
+                                                // this makes the path finding always fail since the start and end point has been taken
+                                                AMPathFind stAMPF;
+                                                stAMPF.UID     = UID();
+                                                stAMPF.MapID   = MapID();
+                                                stAMPF.CheckCO = false;
+                                                stAMPF.X       = X();
+                                                stAMPF.Y       = Y();
+                                                stAMPF.EndX    = m_TargetInfo.X;
+                                                stAMPF.EndY    = m_TargetInfo.Y;
+
+                                                auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &){
+                                                    switch(rstRMPK.Type()){
+                                                        case MPK_PATHFINDOK:
+                                                            {
+                                                                AMPathFindOK stAMPFOK;
+                                                                std::memcpy(&stAMPFOK, rstRMPK.Data(), sizeof(stAMPFOK));
+                                                                RequestMove(stAMPFOK.Point[1].X, stAMPFOK.Point[1].Y, [](){}, [](){});
+                                                                break;
+                                                            }
+                                                        default:
+                                                            {
+                                                                break;
+                                                            }
+                                                    }
+                                                };
+                                                m_ActorPod->Forward({MPK_PATHFIND, stAMPF}, m_Map->GetAddress(), fnOnResp);
+                                                break;
+                                            }
+                                    }
+                                }else{
+                                    m_TargetInfo.UID = 0;
+                                }
+                                break;
+                            }
+                        default:
+                            {
+                                break;
+                            }
+                    }
+                };
+
+                // if we have an target follow the target only
+                m_ActorPod->Forward({MPK_QUERYLOCATION, stAMQL}, stRecord.Address, fnOnResp);
+                return true;
+            }
+        }
+
+        m_TargetInfo.UID = 0;
+
         // always try to move if possible
         {
             int nNextX = 0;
@@ -113,9 +196,19 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
                 On_MPK_METRONOME(rstMPK, rstAddress);
                 break;
             }
+        case MPK_ACTION:
+            {
+                On_MPK_ACTION(rstMPK, rstAddress);
+                break;
+            }
         case MPK_MAPSWITCH:
             {
                 On_MPK_MAPSWITCH(rstMPK, rstAddress);
+                break;
+            }
+        case MPK_QUERYLOCATION:
+            {
+                On_MPK_QUERYLOCATION(rstMPK, rstAddress);
                 break;
             }
         case MPK_PULLCOINFO:

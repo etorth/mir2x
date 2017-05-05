@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/04/2017 15:08:55
+ *  Last Modified: 05/04/2017 17:57:55
  *
  *    Description: 
  *
@@ -80,24 +80,26 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    if((std::abs(stAMA.X - m_CurrX) <= SYS_MAPVISIBLEW) && (std::abs(stAMA.Y - m_CurrY) <= SYS_MAPVISIBLEH)){
-        SMAction stSMA;
+    if(stAMA.UID != UID()){
+        if((std::abs(stAMA.X - m_CurrX) <= SYS_MAPVISIBLEW) && (std::abs(stAMA.Y - m_CurrY) <= SYS_MAPVISIBLEH)){
+            SMAction stSMA;
 
-        stSMA.UID   = stAMA.UID;
-        stSMA.MapID = stAMA.MapID;
+            stSMA.UID   = stAMA.UID;
+            stSMA.MapID = stAMA.MapID;
 
-        stSMA.Action      = stAMA.Action;
-        stSMA.ActionParam = stAMA.ActionParam;
-        stSMA.Speed       = stAMA.Speed;
-        stSMA.Direction   = stAMA.Direction;
+            stSMA.Action      = stAMA.Action;
+            stSMA.ActionParam = stAMA.ActionParam;
+            stSMA.Speed       = stAMA.Speed;
+            stSMA.Direction   = stAMA.Direction;
 
-        stSMA.X    = stAMA.X;
-        stSMA.Y    = stAMA.Y;
-        stSMA.EndX = stAMA.EndX;
-        stSMA.EndY = stAMA.EndY;
+            stSMA.X    = stAMA.X;
+            stSMA.Y    = stAMA.Y;
+            stSMA.EndX = stAMA.EndX;
+            stSMA.EndY = stAMA.EndY;
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);
+            extern NetPodN *g_NetPodN;
+            g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);
+        }
     }
 }
 
@@ -236,4 +238,15 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
 
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %" PRIu32 ", MapID = %" PRIu32 ")", stAMMS.UID, stAMMS.MapID);
+}
+
+void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+{
+    AMLocation stAML;
+    stAML.UID   = UID();
+    stAML.MapID = MapID();
+    stAML.X     = X();
+    stAML.Y     = Y();
+
+    m_ActorPod->Forward({MPK_LOCATION, stAML}, rstFromAddr, rstMPK.ID());
 }

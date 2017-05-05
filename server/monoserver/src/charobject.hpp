@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/02/2017 18:33:27
+ *  Last Modified: 05/04/2017 17:24:05
  *
  *    Description: 
  *
@@ -102,6 +102,23 @@ typedef struct
 class CharObject: public ActiveObject
 {
     protected:
+        struct COLocation
+        {
+            uint32_t UID;
+            uint32_t MapID;
+
+            int X;
+            int Y;
+
+            COLocation()
+                : UID(0)
+                , MapID(0)
+                , X(-1)
+                , Y(-1)
+            {}
+        };
+
+    protected:
         ServiceCore *m_ServiceCore;
         ServerMap   *m_Map;
 
@@ -115,6 +132,9 @@ class CharObject: public ActiveObject
 
     protected:
         bool m_FreezeMove;
+
+    protected:
+        COLocation m_TargetInfo;
 
     protected:
         OBJECTABILITY       m_Ability;

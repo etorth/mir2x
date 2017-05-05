@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/01/2017 16:54:16
+ *  Last Modified: 05/04/2017 15:55:15
  *
  *    Description: 
  *
@@ -41,7 +41,7 @@ class MonoServer final
     struct UIDLockRecord
     {
         std::mutex Lock;
-        std::unordered_map<uint32_t, ServerObject *> Record;
+        std::unordered_map<uint32_t, const ServerObject *> Record;
     };
 
     private:
