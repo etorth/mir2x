@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/05/2017 17:55:10
+ *  Last Modified: 05/06/2017 01:54:56
  *
  *    Description: 
  *
@@ -80,6 +80,18 @@ bool Monster::Update()
                                         case 1:
                                         case 2:
                                             {
+                                                static const int nDirV[][3] = {
+                                                    {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
+                                                    {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
+                                                    {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
+
+                                                int nDX = m_TargetInfo.X - X() + 1;
+                                                int nDY = m_TargetInfo.Y - Y() + 1;
+
+                                                if(Direction() != nDirV[nDY][nDX]){
+                                                    m_Direction = nDirV[nDY][nDX];
+                                                    DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), m_Map->ID()});
+                                                }
                                                 break;
                                             }
                                         default:

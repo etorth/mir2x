@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/05/2017 17:55:30
+ *  Last Modified: 05/06/2017 02:08:15
  *
  *    Description: 
  *
@@ -125,40 +125,38 @@ bool CharObject::RequestMove(int nX, int nY, std::function<void()> fnOnMoveOK, s
         stAMTM.EndY    = nY;
 
         auto fnOP = [this, nX, nY, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK, const Theron::Address &rstAddr){
+            static const int nDirV[][3] = {
+                {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
+                {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
+                {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
+
+            int nDX = nX - m_CurrX + 1;
+            int nDY = nY - m_CurrY + 1;
+
+            int nNewDirection = nDirV[nDY][nDX];
+
             switch(rstMPK.Type()){
                 case MPK_OK:
                     {
-                        static const int nDirV[][3] = {
-                            {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
-                            {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
-                            {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
+                        int nOldX = X();
+                        int nOldY = Y();
 
-                        int nDX = nX - m_CurrX + 1;
-                        int nDY = nY - m_CurrY + 1;
+                        m_CurrX     = nX;
+                        m_CurrY     = nY;
+                        m_Direction = nNewDirection;
 
-                        ActionNode stAction;
-                        stAction.Action      = ACTION_MOVE;
-                        stAction.ActionParam = 0;
-                        stAction.Speed       = 1;
-                        stAction.Direction   = nDirV[nDY][nDX];
-                        stAction.X           = m_CurrX;
-                        stAction.Y           = m_CurrY;
-                        stAction.EndX        = nX;
-                        stAction.EndY        = nY;
-
-                        m_CurrX = nX;
-                        m_CurrY = nY;
                         m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
+                        DispatchAction({ACTION_MOVE, 0, 1, Direction(), nOldX, nOldY, X(), Y(), m_Map->ID()});
 
-                        DispatchAction(stAction);
                         if(fnOnMoveOK){ fnOnMoveOK(); }
                         m_FreezeMove = false;
                         break;
                     }
                 case MPK_ERROR:
                     {
-                        m_Direction = GetBack();
-                        DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y(), m_Map->ID()});
+                        m_Direction = nNewDirection;
+                        DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), m_Map->ID()});
+
                         if(fnOnMoveError){ fnOnMoveError(); }
                         m_FreezeMove = false;
                         break;
