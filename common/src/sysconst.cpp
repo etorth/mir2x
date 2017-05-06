@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.cpp
  *        Created: 06/02/2016 11:43:04
- *  Last Modified: 04/28/2017 23:45:53
+ *  Last Modified: 05/06/2017 02:35:45
  *
  *    Description: don't refer to monoserver->AddLog() or something
  *
@@ -40,9 +40,10 @@ struct MapRecord
 
 const static std::unordered_map<uint32_t, MapRecord> s_MapRecord
 {
-    {0,  {"",  "",      {}          }},
-    {1,  {"1", "1.bin", {{9, 24, 2}}}},
-    {2,  {"2", "2.bin", {}          }},
+    {0,  {"",  "",      {}           }},
+    {1,  {"1", "1.bin", {{ 9, 24, 2}}}},
+    {2,  {"2", "2.bin", {{15, 11, 3}}}},
+    {3,  {"3", "3.bin", {}           }},
 };
 
 const char *SYS_MAPNAME(uint32_t nMapID)
