@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/05/2017 00:36:54
+ *  Last Modified: 05/05/2017 16:25:01
  *
  *    Description: 
  *
@@ -33,7 +33,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, bool bCheckCreatu
     : AStarPathFinder(
             // 1. step check function
             //    assert pMap should be not null
-            [pMap, bCheckCreature](int nSrcX, int nSrcY, int nDstX, int nDstY) -> bool {
+            [pMap](int nSrcX, int nSrcY, int nDstX, int nDstY) -> bool {
                 switch(LDistance2(nSrcX, nSrcY, nDstX, nDstY)){
                     case 0:
                         {
@@ -45,7 +45,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, bool bCheckCreatu
                     case 1:
                     case 2:
                         {
-                            return bCheckCreature ? pMap->CanMove(nDstX, nDstY) : pMap->GroundValid(nDstX, nDstY);
+                            return pMap->GroundValid(nDstX, nDstY);
                         }
                     default:
                         {
@@ -81,11 +81,57 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, bool bCheckCreatu
                         }
                     case 1:
                         {
-                            return (bCheckCreature ? pMap->CanMove(nDstX, nDstY) : pMap->GroundValid(nDstX, nDstY)) ? 1.0 : 10000.0;
+                            if(pMap->GroundValid(nDstX, nDstY)){
+                                if(bCheckCreature){
+                                    // if there is no co on the way we take it
+                                    // however if there is, we can still take it but with very high cost
+                                    // for example: now A is targeting at C
+                                    //    +---+---+---+---+---+
+                                    //    |   |   |   | C |   |
+                                    //    +---+---+---+---+---+
+                                    //    |   |   | B |   |   |
+                                    //    +---+---+---+---+---+
+                                    //    |   | A |   |   |   |
+                                    //    +---+---+---+---+---+
+                                    //    |   |   |   |   |   |
+                                    //    +---+---+---+---+---+
+                                    // then we try to find a path Loc(A) -> Loc(C)
+                                    // if 1. we always allow if GroundValid(LOC) is true : co ignored
+                                    //    2. we always allow if CanMove(LOC)     is true : co affects
+                                    //
+                                    // for solution-1: A will stop at current position since A try to move to LOC(B) but it's occupied
+                                    //     solution-2: LOC(A) -> LOC(C) is invalid since start and end point has been taken by themselves
+                                    //
+                                    // so my solution: 1. always allow if GroundValid(LOC) is true
+                                    //                 2. if currently there is CO in the cell we give a higher cost
+                                    // then A will bypass B to go to C and stop as close as possible to C
+                                    //
+                                    // this also saves if C is surrendered by a lot of CO's
+                                    // in which case solution-1 will make A stop at a far distance between C
+                                    //               solution-2 will make C un-reachable
+                                    //            my solution   will make A stop at a place as close as possible to C
+                                    return pMap->CanMove(nDstX, nDstY) ? 1.0 : 100.0;
+                                }else{
+                                    // won't check creature
+                                    // then all walk-able step get cost 1.0
+                                    return 1.0;
+                                }
+                            }else{
+                                // can't go through, return the infinite
+                                return 10000.0;
+                            }
                         }
                     case 2:
                         {
-                            return (bCheckCreature ? pMap->CanMove(nDstX, nDstY) : pMap->GroundValid(nDstX, nDstY)) ? 1.1 : 10000.0;
+                            // same logic for case-1
+                            // but we put higher cost (1.1) to prefer go straight
+                            if(pMap->GroundValid(nDstX, nDstY)){
+                                if(bCheckCreature){
+                                    return pMap->CanMove(nDstX, nDstY) ? 1.1 : 100.1;
+                                }else{ return 1.1; }
+                            }else{
+                                return 10000.0;
+                            }
                         }
                     default:
                         {

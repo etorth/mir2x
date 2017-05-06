@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/05/2017 01:00:57
+ *  Last Modified: 05/05/2017 17:01:49
  *
  *    Description: 
  *
@@ -90,7 +90,7 @@ bool Monster::Update()
                                                 AMPathFind stAMPF;
                                                 stAMPF.UID     = UID();
                                                 stAMPF.MapID   = MapID();
-                                                stAMPF.CheckCO = false;
+                                                stAMPF.CheckCO = true;
                                                 stAMPF.X       = X();
                                                 stAMPF.Y       = Y();
                                                 stAMPF.EndX    = m_TargetInfo.X;
@@ -131,9 +131,10 @@ bool Monster::Update()
                 m_ActorPod->Forward({MPK_QUERYLOCATION, stAMQL}, stRecord.Address, fnOnResp);
                 return true;
             }
-        }
 
-        m_TargetInfo.UID = 0;
+            // else it's not valid any more
+            m_TargetInfo.UID = 0;
+        }
 
         // always try to move if possible
         {

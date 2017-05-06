@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/04/2017 17:57:55
+ *  Last Modified: 05/05/2017 17:16:56
  *
  *    Description: 
  *
@@ -28,13 +28,13 @@
 void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
     extern NetPodN *g_NetPodN;
-    extern MemoryPN *g_MemoryPN;
     extern MonoServer *g_MonoServer;
 
-    auto pMem = g_MemoryPN->Get<SMPing>();
-    pMem->Tick = g_MonoServer->GetTimeTick();
+    Update();
 
-    g_NetPodN->Send(m_SessionID, SM_PING, (uint8_t *)(pMem), sizeof(SMPing), [pMem](){ g_MemoryPN->Free(pMem); });
+    SMPing stSMP;
+    stSMP.Tick = g_MonoServer->GetTimeTick();
+    g_NetPodN->Send(m_SessionID, SM_PING, stSMP);
 }
 
 void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address &)
