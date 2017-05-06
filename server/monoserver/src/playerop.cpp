@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/05/2017 17:16:56
+ *  Last Modified: 05/05/2017 18:18:39
  *
  *    Description: 
  *
@@ -163,35 +163,10 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
                                                 m_ActorPod->Forward(MPK_OK, m_Map->GetAddress(), rstRMPK.ID());
 
                                                 // 2. notify all players on the new map
-                                                ActionNode stAction;
-                                                stAction.Action      = ACTION_STAND;
-                                                stAction.ActionParam = 0;
-                                                stAction.Speed       = 0;
-                                                stAction.Direction   = Direction();
-                                                stAction.X           = X();
-                                                stAction.Y           = Y();
-                                                stAction.EndX        = X();
-                                                stAction.EndY        = Y();
-                                                stAction.MapID       = m_Map->ID();
-                                                stAction.ID          = 0;
-                                                DispatchAction(stAction);
+                                                DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), m_Map->ID() });
 
                                                 // 3. inform the client for map swith
-                                                SMAction stSMActionStand;
-                                                stSMActionStand.UID         = UID();
-                                                stSMActionStand.MapID       = MapID();
-                                                stSMActionStand.Action      = ACTION_STAND;
-                                                stSMActionStand.ActionParam = 0;
-                                                stSMActionStand.Speed       = 0;
-                                                stSMActionStand.Direction   = Direction();
-                                                stSMActionStand.X           = X();
-                                                stSMActionStand.Y           = Y();
-                                                stSMActionStand.EndX        = X();
-                                                stSMActionStand.EndY        = Y();
-                                                stSMActionStand.ID          = 0;
-
-                                                extern NetPodN *g_NetPodN;
-                                                g_NetPodN->Send(m_SessionID, SM_ACTION, stSMActionStand);
+                                                ReportStand();
 
                                                 // 4. pull all co's on the new map
                                                 AMPullCOInfo stAMPCOI;
@@ -202,8 +177,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
                                             }
                                         default:
                                             {
-                                                // can't leave???
-                                                // this is really illegal
+                                                // can't leave???, illegal response
                                                 // server map won't respond any other message not MPK_OK
                                                 // dangerous issue since we then can never inform the new map ``we can't come to you"
                                                 m_ActorPod->Forward(MPK_ERROR, ((ServerMap *)(stAMMSOK.Data))->GetAddress(), rstRMPK.ID());

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/04/2017 17:30:55
+ *  Last Modified: 05/05/2017 18:09:45
  *
  *    Description: 
  *
@@ -178,4 +178,24 @@ void Player::ReportCORecord(uint32_t nSessionID)
         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
         g_MonoServer->Restart();
     }
+}
+
+void Player::ReportStand()
+{
+    // any error found when checking motion
+    // report an stand state to client for pull-back
+    SMAction stSMAction;
+    stSMAction.UID         = UID();
+    stSMAction.MapID       = MapID();
+    stSMAction.Action      = ACTION_STAND;
+    stSMAction.ActionParam = 0;
+    stSMAction.Speed       = 0;
+    stSMAction.Direction   = Direction();
+    stSMAction.X           = X();
+    stSMAction.Y           = Y();
+    stSMAction.EndX        = X();
+    stSMAction.EndY        = Y();
+
+    extern NetPodN *g_NetPodN;
+    g_NetPodN->Send(m_SessionID, SM_ACTION, stSMAction);
 }

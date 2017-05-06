@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 05/04/2017 17:29:22
+ *  Last Modified: 05/05/2017 18:08:06
  *
  *    Description: 
  *
@@ -130,5 +130,6 @@ class Player: public CharObject
         void For_CheckTime();
 
     protected:
+        void ReportStand();
         void ReportCORecord(uint32_t);
 };

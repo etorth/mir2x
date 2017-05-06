@@ -3,7 +3,7 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 05/02/2017 22:31:45
+ *  Last Modified: 05/05/2017 17:48:26
  *
  *    Description: 
  *
@@ -38,9 +38,8 @@ struct ActionNode
     int EndY;
 
     uint32_t MapID;
-    uint32_t ID;
 
-    ActionNode(int nAction, int nActionParam, int nSpeed, int nDirection, int nX, int nY, int nEndX, int nEndY)
+    ActionNode(int nAction, int nActionParam, int nSpeed, int nDirection, int nX, int nY, int nEndX, int nEndY, uint32_t nMapID)
         : Action(nAction)
         , ActionParam(nActionParam)
         , Speed(nSpeed)
@@ -49,24 +48,15 @@ struct ActionNode
         , Y(nY)
         , EndX(nEndX)
         , EndY(nEndY)
-        , ID(0)
-    {
-        // assert((nAction      >= 0) && (nAction      <= (int)(std::numeric_limits<decltype(Action     )>::max())));
-        // assert((nActionParam >= 0) && (nActionParam <= (int)(std::numeric_limits<decltype(ActionParam)>::max())));
-        // assert((nSpeed       >= 0) && (nSpeed       <= (int)(std::numeric_limits<decltype(Speed      )>::max())));
-        // assert((nDirection   >= 0) && (nDirection   <= (int)(std::numeric_limits<decltype(Direction  )>::max())));
-        // assert((nX           >= 0) && (nX           <= (int)(std::numeric_limits<decltype(X          )>::max())));
-        // assert((nY           >= 0) && (nY           <= (int)(std::numeric_limits<decltype(Y          )>::max())));
-        // assert((nEndX        >= 0) && (nEndX        <= (int)(std::numeric_limits<decltype(EndX       )>::max())));
-        // assert((nEndY        >= 0) && (nEndY        <= (int)(std::numeric_limits<decltype(EndY       )>::max())));
-    }
+        , MapID(nMapID)
+    {}
 
-    ActionNode(int nAction, int nActionParam, int nDirection, int nX, int nY)
-        : ActionNode(nAction, nActionParam, 0, nDirection, nX, nY, nX, nY)
+    ActionNode(int nAction, int nActionParam, int nDirection, int nX, int nY, uint32_t nMapID)
+        : ActionNode(nAction, nActionParam, 0, nDirection, nX, nY, nX, nY, nMapID)
     {}
 
     ActionNode()
-        : ActionNode(ACTION_NONE, 0, 0, 0, 0, 0, 0, 0)
+        : ActionNode(ACTION_NONE, 0, 0, 0, 0, 0, 0, 0, 0)
     {}
 
     void Print() const;

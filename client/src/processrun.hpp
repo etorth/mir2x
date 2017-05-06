@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 04/19/2017 23:10:39
+ *  Last Modified: 05/05/2017 18:29:54
  *
  *    Description: 
  *
@@ -62,6 +62,11 @@ class ProcessRun: public Process
         virtual int ID()
         {
             return PROCESSID_RUN;
+        }
+
+        uint32_t MapID() const
+        {
+            return m_MapID;
         }
 
     public:

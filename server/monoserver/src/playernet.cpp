@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 04/28/2017 01:29:26
+ *  Last Modified: 05/05/2017 18:16:00
  *
  *    Description: how player respond for different net package
  *
@@ -48,6 +48,9 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
     std::memcpy(&stCMA, pBuf, sizeof(stCMA));
 
     if(true
+            && stCMA.UID   == UID()
+            && stCMA.MapID == MapID()
+
             && m_Map
             && m_Map->ValidC(stCMA.X, stCMA.Y)
             && m_Map->ValidC(stCMA.EndX, stCMA.EndY)){
@@ -65,6 +68,8 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                         default:
                             {
                                 extern MonoServer *g_MonoServer;
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::UID         = %d", (int)(stCMA.UID));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::MapID       = %d", (int)(stCMA.MapID));
                                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Action      = %d", (int)(stCMA.Action));
                                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::ActionParam = %d", (int)(stCMA.ActionParam));
                                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Speed       = %d", (int)(stCMA.Speed));
@@ -73,7 +78,6 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Y           = %d", (int)(stCMA.Y));
                                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndX        = %d", (int)(stCMA.EndX));
                                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndY        = %d", (int)(stCMA.EndY));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::ID          = %d", (int)(stCMA.ID));
                                 return;
                             }
                     }
@@ -87,30 +91,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                     switch(LDistance2(X(), Y(), (int)(stCMA.X), (int)(stCMA.Y))){
                         case 0:
                             {
-                                auto fnOnMoveOK = [](){
-                                    // do nothing
-                                };
-
-                                auto fnOnMoveError = [this](){
-                                    // failed for motion
-                                    // send current stand status to client
-                                    SMAction stSMActionStand;
-                                    stSMActionStand.UID         = UID();
-                                    stSMActionStand.MapID       = MapID();
-                                    stSMActionStand.Action      = ACTION_STAND;
-                                    stSMActionStand.ActionParam = 0;
-                                    stSMActionStand.Speed       = 0;
-                                    stSMActionStand.Direction   = Direction();
-                                    stSMActionStand.X           = X();
-                                    stSMActionStand.Y           = Y();
-                                    stSMActionStand.EndX        = X();
-                                    stSMActionStand.EndY        = Y();
-                                    stSMActionStand.ID          = 0;
-
-                                    extern NetPodN *g_NetPodN;
-                                    g_NetPodN->Send(m_SessionID, SM_ACTION, stSMActionStand);
-                                };
-                                RequestMove((int)(stCMA.EndX), (int)(stCMA.EndY), fnOnMoveOK, fnOnMoveError);
+                                RequestMove((int)(stCMA.EndX), (int)(stCMA.EndY), [](){}, [this](){ ReportStand(); });
                                 return;
                             }
                         case 1:
@@ -119,70 +100,17 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                                 // there is one hop delay, acceptable
                                 // try to do the one-hop and then try the client action if possible
                                 auto fnOnFirstMoveOK = [this, stCMA](){
-                                    auto fnOnSecondMoveOK = [](){
-                                        // do nothing
-                                    };
-
-                                    auto fnOnSecondMoveError = [this](){
-                                        // failed for motion
-                                        // send current stand status to client
-                                        SMAction stSMActionStand;
-                                        stSMActionStand.UID         = UID();
-                                        stSMActionStand.MapID       = MapID();
-                                        stSMActionStand.Action      = ACTION_STAND;
-                                        stSMActionStand.ActionParam = 0;
-                                        stSMActionStand.Speed       = 0;
-                                        stSMActionStand.Direction   = Direction();
-                                        stSMActionStand.X           = X();
-                                        stSMActionStand.Y           = Y();
-                                        stSMActionStand.EndX        = X();
-                                        stSMActionStand.EndY        = Y();
-                                        stSMActionStand.ID          = 0;
-
-                                        extern NetPodN *g_NetPodN;
-                                        g_NetPodN->Send(m_SessionID, SM_ACTION, stSMActionStand);
-                                    };
-                                    RequestMove((int)(stCMA.EndX), (int)(stCMA.EndY), fnOnSecondMoveOK, fnOnSecondMoveError);
+                                    RequestMove((int)(stCMA.EndX), (int)(stCMA.EndY), [](){}, [this](){ ReportStand(); });
                                 };
 
-                                auto fnOnFirstMoveError = [this](){
-                                    SMAction stSMActionStand;
-                                    stSMActionStand.UID         = UID();
-                                    stSMActionStand.MapID       = MapID();
-                                    stSMActionStand.Action      = ACTION_STAND;
-                                    stSMActionStand.ActionParam = 0;
-                                    stSMActionStand.Speed       = 0;
-                                    stSMActionStand.Direction   = Direction();
-                                    stSMActionStand.X           = X();
-                                    stSMActionStand.Y           = Y();
-                                    stSMActionStand.EndX        = X();
-                                    stSMActionStand.EndY        = Y();
-                                    stSMActionStand.ID          = 0;
-
-                                    extern NetPodN *g_NetPodN;
-                                    g_NetPodN->Send(m_SessionID, SM_ACTION, stSMActionStand);
-                                };
-
-                                RequestMove((int)(stCMA.X), (int)(stCMA.Y), fnOnFirstMoveOK, fnOnFirstMoveError);
+                                RequestMove((int)(stCMA.X), (int)(stCMA.Y), fnOnFirstMoveOK, [this](){ ReportStand(); });
                                 return;
                             }
                         default:
                             {
-                                SMAction stSMActionStand;
-                                stSMActionStand.UID         = UID();
-                                stSMActionStand.MapID       = MapID();
-                                stSMActionStand.Action      = ACTION_STAND;
-                                stSMActionStand.ActionParam = 0;
-                                stSMActionStand.Speed       = 0;
-                                stSMActionStand.Direction   = Direction();
-                                stSMActionStand.X           = X();
-                                stSMActionStand.Y           = Y();
-                                stSMActionStand.EndX        = X();
-                                stSMActionStand.EndY        = Y();
-                                stSMActionStand.ID          = 0;
-
-                                extern NetPodN *g_NetPodN;
-                                g_NetPodN->Send(m_SessionID, SM_ACTION, stSMActionStand);
+                                // difference is not acceptable
+                                // force the client to do pull-back
+                                ReportStand();
                                 return;
                             }
                     }

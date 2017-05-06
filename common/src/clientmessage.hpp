@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 04/24/2017 21:59:37
+ *  Last Modified: 05/05/2017 18:01:13
  *
  *    Description: net message used by client and mono-server
  *
@@ -53,6 +53,9 @@ typedef struct
 
 typedef struct
 {
+    uint32_t UID;
+    uint32_t MapID;
+
     uint8_t Action;
     uint8_t ActionParam;
     uint8_t Speed;
@@ -62,8 +65,6 @@ typedef struct
     uint16_t Y;
     uint16_t EndX;
     uint16_t EndY;
-
-    uint32_t ID;
 }CMAction;
 #pragma pack(pop)
 

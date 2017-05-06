@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/04/2017 17:03:52
+ *  Last Modified: 05/05/2017 17:55:30
  *
  *    Description: 
  *
@@ -158,7 +158,7 @@ bool CharObject::RequestMove(int nX, int nY, std::function<void()> fnOnMoveOK, s
                 case MPK_ERROR:
                     {
                         m_Direction = GetBack();
-                        DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y()});
+                        DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y(), m_Map->ID()});
                         if(fnOnMoveError){ fnOnMoveError(); }
                         m_FreezeMove = false;
                         break;

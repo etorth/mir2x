@@ -3,7 +3,7 @@
  *
  *       Filename: actionnode.cpp
  *        Created: 04/07/2017 12:46:54
- *  Last Modified: 04/25/2017 01:13:13
+ *  Last Modified: 05/05/2017 17:49:55
  *
  *    Description: 
  *
@@ -27,7 +27,7 @@
 void ActionNode::Print() const
 {
     extern Log *g_Log;
-    g_Log->AddLog(LOGTYPE_INFO, "ActionNode::this        = 0X%0*X", sizeof(this), this);
+    g_Log->AddLog(LOGTYPE_INFO, "ActionNode::this        = 0X%0*X", (int)(sizeof(this) * 2), (uintptr_t)(this));
     g_Log->AddLog(LOGTYPE_INFO, "          ::Action      = %d", Action);
     g_Log->AddLog(LOGTYPE_INFO, "          ::ActionParam = %d", ActionParam);
     g_Log->AddLog(LOGTYPE_INFO, "          ::Direction   = %d", Direction);
@@ -36,5 +36,5 @@ void ActionNode::Print() const
     g_Log->AddLog(LOGTYPE_INFO, "          ::Y           = %d", Y);
     g_Log->AddLog(LOGTYPE_INFO, "          ::EndX        = %d", EndX);
     g_Log->AddLog(LOGTYPE_INFO, "          ::EndY        = %d", EndY);
-    g_Log->AddLog(LOGTYPE_INFO, "          ::ID          = %" PRIu32, ID);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::MapID       = %d", (int)(MapID));
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 04/28/2017 12:58:53
+ *  Last Modified: 05/05/2017 18:32:14
  *
  *    Description: 
  *
@@ -23,12 +23,12 @@
 #include "myhero.hpp"
 #include "message.hpp"
 #include "mathfunc.hpp"
+#include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
 MyHero::MyHero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, ProcessRun *pRun, const ActionNode &rstAction)
 	: Hero(nUID, nDBID, bMale, nDressID, pRun, rstAction)
     , m_ActionQueue()
-    , m_ActionCounter(1)
 {}
 
 bool MyHero::Update()
@@ -115,25 +115,14 @@ bool MyHero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
 {
     if(ActionValid(rstAction)){
         if(bRemote){
-            if(rstAction.ID){
-                if(m_CurrMotion.ID >= rstAction.ID){
-                    return true;
-                }else{
-                    return Hero::ParseNewAction(rstAction, true);
-                }
-            }else{
-                extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_WARNING, "Remote action with ID = %" PRIu32, rstAction.ID);
-                rstAction.Print();
-                return false;
-            }
+            return Hero::ParseNewAction(rstAction, true);
+        }else{
+            // OK it's a local action
+            // put it into the action queue for next update
+            m_ActionQueue.clear();
+            m_ActionQueue.push_back(rstAction);
+            return true;
         }
-
-        // OK it's a local action
-        // put it into the action queue for next update
-        m_ActionQueue.clear();
-        m_ActionQueue.push_back(rstAction);
-        return true;
     }
 
     rstAction.Print();
@@ -152,16 +141,12 @@ bool MyHero::ParseActionQueue()
     }
 
     // all actions in action queue is local and un-verfified
+    // present the action list immediately and sent it to server for verification
+    // the server will keep silent if permitted, or send pull-back message if rejected
+
     // 1. decompose action into simple action if needed
     // 2. send the simple action to server for verification
     // 3. at the same time present the actions
-
-    // 1. assign first pending action node an ID
-    //    then decompose current action with the same ID
-    if(m_ActionQueue.front().ID){
-    }else{
-        m_ActionQueue.front().ID = (m_ActionCounter++);
-    }
 
     switch(m_ActionQueue.front().Action){
         case ACTION_MOVE:
@@ -190,7 +175,8 @@ bool MyHero::ParseActionQueue()
                                                 nX0,
                                                 nY0,
                                                 nEndX,
-                                                nEndY
+                                                nEndY,
+                                                m_ProcessRun->MapID()
                                             };
 
                                             ActionNode stActionPart1 {
@@ -201,11 +187,9 @@ bool MyHero::ParseActionQueue()
                                                 nEndX,
                                                 nEndY,
                                                 nX1,
-                                                nY1
+                                                nY1,
+                                                m_ProcessRun->MapID()
                                             };
-
-                                            stActionPart0.ID = m_ActionQueue.front().ID;
-                                            stActionPart1.ID = m_ActionQueue.front().ID;
 
                                             m_ActionQueue.pop_front();
                                             m_ActionQueue.push_front(stActionPart1);
@@ -245,6 +229,8 @@ bool MyHero::ParseActionQueue()
     // 2. send this action to server for verification
     {
         CMAction stCMA;
+        stCMA.UID         = UID();
+        stCMA.MapID       = m_ProcessRun->MapID();
         stCMA.Action      = stAction.Action;
         stCMA.ActionParam = stAction.ActionParam;
         stCMA.Speed       = stAction.Speed;
@@ -253,7 +239,6 @@ bool MyHero::ParseActionQueue()
         stCMA.Y           = stAction.Y;
         stCMA.EndX        = stAction.EndX;
         stCMA.EndY        = stAction.EndY;
-        stCMA.ID          = stAction.ID;
 
         extern Game *g_Game;
         g_Game->Send(CM_ACTION, stCMA);

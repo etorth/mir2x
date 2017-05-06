@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 04/26/2017 17:23:42
+ *  Last Modified: 05/05/2017 18:33:25
  *
  *    Description: 
  *
@@ -298,12 +298,8 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool)
                     return false;
                 }
         }
-
-        // assign motion ID from action ID
-        for(auto &rstMotion: m_MotionQueue){ rstMotion.ID = rstAction.ID; }
         return MotionQueueValid();
     }
-
     return false;
 }
 

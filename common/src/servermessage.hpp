@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 04/27/2017 13:00:52
+ *  Last Modified: 05/05/2017 18:00:09
  *
  *    Description: net message used by client and mono-server
  *
@@ -74,8 +74,6 @@ typedef struct
     uint16_t Y;
     uint16_t EndX;
     uint16_t EndY;
-
-    uint32_t ID;
 }SMAction;
 
 typedef struct

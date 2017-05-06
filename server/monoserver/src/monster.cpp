@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/05/2017 17:01:49
+ *  Last Modified: 05/05/2017 17:55:10
  *
  *    Description: 
  *
@@ -172,7 +172,7 @@ bool Monster::Update()
                     if(NextLocation(&nNextX, &nNextY, nDirection, 1)){
                         if(m_Map->GroundValid(nNextX, nNextY)){
                             m_Direction = nDirection;
-                            DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y()});
+                            DispatchAction({ACTION_STAND, 0, m_Direction, X(), Y(), m_Map->ID()});
                             return true;
                         }
                     }
