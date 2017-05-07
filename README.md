@@ -14,7 +14,7 @@ client, server, tools for cross-platform mir2. Using asio, SDL, FLTK, libzip, et
 5. client
 6. monoserver
 
-![image](https://github.com/etorth/mir2x/raw/master/readme/screenshot.png)
+![image](https://github.com/etorth/mir2x/raw/master/readme/screencapture.gif)
 ![image](https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png)
 
 global variables:

@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 05/05/2017 18:33:25
+ *  Last Modified: 05/06/2017 18:32:43
  *
  *    Description: 
  *
@@ -133,7 +133,7 @@ int32_t Hero::GfxID(int nDress, int nMotion, int nDirection)
         {MOTION_CASTMAGIC1,         3},
 
         {MOTION_BEFOREATTACK,       7},
-        {MOTION_UNDERATTACK,        6},
+        {MOTION_UNDERATTACK,       15},
         {MOTION_DIE,                7},
 
         {MOTION_ONEHANDATTACK0,     8},
@@ -394,10 +394,11 @@ size_t Hero::MotionFrameCount()
 {
     if(GfxID(m_DressID, m_CurrMotion.Motion, m_CurrMotion.Direction) >= 0){
         switch(m_CurrMotion.Motion){
-            case MOTION_STAND : { return 4; }
-            case MOTION_WALK  : { return 6; }
-            case MOTION_RUN   : { return 6; }
-            default           : { return 1; }
+            case MOTION_STAND       : { return 4; }
+            case MOTION_WALK        : { return 6; }
+            case MOTION_RUN         : { return 6; }
+            case MOTION_UNDERATTACK : { return 3; }
+            default                 : { return 1; }
         }
     }else{ return 0; }
 }
