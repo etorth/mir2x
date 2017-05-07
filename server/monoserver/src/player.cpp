@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/05/2017 18:09:45
+ *  Last Modified: 05/06/2017 18:18:32
  *
  *    Description: 
  *
@@ -70,6 +70,11 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         case MPK_ACTION:
             {
                 On_MPK_ACTION(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_ATTACK:
+            {
+                On_MPK_ATTACK(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_BINDSESSION:

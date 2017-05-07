@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/04/2017 20:58:59
+ *  Last Modified: 05/06/2017 17:45:59
  *
  *    Description: 
  *
@@ -54,6 +54,7 @@ enum MessagePackType: int
     MPK_LOCATION,
     MPK_PATHFIND,
     MPK_PATHFINDOK,
+    MPK_ATTACK,
 };
 
 typedef struct
@@ -290,3 +291,12 @@ typedef struct
         int Y;
     }Point[2];
 }AMPathFindOK;
+
+typedef struct
+{
+    uint32_t UID;
+    uint32_t MapID;
+
+    int X;
+    int Y;
+}AMAttack;

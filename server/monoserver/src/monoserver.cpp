@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/06/2017 02:15:13
+ *  Last Modified: 05/06/2017 17:33:58
  *
  *    Description: 
  *
@@ -189,13 +189,13 @@ void MonoServer::Launch()
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
 
-    AddMonster( 1, 1, 19, 19);
-    AddMonster( 1, 2,  8, 18);
-    AddMonster( 1, 2,  9, 18);
-    AddMonster( 1, 2, 10, 18);
-    AddMonster( 1, 2, 10, 19);
-    AddMonster( 1, 1, 19, 18);
-    AddMonster( 1, 1, 17, 15);
+    AddMonster(10, 1, 19, 19);
+    AddMonster(10, 2,  8, 18);
+    // AddMonster( 1, 2,  9, 18);
+    // AddMonster( 1, 2, 10, 18);
+    // AddMonster( 1, 2, 10, 19);
+    // AddMonster( 1, 1, 19, 18);
+    // AddMonster( 1, 1, 17, 15);
     // AddMonster( 1, 1, 16, 18);
     // AddMonster( 1, 1, 15, 17);
     // AddMonster( 1, 1, 16, 16);
@@ -205,7 +205,7 @@ void MonoServer::Launch()
     // AddMonster( 1, 1, 20, 21);
     // AddMonster( 1, 1, 21, 21);
     // AddMonster(10, 1,  8, 21);
-    AddMonster(10, 1,  8, 22);
+    // AddMonster(10, 1,  8, 22);
     // AddMonster(10, 1,  9, 21);
     // AddMonster(10, 1,  9, 22);
     // AddMonster(10, 1,  9, 23);

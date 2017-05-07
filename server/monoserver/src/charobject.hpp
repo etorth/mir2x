@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/04/2017 17:24:05
+ *  Last Modified: 05/06/2017 17:16:52
  *
  *    Description: 
  *
@@ -161,7 +161,7 @@ class CharObject: public ActiveObject
 
         virtual int Speed() = 0;
 
-    public:
+    protected:
         int X()
         {
             return m_CurrX;
@@ -201,6 +201,9 @@ class CharObject: public ActiveObject
     public:
         virtual int  Range(uint8_t) = 0;
         virtual bool Update()       = 0;
+
+    public:
+        virtual bool TrackTarget();
 
     public:
         bool NextLocation(int *, int *, int, int);

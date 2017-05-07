@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/05/2017 18:18:39
+ *  Last Modified: 05/06/2017 18:13:50
  *
  *    Description: 
  *
@@ -223,4 +223,27 @@ void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK, const Theron::Addre
     stAML.Y     = Y();
 
     m_ActorPod->Forward({MPK_LOCATION, stAML}, rstFromAddr, rstMPK.ID());
+}
+
+void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMAction stAMA;
+    std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
+
+    DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
+
+    SMAction stSMA;
+    stSMA.UID         = UID();
+    stSMA.MapID       = MapID();
+    stSMA.Action      = ACTION_UNDERATTACK;
+    stSMA.ActionParam = 0;
+    stSMA.Speed       = 0;
+    stSMA.Direction   = Direction();
+    stSMA.X           = X();
+    stSMA.Y           = Y();
+    stSMA.EndX        = X();
+    stSMA.EndY        = Y();
+
+    extern NetPodN *g_NetPodN;
+    g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);
 }
