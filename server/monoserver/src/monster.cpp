@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/06/2017 17:20:22
+ *  Last Modified: 05/09/2017 19:22:40
  *
  *    Description: 
  *
@@ -47,6 +47,8 @@ Monster::Monster(uint32_t   nMonsterID,
     };
     static std::once_flag stFlag;
     std::call_once(stFlag, fnRegisterClass);
+
+    Delay(3 * 1000, [this](){ GoDie(); });
 }
 
 bool Monster::Update()

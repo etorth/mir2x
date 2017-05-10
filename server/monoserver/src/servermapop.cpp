@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/05/2017 01:04:41
+ *  Last Modified: 05/09/2017 20:16:00
  *
  *    Description: 
  *
@@ -48,6 +48,10 @@ void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
             }
         }
     }
+}
+
+void ServerMap::On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &)
+{
 }
 
 void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)

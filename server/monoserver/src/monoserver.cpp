@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/06/2017 17:33:58
+ *  Last Modified: 05/09/2017 20:12:58
  *
  *    Description: 
  *
@@ -153,6 +153,21 @@ void MonoServer::CreateDBConnection()
     }
 }
 
+void MonoServer::RegisterAMFallbackHandler()
+{
+    static struct FrameworkFallbackHandler
+    {
+        void Handler(const void *, const Theron::uint32_t, const Theron::Address stFromAddress)
+        {
+            // we lost the information that which actor it tried to send
+            SyncDriver().Forward({MPK_BADACTORPOD}, stFromAddress);
+        }
+    }stFallbackHandler;
+
+    extern Theron::Framework *g_Framework;
+    g_Framework->SetFallbackHandler(&stFallbackHandler, &FrameworkFallbackHandler::Handler);
+}
+
 void MonoServer::CreateServiceCore()
 {
     delete m_ServiceCore;
@@ -174,16 +189,11 @@ void MonoServer::StartNetwork()
 
 void MonoServer::Launch()
 {
-    // 1. create db connection
     CreateDBConnection();
-
-    // 2. load monster info
     LoadMonsterRecord();
+    RegisterAMFallbackHandler();
 
-    // 3. create service core
     CreateServiceCore();
-
-    // 4. start network
     StartNetwork();
 
     extern EventTaskHub *g_EventTaskHub;
@@ -191,30 +201,31 @@ void MonoServer::Launch()
 
     AddMonster(10, 1, 19, 19);
     AddMonster(10, 2,  8, 18);
-    // AddMonster( 1, 2,  9, 18);
-    // AddMonster( 1, 2, 10, 18);
-    // AddMonster( 1, 2, 10, 19);
-    // AddMonster( 1, 1, 19, 18);
-    // AddMonster( 1, 1, 17, 15);
-    // AddMonster( 1, 1, 16, 18);
-    // AddMonster( 1, 1, 15, 17);
-    // AddMonster( 1, 1, 16, 16);
-    // AddMonster( 1, 1, 11, 21);
-    // AddMonster( 1, 1, 20, 19);
-    // AddMonster( 1, 1, 20, 20);
-    // AddMonster( 1, 1, 20, 21);
-    // AddMonster( 1, 1, 21, 21);
-    // AddMonster(10, 1,  8, 21);
-    // AddMonster(10, 1,  8, 22);
-    // AddMonster(10, 1,  9, 21);
-    // AddMonster(10, 1,  9, 22);
-    // AddMonster(10, 1,  9, 23);
-    // AddMonster(10, 1,  9, 24);
-    // AddMonster(10, 1, 14, 16);
-    // AddMonster(10, 1, 14, 17);
-    // AddMonster(10, 1, 14, 18);
-    // AddMonster(10, 1, 14, 19);
-    // AddMonster(10, 1, 14, 20);
+
+    AddMonster( 1, 2,  9, 18);
+    AddMonster( 1, 2, 10, 18);
+    AddMonster( 1, 2, 10, 19);
+    AddMonster( 1, 1, 19, 18);
+    AddMonster( 1, 1, 17, 15);
+    AddMonster( 1, 1, 16, 18);
+    AddMonster( 1, 1, 15, 17);
+    AddMonster( 1, 1, 16, 16);
+    AddMonster( 1, 1, 11, 21);
+    AddMonster( 1, 1, 20, 19);
+    AddMonster( 1, 1, 20, 20);
+    AddMonster( 1, 1, 20, 21);
+    AddMonster( 1, 1, 21, 21);
+    AddMonster(10, 1,  8, 21);
+    AddMonster(10, 1,  8, 22);
+    AddMonster(10, 1,  9, 21);
+    AddMonster(10, 1,  9, 22);
+    AddMonster(10, 1,  9, 23);
+    AddMonster(10, 1,  9, 24);
+    AddMonster(10, 1, 14, 16);
+    AddMonster(10, 1, 14, 17);
+    AddMonster(10, 1, 14, 18);
+    AddMonster(10, 1, 14, 19);
+    AddMonster(10, 1, 14, 20);
 }
 
 void MonoServer::Restart()
@@ -468,10 +479,10 @@ void MonoServer::EraseUID(uint32_t nUID)
             auto stFind = rstRecord.Record.find(nUID);
             if(stFind != rstRecord.Record.end()){
                 if(stFind->second){
-                    delete stFind->second;
                     if(stFind->second->UID() != nUID){
                         AddLog(LOGTYPE_WARNING, "UIDArray mismatch: UID = (%" PRIu32 ", %" PRIu32 ")", nUID, stFind->second->UID());
                     }
+                    delete stFind->second;
                 }
                 rstRecord.Record.erase(stFind);
             }
@@ -489,6 +500,37 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
             if(stFind != rstRecord.Record.end()){
                 if(stFind->second){
                     if(stFind->second->UID() == nUID){
+                        // two solutions
+                        // 1. for server object, define a virtual UIDRecord GetUIDRecord()
+                        //    then here directly forward the result
+                        //
+                        // 2. maintain UID() for server object
+                        //    maintain UID() and GetAddress() for classes from ActiveObject
+                        //    then construct a temporary UIDRecord and return
+                        //
+                        // solution-1 : simpler but it introduces concept of address to server object
+                        // solution-2 : means I should make both UID() and GetAddress() atomically accessable
+                        //
+                        // UID()        : OK by default
+                        // GetAddress() : which calls m_ActorPod->GetAddress()
+                        //                m_ActorPod could change when other threads accessing it
+                        //
+                        // solution:
+                        // 1. we constrains that we can only access an UID if the object actively given it
+                        //    means if we try to access object through GetUIDRecord(nUID), then the nUID is reported
+                        //    by the object itself. rather than we do randomly draw an UID and access it
+                        //
+                        //    an UID can be deleted then we get an invalid UIDRecord
+                        //    this behaves like malloc() / free(), any pointer try to free() should be from malloc()
+                        //
+                        //    this means if we trying to access ActiveObject::GetAddress(), its m_ActorPod has
+                        //    already be initialized otherwise we can't get its UID
+                        //
+                        // 2. before deletion of active object we should call Deactivate() which calls m_ActorPod->Detach()
+                        //    this helps to detach *this* from the actor thread of m_ActorPod, then deletion in other thread is OK
+                        //
+                        //    then deletion of m_ActorPod will wait if m_ActorPod is scheduled in actor threads
+                        //
                         auto bActive   = stFind->second->ClassFrom<ActiveObject>();
                         auto stAddress = bActive ? ((ActiveObject *)(stFind->second))->GetAddress() : Theron::Address::Null();
                         return {nUID, stAddress, stFind->second->ClassEntry()};

@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 04/09/2017 23:23:27
+ *  Last Modified: 05/09/2017 01:03:31
  *
  *    Description: 
  *
@@ -49,6 +49,7 @@ enum ActionType: int
     ACTION_ATTACK,
     ACTION_UNDERATTACK,
     ACTION_DIE,
+    ACTION_DISAPPEAR,
     ACTION_EXTENSION,
 };
 
@@ -69,4 +70,17 @@ enum MonsterIDType: uint32_t
     MONSTERID_ZUMA1,
     MONSTERID_ZUMA2,
     MONSTERID_ZUMA3,
+};
+
+enum DACType: int
+{
+    DAC_NONE = 0,
+    DAC_PLAIN,
+    DAC_FIRE,
+    DAC_ICE,
+    DAC_LIGHT,
+    DAC_WIND,
+    DAC_HOLY,
+    DAC_DARK,
+    DAC_PHANTOM,
 };

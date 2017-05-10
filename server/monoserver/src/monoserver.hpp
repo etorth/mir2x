@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/04/2017 15:55:15
+ *  Last Modified: 05/09/2017 19:58:04
  *
  *    Description: 
  *
@@ -91,6 +91,7 @@ class MonoServer final
         void RunASIO();
         void CreateServiceCore();
         void CreateDBConnection();
+        void RegisterAMFallbackHandler();
 
     public:
         void AddLog(const std::array<std::string, 4> &, const char *, ...);

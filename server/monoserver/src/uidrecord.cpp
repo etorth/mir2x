@@ -3,7 +3,7 @@
  *
  *       Filename: uidrecord.cpp
  *        Created: 05/02/2017 16:11:11
- *  Last Modified: 05/03/2017 22:39:26
+ *  Last Modified: 05/09/2017 12:48:49
  *
  *    Description: 
  *
@@ -31,10 +31,9 @@ UIDRecord::UIDRecord(uint32_t nUID, Theron::Address stAddress,
     if(false
             || UID == 0
             || ClassEntry.empty()){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "UIDRecord constructor failed");
-        Print();
-        g_MonoServer->Restart();
+        // do nothing
+        // we should allow this since when retrieving UID failed form UIDArray
+        // we need to return an empty record to caller
     }
 }
 

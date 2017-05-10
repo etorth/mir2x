@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/06/2017 18:16:40
+ *  Last Modified: 05/09/2017 17:04:08
  *
  *    Description: 
  *
@@ -17,7 +17,8 @@
  *
  * =====================================================================================
  */
-
+#include <cinttypes>
+#include "threadpn.hpp"
 #include "actorpod.hpp"
 #include "monoserver.hpp"
 #include "charobject.hpp"
@@ -44,10 +45,10 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_WAbility()
     , m_AddAbility()
 {
-    ResetState(STATE_LIFECYCLE, nLifeState);
+    SetState(STATE_LIFECYCLE, nLifeState);
 
     assert(m_Map);
-    m_MapCache[m_Map->ID()] = m_Map;
+    m_MapCache[MapID()] = m_Map;
 
     auto fnRegisterClass = [this]() -> void {
         if(!RegisterClass<CharObject, ActiveObject>()){
@@ -89,7 +90,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
         std::memset(&stAMA, 0, sizeof(stAMA));
 
         stAMA.UID   = UID();
-        stAMA.MapID = m_Map->ID();
+        stAMA.MapID = MapID();
 
         stAMA.Action      = rstAction.Action;
         stAMA.ActionParam = rstAction.ActionParam;
@@ -118,7 +119,7 @@ bool CharObject::RequestMove(int nX, int nY, std::function<void()> fnOnMoveOK, s
 
         AMTryMove stAMTM;
         stAMTM.UID     = UID();
-        stAMTM.MapID   = m_Map->ID();
+        stAMTM.MapID   = MapID();
         stAMTM.X       = X();
         stAMTM.Y       = Y();
         stAMTM.EndX    = nX;
@@ -146,7 +147,7 @@ bool CharObject::RequestMove(int nX, int nY, std::function<void()> fnOnMoveOK, s
                         m_Direction = nNewDirection;
 
                         m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-                        DispatchAction({ACTION_MOVE, 0, 1, Direction(), nOldX, nOldY, X(), Y(), m_Map->ID()});
+                        DispatchAction({ACTION_MOVE, 0, 1, Direction(), nOldX, nOldY, X(), Y(), MapID()});
 
                         if(fnOnMoveOK){ fnOnMoveOK(); }
                         m_FreezeMove = false;
@@ -155,7 +156,7 @@ bool CharObject::RequestMove(int nX, int nY, std::function<void()> fnOnMoveOK, s
                 case MPK_ERROR:
                     {
                         m_Direction = nNewDirection;
-                        DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), m_Map->ID()});
+                        DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), MapID()});
 
                         if(fnOnMoveError){ fnOnMoveError(); }
                         m_FreezeMove = false;
@@ -225,7 +226,7 @@ bool CharObject::TrackTarget()
                                                 }
 
                                                 // 1. dispatch action to all
-                                                DispatchAction({ACTION_ATTACK, 0, Direction(), X(), Y(), m_Map->ID()});
+                                                DispatchAction({ACTION_ATTACK, 0, Direction(), X(), Y(), MapID()});
 
                                                 // 2. send attack message to target
                                                 //    target can ignore this message directly
@@ -292,5 +293,111 @@ bool CharObject::TrackTarget()
             m_TargetInfo.UID = 0;
         }
     }
+    return false;
+}
+
+bool CharObject::Disappear()
+{
+    DispatchAction({ACTION_DISAPPEAR, 0, DIR_NONE, X(), Y(), MapID()});
+    return true;
+}
+
+bool CharObject::GoDie()
+{
+    switch(GetState(STATE_NEVERDIE)){
+        case 0:
+            {
+                switch(GetState(STATE_DEAD)){
+                    case 0:
+                        {
+                            SetState(STATE_DEAD, 1);
+                            Delay(2 * 1000, [this](){ GoGhost(); });
+                            return true;
+                        }
+                    default:
+                        {
+                            return true;
+                        }
+                }
+            }
+        default:
+            {
+                return false;
+            }
+    }
+}
+
+bool CharObject::GoGhost()
+{
+    switch(GetState(STATE_NEVERDIE)){
+        case 0:
+            {
+                switch(GetState(STATE_DEAD)){
+                    case 0:
+                        {
+                            return false;
+                        }
+                    default:
+                        {
+                            // 1. setup state and inform all others
+                            SetState(STATE_GHOST, 1);
+                            Disappear();
+
+                            // 2. deactivate the actor here
+                            //    disable the actorpod then no source can drive it
+                            //    then current *this* can't be refered by any actor threads after this invocation
+                            //    then MonoServer::EraseUID() is safe to delete *this*
+                            //
+                            //    don't do delete m_ActorPod to disable the actor
+                            //    since currently we are in the actor thread which accquired by m_ActorPod
+                            Deactivate();
+
+                            // 3. without message driving it
+                            //    the char object will be inactive and activities after this
+                            GoSuicide();
+                            return true;
+
+                            // there is an time gap after Deactivate() and before deletion handler called in GoSuicide
+                            // then during this gap even if the actor is scheduled we won't have data race anymore
+                            // since we called Deactivate() which deregistered Innhandler refers *this*
+                            //
+                            // note that even if during this gap we have functions call GetAddress()
+                            // we are still OK since m_ActorPod is still valid
+                            // but if then send to this address, it will drain to the default message handler
+                        }
+                }
+            }
+        default:
+            {
+                return false;
+            }
+    }
+}
+
+bool CharObject::GoSuicide()
+{
+    if(true
+            && GetState(STATE_DEAD)
+            && GetState(STATE_GHOST)){
+
+        // 1. register a operationi to the thread pool to delete
+        // 2. don't pass *this* to any other threads, pass UID instead
+        extern ThreadPN *g_ThreadPN;
+        return g_ThreadPN->Add([nUID = UID()](){
+            if(nUID){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->EraseUID(nUID);
+            }else{
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Suicide with empty UID");
+            }
+        });
+
+        // after this line
+        // *this* is invalid and should never be refered
+    }
+
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "GoSuicide(this = %p, UID = %" PRIu32 ") failed", this, UID());
     return false;
 }

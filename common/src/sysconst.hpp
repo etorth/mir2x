@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 04/28/2017 23:45:05
+ *  Last Modified: 05/08/2017 16:42:37
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 #pragma once
 #include <vector>
 #include <cstdint>
+#include "monsterrecord.hpp"
 
 // In code of mirx, the MAX_Y_COUNT_FOR_OBJ_H is 44, means we need to check 44 * 32 in
 // height when drawing map because of the long object slice. Do some math the screen
@@ -52,4 +53,6 @@ struct SwitchMapLoc
         , MapID(nMapID)
     {}
 };
+
+const MonsterRecord &SYS_MONSTERRECORD(uint32_t);
 const std::vector<SwitchMapLoc> &SYS_MAPSWITCHLOC(uint32_t);

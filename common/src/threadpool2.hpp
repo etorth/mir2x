@@ -3,7 +3,7 @@
  *
  *       Filename: threadpool2.hpp
  *        Created: 02/06/2016 13:43:29
- *  Last Modified: 05/16/2016 23:03:14
+ *  Last Modified: 05/09/2017 12:56:06
  *
  *    Description: copy from https://github.com/progschj/ThreadPool, I editted it
  *                 to make it be simpler which is limited at
@@ -39,14 +39,14 @@
 
 #pragma once
 
-#include <vector>
+#include <mutex>
 #include <queue>
 #include <memory>
 #include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <functional>
+#include <vector>
 #include <stdexcept>
+#include <functional>
+#include <condition_variable>
 
 #include "log.hpp"
 

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/06/2017 17:16:52
+ *  Last Modified: 05/09/2017 01:12:37
  *
  *    Description: 
  *
@@ -153,8 +153,8 @@ class CharObject: public ActiveObject
     public:
         bool Active()
         {
-            if(State(STATE_DEAD   )){ return false; }
-            if(State(STATE_PHANTOM)){ return false; }
+            if(GetState(STATE_DEAD   )){ return false; }
+            if(GetState(STATE_PHANTOM)){ return false; }
 
             return true;
         }
@@ -223,4 +223,12 @@ class CharObject: public ActiveObject
     protected:
         virtual bool CanMove();
         virtual bool RequestMove(int, int, std::function<void()>, std::function<void()>);
+
+    protected:
+        virtual bool Disappear();
+
+    protected:
+        virtual bool GoDie();
+        virtual bool GoGhost();
+        virtual bool GoSuicide();
 };

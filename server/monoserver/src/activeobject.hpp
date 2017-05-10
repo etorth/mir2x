@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 05/04/2017 01:01:49
+ *  Last Modified: 05/09/2017 18:46:47
  *
  *    Description: server object with active state
  *                      1. it's active via actor pod
@@ -46,6 +46,7 @@
 
 #pragma once
 #include <queue>
+#include <atomic>
 #include <Theron/Theron.h>
 
 #include "actorpod.hpp"
@@ -97,6 +98,7 @@ enum ObjectState: uint8_t
     STATE_MOTION,
     STATE_MOVING,
     STATE_DEAD,
+    STATE_GHOST,
 
     STATE_MODE,
     STATE_NEVERDIE,
@@ -117,6 +119,10 @@ class ActiveObject: public ServerObject
 
     protected:
         StateHook m_StateHook;
+
+        // keep an incremental counter for DelayCmd
+        // we have to maintain this count to make DelayCmdQ stable for sort
+        uint32_t m_DelayCmdCount;
         std::priority_queue<DelayCmd> m_DelayCmdQ;
 
     public:
@@ -124,12 +130,15 @@ class ActiveObject: public ServerObject
        ~ActiveObject();
 
     protected:
-        uint8_t  State(uint8_t);
+        void     SetState(uint8_t, uint8_t);
+        uint8_t  GetState(uint8_t);
         uint32_t StateTime(uint8_t);
-        void     ResetState(uint8_t, uint8_t);
 
     public:
         Theron::Address Activate();
+
+    protected:
+        void Deactivate();
 
     public:
         bool ActorPodValid() const

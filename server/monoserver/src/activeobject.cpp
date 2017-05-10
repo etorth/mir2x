@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 05/04/2017 10:54:27
+ *  Last Modified: 05/09/2017 19:58:58
  *
  *    Description: 
  *
@@ -29,15 +29,16 @@ ActiveObject::ActiveObject()
     , m_StateTimeV()
     , m_ActorPod(nullptr)
     , m_StateHook()
+    , m_DelayCmdCount(0)
     , m_DelayCmdQ()
 {
     m_StateV.fill(0);
     m_StateTimeV.fill(0);
 
     auto fnDelayCmdQueue = [this](){
+        extern MonoServer *g_MonoServer;
         if(!m_DelayCmdQ.empty()){
-            extern MonoServer *g_MonoServer;
-            if(m_DelayCmdQ.top().Tick() >= g_MonoServer->GetTimeTick()){
+            if(m_DelayCmdQ.top().Tick() <= g_MonoServer->GetTimeTick()){
                 try{
                     m_DelayCmdQ.top()();
                 }catch(...){
@@ -111,26 +112,32 @@ Theron::Address ActiveObject::Activate()
     return GetAddress();
 }
 
+void ActiveObject::Deactivate()
+{
+    if(m_ActorPod){ m_ActorPod->Detach(); }
+}
+
 void ActiveObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
 {
     extern MonoServer *g_MonoServer;
-    m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTimeTick(), fnCmd);
+    m_DelayCmdCount = m_DelayCmdQ.empty() ? 0 : (m_DelayCmdCount + 1);
+    m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTimeTick(), m_DelayCmdCount, fnCmd);
 }
 
-uint8_t ActiveObject::State(uint8_t nState)
+uint8_t ActiveObject::GetState(uint8_t nState)
 {
     return m_StateV[nState];
+}
+
+void ActiveObject::SetState(uint8_t nStateLoc, uint8_t nStateValue)
+{
+    extern MonoServer *g_MonoServer;
+    m_StateV[nStateLoc] = nStateValue;
+    m_StateTimeV[nStateLoc] = g_MonoServer->GetTimeTick();
 }
 
 uint32_t ActiveObject::StateTime(uint8_t nState)
 {
     extern MonoServer *g_MonoServer;
     return g_MonoServer->GetTimeTick() - m_StateTimeV[nState];
-}
-
-void ActiveObject::ResetState(uint8_t nStateLoc, uint8_t nStateValue)
-{
-    extern MonoServer *g_MonoServer;
-    m_StateV[nStateLoc] = nStateValue;
-    m_StateTimeV[nStateLoc] = g_MonoServer->GetTimeTick();
 }

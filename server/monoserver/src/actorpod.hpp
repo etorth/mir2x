@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 05/03/2017 11:00:42
+ *  Last Modified: 05/09/2017 19:39:42
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -90,7 +90,7 @@ class ActorPod final: public Theron::Actor
 
     private:
         size_t m_ValidID;
-        MessagePackOperation m_Operate;
+        MessagePackOperation m_Operation;
         // TODO & TBD
         // trigger is only for state update, so it won't accept any parameters w.r.t
         // message or time or xxx
@@ -117,7 +117,7 @@ class ActorPod final: public Theron::Actor
                 const std::function<void(const MessagePack &, const Theron::Address &)> &fnOperate)
             : Theron::Actor(*pFramework)
             , m_ValidID(0)
-            , m_Operate(fnOperate)
+            , m_Operation(fnOperate)
             , m_Trigger(fnTrigger)
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
             , m_UID(0)
@@ -133,13 +133,17 @@ class ActorPod final: public Theron::Actor
             : ActorPod(pFramework, std::function<void()>(), fnOperate)
         {}
 
-        // we don't make the dtor virtual
-        // since I don't want it's to be derived
        ~ActorPod() = default;
 
     protected:
         uint32_t ValidID();
         void InnHandler(const MessagePack &, const Theron::Address);
+
+    public:
+        void Detach()
+        {
+            DeregisterHandler(this, &ActorPod::InnHandler);
+        }
 
     public:
         // just send a message, not a response, and won't exptect a reply
@@ -162,7 +166,6 @@ class ActorPod final: public Theron::Actor
         bool Forward(const MessageBuf &, const Theron::Address &, uint32_t,
                 const std::function<void(const MessagePack&, const Theron::Address &)> &);
 
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     public:
         const char *Name() const
         {
@@ -179,5 +182,4 @@ class ActorPod final: public Theron::Actor
             m_UID  = nUID;
             m_Name = szName;
         }
-#endif
 };

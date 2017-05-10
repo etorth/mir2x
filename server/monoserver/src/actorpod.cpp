@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 05/04/2017 10:57:00
+ *  Last Modified: 05/09/2017 19:26:07
  *
  *    Description: 
  *
@@ -41,7 +41,7 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFro
             // print detailed info for this message for debug
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING,
-                    "no registered operation for response message: id = %u, resp = %u type = %s, this = %p, sent from: %s, to %s",
+                    "No registered operation for response message: id = %u, resp = %u type = %s, this = %p, sent from: %s, to %s",
                     rstMPK.ID(), rstMPK.Respond(), rstMPK.Name(), this, stFromAddr.AsString(), GetAddress().AsString());
             // TODO & TBD, here we directly die or continue?
             g_MonoServer->Restart();
@@ -52,26 +52,26 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFro
                     pRecord->second.RespondOperation(rstMPK, stFromAddr);
                 }catch(...){
                     extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception in operating response message");
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Caught exception in operating response message");
                     g_MonoServer->Restart();
                 }
             }else{
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "registered response operation is not callable");
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Registered response operation is not callable");
                 g_MonoServer->Restart();
             }
             m_RespondMessageRecord.erase(pRecord);
         }
     }else{
         // now message are handling not on purpose of response
-        if(m_Operate){
+        if(m_Operation){
             // in theron address is recommanded to copy rather than ref, but
-            // here we use const ref when passing to m_Operate, because when
-            // calling m_Operate(), address already has a copy when executaion
+            // here we use const ref when passing to m_Operation, because when
+            // calling m_Operation(), address already has a copy when executaion
             // goes inside InnHandler(), so always there is a valid copy of
-            // address for m_Operate()
+            // address for m_Operation()
             //
-            // if m_Operate() has any other async\ed operation upon the address
+            // if m_Operation() has any other async\ed operation upon the address
             // inside, it should handler by itself.
             //
             // so there is only one copy of InnHandler() when callback invoked, and
@@ -81,19 +81,19 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFro
             // for MessagePack copying, since Theron itself using const ref, so I
             // use const ref here
             try{
-                m_Operate(rstMPK, stFromAddr);
+                m_Operation(rstMPK, stFromAddr);
             }catch(...){
                 // 1. assume monoserver is ready when invoking callback
                 // 2. AddLog() is well defined in multithread environment
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception in ActorPod: %s", rstMPK.Name());
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Caught exception in ActorPod: %s", rstMPK.Name());
                 g_MonoServer->Restart();
             }
         }else{
             // TODO & TBD
             // this message will show up many and many if not valid handler found
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "registered operation for message is not callable");
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Registered operation for message is not callable");
             g_MonoServer->Restart();
         }
     }
@@ -108,7 +108,7 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFro
             // 1. assume monoserver is ready when invoking callback
             // 2. AddLog() is well defined in multithread environment
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception in ActorPod trigger");
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Caught exception in ActorPod trigger");
             g_MonoServer->Restart();
         }
     }else{
@@ -141,7 +141,7 @@ uint32_t ActorPod::ValidID()
         return m_ValidID;
     }else{
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "response requested message overflows");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Response requested message overflows");
         g_MonoServer->Restart();
         return 0;
     }
@@ -159,14 +159,14 @@ bool ActorPod::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, 
 
     if(!rstAddr){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "trying to send message to a null address");
-        g_MonoServer->Restart();
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Trying to send message to a null address");
+        return false;
     }
 
     if(rstAddr == GetAddress()){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "trying to send message to itself");
-        g_MonoServer->Restart();
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Trying to send message to itself");
+        return false;
     }
 
     return Theron::Actor::Send<MessagePack>({rstMB, 0, nRespond}, rstAddr);
@@ -190,14 +190,14 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
 
     if(!rstAddr){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "trying to send message to an invalid address");
-        g_MonoServer->Restart();
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Trying to send message to a null address");
+        return false;
     }
 
     if(rstAddr == GetAddress()){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "trying to send message to itself");
-        g_MonoServer->Restart();
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Trying to send message to itself");
+        return false;
     }
 
     // 2. send it
@@ -209,8 +209,8 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
         m_RespondMessageRecord.emplace(std::make_pair(nID, fnOPR));
     }else{
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "ooops send message failed: %s", MessagePack(rstMB.Type()).Name());
-        g_MonoServer->Restart();
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Ooops send message failed: %s", MessagePack(rstMB.Type()).Name());
+        return false;
     }
 
     // 4. return whether we succeed

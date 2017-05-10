@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/05/2017 16:25:01
+ *  Last Modified: 05/09/2017 20:17:10
  *
  *    Description: 
  *
@@ -211,6 +211,11 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
         case MPK_ACTION:
             {
                 On_MPK_ACTION(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_BADACTORPOD:
+            {
+                On_MPK_BADACTORPOD(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_TRYMOVE:
