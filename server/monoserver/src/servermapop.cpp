@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/09/2017 20:16:00
+ *  Last Modified: 05/10/2017 01:02:35
  *
  *    Description: 
  *
@@ -38,12 +38,30 @@ void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
     for(auto &rstRecordLine: m_UIDRecordV2D){
         for(auto &rstRecordV: rstRecordLine){
-            for(auto nUID: rstRecordV){
+
+            // this part check all recorded UID and remove those invalid ones
+            // do it periodically in 1s, then for all rest logic we can skip the clean job
+
+            for(size_t nIndex = 0; nIndex < rstRecordV.size();){
                 extern MonoServer *g_MonoServer;
-                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(rstRecordV[nIndex])){
                     if(stUIDRecord.ClassFrom<ActiveObject>()){
-                        m_ActorPod->Forward(MPK_METRONOME, stUIDRecord.Address);
+                        if(m_ActorPod->Forward(MPK_METRONOME, stUIDRecord.Address)){
+                            nIndex++;
+                            continue;
+                        }else{
+                            std::swap(rstRecordV[nIndex], rstRecordV.back());
+                            rstRecordV.pop_back();
+                            continue;
+                        }
+                    }else{
+                        nIndex++;
+                        continue;
                     }
+                }else{
+                    std::swap(rstRecordV[nIndex], rstRecordV.back());
+                    rstRecordV.pop_back();
+                    continue;
                 }
             }
         }
