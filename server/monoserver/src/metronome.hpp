@@ -3,7 +3,7 @@
  *
  *       Filename: metronome.hpp
  *        Created: 04/21/2016 17:29:38
- *  Last Modified: 05/27/2016 22:44:15
+ *  Last Modified: 05/10/2017 00:38:28
  *
  *    Description: generate time tick as MessagePack for actor
  *                 keep it as simple as possible
@@ -30,63 +30,84 @@
 #include "messagepack.hpp"
 #include "eventtaskhub.hpp"
 
-class Metronome: public Theron::Receiver
+class Metronome final: public Theron::Receiver
 {
     private:
-        // TODO only use one lock, make it as simple as possible
-        //
-        uint32_t m_OID;                         // operation ID in the scheduler
-        std::mutex m_Lock;                      // single lock to protect all
-        std::function<void()> *m_Func;          // 
-        std::vector<Theron::Address> m_AddrV;   // only actor address, no receiver's
+        uint32_t               m_EventTaskID;           // operation ID in the scheduler
+        std::function<void()> *m_EventTaskFunc;         // 
+
+    private:
+        std::mutex                   m_AddressVLock;    // single lock to protect all
+        std::vector<Theron::Address> m_AddressV;        // only actor address, no receiver's
 
     public:
         Metronome(uint32_t nTick)
             : Theron::Receiver()
-            , m_OID(0)
-            , m_Func(nullptr)
+            , m_EventTaskID(0)
+            , m_EventTaskFunc(nullptr)
+            , m_AddressVLock()
+            , m_AddressV()
         {
-            // immediately ready when created
+            // the metronome is immediately ready after creation
             extern EventTaskHub *g_EventTaskHub;
-            m_Func = new std::function<void()>([this, nTick](){
+            m_EventTaskFunc = new std::function<void()>([this, nTick]()
+            {
                 {
                     // 1. lock the whole class so no address can be added in
-                    std::lock_guard<std::mutex> stGuard(m_Lock);
+                    std::lock_guard<std::mutex> stLockGuard(m_AddressVLock);
 
                     // 2. send time ticks to all address taking in charge
                     extern Theron::Framework *g_Framework;
-                    for(const auto &rstAddr: m_AddrV){
-                        g_Framework->Send(MessagePack(MPK_METRONOME), GetAddress(), rstAddr);
+                    size_t nIndex = 0;
+
+                    while(nIndex < m_AddressV.size()){
+                        if(true
+                                && m_AddressV[nIndex]
+                                // must use MessagePack(MPK_METRONOME)
+                                // otherwise Theron::Framework::Send<T>(MPK_METRONOME) takes T as int
+                                && g_Framework->Send(MessagePack(MPK_METRONOME), GetAddress(), m_AddressV[nIndex])){
+                            // current address is valid
+                            // send message done and jump to next
+                            nIndex++;
+                            continue;
+                        }
+
+                        // invalid address
+                        // could be null or deleted already
+                        std::swap(m_AddressV[nIndex], m_AddressV.back());
+                        m_AddressV.pop_back();
                     }
                 }
+
                 // 3. record the ID of next invocation
-                m_OID = g_EventTaskHub->Add(nTick, *m_Func);
+                //    every invocation will remove current task handler
+                m_EventTaskID = g_EventTaskHub->Add(nTick, *m_EventTaskFunc);
             });
 
-            // don't need to lock now since it's in ctor
-            m_OID = g_EventTaskHub->Add(nTick, *m_Func);
+            // don't need to lock now since it's in constructor
+            m_EventTaskID = g_EventTaskHub->Add(nTick, *m_EventTaskFunc);
         }
 
         virtual ~Metronome()
         {
-            std::lock_guard<std::mutex> stGuard(m_Lock);
+            std::lock_guard<std::mutex> stLockGuard(m_AddressVLock);
 
             // 1. now the handler won't invoke again
             //    here we need to lock the class
-            //    since m_OID may change during invocaitoin of m_Func
+            //    since m_EventTaskID may change during invocaitoin of m_EventTaskFunc
             extern EventTaskHub *g_EventTaskHub;
-            g_EventTaskHub->Dismiss(m_OID);
+            g_EventTaskHub->Dismiss(m_EventTaskID);
 
             // 2. delete the handler
-            delete m_Func;
+            delete m_EventTaskFunc;
         }
 
     public:
-        void Activate(const Theron::Address &rstAddr)
+        void Activate(const Theron::Address &rstNewAddress)
         {
-            std::lock_guard<std::mutex> stGuard(m_Lock);
-            if(std::find(m_AddrV.begin(), m_AddrV.end(), rstAddr) == m_AddrV.end()){
-                m_AddrV.push_back(rstAddr);
+            std::lock_guard<std::mutex> stLockGuard(m_AddressVLock);
+            if(std::find(m_AddressV.begin(), m_AddressV.end(), rstNewAddress) == m_AddressV.end()){
+                m_AddressV.push_back(rstNewAddress);
             }
         }
 };

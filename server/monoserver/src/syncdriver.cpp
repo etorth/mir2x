@@ -3,7 +3,7 @@
  *
  *       Filename: syncdriver.cpp
  *        Created: 06/09/2016 17:32:50
- *  Last Modified: 04/09/2017 01:31:55
+ *  Last Modified: 05/10/2017 00:32:39
  *
  *    Description: 
  *
@@ -33,7 +33,7 @@ int SyncDriver::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr)
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     {
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_INFO, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: X) -> (Type: %s, ID: 0, Resp: 0)",
+        g_MonoServer->AddLog(LOGTYPE_INFO, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: 0)",
                 (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name());
     }
 #endif
@@ -78,7 +78,7 @@ int SyncDriver::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr,
 #if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
     {
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_INFO, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: X) -> (Type: %s, ID: 0, Resp: 0)",
+        g_MonoServer->AddLog(LOGTYPE_INFO, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: 0)",
                 (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name());
     }
 #endif

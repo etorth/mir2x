@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/09/2017 20:11:18
+ *  Last Modified: 05/10/2017 00:15:49
  *
  *    Description: 
  *
@@ -25,6 +25,7 @@ enum MessagePackType: int
     MPK_NONE = 0,
     MPK_OK,
     MPK_ERROR,
+    MPK_BADACTORPOD,
     MPK_UID,
     MPK_HI,
     MPK_PING,
@@ -55,7 +56,6 @@ enum MessagePackType: int
     MPK_PATHFIND,
     MPK_PATHFINDOK,
     MPK_ATTACK,
-    MPK_BADACTORPOD,
 };
 
 typedef struct
