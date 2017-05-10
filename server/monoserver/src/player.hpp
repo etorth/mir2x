@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 05/06/2017 18:18:06
+ *  Last Modified: 05/10/2017 11:57:37
  *
  *    Description: 
  *
@@ -133,4 +133,7 @@ class Player: public CharObject
     protected:
         void ReportStand();
         void ReportCORecord(uint32_t);
+
+    protected:
+        int GetAttackPower(int);
 };

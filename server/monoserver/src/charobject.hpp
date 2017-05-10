@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/09/2017 01:12:37
+ *  Last Modified: 05/10/2017 11:28:50
  *
  *    Description: 
  *
@@ -223,6 +223,12 @@ class CharObject: public ActiveObject
     protected:
         virtual bool CanMove();
         virtual bool RequestMove(int, int, std::function<void()>, std::function<void()>);
+
+    protected:
+        virtual bool StruckDamage();
+
+    protected:
+        virtual int GetAttackPower(int nAttackMode) = 0;
 
     protected:
         virtual bool Disappear();

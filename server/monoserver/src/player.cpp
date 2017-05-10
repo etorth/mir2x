@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/06/2017 18:18:32
+ *  Last Modified: 05/10/2017 11:58:39
  *
  *    Description: 
  *
@@ -203,4 +203,9 @@ void Player::ReportStand()
 
     extern NetPodN *g_NetPodN;
     g_NetPodN->Send(m_SessionID, SM_ACTION, stSMAction);
+}
+
+int Player::GetAttackPower(int)
+{
+    return 0;
 }

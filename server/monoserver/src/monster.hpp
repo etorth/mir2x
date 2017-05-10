@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 05/08/2017 18:16:34
+ *  Last Modified: 05/10/2017 11:54:09
  *
  *    Description: 
  *
@@ -89,12 +89,21 @@ class Monster: public CharObject
        ~Monster() = default;
 
     public:
+       uint32_t MonsterID() const
+       {
+           return m_MonsterID;
+       }
+
+    public:
         void SearchViewRange();
         bool Update();
 
     protected:
         int Range(uint8_t);
         int Speed();
+
+    protected:
+        int GetAttackPower(int);
 
     private:
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);

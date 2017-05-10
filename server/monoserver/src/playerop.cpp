@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/06/2017 18:13:50
+ *  Last Modified: 05/10/2017 11:14:07
  *
  *    Description: 
  *
@@ -232,18 +232,27 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
 
     DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
 
-    SMAction stSMA;
-    stSMA.UID         = UID();
-    stSMA.MapID       = MapID();
-    stSMA.Action      = ACTION_UNDERATTACK;
-    stSMA.ActionParam = 0;
-    stSMA.Speed       = 0;
-    stSMA.Direction   = Direction();
-    stSMA.X           = X();
-    stSMA.Y           = Y();
-    stSMA.EndX        = X();
-    stSMA.EndY        = Y();
+    auto fnReportUnderAttack = [this](){
+        SMAction stSMA;
+        stSMA.UID         = UID();
+        stSMA.MapID       = MapID();
+        stSMA.Action      = ACTION_UNDERATTACK;
+        stSMA.ActionParam = 0;
+        stSMA.Speed       = 0;
+        stSMA.Direction   = Direction();
+        stSMA.X           = X();
+        stSMA.Y           = Y();
+        stSMA.EndX        = X();
+        stSMA.EndY        = Y();
 
-    extern NetPodN *g_NetPodN;
-    g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);
+        extern NetPodN *g_NetPodN;
+        g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);
+    };
+
+    // issue here
+    // if we take delay as 200, then client makes non-smooth motion
+    // player in client is moving, then if we struck under-attach using current location
+    // the player will be forced to roll-back
+    uint32_t nDelayTick = 0;
+    Delay(nDelayTick, fnReportUnderAttack);
 }

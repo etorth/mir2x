@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 04/25/2017 01:21:25
+ *  Last Modified: 05/10/2017 12:49:53
  *
  *    Description: 
  *
@@ -87,6 +87,13 @@ bool Monster::Draw(int nViewX, int nViewY)
             if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
             g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
             g_SDLDevice->DrawTexture(pFrame0, X() * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
+
+            extern PNGTexDBN *g_PNGTexDBN;
+            auto pBar0 = g_PNGTexDBN->Retrieve(0XFF0014);
+            auto pBar1 = g_PNGTexDBN->Retrieve(0XFF0015);
+
+            g_SDLDevice->DrawTexture(pBar0, X() * SYS_MAPGRIDXP - nViewX + nShiftX + 7, Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53);
+            g_SDLDevice->DrawTexture(pBar1, X() * SYS_MAPGRIDXP - nViewX + nShiftX + 7, Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53);
         }
     }
 

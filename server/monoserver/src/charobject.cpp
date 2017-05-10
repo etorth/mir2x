@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/09/2017 17:04:08
+ *  Last Modified: 05/10/2017 12:05:57
  *
  *    Description: 
  *
@@ -234,6 +234,9 @@ bool CharObject::TrackTarget()
                                                 stAMA.UID   = UID();
                                                 stAMA.MapID = MapID();
 
+                                                stAMA.Mode  = DAC_PLAIN;
+                                                stAMA.Power = GetAttackPower(DAC_PLAIN);
+
                                                 stAMA.X = X();
                                                 stAMA.Y = Y();
                                                 m_ActorPod->Forward({MPK_ATTACK, stAMA}, rstFromAddr);
@@ -400,4 +403,9 @@ bool CharObject::GoSuicide()
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "GoSuicide(this = %p, UID = %" PRIu32 ") failed", this, UID());
     return false;
+}
+
+bool CharObject::StruckDamage()
+{
+    return true;
 }

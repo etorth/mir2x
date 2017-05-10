@@ -3,7 +3,7 @@
  *
  *       Filename: monsterrecord.hpp
  *        Created: 05/08/2017 16:21:14
- *  Last Modified: 05/08/2017 17:53:17
+ *  Last Modified: 05/10/2017 11:54:47
  *
  *    Description: 
  *
@@ -132,4 +132,14 @@ struct MonsterRecord
         , Name	        (szName ? szName : "")
         , Description	(szDescription ? szDescription : "")
     {}
+
+    bool Valid() const
+    {
+        return ID != 0;
+    }
+
+    operator bool () const
+    {
+        return Valid();
+    }
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/04/2017 19:56:04
+ *  Last Modified: 05/10/2017 12:44:10
  *
  *    Description: 
  *
@@ -92,7 +92,7 @@ void ProcessRun::Draw()
                 if(m_Mir2xMapData.ValidC(nX, nY) && !(nX % 2) && !(nY % 2)){
                     auto nParam = m_Mir2xMapData.Tile(nX, nY).Param;
                     if(nParam & 0X80000000){
-                        if(auto pTexture = g_PNGTexDBN->Retrieve(nParam& 0X00FFFFFF)){
+                        if(auto pTexture = g_PNGTexDBN->Retrieve(nParam & 0X00FFFFFF)){
                             g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY);
                         }
                     }

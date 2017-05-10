@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/09/2017 19:22:40
+ *  Last Modified: 05/10/2017 11:51:53
  *
  *    Description: 
  *
@@ -47,8 +47,6 @@ Monster::Monster(uint32_t   nMonsterID,
     };
     static std::once_flag stFlag;
     std::call_once(stFlag, fnRegisterClass);
-
-    Delay(3 * 1000, [this](){ GoDie(); });
 }
 
 bool Monster::Update()
@@ -195,4 +193,31 @@ int Monster::Range(uint8_t)
 int Monster::Speed()
 {
     return 1;
+}
+
+int Monster::GetAttackPower(int nAttackParam)
+{
+    if(auto &rstMR = SYS_MONSTERRECORD(MonsterID())){
+        switch(nAttackParam){
+            case DAC_PLAIN:
+                {
+                    return rstMR.DC + std::rand() % (1 + std::max<int>(rstMR.DCMax - rstMR.DC, 0));
+                }
+            case DAC_FIRE:
+            case DAC_ICE:
+            case DAC_LIGHT:
+            case DAC_WIND:
+            case DAC_HOLY:
+            case DAC_DARK:
+            case DAC_PHANTOM:
+                {
+                    return rstMR.MC + std::rand() % (1 + std::max<int>(rstMR.MCMax - rstMR.MC, 0));
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    }
+    return -1;
 }

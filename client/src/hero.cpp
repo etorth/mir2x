@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 05/06/2017 18:32:43
+ *  Last Modified: 05/10/2017 12:52:20
  *
  *    Description: 
  *
@@ -23,6 +23,7 @@
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
 #include "sdldevice.hpp"
+#include "pngtexdbn.hpp"
 #include "motionnode.hpp"
 #include "pngtexoffdbn.hpp"
 
@@ -85,6 +86,13 @@ bool Hero::Draw(int nViewX, int nViewY)
     if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
     g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
     g_SDLDevice->DrawTexture(pFrame0, X() * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
+
+    extern PNGTexDBN *g_PNGTexDBN;
+    auto pBar0 = g_PNGTexDBN->Retrieve(0XFF0014);
+    auto pBar1 = g_PNGTexDBN->Retrieve(0XFF0015);
+
+    g_SDLDevice->DrawTexture(pBar0, X() * SYS_MAPGRIDXP - nViewX + nShiftX + 7, Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53);
+    g_SDLDevice->DrawTexture(pBar1, X() * SYS_MAPGRIDXP - nViewX + nShiftX + 7, Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53);
 
     return true;
 }
