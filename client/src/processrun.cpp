@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/16/2017 22:37:20
+ *  Last Modified: 05/17/2017 11:57:28
  *
  *    Description: 
  *
@@ -26,6 +26,7 @@
 #include "sysconst.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
+#include "clientenv.hpp"
 #include "processrun.hpp"
 
 ProcessRun::ProcessRun()
@@ -140,8 +141,8 @@ void ProcessRun::Draw()
             }
         }
 
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG == 10)
-        {
+        extern ClientEnv *g_ClientEnv;
+        if(g_ClientEnv->MIR2X_DEBUG_SHOW_MAP_GRID){
             int nX0 = m_ViewX / SYS_MAPGRIDXP;
             int nY0 = m_ViewY / SYS_MAPGRIDYP;
 
@@ -157,7 +158,6 @@ void ProcessRun::Draw()
             }
             g_SDLDevice->PopColor();
         }
-#endif
 
         // over-ground objects
         for(int nY = nY0; nY <= nY1; ++nY){
@@ -195,8 +195,8 @@ void ProcessRun::Draw()
                         }
                     }
 
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG == 10)
-                    {
+                    extern ClientEnv *g_ClientEnv;
+                    if(g_ClientEnv->MIR2X_DEBUG_SHOW_MAP_GRID){
                         if(m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000){
                             g_SDLDevice->PushColor(255, 0, 0, 128);
                             int nX0 = nX * SYS_MAPGRIDXP - m_ViewX;
@@ -212,20 +212,18 @@ void ProcessRun::Draw()
                             g_SDLDevice->PopColor();
                         }
                     }
-#endif
                 }
 
                 // draw actors
                 {
                     for(auto pCreature: m_CreatureRecord){
                         if(pCreature.second && (pCreature.second->X() == nX) && (pCreature.second->Y() == nY)){
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG == 10)
-                            {
+                            extern ClientEnv *g_ClientEnv;
+                            if(g_ClientEnv->MIR2X_DEBUG_SHOW_CREATURE_COVER){
                                 g_SDLDevice->PushColor(0, 0, 255, 30);
                                 g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                                 g_SDLDevice->PopColor();
                             }
-#endif
                             pCreature.second->Draw(m_ViewX, m_ViewY);
                         }
                     }

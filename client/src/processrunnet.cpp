@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/04/2017 13:23:45
+ *  Last Modified: 05/17/2017 11:30:49
  *
  *    Description: 
  *
@@ -107,9 +107,6 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
 {
     SMCORecord stSMCOR;
     std::memcpy(&stSMCOR, pBuf, sizeof(stSMCOR));
-
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-#endif
 
     if(stSMCOR.Common.MapID == m_MapID){
         ActionNode stAction;

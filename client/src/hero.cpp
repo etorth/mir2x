@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 05/15/2017 15:16:57
+ *  Last Modified: 05/17/2017 11:58:06
  *
  *    Description: 
  *
@@ -249,10 +249,6 @@ bool Hero::ParseNewNotice(const NoticeNode &, bool)
 
 bool Hero::ParseNewAction(const ActionNode &rstAction, bool)
 {
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    rstAction.Print();
-#endif
-
     // currently we ignore the local or remote flag for Hero
     // at it later if we support ACTION_PUSH which changes hero locations
 

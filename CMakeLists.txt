@@ -2,7 +2,7 @@
 #
 #        Filename: CMakeLists.txt
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 04/27/2017 23:25:00
+#   Last Modified: 05/17/2017 12:02:09
 #
 #     Description: -fno-strict-aliasing
 #
@@ -35,27 +35,19 @@ ELSE()
     MESSAGE(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 ENDIF()
 
-# 2. check build mode and validate MIR2X_DEBUG
-IF(DEFINED MIR2X_DEBUG)
-    IF(((MIR2X_DEBUG GREATER 0) OR (MIR2X_DEBUG EQUAL 0)) AND ((MIR2X_DEBUG LESS 10) OR (MIR2X_DEBUG EQUAL 10)))
-        SET(CMAKE_BUILD_TYPE "Debug")
-        SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
-        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
-        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
-        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DMIR2X_DEBUG=${MIR2X_DEBUG}")
-        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werror")
+# 2. always compile mir2x in debug mode
+#    MIR2X_DEBUG will be used as std::getenv("MIR2X_DEBUG")
+SET(CMAKE_BUILD_TYPE "Debug")
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werror")
 
-        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg")
-        SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg")
-        SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -pg")
-    ELSE()
-        MESSAGE(FATAL_ERROR "Invalid MIR2X_DEBUG, should be digits in [0, 10]")
-    ENDIF()
-ELSE()
-    SET(CMAKE_BUILD_TYPE "Release")
-    SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall -fno-strict-aliasing")
-ENDIF()
+# 2. to enable gprof for performance profiling
+SET(CMAKE_CXX_FLAGS_DEBUG           "${CMAKE_CXX_FLAGS_DEBUG} -pg")
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG    "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg")
+SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -pg")
 
 # 3. set common / external source used in client, server, tools
 SET(COMMON_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/common/src)

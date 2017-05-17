@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 05/16/2017 18:44:51
+ *  Last Modified: 05/17/2017 12:04:48
  *
  *    Description: 
  *
@@ -56,7 +56,7 @@ ActiveObject::ActiveObject()
     m_StateHook.Install("DelayCmdQueue", fnDelayCmdQueue);
 
     extern ServerEnv *g_ServerEnv;
-    if(g_ServerEnv->MIR2X_PRINT_ACTOR_MESSAGE_COUNT){
+    if(g_ServerEnv->MIR2X_DEBUG_PRINT_AM_COUNT){
         auto fnPrintAMCount = [this](){
             if(ActorPodValid()){
                 extern MonoServer *g_MonoServer;
@@ -100,17 +100,22 @@ ActiveObject::~ActiveObject()
 Theron::Address ActiveObject::Activate()
 {
     if(!m_ActorPod){
+        // 1. enable the scheduling by actor threads
         extern Theron::Framework *g_Framework;
         m_ActorPod = new ActorPod(g_Framework, [this](){ m_StateHook.Execute(); },
                 [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){ Operate(rstMPK, stFromAddr); });
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-        {
-            m_ActorPod->BindPod(UID(), ClassName());
-        }
-#endif
-    }
+        // 2. bind the class information to the actorpod
+        //    between 1 and 2 there could be gap but OK since before exiting current function
+        //    no actor message will be passed or forwarded
+        m_ActorPod->BindPod(UID(), ClassName());
+        return GetAddress();
+    }else{
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Try to do activation twice: UID = %" PRIu32 ", ClassName = %s", UID(), ClassName());
+        g_MonoServer->Restart();
 
-    return GetAddress();
+        return Theron::Address::Null();
+    }
 }
 
 void ActiveObject::Deactivate()

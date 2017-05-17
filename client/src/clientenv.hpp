@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: serverenv.hpp
+ *       Filename: clientenv.hpp
  *        Created: 05/12/2017 16:33:25
- *  Last Modified: 05/17/2017 12:04:29
+ *  Last Modified: 05/17/2017 11:52:08
  *
  *    Description: use environment to setup the runtime message report:
  *
@@ -27,17 +27,17 @@
 #include <string>
 #include <cstdint>
 
-struct ServerEnv
+struct ClientEnv
 {
     int  MIR2X_DEBUG;
-    bool MIR2X_DEBUG_PRINT_AM_COUNT;
-    bool MIR2X_DEBUG_PRINT_AM_FORWARD;
+    bool MIR2X_DEBUG_SHOW_MAP_GRID;
+    bool MIR2X_DEBUG_SHOW_CREATURE_COVER;
 
-    ServerEnv()
+    ClientEnv()
     {
         MIR2X_DEBUG = std::getenv("MIR2X_DEBUG") ? std::atoi(std::getenv("MIR2X_DEBUG")) : 0;
 
-        MIR2X_DEBUG_PRINT_AM_COUNT   = (MIR2X_DEBUG >= 5) ? true : (std::getenv("MIR2X_DEBUG_PRINT_AM_COUNT"  ) ? true : false);
-        MIR2X_DEBUG_PRINT_AM_FORWARD = (MIR2X_DEBUG >= 5) ? true : (std::getenv("MIR2X_DEBUG_PRINT_AM_FORWARD") ? true : false);
+        MIR2X_DEBUG_SHOW_MAP_GRID       = (MIR2X_DEBUG >= 5) ? true : (std::getenv("MIR2X_DEBUG_SHOW_MAP_GRID"      ) ? true : false);
+        MIR2X_DEBUG_SHOW_CREATURE_COVER = (MIR2X_DEBUG >= 5) ? true : (std::getenv("MIR2X_DEBUG_SHOW_CREATURE_COVER") ? true : false);
     }
 };
