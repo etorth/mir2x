@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 05/09/2017 19:58:58
+ *  Last Modified: 05/16/2017 18:44:51
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #include <cinttypes>
 #include "actorpod.hpp"
+#include "serverenv.hpp"
 #include "monoserver.hpp"
 #include "activeobject.hpp"
 
@@ -54,21 +55,21 @@ ActiveObject::ActiveObject()
 
     m_StateHook.Install("DelayCmdQueue", fnDelayCmdQueue);
 
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    auto fnPrintAMCount = [this](){
-        if(ActorPodValid()){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_INFO,
-                    "(%s: 0X%0*" PRIXPTR ", Name: %s, UID: %u, Length: %" PRIu32 ")",
-                    "ActorPod", (int)(sizeof(this) * 2), (uintptr_t)(this), ClassName(), UID(), m_ActorPod->GetNumQueuedMessages());
-        }
+    extern ServerEnv *g_ServerEnv;
+    if(g_ServerEnv->MIR2X_PRINT_ACTOR_MESSAGE_COUNT){
+        auto fnPrintAMCount = [this](){
+            if(ActorPodValid()){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_INFO,
+                        "(%s: 0X%0*" PRIXPTR ", Name: %s, UID: %u, Length: %" PRIu32 ")",
+                        "ActorPod", (int)(sizeof(this) * 2), (uintptr_t)(this), ClassName(), UID(), m_ActorPod->GetNumQueuedMessages());
+            }
 
-        // it's never done
-        return false;
-    };
-
-    m_StateHook.Install("PrintAMCount", fnPrintAMCount);
-#endif
+            // it's never done
+            return false;
+        };
+        m_StateHook.Install("PrintAMCount", fnPrintAMCount);
+    }
 
     auto fnRegisterClass = [this]() -> void {
         if(!RegisterClass<ActiveObject, ServerObject>()){

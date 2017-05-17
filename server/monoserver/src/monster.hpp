@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 05/10/2017 11:54:09
+ *  Last Modified: 05/16/2017 18:19:33
  *
  *    Description: 
  *
@@ -99,11 +99,26 @@ class Monster: public CharObject
         bool Update();
 
     protected:
-        int Range(uint8_t);
-        int Speed();
+        bool RandomMove();
+        bool TrackAttack();
+
+    protected:
+        bool TrackUID(uint32_t);
+        bool AttackUID(uint32_t, int);
+
+    protected:
+        bool DCValid(int, bool);
+        bool InRange(int, int, int);
+
+    protected:
+        void AddTarget(uint32_t);
 
     protected:
         int GetAttackPower(int);
+
+    protected:
+        bool ParseNewAction(const NoticeNode &, bool);
+        bool ParseNewNotice(const NoticeNode &, bool);
 
     private:
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
@@ -117,4 +132,8 @@ class Monster: public CharObject
 
     protected:
         void ReportCORecord(uint32_t);
+
+    protected:
+        bool CanMove();
+        bool CanAttack();
 };

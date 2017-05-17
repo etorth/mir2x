@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 05/10/2017 12:49:53
+ *  Last Modified: 05/15/2017 15:11:05
  *
  *    Description: 
  *
@@ -23,6 +23,7 @@
 #include "monster.hpp"
 #include "mathfunc.hpp"
 #include "processrun.hpp"
+#include "noticenode.hpp"
 #include "protocoldef.hpp"
 #include "clientpathfinder.hpp"
 
@@ -322,7 +323,7 @@ bool Monster::MotionValid(const MotionNode &rstMotion)
     }
 }
 
-bool Monster::ParseNewState(const StateNode &, bool)
+bool Monster::ParseNewNotice(const NoticeNode &, bool)
 {
     return true;
 }

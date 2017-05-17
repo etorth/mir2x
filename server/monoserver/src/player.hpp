@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 05/10/2017 11:57:37
+ *  Last Modified: 05/16/2017 23:05:23
  *
  *    Description: 
  *
@@ -88,16 +88,6 @@ class Player: public CharObject
         }
 
     public:
-        // type test function
-        virtual uint8_t State(uint8_t);
-        virtual bool ResetState(uint8_t, uint8_t);
-
-        virtual uint32_t NameColor();
-        virtual const char *CharName();
-
-        virtual int Range(uint8_t);
-
-    public:
         int Speed()
         {
             return 5;
@@ -114,6 +104,7 @@ class Player: public CharObject
         void Operate(const MessagePack &, const Theron::Address &);
 
     private:
+        void On_MPK_NOTICE(const MessagePack &, const Theron::Address &);
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
         void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
@@ -136,4 +127,7 @@ class Player: public CharObject
 
     protected:
         int GetAttackPower(int);
+
+    protected:
+        bool InRange(int, int, int);
 };

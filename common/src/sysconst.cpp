@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.cpp
  *        Created: 06/02/2016 11:43:04
- *  Last Modified: 05/08/2017 18:13:28
+ *  Last Modified: 05/12/2017 17:58:26
  *
  *    Description: don't refer to monoserver->AddLog() or something
  *
@@ -147,17 +147,3 @@ const static std::unordered_map<uint8_t, HumanSkill> s_HumanSkillRecord
     {122, {122, 2, 3,  20,  4,  29,  60,  50,  0,  0,  0,  0, 46, 48, 50,  400,  600, 1200, u8"阴阳法环",    u8""}},
     {123, {123, 2, 5,  20,  2,   4,  40,  30,  4,  3,  8,  4, 40, 42, 44,  100,  200,  300, u8"移花接玉",    u8""}},
 };
-
-const MonsterRecord &SYS_MONSTERRECORD(uint32_t nMonsterID)
-{
-    static std::unordered_map<uint32_t, MonsterRecord> stMonsterRecord
-    {
-        // ----+----+--------+-------+--------+---------+---------+----+----+-----+-----+---------+--------+-------+---------+--------+--------+--------+-----------+----+-------+--------+----+-------+----------+----------+-----------+------------+--------------+-------------+-------------+-------------------+
-        //     | ID | LookID | Level | Undead | Tameble | CoolEye | HP | MP | Hit | Exp | ACPlain | ACFire | ACIce | ACLight | ACWind | ACHoly | ACDark | ACPhantom | DC | DCMax | MCType | MC | MCMax | WalkStep | WalkWait | WalkSpeed | AttackMode | AttackEffect | AttackSpeed |    Name     |    Description    |
-        {   0, {  0 , 0X0000 ,   0   ,    0   ,    0    ,    0    ,  0 ,  0 ,  0  ,  0  ,   0     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  0 ,   0   ,    0   ,  0 ,   0   ,     0    ,     0    ,     0     ,      0     ,      0       ,      0      ,    u8""     ,       u8""        }},
-        {   1, {  1 , 0X0015 ,   1   ,    0   ,    1    ,    0    , 10 , 10 , 10  , 10  ,   1     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  1 ,   2   ,    0   ,  0 ,   0   ,     1    ,     0    ,     1     ,      0     ,      0       ,      0      ,    u8"鹿"   ,       u8""        }},
-        {   1, {  1 , 0X009F ,   1   ,    0   ,    1    ,    0    , 10 , 10 , 10  , 10  ,   1     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  1 ,   2   ,    0   ,  0 ,   0   ,     1    ,     0    ,     1     ,      0     ,      0       ,      0      ,    u8"鹿"   ,       u8""        }},
-    };
-
-    return stMonsterRecord.at((stMonsterRecord.find(nMonsterID) != stMonsterRecord.end()) ? nMonsterID : 0);
-}

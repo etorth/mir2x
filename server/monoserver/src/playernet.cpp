@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 05/05/2017 18:16:00
+ *  Last Modified: 05/15/2017 14:05:58
  *
  *    Description: how player respond for different net package
  *
@@ -91,7 +91,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                     switch(LDistance2(X(), Y(), (int)(stCMA.X), (int)(stCMA.Y))){
                         case 0:
                             {
-                                RequestMove((int)(stCMA.EndX), (int)(stCMA.EndY), [](){}, [this](){ ReportStand(); });
+                                RequestMove((int)(stCMA.ActionParam), (int)(stCMA.EndX), (int)(stCMA.EndY), false, [](){}, [this](){ ReportStand(); });
                                 return;
                             }
                         case 1:
@@ -100,10 +100,10 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                                 // there is one hop delay, acceptable
                                 // try to do the one-hop and then try the client action if possible
                                 auto fnOnFirstMoveOK = [this, stCMA](){
-                                    RequestMove((int)(stCMA.EndX), (int)(stCMA.EndY), [](){}, [this](){ ReportStand(); });
+                                    RequestMove((int)(stCMA.ActionParam), (int)(stCMA.EndX), (int)(stCMA.EndY), false, [](){}, [this](){ ReportStand(); });
                                 };
 
-                                RequestMove((int)(stCMA.X), (int)(stCMA.Y), fnOnFirstMoveOK, [this](){ ReportStand(); });
+                                RequestMove((int)(stCMA.ActionParam), (int)(stCMA.X), (int)(stCMA.Y), false, fnOnFirstMoveOK, [this](){ ReportStand(); });
                                 return;
                             }
                         default:

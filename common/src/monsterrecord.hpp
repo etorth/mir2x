@@ -3,7 +3,7 @@
  *
  *       Filename: monsterrecord.hpp
  *        Created: 05/08/2017 16:21:14
- *  Last Modified: 05/10/2017 11:54:47
+ *  Last Modified: 05/16/2017 18:21:46
  *
  *    Description: 
  *
@@ -19,7 +19,9 @@
  */
 
 #pragma once
+#include <vector>
 #include <string>
+#include <cstdint>
 
 struct MonsterRecord
 {
@@ -56,8 +58,10 @@ struct MonsterRecord
     int WalkSpeed;
 
     int AttackMode;
+    int AttackWait;
     int AttackEffect;
-    int AttackSpeed;
+
+    std::vector<int> DCList;
 
     std::string Name;
     std::string Description;
@@ -95,8 +99,10 @@ struct MonsterRecord
                   int nWalkSpeed,
 
                   int nAttackMode,
+                  int nAttackWait,
                   int nAttackEffect,
-                  int nAttackSpeed,
+
+                  const std::vector<int> & rstDCList,
 
                   const char *szName,
                   const char *szDescription)
@@ -106,31 +112,32 @@ struct MonsterRecord
         , Undead        (nUndead)
         , Tameble       (nTameble)
         , CoolEye       (nCoolEye)
-        , HP		    (nHP)
-        , MP		    (nMP)
-        , Hit		    (nHit)
-        , Exp		    (nExp)
-        , ACPlain	    (nACPlain)
-        , ACFire	    (nACFire)
-        , ACIce		    (nACIce)
-        , ACLight	    (nACLight)
-        , ACWind	    (nACWind)
-        , ACHoly	    (nACHoly)
-        , ACDark	    (nACDark)
-        , ACPhantom	    (nACPhantom)
-        , DC		    (nDC)
-        , DCMax		    (nDCMax)
-        , MCType	    (nMCType)
-        , MC		    (nMC)
-        , MCMax		    (nMCMax)
-        , WalkStep	    (nWalkStep)
-        , WalkWait	    (nWalkWait)
-        , WalkSpeed	    (nWalkSpeed)
-        , AttackMode	(nAttackMode)
-        , AttackEffect	(nAttackEffect)
-        , AttackSpeed	(nAttackSpeed)
-        , Name	        (szName ? szName : "")
-        , Description	(szDescription ? szDescription : "")
+        , HP            (nHP)
+        , MP            (nMP)
+        , Hit           (nHit)
+        , Exp           (nExp)
+        , ACPlain       (nACPlain)
+        , ACFire        (nACFire)
+        , ACIce         (nACIce)
+        , ACLight       (nACLight)
+        , ACWind        (nACWind)
+        , ACHoly        (nACHoly)
+        , ACDark        (nACDark)
+        , ACPhantom     (nACPhantom)
+        , DC            (nDC)
+        , DCMax         (nDCMax)
+        , MCType        (nMCType)
+        , MC            (nMC)
+        , MCMax         (nMCMax)
+        , WalkStep      (nWalkStep)
+        , WalkWait      (nWalkWait)
+        , WalkSpeed     (nWalkSpeed)
+        , AttackMode    (nAttackMode)
+        , AttackWait    (nAttackWait)
+        , AttackEffect  (nAttackEffect)
+        , DCList        (rstDCList)
+        , Name          (szName ? szName : "")
+        , Description   (szDescription ? szDescription : "")
     {}
 
     bool Valid() const

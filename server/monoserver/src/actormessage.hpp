@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/10/2017 12:04:41
+ *  Last Modified: 05/15/2017 18:15:12
  *
  *    Description: 
  *
@@ -26,12 +26,13 @@ enum MessagePackType: int
     MPK_OK,
     MPK_ERROR,
     MPK_BADACTORPOD,
+    MPK_TIMEOUT,
     MPK_UID,
-    MPK_HI,
     MPK_PING,
     MPK_LOGIN,
     MPK_METRONOME,
     MPK_TRYMOVE,
+    MPK_MOVEOK,
     MPK_TRYLEAVE,
     MPK_TRYSPACEMOVE,
     MPK_LOGINOK,
@@ -56,6 +57,7 @@ enum MessagePackType: int
     MPK_PATHFIND,
     MPK_PATHFINDOK,
     MPK_ATTACK,
+    MPK_NOTICE,
 };
 
 typedef struct
@@ -139,7 +141,21 @@ typedef struct
 
     int EndX;
     int EndY;
+
+    bool AllowHalfMove;
 }AMTryMove;
+
+typedef struct
+{
+    uint32_t UID;
+    uint32_t MapID;
+
+    int X;
+    int Y;
+
+    int EndX;
+    int EndY;
+}AMMoveOK;
 
 typedef struct
 {
@@ -263,6 +279,7 @@ typedef struct
 {
     uint32_t UID;
     uint32_t MapID;
+    uint32_t RecordTime;
     
     int X;
     int Y;
@@ -290,7 +307,7 @@ typedef struct
     {
         int X;
         int Y;
-    }Point[2];
+    }Point[4];
 }AMPathFindOK;
 
 typedef struct
@@ -304,3 +321,15 @@ typedef struct
     int X;
     int Y;
 }AMAttack;
+
+typedef struct
+{
+    uint32_t UID;
+    uint32_t MapID;
+
+    int Notice;
+    int NoticeParam;
+
+    int X;
+    int Y;
+}AMNotice;

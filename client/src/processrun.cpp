@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/10/2017 12:44:10
+ *  Last Modified: 05/16/2017 22:37:20
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 #include <cstring>
 
 #include "monster.hpp"
+#include "mathfunc.hpp"
 #include "sysconst.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
@@ -366,7 +367,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             if(LocatePoint(rstEvent.button.x, rstEvent.button.y, &nX, &nY)){
                                 ActionNode stAction;
                                 stAction.Action      = ACTION_MOVE;
-                                stAction.ActionParam = 0;
+                                stAction.ActionParam = MOTION_WALK;
                                 stAction.Speed       = 1;
                                 stAction.Direction   = DIR_NONE;
                                 stAction.X           = m_MyHero->CurrMotion().EndX;
@@ -432,9 +433,20 @@ bool ProcessRun::CanMove(bool bCheckCreature, int nX, int nY){
 
 bool ProcessRun::CanMove(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1)
 {
-    if(m_Mir2xMapData.ValidC(nX0, nY0)){
-        if(m_Mir2xMapData.ValidC(nX1, nY1) && (std::abs(nX0 - nX1) <= 1) && (std::abs(nY0 - nY1) <= 1)){
-            return CanMove(bCheckCreature, nX1, nY1);
+    if(true
+            && m_Mir2xMapData.ValidC(nX0, nY0)
+            && m_Mir2xMapData.ValidC(nX1, nY1)){
+        switch(LDistance2(nX0, nY0, nX1, nY1)){
+            case 0:
+            case 1:
+            case 2:
+                {
+                    return CanMove(bCheckCreature, nX1, nY1);
+                }
+            default:
+                {
+                    break;
+                }
         }
     }
     return false;

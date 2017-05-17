@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/04/2017 01:03:08
+ *  Last Modified: 05/15/2017 14:01:50
  *
  *    Description: 
  *
@@ -118,7 +118,6 @@ bool ServiceCore::LoadMap(uint32_t nMapID)
 
             pMap->Activate();
             m_MapRecord[nMapID] = pMap;
-            m_ActorPod->Forward(MPK_HI, pMap->GetAddress());
         }
         return true;
     }

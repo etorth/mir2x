@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 05/09/2017 20:17:10
+ *  Last Modified: 05/16/2017 18:04:10
  *
  *    Description: 
  *
@@ -198,14 +198,14 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
 void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     switch(rstMPK.Type()){
-        case MPK_HI:
-            {
-                On_MPK_HI(rstMPK, rstFromAddr);
-                break;
-            }
         case MPK_TRYLEAVE:
             {
                 On_MPK_TRYLEAVE(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_NOTICE:
+            {
+                On_MPK_NOTICE(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_ACTION:
@@ -256,8 +256,7 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
         default:
             {
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_FATAL, "unsupported message: %s", rstMPK.Name());
-                g_MonoServer->Restart();
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
     }
@@ -311,4 +310,15 @@ bool ServerMap::Empty()
         }
     }
     return true;
+}
+
+Theron::Address ServerMap::Activate()
+{
+    auto stAddress = ActiveObject::Activate();
+
+    delete m_Metronome;
+    m_Metronome = new Metronome(300);
+    m_Metronome->Activate(GetAddress());
+
+    return stAddress;
 }

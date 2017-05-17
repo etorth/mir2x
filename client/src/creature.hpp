@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 05/05/2017 18:30:54
+ *  Last Modified: 05/15/2017 15:15:03
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -121,7 +121,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "statenode.hpp"
+#include "noticenode.hpp"
 #include "actionnode.hpp"
 #include "motionnode.hpp"
 #include "protocoldef.hpp"
@@ -185,7 +185,7 @@ class Creature
         virtual size_t MotionFrameCount() = 0;
 
     public:
-        virtual bool ParseNewState (const  StateNode &, bool) = 0;
+        virtual bool ParseNewNotice(const NoticeNode &, bool) = 0;
         virtual bool ParseNewAction(const ActionNode &, bool) = 0;
 
     protected:

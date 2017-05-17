@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/10/2017 11:28:50
+ *  Last Modified: 05/16/2017 23:05:21
  *
  *    Description: 
  *
@@ -20,10 +20,12 @@
 #pragma once
 
 #include <list>
+#include <deque>
 #include <vector>
 
 #include "servermap.hpp"
 #include "actionnode.hpp"
+#include "noticenode.hpp"
 #include "servicecore.hpp"
 #include "protocoldef.hpp"
 #include "activeobject.hpp"
@@ -41,6 +43,7 @@ enum _RangeType: uint8_t
     RANGE_MAP,
     RANGE_SERVER,
 
+    RANGE_VISIBLE,
     RANGE_ATTACK,
     RANGE_TRACETARGET,
 };
@@ -106,6 +109,7 @@ class CharObject: public ActiveObject
         {
             uint32_t UID;
             uint32_t MapID;
+            uint32_t RecordTime;
 
             int X;
             int Y;
@@ -113,8 +117,20 @@ class CharObject: public ActiveObject
             COLocation()
                 : UID(0)
                 , MapID(0)
+                , RecordTime(0)
                 , X(-1)
                 , Y(-1)
+            {}
+        };
+
+        struct TargetRecord
+        {
+            uint32_t UID;
+            uint32_t ActiveTime;
+
+            TargetRecord(uint32_t nUID, uint32_t nActiveTime)
+                : UID(nUID)
+                , ActiveTime(nActiveTime)
             {}
         };
 
@@ -124,6 +140,7 @@ class CharObject: public ActiveObject
 
     protected:
         std::unordered_map<uint32_t, ServerMap *> m_MapCache;
+        std::unordered_map<uint32_t, COLocation > m_LocationRecord;
 
     protected:
         int m_CurrX;
@@ -131,10 +148,17 @@ class CharObject: public ActiveObject
         int m_Direction;
 
     protected:
-        bool m_FreezeMove;
+        int m_HP;
+        int m_MP;
 
     protected:
-        COLocation m_TargetInfo;
+        bool     m_MoveLock;
+        bool     m_AttackLock;
+        uint32_t m_LastMoveTime;
+        uint32_t m_LastAttackTime;
+
+    protected:
+        std::deque<TargetRecord> m_TargetQ;
 
     protected:
         OBJECTABILITY       m_Ability;
@@ -158,8 +182,6 @@ class CharObject: public ActiveObject
 
             return true;
         }
-
-        virtual int Speed() = 0;
 
     protected:
         int X()
@@ -199,32 +221,37 @@ class CharObject: public ActiveObject
         }
 
     public:
-        virtual int  Range(uint8_t) = 0;
-        virtual bool Update()       = 0;
-
-    public:
-        virtual bool TrackTarget();
+        virtual bool Update() = 0;
+        virtual bool InRange(int, int, int) = 0;
 
     public:
         bool NextLocation(int *, int *, int, int);
-
-    public:
         bool NextLocation(int *pX, int *pY, int nDistance)
         {
             return NextLocation(pX, pY, Direction(), nDistance);
         }
+
+    public:
+        Theron::Address Activate();
 
     protected:
         virtual void ReportCORecord(uint32_t) = 0;
 
     protected:
         void DispatchAction(const ActionNode &);
+        void DispatchNotice(const NoticeNode &);
+
+    protected:
+        virtual int OneStepReach(int, int, int *, int *);
 
     protected:
         virtual bool CanMove();
-        virtual bool RequestMove(int, int, std::function<void()>, std::function<void()>);
+        virtual bool MoveOneStep(int, int, int);
+        virtual bool RetrieveLocation(uint32_t, std::function<void(int, int)>);
+        virtual bool RequestMove(int, int, int, bool, std::function<void()>, std::function<void()>);
 
     protected:
+        virtual bool CanAttack();
         virtual bool StruckDamage();
 
     protected:

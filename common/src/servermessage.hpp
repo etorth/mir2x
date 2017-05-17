@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 05/05/2017 18:00:09
+ *  Last Modified: 05/15/2017 14:31:29
  *
  *    Description: net message used by client and mono-server
  *
@@ -30,6 +30,7 @@ enum: uint8_t
     SM_LOGINOK,
     SM_LOGINFAIL,
     SM_ACTION,
+    SM_NOTICE,
     SM_MONSTERGINFO,
     SM_CORECORD,
 };
@@ -59,6 +60,15 @@ typedef struct
 {
     uint32_t FailID;
 }SMLoginFail;
+
+typedef struct
+{
+    uint32_t UID;
+    uint32_t MapID;
+
+    uint8_t Notice;
+    uint8_t NoticeParam;
+}SMNotice;
 
 typedef struct
 {

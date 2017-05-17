@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: utf8char.hpp
- *        Created: 7/3/2015 2:05:13 PM
- *  Last Modified: 05/13/2017 22:20:10
+ *       Filename: serverenv.hpp
+ *        Created: 05/12/2017 16:33:25
+ *  Last Modified: 05/16/2017 18:44:19
  *
  *    Description: 
  *
@@ -19,9 +19,17 @@
  */
 
 #pragma once
+#include <string>
 #include <cstdint>
 
-// const uint8_t FONTSTYLE_BOLD          = 0B0000'0001;
-// const uint8_t FONTSTYLE_UNDERLINE     = 0B0000'0010;
-// const uint8_t FONTSTYLE_ITALIC        = 0B0000'0100;
-// const uint8_t FONTSTYLE_STRIKETHROUGH = 0B0000'1000;
+struct ServerEnv
+{
+    bool MIR2X_PRINT_ACTORPOD_FORWARD;
+    bool MIR2X_PRINT_ACTOR_MESSAGE_COUNT;
+
+    ServerEnv()
+    {
+        MIR2X_PRINT_ACTORPOD_FORWARD    = false;
+        MIR2X_PRINT_ACTOR_MESSAGE_COUNT = false;
+    }
+};

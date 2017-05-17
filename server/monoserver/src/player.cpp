@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/10/2017 11:58:39
+ *  Last Modified: 05/16/2017 23:06:09
  *
  *    Description: 
  *
@@ -67,6 +67,11 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
                 On_MPK_QUERYLOCATION(rstMPK, rstFromAddr);
                 break;
             }
+        case MPK_NOTICE:
+            {
+                On_MPK_NOTICE(rstMPK, rstFromAddr);
+                break;
+            }
         case MPK_ACTION:
             {
                 On_MPK_ACTION(rstMPK, rstFromAddr);
@@ -95,42 +100,10 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         default:
             {
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message: %s", rstMPK.Name());
-                g_MonoServer->Restart();
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
     }
-}
-
-bool Player::Update()
-{
-    return true;
-}
-
-uint8_t Player::State(uint8_t nState)
-{
-    return m_StateV[nState];
-}
-
-bool Player::ResetState(uint8_t nState, uint8_t nThisState)
-{
-    m_StateV[nState] = nThisState;
-    return true;
-}
-
-uint32_t Player::NameColor()
-{
-    return 0XFFFFFFFF;
-}
-
-const char *Player::CharName()
-{
-    return "hello";
-}
-
-int Player::Range(uint8_t)
-{
-    return 20;
 }
 
 void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
@@ -144,6 +117,11 @@ void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 
 void Player::For_CheckTime()
 {
+}
+
+bool Player::Update()
+{
+    return true;
 }
 
 bool Player::Bind(uint32_t nSessionID)
@@ -187,25 +165,42 @@ void Player::ReportCORecord(uint32_t nSessionID)
 
 void Player::ReportStand()
 {
-    // any error found when checking motion
-    // report an stand state to client for pull-back
-    SMAction stSMAction;
-    stSMAction.UID         = UID();
-    stSMAction.MapID       = MapID();
-    stSMAction.Action      = ACTION_STAND;
-    stSMAction.ActionParam = 0;
-    stSMAction.Speed       = 0;
-    stSMAction.Direction   = Direction();
-    stSMAction.X           = X();
-    stSMAction.Y           = Y();
-    stSMAction.EndX        = X();
-    stSMAction.EndY        = Y();
+    if(m_SessionID){
+        // any error found when checking motion
+        // report an stand state to client for pull-back
+        SMAction stSMAction;
+        stSMAction.UID         = UID();
+        stSMAction.MapID       = MapID();
+        stSMAction.Action      = ACTION_STAND;
+        stSMAction.ActionParam = 0;
+        stSMAction.Speed       = 0;
+        stSMAction.Direction   = Direction();
+        stSMAction.X           = X();
+        stSMAction.Y           = Y();
+        stSMAction.EndX        = X();
+        stSMAction.EndY        = Y();
 
-    extern NetPodN *g_NetPodN;
-    g_NetPodN->Send(m_SessionID, SM_ACTION, stSMAction);
+        extern NetPodN *g_NetPodN;
+        g_NetPodN->Send(m_SessionID, SM_ACTION, stSMAction);
+    }
 }
 
-int Player::GetAttackPower(int)
+int Player::GetAttackPower(int nAttackParam)
 {
-    return 0;
+    switch(nAttackParam){
+        case DC_PHY_PLAIN:
+            {
+                return 1;
+            }
+        default:
+            {
+                break;
+            }
+    }
+    return -1;
+}
+
+bool Player::InRange(int, int, int)
+{
+    return true;
 }

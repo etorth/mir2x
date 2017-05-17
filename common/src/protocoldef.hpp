@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 05/09/2017 01:03:31
+ *  Last Modified: 05/16/2017 17:16:09
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 #pragma once
+#include "motion.hpp"
 
 // define of directioin
 //
@@ -72,15 +73,47 @@ enum MonsterIDType: uint32_t
     MONSTERID_ZUMA3,
 };
 
-enum DACType: int
+enum DCType: int
 {
-    DAC_NONE = 0,
-    DAC_PLAIN,
-    DAC_FIRE,
-    DAC_ICE,
-    DAC_LIGHT,
-    DAC_WIND,
-    DAC_HOLY,
-    DAC_DARK,
-    DAC_PHANTOM,
+    DC_NONE = 0,
+    DC_PHY_PLAIN,
+    DC_PHY_WIDESWORD,
+    DC_MAG_FIRE,
+    DC_MAG_EXPLODE,
+};
+
+enum ECType: int
+{
+    EC_NONE = 0,
+    EC_PLAIN,
+    EC_FIRE,
+    EC_ICE,
+    EC_LIGHT,
+    EC_WIND,
+    EC_HOLY,
+    EC_DARK,
+    EC_PHANTOM,
+    EC_MAX,
+};
+
+enum EffectType: int
+{
+    ET_NONE = 0,
+    ET_PIERCE,
+    ET_PARALYSIS,
+};
+
+enum GenType: int
+{
+    GT_NONE = 0,
+    GT_MALE,
+    GT_FEMALE,
+};
+
+enum MonsterAttackType: int
+{
+    MA_NONE = 0,
+    MA_NORMAL,
+    MA_DOGZ,
+    MA_ATTACKALL,
 };

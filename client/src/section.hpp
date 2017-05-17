@@ -3,7 +3,7 @@
  *
  *       Filename: section.hpp
  *        Created: 8/18/2015 6:56:11 PM
- *  Last Modified: 03/31/2016 15:14:04
+ *  Last Modified: 05/13/2017 22:21:28
  *
  *    Description: 
  *
@@ -22,7 +22,8 @@
 #include "tokenbox.hpp"
 #include <SDL2/SDL.h>
 
-typedef struct{
+typedef struct
+{
     int                     Type;
     int                     Set;
     int                     Index;
@@ -30,18 +31,21 @@ typedef struct{
     int                     FrameCount;
 }EMOTICONSECTIONINFO;
 
-typedef struct{
+typedef struct
+{
     int                     Valid;
     double                  MS;
     int                     FrameIndex;
 }EMOTICONSECTIONSTATE;
 
-typedef struct{
+typedef struct
+{
     int                     Event;
     int                     ID;
 }TEXTSECTIONSTATE;
 
-typedef struct{
+typedef struct
+{
     int                     Type;
     uint8_t                 Font;
     uint8_t                 Size;
@@ -49,7 +53,8 @@ typedef struct{
     SDL_Color               Color[3];
 }TEXTSECTIONINFO;
 
-enum{
+enum SectionType: int
+{
     SECTIONTYPE_ALL         = 0,
     SECTIONTYPE_PLAINTEXT   = 1,
     SECTIONTYPE_EVENTTEXT   = 2,
@@ -57,18 +62,21 @@ enum{
     SECTIONTYPE_TEXT        = 4,
 };
 
-typedef union{
+typedef union
+{
     int                     Type;
     EMOTICONSECTIONINFO     Emoticon;
     TEXTSECTIONINFO         Text;
 }SECTIONINFO;
 
-typedef union{
+typedef union
+{
     EMOTICONSECTIONSTATE    Emoticon;
     TEXTSECTIONSTATE        Text;
 }SECTIONSTATE;
 
-typedef struct{
+typedef struct
+{
     SECTIONINFO             Info;
     SECTIONSTATE            State;
 }SECTION;

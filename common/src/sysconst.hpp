@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 05/08/2017 16:42:37
+ *  Last Modified: 05/12/2017 17:57:24
  *
  *    Description: 
  *
@@ -53,6 +53,4 @@ struct SwitchMapLoc
         , MapID(nMapID)
     {}
 };
-
-const MonsterRecord &SYS_MONSTERRECORD(uint32_t);
 const std::vector<SwitchMapLoc> &SYS_MAPSWITCHLOC(uint32_t);

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 05/09/2017 20:16:28
+ *  Last Modified: 05/15/2017 17:04:54
  *
  *    Description:
  *
@@ -126,6 +126,9 @@ class ServerMap: public ActiveObject
         bool ValidC(int nX, int nY) const { return m_Mir2xMapData.ValidC(nX, nY); }
         bool ValidP(int nX, int nY) const { return m_Mir2xMapData.ValidP(nX, nY); }
 
+    public:
+        Theron::Address Activate();
+
     private:
         bool Load(const char *);
 
@@ -135,8 +138,8 @@ class ServerMap: public ActiveObject
         bool RandomLocation(int *, int *);
 
     private:
-        void On_MPK_HI(const MessagePack &, const Theron::Address &);
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
+        void On_MPK_NOTICE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYLEAVE(const MessagePack &, const Theron::Address &);
         void On_MPK_PATHFIND(const MessagePack &, const Theron::Address &);

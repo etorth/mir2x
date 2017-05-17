@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/05/2017 18:21:55
+ *  Last Modified: 05/15/2017 15:15:21
  *
  *    Description: 
  *
@@ -43,7 +43,7 @@ class MyHero: public Hero
         bool MoveNextMotion();
 
     public:
-        bool ParseNewState (const  StateNode &, bool);
+        bool ParseNewNotice(const NoticeNode &, bool);
         bool ParseNewAction(const ActionNode &, bool);
 
     public:

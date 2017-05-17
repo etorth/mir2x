@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 05/09/2017 19:26:07
+ *  Last Modified: 05/16/2017 18:45:49
  *
  *    Description: 
  *
@@ -18,120 +18,137 @@
  * =====================================================================================
  */
 #include <cstdio>
+#include <atomic>
 #include <cinttypes>
 
 #include "actorpod.hpp"
+#include "serverenv.hpp"
 #include "monoserver.hpp"
 
 void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFromAddr)
 {
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    {
+    extern ServerEnv *g_ServerEnv;
+    if(g_ServerEnv->MIR2X_PRINT_ACTORPOD_FORWARD){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_INFO, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) <- (Type: %s, ID: %u, Resp: %u)",
                 (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
     }
-#endif
+
+    // everytime when message comes check the expire time
+    // remove all expired message handler before any handling
+    if(m_ExpireTime){
+        while(!m_RespondMessageRecord.empty()){
+            extern MonoServer *g_MonoServer;
+            if(m_RespondMessageRecord.begin()->second.ExpireTime < g_MonoServer->GetTimeTick()){
+                // expired, erase current message handler
+                // send MPK_TIMEOUT to registered message handler to indicate erasion
+                try{
+                    m_RespondMessageRecord.begin()->second.RespondOperation(MPK_TIMEOUT, GetAddress());
+                }catch(...){
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING,
+                            "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) <- (Type: MPK_TIMEOUT, ID: 0, Resp: %u) : Caught exception from current message handler",
+                            (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), m_RespondMessageRecord.begin()->first);
+                }
+                m_RespondMessageRecord.erase(m_RespondMessageRecord.begin());
+                continue;
+            }
+
+            // std::map<ID, Handler> keeps order in ID number
+            // ID number is the Resp() of the responding messages
+            //
+            // and we guarantee ID1 < ID2 ==> ExpireTime1 <= ExpireTime2
+            // so if we get first non-expired handler, means the rest are all not expired
+            // good feature for std::map, reason why use it instead of std::unordered_map here
+            break;
+        }
+    }
 
     if(rstMPK.Respond()){
-        // message for response, we must have handler registered for it before
-        // if not, we treat it as an error and die currently
         auto pRecord = m_RespondMessageRecord.find(rstMPK.Respond());
+        // try to find the response handler for current responding message
+        // 1.     find it, good
+        // 2. not find it: 1. didn't register for it
+        //                 2. repsonse is too late ooops
         if(pRecord == m_RespondMessageRecord.end()){
-            // print detailed info for this message for debug
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING,
-                    "No registered operation for response message: id = %u, resp = %u type = %s, this = %p, sent from: %s, to %s",
-                    rstMPK.ID(), rstMPK.Respond(), rstMPK.Name(), this, stFromAddr.AsString(), GetAddress().AsString());
-            // TODO & TBD, here we directly die or continue?
-            g_MonoServer->Restart();
+                    "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) <- (Type: %s, ID: %u, Resp: %u) : No valid handler for current message",
+                    (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+            // won't die here
+            // could be legal if then responding actor delay too much
         }else{
             // we do have an record for this message
+            // if we still can find it means it's not expired
             if(pRecord->second.RespondOperation){
                 try{
                     pRecord->second.RespondOperation(rstMPK, stFromAddr);
                 }catch(...){
                     extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Caught exception in operating response message");
-                    g_MonoServer->Restart();
+                    g_MonoServer->AddLog(LOGTYPE_WARNING,
+                            "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) <- (Type: %s, ID: %u, Resp: %u) : Caught exception from current message handler",
+                            (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
                 }
             }else{
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Registered response operation is not callable");
-                g_MonoServer->Restart();
+                g_MonoServer->AddLog(LOGTYPE_WARNING,
+                        "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) <- (Type: %s, ID: %u, Resp: %u) : Current message handler not executable",
+                        (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
             }
             m_RespondMessageRecord.erase(pRecord);
         }
     }else{
+        // informing type message
         // now message are handling not on purpose of response
         if(m_Operation){
-            // in theron address is recommanded to copy rather than ref, but
-            // here we use const ref when passing to m_Operation, because when
-            // calling m_Operation(), address already has a copy when executaion
-            // goes inside InnHandler(), so always there is a valid copy of
-            // address for m_Operation()
-            //
-            // if m_Operation() has any other async\ed operation upon the address
-            // inside, it should handler by itself.
-            //
-            // so there is only one copy of InnHandler() when callback invoked, and
-            // don't worry, Theron::Address is actually only a pointer so copying
-            // is really cheap
-            //
-            // for MessagePack copying, since Theron itself using const ref, so I
-            // use const ref here
             try{
                 m_Operation(rstMPK, stFromAddr);
             }catch(...){
-                // 1. assume monoserver is ready when invoking callback
-                // 2. AddLog() is well defined in multithread environment
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Caught exception in ActorPod: %s", rstMPK.Name());
-                g_MonoServer->Restart();
+                g_MonoServer->AddLog(LOGTYPE_WARNING,
+                        "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) <- (Type: %s, ID: %u, Resp: %u) : Caught exception from current message handler",
+                        (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
             }
         }else{
-            // TODO & TBD
-            // this message will show up many and many if not valid handler found
+            // TODO
+            // this waring will show up many and many if not valid handler found
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Registered operation for message is not callable");
-            g_MonoServer->Restart();
+            g_MonoServer->AddLog(LOGTYPE_WARNING,
+                    "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) <- (Type: %s, ID: %u, Resp: %u) : Registered operation handler is not executable",
+                    (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
         }
     }
 
     // no matter this message is for response or initialized by others
-    // every time when a message caught, we call trigger for condition check
-    // it's OK to work without a valid trigger
+    // every time when a message caught, we call trigger to do condition check
     if(m_Trigger){
         try{
             m_Trigger();
         }catch(...){
-            // 1. assume monoserver is ready when invoking callback
-            // 2. AddLog() is well defined in multithread environment
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Caught exception in ActorPod trigger");
-            g_MonoServer->Restart();
+            g_MonoServer->AddLog(LOGTYPE_WARNING,
+                    "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) : Caught exception in trigger after message (Type: %s, ID: %u, Resp: %u)",
+                    (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
         }
     }else{
-        // TODO: it's ok to work without trigger for an actorpod
+        // TODO
+        // it's ok to work without trigger for an actorpod
     }
 }
 
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-#include <atomic>
-std::atomic<uint32_t> g_ValidID(1);
-#endif
-
-// generate an uniqued actor message ID
-// uniqueness is required to get the registered response handler
 uint32_t ActorPod::ValidID()
 {
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    {
-        // for debug
-        // all sent messages have unique IDs for all ActorPod
-        return g_ValidID.fetch_add(1);
+    extern ServerEnv *g_ServerEnv;
+    if(g_ServerEnv->MIR2X_PRINT_ACTORPOD_FORWARD){
+        // for debug only
+        // when debug all messages get unique ID
+        // make it convienent to get all records for one message in the log file
+        static std::atomic<uint32_t> s_ValidID(1);
+        return s_ValidID.fetch_add(1);
     }
-#endif
+
+    // won't reset the current valid ID if there is handler in record
+    // check the requirement for ValidID() in header file
     m_ValidID = (m_RespondMessageRecord.empty() ? 1 : (m_ValidID + 1));
 
     // before return the ID generated
@@ -149,27 +166,35 @@ uint32_t ActorPod::ValidID()
 
 bool ActorPod::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond)
 {
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    {
+    extern ServerEnv *g_ServerEnv;
+    if(g_ServerEnv->MIR2X_PRINT_ACTORPOD_FORWARD){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_INFO, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u)",
                 (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), 0, nRespond);
     }
-#endif
 
     if(!rstAddr){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Trying to send message to a null address");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u) : Try to send message to an emtpy address",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), 0, nRespond);
         return false;
     }
 
     if(rstAddr == GetAddress()){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Trying to send message to itself");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u) : Try to send message to itself",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), 0, nRespond);
         return false;
     }
 
-    return Theron::Actor::Send<MessagePack>({rstMB, 0, nRespond}, rstAddr);
+    if(!Theron::Actor::Send<MessagePack>({rstMB, 0, nRespond}, rstAddr)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u) : Faile to send message to given address",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), 0, nRespond);
+        return false;
+    }
+
+    return true;
 }
 
 // send a responding message and exptecting a reply
@@ -177,42 +202,36 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
         const Theron::Address &rstAddr, uint32_t nRespond,
         const std::function<void(const MessagePack&, const Theron::Address &)> &fnOPR)
 {
-    // 1. get valid ID
     uint32_t nID = ValidID();
 
-#if defined(MIR2X_DEBUG) && (MIR2X_DEBUG >= 5)
-    {
+    extern ServerEnv *g_ServerEnv;
+    if(g_ServerEnv->MIR2X_PRINT_ACTORPOD_FORWARD){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_INFO, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u)",
                 (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
     }
-#endif
 
     if(!rstAddr){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Trying to send message to a null address");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u) : Try to send message to an empty address",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
         return false;
     }
 
     if(rstAddr == GetAddress()){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Trying to send message to itself");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u) : Try to send message to itself",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
         return false;
     }
 
-    // 2. send it
-    bool bRet = Theron::Actor::Send<MessagePack>({rstMB, nID, nRespond}, rstAddr);
-
-    // 3. if send succeed, then register the handler of responding message
-    //    here we won't exam fnOPR's callability
-    if(bRet){
-        m_RespondMessageRecord.emplace(std::make_pair(nID, fnOPR));
-    }else{
+    if(!Theron::Actor::Send<MessagePack>({rstMB, nID, nRespond}, rstAddr)){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Ooops send message failed: %s", MessagePack(rstMB.Type()).Name());
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u) : Failed to send message to given address",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
         return false;
     }
 
-    // 4. return whether we succeed
-    return bRet;
+    extern MonoServer *g_MonoServer;
+    return m_RespondMessageRecord.emplace(nID, RespondMessageRecord((g_MonoServer->GetTimeTick() + m_ExpireTime), fnOPR)).second;
 }

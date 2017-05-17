@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/10/2017 01:02:35
+ *  Last Modified: 05/16/2017 18:16:12
  *
  *    Description: 
  *
@@ -26,13 +26,6 @@
 #include "metronome.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
-
-void ServerMap::On_MPK_HI(const MessagePack &, const Theron::Address &)
-{
-    delete m_Metronome;
-    m_Metronome = new Metronome(1000);
-    m_Metronome->Activate(GetAddress());
-}
 
 void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
@@ -92,6 +85,36 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &
                             if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
                                 if(stUIDRecord.ClassFrom<CharObject>()){
                                     m_ActorPod->Forward({MPK_ACTION, stAMA}, stUIDRecord.Address);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ServerMap::On_MPK_NOTICE(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMNotice stAMN;
+    std::memcpy(&stAMN, rstMPK.Data(), sizeof(stAMN));
+
+    if(ValidC(stAMN.X, stAMN.Y)){
+        auto nX0 = std::max<int>(0,   (stAMN.X - SYS_MAPVISIBLEW));
+        auto nY0 = std::max<int>(0,   (stAMN.Y - SYS_MAPVISIBLEH));
+        auto nX1 = std::min<int>(W(), (stAMN.X + SYS_MAPVISIBLEW));
+        auto nY1 = std::min<int>(H(), (stAMN.Y + SYS_MAPVISIBLEH));
+
+        for(int nX = nX0; nX <= nX1; ++nX){
+            for(int nY = nY0; nY <= nY1; ++nY){
+                if(ValidC(nX, nY)){
+                    for(auto nUID: m_UIDRecordV2D[nX][nY]){
+                        if(nUID != stAMN.UID){
+                            extern MonoServer *g_MonoServer;
+                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                                if(stUIDRecord.ClassFrom<CharObject>()){
+                                    m_ActorPod->Forward({MPK_ACTION, stAMN}, stUIDRecord.Address);
                                 }
                             }
                         }
@@ -190,8 +213,9 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
 
     if(!In(stAMTM.MapID, stAMTM.EndX, stAMTM.EndY)){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "destination is not in current map, routing error");
-        g_MonoServer->Restart();
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Destination is not in current map, routing error");
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
     }
 
     if(!CanMove(stAMTM.EndX, stAMTM.EndY)){
@@ -204,7 +228,61 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
         return;
     }
 
-    auto fnOnR = [this, stAMTM](const MessagePack &rstRMPK, const Theron::Address &){
+    bool bFindCO = false;
+    for(auto &nUID: m_UIDRecordV2D[stAMTM.X][stAMTM.Y]){
+        if(nUID == stAMTM.UID){
+            bFindCO = true;
+            break;
+        }
+    }
+
+    if(!bFindCO){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "CharObject is not in current map: UID = %" PRIu32 , stAMTM.UID);
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    int nDX = std::abs<int>(stAMTM.EndX - stAMTM.X);
+    int nDY = std::abs<int>(stAMTM.EndY - stAMTM.Y);
+    if(nDX == 0 && nDY == 0){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Empty move request from UID = %" PRIu32 , stAMTM.UID);
+        m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    if(true
+            && ((std::min<int>(nDX, nDY) == 0) || (nDX == nDY))
+            && ((std::max<int>(nDX, nDY) <= 3))){
+    }else{
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid move request DX = %d, DY = %d", nDX, nDY);
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    int nStepX = (stAMTM.EndX > stAMTM.X) - (stAMTM.EndX < stAMTM.X);
+    int nStepY = (stAMTM.EndY > stAMTM.Y) - (stAMTM.EndY < stAMTM.Y);
+
+    int nMostDistance = 0;
+    for(int nDistance = 1; nDistance <= std::max<int>(nDX, nDY); ++nDistance){
+        if(CanMove(stAMTM.X + nStepX * nDistance, stAMTM.Y + nStepY * nDistance)){
+            nMostDistance = nDistance;
+        }else{ break; }
+    }
+
+    if(false
+            || ((nMostDistance == 0))
+            || ((nMostDistance != std::max<int>(nDX, nDY)) && !(stAMTM.AllowHalfMove))){
+        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        return;
+    }
+
+    int nMostX = stAMTM.X + nStepX * nMostDistance;
+    int nMostY = stAMTM.Y + nStepY * nMostDistance;
+
+    auto fnOnR = [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK, const Theron::Address &){
         switch(rstRMPK.Type()){
             case MPK_OK:
                 {
@@ -240,44 +318,52 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                     //    check if it should switch the map
                     extern MonoServer *g_MonoServer;
                     if(auto stRecord = g_MonoServer->GetUIDRecord(stAMTM.UID)){
-                        m_UIDRecordV2D[stAMTM.EndX][stAMTM.EndY].push_back(stRecord.UID);
+                        m_UIDRecordV2D[nMostX][nMostY].push_back(stRecord.UID);
                         if(true
                                 && stRecord.ClassFrom<Player>()
-                                && m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].MapID){
-                            if(m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].UID){
+                                && m_CellRecordV2D[nMostX][nMostY].MapID){
+                            if(m_CellRecordV2D[nMostX][nMostY].UID){
                                 AMMapSwitch stAMMS;
-                                stAMMS.UID   = m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].UID;
-                                stAMMS.MapID = m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].MapID;
+                                stAMMS.UID   = m_CellRecordV2D[nMostX][nMostY].UID;
+                                stAMMS.MapID = m_CellRecordV2D[nMostX][nMostY].MapID;
                                 m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.Address);
                             }else{
-                                switch(m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].Query){
+                                switch(m_CellRecordV2D[nMostX][nMostY].Query){
                                     case QUERY_NA:
                                         {
-                                            auto fnOnResp = [this, stAMTM](const MessagePack &rstMPK, const Theron::Address &){
+                                            auto fnOnResp = [this, nMostX, nMostY, stRecord](const MessagePack &rstMPK, const Theron::Address &){
                                                 switch(rstMPK.Type()){
                                                     case MPK_UID:
                                                         {
                                                             AMUID stAMUID;
                                                             std::memcpy(&stAMUID, rstMPK.Data(), sizeof(stAMUID));
 
-                                                            // no matter the uid is valid or not
-                                                            m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].UID   = stAMUID.UID;
-                                                            m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].Query = QUERY_OK;
+                                                            if(stAMUID.UID){
+                                                                m_CellRecordV2D[nMostX][nMostY].UID   = stAMUID.UID;
+                                                                m_CellRecordV2D[nMostX][nMostY].Query = QUERY_OK;
+
+                                                                // then we do the map switch notification
+                                                                AMMapSwitch stAMMS;
+                                                                stAMMS.UID   = m_CellRecordV2D[nMostX][nMostY].UID;
+                                                                stAMMS.MapID = m_CellRecordV2D[nMostX][nMostY].MapID;
+                                                                m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.Address);
+                                                            }
+
                                                             break;
                                                         }
                                                     default:
                                                         {
-                                                            m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].UID   = 0;
-                                                            m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].Query = QUERY_ERROR;
+                                                            m_CellRecordV2D[nMostX][nMostY].UID   = 0;
+                                                            m_CellRecordV2D[nMostX][nMostY].Query = QUERY_ERROR;
                                                             break;
                                                         }
                                                 }
                                             };
 
                                             AMQueryMapUID stAMQMUID;
-                                            stAMQMUID.MapID = m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].MapID;
+                                            stAMQMUID.MapID = m_CellRecordV2D[nMostX][nMostY].MapID;
                                             m_ActorPod->Forward({MPK_QUERYMAPUID, stAMQMUID}, m_ServiceCore->GetAddress(), fnOnResp);
-                                            m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].Query = QUERY_PENDING;
+                                            m_CellRecordV2D[nMostX][nMostY].Query = QUERY_PENDING;
                                         }
                                     case QUERY_PENDING:
                                     case QUERY_OK:
@@ -297,11 +383,19 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                     break;
                 }
         }
-        m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].Freezed = false;
+        m_CellRecordV2D[nMostX][nMostY].Freezed = false;
     };
 
-    m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].Freezed = true;
-    m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID(), fnOnR);
+    AMMoveOK stAMMOK;
+    stAMMOK.UID   = UID();
+    stAMMOK.MapID = ID();
+    stAMMOK.X     = stAMTM.X;
+    stAMMOK.Y     = stAMTM.Y;
+    stAMMOK.EndX  = nMostX;
+    stAMMOK.EndY  = nMostY;
+
+    m_CellRecordV2D[nMostX][nMostY].Freezed = true;
+    m_ActorPod->Forward({MPK_MOVEOK, stAMMOK}, rstFromAddr, rstMPK.ID(), fnOnR);
 }
 
 void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)

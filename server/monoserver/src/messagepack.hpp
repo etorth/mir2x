@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 05/10/2017 00:19:51
+ *  Last Modified: 05/15/2017 13:41:56
  *
  *    Description: message class for actor system
  *
@@ -263,11 +263,11 @@ class InnMessagePack final
                 case MPK_ERROR              : return "MPK_ERROR";
                 case MPK_BADACTORPOD        : return "MPK_BADACTORPOD";
                 case MPK_UID                : return "MPK_UID";
-                case MPK_HI                 : return "MPK_HI";
                 case MPK_PING               : return "MPK_PING";
                 case MPK_LOGIN              : return "MPK_LOGIN";
                 case MPK_METRONOME          : return "MPK_METRONOME";
                 case MPK_TRYMOVE            : return "MPK_TRYMOVE";
+                case MPK_MOVEOK             : return "MPK_MOVEOK";
                 case MPK_TRYLEAVE           : return "MPK_TRYLEAVE";
                 case MPK_TRYSPACEMOVE       : return "MPK_TRYSPACEMOVE";
                 case MPK_LOGINOK            : return "MPK_LOGINOK";

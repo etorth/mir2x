@@ -3,7 +3,7 @@
  *
  *       Filename: serverobject.hpp
  *        Created: 04/13/2016 20:04:39
- *  Last Modified: 05/04/2017 00:49:53
+ *  Last Modified: 05/10/2017 17:22:24
  *
  *    Description: basis of all objects in monoserver, with
  *
@@ -26,6 +26,7 @@
 #include <string>
 #include <cstdint>
 #include <cstddef>
+#include "uidrecord.hpp"
 
 class ServerObject
 {

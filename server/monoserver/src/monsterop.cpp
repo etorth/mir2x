@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 05/04/2017 17:57:11
+ *  Last Modified: 05/16/2017 17:30:28
  *
  *    Description: 
  *
@@ -17,6 +17,8 @@
  *
  * =====================================================================================
  */
+
+#include <algorithm>
 
 #include "player.hpp"
 #include "monster.hpp"
@@ -43,14 +45,38 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
     if(stAMA.UID != UID()){
-        if((std::abs(stAMA.X - X()) <= SYS_MAPVISIBLEW) && (std::abs(stAMA.Y - Y()) <= SYS_MAPVISIBLEH)){
+        extern MonoServer *g_MonoServer;
+        m_LocationRecord[stAMA.UID].UID        = stAMA.UID;
+        m_LocationRecord[stAMA.UID].MapID      = stAMA.MapID;
+        m_LocationRecord[stAMA.UID].RecordTime = g_MonoServer->GetTimeTick();
+        m_LocationRecord[stAMA.UID].X          = stAMA.EndX;
+        m_LocationRecord[stAMA.UID].Y          = stAMA.EndY;
+
+        if(InRange(RANGE_VISIBLE, stAMA.X, stAMA.Y)){
             extern MonoServer *g_MonoServer;
             if(auto stRecord = g_MonoServer->GetUIDRecord(stAMA.UID)){
-                if(stRecord.ClassFrom<Player>()){
-                    m_TargetInfo.UID   = stAMA.UID;
-                    m_TargetInfo.MapID = stAMA.MapID;
-                    m_TargetInfo.X     = stAMA.X;
-                    m_TargetInfo.Y     = stAMA.Y;
+                switch(GetState(STATE_ATTACKMODE)){
+                    case STATE_ATTACKMODE_NORMAL:
+                        {
+                            if(stRecord.ClassFrom<Player>()){ AddTarget(stAMA.UID); }
+                            break;
+                        }
+                    case STATE_ATTACKMODE_DOGZ:
+                        {
+                            if(stRecord.ClassFrom<Monster>()){ AddTarget(stAMA.UID); }
+                            break;
+                        }
+                    case STATE_ATTACKMODE_ATTACKALL:
+                        {
+                            if(false
+                                    || stRecord.ClassFrom<Player>()
+                                    || stRecord.ClassFrom<Monster>()){ AddTarget(stAMA.UID); }
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
                 }
             }
         }

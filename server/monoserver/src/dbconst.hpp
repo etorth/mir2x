@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: utf8char.hpp
- *        Created: 7/3/2015 2:05:13 PM
- *  Last Modified: 05/13/2017 22:20:10
+ *       Filename: dbconst.hpp
+ *        Created: 05/12/2017 17:57:04
+ *  Last Modified: 05/14/2017 09:38:09
  *
  *    Description: 
  *
@@ -20,8 +20,8 @@
 
 #pragma once
 #include <cstdint>
+#include "dcrecord.hpp"
+#include "monsterrecord.hpp"
 
-// const uint8_t FONTSTYLE_BOLD          = 0B0000'0001;
-// const uint8_t FONTSTYLE_UNDERLINE     = 0B0000'0010;
-// const uint8_t FONTSTYLE_ITALIC        = 0B0000'0100;
-// const uint8_t FONTSTYLE_STRIKETHROUGH = 0B0000'1000;
+const DCRecord      &DB_DCRECORD(uint32_t);
+const MonsterRecord &DB_MONSTERRECORD(uint32_t);

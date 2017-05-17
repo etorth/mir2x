@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/10/2017 11:14:07
+ *  Last Modified: 05/15/2017 14:35:50
  *
  *    Description: 
  *
@@ -99,6 +99,26 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
 
             extern NetPodN *g_NetPodN;
             g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);
+        }
+    }
+}
+
+void Player::On_MPK_NOTICE(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMNotice stAMN;
+    std::memcpy(&stAMN, rstMPK.Data(), sizeof(stAMN));
+
+    if(stAMN.UID != UID()){
+        if(InRange(RANGE_VISIBLE, stAMN.X, stAMN.Y)){
+            SMNotice stSMN;
+            stSMN.UID   = stAMN.UID;
+            stSMN.MapID = stAMN.MapID;
+
+            stSMN.Notice      = stAMN.Notice;
+            stSMN.NoticeParam = stAMN.NoticeParam;
+
+            extern NetPodN *g_NetPodN;
+            g_NetPodN->Send(m_SessionID, SM_NOTICE, stSMN);
         }
     }
 }
@@ -231,6 +251,7 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
     DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
+    DispatchNotice({0, 0, 0, 0});
 
     auto fnReportUnderAttack = [this](){
         SMAction stSMA;

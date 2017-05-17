@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/09/2017 19:38:08
+ *  Last Modified: 05/12/2017 16:35:28
  *
  *    Description: 
  *
@@ -27,6 +27,7 @@
 #include "memorypn.hpp"
 #include "threadpn.hpp"
 #include "metronome.hpp"
+#include "serverenv.hpp"
 #include "mainwindow.hpp"
 #include "eventtaskhub.hpp"
 #include "addmonsterwindow.hpp"
@@ -34,6 +35,7 @@
 #include "databaseconfigurewindow.hpp"
 
 Log                      *g_Log;
+ServerEnv                *g_ServerEnv;
 TaskHub                  *g_TaskHub;
 MemoryPN                 *g_MemoryPN;
 EventTaskHub             *g_EventTaskHub;
@@ -58,6 +60,7 @@ int main()
     Fl::lock();
 
     g_Log                     = new Log("mir2x-monoserver-v0.1");
+    g_ServerEnv               = new ServerEnv();
     g_TaskHub                 = new TaskHub();
     g_MainWindow              = new MainWindow();
     g_MonoServer              = new MonoServer();
