@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/16/2017 18:35:46
+ *  Last Modified: 05/18/2017 23:18:41
  *
  *    Description: 
  *
@@ -315,6 +315,11 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
                 On_MPK_ACTION(rstMPK, rstAddress);
                 break;
             }
+        case MPK_ATTACK:
+            {
+                On_MPK_ATTACK(rstMPK, rstAddress);
+                break;
+            }
         case MPK_MAPSWITCH:
             {
                 On_MPK_MAPSWITCH(rstMPK, rstAddress);
@@ -333,7 +338,7 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
         default:
             {
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message: %s", rstMPK.Name());
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
                 g_MonoServer->Restart();
                 break;
             }

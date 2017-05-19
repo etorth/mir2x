@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 05/16/2017 17:30:28
+ *  Last Modified: 05/18/2017 23:15:23
  *
  *    Description: 
  *
@@ -81,6 +81,14 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
             }
         }
     }
+}
+
+void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMAction stAMA;
+    std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
+
+    AddTarget(stAMA.UID);
 }
 
 void Monster::On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &)
