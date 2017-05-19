@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 05/15/2017 15:15:03
+ *  Last Modified: 05/18/2017 17:06:53
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -199,9 +199,25 @@ class Creature
         virtual bool Draw(int, int) = 0;
         virtual bool Update() = 0;
 
-    public:
+    protected:
         virtual bool MoveNextMotion();
-        virtual bool ParseMovePath(int, int, int, int, int, int);
+
+    protected:
+        // parse motion request (src -> dst)
+        // motion    : motion used for this motion request
+        // speed     :
+        // src point :
+        // dst point :
+        //
+        // return true  if successfully add motion node to m_MotionQueue
+        //        false if there is no path
+        //
+        // 1. return true if there is path but creature blocks it
+        // 2. small motions like MOTION_WALK/HORSEWALK can be inserted
+        virtual bool ParseMovePath(int,     // motion
+                int,                        // speed
+                int, int,                   // src point
+                int, int);                  // dst point
 
     protected:
         virtual bool MotionQueueValid();

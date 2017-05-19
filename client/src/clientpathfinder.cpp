@@ -3,7 +3,7 @@
  *
  *       Filename: clientpathfinder.cpp
  *        Created: 03/28/2017 21:15:25
- *  Last Modified: 05/16/2017 22:54:15
+ *  Last Modified: 05/18/2017 17:21:14
  *
  *    Description: For logic check servermap.cpp
  *
@@ -23,9 +23,23 @@
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
-ClientPathFinder::ClientPathFinder(bool bCheckCreature)
+ClientPathFinder::ClientPathFinder(bool bCheckGround, bool bCheckCreature)
     : AStarPathFinder(
-            [](int nSrcX, int nSrcY, int nDstX, int nDstY) -> bool {
+            [bCheckGround](int nSrcX, int nSrcY, int nDstX, int nDstY) -> bool {
+                // different to server path find class
+                // for client we always return true for CanMove() part
+                // but assign a very high value if actually it goes to an invalid grid
+                // then stop heros if they're trying to cross the invalid grids
+                //
+                // this helps if player clicks on invalid grid
+                // we should still give an path to make it move to the right direction
+                //
+                // this will spend much more time
+                // but ok for client part
+                if(!bCheckGround){ return true; }
+
+                // OK we need to check ground
+                // rest logic is same with server path find class
                 switch(LDistance2(nSrcX, nSrcY, nDstX, nDstY)){
                     case 0:
                         {
@@ -51,6 +65,8 @@ ClientPathFinder::ClientPathFinder(bool bCheckCreature)
                 }
             },
 
+            // no matter we check ground or not
+            // we assign very high value to invalid grids
             [bCheckCreature](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double {
                 switch(LDistance2(nSrcX, nSrcY, nDstX, nDstY)){
                     case 0:

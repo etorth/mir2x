@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/16/2017 18:16:12
+ *  Last Modified: 05/18/2017 19:21:08
  *
  *    Description: 
  *
@@ -502,43 +502,44 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK, const Theron::Address
     }
 
     ServerPathFinder stPathFinder(this, stAMPF.CheckCO);
-    if(stPathFinder.Search(nX0, nY0, nX1, nY1)){
-        if(stPathFinder.GetSolutionStart()){
-            int nCurrN = 0;
-            int nCurrX = nX0;
-            int nCurrY = nY0;
+    if(true
+            && stPathFinder.Search(nX0, nY0, nX1, nY1)
+            && stPathFinder.GetSolutionStart()){
 
-            while(auto pNode1 = stPathFinder.GetSolutionNext()){
-                if(nCurrN >= nPathCount){ break; }
-                int nEndX = pNode1->X();
-                int nEndY = pNode1->Y();
-                switch(LDistance2(nCurrX, nCurrY, nEndX, nEndY)){
-                    case 1:
-                    case 2:
-                        {
-                            stAMPFOK.Point[nCurrN].X = nCurrX;
-                            stAMPFOK.Point[nCurrN].Y = nCurrY;
+        int nCurrN = 0;
+        int nCurrX = nX0;
+        int nCurrY = nY0;
 
-                            nCurrN++;
+        while(auto pNode1 = stPathFinder.GetSolutionNext()){
+            if(nCurrN >= nPathCount){ break; }
+            int nEndX = pNode1->X();
+            int nEndY = pNode1->Y();
+            switch(LDistance2(nCurrX, nCurrY, nEndX, nEndY)){
+                case 1:
+                case 2:
+                    {
+                        stAMPFOK.Point[nCurrN].X = nCurrX;
+                        stAMPFOK.Point[nCurrN].Y = nCurrY;
 
-                            nCurrX = nEndX;
-                            nCurrY = nEndY;
-                            break;
-                        }
-                    case 0:
-                    default:
-                        {
-                            extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid path node");
-                            break;
-                        }
-                }
+                        nCurrN++;
+
+                        nCurrX = nEndX;
+                        nCurrY = nEndY;
+                        break;
+                    }
+                case 0:
+                default:
+                    {
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid path node");
+                        break;
+                    }
             }
-
-            // we filled all possible nodes to the message
-            m_ActorPod->Forward({MPK_PATHFINDOK, stAMPFOK}, rstFromAddr, rstMPK.ID());
-            return;
         }
+
+        // we filled all possible nodes to the message
+        m_ActorPod->Forward({MPK_PATHFINDOK, stAMPFOK}, rstFromAddr, rstMPK.ID());
+        return;
     }
 
     // failed to find a path

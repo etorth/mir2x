@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/17/2017 11:57:28
+ *  Last Modified: 05/18/2017 11:38:48
  *
  *    Description: 
  *
@@ -363,17 +363,17 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             int nX = -1;
                             int nY = -1;
                             if(LocatePoint(rstEvent.button.x, rstEvent.button.y, &nX, &nY)){
-                                ActionNode stAction;
-                                stAction.Action      = ACTION_MOVE;
-                                stAction.ActionParam = MOTION_WALK;
-                                stAction.Speed       = 1;
-                                stAction.Direction   = DIR_NONE;
-                                stAction.X           = m_MyHero->CurrMotion().EndX;
-                                stAction.Y           = m_MyHero->CurrMotion().EndY;
-                                stAction.EndX        = nX;
-                                stAction.EndY        = nY;
-                                if(LDistance2(stAction.X, stAction.Y, stAction.EndX, stAction.EndY)){
-                                    m_MyHero->ParseNewAction(stAction, false);
+                                if(LDistance2(m_MyHero->CurrMotion().EndX, m_MyHero->CurrMotion().EndY, nX, nY)){
+                                    m_MyHero->ParseNewAction({
+                                            ACTION_MOVE,
+                                            MOTION_NONE,    // need decompose
+                                            1,              // by default
+                                            DIR_NONE,
+                                            m_MyHero->CurrMotion().EndX,
+                                            m_MyHero->CurrMotion().EndY,
+                                            nX,
+                                            nY,
+                                            MapID()}, false);
                                 }
                             }
 

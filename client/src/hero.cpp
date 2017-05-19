@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 05/17/2017 11:58:06
+ *  Last Modified: 05/18/2017 22:49:41
  *
  *    Description: 
  *
@@ -32,6 +32,7 @@ Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, Process
     , m_DBID(nDBID)
     , m_Male(bMale)
     , m_DressID(nDressID)
+    , m_OnHorse(false)
 {
     m_CurrMotion.Motion    = MOTION_STAND;
     m_CurrMotion.Speed     = 0;
@@ -214,7 +215,7 @@ bool Hero::MotionValid(const MotionNode &rstMotion)
                 }
             }
         case MOTION_WALK:
-        case MOTION_RUN:
+        case MOTION_HORSEWALK:
             {
                 switch(rstMotion.Direction){
                     case DIR_UP:
@@ -227,6 +228,48 @@ bool Hero::MotionValid(const MotionNode &rstMotion)
                     case DIR_UPLEFT:
                         {
                             return ((nDistance == 1) || (nDistance == 2)) ? true : false;
+                        }
+                    case DIR_NONE:
+                    default:
+                        {
+                            return false;
+                        }
+                }
+            }
+        case MOTION_RUN:
+            {
+                switch(rstMotion.Direction){
+                    case DIR_UP:
+                    case DIR_UPRIGHT:
+                    case DIR_RIGHT:
+                    case DIR_DOWNRIGHT:
+                    case DIR_DOWN:
+                    case DIR_DOWNLEFT:
+                    case DIR_LEFT:
+                    case DIR_UPLEFT:
+                        {
+                            return ((nDistance == 4) || (nDistance == 8)) ? true : false;
+                        }
+                    case DIR_NONE:
+                    default:
+                        {
+                            return false;
+                        }
+                }
+            }
+        case MOTION_HORSERUN:
+            {
+                switch(rstMotion.Direction){
+                    case DIR_UP:
+                    case DIR_UPRIGHT:
+                    case DIR_RIGHT:
+                    case DIR_DOWNRIGHT:
+                    case DIR_DOWN:
+                    case DIR_DOWNLEFT:
+                    case DIR_LEFT:
+                    case DIR_UPLEFT:
+                        {
+                            return ((nDistance == 9) || (nDistance == 18)) ? true : false;
                         }
                     case DIR_NONE:
                     default:
@@ -273,9 +316,8 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool)
                 }
             case ACTION_MOVE:
                 {
-                    if(!ParseMovePath(MOTION_WALK, rstAction.Speed, rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY)){
-                        extern Log *g_Log;
-                        g_Log->AddLog(LOGTYPE_WARNING, "Parse ACTION_MOVE to MOTION_WALK failed");
+                    if(!ParseMovePath(rstAction.ActionParam, rstAction.Speed, rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY)){ extern Log *g_Log;
+                        g_Log->AddLog(LOGTYPE_WARNING, "Parse move action into motion failed");
                         rstAction.Print();
 
                         return false;
@@ -311,6 +353,9 @@ bool Hero::Location(int *pX, int *pY)
 {
     switch(m_CurrMotion.Motion){
         case MOTION_WALK:
+        case MOTION_RUN:
+        case MOTION_HORSEWALK:
+        case MOTION_HORSERUN:
             {
                 auto nX0        = m_CurrMotion.X;
                 auto nY0        = m_CurrMotion.Y;
@@ -365,27 +410,28 @@ bool Hero::ActionValid(const ActionNode &rstAction)
             }
         case ACTION_MOVE:
             {
-                switch(rstAction.Direction){
-                    case DIR_NONE:
-                        {
-                            // for action move we shouldn't have direction
-                            // direction should be parsed in MotionNode
-                            return true;
-                        }
-                    case DIR_UP:
-                    case DIR_UPRIGHT:
-                    case DIR_RIGHT:
-                    case DIR_DOWNRIGHT:
-                    case DIR_DOWN:
-                    case DIR_DOWNLEFT:
-                    case DIR_LEFT:
-                    case DIR_UPLEFT:
-                    default:
-                        {
-                            return false;
-                        }
-                }
-                break;
+                if(nDistance){
+                    switch(rstAction.Direction){
+                        case DIR_NONE:
+                            {
+                                // for action move we shouldn't have direction
+                                // direction should be parsed in MotionNode
+                                return true;
+                            }
+                        case DIR_UP:
+                        case DIR_UPRIGHT:
+                        case DIR_RIGHT:
+                        case DIR_DOWNRIGHT:
+                        case DIR_DOWN:
+                        case DIR_DOWNLEFT:
+                        case DIR_LEFT:
+                        case DIR_UPLEFT:
+                        default:
+                            {
+                                return false;
+                            }
+                    }
+                }else{ return false; }
             }
         default:
             {

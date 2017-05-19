@@ -3,7 +3,7 @@
  *
  *       Filename: clientpathfinder.hpp
  *        Created: 03/28/2017 21:13:11
- *  Last Modified: 05/04/2017 19:35:11
+ *  Last Modified: 05/18/2017 17:18:59
  *
  *    Description: 
  *
@@ -24,6 +24,6 @@
 class ClientPathFinder: public AStarPathFinder
 {
     public:
-        ClientPathFinder(bool);
+        ClientPathFinder(bool, bool);
        ~ClientPathFinder() = default;
 };

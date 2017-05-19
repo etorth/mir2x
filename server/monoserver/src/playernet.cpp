@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 05/15/2017 14:05:58
+ *  Last Modified: 05/18/2017 12:21:42
  *
  *    Description: how player respond for different net package
  *
@@ -59,27 +59,34 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                 {
                     // server won't do any path finding
                     // client should sent action with only one-hop movement
-                    switch(LDistance2(stCMA.X, stCMA.Y, stCMA.EndX, stCMA.EndY)){
-                        case 1:
-                        case 2:
-                            {
-                                break;
-                            }
-                        default:
-                            {
-                                extern MonoServer *g_MonoServer;
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::UID         = %d", (int)(stCMA.UID));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::MapID       = %d", (int)(stCMA.MapID));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Action      = %d", (int)(stCMA.Action));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::ActionParam = %d", (int)(stCMA.ActionParam));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Speed       = %d", (int)(stCMA.Speed));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Direction   = %d", (int)(stCMA.Direction));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::X           = %d", (int)(stCMA.X));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Y           = %d", (int)(stCMA.Y));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndX        = %d", (int)(stCMA.EndX));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndY        = %d", (int)(stCMA.EndY));
-                                return;
-                            }
+                    int nMaxStep = 0;
+                    switch(stCMA.ActionParam){
+                        case MOTION_WALK      : nMaxStep = 1; break;
+                        case MOTION_RUN       : nMaxStep = 2; break;
+                        case MOTION_HORSEWALK : nMaxStep = 1; break;
+                        case MOTION_HORSERUN  : nMaxStep = 3; break;
+                        default               : return;
+                    }
+
+                    int nDX = std::abs<int>(stCMA.EndX - stCMA.X);
+                    int nDY = std::abs<int>(stCMA.EndY - stCMA.Y);
+
+                    if(true
+                            && (std::max<int>(nDX, nDY) == nMaxStep)
+                            && (std::min<int>(nDX, nDY) == 0 || nDX == nDY)){
+                    }else{
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::UID         = %d", (int)(stCMA.UID));
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::MapID       = %d", (int)(stCMA.MapID));
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Action      = %d", (int)(stCMA.Action));
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::ActionParam = %d", (int)(stCMA.ActionParam));
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Speed       = %d", (int)(stCMA.Speed));
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Direction   = %d", (int)(stCMA.Direction));
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::X           = %d", (int)(stCMA.X));
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Y           = %d", (int)(stCMA.Y));
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndX        = %d", (int)(stCMA.EndX));
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndY        = %d", (int)(stCMA.EndY));
+                        return;
                     }
 
                     // OK the action is a valid one-hop motion

@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 04/17/2017 11:45:15
+ *  Last Modified: 05/18/2017 17:16:52
  *
  *    Description: A-Star algorithm for path find
  *
@@ -153,3 +153,19 @@ class AStarPathFinderNode
             return (m_X == rstNode.m_X) && (m_Y == rstNode.m_Y);
         }
 };
+
+namespace PathFind
+{
+    struct PathNode
+    {
+        int X;
+        int Y;
+
+        PathNode(int nX, int nY)
+            : X(nX)
+            , Y(nY)
+        {}
+    };
+
+    int MaxReachNode(const PathFind::PathNode *, size_t, size_t);
+}
