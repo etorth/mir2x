@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/18/2017 11:38:48
+ *  Last Modified: 05/19/2017 12:58:12
  *
  *    Description: 
  *
@@ -392,7 +392,19 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
             }
         case SDL_KEYDOWN:
             {
-                // m_MyHero->SetState(0);
+                switch(rstEvent.key.keysym.sym){
+                    case SDLK_ESCAPE:
+                        {
+                            extern SDLDevice *g_SDLDevice;
+                            m_ViewX = std::max<int>(0, m_MyHero->X() - g_SDLDevice->WindowW(false) / 2 / SYS_MAPGRIDXP) * SYS_MAPGRIDXP;
+                            m_ViewY = std::max<int>(0, m_MyHero->Y() - g_SDLDevice->WindowH(false) / 2 / SYS_MAPGRIDYP) * SYS_MAPGRIDYP;
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
                 break;
             }
         default:
