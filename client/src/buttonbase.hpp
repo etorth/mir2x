@@ -3,20 +3,19 @@
  *
  *       Filename: buttonbase.hpp
  *        Created: 08/25/2016 04:12:57
- *  Last Modified: 03/24/2017 18:12:57
+ *  Last Modified: 05/20/2017 01:08:40
  *
  *    Description: basic button class to handle event logic only
- *                 there are three {nTexID0, nTexID1, nTexID2} texture ID's to represetn
- *                 three states, since in the PNGTexDBN, all texutres for GUI are with
- *                 nFileIndex = 0XFF, then here nTexID == 0 means there is no visual
- *                 for current state.
- *                 
+ *
+ *                 1. use three textures for three states
+ *                 2. use g_GUITexDB for texture storage
+ *
  *                 I support two callbaks only: off->on and on->click
  *                 this class ask user to configure whether the on->click is triggered
  *                 at the PRESS or RELEASE event.
  *
- *                 I require the size of three texture should be approximately the same
- *                 to avoid unnecessay complexity
+ *                 I require the size of three textures should be approximately same to
+ *                 avoid unnecessay complexity
  *
  *        Version: 1.0
  *       Revision: none
@@ -33,7 +32,6 @@
 #include <cstdint>
 #include <functional>
 
-#include "log.hpp"
 #include "widget.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
@@ -69,14 +67,12 @@ class ButtonBase: public Widget
             , m_OnOver(fnOnOver)
             , m_OnClick(fnOnClick)
         {
-            extern PNGTexDBN *g_PNGTexDBN;
-
             int nW = 0;
             int nH = 0;
             for(int nState = 0; nState < 2; ++nState){
                 if(m_TexIDV[nState]){
-                    auto pTexture = g_PNGTexDBN->Retrieve(m_TexIDV[nState]);
-                    if(pTexture){
+                    extern PNGTexDBN *g_PNGTexDBN;
+                    if(auto pTexture = g_PNGTexDBN->Retrieve(m_TexIDV[nState])){
                         int nCurrW, nCurrH;
                         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nCurrW, &nCurrH)){
                             nW = std::max(nCurrW, nW);
@@ -85,7 +81,7 @@ class ButtonBase: public Widget
                     }
                 }
             }
-            
+
             // we allow buttons without any valid texture, in that case some extra work
             // can be done for special drawing
             m_W = nW;

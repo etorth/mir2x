@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 05/15/2017 22:43:00
+ *  Last Modified: 05/19/2017 18:00:59
  *
  *    Description: public API for class game only
  *
@@ -143,6 +143,30 @@ void Game::MainLoop()
 
         double fExpectedTime = (1.0 + m_DelayTimeCQ.Size()) * 1000.0 / m_FPS - fTimeSum;
         EventDelay(fExpectedTime);
+    }
+}
+
+void Game::EventDelay(double fDelayMS)
+{
+    double fStartDelayMS = GetTimeTick();
+    while(true){
+
+        // always try to poll it
+        PollASIO();
+
+        // everytime firstly try to process all pending events
+        ProcessEvent();
+
+        double fCurrentMS = GetTimeTick();
+        double fDelayDone = fCurrentMS - fStartDelayMS;
+
+        if(fDelayDone > fDelayMS){ break; }
+
+        // here we check the delay time
+        // since SDL_Delay(0) may run into problem
+
+        Uint32 nDelayMSCount = (Uint32)(std::lround((fDelayMS - fDelayDone) * 0.50));
+        if(nDelayMSCount > 0){ SDL_Delay(nDelayMSCount); }
     }
 }
 

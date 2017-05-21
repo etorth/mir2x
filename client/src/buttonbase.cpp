@@ -3,7 +3,7 @@
  *
  *       Filename: buttonbase.cpp
  *        Created: 08/21/2015 04:12:57
- *  Last Modified: 03/16/2017 15:08:05
+ *  Last Modified: 05/19/2017 18:33:06
  *
  *    Description: 
  *
@@ -18,7 +18,6 @@
  * =====================================================================================
  */
 
-#include <stdexcept>
 #include <algorithm>
 #include <functional>
 
@@ -71,7 +70,9 @@ bool ButtonBase::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                 break;
             }
         default:
-            return false;
+            {
+                return false;
+            }
     }
     return false;
 }
