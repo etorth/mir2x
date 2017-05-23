@@ -3,7 +3,7 @@
  *
  *       Filename: hexstring.hpp
  *        Created: 02/06/2016 13:35:51
- *  Last Modified: 04/04/2016 00:05:21
+ *  Last Modified: 05/21/2017 01:43:18
  *
  *    Description: 
  *
@@ -17,15 +17,11 @@
  *
  * =====================================================================================
  */
-
-
 #pragma once
-
 #include <cstddef>
 #include <cstdint>
 #include <algorithm>
 #include <type_traits>
-
 
 // 1. invocation should prepared enough buffer to szString
 // 2. no '\0' at the end, be careful

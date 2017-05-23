@@ -3,7 +3,7 @@
  *
  *       Filename: eventtask.hpp
  *        Created: 04/03/2016 22:55:21
- *  Last Modified: 04/21/2016 18:11:02
+ *  Last Modified: 05/20/2017 22:18:33
  *
  *    Description: 
  *
@@ -18,7 +18,6 @@
  * =====================================================================================
  */
 #pragma once
-
 #include "task.hpp"
 
 class EventTask: public Task
@@ -30,7 +29,7 @@ class EventTask: public Task
 		uint32_t m_EventID;
 
 	protected:
-		EventTask(uint32_t nDelayMS, const std::function<void (void)>& fnOp)
+		EventTask(uint32_t nDelayMS, const std::function<void()>& fnOp)
             : Task(nDelayMS, fnOp)
             , m_EventID(0)
         {}

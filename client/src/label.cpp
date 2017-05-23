@@ -3,7 +3,7 @@
  *
  *       Filename: label.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 04/02/2016 03:12:46
+ *  Last Modified: 05/20/2017 21:52:44
  *
  *    Description:
  *
@@ -36,7 +36,7 @@ void Label::SetText(const char * szInfo)
     std::sprintf(szStyle, "0X%02X", (m_FontKey & 0X00FF0000) >> 16);
 
     char szColor[16];
-    std::sprintf(szColor, "0X%08X", Color2U32ARGB(m_Color));
+    std::sprintf(szColor, "0X%08X", ColorFunc::Color2U32ARGB(m_Color));
 
 
     stObjectList.Add(

@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 04/25/2017 11:02:43
+ *  Last Modified: 05/20/2017 15:58:34
  *
  *    Description: 
  *
@@ -76,9 +76,6 @@ void ProcessLogin::Draw()
 
 void ProcessLogin::ProcessEvent(const SDL_Event &rstEvent)
 {
-    // m_IDInputBox.ProcessEvent(rstEvent);
-    // m_PasswordBox.ProcessEvent(rstEvent);
-
     bool bValid = true;
     if(false
             || m_Button1.ProcessEvent(rstEvent, &bValid)

@@ -3,7 +3,7 @@
  *
  *       Filename: cachequeue.hpp
  *        Created: 02/25/2016 01:01:40
- *  Last Modified: 04/11/2017 19:42:22
+ *  Last Modified: 05/20/2017 21:44:57
  *
  *    Description: linear cache queue
  *
@@ -24,7 +24,6 @@
  *
  * =====================================================================================
  */
-
 
 #pragma once
 #include <array>

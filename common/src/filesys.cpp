@@ -3,7 +3,7 @@
  *
  *       Filename: filesys.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/01/2016 05:30:41
+ *  Last Modified: 05/21/2017 01:25:01
  *
  *    Description: 
  *
@@ -27,18 +27,16 @@
 #include<unistd.h>
 #endif
 
-#include "filesys.hpp"
-
+#include <string>
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <dirent.h>
-#include <string>
-#include <unordered_map>
-#include <string>
 
-bool RemoveDir(const char *szAbsolutePath)
+#include "filesys.hpp"
+
+bool FileSys::RemoveDir(const char *szAbsolutePath)
 {
     std::string szPathName = szAbsolutePath;
     if(szPathName.back() != '/'){
@@ -86,7 +84,7 @@ bool RemoveDir(const char *szAbsolutePath)
 
 }
 
-bool MakeDir(const char *szDirName)
+bool FileSys::MakeDir(const char *szDirName)
 {
     return 
 #ifdef _WIN32
@@ -96,7 +94,7 @@ bool MakeDir(const char *szDirName)
 #endif
 }
 
-bool FileExist(const char *szFileName)
+bool FileSys::FileExist(const char *szFileName)
 {
     return 
 #ifdef _WIN32
@@ -107,7 +105,7 @@ bool FileExist(const char *szFileName)
         ;
 }
 
-bool DupFile(const char *szDst, const char *szSrc)
+bool FileSys::DupFile(const char *szDst, const char *szSrc)
 {
     FILE *fSrc = fopen(szSrc, "rb+");
     if(fSrc == nullptr){

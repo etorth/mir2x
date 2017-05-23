@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 04/16/2017 00:11:21
+ *  Last Modified: 05/21/2017 01:33:08
  *
  *    Description: 
  *
@@ -124,7 +124,7 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
                 std::sprintf(szSaveFileName, "./IMG/0%02d%02d%02d%d%02d.PNG",
                         m_FileIndex, m_AnimationIndex, m_Status, m_Direction, nFrame);
 
-                if(!FileExist(szSaveFileName)){
+                if(!FileSys::FileExist(szSaveFileName)){
                     if(nDataLen < stInfo0.shWidth * stInfo0.shHeight){
                         delete pData;
                         pData    = new uint32_t[stInfo0.shWidth * stInfo0.shHeight];
@@ -151,7 +151,7 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
                 //6: frame index
                 std::sprintf(szSaveFileName, "./IMG/1%02d%02d%02d%d%02d.PNG",
                         m_FileIndex, m_AnimationIndex, m_Status, m_Direction, nFrame);
-                if(!FileExist(szSaveFileName)){
+                if(!FileSys::FileExist(szSaveFileName)){
                     if(bDecode == false){
                         if(nDataLen < stInfo0.shWidth * stInfo0.shHeight){
                             delete pData;
@@ -651,7 +651,7 @@ bool ActionSet::Export(
                         nState,
                         nDirection,
                         nFrame);
-                DupFile(szTmpFileName, m_PNG[1][nFrame]->name());
+                FileSys::DupFile(szTmpFileName, m_PNG[1][nFrame]->name());
 
                 // export for HumanGfxDBN
                 // refer to client/src/hero.cpp to get encoding strategy
@@ -681,7 +681,7 @@ bool ActionSet::Export(
                             ((nDY > 0) ? "1" : "0"),
                             std::abs(nDX),
                             std::abs(nDY));
-                    DupFile(szFileName, m_PNG[1][nFrame]->name());
+                    FileSys::DupFile(szFileName, m_PNG[1][nFrame]->name());
                 }
             }
 
@@ -713,7 +713,7 @@ bool ActionSet::Export(
                         nState,
                         nDirection,
                         nFrame);
-                DupFile(szTmpFileName, m_PNG[0][nFrame]->name());
+                FileSys::DupFile(szTmpFileName, m_PNG[0][nFrame]->name());
 
                 // export for HumanGfxDBN
                 // refer to client/src/hero.cpp to get encoding strategy
@@ -743,7 +743,7 @@ bool ActionSet::Export(
                             ((nDY > 0) ? "1" : "0"),
                             std::abs(nDX),
                             std::abs(nDY));
-                    DupFile(szFileName, m_PNG[0][nFrame]->name());
+                    FileSys::DupFile(szFileName, m_PNG[0][nFrame]->name());
                 }
             }
         }

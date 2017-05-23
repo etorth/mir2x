@@ -3,7 +3,7 @@
  *
  *       Filename: basehub.hpp
  *        Created: 04/03/2016 03:49:00
- *  Last Modified: 05/24/2016 15:10:20
+ *  Last Modified: 05/21/2017 00:30:28
  *
  *    Description: 
  *
@@ -18,11 +18,9 @@
  * =====================================================================================
  */
 #pragma once
-
-#include <thread>
 #include <atomic>
+#include <thread>
 
-template<typename Derived>
 class BaseHub
 {
     protected:
@@ -34,12 +32,16 @@ class BaseHub
         std::thread       m_Thread;
         std::atomic<bool> m_ThreadState;
 
-    public:
+    protected:
         BaseHub()
-            : m_ThreadState(false)
+            : m_Thread()
+            , m_ThreadState(false)
         {}
 
-        virtual ~BaseHub() = default;
+        virtual ~BaseHub()
+        {
+            Join();
+        }
 
     public:
         void Launch()
@@ -57,23 +59,18 @@ class BaseHub
             State(true);
 
             // 4. start the thread
-            m_Thread = std::thread([this](){ (static_cast<Derived*>(this))->MainLoop(); });
+            //    decide to move invocation of MainLoop() from constructor to Launch()
+            //    then don't need use the dirty trick of static_cast<Derived*>(this))->MainLoop()
+            m_Thread = std::thread([this](){ MainLoop(); });
         }
 
-        // this function doesn't make sense since we can't notify the thread
-        // however the condition variable is not in this base class, so we
-        // actually can't notify it, so... just comment this function out
-        // void Suspend()
-        // {
-        //     State(false);
-        // }
-
+    protected:
         void Join()
         {
             if(m_Thread.joinable()){ m_Thread.join(); }
         }
 
-    public:
+    protected:
         int State()
         {
             return m_ThreadState.load(std::memory_order_relaxed);
@@ -83,4 +80,7 @@ class BaseHub
         {
             m_ThreadState.store(nNewState, std::memory_order_relaxed);
         }
+
+    protected:
+        virtual void MainLoop() = 0;
 };

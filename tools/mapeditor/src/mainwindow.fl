@@ -153,7 +153,7 @@ fl_alert("%s", "Haven't implement yet!");}
                     szPath += "/DESC.BIN";
                 }
 
-                if(FileExist(szPath.c_str())){
+                if(FileSys::FileExist(szPath.c_str())){
                     extern EditorMap g_EditorMap;
                     if(!g_EditorMap.LoadMir2xMap(szPath.c_str()) || !g_EditorMap.Valid()){
                         fl_alert("Failed to load Mir2xMap: %s", szPath.c_str());
@@ -213,7 +213,7 @@ fl_alert("%s", "Haven't implement yet!");}
                     szPath += "/DESC.BIN";
                 }
 
-                if(FileExist(szPath.c_str())){
+                if(FileSys::FileExist(szPath.c_str())){
                     extern EditorMap g_EditorMap;
                     if(!g_EditorMap.LoadMir2xMapData(szPath.c_str()) || !g_EditorMap.Valid()){
                         fl_alert("Failed to load Mir2xMapData: %s", szPath.c_str());
@@ -269,7 +269,7 @@ fl_alert("%s", "Haven't implement yet!");}
         uint32_t nKey = (((uint32_t)(nFileIndex)) << 16) + ((uint32_t)nImageIndex);
         std::string szIMGPNGName = ((g_WorkingPathName + "/IMG/") + HexString(nKey, szHexString)) + ".PNG";
 
-        if(!FileExist(szIMGPNGName.c_str())){
+        if(!FileSys::FileExist(szIMGPNGName.c_str())){
             if(!g_ImageCache.Retrieve(nFileIndex, nImageIndex)){
                 if(g_ImageDB.Valid(nFileIndex, nImageIndex)){
                     int nW = g_ImageDB.FastW(nFileIndex);
@@ -281,8 +281,8 @@ fl_alert("%s", "Haven't implement yet!");}
         }
 
        std::string szIMGPNGNameInCache = ((g_ImageCache.Path() + "/CACHE/") + szHexString) + ".PNG";
-        if(FileExist(szIMGPNGNameInCache.c_str())){
-            DupFile(szIMGPNGName.c_str(), szIMGPNGNameInCache.c_str());
+        if(FileSys::FileExist(szIMGPNGNameInCache.c_str())){
+            FileSys::DupFile(szIMGPNGName.c_str(), szIMGPNGNameInCache.c_str());
         }
     };
 
@@ -904,15 +904,15 @@ if(g_EditorMap.Valid()){
         g_WorkingPathName = std::string("./") + szBuffer;
     }
 
-    RemoveDir(g_WorkingPathName.c_str());
-    MakeDir(g_WorkingPathName.c_str());
+    FileSys::RemoveDir(g_WorkingPathName.c_str());
+    FileSys::MakeDir(g_WorkingPathName.c_str());
 
     std::string szTmpPath = g_WorkingPathName;
     if(szTmpPath.back() != '/'){
         szTmpPath += "/";
     }
     szTmpPath += "IMG";
-    MakeDir(szTmpPath.c_str());
+    FileSys::MakeDir(szTmpPath.c_str());
 }} {}
   }
   Function {SaveMir2xMap()} {return_type void

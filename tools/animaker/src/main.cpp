@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 06/04/2016 03:38:32
+ *  Last Modified: 05/21/2017 01:36:11
  *
  *    Description: set all kinds of align, for animation center (X, Y)
  *                 1. animation align:
@@ -107,7 +107,7 @@ const char *g_StatusNameList[] = {
 
 int main()
 {
-    MakeDir("./IMG");
+    FileSys::MakeDir("./IMG");
     fl_register_images();
 
     g_TestAnimationCode      = 0;

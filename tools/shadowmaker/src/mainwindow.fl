@@ -551,15 +551,15 @@ m_Window->redraw();} {}
           g_WorkingPathName = std::string("./") + szBuffer;
       }
   
-      RemoveDir(g_WorkingPathName.c_str());
-      MakeDir(g_WorkingPathName.c_str());
+      FileSys::RemoveDir(g_WorkingPathName.c_str());
+      FileSys::MakeDir(g_WorkingPathName.c_str());
   
       std::string szTmpPath = g_WorkingPathName;
       if(szTmpPath.back() != '/'){
           szTmpPath += "/";
       }
       szTmpPath += "IMG";
-      MakeDir(szTmpPath.c_str());
+      FileSys::MakeDir(szTmpPath.c_str());
   }} {}
   }
   Function {OperationRect(int &nX, int &nY, int &nW, int &nH)} {return_type void

@@ -3,16 +3,14 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 05/24/2016 15:39:47
+ *  Last Modified: 05/21/2017 00:39:43
  *
  *    Description: this makes me very confused, std::function may use internally
  *                 dynamically allocated memory, if so, it's nonsense of using
  *                 the MemoryBlockPN to allocated std::function itself
  *
  *                 OK do as much as you can
- *
  *                 I am not confident enough to update this class
- *
  *
  *        Version: 1.0
  *       Revision: none
@@ -34,7 +32,7 @@
 #include "memoryblockpn.hpp"
 
 using TaskBlockPN = MemoryBlockPN<sizeof(Task), 1024, 4>;
-class TaskHub: public BaseHub<TaskHub>
+class TaskHub: public BaseHub
 {
     protected:
         std::mutex              m_TaskLock;
@@ -44,34 +42,41 @@ class TaskHub: public BaseHub<TaskHub>
 
     public:
         TaskHub()
-            : BaseHub<TaskHub>()
+            : BaseHub()
+            , m_TaskLock()
+            , m_TaskCV()
+            , m_TaskList()
+            , m_TaskBlockPN()
         {}
+
+        // 1. do shutdown manually
+        // 2. call the destructor, I didn't call it inside
         virtual ~TaskHub() = default;
         
     protected:
         void Add(Task* pTask, bool bPushHead = false)
         {
-            if(!pTask){ return; }
+            if(pTask){
+                bool bNeedNotify = false;
+                {
+                    std::lock_guard<std::mutex> stLockGuard(m_TaskLock);
+                    // still we are running
+                    if(State()){
+                        bNeedNotify = m_TaskList.empty();
 
-            bool bDoSignal = false;
-            {
-                std::lock_guard<std::mutex> stLockGuard(m_TaskLock);
-                // still we are running
-                if(State()){
-                    bDoSignal = m_TaskList.empty();
-
-                    if(bPushHead){
-                        m_TaskList.push_front(pTask);
+                        if(bPushHead){
+                            m_TaskList.push_front(pTask);
+                        }else{
+                            m_TaskList.push_back(pTask);
+                        }
                     }else{
-                        m_TaskList.push_back(pTask);
+                        DeleteTask(pTask);
+                        return;
                     }
-                }else{
-                    DeleteTask(pTask);
-                    return;
                 }
-            }
 
-            if(bDoSignal){ m_TaskCV.notify_one(); }
+                if(bNeedNotify){ m_TaskCV.notify_one(); }
+            }
         }
 
     public:
@@ -80,25 +85,39 @@ class TaskHub: public BaseHub<TaskHub>
             Add(CreateTask(std::forward<Args>(args)...), bPushHead);
         }
 
-    public:
+    protected:
         template<typename... Args> Task *CreateTask(Args &&... args)
         {
-            void *pData = m_TaskBlockPN.Get();
-
-            // passing null argument to placement new is undefined behavior
-            if(!pData){ return nullptr; }
-            return new (pData) Task(std::forward<Args>(args)...);
+            if(auto pData = m_TaskBlockPN.Get()){
+                // passing null argument to placement new is undefined behavior
+                return new (pData) Task(std::forward<Args>(args)...);
+            }
+            return nullptr;
         }
 
         void DeleteTask(Task *pTask)
         {
-            if(!pTask){ return; }
-
-            pTask->~Task();
-            m_TaskBlockPN.Free(pTask);
+            if(pTask){
+                pTask->~Task();
+                m_TaskBlockPN.Free(pTask);
+            }
         }
 
     public:
+        void Shutdown()
+        {
+            State(false);
+            std::lock_guard<std::mutex> stLockGuard(m_TaskLock);
+
+            for(auto pTask: m_TaskList){
+                DeleteTask(pTask);
+            }
+
+            m_TaskList.clear();
+            m_TaskCV.notify_one();
+        }
+
+    protected:
         void MainLoop()
         {
             // NOTE: second argument defer_lock is to prevent from immediate locking
@@ -126,19 +145,5 @@ class TaskHub: public BaseHub<TaskHub>
                     stTaskUniqueLock.unlock();
                 }
             }
-        }
-
-        void Shutdown()
-        {
-            State(false);
-            std::lock_guard<std::mutex> stLockGuard(m_TaskLock);
-
-            for(auto pTask: m_TaskList){
-                DeleteTask(pTask);
-            }
-
-            m_TaskList.clear();
-
-            m_TaskCV.notify_one();
         }
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/20/2016 13:20:24
+ *  Last Modified: 05/20/2017 22:05:55
  *
  *    Description: 
  *
@@ -172,7 +172,7 @@ bool TokenBoard::GetAttributeColor(SDL_Color *pOutColor, const SDL_Color &rstDef
         }
     }
 
-    if(pText && String2Color(pOutColor, pText)){
+    if(pText && ColorFunc::String2Color(pOutColor, pText)){
         return true;
     }else{
         if(pOutColor){ *pOutColor = rstDefaultColor; }
@@ -1550,7 +1550,7 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
                         szXML += std::to_string(rstSN.Info.Text.Size);
 
                         char szColor[16];
-                        std::sprintf(szColor, "0x%08x", Color2U32ARGB(rstSN.Info.Text.Color[0]));
+                        std::sprintf(szColor, "0x%08x", ColorFunc::Color2U32ARGB(rstSN.Info.Text.Color[0]));
                         szXML += " color=";
                         szXML += szColor;
                         szXML += ">";
@@ -2278,7 +2278,7 @@ std::string TokenBoard::Print(bool bSelectOnly)
                     // won't support empty content text object
                     if(!szObjectContent || !std::strlen(szObjectContent)){ return; }
                     char szColor[16];
-                    std::sprintf(szColor, "0X%08X", Color2U32ARGB(rstSEC.Info.Text.Color[0]));
+                    std::sprintf(szColor, "0X%08X", ColorFunc::Color2U32ARGB(rstSEC.Info.Text.Color[0]));
                     pList->Add({
                             {"Type" , "PlainText"                           },
                             {"Font" , std::to_string(rstSEC.Info.Text.Font) },
@@ -2294,8 +2294,7 @@ std::string TokenBoard::Print(bool bSelectOnly)
                     if(!szObjectContent || !std::strlen(szObjectContent)){ return; }
                     char szColor[3][16];
                     for(int nIndex = 0; nIndex < 3; ++nIndex){
-                        std::sprintf(szColor[nIndex], "0X%08X",
-                                Color2U32ARGB(rstSEC.Info.Text.Color[nIndex]));
+                        std::sprintf(szColor[nIndex], "0X%08X", ColorFunc::Color2U32ARGB(rstSEC.Info.Text.Color[nIndex]));
                     }
                     pList->Add({
                             {"Type" , "EventText"                           },

@@ -127,7 +127,7 @@ class ValidWilFileWindow {open
             szWilFileName += "/";
         }
         szWilFileName += szMonsterWilFileNameList[nCnt];
-        if(FileExist((szWilFileName + ".wil").c_str()) && FileExist((szWilFileName + ".wix").c_str())){
+        if(FileSys::FileExist((szWilFileName + ".wil").c_str()) && FileSys::FileExist((szWilFileName + ".wix").c_str())){
             /*
             auto szWilFileName2 = szWilFileName;
             std::string szKey("Mon-");

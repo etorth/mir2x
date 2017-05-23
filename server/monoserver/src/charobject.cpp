@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/16/2017 23:07:25
+ *  Last Modified: 05/20/2017 21:30:58
  *
  *    Description: 
  *
@@ -143,7 +143,6 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
 
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch action: %p", &rstAction);
-    rstAction.Print();
 }
 
 bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)

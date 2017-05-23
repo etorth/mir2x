@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 08/05/2015 11:22:52 PM
- *  Last Modified: 04/15/2017 23:51:08
+ *  Last Modified: 05/21/2017 01:36:49
  *
  *    Description: 
  *
@@ -112,7 +112,7 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
                 //6: frame index
                 std::sprintf(szSaveFileName, "./IMG/0%02d%02d%02d%d%02d.PNG",
                         m_FileIndex, m_AnimationIndex, m_Status, m_Direction, nFrame);
-                if(!FileExist(szSaveFileName)){
+                if(!FileSys::FileExist(szSaveFileName)){
                     if(nDataLen < stInfo0.shWidth * stInfo0.shHeight){
                         delete pData;
                         pData    = new uint32_t[stInfo0.shWidth * stInfo0.shHeight];
@@ -138,7 +138,7 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
                 //6: frame index
                 std::sprintf(szSaveFileName, "./IMG/1%02d%02d%02d%d%02d.PNG",
                         m_FileIndex, m_AnimationIndex, m_Status, m_Direction, nFrame);
-                if(!FileExist(szSaveFileName)){
+                if(!FileSys::FileExist(szSaveFileName)){
                     if(nDataLen < stInfo1.shWidth * stInfo1.shHeight){
                         delete pData;
                         pData    = new uint32_t[stInfo1.shWidth * stInfo1.shHeight];
@@ -404,7 +404,7 @@ bool ActionSet::Export(
                         ((nDY > 0) ? "1" : "0"),              // sign
                         std::abs(nDX),
                         std::abs(nDY));
-                DupFile(szTmpHexStringFileName, m_PNG[1][nFrame]->name());
+                FileSys::DupFile(szTmpHexStringFileName, m_PNG[1][nFrame]->name());
             }
 
             {// body layer
@@ -452,7 +452,7 @@ bool ActionSet::Export(
                         ((nDY > 0) ? "1" : "0"),              // sign
                         std::abs(nDX),
                         std::abs(nDY));
-                DupFile(szTmpHexStringFileName, m_PNG[0][nFrame]->name());
+                FileSys::DupFile(szTmpHexStringFileName, m_PNG[0][nFrame]->name());
             }
         }
         pActionSet->LinkEndChild(pFrame);

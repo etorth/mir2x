@@ -3,9 +3,10 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 05/05/2017 17:48:26
+ *  Last Modified: 05/20/2017 21:36:15
  *
- *    Description: 
+ *    Description: ActionNode is used by both server and client
+ *                 then don't define Print() for it
  *
  *        Version: 1.0
  *       Revision: none
@@ -19,9 +20,7 @@
  */
 
 #pragma once
-
 #include <cstdint>
-#include <cassert>
 #include "protocoldef.hpp"
 
 struct ActionNode
@@ -58,6 +57,4 @@ struct ActionNode
     ActionNode()
         : ActionNode(ACTION_NONE, 0, 0, 0, 0, 0, 0, 0, 0)
     {}
-
-    void Print() const;
 };

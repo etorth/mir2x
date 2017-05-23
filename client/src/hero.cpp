@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 05/18/2017 22:49:41
+ *  Last Modified: 05/20/2017 21:31:50
  *
  *    Description: 
  *
@@ -318,8 +318,6 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool)
                 {
                     if(!ParseMovePath(rstAction.ActionParam, rstAction.Speed, rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY)){ extern Log *g_Log;
                         g_Log->AddLog(LOGTYPE_WARNING, "Parse move action into motion failed");
-                        rstAction.Print();
-
                         return false;
                     }
                     break;

@@ -3,7 +3,7 @@
  *
  *       Filename: animationpreviewwindow.cpp
  *        Created: 7/22/2015 3:16:57 AM
- *  Last Modified: 06/04/2016 03:22:19
+ *  Last Modified: 05/21/2017 01:37:23
  *
  *    Description: 
  *
@@ -128,7 +128,7 @@ AnimationPreviewWindow::AnimationPreviewWindow(uint32_t nFileIndex, uint32_t nAn
                 //5: direction
                 //6: frame index
                 std::sprintf(szSaveFileName, "./IMG/0%02d%02d005%02d.PNG", m_FileIndex, m_AnimationIndex, nFrame);
-                if(!FileExist(szSaveFileName)){
+                if(!FileSys::FileExist(szSaveFileName)){
                     if(nDataLen < stInfo0.shWidth * stInfo0.shHeight){
                         delete pData;
                         pData    = new uint32_t[stInfo0.shWidth * stInfo0.shHeight];
@@ -153,7 +153,7 @@ AnimationPreviewWindow::AnimationPreviewWindow(uint32_t nFileIndex, uint32_t nAn
                 //5: direction
                 //6: frame index
                 std::sprintf(szSaveFileName, "./IMG/1%02d%02d005%02d.PNG", m_FileIndex, m_AnimationIndex, nFrame);
-                if(!FileExist(szSaveFileName)){
+                if(!FileSys::FileExist(szSaveFileName)){
                     if(nDataLen < stInfo1.shWidth * stInfo1.shHeight){
                         delete pData;
                         pData    = new uint32_t[stInfo1.shWidth * stInfo1.shHeight];

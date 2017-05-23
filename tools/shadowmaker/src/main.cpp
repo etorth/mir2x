@@ -136,7 +136,7 @@ const char *g_StatusNameList[] = {
 
 int main()
 {
-    MakeDir("./IMG");
+    FileSys::MakeDir("./IMG");
     fl_register_images();
 
     g_TestAnimationCode      = 0;

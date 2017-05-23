@@ -3,7 +3,7 @@
  *
  *       Filename: filesys.hpp
  *        Created: 02/08/2016 22:15:46
- *  Last Modified: 02/08/2016 22:17:06
+ *  Last Modified: 05/21/2017 01:23:42
  *
  *    Description: 
  *
@@ -17,10 +17,11 @@
  *
  * =====================================================================================
  */
-
 #pragma once
-
-bool DupFile(const char *, const char *);
-bool RemoveDir(const char *);
-bool MakeDir(const char *);
-bool FileExist(const char *);
+namespace FileSys
+{
+    bool MakeDir(const char *);
+    bool RemoveDir(const char *);
+    bool FileExist(const char *);
+    bool DupFile(const char *, const char *);
+}

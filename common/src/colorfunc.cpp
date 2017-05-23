@@ -3,7 +3,7 @@
  *
  *       Filename: colorfunc.cpp
  *        Created: 03/31/2016 19:48:57
- *  Last Modified: 04/02/2016 03:02:28
+ *  Last Modified: 05/20/2017 21:50:48
  *
  *    Description: 
  *
@@ -22,7 +22,7 @@
 #include <cstring>
 #include "colorfunc.hpp"
 
-SDL_Color MakeColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
+SDL_Color ColorFunc::MakeColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
 {
     SDL_Color stColor;
     stColor.r = nR;
@@ -32,7 +32,7 @@ SDL_Color MakeColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
     return stColor;
 }
 
-uint32_t Color2U32RGBA(const SDL_Color &rstColor)
+uint32_t ColorFunc::Color2U32RGBA(const SDL_Color &rstColor)
 {
     uint32_t nRes = 0;
     nRes += ((uint32_t)(rstColor.r) << 24);
@@ -43,7 +43,7 @@ uint32_t Color2U32RGBA(const SDL_Color &rstColor)
     return nRes;
 }
 
-uint32_t Color2U32ARGB(const SDL_Color &rstColor)
+uint32_t ColorFunc::Color2U32ARGB(const SDL_Color &rstColor)
 {
     uint32_t nRes = 0;
     nRes += ((uint32_t)(rstColor.a) << 24);
@@ -54,7 +54,7 @@ uint32_t Color2U32ARGB(const SDL_Color &rstColor)
     return nRes;
 }
 
-SDL_Color U32RGBA2Color(uint32_t nColor)
+SDL_Color ColorFunc::U32RGBA2Color(uint32_t nColor)
 {
     SDL_Color stColor;
     stColor.r = ((nColor & 0XFF000000) >> 24);
@@ -65,7 +65,7 @@ SDL_Color U32RGBA2Color(uint32_t nColor)
     return stColor;
 }
 
-SDL_Color U32ARGB2Color(uint32_t nColor)
+SDL_Color ColorFunc::U32ARGB2Color(uint32_t nColor)
 {
     SDL_Color stColor;
     stColor.a = ((nColor & 0XFF000000) >> 24);
@@ -76,7 +76,7 @@ SDL_Color U32ARGB2Color(uint32_t nColor)
     return stColor;
 }
 
-bool String2Color(SDL_Color *pstColor, const char *szText)
+bool ColorFunc::String2Color(SDL_Color *pstColor, const char *szText)
 {
     if(!szText || std::strlen(szText) == 0){ return false; }
 

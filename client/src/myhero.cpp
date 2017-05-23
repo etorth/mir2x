@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/18/2017 21:16:01
+ *  Last Modified: 05/20/2017 21:32:24
  *
  *    Description: 
  *
@@ -125,7 +125,6 @@ bool MyHero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
         }
     }
 
-    rstAction.Print();
     return false;
 }
 
