@@ -3,10 +3,9 @@
  *
  *       Filename: imagedb.cpp
  *        Created: 02/14/2016 16:35:49
- *  Last Modified: 02/15/2016 17:15:15
+ *  Last Modified: 05/22/2017 17:31:34
  *
- *    Description: This class handle wilimagepackage array, so any constraits
- *                 for mir2map applies here. like 255/65535 etc
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -19,15 +18,14 @@
  * =====================================================================================
  */
 
-#include "imagedb.hpp"
 #include <cstring>
+#include "imagedb.hpp"
 
 ImageDB::ImageDB()
     : m_BufLen(0)
     , m_Buf(nullptr)
     , m_ImagePackage()
-{
-}
+{}
 
 ImageDB::~ImageDB()
 {
@@ -122,8 +120,7 @@ bool ImageDB::LoadDB(const char *szPathName)
     return true;
 }
 
-bool ImageDB::Load(uint8_t nFileIndex,
-        const char *szPathName, const char *szFileName, const char *szNamePrefix)
+bool ImageDB::Load(uint8_t nFileIndex, const char *szPathName, const char *szFileName, const char *szNamePrefix)
 {
     return m_ImagePackage[nFileIndex].Load(szPathName, szFileName, szNamePrefix);
 }
@@ -174,8 +171,7 @@ const uint32_t *ImageDB::FastDecode(uint8_t nFileIndex, uint32_t nC0, uint32_t n
     return m_Buf;
 }
 
-const uint32_t *ImageDB::Decode(
-        uint8_t nFileIndex, uint16_t nImageIndex, uint32_t nC0, uint32_t nC1, uint32_t nC2)
+const uint32_t *ImageDB::Decode(uint8_t nFileIndex, uint16_t nImageIndex, uint32_t nC0, uint32_t nC1, uint32_t nC2)
 {
     if(Valid(nFileIndex, nImageIndex)){
         return FastDecode(nFileIndex, nC0, nC1, nC2);

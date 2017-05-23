@@ -3,7 +3,7 @@
  *
  *       Filename: imagedb.hpp
  *        Created: 02/14/2016 16:33:12
- *  Last Modified: 02/14/2016 19:28:06
+ *  Last Modified: 05/22/2017 17:32:48
  *
  *    Description: Handle operation against wilimagepackage
  *
@@ -18,10 +18,9 @@
  * =====================================================================================
  */
 
-
 #pragma once
-#include <cstdint>
 #include <array>
+#include <cstdint>
 
 #include "wilimagepackage.hpp"
 
@@ -29,7 +28,7 @@ class ImageDB
 {
     public:
         ImageDB();
-        ~ImageDB();
+       ~ImageDB();
 
     public:
         bool LoadDB(const char *);
@@ -50,7 +49,6 @@ class ImageDB
         bool Load(uint8_t, const char *, const char *, const char *);
 
     private:
-        int m_BufLen;
-        uint32_t *m_Buf;
+        std::vector<uint8_t> m_Buf;
         std::array<WilImagePackage, 256> m_ImagePackage;
 };
