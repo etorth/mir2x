@@ -3,7 +3,7 @@
  *
  *       Filename: noticenode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 05/15/2017 14:34:47
+ *  Last Modified: 05/25/2017 16:36:58
  *
  *    Description: 
  *
@@ -26,11 +26,11 @@
 
 struct NoticeNode
 {
-    int Notice;
-    int NoticeParam;
+    const int Notice;
+    const int NoticeParam;
 
-    int X;
-    int Y;
+    const int X;
+    const int Y;
 
     NoticeNode(int nNotice, int nNoticeParam, int nX, int nY)
         : Notice(nNotice)
@@ -38,6 +38,4 @@ struct NoticeNode
         , X(nX)
         , Y(nY)
     {}
-
-    void Print() const;
 };

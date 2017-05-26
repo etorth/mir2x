@@ -3,7 +3,7 @@
  *
  *       Filename: imagedb.cpp
  *        Created: 02/14/2016 16:35:49
- *  Last Modified: 05/22/2017 17:31:34
+ *  Last Modified: 05/23/2017 00:54:44
  *
  *    Description:
  *
@@ -20,17 +20,6 @@
 
 #include <cstring>
 #include "imagedb.hpp"
-
-ImageDB::ImageDB()
-    : m_BufLen(0)
-    , m_Buf(nullptr)
-    , m_ImagePackage()
-{}
-
-ImageDB::~ImageDB()
-{
-    delete m_Buf; m_Buf = nullptr;
-}
 
 bool ImageDB::LoadDB(const char *szPathName)
 {
@@ -114,9 +103,8 @@ bool ImageDB::LoadDB(const char *szPathName)
     };
 
     for(int i = 0; std::strlen(szFileName[i]) > 0; ++i){
-        Load((uint8_t)i, szPathName, szFileName[i], ".wil");
+        Load((uint8_t)(i), szPathName, szFileName[i], ".wil");
     }
-
     return true;
 }
 
@@ -145,14 +133,14 @@ int ImageDB::FastW(uint8_t nFileIndex)
     return m_ImagePackage[nFileIndex].CurrentImageInfo().shWidth;
 }
 
-int ImageDB::W(uint8_t nFileIndex, uint16_t nImageIndex)
-{
-    return Valid(nFileIndex, nImageIndex) ? FastW(nFileIndex) : 0;
-}
-
 int ImageDB::FastH(uint8_t nFileIndex)
 {
     return m_ImagePackage[nFileIndex].CurrentImageInfo().shHeight;
+}
+
+int ImageDB::W(uint8_t nFileIndex, uint16_t nImageIndex)
+{
+    return Valid(nFileIndex, nImageIndex) ? FastW(nFileIndex) : 0;
 }
 
 int ImageDB::H(uint8_t nFileIndex, uint16_t nImageIndex)
@@ -165,25 +153,13 @@ const uint32_t *ImageDB::FastDecode(uint8_t nFileIndex, uint32_t nC0, uint32_t n
     int nW = FastW(nFileIndex);
     int nH = FastH(nFileIndex);
 
-    ExtendBuf(nW * nH);
-    m_ImagePackage[nFileIndex].Decode(m_Buf, nC0, nC1, nC2);
+    m_Buf.resize(nW * nH);
+    m_ImagePackage[nFileIndex].Decode(&(m_Buf[0]), nC0, nC1, nC2);
 
-    return m_Buf;
+    return &(m_Buf[0]);
 }
 
 const uint32_t *ImageDB::Decode(uint8_t nFileIndex, uint16_t nImageIndex, uint32_t nC0, uint32_t nC1, uint32_t nC2)
 {
-    if(Valid(nFileIndex, nImageIndex)){
-        return FastDecode(nFileIndex, nC0, nC1, nC2);
-    }
-    return nullptr;
-}
-
-void ImageDB::ExtendBuf(int nBufLen)
-{
-    if(m_BufLen < nBufLen){
-        delete m_Buf;
-        m_Buf = new uint32_t[nBufLen];
-        m_BufLen = nBufLen;
-    }
+    return Valid(nFileIndex, nImageIndex) ? FastDecode(nFileIndex, nC0, nC1, nC2) : nullptr;
 }

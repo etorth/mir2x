@@ -3,7 +3,7 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 05/20/2017 21:36:15
+ *  Last Modified: 05/25/2017 16:38:45
  *
  *    Description: ActionNode is used by both server and client
  *                 then don't define Print() for it
@@ -25,18 +25,18 @@
 
 struct ActionNode
 {
-    int Action;
-    int ActionParam;
+    const int Action;
+    const int ActionParam;
 
-    int Speed;
-    int Direction;
+    const int Speed;
+    const int Direction;
 
-    int X;
-    int Y;
-    int EndX;
-    int EndY;
+    const int X;
+    const int Y;
+    const int EndX;
+    const int EndY;
 
-    uint32_t MapID;
+    const uint32_t MapID;
 
     ActionNode(int nAction, int nActionParam, int nSpeed, int nDirection, int nX, int nY, int nEndX, int nEndY, uint32_t nMapID)
         : Action(nAction)

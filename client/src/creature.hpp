@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 05/18/2017 17:06:53
+ *  Last Modified: 05/25/2017 17:53:45
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -136,6 +136,12 @@ class Creature
         ProcessRun *m_ProcessRun;
 
     protected:
+        uint32_t m_HP;
+        uint32_t m_MP;
+        uint32_t m_HPMax;
+        uint32_t m_MPMax;
+
+    protected:
         MotionNode m_CurrMotion;
 
     protected:
@@ -149,6 +155,10 @@ class Creature
         Creature(uint32_t nUID, ProcessRun *pRun)
             : m_UID(nUID)
             , m_ProcessRun(pRun)
+            , m_HP(1)
+            , m_MP(1)
+            , m_HPMax(2)
+            , m_MPMax(2)
             , m_CurrMotion()
             , m_MotionQueue()
             , m_UpdateDelay(100.0)

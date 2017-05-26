@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/17/2017 11:30:49
+ *  Last Modified: 05/25/2017 16:51:24
  *
  *    Description: 
  *
@@ -36,16 +36,15 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         std::memcpy(&stSMLOK, pBuf, nLen);
 
         LoadMap(stSMLOK.MapID);
-        ActionNode stAction;
-        stAction.Action      = ACTION_STAND;
-        stAction.ActionParam = 0;
-        stAction.Direction   = stSMLOK.Direction;
-        stAction.Speed       = 0;
-        stAction.X           = stSMLOK.X;
-        stAction.Y           = stSMLOK.Y;
-        stAction.EndX        = stSMLOK.X;
-        stAction.EndY        = stSMLOK.Y;
-        m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.DBID, (bool)(stSMLOK.Male), 0, this, stAction);
+        m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.DBID, (bool)(stSMLOK.Male), 0, this, 
+                {
+                    ACTION_STAND,
+                    0,
+                    stSMLOK.Direction,
+                    stSMLOK.X,
+                    stSMLOK.Y,
+                    stSMLOK.MapID
+                });
 
         m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
 
@@ -62,15 +61,18 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
     SMAction stSMA;
     std::memcpy(&stSMA, pBuf, sizeof(stSMA));
 
-    ActionNode stAction;
-    stAction.Action      = stSMA.Action;
-    stAction.ActionParam = stSMA.ActionParam;
-    stAction.Speed       = stSMA.Speed;
-    stAction.Direction   = stSMA.Direction;
-    stAction.X           = stSMA.X;
-    stAction.Y           = stSMA.Y;
-    stAction.EndX        = stSMA.EndX;
-    stAction.EndY        = stSMA.EndY;
+    ActionNode stAction
+    {
+        stSMA.Action,
+        stSMA.ActionParam,
+        stSMA.Speed,
+        stSMA.Direction,
+        stSMA.X,
+        stSMA.Y,
+        stSMA.EndX,
+        stSMA.EndY,
+        stSMA.MapID
+    };
 
     if(stSMA.MapID == m_MapID){
         auto pRecord = m_CreatureRecord.find(stSMA.UID);
@@ -109,15 +111,18 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMCOR, pBuf, sizeof(stSMCOR));
 
     if(stSMCOR.Common.MapID == m_MapID){
-        ActionNode stAction;
-        stAction.Action      = stSMCOR.Common.Action;
-        stAction.ActionParam = stSMCOR.Common.ActionParam;
-        stAction.X           = stSMCOR.Common.X;
-        stAction.Y           = stSMCOR.Common.Y;
-        stAction.EndX        = stSMCOR.Common.EndX;
-        stAction.EndY        = stSMCOR.Common.EndY;
-        stAction.Direction   = stSMCOR.Common.Direction;
-        stAction.Speed       = stSMCOR.Common.Speed;
+        ActionNode stAction
+        {
+            stSMCOR.Common.Action,
+            stSMCOR.Common.ActionParam,
+            stSMCOR.Common.Speed,
+            stSMCOR.Common.Direction,
+            stSMCOR.Common.X,
+            stSMCOR.Common.Y,
+            stSMCOR.Common.EndX,
+            stSMCOR.Common.EndY,
+            stSMCOR.Common.MapID,
+        };
 
         auto pRecord = m_CreatureRecord.find(stSMCOR.Common.UID);
         if(pRecord == m_CreatureRecord.end()){

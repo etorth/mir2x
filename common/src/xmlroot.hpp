@@ -3,7 +3,7 @@
  *
  *       Filename: xmlroot.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 04/01/2016 16:36:36
+ *  Last Modified: 05/23/2017 01:06:27
  *
  *    Description: analyze specifically formatted XML
  *                      <ROOT>
@@ -25,12 +25,14 @@
  * =====================================================================================
  */
 
-
 #pragma once
 #include <tinyxml2.h>
 
 class XMLRoot
 {
+    protected:
+       tinyxml2::XMLDocument m_XMLDoc;
+
     public:
         XMLRoot() = default;
        ~XMLRoot() = default;
@@ -51,8 +53,6 @@ class XMLRoot
        const tinyxml2::XMLElement *GetXMLNode(const char *);
 
     public:
-       //tiny API, maintains the validation by caller
-       //
        bool Find(const char *szPath)
        {
            return GetXMLNode(szPath) != nullptr;
@@ -60,14 +60,11 @@ class XMLRoot
 
        bool Load(const char *szFileName)
        {
-           return szFileName && m_XMLDoc.LoadFile(szFileName) == tinyxml2::XML_NO_ERROR;
+           return szFileName && (m_XMLDoc.LoadFile(szFileName) == tinyxml2::XML_NO_ERROR);
        }
 
        bool Parse(const char *szRawBuf)
        {
-           return szRawBuf && m_XMLDoc.Parse(szRawBuf) == tinyxml2::XML_NO_ERROR;
+           return szRawBuf && (m_XMLDoc.Parse(szRawBuf) == tinyxml2::XML_NO_ERROR);
        }
-
-    protected:
-       tinyxml2::XMLDocument m_XMLDoc;
 };

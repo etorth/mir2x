@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 05/05/2017 18:29:54
+ *  Last Modified: 05/24/2017 23:45:04
  *
  *    Description: 
  *
@@ -31,6 +31,14 @@
 
 class ProcessRun: public Process
 {
+    private:
+        enum NotifyType: int
+        {
+            NOTIFY_INFO,
+            NOTIFY_WARNING,
+            NOTIFY_FATAL,
+        };
+
     private:
         uint32_t     m_MapID;
         Mir2xMapData m_Mir2xMapData;
@@ -68,6 +76,10 @@ class ProcessRun: public Process
         {
             return m_MapID;
         }
+
+    public:
+        void Notify(int, const char *);
+        void Notify(const char *, const std::map<std::string, std::function<void()>> &);
 
     public:
         virtual void Update(double);

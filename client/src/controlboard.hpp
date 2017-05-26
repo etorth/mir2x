@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.hpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 08/26/2016 12:56:42
+ *  Last Modified: 05/25/2017 00:06:30
  *
  *    Description: main control pannel for running game
  *                 this is a fixed-size board, if use game screen size other than
@@ -25,17 +25,22 @@
 #include "widget.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
+#include "inputboard.hpp"
 
 #include <cstdint>
 #include <functional>
 
 class ControlBoard: public Widget
 {
-    public:
-        ControlBoard(int, int, Widget *, bool);
-        ~ControlBoard() = default;
+    private:
+        InputBoard m_CmdLine;
 
     public:
+        ControlBoard(int, int, Widget *, bool);
+       ~ControlBoard() = default;
+
+    public:
+        void Update(double);
         void DrawEx(int, int, int, int, int, int);
         bool ProcessEvent(const SDL_Event &, bool *);
 };

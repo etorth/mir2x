@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/20/2017 21:32:24
+ *  Last Modified: 05/25/2017 17:26:09
  *
  *    Description: 
  *
@@ -312,7 +312,20 @@ bool MyHero::ParseActionQueue()
                 }else{
                     // it's a distance of 1
                     // use single grid hop to present the motion
-                    m_ActionQueue.front().ActionParam = (m_OnHorse ? MOTION_HORSEWALK : MOTION_WALK);
+                    ActionNode stAction
+                    {
+                        ACTION_MOVE,
+                        m_OnHorse ? MOTION_HORSEWALK : MOTION_WALK,
+                        m_ActionQueue.front().Speed,
+                        m_ActionQueue.front().Direction,
+                        m_ActionQueue.front().X,
+                        m_ActionQueue.front().Y,
+                        m_ActionQueue.front().EndX,
+                        m_ActionQueue.front().EndY,
+                        m_ActionQueue.front().MapID
+                    };
+                    m_ActionQueue.pop_front();
+                    m_ActionQueue.push_front(stAction);
                 }
 
                 // 1. succefully decomposed

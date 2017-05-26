@@ -65,10 +65,10 @@ class Game
         }
 
     private:
-        void   EventDelay(double);
-        void   ProcessEvent();
-        void   Update(double);
-        void   Draw();
+        void EventDelay(double);
+        void ProcessEvent();
+        void Update(double);
+        void Draw();
 
     public:
         Process *ProcessValid(int nProcessID)

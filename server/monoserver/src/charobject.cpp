@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/20/2017 21:30:58
+ *  Last Modified: 05/23/2017 23:13:13
  *
  *    Description: 
  *
@@ -115,7 +115,6 @@ void CharObject::DispatchNotice(const NoticeNode &rstNotice)
 
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch notice: %p", &rstNotice);
-    rstNotice.Print();
 }
 
 void CharObject::DispatchAction(const ActionNode &rstAction)
