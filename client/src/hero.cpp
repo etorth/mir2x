@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 05/20/2017 21:31:50
+ *  Last Modified: 05/25/2017 20:06:09
  *
  *    Description: 
  *
@@ -283,11 +283,6 @@ bool Hero::MotionValid(const MotionNode &rstMotion)
                 return false;
             }
     }
-}
-
-bool Hero::ParseNewNotice(const NoticeNode &, bool)
-{
-    return true;
 }
 
 bool Hero::ParseNewAction(const ActionNode &rstAction, bool)

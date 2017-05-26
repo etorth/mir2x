@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 05/18/2017 01:19:20
+ *  Last Modified: 05/25/2017 20:06:44
  *
  *    Description: 
  *
@@ -59,10 +59,6 @@ class Hero: public Creature
         bool UpdateMotion();
 
     public:
-        bool UpdateMotionOnGeneralMotion(int);
-
-    public:
-        bool ParseNewNotice(const NoticeNode &, bool);
         bool ParseNewAction(const ActionNode &, bool);
 
     public:

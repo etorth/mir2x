@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/16/2017 23:05:21
+ *  Last Modified: 05/25/2017 20:01:38
  *
  *    Description: 
  *
@@ -25,7 +25,6 @@
 
 #include "servermap.hpp"
 #include "actionnode.hpp"
-#include "noticenode.hpp"
 #include "servicecore.hpp"
 #include "protocoldef.hpp"
 #include "activeobject.hpp"
@@ -239,7 +238,6 @@ class CharObject: public ActiveObject
 
     protected:
         void DispatchAction(const ActionNode &);
-        void DispatchNotice(const NoticeNode &);
 
     protected:
         virtual int OneStepReach(int, int, int *, int *);

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 05/18/2017 23:13:19
+ *  Last Modified: 05/25/2017 20:02:09
  *
  *    Description: 
  *
@@ -115,10 +115,6 @@ class Monster: public CharObject
 
     protected:
         int GetAttackPower(int);
-
-    protected:
-        bool ParseNewAction(const NoticeNode &, bool);
-        bool ParseNewNotice(const NoticeNode &, bool);
 
     private:
         void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);

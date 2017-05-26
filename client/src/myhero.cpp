@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/25/2017 17:26:09
+ *  Last Modified: 05/25/2017 20:04:32
  *
  *    Description: 
  *
@@ -126,11 +126,6 @@ bool MyHero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
     }
 
     return false;
-}
-
-bool MyHero::ParseNewNotice(const NoticeNode &, bool)
-{
-    return true;
 }
 
 bool MyHero::ParseActionQueue()

@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/15/2017 14:35:50
+ *  Last Modified: 05/25/2017 20:03:22
  *
  *    Description: 
  *
@@ -251,8 +251,6 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
     DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
-    DispatchNotice({0, 0, 0, 0});
-
     auto fnReportUnderAttack = [this](){
         SMAction stSMA;
         stSMA.UID         = UID();

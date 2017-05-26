@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/23/2017 23:13:13
+ *  Last Modified: 05/25/2017 20:02:43
  *
  *    Description: 
  *
@@ -97,24 +97,6 @@ Theron::Address CharObject::Activate()
         DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), MapID()});
     }
     return stAddress;
-}
-
-void CharObject::DispatchNotice(const NoticeNode &rstNotice)
-{
-    if(ActorPodValid() && m_Map->ActorPodValid()){
-        AMNotice stAMN;
-        std::memset(&stAMN, 0, sizeof(stAMN));
-
-        stAMN.UID         = UID();
-        stAMN.Notice      = rstNotice.Notice;
-        stAMN.NoticeParam = rstNotice.NoticeParam;
-
-        m_ActorPod->Forward({MPK_NOTICE, stAMN}, m_Map->GetAddress());
-        return;
-    }
-
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch notice: %p", &rstNotice);
 }
 
 void CharObject::DispatchAction(const ActionNode &rstAction)

@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 05/15/2017 14:31:29
+ *  Last Modified: 05/25/2017 18:28:46
  *
  *    Description: net message used by client and mono-server
  *
