@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/25/2017 20:01:38
+ *  Last Modified: 05/26/2017 18:47:49
  *
  *    Description: 
  *
@@ -148,7 +148,9 @@ class CharObject: public ActiveObject
 
     protected:
         int m_HP;
+        int m_HPMax;
         int m_MP;
+        int m_MPMax;
 
     protected:
         bool     m_MoveLock;
@@ -183,16 +185,16 @@ class CharObject: public ActiveObject
         }
 
     protected:
-        int X()
-        {
-            return m_CurrX;
-        }
+        int X() { return m_CurrX; }
+        int Y() { return m_CurrY; }
 
-        int Y()
-        {   
-            return m_CurrY;
-        }
+    protected:
+        int HP()    { return m_HP; }
+        int MP()    { return m_MP; }
+        int HPMax() { return m_HPMax; }
+        int MPMax() { return m_MPMax; }
 
+    protected:
         int Direction()
         {
             return m_Direction;
@@ -250,7 +252,7 @@ class CharObject: public ActiveObject
 
     protected:
         virtual bool CanAttack();
-        virtual bool StruckDamage();
+        virtual bool StruckDamage(int);
 
     protected:
         virtual int GetAttackPower(int nAttackMode) = 0;

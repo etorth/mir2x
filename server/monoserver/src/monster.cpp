@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/18/2017 23:18:41
+ *  Last Modified: 05/26/2017 18:36:25
  *
  *    Description: 
  *
@@ -52,6 +52,9 @@ Monster::Monster(uint32_t   nMonsterID,
 
     // set attack mode
     SetState(STATE_ATTACKMODE, STATE_ATTACKMODE_NORMAL);
+
+    m_HP = 10;
+    m_MP = 10;
 }
 
 bool Monster::RandomMove()
@@ -308,6 +311,11 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
         case MPK_METRONOME:
             {
                 On_MPK_METRONOME(rstMPK, rstAddress);
+                break;
+            }
+        case MPK_UPDATEHP:
+            {
+                On_MPK_UPDATEHP(rstMPK, rstAddress);
                 break;
             }
         case MPK_ACTION:

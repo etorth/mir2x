@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/16/2017 23:06:09
+ *  Last Modified: 05/26/2017 18:46:26
  *
  *    Description: 
  *
@@ -47,6 +47,11 @@ Player::Player(uint32_t nDBID,
     };
     static std::once_flag stFlag;
     std::call_once(stFlag, fnRegisterClass);
+
+    m_HP    = 10;
+    m_HPMax = 10;
+    m_MP    = 10;
+    m_MPMax = 10;
 }
 
 void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -65,11 +70,6 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         case MPK_QUERYLOCATION:
             {
                 On_MPK_QUERYLOCATION(rstMPK, rstFromAddr);
-                break;
-            }
-        case MPK_NOTICE:
-            {
-                On_MPK_NOTICE(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_ACTION:

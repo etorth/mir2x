@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 05/16/2017 23:05:23
+ *  Last Modified: 05/26/2017 01:39:32
  *
  *    Description: 
  *
@@ -87,6 +87,11 @@ class Player: public CharObject
             return m_JobID;
         }
 
+        uint32_t SessionID()
+        {
+            return m_SessionID;
+        }
+
     public:
         int Speed()
         {
@@ -104,9 +109,9 @@ class Player: public CharObject
         void Operate(const MessagePack &, const Theron::Address &);
 
     private:
-        void On_MPK_NOTICE(const MessagePack &, const Theron::Address &);
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
         void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);
+        void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &);
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);

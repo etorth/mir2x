@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/18/2017 22:39:24
+ *  Last Modified: 05/26/2017 18:42:26
  *
  *    Description: 
  *
@@ -379,5 +379,13 @@ bool Creature::MotionQueueValid()
             pLast = &rstMotion;
         }else{ return false; }
     }
+    return true;
+}
+
+int Creature::UpdateHP(int nHP, int nHPMax)
+{
+    m_HP    = nHP;
+    m_HPMax = nHPMax;
+
     return true;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/25/2017 20:02:43
+ *  Last Modified: 05/26/2017 18:34:01
  *
  *    Description: 
  *
@@ -616,8 +616,9 @@ bool CharObject::GoSuicide()
     return false;
 }
 
-bool CharObject::StruckDamage()
+bool CharObject::StruckDamage(int)
 {
+    m_HP = std::max<int>(0, m_HP - 1);
     return true;
 }
 

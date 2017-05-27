@@ -3,7 +3,7 @@
  *
  *       Filename: onsmhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 04/26/2017 12:05:19
+ *  Last Modified: 05/26/2017 18:19:37
  *
  *    Description: 
  *
@@ -30,6 +30,13 @@ void Game::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 
     // 2. handle messages
     switch(nHC){
+        case SM_UPDATEHP:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_UPDATEHP(pData, nDataLen);
+                }
+                break;
+            }
         case SM_PING:           Net_PING         (pData, nDataLen); break;
         case SM_LOGINOK:        Net_LOGINOK      (pData, nDataLen); break;
         case SM_CORECORD:       Net_CORECORD     (pData, nDataLen); break;

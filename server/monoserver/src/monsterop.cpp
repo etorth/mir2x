@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 05/18/2017 23:15:23
+ *  Last Modified: 05/26/2017 01:43:55
  *
  *    Description: 
  *
@@ -104,4 +104,8 @@ void Monster::On_MPK_QUERYLOCATION(const MessagePack &rstMPK, const Theron::Addr
     stAML.Y     = Y();
 
     m_ActorPod->Forward({MPK_LOCATION, stAML}, rstFromAddr, rstMPK.ID());
+}
+
+void Monster::On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &)
+{
 }

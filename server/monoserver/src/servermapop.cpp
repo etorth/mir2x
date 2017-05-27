@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/18/2017 19:21:08
+ *  Last Modified: 05/26/2017 01:26:11
  *
  *    Description: 
  *
@@ -85,36 +85,6 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &
                             if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
                                 if(stUIDRecord.ClassFrom<CharObject>()){
                                     m_ActorPod->Forward({MPK_ACTION, stAMA}, stUIDRecord.Address);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-void ServerMap::On_MPK_NOTICE(const MessagePack &rstMPK, const Theron::Address &)
-{
-    AMNotice stAMN;
-    std::memcpy(&stAMN, rstMPK.Data(), sizeof(stAMN));
-
-    if(ValidC(stAMN.X, stAMN.Y)){
-        auto nX0 = std::max<int>(0,   (stAMN.X - SYS_MAPVISIBLEW));
-        auto nY0 = std::max<int>(0,   (stAMN.Y - SYS_MAPVISIBLEH));
-        auto nX1 = std::min<int>(W(), (stAMN.X + SYS_MAPVISIBLEW));
-        auto nY1 = std::min<int>(H(), (stAMN.Y + SYS_MAPVISIBLEH));
-
-        for(int nX = nX0; nX <= nX1; ++nX){
-            for(int nY = nY0; nY <= nY1; ++nY){
-                if(ValidC(nX, nY)){
-                    for(auto nUID: m_UIDRecordV2D[nX][nY]){
-                        if(nUID != stAMN.UID){
-                            extern MonoServer *g_MonoServer;
-                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                                if(stUIDRecord.ClassFrom<CharObject>()){
-                                    m_ActorPod->Forward({MPK_ACTION, stAMN}, stUIDRecord.Address);
                                 }
                             }
                         }
@@ -545,3 +515,34 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK, const Theron::Address
     // failed to find a path
     m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
 }
+
+void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMUpdateHP stAMUHP;
+    std::memcpy(&stAMUHP, rstMPK.Data(), sizeof(stAMUHP));
+
+    if(ValidC(stAMUHP.X, stAMUHP.Y)){
+        auto nX0 = std::max<int>(0,   (stAMUHP.X - SYS_MAPVISIBLEW));
+        auto nY0 = std::max<int>(0,   (stAMUHP.Y - SYS_MAPVISIBLEH));
+        auto nX1 = std::min<int>(W(), (stAMUHP.X + SYS_MAPVISIBLEW));
+        auto nY1 = std::min<int>(H(), (stAMUHP.Y + SYS_MAPVISIBLEH));
+
+        for(int nX = nX0; nX <= nX1; ++nX){
+            for(int nY = nY0; nY <= nY1; ++nY){
+                if(ValidC(nX, nY)){
+                    for(auto nUID: m_UIDRecordV2D[nX][nY]){
+                        if(nUID != stAMUHP.UID){
+                            extern MonoServer *g_MonoServer;
+                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                                if(stUIDRecord.ClassFrom<CharObject>()){
+                                    m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, stUIDRecord.Address);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+

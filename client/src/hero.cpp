@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 05/25/2017 20:06:09
+ *  Last Modified: 05/26/2017 18:38:36
  *
  *    Description: 
  *
@@ -88,13 +88,29 @@ bool Hero::Draw(int nViewX, int nViewY)
     g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
     g_SDLDevice->DrawTexture(pFrame0, X() * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
 
-    extern PNGTexDBN *g_PNGTexDBN;
-    auto pBar0 = g_PNGTexDBN->Retrieve(0XFF0014);
-    auto pBar1 = g_PNGTexDBN->Retrieve(0XFF0015);
 
-    g_SDLDevice->DrawTexture(pBar0, X() * SYS_MAPGRIDXP - nViewX + nShiftX + 7, Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53);
-    g_SDLDevice->DrawTexture(pBar1, X() * SYS_MAPGRIDXP - nViewX + nShiftX + 7, Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53);
+    // draw HP bar
+    // if current m_HPMqx is zero we draw full bar
+    {
+        extern PNGTexDBN *g_PNGTexDBN;
+        auto pBar0 = g_PNGTexDBN->Retrieve(0XFF0014);
+        auto pBar1 = g_PNGTexDBN->Retrieve(0XFF0015);
 
+        int nW = -1;
+        int nH = -1;
+        SDL_QueryTexture(pBar1, nullptr, nullptr, &nW, &nH);
+        g_SDLDevice->DrawTexture(pBar1,
+                X() * SYS_MAPGRIDXP - nViewX + nShiftX +  7,
+                Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53,
+                0,
+                0,
+                (int)(std::lround(nW * (m_HPMax ? std::min<double>(1.0, (1.0 * m_HP) / m_HPMax) : 1.0))),
+                nH);
+
+        g_SDLDevice->DrawTexture(pBar0,
+                X() * SYS_MAPGRIDXP - nViewX + nShiftX +  7,
+                Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53);
+    }
     return true;
 }
 

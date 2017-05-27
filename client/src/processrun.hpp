@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 05/24/2017 23:45:04
+ *  Last Modified: 05/26/2017 16:57:49
  *
  *    Description: 
  *
@@ -90,9 +90,10 @@ class ProcessRun: public Process
         bool LocatePoint(int, int, int *, int *);
 
     public:
+        void Net_ACTION(const uint8_t *, size_t);
         void Net_LOGINOK(const uint8_t *, size_t);
         void Net_CORECORD(const uint8_t *, size_t);
-        void Net_ACTION(const uint8_t *, size_t);
+        void Net_UPDATEHP(const uint8_t *, size_t);
         void Net_MONSTERGINFO(const uint8_t *, size_t);
 
     public:

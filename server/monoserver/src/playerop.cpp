@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/25/2017 20:03:22
+ *  Last Modified: 05/26/2017 18:50:53
  *
  *    Description: 
  *
@@ -99,26 +99,6 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
 
             extern NetPodN *g_NetPodN;
             g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);
-        }
-    }
-}
-
-void Player::On_MPK_NOTICE(const MessagePack &rstMPK, const Theron::Address &)
-{
-    AMNotice stAMN;
-    std::memcpy(&stAMN, rstMPK.Data(), sizeof(stAMN));
-
-    if(stAMN.UID != UID()){
-        if(InRange(RANGE_VISIBLE, stAMN.X, stAMN.Y)){
-            SMNotice stSMN;
-            stSMN.UID   = stAMN.UID;
-            stSMN.MapID = stAMN.MapID;
-
-            stSMN.Notice      = stAMN.Notice;
-            stSMN.NoticeParam = stAMN.NoticeParam;
-
-            extern NetPodN *g_NetPodN;
-            g_NetPodN->Send(m_SessionID, SM_NOTICE, stSMN);
         }
     }
 }
@@ -250,6 +230,8 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
+    StruckDamage(0);
+
     DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
     auto fnReportUnderAttack = [this](){
         SMAction stSMA;
@@ -274,4 +256,45 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
     // the player will be forced to roll-back
     uint32_t nDelayTick = 0;
     Delay(nDelayTick, fnReportUnderAttack);
+
+    AMUpdateHP stAMUHP;
+    stAMUHP.UID   = UID();
+    stAMUHP.MapID = MapID();
+    stAMUHP.X     = X();
+    stAMUHP.Y     = Y();
+    stAMUHP.HP    = HP();
+    stAMUHP.HPMax = HPMax();
+
+    if(true
+            && ActorPodValid()
+            && m_Map
+            && m_Map->ActorPodValid()){
+        m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, m_Map->GetAddress());
+    }
+
+    SMUpdateHP stSMUHP;
+    stSMUHP.UID   = UID();
+    stSMUHP.MapID = MapID();
+    stSMUHP.HP    = HP();
+    stSMUHP.HPMax = HPMax();
+
+    extern NetPodN *g_NetPodN;
+    g_NetPodN->Send(SessionID(), SM_UPDATEHP, stSMUHP);
+}
+
+void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMUpdateHP stAMUHP;
+    std::memcpy(&stAMUHP, rstMPK.Data(), sizeof(stAMUHP));
+
+    if(stAMUHP.UID != UID()){
+        SMUpdateHP stSMUHP;
+        stSMUHP.UID   = stAMUHP.UID;
+        stSMUHP.MapID = stAMUHP.MapID;
+        stSMUHP.HP    = stAMUHP.HP;
+        stSMUHP.HPMax = stAMUHP.HPMax;
+
+        extern NetPodN *g_NetPodN;
+        g_NetPodN->Send(SessionID(), SM_UPDATEHP, stSMUHP);
+    }
 }

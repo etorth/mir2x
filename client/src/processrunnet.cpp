@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/25/2017 16:51:24
+ *  Last Modified: 05/26/2017 18:41:50
  *
  *    Description: 
  *
@@ -147,6 +147,19 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
             if(pRecord->second){
                 pRecord->second->ParseNewAction(stAction, true);
             }
+        }
+    }
+}
+
+void ProcessRun::Net_UPDATEHP(const uint8_t *pBuf, size_t)
+{
+    SMUpdateHP stSMUHP;
+    std::memcpy(&stSMUHP, pBuf, sizeof(stSMUHP));
+
+    if(stSMUHP.MapID == MapID()){
+        auto pRecord = m_CreatureRecord.find(stSMUHP.UID);
+        if((pRecord != m_CreatureRecord.end()) && pRecord->second){
+            pRecord->second->UpdateHP(stSMUHP.HP, stSMUHP.HPMax);
         }
     }
 }

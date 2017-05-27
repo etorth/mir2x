@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 05/15/2017 17:04:54
+ *  Last Modified: 05/26/2017 01:32:26
  *
  *    Description:
  *
@@ -139,10 +139,10 @@ class ServerMap: public ActiveObject
 
     private:
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
-        void On_MPK_NOTICE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYLEAVE(const MessagePack &, const Theron::Address &);
         void On_MPK_PATHFIND(const MessagePack &, const Theron::Address &);
+        void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &);
