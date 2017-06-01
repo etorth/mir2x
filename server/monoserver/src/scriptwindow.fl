@@ -2,6 +2,9 @@
 version 1.0303 
 header_name {.hpp} 
 code_name {.cpp}
+decl {\#include <string>} {public global
+} 
+
 decl {\#include <FL/fl_ask.H>} {private local
 } 
 
@@ -10,6 +13,8 @@ decl {\#include <Fl/Fl_Text_Buffer.H>} {private local
 
 class ScriptWindow {open
 } {
+  decl {std::string m_FileName;} {private local
+  }
   decl {Fl_Text_Buffer *m_Buffer;} {private local
   }
   Function {ScriptWindow()} {open
@@ -29,7 +34,12 @@ class ScriptWindow {open
             xywh {0 0 100 20} shortcut 0x4006c labelfont 4 divider
           }
           MenuItem {} {
-            label Update selected
+            label Update
+            callback {{
+    if(m_FileName != ""){
+        LoadFile(m_FileName.c_str());
+    }
+}}
             xywh {0 0 100 20} shortcut 0x40075 labelfont 4 divider
           }
           MenuItem {} {
@@ -40,8 +50,21 @@ class ScriptWindow {open
             xywh {0 0 100 20} labelfont 4
           }
         }
+        Submenu {} {
+          label Execute open
+          xywh {0 0 100 20} labelfont 4
+        } {
+          MenuItem {} {
+            label {Configure     }
+            xywh {0 0 100 20} shortcut 0x40063 labelfont 4 divider
+          }
+          MenuItem {} {
+            label {Run   }
+            xywh {0 0 100 20} shortcut 0x40072 labelfont 4
+          }
+        }
       }
-      Fl_Text_Display m_Display {
+      Fl_Text_Display m_Display {selected
         xywh {0 25 830 480} labelfont 4 textfont 4
       }
     }
@@ -57,20 +80,21 @@ class ScriptWindow {open
 	m_Window->show();
 }} {}
   }
-  Function {LoadFile(const char *szFielName)} {return_type void
+  Function {LoadFile(const char *szFileName)} {open return_type void
   } {
     code {{
 	// Load file
-    switch(m_Buffer->loadfile(szFielName)){
+    switch(m_Buffer->loadfile(szFileName)){
         case 0:
         case 2:
             {
+                m_FileName = szFileName;
                 ShowAll();
                 break;
             }
         default:
             {
-                fl_alert("Failed to load file:  %s", szFielName ? szFielName : "");
+                fl_alert("Failed to load file:  %s", szFileName ? szFileName : "");
                 break;
             }
     }
