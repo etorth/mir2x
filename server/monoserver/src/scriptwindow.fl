@@ -2,7 +2,10 @@
 version 1.0303 
 header_name {.hpp} 
 code_name {.cpp}
-decl {\#include <Fl/Fl_Text_Buffer.H>} {public global
+decl {\#include <FL/fl_ask.H>} {private local
+} 
+
+decl {\#include <Fl/Fl_Text_Buffer.H>} {private local
 } 
 
 class ScriptWindow {open
@@ -26,7 +29,7 @@ class ScriptWindow {open
             xywh {0 0 100 20} shortcut 0x4006c labelfont 4 divider
           }
           MenuItem {} {
-            label Update
+            label Update selected
             xywh {0 0 100 20} shortcut 0x40075 labelfont 4 divider
           }
           MenuItem {} {
@@ -38,7 +41,7 @@ class ScriptWindow {open
           }
         }
       }
-      Fl_Text_Display m_Display {selected
+      Fl_Text_Display m_Display {
         xywh {0 25 830 480} labelfont 4 textfont 4
       }
     }
@@ -48,10 +51,29 @@ class ScriptWindow {open
 	m_Display->buffer(m_Buffer);
 }} {}
   }
-  Function {ShowAll()} {return_type void
+  Function {ShowAll()} {open return_type void
   } {
     code {{
 	m_Window->show();
+}} {}
+  }
+  Function {LoadFile(const char *szFielName)} {return_type void
+  } {
+    code {{
+	// Load file
+    switch(m_Buffer->loadfile(szFielName)){
+        case 0:
+        case 2:
+            {
+                ShowAll();
+                break;
+            }
+        default:
+            {
+                fl_alert("Failed to load file:  %s", szFielName ? szFielName : "");
+                break;
+            }
+    }
 }} {}
   }
 } 

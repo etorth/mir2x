@@ -101,8 +101,33 @@ class MainWindow {open
           MenuItem {} {
             label {Load      }
             callback {{
-	extern ScriptWindow *g_ScriptWindow;
-	g_ScriptWindow->ShowAll();
+    Fl_Native_File_Chooser stFileChooser;
+    stFileChooser.title("Load Server Lua Script...");
+    stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
+    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
+
+    stFileChooser.directory(".");
+
+    switch(stFileChooser.show()){
+        case -1:
+            {
+                fl_alert("%s", stFileChooser.errmsg());
+                break;
+            }
+        case 1:
+            {
+                break;
+            }
+        default:
+            {
+                std::string szFileName = stFileChooser.filename();
+                std::replace(szFileName.begin(), szFileName.end(), '\\\\', '/');
+
+                extern ScriptWindow *g_ScriptWindow;
+                g_ScriptWindow->LoadFile(szFileName.c_str());
+            }
+    }
+
 }} selected
             xywh {0 0 100 20} labelfont 4
             code0 {\#include "scriptwindow.hpp"}
