@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 05/26/2017 18:41:17
+ *  Last Modified: 05/29/2017 17:31:17
  *
  *    Description: net message used by client and mono-server
  *
@@ -33,6 +33,7 @@ enum: uint8_t
     SM_MONSTERGINFO,
     SM_CORECORD,
     SM_UPDATEHP,
+    SM_DEADFADEOUT,
 };
 
 #pragma pack(push, 1)
@@ -135,6 +136,15 @@ typedef struct
     uint32_t HP;
     uint32_t HPMax;
 }SMUpdateHP;
+
+typedef struct
+{
+    uint32_t UID;
+    uint32_t MapID;
+
+    uint32_t X;
+    uint32_t Y;
+}SMDeadFadeOut;
 #pragma pack(pop)
 
 class SMSGParam: public MessageBase
@@ -162,6 +172,7 @@ class SMSGParam: public MessageBase
                 {SM_MONSTERGINFO,       {1,  sizeof(SMMonsterGInfo),         "SM_MONSTERGINFO"           }},
                 {SM_CORECORD,           {1,  sizeof(SMCORecord),             "SM_CORECORD"               }},
                 {SM_UPDATEHP,           {1,  sizeof(SMUpdateHP),             "SM_UPDATEHP"               }},
+                {SM_DEADFADEOUT,        {1,  sizeof(SMDeadFadeOut),          "SM_DEADFADEOUT"            }},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(SM_NONE) : nHC);

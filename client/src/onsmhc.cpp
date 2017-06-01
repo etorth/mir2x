@@ -3,7 +3,7 @@
  *
  *       Filename: onsmhc.cpp
  *        Created: 02/23/2016 00:09:59
- *  Last Modified: 05/26/2017 18:19:37
+ *  Last Modified: 05/30/2017 23:41:51
  *
  *    Description: 
  *
@@ -34,6 +34,13 @@ void Game::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
                     pRun->Net_UPDATEHP(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_DEADFADEOUT:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_DEADFADEOUT(pData, nDataLen);
                 }
                 break;
             }

@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/26/2017 18:41:50
+ *  Last Modified: 05/28/2017 00:33:20
  *
  *    Description: 
  *
@@ -160,6 +160,19 @@ void ProcessRun::Net_UPDATEHP(const uint8_t *pBuf, size_t)
         auto pRecord = m_CreatureRecord.find(stSMUHP.UID);
         if((pRecord != m_CreatureRecord.end()) && pRecord->second){
             pRecord->second->UpdateHP(stSMUHP.HP, stSMUHP.HPMax);
+        }
+    }
+}
+
+void ProcessRun::Net_DEADFADEOUT(const uint8_t *pBuf, size_t)
+{
+    SMDeadFadeOut stSMDFO;
+    std::memcpy(&stSMDFO, pBuf, sizeof(stSMDFO));
+
+    if(stSMDFO.MapID == MapID()){
+        auto pRecord = m_CreatureRecord.find(stSMDFO.UID);
+        if((pRecord != m_CreatureRecord.end()) && pRecord->second){
+            pRecord->second->DeadFadeOut();
         }
     }
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/26/2017 18:42:26
+ *  Last Modified: 05/30/2017 23:09:54
  *
  *    Description: 
  *
@@ -325,6 +325,7 @@ bool Creature::ParseMovePath(int nMotion, int nSpeed, int nX0, int nY0, int nX1,
                             // 1. push current motion node to motion queue
                             m_MotionQueue.emplace_back(
                                     nCurrMotion,
+                                    0,
                                     nDirV[nSDY][nSDX],
                                     nSpeed,
                                     rstNode0.X,
@@ -388,4 +389,20 @@ int Creature::UpdateHP(int nHP, int nHPMax)
     m_HPMax = nHPMax;
 
     return true;
+}
+
+bool Creature::DeadFadeOut()
+{
+    switch(m_CurrMotion.Motion){
+        case MOTION_DIE:
+            {
+                m_CurrMotion.MotionParam = 1;
+                return true;
+            }
+        default:
+            {
+                break;
+            }
+    }
+    return false;
 }

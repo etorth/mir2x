@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/26/2017 18:46:26
+ *  Last Modified: 05/30/2017 23:27:59
  *
  *    Description: 
  *
@@ -17,9 +17,10 @@
  *
  * =====================================================================================
  */
-
+#include <cinttypes>
 #include "netpod.hpp"
 #include "player.hpp"
+#include "threadpn.hpp"
 #include "memorypn.hpp"
 #include "charobject.hpp"
 #include "protocoldef.hpp"
@@ -80,6 +81,16 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         case MPK_ATTACK:
             {
                 On_MPK_ATTACK(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_UPDATEHP:
+            {
+                On_MPK_UPDATEHP(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_DEADFADEOUT:
+            {
+                On_MPK_DEADFADEOUT(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_BINDSESSION:
@@ -203,4 +214,116 @@ int Player::GetAttackPower(int nAttackParam)
 bool Player::InRange(int, int, int)
 {
     return true;
+}
+
+bool Player::GoDie()
+{
+    switch(GetState(STATE_NEVERDIE)){
+        case 0:
+            {
+                switch(GetState(STATE_DEAD)){
+                    case 0:
+                        {
+                            SetState(STATE_DEAD, 1);
+                            Delay(2 * 1000, [this](){ GoGhost(); });
+                            return true;
+                        }
+                    default:
+                        {
+                            return true;
+                        }
+                }
+            }
+        default:
+            {
+                return false;
+            }
+    }
+}
+
+bool Player::GoGhost()
+{
+    switch(GetState(STATE_NEVERDIE)){
+        case 0:
+            {
+                switch(GetState(STATE_DEAD)){
+                    case 0:
+                        {
+                            return false;
+                        }
+                    default:
+                        {
+                            // 1. setup state and inform all others
+                            SetState(STATE_GHOST, 1);
+
+                            AMDeadFadeOut stAMDFO;
+                            stAMDFO.UID   = UID();
+                            stAMDFO.MapID = MapID();
+                            stAMDFO.X     = X();
+                            stAMDFO.Y     = Y();
+
+                            if(true
+                                    && ActorPodValid()
+                                    && m_Map
+                                    && m_Map->ActorPodValid()){
+                                m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, m_Map->GetAddress());
+                            }
+
+                            // 2. deactivate the actor here
+                            //    disable the actorpod then no source can drive it
+                            //    then current *this* can't be refered by any actor threads after this invocation
+                            //    then MonoServer::EraseUID() is safe to delete *this*
+                            //
+                            //    don't do delete m_ActorPod to disable the actor
+                            //    since currently we are in the actor thread which accquired by m_ActorPod
+                            Deactivate();
+
+                            // 3. without message driving it
+                            //    the char object will be inactive and activities after this
+                            GoSuicide();
+                            return true;
+
+                            // there is an time gap after Deactivate() and before deletion handler called in GoSuicide
+                            // then during this gap even if the actor is scheduled we won't have data race anymore
+                            // since we called Deactivate() which deregistered Innhandler refers *this*
+                            //
+                            // note that even if during this gap we have functions call GetAddress()
+                            // we are still OK since m_ActorPod is still valid
+                            // but if then send to this address, it will drain to the default message handler
+                        }
+                }
+            }
+        default:
+            {
+                return false;
+            }
+    }
+}
+
+bool Player::GoSuicide()
+{
+    if(true
+            && GetState(STATE_DEAD)
+            && GetState(STATE_GHOST)){
+
+        // 1. register a operationi to the thread pool to delete
+        // 2. don't pass *this* to any other threads, pass UID instead
+        extern ThreadPN *g_ThreadPN;
+        return g_ThreadPN->Add([nUID = UID()](){
+            if(nUID){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->EraseUID(nUID);
+            }else{
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Suicide with empty UID");
+            }
+        });
+
+        // after this line
+        // *this* is invalid and should never be refered
+    }
+
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "GoSuicide(this = %p, UID = %" PRIu32 ") failed", this, UID());
+    return false;
 }

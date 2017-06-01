@@ -3,7 +3,7 @@
  *
  *       Filename: motionnode.hpp
  *        Created: 04/05/2017 12:38:46
- *  Last Modified: 05/05/2017 17:52:06
+ *  Last Modified: 05/30/2017 22:59:14
  *
  *    Description: 
  *
@@ -21,9 +21,12 @@
 #pragma once
 #include "motion.hpp"
 #include "protocoldef.hpp"
+
 struct MotionNode
 {
     int Motion;
+    int MotionParam;
+
     int Direction;
     int Speed;
 
@@ -35,8 +38,9 @@ struct MotionNode
 
     int Frame;
 
-    MotionNode(int nMotion, int nDirection, int nSpeed, int nX, int nY, int nEndX, int nEndY)
+    MotionNode(int nMotion, int nMotionParam, int nDirection, int nSpeed, int nX, int nY, int nEndX, int nEndY)
         : Motion(nMotion)
+        , MotionParam(nMotionParam)
         , Direction(nDirection)
         , Speed(nSpeed)
         , X(nX)
@@ -46,12 +50,12 @@ struct MotionNode
         , Frame(0)
     {}
 
-    MotionNode(int nMotion, int nDirection, int nX, int nY)
-        : MotionNode(nMotion, nDirection, 0, nX, nY, nX, nY)
+    MotionNode(int nMotion, int nMotionParam, int nDirection, int nX, int nY)
+        : MotionNode(nMotion, nMotionParam, nDirection, 0, nX, nY, nX, nY)
     {}
 
     MotionNode()
-        : MotionNode(MOTION_NONE, DIR_NONE, 0, 0)
+        : MotionNode(MOTION_NONE, 0, DIR_NONE, 0, 0)
     {}
 
     void Print();

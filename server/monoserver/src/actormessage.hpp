@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/26/2017 18:50:19
+ *  Last Modified: 05/29/2017 16:59:26
  *
  *    Description: 
  *
@@ -58,6 +58,7 @@ enum MessagePackType: int
     MPK_PATHFINDOK,
     MPK_ATTACK,
     MPK_UPDATEHP,
+    MPK_DEADFADEOUT,
 };
 
 typedef struct
@@ -333,3 +334,12 @@ typedef struct
     uint32_t HP;
     uint32_t HPMax;
 }AMUpdateHP;
+
+typedef struct
+{
+    uint32_t UID;
+    uint32_t MapID;
+
+    int X;
+    int Y;
+}AMDeadFadeOut;

@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 05/26/2017 18:41:59
+ *  Last Modified: 05/31/2017 19:43:42
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -142,6 +142,9 @@ class Creature
         uint32_t m_MPMax;
 
     protected:
+        bool m_Active;
+
+    protected:
         MotionNode m_CurrMotion;
 
     protected:
@@ -159,6 +162,7 @@ class Creature
             , m_MP(0)
             , m_HPMax(0)
             , m_MPMax(0)
+            , m_Active(true)
             , m_CurrMotion()
             , m_MotionQueue()
             , m_UpdateDelay(100.0)
@@ -173,6 +177,17 @@ class Creature
 
     public:
         uint32_t UID() { return m_UID; }
+
+    public:
+        bool Active() const
+        {
+            return m_Active;
+        }
+
+        void Deactivate()
+        {
+            m_Active = false;
+        }
 
     public:
         int X() { int nX; return Location(&nX, nullptr) ? nX : -1; }
@@ -237,4 +252,7 @@ class Creature
 
     public:
         virtual int UpdateHP(int, int);
+
+    public:
+        virtual bool DeadFadeOut();
 };

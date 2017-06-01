@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 05/26/2017 18:47:49
+ *  Last Modified: 05/29/2017 20:19:28
  *
  *    Description: 
  *
@@ -258,10 +258,7 @@ class CharObject: public ActiveObject
         virtual int GetAttackPower(int nAttackMode) = 0;
 
     protected:
-        virtual bool Disappear();
-
-    protected:
-        virtual bool GoDie();
-        virtual bool GoGhost();
-        virtual bool GoSuicide();
+        virtual bool GoDie()     = 0;
+        virtual bool GoGhost()   = 0;
+        virtual bool GoSuicide() = 0;
 };

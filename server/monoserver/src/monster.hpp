@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 05/26/2017 01:43:26
+ *  Last Modified: 05/27/2017 19:33:04
  *
  *    Description: 
  *
@@ -134,4 +134,9 @@ class Monster: public CharObject
     protected:
         bool CanMove();
         bool CanAttack();
+
+    protected:
+        virtual bool GoDie();
+        virtual bool GoGhost();
+        virtual bool GoSuicide();
 };

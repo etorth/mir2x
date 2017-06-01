@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/19/2017 12:58:12
+ *  Last Modified: 05/31/2017 19:53:33
  *
  *    Description: 
  *
@@ -68,9 +68,15 @@ void ProcessRun::Update(double)
         if((nDViewX == 0) && (nDViewY == 0) && !m_MyHero->Moving()){ m_RollMap = false; }
     }
 
-    for(auto pRecord: m_CreatureRecord){
-        if(pRecord.second){
-            pRecord.second->Update();
+    for(auto pRecord = m_CreatureRecord.begin(); pRecord != m_CreatureRecord.end();){
+        if(true
+                && pRecord->second
+                && pRecord->second->Active()){
+            pRecord->second->Update();
+            ++pRecord;
+        }else{
+            delete pRecord->second;
+            pRecord = m_CreatureRecord.erase(pRecord);
         }
     }
 }

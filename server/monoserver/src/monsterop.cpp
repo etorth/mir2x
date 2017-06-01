@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 05/26/2017 01:43:55
+ *  Last Modified: 05/27/2017 01:02:56
  *
  *    Description: 
  *
@@ -88,7 +88,23 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
+    StruckDamage(0);
     AddTarget(stAMA.UID);
+
+    AMUpdateHP stAMUHP;
+    stAMUHP.UID   = UID();
+    stAMUHP.MapID = MapID();
+    stAMUHP.X     = X();
+    stAMUHP.Y     = Y();
+    stAMUHP.HP    = HP();
+    stAMUHP.HPMax = HPMax();
+
+    if(true
+            && ActorPodValid()
+            && m_Map
+            && m_Map->ActorPodValid()){
+        m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, m_Map->GetAddress());
+    }
 }
 
 void Monster::On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &)

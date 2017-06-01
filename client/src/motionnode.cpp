@@ -3,7 +3,7 @@
  *
  *       Filename: motionnode.cpp
  *        Created: 04/05/2017 12:40:09
- *  Last Modified: 05/05/2017 17:53:37
+ *  Last Modified: 05/30/2017 23:01:18
  *
  *    Description: 
  *
@@ -24,13 +24,14 @@
 void MotionNode::Print()
 {
     extern Log *g_Log;
-    g_Log->AddLog(LOGTYPE_INFO, "MotionNode::this      = 0X%0*X", (int)(2 * sizeof(this)), (uintptr_t)(this));
-    g_Log->AddLog(LOGTYPE_INFO, "          ::Motion    = %d", Motion);
-    g_Log->AddLog(LOGTYPE_INFO, "          ::Direction = %d", Direction);
-    g_Log->AddLog(LOGTYPE_INFO, "          ::Speed     = %d", Speed);
-    g_Log->AddLog(LOGTYPE_INFO, "          ::X         = %d", X);
-    g_Log->AddLog(LOGTYPE_INFO, "          ::Y         = %d", Y);
-    g_Log->AddLog(LOGTYPE_INFO, "          ::EndX      = %d", EndX);
-    g_Log->AddLog(LOGTYPE_INFO, "          ::EndY      = %d", EndY);
-    g_Log->AddLog(LOGTYPE_INFO, "          ::Frame     = %d", Frame);
+    g_Log->AddLog(LOGTYPE_INFO, "MotionNode::this        = 0X%0*X", (int)(2 * sizeof(this)), (uintptr_t)(this));
+    g_Log->AddLog(LOGTYPE_INFO, "          ::Motion      = %d", Motion);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::MotionParam = %d", MotionParam);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::Direction   = %d", Direction);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::Speed       = %d", Speed);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::X           = %d", X);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::Y           = %d", Y);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::EndX        = %d", EndX);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::EndY        = %d", EndY);
+    g_Log->AddLog(LOGTYPE_INFO, "          ::Frame       = %d", Frame);
 }

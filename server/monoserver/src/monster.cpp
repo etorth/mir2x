@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/26/2017 18:36:25
+ *  Last Modified: 05/28/2017 00:25:33
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 
+#include <cinttypes>
 #include "motion.hpp"
 #include "netpod.hpp"
 #include "dbconst.hpp"
@@ -25,6 +26,7 @@
 #include "actorpod.hpp"
 #include "mathfunc.hpp"
 #include "memorypn.hpp"
+#include "threadpn.hpp"
 #include "randompick.hpp"
 #include "monoserver.hpp"
 #include "messagepack.hpp"
@@ -51,10 +53,13 @@ Monster::Monster(uint32_t   nMonsterID,
     std::call_once(stFlag, fnRegisterClass);
 
     // set attack mode
-    SetState(STATE_ATTACKMODE, STATE_ATTACKMODE_NORMAL);
+    // SetState(STATE_ATTACKMODE, STATE_ATTACKMODE_NORMAL);
+    SetState(STATE_ATTACKMODE, STATE_ATTACKMODE_ATTACKALL);
 
-    m_HP = 10;
-    m_MP = 10;
+    m_HP    = 20;
+    m_HPMax = 20;
+    m_MP    = 20;
+    m_MPMax = 20;
 }
 
 bool Monster::RandomMove()
@@ -299,10 +304,11 @@ bool Monster::TrackAttack()
 
 bool Monster::Update()
 {
-    if(TrackAttack()){ return true; }
-    if(RandomMove ()){ return true; }
-
-    return false;
+    if(HP()){
+        if(TrackAttack()){ return true; }
+        if(RandomMove ()){ return true; }
+    }else{ GoDie(); }
+    return true;
 }
 
 void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddress)
@@ -485,4 +491,124 @@ void Monster::AddTarget(uint32_t nUID)
         extern MonoServer *g_MonoServer;
         m_TargetQ.emplace_back(nUID, g_MonoServer->GetTimeTick());
     }
+}
+
+bool Monster::GoDie()
+{
+    switch(GetState(STATE_NEVERDIE)){
+        case 0:
+            {
+                switch(GetState(STATE_DEAD)){
+                    case 0:
+                        {
+                            SetState(STATE_DEAD, 1);
+                            DispatchAction({
+                                    ACTION_DIE,
+                                    0,
+                                    Direction(),
+                                    X(),
+                                    Y(),
+                                    MapID()});
+
+                            Delay(10 * 1000, [this](){ GoGhost(); });
+                            return true;
+                        }
+                    default:
+                        {
+                            return true;
+                        }
+                }
+            }
+        default:
+            {
+                return false;
+            }
+    }
+}
+
+bool Monster::GoGhost()
+{
+    switch(GetState(STATE_NEVERDIE)){
+        case 0:
+            {
+                switch(GetState(STATE_DEAD)){
+                    case 0:
+                        {
+                            return false;
+                        }
+                    default:
+                        {
+                            // 1. setup state and inform all others
+                            SetState(STATE_GHOST, 1);
+
+                            AMDeadFadeOut stAMDFO;
+                            stAMDFO.UID   = UID();
+                            stAMDFO.MapID = MapID();
+                            stAMDFO.X     = X();
+                            stAMDFO.Y     = Y();
+
+                            if(true
+                                    && ActorPodValid()
+                                    && m_Map
+                                    && m_Map->ActorPodValid()){
+                                m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, m_Map->GetAddress());
+                            }
+
+                            // 2. deactivate the actor here
+                            //    disable the actorpod then no source can drive it
+                            //    then current *this* can't be refered by any actor threads after this invocation
+                            //    then MonoServer::EraseUID() is safe to delete *this*
+                            //
+                            //    don't do delete m_ActorPod to disable the actor
+                            //    since currently we are in the actor thread which accquired by m_ActorPod
+                            Deactivate();
+
+                            // 3. without message driving it
+                            //    the char object will be inactive and activities after this
+                            GoSuicide();
+                            return true;
+
+                            // there is an time gap after Deactivate() and before deletion handler called in GoSuicide
+                            // then during this gap even if the actor is scheduled we won't have data race anymore
+                            // since we called Deactivate() which deregistered Innhandler refers *this*
+                            //
+                            // note that even if during this gap we have functions call GetAddress()
+                            // we are still OK since m_ActorPod is still valid
+                            // but if then send to this address, it will drain to the default message handler
+                        }
+                }
+            }
+        default:
+            {
+                return false;
+            }
+    }
+}
+
+bool Monster::GoSuicide()
+{
+    if(true
+            && GetState(STATE_DEAD)
+            && GetState(STATE_GHOST)){
+
+        // 1. register a operationi to the thread pool to delete
+        // 2. don't pass *this* to any other threads, pass UID instead
+        extern ThreadPN *g_ThreadPN;
+        return g_ThreadPN->Add([nUID = UID()](){
+            if(nUID){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->EraseUID(nUID);
+            }else{
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Suicide with empty UID");
+            }
+        });
+
+        // after this line
+        // *this* is invalid and should never be refered
+    }
+
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "GoSuicide(this = %p, UID = %" PRIu32 ") failed", this, UID());
+    return false;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/26/2017 01:26:11
+ *  Last Modified: 05/30/2017 23:36:32
  *
  *    Description: 
  *
@@ -546,3 +546,32 @@ void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address
     }
 }
 
+void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMDeadFadeOut stAMDFO;
+    std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
+
+    if(ValidC(stAMDFO.X, stAMDFO.Y)){
+        auto nX0 = std::max<int>(0,   (stAMDFO.X - SYS_MAPVISIBLEW));
+        auto nY0 = std::max<int>(0,   (stAMDFO.Y - SYS_MAPVISIBLEH));
+        auto nX1 = std::min<int>(W(), (stAMDFO.X + SYS_MAPVISIBLEW));
+        auto nY1 = std::min<int>(H(), (stAMDFO.Y + SYS_MAPVISIBLEH));
+
+        for(int nX = nX0; nX <= nX1; ++nX){
+            for(int nY = nY0; nY <= nY1; ++nY){
+                if(ValidC(nX, nY)){
+                    for(auto nUID: m_UIDRecordV2D[nX][nY]){
+                        if(nUID != stAMDFO.UID){
+                            extern MonoServer *g_MonoServer;
+                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                                if(stUIDRecord.ClassFrom<Player>()){
+                                    m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, stUIDRecord.Address);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

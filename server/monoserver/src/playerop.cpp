@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/26/2017 18:50:53
+ *  Last Modified: 05/29/2017 17:30:50
  *
  *    Description: 
  *
@@ -296,5 +296,22 @@ void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)
 
         extern NetPodN *g_NetPodN;
         g_NetPodN->Send(SessionID(), SM_UPDATEHP, stSMUHP);
+    }
+}
+
+void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMDeadFadeOut stAMDFO;
+    std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
+
+    if(stAMDFO.UID != UID()){
+        SMDeadFadeOut stSMDFO;
+        stSMDFO.UID   = stAMDFO.UID;
+        stSMDFO.MapID = stAMDFO.MapID;
+        stSMDFO.X     = stAMDFO.X;
+        stSMDFO.Y     = stAMDFO.Y;
+
+        extern NetPodN *g_NetPodN;
+        g_NetPodN->Send(SessionID(), SM_DEADFADEOUT, stSMDFO);
     }
 }

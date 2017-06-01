@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 05/26/2017 18:38:36
+ *  Last Modified: 05/30/2017 23:05:09
  *
  *    Description: 
  *
@@ -322,7 +322,7 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool)
         switch(rstAction.Action){
             case ACTION_STAND:
                 {
-                    m_MotionQueue.push_back({MOTION_STAND, rstAction.Direction, rstAction.X, rstAction.Y});
+                    m_MotionQueue.push_back({MOTION_STAND, 0, rstAction.Direction, rstAction.X, rstAction.Y});
                     break;
                 }
             case ACTION_MOVE:
@@ -335,17 +335,17 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool)
                 }
             case ACTION_ATTACK:
                 {
-                    m_MotionQueue.push_back({MOTION_ATTACK, rstAction.Direction, rstAction.X, rstAction.Y});
+                    m_MotionQueue.push_back({MOTION_ATTACK, 0, rstAction.Direction, rstAction.X, rstAction.Y});
                     break;
                 }
             case ACTION_UNDERATTACK:
                 {
-                    m_MotionQueue.push_back({MOTION_UNDERATTACK, rstAction.Direction, rstAction.X, rstAction.Y});
+                    m_MotionQueue.push_back({MOTION_UNDERATTACK, 0, rstAction.Direction, rstAction.X, rstAction.Y});
                     break;
                 }
             case ACTION_DIE:
                 {
-                    m_MotionQueue.push_back({MOTION_DIE, rstAction.Direction, rstAction.X, rstAction.Y});
+                    m_MotionQueue.push_back({MOTION_DIE, 0, rstAction.Direction, rstAction.X, rstAction.Y});
                     break;
                 }
             default:

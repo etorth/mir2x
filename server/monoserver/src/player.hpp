@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 05/26/2017 01:39:32
+ *  Last Modified: 05/29/2017 17:26:27
  *
  *    Description: 
  *
@@ -116,6 +116,7 @@ class Player: public CharObject
         void On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &);
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
         void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
+        void On_MPK_DEADFADEOUT(const MessagePack &, const Theron::Address &);
         void On_MPK_BINDSESSION(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);
 
@@ -135,4 +136,9 @@ class Player: public CharObject
 
     protected:
         bool InRange(int, int, int);
+
+    protected:
+        virtual bool GoDie();
+        virtual bool GoGhost();
+        virtual bool GoSuicide();
 };

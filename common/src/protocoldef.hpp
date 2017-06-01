@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 05/16/2017 17:16:09
+ *  Last Modified: 05/28/2017 00:17:19
  *
  *    Description: 
  *
@@ -50,8 +50,18 @@ enum ActionType: int
     ACTION_ATTACK,
     ACTION_UNDERATTACK,
     ACTION_DIE,
-    ACTION_DISAPPEAR,
     ACTION_EXTENSION,
+};
+
+enum ActExtType: int
+{
+    ACTEXT_NONE = 0,
+
+    ACTEXT_FLYIN,
+    ACTEXT_FLYOUT,
+
+    ACTEXT_FADEIN,
+    ACTEXT_FADEOUT,
 };
 
 enum CreatureType: int

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 05/26/2017 16:57:49
+ *  Last Modified: 05/29/2017 17:36:04
  *
  *    Description: 
  *
@@ -94,6 +94,7 @@ class ProcessRun: public Process
         void Net_LOGINOK(const uint8_t *, size_t);
         void Net_CORECORD(const uint8_t *, size_t);
         void Net_UPDATEHP(const uint8_t *, size_t);
+        void Net_DEADFADEOUT(const uint8_t *, size_t);
         void Net_MONSTERGINFO(const uint8_t *, size_t);
 
     public:

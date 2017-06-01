@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/26/2017 18:34:01
+ *  Last Modified: 05/29/2017 17:37:41
  *
  *    Description: 
  *
@@ -19,7 +19,6 @@
  */
 #include <cinttypes>
 #include "motion.hpp"
-#include "threadpn.hpp"
 #include "actorpod.hpp"
 #include "monoserver.hpp"
 #include "charobject.hpp"
@@ -101,7 +100,10 @@ Theron::Address CharObject::Activate()
 
 void CharObject::DispatchAction(const ActionNode &rstAction)
 {
-    if(ActorPodValid() && m_Map->ActorPodValid()){
+    if(true
+            && ActorPodValid()
+            && m_Map
+            && m_Map->ActorPodValid()){
         AMAction stAMA;
         std::memset(&stAMA, 0, sizeof(stAMA));
 
@@ -507,112 +509,6 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(int, int)> f
             return fnQueryLocation();
         }
     }
-    return false;
-}
-
-bool CharObject::Disappear()
-{
-    DispatchAction({ACTION_DISAPPEAR, 0, DIR_NONE, X(), Y(), MapID()});
-    return true;
-}
-
-bool CharObject::GoDie()
-{
-    switch(GetState(STATE_NEVERDIE)){
-        case 0:
-            {
-                switch(GetState(STATE_DEAD)){
-                    case 0:
-                        {
-                            SetState(STATE_DEAD, 1);
-                            Delay(2 * 1000, [this](){ GoGhost(); });
-                            return true;
-                        }
-                    default:
-                        {
-                            return true;
-                        }
-                }
-            }
-        default:
-            {
-                return false;
-            }
-    }
-}
-
-bool CharObject::GoGhost()
-{
-    switch(GetState(STATE_NEVERDIE)){
-        case 0:
-            {
-                switch(GetState(STATE_DEAD)){
-                    case 0:
-                        {
-                            return false;
-                        }
-                    default:
-                        {
-                            // 1. setup state and inform all others
-                            SetState(STATE_GHOST, 1);
-                            Disappear();
-
-                            // 2. deactivate the actor here
-                            //    disable the actorpod then no source can drive it
-                            //    then current *this* can't be refered by any actor threads after this invocation
-                            //    then MonoServer::EraseUID() is safe to delete *this*
-                            //
-                            //    don't do delete m_ActorPod to disable the actor
-                            //    since currently we are in the actor thread which accquired by m_ActorPod
-                            Deactivate();
-
-                            // 3. without message driving it
-                            //    the char object will be inactive and activities after this
-                            GoSuicide();
-                            return true;
-
-                            // there is an time gap after Deactivate() and before deletion handler called in GoSuicide
-                            // then during this gap even if the actor is scheduled we won't have data race anymore
-                            // since we called Deactivate() which deregistered Innhandler refers *this*
-                            //
-                            // note that even if during this gap we have functions call GetAddress()
-                            // we are still OK since m_ActorPod is still valid
-                            // but if then send to this address, it will drain to the default message handler
-                        }
-                }
-            }
-        default:
-            {
-                return false;
-            }
-    }
-}
-
-bool CharObject::GoSuicide()
-{
-    if(true
-            && GetState(STATE_DEAD)
-            && GetState(STATE_GHOST)){
-
-        // 1. register a operationi to the thread pool to delete
-        // 2. don't pass *this* to any other threads, pass UID instead
-        extern ThreadPN *g_ThreadPN;
-        return g_ThreadPN->Add([nUID = UID()](){
-            if(nUID){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->EraseUID(nUID);
-            }else{
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Suicide with empty UID");
-            }
-        });
-
-        // after this line
-        // *this* is invalid and should never be refered
-    }
-
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "GoSuicide(this = %p, UID = %" PRIu32 ") failed", this, UID());
     return false;
 }
 

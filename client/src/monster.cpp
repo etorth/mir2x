@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 05/25/2017 20:04:51
+ *  Last Modified: 05/31/2017 19:56:19
  *
  *    Description: 
  *
@@ -53,6 +53,38 @@ bool Monster::Update()
                         return MoveNextMotion();
                     }
                 }
+            case MOTION_DIE:
+                {
+                    auto nFrameCount = (int)(MotionFrameCount());
+                    if(nFrameCount > 0){
+                        if((m_CurrMotion.Frame + 1) == nFrameCount){
+                            switch(m_CurrMotion.MotionParam){
+                                case 0:
+                                    {
+                                        break;
+                                    }
+                                case 255:
+                                    {
+                                        Deactivate();
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        auto nNextParam = 0;
+                                        nNextParam = std::max<int>(1, m_CurrMotion.MotionParam + 10);
+                                        nNextParam = std::min<int>(nNextParam, 255);
+
+                                        m_CurrMotion.MotionParam = nNextParam;
+                                        break;
+                                    }
+                            }
+                            return true;
+                        }else{
+                            return AdvanceMotionFrame(1);
+                        }
+                    }
+                    return false;
+                }
             default:
                 {
                     return UpdateGeneralMotion(false);
@@ -85,12 +117,22 @@ bool Monster::Draw(int nViewX, int nViewY)
 
             extern SDLDevice *g_SDLDevice;
             if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
+
+            if(true
+                    && (m_CurrMotion.Motion      == MOTION_DIE)
+                    && (m_CurrMotion.MotionParam  > 0         )){
+                // MotionParam : 0       : normal
+                //               1 - 255 : fade out
+                if(pFrame0){ SDL_SetTextureAlphaMod(pFrame0, 255 - m_CurrMotion.MotionParam); }
+                if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 255 - m_CurrMotion.MotionParam); }
+            }
+
             g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
             g_SDLDevice->DrawTexture(pFrame0, X() * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
 
             // draw HP bar
             // if current m_HPMqx is zero we draw full bar
-            {
+            if(m_CurrMotion.Motion != MOTION_DIE){
                 extern PNGTexDBN *g_PNGTexDBN;
                 auto pBar0 = g_PNGTexDBN->Retrieve(0XFF0014);
                 auto pBar1 = g_PNGTexDBN->Retrieve(0XFF0015);
@@ -134,27 +176,27 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool)
         switch(rstAction.Action){
             case ACTION_STAND:
                 {
-                    m_MotionQueue.push_back({MOTION_STAND, rstAction.Direction, rstAction.X, rstAction.Y});
+                    m_MotionQueue.push_back({MOTION_STAND, 0, rstAction.Direction, rstAction.X, rstAction.Y});
                     break;
                 }
             case ACTION_MOVE:
                 {
-                    m_MotionQueue.push_back({MOTION_WALK, rstAction.Direction, rstAction.Speed, rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY});
+                    m_MotionQueue.push_back({MOTION_WALK, 0, rstAction.Direction, rstAction.Speed, rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY});
                     break;
                 }
             case ACTION_ATTACK:
                 {
-                    m_MotionQueue.push_back({MOTION_ATTACK, rstAction.Direction, rstAction.X, rstAction.Y});
+                    m_MotionQueue.push_back({MOTION_ATTACK, 0, rstAction.Direction, rstAction.X, rstAction.Y});
                     break;
                 }
             case ACTION_UNDERATTACK:
                 {
-                    m_MotionQueue.push_back({MOTION_UNDERATTACK, rstAction.Direction, rstAction.X, rstAction.Y});
+                    m_MotionQueue.push_back({MOTION_UNDERATTACK, 0, rstAction.Direction, rstAction.X, rstAction.Y});
                     break;
                 }
             case ACTION_DIE:
                 {
-                    m_MotionQueue.push_back({MOTION_DIE, rstAction.Direction, rstAction.X, rstAction.Y});
+                    m_MotionQueue.push_back({MOTION_DIE, 0, rstAction.Direction, rstAction.X, rstAction.Y});
                     break;
                 }
             default:
