@@ -1,0 +1,57 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0303 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include <Fl/Fl_Text_Buffer.H>} {public global
+} 
+
+class ScriptWindow {open
+} {
+  decl {Fl_Text_Buffer *m_Buffer;} {private local
+  }
+  Function {ScriptWindow()} {open
+  } {
+    Fl_Window m_Window {open
+      xywh {576 322 830 505} type Double labelfont 4 visible
+    } {
+      Fl_Menu_Bar {} {open
+        xywh {0 0 830 25} box FLAT_BOX labelfont 4
+      } {
+        Submenu {} {
+          label File open
+          xywh {0 0 100 20} labelfont 4
+        } {
+          MenuItem {} {
+            label {Load        }
+            xywh {0 0 100 20} shortcut 0x4006c labelfont 4 divider
+          }
+          MenuItem {} {
+            label Update
+            xywh {0 0 100 20} shortcut 0x40075 labelfont 4 divider
+          }
+          MenuItem {} {
+            label Exit
+            callback {{
+	m_Window->hide();
+}}
+            xywh {0 0 100 20} labelfont 4
+          }
+        }
+      }
+      Fl_Text_Display m_Display {selected
+        xywh {0 25 830 480} labelfont 4 textfont 4
+      }
+    }
+    code {{
+	// install the text buffer into text display
+	m_Buffer = new Fl_Text_Buffer();
+	m_Display->buffer(m_Buffer);
+}} {}
+  }
+  Function {ShowAll()} {return_type void
+  } {
+    code {{
+	m_Window->show();
+}} {}
+  }
+} 

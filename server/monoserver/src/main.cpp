@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/12/2017 16:35:28
+ *  Last Modified: 06/01/2017 00:13:55
  *
  *    Description: 
  *
@@ -30,6 +30,7 @@
 #include "serverenv.hpp"
 #include "mainwindow.hpp"
 #include "eventtaskhub.hpp"
+#include "scriptwindow.hpp"
 #include "addmonsterwindow.hpp"
 #include "serverconfigurewindow.hpp"
 #include "databaseconfigurewindow.hpp"
@@ -45,6 +46,7 @@ ThreadPN                 *g_ThreadPN;
 NetPodN                  *g_NetPodN;
 DBPodN                   *g_DBPodN;
 
+ScriptWindow             *g_ScriptWindow;
 MainWindow               *g_MainWindow;
 MonoServer               *g_MonoServer;
 AddMonsterWindow         *g_AddMonsterWindow;
@@ -62,6 +64,7 @@ int main()
     g_Log                     = new Log("mir2x-monoserver-v0.1");
     g_ServerEnv               = new ServerEnv();
     g_TaskHub                 = new TaskHub();
+    g_ScriptWindow            = new ScriptWindow();
     g_MainWindow              = new MainWindow();
     g_MonoServer              = new MonoServer();
     g_AddMonsterWindow        = new AddMonsterWindow();
