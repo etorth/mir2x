@@ -1,0 +1,34 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0303 
+header_name {.hpp} 
+code_name {.cpp}
+class CommandWindow {open
+} {
+  Function {CommandWindow()} {open
+  } {
+    Fl_Window m_Window {open
+      xywh {576 311 580 395} type Double visible
+    } {
+      Fl_Menu_Bar {} {open
+        xywh {0 0 580 25} box FLAT_BOX labelfont 4
+      } {
+        Submenu {} {
+          label Configure open
+          xywh {0 0 100 20} labelfont 4
+        } {
+          MenuItem {} {
+            label Clear
+            xywh {0 0 100 20} labelfont 4
+          }
+        }
+      }
+      Fl_Input m_Input {
+        label cmd
+        xywh {30 370 550 25} labelfont 4 textfont 4
+      }
+      Fl_Browser m_Browser {
+        xywh {0 25 580 345} labelfont 4
+      }
+    }
+  }
+} 

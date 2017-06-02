@@ -2,7 +2,7 @@
 #
 #        Filename: CMakeLists.txt
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 05/17/2017 12:02:09
+#   Last Modified: 06/02/2017 00:55:11
 #
 #     Description: -fno-strict-aliasing
 #
@@ -60,6 +60,7 @@ FOREACH(EXTERNAL_SUBDIR ${EXTERNAL_ALL_SUBDIR})
 ENDFOREACH()
 
 # 4. to include external cmake packages
+FIND_PACKAGE(Lua    REQUIRED)
 FIND_PACKAGE(FLTK   REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
 
