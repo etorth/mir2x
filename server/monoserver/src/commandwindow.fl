@@ -2,14 +2,19 @@
 version 1.0303 
 header_name {.hpp} 
 code_name {.cpp}
+decl {\#include "serverluamodule.hpp"} {public global
+} 
+
 class CommandWindow {open
 } {
+  decl {ServerLuaModule m_LuaModule;} {selected private local
+  }
   Function {CommandWindow()} {open
   } {
-    Fl_Window m_Window {open
+    Fl_Window m_Window {
       xywh {576 311 580 395} type Double visible
     } {
-      Fl_Menu_Bar {} {open
+      Fl_Menu_Bar {} {
         xywh {0 0 580 25} box FLAT_BOX labelfont 4
       } {
         Submenu {} {
@@ -30,5 +35,11 @@ class CommandWindow {open
         xywh {0 25 580 345} labelfont 4
       }
     }
+  }
+  Function {ShowAll()} {open return_type void
+  } {
+    code {{
+	m_Window->show();
+}} {}
   }
 } 
