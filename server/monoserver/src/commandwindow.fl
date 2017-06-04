@@ -2,12 +2,15 @@
 version 1.0303 
 header_name {.hpp} 
 code_name {.cpp}
+decl {\#include "commandinput.hpp"} {public global
+} 
+
 decl {\#include "serverluamodule.hpp"} {public global
 } 
 
 class CommandWindow {open
 } {
-  decl {ServerLuaModule m_LuaModule;} {selected private local
+  decl {ServerLuaModule *m_LuaModule;} {private local
   }
   Function {CommandWindow()} {open
   } {
@@ -28,18 +31,49 @@ class CommandWindow {open
         }
       }
       Fl_Input m_Input {
-        label cmd
-        xywh {30 370 550 25} labelfont 4 textfont 4
+        xywh {0 370 580 25} labeltype NO_LABEL labelfont 4 textfont 4
+        class CommandInput
       }
-      Fl_Browser m_Browser {
+      Fl_Browser m_Browser {selected
         xywh {0 25 580 345} labelfont 4
       }
     }
+    code {{
+	// create the internal lua module
+	// register current window to lua module
+	m_LuaModule = new ServerLuaModule(this);
+	
+	// bind current window to CommandInput
+	// which helps to do event logic handling inside CommandInput
+	// avoid to do it in CommandWindow::handle(int)
+	m_Input->Bind(this);
+}} {}
   }
-  Function {ShowAll()} {open return_type void
+  Function {ShowAll()} {return_type void
   } {
     code {{
 	m_Window->show();
+}} {}
+  }
+  Function {AddLog(int nLogType, const char *szPrompt, const char *szLogInfo)} {return_type void
+  } {
+    code {{
+    // log can be multiply lines but only do one line for this call
+    // don't put multi-thread handling code here
+
+    if(m_Browser->size() > 5000){
+        m_Browser->remove(1);
+    }
+
+    const char *pColorCode = nullptr;
+    switch(nLogType){
+        case 0  : pColorCode = "@C4"; break;
+        case 1  : pColorCode = "@C9"; break;
+        default : pColorCode = "@C1"; break;
+    }
+
+    m_Browser->add(((std::string(pColorCode) + (szPrompt ? szPrompt : "")) + (szLogInfo ? szLogInfo : "")).c_str());
+    m_Browser->bottomline(m_Browser->size());
 }} {}
   }
 } 

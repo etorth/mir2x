@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: luamodule.hpp
- *        Created: 06/01/2017 23:14:26
- *  Last Modified: 06/02/2017 01:02:12
+ *        Created: 06/03/2017 20:24:34
+ *  Last Modified: 06/03/2017 20:26:13
  *
  *    Description: 
  *
@@ -17,16 +17,12 @@
  *
  * =====================================================================================
  */
-
 #pragma once
-#include <selene/selene.h>
+#include <sol.hpp>
 
-class LuaModule
+class LuaModule: public sol::state
 {
-    protected:
-        sel::State m_State;
-
     public:
         LuaModule();
-        virtual ~LuaModule();
+       ~LuaModule() = default;
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 05/09/2017 19:58:04
+ *  Last Modified: 06/04/2017 12:04:34
  *
  *    Description: 
  *
@@ -32,6 +32,8 @@
 #include "database.hpp"
 #include "uidrecord.hpp"
 #include "eventtaskhub.hpp"
+#include "commandwindow.hpp"
+#include "serverluamodule.hpp"
 #include "monsterginforecord.hpp"
 
 class ServiceCore;
@@ -182,4 +184,7 @@ class MonoServer final
         {
             return (uint32_t)(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - m_StartTime).count());
         }
+
+    public:
+        bool RegisterLuaExport(ServerLuaModule *, CommandWindow *);
 };

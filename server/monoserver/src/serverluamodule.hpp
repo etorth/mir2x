@@ -3,7 +3,7 @@
  *
  *       Filename: serverluamodule.hpp
  *        Created: 06/02/2017 17:39:56
- *  Last Modified: 06/02/2017 17:40:47
+ *  Last Modified: 06/04/2017 12:31:20
  *
  *    Description: 
  *
@@ -20,9 +20,10 @@
 #pragma once
 #include "luamodule.hpp"
 
+class CommandWindow;
 class ServerLuaModule: public LuaModule
 {
     public:
-        ServerLuaModule();
-       ~ServerLuaModule();
+        ServerLuaModule(CommandWindow *);
+       ~ServerLuaModule() = default;
 };

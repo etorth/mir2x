@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: luamodule.cpp
- *        Created: 06/02/2017 00:49:41
- *  Last Modified: 06/02/2017 01:02:38
+ *        Created: 06/03/2017 20:26:17
+ *  Last Modified: 06/03/2017 20:26:48
  *
  *    Description: 
  *
@@ -21,9 +21,5 @@
 #include "luamodule.hpp"
 
 LuaModule::LuaModule()
-    : m_State(true)
+    : sol::state()
 {}
-
-LuaModule::~LuaModule()
-{
-}

@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/27/2017 00:53:28
+ *  Last Modified: 06/04/2017 12:35:13
  *
  *    Description: 
  *
@@ -549,4 +549,91 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
     // 4. record mismatch
     static const std::vector<ServerObject::ClassCodeName> stNullEntry {};
     return UIDRecord(0, Theron::Address::Null(), stNullEntry);
+}
+
+bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, CommandWindow *pWindow)
+{
+    if(true
+            && pModule      // module to execute lua script
+            && pWindow){    // command window to echo all execution information
+
+        // initialization before registration
+        pModule->script(R"()");
+
+        // register command printLine
+        // print one line in command window
+        // won't add message to log system, use addLog instead
+        pModule->set_function("printLine", [pWindow](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo){
+            // use sol::object to accept arguments
+            // otherwise for follow code it throws exception for type unmatch
+            //      lua["f"] = [](int a){ return a; };
+            //      lua.script("print f(\"hello world\")")
+            // program crashes with exception.what() : expecting int, string provided
+            if(true
+                    && stLogType.is<int>()
+                    && stPrompt.is<std::string>()
+                    && stLogInfo.is<std::string>()){
+                pWindow->AddLog(stLogType.as<int>(), stPrompt.as<std::string>().c_str(), stLogInfo.as<std::string>().c_str());
+                return;
+            }
+
+            // invalid argument provided
+            pWindow->AddLog(2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
+        });
+
+        // register command addLog
+        // add to system log file and main window history window
+        pModule->set_function("addLog", [this, pWindow](sol::object stLogType, sol::object stLogInfo){
+            if(true
+                    && stLogType.is<int>()
+                    && stLogInfo.is<std::string>()){
+                switch(stLogType.as<int>()){
+                    case 0  : AddLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
+                    case 1  : AddLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
+                    default : AddLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
+                }
+            }
+
+            // invalid argument provided
+            pWindow->AddLog(2, ">>> ", "addLog(LogType: int, LogInfo: string)");
+        });
+
+        // register command mapList
+        // get a list for all active maps
+        // return a table (userData) to lua for ipairs() check
+        pModule->set_function("mapList", [this](sol::this_state stThisLua){
+            return sol::make_object(sol::state_view(stThisLua), GetActiveMapList());
+        });
+
+        // register command ``listAllMap"
+        // this command call mapList to get a table and print to CommandWindow
+        pModule->script(R"#(
+            function listAllMap ()
+                for k, v in ipairs(mapList())
+                do
+                    printLog(0, "> ", tostring(v))
+                end
+            end
+        )#");
+
+        // register command ``help"
+        // part-1: divide into two parts, part-1 create the table
+        pModule->script(R"#(
+            helpInfoTable = {
+                mapList    = "return a list of all currently active maps",
+                listAllMap = "print all map indices to current window"
+            }
+        )#");
+
+        // part-2: make up the function to print the table entry
+        pModule->script(R"#(
+            function help (queryKey)
+                if helpInfoTable[queryKey]
+                then
+                    printLine(helpInfoTable[queryKey])
+                end
+            end
+        )#");
+    }
+    return false;
 }
