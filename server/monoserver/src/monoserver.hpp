@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 06/04/2017 12:04:34
+ *  Last Modified: 06/04/2017 17:38:54
  *
  *    Description: 
  *
@@ -32,12 +32,12 @@
 #include "database.hpp"
 #include "uidrecord.hpp"
 #include "eventtaskhub.hpp"
-#include "commandwindow.hpp"
 #include "serverluamodule.hpp"
 #include "monsterginforecord.hpp"
 
 class ServiceCore;
 class ServerObject;
+class CommandWindow;
 class MonoServer final
 {
     struct UIDLockRecord

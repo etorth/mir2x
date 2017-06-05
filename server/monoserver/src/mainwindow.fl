@@ -14,16 +14,14 @@ decl {\#include <string>} {public global
 decl {\#include <mutex>} {private local
 } 
 
-class MainWindow {open
-} {
-  Function {MainWindow()} {open
-  } {
+class MainWindow {} {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       label {Scene Server}
       callback {{
 	// do nothing
 }} open
-      xywh {631 350 720 400} type Double labelfont 4 resizable visible
+      xywh {749 354 720 400} type Double labelfont 4 resizable visible
     } {
       Fl_Menu_Bar {} {open
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
@@ -96,9 +94,9 @@ class MainWindow {open
           MenuItem {} {
             label {Run Command    }
             callback {{
-	extern CommandWindow *g_CommandWindow;
-	g_CommandWindow->ShowAll();
-}}
+	auto pCommandWindow = new CommandWindow();
+	pCommandWindow->ShowAll();
+}} selected
             xywh {25 25 30 20} labelfont 4
             code0 {\#include "commandwindow.hpp"}
           }
@@ -143,7 +141,7 @@ class MainWindow {open
           }
         }
       }
-      Fl_Browser m_Browser {selected
+      Fl_Browser m_Browser {
         xywh {0 24 720 375} type Hold labelfont 4 textfont 4 resizable
       }
     }

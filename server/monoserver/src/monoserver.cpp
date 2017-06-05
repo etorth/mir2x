@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/04/2017 12:35:13
+ *  Last Modified: 06/04/2017 17:39:13
  *
  *    Description: 
  *
@@ -37,6 +37,7 @@
 #include "monoserver.hpp"
 #include "servicecore.hpp"
 #include "eventtaskhub.hpp"
+#include "commandwindow.hpp"
 #include "databaseconfigurewindow.hpp"
 
 MonoServer::MonoServer()
@@ -611,7 +612,7 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, CommandWindow *pWin
             function listAllMap ()
                 for k, v in ipairs(mapList())
                 do
-                    printLog(0, "> ", tostring(v))
+                    printLine(0, "> ", tostring(v))
                 end
             end
         )#");
@@ -630,7 +631,9 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, CommandWindow *pWin
             function help (queryKey)
                 if helpInfoTable[queryKey]
                 then
-                    printLine(helpInfoTable[queryKey])
+                    printLine(0, "> ", helpInfoTable[queryKey])
+                else
+                    printLine(2, "> ", "No entry find for input")
                 end
             end
         )#");

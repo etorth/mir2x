@@ -14,8 +14,8 @@ class CommandWindow {open
   }
   Function {CommandWindow()} {open
   } {
-    Fl_Window m_Window {
-      xywh {576 311 580 395} type Double visible
+    Fl_Window m_Window {open
+      xywh {780 311 580 400} type Double resizable visible
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 580 25} box FLAT_BOX labelfont 4
@@ -31,11 +31,11 @@ class CommandWindow {open
         }
       }
       Fl_Input m_Input {
-        xywh {0 370 580 25} labeltype NO_LABEL labelfont 4 textfont 4
+        xywh {0 375 580 25} labeltype NO_LABEL labelfont 4 textfont 4 resizable
         class CommandInput
       }
-      Fl_Browser m_Browser {selected
-        xywh {0 25 580 345} labelfont 4
+      Fl_Browser m_Browser {
+        xywh {0 25 580 350} type Hold labelfont 4 textfont 4
       }
     }
     code {{
@@ -74,6 +74,15 @@ class CommandWindow {open
 
     m_Browser->add(((std::string(pColorCode) + (szPrompt ? szPrompt : "")) + (szLogInfo ? szLogInfo : "")).c_str());
     m_Browser->bottomline(m_Browser->size());
+}} {}
+  }
+  Function {LuaModule()} {return_type {ServerLuaModule *}
+  } {
+    code {{
+	// expose the lua interface to outside
+	// won't put any cv-qualifiers
+	// then I don't have do implement CommandWindow::Execute(const char *)
+	return m_LuaModule;
 }} {}
   }
 } 

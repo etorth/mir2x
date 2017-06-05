@@ -3,7 +3,7 @@
  *
  *       Filename: commandinput.hpp
  *        Created: 06/03/2017 00:14:31
- *  Last Modified: 06/04/2017 13:31:05
+ *  Last Modified: 06/04/2017 17:21:25
  *
  *    Description: widget to do command line input
  *                 based on Fl_Multiline_Input
@@ -27,6 +27,11 @@ class CommandInput : public Fl_Multiline_Input
 {
     private:
         CommandWindow *m_Window;
+
+    private:
+        // to support history scan
+        // int m_InputListPos;
+        // std::vector<std::string> m_InputList;
 
     public:
         CommandInput(int nX, int nY, int nW, int nH, const char *pLabel = nullptr)
