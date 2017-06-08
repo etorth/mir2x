@@ -5,7 +5,7 @@
        src="https://scan.coverity.com/projects/9270/badge.svg"/>
 </a>
 
-mir2x is a c/s based mir2 re-implementation with various platforms supported. It contains all need components for game players and developers:
+mir2x is a c/s based mir2 implementation with various platforms supported. It contains all need components for game players and developers:
 
   - client
   - monoserver
@@ -19,11 +19,11 @@ mir2x is a c/s based mir2 re-implementation with various platforms supported. It
 
 ### Packages
 
-mir2x uses a number of open source projects to work properly, and of course mir2x itself is open source with a [public repository][dill] on github, please remind me if I missed anything or any issues.
+mir2x uses a number of open source projects to work properly, and of course itself is open source with a public repository on github, please remind me if I missed anything.
 
-* [SDL2](https://www.libsdl.org/) - Simple DirectMedia Layer is a cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware via OpenGL and Direct3D.
-* [FLTK](http://www.fltk.org) - FLTK (pronounced "fulltick") is a cross-platform C++ GUI toolkit for UNIX®/Linux® (X11), Microsoft® Windows®, and MacOS® X.
-* [asio](http://www.think-async.com/) - Asio is a cross-platform C++ library for network and low-level I/O programming that provides developers with a consistent asynchronous model using a modern C++ approach.
+* [SDL2](https://www.libsdl.org/) - cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware via OpenGL and Direct3D.
+* [FLTK](http://www.fltk.org) - cross-platform C++ GUI toolkit for UNIX®/Linux® (X11), Microsoft® Windows®, and MacOS® X.
+* [asio](http://www.think-async.com/) - cross-platform C++ library for network and low-level I/O programming using a modern C++ approach.
 * [theron](http://www.theron-library.com/) - Theron is a lightweight C++ concurrency library based on the Actor Model.
 * [g3log](https://github.com/KjellKod/g3log) - G3log is an asynchronous, "crash safe", logger that is easy to use with default logging sinks or you can add your own.
 * [lua](https://www.lua.org/) - Lua is a powerful, efficient, lightweight, embeddable scripting language.
@@ -92,6 +92,3 @@ General rules for classes:
 3. put strict parameters check when provide input to objects, and reject immedately if not valid;
 4. avoid to do state validation outside an object;
 5. external call of member function should never break current object, keep log instead;
-
-### Lisence
-MIT
