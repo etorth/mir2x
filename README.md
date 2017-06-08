@@ -5,7 +5,7 @@
        src="https://scan.coverity.com/projects/9270/badge.svg"/>
 </a>
 
-mir2x is a c/s based mir2 implementation with various platforms supported. It contains all need components for game players and developers:
+mir2x is a mir2 implementation with various platforms supported. It contains all need components for game players and developers:
 
   - client
   - monoserver
@@ -14,30 +14,9 @@ mir2x is a c/s based mir2 implementation with various platforms supported. It co
   - mapeditor
   - dbcreator
 
-
 ![image](https://github.com/etorth/mir2x/raw/master/readme/screencapture.gif)
 ![image](https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png)
 
-
-### Packages
-
-mir2x uses a number of open source projects to work properly, and of course itself is open source with a public repository on github, please remind me if I missed anything.
-
-* [SDL2](https://www.libsdl.org/) - A cross-platform development library designed to provide a hardware abstraction layer.
-* [FLTK](http://www.fltk.org) - A cross-platform C++ GUI toolkit for UNIX®/Linux® (X11), Microsoft® Windows®, and MacOS® X.
-* [asio](http://www.think-async.com/) - A cross-platform C++ library for network and low-level I/O programming.
-* [theron](http://www.theron-library.com/) - A lightweight C++ concurrency library based on the Actor Model.
-* [g3log](https://github.com/KjellKod/g3log) - An asynchronous, "crash safe", logger that is easy to use.
-* [lua](https://www.lua.org/) - A powerful, efficient, lightweight, embeddable scripting language.
-* [sol2](https://github.com/ThePhD/sol2) - A fast, simple C++ and Lua binding.
-* [mariadb](https://mariadb.org/) - A community-developed fork of the MySQL relational database management system.
-* [luasql](https://keplerproject.github.io/luasql/) - LuaSQL is a simple interface from Lua to a DBMS.
-* [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - A simple, small, efficient, C++ XML parser.
-* [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for UTF-8 string handling.
-* [libpng](http://www.libpng.org/pub/png/libpng.html) - The official PNG reference library.
-* [libzip](https://nih.at/libzip/) - C library for reading, creating, and modifying zip archives.
-* [ThreadPool](https://github.com/progschj/ThreadPool) - A simple C++11 Thread Pool implementation
-* [astar-algorithm](https://github.com/justinhj/astar-algorithm-cpp) - Implementation of the A* algorithm in C++ and C#
 
 ### Building from source
 
@@ -92,3 +71,24 @@ General rules for classes:
 3. put strict parameters check when provide input to objects, and reject immedately if not valid;
 4. avoid to do state validation outside an object;
 5. external call of member function should never break current object, keep log instead;
+
+
+### Packages
+
+mir2x uses a number of open source projects to work properly, and of course itself is open source with a public repository on github, please remind me if I missed anything.
+
+* [SDL2](https://www.libsdl.org/) - A cross-platform development library designed to provide a hardware abstraction layer.
+* [FLTK](http://www.fltk.org) - A cross-platform C++ GUI toolkit for UNIX®/Linux® (X11), Microsoft® Windows®, and MacOS® X.
+* [asio](http://www.think-async.com/) - A cross-platform C++ library for network and low-level I/O programming.
+* [theron](http://www.theron-library.com/) - A lightweight C++ concurrency library based on the Actor Model.
+* [g3log](https://github.com/KjellKod/g3log) - An asynchronous, "crash safe", logger that is easy to use.
+* [lua](https://www.lua.org/) - A powerful, efficient, lightweight, embeddable scripting language.
+* [sol2](https://github.com/ThePhD/sol2) - A fast, simple C++ and Lua binding.
+* [mariadb](https://mariadb.org/) - A community-developed fork of the MySQL relational database management system.
+* [luasql](https://keplerproject.github.io/luasql/) - LuaSQL is a simple interface from Lua to a DBMS.
+* [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - A simple, small, efficient, C++ XML parser.
+* [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for UTF-8 string handling.
+* [libpng](http://www.libpng.org/pub/png/libpng.html) - The official PNG reference library.
+* [libzip](https://nih.at/libzip/) - C library for reading, creating, and modifying zip archives.
+* [ThreadPool](https://github.com/progschj/ThreadPool) - A simple C++11 Thread Pool implementation
+* [astar-algorithm](https://github.com/justinhj/astar-algorithm-cpp) - Implementation of the A* algorithm in C++ and C#
