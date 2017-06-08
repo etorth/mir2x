@@ -28,12 +28,12 @@ mir2x uses a number of open source projects to work properly, and of course itse
 * [g3log](https://github.com/KjellKod/g3log) - G3log is an asynchronous, "crash safe", logger that is easy to use with default logging sinks or you can add your own.
 * [lua](https://www.lua.org/) - Lua is a powerful, efficient, lightweight, embeddable scripting language.
 * [sol2](https://github.com/ThePhD/sol2) - a fast, simple C++ and Lua Binding
-* [mariadb](https://mariadb.org/) - HTML to Markdown converter
+* [mariadb](https://mariadb.org/) - A community-developed fork of the MySQL relational database management system
 * [luasql](https://keplerproject.github.io/luasql/) - LuaSQL is a simple interface from Lua to a DBMS
-* [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - TinyXML-2 is a simple, small, efficient, C++ XML parser that can be easily integrating into other programs.
+* [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - A simple, small, efficient, C++ XML parser.
 * [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for easy handling of UTF-8 encoded strings.
-* [libpng](http://www.libpng.org/pub/png/libpng.html) - libpng is the official PNG reference library.
-* [libzip](https://nih.at/libzip/) - libzip is a C library for reading, creating, and modifying zip archives.
+* [libpng](http://www.libpng.org/pub/png/libpng.html) - The official PNG reference library.
+* [libzip](https://nih.at/libzip/) - C library for reading, creating, and modifying zip archives.
 * [ThreadPool](https://github.com/progschj/ThreadPool) - A simple C++11 Thread Pool implementation
 * [astar-algorithm](https://github.com/justinhj/astar-algorithm-cpp) - Implementation of the A* algorithm in C++ and C#
 
