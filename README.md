@@ -14,8 +14,10 @@ mir2x is a c/s based mir2 implementation with various platforms supported. It co
   - mapeditor
   - dbcreator
 
+
 ![image](https://github.com/etorth/mir2x/raw/master/readme/screencapture.gif)
 ![image](https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png)
+
 
 ### Packages
 
