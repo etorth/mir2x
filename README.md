@@ -5,7 +5,7 @@
        src="https://scan.coverity.com/projects/9270/badge.svg"/>
 </a>
 
-mir2x is a mir2 implementation with various platforms supported. It contains all need components for game players and developers:
+mir2x is a c/s based mir2ei implementation with various platforms supported. It contains all need components for game players and developers:
 
   - client
   - monoserver
