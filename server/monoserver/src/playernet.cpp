@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 05/18/2017 12:21:42
+ *  Last Modified: 06/08/2017 00:58:21
  *
  *    Description: how player respond for different net package
  *
@@ -132,5 +132,29 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                     break;
                 }
         }
+    }
+}
+
+void Player::Net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
+{
+    CMQueryCORecord stCMQCOR;
+    std::memcpy(&stCMQCOR, pBuf, sizeof(stCMQCOR));
+
+    if(true
+            && stCMQCOR.UID
+            && stCMQCOR.MapID == MapID()
+
+            && m_Map
+            && m_Map->ValidC(stCMQCOR.X, stCMQCOR.Y)
+            && m_Map->ActorPodValid()){
+        // 1. check cached actor address first
+        // 2. then send to map
+        AMQueryCORecord stAMQCOR;
+        stAMQCOR.UID       = stCMQCOR.UID;
+        stAMQCOR.MapID     = stCMQCOR.MapID;
+        stAMQCOR.X         = stCMQCOR.X;
+        stAMQCOR.Y         = stCMQCOR.Y;
+        stAMQCOR.SessionID = SessionID();
+        m_ActorPod->Forward({MPK_QUERYCORECORD, stAMQCOR}, m_Map->GetAddress());
     }
 }

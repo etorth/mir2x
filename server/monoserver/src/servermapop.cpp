@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 05/30/2017 23:36:32
+ *  Last Modified: 06/08/2017 01:09:06
  *
  *    Description: 
  *
@@ -566,6 +566,53 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Addr
                             if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
                                 if(stUIDRecord.ClassFrom<Player>()){
                                     m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, stUIDRecord.Address);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ServerMap::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMQueryCORecord stAMQCOR;
+    std::memcpy(&stAMQCOR, rstMPK.Data(), sizeof(stAMQCOR));
+
+    if(true
+            && stAMQCOR.UID
+            && stAMQCOR.MapID == ID()
+            && ValidC(stAMQCOR.X, stAMQCOR.Y)){
+
+        for(auto nUID: m_UIDRecordV2D[stAMQCOR.X][stAMQCOR.Y]){
+            if(nUID == stAMQCOR.UID){
+                extern MonoServer *g_MonoServer;
+                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                    if(stUIDRecord.ClassFrom<CharObject>()){
+                        m_ActorPod->Forward({MPK_PULLCOINFO, stAMQCOR.SessionID}, stUIDRecord.Address);
+                        return;
+                    }
+                }
+            }
+        }
+
+        auto nX0 = std::max<int>(0,   (stAMQCOR.X - SYS_MAPVISIBLEW));
+        auto nY0 = std::max<int>(0,   (stAMQCOR.Y - SYS_MAPVISIBLEH));
+        auto nX1 = std::min<int>(W(), (stAMQCOR.X + SYS_MAPVISIBLEW));
+        auto nY1 = std::min<int>(H(), (stAMQCOR.Y + SYS_MAPVISIBLEH));
+
+        for(int nX = nX0; nX <= nX1; ++nX){
+            for(int nY = nY0; nY <= nY1; ++nY){
+                if(ValidC(nX, nY)){
+                    for(auto nUID: m_UIDRecordV2D[nX][nY]){
+                        if(nUID == stAMQCOR.UID){
+                            extern MonoServer *g_MonoServer;
+                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                                if(stUIDRecord.ClassFrom<CharObject>()){
+                                    m_ActorPod->Forward({MPK_PULLCOINFO, stAMQCOR.SessionID}, stUIDRecord.Address);
+                                    return;
                                 }
                             }
                         }

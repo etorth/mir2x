@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/04/2017 17:39:13
+ *  Last Modified: 06/07/2017 18:55:27
  *
  *    Description: 
  *
@@ -361,7 +361,7 @@ bool MonoServer::InitMonsterItem()
 //
 // but if no response, we never know this function is successful or not because
 // we won't store monster (UID, AddTime)
-void MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY)
+bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY)
 {
     AMAddCharObject stAMACO;
     stAMACO.Type = TYPE_MONSTER;
@@ -379,17 +379,17 @@ void MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
         case MPK_OK:
             {
                 AddLog(LOGTYPE_INFO, "add monster: adding succeeds");
-                break;
+                return true;
             }
         case MPK_ERROR:
             {
                 AddLog(LOGTYPE_WARNING, "add monster: operation failed");
-                break;
+                return false;
             }
         default:
             {
-                AddLog(LOGTYPE_WARNING, "unsupported message: %s", stRMPK.Name());
-                break;
+                AddLog(LOGTYPE_WARNING, "Unsupported message: %s", stRMPK.Name());
+                return false;
             }
     }
 }
@@ -604,6 +604,12 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, CommandWindow *pWin
         // return a table (userData) to lua for ipairs() check
         pModule->set_function("mapList", [this](sol::this_state stThisLua){
             return sol::make_object(sol::state_view(stThisLua), GetActiveMapList());
+        });
+
+        // register command addMonster
+        // return a table (userData) to lua for ipairs() check
+        pModule->set_function("addMonster", [this](int nMonsterID, int nMapID, int nX, int nY) -> bool {
+            return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), nX, nY);
         });
 
         // register command ``listAllMap"

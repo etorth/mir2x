@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/28/2017 00:33:20
+ *  Last Modified: 06/07/2017 23:39:11
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 #include <memory>
 #include <cstring>
 
+#include "game.hpp"
 #include "monster.hpp"
 #include "sysconst.hpp"
 #include "pngtexdbn.hpp"
@@ -78,6 +79,17 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         auto pRecord = m_CreatureRecord.find(stSMA.UID);
         if((pRecord != m_CreatureRecord.end()) && pRecord->second){
             pRecord->second->ParseNewAction(stAction, true);
+        }else{
+            // can't find it
+            // we have to create a new actor but need more information
+            CMQueryCORecord stCMQCOR;
+            stCMQCOR.UID   = stSMA.UID;
+            stCMQCOR.MapID = stSMA.MapID;
+            stCMQCOR.X     = stSMA.X;
+            stCMQCOR.Y     = stSMA.Y;
+
+            extern Game *g_Game;
+            g_Game->Send(CM_QUERYCORECORD, stCMQCOR);
         }
     }else{
         if(m_MyHero && m_MyHero->UID() == stSMA.UID){

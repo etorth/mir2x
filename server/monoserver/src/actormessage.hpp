@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 05/29/2017 16:59:26
+ *  Last Modified: 06/08/2017 01:00:36
  *
  *    Description: 
  *
@@ -59,6 +59,7 @@ enum MessagePackType: int
     MPK_ATTACK,
     MPK_UPDATEHP,
     MPK_DEADFADEOUT,
+    MPK_QUERYCORECORD,
 };
 
 typedef struct
@@ -343,3 +344,14 @@ typedef struct
     int X;
     int Y;
 }AMDeadFadeOut;
+
+typedef struct
+{
+    uint32_t UID;
+    uint32_t MapID;
+
+    int X;
+    int Y;
+
+    uint32_t SessionID;
+}AMQueryCORecord;

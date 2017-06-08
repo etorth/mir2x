@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 06/04/2017 17:38:54
+ *  Last Modified: 06/07/2017 18:49:43
  *
  *    Description: 
  *
@@ -119,7 +119,7 @@ class MonoServer final
         int GetValidMonsterCount(int, int);
 
     public:
-        void AddMonster(uint32_t, uint32_t, int, int);
+        bool AddMonster(uint32_t, uint32_t, int, int);
 
     public:
         // (uid, instance) managerment

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/30/2017 23:27:59
+ *  Last Modified: 06/08/2017 01:05:45
  *
  *    Description: 
  *
@@ -121,6 +121,7 @@ void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
         case CM_QUERYMONSTERGINFO: Net_CM_QUERYMONSTERGINFO(nType, pData, nDataLen); break;
+        case CM_QUERYCORECORD    : Net_CM_QUERYCORECORD    (nType, pData, nDataLen); break;
         case CM_ACTION           : Net_CM_ACTION           (nType, pData, nDataLen); break;
         default                  :                                                   break;
     }
