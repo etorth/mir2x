@@ -21,27 +21,25 @@ mir2x is a c/s based mir2 implementation with various platforms supported. It co
 
 mir2x uses a number of open source projects to work properly, and of course itself is open source with a public repository on github, please remind me if I missed anything.
 
-* [SDL2](https://www.libsdl.org/) - cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware via OpenGL and Direct3D.
-* [FLTK](http://www.fltk.org) - cross-platform C++ GUI toolkit for UNIX®/Linux® (X11), Microsoft® Windows®, and MacOS® X.
-* [asio](http://www.think-async.com/) - cross-platform C++ library for network and low-level I/O programming using a modern C++ approach.
-* [theron](http://www.theron-library.com/) - Theron is a lightweight C++ concurrency library based on the Actor Model.
-* [g3log](https://github.com/KjellKod/g3log) - G3log is an asynchronous, "crash safe", logger that is easy to use with default logging sinks or you can add your own.
-* [lua](https://www.lua.org/) - Lua is a powerful, efficient, lightweight, embeddable scripting language.
-* [sol2](https://github.com/ThePhD/sol2) - a fast, simple C++ and Lua Binding
-* [mariadb](https://mariadb.org/) - A community-developed fork of the MySQL relational database management system
-* [luasql](https://keplerproject.github.io/luasql/) - LuaSQL is a simple interface from Lua to a DBMS
+* [SDL2](https://www.libsdl.org/) - A cross-platform development library designed to provide a hardware abstraction layer.
+* [FLTK](http://www.fltk.org) - A cross-platform C++ GUI toolkit for UNIX®/Linux® (X11), Microsoft® Windows®, and MacOS® X.
+* [asio](http://www.think-async.com/) - A cross-platform C++ library for network and low-level I/O programming.
+* [theron](http://www.theron-library.com/) - A lightweight C++ concurrency library based on the Actor Model.
+* [g3log](https://github.com/KjellKod/g3log) - An asynchronous, "crash safe", logger that is easy to use.
+* [lua](https://www.lua.org/) - A powerful, efficient, lightweight, embeddable scripting language.
+* [sol2](https://github.com/ThePhD/sol2) - A fast, simple C++ and Lua binding.
+* [mariadb](https://mariadb.org/) - A community-developed fork of the MySQL relational database management system.
+* [luasql](https://keplerproject.github.io/luasql/) - LuaSQL is a simple interface from Lua to a DBMS.
 * [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - A simple, small, efficient, C++ XML parser.
-* [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for easy handling of UTF-8 encoded strings.
+* [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for UTF-8 string handling.
 * [libpng](http://www.libpng.org/pub/png/libpng.html) - The official PNG reference library.
 * [libzip](https://nih.at/libzip/) - C library for reading, creating, and modifying zip archives.
 * [ThreadPool](https://github.com/progschj/ThreadPool) - A simple C++11 Thread Pool implementation
 * [astar-algorithm](https://github.com/justinhj/astar-algorithm-cpp) - Implementation of the A* algorithm in C++ and C#
 
-
-
 ### Building from source
 
-Dillinger requires [cmake](https://cmake.org/) v3+ and [gcc](https://gcc.gnu.org/) support c++14 to run.
+mir2x requires [cmake](https://cmake.org/) v3+ and [gcc](https://gcc.gnu.org/) support c++14 to run.
 
 Install the dependencies and devDependencies and start the server.
 
