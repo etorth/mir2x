@@ -5,17 +5,56 @@
        src="https://scan.coverity.com/projects/9270/badge.svg"/>
 </a>
 
-client, server, tools for cross-platform mir2. Using asio, SDL, FLTK, libzip, etc..
+mir2x is a c/s based mir2 re-implementation with various platforms supported. It contains all need components for game players and developers:
 
-1. pkgviewer
-2. animaker
-3. shadowmaker
-4. mapeditor
-5. client
-6. monoserver
+  - client
+  - monoserver
+  - pkgviewer
+  - animaker
+  - mapeditor
+  - dbcreator
 
 ![image](https://github.com/etorth/mir2x/raw/master/readme/screencapture.gif)
 ![image](https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png)
+
+### Packages
+
+mir2x uses a number of open source projects to work properly, and of course mir2x itself is open source with a [public repository][dill] on github, please remind me if I missed anything or any issues.
+
+* [SDL2](https://www.libsdl.org/) - Simple DirectMedia Layer is a cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware via OpenGL and Direct3D.
+* [FLTK](http://www.fltk.org) - FLTK (pronounced "fulltick") is a cross-platform C++ GUI toolkit for UNIX®/Linux® (X11), Microsoft® Windows®, and MacOS® X.
+* [asio](http://www.think-async.com/) - Asio is a cross-platform C++ library for network and low-level I/O programming that provides developers with a consistent asynchronous model using a modern C++ approach.
+* [theron](http://www.theron-library.com/) - Theron is a lightweight C++ concurrency library based on the Actor Model.
+* [g3log](https://github.com/KjellKod/g3log) - G3log is an asynchronous, "crash safe", logger that is easy to use with default logging sinks or you can add your own.
+* [lua](https://www.lua.org/) - Lua is a powerful, efficient, lightweight, embeddable scripting language.
+* [sol2](https://github.com/ThePhD/sol2) - a fast, simple C++ and Lua Binding
+* [mariadb](https://mariadb.org/) - HTML to Markdown converter
+* [luasql](https://keplerproject.github.io/luasql/) - LuaSQL is a simple interface from Lua to a DBMS
+* [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - TinyXML-2 is a simple, small, efficient, C++ XML parser that can be easily integrating into other programs.
+* [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for easy handling of UTF-8 encoded strings.
+* [libpng](http://www.libpng.org/pub/png/libpng.html) - libpng is the official PNG reference library.
+* [libzip](https://nih.at/libzip/) - libzip is a C library for reading, creating, and modifying zip archives.
+* [ThreadPool](https://github.com/progschj/ThreadPool) - A simple C++11 Thread Pool implementation
+* [astar-algorithm](https://github.com/justinhj/astar-algorithm-cpp) - Implementation of the A* algorithm in C++ and C#
+
+
+
+### Building from source
+
+Dillinger requires [cmake](https://cmake.org/) v3+ and [gcc](https://gcc.gnu.org/) support c++14 to run.
+
+Install the dependencies and devDependencies and start the server.
+
+```sh
+$ git clone https://github.com/etorth/mir2x.git
+$ cd mir2x
+$ mkdir b
+$ cd b 
+$ cmake ..
+$ make
+```
+
+### Code style
 
 global variables:
 
@@ -53,3 +92,6 @@ General rules for classes:
 3. put strict parameters check when provide input to objects, and reject immedately if not valid;
 4. avoid to do state validation outside an object;
 5. external call of member function should never break current object, keep log instead;
+
+### Lisence
+MIT
