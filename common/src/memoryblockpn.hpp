@@ -3,7 +3,7 @@
  *
  *       Filename: memoryblockpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 06/11/2017 23:44:15
+ *  Last Modified: 06/12/2017 16:27:37
  *
  *    Description: fixed size memory block pool
  *                 simple implementation for performance
@@ -283,7 +283,7 @@ class MemoryBlockPN
             //
             //    since it's already pointer of type InnMemoryBlock
             //    no need for devision of sizeof(InnMemoryBlock)
-            size_t nBlockID = pHead - &(m_MBPBV[0].PoolV[pHead->PoolID]->BlockV[0]);
+            size_t nBlockID = pHead - &(m_MBPBV[nBranchIndex].PoolV[pHead->PoolID]->BlockV[0]);
 
             // 4. put it as valid
             m_MBPBV[nBranchIndex].PoolV[pHead->PoolID]->ValidQ.PushHead(nBlockID);
