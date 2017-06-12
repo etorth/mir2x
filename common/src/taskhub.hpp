@@ -3,7 +3,7 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 05/21/2017 00:39:43
+ *  Last Modified: 06/11/2017 19:00:02
  *
  *    Description: this makes me very confused, std::function may use internally
  *                 dynamically allocated memory, if so, it's nonsense of using
@@ -80,9 +80,19 @@ class TaskHub: public BaseHub
         }
 
     public:
-        template<typename... Args> void Add(Args &&... args, bool bPushHead = false)
+        // c++ can't support this signature for the function:
+        //      template<typename... Args> void Add(Args &&... args, bool bPushHead = true)
+        // the variadic template arugment pack should stay at the end
+        // so we have to provide Add() and AddHead()
+
+        template<typename... Args> void Add(Args &&... args)
         {
-            Add(CreateTask(std::forward<Args>(args)...), bPushHead);
+            Add(CreateTask(std::forward<Args>(args)...), false);
+        }
+
+        template<typename... Args> void AddHead(Args &&... args)
+        {
+            Add(CreateTask(std::forward<Args>(args)...), true);
         }
 
     protected:

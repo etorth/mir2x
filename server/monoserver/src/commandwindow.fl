@@ -2,6 +2,9 @@
 version 1.0303 
 header_name {.hpp} 
 code_name {.cpp}
+decl {\#include "taskhub.hpp"} {public global
+} 
+
 decl {\#include "commandinput.hpp"} {public global
 } 
 
@@ -10,12 +13,13 @@ decl {\#include "serverluamodule.hpp"} {public global
 
 class CommandWindow {open
 } {
+  decl {TaskHub *m_LuaModuleTaskHub;} {private local
+  }
   decl {ServerLuaModule *m_LuaModule;} {private local
   }
-  Function {CommandWindow()} {open
-  } {
+  Function {CommandWindow()} {} {
     Fl_Window m_Window {open
-      xywh {780 311 580 400} type Double resizable visible
+      xywh {757 211 580 400} type Double resizable visible
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 580 25} box FLAT_BOX labelfont 4
@@ -39,14 +43,20 @@ class CommandWindow {open
       }
     }
     code {{
-	// create the internal lua module
-	// register current window to lua module
-	m_LuaModule = new ServerLuaModule(this);
+    // initialization of the lua module and its taskhub
+	m_LuaModule        = nullptr;
+    m_LuaModuleTaskHub = nullptr;
 	
 	// bind current window to CommandInput
 	// which helps to do event logic handling inside CommandInput
 	// avoid to do it in CommandWindow::handle(int)
 	m_Input->Bind(this);
+}} {}
+  }
+  Function {HideAll()} {return_type void
+  } {
+    code {{
+	m_Window->hide();
 }} {}
   }
   Function {ShowAll()} {return_type void
@@ -55,7 +65,54 @@ class CommandWindow {open
 	m_Window->show();
 }} {}
   }
-  Function {AddLog(int nLogType, const char *szPrompt, const char *szLogInfo)} {return_type void
+  Function {GetTaskHub()} {return_type {TaskHub *}
+  } {
+    code {{
+	// won't put any cv-qualifiers
+	// expose the TaskHub interface to outside
+	return m_LuaModuleTaskHub;
+}} {}
+  }
+  Function {GetLuaModule()} {return_type {ServerLuaModule *}
+  } {
+    code {{
+	// won't put any cv-qualifiers
+	// expose the TaskHub interface to outside
+	// then I don't have do implement CommandWindow::Execute(const char *)
+	return m_LuaModule;
+}} {}
+  }
+  Function {DetachLuaModule()} {return_type void
+  } {
+    code {{
+	// won't put any cv-qualifiers
+	// expose the TaskHub interface to outside
+	// then I don't have do implement CommandWindow::Execute(const char *)
+    delete m_LuaModule;        m_LuaModule        = nullptr;
+    delete m_LuaModuleTaskHub; m_LuaModuleTaskHub = nullptr;
+}} {}
+  }
+  Function {BindLuaModule(int nCWID)} {return_type void
+  } {
+    code {{
+    // activate the internal LuaModule and its TaskHub
+    // after this line the LuaModule grants a CWID to print
+    // and LuaModuleTaskHub has an LuaModule as command input
+    {
+        if(nCWID > 0){
+            assert(m_LuaModule        == nullptr);
+            assert(m_LuaModuleTaskHub == nullptr);
+
+            m_LuaModule        = new ServerLuaModule((uint32_t)(nCWID));
+            m_LuaModuleTaskHub = new TaskHub();
+
+            // start the hub now
+            m_LuaModuleTaskHub->Launch();
+        }
+    }
+}} {}
+  }
+  Function {AddLog(int nLogType, const char *szPrompt, const char *szLogInfo)} {selected return_type void
   } {
     code {{
     // log can be multiply lines but only do one line for this call
@@ -74,15 +131,6 @@ class CommandWindow {open
 
     m_Browser->add(((std::string(pColorCode) + (szPrompt ? szPrompt : "")) + (szLogInfo ? szLogInfo : "")).c_str());
     m_Browser->bottomline(m_Browser->size());
-}} {}
-  }
-  Function {LuaModule()} {return_type {ServerLuaModule *}
-  } {
-    code {{
-	// expose the lua interface to outside
-	// won't put any cv-qualifiers
-	// then I don't have do implement CommandWindow::Execute(const char *)
-	return m_LuaModule;
 }} {}
   }
 } 

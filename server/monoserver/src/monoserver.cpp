@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/07/2017 18:55:27
+ *  Last Modified: 06/12/2017 00:03:45
  *
  *    Description: 
  *
@@ -126,6 +126,80 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
             }
         }else{
             fnRecordLog(Log::LOGTYPEV_FATAL, (std::string("Parse log info failed: ") + szLogFormat).c_str());
+            return;
+        }
+    }
+}
+
+void MonoServer::AddCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
+{
+    auto fnCWRecordLog = [this](uint32_t nCWID, int nLogType, const char *szPrompt, const char *szLogMsg){
+        if(true
+                && (nCWID)
+                && (nLogType == 0 || nLogType == 1 || nLogType == 2)){
+
+            szPrompt = szPrompt ? szPrompt : "";
+            szLogMsg = szLogMsg ? szLogMsg : "";
+
+            // we should lock the internal buffer record
+            // we won't assess any gui instance in this function
+            {
+                std::lock_guard<std::mutex> stLockGuard(m_CWLogLock);
+                m_CWLogBuf.insert(m_CWLogBuf.end(), (char *)(&nCWID), (char *)(&nCWID) + sizeof(nCWID));
+                m_CWLogBuf.push_back((char)(nLogType));
+
+                m_CWLogBuf.insert(m_CWLogBuf.end(), szPrompt, szPrompt + std::strlen(szPrompt) + 1);
+                m_CWLogBuf.insert(m_CWLogBuf.end(), szLogMsg, szLogMsg + std::strlen(szLogMsg) + 1);
+            }
+            Fl::awake((void *)(uintptr_t)(3));
+        }
+    };
+
+    int nLogSize = 0;
+
+    // 1. try static buffer
+    //    give a enough size so we can hopefully stop here
+    {
+        char szSBuf[1024];
+
+        va_list ap;
+        va_start(ap, szLogFormat);
+        nLogSize = std::vsnprintf(szSBuf, (sizeof(szSBuf) / sizeof(szSBuf[0])), szLogFormat, ap);
+        va_end(ap);
+
+        if(nLogSize >= 0){
+            if((size_t)(nLogSize + 1) < (sizeof(szSBuf) / sizeof(szSBuf[0]))){
+                fnCWRecordLog(nCWID, nLogType, szPrompt, szSBuf);
+                return;
+            }else{
+                // do nothing
+                // have to try the dynamic buffer method
+            }
+        }else{
+            AddLog(LOGTYPE_WARNING, "Parse command window log info failed: %s", szLogFormat);
+            return;
+        }
+    }
+
+    // 2. try dynamic buffer
+    //    use the parsed buffer size above to get enough memory
+    while(true){
+        std::vector<char> szDBuf(nLogSize + 1 + 64);
+
+        va_list ap;
+        va_start(ap, szLogFormat);
+        nLogSize = std::vsnprintf(&(szDBuf[0]), szDBuf.size(), szLogFormat, ap);
+        va_end(ap);
+
+        if(nLogSize >= 0){
+            if((size_t)(nLogSize + 1) < szDBuf.size()){
+                fnCWRecordLog(nCWID, nLogType, szPrompt, &(szDBuf[0]));
+                return;
+            }else{
+                szDBuf.resize(nLogSize + 1 + 64);
+            }
+        }else{
+            AddLog(LOGTYPE_WARNING, "Parse command window log info failed: %s", szLogFormat);
             return;
         }
     }
@@ -445,6 +519,37 @@ void MonoServer::FlushBrowser()
     }
 }
 
+void MonoServer::FlushCWBrowser()
+{
+    std::lock_guard<std::mutex> stLockGuard(m_CWLogLock);
+    {
+        // internal structure of CWLogBuf:
+        // [xxxx][x][..0][....0][xxxx][x][..0][....0] ....
+        //
+        // [xxxx]  : CWID
+        // [x]     : LogType: 0 ~ 2
+        // [..0]   : szPrompt
+        // [....0] : szLogInfo
+
+        size_t nCurrLoc = 0;
+        while(nCurrLoc < m_CWLogBuf.size()){
+            uint32_t nCWID = 0;
+            std::memcpy(&nCWID, &(m_CWLogBuf[nCurrLoc]), sizeof(nCWID));
+
+            auto nInfoLen0 = std::strlen(&(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1]));
+            auto nInfoLen1 = std::strlen(&(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1 + nInfoLen0 + 1]));
+
+            auto pInfo0 = &(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1]);
+            auto pInfo1 = &(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1 + nInfoLen0 + 1]);
+
+            extern MainWindow *g_MainWindow;
+            g_MainWindow->AddCWLog(nCWID, (int)(m_CWLogBuf[nCurrLoc + sizeof(nCWID)]), pInfo0, pInfo1);
+            nCurrLoc += (sizeof(nCWID) + 1 + nInfoLen0 + 1 + nInfoLen1 + 1);
+        }
+        m_CWLogBuf.clear();
+    }
+}
+
 uint32_t MonoServer::GetUID()
 {
     return m_GlobalUID.fetch_add(1);
@@ -552,11 +657,11 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
     return UIDRecord(0, Theron::Address::Null(), stNullEntry);
 }
 
-bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, CommandWindow *pWindow)
+bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
 {
     if(true
             && pModule      // module to execute lua script
-            && pWindow){    // command window to echo all execution information
+            && nCWID){      // command window id to echo all execution information
 
         // initialization before registration
         pModule->script(R"()");
@@ -564,7 +669,7 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, CommandWindow *pWin
         // register command printLine
         // print one line in command window
         // won't add message to log system, use addLog instead
-        pModule->set_function("printLine", [pWindow](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo){
+        pModule->set_function("printLine", [this, nCWID](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo){
             // use sol::object to accept arguments
             // otherwise for follow code it throws exception for type unmatch
             //      lua["f"] = [](int a){ return a; };
@@ -574,17 +679,17 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, CommandWindow *pWin
                     && stLogType.is<int>()
                     && stPrompt.is<std::string>()
                     && stLogInfo.is<std::string>()){
-                pWindow->AddLog(stLogType.as<int>(), stPrompt.as<std::string>().c_str(), stLogInfo.as<std::string>().c_str());
+                AddCWLog(nCWID, stLogType.as<int>(), stPrompt.as<std::string>().c_str(), stLogInfo.as<std::string>().c_str());
                 return;
             }
 
             // invalid argument provided
-            pWindow->AddLog(2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
+            AddCWLog(nCWID, 2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
         });
 
         // register command addLog
         // add to system log file and main window history window
-        pModule->set_function("addLog", [this, pWindow](sol::object stLogType, sol::object stLogInfo){
+        pModule->set_function("addLog", [this, nCWID](sol::object stLogType, sol::object stLogInfo){
             if(true
                     && stLogType.is<int>()
                     && stLogInfo.is<std::string>()){
@@ -596,7 +701,7 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, CommandWindow *pWin
             }
 
             // invalid argument provided
-            pWindow->AddLog(2, ">>> ", "addLog(LogType: int, LogInfo: string)");
+            AddCWLog(nCWID, 2, ">>> ", "addLog(LogType: int, LogInfo: string)");
         });
 
         // register command mapList
@@ -607,7 +712,7 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, CommandWindow *pWin
         });
 
         // register command addMonster
-        // return a table (userData) to lua for ipairs() check
+        // will support add monster by monster name and map name
         pModule->set_function("addMonster", [this](int nMonsterID, int nMapID, int nX, int nY) -> bool {
             return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), nX, nY);
         });

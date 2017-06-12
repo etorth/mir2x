@@ -3,7 +3,7 @@
  *
  *       Filename: memoryblockpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 05/26/2016 11:32:24
+ *  Last Modified: 06/11/2017 23:44:15
  *
  *    Description: fixed size memory block pool
  *                 simple implementation for performance
@@ -161,9 +161,11 @@ class MemoryBlockPN
             std::vector<std::shared_ptr<InnMemoryBlockPool>> PoolV;
 
             // didn't assign BranchID here, it's in a raw array
-            // and hard to use ctor with parameters
+            // and hard to use ctor with parameters, has to initialize it manually
             _InnMemoryBlockPoolBranch()
             {
+                // we are saving anything we can in this class
+                // even didn't assign Lock as zero if BranchSize == 0
                 if(BranchSize > 1){
                     Lock = new std::mutex();
                 }
@@ -186,8 +188,7 @@ class MemoryBlockPN
                 }
 
                 // ooops, need to add a new pool
-                PoolV.emplace_back(std::make_shared<
-                        InnMemoryBlockPool>(PoolV.size(), (BranchSize > 1) ? BranchID : 0));
+                PoolV.emplace_back(std::make_shared<InnMemoryBlockPool>(PoolV.size(), (BranchSize > 1) ? BranchID : 0));
                 return PoolV.back()->Get();
             }
 
@@ -230,6 +231,12 @@ class MemoryBlockPN
                     && BlockSize  > 0
                     && PoolSize   > 0
                     && BranchSize > 0, "invalid argument for MemoryBlockPN");
+
+            // need to assign BranchID here
+            // number of branch is fixed so it's can be done in ctor
+            for(size_t nBranchID = 0; nBranchID < BranchSize; ++nBranchID){
+                m_MBPBV[nBranchID].BranchID = nBranchID;
+            }
         }
 
         ~MemoryBlockPN() = default;
@@ -240,6 +247,8 @@ class MemoryBlockPN
             // don't need those logics
             if(BranchSize == 1){ return m_MBPBV[0].Get(); }
 
+            // OK it's in multi-thread environment
+            // I didn't protect m_Count since it's just a huristic variable
             int nIndex = (m_Count++) % BranchSize;
             while(true){
                 if(auto pRet = m_MBPBV[nIndex].Get()){

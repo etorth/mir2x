@@ -3,7 +3,7 @@
  *
  *       Filename: serverluamodule.cpp
  *        Created: 06/02/2017 17:40:54
- *  Last Modified: 06/04/2017 12:31:48
+ *  Last Modified: 06/11/2017 18:13:07
  *
  *    Description: 
  *
@@ -21,9 +21,10 @@
 #include "monoserver.hpp"
 #include "serverluamodule.hpp"
 
-ServerLuaModule::ServerLuaModule(CommandWindow *pWindow)
+ServerLuaModule::ServerLuaModule(uint32_t nCWID)
     : LuaModule()
+    , m_CWID(nCWID)
 {
     extern MonoServer *g_MonoServer;
-    g_MonoServer->RegisterLuaExport(this, pWindow);
+    g_MonoServer->RegisterLuaExport(this, nCWID);
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 06/07/2017 18:49:43
+ *  Last Modified: 06/11/2017 22:45:57
  *
  *    Description: 
  *
@@ -37,7 +37,6 @@
 
 class ServiceCore;
 class ServerObject;
-class CommandWindow;
 class MonoServer final
 {
     struct UIDLockRecord
@@ -49,6 +48,10 @@ class MonoServer final
     private:
         std::mutex m_LogLock;
         std::vector<char> m_LogBuf;
+
+    private:
+        std::mutex m_CWLogLock;
+        std::vector<char> m_CWLogBuf;
 
     private:
         ServiceCore *m_ServiceCore;
@@ -67,6 +70,7 @@ class MonoServer final
 
     public:
         void FlushBrowser();
+        void FlushCWBrowser();
 
     public:
         const MonsterGInfoRecord &MonsterGInfo(uint32_t nMonsterID) const
@@ -96,7 +100,15 @@ class MonoServer final
         void RegisterAMFallbackHandler();
 
     public:
-        void AddLog(const std::array<std::string, 4> &, const char *, ...);
+        void AddCWLog(uint32_t,         // command window id
+                int,                    // log color in command window
+                                        // we don't support fileName/functionName here
+                                        // since AddCWLog() is dedicated for lua command ``printLine"
+                const char *,           // prompt
+                const char *, ...);     // variadic argument list support std::vsnprintf()
+
+        void AddLog(const std::array<std::string, 4> &,     // argument list, compatible to Log::AddLog()
+                const char *, ...);                         // variadic argument list supported by std::vsnprintf()
 
     private:
         bool AddPlayer(uint32_t, uint32_t);
@@ -186,5 +198,5 @@ class MonoServer final
         }
 
     public:
-        bool RegisterLuaExport(ServerLuaModule *, CommandWindow *);
+        bool RegisterLuaExport(ServerLuaModule *, uint32_t);
 };

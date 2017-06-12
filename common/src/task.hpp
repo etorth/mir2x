@@ -3,7 +3,7 @@
  *
  *       Filename: task.hpp
  *        Created: 04/03/2016 19:40:00
- *  Last Modified: 05/24/2016 13:34:49
+ *  Last Modified: 06/11/2017 18:39:41
  *
  *    Description: 
  *
@@ -47,12 +47,12 @@ class Task
             : Task(nDuraMS, std::function<void()>(fnOp))
         {}
 
-        explicit Task(std::function<void (void)>&& fnOp)
+        explicit Task(std::function<void()>&& fnOp)
             : m_Func(fnOp)
             , m_Expiration(LOCAL_SYSTEM_TIME_ZERO)
         {}
 
-        explicit Task(const std::function<void (void)>& fnOp)
+        explicit Task(const std::function<void()>& fnOp)
             : Task(std::function<void()>(fnOp))
         {}
 

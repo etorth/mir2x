@@ -3,7 +3,7 @@
  *
  *       Filename: threadpool2.hpp
  *        Created: 02/06/2016 13:43:29
- *  Last Modified: 05/09/2017 12:56:06
+ *  Last Modified: 06/10/2017 09:18:33
  *
  *    Description: copy from https://github.com/progschj/ThreadPool, I editted it
  *                 to make it be simpler which is limited at
@@ -47,8 +47,6 @@
 #include <stdexcept>
 #include <functional>
 #include <condition_variable>
-
-#include "log.hpp"
 
 class ThreadPool2
 {
