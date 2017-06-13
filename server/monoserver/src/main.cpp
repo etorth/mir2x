@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 06/11/2017 19:22:37
+ *  Last Modified: 06/12/2017 19:12:51
  *
  *    Description: 
  *
@@ -91,32 +91,15 @@ int main()
                     // call Fl::awake(0) to force Fl::wait() to terminate
                     break;
                 }
-            case 1:
-                {
-                    // request to stop
-                    // FLTK will abort() if got 1
-                    fl_alert("%s", "system request for restart");
-                    exit(0);
-                    break;
-                }
-            case 2:
-                {
-                    // to show log info
-                    // can't do it in child thread since it blocks, why?
-                    g_MonoServer->FlushBrowser();
-                    break;
-                }
-            case 3:
-                {
-                    g_MonoServer->FlushCWBrowser();
-                    break;
-                }
             default:
                 {
+                    // designed to send Fl::awake(1) to notify gui
+                    // to pase the requests in the cached queue
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->ParseNotifyGUIQ();
                     break;
                 }
         }
     }
-
     return 0;
 }

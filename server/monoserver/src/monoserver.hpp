@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 06/11/2017 22:45:57
+ *  Last Modified: 06/12/2017 17:52:29
  *
  *    Description: 
  *
@@ -21,6 +21,8 @@
 #pragma once
 
 #include <mutex>
+#include <queue>
+#include <vector>
 #include <chrono>
 #include <cstdint>
 #include <type_traits>
@@ -54,6 +56,10 @@ class MonoServer final
         std::vector<char> m_CWLogBuf;
 
     private:
+        std::mutex m_NotifyGUILock;
+        std::queue<std::string> m_NotifyGUIQ;
+
+    private:
         ServiceCore *m_ServiceCore;
 
     private:
@@ -67,6 +73,10 @@ class MonoServer final
 
     private:
         std::unordered_map<uint32_t, MonsterGInfoRecord> m_MonsterGInfoRecord;
+
+    public:
+        void NotifyGUI(std::string);
+        void ParseNotifyGUIQ();
 
     public:
         void FlushBrowser();

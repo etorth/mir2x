@@ -88,6 +88,8 @@ class CommandWindow {open
 	// won't put any cv-qualifiers
 	// expose the TaskHub interface to outside
 	// then I don't have do implement CommandWindow::Execute(const char *)
+    m_LuaModuleTaskHub->Shutdown();
+
     delete m_LuaModule;        m_LuaModule        = nullptr;
     delete m_LuaModuleTaskHub; m_LuaModuleTaskHub = nullptr;
 }} {}
@@ -112,7 +114,7 @@ class CommandWindow {open
     }
 }} {}
   }
-  Function {AddLog(int nLogType, const char *szPrompt, const char *szLogInfo)} {selected return_type void
+  Function {AddLog(int nLogType, const char *szPrompt, const char *szLogInfo)} {return_type void
   } {
     code {{
     // log can be multiply lines but only do one line for this call
@@ -131,6 +133,13 @@ class CommandWindow {open
 
     m_Browser->add(((std::string(pColorCode) + (szPrompt ? szPrompt : "")) + (szLogInfo ? szLogInfo : "")).c_str());
     m_Browser->bottomline(m_Browser->size());
+}} {}
+  }
+  Function {ClearBrowser()} {selected return_type void
+  } {
+    code {{
+    // clear all history of current browser
+    m_Browser->clear();
 }} {}
   }
 } 

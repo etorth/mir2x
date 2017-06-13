@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/12/2017 00:03:45
+ *  Last Modified: 06/12/2017 22:52:47
  *
  *    Description: 
  *
@@ -77,7 +77,7 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
                         m_LogBuf.push_back((char)(nLogType));
                         m_LogBuf.insert(m_LogBuf.end(), szLogInfo, szLogInfo + std::strlen(szLogInfo) + 1);
                     }
-                    Fl::awake((void *)(uintptr_t)(2));
+                    NotifyGUI("FlushBrowser");
                     break;
                 }
         }
@@ -151,7 +151,7 @@ void MonoServer::AddCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, co
                 m_CWLogBuf.insert(m_CWLogBuf.end(), szPrompt, szPrompt + std::strlen(szPrompt) + 1);
                 m_CWLogBuf.insert(m_CWLogBuf.end(), szLogMsg, szLogMsg + std::strlen(szLogMsg) + 1);
             }
-            Fl::awake((void *)(uintptr_t)(3));
+            NotifyGUI("FlushCWBrowser");
         }
     };
 
@@ -314,7 +314,7 @@ void MonoServer::Restart()
     // this function itself can be called from
     //   1. main loop
     //   2. child thread
-    Fl::awake((void *)(uintptr_t)(1));
+    NotifyGUI("Restart");
 }
 
 // I have to put it here, since in actorpod.hpp I used MonoServer::AddLog()
@@ -505,6 +505,135 @@ int MonoServer::GetValidMonsterCount(int, int)
     return 1;
 }
 
+void MonoServer::NotifyGUI(std::string szNotification)
+{
+    if(szNotification != ""){
+        {
+            std::lock_guard<std::mutex> stLockGuard(m_NotifyGUILock);
+            m_NotifyGUIQ.push(szNotification);
+        }
+        Fl::awake((void *)(uintptr_t)(1));
+    }
+}
+
+void MonoServer::ParseNotifyGUIQ()
+{
+    static auto fnGetTokenList = [](const std::string &szCommand) -> std::deque<std::string>
+    {
+        std::deque<std::string> stTokenList;
+
+        size_t nCurrLoc = 0;
+        while(nCurrLoc <= szCommand.size()){
+            auto nLoc0 = szCommand.find_first_not_of(" \t", nCurrLoc);
+            auto nLoc1 = szCommand.find_first_of    (" \t", nCurrLoc);
+
+            if(nLoc0 == std::string::npos){
+                // done parsing
+                // there is no more tokens in the string
+                break;
+            }else if(nLoc1 == std::string::npos){           // last one
+                // nLoc0 is OK
+                // nLoc1 reaches the end
+                // this is the last token in the list
+                stTokenList.push_back(szCommand.substr(nLoc0));
+                break;
+            }else if(nLoc0 < nLoc1){
+                // match cases
+                // make sure nLoc0 < nLoc1 to avoid cases like: "    OK 1"
+                stTokenList.push_back(szCommand.substr(nLoc0, nLoc1 - nLoc0));
+                nCurrLoc = nLoc1;
+                continue;
+            }else{
+                // case for nLoc0 > nLoc1, no equal here
+                // cases like "   OK 1", take no token and move forward
+                nCurrLoc = nLoc0;
+                continue;
+            }
+        }
+        return stTokenList;
+    };
+
+
+    while(true){
+        std::string szCurrNotify;
+        {
+            std::lock_guard<std::mutex> stLockGuard(m_NotifyGUILock);
+            if(m_NotifyGUIQ.empty()){ break; }
+
+            szCurrNotify = m_NotifyGUIQ.front();
+            m_NotifyGUIQ.pop();
+        }
+
+        auto stTokenList = fnGetTokenList(szCurrNotify);
+        if(stTokenList.empty()){ continue; }
+
+        // get a valid token list
+        // parse the first token as command name
+
+        if(false
+                || stTokenList.front() == "exit"
+                || stTokenList.front() == "Exit"
+                || stTokenList.front() == "EXIT"){
+            std::exit(0);
+            return;
+        }
+
+        if(false
+                || stTokenList.front() == "restart"
+                || stTokenList.front() == "Restart"
+                || stTokenList.front() == "RESTART"){
+            fl_alert("%s", "System request for restart");
+            std::exit(0);
+            return;
+        }
+        
+        if(false
+                || stTokenList.front() == "flushbrowser"
+                || stTokenList.front() == "FlushBrowser"
+                || stTokenList.front() == "FLUSHBROWSER"){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->FlushBrowser();
+            continue;
+        }
+        
+        if(false
+                || stTokenList.front() == "flushcwbrowser"
+                || stTokenList.front() == "FlushCWBrowser"
+                || stTokenList.front() == "FLUSHCWBROWSER"){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->FlushCWBrowser();
+            continue;
+        }
+
+        if(false
+                || stTokenList.front() == "exitcw"
+                || stTokenList.front() == "ExitCW"
+                || stTokenList.front() == "EXITCW"){
+            stTokenList.pop_front();
+            int nCWID = 0;
+            try{
+                nCWID = std::stoi(stTokenList.front());
+            }catch(...){
+                nCWID = 0;
+            }
+
+            if(nCWID > 0){
+                extern MainWindow *g_MainWindow;
+                g_MainWindow->DeleteCommandWindow(nCWID);
+            }
+            continue;
+        }
+
+        // unsupported command here
+        // print into the log file and not exit here
+        {
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Unsupported NotifyGUI command: %s", stTokenList.front().c_str());
+            continue;
+        }
+    }
+}
+
 void MonoServer::FlushBrowser()
 {
     std::lock_guard<std::mutex> stLockGuard(m_LogLock);
@@ -665,6 +794,25 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
 
         // initialization before registration
         pModule->script(R"()");
+
+        // register command exit
+        // exit current command window and free all related resource
+        pModule->set_function("exit", [this, nCWID](){
+            // 1. show exiting messages
+            AddCWLog(nCWID, 0, "> ", "Command window is requested to exit now...");
+
+            // 2. flush command windows
+            //    we need to flush all messages related to current command window
+            //    otherwise next created command window may get them if it uses the same CWID
+            //
+            //    here call Fl::awake() is not 100% safe to flush messages
+            //    but I don't wan't to call FlushCWBrowser() outside the gui thread
+            NotifyGUI("FlushCWBrowser");
+            NotifyGUI(std::string("ExitCW ") + std::to_string(nCWID));
+
+            // extern MainWindow *g_MainWindow;
+            // g_MainWindow->DeleteCommandWindow(nCWID);
+        });
 
         // register command printLine
         // print one line in command window
