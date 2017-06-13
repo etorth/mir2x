@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 06/08/2017 00:59:41
+ *  Last Modified: 06/13/2017 11:21:41
  *
  *    Description: 
  *
@@ -307,7 +307,7 @@ bool ServerMap::Empty()
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
             if(GroundValid(nX, nY)){
-                if(m_CellRecordV2D[nX][nY].Freezed){
+                if(m_CellRecordV2D[nX][nY].Lock){
                     return false;
                 }
                 for(auto nUID: m_UIDRecordV2D[nX][nY]){

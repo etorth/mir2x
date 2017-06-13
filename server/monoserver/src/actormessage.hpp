@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 06/08/2017 01:00:36
+ *  Last Modified: 06/12/2017 23:55:33
  *
  *    Description: 
  *
@@ -82,6 +82,8 @@ typedef union
         uint32_t MapID;
         int X;
         int Y;
+
+        bool Random;
     }Common;
 
     struct _Monster

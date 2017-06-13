@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 05/04/2017 11:48:53
+ *  Last Modified: 06/12/2017 23:46:15
  *
  *    Description: 
  *
@@ -59,28 +59,32 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::
     std::memcpy(&stAMACO, rstMPK.Data(), sizeof(stAMACO));
 
     if(stAMACO.Common.MapID){
-        auto pMap = RetrieveMap(stAMACO.Common.MapID);
-        if(pMap && pMap->In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y)){
-            auto fnOP = [this, stAMACO, rstMPK, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &){
-                switch(rstRMPK.Type()){
-                    case MPK_OK:
-                        {
-                            m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
-                            break;
-                        }
-                    default:
-                        {
-                            m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-                            break;
-                        }
-                }
-            };
-            m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, pMap->GetAddress(), fnOP);
-            return;
+        if(auto pMap = RetrieveMap(stAMACO.Common.MapID)){
+            if(false
+                    || stAMACO.Common.Random
+                    || pMap->In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y)){
+
+                auto fnOP = [this, stAMACO, rstMPK, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &){
+                    switch(rstRMPK.Type()){
+                        case MPK_OK:
+                            {
+                                m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
+                                break;
+                            }
+                        default:
+                            {
+                                m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                                break;
+                            }
+                    }
+                };
+                m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, pMap->GetAddress(), fnOP);
+                return;
+            }
         }
     }
 
-    // invalid map id, report error
+    // invalid location info, return error directly
     m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
 }
 

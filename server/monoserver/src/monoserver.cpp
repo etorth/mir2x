@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/12/2017 22:52:47
+ *  Last Modified: 06/13/2017 00:29:48
  *
  *    Description: 
  *
@@ -274,33 +274,33 @@ void MonoServer::Launch()
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
 
-    AddMonster(10, 1, 19, 19);
-    AddMonster(10, 2,  8, 18);
+    AddMonster(10, 1, 19, 19, true);
+    AddMonster(10, 2,  8, 18, true);
 
-    // AddMonster( 1, 2,  9, 18);
-    // AddMonster( 1, 2, 10, 18);
-    // AddMonster( 1, 2, 10, 19);
-    // AddMonster( 1, 1, 19, 18);
-    // AddMonster( 1, 1, 17, 15);
-    // AddMonster( 1, 1, 16, 18);
-    // AddMonster( 1, 1, 15, 17);
-    // AddMonster( 1, 1, 16, 16);
-    // AddMonster( 1, 1, 11, 21);
-    // AddMonster( 1, 1, 20, 19);
-    // AddMonster( 1, 1, 20, 20);
-    // AddMonster( 1, 1, 20, 21);
-    // AddMonster( 1, 1, 21, 21);
-    AddMonster(10, 1,  8, 21);
-    // AddMonster(10, 1,  8, 22);
-    // AddMonster(10, 1,  9, 21);
-    // AddMonster(10, 1,  9, 22);
-    // AddMonster(10, 1,  9, 23);
-    // AddMonster(10, 1,  9, 24);
-    // AddMonster(10, 1, 14, 16);
-    // AddMonster(10, 1, 14, 17);
-    // AddMonster(10, 1, 14, 18);
-    // AddMonster(10, 1, 14, 19);
-    // AddMonster(10, 1, 14, 20);
+    // AddMonster( 1, 2,  9, 18, true);
+    // AddMonster( 1, 2, 10, 18, true);
+    // AddMonster( 1, 2, 10, 19, true);
+    // AddMonster( 1, 1, 19, 18, true);
+    // AddMonster( 1, 1, 17, 15, true);
+    // AddMonster( 1, 1, 16, 18, true);
+    // AddMonster( 1, 1, 15, 17, true);
+    // AddMonster( 1, 1, 16, 16, true);
+    // AddMonster( 1, 1, 11, 21, true);
+    // AddMonster( 1, 1, 20, 19, true);
+    // AddMonster( 1, 1, 20, 20, true);
+    // AddMonster( 1, 1, 20, 21, true);
+    // AddMonster( 1, 1, 21, 21, true);
+    AddMonster(10, 1,  8, 21, true);
+    // AddMonster(10, 1,  8, 22, true);
+    // AddMonster(10, 1,  9, 21, true);
+    // AddMonster(10, 1,  9, 22, true);
+    // AddMonster(10, 1,  9, 23, true);
+    // AddMonster(10, 1,  9, 24, true);
+    // AddMonster(10, 1, 14, 16, true);
+    // AddMonster(10, 1, 14, 17, true);
+    // AddMonster(10, 1, 14, 18, true);
+    // AddMonster(10, 1, 14, 19, true);
+    // AddMonster(10, 1, 14, 20, true);
 }
 
 void MonoServer::Restart()
@@ -422,20 +422,7 @@ bool MonoServer::InitMonsterItem()
     return true;
 }
 
-// request to add a new monster, this function won't expect a response
-//
-// TODO & TBD: why I won't put a response here? it will introduce huge complexity
-// for me if this function can be informed with success or failure. i.e.
-// 1. the map is invalid currently
-// 2. the coresponding RM is invalid currently
-//
-// the I need two-hop response callback, and if map is valid but RM address is
-// PENDING, then I have to make a anomyous trigger to add the monster in, and
-// respond here we ask for it.
-//
-// but if no response, we never know this function is successful or not because
-// we won't store monster (UID, AddTime)
-bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY)
+bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bRandom)
 {
     AMAddCharObject stAMACO;
     stAMACO.Type = TYPE_MONSTER;
@@ -443,21 +430,22 @@ bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
     stAMACO.Common.MapID  = nMapID;
     stAMACO.Common.X      = nX;
     stAMACO.Common.Y      = nY;
+    stAMACO.Common.Random = bRandom;
 
     stAMACO.Monster.MonsterID = nMonsterID;
-    AddLog(LOGTYPE_INFO, "add monster, MonsterID = %d", nMonsterID);
+    AddLog(LOGTYPE_INFO, "Try to add monster, MonsterID = %d", nMonsterID);
 
     MessagePack stRMPK;
     SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_ServiceCore->GetAddress(), &stRMPK);
     switch(stRMPK.Type()){
         case MPK_OK:
             {
-                AddLog(LOGTYPE_INFO, "add monster: adding succeeds");
+                AddLog(LOGTYPE_INFO, "Add monster succeeds");
                 return true;
             }
         case MPK_ERROR:
             {
-                AddLog(LOGTYPE_WARNING, "add monster: operation failed");
+                AddLog(LOGTYPE_WARNING, "Add monster failed");
                 return false;
             }
         default:
@@ -861,8 +849,54 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
 
         // register command addMonster
         // will support add monster by monster name and map name
-        pModule->set_function("addMonster", [this](int nMonsterID, int nMapID, int nX, int nY) -> bool {
-            return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), nX, nY);
+        pModule->set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool {
+            auto fnPrintUsage = [this, nCWID]() -> void
+            {
+                AddCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int)");
+                AddCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int)");
+                AddCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int, Random: bool)");
+            };
+
+            std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
+            switch(stArgList.size()){
+                case 0:
+                    {
+                        return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), -1, -1, true);
+                    }
+                case 1:
+                    {
+                        fnPrintUsage();
+                        return false;
+                    }
+                case 2:
+                    {
+                        if(true
+                                && stArgList[0].is<int>()
+                                && stArgList[0].is<int>()){
+                            return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), false);
+                        }else{
+                            fnPrintUsage();
+                            return false;
+                        }
+                    }
+                case 3:
+                    {
+                        if(true
+                                && stArgList[0].is<int >()
+                                && stArgList[0].is<int >()
+                                && stArgList[3].is<bool>()){
+                            return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), stArgList[2].as<bool>());
+                        }else{
+                            fnPrintUsage();
+                            return false;
+                        }
+                    }
+                default:
+                    {
+                        fnPrintUsage();
+                        return false;
+                    }
+            }
         });
 
         // register command ``listAllMap"

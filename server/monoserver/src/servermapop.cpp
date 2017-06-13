@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 06/08/2017 01:09:06
+ *  Last Modified: 06/13/2017 15:41:24
  *
  *    Description: 
  *
@@ -26,6 +26,7 @@
 #include "metronome.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
+#include "rotatecoord.hpp"
 
 void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
@@ -100,68 +101,99 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
     AMAddCharObject stAMACO;
     std::memcpy(&stAMACO, rstMPK.Data(), sizeof(stAMACO));
 
-    if(!In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y)){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid argument in adding char object package");
-        g_MonoServer->Restart();
-    }
+    bool bValidLoc = true;
+    if(false
+            || !In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y)
+            || !CanMove(stAMACO.Common.X, stAMACO.Common.Y)
+            ||  m_CellRecordV2D[stAMACO.Common.X][stAMACO.Common.Y].Lock){
 
-    if(!CanMove(stAMACO.Common.X, stAMACO.Common.Y)){
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-        return;
-    }
+        // the location field provides an invalid location
+        // check if we can do random pick
+        bValidLoc = false;
 
-    if(m_CellRecordV2D[stAMACO.Common.X][stAMACO.Common.Y].Freezed){
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-        return;
-    }
-
-    switch(stAMACO.Type){
-        case TYPE_MONSTER:
-            {
-                auto pCO = new Monster(stAMACO.Monster.MonsterID,
-                        m_ServiceCore,
-                        this,
-                        stAMACO.Common.X,
-                        stAMACO.Common.Y,
-                        DIR_UP,
-                        STATE_INCARNATED);
-
-                auto nUID = pCO->UID();
-                auto nX   = stAMACO.Common.X;
-                auto nY   = stAMACO.Common.Y;
-
-                pCO->Activate();
-                m_UIDRecordV2D[nX][nY].push_back(nUID);
-                m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
-                break;
+        if(stAMACO.Common.Random){
+            if(In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y)){
+                // OK we failed to add monster at the specified location
+                // but still to try to add near it
+            }else{
+                // an invalid location provided
+                // randomly pick one
+                stAMACO.Common.X = std::rand() % W();
+                stAMACO.Common.Y = std::rand() % H();
             }
-        case TYPE_PLAYER:
-            {
-                auto pCO = new Player(stAMACO.Player.DBID,
-                        m_ServiceCore,
-                        this,
-                        stAMACO.Common.X,
-                        stAMACO.Common.Y,
-                        stAMACO.Player.Direction,
-                        STATE_INCARNATED);
 
-                auto nUID = pCO->UID();
-                auto nX   = stAMACO.Common.X;
-                auto nY   = stAMACO.Common.Y;
+            RotateCoord stRC;
+            if(stRC.Reset(stAMACO.Common.X, stAMACO.Common.Y, 0, 0, W(), H())){
+                do{
+                    if(true
+                            &&  In(stAMACO.Common.MapID, stRC.X(), stRC.Y())
+                            &&  CanMove(stRC.X(), stRC.Y())
+                            && !m_CellRecordV2D[stRC.X()][stRC.Y()].Lock){
 
-                pCO->Activate();
-                m_UIDRecordV2D[nX][nY].push_back(nUID);
-                m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
-                m_ActorPod->Forward({MPK_BINDSESSION, stAMACO.Player.SessionID}, pCO->GetAddress());
-                break;
+                        // find a valid location
+                        // use it to add new charobject
+                        bValidLoc = true;
+
+                        stAMACO.Common.X = stRC.X();
+                        stAMACO.Common.Y = stRC.Y();
+                        break;
+                    }
+                }while(stRC.Forward());
             }
-        default:
-            {
-                m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-                break;
-            }
+        }
     }
+
+    if(bValidLoc){
+        switch(stAMACO.Type){
+            case TYPE_MONSTER:
+                {
+                    auto pCO = new Monster(stAMACO.Monster.MonsterID,
+                            m_ServiceCore,
+                            this,
+                            stAMACO.Common.X,
+                            stAMACO.Common.Y,
+                            DIR_UP,
+                            STATE_INCARNATED);
+
+                    auto nUID = pCO->UID();
+                    auto nX   = stAMACO.Common.X;
+                    auto nY   = stAMACO.Common.Y;
+
+                    pCO->Activate();
+                    m_UIDRecordV2D[nX][nY].push_back(nUID);
+                    m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
+                    return;
+                }
+            case TYPE_PLAYER:
+                {
+                    auto pCO = new Player(stAMACO.Player.DBID,
+                            m_ServiceCore,
+                            this,
+                            stAMACO.Common.X,
+                            stAMACO.Common.Y,
+                            stAMACO.Player.Direction,
+                            STATE_INCARNATED);
+
+                    auto nUID = pCO->UID();
+                    auto nX   = stAMACO.Common.X;
+                    auto nY   = stAMACO.Common.Y;
+
+                    pCO->Activate();
+                    m_UIDRecordV2D[nX][nY].push_back(nUID);
+                    m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
+                    m_ActorPod->Forward({MPK_BINDSESSION, stAMACO.Player.SessionID}, pCO->GetAddress());
+                    return;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    }
+
+    // anything incorrect happened
+    // report MPK_ERROR to service core that we failed
+    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
 }
 
 void ServerMap::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK, const Theron::Address &)
@@ -193,7 +225,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
         return;
     }
 
-    if(m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].Freezed){
+    if(m_CellRecordV2D[stAMTM.EndX][stAMTM.EndY].Lock){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
@@ -353,7 +385,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                     break;
                 }
         }
-        m_CellRecordV2D[nMostX][nMostY].Freezed = false;
+        m_CellRecordV2D[nMostX][nMostY].Lock = false;
     };
 
     AMMoveOK stAMMOK;
@@ -364,7 +396,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
     stAMMOK.EndX  = nMostX;
     stAMMOK.EndY  = nMostY;
 
-    m_CellRecordV2D[nMostX][nMostY].Freezed = true;
+    m_CellRecordV2D[nMostX][nMostY].Lock = true;
     m_ActorPod->Forward({MPK_MOVEOK, stAMMOK}, rstFromAddr, rstMPK.ID(), fnOnR);
 }
 
@@ -440,9 +472,9 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Add
                         break;
                     }
             }
-            m_CellRecordV2D[stAMMSOK.X][stAMMSOK.Y].Freezed = false;
+            m_CellRecordV2D[stAMMSOK.X][stAMMSOK.Y].Lock = false;
         };
-        m_CellRecordV2D[nX][nY].Freezed = true;
+        m_CellRecordV2D[nX][nY].Lock = true;
         m_ActorPod->Forward({MPK_MAPSWITCHOK, stAMMSOK}, rstFromAddr, rstMPK.ID(), fnOnResp);
     }else{
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());

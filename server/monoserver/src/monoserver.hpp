@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 06/12/2017 17:52:29
+ *  Last Modified: 06/12/2017 23:39:56
  *
  *    Description: 
  *
@@ -141,7 +141,11 @@ class MonoServer final
         int GetValidMonsterCount(int, int);
 
     public:
-        bool AddMonster(uint32_t, uint32_t, int, int);
+        bool AddMonster(uint32_t,       // monster id
+                uint32_t,               // map id
+                int,                    // x
+                int,                    // y
+                bool);                  // do random throw if (x, y) is invalid
 
     public:
         // (uid, instance) managerment

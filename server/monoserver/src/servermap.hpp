@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 06/08/2017 00:58:59
+ *  Last Modified: 06/13/2017 11:21:56
  *
  *    Description:
  *
@@ -61,7 +61,7 @@ class ServerMap: public ActiveObject
     private:
         struct CellRecord
         {
-            bool Freezed;
+            bool     Lock;
             uint32_t UID;
             uint32_t MapID;
 
@@ -71,7 +71,7 @@ class ServerMap: public ActiveObject
             int Query;
 
             CellRecord()
-                : Freezed(false)
+                : Lock(false)
                 , UID(0)
                 , MapID(0)
                 , Query(QUERY_NA)

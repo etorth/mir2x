@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: rotatecoord.hpp
- *        Created: 08/15/2015 04:01:57 PM
- *  Last Modified: 04/06/2016 23:09:25
+ *        Created: 08/15/2015 04:01:57
+ *  Last Modified: 06/13/2017 11:32:32
  *
  *    Description: 
  *
@@ -26,19 +26,24 @@ class RotateCoord
         ~RotateCoord() = default;
 
     public:
-        int X()
-        {
-            return m_CurrentX;
-        }
-
-        int Y()
-        {
-            return m_CurrentY;
-        }
+        int X() const { return m_CurrentX; }
+        int Y() const { return m_CurrentY; }
 
     public:
         // two main cursor function
-        bool Reset(int, int, int, int, int, int);
+        //
+        //            
+        //
+        //
+        //
+        //
+        //
+        bool Reset(int,
+                int,
+                int,
+                int,
+                int,
+                int);
         bool Forward();
 
     private:
@@ -56,7 +61,8 @@ class RotateCoord
         int  m_StopX;
         int  m_StopY;
         int  m_Distance;
-    public:
+
+    private:
         //      2
         //  <-------A
         //  |       |
