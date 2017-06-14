@@ -3,7 +3,7 @@
  *
  *       Filename: servicecorenet.cpp
  *        Created: 05/20/2016 17:09:13
- *  Last Modified: 04/26/2017 12:40:30
+ *  Last Modified: 06/13/2017 22:55:44
  *
  *    Description: interaction btw NetPod and ServiceCore
  *

@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 06/12/2017 23:55:33
+ *  Last Modified: 06/13/2017 23:09:14
  *
  *    Description: 
  *
@@ -42,7 +42,6 @@ enum MessagePackType: int
     MPK_ADDCHAROBJECT,
     MPK_BINDSESSION,
     MPK_ACTION,
-    MPK_STATE,
     MPK_QUERYMONSTERGINFO,
     MPK_PULLCOINFO,
     MPK_NEWCONNECTION,
@@ -61,6 +60,13 @@ enum MessagePackType: int
     MPK_DEADFADEOUT,
     MPK_QUERYCORECORD,
 };
+
+typedef struct
+{
+    int      Type;
+    uint32_t ID;
+    uint32_t Respond;
+}AMBadActorPod;
 
 typedef struct
 {
@@ -187,15 +193,6 @@ typedef struct
 {
     uint32_t SessionID;
 }AMBindSession;
-
-typedef struct
-{
-    uint32_t UID;
-    uint32_t MapID;
-
-    int X;
-    int Y;
-}AMState;
 
 typedef struct
 {

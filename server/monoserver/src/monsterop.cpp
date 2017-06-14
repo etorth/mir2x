@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 05/27/2017 01:02:56
+ *  Last Modified: 06/13/2017 23:24:53
  *
  *    Description: 
  *
@@ -123,5 +123,9 @@ void Monster::On_MPK_QUERYLOCATION(const MessagePack &rstMPK, const Theron::Addr
 }
 
 void Monster::On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &)
+{
+}
+
+void Monster::On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &)
 {
 }

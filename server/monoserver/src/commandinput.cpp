@@ -3,7 +3,7 @@
  *
  *       Filename: commandinput.cpp
  *        Created: 06/04/2017 13:01:35
- *  Last Modified: 06/11/2017 18:35:22
+ *  Last Modified: 06/14/2017 00:42:54
  *
  *    Description: 
  *
@@ -35,6 +35,15 @@ int CommandInput::handle(int nEvent)
                         }
                     case FL_Enter:
                         {
+                            // if last char is escape as ``\"
+                            // don't commit the command for execution
+                            std::string szCommandStr = value() ? value() : "";
+                            if(true
+                                    && !szCommandStr.empty()
+                                    &&  szCommandStr.back() == '\\'){
+                                return Fl_Multiline_Input::handle(nEvent);
+                            }
+
                             if(true
                                     && m_Window
                                     && m_Window->GetTaskHub()
@@ -47,13 +56,35 @@ int CommandInput::handle(int nEvent)
                                 // use MonoServer::AddCWLog() for thread-safe access
                                 int nCWID = m_Window->GetLuaModule()->CWID();
 
-                                extern MonoServer *g_MonoServer;
-                                g_MonoServer->AddCWLog(nCWID, 0, "> ", value());
+                                // we echo the command to the command window
+                                // enter in command string will be commit to lua machine
+                                // but for echo we need to remove it
+                                size_t nCurrLoc = 0;
+                                while(nCurrLoc < szCommandStr.size()){
+                                    auto nEnterLoc = szCommandStr.find_first_of('\n', nCurrLoc);
+                                    if(true
+                                            && (nEnterLoc >= nCurrLoc)
+                                            && (nEnterLoc != std::string::npos)){
+
+                                        // we do find an enter
+                                        // remove the enter and print it
+
+                                        extern MonoServer *g_MonoServer;
+                                        g_MonoServer->AddCWLog(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc, nEnterLoc - nCurrLoc).c_str());
+
+                                        nCurrLoc = nEnterLoc + 1;
+                                    }else{
+                                        // can't find a enter
+                                        // we done here for the whole string
+
+                                        extern MonoServer *g_MonoServer;
+                                        g_MonoServer->AddCWLog(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc).c_str());
+                                        break;
+                                    }
+                                }
 
                                 // 2. put a task in the LuaModule::TaskHub
                                 //    and return immediately for current thread
-
-                                std::string szCommandStr = value();
                                 m_Window->GetTaskHub()->Add([this, nCWID, szCommandStr](){
                                     auto stCallResult = m_Window->GetLuaModule()->script(szCommandStr.c_str(), [](lua_State *, sol::protected_function_result stResult){
                                         // default handler

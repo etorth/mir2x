@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/13/2017 00:29:48
+ *  Last Modified: 06/13/2017 23:44:32
  *
  *    Description: 
  *
@@ -17,6 +17,8 @@
  *
  * =====================================================================================
  */
+#include <thread>
+#include <chrono>
 #include <vector>
 #include <string>
 #include <cstring>
@@ -232,10 +234,22 @@ void MonoServer::RegisterAMFallbackHandler()
 {
     static struct FrameworkFallbackHandler
     {
-        void Handler(const void *, const Theron::uint32_t, const Theron::Address stFromAddress)
+        void Handler(const void *pData, const Theron::uint32_t, const Theron::Address stFromAddress)
         {
-            // we lost the information that which actor it tried to send
-            SyncDriver().Forward({MPK_BADACTORPOD}, stFromAddress);
+            // dangerous part
+            // try to recover basic information of the message
+            // don't refer to the data field here, it could be dynamically allcoated
+            MessagePack stRawMPK;
+            std::memcpy(&stRawMPK, pData, sizeof(stRawMPK));
+
+            AMBadActorPod stAMBAP;
+            stAMBAP.Type    = stRawMPK.Type();
+            stAMBAP.ID      = stRawMPK.ID();
+            stAMBAP.Respond = stRawMPK.Respond();
+
+            // we know which actor sent this message
+            // but we lost the information that which actor it sent to
+            SyncDriver().Forward({MPK_BADACTORPOD, stAMBAP}, stFromAddress, stRawMPK.ID());
         }
     }stFallbackHandler;
 
@@ -273,34 +287,6 @@ void MonoServer::Launch()
 
     extern EventTaskHub *g_EventTaskHub;
     g_EventTaskHub->Launch();
-
-    AddMonster(10, 1, 19, 19, true);
-    AddMonster(10, 2,  8, 18, true);
-
-    // AddMonster( 1, 2,  9, 18, true);
-    // AddMonster( 1, 2, 10, 18, true);
-    // AddMonster( 1, 2, 10, 19, true);
-    // AddMonster( 1, 1, 19, 18, true);
-    // AddMonster( 1, 1, 17, 15, true);
-    // AddMonster( 1, 1, 16, 18, true);
-    // AddMonster( 1, 1, 15, 17, true);
-    // AddMonster( 1, 1, 16, 16, true);
-    // AddMonster( 1, 1, 11, 21, true);
-    // AddMonster( 1, 1, 20, 19, true);
-    // AddMonster( 1, 1, 20, 20, true);
-    // AddMonster( 1, 1, 20, 21, true);
-    // AddMonster( 1, 1, 21, 21, true);
-    AddMonster(10, 1,  8, 21, true);
-    // AddMonster(10, 1,  8, 22, true);
-    // AddMonster(10, 1,  9, 21, true);
-    // AddMonster(10, 1,  9, 22, true);
-    // AddMonster(10, 1,  9, 23, true);
-    // AddMonster(10, 1,  9, 24, true);
-    // AddMonster(10, 1, 14, 16, true);
-    // AddMonster(10, 1, 14, 17, true);
-    // AddMonster(10, 1, 14, 18, true);
-    // AddMonster(10, 1, 14, 19, true);
-    // AddMonster(10, 1, 14, 20, true);
 }
 
 void MonoServer::Restart()
@@ -790,16 +776,19 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
             AddCWLog(nCWID, 0, "> ", "Command window is requested to exit now...");
 
             // 2. flush command windows
-            //    we need to flush all messages related to current command window
+            //    we need to flush message before exit the command window
             //    otherwise next created command window may get them if it uses the same CWID
-            //
-            //    here call Fl::awake() is not 100% safe to flush messages
-            //    but I don't wan't to call FlushCWBrowser() outside the gui thread
             NotifyGUI("FlushCWBrowser");
             NotifyGUI(std::string("ExitCW ") + std::to_string(nCWID));
+        });
 
-            // extern MainWindow *g_MainWindow;
-            // g_MainWindow->DeleteCommandWindow(nCWID);
+        // register command sleep
+        // sleep current lua thread and return after the specified ms
+        // can use posix.sleep(ms), but here use std::this_thread::sleep_for(x)
+        pModule->set_function("sleep", [this, nCWID](int nSleepMS){
+            if(nSleepMS > 0){
+                std::this_thread::sleep_for(std::chrono::milliseconds(nSleepMS));
+            }
         });
 
         // register command printLine
@@ -849,6 +838,16 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
 
         // register command addMonster
         // will support add monster by monster name and map name
+        // here we need to register a function to do the monster creation
+        //      1. fnAddMonster(sol::variadic_args stVariadicArgs)
+        //      2. fnAddMonster(int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs)
+        // I want to use method-1 in future, method-2 is more readable but can't handle the parameter issue:
+        //      for i in mapList()
+        //      do
+        //          addMonster(i)
+        //      end
+        // here we get an exception from lua caught by sol2: ``std::bad_alloc"
+        // but we want more detailed information like print the function usage out
         pModule->set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool {
             auto fnPrintUsage = [this, nCWID]() -> void
             {
@@ -872,7 +871,7 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
                     {
                         if(true
                                 && stArgList[0].is<int>()
-                                && stArgList[0].is<int>()){
+                                && stArgList[1].is<int>()){
                             return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), false);
                         }else{
                             fnPrintUsage();
@@ -883,8 +882,8 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
                     {
                         if(true
                                 && stArgList[0].is<int >()
-                                && stArgList[0].is<int >()
-                                && stArgList[3].is<bool>()){
+                                && stArgList[1].is<int >()
+                                && stArgList[2].is<bool>()){
                             return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), stArgList[2].as<bool>());
                         }else{
                             fnPrintUsage();
