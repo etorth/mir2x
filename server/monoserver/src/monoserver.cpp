@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/13/2017 23:44:32
+ *  Last Modified: 06/14/2017 17:36:40
  *
  *    Description: 
  *
@@ -768,6 +768,10 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
 
         // initialization before registration
         pModule->script(R"()");
+
+        // register command exitServer
+        // exit current server and free all related resource
+        pModule->set_function("exitServer", [](){ exit(0); });
 
         // register command exit
         // exit current command window and free all related resource

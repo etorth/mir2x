@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 05/31/2017 19:53:33
+ *  Last Modified: 06/14/2017 18:17:19
  *
  *    Description: 
  *
@@ -399,6 +399,11 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
         case SDL_KEYDOWN:
             {
                 switch(rstEvent.key.keysym.sym){
+                    case SDLK_e:
+                        {
+                            std::exit(0);
+                            break;
+                        }
                     case SDLK_ESCAPE:
                         {
                             extern SDLDevice *g_SDLDevice;
