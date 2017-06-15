@@ -64,12 +64,12 @@ class MainWindow {open
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
-            label {Server          }
+            label Server
             callback {{
 	extern ServerConfigureWindow	*g_ServerConfigureWindow;
 	g_ServerConfigureWindow->ShowAll();
 }}
-            xywh {10 10 30 20} labelfont 4
+            xywh {10 10 30 20} labelfont 4 divider
             code0 {\#include "serverconfigurewindow.hpp"}
           }
           MenuItem {} {
@@ -86,17 +86,8 @@ class MainWindow {open
           label Command open
           xywh {15 15 62 20} labelfont 4
         } {
-          MenuItem m_CWMenuItem {
-            label {Run Command    }
-            callback {{
-	auto pCommandWindow = new CommandWindow();
-	pCommandWindow->ShowAll();
-}}
-            xywh {25 25 30 20} labelfont 4 divider
-            code0 {\#include "commandwindow.hpp"}
-          }
           Submenu m_SubMenuRunCommand {
-            label {Run Command}
+            label {Run Command   }
             callback {// create a new command window if pressed
 // to retrieve the created windows, use cwid to find it
 {
@@ -106,14 +97,37 @@ class MainWindow {open
     }
 }} open
             xywh {0 0 70 20} labelfont 4
-            code0 {\#include "monoserver.hpp"}
           } {
             MenuItem m_MenuItemToggleAll {
               label {Toggle All    }
+              callback {// toggle all
+// if all open close all
+// if all close then open all
+{
+    static bool bOpen = true;
+
+    if(bOpen){
+        bOpen = false;
+    }else{
+        bOpen = true;
+    }
+
+    for(int nIndex = 1; nIndex <= (1 + (int)(m_MenuItemLastCW - m_MenuItemFirstCW)); ++nIndex){
+        if(auto pCW = GetCommandWindow(nIndex)){
+            if(bOpen){
+                pCW->ShowAll();
+                (m_MenuItemFirstCW + (nIndex - 1))->deactivate();
+            }else{
+                pCW->HideAll();
+                (m_MenuItemFirstCW + (nIndex - 1))->activate();
+            }
+        }
+    }
+}}
               xywh {0 0 36 20} labelfont 4
             }
             MenuItem m_MenuItemFirstCW {
-              label {Window 1}
+              label {Window 01}
               callback {// when enabled
 // it can show it's command window
 {
@@ -124,9 +138,10 @@ class MainWindow {open
     }
 }}
               xywh {20 20 36 20} labelfont 4 hide
+              code0 {\#include "commandwindow.hpp"}
             }
             MenuItem {} {
-              label {Window 2}
+              label {Window 02}
               callback {// when enabled
 // it can show it's command window
 {
@@ -139,7 +154,7 @@ class MainWindow {open
               xywh {30 30 36 20} labelfont 4 hide
             }
             MenuItem {} {
-              label {Window 3}
+              label {Window 03}
               callback {// when enabled
 // it can show it's command window
 {
@@ -148,11 +163,11 @@ class MainWindow {open
         pCW->ShowAll();
         (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
-}}
+}} selected
               xywh {40 40 36 20} labelfont 4 hide
             }
             MenuItem {} {
-              label {Window 4}
+              label {Window 04}
               callback {// when enabled
 // it can show it's command window
 {
@@ -165,7 +180,7 @@ class MainWindow {open
               xywh {50 50 36 20} labelfont 4 hide
             }
             MenuItem {} {
-              label {Window 5}
+              label {Window 05}
               callback {// when enabled
 // it can show it's command window
 {
@@ -178,7 +193,7 @@ class MainWindow {open
               xywh {60 60 36 20} labelfont 4 hide
             }
             MenuItem {} {
-              label {Window 6}
+              label {Window 06}
               callback {// when enabled
 // it can show it's command window
 {
@@ -191,7 +206,7 @@ class MainWindow {open
               xywh {70 70 36 20} labelfont 4 hide
             }
             MenuItem {} {
-              label {Window 7}
+              label {Window 07}
               callback {// when enabled
 // it can show it's command window
 {
@@ -204,7 +219,7 @@ class MainWindow {open
               xywh {80 80 36 20} labelfont 4 hide
             }
             MenuItem {} {
-              label {Window 8}
+              label {Window 08}
               callback {// when enabled
 // it can show it's command window
 {
@@ -217,7 +232,7 @@ class MainWindow {open
               xywh {90 90 36 20} labelfont 4 hide
             }
             MenuItem {} {
-              label {Window 9}
+              label {Window 09}
               callback {// when enabled
 // it can show it's command window
 {
@@ -226,7 +241,7 @@ class MainWindow {open
         pCW->ShowAll();
         (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
-}} selected
+}}
               xywh {100 100 36 20} labelfont 4 hide
             }
             MenuItem {} {
@@ -444,7 +459,7 @@ class MainWindow {open
 // main window create a new command window and store internally
 // provide caller an ID returned for retrieve
 {
-    for(auto pMenuItem = m_MenuItemFirstCW; pMenuItem != m_MenuItemLastCW; ++pMenuItem){
+    for(auto pMenuItem = m_MenuItemFirstCW; pMenuItem != (m_MenuItemLastCW + 1); ++pMenuItem){
         // because we use it as initialial status to do checking
         // it's very important to make sure all command window menu item are hidden
         if(pMenuItem->visible()){
