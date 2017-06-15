@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 06/13/2017 23:24:53
+ *  Last Modified: 06/15/2017 12:00:54
  *
  *    Description: 
  *
@@ -52,6 +52,18 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
         m_LocationRecord[stAMA.UID].X          = stAMA.EndX;
         m_LocationRecord[stAMA.UID].Y          = stAMA.EndY;
 
+        switch(stAMA.Action){
+            case ACTION_DIE:
+                {
+                    RemoveTarget(stAMA.UID);
+                    return;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+
         if(InRange(RANGE_VISIBLE, stAMA.X, stAMA.Y)){
             extern MonoServer *g_MonoServer;
             if(auto stRecord = g_MonoServer->GetUIDRecord(stAMA.UID)){
@@ -83,10 +95,31 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     }
 }
 
-void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
+void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rstAddress)
 {
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
+
+    if(GetState(STATE_DEAD)){
+        AMAction stAMA;
+        std::memset(&stAMA, 0, sizeof(stAMA));
+
+        stAMA.UID   = UID();
+        stAMA.MapID = MapID();
+
+        stAMA.Action      = ACTION_DIE;
+        stAMA.ActionParam = 0;
+        stAMA.Speed       = 0;
+        stAMA.Direction   = Direction();
+
+        stAMA.X    = X();
+        stAMA.Y    = Y();
+        stAMA.EndX = X();
+        stAMA.EndY = Y();
+
+        m_ActorPod->Forward({MPK_ACTION, stAMA}, rstAddress);
+        return;
+    }
 
     StruckDamage(0);
     AddTarget(stAMA.UID);

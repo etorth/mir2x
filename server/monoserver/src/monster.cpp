@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/13/2017 23:25:22
+ *  Last Modified: 06/15/2017 11:49:05
  *
  *    Description: 
  *
@@ -482,6 +482,21 @@ bool Monster::DCValid(int nDC, bool bCheck)
         }
     }
     return false;
+}
+
+void Monster::RemoveTarget(uint32_t nUID)
+{
+    if(nUID){
+        auto fnUIDCmp = [nUID](const TargetRecord &rstRecord) -> bool
+        {
+            return rstRecord.UID == nUID;
+        };
+
+        auto pLoc = std::find_if(m_TargetQ.begin(), m_TargetQ.end(), fnUIDCmp);
+        if(pLoc != m_TargetQ.end()){
+            m_TargetQ.erase(pLoc);
+        }
+    }
 }
 
 void Monster::AddTarget(uint32_t nUID)
