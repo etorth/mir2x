@@ -13,13 +13,27 @@ decl {\#include "serverluamodule.hpp"} {public global
 
 class CommandWindow {open
 } {
+  decl {int m_CWID;} {private local
+  }
   decl {TaskHub *m_LuaModuleTaskHub;} {private local
   }
   decl {ServerLuaModule *m_LuaModule;} {private local
   }
-  Function {CommandWindow()} {} {
-    Fl_Window m_Window {open
-      xywh {757 211 580 400} type Double resizable visible
+  Function {CommandWindow()} {open
+  } {
+    Fl_Window m_Window {
+      callback {// when get esc
+// 1. hide current window
+// 2. activate its menuitem in main window
+// won't do any destruction inside callback, do it by ``exit()" in lua
+{
+    HideAll();
+
+    extern MainWindow *g_MainWindow;
+    g_MainWindow->HideCommandWindow(GetCWID());
+}} open
+      xywh {888 311 580 400} type Double resizable
+      code0 {\#include "mainwindow.hpp"} visible
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 580 25} box FLAT_BOX labelfont 4
@@ -38,14 +52,15 @@ class CommandWindow {open
         xywh {0 375 580 25} labeltype NO_LABEL labelfont 4 textfont 4 resizable
         class CommandInput
       }
-      Fl_Browser m_Browser {
+      Fl_Browser m_Browser {selected
         xywh {0 25 580 350} type Hold labelfont 4 textfont 4
       }
     }
     code {{
     // initialization of the lua module and its taskhub
-	m_LuaModule        = nullptr;
+    m_CWID             = 0;
     m_LuaModuleTaskHub = nullptr;
+	m_LuaModule        = nullptr;
 	
 	// bind current window to CommandInput
 	// which helps to do event logic handling inside CommandInput
@@ -105,8 +120,9 @@ class CommandWindow {open
             assert(m_LuaModule        == nullptr);
             assert(m_LuaModuleTaskHub == nullptr);
 
-            m_LuaModule        = new ServerLuaModule((uint32_t)(nCWID));
+            m_CWID             = nCWID;
             m_LuaModuleTaskHub = new TaskHub();
+            m_LuaModule        = new ServerLuaModule((uint32_t)(nCWID));
 
             // start the hub now
             m_LuaModuleTaskHub->Launch();
@@ -135,11 +151,17 @@ class CommandWindow {open
     m_Browser->bottomline(m_Browser->size());
 }} {}
   }
-  Function {ClearBrowser()} {selected return_type void
+  Function {ClearBrowser()} {return_type void
   } {
     code {{
     // clear all history of current browser
     m_Browser->clear();
+}} {}
+  }
+  Function {GetCWID()} {return_type int
+  } {
+    code {{
+    return m_CWID;
 }} {}
   }
 } 

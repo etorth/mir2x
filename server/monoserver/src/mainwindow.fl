@@ -86,16 +86,6 @@ class MainWindow {open
           label Command open
           xywh {15 15 62 20} labelfont 4
         } {
-          MenuItem {} {
-            label {Add Monster        }
-            callback {{
-	extern AddMonsterWindow	*g_AddMonsterWindow;
-    	g_AddMonsterWindow->Refresh();
-    	g_AddMonsterWindow->ShowAll();
-}}
-            xywh {15 15 30 20} labelfont 4 divider
-            code0 {\#include "addmonsterwindow.hpp"}
-          }
           MenuItem m_CWMenuItem {
             label {Run Command    }
             callback {{
@@ -120,70 +110,214 @@ class MainWindow {open
           } {
             MenuItem m_MenuItemToggleAll {
               label {Toggle All    }
-              xywh {0 0 36 20} labelfont 4 divider
+              xywh {0 0 36 20} labelfont 4
             }
             MenuItem m_MenuItemFirstCW {
               label {Window 1}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 1;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {20 20 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 2}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 2;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {30 30 36 20} labelfont 4 hide
             }
             MenuItem {} {
-              label {Window 3} selected
+              label {Window 3}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 3;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {40 40 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 4}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 4;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {50 50 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 5}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 5;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {60 60 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 6}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 6;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {70 70 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 7}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 7;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {80 80 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 8}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 8;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {90 90 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 9}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 9;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}} selected
               xywh {100 100 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 10}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 10;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {110 110 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 11}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 11;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {120 120 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 12}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 12;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {120 120 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 13}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 13;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {130 130 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 14}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 14;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {140 140 36 20} labelfont 4 hide
             }
             MenuItem {} {
               label {Window 15}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 15;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {150 150 36 20} labelfont 4 hide
             }
             MenuItem m_MenuItemLastCW {
               label {Window 16}
+              callback {// when enabled
+// it can show it's command window
+{
+    int nMenuItem = 16;
+    if(auto pCW = GetCommandWindow(nMenuItem)){
+        pCW->ShowAll();
+        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+    }
+}}
               xywh {160 160 36 20} labelfont 4 hide
             }
           }
@@ -342,7 +476,7 @@ class MainWindow {open
     return 0;
 }} {}
   }
-  Function {DeleteCommandWindow(int nCWID)} {open return_type void
+  Function {DeleteCommandWindow(int nCWID)} {return_type void
   } {
     code {// DeleteCommandWindow(int nCWID)
 // delete a command window based on the nCWID
@@ -372,6 +506,22 @@ class MainWindow {open
 
         // 3. hide the menu item for the command window
         pMenuItem->hide();
+    }
+}} {}
+  }
+  Function {HideCommandWindow(int nCWID)} {return_type void
+  } {
+    code {// HideCommandWindow(int nCWID)
+// call it in callback of commandwindow when handle esc
+// won't detach the lua module or any destruction
+{
+    if(true
+            && (nCWID > 0 )                                               // valid command window index
+            && (m_MenuItemFirstCW + (nCWID - 1) <= m_MenuItemLastCW)      // 
+            && (m_MenuItemFirstCW + (nCWID - 1))->visible()               // menu item is ``in use"
+            && (m_MenuItemFirstCW + (nCWID - 1))->user_data()){           // menu item contains a command window
+
+        (m_MenuItemFirstCW + (nCWID - 1))->activate();
     }
 }} {}
   }
