@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 06/12/2017 23:39:56
+ *  Last Modified: 06/14/2017 23:20:58
  *
  *    Description: 
  *
@@ -135,7 +135,6 @@ class MonoServer final
         void StartNetwork();
 
     public:
-        // for gui callbacks
         std::vector<uint32_t> GetActiveMapList();
         std::vector<uint32_t> GetValidMonsterList(uint32_t);
         int GetValidMonsterCount(int, int);

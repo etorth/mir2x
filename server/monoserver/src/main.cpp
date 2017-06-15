@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 06/12/2017 19:12:51
+ *  Last Modified: 06/14/2017 23:17:23
  *
  *    Description: 
  *
@@ -49,7 +49,6 @@ DBPodN                   *g_DBPodN;
 ScriptWindow             *g_ScriptWindow;
 MainWindow               *g_MainWindow;
 MonoServer               *g_MonoServer;
-AddMonsterWindow         *g_AddMonsterWindow;
 ServerConfigureWindow    *g_ServerConfigureWindow;
 DatabaseConfigureWindow  *g_DatabaseConfigureWindow;
 
@@ -67,7 +66,6 @@ int main()
     g_ScriptWindow            = new ScriptWindow();
     g_MainWindow              = new MainWindow();
     g_MonoServer              = new MonoServer();
-    g_AddMonsterWindow        = new AddMonsterWindow();
     g_MemoryPN                = new MemoryPN();
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
