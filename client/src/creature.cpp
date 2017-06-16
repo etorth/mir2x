@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 05/30/2017 23:09:54
+ *  Last Modified: 06/15/2017 16:46:43
  *
  *    Description: 
  *
@@ -389,6 +389,12 @@ int Creature::UpdateHP(int nHP, int nHPMax)
     m_HPMax = nHPMax;
 
     return true;
+}
+
+bool Creature::StayDead()
+{
+    // need refine this function for different creatures
+    return m_CurrMotion.Motion == MOTION_DIE;
 }
 
 bool Creature::DeadFadeOut()

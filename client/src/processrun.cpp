@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/14/2017 18:17:19
+ *  Last Modified: 06/15/2017 16:31:46
  *
  *    Description: 
  *
@@ -165,6 +165,22 @@ void ProcessRun::Draw()
             g_SDLDevice->PopColor();
         }
 
+        // draw dead actors
+        // dead actors are shown before all active actors
+        for(int nY = nY0; nY <= nY1; ++nY){
+            for(int nX = nX0; nX <= nX1; ++nX){
+                for(auto pCreature: m_CreatureRecord){
+                    if(true
+                            && (pCreature.second)
+                            && (pCreature.second->X() == nX)
+                            && (pCreature.second->Y() == nY)
+                            && (pCreature.second->StayDead())){
+                        pCreature.second->Draw(m_ViewX, m_ViewY);
+                    }
+                }
+            }
+        }
+
         // over-ground objects
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
@@ -223,7 +239,11 @@ void ProcessRun::Draw()
                 // draw actors
                 {
                     for(auto pCreature: m_CreatureRecord){
-                        if(pCreature.second && (pCreature.second->X() == nX) && (pCreature.second->Y() == nY)){
+                        if(true
+                                &&  (pCreature.second)
+                                &&  (pCreature.second->X() == nX)
+                                &&  (pCreature.second->Y() == nY)
+                                && !(pCreature.second->StayDead())){
                             extern ClientEnv *g_ClientEnv;
                             if(g_ClientEnv->MIR2X_DEBUG_SHOW_CREATURE_COVER){
                                 g_SDLDevice->PushColor(0, 0, 255, 30);
@@ -234,7 +254,6 @@ void ProcessRun::Draw()
                         }
                     }
                 }
-
             }
         }
     }

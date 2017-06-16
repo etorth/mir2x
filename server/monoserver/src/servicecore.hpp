@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 05/03/2017 11:23:06
+ *  Last Modified: 06/16/2017 14:25:38
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -25,6 +25,7 @@
  */
 
 #pragma once
+#include <map>
 #include <vector>
 #include <unordered_map>
 
@@ -35,7 +36,7 @@ class ServerMap;
 class ServiceCore: public ActiveObject
 {
     protected:
-        std::unordered_map<uint32_t, ServerMap *> m_MapRecord;
+        std::map<uint32_t, ServerMap *> m_MapRecord;
 
     public:
         ServiceCore();
@@ -56,6 +57,7 @@ class ServiceCore: public ActiveObject
         void On_MPK_TRYMAPSWITCH(const MessagePack &, const Theron::Address &);
         void On_MPK_LOGINQUERYDB(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYMAPLIST(const MessagePack &, const Theron::Address &);
+        void On_MPK_QUERYCOCOUNT(const MessagePack &, const Theron::Address &);
         void On_MPK_NEWCONNECTION(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYMONSTERGINFO(const MessagePack &, const Theron::Address &);

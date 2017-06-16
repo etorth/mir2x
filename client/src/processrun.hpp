@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 05/29/2017 17:36:04
+ *  Last Modified: 06/15/2017 16:37:08
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 #pragma once
+#include <map>
 #include <cstdint>
 #include <unordered_map>
 
@@ -57,7 +58,7 @@ class ProcessRun: public Process
         ControlBoard m_ControbBoard;
 
     private:
-        std::unordered_map<uint32_t, Creature*> m_CreatureRecord;
+        std::map<uint32_t, Creature*> m_CreatureRecord;
 
     private:
         int LoadMap(uint32_t);

@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/14/2017 17:36:40
+ *  Last Modified: 06/16/2017 15:12:04
  *
  *    Description: 
  *
@@ -442,7 +442,7 @@ bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
     }
 }
 
-std::vector<uint32_t> MonoServer::GetActiveMapList()
+std::vector<int> MonoServer::GetMapList()
 {
     MessagePack stRMPK;
     SyncDriver().Forward(MPK_QUERYMAPLIST, m_ServiceCore->GetAddress(), &stRMPK);
@@ -452,10 +452,10 @@ std::vector<uint32_t> MonoServer::GetActiveMapList()
                 AMMapList stAMML;
                 std::memcpy(&stAMML, stRMPK.Data(), sizeof(stAMML));
 
-                std::vector<uint32_t> stMapList;
+                std::vector<int> stMapList;
                 for(size_t nIndex = 0; nIndex < sizeof(stAMML.MapList) / sizeof(stAMML.MapList[0]); ++nIndex){
                     if(stAMML.MapList[nIndex]){
-                        stMapList.push_back(stAMML.MapList[nIndex]);
+                        stMapList.push_back((int)(stAMML.MapList[nIndex]));
                     }else{
                         break;
                     }
@@ -469,14 +469,47 @@ std::vector<uint32_t> MonoServer::GetActiveMapList()
     }
 }
 
-std::vector<uint32_t> MonoServer::GetValidMonsterList(uint32_t)
+sol::optional<int> MonoServer::GetMonsterCount(int nMonsterID, int nMapID)
 {
-    return {1};
-}
+    // I have two ways to implement this function
+    //  1. GetMapList() / GetMapUID() / GetMapAddress() / QueryMonsterCount()
+    //  2. send QueryMonsterCount to ServiceCore, ServiceCore queries all maps and return the sum
+    // currently using method-2
 
-int MonoServer::GetValidMonsterCount(int, int)
-{
-    return 1;
+    if(true
+            && nMapID     >= 0      // 0 means check all
+            && nMonsterID >= 0){    // 0 means check all types
+
+        // OK we send request to service core
+        // and poll the result here till we get the sum
+
+        AMQueryCOCount stAMQCOC;
+        std::memset(&stAMQCOC, 0, sizeof(stAMQCOC));
+
+        stAMQCOC.MapID                = (uint32_t)(nMapID);
+        stAMQCOC.Check.Monster        = true;
+        stAMQCOC.CheckParam.MonsterID = (uint32_t)(nMonsterID);
+
+        MessagePack stRMPK;
+        SyncDriver().Forward({MPK_QUERYCOCOUNT, stAMQCOC}, m_ServiceCore->GetAddress(), &stRMPK);
+        switch(stRMPK.Type()){
+            case MPK_COCOUNT:
+                {
+                    AMCOCount stAMCOC;
+                    std::memcpy(&stAMCOC, stRMPK.Data(), sizeof(stAMCOC));
+
+                    // may overflow
+                    // should put some check here
+                    return sol::optional<int>((int)(stAMCOC.Count));
+                }
+            case MPK_ERROR:
+            default:
+                {
+                    break;
+                }
+        }
+    }
+    return sol::optional<int>();
 }
 
 void MonoServer::NotifyGUI(std::string szNotification)
@@ -837,7 +870,16 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
         // get a list for all active maps
         // return a table (userData) to lua for ipairs() check
         pModule->set_function("mapList", [this](sol::this_state stThisLua){
-            return sol::make_object(sol::state_view(stThisLua), GetActiveMapList());
+            return sol::make_object(sol::state_view(stThisLua), GetMapList());
+        });
+
+        // register command countMonster(monsterID, mapID)
+        pModule->set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int {
+            auto nRet = GetMonsterCount(nMonsterID, nMapID).value_or(-1);
+            if(nRet < 0){
+                AddCWLog(nCWID, 2, ">>> ", "countMonster(MonsterID: int, MapID: int) failed");
+            }
+            return nRet;
         });
 
         // register command addMonster

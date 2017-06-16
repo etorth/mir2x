@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 05/15/2017 14:01:50
+ *  Last Modified: 06/16/2017 14:26:39
  *
  *    Description: 
  *
@@ -78,6 +78,11 @@ void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstA
         case MPK_QUERYMAPLIST:
             {
                 On_MPK_QUERYMAPLIST(rstMPK, rstAddr);
+                break;
+            }
+        case MPK_QUERYCOCOUNT:
+            {
+                On_MPK_QUERYCOCOUNT(rstMPK, rstAddr);
                 break;
             }
         case MPK_QUERYMAPUID:

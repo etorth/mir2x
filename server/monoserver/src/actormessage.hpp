@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 06/13/2017 23:09:14
+ *  Last Modified: 06/16/2017 14:08:30
  *
  *    Description: 
  *
@@ -59,6 +59,8 @@ enum MessagePackType: int
     MPK_UPDATEHP,
     MPK_DEADFADEOUT,
     MPK_QUERYCORECORD,
+    MPK_QUERYCOCOUNT,
+    MPK_COCOUNT,
 };
 
 typedef struct
@@ -354,3 +356,27 @@ typedef struct
 
     uint32_t SessionID;
 }AMQueryCORecord;
+
+typedef struct
+{
+    uint32_t MapID;
+    struct _Check
+    {
+        bool NPC;
+        bool Player;
+        bool Monster;
+    }Check;
+
+    struct _CheckParam
+    {
+        // initialize and use it as needed
+        // collection to put all checking paramters here
+        bool     Male;
+        uint32_t MonsterID;
+    }CheckParam;
+}AMQueryCOCount;
+
+typedef struct
+{
+    uint32_t Count;
+}AMCOCount;

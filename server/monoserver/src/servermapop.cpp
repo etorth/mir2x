@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 06/13/2017 15:41:24
+ *  Last Modified: 06/16/2017 14:52:43
  *
  *    Description: 
  *
@@ -653,4 +653,39 @@ void ServerMap::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Ad
             }
         }
     }
+}
+
+void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::Address &rstAddress)
+{
+    AMQueryCOCount stAMQCOC;
+    std::memcpy(&stAMQCOC, rstMPK.Data(), sizeof(stAMQCOC));
+
+    if(false
+            || (stAMQCOC.MapID == 0)
+            || (stAMQCOC.MapID == ID())){
+        int nCOCount = 0;
+        for(size_t nX = 0; nX < m_UIDRecordV2D.size(); ++nX){
+            for(size_t nY = 0; nY < m_UIDRecordV2D[0].size(); ++nY){
+                std::for_each(m_UIDRecordV2D[nX][nY].begin(), m_UIDRecordV2D[nX][nY].end(), [stAMQCOC, &nCOCount](uint32_t nUID){
+                    extern MonoServer *g_MonoServer;
+                    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                        if(stUIDRecord.ClassFrom<CharObject>()){
+                            if(stAMQCOC.Check.NPC    ){ nCOCount++; return; }
+                            if(stAMQCOC.Check.Player ){ nCOCount++; return; }
+                            if(stAMQCOC.Check.Monster){ nCOCount++; return; }
+                        }
+                    }
+                });
+            }
+        }
+
+        // done the count and return it
+        AMCOCount stAMCOC;
+        stAMCOC.Count = nCOCount;
+        m_ActorPod->Forward({MPK_COCOUNT, stAMCOC}, rstAddress, rstMPK.ID());
+        return;
+    }
+
+    // failed to count and report error
+    m_ActorPod->Forward(MPK_ERROR, rstAddress, rstMPK.ID());
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 06/14/2017 23:20:58
+ *  Last Modified: 06/15/2017 23:26:58
  *
  *    Description: 
  *
@@ -25,6 +25,7 @@
 #include <vector>
 #include <chrono>
 #include <cstdint>
+#include <sol.hpp>
 #include <type_traits>
 #include <unordered_map>
 
@@ -135,9 +136,8 @@ class MonoServer final
         void StartNetwork();
 
     public:
-        std::vector<uint32_t> GetActiveMapList();
-        std::vector<uint32_t> GetValidMonsterList(uint32_t);
-        int GetValidMonsterCount(int, int);
+        std::vector<int>   GetMapList();
+        sol::optional<int> GetMonsterCount(int, int);
 
     public:
         bool AddMonster(uint32_t,       // monster id

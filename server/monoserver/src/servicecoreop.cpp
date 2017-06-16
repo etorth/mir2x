@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 06/12/2017 23:46:15
+ *  Last Modified: 06/16/2017 15:37:25
  *
  *    Description: 
  *
@@ -219,5 +219,129 @@ void ServiceCore::On_MPK_QUERYMAPUID(const MessagePack &rstMPK, const Theron::Ad
         m_ActorPod->Forward({MPK_UID, stAMUID}, rstFromAddr, rstMPK.ID());
     }else{
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+    }
+}
+
+void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+{
+    AMQueryCOCount stAMQCOC;
+    std::memcpy(&stAMQCOC, rstMPK.Data(), sizeof(stAMQCOC));
+
+    int nCheckCount = 0;
+    if(stAMQCOC.MapID){
+        if(m_MapRecord.find(stAMQCOC.MapID) == m_MapRecord.end()){
+            nCheckCount = 0;
+        }else{
+            nCheckCount = 1;
+        }
+    }else{
+        nCheckCount = (int)(m_MapRecord.size());
+    }
+
+    switch(nCheckCount){
+        case 0:
+            {
+                m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                return;
+            }
+        case 1:
+            {
+                if(auto pMap = (stAMQCOC.MapID ? m_MapRecord[stAMQCOC.MapID] : m_MapRecord.begin()->second)){
+                    auto fnOnResp = [this, rstMPK, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &) -> void
+                    {
+                        switch(rstRMPK.Type()){
+                            case MPK_COCOUNT:
+                                {
+                                    m_ActorPod->Forward({MPK_COCOUNT, rstRMPK.Data(), rstRMPK.DataLen()}, rstFromAddr, rstMPK.ID());
+                                    return;
+                                }
+                            case MPK_ERROR:
+                            default:
+                                {
+                                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                                    return;
+                                }
+                        }
+                    };
+                    m_ActorPod->Forward({MPK_QUERYCOCOUNT, stAMQCOC}, pMap->GetAddress(), fnOnResp);
+                    return;
+                }else{
+                    m_MapRecord.erase(stAMQCOC.MapID);
+                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                    return;
+                }
+            }
+        default:
+            {
+                // difficult part
+                // need send multiple query message and collect them
+                // after all collected we need to return the sum, problem:
+                // 1. share state
+                // 2. error handle
+
+                struct SharedState
+                {
+                    bool Done;
+                    int  CheckCount;
+                    int  COCount;
+
+                    SharedState(int nCheckCount)
+                        : Done(false)
+                        , CheckCount(nCheckCount)
+                        , COCount(0)
+                    {}
+                };
+
+                // current I don't have error handling
+                // means if one query didn't get responded it will wait forever
+                // to solve this issue, we can install an state hook but for simplity not now
+
+                auto pSharedState = std::make_shared<SharedState>(nCheckCount);
+                auto fnOnResp = [pSharedState, this, rstFromAddr, rstMPK](const MessagePack &rstRMPK, const Theron::Address &) -> void
+                {
+                    switch(rstRMPK.Type()){
+                        case MPK_COCOUNT:
+                            {
+                                if(pSharedState->Done){
+                                    // we get response but shared state shows ``done"
+                                    // means more than one error has alreay happened before
+                                    // do nothing
+                                }else{
+                                    // get one more valid response
+                                    // need to check if we need to response to sender
+                                    AMCOCount stAMCOC;
+                                    std::memcpy(&stAMCOC, rstRMPK.Data(), sizeof(stAMCOC));
+
+                                    if(pSharedState->CheckCount == 1){
+                                        stAMCOC.Count += pSharedState->COCount;
+                                        m_ActorPod->Forward({MPK_COCOUNT, stAMCOC}, rstFromAddr, rstMPK.ID());
+                                    }else{
+                                        pSharedState->CheckCount--;
+                                        pSharedState->COCount += (int)(stAMCOC.Count);
+                                    }
+                                }
+                                return;
+                            }
+                        case MPK_ERROR:
+                        default:
+                            {
+                                if(pSharedState->Done){
+                                    // we get response but shared state shows ``done"
+                                    // means more than one error has alreay happened before
+                                    // do nothing
+                                }else{
+                                    // get first error
+                                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                                }
+                                return;
+                            }
+                    }
+                };
+
+                for(auto pRecord: m_MapRecord){
+                    m_ActorPod->Forward({MPK_QUERYCOCOUNT, stAMQCOC}, pRecord.second->GetAddress(), fnOnResp);
+                }
+                return;
+            }
     }
 }
