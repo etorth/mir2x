@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/15/2017 16:31:46
+ *  Last Modified: 06/16/2017 23:34:14
  *
  *    Description: 
  *
@@ -77,6 +77,39 @@ void ProcessRun::Update(double)
         }else{
             delete pRecord->second;
             pRecord = m_CreatureRecord.erase(pRecord);
+        }
+    }
+
+    // select for the pointer focus
+    // need to do it outside of creatures since only one can be selected
+    {
+        static uint32_t nFocusUID = 0;
+        if(m_CreatureRecord.find(nFocusUID) != m_CreatureRecord.end()){
+            m_CreatureRecord[nFocusUID]->Focus(false);
+        }
+
+        int nPointX = -1;
+        int nPointY = -1;
+        SDL_GetMouseState(&nPointX, &nPointY);
+
+        Creature *pFocus = nullptr;
+        for(auto pRecord: m_CreatureRecord){
+            if(true
+                    && pRecord.second != m_MyHero
+                    && pRecord.second->CanFocus(m_ViewX + nPointX, m_ViewY + nPointY)){
+                if(false
+                        || !pFocus
+                        ||  pFocus->Y() < pRecord.second->Y()){
+                    // 1. currently we have no candidate yet
+                    // 2. we have candidate but it's not at more front location
+                    pFocus = pRecord.second;
+                }
+            }
+        }
+
+        if(pFocus){
+            pFocus->Focus(true);
+            nFocusUID = pFocus->UID();
         }
     }
 }
@@ -261,114 +294,6 @@ void ProcessRun::Draw()
     m_ControbBoard.Draw();
     g_SDLDevice->Present();
 }
-
-//
-// void ProcessRun::UpdateActor()
-// {
-//     std::lock_guard<std::mutex> stGuard(m_ActorListMutex);
-//     for(auto pActor: m_ActorList){
-// 		pActor->Update();
-//     }
-// }
-//
-// void ProcessRun::Update()
-// {
-//     // TODO
-//     {
-//         std::lock_guard<std::mutex> stGuard(m_ActorListMutex);
-//         for(auto pActor: m_ActorList){
-//             if(pActor != m_MyHero){
-//                 pActor->Update();
-//             }
-//         }
-//         {
-//             std::lock_guard<std::mutex> stGuard(m_MyHeroMutex);
-//             m_MyHero->EstimateNextPosition();
-//             int nNextX = m_MyHero->EstimateNextX();
-//             int nNextY = m_MyHero->EstimateNextY();
-//
-//             for(auto pActor: m_ActorList){
-//                 if(pActor != m_MyHero){
-//                     pActor->Update();
-//                 }
-//             }
-//         }
-//
-//     }
-// 	UpdateMyHero();
-//     UpdateActor();
-//
-// 	auto fnMessageHandler = [this](const Message &stMessage){
-// 		HandleMessage(stMessage);
-// 	};
-//
-// 	GetMessageManager()->BatchHandleMessage(fnMessageHandler);
-// }
-//
-// void ProcessRun::UpdateMyHero()
-// {
-// 	std::lock_guard<std::mutex> stGuard(m_MyHeroMutex);
-// 	m_MyHero->Update();
-// }
-//
-// void ProcessRun::HandleMessage(const Message &stMessage)
-// {
-//     switch(stMessage.Index()){
-//         case CLIENTMT_ACTORBASEINFO:
-//             {
-//                 ClientMessageActorBaseInfo stTmpCM;
-//                 std::memcpy(&stTmpCM, stMessage.Body(), sizeof(stTmpCM));
-//                 std::lock_guard<std::mutex> stGuard(m_ActorListMutex);
-// 				bool bFind = false;
-//                 for(auto pActor: m_ActorList){
-//                     if(true
-//                             && pActor->UID()     == stTmpCM.nUID
-//                             && pActor->SID()     == stTmpCM.nSID
-//                             && pActor->GenTime() == stTmpCM.nGenTime
-//                       ){
-// 						bFind = true;
-//                         pActor->SetNextState(stTmpCM.nState);
-//                         pActor->SetNextPosition(stTmpCM.nX, stTmpCM.nY);
-//                         // pActor->SetHP(stTmpCM.nHP);
-//                     }
-//                 }
-//
-// 				if(!bFind){
-// 					// can't find it, create a new one
-// 					auto pActor = NewActor(stTmpCM.nSID, stTmpCM.nUID, stTmpCM.nGenTime);
-// 					pActor->SetDirection(stTmpCM.nDirection);
-// 					pActor->SetNextState(stTmpCM.nState);
-// 					// pActor->SetNextPosition(stTmpCM.nX, stTmpCM.nY);
-// 					pActor->SetMap(stTmpCM.nX, stTmpCM.nY, &m_ClientMap);
-// 					m_ActorList.push_back(pActor);
-// 					// pActor->SetHP(stTmpCM.nHP);
-// 				}
-//                 break;
-//             }
-//         default:
-//             break;
-//     }
-// }
-//
-// Actor *ProcessRun::NewActor(int nSID, int nUID, int nGenTime)
-// {
-//     switch(nSID){
-//         case 1000:
-//         case 1001:
-//         case 1002:
-//         case 1003:
-//         case 1004:
-//         case 1005:
-//             {
-//                 return new Hero(nSID, nUID, nGenTime);
-//             }
-//         default:
-//             {
-//                 return new Monster(nSID, nUID, nGenTime);
-//             }
-//     }
-// }
-//
 
 void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
 {

@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 05/25/2017 20:06:44
+ *  Last Modified: 06/16/2017 22:52:27
  *
  *    Description: 
  *
@@ -47,6 +47,9 @@ class Hero: public Creature
     public:
         bool Draw(int, int);
         bool Update();
+
+    public:
+        bool CanFocus(int, int);
 
     public:
         bool ActionValid(const ActionNode &);

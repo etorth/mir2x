@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 05/31/2017 19:56:19
+ *  Last Modified: 06/16/2017 23:42:37
  *
  *    Description: 
  *
@@ -125,6 +125,10 @@ bool Monster::Draw(int nViewX, int nViewY)
                 //               1 - 255 : fade out
                 if(pFrame0){ SDL_SetTextureAlphaMod(pFrame0, 255 - m_CurrMotion.MotionParam); }
                 if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 255 - m_CurrMotion.MotionParam); }
+            }
+
+            if(pFrame0){
+                SDL_SetTextureBlendMode(pFrame0, Focus() ? SDL_BLENDMODE_ADD : SDL_BLENDMODE_BLEND);
             }
 
             g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
@@ -375,4 +379,53 @@ bool Monster::MotionValid(const MotionNode &rstMotion)
                 return false;
             }
     }
+}
+
+bool Monster::CanFocus(int nPointX, int nPointY)
+{
+    switch(m_CurrMotion.Motion){
+        case MOTION_DIE:
+            {
+                return false;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    if(ValidG()){
+        auto nGfxID = GfxID(m_CurrMotion.Motion, m_CurrMotion.Direction);
+        if(nGfxID >= 0){
+            // we only check the body frame
+            // can focus or not is decided by the graphics size
+
+            uint32_t nKey0 = 0X00000000 + (LookID() << 12) + ((uint32_t)(nGfxID) << 5) + m_CurrMotion.Frame;
+
+            int nDX0 = 0;
+            int nDY0 = 0;
+
+            extern PNGTexOffDBN *g_PNGTexOffDBN;
+            auto pFrame0 = g_PNGTexOffDBN->Retrieve(nKey0, &nDX0, &nDY0);
+
+            int nShiftX = 0;
+            int nShiftY = 0;
+            EstimatePixelShift(&nShiftX, &nShiftY);
+
+            int nStartX = X() * SYS_MAPGRIDXP + nDX0 + nShiftX;
+            int nStartY = Y() * SYS_MAPGRIDYP + nDY0 + nShiftY;
+
+            int nW = 0;
+            int nH = 0;
+            SDL_QueryTexture(pFrame0, nullptr, nullptr, &nW, &nH);
+
+            int nMaxTargetW = SYS_MAPGRIDXP + SYS_TARGETRGN_GAPX;
+            int nMaxTargetH = SYS_MAPGRIDYP + SYS_TARGETRGN_GAPY;
+
+            return ((nW >= nMaxTargetW) ? PointInSegment(nPointX, (nStartX + (nW - nMaxTargetW) / 2), nMaxTargetW) : PointInSegment(nPointX, nStartX, nW))
+                && ((nH >= nMaxTargetH) ? PointInSegment(nPointY, (nStartY + (nH - nMaxTargetH) / 2), nMaxTargetH) : PointInSegment(nPointY, nStartY, nH));
+        }
+    }
+
+    return false;
 }

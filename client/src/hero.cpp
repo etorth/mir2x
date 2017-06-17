@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 9/3/2015 3:49:00 AM
- *  Last Modified: 05/30/2017 23:05:09
+ *  Last Modified: 06/16/2017 22:52:42
  *
  *    Description: 
  *
@@ -467,4 +467,9 @@ bool Hero::Moving()
     return false
         || m_CurrMotion.Motion == MOTION_RUN
         || m_CurrMotion.Motion == MOTION_WALK;
+}
+
+bool Hero::CanFocus(int, int)
+{
+    return true;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 06/15/2017 16:28:34
+ *  Last Modified: 06/16/2017 22:55:54
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -143,6 +143,7 @@ class Creature
 
     protected:
         bool m_Active;
+        bool m_Focus;
 
     protected:
         MotionNode m_CurrMotion;
@@ -177,6 +178,19 @@ class Creature
 
     public:
         uint32_t UID() { return m_UID; }
+
+    public:
+        void Focus(bool bFocus)
+        {
+            m_Focus = bFocus;
+        }
+
+        bool Focus() const
+        {
+            return m_Focus;
+        }
+
+        virtual bool CanFocus(int, int) = 0;
 
     public:
         bool Active() const

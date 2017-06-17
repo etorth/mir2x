@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19 PM
- *  Last Modified: 05/25/2017 20:04:17
+ *  Last Modified: 06/16/2017 18:07:52
  *
  *    Description: monster class for client, I am concerned about whether this class
  *                 will be messed up with class monster for server side
@@ -82,6 +82,9 @@ class Monster: public Creature
     public:
         bool OnReportState();
         bool OnReportAction(int, int, int, int, int, int);
+
+    public:
+        bool CanFocus(int, int);
 
     public:
         bool ValidG()
