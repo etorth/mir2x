@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/07/2017 23:39:11
+ *  Last Modified: 06/17/2017 18:11:16
  *
  *    Description: 
  *
@@ -148,6 +148,8 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
                     }
                 case CREATURE_PLAYER:
                     {
+                        auto pHero = new Hero(stSMCOR.Common.UID, stSMCOR.Player.DBID, true, 0, this, stAction);
+                        m_CreatureRecord[stSMCOR.Common.UID] = pHero;
                         break;
                     }
                 default:

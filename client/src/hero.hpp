@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: hero.hpp
- *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 06/16/2017 22:52:27
+ *        Created: 09/03/2015 03:48:41
+ *  Last Modified: 06/18/2017 00:44:29
  *
  *    Description: 
  *
@@ -35,7 +35,7 @@ class Hero: public Creature
     protected:
         bool m_OnHorse;
 
-    protected:
+    public:
         Hero(uint32_t, uint32_t, bool, uint32_t, ProcessRun *, const ActionNode &);
 
     public:
