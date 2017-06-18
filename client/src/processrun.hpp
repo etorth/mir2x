@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: processrun.hpp
- *        Created: 08/31/2015 03:42:07 AM
- *  Last Modified: 06/15/2017 16:37:08
+ *        Created: 08/31/2015 03:42:07
+ *  Last Modified: 06/18/2017 00:56:57
  *
  *    Description: 
  *
@@ -46,6 +46,9 @@ class ProcessRun: public Process
 
     private:
         MyHero *m_MyHero;
+
+    private:
+        uint32_t m_FocusUID;
 
     private:
         int m_ViewX;

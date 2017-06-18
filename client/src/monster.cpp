@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57 PM
- *  Last Modified: 06/16/2017 23:42:37
+ *  Last Modified: 06/18/2017 01:44:17
  *
  *    Description: 
  *
@@ -127,12 +127,30 @@ bool Monster::Draw(int nViewX, int nViewY)
                 if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 255 - m_CurrMotion.MotionParam); }
             }
 
-            if(pFrame0){
-                SDL_SetTextureBlendMode(pFrame0, Focus() ? SDL_BLENDMODE_ADD : SDL_BLENDMODE_BLEND);
-            }
+            // for focus mode
+            // we use SDL_BLENDMODE_ADD mode which take sum of dstRGB and srcRGB
+            // but we don't need dstRGB, so always blend body frame two times to overwrite dstRGB first
+            auto fnBlendFrame = [](SDL_Texture *pTexture, SDL_BlendMode stMode, int nX, int nY) -> void
+            {
+                if(pTexture){
+                    // set blend mode is cheap
+                    // so we always do this setting for blending
+                    SDL_SetTextureBlendMode(pTexture, stMode);
 
-            g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
-            g_SDLDevice->DrawTexture(pFrame0, X() * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
+                    extern SDLDevice *g_SDLDevice;
+                    g_SDLDevice->DrawTexture(pTexture, nX, nY);
+                }
+            };
+
+            int nBlendX0 = X() * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX;
+            int nBlendY0 = Y() * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY;
+            int nBlendX1 = X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX;
+            int nBlendY1 = Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY;
+
+            if(true   ){ fnBlendFrame(pFrame1, SDL_BLENDMODE_BLEND, nBlendX1, nBlendY1); }
+            if(true   ){ fnBlendFrame(pFrame0, SDL_BLENDMODE_BLEND, nBlendX0, nBlendY0); }
+            if(Focus()){ fnBlendFrame(pFrame0, SDL_BLENDMODE_ADD,   nBlendX0, nBlendY0); }
+            if(Focus()){ fnBlendFrame(pFrame0, SDL_BLENDMODE_ADD,   nBlendX0, nBlendY0); }
 
             // draw HP bar
             // if current m_HPMqx is zero we draw full bar

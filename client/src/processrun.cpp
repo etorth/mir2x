@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/16/2017 23:34:14
+ *  Last Modified: 06/18/2017 01:04:02
  *
  *    Description: 
  *
@@ -31,13 +31,16 @@
 
 ProcessRun::ProcessRun()
     : Process()
+    , m_MapID(0)
+    , m_Mir2xMapData()
     , m_MyHero(nullptr)
+    , m_FocusUID(0)
     , m_ViewX(0)
     , m_ViewY(0)
     , m_RollMap(false)
     , m_ControbBoard(0, 0, nullptr, false)
-{
-}
+    , m_CreatureRecord()
+{}
 
 void ProcessRun::Update(double)
 {
@@ -80,14 +83,18 @@ void ProcessRun::Update(double)
         }
     }
 
-    // select for the pointer focus
+    // clean the focus of last update
+    // each time we re-calculate current focus
+    if(true
+            && m_FocusUID
+            && m_CreatureRecord.find(m_FocusUID) != m_CreatureRecord.end()){
+        m_CreatureRecord[m_FocusUID]->Focus(false);
+        m_FocusUID = 0;
+    }
+
+    // re-calculate the focus for current update
     // need to do it outside of creatures since only one can be selected
     {
-        static uint32_t nFocusUID = 0;
-        if(m_CreatureRecord.find(nFocusUID) != m_CreatureRecord.end()){
-            m_CreatureRecord[nFocusUID]->Focus(false);
-        }
-
         int nPointX = -1;
         int nPointY = -1;
         SDL_GetMouseState(&nPointX, &nPointY);
@@ -109,7 +116,7 @@ void ProcessRun::Update(double)
 
         if(pFocus){
             pFocus->Focus(true);
-            nFocusUID = pFocus->UID();
+            m_FocusUID = pFocus->UID();
         }
     }
 }
