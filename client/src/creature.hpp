@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 06/16/2017 22:55:54
+ *  Last Modified: 06/17/2017 15:13:18
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -164,6 +164,7 @@ class Creature
             , m_HPMax(0)
             , m_MPMax(0)
             , m_Active(true)
+            , m_Focus(false)
             , m_CurrMotion()
             , m_MotionQueue()
             , m_UpdateDelay(100.0)

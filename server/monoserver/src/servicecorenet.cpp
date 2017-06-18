@@ -3,7 +3,7 @@
  *
  *       Filename: servicecorenet.cpp
  *        Created: 05/20/2016 17:09:13
- *  Last Modified: 06/13/2017 22:55:44
+ *  Last Modified: 06/17/2017 17:43:32
  *
  *    Description: interaction btw NetPod and ServiceCore
  *
@@ -53,14 +53,14 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
         // you can put another lambda here and put it in g_TaskHub
         // but doesn't make sense since this function is already slow
         int nID = std::atoi(pDBHDR->Get("fld_id"));
-        if(!pDBHDR->Execute("select * from mir2x.tbl_guid where fld_id = %d", nID)){
+        if(!pDBHDR->Execute("select * from mir2x.tbl_dbid where fld_id = %d", nID)){
             g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
             SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
 
         if(pDBHDR->RowCount() < 1){
-            g_MonoServer->AddLog(LOGTYPE_INFO, "no guid created for this account: (%s:%s)", stCML.ID, stCML.Password);
+            g_MonoServer->AddLog(LOGTYPE_INFO, "no dbid created for this account: (%s:%s)", stCML.ID, stCML.Password);
             SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
@@ -79,7 +79,7 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
         pDBHDR->Fetch();
 
         // 2. needed information to create co
-        stAMLQDB.DBID  = std::atoi(pDBHDR->Get("fld_guid"));
+        stAMLQDB.DBID  = std::atoi(pDBHDR->Get("fld_dbid"));
         stAMLQDB.MapID = std::atoi(pDBHDR->Get("fld_mapid"));
         stAMLQDB.MapX  = std::atoi(pDBHDR->Get("fld_mapx"));
         stAMLQDB.MapY  = std::atoi(pDBHDR->Get("fld_mapy"));

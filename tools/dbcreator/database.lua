@@ -4,7 +4,7 @@ local env  = assert(mysql.mysql())
 local conn = assert(env:connect('mir2x', 'root', '123456', "localhost", 3306))
 print(env, conn)
 
-conn:execute("set names utf8")
+conn:execute [[ set names utf8 ]]
 
 status, errmsg = conn:execute [[
     create database if not exists mir2x character set utf8
@@ -22,7 +22,7 @@ status, errmsg = conn:execute [[
 
 if errmsg then print(status, errmsg) end
 
-conn:execute [[use mir2x]]
+conn:execute [[ use mir2x ]]
 
 -- print all tables in current db
 -- cursor, errmsg = conn:execute [[show tables]]
@@ -35,16 +35,19 @@ conn:execute [[use mir2x]]
 
 -- try to add an account
 status, errmsg = conn:execute [[
-    insert tbl_account (fld_account, fld_password) values("test", "123456")
+    insert tbl_account (fld_account, fld_password) values
+        ("test",  "123456"),
+        ("test0", "123456"),
+        ("test1", "123456")
 ]]
 
 if errmsg then print(status, errmsg) end
 
--- create table for guid
+-- create table for db id
 status, errmsg = conn:execute [[
-    create table if not exists tbl_guid
+    create table if not exists tbl_dbid
     (
-        fld_guid      int unsigned not null auto_increment primary key,
+        fld_dbid      int unsigned not null auto_increment primary key,
         fld_id        int unsigned not null,
         fld_mapid     int unsigned not null,
         fld_mapx      int unsigned not null,
@@ -58,17 +61,17 @@ status, errmsg = conn:execute [[
 
 if errmsg then print(status, errmsg) end
 
--- try to add guid
+-- try to add new dbid
 status, errmsg = conn:execute [[
-    insert tbl_guid (fld_id, fld_mapid, fld_mapx, fld_mapy, fld_level, fld_jobid, fld_direction, fld_name) values
-        (1, 1, 12, 21, 1, 1, 1, "mark"),
-        (2, 1, 14, 19, 1, 1, 1, "john")
+    insert tbl_dbid (fld_id, fld_mapid, fld_mapx, fld_mapy, fld_level, fld_jobid, fld_direction, fld_name) values
+        (1, 1, 12, 21, 1, 1, 1, "mark" ),
+        (2, 1, 14, 19, 1, 1, 1, "john" ),
+        (3, 1, 14, 20, 1, 1, 1, "linda")
 ]]
 
 if errmsg then print(status, errmsg) end
 
-
--- create table for guid
+-- create table for monster id
 status, errmsg = conn:execute [[
     create table if not exists tbl_monster
     (
@@ -99,8 +102,7 @@ status, errmsg = conn:execute [[
     )
 ]]
 
-
--- try to add guid
+-- try to add monster id
 status, errmsg = conn:execute [[
     insert tbl_monster (
         fld_name,
@@ -135,8 +137,7 @@ status, errmsg = conn:execute [[
 
 -- print(status, errmsg)
 
-
--- create table for guid
+-- create table for monter item id
 status, errmsg = conn:execute [[
     create table if not exists tbl_monsteritem
     (
@@ -148,11 +149,10 @@ status, errmsg = conn:execute [[
     )
 ]]
 
--- try to add guid
+-- try to add monster item id
 conn:execute [[
     insert tbl_monsteritem (fld_monster, fld_type, fld_chance, fld_count) values
         (1, 2, 1, 2),
         (1, 3, 1, 2),
         (1, 5, 1, 2)
 ]]
-
