@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: inputboard.hpp
- *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 03/16/2017 17:02:43
+ *        Created: 06/17/2015 10:24:27
+ *  Last Modified: 06/19/2017 11:05:37
  *
  *    Description: 
  *
@@ -115,12 +115,12 @@ class InputBoard: public InputWidget
         void DrawEx(int, int, int, int, int, int);
 
     protected:
-        TokenBoard                  m_TokenBoard;
-        SDL_Color m_CursorColor;
-        int      m_CursorWidth;
-        uint8_t  m_FontSet;
-        uint8_t  m_Size;
-        uint32_t m_TextColor;
+        TokenBoard m_TokenBoard;
+        SDL_Color  m_CursorColor;
+        int        m_CursorWidth;
+        uint8_t    m_FontSet;
+        uint8_t    m_Size;
+        uint32_t   m_TextColor;
 
     protected:
         int     m_SystemCursorX;
@@ -129,10 +129,6 @@ class InputBoard: public InputWidget
         int     m_BindTokenBoxIndex;
         int     m_ShowStartX;
         double  m_MS;
-
-    protected:
-        std::vector<TOKENBOX>       m_Line;
-        std::string                 m_Content;
 
     public:
         static int  s_ShowSystemCursorCount;

@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 06/19/2017 00:33:34
+ *  Last Modified: 06/19/2017 11:16:55
  *
  *    Description:
  *
@@ -35,7 +35,9 @@ ControlBoard::ControlBoard(int nX, int nY, Widget *pWidget, bool bAutoDelete)
             343,
             15,
             false,
-            343)
+            343,
+            0,
+            1)
 {
 }
 
