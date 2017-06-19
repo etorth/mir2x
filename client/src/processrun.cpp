@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/18/2017 01:04:02
+ *  Last Modified: 06/18/2017 23:53:26
  *
  *    Description: 
  *
@@ -304,6 +304,10 @@ void ProcessRun::Draw()
 
 void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
 {
+    bool bValid = true;
+    if(false
+            || m_ControbBoard.ProcessEvent(rstEvent, &bValid)){ return; }
+
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONDOWN:
             {

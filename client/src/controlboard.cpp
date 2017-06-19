@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 05/25/2017 00:08:51
+ *  Last Modified: 06/19/2017 00:33:34
  *
  *    Description:
  *
@@ -30,12 +30,12 @@
 ControlBoard::ControlBoard(int nX, int nY, Widget *pWidget, bool bAutoDelete)
     : Widget(nX, nY, 0, 0, pWidget, bAutoDelete)
     , m_CmdLine(
-            100,
-            100,
-            10,
-            10,
+            185,
+            574,
+            343,
+            15,
             false,
-            100)
+            343)
 {
 }
 
@@ -52,13 +52,18 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
     g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve((0XFF << 16) + 0X0012),   0, 466);
     g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve((0XFF << 16) + 0X0013), 178, 448);
 
+    g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
+    g_SDLDevice->DrawRectangle(m_CmdLine.X(), m_CmdLine.Y(), m_CmdLine.W(), m_CmdLine.H());
+    g_SDLDevice->PopColor();
+
     m_CmdLine.Draw();
 }
 
 bool ControlBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
 {
     if(bValid && !(*bValid)){ return false; }
-    if(m_CmdLine.ProcessEvent(rstEvent, bValid)){ return false; }
+    if(false
+            || m_CmdLine.ProcessEvent(rstEvent, bValid)){ return true; }
 
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONUP:

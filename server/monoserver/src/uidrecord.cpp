@@ -3,7 +3,7 @@
  *
  *       Filename: uidrecord.cpp
  *        Created: 05/02/2017 16:11:11
- *  Last Modified: 05/09/2017 12:48:49
+ *  Last Modified: 06/19/2017 00:06:43
  *
  *    Description: 
  *
@@ -22,8 +22,7 @@
 #include "uidrecord.hpp"
 #include "monoserver.hpp"
 
-UIDRecord::UIDRecord(uint32_t nUID, Theron::Address stAddress,
-        const std::vector<ServerObject::ClassCodeName> &rstClassEntry)
+UIDRecord::UIDRecord(uint32_t nUID, Theron::Address stAddress, const std::vector<ServerObject::ClassCodeName> &rstClassEntry)
     : UID(nUID)
     , Address(stAddress)
     , ClassEntry(rstClassEntry)

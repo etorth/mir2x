@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 05/20/2017 15:58:34
+ *  Last Modified: 06/18/2017 23:53:10
  *
  *    Description: 
  *
@@ -78,24 +78,13 @@ void ProcessLogin::ProcessEvent(const SDL_Event &rstEvent)
 {
     bool bValid = true;
     if(false
-            || m_Button1.ProcessEvent(rstEvent, &bValid)
-            || m_Button2.ProcessEvent(rstEvent, &bValid)
-            || m_Button3.ProcessEvent(rstEvent, &bValid)
-            || m_Button4.ProcessEvent(rstEvent, &bValid)){
-        return;
-    }
-
-    if(m_InputBoard.ProcessEvent(rstEvent, &bValid)){
-        return;
-    }
-
-    if(m_IDBox.ProcessEvent(rstEvent, &bValid)){
-        return;
-    }
-
-    if(m_PasswordBox.ProcessEvent(rstEvent, &bValid)){
-        return;
-    }
+            || m_Button1    .ProcessEvent(rstEvent, &bValid)
+            || m_Button2    .ProcessEvent(rstEvent, &bValid)
+            || m_Button3    .ProcessEvent(rstEvent, &bValid)
+            || m_Button4    .ProcessEvent(rstEvent, &bValid)
+            || m_InputBoard .ProcessEvent(rstEvent, &bValid)
+            || m_IDBox      .ProcessEvent(rstEvent, &bValid)
+            || m_PasswordBox.ProcessEvent(rstEvent, &bValid)){ return; }
 
     switch(rstEvent.type){
         case SDL_KEYDOWN:
