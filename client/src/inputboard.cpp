@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: inputboard.cpp
- *        Created: 08/21/2015 07:04:16 PM
- *  Last Modified: 03/16/2017 17:04:21
+ *        Created: 08/21/2015 07:04:16
+ *  Last Modified: 06/19/2017 23:58:27
  *
  *    Description: 
  *
@@ -18,15 +18,16 @@
  * =====================================================================================
  */
 
-#include <SDL2/SDL.h>
 #include <utf8.h>
 #include <algorithm>
+#include <SDL2/SDL.h>
+
 #include "game.hpp"
-#include "inputboard.hpp"
-#include "sdlkeyeventchar.hpp"
-#include "fontexdbn.hpp"
 #include "mathfunc.hpp"
+#include "fontexdbn.hpp"
+#include "inputboard.hpp"
 #include "supwarning.hpp"
+#include "sdlkeyeventchar.hpp"
 
 int InputBoard::s_ShowSystemCursorCount = 0;
 int InputBoard::s_InputBoardCount       = 0;
@@ -215,7 +216,6 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
 
                         default:
                             {
-                                // end of special event handle, normal input
                                 char chKeyName = SDLKeyEventChar(rstEvent);
                                 if(chKeyName != '\0'){
                                     m_TokenBoard.AddUTF8Code(uint32_t(chKeyName));
@@ -282,10 +282,10 @@ void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
         nH = nBlankLineH + m_TokenBoard.GetLineSpace();
     }
 
-    if(pX){ *pX = nX;            }
-    if(pY){ *pY = nY;            }
-    if(pW){ *pW = m_CursorWidth; }
-    if(pH){ *pH = nH;            }
+    if(pX){ *pX = nX;                         }
+    if(pY){ *pY = nY;                         }
+    if(pW){ *pW = std::max(1, m_CursorWidth); }
+    if(pH){ *pH = nH;                         }
 }
 
 // we always move the cursor point into the visiable region

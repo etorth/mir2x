@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 06/19/2017 23:13:59
+ *  Last Modified: 06/20/2017 00:05:06
  *
  *    Description: 
  *
@@ -31,6 +31,29 @@
 
 class InputBoard: public InputWidget
 {
+    protected:
+        TokenBoard m_TokenBoard;
+        SDL_Color  m_CursorColor;
+        int        m_CursorWidth;
+        uint8_t    m_FontSet;
+        uint8_t    m_Size;
+        uint32_t   m_TextColor;
+
+    protected:
+        int     m_SystemCursorX;
+        int     m_SystemCursorY;
+        bool    m_DrawOwnSystemCursor;
+        int     m_BindTokenBoxIndex;
+        int     m_ShowStartX;
+        double  m_MS;
+
+    protected:
+        IMEBase *m_IME;
+
+    public:
+        static int  s_ShowSystemCursorCount;
+        static int  s_InputBoardCount;
+
     public:
         InputBoard(
                 int              nX,
@@ -98,47 +121,14 @@ class InputBoard: public InputWidget
         bool ProcessEvent(const SDL_Event &, bool *);
 
     public:
-        void SetProperH();
-        void DrawCursor();
-        void DrawSystemCursor();
-        void PushBack(TOKENBOX &);
-        void ResetTokenBoardLocation();
-        void SetTokenBoxStartX();
-        void BindCursorTokenBox(int, int);
-        void LoadUTF8CharBoxCache(TOKENBOX &);
-
-
         void GetCursorInfo(int *, int *, int *, int *);
-        void ResetTokenBoardLoction();
+        void ResetTokenBoardLocation();
 
+    public:
         void Draw();
         void DrawEx(int, int, int, int, int, int);
 
-    protected:
-        TokenBoard m_TokenBoard;
-        SDL_Color  m_CursorColor;
-        int        m_CursorWidth;
-        uint8_t    m_FontSet;
-        uint8_t    m_Size;
-        uint32_t   m_TextColor;
-
-    protected:
-        int     m_SystemCursorX;
-        int     m_SystemCursorY;
-        bool    m_DrawOwnSystemCursor;
-        int     m_BindTokenBoxIndex;
-        int     m_ShowStartX;
-        double  m_MS;
-
-    public:
-        static int  s_ShowSystemCursorCount;
-        static int  s_InputBoardCount;
-
-    protected:
-        IMEBase *m_IME;
-
     public:
         void InsertInfo(const char *)
-        {
-        }
+        {}
 };
