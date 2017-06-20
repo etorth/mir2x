@@ -3,11 +3,13 @@
  *
  *       Filename: controlboard.hpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 05/25/2017 00:06:30
+ *  Last Modified: 06/19/2017 12:30:18
  *
  *    Description: main control pannel for running game
  *                 this is a fixed-size board, if use game screen size other than
  *                 800 * 600, this board will leave blank on the right
+ *
+ *                 I realized I can resize part of the frame to fix any screen size
  *
  *        Version: 1.0
  *       Revision: none
@@ -21,19 +23,19 @@
  */
 
 #pragma once
+#include <cstdint>
+#include <functional>
+
 #include "log.hpp"
 #include "widget.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
-#include "inputboard.hpp"
-
-#include <cstdint>
-#include <functional>
+#include "inputline.hpp"
 
 class ControlBoard: public Widget
 {
     private:
-        InputBoard m_CmdLine;
+        InputLine m_CmdLine;
 
     public:
         ControlBoard(int, int, Widget *, bool);

@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 06/19/2017 11:16:55
+ *  Last Modified: 06/19/2017 23:39:38
  *
  *    Description:
  *
@@ -34,12 +34,15 @@ ControlBoard::ControlBoard(int nX, int nY, Widget *pWidget, bool bAutoDelete)
             574,
             343,
             15,
-            false,
-            343,
+            1,
+            ColorFunc::COLOR_WHITE,
+            2,
+            15,
             0,
-            1)
-{
-}
+            ColorFunc::COLOR_WHITE,
+            [](){},
+            [](){})
+{}
 
 void ControlBoard::Update(double fMS)
 {

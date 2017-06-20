@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 06/19/2017 11:05:37
+ *  Last Modified: 06/19/2017 23:13:59
  *
  *    Description: 
  *
@@ -134,7 +134,7 @@ class InputBoard: public InputWidget
         static int  s_ShowSystemCursorCount;
         static int  s_InputBoardCount;
 
-    private:
+    protected:
         IMEBase *m_IME;
 
     public:
