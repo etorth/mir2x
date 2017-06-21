@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/17/2017 18:11:16
+ *  Last Modified: 06/21/2017 00:36:38
  *
  *    Description: 
  *
@@ -95,17 +95,17 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         if(m_MyHero && m_MyHero->UID() == stSMA.UID){
             LoadMap(stSMA.MapID);
 
-            auto nUID   = m_MyHero->UID();
-            auto nDBID  = m_MyHero->DBID();
-            auto bMale  = m_MyHero->Male();
-            auto nDress = m_MyHero->DressID();
+            auto nUID    = m_MyHero->UID();
+            auto nDBID   = m_MyHero->DBID();
+            auto bGender = m_MyHero->Gender();
+            auto nDress  = m_MyHero->Dress();
 
             for(auto pRecord: m_CreatureRecord){
                 delete pRecord.second;
             }
             m_CreatureRecord.clear();
 
-            m_MyHero = new MyHero(nUID, nDBID, bMale, nDress, this, stAction);
+            m_MyHero = new MyHero(nUID, nDBID, bGender, nDress, this, stAction);
             m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
         }
     }

@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 06/17/2017 18:05:10
+ *  Last Modified: 06/21/2017 00:37:22
  *
  *    Description: 
  *
@@ -27,11 +27,16 @@
 #include "motionnode.hpp"
 #include "pngtexoffdbn.hpp"
 
-Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, ProcessRun *pRun, const ActionNode &rstAction)
+Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, ProcessRun *pRun, const ActionNode &rstAction)
     : Creature(nUID, pRun)
     , m_DBID(nDBID)
-    , m_Male(bMale)
-    , m_DressID(nDressID)
+    , m_Gender(bGender)
+    , m_Horse(0)
+    , m_Weapon(0)
+    , m_Hair(0)
+    , m_HairColor(0)
+    , m_Dress(nDress)
+    , m_DressColor(0)
     , m_OnHorse(false)
 {
     m_CurrMotion.Motion    = MOTION_STAND;
@@ -50,7 +55,7 @@ Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, Process
 
 bool Hero::Draw(int nViewX, int nViewY)
 {
-    auto nDress     = m_DressID;
+    auto nDress     = m_Dress;
     auto nMotion    = m_CurrMotion.Motion;
     auto nDirection = m_CurrMotion.Direction;
 
@@ -67,8 +72,8 @@ bool Hero::Draw(int nViewX, int nViewY)
     // 21 - 14 :     dress : max = 256 
     //      22 :       sex :
     //      23 :    shadow :
-    uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Male ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_CurrMotion.Frame;
-    uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Male ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_CurrMotion.Frame;
+    uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_CurrMotion.Frame;
+    uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_CurrMotion.Frame;
 
     int nDX0 = 0;
     int nDY0 = 0;
@@ -451,7 +456,7 @@ bool Hero::ActionValid(const ActionNode &rstAction)
 
 size_t Hero::MotionFrameCount()
 {
-    if(GfxID(m_DressID, m_CurrMotion.Motion, m_CurrMotion.Direction) >= 0){
+    if(GfxID(m_Dress, m_CurrMotion.Motion, m_CurrMotion.Direction) >= 0){
         switch(m_CurrMotion.Motion){
             case MOTION_STAND       : { return 4; }
             case MOTION_WALK        : { return 6; }

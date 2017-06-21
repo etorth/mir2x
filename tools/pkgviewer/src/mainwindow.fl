@@ -25,8 +25,8 @@ class MainWindow {open
       callback {{
 	// don't exit directly
 	// exit(0);
-}} open selected
-      private xywh {1676 92 555 605} type Double labelfont 4
+}} open
+      private xywh {786 211 555 605} type Double labelfont 4
       code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_MenuBar {open
@@ -37,7 +37,7 @@ class MainWindow {open
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
-            label Open
+            label {Open                     }
             callback {{
     extern PreviewWindow *g_PreviewWindow;
     delete g_PreviewWindow;
@@ -96,42 +96,51 @@ class MainWindow {open
                 p->Redraw();
                 p->ShowAll();
                 Fl::check();
-
 		
                 std::string formatStr;
-                formatStr = "Index: %0" + std::to_string(maxLen) + "d         W:%4d            H:%4d";
-                for(int i = 0; i < g_WilPackage.IndexCount(); ++i){
-                    int nNewPer = (int)(i * 100 / g_WilPackage.IndexCount());
+                formatStr = "Index: %0" + std::to_string(maxLen) + "d       W:%4d       H:%4d       PX:%4d      PY:%4d";
+
+                int nImageCount = 0;
+                for(int nImgIndex = 0; nImgIndex < g_WilPackage.IndexCount(); ++nImgIndex){
+                    int nNewPer = (int)(nImgIndex * 100 / g_WilPackage.IndexCount());
                     p->SetValue(nNewPer);
                     p->Redraw();
                     p->ShowAll();
                     Fl::check();
 
-                    g_WilPackage.SetIndex(i);
+                    g_WilPackage.SetIndex(nImgIndex);
                     if(g_WilPackage.CurrentImageValid()){
                         char tmpBuf[128];
-                        std::sprintf(tmpBuf, formatStr.c_str(), i, g_WilPackage.CurrentImageInfo().shWidth, g_WilPackage.CurrentImageInfo().shHeight);
+                        std::sprintf(tmpBuf, formatStr.c_str(),
+                                nImgIndex,
+                                g_WilPackage.CurrentImageInfo().shWidth,
+                                g_WilPackage.CurrentImageInfo().shHeight,
+                                g_WilPackage.CurrentImageInfo().shPX,
+                                g_WilPackage.CurrentImageInfo().shPY);
                         // auto InfoBlk = g_WilPackage.CurrentImageInfo();
-                        m_Browser->add(tmpBuf, (void *)((intptr_t)i));
+                        m_Browser->add(tmpBuf, (void *)((intptr_t)nImgIndex));
+                        nImageCount++;
                     }
                 }
                 p->HideAll();
                 delete p;
                 
                 ActivateAll();
+                std::string szStatusBarInfo = std::string("FileName: ") + fileName + "." + fileExt +  "    ImageCount: " + std::to_string(nImageCount);
+                StatusBarMessage(szStatusBarInfo.c_str());
 
                 break;
             }
     }
 }}
-            xywh {0 0 30 20} shortcut 0x4006f labelfont 4 divider
+            xywh {0 0 30 20} labelfont 4 divider
             code0 {\#include <FL/Fl_Native_File_Chooser.H>}
             code1 {\#include "progressbarwindow.hpp"}
             code2 {\#include "wilfilewindow.hpp"}
             code3 {\#include "previewwindow.hpp"}
           }
           MenuItem {} {
-            label {Export Current}
+            label Export
             callback {{
     Fl_Native_File_Chooser fileChooser;
     fileChooser.title("Save");
@@ -164,7 +173,7 @@ class MainWindow {open
             break;
     }
 }}
-            xywh {0 0 30 20} shortcut 0x40078 labelfont 4
+            xywh {0 0 30 20} labelfont 4
             code0 {\#include <cstdint>}
             code1 {\#include "wilimagepackage.hpp"}
           }
@@ -228,13 +237,85 @@ class MainWindow {open
             		break;
 	}
 }}
-            xywh {10 10 30 20} shortcut 0x50078 labelfont 4 divider
+            xywh {10 10 30 20} labelfont 4
+            code0 {\#include "progressbarwindow.hpp"}
+          }
+          MenuItem {} {
+            label {Export With Offset}
+            callback {{
+	Fl_Native_File_Chooser fileChooser;
+	fileChooser.title("Save All With Offset Information");
+	fileChooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_DIRECTORY);
+	fileChooser.directory(".");
+	switch(fileChooser.show()){
+		case -1:
+			fl_alert("%s", fileChooser.errmsg());
+			break;
+        	case  1:
+            		break;
+        	default:
+			{
+				auto p = new ProgressBarWindow();
+                		p->SetValue(0);
+                		p->Redraw();
+                		p->ShowAll();
+                		Fl::check();
+                
+                		uint32_t *pBuffer    = nullptr;
+                		size_t    nBufferLen = 0;
+                		extern WilImagePackage g_WilPackage;
+                
+                		for(int i = 1; i <= m_Browser->size(); ++i){
+                			int nNewPer = (int)(i * 100 / g_WilPackage.IndexCount());
+                    			p->SetValue(nNewPer);
+                    			p->Redraw();
+                    			p->ShowAll();
+                    			Fl::check(); // actually we don't need it
+                    
+                    			uint32_t imgIdx = (uint32_t)((intptr_t)(m_Browser->data(i)));
+                    			g_WilPackage.SetIndex(imgIdx);
+                    			if(g_WilPackage.CurrentImageValid()){
+                        			auto nW = g_WilPackage.CurrentImageInfo().shWidth;
+                        			auto nH = g_WilPackage.CurrentImageInfo().shHeight;
+
+                        			if(nBufferLen < (size_t)(nW * nH)){
+                            				delete pBuffer;
+                            				pBuffer    = new uint32_t[nW * nH];
+                            				nBufferLen = (size_t)(nW * nH);
+                        			}
+                        			g_WilPackage.Decode(pBuffer, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+
+                                    auto nDX = g_WilPackage.CurrentImageInfo().shPX;
+                                    auto nDY = g_WilPackage.CurrentImageInfo().shPY;
+
+                                    char tmpIndex[64];
+                                    std::sprintf(tmpIndex, "TMP%06d_%s%s%04X%04X",
+                                            imgIdx,
+                                            ((nDX > 0) ? "1" : "0"),              // sign, postive for 1
+                                            ((nDY > 0) ? "1" : "0"),              // sign
+                                            (unsigned int)(std::labs(nDX)),
+                                            (unsigned int)(std::labs(nDY)));
+
+                                    std::string tmpFilePathName = fileChooser.filename();
+                                    std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
+                                    SaveRGBABufferToPNG((uint8_t *)pBuffer, nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
+                    			}
+                		}
+                		delete pBuffer;
+                
+                		p->HideAll();
+                		delete p;
+            		}
+            		break;
+	}
+}}
+            xywh {20 20 30 20} labelfont 4 divider
             code0 {\#include "progressbarwindow.hpp"}
           }
           MenuItem {} {
             label Exit
             callback {exit(0);}
-            xywh {0 0 30 20} shortcut 0x40071 labelfont 4
+            xywh {0 0 30 20} labelfont 4
           }
         }
         Submenu {} {
@@ -242,7 +323,7 @@ class MainWindow {open
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
-            label {About Me}
+            label {About Me       }
             callback {{
 	static AboutWindow *p;
 	if(!p){
@@ -275,12 +356,20 @@ if(g_WilPackage.CurrentImageValid()){
 	g_PreviewWindow->show();
 	g_PreviewWindow->redraw();
 }}
-        private xywh {0 20 555 585} type Hold labelfont 4 textfont 4
+        private xywh {0 20 555 570} type Hold labelfont 4 textfont 4
         code0 {\#include <algorithm>}
         code1 {\#include "wilimagepackage.hpp"}
         code2 {\#include <FL/fl_draw.H>}
         code3 {\#include "previewwindow.hpp"}
       }
+      Fl_Box m_StatusBar {
+        xywh {0 590 555 15} labelfont 4 labelsize 10 align 20
+      }
+    }
+    code {{
+	// give an initial value of status bar
+	StatusBarMessage("Version 0.0.1");
+}} {selected
     }
   }
   Function {ShowAll()} {return_type void
@@ -299,16 +388,29 @@ if(g_WilPackage.CurrentImageValid()){
 extern WilImagePackage g_WilPackage;
 return g_WilPackage.ImageCount();} {}
   }
-  Function {ActivateAll()} {open return_type void
+  Function {ActivateAll()} {return_type void
   } {
     code {m_Window->activate();
 m_MenuBar->activate();
 m_Browser->activate();} {}
   }
-  Function {DeactivateAll()} {open
-  } {
+  Function {DeactivateAll()} {} {
     code {m_Window->deactivate();
 m_MenuBar->deactivate();
 m_Browser->deactivate();} {}
+  }
+  Function {StatusBarMessage(const char *szMessage)} {open return_type void
+  } {
+    code {{
+        if(true
+                && szMessage
+                && std::strlen(szMessage)){
+            m_StatusBar->copy_label(szMessage);
+        }else{
+            m_StatusBar->copy_label("Version: 0.0.1");
+        }
+        m_StatusBar->redraw();
+        m_Window->redraw();
+}} {}
   }
 } 

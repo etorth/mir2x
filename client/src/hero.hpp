@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 06/18/2017 00:44:29
+ *  Last Modified: 06/21/2017 00:31:43
  *
  *    Description: 
  *
@@ -27,10 +27,15 @@ class Hero: public Creature
         const uint32_t m_DBID;
 
     protected:
-        const bool m_Male;
+        bool     m_Gender;
+        uint8_t  m_Horse;
+        uint16_t m_Weapon;
 
-    protected:
-        const uint32_t m_DressID;
+        uint8_t  m_Hair;
+        uint32_t m_HairColor;
+
+        uint8_t  m_Dress;
+        uint32_t m_DressColor;
 
     protected:
         bool m_OnHorse;
@@ -71,10 +76,11 @@ class Hero: public Creature
         }
 
     public:
-        bool     Male   () const { return m_Male   ; }
-        uint32_t DBID   () const { return m_DBID   ; }
-        uint32_t DressID() const { return m_DressID; }
-
+        bool     Gender() const { return m_Gender ; }
+        uint8_t  Horse () const { return m_Horse  ; }
+        uint16_t Weapon() const { return m_Weapon ; }
+        uint32_t DBID  () const { return m_DBID   ; }
+        uint32_t Dress () const { return m_Dress  ; }
 
     public:
         bool Moving();
