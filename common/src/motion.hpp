@@ -3,7 +3,7 @@
  *
  *       Filename: motion.hpp
  *        Created: 04/04/2017 23:57:00
- *  Last Modified: 04/08/2017 17:01:54
+ *  Last Modified: 06/21/2017 23:13:58
  *
  *    Description: 
  *
@@ -19,6 +19,42 @@
  */
 
 #pragma once
+
+// following is from Define.h
+//
+// _MT_STAND		
+// _MT_ARROWATTACK	
+// _MT_SPELL1		
+// _MT_SPELL2		
+// _MT_HOLD		
+// _MT_PUSHBACK	
+// _MT_PUSHBACKFLY	
+// _MT_ATTACKMODE	
+// _MT_CUT			
+// _MT_ONEVSWING
+// _MT_TWOVSWING	
+// _MT_ONEHSWING	
+// _MT_TWOHSWING	
+// _MT_SPEARVSWING	
+// _MT_SPEARHSWING	
+// _MT_HITTED		
+// _MT_WHEELWIND	
+// _MT_RANDSWING	
+// _MT_BACKDROPKICK
+// _MT_DIE			
+// _MT_SPECIALDIE	
+// _MT_WALK		
+// _MT_RUN			
+// _MT_MOODEPO		
+// _MT_ROLL		
+// _MT_FISHSTAND	
+// _MT_FISHHAND	
+// _MT_FISHTHROW	
+// _MT_FISHPULL	
+// _MT_HORSESTAND	
+// _MT_HORSEWALK	
+// _MT_HORSERUN	
+// _MT_HORSEHIT	
 
 enum MotionType: int
 {

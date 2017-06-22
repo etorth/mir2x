@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 06/21/2017 00:37:22
+ *  Last Modified: 06/22/2017 00:09:04
  *
  *    Description: 
  *
@@ -32,7 +32,7 @@ Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, Process
     , m_DBID(nDBID)
     , m_Gender(bGender)
     , m_Horse(0)
-    , m_Weapon(0)
+    , m_Weapon(3)
     , m_Hair(0)
     , m_HairColor(0)
     , m_Dress(nDress)
@@ -92,6 +92,26 @@ bool Hero::Draw(int nViewX, int nViewY)
     if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
     g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
     g_SDLDevice->DrawTexture(pFrame0, X() * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
+
+    // draw weapon
+    // in database weapon is from 0 ~ N
+    // but in client 0 means no weapon and m_Weapon - 1 means weapon in DB
+    if(m_Weapon){
+        // 04 - 00 :     frame : max =  32
+        // 07 - 05 : direction : max =  08 : +
+        // 13 - 08 :    motion : max =  64 : +----> GfxID
+        // 21 - 14 :    weapon : max = 256 
+        //      22 :    gender :
+        uint32_t nWeaponGfxID = (((uint32_t)(m_Weapon - 1) & 0X00FF) << 9) + ((uint32_t)(nGfxID) & 0X01FF);
+        uint32_t nWeaponKey = (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (nWeaponGfxID << 5) + m_CurrMotion.Frame;
+
+        int nWeaponDX = 0;
+        int nWeaponDY = 0;
+
+        extern PNGTexOffDBN *g_WeaponDBN;
+        auto pWeapon = g_WeaponDBN->Retrieve(nWeaponKey, &nWeaponDX, &nWeaponDY);
+        g_SDLDevice->DrawTexture(pWeapon, X() * SYS_MAPGRIDXP + nWeaponDX - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nWeaponDY - nViewY + nShiftY);
+    }
 
 
     // draw HP bar

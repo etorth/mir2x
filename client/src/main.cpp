@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/17/2017 11:54:07
+ *  Last Modified: 06/21/2017 23:27:27
  *
  *    Description: 
  *
@@ -34,6 +34,7 @@ ClientEnv      *g_ClientEnv     = nullptr;
 PNGTexDBN      *g_PNGTexDBN     = nullptr; // database for all PNG texture only
 PNGTexOffDBN   *g_PNGTexOffDBN  = nullptr; // database for all PNG texture and offset information
 PNGTexOffDBN   *g_HeroGfxDBN    = nullptr; // database for hero
+PNGTexOffDBN   *g_WeaponDBN     = nullptr; // database for weapon
 EmoticonDBN    *g_EmoticonDBN   = nullptr; // database for emoticons
 FontexDBN      *g_FontexDBN     = nullptr;
 XMLConf        *g_XMLConf       = nullptr; // for game configure XML parsing
@@ -67,6 +68,7 @@ int main()
     g_SDLDevice    = new SDLDevice();
     g_PNGTexDBN    = new PNGTexDBN();
     g_HeroGfxDBN   = new PNGTexOffDBN();
+    g_WeaponDBN    = new PNGTexOffDBN();
     g_PNGTexOffDBN = new PNGTexOffDBN();
     g_FontexDBN    = new FontexDBN();
     g_EmoticonDBN  = new EmoticonDBN();
