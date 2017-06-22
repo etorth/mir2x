@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 06/20/2017 00:05:06
+ *  Last Modified: 06/22/2017 12:37:44
  *
  *    Description: 
  *
@@ -127,6 +127,9 @@ class InputBoard: public InputWidget
     public:
         void Draw();
         void DrawEx(int, int, int, int, int, int);
+
+    public:
+        const char *Content();
 
     public:
         void InsertInfo(const char *)

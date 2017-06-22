@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16
- *  Last Modified: 06/19/2017 23:58:27
+ *  Last Modified: 06/22/2017 12:36:36
  *
  *    Description: 
  *
@@ -402,4 +402,15 @@ void InputBoard::DrawEx(
         int nSrcW, int nSrcH)
 {
     m_TokenBoard.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nSrcW, nSrcH);
+}
+
+const char *InputBoard::Content()
+{
+    XMLObjectList stList;
+    stList.Parse(Print(false).c_str(), true);
+
+    stList.Reset();
+    auto pObject = stList.Fetch();
+
+    return (pObject ? pObject->GetText() : nullptr);
 }

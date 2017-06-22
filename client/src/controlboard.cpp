@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 06/20/2017 23:33:25
+ *  Last Modified: 06/22/2017 12:40:32
  *
  *    Description:
  *
@@ -40,8 +40,8 @@ ControlBoard::ControlBoard(int nX, int nY, Widget *pWidget, bool bAutoDelete)
             15,
             0,
             ColorFunc::COLOR_WHITE,
-            [](){},
-            [](){})
+            [    ](){                  },
+            [this](){ InputLineDone(); })
 {}
 
 void ControlBoard::Update(double fMS)
@@ -78,4 +78,32 @@ bool ControlBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
             return false;
     }
     return false;
+}
+
+void ControlBoard::InputLineDone()
+{
+    std::string szRawInput  = m_CmdLine.Content();
+    std::string szInputLine = szRawInput.substr(szRawInput.find_first_not_of(" \n\r\t"));
+
+    if(szInputLine.empty()){
+    }else{
+        switch(szInputLine[0]){
+            case '!': // broadcast
+                {
+                    break;
+                }
+            case '@': // user command
+                {
+                    break;
+                }
+            case '$': // lua command for super user
+                {
+                    break;
+                }
+            default: // normal talk
+                {
+                    break;
+                }
+        }
+    }
 }
