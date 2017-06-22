@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 06/21/2017 00:31:43
+ *  Last Modified: 06/22/2017 11:33:36
  *
  *    Description: 
  *
@@ -87,6 +87,9 @@ class Hero: public Creature
 
     public:
         size_t MotionFrameCount();
+
+    public:
+        bool WeaponOrder(int, int, int);
 
     public:
         bool ValidG()
