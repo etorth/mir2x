@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 06/22/2017 11:39:47
+ *  Last Modified: 06/22/2017 18:28:59
  *
  *    Description: 
  *
@@ -35,7 +35,7 @@ Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, Process
     , m_Weapon(4)
     , m_Hair(0)
     , m_HairColor(0)
-    , m_Dress(nDress)
+    , m_Dress(nDress - nDress + 5)
     , m_DressColor(0)
     , m_OnHorse(false)
 {
@@ -72,8 +72,8 @@ bool Hero::Draw(int nViewX, int nViewY)
     // 21 - 14 :     dress : max = 256 
     //      22 :       sex :
     //      23 :    shadow :
-    uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_CurrMotion.Frame;
-    uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FF)) << 5) + m_CurrMotion.Frame;
+    uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FFFF)) << 5) + m_CurrMotion.Frame;
+    uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FFFF)) << 5) + m_CurrMotion.Frame;
 
     int nDX0 = 0;
     int nDY0 = 0;
