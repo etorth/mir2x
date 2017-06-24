@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 06/22/2017 18:28:59
+ *  Last Modified: 06/24/2017 00:56:42
  *
  *    Description: 
  *
@@ -88,7 +88,7 @@ bool Hero::Draw(int nViewX, int nViewY)
     int nShiftY = 0;
     EstimatePixelShift(&nShiftX, &nShiftY);
 
-    auto fnDrawWeapon = [this, nGfxID, nViewX, nViewY, nShiftX, nShiftY]() -> void
+    auto fnDrawWeapon = [this, nGfxID, nViewX, nViewY, nShiftX, nShiftY](bool bShadow) -> void
     {
         // in DB weapon index starts from 0
         // and in client m_Weapon = 0 means ``no weapon used" and 
@@ -98,8 +98,9 @@ bool Hero::Draw(int nViewX, int nViewY)
             // 13 - 08 :    motion : max =  64 : +----> GfxID
             // 21 - 14 :    weapon : max = 256 
             //      22 :    gender :
+            //      23 :    shadow :
             uint32_t nWeaponGfxID = (((uint32_t)(m_Weapon - 1) & 0X00FF) << 9) + ((uint32_t)(nGfxID) & 0X01FF);
-            uint32_t nWeaponKey = (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (nWeaponGfxID << 5) + m_CurrMotion.Frame;
+            uint32_t nWeaponKey   = (((uint32_t)(bShadow ? 1 : 0)) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (nWeaponGfxID << 5) + m_CurrMotion.Frame;
 
             int nWeaponDX = 0;
             int nWeaponDY = 0;
@@ -107,21 +108,28 @@ bool Hero::Draw(int nViewX, int nViewY)
             extern SDLDevice *g_SDLDevice;
             extern PNGTexOffDBN *g_WeaponDBN;
             auto pWeapon = g_WeaponDBN->Retrieve(nWeaponKey, &nWeaponDX, &nWeaponDY);
+
+            if(pWeapon && bShadow){ SDL_SetTextureAlphaMod(pWeapon, 128); }
             g_SDLDevice->DrawTexture(pWeapon, X() * SYS_MAPGRIDXP + nWeaponDX - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nWeaponDY - nViewY + nShiftY);
         }
     };
 
-    if(m_Weapon && WeaponOrder(((nGfxID & 0X01F8) >> 3) + 1, (nGfxID & 0X07) + 1, m_CurrMotion.Frame)){
-        fnDrawWeapon();
-    }
+
+    fnDrawWeapon(true);
 
     extern SDLDevice *g_SDLDevice;
     if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
     g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
+
+
+    if(m_Weapon && WeaponOrder(((nGfxID & 0X01F8) >> 3) + 1, (nGfxID & 0X07) + 1, m_CurrMotion.Frame)){
+        fnDrawWeapon(false);
+    }
+
     g_SDLDevice->DrawTexture(pFrame0, X() * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
 
     if(m_Weapon && !WeaponOrder(((nGfxID & 0X01F8) >> 3) + 1, (nGfxID & 0X07) + 1, m_CurrMotion.Frame)){
-        fnDrawWeapon();
+        fnDrawWeapon(false);
     }
 
     // draw HP bar

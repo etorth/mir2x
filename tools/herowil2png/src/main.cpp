@@ -3,11 +3,11 @@
  *
  *       Filename: main.cpp
  *        Created: 04/03/2017 18:02:52
- *  Last Modified: 06/22/2017 18:13:24
+ *  Last Modified: 06/22/2017 23:29:17
  *
  *    Description: convert hero graphics res to png files, usage:
  *
- *                      wil2png gender path-to-package basename extension out-dir
+ *                      herowil2png gender path-to-package basename extension out-dir
  *
  *                 parameters:
  *                      gender   : 1 :    male
@@ -179,8 +179,8 @@ bool heroWil2PNG(bool bGender,
                                     nMotion,
                                     nDirection,
                                     nFrame,
-                                    bProject ? stInfo.shShadowPX : stInfo.shPX + 3,
-                                    bProject ? stInfo.shShadowPY : stInfo.shPY + 2);
+                                    bProject ? stInfo.shShadowPX : (stInfo.shPX + 3),
+                                    bProject ? stInfo.shShadowPY : (stInfo.shPY + 2));
 
                             if(!SaveRGBABufferToPNG((uint8_t *)(&(stPNGBufShadow[0])), nShadowW, nShadowH, szSaveFileName)){
                                 std::printf("save shadow PNG failed: %s", szSaveFileName);
