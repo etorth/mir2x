@@ -1,3 +1,5 @@
 *.cpp text eof=lf
 *.hpp text eof=lf
 *.txt text eof=lf
+*.ZIP filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
