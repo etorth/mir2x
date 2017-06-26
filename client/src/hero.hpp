@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 06/22/2017 11:33:36
+ *  Last Modified: 06/26/2017 00:05:29
  *
  *    Description: 
  *
@@ -81,6 +81,17 @@ class Hero: public Creature
         uint16_t Weapon() const { return m_Weapon ; }
         uint32_t DBID  () const { return m_DBID   ; }
         uint32_t Dress () const { return m_Dress  ; }
+
+    public:
+        void Dress(uint32_t nDress)
+        {
+            m_Dress = nDress;
+        }
+
+        void Weapon(uint16_t nWeapon)
+        {
+            m_Weapon = nWeapon;
+        }
 
     public:
         bool Moving();

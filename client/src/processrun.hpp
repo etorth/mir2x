@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 06/25/2017 23:28:07
+ *  Last Modified: 06/25/2017 23:37:39
  *
  *    Description: 
  *
@@ -36,9 +36,10 @@ class ProcessRun: public Process
     private:
         enum OutPortType: int
         {
-            OUTPORT_NONE     = (0 << 0),
-            OUTPORT_LOG      = (1 << 0),
-            OUTPORT_SCREEN   = (1 << 1),
+            OUTPORT_NONE         = (0 << 0),
+            OUTPORT_LOG          = (1 << 0),
+            OUTPORT_SCREEN       = (2 << 1),
+            OUTPORT_CONTROLBOARD = (3 << 1),
         };
 
     private:

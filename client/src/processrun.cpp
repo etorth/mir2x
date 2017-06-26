@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/25/2017 23:30:48
+ *  Last Modified: 06/26/2017 00:05:01
  *
  *    Description: 
  *
@@ -605,16 +605,45 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
             end
         )#");
 
+        // register command ``myHero.xxx"
+        // I need to insert a table to micmic a instance myHero in the future
+        pModule->set_function("myHero_dress", [this](int nDress){
+            if(nDress >= 0){
+                m_MyHero->Dress((uint32_t)(nDress));
+            }
+        });
+
+        // register command ``myHero.xxx"
+        // I need to insert a table to micmic a instance myHero in the future
+        pModule->set_function("myHero_weapon", [this](int nWeapon){
+            if(nWeapon >= 0){
+                m_MyHero->Weapon((uint32_t)(nWeapon));
+            }
+        });
+
+
         // registration done
         return true;
     }
     return false;
 }
 
-bool ProcessRun::AddOPLog(int nOutPort, int, const char *, const char *)
+bool ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, const char *szLogInfo)
 {
-    if(nOutPort & OUTPORT_LOG){}
-    if(nOutPort & OUTPORT_SCREEN){}
+    if(nOutPort & OUTPORT_LOG){
+        extern Log *g_Log;
+        switch(nLogType){
+            case 0  : g_Log->AddLog(LOGTYPE_INFO   , "%s", (std::string(szPrompt ? szPrompt : "") + szLogInfo).c_str()); break;
+            case 1  : g_Log->AddLog(LOGTYPE_WARNING, "%s", (std::string(szPrompt ? szPrompt : "") + szLogInfo).c_str()); break;
+            default : g_Log->AddLog(LOGTYPE_FATAL  , "%s", (std::string(szPrompt ? szPrompt : "") + szLogInfo).c_str()); break;
+        }
+    }
+
+    if(nOutPort & OUTPORT_SCREEN){
+    }
+
+    if(nOutPort & OUTPORT_CONTROLBOARD){
+    }
 
     return true;
 }
