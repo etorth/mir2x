@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 06/24/2017 00:56:42
+ *  Last Modified: 06/25/2017 18:26:39
  *
  *    Description: 
  *
@@ -32,10 +32,10 @@ Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, Process
     , m_DBID(nDBID)
     , m_Gender(bGender)
     , m_Horse(0)
-    , m_Weapon(4)
+    , m_Weapon(5)
     , m_Hair(0)
     , m_HairColor(0)
-    , m_Dress(nDress - nDress + 5)
+    , m_Dress(nDress - nDress + 6)
     , m_DressColor(0)
     , m_OnHorse(false)
 {

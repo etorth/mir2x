@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/18/2017 23:53:26
+ *  Last Modified: 06/25/2017 23:30:48
  *
  *    Description: 
  *
@@ -28,6 +28,7 @@
 #include "sdldevice.hpp"
 #include "clientenv.hpp"
 #include "processrun.hpp"
+#include "clientluamodule.hpp"
 
 ProcessRun::ProcessRun()
     : Process()
@@ -38,9 +39,12 @@ ProcessRun::ProcessRun()
     , m_ViewX(0)
     , m_ViewY(0)
     , m_RollMap(false)
+    , m_LuaModule(this, 0)
     , m_ControbBoard(0, 0, nullptr, false)
     , m_CreatureRecord()
-{}
+{
+    m_ControbBoard.Bind(this);
+}
 
 void ProcessRun::Update(double)
 {
@@ -432,6 +436,185 @@ bool ProcessRun::LocatePoint(int nPX, int nPY, int *pX, int *pY)
 {
     if(pX){ *pX = (nPX + m_ViewX) / SYS_MAPGRIDXP; }
     if(pY){ *pY = (nPY + m_ViewY) / SYS_MAPGRIDYP; }
+
+    return true;
+}
+
+bool ProcessRun::LuaCommand(const char *szLuaCommand)
+{
+    if(szLuaCommand){
+        auto stCallResult = m_LuaModule.script(szLuaCommand, [](lua_State *, sol::protected_function_result stResult){
+            // default handler
+            // do nothing and let the call site handle the errors
+            return stResult;
+        });
+
+        if(stCallResult.valid()){
+            // default nothing printed
+            // we can put information here to show call succeeds
+            // or we can unlock the input widget to allow next command
+        }else{
+            sol::error stError = stCallResult;
+
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_WARNING, "%s", stError.what());
+        }
+
+        // always return true if command get evaluated
+        // return false only if provided is unhandled
+        return true;
+    }
+    return false;
+}
+
+bool ProcessRun::UserCommand(const char *)
+{
+    return false;
+}
+
+std::vector<int> ProcessRun::GetPlayerList()
+{
+    std::vector<int> stRetV {};
+    for(auto pRecord = m_CreatureRecord.begin(); pRecord != m_CreatureRecord.end();){
+        if(true
+                && pRecord->second
+                && pRecord->second->Active()){
+            switch(pRecord->second->Type()){
+                case CREATURE_PLAYER:
+                    {
+                        stRetV.push_back(pRecord->second->UID());
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+            ++pRecord;
+        }else{
+            delete pRecord->second;
+            pRecord = m_CreatureRecord.erase(pRecord);
+        }
+    }
+    return stRetV;
+}
+
+bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
+{
+    if(pModule){
+
+        // initialization before registration
+        pModule->script(R"()");
+
+        // register command exitClient
+        // exit client and free all related resource
+        pModule->set_function("exitClient", [](){ std::exit(0); });
+
+        // register command exit
+        pModule->set_function("exit", [](){
+            // reserve this command
+            // don't find what to exit here
+            std::exit(0);
+        });
+
+        // register command sleep
+        // sleep current thread and return after the specified ms
+        // can use posix.sleep(ms), but here use std::this_thread::sleep_for(x)
+        pModule->set_function("sleep", [](int nSleepMS){
+            if(nSleepMS > 0){
+                std::this_thread::sleep_for(std::chrono::milliseconds(nSleepMS));
+            }
+        });
+
+        // register command printLine
+        // print one line to the out port allocated for the lua module
+        // won't add message to log system, use addLog instead if needed
+        pModule->set_function("printLine", [this, nOutPort](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo){
+            // use sol::object to accept arguments
+            // otherwise for follow code it throws exception for type unmatch
+            //      lua["f"] = [](int a){ return a; };
+            //      lua.script("print f(\"hello world\")")
+            // program crashes with exception.what() : expecting int, string provided
+            if(true
+                    && stLogType.is<int>()
+                    &&  stPrompt.is<std::string>()
+                    && stLogInfo.is<std::string>()){
+                AddOPLog(nOutPort, stLogType.as<int>(), stPrompt.as<std::string>().c_str(), stLogInfo.as<std::string>().c_str());
+                return;
+            }
+
+            // invalid argument provided
+            AddOPLog(nOutPort, 2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
+        });
+
+        // register command addLog
+        // add to client system log file only, same as g_Log->AddLog(LOGTYPE_XXXX, LogInfo)
+        pModule->set_function("addLog", [this, nOutPort](sol::object stLogType, sol::object stLogInfo){
+            if(true
+                    && stLogType.is<int>()
+                    && stLogInfo.is<std::string>()){
+                extern Log *g_Log;
+                switch(stLogType.as<int>()){
+                    case 0  : g_Log->AddLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
+                    case 1  : g_Log->AddLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
+                    default : g_Log->AddLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
+                }
+            }
+
+            // invalid argument provided
+            AddOPLog(nOutPort, 2, ">>> ", "addLog(LogType: int, LogInfo: string)");
+        });
+
+        // register command playerList
+        // get a list for all active maps
+        // return a table (userData) to lua for ipairs() check
+        pModule->set_function("playerList", [this](sol::this_state stThisLua){
+            return sol::make_object(sol::state_view(stThisLua), GetPlayerList());
+        });
+
+        // register command ``listPlayerInfo"
+        // this command call to get a player info table and print to out port
+        pModule->script(R"#(
+            function listPlayerInfo ()
+                for k, v in ipairs(playerList())
+                do
+                    printLine(0, "> ", tostring(v))
+                end
+            end
+        )#");
+
+        // register command ``help"
+        // part-1: divide into two parts, part-1 create the table for help
+        pModule->script(R"#(
+            helpInfoTable = {
+                wear     = "put on different dress",
+                moveTo   = "move to other position on current map",
+                randMove = "random move on current map"
+            }
+        )#");
+
+        // part-2: make up the function to print the table entry
+        pModule->script(R"#(
+            function help (queryKey)
+                if helpInfoTable[queryKey]
+                then
+                    printLine(0, "> ", helpInfoTable[queryKey])
+                else
+                    printLine(2, "> ", "No entry find for input")
+                end
+            end
+        )#");
+
+        // registration done
+        return true;
+    }
+    return false;
+}
+
+bool ProcessRun::AddOPLog(int nOutPort, int, const char *, const char *)
+{
+    if(nOutPort & OUTPORT_LOG){}
+    if(nOutPort & OUTPORT_SCREEN){}
 
     return true;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 06/22/2017 12:40:32
+ *  Last Modified: 06/25/2017 22:58:53
  *
  *    Description:
  *
@@ -25,10 +25,12 @@
 #include "log.hpp"
 #include "sdldevice.hpp"
 #include "pngtexdbn.hpp"
+#include "processrun.hpp"
 #include "controlboard.hpp"
 
 ControlBoard::ControlBoard(int nX, int nY, Widget *pWidget, bool bAutoDelete)
     : Widget(nX, nY, 0, 0, pWidget, bAutoDelete)
+    , m_ProcessRun(nullptr)
     , m_CmdLine(
             185,
             574,
@@ -94,10 +96,16 @@ void ControlBoard::InputLineDone()
                 }
             case '@': // user command
                 {
+                    if(m_ProcessRun){
+                        m_ProcessRun->UserCommand(szInputLine.c_str() + 1);
+                    }
                     break;
                 }
             case '$': // lua command for super user
                 {
+                    if(m_ProcessRun){
+                        m_ProcessRun->LuaCommand(szInputLine.c_str() + 1);
+                    }
                     break;
                 }
             default: // normal talk

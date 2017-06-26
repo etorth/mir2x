@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 06/14/2017 23:17:23
+ *  Last Modified: 06/25/2017 20:56:31
  *
  *    Description: 
  *
@@ -31,7 +31,6 @@
 #include "mainwindow.hpp"
 #include "eventtaskhub.hpp"
 #include "scriptwindow.hpp"
-#include "addmonsterwindow.hpp"
 #include "serverconfigurewindow.hpp"
 #include "databaseconfigurewindow.hpp"
 

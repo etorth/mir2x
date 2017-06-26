@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 06/18/2017 00:56:57
+ *  Last Modified: 06/25/2017 23:28:07
  *
  *    Description: 
  *
@@ -29,15 +29,16 @@
 #include "creature.hpp"
 #include "mir2xmapdata.hpp"
 #include "controlboard.hpp"
+#include "clientluamodule.hpp"
 
 class ProcessRun: public Process
 {
     private:
-        enum NotifyType: int
+        enum OutPortType: int
         {
-            NOTIFY_INFO,
-            NOTIFY_WARNING,
-            NOTIFY_FATAL,
+            OUTPORT_NONE     = (0 << 0),
+            OUTPORT_LOG      = (1 << 0),
+            OUTPORT_SCREEN   = (1 << 1),
         };
 
     private:
@@ -56,6 +57,9 @@ class ProcessRun: public Process
 
     private:
         bool m_RollMap;
+
+    private:
+        ClientLuaModule m_LuaModule;
 
     private:
         ControlBoard m_ControbBoard;
@@ -104,4 +108,15 @@ class ProcessRun: public Process
     public:
         bool CanMove(bool, int, int);
         bool CanMove(bool, int, int, int, int);
+
+    public:
+        bool  LuaCommand(const char *);
+        bool UserCommand(const char *);
+
+    public:
+        std::vector<int> GetPlayerList();
+
+    public:
+        bool RegisterLuaExport(ClientLuaModule *, int);
+        bool AddOPLog(int, int, const char *, const char *);
 };
