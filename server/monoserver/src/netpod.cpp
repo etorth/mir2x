@@ -1,0 +1,221 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: netpod.cpp
+ *        Created: 06/25/2017 12:05:00
+ *  Last Modified: 06/25/2017 18:18:47
+ *
+ *    Description: 
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
+
+#include "netpod.hpp"
+#include "sysconst.hpp"
+#include "monoserver.hpp"
+
+NetPodN::NetPodN()
+    : SyncDriver()
+    , m_Port(0)
+    , m_IO(nullptr)
+    , m_EndPoint(nullptr)
+    , m_Acceptor(nullptr)
+    , m_Socket(nullptr)
+    , m_Thread()
+    , m_ValidQ()
+    , m_SCAddress(Theron::Address::Null())
+{
+    for(size_t nSID = 0; nSID < SYS_MAXPLAYERNUM; ++nSID){
+        m_SessionV[0][nSID] = nullptr;
+        m_SessionV[1][nSID] = nullptr;
+    }
+}
+
+NetPodN::~NetPodN()
+{
+    Shutdown(0);
+    if(m_Thread.joinable()){ m_Thread.join(); }
+
+    delete m_Socket;
+    delete m_Acceptor;
+    delete m_EndPoint;
+    delete m_IO;
+}
+
+Session* NetPodN::Validate(uint32_t nSessionID, bool bValid)
+{
+    if(true
+            && nSessionID > 0
+            && nSessionID < SYS_MAXPLAYERNUM){
+        return m_SessionV[bValid ? 1 : 0][nSessionID];
+    }
+    return nullptr;
+}
+
+bool NetPodN::CheckPort(uint32_t nPort)
+{
+    if(nPort <= 1024){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Don't use reserved port: %d", (int)(nPort));
+        return false;
+    }
+
+    if(m_Port > 1024){
+        // TODO here we add other well-unknown occupied port check
+    }
+
+    return true;
+}
+
+// TODO stop io before we restart it
+bool NetPodN::InitASIO(uint32_t nPort)
+{
+    // 1. set server listen port
+
+    if(!CheckPort(nPort)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid port provided");
+        g_MonoServer->Restart();
+    }
+
+    m_Port = nPort;
+
+    try{
+        m_IO       = new asio::io_service();
+        m_EndPoint = new asio::ip::tcp::endpoint(asio::ip::tcp::v4(), m_Port);
+        m_Acceptor = new asio::ip::tcp::acceptor(*m_IO, *m_EndPoint);
+        m_Socket   = new asio::ip::tcp::socket(*m_IO);
+    }catch(...){
+        delete m_Socket;
+        delete m_Acceptor;
+        delete m_EndPoint;
+        delete m_IO;
+
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Initialization of ASIO failed");
+        g_MonoServer->Restart();
+    }
+
+    return true;
+}
+
+int NetPodN::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
+{
+    // 1. check parameter
+    if(!CheckPort(nPort) || rstSCAddr == Theron::Address::Null()){ return 1; }
+
+    // 2. assign the target address
+    m_SCAddress = rstSCAddr;
+
+    // 3. make sure the internal thread has ended
+    if(m_Thread.joinable()){ m_Thread.join(); }
+
+    // 4. prepare valid session ID
+    m_ValidQ.Clear();
+    for(uint32_t nID = 1; nID < SYS_MAXPLAYERNUM; ++nID){
+        m_ValidQ.PushHead(nID);
+    }
+
+    // 5. init ASIO
+    if(!InitASIO(nPort)){ return 2; }
+
+    // 6. put one accept handler inside the event loop
+    Accept();
+
+    // 7. start the internal thread
+    m_Thread = std::thread([this](){ m_IO->run(); });
+
+    // 8. all Launch() function will return 0 when succceeds
+    return 0;
+}
+
+int NetPodN::Activate(uint32_t nSessionID, const Theron::Address &rstTargetAddress)
+{
+    // 1. check argument
+    if(false
+            || nSessionID == 0
+            || nSessionID >= SYS_MAXPLAYERNUM
+            || rstTargetAddress == Theron::Address::Null()){
+        return 1;
+    }
+
+    // 2. get pointer
+    if(!m_SessionV[0][nSessionID]){ return 2; }
+
+    // 3. corresponding running slot is empty?
+    if(m_SessionV[1][nSessionID]){ return 3; }
+
+    // 4. start it and move it to the running slot
+    if(m_SessionV[0][nSessionID]->Launch(rstTargetAddress)){ return 4; }
+
+    // 5. launch ok
+    std::swap(m_SessionV[0][nSessionID], m_SessionV[1][nSessionID]);
+    m_SessionV[0][nSessionID] = nullptr;
+
+    return 0;
+}
+
+void NetPodN::Accept()
+{
+    auto fnAccept = [this](std::error_code stEC){
+        extern MonoServer *g_MonoServer;
+        if(stEC){
+            // error occurs, stop the network
+            // assume g_MonoServer is ready for log
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error when accepting");
+            g_MonoServer->Restart();
+
+            // we won't put Accept() in the event loop again
+            // then the IO will stop after this
+            return;
+        }
+
+        g_MonoServer->AddLog(LOGTYPE_INFO, "Connection requested from (%s:%d)",
+                m_Socket->remote_endpoint().address().to_string().c_str(),
+                m_Socket->remote_endpoint().port());
+
+        if(m_ValidQ.Empty()){
+            g_MonoServer->AddLog(LOGTYPE_INFO, "No valid slot for new connection request, refused");
+            return;
+        }
+
+        uint32_t nValidID = m_ValidQ.Head();
+        m_ValidQ.PopHead();
+
+        if(!nValidID){
+            g_MonoServer->AddLog(LOGTYPE_INFO, "Mystious error, could never happen");
+            return;
+        }
+
+        // create the new session and put it in V[0]
+        m_SessionV[0][nValidID] = new Session(nValidID, std::move(*m_Socket));
+
+        // inform the serice core that there is a new connection
+        AMNewConnection stAMNC;
+        stAMNC.SessionID = nValidID;
+
+        if(Forward({MPK_NEWCONNECTION, stAMNC}, m_SCAddress)){
+            delete m_SessionV[0][nValidID];
+            m_SessionV[0][nValidID] = nullptr;
+
+            m_ValidQ.PushHead(nValidID);
+            g_MonoServer->AddLog(LOGTYPE_INFO, "Can't inform ServiceCore a new connection");
+            return;
+        }
+
+        g_MonoServer->AddLog(LOGTYPE_INFO, "Informed ServiceCore for a new connection");
+
+        // accept next request
+        Accept();
+    };
+
+    m_Acceptor->async_accept(*m_Socket, fnAccept);
+}
