@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 05/25/2017 20:04:32
+ *  Last Modified: 07/01/2017 12:44:32
  *
  *    Description: 
  *
@@ -159,7 +159,7 @@ bool MyHero::ParseActionQueue()
                 }
 
                 if(LDistance2(nX0, nY0, nX1, nY1) > 2){
-                    ClientPathFinder stPathFinder(false, true);
+                    ClientPathFinder stPathFinder(false, true, 1);
                     if(true
                             && stPathFinder.Search(nX0, nY0, nX1, nY1)
                             && stPathFinder.GetSolutionStart()){

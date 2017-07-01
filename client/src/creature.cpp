@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/15/2017 16:46:43
+ *  Last Modified: 07/01/2017 12:44:20
  *
  *    Description: 
  *
@@ -266,7 +266,7 @@ bool Creature::ParseMovePath(int nMotion, int nSpeed, int nX0, int nY0, int nX1,
                 // we check both creatures and grids
                 // creature check : will prefer a path without creatures stand on the way
                 //     gird check : will fail if can't pass through valid grids
-                ClientPathFinder stPathFinder(true, true);
+                ClientPathFinder stPathFinder(true, true, 1);
                 if(true
                         && stPathFinder.Search(nX0, nY0, nX1, nY1)
                         && stPathFinder.GetSolutionStart()){

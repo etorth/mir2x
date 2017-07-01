@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 05/18/2017 17:16:52
+ *  Last Modified: 07/01/2017 12:15:11
  *
  *    Description: A-Star algorithm for path find
  *
@@ -13,6 +13,8 @@
  *
  *                 if we have a prefperence, we should make it by the cost function,
  *                 rather than hack the source to make a priority
+ *
+ *                 now support jump on the map with StepSize > 1
  *
  *        Version: 1.0
  *       Revision: none
@@ -26,7 +28,6 @@
  */
 
 #pragma once
-
 #include <functional>
 
 #include "fsa.h"
@@ -35,34 +36,44 @@
 class AStarPathFinderNode;
 class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
 {
-    public:
-        friend class AStarPathFinderNode;
-
     private:
         std::function<bool  (int, int, int, int)> m_MoveChecker;
         std::function<double(int, int, int, int)> m_MoveCost;
 
-    public:
-        AStarPathFinder(std::function<bool(int, int, int, int)> fnMoveChecker)
-            : AStarSearch<AStarPathFinderNode>()
-            , m_MoveChecker(fnMoveChecker)
-            , m_MoveCost()
-        {
-            assert(fnMoveChecker);
-        }
+    private:
+        int m_MaxStep;
 
-        AStarPathFinder(std::function<bool(int, int, int, int)> fnMoveChecker, std::function<double(int, int, int, int)> fnMoveCost)
+    public:
+        friend class AStarPathFinderNode;
+
+    public:
+        AStarPathFinder(
+                std::function<  bool(int, int, int, int)> fnMoveChecker, // (x0, y0) -> (x1, y1) : possibility
+                std::function<double(int, int, int, int)> fnMoveCost,    // (x0, y0) -> (x1, y1) : cost
+                int nMaxStepSize = 1)                                    // (x0, y0) -> (x1, y1) : max step size
             : AStarSearch<AStarPathFinderNode>()
             , m_MoveChecker(fnMoveChecker)
             , m_MoveCost(fnMoveCost)
+            , m_MaxStep(nMaxStepSize)
         {
-            assert(fnMoveChecker);
+            assert(m_MoveChecker);
+            assert(m_MoveCost);
+            assert(false
+                    || (m_MaxStep == 1)
+                    || (m_MaxStep == 2)
+                    || (m_MaxStep == 3));
         }
 
         ~AStarPathFinder()
         {
             FreeSolutionNodes();
             EnsureMemoryFreed();
+        }
+
+    private:
+        int MaxStep() const
+        {
+            return m_MaxStep;
         }
 
     public:
@@ -96,19 +107,19 @@ class AStarPathFinderNode
        ~AStarPathFinderNode() = default;
 
     public:
-       int X(){ return m_X; }
-       int Y(){ return m_Y; }
+       int X() const { return m_X; }
+       int Y() const { return m_Y; }
 
     public:
         float GoalDistanceEstimate(AStarPathFinderNode &rstGoalNode)
         {
             // we use Chebyshev's distance instead of Manhattan distance
-            return std::max<float>(std::abs(rstGoalNode.m_X - m_X), std::abs(rstGoalNode.m_Y - m_Y));
+            return std::max<float>(std::abs(rstGoalNode.X() - X()), std::abs(rstGoalNode.Y() - Y()));
         }
 
         bool IsGoal(AStarPathFinderNode &rstGoalNode)
         {
-            return (m_X == rstGoalNode.m_X) && (m_Y == rstGoalNode.m_Y);
+            return (X() == rstGoalNode.X()) && (Y() == rstGoalNode.Y());
         }
 
         bool GetSuccessors(AStarSearch<AStarPathFinderNode> *pAStarSearch, AStarPathFinderNode *pParentNode)
@@ -116,20 +127,23 @@ class AStarPathFinderNode
             static const int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
             static const int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
 
-            for(int nIndex = 0; nIndex < 8; ++nIndex){
-                int nNewX = m_X + nDX[nIndex];
-                int nNewY = m_Y + nDY[nIndex];
+            for(int nStepIndex = 0; nStepIndex < ((m_Finder->MaxStep() > 1) ? 2 : 1); ++nStepIndex){
+                for(int nIndex = 0; nIndex < 8; ++nIndex){
+                    int nNewX = X() + nDX[nIndex] * ((nStepIndex == 0) ? m_Finder->MaxStep() : 1);
+                    int nNewY = Y() + nDY[nIndex] * ((nStepIndex == 0) ? m_Finder->MaxStep() : 1);
 
-                if(true
-                        && pParentNode
-                        && pParentNode->X() == nNewX
-                        && pParentNode->Y() == nNewY){ continue; }
+                    if(true
+                            && pParentNode
+                            && pParentNode->X() == nNewX
+                            && pParentNode->Y() == nNewY){ continue; }
 
-                // m_MoveChecker() directly refuse invalid (nX, nY) as false
-                // this ensures if pParentNode not null then pParentNode->(X, Y) is always valid
-                if(m_Finder->m_MoveChecker(m_X, m_Y, nNewX, nNewY)){
-                    AStarPathFinderNode stFinderNode {nNewX, nNewY, m_Finder};
-                    pAStarSearch->AddSuccessor(stFinderNode);
+                    // when add a successor we always check it's distance between the ParentNode
+                    // means for m_MoveChecker(x0, y0, x1, y1) we guarentee that (x1, y1) inside propor distance to (x0, y0)
+
+                    if(m_Finder->m_MoveChecker(X(), Y(), nNewX, nNewY)){
+                        AStarPathFinderNode stFinderNode {nNewX, nNewY, m_Finder};
+                        pAStarSearch->AddSuccessor(stFinderNode);
+                    }
                 }
             }
 
@@ -141,22 +155,22 @@ class AStarPathFinderNode
         float GetCost(AStarPathFinderNode &rstNode)
         {
             if(m_Finder->m_MoveCost){
-                auto nCost = m_Finder->m_MoveCost(m_X, m_Y, rstNode.m_X, rstNode.m_Y);
-                return (nCost > 0) ? (float)(nCost) : 1.0;
+                auto fCost = m_Finder->m_MoveCost(X(), Y(), rstNode.X(), rstNode.Y());
+                return (fCost >= 0.000) ? (float)(fCost) : 1.000;
             }else{
-                return 1.0;
+                return 1.000;
             }
         }
 
         bool IsSameState(AStarPathFinderNode &rstNode)
         {
-            return (m_X == rstNode.m_X) && (m_Y == rstNode.m_Y);
+            return (X() == rstNode.X()) && (Y() == rstNode.Y());
         }
 };
 
 namespace PathFind
 {
-    struct PathNode
+    struct PathNode final
     {
         int X;
         int Y;
@@ -165,6 +179,13 @@ namespace PathFind
             : X(nX)
             , Y(nY)
         {}
+
+        // I don't want to make it friend
+        // which needs another free function declaration
+        bool operator == (const PathNode & rstNode)
+        {
+            return (rstNode.X == X) && (rstNode.Y == Y);
+        }
     };
 
     int MaxReachNode(const PathFind::PathNode *, size_t, size_t);
