@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/25/2017 20:04:02
+ *  Last Modified: 07/03/2017 00:30:48
  *
  *    Description: 
  *
@@ -32,9 +32,6 @@ class MyHero: public Hero
 
     public:
        ~MyHero() = default;
-
-    public:
-        bool RequestMove(int, int);
 
     public:
         bool Update();

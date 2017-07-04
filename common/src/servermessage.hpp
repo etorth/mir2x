@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 05/29/2017 17:31:17
+ *  Last Modified: 07/02/2017 21:51:02
  *
  *    Description: net message used by client and mono-server
  *
@@ -30,7 +30,6 @@ enum: uint8_t
     SM_LOGINOK,
     SM_LOGINFAIL,
     SM_ACTION,
-    SM_MONSTERGINFO,
     SM_CORECORD,
     SM_UPDATEHP,
     SM_DEADFADEOUT,
@@ -164,15 +163,14 @@ class SMSGParam: public MessageBase
                 //  2    : not empty,     fixed size, not compressed
                 //  3    : not empty, not fixed size, not compressed
 
-                {SM_NONE,               {0,  0,                              "SM_NONE"                   }},
-                {SM_PING,               {2,  sizeof(SMPing),                 "SM_PING"                   }},
-                {SM_LOGINOK,            {1,  sizeof(SMLoginOK),              "SM_LOGINOK"                }},
-                {SM_LOGINFAIL,          {2,  sizeof(SMLoginFail),            "SM_LOGINFAIL"              }},
-                {SM_ACTION,             {1,  sizeof(SMAction),               "SM_ACTION"                 }},
-                {SM_MONSTERGINFO,       {1,  sizeof(SMMonsterGInfo),         "SM_MONSTERGINFO"           }},
-                {SM_CORECORD,           {1,  sizeof(SMCORecord),             "SM_CORECORD"               }},
-                {SM_UPDATEHP,           {1,  sizeof(SMUpdateHP),             "SM_UPDATEHP"               }},
-                {SM_DEADFADEOUT,        {1,  sizeof(SMDeadFadeOut),          "SM_DEADFADEOUT"            }},
+                {SM_NONE,        {0, 0,                     "SM_NONE"       }},
+                {SM_PING,        {2, sizeof(SMPing),        "SM_PING"       }},
+                {SM_LOGINOK,     {1, sizeof(SMLoginOK),     "SM_LOGINOK"    }},
+                {SM_LOGINFAIL,   {2, sizeof(SMLoginFail),   "SM_LOGINFAIL"  }},
+                {SM_ACTION,      {1, sizeof(SMAction),      "SM_ACTION"     }},
+                {SM_CORECORD,    {1, sizeof(SMCORecord),    "SM_CORECORD"   }},
+                {SM_UPDATEHP,    {1, sizeof(SMUpdateHP),    "SM_UPDATEHP"   }},
+                {SM_DEADFADEOUT, {1, sizeof(SMDeadFadeOut), "SM_DEADFADEOUT"}},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(SM_NONE) : nHC);

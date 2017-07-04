@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 06/16/2017 15:37:25
+ *  Last Modified: 07/02/2017 21:51:59
  *
  *    Description: 
  *
@@ -151,29 +151,6 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
     }
 
     fnOnBadDBRecord();
-}
-
-void ServiceCore::On_MPK_QUERYMONSTERGINFO(const MessagePack &rstMPK, const Theron::Address &)
-{
-    AMQueryMonsterGInfo stAMQMGI;
-    std::memcpy(&stAMQMGI, rstMPK.Data(), sizeof(stAMQMGI));
-
-    extern MonoServer *g_MonoServer;
-    auto &rstRecord = g_MonoServer->MonsterGInfo(stAMQMGI.MonsterID); 
-
-    if(rstRecord.Valid()){
-        SMMonsterGInfo stSMMGI;
-        stSMMGI.MonsterID = stAMQMGI.MonsterID;
-        stSMMGI.LookIDN   = stAMQMGI.LookIDN;
-        stSMMGI.LookID    = rstRecord.LookID((int)stAMQMGI.LookIDN);
-
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(stAMQMGI.SessionID, SM_MONSTERGINFO, stSMMGI);
-    }else{
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Query monster global information failed");
-        g_MonoServer->Restart();
-    }
 }
 
 void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)

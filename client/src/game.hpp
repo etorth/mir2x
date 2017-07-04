@@ -51,12 +51,11 @@ class Game
         void OnServerMessage(uint8_t, const uint8_t *, size_t);
 
     private:
-        void Net_PING           (const uint8_t *, size_t);
-        void Net_LOGINOK        (const uint8_t *, size_t);
-        void Net_CORECORD       (const uint8_t *, size_t);
-        void Net_LOGINFAIL      (const uint8_t *, size_t);
-        void Net_ACTION         (const uint8_t *, size_t);
-        void Net_MONSTERGINFO   (const uint8_t *, size_t);
+        void Net_PING     (const uint8_t *, size_t);
+        void Net_LOGINOK  (const uint8_t *, size_t);
+        void Net_CORECORD (const uint8_t *, size_t);
+        void Net_LOGINFAIL(const uint8_t *, size_t);
+        void Net_ACTION   (const uint8_t *, size_t);
 
     public:
         double GetTimeTick()

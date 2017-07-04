@@ -3,7 +3,7 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 05/25/2017 16:38:45
+ *  Last Modified: 07/03/2017 14:11:09
  *
  *    Description: ActionNode is used by both server and client
  *                 then don't define Print() for it
@@ -21,6 +21,7 @@
 
 #pragma once
 #include <cstdint>
+#include "sysconst.hpp"
 #include "protocoldef.hpp"
 
 struct ActionNode
@@ -50,8 +51,12 @@ struct ActionNode
         , MapID(nMapID)
     {}
 
+    ActionNode(int nAction, int nActionParam, int nSpeed, int nDirection, int nX, int nY, uint32_t nMapID)
+        : ActionNode(nAction, nActionParam, nSpeed, nDirection, nX, nY, nX, nY, nMapID)
+    {}
+
     ActionNode(int nAction, int nActionParam, int nDirection, int nX, int nY, uint32_t nMapID)
-        : ActionNode(nAction, nActionParam, 0, nDirection, nX, nY, nX, nY, nMapID)
+        : ActionNode(nAction, nActionParam, SYS_DEFSPEED, nDirection, nX, nY, nX, nY, nMapID)
     {}
 
     ActionNode()

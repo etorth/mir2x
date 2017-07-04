@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/08/2017 01:05:45
+ *  Last Modified: 07/02/2017 22:00:49
  *
  *    Description: 
  *
@@ -120,10 +120,9 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
 void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
-        case CM_QUERYMONSTERGINFO: Net_CM_QUERYMONSTERGINFO(nType, pData, nDataLen); break;
-        case CM_QUERYCORECORD    : Net_CM_QUERYCORECORD    (nType, pData, nDataLen); break;
-        case CM_ACTION           : Net_CM_ACTION           (nType, pData, nDataLen); break;
-        default                  :                                                   break;
+        case CM_QUERYCORECORD : Net_CM_QUERYCORECORD (nType, pData, nDataLen); break;
+        case CM_ACTION        : Net_CM_ACTION        (nType, pData, nDataLen); break;
+        default               :                                                break;
     }
 }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 06/26/2017 00:05:29
+ *  Last Modified: 07/03/2017 00:04:32
  *
  *    Description: 
  *
@@ -57,11 +57,8 @@ class Hero: public Creature
         bool CanFocus(int, int);
 
     public:
-        bool ActionValid(const ActionNode &);
         bool MotionValid(const MotionNode &);
-
-    public:
-        virtual int32_t GfxID(int, int, int);
+        bool ActionValid(const ActionNode &, bool);
 
     public:
         bool UpdateMotion();
@@ -70,7 +67,7 @@ class Hero: public Creature
         bool ParseNewAction(const ActionNode &, bool);
 
     public:
-        int Type()
+        int Type() const
         {
             return CREATURE_PLAYER;
         }
@@ -97,14 +94,25 @@ class Hero: public Creature
         bool Moving();
 
     public:
-        size_t MotionFrameCount();
+        int MotionFrameCount(int, int) const;
 
     public:
-        bool WeaponOrder(int, int, int);
+        int WeaponOrder(int, int, int);
 
     public:
         bool ValidG()
         {
             return true;
         }
+
+    protected:
+        MotionNode MakeMotionWalk(int, int, int, int, int);
+
+    protected:
+        int GfxMotionID(int);
+        int GfxDressID (int, int, int);
+        int GfxWeaponID(int, int, int);
+
+    public:
+        int MaxStep() const;
 };

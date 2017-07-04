@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 06/16/2017 14:12:32
+ *  Last Modified: 07/02/2017 21:54:10
  *
  *    Description: message class for actor system
  *
@@ -278,7 +278,6 @@ class InnMessagePack final
                 case MPK_ADDCHAROBJECT       : return "MPK_ADDCHAROBJECT";
                 case MPK_BINDSESSION         : return "MPK_BINDSESSION";
                 case MPK_ACTION              : return "MPK_ACTION";
-                case MPK_QUERYMONSTERGINFO   : return "MPK_QUERYMONSTERGINFO";
                 case MPK_PULLCOINFO          : return "MPK_PULLCOINFO";
                 case MPK_NEWCONNECTION       : return "MPK_NEWCONNECTION";
                 case MPK_QUERYMAPLIST        : return "MPK_QUERYMAPLIST";

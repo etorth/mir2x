@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 06/25/2017 23:37:39
+ *  Last Modified: 07/02/2017 22:41:05
  *
  *    Description: 
  *
@@ -97,6 +97,9 @@ class ProcessRun: public Process
 
     public:
         bool LocatePoint(int, int, int *, int *);
+
+    public:
+        bool OnMap(uint32_t, int, int) const;
 
     public:
         void Net_ACTION(const uint8_t *, size_t);

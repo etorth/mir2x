@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 06/08/2017 00:58:21
+ *  Last Modified: 07/02/2017 21:51:22
  *
  *    Description: how player respond for different net package
  *
@@ -24,23 +24,6 @@
 #include "message.hpp"
 #include "actorpod.hpp"
 #include "monoserver.hpp"
-
-void Player::Net_CM_QUERYMONSTERGINFO(uint8_t, const uint8_t *pBuf, size_t)
-{
-    AMQueryMonsterGInfo stAMQMGI;
-    stAMQMGI.MonsterID = ((CMQueryMonsterGInfo *)(pBuf))->MonsterID;
-    stAMQMGI.LookIDN   = (int)((CMQueryMonsterGInfo *)(pBuf))->LookIDN;
-    stAMQMGI.SessionID = m_SessionID;
-
-    if(ActorPodValid() && m_ServiceCore && m_ServiceCore->ActorPodValid()){
-        m_ActorPod->Forward({MPK_QUERYMONSTERGINFO, stAMQMGI}, m_ServiceCore->GetAddress());
-        return;
-    }
-
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "unexpected internal error");
-    g_MonoServer->Restart();
-}
 
 void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
 {

@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 06/16/2017 15:12:04
+ *  Last Modified: 07/02/2017 21:53:41
  *
  *    Description: 
  *
@@ -48,15 +48,8 @@ MonoServer::MonoServer()
     , m_ServiceCore(nullptr)
     , m_GlobalUID {1}
     , m_UIDArray()
-    , m_StartTime()
-    , m_MonsterGInfoRecord()
-{
-    m_StartTime = std::chrono::system_clock::now();
-
-    // 3. initialization of monster ginfo record
-    m_MonsterGInfoRecord[ 1] = { 1, 0X0015, 0, 0, 0};
-    m_MonsterGInfoRecord[10] = {10, 0X009F, 0, 0, 0};
-}
+    , m_StartTime(std::chrono::system_clock::now())
+{}
 
 void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char *szLogFormat, ...)
 {

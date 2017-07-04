@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 06/17/2017 15:13:18
+ *  Last Modified: 07/03/2017 13:08:41
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -124,6 +124,7 @@
 
 #include "actionnode.hpp"
 #include "motionnode.hpp"
+#include "pathfinder.hpp"
 #include "protocoldef.hpp"
 
 class ProcessRun;
@@ -221,8 +222,10 @@ class Creature
         bool EstimatePixelShift(int *, int *);
 
     public:
-        virtual int Type() = 0;
-        virtual size_t MotionFrameCount() = 0;
+        virtual int Type() const = 0;
+
+    public:
+        virtual int MotionFrameCount(int, int) const = 0;
 
     public:
         virtual bool StayDead();
@@ -237,40 +240,51 @@ class Creature
         virtual bool UpdateGeneralMotion(bool);
 
     public:
-        virtual bool ValidG() = 0;
-        virtual bool Draw(int, int) = 0;
         virtual bool Update() = 0;
+        virtual bool Draw(int, int) = 0;
 
     protected:
         virtual bool MoveNextMotion();
 
     protected:
-        // parse motion request (src -> dst)
-        // motion    : motion used for this motion request
-        // speed     :
-        // src point :
-        // dst point :
+        // parse a motion path for src -> dst for current creature
+        // parameters:
+        //      src            : (nX0, nY0)
+        //      dst            : (nX1, nY1)
+        //      bCheckGround   :
+        //      bCheckCreature :
         //
-        // return true  if successfully add motion node to m_MotionQueue
-        //        false if there is no path
+        //  1. src point should be valid grid on map
+        //  2. this function allows dst to be invalid location if bCheckGround is not set
+        //  3. this function automatically use the minmal time path by calling Creature::MaxStep()
+        //  4. check ClientPathFinder for bCheckGround and bCheckCreature
         //
-        // 1. return true if there is path but creature blocks it
-        // 2. small motions like MOTION_WALK/HORSEWALK can be inserted
-        virtual bool ParseMovePath(int,     // motion
-                int,                        // speed
-                int, int,                   // src point
-                int, int);                  // dst point
+        // return vector size:
+        //      0 : error happens
+        //      1 : can't find a path and keep standing on (nX0, nY0)
+        //     >1 : path found
+        virtual std::vector<PathFind::PathNode> ParseMovePath(
+                int, int,       // src
+                int, int,       // dst
+                bool,           // bCheckGround
+                bool);          // bCheckCreature
 
     protected:
         virtual bool MotionQueueValid();
 
     public:
-        virtual bool ActionValid(const ActionNode &) = 0;
-        virtual bool MotionValid(const MotionNode &) = 0;
+        virtual bool MotionValid(const MotionNode &)       = 0;
+        virtual bool ActionValid(const ActionNode &, bool) = 0;
 
     public:
         virtual int UpdateHP(int, int);
 
     public:
         virtual bool DeadFadeOut();
+
+    protected:
+        virtual int MaxStep() const = 0;
+
+    protected:
+        virtual MotionNode MakeMotionWalk(int, int, int, int, int) = 0;
 };

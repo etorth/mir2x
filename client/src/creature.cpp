@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/01/2017 12:44:20
+ *  Last Modified: 07/03/2017 13:08:38
  *
  *    Description: 
  *
@@ -49,7 +49,11 @@ bool Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
         case MOTION_HORSEWALK:
         case MOTION_HORSERUN:
             {
-                auto nFrameCount = (int)(MotionFrameCount());
+                auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
+                if(nFrameCount <= 0){
+                    return false;
+                }
+
                 switch(m_CurrMotion.Direction){
                     case DIR_UP:
                         {
@@ -224,7 +228,7 @@ bool Creature::MoveNextMotion()
 
 bool Creature::AdvanceMotionFrame(int nDFrame)
 {
-    auto nFrameCount = (int)(MotionFrameCount());
+    auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
     if(nFrameCount > 0){
         m_CurrMotion.Frame = (m_CurrMotion.Frame + nDFrame    ) % nFrameCount;
         m_CurrMotion.Frame = (m_CurrMotion.Frame + nFrameCount) % nFrameCount;
@@ -235,129 +239,117 @@ bool Creature::AdvanceMotionFrame(int nDFrame)
     }
 }
 
-bool Creature::ParseMovePath(int nMotion, int nSpeed, int nX0, int nY0, int nX1, int nY1)
+std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX1, int nY1, bool bCheckGround, bool bCheckCreature)
 {
-    int nMaxStep = 1;
-    switch(nMotion){
-        case MOTION_WALK      : nMaxStep = 1; break;
-        case MOTION_RUN       : nMaxStep = 2; break;
-        case MOTION_HORSEWALK : nMaxStep = 1; break;
-        case MOTION_HORSERUN  : nMaxStep = 3; break;
-        default               : return false;
-    }
+    if(true
+            && m_ProcessRun
+            && m_ProcessRun->CanMove(false, nX0, nY0)){
 
-    if(!(true
-                && nSpeed > 0
-                && m_ProcessRun
-                && m_ProcessRun->CanMove(false, nX0, nY0)
-                && m_ProcessRun->CanMove(false, nX1, nY1))){ return false; }
-
-    switch(LDistance2(nX0, nY0, nX1, nY1)){
-        case 0:
-            {
-                extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_WARNING, "Invalid argument: (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
-                return false;
-            }
-        case 1:
-        case 2:
-        default:
-            {
-                // we check both creatures and grids
-                // creature check : will prefer a path without creatures stand on the way
-                //     gird check : will fail if can't pass through valid grids
-                ClientPathFinder stPathFinder(true, true, 1);
-                if(true
-                        && stPathFinder.Search(nX0, nY0, nX1, nY1)
-                        && stPathFinder.GetSolutionStart()){
-
-                    // if path find succeed
-                    // we retrive all nodes for the path
-
-                    std::vector<PathFind::PathNode> stPathNodeV(1, {nX0, nY0});
-                    while(auto pNode = stPathFinder.GetSolutionNext()){
-                        stPathNodeV.emplace_back(pNode->X(), pNode->Y());
-                    }
-
-                    static const int nDirV[][3] = {
-                        {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
-                        {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
-                        {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
-
-                    while(stPathNodeV.size() > 1){
-                        auto nReachNode = PathFind::MaxReachNode(&(stPathNodeV[0]), stPathNodeV.size(), (size_t)(nMaxStep));
-                        if(nReachNode > 0){
-                            auto &rstNode0 = stPathNodeV[0];
-                            auto &rstNode1 = stPathNodeV[nReachNode];
-
-                            int nSDX = 1 + (rstNode1.X > rstNode0.X) - (rstNode1.X < rstNode0.X);
-                            int nSDY = 1 + (rstNode1.Y > rstNode0.Y) - (rstNode1.Y < rstNode0.Y);
-
-                            auto nCurrMotion = MOTION_NONE;
-                            switch(nReachNode){
-                                case 1:
-                                    {
-                                        switch(nMotion){
-                                            case MOTION_WALK      : nCurrMotion = MOTION_WALK     ; break;
-                                            case MOTION_RUN       : nCurrMotion = MOTION_WALK     ; break;
-                                            case MOTION_HORSEWALK : nCurrMotion = MOTION_HORSEWALK; break;
-                                            case MOTION_HORSERUN  : nCurrMotion = MOTION_HORSEWALK; break;
-                                            default               : return false;
-                                        }
-                                        break;
-                                    }
-                                case 2:
-                                    {
-                                        nCurrMotion = MOTION_RUN;
-                                        break;
-                                    }
-                                case 3:
-                                    {
-                                        nCurrMotion = MOTION_HORSERUN;
-                                        break;
-                                    }
-                                default:
-                                    {
-                                        return false;
-                                    }
-                            }
-
-                            // 1. push current motion node to motion queue
-                            m_MotionQueue.emplace_back(
-                                    nCurrMotion,
-                                    0,
-                                    nDirV[nSDY][nSDX],
-                                    nSpeed,
-                                    rstNode0.X,
-                                    rstNode0.Y,
-                                    rstNode1.X,
-                                    rstNode1.Y);
-
-                            // 2. remove path node from stPathNodeV
-                            //    should be more efficient
-                            stPathNodeV.erase(stPathNodeV.begin(), stPathNodeV.begin() + nReachNode);
-                        }else{
-                            extern Log *g_Log;
-                            g_Log->AddLog(LOGTYPE_WARNING, "Invalid argument: (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
-                            return false;
-                        }
-                    }
-
-                    // path node parsing done
-                    return MotionQueueValid();
-
-                }else{
-                    // can't find a valid path
-                    // no pass exists only passing the valid grids
-                    return false;
+        auto nMaxStep = MaxStep();
+        switch(auto nLDistance2 = LDistance2(nX0, nY0, nX1, nY1)){
+            case 0:
+                {
+                    return {{nX0, nY0}};
                 }
-            }
+            case 1:
+            case 2:
+                {
+                    // dst is at one-hop distance
+                    // so there couldn't be any middle grids blocking
+
+                    if(bCheckGround){
+                        if(m_ProcessRun->CanMove(false, nX1, nY1)){
+                            // we ignore bCheckCreature
+                            // because this always gives the best path
+                            return {{nX0, nY0}, {nX1, nY1}};
+                        }else{
+                            // can't find a path to dst
+                            // return the starting node, return empty means errors
+                            return {{nX0, nY0}};
+                        }
+                    }else{
+                        // won't check ground
+                        // then directly return the unique path
+                        return {{nX0, nY0}, {nX1, nY1}};
+                    }
+                }
+            default:
+                {
+                    // 1. one hop distance
+                    // 2. more complex distance
+
+                    if(false
+                            || nLDistance2 == nMaxStep * nMaxStep
+                            || nLDistance2 == nMaxStep * nMaxStep * 2){
+
+                        // one hop distance
+                        // but not with distance = 1 or 2
+                        // there could be middle grid blocking this hop
+
+                        if(m_ProcessRun->CanMove(false, nX0, nY0, nX1, nY1)){
+                            if(bCheckCreature){
+                                if(m_ProcessRun->CanMove(true, nX0, nY0, nX1, nY1)){
+                                    // we are checking the creatures
+                                    // and no creaturs standing on the one-hop path
+                                    return {{nX0, nY0}, {nX1, nY1}};
+                                }
+
+                                // can reach in one hop but there is creatures on the path
+                                // and we can't ignore the creatures
+                                // leave it to the complex path solver
+
+                            }else{
+                                // not check creatures
+                                // and we can reach dst in one-hop
+                                return {{nX0, nY0}, {nX1, nY1}};
+                            }
+                        }else{
+                            // can't reach in one hop
+                            // means there is middle grids blocking this path
+                            // leave it to the complex path solver
+                        }
+
+                    }else{
+
+                        // not one-hop distance 
+                        // leave it to the complex path solver
+                    }
+
+                    // the complex path solver
+                    // we can always use this solver only
+
+                    ClientPathFinder stPathFinder(bCheckGround, bCheckCreature, nMaxStep);
+                    if(true
+                            && stPathFinder.Search(nX0, nY0, nX1, nY1)
+                            && stPathFinder.GetSolutionStart()){
+
+                        // if path find succeed
+                        // we retrive all nodes for the path vector
+
+                        std::vector<PathFind::PathNode> stPathNodeV(1, {nX0, nY0});
+                        while(auto pNode = stPathFinder.GetSolutionNext()){
+                            stPathNodeV.emplace_back(pNode->X(), pNode->Y());
+                        }
+
+                        return stPathNodeV;
+                    }else{
+
+                        // we can't find a path
+                        // return the starting point only
+                        return {{nX0, nY0}};
+                    }
+                }
+        }
     }
+
+    // invalid src point means error
+    // invalid dst point should be accepted as a valid input
+    return {};
 }
 
 bool Creature::UpdateGeneralMotion(bool bLooped)
 {
-    auto nFrameCount = (int)(MotionFrameCount());
+    auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
     if(nFrameCount >= 0){
         if(bLooped || (m_CurrMotion.Frame < (nFrameCount - 1))){
             return AdvanceMotionFrame(1);

@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 06/07/2017 23:37:21
+ *  Last Modified: 07/02/2017 21:58:23
  *
  *    Description: net message used by client and mono-server
  *
@@ -35,24 +35,18 @@ enum: uint8_t
 };
 
 #pragma pack(push, 1)
-typedef struct
+struct CMPing
 {
     uint32_t Tick;
-}CMPing;
+};
 
-typedef struct
+struct CMLogin
 {
     char ID[64];
     char Password[128];
-}CMLogin;
+};
 
-typedef struct
-{
-    uint32_t MonsterID;
-    uint32_t LookIDN;
-}CMQueryMonsterGInfo;
-
-typedef struct
+struct CMAction
 {
     uint32_t UID;
     uint32_t MapID;
@@ -66,16 +60,16 @@ typedef struct
     uint16_t Y;
     uint16_t EndX;
     uint16_t EndY;
-}CMAction;
+};
 
-typedef struct
+struct CMQueryCORecord
 {
     uint32_t UID;
     uint32_t MapID;
 
     uint16_t X;
     uint16_t Y;
-}CMQueryCORecord;
+};
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -99,12 +93,11 @@ class CMSGParam: public MessageBase
                 //  2    : not empty,     fixed size, not compressed
                 //  3    : not empty, not fixed size, not compressed
 
-                {CM_NONE,               {0,  0,                              "CM_NONE"                   }},
-                {CM_PING,               {2,  sizeof(CMPing),                 "CM_PING"                   }},
-                {CM_LOGIN,              {3,  0,                              "CM_LOGIN"                  }},
-                {CM_ACTION,             {1,  sizeof(CMAction),               "CM_ACTION"                 }},
-                {CM_QUERYMONSTERGINFO,  {1,  sizeof(CMQueryMonsterGInfo),    "CM_QUERYMONSTERGINFO"      }},
-                {CM_QUERYCORECORD,      {1,  sizeof(CMQueryCORecord),        "CM_QUERYCORECORD"          }},
+                {CM_NONE,          {0, 0,                       "CM_NONE"         }},
+                {CM_PING,          {2, sizeof(CMPing),          "CM_PING"         }},
+                {CM_LOGIN,         {3, 0,                       "CM_LOGIN"        }},
+                {CM_ACTION,        {1, sizeof(CMAction),        "CM_ACTION"       }},
+                {CM_QUERYCORECORD, {1, sizeof(CMQueryCORecord), "CM_QUERYCORECORD"}},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(CM_NONE) : nHC);

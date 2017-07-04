@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 06/15/2017 23:26:58
+ *  Last Modified: 07/02/2017 21:52:58
  *
  *    Description: 
  *
@@ -72,9 +72,6 @@ class MonoServer final
     private:
         std::chrono::time_point<std::chrono::system_clock> m_StartTime;
 
-    private:
-        std::unordered_map<uint32_t, MonsterGInfoRecord> m_MonsterGInfoRecord;
-
     public:
         void NotifyGUI(std::string);
         void ParseNotifyGUIQ();
@@ -82,17 +79,6 @@ class MonoServer final
     public:
         void FlushBrowser();
         void FlushCWBrowser();
-
-    public:
-        const MonsterGInfoRecord &MonsterGInfo(uint32_t nMonsterID) const
-        {
-            auto pGInfoFind = m_MonsterGInfoRecord.find(nMonsterID);
-            if(pGInfoFind == m_MonsterGInfoRecord.end()){
-                return MonsterGInfoRecord::Null();
-            }
-
-            return pGInfoFind->second;
-        }
 
     public:
         MonoServer();

@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 06/25/2017 18:26:39
+ *  Last Modified: 07/03/2017 13:33:52
  *
  *    Description: 
  *
@@ -24,6 +24,7 @@
 #include "sysconst.hpp"
 #include "sdldevice.hpp"
 #include "pngtexdbn.hpp"
+#include "processrun.hpp"
 #include "motionnode.hpp"
 #include "pngtexoffdbn.hpp"
 
@@ -39,13 +40,13 @@ Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, Process
     , m_DressColor(0)
     , m_OnHorse(false)
 {
-    m_CurrMotion.Motion    = MOTION_STAND;
-    m_CurrMotion.Speed     = 0;
-    m_CurrMotion.Direction = DIR_UP;
-    m_CurrMotion.X         = rstAction.X;
-    m_CurrMotion.Y         = rstAction.Y;
-    m_CurrMotion.EndX      = rstAction.EndX;
-    m_CurrMotion.EndY      = rstAction.EndY;
+    m_CurrMotion = {
+        MOTION_STAND,
+        0,
+        DIR_UP,
+        rstAction.X,
+        rstAction.Y
+    };
 
     if(!ParseNewAction(rstAction, true)){
         extern Log *g_Log;
@@ -59,21 +60,21 @@ bool Hero::Draw(int nViewX, int nViewY)
     auto nMotion    = m_CurrMotion.Motion;
     auto nDirection = m_CurrMotion.Direction;
 
-    auto nGfxID = GfxID(nDress, nMotion, nDirection);
-    if(nGfxID < 0){
+    auto nGfxDressID = GfxDressID(nDress, nMotion, nDirection);
+    if(nGfxDressID < 0){
         m_CurrMotion.Print();
         return false;
     }
 
-    // human gfx indexing
+    // human gfx dress id indexing
     // 04 - 00 :     frame : max =  32
     // 07 - 05 : direction : max =  08 : +
-    // 13 - 08 :    motion : max =  64 : +----> GfxID
-    // 21 - 14 :     dress : max = 256 
+    // 13 - 08 :    motion : max =  64 : +
+    // 21 - 14 :     dress : max = 256 : +----> GfxDressID
     //      22 :       sex :
     //      23 :    shadow :
-    uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FFFF)) << 5) + m_CurrMotion.Frame;
-    uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxID & 0X01FFFF)) << 5) + m_CurrMotion.Frame;
+    uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_CurrMotion.Frame;
+    uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_CurrMotion.Frame;
 
     int nDX0 = 0;
     int nDY0 = 0;
@@ -88,32 +89,29 @@ bool Hero::Draw(int nViewX, int nViewY)
     int nShiftY = 0;
     EstimatePixelShift(&nShiftX, &nShiftY);
 
-    auto fnDrawWeapon = [this, nGfxID, nViewX, nViewY, nShiftX, nShiftY](bool bShadow) -> void
+    auto fnDrawWeapon = [this, nViewX, nViewY, nShiftX, nShiftY](bool bShadow) -> void
     {
-        // in DB weapon index starts from 0
-        // and in client m_Weapon = 0 means ``no weapon used" and 
-        if(m_Weapon){
-            // 04 - 00 :     frame : max =  32
-            // 07 - 05 : direction : max =  08 : +
-            // 13 - 08 :    motion : max =  64 : +----> GfxID
-            // 21 - 14 :    weapon : max = 256 
-            //      22 :    gender :
-            //      23 :    shadow :
-            uint32_t nWeaponGfxID = (((uint32_t)(m_Weapon - 1) & 0X00FF) << 9) + ((uint32_t)(nGfxID) & 0X01FF);
-            uint32_t nWeaponKey   = (((uint32_t)(bShadow ? 1 : 0)) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (nWeaponGfxID << 5) + m_CurrMotion.Frame;
+        // 04 - 00 :     frame : max =  32
+        // 07 - 05 : direction : max =  08 : +
+        // 13 - 08 :    motion : max =  64 : +
+        // 21 - 14 :    weapon : max = 256 : +----> GfxWeaponID
+        //      22 :    gender :
+        //      23 :    shadow :
+        auto nGfxWeaponID = GfxWeaponID(m_Weapon, m_CurrMotion.Motion, m_CurrMotion.Direction);
+        if(nGfxWeaponID >= 0){
+            uint32_t nWeaponKey = (((uint32_t)(bShadow ? 1 : 0)) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + m_CurrMotion.Frame;
 
             int nWeaponDX = 0;
             int nWeaponDY = 0;
 
             extern SDLDevice *g_SDLDevice;
             extern PNGTexOffDBN *g_WeaponDBN;
-            auto pWeapon = g_WeaponDBN->Retrieve(nWeaponKey, &nWeaponDX, &nWeaponDY);
+            auto pFrame = g_WeaponDBN->Retrieve(nWeaponKey, &nWeaponDX, &nWeaponDY);
 
-            if(pWeapon && bShadow){ SDL_SetTextureAlphaMod(pWeapon, 128); }
-            g_SDLDevice->DrawTexture(pWeapon, X() * SYS_MAPGRIDXP + nWeaponDX - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nWeaponDY - nViewY + nShiftY);
+            if(pFrame && bShadow){ SDL_SetTextureAlphaMod(pFrame, 128); }
+            g_SDLDevice->DrawTexture(pFrame, X() * SYS_MAPGRIDXP + nWeaponDX - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nWeaponDY - nViewY + nShiftY);
         }
     };
-
 
     fnDrawWeapon(true);
 
@@ -121,46 +119,64 @@ bool Hero::Draw(int nViewX, int nViewY)
     if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
     g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
 
-
-    if(m_Weapon && WeaponOrder(((nGfxID & 0X01F8) >> 3) + 1, (nGfxID & 0X07) + 1, m_CurrMotion.Frame)){
+    if(true
+            && m_Weapon
+            && WeaponOrder(m_CurrMotion.Motion, m_CurrMotion.Direction, m_CurrMotion.Frame) == 1){
         fnDrawWeapon(false);
     }
 
     g_SDLDevice->DrawTexture(pFrame0, X() * SYS_MAPGRIDXP + nDX0 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY0 - nViewY + nShiftY);
 
-    if(m_Weapon && !WeaponOrder(((nGfxID & 0X01F8) >> 3) + 1, (nGfxID & 0X07) + 1, m_CurrMotion.Frame)){
+    if(true
+            && m_Weapon
+            && WeaponOrder(m_CurrMotion.Motion, m_CurrMotion.Direction, m_CurrMotion.Frame) == 0){
         fnDrawWeapon(false);
     }
 
     // draw HP bar
     // if current m_HPMqx is zero we draw full bar
-    {
-        extern PNGTexDBN *g_PNGTexDBN;
-        auto pBar0 = g_PNGTexDBN->Retrieve(0XFF0014);
-        auto pBar1 = g_PNGTexDBN->Retrieve(0XFF0015);
+    switch(m_CurrMotion.Motion){
+        case MOTION_DIE:
+            {
+                break;
+            }
+        default:
+            {
+                extern PNGTexDBN *g_PNGTexDBN;
+                auto pBar0 = g_PNGTexDBN->Retrieve(0XFF0014);
+                auto pBar1 = g_PNGTexDBN->Retrieve(0XFF0015);
 
-        int nW = -1;
-        int nH = -1;
-        SDL_QueryTexture(pBar1, nullptr, nullptr, &nW, &nH);
-        g_SDLDevice->DrawTexture(pBar1,
-                X() * SYS_MAPGRIDXP - nViewX + nShiftX +  7,
-                Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53,
-                0,
-                0,
-                (int)(std::lround(nW * (m_HPMax ? std::min<double>(1.0, (1.0 * m_HP) / m_HPMax) : 1.0))),
-                nH);
+                int nW = -1;
+                int nH = -1;
+                SDL_QueryTexture(pBar1, nullptr, nullptr, &nW, &nH);
+                g_SDLDevice->DrawTexture(pBar1,
+                        X() * SYS_MAPGRIDXP - nViewX + nShiftX +  7,
+                        Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53,
+                        0,
+                        0,
+                        (int)(std::lround(nW * (m_HPMax ? std::min<double>(1.0, (1.0 * m_HP) / m_HPMax) : 1.0))),
+                        nH);
 
-        g_SDLDevice->DrawTexture(pBar0,
-                X() * SYS_MAPGRIDXP - nViewX + nShiftX +  7,
-                Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53);
+                g_SDLDevice->DrawTexture(pBar0,
+                        X() * SYS_MAPGRIDXP - nViewX + nShiftX +  7,
+                        Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53);
+            }
     }
     return true;
 }
 
 bool Hero::Update()
 {
+    auto fnGetUpdateDelay = [](int nSpeed, double fStandDelay) -> double
+    {
+        nSpeed = std::max<int>(SYS_MINSPEED, nSpeed);
+        nSpeed = std::min<int>(SYS_MAXSPEED, nSpeed);
+
+        return fStandDelay * 100.0 / nSpeed;
+    };
+
     double fTimeNow = SDL_GetTicks() * 1.0;
-    if(fTimeNow > m_UpdateDelay + m_LastUpdateTime){
+    if(fTimeNow > fnGetUpdateDelay(m_CurrMotion.Speed, m_UpdateDelay) + m_LastUpdateTime){
         // 1. record the update time
         m_LastUpdateTime = fTimeNow;
 
@@ -169,6 +185,7 @@ bool Hero::Update()
         // 3. motion update
         switch(m_CurrMotion.Motion){
             case MOTION_STAND:
+            case MOTION_UNDERATTACK:
                 {
                     if(m_MotionQueue.empty()){
                         return AdvanceMotionFrame(1);
@@ -190,178 +207,143 @@ bool Hero::Update()
     return true;
 }
 
-int32_t Hero::GfxID(int nDress, int nMotion, int nDirection)
-{
-    static const std::unordered_map<int, int> stMotionGfxIDRecord = {
-        {MOTION_STAND,              0},
-        {MOTION_WALK,              21},
-        {MOTION_RUN,               22},
-
-        {MOTION_CASTMAGIC0,         2},
-        {MOTION_CASTMAGIC1,         3},
-
-        {MOTION_BEFOREATTACK,       7},
-        {MOTION_UNDERATTACK,       15},
-        {MOTION_DIE,                7},
-
-        {MOTION_ONEHANDATTACK0,     8},
-        {MOTION_ONEHANDATTACK1,     9},
-        {MOTION_ONEHANDATTACK2,    10},
-        {MOTION_ONEHANDATTACK3,    11},
-
-        {MOTION_TWOHANDATTACK0,    12},
-        {MOTION_TWOHANDATTACK1,    13},
-        {MOTION_TWOHANDATTACK2,    14},
-        {MOTION_TWOHANDATTACK3,    15}};
-
-    if(stMotionGfxIDRecord.find(nMotion) != stMotionGfxIDRecord.end()){
-        switch(nDirection){
-            case DIR_UP         : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 0;
-            case DIR_DOWN       : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 4;
-            case DIR_LEFT       : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 6;
-            case DIR_RIGHT      : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 2;
-            case DIR_UPLEFT     : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 7;
-            case DIR_UPRIGHT    : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 1;
-            case DIR_DOWNLEFT   : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 5;
-            case DIR_DOWNRIGHT  : return ((nDress & 0XFF) << 9) + (stMotionGfxIDRecord.at(nMotion) << 3) + 3;
-            case DIR_NONE       : break;
-            default             : break;
-        }
-    }
-
-    return -1;
-}
-
 bool Hero::MotionValid(const MotionNode &rstMotion)
 {
-    auto nDistance = LDistance2(rstMotion.X, rstMotion.Y, rstMotion.EndX, rstMotion.EndY);
-    switch(rstMotion.Motion){
-        case MOTION_STAND:
+    if(true
+            && rstMotion.Motion > MOTION_NONE
+            && rstMotion.Motion < MOTION_MAX
 
-        case MOTION_CASTMAGIC0:
-        case MOTION_CASTMAGIC1:
+            && rstMotion.Direction > DIR_NONE
+            && rstMotion.Direction < DIR_MAX 
 
-        case MOTION_BEFOREATTACK:
-        case MOTION_UNDERATTACK:
-        case MOTION_DIE:
+            && m_ProcessRun
+            && m_ProcessRun->OnMap(m_ProcessRun->MapID(), rstMotion.X,    rstMotion.Y)
+            && m_ProcessRun->OnMap(m_ProcessRun->MapID(), rstMotion.EndX, rstMotion.EndY)
 
-        case MOTION_ONEHANDATTACK0:
-        case MOTION_ONEHANDATTACK1:
-        case MOTION_ONEHANDATTACK2:
-        case MOTION_ONEHANDATTACK3:
-        case MOTION_TWOHANDATTACK0:
-        case MOTION_TWOHANDATTACK1:
-        case MOTION_TWOHANDATTACK2:
-        case MOTION_TWOHANDATTACK3:
-            {
-                switch(rstMotion.Direction){
-                    case DIR_UP:
-                    case DIR_UPRIGHT:
-                    case DIR_RIGHT:
-                    case DIR_DOWNRIGHT:
-                    case DIR_DOWN:
-                    case DIR_DOWNLEFT:
-                    case DIR_LEFT:
-                    case DIR_UPLEFT:
-                        {
-                            return nDistance ? false : true;
-                        }
-                    case DIR_NONE:
-                    default:
-                        {
-                            return false;
-                        }
+            && rstMotion.Speed > SYS_MINSPEED
+            && rstMotion.Speed < SYS_MAXSPEED
+
+            && rstMotion.Frame >= 0
+            && rstMotion.Frame <  MotionFrameCount(rstMotion.Motion, rstMotion.Direction)){
+
+        auto nLDistance2 = LDistance2(rstMotion.X, rstMotion.Y, rstMotion.EndX, rstMotion.EndY);
+        switch(rstMotion.Motion){
+            case MOTION_STAND:
+
+            case MOTION_CASTMAGIC0:
+            case MOTION_CASTMAGIC1:
+
+            case MOTION_BEFOREATTACK:
+            case MOTION_UNDERATTACK:
+            case MOTION_DIE:
+
+            case MOTION_ONEHANDATTACK0:
+            case MOTION_ONEHANDATTACK1:
+            case MOTION_ONEHANDATTACK2:
+            case MOTION_ONEHANDATTACK3:
+            case MOTION_TWOHANDATTACK0:
+            case MOTION_TWOHANDATTACK1:
+            case MOTION_TWOHANDATTACK2:
+            case MOTION_TWOHANDATTACK3:
+                {
+                    return nLDistance2 == 0;
                 }
-            }
-        case MOTION_WALK:
-        case MOTION_HORSEWALK:
-            {
-                switch(rstMotion.Direction){
-                    case DIR_UP:
-                    case DIR_UPRIGHT:
-                    case DIR_RIGHT:
-                    case DIR_DOWNRIGHT:
-                    case DIR_DOWN:
-                    case DIR_DOWNLEFT:
-                    case DIR_LEFT:
-                    case DIR_UPLEFT:
-                        {
-                            return ((nDistance == 1) || (nDistance == 2)) ? true : false;
-                        }
-                    case DIR_NONE:
-                    default:
-                        {
-                            return false;
-                        }
+            case MOTION_WALK:
+                {
+                    return !m_OnHorse && (nLDistance2 == 1 || nLDistance2 == 2);
                 }
-            }
-        case MOTION_RUN:
-            {
-                switch(rstMotion.Direction){
-                    case DIR_UP:
-                    case DIR_UPRIGHT:
-                    case DIR_RIGHT:
-                    case DIR_DOWNRIGHT:
-                    case DIR_DOWN:
-                    case DIR_DOWNLEFT:
-                    case DIR_LEFT:
-                    case DIR_UPLEFT:
-                        {
-                            return ((nDistance == 4) || (nDistance == 8)) ? true : false;
-                        }
-                    case DIR_NONE:
-                    default:
-                        {
-                            return false;
-                        }
+            case MOTION_HORSEWALK:
+                {
+                    return  m_OnHorse && (nLDistance2 == 1 || nLDistance2 == 2);
                 }
-            }
-        case MOTION_HORSERUN:
-            {
-                switch(rstMotion.Direction){
-                    case DIR_UP:
-                    case DIR_UPRIGHT:
-                    case DIR_RIGHT:
-                    case DIR_DOWNRIGHT:
-                    case DIR_DOWN:
-                    case DIR_DOWNLEFT:
-                    case DIR_LEFT:
-                    case DIR_UPLEFT:
-                        {
-                            return ((nDistance == 9) || (nDistance == 18)) ? true : false;
-                        }
-                    case DIR_NONE:
-                    default:
-                        {
-                            return false;
-                        }
+            case MOTION_RUN:
+                {
+                    return !m_OnHorse && (nLDistance2 == 4 || nLDistance2 == 8);
                 }
-            }
-        default:
-            {
-                return false;
-            }
-    }
+            case MOTION_HORSERUN:
+                {
+                    return  m_OnHorse && (nLDistance2 == 9 || nLDistance2 == 18);
+                }
+            default:
+                {
+                    return false;
+                }
+        }
+    }else{ return false; }
 }
 
-bool Hero::ParseNewAction(const ActionNode &rstAction, bool)
+bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
 {
     // currently we ignore the local or remote flag for Hero
-    // at it later if we support ACTION_PUSH which changes hero locations
+    // but we have to support it if we support ACTION_PUSH which changes hero's location
 
-    // 1. clean current motion queue
-    //    any new action will erase all pending motions
-    m_MotionQueue.clear();
+    if(ActionValid(rstAction, bRemote)){
 
-    // 2. parse action into motions
-    //    and assign the ActionNode::ID -> MotionNode::ID
-    if(ActionValid(rstAction)){
-        if(LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
-            if(!ParseMovePath(MOTION_WALK, 1, m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
-                return false;
-            }
+        // 1. prepare before parsing action
+        //    additional movement added if necessary but in rush
+        switch(rstAction.Action){
+            case ACTION_STAND:
+            case ACTION_MOVE:
+            case ACTION_ATTACK:
+                {
+                    // 1. clean all pending motions
+                    m_MotionQueue.clear();
+
+                    // 2. move to the proper place
+                    //    ParseMovePath() will find a valid path and check creatures, means
+                    //    1. all nodes are valid grid
+                    //    2. prefer path without creatures on the way
+
+                    switch(LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
+                        case 0:
+                            {
+                                break;
+                            }
+                        default:
+                            {
+                                auto stPathNodeV = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, true);
+                                switch(stPathNodeV.size()){
+                                    case 0:
+                                    case 1:
+                                        {
+                                            // 0 means error
+                                            // 1 means can't find a path here since we know LDistance2 != 0
+                                            return false;
+                                        }
+                                    default:
+                                        {
+                                            // we get a path
+                                            // make a motion list for the path
+
+                                            for(size_t nIndex = 1; nIndex < stPathNodeV.size(); ++nIndex){
+                                                auto nX0 = stPathNodeV[nIndex - 1].X;
+                                                auto nY0 = stPathNodeV[nIndex - 1].Y;
+                                                auto nX1 = stPathNodeV[nIndex    ].X;
+                                                auto nY1 = stPathNodeV[nIndex    ].Y;
+
+                                                if(auto stMotionNode = MakeMotionWalk(nX0, nY0, nX1, nY1, 200)){
+                                                    m_MotionQueue.push_back(stMotionNode);
+                                                }else{
+                                                    m_MotionQueue.clear();
+                                                    return false;
+                                                }
+                                            }
+                                            break;
+                                        }
+                                }
+                                break;
+                            }
+                    }
+                    break;
+                }
+            case ACTION_UNDERATTACK:
+            default:
+                {
+                    break;
+                }
         }
 
+        // 2. parse the action
         switch(rstAction.Action){
             case ACTION_STAND:
                 {
@@ -370,9 +352,8 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool)
                 }
             case ACTION_MOVE:
                 {
-                    if(!ParseMovePath(rstAction.ActionParam, rstAction.Speed, rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY)){ extern Log *g_Log;
-                        g_Log->AddLog(LOGTYPE_WARNING, "Parse move action into motion failed");
-                        return false;
+                    if(auto stMotionNode = MakeMotionWalk(rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY, rstAction.Speed)){
+                        m_MotionQueue.push_back(stMotionNode);
                     }
                     break;
                 }
@@ -383,7 +364,7 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool)
                 }
             case ACTION_UNDERATTACK:
                 {
-                    m_MotionQueue.push_back({MOTION_UNDERATTACK, 0, rstAction.Direction, rstAction.X, rstAction.Y});
+                    m_MotionQueue.push_front({MOTION_UNDERATTACK, 0, m_CurrMotion.Direction, m_CurrMotion.EndX, m_CurrMotion.EndY});
                     break;
                 }
             case ACTION_DIE:
@@ -396,120 +377,161 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool)
                     return false;
                 }
         }
+
+        // 3. after action parse
+        //    verify the whole motion queue
         return MotionQueueValid();
     }
+
+    // if action is not valid
+    // we ignore it and won't clean the pending motion queue
     return false;
 }
 
 bool Hero::Location(int *pX, int *pY)
 {
-    switch(m_CurrMotion.Motion){
-        case MOTION_WALK:
-        case MOTION_RUN:
-        case MOTION_HORSEWALK:
-        case MOTION_HORSERUN:
-            {
-                auto nX0        = m_CurrMotion.X;
-                auto nY0        = m_CurrMotion.Y;
-                auto nX1        = m_CurrMotion.EndX;
-                auto nY1        = m_CurrMotion.EndY;
-                auto nFrame     = m_CurrMotion.Frame;
-                auto nDirection = m_CurrMotion.Direction;
+    if(true
+            && (m_CurrMotion.Motion > MOTION_NONE)
+            && (m_CurrMotion.Motion < MOTION_MAX )){
 
+        switch(m_CurrMotion.Motion){
+            case MOTION_WALK:
+            case MOTION_RUN:
+            case MOTION_HORSEWALK:
+            case MOTION_HORSERUN:
+                {
+                    auto nX0        = m_CurrMotion.X;
+                    auto nY0        = m_CurrMotion.Y;
+                    auto nX1        = m_CurrMotion.EndX;
+                    auto nY1        = m_CurrMotion.EndY;
+                    auto nFrame     = m_CurrMotion.Frame;
+                    auto nDirection = m_CurrMotion.Direction;
 
-                if(pX){ *pX = (nFrame < ((int)(MotionFrameCount()) - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 0))) ? nX0 : nX1; }
-                if(pY){ *pY = (nFrame < ((int)(MotionFrameCount()) - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 0))) ? nY0 : nY1; }
-
-                return true;
-            }
-        default:
-            {
-                if(pX){ *pX = m_CurrMotion.X; }
-                if(pY){ *pY = m_CurrMotion.Y; }
-
-                return true;
-            }
-    }
-}
-
-bool Hero::ActionValid(const ActionNode &rstAction)
-{
-    auto nDistance = LDistance2(rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY);
-    switch(rstAction.Action){
-        case ACTION_STAND:
-        case ACTION_ATTACK:
-        case ACTION_UNDERATTACK:
-        case ACTION_DIE:
-            {
-                switch(rstAction.Direction){
-                    case DIR_UP:
-                    case DIR_UPRIGHT:
-                    case DIR_RIGHT:
-                    case DIR_DOWNRIGHT:
-                    case DIR_DOWN:
-                    case DIR_DOWNLEFT:
-                    case DIR_LEFT:
-                    case DIR_UPLEFT:
-                        {
-                            return nDistance ? false : true;
-                        }
-                    case DIR_NONE:
-                    default:
-                        {
-                            return false;
-                        }
-                }
-            }
-        case ACTION_MOVE:
-            {
-                if(nDistance){
-                    switch(rstAction.Direction){
-                        case DIR_NONE:
+                    switch(auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction)){
+                        case 6:
                             {
-                                // for action move we shouldn't have direction
-                                // direction should be parsed in MotionNode
+                                if(pX){ *pX = (nFrame < (nFrameCount - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 0))) ? nX0 : nX1; }
+                                if(pY){ *pY = (nFrame < (nFrameCount - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 0))) ? nY0 : nY1; }
+
                                 return true;
                             }
-                        case DIR_UP:
-                        case DIR_UPRIGHT:
-                        case DIR_RIGHT:
-                        case DIR_DOWNRIGHT:
-                        case DIR_DOWN:
-                        case DIR_DOWNLEFT:
-                        case DIR_LEFT:
-                        case DIR_UPLEFT:
                         default:
                             {
                                 return false;
                             }
                     }
-                }else{ return false; }
-            }
-        default:
-            {
-                return false;
-            }
+                }
+            default:
+                {
+                    if(pX){ *pX = m_CurrMotion.X; }
+                    if(pY){ *pY = m_CurrMotion.Y; }
+
+                    return true;
+                }
+        }
     }
+
+    return false;
 }
 
-size_t Hero::MotionFrameCount()
+bool Hero::ActionValid(const ActionNode &rstAction, bool bRemote)
 {
-    if(GfxID(m_Dress, m_CurrMotion.Motion, m_CurrMotion.Direction) >= 0){
-        switch(m_CurrMotion.Motion){
-            case MOTION_STAND       : { return 4; }
-            case MOTION_WALK        : { return 6; }
-            case MOTION_RUN         : { return 6; }
-            case MOTION_UNDERATTACK : { return 3; }
-            default                 : { return 1; }
+    // action check should be much looser than motion check
+    // since we don't intend to make continuous action list for parsing
+    auto fnCheckDir = [](int nDirection) -> bool
+    {
+        return (nDirection > DIR_NONE) && (nDirection < DIR_MAX);
+    };
+    
+    if(true
+            && rstAction.Action > ACTION_NONE
+            && rstAction.Action < ACTION_MAX ){
+
+        switch(rstAction.Action){
+            case ACTION_MOVE:
+                {
+                    // for the move action, we allow the move to an invalid location
+                    // but this location should be on current map
+
+                    if(rstAction.MapID != m_ProcessRun->MapID()){
+                        return false;
+                    }else{
+                        if(m_ProcessRun->OnMap(rstAction.MapID, rstAction.X, rstAction.Y)){
+                            return true;
+                        }else{
+                            if(bRemote){
+                                return false;
+                            }else{
+                                return true;
+                            }
+                        }
+                    }
+                }
+            case ACTION_ATTACK:
+                {
+                    // attack a target on current map
+                    // allow to attack an invalid location if it's magic attack
+
+                    if(rstAction.MapID != m_ProcessRun->MapID()){
+                        return false;
+                    }else{
+                        if(m_ProcessRun->OnMap(rstAction.MapID, rstAction.X, rstAction.Y)){
+                            return true;
+                        }else{
+                            switch(rstAction.ActionParam){
+                                case DC_PHY_PLAIN:
+                                    {
+                                        return false;
+                                    }
+                                default:
+                                    {
+                                        return true;
+                                    }
+                            }
+                        }
+                    }
+                }
+            case ACTION_STAND:
+            case ACTION_UNDERATTACK:
+            case ACTION_DIE:
+            default:
+                {
+                    return true
+                        && m_ProcessRun->OnMap(rstAction.MapID, rstAction.X, rstAction.Y)
+                        && fnCheckDir(rstAction.Direction);
+                }
         }
-    }else{ return 0; }
+    }
+
+    return false;
+}
+
+int Hero::MotionFrameCount(int nMotion, int nDirection) const
+{
+    if(true
+            && (nMotion > MOTION_NONE)
+            && (nMotion < MOTION_MAX )
+
+            && (nDirection > DIR_NONE)
+            && (nDirection < DIR_MAX)){
+        switch(nMotion){
+            case MOTION_STAND       : { return  4; }
+            case MOTION_WALK        : { return  6; }
+            case MOTION_RUN         : { return  6; }
+            case MOTION_ATTACK      : { return  6; }
+            case MOTION_UNDERATTACK : { return  3; }
+            default                 : { return -1; }
+        }
+    }else{ return -1; }
 }
 
 bool Hero::Moving()
 {
     return false
         || m_CurrMotion.Motion == MOTION_RUN
-        || m_CurrMotion.Motion == MOTION_WALK;
+        || m_CurrMotion.Motion == MOTION_WALK
+        || m_CurrMotion.Motion == MOTION_HORSERUN
+        || m_CurrMotion.Motion == MOTION_HORSEWALK;
 }
 
 bool Hero::CanFocus(int, int)
@@ -517,7 +539,7 @@ bool Hero::CanFocus(int, int)
     return true;
 }
 
-bool Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
+int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
 {
     // for player there are 33 motions, each motion has 8 directions
     // and each directions has 10 frames at most:
@@ -528,13 +550,9 @@ bool Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
     // each eight lines stands for one motion
     //
     // and this table use gfx index rather than motion index
-    // I'm planning to conform the GfxID and MotionID by
-    //
-    //      GfxID = MotionID - 1
-    //
-    // zero means nothing or invalid
-    // otherwise I need to sreach in table every time
-    const static uint8_t s_WeaponOrder[2640]
+    // I need to convert nMotion -> nGfxMotionID before get the table item
+
+    const static int s_WeaponOrder[2640]
     {
         1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
@@ -802,5 +820,122 @@ bool Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
     };
 
-    return (s_WeaponOrder[(nMotion - 1) * 80 + (nDirection - 1) * 10 + nFrame] == 0) ? false : true;
+    auto nGfxMotionID = GfxMotionID(nMotion);
+    if(nGfxMotionID >= 0){
+        return s_WeaponOrder[nGfxMotionID * 80 + (nDirection - (DIR_NONE + 1)) * 10 + nFrame];
+    }else{ return -1; }
+}
+
+MotionNode Hero::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed)
+{
+    if(true
+            && m_ProcessRun
+            && m_ProcessRun->CanMove(false, nX0, nY0)
+            && m_ProcessRun->CanMove(false, nX1, nY1)
+
+            && nSpeed >= SYS_MINSPEED
+            && nSpeed <= SYS_MAXSPEED){
+
+        static const int nDirV[][3] = {
+            {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
+            {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
+            {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
+
+        int nSDX = 1 + (nX1 > nX0) - (nX1 < nX0);
+        int nSDY = 1 + (nY1 > nY0) - (nY1 < nY0);
+
+        int nMotion = MOTION_NONE;
+        switch(LDistance2(nX0, nY0, nX1, nY1)){
+            case 1:
+            case 2:
+                {
+                    nMotion = (m_OnHorse ? MOTION_HORSEWALK : MOTION_WALK);
+                    break;
+                }
+            case 4:
+            case 8:
+                {
+                    nMotion = MOTION_RUN;
+                    break;
+                }
+            case  9:
+            case 18:
+                {
+                    nMotion = MOTION_HORSERUN;
+                    break;
+                }
+            default:
+                {
+                    return {};
+                }
+        }
+
+        return {nMotion, 0, nDirV[nSDY][nSDX], nSpeed, nX0, nY0, nX1, nY1};
+    }
+
+    return {};
+}
+
+int Hero::GfxMotionID(int nMotion)
+{
+    if((nMotion > MOTION_NONE) && (nMotion < MOTION_MAX)){
+        static const std::unordered_map<char, int> stGfxMotionIDRecord = {
+            {(char)(MOTION_STAND                ),      0},
+            {(char)(MOTION_WALK                 ),     21},
+            {(char)(MOTION_RUN                  ),     22},
+            {(char)(MOTION_ATTACK               ),      9},
+
+            {(char)(MOTION_CASTMAGIC0           ),      2},
+            {(char)(MOTION_CASTMAGIC1           ),      3},
+
+            {(char)(MOTION_BEFOREATTACK         ),      7},
+            {(char)(MOTION_UNDERATTACK          ),     15},
+            {(char)(MOTION_DIE                  ),      7},
+
+            {(char)(MOTION_ONEHANDATTACK0       ),      8},
+            {(char)(MOTION_ONEHANDATTACK1       ),      9},
+            {(char)(MOTION_ONEHANDATTACK2       ),     10},
+            {(char)(MOTION_ONEHANDATTACK3       ),     11},
+
+            {(char)(MOTION_TWOHANDATTACK0       ),     12},
+            {(char)(MOTION_TWOHANDATTACK1       ),     13},
+            {(char)(MOTION_TWOHANDATTACK2       ),     14},
+            {(char)(MOTION_TWOHANDATTACK3       ),     15}};
+        return (stGfxMotionIDRecord.find((char)(nMotion)) != stGfxMotionIDRecord.end()) ? stGfxMotionIDRecord.at((char)(nMotion)) : -1;
+    }else{ return -1; }
+}
+
+int Hero::GfxWeaponID(int nWeapon, int nMotion, int nDirection)
+{
+    static_assert(sizeof(int) > 2, "GfxWeaponID() overflows because of sizeof(int) too small");
+    if(true
+            && (nWeapon    > WEAPON_NONE && nWeapon    < WEAPON_MAX )
+            && (nMotion    > MOTION_NONE && nMotion    < MOTION_MAX )
+            && (nDirection > DIR_NONE    && nDirection < DIR_MAX    )){
+        auto nGfxMotionID = GfxMotionID(nMotion);
+        if(nGfxMotionID >= 0){
+            return ((nWeapon - (WEAPON_NONE + 1)) << 9) + (nGfxMotionID << 3) + (nDirection - (DIR_NONE + 1));
+        }
+    }
+    return -1;
+}
+
+int Hero::GfxDressID(int nDress, int nMotion, int nDirection)
+{
+    static_assert(sizeof(int) > 2, "GfxDressID() overflows because of sizeof(int) too small");
+    if(true
+            && (nDress     > DRESS_NONE  && nDress     < DRESS_MAX  )
+            && (nMotion    > MOTION_NONE && nMotion    < MOTION_MAX )
+            && (nDirection > DIR_NONE    && nDirection < DIR_MAX    )){
+        auto nGfxMotionID = GfxMotionID(nMotion);
+        if(nGfxMotionID >= 0){
+            return ((nDress - (DRESS_NONE + 1)) << 9) + (nGfxMotionID << 3) + (nDirection - (DIR_NONE + 1));
+        }
+    }
+    return -1;
+}
+
+int Hero::MaxStep() const
+{
+    return m_OnHorse ? 3 : 2;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/21/2017 00:36:38
+ *  Last Modified: 07/02/2017 21:39:16
  *
  *    Description: 
  *
@@ -109,12 +109,6 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
             m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
         }
     }
-}
-
-void ProcessRun::Net_MONSTERGINFO(const uint8_t *pBuf, size_t)
-{
-    auto pInfo = (SMMonsterGInfo *)pBuf;
-    Monster::GetGInfoRecord(pInfo->MonsterID).ResetLookID(pInfo->LookIDN, pInfo->LookID);
 }
 
 void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)

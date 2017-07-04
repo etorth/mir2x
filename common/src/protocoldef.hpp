@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 05/28/2017 00:17:19
+ *  Last Modified: 07/02/2017 23:56:19
  *
  *    Description: 
  *
@@ -40,6 +40,7 @@ enum DirectionType: int
     DIR_DOWNLEFT,
     DIR_LEFT,
     DIR_UPLEFT,
+    DIR_MAX,
 };
 
 enum ActionType: int
@@ -51,6 +52,7 @@ enum ActionType: int
     ACTION_UNDERATTACK,
     ACTION_DIE,
     ACTION_EXTENSION,
+    ACTION_MAX,
 };
 
 enum ActExtType: int
@@ -74,13 +76,17 @@ enum CreatureType: int
 
 enum MonsterIDType: uint32_t
 {
-    MONSTERID_NONE,
-    MONSTERID_DEER,
-    MONSTERID_PHEASANT,
-    MONSTERID_ZUMA0,
-    MONSTERID_ZUMA1,
-    MONSTERID_ZUMA2,
-    MONSTERID_ZUMA3,
+    MID_NONE,
+
+    MID_DEER,
+    MID_M10,
+
+    MID_PHEASANT,
+
+    MID_ZUMA_ARCHER,
+    MID_ZUMA_WARRIOR,
+
+    MID_MAX,
 };
 
 enum DCType: int
@@ -126,4 +132,16 @@ enum MonsterAttackType: int
     MA_NORMAL,
     MA_DOGZ,
     MA_ATTACKALL,
+};
+
+enum WeaponIDType: int
+{
+    WEAPON_NONE =   0,
+    WEAPON_MAX  = 256,
+};
+
+enum DressIDType : int
+{
+    DRESS_NONE =   0,
+    DRESS_MAX  = 256,
 };

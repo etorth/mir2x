@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 06/26/2017 00:05:01
+ *  Last Modified: 07/03/2017 14:42:15
  *
  *    Description: 
  *
@@ -331,8 +331,8 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                 if(LDistance2(m_MyHero->CurrMotion().EndX, m_MyHero->CurrMotion().EndY, nX, nY)){
                                     m_MyHero->ParseNewAction({
                                             ACTION_MOVE,
-                                            MOTION_NONE,    // need decompose
-                                            1,              // by default
+                                            0,
+                                            100,
                                             DIR_NONE,
                                             m_MyHero->CurrMotion().EndX,
                                             m_MyHero->CurrMotion().EndY,
@@ -416,18 +416,47 @@ bool ProcessRun::CanMove(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1
     if(true
             && m_Mir2xMapData.ValidC(nX0, nY0)
             && m_Mir2xMapData.ValidC(nX1, nY1)){
+
+        int nMaxIndex = -1;
         switch(LDistance2(nX0, nY0, nX1, nY1)){
             case 0:
+                {
+                    nMaxIndex = 0;
+                    break;
+                }
             case 1:
             case 2:
                 {
-                    return CanMove(bCheckCreature, nX1, nY1);
+                    nMaxIndex = 1;
+                    break;
+                }
+            case 4:
+            case 8:
+                {
+                    nMaxIndex = 2;
+                    break;
+                }
+            case  9:
+            case 18:
+                {
+                    nMaxIndex = 3;
+                    break;
                 }
             default:
                 {
-                    break;
+                    return false;
                 }
         }
+
+        int nDX = (nX1 > nX0) - (nX1 < nX0);
+        int nDY = (nY1 > nY0) - (nY1 < nY0);
+
+        for(int nIndex = 1; nIndex <= nMaxIndex; ++nIndex){
+            if(!CanMove(bCheckCreature, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+                return false;
+            }
+        }
+        return true;
     }
     return false;
 }
@@ -646,4 +675,9 @@ bool ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, cons
     }
 
     return true;
+}
+
+bool ProcessRun::OnMap(uint32_t nMapID, int nX, int nY) const
+{
+    return (MapID() == nMapID) && m_Mir2xMapData.ValidC(nX, nY);
 }

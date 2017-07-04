@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 06/16/2017 14:08:30
+ *  Last Modified: 07/02/2017 21:49:36
  *
  *    Description: 
  *
@@ -42,7 +42,6 @@ enum MessagePackType: int
     MPK_ADDCHAROBJECT,
     MPK_BINDSESSION,
     MPK_ACTION,
-    MPK_QUERYMONSTERGINFO,
     MPK_PULLCOINFO,
     MPK_NEWCONNECTION,
     MPK_QUERYMAPLIST,
@@ -63,23 +62,23 @@ enum MessagePackType: int
     MPK_COCOUNT,
 };
 
-typedef struct
+struct AMBadActorPod
 {
     int      Type;
     uint32_t ID;
     uint32_t Respond;
-}AMBadActorPod;
+};
 
-typedef struct
+struct AMTryLeave
 {
     uint32_t UID;
     uint32_t MapID;
 
     int X;
     int Y;
-}AMTryLeave;
+};
 
-typedef union
+union AMAddCharObject
 {
     uint8_t Type;
 
@@ -115,9 +114,9 @@ typedef union
         struct _Common _MemoryAlign;
         uint32_t NPCID;
     }NPC;
-}AMAddCharObject;
+};
 
-typedef struct
+struct AMLogin
 {
     uint32_t DBID;
     uint32_t UID;
@@ -127,9 +126,9 @@ typedef struct
 
     int X;
     int Y;
-}AMLogin;
+};
 
-typedef struct
+struct AMTrySpaceMove
 {
     void *This;
 
@@ -141,9 +140,9 @@ typedef struct
 
     int CurrX;
     int CurrY;
-}AMTrySpaceMove;
+};
 
-typedef struct
+struct AMTryMove
 {
     uint32_t UID;
     uint32_t MapID;
@@ -155,9 +154,9 @@ typedef struct
     int EndY;
 
     bool AllowHalfMove;
-}AMTryMove;
+};
 
-typedef struct
+struct AMMoveOK
 {
     uint32_t UID;
     uint32_t MapID;
@@ -167,9 +166,9 @@ typedef struct
 
     int EndX;
     int EndY;
-}AMMoveOK;
+};
 
-typedef struct
+struct AMLoginQueryDB
 {
     uint32_t SessionID;
 
@@ -180,23 +179,23 @@ typedef struct
     int      Level;
     int      JobID;
     int      Direction;
-}AMLoginQueryDB;
+};
 
-typedef struct
+struct AMNetPackage
 {
     uint32_t SessionID;
     uint8_t  Type;
 
     const uint8_t *Data;
     size_t DataLen;
-}AMNetPackage;
+};
 
-typedef struct
+struct AMBindSession
 {
     uint32_t SessionID;
-}AMBindSession;
+};
 
-typedef struct
+struct AMAction
 {
     uint32_t UID;
     uint32_t MapID;
@@ -214,37 +213,30 @@ typedef struct
     int EndY;
 
     uint32_t ID;
-}AMAction;
+};
 
-typedef struct
-{
-    uint32_t MonsterID;
-    int      LookIDN;
-    uint32_t SessionID;
-}AMQueryMonsterGInfo;
-
-typedef struct
+struct AMPullCOInfo
 {
     uint32_t SessionID;
-}AMPullCOInfo;
+};
 
-typedef struct
+struct AMNewConnection
 {
     uint32_t SessionID;
-}AMNewConnection;
+};
 
-typedef struct
+struct AMMapList
 {
     uint32_t MapList[256];
-}AMMapList;
+};
 
-typedef struct
+struct AMMapSwitch
 {
     uint32_t MapID;
     uint32_t UID;
-}AMMapSwitch;
+};
 
-typedef struct
+struct AMTryMapSwitch
 {
     uint32_t UID;
     uint32_t MapID;
@@ -252,33 +244,33 @@ typedef struct
 
     int X;
     int Y;
-}AMTryMapSwitch;
+};
 
-typedef struct
+struct AMQueryMapUID
 {
     uint32_t MapID;
-}AMQueryMapUID;
+};
 
-typedef struct
+struct AMUID
 {
     uint32_t UID;
-}AMUID;
+};
 
-typedef struct
+struct AMMapSwitchOK
 {
     void *Data;
 
     int X;
     int Y;
-}AMMapSwitchOK;
+};
 
-typedef struct
+struct AMQueryLocation
 {
     uint32_t UID;
     uint32_t MapID;
-}AMQueryLocation;
+};
 
-typedef struct
+struct AMLocation
 {
     uint32_t UID;
     uint32_t MapID;
@@ -286,9 +278,9 @@ typedef struct
     
     int X;
     int Y;
-}AMLocation;
+};
 
-typedef struct
+struct AMPathFind
 {
     uint32_t UID;
     uint32_t MapID;
@@ -299,9 +291,9 @@ typedef struct
     int Y;
     int EndX;
     int EndY;
-}AMPathFind;
+};
 
-typedef struct
+struct AMPathFindOK
 {
     uint32_t UID;
     uint32_t MapID;
@@ -311,9 +303,9 @@ typedef struct
         int X;
         int Y;
     }Point[4];
-}AMPathFindOK;
+};
 
-typedef struct
+struct AMAttack
 {
     uint32_t UID;
     uint32_t MapID;
@@ -323,9 +315,9 @@ typedef struct
 
     int X;
     int Y;
-}AMAttack;
+};
 
-typedef struct
+struct AMUpdateHP
 {
     uint32_t UID;
     uint32_t MapID;
@@ -335,18 +327,18 @@ typedef struct
 
     uint32_t HP;
     uint32_t HPMax;
-}AMUpdateHP;
+};
 
-typedef struct
+struct AMDeadFadeOut
 {
     uint32_t UID;
     uint32_t MapID;
 
     int X;
     int Y;
-}AMDeadFadeOut;
+};
 
-typedef struct
+struct AMQueryCORecord
 {
     uint32_t UID;
     uint32_t MapID;
@@ -355,9 +347,9 @@ typedef struct
     int Y;
 
     uint32_t SessionID;
-}AMQueryCORecord;
+};
 
-typedef struct
+struct AMQueryCOCount
 {
     uint32_t MapID;
     struct _Check
@@ -374,9 +366,9 @@ typedef struct
         bool     Male;
         uint32_t MonsterID;
     }CheckParam;
-}AMQueryCOCount;
+};
 
-typedef struct
+struct AMCOCount
 {
     uint32_t Count;
-}AMCOCount;
+};
