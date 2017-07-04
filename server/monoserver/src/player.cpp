@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/02/2017 22:00:49
+ *  Last Modified: 07/04/2017 01:38:39
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 #include "player.hpp"
 #include "threadpn.hpp"
 #include "memorypn.hpp"
+#include "sysconst.hpp"
 #include "charobject.hpp"
 #include "protocoldef.hpp"
 
@@ -184,7 +185,7 @@ void Player::ReportStand()
         stSMAction.MapID       = MapID();
         stSMAction.Action      = ACTION_STAND;
         stSMAction.ActionParam = 0;
-        stSMAction.Speed       = 0;
+        stSMAction.Speed       = SYS_DEFSPEED;
         stSMAction.Direction   = Direction();
         stSMAction.X           = X();
         stSMAction.Y           = Y();

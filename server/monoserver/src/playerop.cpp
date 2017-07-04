@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 05/29/2017 17:30:50
+ *  Last Modified: 07/04/2017 01:42:48
  *
  *    Description: 
  *
@@ -239,7 +239,7 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
         stSMA.MapID       = MapID();
         stSMA.Action      = ACTION_UNDERATTACK;
         stSMA.ActionParam = 0;
-        stSMA.Speed       = 0;
+        stSMA.Speed       = SYS_DEFSPEED;
         stSMA.Direction   = Direction();
         stSMA.X           = X();
         stSMA.Y           = Y();

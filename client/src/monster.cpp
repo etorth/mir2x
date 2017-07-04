@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 07/03/2017 00:02:24
+ *  Last Modified: 07/04/2017 11:07:23
  *
  *    Description: 
  *
@@ -135,9 +135,9 @@ bool Monster::Draw(int nViewX, int nViewY)
         int nDX1 = 0;
         int nDY1 = 0;
 
-        extern PNGTexOffDBN *g_PNGTexOffDBN;
-        auto pFrame0 = g_PNGTexOffDBN->Retrieve(nKey0, &nDX0, &nDY0);
-        auto pFrame1 = g_PNGTexOffDBN->Retrieve(nKey1, &nDX1, &nDY1);
+        extern PNGTexOffDBN *g_MonsterDBN;
+        auto pFrame0 = g_MonsterDBN->Retrieve(nKey0, &nDX0, &nDY0);
+        auto pFrame1 = g_MonsterDBN->Retrieve(nKey1, &nDX1, &nDY1);
 
         int nShiftX = 0;
         int nShiftY = 0;
@@ -228,9 +228,9 @@ int Monster::MotionFrameCount(int nMotion, int nDirection) const
     return -1;
 }
 
-bool Monster::ParseNewAction(const ActionNode &rstAction, bool)
+bool Monster::ParseNewAction(const ActionNode &rstAction, bool bRemote)
 {
-    if(ActionValid(rstAction, true)){
+    if(ActionValid(rstAction, bRemote)){
 
         // 1. prepare before parsing action
         //    additional movement added if necessary but in rush
@@ -246,33 +246,43 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool)
                     //    ParseMovePath() will find a valid path and check creatures, means
                     //    1. all nodes are valid grid
                     //    2. prefer path without creatures on the way
-                    auto stPathNodeV = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, true);
-                    switch(stPathNodeV.size()){
+
+                    switch(LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
                         case 0:
-                        case 1:
                             {
-                                // error happens for path finding
-                                extern Log *g_Log;
-                                g_Log->AddLog(LOGTYPE_WARNING, "Path finding error: (%d, %d) -> (%d, %d)", m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y);
-                                return false;
+                                break;
                             }
                         default:
                             {
-                                // we get a path
-                                // make a motion list for the path
+                                auto stPathNodeV = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, true);
+                                switch(stPathNodeV.size()){
+                                    case 0:
+                                    case 1:
+                                        {
+                                            // 0 means error
+                                            // 1 means can't find a path here since we know LDistance2 != 0
+                                            return false;
+                                        }
+                                    default:
+                                        {
+                                            // we get a path
+                                            // make a motion list for the path
 
-                                for(size_t nIndex = 1; nIndex < stPathNodeV.size(); ++nIndex){
-                                    auto nX0 = stPathNodeV[nIndex - 1].X;
-                                    auto nY0 = stPathNodeV[nIndex - 1].Y;
-                                    auto nX1 = stPathNodeV[nIndex    ].X;
-                                    auto nY1 = stPathNodeV[nIndex    ].Y;
+                                            for(size_t nIndex = 1; nIndex < stPathNodeV.size(); ++nIndex){
+                                                auto nX0 = stPathNodeV[nIndex - 1].X;
+                                                auto nY0 = stPathNodeV[nIndex - 1].Y;
+                                                auto nX1 = stPathNodeV[nIndex    ].X;
+                                                auto nY1 = stPathNodeV[nIndex    ].Y;
 
-                                    if(auto stMotionNode = MakeMotionWalk(nX0, nY0, nX1, nY1, 200)){
-                                        m_MotionQueue.push_back(stMotionNode);
-                                    }else{
-                                        m_MotionQueue.clear();
-                                        return false;
-                                    }
+                                                if(auto stMotionNode = MakeMotionWalk(nX0, nY0, nX1, nY1, 200)){
+                                                    m_MotionQueue.push_back(stMotionNode);
+                                                }else{
+                                                    m_MotionQueue.clear();
+                                                    return false;
+                                                }
+                                            }
+                                            break;
+                                        }
                                 }
                                 break;
                             }
@@ -295,6 +305,9 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool)
                 }
             case ACTION_MOVE:
                 {
+                    if(auto stMotionNode = MakeMotionWalk(rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY, rstAction.Speed)){
+                        m_MotionQueue.push_back(stMotionNode);
+                    }
                     break;
                 }
             case ACTION_ATTACK:
@@ -372,37 +385,26 @@ int Monster::GfxID(int nMotion, int nDirection) const
     static_assert(sizeof(int) > 2, "Monster::GfxID() overflows because of sizeof(int) <= 2");
     auto fnMotionGfxID = [](int nMotion) -> int
     {
-        // general table for motion id
-        // when provided motion supported then it should have this id
-        static const std::unordered_map<uint8_t, int> stMotionGfxIDRecord
+        const static auto stMotionTable = []() -> std::array<int, MOTION_MAX>
         {
-            {(uint8_t)(MOTION_STAND      ), 0},
-            {(uint8_t)(MOTION_WALK       ), 1},
-            {(uint8_t)(MOTION_ATTACK     ), 2},
-            {(uint8_t)(MOTION_UNDERATTACK), 3},
-            {(uint8_t)(MOTION_DIE        ), 4}
-        };
+            std::array<int, MOTION_MAX> stMotionTable;
+            stMotionTable.fill(-1);
 
-        if(stMotionGfxIDRecord.find((uint8_t)(nMotion)) == stMotionGfxIDRecord.end()){
-            return -1;
-        }else{
-            return stMotionGfxIDRecord.at((uint8_t)(nMotion));
-        }
+            stMotionTable[MOTION_STAND      ] = 0;
+            stMotionTable[MOTION_WALK       ] = 1;
+            stMotionTable[MOTION_ATTACK     ] = 2;
+            stMotionTable[MOTION_UNDERATTACK] = 3;
+            stMotionTable[MOTION_DIE        ] = 4;
+
+            return stMotionTable;
+        }();
+
+        return ((nMotion > MOTION_NONE) && (nMotion < MOTION_MAX)) ? stMotionTable[nMotion] : -1;
     };
 
-    auto fnLookID = [](int nMonsterID) -> int
+    auto fnLookID = [](uint32_t nMonsterID) -> int
     {
-        static const std::unordered_map<int, int> stLookIDRecord
-        {
-            {MID_DEER, 0X0015},
-            {MID_M10 , 0X009F}
-        };
-
-        if(stLookIDRecord.find(nMonsterID) == stLookIDRecord.end()){
-            return -1;
-        }else{
-            return stLookIDRecord.at(nMonsterID);
-        }
+        return nMonsterID ? ((nMonsterID & 0X07FF) - (MID_NONE + 1)) : -1;
     };
 
     if(true
@@ -425,129 +427,113 @@ int Monster::GfxID(int nMotion, int nDirection) const
                 && nLookID      >= 0
                 && nMotionGfxID >= 0){
 
-            switch(MonsterID()){
-                default:
-                    {
-                        return ((nLookID & 0X07FF) << 7) + ((nMotionGfxID & 0X000F) << 3) + ((nDirection - DIR_NONE + 1) & 0X0007);
-                    }
-            }
+            return ((nLookID & 0X07FF) << 7) + ((nMotionGfxID & 0X000F) << 3) + ((nDirection - (DIR_NONE + 1)) & 0X0007);
 
         }
     }
     return -1;
 }
 
-bool Monster::ActionValid(const ActionNode &rstAction, bool)
+bool Monster::ActionValid(const ActionNode &rstAction, bool bRemote)
 {
-    auto nDistance = LDistance2(rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY);
-    switch(rstAction.Action){
-        case ACTION_STAND:
-        case ACTION_ATTACK:
-        case ACTION_UNDERATTACK:
-        case ACTION_DIE:
-            {
-                switch(rstAction.Direction){
-                    case DIR_UP:
-                    case DIR_UPRIGHT:
-                    case DIR_RIGHT:
-                    case DIR_DOWNRIGHT:
-                    case DIR_DOWN:
-                    case DIR_DOWNLEFT:
-                    case DIR_LEFT:
-                    case DIR_UPLEFT:
-                        {
-                            return nDistance ? false : true;
-                        }
-                    case DIR_NONE:
-                    default:
-                        {
-                            return false;
-                        }
+    // action check should be much looser than motion check
+    // since we don't intend to make continuous action list for parsing
+    auto fnCheckDir = [](int nDirection) -> bool
+    {
+        return (nDirection > DIR_NONE) && (nDirection < DIR_MAX);
+    };
+    
+    if(true
+            && rstAction.Action > ACTION_NONE
+            && rstAction.Action < ACTION_MAX
+
+            && rstAction.Speed >= SYS_MINSPEED
+            && rstAction.Speed <= SYS_MAXSPEED
+
+            // we may not use the start point info
+            // it's used as a reference of current action and should be valid
+
+            && m_ProcessRun
+            && m_ProcessRun->OnMap(rstAction.MapID, rstAction.X, rstAction.Y)){
+
+        switch(rstAction.Action){
+            case ACTION_MOVE:
+                {
+                    // for the move action, we allow the move to an invalid location
+                    // but locations should be on current map
+
+                    if(bRemote){
+                        return m_ProcessRun->CanMove(false, rstAction.EndX, rstAction.EndY);
+                    }else{
+                        return m_ProcessRun->OnMap(rstAction.MapID, rstAction.EndX, rstAction.EndY);
+                    }
                 }
-            }
-        case ACTION_MOVE:
-            {
-                switch(rstAction.Direction){
-                    case DIR_UP:
-                    case DIR_UPRIGHT:
-                    case DIR_RIGHT:
-                    case DIR_DOWNRIGHT:
-                    case DIR_DOWN:
-                    case DIR_DOWNLEFT:
-                    case DIR_LEFT:
-                    case DIR_UPLEFT:
-                        {
-                            return ((nDistance == 1) || (nDistance == 2)) ? true : false;
-                        }
-                    case DIR_NONE:
-                    default:
-                        {
-                            return false;
-                        }
+            case ACTION_ATTACK:
+                {
+                    // attack a target on current map
+                    // allow to attack an invalid location if it's magic attack
+
+                    // won't check direction here
+                    // plain physical attack need direction info but magic attack not
+
+                    return true;
                 }
-                break;
-            }
-        default:
-            {
-                return false;
-            }
+            case ACTION_STAND:
+            case ACTION_UNDERATTACK:
+            case ACTION_DIE:
+            default:
+                {
+                    return fnCheckDir(rstAction.Direction);
+                }
+        }
     }
+
+    return false;
 }
 
 bool Monster::MotionValid(const MotionNode &rstMotion)
 {
-    auto nDistance = LDistance2(rstMotion.X, rstMotion.Y, rstMotion.EndX, rstMotion.EndY);
-    switch(rstMotion.Motion){
-        case MOTION_STAND:
-        case MOTION_ATTACK:
-        case MOTION_UNDERATTACK:
-        case MOTION_DIE:
-            {
-                switch(rstMotion.Direction){
-                    case DIR_UP:
-                    case DIR_UPRIGHT:
-                    case DIR_RIGHT:
-                    case DIR_DOWNRIGHT:
-                    case DIR_DOWN:
-                    case DIR_DOWNLEFT:
-                    case DIR_LEFT:
-                    case DIR_UPLEFT:
-                        {
-                            return nDistance ? false : true;
-                        }
-                    case DIR_NONE:
-                    default:
-                        {
-                            return false;
-                        }
+    if(true
+            && rstMotion.Motion > MOTION_NONE
+            && rstMotion.Motion < MOTION_MAX
+
+            && rstMotion.Direction > DIR_NONE
+            && rstMotion.Direction < DIR_MAX 
+
+            && m_ProcessRun
+            && m_ProcessRun->OnMap(m_ProcessRun->MapID(), rstMotion.X,    rstMotion.Y)
+            && m_ProcessRun->OnMap(m_ProcessRun->MapID(), rstMotion.EndX, rstMotion.EndY)
+
+            && rstMotion.Speed >= SYS_MINSPEED
+            && rstMotion.Speed <= SYS_MAXSPEED
+
+            && rstMotion.Frame >= 0
+            && rstMotion.Frame <  MotionFrameCount(rstMotion.Motion, rstMotion.Direction)){
+
+        auto nLDistance2 = LDistance2(rstMotion.X, rstMotion.Y, rstMotion.EndX, rstMotion.EndY);
+        switch(rstMotion.Motion){
+            case MOTION_STAND:
+            case MOTION_ATTACK:
+            case MOTION_UNDERATTACK:
+            case MOTION_DIE:
+                {
+                    return nLDistance2 == 0;
                 }
-            }
-        case MOTION_WALK:
-            {
-                switch(rstMotion.Direction){
-                    case DIR_UP:
-                    case DIR_UPRIGHT:
-                    case DIR_RIGHT:
-                    case DIR_DOWNRIGHT:
-                    case DIR_DOWN:
-                    case DIR_DOWNLEFT:
-                    case DIR_LEFT:
-                    case DIR_UPLEFT:
-                        {
-                            return ((nDistance == 1) || (nDistance == 2)) ? true : false;
-                        }
-                    case DIR_NONE:
-                    default:
-                        {
-                            return false;
-                        }
+            case MOTION_WALK:
+                {
+                    auto nMaxStep = MaxStep();
+                    return false
+                        || nLDistance2 == 1
+                        || nLDistance2 == 2
+                        || nLDistance2 == nMaxStep * nMaxStep
+                        || nLDistance2 == nMaxStep * nMaxStep * 2;
                 }
-            }
-        default:
-            {
-                return false;
-            }
-    }
+            default:
+                {
+                    return false;
+                }
+        }
+    }else{ return false; }
 }
 
 bool Monster::CanFocus(int nPointX, int nPointY)
@@ -573,8 +559,8 @@ bool Monster::CanFocus(int nPointX, int nPointY)
         int nDX0 = 0;
         int nDY0 = 0;
 
-        extern PNGTexOffDBN *g_PNGTexOffDBN;
-        auto pFrame0 = g_PNGTexOffDBN->Retrieve(nKey0, &nDX0, &nDY0);
+        extern PNGTexOffDBN *g_MonsterDBN;
+        auto pFrame0 = g_MonsterDBN->Retrieve(nKey0, &nDX0, &nDY0);
 
         int nShiftX = 0;
         int nShiftY = 0;
@@ -600,13 +586,7 @@ bool Monster::CanFocus(int nPointX, int nPointY)
 Monster *Monster::Create(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun, const ActionNode &rstAction)
 {
     auto pNew = new Monster(nUID, nMonsterID, pRun);
-    pNew->m_CurrMotion.Motion    = MOTION_STAND;
-    pNew->m_CurrMotion.Speed     = 0;
-    pNew->m_CurrMotion.Direction = DIR_UP;
-    pNew->m_CurrMotion.X         = rstAction.X;
-    pNew->m_CurrMotion.Y         = rstAction.Y;
-    pNew->m_CurrMotion.EndX      = rstAction.EndX;
-    pNew->m_CurrMotion.EndY      = rstAction.EndY;
+    pNew->m_CurrMotion = {MOTION_STAND, 0, DIR_UP, rstAction.X, rstAction.Y};
 
     if(pNew->ParseNewAction(rstAction, true)){
         return pNew;

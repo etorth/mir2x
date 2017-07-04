@@ -20,6 +20,7 @@
     <Texture>
         <PNGTexDBN>Res/Texture/PNGTexDBN.ZIP</PNGTexDBN>
         <HeroGfxDBN>Res/Texture/HeroGfxDBN.ZIP</HeroGfxDBN>
+        <MonsterDBN>Res/Texture/MonsterDBN.ZIP</MonsterDBN>
         <WeaponDBN>Res/Texture/WeaponDBN.ZIP</WeaponDBN>
         <PNGTexOffDBN>Res/Texture/PNGTexOffDBN.ZIP</PNGTexOffDBN>
         <Path>Res/Texture</Path>

@@ -3,7 +3,7 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 07/03/2017 14:11:09
+ *  Last Modified: 07/04/2017 00:56:50
  *
  *    Description: ActionNode is used by both server and client
  *                 then don't define Print() for it
@@ -62,4 +62,9 @@ struct ActionNode
     ActionNode()
         : ActionNode(ACTION_NONE, 0, 0, 0, 0, 0, 0, 0, 0)
     {}
+
+    operator bool () const
+    {
+        return Action != ACTION_NONE;
+    }
 };

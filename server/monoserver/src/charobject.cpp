@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 05/29/2017 17:37:41
+ *  Last Modified: 07/04/2017 01:39:30
  *
  *    Description: 
  *
@@ -229,7 +229,7 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
                                 m_LastMoveTime = g_MonoServer->GetTimeTick();
 
                                 m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-                                DispatchAction({ACTION_MOVE, nMoveMode, 1, Direction(), nOrigX, nOrigY, X(), Y(), MapID()});
+                                DispatchAction({ACTION_MOVE, nMoveMode, SYS_DEFSPEED, Direction(), nOrigX, nOrigY, X(), Y(), MapID()});
 
                                 if(fnOnMoveOK){ fnOnMoveOK(); }
                             }else{

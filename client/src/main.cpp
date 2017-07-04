@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 06/21/2017 23:27:27
+ *  Last Modified: 07/04/2017 00:05:19
  *
  *    Description: 
  *
@@ -34,6 +34,7 @@ ClientEnv      *g_ClientEnv     = nullptr;
 PNGTexDBN      *g_PNGTexDBN     = nullptr; // database for all PNG texture only
 PNGTexOffDBN   *g_PNGTexOffDBN  = nullptr; // database for all PNG texture and offset information
 PNGTexOffDBN   *g_HeroGfxDBN    = nullptr; // database for hero
+PNGTexOffDBN   *g_MonsterDBN    = nullptr; // database for monster
 PNGTexOffDBN   *g_WeaponDBN     = nullptr; // database for weapon
 EmoticonDBN    *g_EmoticonDBN   = nullptr; // database for emoticons
 FontexDBN      *g_FontexDBN     = nullptr;
@@ -55,6 +56,7 @@ int main()
         delete g_SDLDevice   ; g_SDLDevice   = nullptr;
         delete g_PNGTexDBN   ; g_PNGTexDBN   = nullptr;
         delete g_HeroGfxDBN  ; g_HeroGfxDBN  = nullptr;
+        delete g_MonsterDBN  ; g_MonsterDBN  = nullptr;
         delete g_FontexDBN   ; g_FontexDBN   = nullptr;
         delete g_EmoticonDBN ; g_EmoticonDBN = nullptr;
         delete g_Game        ; g_Game        = nullptr;
@@ -68,6 +70,7 @@ int main()
     g_SDLDevice    = new SDLDevice();
     g_PNGTexDBN    = new PNGTexDBN();
     g_HeroGfxDBN   = new PNGTexOffDBN();
+    g_MonsterDBN   = new PNGTexOffDBN();
     g_WeaponDBN    = new PNGTexOffDBN();
     g_PNGTexOffDBN = new PNGTexOffDBN();
     g_FontexDBN    = new FontexDBN();

@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 06/15/2017 12:00:54
+ *  Last Modified: 07/04/2017 01:41:59
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 
 #include "player.hpp"
 #include "monster.hpp"
+#include "sysconst.hpp"
 #include "actorpod.hpp"
 #include "mathfunc.hpp"
 #include "monoserver.hpp"
@@ -109,7 +110,7 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rs
 
         stAMA.Action      = ACTION_DIE;
         stAMA.ActionParam = 0;
-        stAMA.Speed       = 0;
+        stAMA.Speed       = SYS_DEFSPEED;
         stAMA.Direction   = Direction();
 
         stAMA.X    = X();

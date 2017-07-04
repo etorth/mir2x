@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 07/02/2017 23:56:19
+ *  Last Modified: 07/04/2017 11:11:12
  *
  *    Description: 
  *
@@ -86,7 +86,7 @@ enum MonsterIDType: uint32_t
     MID_ZUMA_ARCHER,
     MID_ZUMA_WARRIOR,
 
-    MID_MAX,
+    MID_MAX = 65535,
 };
 
 enum DCType: int

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 06/15/2017 11:49:05
+ *  Last Modified: 07/04/2017 01:37:55
  *
  *    Description: 
  *
@@ -27,6 +27,7 @@
 #include "mathfunc.hpp"
 #include "memorypn.hpp"
 #include "threadpn.hpp"
+#include "sysconst.hpp"
 #include "randompick.hpp"
 #include "monoserver.hpp"
 #include "messagepack.hpp"
@@ -384,7 +385,7 @@ void Monster::ReportCORecord(uint32_t nSessionID)
 
         stSMCOR.Common.Action      = ACTION_STAND;
         stSMCOR.Common.ActionParam = 0;
-        stSMCOR.Common.Speed       = 0;
+        stSMCOR.Common.Speed       = SYS_DEFSPEED;
         stSMCOR.Common.Direction   = Direction();
 
         stSMCOR.Common.X    = X();
