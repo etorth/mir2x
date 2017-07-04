@@ -3,7 +3,7 @@
  *
  *       Filename: clientpathfinder.cpp
  *        Created: 03/28/2017 21:15:25
- *  Last Modified: 07/01/2017 12:39:58
+ *  Last Modified: 07/04/2017 13:11:57
  *
  *    Description: class for path finding in ProcessRun
  *
@@ -95,7 +95,7 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, bool bCheckCreature, int n
 
                         extern Log *g_Log;
                         g_Log->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", nMaxStep);
-                        return false;
+                        return 10000.00;
                     }
 
                     int nDistance2 = LDistance2(nSrcX, nSrcY, nDstX, nDstY);
@@ -107,7 +107,7 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, bool bCheckCreature, int n
 
                         extern Log *g_Log;
                         g_Log->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
-                        return false;
+                        return 10000.00;
                     }
                 }
 
@@ -130,9 +130,9 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, bool bCheckCreature, int n
                 //          but for MaxStep = 2 I don't have this issue
                 //    actually for dW < Weight(1) is good enough
 
-                // cost :   valid  :     1.000
-                //        occupied :   100.000
-                //         invalid : 10000.000
+                // cost :   valid  :     1.00
+                //        occupied :   100.00
+                //         invalid : 10000.00
                 //
                 // we should have cost(invalid) >> cost(occupied), otherwise
                 //          XXAXX
@@ -140,72 +140,54 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, bool bCheckCreature, int n
                 //          XXBXX
                 // path (A->O->B) and (A->X->B) are of equal cost
 
-                switch(auto nDistance2 = LDistance2(nSrcX, nSrcY, nDstX, nDstY)){
-                    case 1:
-                    case 4:
-                    case 9:
-                        {
-                            extern Game *g_Game;
-                            if(auto pRun = (ProcessRun *)(g_Game->ProcessValid(PROCESSID_RUN))){
-                                if(pRun->CanMove(false, nDstX, nDstY)){
-                                    if(bCheckCreature){
-                                        // if there is no creatures on the way we take it
-                                        // however if there is, we can still take it but with very high cost
-                                        return (pRun->CanMove(true, nDstX, nDstY) ? 1.000 : 100.000) + nDistance2 * 0.001;
-                                    }else{
-                                        // won't check creature
-                                        // then all walk-able step get cost 1.0 + delta
-                                        return 1.000 + nDistance2 * 0.001;
-                                    }
-                                }else{
-                                    // can't go through, return the infinite
-                                    // be careful of following situation which could make mistake
-                                    //
-                                    //     XOOAOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-                                    //     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXO
-                                    //     XOOBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-                                    //
-                                    // here ``O" means ``can pass" and ``X" means not, then if we do move (A->B)
-                                    // if the path is too long then likely it takes(A->X->B) rather than (A->OOOOOOO...OOO->B)
-                                    //
-                                    // method to solve it:
-                                    //  1. put path length constraits
-                                    //  2. define inifinite = Map::W() * Map::H() as any path can have
-                                    return 10000.000;
-                                }
-                            }else{
-                                extern Log *g_Log;
-                                g_Log->AddLog(LOGTYPE_FATAL, "Current process is not ProcessRun");
-                                return 10000.000;
-                            }
-                        }
-                    case  2:
-                    case  8:
-                    case 18:
-                        {
-                            // same logic for case-1
-                            // but we put higher cost 1.1000 to prefer go straight
-                            extern Game *g_Game;
-                            if(auto pRun = (ProcessRun *)(g_Game->ProcessValid(PROCESSID_RUN))){
-                                if(pRun->CanMove(false, nDstX, nDstY)){
-                                    if(bCheckCreature){
-                                        return (pRun->CanMove(true, nDstX, nDstY) ? 1.000 : 100.000) + 0.100 + 0.001 * (nDistance2 / 2);
-                                    }else{ return 1.000 + 0.100 + 0.001 * (nDistance2 / 2); }
-                                }else{
-                                    return 10000.000;
-                                }
-                            }else{
-                                extern Log *g_Log;
-                                g_Log->AddLog(LOGTYPE_FATAL, "Current process is not ProcessRun");
-                                return 10000.000;
-                            }
-                        }
+                double fExtraPen = 0.00;
+                switch(LDistance2(nSrcX, nSrcY, nDstX, nDstY)){
+                    case  1: fExtraPen = 0.00 + 0.01; break;
+                    case  2: fExtraPen = 0.10 + 0.01; break;
+                    case  4: fExtraPen = 0.00 + 0.02; break;
+                    case  8: fExtraPen = 0.10 + 0.02; break;
+                    case  9: fExtraPen = 0.00 + 0.03; break;
+                    case 18: fExtraPen = 0.10 + 0.03; break;
                     default:
                         {
                             extern Log *g_Log;
                             g_Log->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
-                            return 10000.000;
+                            return 10000.00;
                         }
+                }
+
+                extern Game *g_Game;
+                if(auto pRun = (ProcessRun *)(g_Game->ProcessValid(PROCESSID_RUN))){
+                    if(pRun->CanMove(false, nDstX, nDstY)){
+                        if(bCheckCreature){
+                            // if there is no creatures on the way we take it
+                            // however if there is, we can still take it but with very high cost
+                            return (pRun->CanMove(true, nDstX, nDstY) ? 1.00 : 100.00) + fExtraPen;
+                        }else{
+                            // won't check creature
+                            // then all walk-able step get cost 1.0 + delta
+                            return 1.00 + fExtraPen;
+                        }
+                    }else{
+                        // can't go through, return the infinite
+                        // be careful of following situation which could make mistake
+                        //
+                        //     XOOAOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+                        //     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXO
+                        //     XOOBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+                        //
+                        // here ``O" means ``can pass" and ``X" means not, then if we do move (A->B)
+                        // if the path is too long then likely it takes(A->X->B) rather than (A->OOOOOOO...OOO->B)
+                        //
+                        // method to solve it:
+                        //  1. put path length constraits
+                        //  2. define inifinite = Map::W() * Map::H() as any path can have
+                        return 10000.00;
+                    }
+                }else{
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_FATAL, "Current process is not ProcessRun");
+                    return 10000.00;
                 }
             },
 

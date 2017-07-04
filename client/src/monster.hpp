@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19
- *  Last Modified: 07/03/2017 00:01:56
+ *  Last Modified: 07/04/2017 12:28:18
  *
  *    Description:
  *
@@ -79,4 +79,7 @@ class Monster: public Creature
 
     public:
         int MaxStep() const;
+
+    public:
+        int LookID() const;
 };

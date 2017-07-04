@@ -3,7 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 03/16/2017 13:18:25
+ *  Last Modified: 07/04/2017 14:17:05
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -28,7 +28,8 @@
 #include "hexstring.hpp"
 
 
-enum FontStyle: uint8_t{
+enum FontStyle: uint8_t
+{
     FONTSTYLE_BOLD          = 0B0000'0001,
     FONTSTYLE_ITALIC        = 0B0000'0010,
     FONTSTYLE_UNDERLINE     = 0B0000'0100,
@@ -38,20 +39,19 @@ enum FontStyle: uint8_t{
     FONTSTYLE_BLENDED       = 0B0100'0000,
 };
 
-typedef struct{
+struct FontexItem
+{
     SDL_Texture *Texture;
-}FontexItem;
+};
 
 using FontexDBKT = uint64_t;
+
 template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
 class FontexDB: public InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>
 {
     private:
-        struct zip *m_ZIP;
-        std::unordered_map<uint16_t, TTF_Font *> m_SizedFontCache;
-
-    private:
-        typedef struct{
+        struct ZIPItemInfo
+        {
             zip_uint64_t Index;
             size_t       Size;
             // this is the data buffer for the font file in the ZIP
@@ -67,7 +67,13 @@ class FontexDB: public InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>
             // but here one ttf contains many fontex, one null fontex
             // can prevent others to load again
             int          Tried;
-        }ZIPItemInfo;
+        };
+
+    private:
+        struct zip *m_ZIP;
+
+    private:
+        std::unordered_map<uint16_t, TTF_Font *> m_SizedFontCache;
 
     private:
         std::unordered_map<uint8_t, ZIPItemInfo> m_ZIPItemInfoCache;
@@ -76,6 +82,7 @@ class FontexDB: public InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>
         FontexDB()
             : InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>()
             , m_ZIP(nullptr)
+            , m_SizedFontCache()
             , m_ZIPItemInfoCache()
         {}
 
@@ -107,11 +114,11 @@ class FontexDB: public InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>
 #else
             m_ZIP = zip_open(szFontexDBName, ZIP_CHECKCONS, &nErrorCode);
 #endif
-            if(m_ZIP == nullptr){ return false; }
+            if(!m_ZIP){ return false; }
 
             zip_int64_t nCount = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
             if(nCount > 0){
-                for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)nCount; ++nIndex){
+                for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)(nCount); ++nIndex){
                     struct zip_stat stZIPStat;
                     if(!zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stZIPStat)){
                         if(true
@@ -129,18 +136,17 @@ class FontexDB: public InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>
                             // FF.TTF
 
                             uint8_t nKey = StringHex<uint8_t, 1>(stZIPStat.name);
-                            m_ZIPItemInfoCache[nKey] = {
-                                stZIPStat.index, (size_t)stZIPStat.size, nullptr, 0};
+                            m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)(stZIPStat.size), nullptr, 0};
                         }
                     }
                 }
             }
+
             return Valid();
         }
 
     public:
-        void RetrieveItem(FontexDBKT nKey, FontexItem *pItem,
-                const std::function<size_t(FontexDBKT)> &fnLinearCacheKey)
+        void RetrieveItem(FontexDBKT nKey, FontexItem *pItem, const std::function<size_t(FontexDBKT)> &fnLinearCacheKey)
         {
             // fnLinearCacheKey should be defined with LCLenN definition
             if(pItem){
@@ -155,6 +161,7 @@ class FontexDB: public InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>
         // if we need to load, means we need to find the font file handler
         // and don't care the speed
         // so we can put additional like font-setter or something here
+
         virtual FontexItem LoadResource(FontexDBKT nKey)
         {
             // null resource desc
@@ -166,21 +173,21 @@ class FontexDB: public InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>
             uint8_t  nFontStyle      = ((nKey & 0X000000FF00000000) >> 32);
             uint32_t nUTF8Code       = ((nKey & 0X00000000FFFFFFFF) >>  0);
 
-            auto pZIPIndexInst = m_ZIPItemInfoCache.find(nFontIndex);
-            if(pZIPIndexInst == m_ZIPItemInfoCache.end()){
+            auto pZIPIndexRecord = m_ZIPItemInfoCache.find(nFontIndex);
+            if(pZIPIndexRecord == m_ZIPItemInfoCache.end()){
                 // no FontIndex supported in the DB
                 // just return
                 return stItem;
             }
 
             // supported FontIndex, try find SizedFont in the cache
-            auto pSizeFontInst = m_SizedFontCache.find(nSizedFontIndex);
-            if(pSizeFontInst == m_SizedFontCache.end()){
+            auto pSizedFontRecord = m_SizedFontCache.find(nSizedFontIndex);
+            if(pSizedFontRecord == m_SizedFontCache.end()){
                 // didn't find it
                 // 1. may be we didn't load it yet
                 // 2. previously loading ran into failure
-                if(!pZIPIndexInst->second.Data){
-                    if(pZIPIndexInst->second.Tried){
+                if(!pZIPIndexRecord->second.Data){
+                    if(pZIPIndexRecord->second.Tried){
                         // ooops, can't help..
                         return stItem;
                     }
@@ -190,28 +197,27 @@ class FontexDB: public InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>
 
                     // first time, ok
                     // 1. mark it as tried, any failure will prevent following loading
-                    pZIPIndexInst->second.Tried = 1;
+                    pZIPIndexRecord->second.Tried = 1;
 
                     // 2. open the ttf in the zip
-                    auto pf = zip_fopen_index(m_ZIP, pZIPIndexInst->second.Index, ZIP_FL_UNCHANGED);
+                    auto pf = zip_fopen_index(m_ZIP, pZIPIndexRecord->second.Index, ZIP_FL_UNCHANGED);
                     if(!pf){
                         return stItem;
                     }
 
                     // 3. allocate new buffer for the ttf file
-                    pZIPIndexInst->second.Data = new uint8_t[pZIPIndexInst->second.Size];
+                    pZIPIndexRecord->second.Data = new uint8_t[pZIPIndexRecord->second.Size];
 
                     // 4. read ttf file from zip archive
-                    auto nReadSize = (size_t)zip_fread(pf,
-                            pZIPIndexInst->second.Data, pZIPIndexInst->second.Size);
+                    auto nReadSize = (size_t)zip_fread(pf, pZIPIndexRecord->second.Data, pZIPIndexRecord->second.Size);
 
                     // 5. close the file handler anyway
                     zip_fclose(pf);
 
                     // 6. ran into failure, then free the buffer
-                    if(nReadSize != pZIPIndexInst->second.Size){
-                        delete pZIPIndexInst->second.Data;
-                        pZIPIndexInst->second.Data = nullptr;
+                    if(nReadSize != pZIPIndexRecord->second.Size){
+                        delete pZIPIndexRecord->second.Data;
+                        pZIPIndexRecord->second.Data = nullptr;
                         return stItem;
                     }
 
@@ -221,14 +227,13 @@ class FontexDB: public InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>
 
                 // now the data buffer is well prepared
                 extern SDLDevice *g_SDLDevice;
-                m_SizedFontCache[nSizedFontIndex] = g_SDLDevice->CreateTTF(
-                        (pZIPIndexInst->second.Data), pZIPIndexInst->second.Size, nPointSize);
+                m_SizedFontCache[nSizedFontIndex] = g_SDLDevice->CreateTTF((pZIPIndexRecord->second.Data), pZIPIndexRecord->second.Size, nPointSize);
 
-                pSizeFontInst = m_SizedFontCache.find(nSizedFontIndex);
+                pSizedFontRecord = m_SizedFontCache.find(nSizedFontIndex);
             }
 
-            // now pSizeFontInst is well prepared
-            auto pFont = pSizeFontInst->second;
+            // now pSizedFontRecord is well prepared
+            auto pFont = pSizedFontRecord->second;
             TTF_SetFontKerning(pFont, false);
 
             // set font style if necessary

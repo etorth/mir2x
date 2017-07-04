@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 07/02/2017 21:51:22
+ *  Last Modified: 07/04/2017 15:38:01
  *
  *    Description: how player respond for different net package
  *
@@ -42,34 +42,42 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                 {
                     // server won't do any path finding
                     // client should sent action with only one-hop movement
-                    int nMaxStep = 0;
-                    switch(stCMA.ActionParam){
-                        case MOTION_WALK      : nMaxStep = 1; break;
-                        case MOTION_RUN       : nMaxStep = 2; break;
-                        case MOTION_HORSEWALK : nMaxStep = 1; break;
-                        case MOTION_HORSERUN  : nMaxStep = 3; break;
-                        default               : return;
-                    }
 
-                    int nDX = std::abs<int>(stCMA.EndX - stCMA.X);
-                    int nDY = std::abs<int>(stCMA.EndY - stCMA.Y);
-
-                    if(true
-                            && (std::max<int>(nDX, nDY) == nMaxStep)
-                            && (std::min<int>(nDX, nDY) == 0 || nDX == nDY)){
-                    }else{
-                        extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::UID         = %d", (int)(stCMA.UID));
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::MapID       = %d", (int)(stCMA.MapID));
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Action      = %d", (int)(stCMA.Action));
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::ActionParam = %d", (int)(stCMA.ActionParam));
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Speed       = %d", (int)(stCMA.Speed));
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Direction   = %d", (int)(stCMA.Direction));
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::X           = %d", (int)(stCMA.X));
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Y           = %d", (int)(stCMA.Y));
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndX        = %d", (int)(stCMA.EndX));
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndY        = %d", (int)(stCMA.EndY));
-                        return;
+                    int nMotionMode = -1;
+                    switch(LDistance2(stCMA.X, stCMA.Y, stCMA.EndX, stCMA.EndY)){
+                        case 1:
+                        case 2:
+                            {
+                                nMotionMode = stCMA.ActionParam ? MOTION_HORSEWALK : MOTION_WALK;
+                                break;
+                            }
+                        case 4:
+                        case 8:
+                            {
+                                nMotionMode = MOTION_RUN;
+                                break;
+                            }
+                        case  9:
+                        case 18:
+                            {
+                                nMotionMode = MOTION_HORSERUN;
+                                break;
+                            }
+                        default:
+                            {
+                                extern MonoServer *g_MonoServer;
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::UID         = %d", (int)(stCMA.UID));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::MapID       = %d", (int)(stCMA.MapID));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Action      = %d", (int)(stCMA.Action));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::ActionParam = %d", (int)(stCMA.ActionParam));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Speed       = %d", (int)(stCMA.Speed));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Direction   = %d", (int)(stCMA.Direction));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::X           = %d", (int)(stCMA.X));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Y           = %d", (int)(stCMA.Y));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndX        = %d", (int)(stCMA.EndX));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndY        = %d", (int)(stCMA.EndY));
+                                return;
+                            }
                     }
 
                     // OK the action is a valid one-hop motion
@@ -78,22 +86,31 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                     // 1. if apples, apply it without response, but dispatch it to neighbors
                     // 2. else send the pull back message
 
-                    switch(LDistance2(X(), Y(), (int)(stCMA.X), (int)(stCMA.Y))){
+                    int nX0 = (int)(stCMA.X);
+                    int nY0 = (int)(stCMA.Y);
+                    int nX1 = (int)(stCMA.EndX);
+                    int nY1 = (int)(stCMA.EndY);
+
+                    switch(LDistance2(X(), Y(), nX0, nY0)){
                         case 0:
                             {
-                                RequestMove((int)(stCMA.ActionParam), (int)(stCMA.EndX), (int)(stCMA.EndY), false, [](){}, [this](){ ReportStand(); });
+                                RequestMove(nMotionMode, nX1, nY1, false, [](){}, [this](){ ReportStand(); });
                                 return;
                             }
-                        case 1:
-                        case 2:
+                        case  1:
+                        case  2:
+                        case  4:
+                        case  8:
+                        case  9:
+                        case 18:
                             {
                                 // there is one hop delay, acceptable
                                 // try to do the one-hop and then try the client action if possible
-                                auto fnOnFirstMoveOK = [this, stCMA](){
-                                    RequestMove((int)(stCMA.ActionParam), (int)(stCMA.EndX), (int)(stCMA.EndY), false, [](){}, [this](){ ReportStand(); });
+                                auto fnOnFirstMoveOK = [this, nMotionMode, nX1, nY1](){
+                                    RequestMove(nMotionMode, nX1, nY1, false, [](){}, [this](){ ReportStand(); });
                                 };
 
-                                RequestMove((int)(stCMA.ActionParam), (int)(stCMA.X), (int)(stCMA.Y), false, fnOnFirstMoveOK, [this](){ ReportStand(); });
+                                RequestMove(nMotionMode, nX0, nY0, false, fnOnFirstMoveOK, [this](){ ReportStand(); });
                                 return;
                             }
                         default:

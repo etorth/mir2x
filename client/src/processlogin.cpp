@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 06/18/2017 23:53:10
+ *  Last Modified: 07/04/2017 15:01:30
  *
  *    Description: 
  *
@@ -18,14 +18,16 @@
  * =====================================================================================
  */
 
-#include <iostream>
-#include "game.hpp"
 #include <cstring>
+#include <iostream>
 #include <algorithm>
+
+#include "log.hpp"
+#include "game.hpp"
 #include "message.hpp"
-#include "processlogin.hpp"
 #include "sdldevice.hpp"
 #include "pngtexdbn.hpp"
+#include "processlogin.hpp"
 
 ProcessLogin::ProcessLogin()
 	: Process()

@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/03/2017 13:08:38
+ *  Last Modified: 07/04/2017 13:31:46
  *
  *    Description: 
  *
@@ -35,11 +35,32 @@ bool Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
 {
     int nGridSpeed = 0;
     switch(m_CurrMotion.Motion){
-        case MOTION_WALK      : nGridSpeed = 1; break;
-        case MOTION_RUN       : nGridSpeed = 2; break;
-        case MOTION_HORSEWALK : nGridSpeed = 1; break;
-        case MOTION_HORSERUN  : nGridSpeed = 3; break;
-        default               : return false;
+        case MOTION_WALK:
+            {
+                nGridSpeed = 1;
+                break;
+            }
+        case MOTION_RUN:
+            {
+                nGridSpeed = 2;
+                break;
+            }
+        case MOTION_HORSEWALK:
+            {
+                nGridSpeed = 1;
+                break;
+            }
+        case MOTION_HORSERUN:
+            {
+                nGridSpeed = 3;
+                break;
+            }
+        default:
+            {
+                if(pShiftX){ *pShiftX = 0; }
+                if(pShiftY){ *pShiftY = 0; }
+                return true;
+            }
     }
 
     const int nFrameCountInNextCell = (m_CurrMotion.Direction == DIR_UPLEFT) ? 2 : 5;
@@ -197,14 +218,23 @@ bool Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
 bool Creature::MoveNextMotion()
 {
     if(m_MotionQueue.empty()){
-        m_CurrMotion.Motion = MOTION_STAND;
-        m_CurrMotion.Speed  = 0;
-        m_CurrMotion.X      = m_CurrMotion.EndX;
-        m_CurrMotion.Y      = m_CurrMotion.EndY;
-        m_CurrMotion.Frame  = 0;
+
+        // reset creature to idle state
+        // using last direction, speed, location and frame as 0
+        m_CurrMotion = {
+            MOTION_STAND,
+            0,
+            m_CurrMotion.Direction,
+            m_CurrMotion.Speed,
+            m_CurrMotion.EndX,
+            m_CurrMotion.EndY
+        };
 
         return true;
     }
+
+    // OK we have pending motions
+    // check the motion queue and pick the head if valid
 
     if(MotionQueueValid()){
         m_CurrMotion = m_MotionQueue.front();
@@ -212,9 +242,22 @@ bool Creature::MoveNextMotion()
         return true;
     }
 
-    // oops we get invalid motion queue
+    // invalid motion queue
+    // clear all pending motions and reset creature to idle state
+
+    // 1. reset creature to idle state
+    m_CurrMotion = {
+        MOTION_STAND,
+        0,
+        m_CurrMotion.Direction,
+        m_CurrMotion.Speed,
+        m_CurrMotion.EndX,
+        m_CurrMotion.EndY
+    };
+
+    // 2. print the motion queue
     extern Log *g_Log;
-    g_Log->AddLog(LOGTYPE_INFO, "Invalid motion queue:");
+    g_Log->AddLog(LOGTYPE_WARNING, "Invalid motion queue:");
 
     m_CurrMotion.Print();
     for(auto &rstMotion: m_MotionQueue){
@@ -222,7 +265,10 @@ bool Creature::MoveNextMotion()
     }
 
     extern Log *g_Log;
-    g_Log->AddLog(LOGTYPE_FATAL, "Current motion is not valid");
+    g_Log->AddLog(LOGTYPE_WARNING, "Current motion is not valid");
+
+    // 3. clear the motion queue
+    m_MotionQueue.clear();
     return false;
 }
 
@@ -394,7 +440,7 @@ bool Creature::DeadFadeOut()
     switch(m_CurrMotion.Motion){
         case MOTION_DIE:
             {
-                m_CurrMotion.MotionParam = 1;
+                m_CurrMotion.FadeOut = 1;
                 return true;
             }
         default:

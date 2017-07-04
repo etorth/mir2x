@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 07/03/2017 00:04:32
+ *  Last Modified: 07/04/2017 15:22:26
  *
  *    Description: 
  *
@@ -57,6 +57,12 @@ class Hero: public Creature
         bool CanFocus(int, int);
 
     public:
+        bool OnHorse() const
+        {
+            return m_OnHorse;
+        }
+
+    public:
         bool MotionValid(const MotionNode &);
         bool ActionValid(const ActionNode &, bool);
 
@@ -98,12 +104,6 @@ class Hero: public Creature
 
     public:
         int WeaponOrder(int, int, int);
-
-    public:
-        bool ValidG()
-        {
-            return true;
-        }
 
     protected:
         MotionNode MakeMotionWalk(int, int, int, int, int);

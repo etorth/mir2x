@@ -3,12 +3,12 @@
  *
  *       Filename: buttonbase.hpp
  *        Created: 08/25/2016 04:12:57
- *  Last Modified: 05/20/2017 01:08:40
+ *  Last Modified: 07/04/2017 12:39:32
  *
  *    Description: basic button class to handle event logic only
  *
- *                 1. use three textures for three states
- *                 2. use g_GUITexDB for texture storage
+ *                 1. use g_ProgUse for texture storage
+ *                 2. use three textures for three states
  *
  *                 I support two callbaks only: off->on and on->click
  *                 this class ask user to configure whether the on->click is triggered

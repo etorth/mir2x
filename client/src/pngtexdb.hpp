@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/20/2016 20:22:51
+ *  Last Modified: 07/04/2017 14:52:13
  *
  *    Description: 
  *
@@ -19,30 +19,34 @@
  */
 
 #pragma once
-#include "inndb.hpp"
-#include <unordered_map>
-#include "hexstring.hpp"
 #include <zip.h>
-#include "log.hpp"
+#include <vector>
+#include <unordered_map>
+
+#include "inndb.hpp"
+#include "hexstring.hpp"
 #include "sdldevice.hpp"
 
-typedef struct{
+struct PNGTexItem
+{
     SDL_Texture *Texture;
-}PNGTexItem;
+};
 
 template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
 class PNGTexDB: public InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>
 {
     private:
-        size_t      m_BufSize;
-        uint8_t    *m_Buf;
+        struct ZIPItemInfo
+        {
+            zip_uint64_t Index;
+            size_t       Size;
+        };
+
+    private:
         struct zip *m_ZIP;
 
     private:
-        typedef struct{
-            zip_uint64_t Index;
-            size_t       Size;
-        }ZIPItemInfo;
+        std::vector<uint8_t> m_Buf;
 
     private:
         std::unordered_map<uint32_t, ZIPItemInfo> m_ZIPItemInfoCache;
@@ -50,12 +54,17 @@ class PNGTexDB: public InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>
     public:
         PNGTexDB()
             : InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>()
-            , m_BufSize(0)
-            , m_Buf(nullptr)
             , m_ZIP(nullptr)
+            , m_Buf()
             , m_ZIPItemInfoCache()
         {}
-        virtual ~PNGTexDB() = default;
+
+        virtual ~PNGTexDB()
+        {
+            if(m_ZIP){
+                zip_close(m_ZIP);
+            }
+        }
 
     public:
         bool Valid()
@@ -66,20 +75,26 @@ class PNGTexDB: public InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>
         bool Load(const char *szPNGTexDBName)
         {
             int nErrorCode = 0;
+
 #ifdef ZIP_RDONLY
             m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS | ZIP_RDONLY, &nErrorCode);
 #else
             m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS, &nErrorCode);
 #endif
+
+            if(!m_ZIP){ return false; }
+
             if(nErrorCode){
-                extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_WARNING, "zip_open() failed with error code %d.", nErrorCode);
+                if(m_ZIP){
+                    zip_close(m_ZIP);
+                    m_ZIP = nullptr;
+                }
+                return false;
             }
-            if(m_ZIP == nullptr){ return false; }
 
             zip_int64_t nCount = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
             if(nCount > 0){
-                for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)nCount; ++nIndex){
+                for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)(nCount); ++nIndex){
                     struct zip_stat stZIPStat;
                     if(!zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stZIPStat)){
                         if(true
@@ -87,34 +102,24 @@ class PNGTexDB: public InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>
                                 && stZIPStat.valid & ZIP_STAT_SIZE
                                 && stZIPStat.valid & ZIP_STAT_NAME){
                             uint32_t nKey = StringHex<uint32_t, 3>(stZIPStat.name);
-                            m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)stZIPStat.size};
+                            m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)(stZIPStat.size)};
                         }
                     }
                 }
             }
+
             return Valid();
         }
 
     public:
-        PNGTexItem RetrieveItem(uint32_t nKey,
-                const std::function<size_t(uint32_t)> &fnLinearCacheKey)
+        PNGTexItem RetrieveItem(uint32_t nKey, const std::function<size_t(uint32_t)> &fnLinearCacheKey)
         {
             // fnLinearCacheKey should be defined with LCLenN definition
             PNGTexItem stItem {nullptr};
 
             // InnRetrieve always return true;
             this->InnRetrieve(nKey, &stItem, fnLinearCacheKey, nullptr);
-
             return stItem;
-        }
-
-        void ExtendBuf(size_t nSize)
-        {
-            if(nSize > m_BufSize){
-                delete m_Buf;
-                m_Buf = new uint8_t[nSize];
-                m_BufSize = nSize;
-            }
         }
 
     public:
@@ -123,22 +128,23 @@ class PNGTexDB: public InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>
         virtual PNGTexItem LoadResource(uint32_t nKey)
         {
             PNGTexItem stItem {nullptr};
-            auto pZIPIndexInst = m_ZIPItemInfoCache.find(nKey);
-            if(pZIPIndexInst == m_ZIPItemInfoCache.end()){ return stItem; }
 
-            auto fp = zip_fopen_index(m_ZIP, pZIPIndexInst->second.Index, ZIP_FL_UNCHANGED);
-            if(fp == nullptr){ return stItem; }
+            auto pZIPIndexRecord = m_ZIPItemInfoCache.find(nKey);
+            if(pZIPIndexRecord != m_ZIPItemInfoCache.end()){
+                if(auto fp = zip_fopen_index(m_ZIP, pZIPIndexRecord->second.Index, ZIP_FL_UNCHANGED)){
+                    size_t nSize = pZIPIndexRecord->second.Size;
+                    m_Buf.resize(nSize);
 
-            size_t nSize = pZIPIndexInst->second.Size;
-            ExtendBuf(nSize);
+                    if(nSize == (size_t)(zip_fread(fp, &(m_Buf[0]), nSize))){
+                        extern SDLDevice *g_SDLDevice;
+                        stItem.Texture = g_SDLDevice->CreateTexture((const uint8_t *)(&(m_Buf[0])), nSize);
+                    }
 
-            if(nSize != (size_t)zip_fread(fp, m_Buf, nSize)){
-                zip_fclose(fp);
-                return stItem;
+                    zip_fclose(fp);
+                }
             }
 
-            extern SDLDevice *g_SDLDevice;
-            return {g_SDLDevice->CreateTexture((const uint8_t *)m_Buf, nSize)};
+            return stItem;
         }
 
         void FreeResource(PNGTexItem &rstItem)

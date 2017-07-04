@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 07/03/2017 14:11:31
+ *  Last Modified: 07/04/2017 15:44:56
  *
  *    Description: 
  *
@@ -51,11 +51,27 @@ bool MyHero::Update()
         // 3. motion update
         switch(m_CurrMotion.Motion){
             case MOTION_STAND:
-            case MOTION_UNDERATTACK:
                 {
                     if(m_MotionQueue.empty()){
                         if(m_ActionQueue.empty()){
                             return AdvanceMotionFrame(1);
+                        }else{
+                            return ParseActionQueue();
+                        }
+                    }else{
+                        // move to next motion will reset frame as 0
+                        // if current there is no more motion pending
+                        // it will add a MOTION_STAND
+                        //
+                        // we don't want to reset the frame here
+                        return MoveNextMotion();
+                    }
+                }
+            case MOTION_UNDERATTACK:
+                {
+                    if(m_MotionQueue.empty()){
+                        if(m_ActionQueue.empty()){
+                            return UpdateGeneralMotion(false);
                         }else{
                             return ParseActionQueue();
                         }

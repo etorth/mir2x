@@ -1,23 +1,38 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: game.hpp
+ *        Created: 08/12/2015 09:59:15
+ *  Last Modified: 07/04/2017 14:24:54
+ *
+ *    Description: public API for class game only
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
+
 #pragma once 
-#include "sdldevice.hpp"
-#include "netio.hpp"
-
-#include "processlogo.hpp"
-// #include "processlogin.hpp"
-
-#include <SDL2/SDL.h>
 #include <atomic>
+#include <SDL2/SDL.h>
 #include "cachequeue.hpp"
 
-class Game
+#include "netio.hpp"
+#include "process.hpp"
+#include "sdldevice.hpp"
+
+class Game final
 {
     private:
         double m_FPS;
         double m_ServerDelay;
         double m_NetPackTick;
-
-    private:
-        std::atomic<bool> m_LoginOK;
 
     public:
         Game();
@@ -82,13 +97,7 @@ class Game
         }
 
     private:
-        // std::string     m_ServerIP;
-        // std::string     m_ServerPort;
-        NetIO           m_NetIO;
-
-    private:
-        // ProcessLogin    *m_ProcessLogin;
-        // ProcessLogo     *m_ProcessLogo;
+        NetIO m_NetIO;
 
     private:
         Process *m_CurrentProcess;
@@ -96,12 +105,6 @@ class Game
     private:
         // to get an average delay time in MS for most recent 100 loops
         CacheQueue<double, 100> m_DelayTimeCQ;
-
-    private:
-        // TODO
-        // won't bother myself to make it in singleton mode
-        // but make sure there is only one instance
-        SDLDevice   *m_SDLDevice;
 
     private:
         std::string m_ClipboardBuf;

@@ -3,9 +3,9 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/04/2017 00:07:20
+ *  Last Modified: 07/04/2017 14:25:12
  *
- *    Description: public API for class game only
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -18,8 +18,8 @@
  * =====================================================================================
  */
 
-#include <thread>
 #include <future>
+#include <thread>
 
 #include "log.hpp"
 #include "game.hpp"
@@ -105,8 +105,7 @@ Game::Game()
 }
 
 Game::~Game()
-{
-}
+{}
 
 void Game::ProcessEvent()
 {

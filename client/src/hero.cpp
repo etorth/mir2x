@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 07/03/2017 13:33:52
+ *  Last Modified: 07/04/2017 15:45:13
  *
  *    Description: 
  *
@@ -185,10 +185,22 @@ bool Hero::Update()
         // 3. motion update
         switch(m_CurrMotion.Motion){
             case MOTION_STAND:
-            case MOTION_UNDERATTACK:
                 {
                     if(m_MotionQueue.empty()){
                         return AdvanceMotionFrame(1);
+                    }else{
+                        // move to next motion will reset frame as 0
+                        // if current there is no more motion pending
+                        // it will add a MOTION_STAND
+                        //
+                        // we don't want to reset the frame here
+                        return MoveNextMotion();
+                    }
+                }
+            case MOTION_UNDERATTACK:
+                {
+                    if(m_MotionQueue.empty()){
+                        return UpdateGeneralMotion(false);
                     }else{
                         // move to next motion will reset frame as 0
                         // if current there is no more motion pending

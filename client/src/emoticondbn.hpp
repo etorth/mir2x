@@ -3,7 +3,7 @@
  *
  *       Filename: emoticondbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 04/03/2016 01:03:38
+ *  Last Modified: 07/04/2017 14:04:55
  *
  *    Description: 
  *
@@ -23,16 +23,16 @@
 #include <system_error>
 
 #define EMOTICONDBN_LC_DEPTH  (2              )
-#define EMOTICONDBN_LC_LENGTH (2048           )
+#define EMOTICONDBN_LC_LENGTH (1 * 2048       )
 #define EMOTICONDBN_CAPACITY  (2 * 2048 + 1024)
 
-using EmoticonDBType = EmoticonDB<
-    EMOTICONDBN_LC_DEPTH,EMOTICONDBN_LC_LENGTH, EMOTICONDBN_CAPACITY>;
+using EmoticonDBType = EmoticonDB<EMOTICONDBN_LC_DEPTH,EMOTICONDBN_LC_LENGTH, EMOTICONDBN_CAPACITY>;
 
 class EmoticonDBN: public EmoticonDBType
 {
     public:
-        EmoticonDBN(): EmoticonDBType()
+        EmoticonDBN()
+            : EmoticonDBType()
         {
             extern EmoticonDBN *g_EmoticonDBN;
             if(g_EmoticonDBN){
@@ -50,7 +50,7 @@ class EmoticonDBN: public EmoticonDBType
                 int *pFPS,
                 int *pFrameCount)
         {
-            const auto &fnLinearCacheKey = [&](uint32_t nKey)
+            auto fnLinearCacheKey = [](uint32_t nKey)
             {
                 return (nKey <<= 8) % EMOTICONDBN_LC_LENGTH;
             };
@@ -87,9 +87,7 @@ class EmoticonDBN: public EmoticonDBType
                 int *pH1,
                 int *pFrameCount)
         {
-            uint32_t nKey = ((uint32_t)(nSet) << 24)
-                + (uint32_t)(nSubset << 8) + (uint32_t)(nIndex);
-
+            uint32_t nKey = ((uint32_t)(nSet) << 24) + (uint32_t)(nSubset << 8) + (uint32_t)(nIndex);
             return Retrieve(nKey, pSrcX, pSrcY, pSrcW, pSrcH, pH1, pFPS, pFrameCount);
         }
 };

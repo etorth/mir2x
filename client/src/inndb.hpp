@@ -3,7 +3,7 @@
  *
  *       Filename: inndb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/18/2016 16:01:33
+ *  Last Modified: 07/04/2017 14:31:47
  *
  *    Description: base of all Int->Tex map cache
  *
@@ -75,14 +75,10 @@ class InnDB
             , m_ResourceCount(0)
             , m_CurrentTime(0)
         {
-            static_assert(std::is_unsigned<KeyT>::value,
-                    "unsigned intergal type supported only please");
-            static_assert(ResMaxN > LCDeepN * LCLenN,
-                    "maximal resource count must be larger than linear cache capacity please");
-            static_assert(LCLenN < 8192,
-                    "don't set linear cache size to be too large please");
-            static_assert(LCDeepN < 16,
-                    "don't set linear cache depth to be too large please");
+            static_assert(std::is_unsigned<KeyT>::value, "unsigned intergal type supported only please");
+            static_assert(ResMaxN > LCDeepN * LCLenN, "maximal resource count must be larger than linear cache capacity please");
+            static_assert(LCLenN < 8192, "don't set linear cache size to be too large please");
+            static_assert(LCDeepN < 16, "don't set linear cache depth to be too large please");
         }
 
         virtual ~InnDB()
@@ -356,8 +352,7 @@ class InnDB
             }
         }
 
-        void ReleaseResource(KeyT nKey,
-                unsigned long nTimeStamp, const std::function<size_t(KeyT)> &fnLinearCacheKey)
+        void ReleaseResource(KeyT nKey, unsigned long nTimeStamp, const std::function<size_t(KeyT)> &fnLinearCacheKey)
         {
             // first make sure that the resource is not in LC
             // return directly if yes

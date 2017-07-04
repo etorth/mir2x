@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 07/04/2017 11:07:23
+ *  Last Modified: 07/04/2017 12:37:24
  *
  *    Description: 
  *
@@ -402,11 +402,6 @@ int Monster::GfxID(int nMotion, int nDirection) const
         return ((nMotion > MOTION_NONE) && (nMotion < MOTION_MAX)) ? stMotionTable[nMotion] : -1;
     };
 
-    auto fnLookID = [](uint32_t nMonsterID) -> int
-    {
-        return nMonsterID ? ((nMonsterID & 0X07FF) - (MID_NONE + 1)) : -1;
-    };
-
     if(true
             && MonsterID() > MID_NONE
             && MonsterID() < MID_MAX
@@ -420,7 +415,7 @@ int Monster::GfxID(int nMotion, int nDirection) const
         // if passed listed simple test
         // we need to check the huge table for it
 
-        int nLookID      = fnLookID(MonsterID());
+        int nLookID      = LookID();
         int nMotionGfxID = fnMotionGfxID(m_CurrMotion.Motion);
 
         if(true
@@ -643,4 +638,9 @@ MotionNode Monster::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpee
 int Monster::MaxStep() const
 {
     return 1;
+}
+
+int Monster::LookID() const
+{
+    return (int)(MonsterID() & 0X000007FF) - (MID_NONE + 1);
 }

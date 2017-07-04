@@ -3,7 +3,7 @@
  *
  *       Filename: emoticondb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 03/19/2016 21:26:51
+ *  Last Modified: 07/04/2017 14:00:01
  *
  *    Description: 
  *
@@ -19,13 +19,13 @@
  */
 
 #pragma once
-#include "inndb.hpp"
-#include <unordered_map>
-#include "hexstring.hpp"
 #include <zip.h>
 #include <SDL2/SDL.h>
-#include "sdldevice.hpp"
+#include <unordered_map>
 
+#include "inndb.hpp"
+#include "hexstring.hpp"
+#include "sdldevice.hpp"
 
 // layout of a emoticon on a texture
 // on a single picture, from left to right
@@ -55,31 +55,35 @@
 //                    +------- always set it as zero
 //                             and when retrieving we can just plus the frame index here
 
-typedef struct{
+struct EmoticonItem
+{
     SDL_Texture *Texture;
     int          FrameW;
     int          FrameH;
     int          FrameH1;
     int          FPS;
-}EmoticonItem;
+};
 
 template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
 class EmoticonDB: public InnDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMaxN>
 {
     private:
-        size_t        m_BufSize;
-        uint8_t      *m_Buf;
-        // for compatible to libzip v-0.xx.x
-        struct zip   *m_ZIP;
-
-    private:
-        typedef struct{
+        struct ZIPItemInfo
+        {
             zip_uint64_t Index;
             size_t       Size;
+
             // put a item here for simplity
             // the Texture part is nullptr, which should be of initialization by LoadResource()
             EmoticonItem  Item;
-        }ZIPItemInfo;
+        };
+
+    private:
+        // for compatible to libzip v-0.xx.x
+        struct zip *m_ZIP;
+
+    private:
+        std::vector<uint8_t> m_Buf;
 
     private:
         std::unordered_map<uint32_t, ZIPItemInfo> m_ZIPItemInfoCache;
@@ -87,12 +91,17 @@ class EmoticonDB: public InnDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMaxN>
     public:
         EmoticonDB()
             : InnDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMaxN>()
-            , m_BufSize(0)
-            , m_Buf(nullptr)
             , m_ZIP(nullptr)
+            , m_Buf()
             , m_ZIPItemInfoCache()
         {}
-        virtual ~EmoticonDB() = default;
+
+        virtual ~EmoticonDB()
+        {
+            if(m_ZIP){
+                zip_close(m_ZIP);
+            }
+        }
 
     public:
         bool Valid()
@@ -109,11 +118,11 @@ class EmoticonDB: public InnDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMaxN>
 #else
             m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS, &nErrorCode);
 #endif
-            if(m_ZIP == nullptr){ return false; }
+            if(!m_ZIP){ return false; }
 
             zip_int64_t nCount = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
             if(nCount > 0){
-                for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)nCount; ++nIndex){
+                for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)(nCount); ++nIndex){
                     struct zip_stat stZIPStat;
                     if(!zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stZIPStat)){
                         if(true
@@ -137,17 +146,17 @@ class EmoticonDB: public InnDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMaxN>
                             int nH1 = (int)StringHex<uint16_t, 2>(stZIPStat.name + 18);
 
                             EmoticonItem stItem {nullptr, nFW, nFH, nH1, nFPS};
-                            m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)stZIPStat.size, stItem};
+                            m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)(stZIPStat.size), stItem};
                         }
                     }
                 }
             }
+
             return Valid();
         }
 
     public:
-        void RetrieveItem(uint32_t nKey, EmoticonItem *pItem,
-                const std::function<size_t(uint32_t)> &fnLinearCacheKey)
+        void RetrieveItem(uint32_t nKey, EmoticonItem *pItem, const std::function<size_t(uint32_t)> &fnLinearCacheKey)
         {
             // fnLinearCacheKey should be defined with LCLenN definition
             if(pItem){
@@ -157,41 +166,36 @@ class EmoticonDB: public InnDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMaxN>
             }
         }
 
-        void ExtendBuf(size_t nSize)
-        {
-            if(nSize > m_BufSize){
-                delete m_Buf;
-                m_Buf = new uint8_t[nSize];
-                m_BufSize = nSize;
-            }
-        }
-
     public:
+        // how to load a texture from the database
         // for all pure virtual function required in class InnDB;
-        //
         virtual EmoticonItem LoadResource(uint32_t nKey)
         {
             // null resource desc
             EmoticonItem stItem {nullptr, 0, 0, 0, 0};
 
-            auto pZIPIndexInst = m_ZIPItemInfoCache.find(nKey);
-            if(pZIPIndexInst == m_ZIPItemInfoCache.end()){ return stItem; }
+            auto pItemRecord = m_ZIPItemInfoCache.find(nKey);
+            if(pItemRecord != m_ZIPItemInfoCache.end()){
+                stItem = pItemRecord->second.Item;
 
-            stItem = pZIPIndexInst->second.Item;
+                if(auto fp = zip_fopen_index(m_ZIP, pItemRecord->second.Index, ZIP_FL_UNCHANGED)){
 
-            auto fp = zip_fopen_index(m_ZIP, pZIPIndexInst->second.Index, ZIP_FL_UNCHANGED);
-            if(fp == nullptr){ return stItem; }
+                    // 1. get resource data size to extend buffer
+                    size_t nSize = pItemRecord->second.Size;
+                    m_Buf.resize(nSize);
 
-            size_t nSize = pZIPIndexInst->second.Size;
-            ExtendBuf(nSize);
+                    // 2. dump the data to buffer
+                    //    then use sdl to build the texture
+                    if(nSize == (size_t)(zip_fread(fp, &(m_Buf[0]), nSize))){
+                        extern SDLDevice *g_SDLDevice;
+                        stItem.Texture = g_SDLDevice->CreateTexture((const uint8_t *)(&(m_Buf[0])), nSize);
+                    }
 
-            if(nSize != (size_t)zip_fread(fp, m_Buf, nSize)){
-                zip_fclose(fp);
-                return stItem;
+                    // 3. free the zip item desc
+                    //    no matter we decode succeeds or not
+                    zip_fclose(fp);
+                }
             }
-
-            extern SDLDevice *g_SDLDevice;
-            stItem.Texture = g_SDLDevice->CreateTexture((const uint8_t *)m_Buf, nSize);
 
             return stItem;
         }
