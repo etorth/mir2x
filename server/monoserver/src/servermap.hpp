@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 06/16/2017 14:50:50
+ *  Last Modified: 07/04/2017 19:58:55
  *
  *    Description:
  *
@@ -41,7 +41,7 @@ class ServerMap: public ActiveObject
         class ServerPathFinder: public AStarPathFinder
         {
             public:
-                ServerPathFinder(ServerMap*, bool);
+                ServerPathFinder(ServerMap*, int, bool);
                ~ServerPathFinder() = default;
         };
 
@@ -110,14 +110,8 @@ class ServerMap: public ActiveObject
         }
 
     public:
-        bool GroundValid(int nX, int nY) const
-        {
-            return true
-                && (m_Mir2xMapData.Valid())
-                && (m_Mir2xMapData.ValidC(nX, nY))
-                && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)
-                && (m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000);
-        }
+        bool CanMove(bool, int, int);
+        bool CanMove(bool, int, int, int, int);
 
     public:
         int W() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0; }
@@ -134,7 +128,6 @@ class ServerMap: public ActiveObject
 
     private:
         bool Empty();
-        bool CanMove(int, int);
         bool RandomLocation(int *, int *);
 
     private:

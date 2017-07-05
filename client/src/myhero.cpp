@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 07/04/2017 15:44:56
+ *  Last Modified: 07/04/2017 20:09:19
  *
  *    Description: 
  *
@@ -255,7 +255,7 @@ bool MyHero::ParseActionQueue()
                                                 nYm = nY0;
 
                                                 for(int nIndex = 1; nIndex <= nIndexMax; ++nIndex){
-                                                    if(m_ProcessRun->CanMove(true, nX0, nY0, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+                                                    if(m_ProcessRun->CanMove(true, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
                                                         nXm = nX0 + nDX * nIndex;
                                                         nYm = nY0 + nDY * nIndex;
                                                     }else{ break; }

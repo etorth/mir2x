@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 05/17/2017 12:04:48
+ *  Last Modified: 07/04/2017 18:05:51
  *
  *    Description: 
  *
@@ -36,7 +36,8 @@ ActiveObject::ActiveObject()
     m_StateV.fill(0);
     m_StateTimeV.fill(0);
 
-    auto fnDelayCmdQueue = [this](){
+    auto fnDelayCmdQueue = [this]() -> bool
+    {
         extern MonoServer *g_MonoServer;
         if(!m_DelayCmdQ.empty()){
             if(m_DelayCmdQ.top().Tick() <= g_MonoServer->GetTimeTick()){
@@ -57,12 +58,12 @@ ActiveObject::ActiveObject()
 
     extern ServerEnv *g_ServerEnv;
     if(g_ServerEnv->MIR2X_DEBUG_PRINT_AM_COUNT){
-        auto fnPrintAMCount = [this](){
+        auto fnPrintAMCount = [this]() -> bool
+        {
             if(ActorPodValid()){
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_INFO,
-                        "(%s: 0X%0*" PRIXPTR ", Name: %s, UID: %u, Length: %" PRIu32 ")",
-                        "ActorPod", (int)(sizeof(this) * 2), (uintptr_t)(this), ClassName(), UID(), m_ActorPod->GetNumQueuedMessages());
+                g_MonoServer->AddLog(LOGTYPE_INFO, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u, Length: %" PRIu32 ")",
+                        (int)(sizeof(this) * 2), (uintptr_t)(this), ClassName(), UID(), m_ActorPod->GetNumQueuedMessages());
             }
 
             // it's never done
@@ -71,13 +72,15 @@ ActiveObject::ActiveObject()
         m_StateHook.Install("PrintAMCount", fnPrintAMCount);
     }
 
-    auto fnRegisterClass = [this]() -> void {
+    auto fnRegisterClass = [this]() -> void
+    {
         if(!RegisterClass<ActiveObject, ServerObject>()){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <ActiveObject, ServerObject> failed");
             g_MonoServer->Restart();
         }
     };
+
     static std::once_flag stFlag;
     std::call_once(stFlag, fnRegisterClass);
 }

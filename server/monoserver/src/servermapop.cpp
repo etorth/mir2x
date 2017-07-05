@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 06/16/2017 14:52:43
+ *  Last Modified: 07/04/2017 20:00:31
  *
  *    Description: 
  *
@@ -104,7 +104,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
     bool bValidLoc = true;
     if(false
             || !In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y)
-            || !CanMove(stAMACO.Common.X, stAMACO.Common.Y)
+            || !CanMove(false, stAMACO.Common.X, stAMACO.Common.Y)
             ||  m_CellRecordV2D[stAMACO.Common.X][stAMACO.Common.Y].Lock){
 
         // the location field provides an invalid location
@@ -127,7 +127,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
                 do{
                     if(true
                             &&  In(stAMACO.Common.MapID, stRC.X(), stRC.Y())
-                            &&  CanMove(stRC.X(), stRC.Y())
+                            &&  CanMove(false, stRC.X(), stRC.Y())
                             && !m_CellRecordV2D[stRC.X()][stRC.Y()].Lock){
 
                         // find a valid location
@@ -220,7 +220,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
         return;
     }
 
-    if(!CanMove(stAMTM.EndX, stAMTM.EndY)){
+    if(!CanMove(false, stAMTM.EndX, stAMTM.EndY)){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
@@ -269,7 +269,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
 
     int nMostDistance = 0;
     for(int nDistance = 1; nDistance <= std::max<int>(nDX, nDY); ++nDistance){
-        if(CanMove(stAMTM.X + nStepX * nDistance, stAMTM.Y + nStepY * nDistance)){
+        if(CanMove(false, stAMTM.X + nStepX * nDistance, stAMTM.Y + nStepY * nDistance)){
             nMostDistance = nDistance;
         }else{ break; }
     }
@@ -503,7 +503,21 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK, const Theron::Address
         stAMPFOK.Point[nIndex].Y = -1;
     }
 
-    ServerPathFinder stPathFinder(this, stAMPF.CheckCO);
+    // should make sure MaxStep is OK
+    if(true
+            && stAMPF.MaxStep != 1
+            && stAMPF.MaxStep != 2
+            && stAMPF.MaxStep != 3){
+
+        // we get a dangerous parameter from actormessage
+        // correct here and put an warning in the log system
+        stAMPF.MaxStep = 1;
+
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid MaxStep: %d, should be (1, 2, 3)", stAMPF.MaxStep);
+    }
+
+    ServerPathFinder stPathFinder(this, stAMPF.MaxStep, stAMPF.CheckCO);
     if(true
             && stPathFinder.Search(nX0, nY0, nX1, nY1)
             && stPathFinder.GetSolutionStart()){

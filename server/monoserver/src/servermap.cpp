@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 06/16/2017 14:51:22
+ *  Last Modified: 07/04/2017 19:57:24
  *
  *    Description: 
  *
@@ -29,29 +29,50 @@
 #include "monoserver.hpp"
 #include "serverconfigurewindow.hpp"
 
-ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, bool bCheckCreature)
+ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, bool bCheckCreature)
     : AStarPathFinder(
             // 1. step check function
-            //    assert pMap should be not null
-            [pMap](int nSrcX, int nSrcY, int nDstX, int nDstY) -> bool {
-                switch(LDistance2(nSrcX, nSrcY, nDstX, nDstY)){
-                    case 0:
-                        {
-                            extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument: (%d, %d, %d, %d)", nSrcX, nSrcY, nDstX, nDstY);
-                            g_MonoServer->Restart();
-                            return false;
-                        }
-                    case 1:
-                    case 2:
-                        {
-                            return pMap->GroundValid(nDstX, nDstY);
-                        }
-                    default:
-                        {
-                            return false;
-                        }
+            //    validate pMap in constructor body
+            [pMap, nMaxStep](int nSrcX, int nSrcY, int nDstX, int nDstY) -> bool
+            {
+                // for server we always check ground
+                // there shouldn't be any motion through invalid grids while client could be
+
+                // skip some parameter checking
+                // but put the code here for completion
+
+                if(0){
+                    if(true
+                            && nMaxStep != 1
+                            && nMaxStep != 2
+                            && nMaxStep != 3){
+
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", nMaxStep);
+                        return false;
+                    }
+
+                    int nDistance2 = LDistance2(nSrcX, nSrcY, nDstX, nDstY);
+                    if(true
+                            && nDistance2 != 1
+                            && nDistance2 != 2
+                            && nDistance2 != nMaxStep * nMaxStep
+                            && nDistance2 != nMaxStep * nMaxStep * 2){
+
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
+                        return false;
+                    }
                 }
+
+                // now we are sure:
+                // 1. nMaxStep is 1, 2, 3
+                // 2. distance of given src -> dst is 1, 2, 3
+
+                // no matter bCheckCreature set or not
+                // we allow any hops if the ground is valid, ignoring the creature here
+
+                return pMap->CanMove(false, nSrcX, nSrcY, nDstX, nDstY);
             },
 
             // 2. move cost function, for directions as following
@@ -70,81 +91,125 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, bool bCheckCreatu
             //
             //    if we make all directions equally cost, then G->I: G -> C -> I
             //    we want the result as G -> H -> I
-            [pMap, bCheckCreature](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double {
+            //    
+            //    also read comments in mir2x/client/src/clientpathfinder.cpp
+            //    there are more additional issues and solutions for the cost assignment
+
+            [pMap, nMaxStep, bCheckCreature](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
+            {
+                // checking parameter here
+                // skipped since it's done in AStarPathFinder
+
+                if(0){
+                    if(true
+                            && nMaxStep != 1
+                            && nMaxStep != 2
+                            && nMaxStep != 3){
+
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", nMaxStep);
+                        return 10000.00;
+                    }
+
+                    int nDistance2 = LDistance2(nSrcX, nSrcY, nDstX, nDstY);
+                    if(true
+                            && nDistance2 != 1
+                            && nDistance2 != 2
+                            && nDistance2 != nMaxStep * nMaxStep
+                            && nDistance2 != nMaxStep * nMaxStep * 2){
+
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
+                        return 10000.00;
+                    }
+                }
+
+                double fExtraPen = 0.00;
                 switch(LDistance2(nSrcX, nSrcY, nDstX, nDstY)){
-                    case 0:
-                        {
-                            extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument: (%d, %d, %d, %d)", nSrcX, nSrcY, nDstX, nDstY);
-                            g_MonoServer->Restart();
-                            return 10000.0;
-                        }
-                    case 1:
-                        {
-                            if(pMap->GroundValid(nDstX, nDstY)){
-                                if(bCheckCreature){
-                                    // if there is no co on the way we take it
-                                    // however if there is, we can still take it but with very high cost
-                                    // for example: now A is targeting at C
-                                    //    +---+---+---+---+---+
-                                    //    |   |   |   | C |   |
-                                    //    +---+---+---+---+---+
-                                    //    |   |   | B |   |   |
-                                    //    +---+---+---+---+---+
-                                    //    |   | A |   |   |   |
-                                    //    +---+---+---+---+---+
-                                    //    |   |   |   |   |   |
-                                    //    +---+---+---+---+---+
-                                    // then we try to find a path Loc(A) -> Loc(C)
-                                    // if 1. we always allow if GroundValid(LOC) is true : co ignored
-                                    //    2. we always allow if CanMove(LOC)     is true : co affects
-                                    //
-                                    // for solution-1: A will stop at current position since A try to move to LOC(B) but it's occupied
-                                    //     solution-2: LOC(A) -> LOC(C) is invalid since start and end point has been taken by themselves
-                                    //
-                                    // so my solution: 1. always allow if GroundValid(LOC) is true
-                                    //                 2. if currently there is CO in the cell we give a higher cost
-                                    // then A will bypass B to go to C and stop as close as possible to C
-                                    //
-                                    // this also saves if C is surrendered by a lot of CO's
-                                    // in which case solution-1 will make A stop at a far distance between C
-                                    //               solution-2 will make C un-reachable
-                                    //            my solution   will make A stop at a place as close as possible to C
-                                    return pMap->CanMove(nDstX, nDstY) ? 1.0 : 100.0;
-                                }else{
-                                    // won't check creature
-                                    // then all walk-able step get cost 1.0
-                                    return 1.0;
-                                }
-                            }else{
-                                // can't go through, return the infinite
-                                return 10000.0;
-                            }
-                        }
-                    case 2:
-                        {
-                            // same logic for case-1
-                            // but we put higher cost (1.1) to prefer go straight
-                            if(pMap->GroundValid(nDstX, nDstY)){
-                                if(bCheckCreature){
-                                    return pMap->CanMove(nDstX, nDstY) ? 1.1 : 100.1;
-                                }else{ return 1.1; }
-                            }else{
-                                return 10000.0;
-                            }
-                        }
+                    case  1: fExtraPen = 0.00 + 0.01; break;
+                    case  2: fExtraPen = 0.10 + 0.01; break;
+                    case  4: fExtraPen = 0.00 + 0.02; break;
+                    case  8: fExtraPen = 0.10 + 0.02; break;
+                    case  9: fExtraPen = 0.00 + 0.03; break;
+                    case 18: fExtraPen = 0.10 + 0.03; break;
                     default:
                         {
-                            return 10000.0;
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
+                            return 10000.00;
                         }
                 }
-            }
+
+                // for server any hops provided to this function has passed the ground checking
+                // this is done in the above lambda through ServerMap::CanMove(false, srcLoc, dstLoc)
+
+                // here we need to assign different value for provided hops
+                // since the hops provided to this function doesn't do creature check
+                // we assign higher cost if bCheckCreature is set and ServerMap::CanMove(true, srcLoc, dstLoc) fails
+
+                if(bCheckCreature){
+
+                    // if there is no co on the way we take it
+                    // however if there is, we can still take it but with very high cost
+                    // for example: now A is targeting at C
+                    //    +---+---+---+---+---+
+                    //    |   |   |   | C |   |
+                    //    +---+---+---+---+---+
+                    //    |   |   | B |   |   |
+                    //    +---+---+---+---+---+
+                    //    |   | A |   |   |   |
+                    //    +---+---+---+---+---+
+                    //    |   |   |   |   |   |
+                    //    +---+---+---+---+---+
+                    // then we try to find a path Loc(A) -> Loc(C)
+                    // if 1. we always allow if GroundValid(LOC) is true : co ignored
+                    //    2. we always allow if CanMove(LOC)     is true : co affects
+                    //
+                    // for solution-1: A will stop at current position since A try to move to LOC(B) but it's occupied
+                    //     solution-2: LOC(A) -> LOC(C) is invalid since start and end point has been taken by themselves
+                    //
+                    // so my solution: 1. always allow if GroundValid(LOC) is true
+                    //                 2. if currently there is CO in the cell we give a higher cost
+                    // then A will bypass B to go to C and stop as close as possible to C
+                    //
+                    // this also saves if C is surrendered by a lot of CO's
+                    // in which case solution-1 will make A stop at a far distance between C
+                    //               solution-2 will make C un-reachable
+                    //            my solution   will make A stop at a place as close as possible to C
+
+                    return (pMap->CanMove(true, nSrcX, nSrcY, nDstX, nDstY) ? 1.00 : 100.00) + fExtraPen;
+                }else{
+                    // won't check creature
+                    // then all walk-able step get cost 1.0 + delta
+                    return 1.00 + fExtraPen;
+                }
+            },
+
+            // max step length for each hop, valid step size : 1, 2, 3
+            // check value in AStarPathFinder::AStarPathFinder() and ServerPathFinder::ServerPathFinder()
+            nMaxStep
       )
 {
+    // we do it here to complete the logic
+    // this also will be checked in AStarPathFinder::AStarPathFinder()
+    switch(nMaxStep){
+        case 1:
+        case 2:
+        case 3:
+            {
+                break;
+            }
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", nMaxStep);
+                break;
+            }
+    }
+
     if(!pMap){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, (int)(bCheckCreature));
-        g_MonoServer->Restart();
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, (int)(bCheckCreature));
     }
 }
 
@@ -277,14 +342,21 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
     }
 }
 
-bool ServerMap::CanMove(int nX, int nY)
+bool ServerMap::CanMove(bool bCheckCreature, int nX, int nY)
 {
-    if(GroundValid(nX, nY)){
-        for(auto nUID: m_UIDRecordV2D[nX][nY]){
-            extern MonoServer *g_MonoServer;
-            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                if(stUIDRecord.ClassFrom<CharObject>()){
-                    return false;
+    if(true
+            && (m_Mir2xMapData.Valid())
+            && (m_Mir2xMapData.ValidC(nX, nY))
+            && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)
+            && (m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000)){
+
+        if(bCheckCreature){
+            for(auto nUID: m_UIDRecordV2D[nX][nY]){
+                extern MonoServer *g_MonoServer;
+                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                    if(stUIDRecord.ClassFrom<CharObject>()){
+                        return false;
+                    }
                 }
             }
         }
@@ -293,11 +365,55 @@ bool ServerMap::CanMove(int nX, int nY)
     return false;
 }
 
+bool ServerMap::CanMove(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1)
+{
+    int nMaxIndex = -1;
+    switch(LDistance2(nX0, nY0, nX1, nY1)){
+        case 0:
+            {
+                nMaxIndex = 0;
+                break;
+            }
+        case 1:
+        case 2:
+            {
+                nMaxIndex = 1;
+                break;
+            }
+        case 4:
+        case 8:
+            {
+                nMaxIndex = 2;
+                break;
+            }
+        case  9:
+        case 18:
+            {
+                nMaxIndex = 3;
+                break;
+            }
+        default:
+            {
+                return false;
+            }
+    }
+
+    int nDX = (nX1 > nX0) - (nX1 < nX0);
+    int nDY = (nY1 > nY0) - (nY1 < nY0);
+
+    for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
+        if(!CanMove(bCheckCreature, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+            return false;
+        }
+    }
+    return true;
+}
+
 bool ServerMap::RandomLocation(int *pX, int *pY)
 {
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
-            if(CanMove(nX, nY)){
+            if(CanMove(false, nX, nY)){
                 if(pX){ *pX = nX; }
                 if(pY){ *pY = nY; }
                 return true;
@@ -311,7 +427,7 @@ bool ServerMap::Empty()
 {
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
-            if(GroundValid(nX, nY)){
+            if(CanMove(false, nX, nY)){
                 if(m_CellRecordV2D[nX][nY].Lock){
                     return false;
                 }

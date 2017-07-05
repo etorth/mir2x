@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 07/02/2017 21:49:36
+ *  Last Modified: 07/04/2017 19:52:16
  *
  *    Description: 
  *
@@ -285,6 +285,7 @@ struct AMPathFind
     uint32_t UID;
     uint32_t MapID;
 
+    int MaxStep;
     bool CheckCO;
 
     int X;

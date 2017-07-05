@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/04/2017 01:39:30
+ *  Last Modified: 07/04/2017 20:01:59
  *
  *    Description: 
  *
@@ -327,6 +327,7 @@ bool CharObject::MoveOneStep(int nMoveMode, int nX, int nY)
     AMPathFind stAMPF;
     stAMPF.UID     = UID();
     stAMPF.MapID   = MapID();
+    stAMPF.MaxStep = 1;
     stAMPF.CheckCO = true;
     stAMPF.X       = X();
     stAMPF.Y       = Y();
@@ -530,7 +531,7 @@ int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
                 int nY = -1;
                 if(true
                         && NextLocation(&nX, &nY, nDirection, nDistance)
-                        && m_Map->GroundValid(nX, nY)){
+                        && m_Map->CanMove(false, nX, nY)){
                     nLastX = nX;
                     nLastY = nY;
                     nLastD = nDistance;

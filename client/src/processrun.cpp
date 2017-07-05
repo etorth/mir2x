@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/04/2017 15:22:55
+ *  Last Modified: 07/04/2017 19:45:43
  *
  *    Description: 
  *
@@ -395,13 +395,20 @@ int ProcessRun::LoadMap(uint32_t nMapID)
     return -1;
 }
 
-bool ProcessRun::CanMove(bool bCheckCreature, int nX, int nY){
-    if(m_Mir2xMapData.ValidC(nX, nY)
+bool ProcessRun::CanMove(bool bCheckCreature, int nX, int nY)
+{
+    if(true
+            && (m_Mir2xMapData.Valid())
+            && (m_Mir2xMapData.ValidC(nX, nY))
             && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)
             && (m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000)){
+
         if(bCheckCreature){
             for(auto pCreature: m_CreatureRecord){
-                if(pCreature.second && (pCreature.second->X() == nX) && (pCreature.second->Y() == nY)){
+                if(true
+                        && (pCreature.second)
+                        && (pCreature.second->X() == nX)
+                        && (pCreature.second->Y() == nY)){
                     return false;
                 }
             }
@@ -413,52 +420,46 @@ bool ProcessRun::CanMove(bool bCheckCreature, int nX, int nY){
 
 bool ProcessRun::CanMove(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1)
 {
-    if(true
-            && m_Mir2xMapData.ValidC(nX0, nY0)
-            && m_Mir2xMapData.ValidC(nX1, nY1)){
-
-        int nMaxIndex = -1;
-        switch(LDistance2(nX0, nY0, nX1, nY1)){
-            case 0:
-                {
-                    nMaxIndex = 0;
-                    break;
-                }
-            case 1:
-            case 2:
-                {
-                    nMaxIndex = 1;
-                    break;
-                }
-            case 4:
-            case 8:
-                {
-                    nMaxIndex = 2;
-                    break;
-                }
-            case  9:
-            case 18:
-                {
-                    nMaxIndex = 3;
-                    break;
-                }
-            default:
-                {
-                    return false;
-                }
-        }
-
-        int nDX = (nX1 > nX0) - (nX1 < nX0);
-        int nDY = (nY1 > nY0) - (nY1 < nY0);
-
-        for(int nIndex = 1; nIndex <= nMaxIndex; ++nIndex){
-            if(!CanMove(bCheckCreature, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+    int nMaxIndex = -1;
+    switch(LDistance2(nX0, nY0, nX1, nY1)){
+        case 0:
+            {
+                nMaxIndex = 0;
+                break;
+            }
+        case 1:
+        case 2:
+            {
+                nMaxIndex = 1;
+                break;
+            }
+        case 4:
+        case 8:
+            {
+                nMaxIndex = 2;
+                break;
+            }
+        case  9:
+        case 18:
+            {
+                nMaxIndex = 3;
+                break;
+            }
+        default:
+            {
                 return false;
             }
-        }
-        return true;
     }
-    return false;
+
+    int nDX = (nX1 > nX0) - (nX1 < nX0);
+    int nDY = (nY1 > nY0) - (nY1 < nY0);
+
+    for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
+        if(!CanMove(bCheckCreature, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+            return false;
+        }
+    }
+    return true;
 }
 
 bool ProcessRun::LocatePoint(int nPX, int nPY, int *pX, int *pY)
