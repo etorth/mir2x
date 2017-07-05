@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/04/2017 13:31:46
+ *  Last Modified: 07/05/2017 00:24:19
  *
  *    Description: 
  *
@@ -334,7 +334,14 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
 
                         if(m_ProcessRun->CanMove(false, nX0, nY0, nX1, nY1)){
                             if(bCheckCreature){
-                                if(m_ProcessRun->CanMove(true, nX0, nY0, nX1, nY1)){
+
+                                int nDX = (nX1 > nX0) - (nX1 < nX0);
+                                int nDY = (nY1 > nY0) - (nY1 < nY0);
+
+                                // we need to avoid check the first node
+                                // since it will fail by occupation of itself
+
+                                if(m_ProcessRun->CanMove(true, nX0 + nDX, nY0 + nDY, nX1, nY1)){
                                     // we are checking the creatures
                                     // and no creaturs standing on the one-hop path
                                     return {{nX0, nY0}, {nX1, nY1}};

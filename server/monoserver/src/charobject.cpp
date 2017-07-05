@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/04/2017 20:01:59
+ *  Last Modified: 07/04/2017 21:57:37
  *
  *    Description: 
  *
@@ -104,6 +104,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
             && ActorPodValid()
             && m_Map
             && m_Map->ActorPodValid()){
+
         AMAction stAMA;
         std::memset(&stAMA, 0, sizeof(stAMA));
 

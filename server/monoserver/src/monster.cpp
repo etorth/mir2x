@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/04/2017 01:37:55
+ *  Last Modified: 07/04/2017 23:42:57
  *
  *    Description: 
  *
@@ -143,8 +143,8 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
         extern MonoServer *g_MonoServer;
         if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
             if(DCValid(nDC, true)){
-                auto fnQueryLocationOK = [this, nDC, stRecord](int nX, int nY) -> bool {
-
+                auto fnQueryLocationOK = [this, nDC, stRecord](int nX, int nY) -> bool
+                {
                     // if we get inside current block, we should release the attack lock
                     // it can be released immediately if location retrieve succeeds without querying
                     m_AttackLock = false;
@@ -153,7 +153,6 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
                         case DC_PHY_PLAIN:
                             {
                                 switch(LDistance2(X(), Y(), nX, nY)){
-                                    case 0:
                                     case 1:
                                     case 2:
                                         {
@@ -186,8 +185,12 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
                                             stAMA.Y = Y();
                                             return m_ActorPod->Forward({MPK_ATTACK, stAMA}, stRecord.Address);
                                         }
+                                    case 0:
                                     default:
                                         {
+                                            // if distance is zero
+                                            // means the location cache is out of time
+
                                             // TODO
                                             // one issue is evertime we do AttackUID() || TrackUID()
                                             // then could be a case everytime we schedule an attack operation
@@ -226,12 +229,14 @@ bool Monster::TrackUID(uint32_t nUID)
     if(true
             && nUID
             && CanMove()){
+
         extern MonoServer *g_MonoServer;
         if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
-            return RetrieveLocation(nUID, [this](int nX, int nY){
+            return RetrieveLocation(nUID, [this](int nX, int nY) -> bool {
                 switch(LDistance2(nX, nY, X(), Y())){
                     case 0:
                     case 1:
+                    case 2:
                         {
                             return true;
                         }
