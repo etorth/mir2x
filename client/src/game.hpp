@@ -3,7 +3,7 @@
  *
  *       Filename: game.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/04/2017 14:24:54
+ *  Last Modified: 07/04/2017 20:20:57
  *
  *    Description: public API for class game only
  *
@@ -101,10 +101,6 @@ class Game final
 
     private:
         Process *m_CurrentProcess;
-
-    private:
-        // to get an average delay time in MS for most recent 100 loops
-        CacheQueue<double, 100> m_DelayTimeCQ;
 
     private:
         std::string m_ClipboardBuf;

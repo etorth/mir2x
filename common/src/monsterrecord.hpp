@@ -3,7 +3,7 @@
  *
  *       Filename: monsterrecord.hpp
  *        Created: 05/08/2017 16:21:14
- *  Last Modified: 05/16/2017 18:21:46
+ *  Last Modified: 07/04/2017 20:49:46
  *
  *    Description: 
  *
@@ -26,7 +26,6 @@
 struct MonsterRecord
 {
     int ID;
-    int LookID;
     int Level;
     int Undead;
     int Tameble;
@@ -67,7 +66,6 @@ struct MonsterRecord
     std::string Description;
 
     MonsterRecord(int nID,
-                  int nLookID,
                   int nLevel,
                   int nUndead,
                   int nTameble,
@@ -107,7 +105,6 @@ struct MonsterRecord
                   const char *szName,
                   const char *szDescription)
         : ID            (nID)
-        , LookID        (nLookID)
         , Level         (nLevel)
         , Undead        (nUndead)
         , Tameble       (nTameble)

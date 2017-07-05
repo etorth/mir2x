@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/04/2017 14:25:12
+ *  Last Modified: 07/04/2017 20:42:58
  *
  *    Description:
  *
@@ -34,11 +34,6 @@ Game::Game()
     , m_NetPackTick(-1.00)
     , m_CurrentProcess(nullptr)
 {
-    // fullfil the time cq
-    for(size_t nIndex = 0; nIndex < m_DelayTimeCQ.Capacity(); ++nIndex){
-        m_DelayTimeCQ.PushHead(1000.0 / m_FPS);
-    }
-
     // load PNGTexDB
     extern PNGTexDBN    *g_PNGTexDBN;
     extern PNGTexOffDBN *g_HeroGfxDBN;
@@ -136,32 +131,40 @@ void Game::MainLoop()
     SwitchProcess(PROCESSID_LOGO);
     InitASIO();
 
-    auto fLastMS = GetTimeTick();
+    auto fDelayDraw   = 1000.0 / m_FPS;
+    auto fDelayUpdate = 1000.0 / m_FPS / 10.0;
+    auto fDelayLoop   = 1000.0 / m_FPS / 12.0;
+
+    auto fLastDraw   = GetTimeTick();
+    auto fLastUpdate = GetTimeTick();
+
     while(m_CurrentProcess->ID() != PROCESSID_EXIT){
-        PollASIO();
-        ProcessEvent();
-        
-        double fCurrentMS = GetTimeTick();
-        // if(m_NetPackTick > 0.0){
-        //     if(fCurrentMS - m_NetPackTick > 15.0 * 1000){
-        //         std::exit(0);
-        //     }
-        // }
 
-        Update(fCurrentMS - fLastMS);
-        Draw();
-
-        m_DelayTimeCQ.PushHead(fCurrentMS - fLastMS);
-        fLastMS = fCurrentMS;
-
-        // try to expect next delay time interval
-        double fTimeSum = 0.0;
-        for(m_DelayTimeCQ.Reset(); !m_DelayTimeCQ.Done(); m_DelayTimeCQ.Forward()){
-            fTimeSum += m_DelayTimeCQ.Current();
+        if(m_NetPackTick > 0.0){
+            if(GetTimeTick() - m_NetPackTick > 15.0 * 1000){
+                // std::exit(0);
+            }
         }
 
-        double fExpectedTime = (1.0 + m_DelayTimeCQ.Size()) * 1000.0 / m_FPS - fTimeSum;
-        EventDelay(fExpectedTime);
+        // check if need to update logic
+        {
+            auto fPastUpdate = GetTimeTick() - fLastUpdate;
+            if(fPastUpdate >= fDelayUpdate){
+                fLastUpdate = GetTimeTick();
+                Update(fPastUpdate);
+            }
+        }
+
+        // check if need to update screen
+        {
+            auto fPastDraw = GetTimeTick() - fLastDraw;
+            if(fPastDraw >= fDelayDraw){
+                fLastDraw = GetTimeTick();
+                Draw();
+            }
+        }
+
+        EventDelay(fDelayLoop);
     }
 }
 

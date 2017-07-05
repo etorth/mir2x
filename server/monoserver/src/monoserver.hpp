@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 07/02/2017 21:52:58
+ *  Last Modified: 07/04/2017 20:15:40
  *
  *    Description: 
  *
@@ -36,7 +36,6 @@
 #include "uidrecord.hpp"
 #include "eventtaskhub.hpp"
 #include "serverluamodule.hpp"
-#include "monsterginforecord.hpp"
 
 class ServiceCore;
 class ServerObject;
