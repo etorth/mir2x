@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/04/2017 19:45:43
+ *  Last Modified: 07/06/2017 00:39:54
  *
  *    Description: 
  *
@@ -460,6 +460,71 @@ bool ProcessRun::CanMove(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1
         }
     }
     return true;
+}
+
+double ProcessRun::MoveCost(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1)
+{
+    int nMaxIndex = -1;
+    switch(LDistance2(nX0, nY0, nX1, nY1)){
+        case 0:
+            {
+                nMaxIndex = 0;
+                break;
+            }
+        case 1:
+        case 2:
+            {
+                nMaxIndex = 1;
+                break;
+            }
+        case 4:
+        case 8:
+            {
+                nMaxIndex = 2;
+                break;
+            }
+        case  9:
+        case 18:
+            {
+                nMaxIndex = 3;
+                break;
+            }
+        default:
+            {
+                return false;
+            }
+    }
+
+    int nDX = (nX1 > nX0) - (nX1 < nX0);
+    int nDY = (nY1 > nY0) - (nY1 < nY0);
+
+    double fMoveCost = 0.0;
+    for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
+        auto nCurrX = nX0 + nDX * nIndex;
+        auto nCurrY = nY0 + nDY * nIndex;
+
+        // validate crrent grid first
+        // for client's part we allow motion parse with invalid grids
+
+        // main purpose of this function:
+        // if CanMove(checkCreature = true, srcLoc, dstLoc) failed
+        // we need to give different cost for ground issue / creature occupation issue
+
+        if(CanMove(false, nCurrX, nCurrY)){
+            if(bCheckCreature){
+                fMoveCost += (CanMove(true, nCurrX, nCurrY) ? 1.00 : 100.00);
+            }else{
+                // not check the creatures
+                // then any valid grids get unique cost
+                fMoveCost += 1.00;
+            }
+        }else{
+            // since we allow motion into invalid grids
+            // we accumulate the ``infinite" here if current grid is invalid
+            fMoveCost += 10000.00;
+        }
+    }
+    return fMoveCost;
 }
 
 bool ProcessRun::LocatePoint(int nPX, int nPY, int *pX, int *pY)

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/04/2017 21:57:37
+ *  Last Modified: 07/05/2017 23:54:58
  *
  *    Description: 
  *
@@ -35,7 +35,6 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     : ActiveObject()
     , m_ServiceCore(pServiceCore)
     , m_Map(pServerMap)
-    , m_MapCache()
     , m_LocationRecord()
     , m_CurrX(nMapX)
     , m_CurrY(nMapY)
@@ -51,10 +50,8 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_WAbility()
     , m_AddAbility()
 {
-    SetState(STATE_LIFECYCLE, nLifeState);
-
     assert(m_Map);
-    m_MapCache[MapID()] = m_Map;
+    SetState(STATE_LIFECYCLE, nLifeState);
 
     auto fnRegisterClass = [this]() -> void {
         if(!RegisterClass<CharObject, ActiveObject>()){
@@ -532,7 +529,7 @@ int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
                 int nY = -1;
                 if(true
                         && NextLocation(&nX, &nY, nDirection, nDistance)
-                        && m_Map->CanMove(false, nX, nY)){
+                        && m_Map->GroundValid(nX, nY)){
                     nLastX = nX;
                     nLastY = nY;
                     nLastD = nDistance;

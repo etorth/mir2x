@@ -3,7 +3,7 @@
  *
  *       Filename: clientpathfinder.cpp
  *        Created: 03/28/2017 21:15:25
- *  Last Modified: 07/04/2017 13:11:57
+ *  Last Modified: 07/06/2017 00:40:08
  *
  *    Description: class for path finding in ProcessRun
  *
@@ -140,6 +140,20 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, bool bCheckCreature, int n
                 //          XXBXX
                 // path (A->O->B) and (A->X->B) are of equal cost
 
+                // if can't go through we return the infinite
+                // be careful of following situation which could make mistake
+                //
+                //     XOOAOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+                //     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXO
+                //     XOOBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+                //
+                // here ``O" means ``can pass" and ``X" means not, then if we do move (A->B)
+                // if the path is too long then likely it takes(A->X->B) rather than (A->OOOOOOO...OOO->B)
+                //
+                // method to solve it:
+                //  1. put path length constraits
+                //  2. define inifinite = Map::W() * Map::H() as any path can have
+
                 double fExtraPen = 0.00;
                 switch(LDistance2(nSrcX, nSrcY, nDstX, nDstY)){
                     case  1: fExtraPen = 0.00 + 0.01; break;
@@ -158,32 +172,7 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, bool bCheckCreature, int n
 
                 extern Game *g_Game;
                 if(auto pRun = (ProcessRun *)(g_Game->ProcessValid(PROCESSID_RUN))){
-                    if(pRun->CanMove(false, nDstX, nDstY)){
-                        if(bCheckCreature){
-                            // if there is no creatures on the way we take it
-                            // however if there is, we can still take it but with very high cost
-                            return (pRun->CanMove(true, nDstX, nDstY) ? 1.00 : 100.00) + fExtraPen;
-                        }else{
-                            // won't check creature
-                            // then all walk-able step get cost 1.0 + delta
-                            return 1.00 + fExtraPen;
-                        }
-                    }else{
-                        // can't go through, return the infinite
-                        // be careful of following situation which could make mistake
-                        //
-                        //     XOOAOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-                        //     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXO
-                        //     XOOBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-                        //
-                        // here ``O" means ``can pass" and ``X" means not, then if we do move (A->B)
-                        // if the path is too long then likely it takes(A->X->B) rather than (A->OOOOOOO...OOO->B)
-                        //
-                        // method to solve it:
-                        //  1. put path length constraits
-                        //  2. define inifinite = Map::W() * Map::H() as any path can have
-                        return 10000.00;
-                    }
+                    return pRun->MoveCost(bCheckCreature, nSrcX, nSrcY, nDstX, nDstY) + fExtraPen;
                 }else{
                     extern Log *g_Log;
                     g_Log->AddLog(LOGTYPE_FATAL, "Current process is not ProcessRun");

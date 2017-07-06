@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 07/04/2017 19:57:24
+ *  Last Modified: 07/05/2017 23:45:49
  *
  *    Description: 
  *
@@ -29,7 +29,7 @@
 #include "monoserver.hpp"
 #include "serverconfigurewindow.hpp"
 
-ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, bool bCheckCreature)
+ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, bool bCheckCO)
     : AStarPathFinder(
             // 1. step check function
             //    validate pMap in constructor body
@@ -69,10 +69,10 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
                 // 1. nMaxStep is 1, 2, 3
                 // 2. distance of given src -> dst is 1, 2, 3
 
-                // no matter bCheckCreature set or not
-                // we allow any hops if the ground is valid, ignoring the creature here
+                // no matter bCheckCO set or not
+                // we allow all grids if the ground is valid, ignoring the creature and lock
 
-                return pMap->CanMove(false, nSrcX, nSrcY, nDstX, nDstY);
+                return pMap->CanMove(false, false, false, nSrcX, nSrcY, nDstX, nDstY);
             },
 
             // 2. move cost function, for directions as following
@@ -95,7 +95,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
             //    also read comments in mir2x/client/src/clientpathfinder.cpp
             //    there are more additional issues and solutions for the cost assignment
 
-            [pMap, nMaxStep, bCheckCreature](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
+            [pMap, nMaxStep, bCheckCO](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
             {
                 // checking parameter here
                 // skipped since it's done in AStarPathFinder
@@ -145,9 +145,9 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
 
                 // here we need to assign different value for provided hops
                 // since the hops provided to this function doesn't do creature check
-                // we assign higher cost if bCheckCreature is set and ServerMap::CanMove(true, srcLoc, dstLoc) fails
+                // we assign higher cost if bCheckCO is set and ServerMap::CanMove(true, true, srcLoc, dstLoc) fails
 
-                if(bCheckCreature){
+                if(bCheckCO){
 
                     // if there is no co on the way we take it
                     // however if there is, we can still take it but with very high cost
@@ -162,13 +162,13 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
                     //    |   |   |   |   |   |
                     //    +---+---+---+---+---+
                     // then we try to find a path Loc(A) -> Loc(C)
-                    // if 1. we always allow if GroundValid(LOC) is true : co ignored
-                    //    2. we always allow if CanMove(LOC)     is true : co affects
+                    // if 1. we always allow if CanMove(0, 0, LOC) is true : co ignored
+                    //    2. we always allow if CanMove(1, 1, LOC) is true : co affects
                     //
                     // for solution-1: A will stop at current position since A try to move to LOC(B) but it's occupied
                     //     solution-2: LOC(A) -> LOC(C) is invalid since start and end point has been taken by themselves
                     //
-                    // so my solution: 1. always allow if GroundValid(LOC) is true
+                    // so my solution: 1. always allow if CanMove(0, 0, LOC) is true
                     //                 2. if currently there is CO in the cell we give a higher cost
                     // then A will bypass B to go to C and stop as close as possible to C
                     //
@@ -177,7 +177,29 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
                     //               solution-2 will make C un-reachable
                     //            my solution   will make A stop at a place as close as possible to C
 
-                    return (pMap->CanMove(true, nSrcX, nSrcY, nDstX, nDstY) ? 1.00 : 100.00) + fExtraPen;
+                    // new issue found for current cost strategy
+                    //
+                    //             O O D O O
+                    //             O O X O O
+                    //             B O A O C
+                    //             O O O O O
+                    //
+                    // if now we want A->D with step size = 2, we can do (A->B->D) or (A->C->D), the
+                    // step (A->B) and (A->C) are expensive since A is occupied by the path-finding
+                    // requestor. But now if between A and C the grid is occupied by another CO, our
+                    // current algorithm can't prefer (A->B->D) instead of (A->C->D) !!!
+
+                    // reason is we only get yes/no anwser for (A->B) and (A->D) but no detailed
+                    // information to estimate a cost. solution: assign cost inside map rather than
+                    // in the path finder, which need me to introduce new function
+                    //
+                    //   doulbe ServerMap::MoveCost(bool, bool, bool, int, int, int, int)
+                    //   
+                    // this function gives cost of single hop
+                    // in future's version fExtraPen should be penalty for turn
+                    // and this function can enable we put dynamical cost for some busy hops
+
+                    return pMap->MoveCost(true, true, true, nSrcX, nSrcY, nDstX, nDstY) + fExtraPen;
                 }else{
                     // won't check creature
                     // then all walk-able step get cost 1.0 + delta
@@ -209,7 +231,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
 
     if(!pMap){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, (int)(bCheckCreature));
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, (int)(bCheckCO));
     }
 }
 
@@ -342,15 +364,19 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
     }
 }
 
-bool ServerMap::CanMove(bool bCheckCreature, int nX, int nY)
+bool ServerMap::GroundValid(int nX, int nY) const
 {
-    if(true
-            && (m_Mir2xMapData.Valid())
-            && (m_Mir2xMapData.ValidC(nX, nY))
-            && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)
-            && (m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000)){
+    return true
+        && (m_Mir2xMapData.Valid())
+        && (m_Mir2xMapData.ValidC(nX, nY))
+        && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)
+        && (m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000);
+}
 
-        if(bCheckCreature){
+bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
+{
+    if(GroundValid(nX, nY)){
+        if(bCheckCO){
             for(auto nUID: m_UIDRecordV2D[nX][nY]){
                 extern MonoServer *g_MonoServer;
                 if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
@@ -360,12 +386,18 @@ bool ServerMap::CanMove(bool bCheckCreature, int nX, int nY)
                 }
             }
         }
+
+        if(bCheckLock){
+            if(m_CellRecordV2D[nX][nY].Lock){
+                return false;
+            }
+        }
         return true;
     }
     return false;
 }
 
-bool ServerMap::CanMove(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1)
+bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, bool bSkipMiddleLock, int nX0, int nY0, int nX1, int nY1)
 {
     int nMaxIndex = -1;
     switch(LDistance2(nX0, nY0, nX1, nY1)){
@@ -402,18 +434,107 @@ bool ServerMap::CanMove(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1)
     int nDY = (nY1 > nY0) - (nY1 < nY0);
 
     for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
-        if(!CanMove(bCheckCreature, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+
+        bool bCheckCurrLock = false;
+        if(bCheckLock){
+            if(bSkipMiddleLock){
+                if((nIndex != 0) && (nIndex != nMaxIndex)){
+                    bCheckCurrLock = false;
+                }else{
+                    bCheckCurrLock = true;
+                }
+            }else{
+                bCheckCurrLock = true;
+            }
+        }
+
+        if(!CanMove(bCheckCO, bCheckCurrLock, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
             return false;
         }
     }
     return true;
 }
 
+double ServerMap::MoveCost(bool bCheckCO, bool bCheckLock, bool bSkipMiddleLock, int nX0, int nY0, int nX1, int nY1)
+{
+    int nMaxIndex = -1;
+    switch(LDistance2(nX0, nY0, nX1, nY1)){
+        case 0:
+            {
+                nMaxIndex = 0;
+                break;
+            }
+        case 1:
+        case 2:
+            {
+                nMaxIndex = 1;
+                break;
+            }
+        case 4:
+        case 8:
+            {
+                nMaxIndex = 2;
+                break;
+            }
+        case  9:
+        case 18:
+            {
+                nMaxIndex = 3;
+                break;
+            }
+        default:
+            {
+                return 10000.00;
+            }
+    }
+
+    int nDX = (nX1 > nX0) - (nX1 < nX0);
+    int nDY = (nY1 > nY0) - (nY1 < nY0);
+
+    double fMoveCost = 0.0;
+    for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
+        auto nCurrX = nX0 + nDX * nIndex;
+        auto nCurrY = nY0 + nDY * nIndex;
+
+        // validate current grid first
+        // for server's side any motion needs to be inside valid grids
+
+        if(GroundValid(nCurrX, nCurrY)){
+
+            // OK current grid is capable to contain co's
+            // check the co's and locks
+
+            bool bCheckCurrLock = false;
+            if(bCheckLock){
+                if(bSkipMiddleLock){
+                    if((nIndex != 0) && (nIndex != nMaxIndex)){
+                        bCheckCurrLock = false;
+                    }else{
+                        bCheckCurrLock = true;
+                    }
+                }else{
+                    bCheckCurrLock = true;
+                }
+            }
+
+            fMoveCost += (CanMove(bCheckCO, bCheckCurrLock, nCurrX, nCurrY) ? 1.00 : 100.00);
+
+        }else{
+
+            // current grid is not valid
+            // ignore alculated cost and immediately return infinite
+            return 10000.00;
+        }
+    }
+
+    return fMoveCost;
+}
+
 bool ServerMap::RandomLocation(int *pX, int *pY)
 {
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
-            if(CanMove(false, nX, nY)){
+            if(CanMove(false, false, nX, nY)){
                 if(pX){ *pX = nX; }
                 if(pY){ *pY = nY; }
                 return true;
@@ -427,16 +548,8 @@ bool ServerMap::Empty()
 {
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
-            if(CanMove(false, nX, nY)){
-                if(m_CellRecordV2D[nX][nY].Lock){
-                    return false;
-                }
-                for(auto nUID: m_UIDRecordV2D[nX][nY]){
-                    extern MonoServer *g_MonoServer;
-                    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                        return false;
-                    }
-                }
+            if(CanMove(true, true, nX, nY)){
+                return false;
             }
         }
     }

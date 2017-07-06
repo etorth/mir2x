@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/02/2017 22:41:05
+ *  Last Modified: 07/06/2017 00:41:08
  *
  *    Description: 
  *
@@ -112,6 +112,9 @@ class ProcessRun: public Process
     public:
         bool CanMove(bool, int, int);
         bool CanMove(bool, int, int, int, int);
+
+    public:
+        double MoveCost(bool, int, int, int, int);
 
     public:
         bool  LuaCommand(const char *);

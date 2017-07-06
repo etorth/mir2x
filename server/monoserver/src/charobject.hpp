@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 06/15/2017 11:55:26
+ *  Last Modified: 07/05/2017 12:10:19
  *
  *    Description: 
  *
@@ -134,11 +134,10 @@ class CharObject: public ActiveObject
         };
 
     protected:
-        ServiceCore *m_ServiceCore;
-        ServerMap   *m_Map;
+        const ServiceCore *m_ServiceCore;
+        const ServerMap   *m_Map;
 
     protected:
-        std::unordered_map<uint32_t, ServerMap *> m_MapCache;
         std::unordered_map<uint32_t, COLocation > m_LocationRecord;
 
     protected:

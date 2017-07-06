@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 07/04/2017 19:58:55
+ *  Last Modified: 07/05/2017 23:26:26
  *
  *    Description:
  *
@@ -22,7 +22,6 @@
 
 #include <vector>
 #include <cstdint>
-#include <unordered_map>
 
 #include "sysconst.hpp"
 #include "uidrecord.hpp"
@@ -110,8 +109,14 @@ class ServerMap: public ActiveObject
         }
 
     public:
-        bool CanMove(bool, int, int);
-        bool CanMove(bool, int, int, int, int);
+        bool GroundValid(int, int) const;
+
+    protected:
+        bool CanMove(bool, bool, int, int);
+        bool CanMove(bool, bool, bool, int, int, int, int);
+
+    protected:
+        double MoveCost(bool, bool, bool, int, int, int, int);
 
     public:
         int W() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0; }

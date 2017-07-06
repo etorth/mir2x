@@ -3,18 +3,14 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 07/01/2017 12:15:11
+ *  Last Modified: 07/05/2017 22:34:25
  *
- *    Description: A-Star algorithm for path find
- *
- *                 previously I put a (dstX, dstY) in AStarPathFinder to make each
- *                 time when search next node, it prefers the one with the right
- *                 direction, but this seems won't help
+ *    Description: A-Star algorithm for path finding
  *
  *                 if we have a prefperence, we should make it by the cost function,
  *                 rather than hack the source to make a priority
  *
- *                 now support jump on the map with StepSize > 1
+ *                 support jump on the map with step size as (1, 2, 3)
  *
  *        Version: 1.0
  *       Revision: none
@@ -28,6 +24,7 @@
  */
 
 #pragma once
+#include <cmath>
 #include <functional>
 
 #include "fsa.h"
@@ -114,7 +111,16 @@ class AStarPathFinderNode
         float GoalDistanceEstimate(AStarPathFinderNode &rstGoalNode)
         {
             // we use Chebyshev's distance instead of Manhattan distance
-            return std::max<float>(std::abs(rstGoalNode.X() - X()), std::abs(rstGoalNode.Y() - Y()));
+            // since we allow max step size as 1, 2, 3, and for optimal solution
+
+            // to make A-star algorithm admissible
+            // we need h(x) never over-estimate the distance
+
+            auto nMaxStep   = (m_Finder->MaxStep());
+            auto nXDistance = (std::labs(rstGoalNode.X() - X()) + (nMaxStep - 1)) / nMaxStep;
+            auto nYDistance = (std::labs(rstGoalNode.Y() - Y()) + (nMaxStep - 1)) / nMaxStep;
+
+            return std::max<float>(nXDistance, nYDistance);
         }
 
         bool IsGoal(AStarPathFinderNode &rstGoalNode)
@@ -156,9 +162,9 @@ class AStarPathFinderNode
         {
             if(m_Finder->m_MoveCost){
                 auto fCost = m_Finder->m_MoveCost(X(), Y(), rstNode.X(), rstNode.Y());
-                return (fCost >= 0.000) ? (float)(fCost) : 1.000;
+                return (fCost >= 0.00) ? (float)(fCost) : 1.00;
             }else{
-                return 1.000;
+                return 1.00;
             }
         }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/04/2017 20:42:58
+ *  Last Modified: 07/05/2017 18:48:09
  *
  *    Description:
  *
@@ -131,9 +131,9 @@ void Game::MainLoop()
     SwitchProcess(PROCESSID_LOGO);
     InitASIO();
 
-    auto fDelayDraw   = 1000.0 / m_FPS;
-    auto fDelayUpdate = 1000.0 / m_FPS / 10.0;
-    auto fDelayLoop   = 1000.0 / m_FPS / 12.0;
+    auto fDelayDraw   = 1000.0 / m_FPS / 5.0;
+    auto fDelayUpdate = 1000.0 / m_FPS / 6.0;
+    auto fDelayLoop   = 1000.0 / m_FPS / 7.0;
 
     auto fLastDraw   = GetTimeTick();
     auto fLastUpdate = GetTimeTick();

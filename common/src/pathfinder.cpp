@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.cpp
  *        Created: 03/29/2017 00:59:29
- *  Last Modified: 05/18/2017 17:17:42
+ *  Last Modified: 07/05/2017 22:42:11
  *
  *    Description: 
  *
@@ -55,6 +55,7 @@ int PathFind::MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_
             }
         }
 
+        // 2. calculate the max reach node
         switch(nSize){
             case 0  : return -1;
             case 1  : return  0;
