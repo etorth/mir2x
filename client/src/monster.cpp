@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 07/06/2017 13:08:20
+ *  Last Modified: 07/06/2017 15:51:27
  *
  *    Description: 
  *
@@ -91,7 +91,7 @@ bool Monster::Update()
                                         nNextFadeOut = std::max<int>(1, m_CurrMotion.FadeOut + 10);
                                         nNextFadeOut = std::min<int>(nNextFadeOut, 255);
 
-                                        m_CurrMotion.MotionParam = nNextFadeOut;
+                                        m_CurrMotion.FadeOut = nNextFadeOut;
                                         break;
                                     }
                             }
@@ -144,7 +144,10 @@ bool Monster::Draw(int nViewX, int nViewY)
         int nShiftY = 0;
         EstimatePixelShift(&nShiftX, &nShiftY);
 
+        // always reset the alpha mode for each texture because texture is shared
+        // one texture to draw can be configured with different alpha mode for other creatures
         extern SDLDevice *g_SDLDevice;
+        if(pFrame0){ SDL_SetTextureAlphaMod(pFrame1, 255); }
         if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
 
         if(true
