@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 07/06/2017 11:25:37
+ *  Last Modified: 07/06/2017 13:08:20
  *
  *    Description: 
  *
@@ -81,7 +81,8 @@ bool Monster::Update()
                                     }
                                 case 255:
                                     {
-                                        Deactivate();
+                                        // deactivated if FadeOut reach 255
+                                        // next update will auotmatically delete it
                                         break;
                                     }
                                 default:
@@ -175,10 +176,10 @@ bool Monster::Draw(int nViewX, int nViewY)
         int nBlendX1 = X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX;
         int nBlendY1 = Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY;
 
-        if(true   ){ fnBlendFrame(pFrame1, SDL_BLENDMODE_BLEND, nBlendX1, nBlendY1); }
-        if(true   ){ fnBlendFrame(pFrame0, SDL_BLENDMODE_BLEND, nBlendX0, nBlendY0); }
-        if(Focus()){ fnBlendFrame(pFrame0, SDL_BLENDMODE_ADD,   nBlendX0, nBlendY0); }
-        if(Focus()){ fnBlendFrame(pFrame0, SDL_BLENDMODE_ADD,   nBlendX0, nBlendY0); }
+        if(true              ){ fnBlendFrame(pFrame1, SDL_BLENDMODE_BLEND, nBlendX1, nBlendY1); }
+        if(true              ){ fnBlendFrame(pFrame0, SDL_BLENDMODE_BLEND, nBlendX0, nBlendY0); }
+        if(Focus(FOCUS_MOUSE)){ fnBlendFrame(pFrame0, SDL_BLENDMODE_ADD,   nBlendX0, nBlendY0); }
+        if(Focus(FOCUS_MOUSE)){ fnBlendFrame(pFrame0, SDL_BLENDMODE_ADD,   nBlendX0, nBlendY0); }
 
         // draw HP bar
         // if current m_HPMqx is zero we draw full bar

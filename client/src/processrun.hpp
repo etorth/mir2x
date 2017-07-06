@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/06/2017 00:41:08
+ *  Last Modified: 07/06/2017 13:09:23
  *
  *    Description: 
  *
@@ -26,6 +26,7 @@
 #include "process.hpp"
 #include "message.hpp"
 #include "mir2xmap.hpp"
+#include "focustype.hpp"
 #include "creature.hpp"
 #include "mir2xmapdata.hpp"
 #include "controlboard.hpp"
@@ -50,7 +51,7 @@ class ProcessRun: public Process
         MyHero *m_MyHero;
 
     private:
-        uint32_t m_FocusUID;
+        std::array<uint32_t, FOCUS_MAX> m_FocusUIDV;
 
     private:
         int m_ViewX;
@@ -116,6 +117,9 @@ class ProcessRun: public Process
     public:
         double MoveCost(bool, int, int, int, int);
 
+    private:
+        uint32_t FocusUID(int);
+
     public:
         bool  LuaCommand(const char *);
         bool UserCommand(const char *);
@@ -126,4 +130,8 @@ class ProcessRun: public Process
     public:
         bool RegisterLuaExport(ClientLuaModule *, int);
         bool AddOPLog(int, int, const char *, const char *);
+
+    public:
+        Creature *RetrieveUID(uint32_t);
+        bool LocateUID(uint32_t, int *, int *);
 };

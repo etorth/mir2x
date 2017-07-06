@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 07/03/2017 13:08:41
+ *  Last Modified: 07/06/2017 12:59:44
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -122,6 +122,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "focustype.hpp"
 #include "actionnode.hpp"
 #include "motionnode.hpp"
 #include "pathfinder.hpp"
@@ -143,8 +144,7 @@ class Creature
         uint32_t m_MPMax;
 
     protected:
-        bool m_Active;
-        bool m_Focus;
+        std::array<bool, FOCUS_MAX> m_FocusV;
 
     protected:
         MotionNode m_CurrMotion;
@@ -164,8 +164,7 @@ class Creature
             , m_MP(0)
             , m_HPMax(0)
             , m_MPMax(0)
-            , m_Active(true)
-            , m_Focus(false)
+            , m_FocusV()
             , m_CurrMotion()
             , m_MotionQueue()
             , m_UpdateDelay(100.0)
@@ -173,6 +172,8 @@ class Creature
         {
             assert(m_UID);
             assert(m_ProcessRun);
+
+            m_FocusV.fill(FOCUS_NONE);
         }
 
     public:
@@ -182,28 +183,14 @@ class Creature
         uint32_t UID() { return m_UID; }
 
     public:
-        void Focus(bool bFocus)
-        {
-            m_Focus = bFocus;
-        }
-
-        bool Focus() const
-        {
-            return m_Focus;
-        }
-
+        bool Focus(int) const;
+        void Focus(int, bool);
         virtual bool CanFocus(int, int) = 0;
 
     public:
-        bool Active() const
-        {
-            return m_Active;
-        }
-
-        void Deactivate()
-        {
-            m_Active = false;
-        }
+        // means we still need to update the creature
+        // for inactivate creatures we need to delete it from the record
+        bool Active();
 
     public:
         int X() { int nX; return Location(&nX, nullptr) ? nX : -1; }

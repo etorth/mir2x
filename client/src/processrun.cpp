@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/06/2017 00:39:54
+ *  Last Modified: 07/06/2017 13:00:01
  *
  *    Description: 
  *
@@ -35,7 +35,7 @@ ProcessRun::ProcessRun()
     , m_MapID(0)
     , m_Mir2xMapData()
     , m_MyHero(nullptr)
-    , m_FocusUID(0)
+    , m_FocusUIDV()
     , m_ViewX(0)
     , m_ViewY(0)
     , m_RollMap(false)
@@ -43,6 +43,7 @@ ProcessRun::ProcessRun()
     , m_ControbBoard(0, 0, nullptr, false)
     , m_CreatureRecord()
 {
+    m_FocusUIDV.fill(0);
     m_ControbBoard.Bind(this);
 }
 
@@ -87,42 +88,63 @@ void ProcessRun::Update(double)
         }
     }
 
-    // clean the focus of last update
-    // each time we re-calculate current focus
-    if(true
-            && m_FocusUID
-            && m_CreatureRecord.find(m_FocusUID) != m_CreatureRecord.end()){
-        m_CreatureRecord[m_FocusUID]->Focus(false);
-        m_FocusUID = 0;
-    }
+    // creatures could move
+    // this can invalidate mouse-selected one
+    FocusUID(FOCUS_MOUSE);
+}
 
-    // re-calculate the focus for current update
-    // need to do it outside of creatures since only one can be selected
-    {
-        int nPointX = -1;
-        int nPointY = -1;
-        SDL_GetMouseState(&nPointX, &nPointY);
-
-        Creature *pFocus = nullptr;
-        for(auto pRecord: m_CreatureRecord){
-            if(true
-                    && pRecord.second != m_MyHero
-                    && pRecord.second->CanFocus(m_ViewX + nPointX, m_ViewY + nPointY)){
-                if(false
-                        || !pFocus
-                        ||  pFocus->Y() < pRecord.second->Y()){
-                    // 1. currently we have no candidate yet
-                    // 2. we have candidate but it's not at more front location
-                    pFocus = pRecord.second;
+uint32_t ProcessRun::FocusUID(int nFocusType)
+{
+    if(nFocusType < (int)(m_FocusUIDV.size())){
+        switch(nFocusType){
+            case FOCUS_NONE:
+                {
+                    return 0;
                 }
-            }
-        }
+            case FOCUS_MOUSE:
+                {
+                    // clean the last mouse-focused one
+                    // each time we have to re-calculate current focus
+                    if(auto pCreature = RetrieveUID(m_FocusUIDV[FOCUS_MOUSE])){
+                        pCreature->Focus(FOCUS_MOUSE, false);
+                    }
+                    m_FocusUIDV[FOCUS_MOUSE] = 0;
 
-        if(pFocus){
-            pFocus->Focus(true);
-            m_FocusUID = pFocus->UID();
+                    // re-calculate the mouse focus
+                    // need to do it outside of creatures since only one can be selected
+                    int nPointX = -1;
+                    int nPointY = -1;
+                    SDL_GetMouseState(&nPointX, &nPointY);
+
+                    Creature *pFocus = nullptr;
+                    for(auto pRecord: m_CreatureRecord){
+                        if(true
+                                && pRecord.second != m_MyHero
+                                && pRecord.second->CanFocus(m_ViewX + nPointX, m_ViewY + nPointY)){
+                            if(false
+                                    || !pFocus
+                                    ||  pFocus->Y() < pRecord.second->Y()){
+                                // 1. currently we have no candidate yet
+                                // 2. we have candidate but it's not at more front location
+                                pFocus = pRecord.second;
+                            }
+                        }
+                    }
+
+                    if(pFocus){
+                        pFocus->Focus(FOCUS_MOUSE, true);
+                        m_FocusUIDV[FOCUS_MOUSE] = pFocus->UID();
+                    }
+                    return m_FocusUIDV[FOCUS_MOUSE];
+                }
+            default:
+                {
+                    return m_FocusUIDV[nFocusType];
+                }
         }
     }
+    
+    return 0;
 }
 
 void ProcessRun::Draw()
@@ -316,6 +338,25 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
         case SDL_MOUSEBUTTONDOWN:
             {
                 switch(rstEvent.button.button){
+                    case SDL_BUTTON_LEFT:
+                        {
+                            if(auto nUID = FocusUID(FOCUS_MOUSE)){
+                                if(auto pCreature = RetrieveUID(nUID)){
+                                    m_FocusUIDV[FOCUS_ATTACK] = nUID;
+                                    m_MyHero->ParseNewAction({
+                                            ACTION_ATTACK,
+                                            MOTION_NONE,
+                                            1,
+                                            DIR_NONE,
+                                            m_MyHero->CurrMotion().EndX,
+                                            m_MyHero->CurrMotion().EndY,
+                                            pCreature->X(),
+                                            pCreature->Y(),
+                                            MapID()}, false);
+                                }
+                            }
+                            break;
+                        }
                     case SDL_BUTTON_RIGHT:
                         {
                             // in mir2ei how human moves
@@ -325,10 +366,9 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             // 4. if "+GOOD" client will release the motion lock
                             // 5. if "+FAIL" client will use the backup position and direction
 
-                            int nX = -1;
-                            int nY = -1;
-                            if(LocatePoint(rstEvent.button.x, rstEvent.button.y, &nX, &nY)){
-                                if(LDistance2(m_MyHero->CurrMotion().EndX, m_MyHero->CurrMotion().EndY, nX, nY)){
+                            if(auto nUID = FocusUID(FOCUS_MOUSE)){
+                                if(auto pCreature = RetrieveUID(nUID)){
+                                    m_FocusUIDV[FOCUS_ATTACK] = nUID;
                                     m_MyHero->ParseNewAction({
                                             ACTION_MOVE,
                                             m_MyHero->OnHorse() ? 1 : 0,
@@ -336,12 +376,28 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                             DIR_NONE,
                                             m_MyHero->CurrMotion().EndX,
                                             m_MyHero->CurrMotion().EndY,
-                                            nX,
-                                            nY,
+                                            pCreature->X(),
+                                            pCreature->Y(),
                                             MapID()}, false);
                                 }
+                            }else{
+                                int nX = -1;
+                                int nY = -1;
+                                if(LocatePoint(rstEvent.button.x, rstEvent.button.y, &nX, &nY)){
+                                    if(LDistance2(m_MyHero->CurrMotion().EndX, m_MyHero->CurrMotion().EndY, nX, nY)){
+                                        m_MyHero->ParseNewAction({
+                                                ACTION_MOVE,
+                                                m_MyHero->OnHorse() ? 1 : 0,
+                                                100,
+                                                DIR_NONE,
+                                                m_MyHero->CurrMotion().EndX,
+                                                m_MyHero->CurrMotion().EndY,
+                                                nX,
+                                                nY,
+                                                MapID()}, false);
+                                    }
+                                }
                             }
-
                             break;
                         }
                     default:
@@ -746,4 +802,37 @@ bool ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, cons
 bool ProcessRun::OnMap(uint32_t nMapID, int nX, int nY) const
 {
     return (MapID() == nMapID) && m_Mir2xMapData.ValidC(nX, nY);
+}
+
+Creature *ProcessRun::RetrieveUID(uint32_t nUID)
+{
+    if(nUID){
+        auto pRecord = m_CreatureRecord.find(nUID);
+        if(pRecord != m_CreatureRecord.end()){
+            if(true
+                    && pRecord->second
+                    && pRecord->second->Active()
+                    && pRecord->second->UID() == nUID){
+                // here return the naked pointer
+                // OK since we force to use single thread
+                return pRecord->second;
+            }
+
+            // invalid record found
+            // delete it as garbage collector
+            delete pRecord->second;
+            m_CreatureRecord.erase(pRecord);
+        }
+    }
+    return nullptr;
+}
+
+bool ProcessRun::LocateUID(uint32_t nUID, int *pX, int *pY)
+{
+    if(auto pCreature = RetrieveUID(nUID)){
+        if(pX){ *pX = pCreature->X(); }
+        if(pY){ *pY = pCreature->Y(); }
+        return true;
+    }
+    return false;
 }

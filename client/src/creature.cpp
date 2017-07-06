@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/05/2017 00:24:19
+ *  Last Modified: 07/06/2017 12:59:01
  *
  *    Description: 
  *
@@ -410,7 +410,7 @@ bool Creature::UpdateGeneralMotion(bool bLooped)
             return MoveNextMotion();
         }
     }
-    return true;
+    return false;
 }
 
 bool Creature::MotionQueueValid()
@@ -455,5 +455,48 @@ bool Creature::DeadFadeOut()
                 break;
             }
     }
+    return false;
+}
+
+void Creature::Focus(int nFocusType, bool bFocus)
+{
+    if(nFocusType < (int)(m_FocusV.size())){
+        m_FocusV[nFocusType] = bFocus;
+    }
+}
+
+bool Creature::Focus(int nFocusType) const
+{
+    return (nFocusType < (int)(m_FocusV.size())) ? m_FocusV[nFocusType] : false;
+}
+
+bool Creature::Active()
+{
+    if(MotionValid(m_CurrMotion)){
+        switch(m_CurrMotion.Motion){
+            case MOTION_DIE:
+                {
+                    auto nFrameCount = MotionFrameCount(MOTION_DIE, m_CurrMotion.Direction);
+                    if(nFrameCount > 0){
+                        if(true
+                                && m_CurrMotion.Frame   == (nFrameCount - 1)
+                                && m_CurrMotion.FadeOut == (255)){
+                            return false;
+                        }
+
+                        return true;
+                    }else{
+                        extern Log *g_Log;
+                        g_Log->AddLog(LOGTYPE_WARNING, "Current motion is not valid");
+                        return false;
+                    }
+                }
+            default:
+                {
+                    return true;
+                }
+        }
+    }
+
     return false;
 }
