@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 07/04/2017 01:42:48
+ *  Last Modified: 07/06/2017 11:12:47
  *
  *    Description: 
  *
@@ -94,8 +94,8 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
 
             stSMA.X    = stAMA.X;
             stSMA.Y    = stAMA.Y;
-            stSMA.EndX = stAMA.EndX;
-            stSMA.EndY = stAMA.EndY;
+            stSMA.AimX = stAMA.AimX;
+            stSMA.AimY = stAMA.AimY;
 
             extern NetPodN *g_NetPodN;
             g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);
@@ -243,8 +243,8 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
         stSMA.Direction   = Direction();
         stSMA.X           = X();
         stSMA.Y           = Y();
-        stSMA.EndX        = X();
-        stSMA.EndY        = Y();
+        stSMA.AimX        = X();
+        stSMA.AimY        = Y();
 
         extern NetPodN *g_NetPodN;
         g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);

@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 07/04/2017 20:09:19
+ *  Last Modified: 07/06/2017 11:23:09
  *
  *    Description: 
  *
@@ -174,8 +174,8 @@ bool MyHero::ParseActionQueue()
                 {
                     int nX0 = stCurrAction.X;
                     int nY0 = stCurrAction.Y;
-                    int nX1 = stCurrAction.EndX;
-                    int nY1 = stCurrAction.EndY;
+                    int nX1 = stCurrAction.AimX;
+                    int nY1 = stCurrAction.AimY;
 
                     if(!m_ProcessRun->CanMove(false, nX0, nY0)){
                         extern Log *g_Log;
@@ -351,8 +351,8 @@ bool MyHero::ParseActionQueue()
             stCMA.Direction   = stCurrAction.Direction;
             stCMA.X           = stCurrAction.X;
             stCMA.Y           = stCurrAction.Y;
-            stCMA.EndX        = stCurrAction.EndX;
-            stCMA.EndY        = stCurrAction.EndY;
+            stCMA.AimX        = stCurrAction.AimX;
+            stCMA.AimY        = stCurrAction.AimY;
 
             extern Game *g_Game;
             g_Game->Send(CM_ACTION, stCMA);

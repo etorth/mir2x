@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 07/04/2017 01:41:59
+ *  Last Modified: 07/06/2017 11:13:48
  *
  *    Description: 
  *
@@ -50,8 +50,8 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
         m_LocationRecord[stAMA.UID].UID        = stAMA.UID;
         m_LocationRecord[stAMA.UID].MapID      = stAMA.MapID;
         m_LocationRecord[stAMA.UID].RecordTime = g_MonoServer->GetTimeTick();
-        m_LocationRecord[stAMA.UID].X          = stAMA.EndX;
-        m_LocationRecord[stAMA.UID].Y          = stAMA.EndY;
+        m_LocationRecord[stAMA.UID].X          = stAMA.AimX;
+        m_LocationRecord[stAMA.UID].Y          = stAMA.AimY;
 
         switch(stAMA.Action){
             case ACTION_DIE:
@@ -115,8 +115,8 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rs
 
         stAMA.X    = X();
         stAMA.Y    = Y();
-        stAMA.EndX = X();
-        stAMA.EndY = Y();
+        stAMA.AimX = X();
+        stAMA.AimY = Y();
 
         m_ActorPod->Forward({MPK_ACTION, stAMA}, rstAddress);
         return;

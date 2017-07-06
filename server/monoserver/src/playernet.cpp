@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 07/04/2017 15:38:01
+ *  Last Modified: 07/06/2017 11:10:51
  *
  *    Description: how player respond for different net package
  *
@@ -36,7 +36,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
 
             && m_Map
             && m_Map->ValidC(stCMA.X, stCMA.Y)
-            && m_Map->ValidC(stCMA.EndX, stCMA.EndY)){
+            && m_Map->ValidC(stCMA.AimX, stCMA.AimY)){
         switch((int)(stCMA.Action)){
             case ACTION_MOVE:
                 {
@@ -44,7 +44,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                     // client should sent action with only one-hop movement
 
                     int nMotionMode = -1;
-                    switch(LDistance2(stCMA.X, stCMA.Y, stCMA.EndX, stCMA.EndY)){
+                    switch(LDistance2(stCMA.X, stCMA.Y, stCMA.AimX, stCMA.AimY)){
                         case 1:
                         case 2:
                             {
@@ -74,8 +74,8 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Direction   = %d", (int)(stCMA.Direction));
                                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::X           = %d", (int)(stCMA.X));
                                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Y           = %d", (int)(stCMA.Y));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndX        = %d", (int)(stCMA.EndX));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::EndY        = %d", (int)(stCMA.EndY));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::AimX        = %d", (int)(stCMA.AimX));
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::AimY        = %d", (int)(stCMA.AimY));
                                 return;
                             }
                     }
@@ -88,8 +88,8 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
 
                     int nX0 = (int)(stCMA.X);
                     int nY0 = (int)(stCMA.Y);
-                    int nX1 = (int)(stCMA.EndX);
-                    int nY1 = (int)(stCMA.EndY);
+                    int nX1 = (int)(stCMA.AimX);
+                    int nY1 = (int)(stCMA.AimY);
 
                     switch(LDistance2(X(), Y(), nX0, nY0)){
                         case 0:

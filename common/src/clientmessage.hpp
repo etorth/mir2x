@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 07/02/2017 21:58:23
+ *  Last Modified: 07/06/2017 11:01:22
  *
  *    Description: net message used by client and mono-server
  *
@@ -58,8 +58,8 @@ struct CMAction
 
     uint16_t X;
     uint16_t Y;
-    uint16_t EndX;
-    uint16_t EndY;
+    uint16_t AimX;
+    uint16_t AimY;
 };
 
 struct CMQueryCORecord

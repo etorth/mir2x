@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 07/04/2017 19:52:16
+ *  Last Modified: 07/06/2017 11:00:48
  *
  *    Description: 
  *
@@ -209,8 +209,8 @@ struct AMAction
     int X;
     int Y;
     
-    int EndX;
-    int EndY;
+    int AimX;
+    int AimY;
 
     uint32_t ID;
 };

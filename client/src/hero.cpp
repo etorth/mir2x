@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 07/04/2017 15:45:13
+ *  Last Modified: 07/06/2017 11:26:05
  *
  *    Description: 
  *
@@ -364,7 +364,7 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                 }
             case ACTION_MOVE:
                 {
-                    if(auto stMotionNode = MakeMotionWalk(rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY, rstAction.Speed)){
+                    if(auto stMotionNode = MakeMotionWalk(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY, rstAction.Speed)){
                         m_MotionQueue.push_back(stMotionNode);
                     }
                     break;

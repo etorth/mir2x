@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/02/2017 21:39:16
+ *  Last Modified: 07/06/2017 11:15:29
  *
  *    Description: 
  *
@@ -70,8 +70,8 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         stSMA.Direction,
         stSMA.X,
         stSMA.Y,
-        stSMA.EndX,
-        stSMA.EndY,
+        stSMA.AimX,
+        stSMA.AimY,
         stSMA.MapID
     };
 

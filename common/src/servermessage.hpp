@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 07/02/2017 21:51:02
+ *  Last Modified: 07/06/2017 11:03:23
  *
  *    Description: net message used by client and mono-server
  *
@@ -36,12 +36,12 @@ enum: uint8_t
 };
 
 #pragma pack(push, 1)
-typedef struct
+struct SMPing
 {
     uint32_t Tick;
-}SMPing;
+};
 
-typedef struct
+struct SMLoginOK
 {
     uint32_t UID;
     uint32_t DBID;
@@ -54,14 +54,14 @@ typedef struct
 
     uint32_t JobID;
     uint32_t Level;
-}SMLoginOK;
+};
 
-typedef struct
+struct SMLoginFail
 {
     uint32_t FailID;
-}SMLoginFail;
+};
 
-typedef struct
+struct SMAction
 {
     uint32_t UID;
     uint32_t MapID;
@@ -73,18 +73,11 @@ typedef struct
 
     uint16_t X;
     uint16_t Y;
-    uint16_t EndX;
-    uint16_t EndY;
-}SMAction;
+    uint16_t AimX;
+    uint16_t AimY;
+};
 
-typedef struct
-{
-    uint32_t MonsterID;
-    uint32_t LookIDN;
-    uint32_t LookID;
-}SMMonsterGInfo;
-
-typedef union
+union SMCORecord
 {
     uint8_t Type;
 
@@ -125,25 +118,25 @@ typedef union
         struct _Common _MemoryAlign;
         uint32_t NPCID;
     }NPC;
-}SMCORecord;
+};
 
-typedef struct
+struct SMUpdateHP
 {
     uint32_t UID;
     uint32_t MapID;
 
     uint32_t HP;
     uint32_t HPMax;
-}SMUpdateHP;
+};
 
-typedef struct
+struct SMDeadFadeOut
 {
     uint32_t UID;
     uint32_t MapID;
 
     uint32_t X;
     uint32_t Y;
-}SMDeadFadeOut;
+};
 #pragma pack(pop)
 
 class SMSGParam: public MessageBase

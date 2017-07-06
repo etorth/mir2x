@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/04/2017 01:38:39
+ *  Last Modified: 07/06/2017 11:11:41
  *
  *    Description: 
  *
@@ -189,8 +189,8 @@ void Player::ReportStand()
         stSMAction.Direction   = Direction();
         stSMAction.X           = X();
         stSMAction.Y           = Y();
-        stSMAction.EndX        = X();
-        stSMAction.EndY        = Y();
+        stSMAction.AimX        = X();
+        stSMAction.AimY        = Y();
 
         extern NetPodN *g_NetPodN;
         g_NetPodN->Send(m_SessionID, SM_ACTION, stSMAction);

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 07/04/2017 12:37:24
+ *  Last Modified: 07/06/2017 11:25:37
  *
  *    Description: 
  *
@@ -305,7 +305,7 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                 }
             case ACTION_MOVE:
                 {
-                    if(auto stMotionNode = MakeMotionWalk(rstAction.X, rstAction.Y, rstAction.EndX, rstAction.EndY, rstAction.Speed)){
+                    if(auto stMotionNode = MakeMotionWalk(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY, rstAction.Speed)){
                         m_MotionQueue.push_back(stMotionNode);
                     }
                     break;
@@ -458,9 +458,9 @@ bool Monster::ActionValid(const ActionNode &rstAction, bool bRemote)
                     // but locations should be on current map
 
                     if(bRemote){
-                        return m_ProcessRun->CanMove(false, rstAction.EndX, rstAction.EndY);
+                        return m_ProcessRun->CanMove(false, rstAction.AimX, rstAction.AimY);
                     }else{
-                        return m_ProcessRun->OnMap(rstAction.MapID, rstAction.EndX, rstAction.EndY);
+                        return m_ProcessRun->OnMap(rstAction.MapID, rstAction.AimX, rstAction.AimY);
                     }
                 }
             case ACTION_ATTACK:

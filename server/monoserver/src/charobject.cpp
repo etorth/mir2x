@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/05/2017 23:54:58
+ *  Last Modified: 07/06/2017 11:09:15
  *
  *    Description: 
  *
@@ -115,8 +115,8 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
 
         stAMA.X    = rstAction.X;
         stAMA.Y    = rstAction.Y;
-        stAMA.EndX = rstAction.EndX;
-        stAMA.EndY = rstAction.EndY;
+        stAMA.AimX = rstAction.AimX;
+        stAMA.AimY = rstAction.AimY;
 
         m_ActorPod->Forward({MPK_ACTION, stAMA}, m_Map->GetAddress());
         return;
