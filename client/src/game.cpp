@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/05/2017 18:48:09
+ *  Last Modified: 07/06/2017 18:08:12
  *
  *    Description:
  *
@@ -35,7 +35,8 @@ Game::Game()
     , m_CurrentProcess(nullptr)
 {
     // load PNGTexDB
-    extern PNGTexDBN    *g_PNGTexDBN;
+    extern PNGTexDBN    *g_ProgUseDBN;
+    extern PNGTexDBN    *g_MapDBN;
     extern PNGTexOffDBN *g_HeroGfxDBN;
     extern PNGTexOffDBN *g_MonsterDBN;
     extern PNGTexOffDBN *g_WeaponDBN;
@@ -45,13 +46,22 @@ Game::Game()
     extern Log          *g_Log;
 
     // texture path
-    auto pNode = g_XMLConf->GetXMLNode("Root/Texture/PNGTexDBN");
+    auto pNode = g_XMLConf->GetXMLNode("Root/Texture/ProgUseDBN");
     if(!pNode){
-        g_Log->AddLog(LOGTYPE_WARNING, "No PNGTexDBN path found in configuration.");
+        g_Log->AddLog(LOGTYPE_WARNING, "No ProgUseDBN path found in configuration.");
         throw std::error_code();
     }
-    g_Log->AddLog(LOGTYPE_INFO, "PNGTexDBN path: %s", pNode->GetText());
-    g_PNGTexDBN->Load(pNode->GetText());
+    g_Log->AddLog(LOGTYPE_INFO, "ProgUseDBN path: %s", pNode->GetText());
+    g_ProgUseDBN->Load(pNode->GetText());
+
+    // map texutre path
+    pNode = g_XMLConf->GetXMLNode("Root/Texture/MapDBN");
+    if(!pNode){
+        g_Log->AddLog(LOGTYPE_WARNING, "No MapDBN path found in configuration.");
+        throw std::error_code();
+    }
+    g_Log->AddLog(LOGTYPE_INFO, "MapDBN path: %s", pNode->GetText());
+    g_MapDBN->Load(pNode->GetText());
 
     // fontex load
     pNode = g_XMLConf->GetXMLNode("Root/Font/FontexDBN");

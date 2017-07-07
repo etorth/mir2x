@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 06/25/2017 22:58:53
+ *  Last Modified: 07/06/2017 18:32:52
  *
  *    Description:
  *
@@ -53,11 +53,12 @@ void ControlBoard::Update(double fMS)
 
 void ControlBoard::DrawEx(int, int, int, int, int, int)
 {
-    extern PNGTexDBN *g_PNGTexDBN;
+    extern PNGTexDBN *g_ProgUseDBN;
     extern SDLDevice *g_SDLDevice;
 
-    g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve((0XFF << 16) + 0X0012),   0, 466);
-    g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve((0XFF << 16) + 0X0013), 178, 448);
+    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X02000000), 537, 488);
+    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000012),   0, 466);
+    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000013), 178, 448);
 
     g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
     g_SDLDevice->DrawRectangle(m_CmdLine.X(), m_CmdLine.Y(), m_CmdLine.W(), m_CmdLine.H());

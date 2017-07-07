@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 07/04/2017 14:51:17
+ *  Last Modified: 07/06/2017 17:27:51
  *
  *    Description: 
  *
@@ -31,14 +31,11 @@ using PNGTexDBType = PNGTexDB<PNGTEXDBN_LC_DEPTH, PNGTEXDBN_LC_LENGTH, PNGTEXDBN
 class PNGTexDBN: public PNGTexDBType
 {
     public:
-        PNGTexDBN(): PNGTexDBType()
-        {
-            extern PNGTexDBN *g_PNGTexDBN;
-            if(g_PNGTexDBN){
-                throw std::runtime_error("one instance for PNGTexDBN please");
-            }
-        }
+        PNGTexDBN()
+            : PNGTexDBType()
+        {}
 
+    public:
         virtual ~PNGTexDBN() = default;
 
     public:

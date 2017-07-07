@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 07/04/2017 00:05:19
+ *  Last Modified: 07/06/2017 16:55:36
  *
  *    Description: 
  *
@@ -31,7 +31,8 @@
 
 Log            *g_Log           = nullptr; // log information handler, must be inited first
 ClientEnv      *g_ClientEnv     = nullptr;
-PNGTexDBN      *g_PNGTexDBN     = nullptr; // database for all PNG texture only
+PNGTexDBN      *g_ProgUseDBN     = nullptr; // database for all PNG texture only
+PNGTexDBN      *g_MapDBN        = nullptr;
 PNGTexOffDBN   *g_PNGTexOffDBN  = nullptr; // database for all PNG texture and offset information
 PNGTexOffDBN   *g_HeroGfxDBN    = nullptr; // database for hero
 PNGTexOffDBN   *g_MonsterDBN    = nullptr; // database for monster
@@ -54,7 +55,8 @@ int main()
         delete g_ClientEnv   ; g_ClientEnv   = nullptr;
         delete g_XMLConf     ; g_XMLConf     = nullptr;
         delete g_SDLDevice   ; g_SDLDevice   = nullptr;
-        delete g_PNGTexDBN   ; g_PNGTexDBN   = nullptr;
+        delete g_ProgUseDBN   ; g_ProgUseDBN   = nullptr;
+        delete g_MapDBN      ; g_MapDBN      = nullptr;
         delete g_HeroGfxDBN  ; g_HeroGfxDBN  = nullptr;
         delete g_MonsterDBN  ; g_MonsterDBN  = nullptr;
         delete g_FontexDBN   ; g_FontexDBN   = nullptr;
@@ -68,7 +70,8 @@ int main()
     g_ClientEnv    = new ClientEnv();
     g_XMLConf      = new XMLConf();
     g_SDLDevice    = new SDLDevice();
-    g_PNGTexDBN    = new PNGTexDBN();
+    g_ProgUseDBN    = new PNGTexDBN();
+    g_MapDBN       = new PNGTexDBN();
     g_HeroGfxDBN   = new PNGTexOffDBN();
     g_MonsterDBN   = new PNGTexOffDBN();
     g_WeaponDBN    = new PNGTexOffDBN();

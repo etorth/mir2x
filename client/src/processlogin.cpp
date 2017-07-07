@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 07/04/2017 15:01:30
+ *  Last Modified: 07/06/2017 18:03:08
  *
  *    Description: 
  *
@@ -31,10 +31,10 @@
 
 ProcessLogin::ProcessLogin()
 	: Process()
-	, m_Button1(150, 482, (255 << 16) +  5, [](){})
-	, m_Button2(352, 482, (255 << 16) +  8, [](){})
-	, m_Button3(554, 482, (255 << 16) + 11, [](){ exit(0); })
-    , m_Button4(600, 536, (255 << 16) + 14, [this](){ DoLogin(); })
+	, m_Button1(150, 482, 0X00000005, [](){})
+	, m_Button2(352, 482, 0X00000008, [](){})
+	, m_Button3(554, 482, 0X0000000B, [](){ exit(0); })
+    , m_Button4(600, 536, 0X0000000E, [this](){ DoLogin(); })
 	, m_IDBox(159, 540, 146, 18, 2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
 	, m_PasswordBox(409, 540, 146, 18, true, 2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
     , m_InputBoard(100, 100, 300, 200, true, 296, 0, 2, {0XFF, 0XFF, 0X00, 0XFF}, 0, 15, 0, {0XFF, 0X00, 0X00, 0XFF})
@@ -51,13 +51,13 @@ void ProcessLogin::Update(double fMS)
 void ProcessLogin::Draw()
 {
     extern SDLDevice *g_SDLDevice;
-    extern PNGTexDBN *g_PNGTexDBN;
+    extern PNGTexDBN *g_ProgUseDBN;
 
     g_SDLDevice->ClearScreen();
 
-    g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve(255,  3),   0,  75);
-    g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve(255,  4),   0, 465);
-    g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve(255, 17), 103, 536);
+    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000003),   0,  75);
+    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000004),   0, 465);
+    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000011), 103, 536);
 
     m_Button1.Draw();
     m_Button2.Draw();

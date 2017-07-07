@@ -24,8 +24,8 @@
 
 void TritexButton::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {
-    extern PNGTexDBN *g_PNGTexDBN;
+    extern PNGTexDBN *g_ProgUseDBN;
     extern SDLDevice *g_SDLDevice;
 
-    g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve(m_TexIDV[m_State]), nDstX, nDstY, nSrcX, nSrcY, nW, nH);
+    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(m_TexIDV[m_State]), nDstX, nDstY, nSrcX, nSrcY, nW, nH);
 }

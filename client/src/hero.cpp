@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 07/06/2017 11:26:05
+ *  Last Modified: 07/06/2017 17:56:09
  *
  *    Description: 
  *
@@ -142,9 +142,9 @@ bool Hero::Draw(int nViewX, int nViewY)
             }
         default:
             {
-                extern PNGTexDBN *g_PNGTexDBN;
-                auto pBar0 = g_PNGTexDBN->Retrieve(0XFF0014);
-                auto pBar1 = g_PNGTexDBN->Retrieve(0XFF0015);
+                extern PNGTexDBN *g_ProgUseDBN;
+                auto pBar0 = g_ProgUseDBN->Retrieve(0X00000014);
+                auto pBar1 = g_ProgUseDBN->Retrieve(0X00000015);
 
                 int nW = -1;
                 int nH = -1;

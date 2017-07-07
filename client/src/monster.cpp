@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 07/06/2017 15:51:27
+ *  Last Modified: 07/06/2017 17:56:26
  *
  *    Description: 
  *
@@ -187,9 +187,9 @@ bool Monster::Draw(int nViewX, int nViewY)
         // draw HP bar
         // if current m_HPMqx is zero we draw full bar
         if(m_CurrMotion.Motion != MOTION_DIE){
-            extern PNGTexDBN *g_PNGTexDBN;
-            auto pBar0 = g_PNGTexDBN->Retrieve(0XFF0014);
-            auto pBar1 = g_PNGTexDBN->Retrieve(0XFF0015);
+            extern PNGTexDBN *g_ProgUseDBN;
+            auto pBar0 = g_ProgUseDBN->Retrieve(0X00000014);
+            auto pBar1 = g_ProgUseDBN->Retrieve(0X00000015);
 
             int nW = -1;
             int nH = -1;

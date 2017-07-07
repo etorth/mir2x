@@ -3,7 +3,7 @@
  *
  *       Filename: buttonbase.hpp
  *        Created: 08/25/2016 04:12:57
- *  Last Modified: 07/04/2017 12:39:32
+ *  Last Modified: 07/06/2017 17:51:01
  *
  *    Description: basic button class to handle event logic only
  *
@@ -71,8 +71,8 @@ class ButtonBase: public Widget
             int nH = 0;
             for(int nState = 0; nState < 2; ++nState){
                 if(m_TexIDV[nState]){
-                    extern PNGTexDBN *g_PNGTexDBN;
-                    if(auto pTexture = g_PNGTexDBN->Retrieve(m_TexIDV[nState])){
+                    extern PNGTexDBN *g_ProgUseDBN;
+                    if(auto pTexture = g_ProgUseDBN->Retrieve(m_TexIDV[nState])){
                         int nCurrW, nCurrH;
                         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nCurrW, &nCurrH)){
                             nW = std::max(nCurrW, nW);

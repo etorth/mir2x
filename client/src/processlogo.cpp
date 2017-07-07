@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.cpp
  *        Created: 8/13/2015 12:15:38 AM
- *  Last Modified: 03/20/2016 19:42:52
+ *  Last Modified: 07/06/2017 18:00:26
  *
  *    Description: 
  *
@@ -70,7 +70,7 @@ void ProcessLogo::Update(double fDMS)
 void ProcessLogo::Draw()
 {
     extern SDLDevice *g_SDLDevice;
-    extern PNGTexDBN *g_PNGTexDBN;
+    extern PNGTexDBN *g_ProgUseDBN;
 
     g_SDLDevice->ClearScreen();
     // TODO
@@ -82,7 +82,7 @@ void ProcessLogo::Draw()
     // so any operation on texture should be done and consumed ASAP
 
     Uint8 bColor = std::lround(255 * Ratio());
-    auto pTexture = g_PNGTexDBN->Retrieve(255, 0);
+    auto pTexture = g_ProgUseDBN->Retrieve(0X00000000);
     SDL_SetTextureColorMod(pTexture, bColor, bColor, bColor);
 
     g_SDLDevice->DrawTexture(pTexture, 0, 0);

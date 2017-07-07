@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 08/14/2015 2:47:49 PM
- *  Last Modified: 08/26/2016 13:05:29
+ *  Last Modified: 07/06/2017 18:01:12
  *
  *    Description: 
  *
@@ -63,10 +63,10 @@ void ProcessSyrc::Update(double fDeltaMS)
 
 void ProcessSyrc::Draw()
 {
-    extern PNGTexDBN  *g_PNGTexDBN;
+    extern PNGTexDBN  *g_ProgUseDBN;
     extern SDLDevice  *g_SDLDevice;
 
-    auto pTexture = g_PNGTexDBN->Retrieve(255, 2);
+    auto pTexture = g_ProgUseDBN->Retrieve(0X00000002);
     int nW, nH;
 
     SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH);
@@ -79,7 +79,7 @@ void ProcessSyrc::Draw()
             0,    // src y
             std::lround(nW * (m_Ratio / 100.0)), // src w
             nH);  // src h
-    g_SDLDevice->DrawTexture(g_PNGTexDBN->Retrieve(255, 1), 0, 0);
+    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000001), 0, 0);
 
     int nInfoX = (g_SDLDevice->WindowW(false) - m_Info.W()) / 2;
     int nInfoY = 528 + (nH - m_Info.H()) / 2;
