@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 05/20/2017 22:05:55
+ *  Last Modified: 07/07/2017 11:14:28
  *
  *    Description: 
  *
@@ -2252,7 +2252,16 @@ std::string TokenBoard::Print(bool bSelectOnly)
         }
     }else{
         // output all
-        if(m_LineV.empty()){ return stObjectList.Print(); }
+        if(false
+                || m_LineV.empty()
+                || m_LineV.back().empty()){
+
+            // TODO
+            // temporarily hack here
+            // I get crash if don't check m_LineV.back().empty()
+            return stObjectList.Print();
+        }
+
         nX0 = 0;
         nY0 = 0;
         nX1 = (int)m_LineV.back().size() - 1;
@@ -2260,7 +2269,8 @@ std::string TokenBoard::Print(bool bSelectOnly)
     }
 
     // OK now (nX0, nY0, nX1, nY1) valid, let's start
-    auto fnAddObject = [this](XMLObjectList *pList, const char *szObjectContent, int nSectionID){
+    auto fnAddObject = [this](XMLObjectList *pList, const char *szObjectContent, int nSectionID) -> void
+    {
         if(!(pList && SectionValid(nSectionID, false))){ return; }
         auto const &rstSEC = m_SectionV[nSectionID];
         switch(rstSEC.Info.Type){
@@ -2320,8 +2330,7 @@ std::string TokenBoard::Print(bool bSelectOnly)
         const auto &rstTokenBox = m_LineV[nY0][nX0];
         if(!SectionValid(rstTokenBox.Section, false)){
             extern Log *g_Log;
-            g_Log->AddLog(LOGTYPE_WARNING,
-                    "section id %d invalid for token (%d, %d)", rstTokenBox.Section, nX0, nY0);
+            g_Log->AddLog(LOGTYPE_WARNING, "section id %d invalid for token (%d, %d)", rstTokenBox.Section, nX0, nY0);
             return stObjectList.Print();
         }
 
@@ -2347,9 +2356,7 @@ std::string TokenBoard::Print(bool bSelectOnly)
             default:
                 {
                     extern Log *g_Log;
-                    g_Log->AddLog(LOGTYPE_WARNING,
-                            "oooops unknown section type %d for section %d at token (%d, %d)",
-                            rstSection.Info.Type, rstTokenBox.Section, nX0, nY0);
+                    g_Log->AddLog(LOGTYPE_WARNING, "Unknown section type %d for section %d at token (%d, %d)", rstSection.Info.Type, rstTokenBox.Section, nX0, nY0);
                     return stObjectList.Print();
                 }
         }
