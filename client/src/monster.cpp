@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 07/06/2017 17:56:26
+ *  Last Modified: 07/06/2017 23:45:27
  *
  *    Description: 
  *
@@ -147,7 +147,7 @@ bool Monster::Draw(int nViewX, int nViewY)
         // always reset the alpha mode for each texture because texture is shared
         // one texture to draw can be configured with different alpha mode for other creatures
         extern SDLDevice *g_SDLDevice;
-        if(pFrame0){ SDL_SetTextureAlphaMod(pFrame1, 255); }
+        if(pFrame0){ SDL_SetTextureAlphaMod(pFrame0, 255); }
         if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
 
         if(true

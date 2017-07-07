@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/06/2017 18:08:12
+ *  Last Modified: 07/06/2017 23:51:26
  *
  *    Description:
  *
@@ -37,10 +37,9 @@ Game::Game()
     // load PNGTexDB
     extern PNGTexDBN    *g_ProgUseDBN;
     extern PNGTexDBN    *g_MapDBN;
-    extern PNGTexOffDBN *g_HeroGfxDBN;
+    extern PNGTexOffDBN *g_HeroDBN;
     extern PNGTexOffDBN *g_MonsterDBN;
     extern PNGTexOffDBN *g_WeaponDBN;
-    extern PNGTexOffDBN *g_PNGTexOffDBN;
     extern FontexDBN    *g_FontexDBN;
     extern XMLConf      *g_XMLConf;
     extern Log          *g_Log;
@@ -72,23 +71,14 @@ Game::Game()
     g_Log->AddLog(LOGTYPE_INFO, "FontexDBN path: %s", pNode->GetText());
     g_FontexDBN->Load(pNode->GetText());
 
-    // texture with offset load
-    pNode = g_XMLConf->GetXMLNode("Root/Texture/PNGTexOffDBN");
-    if(!pNode){
-        g_Log->AddLog(LOGTYPE_WARNING, "No PNGTexOffDBN path found in configuration.");
-        throw std::error_code();
-    }
-    g_Log->AddLog(LOGTYPE_INFO, "PNGTexOffDBN path: %s", pNode->GetText());
-    g_PNGTexOffDBN->Load(pNode->GetText());
-
     // hero gfx resource
-    pNode = g_XMLConf->GetXMLNode("Root/Texture/HeroGfxDBN");
+    pNode = g_XMLConf->GetXMLNode("Root/Texture/HeroDBN");
     if(!pNode){
-        g_Log->AddLog(LOGTYPE_WARNING, "No HeroGfxDBN path found in configuration.");
+        g_Log->AddLog(LOGTYPE_WARNING, "No HeroDBN path found in configuration.");
         throw std::error_code();
     }
-    g_Log->AddLog(LOGTYPE_INFO, "HeroGfxDBN path: %s", pNode->GetText());
-    g_HeroGfxDBN->Load(pNode->GetText());
+    g_Log->AddLog(LOGTYPE_INFO, "HeroDBN path: %s", pNode->GetText());
+    g_HeroDBN->Load(pNode->GetText());
 
     // monster resource
     pNode = g_XMLConf->GetXMLNode("Root/Texture/MonsterDBN");

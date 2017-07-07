@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 03/18/2016 00:33:02
+ *  Last Modified: 07/06/2017 23:51:59
  *
  *    Description: 
  *
@@ -32,13 +32,9 @@ using PNGTexOffDBType = PNGTexOffDB<
 class PNGTexOffDBN: public PNGTexOffDBType
 {
     public:
-        PNGTexOffDBN(): PNGTexOffDBType()
-        {
-            extern PNGTexOffDBN *g_PNGTexOffDBN;
-            if(g_PNGTexOffDBN){
-                throw std::runtime_error("one instance for PNGTexOffDBN please");
-            }
-        }
+        PNGTexOffDBN()
+            : PNGTexOffDBType()
+        {}
 
         virtual ~PNGTexOffDBN() = default;
 

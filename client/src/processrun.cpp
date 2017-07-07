@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/06/2017 22:25:01
+ *  Last Modified: 07/07/2017 00:55:09
  *
  *    Description: 
  *
@@ -324,7 +324,10 @@ void ProcessRun::Draw()
         }
     }
 
-    // draw the creature face here
+    // draw some GUI here instead of putting in ControlBoard
+    // for all widget without state, I prefer using the texture directly
+
+    // draw the creature face
     {
         extern SDLDevice *g_SDLDevice;
         extern PNGTexDBN *g_ProgUseDBN;
@@ -358,10 +361,46 @@ void ProcessRun::Draw()
             }
         }
 
-        g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(nFaceKey), 537, 488);
+        g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(nFaceKey), 534, 483);
     }
 
     m_ControbBoard.Draw();
+
+    // draw HP and MP texture
+    {
+        extern SDLDevice *g_SDLDevice;
+        extern PNGTexDBN *g_ProgUseDBN;
+
+        auto pHP = g_ProgUseDBN->Retrieve(0X00000018);
+        auto pMP = g_ProgUseDBN->Retrieve(0X00000019);
+
+        if(pHP && pMP){ 
+
+            // we need to call query
+            // so need to validate two textures here
+
+            int nHPH = -1;
+            int nHPW = -1;
+            int nMPH = -1;
+            int nMPW = -1;
+
+            SDL_QueryTexture(pHP, nullptr, nullptr, &nHPW, &nHPH);
+            SDL_QueryTexture(pMP, nullptr, nullptr, &nMPW, &nMPH);
+
+            double fLostHPRatio = (m_MyHero->HPMax() > 0) ? (1.0 - ((1.0 * m_MyHero->HP()) / m_MyHero->HPMax())) : 0.0;
+            double fLostMPRatio = (m_MyHero->MPMax() > 0) ? (1.0 - ((1.0 * m_MyHero->MP()) / m_MyHero->MPMax())) : 0.0;
+
+            fLostHPRatio = std::max<double>(std::min<double>(fLostHPRatio, 1.0), 0.0);
+            fLostMPRatio = std::max<double>(std::min<double>(fLostMPRatio, 1.0), 0.0);
+
+            auto nLostHPH = (int)(std::lround(nHPH * fLostHPRatio));
+            auto nLostMPH = (int)(std::lround(nMPH * fLostMPRatio));
+
+            g_SDLDevice->DrawTexture(pHP, 33, 474 + nLostHPH, 0, nLostHPH, nHPW, nHPH - nLostHPH);
+            g_SDLDevice->DrawTexture(pMP, 73, 474 + nLostMPH, 0, nLostMPH, nMPW, nMPH - nLostMPH);
+        }
+    }
+
     g_SDLDevice->Present();
 }
 

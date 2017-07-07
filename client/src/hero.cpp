@@ -81,9 +81,9 @@ bool Hero::Draw(int nViewX, int nViewY)
     int nDX1 = 0;
     int nDY1 = 0;
 
-    extern PNGTexOffDBN *g_HeroGfxDBN;
-    auto pFrame0 = g_HeroGfxDBN->Retrieve(nKey0, &nDX0, &nDY0);
-    auto pFrame1 = g_HeroGfxDBN->Retrieve(nKey1, &nDX1, &nDY1);
+    extern PNGTexOffDBN *g_HeroDBN;
+    auto pFrame0 = g_HeroDBN->Retrieve(nKey0, &nDX0, &nDY0);
+    auto pFrame1 = g_HeroDBN->Retrieve(nKey1, &nDX1, &nDY1);
 
     int nShiftX = 0;
     int nShiftY = 0;

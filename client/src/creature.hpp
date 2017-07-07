@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 07/06/2017 12:59:44
+ *  Last Modified: 07/07/2017 00:27:44
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -265,6 +265,13 @@ class Creature
 
     public:
         virtual int UpdateHP(int, int);
+
+    public:
+        int HP() const { return m_HP; }
+        int MP() const { return m_MP; }
+
+        int HPMax() const { return m_HPMax; }
+        int MPMax() const { return m_MPMax; }
 
     public:
         virtual bool DeadFadeOut();
