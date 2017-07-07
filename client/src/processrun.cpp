@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/06/2017 17:16:47
+ *  Last Modified: 07/06/2017 22:25:01
  *
  *    Description: 
  *
@@ -322,6 +322,43 @@ void ProcessRun::Draw()
                 }
             }
         }
+    }
+
+    // draw the creature face here
+    {
+        extern SDLDevice *g_SDLDevice;
+        extern PNGTexDBN *g_ProgUseDBN;
+
+        g_SDLDevice->PushColor(0, 0, 0, 0);
+        g_SDLDevice->FillRectangle(530, 485, 95, 105);
+        g_SDLDevice->PopColor();
+
+        uint32_t nFaceKey = 0X02000000;
+        if(auto nUID = FocusUID(FOCUS_MOUSE)){
+            if(auto pCreature = RetrieveUID(nUID)){
+                switch(pCreature->Type()){
+                    case CREATURE_PLAYER:
+                        {
+                            nFaceKey = 0X02000000;
+                            break;
+                        }
+                    case CREATURE_MONSTER:
+                        {
+                            auto nLookID = ((Monster*)(pCreature))->LookID();
+                            if(nLookID >= 0){
+                                nFaceKey = 0X01000000 + nLookID;
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+            }
+        }
+
+        g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(nFaceKey), 537, 488);
     }
 
     m_ControbBoard.Draw();

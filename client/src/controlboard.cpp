@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 07/06/2017 18:32:52
+ *  Last Modified: 07/06/2017 21:48:22
  *
  *    Description:
  *
@@ -56,7 +56,6 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
     extern PNGTexDBN *g_ProgUseDBN;
     extern SDLDevice *g_SDLDevice;
 
-    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X02000000), 537, 488);
     g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000012),   0, 466);
     g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000013), 178, 448);
 

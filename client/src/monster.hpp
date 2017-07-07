@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19
- *  Last Modified: 07/04/2017 12:28:18
+ *  Last Modified: 07/06/2017 22:21:45
  *
  *    Description:
  *
@@ -41,9 +41,6 @@ class Monster: public Creature
         {
             return CREATURE_MONSTER;
         }
-
-    public:
-        int LookID();
 
     public:
         bool Draw(int, int);
