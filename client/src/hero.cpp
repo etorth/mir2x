@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 07/06/2017 17:56:09
+ *  Last Modified: 07/08/2017 00:16:30
  *
  *    Description: 
  *
@@ -371,7 +371,16 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                 }
             case ACTION_ATTACK:
                 {
-                    m_MotionQueue.push_back({MOTION_ATTACK, 0, rstAction.Direction, rstAction.X, rstAction.Y});
+                    int nMotion = -1;
+                    switch(rstAction.ActionParam){
+                        default:
+                            {
+                                nMotion = MOTION_ONEHANDATTACK0;
+                                break;
+                            }
+                    }
+
+                    m_MotionQueue.push_back({nMotion, 0, rstAction.Direction, rstAction.X, rstAction.Y});
                     break;
                 }
             case ACTION_UNDERATTACK:
@@ -527,12 +536,13 @@ int Hero::MotionFrameCount(int nMotion, int nDirection) const
             && (nDirection > DIR_NONE)
             && (nDirection < DIR_MAX)){
         switch(nMotion){
-            case MOTION_STAND       : { return  4; }
-            case MOTION_WALK        : { return  6; }
-            case MOTION_RUN         : { return  6; }
-            case MOTION_ATTACK      : { return  6; }
-            case MOTION_UNDERATTACK : { return  3; }
-            default                 : { return -1; }
+            case MOTION_STAND          : { return  4; }
+            case MOTION_WALK           : { return  6; }
+            case MOTION_RUN            : { return  6; }
+            case MOTION_ATTACK         : { return  6; }
+            case MOTION_UNDERATTACK    : { return  3; }
+            case MOTION_ONEHANDATTACK0 : { return  6; }
+            default                    : { return -1; }
         }
     }else{ return -1; }
 }
@@ -891,7 +901,8 @@ MotionNode Hero::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed)
 int Hero::GfxMotionID(int nMotion)
 {
     if((nMotion > MOTION_NONE) && (nMotion < MOTION_MAX)){
-        static const std::unordered_map<char, int> stGfxMotionIDRecord = {
+        static const std::unordered_map<char, int> stGfxMotionIDRecord
+        {
             {(char)(MOTION_STAND                ),      0},
             {(char)(MOTION_WALK                 ),     21},
             {(char)(MOTION_RUN                  ),     22},
@@ -904,7 +915,7 @@ int Hero::GfxMotionID(int nMotion)
             {(char)(MOTION_UNDERATTACK          ),     15},
             {(char)(MOTION_DIE                  ),      7},
 
-            {(char)(MOTION_ONEHANDATTACK0       ),      8},
+            {(char)(MOTION_ONEHANDATTACK0       ),      9},
             {(char)(MOTION_ONEHANDATTACK1       ),      9},
             {(char)(MOTION_ONEHANDATTACK2       ),     10},
             {(char)(MOTION_ONEHANDATTACK3       ),     11},
@@ -912,7 +923,8 @@ int Hero::GfxMotionID(int nMotion)
             {(char)(MOTION_TWOHANDATTACK0       ),     12},
             {(char)(MOTION_TWOHANDATTACK1       ),     13},
             {(char)(MOTION_TWOHANDATTACK2       ),     14},
-            {(char)(MOTION_TWOHANDATTACK3       ),     15}};
+            {(char)(MOTION_TWOHANDATTACK3       ),     15}
+        };
         return (stGfxMotionIDRecord.find((char)(nMotion)) != stGfxMotionIDRecord.end()) ? stGfxMotionIDRecord.at((char)(nMotion)) : -1;
     }else{ return -1; }
 }

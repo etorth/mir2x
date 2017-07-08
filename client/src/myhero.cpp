@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 07/06/2017 11:23:09
+ *  Last Modified: 07/07/2017 23:53:02
  *
  *    Description: 
  *
@@ -147,6 +147,101 @@ bool MyHero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
     }
 
     return false;
+}
+
+bool MyHero::DecompMove(bool bCheckGround, bool bCheckCreature, bool bCheckMove, int nX0, int nY0, int nX1, int nY1, int *pXm, int *pYm)
+{
+    auto stPathNodeV = ParseMovePath(nX0, nY0, nX1, nY1, bCheckGround, bCheckCreature);
+    switch(stPathNodeV.size()){
+        case 0:
+        case 1:
+            {
+                return false;
+            }
+        default:
+            {
+                if(bCheckMove){
+
+                    // request to check if the first step is possible
+                    // to avoid creature to move into invalid or occupied grids
+
+                    auto nXt = stPathNodeV[1].X;
+                    auto nYt = stPathNodeV[1].Y;
+
+                    int nDX = (nXt > nX0) - (nXt < nX0);
+                    int nDY = (nYt > nY0) - (nYt < nY0);
+
+                    int nIndexMax = 0;
+                    switch(LDistance2(nX0, nY0, nXt, nYt)){
+                        case 1:
+                        case 2:
+                            {
+                                nIndexMax = 1;
+                                break;
+                            }
+                        case 4:
+                        case 8:
+                            {
+                                nIndexMax = 2;
+                                break;
+                            }
+                        case  9:
+                        case 18:
+                            {
+                                nIndexMax = 3;
+                                break;
+                            }
+                        default:
+                            {
+                                return false;
+                            }
+                    }
+
+                    int nReachIndexMax = 0;
+                    for(int nIndex = 1; nIndex <= nIndexMax; ++nIndex){
+                        if(m_ProcessRun->CanMove(true, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+                            nReachIndexMax = nIndex;
+                        }else{ break; }
+                    }
+
+                    switch(nReachIndexMax){
+                        case 0:
+                            {
+                                // we find an impossible step
+                                // need to reject and report failure
+                                return false;
+                            }
+                        default:
+                            {
+                                // we allow step size as 1, 2, 3
+                                // every creature has two possible step size 1, MaxStep
+
+                                // so if it failed to reach grid with MaxStep size
+                                // it should use sizeStep as 1 only
+
+                                // like if human on horse failed for a MOTION_HORSERUN
+                                // then it should only use MOTION_HORSEWALK, rather than MOTION_RUN
+
+                                if(pXm){ *pXm = (nReachIndexMax == nIndexMax) ? nXt : (nX0 + nDX); }
+                                if(pYm){ *pYm = (nReachIndexMax == nIndexMax) ? nYt : (nY0 + nDY); }
+
+                                return true;
+                            }
+                    }
+
+                }else{
+
+                    // won't check if srcLoc -> midLoc is possible
+                    // 1. could contain invalid grids if not set bCheckGround
+                    // 2. could contain occuped grids if not set bCheckCreature
+
+                    if(pXm){ *pXm = stPathNodeV[1].X; }
+                    if(pYm){ *pYm = stPathNodeV[1].Y; }
+
+                    return true;
+                }
+            }
+    }
 }
 
 bool MyHero::ParseActionQueue()
@@ -326,6 +421,143 @@ bool MyHero::ParseActionQueue()
                             }
                     }
 
+                    break;
+                }
+            case ACTION_ATTACK:
+                {
+                    int nX0 = m_CurrMotion.EndX;
+                    int nY0 = m_CurrMotion.EndY;
+                    int nX1 = stCurrAction.AimX;
+                    int nY1 = stCurrAction.AimY;
+
+                    switch(LDistance2(nX0, nY0, nX1, nY1)){
+                        case 0:
+                            {
+                                extern Log *g_Log;
+                                g_Log->AddLog(LOGTYPE_WARNING, "Invalid attack location (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+
+                                m_ActionQueue.clear();
+                                return false;
+                            }
+                        case 1:
+                        case 2:
+                            {
+                                // don't parse more than one action at one call
+                                // ok we are at the place for attack, assign direction here
+
+                                static const int nDirV[][3] = {
+                                    {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
+                                    {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
+                                    {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
+
+                                auto nSDX = nX1 - nX0 + 1;
+                                auto nSDY = nY1 - nY0 + 1;
+
+                                m_ActionQueue.emplace_front(
+                                        ACTION_ATTACK,
+                                        stCurrAction.ActionParam,
+                                        stCurrAction.Speed,
+                                        nDirV[nSDY][nSDX],
+                                        m_CurrMotion.EndX,
+                                        m_CurrMotion.EndY,
+                                        stCurrAction.AimX,
+                                        stCurrAction.AimY,
+                                        m_ProcessRun->MapID());
+
+                                break;
+                            }
+                        default:
+                            {
+                                // complex part
+                                // not close enough for the PLAIN_PHY_ATTACK
+                                // need to schedule a path to move closer and then attack
+
+                                int nXt = -1;
+                                int nYt = -1;
+
+                                if(DecompMove(true, true, true, nX0, nY0, nX1, nY1, &nXt, &nYt)){
+                                    if(true
+                                            && nXt != nX1
+                                            && nYt != nY1){
+
+                                        // we find a distinct point as middle point
+                                        // we firstly move to (nXt, nYt) then parse the attack action
+                                        m_ActionQueue.emplace_front(
+                                                ACTION_ATTACK,
+                                                stCurrAction.ActionParam,
+                                                stCurrAction.Speed,
+                                                DIR_NONE,
+                                                nXt,
+                                                nYt,
+                                                nX1,
+                                                nY1,
+                                                m_ProcessRun->MapID());
+
+                                        m_ActionQueue.emplace_front(
+                                                ACTION_MOVE,
+                                                OnHorse() ? 1 : 0,
+                                                stCurrAction.Speed,
+                                                DIR_NONE,
+                                                nX0,
+                                                nY0,
+                                                nXt,
+                                                nYt,
+                                                m_ProcessRun->MapID());
+                                    }else{
+
+                                        // one hop we can reach the attack location
+                                        // but we know step size between (nX0, nY0) and (nX1, nY1) > 1
+
+                                        int nDX = (nXt > nX0) - (nXt < nX0);
+                                        int nDY = (nYt > nY0) - (nYt < nY0);
+
+                                        m_ActionQueue.emplace_front(
+                                                ACTION_ATTACK,
+                                                stCurrAction.ActionParam,
+                                                stCurrAction.Speed,
+                                                DIR_NONE,
+                                                nX0 + nDX,
+                                                nY0 + nDY,
+                                                nX1,
+                                                nY1,
+                                                m_ProcessRun->MapID());
+
+                                        m_ActionQueue.emplace_front(
+                                                ACTION_MOVE,
+                                                OnHorse() ? 1 : 0,
+                                                stCurrAction.Speed,
+                                                DIR_NONE,
+                                                nX0,
+                                                nY0,
+                                                nX0 + nDX,
+                                                nY0 + nDY,
+                                                m_ProcessRun->MapID());
+                                    }
+
+                                    // always return true if DecompMove succeeds
+                                    // no matter how it decompose it
+                                    return true;
+                                }else{
+
+                                    // decompse failed, why it failed?
+                                    // if can't reach we need to reject current action
+                                    // if caused by occupied grids of creatures, we need to keep it
+
+                                    if(DecompMove(true, false, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
+
+                                        // keep it
+                                        m_ActionQueue.emplace_front(stCurrAction);
+                                        return true;
+                                    }else{
+
+                                        m_ActionQueue.clear();
+                                        return false;
+                                    }
+                                }
+                                break;
+                            }
+                            break;
+                    }
                     break;
                 }
             default:

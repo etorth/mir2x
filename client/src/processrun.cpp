@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/07/2017 00:55:09
+ *  Last Modified: 07/08/2017 00:23:57
  *
  *    Description: 
  *
@@ -91,6 +91,21 @@ void ProcessRun::Update(double)
     // creatures could move
     // this can invalidate mouse-selected one
     FocusUID(FOCUS_MOUSE);
+
+    // if(m_FocusUIDV[FOCUS_ATTACK]){
+    //     if(auto pCreature = RetrieveUID(m_FocusUIDV[FOCUS_ATTACK])){
+    //         m_MyHero->ParseNewAction({
+    //                 ACTION_ATTACK,
+    //                 0,
+    //                 100,
+    //                 DIR_NONE,
+    //                 m_MyHero->CurrMotion().EndX,
+    //                 m_MyHero->CurrMotion().EndY,
+    //                 pCreature->X(),
+    //                 pCreature->Y(),
+    //                 MapID()}, false);
+    //     }
+    // }
 }
 
 uint32_t ProcessRun::FocusUID(int nFocusType)
@@ -407,8 +422,7 @@ void ProcessRun::Draw()
 void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
 {
     bool bValid = true;
-    if(false
-            || m_ControbBoard.ProcessEvent(rstEvent, &bValid)){ return; }
+    if(m_ControbBoard.ProcessEvent(rstEvent, &bValid)){ return; }
 
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONDOWN:
@@ -421,8 +435,8 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                     m_FocusUIDV[FOCUS_ATTACK] = nUID;
                                     m_MyHero->ParseNewAction({
                                             ACTION_ATTACK,
-                                            MOTION_NONE,
-                                            1,
+                                            0,
+                                            100,
                                             DIR_NONE,
                                             m_MyHero->CurrMotion().EndX,
                                             m_MyHero->CurrMotion().EndY,
@@ -442,9 +456,19 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             // 4. if "+GOOD" client will release the motion lock
                             // 5. if "+FAIL" client will use the backup position and direction
 
+                            m_FocusUIDV[FOCUS_FOLLOW] = 0;
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
-                                if(auto pCreature = RetrieveUID(nUID)){
-                                    m_FocusUIDV[FOCUS_ATTACK] = nUID;
+                                m_FocusUIDV[FOCUS_FOLLOW] = nUID;
+                            }else{
+                                int nX = -1;
+                                int nY = -1;
+                                if(true
+                                        && LocatePoint(rstEvent.button.x, rstEvent.button.y, &nX, &nY)
+                                        && LDistance2(m_MyHero->CurrMotion().EndX, m_MyHero->CurrMotion().EndY, nX, nY)){
+
+                                    // we get a valid dst to go
+                                    // provide myHero with new move action command
+
                                     m_MyHero->ParseNewAction({
                                             ACTION_MOVE,
                                             m_MyHero->OnHorse() ? 1 : 0,
@@ -452,26 +476,9 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                             DIR_NONE,
                                             m_MyHero->CurrMotion().EndX,
                                             m_MyHero->CurrMotion().EndY,
-                                            pCreature->X(),
-                                            pCreature->Y(),
+                                            nX,
+                                            nY,
                                             MapID()}, false);
-                                }
-                            }else{
-                                int nX = -1;
-                                int nY = -1;
-                                if(LocatePoint(rstEvent.button.x, rstEvent.button.y, &nX, &nY)){
-                                    if(LDistance2(m_MyHero->CurrMotion().EndX, m_MyHero->CurrMotion().EndY, nX, nY)){
-                                        m_MyHero->ParseNewAction({
-                                                ACTION_MOVE,
-                                                m_MyHero->OnHorse() ? 1 : 0,
-                                                100,
-                                                DIR_NONE,
-                                                m_MyHero->CurrMotion().EndX,
-                                                m_MyHero->CurrMotion().EndY,
-                                                nX,
-                                                nY,
-                                                MapID()}, false);
-                                    }
                                 }
                             }
                             break;
