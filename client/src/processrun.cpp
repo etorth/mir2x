@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/08/2017 00:23:57
+ *  Last Modified: 07/09/2017 00:16:54
  *
  *    Description: 
  *
@@ -94,16 +94,19 @@ void ProcessRun::Update(double)
 
     // if(m_FocusUIDV[FOCUS_ATTACK]){
     //     if(auto pCreature = RetrieveUID(m_FocusUIDV[FOCUS_ATTACK])){
-    //         m_MyHero->ParseNewAction({
-    //                 ACTION_ATTACK,
-    //                 0,
-    //                 100,
-    //                 DIR_NONE,
-    //                 m_MyHero->CurrMotion().EndX,
-    //                 m_MyHero->CurrMotion().EndY,
-    //                 pCreature->X(),
-    //                 pCreature->Y(),
-    //                 MapID()}, false);
+    //         auto stMotion = m_MyHero->MakeIdleMotion();
+    //         if(stMotion == m_MyHero->CurrMotion()){
+    //             m_MyHero->ParseNewAction({
+    //                     ACTION_ATTACK,
+    //                     0,
+    //                     100,
+    //                     DIR_NONE,
+    //                     m_MyHero->CurrMotion().EndX,
+    //                     m_MyHero->CurrMotion().EndY,
+    //                     pCreature->X(),
+    //                     pCreature->Y(),
+    //                     MapID()}, false);
+    //         }
     //     }
     // }
 }
@@ -364,7 +367,7 @@ void ProcessRun::Draw()
                         {
                             auto nLookID = ((Monster*)(pCreature))->LookID();
                             if(nLookID >= 0){
-                                nFaceKey = 0X01000000 + nLookID;
+                                nFaceKey = 0X01000000 + (nLookID - (LID_NONE + 1));
                             }
                             break;
                         }
