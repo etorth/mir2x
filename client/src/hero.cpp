@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 07/08/2017 23:25:57
+ *  Last Modified: 07/09/2017 12:58:50
  *
  *    Description: 
  *
@@ -420,6 +420,13 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                 }
             case ACTION_ATTACK:
                 {
+                    m_MotionQueue.emplace_back(
+                            MOTION_ATTACKMODE,
+                            0,
+                            rstAction.Direction,
+                            rstAction.X,
+                            rstAction.Y);
+
                     int nMotion = -1;
                     switch(rstAction.ActionParam){
                         default:
