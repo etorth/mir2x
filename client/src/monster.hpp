@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19
- *  Last Modified: 07/06/2017 22:21:45
+ *  Last Modified: 07/08/2017 23:25:13
  *
  *    Description:
  *
@@ -59,13 +59,14 @@ class Monster: public Creature
         bool ParseNewAction(const ActionNode &, bool);
 
     public:
-        bool MotionValid(const MotionNode &);
-        bool ActionValid(const ActionNode &, bool);
+        bool MotionValid(const MotionNode &)       const;
+        bool ActionValid(const ActionNode &, bool) const;
 
     public:
         bool CanFocus(int, int);
 
     protected:
+        int GfxMotionID(int) const;
         int GfxID(int, int) const;
 
     public:
@@ -75,7 +76,8 @@ class Monster: public Creature
         MotionNode MakeMotionWalk(int, int, int, int, int);
 
     public:
-        int MaxStep() const;
+        int  MaxStep() const;
+        int CurrStep() const;
 
     public:
         int LookID() const;

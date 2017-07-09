@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/06/2017 12:59:01
+ *  Last Modified: 07/08/2017 23:55:48
  *
  *    Description: 
  *
@@ -31,59 +31,53 @@
 #include "protocoldef.hpp"
 #include "clientpathfinder.hpp"
 
-bool Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
+bool Creature::EstimateShift(int *pShiftX, int *pShiftY)
 {
-    int nGridSpeed = 0;
     switch(m_CurrMotion.Motion){
-        case MOTION_WALK:
+        case MOTION_WALK:           // human
+        case MOTION_RUN:            // human
+        case MOTION_ONHORSEWALK:    // human
+        case MOTION_ONHORSERUN:     // human
+        case MOTION_MON_WALK:       // monster
             {
-                nGridSpeed = 1;
-                break;
-            }
-        case MOTION_RUN:
-            {
-                nGridSpeed = 2;
-                break;
-            }
-        case MOTION_HORSEWALK:
-            {
-                nGridSpeed = 1;
-                break;
-            }
-        case MOTION_HORSERUN:
-            {
-                nGridSpeed = 3;
                 break;
             }
         default:
             {
-                if(pShiftX){ *pShiftX = 0; }
-                if(pShiftY){ *pShiftY = 0; }
-                return true;
+                return false;
             }
     }
 
-    const int nFrameCountInNextCell = (m_CurrMotion.Direction == DIR_UPLEFT) ? 2 : 5;
-    switch(m_CurrMotion.Motion){
-        case MOTION_WALK:
-        case MOTION_RUN:
-        case MOTION_HORSEWALK:
-        case MOTION_HORSERUN:
+    auto nCurrStep = CurrStep();
+    switch(nCurrStep){
+        case 1:
+        case 2:
+        case 3:
             {
-                auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
-                if(nFrameCount <= 0){
-                    return false;
-                }
+                break;
+            }
+        default:
+            {
+                return false;
+            }
+    }
 
+    // currently we only allow frameCount = 6
+    // for other frameCount need to manually permitted here
+
+    switch(auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction)){
+        case 6:
+            {
+                auto nFrameCountInNextGrid = ((m_CurrMotion.Direction == DIR_UPLEFT) ? 2 : 5);
                 switch(m_CurrMotion.Direction){
                     case DIR_UP:
                         {
                             if(pShiftX){ *pShiftX = 0; }
                             if(pShiftY){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextCell){
-                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nGridSpeed;
+                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
+                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
                                 }else{
-                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nGridSpeed;
+                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
                                 }
                             }
                             return true;
@@ -91,17 +85,17 @@ bool Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                     case DIR_UPRIGHT:
                         {
                             if(pShiftX){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextCell){
-                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nGridSpeed;
+                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
+                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
                                 }else{
-                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nGridSpeed;
+                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
                                 }
                             }
                             if(pShiftY){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextCell){
-                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nGridSpeed;
+                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
+                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
                                 }else{
-                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nGridSpeed;
+                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
                                 }
                             }
                             return true;
@@ -109,10 +103,10 @@ bool Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                     case DIR_RIGHT:
                         {
                             if(pShiftX){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextCell){
-                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nGridSpeed;
+                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
+                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
                                 }else{
-                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nGridSpeed;
+                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
                                 }
                             }
                             if(pShiftY){ *pShiftY = 0; }
@@ -121,17 +115,17 @@ bool Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                     case DIR_DOWNRIGHT:
                         {
                             if(pShiftX){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextCell){
-                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nGridSpeed;
+                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
+                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
                                 }else{
-                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nGridSpeed;
+                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
                                 }
                             }
                             if(pShiftY){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextCell){
-                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nGridSpeed;
+                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
+                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
                                 }else{
-                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nGridSpeed;
+                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
                                 }
                             }
                             return true;
@@ -140,10 +134,10 @@ bool Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                         {
                             if(pShiftX){ *pShiftX = 0; }
                             if(pShiftY){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextCell){
-                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nGridSpeed;
+                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
+                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
                                 }else{
-                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nGridSpeed;
+                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
                                 }
                             }
                             return true;
@@ -151,17 +145,17 @@ bool Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                     case DIR_DOWNLEFT:
                         {
                             if(pShiftX){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextCell){
-                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nGridSpeed;
+                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
+                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
                                 }else{
-                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nGridSpeed;
+                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
                                 }
                             }
                             if(pShiftY){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextCell){
-                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nGridSpeed;
+                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
+                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
                                 }else{
-                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nGridSpeed;
+                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
                                 }
                             }
                             return true;
@@ -169,10 +163,10 @@ bool Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                     case DIR_LEFT:
                         {
                             if(pShiftX){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextCell){
-                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nGridSpeed;
+                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
+                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
                                 }else{
-                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nGridSpeed;
+                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
                                 }
                             }
                             if(pShiftY){ *pShiftY = 0; }
@@ -181,38 +175,36 @@ bool Creature::EstimatePixelShift(int *pShiftX, int *pShiftY)
                     case DIR_UPLEFT:
                         {
                             if(pShiftX){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextCell){
-                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nGridSpeed;
+                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
+                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
                                 }else{
-                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nGridSpeed;
+                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
                                 }
                             }
                             if(pShiftY){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextCell){
-                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nGridSpeed;
+                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
+                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
                                 }else{
-                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nGridSpeed;
+                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
                                 }
                             }
                             return true;
                         }
                     default:
                         {
-                            if(pShiftX){ *pShiftX = 0; }
-                            if(pShiftY){ *pShiftY = 0; }
-                            return true;
+                            return false;
                         }
                 }
             }
         default:
             {
-                if(pShiftX){ *pShiftX = 0; }
-                if(pShiftY){ *pShiftY = 0; }
-                return true;
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_WARNING, "Current motion is not valid: frameCount = %d", nFrameCount);
+
+                m_CurrMotion.Print();
+                return false;
             }
     }
-
-    return false;
 }
 
 bool Creature::MoveNextMotion()
@@ -221,15 +213,7 @@ bool Creature::MoveNextMotion()
 
         // reset creature to idle state
         // using last direction, speed, location and frame as 0
-        m_CurrMotion = {
-            MOTION_STAND,
-            0,
-            m_CurrMotion.Direction,
-            m_CurrMotion.Speed,
-            m_CurrMotion.EndX,
-            m_CurrMotion.EndY
-        };
-
+        m_CurrMotion = MakeIdleMotion();
         return true;
     }
 
@@ -246,14 +230,7 @@ bool Creature::MoveNextMotion()
     // clear all pending motions and reset creature to idle state
 
     // 1. reset creature to idle state
-    m_CurrMotion = {
-        MOTION_STAND,
-        0,
-        m_CurrMotion.Direction,
-        m_CurrMotion.Speed,
-        m_CurrMotion.EndX,
-        m_CurrMotion.EndY
-    };
+    m_CurrMotion = MakeIdleMotion();
 
     // 2. print the motion queue
     extern Log *g_Log;
@@ -438,14 +415,16 @@ int Creature::UpdateHP(int nHP, int nHPMax)
 
 bool Creature::StayDead()
 {
-    // need refine this function for different creatures
-    return m_CurrMotion.Motion == MOTION_DIE;
+    return false
+        || m_CurrMotion.Motion == MOTION_DIE
+        || m_CurrMotion.Motion == MOTION_MON_DIE;
 }
 
 bool Creature::DeadFadeOut()
 {
     switch(m_CurrMotion.Motion){
         case MOTION_DIE:
+        case MOTION_MON_DIE:
             {
                 m_CurrMotion.FadeOut = 1;
                 return true;
@@ -475,8 +454,9 @@ bool Creature::Active()
     if(MotionValid(m_CurrMotion)){
         switch(m_CurrMotion.Motion){
             case MOTION_DIE:
+            case MOTION_MON_DIE:
                 {
-                    auto nFrameCount = MotionFrameCount(MOTION_DIE, m_CurrMotion.Direction);
+                    auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
                     if(nFrameCount > 0){
                         if(true
                                 && m_CurrMotion.Frame   == (nFrameCount - 1)
@@ -499,4 +479,30 @@ bool Creature::Active()
     }
 
     return false;
+}
+
+MotionNode Creature::MakeIdleMotion() const
+{
+    // I can put this into each derived class
+    // but do it in base class if logic structure highly likely
+
+    int nMotion = -1;
+    switch(Type()){
+        case CREATURE_PLAYER:
+            {
+                nMotion = MOTION_STAND;
+                break;
+            }
+        case CREATURE_MONSTER:
+            {
+                nMotion = MOTION_MON_STAND;
+                break;
+            }
+        default:
+            {
+                return {};
+            }
+    }
+
+    return {nMotion, 0, m_CurrMotion.Direction, m_CurrMotion.Speed, m_CurrMotion.EndX, m_CurrMotion.EndY};
 }

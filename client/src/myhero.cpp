@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 07/07/2017 23:53:02
+ *  Last Modified: 07/08/2017 15:06:46
  *
  *    Description: 
  *
@@ -67,7 +67,7 @@ bool MyHero::Update()
                         return MoveNextMotion();
                     }
                 }
-            case MOTION_UNDERATTACK:
+            case MOTION_HITTED:
                 {
                     if(m_MotionQueue.empty()){
                         if(m_ActionQueue.empty()){
@@ -602,7 +602,7 @@ bool MyHero::ParseActionQueue()
     return true;
 }
 
-int MyHero::MaxStep()
+unsigned MyHero::MaxStep()
 {
     return 2;
 }

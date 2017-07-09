@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/07/2017 19:02:55
+ *  Last Modified: 07/08/2017 15:07:03
  *
  *    Description: 
  *
@@ -37,7 +37,7 @@ class MyHero: public Hero
         bool Update();
 
     public:
-        int MaxStep();
+        unsigned MaxStep();
 
     public:
         // decompose (srcLoc->dstLoc) => (srcLoc->decompLoc->dstLoc)

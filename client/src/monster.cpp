@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 07/06/2017 23:45:27
+ *  Last Modified: 07/08/2017 23:41:11
  *
  *    Description: 
  *
@@ -55,21 +55,21 @@ bool Monster::Update()
 
         // 3. motion update
         switch(m_CurrMotion.Motion){
-            case MOTION_STAND:
-            case MOTION_UNDERATTACK:
+            case MOTION_MON_STAND:
+            case MOTION_MON_HITTED:
                 {
                     if(m_MotionQueue.empty()){
                         return AdvanceMotionFrame(1);
                     }else{
                         // move to next motion will reset frame as 0
                         // if current there is no more motion pending
-                        // it will add a MOTION_STAND
+                        // it will add a MOTION_MON_STAND
                         //
                         // we don't want to reset the frame here
                         return MoveNextMotion();
                     }
                 }
-            case MOTION_DIE:
+            case MOTION_MON_DIE:
                 {
                     auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
                     if(nFrameCount > 0){
@@ -142,7 +142,7 @@ bool Monster::Draw(int nViewX, int nViewY)
 
         int nShiftX = 0;
         int nShiftY = 0;
-        EstimatePixelShift(&nShiftX, &nShiftY);
+        EstimateShift(&nShiftX, &nShiftY);
 
         // always reset the alpha mode for each texture because texture is shared
         // one texture to draw can be configured with different alpha mode for other creatures
@@ -151,8 +151,8 @@ bool Monster::Draw(int nViewX, int nViewY)
         if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
 
         if(true
-                && (m_CurrMotion.Motion  == MOTION_DIE)
-                && (m_CurrMotion.FadeOut  > 0         )){
+                && (m_CurrMotion.Motion  == MOTION_MON_DIE)
+                && (m_CurrMotion.FadeOut  > 0             )){
             // FadeOut :    0 : normal
             //         : 1-255: fadeOut
             if(pFrame0){ SDL_SetTextureAlphaMod(pFrame0, (255 - m_CurrMotion.FadeOut) / 1); }
@@ -186,7 +186,7 @@ bool Monster::Draw(int nViewX, int nViewY)
 
         // draw HP bar
         // if current m_HPMqx is zero we draw full bar
-        if(m_CurrMotion.Motion != MOTION_DIE){
+        if(m_CurrMotion.Motion != MOTION_MON_DIE){
             extern PNGTexDBN *g_ProgUseDBN;
             auto pBar0 = g_ProgUseDBN->Retrieve(0X00000014);
             auto pBar1 = g_ProgUseDBN->Retrieve(0X00000015);
@@ -215,16 +215,67 @@ int Monster::MotionFrameCount(int nMotion, int nDirection) const
     auto nGfxID = GfxID(nMotion, nDirection);
     if(nGfxID >= 0){
 
-        switch(MonsterID()){
+        switch(nMotion){
+            case MOTION_MON_STAND:
+                {
+                    return 4;
+                }
+            case MOTION_MON_WALK:
+                {
+                    return 6;
+                }
+            case MOTION_MON_ATTACK0:
+                {
+                    return 6;
+                }
+            case MOTION_MON_HITTED:
+                {
+                    switch(LookID()){
+                        default:
+                            {
+                                return 2;
+                            }
+                    }
+                }
+            case MOTION_MON_DIE:
+                {
+                    switch(LookID()){
+                        default:
+                            {
+                                return 10;
+                            }
+                    }
+                }
+            case MOTION_MON_ATTACK1:
+                {
+                    return 6;
+                }
+            case MOTION_MON_SPELL0:
+            case MOTION_MON_SPELL1:
+                {
+                    return 10;
+                }
+            case MOTION_MON_APPEAR:
+                {
+                    switch(LookID()){
+                        default:
+                            {
+                                return 10;
+                            }
+                    }
+                }
+            case MOTION_MON_SPECIAL:
+                {
+                    switch(LookID()){
+                        default:
+                            {
+                                return 6;
+                            }
+                    }
+                }
             default:
                 {
-                    switch(nMotion){
-                        case MOTION_STAND       : return  4;
-                        case MOTION_WALK        : return  6;
-                        case MOTION_ATTACK      : return  6;
-                        case MOTION_UNDERATTACK : return  2;
-                        case MOTION_DIE         : return 10;
-                    }
+                    break;
                 }
         }
     }
@@ -304,7 +355,12 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool bRemote)
         switch(rstAction.Action){
             case ACTION_STAND:
                 {
-                    m_MotionQueue.push_back({MOTION_STAND, 0, rstAction.Direction, rstAction.X, rstAction.Y});
+                    m_MotionQueue.emplace_back(
+                            MOTION_MON_STAND,
+                            0,
+                            rstAction.Direction,
+                            rstAction.X,
+                            rstAction.Y);
                     break;
                 }
             case ACTION_MOVE:
@@ -316,17 +372,32 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                 }
             case ACTION_ATTACK:
                 {
-                    m_MotionQueue.push_back({MOTION_ATTACK, 0, rstAction.Direction, rstAction.X, rstAction.Y});
+                    m_MotionQueue.emplace_back(
+                            MOTION_MON_ATTACK0,
+                            0,
+                            rstAction.Direction,
+                            rstAction.X,
+                            rstAction.Y);
                     break;
                 }
             case ACTION_UNDERATTACK:
                 {
-                    m_MotionQueue.push_front({MOTION_UNDERATTACK, 0, m_CurrMotion.Direction, m_CurrMotion.EndX, m_CurrMotion.EndY});
+                    m_MotionQueue.emplace_front(
+                            MOTION_MON_HITTED,
+                            0,
+                            m_CurrMotion.Direction,
+                            m_CurrMotion.EndX,
+                            m_CurrMotion.EndY);
                     break;
                 }
             case ACTION_DIE:
                 {
-                    m_MotionQueue.push_back({MOTION_DIE, 0, rstAction.Direction, rstAction.X, rstAction.Y});
+                    m_MotionQueue.emplace_back(
+                            MOTION_MON_DIE,
+                            0,
+                            rstAction.Direction,
+                            rstAction.X,
+                            rstAction.Y);
                     break;
                 }
             default:
@@ -347,93 +418,73 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool bRemote)
 
 bool Monster::Location(int *pX, int *pY)
 {
-    switch(m_CurrMotion.Motion){
-        case MOTION_WALK:
-            {
-                auto nX0        = m_CurrMotion.X;
-                auto nY0        = m_CurrMotion.Y;
-                auto nX1        = m_CurrMotion.EndX;
-                auto nY1        = m_CurrMotion.EndY;
-                auto nFrame     = m_CurrMotion.Frame;
-                auto nDirection = m_CurrMotion.Direction;
+    if(MotionValid(m_CurrMotion)){
+        switch(m_CurrMotion.Motion){
+            case MOTION_MON_WALK:
+                {
+                    auto nX0        = m_CurrMotion.X;
+                    auto nY0        = m_CurrMotion.Y;
+                    auto nX1        = m_CurrMotion.EndX;
+                    auto nY1        = m_CurrMotion.EndY;
+                    auto nFrame     = m_CurrMotion.Frame;
+                    auto nDirection = m_CurrMotion.Direction;
 
-                switch(auto nFrameCount = MotionFrameCount(MOTION_WALK, m_CurrMotion.Direction)){
-                    case 6:
-                        {
-                            if(pX){ *pX = (nFrame < (nFrameCount - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 0))) ? nX0 : nX1; }
-                            if(pY){ *pY = (nFrame < (nFrameCount - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 0))) ? nY0 : nY1; }
+                    switch(auto nFrameCount = MotionFrameCount(MOTION_MON_WALK, m_CurrMotion.Direction)){
+                        case 6:
+                            {
+                                if(pX){ *pX = (nFrame < (nFrameCount - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 0))) ? nX0 : nX1; }
+                                if(pY){ *pY = (nFrame < (nFrameCount - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 0))) ? nY0 : nY1; }
 
-                            return true;
-                        }
-                    default:
-                        {
-                            return false;
-                        }
+                                return true;
+                            }
+                        default:
+                            {
+                                return false;
+                            }
+                    }
                 }
-            }
-        default:
-            {
-                if(pX){ *pX = m_CurrMotion.X; }
-                if(pY){ *pY = m_CurrMotion.Y; }
+            default:
+                {
+                    if(pX){ *pX = m_CurrMotion.X; }
+                    if(pY){ *pY = m_CurrMotion.Y; }
 
-                return true;
-            }
+                    return true;
+                }
+        }
     }
+
+    return false;
 }
 
 int Monster::GfxID(int nMotion, int nDirection) const
 {
     // see Monster::Draw() for format of nGfxID
     // monster GfxID consists of (LookID, Motion, Direction)
-
     static_assert(sizeof(int) > 2, "Monster::GfxID() overflows because of sizeof(int) <= 2");
-    auto fnMotionGfxID = [](int nMotion) -> int
-    {
-        const static auto stMotionTable = []() -> std::array<int, MOTION_MAX>
-        {
-            std::array<int, MOTION_MAX> stMotionTable;
-            stMotionTable.fill(-1);
 
-            stMotionTable[MOTION_STAND      ] = 0;
-            stMotionTable[MOTION_WALK       ] = 1;
-            stMotionTable[MOTION_ATTACK     ] = 2;
-            stMotionTable[MOTION_UNDERATTACK] = 3;
-            stMotionTable[MOTION_DIE        ] = 4;
-
-            return stMotionTable;
-        }();
-
-        return ((nMotion > MOTION_NONE) && (nMotion < MOTION_MAX)) ? stMotionTable[nMotion] : -1;
-    };
-
-    if(true
-            && MonsterID() > MID_NONE
-            && MonsterID() < MID_MAX
-
-            && nMotion > MOTION_NONE
-            && nMotion < MOTION_MAX
-
-            && nDirection > DIR_NONE
-            && nDirection < DIR_MAX){
-
-        // if passed listed simple test
-        // we need to check the huge table for it
-
-        int nLookID      = LookID();
-        int nMotionGfxID = fnMotionGfxID(m_CurrMotion.Motion);
+    if(MonsterID()){
+        auto nLookID      = LookID();
+        auto nGfxMotionID = GfxMotionID(nMotion);
 
         if(true
-                && nLookID      >= 0
-                && nMotionGfxID >= 0){
+                && nLookID > LID_NONE
+                && nLookID < LID_MAX
 
-            return ((nLookID & 0X07FF) << 7) + ((nMotionGfxID & 0X000F) << 3) + ((nDirection - (DIR_NONE + 1)) & 0X0007);
+                && nDirection > DIR_NONE
+                && nDirection < DIR_MAX
 
+                && nGfxMotionID >= 0){
+
+            // if passed listed simple test
+            // we need to check the huge table for it
+
+            return (((nLookID - (LID_NONE + 1)) & 0X07FF) << 7) + ((nGfxMotionID & 0X000F) << 3) + ((nDirection - (DIR_NONE + 1)) & 0X0007);
         }
     }
     return -1;
 }
 
-bool Monster::ActionValid(const ActionNode &rstAction, bool bRemote)
+bool Monster::ActionValid(const ActionNode &rstAction, bool bRemote) const
 {
     // action check should be much looser than motion check
     // since we don't intend to make continuous action list for parsing
@@ -490,11 +541,11 @@ bool Monster::ActionValid(const ActionNode &rstAction, bool bRemote)
     return false;
 }
 
-bool Monster::MotionValid(const MotionNode &rstMotion)
+bool Monster::MotionValid(const MotionNode &rstMotion) const
 {
     if(true
-            && rstMotion.Motion > MOTION_NONE
-            && rstMotion.Motion < MOTION_MAX
+            && rstMotion.Motion > MOTION_MON_NONE
+            && rstMotion.Motion < MOTION_MON_MAX
 
             && rstMotion.Direction > DIR_NONE
             && rstMotion.Direction < DIR_MAX 
@@ -511,34 +562,38 @@ bool Monster::MotionValid(const MotionNode &rstMotion)
 
         auto nLDistance2 = LDistance2(rstMotion.X, rstMotion.Y, rstMotion.EndX, rstMotion.EndY);
         switch(rstMotion.Motion){
-            case MOTION_STAND:
-            case MOTION_ATTACK:
-            case MOTION_UNDERATTACK:
-            case MOTION_DIE:
+            case MOTION_MON_STAND:
                 {
                     return nLDistance2 == 0;
                 }
-            case MOTION_WALK:
+            case MOTION_MON_WALK:
                 {
-                    auto nMaxStep = MaxStep();
                     return false
                         || nLDistance2 == 1
                         || nLDistance2 == 2
-                        || nLDistance2 == nMaxStep * nMaxStep
-                        || nLDistance2 == nMaxStep * nMaxStep * 2;
+                        || nLDistance2 == 1 * MaxStep() * MaxStep()
+                        || nLDistance2 == 2 * MaxStep() * MaxStep();
+                }
+            case MOTION_MON_ATTACK0:
+            case MOTION_MON_HITTED:
+            case MOTION_MON_DIE:
+                {
+                    return nLDistance2 == 0;
                 }
             default:
                 {
-                    return false;
+                    break;
                 }
         }
-    }else{ return false; }
+    }
+
+    return false;
 }
 
 bool Monster::CanFocus(int nPointX, int nPointY)
 {
     switch(m_CurrMotion.Motion){
-        case MOTION_DIE:
+        case MOTION_MON_DIE:
             {
                 return false;
             }
@@ -550,6 +605,7 @@ bool Monster::CanFocus(int nPointX, int nPointY)
 
     auto nGfxID = GfxID(m_CurrMotion.Motion, m_CurrMotion.Direction);
     if(nGfxID >= 0){
+
         // we only check the body frame
         // can focus or not is decided by the graphics size
 
@@ -563,7 +619,7 @@ bool Monster::CanFocus(int nPointX, int nPointY)
 
         int nShiftX = 0;
         int nShiftY = 0;
-        EstimatePixelShift(&nShiftX, &nShiftY);
+        EstimateShift(&nShiftX, &nShiftY);
 
         int nStartX = X() * SYS_MAPGRIDXP + nDX0 + nShiftX;
         int nStartY = Y() * SYS_MAPGRIDYP + nDY0 + nShiftY;
@@ -585,7 +641,7 @@ bool Monster::CanFocus(int nPointX, int nPointY)
 Monster *Monster::Create(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun, const ActionNode &rstAction)
 {
     auto pNew = new Monster(nUID, nMonsterID, pRun);
-    pNew->m_CurrMotion = {MOTION_STAND, 0, DIR_UP, rstAction.X, rstAction.Y};
+    pNew->m_CurrMotion = {MOTION_MON_STAND, 0, DIR_UP, rstAction.X, rstAction.Y};
 
     if(pNew->ParseNewAction(rstAction, true)){
         return pNew;
@@ -613,29 +669,16 @@ MotionNode Monster::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpee
         int nSDX = 1 + (nX1 > nX0) - (nX1 < nX0);
         int nSDY = 1 + (nY1 > nY0) - (nY1 < nY0);
 
-        int nMotion = MOTION_NONE;
-        switch(LDistance2(nX0, nY0, nX1, nY1)){
-            case 1:
-            case 2:
-                {
-                    nMotion = MOTION_WALK;
-                    break;
-                }
-            case 4:
-            case 8:
-                {
-                    nMotion = MOTION_RUN;
-                    break;
-                }
-            default:
-                {
-                    return {};
-                }
+        auto nLDistance2 = LDistance2(nX0, nY0, nX1, nY1);
+        if(false
+                || nLDistance2 == 1
+                || nLDistance2 == 2
+                || nLDistance2 == 1 * MaxStep() * MaxStep()
+                || nLDistance2 == 2 * MaxStep() * MaxStep()){
+
+            return {MOTION_MON_WALK, 0, nDirV[nSDY][nSDX], nSpeed, nX0, nY0, nX1, nY1};
         }
-
-        return {nMotion, 0, nDirV[nSDY][nSDX], nSpeed, nX0, nY0, nX1, nY1};
     }
-
     return {};
 }
 
@@ -644,7 +687,17 @@ int Monster::MaxStep() const
     return 1;
 }
 
+int Monster::CurrStep() const
+{
+    return 1;
+}
+
 int Monster::LookID() const
 {
-    return (int)(MonsterID() & 0X000007FF) - (MID_NONE + 1);
+    return MonsterID() ? (int)(MonsterID() & 0X000007FF) : -1;
+}
+
+int Monster::GfxMotionID(int nMotion) const
+{
+    return ((nMotion > MOTION_MON_NONE) && (nMotion < MOTION_MON_MAX)) ? (nMotion - (MOTION_MON_NONE + 1)) : -1;
 }

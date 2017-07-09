@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/06/2017 11:09:15
+ *  Last Modified: 07/08/2017 23:08:10
  *
  *    Description: 
  *
@@ -130,11 +130,12 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
 {
     int nStepLen = 0;
     switch(nMoveMode){
-        case MOTION_WALK      : nStepLen = 1; break;    // human, monster
-        case MOTION_RUN       : nStepLen = 2; break;    // human, monster
-        case MOTION_HORSEWALK : nStepLen = 1; break;    // human
-        case MOTION_HORSERUN  : nStepLen = 3; break;    // human
-        default               : return false;
+        case MOTION_WALK        : nStepLen = 1; break;
+        case MOTION_RUN         : nStepLen = 2; break;
+        case MOTION_ONHORSEWALK : nStepLen = 1; break;
+        case MOTION_ONHORSERUN  : nStepLen = 3; break;
+        case MOTION_MON_WALK    : nStepLen = 1; break;
+        default                 : return false;
     }
 
     int nDX = std::abs<int>(X() - nX);
@@ -283,11 +284,12 @@ bool CharObject::MoveOneStep(int nMoveMode, int nX, int nY)
 {
     int nMaxStep = 0;
     switch(nMoveMode){
-        case MOTION_WALK      : nMaxStep = 1; break;    // human, monster
-        case MOTION_RUN       : nMaxStep = 2; break;    // human, monster
-        case MOTION_HORSEWALK : nMaxStep = 1; break;    // human
-        case MOTION_HORSERUN  : nMaxStep = 3; break;    // human
-        default               : return false;
+        case MOTION_WALK        : nMaxStep = 1; break;
+        case MOTION_RUN         : nMaxStep = 2; break;
+        case MOTION_ONHORSEWALK : nMaxStep = 1; break;
+        case MOTION_ONHORSERUN  : nMaxStep = 3; break;
+        case MOTION_MON_WALK    : nMaxStep = 1; break;
+        default                 : return false;
     }
 
     int nDX = std::abs<int>(X() - nX);

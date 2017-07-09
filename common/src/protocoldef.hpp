@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 07/04/2017 12:36:05
+ *  Last Modified: 07/08/2017 18:28:07
  *
  *    Description: 
  *
@@ -74,19 +74,12 @@ enum CreatureType: int
     CREATURE_NPC,
 };
 
-enum MonsterIDType: uint32_t
+enum LookIDType: int
 {
-    MID_NONE,
+    LID_NONE = 0,
 
-    MID_DEER,
-    MID_M10,
-
-    MID_PHEASANT,
-
-    MID_ZUMA_ARCHER,
-    MID_ZUMA_WARRIOR,
-
-    MID_MAX = 65535,
+    LID_SANDLIZARD,
+    LID_MAX = 2048,
 };
 
 enum DCType: int

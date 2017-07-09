@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 07/06/2017 11:10:51
+ *  Last Modified: 07/08/2017 14:12:08
  *
  *    Description: how player respond for different net package
  *
@@ -48,7 +48,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                         case 1:
                         case 2:
                             {
-                                nMotionMode = stCMA.ActionParam ? MOTION_HORSEWALK : MOTION_WALK;
+                                nMotionMode = stCMA.ActionParam ? MOTION_ONHORSEWALK : MOTION_WALK;
                                 break;
                             }
                         case 4:
@@ -60,7 +60,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                         case  9:
                         case 18:
                             {
-                                nMotionMode = MOTION_HORSERUN;
+                                nMotionMode = MOTION_ONHORSERUN;
                                 break;
                             }
                         default:

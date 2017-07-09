@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 07/04/2017 15:22:26
+ *  Last Modified: 07/08/2017 23:25:49
  *
  *    Description: 
  *
@@ -63,8 +63,8 @@ class Hero: public Creature
         }
 
     public:
-        bool MotionValid(const MotionNode &);
-        bool ActionValid(const ActionNode &, bool);
+        bool MotionValid(const MotionNode &)       const;
+        bool ActionValid(const ActionNode &, bool) const;
 
     public:
         bool UpdateMotion();
@@ -109,10 +109,11 @@ class Hero: public Creature
         MotionNode MakeMotionWalk(int, int, int, int, int);
 
     protected:
-        int GfxMotionID(int);
+        int GfxMotionID(int) const;
         int GfxDressID (int, int, int);
         int GfxWeaponID(int, int, int);
 
     public:
-        int MaxStep() const;
+        int  MaxStep() const;
+        int CurrStep() const;
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: motionnode.hpp
  *        Created: 04/05/2017 12:38:46
- *  Last Modified: 07/02/2017 17:23:43
+ *  Last Modified: 07/08/2017 19:35:30
  *
  *    Description: for field MotionNode::Speed
  *                  
@@ -88,7 +88,9 @@ struct MotionNode
 
     operator bool () const
     {
-        return Motion != MOTION_NONE;
+        return false
+            || ((Motion > MOTION_NONE)     && (Motion < MOTION_MAX))
+            || ((Motion > MOTION_MON_NONE) && (Motion < MOTION_MON_MAX));
     }
 
     void Print();

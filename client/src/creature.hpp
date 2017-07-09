@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 07/07/2017 00:27:44
+ *  Last Modified: 07/08/2017 23:52:57
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -20,13 +20,13 @@
  *
  *                          Monster(nUID, nMonsterID, pRun, stAction)
  *
- *                      this class is for general monsters, then it only allow
+ *                      say this class is for general monsters, then it allows
  *
- *                          MOTION_STAND
- *                          MOTION_WALK
- *                          MOTION_ATTACK
- *                          MOTION_UNDERATTACK
- *                          MOTION_DIE
+ *                          MOTION_MON_STAND
+ *                          MOTION_MON_WALK
+ *                          MOTION_MON_ATTACK
+ *                          MOTION_MON_UNDERATTACK
+ *                          MOTION_MON_DIE
  *
  *                      means other action -> motion would fail.
  *
@@ -180,7 +180,10 @@ class Creature
         virtual ~Creature() = default;
 
     public:
-        uint32_t UID() { return m_UID; }
+        uint32_t UID() const
+        {
+            return m_UID;
+        }
 
     public:
         bool Focus(int) const;
@@ -188,8 +191,6 @@ class Creature
         virtual bool CanFocus(int, int) = 0;
 
     public:
-        // means we still need to update the creature
-        // for inactivate creatures we need to delete it from the record
         bool Active();
 
     public:
@@ -206,7 +207,7 @@ class Creature
         virtual bool Location(int *, int *) = 0;
 
     public:
-        bool EstimatePixelShift(int *, int *);
+        bool EstimateShift(int *, int *);
 
     public:
         virtual int Type() const = 0;
@@ -260,8 +261,8 @@ class Creature
         virtual bool MotionQueueValid();
 
     public:
-        virtual bool MotionValid(const MotionNode &)       = 0;
-        virtual bool ActionValid(const ActionNode &, bool) = 0;
+        virtual bool MotionValid(const MotionNode &)       const = 0;
+        virtual bool ActionValid(const ActionNode &, bool) const = 0;
 
     public:
         virtual int UpdateHP(int, int);
@@ -277,8 +278,15 @@ class Creature
         virtual bool DeadFadeOut();
 
     protected:
-        virtual int MaxStep() const = 0;
+        virtual int  MaxStep() const = 0;
+        virtual int CurrStep() const = 0;
+
+    protected:
+        virtual int GfxMotionID(int) const = 0;
 
     protected:
         virtual MotionNode MakeMotionWalk(int, int, int, int, int) = 0;
+
+    private:
+        MotionNode MakeIdleMotion() const;
 };
