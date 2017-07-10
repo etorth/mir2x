@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 07/10/2017 15:42:57
+ *  Last Modified: 07/10/2017 16:28:00
  *
  *    Description: 
  *
@@ -602,7 +602,9 @@ bool MyHero::ParseActionQueue()
     return true;
 }
 
-unsigned MyHero::MaxStep()
+bool MyHero::StayIdle()
 {
-    return 2;
+    return true
+        && m_MotionQueue.empty()
+        && m_ActionQueue.empty();
 }

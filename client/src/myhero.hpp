@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/08/2017 15:07:03
+ *  Last Modified: 07/10/2017 16:11:34
  *
  *    Description: 
  *
@@ -37,9 +37,6 @@ class MyHero: public Hero
         bool Update();
 
     public:
-        unsigned MaxStep();
-
-    public:
         // decompose (srcLoc->dstLoc) => (srcLoc->decompLoc->dstLoc)
         // this function is used for parsing ACTION_MOVE and ACTION_ATTACK
         // return true if under setting (bCheckGround, bCheckCreature, bCheckMove) we get
@@ -71,4 +68,7 @@ class MyHero: public Hero
 
     public:
         bool ParseActionQueue();
+
+    public:
+        bool StayIdle();
 };
