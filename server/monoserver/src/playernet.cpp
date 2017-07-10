@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 07/08/2017 14:12:08
+ *  Last Modified: 07/09/2017 16:18:01
  *
  *    Description: how player respond for different net package
  *
@@ -86,10 +86,10 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                     // 1. if apples, apply it without response, but dispatch it to neighbors
                     // 2. else send the pull back message
 
-                    int nX0 = (int)(stCMA.X);
-                    int nY0 = (int)(stCMA.Y);
-                    int nX1 = (int)(stCMA.AimX);
-                    int nY1 = (int)(stCMA.AimY);
+                    auto nX0 = (int)(stCMA.X);
+                    auto nY0 = (int)(stCMA.Y);
+                    auto nX1 = (int)(stCMA.AimX);
+                    auto nY1 = (int)(stCMA.AimY);
 
                     switch(LDistance2(X(), Y(), nX0, nY0)){
                         case 0:
@@ -119,6 +119,37 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                                 // force the client to do pull-back
                                 ReportStand();
                                 return;
+                            }
+                    }
+                    break;
+                }
+            case ACTION_ATTACK:
+                {
+                    auto nX0 = (int)(stCMA.X);
+                    auto nY0 = (int)(stCMA.Y);
+                    // auto nX1 = (int)(stCMA.AimX);
+                    // auto nY1 = (int)(stCMA.AimY);
+
+                    switch(LDistance2(X(), Y(), nX0, nY0)){
+                        case 1:
+                        case 2:
+                            {
+                                // DispatchAction({
+                                //         ACTION_ATTACK,
+                                //         stCMA.ActionParam,
+                                //         stCMA.Speed,
+                                //         stCMA.Direction,
+                                //         stCMA.X,
+                                //         stCMA.Y,
+                                //         stCMA.AimX,
+                                //         stCMA.AimY,
+                                //         m_Map->ID()});
+                                // break;
+                            }
+                        default:
+                            {
+                                // ReportStand();
+                                // return;
                             }
                     }
                     break;
