@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/09/2017 00:16:54
+ *  Last Modified: 07/10/2017 15:46:24
  *
  *    Description: 
  *
@@ -42,6 +42,8 @@ ProcessRun::ProcessRun()
     , m_LuaModule(this, 0)
     , m_ControbBoard(0, 0, nullptr, false)
     , m_CreatureRecord()
+    , m_AttackUIDX(-1)
+    , m_AttackUIDY(-1)
 {
     m_FocusUIDV.fill(0);
     m_ControbBoard.Bind(this);
@@ -88,27 +90,14 @@ void ProcessRun::Update(double)
         }
     }
 
-    // creatures could move
-    // this can invalidate mouse-selected one
+    // re-calculate the focused UID
+    // even mouse location doesn't change the creatures can move
+    // we need to always highlight the creature under the mouse pointer
     FocusUID(FOCUS_MOUSE);
 
-    // if(m_FocusUIDV[FOCUS_ATTACK]){
-    //     if(auto pCreature = RetrieveUID(m_FocusUIDV[FOCUS_ATTACK])){
-    //         auto stMotion = m_MyHero->MakeIdleMotion();
-    //         if(stMotion == m_MyHero->CurrMotion()){
-    //             m_MyHero->ParseNewAction({
-    //                     ACTION_ATTACK,
-    //                     0,
-    //                     100,
-    //                     DIR_NONE,
-    //                     m_MyHero->CurrMotion().EndX,
-    //                     m_MyHero->CurrMotion().EndY,
-    //                     pCreature->X(),
-    //                     pCreature->Y(),
-    //                     MapID()}, false);
-    //         }
-    //     }
-    // }
+    if(m_FocusUIDV[FOCUS_ATTACK]){
+        TrackAttack(false, m_FocusUIDV[FOCUS_ATTACK]);
+    }
 }
 
 uint32_t ProcessRun::FocusUID(int nFocusType)
@@ -459,7 +448,9 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             // 4. if "+GOOD" client will release the motion lock
                             // 5. if "+FAIL" client will use the backup position and direction
 
+                            m_FocusUIDV[FOCUS_ATTACK] = 0;
                             m_FocusUIDV[FOCUS_FOLLOW] = 0;
+
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
                                 m_FocusUIDV[FOCUS_FOLLOW] = nUID;
                             }else{
@@ -920,5 +911,27 @@ bool ProcessRun::LocateUID(uint32_t nUID, int *pX, int *pY)
         if(pY){ *pY = pCreature->Y(); }
         return true;
     }
+    return false;
+}
+
+bool ProcessRun::TrackAttack(bool bForce, uint32_t nUID)
+{
+    if(nUID){
+        if(auto pCreature = RetrieveUID(nUID)){
+            if(bForce || m_MyHero->StayIdle()){
+                return m_MyHero->ParseNewAction({
+                        ACTION_ATTACK,
+                        0,
+                        100,
+                        DIR_NONE,
+                        m_MyHero->CurrMotion().EndX,
+                        m_MyHero->CurrMotion().EndY,
+                        pCreature->X(),
+                        pCreature->Y(),
+                        MapID()}, false);
+            }
+        }
+    }
+
     return false;
 }

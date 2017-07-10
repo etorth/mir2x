@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 07/08/2017 23:25:49
+ *  Last Modified: 07/10/2017 15:10:32
  *
  *    Description: 
  *
@@ -106,7 +106,7 @@ class Hero: public Creature
         int WeaponOrder(int, int, int);
 
     protected:
-        MotionNode MakeMotionWalk(int, int, int, int, int);
+        MotionNode MakeMotionWalk(int, int, int, int, int) const;
 
     protected:
         int GfxMotionID(int) const;

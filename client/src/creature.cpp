@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/08/2017 23:55:48
+ *  Last Modified: 07/10/2017 15:12:52
  *
  *    Description: 
  *
@@ -213,7 +213,7 @@ bool Creature::MoveNextMotion()
 
         // reset creature to idle state
         // using last direction, speed, location and frame as 0
-        m_CurrMotion = MakeIdleMotion();
+        m_CurrMotion = MakeMotionIdle();
         return true;
     }
 
@@ -230,7 +230,7 @@ bool Creature::MoveNextMotion()
     // clear all pending motions and reset creature to idle state
 
     // 1. reset creature to idle state
-    m_CurrMotion = MakeIdleMotion();
+    m_CurrMotion = MakeMotionIdle();
 
     // 2. print the motion queue
     extern Log *g_Log;
@@ -420,6 +420,11 @@ bool Creature::StayDead()
         || m_CurrMotion.Motion == MOTION_MON_DIE;
 }
 
+bool Creature::StayIdle()
+{
+    return m_MotionQueue.empty();
+}
+
 bool Creature::DeadFadeOut()
 {
     switch(m_CurrMotion.Motion){
@@ -481,7 +486,7 @@ bool Creature::Active()
     return false;
 }
 
-MotionNode Creature::MakeIdleMotion() const
+MotionNode Creature::MakeMotionIdle() const
 {
     // I can put this into each derived class
     // but do it in base class if logic structure highly likely

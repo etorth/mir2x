@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 07/08/2017 23:41:11
+ *  Last Modified: 07/10/2017 15:10:16
  *
  *    Description: 
  *
@@ -651,7 +651,7 @@ Monster *Monster::Create(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun, c
     return nullptr;
 }
 
-MotionNode Monster::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed)
+MotionNode Monster::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
 {
     if(true
             && m_ProcessRun

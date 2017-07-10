@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19
- *  Last Modified: 07/08/2017 23:25:13
+ *  Last Modified: 07/10/2017 15:10:22
  *
  *    Description:
  *
@@ -73,7 +73,7 @@ class Monster: public Creature
         int MotionFrameCount(int, int) const;
 
     protected:
-        MotionNode MakeMotionWalk(int, int, int, int, int);
+        MotionNode MakeMotionWalk(int, int, int, int, int) const;
 
     public:
         int  MaxStep() const;

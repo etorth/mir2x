@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 07/08/2017 15:06:46
+ *  Last Modified: 07/10/2017 15:42:57
  *
  *    Description: 
  *
@@ -476,9 +476,9 @@ bool MyHero::ParseActionQueue()
                                 int nYt = -1;
 
                                 if(DecompMove(true, true, true, nX0, nY0, nX1, nY1, &nXt, &nYt)){
-                                    if(true
-                                            && nXt != nX1
-                                            && nYt != nY1){
+                                    if(false
+                                            || nXt != nX1
+                                            || nYt != nY1){
 
                                         // we find a distinct point as middle point
                                         // we firstly move to (nXt, nYt) then parse the attack action
@@ -534,9 +534,9 @@ bool MyHero::ParseActionQueue()
                                                 m_ProcessRun->MapID());
                                     }
 
-                                    // always return true if DecompMove succeeds
-                                    // no matter how it decompose it
-                                    return true;
+                                    // ok action decomposition succeeds
+                                    // now the first action node is proper to parse & send
+
                                 }else{
 
                                     // decompse failed, why it failed?

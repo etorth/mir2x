@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 07/09/2017 00:08:48
+ *  Last Modified: 07/10/2017 15:09:40
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -217,6 +217,7 @@ class Creature
 
     public:
         virtual bool StayDead();
+        virtual bool StayIdle();
 
     public:
         virtual bool ParseNewAction(const ActionNode &, bool) = 0;
@@ -285,8 +286,6 @@ class Creature
         virtual int GfxMotionID(int) const = 0;
 
     protected:
-        virtual MotionNode MakeMotionWalk(int, int, int, int, int) = 0;
-
-    public:
-        MotionNode MakeIdleMotion() const;
+        virtual MotionNode MakeMotionIdle() const;
+        virtual MotionNode MakeMotionWalk(int, int, int, int, int) const = 0;
 };

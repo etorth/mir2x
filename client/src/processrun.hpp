@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/06/2017 13:09:23
+ *  Last Modified: 07/10/2017 15:14:48
  *
  *    Description: 
  *
@@ -70,6 +70,12 @@ class ProcessRun: public Process
         std::map<uint32_t, Creature*> m_CreatureRecord;
 
     private:
+        // used to keep a record of the UID under track/attack
+        // if it moved we need to re-calculate the track path to get it
+        int m_AttackUIDX;
+        int m_AttackUIDY;
+
+    private:
         int LoadMap(uint32_t);
 
     public:
@@ -134,4 +140,7 @@ class ProcessRun: public Process
     public:
         Creature *RetrieveUID(uint32_t);
         bool LocateUID(uint32_t, int *, int *);
+
+    private:
+        bool TrackAttack(bool, uint32_t);
 };

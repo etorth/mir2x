@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 07/09/2017 16:24:58
+ *  Last Modified: 07/10/2017 15:10:37
  *
  *    Description: 
  *
@@ -946,7 +946,7 @@ int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
     }else{ return -1; }
 }
 
-MotionNode Hero::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed)
+MotionNode Hero::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
 {
     if(true
             && m_ProcessRun
