@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 07/05/2017 23:45:49
+ *  Last Modified: 07/10/2017 18:46:32
  *
  *    Description: 
  *
@@ -353,6 +353,11 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
         case MPK_QUERYCOCOUNT:
             {
                 On_MPK_QUERYCOCOUNT(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_QUERYRECTUIDV:
+            {
+                On_MPK_QUERYRECTUIDV(rstMPK, rstFromAddr);
                 break;
             }
         default:

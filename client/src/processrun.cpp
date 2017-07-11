@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/10/2017 15:54:58
+ *  Last Modified: 07/10/2017 23:00:19
  *
  *    Description: 
  *
@@ -96,7 +96,27 @@ void ProcessRun::Update(double)
     FocusUID(FOCUS_MOUSE);
 
     if(m_FocusUIDV[FOCUS_ATTACK]){
-        TrackAttack(false, m_FocusUIDV[FOCUS_ATTACK]);
+        if(auto pCreature = RetrieveUID(m_FocusUIDV[FOCUS_ATTACK])){
+            if(pCreature->StayDead()){
+                m_FocusUIDV[FOCUS_ATTACK] = 0;
+            }else{
+                auto nX = pCreature->X();
+                auto nY = pCreature->Y();
+
+                bool bForce = false;
+                if(false
+                        || m_AttackUIDX != nX
+                        || m_AttackUIDY != nY){
+
+                    bForce = true;
+                    m_AttackUIDX = nX;
+                    m_AttackUIDY = nY;
+                }
+                TrackAttack(bForce, m_FocusUIDV[FOCUS_ATTACK]);
+            }
+        }else{
+            m_FocusUIDV[FOCUS_ATTACK] = 0;
+        }
     }
 }
 

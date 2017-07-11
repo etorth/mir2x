@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 07/06/2017 00:09:25
+ *  Last Modified: 07/10/2017 18:45:20
  *
  *    Description: 
  *
@@ -728,4 +728,26 @@ void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::Add
 
     // failed to count and report error
     m_ActorPod->Forward(MPK_ERROR, rstAddress, rstMPK.ID());
+}
+
+void ServerMap::On_MPK_QUERYRECTUIDV(const MessagePack &rstMPK, const Theron::Address &rstAddress)
+{
+    AMQueryRectUIDV stAMQRUIDV;
+    std::memcpy(&stAMQRUIDV, rstMPK.Data(), sizeof(stAMQRUIDV));
+
+    AMUIDV stAMUIDV;
+    std::memset(&stAMUIDV, 0, sizeof(stAMUIDV));
+
+    size_t nIndex = 0;
+    for(int nY = stAMQRUIDV.Y; nY < stAMQRUIDV.Y + stAMQRUIDV.H; ++nY){
+        for(int nX = stAMQRUIDV.X; nX < stAMQRUIDV.X + stAMQRUIDV.W; ++nX){
+            if(In(stAMQRUIDV.MapID, nX, nY)){
+                for(auto nUID: m_UIDRecordV2D[nX][nY]){
+                    stAMUIDV.UIDV[nIndex++] = nUID;
+                }
+            }
+        }
+    }
+
+    m_ActorPod->Forward({MPK_UIDV, stAMUIDV}, rstAddress, rstMPK.ID());
 }

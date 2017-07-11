@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 07/09/2017 16:18:01
+ *  Last Modified: 07/10/2017 18:38:53
  *
  *    Description: how player respond for different net package
  *
@@ -19,7 +19,6 @@
  */
 
 #include <cinttypes>
-
 #include "player.hpp"
 #include "message.hpp"
 #include "actorpod.hpp"
@@ -125,26 +124,64 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                 }
             case ACTION_ATTACK:
                 {
-                    auto nX0 = (int)(stCMA.X);
-                    auto nY0 = (int)(stCMA.Y);
-                    // auto nX1 = (int)(stCMA.AimX);
-                    // auto nY1 = (int)(stCMA.AimY);
+                    // auto nX0 = (int)(stCMA.X);
+                    // auto nY0 = (int)(stCMA.Y);
+                    auto nX1 = (int)(stCMA.AimX);
+                    auto nY1 = (int)(stCMA.AimY);
 
-                    switch(LDistance2(X(), Y(), nX0, nY0)){
+                    switch(LDistance2(X(), Y(), nX1, nY1)){
                         case 1:
                         case 2:
                             {
-                                // DispatchAction({
-                                //         ACTION_ATTACK,
-                                //         stCMA.ActionParam,
-                                //         stCMA.Speed,
-                                //         stCMA.Direction,
-                                //         stCMA.X,
-                                //         stCMA.Y,
-                                //         stCMA.AimX,
-                                //         stCMA.AimY,
-                                //         m_Map->ID()});
-                                // break;
+                                DispatchAction({
+                                        ACTION_ATTACK,
+                                        stCMA.ActionParam,
+                                        stCMA.Speed,
+                                        stCMA.Direction,
+                                        X(),
+                                        Y(),
+                                        nX1,
+                                        nY1,
+                                        m_Map->ID()});
+
+                                auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &) -> void
+                                {
+                                    switch(rstRMPK.Type()){
+                                        case MPK_UIDV:
+                                            {
+                                                AMUIDV stAMUIDV;
+                                                std::memcpy(&stAMUIDV, rstRMPK.Data(), sizeof(stAMUIDV));
+
+                                                for(size_t nIndex = 0; nIndex < sizeof(stAMUIDV.UIDV) / sizeof(stAMUIDV.UIDV[0]); ++nIndex){
+                                                    if(auto nUID = stAMUIDV.UIDV[nIndex]){
+                                                        extern MonoServer *g_MonoServer;
+                                                        if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
+                                                            AMAttack stAMA;
+                                                            stAMA.UID   = UID();
+                                                            stAMA.MapID = MapID();
+
+                                                            stAMA.Mode  = EC_NONE;
+                                                            stAMA.Power = GetAttackPower(DC_PHY_PLAIN);
+
+                                                            stAMA.X = X();
+                                                            stAMA.Y = Y();
+                                                            m_ActorPod->Forward({MPK_ATTACK, stAMA}, stRecord.Address);
+                                                        }
+                                                    }else{ break; }
+                                                }
+                                            }
+                                    }
+                                };
+
+                                AMQueryRectUIDV stAMQRUIDV;
+                                stAMQRUIDV.MapID = m_Map->ID();
+                                stAMQRUIDV.X     = nX1;
+                                stAMQRUIDV.Y     = nY1;
+                                stAMQRUIDV.W     = 1;
+                                stAMQRUIDV.H     = 1;
+
+                                m_ActorPod->Forward({MPK_QUERYRECTUIDV, stAMQRUIDV}, m_Map->GetAddress(), fnOnResp);
+                                break;
                             }
                         default:
                             {

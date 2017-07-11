@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 07/06/2017 11:13:48
+ *  Last Modified: 07/10/2017 23:14:31
  *
  *    Description: 
  *
@@ -124,6 +124,7 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rs
 
     StruckDamage(0);
     AddTarget(stAMA.UID);
+    DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
 
     AMUpdateHP stAMUHP;
     stAMUHP.UID   = UID();
