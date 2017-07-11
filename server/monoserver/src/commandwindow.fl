@@ -52,7 +52,26 @@ class CommandWindow {open
         xywh {0 375 580 25} labeltype NO_LABEL labelfont 4 textfont 4 resizable
         class CommandInput
       }
-      Fl_Browser m_Browser {selected
+      Fl_Browser m_Browser {
+        callback {// callback for browser
+// when getting double-clicks, it insert current entry to the input box
+{
+    // check if we get double-clicks
+    if(Fl::event_clicks()){
+        if(auto pText = m_Browser->text(m_Browser->value())){
+            std::string szCommandStr = m_Input->value();
+            if(szCommandStr.empty()){
+                // to skip the formatting string at the beginning
+                // current I am using:
+                //   @C4 : normal
+                //   @C9 : warning
+                //   @C1 : error
+                m_Input->value(pText + 3);
+            }
+        }
+    }
+
+}} selected
         xywh {0 25 580 350} type Hold labelfont 4 textfont 4
       }
     }
