@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/11/2017 16:57:28
+ *  Last Modified: 07/11/2017 23:02:53
  *
  *    Description: 
  *
@@ -80,6 +80,9 @@ class ProcessRun: public Process
         // use a tokenboard to show all in future
         Label m_PointerPixlInfo;
         Label m_PointerTileInfo;
+
+    private:
+        TokenBoard m_SystemBoard;
 
     private:
         int LoadMap(uint32_t);

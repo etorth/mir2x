@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 07/07/2017 11:14:28
+ *  Last Modified: 07/11/2017 23:12:39
  *
  *    Description: 
  *
@@ -18,27 +18,27 @@
  * =====================================================================================
  */
 
-#include "emoticon.hpp"
-#include "emoticondbn.hpp"
-#include "fontexdbn.hpp"
-#include "section.hpp"
-#include "tokenboard.hpp"
-#include "tokenbox.hpp"
-#include "utf8char.hpp"
-#include "mathfunc.hpp"
-#include "log.hpp"
-#include "supwarning.hpp"
-#include "colorfunc.hpp"
-#include "xmlobjectlist.hpp"
-
-#include <SDL2/SDL.h>
+#include <utf8.h>
+#include <string>
+#include <cassert>
 #include <algorithm>
 #include <functional>
 #include <tinyxml2.h>
-#include <utf8.h>
+#include <SDL2/SDL.h>
 #include <unordered_map>
-#include <string>
-#include <cassert>
+
+#include "log.hpp"
+#include "section.hpp"
+#include "emoticon.hpp"
+#include "tokenbox.hpp"
+#include "utf8char.hpp"
+#include "mathfunc.hpp"
+#include "fontexdbn.hpp"
+#include "colorfunc.hpp"
+#include "supwarning.hpp"
+#include "tokenboard.hpp"
+#include "emoticondbn.hpp"
+#include "xmlobjectlist.hpp"
 
 int TokenBoard::XMLObjectType(const tinyxml2::XMLElement &rstObject)
 {

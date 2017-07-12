@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/20/2016 13:04:44
+ *  Last Modified: 07/11/2017 23:39:52
  *
  *    Description: Design TBD.
  *
@@ -131,16 +131,16 @@
 #pragma once
 
 #include <limits>
-#include <SDL2/SDL.h>
 #include <vector>
+#include <SDL2/SDL.h>
 #include <tinyxml2.h>
 #include <functional>
+#include <unordered_map>
+
+#include "widget.hpp"
 #include "section.hpp"
 #include "tokenbox.hpp"
-#include "widget.hpp"
-#include <unordered_map>
 #include "xmlobjectlist.hpp"
-
 
 enum XMLObjectType: int
 {
@@ -319,14 +319,11 @@ class TokenBoard: public Widget
     private:
         bool ParseReturnObject();
         bool ParseEmoticonObject(const tinyxml2::XMLElement &);
-        bool ParseTextObject(const tinyxml2::XMLElement &,
-                int, const std::unordered_map<std::string, std::function<void()>> &);
+        bool ParseTextObject(const tinyxml2::XMLElement &, int, const std::unordered_map<std::string, std::function<void()>> &);
 
     private:
-        bool GetAttributeColor(SDL_Color *, const SDL_Color &,
-                const tinyxml2::XMLElement &, const std::vector<std::string> &);
-        bool GetAttributeAtoi(int *, int,
-                const tinyxml2::XMLElement &, const std::vector<std::string> &);
+        bool GetAttributeColor(SDL_Color *, const SDL_Color &, const tinyxml2::XMLElement &, const std::vector<std::string> &);
+        bool GetAttributeAtoi(int *, int, const tinyxml2::XMLElement &, const std::vector<std::string> &);
 
     private:
         SDL_Color   GetFontColor(const tinyxml2::XMLElement &);

@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 07/06/2017 18:03:08
+ *  Last Modified: 07/11/2017 23:05:52
  *
  *    Description: 
  *
@@ -38,8 +38,7 @@ ProcessLogin::ProcessLogin()
 	, m_IDBox(159, 540, 146, 18, 2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
 	, m_PasswordBox(409, 540, 146, 18, true, 2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
     , m_InputBoard(100, 100, 300, 200, true, 296, 0, 2, {0XFF, 0XFF, 0X00, 0XFF}, 0, 15, 0, {0XFF, 0X00, 0X00, 0XFF})
-{
-}
+{}
 
 void ProcessLogin::Update(double fMS)
 {
