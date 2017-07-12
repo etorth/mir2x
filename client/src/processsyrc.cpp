@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 08/14/2015 2:47:49 PM
- *  Last Modified: 07/06/2017 18:01:12
+ *  Last Modified: 07/11/2017 15:33:14
  *
  *    Description: 
  *
@@ -18,12 +18,12 @@
  * =====================================================================================
  */
 
-#include "game.hpp"
-#include "pngtexdbn.hpp"
-#include "processsyrc.hpp"
-#include "tokenboard.hpp"
-#include "sdldevice.hpp"
 #include "log.hpp"
+#include "game.hpp"
+#include "sdldevice.hpp"
+#include "pngtexdbn.hpp"
+#include "tokenboard.hpp"
+#include "processsyrc.hpp"
 
 ProcessSyrc::ProcessSyrc()
 	: Process()

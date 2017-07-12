@@ -3,7 +3,7 @@
  *
  *       Filename: label.hpp
  *        Created: 08/20/2015 08:59:11 PM
- *  Last Modified: 08/26/2016 13:06:51
+ *  Last Modified: 07/11/2017 16:35:14
  *
  *    Description: Label is a class
  *                      1. without padding
@@ -79,7 +79,7 @@ class Label: public Widget
                 false
             }
         {
-            SetText(szContent);
+            SetText("%s", szContent);
         }
 
 
@@ -104,7 +104,7 @@ class Label: public Widget
             return m_Content.c_str();
         }
 
-        void SetText(const char *);
+        void SetText(const char *, ...);
 
     public:
         void DrawEx(int nX, int nY, int, int, int, int)

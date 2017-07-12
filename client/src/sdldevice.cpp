@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 05/20/2017 22:00:32
+ *  Last Modified: 07/11/2017 16:09:14
  *
  *    Description: 
  *
@@ -131,6 +131,7 @@ SDLDevice::SDLDevice()
 
     SetWindowIcon();
     PushColor(0, 0, 0, 0);
+    PushBlendMode(SDL_BLENDMODE_NONE);
 }
 
 SDLDevice::~SDLDevice()
@@ -317,6 +318,35 @@ void SDLDevice::PopColor()
             }
         }else{
             --m_ColorStack.back()[1];
+        }
+    }
+}
+
+void SDLDevice::PushBlendMode(SDL_BlendMode stMode)
+{
+    if(m_BlendModeStack.empty() || stMode != m_BlendModeStack.back().first){
+        SDL_SetRenderDrawBlendMode(m_Renderer, stMode);
+        m_BlendModeStack.push_back({stMode, 1});
+    }else{
+        ++m_BlendModeStack.back().second;
+    }
+}
+
+void SDLDevice::PopBlendMode()
+{
+    if(m_BlendModeStack.empty()){
+        PushBlendMode(SDL_BLENDMODE_NONE);
+    }else{
+        assert(m_BlendModeStack.back().second);
+        if(m_BlendModeStack.back().second == 1){
+            m_BlendModeStack.pop_back();
+            if(m_BlendModeStack.empty()){
+                PushBlendMode(SDL_BLENDMODE_NONE);
+            }else{
+                SDL_SetRenderDrawBlendMode(m_Renderer, m_BlendModeStack.back().first);
+            }
+        }else{
+            --m_BlendModeStack.back().second;
         }
     }
 }

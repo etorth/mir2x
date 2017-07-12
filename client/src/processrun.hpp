@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/10/2017 15:14:48
+ *  Last Modified: 07/11/2017 16:57:28
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <unordered_map>
 
+#include "label.hpp"
 #include "myhero.hpp"
 #include "process.hpp"
 #include "message.hpp"
@@ -74,6 +75,11 @@ class ProcessRun: public Process
         // if it moved we need to re-calculate the track path to get it
         int m_AttackUIDX;
         int m_AttackUIDY;
+
+    private:
+        // use a tokenboard to show all in future
+        Label m_PointerPixlInfo;
+        Label m_PointerTileInfo;
 
     private:
         int LoadMap(uint32_t);

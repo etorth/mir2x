@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/10/2017 23:00:19
+ *  Last Modified: 07/11/2017 17:08:02
  *
  *    Description: 
  *
@@ -44,6 +44,8 @@ ProcessRun::ProcessRun()
     , m_CreatureRecord()
     , m_AttackUIDX(-1)
     , m_AttackUIDY(-1)
+    , m_PointerPixlInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
+    , m_PointerTileInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
 {
     m_FocusUIDV.fill(0);
     m_ControbBoard.Bind(this);
@@ -426,6 +428,27 @@ void ProcessRun::Draw()
             g_SDLDevice->DrawTexture(pHP, 33, 474 + nLostHPH, 0, nLostHPH, nHPW, nHPH - nLostHPH);
             g_SDLDevice->DrawTexture(pMP, 73, 474 + nLostMPH, 0, nLostMPH, nMPW, nMPH - nLostMPH);
         }
+    }
+
+    // draw cursor location information on top-left
+    extern ClientEnv *g_ClientEnv;
+    if(g_ClientEnv->MIR2X_DEBUG_SHOW_LOCATION){
+        extern SDLDevice *g_SDLDevice;
+        g_SDLDevice->PushColor(0, 0, 0, 230);
+        g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
+        g_SDLDevice->FillRectangle(0, 0, 200, 60);
+        g_SDLDevice->PopBlendMode();
+        g_SDLDevice->PopColor();
+
+        int nPointX = -1;
+        int nPointY = -1;
+        SDL_GetMouseState(&nPointX, &nPointY);
+
+        m_PointerPixlInfo.SetText("Pix_Loc: %3d, %3d", nPointX, nPointY);
+        m_PointerTileInfo.SetText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
+
+        m_PointerTileInfo.DrawEx(10, 10, 0, 0, m_PointerTileInfo.W(), m_PointerTileInfo.H());
+        m_PointerPixlInfo.DrawEx(10, 30, 0, 0, m_PointerPixlInfo.W(), m_PointerPixlInfo.H());
     }
 
     g_SDLDevice->Present();

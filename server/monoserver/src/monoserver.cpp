@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/02/2017 21:53:41
+ *  Last Modified: 07/11/2017 16:22:08
  *
  *    Description: 
  *
@@ -56,7 +56,8 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
     int nLogSize = 0;
     int nLogType = std::atoi(stLogDesc[0].c_str());
 
-    auto fnRecordLog = [this, &stLogDesc](int nLogType, const char *szLogInfo){
+    auto fnRecordLog = [this, &stLogDesc](int nLogType, const char *szLogInfo) -> void
+    {
         extern Log *g_Log;
         switch(nLogType){
             case Log::LOGTYPEV_DEBUG:

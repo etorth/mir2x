@@ -3,10 +3,9 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 05/20/2017 21:52:59
+ *  Last Modified: 07/11/2017 16:00:23
  *
- *    Description: copy from flare-engine:
- *				   SDLHardwareRenderDevice.h/cpp
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -25,11 +24,14 @@
 #include <algorithm>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-
 #include "colorfunc.hpp"
 
 class SDLDevice final
 {
+    private:
+        using ColoStackNode      = std::array<uint32_t, 2>;
+        using BlendModeStackNode = std::pair<SDL_BlendMode, uint32_t>;
+
     public:
         SDLDevice();
        ~SDLDevice();
@@ -134,11 +136,15 @@ class SDLDevice final
            }
        }
 
+    public:
        void PushColor(uint8_t, uint8_t, uint8_t, uint8_t);
        void PopColor();
 
     public:
+       void PushBlendMode(SDL_BlendMode);
+       void PopBlendMode();
 
+    public:
        TTF_Font *CreateTTF(const uint8_t *, size_t, uint8_t);
 
     private:
@@ -147,7 +153,8 @@ class SDLDevice final
        SDL_Renderer *m_Renderer;
 
     private:
-       std::vector<std::array<uint32_t, 2>> m_ColorStack;
+       std::vector<ColoStackNode>      m_ColorStack;
+       std::vector<BlendModeStackNode> m_BlendModeStack;
 
     private:
        int m_WindowW;

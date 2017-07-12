@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.hpp
  *        Created: 8/14/2015 2:47:30 PM
- *  Last Modified: 06/13/2016 11:01:26
+ *  Last Modified: 07/11/2017 15:33:23
  *
  *    Description: 
  *
@@ -18,12 +18,10 @@
  * =====================================================================================
  */
 #pragma once
-
 #include <SDL2/SDL.h>
-#include "process.hpp"
-#include <atomic>
-#include "tokenboard.hpp"
 #include "label.hpp"
+#include "process.hpp"
+#include "tokenboard.hpp"
 
 class ProcessSyrc: public Process
 {
