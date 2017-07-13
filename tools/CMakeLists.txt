@@ -7,3 +7,6 @@ ADD_SUBDIRECTORY(animaker)
 ADD_SUBDIRECTORY(herowil2png)
 ADD_SUBDIRECTORY(weaponwil2png)
 ADD_SUBDIRECTORY(monsterwil2png)
+
+ADD_SUBDIRECTORY(fpm_decoder)
+ADD_SUBDIRECTORY(ipm_decoder)
