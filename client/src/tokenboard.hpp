@@ -2,12 +2,10 @@
  * =====================================================================================
  *
  *       Filename: tokenboard.hpp
- *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 07/11/2017 23:39:52
+ *        Created: 06/17/2015 10:24:27
+ *  Last Modified: 07/13/2017 00:27:16
  *
- *    Description: Design TBD.
- *
- *                 For scenario we need text-emoticon mixed boards:
+ *    Description: For scenarios we need text-emoticon mixed boards:
  *
  *                 1. button like text terminal. which we only need to support emoticon
  *                    and eventtext, eventtext accept button click event only. This is
@@ -38,7 +36,7 @@
  *                   
  *                 Event for handling or not:
  *
- *                 1. click, motion,  for sure we need to handle it for trigger event, for select.
+ *                 1. click, motion, for sure we need to handle it for trigger event, for selection.
  *                 2. ctrl+c/p/x, a/b/c..., Tokenboard won't handle this. alternatively, wrapper of
  *                    tokenboard handle it and query TokenBoard for proper behavor. IE:
  *                          ChatBox get event:
@@ -130,6 +128,7 @@
  */
 #pragma once
 
+#include <map>
 #include <limits>
 #include <vector>
 #include <SDL2/SDL.h>
@@ -164,7 +163,7 @@ class TokenBoard: public Widget
     // |           2                 |
     // +-----------------------------+
 
-    // 1. Marg0 ~ Marg3 is for cursor blitting
+    // 1. marg0 ~ marg3 is for cursor blitting
     // 2. Internal box is for tokenbox *only*, |X X X  X|, no extra space
     //    any more in it beside the boundary
     // 3. The outer box as a whole to accept events
@@ -233,14 +232,20 @@ class TokenBoard: public Widget
         int XMLObjectType(const tinyxml2::XMLElement &);
 
     public:
-        bool    Add(TOKENBOX &);
-        void    Reset();
-        void    Update(double);
-        bool    Empty();
-        int     MaxHeight();
+        void Reset();
+
+    public:
+        void Update(double);
+
+    public:
+        bool Empty();
+
+    public:
+        int  MaxHeight();
 
     private:
         void GetTokenBoxMetrics(TOKENBOX &, int &, int &, int &, int &);
+
     private:
         void LoadUTF8CharBoxCache(TOKENBOX &, int);
         void LoadEmoticonCache(TOKENBOX &, int);
@@ -312,7 +317,6 @@ class TokenBoard: public Widget
             return false;
         }
 
-
     private:
         bool ParseXMLContent(const tinyxml2::XMLElement *);
 
@@ -326,17 +330,17 @@ class TokenBoard: public Widget
         bool GetAttributeAtoi(int *, int, const tinyxml2::XMLElement &, const std::vector<std::string> &);
 
     private:
-        SDL_Color   GetFontColor(const tinyxml2::XMLElement &);
-        int         GetFontIndex(const tinyxml2::XMLElement &);
-        int         GetFontStyle(const tinyxml2::XMLElement &);
-        int         GetFontSize (const tinyxml2::XMLElement &);
+        SDL_Color GetFontColor(const tinyxml2::XMLElement &);
+        int       GetFontIndex(const tinyxml2::XMLElement &);
+        int       GetFontStyle(const tinyxml2::XMLElement &);
+        int       GetFontSize (const tinyxml2::XMLElement &);
 
     private:
-        void        ParseTextContentSection(const tinyxml2::XMLElement *, int);
+        void ParseTextContentSection(const tinyxml2::XMLElement *, int);
 
     private:
-        int         GetEmoticonSet  (const tinyxml2::XMLElement &);
-        int         GetEmoticonIndex(const tinyxml2::XMLElement &);
+        int GetEmoticonSet  (const tinyxml2::XMLElement &);
+        int GetEmoticonIndex(const tinyxml2::XMLElement &);
 
     public:
         bool ObjectEmocticon(const tinyxml2::XMLElement &);
@@ -363,15 +367,11 @@ class TokenBoard: public Widget
         void DrawEx(int, int, int, int, int, int);
 
     private:
-        bool AddNewTokenBox(TOKENBOX &);
-
-    public:
-
-    private:
         int GetLineIntervalMaxH2(int, int, int);
         int GetLineTokenBoxStartY(int, int, int, int);
         int GetNewLineStartY(int);
 
+    private:
         bool GetTokenBoxLocation(int, int, int &, int &, int &, int &);
         bool GetTokenBoxStartPoint(int, int, int &, int &);
         void SetDrawToTextureCache();
@@ -435,7 +435,6 @@ class TokenBoard: public Widget
 
     private:
         int SectionTypeCount(int, int);
-
         void DrawRectLine(const SDL_Rect &);
 
     public:
@@ -556,12 +555,9 @@ class TokenBoard: public Widget
 
     public:
         std::string GetXML(bool);
-
-
         std::string InnGetXML(int, int, int, int);
 
         bool GetTokenBoxInfo(int, int, int *, int *, int *, int *, int *, int *, int *);
-
         void GetDefaultFontInfo(uint8_t *, uint8_t *, uint8_t *);
 
     public:
@@ -630,4 +626,8 @@ class TokenBoard: public Widget
         int     m_SelectState;  // 0: no selection
         // 1: selecting
         // 2: selection done with result available
+
+    public:
+        bool Add   (const char *);
+        bool AddXML(const char *, const std::map<std::string, std::function<void()>> &);
 };
