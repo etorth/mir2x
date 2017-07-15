@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 07/11/2017 23:12:39
+ *  Last Modified: 07/14/2017 23:03:34
  *
  *    Description: 
  *
@@ -42,76 +42,85 @@
 
 int TokenBoard::XMLObjectType(const tinyxml2::XMLElement &rstObject)
 {
-    if(false
-            || (rstObject.Attribute("Type") == nullptr)
-            || (rstObject.Attribute("TYPE") == nullptr)
-            || (rstObject.Attribute("type") == nullptr)
-            || (rstObject.Attribute("TYPE", "PLAINTEXT"))
-            || (rstObject.Attribute("TYPE", "PlainText"))
-            || (rstObject.Attribute("TYPE", "Plaintext"))
-            || (rstObject.Attribute("TYPE", "plainText"))
-            || (rstObject.Attribute("TYPE", "plaintext"))
-            || (rstObject.Attribute("Type", "PLAINTEXT"))
-            || (rstObject.Attribute("Type", "PlainText"))
-            || (rstObject.Attribute("Type", "Plaintext"))
-            || (rstObject.Attribute("Type", "plainText"))
-            || (rstObject.Attribute("Type", "plaintext"))
-            || (rstObject.Attribute("type", "PLAINTEXT"))
-            || (rstObject.Attribute("type", "PlainText"))
-            || (rstObject.Attribute("type", "Plaintext"))
-            || (rstObject.Attribute("type", "plainText"))
-            || (rstObject.Attribute("type", "plaintext"))){
+    if(true
+            && (rstObject.Attribute("Type") == nullptr)
+            && (rstObject.Attribute("TYPE") == nullptr)
+            && (rstObject.Attribute("type") == nullptr)){
         return OBJECTTYPE_PLAINTEXT;
-    }else if(false
-            || (rstObject.Attribute("TYPE", "EVENTTEXT"))
-            || (rstObject.Attribute("TYPE", "EventText"))
-            || (rstObject.Attribute("TYPE", "Eventtext"))
-            || (rstObject.Attribute("TYPE", "eventText"))
-            || (rstObject.Attribute("TYPE", "eventtext"))
-            || (rstObject.Attribute("Type", "EVENTTEXT"))
-            || (rstObject.Attribute("Type", "EventText"))
-            || (rstObject.Attribute("Type", "Eventtext"))
-            || (rstObject.Attribute("Type", "eventText"))
-            || (rstObject.Attribute("Type", "eventtext"))
-            || (rstObject.Attribute("type", "EVENTTEXT"))
-            || (rstObject.Attribute("type", "EventText"))
-            || (rstObject.Attribute("type", "Eventtext"))
-            || (rstObject.Attribute("type", "eventText"))
-            || (rstObject.Attribute("type", "eventtext"))){
-        return OBJECTTYPE_EVENTTEXT;
-    }else if(false
-            || (rstObject.Attribute("TYPE", "RETURN"))
-            || (rstObject.Attribute("TYPE", "Return"))
-            || (rstObject.Attribute("TYPE", "return"))
-            || (rstObject.Attribute("Type", "RETURN"))
-            || (rstObject.Attribute("Type", "Return"))
-            || (rstObject.Attribute("Type", "return"))
-            || (rstObject.Attribute("type", "RETURN"))
-            || (rstObject.Attribute("type", "Return"))
-            || (rstObject.Attribute("type", "return"))){
-        return OBJECTTYPE_RETURN;
-    }else if(false
-            || (rstObject.Attribute("TYPE", "Emoticon"))
-            || (rstObject.Attribute("TYPE", "emoticon"))
-            || (rstObject.Attribute("TYPE", "EMOTICON"))
-            || (rstObject.Attribute("Type", "Emoticon"))
-            || (rstObject.Attribute("Type", "emoticon"))
-            || (rstObject.Attribute("Type", "EMOTICON"))
-            || (rstObject.Attribute("type", "Emoticon"))
-            || (rstObject.Attribute("type", "emoticon"))
-            || (rstObject.Attribute("type", "EMOTICON"))){
-        return OBJECTTYPE_EMOTICON;
-    }else{
-        return OBJECTTYPE_UNKNOWN;
     }
+
+    if(false
+            || rstObject.Attribute("TYPE", "PLAINTEXT")
+            || rstObject.Attribute("TYPE", "PlainText")
+            || rstObject.Attribute("TYPE", "Plaintext")
+            || rstObject.Attribute("TYPE", "plainText")
+            || rstObject.Attribute("TYPE", "plaintext")
+            || rstObject.Attribute("Type", "PLAINTEXT")
+            || rstObject.Attribute("Type", "PlainText")
+            || rstObject.Attribute("Type", "Plaintext")
+            || rstObject.Attribute("Type", "plainText")
+            || rstObject.Attribute("Type", "plaintext")
+            || rstObject.Attribute("type", "PLAINTEXT")
+            || rstObject.Attribute("type", "PlainText")
+            || rstObject.Attribute("type", "Plaintext")
+            || rstObject.Attribute("type", "plainText")
+            || rstObject.Attribute("type", "plaintext")){
+        return OBJECTTYPE_PLAINTEXT;
+    }
+
+    if(false
+            || rstObject.Attribute("TYPE", "EVENTTEXT")
+            || rstObject.Attribute("TYPE", "EventText")
+            || rstObject.Attribute("TYPE", "Eventtext")
+            || rstObject.Attribute("TYPE", "eventText")
+            || rstObject.Attribute("TYPE", "eventtext")
+            || rstObject.Attribute("Type", "EVENTTEXT")
+            || rstObject.Attribute("Type", "EventText")
+            || rstObject.Attribute("Type", "Eventtext")
+            || rstObject.Attribute("Type", "eventText")
+            || rstObject.Attribute("Type", "eventtext")
+            || rstObject.Attribute("type", "EVENTTEXT")
+            || rstObject.Attribute("type", "EventText")
+            || rstObject.Attribute("type", "Eventtext")
+            || rstObject.Attribute("type", "eventText")
+            || rstObject.Attribute("type", "eventtext")){
+        return OBJECTTYPE_EVENTTEXT;
+    }
+
+    if(false
+            || rstObject.Attribute("TYPE", "RETURN")
+            || rstObject.Attribute("TYPE", "Return")
+            || rstObject.Attribute("TYPE", "return")
+            || rstObject.Attribute("Type", "RETURN")
+            || rstObject.Attribute("Type", "Return")
+            || rstObject.Attribute("Type", "return")
+            || rstObject.Attribute("type", "RETURN")
+            || rstObject.Attribute("type", "Return")
+            || rstObject.Attribute("type", "return")){
+        return OBJECTTYPE_RETURN;
+    }
+
+    if(false
+            || rstObject.Attribute("TYPE", "Emoticon")
+            || rstObject.Attribute("TYPE", "emoticon")
+            || rstObject.Attribute("TYPE", "EMOTICON")
+            || rstObject.Attribute("Type", "Emoticon")
+            || rstObject.Attribute("Type", "emoticon")
+            || rstObject.Attribute("Type", "EMOTICON")
+            || rstObject.Attribute("type", "Emoticon")
+            || rstObject.Attribute("type", "emoticon")
+            || rstObject.Attribute("type", "EMOTICON")){
+        return OBJECTTYPE_EMOTICON;
+    }
+
+    return OBJECTTYPE_UNKNOWN;
 }
 
 // inn function for LoadXXX and InsertXXX
 // assumption
 //      1. current tokenboard is valid
 //      2. cursor is well-prepared
-//      3. buffer is prepared, i.e. where start from empty board, there is alreay
-//         a empty vector at the end.
+//      3. buffer is prepared, i.e. where start from empty board, there is alreay an empty vector at the end.
 bool TokenBoard::InnInsert(XMLObjectList &rstXMLObjectList,
         const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
 {
@@ -119,14 +128,14 @@ bool TokenBoard::InnInsert(XMLObjectList &rstXMLObjectList,
     rstXMLObjectList.Reset();
 
     // 2. get the first object
-    const tinyxml2::XMLElement *pObject = rstXMLObjectList.Fetch();
+    const auto *pObject = rstXMLObjectList.Fetch();
 
     // 3. if XMLObjectList is empty, this is OK and we return true
+    //    if unknown section type detected we give a warning and won't abort parsing
     bool bRes = true;
 
-    while(pObject){
-        int nObjectType = XMLObjectType(*pObject);
-        switch(nObjectType){
+    while(pObject && bRes){
+        switch(auto nObjectType = XMLObjectType(*pObject)){
             case OBJECTTYPE_RETURN:
                 {
                     bRes = ParseReturnObject();
@@ -146,19 +155,15 @@ bool TokenBoard::InnInsert(XMLObjectList &rstXMLObjectList,
             default:
                 {
                     extern Log *g_Log;
-                    g_Log->AddLog(LOGTYPE_INFO, "detected known object type, ignored it");
+                    g_Log->AddLog(LOGTYPE_WARNING, "Detected known object type, ignored it");
 
                     bRes = true;
                     break;
                 }
         }
-
-        if(!bRes){ break; }
-
         // move to next
         pObject = rstXMLObjectList.Fetch();
     }
-
     return bRes;
 }
 
@@ -213,8 +218,7 @@ bool TokenBoard::GetAttributeAtoi(int *pOut, int nDefaultOut,
 //  1. prepare a section
 //  2. use MakeTokenBox() to allocate an emoticon box
 //  3. insert the box
-bool TokenBoard::ParseEmoticonObject(
-        const tinyxml2::XMLElement &rstCurrentObject)
+bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement &rstCurrentObject)
 {
     SECTION  stSection;
     TOKENBOX stTokenBox;
@@ -259,7 +263,7 @@ bool TokenBoard::ParseEmoticonObject(
     }
 
     // if failed to make the token, ooops don't forget to remove the section id
-    m_SectionV.erase(nSectionID);
+    m_SectionRecord.erase(nSectionID);
     return false;
 }
 
@@ -269,7 +273,7 @@ bool TokenBoard::ParseTextObject(
 {
     if(nObjectType != OBJECTTYPE_PLAINTEXT && nObjectType != OBJECTTYPE_EVENTTEXT){
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO, "object trying to parse is not text: %d", nObjectType);
+        g_Log->AddLog(LOGTYPE_INFO, "Object trying to parse is not text: %d", nObjectType);
         return false;
     }
 
@@ -282,16 +286,16 @@ bool TokenBoard::ParseTextObject(
         stSection.Info.Type = SECTIONTYPE_EVENTTEXT;
     }
 
-    int nTmpFont = 0;
-    GetAttributeAtoi(&nTmpFont, m_DefaultFont, rstCurrentObject, {"FONT", "Font", "font"});
-    stSection.Info.Text.Font = (uint8_t)nTmpFont;
+    int nFontCode = 0;
+    GetAttributeAtoi(&nFontCode, m_DefaultFont, rstCurrentObject, {"FONT", "Font", "font"});
+    stSection.Info.Text.Font = (uint8_t)nFontCode;
 
     // TODO: need to support it
-    // GetAttributeAtoi(&(stSection.Info.Text.Style),
-    //         0, rstCurrentObject, {"STYLE", "Style", "style"});
-    int nTmpSize = 0;
-    GetAttributeAtoi(&nTmpSize, m_DefaultSize, rstCurrentObject, {"SIZE", "Size", "size"});
-    stSection.Info.Text.Size = (uint8_t)nTmpSize;
+    // GetAttributeAtoi(&(stSection.Info.Text.Style), 0, rstCurrentObject, {"STYLE", "Style", "style"});
+
+    int nFontSize = 0;
+    GetAttributeAtoi(&nFontSize, m_DefaultSize, rstCurrentObject, {"SIZE", "Size", "size"});
+    stSection.Info.Text.Size = (uint8_t)nFontSize;
 
     std::function<void()> fnCallback;
     const char *szID = rstCurrentObject.Attribute("ID");
@@ -305,15 +309,11 @@ bool TokenBoard::ParseTextObject(
     }
 
     if(nObjectType == OBJECTTYPE_PLAINTEXT){
-        GetAttributeColor(stSection.Info.Text.Color,
-                {0XFF, 0XFF, 0XFF, 0XFF}, rstCurrentObject, {"COLOR", "Color", "color"});
+        GetAttributeColor(stSection.Info.Text.Color + 0, {0XFF, 0XFF, 0XFF, 0XFF}, rstCurrentObject, {"COLOR", "Color", "color"});
     }else{
-        GetAttributeColor(stSection.Info.Text.Color + 0,
-                {0XFF, 0XFF, 0X00, 0XFF}, rstCurrentObject, {"OFF", "Off", "off"});
-        GetAttributeColor(stSection.Info.Text.Color + 1,
-                {0X00, 0XFF, 0X00, 0XFF}, rstCurrentObject, {"OVER", "Over", "over"});
-        GetAttributeColor(stSection.Info.Text.Color + 2,
-                {0XFF, 0X00, 0X00, 0XFF}, rstCurrentObject, {"DOWN", "Down", "down"});
+        GetAttributeColor(stSection.Info.Text.Color + 0, {0XFF, 0XFF, 0X00, 0XFF}, rstCurrentObject, {"OFF",  "Off",  "off"});
+        GetAttributeColor(stSection.Info.Text.Color + 1, {0X00, 0XFF, 0X00, 0XFF}, rstCurrentObject, {"OVER", "Over", "over"});
+        GetAttributeColor(stSection.Info.Text.Color + 2, {0XFF, 0X00, 0X00, 0XFF}, rstCurrentObject, {"DOWN", "Down", "down"});
     }
 
     stSection.State.Text.Event = 0;
@@ -345,7 +345,7 @@ bool TokenBoard::ParseTextObject(
             stTBV.push_back(stTokenBox);
         }else{
             // 1. remove the section id
-            m_SectionV.erase(nSectionID);
+            m_SectionRecord.erase(nSectionID);
             // 2. report error
             return false;
         }
@@ -358,7 +358,7 @@ void TokenBoard::Update(double fMS)
 {
     if(fMS < 0.0 || m_SkipUpdate){ return; }
 
-    for(auto &rstInst: m_SectionV){
+    for(auto &rstInst: m_SectionRecord){
         auto &rstSection = rstInst.second;
         switch(rstSection.Info.Type){
             case SECTIONTYPE_EMOTICON:
@@ -420,7 +420,7 @@ int TokenBoard::SectionTypeCount(int nLine, int nSectionType)
 
     for(const auto &rstTokenBox: m_LineV[nLine]){
         if(SectionValid(rstTokenBox.Section, true)){
-            if(fnCmp(m_SectionV[rstTokenBox.Section].Info.Type, nSectionType)){
+            if(fnCmp(m_SectionRecord[rstTokenBox.Section].Info.Type, nSectionType)){
                 nCount++;
             }
         }else{
@@ -852,7 +852,7 @@ void TokenBoard::DrawEx(
                 return;
             }
 
-            switch(m_SectionV[rstTokenBox.Section].Info.Type){
+            switch(m_SectionRecord[rstTokenBox.Section].Info.Type){
                 case SECTIONTYPE_EVENTTEXT:
                 case SECTIONTYPE_PLAINTEXT:
                     {
@@ -873,8 +873,8 @@ void TokenBoard::DrawEx(
                         //     we can't steal the data source and replace by a new one at runtime
                         //
 
-                        int nEvent = m_SectionV[rstTokenBox.Section].State.Text.Event;
-                        auto &rstColor = m_SectionV[rstTokenBox.Section].Info.Text.Color[nEvent];
+                        int nEvent = m_SectionRecord[rstTokenBox.Section].State.Text.Event;
+                        auto &rstColor = m_SectionRecord[rstTokenBox.Section].Info.Text.Color[nEvent];
 
                         extern SDLDevice *g_SDLDevice;
                         extern FontexDBN *g_FontexDBN;
@@ -895,7 +895,7 @@ void TokenBoard::DrawEx(
 
                 case SECTIONTYPE_EMOTICON:
                     {
-                        int nFrameIndex = m_SectionV[rstTokenBox.Section].State.Emoticon.FrameIndex;
+                        int nFrameIndex = m_SectionRecord[rstTokenBox.Section].State.Emoticon.FrameIndex;
                         extern EmoticonDBN *g_EmoticonDBN;
                         extern SDLDevice   *g_SDLDevice;
 
@@ -1016,7 +1016,7 @@ void TokenBoard::TokenBoxGetMouseButtonUp(int nX, int nY, bool bFirstHalf)
         return;
     }
 
-    auto &rstSection = m_SectionV[nSection];
+    auto &rstSection = m_SectionRecord[nSection];
 
     switch(rstSection.Info.Type){
         case SECTIONTYPE_PLAINTEXT:
@@ -1069,8 +1069,8 @@ void TokenBoard::TokenBoxGetMouseButtonUp(int nX, int nY, bool bFirstHalf)
                             // 1. make as state ``over"
                             rstSection.State.Text.Event = 1;
                             // 2. trigger registered event handler
-                            auto pFuncInst = m_IDFuncV.find(nSection);
-                            if(pFuncInst != m_IDFuncV.end() && pFuncInst->second){
+                            auto pFuncInst = m_IDCBRecord.find(nSection);
+                            if(pFuncInst != m_IDCBRecord.end() && pFuncInst->second){
                                 (pFuncInst->second)();
                             }
                             break;
@@ -1100,7 +1100,7 @@ void TokenBoard::TokenBoxGetMouseButtonDown(int nX, int nY, bool bFirstHalf)
         return;
     }
 
-    auto &rstSection = m_SectionV[nSection];
+    auto &rstSection = m_SectionRecord[nSection];
     switch(rstSection.Info.Type){
         case SECTIONTYPE_PLAINTEXT:
         case SECTIONTYPE_EMOTICON:
@@ -1382,7 +1382,7 @@ bool TokenBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
 
 int TokenBoard::TokenBoxType(const TOKENBOX &rstTokenBox)
 {
-    return m_SectionV[rstTokenBox.Section].Info.Type;
+    return m_SectionRecord[rstTokenBox.Section].Info.Type;
 }
 
 void TokenBoard::MakeTokenBoxEventBitmap()
@@ -1506,7 +1506,7 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
     int nLastSection = -1;
     while(!(nX == nX1 && nY == nY1)){
         const auto &rstTB = m_LineV[nY][nX];
-        const auto &rstSN = m_SectionV[rstTB.Section];
+        const auto &rstSN = m_SectionRecord[rstTB.Section];
 
         if(nLastSection >= 0){
             szXML += "</object>";
@@ -1695,8 +1695,8 @@ bool TokenBoard::GetTokenBoxInfo(int nX, int nY, int *pType, int *pX, int *pY, i
     if(!TokenBoxValid(nX, nY)){ return false; }
 
     int  nSection = m_LineV[nY][nX].Section;
-    auto p = m_SectionV.find(nSection);
-    if(p == m_SectionV.end()){ return false; }
+    auto p = m_SectionRecord.find(nSection);
+    if(p == m_SectionRecord.end()){ return false; }
 
     if(pType){ *pType = p->second.Info.Type;          }
     if(pX   ){ *pX    = m_LineV[nY][nX].Cache.StartX; }
@@ -1881,8 +1881,8 @@ bool TokenBoard::Delete(bool bSelectedOnly)
 void TokenBoard::Reset()
 {
     m_LineV.clear();
-    m_IDFuncV.clear();
-    m_SectionV.clear();
+    m_IDCBRecord.clear();
+    m_SectionRecord.clear();
     m_LineStartY.clear();
     m_EndWithCR.clear();
     m_TokenBoxBitmap.clear();
@@ -1955,8 +1955,13 @@ bool TokenBoard::ParseReturnObject()
         // to re-padding it
         //
         // since only one line, it's OK
-        m_LineV.insert(m_LineV.begin() + nY, stTBV);
+        m_LineV.insert(m_LineV.begin() + nY + 1, stTBV);
         m_EndWithCR.insert(m_EndWithCR.begin() + nY, true);
+
+        // TODO
+        // should I need reset from line nY?
+        // because if can through set, nY should also be repadding
+
         ResetOneLine(nY + 1);
 
         // reset all startY for the rest
@@ -2068,19 +2073,19 @@ bool TokenBoard::AddUTF8Code(uint32_t nUTF8Code)
     // 1. get the current section ID
     if(!CursorValid()){ Reset(); }
 
-    auto fnGetTextSection = [this](int nTBX, int nTBY) -> int {
+    auto fnGetTextSection = [this](int nTBX, int nTBY) -> int
+    {
         if(TokenBoxValid(nTBX, nTBY)){
             int nID = m_LineV[nTBY][nTBX].Section;
             // oooops, not a valid section id, big error
             if(!SectionValid(nID, false)){
                 extern Log *g_Log;
-                g_Log->AddLog(LOGTYPE_WARNING,
-                        "sectioin id %d not found for token box (%d, %d).", nID, nTBX, nTBY);
+                g_Log->AddLog(LOGTYPE_WARNING, "Section ID %d not found for token box (%d, %d).", nID, nTBX, nTBY);
                 return -1;
             }
 
             // find it, whether it's a text section?
-            auto nType = m_SectionV[nID].Info.Type;
+            auto nType = m_SectionRecord[nID].Info.Type;
             if(nType != SECTIONTYPE_EVENTTEXT && nType != SECTIONTYPE_PLAINTEXT){
                 return -1;
             }
@@ -2114,7 +2119,7 @@ bool TokenBoard::AddUTF8Code(uint32_t nUTF8Code)
     if(nSectionID < 0){
         // no hope, just give up
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "can't find a proper section id");
+        g_Log->AddLog(LOGTYPE_WARNING, "Can't find a proper section id");
         return false;
     }
 
@@ -2157,7 +2162,7 @@ void TokenBoard::DeleteEmptyBottomLine()
 
 // make a token box based on the section id
 // assume
-//      1. a SECTION w.r.t nSectionID is already present in m_SectionV and well-inited
+//      1. a SECTION w.r.t nSectionID is already present in m_SectionRecord and well-inited
 //      2. all content can be specified by a uint32_t
 //      3. can be used to check nSectionID is valid or not
 bool TokenBoard::MakeTokenBox(int nSectionID, uint32_t nKey, TOKENBOX *pTokenBox)
@@ -2165,7 +2170,7 @@ bool TokenBoard::MakeTokenBox(int nSectionID, uint32_t nKey, TOKENBOX *pTokenBox
     if(!SectionValid(nSectionID)){ return false; }
     if(!pTokenBox){ return true; }
 
-    const auto &rstSection = m_SectionV[nSectionID];
+    const auto &rstSection = m_SectionRecord[nSectionID];
     std::memset(pTokenBox, 0, sizeof(*pTokenBox));
     switch(rstSection.Info.Type){
         case SECTIONTYPE_PLAINTEXT:
@@ -2184,8 +2189,7 @@ bool TokenBoard::MakeTokenBox(int nSectionID, uint32_t nKey, TOKENBOX *pTokenBox
                 extern FontexDBN *g_FontexDBN;
                 auto pTexture = g_FontexDBN->Retrieve(pTokenBox->UTF8CharBox.Cache.Key);
                 if(pTexture){
-                    SDL_QueryTexture(pTexture,
-                            nullptr, nullptr, &(pTokenBox->Cache.W), &(pTokenBox->Cache.H));
+                    SDL_QueryTexture(pTexture, nullptr, nullptr, &(pTokenBox->Cache.W), &(pTokenBox->Cache.H));
                     pTokenBox->Cache.H1    = pTokenBox->Cache.H;
                     pTokenBox->Cache.H2    = 0;
                     pTokenBox->State.Valid = 1;
@@ -2272,7 +2276,7 @@ std::string TokenBoard::Print(bool bSelectOnly)
     auto fnAddObject = [this](XMLObjectList *pList, const char *szObjectContent, int nSectionID) -> void
     {
         if(!(pList && SectionValid(nSectionID, false))){ return; }
-        auto const &rstSEC = m_SectionV[nSectionID];
+        auto const &rstSEC = m_SectionRecord[nSectionID];
         switch(rstSEC.Info.Type){
             case SECTIONTYPE_EMOTICON:
                 {
@@ -2340,7 +2344,7 @@ std::string TokenBoard::Print(bool bSelectOnly)
             szContent.clear();
         }
 
-        const auto &rstSection = m_SectionV[rstTokenBox.Section];
+        const auto &rstSection = m_SectionRecord[rstTokenBox.Section];
         switch(rstSection.Info.Type){
             case SECTIONTYPE_EMOTICON:
                 {
@@ -2448,4 +2452,19 @@ int TokenBoard::GetLineMaxH1(int nLine)
         }
     }
     return nCurrMaxH1;
+}
+
+bool TokenBoard::Append(const char *)
+{
+    return true;
+}
+
+bool TokenBoard::AppendXML(const char *szXML, const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
+{
+    XMLObjectList stXMLObjectList;
+    if(stXMLObjectList.Parse(szXML, true)){
+        MoveCursorBack();
+        return InnInsert(stXMLObjectList, rstIDHandleMap);
+    }
+    return false;
 }

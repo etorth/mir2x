@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 07/13/2017 00:27:16
+ *  Last Modified: 07/14/2017 22:20:45
  *
  *    Description: For scenarios we need text-emoticon mixed boards:
  *
@@ -388,7 +388,7 @@ class TokenBoard: public Widget
 
     private:
         std::vector<std::vector<TOKENBOX>> m_LineV;
-        std::unordered_map<int, SECTION>   m_SectionV;
+        std::unordered_map<int, SECTION>   m_SectionRecord;
         std::vector<int>                   m_LineStartY;
     private:
         std::vector<std::vector<std::vector<std::pair<int, int>>>> m_TokenBoxBitmap;
@@ -431,7 +431,7 @@ class TokenBoard: public Widget
 
     private:
         // callbacks
-        std::unordered_map<int, std::function<void()>> m_IDFuncV;
+        std::unordered_map<int, std::function<void()>> m_IDCBRecord;
 
     private:
         int SectionTypeCount(int, int);
@@ -504,23 +504,38 @@ class TokenBoard: public Widget
             m_DefaultColor = rstColor;
         }
 
-    public:
-        bool  InnInsert(XMLObjectList &, const std::unordered_map<std::string, std::function<void()>> &);
+    private:
+        bool InnInsert(XMLObjectList &, const std::unordered_map<std::string, std::function<void()>> &);
 
+    public:
         int LineFullWidth(int);
         int LineRawWidth(int, bool);
         int SetTokenBoxWordSpace(int);
 
         std::pair<int, int> m_LastTokenBoxLoc;
 
+    public:
+        void MoveCursorFront()
+        {
+            if(m_LineV.empty()){ Reset(); }
+            m_CursorLoc = {0, 0};
+        }
+
+        void MoveCursorBack()
+        {
+            if(m_LineV.empty()){ Reset(); }
+            m_CursorLoc.first  = (int)(m_LineV.back().size());
+            m_CursorLoc.second = (int)(m_LineV.size()) - 1;
+        }
+
     private:
         bool CursorValid(int nX, int nY)
         {
             return true
                 && nY >= 0
-                && nY < (int)m_LineV.size()
+                && nY <  (int)(m_LineV.size())
                 && nX >= 0
-                && nX <= (int)m_LineV[nY].size();
+                && nX <= (int)(m_LineV[nY].size());
         }
 
         bool CursorValid()
@@ -575,40 +590,42 @@ class TokenBoard: public Widget
         std::array<std::pair<int, int>, 2> m_SelectLoc;
 
     private:
-        bool SectionValid(int nSectionID, bool bCheckSectionType = true)
+        bool SectionValid(int nSectionID, bool bCheckSectionType = true) const
         {
-            // 1. invalid id
-            if(nSectionID < 0){ return false; }
-
-            // 2. id not found
-            auto p = m_SectionV.find(nSectionID);
-            if(p == m_SectionV.end()){ return false; }
-
-            if(!bCheckSectionType){ return true; }
-
-            switch(p->second.Info.Type){
-                case SECTIONTYPE_PLAINTEXT:
-                case SECTIONTYPE_EVENTTEXT:
-                case SECTIONTYPE_EMOTICON:
-                    return true;
-                default:
-                    return false;
+            if(nSectionID >= 0){
+                auto pRecord = m_SectionRecord.find(nSectionID);
+                if(pRecord != m_SectionRecord.end()){
+                    if(bCheckSectionType){
+                        switch(pRecord->second.Info.Type){
+                            case SECTIONTYPE_PLAINTEXT:
+                            case SECTIONTYPE_EVENTTEXT:
+                            case SECTIONTYPE_EMOTICON:
+                                {
+                                    return true;
+                                }
+                            default:
+                                {
+                                    return false;
+                                }
+                        }
+                    }else{
+                        return true;
+                    }
+                }
             }
+            return false;
         }
 
         int CreateSection(const SECTION &rstSection, const std::function<void()> &fnCB = [](){})
         {
-            // TODO
-            // make it more efficient
-            int nID = 0;
-            while(nID <= std::numeric_limits<int>::max()){
-                if(m_SectionV.find(nID) == m_SectionV.end()){
-                    // good
-                    m_SectionV[nID] = rstSection;
-                    m_IDFuncV[nID]  = fnCB;
-                    return nID;
+            int nSectionID = 0;
+            while(nSectionID <= std::numeric_limits<int>::max()){
+                if(m_SectionRecord.find(nSectionID) == m_SectionRecord.end()){
+                    m_SectionRecord[nSectionID] = rstSection;
+                    m_IDCBRecord[nSectionID]    = fnCB;
+                    return nSectionID;
                 }
-                nID++;
+                nSectionID++;
             }
             return -1;
         }
@@ -623,11 +640,11 @@ class TokenBoard: public Widget
         }
 
     private:
-        int     m_SelectState;  // 0: no selection
-        // 1: selecting
-        // 2: selection done with result available
+        int m_SelectState;  // 0: no selection
+                            // 1: selecting
+                            // 2: selection done with result available
 
     public:
-        bool Add   (const char *);
-        bool AddXML(const char *, const std::map<std::string, std::function<void()>> &);
+        bool Append   (const char *);
+        bool AppendXML(const char *, const std::unordered_map<std::string, std::function<void()>> &);
 };

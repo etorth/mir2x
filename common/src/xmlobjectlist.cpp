@@ -3,7 +3,7 @@
  *
  *       Filename: xmlobjectlist.cpp
  *        Created: 06/17/2015 06:25:24
- *  Last Modified: 05/20/2017 21:02:17
+ *  Last Modified: 07/14/2017 21:21:20
  *
  *    Description: 
  *
@@ -105,15 +105,15 @@ const tinyxml2::XMLElement *XMLObjectList::Fetch()
 bool XMLObjectList::Add(const std::vector<std::pair<std::string, std::string>> &rstAttrV, const char *szContent)
 {
     // possible input for 
-    // 1. <OBJECT TYPE="PLAINTEXT"/>Text</OBJECT>
-    // 2. <OBJECT TYPE="EVENTTEXT"/>Text</OBJECT>
+    // 1. <OBJECT TYPE="PLAINTEXT">Text</OBJECT>
+    // 2. <OBJECT TYPE="EVENTTEXT">Text</OBJECT>
     //
     // 3. <OBJECT TYPE="EMOTICON"/>
     // 4. <OBJECT TYPE="EMOTICON"></OBJECT>
 
-    // refuse to insert empty object as
+    // reject to insert empty object as
     // 1. <OBJECT/>
-    // 2. <OBJECT ></OBJECT>
+    // 2. <OBJECT></OBJECT>
 
     if(true
             && (( rstAttrV.empty()))
@@ -179,11 +179,21 @@ std::string XMLObjectList::Print()
 
 bool XMLObjectList::ValidObjectNode(const tinyxml2::XMLElement *pElement)
 {
+    // check each object node, requirements
+    // 1. could be empty, like
+    //      <object type="return"  ></object>
+    //      <object type="emoticon"></object>
+    // 2. shouldn't be hierarchical, following are invalid examples
+    //      <object><b>bold</b></object>
+    //      <object>hello<b>bold</b></object>
+
     if(pElement){
-        // 1. not as <OBJECT><b>bold</b></OBJECT>
+        if(pElement->NoChildren()){ return true; }
         if(!pElement->GetText()){ return false; }
-        // 2. not as <OBJECT>hello<b>bold</b></OBJECT>
         if(pElement->ToText() && !pElement->ToText()->NoChildren()){ return false; }
+
         return true;
-    }else{ return false; }
+    }
+
+    return false;
 }

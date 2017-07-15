@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/11/2017 23:02:53
+ *  Last Modified: 07/14/2017 17:56:29
  *
  *    Description: 
  *
@@ -32,6 +32,7 @@
 #include "mir2xmapdata.hpp"
 #include "controlboard.hpp"
 #include "clientluamodule.hpp"
+#include "linebrowserboard.hpp"
 
 class ProcessRun: public Process
 {
@@ -82,7 +83,7 @@ class ProcessRun: public Process
         Label m_PointerTileInfo;
 
     private:
-        TokenBoard m_SystemBoard;
+        LineBrowserBoard m_SystemBoard;
 
     private:
         int LoadMap(uint32_t);

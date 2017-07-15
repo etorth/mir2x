@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/11/2017 23:32:50
+ *  Last Modified: 07/14/2017 22:14:30
  *
  *    Description: 
  *
@@ -46,7 +46,7 @@ ProcessRun::ProcessRun()
     , m_AttackUIDY(-1)
     , m_PointerPixlInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_PointerTileInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
-    , m_SystemBoard(190, 490, false, false, false, false, -1, 1, 1, 0, 10, 0, {0XFF, 0XFF, 0X00, 0XFF})
+    , m_SystemBoard(190, 490, false, false, false, -1, 0, 0, 0, 15, 0, {128, 128, 128, 128})
 {
     m_FocusUIDV.fill(0);
     m_ControbBoard.Bind(this);
@@ -399,7 +399,7 @@ void ProcessRun::Draw()
     m_ControbBoard.Draw();
 
     {
-        m_SystemBoard.Draw(190, 490);
+        m_SystemBoard.DrawEx(190, 490, 0, 0, 100, 100);
 
         extern SDLDevice *g_SDLDevice;
         g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
@@ -474,6 +474,9 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONDOWN:
             {
+                // test
+                m_SystemBoard.Add("test");
+
                 switch(rstEvent.button.button){
                     case SDL_BUTTON_LEFT:
                         {
@@ -987,6 +990,5 @@ bool ProcessRun::TrackAttack(bool bForce, uint32_t nUID)
             }
         }
     }
-
     return false;
 }

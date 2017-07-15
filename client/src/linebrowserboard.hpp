@@ -3,7 +3,7 @@
  *
  *       Filename: linebrowserboard.hpp
  *        Created: 07/12/2017 23:09:28
- *  Last Modified: 07/13/2017 00:23:48
+ *  Last Modified: 07/14/2017 17:59:42
  *
  *    Description: 
  *
@@ -83,15 +83,11 @@ class LineBrowserBoard: public Widget
         }
 
     public:
-        bool Add(const char *szEntry)
-        {
-            return m_TokenBoard.Add(szEntry);
-        }
+        bool Add   (const char *);
+        bool AddXML(const char *, const std::unordered_map<std::string, std::function<void()>> &);
 
-        bool AddXML(const char *szXML, const std::map<std::string, std::function<void()>> &rstMap)
-        {
-            return m_TokenBoard.AddXML(szXML, rstMap);
-        }
+    public:
+        void DrawEx(int, int, int, int, int, int);
 
     public:
         const std::string &Print(size_t nIndex) const
