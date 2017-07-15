@@ -3,7 +3,7 @@
  *
  *       Filename: linebrowserboard.cpp
  *        Created: 07/12/2017 23:20:41
- *  Last Modified: 07/14/2017 21:42:30
+ *  Last Modified: 07/15/2017 00:13:11
  *
  *    Description: 
  *
@@ -34,9 +34,16 @@ bool LineBrowserBoard::Add(const char *szContent)
 
 bool LineBrowserBoard::AddXML(const char *szXML, const std::unordered_map<std::string, std::function<void()>> &rstMap)
 {
-    return true
-        && m_TokenBoard.AppendXML("<ROOT><OBJECT TYPE=\"RETURN\"></OBJECT></ROOT>", {})
-        && m_TokenBoard.AppendXML(szXML, rstMap);
+    bool bRes = true;
+    if(!m_TokenBoard.Empty()){
+        bRes = m_TokenBoard.AppendXML("<ROOT><OBJECT TYPE=\"RETURN\"></OBJECT></ROOT>", {});
+    }
+
+    if(bRes){
+        bRes = m_TokenBoard.AppendXML(szXML, rstMap);
+    }
+
+    return bRes;
 }
 
 void LineBrowserBoard::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)

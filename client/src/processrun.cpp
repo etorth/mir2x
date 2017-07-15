@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/14/2017 22:14:30
+ *  Last Modified: 07/15/2017 00:14:34
  *
  *    Description: 
  *
@@ -46,7 +46,7 @@ ProcessRun::ProcessRun()
     , m_AttackUIDY(-1)
     , m_PointerPixlInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_PointerTileInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
-    , m_SystemBoard(190, 490, false, false, false, -1, 0, 0, 0, 15, 0, {128, 128, 128, 128})
+    , m_SystemBoard(190, 490, false, false, false, -1, 0, 0, 0, 10, 0, {128, 128, 128, 128})
 {
     m_FocusUIDV.fill(0);
     m_ControbBoard.Bind(this);

@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 07/14/2017 22:20:45
+ *  Last Modified: 07/15/2017 00:10:56
  *
  *    Description: For scenarios we need text-emoticon mixed boards:
  *
@@ -238,7 +238,7 @@ class TokenBoard: public Widget
         void Update(double);
 
     public:
-        bool Empty();
+        bool Empty() const;
 
     public:
         int  MaxHeight();

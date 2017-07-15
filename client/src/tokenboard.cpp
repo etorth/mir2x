@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 07/14/2017 23:03:34
+ *  Last Modified: 07/15/2017 00:10:46
  *
  *    Description: 
  *
@@ -2467,4 +2467,22 @@ bool TokenBoard::AppendXML(const char *szXML, const std::unordered_map<std::stri
         return InnInsert(stXMLObjectList, rstIDHandleMap);
     }
     return false;
+}
+
+bool TokenBoard::Empty() const
+{
+    switch(m_LineV.size()){
+        case 0:
+            {
+                return true;
+            }
+        case 1:
+            {
+                return m_LineV.back().empty();
+            }
+        default:
+            {
+                return false;
+            }
+    }
 }
