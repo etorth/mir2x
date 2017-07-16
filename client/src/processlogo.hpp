@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.hpp
  *        Created: 8/13/2015 12:07:39 AM
- *  Last Modified: 03/19/2016 21:45:04
+ *  Last Modified: 07/16/2017 11:37:03
  *
  *    Description: 
  *
@@ -47,5 +47,7 @@ class ProcessLogo: public Process
     public:
         void Update(double);
         void Draw();
+
+    public:
         void ProcessEvent(const SDL_Event &);
 };

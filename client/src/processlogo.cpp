@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: processlogo.cpp
- *        Created: 8/13/2015 12:15:38 AM
- *  Last Modified: 07/06/2017 18:00:26
+ *        Created: 08/13/2015 12:15:38
+ *  Last Modified: 07/16/2017 11:44:32
  *
  *    Description: 
  *
@@ -32,8 +32,7 @@ ProcessLogo::ProcessLogo()
 {}
 
 ProcessLogo::~ProcessLogo()
-{
-}
+{}
 
 void ProcessLogo::ProcessEvent(const SDL_Event &rstEvent)
 {
@@ -73,19 +72,20 @@ void ProcessLogo::Draw()
     extern PNGTexDBN *g_ProgUseDBN;
 
     g_SDLDevice->ClearScreen();
-    // TODO
-    // there is a bug here
-    // between set some parameters to the texture and
-    // take that parameters into effect, if there is any
-    // release, then these effect of the parameters won't show
-    //
+
+    // between set parameters to the texture and take that parameters into effect
+    // if there is any release, then these effect of the parameters won't show
     // so any operation on texture should be done and consumed ASAP
 
-    Uint8 bColor = std::lround(255 * Ratio());
-    auto pTexture = g_ProgUseDBN->Retrieve(0X00000000);
-    SDL_SetTextureColorMod(pTexture, bColor, bColor, bColor);
+    if(auto pTexture = g_ProgUseDBN->Retrieve(0X00000000)){
+        auto bColor = (Uint8)(std::lround(255 * Ratio()));
+        SDL_SetTextureColorMod(pTexture, bColor, bColor, bColor);
 
-    g_SDLDevice->DrawTexture(pTexture, 0, 0);
+        auto nWindowW = g_SDLDevice->WindowW(false);
+        auto nWindowH = g_SDLDevice->WindowH(false);
+        g_SDLDevice->DrawTexture(pTexture, 0, 0, 0, 0, nWindowW, nWindowH);
+    }
+
     g_SDLDevice->Present();
 }
 
