@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/15/2017 00:14:34
+ *  Last Modified: 07/15/2017 23:39:24
  *
  *    Description: 
  *
@@ -40,20 +40,33 @@ ProcessRun::ProcessRun()
     , m_ViewY(0)
     , m_RollMap(false)
     , m_LuaModule(this, 0)
-    , m_ControbBoard(0, 0, nullptr, false)
+    , m_ControbBoard(
+            0,                  // x
+            []() -> int         // y
+            {
+                extern SDLDevice *g_SDLDevice;
+                return g_SDLDevice->WindowH(false) - 134;
+            }(),
+            []() -> int         // w
+            {
+                extern SDLDevice *g_SDLDevice;
+                return g_SDLDevice->WindowW(false);
+            }(),
+            this,               // self-bind
+            nullptr,            // independent widget
+            false)              // 
     , m_CreatureRecord()
     , m_AttackUIDX(-1)
     , m_AttackUIDY(-1)
     , m_PointerPixlInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_PointerTileInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
-    , m_SystemBoard(190, 490, false, false, false, -1, 0, 0, 0, 10, 0, {128, 128, 128, 128})
 {
     m_FocusUIDV.fill(0);
-    m_ControbBoard.Bind(this);
 }
 
 void ProcessRun::Update(double fTime)
 {
+    m_ControbBoard.Update(fTime);
     if(m_MyHero){
         extern SDLDevice *g_SDLDevice;
         int nViewX = m_MyHero->X() * SYS_MAPGRIDXP - g_SDLDevice->WindowW(false) / 2;
@@ -121,8 +134,6 @@ void ProcessRun::Update(double fTime)
             m_FocusUIDV[FOCUS_ATTACK] = 0;
         }
     }
-
-    m_SystemBoard.Update(fTime);
 }
 
 uint32_t ProcessRun::FocusUID(int nFocusType)
@@ -356,91 +367,7 @@ void ProcessRun::Draw()
         }
     }
 
-    // draw some GUI here instead of putting in ControlBoard
-    // for all widget without state, I prefer using the texture directly
-
-    // draw the creature face
-    {
-        extern SDLDevice *g_SDLDevice;
-        extern PNGTexDBN *g_ProgUseDBN;
-
-        g_SDLDevice->PushColor(0, 0, 0, 0);
-        g_SDLDevice->FillRectangle(530, 485, 95, 105);
-        g_SDLDevice->PopColor();
-
-        uint32_t nFaceKey = 0X02000000;
-        if(auto nUID = FocusUID(FOCUS_MOUSE)){
-            if(auto pCreature = RetrieveUID(nUID)){
-                switch(pCreature->Type()){
-                    case CREATURE_PLAYER:
-                        {
-                            nFaceKey = 0X02000000;
-                            break;
-                        }
-                    case CREATURE_MONSTER:
-                        {
-                            auto nLookID = ((Monster*)(pCreature))->LookID();
-                            if(nLookID >= 0){
-                                nFaceKey = 0X01000000 + (nLookID - (LID_NONE + 1));
-                            }
-                            break;
-                        }
-                    default:
-                        {
-                            break;
-                        }
-                }
-            }
-        }
-
-        g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(nFaceKey), 534, 483);
-    }
-
     m_ControbBoard.Draw();
-
-    {
-        m_SystemBoard.DrawEx(190, 490, 0, 0, 100, 100);
-
-        extern SDLDevice *g_SDLDevice;
-        g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
-        g_SDLDevice->DrawRectangle(m_SystemBoard.X(), m_SystemBoard.Y(), 300, 200);
-        g_SDLDevice->PopColor();
-    }
-
-    // draw HP and MP texture
-    {
-        extern SDLDevice *g_SDLDevice;
-        extern PNGTexDBN *g_ProgUseDBN;
-
-        auto pHP = g_ProgUseDBN->Retrieve(0X00000018);
-        auto pMP = g_ProgUseDBN->Retrieve(0X00000019);
-
-        if(pHP && pMP){ 
-
-            // we need to call query
-            // so need to validate two textures here
-
-            int nHPH = -1;
-            int nHPW = -1;
-            int nMPH = -1;
-            int nMPW = -1;
-
-            SDL_QueryTexture(pHP, nullptr, nullptr, &nHPW, &nHPH);
-            SDL_QueryTexture(pMP, nullptr, nullptr, &nMPW, &nMPH);
-
-            double fLostHPRatio = (m_MyHero->HPMax() > 0) ? (1.0 - ((1.0 * m_MyHero->HP()) / m_MyHero->HPMax())) : 0.0;
-            double fLostMPRatio = (m_MyHero->MPMax() > 0) ? (1.0 - ((1.0 * m_MyHero->MP()) / m_MyHero->MPMax())) : 0.0;
-
-            fLostHPRatio = std::max<double>(std::min<double>(fLostHPRatio, 1.0), 0.0);
-            fLostMPRatio = std::max<double>(std::min<double>(fLostMPRatio, 1.0), 0.0);
-
-            auto nLostHPH = (int)(std::lround(nHPH * fLostHPRatio));
-            auto nLostMPH = (int)(std::lround(nMPH * fLostMPRatio));
-
-            g_SDLDevice->DrawTexture(pHP, 33, 474 + nLostHPH, 0, nLostHPH, nHPW, nHPH - nLostHPH);
-            g_SDLDevice->DrawTexture(pMP, 73, 474 + nLostMPH, 0, nLostMPH, nMPW, nMPH - nLostMPH);
-        }
-    }
 
     // draw cursor location information on top-left
     extern ClientEnv *g_ClientEnv;
@@ -474,8 +401,11 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONDOWN:
             {
-                // test
-                m_SystemBoard.Add("test");
+                {
+                    char szMessage[1024];
+                    std::sprintf(szMessage, "Mouse button down at (%d, %d)", rstEvent.button.x, rstEvent.button.y);
+                    AddOPLog(OUTPORT_CONTROLBOARD, 0, "", szMessage);
+                }
 
                 switch(rstEvent.button.button){
                     case SDL_BUTTON_LEFT:
@@ -929,6 +859,7 @@ bool ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, cons
     }
 
     if(nOutPort & OUTPORT_CONTROLBOARD){
+        m_ControbBoard.AddLog(szLogInfo);
     }
 
     return true;
@@ -991,4 +922,52 @@ bool ProcessRun::TrackAttack(bool bForce, uint32_t nUID)
         }
     }
     return false;
+}
+
+bool ProcessRun::GetMyHeroHMPRatio(double *pHPRatio, double *pMPRatio)
+{
+    // used for controboard to show HP/MP texture
+    if(m_MyHero){
+        double fHPRatio = (m_MyHero->HPMax() > 0) ? ((1.0 * m_MyHero->HP()) / m_MyHero->HPMax()) : 1.0;
+        double fMPRatio = (m_MyHero->MPMax() > 0) ? ((1.0 * m_MyHero->MP()) / m_MyHero->MPMax()) : 1.0;
+
+        fHPRatio = std::max<double>(std::min<double>(fHPRatio, 1.0), 0.0);
+        fMPRatio = std::max<double>(std::min<double>(fMPRatio, 1.0), 0.0);
+
+        if(pHPRatio){ *pHPRatio = fHPRatio; }
+        if(pMPRatio){ *pMPRatio = fMPRatio; }
+
+        return true;
+    }
+    return false;
+}
+
+uint32_t ProcessRun::GetControlBoardFaceKey()
+{
+    uint32_t nFaceKey = 0X02000000;
+    if(auto nUID = FocusUID(FOCUS_MOUSE)){
+        if(auto pCreature = RetrieveUID(nUID)){
+            switch(pCreature->Type()){
+                case CREATURE_PLAYER:
+                    {
+                        nFaceKey = 0X02000000;
+                        break;
+                    }
+                case CREATURE_MONSTER:
+                    {
+                        auto nLookID = ((Monster*)(pCreature))->LookID();
+                        if(nLookID >= 0){
+                            nFaceKey = 0X01000000 + (nLookID - (LID_NONE + 1));
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+    }
+
+    return nFaceKey;
 }

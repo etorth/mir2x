@@ -3,13 +3,10 @@
  *
  *       Filename: controlboard.hpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 06/25/2017 23:22:39
+ *  Last Modified: 07/15/2017 23:06:21
  *
  *    Description: main control pannel for running game
- *                 this is a fixed-size board, if use game screen size other than
- *                 800 * 600, this board will leave blank on the right
- *
- *                 I realized I can resize part of the frame to fix any screen size
+ *                 try support dynamically allocated control board
  *
  *        Version: 1.0
  *       Revision: none
@@ -31,6 +28,7 @@
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
 #include "inputline.hpp"
+#include "linebrowserboard.hpp"
 
 class ProcessRun;
 class ControlBoard: public Widget
@@ -39,25 +37,31 @@ class ControlBoard: public Widget
         ProcessRun *m_ProcessRun;
 
     private:
-        InputLine m_CmdLine;
+        InputLine        m_CmdLine;
+        LineBrowserBoard m_LogBoard;
 
     public:
-        ControlBoard(int, int, Widget *, bool);
-       ~ControlBoard() = default;
+        ControlBoard(
+                int,            // x
+                int,            // y
+                int,            // screen width
+                ProcessRun *,   // 
+                Widget *,       //
+                bool);          //
+
+    public:
+        ~ControlBoard() = default;
+
+    public:
+        void DrawEx(int, int, int, int, int, int);
 
     public:
         void Update(double);
-        void DrawEx(int, int, int, int, int, int);
         bool ProcessEvent(const SDL_Event &, bool *);
 
     public:
-        // this function is wired, better if I put it in constructor
-        // but I don't want to change the interface Widget(int, int, Widget *, boo)
-        void Bind(ProcessRun *pRun)
-        {
-            m_ProcessRun = pRun;
-        }
+        void InputLineDone();
 
     public:
-        void InputLineDone();
+        void AddLog(const char *);
 };

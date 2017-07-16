@@ -3,7 +3,7 @@
  *
  *       Filename: linebrowserboard.cpp
  *        Created: 07/12/2017 23:20:41
- *  Last Modified: 07/15/2017 00:13:11
+ *  Last Modified: 07/16/2017 00:20:46
  *
  *    Description: 
  *
@@ -48,5 +48,9 @@ bool LineBrowserBoard::AddXML(const char *szXML, const std::unordered_map<std::s
 
 void LineBrowserBoard::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {
-    m_TokenBoard.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
+    if(m_TokenBoard.H() <= H()){
+        m_TokenBoard.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
+    }else{
+        m_TokenBoard.DrawEx(nDstX, nDstY, nSrcX, nSrcY + (m_TokenBoard.H() - H()), nW, nH);
+    }
 }

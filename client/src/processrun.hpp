@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/14/2017 17:56:29
+ *  Last Modified: 07/15/2017 22:59:44
  *
  *    Description: 
  *
@@ -83,9 +83,6 @@ class ProcessRun: public Process
         Label m_PointerTileInfo;
 
     private:
-        LineBrowserBoard m_SystemBoard;
-
-    private:
         int LoadMap(uint32_t);
 
     public:
@@ -139,6 +136,11 @@ class ProcessRun: public Process
     public:
         bool  LuaCommand(const char *);
         bool UserCommand(const char *);
+
+    public:
+        // used by controlboard to draw HP/MP
+        uint32_t GetControlBoardFaceKey();
+        bool     GetMyHeroHMPRatio(double *, double *);
 
     public:
         std::vector<int> GetPlayerList();

@@ -3,7 +3,7 @@
  *
  *       Filename: linebrowserboard.hpp
  *        Created: 07/12/2017 23:09:28
- *  Last Modified: 07/14/2017 17:59:42
+ *  Last Modified: 07/16/2017 00:06:31
  *
  *    Description: 
  *
@@ -37,10 +37,11 @@ class LineBrowserBoard: public Widget
         LineBrowserBoard(
                 int              nX,
                 int              nY,
+                int              nW,
+                int              nH,
                 bool             bSelectable,
                 bool             bSpacePadding,
                 bool             bCanThrough,
-                int              nMaxWidth       = -1,
                 int              nWordSpace      =  0,
                 int              nLineSpace      =  0,
                 uint8_t          nDefaultFont    =  0,
@@ -49,7 +50,7 @@ class LineBrowserBoard: public Widget
                 const SDL_Color &rstDefaultColor =  {0XFF, 0XFF, 0XFF, 0XFF},
                 Widget          *pWidget         =  nullptr,
                 bool             bFreeWidget     =  false)
-            : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
+            : Widget(nX, nY, nW, nH, pWidget, bFreeWidget)
             , m_TokenBoard(
                       nX,
                       nY,
@@ -57,7 +58,7 @@ class LineBrowserBoard: public Widget
                       false,
                       bSpacePadding,
                       bCanThrough,
-                      nMaxWidth,
+                      nW,
                       nWordSpace,
                       nLineSpace,
                       nDefaultFont,

@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 07/06/2017 21:48:22
+ *  Last Modified: 07/16/2017 00:23:49
  *
  *    Description:
  *
@@ -28,13 +28,13 @@
 #include "processrun.hpp"
 #include "controlboard.hpp"
 
-ControlBoard::ControlBoard(int nX, int nY, Widget *pWidget, bool bAutoDelete)
-    : Widget(nX, nY, 0, 0, pWidget, bAutoDelete)
-    , m_ProcessRun(nullptr)
+ControlBoard::ControlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWidget, bool bAutoDelete)
+    : Widget(nX, nY, nW, 135, pWidget, bAutoDelete)
+    , m_ProcessRun(pRun)
     , m_CmdLine(
             185,
-            574,
-            343,
+            108,
+            343 + (nW - 800),
             15,
             1,
             ColorFunc::COLOR_WHITE,
@@ -43,8 +43,31 @@ ControlBoard::ControlBoard(int nX, int nY, Widget *pWidget, bool bAutoDelete)
             0,
             ColorFunc::COLOR_WHITE,
             [    ](){                  },
-            [this](){ InputLineDone(); })
-{}
+            [this](){ InputLineDone(); },
+            this,
+            false)
+    , m_LogBoard(
+            187,
+            18,
+            341 + (nW - 800),
+            83,
+            true,
+            true,
+            true,
+            0,
+            0,
+            0,
+            12,
+            0,
+            ColorFunc::COLOR_WHITE,
+            this,
+            false)
+{
+    if(!pRun){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "Invalid ProcessRun provided to ControlBoard()");
+    }
+}
 
 void ControlBoard::Update(double fMS)
 {
@@ -53,17 +76,113 @@ void ControlBoard::Update(double fMS)
 
 void ControlBoard::DrawEx(int, int, int, int, int, int)
 {
-    extern PNGTexDBN *g_ProgUseDBN;
-    extern SDLDevice *g_SDLDevice;
+    // for texture 0X00000012 and 0X00000013
+    // I split it into many parts to fix different screen size
+    // for screen width is not 800 we build a new interface using these two
+    //
+    // 0X00000012 : 800 x 134
+    // 0X00000013 : 456 x 152
+    //
+    //                        +------------+                           ---
+    //                         \          /                             ^
+    // +------+==---------------+        +----------------==+--------+  |  ---
+    // |      $                                        +---+$        | 152  | ---
+    // |      |                                        |   ||        |  |  134 | 120 as underlay
+    // |      |                                        +---+|        |  V   |  |
+    // +------+---------------------------------------------+--------+ --- -- ---
+    // ^      ^    ^          ^            ^          ^     ^        ^
+    // | 178  | 50 |    110   |    127     |    50    | 119 |   166  | = 800
+    //
+    // |---fixed---|--repeat--|----set-----|-----------fixed---------|
 
-    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000012),   0, 466);
-    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000013), 178, 448);
+    extern SDLDevice *g_SDLDevice;
+    extern PNGTexDBN *g_ProgUseDBN;
+
+    int nX0 = X();
+    int nY0 = Y();
+    int nW0 = W();
+
+    // draw black underlay for the LogBoard and actor face
+    g_SDLDevice->PushColor(0X00, 0X00, 0X00, 0XFF);
+    g_SDLDevice->FillRectangle(nX0 + 178 + 2, nY0 + 14, nW0 - (178 + 2) - (166 + 2), 120);
+    g_SDLDevice->PopColor();
+
+    // draw command line and log board
+    m_CmdLine.Draw();
+    m_LogBoard.Draw();
+
+    {
+        g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XF0);
+        g_SDLDevice->DrawRectangle(m_LogBoard.X(), m_LogBoard.Y(), m_LogBoard.W(), m_LogBoard.H());
+        g_SDLDevice->PopColor();
+    }
+
+    // draw left and right part
+    if(auto pTexture = g_ProgUseDBN->Retrieve(0X00000012)){
+        g_SDLDevice->DrawTexture(pTexture,             nX0, nY0,   0, 0, 178, 134);
+        g_SDLDevice->DrawTexture(pTexture, nW0 - 166 + nX0, nY0, 634, 0, 166, 134);
+    }
+
+    // draw middle part
+    if(auto pTexture = g_ProgUseDBN->Retrieve(0X00000013)){
+        g_SDLDevice->DrawTexture(pTexture,                  178, nY0 - 18,              0, 0,       50, 152);
+        g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119 - 50, nY0 - 18, 50 + 110 + 127, 0, 50 + 119, 152);
+
+        int nFillRept = (nW0 - (178 + 50) - (50 + 119 + 166)) / 110;
+        int nFillRest = (nW0 - (178 + 50) - (50 + 119 + 166)) % 110;
+        for(int nIndex = 0; nIndex < nFillRept; ++nIndex){
+            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + nIndex * 110, nY0 - 18, 50, 0, 110, 152);
+        }
+
+        g_SDLDevice->DrawTexture(pTexture, 178 + 50 + nFillRept * 110, nY0 - 18, 50, 0, nFillRest, 152);
+        g_SDLDevice->DrawTexture(pTexture, (nW0 - 178 - 166 - 127) / 2 + 178, nY0 - 18, 50 + 110, 0, 127, 152);
+    }
+
+    // draw HP and MP texture
+    {
+        auto pHP = g_ProgUseDBN->Retrieve(0X00000018);
+        auto pMP = g_ProgUseDBN->Retrieve(0X00000019);
+
+        if(pHP && pMP){ 
+
+            // we need to call query
+            // so need to validate two textures here
+
+            int nHPH = -1;
+            int nHPW = -1;
+            int nMPH = -1;
+            int nMPW = -1;
+
+            SDL_QueryTexture(pHP, nullptr, nullptr, &nHPW, &nHPH);
+            SDL_QueryTexture(pMP, nullptr, nullptr, &nMPW, &nMPH);
+
+            double fHPRatio = 0.0;
+            double fMPRatio = 0.0;
+
+            if(m_ProcessRun->GetMyHeroHMPRatio(&fHPRatio, &fMPRatio)){
+                double fLostHPRatio = 1.0 - fHPRatio;
+                double fLostMPRatio = 1.0 - fMPRatio;
+
+                fLostHPRatio = std::max<double>(std::min<double>(fLostHPRatio, 1.0), 0.0);
+                fLostMPRatio = std::max<double>(std::min<double>(fLostMPRatio, 1.0), 0.0);
+
+                auto nLostHPH = (int)(std::lround(nHPH * fLostHPRatio));
+                auto nLostMPH = (int)(std::lround(nMPH * fLostMPRatio));
+
+                g_SDLDevice->DrawTexture(pHP, nX0 + 33, nY0 + 8 + nLostHPH, 0, nLostHPH, nHPW, nHPH - nLostHPH);
+                g_SDLDevice->DrawTexture(pMP, nX0 + 73, nY0 + 8 + nLostMPH, 0, nLostMPH, nMPW, nMPH - nLostMPH);
+            }
+        }
+    }
+
+    // draw current creature face
+    if(auto pTexture = g_ProgUseDBN->Retrieve(m_ProcessRun->GetControlBoardFaceKey())){
+        g_SDLDevice->DrawTexture(pTexture, nX0 + (nW0 - 266), nY0 + 17);
+    }
 
     g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
     g_SDLDevice->DrawRectangle(m_CmdLine.X(), m_CmdLine.Y(), m_CmdLine.W(), m_CmdLine.H());
     g_SDLDevice->PopColor();
-
-    m_CmdLine.Draw();
 }
 
 bool ControlBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
@@ -113,5 +232,12 @@ void ControlBoard::InputLineDone()
                     break;
                 }
         }
+    }
+}
+
+void ControlBoard::AddLog(const char *szLog)
+{
+    if(szLog){
+        m_LogBoard.Add(szLog);
     }
 }

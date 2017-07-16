@@ -3,7 +3,7 @@
  *
  *       Filename: widget.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 04/01/2016 11:49:55
+ *  Last Modified: 07/15/2017 23:31:25
  *
  *    Description: public API for class game only
  *
@@ -24,9 +24,23 @@
 
 class Widget
 {
+    protected:
+        Widget *m_Parent;
+
+    protected:
+        bool m_Focus;
+
+    protected:
+        int m_X;
+        int m_Y;
+        int m_W;
+        int m_H;
+
+    protected:
+        std::vector<std::pair<Widget *, bool>> m_BindChildV;
+
     public:
-        // TBD
-        //
+
         // when creating, every widget should specify its parent, and
         // the location w.r.t its parent's up-left point.
         //
@@ -36,14 +50,14 @@ class Widget
         //
         // you can specify the width and height, but for tokenboard, it
         // is undefined before parsing the XML.
-        //
+
         Widget(
                 int nX,                     //
                 int nY,                     //
                 int nW = 0,                 //
                 int nH = 0,                 //
-                Widget * pWidget = nullptr, // by default all widget are independent
-                bool bFreeWidget = false)   // delete automatically when deleting its parent
+                Widget *pWidget  = nullptr, // by default all widget are independent
+                bool bAutoDelete = false)   // delete automatically when deleting its parent
 
             : m_Parent(pWidget)
             , m_Focus(false)
@@ -53,13 +67,13 @@ class Widget
             , m_H(nH)
         {
             if(m_Parent){
-                m_Parent->m_ChildV.emplace_back(this, bFreeWidget);
+                m_Parent->m_BindChildV.emplace_back(this, bAutoDelete);
             }
         }
         
         virtual ~Widget()
         {
-            for(auto &stPair: m_ChildV){
+            for(auto &stPair: m_BindChildV){
                 if(stPair.second){
                     delete stPair.first;
                 }
@@ -82,14 +96,14 @@ class Widget
 
         virtual void Update(double)
         {
-            // not every widget should update
+            // widget supports update
+            // but not every widget should update
         }
 
-        // TBD
         // it's not pure virtual, since not every widget should
         // accept events.
         //
-        // Add a ``boo *" here to indicate the passed event is
+        // Add a ``bool *" here to indicate the passed event is
         // valid or not:
         //
         //
@@ -113,28 +127,24 @@ class Widget
         //
         // bValid to be null means this event is broadcast, we must
         // handle it?
-        //
-        //
+
         virtual bool ProcessEvent(const SDL_Event &, bool *)
         {
-            // don't use default nullptr for bValid
             // since it's virtual
+            // don't use default nullptr for bValid as default parameter
             return false;
         }
 
     public:
 
-        // TBD
         // we don't have SetX/Y/W/H()
-        // W/H() is not needed, X/Y(): most likely if we want to use
-        // SetX/Y(), which just means we need to draw the widget at
-        // different place.
-        //
-        // If we have this requirement, we could just make it as in-
-        // dependent widget(parent is null) and use Draw(int, int) to
-        // draw itself instead.
-        //
-        int X()
+        // W/H() is not needed, for X/Y() most likely if we want to use
+        // SetX/Y(), which means we need to draw the widget at different place.
+
+        // If we have this requirement, we could just make it independent 
+        // and use Draw(int, int) to draw itself instead.
+
+        int X() const
         {
             if(m_Parent){
                 return m_Parent->X() + m_X;
@@ -143,7 +153,7 @@ class Widget
             }
         }
 
-        int Y()
+        int Y() const
         {
             if(m_Parent){
                 return m_Parent->Y() + m_Y;
@@ -152,17 +162,15 @@ class Widget
             }
         }
 
-        int W() { return m_W; }
-        int H() { return m_H; }
+        int W() const { return m_W; }
+        int H() const { return m_H; }
 
     public:
-        bool In(int nX, int nY)
+        bool In(int nX, int nY) const
         {
             return true
-                && nX >= X()
-                && nX <  X() + W()
-                && nY >= Y()
-                && nY <  Y() + H();
+                && nX >= X() && nX < X() + W()
+                && nY >= Y() && nY < Y() + H();
         }
 
         void Focus(bool bFocus)
@@ -170,26 +178,14 @@ class Widget
             m_Focus = bFocus;
         }
 
-        bool Focus()
+        bool Focus() const
         {
             return m_Focus;
         }
 
-        // always relatively move the widget
         void Move(int nDX, int nDY)
         {
             m_X += nDX;
             m_Y += nDY;
         }
-
-    protected:
-        Widget *m_Parent;
-        bool    m_Focus;
-        int     m_X;
-        int     m_Y;
-        int     m_W;
-        int     m_H;
-
-    protected:
-        std::vector<std::pair<Widget *, bool>> m_ChildV;
 };
