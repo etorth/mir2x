@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 07/11/2017 23:05:52
+ *  Last Modified: 07/16/2017 20:40:29
  *
  *    Description: 
  *
@@ -35,16 +35,47 @@ ProcessLogin::ProcessLogin()
 	, m_Button2(352, 482, 0X00000008, [](){})
 	, m_Button3(554, 482, 0X0000000B, [](){ exit(0); })
     , m_Button4(600, 536, 0X0000000E, [this](){ DoLogin(); })
-	, m_IDBox(159, 540, 146, 18, 2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
-	, m_PasswordBox(409, 540, 146, 18, true, 2, 0, 14, {0XFF, 0XFF, 0XFF, 0XFF}, {0XFF, 0XFF, 0XFF, 0XFF})
-    , m_InputBoard(100, 100, 300, 200, true, 296, 0, 2, {0XFF, 0XFF, 0X00, 0XFF}, 0, 15, 0, {0XFF, 0X00, 0X00, 0XFF})
+	, m_IDBox(
+            159,
+            540,
+            146,
+            18,
+            2,
+            0,
+            14,
+            {0XFF, 0XFF, 0XFF, 0XFF},
+            {0XFF, 0XFF, 0XFF, 0XFF},
+            [this]() -> void
+            {
+                m_IDBox      .Focus(false);
+                m_PasswordBox.Focus(true);
+            },
+            [this]() -> void
+            {
+                DoLogin();
+            })
+	, m_PasswordBox(
+            409,
+            540,
+            146,
+            18,
+            true,
+            2,
+            0,
+            14,
+            {0XFF, 0XFF, 0XFF, 0XFF},
+            {0XFF, 0XFF, 0XFF, 0XFF},
+            [](){},
+            [this]() -> void
+            {
+                DoLogin();
+            })
 {}
 
 void ProcessLogin::Update(double fMS)
 {
     m_IDBox.Update(fMS);
     m_PasswordBox.Update(fMS);
-    m_InputBoard.Update(fMS);
 }
 
 void ProcessLogin::Draw()
@@ -63,38 +94,20 @@ void ProcessLogin::Draw()
     m_Button3.Draw();
     m_Button4.Draw();
 
-    m_IDBox.Draw();
+    m_IDBox      .Draw();
     m_PasswordBox.Draw();
-
-    m_InputBoard.Draw();
-
-    g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
-    g_SDLDevice->DrawRectangle(100, 100, 300, 200);
-    g_SDLDevice->PopColor();
 
     g_SDLDevice->Present();
 }
 
 void ProcessLogin::ProcessEvent(const SDL_Event &rstEvent)
 {
-    bool bValid = true;
-    if(false
-            || m_Button1    .ProcessEvent(rstEvent, &bValid)
-            || m_Button2    .ProcessEvent(rstEvent, &bValid)
-            || m_Button3    .ProcessEvent(rstEvent, &bValid)
-            || m_Button4    .ProcessEvent(rstEvent, &bValid)
-            || m_InputBoard .ProcessEvent(rstEvent, &bValid)
-            || m_IDBox      .ProcessEvent(rstEvent, &bValid)
-            || m_PasswordBox.ProcessEvent(rstEvent, &bValid)){ return; }
-
-    switch(rstEvent.type){
-        case SDL_KEYDOWN:
-            {
-                break;
-            }
-        default:
-            break;
-    }
+    m_Button1    .ProcessEvent(rstEvent, nullptr);
+    m_Button2    .ProcessEvent(rstEvent, nullptr);
+    m_Button3    .ProcessEvent(rstEvent, nullptr);
+    m_Button4    .ProcessEvent(rstEvent, nullptr);
+    m_IDBox      .ProcessEvent(rstEvent, nullptr);
+    m_PasswordBox.ProcessEvent(rstEvent, nullptr);
 }
 
 void ProcessLogin::DoLogin()

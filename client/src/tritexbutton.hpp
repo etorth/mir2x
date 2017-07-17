@@ -3,7 +3,7 @@
  *
  *       Filename: tritexbutton.hpp
  *        Created: 08/26/2016 13:20:23
- *  Last Modified: 03/16/2017 15:15:57
+ *  Last Modified: 07/16/2017 20:37:41
  *
  *    Description: button with three texture, it has a position shift when
  *                 state changes.
@@ -120,5 +120,4 @@ class TritexButton: public ButtonBase
                 int,        // src y on the widget, take top-left as origin
                 int,        // size to draw
                 int);       // size to draw
-
 };

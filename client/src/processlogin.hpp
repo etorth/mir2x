@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.hpp
  *        Created: 08/14/2015 02:47:30 PM
- *  Last Modified: 03/16/2017 15:10:05
+ *  Last Modified: 07/16/2017 20:38:32
  *
  *    Description: 
  *
@@ -38,8 +38,6 @@ class ProcessLogin: public Process
 
         IDBox           m_IDBox;
         PasswordBox     m_PasswordBox;
-
-        InputBoard      m_InputBoard;
 
     public:
         ProcessLogin();

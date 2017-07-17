@@ -3,7 +3,7 @@
  *
  *       Filename: idbox.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 06/22/2017 12:37:04
+ *  Last Modified: 07/16/2017 19:06:20
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 #include <vector>
 #include <string>
 #include <SDL2/SDL.h>
+#include <functional>
 
 #include "widget.hpp"
 #include "tokenbox.hpp"
@@ -30,19 +31,25 @@
 
 class IDBox: public InputBoard
 {
+    private:
+        std::function<void()> m_OnTab;
+        std::function<void()> m_OnEnter;
+
     public:
         IDBox(
-                int              nX,
-                int              nY,
-                int              nW,
-                int              nH,
-                int              nCursorWidth   = 2,
-                uint8_t          nFont          = 0,
-                uint8_t          nFontSize      = 18,
-                const SDL_Color &rstFontColor   = {0XFF, 0XFF, 0XFF, 0XFF},
-                const SDL_Color &rstCursorColor = {0XFF, 0XFF, 0XFF, 0XFF},
-                Widget          *pWidget        = nullptr,
-                bool             bFreeWidget    = false)
+                int                          nX,
+                int                          nY,
+                int                          nW,
+                int                          nH,
+                int                          nCursorWidth   = 2,
+                uint8_t                      nFont          = 0,
+                uint8_t                      nFontSize      = 18,
+                const SDL_Color             &rstFontColor   = {0XFF, 0XFF, 0XFF, 0XFF},
+                const SDL_Color             &rstCursorColor = {0XFF, 0XFF, 0XFF, 0XFF},
+                const std::function<void()> &fnOnTab        = [](){},
+                const std::function<void()> &fnOnEnter      = [](){},
+                Widget                      *pWidget        = nullptr,
+                bool                         bFreeWidget    = false)
             : InputBoard(
                     nX,
                     nY,
@@ -59,7 +66,13 @@ class IDBox: public InputBoard
                     rstFontColor,
                     pWidget,
                     bFreeWidget)
-            {}
+            , m_OnTab(fnOnTab)
+            , m_OnEnter(fnOnEnter)
+        {}
 
+    public:
         virtual ~IDBox() = default;
+
+    public:
+        bool ProcessEvent(const SDL_Event &, bool *);
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16
- *  Last Modified: 06/22/2017 12:36:36
+ *  Last Modified: 07/16/2017 20:33:19
  *
  *    Description: 
  *
@@ -35,21 +35,28 @@ int InputBoard::s_InputBoardCount       = 0;
 void InputBoard::Update(double fMS)
 {
     m_MS += fMS;
-
     InputWidget::Update(fMS);
     m_TokenBoard.Update(fMS);
 }
 
-bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
+bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
 {
-    if(bValid && !(*bValid)){ return false; }
+    // here we parse all event
+    // even some else widget have captured this event
+
+    // for example, A and B are two inputboards
+    // if we pressed in A, then B should lost its focus
+    //
+    // +-------+ +-------+
+    // |   A   | |   B   |
+    // +-------+ +-------+
 
     switch(rstEvent.type){
         case SDL_MOUSEMOTION:
             {
                 if(In(rstEvent.motion.x, rstEvent.motion.y)){
-                    m_SystemCursorX    = rstEvent.motion.x;
-                    m_SystemCursorY    = rstEvent.motion.y;
+                    m_SystemCursorX = rstEvent.motion.x;
+                    m_SystemCursorY = rstEvent.motion.y;
                     if(!m_DrawOwnSystemCursor){
                         s_ShowSystemCursorCount--;
                     }
@@ -72,10 +79,10 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                     m_TokenBoard.ProcessEvent(rstEvent, &bInnValid);
 
                     ResetTokenBoardLocation();
-                    m_Focus = true;
+                    Focus(true);
                     return true;
                 }else{
-                    m_Focus = false;
+                    Focus(false);
                 }
                 break;
             }
@@ -413,4 +420,8 @@ const char *InputBoard::Content()
     auto pObject = stList.Fetch();
 
     return (pObject ? pObject->GetText() : nullptr);
+}
+
+void InputBoard::InsertInfo(const char *)
+{
 }

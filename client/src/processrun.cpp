@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/15/2017 23:39:24
+ *  Last Modified: 07/16/2017 12:16:18
  *
  *    Description: 
  *
@@ -367,12 +367,22 @@ void ProcessRun::Draw()
         }
     }
 
+    // draw underlay at the bottom
+    // there is one pixel transparent rectangle
+    {
+        auto nWindowW = g_SDLDevice->WindowW(false);
+        auto nWindowH = g_SDLDevice->WindowH(false);
+
+        g_SDLDevice->PushColor(0, 0, 0, 0);
+        g_SDLDevice->FillRectangle(0, nWindowH - 4, nWindowW, 4);
+        g_SDLDevice->PopColor();
+    }
+
     m_ControbBoard.Draw();
 
     // draw cursor location information on top-left
     extern ClientEnv *g_ClientEnv;
     if(g_ClientEnv->MIR2X_DEBUG_SHOW_LOCATION){
-        extern SDLDevice *g_SDLDevice;
         g_SDLDevice->PushColor(0, 0, 0, 230);
         g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
         g_SDLDevice->FillRectangle(0, 0, 200, 60);
