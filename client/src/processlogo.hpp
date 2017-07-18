@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.hpp
  *        Created: 8/13/2015 12:07:39 AM
- *  Last Modified: 07/16/2017 11:37:03
+ *  Last Modified: 07/17/2017 17:29:41
  *
  *    Description: 
  *
@@ -36,7 +36,7 @@ class ProcessLogo: public Process
         virtual ~ProcessLogo();
 
     public:
-        int ID()
+        int ID() const
         {
             return PROCESSID_LOGO;
         }

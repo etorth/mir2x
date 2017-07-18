@@ -3,7 +3,7 @@
  *
  *       Filename: widget.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/15/2017 23:31:25
+ *  Last Modified: 07/17/2017 15:35:04
  *
  *    Description: public API for class game only
  *
@@ -28,6 +28,7 @@ class Widget
         Widget *m_Parent;
 
     protected:
+        bool m_Show;
         bool m_Focus;
 
     protected:
@@ -60,6 +61,7 @@ class Widget
                 bool bAutoDelete = false)   // delete automatically when deleting its parent
 
             : m_Parent(pWidget)
+            , m_Show(true)
             , m_Focus(false)
             , m_X(nX)
             , m_Y(nY)
@@ -83,7 +85,9 @@ class Widget
     public:
         virtual void Draw()
         {
-            DrawEx(X(), Y(), 0, 0, W(), H());
+            if(Show()){
+                DrawEx(X(), Y(), 0, 0, W(), H());
+            }
         }
 
     public:
@@ -173,6 +177,7 @@ class Widget
                 && nY >= Y() && nY < Y() + H();
         }
 
+    public:
         void Focus(bool bFocus)
         {
             m_Focus = bFocus;
@@ -183,6 +188,18 @@ class Widget
             return m_Focus;
         }
 
+    public:
+        void Show(bool bShow)
+        {
+            m_Show = bShow;
+        }
+
+        bool Show() const
+        {
+            return m_Show;
+        }
+
+    public:
         void Move(int nDX, int nDY)
         {
             m_X += nDX;

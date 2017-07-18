@@ -1,11 +1,11 @@
 /*
  * =====================================================================================
  *
- *       Filename: label.hpp
- *        Created: 08/20/2015 08:59:11 PM
- *  Last Modified: 07/11/2017 16:35:14
+ *       Filename: labelboard.hpp
+ *        Created: 08/20/2015 08:59:11
+ *  Last Modified: 07/18/2017 15:19:52
  *
- *    Description: Label is a class
+ *    Description: LabelBoard is a class
  *                      1. without padding
  *                      2. without wrapping
  *                      3. non-editable
@@ -26,24 +26,27 @@
  */
 
 #pragma once
-#include <SDL2/SDL.h>
 #include <vector>
 #include <string>
+#include <cstdint>
+#include <SDL2/SDL.h>
+
 #include "widget.hpp"
 #include "tokenbox.hpp"
 #include "tokenboard.hpp"
-#include <cstdint>
 
-class Label: public Widget
+class LabelBoard: public Widget
 {
     private:
         uint32_t    m_FontKey;
-        SDL_Color   m_Color;
+        SDL_Color   m_FontColor;
+
+    private:
         std::string m_Content;
         TokenBoard  m_TokenBoard;
 
     public:
-        Label(
+        LabelBoard(
                 int              nX,
                 int              nY,
                 const char      *szContent   = "",
@@ -52,19 +55,19 @@ class Label: public Widget
                 uint8_t          nStyle      = 0,
                 const SDL_Color &rstColor    = {0XFF, 0XFF, 0XFF, 0XFF},
                 Widget          *pWidget     = nullptr,
-                bool             bFreeWidget = false):
-            Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
-            , m_FontKey((uint32_t(nFont) << 16) + (uint32_t(nSize) << 8) + nStyle)
-            , m_Color(rstColor)
+                bool             bAutoDelete = false)
+            : Widget(nX, nY, 0, 0, pWidget, bAutoDelete)
+            , m_FontKey(((uint32_t)(nFont) << 16) + ((uint32_t)(nSize) << 8) + nStyle)
+            , m_FontColor(rstColor)
             , m_Content(szContent)
-            , m_TokenBoard {
+            , m_TokenBoard(
                 0,
                 0,
                 false,
                 false,
                 false,
                 false,
-                -1,
+               -1,
                 0,
                 0,
                 nFont,
@@ -76,22 +79,14 @@ class Label: public Widget
                 0,
                 0,
                 nullptr,
-                false
-            }
+                false)
         {
             SetText("%s", szContent);
         }
 
 
     public:
-        Label(
-                uint8_t,           // font index
-                uint8_t,           // font size
-                uint8_t,           // text style
-                const SDL_Color &, // text color
-                const char *);     // text content
-
-        ~Label() = default;
+        ~LabelBoard() = default;
 
     public:
         bool Load(XMLObjectList &rstXMLObjectList)
@@ -99,12 +94,17 @@ class Label: public Widget
             return m_TokenBoard.Load(rstXMLObjectList);
         }
 
-        const char *Text()
+    public:
+        const char *GetText() const
         {
             return m_Content.c_str();
         }
 
         void SetText(const char *, ...);
+
+    public:
+        std::string Print   () const;
+        std::string PrintXML() const;
 
     public:
         void DrawEx(int nX, int nY, int, int, int, int)

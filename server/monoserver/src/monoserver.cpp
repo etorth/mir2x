@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/11/2017 16:22:08
+ *  Last Modified: 07/17/2017 15:48:06
  *
  *    Description: 
  *
@@ -80,7 +80,7 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
     };
 
     // 1. try static buffer
-    //    give a enough size so we can hopefully stop here
+    //    give an enough size so we can hopefully stop here
     {
         char szSBuf[1024];
 

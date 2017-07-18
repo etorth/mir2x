@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 07/15/2017 00:10:56
+ *  Last Modified: 07/18/2017 15:19:47
  *
  *    Description: For scenarios we need text-emoticon mixed boards:
  *
@@ -631,7 +631,8 @@ class TokenBoard: public Widget
         }
 
     public:
-        std::string Print(bool);
+        std::string Print   (bool);
+        std::string PrintXML(bool);
 
     public:
         int Margin(int nIndex)

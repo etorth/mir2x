@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: label.cpp
+ *       Filename: labelboard.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/11/2017 16:33:46
+ *  Last Modified: 07/18/2017 15:23:15
  *
  *    Description:
  *
@@ -18,14 +18,15 @@
  * =====================================================================================
  */
 
-#include "label.hpp"
-#include "tokenboard.hpp"
-#include <unordered_map>
 #include <functional>
-#include "xmlobjectlist.hpp"
-#include "colorfunc.hpp"
+#include <unordered_map>
 
-void Label::SetText(const char * szFormatStr, ...)
+#include "colorfunc.hpp"
+#include "labelboard.hpp"
+#include "tokenboard.hpp"
+#include "xmlobjectlist.hpp"
+
+void LabelBoard::SetText(const char * szFormatStr, ...)
 {
     // 1. store parameter as m_Content
     // 2. build the token board for drawing
@@ -37,7 +38,7 @@ void Label::SetText(const char * szFormatStr, ...)
         std::sprintf(szStyle, "0X%02X", (m_FontKey & 0X00FF0000) >> 16);
 
         char szColor[16];
-        std::sprintf(szColor, "0X%08X", ColorFunc::Color2U32ARGB(m_Color));
+        std::sprintf(szColor, "0X%08X", ColorFunc::Color2U32ARGB(m_FontColor));
 
         XMLObjectList stObjectList;
         stObjectList.Add(
@@ -103,4 +104,14 @@ void Label::SetText(const char * szFormatStr, ...)
             return;
         }
     }
+}
+
+std::string LabelBoard::Print() const
+{
+    return "";
+}
+
+std::string LabelBoard::PrintXML() const
+{
+    return "";
 }

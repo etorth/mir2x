@@ -3,7 +3,7 @@
  *
  *       Filename: xmlconf.hpp
  *        Created: 03/16/2016 23:57:57
- *  Last Modified: 07/16/2017 11:59:47
+ *  Last Modified: 07/18/2017 15:06:40
  *
  *    Description: 
  *
@@ -18,11 +18,9 @@
  * =====================================================================================
  */
 
-
 #pragma once
-#include "xmlroot.hpp"
-#include <system_error>
 #include "log.hpp"
+#include "xmlroot.hpp"
 
 class XMLConf: public XMLRoot
 {

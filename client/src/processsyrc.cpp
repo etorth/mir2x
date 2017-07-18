@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: processsyrc.cpp
- *        Created: 08/14/2015 2:47:49 PM
- *  Last Modified: 07/11/2017 15:33:14
+ *        Created: 08/14/2015 02:47:49
+ *  Last Modified: 07/18/2017 15:21:50
  *
  *    Description: 
  *
@@ -29,12 +29,7 @@ ProcessSyrc::ProcessSyrc()
 	: Process()
     , m_Ratio(0)
     , m_Info(100, 100, "Connecting...")
-{
-}
-
-ProcessSyrc::~ProcessSyrc()
-{}
-
+{} 
 void ProcessSyrc::ProcessEvent(const SDL_Event &rstEvent)
 {
     switch(rstEvent.type){
@@ -47,24 +42,26 @@ void ProcessSyrc::ProcessEvent(const SDL_Event &rstEvent)
                 break;
             }
         default:
-            break;
+            {
+                break;
+            }
     }
 }
 
 void ProcessSyrc::Update(double fDeltaMS)
 {
-    m_Ratio += ((fDeltaMS > 10.0) ? 1 : 0);
-
     if(m_Ratio >= 100){
         extern Game *g_Game;
         g_Game->SwitchProcess(PROCESSID_SYRC, PROCESSID_LOGIN);
     }
+
+    m_Ratio += (fDeltaMS > 0.0 ? 1 : 0);
 }
 
 void ProcessSyrc::Draw()
 {
-    extern PNGTexDBN  *g_ProgUseDBN;
-    extern SDLDevice  *g_SDLDevice;
+    extern SDLDevice *g_SDLDevice;
+    extern PNGTexDBN *g_ProgUseDBN;
 
     auto pTexture = g_ProgUseDBN->Retrieve(0X00000002);
     int nW, nH;

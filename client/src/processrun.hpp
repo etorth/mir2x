@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/15/2017 22:59:44
+ *  Last Modified: 07/18/2017 15:18:35
  *
  *    Description: 
  *
@@ -22,13 +22,13 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "label.hpp"
 #include "myhero.hpp"
 #include "process.hpp"
 #include "message.hpp"
 #include "mir2xmap.hpp"
-#include "focustype.hpp"
 #include "creature.hpp"
+#include "focustype.hpp"
+#include "labelboard.hpp"
 #include "mir2xmapdata.hpp"
 #include "controlboard.hpp"
 #include "clientluamodule.hpp"
@@ -79,8 +79,8 @@ class ProcessRun: public Process
 
     private:
         // use a tokenboard to show all in future
-        Label m_PointerPixlInfo;
-        Label m_PointerTileInfo;
+        LabelBoard m_PointerPixlInfo;
+        LabelBoard m_PointerTileInfo;
 
     private:
         int LoadMap(uint32_t);
@@ -90,7 +90,7 @@ class ProcessRun: public Process
         virtual ~ProcessRun() = default;
 
     public:
-        virtual int ID()
+        int ID() const
         {
             return PROCESSID_RUN;
         }

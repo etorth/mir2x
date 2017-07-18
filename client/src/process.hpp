@@ -3,7 +3,7 @@
  *
  *       Filename: process.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/04/2017 14:21:25
+ *  Last Modified: 07/17/2017 17:28:59
  *
  *    Description: public API for class game only
  *
@@ -40,7 +40,7 @@ class Process
         virtual ~Process() = default;
 
     public:
-        virtual int ID() = 0;
+        virtual int ID() const = 0;
 
     public:
         virtual void Update(double)                  = 0;

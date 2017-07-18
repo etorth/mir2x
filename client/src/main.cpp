@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 07/06/2017 23:55:08
+ *  Last Modified: 07/16/2017 23:35:22
  *
  *    Description: 
  *
@@ -44,12 +44,10 @@ Game           *g_Game          = nullptr; // gobal instance
 
 int main()
 {
-    // firstly set the random seed
-    //
     std::srand((unsigned int)std::time(nullptr));
 
-    // set the exit function for g_Log->AddLog(LOGTYPE_FATAL, ...)
-    auto fnAtExit = [](){
+    auto fnAtExit = []() -> void
+    {
         delete g_Log         ; g_Log         = nullptr;
         delete g_ClientEnv   ; g_ClientEnv   = nullptr;
         delete g_XMLConf     ; g_XMLConf     = nullptr;

@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: processsyrc.hpp
- *        Created: 8/14/2015 2:47:30 PM
- *  Last Modified: 07/11/2017 15:33:23
+ *        Created: 08/14/2015 02:47:30
+ *  Last Modified: 07/18/2017 15:20:53
  *
  *    Description: 
  *
@@ -19,23 +19,25 @@
  */
 #pragma once
 #include <SDL2/SDL.h>
-#include "label.hpp"
 #include "process.hpp"
+#include "labelboard.hpp"
 #include "tokenboard.hpp"
 
 class ProcessSyrc: public Process
 {
     private:
-        int     m_Ratio;
-        Label   m_Info;
+        int        m_Ratio;
+        LabelBoard m_Info;
 
 
     public:
         ProcessSyrc();
-        virtual ~ProcessSyrc();
 
     public:
-        int ID()
+        ~ProcessSyrc() = default;
+
+    public:
+        int ID() const
         {
             return PROCESSID_SYRC;
         }
