@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 07/11/2017 16:00:23
+ *  Last Modified: 07/19/2017 11:37:52
  *
  *    Description:
  *
@@ -31,6 +31,21 @@ class SDLDevice final
     private:
         using ColoStackNode      = std::array<uint32_t, 2>;
         using BlendModeStackNode = std::pair<SDL_BlendMode, uint32_t>;
+
+    private:
+       SDL_Window   *m_Window;
+       SDL_Renderer *m_Renderer;
+
+    private:
+       std::vector<ColoStackNode>      m_ColorStack;
+       std::vector<BlendModeStackNode> m_BlendModeStack;
+
+    private:
+       int m_WindowW;
+       int m_WindowH;
+
+    private:
+       // for sound
 
     public:
         SDLDevice();
@@ -80,8 +95,6 @@ class SDLDevice final
 
        void FillRectangle(int nX, int nY, int nW, int nH)
        {
-           // TODO
-           // boundary check??
            SDL_Rect stRect;
            stRect.x = nX;
            stRect.y = nY;
@@ -147,19 +160,7 @@ class SDLDevice final
     public:
        TTF_Font *CreateTTF(const uint8_t *, size_t, uint8_t);
 
-    private:
-       // for graphics hardware
-       SDL_Window   *m_Window;
-       SDL_Renderer *m_Renderer;
-
-    private:
-       std::vector<ColoStackNode>      m_ColorStack;
-       std::vector<BlendModeStackNode> m_BlendModeStack;
-
-    private:
-       int m_WindowW;
-       int m_WindowH;
-
-    private:
-       // for sound
+    public:
+       void CreateMainWindow();
+       void CreateInitViewWindow();
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: xmlroot.cpp
  *        Created: 06/17/2015 06:25:24
- *  Last Modified: 05/23/2017 01:06:42
+ *  Last Modified: 07/18/2017 23:48:53
  *
  *    Description: 
  *
@@ -141,7 +141,7 @@ bool XMLRoot::NodeAtob(const char *szPath, bool *pRet, bool bDefault)
     return bRes;
 }
 
-const tinyxml2::XMLElement *XMLRoot::GetXMLNode(const char *szPath)
+const tinyxml2::XMLElement *XMLRoot::GetXMLNode(const char *szPath) const
 {
     // well-defined path should be:
     // "root/basic/fullscreen/a/b/c/d/e"

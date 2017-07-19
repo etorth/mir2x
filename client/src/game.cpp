@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/18/2017 15:15:41
+ *  Last Modified: 07/19/2017 11:49:51
  *
  *    Description:
  *
@@ -24,7 +24,9 @@
 #include "log.hpp"
 #include "game.hpp"
 #include "xmlconf.hpp"
+#include "initview.hpp"
 #include "pngtexdbn.hpp"
+#include "sdldevice.hpp"
 #include "fontexdbn.hpp"
 #include "pngtexoffdbn.hpp"
 
@@ -34,69 +36,9 @@ Game::Game()
     , m_NetPackTick(-1.00)
     , m_CurrentProcess(nullptr)
 {
-    // load PNGTexDB
-    extern PNGTexDBN    *g_ProgUseDBN;
-    extern PNGTexDBN    *g_MapDBN;
-    extern PNGTexOffDBN *g_HeroDBN;
-    extern PNGTexOffDBN *g_MonsterDBN;
-    extern PNGTexOffDBN *g_WeaponDBN;
-    extern FontexDBN    *g_FontexDBN;
-    extern XMLConf      *g_XMLConf;
-    extern Log          *g_Log;
-
-    // texture path
-    auto pNode = g_XMLConf->GetXMLNode("Root/Texture/ProgUseDBN");
-    if(!pNode){
-        g_Log->AddLog(LOGTYPE_WARNING, "No ProgUseDBN path found in configuration.");
-        throw std::error_code();
-    }
-    g_Log->AddLog(LOGTYPE_INFO, "ProgUseDBN path: %s", pNode->GetText());
-    g_ProgUseDBN->Load(pNode->GetText());
-
-    // map texutre path
-    pNode = g_XMLConf->GetXMLNode("Root/Texture/MapDBN");
-    if(!pNode){
-        g_Log->AddLog(LOGTYPE_WARNING, "No MapDBN path found in configuration.");
-        throw std::error_code();
-    }
-    g_Log->AddLog(LOGTYPE_INFO, "MapDBN path: %s", pNode->GetText());
-    g_MapDBN->Load(pNode->GetText());
-
-    // fontex load
-    pNode = g_XMLConf->GetXMLNode("Root/Font/FontexDBN");
-    if(!pNode){
-        g_Log->AddLog(LOGTYPE_WARNING, "No FontexDBN path found in configuration.");
-        throw std::error_code();
-    }
-    g_Log->AddLog(LOGTYPE_INFO, "FontexDBN path: %s", pNode->GetText());
-    g_FontexDBN->Load(pNode->GetText());
-
-    // hero gfx resource
-    pNode = g_XMLConf->GetXMLNode("Root/Texture/HeroDBN");
-    if(!pNode){
-        g_Log->AddLog(LOGTYPE_WARNING, "No HeroDBN path found in configuration.");
-        throw std::error_code();
-    }
-    g_Log->AddLog(LOGTYPE_INFO, "HeroDBN path: %s", pNode->GetText());
-    g_HeroDBN->Load(pNode->GetText());
-
-    // monster resource
-    pNode = g_XMLConf->GetXMLNode("Root/Texture/MonsterDBN");
-    if(!pNode){
-        g_Log->AddLog(LOGTYPE_WARNING, "No MonsterDBN path found in configuration.");
-        throw std::error_code();
-    }
-    g_Log->AddLog(LOGTYPE_INFO, "MonsterDBN path: %s", pNode->GetText());
-    g_MonsterDBN->Load(pNode->GetText());
-
-    // weapon gfx resource
-    pNode = g_XMLConf->GetXMLNode("Root/Texture/WeaponDBN");
-    if(!pNode){
-        g_Log->AddLog(LOGTYPE_WARNING, "No WeaponDBN path found in configuration.");
-        throw std::error_code();
-    }
-    g_Log->AddLog(LOGTYPE_INFO, "WeaponDBN path: %s", pNode->GetText());
-    g_WeaponDBN->Load(pNode->GetText());
+    InitView(10);
+    extern SDLDevice *g_SDLDevice;
+    g_SDLDevice->CreateMainWindow();
 }
 
 Game::~Game()

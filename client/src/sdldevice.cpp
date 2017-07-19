@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 07/11/2017 16:09:14
+ *  Last Modified: 07/19/2017 11:47:10
  *
  *    Description: 
  *
@@ -23,115 +23,38 @@
 #include <system_error>
 #include <SDL2/SDL_image.h>
 
+#include "log.hpp"
 #include "xmlconf.hpp"
 #include "sdldevice.hpp"
-#include "log.hpp"
 
 SDLDevice::SDLDevice()
     : m_Window(nullptr)
     , m_Renderer(nullptr)
+    , m_ColorStack()
+    , m_BlendModeStack()
     , m_WindowW(0)
     , m_WindowH(0)
 {
-    // TODO
-    // won't support dynamically create/update context
-    // context should be created at the very beginning
-
     extern SDLDevice *g_SDLDevice;
     if(g_SDLDevice){
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "Multiply initialization for SDLDevice");
-        throw std::error_code();
+        g_Log->AddLog(LOGTYPE_FATAL, "Multiple initialization for SDLDevice");
     }
 
     if(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS)){
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "Initialization failed for SDL2: %s", SDL_GetError());
-        throw std::error_code();
+        g_Log->AddLog(LOGTYPE_FATAL, "Initialization failed for SDL2: %s", SDL_GetError());
     }
 
     if(TTF_Init()){
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "Initialization failed for SDL2 TTF: %s", TTF_GetError());
-        throw std::error_code();
+        g_Log->AddLog(LOGTYPE_FATAL, "Initialization failed for SDL2 TTF: %s", TTF_GetError());
     }
 
     if((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG){
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "Initialization failed for SDL2 IMG: %s", TTF_GetError());
-        throw std::error_code();
+        g_Log->AddLog(LOGTYPE_FATAL, "Initialization failed for SDL2 IMG: %s", IMG_GetError());
     }
-
-    Uint32 nFlags   = 0;
-    int    nWindowW = 0;
-    int    nWindowH = 0;
-
-    extern Log     *g_Log;
-    extern XMLConf *g_XMLConf;
-    int nScreenMode = 0;
-    if(g_XMLConf->NodeAtoi("Root/Window/ScreenMode", &nScreenMode, 0)){
-        g_Log->AddLog(LOGTYPE_INFO, "screen mode by configuration file: %d", nScreenMode);
-    }else{
-        g_Log->AddLog(LOGTYPE_WARNING, "Failed to select screen mode by configuration file.");
-    }
-
-    switch(nScreenMode){
-        case 0:
-            break;
-        case 1:
-            nFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-            break;
-        case 2:
-            nFlags |= SDL_WINDOW_FULLSCREEN;
-            break;
-        default:
-            break;
-    }
-
-    if(true
-            && g_XMLConf->NodeAtoi("Root/Window/W", &nWindowW, 800)
-            && g_XMLConf->NodeAtoi("Root/Window/H", &nWindowH, 600)){
-        g_Log->AddLog(LOGTYPE_INFO,
-                "window size by configuration file: %d x %d", nWindowW, nWindowH);
-    }else{
-        g_Log->AddLog(LOGTYPE_INFO, "Use default window size.");
-        nWindowW = 800;
-        nWindowH = 600;
-    }
-
-    m_WindowW = nWindowW;
-    m_WindowH = nWindowH;
-
-    if(m_WindowW && m_WindowH){
-        // try to adjust the current window size
-        SDL_DisplayMode stDesktop;
-        if(!SDL_GetDesktopDisplayMode(0, &stDesktop)){
-            m_WindowW = std::min(m_WindowW , stDesktop.w);
-            m_WindowH = std::min(m_WindowH , stDesktop.h);
-        }
-    }
-
-    m_Window = SDL_CreateWindow("MIR2X-V0.1",
-            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_WindowW, m_WindowH, nFlags);
-
-    if(!m_Window){
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "Failed to create SDL window handler: %s", SDL_GetError());
-        throw std::error_code(1, std::system_category());
-    }
-
-    m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
-
-    if(!m_Renderer){
-        SDL_DestroyWindow(m_Window);
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "Failed to create SDL renderer: %s", SDL_GetError());
-        throw std::error_code(1, std::system_category());
-    }
-
-    SetWindowIcon();
-    PushColor(0, 0, 0, 0);
-    PushBlendMode(SDL_BLENDMODE_NONE);
 }
 
 SDLDevice::~SDLDevice()
@@ -183,10 +106,7 @@ void SDLDevice::SetWindowIcon()
         0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF,
         0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF};
 
-    SDL_Surface *pstSurface = SDL_CreateRGBSurfaceFrom(pRawData, 16, 16, 16, 16*2, 0x0f00, 0x00f0, 0x000f, 0xf000);
-
-    // The icon is attached to the window pointer
-    if(pstSurface){
+    if(auto pstSurface = SDL_CreateRGBSurfaceFrom(pRawData, 16, 16, 16, 16*2, 0x0f00, 0x00f0, 0x000f, 0xf000)){
         SDL_SetWindowIcon(m_Window, pstSurface);
         SDL_FreeSurface(pstSurface);
     }
@@ -194,32 +114,31 @@ void SDLDevice::SetWindowIcon()
 
 SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
 {
-    // TODO
-    //
-    // currently it doesn't support dynamic set of context
-    // because all textures are based on current m_Renderer
-    //
     // if it's changed
     // all the texture need to be re-load
-    //
-    if(pMem == nullptr || nSize <= 0){ return nullptr; }
+
+    // currently it doesn't support dynamic set of context
+    // because all textures are based on current m_Renderer
 
     SDL_RWops   *pstRWops   = nullptr;
     SDL_Surface *pstSurface = nullptr;
     SDL_Texture *pstTexture = nullptr;
 
-    pstRWops = SDL_RWFromConstMem((const void *)pMem, nSize);
-    if(pstRWops){
-        pstSurface = IMG_LoadPNG_RW(pstRWops);
-        if(pstSurface){
-            pstTexture = SDL_CreateTextureFromSurface(m_Renderer, pstSurface);
+    if(pMem && nSize){
+        pstRWops = SDL_RWFromConstMem((const void *)(pMem), nSize);
+        if(pstRWops){
+            pstSurface = IMG_LoadPNG_RW(pstRWops);
+            if(pstSurface){
+                if(m_Renderer){
+                    pstTexture = SDL_CreateTextureFromSurface(m_Renderer, pstSurface);
+                }
+            }
         }
     }
 
     // TODO
     // not understand well for SDL_FreeRW()
-    // since the creation is done
-    // we can free it?
+    // since the creation is done we can free it?
     if(pstRWops){
         SDL_FreeRW(pstRWops);
     }
@@ -227,7 +146,6 @@ SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
     if(pstSurface){
         SDL_FreeSurface(pstSurface);
     }
-
     return pstTexture;
 }
 
@@ -260,12 +178,15 @@ void SDLDevice::DrawTexture(SDL_Texture *pstTexture, int nX, int nY)
 
 TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontPointSize)
 {
-    if(pMem == nullptr || nSize <= 0){ return nullptr; }
-
     SDL_RWops *pstRWops = nullptr;
     TTF_Font  *pstTTont = nullptr;
 
-    pstRWops = SDL_RWFromConstMem((const void *)pMem, nSize);
+    if(pMem && nSize && nFontPointSize){
+        pstRWops = SDL_RWFromConstMem((const void *)(pMem), nSize);
+        if(pstRWops){
+            pstTTont = TTF_OpenFontRW(pstRWops, 1, nFontPointSize);
+        }
+    }
 
     // TODO
     // I checked the SDL_ttf.c
@@ -275,18 +196,13 @@ TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontP
     // so here we provide SDL_RWops and freeMark
     // the TTF_Font struct will take control of free/assess the SDL_RWops
     // and we can't free it before destroy TTF_Font
-    //
+
     // so, don't use this code before the resource allocated by SDL_RWops
     // is done. WTF
-    //
+
     // if(pstRWops){
     //     SDL_FreeRW(pstRWops);
     // }
-    //
-
-    if(pstRWops){
-        pstTTont = TTF_OpenFontRW(pstRWops, 1, nFontPointSize);
-    }
 
     return pstTTont;
 }
@@ -349,4 +265,127 @@ void SDLDevice::PopBlendMode()
             --m_BlendModeStack.back().second;
         }
     }
+}
+
+void SDLDevice::CreateInitViewWindow()
+{
+    if(m_Renderer){
+        SDL_DestroyRenderer(m_Renderer);
+        m_Renderer = nullptr;
+    }
+
+    if(m_Window){
+        SDL_DestroyWindow(m_Window);
+        m_Window = nullptr;
+    }
+
+    int nWindowW = 388;
+    int nWindowH = 160;
+    {
+        SDL_DisplayMode stDesktop;
+        if(!SDL_GetDesktopDisplayMode(0, &stDesktop)){
+            nWindowW = std::min<int>(nWindowW , stDesktop.w);
+            nWindowH = std::min<int>(nWindowH , stDesktop.h);
+        }
+    }
+
+    m_Window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nWindowW, nWindowH, 0);
+    if(!m_Window){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "Failed to create SDL window handler: %s", SDL_GetError());
+    }
+
+    m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
+    if(!m_Renderer){
+        SDL_DestroyWindow(m_Window);
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "Failed to create SDL renderer: %s", SDL_GetError());
+    }
+
+    SetWindowIcon();
+    PushColor(0, 0, 0, 0);
+    PushBlendMode(SDL_BLENDMODE_NONE);
+}
+
+void SDLDevice::CreateMainWindow()
+{
+    // need to clean the window resource
+    // and abort if window allocation failed
+    // InitView will allocate window before main window
+
+    if(m_Renderer){
+        SDL_DestroyRenderer(m_Renderer);
+        m_Renderer = nullptr;
+    }
+
+    if(m_Window){
+        SDL_DestroyWindow(m_Window);
+        m_Window = nullptr;
+    }
+
+    Uint32 nFlags   = 0;
+    int    nWindowW = 0;
+    int    nWindowH = 0;
+
+    extern Log     *g_Log;
+    extern XMLConf *g_XMLConf;
+    int nScreenMode = 0;
+    if(g_XMLConf->NodeAtoi("Root/Window/ScreenMode", &nScreenMode, 0)){
+        g_Log->AddLog(LOGTYPE_INFO, "screen mode by configuration file: %d", nScreenMode);
+    }else{
+        g_Log->AddLog(LOGTYPE_WARNING, "Failed to select screen mode by configuration file.");
+    }
+
+    switch(nScreenMode){
+        case 0:
+            break;
+        case 1:
+            nFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+            break;
+        case 2:
+            nFlags |= SDL_WINDOW_FULLSCREEN;
+            break;
+        default:
+            break;
+    }
+
+    if(true
+            && g_XMLConf->NodeAtoi("Root/Window/W", &nWindowW, 800)
+            && g_XMLConf->NodeAtoi("Root/Window/H", &nWindowH, 600)){
+        g_Log->AddLog(LOGTYPE_INFO, "window size by configuration file: %d x %d", nWindowW, nWindowH);
+    }else{
+        g_Log->AddLog(LOGTYPE_INFO, "Use default window size.");
+        nWindowW = 800;
+        nWindowH = 600;
+    }
+
+    m_WindowW = nWindowW;
+    m_WindowH = nWindowH;
+
+    if(m_WindowW && m_WindowH){
+        // try to adjust the current window size
+        SDL_DisplayMode stDesktop;
+        if(!SDL_GetDesktopDisplayMode(0, &stDesktop)){
+            m_WindowW = std::min(m_WindowW , stDesktop.w);
+            m_WindowH = std::min(m_WindowH , stDesktop.h);
+        }
+    }
+
+    m_Window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_WindowW, m_WindowH, nFlags);
+    if(!m_Window){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "Failed to create SDL window handler: %s", SDL_GetError());
+    }
+
+    m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
+
+    if(!m_Renderer){
+        SDL_DestroyWindow(m_Window);
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "Failed to create SDL renderer: %s", SDL_GetError());
+    }
+
+    SetWindowIcon();
+    PushColor(0, 0, 0, 0);
+    PushBlendMode(SDL_BLENDMODE_NONE);
 }

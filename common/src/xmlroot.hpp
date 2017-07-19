@@ -3,7 +3,7 @@
  *
  *       Filename: xmlroot.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 05/23/2017 01:06:27
+ *  Last Modified: 07/18/2017 23:48:45
  *
  *    Description: analyze specifically formatted XML
  *                      <ROOT>
@@ -50,10 +50,10 @@ class XMLRoot
        bool NodeAtof(const char *, double *, double);
 
     public:
-       const tinyxml2::XMLElement *GetXMLNode(const char *);
+       const tinyxml2::XMLElement *GetXMLNode(const char *) const;
 
     public:
-       bool Find(const char *szPath)
+       bool Find(const char *szPath) const
        {
            return GetXMLNode(szPath) != nullptr;
        }
