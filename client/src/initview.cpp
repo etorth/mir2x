@@ -3,7 +3,7 @@
  *
  *       Filename: initview.cpp
  *        Created: 07/18/2017 16:04:25
- *  Last Modified: 07/19/2017 13:02:26
+ *  Last Modified: 07/19/2017 19:18:45
  *
  *    Description: 
  *
@@ -80,8 +80,8 @@ InitView::InitView(size_t nFontSize)
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
         extern XMLConf      *g_XMLConf;
-        extern PNGTexOffDBN *g_MonsterDBN;
-        return LoadDBN(nIndex, g_XMLConf, g_MonsterDBN, "Root/Texture/WeaponDBN");
+        extern PNGTexOffDBN *g_WeaponDBN;
+        return LoadDBN(nIndex, g_XMLConf, g_WeaponDBN, "Root/Texture/WeaponDBN");
     });
 
     // 2. loading font and textures

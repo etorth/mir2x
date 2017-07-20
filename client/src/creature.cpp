@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/10/2017 15:12:52
+ *  Last Modified: 07/20/2017 12:19:16
  *
  *    Description: 
  *
@@ -27,6 +27,7 @@
 #include "mathfunc.hpp"
 #include "creature.hpp"
 #include "sysconst.hpp"
+#include "ascendstr.hpp"
 #include "processrun.hpp"
 #include "protocoldef.hpp"
 #include "clientpathfinder.hpp"
@@ -407,6 +408,12 @@ bool Creature::MotionQueueValid()
 
 int Creature::UpdateHP(int nHP, int nHPMax)
 {
+    if(auto nDiffHP = nHP - HP()){
+        if(m_ProcessRun){
+            m_ProcessRun->AddAscendStr(ASCENDSTR_NUM0, nDiffHP, X() * SYS_MAPGRIDXP, Y() * SYS_MAPGRIDYP);
+        }
+    }
+
     m_HP    = nHP;
     m_HPMax = nHPMax;
 

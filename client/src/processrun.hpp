@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/18/2017 15:18:35
+ *  Last Modified: 07/20/2017 12:19:53
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 #pragma once
 #include <map>
+#include <list>
 #include <cstdint>
 #include <unordered_map>
 
@@ -28,6 +29,7 @@
 #include "mir2xmap.hpp"
 #include "creature.hpp"
 #include "focustype.hpp"
+#include "ascendstr.hpp"
 #include "labelboard.hpp"
 #include "mir2xmapdata.hpp"
 #include "controlboard.hpp"
@@ -81,6 +83,9 @@ class ProcessRun: public Process
         // use a tokenboard to show all in future
         LabelBoard m_PointerPixlInfo;
         LabelBoard m_PointerTileInfo;
+
+    private:
+        std::list<AscendStr *> m_AscendStrRecord;
 
     private:
         int LoadMap(uint32_t);
@@ -155,4 +160,7 @@ class ProcessRun: public Process
 
     private:
         bool TrackAttack(bool, uint32_t);
+
+    public:
+        void AddAscendStr(int, int, int, int);
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/16/2017 12:16:18
+ *  Last Modified: 07/20/2017 12:22:34
  *
  *    Description: 
  *
@@ -60,6 +60,7 @@ ProcessRun::ProcessRun()
     , m_AttackUIDY(-1)
     , m_PointerPixlInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_PointerTileInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
+    , m_AscendStrRecord()
 {
     m_FocusUIDV.fill(0);
 }
@@ -103,6 +104,16 @@ void ProcessRun::Update(double fTime)
         }else{
             delete pRecord->second;
             pRecord = m_CreatureRecord.erase(pRecord);
+        }
+    }
+
+    for(auto pRecord = m_AscendStrRecord.begin(); pRecord != m_AscendStrRecord.end();){
+        if((*pRecord)->Ratio() < 1.0){
+            (*pRecord)->Update(fTime);
+            ++pRecord;
+        }else{
+            delete (*pRecord);
+            pRecord = m_AscendStrRecord.erase(pRecord);
         }
     }
 
@@ -376,6 +387,10 @@ void ProcessRun::Draw()
         g_SDLDevice->PushColor(0, 0, 0, 0);
         g_SDLDevice->FillRectangle(0, nWindowH - 4, nWindowW, 4);
         g_SDLDevice->PopColor();
+    }
+
+    for(auto pRecord: m_AscendStrRecord){
+        pRecord->Draw(m_ViewX, m_ViewY);
     }
 
     m_ControbBoard.Draw();
@@ -980,4 +995,9 @@ uint32_t ProcessRun::GetControlBoardFaceKey()
     }
 
     return nFaceKey;
+}
+
+void ProcessRun::AddAscendStr(int nType, int nValue, int nX, int nY)
+{
+    m_AscendStrRecord.emplace_back(new AscendStr(nType, nValue, nX, nY));
 }
