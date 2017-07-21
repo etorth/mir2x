@@ -3,7 +3,7 @@
  *
  *       Filename: ascendstr.hpp
  *        Created: 07/20/2017 00:31:01
- *  Last Modified: 07/20/2017 17:51:41
+ *  Last Modified: 07/20/2017 18:54:32
  *
  *    Description: decide to not implement it as magic
  *
@@ -62,7 +62,7 @@ class AscendStr
 
         int Y() const
         {
-            return m_Y - (int)(std::lround(Ratio() * 100.0));
+            return m_Y - (int)(std::lround(Ratio() * 50.0));
         }
 
     private:

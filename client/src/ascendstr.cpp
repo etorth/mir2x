@@ -3,7 +3,7 @@
  *
  *       Filename: ascendstr.cpp
  *        Created: 07/20/2017 00:34:13
- *  Last Modified: 07/20/2017 18:04:23
+ *  Last Modified: 07/20/2017 19:02:01
  *
  *    Description: 
  *
@@ -67,13 +67,13 @@ void AscendStr::Draw(int nViewX, int nViewY)
 
         auto nCurrX = X();
         auto nCurrY = Y();
-        auto nCurrA = (Uint8)(std::lround(255 * Ratio()));
+        auto nCurrA = (Uint8)(std::lround(255 * (1.0 - Ratio())));
 
         switch(Type()){
             case ASCENDSTR_MISS:
                 {
                     if(auto pTexture = g_ProgUseDBN->Retrieve(0X03000030)){
-                        SDL_SetTextureColorMod(pTexture, nCurrA, nCurrA, nCurrA);
+                        SDL_SetTextureAlphaMod(pTexture, nCurrA);
                         g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
                     }
                     break;
@@ -85,7 +85,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
                     if(Value()){
                         uint32_t nPreKey = 0X03000000 | ((Type() - ASCENDSTR_NUM0) << 4);
                         if(auto pTexture = g_ProgUseDBN->Retrieve(nPreKey | ((Value() < 0) ? 0X0A : 0X0B))){
-                            SDL_SetTextureColorMod(pTexture, nCurrA, nCurrA, nCurrA);
+                            SDL_SetTextureAlphaMod(pTexture, nCurrA);
                             g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY + ((Value() < 0) ? 4 : 1));
 
                             int nTextureW;
@@ -96,7 +96,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
                         auto szNumStr = std::to_string(std::labs(Value()));
                         for(auto chNum: szNumStr){
                             if(auto pTexture = g_ProgUseDBN->Retrieve(nPreKey | (chNum - '0'))){
-                                SDL_SetTextureColorMod(pTexture, nCurrA, nCurrA, nCurrA);
+                                SDL_SetTextureAlphaMod(pTexture, nCurrA);
                                 g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
 
                                 int nTextureW;
