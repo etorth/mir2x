@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/04/2017 23:42:57
+ *  Last Modified: 07/21/2017 00:11:48
  *
  *    Description: 
  *
@@ -328,6 +328,11 @@ void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddre
         case MPK_UPDATEHP:
             {
                 On_MPK_UPDATEHP(rstMPK, rstAddress);
+                break;
+            }
+        case MPK_EXP:
+            {
+                On_MPK_EXP(rstMPK, rstAddress);
                 break;
             }
         case MPK_ACTION:

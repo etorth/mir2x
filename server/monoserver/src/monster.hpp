@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 06/15/2017 11:49:28
+ *  Last Modified: 07/21/2017 00:11:27
  *
  *    Description: 
  *
@@ -118,6 +118,7 @@ class Monster: public CharObject
         int GetAttackPower(int);
 
     private:
+        void On_MPK_EXP(const MessagePack &, const Theron::Address &);
         void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
         void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);

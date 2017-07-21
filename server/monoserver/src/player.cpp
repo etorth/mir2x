@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/06/2017 11:11:41
+ *  Last Modified: 07/20/2017 23:48:13
  *
  *    Description: 
  *
@@ -72,6 +72,11 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
         case MPK_QUERYLOCATION:
             {
                 On_MPK_QUERYLOCATION(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_EXP:
+            {
+                On_MPK_EXP(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_ACTION:

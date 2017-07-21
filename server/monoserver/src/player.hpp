@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 07/09/2017 13:44:03
+ *  Last Modified: 07/20/2017 23:47:50
  *
  *    Description: 
  *
@@ -109,6 +109,7 @@ class Player: public CharObject
         void Operate(const MessagePack &, const Theron::Address &);
 
     private:
+        void On_MPK_EXP(const MessagePack &, const Theron::Address &);
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
         void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);
         void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);

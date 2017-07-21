@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 07/06/2017 11:12:47
+ *  Last Modified: 07/20/2017 23:46:56
  *
  *    Description: 
  *
@@ -313,5 +313,19 @@ void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Address
 
         extern NetPodN *g_NetPodN;
         g_NetPodN->Send(SessionID(), SM_DEADFADEOUT, stSMDFO);
+    }
+}
+
+void Player::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMExp stAME;
+    std::memcpy(&stAME, rstMPK.Data(), sizeof(stAME));
+
+    if(stAME.Exp > 0){
+        SMExp stSME;
+        stSME.Exp = stAME.Exp;
+
+        extern NetPodN *g_NetPodN;
+        g_NetPodN->Send(SessionID(), SM_EXP, stSME);
     }
 }

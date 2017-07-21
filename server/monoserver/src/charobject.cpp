@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/08/2017 23:08:10
+ *  Last Modified: 07/21/2017 00:20:08
  *
  *    Description: 
  *
@@ -46,6 +46,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_LastMoveTime(0)
     , m_LastAttackTime(0)
     , m_TargetQ()
+    , m_HitterUIDQ()
     , m_Ability()
     , m_WAbility()
     , m_AddAbility()
@@ -516,6 +517,9 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(int, int)> f
 bool CharObject::StruckDamage(int)
 {
     m_HP = std::max<int>(0, m_HP - 1);
+    if(m_HP == 0){
+        SetState(STATE_DEAD, STATE_DEAD);
+    }
     return true;
 }
 

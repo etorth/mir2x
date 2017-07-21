@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 07/05/2017 12:10:19
+ *  Last Modified: 07/20/2017 23:23:53
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include <map>
 #include <list>
 #include <deque>
 #include <vector>
@@ -138,7 +139,7 @@ class CharObject: public ActiveObject
         const ServerMap   *m_Map;
 
     protected:
-        std::unordered_map<uint32_t, COLocation > m_LocationRecord;
+        std::map<uint32_t, COLocation> m_LocationRecord;
 
     protected:
         int m_CurrX;
@@ -159,6 +160,9 @@ class CharObject: public ActiveObject
 
     protected:
         std::deque<TargetRecord> m_TargetQ;
+
+    protected:
+        CacheQueue<uint32_t, 8> m_HitterUIDQ;
 
     protected:
         OBJECTABILITY       m_Ability;

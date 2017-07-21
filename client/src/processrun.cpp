@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/20/2017 12:22:34
+ *  Last Modified: 07/21/2017 00:10:21
  *
  *    Description: 
  *
@@ -429,7 +429,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                 {
                     char szMessage[1024];
                     std::sprintf(szMessage, "Mouse button down at (%d, %d)", rstEvent.button.x, rstEvent.button.y);
-                    AddOPLog(OUTPORT_CONTROLBOARD, 0, "", szMessage);
+                    AddOPLog(OUTPORT_CONTROLBOARD, 0, "", "%s", szMessage);
                 }
 
                 switch(rstEvent.button.button){
@@ -780,12 +780,12 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
                     && stLogType.is<int>()
                     &&  stPrompt.is<std::string>()
                     && stLogInfo.is<std::string>()){
-                AddOPLog(nOutPort, stLogType.as<int>(), stPrompt.as<std::string>().c_str(), stLogInfo.as<std::string>().c_str());
+                AddOPLog(nOutPort, stLogType.as<int>(), stPrompt.as<std::string>().c_str(), "%s", stLogInfo.as<std::string>().c_str());
                 return;
             }
 
             // invalid argument provided
-            AddOPLog(nOutPort, 2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
+            AddOPLog(nOutPort, 2, ">>> ", "%s", "printLine(LogType: int, Prompt: string, LogInfo: string)");
         });
 
         // register command addLog
@@ -803,7 +803,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
             }
 
             // invalid argument provided
-            AddOPLog(nOutPort, 2, ">>> ", "addLog(LogType: int, LogInfo: string)");
+            AddOPLog(nOutPort, 2, ">>> ", "%s", "addLog(LogType: int, LogInfo: string)");
         });
 
         // register command playerList
@@ -869,25 +869,75 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
     return false;
 }
 
-bool ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, const char *szLogInfo)
+bool ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
 {
-    if(nOutPort & OUTPORT_LOG){
-        extern Log *g_Log;
-        switch(nLogType){
-            case 0  : g_Log->AddLog(LOGTYPE_INFO   , "%s", (std::string(szPrompt ? szPrompt : "") + szLogInfo).c_str()); break;
-            case 1  : g_Log->AddLog(LOGTYPE_WARNING, "%s", (std::string(szPrompt ? szPrompt : "") + szLogInfo).c_str()); break;
-            default : g_Log->AddLog(LOGTYPE_FATAL  , "%s", (std::string(szPrompt ? szPrompt : "") + szLogInfo).c_str()); break;
+    auto fnRecordLog = [this](int nOutPort, int nLogType, const char *szPrompt, const char *szLogInfo) -> void
+    {
+        if(nOutPort & OUTPORT_LOG){
+            extern Log *g_Log;
+            switch(nLogType){
+                case 0  : g_Log->AddLog(LOGTYPE_INFO   , "%s%s", szPrompt ? szPrompt : "", szLogInfo); break;
+                case 1  : g_Log->AddLog(LOGTYPE_WARNING, "%s%s", szPrompt ? szPrompt : "", szLogInfo); break;
+                default : g_Log->AddLog(LOGTYPE_FATAL  , "%s%s", szPrompt ? szPrompt : "", szLogInfo); break;
+            }
+        }
+
+        if(nOutPort & OUTPORT_SCREEN){
+        }
+
+        if(nOutPort & OUTPORT_CONTROLBOARD){
+            m_ControbBoard.AddLog(szLogInfo);
+        }
+    };
+
+    int nLogSize = 0;
+
+    // 1. try static buffer
+    //    give an enough size so we can hopefully stop here
+    {
+        char szSBuf[1024];
+
+        va_list ap;
+        va_start(ap, szLogFormat);
+        nLogSize = std::vsnprintf(szSBuf, (sizeof(szSBuf) / sizeof(szSBuf[0])), szLogFormat, ap);
+        va_end(ap);
+
+        if(nLogSize >= 0){
+            if((size_t)(nLogSize + 1) < (sizeof(szSBuf) / sizeof(szSBuf[0]))){
+                fnRecordLog(nOutPort, nLogType, szPrompt, szSBuf);
+                return true;
+            }else{
+                // do nothing
+                // have to try the dynamic buffer method
+            }
+        }else{
+            fnRecordLog(nOutPort, 0, "", (std::string("Parse log info failed: ") + szLogFormat).c_str());
+            return false;
         }
     }
 
-    if(nOutPort & OUTPORT_SCREEN){
-    }
+    // 2. try dynamic buffer
+    //    use the parsed buffer size above to get enough memory
+    while(true){
+        std::vector<char> szDBuf(nLogSize + 1 + 64);
 
-    if(nOutPort & OUTPORT_CONTROLBOARD){
-        m_ControbBoard.AddLog(szLogInfo);
-    }
+        va_list ap;
+        va_start(ap, szLogFormat);
+        nLogSize = std::vsnprintf(&(szDBuf[0]), szDBuf.size(), szLogFormat, ap);
+        va_end(ap);
 
-    return true;
+        if(nLogSize >= 0){
+            if((size_t)(nLogSize + 1) < szDBuf.size()){
+                fnRecordLog(nOutPort, nLogType, szPrompt, &(szDBuf[0]));
+                return true;
+            }else{
+                szDBuf.resize(nLogSize + 1 + 64);
+            }
+        }else{
+            fnRecordLog(nOutPort, 0, "", (std::string("Parse log info failed: ") + szLogFormat).c_str());
+            return false;
+        }
+    }
 }
 
 bool ProcessRun::OnMap(uint32_t nMapID, int nX, int nY) const

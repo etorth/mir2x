@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/20/2017 12:19:53
+ *  Last Modified: 07/21/2017 00:00:03
  *
  *    Description: 
  *
@@ -121,6 +121,7 @@ class ProcessRun: public Process
         bool OnMap(uint32_t, int, int) const;
 
     public:
+        void Net_EXP(const uint8_t *, size_t);
         void Net_ACTION(const uint8_t *, size_t);
         void Net_LOGINOK(const uint8_t *, size_t);
         void Net_CORECORD(const uint8_t *, size_t);
@@ -152,7 +153,7 @@ class ProcessRun: public Process
 
     public:
         bool RegisterLuaExport(ClientLuaModule *, int);
-        bool AddOPLog(int, int, const char *, const char *);
+        bool AddOPLog(int, int, const char *, const char *, ...);
 
     public:
         Creature *RetrieveUID(uint32_t);
