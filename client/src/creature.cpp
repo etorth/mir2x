@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/20/2017 12:19:16
+ *  Last Modified: 07/20/2017 17:58:20
  *
  *    Description: 
  *
@@ -410,7 +410,14 @@ int Creature::UpdateHP(int nHP, int nHPMax)
 {
     if(auto nDiffHP = nHP - HP()){
         if(m_ProcessRun){
-            m_ProcessRun->AddAscendStr(ASCENDSTR_NUM0, nDiffHP, X() * SYS_MAPGRIDXP, Y() * SYS_MAPGRIDYP);
+
+            // TODO
+            // when possible add a new function
+            // bool Creature::GfxWindow(int *, int *, int *, int *)
+
+            int nX = X() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2;
+            int nY = Y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP / 2;
+            m_ProcessRun->AddAscendStr(ASCENDSTR_NUM0, nDiffHP, nX, nY);
         }
     }
 

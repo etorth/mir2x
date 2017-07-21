@@ -3,7 +3,7 @@
  *
  *       Filename: ascendstr.cpp
  *        Created: 07/20/2017 00:34:13
- *  Last Modified: 07/20/2017 12:23:42
+ *  Last Modified: 07/20/2017 18:04:23
  *
  *    Description: 
  *
@@ -86,7 +86,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
                         uint32_t nPreKey = 0X03000000 | ((Type() - ASCENDSTR_NUM0) << 4);
                         if(auto pTexture = g_ProgUseDBN->Retrieve(nPreKey | ((Value() < 0) ? 0X0A : 0X0B))){
                             SDL_SetTextureColorMod(pTexture, nCurrA, nCurrA, nCurrA);
-                            g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
+                            g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY + ((Value() < 0) ? 4 : 1));
 
                             int nTextureW;
                             SDL_QueryTexture(pTexture, nullptr, nullptr, &nTextureW, nullptr);

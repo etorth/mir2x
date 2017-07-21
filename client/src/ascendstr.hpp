@@ -3,7 +3,7 @@
  *
  *       Filename: ascendstr.hpp
  *        Created: 07/20/2017 00:31:01
- *  Last Modified: 07/20/2017 12:20:56
+ *  Last Modified: 07/20/2017 17:51:41
  *
  *    Description: decide to not implement it as magic
  *
@@ -74,6 +74,6 @@ class AscendStr
     public:
         double Ratio() const
         {
-            return Tick() / (1.0 * 1000.0);
+            return Tick() / 3000.0;
         }
 };
