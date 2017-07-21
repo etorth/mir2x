@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 07/20/2017 23:23:53
+ *  Last Modified: 07/21/2017 11:50:35
  *
  *    Description: 
  *
@@ -134,6 +134,19 @@ class CharObject: public ActiveObject
             {}
         };
 
+        struct HitterUIDRecord
+        {
+            uint32_t UID;
+            uint32_t Damage;
+            uint32_t ActiveTime;
+
+            HitterUIDRecord(uint32_t nUID = 0, uint32_t nDamage = 0, uint32_t nActiveTime = 0)
+                : UID(nUID)
+                , Damage(nDamage)
+                , ActiveTime(nActiveTime)
+            {}
+        };
+
     protected:
         const ServiceCore *m_ServiceCore;
         const ServerMap   *m_Map;
@@ -162,7 +175,7 @@ class CharObject: public ActiveObject
         std::deque<TargetRecord> m_TargetQ;
 
     protected:
-        CacheQueue<uint32_t, 8> m_HitterUIDQ;
+        std::vector<HitterUIDRecord> m_HitterUIDRecord;
 
     protected:
         OBJECTABILITY       m_Ability;
@@ -252,6 +265,10 @@ class CharObject: public ActiveObject
         virtual bool MoveOneStep(int, int, int);
         virtual bool RetrieveLocation(uint32_t, std::function<void(int, int)>);
         virtual bool RequestMove(int, int, int, bool, std::function<void()>, std::function<void()>);
+
+    protected:
+        bool AddHitterUID(uint32_t, int);
+        bool DispatchHitterExp();
 
     protected:
         virtual bool CanAttack();

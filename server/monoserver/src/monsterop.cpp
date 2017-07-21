@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 07/21/2017 00:25:19
+ *  Last Modified: 07/21/2017 11:51:17
  *
  *    Description: 
  *
@@ -104,19 +104,9 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rs
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    bool bFind = false;
-    for(m_HitterUIDQ.Reset(); !m_HitterUIDQ.Done(); m_HitterUIDQ.Forward()){
-        if(stAMA.UID == m_HitterUIDQ.Current()){
-            bFind = true;
-            break;
-        }
-    }
-
-    if(!bFind){
-        m_HitterUIDQ.PushHead(stAMA.UID);
-    }
-
-    StruckDamage(0);
+    int nDamage = 1;
+    AddHitterUID(stAMA.UID, nDamage);
+    StruckDamage(nDamage);
 
     if(GetState(STATE_DEAD)){
         // 1. send death information
@@ -139,21 +129,7 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rs
         m_ActorPod->Forward({MPK_ACTION, stAMA}, rstAddress);
 
         // 2. send experience to hitters
-        for(m_HitterUIDQ.Reset(); !m_HitterUIDQ.Done(); m_HitterUIDQ.Forward()){
-            if(auto nUID = m_HitterUIDQ.Current()){
-                extern MonoServer *g_MonoServer;
-                if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
-                    if(false
-                            || stRecord.ClassFrom<Player>()
-                            || stRecord.ClassFrom<Monster>()){
-
-                        AMExp stAME;
-                        stAME.Exp = 100;
-                        m_ActorPod->Forward({MPK_EXP, stAME}, stRecord.Address);
-                    }
-                }
-            }
-        }
+        DispatchHitterExp();
         return;
     }
 

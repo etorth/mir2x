@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/21/2017 00:20:08
+ *  Last Modified: 07/21/2017 12:10:15
  *
  *    Description: 
  *
@@ -19,6 +19,8 @@
  */
 #include <cinttypes>
 #include "motion.hpp"
+#include "player.hpp"
+#include "monster.hpp"
 #include "actorpod.hpp"
 #include "monoserver.hpp"
 #include "charobject.hpp"
@@ -46,7 +48,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_LastMoveTime(0)
     , m_LastAttackTime(0)
     , m_TargetQ()
-    , m_HitterUIDQ()
+    , m_HitterUIDRecord()
     , m_Ability()
     , m_WAbility()
     , m_AddAbility()
@@ -512,6 +514,73 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(int, int)> f
         }
     }
     return false;
+}
+
+bool CharObject::AddHitterUID(uint32_t nUID, int nDamage)
+{
+    if(nUID){
+        for(auto rstRecord: m_HitterUIDRecord){
+            if(rstRecord.UID == nUID){
+                rstRecord.Damage += std::max<int>(0, nDamage);
+                extern MonoServer *g_MonoServer;
+                rstRecord.ActiveTime = g_MonoServer->GetTimeTick();
+                return true;
+            }
+        }
+
+        // new entry
+        extern MonoServer *g_MonoServer;
+        m_HitterUIDRecord.emplace_back(nUID, std::max<int>(0, nDamage), g_MonoServer->GetTimeTick());
+        return true;
+    }
+    return false;
+}
+
+bool CharObject::DispatchHitterExp()
+{
+    extern MonoServer *g_MonoServer;
+    auto nNowTick = g_MonoServer->GetTimeTick();
+    for(size_t nIndex = 0; nIndex < m_HitterUIDRecord.size();){
+        if(true
+                && m_HitterUIDRecord[nIndex].UID
+                && m_HitterUIDRecord[nIndex].ActiveTime + 30 * 1000 >= nNowTick){
+
+            extern MonoServer *g_MonoServer;
+            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(m_HitterUIDRecord[nIndex].UID)){
+                if(false
+                        || stUIDRecord.ClassFrom<Player>()
+                        || stUIDRecord.ClassFrom<Monster>()){
+
+                    // record is valid
+                    // record is not time-out
+                    // record is monster or player
+                    nIndex++;
+                    continue;
+                }
+            }
+        }
+
+        // remove it
+        // we shouldn't cout this record
+        m_HitterUIDRecord[nIndex] = m_HitterUIDRecord.back();
+        m_HitterUIDRecord.pop_back();
+    }
+
+    auto fnCalcExp = [this](int nDamage) -> int
+    {
+        return nDamage * m_HitterUIDRecord.size();
+    };
+
+    for(auto rstRecord: m_HitterUIDRecord){
+        extern MonoServer *g_MonoServer;
+        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(rstRecord.UID)){
+            AMExp stAME;
+            stAME.Exp = fnCalcExp(rstRecord.Damage);
+            m_ActorPod->Forward({MPK_EXP, stAME}, stUIDRecord.Address);
+        }
+    }
+
+    return true;
 }
 
 bool CharObject::StruckDamage(int)
