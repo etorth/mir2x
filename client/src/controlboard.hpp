@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.hpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 07/15/2017 23:06:21
+ *  Last Modified: 07/25/2017 15:33:45
  *
  *    Description: main control pannel for running game
  *                 try support dynamically allocated control board
@@ -63,5 +63,5 @@ class ControlBoard: public Widget
         void InputLineDone();
 
     public:
-        void AddLog(const char *);
+        void AddLog(int, const char *);
 };

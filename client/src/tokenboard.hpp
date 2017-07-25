@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 07/18/2017 15:19:47
+ *  Last Modified: 07/25/2017 15:40:41
  *
  *    Description: For scenarios we need text-emoticon mixed boards:
  *
@@ -84,6 +84,27 @@
  *                    4. (1, 1): classical input box
  *
  *                    Let's use (bSelectable, bWithCursor), having cursor means editable.
+ *
+ *                 TODO
+ *                 about background color:
+ *
+ *                 I need to add background color support
+ *                 background color can be used for selection and highlight
+ *                 but I decide to not include this background information in section
+ *                      1. different selection should not alternate the board status
+ *                      2. we can select multiple sections
+ *                      3. selection changes lot but board status shouldn't
+ *                 the reason-2 means we need new information indepdent from section
+ *
+ *                 I am thinking of implement background color support as two types:
+ *                 1. static background color
+ *                 2. dynamic
+ *
+ *                 static background color can be initialized in XML as
+ *                      <OBJECT TYPE="PLAINTEXT" BACKCOLOR="RED">xxx</OBJ>
+ *                 dynamic can use SelectBox() to specify
+ *
+ *
  *
  *                    Add another flag: bCanThrough, if true
  *
@@ -586,8 +607,8 @@ class TokenBoard: public Widget
         int GetLineMaxH1(int);
 
     private:
-
         std::array<std::pair<int, int>, 2> m_SelectLoc;
+
 
     private:
         bool SectionValid(int nSectionID, bool bCheckSectionType = true) const
@@ -629,6 +650,24 @@ class TokenBoard: public Widget
             }
             return -1;
         }
+
+    private:
+        struct SelectRecord
+        {
+            int X0;
+            int Y0;
+            int X1;
+            int Y1;
+
+            // [0] : font color
+            // [1] : back ground color
+            SDL_Color Color[2];
+        };
+
+        std::map<int, SelectRecord> m_SelectRecord;
+
+    public:
+        int SelectBox(int, int, int, int, const SDL_Color &, const SDL_Color &);
 
     public:
         std::string Print   (bool);

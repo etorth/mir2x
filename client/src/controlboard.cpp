@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 07/21/2017 12:38:34
+ *  Last Modified: 07/25/2017 15:32:29
  *
  *    Description:
  *
@@ -235,9 +235,16 @@ void ControlBoard::InputLineDone()
     }
 }
 
-void ControlBoard::AddLog(const char *szLog)
+void ControlBoard::AddLog(int nLogType, const char *szLog)
 {
     if(szLog){
-        m_LogBoard.Add(szLog);
+        char szXML[1024];
+        switch(nLogType){
+            case 0  : std::sprintf(szXML, "<ROOT><OBJECT                     >%s</OBJECT></ROOT>", szLog); break;
+            case 1  : std::sprintf(szXML, "<ROOT><OBJECT BACKCOLOR=\"YELLOW\">%s</OBJECT></ROOT>", szLog); break;
+            default : std::sprintf(szXML, "<ROOT><OBJECT BACKCOLOR=\"RED\"   >%s</OBJECT></ROOT>", szLog); break;
+        }
+
+        m_LogBoard.AddXML(szXML, {});
     }
 }

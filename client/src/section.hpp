@@ -3,7 +3,7 @@
  *
  *       Filename: section.hpp
  *        Created: 8/18/2015 6:56:11 PM
- *  Last Modified: 05/13/2017 22:21:28
+ *  Last Modified: 07/25/2017 14:58:55
  *
  *    Description: 
  *
@@ -51,6 +51,7 @@ typedef struct
     uint8_t                 Size;
     uint8_t                 Style;
     SDL_Color               Color[3];
+    SDL_Color               BackColor[1];
 }TEXTSECTIONINFO;
 
 enum SectionType: int

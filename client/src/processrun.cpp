@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/22/2017 12:56:01
+ *  Last Modified: 07/25/2017 15:22:57
  *
  *    Description: 
  *
@@ -869,7 +869,7 @@ bool ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, cons
         }
 
         if(nOutPort & OUTPORT_CONTROLBOARD){
-            m_ControbBoard.AddLog(szLogInfo);
+            m_ControbBoard.AddLog(nLogType, szLogInfo);
         }
     };
 

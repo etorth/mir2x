@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 07/15/2017 00:10:46
+ *  Last Modified: 07/25/2017 15:14:59
  *
  *    Description: 
  *
@@ -288,7 +288,7 @@ bool TokenBoard::ParseTextObject(
 
     int nFontCode = 0;
     GetAttributeAtoi(&nFontCode, m_DefaultFont, rstCurrentObject, {"FONT", "Font", "font"});
-    stSection.Info.Text.Font = (uint8_t)nFontCode;
+    stSection.Info.Text.Font = (uint8_t)(nFontCode);
 
     // TODO: need to support it
     // GetAttributeAtoi(&(stSection.Info.Text.Style), 0, rstCurrentObject, {"STYLE", "Style", "style"});
@@ -308,6 +308,7 @@ bool TokenBoard::ParseTextObject(
         }
     }
 
+    GetAttributeColor(stSection.Info.Text.BackColor + 0, {0X00, 0X00, 0X00, 0X00}, rstCurrentObject, {"BACKCOLOR", "BackColor", "backcolor"});
     if(nObjectType == OBJECTTYPE_PLAINTEXT){
         GetAttributeColor(stSection.Info.Text.Color + 0, {0XFF, 0XFF, 0XFF, 0XFF}, rstCurrentObject, {"COLOR", "Color", "color"});
     }else{
@@ -836,13 +837,12 @@ void TokenBoard::DrawEx(
     int nDstDY = nDstY - nSrcY;
 
     // 2. check tokenbox one by one, this is expensive
-    for(int nLine = 0; nLine < (int)m_LineV.size(); ++nLine){
+    for(int nLine = 0; nLine < (int)(m_LineV.size()); ++nLine){
         for(auto &rstTokenBox: m_LineV[nLine]){
-            int nX, nY, nW, nH;
-            nX = rstTokenBox.Cache.StartX;
-            nY = rstTokenBox.Cache.StartY;
-            nW = rstTokenBox.Cache.W;
-            nH = rstTokenBox.Cache.H;
+            int nX = rstTokenBox.Cache.StartX;
+            int nY = rstTokenBox.Cache.StartY;
+            int nW = rstTokenBox.Cache.W;
+            int nH = rstTokenBox.Cache.H;
 
             // try to get the clipped region of the tokenbox
             if(!RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){ continue; }
@@ -875,15 +875,23 @@ void TokenBoard::DrawEx(
 
                         int nEvent = m_SectionRecord[rstTokenBox.Section].State.Text.Event;
                         auto &rstColor = m_SectionRecord[rstTokenBox.Section].Info.Text.Color[nEvent];
+                        auto &rstBackColor = m_SectionRecord[rstTokenBox.Section].Info.Text.BackColor[0];
 
                         extern SDLDevice *g_SDLDevice;
                         extern FontexDBN *g_FontexDBN;
                         auto pTexture = g_FontexDBN->Retrieve(rstTokenBox.UTF8CharBox.Cache.Key);
 
                         if(pTexture){
-                            SDL_SetTextureColorMod(pTexture, rstColor.r, rstColor.g, rstColor.b);
                             int nDX = nX - rstTokenBox.Cache.StartX;
                             int nDY = nY - rstTokenBox.Cache.StartY;
+                            SDL_SetTextureColorMod(pTexture, rstColor.r, rstColor.g, rstColor.b);
+
+                            g_SDLDevice->PushColor(rstBackColor.r, rstBackColor.g, rstBackColor.b, rstBackColor.a);
+                            g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
+                            g_SDLDevice->FillRectangle(nX + nDstDX, nY + nDstDY, nW, nH);
+                            g_SDLDevice->PopBlendMode();
+                            g_SDLDevice->PopColor();
+
                             g_SDLDevice->DrawTexture(pTexture, nX + nDstDX, nY + nDstDY, nDX, nDY, nW, nH);
                         }else{
                             // TODO
@@ -2485,4 +2493,35 @@ bool TokenBoard::Empty() const
                 return false;
             }
     }
+}
+
+int TokenBoard::SelectBox(int nX0, int nY0, int nX1, int nY1, const SDL_Color &rstFontColor, const SDL_Color &rstBackColor)
+{
+    if(true
+            && TokenBoxValid(nX0, nY0)
+            && TokenBoxValid(nX1, nY1)
+
+            // check location
+            // reject invalid location or empty location
+            && ((nY0 < nY1) || ((nY0 == nY1) && (nX0 < nX1)))){
+
+        int nSelectID = 0;
+        while(nSelectID <= std::numeric_limits<int>::max()){
+            if(m_SelectRecord.find(nSelectID) == m_SelectRecord.end()){
+                SelectRecord stRecord;
+                stRecord.X0 = nX0;
+                stRecord.Y0 = nY0;
+                stRecord.X1 = nX1;
+                stRecord.Y1 = nY1;
+
+                stRecord.Color[0] = rstFontColor;
+                stRecord.Color[1] = rstBackColor;
+
+                m_SelectRecord[nSelectID] = stRecord;
+                return nSelectID;
+            }
+            nSelectID++;
+        }
+    }
+    return -1;
 }
