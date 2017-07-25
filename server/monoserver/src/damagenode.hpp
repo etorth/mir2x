@@ -3,7 +3,7 @@
  *
  *       Filename: damagenode.hpp
  *        Created: 07/21/2017 17:12:19
- *  Last Modified: 07/24/2017 22:55:18
+ *  Last Modified: 07/25/2017 13:29:10
  *
  *    Description: description of a damage
  *
@@ -34,55 +34,75 @@ class DamageNode
         class EffectArrayType
         {
             private:
-                std::array<int, 32> Array;
+                std::array<int, 32> m_Effect;
+
+            private:
+                size_t m_EffectLen;
 
             public:
-                template<typename... U> EffectArrayType(EffectType nEffect, U&&... u)
-                    : Array {{nEffect, std::forward<U>(u)...}}
+                template<typename... U> EffectArrayType(int nEffect, U&&... u)
+                    : m_Effect{{nEffect, std::forward<U>(u)...}}
+                    , m_EffectLen(sizeof...(u) + 1)
                 {
-                    CheckEffect();
+                    // for aggregrate initialization
+                    // we need to make sure the provided effect list is valid
+                    // then to count for the effect length
+
+                    for(size_t nIndex = 0; nIndex < sizeof...(u) + 1; ++nIndex){
+                        if(m_Effect[nIndex] == EFF_NONE){
+                            LogError(2, "Invalid effect(s) provided");
+                        }
+                    }
                 }
 
                 EffectArrayType(const int *pBuf = nullptr, size_t nBufSize = 0)
-                    : Array()
+                    : m_Effect()
+                    , m_EffectLen(0)
                 {
                     if(pBuf){
                         if(nBufSize == 0){
-                            while(pBuf[nBufSize++] != EFF_NONE){
-                                continue;
+                            while(pBuf[nBufSize] != EFF_NONE){
+                                nBufSize++;
                             }
                         }
 
+                        m_EffectLen = nBufSize;
                         for(size_t nIndex = 0; nIndex < nBufSize; ++nIndex){
                             if(pBuf[nIndex] != EFF_NONE){
-                                Array[nIndex] = pBuf[nIndex];
+                                m_Effect[nIndex] = pBuf[nIndex];
                             }else{
-                                LogError(2, "Invalid effect array");
+                                LogError(2, "Invalid effect(s) provided");
                             }
                         }
                     }else{
-                        if(nBufSize != 0){
+                        m_EffectLen = 0;
+                        if(nBufSize){
                             LogError(2, "Invalid effect array length");
                         }
                     }
                 }
 
             public:
-                const int *Data() const
+                const int *Effect() const
                 {
-                    return &(Array[0]);
+                    // even m_EffectLen is zero
+                    // we should always return a valid pointer
+
+                    // because we support:
+                    // EffectArray(stEffectArray.Effect())
+
+                    return &(m_Effect[0]);
                 }
 
                 // error-prone:
                 // this function returns record size, not byte count
-                size_t DataLen() const
+                size_t EffectLen() const
                 {
-                    return Array.size();
+                    return m_EffectLen;
                 }
 
             private:
                 void LogError(int, const char *) const;
-                void CheckEffect() const;
         };
 
     public:

@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 07/24/2017 23:06:18
+ *  Last Modified: 07/25/2017 11:02:43
  *
  *    Description: 
  *
@@ -132,6 +132,9 @@ class Player: public CharObject
     protected:
         void ReportStand();
         void ReportCORecord(uint32_t);
+
+    protected:
+        bool StruckDamage(const DamageNode &);
 
     protected:
         DamageNode GetAttackDamage(int);

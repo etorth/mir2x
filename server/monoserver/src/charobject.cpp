@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/24/2017 23:25:42
+ *  Last Modified: 07/25/2017 11:25:43
  *
  *    Description: 
  *
@@ -583,15 +583,6 @@ bool CharObject::DispatchHitterExp()
     return true;
 }
 
-bool CharObject::StruckDamage(int nDamage)
-{
-    m_HP = std::max<int>(0, m_HP - nDamage);
-    if(m_HP == 0){
-        SetState(STATE_DEAD, STATE_DEAD);
-    }
-    return true;
-}
-
 int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
 {
     if(m_Map){
@@ -640,7 +631,15 @@ void CharObject::DispatchAttack(uint32_t nUID, int nDC)
             stAMA.Type    = stDamage.Type;
             stAMA.Damage  = stDamage.Damage;
             stAMA.Element = stDamage.Element;
-            std::memcpy(stAMA.Effect, stDamage.EffectArray.Data(), sizeof(stAMA.Effect));
+
+            // copy the effect array
+            for(size_t nIndex = 0; nIndex < sizeof(stAMA.Effect) / sizeof(stAMA.Effect[0]); ++nIndex){
+                if(nIndex < stDamage.EffectArray.EffectLen()){
+                    stAMA.Effect[nIndex] = stDamage.EffectArray.Effect()[nIndex];
+                }else{
+                    stAMA.Effect[nIndex] = EFF_NONE;
+                }
+            }
 
             m_ActorPod->Forward({MPK_ATTACK, stAMA}, stRecord.Address);
         }

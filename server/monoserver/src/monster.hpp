@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 07/24/2017 22:46:30
+ *  Last Modified: 07/25/2017 11:00:46
  *
  *    Description: 
  *
@@ -113,6 +113,9 @@ class Monster: public CharObject
     protected:
         void AddTarget(uint32_t);
         void RemoveTarget(uint32_t);
+
+    protected:
+        bool StruckDamage(const DamageNode &);
 
     protected:
         DamageNode GetAttackDamage(int);

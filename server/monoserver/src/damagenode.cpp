@@ -3,7 +3,7 @@
  *
  *       Filename: damagenode.cpp
  *        Created: 07/21/2017 17:55:30
- *  Last Modified: 07/24/2017 20:07:53
+ *  Last Modified: 07/25/2017 12:09:31
  *
  *    Description: 
  *
@@ -33,20 +33,6 @@ void DamageNode::EffectArrayType::LogError(int nLogType, const char *szLogInfo) 
     }
 }
 
-void DamageNode::EffectArrayType::CheckEffect() const
-{
-    bool bFindEntry = false;
-    for(size_t nIndex = 0; nIndex < Array.size(); ++nIndex){
-        if(Array[Array.size() - nIndex - 1] == EFF_NONE){
-            if(bFindEntry){
-                LogError(2, "Invalid effect array");
-            }
-        }else{
-            bFindEntry = true;
-        }
-    }
-}
-
 void DamageNode::Print() const
 {
     extern MonoServer *g_MonoServer;
@@ -54,9 +40,9 @@ void DamageNode::Print() const
     g_MonoServer->AddLog(LOGTYPE_INFO, "DamageNode::0X%0*" PRIXPTR "::Damage    = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Damage    );
     g_MonoServer->AddLog(LOGTYPE_INFO, "DamageNode::0X%0*" PRIXPTR "::Element   = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Element   );
 
-    for(size_t nIndex = 0; nIndex < EffectArray.DataLen(); ++nIndex){
-        if(EffectArray.Data()[nIndex] != EFF_NONE){
-            g_MonoServer->AddLog(LOGTYPE_INFO, "DamageNode::0X%0*" PRIXPTR "::Effect[%d] = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), (int)(nIndex), EffectArray.Data()[nIndex]);
+    for(size_t nIndex = 0; nIndex < EffectArray.EffectLen(); ++nIndex){
+        if(EffectArray.Effect()[nIndex] != EFF_NONE){
+            g_MonoServer->AddLog(LOGTYPE_INFO, "DamageNode::0X%0*" PRIXPTR "::Effect[%d] = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), (int)(nIndex), EffectArray.Effect()[nIndex]);
         }
     }
 }
@@ -65,14 +51,14 @@ int DamageNode::EffectParam(int nEffect) const
 {
     if(nEffect > EFF_NONE){
         if(nEffect % 256){
-            for(size_t nIndex = 0; nIndex < EffectArray.DataLen(); ++nIndex){
-                if(nEffect == EffectArray.Data()[nIndex]){
+            for(size_t nIndex = 0; nIndex < EffectArray.EffectLen(); ++nIndex){
+                if(nEffect == EffectArray.Effect()[nIndex]){
                     return nEffect % 256;
                 }
             }
         }else{
-            for(size_t nIndex = 0; nIndex < EffectArray.DataLen(); ++nIndex){
-                if((EffectArray.Data()[nIndex] - (EffectArray.Data()[nIndex] % 256)) == nEffect){
+            for(size_t nIndex = 0; nIndex < EffectArray.EffectLen(); ++nIndex){
+                if((EffectArray.Effect()[nIndex] - (EffectArray.Effect()[nIndex] % 256)) == nEffect){
                     return nEffect % 256;
                 }
             }

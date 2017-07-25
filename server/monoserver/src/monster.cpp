@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/24/2017 22:56:34
+ *  Last Modified: 07/25/2017 11:02:03
  *
  *    Description: 
  *
@@ -634,5 +634,17 @@ bool Monster::GoSuicide()
 
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "GoSuicide(this = %p, UID = %" PRIu32 ") failed", this, UID());
+    return false;
+}
+
+bool Monster::StruckDamage(const DamageNode &rstDamage)
+{
+    if(rstDamage){
+        m_HP = std::max<int>(0, m_HP - rstDamage.Damage);
+        if(m_HP == 0){
+            SetState(STATE_DEAD, STATE_DEAD);
+        }
+        return true;
+    }
     return false;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/24/2017 23:28:01
+ *  Last Modified: 07/25/2017 11:03:02
  *
  *    Description: 
  *
@@ -419,4 +419,16 @@ DamageNode Player::GetAttackDamage(int nDC)
     }
 
     return {};
+}
+
+bool Player::StruckDamage(const DamageNode &rstDamage)
+{
+    if(rstDamage){
+        m_HP = std::max<int>(0, m_HP - rstDamage.Damage);
+        if(m_HP == 0){
+            SetState(STATE_DEAD, STATE_DEAD);
+        }
+        return true;
+    }
+    return false;
 }

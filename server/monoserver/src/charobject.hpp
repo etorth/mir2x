@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 07/24/2017 22:58:14
+ *  Last Modified: 07/25/2017 11:00:02
  *
  *    Description: 
  *
@@ -274,13 +274,15 @@ class CharObject: public ActiveObject
 
     protected:
         virtual bool CanAttack();
-        virtual bool StruckDamage(int);
 
     protected:
         virtual bool DCValid(int, bool) = 0;
 
     protected:
         virtual DamageNode GetAttackDamage(int) = 0;
+
+    protected:
+        virtual bool StruckDamage(const DamageNode &) = 0;
 
     protected:
         virtual bool GoDie()     = 0;

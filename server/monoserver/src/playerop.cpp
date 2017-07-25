@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 07/20/2017 23:46:56
+ *  Last Modified: 07/25/2017 11:12:09
  *
  *    Description: 
  *
@@ -227,12 +227,11 @@ void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK, const Theron::Addre
 
 void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMAction stAMA;
+    AMAttack stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
-
-    StruckDamage(0);
-
     DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
+
+    StruckDamage({stAMA.UID, stAMA.Type, stAMA.Damage, stAMA.Element});
     auto fnReportUnderAttack = [this](){
         SMAction stSMA;
         stSMA.UID         = UID();

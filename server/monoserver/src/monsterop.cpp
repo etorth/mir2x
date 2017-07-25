@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 07/24/2017 23:24:13
+ *  Last Modified: 07/25/2017 11:17:39
  *
  *    Description: 
  *
@@ -105,7 +105,7 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rs
     std::memcpy(&stAMAK, rstMPK.Data(), sizeof(stAMAK));
 
     AddHitterUID(stAMAK.UID, stAMAK.Damage);
-    StruckDamage(stAMAK.Damage);
+    StruckDamage({stAMAK.UID, stAMAK.Type, stAMAK.Damage, stAMAK.Element, stAMAK.Effect});
 
     if(GetState(STATE_DEAD)){
         // 1. send death information
