@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 07/21/2017 11:50:35
+ *  Last Modified: 07/24/2017 22:58:14
  *
  *    Description: 
  *
@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "servermap.hpp"
+#include "damagenode.hpp"
 #include "actionnode.hpp"
 #include "servicecore.hpp"
 #include "protocoldef.hpp"
@@ -255,6 +256,7 @@ class CharObject: public ActiveObject
         virtual void ReportCORecord(uint32_t) = 0;
 
     protected:
+        void DispatchAttack(uint32_t, int);
         void DispatchAction(const ActionNode &);
 
     protected:
@@ -275,7 +277,10 @@ class CharObject: public ActiveObject
         virtual bool StruckDamage(int);
 
     protected:
-        virtual int GetAttackPower(int nAttackMode) = 0;
+        virtual bool DCValid(int, bool) = 0;
+
+    protected:
+        virtual DamageNode GetAttackDamage(int) = 0;
 
     protected:
         virtual bool GoDie()     = 0;

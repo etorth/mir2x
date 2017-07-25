@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/20/2017 23:59:44
+ *  Last Modified: 07/21/2017 12:28:02
  *
  *    Description: 
  *
@@ -191,6 +191,6 @@ void ProcessRun::Net_EXP(const uint8_t *pBuf, size_t)
     std::memcpy(&stSME, pBuf, sizeof(stSME));
 
     if(stSME.Exp){
-        AddOPLog(OUTPORT_CONTROLBOARD, 0, "", "You gain exp %d", (int)(stSME.Exp));
+        AddOPLog(OUTPORT_CONTROLBOARD, 0, "", u8"你获得了经验值%d", (int)(stSME.Exp));
     }
 }

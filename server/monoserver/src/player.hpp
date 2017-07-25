@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 07/20/2017 23:47:50
+ *  Last Modified: 07/24/2017 23:06:18
  *
  *    Description: 
  *
@@ -134,10 +134,15 @@ class Player: public CharObject
         void ReportCORecord(uint32_t);
 
     protected:
-        int GetAttackPower(int);
+        DamageNode GetAttackDamage(int);
 
     protected:
+        bool DCValid(int, bool);
         bool InRange(int, int, int);
+
+    protected:
+        void OnCMActionMove();
+        void OnCMActionAttack(int, int, int, int, int, int, int);
 
     protected:
         virtual bool GoDie();

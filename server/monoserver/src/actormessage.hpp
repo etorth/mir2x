@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 07/20/2017 23:41:59
+ *  Last Modified: 07/24/2017 18:58:08
  *
  *    Description: 
  *
@@ -314,11 +314,13 @@ struct AMAttack
     uint32_t UID;
     uint32_t MapID;
 
-    int Mode;
-    int Power;
-
     int X;
     int Y;
+
+    int Type;
+    int Damage;
+    int Element;
+    int Effect[32];
 };
 
 struct AMUpdateHP

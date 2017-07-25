@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 07/16/2017 00:23:49
+ *  Last Modified: 07/21/2017 12:38:34
  *
  *    Description:
  *
@@ -56,7 +56,7 @@ ControlBoard::ControlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
             true,
             0,
             0,
-            0,
+            1,
             12,
             0,
             ColorFunc::COLOR_WHITE,

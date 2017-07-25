@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 07/08/2017 18:28:07
+ *  Last Modified: 07/24/2017 22:49:28
  *
  *    Description: 
  *
@@ -85,10 +85,22 @@ enum LookIDType: int
 enum DCType: int
 {
     DC_NONE = 0,
-    DC_PHY_PLAIN,
-    DC_PHY_WIDESWORD,
-    DC_MAG_FIRE,
-    DC_MAG_EXPLODE,
+
+    DC_PHY             = (1 << 8),
+    DC_PHY_PLAIN       = (1 << 8) | 0,
+    DC_PHY_WIDESWORD   = (1 << 8) | 1,
+    DC_PHY_FIRE        = (1 << 8) | 2,
+
+    DC_MAG             = (2 << 8),
+    DC_MAG_FIRE        = (2 << 8) | 0,
+    DC_MAG_EXPLODE     = (2 << 8) | 1,
+
+    DC_PHY_MON         = (3 << 8),
+    DC_PHY_MON_PLAIN   = (3 << 8) | 0,
+    DC_PHY_MON_DUALAXE = (3 << 8) | 1,
+
+    DC_MAG_MON         = (4 << 8),
+    DC_MAG_MON_FIRE    = (4 << 8) | 0,
 };
 
 enum ECType: int
@@ -107,9 +119,12 @@ enum ECType: int
 
 enum EffectType: int
 {
-    ET_NONE = 0,
-    ET_PIERCE,
-    ET_PARALYSIS,
+    EFF_NONE = 0,
+
+    EFF_HPSTEAL = (1 << 8),
+    EFF_MPSTEAL = (2 << 8),
+    EFF_PUNCH   = (3 << 8),
+    EFF_STONE   = (4 << 8),
 };
 
 enum GenType: int

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/21/2017 00:11:48
+ *  Last Modified: 07/24/2017 22:56:34
  *
  *    Description: 
  *
@@ -174,16 +174,8 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
 
                                             // 2. send attack message to target
                                             //    target can ignore this message directly
-                                            AMAttack stAMA;
-                                            stAMA.UID   = UID();
-                                            stAMA.MapID = MapID();
-
-                                            stAMA.Mode  = EC_NONE;
-                                            stAMA.Power = GetAttackPower(DC_PHY_PLAIN);
-
-                                            stAMA.X = X();
-                                            stAMA.Y = Y();
-                                            return m_ActorPod->Forward({MPK_ATTACK, stAMA}, stRecord.Address);
+                                            DispatchAttack(stRecord.UID, DC_PHY_PLAIN);
+                                            return true;
                                         }
                                     case 0:
                                     default:
@@ -436,17 +428,17 @@ bool Monster::InRange(int nRangeType, int nX, int nY)
     return false;
 }
 
-int Monster::GetAttackPower(int nAttackParam)
+DamageNode Monster::GetAttackDamage(int nDC)
 {
     if(auto &rstMR = DB_MONSTERRECORD(MonsterID())){
-        switch(nAttackParam){
+        switch(nDC){
             case DC_PHY_PLAIN:
                 {
-                    return rstMR.DC + std::rand() % (1 + std::max<int>(rstMR.DCMax - rstMR.DC, 0));
+                    return {UID(), nDC, rstMR.DC + std::rand() % (1 + std::max<int>(rstMR.DCMax - rstMR.DC, 0)), EC_NONE};
                 }
             case DC_MAG_FIRE:
                 {
-                    return rstMR.MC + std::rand() % (1 + std::max<int>(rstMR.MCMax - rstMR.MC, 0));
+                    return {UID(), nDC, rstMR.MC + std::rand() % (1 + std::max<int>(rstMR.MCMax - rstMR.MC, 0)), EC_FIRE};
                 }
             default:
                 {
@@ -454,7 +446,8 @@ int Monster::GetAttackPower(int nAttackParam)
                 }
         }
     }
-    return -1;
+
+    return {};
 }
 
 bool Monster::CanMove()

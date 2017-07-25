@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 07/10/2017 18:38:53
+ *  Last Modified: 07/24/2017 22:45:11
  *
  *    Description: how player respond for different net package
  *
@@ -154,20 +154,10 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
 
                                                 for(size_t nIndex = 0; nIndex < sizeof(stAMUIDV.UIDV) / sizeof(stAMUIDV.UIDV[0]); ++nIndex){
                                                     if(auto nUID = stAMUIDV.UIDV[nIndex]){
-                                                        extern MonoServer *g_MonoServer;
-                                                        if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
-                                                            AMAttack stAMA;
-                                                            stAMA.UID   = UID();
-                                                            stAMA.MapID = MapID();
-
-                                                            stAMA.Mode  = EC_NONE;
-                                                            stAMA.Power = GetAttackPower(DC_PHY_PLAIN);
-
-                                                            stAMA.X = X();
-                                                            stAMA.Y = Y();
-                                                            m_ActorPod->Forward({MPK_ATTACK, stAMA}, stRecord.Address);
-                                                        }
-                                                    }else{ break; }
+                                                        DispatchAttack(nUID, DC_PHY_PLAIN);
+                                                    }else{
+                                                        break;
+                                                    }
                                                 }
                                             }
                                     }

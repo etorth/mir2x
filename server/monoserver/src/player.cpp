@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/20/2017 23:48:13
+ *  Last Modified: 07/24/2017 23:28:01
  *
  *    Description: 
  *
@@ -202,21 +202,6 @@ void Player::ReportStand()
     }
 }
 
-int Player::GetAttackPower(int nAttackParam)
-{
-    switch(nAttackParam){
-        case DC_PHY_PLAIN:
-            {
-                return 1;
-            }
-        default:
-            {
-                break;
-            }
-    }
-    return -1;
-}
-
 bool Player::InRange(int, int, int)
 {
     return true;
@@ -332,4 +317,106 @@ bool Player::GoSuicide()
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "GoSuicide(this = %p, UID = %" PRIu32 ") failed", this, UID());
     return false;
+}
+
+void Player::OnCMActionAttack(int nX0, int nY0, int nX1, int nY1, int nAttackParam, int nSpeed, int nDirection)
+{
+    if(true
+            && m_Map
+            && m_Map->ValidC(nX0, nY0)
+            && m_Map->ValidC(nX1, nY1)
+            
+            && nSpeed >= SYS_MINSPEED
+            && nSpeed <= SYS_MAXSPEED
+
+            && nDirection > DIR_NONE
+            && nDirection < DIR_MAX){
+
+        // for client message action is for presenting
+        // then all parameters should pass the checking here
+
+        switch(nAttackParam){
+            case DC_PHY_PLAIN:
+            case DC_PHY_WIDESWORD:
+            case DC_PHY_FIRE:
+                {
+                    switch(LDistance2(X(), Y(), nX1, nY1)){
+                        case 1:
+                        case 2:
+                            {
+                                DispatchAction({
+                                        ACTION_ATTACK,
+                                        nAttackParam,
+                                        nSpeed,
+                                        nDirection,
+                                        X(),
+                                        Y(),
+                                        nX1,
+                                        nY1,
+                                        m_Map->ID()});
+
+                                auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &) -> void
+                                {
+                                    switch(rstRMPK.Type()){
+                                        case MPK_UIDV:
+                                            {
+                                                AMUIDV stAMUIDV;
+                                                std::memcpy(&stAMUIDV, rstRMPK.Data(), sizeof(stAMUIDV));
+
+                                                for(size_t nIndex = 0; nIndex < sizeof(stAMUIDV.UIDV) / sizeof(stAMUIDV.UIDV[0]); ++nIndex){
+                                                    if(auto nUID = stAMUIDV.UIDV[nIndex]){
+                                                        DispatchAttack(nUID, DC_PHY_PLAIN);
+                                                    }else{
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                    }
+                                };
+
+                                AMQueryRectUIDV stAMQRUIDV;
+                                stAMQRUIDV.MapID = m_Map->ID();
+                                stAMQRUIDV.X     = nX1;
+                                stAMQRUIDV.Y     = nY1;
+                                stAMQRUIDV.W     = 1;
+                                stAMQRUIDV.H     = 1;
+
+                                m_ActorPod->Forward({MPK_QUERYRECTUIDV, stAMQRUIDV}, m_Map->GetAddress(), fnOnResp);
+                                break;
+                            }
+                        default:
+                            {
+                                // ReportStand();
+                                // return;
+                            }
+                    }
+
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    }
+}
+
+bool Player::DCValid(int, bool)
+{
+    return true;
+}
+
+DamageNode Player::GetAttackDamage(int nDC)
+{
+    switch(nDC){
+        case DC_PHY_PLAIN:
+            {
+                return {UID(), nDC, 5, EC_NONE};
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    return {};
 }

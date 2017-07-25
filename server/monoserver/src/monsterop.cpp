@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 07/21/2017 11:51:17
+ *  Last Modified: 07/24/2017 23:24:13
  *
  *    Description: 
  *
@@ -101,39 +101,38 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
 
 void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rstAddress)
 {
-    AMAction stAMA;
-    std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
+    AMAttack stAMAK;
+    std::memcpy(&stAMAK, rstMPK.Data(), sizeof(stAMAK));
 
-    int nDamage = 1;
-    AddHitterUID(stAMA.UID, nDamage);
-    StruckDamage(nDamage);
+    AddHitterUID(stAMAK.UID, stAMAK.Damage);
+    StruckDamage(stAMAK.Damage);
 
     if(GetState(STATE_DEAD)){
         // 1. send death information
-        AMAction stAMA;
-        std::memset(&stAMA, 0, sizeof(stAMA));
+        AMAction stAMACT;
+        std::memset(&stAMACT, 0, sizeof(stAMACT));
 
-        stAMA.UID   = UID();
-        stAMA.MapID = MapID();
+        stAMACT.UID   = UID();
+        stAMACT.MapID = MapID();
 
-        stAMA.Action      = ACTION_DIE;
-        stAMA.ActionParam = 0;
-        stAMA.Speed       = SYS_DEFSPEED;
-        stAMA.Direction   = Direction();
+        stAMACT.Action      = ACTION_DIE;
+        stAMACT.ActionParam = 0;
+        stAMACT.Speed       = SYS_DEFSPEED;
+        stAMACT.Direction   = Direction();
 
-        stAMA.X    = X();
-        stAMA.Y    = Y();
-        stAMA.AimX = X();
-        stAMA.AimY = Y();
+        stAMACT.X    = X();
+        stAMACT.Y    = Y();
+        stAMACT.AimX = X();
+        stAMACT.AimY = Y();
 
-        m_ActorPod->Forward({MPK_ACTION, stAMA}, rstAddress);
+        m_ActorPod->Forward({MPK_ACTION, stAMACT}, rstAddress);
 
         // 2. send experience to hitters
         DispatchHitterExp();
         return;
     }
 
-    AddTarget(stAMA.UID);
+    AddTarget(stAMAK.UID);
     DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
 
     AMUpdateHP stAMUHP;

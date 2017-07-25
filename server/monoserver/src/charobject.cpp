@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/21/2017 12:10:15
+ *  Last Modified: 07/24/2017 23:25:42
  *
  *    Description: 
  *
@@ -543,7 +543,7 @@ bool CharObject::DispatchHitterExp()
     for(size_t nIndex = 0; nIndex < m_HitterUIDRecord.size();){
         if(true
                 && m_HitterUIDRecord[nIndex].UID
-                && m_HitterUIDRecord[nIndex].ActiveTime + 30 * 1000 >= nNowTick){
+                && m_HitterUIDRecord[nIndex].ActiveTime + 2 * 60 * 1000 >= nNowTick){
 
             extern MonoServer *g_MonoServer;
             if(auto stUIDRecord = g_MonoServer->GetUIDRecord(m_HitterUIDRecord[nIndex].UID)){
@@ -583,9 +583,9 @@ bool CharObject::DispatchHitterExp()
     return true;
 }
 
-bool CharObject::StruckDamage(int)
+bool CharObject::StruckDamage(int nDamage)
 {
-    m_HP = std::max<int>(0, m_HP - 1);
+    m_HP = std::max<int>(0, m_HP - nDamage);
     if(m_HP == 0){
         SetState(STATE_DEAD, STATE_DEAD);
     }
@@ -621,4 +621,28 @@ int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
         return nMaxDistance;
     }
     return -1;
+}
+
+void CharObject::DispatchAttack(uint32_t nUID, int nDC)
+{
+    if(nUID && DCValid(nDC, true)){
+        extern MonoServer *g_MonoServer;
+        if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
+
+            AMAttack stAMA;
+            stAMA.UID   = UID();
+            stAMA.MapID = MapID();
+
+            stAMA.X = X();
+            stAMA.Y = Y();
+
+            auto stDamage = GetAttackDamage(nDC);
+            stAMA.Type    = stDamage.Type;
+            stAMA.Damage  = stDamage.Damage;
+            stAMA.Element = stDamage.Element;
+            std::memcpy(stAMA.Effect, stDamage.EffectArray.Data(), sizeof(stAMA.Effect));
+
+            m_ActorPod->Forward({MPK_ATTACK, stAMA}, stRecord.Address);
+        }
+    }
 }

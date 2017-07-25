@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/21/2017 00:10:21
+ *  Last Modified: 07/22/2017 12:56:01
  *
  *    Description: 
  *
@@ -426,29 +426,12 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONDOWN:
             {
-                {
-                    char szMessage[1024];
-                    std::sprintf(szMessage, "Mouse button down at (%d, %d)", rstEvent.button.x, rstEvent.button.y);
-                    AddOPLog(OUTPORT_CONTROLBOARD, 0, "", "%s", szMessage);
-                }
-
                 switch(rstEvent.button.button){
                     case SDL_BUTTON_LEFT:
                         {
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
-                                if(auto pCreature = RetrieveUID(nUID)){
-                                    m_FocusUIDV[FOCUS_ATTACK] = nUID;
-                                    m_MyHero->ParseNewAction({
-                                            ACTION_ATTACK,
-                                            0,
-                                            100,
-                                            DIR_NONE,
-                                            m_MyHero->CurrMotion().EndX,
-                                            m_MyHero->CurrMotion().EndY,
-                                            pCreature->X(),
-                                            pCreature->Y(),
-                                            MapID()}, false);
-                                }
+                                m_FocusUIDV[FOCUS_ATTACK] = nUID;
+                                TrackAttack(true, nUID);
                             }
                             break;
                         }
@@ -985,7 +968,7 @@ bool ProcessRun::TrackAttack(bool bForce, uint32_t nUID)
             if(bForce || m_MyHero->StayIdle()){
                 return m_MyHero->ParseNewAction({
                         ACTION_ATTACK,
-                        0,
+                        DC_PHY_PLAIN,
                         100,
                         DIR_NONE,
                         m_MyHero->CurrMotion().EndX,
