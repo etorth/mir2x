@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/25/2017 15:22:57
+ *  Last Modified: 07/25/2017 17:56:31
  *
  *    Description: 
  *
@@ -366,8 +366,10 @@ void ProcessRun::Draw()
                                 && !(pCreature.second->StayDead())){
                             extern ClientEnv *g_ClientEnv;
                             if(g_ClientEnv->MIR2X_DEBUG_SHOW_CREATURE_COVER){
-                                g_SDLDevice->PushColor(0, 0, 255, 30);
+                                g_SDLDevice->PushColor(0, 0, 255, 128);
+                                g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
                                 g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
+                                g_SDLDevice->PopBlendMode();
                                 g_SDLDevice->PopColor();
                             }
                             pCreature.second->Draw(m_ViewX, m_ViewY);
@@ -504,6 +506,10 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             break;
                         }
                 }
+                break;
+            }
+        case SDL_TEXTEDITING:
+            {
                 break;
             }
         default:

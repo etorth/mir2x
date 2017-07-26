@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 07/19/2017 11:47:10
+ *  Last Modified: 07/25/2017 17:53:05
  *
  *    Description: 
  *
