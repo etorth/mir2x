@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 07/16/2017 12:59:19
+ *  Last Modified: 07/26/2017 15:47:22
  *
  *    Description: 
  *
@@ -130,7 +130,7 @@ class InputBoard: public InputWidget
         void DrawEx(int, int, int, int, int, int);
 
     public:
-        const char *Content();
+        std::string Content();
 
     public:
         void InsertInfo(const char *);

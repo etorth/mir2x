@@ -3,7 +3,7 @@
  *
  *       Filename: imebase.hpp
  *        Created: 03/13/2016 19:17:48
- *  Last Modified: 03/17/2016 00:18:39
+ *  Last Modified: 07/26/2017 15:18:09
  *
  *    Description: input method engine
  *
@@ -18,17 +18,25 @@
  * =====================================================================================
  */
 
-
 #pragma once
+#include <string>
 #include "widget.hpp"
 #include "inputwidget.hpp"
-#include <string>
 
 class IMEBase: public Widget
 {
+    private:
+        int m_HotOption;
+        std::string m_CurrentString;
+
+    protected:
+        InputWidget *m_InputWidget;
+
     public:
-        IMEBase();
-        virtual ~IMEBase();
+        IMEBase() = default;
+
+    public:
+        ~IMEBase() = default;
 
     protected:
         bool InHeadBox(int, int);
@@ -41,12 +49,4 @@ class IMEBase: public Widget
 
     public:
         bool ProcessEvent(const SDL_Event &);
-
-    private:
-        int m_HotOption;
-
-        std::string m_CurrentString;
-
-    protected:
-        InputWidget *m_InputWidget;
 };

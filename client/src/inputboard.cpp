@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16
- *  Last Modified: 07/16/2017 20:33:19
+ *  Last Modified: 07/26/2017 15:48:44
  *
  *    Description: 
  *
@@ -26,7 +26,6 @@
 #include "mathfunc.hpp"
 #include "fontexdbn.hpp"
 #include "inputboard.hpp"
-#include "supwarning.hpp"
 #include "sdlkeyeventchar.hpp"
 
 int InputBoard::s_ShowSystemCursorCount = 0;
@@ -411,7 +410,7 @@ void InputBoard::DrawEx(
     m_TokenBoard.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nSrcW, nSrcH);
 }
 
-const char *InputBoard::Content()
+std::string InputBoard::Content()
 {
     XMLObjectList stList;
     stList.Parse(Print(false).c_str(), true);
@@ -419,7 +418,7 @@ const char *InputBoard::Content()
     stList.Reset();
     auto pObject = stList.Fetch();
 
-    return (pObject ? pObject->GetText() : nullptr);
+    return std::string(pObject ? pObject->GetText() : "");
 }
 
 void InputBoard::InsertInfo(const char *)

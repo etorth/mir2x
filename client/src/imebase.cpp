@@ -3,7 +3,7 @@
  *
  *       Filename: imebase.cpp
  *        Created: 03/13/2016 19:37:04
- *  Last Modified: 03/20/2016 23:58:17
+ *  Last Modified: 07/26/2017 15:07:59
  *
  *    Description: 
  *
@@ -19,8 +19,6 @@
  */
 
 #include "imebase.hpp"
-#include "supwarning.hpp"
-
 //  +------------------------------------- input string
 //  |
 //  |                +-------------------- page up
@@ -97,16 +95,12 @@ bool IMEBase::ProcessEvent(const SDL_Event &rstEvent)
     return false;
 }
 
-void IMEBase::Draw(int nX, int nW, int nY1, int nY2)
+void IMEBase::Draw(int, int, int, int)
 {
     // input method engine is special widget
     // when it's unfocused, it can't be visiable
     //
     if(!m_Focus){ return; }
-    UNUSED(nX);
-    UNUSED(nW);
-    UNUSED(nY1);
-    UNUSED(nY2);
 }
 
 

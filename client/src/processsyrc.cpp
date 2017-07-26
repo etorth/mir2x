@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 07/18/2017 15:21:50
+ *  Last Modified: 07/26/2017 15:39:39
  *
  *    Description: 
  *
@@ -53,6 +53,14 @@ void ProcessSyrc::Update(double fDeltaMS)
     if(m_Ratio >= 100){
         extern Game *g_Game;
         g_Game->SwitchProcess(PROCESSID_SYRC, PROCESSID_LOGIN);
+
+        // TODO
+        // return here immediately since ProcessSyrc is deleted
+        // otherwise next line will be executed
+
+        // to avoid this issue
+        // should make Game::RequestSwitch(PROCESSID_LOGIN)
+        return;
     }
 
     m_Ratio += (fDeltaMS > 0.0 ? 1 : 0);

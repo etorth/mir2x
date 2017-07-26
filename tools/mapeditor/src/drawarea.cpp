@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 7/26/2015 4:27:57 AM
- *  Last Modified: 03/26/2017 02:23:32
+ *  Last Modified: 07/26/2017 15:04:57
  *
  *    Description: To handle or GUI interaction
  *                 Provide handlers to EditorMap
@@ -21,7 +21,6 @@
  */
 
 #include <cstring>
-#include "supwarning.hpp"
 #include "drawarea.hpp"
 #include <FL/Fl_Shared_Image.H>
 #include <FL/Fl_RGB_Image.H>

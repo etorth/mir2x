@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 03/24/2017 16:56:13
+ *  Last Modified: 07/26/2017 15:04:46
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -20,7 +20,6 @@
 #include "mir2map.hpp"
 #include "mir2xmap.hpp"
 #include "editormap.hpp"
-#include "supwarning.hpp"
 
 #include <memory.h>
 #include "assert.h"
@@ -925,16 +924,12 @@ void EditorMap::Optimize()
     }
 }
 
-void EditorMap::OptimizeTile(int nX, int nY)
+void EditorMap::OptimizeTile(int, int)
 {
-    // TODO
-    UNUSED(nX); UNUSED(nY);
 }
 
-void EditorMap::OptimizeCell(int nX, int nY)
+void EditorMap::OptimizeCell(int, int)
 {
-    // TODO
-    UNUSED(nX); UNUSED(nY);
 }
 
 void EditorMap::ClearBuf()
@@ -1171,9 +1166,6 @@ void EditorMap::SetBufLight(int nX, int nY)
             uint16_t nColorIndex = 128;  // 0, 1, 2, 3, ..., 15  4 bits
             uint16_t nAlphaIndex =   2;  // 0, 1, 2, 3           2 bits
             uint16_t nSizeType   =   0;  // 0, 1, 2, 3, ...,  7  3 bits
-            uint16_t nUnused     =   0;  //                      7 bits
-
-            UNUSED(nUnused);
 
             m_BufLight[nX][nY] = ((nSizeType & 0X0007) << 7) + ((nAlphaIndex & 0X0003) << 4) + ((nColorIndex & 0X000F));
             m_BufLightMark[nX][nY] = 1;

@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 07/16/2017 20:40:29
+ *  Last Modified: 07/26/2017 15:50:22
  *
  *    Description: 
  *
@@ -112,12 +112,12 @@ void ProcessLogin::ProcessEvent(const SDL_Event &rstEvent)
 
 void ProcessLogin::DoLogin()
 {
-    if(m_IDBox.Content() && m_PasswordBox.Content()){
+    if(!(m_IDBox.Content().empty()) && !(m_PasswordBox.Content().empty())){
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_INFO, "login account: (%s:%s)", m_IDBox.Content(), m_PasswordBox.Content());
+        g_Log->AddLog(LOGTYPE_INFO, "login account: (%s:%s)", m_IDBox.Content().c_str(), m_PasswordBox.Content().c_str());
 
-        std::string szID  = m_IDBox.Content();
-        std::string szPWD = m_PasswordBox.Content();
+        auto szID  = m_IDBox.Content();
+        auto szPWD = m_PasswordBox.Content();
 
         CMLogin stCML;
         std::memset(&stCML, 0, sizeof(stCML));

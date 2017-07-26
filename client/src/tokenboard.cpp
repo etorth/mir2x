@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 07/25/2017 15:14:59
+ *  Last Modified: 07/26/2017 16:21:05
  *
  *    Description: 
  *
@@ -35,7 +35,6 @@
 #include "mathfunc.hpp"
 #include "fontexdbn.hpp"
 #include "colorfunc.hpp"
-#include "supwarning.hpp"
 #include "tokenboard.hpp"
 #include "emoticondbn.hpp"
 #include "xmlobjectlist.hpp"
@@ -1481,9 +1480,8 @@ int TokenBoard::GuessResoltion()
     return m_DefaultSize / 2;
 }
 
-bool TokenBoard::ParseXML(const char *szText)
+bool TokenBoard::ParseXML(const char *)
 {
-    UNUSED(szText);
     return true;
 }
 
@@ -1961,10 +1959,13 @@ bool TokenBoard::ParseReturnObject()
         // the original line ends with return, then we insert a new line
         // actually if the cursor is at the beginning, then we even don't have
         // to re-padding it
-        //
+
         // since only one line, it's OK
         m_LineV.insert(m_LineV.begin() + nY + 1, stTBV);
         m_EndWithCR.insert(m_EndWithCR.begin() + nY, true);
+
+        // I don't increment size of m_LineStartY here
+        // should be done in ResetOneLine()
 
         // TODO
         // should I need reset from line nY?
@@ -1995,7 +1996,7 @@ bool TokenBoard::ParseReturnObject()
 //      1. Line 0 ~ nLine are valid
 void TokenBoard::ResetOneLine(int nLine)
 {
-    if(nLine < 0 || nLine >= (int)m_LineV.size()){
+    if(nLine < 0 || nLine >= (int)(m_LineV.size())){
         // invalid line, just return
         return;
     }
@@ -2010,8 +2011,13 @@ void TokenBoard::ResetOneLine(int nLine)
 
     SetTokenBoxStartX(nLine);
 
-    m_LineStartY[nLine] = GetNewLineStartY(nLine);
-    SetTokenBoxStartY(nLine, m_LineStartY[nLine]);
+    auto nLineStartY = GetNewLineStartY(nLine);
+    if(nLine >= (int)(m_LineStartY.size())){
+        m_LineStartY.resize(nLine + 1);
+    }
+
+    m_LineStartY[nLine] = nLineStartY;
+    SetTokenBoxStartY(nLine, nLineStartY);
 }
 
 // reset the StartY from nStartLine to the end
