@@ -29,10 +29,7 @@ decl {\#include <cstring>} {private local
 decl {\#include "filesys.hpp"} {private local
 } 
 
-decl {\#include "supwarning.hpp"} {private local
-} 
-
-decl {\#include "mapinfowindow.hpp"} {private local
+decl {\#include "mapinfowindow.hpp"} {selected private local
 } 
 
 decl {\#include "imagedb.hpp"} {private local
@@ -74,7 +71,7 @@ class MainWindow {open
 }} open
       xywh {562 146 985 665} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {selected
+      Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea

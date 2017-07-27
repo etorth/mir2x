@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 07/25/2017 11:00:46
+ *  Last Modified: 07/27/2017 00:50:38
  *
  *    Description: 
  *
@@ -76,6 +76,15 @@ typedef struct stMONSTERRACEINFO
 class Monster: public CharObject
 {
     protected:
+        enum FPMethodType: int
+        {
+            FPMETHOD_NONE,
+            FPMETHOD_ASTAR,
+            FPMETHOD_GREEDY,
+            FPMETHOD_COMBINE,
+        };
+
+    protected:
         const uint32_t m_MonsterID;
 
     public:
@@ -136,6 +145,17 @@ class Monster: public CharObject
 
     protected:
         void ReportCORecord(uint32_t);
+
+    protected:
+        bool MoveOneStep(int, int);
+
+    protected:
+        int FindPathMethod();
+
+    protected:
+        bool MoveOneStepAStar  (int, int);
+        bool MoveOneStepGreedy (int, int);
+        bool MoveOneStepCombine(int, int);
 
     protected:
         bool CanMove();

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 07/26/2017 18:07:38
+ *  Last Modified: 07/27/2017 00:41:13
  *
  *    Description: 
  *
@@ -275,7 +275,6 @@ class CharObject: public ActiveObject
 
     protected:
         virtual bool CanMove();
-        virtual bool MoveOneStep(int, int, int);
         virtual bool RetrieveLocation(uint32_t, std::function<void(int, int)>);
         virtual bool RequestMove(int, int, int, bool, std::function<void()>, std::function<void()>);
 
