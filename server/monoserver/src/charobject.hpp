@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 07/25/2017 11:00:02
+ *  Last Modified: 07/26/2017 18:07:38
  *
  *    Description: 
  *
@@ -105,6 +105,14 @@ typedef struct
 
 class CharObject: public ActiveObject
 {
+    protected:
+        enum SpeedType: int
+        {
+            SPEED_NONE = 0,
+            SPEED_MOVE,
+            SPEED_ATTACK,
+        };
+
     protected:
         struct COLocation
         {
@@ -261,6 +269,9 @@ class CharObject: public ActiveObject
 
     protected:
         virtual int OneStepReach(int, int, int *, int *);
+
+    protected:
+        virtual int Speed(int) const;
 
     protected:
         virtual bool CanMove();

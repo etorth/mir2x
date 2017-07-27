@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/25/2017 11:02:03
+ *  Last Modified: 07/26/2017 17:58:47
  *
  *    Description: 
  *
@@ -224,7 +224,8 @@ bool Monster::TrackUID(uint32_t nUID)
 
         extern MonoServer *g_MonoServer;
         if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
-            return RetrieveLocation(nUID, [this](int nX, int nY) -> bool {
+            return RetrieveLocation(nUID, [this](int nX, int nY) -> bool
+            {
                 switch(LDistance2(nX, nY, X(), Y())){
                     case 0:
                     case 1:
@@ -236,9 +237,17 @@ bool Monster::TrackUID(uint32_t nUID)
                         {
                             if(auto &rstMR = DB_MONSTERRECORD(MonsterID())){
                                 switch(rstMR.WalkStep){
-                                    case 1  : return MoveOneStep(MOTION_WALK, nX, nY);
-                                    case 2  : return MoveOneStep(MOTION_RUN,  nX, nY);
-                                    default : break;
+                                    case 1:
+                                    case 2:
+                                        {
+                                            return MoveOneStep(MOTION_MON_WALK, nX, nY);
+                                        }
+                                    default:
+                                        {
+                                            extern MonoServer *g_MonoServer;
+                                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid monster walk step size = %d", rstMR.WalkStep);
+                                            break;
+                                        }
                                 }
                             }
                             return false;

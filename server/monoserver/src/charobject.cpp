@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/25/2017 11:25:43
+ *  Last Modified: 07/26/2017 18:09:53
  *
  *    Description: 
  *
@@ -231,7 +231,7 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
                                 m_LastMoveTime = g_MonoServer->GetTimeTick();
 
                                 m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-                                DispatchAction({ACTION_MOVE, nMoveMode, SYS_DEFSPEED, Direction(), nOrigX, nOrigY, X(), Y(), MapID()});
+                                DispatchAction({ACTION_MOVE, nMoveMode, Speed(SPEED_MOVE), Direction(), nOrigX, nOrigY, X(), Y(), MapID()});
 
                                 if(fnOnMoveOK){ fnOnMoveOK(); }
                             }else{
@@ -643,5 +643,23 @@ void CharObject::DispatchAttack(uint32_t nUID, int nDC)
 
             m_ActorPod->Forward({MPK_ATTACK, stAMA}, stRecord.Address);
         }
+    }
+}
+
+int CharObject::Speed(int nSpeedType) const
+{
+    switch(nSpeedType){
+        case SPEED_MOVE:
+            {
+                return SYS_DEFSPEED;
+            }
+        case SPEED_ATTACK:
+            {
+                return SYS_DEFSPEED;
+            }
+        default:
+            {
+                return -1;
+            }
     }
 }
