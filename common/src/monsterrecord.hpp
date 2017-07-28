@@ -3,7 +3,7 @@
  *
  *       Filename: monsterrecord.hpp
  *        Created: 05/08/2017 16:21:14
- *  Last Modified: 07/04/2017 20:49:46
+ *  Last Modified: 07/27/2017 16:32:46
  *
  *    Description: 
  *
@@ -52,7 +52,6 @@ struct MonsterRecord
     int MC;
     int MCMax;
 
-    int WalkStep;
     int WalkWait;
     int WalkSpeed;
 
@@ -92,7 +91,6 @@ struct MonsterRecord
                   int nMC,
                   int nMCMax,
 
-                  int nWalkStep,
                   int nWalkWait,
                   int nWalkSpeed,
 
@@ -126,7 +124,6 @@ struct MonsterRecord
         , MCType        (nMCType)
         , MC            (nMC)
         , MCMax         (nMCMax)
-        , WalkStep      (nWalkStep)
         , WalkWait      (nWalkWait)
         , WalkSpeed     (nWalkSpeed)
         , AttackMode    (nAttackMode)

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/27/2017 00:41:42
+ *  Last Modified: 07/27/2017 17:02:50
  *
  *    Description: 
  *
@@ -285,89 +285,81 @@ bool CharObject::CanAttack()
 
 bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(int, int)> fnOnLocationOK)
 {
-    // TODO
-    // I take a long time to design the prototype
-    // 1. RetrieveLocation(UID, OnLocationOK)
-    // 2. if(RetrieveLocation(UID, pX, pY)){
-    //        OnLocationOK();
-    //    }else{
-    //        Forward(MPK_QUERYLOCATION, ..., OnLocationOK);
-    //    }
-    //
-    //    actually these two are equal, reason
-    //    1.     valid cache : the same
-    //    2. not valid cache : we can choose to register OnLocationOK for MPK_QUERYLOCATION
-    //                         but it's not necessary because if cache not valid we always have to query and register the handler
-    //                         because we have no reason to not do it
-    // so always do query and registration
-
     if(nUID){
-        extern MonoServer *g_MonoServer;
-        if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
-            // current the UID is valid
-            // lambda captured fnOnLocationOK then can be delayed by one step
-            // 1.     valid cache : call fnOnLocationOK
-            // 2. not valid cache : call fnOnLocationOK after refresh
-            auto fnQueryLocation = [this, stRecord, nUID, fnOnLocationOK]() -> bool
+
+        // current the UID is valid
+        // lambda captured fnOnLocationOK then can be delayed by one step
+        // 1.     valid cache : call fnOnLocationOK
+        // 2. not valid cache : call fnOnLocationOK after refresh
+        auto fnQueryLocation = [this, nUID, fnOnLocationOK]() -> bool
+        {
+            AMQueryLocation stAMQL;
+            stAMQL.UID   = UID();
+            stAMQL.MapID = MapID();
+
+            auto fnOnResp = [this, nUID, fnOnLocationOK](const MessagePack &rstRMPK, const Theron::Address &) -> void
             {
-                AMQueryLocation stAMQL;
-                stAMQL.UID   = UID();
-                stAMQL.MapID = MapID();
+                switch(rstRMPK.Type()){
+                    case MPK_LOCATION:
+                        {
+                            AMLocation stAML;
+                            std::memcpy(&stAML, rstRMPK.Data(), sizeof(stAML));
 
-                auto fnOnResp = [this, nUID, fnOnLocationOK](const MessagePack &rstRMPK, const Theron::Address &){
-                    switch(rstRMPK.Type()){
-                        case MPK_LOCATION:
-                            {
-                                AMLocation stAML;
-                                std::memcpy(&stAML, rstRMPK.Data(), sizeof(stAML));
+                            // TODO
+                            // when we get this response
+                            // it's possible that the co has switched map
 
-                                // TODO
-                                // when we get this response
-                                // it's possible that the co has switched map
-
-                                if(true
-                                        && m_Map
-                                        && m_Map->In(stAML.MapID, stAML.X, stAML.Y)){
-                                    m_LocationRecord[nUID].UID        = UID();
-                                    m_LocationRecord[nUID].MapID      = MapID();
-                                    m_LocationRecord[nUID].RecordTime = stAML.RecordTime;
-                                    m_LocationRecord[nUID].X          = stAML.X;
-                                    m_LocationRecord[nUID].Y          = stAML.Y;
-                                    if(fnOnLocationOK){ fnOnLocationOK(stAML.X, stAML.Y); }
-                                }else{
-                                    m_LocationRecord.erase(nUID);
-                                }
-                                break;
-                            }
-                        default:
-                            {
+                            if(true
+                                    && m_Map
+                                    && m_Map->In(stAML.MapID, stAML.X, stAML.Y)){
+                                m_LocationRecord[nUID].UID        = UID();
+                                m_LocationRecord[nUID].MapID      = MapID();
+                                m_LocationRecord[nUID].RecordTime = stAML.RecordTime;
+                                m_LocationRecord[nUID].X          = stAML.X;
+                                m_LocationRecord[nUID].Y          = stAML.Y;
+                                if(fnOnLocationOK){ fnOnLocationOK(stAML.X, stAML.Y); }
+                            }else{
                                 m_LocationRecord.erase(nUID);
-                                break;
                             }
-                    }
-                };
-                return m_ActorPod->Forward({MPK_QUERYLOCATION, stAMQL}, stRecord.Address, fnOnResp);
+                            break;
+                        }
+                    default:
+                        {
+                            m_LocationRecord.erase(nUID);
+                            break;
+                        }
+                }
             };
 
-            // no entry found
-            // do query and invocation, delay fnOnLocationOK by one step
-            if(m_LocationRecord.find(nUID) == m_LocationRecord.end()){
-                return fnQueryLocation();
+            extern MonoServer *g_MonoServer;
+            if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
+                return m_ActorPod->Forward({MPK_QUERYLOCATION, stAMQL}, stRecord.Address, fnOnResp);
             }
 
-            // we find an entry
-            // valid the entry, could be expired
-            auto &rstRecord = m_LocationRecord[nUID];
-            if(true
-                    && m_Map
-                    && m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)
-                    && (rstRecord.RecordTime + 2 * 1000 < g_MonoServer->GetTimeTick())){
-                if(fnOnLocationOK){ fnOnLocationOK(rstRecord.X, rstRecord.Y); }
-                return true;
-            }
+            return false;
+        };
 
+        // no entry found
+        // do query and invocation, delay fnOnLocationOK by one step
+        if(m_LocationRecord.find(nUID) == m_LocationRecord.end()){
             return fnQueryLocation();
         }
+
+        // we find an entry
+        // valid the entry, could be expired
+        extern MonoServer *g_MonoServer;
+        auto &rstRecord = m_LocationRecord[nUID];
+        if(true
+                && m_Map
+                && m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)
+                && (rstRecord.RecordTime + 2 * 1000 < g_MonoServer->GetTimeTick())){
+            if(fnOnLocationOK){ fnOnLocationOK(rstRecord.X, rstRecord.Y); }
+            return true;
+        }
+
+        // do query new location
+        // found record is out of time
+        return fnQueryLocation();
     }
     return false;
 }

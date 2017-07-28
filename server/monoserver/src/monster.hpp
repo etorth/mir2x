@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 07/27/2017 00:50:38
+ *  Last Modified: 07/27/2017 17:09:32
  *
  *    Description: 
  *
@@ -86,6 +86,9 @@ class Monster: public CharObject
 
     protected:
         const uint32_t m_MonsterID;
+
+    protected:
+        const MonsterRecord &m_MonsterRecord;
 
     public:
         Monster(uint32_t,               // monster id

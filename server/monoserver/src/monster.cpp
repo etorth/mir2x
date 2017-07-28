@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/27/2017 01:09:03
+ *  Last Modified: 07/27/2017 18:15:38
  *
  *    Description: 
  *
@@ -42,7 +42,14 @@ Monster::Monster(uint32_t   nMonsterID,
         uint8_t             nLifeState)
     : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
     , m_MonsterID(nMonsterID)
+    , m_MonsterRecord(DB_MONSTERRECORD(nMonsterID))
 {
+    if(!m_MonsterRecord){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid monster record: MonsterID = %d", (int)(MonsterID()));
+        g_MonoServer->Restart();
+    }
+
     auto fnRegisterClass = [this]() -> void {
         if(!RegisterClass<Monster, CharObject>()){
             extern MonoServer *g_MonoServer;
@@ -71,27 +78,16 @@ bool Monster::RandomMove()
         {
             int nX = -1;
             int nY = -1;
-            if(auto &rstMR = DB_MONSTERRECORD(MonsterID())){
-                if(true
-                        && (rstMR.WalkStep > 0)
-                        && (OneStepReach(Direction(), rstMR.WalkStep, &nX, &nY) == rstMR.WalkStep)){
-                    switch(rstMR.WalkStep){
-                        case 1  : return RequestMove(MOTION_WALK, nX, nY, true, [](){}, [](){});
-                        case 2  : return RequestMove(MOTION_RUN,  nX, nY, true, [](){}, [](){});
-                        default : break;
-                    }
-
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid monster record");
-                    return false;
-                }
+            if(OneStepReach(Direction(), 1, &nX, &nY) == 1){
+                return RequestMove(MOTION_MON_WALK, nX, nY, false, [](){}, [](){});
             }
         }
 
         // 2. if current direction leads to a *impossible* place
         //    then randomly take a new direction and try
         {
-            static const int nDirV[] = {
+            static const int nDirV[]
+            {
                 DIR_UP,
                 DIR_UPRIGHT,
                 DIR_RIGHT,
@@ -110,22 +106,18 @@ bool Monster::RandomMove()
                 if(Direction() != nDirection){
                     int nX = -1;
                     int nY = -1;
-                    if(auto &rstMR = DB_MONSTERRECORD(MonsterID())){
-                        if(true
-                                && (rstMR.WalkStep > 0)
-                                && (OneStepReach(nDirection, rstMR.WalkStep, &nX, &nY) == rstMR.WalkStep)){
-                            // TODO
-                            // current direction is possible for next move
-                            // don't do turn and motion now
-                            // report the turn and do motion (by chance) in next update
-                            m_Direction = nDirection;
-                            DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), MapID()});
+                    if(OneStepReach(nDirection, 1, &nX, &nY) == 1){
+                        // TODO
+                        // current direction is possible for next move
+                        // don't do turn and motion now
+                        // report the turn and do motion (by chance) in next update
+                        m_Direction = nDirection;
+                        DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), MapID()});
 
-                            // TODO
-                            // we won't do ReportStand() for monster
-                            // monster's moving is only driven by server currently
-                            return true;
-                        }
+                        // TODO
+                        // we won't do ReportStand() for monster
+                        // monster's moving is only driven by server currently
+                        return true;
                     }
                 }
             }
@@ -222,39 +214,21 @@ bool Monster::TrackUID(uint32_t nUID)
             && nUID
             && CanMove()){
 
-        extern MonoServer *g_MonoServer;
-        if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
-            return RetrieveLocation(nUID, [this](int nX, int nY) -> bool
-            {
-                switch(LDistance2(nX, nY, X(), Y())){
-                    case 0:
-                    case 1:
-                    case 2:
-                        {
-                            return true;
-                        }
-                    default:
-                        {
-                            if(auto &rstMR = DB_MONSTERRECORD(MonsterID())){
-                                switch(rstMR.WalkStep){
-                                    case 1:
-                                    case 2:
-                                        {
-                                            return MoveOneStep(nX, nY);
-                                        }
-                                    default:
-                                        {
-                                            extern MonoServer *g_MonoServer;
-                                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid monster walk step size = %d", rstMR.WalkStep);
-                                            break;
-                                        }
-                                }
-                            }
-                            return false;
-                        }
-                }
-            });
-        }
+        return RetrieveLocation(nUID, [this](int nX, int nY) -> bool
+        {
+            switch(LDistance2(nX, nY, X(), Y())){
+                case 0:
+                case 1:
+                case 2:
+                    {
+                        return true;
+                    }
+                default:
+                    {
+                        return MoveOneStep(nX, nY);
+                    }
+            }
+        });
     }
     return false;
 }
@@ -276,13 +250,11 @@ bool Monster::TrackAttack()
         extern MonoServer *g_MonoServer;
         if(auto stRecord = g_MonoServer->GetUIDRecord(m_TargetQ.front().UID)){
             // 1. try to attack uid
-            if(auto &rstMR = DB_MONSTERRECORD(MonsterID())){
-                for(auto nDC: rstMR.DCList){
-                    if(AttackUID(stRecord.UID, nDC)){
-                        extern MonoServer *g_MonoServer;
-                        m_TargetQ.front().ActiveTime = g_MonoServer->GetTimeTick();
-                        return true;
-                    }
+            for(auto nDC: m_MonsterRecord.DCList){
+                if(AttackUID(stRecord.UID, nDC)){
+                    extern MonoServer *g_MonoServer;
+                    m_TargetQ.front().ActiveTime = g_MonoServer->GetTimeTick();
+                    return true;
                 }
             }
 
@@ -439,60 +411,50 @@ bool Monster::InRange(int nRangeType, int nX, int nY)
 
 DamageNode Monster::GetAttackDamage(int nDC)
 {
-    if(auto &rstMR = DB_MONSTERRECORD(MonsterID())){
-        switch(nDC){
-            case DC_PHY_PLAIN:
-                {
-                    return {UID(), nDC, rstMR.DC + std::rand() % (1 + std::max<int>(rstMR.DCMax - rstMR.DC, 0)), EC_NONE};
-                }
-            case DC_MAG_FIRE:
-                {
-                    return {UID(), nDC, rstMR.MC + std::rand() % (1 + std::max<int>(rstMR.MCMax - rstMR.MC, 0)), EC_FIRE};
-                }
-            default:
-                {
-                    break;
-                }
-        }
+    switch(nDC){
+        case DC_PHY_PLAIN:
+            {
+                return {UID(), nDC, m_MonsterRecord.DC + std::rand() % (1 + std::max<int>(m_MonsterRecord.DCMax - m_MonsterRecord.DC, 0)), EC_NONE};
+            }
+        case DC_MAG_FIRE:
+            {
+                return {UID(), nDC, m_MonsterRecord.MC + std::rand() % (1 + std::max<int>(m_MonsterRecord.MCMax - m_MonsterRecord.MC, 0)), EC_FIRE};
+            }
+        default:
+            {
+                return {};
+            }
     }
-
-    return {};
 }
 
 bool Monster::CanMove()
 {
-    if(auto &rstMR = DB_MONSTERRECORD(MonsterID())){
-        if(CharObject::CanMove()){
-            extern MonoServer *g_MonoServer;
-            return m_LastMoveTime + rstMR.WalkWait <= g_MonoServer->GetTimeTick();
-        }
+    if(CharObject::CanMove()){
+        extern MonoServer *g_MonoServer;
+        return m_LastMoveTime + m_MonsterRecord.WalkWait <= g_MonoServer->GetTimeTick();
     }
     return false;
 }
 
 bool Monster::CanAttack()
 {
-    if(auto &rstMR = DB_MONSTERRECORD(MonsterID())){
-        if(CharObject::CanAttack()){
-            extern MonoServer *g_MonoServer;
-            return m_LastAttackTime + rstMR.AttackWait <= g_MonoServer->GetTimeTick();
-        }
+    if(CharObject::CanAttack()){
+        extern MonoServer *g_MonoServer;
+        return m_LastAttackTime + m_MonsterRecord.AttackWait <= g_MonoServer->GetTimeTick();
     }
     return false;
 }
 
 bool Monster::DCValid(int nDC, bool bCheck)
 {
-    if(auto &rstMR = DB_MONSTERRECORD(MonsterID())){
-        if(std::find(rstMR.DCList.begin(), rstMR.DCList.end(), nDC) != rstMR.DCList.end()){
-            if(bCheck){
-                if(auto &rstDCR = DB_DCRECORD(nDC)){
-                    if(m_HP < rstDCR.HP){ return false; }
-                    if(m_MP < rstDCR.MP){ return false; }
-                }
+    if(std::find(m_MonsterRecord.DCList.begin(), m_MonsterRecord.DCList.end(), nDC) != m_MonsterRecord.DCList.end()){
+        if(bCheck){
+            if(auto &rstDCR = DB_DCRECORD(nDC)){
+                if(m_HP < rstDCR.HP){ return false; }
+                if(m_MP < rstDCR.MP){ return false; }
             }
-            return true;
         }
+        return true;
     }
     return false;
 }
@@ -661,7 +623,7 @@ bool Monster::StruckDamage(const DamageNode &rstDamage)
     if(rstDamage){
         m_HP = std::max<int>(0, m_HP - rstDamage.Damage);
         if(m_HP == 0){
-            SetState(STATE_DEAD, STATE_DEAD);
+            GoDie();
         }
         return true;
     }
@@ -870,5 +832,5 @@ bool Monster::MoveOneStepAStar(int nX, int nY)
 
 int Monster::FindPathMethod()
 {
-    return FPMETHOD_GREEDY;
+    return FPMETHOD_ASTAR;
 }

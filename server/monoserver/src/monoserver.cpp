@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/17/2017 15:48:06
+ *  Last Modified: 07/27/2017 17:48:19
  *
  *    Description: 
  *
@@ -729,13 +729,13 @@ void MonoServer::EraseUID(uint32_t nUID)
 UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
 {
     if(nUID){
-        auto &rstRecord = m_UIDArray[nUID % m_UIDArray.size()];
+        auto &rstUIDArrayEntry = m_UIDArray[nUID % m_UIDArray.size()];
         {
-            std::lock_guard<std::mutex> stLockGuard(rstRecord.Lock);
-            auto stFind = rstRecord.Record.find(nUID);
-            if(stFind != rstRecord.Record.end()){
-                if(stFind->second){
-                    if(stFind->second->UID() == nUID){
+            std::lock_guard<std::mutex> stLockGuard(rstUIDArrayEntry.Lock);
+            auto pRecord = rstUIDArrayEntry.Record.find(nUID);
+            if(pRecord != rstUIDArrayEntry.Record.end()){
+                if(pRecord->second){
+                    if(pRecord->second->UID() == nUID){
                         // two solutions
                         // 1. for server object, define a virtual UIDRecord GetUIDRecord()
                         //    then here directly forward the result
@@ -767,11 +767,11 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
                         //
                         //    then deletion of m_ActorPod will wait if m_ActorPod is scheduled in actor threads
                         //
-                        auto bActive   = stFind->second->ClassFrom<ActiveObject>();
-                        auto stAddress = bActive ? ((ActiveObject *)(stFind->second))->GetAddress() : Theron::Address::Null();
-                        return {nUID, stAddress, stFind->second->ClassEntry()};
+                        auto bActive = pRecord->second->ClassFrom<ActiveObject>();
+                        auto stAddress = bActive ? ((ActiveObject *)(pRecord->second))->GetAddress() : Theron::Address::Null();
+                        return {nUID, stAddress, pRecord->second->ClassEntry()};
                     }else{
-                        AddLog(LOGTYPE_WARNING, "UIDArray mismatch: UID = (%" PRIu32 ", %" PRIu32 ")", nUID, stFind->second->UID());
+                        AddLog(LOGTYPE_WARNING, "UIDArray mismatch: UID = (%" PRIu32 ", %" PRIu32 ")", nUID, pRecord->second->UID());
                     }
                 }
             }
