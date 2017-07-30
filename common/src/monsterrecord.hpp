@@ -3,7 +3,7 @@
  *
  *       Filename: monsterrecord.hpp
  *        Created: 05/08/2017 16:21:14
- *  Last Modified: 07/27/2017 16:32:46
+ *  Last Modified: 07/29/2017 23:20:05
  *
  *    Description: 
  *
@@ -19,128 +19,185 @@
  */
 
 #pragma once
-#include <vector>
-#include <string>
+#include <array>
 #include <cstdint>
+#include "protocoldef.hpp"
 
-struct MonsterRecord
+class MonsterRecord
 {
-    int ID;
-    int Level;
-    int Undead;
-    int Tameble;
-    int CoolEye;
+    public:
+        const char *Name;
 
-    int HP;
-    int MP;
-    int Hit;
-    int Exp;
+        int Level;
+        int Undead;
+        int Tameable;
+        int CoolEye;
 
-    int ACPlain;
-    int ACFire;
-    int ACIce;
-    int ACLight;
-    int ACWind;
-    int ACHoly;
-    int ACDark;
-    int ACPhantom;
+        int HP;
+        int MP;
+        int Hit;
+        int Exp;
 
-    int DC;
-    int DCMax;
+        int DC;
+        int DCMax;
+        int MDC;
+        int MDCMax;
+        int AC;
+        int ACMax;
+        int MAC;
+        int MACMax;
 
-    int MCType;
-    int MC;
-    int MCMax;
+        int ACFire;
+        int ACIce;
+        int ACLight;
+        int ACWind;
+        int ACHoly;
+        int ACDark;
+        int ACPhantom;
 
-    int WalkWait;
-    int WalkSpeed;
+        int WalkWait;
+        int WalkSpeed;
 
-    int AttackMode;
-    int AttackWait;
-    int AttackEffect;
+        int AttackMode;
+        int AttackWait;
+        int AttackEffect;
 
-    std::vector<int> DCList;
+        int DCType0;
+        int DCType1;
+        int DCType2;
+        int DCType3;
+        int DCType4;
+        int DCType5;
+        int DCType6;
+        int DCType7;
 
-    std::string Name;
-    std::string Description;
+    public:
+        constexpr MonsterRecord(
+                const char *szName,
 
-    MonsterRecord(int nID,
-                  int nLevel,
-                  int nUndead,
-                  int nTameble,
-                  int nCoolEye,
+                int nLevel,
+                int nUndead,
+                int nTameable,
+                int nCoolEye,
 
-                  int nHP,
-                  int nMP,
-                  int nHit,
-                  int nExp,
+                int nHP,
+                int nMP,
+                int nHit,
+                int nExp,
 
-                  int nACPlain,
-                  int nACFire,
-                  int nACIce,
-                  int nACLight,
-                  int nACWind,
-                  int nACHoly,
-                  int nACDark,
-                  int nACPhantom,
+                int nDC,
+                int nDCMax,
+                int nMDC,
+                int nMDCMax,
+                int nAC,
+                int nACMax,
+                int nMAC,
+                int nMACMax,
 
-                  int nDC,
-                  int nDCMax,
+                int nACFire,
+                int nACIce,
+                int nACLight,
+                int nACWind,
+                int nACHoly,
+                int nACDark,
+                int nACPhantom,
 
-                  int nMCType,
-                  int nMC,
-                  int nMCMax,
+                int nWalkWait,
+                int nWalkSpeed,
 
-                  int nWalkWait,
-                  int nWalkSpeed,
+                int nAttackMode,
+                int nAttackWait,
+                int nAttackEffect,
 
-                  int nAttackMode,
-                  int nAttackWait,
-                  int nAttackEffect,
+                const char *szDC0,
+                const char *szDC1,
+                const char *szDC2,
+                const char *szDC3,
+                const char *szDC4,
+                const char *szDC5,
+                const char *szDC6,
+                const char *szDC7)
+            : Name(szName ? szName : "")
+            , Level(nLevel)
+            , Undead(nUndead)
+            , Tameable(nTameable)
+            , CoolEye(nCoolEye)
 
-                  const std::vector<int> & rstDCList,
+            , HP(nHP)
+            , MP(nMP)
+            , Hit(nHit)
+            , Exp(nExp)
 
-                  const char *szName,
-                  const char *szDescription)
-        : ID            (nID)
-        , Level         (nLevel)
-        , Undead        (nUndead)
-        , Tameble       (nTameble)
-        , CoolEye       (nCoolEye)
-        , HP            (nHP)
-        , MP            (nMP)
-        , Hit           (nHit)
-        , Exp           (nExp)
-        , ACPlain       (nACPlain)
-        , ACFire        (nACFire)
-        , ACIce         (nACIce)
-        , ACLight       (nACLight)
-        , ACWind        (nACWind)
-        , ACHoly        (nACHoly)
-        , ACDark        (nACDark)
-        , ACPhantom     (nACPhantom)
-        , DC            (nDC)
-        , DCMax         (nDCMax)
-        , MCType        (nMCType)
-        , MC            (nMC)
-        , MCMax         (nMCMax)
-        , WalkWait      (nWalkWait)
-        , WalkSpeed     (nWalkSpeed)
-        , AttackMode    (nAttackMode)
-        , AttackWait    (nAttackWait)
-        , AttackEffect  (nAttackEffect)
-        , DCList        (rstDCList)
-        , Name          (szName ? szName : "")
-        , Description   (szDescription ? szDescription : "")
-    {}
+            , DC(nDC)
+            , DCMax(nDCMax)
+            , MDC(nMDC)
+            , MDCMax(nMDCMax)
+            , AC(nAC)
+            , ACMax(nACMax)
+            , MAC(nMAC)
+            , MACMax(nMACMax)
 
-    bool Valid() const
-    {
-        return ID != 0;
-    }
+            , ACFire(nACFire)
+            , ACIce(nACIce)
+            , ACLight(nACLight)
+            , ACWind(nACWind)
+            , ACHoly(nACHoly)
+            , ACDark(nACDark)
+            , ACPhantom(nACPhantom)
 
-    operator bool () const
-    {
-        return Valid();
-    }
+            , WalkWait(nWalkWait)
+            , WalkSpeed(nWalkSpeed)
+
+            , AttackMode(nAttackMode)
+            , AttackWait(nAttackWait)
+            , AttackEffect(nAttackEffect)
+
+            , DCType0(_Inn_MRDCType(szDC0))
+            , DCType1(_Inn_MRDCType(szDC1))
+            , DCType2(_Inn_MRDCType(szDC2))
+            , DCType3(_Inn_MRDCType(szDC3))
+            , DCType4(_Inn_MRDCType(szDC4))
+            , DCType5(_Inn_MRDCType(szDC5))
+            , DCType6(_Inn_MRDCType(szDC6))
+            , DCType7(_Inn_MRDCType(szDC7))
+        {}
+
+    private:
+        // need define some internal functions for constructor
+        // c++14 currently doesn't not support constexpr lambda
+        static constexpr bool _Inn_CompareUTF8(const char *szStr1, const char *szStr2)
+        {
+            if(szStr1 && szStr2){
+                while(*szStr1 == *szStr2){
+                    if(*szStr1){
+                        ++szStr1;
+                        ++szStr2;
+                    }else{
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        static constexpr int _Inn_MRDCType(const char *szDCName)
+        {
+            if(szDCName){
+                if(false){
+                }else if(_Inn_CompareUTF8(szDCName, u8"普通攻击")){ return DC_PHY_PLAIN;
+                }else                                               return DC_NONE;
+            }
+            return DC_NONE;
+        }
+
+    public:
+        operator bool() const
+        {
+            return Name[0] == '\0';
+        }
+
+        std::array<int, 8> DCList() const
+        {
+            return {DCType0, DCType1, DCType2, DCType3, DCType4, DCType5, DCType6, DCType7};
+        }
 };

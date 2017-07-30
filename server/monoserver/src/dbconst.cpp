@@ -3,7 +3,7 @@
  *
  *       Filename: dbconst.cpp
  *        Created: 05/12/2017 17:58:02
- *  Last Modified: 07/27/2017 16:33:09
+ *  Last Modified: 07/30/2017 00:30:59
  *
  *    Description: 
  *
@@ -18,15 +18,19 @@
  * =====================================================================================
  */
 
-#include <unordered_map>
+#include <map>
+#include <cinttypes>
 
+#include "dbcom.hpp"
 #include "dbconst.hpp"
+#include "monoserver.hpp"
 #include "protocoldef.hpp"
 #include "monsterrecord.hpp"
+#include "dropitemconfig.hpp"
 
 const DCRecord &DB_DCRECORD(uint32_t nDC)
 {
-    static std::unordered_map<uint32_t, DCRecord> stDCRecord
+    static std::map<uint32_t, DCRecord> stDCRecord
     {
         {           0, {           0, 0, 0, u8"", u8""}},
         {DC_PHY_PLAIN, {DC_PHY_PLAIN, 0, 0, u8"", u8""}},
@@ -34,24 +38,41 @@ const DCRecord &DB_DCRECORD(uint32_t nDC)
     return stDCRecord.at((stDCRecord.find(nDC) != stDCRecord.end()) ? nDC : 0);
 }
 
-const MonsterRecord &DB_MONSTERRECORD(uint32_t nMonsterID)
+const std::map<int, std::vector<DropItem>> &DB_MONSTERDROPITEM(uint32_t nMonsterID)
 {
-    static std::unordered_map<uint32_t, MonsterRecord> stMonsterRecord
-    {
-        // ----+----+-------+--------+---------+---------+----+----+-----+-----+---------+--------+-------+---------+--------+--------+--------+-----------+----+-------+--------+----+-------+----------+-----------+------------+------------+--------------+------------------+--------------+-------------------+
-        //     | ID | Level | Undead | Tameble | CoolEye | HP | MP | Hit | Exp | ACPlain | ACFire | ACIce | ACLight | ACWind | ACHoly | ACDark | ACPhantom | DC | DCMax | MCType | MC | MCMax | WalkWait | WalkSpeed | AttackMode | AttackWait | AttackEffect | DCList           | Name         | Description       |
-        {   0, {  0 ,   0   ,    0   ,    0    ,    0    ,  0 ,  0 ,  0  ,  0  ,   0     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  0 ,   0   ,    0   ,  0 ,   0   ,      0   ,     0     ,      0     ,      0     ,      0       , {}               , u8""         , u8""             }},
-        {   1, {  1 ,   1   ,    0   ,    1    ,    0    , 10 , 10 , 10  , 10  ,   1     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  1 ,   2   ,    0   ,  0 ,   0   ,   1000   ,     1     ,      0     ,   1000     ,      0       , {DC_PHY_PLAIN}   , u8"鹿"       , u8""             }},
-        {   2, {  2 ,   1   ,    0   ,    1    ,    0    , 10 , 10 , 10  , 10  ,   1     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  1 ,   2   ,    0   ,  0 ,   0   ,   1000   ,     1     ,      0     ,   1000     ,      0       , {DC_PHY_PLAIN}   , u8"鹿"       , u8""             }},
-        {   3, {  3 ,   1   ,    0   ,    1    ,    0    , 10 , 10 , 10  , 10  ,   1     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  1 ,   2   ,    0   ,  0 ,   0   ,   1000   ,     1     ,      0     ,   1000     ,      0       , {DC_PHY_PLAIN}   , u8"鹿"       , u8""             }},
-        {   4, {  4 ,   1   ,    0   ,    1    ,    0    , 10 , 10 , 10  , 10  ,   1     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  1 ,   2   ,    0   ,  0 ,   0   ,   1000   ,     1     ,      0     ,   1000     ,      0       , {DC_PHY_PLAIN}   , u8"鹿"       , u8""             }},
-        {   5, {  5 ,   1   ,    0   ,    1    ,    0    , 10 , 10 , 10  , 10  ,   1     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  1 ,   2   ,    0   ,  0 ,   0   ,   1000   ,     1     ,      0     ,   1000     ,      0       , {DC_PHY_PLAIN}   , u8"鹿"       , u8""             }},
-        {   6, {  6 ,   1   ,    0   ,    1    ,    0    , 10 , 10 , 10  , 10  ,   1     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  1 ,   2   ,    0   ,  0 ,   0   ,   1000   ,     1     ,      0     ,   1000     ,      0       , {DC_PHY_PLAIN}   , u8"鹿"       , u8""             }},
-        {   7, {  7 ,   1   ,    0   ,    1    ,    0    , 10 , 10 , 10  , 10  ,   1     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  1 ,   2   ,    0   ,  0 ,   0   ,   1000   ,     1     ,      0     ,   1000     ,      0       , {DC_PHY_PLAIN}   , u8"鹿"       , u8""             }},
-        {   8, {  8 ,   1   ,    0   ,    1    ,    0    , 10 , 10 , 10  , 10  ,   1     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  1 ,   2   ,    0   ,  0 ,   0   ,   1000   ,     1     ,      0     ,   1000     ,      0       , {DC_PHY_PLAIN}   , u8"鹿"       , u8""             }},
-        {   9, {  9 ,   1   ,    0   ,    1    ,    0    , 10 , 10 , 10  , 10  ,   1     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  1 ,   2   ,    0   ,  0 ,   0   ,   1000   ,     1     ,      0     ,   1000     ,      0       , {DC_PHY_PLAIN}   , u8"鹿"       , u8""             }},
-        {  10, { 10 ,   1   ,    0   ,    1    ,    0    , 10 , 10 , 10  , 10  ,   1     ,    0   ,   0   ,    0    ,    0   ,    0   ,    0   ,     0     ,  1 ,   2   ,    0   ,  0 ,   0   ,   1000   ,     1     ,      0     ,   1000     ,      0       , {DC_PHY_PLAIN}   , u8"鹿"       , u8""             }},
-    };
+    using DropItemMap = std::map<int, std::vector<DropItem>>;
+    if(nMonsterID){
+        const static std::map<uint32_t, DropItemMap> s_DropItemMapList
+        {
+            []() -> std::map<uint32_t, DropItemMap>
+            {
+                std::vector<DropItemConfig> stvDropItemConfig
+                {
+                    #include "dropitemconfig.inc"
+                };
 
-    return stMonsterRecord.at((stMonsterRecord.find(nMonsterID) != stMonsterRecord.end()) ? nMonsterID : 0);
+                std::map<uint32_t, DropItemMap> stmDropItemMap;
+                for(auto &rstEntry: stvDropItemConfig){
+                    if(rstEntry){
+                        // later we won't never call this two ID-retrieve functions again
+                        // here we use DBCOM_MONSTERRID() and DBCOM_ITEMID() with string variable
+                        // this is very slow but OK since we here to initialize the static hash table for global usage
+                        stmDropItemMap[DBCOM_MONSTERID(rstEntry.MonsterName)][rstEntry.Group].emplace_back(DBCOM_ITEMID(rstEntry.ItemName), rstEntry.ProbRecip, rstEntry.Value);
+                    }else{
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Skip invalid DropItemConfig::0X%0*" PRIXPTR, (int)(2 * sizeof(&rstEntry)), (uintptr_t)(&rstEntry));
+                        rstEntry.Print();
+                    }
+                }
+                return stmDropItemMap;
+            }()
+        };
+
+        if(s_DropItemMapList.find(nMonsterID) != s_DropItemMapList.end()){
+            return s_DropItemMapList.at(nMonsterID);
+        }
+    }
+
+    static const DropItemMap stEmptyDropItemMap {};
+    return stEmptyDropItemMap;
 }

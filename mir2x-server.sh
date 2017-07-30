@@ -7,9 +7,9 @@ then
 fi
 
 env \
-    CPUPROFILE=./server.log             \
+    CPUPROFILE=./mir2x-server.log       \
     LD_PRELOAD=/usr/lib/libprofiler.so  \
     $1/server/monoserver/src/monoserver
 
-google-pprof --callgrind $1/server/monoserver/src/monoserver ./mir2x-server.log > mir2x-server.callgrind
-kcachegrind mir2x-server.callgrind
+google-pprof --callgrind $1/server/monoserver/src/monoserver ./mir2x-server.log > ./mir2x-server.callgrind
+kcachegrind ./mir2x-server.callgrind

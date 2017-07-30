@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/27/2017 18:15:38
+ *  Last Modified: 07/30/2017 00:06:51
  *
  *    Description: 
  *
@@ -19,6 +19,7 @@
  */
 
 #include <cinttypes>
+#include "dbcom.hpp"
 #include "motion.hpp"
 #include "netpod.hpp"
 #include "dbconst.hpp"
@@ -42,7 +43,7 @@ Monster::Monster(uint32_t   nMonsterID,
         uint8_t             nLifeState)
     : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
     , m_MonsterID(nMonsterID)
-    , m_MonsterRecord(DB_MONSTERRECORD(nMonsterID))
+    , m_MonsterRecord(DBCOM_MONSTERRECORD(nMonsterID))
 {
     if(!m_MonsterRecord){
         extern MonoServer *g_MonoServer;
@@ -250,7 +251,7 @@ bool Monster::TrackAttack()
         extern MonoServer *g_MonoServer;
         if(auto stRecord = g_MonoServer->GetUIDRecord(m_TargetQ.front().UID)){
             // 1. try to attack uid
-            for(auto nDC: m_MonsterRecord.DCList){
+            for(auto nDC: m_MonsterRecord.DCList()){
                 if(AttackUID(stRecord.UID, nDC)){
                     extern MonoServer *g_MonoServer;
                     m_TargetQ.front().ActiveTime = g_MonoServer->GetTimeTick();
@@ -418,7 +419,7 @@ DamageNode Monster::GetAttackDamage(int nDC)
             }
         case DC_MAG_FIRE:
             {
-                return {UID(), nDC, m_MonsterRecord.MC + std::rand() % (1 + std::max<int>(m_MonsterRecord.MCMax - m_MonsterRecord.MC, 0)), EC_FIRE};
+                return {UID(), nDC, m_MonsterRecord.MDC + std::rand() % (1 + std::max<int>(m_MonsterRecord.MDCMax - m_MonsterRecord.MDC, 0)), EC_FIRE};
             }
         default:
             {
@@ -447,7 +448,7 @@ bool Monster::CanAttack()
 
 bool Monster::DCValid(int nDC, bool bCheck)
 {
-    if(std::find(m_MonsterRecord.DCList.begin(), m_MonsterRecord.DCList.end(), nDC) != m_MonsterRecord.DCList.end()){
+    if(std::find(m_MonsterRecord.DCList().begin(), m_MonsterRecord.DCList().end(), nDC) != m_MonsterRecord.DCList().end()){
         if(bCheck){
             if(auto &rstDCR = DB_DCRECORD(nDC)){
                 if(m_HP < rstDCR.HP){ return false; }

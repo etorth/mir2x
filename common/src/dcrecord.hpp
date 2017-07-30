@@ -3,7 +3,7 @@
  *
  *       Filename: dcrecord.hpp
  *        Created: 05/08/2017 16:21:14
- *  Last Modified: 05/14/2017 10:30:17
+ *  Last Modified: 07/28/2017 18:51:25
  *
  *    Description: 
  *
@@ -49,7 +49,7 @@ struct DCRecord
         return ID != 0;
     }
 
-    operator bool () const
+    operator bool() const
     {
         return Valid();
     }

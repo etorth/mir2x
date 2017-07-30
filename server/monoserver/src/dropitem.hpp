@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: dbconst.hpp
- *        Created: 05/12/2017 17:57:04
- *  Last Modified: 07/30/2017 00:05:59
+ *       Filename: dropitem.hpp
+ *        Created: 07/28/2017 12:25:39
+ *  Last Modified: 07/28/2017 16:46:46
  *
  *    Description: 
  *
@@ -19,14 +19,18 @@
  */
 
 #pragma once
-#include <map>
-#include <vector>
 #include <cstdint>
-#include "dcrecord.hpp"
-#include "dropitem.hpp"
-#include "monsterrecord.hpp"
 
-const DCRecord &DB_DCRECORD(uint32_t);
+struct DropItem
+{
+    uint32_t ID;
 
-const std::map<int, std::vector<DropItem>> &DB_MONSTERDROPITEM(uint32_t);
-const std::map<int, std::vector<DropItem>> &DB_MONSTERDROPITEM(const char *);
+    int ProbRecip;
+    int Value;
+
+    DropItem(uint32_t nID, int nProbRecip, int nValue)
+        : ID(nID)
+        , ProbRecip(nProbRecip)
+        , Value(nValue)
+    {}
+};
