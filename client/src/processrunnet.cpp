@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/25/2017 15:36:56
+ *  Last Modified: 07/30/2017 20:06:11
  *
  *    Description: 
  *
@@ -28,6 +28,7 @@
 #include "sdldevice.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "dbcomrecord.hpp"
 
 // we get all needed initialization info for init the process run
 void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
@@ -193,4 +194,12 @@ void ProcessRun::Net_EXP(const uint8_t *pBuf, size_t)
     if(stSME.Exp){
         AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"你获得了经验值%d", (int)(stSME.Exp));
     }
+}
+
+void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
+{
+    SMShowDropItem stSMSDI;
+    std::memcpy(&stSMSDI, pBuf, sizeof(stSMSDI));
+
+    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"发现(%d, %d): %s", stSMSDI.X, stSMSDI.Y, DBCOM_ITEMRECORD(stSMSDI.ID).Name);
 }

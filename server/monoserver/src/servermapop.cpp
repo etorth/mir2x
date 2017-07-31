@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 07/10/2017 18:45:20
+ *  Last Modified: 07/30/2017 19:27:21
  *
  *    Description: 
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 #include <cinttypes>
+#include "dbcomid.hpp"
 #include "player.hpp"
 #include "monster.hpp"
 #include "mathfunc.hpp"
@@ -750,4 +751,55 @@ void ServerMap::On_MPK_QUERYRECTUIDV(const MessagePack &rstMPK, const Theron::Ad
     }
 
     m_ActorPod->Forward({MPK_UIDV, stAMUIDV}, rstAddress, rstMPK.ID());
+}
+
+void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMNewDropItem stAMNDI;
+    std::memcpy(&stAMNDI, rstMPK.Data(), sizeof(stAMNDI));
+
+    if(true
+            && stAMNDI.ID
+            && stAMNDI.Value > 0
+            && ValidC(stAMNDI.X, stAMNDI.Y)){
+
+        bool bHoldInOne = false;
+        switch(stAMNDI.ID){
+            case DBCOM_ITEMID(u8"金币"):
+                {
+                    bHoldInOne = true;
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+
+        auto nLoop = bHoldInOne ? 1 : stAMNDI.Value;
+        for(int nIndex = 0; nIndex < nLoop; ++nIndex){
+            // won't check UID since it could be from no-one
+            RotateCoord stRC;
+            if(stRC.Reset(stAMNDI.X, stAMNDI.Y, 0, 0, W(), H())){
+                do{
+                    if(true
+                            &&  ValidC(stRC.X(), stRC.Y())
+                            &&  GroundValid(stRC.X(), stRC.Y()) 
+                            && !m_CellRecordV2D[stRC.X()][stRC.Y()].GroundItem){
+
+                        // find a valid place to hold the item
+                        auto nCurrX = stRC.X();
+                        auto nCurrY = stRC.Y();
+
+                        AddGroundItem(nCurrX, nCurrY, {stAMNDI.ID, 0});
+                        if(bHoldInOne){
+                            return;
+                        }else{
+                            break;
+                        }
+                    }
+                }while(stRC.Forward());
+            }
+        }
+    }
 }

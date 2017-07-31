@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 07/10/2017 18:46:06
+ *  Last Modified: 07/30/2017 19:27:55
  *
  *    Description:
  *
@@ -26,6 +26,7 @@
 #include "sysconst.hpp"
 #include "uidrecord.hpp"
 #include "metronome.hpp"
+#include "commonitem.hpp"
 #include "pathfinder.hpp"
 #include "mir2xmapdata.hpp"
 #include "activeobject.hpp"
@@ -69,11 +70,15 @@ class ServerMap: public ActiveObject
             // can't use pServiceCore->GetMapUID() since map in service core could load / unload
             int Query;
 
+            // on every grid there could be one item on ground
+            CommonItem GroundItem;
+
             CellRecord()
                 : Lock(false)
                 , UID(0)
                 , MapID(0)
                 , Query(QUERY_NA)
+                , GroundItem()
             {}
         };
 
@@ -136,6 +141,9 @@ class ServerMap: public ActiveObject
         bool RandomLocation(int *, int *);
 
     private:
+        void AddGroundItem(int, int, const CommonItem &);
+
+    private:
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYLEAVE(const MessagePack &, const Theron::Address &);
@@ -145,6 +153,7 @@ class ServerMap: public ActiveObject
         void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &);
         void On_MPK_DEADFADEOUT(const MessagePack &, const Theron::Address &);
+        void On_MPK_NEWDROPITEM(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYMAPSWITCH(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYCOCOUNT(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);

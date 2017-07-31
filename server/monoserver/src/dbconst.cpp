@@ -3,7 +3,7 @@
  *
  *       Filename: dbconst.cpp
  *        Created: 05/12/2017 17:58:02
- *  Last Modified: 07/30/2017 00:30:59
+ *  Last Modified: 07/30/2017 16:47:28
  *
  *    Description: 
  *
@@ -21,7 +21,7 @@
 #include <map>
 #include <cinttypes>
 
-#include "dbcom.hpp"
+#include "dbcomid.hpp"
 #include "dbconst.hpp"
 #include "monoserver.hpp"
 #include "protocoldef.hpp"
@@ -57,7 +57,8 @@ const std::map<int, std::vector<DropItem>> &DB_MONSTERDROPITEM(uint32_t nMonster
                         // later we won't never call this two ID-retrieve functions again
                         // here we use DBCOM_MONSTERRID() and DBCOM_ITEMID() with string variable
                         // this is very slow but OK since we here to initialize the static hash table for global usage
-                        stmDropItemMap[DBCOM_MONSTERID(rstEntry.MonsterName)][rstEntry.Group].emplace_back(DBCOM_ITEMID(rstEntry.ItemName), rstEntry.ProbRecip, rstEntry.Value);
+                        auto &rstCurrList = stmDropItemMap[DBCOM_MONSTERID(rstEntry.MonsterName)][rstEntry.Group];
+                        rstCurrList.insert(rstCurrList.end(), rstEntry.Repeat, {DBCOM_ITEMID(rstEntry.ItemName), rstEntry.ProbRecip, rstEntry.Value});
                     }else{
                         extern MonoServer *g_MonoServer;
                         g_MonoServer->AddLog(LOGTYPE_WARNING, "Skip invalid DropItemConfig::0X%0*" PRIXPTR, (int)(2 * sizeof(&rstEntry)), (uintptr_t)(&rstEntry));

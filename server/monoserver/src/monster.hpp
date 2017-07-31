@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 07/27/2017 17:09:32
+ *  Last Modified: 07/30/2017 17:11:38
  *
  *    Description: 
  *
@@ -154,6 +154,9 @@ class Monster: public CharObject
 
     protected:
         int FindPathMethod();
+
+    protected:
+        void RandomDropItem();
 
     protected:
         bool MoveOneStepAStar  (int, int);

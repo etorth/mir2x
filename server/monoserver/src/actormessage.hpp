@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 07/24/2017 18:58:08
+ *  Last Modified: 07/30/2017 19:52:28
  *
  *    Description: 
  *
@@ -63,6 +63,8 @@ enum MessagePackType: int
     MPK_QUERYRECTUIDV,
     MPK_UIDV,
     MPK_EXP,
+    MPK_NEWDROPITEM,
+    MPK_SHOWDROPITEM,
 };
 
 struct AMBadActorPod
@@ -397,4 +399,21 @@ struct AMUIDV
 struct AMExp
 {
     int Exp;
+};
+
+struct AMNewDropItem
+{
+    uint32_t UID;
+    int X;
+    int Y;
+
+    uint32_t ID;
+    int Value;
+};
+
+struct AMShowDropItem
+{
+    uint32_t ID;
+    int X;
+    int Y;
 };

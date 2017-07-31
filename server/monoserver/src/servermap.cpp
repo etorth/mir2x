@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 07/10/2017 18:46:32
+ *  Last Modified: 07/30/2017 19:52:03
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #include <algorithm>
 
+#include "player.hpp"
 #include "monster.hpp"
 #include "actorpod.hpp"
 #include "mathfunc.hpp"
@@ -285,6 +286,11 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
 void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     switch(rstMPK.Type()){
+        case MPK_NEWDROPITEM:
+            {
+                On_MPK_NEWDROPITEM(rstMPK, rstFromAddr);
+                break;
+            }
         case MPK_TRYLEAVE:
             {
                 On_MPK_TRYLEAVE(rstMPK, rstFromAddr);
@@ -570,4 +576,41 @@ Theron::Address ServerMap::Activate()
     m_Metronome->Activate(GetAddress());
 
     return stAddress;
+}
+
+void ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
+{
+    if(true
+            && rstItem
+            && GroundValid(nX, nY)){
+
+        // 1. over-write previous item directly
+        m_CellRecordV2D[nX][nY].GroundItem = rstItem;
+
+        // 2. report to all charobject around
+        auto nX0 = std::max<int>(0,   (nX - SYS_MAPVISIBLEW));
+        auto nY0 = std::max<int>(0,   (nY - SYS_MAPVISIBLEH));
+        auto nX1 = std::min<int>(W(), (nX + SYS_MAPVISIBLEW));
+        auto nY1 = std::min<int>(H(), (nY + SYS_MAPVISIBLEH));
+
+        AMShowDropItem stAMSDI;
+        stAMSDI.ID = rstItem.ID();
+        stAMSDI.X  = nX;
+        stAMSDI.Y  = nY;
+
+        for(int nX = nX0; nX <= nX1; ++nX){
+            for(int nY = nY0; nY <= nY1; ++nY){
+                if(ValidC(nX, nY)){
+                    for(auto nUID: m_UIDRecordV2D[nX][nY]){
+                        extern MonoServer *g_MonoServer;
+                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                            if(stUIDRecord.ClassFrom<Player>()){
+                                m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.Address);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

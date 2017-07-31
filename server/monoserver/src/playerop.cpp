@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 07/25/2017 11:12:09
+ *  Last Modified: 07/30/2017 19:46:13
  *
  *    Description: 
  *
@@ -327,4 +327,18 @@ void Player::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
         extern NetPodN *g_NetPodN;
         g_NetPodN->Send(SessionID(), SM_EXP, stSME);
     }
+}
+
+void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMShowDropItem stAMSDI;
+    std::memcpy(&stAMSDI, rstMPK.Data(), sizeof(stAMSDI));
+
+    SMShowDropItem stSMSDI;
+    stSMSDI.ID = stAMSDI.ID;
+    stSMSDI.X  = stAMSDI.X;
+    stSMSDI.Y  = stAMSDI.Y;
+
+    extern NetPodN *g_NetPodN;
+    g_NetPodN->Send(SessionID(), SM_SHOWDROPITEM, stSMSDI);
 }

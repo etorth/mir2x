@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/21/2017 00:00:03
+ *  Last Modified: 07/30/2017 20:04:42
  *
  *    Description: 
  *
@@ -128,6 +128,7 @@ class ProcessRun: public Process
         void Net_UPDATEHP(const uint8_t *, size_t);
         void Net_DEADFADEOUT(const uint8_t *, size_t);
         void Net_MONSTERGINFO(const uint8_t *, size_t);
+        void Net_SHOWDROPITEM(const uint8_t *, size_t);
 
     public:
         bool CanMove(bool, int, int);

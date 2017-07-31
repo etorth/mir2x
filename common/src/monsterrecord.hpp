@@ -3,7 +3,7 @@
  *
  *       Filename: monsterrecord.hpp
  *        Created: 05/08/2017 16:21:14
- *  Last Modified: 07/29/2017 23:20:05
+ *  Last Modified: 07/30/2017 15:40:32
  *
  *    Description: 
  *
@@ -193,7 +193,7 @@ class MonsterRecord
     public:
         operator bool() const
         {
-            return Name[0] == '\0';
+            return Name[0] != '\0';
         }
 
         std::array<int, 8> DCList() const

@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 07/20/2017 23:46:14
+ *  Last Modified: 07/30/2017 19:50:03
  *
  *    Description: net message used by client and mono-server
  *
@@ -34,6 +34,7 @@ enum: uint8_t
     SM_UPDATEHP,
     SM_DEADFADEOUT,
     SM_EXP,
+    SM_SHOWDROPITEM,
 };
 
 #pragma pack(push, 1)
@@ -143,6 +144,13 @@ struct SMExp
 {
     uint32_t Exp;
 };
+
+struct SMShowDropItem
+{
+    uint32_t ID;
+    uint16_t X;
+    uint16_t Y;
+};
 #pragma pack(pop)
 
 class SMSGParam: public MessageBase
@@ -162,15 +170,16 @@ class SMSGParam: public MessageBase
                 //  2    : not empty,     fixed size, not compressed
                 //  3    : not empty, not fixed size, not compressed
 
-                {SM_NONE,        {0, 0,                     "SM_NONE"       }},
-                {SM_PING,        {2, sizeof(SMPing),        "SM_PING"       }},
-                {SM_LOGINOK,     {1, sizeof(SMLoginOK),     "SM_LOGINOK"    }},
-                {SM_LOGINFAIL,   {2, sizeof(SMLoginFail),   "SM_LOGINFAIL"  }},
-                {SM_ACTION,      {1, sizeof(SMAction),      "SM_ACTION"     }},
-                {SM_CORECORD,    {1, sizeof(SMCORecord),    "SM_CORECORD"   }},
-                {SM_UPDATEHP,    {1, sizeof(SMUpdateHP),    "SM_UPDATEHP"   }},
-                {SM_DEADFADEOUT, {1, sizeof(SMDeadFadeOut), "SM_DEADFADEOUT"}},
-                {SM_EXP,         {1, sizeof(SMExp),         "SM_EXP"        }},
+                {SM_NONE,         {0, 0,                      "SM_NONE"        }},
+                {SM_PING,         {2, sizeof(SMPing),         "SM_PING"        }},
+                {SM_LOGINOK,      {1, sizeof(SMLoginOK),      "SM_LOGINOK"     }},
+                {SM_LOGINFAIL,    {2, sizeof(SMLoginFail),    "SM_LOGINFAIL"   }},
+                {SM_ACTION,       {1, sizeof(SMAction),       "SM_ACTION"      }},
+                {SM_CORECORD,     {1, sizeof(SMCORecord),     "SM_CORECORD"    }},
+                {SM_UPDATEHP,     {1, sizeof(SMUpdateHP),     "SM_UPDATEHP"    }},
+                {SM_DEADFADEOUT,  {1, sizeof(SMDeadFadeOut),  "SM_DEADFADEOUT" }},
+                {SM_EXP,          {1, sizeof(SMExp),          "SM_EXP"         }},
+                {SM_SHOWDROPITEM, {1, sizeof(SMShowDropItem), "SM_SHOWDROPITEM"}},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(SM_NONE) : nHC);

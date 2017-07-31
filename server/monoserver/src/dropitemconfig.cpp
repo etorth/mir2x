@@ -3,7 +3,7 @@
  *
  *       Filename: dropitemconfig.cpp
  *        Created: 07/30/2017 00:12:33
- *  Last Modified: 07/30/2017 01:34:59
+ *  Last Modified: 07/30/2017 17:20:26
  *
  *    Description: 
  *
@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <cinttypes>
 
-#include "dbcom.hpp"
+#include "dbcomid.hpp"
 #include "monoserver.hpp"
 #include "dropitemconfig.hpp"
 
@@ -42,10 +42,10 @@ DropItemConfig::operator bool() const
 void DropItemConfig::Print() const
 {
     extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfigEntry::0X%0*" PRIXPTR "::MonsterName = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), MonsterName);
-    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfigEntry::0X%0*" PRIXPTR "::ItemName    = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), ItemName   );
-    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfigEntry::0X%0*" PRIXPTR "::Group       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Group      );
-    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfigEntry::0X%0*" PRIXPTR "::ProbRecip   = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), ProbRecip  );
-    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfigEntry::0X%0*" PRIXPTR "::Repeat      = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Repeat     );
-    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfigEntry::0X%0*" PRIXPTR "::Value       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Value      );
+    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::MonsterName = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), MonsterName);
+    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::ItemName    = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), ItemName   );
+    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::Group       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Group      );
+    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::ProbRecip   = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), ProbRecip  );
+    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::Repeat      = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Repeat     );
+    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::Value       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Value      );
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/30/2017 00:06:51
+ *  Last Modified: 07/30/2017 17:10:56
  *
  *    Description: 
  *
@@ -19,7 +19,6 @@
  */
 
 #include <cinttypes>
-#include "dbcom.hpp"
 #include "motion.hpp"
 #include "netpod.hpp"
 #include "dbconst.hpp"
@@ -31,6 +30,7 @@
 #include "sysconst.hpp"
 #include "randompick.hpp"
 #include "monoserver.hpp"
+#include "dbcomrecord.hpp"
 #include "messagepack.hpp"
 #include "protocoldef.hpp"
 
@@ -517,6 +517,7 @@ bool Monster::GoDie()
                                     MapID()});
 
                             Delay(10 * 1000, [this](){ GoGhost(); });
+                            RandomDropItem();
                             return true;
                         }
                     default:
@@ -834,4 +835,30 @@ bool Monster::MoveOneStepAStar(int nX, int nY)
 int Monster::FindPathMethod()
 {
     return FPMETHOD_ASTAR;
+}
+
+void Monster::RandomDropItem()
+{
+    for(auto &rstGroupRecord: DB_MONSTERDROPITEM(MonsterID())){
+        for(auto &rstItemRecord: rstGroupRecord.second){
+            if(std::rand() % rstItemRecord.ProbRecip == 0){
+                AMNewDropItem stAMNDI;
+                stAMNDI.UID   = UID();
+                stAMNDI.X     = X();
+                stAMNDI.Y     = Y();
+                stAMNDI.ID    = rstItemRecord.ID;
+                stAMNDI.Value = rstItemRecord.Value;
+
+                // suggest server map to add a new drop item, but server map
+                // may reject this suggestion silently.
+                //
+                // and if we are not in group-0
+                // break if we select the first one item
+                m_ActorPod->Forward({MPK_NEWDROPITEM, stAMNDI}, m_Map->GetAddress());
+                if(rstGroupRecord.first != 0){
+                    break;
+                }
+            }
+        }
+    }
 }

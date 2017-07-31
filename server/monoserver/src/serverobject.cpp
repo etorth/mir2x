@@ -3,7 +3,7 @@
  *
  *       Filename: serverobject.cpp
  *        Created: 05/23/2016 18:22:01
- *  Last Modified: 05/10/2017 17:22:15
+ *  Last Modified: 07/30/2017 17:58:20
  *
  *    Description: 
  *
@@ -34,7 +34,8 @@ ServerObject::ServerObject()
     // 2. use std::call_once to register current class
     //    use empty vector {} as it's parents' class entry info
     //    since server object is the base class for all other classes need registration
-    auto fnRegisterClass = [this]() -> void {
+    auto fnRegisterClass = [this]() -> void
+    {
         if(!RegisterClass<ServerObject>({})){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for ServerObject failed");
