@@ -3,7 +3,7 @@
  *
  *       Filename: initview.cpp
  *        Created: 07/18/2017 16:04:25
- *  Last Modified: 07/19/2017 19:18:45
+ *  Last Modified: 07/31/2017 01:47:11
  *
  *    Description: 
  *
@@ -47,6 +47,13 @@ InitView::InitView(size_t nFontSize)
         extern XMLConf   *g_XMLConf;
         extern PNGTexDBN *g_ProgUseDBN;
         return LoadDBN(nIndex, g_XMLConf, g_ProgUseDBN, "Root/Texture/ProgUseDBN");
+    });
+
+    m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
+    {
+        extern XMLConf   *g_XMLConf;
+        extern PNGTexDBN *g_GroundItemDBN;
+        return LoadDBN(nIndex, g_XMLConf, g_GroundItemDBN, "Root/Texture/GroundItemDBN");
     });
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool

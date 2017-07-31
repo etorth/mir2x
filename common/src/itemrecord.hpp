@@ -3,9 +3,23 @@
  *
  *       Filename: itemrecord.hpp
  *        Created: 07/28/2017 17:12:29
- *  Last Modified: 07/30/2017 22:51:19
+ *  Last Modified: 07/31/2017 00:58:09
  *
- *    Description: 
+ *    Description: for each item I have two GfxID:
+ *                      PkgGfxID : when on ground and in inventory
+ *                      UseGfxID : when drawing with player body
+ *
+ *                 why should I introduce all two different IDs?
+ *
+ *                 Best practice should be one unique GfxID for all items and retrieve
+ *                 different set of animations from different archieves using the unique
+ *                 GfxID.
+ *
+ *                 But in ghe graphical libraries, one item may share one GfxID for one
+ *                 kind of usage but own its own resource for another usage. i.e. for the
+ *                 诅咒屠龙 and 幸运屠龙, when drawing it with human body they are sharing
+ *                 one set of animation, but when staying in inventory they have their own
+ *                 different animations.
  *
  *        Version: 1.0
  *       Revision: none
@@ -57,7 +71,8 @@ class ItemRecord
         int Rarity;
         int Weight;
 
-        int GfxID;
+        int PkgGfxID;
+        int UseGfxID;
 
         int NeedJob;
         int NeedLevel;
@@ -74,7 +89,9 @@ class ItemRecord
                 const char *szRarity,
 
                 int nWeight,
-                int nGfxID,
+
+                int nPkgGfxID,
+                int nUseGfxID,
 
                 const char *szNeedJob,
                 int          nNeedLevel,
@@ -87,7 +104,8 @@ class ItemRecord
             , Type(_Inn_ItemRecord_Type(szType))
             , Rarity(_Inn_ItemRecord_Rarity(szRarity))
             , Weight(nWeight)
-            , GfxID(nGfxID)
+            , PkgGfxID(nPkgGfxID)
+            , UseGfxID(nUseGfxID)
             , NeedJob(_Inn_ItemRecord_NeedJob(szNeedJob))
             , NeedLevel(nNeedLevel) 
             , NeedDC(nNeedDC) 

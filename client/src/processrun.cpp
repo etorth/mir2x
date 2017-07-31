@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/30/2017 22:55:04
+ *  Last Modified: 07/31/2017 02:07:42
  *
  *    Description: 
  *
@@ -315,8 +315,21 @@ void ProcessRun::Draw()
 
                         // draw ground item
                         // only need information of item record
-                        // if(auto &rstIR = DBCOM_ITEMRECORD(rstGI.ID)){
-                        // }
+                        if(auto &rstIR = DBCOM_ITEMRECORD(rstGI.ID)){
+                            if(rstIR.PkgGfxID >= 0){
+                                extern SDLDevice *g_SDLDevice;
+                                extern PNGTexDBN *g_GroundItemDBN;
+                                if(auto pTexture = g_GroundItemDBN->Retrieve(rstIR.PkgGfxID)){
+                                    int nW = -1;
+                                    int nH = -1;
+                                    if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
+                                        int nX0 = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nW / 2;
+                                        int nY0 = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nH / 2;
+                                        g_SDLDevice->DrawTexture(pTexture, nX0, nY0);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
