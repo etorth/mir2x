@@ -3,7 +3,7 @@
  *
  *       Filename: rotatecoord.hpp
  *        Created: 08/15/2015 04:01:57
- *  Last Modified: 06/13/2017 11:32:32
+ *  Last Modified: 07/31/2017 11:53:12
  *
  *    Description: 
  *
@@ -22,22 +22,14 @@
 class RotateCoord
 {
     public:
-         RotateCoord() = default;
-        ~RotateCoord() = default;
+        RotateCoord() = default;
+       ~RotateCoord() = default;
 
     public:
         int X() const { return m_CurrentX; }
         int Y() const { return m_CurrentY; }
 
     public:
-        // two main cursor function
-        //
-        //            
-        //
-        //
-        //
-        //
-        //
         bool Reset(int,
                 int,
                 int,

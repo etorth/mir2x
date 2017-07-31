@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 07/30/2017 19:27:21
+ *  Last Modified: 07/31/2017 12:21:21
  *
  *    Description: 
  *
@@ -778,27 +778,47 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Addr
 
         auto nLoop = bHoldInOne ? 1 : stAMNDI.Value;
         for(int nIndex = 0; nIndex < nLoop; ++nIndex){
-            // won't check UID since it could be from no-one
+
+            // we check SYS_MAXDROPITEMGRID grids to find a best place to hold current item
+            // ``best" means there are not too many drop item already
+            int nCheckGrid = 0;
+
+            int nBestX    = -1;
+            int nBestY    = -1;
+            int nMinCount = SYS_MAXDROPITEM + 1;
+
             RotateCoord stRC;
             if(stRC.Reset(stAMNDI.X, stAMNDI.Y, 0, 0, W(), H())){
                 do{
                     if(true
-                            &&  ValidC(stRC.X(), stRC.Y())
-                            &&  GroundValid(stRC.X(), stRC.Y()) 
-                            && !m_CellRecordV2D[stRC.X()][stRC.Y()].GroundItem){
+                            && ValidC(stRC.X(), stRC.Y())
+                            && GroundValid(stRC.X(), stRC.Y())){
 
-                        // find a valid place to hold the item
-                        auto nCurrX = stRC.X();
-                        auto nCurrY = stRC.Y();
+                        // valid grid
+                        // check if gird good to hold
+                        auto nCurrCount = DropItemListCount(stRC.X(), stRC.Y());
+                        if(nCurrCount >= 0){
+                            if(nCurrCount < nMinCount){
+                                nMinCount = nCurrCount;
+                                nBestX    = stRC.X();
+                                nBestY    = stRC.Y();
 
-                        AddGroundItem(nCurrX, nCurrY, {stAMNDI.ID, 0});
-                        if(bHoldInOne){
-                            return;
-                        }else{
-                            break;
+                                // short it if it's an empty slot
+                                // directly use it and won't compare more
+                                if(nMinCount == 0){ break; }
+                            }
                         }
                     }
-                }while(stRC.Forward());
+                }while(stRC.Forward() && (nCheckGrid <= SYS_MAXDROPITEMGRID));
+            }
+
+            if(GroundValid(nBestX, nBestY)){
+                AddGroundItem(nBestX, nBestY, {stAMNDI.ID, 0});
+            }else{
+
+                // we scanned the square but find we can't find a valid place
+                // abort current operation since following check should also fail
+                return;
             }
         }
     }

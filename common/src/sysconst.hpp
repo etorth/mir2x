@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 07/02/2017 16:12:10
+ *  Last Modified: 07/31/2017 11:50:56
  *
  *    Description: 
  *
@@ -43,9 +43,13 @@ const int SYS_MAPVISIBLECD = 100;
 
 const int SYS_MAXPLAYERNUM = 8192;
 
+const int SYS_MAXDROPITEM     = 10;
+const int SYS_MAXDROPITEMGRID = 100;
+
 const int SYS_MINSPEED =  20;
 const int SYS_DEFSPEED = 100;
 const int SYS_MAXSPEED = 500;
+
 
 const char *SYS_MAPNAME(uint32_t);
 const char *SYS_MAPFILENAME(uint32_t);

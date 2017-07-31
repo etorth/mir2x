@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 07/30/2017 19:52:03
+ *  Last Modified: 07/31/2017 12:22:26
  *
  *    Description: 
  *
@@ -578,39 +578,70 @@ Theron::Address ServerMap::Activate()
     return stAddress;
 }
 
-void ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
+int ServerMap::DropItemListCount(int nX, int nY)
+{
+    if(GroundValid(nX, nY)){
+        int nCount = 0;
+        for(auto &rstCurrItem: m_CellRecordV2D[nX][nY].GroundItemList){
+            if(rstCurrItem){
+                nCount++;
+            }
+        }
+        return nCount;
+    }
+    return -1;
+}
+
+bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
 {
     if(true
             && rstItem
             && GroundValid(nX, nY)){
 
-        // 1. over-write previous item directly
-        m_CellRecordV2D[nX][nY].GroundItem = rstItem;
+        // 1. find a slot to store the item
+        bool bAddOK = false;
+        for(auto &rstCurrItem: m_CellRecordV2D[nX][nY].GroundItemList){
+            if(!rstCurrItem){
+                rstCurrItem = rstItem;
 
-        // 2. report to all charobject around
-        auto nX0 = std::max<int>(0,   (nX - SYS_MAPVISIBLEW));
-        auto nY0 = std::max<int>(0,   (nY - SYS_MAPVISIBLEH));
-        auto nX1 = std::min<int>(W(), (nX + SYS_MAPVISIBLEW));
-        auto nY1 = std::min<int>(H(), (nY + SYS_MAPVISIBLEH));
+                bAddOK = true;
+                break;
+            }
+        }
 
-        AMShowDropItem stAMSDI;
-        stAMSDI.ID = rstItem.ID();
-        stAMSDI.X  = nX;
-        stAMSDI.Y  = nY;
+        if(bAddOK){
+            // 2. report to all charobject around
+            //    since there are one more drop item for each grid
+            //    client / server side may have different drop item list
+            //
+            //    not a big issue
+            //    force they to contain the same set
+            auto nX0 = std::max<int>(0,   (nX - SYS_MAPVISIBLEW));
+            auto nY0 = std::max<int>(0,   (nY - SYS_MAPVISIBLEH));
+            auto nX1 = std::min<int>(W(), (nX + SYS_MAPVISIBLEW));
+            auto nY1 = std::min<int>(H(), (nY + SYS_MAPVISIBLEH));
 
-        for(int nX = nX0; nX <= nX1; ++nX){
-            for(int nY = nY0; nY <= nY1; ++nY){
-                if(ValidC(nX, nY)){
-                    for(auto nUID: m_UIDRecordV2D[nX][nY]){
-                        extern MonoServer *g_MonoServer;
-                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(stUIDRecord.ClassFrom<Player>()){
-                                m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.Address);
+            AMShowDropItem stAMSDI;
+            stAMSDI.ID = rstItem.ID();
+            stAMSDI.X  = nX;
+            stAMSDI.Y  = nY;
+
+            for(int nX = nX0; nX <= nX1; ++nX){
+                for(int nY = nY0; nY <= nY1; ++nY){
+                    if(ValidC(nX, nY)){
+                        for(auto nUID: m_UIDRecordV2D[nX][nY]){
+                            extern MonoServer *g_MonoServer;
+                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                                if(stUIDRecord.ClassFrom<Player>()){
+                                    m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.Address);
+                                }
                             }
                         }
                     }
                 }
             }
+            return true;
         }
     }
+    return false;
 }

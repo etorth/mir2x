@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 07/30/2017 19:27:55
+ *  Last Modified: 07/31/2017 11:46:29
  *
  *    Description:
  *
@@ -71,14 +71,14 @@ class ServerMap: public ActiveObject
             int Query;
 
             // on every grid there could be one item on ground
-            CommonItem GroundItem;
+            std::array<CommonItem, SYS_MAXDROPITEM> GroundItemList;
 
             CellRecord()
                 : Lock(false)
                 , UID(0)
                 , MapID(0)
                 , Query(QUERY_NA)
-                , GroundItem()
+                , GroundItemList()
             {}
         };
 
@@ -141,7 +141,8 @@ class ServerMap: public ActiveObject
         bool RandomLocation(int *, int *);
 
     private:
-        void AddGroundItem(int, int, const CommonItem &);
+        int  DropItemListCount(int, int);
+        bool AddGroundItem(int, int, const CommonItem &);
 
     private:
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
