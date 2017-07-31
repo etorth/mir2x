@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/25/2017 17:56:31
+ *  Last Modified: 07/30/2017 22:55:04
  *
  *    Description: 
  *
@@ -28,6 +28,7 @@
 #include "sdldevice.hpp"
 #include "clientenv.hpp"
 #include "processrun.hpp"
+#include "dbcomrecord.hpp"
 #include "clientluamodule.hpp"
 
 ProcessRun::ProcessRun()
@@ -55,6 +56,7 @@ ProcessRun::ProcessRun()
             this,               // self-bind
             nullptr,            // independent widget
             false)              // 
+    , m_GroundItem()
     , m_CreatureRecord()
     , m_AttackUIDX(-1)
     , m_AttackUIDY(-1)
@@ -296,6 +298,25 @@ void ProcessRun::Draw()
                             && (pCreature.second->Y() == nY)
                             && (pCreature.second->StayDead())){
                         pCreature.second->Draw(m_ViewX, m_ViewY);
+                    }
+                }
+            }
+        }
+
+        // draw ground item
+        // should be over dead actors
+        for(int nY = nY0; nY <= nY1; ++nY){
+            for(int nX = nX0; nX <= nX1; ++nX){
+                for(auto &rstGI: m_GroundItem){
+                    if(true
+                            && rstGI.ID
+                            && rstGI.X == nX
+                            && rstGI.Y == nY){
+
+                        // draw ground item
+                        // only need information of item record
+                        // if(auto &rstIR = DBCOM_ITEMRECORD(rstGI.ID)){
+                        // }
                     }
                 }
             }
@@ -1021,7 +1042,7 @@ uint32_t ProcessRun::GetControlBoardFaceKey()
                     {
                         auto nLookID = ((Monster*)(pCreature))->LookID();
                         if(nLookID >= 0){
-                            nFaceKey = 0X01000000 + (nLookID - (LID_NONE + 1));
+                            nFaceKey = 0X01000000 + (nLookID - LID_MIN);
                         }
                         break;
                     }

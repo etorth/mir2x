@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 07/24/2017 22:49:28
+ *  Last Modified: 07/30/2017 20:51:36
  *
  *    Description: 
  *
@@ -76,9 +76,7 @@ enum CreatureType: int
 
 enum LookIDType: int
 {
-    LID_NONE = 0,
-
-    LID_SANDLIZARD,
+    LID_MIN = 0,
     LID_MAX = 2048,
 };
 

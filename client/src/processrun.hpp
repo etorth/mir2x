@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/30/2017 20:04:42
+ *  Last Modified: 07/30/2017 21:33:53
  *
  *    Description: 
  *
@@ -30,6 +30,7 @@
 #include "creature.hpp"
 #include "focustype.hpp"
 #include "ascendstr.hpp"
+#include "grounditem.hpp"
 #include "labelboard.hpp"
 #include "mir2xmapdata.hpp"
 #include "controlboard.hpp"
@@ -71,6 +72,7 @@ class ProcessRun: public Process
         ControlBoard m_ControbBoard;
 
     private:
+        std::vector<GroundItem> m_GroundItem;
         std::map<uint32_t, Creature*> m_CreatureRecord;
 
     private:

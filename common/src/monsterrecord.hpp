@@ -3,7 +3,7 @@
  *
  *       Filename: monsterrecord.hpp
  *        Created: 05/08/2017 16:21:14
- *  Last Modified: 07/30/2017 15:40:32
+ *  Last Modified: 07/30/2017 20:46:36
  *
  *    Description: 
  *
@@ -32,6 +32,8 @@ class MonsterRecord
         int Undead;
         int Tameable;
         int CoolEye;
+
+        int LookID;
 
         int HP;
         int MP;
@@ -80,6 +82,8 @@ class MonsterRecord
                 int nTameable,
                 int nCoolEye,
 
+                int nLookID,
+
                 int nHP,
                 int nMP,
                 int nHit,
@@ -122,6 +126,8 @@ class MonsterRecord
             , Undead(nUndead)
             , Tameable(nTameable)
             , CoolEye(nCoolEye)
+
+            , LookID(nLookID)
 
             , HP(nHP)
             , MP(nMP)

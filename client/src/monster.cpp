@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 07/20/2017 17:41:05
+ *  Last Modified: 07/30/2017 20:50:30
  *
  *    Description: 
  *
@@ -24,6 +24,7 @@
 #include "mathfunc.hpp"
 #include "processrun.hpp"
 #include "protocoldef.hpp"
+#include "dbcomrecord.hpp"
 #include "pngtexoffdbn.hpp"
 #include "clientpathfinder.hpp"
 
@@ -467,8 +468,8 @@ int Monster::GfxID(int nMotion, int nDirection) const
         auto nGfxMotionID = GfxMotionID(nMotion);
 
         if(true
-                && nLookID > LID_NONE
-                && nLookID < LID_MAX
+                && nLookID >= LID_MIN
+                && nLookID <  LID_MAX
 
                 && nDirection > DIR_NONE
                 && nDirection < DIR_MAX
@@ -478,7 +479,7 @@ int Monster::GfxID(int nMotion, int nDirection) const
             // if passed listed simple test
             // we need to check the huge table for it
 
-            return (((nLookID - (LID_NONE + 1)) & 0X07FF) << 7) + ((nGfxMotionID & 0X000F) << 3) + ((nDirection - (DIR_NONE + 1)) & 0X0007);
+            return (((nLookID - LID_MIN) & 0X07FF) << 7) + ((nGfxMotionID & 0X000F) << 3) + ((nDirection - (DIR_NONE + 1)) & 0X0007);
         }
     }
     return -1;
@@ -694,7 +695,10 @@ int Monster::CurrStep() const
 
 int Monster::LookID() const
 {
-    return MonsterID() ? (int)(MonsterID() & 0X000007FF) : -1;
+    if(auto &rstMR = DBCOM_MONSTERRECORD(MonsterID())){
+        return rstMR.LookID;
+    }
+    return -1;
 }
 
 int Monster::GfxMotionID(int nMotion) const

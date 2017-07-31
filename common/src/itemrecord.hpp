@@ -3,7 +3,7 @@
  *
  *       Filename: itemrecord.hpp
  *        Created: 07/28/2017 17:12:29
- *  Last Modified: 07/29/2017 21:46:31
+ *  Last Modified: 07/30/2017 22:51:19
  *
  *    Description: 
  *
@@ -57,6 +57,8 @@ class ItemRecord
         int Rarity;
         int Weight;
 
+        int GfxID;
+
         int NeedJob;
         int NeedLevel;
         int NeedDC;
@@ -70,7 +72,10 @@ class ItemRecord
                 const char *szName,
                 const char *szType,
                 const char *szRarity,
-                int         nWeight,
+
+                int nWeight,
+                int nGfxID,
+
                 const char *szNeedJob,
                 int          nNeedLevel,
                 int          nNeedDC,
@@ -82,6 +87,7 @@ class ItemRecord
             , Type(_Inn_ItemRecord_Type(szType))
             , Rarity(_Inn_ItemRecord_Rarity(szRarity))
             , Weight(nWeight)
+            , GfxID(nGfxID)
             , NeedJob(_Inn_ItemRecord_NeedJob(szNeedJob))
             , NeedLevel(nNeedLevel) 
             , NeedDC(nNeedDC) 

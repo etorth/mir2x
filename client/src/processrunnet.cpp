@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/30/2017 20:06:11
+ *  Last Modified: 07/30/2017 22:57:52
  *
  *    Description: 
  *
@@ -201,5 +201,6 @@ void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
     SMShowDropItem stSMSDI;
     std::memcpy(&stSMSDI, pBuf, sizeof(stSMSDI));
 
+    m_GroundItem.emplace_back(stSMSDI.ID, stSMSDI.X, stSMSDI.Y);
     AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"发现(%d, %d): %s", stSMSDI.X, stSMSDI.Y, DBCOM_ITEMRECORD(stSMSDI.ID).Name);
 }
