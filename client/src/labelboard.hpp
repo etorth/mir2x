@@ -3,7 +3,7 @@
  *
  *       Filename: labelboard.hpp
  *        Created: 08/20/2015 08:59:11
- *  Last Modified: 07/18/2017 15:19:52
+ *  Last Modified: 08/01/2017 00:30:44
  *
  *    Description: LabelBoard is a class
  *                      1. without padding
@@ -38,8 +38,12 @@
 class LabelBoard: public Widget
 {
     private:
-        uint32_t    m_FontKey;
-        SDL_Color   m_FontColor;
+        uint8_t m_Font;
+        uint8_t m_FontSize;
+        uint8_t m_FontStyle;
+
+    private:
+        SDL_Color m_FontColor;
 
     private:
         std::string m_Content;
@@ -57,7 +61,9 @@ class LabelBoard: public Widget
                 Widget          *pWidget     = nullptr,
                 bool             bAutoDelete = false)
             : Widget(nX, nY, 0, 0, pWidget, bAutoDelete)
-            , m_FontKey(((uint32_t)(nFont) << 16) + ((uint32_t)(nSize) << 8) + nStyle)
+            , m_Font(nFont)
+            , m_FontSize(nSize)
+            , m_FontStyle(nStyle)
             , m_FontColor(rstColor)
             , m_Content(szContent)
             , m_TokenBoard(

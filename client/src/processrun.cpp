@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/31/2017 17:27:14
+ *  Last Modified: 07/31/2017 23:41:01
  *
  *    Description: 
  *
@@ -326,7 +326,36 @@ void ProcessRun::Draw()
                                     if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
                                         int nXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nW / 2;
                                         int nYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nH / 2;
+
+                                        int nPointX = -1;
+                                        int nPointY = -1;
+                                        SDL_GetMouseState(&nPointX, &nPointY);
+
+                                        int nCurrX = (nPointX + m_ViewX) / SYS_MAPGRIDXP;
+                                        int nCurrY = (nPointY + m_ViewY) / SYS_MAPGRIDYP;
+
+                                        bool bChoose = false;
+                                        if(true
+                                                && nCurrX == nX
+                                                && nCurrY == nY){
+                                            bChoose = true;
+                                            SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_ADD);
+                                        }else{
+                                            SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
+                                        }
+
                                         g_SDLDevice->DrawTexture(pTexture, nXt, nYt);
+
+                                        if(bChoose){
+                                            LabelBoard stItemName(0, 0, rstIR.Name, 1, 12, 0, {0XFF, 0XFF, 0X00, 0X00});
+                                            int nLW = stItemName.W();
+                                            int nLH = stItemName.H();
+
+                                            int nLXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nLW / 2;
+                                            int nLYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nLH / 2 - 20;
+
+                                            stItemName.DrawEx(nLXt, nLYt, 0, 0, nLW, nLH);
+                                        }
                                     }
                                 }
                             }
@@ -451,6 +480,11 @@ void ProcessRun::Draw()
                                 if(auto nLt = (int)(std::lround(fRatio * nW / 2.50))){
                                     auto nXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nLt / 2;
                                     auto nYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nLt / 2;
+
+                                    // to make this to be more informative
+                                    // use different color of rotating star for different type
+                                   
+                                    SDL_SetTextureAlphaMod(pTexture, 128);
                                     g_SDLDevice->DrawTextureEx(pTexture,
                                             0,
                                             0,
