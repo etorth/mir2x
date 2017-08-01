@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 07/25/2017 17:53:05
+ *  Last Modified: 07/31/2017 16:38:02
  *
  *    Description: 
  *
@@ -388,4 +388,22 @@ void SDLDevice::CreateMainWindow()
     SetWindowIcon();
     PushColor(0, 0, 0, 0);
     PushBlendMode(SDL_BLENDMODE_NONE);
+}
+
+void SDLDevice::DrawTextureEx(SDL_Texture *pTexture,
+        int nSrcX, int nSrcY, int nSrcW, int nSrcH,
+        int nDstX, int nDstY, int nDstW, int nDstH,
+        int nCenterDstX,
+        int nCenterDstY,
+        int nRotateDegree)
+{
+    if(pTexture){
+        SDL_Rect stSrc {nSrcX, nSrcY, nSrcW, nSrcH};
+        SDL_Rect stDst {nDstX, nDstY, nDstW, nDstH};
+
+        double fAngle = 1.00 * (nRotateDegree % 360);
+        SDL_Point stCenter {nCenterDstX, nCenterDstY};
+
+        SDL_RenderCopyEx(m_Renderer, pTexture, &stSrc, &stDst, fAngle, &stCenter, SDL_FLIP_NONE);
+    }
 }

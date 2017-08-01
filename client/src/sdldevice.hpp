@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 07/19/2017 11:37:52
+ *  Last Modified: 07/31/2017 15:46:42
  *
  *    Description:
  *
@@ -58,6 +58,20 @@ class SDLDevice final
        void SetWindowIcon();
        void DrawTexture(SDL_Texture *, int, int);
        void DrawTexture(SDL_Texture *, int, int, int, int, int, int);
+
+    public:
+       void DrawTextureEx(SDL_Texture *,  
+               int,     // x on src
+               int,     // y on src
+               int,     // w on src
+               int,     // h on src
+               int,     // x on dst
+               int,     // y on dst
+               int,     // w on dst
+               int,     // h on dst
+               int,     // center x on dst
+               int,     // center y on dst
+               int);    // rotate in degree on dst
 
     public:
        void Present()

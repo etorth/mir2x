@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/31/2017 02:07:42
+ *  Last Modified: 07/31/2017 17:27:14
  *
  *    Description: 
  *
@@ -315,6 +315,7 @@ void ProcessRun::Draw()
 
                         // draw ground item
                         // only need information of item record
+
                         if(auto &rstIR = DBCOM_ITEMRECORD(rstGI.ID)){
                             if(rstIR.PkgGfxID >= 0){
                                 extern SDLDevice *g_SDLDevice;
@@ -323,9 +324,9 @@ void ProcessRun::Draw()
                                     int nW = -1;
                                     int nH = -1;
                                     if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
-                                        int nX0 = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nW / 2;
-                                        int nY0 = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nH / 2;
-                                        g_SDLDevice->DrawTexture(pTexture, nX0, nY0);
+                                        int nXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nW / 2;
+                                        int nYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nH / 2;
+                                        g_SDLDevice->DrawTexture(pTexture, nXt, nYt);
                                     }
                                 }
                             }
@@ -412,6 +413,66 @@ void ProcessRun::Draw()
                 }
             }
         }
+
+        // draw all rotating stars
+        // to aware players there is somethig to check
+        static double fRatio = 0.00;
+
+        fRatio += 0.05;
+        if(fRatio >= 2.50){
+            fRatio = 0.00;
+        }else if(fRatio >= 1.00){
+            // do nothing
+            // hide the star to avoid blinking too much
+        }else{
+            for(int nY = nY0; nY <= nY1; ++nY){
+                for(int nX = nX0; nX <= nX1; ++nX){
+
+                    bool bShowStar = false;
+                    for(auto &rstGI: m_GroundItem){
+                        if(true
+                                && rstGI.ID
+                                && rstGI.X == nX
+                                && rstGI.Y == nY){
+
+                            bShowStar = true;
+                            break;
+                        }
+                    }
+
+                    if(bShowStar){
+                        extern SDLDevice *g_SDLDevice;
+                        extern PNGTexDBN *g_GroundItemDBN;
+
+                        if(auto pTexture = g_GroundItemDBN->Retrieve(0X01000000)){
+                            int nW = -1;
+                            int nH = -1;
+                            if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
+                                if(auto nLt = (int)(std::lround(fRatio * nW / 2.50))){
+                                    auto nXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nLt / 2;
+                                    auto nYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nLt / 2;
+                                    g_SDLDevice->DrawTextureEx(pTexture,
+                                            0,
+                                            0,
+                                            nW,
+                                            nH,
+                                            nXt,
+                                            nYt,
+                                            nLt,
+                                            nLt,
+                                            nLt / 2,
+                                            nLt / 2,
+                                            std::lround(fRatio * 360.0));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // put it here
+        // any other should draw before GUI
     }
 
     // draw underlay at the bottom
@@ -1074,3 +1135,4 @@ void ProcessRun::AddAscendStr(int nType, int nValue, int nX, int nY)
 {
     m_AscendStrRecord.emplace_back(new AscendStr(nType, nValue, nX, nY));
 }
+
