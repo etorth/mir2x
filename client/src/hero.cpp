@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 07/27/2017 23:58:27
+ *  Last Modified: 08/03/2017 00:56:28
  *
  *    Description: 
  *
@@ -244,9 +244,12 @@ bool Hero::MotionValid(const MotionNode &rstMotion) const
                 {
                     return !OnHorse() && (nLDistance2 == 0);
                 }
-            case MOTION_ARROWATTACK:
             case MOTION_SPELL0:
             case MOTION_SPELL1:
+                {
+                    return !OnHorse() && (nLDistance2 == 0);
+                }
+            case MOTION_ARROWATTACK:
             case MOTION_HOLD:
             case MOTION_PUSHBACK:
             case MOTION_PUSHBACKFLY:
@@ -341,6 +344,7 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
             case ACTION_STAND:
             case ACTION_MOVE:
             case ACTION_ATTACK:
+            case ACTION_SPELL:
                 {
                     // 1. clean all pending motions
                     m_MotionQueue.clear();
@@ -416,6 +420,16 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                     if(auto stMotionNode = MakeMotionWalk(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY, rstAction.Speed)){
                         m_MotionQueue.push_back(stMotionNode);
                     }
+                    break;
+                }
+            case ACTION_SPELL:
+                {
+                    m_MotionQueue.emplace_back(
+                            MOTION_SPELL0,
+                            0,
+                            rstAction.Direction,
+                            rstAction.X,
+                            rstAction.Y);
                     break;
                 }
             case ACTION_ATTACK:
@@ -581,6 +595,7 @@ bool Hero::ActionValid(const ActionNode &rstAction, bool bRemote) const
                     }
                 }
             case ACTION_STAND:
+            case ACTION_SPELL:
             case ACTION_UNDERATTACK:
             case ACTION_DIE:
             default:

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 07/31/2017 23:41:01
+ *  Last Modified: 08/03/2017 00:52:54
  *
  *    Description: 
  *
@@ -628,6 +628,20 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             extern SDLDevice *g_SDLDevice;
                             m_ViewX = std::max<int>(0, m_MyHero->X() - g_SDLDevice->WindowW(false) / 2 / SYS_MAPGRIDXP) * SYS_MAPGRIDXP;
                             m_ViewY = std::max<int>(0, m_MyHero->Y() - g_SDLDevice->WindowH(false) / 2 / SYS_MAPGRIDYP) * SYS_MAPGRIDYP;
+                            break;
+                        }
+                    case SDLK_t:
+                        {
+                            m_MyHero->ParseNewAction({
+                                    ACTION_SPELL,
+                                    0,
+                                    100,
+                                    m_MyHero->CurrMotion().Direction,
+                                    m_MyHero->CurrMotion().EndX,
+                                    m_MyHero->CurrMotion().EndY,
+                                    m_MyHero->CurrMotion().EndX,
+                                    m_MyHero->CurrMotion().EndY,
+                                    MapID()}, false);
                             break;
                         }
                     default:

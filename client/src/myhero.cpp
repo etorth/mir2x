@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 07/10/2017 16:28:00
+ *  Last Modified: 08/03/2017 00:42:20
  *
  *    Description: 
  *
@@ -558,6 +558,11 @@ bool MyHero::ParseActionQueue()
                             }
                             break;
                     }
+                    break;
+                }
+            case ACTION_SPELL:
+                {
+                    m_ActionQueue.emplace_front(stCurrAction);
                     break;
                 }
             default:
