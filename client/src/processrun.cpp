@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 08/03/2017 00:52:54
+ *  Last Modified: 08/04/2017 00:08:56
  *
  *    Description: 
  *
@@ -635,6 +635,20 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             m_MyHero->ParseNewAction({
                                     ACTION_SPELL,
                                     0,
+                                    100,
+                                    m_MyHero->CurrMotion().Direction,
+                                    m_MyHero->CurrMotion().EndX,
+                                    m_MyHero->CurrMotion().EndY,
+                                    m_MyHero->CurrMotion().EndX,
+                                    m_MyHero->CurrMotion().EndY,
+                                    MapID()}, false);
+                            break;
+                        }
+                    case SDLK_y:
+                        {
+                            m_MyHero->ParseNewAction({
+                                    ACTION_SPELL,
+                                    1,
                                     100,
                                     m_MyHero->CurrMotion().Direction,
                                     m_MyHero->CurrMotion().EndX,

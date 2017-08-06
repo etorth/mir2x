@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 07/20/2017 17:41:20
+ *  Last Modified: 08/05/2017 23:09:32
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -125,6 +125,7 @@
 #include "focustype.hpp"
 #include "actionnode.hpp"
 #include "motionnode.hpp"
+#include "effectnode.hpp"
 #include "pathfinder.hpp"
 #include "protocoldef.hpp"
 
@@ -151,6 +152,7 @@ class Creature
 
     protected:
         std::deque<MotionNode> m_MotionQueue;
+        std::deque<EffectNode> m_EffectQueue;
 
     protected:
         double m_UpdateDelay;
@@ -167,6 +169,7 @@ class Creature
             , m_FocusV()
             , m_CurrMotion()
             , m_MotionQueue()
+            , m_EffectQueue()
             , m_UpdateDelay(100.0)
             , m_LastUpdateTime(0.0)
         {

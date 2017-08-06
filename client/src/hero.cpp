@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 08/03/2017 00:56:28
+ *  Last Modified: 08/05/2017 22:57:04
  *
  *    Description: 
  *
@@ -425,7 +425,7 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
             case ACTION_SPELL:
                 {
                     m_MotionQueue.emplace_back(
-                            MOTION_SPELL0,
+                            rstAction.ActionParam ? MOTION_SPELL0 : MOTION_SPELL1,
                             0,
                             rstAction.Direction,
                             rstAction.X,

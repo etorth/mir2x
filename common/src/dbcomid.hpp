@@ -3,7 +3,7 @@
  *
  *       Filename: dbcomid.hpp
  *        Created: 07/28/2017 23:03:43
- *  Last Modified: 07/30/2017 02:15:35
+ *  Last Modified: 08/05/2017 21:21:28
  *
  *    Description: global constexpr _Inn_XXXXX[] declared here
  *                 any files including this would have an identical copy of them
@@ -35,25 +35,11 @@
 #pragma once
 #include <cstdint>
 #include "itemrecord.hpp"
+#include "magicrecord.hpp"
 #include "monsterrecord.hpp"
 
 namespace
 {
-    constexpr bool _Inn_CompareUTF8(const char *szStr1, const char *szStr2)
-    {
-        if(szStr1 && szStr2){
-            while(*szStr1 == *szStr2){
-                if(*szStr1){
-                    ++szStr1;
-                    ++szStr2;
-                }else{
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     // TODO
     // should be very very very careful here
     // this is an constant variable in header file
@@ -86,6 +72,11 @@ namespace
     {
         #include "monsterrecord.inc"
     };
+
+    constexpr MagicRecord _Inn_MagicRecordList []
+    {
+        #include "magicrecord.inc"
+    };
 }
 
 // constexpr function to map utf-8 string to item record id
@@ -109,7 +100,7 @@ constexpr uint32_t DBCOM_ITEMID(const char *szName)
 {
     if(szName){
         for(size_t nIndex = 0; nIndex < sizeof(_Inn_ItemRecordList) / sizeof(_Inn_ItemRecordList[0]); ++nIndex){
-            if(_Inn_CompareUTF8(szName, _Inn_ItemRecordList[nIndex].Name)){
+            if(ConstExprFunc::CompareUTF8(szName, _Inn_ItemRecordList[nIndex].Name)){
                 return (uint32_t)(nIndex);
             }
         }
@@ -121,7 +112,19 @@ constexpr uint32_t DBCOM_MONSTERID(const char *szName)
 {
     if(szName){
         for(size_t nIndex = 0; nIndex < sizeof(_Inn_MonsterRecordList) / sizeof(_Inn_MonsterRecordList[0]); ++nIndex){
-            if(_Inn_CompareUTF8(szName, _Inn_MonsterRecordList[nIndex].Name)){
+            if(ConstExprFunc::CompareUTF8(szName, _Inn_MonsterRecordList[nIndex].Name)){
+                return (uint32_t)(nIndex);
+            }
+        }
+    }
+    return 0;
+}
+
+constexpr uint32_t DBCOM_MAGICID(const char *szName)
+{
+    if(szName){
+        for(size_t nIndex = 0; nIndex < sizeof(_Inn_MagicRecordList) / sizeof(_Inn_MagicRecordList[0]); ++nIndex){
+            if(ConstExprFunc::CompareUTF8(szName, _Inn_MagicRecordList[nIndex].Name)){
                 return (uint32_t)(nIndex);
             }
         }

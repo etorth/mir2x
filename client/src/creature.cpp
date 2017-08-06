@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/20/2017 22:49:38
+ *  Last Modified: 08/05/2017 22:55:40
  *
  *    Description: 
  *

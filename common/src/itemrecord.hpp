@@ -3,7 +3,7 @@
  *
  *       Filename: itemrecord.hpp
  *        Created: 07/28/2017 17:12:29
- *  Last Modified: 07/31/2017 00:58:09
+ *  Last Modified: 08/05/2017 12:19:01
  *
  *    Description: for each item I have two GfxID:
  *                      PkgGfxID : when on ground and in inventory
@@ -35,6 +35,7 @@
 #pragma once
 #include <string>
 #include <cstdint>
+#include "constexprfunc.hpp"
 
 enum IRType: int
 {
@@ -122,50 +123,33 @@ class ItemRecord
         // will skip if invalid and *no* log supported
         operator bool() const;
 
-    private:
-        // need some _Inn_Func_XXXX()
-        // c++14 currently don't support constexpr lambda
-        static constexpr bool _Inn_CompareUTF8(const char *szStr1, const char *szStr2)
-        {
-            if(szStr1 && szStr2){
-                while(*szStr1 == *szStr2){
-                    if(*szStr1){
-                        ++szStr1;
-                        ++szStr2;
-                    }else{
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
+    public:
         static constexpr int _Inn_ItemRecord_Type(const char *szType)
         {
             if(false){
-            }else if(_Inn_CompareUTF8(szType, u8"金币"    )){ return IRTYPE_GOLD;
-            }else if(_Inn_CompareUTF8(szType, u8"恢复药水")){ return IRTYPE_RESTORE;
-            }else                                             return IRTYPE_NONE;
+            }else if(ConstExprFunc::CompareUTF8(szType, u8"金币"    )){ return IRTYPE_GOLD;
+            }else if(ConstExprFunc::CompareUTF8(szType, u8"恢复药水")){ return IRTYPE_RESTORE;
+            }else                                                       return IRTYPE_NONE;
         }
 
         static constexpr int _Inn_ItemRecord_Rarity(const char *szRarity)
         {
             if(false){
-            }else if(_Inn_CompareUTF8(szRarity, u8"普通")){ return IRRARITY_COMMON;
-            }else if(_Inn_CompareUTF8(szRarity, u8"高级")){ return IRRARITY_HIGHQ;
-            }else if(_Inn_CompareUTF8(szRarity, u8"稀有")){ return IRRARITY_RARE;
-            }else                                           return IRRARITY_NONE;
+            }else if(ConstExprFunc::CompareUTF8(szRarity, u8"普通")){ return IRRARITY_COMMON;
+            }else if(ConstExprFunc::CompareUTF8(szRarity, u8"高级")){ return IRRARITY_HIGHQ;
+            }else if(ConstExprFunc::CompareUTF8(szRarity, u8"稀有")){ return IRRARITY_RARE;
+            }else                                                     return IRRARITY_NONE;
         }
 
         static constexpr int _Inn_ItemRecord_NeedJob(const char *szNeedJob)
         {
             if(false){
-            }else if(_Inn_CompareUTF8(szNeedJob, u8"武士"  )){ return IRNEEDJOB_WARRIOR;
-            }else if(_Inn_CompareUTF8(szNeedJob, u8"战士"  )){ return IRNEEDJOB_WARRIOR;
-            }else if(_Inn_CompareUTF8(szNeedJob, u8"道士"  )){ return IRNEEDJOB_TAOIST;
-            }else if(_Inn_CompareUTF8(szNeedJob, u8"法师"  )){ return IRNEEDJOB_MAGICIAN;
-            }else if(_Inn_CompareUTF8(szNeedJob, u8"魔法师")){ return IRNEEDJOB_MAGICIAN;
-            }else if(_Inn_CompareUTF8(szNeedJob, u8"共用"  )){ return IRNEEDJOB_ALL;
-            }else                                              return IRNEEDJOB_NONE;
+            }else if(ConstExprFunc::CompareUTF8(szNeedJob, u8"武士"  )){ return IRNEEDJOB_WARRIOR;
+            }else if(ConstExprFunc::CompareUTF8(szNeedJob, u8"战士"  )){ return IRNEEDJOB_WARRIOR;
+            }else if(ConstExprFunc::CompareUTF8(szNeedJob, u8"道士"  )){ return IRNEEDJOB_TAOIST;
+            }else if(ConstExprFunc::CompareUTF8(szNeedJob, u8"法师"  )){ return IRNEEDJOB_MAGICIAN;
+            }else if(ConstExprFunc::CompareUTF8(szNeedJob, u8"魔法师")){ return IRNEEDJOB_MAGICIAN;
+            }else if(ConstExprFunc::CompareUTF8(szNeedJob, u8"共用"  )){ return IRNEEDJOB_ALL;
+            }else                                                        return IRNEEDJOB_NONE;
         }
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 07/31/2017 01:44:57
+ *  Last Modified: 08/05/2017 20:13:52
  *
  *    Description: 
  *
@@ -37,6 +37,7 @@ PNGTexDBN      *g_MapDBN        = nullptr;
 PNGTexOffDBN   *g_HeroDBN       = nullptr; // database for hero
 PNGTexOffDBN   *g_MonsterDBN    = nullptr; // database for monster
 PNGTexOffDBN   *g_WeaponDBN     = nullptr; // database for weapon
+PNGTexOffDBN   *g_MagicDBN      = nullptr; // database for magic
 EmoticonDBN    *g_EmoticonDBN   = nullptr; // database for emoticons
 FontexDBN      *g_FontexDBN     = nullptr;
 XMLConf        *g_XMLConf       = nullptr; // for game configure XML parsing
@@ -75,6 +76,7 @@ int main()
     g_HeroDBN       = new PNGTexOffDBN();
     g_MonsterDBN    = new PNGTexOffDBN();
     g_WeaponDBN     = new PNGTexOffDBN();
+    g_MagicDBN      = new PNGTexOffDBN();
     g_FontexDBN     = new FontexDBN();
     g_EmoticonDBN   = new EmoticonDBN();
     g_Game          = new Game();

@@ -3,7 +3,7 @@
  *
  *       Filename: motionnode.hpp
  *        Created: 04/05/2017 12:38:46
- *  Last Modified: 07/08/2017 19:35:30
+ *  Last Modified: 08/05/2017 22:53:59
  *
  *    Description: for field MotionNode::Speed
  *                  

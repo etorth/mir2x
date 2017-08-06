@@ -3,7 +3,7 @@
  *
  *       Filename: initview.cpp
  *        Created: 07/18/2017 16:04:25
- *  Last Modified: 07/31/2017 01:47:11
+ *  Last Modified: 08/05/2017 20:16:36
  *
  *    Description: 
  *
@@ -29,8 +29,6 @@
 #include "fontexdbn.hpp"
 #include "pngtexdbn.hpp"
 #include "pngtexoffdbn.hpp"
-
-std::array<std::vector<uint32_t>, 3> g_BufU32V;
 
 InitView::InitView(size_t nFontSize)
     : m_ProcState(IVPROC_LOOP)
@@ -91,6 +89,13 @@ InitView::InitView(size_t nFontSize)
         return LoadDBN(nIndex, g_XMLConf, g_WeaponDBN, "Root/Texture/WeaponDBN");
     });
 
+    m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
+    {
+        extern XMLConf      *g_XMLConf;
+        extern PNGTexOffDBN *g_MagicDBN;
+        return LoadDBN(nIndex, g_XMLConf, g_MagicDBN, "Root/Texture/MagicDBN");
+    });
+
     // 2. loading font and textures
     static auto stBufU32V = []() -> std::array<std::vector<uint32_t>, 3>
     {
@@ -106,8 +111,6 @@ InitView::InitView(size_t nFontSize)
             // [N] : zeros
             #include "initview.inc"
         }};
-
-        g_BufU32V = stBufU32V;
 
         for(auto &stBufU32: stBufU32V){
             if(stBufU32.empty() || ((size_t)((stBufU32[0] + 3) / 4) + 1) > stBufU32.size()){
