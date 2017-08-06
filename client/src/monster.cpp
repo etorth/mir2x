@@ -105,7 +105,7 @@ bool Monster::Update()
                 }
             default:
                 {
-                    return UpdateGeneralMotion(false);
+                    return UpdateMotion(false);
                 }
         }
     }

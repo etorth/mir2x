@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 08/05/2017 22:57:04
+ *  Last Modified: 08/06/2017 01:53:35
  *
  *    Description: 
  *
@@ -20,12 +20,15 @@
 
 #include "log.hpp"
 #include "hero.hpp"
+#include "dbcomid.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
 #include "sdldevice.hpp"
 #include "pngtexdbn.hpp"
 #include "processrun.hpp"
 #include "motionnode.hpp"
+#include "effectnode.hpp"
+#include "dbcomrecord.hpp"
 #include "pngtexoffdbn.hpp"
 
 Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, ProcessRun *pRun, const ActionNode &rstAction)
@@ -133,6 +136,23 @@ bool Hero::Draw(int nViewX, int nViewY)
         fnDrawWeapon(false);
     }
 
+    // draw effects
+    for(auto &rstEffect: m_EffectQueue){
+        if(auto &rstER = DBCOM_MAGICRECORD(rstEffect.Effect)){
+            if(rstER.EffectGfxID >= 0){
+                extern SDLDevice *g_SDLDevice;
+                extern PNGTexOffDBN *g_MagicDBN;
+
+                int nOffX = 0;
+                int nOffY = 0;
+                if(auto pEffectTexture = g_MagicDBN->Retrieve(rstER.EffectGfxID + rstEffect.Frame, &nOffX, &nOffY)){
+                    SDL_SetTextureBlendMode(pEffectTexture, SDL_BLENDMODE_ADD);
+                    g_SDLDevice->DrawTexture(pEffectTexture, X() * SYS_MAPGRIDXP + nOffX - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nOffY - nViewY + nShiftY);
+                }
+            }
+        }
+    }
+
     // draw HP bar
     // if current m_HPMqx is zero we draw full bar
     switch(m_CurrMotion.Motion){
@@ -180,7 +200,8 @@ bool Hero::Update()
         // 1. record the update time
         m_LastUpdateTime = fTimeNow;
 
-        // 2. logic update
+        // 2. effect update
+        UpdateEffect();
 
         // 3. motion update
         switch(m_CurrMotion.Motion){
@@ -200,7 +221,7 @@ bool Hero::Update()
             case MOTION_HITTED:
                 {
                     if(m_MotionQueue.empty()){
-                        return UpdateGeneralMotion(false);
+                        return UpdateMotion(false);
                     }else{
                         // move to next motion will reset frame as 0
                         // if current there is no more motion pending
@@ -212,7 +233,7 @@ bool Hero::Update()
                 }
             default:
                 {
-                    return UpdateGeneralMotion(false);
+                    return UpdateMotion(false);
                 }
         }
     }
@@ -430,6 +451,8 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                             rstAction.Direction,
                             rstAction.X,
                             rstAction.Y);
+
+                    m_EffectQueue.emplace_back(rstAction.ActionParam ? DBCOM_MAGICID(u8"雷电术") : DBCOM_MAGICID(u8"魔法盾"));
                     break;
                 }
             case ACTION_ATTACK:

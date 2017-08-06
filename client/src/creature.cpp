@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 08/05/2017 22:55:40
+ *  Last Modified: 08/06/2017 01:46:02
  *
  *    Description: 
  *
@@ -30,6 +30,7 @@
 #include "ascendstr.hpp"
 #include "processrun.hpp"
 #include "protocoldef.hpp"
+#include "dbcomrecord.hpp"
 #include "clientpathfinder.hpp"
 
 bool Creature::EstimateShift(int *pShiftX, int *pShiftY)
@@ -378,7 +379,34 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
     return {};
 }
 
-bool Creature::UpdateGeneralMotion(bool bLooped)
+bool Creature::UpdateEffect()
+{
+    for(auto pRecord = m_EffectQueue.begin(); pRecord != m_EffectQueue.end();){
+        if(auto &rstER = DBCOM_MAGICRECORD(pRecord->Effect)){
+            if(pRecord->Frame >= rstER.EffectFrameCount - 1){
+                // one round of current effect finished
+                if(rstER.EffectLoop){
+                    pRecord->Frame = 0;
+                    pRecord++;
+                }else{
+                    pRecord = m_EffectQueue.erase(pRecord);
+                }
+            }else{
+                pRecord->Frame++;
+                pRecord++;
+            }
+        }else{
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_WARNING, "Invalid effect detected: %p", &(*pRecord));
+            pRecord->Print();
+
+            pRecord = m_EffectQueue.erase(pRecord);
+        }
+    }
+    return true;
+}
+
+bool Creature::UpdateMotion(bool bLooped)
 {
     auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
     if(nFrameCount >= 0){

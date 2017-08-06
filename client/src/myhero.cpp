@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 08/03/2017 00:42:20
+ *  Last Modified: 08/06/2017 01:22:48
  *
  *    Description: 
  *
@@ -46,7 +46,8 @@ bool MyHero::Update()
         // 1. record the update time
         m_LastUpdateTime = fTimeNow;
 
-        // 2. logic update
+        // 2. effect update
+        UpdateEffect();
 
         // 3. motion update
         switch(m_CurrMotion.Motion){
@@ -71,7 +72,7 @@ bool MyHero::Update()
                 {
                     if(m_MotionQueue.empty()){
                         if(m_ActionQueue.empty()){
-                            return UpdateGeneralMotion(false);
+                            return UpdateMotion(false);
                         }else{
                             return ParseActionQueue();
                         }
@@ -86,7 +87,7 @@ bool MyHero::Update()
                 }
             default:
                 {
-                    return UpdateGeneralMotion(false);
+                    return UpdateMotion(false);
                 }
         }
     }

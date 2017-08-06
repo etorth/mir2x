@@ -3,7 +3,7 @@
  *
  *       Filename: magicrecord.hpp
  *        Created: 08/04/2017 23:00:09
- *  Last Modified: 08/05/2017 12:25:22
+ *  Last Modified: 08/06/2017 12:50:52
  *
  *    Description: description of magic
  *                 1. prayer
@@ -29,13 +29,19 @@ class MagicRecord
 
         // prayer doesn't have delay information
         // it gets updated with motion frame synchronized
-        int PrayerGfxID;
-        int PrayerDirection;
-        int PrayerFrameCount;
+        int EffectGfxID;
+        int EffectDirection;
+        int EffectFrameCount;
+        int EffectLoop;
 
         int MagicGfxID;
         int MagicDirection;
         int MagicFrameCount;
+
+        int StruckGfxID;
+        int StruckDirection;
+        int StruckFrameCount;
+        int StruckLoop;
 
         int ExplosionGfxID;
         int ExplosionDirection;
@@ -45,26 +51,38 @@ class MagicRecord
         constexpr MagicRecord(
                 const char *szName,
 
-                int nPrayerGfxID,
-                int nPrayerDirection,
-                int nPrayerFrameCount,
+                int nEffectGfxID,
+                int nEffectDirection,
+                int nEffectFrameCount,
+                int nEffectLoop,
 
                 int nMagicGfxID,
                 int nMagicDirection,
                 int nMagicFrameCount,
+
+                int nStruckGfxID,
+                int nStruckDirection,
+                int nStruckFrameCount,
+                int nStruckLoop,
 
                 int nExplosionGfxID,
                 int nExplosionDirection,
                 int nExplosionFrameCount)
             : Name(szName ? szName : "")
 
-            , PrayerGfxID(nPrayerGfxID)
-            , PrayerDirection(nPrayerDirection)
-            , PrayerFrameCount(nPrayerFrameCount)
+            , EffectGfxID(nEffectGfxID)
+            , EffectDirection(nEffectDirection)
+            , EffectFrameCount(nEffectFrameCount)
+            , EffectLoop(nEffectLoop >= 1 ? 1 : 0)
 
             , MagicGfxID(nMagicGfxID)
             , MagicDirection(nMagicDirection)
             , MagicFrameCount(nMagicFrameCount)
+
+            , StruckGfxID(nStruckGfxID)
+            , StruckDirection(nStruckDirection)
+            , StruckFrameCount(nStruckFrameCount)
+            , StruckLoop(nStruckLoop >= 1 ? 1 : 0)
 
             , ExplosionGfxID(nExplosionGfxID)
             , ExplosionDirection(nExplosionDirection)
@@ -75,5 +93,9 @@ class MagicRecord
         operator bool () const
         {
             return true;
+        }
+
+        void Print() const
+        {
         }
 };

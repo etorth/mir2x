@@ -3,7 +3,7 @@
  *
  *       Filename: effectnode.hpp
  *        Created: 08/05/2017 22:58:20
- *  Last Modified: 08/05/2017 23:04:59
+ *  Last Modified: 08/06/2017 01:42:29
  *
  *    Description: 
  *
@@ -38,5 +38,9 @@ struct EffectNode
     operator bool () const
     {
         return Effect > 0;
+    }
+
+    void Print() const
+    {
     }
 };

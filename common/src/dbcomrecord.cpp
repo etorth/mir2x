@@ -3,7 +3,7 @@
  *
  *       Filename: dbcomrecord.cpp
  *        Created: 07/30/2017 02:01:02
- *  Last Modified: 07/30/2017 02:06:13
+ *  Last Modified: 08/05/2017 23:37:38
  *
  *    Description: split from dbcom.hpp
  *                 here we include dbcomid.hpp means we have a copy of the
@@ -40,6 +40,21 @@ const ItemRecord &DBCOM_ITEMRECORD(uint32_t nID)
 const ItemRecord &DBCOM_ITEMRECORD(const char *szName)
 {
     return DBCOM_ITEMRECORD(DBCOM_ITEMID(szName));
+}
+
+const MagicRecord &DBCOM_MAGICRECORD(uint32_t nID)
+{
+    if(true
+            && nID > 0
+            && nID < sizeof(_Inn_MagicRecordList) / sizeof(_Inn_MagicRecordList[0])){
+        return _Inn_MagicRecordList[nID];
+    }
+    return _Inn_MagicRecordList[0];
+}
+
+const MagicRecord &DBCOM_MAGICRECORD(const char *szName)
+{
+    return DBCOM_MAGICRECORD(DBCOM_MAGICID(szName));
 }
 
 const MonsterRecord &DBCOM_MONSTERRECORD(uint32_t nID)
