@@ -3,7 +3,7 @@
  *
  *       Filename: constexprfunc.hpp
  *        Created: 08/05/2017 12:14:11
- *  Last Modified: 08/05/2017 12:17:38
+ *  Last Modified: 08/06/2017 15:12:15
  *
  *    Description: 
  *
@@ -34,5 +34,15 @@ namespace ConstExprFunc
             }
         }
         return false;
+    }
+
+    template<typename... U> constexpr bool CheckIntParam(int nCheckInt, int nValidInt, U&&... u)
+    {
+        return (nCheckInt == nValidInt) || CheckIntParam(nCheckInt, std::forward<U>(u)...);
+    }
+
+    template<> constexpr bool CheckIntParam(int nCheckInt, int nValidInt)
+    {
+        return nCheckInt == nValidInt;
     }
 }

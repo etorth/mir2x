@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 08/06/2017 01:46:02
+ *  Last Modified: 08/06/2017 17:33:49
  *
  *    Description: 
  *
@@ -383,9 +383,9 @@ bool Creature::UpdateEffect()
 {
     for(auto pRecord = m_EffectQueue.begin(); pRecord != m_EffectQueue.end();){
         if(auto &rstER = DBCOM_MAGICRECORD(pRecord->Effect)){
-            if(pRecord->Frame >= rstER.EffectFrameCount - 1){
+            if(pRecord->Frame >= rstER.GetGfxEntry(u8"启动").FrameCount - 1){
                 // one round of current effect finished
-                if(rstER.EffectLoop){
+                if(rstER.GetGfxEntry(u8"启动").Loop){
                     pRecord->Frame = 0;
                     pRecord++;
                 }else{

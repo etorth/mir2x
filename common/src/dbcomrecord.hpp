@@ -3,7 +3,7 @@
  *
  *       Filename: dbcomrecord.hpp
  *        Created: 07/28/2017 23:03:43
- *  Last Modified: 08/05/2017 21:20:32
+ *  Last Modified: 08/06/2017 17:26:32
  *
  *    Description: split from dbcom.hpp
  *                 don't include dbcomid.hpp in this header file
@@ -24,7 +24,6 @@
 #include "itemrecord.hpp"
 #include "magicrecord.hpp"
 #include "monsterrecord.hpp"
-
 
 const ItemRecord &DBCOM_ITEMRECORD(uint32_t);
 const ItemRecord &DBCOM_ITEMRECORD(const char *);

@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 08/06/2017 01:53:35
+ *  Last Modified: 08/06/2017 17:37:37
  *
  *    Description: 
  *
@@ -139,13 +139,13 @@ bool Hero::Draw(int nViewX, int nViewY)
     // draw effects
     for(auto &rstEffect: m_EffectQueue){
         if(auto &rstER = DBCOM_MAGICRECORD(rstEffect.Effect)){
-            if(rstER.EffectGfxID >= 0){
+            if(rstER.GetGfxEntry(u8"启动").GfxID >= 0){
                 extern SDLDevice *g_SDLDevice;
                 extern PNGTexOffDBN *g_MagicDBN;
 
                 int nOffX = 0;
                 int nOffY = 0;
-                if(auto pEffectTexture = g_MagicDBN->Retrieve(rstER.EffectGfxID + rstEffect.Frame, &nOffX, &nOffY)){
+                if(auto pEffectTexture = g_MagicDBN->Retrieve(rstER.GetGfxEntry(u8"启动").GfxID + rstEffect.Frame, &nOffX, &nOffY)){
                     SDL_SetTextureBlendMode(pEffectTexture, SDL_BLENDMODE_ADD);
                     g_SDLDevice->DrawTexture(pEffectTexture, X() * SYS_MAPGRIDXP + nOffX - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nOffY - nViewY + nShiftY);
                 }

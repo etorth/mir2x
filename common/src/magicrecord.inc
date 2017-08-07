@@ -3,7 +3,7 @@
  *
  *       Filename: magicrecord.inc
  *        Created: 08/04/2017 23:00:09
- *  Last Modified: 08/06/2017 13:26:39
+ *  Last Modified: 08/06/2017 17:15:30
  *
  *    Description: description of magic
  *                 1. prayer
@@ -21,7 +21,25 @@
  * =====================================================================================
  */
 
-//-Name-------------------+-EffectGfxID-----+-EffectDirection---+-EffectFrameCount--+-EffectLoop----+-MagicGfxID----+-MagicDirectioin---+-MagicFrameCount---+-StruckGfxID-----+-StruckDirection---+-StruckFrameCount--+-StruckLoop----+-ExplosionGfxID----+-ExplosionDirection----+-ExplosionFrameCount---+
-{  u8""                   ,-1               ,-1                 ,-1                 , 0             ,-1             ,-1                 ,-1                 ,-1               ,-1                 ,-1                 , 0             ,-1                 ,-1                     ,-1                     },
-{  u8"雷电术"             , 0X00000596      , 1                 , 12                , 0             ,-1             ,-1                 ,-1                 , 0X00000000      , 1                 , 12                , 0             ,-1                 ,-1                     ,-1                     },
-{  u8"魔法盾"             , 0X0000033E      , 1                 , 19                , 0             ,-1             ,-1                 ,-1                 , 0X00000000      , 1                 , 9                 , 0             ,-1                 ,-1                     ,-1                     },
+{
+    u8"",
+
+    // empty record
+    // won't put any GfxEntry here
+},
+
+{
+    u8"雷电术",
+
+    GfxEntry {u8"启动", 0X00000596, 12, 0, 1},
+    GfxEntry {u8"运行", 0X000005AA,  5, 0, 1},
+},
+
+{
+    u8"魔法盾",
+
+    GfxEntry {u8"启动", 0X0000033E,  9, 0, 1},
+    GfxEntry {u8"开始", 0X00000347, 10, 0, 1},
+    GfxEntry {u8"运行", 0X00000352,  3, 0, 1},
+    GfxEntry {u8"挨打", 0X00000355,  3, 0, 1},
+},
