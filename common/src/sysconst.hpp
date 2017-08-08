@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 07/31/2017 11:50:56
+ *  Last Modified: 08/08/2017 15:09:29
  *
  *    Description: 
  *
@@ -28,6 +28,8 @@
 // height is 600, then for object slice it's (44 * 32 - 600) / 32 = 25.25, means there
 // are 26 cells of one object slice at most, then design data structure for object
 // rendering method based on this information
+
+const int SYS_DEFFPS = 30;
 
 const int SYS_TARGETRGN_GAPX = 10;
 const int SYS_TARGETRGN_GAPY = 8;

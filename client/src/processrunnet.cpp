@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 07/30/2017 22:57:52
+ *  Last Modified: 08/08/2017 16:57:47
  *
  *    Description: 
  *
@@ -201,6 +201,56 @@ void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
     SMShowDropItem stSMSDI;
     std::memcpy(&stSMSDI, pBuf, sizeof(stSMSDI));
 
-    m_GroundItem.emplace_back(stSMSDI.ID, stSMSDI.X, stSMSDI.Y);
+    m_GroundItemList.emplace_back(stSMSDI.ID, stSMSDI.X, stSMSDI.Y);
     AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"发现(%d, %d): %s", stSMSDI.X, stSMSDI.Y, DBCOM_ITEMRECORD(stSMSDI.ID).Name);
+}
+
+void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
+{
+    SMFireMagic stSMFM;
+    std::memcpy(&stSMFM, pBuf, sizeof(stSMFM));
+
+    if(auto &rstMR = DBCOM_MAGICRECORD(stSMFM.Magic)){
+        AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"使用魔法: %s", rstMR.Name);
+
+        const GfxEntry *pEntry = nullptr;
+        if(stSMFM.UID != m_MyHero->UID()){
+            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"启动")); }
+            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"开始")); }
+            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"运行")); }
+            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"结束")); }
+        }else{
+            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"开始")); }
+            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"运行")); }
+            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"结束")); }
+        }
+
+        if(pEntry){
+            switch(pEntry->Type){
+                case EGT_BOUND:
+                    {
+                        if(auto pCreature = RetrieveUID(stSMFM.AimUID)){
+                            pCreature->AddEffect(stSMFM.Magic, 0, (int)(pEntry - &(rstMR.GetGfxEntry(0))));
+                        }
+                        break;
+                    }
+                case EGT_FIXED:
+                    {
+                        break;
+                    }
+                case EGT_SHOOT:
+                    {
+                        break;
+                    }
+                case EGT_FOLLOW:
+                    {
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+    }
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 08/06/2017 01:22:48
+ *  Last Modified: 08/08/2017 14:53:22
  *
  *    Description: 
  *
@@ -44,10 +44,11 @@ bool MyHero::Update()
     double fTimeNow = SDL_GetTicks() * 1.0;
     if(fTimeNow > fnGetUpdateDelay(m_CurrMotion.Speed, m_UpdateDelay) + m_LastUpdateTime){
         // 1. record the update time
+        auto fTimeDelay  = fTimeNow - m_LastUpdateTime;
         m_LastUpdateTime = fTimeNow;
 
         // 2. effect update
-        UpdateEffect();
+        UpdateEffect(fTimeDelay);
 
         // 3. motion update
         switch(m_CurrMotion.Motion){
@@ -245,6 +246,317 @@ bool MyHero::DecompMove(bool bCheckGround, bool bCheckCreature, bool bCheckMove,
     }
 }
 
+bool MyHero::ParseActionMove()
+{
+    if(true
+            && !m_ActionQueue.empty()
+            &&  m_ActionQueue.front().Action == ACTION_MOVE){
+
+        auto stCurrAction = m_ActionQueue.front();
+        m_ActionQueue.pop_front();
+
+        int nX0 = stCurrAction.X;
+        int nY0 = stCurrAction.Y;
+        int nX1 = stCurrAction.AimX;
+        int nY1 = stCurrAction.AimY;
+
+        if(!m_ProcessRun->CanMove(false, nX0, nY0)){
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
+
+            m_ActionQueue.clear();
+            return false;
+        }
+
+        switch(LDistance2(nX0, nY0, nX1, nY1)){
+            case 0:
+                {
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+
+                    m_ActionQueue.clear();
+                    return false;
+                }
+            default:
+                {
+                    bool bCheckGround = m_ProcessRun->CanMove(false, nX1, nY1);
+                    auto stPathNodeV  = ParseMovePath(nX0, nY0, nX1, nY1, bCheckGround, true);
+                    switch(stPathNodeV.size()){
+                        case 0:
+                        case 1:
+                            {
+                                extern Log *g_Log;
+                                g_Log->AddLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+
+                                m_ActionQueue.clear();
+                                return false;
+                            }
+                        default:
+                            {
+                                // need to check the first step it gives
+                                // to avoid hero to move into an invalid grid on the map
+
+                                auto nXm = stPathNodeV[1].X;
+                                auto nYm = stPathNodeV[1].Y;
+
+                                int nDX = (nXm > nX0) - (nXm < nX0);
+                                int nDY = (nYm > nY0) - (nYm < nY0);
+
+                                int nIndexMax = 0;
+                                switch(LDistance2(nX0, nY0, nXm, nYm)){
+                                    case 1:
+                                    case 2:
+                                        {
+                                            nIndexMax = 1;
+                                            break;
+                                        }
+                                    case 4:
+                                    case 8:
+                                        {
+                                            nIndexMax = 2;
+                                            break;
+                                        }
+                                    case  9:
+                                    case 18:
+                                        {
+                                            nIndexMax = 3;
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            extern Log *g_Log;
+                                            g_Log->AddLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nXm, nYm);
+
+                                            m_ActionQueue.clear();
+                                            return false;
+                                        }
+                                }
+
+                                // reset (nXm, nYm) to be the max possible point
+                                {
+                                    nXm = nX0;
+                                    nYm = nY0;
+
+                                    for(int nIndex = 1; nIndex <= nIndexMax; ++nIndex){
+                                        if(m_ProcessRun->CanMove(true, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+                                            nXm = nX0 + nDX * nIndex;
+                                            nYm = nY0 + nDY * nIndex;
+                                        }else{ break; }
+                                    }
+                                }
+
+                                switch(LDistance2(nX0, nY0, nXm, nYm)){
+                                    case 0:
+                                        {
+                                            // can't move since next is invalid
+                                            // but this doesn't means the parse failed
+
+                                            // make a turn if needed
+                                            static const int nDirV[][3] = {
+                                                {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
+                                                {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
+                                                {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
+
+                                            m_ActionQueue.emplace_front(
+                                                    ACTION_STAND,
+                                                    0,
+                                                    stCurrAction.Speed,
+                                                    nDirV[nDY + 1][nDX + 1],
+                                                    nX0,
+                                                    nY0,
+                                                    m_ProcessRun->MapID());
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            // decomposition succeeds
+                                            // need now to check if we are at the final point
+
+                                            if(LDistance2(nXm, nYm, nX1, nY1)){
+
+                                                // if current last grid is not the dst point
+                                                // we still have grid to cross
+
+                                                m_ActionQueue.emplace_front(
+                                                        ACTION_MOVE,
+                                                        stCurrAction.ActionParam,
+                                                        stCurrAction.Speed,
+                                                        DIR_NONE,
+                                                        nXm,
+                                                        nYm,
+                                                        nX1,
+                                                        nY1,
+                                                        m_ProcessRun->MapID());
+                                            }
+
+                                            m_ActionQueue.emplace_front(
+                                                    ACTION_MOVE,
+                                                    stCurrAction.ActionParam,
+                                                    stCurrAction.Speed,
+                                                    DIR_NONE,
+                                                    nX0,
+                                                    nY0,
+                                                    nXm,
+                                                    nYm,
+                                                    m_ProcessRun->MapID());
+                                            break;
+                                        }
+                                }
+
+                                return true;
+                            }
+                    }
+                    break;
+                }
+        }
+    }
+    return false;
+}
+
+bool MyHero::ParseActionAttack()
+{
+    if(true
+            && !m_ActionQueue.empty()
+            &&  m_ActionQueue.front().Action == ACTION_ATTACK){
+
+        auto stCurrAction = m_ActionQueue.front();
+        m_ActionQueue.pop_front();
+
+        int nX0 = m_CurrMotion.EndX;
+        int nY0 = m_CurrMotion.EndY;
+        int nX1 = stCurrAction.AimX;
+        int nY1 = stCurrAction.AimY;
+
+        switch(LDistance2(nX0, nY0, nX1, nY1)){
+            case 0:
+                {
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_WARNING, "Invalid attack location (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+
+                    m_ActionQueue.clear();
+                    return false;
+                }
+            case 1:
+            case 2:
+                {
+                    // don't parse more than one action at one call
+                    // ok we are at the place for attack, assign direction here
+
+                    static const int nDirV[][3] = {
+                        {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
+                        {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
+                        {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
+
+                    auto nSDX = nX1 - nX0 + 1;
+                    auto nSDY = nY1 - nY0 + 1;
+
+                    m_ActionQueue.emplace_front(
+                            ACTION_ATTACK,
+                            stCurrAction.ActionParam,
+                            stCurrAction.Speed,
+                            nDirV[nSDY][nSDX],
+                            m_CurrMotion.EndX,
+                            m_CurrMotion.EndY,
+                            stCurrAction.AimX,
+                            stCurrAction.AimY,
+                            m_ProcessRun->MapID());
+                    return true;
+                }
+            default:
+                {
+                    // complex part
+                    // not close enough for the PLAIN_PHY_ATTACK
+                    // need to schedule a path to move closer and then attack
+
+                    int nXt = -1;
+                    int nYt = -1;
+
+                    if(DecompMove(true, true, true, nX0, nY0, nX1, nY1, &nXt, &nYt)){
+                        if(false
+                                || nXt != nX1
+                                || nYt != nY1){
+
+                            // we find a distinct point as middle point
+                            // we firstly move to (nXt, nYt) then parse the attack action
+                            m_ActionQueue.emplace_front(
+                                    ACTION_ATTACK,
+                                    stCurrAction.ActionParam,
+                                    stCurrAction.Speed,
+                                    DIR_NONE,
+                                    nXt,
+                                    nYt,
+                                    nX1,
+                                    nY1,
+                                    m_ProcessRun->MapID());
+
+                            m_ActionQueue.emplace_front(
+                                    ACTION_MOVE,
+                                    OnHorse() ? 1 : 0,
+                                    stCurrAction.Speed,
+                                    DIR_NONE,
+                                    nX0,
+                                    nY0,
+                                    nXt,
+                                    nYt,
+                                    m_ProcessRun->MapID());
+                        }else{
+
+                            // one hop we can reach the attack location
+                            // but we know step size between (nX0, nY0) and (nX1, nY1) > 1
+
+                            int nDX = (nXt > nX0) - (nXt < nX0);
+                            int nDY = (nYt > nY0) - (nYt < nY0);
+
+                            m_ActionQueue.emplace_front(
+                                    ACTION_ATTACK,
+                                    stCurrAction.ActionParam,
+                                    stCurrAction.Speed,
+                                    DIR_NONE,
+                                    nX0 + nDX,
+                                    nY0 + nDY,
+                                    nX1,
+                                    nY1,
+                                    m_ProcessRun->MapID());
+
+                            m_ActionQueue.emplace_front(
+                                    ACTION_MOVE,
+                                    OnHorse() ? 1 : 0,
+                                    stCurrAction.Speed,
+                                    DIR_NONE,
+                                    nX0,
+                                    nY0,
+                                    nX0 + nDX,
+                                    nY0 + nDY,
+                                    m_ProcessRun->MapID());
+                        }
+
+                        // ok action decomposition succeeds
+                        // now the first action node is proper to parse & send
+                        return true;
+
+                    }else{
+
+                        // decompse failed, why it failed?
+                        // if can't reach we need to reject current action
+                        // if caused by occupied grids of creatures, we need to keep it
+
+                        if(DecompMove(true, false, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
+
+                            // keep it
+                            m_ActionQueue.emplace_front(stCurrAction);
+                            return true;
+                        }else{
+
+                            m_ActionQueue.clear();
+                            return false;
+                        }
+                    }
+                }
+        }
+    }
+    return false;
+}
+
 bool MyHero::ParseActionQueue()
 {
     if(m_ActionQueue.empty()){
@@ -261,316 +573,29 @@ bool MyHero::ParseActionQueue()
 
     // decompose the first action if complex
     // make sure the first action is simple enough
-    {
-        auto stCurrAction = m_ActionQueue.front();
-        m_ActionQueue.pop_front();
-
-        switch(stCurrAction.Action){
-            case ACTION_MOVE:
-                {
-                    int nX0 = stCurrAction.X;
-                    int nY0 = stCurrAction.Y;
-                    int nX1 = stCurrAction.AimX;
-                    int nY1 = stCurrAction.AimY;
-
-                    if(!m_ProcessRun->CanMove(false, nX0, nY0)){
-                        extern Log *g_Log;
-                        g_Log->AddLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
-
-                        m_ActionQueue.clear();
-                        return false;
-                    }
-
-                    switch(LDistance2(nX0, nY0, nX1, nY1)){
-                        case 0:
-                            {
-                                extern Log *g_Log;
-                                g_Log->AddLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
-
-                                m_ActionQueue.clear();
-                                return false;
-                            }
-                        default:
-                            {
-                                bool bCheckGround = m_ProcessRun->CanMove(false, nX1, nY1);
-                                auto stPathNodeV  = ParseMovePath(nX0, nY0, nX1, nY1, bCheckGround, true);
-                                switch(stPathNodeV.size()){
-                                    case 0:
-                                    case 1:
-                                        {
-                                            extern Log *g_Log;
-                                            g_Log->AddLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
-
-                                            m_ActionQueue.clear();
-                                            return false;
-                                        }
-                                    default:
-                                        {
-                                            // need to check the first step it gives
-                                            // to avoid hero to move into an invalid grid on the map
-
-                                            auto nXm = stPathNodeV[1].X;
-                                            auto nYm = stPathNodeV[1].Y;
-
-                                            int nDX = (nXm > nX0) - (nXm < nX0);
-                                            int nDY = (nYm > nY0) - (nYm < nY0);
-
-                                            int nIndexMax = 0;
-                                            switch(LDistance2(nX0, nY0, nXm, nYm)){
-                                                case 1:
-                                                case 2:
-                                                    {
-                                                        nIndexMax = 1;
-                                                        break;
-                                                    }
-                                                case 4:
-                                                case 8:
-                                                    {
-                                                        nIndexMax = 2;
-                                                        break;
-                                                    }
-                                                case  9:
-                                                case 18:
-                                                    {
-                                                        nIndexMax = 3;
-                                                        break;
-                                                    }
-                                                default:
-                                                    {
-                                                        extern Log *g_Log;
-                                                        g_Log->AddLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nXm, nYm);
-
-                                                        m_ActionQueue.clear();
-                                                        return false;
-                                                    }
-                                            }
-
-                                            // reset (nXm, nYm) to be the max possible point
-                                            {
-                                                nXm = nX0;
-                                                nYm = nY0;
-
-                                                for(int nIndex = 1; nIndex <= nIndexMax; ++nIndex){
-                                                    if(m_ProcessRun->CanMove(true, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
-                                                        nXm = nX0 + nDX * nIndex;
-                                                        nYm = nY0 + nDY * nIndex;
-                                                    }else{ break; }
-                                                }
-                                            }
-
-                                            switch(LDistance2(nX0, nY0, nXm, nYm)){
-                                                case 0:
-                                                    {
-                                                        // can't move since next is invalid
-                                                        // but this doesn't means the parse failed
-
-                                                        // make a turn if needed
-                                                        static const int nDirV[][3] = {
-                                                            {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
-                                                            {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
-                                                            {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
-
-                                                        m_ActionQueue.emplace_front(
-                                                                ACTION_STAND,
-                                                                0,
-                                                                stCurrAction.Speed,
-                                                                nDirV[nDY + 1][nDX + 1],
-                                                                nX0,
-                                                                nY0,
-                                                                m_ProcessRun->MapID());
-                                                        break;
-                                                    }
-                                                default:
-                                                    {
-                                                        // decomposition succeeds
-                                                        // need now to check if we are at the final point
-
-                                                        if(LDistance2(nXm, nYm, nX1, nY1)){
-
-                                                            // if current last grid is not the dst point
-                                                            // we still have grid to cross
-
-                                                            m_ActionQueue.emplace_front(
-                                                                    ACTION_MOVE,
-                                                                    stCurrAction.ActionParam,
-                                                                    stCurrAction.Speed,
-                                                                    DIR_NONE,
-                                                                    nXm,
-                                                                    nYm,
-                                                                    nX1,
-                                                                    nY1,
-                                                                    m_ProcessRun->MapID());
-                                                        }
-
-                                                        m_ActionQueue.emplace_front(
-                                                                ACTION_MOVE,
-                                                                stCurrAction.ActionParam,
-                                                                stCurrAction.Speed,
-                                                                DIR_NONE,
-                                                                nX0,
-                                                                nY0,
-                                                                nXm,
-                                                                nYm,
-                                                                m_ProcessRun->MapID());
-                                                        break;
-                                                    }
-                                            }
-                                            break;
-                                        }
-                                }
-                                break;
-                            }
-                    }
-
-                    break;
+    switch(m_ActionQueue.front().Action){
+        case ACTION_MOVE:
+            {
+                if(!ParseActionMove()){
+                    return false;
                 }
-            case ACTION_ATTACK:
-                {
-                    int nX0 = m_CurrMotion.EndX;
-                    int nY0 = m_CurrMotion.EndY;
-                    int nX1 = stCurrAction.AimX;
-                    int nY1 = stCurrAction.AimY;
-
-                    switch(LDistance2(nX0, nY0, nX1, nY1)){
-                        case 0:
-                            {
-                                extern Log *g_Log;
-                                g_Log->AddLog(LOGTYPE_WARNING, "Invalid attack location (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
-
-                                m_ActionQueue.clear();
-                                return false;
-                            }
-                        case 1:
-                        case 2:
-                            {
-                                // don't parse more than one action at one call
-                                // ok we are at the place for attack, assign direction here
-
-                                static const int nDirV[][3] = {
-                                    {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
-                                    {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
-                                    {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
-
-                                auto nSDX = nX1 - nX0 + 1;
-                                auto nSDY = nY1 - nY0 + 1;
-
-                                m_ActionQueue.emplace_front(
-                                        ACTION_ATTACK,
-                                        stCurrAction.ActionParam,
-                                        stCurrAction.Speed,
-                                        nDirV[nSDY][nSDX],
-                                        m_CurrMotion.EndX,
-                                        m_CurrMotion.EndY,
-                                        stCurrAction.AimX,
-                                        stCurrAction.AimY,
-                                        m_ProcessRun->MapID());
-
-                                break;
-                            }
-                        default:
-                            {
-                                // complex part
-                                // not close enough for the PLAIN_PHY_ATTACK
-                                // need to schedule a path to move closer and then attack
-
-                                int nXt = -1;
-                                int nYt = -1;
-
-                                if(DecompMove(true, true, true, nX0, nY0, nX1, nY1, &nXt, &nYt)){
-                                    if(false
-                                            || nXt != nX1
-                                            || nYt != nY1){
-
-                                        // we find a distinct point as middle point
-                                        // we firstly move to (nXt, nYt) then parse the attack action
-                                        m_ActionQueue.emplace_front(
-                                                ACTION_ATTACK,
-                                                stCurrAction.ActionParam,
-                                                stCurrAction.Speed,
-                                                DIR_NONE,
-                                                nXt,
-                                                nYt,
-                                                nX1,
-                                                nY1,
-                                                m_ProcessRun->MapID());
-
-                                        m_ActionQueue.emplace_front(
-                                                ACTION_MOVE,
-                                                OnHorse() ? 1 : 0,
-                                                stCurrAction.Speed,
-                                                DIR_NONE,
-                                                nX0,
-                                                nY0,
-                                                nXt,
-                                                nYt,
-                                                m_ProcessRun->MapID());
-                                    }else{
-
-                                        // one hop we can reach the attack location
-                                        // but we know step size between (nX0, nY0) and (nX1, nY1) > 1
-
-                                        int nDX = (nXt > nX0) - (nXt < nX0);
-                                        int nDY = (nYt > nY0) - (nYt < nY0);
-
-                                        m_ActionQueue.emplace_front(
-                                                ACTION_ATTACK,
-                                                stCurrAction.ActionParam,
-                                                stCurrAction.Speed,
-                                                DIR_NONE,
-                                                nX0 + nDX,
-                                                nY0 + nDY,
-                                                nX1,
-                                                nY1,
-                                                m_ProcessRun->MapID());
-
-                                        m_ActionQueue.emplace_front(
-                                                ACTION_MOVE,
-                                                OnHorse() ? 1 : 0,
-                                                stCurrAction.Speed,
-                                                DIR_NONE,
-                                                nX0,
-                                                nY0,
-                                                nX0 + nDX,
-                                                nY0 + nDY,
-                                                m_ProcessRun->MapID());
-                                    }
-
-                                    // ok action decomposition succeeds
-                                    // now the first action node is proper to parse & send
-
-                                }else{
-
-                                    // decompse failed, why it failed?
-                                    // if can't reach we need to reject current action
-                                    // if caused by occupied grids of creatures, we need to keep it
-
-                                    if(DecompMove(true, false, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
-
-                                        // keep it
-                                        m_ActionQueue.emplace_front(stCurrAction);
-                                        return true;
-                                    }else{
-
-                                        m_ActionQueue.clear();
-                                        return false;
-                                    }
-                                }
-                                break;
-                            }
-                            break;
-                    }
-                    break;
+                break;
+            }
+        case ACTION_ATTACK:
+            {
+                if(!ParseActionAttack()){
+                    return false;
                 }
-            case ACTION_SPELL:
-                {
-                    m_ActionQueue.emplace_front(stCurrAction);
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
+                break;
+            }
+        case ACTION_SPELL:
+            {
+                break;
+            }
+        default:
+            {
+                break;
+            }
     }
 
     // pick the first simple action and handle it

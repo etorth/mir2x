@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 07/30/2017 19:42:03
+ *  Last Modified: 08/07/2017 17:49:59
  *
  *    Description: 
  *
@@ -145,7 +145,12 @@ class Player: public CharObject
         bool InRange(int, int, int);
 
     protected:
+        bool ActionValid(const ActionNode &);
+        bool MotionValid(const ActionNode &);
+
+    protected:
         void OnCMActionMove();
+        void OnCMActionSpell(const ActionNode &);
         void OnCMActionAttack(int, int, int, int, int, int, int);
 
     protected:

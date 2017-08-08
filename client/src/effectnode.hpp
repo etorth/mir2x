@@ -3,7 +3,7 @@
  *
  *       Filename: effectnode.hpp
  *        Created: 08/05/2017 22:58:20
- *  Last Modified: 08/06/2017 01:42:29
+ *  Last Modified: 08/08/2017 16:52:29
  *
  *    Description: 
  *
@@ -19,28 +19,74 @@
  */
 
 #pragma once
-struct EffectNode
+#include "dbcomrecord.hpp"
+#include "magicrecord.hpp"
+class EffectNode
 {
-    // part-1: const fields
-    //         description of this effect
+    private:
+        int m_MagicID;
+        int m_MagicParam;
+        int m_GfxEntryID;
 
-    int Effect;
+    private:
+        double m_TimeOut;
+        double m_AccuTime;
 
-    // part-2 : mutable field
-    //          always initialized as 0 and get updated later
-    int Frame;
+    public:
+        EffectNode(int,     // MagicID
+                int,        // MagicParam
+                int,        // GfxEntryID
+                double);    // TimeOut
 
-    EffectNode(int nEffect)
-        : Effect(nEffect)
-        , Frame(0)
-    {}
+        EffectNode(int,     // MagicID
+                int,        // MagicParam
+                int);       // GfxEntryID
 
-    operator bool () const
-    {
-        return Effect > 0;
-    }
+    public:
+        int MagicID() const
+        {
+            return m_MagicID;
+        }
 
-    void Print() const
-    {
-    }
+        int MagicParam() const
+        {
+            return m_MagicParam;
+        }
+
+        int GfxEntryID() const
+        {
+            return m_GfxEntryID;
+        }
+
+    public:
+        int Frame() const;
+
+    public:
+        void Update(double);
+
+    public:
+        void Draw(int, int);
+
+    public:
+        bool Done() const
+        {
+            if(auto &rstGfxEntry = DBCOM_MAGICRECORD(MagicID()).GetGfxEntry(GfxEntryID())){
+                if(false
+                        || rstGfxEntry.Loop == 1
+                        || Frame() < rstGfxEntry.FrameCount - 1){
+                    return false;
+                }
+            }
+            return true;
+        }
+
+    public:
+        operator bool () const
+        {
+            return (MagicID() > 0) && (GfxEntryID() >= 0);
+        }
+
+        void Print() const
+        {
+        }
 };

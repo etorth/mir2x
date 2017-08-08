@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 08/06/2017 01:15:35
+ *  Last Modified: 08/08/2017 15:46:04
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -127,6 +127,7 @@
 #include "motionnode.hpp"
 #include "effectnode.hpp"
 #include "pathfinder.hpp"
+#include "magicrecord.hpp"
 #include "protocoldef.hpp"
 
 class ProcessRun;
@@ -229,8 +230,8 @@ class Creature
         virtual bool AdvanceMotionFrame(int);
 
     protected:
-        virtual bool UpdateEffect();
         virtual bool UpdateMotion(bool);
+        virtual bool UpdateEffect(double);
 
     public:
         virtual bool Update() = 0;
@@ -292,4 +293,7 @@ class Creature
     protected:
         virtual MotionNode MakeMotionIdle() const;
         virtual MotionNode MakeMotionWalk(int, int, int, int, int) const = 0;
+
+    public:
+        bool AddEffect(int, int, int);
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 08/06/2017 17:37:37
+ *  Last Modified: 08/08/2017 16:57:34
  *
  *    Description: 
  *
@@ -138,19 +138,7 @@ bool Hero::Draw(int nViewX, int nViewY)
 
     // draw effects
     for(auto &rstEffect: m_EffectQueue){
-        if(auto &rstER = DBCOM_MAGICRECORD(rstEffect.Effect)){
-            if(rstER.GetGfxEntry(u8"启动").GfxID >= 0){
-                extern SDLDevice *g_SDLDevice;
-                extern PNGTexOffDBN *g_MagicDBN;
-
-                int nOffX = 0;
-                int nOffY = 0;
-                if(auto pEffectTexture = g_MagicDBN->Retrieve(rstER.GetGfxEntry(u8"启动").GfxID + rstEffect.Frame, &nOffX, &nOffY)){
-                    SDL_SetTextureBlendMode(pEffectTexture, SDL_BLENDMODE_ADD);
-                    g_SDLDevice->DrawTexture(pEffectTexture, X() * SYS_MAPGRIDXP + nOffX - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nOffY - nViewY + nShiftY);
-                }
-            }
-        }
+        rstEffect.Draw(X() * SYS_MAPGRIDXP - nViewX + nShiftX, Y() * SYS_MAPGRIDYP - nViewY + nShiftY);
     }
 
     // draw HP bar
@@ -198,10 +186,11 @@ bool Hero::Update()
     double fTimeNow = SDL_GetTicks() * 1.0;
     if(fTimeNow > fnGetUpdateDelay(m_CurrMotion.Speed, m_UpdateDelay) + m_LastUpdateTime){
         // 1. record the update time
+        auto fTimeDelay  = fTimeNow - m_LastUpdateTime;
         m_LastUpdateTime = fTimeNow;
 
         // 2. effect update
-        UpdateEffect();
+        UpdateEffect(fTimeDelay);
 
         // 3. motion update
         switch(m_CurrMotion.Motion){
@@ -445,14 +434,22 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                 }
             case ACTION_SPELL:
                 {
-                    m_MotionQueue.emplace_back(
-                            rstAction.ActionParam ? MOTION_SPELL0 : MOTION_SPELL1,
-                            0,
-                            rstAction.Direction,
-                            rstAction.X,
-                            rstAction.Y);
+                    int nMotionSpell = MOTION_NONE;
+                    if(auto &rstMR = DBCOM_MAGICRECORD(rstAction.ActionParam)){
+                        if(auto &rstGfxEntry = rstMR.GetGfxEntry(u8"启动")){
+                            switch(rstGfxEntry.Motion){
+                                case 0  : nMotionSpell = MOTION_SPELL0; break;
+                                case 1  : nMotionSpell = MOTION_SPELL1; break;
+                                default : nMotionSpell = MOTION_NONE;   break;
+                            }
 
-                    m_EffectQueue.emplace_back(rstAction.ActionParam ? DBCOM_MAGICID(u8"雷电术") : DBCOM_MAGICID(u8"魔法盾"));
+                            if(nMotionSpell != MOTION_NONE){
+                                m_MotionQueue.emplace_back(nMotionSpell, 0, rstAction.Direction, rstAction.X, rstAction.Y);
+                            }
+
+                            AddEffect(rstAction.ActionParam, 0, (int)(&rstGfxEntry - &(rstMR.GetGfxEntry(0))));
+                        }
+                    }
                     break;
                 }
             case ACTION_ATTACK:

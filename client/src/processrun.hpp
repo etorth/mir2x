@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 07/30/2017 21:33:53
+ *  Last Modified: 08/08/2017 00:25:58
  *
  *    Description: 
  *
@@ -31,6 +31,7 @@
 #include "focustype.hpp"
 #include "ascendstr.hpp"
 #include "grounditem.hpp"
+#include "indepmagic.hpp"
 #include "labelboard.hpp"
 #include "mir2xmapdata.hpp"
 #include "controlboard.hpp"
@@ -72,7 +73,8 @@ class ProcessRun: public Process
         ControlBoard m_ControbBoard;
 
     private:
-        std::vector<GroundItem> m_GroundItem;
+        std::vector<IndepMagic> m_IndepMagicList;
+        std::vector<GroundItem> m_GroundItemList;
         std::map<uint32_t, Creature*> m_CreatureRecord;
 
     private:
@@ -128,6 +130,7 @@ class ProcessRun: public Process
         void Net_LOGINOK(const uint8_t *, size_t);
         void Net_CORECORD(const uint8_t *, size_t);
         void Net_UPDATEHP(const uint8_t *, size_t);
+        void Net_FIREMAGIC(const uint8_t *, size_t);
         void Net_DEADFADEOUT(const uint8_t *, size_t);
         void Net_MONSTERGINFO(const uint8_t *, size_t);
         void Net_SHOWDROPITEM(const uint8_t *, size_t);

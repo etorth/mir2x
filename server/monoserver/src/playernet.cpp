@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 07/24/2017 22:45:11
+ *  Last Modified: 08/07/2017 18:16:21
  *
  *    Description: how player respond for different net package
  *
@@ -179,6 +179,20 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                                 // return;
                             }
                     }
+                    break;
+                }
+            case ACTION_SPELL:
+                {
+                    OnCMActionSpell({
+                            stCMA.Action,
+                            stCMA.ActionParam,
+                            stCMA.Speed,
+                            stCMA.Direction,
+                            stCMA.X,
+                            stCMA.Y,
+                            stCMA.AimX,
+                            stCMA.AimY,
+                            stCMA.MapID});
                     break;
                 }
             case ACTION_STAND:

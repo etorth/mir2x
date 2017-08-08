@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 07/30/2017 19:50:03
+ *  Last Modified: 08/08/2017 00:07:02
  *
  *    Description: net message used by client and mono-server
  *
@@ -35,6 +35,7 @@ enum: uint8_t
     SM_DEADFADEOUT,
     SM_EXP,
     SM_SHOWDROPITEM,
+    SM_FIREMAGIC,
 };
 
 #pragma pack(push, 1)
@@ -151,6 +152,23 @@ struct SMShowDropItem
     uint16_t X;
     uint16_t Y;
 };
+
+struct SMFireMagic
+{
+    uint32_t UID;
+    uint32_t MapID;
+
+    uint8_t Magic;
+    uint8_t MagicParam;
+    uint8_t Speed;
+    uint8_t Direction;
+
+    uint16_t X;
+    uint16_t Y;
+    uint16_t AimX;
+    uint16_t AimY;
+    uint32_t AimUID;
+};
 #pragma pack(pop)
 
 class SMSGParam: public MessageBase
@@ -180,6 +198,7 @@ class SMSGParam: public MessageBase
                 {SM_DEADFADEOUT,  {1, sizeof(SMDeadFadeOut),  "SM_DEADFADEOUT" }},
                 {SM_EXP,          {1, sizeof(SMExp),          "SM_EXP"         }},
                 {SM_SHOWDROPITEM, {1, sizeof(SMShowDropItem), "SM_SHOWDROPITEM"}},
+                {SM_FIREMAGIC,    {1, sizeof(SMFireMagic),    "SM_FIREMAGIC"   }},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(SM_NONE) : nHC);

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/30/2017 19:42:45
+ *  Last Modified: 08/07/2017 19:40:45
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 #include <cinttypes>
 #include "netpod.hpp"
 #include "player.hpp"
+#include "dbcomid.hpp"
 #include "threadpn.hpp"
 #include "memorypn.hpp"
 #include "sysconst.hpp"
@@ -324,6 +325,41 @@ bool Player::GoSuicide()
     return false;
 }
 
+void Player::OnCMActionSpell(const ActionNode &rstAction)
+{
+    if(true
+            && ActionValid(rstAction)
+            && rstAction.Action == ACTION_SPELL){
+
+        switch(rstAction.ActionParam){
+            case DBCOM_MAGICID(u8"雷电术"):
+            case DBCOM_MAGICID(u8"魔法盾"):
+                {
+                    SMFireMagic stSMFM;
+
+                    stSMFM.UID        = UID();
+                    stSMFM.MapID      = MapID();
+                    stSMFM.Magic      = rstAction.ActionParam;
+                    stSMFM.MagicParam = 0;
+                    stSMFM.Speed      = rstAction.Speed;
+                    stSMFM.Direction  = rstAction.Direction;
+                    stSMFM.X          = rstAction.X;
+                    stSMFM.Y          = rstAction.Y;
+                    stSMFM.AimX       = rstAction.AimX;
+                    stSMFM.AimY       = rstAction.AimY;
+
+                    extern NetPodN *g_NetPodN;
+                    g_NetPodN->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    }
+}
+
 void Player::OnCMActionAttack(int nX0, int nY0, int nX1, int nY1, int nAttackParam, int nSpeed, int nDirection)
 {
     if(true
@@ -436,4 +472,9 @@ bool Player::StruckDamage(const DamageNode &rstDamage)
         return true;
     }
     return false;
+}
+
+bool Player::ActionValid(const ActionNode &)
+{
+    return true;
 }

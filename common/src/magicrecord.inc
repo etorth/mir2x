@@ -3,7 +3,7 @@
  *
  *       Filename: magicrecord.inc
  *        Created: 08/04/2017 23:00:09
- *  Last Modified: 08/06/2017 17:15:30
+ *  Last Modified: 08/08/2017 16:09:56
  *
  *    Description: description of magic
  *                 1. prayer
@@ -31,15 +31,15 @@
 {
     u8"雷电术",
 
-    GfxEntry {u8"启动", 0X00000596, 12, 0, 1},
-    GfxEntry {u8"运行", 0X000005AA,  5, 0, 1},
+    GfxEntry {u8"启动", u8"附着", 0X00000596, 12,  0, 100, 0, 1},
+    GfxEntry {u8"运行", u8"附着", 0X000005AA,  5, -1, 100, 0, 1},
 },
 
 {
     u8"魔法盾",
 
-    GfxEntry {u8"启动", 0X0000033E,  9, 0, 1},
-    GfxEntry {u8"开始", 0X00000347, 10, 0, 1},
-    GfxEntry {u8"运行", 0X00000352,  3, 0, 1},
-    GfxEntry {u8"挨打", 0X00000355,  3, 0, 1},
+    GfxEntry {u8"启动", u8"附着", 0X0000033E,  9,  1, 100, 0, 1},
+    GfxEntry {u8"开始", u8"附着", 0X00000347, 10, -1, 100, 0, 1},
+    GfxEntry {u8"运行", u8"附着", 0X00000352,  3, -1, 100, 1, 1},
+    GfxEntry {u8"挨打", u8"附着", 0X00000355,  3, -1, 100, 0, 1},
 },

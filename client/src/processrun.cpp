@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 08/04/2017 00:08:56
+ *  Last Modified: 08/07/2017 23:23:11
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 #include <memory>
 #include <cstring>
 
+#include "dbcomid.hpp"
 #include "monster.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
@@ -56,7 +57,7 @@ ProcessRun::ProcessRun()
             this,               // self-bind
             nullptr,            // independent widget
             false)              // 
-    , m_GroundItem()
+    , m_GroundItemList()
     , m_CreatureRecord()
     , m_AttackUIDX(-1)
     , m_AttackUIDY(-1)
@@ -307,7 +308,7 @@ void ProcessRun::Draw()
         // should be over dead actors
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
-                for(auto &rstGI: m_GroundItem){
+                for(auto &rstGI: m_GroundItemList){
                     if(true
                             && rstGI.ID
                             && rstGI.X == nX
@@ -458,7 +459,7 @@ void ProcessRun::Draw()
                 for(int nX = nX0; nX <= nX1; ++nX){
 
                     bool bShowStar = false;
-                    for(auto &rstGI: m_GroundItem){
+                    for(auto &rstGI: m_GroundItemList){
                         if(true
                                 && rstGI.ID
                                 && rstGI.X == nX
@@ -634,7 +635,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                         {
                             m_MyHero->ParseNewAction({
                                     ACTION_SPELL,
-                                    0,
+                                    DBCOM_MAGICID(u8"雷电术"),
                                     100,
                                     m_MyHero->CurrMotion().Direction,
                                     m_MyHero->CurrMotion().EndX,
@@ -648,7 +649,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                         {
                             m_MyHero->ParseNewAction({
                                     ACTION_SPELL,
-                                    1,
+                                    DBCOM_MAGICID(u8"魔法盾"),
                                     100,
                                     m_MyHero->CurrMotion().Direction,
                                     m_MyHero->CurrMotion().EndX,
@@ -1197,4 +1198,3 @@ void ProcessRun::AddAscendStr(int nType, int nValue, int nX, int nY)
 {
     m_AscendStrRecord.emplace_back(new AscendStr(nType, nValue, nX, nY));
 }
-

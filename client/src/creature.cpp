@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 08/06/2017 17:33:49
+ *  Last Modified: 08/08/2017 16:35:59
  *
  *    Description: 
  *
@@ -379,28 +379,14 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
     return {};
 }
 
-bool Creature::UpdateEffect()
+bool Creature::UpdateEffect(double fTime)
 {
     for(auto pRecord = m_EffectQueue.begin(); pRecord != m_EffectQueue.end();){
-        if(auto &rstER = DBCOM_MAGICRECORD(pRecord->Effect)){
-            if(pRecord->Frame >= rstER.GetGfxEntry(u8"启动").FrameCount - 1){
-                // one round of current effect finished
-                if(rstER.GetGfxEntry(u8"启动").Loop){
-                    pRecord->Frame = 0;
-                    pRecord++;
-                }else{
-                    pRecord = m_EffectQueue.erase(pRecord);
-                }
-            }else{
-                pRecord->Frame++;
-                pRecord++;
-            }
-        }else{
-            extern Log *g_Log;
-            g_Log->AddLog(LOGTYPE_WARNING, "Invalid effect detected: %p", &(*pRecord));
-            pRecord->Print();
-
+        pRecord->Update(fTime);
+        if(pRecord->Done()){
             pRecord = m_EffectQueue.erase(pRecord);
+        }else{
+            pRecord++;
         }
     }
     return true;
@@ -552,4 +538,13 @@ MotionNode Creature::MakeMotionIdle() const
     }
 
     return {nMotion, 0, m_CurrMotion.Direction, m_CurrMotion.Speed, m_CurrMotion.EndX, m_CurrMotion.EndY};
+}
+
+bool Creature::AddEffect(int nMagicID, int nMagicParam, int nGfxEntryID)
+{
+    if(DBCOM_MAGICRECORD(nMagicID).GetGfxEntry(nGfxEntryID).CheckType(u8"附着")){
+        m_EffectQueue.emplace_back(nMagicID, nMagicParam, nGfxEntryID);
+        return true;
+    }
+    return false;
 }

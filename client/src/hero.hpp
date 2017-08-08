@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 08/06/2017 01:10:25
+ *  Last Modified: 08/08/2017 11:34:03
  *
  *    Description: 
  *

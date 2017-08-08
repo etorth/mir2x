@@ -3,7 +3,7 @@
  *
  *       Filename: magicrecord.hpp
  *        Created: 08/04/2017 23:00:09
- *  Last Modified: 08/06/2017 17:32:27
+ *  Last Modified: 08/08/2017 16:48:24
  *
  *    Description: description of magic
  *
@@ -20,14 +20,34 @@
 
 #pragma once
 #include <utility>
+#include "sysconst.hpp"
 #include "constexprfunc.hpp"
+
+enum EffectGfxType: int
+{
+    EGT_NONE = 0,       // u8""
+    EGT_FIXED,          // u8"固定"
+    EGT_BOUND,          // u8"附着"
+    EGT_SHOOT,          // u8"射击"
+    EGT_FOLLOW,         // u8"跟随"
+};
+
 struct GfxEntry
 {
     const char *Name;
 
+    int Type;
     int GfxID;
     int FrameCount;
 
+    // only defined for stage: u8"启动"
+    // motion when current GfxEntry takes place
+    // x : MOTION_NONE
+    // 0 : MOTION_SPELL0
+    // 1 : MOTION_SPELL1
+    int Motion;
+
+    int Speed;
     int Loop;
     int DirType;
 
@@ -35,16 +55,27 @@ struct GfxEntry
     // should provide default parameters to GfxEntry since it supports empty entries
     constexpr GfxEntry(
             const char *szName = u8"",
+            const char *szType = u8"",
 
             int nGfxID      = -1,
             int nFrameCount = -1,
 
+            int nMotion  = -1,
+
+            int nSpeed   = SYS_MINSPEED - 1,
             int nLoop    = -1,
             int nDirType = -1)
 
         : Name(szName ? szName : u8"")
+        , Type(ConstExprFunc::CheckIntMap(szType, EGT_NONE,
+                    u8"固定", EGT_FIXED,
+                    u8"附着", EGT_BOUND,
+                    u8"射击", EGT_SHOOT,
+                    u8"跟随", EGT_FOLLOW))
         , GfxID(nGfxID >= -1 ? nGfxID : -1)
         , FrameCount(nFrameCount >= -1 ? nFrameCount : -1)
+        , Motion(ConstExprFunc::CheckIntParam(nMotion, -1, 0, 1) ? nMotion : -1)
+        , Speed(nSpeed)
         , Loop(ConstExprFunc::CheckIntParam(nLoop, -1, 0, 1) ? nLoop : -1)
         , DirType(ConstExprFunc::CheckIntParam(nDirType, -1, 1, 8, 16) ? nDirType : -1)
     {}
@@ -52,6 +83,17 @@ struct GfxEntry
     constexpr operator bool () const
     {
         return !ConstExprFunc::CompareUTF8(Name, u8"");
+    }
+
+    constexpr bool CheckType(const char *szTypeStr) const
+    {
+        switch(Type){
+            case EGT_FIXED : return ConstExprFunc::CompareUTF8(szTypeStr, u8"固定");
+            case EGT_BOUND : return ConstExprFunc::CompareUTF8(szTypeStr, u8"附着");
+            case EGT_SHOOT : return ConstExprFunc::CompareUTF8(szTypeStr, u8"射击");
+            case EGT_FOLLOW: return ConstExprFunc::CompareUTF8(szTypeStr, u8"跟随");
+            default        : return false;
+        }
     }
 };
 
