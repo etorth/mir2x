@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/30/2017 17:10:56
+ *  Last Modified: 08/09/2017 22:57:07
  *
  *    Description: 
  *
@@ -40,9 +40,11 @@ Monster::Monster(uint32_t   nMonsterID,
         int                 nMapX,
         int                 nMapY,
         int                 nDirection,
-        uint8_t             nLifeState)
+        uint8_t             nLifeState,
+        uint32_t            nMasterUID)
     : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
     , m_MonsterID(nMonsterID)
+    , m_MasterUID(nMasterUID)
     , m_MonsterRecord(DBCOM_MONSTERRECORD(nMonsterID))
 {
     if(!m_MonsterRecord){
@@ -136,7 +138,7 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
         extern MonoServer *g_MonoServer;
         if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
             if(DCValid(nDC, true)){
-                auto fnQueryLocationOK = [this, nDC, stRecord](int nX, int nY) -> bool
+                auto fnQueryLocationOK = [this, nDC, stRecord](int nX, int nY, int) -> bool
                 {
                     // if we get inside current block, we should release the attack lock
                     // it can be released immediately if location retrieve succeeds without querying
@@ -215,7 +217,7 @@ bool Monster::TrackUID(uint32_t nUID)
             && nUID
             && CanMove()){
 
-        return RetrieveLocation(nUID, [this](int nX, int nY) -> bool
+        return RetrieveLocation(nUID, [this](int nX, int nY, int) -> bool
         {
             switch(LDistance2(nX, nY, X(), Y())){
                 case 0:
@@ -230,6 +232,14 @@ bool Monster::TrackUID(uint32_t nUID)
                     }
             }
         });
+    }
+    return false;
+}
+
+bool Monster::FollowMaster()
+{
+    if(MasterUID()){
+        return TrackUID(MasterUID());
     }
     return false;
 }
@@ -285,8 +295,9 @@ bool Monster::TrackAttack()
 bool Monster::Update()
 {
     if(HP()){
-        if(TrackAttack()){ return true; }
-        if(RandomMove ()){ return true; }
+        if(TrackAttack() ){ return true; }
+        if(FollowMaster()){ return true; }
+        if(RandomMove()  ){ return true; }
     }else{ GoDie(); }
     return true;
 }
@@ -477,7 +488,10 @@ void Monster::RemoveTarget(uint32_t nUID)
 
 void Monster::AddTarget(uint32_t nUID)
 {
-    if(nUID){
+    if(true
+            && nUID
+            && nUID != MasterUID()){
+
         auto fnFindUID = [nUID](TargetRecord &rstRecord) -> bool
         {
             if(rstRecord.UID == nUID){

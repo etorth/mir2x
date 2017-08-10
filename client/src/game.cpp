@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 08/09/2017 15:43:29
+ *  Last Modified: 08/09/2017 23:53:08
  *
  *    Description:
  *
@@ -32,7 +32,7 @@
 #include "pngtexoffdbn.hpp"
 
 Game::Game()
-    : m_FPS(SYS_DEFFPS)
+    : m_FPS(SYS_DEFFPS * 1.00)
     , m_ServerDelay( 0.00)
     , m_NetPackTick(-1.00)
     , m_CurrentProcess(nullptr)

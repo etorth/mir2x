@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 08/09/2017 21:20:29
+ *  Last Modified: 08/09/2017 22:56:31
  *
  *    Description: 
  *
@@ -122,13 +122,22 @@ class CharObject: public ActiveObject
 
             int X;
             int Y;
+            int Direction;
 
-            COLocation()
-                : UID(0)
-                , MapID(0)
-                , RecordTime(0)
-                , X(-1)
-                , Y(-1)
+            COLocation(
+                    uint32_t nUID        = 0,
+                    uint32_t nMapID      = 0,
+                    uint32_t nRecordTime = 0,
+
+                    int nX = -1,
+                    int nY = -1,
+                    int nDirection = DIR_NONE)
+                : UID(nUID)
+                , MapID(nMapID)
+                , RecordTime(nRecordTime)
+                , X(nX)
+                , Y(nY)
+                , Direction(nDirection)
             {}
         };
 
@@ -275,7 +284,7 @@ class CharObject: public ActiveObject
 
     protected:
         virtual bool CanMove();
-        virtual bool RetrieveLocation(uint32_t, std::function<void(int, int)>);
+        virtual bool RetrieveLocation(uint32_t, std::function<void(int, int, int)>);
         virtual bool RequestMove(int, int, int, bool, std::function<void()>, std::function<void()>);
 
     protected:

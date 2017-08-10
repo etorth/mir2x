@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 07/31/2017 12:21:21
+ *  Last Modified: 08/09/2017 22:12:19
  *
  *    Description: 
  *
@@ -152,7 +152,8 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
                             stAMACO.Common.X,
                             stAMACO.Common.Y,
                             DIR_UP,
-                            STATE_INCARNATED);
+                            STATE_INCARNATED,
+                            stAMACO.Monster.MasterUID);
 
                     auto nUID = pCO->UID();
                     auto nX   = stAMACO.Common.X;

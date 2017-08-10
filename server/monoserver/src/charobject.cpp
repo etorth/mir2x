@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/09/2017 21:20:10
+ *  Last Modified: 08/09/2017 22:57:59
  *
  *    Description: 
  *
@@ -283,7 +283,7 @@ bool CharObject::CanAttack()
     return !m_AttackLock;
 }
 
-bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(int, int)> fnOnLocationOK)
+bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(int, int, int)> fnOnLocationOK)
 {
     if(nUID){
 
@@ -312,12 +312,18 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(int, int)> f
                             if(true
                                     && m_Map
                                     && m_Map->In(stAML.MapID, stAML.X, stAML.Y)){
-                                m_LocationRecord[nUID].UID        = UID();
-                                m_LocationRecord[nUID].MapID      = MapID();
-                                m_LocationRecord[nUID].RecordTime = stAML.RecordTime;
-                                m_LocationRecord[nUID].X          = stAML.X;
-                                m_LocationRecord[nUID].Y          = stAML.Y;
-                                if(fnOnLocationOK){ fnOnLocationOK(stAML.X, stAML.Y); }
+
+                                m_LocationRecord[nUID] = COLocation
+                                {
+                                    UID(),
+                                    MapID(),
+                                    stAML.RecordTime,
+                                    stAML.X,
+                                    stAML.Y,
+                                    stAML.Direction
+                                };
+
+                                if(fnOnLocationOK){ fnOnLocationOK(stAML.X, stAML.Y, stAML.Direction); }
                             }else{
                                 m_LocationRecord.erase(nUID);
                             }
@@ -353,7 +359,7 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(int, int)> f
                 && m_Map
                 && m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)
                 && (rstRecord.RecordTime + 2 * 1000 < g_MonoServer->GetTimeTick())){
-            if(fnOnLocationOK){ fnOnLocationOK(rstRecord.X, rstRecord.Y); }
+            if(fnOnLocationOK){ fnOnLocationOK(rstRecord.X, rstRecord.Y, rstRecord.Direction); }
             return true;
         }
 

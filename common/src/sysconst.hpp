@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 08/08/2017 15:09:29
+ *  Last Modified: 08/09/2017 23:52:27
  *
  *    Description: 
  *
@@ -51,7 +51,6 @@ const int SYS_MAXDROPITEMGRID = 100;
 const int SYS_MINSPEED =  20;
 const int SYS_DEFSPEED = 100;
 const int SYS_MAXSPEED = 500;
-
 
 const char *SYS_MAPNAME(uint32_t);
 const char *SYS_MAPFILENAME(uint32_t);

@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 07/25/2017 11:17:39
+ *  Last Modified: 08/09/2017 22:55:27
  *
  *    Description: 
  *
@@ -39,8 +39,16 @@ void Monster::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address
     ReportCORecord(stAMPCOI.SessionID);
 }
 
-void Monster::On_MPK_EXP(const MessagePack &, const Theron::Address &)
+void Monster::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
 {
+    if(MasterUID()){
+        extern MonoServer *g_MonoServer;
+        if(auto stRecord = g_MonoServer->GetUIDRecord(MasterUID())){
+            m_ActorPod->Forward({rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen()}, stRecord.Address);
+        }else{
+            GoDie();
+        }
+    }
 }
 
 void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
@@ -50,11 +58,15 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
 
     if(stAMA.UID != UID()){
         extern MonoServer *g_MonoServer;
-        m_LocationRecord[stAMA.UID].UID        = stAMA.UID;
-        m_LocationRecord[stAMA.UID].MapID      = stAMA.MapID;
-        m_LocationRecord[stAMA.UID].RecordTime = g_MonoServer->GetTimeTick();
-        m_LocationRecord[stAMA.UID].X          = stAMA.AimX;
-        m_LocationRecord[stAMA.UID].Y          = stAMA.AimY;
+        m_LocationRecord[stAMA.UID] = COLocation
+        {
+            stAMA.UID,
+            stAMA.MapID,
+            g_MonoServer->GetTimeTick(),
+            stAMA.AimX,
+            stAMA.AimY,
+            stAMA.Direction
+        };
 
         switch(stAMA.Action){
             case ACTION_DIE:
@@ -158,10 +170,11 @@ void Monster::On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &)
 void Monster::On_MPK_QUERYLOCATION(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     AMLocation stAML;
-    stAML.UID   = UID();
-    stAML.MapID = MapID();
-    stAML.X     = X();
-    stAML.Y     = Y();
+    stAML.UID       = UID();
+    stAML.MapID     = MapID();
+    stAML.X         = X();
+    stAML.Y         = Y();
+    stAML.Direction = Direction();
 
     m_ActorPod->Forward({MPK_LOCATION, stAML}, rstFromAddr, rstMPK.ID());
 }

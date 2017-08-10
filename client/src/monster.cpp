@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 08/08/2017 19:57:26
+ *  Last Modified: 08/09/2017 23:44:57
  *
  *    Description: 
  *
@@ -59,7 +59,6 @@ bool Monster::Update()
         // 3. motion update
         switch(m_CurrMotion.Motion){
             case MOTION_MON_STAND:
-            case MOTION_MON_HITTED:
                 {
                     if(m_MotionQueue.empty()){
                         return AdvanceMotionFrame(1);

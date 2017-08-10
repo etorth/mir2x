@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 07/30/2017 19:46:13
+ *  Last Modified: 08/09/2017 22:55:43
  *
  *    Description: 
  *
@@ -217,10 +217,11 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
 void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     AMLocation stAML;
-    stAML.UID   = UID();
-    stAML.MapID = MapID();
-    stAML.X     = X();
-    stAML.Y     = Y();
+    stAML.UID       = UID();
+    stAML.MapID     = MapID();
+    stAML.X         = X();
+    stAML.Y         = Y();
+    stAML.Direction = Direction();
 
     m_ActorPod->Forward({MPK_LOCATION, stAML}, rstFromAddr, rstMPK.ID());
 }

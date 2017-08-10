@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 08/09/2017 21:06:16
+ *  Last Modified: 08/09/2017 22:53:12
  *
  *    Description: 
  *
@@ -284,6 +284,7 @@ struct AMLocation
     
     int X;
     int Y;
+    int Direction;
 };
 
 struct AMPathFind

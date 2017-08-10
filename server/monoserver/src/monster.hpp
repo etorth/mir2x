@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 07/30/2017 17:11:38
+ *  Last Modified: 08/09/2017 22:37:09
  *
  *    Description: 
  *
@@ -88,6 +88,9 @@ class Monster: public CharObject
         const uint32_t m_MonsterID;
 
     protected:
+        uint32_t m_MasterUID;
+
+    protected:
         const MonsterRecord &m_MonsterRecord;
 
     public:
@@ -97,8 +100,11 @@ class Monster: public CharObject
                 int,                    // map x
                 int,                    // map y
                 int,                    // direction
-                uint8_t);               // life cycle state
-       ~Monster() = default;
+                uint8_t,                // life cycle state
+                uint32_t);              // master uid
+
+    public:
+        ~Monster() = default;
 
     public:
        uint32_t MonsterID() const
@@ -106,13 +112,22 @@ class Monster: public CharObject
            return m_MonsterID;
        }
 
-    public:
+    protected:
+       // don't expose it to public
+       // master may change by time or by magic
+       uint32_t MasterUID()
+       {
+           return m_MasterUID;
+       }
+
+    protected:
         void SearchViewRange();
         bool Update();
 
     protected:
         bool RandomMove();
         bool TrackAttack();
+        bool FollowMaster();
 
     protected:
         bool TrackUID(uint32_t);
