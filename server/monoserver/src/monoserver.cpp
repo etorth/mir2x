@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 07/27/2017 17:48:19
+ *  Last Modified: 08/09/2017 21:06:26
  *
  *    Description: 
  *
@@ -413,6 +413,7 @@ bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
     stAMACO.Common.Random = bRandom;
 
     stAMACO.Monster.MonsterID = nMonsterID;
+    stAMACO.Monster.MasterUID = 0;
     AddLog(LOGTYPE_INFO, "Try to add monster, MonsterID = %d", nMonsterID);
 
     MessagePack stRMPK;

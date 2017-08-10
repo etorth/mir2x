@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 08/08/2017 16:35:59
+ *  Last Modified: 08/08/2017 20:15:57
  *
  *    Description: 
  *
@@ -468,18 +468,6 @@ bool Creature::DeadFadeOut()
             }
     }
     return false;
-}
-
-void Creature::Focus(int nFocusType, bool bFocus)
-{
-    if(nFocusType < (int)(m_FocusV.size())){
-        m_FocusV[nFocusType] = bFocus;
-    }
-}
-
-bool Creature::Focus(int nFocusType) const
-{
-    return (nFocusType < (int)(m_FocusV.size())) ? m_FocusV[nFocusType] : false;
 }
 
 bool Creature::Active()

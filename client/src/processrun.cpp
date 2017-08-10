@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 08/07/2017 23:23:11
+ *  Last Modified: 08/09/2017 17:51:31
  *
  *    Description: 
  *
@@ -110,6 +110,16 @@ void ProcessRun::Update(double fTime)
         }
     }
 
+    for(auto pRecord = m_IndepMagicList.begin(); pRecord != m_IndepMagicList.end();){
+        (*pRecord)->Update(fTime);
+        if((*pRecord)->Done()){
+            delete (*pRecord);
+            pRecord = m_IndepMagicList.erase(pRecord);
+        }else{
+            ++pRecord;
+        }
+    }
+
     for(auto pRecord = m_AscendStrRecord.begin(); pRecord != m_AscendStrRecord.end();){
         if((*pRecord)->Ratio() < 1.0){
             (*pRecord)->Update(fTime);
@@ -120,33 +130,26 @@ void ProcessRun::Update(double fTime)
         }
     }
 
-    // re-calculate the focused UID
-    // even mouse location doesn't change the creatures can move
-    // we need to always highlight the creature under the mouse pointer
-    FocusUID(FOCUS_MOUSE);
-
-    if(m_FocusUIDV[FOCUS_ATTACK]){
-        if(auto pCreature = RetrieveUID(m_FocusUIDV[FOCUS_ATTACK])){
-            if(pCreature->StayDead()){
-                m_FocusUIDV[FOCUS_ATTACK] = 0;
-            }else{
-                auto nX = pCreature->X();
-                auto nY = pCreature->Y();
-
-                bool bForce = false;
-                if(false
-                        || m_AttackUIDX != nX
-                        || m_AttackUIDY != nY){
-
-                    bForce = true;
-                    m_AttackUIDX = nX;
-                    m_AttackUIDY = nY;
-                }
-                TrackAttack(bForce, m_FocusUIDV[FOCUS_ATTACK]);
-            }
-        }else{
+    if(auto pCreature = RetrieveUID(m_FocusUIDV[FOCUS_ATTACK])){
+        if(pCreature->StayDead()){
             m_FocusUIDV[FOCUS_ATTACK] = 0;
+        }else{
+            auto nX = pCreature->X();
+            auto nY = pCreature->Y();
+
+            bool bForce = false;
+            if(false
+                    || m_AttackUIDX != nX
+                    || m_AttackUIDY != nY){
+
+                bForce = true;
+                m_AttackUIDX = nX;
+                m_AttackUIDY = nY;
+            }
+            TrackAttack(bForce, m_FocusUIDV[FOCUS_ATTACK]);
         }
+    }else{
+        m_FocusUIDV[FOCUS_ATTACK] = 0;
     }
 }
 
@@ -160,24 +163,36 @@ uint32_t ProcessRun::FocusUID(int nFocusType)
                 }
             case FOCUS_MOUSE:
                 {
-                    // clean the last mouse-focused one
-                    // each time we have to re-calculate current focus
-                    if(auto pCreature = RetrieveUID(m_FocusUIDV[FOCUS_MOUSE])){
-                        pCreature->Focus(FOCUS_MOUSE, false);
-                    }
-                    m_FocusUIDV[FOCUS_MOUSE] = 0;
+                    // use the cached mouse focus first
+                    // if can't get it then scan the whole creature list
 
-                    // re-calculate the mouse focus
-                    // need to do it outside of creatures since only one can be selected
+                    auto fnCheckFocus = [this](uint32_t nUID, int nX, int nY) -> bool
+                    {
+                        if(auto pCreature = RetrieveUID(nUID)){
+                            if(pCreature != m_MyHero){
+                                if(pCreature->CanFocus(nX, nY)){
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    };
+                    
+
                     int nPointX = -1;
                     int nPointY = -1;
                     SDL_GetMouseState(&nPointX, &nPointY);
 
+                    int nCheckPointX = nPointX + m_ViewX;
+                    int nCheckPointY = nPointY + m_ViewY;
+
+                    if(fnCheckFocus(m_FocusUIDV[FOCUS_MOUSE], nCheckPointX, nCheckPointY)){
+                        return m_FocusUIDV[FOCUS_MOUSE];
+                    }
+
                     Creature *pFocus = nullptr;
                     for(auto pRecord: m_CreatureRecord){
-                        if(true
-                                && pRecord.second != m_MyHero
-                                && pRecord.second->CanFocus(m_ViewX + nPointX, m_ViewY + nPointY)){
+                        if(fnCheckFocus(pRecord.second->UID(), nCheckPointX, nCheckPointY)){
                             if(false
                                     || !pFocus
                                     ||  pFocus->Y() < pRecord.second->Y()){
@@ -188,10 +203,7 @@ uint32_t ProcessRun::FocusUID(int nFocusType)
                         }
                     }
 
-                    if(pFocus){
-                        pFocus->Focus(FOCUS_MOUSE, true);
-                        m_FocusUIDV[FOCUS_MOUSE] = pFocus->UID();
-                    }
+                    m_FocusUIDV[FOCUS_MOUSE] = pFocus ? pFocus->UID() : 0;
                     return m_FocusUIDV[FOCUS_MOUSE];
                 }
             default:
@@ -298,7 +310,7 @@ void ProcessRun::Draw()
                             && (pCreature.second->X() == nX)
                             && (pCreature.second->Y() == nY)
                             && (pCreature.second->StayDead())){
-                        pCreature.second->Draw(m_ViewX, m_ViewY);
+                        pCreature.second->Draw(m_ViewX, m_ViewY, 0);
                     }
                 }
             }
@@ -437,7 +449,14 @@ void ProcessRun::Draw()
                                 g_SDLDevice->PopBlendMode();
                                 g_SDLDevice->PopColor();
                             }
-                            pCreature.second->Draw(m_ViewX, m_ViewY);
+                            
+                            int nFocusMask = 0;
+                            for(auto nFocus = 0; nFocus < FOCUS_MAX; ++nFocus){
+                                if(FocusUID(nFocus) == pCreature.second->UID()){
+                                    nFocusMask |= (1 << nFocus);
+                                }
+                            }
+                            pCreature.second->Draw(m_ViewX, m_ViewY, nFocusMask);
                         }
                     }
                 }
@@ -503,6 +522,16 @@ void ProcessRun::Draw()
                         }
                     }
                 }
+            }
+        }
+
+        // draw magics
+        for(auto pMagic: m_IndepMagicList){
+            if(true
+                    &&  pMagic
+                    && !pMagic->Done()){
+
+                pMagic->Draw(m_ViewX, m_ViewY);
             }
         }
 
@@ -633,6 +662,14 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                         }
                     case SDLK_t:
                         {
+                            if(auto nMouseFocusUID = FocusUID(FOCUS_MOUSE)){
+                                m_FocusUIDV[FOCUS_MAGIC] = nMouseFocusUID;
+                            }else{
+                                if(!RetrieveUID(m_FocusUIDV[FOCUS_MAGIC])){
+                                    m_FocusUIDV[FOCUS_MAGIC] = 0;
+                                }
+                            }
+
                             m_MyHero->ParseNewAction({
                                     ACTION_SPELL,
                                     DBCOM_MAGICID(u8"雷电术"),
@@ -642,6 +679,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                     m_MyHero->CurrMotion().EndY,
                                     m_MyHero->CurrMotion().EndX,
                                     m_MyHero->CurrMotion().EndY,
+                                    FocusUID(FOCUS_MAGIC),
                                     MapID()}, false);
                             break;
                         }
@@ -656,6 +694,22 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                     m_MyHero->CurrMotion().EndY,
                                     m_MyHero->CurrMotion().EndX,
                                     m_MyHero->CurrMotion().EndY,
+                                    m_MyHero->UID(),
+                                    MapID()}, false);
+                            break;
+                        }
+                    case SDLK_u:
+                        {
+                            m_MyHero->ParseNewAction({
+                                    ACTION_SPELL,
+                                    DBCOM_MAGICID(u8"召唤骷髅"),
+                                    100,
+                                    m_MyHero->CurrMotion().Direction,
+                                    m_MyHero->CurrMotion().EndX,
+                                    m_MyHero->CurrMotion().EndY,
+                                    m_MyHero->CurrMotion().EndX,
+                                    m_MyHero->CurrMotion().EndY,
+                                    m_MyHero->UID(),
                                     MapID()}, false);
                             break;
                         }
@@ -1197,4 +1251,17 @@ uint32_t ProcessRun::GetControlBoardFaceKey()
 void ProcessRun::AddAscendStr(int nType, int nValue, int nX, int nY)
 {
     m_AscendStrRecord.emplace_back(new AscendStr(nType, nValue, nX, nY));
+}
+
+bool ProcessRun::GetUIDLocation(uint32_t nUID, bool bDrawLoc, int *pX, int *pY)
+{
+    if(auto pCreature = RetrieveUID(nUID)){
+        if(bDrawLoc){
+        }else{
+            if(pX){ *pX = pCreature->X(); }
+            if(pY){ *pY = pCreature->Y(); }
+        }
+        return true;
+    }
+    return false;
 }

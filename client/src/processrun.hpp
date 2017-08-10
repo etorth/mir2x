@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 08/08/2017 00:25:58
+ *  Last Modified: 08/09/2017 17:43:29
  *
  *    Description: 
  *
@@ -73,8 +73,8 @@ class ProcessRun: public Process
         ControlBoard m_ControbBoard;
 
     private:
-        std::vector<IndepMagic> m_IndepMagicList;
-        std::vector<GroundItem> m_GroundItemList;
+        std::vector<IndepMagic *> m_IndepMagicList;
+        std::vector<GroundItem  > m_GroundItemList;
         std::map<uint32_t, Creature*> m_CreatureRecord;
 
     private:
@@ -170,4 +170,7 @@ class ProcessRun: public Process
 
     public:
         void AddAscendStr(int, int, int, int);
+
+    public:
+        bool GetUIDLocation(uint32_t, bool, int *, int *);
 };

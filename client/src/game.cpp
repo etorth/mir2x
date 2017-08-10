@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/19/2017 11:49:51
+ *  Last Modified: 08/09/2017 15:43:29
  *
  *    Description:
  *
@@ -25,13 +25,14 @@
 #include "game.hpp"
 #include "xmlconf.hpp"
 #include "initview.hpp"
+#include "sysconst.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
 #include "fontexdbn.hpp"
 #include "pngtexoffdbn.hpp"
 
 Game::Game()
-    : m_FPS(30.0)
+    : m_FPS(SYS_DEFFPS)
     , m_ServerDelay( 0.00)
     , m_NetPackTick(-1.00)
     , m_CurrentProcess(nullptr)

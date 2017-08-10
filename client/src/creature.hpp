@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 08/08/2017 15:46:04
+ *  Last Modified: 08/08/2017 22:59:46
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -122,6 +122,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "colorfunc.hpp"
 #include "focustype.hpp"
 #include "actionnode.hpp"
 #include "motionnode.hpp"
@@ -146,9 +147,6 @@ class Creature
         uint32_t m_MPMax;
 
     protected:
-        std::array<bool, FOCUS_MAX> m_FocusV;
-
-    protected:
         MotionNode m_CurrMotion;
 
     protected:
@@ -167,7 +165,6 @@ class Creature
             , m_MP(0)
             , m_HPMax(0)
             , m_MPMax(0)
-            , m_FocusV()
             , m_CurrMotion()
             , m_MotionQueue()
             , m_EffectQueue()
@@ -176,8 +173,6 @@ class Creature
         {
             assert(m_UID);
             assert(m_ProcessRun);
-
-            m_FocusV.fill(FOCUS_NONE);
         }
 
     public:
@@ -190,8 +185,33 @@ class Creature
         }
 
     public:
-        bool Focus(int) const;
-        void Focus(int, bool);
+        static SDL_Color FocusColor(int nFocusChan)
+        {
+            switch(nFocusChan){
+                case FOCUS_MOUSE:
+                    {
+                        return ColorFunc::MakeColor(0XFF, 0X86, 0X00, 0XFF);
+                    }
+                case FOCUS_MAGIC:
+                    {
+                        return ColorFunc::MakeColor(0X92, 0XC6, 0X20, 0XFF);
+                    }
+                case FOCUS_FOLLOW:
+                    {
+                        return ColorFunc::MakeColor(0X00, 0XC6, 0XF0, 0XFF);
+                    }
+                case FOCUS_ATTACK:
+                    {
+                        return ColorFunc::MakeColor(0XD0, 0X2C, 0X70, 0XFF);
+                    }
+                default:
+                    {
+                        return ColorFunc::MakeColor(0XFF, 0XFF, 0XFF, 0XFF);
+                    }
+            }
+        }
+
+    public:
         virtual bool CanFocus(int, int) = 0;
 
     public:
@@ -235,7 +255,7 @@ class Creature
 
     public:
         virtual bool Update() = 0;
-        virtual bool Draw(int, int) = 0;
+        virtual bool Draw(int, int, int) = 0;
 
     protected:
         virtual bool MoveNextMotion();

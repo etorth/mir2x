@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 08/08/2017 16:57:34
+ *  Last Modified: 08/08/2017 19:12:04
  *
  *    Description: 
  *
@@ -57,7 +57,7 @@ Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, Process
     }
 }
 
-bool Hero::Draw(int nViewX, int nViewY)
+bool Hero::Draw(int nViewX, int nViewY, int)
 {
     auto nDress     = m_Dress;
     auto nMotion    = m_CurrMotion.Motion;

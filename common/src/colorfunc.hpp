@@ -3,7 +3,7 @@
  *
  *       Filename: colorfunc.hpp
  *        Created: 03/31/2016 19:46:27
- *  Last Modified: 06/19/2017 23:07:46
+ *  Last Modified: 08/08/2017 19:03:22
  *
  *    Description: 
  *
@@ -23,11 +23,12 @@
 
 namespace ColorFunc
 {
-    const SDL_Color COLOR_WHITE = {0XFF, 0XFF, 0XFF, 0XFF};
-    const SDL_Color COLOR_BLACK = {0X00, 0X00, 0X00, 0XFF};
-    const SDL_Color COLOR_RED   = {0XFF, 0X00, 0X00, 0XFF};
-    const SDL_Color COLOR_GREEN = {0X00, 0XFF, 0X00, 0XFF};
-    const SDL_Color COLOR_BLUE  = {0X00, 0X00, 0XFF, 0XFF};
+    const SDL_Color COLOR_WHITE  = {0XFF, 0XFF, 0XFF, 0XFF};
+    const SDL_Color COLOR_BLACK  = {0X00, 0X00, 0X00, 0XFF};
+    const SDL_Color COLOR_RED    = {0XFF, 0X00, 0X00, 0XFF};
+    const SDL_Color COLOR_GREEN  = {0X00, 0XFF, 0X00, 0XFF};
+    const SDL_Color COLOR_BLUE   = {0X00, 0X00, 0XFF, 0XFF};
+    const SDL_Color COLOR_YELLOW = {0XFF, 0XFF, 0X00, 0XFF};
 
     SDL_Color MakeColor(uint8_t, uint8_t, uint8_t, uint8_t);
 

@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 08/08/2017 16:57:47
+ *  Last Modified: 08/09/2017 17:47:54
  *
  *    Description: 
  *
@@ -215,17 +215,17 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
 
         const GfxEntry *pEntry = nullptr;
         if(stSMFM.UID != m_MyHero->UID()){
-            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"启动")); }
-            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"开始")); }
-            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"运行")); }
-            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"结束")); }
+            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"启动")); }
+            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"开始")); }
+            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"运行")); }
+            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"结束")); }
         }else{
-            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"开始")); }
-            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"运行")); }
-            if(!pEntry){ pEntry = &(rstMR.GetGfxEntry(u8"结束")); }
+            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"开始")); }
+            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"运行")); }
+            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"结束")); }
         }
 
-        if(pEntry){
+        if(pEntry && *pEntry){
             switch(pEntry->Type){
                 case EGT_BOUND:
                     {
@@ -236,6 +236,21 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
                     }
                 case EGT_FIXED:
                     {
+                        auto pMagic = new IndepMagic
+                        {
+                            stSMFM.UID,
+                            stSMFM.Magic,
+                            stSMFM.MagicParam,
+                            stSMFM.Speed,
+                            stSMFM.Direction,
+                            stSMFM.X,
+                            stSMFM.Y,
+                            stSMFM.AimX,
+                            stSMFM.AimY,
+                            stSMFM.AimUID
+                        };
+
+                        m_IndepMagicList.emplace_back(pMagic);
                         break;
                     }
                 case EGT_SHOOT:

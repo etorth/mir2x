@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 07/30/2017 19:52:28
+ *  Last Modified: 08/09/2017 21:06:16
  *
  *    Description: 
  *
@@ -102,6 +102,7 @@ union AMAddCharObject
     {
         struct _Common _MemoryAlign;
         uint32_t MonsterID;
+        uint32_t MasterUID;
     }Monster;
 
     struct _Player

@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 08/08/2017 11:34:03
+ *  Last Modified: 08/08/2017 19:12:10
  *
  *    Description: 
  *
@@ -50,7 +50,7 @@ class Hero: public Creature
         bool Location(int *, int *);
 
     public:
-        bool Draw(int, int);
+        bool Draw(int, int, int);
         bool Update();
 
     public:

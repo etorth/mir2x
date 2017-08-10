@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 07/27/2017 17:02:50
+ *  Last Modified: 08/09/2017 21:20:10
  *
  *    Description: 
  *
@@ -510,4 +510,29 @@ int CharObject::Speed(int nSpeedType) const
                 return -1;
             }
     }
+}
+
+void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bRandom)
+{
+    AMAddCharObject stAMACO;
+    stAMACO.Type = TYPE_MONSTER;
+
+    stAMACO.Common.MapID  = m_Map->ID();
+    stAMACO.Common.X      = nX;
+    stAMACO.Common.Y      = nY;
+    stAMACO.Common.Random = bRandom;
+
+    stAMACO.Monster.MonsterID = nMonsterID;
+    stAMACO.Monster.MasterUID = UID();
+
+    auto fnOnRet = [](const MessagePack &rstRMPK, const Theron::Address &) -> void
+    {
+        switch(rstRMPK.ID()){
+            default:
+                {
+                    break;
+                }
+        }
+    };
+    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, m_ServiceCore->GetAddress(), fnOnRet);
 }

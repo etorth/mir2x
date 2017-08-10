@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/07/2017 19:40:45
+ *  Last Modified: 08/09/2017 21:23:05
  *
  *    Description: 
  *
@@ -347,6 +347,37 @@ void Player::OnCMActionSpell(const ActionNode &rstAction)
                     stSMFM.Y          = rstAction.Y;
                     stSMFM.AimX       = rstAction.AimX;
                     stSMFM.AimY       = rstAction.AimY;
+                    stSMFM.AimUID     = rstAction.AimUID;
+
+                    // TODO
+                    // need more calculate for the network delay
+
+                    // delay in server rather than in client
+                    // if delay in client then player can cheat
+                    Delay(1400, [this, stSMFM]() -> void
+                    {
+                        extern NetPodN *g_NetPodN;
+                        g_NetPodN->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                    });
+                    break;
+                }
+            case DBCOM_MAGICID(u8"召唤骷髅"):
+                {
+                    SMFireMagic stSMFM;
+
+                    stSMFM.UID        = UID();
+                    stSMFM.MapID      = MapID();
+                    stSMFM.Magic      = rstAction.ActionParam;
+                    stSMFM.MagicParam = 0;
+                    stSMFM.Speed      = rstAction.Speed;
+                    stSMFM.Direction  = rstAction.Direction;
+                    stSMFM.X          = rstAction.X;
+                    stSMFM.Y          = rstAction.Y;
+                    stSMFM.AimX       = X() + 1;
+                    stSMFM.AimY       = Y();
+                    stSMFM.AimUID     = 0;
+
+                    AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
 
                     extern NetPodN *g_NetPodN;
                     g_NetPodN->Send(SessionID(), SM_FIREMAGIC, stSMFM);

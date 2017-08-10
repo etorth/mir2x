@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 08/05/2017 22:56:23
+ *  Last Modified: 08/08/2017 19:57:26
  *
  *    Description: 
  *
@@ -50,9 +50,11 @@ bool Monster::Update()
     double fTimeNow = SDL_GetTicks() * 1.0;
     if(fTimeNow > fnGetUpdateDelay(m_CurrMotion.Speed, m_UpdateDelay) + m_LastUpdateTime){
         // 1. record the update time
+        auto fTimeDelay  = fTimeNow - m_LastUpdateTime;
         m_LastUpdateTime = fTimeNow;
 
         // 2. logic update
+        UpdateEffect(fTimeDelay);
 
         // 3. motion update
         switch(m_CurrMotion.Motion){
@@ -112,7 +114,7 @@ bool Monster::Update()
     return true;
 }
 
-bool Monster::Draw(int nViewX, int nViewY)
+bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
 {
     // monster graphics retrieving key structure
     //
@@ -160,18 +162,21 @@ bool Monster::Draw(int nViewX, int nViewY)
             if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, (255 - m_CurrMotion.FadeOut) / 2); }
         }
 
-        // for focus mode
-        // we use SDL_BLENDMODE_ADD mode which take sum of dstRGB and srcRGB
-        // but we don't need dstRGB, so always blend body frame two times to overwrite dstRGB first
-        auto fnBlendFrame = [](SDL_Texture *pTexture, SDL_BlendMode stMode, int nX, int nY) -> void
+        auto fnBlendFrame = [](SDL_Texture *pTexture, int nFocusChan, int nX, int nY) -> void
         {
-            if(pTexture){
-                // set blend mode is cheap
-                // so we always do this setting for blending
-                SDL_SetTextureBlendMode(pTexture, stMode);
+            if(true
+                    && pTexture
+                    && nFocusChan >= 0
+                    && nFocusChan <  FOCUS_MAX){
 
-                extern SDLDevice *g_SDLDevice;
-                g_SDLDevice->DrawTexture(pTexture, nX, nY);
+                // if provided channel as 0
+                // just blend it using the original color
+
+                auto stColor = FocusColor(nFocusChan);
+                if(!SDL_SetTextureColorMod(pTexture, stColor.r, stColor.g, stColor.b)){
+                    extern SDLDevice *g_SDLDevice;
+                    g_SDLDevice->DrawTexture(pTexture, nX, nY);
+                }
             }
         };
 
@@ -180,10 +185,19 @@ bool Monster::Draw(int nViewX, int nViewY)
         int nBlendX1 = X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX;
         int nBlendY1 = Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY;
 
-        if(true              ){ fnBlendFrame(pFrame1, SDL_BLENDMODE_BLEND, nBlendX1, nBlendY1); }
-        if(true              ){ fnBlendFrame(pFrame0, SDL_BLENDMODE_BLEND, nBlendX0, nBlendY0); }
-        if(Focus(FOCUS_MOUSE)){ fnBlendFrame(pFrame0, SDL_BLENDMODE_ADD,   nBlendX0, nBlendY0); }
-        if(Focus(FOCUS_MOUSE)){ fnBlendFrame(pFrame0, SDL_BLENDMODE_ADD,   nBlendX0, nBlendY0); }
+        fnBlendFrame(pFrame1, 0, nBlendX1, nBlendY1);
+        fnBlendFrame(pFrame0, 0, nBlendX0, nBlendY0);
+
+        for(int nFocusChan = 1; nFocusChan < FOCUS_MAX; ++nFocusChan){
+            if(nFocusMask & (1 << nFocusChan)){
+                fnBlendFrame(pFrame0, nFocusChan, nBlendX0, nBlendY0);
+            }
+        }
+
+        // draw effects
+        for(auto &rstEffect: m_EffectQueue){
+            rstEffect.Draw(X() * SYS_MAPGRIDXP - nViewX + nShiftX, Y() * SYS_MAPGRIDYP - nViewY + nShiftY);
+        }
 
         // draw HP bar
         // if current m_HPMqx is zero we draw full bar

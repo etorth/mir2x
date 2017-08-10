@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 04/03/2017 18:02:52
- *  Last Modified: 07/03/2017 22:53:56
+ *  Last Modified: 08/09/2017 20:51:18
  *
  *    Description: convert hero graphics res to png files, usage:
  *
@@ -20,7 +20,7 @@
  *                      path-to-package/shadowFileName.shadowFileNameExt
  *
  *                  i.e.
- *                      wil2png 13 /home/you Mon-14 wil MonS-14 wil /home/you/out
+ *                      monsterwil2png 13 /home/you Mon-14 wil MonS-14 wil /home/you/out
  *
  *                  otherwise get error
  *
@@ -50,6 +50,11 @@
 #include "filesys.hpp"
 #include "wilimagepackage.hpp"
 
+int g_MonWilFileIndex []
+{
+    1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1
+};
+
 void printUsage()
 {
     const char *szUsage = 
@@ -68,7 +73,7 @@ void printUsage()
         "                  path-to-package/shadowFileName.shadowFileNameExt\n"
         "\n"
         "              i.e.\n"
-        "                  wil2png 13 /home/you Mon-14 wil MonS-14 wil /home/you/out\n"
+        "                  monsterwil2png 13 /home/you Mon-14 wil MonS-14 wil /home/you/out\n"
         "\n"
         "              otherwise get error\n"
         "\n"
@@ -179,7 +184,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                 }
 
                 for(int nFrame = 0; nFrame < nMaxFrameCount; ++nFrame){
-                    int nBaseIndex = nInnMonID * 1000 + nMotion * 80 + nDirection * 10 + nFrame + 1;
+                    int nBaseIndex = nInnMonID * 1000 + nMotion * 80 + nDirection * 10 + nFrame + g_MonWilFileIndex[nMonsterFileIndex];
 
                     if(true
                             && stPackageBody.SetIndex(nBaseIndex)
@@ -194,7 +199,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                         createOffsetFileName(szSaveFileName,
                                 szOutDir,
                                 false,
-                                nInnMonID,
+                                nGlobalMonID,
                                 nMotion,
                                 nDirection,
                                 nFrame,
@@ -221,7 +226,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                             createOffsetFileName(szSaveShadowFileName,
                                     szOutDir,
                                     true,
-                                    nInnMonID,
+                                    nGlobalMonID,
                                     nMotion,
                                     nDirection,
                                     nFrame,
@@ -286,7 +291,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                 createOffsetFileName(szSaveShadowFileName,
                                         szOutDir,
                                         true,
-                                        nInnMonID,
+                                        nGlobalMonID,
                                         nMotion,
                                         nDirection,
                                         nFrame,

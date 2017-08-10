@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 08/08/2017 14:53:22
+ *  Last Modified: 08/08/2017 17:25:26
  *
  *    Description: 
  *
@@ -616,6 +616,7 @@ bool MyHero::ParseActionQueue()
             stCMA.Y           = stCurrAction.Y;
             stCMA.AimX        = stCurrAction.AimX;
             stCMA.AimY        = stCurrAction.AimY;
+            stCMA.AimUID      = stCurrAction.AimUID;
 
             extern Game *g_Game;
             g_Game->Send(CM_ACTION, stCMA);
