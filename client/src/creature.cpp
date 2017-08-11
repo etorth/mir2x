@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 08/08/2017 20:15:57
+ *  Last Modified: 08/10/2017 16:36:29
  *
  *    Description: 
  *
@@ -379,17 +379,17 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
     return {};
 }
 
-bool Creature::UpdateEffect(double fTime)
+void Creature::UpdateAttachMagic(double fTime)
 {
-    for(auto pRecord = m_EffectQueue.begin(); pRecord != m_EffectQueue.end();){
-        pRecord->Update(fTime);
-        if(pRecord->Done()){
-            pRecord = m_EffectQueue.erase(pRecord);
+    for(size_t nIndex = 0; nIndex < m_AttachMagicList.size();){
+        m_AttachMagicList[nIndex]->Update(fTime);
+        if(m_AttachMagicList[nIndex]->Done()){
+            std::swap(m_AttachMagicList[nIndex], m_AttachMagicList.back());
+            m_AttachMagicList.pop_back();
         }else{
-            pRecord++;
+            nIndex++;
         }
     }
-    return true;
 }
 
 bool Creature::UpdateMotion(bool bLooped)
@@ -528,11 +528,33 @@ MotionNode Creature::MakeMotionIdle() const
     return {nMotion, 0, m_CurrMotion.Direction, m_CurrMotion.Speed, m_CurrMotion.EndX, m_CurrMotion.EndY};
 }
 
-bool Creature::AddEffect(int nMagicID, int nMagicParam, int nGfxEntryID)
+bool Creature::AddAttachMagic(int nMagicID, int nMagicParam, int nMagicStage)
 {
-    if(DBCOM_MAGICRECORD(nMagicID).GetGfxEntry(nGfxEntryID).CheckType(u8"附着")){
-        m_EffectQueue.emplace_back(nMagicID, nMagicParam, nGfxEntryID);
-        return true;
+    // check if type is u8"附着"
+    // otherwise we shouldn't use AttachMagic
+
+    if(auto &rstMR = DBCOM_MAGICRECORD(nMagicID)){
+        for(size_t nIndex = 0;; ++nIndex){
+            if(auto &rstGE = rstMR.GetGfxEntry(nIndex)){
+                if(rstGE.Stage == nMagicStage){
+                    switch(rstGE.Type){
+                        case EGT_BOUND:
+                            {
+                                m_AttachMagicList.emplace_back(std::make_shared<AttachMagic>(nMagicID, nMagicParam, nMagicStage));
+                                return true;
+                            }
+                        default:
+                            {
+                                break;
+                            }
+                    }
+                }
+            }else{
+                // scan all GE and done
+                // can't find the stage, stop here
+                break;
+            }
+        }
     }
     return false;
 }

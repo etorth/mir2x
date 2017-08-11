@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 08/09/2017 17:43:29
+ *  Last Modified: 08/10/2017 13:32:15
  *
  *    Description: 
  *
@@ -73,7 +73,9 @@ class ProcessRun: public Process
         ControlBoard m_ControbBoard;
 
     private:
-        std::vector<IndepMagic *> m_IndepMagicList;
+        std::vector<std::shared_ptr<IndepMagic>> m_IndepMagicList;
+
+    private:
         std::vector<GroundItem  > m_GroundItemList;
         std::map<uint32_t, Creature*> m_CreatureRecord;
 

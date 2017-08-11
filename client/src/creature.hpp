@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 08/08/2017 22:59:46
+ *  Last Modified: 08/10/2017 13:07:46
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -126,10 +126,10 @@
 #include "focustype.hpp"
 #include "actionnode.hpp"
 #include "motionnode.hpp"
-#include "effectnode.hpp"
 #include "pathfinder.hpp"
 #include "magicrecord.hpp"
 #include "protocoldef.hpp"
+#include "attachmagic.hpp"
 
 class ProcessRun;
 class Creature
@@ -151,7 +151,9 @@ class Creature
 
     protected:
         std::deque<MotionNode> m_MotionQueue;
-        std::deque<EffectNode> m_EffectQueue;
+
+    protected:
+        std::vector<std::shared_ptr<AttachMagic>> m_AttachMagicList;
 
     protected:
         double m_UpdateDelay;
@@ -167,7 +169,7 @@ class Creature
             , m_MPMax(0)
             , m_CurrMotion()
             , m_MotionQueue()
-            , m_EffectQueue()
+            , m_AttachMagicList()
             , m_UpdateDelay(100.0)
             , m_LastUpdateTime(0.0)
         {
@@ -251,7 +253,7 @@ class Creature
 
     protected:
         virtual bool UpdateMotion(bool);
-        virtual bool UpdateEffect(double);
+        virtual void UpdateAttachMagic(double);
 
     public:
         virtual bool Update() = 0;
@@ -315,5 +317,5 @@ class Creature
         virtual MotionNode MakeMotionWalk(int, int, int, int, int) const = 0;
 
     public:
-        bool AddEffect(int, int, int);
+        bool AddAttachMagic(int, int, int);
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: indepmagic.cpp
  *        Created: 08/07/2017 21:31:24
- *  Last Modified: 08/09/2017 18:01:40
+ *  Last Modified: 08/10/2017 16:57:56
  *
  *    Description: 
  *
@@ -25,26 +25,21 @@
 IndepMagic::IndepMagic(uint32_t nUID,
         int nMagicID,
         int nMagicParam,
-        int nSpeed,
+        int nMagicStage,
         int nDirection,
         int nX,
         int nY,
         int nAimX,
         int nAimY,
         uint32_t nAimUID)
-    : m_UID(nUID)
-    , m_MagicID(nMagicID)
-    , m_MagicParam(nMagicParam)
-    , m_Stage(EGS_START)
-    , m_Speed(nSpeed)
+    : MagicBase(nMagicID, nMagicParam, nMagicStage)
+    , m_UID(nUID)
     , m_Direction(nDirection)
     , m_X(nX)
     , m_Y(nY)
     , m_AimX(nAimX)
     , m_AimY(nAimY)
     , m_AimUID(nAimUID)
-    , m_CacheEntry(nullptr)
-    , m_AccuTime(0.0)
 {}
 
 IndepMagic::IndepMagic(uint32_t nUID,
@@ -88,74 +83,10 @@ IndepMagic::IndepMagic(uint32_t nUID,
             nAimUID)
 {}
 
-bool IndepMagic::RefreshCache() const
-{
-    if(true
-            && m_CacheEntry
-            && m_CacheEntry->Stage == Stage()){ return true; }
-
-    // need to update it
-    // current cache entry doesn't match / is not valid
-
-    if(auto &rstMR = DBCOM_MAGICRECORD(ID())){
-        for(int nGfxEntryIndex = 1;; ++nGfxEntryIndex){
-            if(auto &rstGfxEntry = rstMR.GetGfxEntry(nGfxEntryIndex)){
-                if(rstGfxEntry.Stage == Stage()){
-                    m_CacheEntry = &rstGfxEntry;
-                    return true;
-                }
-            }else{
-                // if we get the first invalid entry
-                // means we have checked all GfxEntry's inside
-                break;
-            }
-        }
-    }
-    return false;
-}
-
-int IndepMagic::Frame() const
-{
-    if(RefreshCache()){
-        int nRealFrame = (m_AccuTime / 1000.0) * SYS_DEFFPS * (m_CacheEntry->Speed / 100.0);
-        switch(m_CacheEntry->Loop){
-            case 0:
-                {
-                    return nRealFrame;
-                }
-            case 1:
-                {
-                    return nRealFrame % m_CacheEntry->FrameCount;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-    }
-    return -1;
-}
-
-bool IndepMagic::StageDone() const
-{
-    if(RefreshCache()){
-        if(false
-                || m_CacheEntry->Loop
-                || Frame() < m_CacheEntry->FrameCount - 1){
-
-            // 1. loop effect
-            // 2. not looping but not finished yet
-
-            return false;
-        }
-    }
-    return true;
-}
-
 bool IndepMagic::Done() const
 {
-    if(RefreshCache()){
-        if(StageDone()){
+    if(StageDone()){
+        if(RefreshCache()){
             switch(m_CacheEntry->Stage){
                 case EGS_DONE:
                     {
@@ -166,6 +97,13 @@ bool IndepMagic::Done() const
                         break;
                     }
             }
+        }else{
+            // when we deref m_CacheEntry
+            // we should call RefreshCache() first
+
+            // when really done Update() will make current stage as EGS_NONE
+            // then RefreshCache() makes m_CacheEntry as nullptr
+            return true;
         }
     }
     return false;

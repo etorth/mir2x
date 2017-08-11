@@ -3,7 +3,7 @@
  *
  *       Filename: indepmagic.hpp
  *        Created: 08/07/2017 21:19:44
- *  Last Modified: 08/09/2017 18:31:44
+ *  Last Modified: 08/10/2017 16:15:49
  *
  *    Description: 
  *
@@ -20,9 +20,10 @@
 
 #pragma once
 #include <cstdint>
+#include "magicbase.hpp"
 #include "magicrecord.hpp"
 
-class IndepMagic final
+class IndepMagic: public MagicBase
 {
     // don't have a m_MapID filed
     // independent magic should be bound to map
@@ -32,14 +33,6 @@ class IndepMagic final
         const uint32_t m_UID;
 
     private:
-        const int m_MagicID;
-        const int m_MagicParam;
-
-    private:
-        int m_Stage;
-
-    private:
-        int m_Speed;
         int m_Direction;
 
     private:
@@ -53,19 +46,11 @@ class IndepMagic final
     private:
         const uint32_t m_AimUID;
 
-    private:
-        // need mutable for the cache entry
-        // but don't put std::atomic here since I use it in single-thread
-        mutable const GfxEntry *m_CacheEntry;
-
-    private:
-        double m_AccuTime;
-
     public:
         IndepMagic(uint32_t,    // UID
-                int,            // Magic
+                int,            // MagicID
                 int,            // MagicParam
-                int,            // Speed
+                int,            // MagicStage
                 int,            // Direction
                 int,            // X
                 int,            // Y
@@ -75,9 +60,9 @@ class IndepMagic final
 
     public:
         IndepMagic(uint32_t,    // UID
-                int,            // Magic
+                int,            // MagicID
                 int,            // MagicParam
-                int,            // Speed
+                int,            // MagicStage
                 int,            // Direction
                 int,            // X
                 int,            // Y
@@ -85,16 +70,13 @@ class IndepMagic final
                 int);           // AimY
 
         IndepMagic(uint32_t,    // UID
-                int,            // Magic
+                int,            // MagicID
                 int,            // MagicParam
-                int,            // Speed
+                int,            // MagicStage
                 int,            // Direction
                 int,            // X
                 int,            // Y
                 uint32_t);      // AimUID
-
-    public:
-        ~IndepMagic() = default;
 
     private:
         bool DrawPLoc(int *, int *) const;
@@ -110,17 +92,6 @@ class IndepMagic final
         {
             int nPY = -1;
             return DrawPLoc(nullptr, &nPY) ? nPY : -1;
-        }
-
-    public:
-        int ID() const
-        {
-            return m_MagicID;
-        }
-
-        int Stage() const
-        {
-            return m_Stage;
         }
 
     public:
@@ -151,15 +122,8 @@ class IndepMagic final
 
     public:
         bool Done() const;
-        bool StageDone() const;
         
-    public:
-        int Frame() const;
-
     public:
         void Update(double);
         void Draw(int, int);
-
-    private:
-        bool RefreshCache() const;
 };

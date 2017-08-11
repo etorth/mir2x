@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 08/09/2017 17:47:54
+ *  Last Modified: 08/10/2017 16:44:05
  *
  *    Description: 
  *
@@ -230,7 +230,7 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
                 case EGT_BOUND:
                     {
                         if(auto pCreature = RetrieveUID(stSMFM.AimUID)){
-                            pCreature->AddEffect(stSMFM.Magic, 0, (int)(pEntry - &(rstMR.GetGfxEntry(0))));
+                            pCreature->AddAttachMagic(stSMFM.Magic, 0, pEntry->Stage);
                         }
                         break;
                     }
@@ -241,7 +241,7 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
                             stSMFM.UID,
                             stSMFM.Magic,
                             stSMFM.MagicParam,
-                            stSMFM.Speed,
+                            pEntry->Stage,
                             stSMFM.Direction,
                             stSMFM.X,
                             stSMFM.Y,

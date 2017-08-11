@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 08/08/2017 19:12:04
+ *  Last Modified: 08/10/2017 13:48:14
  *
  *    Description: 
  *
@@ -27,7 +27,7 @@
 #include "pngtexdbn.hpp"
 #include "processrun.hpp"
 #include "motionnode.hpp"
-#include "effectnode.hpp"
+#include "attachmagic.hpp"
 #include "dbcomrecord.hpp"
 #include "pngtexoffdbn.hpp"
 
@@ -136,9 +136,9 @@ bool Hero::Draw(int nViewX, int nViewY, int)
         fnDrawWeapon(false);
     }
 
-    // draw effects
-    for(auto &rstEffect: m_EffectQueue){
-        rstEffect.Draw(X() * SYS_MAPGRIDXP - nViewX + nShiftX, Y() * SYS_MAPGRIDYP - nViewY + nShiftY);
+    // draw attached magics
+    for(auto pMagic: m_AttachMagicList){
+        pMagic->Draw(X() * SYS_MAPGRIDXP - nViewX + nShiftX, Y() * SYS_MAPGRIDYP - nViewY + nShiftY);
     }
 
     // draw HP bar
@@ -189,8 +189,8 @@ bool Hero::Update()
         auto fTimeDelay  = fTimeNow - m_LastUpdateTime;
         m_LastUpdateTime = fTimeNow;
 
-        // 2. effect update
-        UpdateEffect(fTimeDelay);
+        // 2. attached magic update
+        UpdateAttachMagic(fTimeDelay);
 
         // 3. motion update
         switch(m_CurrMotion.Motion){
@@ -447,7 +447,7 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                                 m_MotionQueue.emplace_back(nMotionSpell, 0, rstAction.Direction, rstAction.X, rstAction.Y);
                             }
 
-                            AddEffect(rstAction.ActionParam, 0, (int)(&rstGfxEntry - &(rstMR.GetGfxEntry(0))));
+                            AddAttachMagic(rstAction.ActionParam, 0, rstGfxEntry.Stage);
                         }
                     }
                     break;

@@ -3,7 +3,7 @@
  *
  *       Filename: magicrecord.hpp
  *        Created: 08/04/2017 23:00:09
- *  Last Modified: 08/09/2017 16:46:39
+ *  Last Modified: 08/10/2017 13:39:19
  *
  *    Description: description of magic
  *
@@ -128,6 +128,10 @@ struct GfxEntry
             case EGT_FOLLOW: return ConstExprFunc::CompareUTF8(szTypeStr, u8"跟随");
             default        : return false;
         }
+    }
+
+    void Print() const
+    {
     }
 };
 

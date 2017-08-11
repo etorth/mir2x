@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 08/08/2017 17:25:26
+ *  Last Modified: 08/10/2017 13:30:45
  *
  *    Description: 
  *
@@ -48,7 +48,7 @@ bool MyHero::Update()
         m_LastUpdateTime = fTimeNow;
 
         // 2. effect update
-        UpdateEffect(fTimeDelay);
+        UpdateAttachMagic(fTimeDelay);
 
         // 3. motion update
         switch(m_CurrMotion.Motion){

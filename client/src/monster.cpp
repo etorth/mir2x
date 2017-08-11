@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 08/09/2017 23:44:57
+ *  Last Modified: 08/10/2017 13:44:42
  *
  *    Description: 
  *
@@ -54,7 +54,7 @@ bool Monster::Update()
         m_LastUpdateTime = fTimeNow;
 
         // 2. logic update
-        UpdateEffect(fTimeDelay);
+        UpdateAttachMagic(fTimeDelay);
 
         // 3. motion update
         switch(m_CurrMotion.Motion){
@@ -193,9 +193,9 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
             }
         }
 
-        // draw effects
-        for(auto &rstEffect: m_EffectQueue){
-            rstEffect.Draw(X() * SYS_MAPGRIDXP - nViewX + nShiftX, Y() * SYS_MAPGRIDYP - nViewY + nShiftY);
+        // draw attached magics
+        for(auto pMagic: m_AttachMagicList){
+            pMagic->Draw(X() * SYS_MAPGRIDXP - nViewX + nShiftX, Y() * SYS_MAPGRIDYP - nViewY + nShiftY);
         }
 
         // draw HP bar

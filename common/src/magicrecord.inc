@@ -3,7 +3,7 @@
  *
  *       Filename: magicrecord.inc
  *        Created: 08/04/2017 23:00:09
- *  Last Modified: 08/08/2017 23:57:12
+ *  Last Modified: 08/10/2017 17:11:05
  *
  *    Description: description of magic
  *                 1. prayer
@@ -47,6 +47,6 @@
 {
     u8"召唤骷髅",
 
-    GfxEntry {u8"启动", u8"附着", 0X000002E4, 10,  1, 100, 0, 1},
+    GfxEntry {u8"启动", u8"附着", 0X000002E4, 10,  1,  80, 0, 1},
     GfxEntry {u8"开始", u8"固定", 0X000002EE, 10, -1, 100, 0, 1},
 },

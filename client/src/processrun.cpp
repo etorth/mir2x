@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 08/09/2017 17:51:31
+ *  Last Modified: 08/10/2017 13:35:19
  *
  *    Description: 
  *
@@ -110,13 +110,13 @@ void ProcessRun::Update(double fTime)
         }
     }
 
-    for(auto pRecord = m_IndepMagicList.begin(); pRecord != m_IndepMagicList.end();){
-        (*pRecord)->Update(fTime);
-        if((*pRecord)->Done()){
-            delete (*pRecord);
-            pRecord = m_IndepMagicList.erase(pRecord);
+    for(size_t nIndex = 0; nIndex < m_IndepMagicList.size();){
+        m_IndepMagicList[nIndex]->Update(fTime);
+        if(m_IndepMagicList[nIndex]->Done()){
+            std::swap(m_IndepMagicList[nIndex], m_IndepMagicList.back());
+            m_IndepMagicList.pop_back();
         }else{
-            ++pRecord;
+            nIndex++;
         }
     }
 
