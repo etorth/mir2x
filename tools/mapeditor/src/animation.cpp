@@ -3,7 +3,7 @@
  *
  *       Filename: animation.cpp
  *        Created: 06/20/2016 19:56:07
- *  Last Modified: 08/07/2016 18:34:35
+ *  Last Modified: 08/10/2017 20:10:59
  *
  *    Description: 
  *
@@ -19,7 +19,6 @@
  */
 #include <limits>
 #include <FL/fl_ask.H>
-
 #include "animation.hpp"
 
 bool Animation::ActionValid(uint32_t nAction)

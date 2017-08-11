@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 08/10/2017 18:00:02
+ *  Last Modified: 08/10/2017 20:09:19
  *
  *    Description: 
  *
@@ -32,6 +32,10 @@ PreviewWindow       *g_PreviewWindow;
 
 int main()
 {
+    g_FileFullName  = "";
+    g_MainWindow    = nullptr;
+    g_PreviewWindow = nullptr;
+
     Fl::visual(FL_RGB | FL_ALPHA);
 
     g_MainWindow = new MainWindow();

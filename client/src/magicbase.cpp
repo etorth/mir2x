@@ -3,7 +3,7 @@
  *
  *       Filename: magicbase.cpp
  *        Created: 08/08/2017 12:43:18
- *  Last Modified: 08/10/2017 16:53:52
+ *  Last Modified: 08/10/2017 21:10:28
  *
  *    Description: 
  *
@@ -73,10 +73,13 @@ bool MagicBase::StageDone() const
     if(RefreshCache()){
         if(false
                 || m_CacheEntry->Loop
-                || Frame() < (m_CacheEntry->FrameCount - 1)){
+                || Frame() <= (m_CacheEntry->FrameCount - 1)){
 
             // 1. loop effect
             // 2. not looping but not finished yet
+
+            // I allow the last frame as ``incomplete"
+            // otherwise I can't show the last frame in Draw()
 
             return false;
         }

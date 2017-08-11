@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/09/2017 21:23:05
+ *  Last Modified: 08/10/2017 19:39:39
  *
  *    Description: 
  *
@@ -377,10 +377,13 @@ void Player::OnCMActionSpell(const ActionNode &rstAction)
                     stSMFM.AimY       = Y();
                     stSMFM.AimUID     = 0;
 
-                    AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
+                    Delay(600, [this, stSMFM]() -> void
+                    {
+                        AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
 
-                    extern NetPodN *g_NetPodN;
-                    g_NetPodN->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                        extern NetPodN *g_NetPodN;
+                        g_NetPodN->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                    });
                     break;
                 }
             default:

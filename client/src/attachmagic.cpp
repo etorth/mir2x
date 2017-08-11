@@ -3,7 +3,7 @@
  *
  *       Filename: attachmagic.cpp
  *        Created: 08/10/2017 12:46:45
- *  Last Modified: 08/10/2017 17:08:16
+ *  Last Modified: 08/10/2017 21:08:44
  *
  *    Description: 
  *
@@ -75,12 +75,24 @@ void AttachMagic::Update(double fTime)
             switch(Stage()){
                 case EGS_INIT:
                     {
-                        if(fnCheckStageValid(EGS_RUN)){
-                            m_Stage = EGS_RUN;
-                        }else if(fnCheckStageValid(EGS_DONE)){
-                            m_Stage = EGS_DONE;
-                        }else{
-                            m_Stage = EGS_NONE;
+                        switch(ID()){
+                            case DBCOM_MAGICID(u8"雷电术"):
+                            case DBCOM_MAGICID(u8"魔法盾"):
+                                {
+                                    m_Stage = EGS_DONE;
+                                    break;
+                                }
+                            default:
+                                {
+                                    if(fnCheckStageValid(EGS_RUN)){
+                                        m_Stage = EGS_RUN;
+                                    }else if(fnCheckStageValid(EGS_DONE)){
+                                        m_Stage = EGS_DONE;
+                                    }else{
+                                        m_Stage = EGS_NONE;
+                                    }
+                                    break;
+                                }
                         }
                         break;
                     }
