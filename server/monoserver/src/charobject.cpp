@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/11/2017 15:10:03
+ *  Last Modified: 08/11/2017 15:22:28
  *
  *    Description: 
  *
@@ -201,6 +201,12 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
                     g_MonoServer->Restart();
                 }
 
+                // 1. release the move lock no matter what kind of message we get
+                m_MoveLock = false;
+
+                // 2. handle move
+                //    need to check if current CO can move even we checked before
+
                 switch(rstMPK.Type()){
                     case MPK_MOVEOK:
                         {
@@ -224,7 +230,10 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
                                         && (nNewY == stAMMOK.EndY)){ bValidMove = true; }
                             }
 
-                            if(bValidMove){
+                            if(true
+                                    && bValidMove
+                                    && CanMove()){
+
                                 m_CurrX     = nX;
                                 m_CurrY     = nY;
                                 m_Direction = nNewDirection;
@@ -241,23 +250,23 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
                                 if(fnOnMoveError){ fnOnMoveError(); }
                             }
 
-                            m_MoveLock = false;
                             break;
                         }
                     case MPK_ERROR:
                         {
+                            // should add a new function: CanTurn()
+                            // for stone state we can't even make a turn
+
                             m_Direction = nNewDirection;
                             DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), MapID()});
 
                             if(fnOnMoveError){ fnOnMoveError(); }
-                            m_MoveLock = false;
                             break;
                         }
                     default:
                         {
                             extern MonoServer *g_MonoServer;
                             g_MonoServer->AddLog(LOGTYPE_WARNING, "Unsupported response type for MPK_TRYMOVE: %s", rstMPK.Name());
-                            m_MoveLock = false;
                             break;
                         }
                 }
