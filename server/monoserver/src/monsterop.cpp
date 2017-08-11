@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 08/11/2017 01:32:34
+ *  Last Modified: 08/11/2017 14:49:35
  *
  *    Description: 
  *
@@ -129,16 +129,30 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     }
 }
 
-void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
+void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rstAddress)
 {
     AMAttack stAMAK;
     std::memcpy(&stAMAK, rstMPK.Data(), sizeof(stAMAK));
 
-    AddTarget(stAMAK.UID);
-    DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
+    switch(GetState(STATE_DEAD)){
+        case 0:
+            {
+                AddTarget(stAMAK.UID);
+                DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
 
-    AddHitterUID(stAMAK.UID, stAMAK.Damage);
-    StruckDamage({stAMAK.UID, stAMAK.Type, stAMAK.Damage, stAMAK.Element, stAMAK.Effect});
+                AddHitterUID(stAMAK.UID, stAMAK.Damage);
+                StruckDamage({stAMAK.UID, stAMAK.Type, stAMAK.Damage, stAMAK.Element, stAMAK.Effect});
+                break;
+            }
+        default:
+            {
+                AMNotifyDead stAMND;
+
+                stAMND.UID = UID();
+                m_ActorPod->Forward({MPK_NOTIFYDEAD, stAMND}, rstAddress);
+                break;
+            }
+    }
 }
 
 void Monster::On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &)
@@ -163,4 +177,13 @@ void Monster::On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &)
 
 void Monster::On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &)
 {
+}
+
+void Monster::On_MPK_NOTIFYDEAD(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMNotifyDead stAMND;
+    std::memcpy(&stAMND, rstMPK.Data(), sizeof(stAMND));
+
+    RemoveTarget(stAMND.UID);
+    m_LocationRecord.erase(stAMND.UID);
 }

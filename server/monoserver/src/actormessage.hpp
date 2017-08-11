@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 08/10/2017 23:58:02
+ *  Last Modified: 08/11/2017 14:37:38
  *
  *    Description: 
  *
@@ -65,6 +65,7 @@ enum MessagePackType: int
     MPK_EXP,
     MPK_NEWDROPITEM,
     MPK_SHOWDROPITEM,
+    MPK_NOTIFYDEAD,
 };
 
 struct AMBadActorPod
@@ -416,4 +417,9 @@ struct AMShowDropItem
     uint32_t ID;
     int X;
     int Y;
+};
+
+struct AMNotifyDead
+{
+    uint32_t UID;
 };
