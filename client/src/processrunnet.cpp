@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 08/10/2017 16:44:05
+ *  Last Modified: 08/11/2017 02:06:15
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 #include <memory>
 #include <cstring>
 
+#include "log.hpp"
 #include "game.hpp"
 #include "monster.hpp"
 #include "sysconst.hpp"
@@ -73,13 +74,13 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         stSMA.Y,
         stSMA.AimX,
         stSMA.AimY,
+        stSMA.AimUID,
         stSMA.MapID
     };
 
-    if(stSMA.MapID == m_MapID){
-        auto pRecord = m_CreatureRecord.find(stSMA.UID);
-        if((pRecord != m_CreatureRecord.end()) && pRecord->second){
-            pRecord->second->ParseNewAction(stAction, true);
+    if(stSMA.MapID == MapID()){
+        if(auto pCreature = RetrieveUID(stSMA.UID)){
+            pCreature->ParseNewAction(stAction, true);
         }else{
             // can't find it
             // we have to create a new actor but need more information
@@ -117,7 +118,7 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
     SMCORecord stSMCOR;
     std::memcpy(&stSMCOR, pBuf, sizeof(stSMCOR));
 
-    if(stSMCOR.Common.MapID == m_MapID){
+    if(stSMCOR.Common.MapID == MapID()){
         ActionNode stAction
         {
             stSMCOR.Common.Action,

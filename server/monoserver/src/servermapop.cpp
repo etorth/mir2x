@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 08/09/2017 22:12:19
+ *  Last Modified: 08/11/2017 01:24:53
  *
  *    Description: 
  *
@@ -78,8 +78,8 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &
         auto nX1 = std::min<int>(W(), (stAMA.X + SYS_MAPVISIBLEW));
         auto nY1 = std::min<int>(H(), (stAMA.Y + SYS_MAPVISIBLEH));
 
-        for(int nX = nX0; nX <= nX1; ++nX){
-            for(int nY = nY0; nY <= nY1; ++nY){
+        for(int nX = nX0; nX < nX1; ++nX){
+            for(int nY = nY0; nY < nY1; ++nY){
                 if(ValidC(nX, nY)){
                     for(auto nUID: m_UIDRecordV2D[nX][nY]){
                         if(nUID != stAMA.UID){

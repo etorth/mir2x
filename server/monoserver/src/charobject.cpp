@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/09/2017 22:57:59
+ *  Last Modified: 08/10/2017 23:43:58
  *
  *    Description: 
  *
@@ -42,7 +42,9 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_CurrY(nMapY)
     , m_Direction(nDirection)
     , m_HP(0)
+    , m_HPMax(0)
     , m_MP(0)
+    , m_MPMax(0)
     , m_MoveLock(false)
     , m_AttackLock(false)
     , m_LastMoveTime(0)
@@ -466,6 +468,24 @@ int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
         return nMaxDistance;
     }
     return -1;
+}
+
+void CharObject::DispatchMHP()
+{
+    AMUpdateHP stAMUHP;
+    stAMUHP.UID   = UID();
+    stAMUHP.MapID = MapID();
+    stAMUHP.X     = X();
+    stAMUHP.Y     = Y();
+    stAMUHP.HP    = HP();
+    stAMUHP.HPMax = HPMax();
+
+    if(true
+            && ActorPodValid()
+            && m_Map
+            && m_Map->ActorPodValid()){
+        m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, m_Map->GetAddress());
+    }
 }
 
 void CharObject::DispatchAttack(uint32_t nUID, int nDC)

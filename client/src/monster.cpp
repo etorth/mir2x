@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 08/10/2017 13:44:42
+ *  Last Modified: 08/11/2017 03:20:14
  *
  *    Description: 
  *
@@ -308,6 +308,10 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool bRemote)
             case ACTION_MOVE:
             case ACTION_ATTACK:
                 {
+                    // when cleaning pending queue
+                    // there could be MOTION_MON_DIE skipped
+                    // after dead still I can get ACTION_ATTACK and ACTION_MOVE
+
                     // 1. clean all pending motions
                     m_MotionQueue.clear();
 
@@ -406,12 +410,7 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                 }
             case ACTION_DIE:
                 {
-                    m_MotionQueue.emplace_back(
-                            MOTION_MON_DIE,
-                            0,
-                            rstAction.Direction,
-                            rstAction.X,
-                            rstAction.Y);
+                    m_MotionQueue.emplace_back(MOTION_MON_DIE, 0, rstAction.Direction, rstAction.X, rstAction.Y);
                     break;
                 }
             default:
@@ -427,6 +426,8 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool bRemote)
 
     // if action is not valid
     // we ignore it and won't clean the pending motion queue
+    extern Log *g_Log;
+    g_Log->AddLog(LOGTYPE_WARNING, "Invalid action for Monster::ParseNewAction()");
     return false;
 }
 

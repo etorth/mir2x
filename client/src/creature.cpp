@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 08/10/2017 16:36:29
+ *  Last Modified: 08/11/2017 03:05:20
  *
  *    Description: 
  *
@@ -221,7 +221,6 @@ bool Creature::MoveNextMotion()
 
     // OK we have pending motions
     // check the motion queue and pick the head if valid
-
     if(MotionQueueValid()){
         m_CurrMotion = m_MotionQueue.front();
         m_MotionQueue.pop_front();
@@ -415,7 +414,16 @@ bool Creature::MotionQueueValid()
                 && (pLast->EndX == rstMotion.X)
                 && (pLast->EndY == rstMotion.Y)){
             pLast = &rstMotion;
-        }else{ return false; }
+        }else{
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_WARNING, "Invalid motion queue:");
+
+            m_CurrMotion.Print();
+            for(auto &rstMotion: m_MotionQueue){
+                rstMotion.Print();
+            }
+            return false;
+        }
     }
     return true;
 }
@@ -423,15 +431,17 @@ bool Creature::MotionQueueValid()
 int Creature::UpdateHP(int nHP, int nHPMax)
 {
     if(auto nDiffHP = nHP - HP()){
-        if(m_ProcessRun){
+        if(HP() > 0){
+            if(m_ProcessRun){
 
-            // TODO
-            // when possible add a new function
-            // bool Creature::GfxWindow(int *, int *, int *, int *)
+                // TODO
+                // when possible add a new function
+                // bool Creature::GfxWindow(int *, int *, int *, int *)
 
-            int nX = X() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2;
-            int nY = Y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP * 1;
-            m_ProcessRun->AddAscendStr(ASCENDSTR_NUM0, nDiffHP, nX, nY);
+                int nX = X() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2;
+                int nY = Y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP * 1;
+                m_ProcessRun->AddAscendStr(ASCENDSTR_NUM0, nDiffHP, nX, nY);
+            }
         }
     }
 

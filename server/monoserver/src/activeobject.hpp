@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 05/18/2017 01:16:45
+ *  Last Modified: 08/10/2017 23:07:36
  *
  *    Description: server object with active state
  *                      1. it's active via actor pod
@@ -137,9 +137,11 @@ class ActiveObject: public ServerObject
        ~ActiveObject();
 
     protected:
-        void     SetState(uint8_t, uint8_t);
-        uint8_t  GetState(uint8_t);
+        uint8_t GetState(uint8_t);
         uint32_t StateTime(uint8_t);
+
+    protected:
+        void SetState(uint8_t, uint8_t);
 
     public:
         Theron::Address Activate();

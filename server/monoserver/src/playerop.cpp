@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 08/09/2017 22:55:43
+ *  Last Modified: 08/11/2017 01:42:31
  *
  *    Description: 
  *
@@ -81,9 +81,11 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
     if(stAMA.UID != UID()){
-        if((std::abs(stAMA.X - m_CurrX) <= SYS_MAPVISIBLEW) && (std::abs(stAMA.Y - m_CurrY) <= SYS_MAPVISIBLEH)){
-            SMAction stSMA;
+        if(true
+                && (std::abs<int>(stAMA.X - X()) <= SYS_MAPVISIBLEW)
+                && (std::abs<int>(stAMA.Y - Y()) <= SYS_MAPVISIBLEH)){
 
+            SMAction stSMA;
             stSMA.UID   = stAMA.UID;
             stSMA.MapID = stAMA.MapID;
 
@@ -92,13 +94,14 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
             stSMA.Speed       = stAMA.Speed;
             stSMA.Direction   = stAMA.Direction;
 
-            stSMA.X    = stAMA.X;
-            stSMA.Y    = stAMA.Y;
-            stSMA.AimX = stAMA.AimX;
-            stSMA.AimY = stAMA.AimY;
+            stSMA.X      = stAMA.X;
+            stSMA.Y      = stAMA.Y;
+            stSMA.AimX   = stAMA.AimX;
+            stSMA.AimY   = stAMA.AimY;
+            stSMA.AimUID = 0;
 
             extern NetPodN *g_NetPodN;
-            g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);
+            g_NetPodN->Send(SessionID(), SM_ACTION, stSMA);
         }
     }
 }
@@ -230,10 +233,13 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
 {
     AMAttack stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
-    DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
 
+    DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
     StruckDamage({stAMA.UID, stAMA.Type, stAMA.Damage, stAMA.Element});
-    auto fnReportUnderAttack = [this](){
+
+    DispatchMHP();
+    auto fnReportUnderAttack = [this]() -> void
+    {
         SMAction stSMA;
         stSMA.UID         = UID();
         stSMA.MapID       = MapID();
@@ -245,6 +251,7 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
         stSMA.Y           = Y();
         stSMA.AimX        = X();
         stSMA.AimY        = Y();
+        stSMA.AimUID      = 0;
 
         extern NetPodN *g_NetPodN;
         g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);
@@ -256,21 +263,6 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
     // the player will be forced to roll-back
     uint32_t nDelayTick = 0;
     Delay(nDelayTick, fnReportUnderAttack);
-
-    AMUpdateHP stAMUHP;
-    stAMUHP.UID   = UID();
-    stAMUHP.MapID = MapID();
-    stAMUHP.X     = X();
-    stAMUHP.Y     = Y();
-    stAMUHP.HP    = HP();
-    stAMUHP.HPMax = HPMax();
-
-    if(true
-            && ActorPodValid()
-            && m_Map
-            && m_Map->ActorPodValid()){
-        m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, m_Map->GetAddress());
-    }
 
     SMUpdateHP stSMUHP;
     stSMUHP.UID   = UID();

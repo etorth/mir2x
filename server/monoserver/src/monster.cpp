@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/09/2017 22:57:07
+ *  Last Modified: 08/11/2017 01:46:42
  *
  *    Description: 
  *
@@ -63,14 +63,17 @@ Monster::Monster(uint32_t   nMonsterID,
     static std::once_flag stFlag;
     std::call_once(stFlag, fnRegisterClass);
 
+    SetState(STATE_DEAD    , 0);
+    SetState(STATE_NEVERDIE, 0);
+
     // set attack mode
     // SetState(STATE_ATTACKMODE, STATE_ATTACKMODE_NORMAL);
     SetState(STATE_ATTACKMODE, STATE_ATTACKMODE_ATTACKALL);
 
-    m_HP    = 20;
-    m_HPMax = 20;
-    m_MP    = 20;
-    m_MPMax = 20;
+    m_HP    = m_MonsterRecord.HP;
+    m_HPMax = m_MonsterRecord.HP;
+    m_MP    = m_MonsterRecord.MP;
+    m_MPMax = m_MonsterRecord.MP;
 }
 
 bool Monster::RandomMove()
@@ -294,7 +297,7 @@ bool Monster::TrackAttack()
 
 bool Monster::Update()
 {
-    if(HP()){
+    if(HP() > 0){
         if(TrackAttack() ){ return true; }
         if(FollowMaster()){ return true; }
         if(RandomMove()  ){ return true; }
@@ -522,16 +525,15 @@ bool Monster::GoDie()
                     case 0:
                         {
                             SetState(STATE_DEAD, 1);
-                            DispatchAction({
-                                    ACTION_DIE,
-                                    0,
-                                    Direction(),
-                                    X(),
-                                    Y(),
-                                    MapID()});
+
+                            RandomDropItem();
+                            DispatchHitterExp();
+                            DispatchAction({ACTION_DIE, 0, Direction(), X(), Y(), MapID()});
+
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Monster dead: %d", (int)(UID()));
 
                             Delay(10 * 1000, [this](){ GoGhost(); });
-                            RandomDropItem();
                             return true;
                         }
                     default:
@@ -637,8 +639,10 @@ bool Monster::GoSuicide()
 bool Monster::StruckDamage(const DamageNode &rstDamage)
 {
     if(rstDamage){
-        m_HP = std::max<int>(0, m_HP - rstDamage.Damage);
-        if(m_HP == 0){
+        m_HP = std::max<int>(0, HP() - rstDamage.Damage);
+        DispatchMHP();
+
+        if(HP() <= 0){
             GoDie();
         }
         return true;

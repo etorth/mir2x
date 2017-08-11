@@ -1,12 +1,7 @@
 <Root>
     <Window>
-        <!-- <W>1024</W> -->
-        <!-- <H>768</H> -->
         <W>800</W>
         <H>600</H>
-        <!-- <W>1920</W> -->
-        <!-- <H>600</H> -->
-        <!-- <H>1080</H> -->
 
         <!-- ScreenMode: -->
             <!-- 0: window -->
@@ -22,13 +17,13 @@
 
     <Font><FontexDBN>Res/Font/FontexDBN.ZIP</FontexDBN></Font>
     <Texture>
-        <PNGTexDBN>Res/Texture/PNGTexDBN.ZIP</PNGTexDBN>
         <ProgUseDBN>Res/Texture/ProgUseDBN.ZIP</ProgUseDBN>
+        <GroundItemDBN>Res/Texture/GroundItemDBN.ZIP</GroundItemDBN>
         <MapDBN>Res/Texture/MapDBN.ZIP</MapDBN>
         <HeroDBN>Res/Texture/HeroDBN.ZIP</HeroDBN>
         <MonsterDBN>Res/Texture/MonsterDBN.ZIP</MonsterDBN>
         <WeaponDBN>Res/Texture/WeaponDBN.ZIP</WeaponDBN>
-        <PNGTexOffDBN>Res/Texture/PNGTexOffDBN.ZIP</PNGTexOffDBN>
+        <MagicDBN>Res/Texture/MagicDBN.ZIP</MagicDBN>
         <Path>Res/Texture</Path>
     </Texture>
     <Map>

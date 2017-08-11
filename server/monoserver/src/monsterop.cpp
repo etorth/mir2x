@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 08/09/2017 22:55:27
+ *  Last Modified: 08/11/2017 01:32:34
  *
  *    Description: 
  *
@@ -57,18 +57,24 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
     if(stAMA.UID != UID()){
-        extern MonoServer *g_MonoServer;
-        m_LocationRecord[stAMA.UID] = COLocation
-        {
-            stAMA.UID,
-            stAMA.MapID,
-            g_MonoServer->GetTimeTick(),
-            stAMA.AimX,
-            stAMA.AimY,
-            stAMA.Direction
-        };
-
+        int nX = -1;
+        int nY = -1;
         switch(stAMA.Action){
+            case ACTION_STAND:
+            case ACTION_MOVE:
+            case ACTION_ATTACK:
+            case ACTION_UNDERATTACK:
+                {
+                    nX = stAMA.X;
+                    nY = stAMA.Y;
+                    break;
+                }
+            case ACTION_SPELL:
+                {
+                    nX = stAMA.X;
+                    nY = stAMA.Y;
+                    break;
+                }
             case ACTION_DIE:
                 {
                     RemoveTarget(stAMA.UID);
@@ -76,9 +82,21 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
                 }
             default:
                 {
-                    break;
+                    return;
                 }
         }
+
+
+        extern MonoServer *g_MonoServer;
+        m_LocationRecord[stAMA.UID] = COLocation
+        {
+            stAMA.UID,
+            stAMA.MapID,
+            g_MonoServer->GetTimeTick(),
+            nX,
+            nY,
+            stAMA.Direction
+        };
 
         if(InRange(RANGE_VISIBLE, stAMA.X, stAMA.Y)){
             extern MonoServer *g_MonoServer;
@@ -111,56 +129,16 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     }
 }
 
-void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rstAddress)
+void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
 {
     AMAttack stAMAK;
     std::memcpy(&stAMAK, rstMPK.Data(), sizeof(stAMAK));
 
-    AddHitterUID(stAMAK.UID, stAMAK.Damage);
-    StruckDamage({stAMAK.UID, stAMAK.Type, stAMAK.Damage, stAMAK.Element, stAMAK.Effect});
-
-    if(GetState(STATE_DEAD)){
-        // 1. send death information
-        AMAction stAMACT;
-        std::memset(&stAMACT, 0, sizeof(stAMACT));
-
-        stAMACT.UID   = UID();
-        stAMACT.MapID = MapID();
-
-        stAMACT.Action      = ACTION_DIE;
-        stAMACT.ActionParam = 0;
-        stAMACT.Speed       = SYS_DEFSPEED;
-        stAMACT.Direction   = Direction();
-
-        stAMACT.X    = X();
-        stAMACT.Y    = Y();
-        stAMACT.AimX = X();
-        stAMACT.AimY = Y();
-
-        m_ActorPod->Forward({MPK_ACTION, stAMACT}, rstAddress);
-
-        // 2. send experience to hitters
-        DispatchHitterExp();
-        return;
-    }
-
     AddTarget(stAMAK.UID);
     DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
 
-    AMUpdateHP stAMUHP;
-    stAMUHP.UID   = UID();
-    stAMUHP.MapID = MapID();
-    stAMUHP.X     = X();
-    stAMUHP.Y     = Y();
-    stAMUHP.HP    = HP();
-    stAMUHP.HPMax = HPMax();
-
-    if(true
-            && ActorPodValid()
-            && m_Map
-            && m_Map->ActorPodValid()){
-        m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, m_Map->GetAddress());
-    }
+    AddHitterUID(stAMAK.UID, stAMAK.Damage);
+    StruckDamage({stAMAK.UID, stAMAK.Type, stAMAK.Damage, stAMAK.Element, stAMAK.Effect});
 }
 
 void Monster::On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &)
