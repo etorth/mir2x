@@ -11,10 +11,10 @@ decl {\#include <cstdint>} {private local
 decl {\#include <iostream>} {private local
 } 
 
-decl {\#include "wilimagepackage.hpp"} {private local
+decl {\#include "savepng.hpp"} {private local
 } 
 
-decl {\#include "savepng.hpp"} {private local
+decl {\#include "wilimagepackage.hpp"} {private local
 } 
 
 class MainWindow {open
@@ -136,8 +136,7 @@ class MainWindow {open
             xywh {0 0 30 20} labelfont 4 divider
             code0 {\#include <FL/Fl_Native_File_Chooser.H>}
             code1 {\#include "progressbarwindow.hpp"}
-            code2 {\#include "wilfilewindow.hpp"}
-            code3 {\#include "previewwindow.hpp"}
+            code2 {\#include "previewwindow.hpp"}
           }
           MenuItem {} {
             label Export
@@ -155,19 +154,21 @@ class MainWindow {open
         default:
             {
                 extern WilImagePackage g_WilPackage;
-                if(g_WilPackage.SetIndex(SelectedImageIndex())
+                if(true
+                        && g_WilPackage.SetIndex(SelectedImageIndex())
                         && g_WilPackage.CurrentImageValid()){
+
                     auto nW = g_WilPackage.CurrentImageInfo().shWidth;
                     auto nH = g_WilPackage.CurrentImageInfo().shHeight;
 
-                    auto  p = new uint32_t[nW * nH];
-                    g_WilPackage.Decode(p, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                    std::vector<uint32_t> stvBuf(nW * nH);
+                    g_WilPackage.Decode(&(stvBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+
                     char tmpIndex[16];
                     std::sprintf(tmpIndex, "%06d", SelectedImageIndex());
                     std::string tmpFilePathName = fileChooser.filename();
                     std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
-                    SaveRGBABufferToPNG((uint8_t *)p, nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
-                    delete p;
+                    SaveRGBABufferToPNG((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
                 }
             }
             break;
@@ -175,7 +176,6 @@ class MainWindow {open
 }}
             xywh {0 0 30 20} labelfont 4
             code0 {\#include <cstdint>}
-            code1 {\#include "wilimagepackage.hpp"}
           }
           MenuItem {} {
             label {Export All}
@@ -198,8 +198,7 @@ class MainWindow {open
                 		p->ShowAll();
                 		Fl::check();
                 
-                		uint32_t *pBuffer    = nullptr;
-                		size_t    nBufferLen = 0;
+                        std::vector<uint32_t> stvBuf;
                 		extern WilImagePackage g_WilPackage;
                 
                 		for(int i = 1; i <= m_Browser->size(); ++i){
@@ -215,21 +214,17 @@ class MainWindow {open
                         			auto nW = g_WilPackage.CurrentImageInfo().shWidth;
                         			auto nH = g_WilPackage.CurrentImageInfo().shHeight;
 
-                        			if(nBufferLen < (size_t)(nW * nH)){
-                            				delete pBuffer;
-                            				pBuffer    = new uint32_t[nW * nH];
-                            				nBufferLen = (size_t)(nW * nH);
-                        			}
+                                    stvBuf.resize(0);
+                                    stvBuf.resize(nW * nH);
 
-                        			g_WilPackage.Decode(pBuffer, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                        			g_WilPackage.Decode(&(stvBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
                         			char tmpIndex[16];
                         			std::sprintf(tmpIndex, "TMP%06d", imgIdx);
                         			std::string tmpFilePathName = fileChooser.filename();
                         			std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
-                        			SaveRGBABufferToPNG((uint8_t *)pBuffer, nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
+                        			SaveRGBABufferToPNG((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
                     			}
                 		}
-                		delete pBuffer;
                 
                 		p->HideAll();
                 		delete p;
@@ -261,8 +256,7 @@ class MainWindow {open
                 		p->ShowAll();
                 		Fl::check();
                 
-                		uint32_t *pBuffer    = nullptr;
-                		size_t    nBufferLen = 0;
+                        std::vector<uint32_t> stvBuf;
                 		extern WilImagePackage g_WilPackage;
                 
                 		for(int i = 1; i <= m_Browser->size(); ++i){
@@ -278,12 +272,10 @@ class MainWindow {open
                         			auto nW = g_WilPackage.CurrentImageInfo().shWidth;
                         			auto nH = g_WilPackage.CurrentImageInfo().shHeight;
 
-                        			if(nBufferLen < (size_t)(nW * nH)){
-                            				delete pBuffer;
-                            				pBuffer    = new uint32_t[nW * nH];
-                            				nBufferLen = (size_t)(nW * nH);
-                        			}
-                        			g_WilPackage.Decode(pBuffer, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                                    stvBuf.resize(0);
+                                    stvBuf.resize(nW * nH);
+
+                        			g_WilPackage.Decode(&(stvBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
                                     auto nDX = g_WilPackage.CurrentImageInfo().shPX;
                                     auto nDY = g_WilPackage.CurrentImageInfo().shPY;
@@ -298,10 +290,9 @@ class MainWindow {open
 
                                     std::string tmpFilePathName = fileChooser.filename();
                                     std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
-                                    SaveRGBABufferToPNG((uint8_t *)pBuffer, nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
+                                    SaveRGBABufferToPNG((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
                     			}
                 		}
-                		delete pBuffer;
                 
                 		p->HideAll();
                 		delete p;
@@ -337,7 +328,10 @@ class MainWindow {open
         }
       }
       Fl_Browser m_Browser {
-        callback {extern PreviewWindow   *g_PreviewWindow;
+        callback {// handle the click event
+// when clicking the item preview window should show selected window
+{
+extern PreviewWindow   *g_PreviewWindow;
 extern MainWindow      *g_MainWindow;
 extern WilImagePackage  g_WilPackage;
 
@@ -355,12 +349,12 @@ if(g_WilPackage.CurrentImageValid()){
 	g_PreviewWindow = new PreviewWindow(W, H);
 	g_PreviewWindow->show();
 	g_PreviewWindow->redraw();
-}}
+}
+}} selected
         private xywh {0 20 555 570} type Hold labelfont 4 textfont 4
         code0 {\#include <algorithm>}
-        code1 {\#include "wilimagepackage.hpp"}
-        code2 {\#include <FL/fl_draw.H>}
-        code3 {\#include "previewwindow.hpp"}
+        code1 {\#include <FL/fl_draw.H>}
+        code2 {\#include "previewwindow.hpp"}
       }
       Fl_Box m_StatusBar {
         xywh {0 590 555 15} labelfont 4 labelsize 10 align 20
@@ -369,37 +363,44 @@ if(g_WilPackage.CurrentImageValid()){
     code {{
 	// give an initial value of status bar
 	StatusBarMessage("Version 0.0.1");
-}} {selected
-    }
+}} {}
   }
   Function {ShowAll()} {return_type void
   } {
-    code {m_Window->show();} {}
+    code {{
+	m_Window->show();
+}} {}
   }
   Function {SelectedImageIndex()} {return_type uint32_t
   } {
-    code {for(int i = 1; i <= m_Browser->size(); ++i)
-{
-	if(m_Browser->selected(i)){
-		return (uint32_t)((intptr_t)m_Browser->data(i));
+    code {{
+	for(int i = 1; i <= m_Browser->size(); ++i)
+	{
+		if(m_Browser->selected(i)){
+			return (uint32_t)((intptr_t)m_Browser->data(i));
+		}
 	}
-}
 
-extern WilImagePackage g_WilPackage;
-return g_WilPackage.ImageCount();} {}
+	extern WilImagePackage g_WilPackage;
+	return g_WilPackage.ImageCount();
+}} {}
   }
   Function {ActivateAll()} {return_type void
   } {
-    code {m_Window->activate();
-m_MenuBar->activate();
-m_Browser->activate();} {}
+    code {{
+        m_Window->activate();
+        m_MenuBar->activate();
+        m_Browser->activate();
+}} {}
   }
   Function {DeactivateAll()} {} {
-    code {m_Window->deactivate();
-m_MenuBar->deactivate();
-m_Browser->deactivate();} {}
+    code {{
+        m_Window->deactivate();
+        m_MenuBar->deactivate();
+        m_Browser->deactivate();
+}} {}
   }
-  Function {StatusBarMessage(const char *szMessage)} {open return_type void
+  Function {StatusBarMessage(const char *szMessage)} {return_type void
   } {
     code {{
         if(true
