@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/11/2017 01:46:42
+ *  Last Modified: 08/11/2017 11:22:48
  *
  *    Description: 
  *
@@ -163,16 +163,17 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
                                             int nDY = nY - Y() + 1;
 
                                             m_Direction = nDirV[nDY][nDX];
+                                            if(CanAttack()){
+                                                // 1. dispatch action to all
+                                                DispatchAction({ACTION_ATTACK, DC_PHY_PLAIN, Direction(), X(), Y(), MapID()});
 
-                                            // 1. dispatch action to all
-                                            DispatchAction({ACTION_ATTACK, DC_PHY_PLAIN, Direction(), X(), Y(), MapID()});
+                                                extern MonoServer *g_MonoServer;
+                                                m_LastAttackTime = g_MonoServer->GetTimeTick();
 
-                                            extern MonoServer *g_MonoServer;
-                                            m_LastAttackTime = g_MonoServer->GetTimeTick();
-
-                                            // 2. send attack message to target
-                                            //    target can ignore this message directly
-                                            DispatchAttack(stRecord.UID, DC_PHY_PLAIN);
+                                                // 2. send attack message to target
+                                                //    target can ignore this message directly
+                                                DispatchAttack(stRecord.UID, DC_PHY_PLAIN);
+                                            }
                                             return true;
                                         }
                                     case 0:

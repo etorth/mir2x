@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/10/2017 23:43:58
+ *  Last Modified: 08/11/2017 11:13:17
  *
  *    Description: 
  *
@@ -277,12 +277,30 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
 
 bool CharObject::CanMove()
 {
-    return !m_MoveLock;
+    switch(GetState(STATE_DEAD)){
+        case 0:
+            {
+                return !m_MoveLock;
+            }
+        default:
+            {
+                return false;
+            }
+    }
 }
 
 bool CharObject::CanAttack()
 {
-    return !m_AttackLock;
+    switch(GetState(STATE_DEAD)){
+        case 0:
+            {
+                return !m_AttackLock;
+            }
+        default:
+            {
+                return false;
+            }
+    }
 }
 
 bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(int, int, int)> fnOnLocationOK)
