@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/11/2017 01:13:10
+ *  Last Modified: 08/11/2017 16:50:30
  *
  *    Description: 
  *
@@ -188,7 +188,7 @@ void Player::ReportCORecord(uint32_t nSessionID)
 
 void Player::ReportStand()
 {
-    if(m_SessionID){
+    if(SessionID()){
         // any error found when checking motion
         // report an stand state to client for pull-back
         SMAction stSMAction;
@@ -205,6 +205,44 @@ void Player::ReportStand()
 
         extern NetPodN *g_NetPodN;
         g_NetPodN->Send(m_SessionID, SM_ACTION, stSMAction);
+    }
+}
+
+void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)
+{
+    if(true
+            && nUID
+            && SessionID()){
+
+        SMAction stSMA;
+        stSMA.UID         = nUID;
+        stSMA.MapID       = rstAction.MapID;
+        stSMA.Action      = rstAction.Action;
+        stSMA.ActionParam = rstAction.ActionParam;
+        stSMA.Speed       = rstAction.Speed;
+        stSMA.Direction   = rstAction.Direction;
+        stSMA.X           = rstAction.X;
+        stSMA.Y           = rstAction.Y;
+        stSMA.AimX        = rstAction.AimX;
+        stSMA.AimY        = rstAction.AimY;
+        stSMA.AimUID      = rstAction.AimUID;
+
+        extern NetPodN *g_NetPodN;
+        g_NetPodN->Send(SessionID(), SM_ACTION, stSMA);
+    }
+}
+
+void Player::ReportMHP()
+{
+    if(SessionID()){
+        SMUpdateHP stSMUHP;
+        stSMUHP.UID   = UID();
+        stSMUHP.MapID = MapID();
+        stSMUHP.HP    = HP();
+        stSMUHP.HPMax = HPMax();
+
+        extern NetPodN *g_NetPodN;
+        g_NetPodN->Send(SessionID(), SM_UPDATEHP, stSMUHP);
     }
 }
 
@@ -333,7 +371,6 @@ void Player::OnCMActionSpell(const ActionNode &rstAction)
 
         switch(rstAction.ActionParam){
             case DBCOM_MAGICID(u8"雷电术"):
-            case DBCOM_MAGICID(u8"魔法盾"):
                 {
                     SMFireMagic stSMFM;
 
@@ -355,6 +392,34 @@ void Player::OnCMActionSpell(const ActionNode &rstAction)
                     // delay in server rather than in client
                     // if delay in client then player can cheat
                     Delay(1400, [this, stSMFM]() -> void
+                    {
+                        extern NetPodN *g_NetPodN;
+                        g_NetPodN->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                    });
+                    break;
+                }
+            case DBCOM_MAGICID(u8"魔法盾"):
+                {
+                    SMFireMagic stSMFM;
+
+                    stSMFM.UID        = UID();
+                    stSMFM.MapID      = MapID();
+                    stSMFM.Magic      = rstAction.ActionParam;
+                    stSMFM.MagicParam = 0;
+                    stSMFM.Speed      = rstAction.Speed;
+                    stSMFM.Direction  = rstAction.Direction;
+                    stSMFM.X          = rstAction.X;
+                    stSMFM.Y          = rstAction.Y;
+                    stSMFM.AimX       = rstAction.AimX;
+                    stSMFM.AimY       = rstAction.AimY;
+                    stSMFM.AimUID     = rstAction.AimUID;
+
+                    // TODO
+                    // need more calculate for the network delay
+
+                    // delay in server rather than in client
+                    // if delay in client then player can cheat
+                    Delay(800, [this, stSMFM]() -> void
                     {
                         extern NetPodN *g_NetPodN;
                         g_NetPodN->Send(SessionID(), SM_FIREMAGIC, stSMFM);
@@ -500,6 +565,7 @@ bool Player::StruckDamage(const DamageNode &rstDamage)
 {
     if(rstDamage){
         m_HP = std::max<int>(0, HP() - rstDamage.Damage);
+        ReportMHP();
         DispatchMHP();
 
         if(HP() <= 0){

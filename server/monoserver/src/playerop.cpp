@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 08/11/2017 01:42:31
+ *  Last Modified: 08/11/2017 17:06:39
  *
  *    Description: 
  *
@@ -85,23 +85,20 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
                 && (std::abs<int>(stAMA.X - X()) <= SYS_MAPVISIBLEW)
                 && (std::abs<int>(stAMA.Y - Y()) <= SYS_MAPVISIBLEH)){
 
-            SMAction stSMA;
-            stSMA.UID   = stAMA.UID;
-            stSMA.MapID = stAMA.MapID;
-
-            stSMA.Action      = stAMA.Action;
-            stSMA.ActionParam = stAMA.ActionParam;
-            stSMA.Speed       = stAMA.Speed;
-            stSMA.Direction   = stAMA.Direction;
-
-            stSMA.X      = stAMA.X;
-            stSMA.Y      = stAMA.Y;
-            stSMA.AimX   = stAMA.AimX;
-            stSMA.AimY   = stAMA.AimY;
-            stSMA.AimUID = 0;
-
-            extern NetPodN *g_NetPodN;
-            g_NetPodN->Send(SessionID(), SM_ACTION, stSMA);
+            ReportAction(stAMA.UID,
+            {
+                stAMA.Action,
+                stAMA.ActionParam,
+                stAMA.Speed,
+                stAMA.Direction,
+                
+                stAMA.X,
+                stAMA.Y,
+                stAMA.AimX,
+                stAMA.AimY,
+                0,
+                stAMA.MapID
+            });
         }
     }
 }
@@ -237,41 +234,14 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
     DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
     StruckDamage({stAMA.UID, stAMA.Type, stAMA.Damage, stAMA.Element});
 
-    DispatchMHP();
-    auto fnReportUnderAttack = [this]() -> void
-    {
-        SMAction stSMA;
-        stSMA.UID         = UID();
-        stSMA.MapID       = MapID();
-        stSMA.Action      = ACTION_UNDERATTACK;
-        stSMA.ActionParam = 0;
-        stSMA.Speed       = SYS_DEFSPEED;
-        stSMA.Direction   = Direction();
-        stSMA.X           = X();
-        stSMA.Y           = Y();
-        stSMA.AimX        = X();
-        stSMA.AimY        = Y();
-        stSMA.AimUID      = 0;
-
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(m_SessionID, SM_ACTION, stSMA);
-    };
-
     // issue here
     // if we take delay as 200, then client makes non-smooth motion
     // player in client is moving, then if we struck under-attach using current location
     // the player will be forced to roll-back
-    uint32_t nDelayTick = 0;
-    Delay(nDelayTick, fnReportUnderAttack);
-
-    SMUpdateHP stSMUHP;
-    stSMUHP.UID   = UID();
-    stSMUHP.MapID = MapID();
-    stSMUHP.HP    = HP();
-    stSMUHP.HPMax = HPMax();
-
-    extern NetPodN *g_NetPodN;
-    g_NetPodN->Send(SessionID(), SM_UPDATEHP, stSMUHP);
+    Delay(0, [this]() -> void
+    {
+        ReportAction(UID(), {ACTION_UNDERATTACK, 0, SYS_DEFSPEED, Direction(), X(), Y(), 0, MapID()});
+    });
 }
 
 void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)

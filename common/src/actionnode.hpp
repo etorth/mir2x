@@ -3,7 +3,7 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 08/08/2017 17:15:58
+ *  Last Modified: 08/11/2017 17:17:22
  *
  *    Description: ActionNode is used by both server and client
  *                 then don't define Print() for it
@@ -40,6 +40,9 @@ struct ActionNode
     const uint32_t AimUID;
     const uint32_t MapID;
 
+    // don't change it to avoid override error
+    // should be very careful for the following cotrs and it's short format
+
     ActionNode(int nAction, int nActionParam, int nSpeed, int nDirection, int nX, int nY, int nAimX, int nAimY, uint32_t nAimUID, uint32_t nMapID)
         : Action(nAction)
         , ActionParam(nActionParam)
@@ -57,16 +60,28 @@ struct ActionNode
         : ActionNode(nAction, nActionParam, nSpeed, nDirection, nX, nY, nAimX, nAimY, 0, nMapID)
     {}
 
+    ActionNode(int nAction, int nActionParam, int nSpeed, int nDirection, int nX, int nY, int nAimUID, uint32_t nMapID)
+        : ActionNode(nAction, nActionParam, nSpeed, nDirection, nX, nY, -1, -1, nAimUID, nMapID)
+    {}
+
     ActionNode(int nAction, int nActionParam, int nSpeed, int nDirection, int nX, int nY, uint32_t nMapID)
-        : ActionNode(nAction, nActionParam, nSpeed, nDirection, nX, nY, nX, nY, nMapID)
+        : ActionNode(nAction, nActionParam, nSpeed, nDirection, nX, nY, nX, nY, 0, nMapID)
     {}
 
     ActionNode(int nAction, int nActionParam, int nDirection, int nX, int nY, uint32_t nMapID)
-        : ActionNode(nAction, nActionParam, SYS_DEFSPEED, nDirection, nX, nY, nX, nY, nMapID)
+        : ActionNode(nAction, nActionParam, SYS_DEFSPEED, nDirection, nX, nY, nX, nY, 0, nMapID)
+    {}
+
+    ActionNode(int nAction, int nActionParam, int nX, int nY, uint32_t nMapID)
+        : ActionNode(nAction, nActionParam, SYS_DEFSPEED, DIR_NONE, nX, nY, nX, nY, 0, nMapID)
+    {}
+
+    ActionNode(int nAction, int nX, int nY, uint32_t nMapID)
+        : ActionNode(nAction, 0, SYS_DEFSPEED, DIR_NONE, nX, nY, nX, nY, 0, nMapID)
     {}
 
     ActionNode()
-        : ActionNode(ACTION_NONE, 0, 0, 0, 0, 0, 0, 0, 0)
+        : ActionNode(ACTION_NONE, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     {}
 
     operator bool () const
