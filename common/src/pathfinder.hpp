@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 07/05/2017 22:34:25
+ *  Last Modified: 08/11/2017 19:04:01
  *
  *    Description: A-Star algorithm for path finding
  *
@@ -181,7 +181,7 @@ namespace PathFind
         int X;
         int Y;
 
-        PathNode(int nX, int nY)
+        PathNode(int nX = -1, int nY = -1)
             : X(nX)
             , Y(nY)
         {}

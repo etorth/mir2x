@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/11/2017 14:47:36
+ *  Last Modified: 08/12/2017 19:31:16
  *
  *    Description: 
  *
@@ -708,6 +708,138 @@ bool Monster::MoveOneStepGreedy(int nX, int nY)
 bool Monster::MoveOneStepCombine(int, int)
 {
     return false;
+
+    // auto fnNextPathNode = [this](int nX, int nY, int nIndex) -> PathFind::PathNode
+    // {
+    //     static const int nDirX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
+    //     static const int nDirY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
+    //
+    //     int nX0 = X();
+    //     int nY0 = Y();
+    //
+    //     int nDX = ((nX > nX0) - (nX < nX0));
+    //     int nDY = ((nY > nY0) - (nY < nY0));
+    //
+    //     int nDir = 0;
+    //     for(; nDir < (int)(sizeof(nDirX) / sizeof(nDirX[0])); ++nDir){
+    //         if((nDX == nDirX[nDir]) && (nDY == nDirY[nDir])){
+    //             break;
+    //         }
+    //     }
+    //
+    //     int nIndexOff = (nIndex / 2);
+    //     int nIndexSgn = (nIndex % 2) ? +1 : -1;
+    //     int nDirIndex = (nDir + nIndexSgn * nIndexOff + 8) % 8;
+    //
+    //     return {nX0 + nDirX[nDirIndex], nY0 + nDirY[nDirIndex]};
+    // };
+
+    // int nX0 = X();
+    // int nY0 = Y();
+    //
+    // switch(LDistance2(nX0, nY0, nX, nY)){
+    //     case 0:
+    //         {
+    //             return false;
+    //         }
+    //     case 1:
+    //     case 2:
+    //         {
+    //             // one hop distance
+    //             // failed then we mark it as not reachable
+    //             return RequestMove(MOTION_MON_WALK, nX, nY, false, [](){}, [](){});
+    //         }
+    //     default:
+    //         {
+    //             break;
+    //         }
+    // }
+    //
+    // int nDX = ((nX > nX0) - (nX < nX0));
+    // int nDY = ((nY > nY0) - (nY < nY0));
+    //
+    // std::array<PathFind::PathNode, 3> stvPathNode;
+    // switch(std::abs(nDX) + std::abs(nDY)){
+    //     case 1:
+    //         {
+    //             if(nDY){
+    //                 stvPathNode[0] = {nX0 + 0, nY0 + nDY};
+    //                 stvPathNode[1] = {nX0 - 1, nY0 + nDY};
+    //                 stvPathNode[2] = {nX0 + 1, nY0 + nDY};
+    //             }else{
+    //                 stvPathNode[0] = {nX0 + nDX, nY0 + 0};
+    //                 stvPathNode[1] = {nX0 + nDX, nY0 - 1};
+    //                 stvPathNode[2] = {nX0 + nDX, nY0 + 1};
+    //             }
+    //             break;
+    //         }
+    //     case 2:
+    //         {
+    //             stvPathNode[0] = {nX0 + nDX, nY0 + nDY};
+    //             stvPathNode[1] = {nX0      , nY0 + nDY};
+    //             stvPathNode[2] = {nX0 + nDX, nY0      };
+    //             break;
+    //         }
+    //     default:
+    //         {
+    //             return false;
+    //         }
+    // }
+    //
+    // // need a function to be able to call itself
+    // // it's not recursion since all invocations of itself won't stay in the same stack
+    //
+    // // make fnTryPathNode static then store its ref inside itself
+    // // but here I need to make it *stateless* since it's in multithread env
+    //
+    // static auto fnTryPathNode = [](Monster *pMonster, int nX, int nY, std::array<PathFind::PathNode, 3> stvPathNode, size_t nIndex) -> bool
+    // {
+    //     // 1. only try candicates in array
+    //     //    if all candicates failed we use AStar method
+    //     if(nIndex >= stvPathNode.size()){
+    //         return pMonster->MoveOneStepAStar(nX, nY);
+    //     }
+    //
+    //     int nX0 = pMonster->X();
+    //     int nY0 = pMonster->Y();
+    //
+    //     int nX1 = stvPathNode[nIndex].X;
+    //     int nY1 = stvPathNode[nIndex].Y;
+    //
+    //     // 2. try next one
+    //     //    current candicate makes it worse
+    //     if(LDistance2(nX0, nY0, nX1, nY1) > LDistance2(nX0, nY0, nX, nY)){
+    //         return fnTryPathNode(pMonster, nX, nY, stvPathNode, nIndex + 1);
+    //     }
+    //
+    //     // 3. OK try current one
+    //     //    check if current path node valid
+    //     if(true
+    //             && CanMove()
+    //
+    //             && m_Map
+    //             && m_Map->GroundValid(nX1, nY1)
+    //
+    //             && RequestMove(MOTION_MON_WALK, nX1, nY1, false, [](){}, [fnTryPathNode, nIndex]() -> void
+    //                {
+    //                    // try next one
+    //                    // move fails even request posted successfully
+    //                    fnTryPathNode(nIndex + 1);
+    //                })){
+    //
+    //         // try current path node
+    //         // the move request post successfully
+    //         // internally failure may happen then it calls fnTryPathNode(nIndex + 1)
+    //         return true;
+    //     }
+    //
+    //     // move request post failed
+    //     // try next path node explicitly at return
+    //     return fnTryPathNode(nIndex + 1);
+    // };
+    //
+    //
+    // return fnTryPathNode(0);
 }
 
 bool Monster::MoveOneStepAStar(int nX, int nY)
