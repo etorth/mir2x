@@ -3,7 +3,7 @@
  *
  *       Filename: idbox.cpp
  *        Created: 07/16/2017 19:06:25
- *  Last Modified: 08/14/2017 00:08:05
+ *  Last Modified: 08/14/2017 15:39:42
  *
  *    Description: 
  *
@@ -21,7 +21,10 @@
 bool IDBox::ProcessEvent(const SDL_Event &rstEvent, bool *pValid)
 {
     if(pValid && !(*pValid)){ return false; }
-    if(!Focus()){ return false; }
+
+    // even not focused
+    // should also accept some events
+    // like the insert sign when pointer inside idbox
 
     switch(rstEvent.type){
         case SDL_KEYDOWN:
@@ -29,15 +32,21 @@ bool IDBox::ProcessEvent(const SDL_Event &rstEvent, bool *pValid)
                 switch(rstEvent.key.keysym.sym){
                     case SDLK_RETURN:
                         {
-                            if(m_OnEnter){  m_OnEnter();    }
-                            if(pValid   ){ *pValid = false; }
-                            return true;
+                            if(Focus()){
+                                if(m_OnEnter){  m_OnEnter();    }
+                                if(pValid   ){ *pValid = false; }
+                                return true;
+                            }
+                            break;
                         }
                     case SDLK_TAB:
                         {
-                            if(m_OnTab){  m_OnTab();      }
-                            if(pValid ){ *pValid = false; }
-                            return true;
+                            if(Focus()){
+                                if(m_OnTab){  m_OnTab();      }
+                                if(pValid ){ *pValid = false; }
+                                return true;
+                            }
+                            break;
                         }
                     default:
                         {
