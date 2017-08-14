@@ -3,7 +3,7 @@
  *
  *       Filename: idbox.cpp
  *        Created: 07/16/2017 19:06:25
- *  Last Modified: 07/16/2017 19:15:54
+ *  Last Modified: 08/14/2017 00:08:05
  *
  *    Description: 
  *
@@ -21,6 +21,8 @@
 bool IDBox::ProcessEvent(const SDL_Event &rstEvent, bool *pValid)
 {
     if(pValid && !(*pValid)){ return false; }
+    if(!Focus()){ return false; }
+
     switch(rstEvent.type){
         case SDL_KEYDOWN:
             {

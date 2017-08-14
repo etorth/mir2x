@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 07/26/2017 15:50:22
+ *  Last Modified: 08/14/2017 00:02:15
  *
  *    Description: 
  *
@@ -65,7 +65,11 @@ ProcessLogin::ProcessLogin()
             14,
             {0XFF, 0XFF, 0XFF, 0XFF},
             {0XFF, 0XFF, 0XFF, 0XFF},
-            [](){},
+            [this]() -> void
+            {
+                m_IDBox      .Focus(true);
+                m_PasswordBox.Focus(false);
+            },
             [this]() -> void
             {
                 DoLogin();
@@ -102,12 +106,44 @@ void ProcessLogin::Draw()
 
 void ProcessLogin::ProcessEvent(const SDL_Event &rstEvent)
 {
-    m_Button1    .ProcessEvent(rstEvent, nullptr);
-    m_Button2    .ProcessEvent(rstEvent, nullptr);
-    m_Button3    .ProcessEvent(rstEvent, nullptr);
-    m_Button4    .ProcessEvent(rstEvent, nullptr);
-    m_IDBox      .ProcessEvent(rstEvent, nullptr);
-    m_PasswordBox.ProcessEvent(rstEvent, nullptr);
+    switch(rstEvent.type){
+        case SDL_KEYDOWN:
+            {
+                switch(rstEvent.key.keysym.sym){
+                    case SDLK_TAB:
+                        {
+                            if(true
+                                    && !m_IDBox      .Focus()
+                                    && !m_PasswordBox.Focus()){
+
+                                m_IDBox      .Focus(true);
+                                m_PasswordBox.Focus(false);
+                                return;
+                            }
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    m_Button1.ProcessEvent(rstEvent, nullptr);
+    m_Button2.ProcessEvent(rstEvent, nullptr);
+    m_Button3.ProcessEvent(rstEvent, nullptr);
+    m_Button4.ProcessEvent(rstEvent, nullptr);
+
+    // widget idbox and pwdbox are not independent from each other
+    // tab in one box will grant focus to another
+
+    bool bValid = true;
+    m_IDBox      .ProcessEvent(rstEvent, &bValid);
+    m_PasswordBox.ProcessEvent(rstEvent, &bValid);
 }
 
 void ProcessLogin::DoLogin()
