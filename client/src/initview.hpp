@@ -3,7 +3,7 @@
  *
  *       Filename: initview.hpp
  *        Created: 07/18/2017 16:00:20
- *  Last Modified: 07/19/2017 12:36:21
+ *  Last Modified: 08/13/2017 23:08:18
  *
  *    Description: a seperate procedure to load all resource at beginning
  *                 this procedure has its own event loop and two threads
@@ -153,26 +153,26 @@ class InitView final
                 }();
 
                 auto nPercent = (int)(std::lround(stArray[1] * 100.0 / (0.1 + stArray[0])));
-                AddIVLog(LOGIV_INFO, "[%03d%]Loading %s", nPercent, szNodePath);
+                AddIVLog(LOGIV_INFO, "[%03d%%]Loading %s", nPercent, szNodePath);
                 if(auto pNode = pXMLConf->GetXMLNode(szNodePath)){
                     if(auto szPath = pNode->GetText()){
                         if(pDBN->Load(szPath)){
-                            AddIVLog(LOGIV_INFO, "[%03d%]Loading %s done", nPercent, szNodePath);
+                            AddIVLog(LOGIV_INFO, "[%03d%%]Loading %s done", nPercent, szNodePath);
                             return true;
                         }else{
-                            AddIVLog(LOGIV_WARNING, "[%03d%]Loading %s failed: %s", nPercent, szNodePath, szPath);
+                            AddIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: %s", nPercent, szNodePath, szPath);
                             return false;
                         }
                     }else{
-                        AddIVLog(LOGIV_WARNING, "[%03d%]Loading %s failed: Invalid text node in configuration", nPercent, szNodePath);
+                        AddIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: Invalid text node in configuration", nPercent, szNodePath);
                         return false;
                     }
                 }else{
-                    AddIVLog(LOGIV_WARNING, "[%03d%]Loading %s failed: No text node found in configuration", nPercent, szNodePath);
+                    AddIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: No text node found in configuration", nPercent, szNodePath);
                     return false;
                 }
             }
-            AddIVLog(LOGIV_WARNING, "[%---]Loading parameters invalid for LoadDBN(%d, %p, %p, %p)", (int)(nCurrIndex), pXMLConf, pDBN, szNodePath);
+            AddIVLog(LOGIV_WARNING, "[%%---]Loading parameters invalid for LoadDBN(%d, %p, %p, %p)", (int)(nCurrIndex), pXMLConf, pDBN, szNodePath);
             return false;
         }
 };

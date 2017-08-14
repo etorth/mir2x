@@ -3,7 +3,7 @@
  *
  *       Filename: initview.cpp
  *        Created: 07/18/2017 16:04:25
- *  Last Modified: 08/05/2017 20:16:36
+ *  Last Modified: 08/13/2017 23:09:09
  *
  *    Description: 
  *
@@ -351,7 +351,7 @@ void InitView::Load()
     }
 
     // let user see initialization done status
-    AddIVLog(LOGIV_INFO, "[100%]Loading done for InitView");
+    AddIVLog(LOGIV_INFO, "[100%%]Loading done for InitView");
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     m_ProcState.store(IVPROC_DONE);
 }
