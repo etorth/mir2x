@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 08/15/2017 00:01:58
+ *  Last Modified: 08/15/2017 11:53:10
  *
  *    Description: 
  *
@@ -127,8 +127,9 @@ Session::~Session()
 
 bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
-    // we won't exit if invalid argument providen
-    auto fnReportError = [nHC, pData, nDataLen](){
+    // we won't exit if invalid argument provided
+    auto fnReportError = [nHC, pData, nDataLen]() -> void
+    {
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument : ForwardActorMessage(HC = %d, Data = %p, DataLen = %d)", (int)(nHC), pData, (int)(nDataLen));
     };
@@ -163,7 +164,7 @@ bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
     }
 
     AMNetPackage stAMNP;
-    stAMNP.SessionID = m_ID;
+    stAMNP.SessionID = ID();
     stAMNP.Type      = nHC;
     stAMNP.Data      = pData;
     stAMNP.DataLen   = nDataLen;
@@ -197,7 +198,7 @@ void Session::DoReadHC()
 
             // 2. record the error code to log
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error: %s", stEC.message().c_str());
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error on session %d: %s", (int)(ID()), stEC.message().c_str());
             fnReportCurrentMessage();
         }
     };
@@ -238,7 +239,8 @@ void Session::DoReadHC()
                                 }else{
                                     // oooops, bytes[0] is 255
                                     // we got a long message and need to read bytes[1]
-                                    auto fnDoneReadLen1 = [this, stCMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t){
+                                    auto fnDoneReadLen1 = [this, stCMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t) -> void
+                                    {
                                         if(stEC){ fnOnNetError(stEC); }
                                         else{
                                             assert(m_ReadLen[0] == 255);
@@ -285,7 +287,8 @@ void Session::DoReadHC()
 
                         // and if we want to send big chunk of compressed data
                         // we should compress it by other method and send it via this channel
-                        auto fnDoneReadLen = [this, fnOnNetError](std::error_code stEC, size_t){
+                        auto fnDoneReadLen = [this, fnOnNetError](std::error_code stEC, size_t) -> void
+                        {
                             if(stEC){ fnOnNetError(stEC); }
                             else{
                                 uint32_t nDataLenU32 = 0;
@@ -329,7 +332,7 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
 
             // 2. record the error code to log
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error: %s", stEC.message().c_str());
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error on session %d: %s", (int)(ID()), stEC.message().c_str());
             fnReportCurrentMessage();
         }
     };
@@ -477,14 +480,15 @@ void Session::DoSendBuf()
     assert(m_FlushFlag);
     assert(!m_CurrSendQ->empty());
     if(m_CurrSendQ->front().Data && m_CurrSendQ->front().DataLen){
-        auto fnDoneSend = [this](std::error_code stEC, size_t){
+        auto fnDoneSend = [this](std::error_code stEC, size_t) -> void
+        {
             if(stEC){
                 // 1. shutdown current connection
                 Shutdown();
 
                 // 2. report message and abort current process
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_FATAL, "Network error: %s", stEC.message().c_str());
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error on session %d: %s", (int)(ID()), stEC.message().c_str());
                 g_MonoServer->Restart();
                 return;
             }else{
@@ -525,14 +529,15 @@ void Session::DoSendHC()
     }
 
     assert(!m_CurrSendQ->empty());
-    auto fnDoSendBuf = [this](std::error_code stEC, size_t){
+    auto fnDoSendBuf = [this](std::error_code stEC, size_t) -> void
+    {
         if(stEC){
             // 1. shutdown current connection
             Shutdown();
 
             // 2. report message and abort current process
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_FATAL, "Network error: %s", stEC.message().c_str());
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error on session %d: %s", (int)(ID()), stEC.message().c_str());
             g_MonoServer->Restart();
             return;
         }else{ DoSendBuf(); }
