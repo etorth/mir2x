@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 08/14/2017 23:53:04
+ *  Last Modified: 08/15/2017 00:01:58
  *
  *    Description: 
  *
@@ -217,7 +217,8 @@ void Session::DoReadHC()
                 case 1:
                     {
                         // not empty, fixed size, compressed
-                        auto fnDoneReadLen0 = [this, stCMSG, fnOnNetError, fnReportCurrentMessage](std::error_code stEC, size_t){
+                        auto fnDoneReadLen0 = [this, stCMSG, fnOnNetError, fnReportCurrentMessage](std::error_code stEC, size_t) -> void
+                        {
                             if(stEC){ fnOnNetError(stEC); }
                             else{
                                 if(m_ReadLen[0] != 255){
