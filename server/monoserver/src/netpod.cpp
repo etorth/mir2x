@@ -3,7 +3,7 @@
  *
  *       Filename: netpod.cpp
  *        Created: 06/25/2017 12:05:00
- *  Last Modified: 06/25/2017 18:18:47
+ *  Last Modified: 08/14/2017 17:52:04
  *
  *    Description: 
  *
@@ -64,7 +64,7 @@ bool NetPodN::CheckPort(uint32_t nPort)
 {
     if(nPort <= 1024){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Don't use reserved port: %d", (int)(nPort));
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Don't use reserved port: %d", (int)(nPort));
         return false;
     }
 
@@ -82,7 +82,7 @@ bool NetPodN::InitASIO(uint32_t nPort)
 
     if(!CheckPort(nPort)){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid port provided");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid port provided");
         g_MonoServer->Restart();
     }
 
@@ -165,39 +165,51 @@ int NetPodN::Activate(uint32_t nSessionID, const Theron::Address &rstTargetAddre
 
 void NetPodN::Accept()
 {
-    auto fnAccept = [this](std::error_code stEC){
+    auto fnAccept = [this](std::error_code stEC) -> void
+    {
         extern MonoServer *g_MonoServer;
         if(stEC){
             // error occurs, stop the network
             // assume g_MonoServer is ready for log
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error when accepting");
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Get network error when accepting");
             g_MonoServer->Restart();
 
-            // we won't put Accept() in the event loop again
-            // then the IO will stop after this
+            // IO will stop after this
+            // won't feed Accept() to event loop again
             return;
         }
 
-        g_MonoServer->AddLog(LOGTYPE_INFO, "Connection requested from (%s:%d)",
-                m_Socket->remote_endpoint().address().to_string().c_str(),
-                m_Socket->remote_endpoint().port());
+        auto nReqPort = m_Socket->remote_endpoint().port();
+        auto szIPAddr = m_Socket->remote_endpoint().address().to_string();
+        g_MonoServer->AddLog(LOGTYPE_INFO, "Connection requested from (%s:%d)", szIPAddr.c_str(), nReqPort);
 
         if(m_ValidQ.Empty()){
-            g_MonoServer->AddLog(LOGTYPE_INFO, "No valid slot for new connection request, refused");
+            g_MonoServer->AddLog(LOGTYPE_INFO, "No valid slot for new connection request");
+
+            // currently no valid slot
+            // but should wait for new accepting request
+            Accept();
             return;
         }
 
-        uint32_t nValidID = m_ValidQ.Head();
+        auto nValidID = m_ValidQ.Head();
         m_ValidQ.PopHead();
 
         if(!nValidID){
-            g_MonoServer->AddLog(LOGTYPE_INFO, "Mystious error, could never happen");
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Get zero from reserved session ID queue");
+            g_MonoServer->Restart();
             return;
         }
 
-        // create the new session and put it in V[0]
+        if(m_SessionV[0][nValidID]){
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Get in-using session id from reserved session ID queue");
+            g_MonoServer->Restart();
+            return;
+        }
+
         m_SessionV[0][nValidID] = new Session(nValidID, std::move(*m_Socket));
 
+        // should forward a message by SyncDriver::Forward()
         // inform the serice core that there is a new connection
         AMNewConnection stAMNC;
         stAMNC.SessionID = nValidID;
@@ -211,7 +223,9 @@ void NetPodN::Accept()
             return;
         }
 
-        g_MonoServer->AddLog(LOGTYPE_INFO, "Informed ServiceCore for a new connection");
+        // notification sent
+        // but service core may failed to receive it
+        // print log message in ServiceCore::Operate() instead here
 
         // accept next request
         Accept();

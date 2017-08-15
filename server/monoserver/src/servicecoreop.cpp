@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 07/02/2017 21:51:59
+ *  Last Modified: 08/14/2017 17:56:08
  *
  *    Description: 
  *
@@ -47,7 +47,11 @@ void ServiceCore::On_MPK_NEWCONNECTION(const MessagePack &rstMPK, const Theron::
 {
     AMNewConnection stAMNC;
     std::memcpy(&stAMNC, rstMPK.Data(), sizeof(stAMNC));
+
     if(stAMNC.SessionID){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_INFO, "ServiceCore get informed for new connection: %d", (int)(stAMNC.SessionID));
+
         extern NetPodN *g_NetPodN;
         g_NetPodN->Activate(stAMNC.SessionID, GetAddress());
     }

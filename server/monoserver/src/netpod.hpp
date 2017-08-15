@@ -3,7 +3,7 @@
  *
  *       Filename: netpod.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 06/25/2017 18:17:13
+ *  Last Modified: 08/14/2017 17:37:41
  *
  *    Description: this will serve as a stand-alone plugin for monoserver, it creates
  *                 with general info. and nothing will be done till Launch()
@@ -78,10 +78,10 @@ class NetPodN: public SyncDriver
         asio::ip::tcp::socket      *m_Socket;
 
     private:
-        std::thread                           m_Thread;
-        CacheQueue<size_t, SYS_MAXPLAYERNUM> m_ValidQ;
-        std::mutex                            m_LockV      [SYS_MAXPLAYERNUM];
-        Session                              *m_SessionV[2][SYS_MAXPLAYERNUM];
+        std::thread                            m_Thread;
+        CacheQueue<uint32_t, SYS_MAXPLAYERNUM> m_ValidQ;
+        std::mutex                             m_LockV      [SYS_MAXPLAYERNUM];
+        Session                               *m_SessionV[2][SYS_MAXPLAYERNUM];
 
     private:
         Theron::Address m_SCAddress;
@@ -116,6 +116,7 @@ class NetPodN: public SyncDriver
         //      4: session launch error
         int Activate(uint32_t, const Theron::Address &);
 
+    public:
         bool Shutdown(uint32_t nSessionID = 0)
         {
             if(!nSessionID){
@@ -165,18 +166,25 @@ class NetPodN: public SyncDriver
         template<typename... Args> bool Send(uint32_t nSessionID, Args&&... args)
         {
             // it's a broadcast
+            // 1. should check the caller's permission
+            // 2. how to hanle failure for some sessions when send
+
+            // when some session failed
+            // should we send cancel message or leave it as it is?
+
             if(!nSessionID){
-                for(int nSID = 1; nSID < (int)SYS_MAXPLAYERNUM; ++nSID){
+                for(int nSID = 1; nSID < SYS_MAXPLAYERNUM; ++nSID){
                     if(m_SessionV[1][nSID]){
-                        m_SessionV[1][nSID]->Send(std::forward<Args>(args)...);
+                        if(!m_SessionV[1][nSID]->Send(std::forward<Args>(args)...)){
+                            return false;
+                        }
                     }
                 }
                 return true;
             }
 
             if(nSessionID < SYS_MAXPLAYERNUM && m_SessionV[1][nSessionID]){
-                m_SessionV[1][nSessionID]->Send(std::forward<Args>(args)...);
-                return true;
+                return m_SessionV[1][nSessionID]->Send(std::forward<Args>(args)...);
             }
 
             // something happens...

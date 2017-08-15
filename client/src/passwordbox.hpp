@@ -1,4 +1,24 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: passwordbox.hpp
+ *        Created: 07/16/2017 19:06:25
+ *  Last Modified: 08/14/2017 15:44:07
+ *
+ *    Description: 
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #pragma once
+#include <string>
 #include "idbox.hpp"
 
 class PasswordBox: public IDBox

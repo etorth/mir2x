@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 04/27/2017 15:09:17
+ *  Last Modified: 08/14/2017 15:54:00
  *
  *    Description: actor <-> session <--- network ---> client
  *                 1. each session binds to an actor
@@ -172,6 +172,7 @@ class Session final: public SyncDriver
             return m_ID;
         }
 
+    public:
         // return value:
         //  0 : OK
         //  1 : invalid arguments
@@ -200,12 +201,12 @@ class Session final: public SyncDriver
         }
 
     public:
-        const char *IP()
+        const char *IP() const
         {
             return m_IP.c_str();
         }
 
-        uint32_t Port()
+        uint32_t Port() const
         {
             return m_Port;
         }
