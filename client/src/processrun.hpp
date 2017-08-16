@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 08/10/2017 13:32:15
+ *  Last Modified: 08/15/2017 18:27:48
  *
  *    Description: 
  *
@@ -26,7 +26,6 @@
 #include "myhero.hpp"
 #include "process.hpp"
 #include "message.hpp"
-#include "mir2xmap.hpp"
 #include "creature.hpp"
 #include "focustype.hpp"
 #include "ascendstr.hpp"

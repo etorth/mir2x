@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.cpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 03/24/2017 17:03:30
+ *  Last Modified: 08/15/2017 12:21:36
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -45,38 +45,46 @@ int Mir2xMapData::Load(const char *szFullName)
         std::fclose(pFile);
 
         // tile
-        auto fnSetTile = [this](int nX, int nY, int nSize, const uint8_t *, size_t &, const uint8_t *pData, size_t &nDataOff){
+        auto fnSetTile = [this](int nX, int nY, int nSize, const uint8_t *, size_t &, const uint8_t *pData, size_t &nDataOff)
+        {
             return SetTile(nX, nY, nSize, pData, nDataOff);
         };
 
-        auto fnParseTile = [this, fnSetTile](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff){
+        auto fnParseTile = [this, fnSetTile](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+        {
             return ParseGrid(nX, nY, nSize, 2, pMark, nMarkOff, pData, nDataOff, fnSetTile);
         };
 
         // cell
-        auto fnSetCell = [this](int nX, int nY, int nSize, const uint8_t *, size_t &, const uint8_t *pData, size_t &nDataOff){
+        auto fnSetCell = [this](int nX, int nY, int nSize, const uint8_t *, size_t &, const uint8_t *pData, size_t &nDataOff)
+        {
             return SetCell(nX, nY, nSize, pData, nDataOff);
         };
 
-        auto fnParseCell = [this, fnSetCell](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff){
+        auto fnParseCell = [this, fnSetCell](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+        {
             return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetCell);
         };
 
         // obj0
-        auto fnSetObj0 = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff){
+        auto fnSetObj0 = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+        {
             return SetObj(nX, nY, 0, nSize, pMark, nMarkOff, pData, nDataOff);
         };
 
-        auto fnParseObj0 = [this, fnSetObj0](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff){
+        auto fnParseObj0 = [this, fnSetObj0](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+        {
             return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetObj0);
         };
 
         // obj1
-        auto fnSetObj1 = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff){
+        auto fnSetObj1 = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+        {
             return SetObj(nX, nY, 1, nSize, pMark, nMarkOff, pData, nDataOff);
         };
 
-        auto fnParseObj1 = [this, fnSetObj1](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff){
+        auto fnParseObj1 = [this, fnSetObj1](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+        {
             return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetObj1);
         };
 

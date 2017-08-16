@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 03/23/2017 23:07:06
+ *  Last Modified: 08/15/2017 18:22:37
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -80,28 +80,18 @@
  */
 #pragma once
 
-#include "mir2map.hpp"
-#include "mir2xmap.hpp"
-#include "mir2xmapdata.hpp"
-
 #include <string>
-#include "wilimagepackage.hpp"
-#include <cstdint>
-#include <functional>
 #include <vector>
+#include <cstdint>
 #include <utility>
+#include <functional>
+
+#include "mir2map.hpp"
+#include "mir2xmapdata.hpp"
+#include "wilimagepackage.hpp"
 
 class EditorMap
 {
-    private:
-        typedef struct _GridObjectSlice{
-        }GridObjectSlice;
-        typedef struct _EditCellDesc{
-            uint32_t Tile;              // only use 1 / 4 of it
-
-            uint32_t Cell;
-        }EditCellDesc;
-
     private:
         int             m_W;
         int             m_H;
@@ -111,7 +101,6 @@ class EditorMap
 
     private:
         Mir2Map        *m_Mir2Map;
-        Mir2xMap       *m_Mir2xMap;
         Mir2xMapData   *m_Mir2xMapData;
 
     private:

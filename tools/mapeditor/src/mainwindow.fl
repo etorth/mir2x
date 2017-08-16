@@ -2,7 +2,13 @@
 version 1.0303 
 header_name {.hpp} 
 code_name {.cpp}
-decl {\#include <cstdint>} {private local
+decl {\#include <map>} {private local
+} 
+
+decl {\#include <array>} {private local
+} 
+
+decl {\#include <string>} {private local
 } 
 
 decl {\#include <ctime>} {private local
@@ -11,46 +17,40 @@ decl {\#include <ctime>} {private local
 decl {\#include <vector>} {public local
 } 
 
-decl {\#include <dirent.h>} {public local
-} 
-
-decl {\#include <array>} {private local
-} 
-
-decl {\#include <map>} {private local
-} 
-
-decl {\#include <string>} {private local
+decl {\#include <cstdint>} {private local
 } 
 
 decl {\#include <cstring>} {private local
 } 
 
-decl {\#include "filesys.hpp"} {private local
-} 
-
-decl {\#include "mapinfowindow.hpp"} {selected private local
-} 
-
-decl {\#include "imagedb.hpp"} {private local
-} 
-
-decl {\#include "imagecache.hpp"} {private local
-} 
-
-decl {\#include "editormap.hpp"} {private local
-} 
-
-decl {\#include "hexstring.hpp"} {private local
-} 
-
-decl {\#include "animationdraw.hpp"} {private local
+decl {\#include <dirent.h>} {public local
 } 
 
 decl {\#include <FL/fl_draw.H>} {public local
 } 
 
 decl {\#include <FL/Fl_Shared_Image.H>} {public local
+} 
+
+decl {\#include "filesys.hpp"} {private local
+} 
+
+decl {\#include "imagedb.hpp"} {private local
+} 
+
+decl {\#include "hexstring.hpp"} {private local
+} 
+
+decl {\#include "editormap.hpp"} {private local
+} 
+
+decl {\#include "imagecache.hpp"} {private local
+} 
+
+decl {\#include "animationdraw.hpp"} {private local
+} 
+
+decl {\#include "mapinfowindow.hpp"} {private local
 } 
 
 decl {\#include "animationselectwindow.hpp"} {private local
@@ -69,7 +69,7 @@ class MainWindow {open
 		default :          break;
 	}
 }} open
-      xywh {562 146 985 665} type Double resizable visible
+      xywh {712 220 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -109,66 +109,6 @@ fl_alert("%s", "Haven't implement yet!");}
             code1 {\#include <FL/Fl_Native_File_Chooser.H>}
             code2 {\#include <FL/fl_ask.H>}
             code3 {\#include <algorithm>}
-          }
-          MenuItem {} {
-            label {Load Mir2xMap}
-            callback {{
-    extern std::string g_WilFilePathName;
-    if(g_WilFilePathName == ""){
-        SetWilFilePathName();
-    }
-
-    Fl_Native_File_Chooser stFileChooser;
-    stFileChooser.title("Set Map File Path...");
-    stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
-    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
-
-    stFileChooser.directory(".");
-
-    switch(stFileChooser.show()){
-        case -1:
-            {
-                fl_alert("%s", stFileChooser.errmsg());
-                break;
-            }
-        case 1:
-            {
-                break;
-            }
-        default:
-            {
-                extern std::string g_WorkingPathName;
-                g_WorkingPathName = "";
-                MakeWorkingFolder();
-
-                std::string szPath = stFileChooser.filename();
-                std::replace(szPath.begin(), szPath.end(), '\\\\', '/');
-
-                if(szPath.back() == '/'){
-                    szPath += "DESC.BIN";
-                }else{
-                    szPath += "/DESC.BIN";
-                }
-
-                if(FileSys::FileExist(szPath.c_str())){
-                    extern EditorMap g_EditorMap;
-                    if(!g_EditorMap.LoadMir2xMap(szPath.c_str()) || !g_EditorMap.Valid()){
-                        fl_alert("Failed to load Mir2xMap: %s", szPath.c_str());
-                    }
-                    
-                    AfterLoadMir2Map();
-                    Fl::remove_timeout(UpdateFrame);
-                    Fl::add_timeout(0.5, UpdateFrame);
-                    
-                }else{
-                    fl_alert("Invalid Mir2xMap folder: %s", szPath.c_str());
-                }
-            }
-    }
-}}
-            xywh {0 0 30 20} shortcut 0x4006f labelfont 4
-            code0 {\#include <string>}
-            code1 {\#include "editormap.hpp"}
           }
           MenuItem {} {
             label {Load Mir2xMapData}
@@ -231,13 +171,6 @@ fl_alert("%s", "Haven't implement yet!");}
             code1 {\#include "editormap.hpp"}
           }
           MenuItem {} {
-            label {Save Mir2xMap}
-            callback {{
-    SaveMir2xMap();
-}}
-            xywh {0 0 30 20} labelfont 4
-          }
-          MenuItem {} {
             label {Save Mir2xMapData}
             callback {{
     SaveMir2xMapData();
@@ -289,7 +222,7 @@ fl_alert("%s", "Haven't implement yet!");}
 
     g_EditorMap.ExtractTile(fnSaveTilePNG);
     g_EditorMap.ExtractObject(fnSaveObjPNG);
-}}
+}} selected
             xywh {10 10 30 20} labelfont 4 divider
             code0 {\#include <string>}
             code1 {\#include <FL/Fl_Native_File_Chooser.H>}

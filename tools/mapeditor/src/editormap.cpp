@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 07/26/2017 15:04:46
+ *  Last Modified: 08/15/2017 18:24:13
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -17,30 +17,27 @@
  *
  * =====================================================================================
  */
-#include "mir2map.hpp"
-#include "mir2xmap.hpp"
-#include "editormap.hpp"
 
-#include <memory.h>
-#include "assert.h"
-#include <cstring>
-#include <functional>
-#include <cstdint>
-#include <algorithm>
+#include <memory>
 #include <vector>
+#include <cstdint>
+#include <cstring>
+#include <algorithm>
+#include <functional>
+#include <FL/fl_ask.H>
+
 #include "savepng.hpp"
 #include "filesys.hpp"
+#include "mir2map.hpp"
 #include "sysconst.hpp"
 #include "mathfunc.hpp"
-
-#include <FL/fl_ask.H>
+#include "editormap.hpp"
 
 EditorMap::EditorMap()
     : m_W(0)
     , m_H(0)
     , m_Valid(false)
     , m_Mir2Map(nullptr)
-    , m_Mir2xMap(nullptr)
     , m_Mir2xMapData(nullptr)
 {
     std::memset(m_bAniTileFrame, 0, sizeof(uint8_t) * 8 * 16);
@@ -50,17 +47,15 @@ EditorMap::EditorMap()
 EditorMap::~EditorMap()
 {
     delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
-    delete m_Mir2xMap    ; m_Mir2xMap     = nullptr;
     delete m_Mir2Map     ; m_Mir2Map      = nullptr;
 }
 
 void EditorMap::ExtractOneTile(int nXCnt, int nYCnt, std::function<void(uint8_t, uint16_t)> fnWritePNG)
 {
-    if(!Valid() || !ValidC(nXCnt, nYCnt)
-            || (nXCnt % 2) || (nYCnt % 2) || !TileValid(nXCnt, nYCnt)){ return; }
+    if(!Valid() || !ValidC(nXCnt, nYCnt) || (nXCnt % 2) || (nYCnt % 2) || !TileValid(nXCnt, nYCnt)){ return; }
 
     uint32_t nDescKey    = Tile(nXCnt, nYCnt);
-    uint8_t  nFileIndex  = (uint8_t)((nDescKey & 0X00FF0000) >> 16);
+    uint8_t  nFileIndex  = (uint8_t )((nDescKey & 0X00FF0000) >> 16);
     uint16_t nImageIndex = (uint16_t)((nDescKey & 0X0000FFFF));
 
     fnWritePNG(nFileIndex, nImageIndex);
@@ -79,8 +74,7 @@ void EditorMap::ExtractTile(std::function<void(uint8_t, uint16_t)> fnWritePNG)
     }
 }
 
-void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH,
-        std::function<void(uint8_t, uint16_t, int, int)> fnDrawTile)
+void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH, std::function<void(uint8_t, uint16_t, int, int)> fnDrawTile)
 {
     if(!Valid()){ return; }
 
@@ -99,7 +93,7 @@ void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH,
             }
 
             uint32_t nDescKey    = Tile(nX, nY);
-            uint8_t  nFileIndex  = (uint8_t)((nDescKey & 0X00FF0000) >> 16);
+            uint8_t  nFileIndex  = (uint8_t )((nDescKey & 0X00FF0000) >> 16);
             uint16_t nImageIndex = (uint16_t)((nDescKey & 0X0000FFFF));
 
             // provide cell-coordinates on map
@@ -856,7 +850,6 @@ void EditorMap::CompressTile(std::vector<bool> &stMarkV, std::vector<uint8_t> &s
 bool EditorMap::LoadMir2Map(const char *szFullName)
 {
     delete m_Mir2Map     ; m_Mir2Map      = new Mir2Map();
-    delete m_Mir2xMap    ; m_Mir2xMap     = nullptr;
     delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
 
     if(m_Mir2Map->Load(szFullName)){
@@ -870,36 +863,12 @@ bool EditorMap::LoadMir2Map(const char *szFullName)
     return Valid();
 }
 
-bool EditorMap::LoadMir2xMap(const char *szFullName)
-{
-    delete m_Mir2Map     ; m_Mir2Map      = nullptr;
-    delete m_Mir2xMap    ; m_Mir2xMap     = new Mir2xMap();
-    delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
-
-    if(m_Mir2xMap->Load(szFullName)){
-        MakeBuf(m_Mir2xMap->W(), m_Mir2xMap->H());
-        InitBuf();
-    }
-
-    delete m_Mir2xMap;
-    m_Mir2xMap = nullptr;
-
-    return Valid();
-}
-
 bool EditorMap::LoadMir2xMapData(const char *szFullName)
 {
     delete m_Mir2Map     ; m_Mir2Map      = nullptr;
-    delete m_Mir2xMap    ; m_Mir2xMap     = nullptr;
     delete m_Mir2xMapData; m_Mir2xMapData = new Mir2xMapData();
 
     if(!m_Mir2xMapData->Load(szFullName)){
-        {
-            if(auto fp = std::fopen("test.bin.2", "wb")){
-                std::fwrite(m_Mir2xMapData->Data(), m_Mir2xMapData->Size(), 1, fp);
-                std::fclose(fp);
-            }
-        }
         MakeBuf(m_Mir2xMapData->W(), m_Mir2xMapData->H());
         InitBuf();
     }
@@ -960,9 +929,6 @@ bool EditorMap::InitBuf()
     if(m_Mir2Map && m_Mir2Map->Valid()){
         nW = m_Mir2Map->W();
         nH = m_Mir2Map->H();
-    }else if(m_Mir2xMap && m_Mir2xMap->Valid()){
-        nW = m_Mir2xMap->W();
-        nH = m_Mir2xMap->H();
     }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
         nW = m_Mir2xMapData->W();
         nH = m_Mir2xMapData->H();
@@ -1047,12 +1013,6 @@ void EditorMap::SetBufTile(int nX, int nY)
             m_BufTile    [nX / 2][nY / 2] = m_Mir2Map->Tile(nX, nY);
             m_BufTileMark[nX / 2][nY / 2] = 1;
         }
-    }else if(m_Mir2xMap && m_Mir2xMap->Valid()){
-        // mir2x map
-        if(m_Mir2xMap->TileValid(nX, nY)){
-            m_BufTile    [nX / 2][nY / 2] = m_Mir2xMap->Tile(nX, nY);
-            m_BufTileMark[nX / 2][nY / 2] = 1;
-        }
     }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
         if(m_Mir2xMapData->Tile(nX, nY).Param & 0X80000000){
             m_BufTile    [nX / 2][nY / 2] = m_Mir2xMapData->Tile(nX, nY).Param & 0X00FFFFFF;
@@ -1068,12 +1028,6 @@ void EditorMap::SetBufGround(int nX, int nY, int nIndex)
         if(m_Mir2Map->GroundValid(nX, nY)){
             m_BufGroundMark[nX][nY][nIndex] = 1;
             m_BufGround[nX][nY][nIndex] = 0X0000; // set by myselt
-        }
-    }else if(m_Mir2xMap && m_Mir2xMap->Valid()){
-        // mir2x map
-        if(m_Mir2xMap->GroundValid(nX, nY, nIndex)){
-            m_BufGroundMark[nX][nY][nIndex] = 1;
-            m_BufGround[nX][nY][nIndex] = m_Mir2xMap->Ground(nX, nY, nIndex);
         }
     }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
         if(m_Mir2xMapData->Cell(nX, nY).Param & ((uint32_t)(1) << 23)){
@@ -1113,19 +1067,6 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
                 nObj      &= 0X00FFFFFF;
             }
         }
-    }else if(m_Mir2xMap && m_Mir2xMap->Valid()){
-        // mir2x map
-        if(m_Mir2xMap->ObjectValid(nX, nY, nIndex)){
-            nObjValid = 1;
-            if(m_Mir2xMap->GroundObjectValid(nX, nY, nIndex)){
-                nGroundObj = 1;
-            }
-            if(m_Mir2xMap->AniObjectValid(nX, nY, nIndex)){
-                nAniObj = 1;
-            }
-            nAlphaObj = m_Mir2xMap->AlphaObjectValid(nX, nY, nIndex);
-            nObj      = m_Mir2xMap->Object(nX, nY, nIndex);
-        }
     }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
         if((m_Mir2xMapData->Cell(nX, nY).Param & 0X80000000) && (m_Mir2xMapData->Cell(nX, nY).Obj[nIndex].Param & 0X80000000)){
             nObjValid = 1;
@@ -1142,10 +1083,11 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
             // TODO
             // currently we have only 8 + 16 bits for texture
             nObj  = (m_Mir2xMapData->Cell(nX, nY).Obj[nIndex].Param & 0X00FFFFFF);
+
+            // why should I put a line here
             nObj |= (m_Mir2xMapData->Cell(nX, nY).ObjParam & (nIndex ? 0X7F000000 : 0X00007F00));
         }
     }
-
 
     m_BufObj          [nX][nY][nIndex] = nObj;
     m_BufObjMark      [nX][nY][nIndex] = nObjValid;
@@ -1168,12 +1110,6 @@ void EditorMap::SetBufLight(int nX, int nY)
             uint16_t nSizeType   =   0;  // 0, 1, 2, 3, ...,  7  3 bits
 
             m_BufLight[nX][nY] = ((nSizeType & 0X0007) << 7) + ((nAlphaIndex & 0X0003) << 4) + ((nColorIndex & 0X000F));
-            m_BufLightMark[nX][nY] = 1;
-        }
-    }else if(m_Mir2xMap && m_Mir2xMap->Valid()){
-        // mir2x map
-        if(m_Mir2xMap->LightValid(nX, nY)){
-            m_BufLight[nX][nY]     = m_Mir2xMap->Light(nX, nY);
             m_BufLightMark[nX][nY] = 1;
         }
     }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
@@ -1428,8 +1364,7 @@ void EditorMap::PushBit(const std::vector<bool> &stMarkV, std::vector<uint8_t> &
     }
 }
 
-void EditorMap::PushData(const std::vector<bool> &stMarkV,
-        const std::vector<uint8_t> &stDataV, std::vector<uint8_t> &stOutV)
+void EditorMap::PushData(const std::vector<bool> &stMarkV, const std::vector<uint8_t> &stDataV, std::vector<uint8_t> &stOutV)
 {
     uint32_t nMarkLen = (stMarkV.size() + 7) / 8;
     uint32_t nDataLen = (stDataV.size());
