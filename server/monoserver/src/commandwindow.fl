@@ -136,8 +136,8 @@ class CommandWindow {open
     // and LuaModuleTaskHub has an LuaModule as command input
     {
         if(nCWID > 0){
-            assert(m_LuaModule        == nullptr);
-            assert(m_LuaModuleTaskHub == nullptr);
+            condcheck(m_LuaModule        == nullptr);
+            condcheck(m_LuaModuleTaskHub == nullptr);
 
             m_CWID             = nCWID;
             m_LuaModuleTaskHub = new TaskHub();

@@ -3,7 +3,7 @@
  *
  *       Filename: serverobject.cpp
  *        Created: 05/23/2016 18:22:01
- *  Last Modified: 07/30/2017 17:58:20
+ *  Last Modified: 08/18/2017 15:30:04
  *
  *    Description: 
  *
@@ -17,8 +17,9 @@
  *
  * =====================================================================================
  */
-#include <cassert>
+
 #include "log.hpp"
+#include "condcheck.hpp"
 #include "monoserver.hpp"
 #include "serverobject.hpp"
 
@@ -74,7 +75,7 @@ bool ServerObject::RegisterClass(size_t nCode, const char *pName, const std::vec
                     }
                 case 2:
                     {
-                        assert(!rstCurrEntry.Entry.empty());
+                        condcheck(!rstCurrEntry.Entry.empty());
                         if(rstCurrEntry.Entry.back().Code == nCode){
                             bool bAgree = true;
                             if(rstParentEntry.size() + 1 == rstCurrEntry.Entry.size()){
@@ -162,7 +163,7 @@ const std::vector<ServerObject::ClassCodeName> &ServerObject::ClassEntry(size_t 
                 {
                     // if an entry is ready
                     // then this entry should only be accessed in READ-ONLY mode
-                    assert(!rstCurrEntry.Entry.empty());
+                    condcheck(!rstCurrEntry.Entry.empty());
                     if(rstCurrEntry.Entry.back().Code == nClassCode){
                         // we can do some verification if needed like
                         // 1. entry.Name is not empty

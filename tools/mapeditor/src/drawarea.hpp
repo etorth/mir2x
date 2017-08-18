@@ -1,9 +1,30 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: drawarea.hpp
+ *        Created: 07/26/2015 04:27:57 AM
+ *  Last Modified: 08/17/2017 17:48:34
+ *
+ *    Description: To handle or GUI interaction
+ *                 Provide handlers to EditorMap
+ *                 EditorMap will draw scene with assistance of ImageDB
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #pragma once
 #include <vector>
-#include <FL/Fl_Box.H>
 #include <cstdint>
-#include <FL/Fl_Shared_Image.H>
 #include <functional>
+#include <FL/Fl_Box.H>
+#include <FL/Fl_Shared_Image.H>
 
 class DrawArea: public Fl_Box
 {
@@ -15,16 +36,13 @@ class DrawArea: public Fl_Box
         int m_OffsetY;
 
     private:
-        Fl_Image *m_TUC[2][4]; // triangle unit cover
-        Fl_Image *m_TextBoxBG;     // backgound for living text
-        Fl_Image *m_LightUC;
-
-    private:
-        std::vector<Fl_Image *> m_CoverV;
+        Fl_Image *m_RUC[2];     // rectangle unit cover
+        Fl_Image *m_TextBoxBG;  // backgound for living text
+        Fl_Image *m_LightRUC;
 
     public:
         DrawArea(int, int, int, int);
-        ~DrawArea();
+       ~DrawArea();
 
     public:
         // required overriding function
@@ -34,6 +52,7 @@ class DrawArea: public Fl_Box
     public:
         void SetOffset(int, bool, int, bool);
 
+    public:
         int OffsetX()
         {
             return m_OffsetX;
@@ -44,15 +63,13 @@ class DrawArea: public Fl_Box
             return m_OffsetY;
         }
 
-
-
     private:
-        void DrawAttributeGrid();
         void DrawGrid();
         void DrawTile();
         void DrawLight();
-        void DrawObject(bool);
         void DrawGround();
+        void DrawObject(bool);
+        void DrawAttributeGrid();
 
     private:
         // TODO
@@ -71,13 +88,13 @@ class DrawArea: public Fl_Box
 
     private:
         void DrawSelect();
-        void DrawTrySelect();
         void DrawTextBox();
+        void DrawTrySelect();
 
     private:
-        void RhombusCoverOperation(int, int, int, std::function<void(int, int, int)>);
-        void RectangleCoverOperation(int, int, int, std::function<void(int, int, int)>);
-        void AttributeCoverOperation(int, int, int, std::function<void(int, int, int)>);
+        void RhombusCoverOperation  (int, int, int, std::function<void(int, int)>);
+        void RectangleCoverOperation(int, int, int, std::function<void(int, int)>);
+        void AttributeCoverOperation(int, int, int, std::function<void(int, int)>);
 
     private:
         void DrawSelectBySingle();
@@ -96,23 +113,18 @@ class DrawArea: public Fl_Box
         void AddSelectByAttribute();
 
     private:
-        void GetTriangleOnMap(int, int, int, int &, int &, int &, int &, int &, int &);
+        bool LocateAnimation(int, int);
         bool LocateLineSegment(int &, int &, int &, int &);
         bool LocateGroundSubCell(int, int, int &, int &, int &);
-        bool LocateAnimation(int, int);
+        void GetTriangleOnMap(int, int, int, int &, int &, int &, int &, int &, int &);
 
     public:
         void SetScrollBar();
 
     public:
-        bool CoverValid(int, int, int);
+        void DrawRUC(int, int, bool);
 
     public:
-        void DrawTUC(int, int, int, bool);
-
-    public:
-        // helper function
-        Fl_Image *CreateTUC(int, bool);
-        Fl_Image *CreateCover(int);
         Fl_Image *RetrievePNG(uint8_t, uint16_t);
+        Fl_Image *CreateRectImage(int, int, uint32_t);
 };

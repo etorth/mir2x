@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/15/2017 18:22:37
+ *  Last Modified: 08/18/2017 13:43:59
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -87,43 +87,146 @@
 #include <functional>
 
 #include "mir2map.hpp"
+#include "sysconst.hpp"
+#include "landtype.hpp"
+#include "pushstream.hpp"
 #include "mir2xmapdata.hpp"
 #include "wilimagepackage.hpp"
 
 class EditorMap
 {
     private:
-        int             m_W;
-        int             m_H;
-        bool            m_Valid;
-        uint32_t        m_dwAniSaveTime[8];
-        uint8_t         m_bAniTileFrame[8][16];
+        struct stTile_t
+        {
+            bool     Valid;
+            uint32_t Image;
+
+            uint32_t MakeU32() const
+            {
+                if(Valid){
+                    return 0X80000000 | (Image & 0X00FFFFFF);
+                }else{
+                    return 0X00000000;
+                }
+            }
+        };
+
+        struct stObj_t
+        {
+            bool Valid;
+
+            bool Alpha;
+            bool Ground;
+            bool Animated;
+
+            uint8_t AniType;
+            uint8_t AniCount;
+
+            uint32_t Image;
+
+            std::array<uint8_t, 5> MakeArray() const
+            {
+                if(Valid){
+                    uint8_t nByte4 = 0
+                        | (((uint8_t)(Valid  ? 1 : 0)) << 7)
+                        | (((uint8_t)(Alpha  ? 1 : 0)) << 1)
+                        | (((uint8_t)(Ground ? 1 : 0)) << 0);
+
+                    uint8_t nByte3 = 0
+                        | (((uint8_t)(Animated ? 1 : 0)) << 7)
+                        | (((uint8_t)(AniType  & 0X07 )) << 4)
+                        | (((uint8_t)(AniCount & 0X0F )) << 0);
+
+                    uint8_t nByte2 = (uint8_t)((Image & 0X00FF0000) >> 16);
+                    uint8_t nByte1 = (uint8_t)((Image & 0X0000FF00) >>  8);
+                    uint8_t nByte0 = (uint8_t)((Image & 0X000000FF) >>  0);
+
+                    return {nByte0, nByte1, nByte2, nByte3, nByte4};
+                }else{
+                    return {0, 0, 0, 0, 0};
+                }
+            }
+        };
+
+        struct stLight_t
+        {
+            bool Valid;
+
+            // TODO
+            // need design light struture
+
+            // 1. index of light color
+            // 2. index of light alpha
+            // 3. index of light radius
+            uint8_t Color;
+            uint8_t Alpha;
+            uint8_t Radius;
+
+            uint8_t MakeU8() const
+            {
+                if(Valid){
+                    return 0
+                        | (((uint8_t)(Valid ? 1 : 0)) << 7)     // [ :7]
+                        | (((uint8_t)(Radius & 0X03)) << 5)     // [6:5]
+                        | (((uint8_t)(Alpha  & 0X03)) << 3)     // [4:3]
+                        | (((uint8_t)(Color  & 0X07)) << 0);    // [2:0]
+                }else{
+                    return 0X00;
+                }
+            }
+        };
+
+        struct stCell_t
+        {
+            bool    CanWalk;
+            bool    CanFly;
+            uint8_t LandType;
+
+            stLight_t Light;
+            stObj_t   Obj[2];
+
+            // rest for editor use only
+            bool SelectGround;
+
+            // an cell is always valid
+            // it may contains light and objects and indicated by ``Valid"
+            uint8_t MakeLandU8() const
+            {
+                return 0
+                    | (((uint8_t)(CanWalk ? 1 : 0)) << 7)   // [  7]
+                    | (((uint8_t)(CanFly  ? 1 : 0)) << 6)   // [  6]
+                    | (((uint8_t)(LandType & 0X3F)) << 0);  // [5:0]
+            }
+
+            bool CanThrough()
+            {
+                return true
+                    && (CanWalk || CanFly)
+                    && (LandType > LANDTYPE_NONE && LandType < LANDTYPE_MAX);
+            }
+        };
+
+        struct stBlock_t
+        {
+            stTile_t Tile;
+            stCell_t Cell[2][2];
+        };
 
     private:
-        Mir2Map        *m_Mir2Map;
-        Mir2xMapData   *m_Mir2xMapData;
+        int     m_W;
+        int     m_H;
+        bool    m_Valid;
 
     private:
-        // buffers
-        std::vector<std::vector<int>>                       m_BufLightMark;
-        std::vector<std::vector<uint16_t>>                  m_BufLight;         // restrict to only use last 7 bits
-
-        std::vector<std::vector<int>>                       m_BufTileMark;
-        std::vector<std::vector<uint32_t>>                  m_BufTile;
-
-        std::vector<std::vector<std::array<int, 2>>>        m_BufObjMark;
-        std::vector<std::vector<std::array<int, 2>>>        m_BufGroundObjMark;
-        std::vector<std::vector<std::array<int, 2>>>        m_BufAlphaObjMark;
-        std::vector<std::vector<std::array<int, 2>>>        m_BufAniObjMark;
-        std::vector<std::vector<std::array<uint32_t, 2>>>   m_BufObj;
-
-        std::vector<std::vector<std::array<uint8_t, 4>>>    m_BufGround;
-        std::vector<std::vector<std::array<int, 4>>>        m_BufGroundMark;
-        std::vector<std::vector<std::array<int, 4>>>        m_BufGroundSelectMark;
+        uint32_t m_AniSaveTime [8];
+        uint8_t  m_AniTileFrame[8][16];
 
     private:
-        // for ground select
-        std::vector<std::pair<int, int>>                    m_SelectPointV;
+        Mir2Map      *m_Mir2Map;
+        Mir2xMapData *m_Mir2xMapData;
+
+    private:
+        std::vector<std::vector<stBlock_t>> m_BlockBuf;
 
     public:
         EditorMap();
@@ -131,186 +234,77 @@ class EditorMap
 
     public:
         bool LoadMir2Map(const char *);
-        bool LoadMir2xMap(const char *);
         bool LoadMir2xMapData(const char *);
 
     public:
-        // fast api
-        // user's responsability to maintain parameters and states
-        bool Valid()
+        bool Valid() const
         {
             return m_Valid;
         }
 
-        bool ValidC(int nX, int nY)
+        bool ValidC(int nX, int nY) const
         {
             return nX >= 0 && nX < W() && nY >= 0 && nY < H();
         }
 
-        bool ValidP(int nX, int nY)
+        bool ValidP(int nX, int nY) const
         {
-            return nX >= 0 && nX < 48 * W() && nY >= 0 && nY < 32 * H();
+            return nX >= 0 && nX < SYS_MAPGRIDXP * W() && nY >= 0 && nY < SYS_MAPGRIDYP * H();
         }
 
-        int W()
+    public:
+        int W() const
         {
             return m_W;
         }
 
-        int H()
+        int H() const
         {
             return m_H;
         }
 
-        int TileValid(int nX, int nY)
+        auto &Tile(int nX, int nY)
         {
-            return m_BufTileMark[nX / 2][nY / 2];
+            return m_BlockBuf[nX / 2][nY / 2].Tile;
         }
 
-        uint32_t Tile(int nX, int nY)
+        auto &Cell(int nX, int nY)
         {
-            return m_BufTile[nX / 2][nY / 2];
+            return m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2];
         }
 
-        int ObjectValid(int nX, int nY, int nIndex)
+        auto &Light(int nX, int nY)
         {
-            return m_BufObjMark[nX][nY][nIndex];
+            return Cell(nX, nY).Light;
         }
 
-        uint32_t Object(int nX, int nY, int nIndex)
+        auto &Object(int nX, int nY, int nIndex)
         {
-            return m_BufObj[nX][nY][nIndex];
-        }
-
-        int GroundObjectValid(int nX, int nY,  int nIndex)
-        {
-            return m_BufGroundObjMark[nX][nY][nIndex];
-        }
-
-        int AlphaObjectValid(int nX, int nY,  int nIndex)
-        {
-            return m_BufAlphaObjMark[nX][nY][nIndex];
-        }
-
-        int GroundSelect(int nX, int nY, int nIndex)
-        {
-            return m_BufGroundSelectMark[nX][nY][nIndex];
-        }
-
-        bool AniObjectValid(int nX, int nY, int nIndex)
-        {
-            return m_BufAniObjMark[nX][nY][nIndex];
-        }
-
-        int LightValid(int nX, int nY)
-        {
-            return m_BufLightMark[nX][nY];
-        }
-
-        uint16_t Light(int nX, int nY)
-        {
-            return m_BufLight[nX][nY];
-        }
-
-        int GroundValid(int nX, int nY, int nIndex)
-        {
-            return m_BufGroundMark[nX][nY][nIndex];
-        }
-
-        uint8_t Ground(int nX, int nY, int nIndex)
-        {
-            return m_BufGround[nX][nY][nIndex];
-        }
-
-        uint16_t ObjectOff(int nAniType, int nAniCnt)
-        {
-            return (uint16_t)(m_bAniTileFrame[nAniType][nAniCnt]);
-        }
-
-        void SetGround(int nX, int nY, int nIndex, bool bValid, uint8_t nDesc)
-        {
-            m_BufGroundMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
-            m_BufGround[nX][nY][nIndex]     = nDesc;
-        }
-
-        void SetObject(int nX, int nY, int nIndex, bool bValid, uint32_t nDesc)
-        {
-            m_BufObjMark[nX][nY][nIndex] = ((bValid) ? 1 : 0);
-            m_BufObj[nX][nY][nIndex]     = nDesc;
-        }
-
-        void SetGroundObject(int nX, int nY, int nIndex, int nGroundObj)
-        {
-            m_BufGroundObjMark[nX][nY][nIndex] = nGroundObj;
-        }
-
-        bool CanWalk(int nX, int nY, int nIndex)
-        {
-            return GroundValid(nX, nY, nIndex);
+            return Cell(nX, nY).Obj[nIndex];
         }
 
     public:
-        // for map resource extraction
-        void ExtractOneTile(int, int, std::function<void(uint8_t, uint16_t)>);
         void ExtractTile(std::function<void(uint8_t, uint16_t)>);
+        void ExtractOneTile(int, int, std::function<void(uint8_t, uint16_t)>);
 
-        void ExtractOneObject(int, int, int, std::function<void(uint8_t, uint16_t, uint32_t)>);
         void ExtractObject(std::function<void(uint8_t, uint16_t, uint32_t)>);
+        void ExtractOneObject(int, int, int, std::function<void(uint8_t, uint16_t, uint32_t)>);
 
     public:
-        // draw map
-        // external class will provide handlers for physical draw function
         void DrawTile(int, int, int, int, std::function<void(uint8_t, uint16_t, int, int)>);
         void DrawObject(int, int, int, int, bool, std::function<void(uint8_t, uint16_t, int, int)>, std::function<void(int, int)>);
         void DrawLight(int, int, int, int, std::function<void(int, int)>);
         void DrawSelectGround(int, int, int, int, std::function<void(int, int, int)>);
-        void DrawSelectPoint(std::function<void(const std::vector<std::pair<int, int>> &)>);
 
     public:
-        // selection operation
-        void AddSelectPoint(int, int);
-        void SetGroundSelect(int, int, int, int);
         void ClearGroundSelect();
-
-    public:
-        void CompressLight(std::vector<bool> &, std::vector<uint8_t> &);
-        void CompressGround(std::vector<bool> &, std::vector<uint8_t> &);
-        void CompressTile(std::vector<bool> &, std::vector<uint8_t> &);
-        void CompressObject(std::vector<bool> &, std::vector<uint8_t> &, int);
-
-    public:
-        void DoCompressGround(int, int, int, std::vector<bool> &, std::vector<uint8_t> &);
-        void DoCompressLight(int, int, int, std::vector<bool> &, std::vector<uint8_t> &);
-        void DoCompressTile(int, int, int, std::vector<bool> &, std::vector<uint8_t> &);
-        void DoCompressObject(int, int, int, int, std::vector<bool> &, std::vector<uint8_t> &);
-
-    public:
-        void RecordGround(std::vector<uint8_t> &, int, int, int);
-        void RecordLight(std::vector<uint8_t> &, int, int);
-        void RecordObject(std::vector<bool> &, std::vector<uint8_t> &, int, int, int);
-        void RecordTile(std::vector<uint8_t> &, int, int);
 
     public:
         void UpdateFrame(int);
         bool Resize(int, int, int, int, int, int, int, int);
 
     public:
-        int ObjectBlockType(int, int, int, int);
-        int GroundBlockType(int, int, int, int);
-        int LightBlockType(int, int, int);
-        int TileBlockType(int, int, int);
-
-    public:
-        // save to mir2x compact format
-        bool SaveMir2xMap(const char *);
         bool SaveMir2xMapData(const char *);
-
-    public:
-        bool CoverValid(int, int, int);
-
-    private:
-        void PushBit(const std::vector<bool> &, std::vector<uint8_t> &);
-        void PushData(const std::vector<bool> &, const std::vector<uint8_t> &, std::vector<uint8_t> &);
 
     public:
         void Optimize();
@@ -318,14 +312,14 @@ class EditorMap
         void OptimizeCell(int, int);
 
     private:
+        bool InitBuf();
         void ClearBuf();
         void MakeBuf(int, int);
-        bool InitBuf();
 
-        void SetBufTile(int, int);
-        void SetBufLight(int, int);
-        void SetBufObj(int, int, int);
-        void SetBufGround(int, int, int);
+        void SetBufTile  (int, int);
+        void SetBufLight (int, int);
+        void SetBufGround(int, int);
+        void SetBufObj   (int, int, int);
 
     public:
         std::string MapInfo();

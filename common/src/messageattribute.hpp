@@ -3,7 +3,7 @@
  *
  *       Filename: messageattribute.hpp
  *        Created: 04/23/2017 23:05:02
- *  Last Modified: 08/14/2017 23:08:54
+ *  Last Modified: 08/18/2017 15:37:23
  *
  *    Description: 
  *
@@ -22,7 +22,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <cassert>
+#include "condcheck.hpp"
 
 struct MessageAttribute
 {
@@ -55,13 +55,13 @@ struct MessageAttribute
     {
         // we can't use the log system here for error logging
         // since MessageAttribute will be used in both ClientMessage and ServerMessage
-        assert(Name != "");
+        condcheck(Name != "");
 
         switch(Type){
             case 0:
                 {
                     // empty, shouldn't have any content
-                    assert(!DataLen);
+                    condcheck(!DataLen);
                     break;
                 }
             case 1:
@@ -80,20 +80,20 @@ struct MessageAttribute
                     //
                     // currently I am using solution-3
                     // when failed in compression I'll get informed in the log and redesign that message
-                    assert(DataLen);
+                    condcheck(DataLen);
                     break;
                 }
             case 2:
                 {
                     // not empty, fixed size, not compressed
-                    assert(DataLen);
+                    condcheck(DataLen);
                     break;
                 }
             case 3:
                 {
                     // not empty, not fixed size, not compressed
                     // DataLen should be zero to indicate it's not fixed size message
-                    assert(!DoneLen);
+                    condcheck(!DataLen);
                     break;
                 }
             default:

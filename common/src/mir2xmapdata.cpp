@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.cpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 08/15/2017 12:21:36
+ *  Last Modified: 08/18/2017 16:14:05
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -23,94 +23,101 @@
 #include <memory>
 #include <cstdint>
 #include <cstring>
-#include <cassert>
 #include <algorithm>
 
 #include "sysconst.hpp"
 #include "mathfunc.hpp"
+#include "condcheck.hpp"
+#include "pushstream.hpp"
 #include "mir2xmapdata.hpp"
 
 int Mir2xMapData::Load(const char *szFullName)
 {
     m_Data.clear();
-    if(auto pFile = std::fopen(szFullName, "rb")){
-        std::fseek(pFile, 0, SEEK_END);
-        auto nFileSize = ftell(pFile);
-        std::fseek(pFile, 0, SEEK_SET);
+    if(auto pf = std::fopen(szFullName, "rb")){
+        std::fseek(pf, 0, SEEK_END);
+        auto nDataLen = std::ftell(pf);
+        std::fseek(pf, 0, SEEK_SET);
 
-        std::vector<uint8_t> bufMapData;
-        bufMapData.resize(nFileSize);
+        std::vector<uint8_t> stvMapData;
+        stvMapData.resize(nDataLen + 1024);
 
-        void(1 + std::fread(&(bufMapData[0]), nFileSize, 1, pFile));
-        std::fclose(pFile);
+        auto bReadOK = (std::fread(&(stvMapData[0]), nDataLen, 1, pf) == 1);
+        std::fclose(pf);
 
-        // tile
-        auto fnSetTile = [this](int nX, int nY, int nSize, const uint8_t *, size_t &, const uint8_t *pData, size_t &nDataOff)
-        {
-            return SetTile(nX, nY, nSize, pData, nDataOff);
-        };
+        if(bReadOK){
+            auto fnParseTile = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+            {
+                auto fnSetTile = [this](int nX, int nY, int nSize, const uint8_t *pData, size_t &nDataOff)
+                {
+                    return SetTile(nX, nY, nSize, pData, nDataOff);
+                };
+                return ParseGrid(nX, nY, nSize, 2, pMark, nMarkOff, pData, nDataOff, fnSetTile);
+            };
 
-        auto fnParseTile = [this, fnSetTile](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
-        {
-            return ParseGrid(nX, nY, nSize, 2, pMark, nMarkOff, pData, nDataOff, fnSetTile);
-        };
+            auto fnParseLight = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+            {
+                auto fnSetLight = [this](int nX, int nY, int nSize, const uint8_t *pData, size_t &nDataOff)
+                {
+                    return SetLight(nX, nY, nSize, pData, nDataOff);
+                };
+                return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetLight);
+            };
 
-        // cell
-        auto fnSetCell = [this](int nX, int nY, int nSize, const uint8_t *, size_t &, const uint8_t *pData, size_t &nDataOff)
-        {
-            return SetCell(nX, nY, nSize, pData, nDataOff);
-        };
+            auto fnParseLand = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+            {
+                auto fnSetLand = [this](int nX, int nY, int nSize, const uint8_t *pData, size_t &nDataOff)
+                {
+                    return SetLand(nX, nY, nSize, pData, nDataOff);
+                };
+                return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetLand);
+            };
 
-        auto fnParseCell = [this, fnSetCell](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
-        {
-            return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetCell);
-        };
+            auto fnParseObj0 = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+            {
+                auto fnSetObj0 = [this](int nX, int nY, int nSize, const uint8_t *pData, size_t &nDataOff)
+                {
+                    return SetObj(nX, nY, 0, nSize, pData, nDataOff);
+                };
+                return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetObj0);
+            };
 
-        // obj0
-        auto fnSetObj0 = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
-        {
-            return SetObj(nX, nY, 0, nSize, pMark, nMarkOff, pData, nDataOff);
-        };
+            auto fnParseObj1 = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
+            {
+                auto fnSetObj1 = [this](int nX, int nY, int nSize, const uint8_t *pData, size_t &nDataOff)
+                {
+                    return SetObj(nX, nY, 1, nSize, pData, nDataOff);
+                };
+                return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetObj1);
+            };
 
-        auto fnParseObj0 = [this, fnSetObj0](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
-        {
-            return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetObj0);
-        };
-
-        // obj1
-        auto fnSetObj1 = [this](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
-        {
-            return SetObj(nX, nY, 1, nSize, pMark, nMarkOff, pData, nDataOff);
-        };
-
-        auto fnParseObj1 = [this, fnSetObj1](int nX, int nY, int nSize, const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff)
-        {
-            return ParseGrid(nX, nY, nSize, 1, pMark, nMarkOff, pData, nDataOff, fnSetObj1);
-        };
-
-        auto pCurDat = &(bufMapData[0]);
-        if(true
-                && !LoadHead(pCurDat)
-                && !LoadGrid(pCurDat, fnParseTile)
-                && !LoadGrid(pCurDat, fnParseCell)
-                && !LoadGrid(pCurDat, fnParseObj0)
-                && !LoadGrid(pCurDat, fnParseObj1)){ return 0; }
-
-        m_Data.clear();
+            auto pCurDat = &(stvMapData[0]);
+            if(true
+                    && !LoadHead(pCurDat)
+                    && !LoadGrid(pCurDat, fnParseTile )
+                    && !LoadGrid(pCurDat, fnParseLight)
+                    && !LoadGrid(pCurDat, fnParseLand )
+                    && !LoadGrid(pCurDat, fnParseObj0 )
+                    && !LoadGrid(pCurDat, fnParseObj1 )){ return 0; }
+        }
     }
+
+    m_Data.clear();
     return -1;
 }
 
-
 int Mir2xMapData::LoadHead(uint8_t * &pData)
 {
-    std::memcpy(&m_W, pData + 0, 2);
-    std::memcpy(&m_H, pData + 2, 2);
+    std::memcpy(&m_W, pData, 2); pData += 2;
+    std::memcpy(&m_H, pData, 2); pData += 2;
 
-    pData += 4;
-    m_Data.resize((m_W / 2) * (m_H / 2));
-
-    if(m_Data.empty()){ return -1; }
+    if(true
+            && (m_W > 0) && !(m_W % 2)
+            && (m_H > 0) && !(m_H % 2)){
+        m_Data.resize((m_W / 2) * (m_H / 2));
+    }else{
+        return -1;
+    }
 
     if(pData[0] != 0){
         return -1;
@@ -131,7 +138,7 @@ int Mir2xMapData::SetTile(int nX, int nY, int nSize, const uint8_t *pData, size_
             // data check here
             // saved tile parameter should have validness mark set
             // don't use g_Log since this will be linked to serveral binaries
-            assert(nParam & 0X80000000);
+            condcheck(nParam & 0X80000000);
         }
 
         for(int nTY = nY; nTY < nY + nSize; ++nTY){
@@ -146,24 +153,24 @@ int Mir2xMapData::SetTile(int nX, int nY, int nSize, const uint8_t *pData, size_
     return -1;
 }
 
-int Mir2xMapData::SetCell(int nX, int nY, int nSize, const uint8_t *pData, size_t &nDataOff)
+int Mir2xMapData::SetLand(int nX, int nY, int nSize, const uint8_t *pData, size_t &nDataOff)
 {
     if(ValidC(nX, nY) && (nSize > 0)){
-        uint32_t nParam = 0;
+        uint8_t nLandByte = 0;
         if(pData){
-            std::memcpy(&nParam, pData + nDataOff, 4);
-            nDataOff += 4;
+            nLandByte = pData[nDataOff++];
 
-            // data check here
-            // saved tile parameter should have validness mark set
-            // don't use g_Log since this will be linked to serveral binaries
-            assert(nParam & 0X80000000);
+            // land attribute doesn't have ``valid" filed
+            // every cell must have can go through field and land type can be none
+
+            // land type is additional feature
+            // to play sound effect when creature run on it
         }
 
         for(int nTY = nY; nTY < nY + nSize; ++nTY){
             for(int nTX = nX; nTX < nX + nSize; ++nTX){
                 if(ValidC(nTX, nTY)){
-                    Cell(nTX, nTY).Param = nParam;
+                    Cell(nTX, nTY).Param |= (((uint32_t)(nLandByte)) << 16);
                 }
             }
         }
@@ -172,7 +179,32 @@ int Mir2xMapData::SetCell(int nX, int nY, int nSize, const uint8_t *pData, size_
     return -1;
 }
 
-int Mir2xMapData::SetObj(int nX, int nY, int nObjIndex, int nSize, const uint8_t *, size_t &, const uint8_t *pData, size_t &nDataOff)
+int Mir2xMapData::SetLight(int nX, int nY, int nSize, const uint8_t *pData, size_t &nDataOff)
+{
+    if(ValidC(nX, nY) && (nSize > 0)){
+        uint8_t nLightByte = 0;
+        if(pData){
+            nLightByte = pData[nDataOff++];
+
+            // data check here
+            // saved tile parameter should have validness mark set
+            // don't use g_Log since this will be linked to serveral binaries
+            condcheck(nLightByte & 0X80);
+        }
+
+        for(int nTY = nY; nTY < nY + nSize; ++nTY){
+            for(int nTX = nX; nTX < nX + nSize; ++nTX){
+                if(ValidC(nTX, nTY)){
+                    Cell(nTX, nTY).Param |= (((uint32_t)(nLightByte)) << 8);
+                }
+            }
+        }
+        return 0;
+    }
+    return -1;
+}
+
+int Mir2xMapData::SetObj(int nX, int nY, int nObjIndex, int nSize, const uint8_t *pData, size_t &nDataOff)
 {
     // we define two objects are *the same* in:
     //  1. image
@@ -180,28 +212,39 @@ int Mir2xMapData::SetObj(int nX, int nY, int nObjIndex, int nSize, const uint8_t
     //  3. blending method
     //  4. layer
 
-    if(ValidC(nX, nY) && (nObjIndex == 0 || nObjIndex == 1) && (nSize > 0)){
-        uint32_t nObjParam = 0;         // for OBJ::Param
-        uint16_t nCellObjParam = 0;     // for CELL::ObjParam
+    if(ValidC(nX, nY) && ((nObjIndex == 0) || (nObjIndex == 1)) && (nSize > 0)){
+
+        // when one object is valid
+        // its attributes are arraged in 5 bytes
+
+        uint8_t nByte0 = 0;
+        uint8_t nByte1 = 0;
+        uint8_t nByte2 = 0;
+        uint8_t nByte3 = 0;
+        uint8_t nByte4 = 0;
 
         if(pData){
-            std::memcpy(&nObjParam,      pData + nDataOff, 4);  nDataOff += 4;
-            std::memcpy(&nCellObjParam,  pData + nDataOff, 2);  nDataOff += 2;
+            nByte0 = pData[nDataOff++];
+            nByte1 = pData[nDataOff++];
+            nByte2 = pData[nDataOff++];
+            nByte3 = pData[nDataOff++];
+            nByte4 = pData[nDataOff++];
 
-            // we can also assert here Cell::Param & 0X80000000 should be set
-            // since we say if there is object in current cell, then the cell is not null
-            assert(nObjParam & 0X80000000);
-            assert(Cell(nX, nY).Param & 0X80000000);
+            // if we try to load an object
+            // then current object should be ``valid"
+            // if to clean an object we should pass nullptr to pData
+            condcheck(nByte4 & 0X80);
         }
 
         for(int nTY = nY; nTY < nY + nSize; ++nTY){
             for(int nTX = nX; nTX < nX + nSize; ++nTX){
                 if(ValidC(nTX, nTY)){
-                    if(nObjParam & 0X80000000){
-                        Cell(nTX, nTY).Obj[nObjIndex].Param = nObjParam;
-                        Cell(nTX, nTY).ObjParam &= (nObjIndex ? 0XFFFF0000 : 0X0000FFFF);
-                        Cell(nTX, nTY).ObjParam |= (((uint32_t)(nCellObjParam)) << (nObjIndex ? 16 : 0));
-                    }
+                    Cell(nTX, nTY).ObjParam             |= (((uint32_t)(nByte3       )) << (nObjIndex ? 24 : 8));
+                    Cell(nTX, nTY).ObjParam             |= (((uint32_t)(nByte4 & 0X03)) << (nObjIndex ? 22 : 6));
+                    Cell(nTX, nTY).Obj[nObjIndex].Param |= (((uint32_t)(nByte4 & 0X80)) << 23);
+                    Cell(nTX, nTY).Obj[nObjIndex].Param |= (((uint32_t)(nByte2       )) << 16);
+                    Cell(nTX, nTY).Obj[nObjIndex].Param |= (((uint32_t)(nByte1       )) <<  8);
+                    Cell(nTX, nTY).Obj[nObjIndex].Param |= (((uint32_t)(nByte0       )) <<  0);
                 }
             }
         }
@@ -212,8 +255,8 @@ int Mir2xMapData::SetObj(int nX, int nY, int nObjIndex, int nSize, const uint8_t
 
 int Mir2xMapData::LoadGrid(uint8_t * &pData, std::function<int(int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &)> fnParseGrid)
 {
-    uint32_t nMarkLen;
-    uint32_t nDataLen;
+    uint32_t nMarkLen = 0;
+    uint32_t nDataLen = 0;
 
     std::memcpy(&nMarkLen, pData + 0, 4);
     std::memcpy(&nDataLen, pData + 4, 4);
@@ -221,8 +264,8 @@ int Mir2xMapData::LoadGrid(uint8_t * &pData, std::function<int(int, int, int, co
     size_t nMarkOff = 0;
     size_t nDataOff = 0;
 
-    for(int nY= 0; nY < m_H; nY += 8){
-        for(int nX= 0; nX < m_W; nX += 8){
+    for(int nY= 0; nY < H(); nY += 8){
+        for(int nX= 0; nX < W(); nX += 8){
             if(fnParseGrid(nX, nY, 8, pData + 8, nMarkOff, pData + 8 + nMarkLen, nDataOff)){ return -1; }
         }
     }
@@ -236,9 +279,16 @@ int Mir2xMapData::LoadGrid(uint8_t * &pData, std::function<int(int, int, int, co
     }
 }
 
-int Mir2xMapData::ParseGrid(int nX, int nY, int nSize, int nFinalSize,
-        const uint8_t *pMark, size_t &nMarkOff, const uint8_t *pData, size_t &nDataOff,
-        std::function<int(int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &)> fnSet)
+int Mir2xMapData::ParseGrid(
+        int nX,
+        int nY,
+
+        size_t nSize,
+        size_t nEndSize,
+
+        const uint8_t *pMark, size_t &nMarkOff,
+        const uint8_t *pData, size_t &nDataOff,
+        std::function<int(int, int, int, const uint8_t *, size_t &)> fnSet)
 {
     // 1: current grid has data
     // 0: no
@@ -246,30 +296,31 @@ int Mir2xMapData::ParseGrid(int nX, int nY, int nSize, int nFinalSize,
     // 1: current grid is combined
     // 0: no
 
-    if((nX >= 0) && (nY >= 0) && (nSize > 0) && (nFinalSize > 0) && (nSize >= nFinalSize) && !(nX % nFinalSize) && !(nY % nFinalSize)){
+    if((nX >= 0) && (nY >= 0) && (nSize > 0) && (nEndSize > 0) && (nSize >= nEndSize) && (!(nX % nEndSize)) && (!(nY % nEndSize))){
         if(ValidC(nX, nY)){
-            if(PickOneBit(pMark, nMarkOff++)){
+            if(PushStream::PickOneBit(pMark, nMarkOff++)){
                 // there is information in current grid
-                if(nSize > nFinalSize){
+                if(nSize > nEndSize){
                     // not the last level of grid, and there is information in current gird
-                    if(PickOneBit(pMark, nMarkOff++)){
+                    if(PushStream::PickOneBit(pMark, nMarkOff++)){
                         // there is data in current grid and it's combined, further parse it
-                        if(ParseGrid(nX,             nY,             nSize / 2, nFinalSize, pMark, nMarkOff, pData, nDataOff, fnSet)){ return -1; }
-                        if(ParseGrid(nX + nSize / 2, nY,             nSize / 2, nFinalSize, pMark, nMarkOff, pData, nDataOff, fnSet)){ return -1; }
-                        if(ParseGrid(nX,             nY + nSize / 2, nSize / 2, nFinalSize, pMark, nMarkOff, pData, nDataOff, fnSet)){ return -1; }
-                        if(ParseGrid(nX + nSize / 2, nY + nSize / 2, nSize / 2, nFinalSize, pMark, nMarkOff, pData, nDataOff, fnSet)){ return -1; }
+                        if(ParseGrid(nX,             nY,             nSize / 2, nEndSize, pMark, nMarkOff, pData, nDataOff, fnSet)){ return -1; }
+                        if(ParseGrid(nX + nSize / 2, nY,             nSize / 2, nEndSize, pMark, nMarkOff, pData, nDataOff, fnSet)){ return -1; }
+                        if(ParseGrid(nX,             nY + nSize / 2, nSize / 2, nEndSize, pMark, nMarkOff, pData, nDataOff, fnSet)){ return -1; }
+                        if(ParseGrid(nX + nSize / 2, nY + nSize / 2, nSize / 2, nEndSize, pMark, nMarkOff, pData, nDataOff, fnSet)){ return -1; }
                     }else{
                         // there is data in current grid and it's not combined
                         // so full-filled with same attribute
-                        return fnSet(nX, nY, nSize, pMark, nMarkOff, pData, nDataOff);
+                        return fnSet(nX, nY, nSize, pData, nDataOff);
                     }
                 }else{
                     // last level of grid, and there is data, so fill it directly
-                    return fnSet(nX, nY, nSize, pMark, nMarkOff, pData, nDataOff);
+                    return fnSet(nX, nY, nSize, pData, nDataOff);
                 }
             }else{
                 // no data here, always unset the desc field for the whole grid
-                return fnSet(nX, nY, nSize, nullptr, nMarkOff, nullptr, nDataOff);
+                size_t nDumbOff = 0;
+                return fnSet(nX, nY, nSize, nullptr, nDumbOff);
             }
         }
         return 0;
@@ -279,277 +330,292 @@ int Mir2xMapData::ParseGrid(int nX, int nY, int nSize, int nFinalSize,
     return -1;
 }
 
-int Mir2xMapData::Save(const char *szFullName)
+int Mir2xMapData::SaveHead(std::vector<uint8_t> &stvByte)
 {
     if(Valid()){
-        std::vector<bool>    stMarkV;
-        std::vector<uint8_t> stDataV;
-        std::vector<uint8_t> stByteV;
-
         // header, w then h
-        {
-            stByteV.push_back((uint8_t)((m_W & 0X00FF)     ));
-            stByteV.push_back((uint8_t)((m_W & 0XFF00) >> 8));
-            stByteV.push_back((uint8_t)((m_H & 0X00FF)     ));
-            stByteV.push_back((uint8_t)((m_H & 0XFF00) >> 8));
-            stByteV.push_back((uint8_t)(0));
-        }
-
-        // tile
-        {
-            stMarkV.clear();
-            stDataV.clear();
-
-            auto fnGridChecker = [this, nParam = (uint32_t)(0)](int nX, int nY) mutable -> int {
-                if(ValidC(nX, nY) && !(nX % 2) && !(nY % 2)){
-                    auto nCurrParam = Tile(nX, nY).Param;
-                    if(nCurrParam & 0X80000000){
-                        if(nParam & 0X80000000){
-                            if(nParam == nCurrParam){
-                                // not the first time, but it's the same
-                                return 2;
-                            }else{
-                                // not the first time, and it's different
-                                return 3;
-                            }
-                        }else{
-                            nParam = nCurrParam;
-
-                            // first time to see it
-                            return 1;
-                        }
-                    }else{
-                        // empty
-                        return 0;
-                    }
-                }
-                return -1;
-            };
-
-            auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize){
-                // fnGridChecker is stateful but fnAttrGridType is stateless
-                // because every time when call fnAttrGridType, we use a copy of fnGridChecker at its initial state
-                return GridAttrType(nX, nY, nSize, 2, fnGridChecker);
-            };
-
-            auto fnRecord = [this](int nX, int nY, std::vector<bool> &, std::vector<uint8_t> &stDataV){
-                if(ValidC(nX, nY)){
-                    auto pBuf = (uint8_t *)(&(Tile(nX, nY).Param));
-                    stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
-                    return 0;
-                }
-                return -1;
-            };
-
-            auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
-                return CompressGrid(nX, nY, nSize, 2, stMarkV, stDataV, fnAttrGridType, fnRecord);
-            };
-
-            SaveGrid(stMarkV, stDataV, fnCompressGrid);
-            PushData(stMarkV, stDataV, stByteV);
-        }
-
-        // cell
-        {
-            stMarkV.clear();
-            stDataV.clear();
-
-            auto fnGridChecker = [this, nParam = (uint32_t)(0)](int nX, int nY) mutable -> int {
-                if(ValidC(nX, nY)){
-                    auto nCurrParam = Cell(nX, nY).Param;
-                    if(nCurrParam & 0X80000000){
-                        if(nParam & 0X80000000){
-                            if(nParam == nCurrParam){
-                                // not the first time, but it's the same
-                                return 2;
-                            }else{
-                                // not the first time, and it's different
-                                return 3;
-                            }
-                        }else{
-                            nParam = nCurrParam;
-
-                            // first time to see it
-                            return 1;
-                        }
-                    }else{
-                        // empty
-                        return 0;
-                    }
-                }
-                return -1;
-            };
-
-            auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize){
-                // fnGridChecker is stateful but fnAttrGridType is stateless
-                // because every time when call fnAttrGridType, we use a copy of fnGridChecker at its initial state
-                return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
-            };
-
-            auto fnRecord = [this](int nX, int nY, std::vector<bool> &, std::vector<uint8_t> &stDataV){
-                if(ValidC(nX, nY)){
-                    auto pBuf = (uint8_t *)(&(Cell(nX, nY).Param));
-                    stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
-                    return 0;
-                }
-                return -1;
-            };
-
-            auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
-                return CompressGrid(nX, nY, nSize, 1, stMarkV, stDataV, fnAttrGridType, fnRecord);
-            };
-
-            SaveGrid(stMarkV, stDataV, fnCompressGrid);
-            PushData(stMarkV, stDataV, stByteV);
-        }
-
-        // obj0
-        {
-            stMarkV.clear();
-            stDataV.clear();
-
-            auto fnGridChecker = [this, nObjParam = (uint32_t)(0), nCellObjParam = (uint16_t)(0)](int nX, int nY) mutable -> int {
-                if(ValidC(nX, nY)){
-                    auto nCurrObjParam = (uint32_t)(Cell(nX, nY).Obj[0].Param);
-                    if(nCurrObjParam & 0X80000000){
-                        auto nCurrCellObjParam = (uint16_t)(Cell(nX, nY).ObjParam & 0X0000FFFF);
-                        if(nObjParam & 0X80000000){
-                            if(nObjParam == nCurrObjParam && nCellObjParam == nCurrCellObjParam){
-                                // not the first time, but it's the same
-                                return 2;
-                            }else{
-                                // not the first time, and it's different
-                                return 3;
-                            }
-                        }else{
-                            nObjParam = nCurrObjParam;
-                            nCellObjParam = nCurrCellObjParam;
-
-                            // first time to see it
-                            return 1;
-                        }
-                    }else{
-                        // empty
-                        return 0;
-                    }
-                }
-                return -1;
-            };
-
-            auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize){
-                // fnGridChecker is stateful but fnAttrGridType is stateless
-                // because every time when call fnAttrGridType, we use a copy of fnGridChecker at its initial state
-                return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
-            };
-
-            auto fnRecord = [this](int nX, int nY, std::vector<bool> &, std::vector<uint8_t> &stDataV){
-                if(ValidC(nX, nY)){
-                    // 1. record object image info
-                    {
-                        auto pBuf = (uint8_t *)(&(Cell(nX, nY).Obj[0].Param));
-                        stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
-                    }
-
-                    // 2. record blending & animation info
-                    {
-                        auto pBuf = (uint8_t *)(&(Cell(nX, nY).ObjParam));
-                        stDataV.insert(stDataV.end(), pBuf, pBuf + 2);
-                    }
-                    return 0;
-                }
-                return -1;
-            };
-
-            auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
-                return CompressGrid(nX, nY, nSize, 1, stMarkV, stDataV, fnAttrGridType, fnRecord);
-            };
-
-            SaveGrid(stMarkV, stDataV, fnCompressGrid);
-            PushData(stMarkV, stDataV, stByteV);
-        }
-
-        // obj1
-        {
-            stMarkV.clear();
-            stDataV.clear();
-
-            auto fnGridChecker = [this, nObjParam = (uint32_t)(0), nCellObjParam = (uint16_t)(0)](int nX, int nY) mutable -> int {
-                if(ValidC(nX, nY)){
-                    auto nCurrObjParam = (uint32_t)(Cell(nX, nY).Obj[1].Param);
-                    if(nCurrObjParam & 0X80000000){
-                        auto nCurrCellObjParam = (uint16_t)((Cell(nX, nY).ObjParam & 0XFFFF0000) >> 16);
-                        if(nObjParam & 0X80000000){
-                            if(nObjParam == nCurrObjParam && nCellObjParam == nCurrCellObjParam){
-                                // not the first time, but it's the same
-                                return 2;
-                            }else{
-                                // not the first time, and it's different
-                                return 3;
-                            }
-                        }else{
-                            nObjParam = nCurrObjParam;
-                            nCellObjParam = nCurrCellObjParam;
-
-                            // first time to see it
-                            return 1;
-                        }
-                    }else{
-                        // empty
-                        return 0;
-                    }
-                }
-                return -1;
-            };
-
-            auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize){
-                // fnGridChecker is stateful but fnAttrGridType is stateless
-                // because every time when call fnAttrGridType, we use a copy of fnGridChecker at its initial state
-                return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
-            };
-
-            auto fnRecord = [this](int nX, int nY, std::vector<bool> &, std::vector<uint8_t> &stDataV){
-                if(ValidC(nX, nY)){
-                    // 1. record object image info
-                    {
-                        auto pBuf = (uint8_t *)(&(Cell(nX, nY).Obj[1].Param));
-                        stDataV.insert(stDataV.end(), pBuf, pBuf + 4);
-                    }
-
-                    // 2. record blending & animation info
-                    {
-                        auto pBuf = (uint8_t *)(&(Cell(nX, nY).ObjParam));
-                        stDataV.insert(stDataV.end(), pBuf + 2, pBuf + 4);
-                    }
-                    return 0;
-                }
-                return -1;
-            };
-
-            auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV){
-                return CompressGrid(nX, nY, nSize, 1, stMarkV, stDataV, fnAttrGridType, fnRecord);
-            };
-
-            SaveGrid(stMarkV, stDataV, fnCompressGrid);
-            PushData(stMarkV, stDataV, stByteV);
-        }
-
-        if(auto fp = std::fopen(szFullName, "wb")){
-            std::fwrite(&(stByteV[0]), stByteV.size() * sizeof(stByteV[0]), 1, fp);
-            std::fclose(fp);
-            return 0;
-        }
+        PushStream::PushByte<uint16_t>(stvByte, W());
+        PushStream::PushByte<uint16_t>(stvByte, H());
+        PushStream::PushByte<uint8_t >(stvByte,   0);
+        return 0;
     }
-
     return -1;
 }
 
-int Mir2xMapData::SaveGrid(std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV, std::function<int(int, int, int, std::vector<bool> &, std::vector<uint8_t> &)> fnCompressGrid)
+int Mir2xMapData::SaveTile(std::vector<uint8_t> &stvByte)
 {
-    stMarkV.clear();
-    stDataV.clear();
+    if(Valid()){
+        auto fnGridChecker = [this, nParam = (uint32_t)(0)](int nX, int nY) mutable -> int
+        {
+            if(ValidC(nX, nY) && (!(nX % 2)) && (!(nY % 2))){
+                auto nCurrParam = Tile(nX, nY).Param;
+                if(nCurrParam & 0X80000000){
+                    if(nParam & 0X80000000){
+                        if(nParam == nCurrParam){
+                            // not the first time, but it's the same
+                            return 2;
+                        }else{
+                            // not the first time, and it's different
+                            return 3;
+                        }
+                    }else{
+                        nParam = nCurrParam;
+
+                        // first time to see it
+                        return 1;
+                    }
+                }else{
+                    // empty
+                    return 0;
+                }
+            }
+            return -1;
+        };
+
+        auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize) -> int
+        {
+            return GridAttrType(nX, nY, nSize, 2, fnGridChecker);
+        };
+
+        auto fnRecord = [this](int nX, int nY, std::vector<bool> &, std::vector<uint8_t> &stvData) -> int
+        {
+            if(ValidC(nX, nY)){
+                PushStream::PushByte<uint32_t>(stvData, Tile(nX, nY).Param);
+                return 0;
+            }
+            return -1;
+        };
+
+        auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stvMark, std::vector<uint8_t> &stvData) -> int
+        {
+            return CompressGrid(nX, nY, nSize, 2, stvMark, stvData, fnAttrGridType, fnRecord);
+        };
+
+        std::vector<bool>    stvMark;
+        std::vector<uint8_t> stvData;
+
+        SaveGrid(stvMark, stvData, fnCompressGrid);
+        PushData(stvByte, stvMark, stvData);
+        return 0;
+    }
+    return -1;
+}
+
+int Mir2xMapData::SaveLand(std::vector<uint8_t> &stvByte)
+{
+    if(Valid()){
+        // for land information any value of u8 is vaid
+        // then we need another flag variable to indicate initialization
+        auto fnGridChecker = [this, nLandByte = (uint8_t)(0), bInit = false](int nX, int nY) mutable -> int
+        {
+            if(ValidC(nX, nY)){
+                auto nCurrLandByte = Cell(nX, nY).LandByte();
+                if(1){
+                    // land info can't be empty
+                    // any value should be ``valid" for a grid
+
+                    if(bInit){
+                        if(nLandByte == nCurrLandByte){
+                            // not the first time, but it's the same
+                            return 2;
+                        }else{
+                            // not the first time, and it's different
+                            return 3;
+                        }
+                    }else{
+                        bInit = true;
+                        nLandByte = nCurrLandByte;
+
+                        // first time to see it
+                        return 1;
+                    }
+                }else{
+                    // empty
+                    return 0;
+                }
+            }
+            return -1;
+        };
+
+        auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize) -> int
+        {
+            return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
+        };
+
+        auto fnRecord = [this](int nX, int nY, std::vector<bool> &, std::vector<uint8_t> &stvData) -> int
+        {
+            if(ValidC(nX, nY)){
+                PushStream::PushByte<uint8_t>(stvData, Cell(nX, nY).LandByte());
+                return 0;
+            }
+            return -1;
+        };
+
+        auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stvMark, std::vector<uint8_t> &stvData) -> int
+        {
+            return CompressGrid(nX, nY, nSize, 1, stvMark, stvData, fnAttrGridType, fnRecord);
+        };
+
+        std::vector<bool>    stvMark;
+        std::vector<uint8_t> stvData;
+
+        SaveGrid(stvMark, stvData, fnCompressGrid);
+        PushData(stvByte, stvMark, stvData);
+        return 0;
+    }
+    return -1;
+}
+
+int Mir2xMapData::SaveLight(std::vector<uint8_t> &stvByte)
+{
+    if(Valid()){
+        auto fnGridChecker = [this, nLightByte = (uint8_t)(0)](int nX, int nY) mutable -> int
+        {
+            if(ValidC(nX, nY)){
+                auto nCurrLightByte = Cell(nX, nY).LightByte();
+                if(nCurrLightByte & 0X80){
+                    if(nLightByte & 0X80){
+                        if(nLightByte == nCurrLightByte){
+                            // not the first time, but it's the same
+                            return 2;
+                        }else{
+                            // not the first time, and it's different
+                            return 3;
+                        }
+                    }else{
+                        nLightByte = nCurrLightByte;
+
+                        // first time to see it
+                        return 1;
+                    }
+                }else{
+                    // empty
+                    return 0;
+                }
+            }
+            return -1;
+        };
+
+        auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize) -> int
+        {
+            // fnGridChecker is stateful but fnAttrGridType is stateless
+            // because every time when call fnAttrGridType, we use a copy of fnGridChecker at its initial state
+            return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
+        };
+
+        auto fnRecord = [this](int nX, int nY, std::vector<bool> &, std::vector<uint8_t> &stvData) -> int
+        {
+            if(ValidC(nX, nY)){
+                PushStream::PushByte<uint8_t>(stvData, Cell(nX, nY).LightByte());
+                return 0;
+            }
+            return -1;
+        };
+
+        auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stvMark, std::vector<uint8_t> &stvData) -> int
+        {
+            return CompressGrid(nX, nY, nSize, 1, stvMark, stvData, fnAttrGridType, fnRecord);
+        };
+
+        std::vector<bool>    stvMark;
+        std::vector<uint8_t> stvData;
+
+        SaveGrid(stvMark, stvData, fnCompressGrid);
+        PushData(stvByte, stvMark, stvData);
+        return 0;
+    }
+    return -1;
+}
+
+int Mir2xMapData::SaveObj(std::vector<uint8_t> &stvByte, int nIndex)
+{
+    if(Valid() && ((nIndex == 0) || (nIndex == 1))){
+        auto fnGridChecker = [this, nIndex, stArray = std::array<uint8_t, 5>{0, 0, 0, 0, 0}](int nX, int nY) mutable -> int
+        {
+            if(ValidC(nX, nY) && ((nIndex == 0) || (nIndex == 1))){
+                auto stCurrArray = Cell(nX, nY).ObjectArray(nIndex);
+                if(stCurrArray[4] & 0X80){
+                    if(stArray[4] & 0X80){
+                        if(stCurrArray == stArray){
+                            // not the first time, but it's the same
+                            return 2;
+                        }else{
+                            // not the first time, and it's different
+                            return 3;
+                        }
+                    }else{
+                        stArray = stCurrArray;
+
+                        // first time to see it
+                        return 1;
+                    }
+                }else{
+                    // empty
+                    return 0;
+                }
+            }
+            return -1;
+        };
+
+        auto fnAttrGridType = [this, fnGridChecker](int nX, int nY, int nSize)
+        {
+            return GridAttrType(nX, nY, nSize, 1, fnGridChecker);
+        };
+
+        auto fnRecord = [this, nIndex](int nX, int nY, std::vector<bool> &, std::vector<uint8_t> &stvData)
+        {
+            if(ValidC(nX, nY)){
+                auto stArray = Cell(nX, nY).ObjectArray(nIndex);
+                PushStream::PushByte(stvData, stArray.begin(), stArray.end());
+                return 0;
+            }
+            return -1;
+        };
+
+        auto fnCompressGrid = [this, fnAttrGridType, fnRecord](int nX, int nY, int nSize, std::vector<bool> &stvMark, std::vector<uint8_t> &stvData)
+        {
+            return CompressGrid(nX, nY, nSize, 1, stvMark, stvData, fnAttrGridType, fnRecord);
+        };
+
+        std::vector<bool>    stvMark;
+        std::vector<uint8_t> stvData;
+
+        SaveGrid(stvMark, stvData, fnCompressGrid);
+        PushData(stvByte, stvMark, stvData);
+        return 0;
+    }
+    return -1;
+}
+
+int Mir2xMapData::Save(const char *szFullName)
+{
+    if(Valid()){
+        std::vector<uint8_t> stvByte;
+        if(true
+                && !SaveHead (stvByte)
+                && !SaveTile (stvByte)
+                && !SaveLand (stvByte)
+                && !SaveLight(stvByte)
+                && !SaveObj  (stvByte, 0)
+                && !SaveObj  (stvByte, 1)){
+
+            if(auto fp = std::fopen(szFullName, "wb")){
+                auto bSaveOK = (std::fwrite(&(stvByte[0]), stvByte.size() * sizeof(stvByte[0]), 1, fp) == 1);
+                std::fclose(fp);
+                return bSaveOK;
+            }
+        }
+    }
+    return -1;
+}
+
+int Mir2xMapData::SaveGrid(std::vector<bool> &stvMark, std::vector<uint8_t> &stvData, std::function<int(int, int, int, std::vector<bool> &, std::vector<uint8_t> &)> fnCompressGrid)
+{
+    stvMark.clear();
+    stvData.clear();
     for(int nY = 0; nY < H(); nY += 8){
         for(int nX = 0; nX < W(); nX += 8){
-            if(fnCompressGrid(nX, nY, 8, stMarkV, stDataV)){ return -1; }
+            if(fnCompressGrid(nX, nY, 8, stvMark, stvData)){ return -1; }
         }
     }
     return 0;
@@ -564,7 +630,7 @@ int Mir2xMapData::SaveGrid(std::vector<bool> &stMarkV, std::vector<uint8_t> &stD
 //         nStartX    : 
 //         nStartY    :
 //         nSize      :
-//         nFinalSize :
+//         nEndSize :
 //         fnChecker  : *stateful* checker to indicate for current state
 //                    : fnChecker should always be at initialization state when call GridAttrType()
 //                      returns -1 : error
@@ -572,10 +638,10 @@ int Mir2xMapData::SaveGrid(std::vector<bool> &stMarkV, std::vector<uint8_t> &stD
 //                               1 : the first time to see it
 //                               2 : not the first time, but the same
 //                               3 : not the first time, but with difference
-int Mir2xMapData::GridAttrType(int nStartX, int nStartY, int nSize, int nFinalSize, std::function<int(int, int)> fnChecker)
+int Mir2xMapData::GridAttrType(int nStartX, int nStartY, int nSize, int nEndSize, std::function<int(int, int)> fnChecker)
 {
-    if(ValidC(nStartX, nStartY) && !(nStartX % nFinalSize) && !(nStartY % nFinalSize)){
-        if(nSize == nFinalSize){
+    if(ValidC(nStartX, nStartY) && !(nStartX % nEndSize) && !(nStartY % nEndSize)){
+        if(nSize == nEndSize){
             switch(fnChecker(nStartX, nStartY)){
                 case 0  : return  0;
                 case 1  : return  1;
@@ -590,7 +656,7 @@ int Mir2xMapData::GridAttrType(int nStartX, int nStartY, int nSize, int nFinalSi
 
             for(int nY = 0; nY < nSize; ++nY){
                 for(int nX = 0; nX < nSize; ++nX){
-                    if(ValidC(nX + nStartX, nY + nStartY) && !((nX + nStartX) % nFinalSize) && !((nY + nStartY) % nFinalSize)){
+                    if(ValidC(nX + nStartX, nY + nStartY) && !((nX + nStartX) % nEndSize) && !((nY + nStartY) % nEndSize)){
                         switch(fnChecker(nX + nStartX, nY + nStartY)){
                             case 0: // empty
                                 {
@@ -647,9 +713,9 @@ int Mir2xMapData::GridAttrType(int nStartX, int nStartY, int nSize, int nFinalSi
     return -1;
 }
 
-int Mir2xMapData::CompressGrid(int nX, int nY, int nSize, int nFinalSize, std::vector<bool> &stMarkV, std::vector<uint8_t> &stDataV, std::function<int(int, int, int)> fnAttrGridType, std::function<int(int, int, std::vector<bool> &, std::vector<uint8_t> &)> fnRecord)
+int Mir2xMapData::CompressGrid(int nX, int nY, int nSize, int nEndSize, std::vector<bool> &stvMark, std::vector<uint8_t> &stvData, std::function<int(int, int, int)> fnAttrGridType, std::function<int(int, int, std::vector<bool> &, std::vector<uint8_t> &)> fnRecord)
 {
-    if(ValidC(nX, nY) && (nSize > 0) && (nFinalSize > 0) && (nSize >= nFinalSize) && !(nX % nFinalSize) && !(nY % nFinalSize)){
+    if(ValidC(nX, nY) && (nSize > 0) && (nEndSize > 0) && (nSize >= nEndSize) && !(nX % nEndSize) && !(nY % nEndSize)){
         switch(auto nType = fnAttrGridType(nX, nY, nSize)){
             case -1:
                 {
@@ -657,30 +723,30 @@ int Mir2xMapData::CompressGrid(int nX, int nY, int nSize, int nFinalSize, std::v
                 }
             case 0:
                 {
-                    stMarkV.push_back(false);
+                    stvMark.push_back(false);
                     return 0;
                 }
             default:
                 {
-                    stMarkV.push_back(true);
-                    if(nSize == nFinalSize){
+                    stvMark.push_back(true);
+                    if(nSize == nEndSize){
                         // there is info and it's last level, so nType can only be 1
                         // end of recursion
-                        return fnRecord(nX, nY, stMarkV, stDataV);
+                        return fnRecord(nX, nY, stvMark, stvData);
                     }else{
 
                         // there is info, and it's not the last level
                         if(nType == 2 || nType == 3){
-                            stMarkV.push_back(true);
+                            stvMark.push_back(true);
 
-                            if(CompressGrid(nX            , nY            , nSize / 2, nFinalSize, stMarkV, stDataV, fnAttrGridType, fnRecord)){ return -1; }
-                            if(CompressGrid(nX + nSize / 2, nY            , nSize / 2, nFinalSize, stMarkV, stDataV, fnAttrGridType, fnRecord)){ return -1; }
-                            if(CompressGrid(nX            , nY + nSize / 2, nSize / 2, nFinalSize, stMarkV, stDataV, fnAttrGridType, fnRecord)){ return -1; }
-                            if(CompressGrid(nX + nSize / 2, nY + nSize / 2, nSize / 2, nFinalSize, stMarkV, stDataV, fnAttrGridType, fnRecord)){ return -1; }
+                            if(CompressGrid(nX            , nY            , nSize / 2, nEndSize, stvMark, stvData, fnAttrGridType, fnRecord)){ return -1; }
+                            if(CompressGrid(nX + nSize / 2, nY            , nSize / 2, nEndSize, stvMark, stvData, fnAttrGridType, fnRecord)){ return -1; }
+                            if(CompressGrid(nX            , nY + nSize / 2, nSize / 2, nEndSize, stvMark, stvData, fnAttrGridType, fnRecord)){ return -1; }
+                            if(CompressGrid(nX + nSize / 2, nY + nSize / 2, nSize / 2, nEndSize, stvMark, stvData, fnAttrGridType, fnRecord)){ return -1; }
                         }else{
                             // nType == 1 here, filled with the same info
-                            stMarkV.push_back(false);
-                            return fnRecord(nX, nY, stMarkV, stDataV);
+                            stvMark.push_back(false);
+                            return fnRecord(nX, nY, stvMark, stvData);
                         }
                     }
 
@@ -692,36 +758,17 @@ int Mir2xMapData::CompressGrid(int nX, int nY, int nSize, int nFinalSize, std::v
     return 0;
 }
 
-void Mir2xMapData::PushBit(const std::vector<bool> &stMarkV, std::vector<uint8_t> &stByteV)
+void Mir2xMapData::PushData(std::vector<uint8_t> &stvByte, const std::vector<bool> &stvMark, const std::vector<uint8_t> &stvData)
 {
-    size_t nIndex = 0;
-    while(nIndex < stMarkV.size()){
-        uint8_t nRes = 0X00;
-        for(int nBit = 0; nBit < 8; ++nBit){
-            nRes = (nRes >> 1) + ((nIndex < stMarkV.size() && stMarkV[nIndex++]) ? 0X80 : 0X00);
-        }
-        stByteV.push_back(nRes);
-    }
-}
+    auto nMarkLen = (uint32_t)((stvMark.size() + 7) / 8);
+    auto nDataLen = (uint32_t)((stvData.size()));
 
-void Mir2xMapData::PushData(const std::vector<bool> &stMarkV, const std::vector<uint8_t> &stDataV, std::vector<uint8_t> &stByteV)
-{
-    auto nMarkLen = (uint32_t)((stMarkV.size() + 7) / 8);
-    auto nDataLen = (uint32_t)((stDataV.size()));
+    PushStream::PushByte<uint32_t>(stvByte, nMarkLen);
+    PushStream::PushByte<uint32_t>(stvByte, nDataLen);
 
-    stByteV.push_back((uint8_t)((nMarkLen & 0X000000FF) >>  0));
-    stByteV.push_back((uint8_t)((nMarkLen & 0X0000FF00) >>  8));
-    stByteV.push_back((uint8_t)((nMarkLen & 0X00FF0000) >> 16));
-    stByteV.push_back((uint8_t)((nMarkLen & 0XFF000000) >> 24));
-
-    stByteV.push_back((uint8_t)((nDataLen & 0X000000FF) >>  0));
-    stByteV.push_back((uint8_t)((nDataLen & 0X0000FF00) >>  8));
-    stByteV.push_back((uint8_t)((nDataLen & 0X00FF0000) >> 16));
-    stByteV.push_back((uint8_t)((nDataLen & 0XFF000000) >> 24));
-
-    PushBit(stMarkV, stByteV);
-    stByteV.insert(stByteV.end(), stDataV.begin(), stDataV.end());
-    stByteV.push_back(0);
+    PushStream::PushBit(stvByte, stvMark);
+    stvByte.insert(stvByte.end(), stvData.begin(), stvData.end());
+    stvByte.push_back(0);
 }
 
 bool Mir2xMapData::Allocate(uint16_t nW, uint16_t nH)

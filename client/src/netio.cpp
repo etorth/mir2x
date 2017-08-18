@@ -3,7 +3,7 @@
  *
  *       Filename: netio.cpp
  *        Created: 06/29/2015 07:18:27 PM
- *  Last Modified: 04/28/2017 00:18:43
+ *  Last Modified: 08/18/2017 15:34:23
  *
  *    Description:
  *
@@ -22,6 +22,7 @@
 #include "netio.hpp"
 #include "message.hpp"
 #include "compress.hpp"
+#include "condcheck.hpp"
 
 NetIO::SendPack::SendPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnOnDone)
     : HC(nHC)
@@ -178,7 +179,7 @@ void NetIO::DoReadHC()
                                     auto fnOnReadLen1 = [this, stSMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t){
                                         if(stEC){ fnOnNetError(stEC); }
                                         else{
-                                            assert(m_ReadLen[0] == 255);
+                                            condcheck(m_ReadLen[0] == 255);
                                             auto nCompLen = (size_t)(m_ReadLen[1]) + 255;
 
                                             if(nCompLen > stSMSG.DataLen()){
@@ -366,7 +367,7 @@ bool NetIO::DoReadBody(size_t nMaskLen, size_t nBodyLen)
 
 void NetIO::DoSendNext()
 {
-    assert(!m_SendQueue.empty());
+    condcheck(!m_SendQueue.empty());
 
     if(m_SendQueue.front().OnDone){
         m_SendQueue.front().OnDone();
@@ -382,7 +383,7 @@ void NetIO::DoSendNext()
 
 void NetIO::DoSendBuf()
 {
-    assert(!m_SendQueue.empty());
+    condcheck(!m_SendQueue.empty());
     if(m_SendQueue.front().Data && m_SendQueue.front().DataLen){
         auto fnDoSendValidBuf = [this](std::error_code stEC, size_t){
             if(stEC){

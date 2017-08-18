@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 08/10/2017 13:07:46
+ *  Last Modified: 08/18/2017 15:34:47
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -118,12 +118,12 @@
 #pragma once
 
 #include <deque>
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 
 #include "colorfunc.hpp"
 #include "focustype.hpp"
+#include "condcheck.hpp"
 #include "actionnode.hpp"
 #include "motionnode.hpp"
 #include "pathfinder.hpp"
@@ -173,8 +173,8 @@ class Creature
             , m_UpdateDelay(100.0)
             , m_LastUpdateTime(0.0)
         {
-            assert(m_UID);
-            assert(m_ProcessRun);
+            condcheck(m_UID);
+            condcheck(m_ProcessRun);
         }
 
     public:

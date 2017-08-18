@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302 
+version 1.0303 
 header_name {.hpp} 
 code_name {.cpp}
 decl {\#include <cstdint>} {public local
@@ -12,25 +12,43 @@ class AttributeSelectWindow {open
 } {
   Function {AttributeSelectWindow()} {open
   } {
-    Fl_Window m_Window {open
-      xywh {345 172 565 315} type Double modal visible
+    Fl_Window m_Window {open selected
+      xywh {626 470 565 315} type Double modal visible
     } {
       Fl_Check_Button m_SelectWalkable {
-        label { Walkable}
+        label CanWalk
         callback {{
-	extern MainWindow *g_MainWindow;
-	g_MainWindow->RedrawAll();
-	
-	if(m_SelectWalkable->value()){
+	if(false
+            || m_SelectWalkable->value()
+            || m_SelectFlyable ->value()){
 		m_Group->deactivate();
 	}else{
 		m_Group->activate();
 	}
+
+	extern MainWindow *g_MainWindow;
+	g_MainWindow->RedrawAll();
 }}
         xywh {38 22 177 33} down_box DOWN_BOX value 1 labelfont 4
       }
+      Fl_Check_Button m_SelectFlyable {
+        label CanFly
+        callback {{
+	if(false
+            || m_SelectWalkable->value()
+            || m_SelectFlyable ->value()){
+		m_Group->deactivate();
+	}else{
+		m_Group->activate();
+	}
+
+	extern MainWindow *g_MainWindow;
+	g_MainWindow->RedrawAll();
+}}
+        xywh {38 57 177 33} down_box DOWN_BOX value 1 labelfont 4
+      }
       Fl_Group m_Group {open
-        xywh {20 70 620 180} deactivate
+        xywh {20 83 620 180} deactivate
       } {
         Fl_Check_Button m_SelectGrass {
           label { Grass}
@@ -38,7 +56,7 @@ class AttributeSelectWindow {open
     extern MainWindow *g_MainWindow;
     g_MainWindow->RedrawAll();
 }}
-          xywh {38 79 177 33} down_box DOWN_BOX labelfont 4
+          xywh {38 92 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button m_SelectStone {
           label { Stone}
@@ -46,7 +64,7 @@ class AttributeSelectWindow {open
     extern MainWindow *g_MainWindow;
     g_MainWindow->RedrawAll();
 }}
-          xywh {38 111 177 33} down_box DOWN_BOX labelfont 4
+          xywh {38 124 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button m_SelectPond {
           label { Pond}
@@ -54,7 +72,7 @@ class AttributeSelectWindow {open
     extern MainWindow *g_MainWindow;
     g_MainWindow->RedrawAll();
 }}
-          xywh {38 143 177 33} down_box DOWN_BOX labelfont 4
+          xywh {38 156 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button m_SelectSand {
           label { Sand}
@@ -62,7 +80,7 @@ class AttributeSelectWindow {open
     extern MainWindow *g_MainWindow;
     g_MainWindow->RedrawAll();
 }}
-          xywh {38 175 177 33} down_box DOWN_BOX labelfont 4
+          xywh {38 188 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button m_SelectOcean {
           label { Ocean}
@@ -70,47 +88,47 @@ class AttributeSelectWindow {open
     extern MainWindow *g_MainWindow;
     g_MainWindow->RedrawAll();
 }}
-          xywh {38 207 177 33} down_box DOWN_BOX labelfont 4
+          xywh {38 220 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button {} {
           label { Unused}
-          xywh {235 79 177 33} down_box DOWN_BOX labelfont 4
+          xywh {235 92 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button {} {
           label { Unused}
-          xywh {235 111 177 33} down_box DOWN_BOX labelfont 4
+          xywh {235 124 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button {} {
           label { Unused}
-          xywh {235 143 177 33} down_box DOWN_BOX labelfont 4
+          xywh {235 156 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button {} {
           label { Unused}
-          xywh {235 175 177 33} down_box DOWN_BOX labelfont 4
+          xywh {235 188 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button {} {
           label { Unused}
-          xywh {235 207 177 33} down_box DOWN_BOX labelfont 4
+          xywh {235 220 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button {} {
           label { Unused}
-          xywh {440 79 177 33} down_box DOWN_BOX labelfont 4
+          xywh {440 92 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button {} {
           label { Unused}
-          xywh {440 111 177 33} down_box DOWN_BOX labelfont 4
+          xywh {440 124 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button {} {
           label { Unused}
-          xywh {440 143 177 33} down_box DOWN_BOX labelfont 4
+          xywh {440 156 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button {} {
           label { Unused}
-          xywh {440 175 177 33} down_box DOWN_BOX labelfont 4
+          xywh {440 188 177 33} down_box DOWN_BOX labelfont 4
         }
         Fl_Check_Button {} {
           label { Unused}
-          xywh {440 207 177 33} down_box DOWN_BOX labelfont 4
+          xywh {440 220 177 33} down_box DOWN_BOX labelfont 4
         }
       }
       Fl_Button {} {
@@ -121,7 +139,7 @@ class AttributeSelectWindow {open
     	
     	m_Window->hide();
 }}
-        xywh {425 260 80 30} labelfont 4
+        xywh {438 269 80 30} labelfont 4
         code0 {\#include "mainwindow.hpp"}
       }
     }
@@ -130,19 +148,42 @@ class AttributeSelectWindow {open
   } {
     code {m_Window->show();} {}
   }
-  Function {Test(bool bValid, uint8_t nValue)} {open return_type bool
+  Function {TestLand(uint8_t nValue)} {open return_type bool
   } {
     code {// bool bValid, uint8_t nValue
 {
-	if(m_SelectWalkable->value()){
-		return bValid;
-	}else{
-		// TODO
-		// complete the logic
-		nValue += 1;
-		return false;
-	}
-}} {selected
+    auto bCanWalk  = (nValue & 0X80) ? true : false;
+    auto bCanFly   = (nValue & 0X40) ? true : false;
+    auto nLandType = (nValue & 0X3F);
+
+    // select can go through grids
+    // land type slection is disabled
+    if(false
+            || m_SelectWalkable->value()
+            || m_SelectFlyable ->value()){
+        return bCanWalk || bCanFly;
     }
+
+    // selected by land type
+    switch(nLandType){
+        case LANDTYPE_GRASS:
+            {
+                return m_SelectGrass->value();
+            }
+        case LANDTYPE_STONE:
+            {
+                return m_SelectStone->value();
+            }
+        case LANDTYPE_SAND:
+            {
+                return m_SelectStone->value();
+            }
+        default:
+            {
+                break;
+            }
+    }
+    return false;
+}} {}
   }
 } 

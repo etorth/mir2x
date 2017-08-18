@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 07/26/2017 16:21:05
+ *  Last Modified: 08/18/2017 15:35:39
  *
  *    Description: 
  *
@@ -20,7 +20,6 @@
 
 #include <utf8.h>
 #include <string>
-#include <cassert>
 #include <algorithm>
 #include <functional>
 #include <tinyxml2.h>
@@ -33,6 +32,7 @@
 #include "tokenbox.hpp"
 #include "utf8char.hpp"
 #include "mathfunc.hpp"
+#include "condcheck.hpp"
 #include "fontexdbn.hpp"
 #include "colorfunc.hpp"
 #include "tokenboard.hpp"
@@ -334,7 +334,7 @@ bool TokenBoard::ParseTextObject(
         utf8::unchecked::advance(pEnd, 1);
 
         // should be true
-        assert(pEnd - pStart <= 4);
+        condcheck(pEnd - pStart <= 4);
 
         uint32_t nUTF8Key = 0;
         std::memcpy(&nUTF8Key, pStart, pEnd - pStart);

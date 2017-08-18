@@ -3,7 +3,7 @@
  *
  *       Filename: animation.hpp
  *        Created: 06/20/2016 19:41:08
- *  Last Modified: 06/30/2016 16:18:06
+ *  Last Modified: 08/15/2017 22:48:19
  *
  *    Description: animation for test, we only support monster animation currently
  *                 how about for human with weapon? do I need to support it?
@@ -24,13 +24,13 @@
 #include <vector>
 #include <string>
 #include <functional>
-
 #include <FL/Fl_Shared_Image.H>
 
 class Animation
 {
     private:
-        typedef struct _AnimationFrame{
+        typedef struct _AnimationFrame
+        {
             int DX;
             int DY;
             std::string ImageName;

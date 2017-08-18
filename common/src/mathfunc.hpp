@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 04/27/2017 16:53:36
+ *  Last Modified: 08/18/2017 15:32:16
  *
  *    Description: 
  *
@@ -19,9 +19,9 @@
  */
 #pragma once
 #include <cmath>
-#include <cassert>
 #include <algorithm>
 #include <type_traits>
+#include "condcheck.hpp"
 
 template<typename T> T LDistance2(T nfX, T nfY, T nfX1, T nfY1)
 {
@@ -145,7 +145,7 @@ template<typename T> bool IntervalOverlap(T nfX1, T nfW1, T nfX2, T nfW2)
 template<typename T> bool RectangleOverlapRegion(T nfX1, T nfY1, T nfW1, T nfH1, T *nfX2, T *nfY2, T *nfW2, T *nfH2)
 {
     // 1. assertion, since we use them to provide arguments
-    assert(nfX2 && nfY2 && nfW2 && nfH2);
+    condcheck(nfX2 && nfY2 && nfW2 && nfH2);
 
     // 2. fast check for overlapping
     if(RectangleOverlap(nfX1, nfY1, nfW1, nfH1, *nfX2, *nfY2, *nfW2, *nfH2)){

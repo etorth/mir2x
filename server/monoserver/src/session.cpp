@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 08/15/2017 11:53:10
+ *  Last Modified: 08/18/2017 15:31:27
  *
  *    Description: 
  *
@@ -21,6 +21,7 @@
 #include "session.hpp"
 #include "memorypn.hpp"
 #include "compress.hpp"
+#include "condcheck.hpp"
 #include "monoserver.hpp"
 
 Session::SendTask::SendTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnOnDone)
@@ -243,7 +244,7 @@ void Session::DoReadHC()
                                     {
                                         if(stEC){ fnOnNetError(stEC); }
                                         else{
-                                            assert(m_ReadLen[0] == 255);
+                                            condcheck(m_ReadLen[0] == 255);
                                             auto nCompLen = (size_t)(m_ReadLen[1]) + 255;
 
                                             if(nCompLen > stCMSG.DataLen()){
@@ -460,8 +461,8 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
 
 void Session::DoSendNext()
 {
-    assert(m_FlushFlag);
-    assert(!m_CurrSendQ->empty());
+    condcheck(m_FlushFlag);
+    condcheck(!m_CurrSendQ->empty());
 
     if(m_CurrSendQ->front().OnDone){
         m_CurrSendQ->front().OnDone();
@@ -477,8 +478,8 @@ void Session::DoSendNext()
 
 void Session::DoSendBuf()
 {
-    assert(m_FlushFlag);
-    assert(!m_CurrSendQ->empty());
+    condcheck(m_FlushFlag);
+    condcheck(!m_CurrSendQ->empty());
     if(m_CurrSendQ->front().Data && m_CurrSendQ->front().DataLen){
         auto fnDoneSend = [this](std::error_code stEC, size_t) -> void
         {
@@ -508,7 +509,7 @@ void Session::DoSendHC()
 {
     // when we are here
     // we should already have m_FlushFlag set as true
-    assert(m_FlushFlag);
+    condcheck(m_FlushFlag);
 
     // we check m_CurrSendQ and if it empty we swap with the pending queue
     // we move this swap thing to the handler in FlushSendQ()
@@ -528,7 +529,7 @@ void Session::DoSendHC()
         }
     }
 
-    assert(!m_CurrSendQ->empty());
+    condcheck(!m_CurrSendQ->empty());
     auto fnDoSendBuf = [this](std::error_code stEC, size_t) -> void
     {
         if(stEC){

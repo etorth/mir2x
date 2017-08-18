@@ -3,7 +3,7 @@
  *
  *       Filename: randompick.hpp
  *        Created: 06/18/2016 21:53:32
- *  Last Modified: 03/21/2017 11:09:52
+ *  Last Modified: 08/18/2017 15:32:40
  *
  *    Description: 
  *
@@ -21,7 +21,7 @@
 #pragma once
 #include <vector>
 #include <utility>
-#include <cassert>
+#include "condcheck.hpp"
 
 template<typename Record>
 class RandomPick
@@ -60,7 +60,7 @@ class RandomPick
         Record Pick()
         {
             // 1. check size, we can't pick record from null v
-            assert(Size() > 0);
+            condcheck(Size() > 0);
 
             // 2. get random number
             double fPick = (std::rand() % 99991) * 1.0 / 99991.0;

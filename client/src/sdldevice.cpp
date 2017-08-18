@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 07/31/2017 16:38:02
+ *  Last Modified: 08/18/2017 15:35:58
  *
  *    Description: 
  *
@@ -18,7 +18,6 @@
  * =====================================================================================
  */
 
-#include <cassert>
 #include <SDL2/SDL.h>
 #include <system_error>
 #include <SDL2/SDL_image.h>
@@ -26,6 +25,7 @@
 #include "log.hpp"
 #include "xmlconf.hpp"
 #include "sdldevice.hpp"
+#include "condcheck.hpp"
 
 SDLDevice::SDLDevice()
     : m_Window(nullptr)
@@ -223,7 +223,7 @@ void SDLDevice::PopColor()
     if(m_ColorStack.empty()){
         PushColor(0, 0, 0, 0);
     }else{
-        assert(m_ColorStack.back()[1]);
+        condcheck(m_ColorStack.back()[1]);
         if(m_ColorStack.back()[1] == 1){
             m_ColorStack.pop_back();
             if(m_ColorStack.empty()){
@@ -253,7 +253,7 @@ void SDLDevice::PopBlendMode()
     if(m_BlendModeStack.empty()){
         PushBlendMode(SDL_BLENDMODE_NONE);
     }else{
-        assert(m_BlendModeStack.back().second);
+        condcheck(m_BlendModeStack.back().second);
         if(m_BlendModeStack.back().second == 1){
             m_BlendModeStack.pop_back();
             if(m_BlendModeStack.empty()){

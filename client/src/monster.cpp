@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 08/11/2017 03:20:14
+ *  Last Modified: 08/18/2017 15:35:15
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 #include "log.hpp"
 #include "monster.hpp"
 #include "mathfunc.hpp"
+#include "condcheck.hpp"
 #include "processrun.hpp"
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
@@ -32,9 +33,9 @@ Monster::Monster(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun)
     : Creature(nUID, pRun)
     , m_MonsterID(nMonsterID)
 {
-    assert(nUID);
-    assert(nMonsterID);
-    assert(pRun);
+    condcheck(nUID);
+    condcheck(nMonsterID);
+    condcheck(pRun);
 }
 
 bool Monster::Update()

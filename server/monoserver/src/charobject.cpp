@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/11/2017 15:22:28
+ *  Last Modified: 08/18/2017 15:29:23
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 #include "player.hpp"
 #include "monster.hpp"
 #include "actorpod.hpp"
+#include "condcheck.hpp"
 #include "monoserver.hpp"
 #include "charobject.hpp"
 #include "messagepack.hpp"
@@ -55,7 +56,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_WAbility()
     , m_AddAbility()
 {
-    assert(m_Map);
+    condcheck(m_Map);
     SetState(STATE_LIFECYCLE, nLifeState);
 
     auto fnRegisterClass = [this]() -> void {

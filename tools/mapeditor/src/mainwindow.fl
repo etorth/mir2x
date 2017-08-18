@@ -50,9 +50,6 @@ decl {\#include "imagecache.hpp"} {private local
 decl {\#include "animationdraw.hpp"} {private local
 } 
 
-decl {\#include "mapinfowindow.hpp"} {private local
-} 
-
 decl {\#include "animationselectwindow.hpp"} {private local
 } 
 
@@ -60,8 +57,7 @@ class MainWindow {open
 } {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {open
-  } {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       callback {{
 	switch(fl_choice("Quit map editor?", nullptr, " No", " Yes ")){
@@ -190,9 +186,10 @@ fl_alert("%s", "Haven't implement yet!");}
         return;
     }
 
-    auto fnSaveObjPNG = [this](uint8_t nFileIndex, uint16_t nImageIndex, uint32_t nColor){
-        extern ImageDB    g_ImageDB;
-        extern ImageCache g_ImageCache;
+    auto fnSaveObjPNG = [this](uint8_t nFileIndex, uint16_t nImageIndex, uint32_t nColor)
+    {
+        extern ImageDB     g_ImageDB;
+        extern ImageCache  g_ImageCache;
         extern std::string g_WorkingPathName;
 
         char szHexString[64];
@@ -204,25 +201,25 @@ fl_alert("%s", "Haven't implement yet!");}
                 if(g_ImageDB.Valid(nFileIndex, nImageIndex)){
                     int nW = g_ImageDB.FastW(nFileIndex);
                     int nH = g_ImageDB.FastH(nFileIndex);
-                    g_ImageCache.Register(nFileIndex, nImageIndex,
-                            g_ImageDB.FastDecode(nFileIndex, nColor, 0XFFFFFFFF, 0XFFFFFFFF), nW, nH);
+                    g_ImageCache.Register(nFileIndex, nImageIndex, g_ImageDB.FastDecode(nFileIndex, nColor, 0XFFFFFFFF, 0XFFFFFFFF), nW, nH);
                 }
             }
         }
 
-       std::string szIMGPNGNameInCache = ((g_ImageCache.Path() + "/CACHE/") + szHexString) + ".PNG";
+        std::string szIMGPNGNameInCache = ((g_ImageCache.Path() + "/CACHE/") + szHexString) + ".PNG";
         if(FileSys::FileExist(szIMGPNGNameInCache.c_str())){
             FileSys::DupFile(szIMGPNGName.c_str(), szIMGPNGNameInCache.c_str());
         }
     };
 
-    auto fnSaveTilePNG = [fnSaveObjPNG](uint8_t nFileIndex, uint16_t nImageIndex){
+    auto fnSaveTilePNG = [fnSaveObjPNG](uint8_t nFileIndex, uint16_t nImageIndex)
+    {
         fnSaveObjPNG(nFileIndex, nImageIndex, 0XFFFFFFFF);
     };
 
     g_EditorMap.ExtractTile(fnSaveTilePNG);
     g_EditorMap.ExtractObject(fnSaveObjPNG);
-}} selected
+}}
             xywh {10 10 30 20} labelfont 4 divider
             code0 {\#include <string>}
             code1 {\#include <FL/Fl_Native_File_Chooser.H>}
@@ -250,7 +247,7 @@ fl_alert("%s", "Haven't implement yet!");}
           MenuItem m_MenuItemAttributeGridLine {
             label {Attribute Grid}
             callback {{
-	extern AttributeGridWindow *g_AttributeGridWindow;
+	extern AttributeSelectWindow *g_AttributeGridWindow;
 	if(m_MenuItemAttributeGridLine->value()){
 		g_AttributeGridWindow->ShowAll();
 	}
@@ -294,49 +291,6 @@ fl_alert("%s", "Haven't implement yet!");}
           MenuItem m_MenuItemClearBackground {
             label {Clear Background         }
             xywh {40 40 30 20} type Toggle value 1 labelfont 4
-          }
-        }
-        Submenu {} {
-          label Setting open
-          xywh {0 0 62 20} labelfont 4
-        } {
-          MenuItem {} {
-            label {Working Folder          }
-            callback {{
-    SetWorkingPathName();
-}}
-            xywh {10 10 30 20} labelfont 4
-          }
-          MenuItem {} {
-            label {Wil File Folder      }
-            callback {{
-    extern std::string g_WorkingPathName;
-    Fl_Native_File_Chooser stFileChooser;
-    stFileChooser.title("Set Map Editing Working Path...");
-    stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
-    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
-
-    stFileChooser.directory(".");
-
-    switch(stFileChooser.show()){
-        case -1:
-            {
-                fl_alert("%s", stFileChooser.errmsg());
-                break;
-            }
-        case  1:
-            {
-                break;
-            }
-        default:
-            {
-                g_WorkingPathName = stFileChooser.filename();
-                std::replace(g_WorkingPathName.begin(), g_WorkingPathName.end(), '\\\\', '/');
-                break;
-            }
-    }
-}}
-            xywh {20 20 30 20} labelfont 4
           }
         }
         Submenu {} {
@@ -589,13 +543,6 @@ if(g_EditorMap.Valid()){
   Function {AfterLoadMir2Map()} {return_type void
   } {
     code {{
-	// previously this function is to set global variables after loading
-	// now seems I need to abondon it
-	extern MapInfoWindow *g_MapInfoWindow;
-	extern EditorMap      g_EditorMap;
-	g_MapInfoWindow->Output(g_EditorMap.MapInfo().c_str());
-	g_MapInfoWindow->ShowAll();
-
     m_DrawArea->SetOffset(0, false, 0, false);
     RedrawAll();
 }} {}
@@ -819,7 +766,7 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemSelectBySingle->value();
 }} {}
   }
-  Function {MakeWorkingFolder()} {return_type void
+  Function {MakeWorkingFolder()} {selected return_type void
   } {
     code {{
     extern std::string g_WorkingPathName;
@@ -845,28 +792,7 @@ if(g_EditorMap.Valid()){
     FileSys::MakeDir(szTmpPath.c_str());
 }} {}
   }
-  Function {SaveMir2xMap()} {return_type void
-  } {
-    code {{
-	extern EditorMap g_EditorMap;
-	if(g_EditorMap.Valid()){
-		extern std::string g_WorkingPathName;
-    		std::string szTmpFileName = g_WorkingPathName;
-	
-		if(szTmpFileName.back() == '/'){
-        		szTmpFileName += "DESC.BIN";
-    		}else{
-        		szTmpFileName += "/DESC.BIN";
-    		}
-    		g_EditorMap.SaveMir2xMap(szTmpFileName.c_str());
-    		fl_message("Save map file in mir2xmap format successfully!");
-    		
-	}else{
-		fl_alert("%s", "Currently no operating map!");
-	}
-}} {}
-  }
-  Function {SaveMir2xMapData()} {open return_type void
+  Function {SaveMir2xMapData()} {return_type void
   } {
     code {{
 	extern EditorMap g_EditorMap;
@@ -887,7 +813,7 @@ if(g_EditorMap.Valid()){
 	}
 }} {}
   }
-  Function {ClearBackground()} {return_type bool
+  Function {ClearBackground()} {selected return_type bool
   } {
     code {{
     return m_MenuItemClearBackground->value();

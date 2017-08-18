@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 08/11/2017 19:04:01
+ *  Last Modified: 08/18/2017 15:34:05
  *
  *    Description: A-Star algorithm for path finding
  *
@@ -29,6 +29,7 @@
 
 #include "fsa.h"
 #include "stlastar.h"
+#include "condcheck.hpp"
 
 class AStarPathFinderNode;
 class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
@@ -53,9 +54,9 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
             , m_MoveCost(fnMoveCost)
             , m_MaxStep(nMaxStepSize)
         {
-            assert(m_MoveChecker);
-            assert(m_MoveCost);
-            assert(false
+            condcheck(m_MoveChecker);
+            condcheck(m_MoveCost);
+            condcheck(false
                     || (m_MaxStep == 1)
                     || (m_MaxStep == 2)
                     || (m_MaxStep == 3));
@@ -97,7 +98,7 @@ class AStarPathFinderNode
             , m_Y(nY)
             , m_Finder(pFinder)
         {
-            assert(pFinder);
+            condcheck(pFinder);
         }
 
     public:
