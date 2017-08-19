@@ -3,7 +3,7 @@
  *
  *       Filename: pushstream.hpp
  *        Created: 08/17/2017 19:32:15
- *  Last Modified: 08/17/2017 20:06:26
+ *  Last Modified: 08/18/2017 16:54:24
  *
  *    Description: 
  *
@@ -50,7 +50,10 @@ namespace PushStream
 
     template<typename Iterator> void PushByte(std::vector<uint8_t> &stvData, Iterator pBegin, Iterator pEnd)
     {
-        static_assert(std::is_same<decltype(*pBegin), uint8_t &>(), "Invalid iterator type");
+        using type_remove_ref = typename std::remove_reference<decltype(*pBegin)>::type;
+        using type_remove_cv  = typename std::remove_cv<type_remove_ref>::type;
+
+        static_assert(std::is_same<type_remove_cv, uint8_t>(), "Invalid iterator type");
         stvData.insert(stvData.end(), pBegin, pEnd);
     }
 }

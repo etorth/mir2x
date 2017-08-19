@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/18/2017 13:43:59
+ *  Last Modified: 08/18/2017 17:50:36
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -200,9 +200,7 @@ class EditorMap
 
             bool CanThrough()
             {
-                return true
-                    && (CanWalk || CanFly)
-                    && (LandType > LANDTYPE_NONE && LandType < LANDTYPE_MAX);
+                return (CanWalk || CanFly);
             }
         };
 
@@ -320,7 +318,4 @@ class EditorMap
         void SetBufLight (int, int);
         void SetBufGround(int, int);
         void SetBufObj   (int, int, int);
-
-    public:
-        std::string MapInfo();
 };

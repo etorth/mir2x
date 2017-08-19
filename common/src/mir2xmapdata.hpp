@@ -3,10 +3,13 @@
  *
  *       Filename: mir2xmapdata.hpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 08/18/2017 15:59:23
+ *  Last Modified: 08/18/2017 17:15:40
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
+ *
+ *                 previously I was using grid compression
+ *                 but I decide to disable it since I found I can use zip to compress
  *
  *        Version: 1.0
  *       Revision: none
@@ -26,6 +29,7 @@
 #include <functional>
 #include "landtype.hpp"
 #include "sysconst.hpp"
+#include "condcheck.hpp"
 
 class Mir2xMapData final
 {
@@ -36,11 +40,11 @@ class Mir2xMapData final
         typedef struct
         {
             uint32_t Param;     // bit field definition:
-                                //      31 : valid
-                                // 30 - 28 :
-                                // 27 - 24 : index
-                                // 23 - 16 : index for file
-                                // 15 -  0 : index for image
+            //      31 : valid
+            // 30 - 28 :
+            // 27 - 24 : index
+            // 23 - 16 : index for file
+            // 15 -  0 : index for image
             bool Valid() const
             {
                 return (Param & 0X80000000) ? true : false;
@@ -114,27 +118,6 @@ class Mir2xMapData final
             // animation infomation and blending infomation are in ObjParam
             OBJ Obj[2];
 
-            bool CanWalk() const
-            {
-                return (Param & 0X00800000) ? true : false;
-            }
-
-            bool CanFly() const
-            {
-                return (Param & 0X00400000) ? true : false;
-            }
-
-            uint8_t LandType() const
-            {
-                return (uint8_t)((Param & 0X003F0000) >> 16);
-            }
-
-            bool CanThrough() const
-            {
-                return (CanWalk() || CanFly())
-                    && (LandType() > LANDTYPE_NONE && LandType() < LANDTYPE_MAX);
-            }
-
             uint8_t LandByte() const
             {
                 return (Param & 0X00FF0000) >> 16;
@@ -145,9 +128,32 @@ class Mir2xMapData final
                 return (Param & 0X0000FF00) >> 8;
             }
 
+            bool CanWalk() const
+            {
+                return (LandByte() & 0X80) ? true : false;
+            }
+
+            bool CanFly() const
+            {
+                return (LandByte() & 0X40) ? true : false;
+            }
+
+            bool CanThrough() const
+            {
+                return CanWalk() || CanFly();
+            }
+
+            uint8_t LandType() const
+            {
+                return LandByte() & 0X3F;
+            }
+
             std::array<uint8_t, 5> ObjectArray(int nIndex) const
             {
-                if(nIndex == 0){
+                if(true
+                        && (nIndex == 0)
+                        && (Obj[0].Param & 0X80000000)){
+
                     uint8_t nByte4 = 0
                         | (((uint8_t)((Obj[0].Param & 0X80000000) ? 1 : 0)) << 7)   // valid
                         | (((uint8_t)((ObjParam     & 0X00000080) ? 1 : 0)) << 1)   // alpha
@@ -158,7 +164,12 @@ class Mir2xMapData final
                     uint8_t nByte1 = (uint8_t)((Obj[0].Param & 0X0000FF00) >>  8);
                     uint8_t nByte0 = (uint8_t)((Obj[0].Param & 0X000000FF) >>  0);
                     return {nByte0, nByte1, nByte2, nByte3, nByte4};
-                }else if(nIndex == 1){
+                }
+
+                if(true
+                        && (nIndex == 1)
+                        && (Obj[1].Param & 0X80000000)){
+
                     uint8_t nByte4 = 0
                         | (((uint8_t)((Obj[1].Param & 0X80000000) ? 1 : 0)) << 7)   // valid
                         | (((uint8_t)((ObjParam     & 0X00800000) ? 1 : 0)) << 1)   // alpha
@@ -169,9 +180,9 @@ class Mir2xMapData final
                     uint8_t nByte1 = (uint8_t)((Obj[1].Param & 0X0000FF00) >>  8);
                     uint8_t nByte0 = (uint8_t)((Obj[1].Param & 0X000000FF) >>  0);
                     return {nByte0, nByte1, nByte2, nByte3, nByte4};
-                }else{
-                    return {0, 0, 0, 0, 0};
                 }
+
+                return {0, 0, 0, 0, 0};
             }
         }CELL;
 
@@ -187,8 +198,6 @@ class Mir2xMapData final
         uint16_t m_H;
 
     private:
-        // previously I would use std::vector<uint8_t> to work as a buffer
-        // but never since now it's undefined because of the strict aliasing rule
         std::vector<BLOCK> m_Data;
 
     public:
@@ -201,7 +210,7 @@ class Mir2xMapData final
         Mir2xMapData(const char *pName)
             : Mir2xMapData()
         {
-            Load(pName);
+            condcheck(!Load(pName));
         }
 
     public:
@@ -273,29 +282,4 @@ class Mir2xMapData final
         {
             return nX >= 0 && nX < m_W * SYS_MAPGRIDXP && nY >= 0 && nY < m_H * SYS_MAPGRIDYP;
         }
-
-    private:
-        int LoadHead(uint8_t * &);
-        int LoadGrid(uint8_t * &, std::function<int(int, int, int, const uint8_t *, size_t &, const uint8_t *, size_t &)>);
-        int ParseGrid(int, int, size_t, size_t, const uint8_t *, size_t &, const uint8_t *, size_t &, std::function<int(int, int, int, const uint8_t *, size_t &)>);
-
-        int GridAttrType(int, int, int, int, std::function<int(int, int)>);
-        int SaveGrid(std::vector<bool> &, std::vector<uint8_t> &, std::function<int(int, int, int, std::vector<bool> &, std::vector<uint8_t> &)>);
-        int CompressGrid(int, int, int, int, std::vector<bool> &, std::vector<uint8_t> &, std::function<int(int, int, int)>, std::function<int(int, int, std::vector<bool> &, std::vector<uint8_t> &)>);
-
-    public:
-        int SaveHead (std::vector<uint8_t> &);
-        int SaveTile (std::vector<uint8_t> &);
-        int SaveLand (std::vector<uint8_t> &);
-        int SaveLight(std::vector<uint8_t> &);
-        int SaveObj  (std::vector<uint8_t> &, int);
-
-    public:
-        int SetTile (int, int, int,      const uint8_t *, size_t &);
-        int SetLight(int, int, int,      const uint8_t *, size_t &);
-        int SetLand (int, int, int,      const uint8_t *, size_t &);
-        int SetObj  (int, int, int, int, const uint8_t *, size_t &);
-
-    public:
-        void PushData(std::vector<uint8_t> &, const std::vector<bool> &, const std::vector<uint8_t> &);
 };

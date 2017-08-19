@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/18/2017 16:10:31
+ *  Last Modified: 08/18/2017 17:57:02
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -70,7 +70,7 @@ void EditorMap::ExtractOneTile(int nX, int nY, std::function<void(uint8_t, uint1
 void EditorMap::ExtractTile(std::function<void(uint8_t, uint16_t)> fnWritePNG)
 {
     if(Valid()){
-        for(int nXCnt = 0; nXCnt < W(); nXCnt++){
+        for(int nXCnt = 0; nXCnt < W(); ++nXCnt){
             for(int nYCnt = 0; nYCnt < H(); ++nYCnt){
                 if(!(nXCnt % 2) && !(nYCnt % 2)){
                     ExtractOneTile(nXCnt, nYCnt, fnWritePNG);
@@ -86,7 +86,7 @@ void EditorMap::DrawLight(int nX, int nY, int nW, int nH, std::function<void(int
         for(int nTX = 0; nTX < nW; ++nTX){
             for(int nTY = 0; nTY < nH; ++nTY){
                 if(ValidC(nTX + nX, nTY + nY)){
-                    auto rstLight = m_BlockBuf[(nTX + nX) / 2][(nTY + nY) / 2].Cell[(nTX + nX) % 2][(nTY + nY) % 2].Light;
+                    auto &rstLight = m_BlockBuf[(nTX + nX) / 2][(nTY + nY) / 2].Cell[(nTX + nX) % 2][(nTY + nY) % 2].Light;
                     if(rstLight.Valid){
                         fnDrawLight(nTX + nX, nTY + nY);
                     }
@@ -172,7 +172,7 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
                 // 2. regular draw
                 if(ValidC(nX, nY)){
                     for(int nIndex = 0; nIndex < 2; ++nIndex){
-                        auto rstObj = m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Obj[nIndex];
+                        auto &rstObj = m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Obj[nIndex];
                         if(true
                                 && rstObj.Valid
                                 && rstObj.Ground == bGround){
@@ -207,8 +207,8 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
 void EditorMap::UpdateFrame(int nLoopTime)
 {
     // m_AniTileFrame[i][j]:
-    //     i: denotes how fast the animation is.
-    //     j: denotes how many frames the animation has.
+    //   i: denotes how fast the animation is.
+    //   j: denotes how many frames the animation has.
 
     if(Valid()){
         const static uint32_t nDelayMS[] = {150, 200, 250, 300, 350, 400, 420, 450};
@@ -526,28 +526,26 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
                 }
             }
         }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
-            if(m_Mir2xMapData->Cell(nX, nY).Obj[nIndex].Param & 0X80000000){
+            auto stArray = m_Mir2xMapData->Cell(nX, nY).ObjectArray(nIndex);
+            if(stArray[4] & 0X80){
                 bObjValid = true;
-                if(m_Mir2xMapData->Cell(nX, nY).ObjParam & ((uint32_t)(1) << (nIndex ? 22 : 6))){
+                nObj = 0
+                    | (((uint32_t)(stArray[2])) << 16)
+                    | (((uint32_t)(stArray[1])) <<  8)
+                    | (((uint32_t)(stArray[0])) <<  0);
+
+                if(stArray[4] & 0X01){
                     bGroundObj = true;
                 }
-                if(m_Mir2xMapData->Cell(nX, nY).ObjParam & ((uint32_t)(1) << (nIndex ? 31 : 15))){
-                    bAniObj = true;
+
+                if(stArray[3] & 0X80){
+                    bAniObj   = true;
+                    nAniType  = ((stArray[3] & 0X70) >> 4);
+                    nAniCount = ((stArray[3] & 0X0F) >> 0);
                 }
-                if(m_Mir2xMapData->Cell(nX, nY).ObjParam & ((uint32_t)(1) << (nIndex ? 23 : 7))){
+
+                if(stArray[4] & 0X02){
                     bAlphaObj = true;
-                }
-
-                auto nObjParam = m_Mir2xMapData->Cell(nX, nY).ObjParam;
-                nObj      = (m_Mir2xMapData->Cell(nX, nY).Obj[nIndex].Param & 0X00FFFFFF);
-                nAniType  = nIndex ? ((nObjParam & 0X70000000) >> 28) : ((nObjParam & 0X00007000) >> 12);
-                nAniCount = nIndex ? ((nObjParam & 0X0F000000) >> 28) : ((nObjParam & 0X00000F00) >>  8);
-
-                if(!bAniObj){
-                    // clean all animation information
-                    // in mir2xmapdata an object can be static but alpha-blended
-                    nAniType  = 0;
-                    nAniCount = 0;
                 }
             }
         }
@@ -590,31 +588,15 @@ void EditorMap::SetBufLight(int nX, int nY)
     }
 }
 
-std::string EditorMap::MapInfo()
-{
-    char szInfo[128];
-    std::string szRes;
-
-    std::sprintf(szInfo, "Width   : %d", W());
-    szRes += szInfo;
-    szRes += "\n";
-
-    std::sprintf(szInfo, "Height  : %d", H());
-    szRes += szInfo;
-    szRes += "\n";
-
-    szRes += "Version : 0.01";
-
-    return szRes;
-}
-
 void EditorMap::DrawSelectGround(int nX, int nY, int nW, int nH, std::function<void(int, int, int)> fnDrawSelectGround)
 {
-    for(int nTX = nX; nTX < nX + nW; ++nTX){
-        for(int nTY = nY; nTY < nY + nH; ++nTY){
-            for(int nIndex = 0; nIndex < 4; ++nIndex){
-                if(ValidC(nTX, nTY) && Cell(nTX, nTY).SelectGround){
-                    fnDrawSelectGround(nX, nY, nIndex);
+    if(Valid()){
+        for(int nTX = nX; nTX < nX + nW; ++nTX){
+            for(int nTY = nY; nTY < nY + nH; ++nTY){
+                for(int nIndex = 0; nIndex < 4; ++nIndex){
+                    if(ValidC(nTX, nTY) && Cell(nTX, nTY).SelectGround){
+                        fnDrawSelectGround(nX, nY, nIndex);
+                    }
                 }
             }
         }
@@ -623,10 +605,12 @@ void EditorMap::DrawSelectGround(int nX, int nY, int nW, int nH, std::function<v
 
 void EditorMap::ClearGroundSelect()
 {
-    for(int nX = 0; nX < W(); ++nX){
-        for(int nY = 0; nY < H(); ++nY){
-            for(int nIndex = 0; nIndex < 4; ++nIndex){
-                Cell(nX, nY).SelectGround = false;
+    if(Valid()){
+        for(int nX = 0; nX < W(); ++nX){
+            for(int nY = 0; nY < H(); ++nY){
+                for(int nIndex = 0; nIndex < 4; ++nIndex){
+                    Cell(nX, nY).SelectGround = false;
+                }
             }
         }
     }
@@ -655,10 +639,10 @@ bool EditorMap::SaveMir2xMapData(const char *szFullName)
             std::memset(&rstDstCell, 0, sizeof(rstDstCell));
 
             // cell::land
-            rstDstCell.Param |= ((uint32_t)(Cell(nX, nY).MakeLandU8()) << 16);
+            rstDstCell.Param |= (((uint32_t)(Cell(nX, nY).MakeLandU8())) << 16);
 
             // cell::light
-            rstDstCell.Param |= ((uint32_t)(Light(nX, nY).MakeU8()) << 8);
+            rstDstCell.Param |= (((uint32_t)(Light(nX, nY).MakeU8())) << 8);
 
             // cell::obj[0]
             {
@@ -691,13 +675,6 @@ bool EditorMap::SaveMir2xMapData(const char *szFullName)
                     rstDstCell.ObjParam &= 0X0000FFFF;
                 }
             }
-        }
-    }
-
-    {
-        if(auto fp = std::fopen("orig.bin", "wb")){
-            std::fwrite(stMapData.Data(), stMapData.DataLen(), 1, fp);
-            std::fclose(fp);
         }
     }
 
