@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 07/31/2017 12:22:26
+ *  Last Modified: 08/19/2017 00:41:27
  *
  *    Description: 
  *
@@ -19,7 +19,6 @@
  */
 
 #include <algorithm>
-
 #include "player.hpp"
 #include "monster.hpp"
 #include "actorpod.hpp"
@@ -378,10 +377,9 @@ void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFro
 bool ServerMap::GroundValid(int nX, int nY) const
 {
     return true
-        && (m_Mir2xMapData.Valid())
-        && (m_Mir2xMapData.ValidC(nX, nY))
-        && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)
-        && (m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000);
+        && m_Mir2xMapData.Valid()
+        && m_Mir2xMapData.ValidC(nX, nY)
+        && m_Mir2xMapData.Cell(nX, nY).CanThrough();
 }
 
 bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)

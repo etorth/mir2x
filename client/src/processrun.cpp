@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 08/10/2017 13:35:19
+ *  Last Modified: 08/19/2017 02:06:39
  *
  *    Description: 
  *
@@ -233,9 +233,9 @@ void ProcessRun::Draw()
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
                 if(m_Mir2xMapData.ValidC(nX, nY) && !(nX % 2) && !(nY % 2)){
-                    auto nParam = m_Mir2xMapData.Tile(nX, nY).Param;
-                    if(nParam & 0X80000000){
-                        if(auto pTexture = g_MapDBN->Retrieve(nParam & 0X00FFFFFF)){
+                    auto &rstTile = m_Mir2xMapData.Tile(nX, nY);
+                    if(rstTile.Valid()){
+                        if(auto pTexture = g_MapDBN->Retrieve(rstTile.Image())){
                             g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY);
                         }
                     }
@@ -246,34 +246,20 @@ void ProcessRun::Draw()
         // ground objects
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
-                if(m_Mir2xMapData.ValidC(nX, nY) && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)){
-                    // for obj-0
-                    {
-                        auto nParam = m_Mir2xMapData.Cell(nX, nY).Obj[0].Param;
-                        if(nParam & 0X80000000){
-                            auto nObjParam = m_Mir2xMapData.Cell(nX, nY).ObjParam;
-                            if(nObjParam & ((uint32_t)(1) << 22)){
-                                if(auto pTexture = g_MapDBN->Retrieve(nParam & 0X00FFFFFF)){
-                                    int nH = 0;
-                                    if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
-                                        g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // for obj-1
-                    {
-                        auto nParam = m_Mir2xMapData.Cell(nX, nY).Obj[0].Param;
-                        if(nParam & 0X80000000){
-                            auto nObjParam = m_Mir2xMapData.Cell(nX, nY).ObjParam;
-                            if(nObjParam & ((uint32_t)(1) << 6)){
-                                if(auto pTexture = g_MapDBN->Retrieve(nParam & 0X00FFFFFF)){
-                                    int nH = 0;
-                                    if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
-                                        g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
-                                    }
+                if(m_Mir2xMapData.ValidC(nX, nY)){
+                    for(int nIndex = 0; nIndex < 2; ++nIndex){
+                        auto stArray = m_Mir2xMapData.Cell(nX, nY).ObjectArray(nIndex);
+                        if(true
+                                && (stArray[4] & 0X80)
+                                && (stArray[4] & 0X01)){
+                            uint32_t nImage = 0
+                                | (((uint32_t)(stArray[2])) << 16)
+                                | (((uint32_t)(stArray[1])) <<  8)
+                                | (((uint32_t)(stArray[0])) <<  0);
+                            if(auto pTexture = g_MapDBN->Retrieve(nImage)){
+                                int nH = 0;
+                                if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
+                                    g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
                                 }
                             }
                         }
@@ -284,17 +270,17 @@ void ProcessRun::Draw()
 
         extern ClientEnv *g_ClientEnv;
         if(g_ClientEnv->MIR2X_DEBUG_SHOW_MAP_GRID){
-            int nX0 = m_ViewX / SYS_MAPGRIDXP;
-            int nY0 = m_ViewY / SYS_MAPGRIDYP;
+            int nGridX0 = m_ViewX / SYS_MAPGRIDXP;
+            int nGridY0 = m_ViewY / SYS_MAPGRIDYP;
 
-            int nX1 = (m_ViewX + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
-            int nY1 = (m_ViewY + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
+            int nGridX1 = (m_ViewX + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
+            int nGridY1 = (m_ViewY + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
 
             g_SDLDevice->PushColor(0, 255, 0, 128);
-            for(int nX = nX0; nX <= nX1; ++nX){
+            for(int nX = nGridX0; nX <= nGridX1; ++nX){
                 g_SDLDevice->DrawLine(nX * SYS_MAPGRIDXP - m_ViewX, 0, nX * SYS_MAPGRIDXP - m_ViewX, g_SDLDevice->WindowH(false));
             }
-            for(int nY = nY0; nY <= nY1; ++nY){
+            for(int nY = nGridY0; nY <= nGridY1; ++nY){
                 g_SDLDevice->DrawLine(0, nY * SYS_MAPGRIDYP - m_ViewY, g_SDLDevice->WindowW(false), nY * SYS_MAPGRIDYP - m_ViewY);
             }
             g_SDLDevice->PopColor();
@@ -378,86 +364,53 @@ void ProcessRun::Draw()
             }
         }
 
-        // over-ground objects
+        // over ground objects
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
-                if(m_Mir2xMapData.ValidC(nX, nY) && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)){
-                    // for obj-0
-                    {
-                        auto nParam = m_Mir2xMapData.Cell(nX, nY).Obj[0].Param;
-                        if(nParam & 0X80000000){
-                            auto nObjParam = m_Mir2xMapData.Cell(nX, nY).ObjParam;
-                            if(!(nObjParam & ((uint32_t)(1) << 22))){
-                                if(auto pTexture = g_MapDBN->Retrieve(nParam & 0X00FFFFFF)){
-                                    int nH = 0;
-                                    if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
-                                        g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
-                                    }
+                if(m_Mir2xMapData.ValidC(nX, nY)){
+                    for(int nIndex = 0; nIndex < 2; ++nIndex){
+                        auto stArray = m_Mir2xMapData.Cell(nX, nY).ObjectArray(nIndex);
+                        if(true
+                                &&  (stArray[4] & 0X80)
+                                && !(stArray[4] & 0X01)){
+                            uint32_t nImage = 0
+                                | (((uint32_t)(stArray[2])) << 16)
+                                | (((uint32_t)(stArray[1])) <<  8)
+                                | (((uint32_t)(stArray[0])) <<  0);
+                            if(auto pTexture = g_MapDBN->Retrieve(nImage)){
+                                int nH = 0;
+                                if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
+                                    g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
                                 }
                             }
-                        }
-                    }
-
-                    // for obj-1
-                    {
-                        auto nParam = m_Mir2xMapData.Cell(nX, nY).Obj[0].Param;
-                        if(nParam & 0X80000000){
-                            auto nObjParam = m_Mir2xMapData.Cell(nX, nY).ObjParam;
-                            if(!(nObjParam & ((uint32_t)(1) << 6))){
-                                if(auto pTexture = g_MapDBN->Retrieve(nParam & 0X00FFFFFF)){
-                                    int nH = 0;
-                                    if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
-                                        g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    extern ClientEnv *g_ClientEnv;
-                    if(g_ClientEnv->MIR2X_DEBUG_SHOW_MAP_GRID){
-                        if(m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000){
-                            g_SDLDevice->PushColor(255, 0, 0, 128);
-                            int nX0 = nX * SYS_MAPGRIDXP - m_ViewX;
-                            int nY0 = nY * SYS_MAPGRIDYP - m_ViewY;
-                            int nX1 = (nX + 1) * SYS_MAPGRIDXP - m_ViewX;
-                            int nY1 = (nY + 1) * SYS_MAPGRIDYP - m_ViewY;
-                            g_SDLDevice->DrawLine(nX0, nY0, nX1, nY0);
-                            g_SDLDevice->DrawLine(nX1, nY0, nX1, nY1);
-                            g_SDLDevice->DrawLine(nX1, nY1, nX0, nY1);
-                            g_SDLDevice->DrawLine(nX0, nY1, nX0, nY0);
-                            g_SDLDevice->DrawLine(nX0, nY0, nX1, nY1);
-                            g_SDLDevice->DrawLine(nX1, nY0, nX0, nY1);
-                            g_SDLDevice->PopColor();
                         }
                     }
                 }
 
-                // draw actors
-                {
-                    for(auto pCreature: m_CreatureRecord){
-                        if(true
-                                &&  (pCreature.second)
-                                &&  (pCreature.second->X() == nX)
-                                &&  (pCreature.second->Y() == nY)
-                                && !(pCreature.second->StayDead())){
-                            extern ClientEnv *g_ClientEnv;
-                            if(g_ClientEnv->MIR2X_DEBUG_SHOW_CREATURE_COVER){
-                                g_SDLDevice->PushColor(0, 0, 255, 128);
-                                g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
-                                g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
-                                g_SDLDevice->PopBlendMode();
-                                g_SDLDevice->PopColor();
-                            }
-                            
-                            int nFocusMask = 0;
-                            for(auto nFocus = 0; nFocus < FOCUS_MAX; ++nFocus){
-                                if(FocusUID(nFocus) == pCreature.second->UID()){
-                                    nFocusMask |= (1 << nFocus);
-                                }
-                            }
-                            pCreature.second->Draw(m_ViewX, m_ViewY, nFocusMask);
+                // draw alive actors
+                for(auto pCreature: m_CreatureRecord){
+                    if(true
+                            &&  (pCreature.second)
+                            &&  (pCreature.second->X() == nX)
+                            &&  (pCreature.second->Y() == nY)
+                            && !(pCreature.second->StayDead())){
+
+                        extern ClientEnv *g_ClientEnv;
+                        if(g_ClientEnv->MIR2X_DEBUG_SHOW_CREATURE_COVER){
+                            g_SDLDevice->PushColor(0, 0, 255, 128);
+                            g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
+                            g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
+                            g_SDLDevice->PopBlendMode();
+                            g_SDLDevice->PopColor();
                         }
+
+                        int nFocusMask = 0;
+                        for(auto nFocus = 0; nFocus < FOCUS_MAX; ++nFocus){
+                            if(FocusUID(nFocus) == pCreature.second->UID()){
+                                nFocusMask |= (1 << nFocus);
+                            }
+                        }
+                        pCreature.second->Draw(m_ViewX, m_ViewY, nFocusMask);
                     }
                 }
             }
@@ -503,7 +456,7 @@ void ProcessRun::Draw()
 
                                     // to make this to be more informative
                                     // use different color of rotating star for different type
-                                   
+
                                     SDL_SetTextureAlphaMod(pTexture, 128);
                                     g_SDLDevice->DrawTextureEx(pTexture,
                                             0,
@@ -745,10 +698,9 @@ int ProcessRun::LoadMap(uint32_t nMapID)
 bool ProcessRun::CanMove(bool bCheckCreature, int nX, int nY)
 {
     if(true
-            && (m_Mir2xMapData.Valid())
-            && (m_Mir2xMapData.ValidC(nX, nY))
-            && (m_Mir2xMapData.Cell(nX, nY).Param & 0X80000000)
-            && (m_Mir2xMapData.Cell(nX, nY).Param & 0X00800000)){
+            && m_Mir2xMapData.Valid()
+            && m_Mir2xMapData.ValidC(nX, nY)
+            && m_Mir2xMapData.Cell(nX, nY).CanThrough()){
 
         if(bCheckCreature){
             for(auto pCreature: m_CreatureRecord){
