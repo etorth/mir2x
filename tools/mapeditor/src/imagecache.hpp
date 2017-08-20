@@ -3,7 +3,7 @@
  *
  *       Filename: imagecache.hpp
  *        Created: 02/14/2016 15:40:17
- *  Last Modified: 02/15/2016 11:59:47
+ *  Last Modified: 08/19/2017 12:12:16
  *
  *    Description: Interaction with WilImagePackage
  *                 return drawable objects with ImageKey provided by EditorMap
@@ -24,16 +24,18 @@
 
 #pragma once
 #include <string>
-#include <FL/Fl_Shared_Image.H>
 #include <unordered_map>
-
-
+#include <FL/Fl_Shared_Image.H>
 
 class ImageCache
 {
+    private:
+        std::string m_Path;
+        std::unordered_map<uint32_t, Fl_Shared_Image *> m_Cache;
+
     public:
         ImageCache();
-        ~ImageCache();
+       ~ImageCache();
 
     public:
         Fl_Shared_Image *Retrieve(uint8_t, uint16_t);
@@ -45,8 +47,4 @@ class ImageCache
         {
             return m_Path;
         }
-
-    private:
-        std::string m_Path;
-        std::unordered_map<uint32_t, Fl_Shared_Image *> m_Cache;
 };

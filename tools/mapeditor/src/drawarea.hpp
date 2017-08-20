@@ -3,10 +3,9 @@
  *
  *       Filename: drawarea.hpp
  *        Created: 07/26/2015 04:27:57 AM
- *  Last Modified: 08/17/2017 17:48:34
+ *  Last Modified: 08/20/2017 00:50:34
  *
- *    Description: To handle or GUI interaction
- *                 Provide handlers to EditorMap
+ *    Description: Provide handlers to EditorMap
  *                 EditorMap will draw scene with assistance of ImageDB
  *
  *        Version: 1.0
@@ -19,6 +18,7 @@
  *
  * =====================================================================================
  */
+
 #pragma once
 #include <vector>
 #include <cstdint>
@@ -32,13 +32,17 @@ class DrawArea: public Fl_Box
         int m_MouseX;
         int m_MouseY;
 
-        int m_OffsetX; // location of (0, 0) on DrawArea
+    private:
+        // for drawing
+        // location of (0, 0) on DrawArea
+        int m_OffsetX;
         int m_OffsetY;
 
     private:
-        Fl_Image *m_RUC[2];     // rectangle unit cover
-        Fl_Image *m_TextBoxBG;  // backgound for living text
+        Fl_Image *m_RUC[2];
         Fl_Image *m_LightRUC;
+        Fl_Image *m_LightImge;
+        Fl_Image *m_TextBoxBG;
 
     public:
         DrawArea(int, int, int, int);
@@ -127,4 +131,5 @@ class DrawArea: public Fl_Box
     public:
         Fl_Image *RetrievePNG(uint8_t, uint16_t);
         Fl_Image *CreateRectImage(int, int, uint32_t);
+        Fl_Image *CreateRoundImage(int, uint32_t);
 };

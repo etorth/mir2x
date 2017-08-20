@@ -3,11 +3,9 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 07/26/2015 04:27:57 AM
- *  Last Modified: 08/17/2017 18:01:57
+ *  Last Modified: 08/20/2017 01:58:14
  *
- *    Description: To handle or GUI interaction
- *                 Provide handlers to EditorMap
- *                 EditorMap will draw scene with assistance of ImageDB
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -20,32 +18,31 @@
  * =====================================================================================
  */
 
-#include <cstring>
-#include "drawarea.hpp"
-#include <FL/Fl_Shared_Image.H>
-#include <FL/Fl_RGB_Image.H>
-#include <cstdlib>
 #include <cstdio>
-#include <array>
 #include <vector>
-#include <string>
-#include "mir2map.hpp"
+#include <cstdlib>
+#include <cstring>
 #include <algorithm>
+#include <functional>
 #include <FL/Fl_Box.H>
 #include <FL/fl_draw.H>
-#include <functional>
-#include "mainwindow.hpp"
-#include "attributeselectwindow.hpp"
-#include "animationselectwindow.hpp"
+#include <FL/Fl_RGB_Image.H>
+#include <FL/Fl_Shared_Image.H>
+
+#include "mir2map.hpp"
+#include "imagedb.hpp"
+#include "drawarea.hpp"
+#include "sysconst.hpp"
 #include "mathfunc.hpp"
 #include "editormap.hpp"
+#include "colorfunc.hpp"
 #include "animation.hpp"
+#include "mainwindow.hpp"
+#include "imagecache.hpp"
 #include "animationdb.hpp"
 #include "animationdraw.hpp"
-#include "sysconst.hpp"
-
-#include "imagedb.hpp"
-#include "imagecache.hpp"
+#include "animationselectwindow.hpp"
+#include "attributeselectwindow.hpp"
 
 DrawArea::DrawArea(int x, int y, int w, int h)
     : Fl_Box(x, y, w, h)
@@ -54,19 +51,22 @@ DrawArea::DrawArea(int x, int y, int w, int h)
     , m_OffsetX(0)
     , m_OffsetY(0)
     , m_RUC{nullptr, nullptr}
-    , m_TextBoxBG(nullptr)
     , m_LightRUC(nullptr)
+    , m_LightImge(nullptr)
+    , m_TextBoxBG(nullptr)
 {
-    m_TextBoxBG = CreateRectImage(200, 160, 0X80000000);
-    m_LightRUC  = CreateRectImage(SYS_MAPGRIDXP, SYS_MAPGRIDYP, 0X80FF0000);
     m_RUC[0]    = CreateRectImage(SYS_MAPGRIDXP, SYS_MAPGRIDYP, 0X8000FF00);
     m_RUC[1]    = CreateRectImage(SYS_MAPGRIDXP, SYS_MAPGRIDYP, 0X800000FF);
+    m_LightRUC  = CreateRectImage(SYS_MAPGRIDXP, SYS_MAPGRIDYP, 0X80FF0000);
+    m_LightImge = CreateRoundImage(200, 0X001286FF);
+    m_TextBoxBG = CreateRectImage(200, 160, 0X80000000);
 }
 
 DrawArea::~DrawArea()
 {
     delete m_LightRUC;
     delete m_TextBoxBG;
+    delete m_LightImge;
 
     delete m_RUC[0];
     delete m_RUC[1];
@@ -764,6 +764,29 @@ Fl_Image *DrawArea::CreateRectImage(int nW, int nH, uint32_t nColor)
     }
 }
 
+Fl_Image *DrawArea::CreateRoundImage(int nRadius, uint32_t nColor)
+{
+    if(nRadius > 0){
+        int nSize = 1 + (nRadius - 1) * 2;
+        std::vector<uint32_t> stvBuf(nSize * nSize, 0X00000000);
+        for(int nX = 0; nX < nSize; ++nX){
+            for(int nY = 0; nY < nSize; ++nY){
+                auto nRX = nX - nRadius + 1;
+                auto nRY = nY - nRadius + 1;
+                auto nR2 = LDistance2<int>(nRX, nRY, 0, 0);
+                if(nR2 <= nRadius * nRadius){
+                    auto nA = (uint8_t)(0X02 + std::lround(0X2F * (1.0 - 1.0 * nR2 / (nRadius * nRadius))));
+                    stvBuf[nX + nY * nSize] = (((uint32_t)(nA)) << 24) | (nColor & 0X00FFFFFF);
+                }
+            }
+        }
+        return Fl_RGB_Image((uchar *)(&(stvBuf[0])), nSize, nSize, 4, 0).copy(nSize, nSize);
+    }else{
+        fl_alert("Invalid radius for CreateRoundImage(%d, 0X%08X)", nRadius, nColor);
+        return nullptr;
+    }
+}
+
 void DrawArea::DrawRUC(int nCX, int nCY, bool bSelect)
 {
     extern EditorMap g_EditorMap;
@@ -920,7 +943,10 @@ void DrawArea::DrawLight()
     if(g_MainWindow->ShowLightLayer()){
         auto fnDrawLight = [this](int nX, int nY) -> void
         {
-            DrawImage(m_LightRUC, nX * SYS_MAPGRIDXP - m_OffsetX, nY * SYS_MAPGRIDYP - m_OffsetY);
+            // DrawImage(m_LightRUC, nX * SYS_MAPGRIDXP - m_OffsetX, nY * SYS_MAPGRIDYP - m_OffsetY);
+            DrawImage(m_LightImge,
+                    nX * SYS_MAPGRIDXP - m_OffsetX + SYS_MAPGRIDXP / 2 - (m_LightImge->w() - 1) / 2,
+                    nY * SYS_MAPGRIDYP - m_OffsetY + SYS_MAPGRIDYP / 2 - (m_LightImge->h() - 1) / 2);
         };
 
         extern EditorMap g_EditorMap;

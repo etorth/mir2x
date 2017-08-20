@@ -3,9 +3,9 @@
  *
  *       Filename: inndb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 07/17/2017 18:20:04
+ *  Last Modified: 08/19/2017 18:44:17
  *
- *    Description: base of all Int->Tex map cache
+ *    Description: base of all integral based map cache
  *
  *                 Internal Database support for 
  *                 1. FIFO
@@ -23,8 +23,6 @@
  *                 a Load(), we may also need a Valid(), and RAII may also make this 
  *                 unnecessary
  *
- *                 I'm also not 100% sure of my logic, so I added a lot of comments
- *
  *        Version: 1.0
  *       Revision: none
  *       Compiler: gcc
@@ -37,22 +35,14 @@
  */
 
 #pragma once
-#include <utility>
 #include <tuple>
 #include <queue>
+#include <utility>
+#include <functional>
 #include <unordered_map>
 #include "cachequeue.hpp"
-#include <functional>
 
-// because for PNGTexOffDB, the offset and texture are both important
-// otherwise I could only put a ``SDL_Texture *" here instead of ResT
-//
-// and for FontexDB, the zip archieve is not for texture but for font
-// file instead, so I have to move stuff for libzip out of this file
-
-template<typename KeyT, // key type, can only be unsigned intergal, so no reference is needed
-    typename ResT,      // for res, see above why I don't use ``SDL_Texture *" directly
-    size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
+template<typename KeyT, typename ResT, size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
 class InnDB
 {
     private:

@@ -3,7 +3,7 @@
  *
  *       Filename: colorfunc.hpp
  *        Created: 03/31/2016 19:46:27
- *  Last Modified: 08/08/2017 19:03:22
+ *  Last Modified: 08/20/2017 01:22:25
  *
  *    Description: 
  *
@@ -17,6 +17,7 @@
  *
  * =====================================================================================
  */
+
 #pragma once
 #include <cstdint>
 #include <SDL2/SDL.h>

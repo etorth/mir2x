@@ -53,8 +53,7 @@ decl {\#include "animationdraw.hpp"} {private local
 decl {\#include "animationselectwindow.hpp"} {private local
 } 
 
-class MainWindow {open
-} {
+class MainWindow {} {
   decl {std::string m_WilFilePathName} {private local
   }
   Function {MainWindow()} {} {
@@ -64,19 +63,19 @@ class MainWindow {open
 		case 2  : exit(0); break;
 		default :          break;
 	}
-}} open
+}}
       xywh {712 220 985 665} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {
+      Fl_Box m_DrawArea {selected
         xywh {0 20 965 627} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
       }
-      Fl_Menu_Bar m_MenuBar {open
+      Fl_Menu_Bar m_MenuBar {
         xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
-          label Project open
+          label Project
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -178,11 +177,13 @@ fl_alert("%s", "Haven't implement yet!");}
             callback {{
     extern EditorMap g_EditorMap;
     if(!g_EditorMap.Valid()){
+        fl_alert("Current editor map is invalid");
         return;
     }
 
     extern std::string g_WorkingPathName;
     if(g_WorkingPathName == ""){
+        fl_alert("Current editor working path is invalid");
         return;
     }
 
@@ -194,7 +195,7 @@ fl_alert("%s", "Haven't implement yet!");}
 
         char szHexString[64];
         uint32_t nKey = (((uint32_t)(nFileIndex)) << 16) + ((uint32_t)nImageIndex);
-        std::string szIMGPNGName = ((g_WorkingPathName + "/IMG/") + HexString(nKey, szHexString)) + ".PNG";
+        std::string szIMGPNGName = ((g_WorkingPathName + "/IMG/") + HexString<uint32_t, 3>(nKey, szHexString)) + ".PNG";
 
         if(!FileSys::FileExist(szIMGPNGName.c_str())){
             if(!g_ImageCache.Retrieve(nFileIndex, nImageIndex)){
@@ -207,7 +208,9 @@ fl_alert("%s", "Haven't implement yet!");}
         }
 
         std::string szIMGPNGNameInCache = ((g_ImageCache.Path() + "/CACHE/") + szHexString) + ".PNG";
-        if(FileSys::FileExist(szIMGPNGNameInCache.c_str())){
+        if(true
+                && !FileSys::FileExist(szIMGPNGName.c_str())
+                &&  FileSys::FileExist(szIMGPNGNameInCache.c_str())){
             FileSys::DupFile(szIMGPNGName.c_str(), szIMGPNGNameInCache.c_str());
         }
     };
@@ -228,6 +231,10 @@ fl_alert("%s", "Haven't implement yet!");}
           }
           MenuItem {} {
             label {Save As}
+            callback {{
+	// automatically generate another working folder
+	// and setting current working folder to it
+}}
             xywh {0 0 30 20} shortcut 0x50073 labelfont 4 divider
           }
           MenuItem {} {
@@ -388,7 +395,7 @@ if(g_SelectSettingWindow){
             xywh {0 0 34 20} type Toggle divider
           }
           MenuItem {} {
-            label {Load Animation DB}
+            label {Animation DB}
             callback {{
     // set test animation db here
     Fl_Native_File_Chooser stFileChooser;
@@ -426,16 +433,16 @@ if(g_SelectSettingWindow){
             }
     }
 }}
-            xywh {0 0 34 20}
+            xywh {0 0 34 20} labelfont 4
             code0 {\#include "animationdb.hpp"}
           }
           MenuItem {} {
-            label {Configure Animation              }
+            label {Animation Configuration      }
             callback {{
     extern AnimationSelectWindow *g_AnimationSelectWindow;
     g_AnimationSelectWindow->ShowAll();
 }}
-            xywh {10 10 34 20}
+            xywh {10 10 34 20} labelfont 4
           }
         }
         Submenu {} {
@@ -766,7 +773,7 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemSelectBySingle->value();
 }} {}
   }
-  Function {MakeWorkingFolder()} {selected return_type void
+  Function {MakeWorkingFolder()} {return_type void
   } {
     code {{
     extern std::string g_WorkingPathName;
@@ -813,7 +820,7 @@ if(g_EditorMap.Valid()){
 	}
 }} {}
   }
-  Function {ClearBackground()} {selected return_type bool
+  Function {ClearBackground()} {return_type bool
   } {
     code {{
     return m_MenuItemClearBackground->value();

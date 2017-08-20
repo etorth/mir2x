@@ -3,7 +3,7 @@
  *
  *       Filename: landtype.hpp
  *        Created: 08/16/2017 23:36:45
- *  Last Modified: 08/17/2017 10:38:53
+ *  Last Modified: 08/19/2017 23:39:58
  *
  *    Description: for every cell we have land type
  *
@@ -26,7 +26,9 @@ enum LandType: int
 {
     LANDTYPE_NONE  = 0,
     LANDTYPE_SAND,
+    LANDTYPE_POND,
     LANDTYPE_GRASS,
     LANDTYPE_STONE,
+    LANDTYPE_OCEAN,
     LANDTYPE_MAX,
 };
