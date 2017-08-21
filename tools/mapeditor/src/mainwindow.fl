@@ -53,25 +53,27 @@ decl {\#include "animationdraw.hpp"} {private local
 decl {\#include "animationselectwindow.hpp"} {private local
 } 
 
-class MainWindow {} {
+class MainWindow {open
+} {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_Window {
       callback {{
 	switch(fl_choice("Quit map editor?", nullptr, " No", " Yes ")){
 		case 2  : exit(0); break;
 		default :          break;
 	}
-}}
+}} open
       xywh {712 220 985 665} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {selected
+      Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
         code0 {\#include "drawarea.hpp"}
         class DrawArea
       }
-      Fl_Menu_Bar m_MenuBar {
+      Fl_Menu_Bar m_MenuBar {open
         xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -324,7 +326,7 @@ fl_alert("%s", "Haven't implement yet!");}
             code0 {\#include "editormap.hpp"}
           }
           MenuItem {} {
-            label {Map Resize}
+            label Resize
             callback {{
     extern CropConfigureWindow *g_CropConfigureWindow;
     g_CropConfigureWindow->ShowAll();
@@ -361,8 +363,20 @@ fl_alert("%s", "Haven't implement yet!");}
 		g_AttributeSelectWindow->ShowAll();
 	}
 }}
-            xywh {30 30 30 20} type Radio labelfont 4 divider
+            xywh {30 30 30 20} type Radio labelfont 4
             code0 {\#include "attributeselectwindow.hpp"}
+          }
+          MenuItem m_MenuItemSelectByTile {
+            label Tile
+            xywh {40 40 30 20} type Radio labelfont 4
+          }
+          MenuItem m_MenuItemSelectByObjectGround {
+            label {Object Ground}
+            xywh {50 50 30 20} type Radio labelfont 4
+          }
+          MenuItem m_MenuItemSelectByObjectOverGround {
+            label {Object Over Ground}
+            xywh {60 60 30 20} type Radio labelfont 4 divider
           }
           MenuItem m_MenuItemReversed {
             label Reversed
@@ -771,6 +785,24 @@ if(g_EditorMap.Valid()){
   } {
     code {{
 	return m_MenuItemSelectBySingle->value();
+}} {}
+  }
+  Function {SelectByTile()} {selected return_type bool
+  } {
+    code {{
+	return m_MenuItemSelectByTile->value();
+}} {}
+  }
+  Function {SelectByObjectGround()} {return_type bool
+  } {
+    code {{
+	return m_MenuItemSelectByObjectGround->value();
+}} {}
+  }
+  Function {SelectByObjectOverGround()} {return_type bool
+  } {
+    code {{
+	return m_MenuItemSelectByObjectOverGround->value();
 }} {}
   }
   Function {MakeWorkingFolder()} {return_type void

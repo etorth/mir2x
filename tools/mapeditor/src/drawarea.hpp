@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.hpp
  *        Created: 07/26/2015 04:27:57 AM
- *  Last Modified: 08/20/2017 00:50:34
+ *  Last Modified: 08/20/2017 22:10:55
  *
  *    Description: Provide handlers to EditorMap
  *                 EditorMap will draw scene with assistance of ImageDB
@@ -86,6 +86,7 @@ class DrawArea: public Fl_Box
         // why hot for map coordinates, since some line drawing will exceed the boundary
         // if if want to support pre-defined object, the image would also exceeds.
         void DrawImage(Fl_Image *, int, int);
+        void DrawImage(Fl_Image *, int, int, int, int, int, int);
         void DrawLoop(int, int, int, int, int, int);
         void DrawLine(int, int, int, int);
         void DrawRectangle(int, int, int, int);
@@ -99,6 +100,11 @@ class DrawArea: public Fl_Box
         void RhombusCoverOperation  (int, int, int, std::function<void(int, int)>);
         void RectangleCoverOperation(int, int, int, std::function<void(int, int)>);
         void AttributeCoverOperation(int, int, int, std::function<void(int, int)>);
+
+    private:
+        void DrawSelectByTile();
+        void DrawSelectByObjectIndex(int);
+        void DrawSelectByObjectGround(bool);
 
     private:
         void DrawSelectBySingle();
@@ -127,6 +133,9 @@ class DrawArea: public Fl_Box
 
     public:
         void DrawRUC(int, int, bool);
+
+    public:
+        void DrawImageCover(Fl_Image *, int, int, int, int);
 
     public:
         Fl_Image *RetrievePNG(uint8_t, uint16_t);

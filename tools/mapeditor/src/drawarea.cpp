@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 07/26/2015 04:27:57 AM
- *  Last Modified: 08/20/2017 01:58:14
+ *  Last Modified: 08/20/2017 22:12:51
  *
  *    Description:
  *
@@ -120,6 +120,57 @@ void DrawArea::AddSelectByAttribute()
 
     extern SelectSettingWindow *g_SelectSettingWindow;
     AttributeCoverOperation(nMX, nMY, g_SelectSettingWindow->AttributeSize(), fnSet);
+}
+
+void DrawArea::DrawSelectByTile()
+{
+    int nX = ((m_MouseX - x() + m_OffsetX) / (2 * SYS_MAPGRIDXP)) * 2;
+    int nY = ((m_MouseY - y() + m_OffsetY) / (2 * SYS_MAPGRIDYP)) * 2;
+
+    extern MainWindow *g_MainWindow;
+    DrawRUC(nX,     nY,     !g_MainWindow->Deselect());
+    DrawRUC(nX + 1, nY,     !g_MainWindow->Deselect());
+    DrawRUC(nX,     nY + 1, !g_MainWindow->Deselect());
+    DrawRUC(nX + 1, nY + 1, !g_MainWindow->Deselect());
+}
+
+void DrawArea::DrawSelectByObjectGround(bool bGround)
+{
+    int nMouseXOnMap = m_MouseX - x() + m_OffsetX;
+    int nMouseYOnMap = m_MouseY - y() + m_OffsetY;
+
+    int nX = nMouseXOnMap / SYS_MAPGRIDXP;
+    int nY = nMouseYOnMap / SYS_MAPGRIDYP;
+
+    extern EditorMap g_EditorMap;
+    for(int nCurrY = nY - 1; nCurrY < g_EditorMap.H(); ++nCurrY){
+        if(g_EditorMap.ValidC(nX, nCurrY)){
+            for(int nIndex = 0; nIndex < 2; ++nIndex){
+                auto &rstObject = g_EditorMap.Object(nX, nCurrY, nIndex);
+                if(true
+                        && rstObject.Valid
+                        && rstObject.Ground == bGround){
+
+                    auto nFileIndex  = (uint8_t )((rstObject.Image & 0X00FF0000) >> 16);
+                    auto nImageIndex = (uint16_t)((rstObject.Image & 0X0000FFFF) >>  0);
+
+                    if(auto pImage = RetrievePNG(nFileIndex, nImageIndex)){
+                        int nW = pImage->w();
+                        int nH = pImage->h();
+
+                        int nStartX = nX     * SYS_MAPGRIDXP - m_OffsetX;
+                        int nStartY = nCurrY * SYS_MAPGRIDYP - m_OffsetY + SYS_MAPGRIDYP - nH;
+
+                        if(PointInRectangle(nMouseXOnMap, nMouseYOnMap, nStartX, nStartY, nW, nH)){
+                            extern MainWindow *g_MainWindow;
+                            DrawImageCover(m_RUC[g_MainWindow->Deselect() ? 1 : 0], nStartX, nStartY, nW, nH);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void DrawArea::DrawSelectBySingle()
@@ -359,6 +410,18 @@ void DrawArea::DrawTrySelect()
         auto nColor = fl_color();
         fl_color(FL_RED);
 
+        if(g_MainWindow->SelectByTile()){
+            DrawSelectByTile();
+        }
+
+        if(g_MainWindow->SelectByObjectGround()){
+            DrawSelectByObjectGround(true);
+        }
+
+        if(g_MainWindow->SelectByObjectOverGround()){
+            DrawSelectByObjectGround(false);
+        }
+
         if(g_MainWindow->SelectBySingle()){
             DrawSelectBySingle();
         }
@@ -485,43 +548,45 @@ void DrawArea::DrawObject(bool bGround)
     }
 }
 
-// coordinate (0, 0) is on most top-left of *DrawArea*
-// not for map or window
+void DrawArea::DrawImage(Fl_Image *pImage, int nAX, int nAY, int nImageX, int nImageY, int nImageW, int nImageH)
+{
+    if(true
+            && pImage
+            && nImageW > 0
+            && nImageH > 0
+            && RectangleOverlapRegion<int>(0, 0, pImage->w(), pImage->h(), &nImageX, &nImageY, &nImageW, &nImageH)){
+
+        // OK we now do get a valid region on image
+        // further crop it to avoid draw outside of current draw area
+
+        int nX = nAX + x();
+        int nY = nAY + y();
+
+        if(nAX < 0){
+            nX       = x();
+            nImageX -= nAX;
+            nImageW += nAX;
+        }
+
+        if(nAY < 0){
+            nY       = y();
+            nImageY -= nAY;
+            nImageH += nAY;
+        }
+
+        if(nAX + nImageW > w()){ nImageW = w() - nAX; }
+        if(nAY + nImageH > h()){ nImageH = h() - nAY; }
+
+        // OK done
+        pImage->draw(nX, nY, nImageW, nImageH, nImageX, nImageY);
+    }
+}
+
 void DrawArea::DrawImage(Fl_Image *pImage, int nAX, int nAY)
 {
-    if(pImage == nullptr
-            || nAX >= w() || nAX + pImage->w() <= 0
-            || nAY >= h() || nAY + pImage->h() <= 0){ return; }
-
-    int nX = nAX + x();
-    int nY = nAY + y();
-    int nW = pImage->w();
-    int nH = pImage->h();
-
-    int nSX = 0;
-    int nSY = 0;
-
-    if(nAX < 0){
-        nSX -= nAX;
-        nW  += nAX;
-        nX   = x();
+    if(pImage){
+        DrawImage(pImage, nAX, nAY, 0, 0, pImage->w(), pImage->h());
     }
-
-    if(nAX + pImage->w() > w()){
-        nW = w() - nAX;
-    }
-
-    if(nAY < 0){
-        nSY -= nAY;
-        nH  += nAY;
-        nY   = y();
-    }
-
-    if(nAY + pImage->h() > h()){
-        nH = h() - nAY;
-    }
-
-    pImage->draw(nX, nY, nW, nH, nSX, nSY);
 }
 
 void DrawArea::DrawAttributeGrid()
@@ -715,9 +780,9 @@ int DrawArea::handle(int nEvent)
                             SetScrollBar();
                         }
                     }
-                }
-                break;
 
+                    break;
+                }
             case FL_PUSH:
                 {
                     extern MainWindow *g_MainWindow;
@@ -737,12 +802,15 @@ int DrawArea::handle(int nEvent)
                             fl_cursor(FL_CURSOR_MOVE);
                         }
                     }
+
+                    // for drag nEvent
+                    nRet = 1;
+                    break;
                 }
-                // for drag nEvent
-                nRet = 1;
-                break;
             default:
-                break;
+                {
+                    break;
+                }
         }
 
     }
@@ -951,5 +1019,30 @@ void DrawArea::DrawLight()
 
         extern EditorMap g_EditorMap;
         g_EditorMap.DrawLight(m_OffsetX / SYS_MAPGRIDXP - 2, m_OffsetY / SYS_MAPGRIDYP - 2, w() / SYS_MAPGRIDXP + 4, h() / SYS_MAPGRIDYP + 4, fnDrawLight);
+    }
+}
+
+void DrawArea::DrawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
+{
+    if(true
+            && pImage
+            && nW > 0
+            && nH > 0
+            && RectangleOverlapRegion(0, 0, w(), h(), &nX, &nY, &nW, &nH)){
+
+        int nGX = nW / SYS_MAPGRIDXP;
+        int nGY = nH / SYS_MAPGRIDYP;
+
+        for(int nGXCnt = 0; nGXCnt < nGX; ++nGXCnt){
+            for(int nGYCnt = 0; nGYCnt < nGY; ++nGYCnt){
+                DrawImage(pImage, nX + nGXCnt * SYS_MAPGRIDXP, nY + nGYCnt * SYS_MAPGRIDYP);
+            }
+        }
+
+        if(true
+                && (nW % SYS_MAPGRIDXP)
+                && (nH % SYS_MAPGRIDYP)){
+
+        }
     }
 }
