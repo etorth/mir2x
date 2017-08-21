@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 07/26/2015 04:27:57 AM
- *  Last Modified: 08/20/2017 22:12:51
+ *  Last Modified: 08/21/2017 01:35:32
  *
  *    Description:
  *
@@ -161,7 +161,7 @@ void DrawArea::DrawSelectByObjectGround(bool bGround)
                         int nStartX = nX     * SYS_MAPGRIDXP - m_OffsetX;
                         int nStartY = nCurrY * SYS_MAPGRIDYP - m_OffsetY + SYS_MAPGRIDYP - nH;
 
-                        if(PointInRectangle(nMouseXOnMap, nMouseYOnMap, nStartX, nStartY, nW, nH)){
+                        if(PointInRectangle(nMouseXOnMap - m_OffsetX, nMouseYOnMap - m_OffsetY, nStartX, nStartY, nW, nH)){
                             extern MainWindow *g_MainWindow;
                             DrawImageCover(m_RUC[g_MainWindow->Deselect() ? 1 : 0], nStartX, nStartY, nW, nH);
                             return;
@@ -1026,23 +1026,62 @@ void DrawArea::DrawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
 {
     if(true
             && pImage
+            && pImage->w() > 0
+            && pImage->h() > 0
+
             && nW > 0
             && nH > 0
             && RectangleOverlapRegion(0, 0, w(), h(), &nX, &nY, &nW, &nH)){
 
-        int nGX = nW / SYS_MAPGRIDXP;
-        int nGY = nH / SYS_MAPGRIDYP;
+        // use an image as a cover to repeat
+        // should do partically drawing at end of x and y
 
-        for(int nGXCnt = 0; nGXCnt < nGX; ++nGXCnt){
-            for(int nGYCnt = 0; nGYCnt < nGY; ++nGYCnt){
-                DrawImage(pImage, nX + nGXCnt * SYS_MAPGRIDXP, nY + nGYCnt * SYS_MAPGRIDYP);
+        int nGXCnt = nW / pImage->w();
+        int nGYCnt = nH / pImage->h();
+        int nGXRes = nW % pImage->w();
+        int nGYRes = nH % pImage->h();
+
+        for(int nGX = 0; nGX < nGXCnt; ++nGX){
+            for(int nGY = 0; nGY < nGYCnt; ++nGY){
+                DrawImage(pImage, nX + nGX * pImage->w(), nY + nGY * pImage->h());
+            }
+        }
+
+        if(nGXRes > 0){
+            for(int nGY = 0; nGY < nGYCnt; ++nGY){
+                DrawImage(pImage,
+                        nX + nGXCnt * pImage->w(),
+                        nY + nGY    * pImage->h(),
+                        0,
+                        0,
+                        nGXRes,
+                        pImage->h());
+            }
+        }
+
+        if(nGYRes > 0){
+            for(int nGX = 0; nGX < nGXCnt; ++nGX){
+                DrawImage(pImage,
+                        nX + nGX    * pImage->w(),
+                        nY + nGYCnt * pImage->h(),
+                        0,
+                        0,
+                        pImage->w(),
+                        nGYRes);
             }
         }
 
         if(true
-                && (nW % SYS_MAPGRIDXP)
-                && (nH % SYS_MAPGRIDYP)){
+                && nGXRes > 0
+                && nGYRes > 0){
 
+            DrawImage(pImage,
+                    nX + nGXCnt * pImage->w(),
+                    nY + nGYCnt * pImage->h(),
+                    0,
+                    0,
+                    nGXRes,
+                    nGYRes);
         }
     }
 }
