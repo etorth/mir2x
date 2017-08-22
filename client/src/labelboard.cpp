@@ -3,7 +3,7 @@
  *
  *       Filename: labelboard.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 08/01/2017 00:33:58
+ *  Last Modified: 08/22/2017 00:46:47
  *
  *    Description:
  *
@@ -38,7 +38,7 @@ void LabelBoard::SetText(const char * szFormatStr, ...)
         std::sprintf(szStyle, "0X%02X", m_FontStyle);
 
         char szColor[16];
-        std::sprintf(szColor, "0X%08X", ColorFunc::Color2U32ARGB(m_FontColor));
+        std::sprintf(szColor, "0X%08X", ColorFunc::Color2ARGB(m_FontColor));
 
         XMLObjectList stObjectList;
         stObjectList.Add(

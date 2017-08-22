@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 08/17/2017 18:08:40
+ *  Last Modified: 08/21/2017 15:04:22
  *
  *    Description: 
  *
@@ -29,7 +29,6 @@
 #include "animationdb.hpp"
 #include "aboutwindow.hpp"
 #include "animationdraw.hpp"
-#include "attributegridwindow.hpp"
 #include "cropconfigurewindow.hpp"
 #include "selectsettingwindow.hpp"
 #include "animationselectwindow.hpp"

@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/18/2017 17:57:02
+ *  Last Modified: 08/22/2017 00:38:47
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -679,4 +679,41 @@ bool EditorMap::SaveMir2xMapData(const char *szFullName)
     }
 
     return stMapData.Save(szFullName) ? false : true;
+}
+
+void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int)> fnExportOverview)
+{
+    if(Valid()){
+        for(int nX = 0; nX < W(); ++nX){
+            for(int nY = 0; nY < H(); ++nY){
+                if(true
+                        && !(nX % 2)
+                        && !(nY % 2)){
+
+                    auto &rstTile = Tile(nX, nY);
+                    if(rstTile.Valid){
+                        fnExportOverview((rstTile.Image & 0X00FF0000) >> 16, (rstTile.Image & 0X0000FFFF), nX, nY);
+                    }
+                }
+
+                for(int nIndex = 0; nIndex < 2; ++nIndex){
+                    auto rstObj = Object(nX, nY, nIndex);
+                    if(true
+                            && rstObj.Valid
+                            && rstObj.Ground){
+                        fnExportOverview((rstObj.Image & 0X00FF0000) >> 16, (rstObj.Image & 0X0000FFFF), nX, nY);
+                    }
+                }
+
+                for(int nIndex = 0; nIndex < 2; ++nIndex){
+                    auto rstObj = Object(nX, nY, nIndex);
+                    if(true
+                            &&  rstObj.Valid
+                            && !rstObj.Ground){
+                        fnExportOverview((rstObj.Image & 0X00FF0000) >> 16, (rstObj.Image & 0X0000FFFF), nX, nY);
+                    }
+                }
+            }
+        }
+    }
 }

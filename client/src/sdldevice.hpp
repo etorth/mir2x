@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 07/31/2017 15:46:42
+ *  Last Modified: 08/22/2017 00:44:00
  *
  *    Description:
  *
@@ -120,7 +120,7 @@ class SDLDevice final
 
        SDL_Color Color()
        {
-           return ColorFunc::U32RGBA2Color(m_ColorStack.back()[0]);
+           return ColorFunc::RGBA2Color(m_ColorStack.back()[0]);
        }
 
        void DrawPixel(int nX, int nY)

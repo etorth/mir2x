@@ -3,7 +3,7 @@
  *
  *       Filename: colorfunc.cpp
  *        Created: 03/31/2016 19:48:57
- *  Last Modified: 05/20/2017 21:50:48
+ *  Last Modified: 08/21/2017 23:43:24
  *
  *    Description: 
  *
@@ -20,9 +20,10 @@
 
 #include <cstdio>
 #include <cstring>
+#include <algorithm>
 #include "colorfunc.hpp"
 
-SDL_Color ColorFunc::MakeColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
+SDL_Color ColorFunc::RGBA2Color(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
 {
     SDL_Color stColor;
     stColor.r = nR;
@@ -32,48 +33,54 @@ SDL_Color ColorFunc::MakeColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
     return stColor;
 }
 
-uint32_t ColorFunc::Color2U32RGBA(const SDL_Color &rstColor)
+SDL_Color ColorFunc::ARGB2Color(uint8_t nA, uint8_t nR, uint8_t nG, uint8_t nB)
 {
-    uint32_t nRes = 0;
-    nRes += ((uint32_t)(rstColor.r) << 24);
-    nRes += ((uint32_t)(rstColor.g) << 16);
-    nRes += ((uint32_t)(rstColor.b) <<  8);
-    nRes += ((uint32_t)(rstColor.a) <<  0);
-
-    return nRes;
+    return RGBA2Color(nR, nG, nB, nA);
 }
 
-uint32_t ColorFunc::Color2U32ARGB(const SDL_Color &rstColor)
+SDL_Color ColorFunc::RGBA2Color(uint32_t nRGBA)
 {
-    uint32_t nRes = 0;
-    nRes += ((uint32_t)(rstColor.a) << 24);
-    nRes += ((uint32_t)(rstColor.r) << 16);
-    nRes += ((uint32_t)(rstColor.g) <<  8);
-    nRes += ((uint32_t)(rstColor.b) <<  0);
-
-    return nRes;
+    return RGBA2Color((nRGBA & 0XFF000000) >> 24, (nRGBA & 0X00FF0000) >> 16, (nRGBA & 0X0000FF00) >> 8, (nRGBA & 0X000000FF));
 }
 
-SDL_Color ColorFunc::U32RGBA2Color(uint32_t nColor)
+SDL_Color ColorFunc::ARGB2Color(uint32_t nARGB)
 {
-    SDL_Color stColor;
-    stColor.r = ((nColor & 0XFF000000) >> 24);
-    stColor.g = ((nColor & 0X00FF0000) >> 16);
-    stColor.b = ((nColor & 0X0000FF00) >>  8);
-    stColor.a = ((nColor & 0X000000FF) >>  0);
-
-    return stColor;
+    return ARGB2Color((nARGB & 0XFF000000) >> 24, (nARGB & 0X00FF0000) >> 16, (nARGB & 0X0000FF00) >> 8, (nARGB & 0X000000FF));
 }
 
-SDL_Color ColorFunc::U32ARGB2Color(uint32_t nColor)
+uint32_t ColorFunc::Color2RGBA(const SDL_Color &rstColor)
 {
-    SDL_Color stColor;
-    stColor.a = ((nColor & 0XFF000000) >> 24);
-    stColor.r = ((nColor & 0X00FF0000) >> 16);
-    stColor.g = ((nColor & 0X0000FF00) >>  8);
-    stColor.b = ((nColor & 0X000000FF) >>  0);
+    return 0
+        | ((uint32_t)(rstColor.r) << 24)
+        | ((uint32_t)(rstColor.g) << 16)
+        | ((uint32_t)(rstColor.b) <<  8)
+        | ((uint32_t)(rstColor.a) <<  0);
+}
 
-    return stColor;
+uint32_t ColorFunc::Color2ARGB(const SDL_Color &rstColor)
+{
+    uint32_t nRGBA = Color2RGBA(rstColor);
+    return ((nRGBA & 0X000000FF) << 24) | ((nRGBA & 0XFFFFFF00) >> 8);
+}
+
+SDL_Color ColorFunc::RenderColor(const SDL_Color &rstDstColor, const SDL_Color &rstSrcColor)
+{
+    SDL_Color stRetColor;
+    stRetColor.r = std::min<uint8_t>(255, std::lround((rstSrcColor.a / 255.0) * rstSrcColor.r + (1.0 - rstDstColor.a / 255.0) * rstDstColor.r));
+    stRetColor.g = std::min<uint8_t>(255, std::lround((rstSrcColor.a / 255.0) * rstSrcColor.g + (1.0 - rstDstColor.a / 255.0) * rstDstColor.g));
+    stRetColor.b = std::min<uint8_t>(255, std::lround((rstSrcColor.a / 255.0) * rstSrcColor.b + (1.0 - rstDstColor.a / 255.0) * rstDstColor.b));
+    stRetColor.a = std::min<uint8_t>(255, std::lround((rstSrcColor.a *   1.0)                 + (1.0 - rstSrcColor.a / 255.0) * rstDstColor.a));
+    return stRetColor;
+}
+
+uint32_t ColorFunc::RenderRGBA(uint32_t nDstColor, uint32_t nSrcColor)
+{
+    return Color2RGBA(RenderColor(RGBA2Color(nDstColor), RGBA2Color(nSrcColor)));
+}
+
+uint32_t ColorFunc::RenderARGB(uint32_t nDstColor, uint32_t nSrcColor)
+{
+    return Color2ARGB(RenderColor(ARGB2Color(nDstColor), ARGB2Color(nSrcColor)));
 }
 
 bool ColorFunc::String2Color(SDL_Color *pstColor, const char *szText)
@@ -119,7 +126,7 @@ bool ColorFunc::String2Color(SDL_Color *pstColor, const char *szText)
                 || ((nRes = std::sscanf(szText, "0x%08X", &nARGB)) == 1)
                 || ((nRes = std::sscanf(szText, "0x%08x", &nARGB)) == 1)
                 || ((nRes = std::sscanf(szText, "0X%08x", &nARGB)) == 1)){
-            stColor = U32ARGB2Color(nARGB);
+            stColor = ARGB2Color(nARGB);
         }else{
             bFind = false;
         }

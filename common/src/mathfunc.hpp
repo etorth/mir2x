@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 08/18/2017 15:32:16
+ *  Last Modified: 08/21/2017 17:18:35
  *
  *    Description: 
  *
@@ -156,10 +156,10 @@ template<typename T> bool RectangleOverlapRegion(T nfX1, T nfY1, T nfW1, T nfH1,
         // we assume W, H are always non-negative
         // then even if we have substraction here, it's guarenteed to be safe
 
-        nfRX = std::max(nfX1, *nfX2);
-        nfRY = std::max(nfY1, *nfY2);
-        nfRW = std::min(nfX1 + nfW1, *nfX2 + *nfW2) - nfRX;
-        nfRH = std::min(nfY1 + nfH1, *nfY2 + *nfH2) - nfRY;
+        nfRX = (std::max)(nfX1, *nfX2);
+        nfRY = (std::max)(nfY1, *nfY2);
+        nfRW = (std::min)(nfX1 + nfW1, *nfX2 + *nfW2) - nfRX;
+        nfRH = (std::min)(nfY1 + nfH1, *nfY2 + *nfH2) - nfRY;
 
         *nfX2 = nfRX;
         *nfY2 = nfRY;

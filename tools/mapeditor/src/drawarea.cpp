@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 07/26/2015 04:27:57 AM
- *  Last Modified: 08/21/2017 01:35:32
+ *  Last Modified: 08/22/2017 01:11:53
  *
  *    Description:
  *
@@ -54,12 +54,14 @@ DrawArea::DrawArea(int x, int y, int w, int h)
     , m_LightRUC(nullptr)
     , m_LightImge(nullptr)
     , m_TextBoxBG(nullptr)
+    , m_FloatObjectBG(nullptr)
 {
     m_RUC[0]    = CreateRectImage(SYS_MAPGRIDXP, SYS_MAPGRIDYP, 0X8000FF00);
     m_RUC[1]    = CreateRectImage(SYS_MAPGRIDXP, SYS_MAPGRIDYP, 0X800000FF);
     m_LightRUC  = CreateRectImage(SYS_MAPGRIDXP, SYS_MAPGRIDYP, 0X80FF0000);
     m_LightImge = CreateRoundImage(200, 0X001286FF);
     m_TextBoxBG = CreateRectImage(200, 160, 0X80000000);
+    m_FloatObjectBG = CreateRectImage(SYS_MAPGRIDXP, SYS_MAPGRIDYP, 0XC0000000);
 }
 
 DrawArea::~DrawArea()
@@ -67,6 +69,7 @@ DrawArea::~DrawArea()
     delete m_LightRUC;
     delete m_TextBoxBG;
     delete m_LightImge;
+    delete m_FloatObjectBG;
 
     delete m_RUC[0];
     delete m_RUC[1];
@@ -164,6 +167,7 @@ void DrawArea::DrawSelectByObjectGround(bool bGround)
                         if(PointInRectangle(nMouseXOnMap - m_OffsetX, nMouseYOnMap - m_OffsetY, nStartX, nStartY, nW, nH)){
                             extern MainWindow *g_MainWindow;
                             DrawImageCover(m_RUC[g_MainWindow->Deselect() ? 1 : 0], nStartX, nStartY, nW, nH);
+                            DrawFloatObject(pImage);
                             return;
                         }
                     }
@@ -551,34 +555,43 @@ void DrawArea::DrawObject(bool bGround)
 void DrawArea::DrawImage(Fl_Image *pImage, int nAX, int nAY, int nImageX, int nImageY, int nImageW, int nImageH)
 {
     if(true
+            && w() > 0
+            && h() > 0
+
             && pImage
-            && nImageW > 0
-            && nImageH > 0
-            && RectangleOverlapRegion<int>(0, 0, pImage->w(), pImage->h(), &nImageX, &nImageY, &nImageW, &nImageH)){
+            && pImage->w() > 0
+            && pImage->h() > 0){
 
-        // OK we now do get a valid region on image
-        // further crop it to avoid draw outside of current draw area
+        int nOldImageX = nImageX;
+        int nOldImageY = nImageY;
 
-        int nX = nAX + x();
-        int nY = nAY + y();
+        if(true
+                && nImageW > 0
+                && nImageH > 0
+                && RectangleOverlapRegion<int>(0, 0, pImage->w(), pImage->h(), &nImageX, &nImageY, &nImageW, &nImageH)){
 
-        if(nAX < 0){
-            nX       = x();
-            nImageX -= nAX;
-            nImageW += nAX;
+            nAX += (nImageX - nOldImageX);
+            nAY += (nImageY - nOldImageY);
+
+            auto nOldAX = nAX;
+            auto nOldAY = nAY;
+
+            if(true
+                    && nImageW > 0
+                    && nImageH > 0
+                    && RectangleOverlapRegion<int>(0, 0, w(), h(), &nAX, &nAY, &nImageW, &nImageH)){
+
+                nImageX += (nAX - nOldAX);
+                nImageY += (nAY - nOldAY);
+
+                if(true
+                        && nImageW > 0
+                        && nImageH > 0){
+
+                    pImage->draw(nAX + x(), nAY + y(), nImageW, nImageH, nImageX, nImageY);
+                }
+            }
         }
-
-        if(nAY < 0){
-            nY       = y();
-            nImageY -= nAY;
-            nImageH += nAY;
-        }
-
-        if(nAX + nImageW > w()){ nImageW = w() - nAX; }
-        if(nAY + nImageH > h()){ nImageH = h() - nAY; }
-
-        // OK done
-        pImage->draw(nX, nY, nImageW, nImageH, nImageX, nImageY);
     }
 }
 
@@ -1082,6 +1095,42 @@ void DrawArea::DrawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
                     0,
                     nGXRes,
                     nGYRes);
+        }
+    }
+}
+
+void DrawArea::DrawFloatObject(Fl_Image *pImage)
+{
+    if(true
+            && pImage
+            && pImage->w() > 0
+            && pImage->h() > 0){
+
+        int nWinX = m_MouseX - x();
+        int nWinY = m_MouseY - y();
+        int nWinW = (std::max)(100, pImage->w() + 2 * 40);
+        int nWinH = (std::max)(100, pImage->h() + 2 * 40);
+
+        int nObjX = nWinX + (nWinW - pImage->w()) / 2;
+        int nObjY = nWinY + (nWinH - pImage->h()) / 2;
+
+        DrawImageCover(m_FloatObjectBG, nWinX, nWinY, nWinW, nWinH);
+        DrawImage(pImage, nObjX, nObjY);
+
+        // draw boundary for window
+        {
+            auto nColor = fl_color();
+            fl_color(FL_YELLOW);
+            DrawRectangle(nWinX, nWinY, nWinW, nWinH);
+            fl_color(nColor);
+        }
+
+        // draw boundary for image
+        {
+            auto nColor = fl_color();
+            fl_color(FL_MAGENTA);
+            DrawRectangle(nObjX, nObjY, pImage->w(), pImage->h());
+            fl_color(nColor);
         }
     }
 }

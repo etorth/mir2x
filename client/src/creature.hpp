@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 08/18/2017 15:34:47
+ *  Last Modified: 08/22/2017 00:43:46
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -192,23 +192,23 @@ class Creature
             switch(nFocusChan){
                 case FOCUS_MOUSE:
                     {
-                        return ColorFunc::MakeColor(0XFF, 0X86, 0X00, 0XFF);
+                        return ColorFunc::RGBA2Color(0XFF, 0X86, 0X00, 0XFF);
                     }
                 case FOCUS_MAGIC:
                     {
-                        return ColorFunc::MakeColor(0X92, 0XC6, 0X20, 0XFF);
+                        return ColorFunc::RGBA2Color(0X92, 0XC6, 0X20, 0XFF);
                     }
                 case FOCUS_FOLLOW:
                     {
-                        return ColorFunc::MakeColor(0X00, 0XC6, 0XF0, 0XFF);
+                        return ColorFunc::RGBA2Color(0X00, 0XC6, 0XF0, 0XFF);
                     }
                 case FOCUS_ATTACK:
                     {
-                        return ColorFunc::MakeColor(0XD0, 0X2C, 0X70, 0XFF);
+                        return ColorFunc::RGBA2Color(0XD0, 0X2C, 0X70, 0XFF);
                     }
                 default:
                     {
-                        return ColorFunc::MakeColor(0XFF, 0XFF, 0XFF, 0XFF);
+                        return ColorFunc::RGBA2Color(0XFF, 0XFF, 0XFF, 0XFF);
                     }
             }
         }

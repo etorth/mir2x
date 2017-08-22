@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.hpp
  *        Created: 07/26/2015 04:27:57 AM
- *  Last Modified: 08/20/2017 22:10:55
+ *  Last Modified: 08/21/2017 13:51:43
  *
  *    Description: Provide handlers to EditorMap
  *                 EditorMap will draw scene with assistance of ImageDB
@@ -43,6 +43,7 @@ class DrawArea: public Fl_Box
         Fl_Image *m_LightRUC;
         Fl_Image *m_LightImge;
         Fl_Image *m_TextBoxBG;
+        Fl_Image *m_FloatObjectBG;
 
     public:
         DrawArea(int, int, int, int);
@@ -135,6 +136,7 @@ class DrawArea: public Fl_Box
         void DrawRUC(int, int, bool);
 
     public:
+        void DrawFloatObject(Fl_Image *);
         void DrawImageCover(Fl_Image *, int, int, int, int);
 
     public:

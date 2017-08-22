@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/20/2017 16:22:40
+ *  Last Modified: 08/22/2017 00:31:37
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -287,6 +287,9 @@ class EditorMap
 
         void ExtractObject(std::function<void(uint8_t, uint16_t, uint32_t)>);
         void ExtractOneObject(int, int, int, std::function<void(uint8_t, uint16_t, uint32_t)>);
+
+    public:
+        void ExportOverview(std::function<void(uint8_t, uint16_t, int, int)>);
 
     public:
         void DrawTile(int, int, int, int, std::function<void(uint8_t, uint16_t, int, int)>);

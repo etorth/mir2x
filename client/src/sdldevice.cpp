@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 08/18/2017 15:35:58
+ *  Last Modified: 08/22/2017 00:46:30
  *
  *    Description: 
  *
@@ -209,7 +209,7 @@ TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontP
 
 void SDLDevice::PushColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
 {
-    uint32_t nARGB = ColorFunc::Color2U32ARGB(ColorFunc::MakeColor(nR, nG, nB, nA));
+    uint32_t nARGB = ColorFunc::Color2ARGB(ColorFunc::RGBA2Color(nR, nG, nB, nA));
     if(m_ColorStack.empty() || nARGB != m_ColorStack.back()[0]){
         SetColor(nR, nG, nB, nA);
         m_ColorStack.push_back({nARGB, 1});
@@ -229,7 +229,7 @@ void SDLDevice::PopColor()
             if(m_ColorStack.empty()){
                 PushColor(0, 0, 0, 0);
             }else{
-                SDL_Color stColor = ColorFunc::U32ARGB2Color(m_ColorStack.back()[0]);
+                SDL_Color stColor = ColorFunc::ARGB2Color(m_ColorStack.back()[0]);
                 SetColor(stColor.r, stColor.g, stColor.b, stColor.a);
             }
         }else{

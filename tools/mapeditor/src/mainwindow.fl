@@ -35,7 +35,16 @@ decl {\#include <FL/Fl_Shared_Image.H>} {public local
 decl {\#include "filesys.hpp"} {private local
 } 
 
+decl {\#include "savepng.hpp"} {private local
+} 
+
 decl {\#include "imagedb.hpp"} {private local
+} 
+
+decl {\#include "mathfunc.hpp"} {private local
+} 
+
+decl {\#include "colorfunc.hpp"} {private local
 } 
 
 decl {\#include "hexstring.hpp"} {private local
@@ -53,19 +62,17 @@ decl {\#include "animationdraw.hpp"} {private local
 decl {\#include "animationselectwindow.hpp"} {private local
 } 
 
-class MainWindow {open
-} {
+class MainWindow {} {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {open
-  } {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       callback {{
 	switch(fl_choice("Quit map editor?", nullptr, " No", " Yes ")){
 		case 2  : exit(0); break;
 		default :          break;
 	}
-}} open
+}}
       xywh {712 220 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
@@ -73,11 +80,11 @@ class MainWindow {open
         code0 {\#include "drawarea.hpp"}
         class DrawArea
       }
-      Fl_Menu_Bar m_MenuBar {open
+      Fl_Menu_Bar m_MenuBar {
         xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
-          label Project
+          label Project open
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -175,7 +182,7 @@ fl_alert("%s", "Haven't implement yet!");}
             xywh {10 10 30 20} labelfont 4 divider
           }
           MenuItem {} {
-            label {Extract PNG}
+            label {Export PNG}
             callback {{
     extern EditorMap g_EditorMap;
     if(!g_EditorMap.Valid()){
@@ -225,11 +232,133 @@ fl_alert("%s", "Haven't implement yet!");}
     g_EditorMap.ExtractTile(fnSaveTilePNG);
     g_EditorMap.ExtractObject(fnSaveObjPNG);
 }}
-            xywh {10 10 30 20} labelfont 4 divider
+            xywh {10 10 30 20} labelfont 4
             code0 {\#include <string>}
             code1 {\#include <FL/Fl_Native_File_Chooser.H>}
             code2 {\#include "imagecache.hpp"}
             code3 {\#include "imagedb.hpp"}
+          }
+          MenuItem {} {
+            label {Export Overview}
+            callback {{
+    // create a big png file as an overview of the current map
+    // generate name and save it in current working folder
+    
+    extern EditorMap g_EditorMap;
+    if(!g_EditorMap.Valid()){
+        fl_alert("Current editor map is invalid");
+        return;
+    }
+
+    extern std::string g_WorkingPathName;
+    if(g_WorkingPathName == ""){
+        fl_alert("Current editor working path is invalid");
+        return;
+    }
+
+    int nDstW = g_EditorMap.W() * SYS_MAPGRIDXP;
+    int nDstH = g_EditorMap.H() * SYS_MAPGRIDYP;
+
+    std::vector<uint32_t> stvBuf(nDstW * nDstH, 0);
+    auto pDst = &(stvBuf[0]);
+
+    auto fnBufDraw = [](
+            uint32_t       *pDst, int nDstW, int nDstH,
+            const uint32_t *pSrc, int nSrcW, int nSrcH,
+
+            int nOnDstX, int nOnDstY,
+            int nOnSrcX, int nOnSrcY,
+            int nOnSrcW, int nOnSrcH)
+    {
+        if(true
+                && pDst
+                && nDstW > 0
+                && nDstH > 0
+
+                && pSrc
+                && nSrcW > 0
+                && nSrcH > 0){
+
+            auto nOldOnSrcX = nOnSrcX;
+            auto nOldOnSrcY = nOnSrcY;
+
+            if(true
+                    && nOnSrcW > 0
+                    && nOnSrcH > 0
+                    && RectangleOverlapRegion<int>(0, 0, nSrcW, nSrcH, &nOnSrcX, &nOnSrcY, &nOnSrcW, &nOnSrcH)){
+
+                nOnDstX += (nOnSrcX - nOldOnSrcX);
+                nOnDstY += (nOnSrcY - nOldOnSrcY);
+
+                auto nOldOnDstX = nOnDstX;
+                auto nOldOnDstY = nOnDstY;
+
+                if(true
+                        && nOnSrcW > 0
+                        && nOnSrcH > 0
+                        && RectangleOverlapRegion<int>(0, 0, nDstW, nDstH, &nOnDstX, &nOnDstY, &nOnSrcW, &nOnSrcH)){
+
+                    nOnSrcX += (nOnDstX - nOldOnDstX);
+                    nOnSrcY += (nOnDstY - nOldOnDstY);
+
+                    if(true
+                            && nOnSrcW > 0
+                            && nOnSrcH > 0){
+
+                        for(int nOnSrcDX = 0; nOnSrcDX < nOnSrcW; ++nOnSrcDX){
+                            for(int nOnSrcDY = 0; nOnSrcDY < nOnSrcH; ++nOnSrcDY){
+                                auto &nSrc = pSrc[(nOnSrcX + nOnSrcDX) + (nOnSrcY + nOnSrcDY) * nSrcW];
+                                auto &nDst = pDst[(nOnDstX + nOnSrcDX) + (nOnDstY + nOnSrcDY) * nDstW];
+                                nDst = ColorFunc::RenderARGB(nDst, nSrc);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    auto fnBufDrawImage = [this, fnBufDraw, pDst, nDstW, nDstH](uint8_t nFileIndex, uint16_t nImageIndex, int nX, int nY)
+    {
+        extern ImageDB g_ImageDB;
+        extern EditorMap g_EditorMap;
+
+        if(true
+                && g_EditorMap.ValidC(nX, nY)
+                && g_ImageDB.Valid(nFileIndex, nImageIndex)){
+
+            auto nSrcW = g_ImageDB.FastW(nFileIndex);
+            auto nSrcH = g_ImageDB.FastH(nFileIndex);
+            if(auto pSrc = g_ImageDB.FastDecode(nFileIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF)){
+                fnBufDraw(
+                        pDst, nDstW, nDstH,
+                        pSrc, nSrcW, nSrcH,
+
+                        nX * SYS_MAPGRIDXP,
+                        nY * SYS_MAPGRIDYP + SYS_MAPGRIDYP - nSrcH,
+
+                        0,
+                        0,
+
+                        nSrcW,
+                        nSrcH);
+            }
+        }
+    };
+
+    g_EditorMap.ExportOverview(fnBufDrawImage);
+    std::string szOverviewFileName = g_WorkingPathName + "/" + DateStr::Now() + ".PNG";
+    if(SaveRGBABufferToPNG((const uint8_t *)(pDst), (uint32_t)(nDstW), (uint32_t)(nDstH), szOverviewFileName.c_str())){
+        fl_alert("Done overview map image: %s", szOverviewFileName.c_str());
+    }else{
+        fl_alert("Export overview map image failed");
+    }
+}}
+            xywh {20 20 30 20} labelfont 4 divider
+            code0 {\#include <string>}
+            code1 {\#include <FL/Fl_Native_File_Chooser.H>}
+            code2 {\#include "datestr.hpp"}
+            code3 {\#include "mathfunc.hpp"}
           }
           MenuItem {} {
             label {Save As}
@@ -262,7 +391,6 @@ fl_alert("%s", "Haven't implement yet!");}
 	}
 }}
             xywh {30 30 30 20} type Toggle labelfont 4 divider
-            code0 {\#include "attributegridwindow.hpp"}
           }
           MenuItem m_MenuItemBaseTileLine {
             label {Base Tile}
@@ -787,7 +915,7 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemSelectBySingle->value();
 }} {}
   }
-  Function {SelectByTile()} {selected return_type bool
+  Function {SelectByTile()} {return_type bool
   } {
     code {{
 	return m_MenuItemSelectByTile->value();
