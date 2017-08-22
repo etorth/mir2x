@@ -3,7 +3,7 @@
  *
  *       Filename: savepng.cpp
  *        Created: 02/06/2016 04:25:40
- *  Last Modified: 04/27/2017 22:27:35
+ *  Last Modified: 08/22/2017 13:00:55
  *
  *    Description: 
  *
@@ -20,40 +20,54 @@
 
 #include "savepng.hpp"
 
-bool SaveRGBABufferToPNG(const uint8_t *rgbaBuff, uint32_t nW, uint32_t nH, const char *fileFullName)
+bool SaveRGBABufferToPNG(const uint8_t *bufRGBA, uint32_t nW, uint32_t nH, const char *szFileName)
 {
-    int           nPixelSize   = 4;
-    FILE         *fp           = nullptr;
-    png_byte    **row_pointers = nullptr;
-    png_infop     info_ptr     = nullptr;
-    png_structp   png_ptr      = nullptr;
+    int           nPixelSize = 4;
+    FILE         *fp         = nullptr;
+    png_byte    **pRowPtr    = nullptr;
+    png_infop     pImageInfo = nullptr;
+    png_structp   pImage     = nullptr;
 
     // will assign bRet as true after setjmp
     // bRet could be optimized into a register while setjmp only save current stack
     // then when jump back bRet may lost or invalid
     volatile bool bRet = false;
 
-    if((fp = fopen(fileFullName, "wb")) == nullptr){
+    if(!(true
+                && bufRGBA
+                && nW > 0
+                && nH > 0
+                && szFileName
+                && std::strlen(szFileName))){
+
+        // use goto sttement
+        // then all variable declaration should at the very beginning
         goto SaveRGBABufferToPNG_fopen_failed;
     }
 
-    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    if(png_ptr == nullptr){
+    if(!(fp = fopen(szFileName, "wb"))){
+        goto SaveRGBABufferToPNG_fopen_failed;
+    }
+
+    if(!(pImage = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr))){
         goto SaveRGBABufferToPNG_png_create_write_struct_failed;
     }
 
-    info_ptr = png_create_info_struct(png_ptr);
-    if(info_ptr == nullptr){
+    if(!(pImageInfo = png_create_info_struct(pImage))){
         goto SaveRGBABufferToPNG_png_create_info_struct_failed;
     }
 
     // Set up error handling
-    if(setjmp(png_jmpbuf(png_ptr))){
+    if(setjmp(png_jmpbuf(pImage))){
         goto SaveRGBABufferToPNG_png_failure;
     }
 
-    // Set image attributes
-    png_set_IHDR(png_ptr, info_ptr,
+    // Initialize header information for png
+    // RGBA means: [0] : R  : [07:00]
+    //             [1] : G  : [15:08]
+    //             [2] : B  : [23:16]
+    //             [3] : A  : [31:24]
+    png_set_IHDR(pImage, pImageInfo,
             nW, nH, 8,
             PNG_COLOR_TYPE_RGBA,
             PNG_INTERLACE_NONE,
@@ -61,29 +75,30 @@ bool SaveRGBABufferToPNG(const uint8_t *rgbaBuff, uint32_t nW, uint32_t nH, cons
             PNG_FILTER_TYPE_DEFAULT);
 
     // Initialize rows of PNG
-    row_pointers =(png_byte **)png_malloc(png_ptr, nH * sizeof(png_byte *));
-    for(int y = 0; y < (int)nH; ++y){
-        png_byte *row =(png_byte *)png_malloc(png_ptr, sizeof(uint8_t) * nW * nPixelSize);
-        std::memcpy(row, rgbaBuff + nW * y * nPixelSize * sizeof(uint8_t), nW * nPixelSize * sizeof(uint8_t));
-        row_pointers[y] = row;
+    pRowPtr =(png_byte **)(png_malloc(pImage, nH * sizeof(png_byte *)));
+    for(int nY = 0; nY < (int)(nH); ++nY){
+        png_byte *pRow =(png_byte *)(png_malloc(pImage, sizeof(uint8_t) * nW * nPixelSize));
+        std::memcpy(pRow, bufRGBA + nW * nY * nPixelSize * sizeof(uint8_t), nW * nPixelSize * sizeof(uint8_t));
+        pRowPtr[nY] = pRow;
     }
 
-    // Write the image data to fp
-    png_init_io(png_ptr, fp);
-    png_set_rows(png_ptr, info_ptr, row_pointers);
-    png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, nullptr);
+    // write data to binary file
+    // all data has been stored in pimage
+    png_init_io(pImage, fp);
+    png_set_rows(pImage, pImageInfo, pRowPtr);
+    png_write_png(pImage, pImageInfo, PNG_TRANSFORM_IDENTITY, nullptr);
 
     bRet = true;
 
     for(int y = 0; y < (int)nH; y++){
-        png_free(png_ptr, row_pointers[y]);
+        png_free(pImage, pRowPtr[y]);
     }
 
-    png_free(png_ptr, row_pointers);
+    png_free(pImage, pRowPtr);
 
 SaveRGBABufferToPNG_png_failure:
 SaveRGBABufferToPNG_png_create_info_struct_failed:
-    png_destroy_write_struct(&png_ptr, &info_ptr);
+    png_destroy_write_struct(&pImage, &pImageInfo);
 SaveRGBABufferToPNG_png_create_write_struct_failed:
     fclose(fp);
 SaveRGBABufferToPNG_fopen_failed:

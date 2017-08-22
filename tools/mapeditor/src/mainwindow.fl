@@ -318,7 +318,7 @@ fl_alert("%s", "Haven't implement yet!");}
         }
     };
 
-    auto fnBufDrawImage = [this, fnBufDraw, pDst, nDstW, nDstH](uint8_t nFileIndex, uint16_t nImageIndex, int nX, int nY)
+    auto fnBufDrawImage = [this, fnBufDraw, pDst, nDstW, nDstH](uint8_t nFileIndex, uint16_t nImageIndex, int nX, int nY, bool bObj)
     {
         extern ImageDB g_ImageDB;
         extern EditorMap g_EditorMap;
@@ -335,7 +335,7 @@ fl_alert("%s", "Haven't implement yet!");}
                         pSrc, nSrcW, nSrcH,
 
                         nX * SYS_MAPGRIDXP,
-                        nY * SYS_MAPGRIDYP + SYS_MAPGRIDYP - nSrcH,
+                        nY * SYS_MAPGRIDYP + (bObj ? (SYS_MAPGRIDYP - nSrcH) : 0),
 
                         0,
                         0,

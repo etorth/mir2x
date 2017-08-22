@@ -3,7 +3,7 @@
  *
  *       Filename: colorfunc.cpp
  *        Created: 03/31/2016 19:48:57
- *  Last Modified: 08/21/2017 23:43:24
+ *  Last Modified: 08/22/2017 10:52:05
  *
  *    Description: 
  *
@@ -66,9 +66,9 @@ uint32_t ColorFunc::Color2ARGB(const SDL_Color &rstColor)
 SDL_Color ColorFunc::RenderColor(const SDL_Color &rstDstColor, const SDL_Color &rstSrcColor)
 {
     SDL_Color stRetColor;
-    stRetColor.r = std::min<uint8_t>(255, std::lround((rstSrcColor.a / 255.0) * rstSrcColor.r + (1.0 - rstDstColor.a / 255.0) * rstDstColor.r));
-    stRetColor.g = std::min<uint8_t>(255, std::lround((rstSrcColor.a / 255.0) * rstSrcColor.g + (1.0 - rstDstColor.a / 255.0) * rstDstColor.g));
-    stRetColor.b = std::min<uint8_t>(255, std::lround((rstSrcColor.a / 255.0) * rstSrcColor.b + (1.0 - rstDstColor.a / 255.0) * rstDstColor.b));
+    stRetColor.r = std::min<uint8_t>(255, std::lround((rstSrcColor.a / 255.0) * rstSrcColor.r + (1.0 - rstSrcColor.a / 255.0) * rstDstColor.r));
+    stRetColor.g = std::min<uint8_t>(255, std::lround((rstSrcColor.a / 255.0) * rstSrcColor.g + (1.0 - rstSrcColor.a / 255.0) * rstDstColor.g));
+    stRetColor.b = std::min<uint8_t>(255, std::lround((rstSrcColor.a / 255.0) * rstSrcColor.b + (1.0 - rstSrcColor.a / 255.0) * rstDstColor.b));
     stRetColor.a = std::min<uint8_t>(255, std::lround((rstSrcColor.a *   1.0)                 + (1.0 - rstSrcColor.a / 255.0) * rstDstColor.a));
     return stRetColor;
 }

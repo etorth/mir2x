@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/22/2017 00:38:47
+ *  Last Modified: 08/22/2017 01:23:44
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -681,7 +681,7 @@ bool EditorMap::SaveMir2xMapData(const char *szFullName)
     return stMapData.Save(szFullName) ? false : true;
 }
 
-void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int)> fnExportOverview)
+void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int, bool)> fnExportOverview)
 {
     if(Valid()){
         for(int nX = 0; nX < W(); ++nX){
@@ -692,7 +692,7 @@ void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int)> 
 
                     auto &rstTile = Tile(nX, nY);
                     if(rstTile.Valid){
-                        fnExportOverview((rstTile.Image & 0X00FF0000) >> 16, (rstTile.Image & 0X0000FFFF), nX, nY);
+                        fnExportOverview((rstTile.Image & 0X00FF0000) >> 16, (rstTile.Image & 0X0000FFFF), nX, nY, false);
                     }
                 }
 
@@ -701,7 +701,7 @@ void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int)> 
                     if(true
                             && rstObj.Valid
                             && rstObj.Ground){
-                        fnExportOverview((rstObj.Image & 0X00FF0000) >> 16, (rstObj.Image & 0X0000FFFF), nX, nY);
+                        fnExportOverview((rstObj.Image & 0X00FF0000) >> 16, (rstObj.Image & 0X0000FFFF), nX, nY, true);
                     }
                 }
 
@@ -710,7 +710,7 @@ void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int)> 
                     if(true
                             &&  rstObj.Valid
                             && !rstObj.Ground){
-                        fnExportOverview((rstObj.Image & 0X00FF0000) >> 16, (rstObj.Image & 0X0000FFFF), nX, nY);
+                        fnExportOverview((rstObj.Image & 0X00FF0000) >> 16, (rstObj.Image & 0X0000FFFF), nX, nY, true);
                     }
                 }
             }
