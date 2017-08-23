@@ -62,17 +62,19 @@ decl {\#include "animationdraw.hpp"} {private local
 decl {\#include "animationselectwindow.hpp"} {private local
 } 
 
-class MainWindow {} {
+class MainWindow {open
+} {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_Window {
       callback {{
 	switch(fl_choice("Quit map editor?", nullptr, " No", " Yes ")){
 		case 2  : exit(0); break;
 		default :          break;
 	}
-}}
+}} open
       xywh {712 220 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
@@ -160,7 +162,7 @@ fl_alert("%s", "Haven't implement yet!");}
                         fl_alert("Failed to load Mir2xMapData: %s", szPath.c_str());
                     }
                     
-                    AfterLoadMir2Map();
+                    AfterLoadMap();
                     Fl::remove_timeout(UpdateFrame);
                     Fl::add_timeout(0.5, UpdateFrame);
                     
@@ -606,13 +608,13 @@ auto fValue  = pWidget->value();
 
 extern EditorMap g_EditorMap;
 if(g_EditorMap.Valid()){
-	int nValidYOffset = g_EditorMap.H() * 32 - m_DrawArea->h();
+	int nValidYOffset = g_EditorMap.H() * SYS_MAPGRIDYP - m_DrawArea->h();
 	nValidYOffset = (std::max)(0, nValidYOffset);
 	int nYOffset = (int)(nValidYOffset * fValue * 1.0);
     	m_DrawArea->SetOffset(0, true, nYOffset, false);
 	m_Window->redraw();
-}}
-        xywh {965 20 20 647} step 0.001
+}} selected
+        xywh {965 20 20 647} labelfont 4 step 0.001 deactivate
         code0 {\#include "editormap.hpp"}
       }
       Fl_Scrollbar m_SBar {
@@ -621,13 +623,13 @@ auto fValue  = pWidget->value();
 
 extern EditorMap g_EditorMap;
 if(g_EditorMap.Valid()){
-	int nValidXOffset = g_EditorMap.W() * 48 - m_DrawArea->w();
+	int nValidXOffset = g_EditorMap.W() * SYS_MAPGRIDXP - m_DrawArea->w();
 	nValidXOffset = (std::max)(0, nValidXOffset);
 	int nXOffset = (int)(nValidXOffset * fValue * 1.0);
     	m_DrawArea->SetOffset(nXOffset, false, 0, true);
 	m_Window->redraw();
 }}
-        xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001
+        xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001 deactivate
         code0 {\#include "editormap.hpp"}
       }
     }
@@ -676,10 +678,10 @@ if(g_EditorMap.Valid()){
         default:
             {
                 if(!g_EditorMap.LoadMir2Map(fileChooser.filename())){
-                    fl_alert("Load mir2 map %s failed...", fileChooser.filename());
+                    fl_alert("Load mir2 map %s failed", fileChooser.filename());
                 }
                 
-                AfterLoadMir2Map();
+                AfterLoadMap();
 
                 Fl::remove_timeout(UpdateFrame);
                 Fl::add_timeout(0.5, UpdateFrame);
@@ -689,10 +691,24 @@ if(g_EditorMap.Valid()){
     m_DrawArea->redraw();
 }} {}
   }
-  Function {AfterLoadMir2Map()} {return_type void
+  Function {AfterLoadMap()} {return_type void
   } {
     code {{
     m_DrawArea->SetOffset(0, false, 0, false);
+    extern EditorMap g_EditorMap;
+    if(g_EditorMap.Valid()){
+        if(g_EditorMap.W() * SYS_MAPGRIDXP <= m_DrawArea->w()){
+            m_SBar->deactivate();
+        }else{
+            m_SBar->activate();
+        }
+
+        if(g_EditorMap.H() * SYS_MAPGRIDYP <= m_DrawArea->h()){
+            m_VSBar->deactivate();
+        }else{
+            m_VSBar->activate();
+        }
+    }
     RedrawAll();
 }} {}
   }

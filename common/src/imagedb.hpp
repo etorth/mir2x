@@ -3,7 +3,7 @@
  *
  *       Filename: imagedb.hpp
  *        Created: 02/14/2016 16:33:12
- *  Last Modified: 05/23/2017 00:50:57
+ *  Last Modified: 08/22/2017 14:41:16
  *
  *    Description: Handle operation against wilimagepackage
  *
@@ -54,4 +54,7 @@ class ImageDB
 
     private:
         bool Load(uint8_t, const char *, const char *, const char *);
+
+    public:
+        const char *DBName(int) const;
 };

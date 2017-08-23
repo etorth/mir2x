@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 07/26/2015 04:27:57 AM
- *  Last Modified: 08/22/2017 01:11:53
+ *  Last Modified: 08/22/2017 17:25:13
  *
  *    Description:
  *
@@ -167,7 +167,7 @@ void DrawArea::DrawSelectByObjectGround(bool bGround)
                         if(PointInRectangle(nMouseXOnMap - m_OffsetX, nMouseYOnMap - m_OffsetY, nStartX, nStartY, nW, nH)){
                             extern MainWindow *g_MainWindow;
                             DrawImageCover(m_RUC[g_MainWindow->Deselect() ? 1 : 0], nStartX, nStartY, nW, nH);
-                            DrawFloatObject(pImage);
+                            DrawFloatObject(nX, nCurrY, (nIndex == 0) ? FOTYPE_OBJ0 : FOTYPE_OBJ1, m_MouseX - x(), m_MouseY - y());
                             return;
                         }
                     }
@@ -453,21 +453,31 @@ void DrawArea::DrawTextBox()
     auto nColor = fl_color();
     fl_color(FL_RED);
 
-    char szInfo[128];
-    std::sprintf(szInfo, "OffsetX: %d %d", m_OffsetX / SYS_MAPGRIDXP, m_OffsetX);
-    fl_draw(szInfo, 10 + x(), 20 + y());
+    int nY = y() + 20;
 
-    std::sprintf(szInfo, "OffsetY: %d %d", m_OffsetY / SYS_MAPGRIDYP, m_OffsetY);
-    fl_draw(szInfo, 10 + x(), 40 + y());
+    // offset (x, y)
+    {
+        char szInfo[128];
 
-    int nMX = std::max(0, m_MouseX + m_OffsetX - x());
-    int nMY = std::max(0, m_MouseY + m_OffsetY - y());
+        std::sprintf(szInfo, "OffsetX: %d %d", m_OffsetX / SYS_MAPGRIDXP, m_OffsetX);
+        fl_draw(szInfo, 10 + x(), nY); nY += 20;
 
-    std::sprintf(szInfo, "MouseMX: %d %d", nMX / SYS_MAPGRIDXP, nMX);
-    fl_draw(szInfo, 10 + x(), 60 + y());
+        std::sprintf(szInfo, "OffsetY: %d %d", m_OffsetY / SYS_MAPGRIDYP, m_OffsetY);
+        fl_draw(szInfo, 10 + x(), nY); nY += 20;
+    }
 
-    std::sprintf(szInfo, "MouseMY: %d %d", nMY / SYS_MAPGRIDYP, nMY);
-    fl_draw(szInfo, 10 + x(), 80 + y());
+    // mouse (x, y)
+    {
+        char szInfo[128];
+        int nMX = std::max(0, m_MouseX + m_OffsetX - x());
+        int nMY = std::max(0, m_MouseY + m_OffsetY - y());
+
+        std::sprintf(szInfo, "MouseMX: %d %d", nMX / SYS_MAPGRIDXP, nMX);
+        fl_draw(szInfo, 10 + x(), nY); nY += 20;
+
+        std::sprintf(szInfo, "MouseMY: %d %d", nMY / SYS_MAPGRIDYP, nMY);
+        fl_draw(szInfo, 10 + x(), nY); nY += 20;
+    }
 
     fl_color(nColor);
 }
@@ -723,6 +733,15 @@ int DrawArea::handle(int nEvent)
         m_MouseY    = Fl::event_y();
 
         switch(nEvent){
+            case FL_MOUSEWHEEL:
+                {
+                    int nDX = Fl::event_dx() * SYS_MAPGRIDXP;
+                    int nDY = Fl::event_dy() * SYS_MAPGRIDYP;
+
+                    SetOffset(nDX, true, nDY, true);
+                    nRet = 1;
+                    break;
+                }
             case FL_RELEASE:
                 {
                     fl_cursor(FL_CURSOR_DEFAULT);
@@ -1099,38 +1118,227 @@ void DrawArea::DrawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
     }
 }
 
-void DrawArea::DrawFloatObject(Fl_Image *pImage)
+void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY)
 {
+    // draw a window with detailed information
+    // +----------------------------------+
+    // |     0      +------------------+  |
+    // |  +-----+   |                  |  |
+    // |  |     |   |                  |  |
+    // |  |  1  |   |         2        |  |
+    // |  |     |   |                  |  |
+    // |  |     |   |                  |  |
+    // |  +-----+   +------------------+  |
+    // |                                  |
+    // +----------------------------------+
+
+    // 0: container
+    // 1: image
+    // 2: text
+
+    // 0: (0 -> WinX, 0 -> WinY, WinW, WinH)
+    // 1: (ImageX, ImageY, image::w(), image::h())
+    // 2: (TextBoxX, TextBoxY, TextBoxW, TextBoxH)
+
+    extern EditorMap g_EditorMap;
     if(true
-            && pImage
-            && pImage->w() > 0
-            && pImage->h() > 0){
+            && nFOType > FOTYPE_NONE
+            && nFOType < FOTYPE_MAX
+            && g_EditorMap.ValidC(nX, nY)){
 
-        int nWinX = m_MouseX - x();
-        int nWinY = m_MouseY - y();
-        int nWinW = (std::max)(100, pImage->w() + 2 * 40);
-        int nWinH = (std::max)(100, pImage->h() + 2 * 40);
+        // for different FOType
+        // we have different text box size
 
-        int nObjX = nWinX + (nWinW - pImage->w()) / 2;
-        int nObjY = nWinY + (nWinH - pImage->h()) / 2;
+        int nTextBoxW = -1;
+        int nTextBoxH = -1;
 
-        DrawImageCover(m_FloatObjectBG, nWinX, nWinY, nWinW, nWinH);
-        DrawImage(pImage, nObjX, nObjY);
+        uint8_t  nFileIndex  = 0;
+        uint16_t nImageIndex = 0;
 
-        // draw boundary for window
-        {
-            auto nColor = fl_color();
-            fl_color(FL_YELLOW);
-            DrawRectangle(nWinX, nWinY, nWinW, nWinH);
-            fl_color(nColor);
+        Fl_Image *pImage = nullptr;
+        switch(nFOType){
+            case FOTYPE_TILE:
+                {
+                    nTextBoxW = 200;
+                    nTextBoxH =  80;
+
+                    if(true
+                            && !(nX % 2)
+                            && !(nY % 2)){
+
+                        auto &rstTile = g_EditorMap.Tile(nX, nY);
+                        if(rstTile.Valid){
+                            nFileIndex  = (uint8_t )((rstTile.Image & 0X00FF0000) >> 16);
+                            nImageIndex = (uint16_t)((rstTile.Image & 0X0000FFFF) >>  0);
+                            pImage = RetrievePNG(nFileIndex, nImageIndex);
+                        }
+                    }
+                    break;
+                }
+            case FOTYPE_OBJ0:
+            case FOTYPE_OBJ1:
+                {
+                    nTextBoxW = 200;
+                    nTextBoxH =  80;
+
+                    auto &rstObject = g_EditorMap.Object(nX, nY, (nFOType == FOTYPE_OBJ0) ? 0 : 1);
+                    if(rstObject.Valid){
+                        nFileIndex  = (uint8_t )((rstObject.Image & 0X00FF0000) >> 16);
+                        nImageIndex = (uint16_t)((rstObject.Image & 0X0000FFFF) >>  0);
+                        pImage = RetrievePNG(nFileIndex, nImageIndex);
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
         }
 
-        // draw boundary for image
-        {
-            auto nColor = fl_color();
-            fl_color(FL_MAGENTA);
-            DrawRectangle(nObjX, nObjY, pImage->w(), pImage->h());
-            fl_color(nColor);
+        if(true
+                && pImage
+                && pImage->w() > 0
+                && pImage->h() > 0){
+
+            int nMarginTop    = 30;
+            int nMarginBottom = 30;
+
+            int nMarginLeft   = 30;
+            int nMarginMiddle = 30;
+            int nMarginRight  = 30;
+
+            int nWinW = nMarginLeft + nMarginRight  + (pImage->w() + nTextBoxW) + nMarginMiddle;
+            int nWinH = nMarginTop  + nMarginBottom + (std::max<int>)(pImage->h(), nTextBoxH);
+
+            int nImageX = nWinX + nMarginLeft;
+            int nImageY = nWinY + (nWinH - pImage->h()) / 2;
+
+            int nTextBoxX = nWinX + nMarginLeft + pImage->w() + nMarginMiddle;
+            int nTextBoxY = nWinY + (nWinH - nTextBoxH) / 2;
+
+            DrawImageCover(m_FloatObjectBG, nWinX, nWinY, nWinW, nWinH);
+            DrawImage(pImage, nImageX, nImageY);
+
+            // draw boundary for window
+            {
+                auto nColor = fl_color();
+                fl_color(FL_YELLOW);
+                DrawRectangle(nWinX, nWinY, nWinW, nWinH);
+                fl_color(nColor);
+            }
+
+            // draw boundary for image
+            {
+                auto nColor = fl_color();
+                fl_color(FL_MAGENTA);
+                DrawRectangle(nImageX, nImageY, pImage->w(), pImage->h());
+                fl_color(nColor);
+            }
+
+            // draw textbox
+            // after we allocated textbox
+            // we have small offset to start inside it
+
+            int nTextOffX = 0;
+            int nTextOffY = 20;
+
+            switch(nFOType){
+                case FOTYPE_TILE:
+                    {
+                        // draw type
+                        {
+                            char szInfo[128];
+                            std::sprintf(szInfo, "     Tile");
+                            fl_draw(szInfo, x() + nTextBoxX + nTextOffX, y() + nTextBoxY + nTextOffY);
+                            nTextOffY += 20;
+                        }
+
+                        // draw fileindex
+                        {
+                            char szInfo[128];
+                            std::sprintf(szInfo, "Index0 : %d", (int)(nFileIndex));
+                            fl_draw(szInfo, x() + nTextBoxX + nTextOffX, y() + nTextBoxY + nTextOffY);
+                            nTextOffY += 20;
+                        }
+
+                        // draw imageindex
+                        {
+                            char szInfo[128];
+                            std::sprintf(szInfo, "Index1 : %d", (int)(nImageIndex));
+                            fl_draw(szInfo, x() + nTextBoxX + nTextOffX, y() + nTextBoxY + nTextOffY);
+                            nTextOffY += 20;
+                        }
+
+                        // draw filename
+                        {
+                            char szInfo[128];
+                            extern ImageDB g_ImageDB;
+                            std::sprintf(szInfo, "DBName : %s", g_ImageDB.DBName(nFileIndex));
+                            fl_draw(szInfo, x() + nTextBoxX + nTextOffX, y() + nTextBoxY + nTextOffY);
+                            nTextOffY += 20;
+                        }
+
+
+                        // draw animation info
+                        {
+                        }
+
+                        // dra alpha info
+                        {
+                        }
+                        break;
+                    }
+                case FOTYPE_OBJ0:
+                case FOTYPE_OBJ1:
+                    {
+                        // draw type
+                        {
+                            char szInfo[128];
+                            std::sprintf(szInfo, "   Object[%d]", nFOType == (FOTYPE_OBJ0) ? 0 : 1);
+                            fl_draw(szInfo, x() + nTextBoxX + nTextOffX, y() + nTextBoxY + nTextOffY);
+                            nTextOffY += 20;
+                        }
+
+                        // draw fileindex
+                        {
+                            char szInfo[128];
+                            std::sprintf(szInfo, "Index0 : %d", (int)(nFileIndex));
+                            fl_draw(szInfo, x() + nTextBoxX + nTextOffX, y() + nTextBoxY + nTextOffY);
+                            nTextOffY += 20;
+                        }
+
+                        // draw imageindex
+                        {
+                            char szInfo[128];
+                            std::sprintf(szInfo, "Index1 : %d", (int)(nImageIndex));
+                            fl_draw(szInfo, x() + nTextBoxX + nTextOffX, y() + nTextBoxY + nTextOffY);
+                            nTextOffY += 20;
+                        }
+
+                        // draw filename
+                        {
+                            char szInfo[128];
+                            extern ImageDB g_ImageDB;
+                            std::sprintf(szInfo, "DBName : %s", g_ImageDB.DBName(nFileIndex));
+                            fl_draw(szInfo, x() + nTextBoxX + nTextOffX, y() + nTextBoxY + nTextOffY);
+                            nTextOffY += 20;
+                        }
+
+
+                        // draw animation info
+                        {
+                        }
+
+                        // dra alpha info
+                        {
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
         }
     }
 }

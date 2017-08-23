@@ -45,7 +45,7 @@ class CropConfigureWindow {open
 
     g_EditorMap.Resize(nStartX, nStartY, nW, nH, 0, 0, nW, nH);
     g_MainWindow->UpdateScrollBar(0, 0);
-    g_MainWindow->AfterLoadMir2Map();
+    g_MainWindow->AfterLoadMap();
 
     m_Left->value(0);
     m_Top->value(0);

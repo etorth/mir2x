@@ -3,7 +3,7 @@
  *
  *       Filename: imagedb.cpp
  *        Created: 02/14/2016 16:35:49
- *  Last Modified: 05/23/2017 00:54:44
+ *  Last Modified: 08/22/2017 14:42:30
  *
  *    Description:
  *
@@ -21,89 +21,100 @@
 #include <cstring>
 #include "imagedb.hpp"
 
+const static char *g_DBFileName[]
+{
+    "Tilesc",
+    "Tiles30c",
+    "Tiles5c",
+    "Smtilesc",
+    "Housesc",
+    "Cliffsc",
+    "Dungeonsc",
+    "Innersc",
+    "Furnituresc",
+    "Wallsc",
+    "SmObjectsc",
+    "Animationsc",
+    "Object1c",
+    "Object2c",
+    "Custom",
+    "Wood/Tilesc",
+    "Wood/Tiles30c",
+    "Wood/Tiles5c",
+    "Wood/Smtilesc",
+    "Wood/Housesc",
+    "Wood/Cliffsc",
+    "Wood/Dungeonsc",
+    "Wood/Innersc",
+    "Wood/Furnituresc",
+    "Wood/Wallsc",
+    "Wood/SmObjectsc",
+    "Wood/Animationsc",
+    "Wood/Object1c",
+    "Wood/Object2c",
+    "Wood/Custom",
+    "Sand/Tilesc",
+    "Sand/Tiles30c",
+    "Sand/Tiles5c",
+    "Sand/Smtilesc",
+    "Sand/Housesc",
+    "Sand/Cliffsc",
+    "Sand/Dungeonsc",
+    "Sand/Innersc",
+    "Sand/Furnituresc",
+    "Sand/Wallsc",
+    "Sand/SmObjectsc",
+    "Sand/Animationsc",
+    "Sand/Object1c",
+    "Sand/Object2c",
+    "Sand/Custom",
+    "Snow/Tilesc",
+    "Snow/Tiles30c",
+    "Snow/Tiles5c",
+    "Snow/Smtilesc",
+    "Snow/Housesc",
+    "Snow/Cliffsc",
+    "Snow/Dungeonsc",
+    "Snow/Innersc",
+    "Snow/Furnituresc",
+    "Snow/Wallsc",
+    "Snow/SmObjectsc",
+    "Snow/Animationsc",
+    "Snow/Object1c",
+    "Snow/Object2c",
+    "Snow/Custom",
+    "Forest/Tilesc",
+    "Forest/Tiles30c",
+    "Forest/Tiles5c",
+    "Forest/Smtilesc",
+    "Forest/Housesc",
+    "Forest/Cliffsc",
+    "Forest/Dungeonsc",
+    "Forest/Innersc",
+    "Forest/Furnituresc",
+    "Forest/Wallsc",
+    "Forest/SmObjectsc",
+    "Forest/Animationsc",
+    "Forest/Object1c",
+    "Forest/Object2c",
+    "Forest/Custom",
+    ""
+};
+
+const char *ImageDB::DBName(int nIndex) const
+{
+    if(true
+            && nIndex > 0
+            && nIndex < (int)(sizeof(g_DBFileName) / sizeof(g_DBFileName[0]))){
+        return g_DBFileName[nIndex];
+    }
+    return nullptr;
+}
+
 bool ImageDB::LoadDB(const char *szPathName)
 {
-    const char *szFileName[] = {
-        "Tilesc",
-        "Tiles30c",
-        "Tiles5c",
-        "Smtilesc",
-        "Housesc",
-        "Cliffsc",
-        "Dungeonsc",
-        "Innersc",
-        "Furnituresc",
-        "Wallsc",
-        "SmObjectsc",
-        "Animationsc",
-        "Object1c",
-        "Object2c",
-        "Custom",
-        "Wood/Tilesc",
-        "Wood/Tiles30c",
-        "Wood/Tiles5c",
-        "Wood/Smtilesc",
-        "Wood/Housesc",
-        "Wood/Cliffsc",
-        "Wood/Dungeonsc",
-        "Wood/Innersc",
-        "Wood/Furnituresc",
-        "Wood/Wallsc",
-        "Wood/SmObjectsc",
-        "Wood/Animationsc",
-        "Wood/Object1c",
-        "Wood/Object2c",
-        "Wood/Custom",
-        "Sand/Tilesc",
-        "Sand/Tiles30c",
-        "Sand/Tiles5c",
-        "Sand/Smtilesc",
-        "Sand/Housesc",
-        "Sand/Cliffsc",
-        "Sand/Dungeonsc",
-        "Sand/Innersc",
-        "Sand/Furnituresc",
-        "Sand/Wallsc",
-        "Sand/SmObjectsc",
-        "Sand/Animationsc",
-        "Sand/Object1c",
-        "Sand/Object2c",
-        "Sand/Custom",
-        "Snow/Tilesc",
-        "Snow/Tiles30c",
-        "Snow/Tiles5c",
-        "Snow/Smtilesc",
-        "Snow/Housesc",
-        "Snow/Cliffsc",
-        "Snow/Dungeonsc",
-        "Snow/Innersc",
-        "Snow/Furnituresc",
-        "Snow/Wallsc",
-        "Snow/SmObjectsc",
-        "Snow/Animationsc",
-        "Snow/Object1c",
-        "Snow/Object2c",
-        "Snow/Custom",
-        "Forest/Tilesc",
-        "Forest/Tiles30c",
-        "Forest/Tiles5c",
-        "Forest/Smtilesc",
-        "Forest/Housesc",
-        "Forest/Cliffsc",
-        "Forest/Dungeonsc",
-        "Forest/Innersc",
-        "Forest/Furnituresc",
-        "Forest/Wallsc",
-        "Forest/SmObjectsc",
-        "Forest/Animationsc",
-        "Forest/Object1c",
-        "Forest/Object2c",
-        "Forest/Custom",
-        ""
-    };
-
-    for(int i = 0; std::strlen(szFileName[i]) > 0; ++i){
-        Load((uint8_t)(i), szPathName, szFileName[i], ".wil");
+    for(int nIndex = 0; std::strlen(g_DBFileName[nIndex]) > 0; ++nIndex){
+        Load((uint8_t)(nIndex), szPathName, g_DBFileName[nIndex], ".wil");
     }
     return true;
 }

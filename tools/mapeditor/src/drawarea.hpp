@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.hpp
  *        Created: 07/26/2015 04:27:57 AM
- *  Last Modified: 08/21/2017 13:51:43
+ *  Last Modified: 08/22/2017 16:35:50
  *
  *    Description: Provide handlers to EditorMap
  *                 EditorMap will draw scene with assistance of ImageDB
@@ -28,6 +28,18 @@
 
 class DrawArea: public Fl_Box
 {
+    private:
+        // used in DrawFloatObject()
+        // different object type needs different details
+        enum FloatObjectType: int
+        {
+            FOTYPE_NONE = 0,
+            FOTYPE_TILE,
+            FOTYPE_OBJ0,
+            FOTYPE_OBJ1,
+            FOTYPE_MAX,
+        };
+
     private:
         int m_MouseX;
         int m_MouseY;
@@ -136,7 +148,9 @@ class DrawArea: public Fl_Box
         void DrawRUC(int, int, bool);
 
     public:
-        void DrawFloatObject(Fl_Image *);
+        void DrawFloatObject(int, int, int, int, int);
+
+    public:
         void DrawImageCover(Fl_Image *, int, int, int, int);
 
     public:
