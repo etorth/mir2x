@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 08/10/2017 20:09:19
+ *  Last Modified: 08/23/2017 00:53:39
  *
  *    Description: 
  *
@@ -24,22 +24,26 @@
 #include "mainwindow.hpp"
 #include "previewwindow.hpp"
 #include "wilimagepackage.hpp"
+#include "progressbarwindow.hpp"
 
 std::string          g_FileFullName;
 WilImagePackage      g_WilPackage;
 MainWindow          *g_MainWindow;
 PreviewWindow       *g_PreviewWindow;
+ProgressBarWindow   *g_ProgressBarWindow;
 
 int main()
 {
-    g_FileFullName  = "";
-    g_MainWindow    = nullptr;
-    g_PreviewWindow = nullptr;
+    g_FileFullName      = "";
+    g_MainWindow        = nullptr;
+    g_PreviewWindow     = nullptr;
+    g_ProgressBarWindow = nullptr;
 
     Fl::visual(FL_RGB | FL_ALPHA);
 
-    g_MainWindow = new MainWindow();
+    g_ProgressBarWindow = new ProgressBarWindow();
+    g_MainWindow        = new MainWindow();
     g_MainWindow->ShowAll();
-    Fl::run();
-    return 0;
+
+    return Fl::run();
 }

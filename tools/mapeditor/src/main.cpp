@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 08/21/2017 15:04:22
+ *  Last Modified: 08/23/2017 00:17:24
  *
  *    Description: 
  *
@@ -29,6 +29,7 @@
 #include "animationdb.hpp"
 #include "aboutwindow.hpp"
 #include "animationdraw.hpp"
+#include "progressbarwindow.hpp"
 #include "cropconfigurewindow.hpp"
 #include "selectsettingwindow.hpp"
 #include "animationselectwindow.hpp"
@@ -40,6 +41,7 @@ AnimationSelectWindow           *g_AnimationSelectWindow;
 AboutWindow                     *g_AboutWindow;
 AttributeSelectWindow           *g_AttributeGridWindow;
 AttributeSelectWindow           *g_AttributeSelectWindow;
+ProgressBarWindow               *g_ProgressBarWindow;
 CropConfigureWindow             *g_CropConfigureWindow;
 EditorMap                        g_EditorMap;
 ImageDB                          g_ImageDB;
@@ -62,6 +64,7 @@ int main()
     g_AboutWindow           = new AboutWindow();
     g_AttributeSelectWindow = new AttributeSelectWindow();
     g_AttributeGridWindow   = new AttributeSelectWindow();
+    g_ProgressBarWindow     = new ProgressBarWindow();
     g_CropConfigureWindow   = new CropConfigureWindow();
 
     g_ImageCache.SetPath(".");

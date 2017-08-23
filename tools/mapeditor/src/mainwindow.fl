@@ -74,7 +74,7 @@ class MainWindow {open
 		default :          break;
 	}
 }} open
-      xywh {712 220 985 665} type Double resizable visible
+      xywh {880 169 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} resizable
@@ -1046,12 +1046,28 @@ if(g_EditorMap.Valid()){
 	pWidgetX->value(pWidgetX->round(fXP));
 }} {}
   }
-  Function {UpdateVScrollBar(double fYP)} {selected return_type void
+  Function {UpdateVScrollBar(double fYP)} {return_type void
   } {
     code {{
 	auto pWidgetY = ((Fl_Valuator *)(m_VSBar));
 	fYP = (std::min)(1.0, (std::max)(0.0, fYP));
 	pWidgetY->value(pWidgetY->round(fYP));
+}} {}
+  }
+  Function {Activate()} {return_type void
+  } {
+    code {{
+    m_SBar->activate();
+    m_VSBar->activate();
+    m_MenuBar->activate();
+}} {}
+  }
+  Function {Deactivate()} {return_type void
+  } {
+    code {{
+    m_SBar->deactivate();
+    m_VSBar->deactivate();
+    m_MenuBar->deactivate();
 }} {}
   }
 } 

@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/22/2017 01:23:44
+ *  Last Modified: 08/23/2017 00:45:40
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -32,6 +32,7 @@
 #include "sysconst.hpp"
 #include "mathfunc.hpp"
 #include "editormap.hpp"
+#include "progressbarwindow.hpp"
 
 EditorMap::EditorMap()
     : m_W(0)
@@ -684,8 +685,27 @@ bool EditorMap::SaveMir2xMapData(const char *szFullName)
 void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int, bool)> fnExportOverview)
 {
     if(Valid()){
+        int nCountAll = W() * H() * 3;
+        auto fnUpdateProgressBar = [nCountAll, nLastPercent = 0](int nCurrCount) mutable
+        {
+            auto nPercent = std::lround(100.0 * nCurrCount / nCountAll);
+            if(nPercent > nLastPercent){
+                // 1. record percent
+                nLastPercent = nPercent;
+
+                // 2. update progress bar
+                extern ProgressBarWindow *g_ProgressBarWindow;
+                g_ProgressBarWindow->SetValue(nPercent);
+                g_ProgressBarWindow->Redraw();
+                g_ProgressBarWindow->ShowAll();
+                Fl::check();
+            }
+        };
+
+        int nCount = 0;
         for(int nX = 0; nX < W(); ++nX){
             for(int nY = 0; nY < H(); ++nY){
+                fnUpdateProgressBar(nCount++);
                 if(true
                         && !(nX % 2)
                         && !(nY % 2)){
@@ -695,7 +715,12 @@ void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int, b
                         fnExportOverview((rstTile.Image & 0X00FF0000) >> 16, (rstTile.Image & 0X0000FFFF), nX, nY, false);
                     }
                 }
+            }
+        }
 
+        for(int nX = 0; nX < W(); ++nX){
+            for(int nY = 0; nY < H(); ++nY){
+                fnUpdateProgressBar(nCount++);
                 for(int nIndex = 0; nIndex < 2; ++nIndex){
                     auto rstObj = Object(nX, nY, nIndex);
                     if(true
@@ -704,7 +729,12 @@ void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int, b
                         fnExportOverview((rstObj.Image & 0X00FF0000) >> 16, (rstObj.Image & 0X0000FFFF), nX, nY, true);
                     }
                 }
+            }
+        }
 
+        for(int nX = 0; nX < W(); ++nX){
+            for(int nY = 0; nY < H(); ++nY){
+                fnUpdateProgressBar(nCount++);
                 for(int nIndex = 0; nIndex < 2; ++nIndex){
                     auto rstObj = Object(nX, nY, nIndex);
                     if(true
@@ -715,5 +745,8 @@ void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int, b
                 }
             }
         }
+
+        extern ProgressBarWindow *g_ProgressBarWindow;
+        g_ProgressBarWindow->HideAll();
     }
 }

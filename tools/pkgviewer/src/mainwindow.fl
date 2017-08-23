@@ -91,23 +91,27 @@ class MainWindow {open
                     maxLen++;
                 }
 
-                auto p = new ProgressBarWindow();
-                p->SetValue(0);
-                p->Redraw();
-                p->ShowAll();
-                Fl::check();
-		
+                auto fnUpdateProgressBar = [nLastPercent = 0](int nCurrCount) mutable
+                {
+                    extern WilImagePackage g_WilPackage;
+                    auto nPercent = std::lround(100.0 * nCurrCount / g_WilPackage.IndexCount());
+                    if(nPercent > nLastPercent){
+                        nLastPercent = nPercent;
+
+                        extern ProgressBarWindow *g_ProgressBarWindow;
+                        g_ProgressBarWindow->SetValue(nPercent);
+                        g_ProgressBarWindow->Redraw();
+                        g_ProgressBarWindow->ShowAll();
+                        Fl::check();
+                    }
+                };
+
                 std::string formatStr;
                 formatStr = "Index: %0" + std::to_string(maxLen) + "d       W:%4d       H:%4d       PX:%4d      PY:%4d";
 
                 int nImageCount = 0;
                 for(int nImgIndex = 0; nImgIndex < g_WilPackage.IndexCount(); ++nImgIndex){
-                    int nNewPer = (int)(nImgIndex * 100 / g_WilPackage.IndexCount());
-                    p->SetValue(nNewPer);
-                    p->Redraw();
-                    p->ShowAll();
-                    Fl::check();
-
+                    fnUpdateProgressBar(nImgIndex);
                     g_WilPackage.SetIndex(nImgIndex);
                     if(g_WilPackage.CurrentImageValid()){
                         char tmpBuf[128];
@@ -117,13 +121,14 @@ class MainWindow {open
                                 g_WilPackage.CurrentImageInfo().shHeight,
                                 g_WilPackage.CurrentImageInfo().shPX,
                                 g_WilPackage.CurrentImageInfo().shPY);
-                        // auto InfoBlk = g_WilPackage.CurrentImageInfo();
+
                         m_Browser->add(tmpBuf, (void *)((intptr_t)nImgIndex));
                         nImageCount++;
                     }
                 }
-                p->HideAll();
-                delete p;
+
+                extern ProgressBarWindow *g_ProgressBarWindow;
+                g_ProgressBarWindow->HideAll();
                 
                 ActivateAll();
                 std::string szStatusBarInfo = std::string("FileName: ") + fileName + "." + fileExt +  "    ImageCount: " + std::to_string(nImageCount);
