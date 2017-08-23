@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 07/26/2015 04:27:57 AM
- *  Last Modified: 08/22/2017 17:25:13
+ *  Last Modified: 08/22/2017 23:39:36
  *
  *    Description:
  *
@@ -701,29 +701,36 @@ void DrawArea::DrawTile()
 void DrawArea::SetOffset(int nX, bool bRelativeX, int nY, bool bRelativeY)
 {
     extern EditorMap g_EditorMap;
-    if(!g_EditorMap.Valid()){ return; }
+    if(g_EditorMap.Valid()){
+        if(bRelativeX){
+            m_OffsetX += nX;
+        }else{
+            m_OffsetX = nX;
+        }
+        m_OffsetX = (std::max)(m_OffsetX, 0);
+        m_OffsetX = (std::min)(m_OffsetX, (std::max)(0, 48 * g_EditorMap.W() - w()));
 
-    if(bRelativeX){
-        m_OffsetX += nX;
-    }else{
-        m_OffsetX = nX;
+        if(bRelativeY){
+            m_OffsetY += nY;
+        }else{
+            m_OffsetY = nY;
+        }
+        m_OffsetY = (std::max)(m_OffsetY, 0);
+        m_OffsetY = (std::min)(m_OffsetY, (std::max)(0, 32 * g_EditorMap.H() - h()));
     }
-    m_OffsetX = (std::max)(m_OffsetX, 0);
-    m_OffsetX = (std::min)(m_OffsetX, (std::max)(0, 48 * g_EditorMap.W() - w()));
-
-    if(bRelativeY){
-        m_OffsetY += nY;
-    }else{
-        m_OffsetY = nY;
-    }
-    m_OffsetY = (std::max)(m_OffsetY, 0);
-    m_OffsetY = (std::min)(m_OffsetY, (std::max)(0, 32 * g_EditorMap.H() - h()));
 }
 
 int DrawArea::handle(int nEvent)
 {
     extern EditorMap g_EditorMap;
     auto nRet = Fl_Box::handle(nEvent);
+
+    // can't find resize event
+    // put it here as a hack and check it every time
+    {
+        extern MainWindow *g_MainWindow;
+        g_MainWindow->CheckScrollBar();
+    }
 
     if(g_EditorMap.Valid()){
 
@@ -739,6 +746,7 @@ int DrawArea::handle(int nEvent)
                     int nDY = Fl::event_dy() * SYS_MAPGRIDYP;
 
                     SetOffset(nDX, true, nDY, true);
+                    SetScrollBar();
                     nRet = 1;
                     break;
                 }
@@ -807,7 +815,6 @@ int DrawArea::handle(int nEvent)
                             // bug of fltk here for windows, when some key is pressed, 
                             // event_x() and event_y() are incorrect!
                         }else{
-                            // SetOffset(-(m_MouseX - nMouseX), true, -(m_MouseY - nMouseY), true);
                             SetOffset(-(m_MouseX - nMouseX), true, -(m_MouseY - nMouseY), true);
                             SetScrollBar();
                         }
@@ -909,10 +916,11 @@ void DrawArea::SetScrollBar()
     double fYP = -1.0;
 
     extern EditorMap g_EditorMap;
-    if(SYS_MAPGRIDXP * g_EditorMap.W() - w() > 0){
-        fXP = m_OffsetX * 1.0 / (SYS_MAPGRIDXP * g_EditorMap.W()  - w());
+    if(SYS_MAPGRIDXP * g_EditorMap.W() > w()){
+        fXP = m_OffsetX * 1.0 / (SYS_MAPGRIDXP * g_EditorMap.W() - w());
     }
-    if(SYS_MAPGRIDYP * g_EditorMap.H() - h() > 0){
+
+    if(SYS_MAPGRIDYP * g_EditorMap.H() > h()){
         fYP = m_OffsetY * 1.0 / (SYS_MAPGRIDYP * g_EditorMap.H() - h());
     }
 

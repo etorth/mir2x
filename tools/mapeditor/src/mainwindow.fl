@@ -66,8 +66,7 @@ class MainWindow {open
 } {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {open
-  } {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       callback {{
 	switch(fl_choice("Quit map editor?", nullptr, " No", " Yes ")){
@@ -613,7 +612,7 @@ if(g_EditorMap.Valid()){
 	int nYOffset = (int)(nValidYOffset * fValue * 1.0);
     	m_DrawArea->SetOffset(0, true, nYOffset, false);
 	m_Window->redraw();
-}} selected
+}}
         xywh {965 20 20 647} labelfont 4 step 0.001 deactivate
         code0 {\#include "editormap.hpp"}
       }
@@ -694,21 +693,15 @@ if(g_EditorMap.Valid()){
   Function {AfterLoadMap()} {return_type void
   } {
     code {{
+    // should reset the offset
+    // no matter editor map valid or not
+    UpdateScrollBar(0.0, 0.0);
     m_DrawArea->SetOffset(0, false, 0, false);
-    extern EditorMap g_EditorMap;
-    if(g_EditorMap.Valid()){
-        if(g_EditorMap.W() * SYS_MAPGRIDXP <= m_DrawArea->w()){
-            m_SBar->deactivate();
-        }else{
-            m_SBar->activate();
-        }
 
-        if(g_EditorMap.H() * SYS_MAPGRIDYP <= m_DrawArea->h()){
-            m_VSBar->deactivate();
-        }else{
-            m_VSBar->activate();
-        }
-    }
+    // check if we need to deactivate the scroll bars
+    // 1. used after load map
+    // 2. used after draw area resize
+    CheckScrollBar();
     RedrawAll();
 }} {}
   }
@@ -781,19 +774,6 @@ if(g_EditorMap.Valid()){
                 }
             }
     }
-}} {}
-  }
-  Function {UpdateScrollBar(double fXP, double fYP)} {return_type void
-  } {
-    code {{
-	auto pWidgetX = ((Fl_Valuator *)(m_SBar));
-	auto pWidgetY = ((Fl_Valuator *)(m_VSBar));
-
-	fXP = (std::min)(1.0, (std::max)(0.0, fXP));
-	fYP = (std::min)(1.0, (std::max)(0.0, fYP));
-
-	pWidgetX->value(pWidgetX->round(fXP));
-	pWidgetY->value(pWidgetY->round(fYP));
 }} {}
   }
   Function {UpdateFrame(void *)} {return_type {static void}
@@ -1025,6 +1005,53 @@ if(g_EditorMap.Valid()){
         g_AnimationDraw.X = nX;
         g_AnimationDraw.Y = nY;
     }
+}} {}
+  }
+  Function {CheckScrollBar()} {return_type void
+  } {
+    code {{
+    // check if we need to deactivate the scroll bars
+    // 1. used after load map
+    // 2. used after draw area resize
+    extern EditorMap g_EditorMap;
+    if(g_EditorMap.Valid()){
+        if(g_EditorMap.W() * SYS_MAPGRIDXP <= m_DrawArea->w()){
+            m_SBar->deactivate();
+            UpdateHScrollBar(0.0);
+        }else{
+            m_SBar->activate();
+        }
+
+        if(g_EditorMap.H() * SYS_MAPGRIDYP <= m_DrawArea->h()){
+            m_VSBar->deactivate();
+            UpdateVScrollBar(0.0);
+        }else{
+            m_VSBar->activate();
+        }
+    }
+}} {}
+  }
+  Function {UpdateScrollBar(double fXP, double fYP)} {return_type void
+  } {
+    code {{
+    UpdateHScrollBar(fXP);
+    UpdateVScrollBar(fYP);
+}} {}
+  }
+  Function {UpdateHScrollBar(double fXP)} {return_type void
+  } {
+    code {{
+	auto pWidgetX = ((Fl_Valuator *)(m_SBar));
+	fXP = (std::min)(1.0, (std::max)(0.0, fXP));
+	pWidgetX->value(pWidgetX->round(fXP));
+}} {}
+  }
+  Function {UpdateVScrollBar(double fYP)} {selected return_type void
+  } {
+    code {{
+	auto pWidgetY = ((Fl_Valuator *)(m_VSBar));
+	fYP = (std::min)(1.0, (std::max)(0.0, fYP));
+	pWidgetY->value(pWidgetY->round(fYP));
 }} {}
   }
 } 
