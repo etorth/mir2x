@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/23/2017 00:45:40
+ *  Last Modified: 08/25/2017 11:53:57
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -32,6 +32,7 @@
 #include "sysconst.hpp"
 #include "mathfunc.hpp"
 #include "editormap.hpp"
+#include "mainwindow.hpp"
 #include "progressbarwindow.hpp"
 
 EditorMap::EditorMap()
@@ -595,7 +596,7 @@ void EditorMap::DrawSelectGround(int nX, int nY, int nW, int nH, std::function<v
         for(int nTX = nX; nTX < nX + nW; ++nTX){
             for(int nTY = nY; nTY < nY + nH; ++nTY){
                 for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    if(ValidC(nTX, nTY) && Cell(nTX, nTY).SelectGround){
+                    if(ValidC(nTX, nTY) && Cell(nTX, nTY).SelectConf.Ground){
                         fnDrawSelectGround(nX, nY, nIndex);
                     }
                 }
@@ -610,7 +611,7 @@ void EditorMap::ClearGroundSelect()
         for(int nX = 0; nX < W(); ++nX){
             for(int nY = 0; nY < H(); ++nY){
                 for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    Cell(nX, nY).SelectGround = false;
+                    Cell(nX, nY).SelectConf.Ground = false;
                 }
             }
         }
@@ -749,4 +750,107 @@ void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int, b
         extern ProgressBarWindow *g_ProgressBarWindow;
         g_ProgressBarWindow->HideAll();
     }
+}
+
+EditorMap *EditorMap::ExportLayer()
+{
+    if(Valid()){
+        bool bHasSelect = false;
+        for(int nX = 0; nX < W(); ++nX){
+            for(int nY = 0; nY < H(); ++nY){
+                if(false
+                        || Tile(nX, nY).SelectConf.HasSelect()
+                        || Cell(nX, nY).SelectConf.HasSelect()){
+                    bHasSelect = true;
+                    goto __done_find_select;
+                }
+            }
+        }
+
+__done_find_select:
+        if(bHasSelect){
+            int nX0 =  W();
+            int nY0 =  H();
+            int nX1 = -1;
+            int nY1 = -1;
+
+            extern LayerBrowserWindow *g_LayerBrowserWindow;
+            if(g_LayerBrowserWindow->ImportObject(false)){
+                for(int nX = 0; nX < W(); ++nX){
+                    for(int nY = 0; nY < H(); ++nY){
+                        for(int nIndex = 0; nIndex < 2; ++nIndex){
+                            if(true
+                                    &&  Object(nX, nY, nIndex).Valid
+                                    && !Object(nX, nY, nIndex).Ground
+                                    &&  Cell(nX, nY).SelectConf.OverGroundObj){
+                                nX0 = std::min<int>(nX0, nX);
+                                nY0 = std::min<int>(nY0, nY);
+                                nX1 = std::max<int>(nX1, nX);
+                                nY1 = std::max<int>(nY1, nY);
+                            }
+                        }
+                    }
+                }
+            }
+
+            nX0 = (nX0 / 2) * 2;
+            nY0 = (nY0 / 2) * 2;
+
+            int nW = ((nX1 - nX0 + 1 + 1) / 2) * 2;
+            int nH = ((nY1 - nY0 + 1 + 1) / 2) * 2;
+
+            if(true
+                    && ValidC(nX0, nY0)
+                    && ValidC(nX0 + nW - 1, nY0 + nH - 1)){
+                auto pEditorMap = new EditorMap();
+                pEditorMap->Allocate(nW, nH);
+
+                extern LayerBrowserWindow *g_LayerBrowserWindow;
+                if(g_LayerBrowserWindow->ImportObject(false)){
+                    for(int nX = 0; nX < nW; ++nX){
+                        for(int nY = 0; nY < nH; ++nY){
+                            for(int nIndex = 0; nIndex < 2; ++nIndex){
+                                auto &rstSrcObj = Object(nX0 + nX, nY0 + nY, nIndex);
+                                if(true
+                                        &&  rstSrcObj.Valid
+                                        && !rstSrcObj.Ground){
+                                    if(!pEditorMap->Object(nX, nY, 0).Valid){ pEditorMap->Object(nX, nY, 0) = rstSrcObj; continue; }
+                                    if(!pEditorMap->Object(nX, nY, 1).Valid){ pEditorMap->Object(nX, nY, 1) = rstSrcObj; continue; }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return pEditorMap;
+            }
+        }
+    }
+    return nullptr;
+}
+
+bool EditorMap::Allocate(int nW, int nH)
+{
+    if(true
+            && !(nW % 2)
+            && !(nH % 2)){
+
+        m_W     = nW;
+        m_H     = nH;
+        m_Valid = true;
+
+        std::memset(m_AniSaveTime,  0, sizeof(m_AniSaveTime));
+        std::memset(m_AniTileFrame, 0, sizeof(m_AniTileFrame));
+
+        m_Mir2Map      = nullptr;
+        m_Mir2xMapData = nullptr;
+
+        m_BlockBuf.resize(nW / 2);
+        for(auto &rstBuf: m_BlockBuf){
+            rstBuf.resize(nH / 2);
+            std::memset(&(rstBuf[0]), 0, rstBuf.size() * sizeof(rstBuf[0]));
+        }
+        return true;
+    }
+    return false;
 }

@@ -41,6 +41,9 @@ decl {\#include "savepng.hpp"} {private local
 decl {\#include "imagedb.hpp"} {private local
 } 
 
+decl {\#include "drawarea.hpp"} {public global
+} 
+
 decl {\#include "mathfunc.hpp"} {private local
 } 
 
@@ -66,7 +69,8 @@ class MainWindow {open
 } {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_Window {
       callback {{
 	switch(fl_choice("Quit map editor?", nullptr, " No", " Yes ")){
@@ -74,14 +78,13 @@ class MainWindow {open
 		default :          break;
 	}
 }} open
-      xywh {880 169 985 665} type Double resizable visible
+      xywh {534 259 985 665} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {
-        xywh {0 20 965 627} resizable
-        code0 {\#include "drawarea.hpp"}
+      Fl_Box m_DrawArea {selected
+        xywh {0 20 965 627} labelfont 4 resizable
         class DrawArea
       }
-      Fl_Menu_Bar m_MenuBar {
+      Fl_Menu_Bar m_MenuBar {open
         xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -348,8 +351,9 @@ fl_alert("%s", "Haven't implement yet!");}
     };
 
     g_EditorMap.ExportOverview(fnBufDrawImage);
-    std::string szOverviewFileName = g_WorkingPathName + "/" + DateStr::Now() + ".PNG";
-    if(SaveRGBABufferToPNG((const uint8_t *)(pDst), (uint32_t)(nDstW), (uint32_t)(nDstH), szOverviewFileName.c_str())){
+    std::string szOverviewFileName = DateStr::Now() + ".PNG";
+    std::string szOverviewFullFileName = g_WorkingPathName + "/" + szOverviewFileName;
+    if(SaveRGBABufferToPNG((const uint8_t *)(pDst), (uint32_t)(nDstW), (uint32_t)(nDstH), szOverviewFullFileName.c_str())){
         fl_alert("Done overview map image: %s", szOverviewFileName.c_str());
     }else{
         fl_alert("Export overview map image failed");
@@ -376,15 +380,15 @@ fl_alert("%s", "Haven't implement yet!");}
           }
         }
         Submenu {} {
-          label Lines open
+          label Grid open
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem m_MenuItemGridLine {
-            label Grid
+            label {Step                  }
             xywh {30 30 30 20} type Toggle labelfont 4
           }
           MenuItem m_MenuItemAttributeGridLine {
-            label {Attribute Grid}
+            label Attribute
             callback {{
 	extern AttributeSelectWindow *g_AttributeGridWindow;
 	if(m_MenuItemAttributeGridLine->value()){
@@ -393,36 +397,40 @@ fl_alert("%s", "Haven't implement yet!");}
 }}
             xywh {30 30 30 20} type Toggle labelfont 4 divider
           }
-          MenuItem m_MenuItemBaseTileLine {
-            label {Base Tile}
+          MenuItem m_MenuItemLightLine {
+            label Light
             xywh {0 0 30 20} type Toggle labelfont 4
           }
+          MenuItem m_MenuItemBaseTileLine {
+            label Tile
+            xywh {10 10 30 20} type Toggle labelfont 4
+          }
           MenuItem m_MenuItemGroundObjectLine {
-            label {Ground Object     }
+            label {Ground Object}
             xywh {10 10 30 20} type Toggle labelfont 4
           }
           MenuItem m_MenuItemOverGroundObjectLine {
-            label {Over Ground Object          }
+            label {Over Ground Object}
             xywh {20 20 30 20} type Toggle labelfont 4
           }
         }
         Submenu {} {
-          label Layers open
+          label Show open
           xywh {10 10 62 20} labelfont 4
         } {
-          MenuItem m_MenuItemLightLayer {
+          MenuItem m_MenuItemShowLight {
             label Light
             xywh {10 10 30 20} type Toggle value 1 labelfont 4
           }
-          MenuItem m_MenuItemBaseTileLayer {
-            label {Base Tile}
+          MenuItem m_MenuItemShowTile {
+            label Tile
             xywh {20 20 30 20} type Toggle value 1 labelfont 4
           }
-          MenuItem m_MenuItemGroundObjectLayer {
+          MenuItem m_MenuItemShowGroundObject {
             label {Ground Object     }
             xywh {20 20 30 20} type Toggle value 1 labelfont 4
           }
-          MenuItem m_MenuItemOverGroundObjectLayer {
+          MenuItem m_MenuItemShowOverGroundObject {
             label {Over Ground Object          }
             xywh {30 30 30 20} type Toggle value 1 labelfont 4 divider
           }
@@ -527,6 +535,22 @@ if(g_SelectSettingWindow){
           }
         }
         Submenu {} {
+          label Layer open
+          xywh {0 0 70 20} labelfont 4
+        } {
+          MenuItem {} {
+            label {Show Browser      }
+            callback {{
+    // show the layer browser window
+    // it may or may not hide when click it
+    extern LayerBrowserWindow *g_LayerBrowserWindow;
+    g_LayerBrowserWindow->ShowAll();
+}}
+            xywh {30 30 30 20} labelfont 4
+            code0 {\#include "layerbrowserwindow.hpp"}
+          }
+        }
+        Submenu {} {
           label Test open
           xywh {0 0 70 20}
         } {
@@ -589,7 +613,7 @@ if(g_SelectSettingWindow){
           }
         }
         Submenu {} {
-          label About
+          label About open
           xywh {30 30 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -815,7 +839,7 @@ if(g_EditorMap.Valid()){
     g_MainWindow->RedrawAll();
 }} {}
   }
-  Function {ShowBaseTileLine()} {return_type bool
+  Function {ShowTileLine()} {return_type bool
   } {
     code {{
 	return m_MenuItemBaseTileLine->value();
@@ -833,6 +857,12 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemOverGroundObjectLine->value();
 }} {}
   }
+  Function {ShowLightLine()} {return_type bool
+  } {
+    code {{
+	return m_MenuItemLightLine->value();
+}} {}
+  }
   Function {ShowGridLine()} {return_type bool
   } {
     code {{
@@ -845,28 +875,28 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemAttributeGridLine->value();
 }} {}
   }
-  Function {ShowLightLayer()} {return_type bool
+  Function {ShowLight()} {return_type bool
   } {
     code {{
-	return m_MenuItemLightLayer->value();
+	return m_MenuItemShowLight->value();
 }} {}
   }
-  Function {ShowBaseTileLayer()} {return_type bool
+  Function {ShowTile()} {return_type bool
   } {
     code {{
-	return m_MenuItemBaseTileLayer->value();
+	return m_MenuItemShowTile->value();
 }} {}
   }
-  Function {ShowGroundObjectLayer()} {return_type bool
+  Function {ShowGroundObject()} {return_type bool
   } {
     code {{
-	return m_MenuItemGroundObjectLayer->value();
+	return m_MenuItemShowGroundObject->value();
 }} {}
   }
-  Function {ShowOverGroundObjectLayer()} {return_type bool
+  Function {ShowOverGroundObject()} {return_type bool
   } {
     code {{
-	return m_MenuItemOverGroundObjectLayer->value();
+	return m_MenuItemShowOverGroundObject->value();
 }} {}
   }
   Function {EnableEdit()} {return_type bool

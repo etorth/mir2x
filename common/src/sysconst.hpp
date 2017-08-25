@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 08/09/2017 23:52:27
+ *  Last Modified: 08/23/2017 11:35:28
  *
  *    Description: 
  *
@@ -34,10 +34,12 @@ const int SYS_DEFFPS = 30;
 const int SYS_TARGETRGN_GAPX = 10;
 const int SYS_TARGETRGN_GAPY = 8;
 
-const int SYS_MAPGRIDXP    = 48;
-const int SYS_MAPGRIDYP    = 32;
-const int SYS_OBJMAXW      = 48;
-const int SYS_OBJMAXH      = 96;
+const int SYS_MAPGRIDXP = 48;
+const int SYS_MAPGRIDYP = 32;
+
+const int SYS_OBJMAXW = 3;
+const int SYS_OBJMAXH = 8;
+
 const int SYS_MAXR         = 40;
 const int SYS_MAPVISIBLEW  = 60;
 const int SYS_MAPVISIBLEH  = 40;

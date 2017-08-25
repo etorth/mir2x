@@ -3,7 +3,7 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 08/21/2017 17:18:35
+ *  Last Modified: 08/24/2017 15:51:10
  *
  *    Description: 
  *
@@ -17,6 +17,7 @@
  *
  * =====================================================================================
  */
+
 #pragma once
 #include <cmath>
 #include <algorithm>
@@ -307,4 +308,68 @@ template<typename T> bool CircleTriangleOverlap(T nfCX, T nfCY, T nfCR, T nfX0, 
     // circle is in triangle <=> center point is in triangle
 
     return PointInTriangle(nfCX, nfCY, nfX0, nfY0, nfX1, nfY1, nfX2, nfY2);
+}
+
+inline bool LocateLineSegment(int nX, int nY, int nW, int nH, int *pX1, int *pY1, int *pX2, int *pY2)
+{
+    // Liang-Barsky clipping algorithm.
+    // https://github.com/smcameron/liang-barsky-in-c
+
+    if(true
+            && nW > 0
+            && nH > 0
+            && pX1
+            && pY1
+            && pX2
+            && pY2){
+
+        int nDX = *pX2 - *pX1;
+        int nDY = *pY2 - *pY1;
+
+        if(true
+                && nDX == 0
+                && nDY == 0
+                && PointInRectangle<int>(*pX1, *pY1, nX, nY, nW, nH)){
+            return true;
+        }
+
+        auto fnClipT = [](int nNum, int nDenom, double &ftE, double &ftL) -> bool
+        {
+            if(nDenom == 0){
+                return nNum < 0;
+            }else{
+                double fT = 1.0 * nNum / nDenom;
+                if(nDenom > 0){
+                    if(fT > ftL){ return false; }
+                    if(fT > ftE){ ftE = fT    ; }
+                }else{
+                    if(fT < ftE){ return false; }
+                    if(fT < ftL){ ftL = fT    ; }
+                }
+                return true;
+            }
+        };
+
+        double ftE = 0.0;
+        double ftL = 1.0;
+
+        if(true
+                && fnClipT( (nX - *pX1),           nDX, ftE, ftL)
+                && fnClipT(-(nX - *pX1) - nW + 1, -nDX, ftE, ftL)
+                && fnClipT( (nY - *pY1),           nDY, ftE, ftL)
+                && fnClipT(-(nY - *pY1) - nH + 1, -nDY, ftE, ftL)){
+
+            if(ftL < 1.0){
+                *pX2 = (int)(std::lround(*pX1 + ftL * nDX));
+                *pY2 = (int)(std::lround(*pY1 + ftL * nDY));
+            }
+
+            if(ftE > 0.0){
+                *pX1 += (int)(std::lround(ftE * nDX));
+                *pY1 += (int)(std::lround(ftE * nDY));
+            }
+            return true;
+        }
+    }
+    return false;
 }

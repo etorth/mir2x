@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/22/2017 01:23:02
+ *  Last Modified: 08/25/2017 11:55:39
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -96,10 +96,41 @@
 class EditorMap
 {
     private:
+        struct TileSelectConfig
+        {
+            bool Tile;
+
+            bool HasSelect() const
+            {
+                return Tile;
+            }
+        };
+
+        struct CellSelectConfig
+        {
+            bool Attribute;
+
+            bool Ground;
+            bool GroundObj;
+            bool OverGroundObj;
+
+            bool HasSelect() const
+            {
+                return false
+                    || Attribute
+                    || Ground
+                    || GroundObj
+                    || OverGroundObj;
+            }
+        };
+
+    private:
         struct stTile_t
         {
             bool     Valid;
             uint32_t Image;
+
+            TileSelectConfig SelectConf;
 
             uint32_t MakeU32() const
             {
@@ -185,8 +216,9 @@ class EditorMap
             stLight_t Light;
             stObj_t   Obj[2];
 
-            // rest for editor use only
-            bool SelectGround;
+            // used for editor only
+            // when export this field is ignored
+            CellSelectConfig SelectConf;
 
             // an cell is always valid
             // it may contains light and objects and indicated by ``Valid"
@@ -305,6 +337,7 @@ class EditorMap
         bool Resize(int, int, int, int, int, int, int, int);
 
     public:
+        bool Allocate(int, int);
         bool SaveMir2xMapData(const char *);
 
     public:
@@ -321,4 +354,7 @@ class EditorMap
         void SetBufLight (int, int);
         void SetBufGround(int, int);
         void SetBufObj   (int, int, int);
+
+    public:
+        EditorMap *ExportLayer();
 };

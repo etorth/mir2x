@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: drawarea.hpp
+ *       Filename: layereditarea.hpp
  *        Created: 07/26/2017 04:27:57
- *  Last Modified: 08/24/2017 22:23:40
+ *  Last Modified: 08/24/2017 15:56:29
  *
  *    Description:
  *
@@ -19,23 +19,10 @@
  */
 
 #pragma once
-#include <vector>
-#include <cstdint>
-#include <functional>
 #include "basearea.hpp"
 
-class DrawArea: public BaseArea
+class LayerEditArea: public BaseArea
 {
-    private:
-        enum FloatObjectType: int
-        {
-            FOTYPE_NONE = 0,
-            FOTYPE_TILE,
-            FOTYPE_OBJ0,
-            FOTYPE_OBJ1,
-            FOTYPE_MAX,
-        };
-
     private:
         int m_MouseX;
         int m_MouseY;
@@ -44,16 +31,14 @@ class DrawArea: public BaseArea
         int m_OffsetX;
         int m_OffsetY;
 
-    private:
-        std::shared_ptr<Fl_Image> m_LightImge;
+    public:
+        LayerEditArea(int, int, int, int);
 
     public:
-        DrawArea(int, int, int, int);
+        ~LayerEditArea() = default;
 
     public:
-        ~DrawArea() = default;
-
-    public:
+        // required overriding function
         void draw();
         int  handle(int);
 
@@ -61,12 +46,12 @@ class DrawArea: public BaseArea
         void SetOffset(int, bool, int, bool);
 
     public:
-        int OffsetX() const
+        int OffsetX()
         {
             return m_OffsetX;
         }
 
-        int OffsetY() const
+        int OffsetY()
         {
             return m_OffsetY;
         }
@@ -80,9 +65,26 @@ class DrawArea: public BaseArea
         void DrawAttributeGrid();
 
     private:
+        // TODO
+        // require drawarea is fully inside of window
+        // draw functions with margin cut-off, using *LayerEditArea* coordinates
+        // 1. not window coordinates
+        // 2. not map coordinates
+        //
+        // why not for window coordinates is easy
+        // why hot for map coordinates, since some line drawing will exceed the boundary
+        // if if want to support pre-defined object, the image would also exceeds.
+        void DrawImage(Fl_Image *, int, int);
+        void DrawImage(Fl_Image *, int, int, int, int, int, int);
+        void DrawLoop(int, int, int, int, int, int);
+        void DrawLine(int, int, int, int);
+        void DrawRectangle(int, int, int, int);
+        void DrawCircle(int, int, int);
+
+    private:
+        void DrawSelect();
         void DrawTextBox();
         void DrawTrySelect();
-        void DrawDoneSelect();
 
     private:
         void RhombusCoverOperation  (int, int, int, std::function<void(int, int)>);
@@ -90,15 +92,15 @@ class DrawArea: public BaseArea
         void AttributeCoverOperation(int, int, int, std::function<void(int, int)>);
 
     private:
-        void DrawTrySelectByTile();
+        void DrawSelectByTile();
         void DrawSelectByObjectIndex(int);
         void DrawSelectByObjectGround(bool);
 
     private:
-        void DrawTrySelectBySingle();
-        void DrawTrySelectByRhombus();
-        void DrawTrySelectByRectangle();
-        void DrawTrySelectByAttribute();
+        void DrawSelectBySingle();
+        void DrawSelectByRhombus();
+        void DrawSelectByRectangle();
+        void DrawSelectByAttribute();
 
     private:
         void AddSelect();
@@ -113,21 +115,27 @@ class DrawArea: public BaseArea
 
     private:
         bool LocateAnimation(int, int);
+        bool LocateLineSegment(int &, int &, int &, int &);
+        bool LocateGroundSubCell(int, int, int &, int &, int &);
+        void GetTriangleOnMap(int, int, int, int &, int &, int &, int &, int &, int &);
 
     public:
         void SetScrollBar();
 
     public:
+        void DrawRUC(int, int, bool);
+
+    public:
         void DrawFloatObject(int, int, int, int, int);
 
     public:
+        void DrawImageCover(Fl_Image *, int, int, int, int);
+
+    public:
         Fl_Image *RetrievePNG(uint8_t, uint16_t);
+        Fl_Image *CreateRectImage(int, int, uint32_t);
         Fl_Image *CreateRoundImage(int, uint32_t);
 
     protected:
         void DrawDoneSelectByObject(bool);
-        void DrawDoneSelectByAttribute();
-
-    protected:
-        void FillMapGrid(int, int, int, int, uint32_t);
 };

@@ -1,0 +1,190 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0303 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include <string>} {private local
+} 
+
+decl {\#include <cstdint>} {private local
+} 
+
+decl {\#include <cstring>} {private local
+} 
+
+decl {\#include "editormap.hpp"} {public global
+} 
+
+decl {\#include "layereditorwindow.hpp"} {private local
+} 
+
+class LayerBrowserWindow {open
+} {
+  Function {LayerBrowserWindow()} {open
+  } {
+    Fl_Window m_Window {open
+      private xywh {171 262 555 605} type Double labelfont 4
+      code0 {\#include <FL/fl_ask.H>} visible
+    } {
+      Fl_Menu_Bar m_MenuBar {
+        private xywh {0 0 600 20} box FLAT_BOX labelfont 4 textfont 4
+      } {
+        Submenu {} {
+          label Layer
+          xywh {0 0 62 20} labelfont 4
+        } {
+          MenuItem {} {
+            label {Merge        }
+            callback {{
+    // export all selected layers to the editor
+    extern LayerEditorWindow *g_LayerEditorWindow;
+    g_LayerEditorWindow->ShowAll();
+}}
+            xywh {0 0 30 20} labelfont 4 divider
+            code0 {\#include "layereditorwindow.hpp"}
+          }
+          MenuItem {} {
+            label Export
+            xywh {0 0 30 20} labelfont 4
+          }
+          MenuItem {} {
+            label {Export All}
+            xywh {10 10 30 20} labelfont 4 divider
+          }
+          MenuItem {} {
+            label Exit
+            xywh {0 0 30 20} labelfont 4
+          }
+        }
+        Submenu {} {
+          label Import
+          xywh {10 10 62 20} labelfont 4
+        } {
+          MenuItem m_MenuItemImportAttribute {
+            label {Attribute              }
+            xywh {10 10 30 20} type Toggle labelfont 4
+          }
+          MenuItem m_MenuItemImportLight {
+            label Light
+            xywh {20 20 30 20} type Toggle labelfont 4
+          }
+          MenuItem m_MenuItemImportTile {
+            label Tile
+            xywh {10 10 30 20} type Toggle labelfont 4
+          }
+          MenuItem m_MenuItemImportGroundObject {
+            label {Ground Object}
+            xywh {20 20 30 20} type Toggle labelfont 4
+          }
+          MenuItem m_MenuItemImportOverGroundObject {
+            label {Over Ground Object}
+            xywh {10 10 30 20} type Toggle labelfont 4 divider
+          }
+          MenuItem {} {
+            label Import
+            callback {{
+    // get data from editor map
+    extern EditorMap g_EditorMap;
+    auto pEditorMap = g_EditorMap.ExportLayer();
+    AddEntry(pEditorMap);
+}}
+            xywh {20 20 30 20} shortcut 0x40069 labelfont 4
+          }
+        }
+      }
+      Fl_Browser m_Browser {
+        callback {{
+    // open current layer when clicking
+    // if more than one entries selected only open first one
+    if(Fl::event_clicks()){
+        extern LayerEditorWindow *g_LayerEditorWindow;
+        g_LayerEditorWindow->ShowAll();
+        g_LayerEditorWindow->RedrawAll();
+    }
+}} selected
+        private xywh {0 20 555 570} type Hold labelfont 4 textfont 4
+      }
+      Fl_Box m_StatusBar {
+        xywh {0 590 555 15} labelfont 4 labelsize 10 align 20
+      }
+    }
+    code {{
+	// give an initial value of status bar
+	StatusBarMessage("Version 0.0.1");
+}} {}
+  }
+  Function {ShowAll()} {return_type void
+  } {
+    code {{
+	m_Window->show();
+}} {}
+  }
+  Function {StatusBarMessage(const char *szMessage)} {return_type void
+  } {
+    code {{
+        if(true
+                && szMessage
+                && std::strlen(szMessage)){
+            m_StatusBar->copy_label(szMessage);
+        }else{
+            m_StatusBar->copy_label("Version: 0.0.1");
+        }
+        m_StatusBar->redraw();
+        m_Window->redraw();
+}} {}
+  }
+  Function {AddEntry(EditorMap *pEditorMap)} {return_type void
+  } {
+    code {{
+    // add an entry to the browser
+    // update the tatus bar and redraw
+    if(pEditorMap){
+        char szEntry[1024];
+        std::sprintf(szEntry, "layer: %d x %d", (int)(pEditorMap->W()), (int)(pEditorMap->H()));
+
+        m_Browser->add(szEntry, pEditorMap);
+    }
+    m_Window->redraw();
+}} {}
+  }
+  Function {ImportAttribute()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemImportAttribute->value();
+}} {}
+  }
+  Function {ImportLight()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemImportLight->value();
+}} {}
+  }
+  Function {ImportTile()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemImportTile->value();
+}} {}
+  }
+  Function {ImportObject(bool bGround)} {return_type bool
+  } {
+    code {{
+    if(bGround){
+        return m_MenuItemImportGroundObject->value();
+    }else{
+        return m_MenuItemImportOverGroundObject->value();
+    }
+}} {}
+  }
+  Function {GetLayer()} {return_type {EditorMap *}
+  } {
+    code {{
+    // export current focused layer
+    // if select more than one layer return fisrt layer
+    for(int nIndex = 1; nIndex <= m_Browser->size(); ++nIndex){
+        if(m_Browser->selected(nIndex)){
+            return (EditorMap *)(m_Browser->data(nIndex));
+        }
+    }
+    return nullptr;
+}} {}
+  }
+} 
