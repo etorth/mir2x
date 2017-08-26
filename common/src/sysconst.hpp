@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 08/23/2017 11:35:28
+ *  Last Modified: 08/25/2017 17:09:12
  *
  *    Description: 
  *
@@ -38,7 +38,7 @@ const int SYS_MAPGRIDXP = 48;
 const int SYS_MAPGRIDYP = 32;
 
 const int SYS_OBJMAXW = 3;
-const int SYS_OBJMAXH = 8;
+const int SYS_OBJMAXH = 15;
 
 const int SYS_MAXR         = 40;
 const int SYS_MAPVISIBLEW  = 60;

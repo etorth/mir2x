@@ -3,7 +3,7 @@
  *
  *       Filename: layereditarea.hpp
  *        Created: 07/26/2017 04:27:57
- *  Last Modified: 08/24/2017 15:56:29
+ *  Last Modified: 08/25/2017 16:35:15
  *
  *    Description:
  *
@@ -21,6 +21,7 @@
 #pragma once
 #include "basearea.hpp"
 
+class EditorMap;
 class LayerEditArea: public BaseArea
 {
     private:
@@ -65,23 +66,6 @@ class LayerEditArea: public BaseArea
         void DrawAttributeGrid();
 
     private:
-        // TODO
-        // require drawarea is fully inside of window
-        // draw functions with margin cut-off, using *LayerEditArea* coordinates
-        // 1. not window coordinates
-        // 2. not map coordinates
-        //
-        // why not for window coordinates is easy
-        // why hot for map coordinates, since some line drawing will exceed the boundary
-        // if if want to support pre-defined object, the image would also exceeds.
-        void DrawImage(Fl_Image *, int, int);
-        void DrawImage(Fl_Image *, int, int, int, int, int, int);
-        void DrawLoop(int, int, int, int, int, int);
-        void DrawLine(int, int, int, int);
-        void DrawRectangle(int, int, int, int);
-        void DrawCircle(int, int, int);
-
-    private:
         void DrawSelect();
         void DrawTextBox();
         void DrawTrySelect();
@@ -123,19 +107,12 @@ class LayerEditArea: public BaseArea
         void SetScrollBar();
 
     public:
-        void DrawRUC(int, int, bool);
-
-    public:
-        void DrawFloatObject(int, int, int, int, int);
-
-    public:
-        void DrawImageCover(Fl_Image *, int, int, int, int);
-
-    public:
         Fl_Image *RetrievePNG(uint8_t, uint16_t);
-        Fl_Image *CreateRectImage(int, int, uint32_t);
         Fl_Image *CreateRoundImage(int, uint32_t);
 
     protected:
         void DrawDoneSelectByObject(bool);
+
+    protected:
+        EditorMap *GetLayer();
 };

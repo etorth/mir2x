@@ -95,11 +95,14 @@ class LayerBrowserWindow {open
         callback {{
     // open current layer when clicking
     // if more than one entries selected only open first one
+    extern LayerEditorWindow *g_LayerEditorWindow;
     if(Fl::event_clicks()){
-        extern LayerEditorWindow *g_LayerEditorWindow;
         g_LayerEditorWindow->ShowAll();
-        g_LayerEditorWindow->RedrawAll();
     }
+    
+    // always issue redraw
+    // because editor window always show focused item
+    g_LayerEditorWindow->RedrawAll();
 }} selected
         private xywh {0 20 555 570} type Hold labelfont 4 textfont 4
       }

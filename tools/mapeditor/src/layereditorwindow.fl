@@ -7,15 +7,16 @@ decl {\#include "layereditarea.hpp"} {public global
 
 class LayerEditorWindow {open
 } {
-  Function {LayerEditorWindow()} {} {
+  Function {LayerEditorWindow()} {open
+  } {
     Fl_Window m_Window {open
       xywh {58 174 800 600} type Double visible
     } {
-      Fl_Menu_Bar {} {
+      Fl_Menu_Bar {} {open selected
         xywh {0 0 800 25} box THIN_UP_BOX labelfont 4
       } {
         Submenu {} {
-          label Layer
+          label Project
           xywh {0 0 70 20} labelfont 4
         } {
           MenuItem {} {
@@ -49,12 +50,61 @@ class LayerEditorWindow {open
           }
         }
         Submenu {} {
-          label Show
+          label Layer open
           xywh {10 10 70 20} labelfont 4
         } {
-          MenuItem m_MenuItemBackground {
-            label {Clear Background}
+          MenuItem m_MenuItemDrawAttribute {
+            label {Attribute              }
             xywh {10 10 36 20} type Toggle labelfont 4
+          }
+          MenuItem m_MenuItemDrawLight {
+            label Light
+            xywh {20 20 36 20} type Toggle value 1 labelfont 4
+          }
+          MenuItem m_MenuItemDrawTile {
+            label Tile
+            xywh {30 30 36 20} type Toggle value 1 labelfont 4
+          }
+          MenuItem m_MenuItemDrawGroundObject {
+            label {Ground Object}
+            xywh {40 40 36 20} type Toggle value 1 labelfont 4
+          }
+          MenuItem m_MenuItemDrawOverGroundObject {
+            label {Over Ground Object}
+            xywh {50 50 36 20} type Toggle value 1 labelfont 4 divider
+          }
+          MenuItem m_MenuItemClearBackground {
+            label {Clear Background}
+            xywh {40 40 36 20} type Toggle value 1 labelfont 4
+          }
+        }
+        Submenu {} {
+          label Lines open
+          xywh {20 20 70 20} labelfont 4
+        } {
+          MenuItem m_MenuItemDrawGridLine {
+            label {Grid                }
+            xywh {30 30 36 20} type Toggle labelfont 4
+          }
+          MenuItem m_MenuItemDrawAttributeLine {
+            label {Attribute              }
+            xywh {20 20 36 20} type Toggle labelfont 4 divider
+          }
+          MenuItem m_MenuItemDrawLightLine {
+            label Light
+            xywh {30 30 36 20} type Toggle labelfont 4
+          }
+          MenuItem m_MenuItemDrawTileLine {
+            label Tile
+            xywh {40 40 36 20} type Toggle labelfont 4
+          }
+          MenuItem m_MenuItemDrawGroundObjectLine {
+            label {Ground Object}
+            xywh {50 50 36 20} type Toggle labelfont 4
+          }
+          MenuItem m_MenuItemDrawOverGroundObjectLine {
+            label {Over Ground Object}
+            xywh {60 60 36 20} type Toggle labelfont 4
           }
         }
       }
@@ -74,7 +124,7 @@ class LayerEditorWindow {open
   Function {ClearBackground()} {return_type bool
   } {
     code {{
-    return m_MenuItemBackground->value();
+    return m_MenuItemClearBackground->value();
 }} {}
   }
   Function {AddBottomLog(const char *szLog)} {return_type void
@@ -102,6 +152,68 @@ class LayerEditorWindow {open
   } {
     code {{
     m_Window->redraw();
+}} {}
+  }
+  Function {DrawAttribute()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemDrawAttribute->value();
+}} {}
+  }
+  Function {DrawLight()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemDrawLight->value();
+}} {}
+  }
+  Function {DrawTile()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemDrawTile->value();
+}} {}
+  }
+  Function {DrawObject(bool bGround)} {return_type bool
+  } {
+    code {{
+    if(bGround){
+        return m_MenuItemDrawGroundObject->value();
+    }else{
+        return m_MenuItemDrawOverGroundObject->value();
+    }
+}} {}
+  }
+  Function {DrawGridLine()} {open return_type bool
+  } {
+    code {{
+    return m_MenuItemDrawGridLine->value();
+}} {}
+  }
+  Function {DrawAttributeLine()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemDrawAttributeLine->value();
+}} {}
+  }
+  Function {DrawLightLine()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemDrawLightLine->value();
+}} {}
+  }
+  Function {DrawTileLine()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemDrawTileLine->value();
+}} {}
+  }
+  Function {DrawObjectLine(bool bGround)} {return_type bool
+  } {
+    code {{
+    if(bGround){
+        return m_MenuItemDrawGroundObjectLine->value();
+    }else{
+        return m_MenuItemDrawOverGroundObjectLine->value();
+    }
 }} {}
   }
 } 

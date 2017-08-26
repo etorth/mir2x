@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 07/26/2017 04:27:57
- *  Last Modified: 08/25/2017 14:19:07
+ *  Last Modified: 08/25/2017 16:27:15
  *
  *    Description:
  *
@@ -684,7 +684,7 @@ void DrawArea::SetOffset(int nX, bool bRelativeX, int nY, bool bRelativeY)
 
 int DrawArea::handle(int nEvent)
 {
-    auto nRet = Fl_Box::handle(nEvent);
+    auto nRet = BaseArea::handle(nEvent);
 
     // can't find resize event
     // put it here as a hack and check it every time
