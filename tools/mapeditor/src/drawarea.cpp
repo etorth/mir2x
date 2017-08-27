@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 07/26/2017 04:27:57
- *  Last Modified: 08/25/2017 16:27:15
+ *  Last Modified: 08/26/2017 23:07:02
  *
  *    Description:
  *
@@ -545,9 +545,22 @@ void DrawArea::DrawObject(bool bGround)
                 //
                 // int nStartX = nXCnt * SYS_MAPGRIDXP - 200;
                 // int nStartY = nYCnt * SYS_MAPGRIDYP - 157 + SYS_MAPGRIDYP - pImage->h();
-                int nStartX = nXCnt * SYS_MAPGRIDXP - m_OffsetX;
-                int nStartY = nYCnt * SYS_MAPGRIDYP + SYS_MAPGRIDYP - pImage->h() - m_OffsetY;
+
+                int nStartX = -1;
+                int nStartY = -1;
+
+                if(false
+                        || (pImage->w() == 1 * SYS_MAPGRIDXP && pImage->h() == 1 * SYS_MAPGRIDYP)
+                        || (pImage->w() == 2 * SYS_MAPGRIDXP && pImage->h() == 2 * SYS_MAPGRIDYP)){
+                    nStartX = nXCnt * SYS_MAPGRIDXP - m_OffsetX;
+                    nStartY = nYCnt * SYS_MAPGRIDYP - m_OffsetY;
+                }else{
+                    nStartX = nXCnt * SYS_MAPGRIDXP - m_OffsetX;
+                    nStartY = nYCnt * SYS_MAPGRIDYP + SYS_MAPGRIDYP - pImage->h() - m_OffsetY;
+                }
+
                 DrawImage(pImage, nStartX, nStartY);
+
                 extern MainWindow *g_MainWindow;
                 if(bGround){
                     if(g_MainWindow->ShowGroundObjectLine()){
@@ -702,6 +715,28 @@ int DrawArea::handle(int nEvent)
         m_MouseY    = Fl::event_y();
 
         switch(nEvent){
+            case FL_FOCUS:
+            case FL_UNFOCUS:
+                {
+                    nRet = 1;
+                    break;
+                }
+            case FL_KEYDOWN:
+                {
+                    int nDX = 0;
+                    int nDY = 0;
+                    switch(Fl::event_key()){
+                        case FL_Up   : { nDY = -1; break; }
+                        case FL_Down : { nDY =  1; break; }
+                        case FL_Left : { nDX = -1; break; }
+                        case FL_Right: { nDX =  1; break; }
+                        default      : {           break; }
+                    }
+
+                    SetOffset(nDX * SYS_MAPGRIDXP, true, nDY * SYS_MAPGRIDYP, true);
+                    SetScrollBar();
+                    break;
+                }
             case FL_MOUSEWHEEL:
                 {
                     int nDX = Fl::event_dx() * SYS_MAPGRIDXP;

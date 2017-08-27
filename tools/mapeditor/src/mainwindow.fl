@@ -80,7 +80,7 @@ class MainWindow {open
 }} open
       xywh {534 259 985 665} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {selected
+      Fl_Box m_DrawArea {
         xywh {0 20 965 627} labelfont 4 resizable
         class DrawArea
       }
@@ -655,6 +655,15 @@ if(g_EditorMap.Valid()){
         xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001 deactivate
         code0 {\#include "editormap.hpp"}
       }
+    }
+    code {{
+    // set slider size
+    // current the fluid can set the slider_size
+    // but when parsing it, it complains ``unknown property: slider_size"
+    
+    ((Fl_Slider *)(m_VSBar))->slider_size(0.08);
+    ((Fl_Slider *)(m_SBar ))->slider_size(0.08);
+}} {selected
     }
   }
   Function {ShowAll()} {return_type void
