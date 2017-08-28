@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/25/2017 11:53:57
+ *  Last Modified: 08/28/2017 01:46:28
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -60,11 +60,10 @@ void EditorMap::ExtractOneTile(int nX, int nY, std::function<void(uint8_t, uint1
             &&  ValidC(nX, nY)
             && !(nX % 2)
             && !(nY % 2)
-            &&  m_BlockBuf[nX / 2][nY / 2].Tile.Valid){
+            &&  Tile(nX, nY).Valid){
 
-        auto nFileIndex  = (uint8_t )((m_BlockBuf[nX / 2][nY / 2].Tile.Image & 0X00FF0000) >> 16);
-        auto nImageIndex = (uint16_t)((m_BlockBuf[nX / 2][nY / 2].Tile.Image & 0X0000FFFF) >>  0);
-
+        auto nFileIndex  = (uint8_t )((Tile(nX, nY).Image & 0X00FF0000) >> 16);
+        auto nImageIndex = (uint16_t)((Tile(nX, nY).Image & 0X0000FFFF) >>  0);
         fnWritePNG(nFileIndex, nImageIndex);
     }
 }
@@ -88,7 +87,7 @@ void EditorMap::DrawLight(int nX, int nY, int nW, int nH, std::function<void(int
         for(int nTX = 0; nTX < nW; ++nTX){
             for(int nTY = 0; nTY < nH; ++nTY){
                 if(ValidC(nTX + nX, nTY + nY)){
-                    auto &rstLight = m_BlockBuf[(nTX + nX) / 2][(nTY + nY) / 2].Cell[(nTX + nX) % 2][(nTY + nY) % 2].Light;
+                    auto &rstLight = Light(nTX + nX, nTY + nY);
                     if(rstLight.Valid){
                         fnDrawLight(nTX + nX, nTY + nY);
                     }
@@ -111,12 +110,12 @@ void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH, std::function<void
                     continue;
                 }
 
-                if(!m_BlockBuf[nX / 2][nY / 2].Tile.Valid){
+                if(!Tile(nX, nY).Valid){
                     continue;
                 }
 
-                auto nFileIndex  = (uint8_t )((m_BlockBuf[nX / 2][nY / 2].Tile.Image & 0X00FF0000) >> 16);
-                auto nImageIndex = (uint16_t)((m_BlockBuf[nX / 2][nY / 2].Tile.Image & 0X0000FFFF) >>  0);
+                auto nFileIndex  = (uint8_t )((Tile(nX, nY).Image & 0X00FF0000) >> 16);
+                auto nImageIndex = (uint16_t)((Tile(nX, nY).Image & 0X0000FFFF) >>  0);
 
                 // provide cell-coordinates on map
                 // fnDrawTile should convert it to drawarea pixel-coordinates
@@ -134,7 +133,7 @@ void EditorMap::ExtractOneObject(int nXCnt, int nYCnt, int nIndex, std::function
             && nIndex >= 0
             && nIndex <= 1){
 
-        auto &rstObj = m_BlockBuf[nXCnt / 2][nYCnt / 2].Cell[nXCnt % 2][nYCnt % 2].Obj[nIndex];
+        auto &rstObj = Object(nXCnt, nYCnt, nIndex);
         if(rstObj.Valid){
             auto nFileIndex  = (uint8_t )((rstObj.Image & 0X00FF0000) >> 16);
             auto nImageIndex = (uint16_t)((rstObj.Image & 0X0000FFFF) >>  0);
@@ -174,7 +173,7 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
                 // 2. regular draw
                 if(ValidC(nX, nY)){
                     for(int nIndex = 0; nIndex < 2; ++nIndex){
-                        auto &rstObj = m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Obj[nIndex];
+                        auto &rstObj = Object(nX, nY, nIndex);
                         if(true
                                 && rstObj.Valid
                                 && rstObj.Ground == bGround){
@@ -431,13 +430,13 @@ void EditorMap::SetBufTile(int nX, int nY)
         if(m_Mir2Map && m_Mir2Map->Valid()){
             extern ImageDB g_ImageDB;
             if(m_Mir2Map->TileValid(nX, nY, g_ImageDB)){
-                m_BlockBuf[nX / 2][nY / 2].Tile.Valid = true;
-                m_BlockBuf[nX / 2][nY / 2].Tile.Image = m_Mir2Map->Tile(nX, nY) & 0X00FFFFFF;
+                Tile(nX, nY).Valid = true;
+                Tile(nX, nY).Image = m_Mir2Map->Tile(nX, nY) & 0X00FFFFFF;
             }
         }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
             if(m_Mir2xMapData->Tile(nX, nY).Param & 0X80000000){
-                m_BlockBuf[nX / 2][nY / 2].Tile.Valid = true;
-                m_BlockBuf[nX / 2][nY / 2].Tile.Image = m_Mir2xMapData->Tile(nX, nY).Param & 0X00FFFFFF;
+                Tile(nX, nY).Valid = true;
+                Tile(nX, nY).Image = m_Mir2xMapData->Tile(nX, nY).Param & 0X00FFFFFF;
             }
         }
     }
@@ -469,9 +468,9 @@ void EditorMap::SetBufGround(int nX, int nY)
             nAttribute = (nLandByte & 0X3F);
         }
 
-        m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].CanFly    = bCanFly;
-        m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].CanWalk   = bCanWalk;
-        m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].LandType = nAttribute;
+        Cell(nX, nY).CanFly    = bCanFly;
+        Cell(nX, nY).CanWalk   = bCanWalk;
+        Cell(nX, nY).LandType = nAttribute;
     }
 }
 
@@ -552,13 +551,13 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
             }
         }
 
-        m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Obj[nIndex].Valid    = bObjValid;
-        m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Obj[nIndex].Alpha    = bAlphaObj;
-        m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Obj[nIndex].Ground   = bGroundObj;
-        m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Obj[nIndex].Animated = bAniObj;
-        m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Obj[nIndex].AniType  = nAniType;
-        m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Obj[nIndex].AniCount = nAniCount;
-        m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Obj[nIndex].Image    = nObj;
+        Object(nX, nY, nIndex).Valid    = bObjValid;
+        Object(nX, nY, nIndex).Alpha    = bAlphaObj;
+        Object(nX, nY, nIndex).Ground   = bGroundObj;
+        Object(nX, nY, nIndex).Animated = bAniObj;
+        Object(nX, nY, nIndex).AniType  = nAniType;
+        Object(nX, nY, nIndex).AniCount = nAniCount;
+        Object(nX, nY, nIndex).Image    = nObj;
     }
 }
 
@@ -573,18 +572,18 @@ void EditorMap::SetBufLight(int nX, int nY)
 
         if(m_Mir2Map && m_Mir2Map->Valid()){
             if(m_Mir2Map->LightValid(nX, nY)){
-                m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Light.Valid  = true;
-                m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Light.Color  = 0;
-                m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Light.Alpha  = 0;
-                m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Light.Radius = 0;
+                Light(nX, nY).Valid  = true;
+                Light(nX, nY).Color  = 0;
+                Light(nX, nY).Alpha  = 0;
+                Light(nX, nY).Radius = 0;
             }
         }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
             auto nLightByte = m_Mir2xMapData->Cell(nX, nY).LightByte();
             if(nLightByte & 0X80){
-                m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Light.Valid  = true;
-                m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Light.Color  = 0;
-                m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Light.Alpha  = 0;
-                m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2].Light.Radius = 0;
+                Light(nX, nY).Valid  = true;
+                Light(nX, nY).Color  = 0;
+                Light(nX, nY).Alpha  = 0;
+                Light(nX, nY).Radius = 0;
             }
         }
     }
@@ -754,44 +753,76 @@ void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int, b
 
 EditorMap *EditorMap::ExportLayer()
 {
-    if(Valid()){
-        bool bHasSelect = false;
+    if(true
+            &&  Valid()
+            && !(W() % 2)
+            && !(H() % 2)){
+
+        int nX0 =  W();
+        int nY0 =  H();
+        int nX1 = -1;
+        int nY1 = -1;
+
+        auto pEditorMap = new EditorMap();
+        pEditorMap->Allocate(W(), H());
+
+        auto fnExtend = [&nX0, &nY0, &nX1, &nY1](int nX, int nY)
+        {
+            nX0 = std::min<int>(nX0, nX);
+            nY0 = std::min<int>(nY0, nY);
+            nX1 = std::max<int>(nX1, nX);
+            nY1 = std::max<int>(nY1, nY);
+        };
+
+        extern LayerBrowserWindow *g_LayerBrowserWindow;
         for(int nX = 0; nX < W(); ++nX){
             for(int nY = 0; nY < H(); ++nY){
-                if(false
-                        || Tile(nX, nY).SelectConf.HasSelect()
-                        || Cell(nX, nY).SelectConf.HasSelect()){
-                    bHasSelect = true;
-                    goto __done_find_select;
+
+                // 1. tile
+                if(g_LayerBrowserWindow->ImportTile()){
+                    if(true
+                            && !(nX % 2)
+                            && !(nY % 2)){
+                        auto &rstTile = Tile(nX, nY);
+                        if(true
+                                && rstTile.Valid
+                                && rstTile.SelectConf.Tile){
+                            pEditorMap->Tile(nX, nY) = rstTile;
+                            fnExtend(nX, nY);
+                        }
+                    }
                 }
-            }
-        }
 
-__done_find_select:
-        if(bHasSelect){
-            int nX0 =  W();
-            int nY0 =  H();
-            int nX1 = -1;
-            int nY1 = -1;
-
-            extern LayerBrowserWindow *g_LayerBrowserWindow;
-            if(g_LayerBrowserWindow->ImportObject(false)){
-                for(int nX = 0; nX < W(); ++nX){
-                    for(int nY = 0; nY < H(); ++nY){
+                // 2. object, two layers
+                for(int bGroundObj = 0; bGroundObj < 2; ++bGroundObj){
+                    if(g_LayerBrowserWindow->ImportObject((bool)(bGroundObj))){
                         for(int nIndex = 0; nIndex < 2; ++nIndex){
-                            if(true
-                                    &&  Object(nX, nY, nIndex).Valid
-                                    && !Object(nX, nY, nIndex).Ground
-                                    &&  Cell(nX, nY).SelectConf.OverGroundObj){
-                                nX0 = std::min<int>(nX0, nX);
-                                nY0 = std::min<int>(nY0, nY);
-                                nX1 = std::max<int>(nX1, nX);
-                                nY1 = std::max<int>(nY1, nY);
+                            auto &rstCell = Cell(nX, nY);
+                            if(rstCell.Obj[nIndex].Valid){
+                                if(false
+                                        || ( bGroundObj &&  rstCell.Obj[nIndex].Ground && rstCell.SelectConf.GroundObj)
+                                        || (!bGroundObj && !rstCell.Obj[nIndex].Ground && rstCell.SelectConf.OverGroundObj)){
+
+                                    for(int nValidSlotIndex = 0; nValidSlotIndex < 2; ++nValidSlotIndex){
+                                        if(!pEditorMap->Object(nX, nY, nValidSlotIndex).Valid){
+                                            pEditorMap->Object(nX, nY, nValidSlotIndex) = rstCell.Obj[nIndex];
+                                            fnExtend(nX, nY);
+                                            break;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
+
+                // 3. light
             }
+        }
+
+        if(true
+                && ValidC(nX0, nY0)
+                && ValidC(nX1, nY1)){
 
             nX0 = (nX0 / 2) * 2;
             nY0 = (nY0 / 2) * 2;
@@ -799,33 +830,14 @@ __done_find_select:
             int nW = ((nX1 - nX0 + 1 + 1) / 2) * 2;
             int nH = ((nY1 - nY0 + 1 + 1) / 2) * 2;
 
-            if(true
-                    && ValidC(nX0, nY0)
-                    && ValidC(nX0 + nW - 1, nY0 + nH - 1)){
-                auto pEditorMap = new EditorMap();
-                pEditorMap->Allocate(nW, nH);
-
-                extern LayerBrowserWindow *g_LayerBrowserWindow;
-                if(g_LayerBrowserWindow->ImportObject(false)){
-                    for(int nX = 0; nX < nW; ++nX){
-                        for(int nY = 0; nY < nH; ++nY){
-                            for(int nIndex = 0; nIndex < 2; ++nIndex){
-                                auto &rstSrcObj = Object(nX0 + nX, nY0 + nY, nIndex);
-                                if(true
-                                        &&  rstSrcObj.Valid
-                                        && !rstSrcObj.Ground){
-                                    if(!pEditorMap->Object(nX, nY, 0).Valid){ pEditorMap->Object(nX, nY, 0) = rstSrcObj; continue; }
-                                    if(!pEditorMap->Object(nX, nY, 1).Valid){ pEditorMap->Object(nX, nY, 1) = rstSrcObj; continue; }
-                                }
-                            }
-                        }
-                    }
-                }
-
+            if(pEditorMap->Resize(nX0, nY0, nW, nH, 0, 0, nW, nH)){
                 return pEditorMap;
             }
         }
+
+        delete pEditorMap; pEditorMap = nullptr;
     }
+
     return nullptr;
 }
 

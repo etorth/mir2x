@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 07/26/2017 04:27:57
- *  Last Modified: 08/26/2017 23:07:02
+ *  Last Modified: 08/27/2017 23:41:53
  *
  *    Description:
  *
@@ -62,9 +62,9 @@ void DrawArea::draw()
     extern EditorMap g_EditorMap;
     if(g_EditorMap.Valid()){
         DrawTile();
-        DrawAttributeGrid();
         DrawObject(true);
         DrawObject(false);
+        DrawAttributeGrid();
 
         DrawLight();
         DrawGrid();
@@ -925,7 +925,13 @@ void DrawArea::AddSelect()
         AddSelectByAttribute();
     }
 
-    AddSelectByObject(false);
+    if(g_MainWindow->SelectByObjectGround()){
+        AddSelectByObject(true);
+    }
+
+    if(g_MainWindow->SelectByObjectOverGround()){
+        AddSelectByObject(false);
+    }
 }
 
 void DrawArea::AttributeCoverOperation(int nMouseXOnMap, int nMouseYOnMap, int nSize, std::function<void(int, int)> fnOperation)
