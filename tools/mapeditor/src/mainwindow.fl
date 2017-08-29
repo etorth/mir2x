@@ -78,9 +78,9 @@ class MainWindow {open
 		default :          break;
 	}
 }} open
-      xywh {534 259 985 665} type Double resizable visible
+      xywh {824 107 985 665} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {
+      Fl_Box m_DrawArea {selected
         xywh {0 20 965 627} labelfont 4 resizable
         class DrawArea
       }
@@ -490,7 +490,7 @@ fl_alert("%s", "Haven't implement yet!");}
           }
           MenuItem m_MenuItemSelectByRectangle {
             label Rectangle
-            xywh {70 70 30 20} type Radio labelfont 4
+            xywh {70 70 30 20} type Radio labelfont 4 divider
           }
           MenuItem m_MenuItemSelectByAttribute {
             label Attribute
@@ -500,7 +500,7 @@ fl_alert("%s", "Haven't implement yet!");}
 		g_AttributeSelectWindow->ShowAll();
 	}
 }}
-            xywh {30 30 30 20} type Radio labelfont 4
+            xywh {30 30 30 20} type Radio value 1 labelfont 4
             code0 {\#include "attributeselectwindow.hpp"}
           }
           MenuItem m_MenuItemSelectByTile {
@@ -508,11 +508,11 @@ fl_alert("%s", "Haven't implement yet!");}
             xywh {40 40 30 20} type Radio labelfont 4
           }
           MenuItem m_MenuItemSelectByObjectGround {
-            label {Object Ground}
+            label {Ground Object}
             xywh {50 50 30 20} type Radio labelfont 4
           }
           MenuItem m_MenuItemSelectByObjectOverGround {
-            label {Object Over Ground}
+            label {Over Ground Object}
             xywh {60 60 30 20} type Radio labelfont 4 divider
           }
           MenuItem m_MenuItemReversed {
@@ -539,7 +539,38 @@ if(g_SelectSettingWindow){
           xywh {0 0 70 20} labelfont 4
         } {
           MenuItem {} {
-            label {Show Browser      }
+            label {Import Layer           }
+            xywh {40 40 30 20} labelfont 4
+            code0 {\#include "layerbrowserwindow.hpp"}
+          }
+          MenuItem {} {
+            label {Export Layer}
+            callback {{
+    // show the layer browser window
+    // it may or may not hide when click it
+    extern LayerBrowserWindow *g_LayerBrowserWindow;
+    g_LayerBrowserWindow->ShowAll();
+}}
+            xywh {50 50 30 20} labelfont 4 divider
+            code0 {\#include "layerbrowserwindow.hpp"}
+          }
+          MenuItem {} {
+            label Reject
+            xywh {50 50 30 20} type Radio value 1 labelfont 4
+            code0 {\#include "layerbrowserwindow.hpp"}
+          }
+          MenuItem {} {
+            label Replace
+            xywh {60 60 30 20} type Radio labelfont 4
+            code0 {\#include "layerbrowserwindow.hpp"}
+          }
+          MenuItem {} {
+            label Substitute
+            xywh {70 70 30 20} type Radio labelfont 4 divider
+            code0 {\#include "layerbrowserwindow.hpp"}
+          }
+          MenuItem {} {
+            label {Layer Browser}
             callback {{
     // show the layer browser window
     // it may or may not hide when click it
@@ -663,8 +694,7 @@ if(g_EditorMap.Valid()){
     
     ((Fl_Slider *)(m_VSBar))->slider_size(0.08);
     ((Fl_Slider *)(m_SBar ))->slider_size(0.08);
-}} {selected
-    }
+}} {}
   }
   Function {ShowAll()} {return_type void
   } {
@@ -896,16 +926,14 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemShowTile->value();
 }} {}
   }
-  Function {ShowGroundObject()} {return_type bool
+  Function {ShowObject(bool bGround)} {return_type bool
   } {
     code {{
-	return m_MenuItemShowGroundObject->value();
-}} {}
-  }
-  Function {ShowOverGroundObject()} {return_type bool
-  } {
-    code {{
-	return m_MenuItemShowOverGroundObject->value();
+    if(bGround){
+        return m_MenuItemShowGroundObject->value();
+    }else{
+        return m_MenuItemShowOverGroundObject->value();
+    }
 }} {}
   }
   Function {EnableEdit()} {return_type bool
@@ -956,16 +984,14 @@ if(g_EditorMap.Valid()){
 	return m_MenuItemSelectByTile->value();
 }} {}
   }
-  Function {SelectByObjectGround()} {return_type bool
+  Function {SelectByObject(bool bGround)} {return_type bool
   } {
     code {{
-	return m_MenuItemSelectByObjectGround->value();
-}} {}
-  }
-  Function {SelectByObjectOverGround()} {return_type bool
-  } {
-    code {{
-	return m_MenuItemSelectByObjectOverGround->value();
+    if(bGround){
+        return m_MenuItemSelectByObjectGround->value();
+    }else{
+        return m_MenuItemSelectByObjectOverGround->value();
+    }
 }} {}
   }
   Function {MakeWorkingFolder()} {return_type void

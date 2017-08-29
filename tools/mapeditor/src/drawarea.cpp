@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 07/26/2017 04:27:57
- *  Last Modified: 08/27/2017 23:41:53
+ *  Last Modified: 08/28/2017 22:26:32
  *
  *    Description:
  *
@@ -96,18 +96,36 @@ void DrawArea::AddSelectByAttribute()
     AttributeCoverOperation(nMX, nMY, g_SelectSettingWindow->AttributeSize(), fnSet);
 }
 
-void DrawArea::DrawTrySelectByTile()
+void DrawArea::DrawDoneSelectByTile()
 {
-    int nX = ((m_MouseX - x() + m_OffsetX) / (2 * SYS_MAPGRIDXP)) * 2;
-    int nY = ((m_MouseY - y() + m_OffsetY) / (2 * SYS_MAPGRIDYP)) * 2;
+    int nX0 = m_OffsetX / SYS_MAPGRIDXP - SYS_OBJMAXW;
+    int nY0 = m_OffsetY / SYS_MAPGRIDYP - SYS_OBJMAXH;
 
-    extern MainWindow *g_MainWindow;
-    FillRectangle(
-            SYS_MAPGRIDXP * nX - m_OffsetX,
-            SYS_MAPGRIDYP * nY - m_OffsetY,
-            SYS_MAPGRIDXP * 2,
-            SYS_MAPGRIDYP * 2,
-            g_MainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
+    int nX1 = (m_OffsetX + w()) / SYS_MAPGRIDXP + SYS_OBJMAXW;
+    int nY1 = (m_OffsetY + h()) / SYS_MAPGRIDYP + SYS_OBJMAXH;
+
+    for(int nX = nX0; nX < nX1; ++nX){
+        for(int nY = nY0; nY < nY1; ++nY){
+            extern EditorMap g_EditorMap;
+            if(true
+                    && !(nX % 2)
+                    && !(nY % 2)
+                    &&  (g_EditorMap.ValidC(nX, nY))){
+
+                auto &rstTile = g_EditorMap.Tile(nX, nY);
+                if(true
+                        && rstTile.Valid
+                        && rstTile.SelectConf.Tile){
+
+                    int nStartX = nX * SYS_MAPGRIDXP - m_OffsetX;
+                    int nStartY = nY * SYS_MAPGRIDYP - m_OffsetY;
+
+                    extern MainWindow *g_MainWindow;
+                    FillRectangle(nStartX, nStartY, SYS_MAPGRIDXP * 2, SYS_MAPGRIDYP * 2, g_MainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
+                }
+            }
+        }
+    }
 }
 
 void DrawArea::DrawDoneSelectByObject(bool bGround)
@@ -152,6 +170,28 @@ void DrawArea::DrawDoneSelectByObject(bool bGround)
                 }
             }
         }
+    }
+}
+
+void DrawArea::DrawTrySelectByTile()
+{
+    int nMouseXOnMap = m_MouseX - x() + m_OffsetX;
+    int nMouseYOnMap = m_MouseY - y() + m_OffsetY;
+
+    int nX = nMouseXOnMap / SYS_MAPGRIDXP;
+    int nY = nMouseYOnMap / SYS_MAPGRIDYP;
+
+    extern EditorMap g_EditorMap;
+    if(true
+            && g_EditorMap.ValidC(nX, nY)
+            && g_EditorMap.Tile(nX, nY).Valid){
+
+        int nStartX = (nX / 2) * 2 * SYS_MAPGRIDXP - m_OffsetX;
+        int nStartY = (nY / 2) * 2 * SYS_MAPGRIDYP - m_OffsetY;
+
+        extern MainWindow *g_MainWindow;
+        FillRectangle(nStartX, nStartY, SYS_MAPGRIDXP * 2,  SYS_MAPGRIDYP * 2, g_MainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
+        DrawFloatObject((nX / 2) * 2, (nY / 2) * 2, FOTYPE_TILE, m_MouseX - x(), m_MouseY - y());
     }
 }
 
@@ -207,6 +247,22 @@ void DrawArea::DrawTrySelectBySingle()
             SYS_MAPGRIDXP,
             SYS_MAPGRIDYP,
             g_MainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
+}
+
+void DrawArea::AddSelectByTile()
+{
+    int nMouseXOnMap = m_MouseX - x() + m_OffsetX;
+    int nMouseYOnMap = m_MouseY - y() + m_OffsetY;
+
+    int nX = nMouseXOnMap / SYS_MAPGRIDXP;
+    int nY = nMouseYOnMap / SYS_MAPGRIDYP;
+
+    extern EditorMap g_EditorMap;
+    if(true
+            && g_EditorMap.ValidC(nX, nY)
+            && g_EditorMap.Tile(nX, nY).Valid){
+        g_EditorMap.Tile(nX, nY).SelectConf.Tile = true;
+    }
 }
 
 void DrawArea::AddSelectByObject(bool bGround)
@@ -426,6 +482,7 @@ void DrawArea::DrawDoneSelectByAttribute()
 
 void DrawArea::DrawDoneSelect()
 {
+    DrawDoneSelectByTile();
     DrawDoneSelectByAttribute();
     DrawDoneSelectByObject(true);
     DrawDoneSelectByObject(false);
@@ -442,11 +499,11 @@ void DrawArea::DrawTrySelect()
             DrawTrySelectByTile();
         }
 
-        if(g_MainWindow->SelectByObjectGround()){
+        if(g_MainWindow->SelectByObject(true)){
             DrawSelectByObjectGround(true);
         }
 
-        if(g_MainWindow->SelectByObjectOverGround()){
+        if(g_MainWindow->SelectByObject(false)){
             DrawSelectByObjectGround(false);
         }
 
@@ -494,8 +551,8 @@ void DrawArea::DrawObject(bool bGround)
     extern MainWindow *g_MainWindow;
     auto nColor = fl_color();
     if(false
-            || ( bGround && g_MainWindow->ShowGroundObject())
-            || (!bGround && g_MainWindow->ShowOverGroundObject())){
+            || ( bGround && g_MainWindow->ShowObject(bGround))
+            || (!bGround && g_MainWindow->ShowObject(bGround))){
 
         fl_color(bGround ? FL_BLUE : FL_GREEN);
         auto fnDrawExt = [this, bGround](int /* nXCnt */, int /* nYCnt */) -> void
@@ -924,12 +981,16 @@ void DrawArea::AddSelect()
     if(g_MainWindow->SelectByAttribute()){
         AddSelectByAttribute();
     }
+    
+    if(g_MainWindow->SelectByTile()){
+        AddSelectByTile();
+    }
 
-    if(g_MainWindow->SelectByObjectGround()){
+    if(g_MainWindow->SelectByObject(true)){
         AddSelectByObject(true);
     }
 
-    if(g_MainWindow->SelectByObjectOverGround()){
+    if(g_MainWindow->SelectByObject(false)){
         AddSelectByObject(false);
     }
 }
@@ -1110,17 +1171,17 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         int nTextStartY = nTextBoxY + nTextOffY;
 
                         DrawText(nTextStartX, nTextStartY, "     Tile");
-                        nTextOffY += 20;
+                        nTextStartY += 20;
 
                         DrawText(nTextStartX, nTextStartY, "Index0 : %d", (int)(nFileIndex));
-                        nTextOffY += 20;
+                        nTextStartY += 20;
 
                         DrawText(nTextStartX, nTextStartY, "Index1 : %d", (int)(nImageIndex));
-                        nTextOffY += 20;
+                        nTextStartY += 20;
 
                         extern ImageDB g_ImageDB;
                         DrawText(nTextStartX, nTextStartY, "DBName : %s", g_ImageDB.DBName(nFileIndex));
-                        nTextOffY += 20;
+                        nTextStartY += 20;
 
                         PopColor();
                         break;
