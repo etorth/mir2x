@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.cpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 08/18/2017 18:22:14
+ *  Last Modified: 08/31/2017 23:29:08
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -31,47 +31,68 @@
 #include "pushstream.hpp"
 #include "mir2xmapdata.hpp"
 
-int Mir2xMapData::Load(const char *szFullName)
+bool Mir2xMapData::Load(const char *szFullName)
 {
-    m_Data.clear();
-    if(auto pf = std::fopen(szFullName, "rb")){
-        std::fseek(pf, 0, SEEK_END);
-        auto nDataLen = std::ftell(pf);
-        std::fseek(pf, 0, SEEK_SET);
+    if(true
+            && szFullName
+            && std::strlen(szFullName)){
 
-        std::vector<uint8_t> stvMapData;
-        stvMapData.resize(nDataLen + 1024);
+        if(auto fp = std::fopen(szFullName, "rb")){
+            std::fseek(fp, 0, SEEK_END);
+            auto nDataLen = std::ftell(fp);
+            std::fseek(fp, 0, SEEK_SET);
 
-        auto bReadOK = (std::fread(&(stvMapData[0]), nDataLen, 1, pf) == 1);
-        std::fclose(pf);
+            std::vector<uint8_t> stvMapData;
+            stvMapData.resize(nDataLen + 1024);
 
-        if(bReadOK){
-            auto pData = &(stvMapData[0]);
-            std::memcpy(&m_W, pData, 2); pData += 2;
-            std::memcpy(&m_H, pData, 2); pData += 2;
+            auto bReadOK = (std::fread(&(stvMapData[0]), nDataLen, 1, fp) == 1);
+            std::fclose(fp);
 
             if(true
-                    && (m_W > 0) && !(m_W % 2)
-                    && (m_H > 0) && !(m_H % 2)){
-                m_Data.resize((m_W / 2) * (m_H / 2));
-            }else{
-                return -1;
+                    && bReadOK
+                    && nDataLen >= 4
+                    && Load(&(stvMapData[0]), nDataLen)){
+                return true;
             }
-
-            // [1:0] : W
-            // [3:2] : H
-            // [...] : BLOCK[...]
-            condcheck(((sizeof(m_Data[0]) * m_W * m_H / 4) + 4) == (size_t)(nDataLen));
-            std::memcpy(&(m_Data[0]), pData, m_Data.size() * sizeof(m_Data[0]));
-            return 0;
         }
     }
 
+    m_W = 0;
+    m_H = 0;
     m_Data.clear();
-    return -1;
+    return false;
 }
 
-int Mir2xMapData::Save(const char *szFullName)
+bool Mir2xMapData::Load(const uint8_t *pData, size_t nDataLen)
+{
+    if(true
+            && pData
+            && nDataLen >= 4){
+
+        std::memcpy(&m_W, pData, 2); pData += 2;
+        std::memcpy(&m_H, pData, 2); pData += 2;
+
+        if(true
+                && (m_W / 2 > 0) && !(m_W % 2)
+                && (m_H / 2 > 0) && !(m_H % 2)){
+
+            auto nBlockSize = (m_W / 2) * (m_H / 2);
+            m_Data.resize(nBlockSize);
+
+            if(((sizeof(m_Data[0]) * nBlockSize) + 4) == nDataLen){
+                std::memcpy(&(m_Data[0]), pData, sizeof(m_Data[0]) * nBlockSize);
+                return true;
+            }
+        }
+    }
+
+    m_W = 0;
+    m_H = 0;
+    m_Data.clear();
+    return false;
+}
+
+bool Mir2xMapData::Save(const char *szFullName)
 {
     if(Valid()){
         std::vector<uint8_t> stvByte;
@@ -85,7 +106,7 @@ int Mir2xMapData::Save(const char *szFullName)
             return bSaveOK;
         }
     }
-    return -1;
+    return false;
 }
 
 bool Mir2xMapData::Allocate(uint16_t nW, uint16_t nH)

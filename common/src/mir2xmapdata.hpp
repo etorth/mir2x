@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.hpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 08/18/2017 17:15:40
+ *  Last Modified: 08/31/2017 23:14:24
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -264,8 +264,11 @@ class Mir2xMapData final
         }
 
     public:
-        int Load(const char *);
-        int Save(const char *);
+        bool Load(const char *);
+        bool Load(const uint8_t *, size_t);
+
+    public:
+        bool Save(const char *);
 
     public:
         bool Valid() const
