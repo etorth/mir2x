@@ -1,7 +1,27 @@
-#include "mir2map.hpp"
-#include <memory.h>
+/*
+ * =====================================================================================
+ *
+ *       Filename: mir2map.cpp
+ *        Created: 05/03/2016 15:00:35
+ *  Last Modified: 09/03/2017 01:10:50
+ *
+ *    Description: 
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
+
 #include <cstring>
 #include <cstdint>
+#include <memory.h>
+#include "mir2map.hpp"
 
 Mir2Map::Mir2Map()
     : m_Valid(false)
@@ -57,6 +77,11 @@ bool Mir2Map::Load(const char *szMapFileName)
     m_Valid = true;
 
     return m_Valid;
+}
+
+uint8_t Mir2Map::Flag(int nX, int nY)
+{
+    return CellInfo(nX, nY).bFlag;
 }
 
 bool Mir2Map::LightValid(int nX, int nY)

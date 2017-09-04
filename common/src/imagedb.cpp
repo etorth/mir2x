@@ -3,7 +3,7 @@
  *
  *       Filename: imagedb.cpp
  *        Created: 02/14/2016 16:35:49
- *  Last Modified: 08/22/2017 14:42:30
+ *  Last Modified: 09/03/2017 20:14:40
  *
  *    Description:
  *
@@ -128,11 +128,12 @@ bool ImageDB::Valid(uint8_t nFileIndex, uint16_t nImageIndex)
 {
     if(nFileIndex == 255 || nImageIndex == 65535){ return false; }
 
-    if(m_ImagePackage[nFileIndex].SetIndex(nImageIndex) &&
-            m_ImagePackage[nFileIndex].CurrentImageValid()){
+    if(true
+            && m_ImagePackage[nFileIndex].SetIndex(nImageIndex)
+            && m_ImagePackage[nFileIndex].CurrentImageValid()){
         int nW = m_ImagePackage[nFileIndex].CurrentImageInfo().shWidth;
         int nH = m_ImagePackage[nFileIndex].CurrentImageInfo().shHeight;
-        if(nW * nH > 0){
+        if((nW > 0) && (nH > 0)){
             return true;
         }
     }
@@ -173,4 +174,15 @@ const uint32_t *ImageDB::FastDecode(uint8_t nFileIndex, uint32_t nC0, uint32_t n
 const uint32_t *ImageDB::Decode(uint8_t nFileIndex, uint16_t nImageIndex, uint32_t nC0, uint32_t nC1, uint32_t nC2)
 {
     return Valid(nFileIndex, nImageIndex) ? FastDecode(nFileIndex, nC0, nC1, nC2) : nullptr;
+}
+
+const WILIMAGEINFO &ImageDB::ImageInfo(uint8_t nFileIndex, uint16_t nImageIndex)
+{
+    m_ImagePackage[nFileIndex].SetIndex(nImageIndex);
+    return m_ImagePackage[nFileIndex].CurrentImageInfo();
+}
+
+const WilImagePackage &ImageDB::GetPackage(uint8_t nFileIndex)
+{
+    return m_ImagePackage[nFileIndex];
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: imagedb.hpp
  *        Created: 02/14/2016 16:33:12
- *  Last Modified: 08/22/2017 14:41:16
+ *  Last Modified: 09/03/2017 20:14:06
  *
  *    Description: Handle operation against wilimagepackage
  *
@@ -39,6 +39,9 @@ class ImageDB
        ~ImageDB() = default;
 
     public:
+       const WILIMAGEINFO &ImageInfo(uint8_t, uint16_t);
+
+    public:
         bool LoadDB(const char *);
         bool Valid(uint8_t, uint16_t);
 
@@ -57,4 +60,7 @@ class ImageDB
 
     public:
         const char *DBName(int) const;
+
+    public:
+        const WilImagePackage &GetPackage(uint8_t);
 };

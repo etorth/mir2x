@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/28/2017 01:46:28
+ *  Last Modified: 09/01/2017 17:23:27
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -185,7 +185,15 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
                             auto nAniCount   = (uint8_t )((rstObj.AniCount));
 
                             if(nAnimated){
-                                nImageIndex += (uint16_t)(m_AniTileFrame[nAniType][nAniCount]);
+                                if(false
+                                        || nFileIndex == 11
+                                        || nFileIndex == 26
+                                        || nFileIndex == 41
+                                        || nFileIndex == 56
+                                        || nFileIndex == 71){
+
+                                    nImageIndex += (uint16_t)(m_AniTileFrame[nAniType][nAniCount]);
+                                }
                             }
 
                             fnDrawObj(nFileIndex, nImageIndex, nX, nY);
@@ -499,6 +507,10 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
             // animation info is in Mir2Map::Object() at higher 8 bits
             extern ImageDB g_ImageDB;
             if(m_Mir2Map->ObjectValid(nX, nY, nIndex, g_ImageDB)){
+
+                // I checked the code
+                // here the mir 3 checked CELLINFO::bFlag
+
                 bObjValid = true;
                 if(m_Mir2Map->GroundObjectValid(nX, nY, nIndex, g_ImageDB)){
                     bGroundObj = true;

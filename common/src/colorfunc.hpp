@@ -3,7 +3,7 @@
  *
  *       Filename: colorfunc.hpp
  *        Created: 03/31/2016 19:46:27
- *  Last Modified: 08/21/2017 23:32:11
+ *  Last Modified: 09/04/2017 01:06:10
  *
  *    Description: 
  *

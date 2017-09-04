@@ -1,36 +1,59 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: mir2map.hpp
+ *        Created: 05/03/2016 15:00:35
+ *  Last Modified: 09/03/2017 01:10:35
+ *
+ *    Description: 
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
 #pragma once
 
 #include <string>
-#include "wilimagepackage.hpp"
+#include <vector>
 #include <cstdint>
 #include <functional>
-#include <vector>
 
 #include "imagedb.hpp"
+#include "wilimagepackage.hpp"
 
 #pragma pack(push, 1)
 
-typedef struct{
+struct LIGHTINFO
+{
     int32_t     bIsLight;
     char        cLightSizeType;
     char        cLightColorType;
-}LIGHTINFO;
+};
 
-typedef struct{
+struct MAPFILEHEADER
+{
     char        szDesc[20];
     uint16_t    wAttr;
     int16_t     shWidth;
     int16_t     shHeight;
     char        cEventFileIndex;
     char        cFogColor;
-}MAPFILEHEADER;
+};
 
-typedef struct{
+struct TILEINFO
+{
     uint8_t     bFileIndex;
     uint16_t    wTileIndex;
-}TILEINFO;
+};
 
-typedef struct{
+struct CELLINFO
+{
     uint8_t     bFlag;
     uint8_t     bObj1Ani;
     uint8_t     bObj2Ani;
@@ -40,7 +63,7 @@ typedef struct{
     uint16_t    bDoorIndex;
     uint8_t     bDoorOffset;
     uint16_t    wLightNEvent;
-}CELLINFO;
+};
 
 #pragma pack(pop)
 
@@ -48,7 +71,7 @@ class Mir2Map
 {
     public:
         Mir2Map();
-        ~Mir2Map();
+       ~Mir2Map();
 
     private:
         bool            m_Valid;
@@ -101,6 +124,8 @@ class Mir2Map
         }
 
     public:
+        uint8_t Flag(int, int);
+
         bool LightValid(int, int);
         uint16_t Light(int, int);
 

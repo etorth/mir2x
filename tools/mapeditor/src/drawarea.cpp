@@ -3,7 +3,7 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 07/26/2017 04:27:57
- *  Last Modified: 08/28/2017 22:26:32
+ *  Last Modified: 09/04/2017 00:29:58
  *
  *    Description:
  *
@@ -1068,12 +1068,6 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
             && nFOType < FOTYPE_MAX
             && g_EditorMap.ValidC(nX, nY)){
 
-        // for different FOType
-        // we have different text box size
-
-        int nTextBoxW = -1;
-        int nTextBoxH = -1;
-
         uint8_t  nFileIndex  = 0;
         uint16_t nImageIndex = 0;
 
@@ -1081,9 +1075,6 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
         switch(nFOType){
             case FOTYPE_TILE:
                 {
-                    nTextBoxW = 200;
-                    nTextBoxH = 200;
-
                     if(true
                             && !(nX % 2)
                             && !(nY % 2)){
@@ -1100,15 +1091,40 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
             case FOTYPE_OBJ0:
             case FOTYPE_OBJ1:
                 {
-                    nTextBoxW = 200;
-                    nTextBoxH = 200;
-
                     auto &rstObject = g_EditorMap.Object(nX, nY, (nFOType == FOTYPE_OBJ0) ? 0 : 1);
                     if(rstObject.Valid){
                         nFileIndex  = (uint8_t )((rstObject.Image & 0X00FF0000) >> 16);
                         nImageIndex = (uint16_t)((rstObject.Image & 0X0000FFFF) >>  0);
                         pImage = RetrievePNG(nFileIndex, nImageIndex);
                     }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+
+        // setup text box size
+        // based on different image type
+
+        int nTextBoxW = -1;
+        int nTextBoxH = -1;
+
+        switch(nFOType){
+            case FOTYPE_TILE:
+                {
+                    extern ImageDB g_ImageDB;
+                    nTextBoxW = 100 + std::strlen(g_ImageDB.DBName(nFileIndex)) * 10;
+                    nTextBoxH = 150;
+                    break;
+                }
+            case FOTYPE_OBJ0:
+            case FOTYPE_OBJ1:
+                {
+                    extern ImageDB g_ImageDB;
+                    nTextBoxW = 100 + std::strlen(g_ImageDB.DBName(nFileIndex)) * 10;
+                    nTextBoxH = 260;
                     break;
                 }
             default:
@@ -1138,7 +1154,7 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
             int nTextBoxX = nWinX + nMarginLeft + pImage->w() + nMarginMiddle;
             int nTextBoxY = nWinY + (nWinH - nTextBoxH) / 2;
 
-            FillRectangle(nWinX, nWinY, nWinW, nWinH, 0X80000000);
+            FillRectangle(nWinX, nWinY, nWinW, nWinH, 0XC0000000);
             DrawImage(pImage, nImageX, nImageY);
 
             // draw boundary for window
@@ -1218,6 +1234,22 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         nTextStartY += 20;
 
                         DrawText(nTextStartX, nTextStartY, "AniCnt : %d", rstObject.AniCount);
+                        nTextStartY += 20;
+
+                        auto &rstImageInfo = g_ImageDB.ImageInfo(nFileIndex, nImageIndex);
+                        auto nPX = rstImageInfo.shPX;
+                        auto nPY = rstImageInfo.shPY;
+
+                        DrawText(nTextStartX, nTextStartY, "OffseX : %d", (int)(nPX));
+                        nTextStartY += 20;
+
+                        DrawText(nTextStartX, nTextStartY, "OffseY : %d", (int)(nPY));
+                        nTextStartY += 20;
+
+                        auto &rstHeader = g_ImageDB.GetPackage(nFileIndex).HeaderInfo();
+                        auto nVersion = rstHeader.shVer;
+
+                        DrawText(nTextStartX, nTextStartY, "Versio : %d", (int)(nVersion));
                         nTextStartY += 20;
 
                         PopColor();

@@ -131,9 +131,11 @@ class MainWindow {open
                 g_ProgressBarWindow->HideAll();
                 
                 ActivateAll();
-                std::string szStatusBarInfo = std::string("FileName: ") + fileName + "." + fileExt +  "    ImageCount: " + std::to_string(nImageCount);
-                StatusBarMessage(szStatusBarInfo.c_str());
+                auto szBottomInfo = std::string("FileName: ") + fileName + "." + fileExt
+                    + "    ImageCount: " + std::to_string(nImageCount)
+                    + "    Version: "    + std::to_string(g_WilPackage.);
 
+                AddBottomLog(szBottomBarInfo.c_str());
                 break;
             }
     }
@@ -361,13 +363,13 @@ if(g_WilPackage.CurrentImageValid()){
         code1 {\#include <FL/fl_draw.H>}
         code2 {\#include "previewwindow.hpp"}
       }
-      Fl_Box m_StatusBar {
+      Fl_Box m_LogBar {
         xywh {0 590 555 15} labelfont 4 labelsize 10 align 20
       }
     }
     code {{
 	// give an initial value of status bar
-	StatusBarMessage("Version 0.0.1");
+	AddBottomLog("Version 0.0.1");
 }} {}
   }
   Function {ShowAll()} {return_type void
@@ -405,17 +407,17 @@ if(g_WilPackage.CurrentImageValid()){
         m_Browser->deactivate();
 }} {}
   }
-  Function {StatusBarMessage(const char *szMessage)} {return_type void
+  Function {AddBottomLog(const char *szMessage)} {return_type void
   } {
     code {{
         if(true
                 && szMessage
                 && std::strlen(szMessage)){
-            m_StatusBar->copy_label(szMessage);
+            m_LogBar->copy_label(szMessage);
         }else{
-            m_StatusBar->copy_label("Version: 0.0.1");
+            m_LogBar->copy_label("Version: 0.0.1");
         }
-        m_StatusBar->redraw();
+        m_LogBar->redraw();
         m_Window->redraw();
 }} {}
   }

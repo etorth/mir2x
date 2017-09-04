@@ -1,30 +1,48 @@
-#include "wilimagepackage.hpp"
-#include <cstring>
-#include <string>
+/*
+ * =====================================================================================
+ *
+ *       Filename: wilimagepackage.cpp
+ *        Created: 02/14/2016 16:33:12
+ *  Last Modified: 09/04/2017 02:19:55
+ *
+ *    Description:
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
+
 #include <cmath>
+#include <string>
 #include <cstdio>
+#include <cstring>
+
+#include "condcheck.hpp"
+#include "wilimagepackage.hpp"
 
 static uint32_t Color16To32Mapping(uint16_t srcColor, uint32_t chColor)
 {
-    // ARGB
-    uint8_t r, g, b, br, bg, bb;
-
-    r  = (uint8_t)((srcColor & 0XF800) >> 8);
-    g  = (uint8_t)((srcColor & 0X07E0) >> 3);
-    b  = (uint8_t)((srcColor & 0X001F) << 3);
+    uint8_t r  = (uint8_t)((srcColor & 0XF800) >> 8);
+    uint8_t g  = (uint8_t)((srcColor & 0X07E0) >> 3);
+    uint8_t b  = (uint8_t)((srcColor & 0X001F) << 3);
 
     if((chColor & 0X00FFFFFF) != 0X00FFFFFF){
-        br = (uint8_t)((chColor & 0X00FF0000) >> 16);
-        bg = (uint8_t)((chColor & 0X0000FF00) >>  8);
-        bb = (uint8_t)((chColor & 0X000000FF) >>  0);
+        uint8_t br = (uint8_t)((chColor & 0X00FF0000) >> 16);
+        uint8_t bg = (uint8_t)((chColor & 0X0000FF00) >>  8);
+        uint8_t bb = (uint8_t)((chColor & 0X000000FF) >>  0);
 
         r = (br <= r) ? br : (uint8_t)std::lround(255.0 * r / br);
         g = (bg <= g) ? bg : (uint8_t)std::lround(255.0 * g / bg);
         b = (bb <= b) ? bb : (uint8_t)std::lround(255.0 * b / bb);
     }
 
-    // return (chColor & 0XFF000000) + (((uint32_t)r) << 16) + (((uint32_t)g) << 8) + (uint32_t)b;
-    return (chColor & 0XFF000000) + (((uint32_t)b) << 16) + (((uint32_t)g) << 8) + (uint32_t)r;
+    return (chColor & 0XFF000000) + (((uint32_t)(b)) << 16) + (((uint32_t)(g)) << 8) + (uint32_t)(r);
 }
 
 static void Memcpy16To32(uint32_t *dst, const uint16_t *src, int32_t n, uint32_t dwColor)
@@ -46,76 +64,69 @@ static void MemSet32(uint32_t *dst, int n, uint32_t src)
 }
 
 WilImagePackage::WilImagePackage()
-    : m_CurrentImageIndex(0)
-    , m_ImageCount(0)
+    : m_CurrentImageIndex(-1)
     , m_CurrentImageValid(false)
-    , m_CurrentImageBuffer(nullptr)
-    , m_CurrentImageBufferLength(0)
-    , m_Version(0)
-    , m_FP(nullptr)
+    , m_CurrentImageBuffer(2048)
+    , m_WilPosition(2048)
+    , m_WilFile(nullptr)
 {
-    std::memset(&m_WixImageInfo, 0, sizeof(WIXIMAGEINFO));
-    std::memset(&m_CurrentWilImageInfo, 0, sizeof(WILIMAGEINFO));
-    std::memset(&m_DumbWilImageInfo, 0, sizeof(WILIMAGEINFO));
+    std::memset(&m_WixImageInfo,        0, sizeof(WIXIMAGEINFO ));
+    std::memset(&m_CurrentWilImageInfo, 0, sizeof(WILIMAGEINFO ));
+    std::memset(&m_WilFileHeader,       0, sizeof(WILFILEHEADER));
 }
 
 WilImagePackage::~WilImagePackage()
 {
-    if(m_FP){
-        fclose(m_FP); m_FP = nullptr;
-    }
-
-    delete []m_CurrentImageBuffer;
-    delete [](m_WixImageInfo.pnPosition);
+    if(m_WilFile){ std::fclose(m_WilFile); }
 }
 
 bool WilImagePackage::SetIndex(uint32_t dwIndex)
 {
-    if(m_FP == nullptr || dwIndex >= (uint32_t)(m_WixImageInfo.nIndexCount)){
+    if(false
+            || m_WilFile == nullptr
+            || dwIndex   >= (uint32_t)(m_WilPosition.size())
+            || dwIndex   >= (uint32_t)(m_WixImageInfo.nIndexCount)){
+
         m_CurrentImageValid = false;
+        m_CurrentImageIndex = -1;
         return false;
     }
 
-    if(dwIndex == m_CurrentImageIndex && m_CurrentImageValid){
+    if((dwIndex == (uint32_t)(m_CurrentImageIndex)) && m_CurrentImageValid){
         return true;
     }
 
-    m_CurrentImageIndex = dwIndex;
-    if(m_WixImageInfo.pnPosition[dwIndex] <= 0){
+    m_CurrentImageIndex = (int32_t)(dwIndex);
+    if(m_WilPosition[dwIndex] <= 0){
         // invalid image but set index operation succeeds
         m_CurrentImageValid = false;
         return true;
     }
 
-    if(fseek(m_FP, m_WixImageInfo.pnPosition[dwIndex], SEEK_SET)){
+    if(std::fseek(m_WilFile, m_WilPosition[dwIndex], SEEK_SET)){
         m_CurrentImageValid = false;
         return false;
     }
 
-    if(fread(&m_CurrentWilImageInfo, sizeof(WILIMAGEINFO), 1, m_FP) != 1){
+    if(std::fread(&m_CurrentWilImageInfo, sizeof(WILIMAGEINFO), 1, m_WilFile) != 1){
         m_CurrentImageValid = false;
         return false;
     }
 
-    if(m_CurrentWilImageInfo.dwImageLength > m_CurrentImageBufferLength){
-        delete []m_CurrentImageBuffer;
-        m_CurrentImageBuffer       = new uint16_t[m_CurrentWilImageInfo.dwImageLength];
-        m_CurrentImageBufferLength = m_CurrentWilImageInfo.dwImageLength;
+    m_CurrentImageBuffer.resize(0);
+    m_CurrentImageBuffer.resize(m_CurrentWilImageInfo.dwImageLength);
+
+    auto nWilOffset = WilOffset(m_WilFileHeader.shVer);
+    if(nWilOffset < 0){
+        m_CurrentImageValid = false;
+        return false;
     }
 
-    if(m_Version == 5000){
-        // we need to skip two zeros, no idea why
-        uint16_t wSkip[2];
-        if(fread(wSkip, sizeof(uint16_t), 2, m_FP) != 2){
-            m_CurrentImageValid = false;
-            return false;
-        }
-        if(wSkip[0] != 0 || wSkip[1] != 0){
-            printf("warning: wSkip is not zero\n");
-        }
-    }
+    std::fseek(m_WilFile, m_WilPosition[dwIndex], SEEK_SET);
+    std::fseek(m_WilFile, nWilOffset, SEEK_CUR);
 
-    if(fread(m_CurrentImageBuffer, sizeof(uint16_t), m_CurrentWilImageInfo.dwImageLength, m_FP) != m_CurrentWilImageInfo.dwImageLength){
+    auto nCurrDataLen = m_CurrentWilImageInfo.dwImageLength;
+    if(std::fread(&(m_CurrentImageBuffer[0]), sizeof(uint16_t), nCurrDataLen, m_WilFile) != nCurrDataLen){
         m_CurrentImageValid = false;
         return false;
     }
@@ -126,65 +137,65 @@ bool WilImagePackage::SetIndex(uint32_t dwIndex)
 
 bool WilImagePackage::Load(const char* wilFilePath, const char *wilFileName, const char *)
 {
+    // 1. set current image invalid if load or reload
     m_CurrentImageValid = false;
-    if(m_FP){
-        fclose(m_FP); m_FP = nullptr;
+
+    auto fnReleaseFile = [this]()
+    {
+        if(m_WilFile){ std::fclose(m_WilFile); m_WilFile = nullptr; }
+    };
+
+    // 2. load wil image library
+    fnReleaseFile();
+
+    if(!m_WilFile){ m_WilFile = std::fopen((std::string(wilFilePath) + "/" + wilFileName + ".wil").c_str(), "rb"); }
+    if(!m_WilFile){ m_WilFile = std::fopen((std::string(wilFilePath) + "/" + wilFileName + ".Wil").c_str(), "rb"); }
+    if(!m_WilFile){ m_WilFile = std::fopen((std::string(wilFilePath) + "/" + wilFileName + ".WIL").c_str(), "rb"); }
+
+    if(m_WilFile == nullptr){ return false; }
+
+    if(std::fread(&m_WilFileHeader, sizeof(WILFILEHEADER), 1, m_WilFile) != 1){
+        fnReleaseFile(); return false;
     }
 
+    // 3. load wix index library
     FILE *hWixFile = nullptr;
-    if(!hWixFile){ hWixFile = fopen((std::string(wilFilePath) + "/" + wilFileName + ".wix").c_str(), "rb"); }
-    if(!hWixFile){ hWixFile = fopen((std::string(wilFilePath) + "/" + wilFileName + ".Wix").c_str(), "rb"); }
-    if(!hWixFile){ hWixFile = fopen((std::string(wilFilePath) + "/" + wilFileName + ".WIX").c_str(), "rb"); }
+    if(!hWixFile){ hWixFile = std::fopen((std::string(wilFilePath) + "/" + wilFileName + ".wix").c_str(), "rb"); }
+    if(!hWixFile){ hWixFile = std::fopen((std::string(wilFilePath) + "/" + wilFileName + ".Wix").c_str(), "rb"); }
+    if(!hWixFile){ hWixFile = std::fopen((std::string(wilFilePath) + "/" + wilFileName + ".WIX").c_str(), "rb"); }
 
     if(hWixFile == nullptr){
-        return false;
+        fnReleaseFile(); return false;
     }
 
-    // when first time to load, m_WixImageInfo.nIndexCount was set as 0
-    auto oldWixIndexCount = m_WixImageInfo.nIndexCount;
-
-    if(fread(&m_WixImageInfo, sizeof(WIXIMAGEINFO) - sizeof(int32_t*), 1, hWixFile) != 1){
-        fclose(hWixFile);
-        return false;
+    if(std::fread(&m_WixImageInfo, sizeof(WIXIMAGEINFO), 1, hWixFile) != 1){
+        std::fclose(hWixFile); fnReleaseFile(); return false;
     }
 
-    if(oldWixIndexCount < m_WixImageInfo.nIndexCount){
-        delete []m_WixImageInfo.pnPosition;
-        m_WixImageInfo.pnPosition = new int32_t[m_WixImageInfo.nIndexCount];
+    m_WilPosition.resize(0);
+    m_WilPosition.resize(m_WixImageInfo.nIndexCount);
+
+    auto nWixOffset = WixOffset(m_WilFileHeader.shVer);
+    if(nWixOffset < 0){
+        std::fclose(hWixFile); fnReleaseFile(); return false;
     }
 
-    if(fread(m_WixImageInfo.pnPosition, sizeof(int32_t), 
-                m_WixImageInfo.nIndexCount, hWixFile) != (size_t)m_WixImageInfo.nIndexCount){
-        fclose(hWixFile);
-        return false;
+    std::fseek(hWixFile, nWixOffset, SEEK_SET);
+
+    auto nCurrDataLen = m_WixImageInfo.nIndexCount;
+    if(std::fread(&(m_WilPosition[0]), sizeof(int32_t), nCurrDataLen, hWixFile) != (size_t)(nCurrDataLen)){
+        std::fclose(hWixFile); fnReleaseFile(); return false;
     }
 
     // set current index to an invalid index
-    m_CurrentImageIndex = (uint32_t)m_WixImageInfo.nIndexCount;
-
-    if(!m_FP){ m_FP = fopen((std::string(wilFilePath) + "/" + wilFileName + ".wil").c_str(), "rb"); }
-    if(!m_FP){ m_FP = fopen((std::string(wilFilePath) + "/" + wilFileName + ".Wil").c_str(), "rb"); }
-    if(!m_FP){ m_FP = fopen((std::string(wilFilePath) + "/" + wilFileName + ".WIL").c_str(), "rb"); }
-
-    if(m_FP == nullptr){
-        return false;
-    }
-
-    WILFILEHEADER tmpWilHdr;
-    if(fread(&tmpWilHdr, sizeof(WILFILEHEADER), 1, m_FP) != 1){
-        fclose(m_FP); m_FP = nullptr;
-        return false;
-    }
-
-    m_ImageCount = tmpWilHdr.nImageCount;
-    m_Version    = tmpWilHdr.shVer;
+    m_CurrentImageIndex = -1;
     return true;
 }
 
 const uint16_t *WilImagePackage::CurrentImageBuffer()
 {
     if(m_CurrentImageValid){
-        return m_CurrentImageBuffer;
+        return &(m_CurrentImageBuffer[0]);
     }else{
         return nullptr;
     }
@@ -195,13 +206,20 @@ const WILIMAGEINFO &WilImagePackage::CurrentImageInfo()
     if(m_CurrentImageValid){
         return m_CurrentWilImageInfo;
     }else{
-        return m_DumbWilImageInfo;
+        const static WILIMAGEINFO rstEmptyImageInfo = []()
+        {
+            WILIMAGEINFO stWilImageInfo;
+            std::memset(&stWilImageInfo, 0, sizeof(stWilImageInfo));
+            return stWilImageInfo;
+        }();
+
+        return rstEmptyImageInfo;
     }
 }
 
 void WilImagePackage::Decode(uint32_t *rectImageBuffer, uint32_t dwColor0, uint32_t dwColor1, uint32_t dwColor2)
 {
-    auto pwSrc   = m_CurrentImageBuffer;
+    auto pwSrc   = &(m_CurrentImageBuffer[0]);
     int  nWidth  = m_CurrentWilImageInfo.shWidth;
     int  nHeight = m_CurrentWilImageInfo.shHeight;
 
@@ -247,41 +265,16 @@ void WilImagePackage::Decode(uint32_t *rectImageBuffer, uint32_t dwColor0, uint3
         srcEndPos++;
         srcBeginPos = srcEndPos;
     }
-
-    // remove the shadow
-
-    // for(int y = 1; y < nHeight - 2; ++y){
-    //     for(int x = 1; x < nWidth - 2; ++x){
-    //         auto p0 = *(rectImageBuffer + (y + 0) * nWidth + (x + 0)) & 0XFFFFFF00;
-    //         auto p1 = *(rectImageBuffer + (y - 1) * nWidth + (x - 1)) & 0XFFFFFF00;
-    //         auto p2 = *(rectImageBuffer + (y - 1) * nWidth + (x + 1)) & 0XFFFFFF00;
-    //         auto p3 = *(rectImageBuffer + (y + 1) * nWidth + (x - 1)) & 0XFFFFFF00;
-    //         auto p4 = *(rectImageBuffer + (y + 1) * nWidth + (x + 1)) & 0XFFFFFF00;
-
-    //         if(true
-    //                 && p0 == p1
-    //                 && p0 == p2
-    //                 && p0 == p3
-    //                 && p0 == p4
-    //           ){
-    //             for(int i = -1; i <= 2; ++i){
-    //                 for(int j = -1; j <= 2; ++j){
-    //                     *(rectImageBuffer + (y + i) * nWidth + (x + j)) = 0X80000000;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 }
 
 int32_t WilImagePackage::ImageCount()
 {
-    return m_FP ? m_ImageCount : 0;
+    return m_WilFile ? m_WilFileHeader.nImageCount : 0;
 }
 
 int32_t WilImagePackage::IndexCount()
 {
-    return m_FP ? m_WixImageInfo.nIndexCount: 0;
+    return m_WilFile ? m_WixImageInfo.nIndexCount: 0;
 }
 
 bool WilImagePackage::CurrentImageValid()
@@ -291,5 +284,61 @@ bool WilImagePackage::CurrentImageValid()
 
 int16_t WilImagePackage::Version()
 {
-    return m_Version;
+    return m_WilFileHeader.shVer;
+}
+
+const WILFILEHEADER &WilImagePackage::HeaderInfo() const
+{
+    return m_WilFileHeader;
+}
+
+int WilImagePackage::WixOffset(int nVersion)
+{
+    switch(nVersion){
+        case 17:
+            {
+                return 24;
+            }
+        case 5000:
+            {
+                return 28;
+            }
+        case 6000:
+            {
+                return 32;
+            }
+        default:
+            {
+                return -1;
+            }
+    }
+}
+
+int WilImagePackage::WilOffset(int nVersion)
+{
+    switch(nVersion){
+        case 17:
+            {
+                return 17;
+            }
+        case 5000:
+            {
+                return 21;
+            }
+        case 6000:
+            {
+                return 21;
+            }
+        default:
+            {
+                return -1;
+            }
+    }
+}
+
+bool WilImagePackage::LocateImage(uint16_t nImageIndex)
+{
+    return true
+        && SetIndex(nImageIndex)
+        && CurrentImageValid();
 }

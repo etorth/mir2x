@@ -1,27 +1,50 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: wilimagepackage.hpp
+ *        Created: 02/14/2016 16:33:12
+ *  Last Modified: 09/04/2017 02:19:01
+ *
+ *    Description:
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
+
 #pragma once
 
+#include <vector>
+#include <cstdio>
 #include <cstdint>
 #include <cstdlib>
-#include <cstdio>
 
 #pragma pack(push, 1)
 
 // .wil file header
-typedef struct{
+struct WILFILEHEADER
+{
     int16_t     shComp;
     char        szTitle[20];
     int16_t     shVer;
     int32_t     nImageCount;
-}WILFILEHEADER;
+};
 
 // .wix file header
-typedef struct{
+struct WIXIMAGEINFO
+{
     char        szTitle[20];
     int32_t     nIndexCount;
-    int32_t*    pnPosition;
-}WIXIMAGEINFO;
+};
 
-typedef struct{
+struct WILIMAGEINFO
+{
     int16_t     shWidth;
     int16_t     shHeight;
     int16_t     shPX;
@@ -30,7 +53,7 @@ typedef struct{
     int16_t     shShadowPX;
     int16_t     shShadowPY;
     uint32_t    dwImageLength;
-}WILIMAGEINFO;
+};
 
 #pragma pack(pop)
 
@@ -38,21 +61,23 @@ class WilImagePackage
 {
     private:
         WIXIMAGEINFO    m_WixImageInfo;
-        WILIMAGEINFO    m_DumbWilImageInfo;
         WILIMAGEINFO    m_CurrentWilImageInfo;
+        WILFILEHEADER   m_WilFileHeader;
 
     private:
-        uint32_t     m_CurrentImageIndex;
-        int32_t      m_ImageCount;
-        bool         m_CurrentImageValid;
-        uint16_t    *m_CurrentImageBuffer;
-        uint32_t     m_CurrentImageBufferLength;
-        int16_t      m_Version;
-        FILE        *m_FP;
+        int32_t m_CurrentImageIndex;
+        bool    m_CurrentImageValid;
+
+    private:
+        std::vector<uint16_t> m_CurrentImageBuffer;
+        std::vector< int32_t> m_WilPosition;
+
+    private:
+        FILE *m_WilFile;
 
     public:
         WilImagePackage();
-        ~WilImagePackage();
+       ~WilImagePackage();
 
     public:
         int32_t ImageCount();
@@ -67,7 +92,17 @@ class WilImagePackage
         void Decode(uint32_t *, uint32_t, uint32_t, uint32_t);
 
     public:
+        const WILFILEHEADER &HeaderInfo() const;
+
+    public:
         const uint16_t      *CurrentImageBuffer();
         const WILIMAGEINFO  &CurrentImageInfo();
         bool                 CurrentImageValid();
+
+    public:
+        static int WixOffset(int);
+        static int WilOffset(int);
+
+    public:
+        bool LocateImage(uint16_t);
 };
