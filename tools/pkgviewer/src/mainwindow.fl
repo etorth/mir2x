@@ -133,9 +133,9 @@ class MainWindow {open
                 ActivateAll();
                 auto szBottomInfo = std::string("FileName: ") + fileName + "." + fileExt
                     + "    ImageCount: " + std::to_string(nImageCount)
-                    + "    Version: "    + std::to_string(g_WilPackage.);
+                    + "    Version: "    + std::to_string(g_WilPackage.Version());
 
-                AddBottomLog(szBottomBarInfo.c_str());
+                AddBottomLog(szBottomInfo.c_str());
                 break;
             }
     }
