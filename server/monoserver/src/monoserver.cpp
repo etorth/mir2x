@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 08/09/2017 21:06:26
+ *  Last Modified: 09/05/2017 12:16:23
  *
  *    Description: 
  *
@@ -34,6 +34,7 @@
 #include "monster.hpp"
 #include "database.hpp"
 #include "threadpn.hpp"
+#include "mapbindbn.hpp"
 #include "uidrecord.hpp"
 #include "mainwindow.hpp"
 #include "monoserver.hpp"
@@ -251,6 +252,17 @@ void MonoServer::RegisterAMFallbackHandler()
     g_Framework->SetFallbackHandler(&stFallbackHandler, &FrameworkFallbackHandler::Handler);
 }
 
+void MonoServer::LoadMapBinDBN()
+{
+    extern ServerConfigureWindow *g_ServerConfigureWindow;
+    std::string szMapPath = g_ServerConfigureWindow->GetMapPath();
+
+    extern MapBinDBN *g_MapBinDBN;
+    if(!g_MapBinDBN->Load(szMapPath.c_str())){
+        AddLog(LOGTYPE_FATAL, "Failed to load mapbindbn");
+    }
+}
+
 void MonoServer::CreateServiceCore()
 {
     delete m_ServiceCore;
@@ -275,6 +287,8 @@ void MonoServer::Launch()
     CreateDBConnection();
     LoadMonsterRecord();
     RegisterAMFallbackHandler();
+
+    LoadMapBinDBN();
 
     CreateServiceCore();
     StartNetwork();

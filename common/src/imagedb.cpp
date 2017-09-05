@@ -3,7 +3,7 @@
  *
  *       Filename: imagedb.cpp
  *        Created: 02/14/2016 16:35:49
- *  Last Modified: 09/03/2017 20:14:40
+ *  Last Modified: 09/04/2017 22:38:40
  *
  *    Description:
  *
@@ -104,8 +104,8 @@ const static char *g_DBFileName[]
 const char *ImageDB::DBName(int nIndex) const
 {
     if(true
-            && nIndex > 0
-            && nIndex < (int)(sizeof(g_DBFileName) / sizeof(g_DBFileName[0]))){
+            && nIndex >= 0
+            && nIndex <  (int)(sizeof(g_DBFileName) / sizeof(g_DBFileName[0]))){
         return g_DBFileName[nIndex];
     }
     return nullptr;

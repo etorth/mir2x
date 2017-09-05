@@ -3,7 +3,7 @@
  *
  *       Filename: inndb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 08/19/2017 18:44:17
+ *  Last Modified: 09/05/2017 10:42:57
  *
  *    Description: base of all integral based map cache
  *
@@ -308,8 +308,7 @@ class InnDB
                 if(m_TimeStampQ.empty()){ break; }
 
                 // may or may not release one resource
-                ReleaseResource(std::get<1>(m_TimeStampQ.front()),
-                        std::get<0>(m_TimeStampQ.front()), fnLinearCacheKey); 
+                ReleaseResource(std::get<1>(m_TimeStampQ.front()), std::get<0>(m_TimeStampQ.front()), fnLinearCacheKey); 
                 // always pop front by one after trid to release resource
                 m_TimeStampQ.pop();
             }

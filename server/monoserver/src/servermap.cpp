@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 08/19/2017 00:41:27
+ *  Last Modified: 09/05/2017 14:45:48
  *
  *    Description: 
  *
@@ -20,14 +20,16 @@
 
 #include <algorithm>
 #include "player.hpp"
+#include "dbcomid.hpp"
 #include "monster.hpp"
 #include "actorpod.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
 #include "servermap.hpp"
+#include "mapbindbn.hpp"
 #include "charobject.hpp"
 #include "monoserver.hpp"
-#include "serverconfigurewindow.hpp"
+#include "dbcomrecord.hpp"
 
 ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, bool bCheckCO)
     : AStarPathFinder(
@@ -235,11 +237,22 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
     }
 }
 
-extern ServerConfigureWindow *g_ServerConfigureWindow;
 ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     : ActiveObject()
     , m_ID(nMapID)
-    , m_Mir2xMapData((std::string(g_ServerConfigureWindow->GetMapPath()) + SYS_MAPFILENAME(nMapID)).c_str())
+    , m_Mir2xMapData(*([nMapID]() -> Mir2xMapData *
+      {
+          // server is multi-thread
+          // but creating server map is always in service core
+
+          extern MapBinDBN *g_MapBinDBN;
+          auto pMir2xMapData = g_MapBinDBN->Retrieve(nMapID);
+
+          // when constructing a servermap
+          // servicecore should test if current nMapID valid
+          condcheck(pMir2xMapData);
+          return pMir2xMapData;
+      }()))
     , m_Metronome(nullptr)
     , m_ServiceCore(pServiceCore)
     , m_CellRecordV2D()
@@ -259,15 +272,19 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
         }
     }else{
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Load map failed: ID = %d, Name = %s", nMapID, SYS_MAPFILENAME(nMapID) ? SYS_MAPFILENAME(nMapID) : "");
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name);
         g_MonoServer->Restart();
     }
 
-    for(auto stLoc: SYS_MAPSWITCHLOC(nMapID)){
-        if(ValidC(stLoc.X, stLoc.Y)){
-            m_CellRecordV2D[stLoc.X][stLoc.Y].UID   = 0;
-            m_CellRecordV2D[stLoc.X][stLoc.Y].MapID = stLoc.MapID;
-            m_CellRecordV2D[stLoc.X][stLoc.Y].Query = QUERY_NA;
+    for(auto stLinkEntry: DBCOM_MAPRECORD(nMapID).LinkArray){
+        if(ValidC(stLinkEntry.X, stLinkEntry.Y)){
+            m_CellRecordV2D[stLinkEntry.X][stLinkEntry.Y].UID     = 0;
+            m_CellRecordV2D[stLinkEntry.X][stLinkEntry.Y].MapID   = DBCOM_MAPID(stLinkEntry.EndName);
+            m_CellRecordV2D[stLinkEntry.X][stLinkEntry.Y].SwitchX = stLinkEntry.EndX;
+            m_CellRecordV2D[stLinkEntry.X][stLinkEntry.Y].SwitchY = stLinkEntry.EndY;
+            m_CellRecordV2D[stLinkEntry.X][stLinkEntry.Y].Query   = QUERY_NA;
+        }else{
+            break;
         }
     }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 08/11/2017 14:37:38
+ *  Last Modified: 09/05/2017 14:53:11
  *
  *    Description: 
  *
@@ -239,6 +239,9 @@ struct AMMapSwitch
 {
     uint32_t MapID;
     uint32_t UID;
+
+    int X;
+    int Y;
 };
 
 struct AMTryMapSwitch
@@ -249,6 +252,9 @@ struct AMTryMapSwitch
 
     int X;
     int Y;
+
+    int EndX;
+    int EndY;
 };
 
 struct AMQueryMapUID

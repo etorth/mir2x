@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 08/11/2017 17:06:39
+ *  Last Modified: 09/05/2017 14:53:36
  *
  *    Description: 
  *
@@ -121,16 +121,17 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
         extern MonoServer *g_MonoServer;
         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMMS.UID)){
             AMTryMapSwitch stAMTMS;
-            stAMTMS.UID    = UID();
-            stAMTMS.MapID  = m_Map->ID();
-            stAMTMS.MapUID = m_Map->UID();
-
-            stAMTMS.X = X();
-            stAMTMS.Y = Y();
+            stAMTMS.UID    = UID();         //
+            stAMTMS.MapID  = m_Map->ID();   // current map
+            stAMTMS.MapUID = m_Map->UID();  // current map
+            stAMTMS.X      = X();           // current map
+            stAMTMS.Y      = Y();           // current map
+            stAMTMS.EndX   = stAMMS.X;      // map to switch to
+            stAMTMS.EndY   = stAMMS.Y;      // map to switch to
 
             // 1. send request to the new map
             //    if request rejected then it stays in current map
-            auto fnOnResp = [this, stUIDRecord](const MessagePack &rstRMPK, const Theron::Address &){
+            auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &){
                 switch(rstRMPK.Type()){
                     case MPK_MAPSWITCHOK:
                         {

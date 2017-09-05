@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 08/15/2017 18:27:48
+ *  Last Modified: 09/05/2017 15:06:32
  *
  *    Description: 
  *
@@ -174,4 +174,7 @@ class ProcessRun: public Process
 
     public:
         bool GetUIDLocation(uint32_t, bool, int *, int *);
+
+    public:
+        void CenterMyHero();
 };

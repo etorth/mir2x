@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302 
+version 1.0303 
 header_name {.hpp} 
 code_name {.cpp}
 decl {\#include <cmath>} {public global
@@ -40,10 +40,14 @@ class ServerConfigureWindow {open
         label {@fileopen}
         callback {{
     Fl_Native_File_Chooser stFileChooser;
-    stFileChooser.title("Set Working Map Path...");
-    stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
-    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
+    stFileChooser.title("Load Map Database File...");
+    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
 
+    char szMatchedFileNames[] =
+        "MAPDBN\\t*.ZIP\\n"
+        ;
+
+    stFileChooser.filter(szMatchedFileNames);
     stFileChooser.directory(".");
 
     switch(stFileChooser.show()){
@@ -64,7 +68,7 @@ class ServerConfigureWindow {open
                 m_MapFullName->value(szPath.c_str());
             }
     }
-}} selected
+}}
         xywh {451 20 26 23}
         code0 {\#include <string>}
         code1 {\#include <FL/Fl_Native_File_Chooser.H>}
@@ -86,6 +90,10 @@ class ServerConfigureWindow {open
         xywh {171 248 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
       }
     }
+    code {// set up the default map path
+{
+    m_MapFullName->value("Res/Map/MapBinDBN.ZIP");
+}} {}
   }
   Function {ShowAll()} {} {
     code {{

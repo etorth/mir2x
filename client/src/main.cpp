@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 08/05/2017 20:13:52
+ *  Last Modified: 09/05/2017 10:51:47
  *
  *    Description: 
  *
@@ -23,6 +23,7 @@
 #include "clientenv.hpp"
 #include "pngtexdbn.hpp"
 #include "fontexdbn.hpp"
+#include "mapbindbn.hpp"
 #include "emoticondbn.hpp"
 #include "pngtexoffdbn.hpp"
 
@@ -39,6 +40,7 @@ PNGTexOffDBN   *g_MonsterDBN    = nullptr; // database for monster
 PNGTexOffDBN   *g_WeaponDBN     = nullptr; // database for weapon
 PNGTexOffDBN   *g_MagicDBN      = nullptr; // database for magic
 EmoticonDBN    *g_EmoticonDBN   = nullptr; // database for emoticons
+MapBinDBN      *g_MapBinDBN     = nullptr;
 FontexDBN      *g_FontexDBN     = nullptr;
 XMLConf        *g_XMLConf       = nullptr; // for game configure XML parsing
 SDLDevice      *g_SDLDevice     = nullptr; // for SDL hardware device
@@ -60,6 +62,7 @@ int main()
         delete g_HeroDBN       ; g_HeroDBN       = nullptr;
         delete g_MonsterDBN    ; g_MonsterDBN    = nullptr;
         delete g_FontexDBN     ; g_FontexDBN     = nullptr;
+        delete g_MapBinDBN     ; g_MapBinDBN     = nullptr;
         delete g_EmoticonDBN   ; g_EmoticonDBN   = nullptr;
         delete g_Game          ; g_Game          = nullptr;
     };
@@ -78,6 +81,7 @@ int main()
     g_WeaponDBN     = new PNGTexOffDBN();
     g_MagicDBN      = new PNGTexOffDBN();
     g_FontexDBN     = new FontexDBN();
+    g_MapBinDBN     = new MapBinDBN();
     g_EmoticonDBN   = new EmoticonDBN();
     g_Game          = new Game();
 

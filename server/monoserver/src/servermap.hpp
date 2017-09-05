@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 07/31/2017 11:46:29
+ *  Last Modified: 09/05/2017 14:45:08
  *
  *    Description:
  *
@@ -61,9 +61,12 @@ class ServerMap: public ActiveObject
     private:
         struct CellRecord
         {
-            bool     Lock;
+            bool Lock;
+
             uint32_t UID;
             uint32_t MapID;
+            int      SwitchX;
+            int      SwitchY;
 
             // query service core for the map UID
             // for a map switch point record it's query state
@@ -77,6 +80,8 @@ class ServerMap: public ActiveObject
                 : Lock(false)
                 , UID(0)
                 , MapID(0)
+                , SwitchX(-1)
+                , SwitchY(-1)
                 , Query(QUERY_NA)
                 , GroundItemList()
             {}

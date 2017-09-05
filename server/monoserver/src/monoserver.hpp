@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 07/04/2017 20:15:40
+ *  Last Modified: 09/05/2017 12:04:24
  *
  *    Description: 
  *
@@ -94,6 +94,7 @@ class MonoServer final
         void CreateServiceCore();
         void CreateDBConnection();
         void RegisterAMFallbackHandler();
+        void LoadMapBinDBN();
 
     public:
         void AddCWLog(uint32_t,         // command window id

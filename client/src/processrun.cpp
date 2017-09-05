@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 08/23/2017 11:37:18
+ *  Last Modified: 09/05/2017 15:07:04
  *
  *    Description: 
  *
@@ -25,6 +25,7 @@
 #include "monster.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
+#include "mapbindbn.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
 #include "clientenv.hpp"
@@ -688,10 +689,14 @@ int ProcessRun::LoadMap(uint32_t nMapID)
 {
     if(nMapID){
         m_MapID = nMapID;
-        if(auto pMapName = SYS_MAPFILENAME(nMapID)){
-            return m_Mir2xMapData.Load(pMapName);
+        extern MapBinDBN *g_MapBinDBN;
+        if(auto pMapBin = g_MapBinDBN->Retrieve(nMapID)){
+            m_Mir2xMapData = *pMapBin;
+            return 0;
         }
     }
+
+    m_MapID = 0;
     return -1;
 }
 
@@ -1216,4 +1221,13 @@ bool ProcessRun::GetUIDLocation(uint32_t nUID, bool bDrawLoc, int *pX, int *pY)
         return true;
     }
     return false;
+}
+
+void ProcessRun::CenterMyHero()
+{
+    if(m_MyHero){
+        extern SDLDevice *g_SDLDevice;
+        m_ViewX = m_MyHero->X() * SYS_MAPGRIDXP - g_SDLDevice->WindowW(false) / 2;
+        m_ViewY = m_MyHero->Y() * SYS_MAPGRIDYP - g_SDLDevice->WindowH(false) / 2;
+    }
 }

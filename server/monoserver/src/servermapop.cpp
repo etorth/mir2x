@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 08/11/2017 01:24:53
+ *  Last Modified: 09/05/2017 15:02:56
  *
  *    Description: 
  *
@@ -28,6 +28,7 @@
 #include "servermap.hpp"
 #include "monoserver.hpp"
 #include "rotatecoord.hpp"
+#include "dbcomrecord.hpp"
 
 void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
@@ -356,6 +357,8 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                                 AMMapSwitch stAMMS;
                                 stAMMS.UID   = m_CellRecordV2D[nMostX][nMostY].UID;
                                 stAMMS.MapID = m_CellRecordV2D[nMostX][nMostY].MapID;
+                                stAMMS.X     = m_CellRecordV2D[nMostX][nMostY].SwitchX;
+                                stAMMS.Y     = m_CellRecordV2D[nMostX][nMostY].SwitchY;
                                 m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.Address);
                             }else{
                                 switch(m_CellRecordV2D[nMostX][nMostY].Query){
@@ -376,6 +379,8 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                                                                 AMMapSwitch stAMMS;
                                                                 stAMMS.UID   = m_CellRecordV2D[nMostX][nMostY].UID;
                                                                 stAMMS.MapID = m_CellRecordV2D[nMostX][nMostY].MapID;
+                                                                stAMMS.X     = m_CellRecordV2D[nMostX][nMostY].SwitchX;
+                                                                stAMMS.Y     = m_CellRecordV2D[nMostX][nMostY].SwitchY;
                                                                 m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.Address);
                                                             }
 
@@ -476,9 +481,10 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Add
     AMTryMapSwitch stAMTMS;
     std::memcpy(&stAMTMS, rstMPK.Data(), sizeof(stAMTMS));
 
-    int nX = -1;
-    int nY = -1;
-    if(RandomLocation(&nX, &nY)){
+    int nX = stAMTMS.EndX;
+    int nY = stAMTMS.EndY;
+
+    if(CanMove(false, false, nX, nY)){
         AMMapSwitchOK stAMMSOK;
         stAMMSOK.Data = this;
         stAMMSOK.X    = nX;
@@ -505,6 +511,8 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Add
         m_CellRecordV2D[nX][nY].Lock = true;
         m_ActorPod->Forward({MPK_MAPSWITCHOK, stAMMSOK}, rstFromAddr, rstMPK.ID(), fnOnResp);
     }else{
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Requested map switch location is invalid: MapName = %s, X = %d, Y = %d", DBCOM_MAPRECORD(ID()).Name, nX, nY);
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
     }
 }

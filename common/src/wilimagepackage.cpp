@@ -3,7 +3,7 @@
  *
  *       Filename: wilimagepackage.cpp
  *        Created: 02/14/2016 16:33:12
- *  Last Modified: 09/04/2017 02:19:55
+ *  Last Modified: 09/04/2017 02:35:29
  *
  *    Description:
  *
@@ -334,11 +334,4 @@ int WilImagePackage::WilOffset(int nVersion)
                 return -1;
             }
     }
-}
-
-bool WilImagePackage::LocateImage(uint16_t nImageIndex)
-{
-    return true
-        && SetIndex(nImageIndex)
-        && CurrentImageValid();
 }

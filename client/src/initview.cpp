@@ -3,7 +3,7 @@
  *
  *       Filename: initview.cpp
  *        Created: 07/18/2017 16:04:25
- *  Last Modified: 08/13/2017 23:09:09
+ *  Last Modified: 09/05/2017 11:07:37
  *
  *    Description: 
  *
@@ -28,6 +28,7 @@
 #include "initview.hpp"
 #include "fontexdbn.hpp"
 #include "pngtexdbn.hpp"
+#include "mapbindbn.hpp"
 #include "pngtexoffdbn.hpp"
 
 InitView::InitView(size_t nFontSize)
@@ -94,6 +95,13 @@ InitView::InitView(size_t nFontSize)
         extern XMLConf      *g_XMLConf;
         extern PNGTexOffDBN *g_MagicDBN;
         return LoadDBN(nIndex, g_XMLConf, g_MagicDBN, "Root/Texture/MagicDBN");
+    });
+
+    m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
+    {
+        extern XMLConf      *g_XMLConf;
+        extern MapBinDBN    *g_MapBinDBN;
+        return LoadDBN(nIndex, g_XMLConf, g_MapBinDBN, "Root/Map/MapBinDBN");
     });
 
     // 2. loading font and textures

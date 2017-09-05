@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 08/12/2017 13:15:56
+ *  Last Modified: 09/05/2017 13:31:04
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 #pragma once
 #include <functional>
 #include "charobject.hpp"
+#include "monsterrecord.hpp"
 
 enum MonsterType: uint32_t
 {

@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: mapdb.hpp
+ *       Filename: mapbindb.hpp
  *        Created: 08/31/2017 17:23:35
- *  Last Modified: 08/31/2017 22:41:31
+ *  Last Modified: 09/05/2017 10:32:20
  *
  *    Description: 
  *
@@ -27,13 +27,13 @@
 #include "hexstring.hpp"
 #include "mir2xmapdata.hpp"
 
-struct MapItem
+struct MapBinItem
 {
     Mir2xMapData *Map;
 };
 
 template<size_t LCDeepN, size_t LCLenN, size_t ResMaxN>
-class MapDB: public InnDB<uint32_t, MapItem, LCDeepN, LCLenN, ResMaxN>
+class MapBinDB: public InnDB<uint32_t, MapBinItem, LCDeepN, LCLenN, ResMaxN>
 {
     private:
         struct ZIPItemInfo
@@ -52,14 +52,14 @@ class MapDB: public InnDB<uint32_t, MapItem, LCDeepN, LCLenN, ResMaxN>
         std::unordered_map<uint32_t, ZIPItemInfo> m_ZIPItemInfoCache;
 
     public:
-        MapDB()
-            : InnDB<uint32_t, MapItem, LCDeepN, LCLenN, ResMaxN>()
+        MapBinDB()
+            : InnDB<uint32_t, MapBinItem, LCDeepN, LCLenN, ResMaxN>()
             , m_ZIP(nullptr)
             , m_Buf()
             , m_ZIPItemInfoCache()
         {}
 
-        virtual ~MapDB()
+        virtual ~MapBinDB()
         {
             if(m_ZIP){
                 zip_close(m_ZIP);
@@ -112,10 +112,10 @@ class MapDB: public InnDB<uint32_t, MapItem, LCDeepN, LCLenN, ResMaxN>
         }
 
     public:
-        MapItem RetrieveItem(uint32_t nKey, const std::function<size_t(uint32_t)> &fnLinearCacheKey)
+        MapBinItem RetrieveItem(uint32_t nKey, const std::function<size_t(uint32_t)> &fnLinearCacheKey)
         {
             // fnLinearCacheKey should be defined with LCLenN definition
-            MapItem stItem {nullptr};
+            MapBinItem stItem {nullptr};
 
             // InnRetrieve always return true;
             this->InnRetrieve(nKey, &stItem, fnLinearCacheKey, nullptr);
@@ -125,9 +125,9 @@ class MapDB: public InnDB<uint32_t, MapItem, LCDeepN, LCLenN, ResMaxN>
     public:
         // for all pure virtual function required in class InnDB;
         //
-        virtual MapItem LoadResource(uint32_t nKey)
+        virtual MapBinItem LoadResource(uint32_t nKey)
         {
-            MapItem stItem {nullptr};
+            MapBinItem stItem {nullptr};
 
             auto pZIPIndexRecord = m_ZIPItemInfoCache.find(nKey);
             if(pZIPIndexRecord != m_ZIPItemInfoCache.end()){
@@ -151,7 +151,7 @@ class MapDB: public InnDB<uint32_t, MapItem, LCDeepN, LCLenN, ResMaxN>
             return stItem;
         }
 
-        void FreeResource(MapItem &rstItem)
+        void FreeResource(MapBinItem &rstItem)
         {
             if(rstItem.Map){
                 delete rstItem.Map;

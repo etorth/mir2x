@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 08/11/2017 02:06:15
+ *  Last Modified: 09/05/2017 15:07:50
  *
  *    Description: 
  *
@@ -49,13 +49,8 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
                     stSMLOK.MapID
                 });
 
+        CenterMyHero();
         m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
-
-        {
-            extern SDLDevice *g_SDLDevice;
-            m_ViewX = m_MyHero->X() * SYS_MAPGRIDXP - g_SDLDevice->WindowW(false) / 2;
-            m_ViewY = m_MyHero->Y() * SYS_MAPGRIDYP - g_SDLDevice->WindowH(false) / 2;
-        }
     }
 }
 
@@ -108,6 +103,8 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
             m_CreatureRecord.clear();
 
             m_MyHero = new MyHero(nUID, nDBID, bGender, nDress, this, stAction);
+
+            CenterMyHero();
             m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
         }
     }

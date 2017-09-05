@@ -3,7 +3,7 @@
  *
  *       Filename: dbcomrecord.cpp
  *        Created: 07/30/2017 02:01:02
- *  Last Modified: 08/05/2017 23:37:38
+ *  Last Modified: 09/05/2017 00:09:23
  *
  *    Description: split from dbcom.hpp
  *                 here we include dbcomid.hpp means we have a copy of the
@@ -70,4 +70,19 @@ const MonsterRecord &DBCOM_MONSTERRECORD(uint32_t nID)
 const MonsterRecord &DBCOM_MONSTERRECORD(const char *szName)
 {
     return DBCOM_MONSTERRECORD(DBCOM_MONSTERID(szName));
+}
+
+const MapRecord &DBCOM_MAPRECORD(uint32_t nID)
+{
+    if(true
+            && nID > 0
+            && nID < sizeof(_Inn_MapRecordList) / sizeof(_Inn_MapRecordList[0])){
+        return _Inn_MapRecordList[nID];
+    }
+    return _Inn_MapRecordList[0];
+}
+
+const MapRecord &DBCOM_MAPRECORD(const char *szName)
+{
+    return DBCOM_MAPRECORD(DBCOM_MAPID(szName));
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: wilimagepackage.hpp
  *        Created: 02/14/2016 16:33:12
- *  Last Modified: 09/04/2017 02:19:01
+ *  Last Modified: 09/04/2017 02:35:32
  *
  *    Description:
  *
@@ -27,7 +27,6 @@
 
 #pragma pack(push, 1)
 
-// .wil file header
 struct WILFILEHEADER
 {
     int16_t     shComp;
@@ -36,7 +35,6 @@ struct WILFILEHEADER
     int32_t     nImageCount;
 };
 
-// .wix file header
 struct WIXIMAGEINFO
 {
     char        szTitle[20];
@@ -60,9 +58,9 @@ struct WILIMAGEINFO
 class WilImagePackage
 {
     private:
-        WIXIMAGEINFO    m_WixImageInfo;
-        WILIMAGEINFO    m_CurrentWilImageInfo;
-        WILFILEHEADER   m_WilFileHeader;
+        WIXIMAGEINFO  m_WixImageInfo;
+        WILIMAGEINFO  m_CurrentWilImageInfo;
+        WILFILEHEADER m_WilFileHeader;
 
     private:
         int32_t m_CurrentImageIndex;
@@ -87,22 +85,21 @@ class WilImagePackage
         int16_t Version();
 
     public:
-        bool Load(const char *, const char *, const char *);
         bool SetIndex(uint32_t);
+
+    public:
+        bool Load(const char *, const char *, const char *);
         void Decode(uint32_t *, uint32_t, uint32_t, uint32_t);
 
     public:
         const WILFILEHEADER &HeaderInfo() const;
 
     public:
-        const uint16_t      *CurrentImageBuffer();
         const WILIMAGEINFO  &CurrentImageInfo();
         bool                 CurrentImageValid();
+        const uint16_t      *CurrentImageBuffer();
 
     public:
         static int WixOffset(int);
         static int WilOffset(int);
-
-    public:
-        bool LocateImage(uint16_t);
 };

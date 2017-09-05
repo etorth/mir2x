@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.hpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 08/31/2017 23:14:24
+ *  Last Modified: 09/05/2017 11:17:52
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
@@ -210,7 +210,7 @@ class Mir2xMapData final
         Mir2xMapData(const char *pName)
             : Mir2xMapData()
         {
-            condcheck(!Load(pName));
+            condcheck(Load(pName));
         }
 
     public:

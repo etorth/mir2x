@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 07/02/2017 21:52:20
+ *  Last Modified: 09/05/2017 12:11:13
  *
  *    Description: 
  *
@@ -24,6 +24,7 @@
 #include "player.hpp"
 #include "actorpod.hpp"
 #include "metronome.hpp"
+#include "mapbindbn.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
 
@@ -114,10 +115,15 @@ bool ServiceCore::LoadMap(uint32_t nMapID)
 {
     if(nMapID){
         if(m_MapRecord.find(nMapID) == m_MapRecord.end()){
-            auto pMap = new ServerMap(this, nMapID);
-
-            pMap->Activate();
-            m_MapRecord[nMapID] = pMap;
+            extern MapBinDBN *g_MapBinDBN;
+            if(g_MapBinDBN->Retrieve(nMapID)){
+                auto pMap = new ServerMap(this, nMapID);
+                pMap->Activate();
+                m_MapRecord[nMapID] = pMap;
+                return true;
+            }else{
+                return false;
+            }
         }
         return true;
     }

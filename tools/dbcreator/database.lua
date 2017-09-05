@@ -64,9 +64,9 @@ if errmsg then print(status, errmsg) end
 -- try to add new dbid
 status, errmsg = conn:execute [[
     insert tbl_dbid (fld_id, fld_mapid, fld_mapx, fld_mapy, fld_level, fld_jobid, fld_direction, fld_name) values
-        (1, 1, 12, 21, 1, 1, 1, "mark" ),
-        (2, 1, 14, 19, 1, 1, 1, "john" ),
-        (3, 1, 14, 20, 1, 1, 1, "linda")
+        (1, 1, 440, 380, 1, 1, 1, "mark" ),
+        (2, 1, 441, 381, 1, 1, 1, "john" ),
+        (3, 1, 440, 381, 1, 1, 1, "linda")
 ]]
 
 if errmsg then print(status, errmsg) end

@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 06/25/2017 20:56:31
+ *  Last Modified: 09/05/2017 13:04:52
  *
  *    Description: 
  *
@@ -26,6 +26,7 @@
 #include "taskhub.hpp"
 #include "memorypn.hpp"
 #include "threadpn.hpp"
+#include "mapbindbn.hpp"
 #include "metronome.hpp"
 #include "serverenv.hpp"
 #include "mainwindow.hpp"
@@ -45,6 +46,7 @@ ThreadPN                 *g_ThreadPN;
 NetPodN                  *g_NetPodN;
 DBPodN                   *g_DBPodN;
 
+MapBinDBN                *g_MapBinDBN;
 ScriptWindow             *g_ScriptWindow;
 MainWindow               *g_MainWindow;
 MonoServer               *g_MonoServer;
@@ -66,6 +68,7 @@ int main()
     g_MainWindow              = new MainWindow();
     g_MonoServer              = new MonoServer();
     g_MemoryPN                = new MemoryPN();
+    g_MapBinDBN               = new MapBinDBN();
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
     g_EventTaskHub            = new EventTaskHub();

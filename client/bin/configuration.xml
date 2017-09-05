@@ -24,10 +24,9 @@
         <MonsterDBN>Res/Texture/MonsterDBN.ZIP</MonsterDBN>
         <WeaponDBN>Res/Texture/WeaponDBN.ZIP</WeaponDBN>
         <MagicDBN>Res/Texture/MagicDBN.ZIP</MagicDBN>
-        <Path>Res/Texture</Path>
     </Texture>
     <Map>
-        <Path>Res/Map</Path>
+        <MapBinDBN>Res/Map/MapBinDBN.ZIP</MapBinDBN>
     </Map>
     <Font>
         <FontFile Index="0">

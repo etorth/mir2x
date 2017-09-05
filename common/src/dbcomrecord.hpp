@@ -3,7 +3,7 @@
  *
  *       Filename: dbcomrecord.hpp
  *        Created: 07/28/2017 23:03:43
- *  Last Modified: 08/06/2017 17:26:32
+ *  Last Modified: 09/05/2017 00:07:09
  *
  *    Description: split from dbcom.hpp
  *                 don't include dbcomid.hpp in this header file
@@ -21,6 +21,7 @@
 
 #pragma once
 #include <cstdint>
+#include "maprecord.hpp"
 #include "itemrecord.hpp"
 #include "magicrecord.hpp"
 #include "monsterrecord.hpp"
@@ -33,3 +34,6 @@ const MagicRecord &DBCOM_MAGICRECORD(const char *);
 
 const MonsterRecord &DBCOM_MONSTERRECORD(uint32_t);
 const MonsterRecord &DBCOM_MONSTERRECORD(const char *);
+
+const MapRecord &DBCOM_MAPRECORD(uint32_t);
+const MapRecord &DBCOM_MAPRECORD(const char *);
