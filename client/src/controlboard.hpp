@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.hpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 07/25/2017 15:33:45
+ *  Last Modified: 09/05/2017 23:41:48
  *
  *    Description: main control pannel for running game
  *                 try support dynamically allocated control board
@@ -38,6 +38,7 @@ class ControlBoard: public Widget
 
     private:
         InputLine        m_CmdLine;
+        LabelBoard       m_LocBoard;
         LineBrowserBoard m_LogBoard;
 
     public:
@@ -64,4 +65,7 @@ class ControlBoard: public Widget
 
     public:
         void AddLog(int, const char *);
+
+    public:
+        bool CheckMyHeroMoved();
 };

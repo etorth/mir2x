@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 07/25/2017 15:32:29
+ *  Last Modified: 09/06/2017 00:11:18
  *
  *    Description:
  *
@@ -26,6 +26,7 @@
 #include "sdldevice.hpp"
 #include "pngtexdbn.hpp"
 #include "processrun.hpp"
+#include "dbcomrecord.hpp"
 #include "controlboard.hpp"
 
 ControlBoard::ControlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWidget, bool bAutoDelete)
@@ -46,6 +47,7 @@ ControlBoard::ControlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
             [this](){ InputLineDone(); },
             this,
             false)
+    , m_LocBoard(0, 0, "", 1, 12, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_LogBoard(
             187,
             18,
@@ -180,6 +182,13 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
         g_SDLDevice->DrawTexture(pTexture, nX0 + (nW0 - 266), nY0 + 17);
     }
 
+    {
+        auto nX = m_ProcessRun->GetMyHero()->X();
+        auto nY = m_ProcessRun->GetMyHero()->Y();
+        m_LocBoard.SetText(u8"%s: %d %d", DBCOM_MAPRECORD(m_ProcessRun->MapID()).Name, nX, nY);
+        m_LocBoard.DrawEx(nX0 + (136 - m_LocBoard.W()) / 2, nY0 + 108, 0, 0, m_LocBoard.W(), m_LocBoard.H());
+    }
+
     g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
     g_SDLDevice->DrawRectangle(m_CmdLine.X(), m_CmdLine.Y(), m_CmdLine.W(), m_CmdLine.H());
     g_SDLDevice->PopColor();
@@ -247,4 +256,9 @@ void ControlBoard::AddLog(int nLogType, const char *szLog)
 
         m_LogBoard.AddXML(szXML, {});
     }
+}
+
+bool ControlBoard::CheckMyHeroMoved()
+{
+    return true;
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 09/05/2017 15:07:04
+ *  Last Modified: 09/05/2017 23:36:02
  *
  *    Description: 
  *
@@ -1230,4 +1230,9 @@ void ProcessRun::CenterMyHero()
         m_ViewX = m_MyHero->X() * SYS_MAPGRIDXP - g_SDLDevice->WindowW(false) / 2;
         m_ViewY = m_MyHero->Y() * SYS_MAPGRIDYP - g_SDLDevice->WindowH(false) / 2;
     }
+}
+
+MyHero *ProcessRun::GetMyHero()
+{
+    return m_MyHero;
 }

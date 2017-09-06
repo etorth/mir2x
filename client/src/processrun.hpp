@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 09/05/2017 15:06:32
+ *  Last Modified: 09/05/2017 23:35:43
  *
  *    Description: 
  *
@@ -177,4 +177,7 @@ class ProcessRun: public Process
 
     public:
         void CenterMyHero();
+
+    public:
+        MyHero *GetMyHero();
 };
