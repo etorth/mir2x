@@ -3,7 +3,7 @@
  *
  *       Filename: maprecord.inc
  *        Created: 05/12/2017 17:58:02
- *  Last Modified: 09/05/2017 15:32:23
+ *  Last Modified: 09/06/2017 23:07:41
  *
  *    Description: 
  *
@@ -36,6 +36,18 @@
     LinkEntry { 19, 52, 477, 358, u8"比奇省"},
     LinkEntry { 20, 53, 477, 358, u8"比奇省"},
     LinkEntry { 21, 54, 477, 358, u8"比奇省"},
+},
+
+{
+    u8"道馆",
+},
+
+{
+    u8"银杏山谷",
+},
+
+{
+    u8"边境城市",
 },
 
 {

@@ -3,7 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 08/05/2015 11:22:52 PM
- *  Last Modified: 05/21/2017 01:36:49
+ *  Last Modified: 09/07/2017 00:40:47
  *
  *    Description: 
  *
@@ -350,10 +350,11 @@ bool ActionSet::Export(
             ||  FrameCount() <= 0){ return false; }
 
     // seems m_FileIndex starts from 1
-    uint32_t nLookID = (uint32_t)((m_FileIndex - 1) * 10 + m_AnimationIndex) & 0X00000FFF;
     char szLookID[16];
-    HexString<uint32_t, 2>(nLookID, szLookID);
-    szLookID[4] = '\0';
+    std::memset(szLookID, 0, sizeof(szLookID));
+
+    uint32_t nLookID = (uint32_t)((m_FileIndex - 1) * 10 + m_AnimationIndex) & 0X00000FFF;
+    HexString::ToString<uint32_t, 2>(nLookID, szLookID);
 
     for(int nFrame = 0; nFrame < FrameCount(); ++nFrame){
         auto pFrame = pDoc->NewElement("Frame");
@@ -392,8 +393,8 @@ bool ActionSet::Export(
                     + ((((uint32_t)nFrame)     & 0X0000001F) << 0);
 
                 char szTmpHexStringStateDirectionFrame[16];
-                HexString<uint32_t, 2>(nStateDirectionFrame, szTmpHexStringStateDirectionFrame);
-                szTmpHexStringStateDirectionFrame[4] = '\0';
+                std::memset(szTmpHexStringStateDirectionFrame, 0, sizeof(szTmpHexStringStateDirectionFrame));
+                HexString::ToString<uint32_t, 2>(nStateDirectionFrame, szTmpHexStringStateDirectionFrame);
 
                 std::sprintf(szTmpHexStringFileName,
                         "%s/01%s%s%s%s%04X%04X.PNG",
@@ -440,7 +441,7 @@ bool ActionSet::Export(
                     + ((((uint32_t)nFrame)     & 0X0000001F) << 0);
 
                 char szTmpHexStringStateDirectionFrame[16];
-                HexString<uint32_t, 2>(nStateDirectionFrame, szTmpHexStringStateDirectionFrame);
+                HexString::ToString<uint32_t, 2>(nStateDirectionFrame, szTmpHexStringStateDirectionFrame);
                 szTmpHexStringStateDirectionFrame[4] = '\0';
 
                 std::sprintf(szTmpHexStringFileName,

@@ -3,7 +3,7 @@
  *
  *       Filename: mapbindb.hpp
  *        Created: 08/31/2017 17:23:35
- *  Last Modified: 09/05/2017 10:32:20
+ *  Last Modified: 09/07/2017 00:29:15
  *
  *    Description: 
  *
@@ -101,7 +101,7 @@ class MapBinDB: public InnDB<uint32_t, MapBinItem, LCDeepN, LCLenN, ResMaxN>
                                 && stZIPStat.valid & ZIP_STAT_INDEX
                                 && stZIPStat.valid & ZIP_STAT_SIZE
                                 && stZIPStat.valid & ZIP_STAT_NAME){
-                            uint32_t nKey = StringHex<uint32_t, 4>(stZIPStat.name);
+                            uint32_t nKey = HexString::ToHex<uint32_t, 4>(stZIPStat.name);
                             m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)(stZIPStat.size)};
                         }
                     }

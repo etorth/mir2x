@@ -3,7 +3,7 @@
  *
  *       Filename: animationdb.cpp
  *        Created: 06/22/2016 18:21:16
- *  Last Modified: 06/22/2016 23:01:49
+ *  Last Modified: 09/07/2017 00:25:44
  *
  *    Description: 
  *
@@ -58,7 +58,7 @@ bool AnimationDB::Load(const char *szDBPath)
         uint32_t nDirection = 0;
         uint32_t nFrame     = 0;
 
-        uint32_t nDesc = StringHex<uint32_t, 4>(szFileName.c_str());
+        auto nDesc = HexString::ToHex<uint32_t, 4>(szFileName.c_str());
 
         nMonsterID = ((nDesc & 0X00FFF000) >> 12);
         nAction    = ((nDesc & 0X00000F00) >>  8);
@@ -68,10 +68,10 @@ bool AnimationDB::Load(const char *szDBPath)
         // we refuse to accept frame with MonsterID == 0
         if(nMonsterID == 0){ continue; }
 
-        nDesc = StringHex<uint32_t, 4>(szFileName.c_str() + 10);
+        auto nOffset = HexString::ToHex<uint32_t, 4>(szFileName.c_str() + 10);
 
-        int nDX = ((szFileName[8] == '0') ? -1 : 1) * (int)((nDesc & 0XFFFF0000) >> 16);
-        int nDY = ((szFileName[9] == '0') ? -1 : 1) * (int)((nDesc & 0X0000FFFF) >>  0);
+        int nDX = ((szFileName[8] == '0') ? -1 : 1) * (int)((nOffset & 0XFFFF0000) >> 16);
+        int nDY = ((szFileName[9] == '0') ? -1 : 1) * (int)((nOffset & 0X0000FFFF) >>  0);
 
         Add(nMonsterID, nAction, nDirection, nFrame, (szFileName[1] == '1'), nDX, nDY, (m_DBPath + "/" + szFileName));
         // since we didn't update this directory, so we don't need rewinddir()

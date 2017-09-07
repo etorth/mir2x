@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 07/04/2017 14:58:48
+ *  Last Modified: 09/07/2017 00:31:31
  *
  *    Description: 
  *
@@ -123,14 +123,14 @@ class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffItem, LCDeepN, LCLenN, ResMax
                             //   +DY: abs(DY) take 4 chars, 2 bytes
                             //
                             // for key
-                            uint32_t nKey = StringHex<uint32_t, 4>(stZIPStat.name);
+                            uint32_t nKey = HexString::ToHex<uint32_t, 4>(stZIPStat.name);
                             // for DX, DY
                             int nDX, nDY;
                             nDX = (stZIPStat.name[8] != '0') ? 1 : (-1);
                             nDY = (stZIPStat.name[9] != '0') ? 1 : (-1);
 
-                            nDX *= (int)StringHex<uint32_t, 2>(stZIPStat.name + 10);
-                            nDY *= (int)StringHex<uint32_t, 2>(stZIPStat.name + 14);
+                            nDX *= (int)HexString::ToHex<uint32_t, 2>(stZIPStat.name + 10);
+                            nDY *= (int)HexString::ToHex<uint32_t, 2>(stZIPStat.name + 14);
 
                             m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)stZIPStat.size, nDX, nDY};
                         }

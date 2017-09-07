@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 07/06/2017 17:25:15
+ *  Last Modified: 09/07/2017 00:30:29
  *
  *    Description: 
  *
@@ -101,7 +101,7 @@ class PNGTexDB: public InnDB<uint32_t, PNGTexItem, LCDeepN, LCLenN, ResMaxN>
                                 && stZIPStat.valid & ZIP_STAT_INDEX
                                 && stZIPStat.valid & ZIP_STAT_SIZE
                                 && stZIPStat.valid & ZIP_STAT_NAME){
-                            uint32_t nKey = StringHex<uint32_t, 4>(stZIPStat.name);
+                            uint32_t nKey = HexString::ToHex<uint32_t, 4>(stZIPStat.name);
                             m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)(stZIPStat.size)};
                         }
                     }

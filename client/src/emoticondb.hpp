@@ -3,7 +3,7 @@
  *
  *       Filename: emoticondb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 07/04/2017 14:00:01
+ *  Last Modified: 09/07/2017 00:32:59
  *
  *    Description: 
  *
@@ -131,19 +131,19 @@ class EmoticonDB: public InnDB<uint32_t, EmoticonItem, LCDeepN, LCLenN, ResMaxN>
                                 && stZIPStat.valid & ZIP_STAT_NAME){
 
                             // 1. for key, the last byte will always be zero
-                            uint32_t nKey = (StringHex<uint32_t, 4>(stZIPStat.name) & 0XFFFFFF00);
+                            uint32_t nKey = (HexString::ToHex<uint32_t, 4>(stZIPStat.name) & 0XFFFFFF00);
 
                             // 2. for FPS
-                            int nFPS = (int)StringHex<uint8_t, 1>(stZIPStat.name + 8);
+                            int nFPS = (int)HexString::ToHex<uint8_t, 1>(stZIPStat.name + 8);
 
                             // 3. for frame W
-                            int nFW = (int)StringHex<uint16_t, 2>(stZIPStat.name + 10);
+                            int nFW = (int)HexString::ToHex<uint16_t, 2>(stZIPStat.name + 10);
 
                             // 4. for frame H
-                            int nFH = (int)StringHex<uint16_t, 2>(stZIPStat.name + 14);
+                            int nFH = (int)HexString::ToHex<uint16_t, 2>(stZIPStat.name + 14);
 
                             // 5. for frame H1
-                            int nH1 = (int)StringHex<uint16_t, 2>(stZIPStat.name + 18);
+                            int nH1 = (int)HexString::ToHex<uint16_t, 2>(stZIPStat.name + 18);
 
                             EmoticonItem stItem {nullptr, nFW, nFH, nH1, nFPS};
                             m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)(stZIPStat.size), stItem};

@@ -207,8 +207,12 @@ fl_alert("%s", "Haven't implement yet!");}
         extern std::string g_WorkingPathName;
 
         char szHexString[64];
-        uint32_t nKey = (((uint32_t)(nFileIndex)) << 16) + ((uint32_t)nImageIndex);
-        std::string szIMGPNGName = ((g_WorkingPathName + "/IMG/") + HexString<uint32_t, 3>(nKey, szHexString)) + ".PNG";
+        std::memset(szHexString, 0, sizeof(szHexString));
+
+        uint32_t nKey = (((uint32_t)(nFileIndex)) << 16) + ((uint32_t)(nImageIndex));
+        HexString::ToString<uint32_t, 4>(nKey, szHexString);
+
+        std::string szIMGPNGName = ((g_WorkingPathName + "/IMG/") + szHexString) + ".PNG";
 
         if(!FileSys::FileExist(szIMGPNGName.c_str())){
             if(!g_ImageCache.Retrieve(nFileIndex, nImageIndex)){

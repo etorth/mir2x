@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 09/05/2017 23:36:02
+ *  Last Modified: 09/06/2017 13:06:40
  *
  *    Description: 
  *
@@ -387,8 +387,10 @@ void ProcessRun::Draw()
                         }
                     }
                 }
+            }
 
-                // draw alive actors
+            // draw alive actors
+            for(int nX = nX0; nX <= nX1; ++nX){
                 for(auto pCreature: m_CreatureRecord){
                     if(true
                             &&  (pCreature.second)

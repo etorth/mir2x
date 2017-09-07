@@ -3,7 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *  Last Modified: 07/11/2017 23:28:35
+ *  Last Modified: 09/07/2017 00:32:06
  *
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -135,7 +135,7 @@ class FontexDB: public InnDB<FontexDBKT, FontexItem, LCDeepN, LCLenN, ResMaxN>
                             // FE.TTF
                             // FF.TTF
 
-                            uint8_t nKey = StringHex<uint8_t, 1>(stZIPStat.name);
+                            uint8_t nKey = HexString::ToHex<uint8_t, 1>(stZIPStat.name);
                             m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)(stZIPStat.size), nullptr, 0};
                         }
                     }
