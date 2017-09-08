@@ -3,7 +3,7 @@
  *
  *       Filename: servicecorenet.cpp
  *        Created: 05/20/2016 17:09:13
- *  Last Modified: 06/17/2017 17:43:32
+ *  Last Modified: 09/08/2017 16:20:31
  *
  *    Description: interaction btw NetPod and ServiceCore
  *
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 #include "dbpod.hpp"
+#include "dbcomid.hpp"
 #include "threadpn.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
@@ -80,7 +81,8 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
 
         // 2. needed information to create co
         stAMLQDB.DBID  = std::atoi(pDBHDR->Get("fld_dbid"));
-        stAMLQDB.MapID = std::atoi(pDBHDR->Get("fld_mapid"));
+        stAMLQDB.MapID = DBCOM_MAPID(pDBHDR->Get("fld_mapname"));
+
         stAMLQDB.MapX  = std::atoi(pDBHDR->Get("fld_mapx"));
         stAMLQDB.MapY  = std::atoi(pDBHDR->Get("fld_mapy"));
 

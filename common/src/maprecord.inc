@@ -3,7 +3,7 @@
  *
  *       Filename: maprecord.inc
  *        Created: 05/12/2017 17:58:02
- *  Last Modified: 09/06/2017 23:07:41
+ *  Last Modified: 09/08/2017 15:47:28
  *
  *    Description: 
  *
@@ -48,6 +48,10 @@
 
 {
     u8"边境城市",
+},
+
+{
+    u8"沙巴克",
 },
 
 {

@@ -49,13 +49,15 @@ status, errmsg = conn:execute [[
     (
         fld_dbid      int unsigned not null auto_increment primary key,
         fld_id        int unsigned not null,
-        fld_mapid     int unsigned not null,
+
+        fld_name      varchar(32) character set utf8 not null,
+        fld_mapname   varchar(32) character set utf8 not null,
+
         fld_mapx      int unsigned not null,
         fld_mapy      int unsigned not null,
         fld_level     int unsigned not null,
         fld_jobid     int unsigned not null,
-        fld_direction int unsigned not null,
-        fld_name      char(32) not null
+        fld_direction int unsigned not null
     )
 ]]
 
@@ -63,10 +65,10 @@ if errmsg then print(status, errmsg) end
 
 -- try to add new dbid
 status, errmsg = conn:execute [[
-    insert tbl_dbid (fld_id, fld_mapid, fld_mapx, fld_mapy, fld_level, fld_jobid, fld_direction, fld_name) values
-        (1, 1, 440, 380, 1, 1, 1, "mark" ),
-        (2, 1, 441, 381, 1, 1, 1, "john" ),
-        (3, 1, 440, 381, 1, 1, 1, "linda")
+    insert tbl_dbid (fld_id, fld_name, fld_mapname, fld_mapx, fld_mapy, fld_level, fld_jobid, fld_direction) values
+        (1, "亚当", "道馆",   405, 120, 1, 1, 1),
+        (2, "夏娃", "比奇省", 441, 381, 1, 1, 1),
+        (3, "逗逼", "比奇省", 440, 381, 1, 1, 1)
 ]]
 
 if errmsg then print(status, errmsg) end
