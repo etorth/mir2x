@@ -3,7 +3,7 @@
  *
  *       Filename: mir2map.hpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 09/03/2017 01:10:35
+ *  Last Modified: 09/08/2017 02:19:42
  *
  *    Description: 
  *
@@ -57,7 +57,8 @@ struct CELLINFO
     uint8_t     bFlag;
     uint8_t     bObj1Ani;
     uint8_t     bObj2Ani;
-    uint16_t    wFileIndex;
+    uint8_t     bFileIndex2;   // not 1
+    uint8_t     bFileIndex1;   // not 2
     uint16_t    wObj1;
     uint16_t    wObj2;
     uint16_t    bDoorIndex;

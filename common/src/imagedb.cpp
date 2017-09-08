@@ -3,7 +3,7 @@
  *
  *       Filename: imagedb.cpp
  *        Created: 02/14/2016 16:35:49
- *  Last Modified: 09/04/2017 22:38:40
+ *  Last Modified: 09/08/2017 02:48:42
  *
  *    Description:
  *
@@ -105,7 +105,7 @@ const char *ImageDB::DBName(int nIndex) const
 {
     if(true
             && nIndex >= 0
-            && nIndex <  (int)(sizeof(g_DBFileName) / sizeof(g_DBFileName[0]))){
+            && nIndex <  (int)(std::extent<decltype(g_DBFileName)>::value)){
         return g_DBFileName[nIndex];
     }
     return nullptr;
@@ -126,9 +126,9 @@ bool ImageDB::Load(uint8_t nFileIndex, const char *szPathName, const char *szFil
 
 bool ImageDB::Valid(uint8_t nFileIndex, uint16_t nImageIndex)
 {
-    if(nFileIndex == 255 || nImageIndex == 65535){ return false; }
-
     if(true
+            && nFileIndex  != 255
+            && nImageIndex != 65535
             && m_ImagePackage[nFileIndex].SetIndex(nImageIndex)
             && m_ImagePackage[nFileIndex].CurrentImageValid()){
         int nW = m_ImagePackage[nFileIndex].CurrentImageInfo().shWidth;

@@ -3,7 +3,7 @@
  *
  *       Filename: mir2map.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 09/03/2017 01:10:50
+ *  Last Modified: 09/08/2017 02:51:48
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <memory.h>
 #include "mir2map.hpp"
+#include "sysconst.hpp"
 
 Mir2Map::Mir2Map()
     : m_Valid(false)
@@ -121,15 +122,21 @@ bool Mir2Map::GroundObjectValid(int nX, int nY, int nIndex, ImageDB &stImageDB)
     uint32_t nFileIndex  = 0;
     uint32_t nImageIndex = 0;
     if(nIndex == 0){
-        nFileIndex  = ((CellInfo(nX, nY).wFileIndex & 0XFF00) >> 8);
+        nFileIndex  = CellInfo(nX, nY).bFileIndex1;
         nImageIndex = CellInfo(nX, nY).wObj1;
     }else{
-        nFileIndex  = ((CellInfo(nX, nY).wFileIndex & 0X00FF) >> 0);
+        nFileIndex  = CellInfo(nX, nY).bFileIndex2;
         nImageIndex = CellInfo(nX, nY).wObj2;
     }
 
-    if(stImageDB.Valid((uint8_t)nFileIndex, (uint16_t)nImageIndex)){
-        return stImageDB.FastW(nFileIndex) == 48 && stImageDB.FastH(nFileIndex) == 32;
+    if(true
+            && nFileIndex > 0
+            && nFileIndex < 75
+
+            && nImageIndex != 65536
+
+            && stImageDB.Valid((uint8_t)(nFileIndex), (uint16_t)(nImageIndex))){
+        return stImageDB.FastW(nFileIndex) == SYS_MAPGRIDXP && stImageDB.FastH(nFileIndex) == SYS_MAPGRIDYP;
     }
     return false;
 }
@@ -139,14 +146,23 @@ bool Mir2Map::ObjectValid(int nX, int nY, int nIndex, ImageDB &stImageDB)
     uint32_t nFileIndex  = 0;
     uint32_t nImageIndex = 0;
     if(nIndex == 0){
-        nFileIndex  = ((CellInfo(nX, nY).wFileIndex & 0XFF00) >> 8);
+        nFileIndex  = CellInfo(nX, nY).bFileIndex1;
         nImageIndex = CellInfo(nX, nY).wObj1;
     }else{
-        nFileIndex  = ((CellInfo(nX, nY).wFileIndex & 0X00FF) >> 0);
+        nFileIndex  = CellInfo(nX, nY).bFileIndex2;
         nImageIndex = CellInfo(nX, nY).wObj2;
     }
 
-    return stImageDB.Valid((uint8_t)nFileIndex, (uint16_t)nImageIndex);
+    if(true
+            && nFileIndex > 0
+            && nFileIndex < 75
+
+            && nImageIndex != 65536
+
+            && stImageDB.Valid((uint8_t)(nFileIndex), (uint16_t)(nImageIndex))){
+        return true;
+    }
+    return false;
 }
 
 uint32_t Mir2Map::Object(int nX, int nY, int nIndex)
@@ -155,11 +171,11 @@ uint32_t Mir2Map::Object(int nX, int nY, int nIndex)
     uint32_t nFileIndex  = 0;
     uint32_t nImageIndex = 0;
     if(nIndex == 0){
-        nFileIndex  = ((CellInfo(nX, nY).wFileIndex & 0XFF00) >> 8);
+        nFileIndex  = CellInfo(nX, nY).bFileIndex1;
         nImageIndex = CellInfo(nX, nY).wObj1;
         nObjectDesc = CellInfo(nX, nY).bObj1Ani;
     }else{
-        nFileIndex  = ((CellInfo(nX, nY).wFileIndex & 0X00FF) >> 0);
+        nFileIndex  = CellInfo(nX, nY).bFileIndex2;
         nImageIndex = CellInfo(nX, nY).wObj2;
         nObjectDesc = CellInfo(nX, nY).bObj2Ani;
     }
@@ -171,14 +187,14 @@ bool Mir2Map::TileValid(int nX, int nY, ImageDB &stImageDB)
 {
     uint32_t nFileIndex  = BaseTileInfo(nX, nY).bFileIndex;
     uint32_t nImageIndex = BaseTileInfo(nX, nY).wTileIndex;
-    return stImageDB.Valid((uint8_t)nFileIndex, (uint16_t)nImageIndex);
+    return stImageDB.Valid((uint8_t)(nFileIndex), (uint16_t)(nImageIndex));
 }
 
 uint32_t Mir2Map::Tile(int nX, int nY)
 {
     uint32_t nFileIndex  = BaseTileInfo(nX, nY).bFileIndex;
     uint32_t nImageIndex = BaseTileInfo(nX, nY).wTileIndex;
-    return (nFileIndex << 16) + nImageIndex; // put 32~24 as unset
+    return (nFileIndex << 16) + nImageIndex;
 }
 
 uint32_t Mir2Map::GetDoorImageIndex(int nX, int nY)
@@ -198,31 +214,31 @@ uint32_t Mir2Map::GetDoorImageIndex(int nX, int nY)
 
 uint8_t Mir2Map::GetDoor(int nXCnt, int nYCnt)
 {
-    if(!Valid()){ return 0; }
-
     uint8_t bRes = 0;
-    int nArrayNum = nYCnt + nXCnt * m_stMapFileHeader.shHeight;
-    if(m_pstCellInfo[nArrayNum].bDoorIndex & 0X80){
-        bRes = (m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F);
+    if(Valid()){
+        int nArrayNum = nYCnt + nXCnt * m_stMapFileHeader.shHeight;
+        if(m_pstCellInfo[nArrayNum].bDoorIndex & 0X80){
+            bRes = (m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F);
+        }
     }
     return bRes;
 }
 
 void Mir2Map::OpenDoor(int nX, int nY, uint8_t nDoorIndex)
 {
-    if(!Valid()){ return; }
-
-    for(int nCntY = nY - 8; nCntY < nY + 10; nCntY++){
-        for(int nCntX = nX - 8; nCntX < nX + 10; nCntX++){
-            if(true
-                    && nCntX >= 0
-                    && nCntY >= 0
-                    && nCntX <  m_stMapFileHeader.shWidth
-                    && nCntY <  m_stMapFileHeader.shHeight
-              ){
-                int nArrayNum = nCntY + nCntX * m_stMapFileHeader.shHeight;
-                if((m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F) == nDoorIndex){
-                    m_pstCellInfo[nArrayNum].bDoorOffset |= 0X80;
+    if(Valid()){
+        for(int nCntY = nY - 8; nCntY < nY + 10; nCntY++){
+            for(int nCntX = nX - 8; nCntX < nX + 10; nCntX++){
+                if(true
+                        && nCntX >= 0
+                        && nCntY >= 0
+                        && nCntX <  m_stMapFileHeader.shWidth
+                        && nCntY <  m_stMapFileHeader.shHeight
+                  ){
+                    int nArrayNum = nCntY + nCntX * m_stMapFileHeader.shHeight;
+                    if((m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F) == nDoorIndex){
+                        m_pstCellInfo[nArrayNum].bDoorOffset |= 0X80;
+                    }
                 }
             }
         }
@@ -231,19 +247,19 @@ void Mir2Map::OpenDoor(int nX, int nY, uint8_t nDoorIndex)
 
 void Mir2Map::CloseDoor(int nX, int nY, uint8_t nDoorIndex)
 {
-    if(!Valid()){ return; }
-
-    for(int nCntY = nY - 8; nCntY < nY + 10; nCntY++){
-        for(int nCntX = nX - 8; nCntX < nX + 10; nCntX++){
-            if(true
-                    && nCntX >= 0
-                    && nCntY >= 0
-                    && nCntX <  m_stMapFileHeader.shWidth
-                    && nCntY <  m_stMapFileHeader.shHeight
-              ){
-                int nArrayNum = nCntY + nCntX * m_stMapFileHeader.shHeight;
-                if((m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F) == nDoorIndex){
-                    m_pstCellInfo[nArrayNum].bDoorOffset &= 0X7F;
+    if(Valid()){
+        for(int nCntY = nY - 8; nCntY < nY + 10; nCntY++){
+            for(int nCntX = nX - 8; nCntX < nX + 10; nCntX++){
+                if(true
+                        && nCntX >= 0
+                        && nCntY >= 0
+                        && nCntX <  m_stMapFileHeader.shWidth
+                        && nCntY <  m_stMapFileHeader.shHeight
+                  ){
+                    int nArrayNum = nCntY + nCntX * m_stMapFileHeader.shHeight;
+                    if((m_pstCellInfo[nArrayNum].bDoorIndex & 0X7F) == nDoorIndex){
+                        m_pstCellInfo[nArrayNum].bDoorOffset &= 0X7F;
+                    }
                 }
             }
         }
@@ -252,13 +268,13 @@ void Mir2Map::CloseDoor(int nX, int nY, uint8_t nDoorIndex)
 
 void Mir2Map::OpenAllDoor()
 {
-    if(!Valid()){ return; }
-
-    for(int nX = 0; nX < m_stMapFileHeader.shWidth; ++nX){
-        for(int nY = 0; nY < m_stMapFileHeader.shHeight; ++nY){
-            uint8_t nRes = GetDoor(nX, nY);
-            if(nRes){
-                OpenDoor(nX, nY, nRes);
+    if(Valid()){
+        for(int nX = 0; nX < m_stMapFileHeader.shWidth; ++nX){
+            for(int nY = 0; nY < m_stMapFileHeader.shHeight; ++nY){
+                uint8_t nRes = GetDoor(nX, nY);
+                if(nRes){
+                    OpenDoor(nX, nY, nRes);
+                }
             }
         }
     }
@@ -266,13 +282,13 @@ void Mir2Map::OpenAllDoor()
 
 void Mir2Map::CloseAllDoor()
 {
-    if(!Valid()){ return; }
-
-    for(int nX = 0; nX < m_stMapFileHeader.shWidth; ++nX){
-        for(int nY = 0; nY < m_stMapFileHeader.shHeight; ++nY){
-            uint8_t nRes = GetDoor(nX, nY);
-            if(nRes){
-                CloseDoor(nX, nY, nRes);
+    if(Valid()){
+        for(int nX = 0; nX < m_stMapFileHeader.shWidth; ++nX){
+            for(int nY = 0; nY < m_stMapFileHeader.shHeight; ++nY){
+                uint8_t nRes = GetDoor(nX, nY);
+                if(nRes){
+                    CloseDoor(nX, nY, nRes);
+                }
             }
         }
     }
@@ -322,7 +338,7 @@ std::string Mir2Map::MapInfo()
             // for light info
             {
                 // first layer:
-                int nFileIndex = (m_pstCellInfo[nArrayNum].wFileIndex & 0XFF00) >> 8;
+                int nFileIndex = m_pstCellInfo[nArrayNum].bFileIndex1;
                 if(nFileIndex != 255 && m_pstCellInfo[nArrayNum].wObj1 != 65535){
                     if(m_pstCellInfo[nArrayNum].bObj1Ani != 255){
                         if(m_pstCellInfo[nArrayNum].bObj1Ani & 0X80){
@@ -334,7 +350,7 @@ std::string Mir2Map::MapInfo()
 
             {
                 // second layer:
-                int nFileIndex = (m_pstCellInfo[nArrayNum].wFileIndex & 0X00FF);
+                int nFileIndex = m_pstCellInfo[nArrayNum].bFileIndex2;
                 if(nFileIndex != 255 && m_pstCellInfo[nArrayNum].wObj2 != 65535){
                     if(m_pstCellInfo[nArrayNum].bObj2Ani != 255){
                         if(m_pstCellInfo[nArrayNum].bObj2Ani & 0X80){
