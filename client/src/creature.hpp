@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 08/22/2017 00:43:46
+ *  Last Modified: 09/08/2017 16:59:57
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -233,7 +233,7 @@ class Creature
         virtual bool Location(int *, int *) = 0;
 
     public:
-        bool EstimateShift(int *, int *);
+        bool GetShift(int *, int *);
 
     public:
         virtual int Type() const = 0;

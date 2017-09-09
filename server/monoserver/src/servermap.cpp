@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 09/05/2017 14:45:48
+ *  Last Modified: 09/09/2017 01:09:57
  *
  *    Description: 
  *
@@ -277,12 +277,20 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     }
 
     for(auto stLinkEntry: DBCOM_MAPRECORD(nMapID).LinkArray){
-        if(ValidC(stLinkEntry.X, stLinkEntry.Y)){
-            m_CellRecordV2D[stLinkEntry.X][stLinkEntry.Y].UID     = 0;
-            m_CellRecordV2D[stLinkEntry.X][stLinkEntry.Y].MapID   = DBCOM_MAPID(stLinkEntry.EndName);
-            m_CellRecordV2D[stLinkEntry.X][stLinkEntry.Y].SwitchX = stLinkEntry.EndX;
-            m_CellRecordV2D[stLinkEntry.X][stLinkEntry.Y].SwitchY = stLinkEntry.EndY;
-            m_CellRecordV2D[stLinkEntry.X][stLinkEntry.Y].Query   = QUERY_NA;
+        if(true
+                && stLinkEntry.W > 0
+                && stLinkEntry.H > 0
+                && ValidC(stLinkEntry.X, stLinkEntry.Y)){
+
+            for(int nW = 0; nW < stLinkEntry.W; ++nW){
+                for(int nH = 0; nH < stLinkEntry.H; ++nH){
+                    m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].UID     = 0;
+                    m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].MapID   = DBCOM_MAPID(stLinkEntry.EndName);
+                    m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].SwitchX = stLinkEntry.EndX;
+                    m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].SwitchY = stLinkEntry.EndY;
+                    m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].Query   = QUERY_NA;
+                }
+            }
         }else{
             break;
         }

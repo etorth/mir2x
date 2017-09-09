@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 08/10/2017 13:48:14
+ *  Last Modified: 09/08/2017 17:01:37
  *
  *    Description: 
  *
@@ -90,7 +90,7 @@ bool Hero::Draw(int nViewX, int nViewY, int)
 
     int nShiftX = 0;
     int nShiftY = 0;
-    EstimateShift(&nShiftX, &nShiftY);
+    GetShift(&nShiftX, &nShiftY);
 
     auto fnDrawWeapon = [this, nViewX, nViewY, nShiftX, nShiftY](bool bShadow) -> void
     {

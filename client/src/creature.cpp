@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 08/11/2017 03:05:20
+ *  Last Modified: 09/08/2017 17:00:16
  *
  *    Description: 
  *
@@ -33,7 +33,7 @@
 #include "dbcomrecord.hpp"
 #include "clientpathfinder.hpp"
 
-bool Creature::EstimateShift(int *pShiftX, int *pShiftY)
+bool Creature::GetShift(int *pShiftX, int *pShiftY)
 {
     switch(m_CurrMotion.Motion){
         case MOTION_WALK:           // human

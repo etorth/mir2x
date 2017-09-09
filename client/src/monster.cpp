@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 08/18/2017 15:35:15
+ *  Last Modified: 09/08/2017 17:01:15
  *
  *    Description: 
  *
@@ -145,7 +145,7 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
 
         int nShiftX = 0;
         int nShiftY = 0;
-        EstimateShift(&nShiftX, &nShiftY);
+        GetShift(&nShiftX, &nShiftY);
 
         // always reset the alpha mode for each texture because texture is shared
         // one texture to draw can be configured with different alpha mode for other creatures
@@ -635,7 +635,7 @@ bool Monster::CanFocus(int nPointX, int nPointY)
 
         int nShiftX = 0;
         int nShiftY = 0;
-        EstimateShift(&nShiftX, &nShiftY);
+        GetShift(&nShiftX, &nShiftY);
 
         int nStartX = X() * SYS_MAPGRIDXP + nDX0 + nShiftX;
         int nStartY = Y() * SYS_MAPGRIDYP + nDY0 + nShiftY;
