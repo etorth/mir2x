@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 09/05/2017 14:53:11
+ *  Last Modified: 09/13/2017 19:45:42
  *
  *    Description: 
  *
@@ -32,9 +32,10 @@ enum MessagePackType: int
     MPK_LOGIN,
     MPK_METRONOME,
     MPK_TRYMOVE,
-    MPK_MOVEOK,
-    MPK_TRYLEAVE,
     MPK_TRYSPACEMOVE,
+    MPK_MOVEOK,
+    MPK_SPACEMOVEOK,
+    MPK_TRYLEAVE,
     MPK_LOGINOK,
     MPK_ADDRESS,
     MPK_LOGINQUERYDB,
@@ -137,16 +138,17 @@ struct AMLogin
 
 struct AMTrySpaceMove
 {
-    void *This;
-
-    uint32_t MapID;
     uint32_t UID;
 
     int X;
     int Y;
 
-    int CurrX;
-    int CurrY;
+    bool StrictMove;
+};
+
+struct AMSpaceMoveOK
+{
+    void *Data;
 };
 
 struct AMTryMove

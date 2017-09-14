@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 08/03/2017 00:38:15
+ *  Last Modified: 09/13/2017 23:11:46
  *
  *    Description: 
  *
@@ -48,6 +48,7 @@ enum ActionType: int
     ACTION_NONE = 0,
     ACTION_STAND,
     ACTION_MOVE,
+    ACTION_SPACEMOVE,
     ACTION_ATTACK,
     ACTION_SPELL,
     ACTION_UNDERATTACK,

@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 09/05/2017 15:02:56
+ *  Last Modified: 09/13/2017 21:29:13
  *
  *    Description: 
  *
@@ -197,16 +197,79 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
     m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
 }
 
-void ServerMap::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK, const Theron::Address &)
+void ServerMap::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK, const Theron::Address &rstAddress)
 {
     AMTrySpaceMove stAMTSM;
     std::memcpy(&stAMTSM, rstMPK.Data(), sizeof(stAMTSM));
 
-    if(!In(stAMTSM.MapID, stAMTSM.X, stAMTSM.Y)){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "destination is not in current map, routing error");
-        g_MonoServer->Restart();
+    int nDstX = stAMTSM.X;
+    int nDstY = stAMTSM.Y;
+
+    if(true
+            && !stAMTSM.StrictMove
+            && !ValidC(stAMTSM.X, stAMTSM.Y)){
+
+        nDstX = std::rand() % W();
+        nDstY = std::rand() % H();
     }
+
+    bool bDstOK = false;
+    if(CanMove(false, false, nDstX, nDstY)){
+        bDstOK = true;
+    }else{
+        if(!stAMTSM.StrictMove){
+            RotateCoord stRC;
+            if(stRC.Reset(nDstX, nDstY, 0, 0, W(), H())){
+                int nDoneCheck = 0;
+                do{
+                    if(CanMove(false, false, stRC.X(), stRC.Y())){
+                        nDstX  = stRC.X();
+                        nDstY  = stRC.Y();
+                        bDstOK = true;
+
+                        break;
+                    }
+                    nDoneCheck++;
+                }while(stRC.Forward() && nDoneCheck < 100);
+            }
+        }
+    }
+
+    if(!bDstOK){
+        m_ActorPod->Forward(MPK_ERROR, rstAddress, rstMPK.ID());
+        return;
+    }
+
+    // get valid location
+    // respond with MPK_SPACEMOVEOK and wait for response
+
+    auto fnOP = [this, nUID = stAMTSM.UID, nDstX, nDstY](const MessagePack &rstRMPK, const Theron::Address &)
+    {
+        switch(rstRMPK.Type()){
+            case MPK_OK:
+                {
+                    // the object comfirm to move
+                    // and it's internal state has changed
+
+                    // for space move
+                    // 1. we won't take care of map switch
+                    // 2. we won't take care of where it comes from
+                    // 3. we don't take reservation of the dstination cell
+
+                    AddGridUID(nUID, nDstX, nDstY);
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    };
+
+    AMSpaceMoveOK stAMSMOK;
+    stAMSMOK.Data  = this;
+
+    m_ActorPod->Forward({MPK_SPACEMOVEOK, stAMSMOK}, rstAddress, rstMPK.ID(), fnOP);
 }
 
 void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)

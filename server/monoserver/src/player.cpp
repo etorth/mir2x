@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/11/2017 16:50:30
+ *  Last Modified: 09/13/2017 23:21:49
  *
  *    Description: 
  *
@@ -132,9 +132,10 @@ void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAd
 void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
-        case CM_QUERYCORECORD : Net_CM_QUERYCORECORD (nType, pData, nDataLen); break;
-        case CM_ACTION        : Net_CM_ACTION        (nType, pData, nDataLen); break;
-        default               :                                                break;
+        case CM_QUERYCORECORD   : Net_CM_QUERYCORECORD   (nType, pData, nDataLen); break;
+        case CM_REQUESTSPACEMOVE: Net_CM_REQUESTSPACEMOVE(nType, pData, nDataLen); break;
+        case CM_ACTION          : Net_CM_ACTION          (nType, pData, nDataLen); break;
+        default                 :                                                  break;
     }
 }
 
@@ -206,6 +207,11 @@ void Player::ReportStand()
         extern NetPodN *g_NetPodN;
         g_NetPodN->Send(m_SessionID, SM_ACTION, stSMAction);
     }
+}
+
+void Player::ReportSpaceMove()
+{
+    ReportAction(UID(), {ACTION_SPACEMOVE, X(), Y(), m_Map->ID()});
 }
 
 void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)

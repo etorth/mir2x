@@ -3,7 +3,7 @@
  *
  *       Filename: mir2xmapdata.hpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 09/05/2017 11:17:52
+ *  Last Modified: 09/10/2017 00:53:54
  *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data

@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 09/05/2017 14:53:36
+ *  Last Modified: 09/12/2017 23:18:18
  *
  *    Description: 
  *
@@ -45,8 +45,8 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     stSMLOK.UID       = UID();
     stSMLOK.DBID      = DBID();
     stSMLOK.MapID     = m_Map->ID();
-    stSMLOK.X         = m_CurrX;
-    stSMLOK.Y         = m_CurrY;
+    stSMLOK.X         = m_X;
+    stSMLOK.Y         = m_Y;
     stSMLOK.Male      = true;
     stSMLOK.Direction = m_Direction;
     stSMLOK.JobID     = m_JobID;
@@ -153,14 +153,15 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
 
                                 // current map respond for the leave request
                                 // dangerous here, we should keep m_Map always valid
-                                auto fnOnLeaveResp = [this, stAMMSOK, rstRMPK](const MessagePack &rstLeaveRMPK, const Theron::Address &){
+                                auto fnOnLeaveResp = [this, stAMMSOK, rstRMPK](const MessagePack &rstLeaveRMPK, const Theron::Address &)
+                                {
                                     switch(rstLeaveRMPK.Type()){
                                         case MPK_OK:
                                             {
                                                 // 1. response to new map ``I am here"
                                                 m_Map   = (ServerMap *)(stAMMSOK.Data);
-                                                m_CurrX = stAMMSOK.X;
-                                                m_CurrY = stAMMSOK.Y;
+                                                m_X = stAMMSOK.X;
+                                                m_Y = stAMMSOK.Y;
                                                 m_ActorPod->Forward(MPK_OK, m_Map->GetAddress(), rstRMPK.ID());
 
                                                 // 2. notify all players on the new map

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 09/05/2017 23:35:43
+ *  Last Modified: 09/14/2017 11:53:08
  *
  *    Description: 
  *
@@ -75,7 +75,7 @@ class ProcessRun: public Process
         std::vector<std::shared_ptr<IndepMagic>> m_IndepMagicList;
 
     private:
-        std::vector<GroundItem  > m_GroundItemList;
+        std::vector<GroundItem> m_GroundItemList;
         std::map<uint32_t, Creature*> m_CreatureRecord;
 
     private:
@@ -180,4 +180,10 @@ class ProcessRun: public Process
 
     public:
         MyHero *GetMyHero();
+
+    public:
+        bool RequestSpaceMove(uint32_t, int, int);
+
+    public:
+        void ClearCreature();
 };

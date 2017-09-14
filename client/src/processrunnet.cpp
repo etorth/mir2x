@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: processrunnet.cpp
- *        Created: 08/31/2015 03:43:46 AM
- *  Last Modified: 09/05/2017 15:07:50
+ *        Created: 08/31/2015 03:43:46
+ *  Last Modified: 09/14/2017 12:03:12
  *
  *    Description: 
  *
@@ -76,6 +76,17 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
     if(stSMA.MapID == MapID()){
         if(auto pCreature = RetrieveUID(stSMA.UID)){
             pCreature->ParseNewAction(stAction, true);
+            switch(stAction.Action){
+                case ACTION_SPACEMOVE:
+                    {
+                        CenterMyHero();
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
         }else{
             // can't find it
             // we have to create a new actor but need more information
@@ -92,20 +103,18 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         if(m_MyHero && m_MyHero->UID() == stSMA.UID){
             LoadMap(stSMA.MapID);
 
-            auto nUID    = m_MyHero->UID();
-            auto nDBID   = m_MyHero->DBID();
-            auto bGender = m_MyHero->Gender();
-            auto nDress  = m_MyHero->Dress();
+            auto nUID       = m_MyHero->UID();
+            auto nDBID      = m_MyHero->DBID();
+            auto bGender    = m_MyHero->Gender();
+            auto nDress     = m_MyHero->Dress();
+            auto nDirection = m_MyHero->CurrMotion().Direction;
 
-            for(auto pRecord: m_CreatureRecord){
-                delete pRecord.second;
-            }
-            m_CreatureRecord.clear();
-
-            m_MyHero = new MyHero(nUID, nDBID, bGender, nDress, this, stAction);
+            ClearCreature();
+            m_MyHero = new MyHero(nUID, nDBID, bGender, nDress, this, {ACTION_STAND, 0, nDirection, stSMA.X, stSMA.Y, stSMA.MapID});
+            m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
 
             CenterMyHero();
-            m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
+            m_MyHero->ParseNewAction(stAction, true);
         }
     }
 }

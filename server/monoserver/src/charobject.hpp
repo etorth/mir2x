@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 08/10/2017 23:43:25
+ *  Last Modified: 09/13/2017 23:17:19
  *
  *    Description: 
  *
@@ -173,8 +173,8 @@ class CharObject: public ActiveObject
         std::map<uint32_t, COLocation> m_LocationRecord;
 
     protected:
-        int m_CurrX;
-        int m_CurrY;
+        int m_X;
+        int m_Y;
         int m_Direction;
 
     protected:
@@ -219,8 +219,8 @@ class CharObject: public ActiveObject
         }
 
     protected:
-        int X() { return m_CurrX; }
-        int Y() { return m_CurrY; }
+        int X() { return m_X; }
+        int Y() { return m_Y; }
 
     protected:
         int HP()    { return m_HP; }
@@ -270,11 +270,15 @@ class CharObject: public ActiveObject
         Theron::Address Activate();
 
     protected:
+        virtual void ReportSpaceMove();
         virtual void ReportCORecord(uint32_t) = 0;
 
     protected:
         void DispatchMHP();
         void DispatchAttack(uint32_t, int);
+        void DispatchSpaceMove();
+
+    protected:
         void DispatchAction(const ActionNode &);
 
     protected:
@@ -286,7 +290,10 @@ class CharObject: public ActiveObject
     protected:
         virtual bool CanMove();
         virtual bool RetrieveLocation(uint32_t, std::function<void(int, int, int)>);
+
+    protected:
         virtual bool RequestMove(int, int, int, bool, std::function<void()>, std::function<void()>);
+        virtual bool RequestSpaceMove(uint32_t, int, int, bool, std::function<void()>, std::function<void()>);
 
     protected:
         bool AddHitterUID(uint32_t, int);

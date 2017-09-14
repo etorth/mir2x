@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 08/14/2017 23:29:13
+ *  Last Modified: 09/13/2017 23:28:15
  *
  *    Description: net message used by client and mono-server
  *
@@ -36,6 +36,7 @@ enum: uint8_t
     SM_EXP,
     SM_SHOWDROPITEM,
     SM_FIREMAGIC,
+    SM_SPACEMOVE,
 };
 
 #pragma pack(push, 1)
@@ -170,6 +171,7 @@ struct SMFireMagic
     uint16_t AimY;
     uint32_t AimUID;
 };
+
 #pragma pack(pop)
 
 class SMSGParam: public MessageBase

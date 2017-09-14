@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 09/08/2017 17:01:37
+ *  Last Modified: 09/14/2017 00:01:16
  *
  *    Description: 
  *
@@ -406,6 +406,11 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                     }
                     break;
                 }
+            case ACTION_SPACEMOVE:
+                {
+                    m_MotionQueue.clear();
+                    break;
+                }
             case ACTION_UNDERATTACK:
             default:
                 {
@@ -430,6 +435,19 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                     if(auto stMotionNode = MakeMotionWalk(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY, rstAction.Speed)){
                         m_MotionQueue.push_back(stMotionNode);
                     }
+                    break;
+                }
+            case ACTION_SPACEMOVE:
+                {
+                    m_CurrMotion = MotionNode
+                    {
+                        OnHorse() ? MOTION_ONHORSESTAND : MOTION_STAND,
+                        0,
+                        m_CurrMotion.Direction,
+                        rstAction.X,
+                        rstAction.Y,
+                    };
+
                     break;
                 }
             case ACTION_SPELL:
@@ -613,6 +631,10 @@ bool Hero::ActionValid(const ActionNode &rstAction, bool bRemote) const
                             }
                         }
                     }
+                }
+            case ACTION_SPACEMOVE:
+                {
+                    return true;
                 }
             case ACTION_STAND:
             case ACTION_SPELL:

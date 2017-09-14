@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 09/09/2017 01:09:57
+ *  Last Modified: 09/13/2017 12:26:32
  *
  *    Description: 
  *
@@ -667,4 +667,17 @@ bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
         }
     }
     return false;
+}
+
+void ServerMap::AddGridUID(uint32_t nUID, int nX, int nY)
+{
+    if(true
+            && ValidC(nX, nY)
+            && GroundValid(nX, nY)){
+
+        auto &rstUIDList = m_UIDRecordV2D[nX][nY];
+        if(std::find(rstUIDList.begin(), rstUIDList.end(), nUID) == rstUIDList.end()){
+            rstUIDList.push_back(nUID);
+        }
+    }
 }

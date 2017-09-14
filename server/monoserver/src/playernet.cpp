@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 08/08/2017 17:18:35
+ *  Last Modified: 09/11/2017 17:41:34
  *
  *    Description: how player respond for different net package
  *
@@ -230,4 +230,18 @@ void Player::Net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
         stAMQCOR.SessionID = SessionID();
         m_ActorPod->Forward({MPK_QUERYCORECORD, stAMQCOR}, m_Map->GetAddress());
     }
+}
+
+void Player::Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *pBuf, size_t)
+{
+    auto pCM = (CMReqestSpaceMove *)(pBuf);
+    auto fnOnOK = []()
+    {
+    };
+
+    auto fnOnError = []()
+    {
+    };
+
+    RequestSpaceMove(pCM->MapID, pCM->X, pCM->Y, false, fnOnOK, fnOnError);
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 09/06/2017 13:06:40
+ *  Last Modified: 09/14/2017 11:52:38
  *
  *    Description: 
  *
@@ -42,7 +42,7 @@ ProcessRun::ProcessRun()
     , m_ViewX(0)
     , m_ViewY(0)
     , m_RollMap(false)
-    , m_LuaModule(this, 0)
+    , m_LuaModule(this, OUTPORT_CONTROLBOARD)
     , m_ControbBoard(
             0,                  // x
             []() -> int         // y
@@ -909,10 +909,14 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command exitClient
         // exit client and free all related resource
-        pModule->set_function("exitClient", [](){ std::exit(0); });
+        pModule->set_function("exitClient", []()
+        {
+            std::exit(0);
+        });
 
         // register command exit
-        pModule->set_function("exit", [](){
+        pModule->set_function("exit", []()
+        {
             // reserve this command
             // don't find what to exit here
             std::exit(0);
@@ -921,7 +925,8 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         // register command sleep
         // sleep current thread and return after the specified ms
         // can use posix.sleep(ms), but here use std::this_thread::sleep_for(x)
-        pModule->set_function("sleep", [](int nSleepMS){
+        pModule->set_function("sleep", [](int nSleepMS)
+        {
             if(nSleepMS > 0){
                 std::this_thread::sleep_for(std::chrono::milliseconds(nSleepMS));
             }
@@ -930,7 +935,8 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         // register command printLine
         // print one line to the out port allocated for the lua module
         // won't add message to log system, use addLog instead if needed
-        pModule->set_function("printLine", [this, nOutPort](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo){
+        pModule->set_function("printLine", [this, nOutPort](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo)
+        {
             // use sol::object to accept arguments
             // otherwise for follow code it throws exception for type unmatch
             //      lua["f"] = [](int a){ return a; };
@@ -969,9 +975,27 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         // register command playerList
         // get a list for all active maps
         // return a table (userData) to lua for ipairs() check
-        pModule->set_function("playerList", [this](sol::this_state stThisLua){
+        pModule->set_function("playerList", [this](sol::this_state stThisLua)
+        {
             return sol::make_object(sol::state_view(stThisLua), GetPlayerList());
         });
+
+        // register command moveTo(x, y)
+        // wait for server to move player if possible
+        pModule->set_function("moveTo", [this, nOutPort](sol::object stLocX, sol::object stLocY)
+        {
+            if(true
+                    && stLocX.is<int>()
+                    && stLocY.is<int>()){
+
+                int nX = stLocX.as<int>();
+                int nY = stLocY.as<int>();
+
+                RequestSpaceMove(MapID(), nX, nY);
+                AddOPLog(nOutPort, 0, ">", "moveTo(%d, %d)", nX, nY);
+            }
+        });
+
 
         // register command ``listPlayerInfo"
         // this command call to get a player info table and print to out port
@@ -1008,7 +1032,8 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command ``myHero.xxx"
         // I need to insert a table to micmic a instance myHero in the future
-        pModule->set_function("myHero_dress", [this](int nDress){
+        pModule->set_function("myHero_dress", [this](int nDress)
+        {
             if(nDress >= 0){
                 m_MyHero->Dress((uint32_t)(nDress));
             }
@@ -1016,7 +1041,8 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command ``myHero.xxx"
         // I need to insert a table to micmic a instance myHero in the future
-        pModule->set_function("myHero_weapon", [this](int nWeapon){
+        pModule->set_function("myHero_weapon", [this](int nWeapon)
+        {
             if(nWeapon >= 0){
                 m_MyHero->Weapon((uint32_t)(nWeapon));
             }
@@ -1059,11 +1085,11 @@ bool ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, cons
 
         va_list ap;
         va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(szSBuf, (sizeof(szSBuf) / sizeof(szSBuf[0])), szLogFormat, ap);
+        nLogSize = std::vsnprintf(szSBuf, std::extent<decltype(szSBuf)>::value, szLogFormat, ap);
         va_end(ap);
 
         if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < (sizeof(szSBuf) / sizeof(szSBuf[0]))){
+            if((size_t)(nLogSize + 1) < std::extent<decltype(szSBuf)>::value){
                 fnRecordLog(nOutPort, nLogType, szPrompt, szSBuf);
                 return true;
             }else{
@@ -1237,4 +1263,31 @@ void ProcessRun::CenterMyHero()
 MyHero *ProcessRun::GetMyHero()
 {
     return m_MyHero;
+}
+
+bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
+{
+    extern MapBinDBN *g_MapBinDBN;
+    if(auto pMapBin = g_MapBinDBN->Retrieve(nMapID)){
+        if(pMapBin->ValidC(nX, nY) && pMapBin->Cell(nX, nY).CanThrough()){
+            extern Game *g_Game;
+            CMReqestSpaceMove stCMRSM;
+            stCMRSM.MapID = nMapID;
+            stCMRSM.X     = nX;
+            stCMRSM.Y     = nY;
+            g_Game->Send(CM_REQUESTSPACEMOVE, stCMRSM);
+            return true;
+        }
+    }
+    return false;
+}
+
+void ProcessRun::ClearCreature()
+{
+    m_MyHero = nullptr;
+
+    for(auto pRecord: m_CreatureRecord){
+        delete pRecord.second;
+    }
+    m_CreatureRecord.clear();
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/18/2017 15:29:23
+ *  Last Modified: 09/14/2017 11:55:35
  *
  *    Description: 
  *
@@ -39,8 +39,8 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_ServiceCore(pServiceCore)
     , m_Map(pServerMap)
     , m_LocationRecord()
-    , m_CurrX(nMapX)
-    , m_CurrY(nMapY)
+    , m_X(nMapX)
+    , m_Y(nMapY)
     , m_Direction(nDirection)
     , m_HP(0)
     , m_HPMax(0)
@@ -235,8 +235,8 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
                                     && bValidMove
                                     && CanMove()){
 
-                                m_CurrX     = nX;
-                                m_CurrY     = nY;
+                                m_X     = nX;
+                                m_Y     = nY;
                                 m_Direction = nNewDirection;
 
                                 extern MonoServer *g_MonoServer;
@@ -282,6 +282,156 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
     }
     // currently not
     // should I call fnOnMoveError here ?
+    return false;
+}
+
+bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
+{
+    if(true
+            && nMapID
+            && CanMove()){
+
+        // lambda function to do space move
+        // accept map actor address, can be current map or another map
+
+        auto fnCOSpaceMove = [this, nX, nY, nMapID, bStrictMove, fnOnMoveOK, fnOnMoveError](const Theron::Address &rstMapAddress) -> bool
+        {
+            AMTrySpaceMove stAMTSM;
+            stAMTSM.UID        = UID();
+            stAMTSM.X          = nX;
+            stAMTSM.Y          = nY;
+            stAMTSM.StrictMove = bStrictMove;
+
+            auto fnMapResp = [this, nX, nY, fnOnMoveOK, fnOnMoveError](const MessagePack &rstRMPK, const Theron::Address &rstRAddress)
+            {
+                // 1. check if lock released
+                //    shouldn't release before get service core's response
+
+                if(!m_MoveLock){
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before service core responds: ClassName = %s", ClassName());
+                    g_MonoServer->Restart();
+                }
+
+                m_MoveLock = false;
+
+                // 2. handle move
+                //    need to check if current CO can move even we checked before
+
+                switch(rstRMPK.Type()){
+                    case MPK_SPACEMOVEOK:
+                        {
+                            // need to leave src map
+                            // dst map already says OK for current move
+
+                            // was to decleare a new function CharObject::LeaveMap(fnLeaveOK)
+                            // but it could cause the issue that m_Map may stay invalid if after MPK_TRYLEAVE succeeds but
+                            // fnLeaveOK doesn't provide a new map pointer
+
+                            if(CanMove()){
+
+                                AMTryLeave stAMTL;
+                                stAMTL.UID   = UID();
+                                stAMTL.MapID = m_Map->ID();
+                                stAMTL.X     = X();
+                                stAMTL.Y     = Y();
+
+                                auto fnLeaveOP = [this, rstRMPK, rstRAddress, nX, nY, fnOnMoveOK, fnOnMoveError](const MessagePack &rstLeaveRMPK, const Theron::Address &)
+                                {
+                                    m_MoveLock = false;
+
+                                    switch(rstLeaveRMPK.Type()){
+                                        case MPK_OK:
+                                            {
+                                                AMSpaceMoveOK stAMSMOK;
+                                                std::memcpy(&stAMSMOK, rstRMPK.Data(), sizeof(stAMSMOK));
+
+                                                if(CanMove()){
+                                                    m_X   = nX;
+                                                    m_Y   = nY;
+                                                    m_Map = (ServerMap *)(stAMSMOK.Data);
+
+                                                    extern MonoServer *g_MonoServer;
+                                                    m_LastMoveTime = g_MonoServer->GetTimeTick();
+
+                                                    m_ActorPod->Forward(MPK_OK, rstRAddress, rstRMPK.ID());
+                                                    DispatchSpaceMove();
+
+                                                    ReportSpaceMove();
+
+                                                    if(fnOnMoveOK){ fnOnMoveOK(); }
+                                                }else{
+                                                    m_ActorPod->Forward(MPK_ERROR, rstRAddress, rstRMPK.ID());
+                                                    if(fnOnMoveError){ fnOnMoveError(); }
+                                                }
+
+                                                break;
+                                            }
+                                        default:
+                                            {
+                                                if(fnOnMoveError){ fnOnMoveError(); }
+                                                break;
+                                            }
+                                    }
+                                };
+
+                                m_MoveLock = true;
+                                m_ActorPod->Forward({MPK_TRYLEAVE, stAMTL}, m_Map->GetAddress(), fnLeaveOP);
+                                break;
+
+                            }else{
+
+                                // CanMove() check fails
+                                // even we get MPK_SPACEMOVEOK
+
+                                m_ActorPod->Forward(MPK_ERROR, rstRAddress, rstRMPK.ID());
+                                if(fnOnMoveError){ fnOnMoveError(); }
+                            }
+                        }
+                    default:
+                        {
+                            if(fnOnMoveError){ fnOnMoveError(); }
+                            break;
+                        }
+                }
+            };
+
+            m_MoveLock = true;
+            return m_ActorPod->Forward({MPK_TRYSPACEMOVE, stAMTSM}, rstMapAddress, fnMapResp);
+        };
+
+        if(nMapID == m_Map->ID()){
+            return fnCOSpaceMove(m_Map->GetAddress());
+        }else{
+            AMQueryMapUID stAMQMUID;
+            stAMQMUID.MapID = nMapID;
+
+            auto fnOnMapUID = [fnCOSpaceMove, fnOnMoveError](const MessagePack &rstRMPK, const Theron::Address &)
+            {
+                switch(rstRMPK.Type()){
+                    case MPK_UID:
+                        {
+                            AMUID stAMUID;
+                            std::memcpy(&stAMUID, rstRMPK.Data(), sizeof(stAMUID));
+
+                            extern MonoServer *g_MonoServer;
+                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMUID.UID)){
+                                fnCOSpaceMove(stUIDRecord.Address);
+                            }else{
+                                if(fnOnMoveError){ fnOnMoveError(); }
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            if(fnOnMoveError){ fnOnMoveError(); }
+                            break;
+                        }
+                }
+            };
+            return m_ActorPod->Forward({MPK_QUERYMAPUID, stAMQMUID}, m_ServiceCore->GetAddress(), fnOnMapUID);
+        }
+    }
     return false;
 }
 
@@ -514,6 +664,14 @@ void CharObject::DispatchMHP()
             && m_Map->ActorPodValid()){
         m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, m_Map->GetAddress());
     }
+}
+
+void CharObject::ReportSpaceMove()
+{
+}
+
+void CharObject::DispatchSpaceMove()
+{
 }
 
 void CharObject::DispatchAttack(uint32_t nUID, int nDC)

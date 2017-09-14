@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 09/05/2017 14:45:08
+ *  Last Modified: 09/13/2017 12:24:44
  *
  *    Description:
  *
@@ -140,6 +140,9 @@ class ServerMap: public ActiveObject
 
     private:
         bool Load(const char *);
+
+    private:
+        void AddGridUID(uint32_t, int, int);
 
     private:
         bool Empty();

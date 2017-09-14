@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 08/10/2017 20:20:04
+ *  Last Modified: 09/10/2017 01:09:08
  *
  *    Description: net message used by client and mono-server
  *
@@ -32,6 +32,8 @@ enum: uint8_t
     CM_ACTION,
     CM_QUERYMONSTERGINFO,
     CM_QUERYCORECORD,
+
+    CM_REQUESTSPACEMOVE,
 };
 
 #pragma pack(push, 1)
@@ -71,6 +73,13 @@ struct CMQueryCORecord
     uint16_t X;
     uint16_t Y;
 };
+
+struct CMReqestSpaceMove
+{
+    uint32_t MapID;
+    uint16_t X;
+    uint16_t Y;
+};
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -94,11 +103,12 @@ class CMSGParam: public MessageBase
                 //  2    : not empty,     fixed size, not compressed
                 //  3    : not empty, not fixed size, not compressed
 
-                {CM_NONE,          {0, 0,                       "CM_NONE"         }},
-                {CM_PING,          {2, sizeof(CMPing),          "CM_PING"         }},
-                {CM_LOGIN,         {3, 0,                       "CM_LOGIN"        }},
-                {CM_ACTION,        {1, sizeof(CMAction),        "CM_ACTION"       }},
-                {CM_QUERYCORECORD, {1, sizeof(CMQueryCORecord), "CM_QUERYCORECORD"}},
+                {CM_NONE,             {0, 0,                         "CM_NONE"            }},
+                {CM_PING,             {2, sizeof(CMPing),            "CM_PING"            }},
+                {CM_LOGIN,            {3, 0,                         "CM_LOGIN"           }},
+                {CM_ACTION,           {1, sizeof(CMAction),          "CM_ACTION"          }},
+                {CM_QUERYCORECORD,    {1, sizeof(CMQueryCORecord),   "CM_QUERYCORECORD"   }},
+                {CM_REQUESTSPACEMOVE, {1, sizeof(CMReqestSpaceMove), "CM_REQUESTSPACEMOVE"}},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(CM_NONE) : nHC);

@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 08/11/2017 16:44:34
+ *  Last Modified: 09/13/2017 23:18:38
  *
  *    Description: 
  *
@@ -123,9 +123,9 @@ class Player: public CharObject
         void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);
 
     private:
-        void Net_CM_QUERYMONSTERGINFO(uint8_t, const uint8_t *, size_t);
-        void Net_CM_QUERYCORECORD    (uint8_t, const uint8_t *, size_t);
-        void Net_CM_ACTION           (uint8_t, const uint8_t *, size_t);
+        void Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *, size_t);
+        void Net_CM_QUERYCORECORD   (uint8_t, const uint8_t *, size_t);
+        void Net_CM_ACTION          (uint8_t, const uint8_t *, size_t);
 
     private:
         void For_CheckTime();
@@ -133,6 +133,7 @@ class Player: public CharObject
     protected:
         void ReportMHP();
         void ReportStand();
+        void ReportSpaceMove();
         void ReportCORecord(uint32_t);
         void ReportAction(uint32_t, const ActionNode &);
 
