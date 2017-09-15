@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 07/26/2017 15:47:22
+ *  Last Modified: 09/14/2017 19:37:36
  *
  *    Description: 
  *
@@ -46,9 +46,6 @@ class InputBoard: public InputWidget
         int     m_BindTokenBoxIndex;
         int     m_ShowStartX;
         double  m_MS;
-
-    protected:
-        IMEBase *m_IME;
 
     public:
         static int  s_ShowSystemCursorCount;
@@ -94,7 +91,6 @@ class InputBoard: public InputWidget
                     false)
             , m_CursorColor(rstCursorColor)
             , m_CursorWidth(nCursorWidth)
-            , m_IME(nullptr)
         {
 
             m_MS = 0.0;

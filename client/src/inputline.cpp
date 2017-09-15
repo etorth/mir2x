@@ -3,7 +3,7 @@
  *
  *       Filename: inputline.cpp
  *        Created: 06/19/2017 11:29:06
- *  Last Modified: 06/19/2017 23:18:57
+ *  Last Modified: 09/14/2017 19:44:12
  *
  *    Description: 
  *
@@ -29,10 +29,6 @@ bool InputLine::ProcessEvent(const SDL_Event &rstEvent, bool *pValid)
                 switch(rstEvent.key.keysym.sym){
                     case SDLK_TAB:
                         {
-                            if(m_IME && m_IME->Focus()){
-                                return true;
-                            }
-
                             if(Focus() && m_TabFunc){
                                 m_TabFunc();
                                 return true;
@@ -44,10 +40,6 @@ bool InputLine::ProcessEvent(const SDL_Event &rstEvent, bool *pValid)
                         }
                     case SDLK_RETURN:
                         {
-                            if(m_IME && m_IME->Focus()){
-                                return true;
-                            }
-
                             if(Focus() && m_ReturnFunc){
                                 m_ReturnFunc();
                                 return true;

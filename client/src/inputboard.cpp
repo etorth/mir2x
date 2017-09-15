@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16
- *  Last Modified: 07/26/2017 15:48:44
+ *  Last Modified: 09/14/2017 20:00:57
  *
  *    Description: 
  *
@@ -87,14 +87,6 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
             }
         case SDL_KEYDOWN:
             {
-                if(m_IME && m_IME->Focus()){
-                    // if IME is working
-                    // then all input events should be grabbed by IME
-                    return false;
-                }
-
-                // if IME is disabled, then input board handles key down
-                // tokenboard won't handle this event
                 if(Focus()){
                     // clear the count no matter what key pressed
                     m_MS = 0.0;
@@ -224,7 +216,7 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                             {
                                 char chKeyName = SDLKeyEventChar(rstEvent);
                                 if(chKeyName != '\0'){
-                                    m_TokenBoard.AddUTF8Code(uint32_t(chKeyName));
+                                    m_TokenBoard.AddUTF8Code((uint32_t)(chKeyName));
                                 }
                                 break;
                             }
@@ -234,6 +226,17 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                     ResetTokenBoardLocation();
                     return true;
                 }
+                break;
+            }
+        case SDL_TEXTINPUT:
+            {
+                std::string szXMLContent;
+
+                szXMLContent += "<ROOT><OBJECT>";
+                szXMLContent += rstEvent.text.text ? rstEvent.text.text : "";
+                szXMLContent += "</OBJECT></ROOT>";
+
+                m_TokenBoard.AppendXML(szXMLContent.c_str(), {});
                 break;
             }
         default:

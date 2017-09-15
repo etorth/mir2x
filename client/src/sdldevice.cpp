@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 08/22/2017 00:46:30
+ *  Last Modified: 09/14/2017 19:32:27
  *
  *    Description: 
  *
@@ -67,6 +67,7 @@ SDLDevice::~SDLDevice()
         SDL_DestroyRenderer(m_Renderer);
     }
 
+    SDL_StopTextInput();
     SDL_Quit();
 }
 
@@ -388,6 +389,8 @@ void SDLDevice::CreateMainWindow()
     SetWindowIcon();
     PushColor(0, 0, 0, 0);
     PushBlendMode(SDL_BLENDMODE_NONE);
+
+    SDL_StartTextInput();
 }
 
 void SDLDevice::DrawTextureEx(SDL_Texture *pTexture,
