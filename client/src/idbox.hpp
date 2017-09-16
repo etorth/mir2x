@@ -3,7 +3,7 @@
  *
  *       Filename: idbox.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 07/16/2017 19:06:20
+ *  Last Modified: 09/15/2017 17:19:33
  *
  *    Description: 
  *
@@ -26,7 +26,6 @@
 
 #include "widget.hpp"
 #include "tokenbox.hpp"
-#include "imebase.hpp"
 #include "inputboard.hpp"
 
 class IDBox: public InputBoard

@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 07/26/2017 15:39:39
+ *  Last Modified: 09/15/2017 18:54:25
  *
  *    Description: 
  *
@@ -28,7 +28,7 @@
 ProcessSyrc::ProcessSyrc()
 	: Process()
     , m_Ratio(0)
-    , m_Info(100, 100, "Connecting...")
+    , m_Info(100, 100, "Connecting...", 1, 10, 0)
 {} 
 void ProcessSyrc::ProcessEvent(const SDL_Event &rstEvent)
 {

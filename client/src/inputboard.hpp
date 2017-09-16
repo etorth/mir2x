@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 09/14/2017 19:37:36
+ *  Last Modified: 09/15/2017 17:18:28
  *
  *    Description: 
  *
@@ -26,10 +26,9 @@
 
 #include "widget.hpp"
 #include "tokenbox.hpp"
-#include "imebase.hpp"
 #include "tokenboard.hpp"
 
-class InputBoard: public InputWidget
+class InputBoard: public Widget
 {
     protected:
         TokenBoard m_TokenBoard;
@@ -68,7 +67,7 @@ class InputBoard: public InputWidget
                 const SDL_Color &rstDefaultColor = {0XFF, 0XFF, 0XFF, 0XFF},
                 Widget          *pWidget         =  nullptr,
                 bool             bFreeWidget     =  false)
-            : InputWidget(nX, nY, nW, nH, pWidget, bFreeWidget)
+            : Widget(nX, nY, nW, nH, pWidget, bFreeWidget)
             , m_TokenBoard(
                     0,
                     0,

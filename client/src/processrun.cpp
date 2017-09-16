@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 09/14/2017 11:52:38
+ *  Last Modified: 09/16/2017 00:43:07
  *
  *    Description: 
  *
@@ -67,6 +67,7 @@ ProcessRun::ProcessRun()
     , m_AscendStrRecord()
 {
     m_FocusUIDV.fill(0);
+    RegisterUserCommand();
 }
 
 void ProcessRun::Update(double fTime)
@@ -868,8 +869,65 @@ bool ProcessRun::LuaCommand(const char *szLuaCommand)
     return false;
 }
 
-bool ProcessRun::UserCommand(const char *)
+bool ProcessRun::UserCommand(const char *szUserCommand)
 {
+    if(szUserCommand){
+        // 1. split commands into an array
+        std::vector<std::string> stvToken;
+        {
+            auto pBegin = szUserCommand;
+            auto pEnd   = szUserCommand + std::strlen(szUserCommand) + 1;
+
+            while(true){
+                pBegin = std::find_if_not(pBegin, pEnd, [](char chByte){ return chByte == ' '; });
+                if(pBegin != pEnd){
+                    auto pDone = std::find(pBegin, pEnd, ' ');
+                    stvToken.emplace_back(pBegin, pDone);
+                    pBegin = pDone;
+                }else{ break; }
+            }
+
+            if(stvToken.empty()){
+                return true;
+            }
+        }
+
+        // 2. to find the command
+        //    alert and return if can't find it
+        UserCommandEntry *pEntry = nullptr;
+        {
+            int nCount = 0;
+            for(auto &rstEntry : m_UserCommandGroup){
+                if(rstEntry.Command.substr(0, stvToken[0].size()) == stvToken[0]){
+                    pEntry = &rstEntry;
+                    nCount++;
+                }
+            }
+
+            switch(nCount){
+                case 0:
+                    {
+                        AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "Invalid command: %s", stvToken[0].c_str());
+                        break;
+                    }
+                case 1:
+                    {
+                        if(pEntry->Callback){ pEntry->Callback(stvToken); }
+                        break;
+                    }
+                default:
+                    {
+                        AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "Ambiguous command: %s", stvToken[0].c_str());
+                        for(auto &rstEntry : m_UserCommandGroup){
+                            if(rstEntry.Command.substr(0, stvToken[0].size()) == stvToken[0]){
+                                AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "Possible command: %s", rstEntry.Command.c_str());
+                            }
+                        }
+                        break;
+                    }
+            }
+        }
+    }
     return false;
 }
 
@@ -898,6 +956,41 @@ std::vector<int> ProcessRun::GetPlayerList()
         }
     }
     return stRetV;
+}
+
+bool ProcessRun::RegisterUserCommand()
+{
+    // 1. register command: moveTo
+    //    usage:
+    //              moveTo        120 250
+    //              moveTo 某地图 120 250
+    auto fnMoveTo = [this](const std::vector<std::string> &rstvParam) -> int
+    {
+        switch(rstvParam.size()){
+            case 1 + 2:
+                {
+                    int nX = std::atoi(rstvParam[1].c_str());
+                    int nY = std::atoi(rstvParam[2].c_str());
+                    RequestSpaceMove(MapID(), nX, nY);
+                    return 0;
+                }
+            case 1 + 3:
+                {
+                    int nX = std::atoi(rstvParam[2].c_str());
+                    int nY = std::atoi(rstvParam[3].c_str());
+                    auto nMapID = DBCOM_MAPID(rstvParam[1].c_str());
+                    RequestSpaceMove(nMapID, nX, nY);
+                    return 0;
+                }
+            default:
+                {
+                    AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "Invalid argument to command: moveTo");
+                    return 1;
+                }
+        }
+    };
+    m_UserCommandGroup.emplace_back("moveTo", fnMoveTo);
+    return true;
 }
 
 bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)

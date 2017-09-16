@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16
- *  Last Modified: 09/14/2017 20:00:57
+ *  Last Modified: 09/15/2017 18:03:46
  *
  *    Description: 
  *
@@ -34,7 +34,7 @@ int InputBoard::s_InputBoardCount       = 0;
 void InputBoard::Update(double fMS)
 {
     m_MS += fMS;
-    InputWidget::Update(fMS);
+    Widget::Update(fMS);
     m_TokenBoard.Update(fMS);
 }
 
@@ -163,12 +163,14 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                                     g_Game->Clipboard(m_TokenBoard.GetXML(true));
                                     m_TokenBoard.Delete(true);
                                 }else{
-                                    if(false
-                                            || rstEvent.key.keysym.mod & KMOD_LSHIFT
-                                            || rstEvent.key.keysym.mod & KMOD_RSHIFT){
-                                        m_TokenBoard.AddUTF8Code(uint32_t('X'));
-                                    }else{
-                                        m_TokenBoard.AddUTF8Code(uint32_t('x'));
+                                    if(SDL_IsTextInputActive() == SDL_FALSE){
+                                        if(false
+                                                || rstEvent.key.keysym.mod & KMOD_LSHIFT
+                                                || rstEvent.key.keysym.mod & KMOD_RSHIFT){
+                                            m_TokenBoard.AddUTF8Code(uint32_t('X'));
+                                        }else{
+                                            m_TokenBoard.AddUTF8Code(uint32_t('x'));
+                                        }
                                     }
                                 }
                                 break;
@@ -182,12 +184,14 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                                     extern Game *g_Game;
                                     g_Game->Clipboard(m_TokenBoard.GetXML(true));
                                 }else{
-                                    if(false
-                                            || rstEvent.key.keysym.mod & KMOD_LSHIFT
-                                            || rstEvent.key.keysym.mod & KMOD_RSHIFT){
-                                        m_TokenBoard.AddUTF8Code(uint32_t('C'));
-                                    }else{
-                                        m_TokenBoard.AddUTF8Code(uint32_t('c'));
+                                    if(SDL_IsTextInputActive() == SDL_FALSE){
+                                        if(false
+                                                || rstEvent.key.keysym.mod & KMOD_LSHIFT
+                                                || rstEvent.key.keysym.mod & KMOD_RSHIFT){
+                                            m_TokenBoard.AddUTF8Code(uint32_t('C'));
+                                        }else{
+                                            m_TokenBoard.AddUTF8Code(uint32_t('c'));
+                                        }
                                     }
                                 }
                                 break;
@@ -201,12 +205,14 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                                     extern Game *g_Game;
                                     m_TokenBoard.ParseXML(g_Game->Clipboard().c_str());
                                 }else{
-                                    if(false
-                                            || rstEvent.key.keysym.mod & KMOD_LSHIFT
-                                            || rstEvent.key.keysym.mod & KMOD_RSHIFT){
-                                        m_TokenBoard.AddUTF8Code(uint32_t('V'));
-                                    }else{
-                                        m_TokenBoard.AddUTF8Code(uint32_t('v'));
+                                    if(SDL_IsTextInputActive() == SDL_FALSE){
+                                        if(false
+                                                || rstEvent.key.keysym.mod & KMOD_LSHIFT
+                                                || rstEvent.key.keysym.mod & KMOD_RSHIFT){
+                                            m_TokenBoard.AddUTF8Code(uint32_t('V'));
+                                        }else{
+                                            m_TokenBoard.AddUTF8Code(uint32_t('v'));
+                                        }
                                     }
                                 }
                                 break;
@@ -214,9 +220,11 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
 
                         default:
                             {
-                                char chKeyName = SDLKeyEventChar(rstEvent);
-                                if(chKeyName != '\0'){
-                                    m_TokenBoard.AddUTF8Code((uint32_t)(chKeyName));
+                                if(SDL_IsTextInputActive() == SDL_FALSE){
+                                    char chKeyName = SDLKeyEventChar(rstEvent);
+                                    if(chKeyName != '\0'){
+                                        m_TokenBoard.AddUTF8Code((uint32_t)(chKeyName));
+                                    }
                                 }
                                 break;
                             }
@@ -230,13 +238,9 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
             }
         case SDL_TEXTINPUT:
             {
-                std::string szXMLContent;
-
-                szXMLContent += "<ROOT><OBJECT>";
-                szXMLContent += rstEvent.text.text ? rstEvent.text.text : "";
-                szXMLContent += "</OBJECT></ROOT>";
-
-                m_TokenBoard.AppendXML(szXMLContent.c_str(), {});
+                if(Focus()){
+                    m_TokenBoard.Append(rstEvent.text.text);
+                }
                 break;
             }
         default:

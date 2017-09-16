@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 09/06/2017 00:11:18
+ *  Last Modified: 09/15/2017 19:26:06
  *
  *    Description:
  *
@@ -39,8 +39,8 @@ ControlBoard::ControlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
             15,
             1,
             ColorFunc::COLOR_WHITE,
-            2,
-            15,
+            1,
+            12,
             0,
             ColorFunc::COLOR_WHITE,
             [    ](){                  },
@@ -189,9 +189,9 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
         m_LocBoard.DrawEx(nX0 + (136 - m_LocBoard.W()) / 2, nY0 + 108, 0, 0, m_LocBoard.W(), m_LocBoard.H());
     }
 
-    g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
-    g_SDLDevice->DrawRectangle(m_CmdLine.X(), m_CmdLine.Y(), m_CmdLine.W(), m_CmdLine.H());
-    g_SDLDevice->PopColor();
+    // g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
+    // g_SDLDevice->DrawRectangle(m_CmdLine.X(), m_CmdLine.Y(), m_CmdLine.W(), m_CmdLine.H());
+    // g_SDLDevice->PopColor();
 }
 
 bool ControlBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)

@@ -3,7 +3,7 @@
  *
  *       Filename: widget.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/17/2017 15:35:04
+ *  Last Modified: 09/15/2017 10:41:13
  *
  *    Description: public API for class game only
  *
@@ -24,6 +24,18 @@
 
 class Widget
 {
+    private:
+        struct ChildRecord
+        {
+            Widget *Child;
+            bool    AutoDelete;
+
+            ChildRecord(Widget *pWidget, bool bAutoDelete)
+                : Child(pWidget)
+                , AutoDelete(bAutoDelete)
+            {}
+        };
+
     protected:
         Widget *m_Parent;
 
@@ -38,7 +50,7 @@ class Widget
         int m_H;
 
     protected:
-        std::vector<std::pair<Widget *, bool>> m_BindChildV;
+        std::vector<ChildRecord> m_BindChildV;
 
     public:
 
@@ -75,9 +87,9 @@ class Widget
         
         virtual ~Widget()
         {
-            for(auto &stPair: m_BindChildV){
-                if(stPair.second){
-                    delete stPair.first;
+            for(auto &stRecord: m_BindChildV){
+                if(stRecord.AutoDelete){
+                    delete stRecord.Child;
                 }
             }
         }

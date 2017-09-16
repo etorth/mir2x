@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 08/22/2017 00:45:03
+ *  Last Modified: 09/15/2017 18:03:00
  *
  *    Description: 
  *
@@ -2468,8 +2468,28 @@ int TokenBoard::GetLineMaxH1(int nLine)
     return nCurrMaxH1;
 }
 
-bool TokenBoard::Append(const char *)
+bool TokenBoard::Append(const char *pText)
 {
+    MoveCursorBack();
+
+    if(pText){
+
+        auto pStart = pText;
+        auto pEnd   = pText;
+
+        while(*pEnd != '\0'){
+            pStart = pEnd;
+            utf8::unchecked::advance(pEnd, 1);
+
+            // should be true
+            condcheck(pEnd - pStart <= 4);
+
+            uint32_t nUTF8Key = 0;
+            std::memcpy(&nUTF8Key, pStart, pEnd - pStart);
+
+            AddUTF8Code(nUTF8Key);
+        }
+    }
     return true;
 }
 

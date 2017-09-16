@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.hpp
  *        Created: 08/14/2015 02:47:30
- *  Last Modified: 07/18/2017 15:20:53
+ *  Last Modified: 09/15/2017 18:53:13
  *
  *    Description: 
  *
@@ -28,7 +28,6 @@ class ProcessSyrc: public Process
     private:
         int        m_Ratio;
         LabelBoard m_Info;
-
 
     public:
         ProcessSyrc();

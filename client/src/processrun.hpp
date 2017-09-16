@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 09/14/2017 11:53:08
+ *  Last Modified: 09/16/2017 00:09:41
  *
  *    Description: 
  *
@@ -40,6 +40,18 @@
 class ProcessRun: public Process
 {
     private:
+        struct UserCommandEntry
+        {
+            std::string Command;
+            std::function<int(const std::vector<std::string> &)> Callback;
+
+            UserCommandEntry(const char *szCommand, std::function<int(const std::vector<std::string> &)> rfnOP)
+                : Command(szCommand ? szCommand : "")
+                , Callback(rfnOP)
+            {}
+        };
+
+    private:
         enum OutPortType: int
         {
             OUTPORT_NONE         = (0 << 0),
@@ -47,6 +59,9 @@ class ProcessRun: public Process
             OUTPORT_SCREEN       = (2 << 1),
             OUTPORT_CONTROLBOARD = (3 << 1),
         };
+
+    private:
+        std::vector<UserCommandEntry> m_UserCommandGroup;
 
     private:
         uint32_t     m_MapID;
@@ -159,8 +174,13 @@ class ProcessRun: public Process
         std::vector<int> GetPlayerList();
 
     public:
-        bool RegisterLuaExport(ClientLuaModule *, int);
         bool AddOPLog(int, int, const char *, const char *, ...);
+
+    public:
+        bool RegisterUserCommand();
+
+    public:
+        bool RegisterLuaExport(ClientLuaModule *, int);
 
     public:
         Creature *RetrieveUID(uint32_t);
