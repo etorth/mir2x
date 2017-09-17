@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 09/16/2017 00:43:07
+ *  Last Modified: 09/16/2017 22:08:22
  *
  *    Description: 
  *
@@ -876,7 +876,7 @@ bool ProcessRun::UserCommand(const char *szUserCommand)
         std::vector<std::string> stvToken;
         {
             auto pBegin = szUserCommand;
-            auto pEnd   = szUserCommand + std::strlen(szUserCommand) + 1;
+            auto pEnd   = szUserCommand + std::strlen(szUserCommand);
 
             while(true){
                 pBegin = std::find_if_not(pBegin, pEnd, [](char chByte){ return chByte == ' '; });
@@ -990,6 +990,35 @@ bool ProcessRun::RegisterUserCommand()
         }
     };
     m_UserCommandGroup.emplace_back("moveTo", fnMoveTo);
+
+    auto fnLuaEditor = [this](const std::vector<std::string> &) -> int
+    {
+        AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "LuaEditor not implemented yet");
+        return 0;
+    };
+    m_UserCommandGroup.emplace_back("luaEditor", fnLuaEditor);
+
+    auto fnMakeItem = [this](const std::vector<std::string> &rstvParam) -> int
+    {
+        switch(rstvParam.size()){
+            case 0 + 1:
+                {
+                    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", "@make 物品名字");
+                    return 1;
+                }
+            case 1 + 1:
+                {
+                    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", "获得%s", rstvParam[1].c_str());
+                    return 0;
+                }
+            default:
+                {
+                    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", "Invalid argument for @make");
+                    return 1;
+                }
+        }
+    };
+    m_UserCommandGroup.emplace_back("makeItem", fnMakeItem);
     return true;
 }
 
