@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 09/15/2017 17:18:28
+ *  Last Modified: 09/16/2017 11:25:58
  *
  *    Description: 
  *
@@ -117,8 +117,8 @@ class InputBoard: public Widget
         bool ProcessEvent(const SDL_Event &, bool *);
 
     public:
-        void GetCursorInfo(int *, int *, int *, int *);
-        void ResetTokenBoardLocation();
+        void QueryCursor(int *, int *, int *, int *);
+        void RelocateTokenBoard();
 
     public:
         void Draw();
@@ -126,7 +126,4 @@ class InputBoard: public Widget
 
     public:
         std::string Content();
-
-    public:
-        void InsertInfo(const char *);
 };

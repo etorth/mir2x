@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16
- *  Last Modified: 09/15/2017 18:03:46
+ *  Last Modified: 09/16/2017 19:50:24
  *
  *    Description: 
  *
@@ -77,7 +77,7 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                     bool bInnValid = true;
                     m_TokenBoard.ProcessEvent(rstEvent, &bInnValid);
 
-                    ResetTokenBoardLocation();
+                    RelocateTokenBoard();
                     Focus(true);
                     return true;
                 }else{
@@ -231,7 +231,7 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
 
                     }
 
-                    ResetTokenBoardLocation();
+                    RelocateTokenBoard();
                     return true;
                 }
                 break;
@@ -240,6 +240,7 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
             {
                 if(Focus()){
                     m_TokenBoard.Append(rstEvent.text.text);
+                    RelocateTokenBoard();
                 }
                 break;
             }
@@ -251,7 +252,7 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
     return false;
 }
 
-void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
+void InputBoard::QueryCursor(int *pX, int *pY, int *pW, int *pH)
 {
     // +------------------------------+
     // |                              |
@@ -304,7 +305,7 @@ void InputBoard::GetCursorInfo(int *pX, int *pY, int *pW, int *pH)
 // we always move the cursor point into the visiable region
 // in this model inputboard is a view window of the tokenboard
 //
-void InputBoard::ResetTokenBoardLocation()
+void InputBoard::RelocateTokenBoard()
 {
     // cursor is a rectangle, and (nX, nY, nW, nH) are the coordinate
     // and size of it, with top-left originated on TokenBoard
@@ -321,29 +322,26 @@ void InputBoard::ResetTokenBoardLocation()
     // |    |     | |
     // |    |     | |
     int nX, nY, nW, nH;
-    GetCursorInfo(&nX, &nY, &nW, &nH);
+    QueryCursor(&nX, &nY, &nW, &nH);
 
     // make (nX, nY) to be the coordinate w.r.t. InputBoard
     nX += m_TokenBoard.X();
     nY += m_TokenBoard.Y();
 
-    // cursor is not contained in the view window, need to be reset
-    if(!RectangleInside(0, 0, W(), H(), nX, nY, nW, nH)){
-        if(nX < 0){
-            m_TokenBoard.Move(-nX, 0);
-        }
+    if(nX < 0){
+        m_TokenBoard.Move(-nX, 0);
+    }
 
-        if(nX + nW > W()){
-            m_TokenBoard.Move(W() - (nX + nW), 0);
-        }
+    if((nX + nW > W()) && (nW <= W())){
+        m_TokenBoard.Move(W() - (nX + nW), 0);
+    }
 
-        if(nY < 0){
-            m_TokenBoard.Move(0, -nY);
-        }
+    if(nY < 0){
+        m_TokenBoard.Move(0, -nY);
+    }
 
-        if(nY + nH > H()){
-            m_TokenBoard.Move(0, H() - (nY + nH));
-        }
+    if((nY + nH > H()) && (nH <= H())){
+        m_TokenBoard.Move(0, H() - (nY + nH));
     }
 }
 
@@ -373,7 +371,7 @@ void InputBoard::Draw()
 
     // 1. draw ``|" cursor
     int nX, nY, nW, nH;
-    GetCursorInfo(&nX, &nY, &nW, &nH);
+    QueryCursor(&nX, &nY, &nW, &nH);
 
     if(((int)m_MS % 1000) < 500 && Focus()){
         extern SDLDevice *g_SDLDevice;
@@ -426,8 +424,4 @@ std::string InputBoard::Content()
     auto pObject = stList.Fetch();
 
     return std::string(pObject ? pObject->GetText() : "");
-}
-
-void InputBoard::InsertInfo(const char *)
-{
 }
