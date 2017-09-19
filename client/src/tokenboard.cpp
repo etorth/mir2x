@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 09/19/2017 12:11:29
+ *  Last Modified: 09/19/2017 12:25:43
  *
  *    Description: 
  *
@@ -2334,17 +2334,17 @@ std::string TokenBoard::Print(bool bSelectOnly)
 
         nX0 = 0;
         nY0 = 0;
-        nX1 = (int)(m_LineV.back().Content.size());
-        nY1 = (int)(m_LineV               .size());
+        nX1 = (int)(m_LineV.back().Content.size() + 0);
+        nY1 = (int)(m_LineV               .size() - 1);
     }
 
     auto fnBeforeEnd = [nX1, nY1](int nX, int nY) -> bool
     {
-        return (nY > nY1) || (nY == nY1 && nX >= nX1);
+        return (nY < nY1) || (nY == nY1 && nX <= nX1);
     };
 
     if(false
-            ||  fnBeforeEnd(nX0, nY0)
+            || !fnBeforeEnd(nX0, nY0)
             || !CursorValid(nX0, nY0)
             || !CursorValid(nX1, nY1)){
 
