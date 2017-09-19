@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16
- *  Last Modified: 09/16/2017 19:50:24
+ *  Last Modified: 09/19/2017 12:10:35
  *
  *    Description: 
  *
@@ -203,7 +203,7 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                                         || rstEvent.key.keysym.mod & KMOD_LCTRL
                                         || rstEvent.key.keysym.mod & KMOD_RCTRL){
                                     extern Game *g_Game;
-                                    m_TokenBoard.ParseXML(g_Game->Clipboard().c_str());
+                                    m_TokenBoard.ParseXML(g_Game->Clipboard().c_str(), {});
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
                                         if(false
@@ -239,7 +239,7 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
         case SDL_TEXTINPUT:
             {
                 if(Focus()){
-                    m_TokenBoard.Append(rstEvent.text.text);
+                    m_TokenBoard.AddUTF8Text(rstEvent.text.text);
                     RelocateTokenBoard();
                 }
                 break;
@@ -272,14 +272,24 @@ void InputBoard::QueryCursor(int *pX, int *pY, int *pW, int *pH)
     // concept of ``width of cursor", to tokenboard cursor is a
     // location for (x, y)
     //
-    int nCursorX, nCursorY, nTBX, nTBY, nTBW, nTBH, nX, nY, nH;
+    int nCursorX = -1;
+    int nCursorY = -1;
     m_TokenBoard.GetCursor(&nCursorX, &nCursorY);
 
-    if(m_TokenBoard.GetTokenBoxInfo(nCursorX - 1, nCursorY, nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
+    int nX = -1;
+    int nY = -1;
+    int nH = -1;
+
+    int nTBX = -1;
+    int nTBY = -1;
+    int nTBW = -1;
+    int nTBH = -1;
+
+    if(m_TokenBoard.QueryTokenBox(nCursorX - 1, nCursorY, nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
         nX = nTBX + nTBW;
         nY = nTBY - m_TokenBoard.GetLineSpace() / 2;
         nH = nTBH + m_TokenBoard.GetLineSpace();
-    }else if(m_TokenBoard.GetTokenBoxInfo(nCursorX, nCursorY, nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
+    }else if(m_TokenBoard.QueryTokenBox(nCursorX, nCursorY, nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
         nX = nTBX - m_CursorWidth;
         nY = nTBY - m_TokenBoard.GetLineSpace() / 2;
         nH = nTBH + m_TokenBoard.GetLineSpace();

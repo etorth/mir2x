@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 07/25/2017 15:40:41
+ *  Last Modified: 09/19/2017 12:10:01
  *
  *    Description: For scenarios we need text-emoticon mixed boards:
  *
@@ -162,15 +162,6 @@
 #include "tokenbox.hpp"
 #include "xmlobjectlist.hpp"
 
-enum XMLObjectType: int
-{
-    OBJECTTYPE_UNKNOWN      = 0,
-    OBJECTTYPE_RETURN       = 1,
-    OBJECTTYPE_PLAINTEXT    = 2,
-    OBJECTTYPE_EVENTTEXT    = 3,
-    OBJECTTYPE_EMOTICON     = 4,
-};
-
 class TokenBoard: public Widget
 {
     // +-----------------------------+
@@ -189,6 +180,134 @@ class TokenBoard: public Widget
     //    any more in it beside the boundary
     // 3. The outer box as a whole to accept events
 
+    private:
+        enum XMLObjectType: int
+        {
+            OBJECTTYPE_NONE      = 0,
+            OBJECTTYPE_RETURN    = 1,
+            OBJECTTYPE_PLAINTEXT = 2,
+            OBJECTTYPE_EVENTTEXT = 3,
+            OBJECTTYPE_EMOTICON  = 4,
+        };
+
+        enum SelectType: int
+        {
+            SELECTTYPE_NONE      = 0,
+            SELECTTYPE_SELECTING = 1,
+            SELECTTYPE_DONE      = 2,
+        };
+
+    private:
+        struct TBLocation
+        {
+            int X;
+            int Y;
+
+            TBLocation(int nX = -1, int nY = -1)
+                : X(nX)
+                , Y(nY)
+            {}
+        };
+
+        struct SelectRecord
+        {
+            int X0;
+            int Y0;
+            int X1;
+            int Y1;
+
+            // [0] : font color
+            // [1] : back ground color
+            SDL_Color Color[2];
+        };
+
+        struct TextLine
+        {
+            int StartY;
+            bool EndWithCR;
+            std::vector<TOKENBOX> Content;
+        };
+
+        struct SectionEntry
+        {
+            SECTION Section;
+            std::function<void()> Callback;
+        };
+
+    private:
+        using IDHandlerMap = std::unordered_map<std::string, std::function<void()>>;
+
+    private:
+        bool m_Selectable;
+        bool m_WithCursor;
+        bool m_SpacePadding;
+        bool m_CanThrough;
+
+    private:
+        // define max line width in pixel
+        // <= 0 : not fixed
+        // >  0 :
+        int m_MaxLineWidth;
+
+    private:
+        int m_WordSpace;
+        int m_LineSpace;
+
+    private:
+        uint8_t   m_DefaultFont;
+        uint8_t   m_DefaultSize;
+        uint8_t   m_DefaultStyle;
+        SDL_Color m_DefaultColor;
+
+    private:
+        // margins for the board, this is needed for balabala..
+        //  +-------------------------+
+        //  |        M0               |
+        //  |  +-------------+        |
+        //  |  |             |        |
+        //  |M3|             |  M1    |
+        //  |  |             |        |
+        //  |  +-------------+        |
+        //  |        M2               |
+        //  +-------------------------+
+        int m_Margin[4];
+
+    private:
+        std::vector<TextLine> m_LineV;
+
+    private:
+        std::map<int, SectionEntry> m_SectionRecord;
+
+    private:
+        bool m_SkipEvent;
+        bool m_SkipUpdate;
+
+    private:
+        // keep it mutable and dynamically update it
+        // define the grid size assistant to token box selecting
+        int m_Resolution;
+
+        // token box map
+        // record box's location rather than its pointer
+        std::vector<std::vector<std::vector<TBLocation>>> m_TokenBoxBitmap;
+
+    private:
+        // cursor binds to the token box after it
+        // (0,              Y) : before the first token box
+        // (Content.size(), Y) : after  the last  token box
+        TBLocation m_CursorLoc;
+
+        // last token box selected
+        // location for token box, not for cursor
+        TBLocation m_LastTokenBoxLoc;
+
+    private:
+        int        m_SelectState;
+        TBLocation m_SelectLoc[2];
+
+    private:
+        std::map<int, SelectRecord> m_SelectRecord;
+
     public:
         // parameters
         //
@@ -196,61 +315,82 @@ class TokenBoard: public Widget
         // bWithCursor:       enable with: 1. can insert before cursor
         //                                 2. show a cursor
         //                                 3. select has nothing to do with current cursor
-        // nMaxWidth  :       positive for wrap, non-positive for no-wrap
+        // nMaxLineWidth:     positive for wrap, non-positive for no-wrap
         // nWordSpace
         // nLineSpace
-        //
+
         TokenBoard(
-                int              nX,
-                int              nY,
-                bool             bSelectable,
-                bool             bWithCursor,
-                bool             bSpacePadding,
-                bool             bCanThrough,
-                int              nMaxWidth       = -1,
-                int              nWordSpace      =  0,
-                int              nLineSpace      =  0,
+                int nX,
+                int nY,
+
+                bool bSelectable,
+                bool bWithCursor,
+                bool bSpacePadding,
+                bool bCanThrough,
+
+                int nMaxLineWidth = -1,
+
+                int nWordSpace = 0,
+                int nLineSpace = 0,
+
                 uint8_t          nDefaultFont    =  0,
                 uint8_t          nDefaultSize    =  10,
                 uint8_t          nDefaultStyle   =  0,
                 const SDL_Color &rstDefaultColor =  {0XFF, 0XFF, 0XFF, 0XFF},
-                int              nMargin0        =  0,
-                int              nMargin1        =  0,
-                int              nMargin2        =  0,
-                int              nMargin3        =  0,
-                Widget          *pWidget         =  nullptr,
-                bool             bFreeWidget     =  false)
-            // don't rely on vim align
-            // if it works terribly, just don't use it
+
+                int nMargin0 = 0,
+                int nMargin1 = 0,
+                int nMargin2 = 0,
+                int nMargin3 = 0,
+
+                Widget *pWidget     = nullptr,
+                bool    bFreeWidget = false)
             : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
-            , m_WithCursor(bWithCursor)
+
             , m_Selectable(bSelectable)
+            , m_WithCursor(bWithCursor)
             , m_SpacePadding(bSpacePadding)
             , m_CanThrough(bCanThrough)
-            , m_PW(nMaxWidth)
-            , m_SkipEvent(false)
-            , m_Resolution(20)
+
+            , m_MaxLineWidth(nMaxLineWidth)
+
             , m_WordSpace(nWordSpace)
             , m_LineSpace(nLineSpace)
-            , m_CursorLoc(-1, -1)
+
             , m_DefaultFont(nDefaultFont)
             , m_DefaultSize(nDefaultSize)
             , m_DefaultStyle(nDefaultStyle)
             , m_DefaultColor(rstDefaultColor)
+
+            , m_Margin {nMargin0, nMargin1, nMargin2, nMargin3}
+
+            , m_LineV()
+            , m_SectionRecord()
+
+            , m_SkipEvent(false)
             , m_SkipUpdate(false)
-            , m_Margin{ nMargin0, nMargin1, nMargin2, nMargin3 }
+
+            , m_Resolution(20)
+            , m_TokenBoxBitmap()
+
+            , m_CursorLoc(0, 0)
+            , m_LastTokenBoxLoc(-1, -1)
+
+            , m_SelectState(SELECTTYPE_DONE)
+            , m_SelectLoc {{-1, -1}, {-1, -1}}
+            , m_SelectRecord()
         {
-            if(m_PW > 0){ m_W = m_Margin[1] + m_PW + m_Margin[3]; }
             Reset();
         }
 
+    public:
         virtual ~TokenBoard() = default;
 
     public:
         bool ProcessEvent(const SDL_Event &, bool *);
 
     public:
-        int XMLObjectType(const tinyxml2::XMLElement &);
+        int XMLObjectType(const tinyxml2::XMLElement &) const;
 
     public:
         void Reset();
@@ -259,62 +399,27 @@ class TokenBoard: public Widget
         void Update(double);
 
     public:
-        bool Empty() const;
+        bool Empty(bool) const;
 
-    public:
-        int  MaxHeight();
-
-    private:
-        void GetTokenBoxMetrics(TOKENBOX &, int &, int &, int &, int &);
-
-    private:
-        void LoadUTF8CharBoxCache(TOKENBOX &, int);
-        void LoadEmoticonCache(TOKENBOX &, int);
-
-    private:
-        int  DoPadding(int, int);
-        bool InRect(int, int, int, int, int, int);
     private:
         void SetTokenBoxStartX(int);
         void SetTokenBoxStartY(int, int);
 
     public:
-        int  LinePadding(int);
-        int  DoLinePadding(int, int, int);
+        int LinePadding(int);
+        int DoLinePadding(int, int, int);
+
+    public:
         void ResetLine(int);
 
     private:
-        bool    m_WithCursor;
-        bool    m_Selectable;
-        bool    m_SpacePadding;
-        bool    m_CanThrough;
-        int     m_MaxH1;
-        int     m_MaxH2;
-        int     m_CurrentLineMaxH2;
-        int     m_PW;
-        bool    m_SkipEvent;
-
-    private:
-        void UpdateSection(SECTION &, Uint32);
-
-    private:
-        const tinyxml2::XMLElement *NextObject(const tinyxml2::XMLElement *);
-        void AddNewTokenBoxLine(bool);
-
-    private:
-        int  TokenBoxType(const TOKENBOX &);
+        int TokenBoxType(const TOKENBOX &) const;
 
     public:
-        // using alias
-        //      1. only use this in header file
-        //      2. only use it when we have default parameters
-        //      3. only use it when we can use initialization list for that parameter
-        //
-        using IDHandlerMap = std::unordered_map<std::string, std::function<void()>>;
         // load by XMLObjectList, failed then the tokenboard is undefined
         // 1. previous content will be destroyed
         // 2. failed then board is undefined
-        // 3. TBD & TODO:
+        // 3. TBD:
         //      if m_WithCursor is false, then last empty line will be deleted
         bool Load(XMLObjectList &rstXMLObjectList, const IDHandlerMap &rstMap = IDHandlerMap())
         {
@@ -334,12 +439,8 @@ class TokenBoard: public Widget
                 stXMLObjectList.Reset();
                 return Load(stXMLObjectList, rstMap);
             }
-
             return false;
         }
-
-    private:
-        bool ParseXMLContent(const tinyxml2::XMLElement *);
 
     private:
         bool ParseReturnObject();
@@ -351,32 +452,7 @@ class TokenBoard: public Widget
         bool GetAttributeAtoi(int *, int, const tinyxml2::XMLElement &, const std::vector<std::string> &);
 
     private:
-        SDL_Color GetFontColor(const tinyxml2::XMLElement &);
-        int       GetFontIndex(const tinyxml2::XMLElement &);
-        int       GetFontStyle(const tinyxml2::XMLElement &);
-        int       GetFontSize (const tinyxml2::XMLElement &);
-
-    private:
-        void ParseTextContentSection(const tinyxml2::XMLElement *, int);
-
-    private:
-        int GetEmoticonSet  (const tinyxml2::XMLElement &);
-        int GetEmoticonIndex(const tinyxml2::XMLElement &);
-
-    public:
-        bool ObjectEmocticon(const tinyxml2::XMLElement &);
-        bool ObjectReturn(const tinyxml2::XMLElement &);
-        bool ObjectEventText(const tinyxml2::XMLElement &);
-
-    private:
         bool MakeTokenBox(int, uint32_t, TOKENBOX *);
-
-    private:
-        void RedrawToken(int, int, TOKENBOX &, bool);
-        bool DrawTextureCache();
-
-    public:
-        bool ParseXML(const char *);
 
     public:
         void Draw(int nX, int nY)
@@ -388,99 +464,40 @@ class TokenBoard: public Widget
         void DrawEx(int, int, int, int, int, int);
 
     private:
+        int GetNewLineStartY(int);
         int GetLineIntervalMaxH2(int, int, int);
         int GetLineTokenBoxStartY(int, int, int, int);
-        int GetNewLineStartY(int);
-
-    private:
-        bool GetTokenBoxLocation(int, int, int &, int &, int &, int &);
-        bool GetTokenBoxStartPoint(int, int, int &, int &);
-        void SetDrawToTextureCache();
-        void SetDrawToScreen();
-
-    private:
-        void ClearCurrentLine();
-
-    public:
-        int Width();
-        int Height();
-    private:
-        void RedrawSection(int);
-
-    private:
-        std::vector<std::vector<TOKENBOX>> m_LineV;
-        std::unordered_map<int, SECTION>   m_SectionRecord;
-        std::vector<int>                   m_LineStartY;
-    private:
-        std::vector<std::vector<std::vector<std::pair<int, int>>>> m_TokenBoxBitmap;
 
     private:
         void MakeTokenBoxEventBitmap();
         void MarkTokenBoxEventBitmap(int, int);
-        int  m_Resolution;
-        int  m_WordSpace;
-        int  m_LineSpace;
-
-    private:
-        std::pair<int, int> m_CursorLoc;
-
-    private:
-        // this is used when insert words, empty lines, etc.
-        uint8_t   m_DefaultFont;
-        uint8_t   m_DefaultSize;
-        uint8_t   m_DefaultStyle;
-        SDL_Color m_DefaultColor;
-
-        bool      m_SkipUpdate;
-
-    private:
-        // margins for the board, this is needed for balabala..
-        //
-        //  +-------------------------+
-        //  |        M0               |
-        //  |  +-------------+        |
-        //  |  |             |        |
-        //  |M3|             |  M1    |
-        //  |  |             |        |
-        //  |  +-------------+        |
-        //  |        M2               |
-        //  +-------------------------+
-        //
-        int  m_Margin[4];
-
-        std::vector<bool> m_EndWithCR;
-
-    private:
-        // callbacks
-        std::unordered_map<int, std::function<void()>> m_IDCBRecord;
 
     private:
         int SectionTypeCount(int, int);
-        void DrawRectLine(const SDL_Rect &);
 
-    public:
-        const std::string &ContentExport();
+    private:
         int GuessResoltion();
 
+    private:
         void TokenBoxGetMouseButtonUp(int, int, bool);
         void TokenBoxGetMouseButtonDown(int, int, bool);
         void TokenBoxGetMouseMotion(int, int, bool);
 
-        void ProcessEventMouseButtonUp(int, int);
-        void ProcessEventMouseButtonDown(int, int);
-        void ProcessEventMouseMotion(int, int);
-
     public:
-        bool AddTokenBoxV(const std::vector<TOKENBOX> &);
         bool Delete(bool);
+        void DeleteEmptyBottomLine();
 
     public:
-        void GetCursor(int *pX, int *pY)
+        bool AddTokenBoxLine(const std::vector<TOKENBOX> &);
+
+    public:
+        void GetCursor(int *pX, int *pY) const
         {
-            if(pX){ *pX = m_CursorLoc.first;  }
-            if(pY){ *pY = m_CursorLoc.second; }
+            if(pX){ *pX = m_CursorLoc.X; }
+            if(pY){ *pY = m_CursorLoc.Y; }
         }
 
+    public:
         bool SetCursor(int nX, int nY)
         {
             if(CursorValid(nX, nY)){
@@ -490,23 +507,21 @@ class TokenBoard: public Widget
             return false;
         }
 
-        int GetWordSpace()
+    public:
+        int GetWordSpace() const
         {
             return m_WordSpace;
         }
 
-        int GetLineSpace()
+        int GetLineSpace() const
         {
             return m_LineSpace;
         }
 
-        int GetLineTokenBoxCount(int nLine)
+    public:
+        int GetLineTokenBoxCount(int nLine) const
         {
-            if(nLine >= 0 && nLine < (int)(m_LineV.size())){
-                return (int)(m_LineV[nLine].size());
-            }
-
-            return -1;
+            return LineValid(nLine) ? (int)(m_LineV[nLine].Content.size()) : -1;
         }
 
         int GetLineCount()
@@ -514,9 +529,8 @@ class TokenBoard: public Widget
             return (int)(m_LineV.size());
         }
 
-        int BreakLine();
+        bool BreakLine();
 
-        // always we need an default environment
         void SetDefaultFont(uint8_t nFont, uint8_t nSize, uint8_t nStyle, const SDL_Color &rstColor)
         {
             m_DefaultFont  = nFont;
@@ -529,11 +543,9 @@ class TokenBoard: public Widget
         bool InnInsert(XMLObjectList &, const std::unordered_map<std::string, std::function<void()>> &);
 
     public:
-        int LineFullWidth(int);
+        int LineFullWidth(int) const;
         int LineRawWidth(int, bool);
         int SetTokenBoxWordSpace(int);
-
-        std::pair<int, int> m_LastTokenBoxLoc;
 
     public:
         void MoveCursorFront()
@@ -545,42 +557,42 @@ class TokenBoard: public Widget
         void MoveCursorBack()
         {
             if(m_LineV.empty()){ Reset(); }
-            m_CursorLoc.first  = (int)(m_LineV.back().size());
-            m_CursorLoc.second = (int)(m_LineV.size()) - 1;
+            m_CursorLoc = {(int)(m_LineV.back().Content.size()), (int)(m_LineV.size()) - 1};
         }
 
     private:
-        bool CursorValid(int nX, int nY)
+        bool CursorValid(int nX, int nY) const
         {
             return true
                 && nY >= 0
                 && nY <  (int)(m_LineV.size())
                 && nX >= 0
-                && nX <= (int)(m_LineV[nY].size());
+                && nX <= (int)(m_LineV[nY].Content.size());
         }
 
-        bool CursorValid()
+        bool CursorValid() const
         {
-            return CursorValid(m_CursorLoc.first, m_CursorLoc.second);
+            return CursorValid(m_CursorLoc.X, m_CursorLoc.Y);
         }
 
-        bool LineValid(int nLine)
+        bool LineValid(int nLine) const
         {
             return nLine >= 0 && nLine < (int)(m_LineV.size());
         }
 
-        bool TokenBoxValid(int nX, int nY)
+        bool TokenBoxValid(int nX, int nY) const
         {
             return true
                 && nY >= 0
-                && nY < (int)m_LineV.size()
+                && nY < (int)(m_LineV.size())
                 && nX >= 0
-                && nX < (int)m_LineV[nY].size();
+                && nX < (int)(m_LineV[nY].Content.size());
         }
 
-        bool LastTokenBoxValid()
+    private:
+        bool LastTokenBoxValid() const
         {
-            return TokenBoxValid(m_LastTokenBoxLoc.first, m_LastTokenBoxLoc.second);
+            return TokenBoxValid(m_LastTokenBoxLoc.X, m_LastTokenBoxLoc.Y);
         }
 
     private:
@@ -593,31 +605,25 @@ class TokenBoard: public Widget
         std::string GetXML(bool);
         std::string InnGetXML(int, int, int, int);
 
-        bool GetTokenBoxInfo(int, int, int *, int *, int *, int *, int *, int *, int *);
-        void GetDefaultFontInfo(uint8_t *, uint8_t *, uint8_t *);
+        bool QueryTokenBox(int, int, int *, int *, int *, int *, int *, int *, int *);
+        void QueryDefaultFont(uint8_t *, uint8_t *, uint8_t *);
 
     public:
-        bool AddUTF8Code(uint32_t);
         void ResetOneLine(int);
         void ResetLineStartY(int);
-        void DeleteEmptyBottomLine();
 
     public:
-        int GetLineStartY(int);
         int GetLineMaxH1(int);
-
-    private:
-        std::array<std::pair<int, int>, 2> m_SelectLoc;
-
+        int GetLineStartY(int);
 
     private:
         bool SectionValid(int nSectionID, bool bCheckSectionType = true) const
         {
-            if(nSectionID >= 0){
+            if(nSectionID > 0){
                 auto pRecord = m_SectionRecord.find(nSectionID);
                 if(pRecord != m_SectionRecord.end()){
                     if(bCheckSectionType){
-                        switch(pRecord->second.Info.Type){
+                        switch(pRecord->second.Section.Info.Type){
                             case SECTIONTYPE_PLAINTEXT:
                             case SECTIONTYPE_EVENTTEXT:
                             case SECTIONTYPE_EMOTICON:
@@ -637,34 +643,18 @@ class TokenBoard: public Widget
             return false;
         }
 
-        int CreateSection(const SECTION &rstSection, const std::function<void()> &fnCB = [](){})
+        int CreateSection(const SECTION &rstSection, const std::function<void()> &fnCallback = [](){})
         {
-            int nSectionID = 0;
-            while(nSectionID <= std::numeric_limits<int>::max()){
-                if(m_SectionRecord.find(nSectionID) == m_SectionRecord.end()){
-                    m_SectionRecord[nSectionID] = rstSection;
-                    m_IDCBRecord[nSectionID]    = fnCB;
-                    return nSectionID;
-                }
-                nSectionID++;
-            }
-            return -1;
+            auto fnDoCreate = [this](int nSection, const SECTION &rstSEC, const std::function<void()> &fnCB)
+            {
+                m_SectionRecord[nSection].Section  = rstSEC;
+                m_SectionRecord[nSection].Callback = fnCB;
+            };
+
+            int nSection = m_SectionRecord.empty() ? 1 : m_SectionRecord.rbegin()->first;
+            fnDoCreate(nSection, rstSection, fnCallback);
+            return nSection;
         }
-
-    private:
-        struct SelectRecord
-        {
-            int X0;
-            int Y0;
-            int X1;
-            int Y1;
-
-            // [0] : font color
-            // [1] : back ground color
-            SDL_Color Color[2];
-        };
-
-        std::map<int, SelectRecord> m_SelectRecord;
 
     public:
         int SelectBox(int, int, int, int, const SDL_Color &, const SDL_Color &);
@@ -674,17 +664,23 @@ class TokenBoard: public Widget
         std::string PrintXML(bool);
 
     public:
-        int Margin(int nIndex)
+        int Margin(int nIndex) const
         {
             return (nIndex >= 0 && nIndex < 4) ? m_Margin[nIndex] : -1;
         }
 
-    private:
-        int m_SelectState;  // 0: no selection
-                            // 1: selecting
-                            // 2: selection done with result available
+    public:
+        bool ParseXML(const char *, const std::unordered_map<std::string, std::function<void()>> &);
 
     public:
+        // add char/string before current cursor
+        // if current place is a text section then merge to it
+        bool AddUTF8Code(uint32_t);
+        bool AddUTF8Text(const char *);
+
+    public:
+        // create a new section of current content
+        // append string/xml at the end of current board
         bool Append   (const char *);
         bool AppendXML(const char *, const std::unordered_map<std::string, std::function<void()>> &);
 };
