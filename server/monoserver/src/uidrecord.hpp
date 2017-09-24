@@ -3,9 +3,10 @@
  *
  *       Filename: uidrecord.hpp
  *        Created: 05/01/2017 11:35:58
- *  Last Modified: 05/03/2017 22:40:35
+ *  Last Modified: 09/23/2017 22:24:43
  *
- *    Description: 
+ *    Description: UID entry won't take care of one specific class
+ *                 It's a framework for all classes derived from ServerObject
  *
  *        Version: 1.0
  *       Revision: none
@@ -22,29 +23,34 @@
 #include <vector>
 #include <cstdint>
 #include <Theron/Address.h>
+
+#include "invardata.hpp"
 #include "serverobject.hpp"
 
 struct UIDRecord
 {
-    uint32_t UID;
+    uint32_t  UID;
+    InvarData Desp;
+
     Theron::Address Address;
     const std::vector<ServerObject::ClassCodeName> &ClassEntry;
 
     UIDRecord(uint32_t,
-            Theron::Address,
+            const InvarData &,
+            const Theron::Address &,
             const std::vector<ServerObject::ClassCodeName> &);
 
-    bool Valid()
+    bool Valid() const
     {
         return UID;
     }
 
-    operator bool ()
+    operator bool () const
     {
         return Valid();
     }
 
-    void Print();
+    void Print() const;
 
     template<typename T> bool ClassFrom()
     {

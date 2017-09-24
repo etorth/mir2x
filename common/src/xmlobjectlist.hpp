@@ -3,7 +3,7 @@
  *
  *       Filename: xmlobjectlist.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 05/20/2017 21:01:09
+ *  Last Modified: 09/24/2017 01:02:49
  *
  *    Description: analyze specifically formatted XML
  *                      <ROOT>
@@ -92,3 +92,19 @@ class XMLObjectList final
     private:
         bool ValidObjectNode(const tinyxml2::XMLElement *);
 };
+
+enum XMLObjectType: int
+{
+    OBJECTTYPE_NONE      = 0,
+    OBJECTTYPE_RETURN    = 1,
+    OBJECTTYPE_PLAINTEXT = 2,
+    OBJECTTYPE_EVENTTEXT = 3,
+    OBJECTTYPE_EMOTICON  = 4,
+};
+
+namespace XMLObject
+{
+    // move this part out of XMLObjectList
+    // XMLObjectList won't take care of specific object types
+    int ObjectType(const tinyxml2::XMLElement &);
+}

@@ -3,7 +3,7 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16
- *  Last Modified: 09/19/2017 12:10:35
+ *  Last Modified: 09/24/2017 01:10:08
  *
  *    Description: 
  *
@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <SDL2/SDL.h>
 
+#include "log.hpp"
 #include "game.hpp"
 #include "mathfunc.hpp"
 #include "fontexdbn.hpp"
@@ -427,11 +428,35 @@ void InputBoard::DrawEx(
 
 std::string InputBoard::Content()
 {
+    std::string szContent;
+
     XMLObjectList stList;
     stList.Parse(Print(false).c_str(), true);
 
     stList.Reset();
-    auto pObject = stList.Fetch();
-
-    return std::string(pObject ? pObject->GetText() : "");
+    while(auto pObject = stList.Fetch()){
+        switch(XMLObject::ObjectType(*pObject)){
+            case OBJECTTYPE_RETURN:
+                {
+                    break;
+                }
+            case OBJECTTYPE_EMOTICON:
+                {
+                    break;
+                }
+            case OBJECTTYPE_EVENTTEXT:
+            case OBJECTTYPE_PLAINTEXT:
+                {
+                    szContent += pObject->GetText();
+                    break;
+                }
+            default:
+                {
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_WARNING, "Detected known object type, ignored it");
+                    break;
+                }
+        }
+    }
+    return szContent;
 }

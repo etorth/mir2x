@@ -3,7 +3,7 @@
  *
  *       Filename: serverobject.hpp
  *        Created: 04/13/2016 20:04:39
- *  Last Modified: 05/10/2017 17:22:24
+ *  Last Modified: 09/23/2017 22:44:38
  *
  *    Description: basis of all objects in monoserver, with
  *
@@ -26,6 +26,7 @@
 #include <string>
 #include <cstdint>
 #include <cstddef>
+#include "invardata.hpp"
 #include "uidrecord.hpp"
 
 class ServerObject
@@ -75,6 +76,12 @@ class ServerObject
         size_t ClassCode() const
         {
             return typeid(*this).hash_code();
+        }
+
+    public:
+        virtual InvarData GetInvarData() const
+        {
+            return {};
         }
 
     public:

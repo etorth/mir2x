@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/12/2017 19:31:16
+ *  Last Modified: 09/24/2017 00:37:30
  *
  *    Description: 
  *
@@ -19,15 +19,18 @@
  */
 
 #include <cinttypes>
+#include "player.hpp"
 #include "motion.hpp"
 #include "netpod.hpp"
 #include "dbconst.hpp"
+#include "dbcomid.hpp"
 #include "monster.hpp"
 #include "actorpod.hpp"
 #include "mathfunc.hpp"
 #include "memorypn.hpp"
 #include "threadpn.hpp"
 #include "sysconst.hpp"
+#include "friendtype.hpp"
 #include "randompick.hpp"
 #include "monoserver.hpp"
 #include "dbcomrecord.hpp"
@@ -250,15 +253,8 @@ bool Monster::FollowMaster()
 
 bool Monster::TrackAttack()
 {
+    CheckTarget();
     while(!m_TargetQ.empty()){
-        // 1. check if time expired
-        //    delete if it has a long time not (able to) track it
-        extern MonoServer *g_MonoServer;
-        if(m_TargetQ.front().ActiveTime + 60 * 1000 <= g_MonoServer->GetTimeTick()){
-            m_TargetQ.pop_front();
-            continue;
-        }
-
         // 2. ok not expired
         //    check if current UID is valid
         //    track and record the track time if succeed
@@ -1017,4 +1013,170 @@ void Monster::RandomDropItem()
             }
         }
     }
+}
+
+void Monster::CheckTarget()
+{
+    while(!m_TargetQ.empty()){
+        extern MonoServer *g_MonoServer;
+        if(m_TargetQ.front().ActiveTime + 60 * 1000 <= g_MonoServer->GetTimeTick()){
+            m_TargetQ.pop_front();
+            continue;
+        }
+    }
+
+    auto fnOnFriend = [this](int nFriendType)
+    {
+        switch(nFriendType){
+            case FRIENDTYPE_ENEMY:
+                {
+                    break;
+                }
+            default:
+                {
+                    m_TargetQ.pop_front();
+                    break;
+                }
+
+        }
+    };
+
+    while(!m_TargetQ.empty()){
+        CheckFriend(m_TargetQ.front().UID, fnOnFriend);
+    }
+}
+
+void Monster::CheckFriend(uint32_t nCheckUID, std::function<void(int)> fnOnFriend)
+{
+    enum UIDFromType: int
+    {
+        UIDFROM_NONE             = 0,
+        UIDFROM_PLAYER           = 1,
+        UIDFROM_SUMMON           = 2,
+        UIDFROM_MONSTER_TAMEABLE = 3,
+        UIDFROM_MONSTER          = 4,
+    };
+
+    auto fnUIDFrom = [](uint32_t nUID) -> int
+    {
+        // define return code
+        // <= 0: error
+        //    1: player
+        //    2: 变异骷髅 or 神兽
+        //    3: monster, but tameble
+        //    4: monster
+
+        extern MonoServer *g_MonoServer;
+        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+            if(stUIDRecord.ClassFrom<Player>()){
+                return UIDFROM_PLAYER;
+            }else if(stUIDRecord.ClassFrom<Monster>()){
+                switch(stUIDRecord.Desp.Monster.MonsterID){
+                    case DBCOM_MONSTERID(u8"神兽"):
+                    case DBCOM_MONSTERID(u8"变异骷髅"):
+                        {
+                            return UIDFROM_SUMMON;
+                        }
+                    default:
+                        {
+                            if(auto &rstMR = DBCOM_MONSTERRECORD(stUIDRecord.Desp.Monster.MonsterID)){
+                                return rstMR.Tameable ? UIDFROM_MONSTER_TAMEABLE : UIDFROM_MONSTER;
+                            }
+                            break;
+                        }
+                }
+            }
+        }
+        return UIDFROM_NONE;
+    };
+
+    if(MasterUID()){
+        switch(fnUIDFrom(MasterUID())){
+            case UIDFROM_PLAYER:
+                {
+                    switch(fnUIDFrom(nCheckUID)){
+                        case UIDFROM_PLAYER:
+                        case UIDFROM_SUMMON:
+                            {
+                                fnOnFriend(FRIENDTYPE_FRIEND);
+                                return;
+                            }
+                        case UIDFROM_MONSTER_TAMEABLE:
+                            {
+                                return;
+                            }
+                        case UIDFROM_MONSTER:
+                            {
+                                fnOnFriend(FRIENDTYPE_ENEMY);
+                                return;
+                            }
+                        default:
+                            {
+                                return;
+                            }
+                    }
+                }
+            case UIDFROM_MONSTER:
+                {
+                    switch(fnUIDFrom(nCheckUID)){
+                        case UIDFROM_PLAYER:
+                        case UIDFROM_SUMMON:
+                            {
+                                fnOnFriend(FRIENDTYPE_ENEMY);
+                                return;
+                            }
+                        case UIDFROM_MONSTER_TAMEABLE:
+                            {
+                                return;
+                            }
+                        case UIDFROM_MONSTER:
+                            {
+                                fnOnFriend(FRIENDTYPE_FRIEND);
+                                return;
+                            }
+                        default:
+                            {
+                                return;
+                            }
+                    }
+                }
+            default:
+                {
+                    return;
+                }
+        }
+    }else{
+
+        // a monster without master
+        // do everything decided by itself
+        switch(fnUIDFrom(nCheckUID)){
+            case UIDFROM_PLAYER:
+            case UIDFROM_SUMMON:
+                {
+                    fnOnFriend(FRIENDTYPE_ENEMY);
+                    return;
+                }
+            case UIDFROM_MONSTER_TAMEABLE:
+                {
+                    return;
+                }
+            case UIDFROM_MONSTER:
+                {
+                    fnOnFriend(FRIENDTYPE_FRIEND);
+                    return;
+                }
+            default:
+                {
+                    return;
+                }
+        }
+
+    }
+}
+
+InvarData Monster::GetInvarData() const
+{
+    InvarData stData;
+    stData.Monster.MonsterID = MonsterID();
+    return stData;
 }

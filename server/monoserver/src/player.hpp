@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 09/13/2017 23:18:38
+ *  Last Modified: 09/23/2017 23:03:01
  *
  *    Description: 
  *
@@ -150,6 +150,9 @@ class Player: public CharObject
     protected:
         bool ActionValid(const ActionNode &);
         bool MotionValid(const ActionNode &);
+
+    protected:
+        void CheckFriend(uint32_t, std::function<void(int)>);
 
     protected:
         void OnCMActionMove();

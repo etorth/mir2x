@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 07/02/2017 21:52:16
+ *  Last Modified: 09/23/2017 22:43:37
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class

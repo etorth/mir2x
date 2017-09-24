@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 09/05/2017 13:31:04
+ *  Last Modified: 09/23/2017 23:25:15
  *
  *    Description: 
  *
@@ -170,10 +170,19 @@ class Monster: public CharObject
         bool MoveOneStep(int, int);
 
     protected:
+        void CheckTarget();
+
+    protected:
         int FindPathMethod();
 
     protected:
         void RandomDropItem();
+
+    public:
+        InvarData GetInvarData() const;
+
+    protected:
+        void CheckFriend(uint32_t, std::function<void(int)>);
 
     protected:
         bool MoveOneStepAStar  (int, int);

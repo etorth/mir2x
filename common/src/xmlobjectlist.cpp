@@ -3,7 +3,7 @@
  *
  *       Filename: xmlobjectlist.cpp
  *        Created: 06/17/2015 06:25:24
- *  Last Modified: 07/14/2017 21:21:20
+ *  Last Modified: 09/24/2017 01:01:31
  *
  *    Description: 
  *
@@ -196,4 +196,80 @@ bool XMLObjectList::ValidObjectNode(const tinyxml2::XMLElement *pElement)
     }
 
     return false;
+}
+
+int XMLObject::ObjectType(const tinyxml2::XMLElement &rstObject)
+{
+    if(true
+            && (rstObject.Attribute("Type") == nullptr)
+            && (rstObject.Attribute("TYPE") == nullptr)
+            && (rstObject.Attribute("type") == nullptr)){
+        return OBJECTTYPE_PLAINTEXT;
+    }
+
+    if(false
+            || rstObject.Attribute("TYPE", "PLAINTEXT")
+            || rstObject.Attribute("TYPE", "PlainText")
+            || rstObject.Attribute("TYPE", "Plaintext")
+            || rstObject.Attribute("TYPE", "plainText")
+            || rstObject.Attribute("TYPE", "plaintext")
+            || rstObject.Attribute("Type", "PLAINTEXT")
+            || rstObject.Attribute("Type", "PlainText")
+            || rstObject.Attribute("Type", "Plaintext")
+            || rstObject.Attribute("Type", "plainText")
+            || rstObject.Attribute("Type", "plaintext")
+            || rstObject.Attribute("type", "PLAINTEXT")
+            || rstObject.Attribute("type", "PlainText")
+            || rstObject.Attribute("type", "Plaintext")
+            || rstObject.Attribute("type", "plainText")
+            || rstObject.Attribute("type", "plaintext")){
+        return OBJECTTYPE_PLAINTEXT;
+    }
+
+    if(false
+            || rstObject.Attribute("TYPE", "EVENTTEXT")
+            || rstObject.Attribute("TYPE", "EventText")
+            || rstObject.Attribute("TYPE", "Eventtext")
+            || rstObject.Attribute("TYPE", "eventText")
+            || rstObject.Attribute("TYPE", "eventtext")
+            || rstObject.Attribute("Type", "EVENTTEXT")
+            || rstObject.Attribute("Type", "EventText")
+            || rstObject.Attribute("Type", "Eventtext")
+            || rstObject.Attribute("Type", "eventText")
+            || rstObject.Attribute("Type", "eventtext")
+            || rstObject.Attribute("type", "EVENTTEXT")
+            || rstObject.Attribute("type", "EventText")
+            || rstObject.Attribute("type", "Eventtext")
+            || rstObject.Attribute("type", "eventText")
+            || rstObject.Attribute("type", "eventtext")){
+        return OBJECTTYPE_EVENTTEXT;
+    }
+
+    if(false
+            || rstObject.Attribute("TYPE", "RETURN")
+            || rstObject.Attribute("TYPE", "Return")
+            || rstObject.Attribute("TYPE", "return")
+            || rstObject.Attribute("Type", "RETURN")
+            || rstObject.Attribute("Type", "Return")
+            || rstObject.Attribute("Type", "return")
+            || rstObject.Attribute("type", "RETURN")
+            || rstObject.Attribute("type", "Return")
+            || rstObject.Attribute("type", "return")){
+        return OBJECTTYPE_RETURN;
+    }
+
+    if(false
+            || rstObject.Attribute("TYPE", "Emoticon")
+            || rstObject.Attribute("TYPE", "emoticon")
+            || rstObject.Attribute("TYPE", "EMOTICON")
+            || rstObject.Attribute("Type", "Emoticon")
+            || rstObject.Attribute("Type", "emoticon")
+            || rstObject.Attribute("Type", "EMOTICON")
+            || rstObject.Attribute("type", "Emoticon")
+            || rstObject.Attribute("type", "emoticon")
+            || rstObject.Attribute("type", "EMOTICON")){
+        return OBJECTTYPE_EMOTICON;
+    }
+
+    return OBJECTTYPE_NONE;
 }

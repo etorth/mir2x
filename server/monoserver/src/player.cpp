@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 09/13/2017 23:21:49
+ *  Last Modified: 09/23/2017 23:07:09
  *
  *    Description: 
  *
@@ -25,6 +25,7 @@
 #include "memorypn.hpp"
 #include "sysconst.hpp"
 #include "charobject.hpp"
+#include "friendtype.hpp"
 #include "protocoldef.hpp"
 
 Player::Player(uint32_t nDBID,
@@ -585,4 +586,13 @@ bool Player::StruckDamage(const DamageNode &rstDamage)
 bool Player::ActionValid(const ActionNode &)
 {
     return true;
+}
+
+void Player::CheckFriend(uint32_t nUID, std::function<void(int)> fnOnFriend)
+{
+    if(nUID){
+        if(0){
+            if(fnOnFriend){ fnOnFriend(FRIENDTYPE_NONE); }
+        }
+    }
 }

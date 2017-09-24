@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 09/19/2017 12:25:43
+ *  Last Modified: 09/24/2017 01:33:02
  *
  *    Description: 
  *
@@ -39,82 +39,6 @@
 #include "emoticondbn.hpp"
 #include "xmlobjectlist.hpp"
 
-int TokenBoard::XMLObjectType(const tinyxml2::XMLElement &rstObject) const
-{
-    if(true
-            && (rstObject.Attribute("Type") == nullptr)
-            && (rstObject.Attribute("TYPE") == nullptr)
-            && (rstObject.Attribute("type") == nullptr)){
-        return OBJECTTYPE_PLAINTEXT;
-    }
-
-    if(false
-            || rstObject.Attribute("TYPE", "PLAINTEXT")
-            || rstObject.Attribute("TYPE", "PlainText")
-            || rstObject.Attribute("TYPE", "Plaintext")
-            || rstObject.Attribute("TYPE", "plainText")
-            || rstObject.Attribute("TYPE", "plaintext")
-            || rstObject.Attribute("Type", "PLAINTEXT")
-            || rstObject.Attribute("Type", "PlainText")
-            || rstObject.Attribute("Type", "Plaintext")
-            || rstObject.Attribute("Type", "plainText")
-            || rstObject.Attribute("Type", "plaintext")
-            || rstObject.Attribute("type", "PLAINTEXT")
-            || rstObject.Attribute("type", "PlainText")
-            || rstObject.Attribute("type", "Plaintext")
-            || rstObject.Attribute("type", "plainText")
-            || rstObject.Attribute("type", "plaintext")){
-        return OBJECTTYPE_PLAINTEXT;
-    }
-
-    if(false
-            || rstObject.Attribute("TYPE", "EVENTTEXT")
-            || rstObject.Attribute("TYPE", "EventText")
-            || rstObject.Attribute("TYPE", "Eventtext")
-            || rstObject.Attribute("TYPE", "eventText")
-            || rstObject.Attribute("TYPE", "eventtext")
-            || rstObject.Attribute("Type", "EVENTTEXT")
-            || rstObject.Attribute("Type", "EventText")
-            || rstObject.Attribute("Type", "Eventtext")
-            || rstObject.Attribute("Type", "eventText")
-            || rstObject.Attribute("Type", "eventtext")
-            || rstObject.Attribute("type", "EVENTTEXT")
-            || rstObject.Attribute("type", "EventText")
-            || rstObject.Attribute("type", "Eventtext")
-            || rstObject.Attribute("type", "eventText")
-            || rstObject.Attribute("type", "eventtext")){
-        return OBJECTTYPE_EVENTTEXT;
-    }
-
-    if(false
-            || rstObject.Attribute("TYPE", "RETURN")
-            || rstObject.Attribute("TYPE", "Return")
-            || rstObject.Attribute("TYPE", "return")
-            || rstObject.Attribute("Type", "RETURN")
-            || rstObject.Attribute("Type", "Return")
-            || rstObject.Attribute("Type", "return")
-            || rstObject.Attribute("type", "RETURN")
-            || rstObject.Attribute("type", "Return")
-            || rstObject.Attribute("type", "return")){
-        return OBJECTTYPE_RETURN;
-    }
-
-    if(false
-            || rstObject.Attribute("TYPE", "Emoticon")
-            || rstObject.Attribute("TYPE", "emoticon")
-            || rstObject.Attribute("TYPE", "EMOTICON")
-            || rstObject.Attribute("Type", "Emoticon")
-            || rstObject.Attribute("Type", "emoticon")
-            || rstObject.Attribute("Type", "EMOTICON")
-            || rstObject.Attribute("type", "Emoticon")
-            || rstObject.Attribute("type", "emoticon")
-            || rstObject.Attribute("type", "EMOTICON")){
-        return OBJECTTYPE_EMOTICON;
-    }
-
-    return OBJECTTYPE_NONE;
-}
-
 // insert an XML file to current board
 // assumption: current board is well-prepared
 bool TokenBoard::InnInsert(XMLObjectList &rstXMLObjectList, const IDHandlerMap &rstIDHandleMap)
@@ -130,7 +54,7 @@ bool TokenBoard::InnInsert(XMLObjectList &rstXMLObjectList, const IDHandlerMap &
     bool bRes = true;
 
     while(pObject && bRes){
-        switch(auto nObjectType = XMLObjectType(*pObject)){
+        switch(auto nObjectType = XMLObject::ObjectType(*pObject)){
             case OBJECTTYPE_RETURN:
                 {
                     bRes = ParseReturnObject();
@@ -2002,7 +1926,7 @@ bool TokenBoard::ParseReturnObject()
         // actually if the cursor is at the beginning, then we even don't have to re-padding it
 
         // insert an new line and copy stTBV into it
-        m_LineV.insert(m_LineV.begin() + nY + 1, {});
+        m_LineV.insert(m_LineV.begin() + nY + 1, {{}});
         m_LineV[nY + 1].StartY    = -1;
         m_LineV[nY + 1].EndWithCR =  true;
         m_LineV[nY + 1].Content   =  stTBV;

@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 09/16/2017 21:26:04
+ *  Last Modified: 09/24/2017 01:23:51
  *
  *    Description:
  *
@@ -212,12 +212,15 @@ bool ControlBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
 
 void ControlBoard::InputLineDone()
 {
-    std::string szRawInput  = m_CmdLine.Content();
-    std::string szInputLine = szRawInput.substr(szRawInput.find_first_not_of(" \n\r\t"));
+    std::string szRealInput;
+    std::string szFullInput = m_CmdLine.Content();
 
-    if(szInputLine.empty()){
+    auto nInputPos = szFullInput.find_first_not_of(" \n\r\t");
+    szRealInput = (nInputPos == std::string::npos) ? "" : szFullInput.substr(nInputPos);
+
+    if(szRealInput.empty()){
     }else{
-        switch(szInputLine[0]){
+        switch(szRealInput[0]){
             case '!': // broadcast
                 {
                     break;
@@ -225,14 +228,14 @@ void ControlBoard::InputLineDone()
             case '@': // user command
                 {
                     if(m_ProcessRun){
-                        m_ProcessRun->UserCommand(szInputLine.c_str() + 1);
+                        m_ProcessRun->UserCommand(szRealInput.c_str() + 1);
                     }
                     break;
                 }
             case '$': // lua command for super user
                 {
                     if(m_ProcessRun){
-                        m_ProcessRun->LuaCommand(szInputLine.c_str() + 1);
+                        m_ProcessRun->LuaCommand(szRealInput.c_str() + 1);
                     }
                     break;
                 }

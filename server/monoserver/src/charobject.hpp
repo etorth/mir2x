@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 09/13/2017 23:17:19
+ *  Last Modified: 09/23/2017 23:05:30
  *
  *    Description: 
  *
@@ -30,13 +30,6 @@
 #include "servicecore.hpp"
 #include "protocoldef.hpp"
 #include "activeobject.hpp"
-
-enum _FriendType: uint8_t
-{
-    FRIEND_HUMAN,
-    FRIEND_ANIMAL,
-    FRIEND_NEUTRAL,
-};
 
 enum _RangeType: uint8_t
 {
@@ -105,6 +98,15 @@ typedef struct
 
 class CharObject: public ActiveObject
 {
+    protected:
+        enum QueryType: int
+        {
+            QUERY_NONE    = 0,
+            QUERY_OK      = 1,
+            QUERY_ERROR   = 2,
+            QUERY_PENDING = 3,
+        };
+
     protected:
         enum SpeedType: int
         {
@@ -313,6 +315,9 @@ class CharObject: public ActiveObject
 
     protected:
         void AddMonster(uint32_t, int, int, bool);
+
+    protected:
+        virtual void CheckFriend(uint32_t, std::function<void(int)>) = 0;
 
     protected:
         virtual bool GoDie()     = 0;

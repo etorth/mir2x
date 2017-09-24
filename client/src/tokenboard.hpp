@@ -3,7 +3,7 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 09/19/2017 12:10:01
+ *  Last Modified: 09/24/2017 01:02:09
  *
  *    Description: For scenarios we need text-emoticon mixed boards:
  *
@@ -181,15 +181,6 @@ class TokenBoard: public Widget
     // 3. The outer box as a whole to accept events
 
     private:
-        enum XMLObjectType: int
-        {
-            OBJECTTYPE_NONE      = 0,
-            OBJECTTYPE_RETURN    = 1,
-            OBJECTTYPE_PLAINTEXT = 2,
-            OBJECTTYPE_EVENTTEXT = 3,
-            OBJECTTYPE_EMOTICON  = 4,
-        };
-
         enum SelectType: int
         {
             SELECTTYPE_NONE      = 0,
@@ -388,9 +379,6 @@ class TokenBoard: public Widget
 
     public:
         bool ProcessEvent(const SDL_Event &, bool *);
-
-    public:
-        int XMLObjectType(const tinyxml2::XMLElement &) const;
 
     public:
         void Reset();

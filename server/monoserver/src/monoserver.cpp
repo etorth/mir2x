@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 09/05/2017 12:16:23
+ *  Last Modified: 09/23/2017 22:57:45
  *
  *    Description: 
  *
@@ -784,7 +784,7 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
                         //
                         auto bActive = pRecord->second->ClassFrom<ActiveObject>();
                         auto stAddress = bActive ? ((ActiveObject *)(pRecord->second))->GetAddress() : Theron::Address::Null();
-                        return {nUID, stAddress, pRecord->second->ClassEntry()};
+                        return {nUID, pRecord->second->GetInvarData(), stAddress, pRecord->second->ClassEntry()};
                     }else{
                         AddLog(LOGTYPE_WARNING, "UIDArray mismatch: UID = (%" PRIu32 ", %" PRIu32 ")", nUID, pRecord->second->UID());
                     }
@@ -799,7 +799,7 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
     // 3. record contains an empty pointer
     // 4. record mismatch
     static const std::vector<ServerObject::ClassCodeName> stNullEntry {};
-    return UIDRecord(0, Theron::Address::Null(), stNullEntry);
+    return UIDRecord(0, {}, Theron::Address::Null(), stNullEntry);
 }
 
 bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
