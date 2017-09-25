@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 09/25/2017 00:54:10
+ *  Last Modified: 09/25/2017 01:13:04
  *
  *    Description: 
  *
@@ -681,15 +681,15 @@ bool Monster::GreedyMove(int nX, int nY, std::function<void()> fnOnError)
             }
     }
 
-    if(true
-            && CanMove()
+    if(CanMove()){
+        if(m_Map && m_Map->GroundValid(nX1, nY1)){
+            return RequestMove(MOTION_MON_WALK, nX1, nY1, false, [](){}, fnOnError);
+        }
 
-            && m_Map
-            && m_Map->GroundValid(nX1, nY1)){
-
-        return RequestMove(MOTION_MON_WALK, nX1, nY1, false, [](){}, fnOnError);
+        // else we should call the error handler
+        // otherwise combined move can't check next point if (nX1, nY1) is non-walkable
+        fnOnError();
     }
-
     return false;
 }
 
@@ -700,31 +700,6 @@ bool Monster::MoveOneStepGreedy(int nX, int nY)
 
 bool Monster::MoveOneStepCombine(int nX, int nY)
 {
-    // auto fnNextPathNode = [this](int nX, int nY, int nIndex) -> PathFind::PathNode
-    // {
-    //     static const int nDirX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
-    //     static const int nDirY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
-    //
-    //     int nX0 = X();
-    //     int nY0 = Y();
-    //
-    //     int nDX = ((nX > nX0) - (nX < nX0));
-    //     int nDY = ((nY > nY0) - (nY < nY0));
-    //
-    //     int nDir = 0;
-    //     for(; nDir < (int)(sizeof(nDirX) / sizeof(nDirX[0])); ++nDir){
-    //         if((nDX == nDirX[nDir]) && (nDY == nDirY[nDir])){
-    //             break;
-    //         }
-    //     }
-    //
-    //     int nIndexOff = (nIndex / 2);
-    //     int nIndexSgn = (nIndex % 2) ? +1 : -1;
-    //     int nDirIndex = (nDir + nIndexSgn * nIndexOff + 8) % 8;
-    //
-    //     return {nX0 + nDirX[nDirIndex], nY0 + nDirY[nDirIndex]};
-    // };
-
     int nX0 = X();
     int nY0 = Y();
 
@@ -775,15 +750,15 @@ bool Monster::MoveOneStepCombine(int nX, int nY)
             }
     }
 
-    auto fnOnErrorRound0 = [this, stvPathNode]()
+    auto fnOnErrorRound0 = [this, stvPathNode, nX, nY]()
     {
-        auto fnOnErrorRound1 = [this, stvPathNode]()
+        auto fnOnErrorRound1 = [this, stvPathNode, nX, nY]()
         {
-            auto fnOnErrorRound2 = [this, stvPathNode]()
+            auto fnOnErrorRound2 = [this, nX, nY]()
             {
                 // we have no hope but use a-star
                 // or we can just let the monster stop here
-                return MoveOneStepAStar(stvPathNode[0].X, stvPathNode[0].Y);
+                return MoveOneStepAStar(nX, nY);
             };
             return GreedyMove(stvPathNode[2].X, stvPathNode[2].Y, fnOnErrorRound2);
         };
