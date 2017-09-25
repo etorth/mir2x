@@ -43,7 +43,7 @@ ServiceCore::ServiceCore()
     std::call_once(stFlag, fnRegisterClass);
 }
 
-void ServiceCore::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddr)
+void ServiceCore::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstAddr)
 {
     switch(rstMPK.Type()){
         case MPK_LOGINQUERYDB:

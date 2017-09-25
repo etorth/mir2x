@@ -106,7 +106,7 @@ Theron::Address ActiveObject::Activate()
         // 1. enable the scheduling by actor threads
         extern Theron::Framework *g_Framework;
         m_ActorPod = new ActorPod(g_Framework, [this](){ m_StateHook.Execute(); },
-                [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){ Operate(rstMPK, stFromAddr); });
+                [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){ OperateAM(rstMPK, stFromAddr); });
         // 2. bind the class information to the actorpod
         //    between 1 and 2 there could be gap but OK since before exiting current function
         //    no actor message will be passed or forwarded

@@ -161,7 +161,7 @@ class ActiveObject: public ServerObject
         }
 
     public:
-        virtual void Operate(const MessagePack &, const Theron::Address &) = 0;
+        virtual void OperateAM(const MessagePack &, const Theron::Address &) = 0;
 
     public:
         void Delay(uint32_t, const std::function<void()> &);

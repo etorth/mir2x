@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 09/24/2017 00:37:30
+ *  Last Modified: 09/24/2017 23:11:22
  *
  *    Description: 
  *
@@ -302,7 +302,7 @@ bool Monster::Update()
     return true;
 }
 
-void Monster::Operate(const MessagePack &rstMPK, const Theron::Address &rstAddress)
+void Monster::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstAddress)
 {
     switch(rstMPK.Type()){
         case MPK_METRONOME:
@@ -1017,32 +1017,31 @@ void Monster::RandomDropItem()
 
 void Monster::CheckTarget()
 {
-    while(!m_TargetQ.empty()){
+    for(auto pInst = m_TargetQ.begin(); pInst != m_TargetQ.end();){
         extern MonoServer *g_MonoServer;
-        if(m_TargetQ.front().ActiveTime + 60 * 1000 <= g_MonoServer->GetTimeTick()){
-            m_TargetQ.pop_front();
-            continue;
+        if(pInst->ActiveTime + 60 * 1000 <= g_MonoServer->GetTimeTick()){
+            pInst = m_TargetQ.erase(pInst);
+        }else{
+            pInst++;
         }
     }
 
-    auto fnOnFriend = [this](int nFriendType)
-    {
-        switch(nFriendType){
-            case FRIENDTYPE_ENEMY:
-                {
-                    break;
-                }
-            default:
-                {
-                    m_TargetQ.pop_front();
-                    break;
-                }
-
-        }
-    };
-
-    while(!m_TargetQ.empty()){
-        CheckFriend(m_TargetQ.front().UID, fnOnFriend);
+    for(auto &rstTarget: m_TargetQ){
+        auto fnOnFriend = [this, nUID = rstTarget.UID](int nFriendType)
+        {
+            switch(nFriendType){
+                case FRIENDTYPE_ENEMY:
+                    {
+                        break;
+                    }
+                default:
+                    {
+                        RemoveTarget(nUID);
+                        break;
+                    }
+            }
+        };
+        CheckFriend(rstTarget.UID, fnOnFriend);
     }
 }
 

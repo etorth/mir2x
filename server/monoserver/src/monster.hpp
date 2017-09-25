@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: monster.hpp
- *        Created: 04/10/2016 02:32:45 AM
- *  Last Modified: 09/23/2017 23:25:15
+ *        Created: 04/10/2016 02:32:45
+ *  Last Modified: 09/24/2017 21:53:46
  *
  *    Description: 
  *
@@ -21,11 +21,6 @@
 #include <functional>
 #include "charobject.hpp"
 #include "monsterrecord.hpp"
-
-enum MonsterType: uint32_t
-{
-    MONSTER_DEER,
-};
 
 typedef struct stMONSTERITEMINFO
 {
@@ -161,7 +156,7 @@ class Monster: public CharObject
         void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);
 
     protected:
-        void Operate(const MessagePack &, const Theron::Address &);
+        void OperateAM(const MessagePack &, const Theron::Address &);
 
     protected:
         void ReportCORecord(uint32_t);

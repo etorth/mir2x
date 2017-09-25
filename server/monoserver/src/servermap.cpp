@@ -307,7 +307,7 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     std::call_once(stFlag, fnRegisterClass);
 }
 
-void ServerMap::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void ServerMap::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     switch(rstMPK.Type()){
         case MPK_NEWDROPITEM:

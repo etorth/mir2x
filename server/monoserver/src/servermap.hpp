@@ -103,7 +103,7 @@ class ServerMap: public ActiveObject
         Vec2D<std::vector<uint32_t>> m_UIDRecordV2D;
 
     private:
-        void Operate(const MessagePack &, const Theron::Address &);
+        void OperateAM(const MessagePack &, const Theron::Address &);
 
     public:
         ServerMap(ServiceCore *, uint32_t);

@@ -58,7 +58,7 @@ Player::Player(uint32_t nDBID,
     m_MPMax = 10;
 }
 
-void Player::Operate(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     switch(rstMPK.Type()){
         case MPK_METRONOME:

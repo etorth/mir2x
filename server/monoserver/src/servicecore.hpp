@@ -43,7 +43,7 @@ class ServiceCore: public ActiveObject
        ~ServiceCore() = default;
 
     protected:
-        void Operate(const MessagePack &, const Theron::Address &);
+        void OperateAM(const MessagePack &, const Theron::Address &);
         void OperateNet(uint32_t, uint8_t, const uint8_t *, size_t);
 
     protected:

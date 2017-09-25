@@ -225,7 +225,7 @@ void NetPodN::Accept()
 
         // notification sent
         // but service core may failed to receive it
-        // print log message in ServiceCore::Operate() instead here
+        // print log message in ServiceCore::OperateAM() instead here
 
         // accept next request
         Accept();

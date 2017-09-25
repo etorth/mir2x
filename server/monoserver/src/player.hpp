@@ -106,7 +106,7 @@ class Player: public CharObject
         void OperateNet(uint8_t, const uint8_t *, size_t);
 
     protected:
-        void Operate(const MessagePack &, const Theron::Address &);
+        void OperateAM(const MessagePack &, const Theron::Address &);
 
     private:
         void On_MPK_EXP(const MessagePack &, const Theron::Address &);
