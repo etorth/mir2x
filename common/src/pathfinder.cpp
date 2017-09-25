@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.cpp
  *        Created: 03/29/2017 00:59:29
- *  Last Modified: 07/05/2017 22:42:11
+ *  Last Modified: 09/24/2017 18:13:17
  *
  *    Description: 
  *
@@ -22,8 +22,8 @@
 
 bool AStarPathFinder::Search(int nX0, int nY0, int nX1, int nY1)
 {
-    AStarPathFinderNode stNode0 {nX0, nY0, this};
-    AStarPathFinderNode stNode1 {nX1, nY1, this};
+    AStarPathFinderNode stNode0 {nX0, nY0, -1, this};
+    AStarPathFinderNode stNode1 {nX1, nY1, -1, this};
     SetStartAndGoalStates(stNode0, stNode1);
 
     unsigned int nSearchState;
@@ -79,4 +79,19 @@ int PathFind::MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_
         }
     }
     return -1;
+}
+
+int PathFind::GetDirection(int nSrcX, int nSrcY, int nDstX, int nDstY)
+{
+    static const int nDirV[][3]
+    {
+        {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
+        {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
+        {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT},
+    };
+
+    int nDX = (nDstX > nSrcX) - (nDstX < nSrcX);
+    int nDY = (nDstY > nSrcY) - (nDstY < nSrcY);
+
+    return nDirV[nDY + 1][nDX + 1];
 }

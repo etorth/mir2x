@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 08/18/2017 15:34:05
+ *  Last Modified: 09/24/2017 18:36:10
  *
  *    Description: A-Star algorithm for path finding
  *
@@ -11,6 +11,7 @@
  *                 rather than hack the source to make a priority
  *
  *                 support jump on the map with step size as (1, 2, 3)
+ *                 store direction information in each node and calculate cost with it
  *
  *        Version: 1.0
  *       Revision: none
@@ -30,6 +31,33 @@
 #include "fsa.h"
 #include "stlastar.h"
 #include "condcheck.hpp"
+#include "protocoldef.hpp"
+
+namespace PathFind
+{
+    struct PathNode final
+    {
+        int X;
+        int Y;
+
+        PathNode(int nX = -1, int nY = -1)
+            : X(nX)
+            , Y(nY)
+        {}
+
+        // I don't want to make it friend
+        // which needs another free function declaration
+        bool operator == (const PathNode & rstNode)
+        {
+            return (rstNode.X == X) && (rstNode.Y == Y);
+        }
+    };
+
+    // return direction for src -> dst
+    // direction code defined in protocoldef.hpp
+    int GetDirection(int, int, int, int);
+    int MaxReachNode(const PathFind::PathNode *, size_t, size_t);
+}
 
 class AStarPathFinderNode;
 class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
@@ -62,6 +90,7 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
                     || (m_MaxStep == 3));
         }
 
+    public:
         ~AStarPathFinder()
         {
             FreeSolutionNodes();
@@ -89,24 +118,52 @@ class AStarPathFinderNode
         int m_Y;
 
     private:
+        // direction when *stopping* at current place
+        // direction map: 0 -> DIR_UP
+        //                1 -> DIR_UPRIGHT
+        //                2 -> DIR_RIGHT
+        //                3 -> DIR_DOWNRIGHT
+        //                4 -> DIR_DOWN
+        //                5 -> DIR_DOWNLEFT
+        //                6 -> DIR_LEFT
+        //                7 -> DIR_UPLEFT
+        //
+        // if mark m_Direction as -1 (invalid)
+        // means we don't take consider of turn cost
+        int m_Direction;
+
+    private:
         AStarPathFinder *m_Finder;
 
     private:
         AStarPathFinderNode() = default;
-        AStarPathFinderNode(int nX, int nY, AStarPathFinder *pFinder)
+        AStarPathFinderNode(int nX, int nY, int nDirection, AStarPathFinder *pFinder)
             : m_X(nX)
             , m_Y(nY)
+            , m_Direction(nDirection)
             , m_Finder(pFinder)
         {
             condcheck(pFinder);
         }
 
     public:
-       ~AStarPathFinderNode() = default;
+        ~AStarPathFinderNode() = default;
 
     public:
-       int X() const { return m_X; }
-       int Y() const { return m_Y; }
+        int X() const
+        {
+            return m_X;
+        }
+
+        int Y() const
+        {
+            return m_Y;
+        }
+
+        int Direction() const
+        {
+            return m_Direction;
+        }
 
     public:
         float GoalDistanceEstimate(AStarPathFinderNode &rstGoalNode)
@@ -135,9 +192,9 @@ class AStarPathFinderNode
             static const int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
 
             for(int nStepIndex = 0; nStepIndex < ((m_Finder->MaxStep() > 1) ? 2 : 1); ++nStepIndex){
-                for(int nIndex = 0; nIndex < 8; ++nIndex){
-                    int nNewX = X() + nDX[nIndex] * ((nStepIndex == 0) ? m_Finder->MaxStep() : 1);
-                    int nNewY = Y() + nDY[nIndex] * ((nStepIndex == 0) ? m_Finder->MaxStep() : 1);
+                for(int nDirIndex = 0; nDirIndex < 8; ++nDirIndex){
+                    int nNewX = X() + nDX[nDirIndex] * ((nStepIndex == 0) ? m_Finder->MaxStep() : 1);
+                    int nNewY = Y() + nDY[nDirIndex] * ((nStepIndex == 0) ? m_Finder->MaxStep() : 1);
 
                     if(true
                             && pParentNode
@@ -148,7 +205,7 @@ class AStarPathFinderNode
                     // means for m_MoveChecker(x0, y0, x1, y1) we guarentee that (x1, y1) inside propor distance to (x0, y0)
 
                     if(m_Finder->m_MoveChecker(X(), Y(), nNewX, nNewY)){
-                        AStarPathFinderNode stFinderNode {nNewX, nNewY, m_Finder};
+                        AStarPathFinderNode stFinderNode {nNewX, nNewY, nDirIndex, m_Finder};
                         pAStarSearch->AddSuccessor(stFinderNode);
                     }
                 }
@@ -161,12 +218,39 @@ class AStarPathFinderNode
 
         float GetCost(AStarPathFinderNode &rstNode)
         {
+            int nSrcX = X();
+            int nSrcY = Y();
+            int nDstX = rstNode.X();
+            int nDstY = rstNode.Y();
+
             if(m_Finder->m_MoveCost){
-                auto fCost = m_Finder->m_MoveCost(X(), Y(), rstNode.X(), rstNode.Y());
-                return (fCost >= 0.00) ? (float)(fCost) : 1.00;
-            }else{
-                return 1.00;
+                auto fCost = m_Finder->m_MoveCost(nSrcX, nSrcY, nDstX, nDstY);
+                if(fCost >= 0.00){
+                    auto nOldDirIndex = Direction();
+                    auto nNewDirIndex = PathFind::GetDirection(nSrcX, nSrcY, nDstX, nDstY) - (DIR_NONE + 1);
+                    if(true
+                            && (nOldDirIndex >= 0) && (nOldDirIndex < 8)
+                            && (nNewDirIndex >= 0) && (nNewDirIndex < 8)){
+
+                        static const float fTurnCost[]
+                        {
+                            0.00,   // 0
+                            1.00,   // 1
+                            2.00,   // 2
+                            3.00,   // 3
+                            4.00,   // 4
+                            5.00,   // 5
+                            6.00,   // 6
+                            7.00,   // 7
+                        };
+
+                        auto nDDirIndex = ((nNewDirIndex - nOldDirIndex) + 8) % 8;
+                        fCost += fTurnCost[std::min<int>(nDDirIndex, 8 - nDDirIndex)];
+                    }
+                    return (float)(fCost);
+                }
             }
+            return 1.00;
         }
 
         bool IsSameState(AStarPathFinderNode &rstNode)
@@ -174,26 +258,3 @@ class AStarPathFinderNode
             return (X() == rstNode.X()) && (Y() == rstNode.Y());
         }
 };
-
-namespace PathFind
-{
-    struct PathNode final
-    {
-        int X;
-        int Y;
-
-        PathNode(int nX = -1, int nY = -1)
-            : X(nX)
-            , Y(nY)
-        {}
-
-        // I don't want to make it friend
-        // which needs another free function declaration
-        bool operator == (const PathNode & rstNode)
-        {
-            return (rstNode.X == X) && (rstNode.Y == Y);
-        }
-    };
-
-    int MaxReachNode(const PathFind::PathNode *, size_t, size_t);
-}
