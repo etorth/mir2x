@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 09/23/2017 23:05:30
+ *  Last Modified: 09/25/2017 00:17:02
  *
  *    Description: 
  *
@@ -239,22 +239,6 @@ class CharObject: public ActiveObject
         uint32_t MapID()
         {
             return m_Map ? m_Map->ID() : 0;
-        }
-
-    public:
-        uint8_t GetBack()
-        {
-            switch (m_Direction){
-                case DIR_UP       : return DIR_DOWN;
-                case DIR_DOWN     : return DIR_UP;
-                case DIR_LEFT     : return DIR_RIGHT;
-                case DIR_RIGHT    : return DIR_LEFT;
-                case DIR_UPLEFT   : return DIR_DOWNRIGHT;
-                case DIR_UPRIGHT  : return DIR_DOWNLEFT;
-                case DIR_DOWNLEFT : return DIR_UPRIGHT;
-                case DIR_DOWNRIGHT: return DIR_UPLEFT;
-                default           : return DIR_NONE;
-            }
         }
 
     public:

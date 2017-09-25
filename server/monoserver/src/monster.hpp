@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45
- *  Last Modified: 09/24/2017 21:53:46
+ *  Last Modified: 09/25/2017 00:36:50
  *
  *    Description: 
  *
@@ -178,6 +178,9 @@ class Monster: public CharObject
 
     protected:
         void CheckFriend(uint32_t, std::function<void(int)>);
+
+    protected:
+        bool GreedyMove(int, int, std::function<void()>);
 
     protected:
         bool MoveOneStepAStar  (int, int);

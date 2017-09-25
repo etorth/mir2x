@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 09/23/2017 22:37:59
+ *  Last Modified: 09/25/2017 00:06:30
  *
  *    Description: 
  *
@@ -144,26 +144,13 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
         default                 : return false;
     }
 
-    int nDX = std::abs<int>(X() - nX);
-    int nDY = std::abs<int>(Y() - nY);
-
+    auto nLD2 = LDistance2(nX, nY, X(), Y());
     if(true
             && ((CanMove()))
-            && ((std::max<int>(nDX, nDY) == nStepLen))
-            && ((std::min<int>(nDX, nDY) == 0) || (nDX == nDY))){
+            && ((nLD2 == nStepLen * nStepLen) || (nLD2 == 2 * nStepLen * nStepLen))){
 
-        // argument ok and can move
-        // check if the ground is valid for the move request
-        static const int nDirV[][3] = {
-            {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
-            {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
-            {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
-
-        int nXLoc = (nX > X()) - (nX < X()) + 1;
-        int nYLoc = (nY > Y()) - (nY < Y()) + 1;
-
-        int nNewDirection = nDirV[nYLoc][nXLoc];
-        int nMostStep = OneStepReach(nNewDirection, nStepLen, nullptr, nullptr);
+        int nNewDir = PathFind::GetDirection(X(), Y(), nX, nY);
+        int nMostStep = OneStepReach(nNewDir, nStepLen, nullptr, nullptr);
         if(false
                 || (nMostStep == nStepLen)
                 || (bAllowHalfMove && (nMostStep > 0))){
@@ -183,11 +170,12 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
             int nOrigX = X();
             int nOrigY = Y();
 
-            // TODO
             // be careful of the situation that new client motion request comes
             // but the server map is so busy that last motion request is even not handled yet
             // then all client request would be rejected and force client to do pull-back before handled
-            auto fnOP = [this, nMoveMode, nX, nY, nOrigX, nOrigY, nNewDirection, bAllowHalfMove, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK, const Theron::Address &rstAddr){
+
+            auto fnOP = [this, nMoveMode, nX, nY, nOrigX, nOrigY, nNewDir, bAllowHalfMove, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK, const Theron::Address &rstAddr)
+            {
                 if(!m_MoveLock){
                     extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before server responds: ClassName = %s", ClassName());
@@ -226,7 +214,7 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
                                 int nNewY = -1;
 
                                 if(true
-                                        && NextLocation(&nNewX, &nNewY, nNewDirection, std::max<int>(nDX, nDY))
+                                        && NextLocation(&nNewX, &nNewY, nNewDir, std::max<int>(nDX, nDY))
                                         && (nNewX == stAMMOK.EndX)
                                         && (nNewY == stAMMOK.EndY)){ bValidMove = true; }
                             }
@@ -235,9 +223,9 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
                                     && bValidMove
                                     && CanMove()){
 
-                                m_X     = nX;
-                                m_Y     = nY;
-                                m_Direction = nNewDirection;
+                                m_X = nX;
+                                m_Y = nY;
+                                m_Direction = nNewDir;
 
                                 extern MonoServer *g_MonoServer;
                                 m_LastMoveTime = g_MonoServer->GetTimeTick();
@@ -258,7 +246,7 @@ bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove,
                             // should add a new function: CanTurn()
                             // for stone state we can't even make a turn
 
-                            m_Direction = nNewDirection;
+                            m_Direction = nNewDir;
                             DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), MapID()});
 
                             if(fnOnMoveError){ fnOnMoveError(); }

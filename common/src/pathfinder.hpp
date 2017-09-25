@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 09/24/2017 18:36:10
+ *  Last Modified: 09/25/2017 00:19:09
  *
  *    Description: A-Star algorithm for path finding
  *
@@ -52,6 +52,21 @@ namespace PathFind
             return (rstNode.X == X) && (rstNode.Y == Y);
         }
     };
+
+    inline int GetBack(int nDirection)
+    {
+        switch (nDirection){
+            case DIR_UP       : return DIR_DOWN;
+            case DIR_DOWN     : return DIR_UP;
+            case DIR_LEFT     : return DIR_RIGHT;
+            case DIR_RIGHT    : return DIR_LEFT;
+            case DIR_UPLEFT   : return DIR_DOWNRIGHT;
+            case DIR_UPRIGHT  : return DIR_DOWNLEFT;
+            case DIR_DOWNLEFT : return DIR_UPRIGHT;
+            case DIR_DOWNRIGHT: return DIR_UPLEFT;
+            default           : return DIR_NONE;
+        }
+    }
 
     // return direction for src -> dst
     // direction code defined in protocoldef.hpp
