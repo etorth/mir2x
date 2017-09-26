@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45
- *  Last Modified: 09/25/2017 00:36:50
+ *  Last Modified: 09/25/2017 23:58:51
  *
  *    Description: 
  *
@@ -142,6 +142,9 @@ class Monster: public CharObject
 
     protected:
         DamageNode GetAttackDamage(int);
+
+    protected:
+        void DispatchSpaceMove();
 
     private:
         void On_MPK_EXP(const MessagePack &, const Theron::Address &);

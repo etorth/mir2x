@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 09/25/2017 00:17:02
+ *  Last Modified: 09/26/2017 00:03:03
  *
  *    Description: 
  *
@@ -96,6 +96,35 @@ typedef struct
 }OBJECTADDABILITY;
 #pragma pack(pop)
 
+// cache entry for charobject location
+// should be visible for CharObject and its derived classes
+struct COLocation
+{
+    uint32_t UID;
+    uint32_t MapID;
+    uint32_t RecordTime;
+
+    int X;
+    int Y;
+    int Direction;
+
+    COLocation(
+            uint32_t nUID        = 0,
+            uint32_t nMapID      = 0,
+            uint32_t nRecordTime = 0,
+
+            int nX = -1,
+            int nY = -1,
+            int nDirection = DIR_NONE)
+        : UID(nUID)
+        , MapID(nMapID)
+        , RecordTime(nRecordTime)
+        , X(nX)
+        , Y(nY)
+        , Direction(nDirection)
+    {}
+};
+
 class CharObject: public ActiveObject
 {
     protected:
@@ -116,33 +145,6 @@ class CharObject: public ActiveObject
         };
 
     protected:
-        struct COLocation
-        {
-            uint32_t UID;
-            uint32_t MapID;
-            uint32_t RecordTime;
-
-            int X;
-            int Y;
-            int Direction;
-
-            COLocation(
-                    uint32_t nUID        = 0,
-                    uint32_t nMapID      = 0,
-                    uint32_t nRecordTime = 0,
-
-                    int nX = -1,
-                    int nY = -1,
-                    int nDirection = DIR_NONE)
-                : UID(nUID)
-                , MapID(nMapID)
-                , RecordTime(nRecordTime)
-                , X(nX)
-                , Y(nY)
-                , Direction(nDirection)
-            {}
-        };
-
         struct TargetRecord
         {
             uint32_t UID;
@@ -262,7 +264,9 @@ class CharObject: public ActiveObject
     protected:
         void DispatchMHP();
         void DispatchAttack(uint32_t, int);
-        void DispatchSpaceMove();
+
+    protected:
+        virtual void DispatchSpaceMove();
 
     protected:
         void DispatchAction(const ActionNode &);
@@ -275,7 +279,7 @@ class CharObject: public ActiveObject
 
     protected:
         virtual bool CanMove();
-        virtual bool RetrieveLocation(uint32_t, std::function<void(int, int, int)>);
+        virtual bool RetrieveLocation(uint32_t, std::function<void(const COLocation &)>);
 
     protected:
         virtual bool RequestMove(int, int, int, bool, std::function<void()>, std::function<void()>);

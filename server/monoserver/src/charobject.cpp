@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 09/25/2017 00:06:30
+ *  Last Modified: 09/25/2017 23:49:43
  *
  *    Description: 
  *
@@ -451,7 +451,7 @@ bool CharObject::CanAttack()
     }
 }
 
-bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(int, int, int)> fnOnLocationOK)
+bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLocation &)> fnOnLocationOK)
 {
     if(nUID){
 
@@ -490,8 +490,7 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(int, int, in
                                     stAML.Y,
                                     stAML.Direction
                                 };
-
-                                if(fnOnLocationOK){ fnOnLocationOK(stAML.X, stAML.Y, stAML.Direction); }
+                                if(fnOnLocationOK){ fnOnLocationOK(m_LocationRecord[nUID]); }
                             }else{
                                 m_LocationRecord.erase(nUID);
                             }
@@ -527,7 +526,7 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(int, int, in
                 && m_Map
                 && m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)
                 && (rstRecord.RecordTime + 2 * 1000 < g_MonoServer->GetTimeTick())){
-            if(fnOnLocationOK){ fnOnLocationOK(rstRecord.X, rstRecord.Y, rstRecord.Direction); }
+            if(fnOnLocationOK){ fnOnLocationOK(rstRecord); }
             return true;
         }
 

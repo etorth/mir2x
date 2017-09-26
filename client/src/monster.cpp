@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 09/08/2017 17:01:15
+ *  Last Modified: 09/26/2017 00:15:48
  *
  *    Description: 
  *
@@ -363,6 +363,11 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                     }
                     break;
                 }
+            case ACTION_SPACEMOVE:
+                {
+                    m_MotionQueue.clear();
+                    break;
+                }
             case ACTION_UNDERATTACK:
             default:
                 {
@@ -387,6 +392,18 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                     if(auto stMotionNode = MakeMotionWalk(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY, rstAction.Speed)){
                         m_MotionQueue.push_back(stMotionNode);
                     }
+                    break;
+                }
+            case ACTION_SPACEMOVE:
+                {
+                    m_CurrMotion = MotionNode
+                    {
+                        MOTION_MON_STAND,
+                        0,
+                        m_CurrMotion.Direction,
+                        rstAction.X,
+                        rstAction.Y,
+                    };
                     break;
                 }
             case ACTION_ATTACK:
@@ -542,6 +559,10 @@ bool Monster::ActionValid(const ActionNode &rstAction, bool bRemote) const
                     // won't check direction here
                     // plain physical attack need direction info but magic attack not
 
+                    return true;
+                }
+            case ACTION_SPACEMOVE:
+                {
                     return true;
                 }
             case ACTION_STAND:

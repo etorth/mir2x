@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 09/23/2017 23:07:09
+ *  Last Modified: 09/25/2017 23:46:40
  *
  *    Description: 
  *
@@ -212,7 +212,7 @@ void Player::ReportStand()
 
 void Player::ReportSpaceMove()
 {
-    ReportAction(UID(), {ACTION_SPACEMOVE, X(), Y(), m_Map->ID()});
+    ReportAction(UID(), {ACTION_SPACEMOVE, X(), Y(), MapID()});
 }
 
 void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)

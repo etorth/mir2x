@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 09/14/2017 12:03:12
+ *  Last Modified: 09/26/2017 00:17:45
  *
  *    Description: 
  *
@@ -79,7 +79,9 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
             switch(stAction.Action){
                 case ACTION_SPACEMOVE:
                     {
-                        CenterMyHero();
+                        if(stSMA.UID == m_MyHero->UID()){
+                            CenterMyHero();
+                        }
                         break;
                     }
                 default:

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 09/25/2017 01:13:04
+ *  Last Modified: 09/26/2017 00:47:28
  *
  *    Description: 
  *
@@ -144,12 +144,14 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
         extern MonoServer *g_MonoServer;
         if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
             if(DCValid(nDC, true)){
-                auto fnQueryLocationOK = [this, nDC, stRecord](int nX, int nY, int) -> bool
+                auto fnQueryLocationOK = [this, nDC, stRecord](const COLocation &stCOLocation) -> bool
                 {
+                    auto nX = stCOLocation.X;
+                    auto nY = stCOLocation.Y;
+
                     // if we get inside current block, we should release the attack lock
                     // it can be released immediately if location retrieve succeeds without querying
                     m_AttackLock = false;
-
                     switch(nDC){
                         case DC_PHY_PLAIN:
                             {
@@ -216,20 +218,27 @@ bool Monster::TrackUID(uint32_t nUID)
             && nUID
             && CanMove()){
 
-        return RetrieveLocation(nUID, [this](int nX, int nY, int) -> bool
+        return RetrieveLocation(nUID, [this](const COLocation &rstCOLocation) -> bool
         {
-            switch(LDistance2(nX, nY, X(), Y())){
-                case 0:
-                case 1:
-                case 2:
-                    {
-                        return true;
-                    }
-                default:
-                    {
-                        return MoveOneStep(nX, nY);
-                    }
+            auto nX     = rstCOLocation.X;
+            auto nY     = rstCOLocation.Y;
+            auto nMapID = rstCOLocation.MapID;
+
+            if(nMapID == MapID()){
+                switch(LDistance2(nX, nY, X(), Y())){
+                    case 0:
+                    case 1:
+                    case 2:
+                        {
+                            return true;
+                        }
+                    default:
+                        {
+                            return MoveOneStep(nX, nY);
+                        }
+                }
             }
+            return false;
         });
     }
     return false;
@@ -237,8 +246,90 @@ bool Monster::TrackUID(uint32_t nUID)
 
 bool Monster::FollowMaster()
 {
-    if(MasterUID()){
-        return TrackUID(MasterUID());
+    auto nMasterUID = MasterUID();
+    if(true
+            && nMasterUID
+            && CanMove()){
+
+        // followMaster works almost like TrackUID(), but
+        // 1. follower always try to stand at the back of the master
+        // 2. when distance is too far or even located at different map, follower takes space move
+
+        return RetrieveLocation(nMasterUID, [nMasterUID, this](const COLocation &rstCOLocation) -> bool
+        {
+            if(nMasterUID == MasterUID()){
+
+                // check if it's still my master?
+                // possible during the location query master changed
+
+                auto nMapID     = rstCOLocation.MapID;
+                auto nX         = rstCOLocation.X;
+                auto nY         = rstCOLocation.Y;
+                auto nDirection = rstCOLocation.Direction;
+
+                // get back location with different distance
+                // here we use different distance if space move and follow
+
+                auto fnGetBack = [nX, nY, nDirection](int *pX, int *pY, int nLD) -> bool
+                {
+                    if(!PathFind::GetBackLoction(pX, pY, nX, nY, nDirection, nLD)){
+                        // randomly pick a location
+                        // for some COs it doesn't have direction
+                        auto nRandDir = (std::rand() % 8) + (DIR_NONE + 1);
+                        if(!PathFind::GetBackLoction(pX, pY, nX, nY, nRandDir, nLD)){
+                            return false;
+                        }
+                    }
+                    return true;
+                };
+
+                if(false
+                        || (nMapID != MapID())
+                        || (LDistance<double>(nX, nY, X(), Y()) > 10.0)){
+
+                    // long distance
+                    // slave have to do space move
+
+                    int nBackX = -1;
+                    int nBackY = -1;
+
+                    if(fnGetBack(&nBackX, &nBackY, 3)){
+                        return RequestSpaceMove(nMapID, nBackX, nBackY, false, [](){}, [](){});
+                    }
+                    return false;
+                }else{
+
+                    // not that long
+                    // slave should move step by step
+
+                    int nBackX = -1;
+                    int nBackY = -1;
+
+                    if(fnGetBack(&nBackX, &nBackY, 1)){
+                        switch(LDistance2(nBackX, nBackY, X(), Y())){
+                            case 0:
+                                {
+                                    // already get there
+                                    // need to make a turn if needed
+
+                                    if(Direction() != nDirection){
+                                        m_Direction= nDirection;
+                                        DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), MapID()});
+                                    }
+                                    return true;
+                                }
+                            default:
+                                {
+                                    return MoveOneStep(nBackX, nBackY);
+                                }
+                        }
+                    }
+                    return false;
+                }
+            }
+
+            return false;
+        });
     }
     return false;
 }
@@ -1100,6 +1191,11 @@ void Monster::CheckFriend(uint32_t nCheckUID, std::function<void(int)> fnOnFrien
         }
 
     }
+}
+
+void Monster::DispatchSpaceMove()
+{
+    DispatchAction({ACTION_SPACEMOVE, X(), Y(), MapID()});
 }
 
 InvarData Monster::GetInvarData() const
