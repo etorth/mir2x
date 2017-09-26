@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 09/26/2017 00:47:28
+ *  Last Modified: 09/26/2017 01:02:37
  *
  *    Description: 
  *
@@ -272,11 +272,11 @@ bool Monster::FollowMaster()
 
                 auto fnGetBack = [nX, nY, nDirection](int *pX, int *pY, int nLD) -> bool
                 {
-                    if(!PathFind::GetBackLoction(pX, pY, nX, nY, nDirection, nLD)){
+                    if(!PathFind::GetBackLocation(pX, pY, nX, nY, nDirection, nLD)){
                         // randomly pick a location
                         // for some COs it doesn't have direction
                         auto nRandDir = (std::rand() % 8) + (DIR_NONE + 1);
-                        if(!PathFind::GetBackLoction(pX, pY, nX, nY, nRandDir, nLD)){
+                        if(!PathFind::GetBackLocation(pX, pY, nX, nY, nRandDir, nLD)){
                             return false;
                         }
                     }

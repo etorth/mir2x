@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 09/25/2017 23:46:40
+ *  Last Modified: 09/26/2017 01:01:52
  *
  *    Description: 
  *
@@ -435,8 +435,15 @@ void Player::OnCMActionSpell(const ActionNode &rstAction)
                 }
             case DBCOM_MAGICID(u8"召唤骷髅"):
                 {
-                    SMFireMagic stSMFM;
+                    int nFrontX = -1;
+                    int nFrontY = -1;
 
+                    if(!PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2)){
+                        nFrontX = X() + 1;
+                        nFrontY = Y() + 1;
+                    }
+
+                    SMFireMagic stSMFM;
                     stSMFM.UID        = UID();
                     stSMFM.MapID      = MapID();
                     stSMFM.Magic      = rstAction.ActionParam;
@@ -445,8 +452,8 @@ void Player::OnCMActionSpell(const ActionNode &rstAction)
                     stSMFM.Direction  = rstAction.Direction;
                     stSMFM.X          = rstAction.X;
                     stSMFM.Y          = rstAction.Y;
-                    stSMFM.AimX       = X() + 1;
-                    stSMFM.AimY       = Y();
+                    stSMFM.AimX       = nFrontX;
+                    stSMFM.AimY       = nFrontY;
                     stSMFM.AimUID     = 0;
 
                     Delay(600, [this, stSMFM]() -> void

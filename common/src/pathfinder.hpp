@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 09/25/2017 17:52:06
+ *  Last Modified: 09/26/2017 01:02:20
  *
  *    Description: A-Star algorithm for path finding
  *
@@ -68,7 +68,7 @@ namespace PathFind
         }
     }
 
-    inline bool GetFrontLoction(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
+    inline bool GetFrontLocation(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
     {
         static const int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
         static const int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
@@ -85,9 +85,9 @@ namespace PathFind
         return false;
     }
 
-    inline bool GetBackLoction(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
+    inline bool GetBackLocation(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
     {
-        return GetFrontLoction(pX, pY, nX, nY, GetBack(nDirection), nLen);
+        return GetFrontLocation(pX, pY, nX, nY, GetBack(nDirection), nLen);
     }
 
     // return direction for src -> dst
