@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 09/14/2017 00:01:16
+ *  Last Modified: 09/26/2017 23:55:13
  *
  *    Description: 
  *
@@ -448,6 +448,7 @@ bool Hero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                         rstAction.Y,
                     };
 
+                    AddAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_DONE);
                     break;
                 }
             case ACTION_SPELL:

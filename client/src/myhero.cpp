@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 08/10/2017 13:30:45
+ *  Last Modified: 09/27/2017 00:48:05
  *
  *    Description: 
  *
@@ -138,6 +138,7 @@ bool MyHero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
 {
     if(ActionValid(rstAction, bRemote)){
         if(bRemote){
+            m_ActionQueue.clear();
             return Hero::ParseNewAction(rstAction, true);
         }else{
             // OK it's a local action
