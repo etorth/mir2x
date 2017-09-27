@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 09/26/2017 01:02:20
+ *  Last Modified: 09/26/2017 11:20:07
  *
  *    Description: A-Star algorithm for path finding
  *
@@ -92,7 +92,21 @@ namespace PathFind
 
     // return direction for src -> dst
     // direction code defined in protocoldef.hpp
-    int GetDirection(int, int, int, int);
+    inline int GetDirection(int nSrcX, int nSrcY, int nDstX, int nDstY)
+    {
+        static const int nDirV[][3]
+        {
+            {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
+            {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
+            {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT},
+        };
+
+        int nDX = (nDstX > nSrcX) - (nDstX < nSrcX);
+        int nDY = (nDstY > nSrcY) - (nDstY < nSrcY);
+
+        return nDirV[nDY + 1][nDX + 1];
+    }
+
     int MaxReachNode(const PathFind::PathNode *, size_t, size_t);
 }
 

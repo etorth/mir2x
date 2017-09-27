@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 09/26/2017 00:15:48
+ *  Last Modified: 09/26/2017 23:45:01
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 #include <SDL2/SDL.h>
 
 #include "log.hpp"
+#include "dbcomid.hpp"
 #include "monster.hpp"
 #include "mathfunc.hpp"
 #include "condcheck.hpp"
@@ -404,6 +405,8 @@ bool Monster::ParseNewAction(const ActionNode &rstAction, bool bRemote)
                         rstAction.X,
                         rstAction.Y,
                     };
+
+                    AddAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_DONE);
                     break;
                 }
             case ACTION_ATTACK:

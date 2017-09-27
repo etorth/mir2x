@@ -3,7 +3,7 @@
  *
  *       Filename: pathfinder.cpp
  *        Created: 03/29/2017 00:59:29
- *  Last Modified: 09/25/2017 00:18:36
+ *  Last Modified: 09/26/2017 11:20:40
  *
  *    Description: 
  *
@@ -79,19 +79,4 @@ int PathFind::MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_
         }
     }
     return -1;
-}
-
-int PathFind::GetDirection(int nSrcX, int nSrcY, int nDstX, int nDstY)
-{
-    static const int nDirV[][3]
-    {
-        {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
-        {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
-        {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT},
-    };
-
-    int nDX = (nDstX > nSrcX) - (nDstX < nSrcX);
-    int nDY = (nDstY > nSrcY) - (nDstY < nSrcY);
-
-    return nDirV[nDY + 1][nDX + 1];
 }
