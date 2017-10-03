@@ -3,7 +3,7 @@
  *
  *       Filename: netpod.cpp
  *        Created: 06/25/2017 12:05:00
- *  Last Modified: 08/14/2017 17:52:04
+ *  Last Modified: 10/03/2017 10:30:25
  *
  *    Description: 
  *
@@ -165,7 +165,7 @@ int NetPodN::Activate(uint32_t nSessionID, const Theron::Address &rstTargetAddre
 
 void NetPodN::Accept()
 {
-    auto fnAccept = [this](std::error_code stEC) -> void
+    auto fnAccept = [this](std::error_code stEC)
     {
         extern MonoServer *g_MonoServer;
         if(stEC){

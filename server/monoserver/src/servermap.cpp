@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 09/13/2017 12:26:32
+ *  Last Modified: 10/03/2017 10:42:30
  *
  *    Description: 
  *
@@ -296,7 +296,8 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
         }
     }
 
-    auto fnRegisterClass = [this]() -> void {
+    auto fnRegisterClass = [this]()
+    {
         if(!RegisterClass<ServerMap, ActiveObject>()){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <ServerMap, ActiveObject> failed");

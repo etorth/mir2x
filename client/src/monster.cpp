@@ -159,7 +159,7 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
             if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, (255 - m_CurrMotion.FadeOut) / 2); }
         }
 
-        auto fnBlendFrame = [](SDL_Texture *pTexture, int nFocusChan, int nX, int nY) -> void
+        auto fnBlendFrame = [](SDL_Texture *pTexture, int nFocusChan, int nX, int nY)
         {
             if(true
                     && pTexture

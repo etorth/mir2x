@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 08/14/2017 15:54:00
+ *  Last Modified: 10/03/2017 11:18:05
  *
  *    Description: actor <-> session <--- network ---> client
  *                 1. each session binds to an actor
@@ -186,8 +186,10 @@ class Session final: public SyncDriver
 
         void Shutdown()
         {
-            m_Socket.close();
-            m_BindAddress = Theron::Address::Null();
+            if(Valid()){
+                m_Socket.close();
+                m_BindAddress = Theron::Address::Null();
+            }
         }
 
         bool Valid()

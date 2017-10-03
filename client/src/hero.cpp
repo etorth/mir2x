@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 10/02/2017 22:55:53
+ *  Last Modified: 10/03/2017 15:45:24
  *
  *    Description: 
  *
@@ -92,7 +92,7 @@ bool Hero::Draw(int nViewX, int nViewY, int)
     int nShiftY = 0;
     GetShift(&nShiftX, &nShiftY);
 
-    auto fnDrawWeapon = [this, nViewX, nViewY, nShiftX, nShiftY](bool bShadow) -> void
+    auto fnDrawWeapon = [this, nViewX, nViewY, nShiftX, nShiftY](bool bShadow)
     {
         // 04 - 00 :     frame : max =  32
         // 07 - 05 : direction : max =  08 : +
@@ -708,9 +708,53 @@ bool Hero::Moving()
         || m_CurrMotion.Motion == MOTION_ONHORSEWALK;
 }
 
-bool Hero::CanFocus(int, int)
+bool Hero::CanFocus(int nPointX, int nPointY)
 {
-    return true;
+    switch(CurrMotion().Motion){
+        case MOTION_DIE:
+            {
+                return false;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    auto nDress     = Dress();
+    auto nGender    = Gender();
+    auto nMotion    = CurrMotion().Motion;
+    auto nDirection = CurrMotion().Direction;
+
+    auto nGfxDressID = GfxDressID(nDress, nMotion, nDirection);
+    if(nGfxDressID >= 0){
+
+        int nDX0 = 0;
+        int nDY0 = 0;
+
+        uint32_t nKey0 = (((uint32_t)(nGender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + CurrMotion().Frame;
+
+        extern PNGTexOffDBN *g_HeroDBN;
+        auto pFrame0 = g_HeroDBN->Retrieve(nKey0, &nDX0, &nDY0);
+
+        int nShiftX = 0;
+        int nShiftY = 0;
+        GetShift(&nShiftX, &nShiftY);
+
+        int nStartX = X() * SYS_MAPGRIDXP + nDX0 + nShiftX;
+        int nStartY = Y() * SYS_MAPGRIDYP + nDY0 + nShiftY;
+
+        int nW = 0;
+        int nH = 0;
+        SDL_QueryTexture(pFrame0, nullptr, nullptr, &nW, &nH);
+
+        int nMaxTargetW = SYS_MAPGRIDXP + SYS_TARGETRGN_GAPX;
+        int nMaxTargetH = SYS_MAPGRIDYP + SYS_TARGETRGN_GAPY;
+
+        return ((nW >= nMaxTargetW) ? PointInSegment(nPointX, (nStartX + (nW - nMaxTargetW) / 2), nMaxTargetW) : PointInSegment(nPointX, nStartX, nW))
+            && ((nH >= nMaxTargetH) ? PointInSegment(nPointY, (nStartY + (nH - nMaxTargetH) / 2), nMaxTargetH) : PointInSegment(nPointY, nStartY, nH));
+    }
+    return false;
 }
 
 int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)

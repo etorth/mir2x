@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 09/05/2017 12:11:13
+ *  Last Modified: 10/03/2017 10:42:36
  *
  *    Description: 
  *
@@ -32,7 +32,8 @@ ServiceCore::ServiceCore()
     : ActiveObject()
     , m_MapRecord()
 {
-    auto fnRegisterClass = [this]() -> void {
+    auto fnRegisterClass = [this]()
+    {
         if(!RegisterClass<ServiceCore, ActiveObject>()){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <ServiceCore, ActiveObject> failed");

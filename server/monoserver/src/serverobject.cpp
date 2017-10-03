@@ -35,7 +35,7 @@ ServerObject::ServerObject()
     // 2. use std::call_once to register current class
     //    use empty vector {} as it's parents' class entry info
     //    since server object is the base class for all other classes need registration
-    auto fnRegisterClass = [this]() -> void
+    auto fnRegisterClass = [this]()
     {
         if(!RegisterClass<ServerObject>({})){
             extern MonoServer *g_MonoServer;

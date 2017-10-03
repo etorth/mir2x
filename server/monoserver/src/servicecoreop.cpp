@@ -228,7 +228,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::A
         case 1:
             {
                 if(auto pMap = (stAMQCOC.MapID ? m_MapRecord[stAMQCOC.MapID] : m_MapRecord.begin()->second)){
-                    auto fnOnResp = [this, rstMPK, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &) -> void
+                    auto fnOnResp = [this, rstMPK, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &)
                     {
                         switch(rstRMPK.Type()){
                             case MPK_COCOUNT:
@@ -278,7 +278,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::A
                 // to solve this issue, we can install an state hook but for simplity not now
 
                 auto pSharedState = std::make_shared<SharedState>(nCheckCount);
-                auto fnOnResp = [pSharedState, this, rstFromAddr, rstMPK](const MessagePack &rstRMPK, const Theron::Address &) -> void
+                auto fnOnResp = [pSharedState, this, rstFromAddr, rstMPK](const MessagePack &rstRMPK, const Theron::Address &)
                 {
                     switch(rstRMPK.Type()){
                         case MPK_COCOUNT:

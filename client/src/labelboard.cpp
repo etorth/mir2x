@@ -30,7 +30,7 @@ void LabelBoard::SetText(const char * szFormatStr, ...)
 {
     // 1. store parameter as m_Content
     // 2. build the token board for drawing
-    auto fnBuildBoard = [this](const char *szMessage) -> void
+    auto fnBuildBoard = [this](const char *szMessage)
     {
         m_Content = szMessage ? szMessage : "";
 

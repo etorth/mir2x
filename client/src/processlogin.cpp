@@ -45,12 +45,12 @@ ProcessLogin::ProcessLogin()
             14,
             {0XFF, 0XFF, 0XFF, 0XFF},
             {0XFF, 0XFF, 0XFF, 0XFF},
-            [this]() -> void
+            [this]()
             {
                 m_IDBox      .Focus(false);
                 m_PasswordBox.Focus(true);
             },
-            [this]() -> void
+            [this]()
             {
                 DoLogin();
             })
@@ -65,12 +65,12 @@ ProcessLogin::ProcessLogin()
             14,
             {0XFF, 0XFF, 0XFF, 0XFF},
             {0XFF, 0XFF, 0XFF, 0XFF},
-            [this]() -> void
+            [this]()
             {
                 m_IDBox      .Focus(true);
                 m_PasswordBox.Focus(false);
             },
-            [this]() -> void
+            [this]()
             {
                 DoLogin();
             })

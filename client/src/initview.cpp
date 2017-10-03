@@ -260,7 +260,7 @@ void InitView::Proc()
 
 void InitView::AddIVLog(int nLogType, const char *szLogFormat, ...)
 {
-    auto fnRecordLog = [this](int nLogType, const char *szLogInfo) -> void
+    auto fnRecordLog = [this](int nLogType, const char *szLogInfo)
     {
         // 1. add system log
         switch(nLogType){

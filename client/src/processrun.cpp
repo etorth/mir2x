@@ -1187,7 +1187,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
 bool ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
 {
-    auto fnRecordLog = [this](int nOutPort, int nLogType, const char *szPrompt, const char *szLogInfo) -> void
+    auto fnRecordLog = [this](int nOutPort, int nLogType, const char *szPrompt, const char *szLogInfo)
     {
         if(nOutPort & OUTPORT_LOG){
             extern Log *g_Log;

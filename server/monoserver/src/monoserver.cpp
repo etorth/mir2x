@@ -57,7 +57,7 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
     int nLogSize = 0;
     int nLogType = std::atoi(stLogDesc[0].c_str());
 
-    auto fnRecordLog = [this, &stLogDesc](int nLogType, const char *szLogInfo) -> void
+    auto fnRecordLog = [this, &stLogDesc](int nLogType, const char *szLogInfo)
     {
         extern Log *g_Log;
         switch(nLogType){
@@ -904,7 +904,7 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
         // here we get an exception from lua caught by sol2: ``std::bad_alloc"
         // but we want more detailed information like print the function usage out
         pModule->set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool {
-            auto fnPrintUsage = [this, nCWID]() -> void
+            auto fnPrintUsage = [this, nCWID]()
             {
                 AddCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int)");
                 AddCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int)");

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 09/26/2017 01:02:37
+ *  Last Modified: 10/03/2017 10:42:19
  *
  *    Description: 
  *
@@ -56,7 +56,8 @@ Monster::Monster(uint32_t   nMonsterID,
         g_MonoServer->Restart();
     }
 
-    auto fnRegisterClass = [this]() -> void {
+    auto fnRegisterClass = [this]()
+    {
         if(!RegisterClass<Monster, CharObject>()){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <Monster, CharObject> failed");

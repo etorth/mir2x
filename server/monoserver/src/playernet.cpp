@@ -144,7 +144,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
                                         nY1,
                                         m_Map->ID()});
 
-                                auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &) -> void
+                                auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &)
                                 {
                                     switch(rstRMPK.Type()){
                                         case MPK_UIDV:

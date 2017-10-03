@@ -375,7 +375,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
     int nMostX = stAMTM.X + nDX * nMostDistance;
     int nMostY = stAMTM.Y + nDY * nMostDistance;
 
-    auto fnOnR = [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK, const Theron::Address &) -> void
+    auto fnOnR = [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK, const Theron::Address &)
     {
         switch(rstRMPK.Type()){
             case MPK_OK:

@@ -50,7 +50,7 @@ int main()
 {
     std::srand((unsigned int)std::time(nullptr));
 
-    auto fnAtExit = []() -> void
+    auto fnAtExit = []()
     {
         delete g_Log           ; g_Log           = nullptr;
         delete g_ClientEnv     ; g_ClientEnv     = nullptr;

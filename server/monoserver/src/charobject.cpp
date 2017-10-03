@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 09/25/2017 23:49:43
+ *  Last Modified: 10/03/2017 10:42:12
  *
  *    Description: 
  *
@@ -59,7 +59,8 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     condcheck(m_Map);
     SetState(STATE_LIFECYCLE, nLifeState);
 
-    auto fnRegisterClass = [this]() -> void {
+    auto fnRegisterClass = [this]()
+    {
         if(!RegisterClass<CharObject, ActiveObject>()){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <CharObject, ActiveObject> failed");
@@ -465,7 +466,7 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLoca
             stAMQL.UID   = UID();
             stAMQL.MapID = MapID();
 
-            auto fnOnResp = [this, nUID, fnOnLocationOK](const MessagePack &rstRMPK, const Theron::Address &) -> void
+            auto fnOnResp = [this, nUID, fnOnLocationOK](const MessagePack &rstRMPK, const Theron::Address &)
             {
                 switch(rstRMPK.Type()){
                     case MPK_LOCATION:
@@ -724,7 +725,7 @@ void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bRandom)
     stAMACO.Monster.MonsterID = nMonsterID;
     stAMACO.Monster.MasterUID = UID();
 
-    auto fnOnRet = [](const MessagePack &rstRMPK, const Theron::Address &) -> void
+    auto fnOnRet = [](const MessagePack &rstRMPK, const Theron::Address &)
     {
         switch(rstRMPK.ID()){
             default:

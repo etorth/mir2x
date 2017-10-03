@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 09/26/2017 01:01:52
+ *  Last Modified: 10/03/2017 10:42:25
  *
  *    Description: 
  *
@@ -42,7 +42,8 @@ Player::Player(uint32_t nDBID,
     , m_Level(0)        // after bind
 {
     m_StateHook.Install("CheckTime", [this](){ For_CheckTime(); return false; });
-    auto fnRegisterClass = [this]() -> void {
+    auto fnRegisterClass = [this]()
+    {
         if(!RegisterClass<Player, CharObject>()){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <Player, CharObject> failed");
@@ -398,7 +399,7 @@ void Player::OnCMActionSpell(const ActionNode &rstAction)
 
                     // delay in server rather than in client
                     // if delay in client then player can cheat
-                    Delay(1400, [this, stSMFM]() -> void
+                    Delay(1400, [this, stSMFM]()
                     {
                         extern NetPodN *g_NetPodN;
                         g_NetPodN->Send(SessionID(), SM_FIREMAGIC, stSMFM);
@@ -426,7 +427,7 @@ void Player::OnCMActionSpell(const ActionNode &rstAction)
 
                     // delay in server rather than in client
                     // if delay in client then player can cheat
-                    Delay(800, [this, stSMFM]() -> void
+                    Delay(800, [this, stSMFM]()
                     {
                         extern NetPodN *g_NetPodN;
                         g_NetPodN->Send(SessionID(), SM_FIREMAGIC, stSMFM);
@@ -456,7 +457,7 @@ void Player::OnCMActionSpell(const ActionNode &rstAction)
                     stSMFM.AimY       = nFrontY;
                     stSMFM.AimUID     = 0;
 
-                    Delay(600, [this, stSMFM]() -> void
+                    Delay(600, [this, stSMFM]()
                     {
                         AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
 
@@ -509,7 +510,7 @@ void Player::OnCMActionAttack(int nX0, int nY0, int nX1, int nY1, int nAttackPar
                                         nY1,
                                         m_Map->ID()});
 
-                                auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &) -> void
+                                auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &)
                                 {
                                     switch(rstRMPK.Type()){
                                         case MPK_UIDV:

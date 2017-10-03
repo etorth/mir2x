@@ -240,7 +240,7 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
     // if we take delay as 200, then client makes non-smooth motion
     // player in client is moving, then if we struck under-attach using current location
     // the player will be forced to roll-back
-    Delay(0, [this]() -> void
+    Delay(0, [this]()
     {
         ReportAction(UID(), {ACTION_UNDERATTACK, 0, SYS_DEFSPEED, Direction(), X(), Y(), 0, MapID()});
     });

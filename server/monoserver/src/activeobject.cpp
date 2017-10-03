@@ -72,7 +72,7 @@ ActiveObject::ActiveObject()
         m_StateHook.Install("PrintAMCount", fnPrintAMCount);
     }
 
-    auto fnRegisterClass = [this]() -> void
+    auto fnRegisterClass = [this]()
     {
         if(!RegisterClass<ActiveObject, ServerObject>()){
             extern MonoServer *g_MonoServer;

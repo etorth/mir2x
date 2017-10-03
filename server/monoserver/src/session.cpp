@@ -3,9 +3,10 @@
  *
  *       Filename: session.cpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 08/18/2017 15:31:27
+ *  Last Modified: 10/03/2017 15:14:51
  *
- *    Description: 
+ *    Description: for received messages we won't crash if get invalid ones
+ *                 but for messages to send we take zero tolerance
  *
  *        Version: 1.0
  *       Revision: none
@@ -30,10 +31,10 @@ Session::SendTask::SendTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, 
     , DataLen(nDataLen)
     , OnDone(std::move(fnOnDone))
 {
-    auto fnReportAndExit = [this]() -> void
+    auto fnReportAndExit = [this]()
     {
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid server message: (%d, %p, %d)", (int)(HC), Data, (int)(DataLen));
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid server message: (%d, %p, %d)", (int)(HC), Data, (int)(DataLen));
         g_MonoServer->Restart();
     };
 
@@ -129,7 +130,7 @@ Session::~Session()
 bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
     // we won't exit if invalid argument provided
-    auto fnReportError = [nHC, pData, nDataLen]() -> void
+    auto fnReportError = [nHC, pData, nDataLen]()
     {
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument : ForwardActorMessage(HC = %d, Data = %p, DataLen = %d)", (int)(nHC), pData, (int)(nDataLen));
@@ -139,22 +140,33 @@ bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
     switch(stCMSG.Type()){
         case 0:
             {
-                // no data allowed
-                if(pData || nDataLen){ fnReportError(); return false; }
+                if(pData || nDataLen){
+                    fnReportError();
+                    return false;
+                }
                 break;
             }
         case 1:
         case 2:
             {
-                if(!(pData && (nDataLen == stCMSG.DataLen()))){ fnReportError(); return false; }
+                if(!(pData && (nDataLen == stCMSG.DataLen()))){
+                    fnReportError();
+                    return false;
+                }
                 break;
             }
         case 3:
             {
                 if(pData){
-                    if((nDataLen == 0) || (nDataLen > 0XFFFFFFFF)){ fnReportError(); return false; }
+                    if((nDataLen == 0) || (nDataLen > 0XFFFFFFFF)){
+                        fnReportError();
+                        return false;
+                    }
                 }else{
-                    if(nDataLen){ fnReportError(); return false; }
+                    if(nDataLen){
+                        fnReportError();
+                        return false;
+                    }
                 }
                 break;
             }
@@ -182,16 +194,16 @@ bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
 
 void Session::DoReadHC()
 {
-    auto fnReportCurrentMessage = [this]() -> void
+    auto fnReportCurrentMessage = [this]()
     {
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Current CMSGParam::HC      = %d", (int)(m_ReadHC));
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Current CMSGParam::HC      = %s", (CMSGParam(m_ReadHC).Name().c_str()));
         g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::Type    = %d", (int)(CMSGParam(m_ReadHC).Type()));
         g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", (int)(CMSGParam(m_ReadHC).MaskLen()));
         g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(CMSGParam(m_ReadHC).DataLen()));
     };
 
-    auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code stEC) -> void
+    auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code stEC)
     {
         if(stEC){
             // 1. close the asio socket
@@ -204,7 +216,7 @@ void Session::DoReadHC()
         }
     };
 
-    auto fnDoneReadHC = [this, fnOnNetError, fnReportCurrentMessage](std::error_code stEC, size_t) -> void
+    auto fnDoneReadHC = [this, fnOnNetError, fnReportCurrentMessage](std::error_code stEC, size_t)
     {
         if(stEC){ fnOnNetError(stEC); }
         else{
@@ -219,7 +231,7 @@ void Session::DoReadHC()
                 case 1:
                     {
                         // not empty, fixed size, compressed
-                        auto fnDoneReadLen0 = [this, stCMSG, fnOnNetError, fnReportCurrentMessage](std::error_code stEC, size_t) -> void
+                        auto fnDoneReadLen0 = [this, stCMSG, fnOnNetError, fnReportCurrentMessage](std::error_code stEC, size_t)
                         {
                             if(stEC){ fnOnNetError(stEC); }
                             else{
@@ -240,7 +252,7 @@ void Session::DoReadHC()
                                 }else{
                                     // oooops, bytes[0] is 255
                                     // we got a long message and need to read bytes[1]
-                                    auto fnDoneReadLen1 = [this, stCMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t) -> void
+                                    auto fnDoneReadLen1 = [this, stCMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t)
                                     {
                                         if(stEC){ fnOnNetError(stEC); }
                                         else{
@@ -288,7 +300,7 @@ void Session::DoReadHC()
 
                         // and if we want to send big chunk of compressed data
                         // we should compress it by other method and send it via this channel
-                        auto fnDoneReadLen = [this, fnOnNetError](std::error_code stEC, size_t) -> void
+                        auto fnDoneReadLen = [this, fnOnNetError](std::error_code stEC, size_t)
                         {
                             if(stEC){ fnOnNetError(stEC); }
                             else{
@@ -316,7 +328,7 @@ void Session::DoReadHC()
 
 bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
 {
-    auto fnReportCurrentMessage = [this]() -> void
+    auto fnReportCurrentMessage = [this]()
     {
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Current SMSGParam::HC      = %d", (int)(m_ReadHC));
@@ -325,7 +337,7 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
         g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(CMSGParam(m_ReadHC).DataLen()));
     };
 
-    auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code stEC) -> void
+    auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code stEC)
     {
         if(stEC){
             // 1. close the asio socket
@@ -338,7 +350,7 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
         }
     };
 
-    auto fnReportInvalidArg = [nMaskLen, nBodyLen, fnReportCurrentMessage]() -> void
+    auto fnReportInvalidArg = [nMaskLen, nBodyLen, fnReportCurrentMessage]()
     {
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument to DoReadBody(MaskLen = %d, BodyLen = %d)", (int)(nMaskLen), (int)(nBodyLen));
@@ -392,7 +404,7 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
         extern MemoryPN *g_MemoryPN;
         auto pMem = (uint8_t *)(g_MemoryPN->Get(nDataLen));
 
-        auto fnDoneReadData = [this, nMaskLen, nBodyLen, pMem, stCMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t) -> void
+        auto fnDoneReadData = [this, nMaskLen, nBodyLen, pMem, stCMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t)
         {
             if(stEC){ fnOnNetError(stEC); }
             else{
@@ -481,7 +493,7 @@ void Session::DoSendBuf()
     condcheck(m_FlushFlag);
     condcheck(!m_CurrSendQ->empty());
     if(m_CurrSendQ->front().Data && m_CurrSendQ->front().DataLen){
-        auto fnDoneSend = [this](std::error_code stEC, size_t) -> void
+        auto fnDoneSend = [this](std::error_code stEC, size_t)
         {
             if(stEC){
                 // 1. shutdown current connection
@@ -530,7 +542,7 @@ void Session::DoSendHC()
     }
 
     condcheck(!m_CurrSendQ->empty());
-    auto fnDoSendBuf = [this](std::error_code stEC, size_t) -> void
+    auto fnDoSendBuf = [this](std::error_code stEC, size_t)
     {
         if(stEC){
             // 1. shutdown current connection
@@ -541,14 +553,16 @@ void Session::DoSendHC()
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error on session %d: %s", (int)(ID()), stEC.message().c_str());
             g_MonoServer->Restart();
             return;
-        }else{ DoSendBuf(); }
+        }else{
+            DoSendBuf();
+        }
     };
     asio::async_write(m_Socket, asio::buffer(&(m_CurrSendQ->front().HC), 1), fnDoSendBuf);
 }
 
 bool Session::FlushSendQ()
 {
-    auto fnFlushSendQ = [this]() -> void
+    auto fnFlushSendQ = [this]()
     {
         // m_CurrSendQ assessing should always be in the asio main loop
         // the Session::Send() should only access m_NextSendQ
@@ -583,7 +597,7 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
     uint8_t *pEncodeData = nullptr;
     size_t   nEncodeSize = 0;
 
-    auto fnReportError = [nHC, pData, nDataLen]() -> void
+    auto fnReportError = [nHC, pData, nDataLen]()
     {
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid message: (%d, %p, %d)", (int)(nHC), pData, (int)(nDataLen));
@@ -593,13 +607,19 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
     switch(stSMSG.Type()){
         case 0:
             {
-                if(pData || nDataLen){ fnReportError(); return false; }
+                if(pData || nDataLen){
+                    fnReportError();
+                    return false;
+                }
                 break;
             }
         case 1:
             {
                 // not empty, fixed size, comperssed
-                if(!(pData && (nDataLen == stSMSG.DataLen()))){ fnReportError(); return false; }
+                if(!(pData && (nDataLen == stSMSG.DataLen()))){
+                    fnReportError();
+                    return false;
+                }
 
                 // do compression, two solutions
                 //    1. we can allocate a buffer of size DataLen + (DataLen + 7) / 8
@@ -667,7 +687,10 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
         case 2:
             {
                 // not empty, fixed size, not compressed
-                if(!(pData && (nDataLen == stSMSG.DataLen()))){ fnReportError(); return false; }
+                if(!(pData && (nDataLen == stSMSG.DataLen()))){
+                    fnReportError();
+                    return false;
+                }
 
                 pEncodeData = (uint8_t *)(m_MemoryPN.Get(nDataLen));
                 nEncodeSize = stSMSG.DataLen();
@@ -681,9 +704,15 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
             {
                 // not empty, not fixed size, not compressed
                 if(pData){
-                    if((nDataLen == 0) || (nDataLen > 0XFFFFFFFF)){ fnReportError(); return false; }
+                    if((nDataLen == 0) || (nDataLen > 0XFFFFFFFF)){
+                        fnReportError();
+                        return false;
+                    }
                 }else{
-                    if(nDataLen){ fnReportError(); return false; }
+                    if(nDataLen){
+                        fnReportError();
+                        return false;
+                    }
                 }
 
                 pEncodeData = (uint8_t *)(m_MemoryPN.Get(nDataLen + 4));
