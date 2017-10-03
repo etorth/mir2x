@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 08/09/2017 23:53:08
+ *  Last Modified: 10/02/2017 23:20:36
  *
  *    Description:
  *
@@ -29,11 +29,15 @@
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
 #include "fontexdbn.hpp"
+#include "processrun.hpp"
+#include "processlogo.hpp"
+#include "processsyrc.hpp"
+#include "processlogin.hpp"
 #include "pngtexoffdbn.hpp"
+#include "servermessage.hpp"
 
 Game::Game()
-    : m_FPS(SYS_DEFFPS * 1.00)
-    , m_ServerDelay( 0.00)
+    : m_ServerDelay( 0.00)
     , m_NetPackTick(-1.00)
     , m_CurrentProcess(nullptr)
 {
@@ -55,65 +59,51 @@ void Game::ProcessEvent()
     }
 }
 
-void Game::Update(double fDeltaMS)
-{
-    if(m_CurrentProcess){
-        m_CurrentProcess->Update(fDeltaMS);
-    }
-}
-
-void Game::Draw()
-{
-    if(m_CurrentProcess){
-        m_CurrentProcess->Draw();
-    }
-}
-
 void Game::MainLoop()
 {
     SwitchProcess(PROCESSID_LOGO);
     InitASIO();
 
-    auto fDelayDraw   = 1000.0 / m_FPS / 5.0;
-    auto fDelayUpdate = 1000.0 / m_FPS / 6.0;
-    auto fDelayLoop   = 1000.0 / m_FPS / 7.0;
+    auto fDelayDraw   = (1000.0 / (1.0 * SYS_DEFFPS)) / 6.0;
+    auto fDelayUpdate = (1000.0 / (1.0 * SYS_DEFFPS)) / 7.0;
+    auto fDelayLoop   = (1000.0 / (1.0 * SYS_DEFFPS)) / 8.0;
 
-    auto fLastDraw   = GetTimeTick();
-    auto fLastUpdate = GetTimeTick();
+    auto fLastDraw   = SDL_GetTicks() * 1.0;
+    auto fLastUpdate = SDL_GetTicks() * 1.0;
+    auto fLastLoop   = SDL_GetTicks() * 1.0;
 
     while(m_CurrentProcess->ID() != PROCESSID_EXIT){
 
         if(m_NetPackTick > 0.0){
-            if(GetTimeTick() - m_NetPackTick > 15.0 * 1000){
+            if(SDL_GetTicks() * 1.0 - m_NetPackTick > 15.0 * 1000){
                 // std::exit(0);
             }
         }
 
-        // check if need to update logic
-        {
-            auto fPastUpdate = GetTimeTick() - fLastUpdate;
-            if(fPastUpdate >= fDelayUpdate){
-                fLastUpdate = GetTimeTick();
-                Update(fPastUpdate);
-            }
+        auto fCurrUpdate = 1.0 * SDL_GetTicks();
+        if(fCurrUpdate - fLastUpdate > fDelayUpdate){
+            auto fPastUpdate = fCurrUpdate - fLastUpdate;
+            fLastUpdate = fCurrUpdate;
+            Update(fPastUpdate);
         }
 
-        // check if need to update screen
-        {
-            auto fPastDraw = GetTimeTick() - fLastDraw;
-            if(fPastDraw >= fDelayDraw){
-                fLastDraw = GetTimeTick();
-                Draw();
-            }
+        auto fCurrDraw = 1.0 * SDL_GetTicks();
+        if(fCurrDraw - fLastDraw > fDelayDraw){
+            fLastDraw = fCurrDraw;
+            Draw();
         }
 
-        EventDelay(fDelayLoop);
+        auto fCurrLoop = 1.0 * SDL_GetTicks();
+        auto fPastLoop = fCurrLoop - fLastLoop;
+
+        fLastLoop = fCurrLoop;
+        EventDelay(fDelayLoop - fPastLoop);
     }
 }
 
 void Game::EventDelay(double fDelayMS)
 {
-    double fStartDelayMS = GetTimeTick();
+    double fStartDelayMS = SDL_GetTicks() * 1.0;
     while(true){
 
         // always try to poll it
@@ -122,15 +112,15 @@ void Game::EventDelay(double fDelayMS)
         // everytime firstly try to process all pending events
         ProcessEvent();
 
-        double fCurrentMS = GetTimeTick();
+        double fCurrentMS = SDL_GetTicks() * 1.0;
         double fDelayDone = fCurrentMS - fStartDelayMS;
 
-        if(fDelayDone > fDelayMS){ break; }
+        if(fDelayDone >= fDelayMS){ break; }
 
         // here we check the delay time
         // since SDL_Delay(0) may run into problem
 
-        Uint32 nDelayMSCount = (Uint32)(std::lround((fDelayMS - fDelayDone) * 0.50));
+        auto nDelayMSCount = (Uint32)(std::lround((fDelayMS - fDelayDone) * 0.50));
         if(nDelayMSCount > 0){ SDL_Delay(nDelayMSCount); }
     }
 }
@@ -174,4 +164,185 @@ void Game::PollASIO()
 void Game::StopASIO()
 {
     m_NetIO.StopIO();
+}
+
+void Game::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
+{
+    // 1. update the time when last message received
+    m_NetPackTick = SDL_GetTicks() * 1.0;
+
+    // 2. handle messages
+    switch(nHC){
+        case SM_UPDATEHP:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_UPDATEHP(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_DEADFADEOUT:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_DEADFADEOUT(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_EXP:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_EXP(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_FIREMAGIC:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_FIREMAGIC(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_SHOWDROPITEM:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_SHOWDROPITEM(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_PING:
+            {
+                break;
+            }
+        case SM_LOGINOK:
+            {
+                SwitchProcess(m_CurrentProcess->ID(), PROCESSID_RUN);
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_LOGINOK(pData, nDataLen);
+                }else{
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_INFO, "failed to jump into main loop");
+                }
+                break;
+            }
+        case SM_CORECORD:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_CORECORD(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_LOGINFAIL:
+            {
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_WARNING, "Login failed: ID = %d", (int)(((SMLoginFail *)(pData))->FailID));
+                break;
+            }
+        case SM_ACTION:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_ACTION(pData, nDataLen);
+                }
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+}
+
+void Game::SwitchProcess(int nNewID)
+{
+    SwitchProcess((m_CurrentProcess ? m_CurrentProcess->ID() : PROCESSID_NULL), nNewID);
+}
+
+void Game::SwitchProcess(int nOldID, int nNewID)
+{
+    delete m_CurrentProcess;
+    m_CurrentProcess = nullptr;
+
+    switch(nOldID)
+    {
+        case PROCESSID_NULL:
+            {
+                switch(nNewID)
+                {
+                    case PROCESSID_LOGO:
+                        {
+                            // on initialization
+                            m_CurrentProcess = new ProcessLogo();
+                            SDL_ShowCursor(0);
+                            break;
+                        }
+                    case PROCESSID_EXIT:
+                        {
+                            // exit immediately when logo shows
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+                break;
+            }
+        case PROCESSID_LOGO:
+            {
+                switch(nNewID)
+                {
+                    case PROCESSID_SYRC:
+                        {
+                            // on initialization
+                            m_CurrentProcess = new ProcessSyrc();
+                            SDL_ShowCursor(1);
+                            break;
+                        }
+                    case PROCESSID_EXIT:
+                        {
+                            // exit immediately when logo shows
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+                break;
+            }
+        case PROCESSID_SYRC:
+            {
+                switch(nNewID)
+                {
+                    case PROCESSID_LOGIN:
+                        {
+                            m_CurrentProcess = new ProcessLogin();
+                            SDL_ShowCursor(1);
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+
+                }
+                break;
+            }
+        case PROCESSID_LOGIN:
+            {
+                switch(nNewID){
+                    case PROCESSID_RUN:
+                        {
+                            m_CurrentProcess = new ProcessRun();
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+            }
+        default:
+            {
+                break;
+            }
+    }
 }

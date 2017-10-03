@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 09/16/2017 00:09:41
+ *  Last Modified: 10/02/2017 23:38:15
  *
  *    Description: 
  *
@@ -108,6 +108,9 @@ class ProcessRun: public Process
         std::list<AscendStr *> m_AscendStrRecord;
 
     private:
+        void ScrollMap();
+
+    private:
         int LoadMap(uint32_t);
 
     public:
@@ -166,9 +169,7 @@ class ProcessRun: public Process
         bool UserCommand(const char *);
 
     public:
-        // used by controlboard to draw HP/MP
-        uint32_t GetControlBoardFaceKey();
-        bool     GetMyHeroHMPRatio(double *, double *);
+        uint32_t GetFocusFaceKey();
 
     public:
         std::vector<int> GetPlayerList();
@@ -199,7 +200,10 @@ class ProcessRun: public Process
         void CenterMyHero();
 
     public:
-        MyHero *GetMyHero();
+        MyHero *GetMyHero() const
+        {
+            return m_MyHero;
+        }
 
     public:
         bool RequestSpaceMove(uint32_t, int, int);

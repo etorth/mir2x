@@ -3,7 +3,7 @@
  *
  *       Filename: game.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 07/04/2017 20:20:57
+ *  Last Modified: 10/02/2017 18:00:15
  *
  *    Description: public API for class game only
  *
@@ -30,9 +30,17 @@
 class Game final
 {
     private:
-        double m_FPS;
         double m_ServerDelay;
         double m_NetPackTick;
+
+    private:
+        NetIO m_NetIO;
+
+    private:
+        Process *m_CurrentProcess;
+
+    private:
+        std::string m_ClipboardBuf;
 
     public:
         Game();
@@ -53,7 +61,6 @@ class Game final
         }
 
     public:
-        bool FPSDelay();
         void SwitchProcess(int);
         void SwitchProcess(int, int);
 
@@ -66,23 +73,23 @@ class Game final
         void OnServerMessage(uint8_t, const uint8_t *, size_t);
 
     private:
-        void Net_PING     (const uint8_t *, size_t);
-        void Net_LOGINOK  (const uint8_t *, size_t);
-        void Net_CORECORD (const uint8_t *, size_t);
-        void Net_LOGINFAIL(const uint8_t *, size_t);
-        void Net_ACTION   (const uint8_t *, size_t);
-
-    public:
-        double GetTimeTick()
-        {
-            return SDL_GetPerformanceCounter() * 1000.0 / SDL_GetPerformanceFrequency();
-        }
-
-    private:
         void EventDelay(double);
         void ProcessEvent();
-        void Update(double);
-        void Draw();
+
+    private:
+        void Draw()
+        {
+            if(m_CurrentProcess){
+                m_CurrentProcess->Draw();
+            }
+        }
+
+        void Update(double fDTime)
+        {
+            if(m_CurrentProcess){
+                m_CurrentProcess->Update(fDTime);
+            }
+        }
 
     public:
         Process *ProcessValid(int nProcessID)
@@ -95,13 +102,4 @@ class Game final
         {
             m_NetIO.Send(std::forward<U>(u)...);
         }
-
-    private:
-        NetIO m_NetIO;
-
-    private:
-        Process *m_CurrentProcess;
-
-    private:
-        std::string m_ClipboardBuf;
 };

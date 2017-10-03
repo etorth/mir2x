@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 09/27/2017 00:48:05
+ *  Last Modified: 10/02/2017 23:28:44
  *
  *    Description: 
  *
@@ -31,26 +31,22 @@ MyHero::MyHero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, Pro
     , m_ActionQueue()
 {}
 
-bool MyHero::Update()
+bool MyHero::Update(double fUpdateTime)
 {
-    auto fnGetUpdateDelay = [](int nSpeed, double fStandDelay) -> double
-    {
-        nSpeed = std::max<int>(SYS_MINSPEED, nSpeed);
-        nSpeed = std::min<int>(SYS_MAXSPEED, nSpeed);
+    // 1. independent from time control
+    //    attached magic could take different speed
+    UpdateAttachMagic(fUpdateTime);
 
-        return fStandDelay * 100.0 / nSpeed;
-    };
-
+    // 2. update this monster
+    //    need fps control for current motion
     double fTimeNow = SDL_GetTicks() * 1.0;
-    if(fTimeNow > fnGetUpdateDelay(m_CurrMotion.Speed, m_UpdateDelay) + m_LastUpdateTime){
-        // 1. record the update time
-        auto fTimeDelay  = fTimeNow - m_LastUpdateTime;
+    if(fTimeNow > CurrMotionDelay() + m_LastUpdateTime){
+
+        // 1. record update time
+        //    needed for next update
         m_LastUpdateTime = fTimeNow;
 
-        // 2. effect update
-        UpdateAttachMagic(fTimeDelay);
-
-        // 3. motion update
+        // 2. do the update
         switch(m_CurrMotion.Motion){
             case MOTION_STAND:
                 {

@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.cpp
  *        Created: 08/13/2015 12:15:38
- *  Last Modified: 07/16/2017 11:44:32
+ *  Last Modified: 10/02/2017 17:58:39
  *
  *    Description: 
  *
@@ -22,17 +22,6 @@
 #include "sdldevice.hpp"
 #include "pngtexdbn.hpp"
 #include "processlogo.hpp"
-
-ProcessLogo::ProcessLogo()
-    : Process()
-    , m_FullMS(5000.0)
-    , m_TimeR1(0.3)
-    , m_TimeR2(0.3)
-    , m_TotalTime(0.0)
-{}
-
-ProcessLogo::~ProcessLogo()
-{}
 
 void ProcessLogo::ProcessEvent(const SDL_Event &rstEvent)
 {
@@ -57,10 +46,10 @@ void ProcessLogo::ProcessEvent(const SDL_Event &rstEvent)
     }
 }
 
-void ProcessLogo::Update(double fDMS)
+void ProcessLogo::Update(double fDTime)
 {
-    m_TotalTime += fDMS;
-    if(m_TotalTime >= m_FullMS){
+    m_TotalTime += fDTime;
+    if(m_TotalTime >= m_FullTime){
         extern Game *g_Game;
         g_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
     }
@@ -73,12 +62,8 @@ void ProcessLogo::Draw()
 
     g_SDLDevice->ClearScreen();
 
-    // between set parameters to the texture and take that parameters into effect
-    // if there is any release, then these effect of the parameters won't show
-    // so any operation on texture should be done and consumed ASAP
-
     if(auto pTexture = g_ProgUseDBN->Retrieve(0X00000000)){
-        auto bColor = (Uint8)(std::lround(255 * Ratio()));
+        auto bColor = (Uint8)(std::lround(255 * ColorRatio()));
         SDL_SetTextureColorMod(pTexture, bColor, bColor, bColor);
 
         auto nWindowW = g_SDLDevice->WindowW(false);
@@ -89,9 +74,9 @@ void ProcessLogo::Draw()
     g_SDLDevice->Present();
 }
 
-double ProcessLogo::Ratio()
+double ProcessLogo::ColorRatio()
 {
-    double fRatio = m_TotalTime / m_FullMS;
+    double fRatio = m_TotalTime / m_FullTime;
     if(fRatio < m_TimeR1){
         return fRatio / m_TimeR1;
     }else if(fRatio < m_TimeR1 + m_TimeR2){

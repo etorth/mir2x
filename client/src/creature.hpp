@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 09/08/2017 16:59:57
+ *  Last Modified: 10/02/2017 23:00:05
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -156,7 +156,6 @@ class Creature
         std::vector<std::shared_ptr<AttachMagic>> m_AttachMagicList;
 
     protected:
-        double m_UpdateDelay;
         double m_LastUpdateTime;
 
     protected:
@@ -170,7 +169,6 @@ class Creature
             , m_CurrMotion()
             , m_MotionQueue()
             , m_AttachMagicList()
-            , m_UpdateDelay(100.0)
             , m_LastUpdateTime(0.0)
         {
             condcheck(m_UID);
@@ -224,7 +222,7 @@ class Creature
         int Y() { int nY; return Location(nullptr, &nY) ? nY : -1; }
 
     public:
-        const MotionNode &CurrMotion()
+        const MotionNode &CurrMotion() const
         {
             return m_CurrMotion;
         }
@@ -256,7 +254,7 @@ class Creature
         virtual void UpdateAttachMagic(double);
 
     public:
-        virtual bool Update() = 0;
+        virtual bool Update(double) = 0;
         virtual bool Draw(int, int, int) = 0;
 
     protected:
@@ -304,6 +302,9 @@ class Creature
 
     public:
         virtual bool DeadFadeOut();
+
+    protected:
+        double CurrMotionDelay() const;
 
     protected:
         virtual int  MaxStep() const = 0;

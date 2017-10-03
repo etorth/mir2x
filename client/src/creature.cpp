@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 09/08/2017 17:00:16
+ *  Last Modified: 10/02/2017 23:00:14
  *
  *    Description: 
  *
@@ -378,10 +378,10 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
     return {};
 }
 
-void Creature::UpdateAttachMagic(double fTime)
+void Creature::UpdateAttachMagic(double fUpdateTime)
 {
     for(size_t nIndex = 0; nIndex < m_AttachMagicList.size();){
-        m_AttachMagicList[nIndex]->Update(fTime);
+        m_AttachMagicList[nIndex]->Update(fUpdateTime);
         if(m_AttachMagicList[nIndex]->Done()){
             std::swap(m_AttachMagicList[nIndex], m_AttachMagicList.back());
             m_AttachMagicList.pop_back();
@@ -567,4 +567,13 @@ bool Creature::AddAttachMagic(int nMagicID, int nMagicParam, int nMagicStage)
         }
     }
     return false;
+}
+
+double Creature::CurrMotionDelay() const
+{
+    auto nSpeed = CurrMotion().Speed;
+    nSpeed = std::max<int>(SYS_MINSPEED, nSpeed);
+    nSpeed = std::min<int>(SYS_MAXSPEED, nSpeed);
+
+    return (1000.0 / SYS_DEFFPS) * (100.0 / nSpeed);
 }

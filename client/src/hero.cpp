@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 09/26/2017 23:55:13
+ *  Last Modified: 10/02/2017 22:55:53
  *
  *    Description: 
  *
@@ -173,26 +173,22 @@ bool Hero::Draw(int nViewX, int nViewY, int)
     return true;
 }
 
-bool Hero::Update()
+bool Hero::Update(double fUpdateTime)
 {
-    auto fnGetUpdateDelay = [](int nSpeed, double fStandDelay) -> double
-    {
-        nSpeed = std::max<int>(SYS_MINSPEED, nSpeed);
-        nSpeed = std::min<int>(SYS_MAXSPEED, nSpeed);
+    // 1. independent from time control
+    //    attached magic could take different speed
+    UpdateAttachMagic(fUpdateTime);
 
-        return fStandDelay * 100.0 / nSpeed;
-    };
-
+    // 2. update this monster
+    //    need fps control for current motion
     double fTimeNow = SDL_GetTicks() * 1.0;
-    if(fTimeNow > fnGetUpdateDelay(m_CurrMotion.Speed, m_UpdateDelay) + m_LastUpdateTime){
-        // 1. record the update time
-        auto fTimeDelay  = fTimeNow - m_LastUpdateTime;
+    if(fTimeNow > CurrMotionDelay() + m_LastUpdateTime){
+
+        // 1. record update time
+        //    needed for next update
         m_LastUpdateTime = fTimeNow;
 
-        // 2. attached magic update
-        UpdateAttachMagic(fTimeDelay);
-
-        // 3. motion update
+        // 2. do the update
         switch(m_CurrMotion.Motion){
             case MOTION_STAND:
                 {

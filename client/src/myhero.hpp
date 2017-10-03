@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 08/06/2017 19:37:47
+ *  Last Modified: 10/02/2017 19:58:31
  *
  *    Description: 
  *
@@ -34,7 +34,7 @@ class MyHero: public Hero
        ~MyHero() = default;
 
     public:
-        bool Update();
+        bool Update(double);
 
     public:
         // decompose (srcLoc->dstLoc) => (srcLoc->decompLoc->dstLoc)

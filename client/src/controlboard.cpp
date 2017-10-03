@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 09/24/2017 01:23:51
+ *  Last Modified: 10/02/2017 18:54:07
  *
  *    Description:
  *
@@ -158,15 +158,15 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
             SDL_QueryTexture(pHP, nullptr, nullptr, &nHPW, &nHPH);
             SDL_QueryTexture(pMP, nullptr, nullptr, &nMPW, &nMPH);
 
-            double fHPRatio = 0.0;
-            double fMPRatio = 0.0;
+            if(auto pMyHero = m_ProcessRun->GetMyHero()){
+                double fHPRatio = (pMyHero->HPMax() > 0) ? ((1.0 * pMyHero->HP()) / pMyHero->HPMax()) : 1.0;
+                double fMPRatio = (pMyHero->MPMax() > 0) ? ((1.0 * pMyHero->MP()) / pMyHero->MPMax()) : 1.0;
 
-            if(m_ProcessRun->GetMyHeroHMPRatio(&fHPRatio, &fMPRatio)){
+                fHPRatio = std::max<double>(std::min<double>(fHPRatio, 1.0), 0.0);
+                fMPRatio = std::max<double>(std::min<double>(fMPRatio, 1.0), 0.0);
+
                 double fLostHPRatio = 1.0 - fHPRatio;
                 double fLostMPRatio = 1.0 - fMPRatio;
-
-                fLostHPRatio = std::max<double>(std::min<double>(fLostHPRatio, 1.0), 0.0);
-                fLostMPRatio = std::max<double>(std::min<double>(fLostMPRatio, 1.0), 0.0);
 
                 auto nLostHPH = (int)(std::lround(nHPH * fLostHPRatio));
                 auto nLostMPH = (int)(std::lround(nMPH * fLostMPRatio));
@@ -178,7 +178,7 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
     }
 
     // draw current creature face
-    if(auto pTexture = g_ProgUseDBN->Retrieve(m_ProcessRun->GetControlBoardFaceKey())){
+    if(auto pTexture = g_ProgUseDBN->Retrieve(m_ProcessRun->GetFocusFaceKey())){
         g_SDLDevice->DrawTexture(pTexture, nX0 + (nW0 - 266), nY0 + 17);
     }
 

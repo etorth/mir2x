@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 09/16/2017 22:08:22
+ *  Last Modified: 10/02/2017 23:45:55
  *
  *    Description: 
  *
@@ -70,20 +70,22 @@ ProcessRun::ProcessRun()
     RegisterUserCommand();
 }
 
-void ProcessRun::Update(double fTime)
+void ProcessRun::ScrollMap()
 {
-    m_ControbBoard.Update(fTime);
+    extern SDLDevice *g_SDLDevice;
+    auto nShowWindowW = g_SDLDevice->WindowW(false);
+    auto nShowWindowH = g_SDLDevice->WindowH(false);
+
     if(m_MyHero){
-        extern SDLDevice *g_SDLDevice;
-        int nViewX = m_MyHero->X() * SYS_MAPGRIDXP - g_SDLDevice->WindowW(false) / 2;
-        int nViewY = m_MyHero->Y() * SYS_MAPGRIDYP - g_SDLDevice->WindowH(false) / 2;
+        int nViewX = m_MyHero->X() * SYS_MAPGRIDXP - nShowWindowW / 2;
+        int nViewY = m_MyHero->Y() * SYS_MAPGRIDYP - nShowWindowH / 2;
 
         int nDViewX = nViewX - m_ViewX;
         int nDViewY = nViewY - m_ViewY;
 
         if(m_RollMap
-                ||  (std::abs(nDViewX) > g_SDLDevice->WindowW(false) / 4)
-                ||  (std::abs(nDViewY) > g_SDLDevice->WindowH(false) / 4)){
+                ||  (std::abs(nDViewX) > nShowWindowW / 4)
+                ||  (std::abs(nDViewY) > nShowWindowH / 4)){
 
             m_RollMap = true;
 
@@ -99,12 +101,18 @@ void ProcessRun::Update(double fTime)
         //   2. the hero is not moving
         if((nDViewX == 0) && (nDViewY == 0) && !m_MyHero->Moving()){ m_RollMap = false; }
     }
+}
+
+void ProcessRun::Update(double fUpdateTime)
+{
+    ScrollMap();
+    m_ControbBoard.Update(fUpdateTime);
 
     for(auto pRecord = m_CreatureRecord.begin(); pRecord != m_CreatureRecord.end();){
         if(true
                 && pRecord->second
                 && pRecord->second->Active()){
-            pRecord->second->Update();
+            pRecord->second->Update(fUpdateTime);
             ++pRecord;
         }else{
             delete pRecord->second;
@@ -113,7 +121,7 @@ void ProcessRun::Update(double fTime)
     }
 
     for(size_t nIndex = 0; nIndex < m_IndepMagicList.size();){
-        m_IndepMagicList[nIndex]->Update(fTime);
+        m_IndepMagicList[nIndex]->Update(fUpdateTime);
         if(m_IndepMagicList[nIndex]->Done()){
             std::swap(m_IndepMagicList[nIndex], m_IndepMagicList.back());
             m_IndepMagicList.pop_back();
@@ -124,7 +132,7 @@ void ProcessRun::Update(double fTime)
 
     for(auto pRecord = m_AscendStrRecord.begin(); pRecord != m_AscendStrRecord.end();){
         if((*pRecord)->Ratio() < 1.0){
-            (*pRecord)->Update(fTime);
+            (*pRecord)->Update(fUpdateTime);
             ++pRecord;
         }else{
             delete (*pRecord);
@@ -1307,25 +1315,7 @@ bool ProcessRun::TrackAttack(bool bForce, uint32_t nUID)
     return false;
 }
 
-bool ProcessRun::GetMyHeroHMPRatio(double *pHPRatio, double *pMPRatio)
-{
-    // used for controboard to show HP/MP texture
-    if(m_MyHero){
-        double fHPRatio = (m_MyHero->HPMax() > 0) ? ((1.0 * m_MyHero->HP()) / m_MyHero->HPMax()) : 1.0;
-        double fMPRatio = (m_MyHero->MPMax() > 0) ? ((1.0 * m_MyHero->MP()) / m_MyHero->MPMax()) : 1.0;
-
-        fHPRatio = std::max<double>(std::min<double>(fHPRatio, 1.0), 0.0);
-        fMPRatio = std::max<double>(std::min<double>(fMPRatio, 1.0), 0.0);
-
-        if(pHPRatio){ *pHPRatio = fHPRatio; }
-        if(pMPRatio){ *pMPRatio = fMPRatio; }
-
-        return true;
-    }
-    return false;
-}
-
-uint32_t ProcessRun::GetControlBoardFaceKey()
+uint32_t ProcessRun::GetFocusFaceKey()
 {
     uint32_t nFaceKey = 0X02000000;
     if(auto nUID = FocusUID(FOCUS_MOUSE)){
@@ -1376,15 +1366,74 @@ bool ProcessRun::GetUIDLocation(uint32_t nUID, bool bDrawLoc, int *pX, int *pY)
 void ProcessRun::CenterMyHero()
 {
     if(m_MyHero){
-        extern SDLDevice *g_SDLDevice;
-        m_ViewX = m_MyHero->X() * SYS_MAPGRIDXP - g_SDLDevice->WindowW(false) / 2;
-        m_ViewY = m_MyHero->Y() * SYS_MAPGRIDYP - g_SDLDevice->WindowH(false) / 2;
-    }
-}
+        auto nMotion     = m_MyHero->CurrMotion().Motion;
+        auto nDirection  = m_MyHero->CurrMotion().Direction;
+        auto nX          = m_MyHero->CurrMotion().X;
+        auto nY          = m_MyHero->CurrMotion().Y;
+        auto nFrame      = m_MyHero->CurrMotion().Frame;
+        auto nFrameCount = m_MyHero->MotionFrameCount(nMotion, nDirection);
 
-MyHero *ProcessRun::GetMyHero()
-{
-    return m_MyHero;
+        if(nFrameCount > 0){
+            auto fnSetOff = [this, nX, nY, nDirection, nFrame, nFrameCount](int nStepLen)
+            {
+                extern SDLDevice *g_SDLDevice;
+                auto nShowWindowW = g_SDLDevice->WindowW(false);
+                auto nShowWindowH = g_SDLDevice->WindowH(false);
+
+                switch(nStepLen){
+                    case 0:
+                        {
+                            m_ViewX = nX * SYS_MAPGRIDXP - nShowWindowW / 2;
+                            m_ViewY = nY * SYS_MAPGRIDYP - nShowWindowH / 2;
+                            return;
+                        }
+                    case 1:
+                    case 2:
+                    case 3:
+                        {
+                            int nDX = -1;
+                            int nDY = -1;
+                            if(PathFind::GetFrontLocation(&nDX, &nDY, 0, 0, nDirection, nStepLen)){
+                                int nOffX = nDX * SYS_MAPGRIDXP * (nFrame + 1) / nFrameCount;
+                                int nOffY = nDY * SYS_MAPGRIDYP * (nFrame + 1) / nFrameCount;
+
+                                m_ViewX = nX * SYS_MAPGRIDXP + nOffX - nShowWindowW / 2;
+                                m_ViewY = nY * SYS_MAPGRIDYP + nOffY - nShowWindowH / 2;
+                            }
+                            return;
+                        }
+                    default:
+                        {
+                            return;
+                        }
+                }
+            };
+
+            switch(nMotion){
+                case MOTION_WALK:
+                case MOTION_ONHORSEWALK:
+                    {
+                        fnSetOff(1);
+                        break;
+                    }
+                case MOTION_RUN:
+                    {
+                        fnSetOff(2);
+                        break;
+                    }
+                case MOTION_ONHORSERUN:
+                    {
+                        fnSetOff(3);
+                        break;
+                    }
+                default:
+                    {
+                        fnSetOff(0);
+                        break;
+                    }
+            }
+        }
+    }
 }
 
 bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)

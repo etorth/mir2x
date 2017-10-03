@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 09/05/2017 13:27:33
+ *  Last Modified: 10/02/2017 23:30:37
  *
  *    Description: 
  *
@@ -28,7 +28,7 @@
 // are 26 cells of one object slice at most, then design data structure for object
 // rendering method based on this information
 
-const int SYS_DEFFPS = 30;
+const int SYS_DEFFPS = 10;
 
 const int SYS_TARGETRGN_GAPX = 10;
 const int SYS_TARGETRGN_GAPY = 8;

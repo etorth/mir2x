@@ -2,8 +2,8 @@
  * =====================================================================================
  *
  *       Filename: processlogo.hpp
- *        Created: 8/13/2015 12:07:39 AM
- *  Last Modified: 07/17/2017 17:29:41
+ *        Created: 08/13/2015 12:07:39
+ *  Last Modified: 10/02/2017 18:01:40
  *
  *    Description: 
  *
@@ -26,14 +26,24 @@
 class ProcessLogo: public Process
 {
     private:
-        double  m_FullMS;
-        double  m_TimeR1;
-        double  m_TimeR2;
-        double  m_TotalTime;
+        double m_TimeR1;
+        double m_TimeR2;
+
+    private:
+        double m_FullTime;
+        double m_TotalTime;
 
     public:
-        ProcessLogo();
-        virtual ~ProcessLogo();
+        ProcessLogo()
+            : Process()
+            , m_TimeR1(0.3)
+            , m_TimeR2(0.3)
+            , m_FullTime(5000.0)
+            , m_TotalTime(0.0)
+        {}
+
+    public:
+        virtual ~ProcessLogo() = default;
 
     public:
         int ID() const
@@ -41,13 +51,11 @@ class ProcessLogo: public Process
             return PROCESSID_LOGO;
         }
 
-    private:
-        double Ratio();
-
     public:
-        void Update(double);
         void Draw();
-
-    public:
+        void Update(double);
         void ProcessEvent(const SDL_Event &);
+
+    private:
+        double ColorRatio();
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19
- *  Last Modified: 09/25/2017 23:53:29
+ *  Last Modified: 10/02/2017 20:01:07
  *
  *    Description:
  *
@@ -43,8 +43,8 @@ class Monster: public Creature
         }
 
     public:
+        bool Update(double);
         bool Draw(int, int, int);
-        bool Update();
 
     public:
         uint32_t MonsterID() const
