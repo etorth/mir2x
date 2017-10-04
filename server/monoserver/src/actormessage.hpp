@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 09/13/2017 19:45:42
+ *  Last Modified: 10/03/2017 17:45:54
  *
  *    Description: 
  *
@@ -26,6 +26,7 @@ enum MessagePackType: int
     MPK_OK,
     MPK_ERROR,
     MPK_BADACTORPOD,
+    MPK_BADSESSION,
     MPK_TIMEOUT,
     MPK_UID,
     MPK_PING,

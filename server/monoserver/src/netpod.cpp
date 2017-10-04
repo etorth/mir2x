@@ -3,7 +3,7 @@
  *
  *       Filename: netpod.cpp
  *        Created: 06/25/2017 12:05:00
- *  Last Modified: 10/03/2017 10:30:25
+ *  Last Modified: 10/03/2017 21:46:49
  *
  *    Description: 
  *
@@ -42,7 +42,9 @@ NetPodN::NetPodN()
 NetPodN::~NetPodN()
 {
     Shutdown(0);
-    if(m_Thread.joinable()){ m_Thread.join(); }
+    if(m_Thread.joinable()){
+        m_Thread.join();
+    }
 
     delete m_Socket;
     delete m_Acceptor;
@@ -116,7 +118,9 @@ int NetPodN::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
     m_SCAddress = rstSCAddr;
 
     // 3. make sure the internal thread has ended
-    if(m_Thread.joinable()){ m_Thread.join(); }
+    if(m_Thread.joinable()){
+        m_Thread.join();
+    }
 
     // 4. prepare valid session ID
     m_ValidQ.Clear();
@@ -219,7 +223,7 @@ void NetPodN::Accept()
             m_SessionV[0][nValidID] = nullptr;
 
             m_ValidQ.PushHead(nValidID);
-            g_MonoServer->AddLog(LOGTYPE_INFO, "Can't inform ServiceCore a new connection");
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't inform ServiceCore a new connection");
             return;
         }
 

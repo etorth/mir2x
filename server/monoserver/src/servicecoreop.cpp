@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 08/14/2017 17:56:08
+ *  Last Modified: 10/03/2017 22:18:57
  *
  *    Description: 
  *
@@ -99,7 +99,8 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
     std::memcpy(&stAMLQDB, rstMPK.Data(), sizeof(stAMLQDB));
 
     // error handler when error happens
-    auto fnOnBadDBRecord = [stAMLQDB](){
+    auto fnOnBadDBRecord = [stAMLQDB]()
+    {
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_INFO, "Login failed for (%d, %d, %d)", stAMLQDB.MapID, stAMLQDB.MapX, stAMLQDB.MapY);
 
@@ -129,13 +130,15 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
             stAMACO.Common.MapID     = stAMLQDB.MapID;
             stAMACO.Common.X         = stAMLQDB.MapX;
             stAMACO.Common.Y         = stAMLQDB.MapY;
+            stAMACO.Common.Random    = true;
             stAMACO.Player.DBID      = stAMLQDB.DBID;
             stAMACO.Player.Level     = stAMLQDB.Level;
             stAMACO.Player.JobID     = stAMLQDB.JobID;
             stAMACO.Player.Direction = stAMLQDB.Direction;
             stAMACO.Player.SessionID = stAMLQDB.SessionID;
 
-            auto fnOnR = [this, stAMACO, fnOnBadDBRecord, pMap](const MessagePack &rstRMPK, const Theron::Address &){
+            auto fnOnR = [this, stAMACO, fnOnBadDBRecord, pMap](const MessagePack &rstRMPK, const Theron::Address &)
+            {
                 switch(rstRMPK.Type()){
                     case MPK_OK:
                         {

@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 09/12/2017 23:18:18
+ *  Last Modified: 10/03/2017 20:17:04
  *
  *    Description: 
  *
@@ -306,4 +306,8 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK, const Theron::Addres
 
     extern NetPodN *g_NetPodN;
     g_NetPodN->Send(SessionID(), SM_SHOWDROPITEM, stSMSDI);
+}
+
+void Player::On_MPK_BADSESSION(const MessagePack &, const Theron::Address &)
+{
 }

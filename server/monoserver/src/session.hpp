@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 10/03/2017 11:18:05
+ *  Last Modified: 10/03/2017 22:31:53
  *
  *    Description: actor <-> session <--- network ---> client
  *                 1. each session binds to an actor
@@ -155,10 +155,12 @@ class Session final: public SyncDriver
         }
 
     private:
-        void DoReadHC();
-        bool DoReadBody(size_t, size_t);
+        // following DoXXXFunc should only be invoked in asio main loop thread
+        // since it may call Shutdown() and check Valid()
 
-    private:
+        void DoReadHC();
+        void DoReadBody(size_t, size_t);
+
         void DoSendHC();
         void DoSendBuf();
         void DoSendNext();
@@ -180,24 +182,41 @@ class Session final: public SyncDriver
         {
             if(!rstAddr){ return 1; }
             m_BindAddress = rstAddr;
-            DoReadHC();
+
+            m_Socket.get_io_service().post([this](){ DoReadHC(); });
             return 0;
         }
 
         void Shutdown()
         {
+            // for Session::Send() don't call this function
+            // this function should only be called in asio main loop thread
+
             if(Valid()){
-                m_Socket.close();
+                Forward(MPK_BADSESSION, m_BindAddress);
                 m_BindAddress = Theron::Address::Null();
+
+                // if we call shutdown() here
+                // we need to use try-catch since if connection has already
+                // been broken, it throws exception
+
+                // try{
+                //     m_Socket.shutdown(asio::ip::tcp::socket::shutdown_both);
+                // }catch(...){
+                // }
+
+                m_Socket.close();
             }
         }
 
-        bool Valid()
+        bool Valid() const
         {
+            // data race possible with Shutdown()
+            // call this funciton only in asio main loop thread
             return m_Socket.is_open() && m_BindAddress != Theron::Address::Null();
         }
 
-        uint32_t Delay()
+        uint32_t Delay() const
         {
             return m_Delay;
         }
@@ -218,7 +237,7 @@ class Session final: public SyncDriver
             m_BindAddress = rstAddr;
         }
 
-        Theron::Address Bind()
+        Theron::Address Bind() const
         {
             return m_BindAddress;
         }

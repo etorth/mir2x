@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 10/03/2017 10:42:25
+ *  Last Modified: 10/03/2017 21:59:00
  *
  *    Description: 
  *
@@ -122,6 +122,11 @@ void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFrom
                 On_MPK_PULLCOINFO(rstMPK, rstFromAddr);
                 break;
             }
+        case MPK_BADSESSION:
+            {
+                On_MPK_BADSESSION(rstMPK, rstFromAddr);
+                break;
+            }
         default:
             {
                 extern MonoServer *g_MonoServer;
@@ -155,7 +160,7 @@ bool Player::Bind(uint32_t nSessionID)
     m_SessionID = nSessionID;
 
     extern NetPodN *g_NetPodN;
-    g_NetPodN->Bind(m_SessionID, GetAddress());
+    g_NetPodN->Bind(SessionID(), GetAddress());
     return true;
 }
 

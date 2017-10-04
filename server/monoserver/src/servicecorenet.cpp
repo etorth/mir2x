@@ -3,7 +3,7 @@
  *
  *       Filename: servicecorenet.cpp
  *        Created: 05/20/2016 17:09:13
- *  Last Modified: 09/08/2017 16:20:31
+ *  Last Modified: 10/03/2017 22:10:24
  *
  *    Description: interaction btw NetPod and ServiceCore
  *
@@ -31,7 +31,8 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
     // don't block ServiceCore too much, so we put rest of it 
     // in the thread pool since it's db query and slow
 
-    auto fnDBOperation = [nSessionID, stSCAddr = GetAddress(), stCML](){
+    auto fnDBOperation = [nSessionID, stSCAddr = GetAddress(), stCML]()
+    {
         extern DBPodN *g_DBPodN;
         extern MonoServer *g_MonoServer;
 

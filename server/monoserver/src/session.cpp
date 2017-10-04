@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 10/03/2017 15:14:51
+ *  Last Modified: 10/03/2017 18:31:58
  *
  *    Description: for received messages we won't crash if get invalid ones
  *                 but for messages to send we take zero tolerance
@@ -43,7 +43,10 @@ Session::SendTask::SendTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, 
         case 0:
             {
                 // empty message, shouldn't contain anything
-                if(Data || DataLen){ fnReportAndExit(); return; }
+                if(Data || DataLen){
+                    fnReportAndExit();
+                    return;
+                }
                 break;
             }
         case 1:
@@ -76,7 +79,10 @@ Session::SendTask::SendTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, 
         case 2:
             {
                 // not empty, fixed size and not compressed
-                if(!(Data && (DataLen == stSMSG.DataLen()))){ fnReportAndExit(); return; }
+                if(!(Data && (DataLen == stSMSG.DataLen()))){
+                    fnReportAndExit();
+                    return;
+                }
                 break;
             }
         case 3:
@@ -194,6 +200,12 @@ bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
 
 void Session::DoReadHC()
 {
+    if(!Valid()){
+        // actually we can skip this check for read
+        // if Shutdown() called in reading no DoReadXX will be invoked
+        return;
+    }
+
     auto fnReportCurrentMessage = [this]()
     {
         extern MonoServer *g_MonoServer;
@@ -248,7 +260,9 @@ void Session::DoReadHC()
                                         // 3. we stop here
                                         //    should we have some method to save it?
                                         return;
-                                    }else{ DoReadBody(stCMSG.MaskLen(), m_ReadLen[0]); }
+                                    }else{
+                                        DoReadBody(stCMSG.MaskLen(), m_ReadLen[0]);
+                                    }
                                 }else{
                                     // oooops, bytes[0] is 255
                                     // we got a long message and need to read bytes[1]
@@ -271,7 +285,9 @@ void Session::DoReadHC()
                                                 // 3. we stop here
                                                 //    should we have some method to save it?
                                                 return;
-                                            }else{ DoReadBody(stCMSG.MaskLen(), nCompLen); }
+                                            }else{
+                                                DoReadBody(stCMSG.MaskLen(), nCompLen);
+                                            }
                                         }
                                     };
                                     asio::async_read(m_Socket, asio::buffer(m_ReadLen + 1, 1), fnDoneReadLen1);
@@ -326,8 +342,14 @@ void Session::DoReadHC()
     asio::async_read(m_Socket, asio::buffer(&m_ReadHC, 1), fnDoneReadHC);
 }
 
-bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
+void Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
 {
+    if(!Valid()){
+        // actually we can skip this check for read
+        // if Shutdown() called in reading no DoReadXX will be invoked
+        return;
+    }
+
     auto fnReportCurrentMessage = [this]()
     {
         extern MonoServer *g_MonoServer;
@@ -364,13 +386,13 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
         case 0:
             {
                 fnReportInvalidArg();
-                return false;
+                return;
             }
         case 1:
             {
                 if(!((nMaskLen == stCMSG.MaskLen()) && (nBodyLen <= stCMSG.DataLen()))){
                     fnReportInvalidArg();
-                    return false;
+                    return;
                 }
                 break;
             }
@@ -378,7 +400,7 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
             {
                 if(nMaskLen || (nBodyLen != stCMSG.DataLen())){
                     fnReportInvalidArg();
-                    return false;
+                    return;
                 }
                 break;
             }
@@ -386,14 +408,14 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
             {
                 if(nMaskLen || (nBodyLen > 0XFFFFFFFF)){
                     fnReportInvalidArg();
-                    return false;
+                    return;
                 }
                 break;
             }
         default:
             {
                 fnReportInvalidArg();
-                return false;
+                return;
             }
     }
 
@@ -460,7 +482,7 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
             }
         };
         asio::async_read(m_Socket, asio::buffer(pMem, nDataLen), fnDoneReadData);
-        return true;
+        return;
     }
 
     // possibilities to reach here
@@ -468,7 +490,6 @@ bool Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
     // 2. read a body with empty body in mode 3
     ForwardActorMessage(m_ReadHC, nullptr, 0);
     DoReadHC();
-    return true;
 }
 
 void Session::DoSendNext()
@@ -490,6 +511,12 @@ void Session::DoSendNext()
 
 void Session::DoSendBuf()
 {
+    if(!Valid()){
+        // need to check this in asio main loop thread
+        // since Session::Send() would be called without control
+        return;
+    }
+
     condcheck(m_FlushFlag);
     condcheck(!m_CurrSendQ->empty());
     if(m_CurrSendQ->front().Data && m_CurrSendQ->front().DataLen){
@@ -514,11 +541,19 @@ void Session::DoSendBuf()
         // the Data field should contains all needed size info
         // when call Session::Send() it should be compressed if necessary and put it there
         asio::async_write(m_Socket, asio::buffer(m_CurrSendQ->front().Data, m_CurrSendQ->front().DataLen), fnDoneSend);
-    }else{ DoSendNext(); }
+    }else{
+        DoSendNext();
+    }
 }
 
 void Session::DoSendHC()
 {
+    if(!Valid()){
+        // need to check this in asio main loop thread
+        // since Session::Send() would be called without control
+        return;
+    }
+
     // when we are here
     // we should already have m_FlushFlag set as true
     condcheck(m_FlushFlag);
@@ -551,7 +586,6 @@ void Session::DoSendHC()
             // 2. report message and abort current process
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Network error on session %d: %s", (int)(ID()), stEC.message().c_str());
-            g_MonoServer->Restart();
             return;
         }else{
             DoSendBuf();
@@ -571,7 +605,7 @@ bool Session::FlushSendQ()
         // but we need lock for m_NextSendQ, in child threads, in asio main loop
         //
         // but we need to make sure there is only one procedure in asio main loop accessing m_CurrSendQ
-        // because packages in m_CurrSendQ are divided into  two parts: HC / Data 
+        // because packages in m_CurrSendQ are divided into two parts: HC / Data 
         // one package only get erased after Data is sent
         // then  multiple procesdure in asio main loop may send HC / Data more than one time
         if(!m_FlushFlag){
@@ -594,6 +628,10 @@ bool Session::FlushSendQ()
 
 bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnDone)
 {
+    // don't call Shutdown() in this function
+    // which should only be invoked in asio main loop thread
+    // otherwise we need data race control for internal state of session
+
     uint8_t *pEncodeData = nullptr;
     size_t   nEncodeSize = 0;
 

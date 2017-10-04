@@ -3,7 +3,7 @@
  *
  *       Filename: netpod.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 08/14/2017 17:37:41
+ *  Last Modified: 10/03/2017 22:26:31
  *
  *    Description: this will serve as a stand-alone plugin for monoserver, it creates
  *                 with general info. and nothing will be done till Launch()
@@ -11,7 +11,7 @@
  *                 when Launch(Theron::Address) with the actor address of service core
  *                 this pod will start a new thread and run asio::run() inside
  *
- *                 when a new connection request arrivals, if netpod decide to accept
+ *                 when a new connection request received, if netpod decide to accept
  *                 it, the pod will:
  *
  *                      1. allocate a valid session id and its session instance
@@ -41,7 +41,7 @@
  *                 3. put it as a global variable
  *                    drawbacks: i have a rule that a global class is a self-contained
  *                    class, however netpodn need the address of servicecore before
- *                    activated. currently i have to make it as a parameter for Launch()
+ *                    activated. currently I make it as a parameter for Launch()
  *
  *        Version: 1.0
  *       Revision: none
