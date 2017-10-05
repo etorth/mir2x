@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 10/03/2017 20:17:36
+ *  Last Modified: 10/04/2017 17:08:19
  *
  *    Description: 
  *
@@ -164,4 +164,7 @@ class Player: public CharObject
         virtual bool GoDie();
         virtual bool GoGhost();
         virtual bool GoSuicide();
+
+    protected:
+        bool Offline();
 };

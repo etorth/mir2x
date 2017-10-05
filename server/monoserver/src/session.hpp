@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 10/03/2017 22:31:53
+ *  Last Modified: 10/04/2017 16:31:37
  *
  *    Description: actor <-> session <--- network ---> client
  *                 1. each session binds to an actor
@@ -52,6 +52,15 @@ class Session final: public SyncDriver
             // there are argument check when constructing SendTask
             // so put the implementation of the constructor in session.cpp
             SendTask(uint8_t, const uint8_t *, size_t, std::function<void()> &&);
+
+            SendTask(uint8_t nHC)
+                : SendTask(nHC, nullptr, 0, [](){})
+            {}
+
+            operator bool () const
+            {
+                return HC != 0;
+            }
         };
 
     private:
@@ -155,6 +164,9 @@ class Session final: public SyncDriver
         }
 
     private:
+        SendTask BuildTask(uint8_t, const uint8_t *, size_t, std::function<void()> &&);
+
+    private:
         // following DoXXXFunc should only be invoked in asio main loop thread
         // since it may call Shutdown() and check Valid()
 
@@ -178,13 +190,14 @@ class Session final: public SyncDriver
         // return value:
         //  0 : OK
         //  1 : invalid arguments
-        int Launch(const Theron::Address &rstAddr)
+        bool Launch(const Theron::Address &rstAddr)
         {
-            if(!rstAddr){ return 1; }
-            m_BindAddress = rstAddr;
-
-            m_Socket.get_io_service().post([this](){ DoReadHC(); });
-            return 0;
+            if(rstAddr){
+                m_BindAddress = rstAddr;
+                m_Socket.get_io_service().post([this](){ DoReadHC(); });
+                return true;
+            }
+            return false;
         }
 
         void Shutdown()

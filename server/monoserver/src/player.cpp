@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 10/03/2017 21:59:00
+ *  Last Modified: 10/04/2017 17:09:13
  *
  *    Description: 
  *
@@ -608,4 +608,23 @@ void Player::CheckFriend(uint32_t nUID, std::function<void(int)> fnOnFriend)
             if(fnOnFriend){ fnOnFriend(FRIENDTYPE_NONE); }
         }
     }
+}
+
+bool Player::Offline()
+{
+    Deactivate();
+
+    // 1. register a operationi to the thread pool to delete
+    // 2. don't pass *this* to any other threads, pass UID instead
+    extern ThreadPN *g_ThreadPN;
+    return g_ThreadPN->Add([nUID = UID()](){
+        if(nUID){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->EraseUID(nUID);
+        }
+        else{
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Offline with empty UID");
+        }
+    });
 }

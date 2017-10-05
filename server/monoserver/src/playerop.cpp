@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 10/03/2017 20:17:04
+ *  Last Modified: 10/04/2017 17:04:08
  *
  *    Description: 
  *
@@ -310,4 +310,5 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK, const Theron::Addres
 
 void Player::On_MPK_BADSESSION(const MessagePack &, const Theron::Address &)
 {
+    Offline();
 }

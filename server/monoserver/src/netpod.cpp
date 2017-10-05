@@ -3,7 +3,7 @@
  *
  *       Filename: netpod.cpp
  *        Created: 06/25/2017 12:05:00
- *  Last Modified: 10/03/2017 21:46:49
+ *  Last Modified: 10/04/2017 16:46:57
  *
  *    Description: 
  *
@@ -30,36 +30,18 @@ NetPodN::NetPodN()
     , m_Acceptor(nullptr)
     , m_Socket(nullptr)
     , m_Thread()
-    , m_ValidQ()
     , m_SCAddress(Theron::Address::Null())
-{
-    for(size_t nSID = 0; nSID < SYS_MAXPLAYERNUM; ++nSID){
-        m_SessionV[0][nSID] = nullptr;
-        m_SessionV[1][nSID] = nullptr;
-    }
-}
+    , m_ValidQ()
+{}
 
 NetPodN::~NetPodN()
 {
     Shutdown(0);
-    if(m_Thread.joinable()){
-        m_Thread.join();
-    }
 
     delete m_Socket;
     delete m_Acceptor;
     delete m_EndPoint;
     delete m_IO;
-}
-
-Session* NetPodN::Validate(uint32_t nSessionID, bool bValid)
-{
-    if(true
-            && nSessionID > 0
-            && nSessionID < SYS_MAXPLAYERNUM){
-        return m_SessionV[bValid ? 1 : 0][nSessionID];
-    }
-    return nullptr;
 }
 
 bool NetPodN::CheckPort(uint32_t nPort)
@@ -124,7 +106,7 @@ int NetPodN::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
 
     // 4. prepare valid session ID
     m_ValidQ.Clear();
-    for(uint32_t nID = 1; nID < SYS_MAXPLAYERNUM; ++nID){
+    for(uint32_t nID = 1; nID < (uint32_t)(std::extent<decltype(m_ChannelList)>::value); ++nID){
         m_ValidQ.PushHead(nID);
     }
 
@@ -132,39 +114,28 @@ int NetPodN::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
     if(!InitASIO(nPort)){ return 2; }
 
     // 6. put one accept handler inside the event loop
+    //    but the asio main loop is not driven by m_Thread yet here
     Accept();
 
-    // 7. start the internal thread
+    // 7. start the internal thread to driven the loop
     m_Thread = std::thread([this](){ m_IO->run(); });
 
     // 8. all Launch() function will return 0 when succceeds
     return 0;
 }
 
-int NetPodN::Activate(uint32_t nSessionID, const Theron::Address &rstTargetAddress)
+bool NetPodN::Activate(uint32_t nSessionID, const Theron::Address &rstTargetAddress)
 {
-    // 1. check argument
-    if(false
-            || nSessionID == 0
-            || nSessionID >= SYS_MAXPLAYERNUM
-            || rstTargetAddress == Theron::Address::Null()){
-        return 1;
+    if(nSessionID && nSessionID < (uint32_t)(std::extent<decltype(m_ChannelList)>::value)){
+        if(rstTargetAddress == m_SCAddress){
+            return m_ChannelList[nSessionID].Launch(rstTargetAddress);
+        }else{
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Channel %d is not activated by service core");
+            g_MonoServer->Restart();
+        }
     }
-
-    // 2. get pointer
-    if(!m_SessionV[0][nSessionID]){ return 2; }
-
-    // 3. corresponding running slot is empty?
-    if(m_SessionV[1][nSessionID]){ return 3; }
-
-    // 4. start it and move it to the running slot
-    if(m_SessionV[0][nSessionID]->Launch(rstTargetAddress)){ return 4; }
-
-    // 5. launch ok
-    std::swap(m_SessionV[0][nSessionID], m_SessionV[1][nSessionID]);
-    m_SessionV[0][nSessionID] = nullptr;
-
-    return 0;
+    return false;
 }
 
 void NetPodN::Accept()
@@ -175,7 +146,7 @@ void NetPodN::Accept()
         if(stEC){
             // error occurs, stop the network
             // assume g_MonoServer is ready for log
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Get network error when accepting");
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Get network error when accepting: %s", stEC.message().c_str());
             g_MonoServer->Restart();
 
             // IO will stop after this
@@ -205,25 +176,18 @@ void NetPodN::Accept()
             return;
         }
 
-        if(m_SessionV[0][nValidID]){
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Get in-using session id from reserved session ID queue");
-            g_MonoServer->Restart();
-            return;
-        }
+        // use channel nValidID to host the accept
+        // if not use std::move() we'll get ``already open" error
+        m_ChannelList[nValidID].ChannBuild(nValidID, std::move(*m_Socket));
 
-        m_SessionV[0][nValidID] = new Session(nValidID, std::move(*m_Socket));
-
-        // should forward a message by SyncDriver::Forward()
+        // forward a message by SyncDriver::Forward()
         // inform the serice core that there is a new connection
         AMNewConnection stAMNC;
         stAMNC.SessionID = nValidID;
 
         if(Forward({MPK_NEWCONNECTION, stAMNC}, m_SCAddress)){
-            delete m_SessionV[0][nValidID];
-            m_SessionV[0][nValidID] = nullptr;
-
             m_ValidQ.PushHead(nValidID);
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't inform ServiceCore a new connection");
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't inform servicec core for connection id = %d", (int)(nValidID));
             return;
         }
 

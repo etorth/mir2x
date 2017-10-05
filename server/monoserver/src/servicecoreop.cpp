@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 10/03/2017 22:18:57
+ *  Last Modified: 10/04/2017 15:44:25
  *
  *    Description: 
  *
@@ -50,7 +50,7 @@ void ServiceCore::On_MPK_NEWCONNECTION(const MessagePack &rstMPK, const Theron::
 
     if(stAMNC.SessionID){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_INFO, "ServiceCore get informed for new connection: %d", (int)(stAMNC.SessionID));
+        g_MonoServer->AddLog(LOGTYPE_INFO, "Service core get informed for new connection: %d", (int)(stAMNC.SessionID));
 
         extern NetPodN *g_NetPodN;
         g_NetPodN->Activate(stAMNC.SessionID, GetAddress());

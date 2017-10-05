@@ -3,7 +3,7 @@
  *
  *       Filename: netpod.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 10/03/2017 22:26:31
+ *  Last Modified: 10/04/2017 16:57:36
  *
  *    Description: this will serve as a stand-alone plugin for monoserver, it creates
  *                 with general info. and nothing will be done till Launch()
@@ -14,8 +14,8 @@
  *                 when a new connection request received, if netpod decide to accept
  *                 it, the pod will:
  *
- *                      1. allocate a valid session id and its session instance
- *                      2. inform the service core with the connection session id
+ *                      1. allocate a channel, which consists of one session instance
+ *                      2. inform the service core with the session id
  *
  *                 then all service core <-> pod communication for this connection will
  *                 based on the session id.
@@ -56,12 +56,13 @@
 
 #pragma once
 
+#include <atomic>
 #include <thread>
 #include <cstdint>
 #include <asio.hpp>
 #include <Theron/Theron.h>
 
-#include "session.hpp"
+#include "channel.hpp"
 #include "sysconst.hpp"
 #include "monoserver.hpp"
 #include "cachequeue.hpp"
@@ -78,28 +79,29 @@ class NetPodN: public SyncDriver
         asio::ip::tcp::socket      *m_Socket;
 
     private:
-        std::thread                            m_Thread;
-        CacheQueue<uint32_t, SYS_MAXPLAYERNUM> m_ValidQ;
-        std::mutex                             m_LockV      [SYS_MAXPLAYERNUM];
-        Session                               *m_SessionV[2][SYS_MAXPLAYERNUM];
+        std::thread m_Thread;
 
     private:
         Theron::Address m_SCAddress;
+
+    private:
+        Channel m_ChannelList[SYS_MAXPLAYERNUM];
+
+    private:
+        CacheQueue<uint32_t, SYS_MAXPLAYERNUM> m_ValidQ;
 
     public:
         NetPodN();
        ~NetPodN();
 
     protected:
-        Session *Validate(uint32_t, bool);
-
-    protected:
         bool CheckPort(uint32_t);
         bool InitASIO(uint32_t);
 
     public:
-        // before call this function, the service core should be already
-        // after it connection request will be accepted and forward to the core
+        // launch the netpod with (port, service_core_address)
+        // before call this function, the service core should be ready
+        // then connection request will be accepted and forward to the service core
         //
         // return value:
         //      0: OK
@@ -107,63 +109,62 @@ class NetPodN: public SyncDriver
         //      2: asio initialization failed
         int Launch(uint32_t, const Theron::Address &);
 
+    public:
         // start the specified session with specified actor address
+        // 1. before invocation the session should be allcated with proper socket
+        // 2. after  invocation the session can do read and write
+        //
         // return value
         //      0: OK
         //      1: invalid argument
         //      2: there is no half-done session in the slot
         //      3: this session is running
         //      4: session launch error
-        int Activate(uint32_t, const Theron::Address &);
+        bool Activate(uint32_t, const Theron::Address &);
 
     public:
-        bool Shutdown(uint32_t nSessionID = 0)
+        void Shutdown(uint32_t nSessionID = 0)
         {
-            if(!nSessionID){
-                for(uint32_t nSID = 1; nSID < SYS_MAXPLAYERNUM; ++nSID){
-                    if(m_SessionV[0][nSID]){
-                        delete m_SessionV[0][nSID];
-                        m_SessionV[0][nSID] = nullptr;
+            switch(nSessionID){
+                case 0:
+                    {
+                        for(int nIndex = 1; nIndex < (int)(std::extent<decltype(m_ChannelList)>::value); ++nIndex){
+                            m_ChannelList[nIndex].ChannRelease();
+                            m_ValidQ.PushHead((uint32_t)(nIndex));
+                        }
+
+                        m_IO->stop();
+                        if(m_Thread.joinable()){
+                            m_Thread.join();
+                        }
+
+                        break;
                     }
-
-                    if(m_SessionV[1][nSID]){
-                        m_SessionV[1][nSID]->Shutdown();
-                        delete m_SessionV[1][nSID];
-                        m_SessionV[1][nSID] = nullptr;
+                default:
+                    {
+                        if(nSessionID < (uint32_t)(std::extent<decltype(m_ChannelList)>::value)){
+                            m_ChannelList[nSessionID].ChannRelease();
+                            m_ValidQ.PushHead(nSessionID);
+                        }
+                        break;
                     }
-                }
-
-                // stop the net IO
-                m_IO->stop();
-                if(m_Thread.joinable()){ m_Thread.join(); }
-                return true;
             }
-
-            if(nSessionID < SYS_MAXPLAYERNUM){
-                m_SessionV[1][nSessionID]->Shutdown();
-                delete m_SessionV[1][nSessionID];
-                m_SessionV[1][nSessionID] = nullptr;
-                m_ValidQ.PushHead(nSessionID);
-                return true;
-            }
-
-            return false;
         }
 
         bool Bind(uint32_t nSessionID, const Theron::Address &rstBindAddr)
         {
             if(true
-                    && nSessionID > 0
-                    && nSessionID < SYS_MAXPLAYERNUM
-                    && m_SessionV[1][nSessionID]){
-                m_SessionV[1][nSessionID]->Bind(rstBindAddr);
+                    && nSessionID
+                    && nSessionID < (uint32_t)(std::extent<decltype(m_ChannelList)>::value)){
+
+                m_ChannelList[nSessionID].Bind(rstBindAddr);
                 return true;
             }
             return false;
         }
 
     public:
-        template<typename... Args> bool Send(uint32_t nSessionID, Args&&... args)
+        template<typename... Args> bool Send(uint32_t nSessionID, uint8_t nHC, Args&&... args)
         {
             // it's a broadcast
             // 1. should check the caller's permission
@@ -172,23 +173,34 @@ class NetPodN: public SyncDriver
             // when some session failed
             // should we send cancel message or leave it as it is?
 
-            if(!nSessionID){
-                for(int nSID = 1; nSID < SYS_MAXPLAYERNUM; ++nSID){
-                    if(m_SessionV[1][nSID]){
-                        if(!m_SessionV[1][nSID]->Send(std::forward<Args>(args)...)){
+            int nIndex0 = -1;
+            int nIndex1 = -1;
+
+            switch(nSessionID){
+                case 0:
+                    {
+                        nIndex0 = (int)(1);
+                        nIndex1 = (int)(std::extent<decltype(m_ChannelList)>::value);
+                        break;
+                    }
+                default:
+                    {
+                        if(nSessionID < (uint32_t)(std::extent<decltype(m_ChannelList)>::value)){
+                            nIndex0 = (int)(nSessionID + 0);
+                            nIndex1 = (int)(nSessionID + 1);
+                        }else{
                             return false;
                         }
+                        break;
                     }
+            }
+
+            for(int nIndex = nIndex0; nIndex < nIndex1; ++nIndex){
+                if(!m_ChannelList[nIndex].Send(nHC, std::forward<Args>(args)...)){
+                    return false;
                 }
-                return true;
             }
-
-            if(nSessionID < SYS_MAXPLAYERNUM && m_SessionV[1][nSessionID]){
-                return m_SessionV[1][nSessionID]->Send(std::forward<Args>(args)...);
-            }
-
-            // something happens...
-            return false;
+            return true;
         }
 
     private:

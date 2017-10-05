@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 10/03/2017 18:31:58
+ *  Last Modified: 10/04/2017 16:32:02
  *
  *    Description: for received messages we won't crash if get invalid ones
  *                 but for messages to send we take zero tolerance
@@ -628,6 +628,23 @@ bool Session::FlushSendQ()
 
 bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnDone)
 {
+    // BuildTask should be thread-safe
+    // it's using the internal memory pool to build the task block
+    if(auto stTask = BuildTask(nHC, pData, nDataLen, std::move(fnDone))){
+        // ready to send
+        {
+            std::lock_guard<std::mutex> stLockGuard(m_NextQLock);
+            m_NextSendQ->emplace(std::move(stTask));
+        }
+
+        // 3. notify asio main loop
+        return FlushSendQ();
+    }
+    return false;
+}
+
+Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnDone)
+{
     // don't call Shutdown() in this function
     // which should only be invoked in asio main loop thread
     // otherwise we need data race control for internal state of session
@@ -647,7 +664,7 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
             {
                 if(pData || nDataLen){
                     fnReportError();
-                    return false;
+                    return {0};
                 }
                 break;
             }
@@ -773,12 +790,5 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
             }
     }
 
-    // ready to send
-    {
-        std::lock_guard<std::mutex> stLockGuard(m_NextQLock);
-        m_NextSendQ->emplace(nHC, pEncodeData, nEncodeSize, std::move(fnDone));
-    }
-
-    // 3. notify asio main loop
-    return FlushSendQ();
+    return {nHC, pEncodeData, nEncodeSize, std::move(fnDone)};
 }
