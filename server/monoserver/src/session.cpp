@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 10/04/2017 16:32:02
+ *  Last Modified: 10/04/2017 18:30:09
  *
  *    Description: for received messages we won't crash if get invalid ones
  *                 but for messages to send we take zero tolerance
@@ -131,71 +131,6 @@ Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
 Session::~Session()
 {
     Shutdown();
-}
-
-bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
-{
-    // we won't exit if invalid argument provided
-    auto fnReportError = [nHC, pData, nDataLen]()
-    {
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument : ForwardActorMessage(HC = %d, Data = %p, DataLen = %d)", (int)(nHC), pData, (int)(nDataLen));
-    };
-
-    CMSGParam stCMSG(nHC);
-    switch(stCMSG.Type()){
-        case 0:
-            {
-                if(pData || nDataLen){
-                    fnReportError();
-                    return false;
-                }
-                break;
-            }
-        case 1:
-        case 2:
-            {
-                if(!(pData && (nDataLen == stCMSG.DataLen()))){
-                    fnReportError();
-                    return false;
-                }
-                break;
-            }
-        case 3:
-            {
-                if(pData){
-                    if((nDataLen == 0) || (nDataLen > 0XFFFFFFFF)){
-                        fnReportError();
-                        return false;
-                    }
-                }else{
-                    if(nDataLen){
-                        fnReportError();
-                        return false;
-                    }
-                }
-                break;
-            }
-        default:
-            {
-                return false;
-            }
-    }
-
-    AMNetPackage stAMNP;
-    stAMNP.SessionID = ID();
-    stAMNP.Type      = nHC;
-    stAMNP.Data      = pData;
-    stAMNP.DataLen   = nDataLen;
-
-    // didn't register any response for net package
-    // session is a sync-driver, means if we request a response
-    // we should do busy-polling for it and this hurts performance
-
-    // if we support response
-    // we can free the memory allocated by memory pool
-    // currently I free it in the destination actor handling logic
-    return Forward({MPK_NETPACKAGE, stAMNP}, m_BindAddress);
 }
 
 void Session::DoReadHC()
@@ -630,6 +565,7 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
 {
     // BuildTask should be thread-safe
     // it's using the internal memory pool to build the task block
+
     if(auto stTask = BuildTask(nHC, pData, nDataLen, std::move(fnDone))){
         // ready to send
         {
@@ -664,7 +600,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
             {
                 if(pData || nDataLen){
                     fnReportError();
-                    return {0};
+                    return Session::SendTask::Null();
                 }
                 break;
             }
@@ -673,7 +609,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
                 // not empty, fixed size, comperssed
                 if(!(pData && (nDataLen == stSMSG.DataLen()))){
                     fnReportError();
-                    return false;
+                    return Session::SendTask::Null();
                 }
 
                 // do compression, two solutions
@@ -693,7 +629,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
                 if(nCountData < 0){
                     extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_WARNING, "Count data failed: HC = %d, Data = %p, DataLen = %d", (int)(nHC), pData, (int)(nDataLen));
-                    return false;
+                    return Session::SendTask::Null();
                 }else if(nCountData <= 254){
                     // we need only one byte for length info
                     pEncodeData = (uint8_t *)(m_MemoryPN.Get(stSMSG.MaskLen() + (size_t)(nCountData) + 1));
@@ -704,7 +640,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
 
                         // free memory allocated and return immediately
                         m_MemoryPN.Free(pEncodeData);
-                        return false;
+                        return Session::SendTask::Null();
                     }
 
                     pEncodeData[0] = (uint8_t)(nCountData);
@@ -719,7 +655,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
 
                         // free memory allocated and return immediately
                         m_MemoryPN.Free(pEncodeData);
-                        return false;
+                        return Session::SendTask::Null();
                     }
 
                     pEncodeData[0] = 255;
@@ -735,7 +671,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
 
                     // free memory allocated and return immediately
                     m_MemoryPN.Free(pEncodeData);
-                    return false;
+                    return Session::SendTask::Null();
                 }
                 break;
             }
@@ -744,7 +680,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
                 // not empty, fixed size, not compressed
                 if(!(pData && (nDataLen == stSMSG.DataLen()))){
                     fnReportError();
-                    return false;
+                    return Session::SendTask::Null();
                 }
 
                 pEncodeData = (uint8_t *)(m_MemoryPN.Get(nDataLen));
@@ -761,12 +697,12 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
                 if(pData){
                     if((nDataLen == 0) || (nDataLen > 0XFFFFFFFF)){
                         fnReportError();
-                        return false;
+                        return Session::SendTask::Null();
                     }
                 }else{
                     if(nDataLen){
                         fnReportError();
-                        return false;
+                        return Session::SendTask::Null();
                     }
                 }
 
@@ -786,9 +722,73 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
         default:
             {
                 fnReportError();
-                return false;
+                return Session::SendTask::Null();
             }
     }
 
     return {nHC, pEncodeData, nEncodeSize, std::move(fnDone)};
+}
+
+bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
+{
+    auto fnReportError = [nHC, pData, nDataLen]()
+    {
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument: ForwardActorMessage(HC = %d, Data = %p, DataLen = %d)", (int)(nHC), pData, (int)(nDataLen));
+    };
+
+    CMSGParam stCMSG(nHC);
+    switch(stCMSG.Type()){
+        case 0:
+            {
+                if(pData || nDataLen){
+                    fnReportError();
+                    return false;
+                }
+                break;
+            }
+        case 1:
+        case 2:
+            {
+                if(!(pData && (nDataLen == stCMSG.DataLen()))){
+                    fnReportError();
+                    return false;
+                }
+                break;
+            }
+        case 3:
+            {
+                if(pData){
+                    if((nDataLen == 0) || (nDataLen > 0XFFFFFFFF)){
+                        fnReportError();
+                        return false;
+                    }
+                }else{
+                    if(nDataLen){
+                        fnReportError();
+                        return false;
+                    }
+                }
+                break;
+            }
+        default:
+            {
+                return false;
+            }
+    }
+
+    AMNetPackage stAMNP;
+    stAMNP.SessionID = ID();
+    stAMNP.Type      = nHC;
+    stAMNP.Data      = pData;
+    stAMNP.DataLen   = nDataLen;
+
+    // didn't register any response for net package
+    // session is a sync-driver, means if we request a response
+    // we should do busy-polling for it and this hurts performance
+
+    // if we support response
+    // we can free the memory allocated by memory pool
+    // currently I free it in the destination actor handling logic
+    return Forward({MPK_NETPACKAGE, stAMNP}, m_BindAddress);
 }

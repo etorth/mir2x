@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 10/04/2017 16:31:37
+ *  Last Modified: 10/04/2017 18:33:20
  *
  *    Description: actor <-> session <--- network ---> client
  *                 1. each session binds to an actor
@@ -53,13 +53,15 @@ class Session final: public SyncDriver
             // so put the implementation of the constructor in session.cpp
             SendTask(uint8_t, const uint8_t *, size_t, std::function<void()> &&);
 
-            SendTask(uint8_t nHC)
-                : SendTask(nHC, nullptr, 0, [](){})
-            {}
-
             operator bool () const
             {
                 return HC != 0;
+            }
+
+            static const SendTask &Null()
+            {
+                static SendTask stNullTask(0, nullptr, 0, [](){});
+                return stNullTask;
             }
         };
 
@@ -187,14 +189,16 @@ class Session final: public SyncDriver
         }
 
     public:
-        // return value:
-        //  0 : OK
-        //  1 : invalid arguments
         bool Launch(const Theron::Address &rstAddr)
         {
             if(rstAddr){
-                m_BindAddress = rstAddr;
-                m_Socket.get_io_service().post([this](){ DoReadHC(); });
+                auto fnLaunch = [this, rstAddr]()
+                {
+                    m_BindAddress = rstAddr;
+                    DoReadHC();
+                };
+
+                m_Socket.get_io_service().post(fnLaunch);
                 return true;
             }
             return false;
@@ -226,35 +230,53 @@ class Session final: public SyncDriver
         {
             // data race possible with Shutdown()
             // call this funciton only in asio main loop thread
-            return m_Socket.is_open() && m_BindAddress != Theron::Address::Null();
+            return m_BindAddress && m_Socket.is_open();
         }
 
+    public:
         uint32_t Delay() const
         {
             return m_Delay;
         }
 
     public:
-        const char *IP() const
-        {
-            return m_IP.c_str();
-        }
-
         uint32_t Port() const
         {
             return m_Port;
         }
 
-        void Bind(const Theron::Address &rstAddr)
+        const char *IP() const
         {
-            m_BindAddress = rstAddr;
+            return m_IP.c_str();
         }
 
-        Theron::Address Bind() const
+    public:
+        void Bind(const Theron::Address &rstAddr)
         {
-            return m_BindAddress;
+            // force messages forward to new address
+            // use post rather than directly assignement
+            // since asio main loop thread will access m_BindAddress
+
+            // potential bug:
+            // we call Bind() when session read some messages
+
+            // network message A
+            // network message B
+            // network message C
+
+            // when get A we called Bind(PlayerAddress) and hope all rest messages
+            // should be forward to PlayerAddress, but actually after Bind() there
+            // is time gap and which makes B still forward to old address
+
+            auto fnBind = [rstAddr, this]()
+            {
+                m_BindAddress = rstAddr;
+            };
+            m_Socket.get_io_service().post(fnBind);
         }
 
     private:
+        // invoked in asio main loop
+        // when session read one entire network message
         bool ForwardActorMessage(uint8_t, const uint8_t *, size_t);
 };
