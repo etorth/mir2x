@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 10/04/2017 17:09:13
+ *  Last Modified: 10/06/2017 16:51:27
  *
  *    Description: 
  *
@@ -125,6 +125,11 @@ void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFrom
         case MPK_BADSESSION:
             {
                 On_MPK_BADSESSION(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_OFFLINE:
+            {
+                On_MPK_OFFLINE(rstMPK, rstFromAddr);
                 break;
             }
         default:
@@ -610,8 +615,49 @@ void Player::CheckFriend(uint32_t nUID, std::function<void(int)> fnOnFriend)
     }
 }
 
+void Player::DispatchOffline()
+{
+    if(true
+            && ActorPodValid()
+            && m_Map
+            && m_Map->ActorPodValid()){
+
+        AMOffline stAMO;
+
+        stAMO.UID   = UID();
+        stAMO.MapID = MapID();
+        stAMO.X     = X();
+        stAMO.Y     = Y();
+
+        m_ActorPod->Forward({MPK_OFFLINE, stAMO}, m_Map->GetAddress());
+        return;
+    }
+
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch offline event");
+}
+
+void Player::ReportOffline(uint32_t nUID, uint32_t nMapID)
+{
+    if(true
+            && nUID
+            && nMapID
+            && SessionID()){
+
+        SMOffline stSMO;
+        stSMO.UID   = nUID;
+        stSMO.MapID = nMapID;
+
+        extern NetPodN *g_NetPodN;
+        g_NetPodN->Send(SessionID(), SM_OFFLINE, stSMO);
+    }
+}
+
 bool Player::Offline()
 {
+    DispatchOffline();
+    ReportOffline(UID(), MapID());
+
     Deactivate();
 
     // 1. register a operationi to the thread pool to delete

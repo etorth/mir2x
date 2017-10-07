@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 09/13/2017 21:29:13
+ *  Last Modified: 10/06/2017 16:31:49
  *
  *    Description: 
  *
@@ -32,22 +32,22 @@
 
 void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
-    for(auto &rstRecordLine: m_UIDRecordV2D){
+    for(auto &rstRecordLine: m_CellRecordV2D){
         for(auto &rstRecordV: rstRecordLine){
 
             // this part check all recorded UID and remove those invalid ones
             // do it periodically in 1s, then for all rest logic we can skip the clean job
 
-            for(size_t nIndex = 0; nIndex < rstRecordV.size();){
+            for(size_t nIndex = 0; nIndex < rstRecordV.UIDList.size();){
                 extern MonoServer *g_MonoServer;
-                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(rstRecordV[nIndex])){
+                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(rstRecordV.UIDList[nIndex])){
                     if(stUIDRecord.ClassFrom<ActiveObject>()){
                         if(m_ActorPod->Forward(MPK_METRONOME, stUIDRecord.Address)){
                             nIndex++;
                             continue;
                         }else{
-                            std::swap(rstRecordV[nIndex], rstRecordV.back());
-                            rstRecordV.pop_back();
+                            std::swap(rstRecordV.UIDList[nIndex], rstRecordV.UIDList.back());
+                            rstRecordV.UIDList.pop_back();
                             continue;
                         }
                     }else{
@@ -55,8 +55,8 @@ void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
                         continue;
                     }
                 }else{
-                    std::swap(rstRecordV[nIndex], rstRecordV.back());
-                    rstRecordV.pop_back();
+                    std::swap(rstRecordV.UIDList[nIndex], rstRecordV.UIDList.back());
+                    rstRecordV.UIDList.pop_back();
                     continue;
                 }
             }
@@ -74,27 +74,23 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
     if(ValidC(stAMA.X, stAMA.Y)){
-        auto nX0 = std::max<int>(0,   (stAMA.X - SYS_MAPVISIBLEW));
-        auto nY0 = std::max<int>(0,   (stAMA.Y - SYS_MAPVISIBLEH));
-        auto nX1 = std::min<int>(W(), (stAMA.X + SYS_MAPVISIBLEW));
-        auto nY1 = std::min<int>(H(), (stAMA.Y + SYS_MAPVISIBLEH));
-
-        for(int nX = nX0; nX < nX1; ++nX){
-            for(int nY = nY0; nY < nY1; ++nY){
-                if(ValidC(nX, nY)){
-                    for(auto nUID: m_UIDRecordV2D[nX][nY]){
-                        if(nUID != stAMA.UID){
-                            extern MonoServer *g_MonoServer;
-                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                                if(stUIDRecord.ClassFrom<CharObject>()){
-                                    m_ActorPod->Forward({MPK_ACTION, stAMA}, stUIDRecord.Address);
-                                }
+        auto fnNotifyAction = [this, stAMA](int nX, int nY) -> bool
+        {
+            if(true || ValidC(nX, nY)){
+                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                    if(nUID != stAMA.UID){
+                        extern MonoServer *g_MonoServer;
+                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                            if(stUIDRecord.ClassFrom<CharObject>()){
+                                m_ActorPod->Forward({MPK_ACTION, stAMA}, stUIDRecord.Address);
                             }
                         }
                     }
                 }
             }
-        }
+            return false;
+        };
+        DoCircle(stAMA.X, stAMA.Y, 10, fnNotifyAction);
     }
 }
 
@@ -161,7 +157,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
                     auto nY   = stAMACO.Common.Y;
 
                     pCO->Activate();
-                    m_UIDRecordV2D[nX][nY].push_back(nUID);
+                    AddGridUID(nUID, nX, nY);
                     m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
                     return;
                 }
@@ -180,7 +176,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
                     auto nY   = stAMACO.Common.Y;
 
                     pCO->Activate();
-                    m_UIDRecordV2D[nX][nY].push_back(nUID);
+                    AddGridUID(nUID, nX, nY);
                     m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
                     m_ActorPod->Forward({MPK_BINDSESSION, stAMACO.Player.SessionID}, pCO->GetAddress());
                     return;
@@ -295,7 +291,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
     }
 
     bool bFindCO = false;
-    for(auto &nUID: m_UIDRecordV2D[stAMTM.X][stAMTM.Y]){
+    for(auto nUID: m_CellRecordV2D[stAMTM.X][stAMTM.Y].UIDList){
         if(nUID == stAMTM.UID){
             bFindCO = true;
             break;
@@ -386,7 +382,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                     // 1. leave last cell
                     {
                         bool bFind = false;
-                        auto &rstRecordV = m_UIDRecordV2D[stAMTM.X][stAMTM.Y];
+                        auto &rstRecordV = m_CellRecordV2D[stAMTM.X][stAMTM.Y].UIDList;
 
                         for(auto &nUID: rstRecordV){
                             if(nUID == stAMTM.UID){
@@ -412,7 +408,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                     //    check if it should switch the map
                     extern MonoServer *g_MonoServer;
                     if(auto stRecord = g_MonoServer->GetUIDRecord(stAMTM.UID)){
-                        m_UIDRecordV2D[nMostX][nMostY].push_back(stRecord.UID);
+                        AddGridUID(stAMTM.UID, nMostX, nMostY);
                         if(true
                                 && stRecord.ClassFrom<Player>()
                                 && m_CellRecordV2D[nMostX][nMostY].MapID){
@@ -425,7 +421,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                                 m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.Address);
                             }else{
                                 switch(m_CellRecordV2D[nMostX][nMostY].Query){
-                                    case QUERY_NA:
+                                    case QUERY_NONE:
                                         {
                                             auto fnOnResp = [this, nMostX, nMostY, stRecord](const MessagePack &rstMPK, const Theron::Address &){
                                                 switch(rstMPK.Type()){
@@ -505,11 +501,10 @@ void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK, const Theron::Address
             && stAMTL.UID
             && stAMTL.MapID
             && ValidC(stAMTL.X, stAMTL.Y)){
-        auto &rstRecordV = m_UIDRecordV2D[stAMTL.X][stAMTL.Y];
+        auto &rstRecordV = m_CellRecordV2D[stAMTL.X][stAMTL.Y].UIDList;
         for(auto &nUID: rstRecordV){
             if(nUID == stAMTL.UID){
-                std::swap(rstRecordV.back(), nUID);
-                rstRecordV.pop_back();
+                RemoveGridUID(nUID, stAMTL.X, stAMTL.Y);
                 m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
                 return;
             }
@@ -527,16 +522,19 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Addre
     AMPullCOInfo stAMPCOI;
     std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
 
-    for(auto &rstRecordLine: m_UIDRecordV2D){
-        for(auto &rstRecordV: rstRecordLine){
-            for(auto nUID: rstRecordV){
+    auto fnPullCOInfo = [this, stAMPCOI](int nX, int nY) -> bool
+    {
+        if(true || ValidC(nX, nY)){
+            for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
                 extern MonoServer *g_MonoServer;
                 if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                    m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI.SessionID}, stUIDRecord.Address);
+                    m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, stUIDRecord.Address);
                 }
             }
         }
-    }
+        return false;
+    };
+    DoSquare(0, 0, W(), H(), fnPullCOInfo);
 }
 
 void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -559,7 +557,7 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Add
                     {
                         extern MonoServer *g_MonoServer;
                         if(auto stRecord = g_MonoServer->GetUIDRecord(stAMTMS.UID)){
-                            m_UIDRecordV2D[stAMMSOK.X][stAMMSOK.Y].push_back(stRecord.UID);
+                            AddGridUID(stRecord.UID, stAMMSOK.X, stAMMSOK.Y);
                         }
                         // won't check map switch here
                         break;
@@ -667,27 +665,23 @@ void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address
     std::memcpy(&stAMUHP, rstMPK.Data(), sizeof(stAMUHP));
 
     if(ValidC(stAMUHP.X, stAMUHP.Y)){
-        auto nX0 = std::max<int>(0,   (stAMUHP.X - SYS_MAPVISIBLEW));
-        auto nY0 = std::max<int>(0,   (stAMUHP.Y - SYS_MAPVISIBLEH));
-        auto nX1 = std::min<int>(W(), (stAMUHP.X + SYS_MAPVISIBLEW));
-        auto nY1 = std::min<int>(H(), (stAMUHP.Y + SYS_MAPVISIBLEH));
-
-        for(int nX = nX0; nX <= nX1; ++nX){
-            for(int nY = nY0; nY <= nY1; ++nY){
-                if(ValidC(nX, nY)){
-                    for(auto nUID: m_UIDRecordV2D[nX][nY]){
-                        if(nUID != stAMUHP.UID){
-                            extern MonoServer *g_MonoServer;
-                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                                if(stUIDRecord.ClassFrom<CharObject>()){
-                                    m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, stUIDRecord.Address);
-                                }
+        auto fnUpdateHP = [this, stAMUHP](int nX, int nY) -> bool
+        {
+            if(true || ValidC(nX, nY)){
+                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                    if(nUID != stAMUHP.UID){
+                        extern MonoServer *g_MonoServer;
+                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                            if(stUIDRecord.ClassFrom<CharObject>()){
+                                m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, stUIDRecord.Address);
                             }
                         }
                     }
                 }
             }
-        }
+            return false;
+        };
+        DoCircle(stAMUHP.X, stAMUHP.Y, 20, fnUpdateHP);
     }
 }
 
@@ -697,27 +691,23 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Addr
     std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
 
     if(ValidC(stAMDFO.X, stAMDFO.Y)){
-        auto nX0 = std::max<int>(0,   (stAMDFO.X - SYS_MAPVISIBLEW));
-        auto nY0 = std::max<int>(0,   (stAMDFO.Y - SYS_MAPVISIBLEH));
-        auto nX1 = std::min<int>(W(), (stAMDFO.X + SYS_MAPVISIBLEW));
-        auto nY1 = std::min<int>(H(), (stAMDFO.Y + SYS_MAPVISIBLEH));
-
-        for(int nX = nX0; nX <= nX1; ++nX){
-            for(int nY = nY0; nY <= nY1; ++nY){
-                if(ValidC(nX, nY)){
-                    for(auto nUID: m_UIDRecordV2D[nX][nY]){
-                        if(nUID != stAMDFO.UID){
-                            extern MonoServer *g_MonoServer;
-                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                                if(stUIDRecord.ClassFrom<Player>()){
-                                    m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, stUIDRecord.Address);
-                                }
+        auto fnDeadFadeOut = [this, stAMDFO](int nX, int nY) -> bool
+        {
+            if(true || ValidC(nX, nY)){
+                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                    if(nUID != stAMDFO.UID){
+                        extern MonoServer *g_MonoServer;
+                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                            if(stUIDRecord.ClassFrom<Player>()){
+                                m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, stUIDRecord.Address);
                             }
                         }
                     }
                 }
             }
-        }
+            return false;
+        };
+        DoCircle(stAMDFO.X, stAMDFO.Y, 20, fnDeadFadeOut);
     }
 }
 
@@ -731,40 +721,24 @@ void ServerMap::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Ad
             && stAMQCOR.MapID == ID()
             && ValidC(stAMQCOR.X, stAMQCOR.Y)){
 
-        for(auto nUID: m_UIDRecordV2D[stAMQCOR.X][stAMQCOR.Y]){
-            if(nUID == stAMQCOR.UID){
-                extern MonoServer *g_MonoServer;
-                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                    if(stUIDRecord.ClassFrom<CharObject>()){
-                        m_ActorPod->Forward({MPK_PULLCOINFO, stAMQCOR.SessionID}, stUIDRecord.Address);
-                        return;
-                    }
-                }
-            }
-        }
-
-        auto nX0 = std::max<int>(0,   (stAMQCOR.X - SYS_MAPVISIBLEW));
-        auto nY0 = std::max<int>(0,   (stAMQCOR.Y - SYS_MAPVISIBLEH));
-        auto nX1 = std::min<int>(W(), (stAMQCOR.X + SYS_MAPVISIBLEW));
-        auto nY1 = std::min<int>(H(), (stAMQCOR.Y + SYS_MAPVISIBLEH));
-
-        for(int nX = nX0; nX <= nX1; ++nX){
-            for(int nY = nY0; nY <= nY1; ++nY){
-                if(ValidC(nX, nY)){
-                    for(auto nUID: m_UIDRecordV2D[nX][nY]){
-                        if(nUID == stAMQCOR.UID){
-                            extern MonoServer *g_MonoServer;
-                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                                if(stUIDRecord.ClassFrom<CharObject>()){
-                                    m_ActorPod->Forward({MPK_PULLCOINFO, stAMQCOR.SessionID}, stUIDRecord.Address);
-                                    return;
-                                }
+        auto fnQueryCORecord = [this, stAMQCOR](int nX, int nY) -> bool
+        {
+            if(true || ValidC(nX, nY)){
+                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                    if(nUID == stAMQCOR.UID){
+                        extern MonoServer *g_MonoServer;
+                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                            if(stUIDRecord.ClassFrom<CharObject>()){
+                                m_ActorPod->Forward({MPK_PULLCOINFO, stAMQCOR.SessionID}, stUIDRecord.Address);
+                                return true;
                             }
                         }
                     }
                 }
             }
-        }
+            return false;
+        };
+        DoCircle(stAMQCOR.X, stAMQCOR.Y, 10, fnQueryCORecord);
     }
 }
 
@@ -777,9 +751,9 @@ void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::Add
             || (stAMQCOC.MapID == 0)
             || (stAMQCOC.MapID == ID())){
         int nCOCount = 0;
-        for(size_t nX = 0; nX < m_UIDRecordV2D.size(); ++nX){
-            for(size_t nY = 0; nY < m_UIDRecordV2D[0].size(); ++nY){
-                std::for_each(m_UIDRecordV2D[nX][nY].begin(), m_UIDRecordV2D[nX][nY].end(), [stAMQCOC, &nCOCount](uint32_t nUID){
+        for(size_t nX = 0; nX < m_CellRecordV2D.size(); ++nX){
+            for(size_t nY = 0; nY < m_CellRecordV2D[0].size(); ++nY){
+                std::for_each(m_CellRecordV2D[nX][nY].UIDList.begin(), m_CellRecordV2D[nX][nY].UIDList.end(), [stAMQCOC, &nCOCount](uint32_t nUID){
                     extern MonoServer *g_MonoServer;
                     if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
                         if(stUIDRecord.ClassFrom<CharObject>()){
@@ -815,7 +789,7 @@ void ServerMap::On_MPK_QUERYRECTUIDV(const MessagePack &rstMPK, const Theron::Ad
     for(int nY = stAMQRUIDV.Y; nY < stAMQRUIDV.Y + stAMQRUIDV.H; ++nY){
         for(int nX = stAMQRUIDV.X; nX < stAMQRUIDV.X + stAMQRUIDV.W; ++nX){
             if(In(stAMQRUIDV.MapID, nX, nY)){
-                for(auto nUID: m_UIDRecordV2D[nX][nY]){
+                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
                     stAMUIDV.UIDV[nIndex++] = nUID;
                 }
             }
@@ -894,4 +868,27 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Addr
             }
         }
     }
+}
+
+void ServerMap::On_MPK_OFFLINE(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMOffline stAMO;
+    std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));
+       
+    auto fnNotifyOffline = [stAMO, this](int nX, int nY) -> bool
+    {
+        if(true || ValidC(nX, nY)){
+            for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                if(nUID != stAMO.UID){
+                    extern MonoServer *g_MonoServer;
+                    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                        m_ActorPod->Forward({MPK_OFFLINE, stAMO}, stUIDRecord.Address);
+                    }
+                }
+            }
+        }
+        return false;
+    };
+
+    DoCircle(stAMO.X, stAMO.Y, 10, fnNotifyOffline);
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 10/02/2017 23:20:36
+ *  Last Modified: 10/06/2017 16:45:21
  *
  *    Description:
  *
@@ -240,6 +240,13 @@ void Game::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
                     pRun->Net_ACTION(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_OFFLINE:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_OFFLINE(pData, nDataLen);
                 }
                 break;
             }

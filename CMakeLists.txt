@@ -2,7 +2,7 @@
 #
 #        Filename: CMakeLists.txt
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 10/03/2017 15:57:28
+#   Last Modified: 10/06/2017 17:23:25
 #
 #     Description: -fno-strict-aliasing
 #

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 09/13/2017 12:24:44
+ *  Last Modified: 10/06/2017 13:09:00
  *
  *    Description:
  *
@@ -24,6 +24,7 @@
 #include <cstdint>
 
 #include "sysconst.hpp"
+#include "querytype.hpp"
 #include "uidrecord.hpp"
 #include "metronome.hpp"
 #include "commonitem.hpp"
@@ -50,18 +51,10 @@ class ServerMap: public ActiveObject
         friend class ServerPathFinder;
 
     private:
-        enum QueryType: int
-        {
-            QUERY_NA,
-            QUERY_PENDING,
-            QUERY_OK,
-            QUERY_ERROR,
-        };
-
-    private:
         struct CellRecord
         {
             bool Lock;
+            std::vector<uint32_t> UIDList;
 
             uint32_t UID;
             uint32_t MapID;
@@ -78,11 +71,12 @@ class ServerMap: public ActiveObject
 
             CellRecord()
                 : Lock(false)
+                , UIDList()
                 , UID(0)
                 , MapID(0)
                 , SwitchX(-1)
                 , SwitchY(-1)
-                , Query(QUERY_NA)
+                , Query(QUERY_NONE)
                 , GroundItemList()
             {}
         };
@@ -100,7 +94,6 @@ class ServerMap: public ActiveObject
 
     private:
         Vec2D<CellRecord> m_CellRecordV2D;
-        Vec2D<std::vector<uint32_t>> m_UIDRecordV2D;
 
     private:
         void OperateAM(const MessagePack &, const Theron::Address &);
@@ -143,6 +136,7 @@ class ServerMap: public ActiveObject
 
     private:
         void AddGridUID(uint32_t, int, int);
+        void RemoveGridUID(uint32_t, int, int);
 
     private:
         bool Empty();
@@ -153,7 +147,12 @@ class ServerMap: public ActiveObject
         bool AddGroundItem(int, int, const CommonItem &);
 
     private:
+        void DoCircle(int, int, int,      std::function<bool(int, int)>);
+        void DoSquare(int, int, int, int, std::function<bool(int, int)>);
+
+    private:
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
+        void On_MPK_OFFLINE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYLEAVE(const MessagePack &, const Theron::Address &);
         void On_MPK_PATHFIND(const MessagePack &, const Theron::Address &);

@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 10/03/2017 10:42:36
+ *  Last Modified: 10/06/2017 17:17:33
  *
  *    Description: 
  *
@@ -47,6 +47,11 @@ ServiceCore::ServiceCore()
 void ServiceCore::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstAddr)
 {
     switch(rstMPK.Type()){
+        case MPK_BADSESSION:
+            {
+                On_MPK_BADSESSION(rstMPK, rstAddr);
+                break;
+            }
         case MPK_LOGINQUERYDB:
             {
                 On_MPK_LOGINQUERYDB(rstMPK, rstAddr);

@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 09/13/2017 23:28:15
+ *  Last Modified: 10/06/2017 00:11:52
  *
  *    Description: net message used by client and mono-server
  *
@@ -37,6 +37,7 @@ enum: uint8_t
     SM_SHOWDROPITEM,
     SM_FIREMAGIC,
     SM_SPACEMOVE,
+    SM_OFFLINE,
 };
 
 #pragma pack(push, 1)
@@ -172,6 +173,12 @@ struct SMFireMagic
     uint32_t AimUID;
 };
 
+struct SMOffline
+{
+    uint32_t UID;
+    uint32_t MapID;
+};
+
 #pragma pack(pop)
 
 class SMSGParam: public MessageBase
@@ -202,6 +209,7 @@ class SMSGParam: public MessageBase
                 {SM_EXP,          {1, sizeof(SMExp),          "SM_EXP"         }},
                 {SM_SHOWDROPITEM, {1, sizeof(SMShowDropItem), "SM_SHOWDROPITEM"}},
                 {SM_FIREMAGIC,    {1, sizeof(SMFireMagic),    "SM_FIREMAGIC"   }},
+                {SM_OFFLINE,      {1, sizeof(SMOffline),      "SM_OFFLINE"     }},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(SM_NONE) : nHC);

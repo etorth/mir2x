@@ -3,7 +3,7 @@
  *
  *       Filename: channel.hpp
  *        Created: 10/04/2017 12:36:13
- *  Last Modified: 10/04/2017 16:46:33
+ *  Last Modified: 10/06/2017 17:59:54
  *
  *    Description: 
  *
@@ -186,7 +186,7 @@ class Channel final
                                         }
                                     default:
                                         {
-                                            condcheck(nUserCount >= CHANNSTATE_IDLE);
+                                            condcheck(nUserCount > CHANNSTATE_IDLE);
                                             m_State.store(nUserCount - 1);
 
                                             return bSendDone;

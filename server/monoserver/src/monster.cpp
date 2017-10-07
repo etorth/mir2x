@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 10/03/2017 10:42:19
+ *  Last Modified: 10/06/2017 16:41:34
  *
  *    Description: 
  *
@@ -437,6 +437,11 @@ void Monster::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstAdd
         case MPK_BADACTORPOD:
             {
                 On_MPK_BADACTORPOD(rstMPK, rstAddress);
+                break;
+            }
+        case MPK_OFFLINE:
+            {
+                On_MPK_OFFLINE(rstMPK, rstAddress);
                 break;
             }
         default:

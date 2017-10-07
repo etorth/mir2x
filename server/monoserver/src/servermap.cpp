@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 10/03/2017 10:42:30
+ *  Last Modified: 10/06/2017 15:57:30
  *
  *    Description: 
  *
@@ -30,6 +30,7 @@
 #include "charobject.hpp"
 #include "monoserver.hpp"
 #include "dbcomrecord.hpp"
+#include "rotatecoord.hpp"
 
 ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, bool bCheckCO)
     : AStarPathFinder(
@@ -256,23 +257,16 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     , m_Metronome(nullptr)
     , m_ServiceCore(pServiceCore)
     , m_CellRecordV2D()
-    , m_UIDRecordV2D()
 {
+    m_CellRecordV2D.clear();
     if(m_Mir2xMapData.Valid()){
-        m_UIDRecordV2D.clear();
-
-        m_UIDRecordV2D.resize(m_Mir2xMapData.W());
-        for(auto &rstRecordLine: m_UIDRecordV2D){
-            rstRecordLine.resize(m_Mir2xMapData.H());
-        }
-
-        m_CellRecordV2D.resize(m_Mir2xMapData.W());
+        m_CellRecordV2D.resize(W());
         for(auto &rstStateLine: m_CellRecordV2D){
-            rstStateLine.resize(m_Mir2xMapData.H());
+            rstStateLine.resize(H());
         }
     }else{
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name);
         g_MonoServer->Restart();
     }
 
@@ -288,7 +282,7 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
                     m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].MapID   = DBCOM_MAPID(stLinkEntry.EndName);
                     m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].SwitchX = stLinkEntry.EndX;
                     m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].SwitchY = stLinkEntry.EndY;
-                    m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].Query   = QUERY_NA;
+                    m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].Query   = QUERY_NONE;
                 }
             }
         }else{
@@ -391,6 +385,11 @@ void ServerMap::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstF
                 On_MPK_QUERYRECTUIDV(rstMPK, rstFromAddr);
                 break;
             }
+        case MPK_OFFLINE:
+            {
+                On_MPK_OFFLINE(rstMPK, rstFromAddr);
+                break;
+            }
         default:
             {
                 extern MonoServer *g_MonoServer;
@@ -412,7 +411,7 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
 {
     if(GroundValid(nX, nY)){
         if(bCheckCO){
-            for(auto nUID: m_UIDRecordV2D[nX][nY]){
+            for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
                 extern MonoServer *g_MonoServer;
                 if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
                     if(stUIDRecord.ClassFrom<CharObject>()){
@@ -640,30 +639,28 @@ bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
             //
             //    not a big issue
             //    force they to contain the same set
-            auto nX0 = std::max<int>(0,   (nX - SYS_MAPVISIBLEW));
-            auto nY0 = std::max<int>(0,   (nY - SYS_MAPVISIBLEH));
-            auto nX1 = std::min<int>(W(), (nX + SYS_MAPVISIBLEW));
-            auto nY1 = std::min<int>(H(), (nY + SYS_MAPVISIBLEH));
 
             AMShowDropItem stAMSDI;
             stAMSDI.ID = rstItem.ID();
             stAMSDI.X  = nX;
             stAMSDI.Y  = nY;
 
-            for(int nX = nX0; nX <= nX1; ++nX){
-                for(int nY = nY0; nY <= nY1; ++nY){
-                    if(ValidC(nX, nY)){
-                        for(auto nUID: m_UIDRecordV2D[nX][nY]){
-                            extern MonoServer *g_MonoServer;
-                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                                if(stUIDRecord.ClassFrom<Player>()){
-                                    m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.Address);
-                                }
+            auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
+            {
+                if(true || ValidC(nX, nY)){
+                    for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                        extern MonoServer *g_MonoServer;
+                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                            if(stUIDRecord.ClassFrom<Player>()){
+                                m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.Address);
                             }
                         }
                     }
                 }
-            }
+                return false;
+            };
+
+            DoCircle(nX, nY, 10, fnNotifyDropItem);
             return true;
         }
     }
@@ -676,9 +673,85 @@ void ServerMap::AddGridUID(uint32_t nUID, int nX, int nY)
             && ValidC(nX, nY)
             && GroundValid(nX, nY)){
 
-        auto &rstUIDList = m_UIDRecordV2D[nX][nY];
+        auto &rstUIDList = m_CellRecordV2D[nX][nY].UIDList;
         if(std::find(rstUIDList.begin(), rstUIDList.end(), nUID) == rstUIDList.end()){
             rstUIDList.push_back(nUID);
+        }
+    }
+}
+
+void ServerMap::RemoveGridUID(uint32_t nUID, int nX, int nY)
+{
+    if(true
+            && ValidC(nX, nY)
+            && GroundValid(nX, nY)){
+
+        auto &rstUIDList = m_CellRecordV2D[nX][nY].UIDList;
+        auto pUIDRecord  = std::find(rstUIDList.begin(), rstUIDList.end(), nUID);
+
+        if(pUIDRecord != rstUIDList.end()){
+            std::swap(rstUIDList.back(), *pUIDRecord);
+            rstUIDList.pop_back();
+        }
+    }
+}
+
+void ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, std::function<bool(int, int)> fnOP)
+{
+    if(true
+            && nW > 0
+            && nH > 0
+            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+
+        // get the clip region over the map
+        // if no valid region we won't do the rest
+
+        for(int nX = nX0; nX < nX0 + nW; ++nX){
+            for(int nY = nY0; nY < nY0 + nH; ++nY){
+                if(true || ValidC(nX, nY)){
+                    if(false
+                            || !fnOP
+                            ||  fnOP(nX, nY)){
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ServerMap::DoCircle(int nCX0, int nCY0, int nCR, std::function<bool(int, int)> fnOP)
+{
+    int nW = 2 * nCR - 1;
+    int nH = 2 * nCR - 1;
+
+    int nX0 = nCX0 - nCR + 1;
+    int nY0 = nCY0 - nCR + 1;
+
+    if(true
+            && nW > 0
+            && nH > 0
+            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+
+        // get the clip region over the map
+        // if no valid region we won't do the rest
+
+        RotateCoord stRC;
+        if(stRC.Reset(nCX0, nCY0, nX0, nY0, nW, nH)){
+            do{
+                int nX = stRC.X();
+                int nY = stRC.Y();
+
+                if(true || ValidC(nX, nY)){
+                    if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                        if(false
+                                || !fnOP
+                                ||  fnOP(nX, nY)){
+                            return;
+                        }
+                    }
+                }
+            }while(stRC.Forward());
         }
     }
 }

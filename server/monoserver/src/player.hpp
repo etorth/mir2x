@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 10/04/2017 17:08:19
+ *  Last Modified: 10/06/2017 16:42:11
  *
  *    Description: 
  *
@@ -112,6 +112,7 @@ class Player: public CharObject
         void On_MPK_EXP(const MessagePack &, const Theron::Address &);
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
         void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);
+        void On_MPK_OFFLINE(const MessagePack &, const Theron::Address &);
         void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &);
@@ -136,7 +137,11 @@ class Player: public CharObject
         void ReportStand();
         void ReportSpaceMove();
         void ReportCORecord(uint32_t);
+        void ReportOffline(uint32_t, uint32_t);
         void ReportAction(uint32_t, const ActionNode &);
+
+    protected:
+        void DispatchOffline();
 
     protected:
         bool StruckDamage(const DamageNode &);

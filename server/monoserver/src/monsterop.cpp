@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 08/11/2017 14:49:35
+ *  Last Modified: 10/06/2017 16:40:22
  *
  *    Description: 
  *
@@ -186,4 +186,16 @@ void Monster::On_MPK_NOTIFYDEAD(const MessagePack &rstMPK, const Theron::Address
 
     RemoveTarget(stAMND.UID);
     m_LocationRecord.erase(stAMND.UID);
+}
+
+void Monster::On_MPK_OFFLINE(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMOffline stAMO;
+    std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));
+
+    if(true
+            && stAMO.UID
+            && stAMO.UID == MasterUID()){
+        GoDie();
+    }
 }

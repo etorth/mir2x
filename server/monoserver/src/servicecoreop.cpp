@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 10/04/2017 15:44:25
+ *  Last Modified: 10/06/2017 17:21:10
  *
  *    Description: 
  *
@@ -328,4 +328,13 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::A
                 return;
             }
     }
+}
+
+void ServiceCore::On_MPK_BADSESSION(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMBadSession stAMBS;
+    std::memcpy(&stAMBS, rstMPK.Data(), sizeof(stAMBS));
+
+    extern NetPodN *g_NetPodN;
+    g_NetPodN->Shutdown(stAMBS.SessionID);
 }

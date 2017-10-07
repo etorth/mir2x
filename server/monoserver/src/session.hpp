@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 10/04/2017 18:33:20
+ *  Last Modified: 10/06/2017 17:16:42
  *
  *    Description: actor <-> session <--- network ---> client
  *                 1. each session binds to an actor
@@ -210,7 +210,10 @@ class Session final: public SyncDriver
             // this function should only be called in asio main loop thread
 
             if(Valid()){
-                Forward(MPK_BADSESSION, m_BindAddress);
+                AMBadSession stAMBS;
+                stAMBS.SessionID = ID();
+
+                Forward({MPK_BADSESSION, stAMBS}, m_BindAddress);
                 m_BindAddress = Theron::Address::Null();
 
                 // if we call shutdown() here

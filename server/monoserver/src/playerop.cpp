@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 10/04/2017 17:04:08
+ *  Last Modified: 10/06/2017 17:56:35
  *
  *    Description: 
  *
@@ -34,7 +34,7 @@ void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 
     SMPing stSMP;
     stSMP.Tick = g_MonoServer->GetTimeTick();
-    g_NetPodN->Send(m_SessionID, SM_PING, stSMP);
+    g_NetPodN->Send(SessionID(), SM_PING, stSMP);
 }
 
 void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address &)
@@ -53,11 +53,11 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     stSMLOK.Level     = m_Level;
 
     extern NetPodN *g_NetPodN;
-    g_NetPodN->Send(m_SessionID, SM_LOGINOK, stSMLOK);
+    g_NetPodN->Send(SessionID(), SM_LOGINOK, stSMLOK);
 
     if(ActorPodValid() && m_Map->ActorPodValid()){
         AMPullCOInfo stAMPCOI;
-        stAMPCOI.SessionID = m_SessionID;
+        stAMPCOI.SessionID = SessionID();
         m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
     }
 }
@@ -107,7 +107,7 @@ void Player::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address 
 {
     AMPullCOInfo stAMPCOI;
     std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
-    if(stAMPCOI.SessionID != m_SessionID){
+    if(stAMPCOI.SessionID != SessionID()){
         ReportCORecord(stAMPCOI.SessionID);
     }
 }
@@ -172,7 +172,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
 
                                                 // 4. pull all co's on the new map
                                                 AMPullCOInfo stAMPCOI;
-                                                stAMPCOI.SessionID = m_SessionID;
+                                                stAMPCOI.SessionID = SessionID();
                                                 m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
 
                                                 break;
@@ -308,7 +308,19 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK, const Theron::Addres
     g_NetPodN->Send(SessionID(), SM_SHOWDROPITEM, stSMSDI);
 }
 
-void Player::On_MPK_BADSESSION(const MessagePack &, const Theron::Address &)
+void Player::On_MPK_BADSESSION(const MessagePack &rstMPK, const Theron::Address &)
 {
+    AMBadSession stAMBS;
+    std::memcpy(&stAMBS, rstMPK.Data(), sizeof(stAMBS));
+
+    m_ActorPod->Forward({MPK_BADSESSION, stAMBS}, m_ServiceCore->GetAddress());
     Offline();
+}
+
+void Player::On_MPK_OFFLINE(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMOffline stAMO;
+    std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));
+
+    ReportOffline(stAMO.UID, stAMO.MapID);
 }

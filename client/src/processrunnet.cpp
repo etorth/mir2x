@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 09/26/2017 00:17:45
+ *  Last Modified: 10/06/2017 16:52:30
  *
  *    Description: 
  *
@@ -23,6 +23,7 @@
 
 #include "log.hpp"
 #include "game.hpp"
+#include "dbcomid.hpp"
 #include "monster.hpp"
 #include "sysconst.hpp"
 #include "pngtexdbn.hpp"
@@ -275,6 +276,18 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
                         break;
                     }
             }
+        }
+    }
+}
+
+void ProcessRun::Net_OFFLINE(const uint8_t *pBuf, size_t)
+{
+    SMOffline stSMO;
+    std::memcpy(&stSMO, pBuf, sizeof(stSMO));
+
+    if(stSMO.MapID == MapID()){
+        if(auto pCreature = RetrieveUID(stSMO.UID)){
+            pCreature->AddAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_INIT);
         }
     }
 }

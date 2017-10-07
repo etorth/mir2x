@@ -3,7 +3,7 @@
  *
  *       Filename: rotatecoord.hpp
  *        Created: 08/15/2015 04:01:57
- *  Last Modified: 07/31/2017 11:53:12
+ *  Last Modified: 10/06/2017 15:49:07
  *
  *    Description: 
  *
@@ -21,6 +21,35 @@
 
 class RotateCoord
 {
+    private:
+        bool m_Overlap[4];
+
+    private:
+        int m_CurrentX;
+        int m_CurrentY;
+
+    private:
+        int m_CenterX;
+        int m_CenterY;
+
+    private:
+        int m_StartX;
+        int m_StartY;
+        int m_StopX;
+        int m_StopY;
+
+    private:
+        int m_Distance;
+
+    private:
+        //      2
+        //  <-------A
+        //  |       |
+        // 3|       |1
+        //  |   0   |
+        //  v------->
+        int  m_Direction;
+
     public:
         RotateCoord() = default;
        ~RotateCoord() = default;
@@ -41,25 +70,4 @@ class RotateCoord
     private:
         void CheckOverlap();
         bool MoveToNextRound();
-
-    private:
-        bool m_Overlap[4];
-        int  m_CurrentX;
-        int  m_CurrentY;
-        int  m_CenterX;
-        int  m_CenterY;
-        int  m_StartX;
-        int  m_StartY;
-        int  m_StopX;
-        int  m_StopY;
-        int  m_Distance;
-
-    private:
-        //      2
-        //  <-------A
-        //  |       |
-        // 3|       |1
-        //  |   0   |
-        //  v------->
-        int  m_Direction;
 };
