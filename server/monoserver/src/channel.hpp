@@ -3,7 +3,7 @@
  *
  *       Filename: channel.hpp
  *        Created: 10/04/2017 12:36:13
- *  Last Modified: 10/06/2017 22:30:47
+ *  Last Modified: 10/08/2017 02:08:16
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #pragma once
 #include <atomic>
+#include <memory>
 #include "session.hpp"
 
 class Channel final
@@ -37,15 +38,15 @@ class Channel final
         };
 
     private:
-        Session *m_Session;
+        std::atomic<int> m_State;
 
     private:
-        std::atomic<int> m_State;
+        std::shared_ptr<Session> m_Session;
 
     public:
         Channel()
-            : m_Session(nullptr)
-            , m_State(CHANNSTATE_NONE)
+            : m_State(CHANNSTATE_NONE)
+            , m_Session()
         {}
 
     public:
@@ -72,7 +73,7 @@ class Channel final
                             // then the session pointer should be empty
 
                             condcheck(!m_Session);
-                            m_Session = new Session(nSessionID, std::move(stSocket));
+                            m_Session = std::make_shared<Session>(nSessionID, std::move(stSocket));
 
                             m_State.store(CHANNSTATE_IDLE);
                             return;
@@ -128,9 +129,8 @@ class Channel final
                             // but the session may be working on already existing requests
 
                             condcheck(m_Session);
-                            delete m_Session;
+                            m_Session.reset();
 
-                            m_Session = nullptr;
                             m_State.store(CHANNSTATE_NONE);
                             return;
                         }

@@ -3,17 +3,84 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 10/07/2017 19:27:41
+ *  Last Modified: 10/08/2017 01:22:14
  *
- *    Description: actor <-> session <- (network) -> client
- *                 1. each session binds to an actor
- *                 2. session send AMNetPackage to actor by Forward()
- *                 3. actor send session message by directly call asio::io_service::post()
+ *    Description: basic class from client-server communication
  *
- *                 requirements:
- *                 1. session only sends fully received messages to actors
- *                 2. AMNetPackage contains a buffer allocated by g_MemoryPN to actors
- *                 3. use internal memory pool for send messages
+ *                 for server -> client: Session::Send(server_message)
+ *
+ *                 1. non-block
+ *                 2. thread-safe
+ *
+ *                 for client -> server: Session::Forward(MPK_NETPACKAGE)
+ *
+ *                 1. use internal SyncDriver
+ *                 2. won't register callback for forwarding
+ *
+ *                 need to take care of:
+ *                 1. who is going to access this class?
+ *                    the server threads and asio main loop thread will access it. For access from
+ *                    server threads, need to make it thread safe. For access from the asio thread
+ *                    since currently I only use one thread for asio, it's simpler
+ *
+ *                 2. Session::Send(server_message) use internal memory pool to copy server_message
+ *                    and post it to the asio main loop
+ *
+ *                 2. Session::Forward(MPK_NETPACKAGE) use g_MemoryPN to forward actor message to
+ *                    actor bound to it, and the actor should release the memroy back
+ *
+ *                 4. when using asio main loop we use a lot of
+ *
+ *                          asio::async_read(..., [this](){ ... });
+ *
+ *                    then registered handler will refer to *this* in asio main loop thread, but at
+ *                    the same time we may call NetPodN::Shutdown(SessionID) to release one session
+ *                    so this is releasing in server's actor threads.
+ *
+ *                    should be very careful of it since if we shutdown a session but asio loop thread
+ *                    still have handlers referring it, it crashes. i.e.
+ *
+ *                    // in player actor thread
+ *                    // player actor is sending PING every 1s
+ *
+ *                          g_NetPodN->Send(SessonID, SM_PING);
+ *
+ *                    // which eventually calls
+ *
+ *                          asio::io_service::post([this](){ Session::MessageQueue::front() });
+ *
+ *                    // then there is a handler referring *this*
+ *                     
+ *
+ *                    // in service core thread
+ *                    // the cored decide to kill the session because of some abnormals
+ *
+ *                          g_NetPodN->Shutdown(SessionID);
+ *
+ *                    // which will do
+ * 
+ *                          delete SessionVector[SerssionID]
+ *
+ *                    // to free the session slot at index SessionID
+ *                    // but if the SM_PING is not sent yet then this delete will cause UB
+ *
+ *                    to solve this issue
+ *                    1. Session has a SyncDriver
+ *                    2. Session is derived from std::enable_shared_from_this<Session>
+ *
+ *                    then any time if we want to post a handler to asio main loop thread
+ *                    referring the session itself we use
+ *
+ *                          asio::async_read(..., [pThis = shared_from_this()](){ ... })
+ *
+ *                    outside we use std::shared_ptr<Session> and use reset() instead of the
+ *                    raw pointer delete
+ *
+ *                    seems this is the standard way to do object new / delete in multi-thread
+ *                    environment till now I know
+ *
+ *                    this class won't support re-connect
+ *                    if connection is off we need to wait for the reconnection from client
  *
  *        Version: 1.0
  *       Revision: none
@@ -25,11 +92,11 @@
  *
  * =====================================================================================
  */
+
 #pragma once
 #include <queue>
-#include <tuple>
 #include <mutex>
-#include <atomic>
+#include <memory>
 #include <cstdint>
 #include <asio.hpp>
 #include <functional>
@@ -38,9 +105,19 @@
 #include "syncdriver.hpp"
 #include "memorychunkpn.hpp"
 
-class Session final: public SyncDriver
+class Session: public std::enable_shared_from_this<Session>
 {
     private:
+        enum SessionStateType: int
+        {
+            SESSTYPE_NONE    = 0,
+            SESSTYPE_RUNNING = 1,
+            SESSTYPE_STOPPED = 2,
+        };
+
+    private:
+        // used by server threads, when server trying to post an send
+        // it build a SendTask package by BuildTask() and post to the asio main loop thread
         struct SendTask
         {
             uint8_t HC;
@@ -68,6 +145,9 @@ class Session final: public SyncDriver
 
     private:
         const uint32_t m_ID;
+
+    private:
+        SyncDriver m_SyncDriver;
 
     private:
         asio::ip::tcp::socket m_Socket;
@@ -102,13 +182,49 @@ class Session final: public SyncDriver
         // then every session have an internal memory pool, too many?
         MemoryChunkPN<64, 256, 2> m_MemoryPN;
 
-    public:
-        Session(uint32_t, asio::ip::tcp::socket);
-       ~Session();
+    private:
+        std::atomic<int> m_State;
+
+    private:
+        // ugly implementation here
+        // I have to put a lock to make sure launch is called only once
+        // for reason check comments in Launch()
+        std::mutex m_LaunchLock;
 
     public:
-        // family of send facilities
-        // Session class accepts buffer and make a copy of it internally
+        // server threads will call the constructor
+        // in Channel::ChannBuild() called by std::make_shared<Session>()
+        Session(uint32_t, asio::ip::tcp::socket);
+
+    public:
+        // asio thread will call the destructor
+        // call destructor by handler destructor in asio main loop thread
+        virtual ~Session();
+
+    public:
+        uint32_t ID() const
+        {
+            return m_ID;
+        }
+
+        uint32_t Port() const
+        {
+            return m_Port;
+        }
+
+        uint32_t Delay() const
+        {
+            return m_Delay;
+        }
+
+        const char *IP() const
+        {
+            return m_IP.c_str();
+        }
+
+    public:
+        // family of send facilities, called by server threads
+        // Session class accepts buffer and make a copy as SendTask internally
         // Session class will do compression if needed based on message header code
 
         // send with a r-ref callback, this is the base of all send function
@@ -120,7 +236,7 @@ class Session final: public SyncDriver
         // but for Q2 since it's only used in ASIO main loop, we don't need to protect it
         //
         // idea from: https://stackoverflow.com/questions/4029448/thread-safety-for-stl-queue
-       bool Send(uint8_t nHC, const uint8_t *pData, size_t nLen, std::function<void()> &&fnDone);
+        bool Send(uint8_t nHC, const uint8_t *pData, size_t nLen, std::function<void()> &&fnDone);
 
     public:
         // send with a const-ref callback
@@ -167,12 +283,13 @@ class Session final: public SyncDriver
         }
 
     private:
+        // called by server threads
+        // use internal memory pool to create the task
         SendTask BuildTask(uint8_t, const uint8_t *, size_t, std::function<void()> &&);
 
     private:
+        // interal functions isolated from server threads
         // following DoXXXFunc should only be invoked in asio main loop thread
-        // since it may call Shutdown() and check Valid()
-
         void DoReadHC();
         void DoReadBody(size_t, size_t);
 
@@ -181,80 +298,25 @@ class Session final: public SyncDriver
         void DoSendNext();
 
     private:
+        // called by server threads
+        // only called in Session::Send(server_message)
         bool FlushSendQ();
 
     public:
-        uint32_t ID() const
-        {
-            return m_ID;
-        }
+        // called by asio main loop thread and server threads
+        // it atomically set the session state, which would disable everything
+        void Shutdown(bool);
 
     public:
-        bool Launch(const Theron::Address &rstAddr)
-        {
-            if(rstAddr){
-                auto fnLaunch = [this, rstAddr]()
-                {
-                    m_BindAddress = rstAddr;
-                    DoReadHC();
-                };
+        bool Launch(const Theron::Address &rstAddr);
 
-                m_Socket.get_io_service().post(fnLaunch);
-                return true;
-            }
-            return false;
-        }
-
-        void Shutdown()
-        {
-            // after shutdown no one is referring to *this
-            // and it's safe to call delete
-
-            // for Session::Send() don't call this function
-            // this function should only be called in asio main loop thread
-
-            if(Valid()){
-                AMBadSession stAMBS;
-                stAMBS.SessionID = ID();
-
-                Forward({MPK_BADSESSION, stAMBS}, m_BindAddress);
-                m_BindAddress = Theron::Address::Null();
-
-                // if we call shutdown() here
-                // we need to use try-catch since if connection has already
-                // been broken, it throws exception
-
-                // try{
-                //     m_Socket.shutdown(asio::ip::tcp::socket::shutdown_both);
-                // }catch(...){
-                // }
-
-                m_Socket.close();
-            }
-        }
+    public:
 
         bool Valid() const
         {
             // data race possible with Shutdown()
             // call this funciton only in asio main loop thread
             return m_BindAddress && m_Socket.is_open();
-        }
-
-    public:
-        uint32_t Delay() const
-        {
-            return m_Delay;
-        }
-
-    public:
-        uint32_t Port() const
-        {
-            return m_Port;
-        }
-
-        const char *IP() const
-        {
-            return m_IP.c_str();
         }
 
     public:
@@ -283,7 +345,8 @@ class Session final: public SyncDriver
         }
 
     private:
-        // invoked in asio main loop
-        // when session read one entire network message
+        // called by asio main loop only
+        // forward MPK_NETPACKAGE when one entire network message
+        // data buffer allocated by internally memory pool and released by actor receiving it
         bool ForwardActorMessage(uint8_t, const uint8_t *, size_t);
 };
