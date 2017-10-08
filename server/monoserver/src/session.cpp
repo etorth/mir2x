@@ -3,7 +3,7 @@
  *
  *       Filename: session.cpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 10/04/2017 18:30:09
+ *  Last Modified: 10/07/2017 10:28:36
  *
  *    Description: for received messages we won't crash if get invalid ones
  *                 but for messages to send we take zero tolerance
@@ -130,6 +130,8 @@ Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
 
 Session::~Session()
 {
+    // handlers posted to the asio main loop will refer to *this
+    // when calling destructor make sure no outstanding handlers posted by it
     Shutdown();
 }
 

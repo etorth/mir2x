@@ -2,12 +2,13 @@
  * =====================================================================================
  *
  *       Filename: session.hpp
- *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 10/06/2017 17:16:42
+ *        Created: 09/03/2015 03:48:41
+ *  Last Modified: 10/07/2017 19:27:41
  *
- *    Description: actor <-> session <--- network ---> client
+ *    Description: actor <-> session <- (network) -> client
  *                 1. each session binds to an actor
  *                 2. session send AMNetPackage to actor by Forward()
+ *                 3. actor send session message by directly call asio::io_service::post()
  *
  *                 requirements:
  *                 1. session only sends fully received messages to actors
@@ -206,6 +207,9 @@ class Session final: public SyncDriver
 
         void Shutdown()
         {
+            // after shutdown no one is referring to *this
+            // and it's safe to call delete
+
             // for Session::Send() don't call this function
             // this function should only be called in asio main loop thread
 

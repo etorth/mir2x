@@ -3,7 +3,7 @@
  *
  *       Filename: channel.hpp
  *        Created: 10/04/2017 12:36:13
- *  Last Modified: 10/06/2017 17:59:54
+ *  Last Modified: 10/06/2017 22:30:47
  *
  *    Description: 
  *
@@ -108,6 +108,7 @@ class Channel final
                 switch(auto nCurrState = m_State.exchange(CHANNSTATE_MODIFY)){
                     case CHANNSTATE_NONE:
                         {
+                            condcheck(!m_Session);
                             m_State.store(CHANNSTATE_NONE);
                             return;
                         }
@@ -122,6 +123,10 @@ class Channel final
                             // channl is ready but no in use
                             // the session pointer should be initialized
 
+                            // bug here
+                            // idle state means no one is posting to the queue
+                            // but the session may be working on already existing requests
+
                             condcheck(m_Session);
                             delete m_Session;
 
@@ -134,11 +139,17 @@ class Channel final
                             // shouldn't do anything
                             // channel is in use and need to wait till all done
 
+                            condcheck(m_Session);
                             condcheck(nCurrState > CHANNSTATE_IDLE);
+
                             m_State.store(nCurrState);
                             break;
                         }
                 }
+
+                // if we reach here means we need to poll
+                // then yield current thread
+                std::this_thread::yield();
             }
         }
 
@@ -149,6 +160,7 @@ class Channel final
                 switch(auto nCurrState = m_State.exchange(CHANNSTATE_MODIFY)){
                     case CHANNSTATE_NONE:
                         {
+                            condcheck(!m_Session);
                             m_State.store(CHANNSTATE_NONE);
                             return false;
                         }
@@ -192,12 +204,20 @@ class Channel final
                                             return bSendDone;
                                         }
                                 }
+
+                                // yield current thread
+                                // polling when reset the sender's number
+                                std::this_thread::yield();
                             }
 
                             // to make the compiler happy
                             return false;
                         }
                 }
+
+                // if we reach here means we need to poll
+                // then yield current thread
+                std::this_thread::yield();
             }
             return false;
         }
