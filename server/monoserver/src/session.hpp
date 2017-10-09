@@ -3,7 +3,7 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 10/08/2017 01:22:14
+ *  Last Modified: 10/08/2017 12:54:22
  *
  *    Description: basic class from client-server communication
  *
@@ -185,12 +185,6 @@ class Session: public std::enable_shared_from_this<Session>
     private:
         std::atomic<int> m_State;
 
-    private:
-        // ugly implementation here
-        // I have to put a lock to make sure launch is called only once
-        // for reason check comments in Launch()
-        std::mutex m_LaunchLock;
-
     public:
         // server threads will call the constructor
         // in Channel::ChannBuild() called by std::make_shared<Session>()
@@ -311,15 +305,6 @@ class Session: public std::enable_shared_from_this<Session>
         bool Launch(const Theron::Address &rstAddr);
 
     public:
-
-        bool Valid() const
-        {
-            // data race possible with Shutdown()
-            // call this funciton only in asio main loop thread
-            return m_BindAddress && m_Socket.is_open();
-        }
-
-    public:
         void Bind(const Theron::Address &rstAddr)
         {
             // force messages forward to new address
@@ -347,6 +332,6 @@ class Session: public std::enable_shared_from_this<Session>
     private:
         // called by asio main loop only
         // forward MPK_NETPACKAGE when one entire network message
-        // data buffer allocated by internally memory pool and released by actor receiving it
+        // data buffer allocated by global memory pool and released by actor receiving it
         bool ForwardActorMessage(uint8_t, const uint8_t *, size_t);
 };
