@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 10/06/2017 16:45:43
+ *  Last Modified: 10/09/2017 18:51:21
  *
  *    Description: 
  *
@@ -34,6 +34,7 @@
 #include "labelboard.hpp"
 #include "mir2xmapdata.hpp"
 #include "controlboard.hpp"
+#include "inventoryboard.hpp"
 #include "clientluamodule.hpp"
 #include "linebrowserboard.hpp"
 
@@ -85,6 +86,9 @@ class ProcessRun: public Process
 
     private:
         ControlBoard m_ControbBoard;
+
+    private:
+        InventoryBoard m_InventoryBoard;
 
     private:
         std::vector<std::shared_ptr<IndepMagic>> m_IndepMagicList;

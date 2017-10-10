@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 10/04/2017 18:45:25
+ *  Last Modified: 10/09/2017 18:42:34
  *
  *    Description: 
  *
@@ -58,6 +58,7 @@ ProcessRun::ProcessRun()
             this,               // self-bind
             nullptr,            // independent widget
             false)              // 
+    , m_InventoryBoard()
     , m_GroundItemList()
     , m_CreatureRecord()
     , m_AttackUIDX(-1)
@@ -519,6 +520,8 @@ void ProcessRun::Draw()
         pRecord->Draw(m_ViewX, m_ViewY);
     }
 
+    m_InventoryBoard.Draw();
+
     m_ControbBoard.Draw();
 
     // draw cursor location information on top-left
@@ -547,7 +550,8 @@ void ProcessRun::Draw()
 void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
 {
     bool bValid = true;
-    if(m_ControbBoard.ProcessEvent(rstEvent, &bValid)){ return; }
+    if(m_InventoryBoard.ProcessEvent(rstEvent, &bValid)){ return; }
+    if(m_ControbBoard  .ProcessEvent(rstEvent, &bValid)){ return; }
 
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONDOWN:
