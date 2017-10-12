@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 10/02/2017 19:58:31
+ *  Last Modified: 10/11/2017 18:30:41
  *
  *    Description: 
  *
@@ -24,6 +24,12 @@
 
 class MyHero: public Hero
 {
+    private:
+        uint32_t m_Gold;
+
+    private:
+        std::vector<uint32_t> m_Inventory;
+
     private:
         std::deque<ActionNode> m_ActionQueue;
 
@@ -73,6 +79,18 @@ class MyHero: public Hero
 
     public:
         bool ParseActionQueue();
+
+    public:
+        uint32_t GetGold() const
+        {
+            return m_Gold;
+        }
+
+    public:
+        const std::vector<uint32_t> &GetInventory() const
+        {
+            return m_Inventory;
+        }
 
     public:
         bool StayIdle();

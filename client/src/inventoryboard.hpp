@@ -3,7 +3,7 @@
  *
  *       Filename: inventoryboard.hpp
  *        Created: 10/08/2017 19:06:52
- *  Last Modified: 10/09/2017 18:47:02
+ *  Last Modified: 10/11/2017 23:28:11
  *
  *    Description: 
  *
@@ -18,11 +18,21 @@
  * =====================================================================================
  */
 
+#pragma once
 #include "widget.hpp"
+#include "labelboard.hpp"
+
+class ProcessRun;
 class InventoryBoard: public Widget
 {
+    private:
+        LabelBoard m_GoldBoard;
+
+    private:
+        ProcessRun *m_ProcessRun;
+
     public:
-        InventoryBoard();
+        InventoryBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
 
     public:
         void DrawEx(int, int, int, int, int, int);

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 10/09/2017 18:42:34
+ *  Last Modified: 10/11/2017 23:30:17
  *
  *    Description: 
  *
@@ -58,7 +58,7 @@ ProcessRun::ProcessRun()
             this,               // self-bind
             nullptr,            // independent widget
             false)              // 
-    , m_InventoryBoard()
+    , m_InventoryBoard(0, 0, this)
     , m_GroundItemList()
     , m_CreatureRecord()
     , m_AttackUIDX(-1)

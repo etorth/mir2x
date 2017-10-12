@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 10/02/2017 23:00:05
+ *  Last Modified: 10/11/2017 23:16:23
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -118,6 +118,7 @@
 #pragma once
 
 #include <deque>
+#include <memory>
 #include <cstddef>
 #include <cstdint>
 
