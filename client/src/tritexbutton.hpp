@@ -3,7 +3,7 @@
  *
  *       Filename: tritexbutton.hpp
  *        Created: 08/26/2016 13:20:23
- *  Last Modified: 07/16/2017 20:37:41
+ *  Last Modified: 10/12/2017 15:56:26
  *
  *    Description: button with three texture, it has a position shift when
  *                 state changes.
@@ -19,6 +19,8 @@
  * =====================================================================================
  */
 
+#pragma once
+#include <array>
 #include "buttonbase.hpp"
 
 class TritexButton: public ButtonBase
@@ -27,13 +29,10 @@ class TritexButton: public ButtonBase
         int m_Offset[3][2];
 
     public:
-        // use three texture IDs
         TritexButton(
                 int                          nX,
                 int                          nY,
-                uint32_t                     nTexID0,
-                uint32_t                     nTexID1,
-                uint32_t                     nTexID2,
+                std::array<uint32_t, 3>      stvTexID,
                 int                          nOffsetXOnOver  = 0,
                 int                          nOffsetYOnOver  = 0,
                 int                          nOffsetXOnClick = 0,
@@ -46,9 +45,9 @@ class TritexButton: public ButtonBase
             : ButtonBase(
                     nX, 
                     nY,
-                    nTexID0,
-                    nTexID1,
-                    nTexID2,
+                    stvTexID[0],
+                    stvTexID[1],
+                    stvTexID[2],
                     fnOnOver,
                     fnOnClick,
                     bOnClickDone,
@@ -74,9 +73,7 @@ class TritexButton: public ButtonBase
             : TritexButton(
                     nX,
                     nY,
-                    nBaseTexID + 0,
-                    nBaseTexID + 1,
-                    nBaseTexID + 2,
+                    {nBaseTexID + 0, nBaseTexID + 1, nBaseTexID + 2},
                     nOffsetXOnOver,
                     nOffsetYOnOver,
                     nOffsetXOnClick,

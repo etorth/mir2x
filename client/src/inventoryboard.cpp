@@ -3,7 +3,7 @@
  *
  *       Filename: inventoryboard.cpp
  *        Created: 10/08/2017 19:22:30
- *  Last Modified: 10/11/2017 23:19:35
+ *  Last Modified: 10/13/2017 00:59:43
  *
  *    Description: 
  *
@@ -26,6 +26,22 @@
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pWidget, bool bAutoFree)
     : Widget(nX, nY, 0, 0, pWidget, bAutoFree)
     , m_GoldBoard(70, 408, "", 0, 15, 0, {0XFF, 0XFF, 0X00, 0X00}, this, false)
+    , m_CloseButton(
+            242,
+            422,
+            {0XFFFFFFFF, 0X0000001C, 0X0000001D},
+            0,
+            0,
+            0,
+            0,
+            [](){},
+            [this]()
+            {
+                Show(false);
+            },
+            true,
+            this,
+            false)
     , m_ProcessRun(pRun)
 {
     extern PNGTexDBN *g_ProgUseDBN;
@@ -47,11 +63,15 @@ void InventoryBoard::DrawEx(int nDstX, int nDstY, int, int, int, int)
     }
 
     m_GoldBoard.Draw();
+    m_CloseButton.Draw();
 }
 
 bool InventoryBoard::ProcessEvent(const SDL_Event &rstEvent, bool *pValid)
 {
     if(Show()){
+
+        m_CloseButton.ProcessEvent(rstEvent, pValid);
+
         switch(rstEvent.type){
             case SDL_MOUSEMOTION:
                 {

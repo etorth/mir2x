@@ -3,7 +3,7 @@
  *
  *       Filename: inventoryboard.hpp
  *        Created: 10/08/2017 19:06:52
- *  Last Modified: 10/11/2017 23:28:11
+ *  Last Modified: 10/12/2017 13:33:31
  *
  *    Description: 
  *
@@ -21,12 +21,16 @@
 #pragma once
 #include "widget.hpp"
 #include "labelboard.hpp"
+#include "tritexbutton.hpp"
 
 class ProcessRun;
 class InventoryBoard: public Widget
 {
     private:
         LabelBoard m_GoldBoard;
+
+    private:
+        TritexButton m_CloseButton;
 
     private:
         ProcessRun *m_ProcessRun;

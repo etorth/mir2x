@@ -3,7 +3,7 @@
  *
  *       Filename: buttonbase.hpp
  *        Created: 08/25/2016 04:12:57
- *  Last Modified: 07/06/2017 17:51:01
+ *  Last Modified: 10/12/2017 13:46:02
  *
  *    Description: basic button class to handle event logic only
  *
@@ -69,7 +69,7 @@ class ButtonBase: public Widget
         {
             int nW = 0;
             int nH = 0;
-            for(int nState = 0; nState < 2; ++nState){
+            for(int nState = 0; nState < 3; ++nState){
                 if(m_TexIDV[nState]){
                     extern PNGTexDBN *g_ProgUseDBN;
                     if(auto pTexture = g_ProgUseDBN->Retrieve(m_TexIDV[nState])){

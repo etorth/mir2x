@@ -3,7 +3,7 @@
  *
  *       Filename: tritexbutton.cpp
  *        Created: 03/16/2017 15:04:17
- *  Last Modified: 03/24/2017 18:05:21
+ *  Last Modified: 10/13/2017 00:58:23
  *
  *    Description: 
  *
@@ -27,5 +27,7 @@ void TritexButton::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, in
     extern PNGTexDBN *g_ProgUseDBN;
     extern SDLDevice *g_SDLDevice;
 
-    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(m_TexIDV[m_State]), nDstX, nDstY, nSrcX, nSrcY, nW, nH);
+    if(auto pTexture = g_ProgUseDBN->Retrieve(m_TexIDV[m_State])){
+        g_SDLDevice->DrawTexture(pTexture, nDstX + m_Offset[m_State][0], nDstY + m_Offset[m_State][1], nSrcX, nSrcY, nW, nH);
+    }
 }
