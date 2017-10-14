@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 10/02/2017 18:54:07
+ *  Last Modified: 10/13/2017 18:13:19
  *
  *    Description:
  *
@@ -32,6 +32,50 @@
 ControlBoard::ControlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWidget, bool bAutoDelete)
     : Widget(nX, nY, nW, 135, pWidget, bAutoDelete)
     , m_ProcessRun(pRun)
+    , m_ButtonClose(
+            8,
+            72,
+            {0XFFFFFFFF, 0X0000001E, 0X0000001F},
+            0,
+            0,
+            0,
+            0,
+            [](){},
+            [](){},
+            true,
+            this,
+            false)
+    , m_ButtonMinize(
+            109,
+            72,
+            {0XFFFFFFFF, 0X00000020, 0X00000021},
+            0,
+            0,
+            0,
+            0,
+            [](){},
+            [](){},
+            true,
+            this,
+            false)
+    , m_ButtonInventory(
+            682,
+            33,
+            {0XFFFFFFFF, 0X00000030, 0X00000031},
+            0,
+            0,
+            0,
+            0,
+            [](){},
+            [this]()
+            {
+                if(auto pInventory = m_ProcessRun->GetWidget("InventoryBoard")){
+                    pInventory->Show(!pInventory->Show());
+                }
+            },
+            true,
+            this,
+            false)
     , m_CmdLine(
             185,
             108,
@@ -192,13 +236,20 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
     // g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
     // g_SDLDevice->DrawRectangle(m_CmdLine.X(), m_CmdLine.Y(), m_CmdLine.W(), m_CmdLine.H());
     // g_SDLDevice->PopColor();
+
+    m_ButtonClose    .Draw();
+    m_ButtonMinize   .Draw();
+    m_ButtonInventory.Draw();
 }
 
 bool ControlBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
 {
     if(bValid && !(*bValid)){ return false; }
     if(false
-            || m_CmdLine.ProcessEvent(rstEvent, bValid)){ return true; }
+            || m_CmdLine        .ProcessEvent(rstEvent, bValid)
+            || m_ButtonClose    .ProcessEvent(rstEvent, bValid)
+            || m_ButtonMinize   .ProcessEvent(rstEvent, bValid)
+            || m_ButtonInventory.ProcessEvent(rstEvent, bValid)){ return true; }
 
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONUP:

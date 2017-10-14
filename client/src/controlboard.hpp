@@ -3,7 +3,7 @@
  *
  *       Filename: controlboard.hpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 09/05/2017 23:41:48
+ *  Last Modified: 10/13/2017 17:27:22
  *
  *    Description: main control pannel for running game
  *                 try support dynamically allocated control board
@@ -28,6 +28,7 @@
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
 #include "inputline.hpp"
+#include "tritexbutton.hpp"
 #include "linebrowserboard.hpp"
 
 class ProcessRun;
@@ -35,6 +36,11 @@ class ControlBoard: public Widget
 {
     private:
         ProcessRun *m_ProcessRun;
+
+    private:
+        TritexButton m_ButtonClose;
+        TritexButton m_ButtonMinize;
+        TritexButton m_ButtonInventory;
 
     private:
         InputLine        m_CmdLine;

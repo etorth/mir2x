@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 10/09/2017 18:51:21
+ *  Last Modified: 10/13/2017 18:03:48
  *
  *    Description: 
  *
@@ -215,4 +215,7 @@ class ProcessRun: public Process
 
     public:
         void ClearCreature();
+
+    public:
+        Widget *GetWidget(const char *);
 };

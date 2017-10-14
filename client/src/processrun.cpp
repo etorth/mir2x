@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 10/11/2017 23:30:17
+ *  Last Modified: 10/13/2017 18:13:57
  *
  *    Description: 
  *
@@ -520,9 +520,8 @@ void ProcessRun::Draw()
         pRecord->Draw(m_ViewX, m_ViewY);
     }
 
-    m_InventoryBoard.Draw();
-
     m_ControbBoard.Draw();
+    m_InventoryBoard.Draw();
 
     // draw cursor location information on top-left
     extern ClientEnv *g_ClientEnv;
@@ -1465,4 +1464,12 @@ void ProcessRun::ClearCreature()
         delete pRecord.second;
     }
     m_CreatureRecord.clear();
+}
+
+Widget *ProcessRun::GetWidget(const char *szWidgetName)
+{
+    if(szWidgetName){
+        if(!std::strcmp(szWidgetName, "InventoryBoard")){ return &m_InventoryBoard; }
+    }
+    return nullptr;
 }
