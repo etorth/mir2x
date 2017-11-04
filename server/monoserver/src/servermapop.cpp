@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 10/06/2017 16:31:49
+ *  Last Modified: 10/31/2017 12:01:31
  *
  *    Description: 
  *
@@ -891,4 +891,51 @@ void ServerMap::On_MPK_OFFLINE(const MessagePack &rstMPK, const Theron::Address 
     };
 
     DoCircle(stAMO.X, stAMO.Y, 10, fnNotifyOffline);
+}
+
+void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMPickUp stAMPU;
+    std::memcpy(&stAMPU, rstMPK.Data(), sizeof(stAMPU));
+
+    if(ValidC(stAMPU.X, stAMPU.Y) && stAMPU.ItemID){
+        extern MonoServer *g_MonoServer;
+        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMPU.UID)){
+            auto nIndex = FindGroundItem(stAMPU.X, stAMPU.Y, stAMPU.ItemID);
+            if(nIndex >= 0){
+                RemoveGroundItem(stAMPU.X, stAMPU.Y, stAMPU.ItemID);
+                auto fnRemoveGroundItem = [this, stAMPU](int nX, int nY) -> bool
+                {
+                    if(true || ValidC(nX, nY)){
+                        for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                            extern MonoServer *g_MonoServer;
+                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                                if(stUIDRecord.ClassFrom<Player>()){
+                                    AMRemoveGroundItem stAMRGI;
+                                    stAMRGI.X      = nX;
+                                    stAMRGI.Y      = nY;
+                                    stAMRGI.DBID   = stAMPU.DBID;
+                                    stAMRGI.ItemID = stAMPU.ItemID;
+                                    m_ActorPod->Forward({MPK_REMOVEGROUNDITEM, stAMRGI}, stUIDRecord.Address);
+                                }
+                            }
+                        }
+                    }
+                    return false;
+                };
+                DoCircle(stAMPU.X, stAMPU.Y, 10, fnRemoveGroundItem);
+
+                // notify the picker
+                AMPickUpOK stAMPUOK;
+                stAMPUOK.X      = stAMPU.X;
+                stAMPUOK.Y      = stAMPU.Y;
+                stAMPUOK.UID    = stAMPU.UID;
+                stAMPUOK.ItemID = stAMPU.ItemID;
+                m_ActorPod->Forward({MPK_PICKUPOK, stAMPUOK}, stUIDRecord.Address);
+            }else{
+                // no such item
+                // likely the client need re-sync for the gound items
+            }
+        }
+    }
 }

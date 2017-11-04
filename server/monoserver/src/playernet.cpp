@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 09/11/2017 17:41:34
+ *  Last Modified: 10/14/2017 18:42:23
  *
  *    Description: how player respond for different net package
  *
@@ -244,4 +244,18 @@ void Player::Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *pBuf, size_t)
     };
 
     RequestSpaceMove(pCM->MapID, pCM->X, pCM->Y, false, fnOnOK, fnOnError);
+}
+
+void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
+{
+    auto pCM = (CMPickUp *)(pBuf);
+    if(pCM->MapID == m_Map->ID()){
+        AMPickUp stAMPU;
+        stAMPU.X      = pCM->X;
+        stAMPU.Y      = pCM->Y;
+        stAMPU.UID    = pCM->UID;
+        stAMPU.ItemID = pCM->ItemID;
+
+        m_ActorPod->Forward({MPK_PICKUP, stAMPU}, m_Map->GetAddress());
+    }
 }

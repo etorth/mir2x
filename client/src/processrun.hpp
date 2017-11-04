@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 10/13/2017 18:03:48
+ *  Last Modified: 11/03/2017 17:57:29
  *
  *    Description: 
  *
@@ -152,6 +152,7 @@ class ProcessRun: public Process
         void Net_ACTION(const uint8_t *, size_t);
         void Net_OFFLINE(const uint8_t *, size_t);
         void Net_LOGINOK(const uint8_t *, size_t);
+        void Net_PICKUPOK(const uint8_t *, size_t);
         void Net_CORECORD(const uint8_t *, size_t);
         void Net_UPDATEHP(const uint8_t *, size_t);
         void Net_FIREMAGIC(const uint8_t *, size_t);
@@ -208,6 +209,12 @@ class ProcessRun: public Process
         MyHero *GetMyHero() const
         {
             return m_MyHero;
+        }
+
+    public:
+        const auto &GetGroundItemList() const
+        {
+            return m_GroundItemList;
         }
 
     public:

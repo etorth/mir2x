@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 10/09/2017 18:58:27
+ *  Last Modified: 10/31/2017 11:26:45
  *
  *    Description:
  *
@@ -143,15 +143,21 @@ class ServerMap: public ActiveObject
         bool RandomLocation(int *, int *);
 
     private:
-        int  DropItemListCount(int, int);
+        int FindGroundItem(int, int, uint32_t);
+        int DropItemListCount(int, int);
         bool AddGroundItem(int, int, const CommonItem &);
+        void RemoveGroundItem(int, int, uint32_t);
 
     private:
-        void DoCircle(int, int, int,      std::function<bool(int, int)>);
-        void DoSquare(int, int, int, int, std::function<bool(int, int)>);
+        void DoCircle(int, int, int,      const std::function<bool(int, int)> &);
+        void DoSquare(int, int, int, int, const std::function<bool(int, int)> &);
+
+        void DoCenterCircle(int, int, int,      bool, const std::function<bool(int, int)> &);
+        void DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
 
     private:
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
+        void On_MPK_PICKUP(const MessagePack &, const Theron::Address &);
         void On_MPK_OFFLINE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYLEAVE(const MessagePack &, const Theron::Address &);

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 10/13/2017 18:13:57
+ *  Last Modified: 11/03/2017 17:42:38
  *
  *    Description: 
  *
@@ -520,7 +520,7 @@ void ProcessRun::Draw()
         pRecord->Draw(m_ViewX, m_ViewY);
     }
 
-    m_ControbBoard.Draw();
+    m_ControbBoard  .Draw();
     m_InventoryBoard.Draw();
 
     // draw cursor location information on top-left
@@ -649,6 +649,11 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                     m_MyHero->CurrMotion().EndY,
                                     FocusUID(FOCUS_MAGIC),
                                     MapID()}, false);
+                            break;
+                        }
+                    case SDLK_p:
+                        {
+                            m_MyHero->PickUp();
                             break;
                         }
                     case SDLK_y:

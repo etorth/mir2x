@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 10/11/2017 18:31:04
+ *  Last Modified: 11/02/2017 10:08:19
  *
  *    Description: 
  *
@@ -48,7 +48,6 @@ bool MyHero::Update(double fUpdateTime)
         //    needed for next update
         m_LastUpdateTime = fTimeNow;
 
-        // 2. do the update
         switch(m_CurrMotion.Motion){
             case MOTION_STAND:
                 {
@@ -639,3 +638,31 @@ bool MyHero::StayIdle()
         && m_MotionQueue.empty()
         && m_ActionQueue.empty();
 }
+
+void MyHero::PickUp()
+{
+    if(true
+            && StayIdle()
+            && CurrMotion().Frame == 0){
+        for(auto &rstGroundItem: m_ProcessRun->GetGroundItemList()){
+            if(true
+                    && rstGroundItem.X == CurrMotion().X
+                    && rstGroundItem.Y == CurrMotion().Y){
+
+                CMPickUp stCMPU;
+                stCMPU.X      = rstGroundItem.X;
+                stCMPU.Y      = rstGroundItem.Y;
+                stCMPU.UID    = UID();
+                stCMPU.MapID  = m_ProcessRun->MapID();
+                stCMPU.ItemID = rstGroundItem.ID;
+
+                extern Game *g_Game;
+                g_Game->Send(CM_PICKUP, stCMPU);
+            }
+        }
+    }
+}
+
+// bool MyHero::ScheduleAction()
+// {
+// }

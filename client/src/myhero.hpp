@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 10/11/2017 18:30:41
+ *  Last Modified: 10/31/2017 17:22:46
  *
  *    Description: 
  *
@@ -37,7 +37,7 @@ class MyHero: public Hero
         MyHero(uint32_t, uint32_t, bool, uint32_t, ProcessRun *, const ActionNode &);
 
     public:
-       ~MyHero() = default;
+        ~MyHero() = default;
 
     public:
         bool Update(double);
@@ -78,6 +78,9 @@ class MyHero: public Hero
         bool ParseNewAction(const ActionNode &, bool);
 
     public:
+        bool ScheduleAction();
+
+    public:
         bool ParseActionQueue();
 
     public:
@@ -94,4 +97,7 @@ class MyHero: public Hero
 
     public:
         bool StayIdle();
+
+    public:
+        void PickUp();
 };

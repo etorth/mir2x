@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 10/06/2017 16:42:11
+ *  Last Modified: 10/31/2017 12:03:40
  *
  *    Description: 
  *
@@ -102,6 +102,9 @@ class Player: public CharObject
 
         bool Bind(uint32_t);
 
+    public:
+        InvarData GetInvarData() const;
+
     protected:
         void OperateNet(uint8_t, const uint8_t *, size_t);
 
@@ -113,6 +116,7 @@ class Player: public CharObject
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
         void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);
         void On_MPK_OFFLINE(const MessagePack &, const Theron::Address &);
+        void On_MPK_PICKUPOK(const MessagePack &, const Theron::Address &);
         void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &);
@@ -123,11 +127,13 @@ class Player: public CharObject
         void On_MPK_BINDSESSION(const MessagePack &, const Theron::Address &);
         void On_MPK_SHOWDROPITEM(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);
+        void On_MPK_REMOVEGROUNDITEM(const MessagePack &, const Theron::Address &);
 
     private:
         void Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *, size_t);
         void Net_CM_QUERYCORECORD   (uint8_t, const uint8_t *, size_t);
         void Net_CM_ACTION          (uint8_t, const uint8_t *, size_t);
+        void Net_CM_PICKUP          (uint8_t, const uint8_t *, size_t);
 
     private:
         void For_CheckTime();
@@ -164,6 +170,13 @@ class Player: public CharObject
         void OnCMActionMove();
         void OnCMActionSpell(const ActionNode &);
         void OnCMActionAttack(int, int, int, int, int, int, int);
+
+    private:
+        bool PostNetMessage(uint8_t, const uint8_t *, size_t);
+        template<typename T> bool PostNetMessage(uint8_t nHC, T& stMessage)
+        {
+            return PostNetMessage(nHC, (const uint8_t *)(&stMessage), sizeof(stMessage));
+        }
 
     protected:
         virtual bool GoDie();

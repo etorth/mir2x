@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 10/06/2017 15:57:30
+ *  Last Modified: 10/31/2017 15:45:22
  *
  *    Description: 
  *
@@ -305,6 +305,11 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
 void ServerMap::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
 {
     switch(rstMPK.Type()){
+        case MPK_PICKUP:
+            {
+                On_MPK_PICKUP(rstMPK, rstFromAddr);
+                break;
+            }
         case MPK_NEWDROPITEM:
             {
                 On_MPK_NEWDROPITEM(rstMPK, rstFromAddr);
@@ -601,72 +606,6 @@ Theron::Address ServerMap::Activate()
     return stAddress;
 }
 
-int ServerMap::DropItemListCount(int nX, int nY)
-{
-    if(GroundValid(nX, nY)){
-        int nCount = 0;
-        for(auto &rstCurrItem: m_CellRecordV2D[nX][nY].GroundItemList){
-            if(rstCurrItem){
-                nCount++;
-            }
-        }
-        return nCount;
-    }
-    return -1;
-}
-
-bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
-{
-    if(true
-            && rstItem
-            && GroundValid(nX, nY)){
-
-        // 1. find a slot to store the item
-        bool bAddOK = false;
-        for(auto &rstCurrItem: m_CellRecordV2D[nX][nY].GroundItemList){
-            if(!rstCurrItem){
-                rstCurrItem = rstItem;
-
-                bAddOK = true;
-                break;
-            }
-        }
-
-        if(bAddOK){
-            // 2. report to all charobject around
-            //    since there are one more drop item for each grid
-            //    client / server side may have different drop item list
-            //
-            //    not a big issue
-            //    force they to contain the same set
-
-            AMShowDropItem stAMSDI;
-            stAMSDI.ID = rstItem.ID();
-            stAMSDI.X  = nX;
-            stAMSDI.Y  = nY;
-
-            auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
-            {
-                if(true || ValidC(nX, nY)){
-                    for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
-                        extern MonoServer *g_MonoServer;
-                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(stUIDRecord.ClassFrom<Player>()){
-                                m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.Address);
-                            }
-                        }
-                    }
-                }
-                return false;
-            };
-
-            DoCircle(nX, nY, 10, fnNotifyDropItem);
-            return true;
-        }
-    }
-    return false;
-}
-
 void ServerMap::AddGridUID(uint32_t nUID, int nX, int nY)
 {
     if(true
@@ -696,7 +635,39 @@ void ServerMap::RemoveGridUID(uint32_t nUID, int nX, int nY)
     }
 }
 
-void ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, std::function<bool(int, int)> fnOP)
+void ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(int, int)> &fnOP)
+{
+    int nW = 2 * nCR - 1;
+    int nH = 2 * nCR - 1;
+
+    int nX0 = nCX0 - nCR + 1;
+    int nY0 = nCY0 - nCR + 1;
+
+    if(true
+            && nW > 0
+            && nH > 0
+            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+
+        // get the clip region over the map
+        // if no valid region we won't do the rest
+
+        for(int nX = nX0; nX < nX0 + nW; ++nX){
+            for(int nY = nY0; nY < nY0 + nH; ++nY){
+                if(true || ValidC(nX, nY)){
+                    if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                        if(false
+                                || !fnOP
+                                ||  fnOP(nX, nY)){
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<bool(int, int)> &fnOP)
 {
     if(true
             && nW > 0
@@ -720,38 +691,163 @@ void ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, std::function<bool(in
     }
 }
 
-void ServerMap::DoCircle(int nCX0, int nCY0, int nCR, std::function<bool(int, int)> fnOP)
+void ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, const std::function<bool(int, int)> &fnOP)
 {
-    int nW = 2 * nCR - 1;
-    int nH = 2 * nCR - 1;
+    if(bPriority){
+        int nW = 2 * nCR - 1;
+        int nH = 2 * nCR - 1;
 
-    int nX0 = nCX0 - nCR + 1;
-    int nY0 = nCY0 - nCR + 1;
+        int nX0 = nCX0 - nCR + 1;
+        int nY0 = nCY0 - nCR + 1;
 
-    if(true
-            && nW > 0
-            && nH > 0
-            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+        if(true
+                && nW > 0
+                && nH > 0
+                && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
-        // get the clip region over the map
-        // if no valid region we won't do the rest
+            // get the clip region over the map
+            // if no valid region we won't do the rest
 
-        RotateCoord stRC;
-        if(stRC.Reset(nCX0, nCY0, nX0, nY0, nW, nH)){
-            do{
-                int nX = stRC.X();
-                int nY = stRC.Y();
+            RotateCoord stRC;
+            if(stRC.Reset(nCX0, nCY0, nX0, nY0, nW, nH)){
+                do{
+                    int nX = stRC.X();
+                    int nY = stRC.Y();
 
-                if(true || ValidC(nX, nY)){
-                    if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                    if(true || ValidC(nX, nY)){
+                        if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                            if(false
+                                    || !fnOP
+                                    ||  fnOP(nX, nY)){
+                                return;
+                            }
+                        }
+                    }
+                }while(stRC.Forward());
+            }
+        }
+    }else{
+        DoCircle(nCX0, nCY0, nCR, fnOP);
+    }
+}
+
+void ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority, const std::function<bool(int, int)> &fnOP)
+{
+    if(bPriority){
+        int nX0 = nCX - nW / 2;
+        int nY0 = nCY - nH / 2;
+
+        if(true
+                && nW > 0
+                && nH > 0
+                && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+
+            // get the clip region over the map
+            // if no valid region we won't do the rest
+
+            RotateCoord stRC;
+            if(stRC.Reset(nCX, nCY, nX0, nY0, nW, nH)){
+                do{
+                    int nX = stRC.X();
+                    int nY = stRC.Y();
+
+                    if(true || ValidC(nX, nY)){
                         if(false
                                 || !fnOP
                                 ||  fnOP(nX, nY)){
                             return;
                         }
                     }
-                }
-            }while(stRC.Forward());
+                }while(stRC.Forward());
+            }
+        }
+    }else{
+        DoSquare(nCX - nW / 2, nCY - nH / 2, nW, nH, fnOP);
+    }
+}
+
+int ServerMap::FindGroundItem(int nX, int nY, uint32_t nItemID)
+{
+    if(ValidC(nX, nY)){
+        auto &rstGroundItemList = m_CellRecordV2D[nX][nY].GroundItemList;
+        for(size_t nIndex = 0; nIndex < rstGroundItemList.size(); ++nIndex){
+            if(rstGroundItemList[nIndex].ID() == nItemID){
+                return (int)(nIndex);
+            }
         }
     }
+    return -1;
+}
+
+void ServerMap::RemoveGroundItem(int nX, int nY, uint32_t nItemID)
+{
+    while(true){
+        auto nIndex = FindGroundItem(nX, nY, nItemID);
+        if(nIndex >= 0){
+            m_CellRecordV2D[nX][nY].GroundItemList[nIndex] = CommonItem(0, 0);
+        }else{
+            return;
+        }
+    }
+}
+
+int ServerMap::DropItemListCount(int nX, int nY)
+{
+    if(GroundValid(nX, nY)){
+        int nCount = 0;
+        for(auto &rstCurrItem: m_CellRecordV2D[nX][nY].GroundItemList){
+            if(rstCurrItem){
+                nCount++;
+            }
+        }
+        return nCount;
+    }
+    return -1;
+}
+
+bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
+{
+    if(true
+            && rstItem
+            && GroundValid(nX, nY)){
+
+        // search for item id as 0
+        // find a slot to store the new item
+
+        auto nEmptyIndex = FindGroundItem(nX, nY, 0);
+        if(nEmptyIndex >= 0){
+            m_CellRecordV2D[nX][nY].GroundItemList[nEmptyIndex] = rstItem;
+
+            // report to all charobject around
+            // since there are one more drop item for each grid
+            // client / server side may have different drop item list
+
+            // not a big issue
+            // force they to contain the same set
+
+            AMShowDropItem stAMSDI;
+            stAMSDI.ID = rstItem.ID();
+            stAMSDI.X  = nX;
+            stAMSDI.Y  = nY;
+
+            auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
+            {
+                if(true || ValidC(nX, nY)){
+                    for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                        extern MonoServer *g_MonoServer;
+                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                            if(stUIDRecord.ClassFrom<Player>()){
+                                m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.Address);
+                            }
+                        }
+                    }
+                }
+                return false;
+            };
+
+            DoCircle(nX, nY, 10, fnNotifyDropItem);
+            return true;
+        }
+    }
+    return false;
 }

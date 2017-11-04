@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 10/06/2017 16:51:27
+ *  Last Modified: 11/03/2017 17:50:24
  *
  *    Description: 
  *
@@ -132,6 +132,16 @@ void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFrom
                 On_MPK_OFFLINE(rstMPK, rstFromAddr);
                 break;
             }
+        case MPK_REMOVEGROUNDITEM:
+            {
+                On_MPK_REMOVEGROUNDITEM(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_PICKUPOK:
+            {
+                On_MPK_PICKUPOK(rstMPK, rstFromAddr);
+                break;
+            }
         default:
             {
                 extern MonoServer *g_MonoServer;
@@ -147,6 +157,7 @@ void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         case CM_QUERYCORECORD   : Net_CM_QUERYCORECORD   (nType, pData, nDataLen); break;
         case CM_REQUESTSPACEMOVE: Net_CM_REQUESTSPACEMOVE(nType, pData, nDataLen); break;
         case CM_ACTION          : Net_CM_ACTION          (nType, pData, nDataLen); break;
+        case CM_PICKUP          : Net_CM_PICKUP          (nType, pData, nDataLen); break;
         default                 :                                                  break;
     }
 }
@@ -673,4 +684,17 @@ bool Player::Offline()
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Offline with empty UID");
         }
     });
+}
+
+InvarData Player::GetInvarData() const
+{
+    InvarData stData;
+    stData.Player.DBID = DBID();
+    return stData;
+}
+
+bool Player::PostNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
+{
+    extern NetPodN *g_NetPodN;
+    return g_NetPodN->Send(SessionID(), nHC, pData, nDataLen);
 }

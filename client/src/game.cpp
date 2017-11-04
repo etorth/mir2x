@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 10/06/2017 16:45:21
+ *  Last Modified: 11/03/2017 17:58:16
  *
  *    Description:
  *
@@ -205,6 +205,13 @@ void Game::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
                     pRun->Net_SHOWDROPITEM(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_PICKUPOK:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_PICKUPOK(pData, nDataLen);
                 }
                 break;
             }

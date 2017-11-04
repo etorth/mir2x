@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 10/06/2017 17:13:13
+ *  Last Modified: 10/31/2017 11:59:53
  *
  *    Description: 
  *
@@ -69,6 +69,9 @@ enum MessagePackType: int
     MPK_SHOWDROPITEM,
     MPK_NOTIFYDEAD,
     MPK_OFFLINE,
+    MPK_PICKUP,
+    MPK_PICKUPOK,
+    MPK_REMOVEGROUNDITEM,
 };
 
 struct AMBadActorPod
@@ -446,4 +449,33 @@ struct AMOffline
 
     int X;
     int Y;
+};
+
+struct AMPickUp
+{
+    uint32_t UID;
+    uint32_t DBID;
+    uint32_t ItemID;
+
+    int X;
+    int Y;
+};
+
+struct AMPickUpOK
+{
+    uint32_t UID;
+    uint32_t DBID;
+    uint32_t ItemID;
+
+    int X;
+    int Y;
+};
+
+struct AMRemoveGroundItem
+{
+    int X;
+    int Y;
+
+    uint32_t DBID;
+    uint32_t ItemID;
 };

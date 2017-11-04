@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 10/06/2017 17:56:35
+ *  Last Modified: 10/31/2017 12:04:31
  *
  *    Description: 
  *
@@ -323,4 +323,32 @@ void Player::On_MPK_OFFLINE(const MessagePack &rstMPK, const Theron::Address &)
     std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));
 
     ReportOffline(stAMO.UID, stAMO.MapID);
+}
+
+void Player::On_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMRemoveGroundItem stAMRGI;
+    std::memcpy(&stAMRGI, rstMPK.Data(), sizeof(stAMRGI));
+
+    SMRemoveGroundItem stSMRGI;
+    stSMRGI.X      = stAMRGI.X;
+    stSMRGI.Y      = stAMRGI.Y;
+    stSMRGI.DBID   = stAMRGI.DBID;
+    stSMRGI.ItemID = stAMRGI.ItemID;
+
+    PostNetMessage(SM_REMOVEGROUNDITEM, stSMRGI);
+}
+
+void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMPickUpOK stAMPUOK;
+    std::memcpy(&stAMPUOK, rstMPK.Data(), sizeof(stAMPUOK));
+
+    SMPickUpOK stSMPUOK;
+    stSMPUOK.X      = stAMPUOK.X;
+    stSMPUOK.Y      = stAMPUOK.Y;
+    stSMPUOK.DBID   = stAMPUOK.DBID;
+    stSMPUOK.ItemID = stAMPUOK.ItemID;
+
+    PostNetMessage(SM_PICKUPOK, stSMPUOK);
 }

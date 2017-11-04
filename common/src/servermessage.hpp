@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 10/06/2017 00:11:52
+ *  Last Modified: 10/31/2017 14:22:27
  *
  *    Description: net message used by client and mono-server
  *
@@ -38,6 +38,8 @@ enum: uint8_t
     SM_FIREMAGIC,
     SM_SPACEMOVE,
     SM_OFFLINE,
+    SM_REMOVEGROUNDITEM,
+    SM_PICKUPOK
 };
 
 #pragma pack(push, 1)
@@ -179,6 +181,22 @@ struct SMOffline
     uint32_t MapID;
 };
 
+struct SMRemoveGroundItem
+{
+    uint16_t X;
+    uint16_t Y;
+    uint32_t DBID;
+    uint32_t ItemID;
+};
+
+struct SMPickUpOK
+{
+    uint16_t X;
+    uint16_t Y;
+    uint32_t DBID;
+    uint32_t ItemID;
+};
+
 #pragma pack(pop)
 
 class SMSGParam: public MessageBase
@@ -198,18 +216,20 @@ class SMSGParam: public MessageBase
                 //  2    : not empty,     fixed size, not compressed
                 //  3    : not empty, not fixed size, not compressed
 
-                {SM_NONE,         {0, 0,                      "SM_NONE"        }},
-                {SM_PING,         {2, sizeof(SMPing),         "SM_PING"        }},
-                {SM_LOGINOK,      {1, sizeof(SMLoginOK),      "SM_LOGINOK"     }},
-                {SM_LOGINFAIL,    {2, sizeof(SMLoginFail),    "SM_LOGINFAIL"   }},
-                {SM_ACTION,       {1, sizeof(SMAction),       "SM_ACTION"      }},
-                {SM_CORECORD,     {1, sizeof(SMCORecord),     "SM_CORECORD"    }},
-                {SM_UPDATEHP,     {1, sizeof(SMUpdateHP),     "SM_UPDATEHP"    }},
-                {SM_DEADFADEOUT,  {1, sizeof(SMDeadFadeOut),  "SM_DEADFADEOUT" }},
-                {SM_EXP,          {1, sizeof(SMExp),          "SM_EXP"         }},
-                {SM_SHOWDROPITEM, {1, sizeof(SMShowDropItem), "SM_SHOWDROPITEM"}},
-                {SM_FIREMAGIC,    {1, sizeof(SMFireMagic),    "SM_FIREMAGIC"   }},
-                {SM_OFFLINE,      {1, sizeof(SMOffline),      "SM_OFFLINE"     }},
+                {SM_NONE,             {0, 0,                               "SM_NONE"            }},
+                {SM_PING,             {2, sizeof(SMPing),                  "SM_PING"            }},
+                {SM_LOGINOK,          {1, sizeof(SMLoginOK),               "SM_LOGINOK"         }},
+                {SM_LOGINFAIL,        {2, sizeof(SMLoginFail),             "SM_LOGINFAIL"       }},
+                {SM_ACTION,           {1, sizeof(SMAction),                "SM_ACTION"          }},
+                {SM_CORECORD,         {1, sizeof(SMCORecord),              "SM_CORECORD"        }},
+                {SM_UPDATEHP,         {1, sizeof(SMUpdateHP),              "SM_UPDATEHP"        }},
+                {SM_DEADFADEOUT,      {1, sizeof(SMDeadFadeOut),           "SM_DEADFADEOUT"     }},
+                {SM_EXP,              {1, sizeof(SMExp),                   "SM_EXP"             }},
+                {SM_SHOWDROPITEM,     {1, sizeof(SMShowDropItem),          "SM_SHOWDROPITEM"    }},
+                {SM_FIREMAGIC,        {1, sizeof(SMFireMagic),             "SM_FIREMAGIC"       }},
+                {SM_OFFLINE,          {1, sizeof(SMOffline),               "SM_OFFLINE"         }},
+                {SM_PICKUPOK,         {1, sizeof(SMPickUpOK),              "SM_PICKUPOK"        }},
+                {SM_REMOVEGROUNDITEM, {1, sizeof(SMRemoveGroundItem),      "SM_REMOVEGROUNDITEM"}},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(SM_NONE) : nHC);
