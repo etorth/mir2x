@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 10/31/2017 17:22:46
+ *  Last Modified: 11/03/2017 19:06:30
  *
  *    Description: 
  *
@@ -93,6 +93,13 @@ class MyHero: public Hero
         const std::vector<uint32_t> &GetInventory() const
         {
             return m_Inventory;
+        }
+
+        void AddInventory(uint32_t nItemID)
+        {
+            if(nItemID){
+                m_Inventory.push_back(nItemID);
+            }
         }
 
     public:

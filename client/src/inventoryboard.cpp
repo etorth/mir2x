@@ -3,7 +3,7 @@
  *
  *       Filename: inventoryboard.cpp
  *        Created: 10/08/2017 19:22:30
- *  Last Modified: 10/13/2017 00:59:43
+ *  Last Modified: 11/06/2017 16:02:57
  *
  *    Description: 
  *
@@ -58,8 +58,38 @@ void InventoryBoard::DrawEx(int nDstX, int nDstY, int, int, int, int)
         g_SDLDevice->DrawTexture(pTexture, nDstX, nDstY);
     }
 
+    auto fnDrawItem = [this](uint32_t nItem, int nDrawX, int nDrawY, int nDrawW, int nDrawH)
+    {
+
+        extern PNGTexDBN *g_CommonItemDBN;
+        if(auto pTexture = g_CommonItemDBN->Retrieve(nItem)){
+            int nW = -1;
+            int nH = -1;
+            if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
+                extern SDLDevice *g_SDLDevice;
+                g_SDLDevice->DrawTexture(pTexture, nDrawX + (nDrawW - nW) / 2, nDrawY + (nDrawH - nH) / 2);
+            }
+        }
+    };
+
     if(auto pMyHero = m_ProcessRun->GetMyHero()){
+        // 1. draw gold
         m_GoldBoard.SetText("%d", pMyHero->GetGold());
+
+        // 2. draw items
+        auto &rstInvList = pMyHero->GetInventory();
+        for(auto nItemID: rstInvList){
+            if(nItemID){
+                int nInvGridX = 18;
+                int nInvGridY = 59;
+                int nInvGridW = 37;
+                int nInvGridH = 37;
+
+                int nOffX = nDstX + nInvGridX;
+                int nOffY = nDstY + nInvGridY;
+                fnDrawItem(nItemID, nOffX, nOffY, nInvGridW, nInvGridH);
+            }
+        }
     }
 
     m_GoldBoard.Draw();
