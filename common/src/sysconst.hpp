@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 10/02/2017 23:30:37
+ *  Last Modified: 11/09/2017 22:58:40
  *
  *    Description: 
  *
@@ -52,3 +52,7 @@ const int SYS_MAXDROPITEMGRID = 100;
 const int SYS_MINSPEED =  20;
 const int SYS_DEFSPEED = 100;
 const int SYS_MAXSPEED = 500;
+
+const int SYS_INVGRIDW   = 6;
+const int SYS_INVGRIDPW  = 37;
+const int SYS_INVGRIDPH  = 37;
