@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 11/03/2017 19:06:30
+ *  Last Modified: 11/11/2017 23:39:54
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #pragma once
 #include "hero.hpp"
+#include "invpack.hpp"
 #include "actionnode.hpp"
 
 class MyHero: public Hero
@@ -28,7 +29,7 @@ class MyHero: public Hero
         uint32_t m_Gold;
 
     private:
-        std::vector<uint32_t> m_Inventory;
+        InvPack m_InvPack;
 
     private:
         std::deque<ActionNode> m_ActionQueue;
@@ -90,16 +91,9 @@ class MyHero: public Hero
         }
 
     public:
-        const std::vector<uint32_t> &GetInventory() const
+        InvPack &GetInvPack()
         {
-            return m_Inventory;
-        }
-
-        void AddInventory(uint32_t nItemID)
-        {
-            if(nItemID){
-                m_Inventory.push_back(nItemID);
-            }
+            return m_InvPack;
         }
 
     public:

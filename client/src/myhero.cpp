@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 11/02/2017 10:08:19
+ *  Last Modified: 11/11/2017 23:41:04
  *
  *    Description: 
  *
@@ -29,7 +29,7 @@
 MyHero::MyHero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, ProcessRun *pRun, const ActionNode &rstAction)
 	: Hero(nUID, nDBID, bMale, nDressID, pRun, rstAction)
     , m_Gold(0)
-    , m_Inventory()
+    , m_InvPack()
     , m_ActionQueue()
 {}
 

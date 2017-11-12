@@ -3,12 +3,9 @@
  *
  *       Filename: pack2d.hpp
  *        Created: 11/07/2017 23:30:43
- *  Last Modified: 11/10/2017 10:02:28
+ *  Last Modified: 11/11/2017 23:21:33
  *
- *    Description: algorithm used by inventory
- *                 for inventory we have limited width but unlimited height
- *
- *                 maintain a 2D mask to take care of valid grids
+ *    Description: maintain a 2D mask to take care of valid grids
  *                 if one grid is taken then mask it as 1
  *
  *                 so for 2X2 masked grid
@@ -47,6 +44,11 @@ struct PackBin
         , W(nW)
         , H(nH)
     {}
+
+    operator bool () const
+    {
+        return ID != 0;
+    }
 };
 
 class Pack2D
@@ -70,7 +72,7 @@ class Pack2D
         }
 
     public:
-        Pack2D(size_t nW = (size_t)(SYS_INVGRIDW))
+        Pack2D(size_t nW)
             : m_W(nW)
         {
             condcheck(m_W < sizeof(decltype(m_PackMap)::value_type) * 8);
@@ -88,6 +90,9 @@ class Pack2D
 
     private:
         int FindRoom(PackBin *);
+
+    public:
+        int Put(int, int, int, int);
 
     public:
         int Add(PackBin *, size_t = 1);

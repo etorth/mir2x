@@ -3,7 +3,7 @@
  *
  *       Filename: pack2d.cpp
  *        Created: 11/07/2017 23:35:04
- *  Last Modified: 11/10/2017 11:00:17
+ *  Last Modified: 11/11/2017 23:47:26
  *
  *    Description: 
  *
@@ -178,6 +178,24 @@ int Pack2D::Pack(std::vector<PackBin> *pBinList)
         }
     }
     return -1;
+}
+
+int Pack2D::Put(int nX, int nY, int nW, int nH)
+{
+    switch(Occupied(nX, nY, nW, nH, true)){
+        case 0:
+            {
+                return Occupy(nX, nY, nW, nH, true);
+            }
+        case 1:
+            {
+                return 0;
+            }
+        default:
+            {
+                return -1;
+            }
+    }
 }
 
 int Pack2D::Add(PackBin *pBinList, size_t nBinCnt)

@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 11/03/2017 19:07:16
+ *  Last Modified: 11/11/2017 23:40:25
  *
  *    Description: 
  *
@@ -295,6 +295,6 @@ void ProcessRun::Net_OFFLINE(const uint8_t *pBuf, size_t)
 void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
 {
     auto pMSG = (SMPickUpOK *)(pBuf);
-    m_MyHero->AddInventory(pMSG->ItemID);
+    m_MyHero->GetInvPack().Add(pMSG->ItemID);
     AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(pMSG->ItemID).Name, (int)(pMSG->X), (int)(pMSG->Y));
 }
