@@ -3,7 +3,7 @@
  *
  *       Filename: pack2d.cpp
  *        Created: 11/07/2017 23:35:04
- *  Last Modified: 11/11/2017 23:47:26
+ *  Last Modified: 11/13/2017 11:07:09
  *
  *    Description: 
  *
@@ -138,7 +138,7 @@ int Pack2D::FindRoom(PackBin *pBin)
 
         if(pBin->W <= (int)(W())){
             for(int nCurrY = 0; nCurrY <= (int)(m_PackMap.size()); ++nCurrY){
-                for(int nCurrX = 0; nCurrX < (int)(W()) - pBin->W; ++nCurrX){
+                for(int nCurrX = 0; nCurrX <= (int)(W()) - pBin->W; ++nCurrX){
                     switch(Occupied(nCurrX, nCurrY, pBin->W, pBin->H, true)){
                         case 0:
                             {
