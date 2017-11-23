@@ -18,7 +18,7 @@
  * =====================================================================================
  */
 #include <cinttypes>
-#include "netpod.hpp"
+#include "netdriver.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "threadpn.hpp"
@@ -175,8 +175,8 @@ bool Player::Bind(uint32_t nSessionID)
 {
     m_SessionID = nSessionID;
 
-    extern NetPodN *g_NetPodN;
-    g_NetPodN->Bind(SessionID(), GetAddress());
+    extern NetDriver *g_NetDriver;
+    g_NetDriver->Bind(SessionID(), GetAddress());
     return true;
 }
 
@@ -201,8 +201,8 @@ void Player::ReportCORecord(uint32_t nSessionID)
         stSMCOR.Player.JobID     = m_JobID;
         stSMCOR.Player.Level     = m_Level;
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(nSessionID, SM_CORECORD, stSMCOR);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(nSessionID, SM_CORECORD, stSMCOR);
     }else{
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
@@ -227,8 +227,8 @@ void Player::ReportStand()
         stSMAction.AimX        = X();
         stSMAction.AimY        = Y();
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(m_SessionID, SM_ACTION, stSMAction);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(m_SessionID, SM_ACTION, stSMAction);
     }
 }
 
@@ -256,8 +256,8 @@ void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)
         stSMA.AimY        = rstAction.AimY;
         stSMA.AimUID      = rstAction.AimUID;
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(SessionID(), SM_ACTION, stSMA);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(SessionID(), SM_ACTION, stSMA);
     }
 }
 
@@ -270,8 +270,8 @@ void Player::ReportMHP()
         stSMUHP.HP    = HP();
         stSMUHP.HPMax = HPMax();
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(SessionID(), SM_UPDATEHP, stSMUHP);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(SessionID(), SM_UPDATEHP, stSMUHP);
     }
 }
 
@@ -422,8 +422,8 @@ void Player::OnCMActionSpell(const ActionNode &rstAction)
                     // if delay in client then player can cheat
                     Delay(1400, [this, stSMFM]()
                     {
-                        extern NetPodN *g_NetPodN;
-                        g_NetPodN->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                        extern NetDriver *g_NetDriver;
+                        g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
                     });
                     break;
                 }
@@ -450,8 +450,8 @@ void Player::OnCMActionSpell(const ActionNode &rstAction)
                     // if delay in client then player can cheat
                     Delay(800, [this, stSMFM]()
                     {
-                        extern NetPodN *g_NetPodN;
-                        g_NetPodN->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                        extern NetDriver *g_NetDriver;
+                        g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
                     });
                     break;
                 }
@@ -482,8 +482,8 @@ void Player::OnCMActionSpell(const ActionNode &rstAction)
                     {
                         AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
 
-                        extern NetPodN *g_NetPodN;
-                        g_NetPodN->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                        extern NetDriver *g_NetDriver;
+                        g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
                     });
                     break;
                 }
@@ -659,8 +659,8 @@ void Player::ReportOffline(uint32_t nUID, uint32_t nMapID)
         stSMO.UID   = nUID;
         stSMO.MapID = nMapID;
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(SessionID(), SM_OFFLINE, stSMO);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(SessionID(), SM_OFFLINE, stSMO);
     }
 }
 
@@ -695,6 +695,6 @@ InvarData Player::GetInvarData() const
 
 bool Player::PostNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
-    extern NetPodN *g_NetPodN;
-    return g_NetPodN->Send(SessionID(), nHC, pData, nDataLen);
+    extern NetDriver *g_NetDriver;
+    return g_NetDriver->Send(SessionID(), nHC, pData, nDataLen);
 }

@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: netpod.cpp
+ *       Filename: netdriver.cpp
  *        Created: 06/25/2017 12:05:00
  *  Last Modified: 10/04/2017 16:46:57
  *
@@ -18,11 +18,11 @@
  * =====================================================================================
  */
 
-#include "netpod.hpp"
+#include "netdriver.hpp"
 #include "sysconst.hpp"
 #include "monoserver.hpp"
 
-NetPodN::NetPodN()
+NetDriver::NetDriver()
     : SyncDriver()
     , m_Port(0)
     , m_IO(nullptr)
@@ -34,7 +34,7 @@ NetPodN::NetPodN()
     , m_ValidQ()
 {}
 
-NetPodN::~NetPodN()
+NetDriver::~NetDriver()
 {
     Shutdown(0);
 
@@ -44,7 +44,7 @@ NetPodN::~NetPodN()
     delete m_IO;
 }
 
-bool NetPodN::CheckPort(uint32_t nPort)
+bool NetDriver::CheckPort(uint32_t nPort)
 {
     if(nPort <= 1024){
         extern MonoServer *g_MonoServer;
@@ -60,7 +60,7 @@ bool NetPodN::CheckPort(uint32_t nPort)
 }
 
 // TODO stop io before we restart it
-bool NetPodN::InitASIO(uint32_t nPort)
+bool NetDriver::InitASIO(uint32_t nPort)
 {
     // 1. set server listen port
 
@@ -91,7 +91,7 @@ bool NetPodN::InitASIO(uint32_t nPort)
     return true;
 }
 
-int NetPodN::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
+int NetDriver::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
 {
     // 1. check parameter
     if(!CheckPort(nPort) || rstSCAddr == Theron::Address::Null()){ return 1; }
@@ -124,7 +124,7 @@ int NetPodN::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
     return 0;
 }
 
-bool NetPodN::Activate(uint32_t nSessionID, const Theron::Address &rstTargetAddress)
+bool NetDriver::Activate(uint32_t nSessionID, const Theron::Address &rstTargetAddress)
 {
     if(nSessionID && nSessionID < (uint32_t)(std::extent<decltype(m_ChannelList)>::value)){
         if(rstTargetAddress == m_SCAddress){
@@ -138,7 +138,7 @@ bool NetPodN::Activate(uint32_t nSessionID, const Theron::Address &rstTargetAddr
     return false;
 }
 
-void NetPodN::Accept()
+void NetDriver::Accept()
 {
     auto fnAccept = [this](std::error_code stEC)
     {

@@ -21,7 +21,7 @@
 #include <cinttypes>
 #include "player.hpp"
 #include "motion.hpp"
-#include "netpod.hpp"
+#include "netdriver.hpp"
 #include "dbconst.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
@@ -485,8 +485,8 @@ void Monster::ReportCORecord(uint32_t nSessionID)
         // 3. set specified info
         stSMCOR.Monster.MonsterID = m_MonsterID;
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(nSessionID, SM_CORECORD, stSMCOR);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(nSessionID, SM_CORECORD, stSMCOR);
     }else{
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");

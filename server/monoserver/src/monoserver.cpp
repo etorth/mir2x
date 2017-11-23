@@ -272,11 +272,11 @@ void MonoServer::CreateServiceCore()
 
 void MonoServer::StartNetwork()
 {
-    extern NetPodN *g_NetPodN;
+    extern NetDriver *g_NetDriver;
     extern ServerConfigureWindow *g_ServerConfigureWindow;
 
     uint32_t nPort = g_ServerConfigureWindow->Port();
-    if(g_NetPodN->Launch(nPort, m_ServiceCore->GetAddress())){
+    if(g_NetDriver->Launch(nPort, m_ServiceCore->GetAddress())){
         AddLog(LOGTYPE_FATAL, "Failed to launch the network");
         Restart();
     }

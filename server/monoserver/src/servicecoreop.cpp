@@ -52,8 +52,8 @@ void ServiceCore::On_MPK_NEWCONNECTION(const MessagePack &rstMPK, const Theron::
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_INFO, "Service core get informed for new connection: %d", (int)(stAMNC.SessionID));
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Activate(stAMNC.SessionID, GetAddress());
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Activate(stAMNC.SessionID, GetAddress());
     }
 }
 
@@ -104,8 +104,8 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_INFO, "Login failed for (%d, %d, %d)", stAMLQDB.MapID, stAMLQDB.MapX, stAMLQDB.MapY);
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(stAMLQDB.SessionID, SM_LOGINFAIL, [nSID = stAMLQDB.SessionID](){g_NetPodN->Shutdown(nSID);});
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(stAMLQDB.SessionID, SM_LOGINFAIL, [nSID = stAMLQDB.SessionID](){g_NetDriver->Shutdown(nSID);});
     };
 
     if(stAMLQDB.MapID){
@@ -335,6 +335,6 @@ void ServiceCore::On_MPK_BADSESSION(const MessagePack &rstMPK, const Theron::Add
     AMBadSession stAMBS;
     std::memcpy(&stAMBS, rstMPK.Data(), sizeof(stAMBS));
 
-    extern NetPodN *g_NetPodN;
-    g_NetPodN->Shutdown(stAMBS.SessionID);
+    extern NetDriver *g_NetDriver;
+    g_NetDriver->Shutdown(stAMBS.SessionID);
 }

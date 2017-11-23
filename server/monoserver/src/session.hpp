@@ -34,7 +34,7 @@
  *                          asio::async_read(..., [this](){ ... });
  *
  *                    then registered handler will refer to *this* in asio main loop thread, but at
- *                    the same time we may call NetPodN::Shutdown(SessionID) to release one session
+ *                    the same time we may call NetDriver::Shutdown(SessionID) to release one session
  *                    so this is releasing in server's actor threads.
  *
  *                    should be very careful of it since if we shutdown a session but asio loop thread
@@ -43,7 +43,7 @@
  *                    // in player actor thread
  *                    // player actor is sending PING every 1s
  *
- *                          g_NetPodN->Send(SessonID, SM_PING);
+ *                          g_NetDriver->Send(SessonID, SM_PING);
  *
  *                    // which eventually calls
  *
@@ -55,7 +55,7 @@
  *                    // in service core thread
  *                    // the cored decide to kill the session because of some abnormals
  *
- *                          g_NetPodN->Shutdown(SessionID);
+ *                          g_NetDriver->Shutdown(SessionID);
  *
  *                    // which will do
  * 

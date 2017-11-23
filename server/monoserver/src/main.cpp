@@ -22,7 +22,7 @@
 
 #include "log.hpp"
 #include "dbpod.hpp"
-#include "netpod.hpp"
+#include "netdriver.hpp"
 #include "taskhub.hpp"
 #include "memorypn.hpp"
 #include "threadpn.hpp"
@@ -43,7 +43,7 @@ EventTaskHub             *g_EventTaskHub;
 Theron::EndPoint         *g_EndPoint;
 Theron::Framework        *g_Framework;
 ThreadPN                 *g_ThreadPN;
-NetPodN                  *g_NetPodN;
+NetDriver                  *g_NetDriver;
 DBPodN                   *g_DBPodN;
 
 MapBinDBN                *g_MapBinDBN;
@@ -76,7 +76,7 @@ int main()
     g_Framework               = new Theron::Framework(*g_EndPoint);
     g_ThreadPN                = new ThreadPN(4);
     g_DBPodN                  = new DBPodN();
-    g_NetPodN                 = new NetPodN();
+    g_NetDriver                 = new NetDriver();
 
     g_MainWindow->ShowAll();
 

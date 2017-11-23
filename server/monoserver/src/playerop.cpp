@@ -19,7 +19,7 @@
  */
 
 #include <cinttypes>
-#include "netpod.hpp"
+#include "netdriver.hpp"
 #include "player.hpp"
 #include "memorypn.hpp"
 #include "actorpod.hpp"
@@ -27,14 +27,14 @@
 
 void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
-    extern NetPodN *g_NetPodN;
+    extern NetDriver *g_NetDriver;
     extern MonoServer *g_MonoServer;
 
     Update();
 
     SMPing stSMP;
     stSMP.Tick = g_MonoServer->GetTimeTick();
-    g_NetPodN->Send(SessionID(), SM_PING, stSMP);
+    g_NetDriver->Send(SessionID(), SM_PING, stSMP);
 }
 
 void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address &)
@@ -52,8 +52,8 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     stSMLOK.JobID     = m_JobID;
     stSMLOK.Level     = m_Level;
 
-    extern NetPodN *g_NetPodN;
-    g_NetPodN->Send(SessionID(), SM_LOGINOK, stSMLOK);
+    extern NetDriver *g_NetDriver;
+    g_NetDriver->Send(SessionID(), SM_LOGINOK, stSMLOK);
 
     if(ActorPodValid() && m_Map->ActorPodValid()){
         AMPullCOInfo stAMPCOI;
@@ -258,8 +258,8 @@ void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)
         stSMUHP.HP    = stAMUHP.HP;
         stSMUHP.HPMax = stAMUHP.HPMax;
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(SessionID(), SM_UPDATEHP, stSMUHP);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(SessionID(), SM_UPDATEHP, stSMUHP);
     }
 }
 
@@ -275,8 +275,8 @@ void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Address
         stSMDFO.X     = stAMDFO.X;
         stSMDFO.Y     = stAMDFO.Y;
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(SessionID(), SM_DEADFADEOUT, stSMDFO);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(SessionID(), SM_DEADFADEOUT, stSMDFO);
     }
 }
 
@@ -289,8 +289,8 @@ void Player::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
         SMExp stSME;
         stSME.Exp = stAME.Exp;
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(SessionID(), SM_EXP, stSME);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(SessionID(), SM_EXP, stSME);
     }
 }
 
@@ -304,8 +304,8 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK, const Theron::Addres
     stSMSDI.X  = stAMSDI.X;
     stSMSDI.Y  = stAMSDI.Y;
 
-    extern NetPodN *g_NetPodN;
-    g_NetPodN->Send(SessionID(), SM_SHOWDROPITEM, stSMSDI);
+    extern NetDriver *g_NetDriver;
+    g_NetDriver->Send(SessionID(), SM_SHOWDROPITEM, stSMSDI);
 }
 
 void Player::On_MPK_BADSESSION(const MessagePack &rstMPK, const Theron::Address &)
