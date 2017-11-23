@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 10/31/2017 12:04:31
+ *  Last Modified: 11/22/2017 17:34:38
  *
  *    Description: 
  *
@@ -39,7 +39,9 @@ void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 
 void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address &)
 {
-    Bind(*((uint32_t *)rstMPK.Data()));
+    AMBadSession stAMBS;
+    std::memcpy(&stAMBS, rstMPK.Data(), sizeof(stAMBS));
+    Bind(stAMBS.SessionID);
 
     SMLoginOK stSMLOK;
     stSMLOK.UID       = UID();
