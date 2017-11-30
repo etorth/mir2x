@@ -3,7 +3,7 @@
  *
  *       Filename: channel.hpp
  *        Created: 10/04/2017 12:36:13
- *  Last Modified: 10/08/2017 02:08:16
+ *  Last Modified: 11/23/2017 00:59:14
  *
  *    Description: 
  *
@@ -124,7 +124,7 @@ class Channel final
                             // channl is ready but no in use
                             // the session pointer should be initialized
 
-                            // bug here
+                            // previous bug here
                             // idle state means no one is posting to the queue
                             // but the session may be working on already existing requests
 

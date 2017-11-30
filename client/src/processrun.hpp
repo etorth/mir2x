@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 11/03/2017 17:57:29
+ *  Last Modified: 11/29/2017 12:40:03
  *
  *    Description: 
  *
@@ -142,7 +142,7 @@ class ProcessRun: public Process
         virtual void ProcessEvent(const SDL_Event &);
 
     public:
-        bool LocatePoint(int, int, int *, int *);
+        bool ScreenPoint2Grid(int, int, int *, int *);
 
     public:
         bool OnMap(uint32_t, int, int) const;

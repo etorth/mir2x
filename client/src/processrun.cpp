@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 11/03/2017 17:42:38
+ *  Last Modified: 11/29/2017 14:40:50
  *
  *    Description: 
  *
@@ -555,12 +555,20 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONDOWN:
             {
+                int nMouseGridX = -1;
+                int nMouseGridY = -1;
+                ScreenPoint2Grid(rstEvent.button.x, rstEvent.button.y, &nMouseGridY, &nMouseGridY);
+
                 switch(rstEvent.button.button){
                     case SDL_BUTTON_LEFT:
                         {
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
                                 m_FocusUIDV[FOCUS_ATTACK] = nUID;
                                 TrackAttack(true, nUID);
+                            }else if(auto nFirstItem = GetGroundItem(nMouseGridX, nMouseGridY)){
+                                if(!GetGroundItemList(nMouseGridX, nMouseGridY).empty()){
+                                    m_MyHero->ParseLocalAction(ActionPickUp(nMouseGridX, nMouseGridY, nFirstItem, MapID()));
+                                }
                             }
                             break;
                         }
@@ -582,7 +590,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                 int nX = -1;
                                 int nY = -1;
                                 if(true
-                                        && LocatePoint(rstEvent.button.x, rstEvent.button.y, &nX, &nY)
+                                        && ScreenPoint2Grid(rstEvent.button.x, rstEvent.button.y, &nX, &nY)
                                         && LDistance2(m_MyHero->CurrMotion().EndX, m_MyHero->CurrMotion().EndY, nX, nY)){
 
                                     // we get a valid dst to go
@@ -850,7 +858,7 @@ double ProcessRun::MoveCost(bool bCheckCreature, int nX0, int nY0, int nX1, int 
     return fMoveCost;
 }
 
-bool ProcessRun::LocatePoint(int nPX, int nPY, int *pX, int *pY)
+bool ProcessRun::ScreenPoint2Grid(int nPX, int nPY, int *pX, int *pY)
 {
     if(pX){ *pX = (nPX + m_ViewX) / SYS_MAPGRIDXP; }
     if(pY){ *pY = (nPY + m_ViewY) / SYS_MAPGRIDYP; }

@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 11/11/2017 23:41:04
+ *  Last Modified: 11/29/2017 16:22:38
  *
  *    Description: 
  *
@@ -151,8 +151,8 @@ bool MyHero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
 
 bool MyHero::DecompMove(bool bCheckGround, bool bCheckCreature, bool bCheckMove, int nX0, int nY0, int nX1, int nY1, int *pXm, int *pYm)
 {
-    auto stPathNodeV = ParseMovePath(nX0, nY0, nX1, nY1, bCheckGround, bCheckCreature);
-    switch(stPathNodeV.size()){
+    auto stvPathNode = ParseMovePath(nX0, nY0, nX1, nY1, bCheckGround, bCheckCreature);
+    switch(stvPathNode.size()){
         case 0:
         case 1:
             {
@@ -165,8 +165,8 @@ bool MyHero::DecompMove(bool bCheckGround, bool bCheckCreature, bool bCheckMove,
                     // request to check if the first step is possible
                     // to avoid creature to move into invalid or occupied grids
 
-                    auto nXt = stPathNodeV[1].X;
-                    auto nYt = stPathNodeV[1].Y;
+                    auto nXt = stvPathNode[1].X;
+                    auto nYt = stvPathNode[1].Y;
 
                     int nDX = (nXt > nX0) - (nXt < nX0);
                     int nDY = (nYt > nY0) - (nYt < nY0);
@@ -235,8 +235,8 @@ bool MyHero::DecompMove(bool bCheckGround, bool bCheckCreature, bool bCheckMove,
                     // 1. could contain invalid grids if not set bCheckGround
                     // 2. could contain occuped grids if not set bCheckCreature
 
-                    if(pXm){ *pXm = stPathNodeV[1].X; }
-                    if(pYm){ *pYm = stPathNodeV[1].Y; }
+                    if(pXm){ *pXm = stvPathNode[1].X; }
+                    if(pYm){ *pYm = stvPathNode[1].Y; }
 
                     return true;
                 }
@@ -244,19 +244,80 @@ bool MyHero::DecompMove(bool bCheckGround, bool bCheckCreature, bool bCheckMove,
     }
 }
 
-bool MyHero::ParseActionMove()
+bool MyHero::DecompActionPickUp()
+{
+    if(true
+            && !m_ActionQueue.empty()
+            &&  m_ActionQueue.front().Action == ACTION_PICKUP){
+
+        auto stCurrPickUp = m_ActionQueue.front().PickUp;
+        m_ActionQueue.pop_front();
+
+        int nX0 = X();
+        int nY0 = Y();
+        int nX1 = stCurrPickUp.AimX;
+        int nY1 = stCurrPickUp.AimY;
+
+        if(!m_ProcessRun->CanMove(false, nX0, nY0)){
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
+
+            m_ActionQueue.clear();
+            return false;
+        }
+
+        if(!m_ProcessRun->CanMove(false, nX1, nY1)){
+            extern Log *g_Log;
+            g_Log->AddLog(LOGTYPE_WARNING, "Pick up at an invalid grid (%d, %d)", nX1, nY1);
+
+            m_ActionQueue.clear();
+            return false;
+        }
+
+        switch(LDistance2(nX0, nY0, nX1, nY1)){
+            case 0:
+                {
+                    return true;
+                }
+            default:
+                {
+                    int nXm = -1;
+                    int nYm = -1;
+
+                    if(DecompMove(true, true, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
+                        m_ActionQueue.emplace_front(ActionMove(nXm, nYm, m_ProcessRun->MapID()));
+                        m_ActionQueue.emplace_front(stCurrPickUp);
+                        return true;
+                    }else{
+                        if(DecompMove(true, false, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
+                            // path occupied and we just wait...
+                            m_ActionQueue.emplace_front(stCurrPickUp);
+                            return true;
+                        }else{
+                            return false;
+                        }
+                    }
+
+                    break;
+                }
+        }
+    }
+    return false;
+}
+
+bool MyHero::DecompActionMove()
 {
     if(true
             && !m_ActionQueue.empty()
             &&  m_ActionQueue.front().Action == ACTION_MOVE){
 
-        auto stCurrAction = m_ActionQueue.front();
+        auto stCurrMove = m_ActionQueue.front().Move;
         m_ActionQueue.pop_front();
 
-        int nX0 = stCurrAction.X;
-        int nY0 = stCurrAction.Y;
-        int nX1 = stCurrAction.AimX;
-        int nY1 = stCurrAction.AimY;
+        int nX0 = X();
+        int nY0 = Y();
+        int nX1 = stCurrMove.AimX;
+        int nY1 = stCurrMove.AimY;
 
         if(!m_ProcessRun->CanMove(false, nX0, nY0)){
             extern Log *g_Log;
@@ -272,14 +333,17 @@ bool MyHero::ParseActionMove()
                     extern Log *g_Log;
                     g_Log->AddLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
 
+                    // I have to clear all pending actions
+                    // because if I return true the next step treats the front action as basic one
+
                     m_ActionQueue.clear();
                     return false;
                 }
             default:
                 {
                     bool bCheckGround = m_ProcessRun->CanMove(false, nX1, nY1);
-                    auto stPathNodeV  = ParseMovePath(nX0, nY0, nX1, nY1, bCheckGround, true);
-                    switch(stPathNodeV.size()){
+                    auto stvPathNode  = ParseMovePath(nX0, nY0, nX1, nY1, bCheckGround, true);
+                    switch(stvPathNode.size()){
                         case 0:
                         case 1:
                             {
@@ -294,8 +358,8 @@ bool MyHero::ParseActionMove()
                                 // need to check the first step it gives
                                 // to avoid hero to move into an invalid grid on the map
 
-                                auto nXm = stPathNodeV[1].X;
-                                auto nYm = stPathNodeV[1].Y;
+                                auto nXm = stvPathNode[1].X;
+                                auto nYm = stvPathNode[1].Y;
 
                                 int nDX = (nXm > nX0) - (nXm < nX0);
                                 int nDY = (nYm > nY0) - (nYm < nY0);
@@ -358,7 +422,7 @@ bool MyHero::ParseActionMove()
                                             m_ActionQueue.emplace_front(
                                                     ACTION_STAND,
                                                     0,
-                                                    stCurrAction.Speed,
+                                                    stCurrMove.Speed,
                                                     nDirV[nDY + 1][nDX + 1],
                                                     nX0,
                                                     nY0,
@@ -377,8 +441,8 @@ bool MyHero::ParseActionMove()
 
                                                 m_ActionQueue.emplace_front(
                                                         ACTION_MOVE,
-                                                        stCurrAction.ActionParam,
-                                                        stCurrAction.Speed,
+                                                        stCurrMove.ActionParam,
+                                                        stCurrMove.Speed,
                                                         DIR_NONE,
                                                         nXm,
                                                         nYm,
@@ -389,8 +453,8 @@ bool MyHero::ParseActionMove()
 
                                             m_ActionQueue.emplace_front(
                                                     ACTION_MOVE,
-                                                    stCurrAction.ActionParam,
-                                                    stCurrAction.Speed,
+                                                    stCurrMove.ActionParam,
+                                                    stCurrMove.Speed,
                                                     DIR_NONE,
                                                     nX0,
                                                     nY0,
@@ -567,14 +631,19 @@ bool MyHero::ParseActionQueue()
 
     // 1. decompose action into simple action if needed
     // 2. send the simple action to server for verification
-    // 3. at the same time present the actions
+    // 3. present the action simultaneously
 
-    // decompose the first action if complex
-    // make sure the first action is simple enough
     switch(m_ActionQueue.front().Action){
+        case ACTION_PICKUP:
+            {
+                if(!ParseActionPickUp()){
+                    return false;
+                }
+                break;
+            }
         case ACTION_MOVE:
             {
-                if(!ParseActionMove()){
+                if(!DecomActionMove()){
                     return false;
                 }
                 break;
@@ -663,6 +732,9 @@ void MyHero::PickUp()
     }
 }
 
-// bool MyHero::ScheduleAction()
-// {
-// }
+bool MyHero::ParseLocalAction(const ActionNode &rsAction)
+{
+    m_ActionQueue.clear();
+    m_ActionQueue.push_back(rstAction);
+    return true;
+}
