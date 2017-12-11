@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 11/29/2017 14:46:17
+ *  Last Modified: 12/08/2017 09:50:13
  *
  *    Description: 
  *
@@ -71,15 +71,10 @@ class MyHero: public Hero
         bool MoveNextMotion();
 
     protected:
-        bool ParseActionMove();
-        bool ParseActionSpell();
-        bool ParseActionAttack();
-
-    public:
-        bool ParseNewAction(const ActionNode &, bool);
-
-    public:
-        virtual bool ParseLocalAction(const ActionNode &);
+        bool DecompActionMove();
+        bool DecompActionSpell();
+        bool DecompActionPickUp();
+        bool DecompActionAttack();
 
     public:
         bool ParseActionQueue();
@@ -101,4 +96,7 @@ class MyHero: public Hero
 
     public:
         void PickUp();
+
+    public:
+        bool EmplaceAction(const ActionNode &);
 };

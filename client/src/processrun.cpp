@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 11/29/2017 14:40:50
+ *  Last Modified: 12/10/2017 22:31:03
  *
  *    Description: 
  *
@@ -20,7 +20,6 @@
 
 #include <memory>
 #include <cstring>
-
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "mathfunc.hpp"
@@ -38,7 +37,7 @@ ProcessRun::ProcessRun()
     , m_MapID(0)
     , m_Mir2xMapData()
     , m_MyHero(nullptr)
-    , m_FocusUIDV()
+    , m_FocusTable()
     , m_ViewX(0)
     , m_ViewY(0)
     , m_RollMap(false)
@@ -67,7 +66,7 @@ ProcessRun::ProcessRun()
     , m_PointerTileInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_AscendStrRecord()
 {
-    m_FocusUIDV.fill(0);
+    m_FocusTable.fill(0);
     RegisterUserCommand();
 }
 
@@ -141,9 +140,9 @@ void ProcessRun::Update(double fUpdateTime)
         }
     }
 
-    if(auto pCreature = RetrieveUID(m_FocusUIDV[FOCUS_ATTACK])){
+    if(auto pCreature = RetrieveUID(m_FocusTable[FOCUS_ATTACK])){
         if(pCreature->StayDead()){
-            m_FocusUIDV[FOCUS_ATTACK] = 0;
+            m_FocusTable[FOCUS_ATTACK] = 0;
         }else{
             auto nX = pCreature->X();
             auto nY = pCreature->Y();
@@ -157,16 +156,16 @@ void ProcessRun::Update(double fUpdateTime)
                 m_AttackUIDX = nX;
                 m_AttackUIDY = nY;
             }
-            TrackAttack(bForce, m_FocusUIDV[FOCUS_ATTACK]);
+            TrackAttack(bForce, m_FocusTable[FOCUS_ATTACK]);
         }
     }else{
-        m_FocusUIDV[FOCUS_ATTACK] = 0;
+        m_FocusTable[FOCUS_ATTACK] = 0;
     }
 }
 
 uint32_t ProcessRun::FocusUID(int nFocusType)
 {
-    if(nFocusType < (int)(m_FocusUIDV.size())){
+    if(nFocusType < (int)(m_FocusTable.size())){
         switch(nFocusType){
             case FOCUS_NONE:
                 {
@@ -197,8 +196,8 @@ uint32_t ProcessRun::FocusUID(int nFocusType)
                     int nCheckPointX = nPointX + m_ViewX;
                     int nCheckPointY = nPointY + m_ViewY;
 
-                    if(fnCheckFocus(m_FocusUIDV[FOCUS_MOUSE], nCheckPointX, nCheckPointY)){
-                        return m_FocusUIDV[FOCUS_MOUSE];
+                    if(fnCheckFocus(m_FocusTable[FOCUS_MOUSE], nCheckPointX, nCheckPointY)){
+                        return m_FocusTable[FOCUS_MOUSE];
                     }
 
                     Creature *pFocus = nullptr;
@@ -214,12 +213,12 @@ uint32_t ProcessRun::FocusUID(int nFocusType)
                         }
                     }
 
-                    m_FocusUIDV[FOCUS_MOUSE] = pFocus ? pFocus->UID() : 0;
-                    return m_FocusUIDV[FOCUS_MOUSE];
+                    m_FocusTable[FOCUS_MOUSE] = pFocus ? pFocus->UID() : 0;
+                    return m_FocusTable[FOCUS_MOUSE];
                 }
             default:
                 {
-                    return m_FocusUIDV[nFocusType];
+                    return m_FocusTable[nFocusType];
                 }
         }
     }
@@ -563,11 +562,11 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                     case SDL_BUTTON_LEFT:
                         {
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
-                                m_FocusUIDV[FOCUS_ATTACK] = nUID;
+                                m_FocusTable[FOCUS_ATTACK] = nUID;
                                 TrackAttack(true, nUID);
-                            }else if(auto nFirstItem = GetGroundItem(nMouseGridX, nMouseGridY)){
-                                if(!GetGroundItemList(nMouseGridX, nMouseGridY).empty()){
-                                    m_MyHero->ParseLocalAction(ActionPickUp(nMouseGridX, nMouseGridY, nFirstItem, MapID()));
+                            }else if(auto stFirstItem = GetGroundItem(nMouseGridX, nMouseGridY)){
+                                if(GetGroundItem(nMouseGridX, nMouseGridY)){
+                                    m_MyHero->EmplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, stFirstItem.ID));
                                 }
                             }
                             break;
@@ -581,11 +580,11 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             // 4. if "+GOOD" client will release the motion lock
                             // 5. if "+FAIL" client will use the backup position and direction
 
-                            m_FocusUIDV[FOCUS_ATTACK] = 0;
-                            m_FocusUIDV[FOCUS_FOLLOW] = 0;
+                            m_FocusTable[FOCUS_ATTACK] = 0;
+                            m_FocusTable[FOCUS_FOLLOW] = 0;
 
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
-                                m_FocusUIDV[FOCUS_FOLLOW] = nUID;
+                                m_FocusTable[FOCUS_FOLLOW] = nUID;
                             }else{
                                 int nX = -1;
                                 int nY = -1;
@@ -596,16 +595,18 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                     // we get a valid dst to go
                                     // provide myHero with new move action command
 
-                                    m_MyHero->ParseNewAction({
-                                            ACTION_MOVE,
-                                            m_MyHero->OnHorse() ? 1 : 0,
-                                            100,
-                                            DIR_NONE,
-                                            m_MyHero->CurrMotion().EndX,
-                                            m_MyHero->CurrMotion().EndY,
-                                            nX,
-                                            nY,
-                                            MapID()}, false);
+                                    // when post move action don't use X() and Y()
+                                    // since if clicks during hero moving then X() may not equal to EndX
+
+                                    m_MyHero->EmplaceAction(ActionMove
+                                    {
+                                        m_MyHero->CurrMotion().EndX,    // don't use X()
+                                        m_MyHero->CurrMotion().EndY,    // don't use Y()
+                                        nX,
+                                        nY,
+                                        SYS_DEFSPEED,
+                                        m_MyHero->OnHorse() ? 1 : 0
+                                    });
                                 }
                             }
                             break;
@@ -631,32 +632,43 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                         }
                     case SDLK_ESCAPE:
                         {
-                            extern SDLDevice *g_SDLDevice;
-                            m_ViewX = std::max<int>(0, m_MyHero->X() - g_SDLDevice->WindowW(false) / 2 / SYS_MAPGRIDXP) * SYS_MAPGRIDXP;
-                            m_ViewY = std::max<int>(0, m_MyHero->Y() - g_SDLDevice->WindowH(false) / 2 / SYS_MAPGRIDYP) * SYS_MAPGRIDYP;
+                            CenterMyHero();
                             break;
                         }
                     case SDLK_t:
                         {
                             if(auto nMouseFocusUID = FocusUID(FOCUS_MOUSE)){
-                                m_FocusUIDV[FOCUS_MAGIC] = nMouseFocusUID;
+                                m_FocusTable[FOCUS_MAGIC] = nMouseFocusUID;
                             }else{
-                                if(!RetrieveUID(m_FocusUIDV[FOCUS_MAGIC])){
-                                    m_FocusUIDV[FOCUS_MAGIC] = 0;
+                                if(!RetrieveUID(m_FocusTable[FOCUS_MAGIC])){
+                                    m_FocusTable[FOCUS_MAGIC] = 0;
                                 }
                             }
 
-                            m_MyHero->ParseNewAction({
-                                    ACTION_SPELL,
+                            if(auto nFocusUID = FocusUID(FOCUS_MAGIC)){
+                                m_MyHero->EmplaceAction(ActionSpell
+                                {
+                                    m_MyHero->CurrMotion().EndX,
+                                    m_MyHero->CurrMotion().EndY,
+                                    nFocusUID,
                                     DBCOM_MAGICID(u8"雷电术"),
-                                    100,
-                                    m_MyHero->CurrMotion().Direction,
+                                });
+                            }else{
+                                int nAimX   = -1;
+                                int nAimY   = -1;
+                                int nMouseX = -1;
+                                int nMouseY = -1;
+                                SDL_GetMouseState(&nMouseX, &nMouseY);
+                                ScreenPoint2Grid(nMouseX, nMouseY, &nAimX, &nAimY);
+                                m_MyHero->EmplaceAction(ActionSpell
+                                {
                                     m_MyHero->CurrMotion().EndX,
                                     m_MyHero->CurrMotion().EndY,
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
-                                    FocusUID(FOCUS_MAGIC),
-                                    MapID()}, false);
+                                    nAimX,
+                                    nAimY,
+                                    DBCOM_MAGICID(u8"雷电术"),
+                                });
+                            }
                             break;
                         }
                     case SDLK_p:
@@ -666,32 +678,12 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                         }
                     case SDLK_y:
                         {
-                            m_MyHero->ParseNewAction({
-                                    ACTION_SPELL,
-                                    DBCOM_MAGICID(u8"魔法盾"),
-                                    100,
-                                    m_MyHero->CurrMotion().Direction,
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
-                                    m_MyHero->UID(),
-                                    MapID()}, false);
+                            m_MyHero->EmplaceAction(ActionSpell(m_MyHero->X(), m_MyHero->Y(), m_MyHero->UID(), DBCOM_MAGICID(u8"魔法盾")));
                             break;
                         }
                     case SDLK_u:
                         {
-                            m_MyHero->ParseNewAction({
-                                    ACTION_SPELL,
-                                    DBCOM_MAGICID(u8"召唤骷髅"),
-                                    100,
-                                    m_MyHero->CurrMotion().Direction,
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
-                                    m_MyHero->UID(),
-                                    MapID()}, false);
+                            m_MyHero->EmplaceAction(ActionSpell(m_MyHero->X(), m_MyHero->Y(), m_MyHero->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
                             break;
                         }
                     default:
@@ -1312,20 +1304,9 @@ bool ProcessRun::LocateUID(uint32_t nUID, int *pX, int *pY)
 
 bool ProcessRun::TrackAttack(bool bForce, uint32_t nUID)
 {
-    if(nUID){
-        if(auto pCreature = RetrieveUID(nUID)){
-            if(bForce || m_MyHero->StayIdle()){
-                return m_MyHero->ParseNewAction({
-                        ACTION_ATTACK,
-                        DC_PHY_PLAIN,
-                        100,
-                        DIR_NONE,
-                        m_MyHero->CurrMotion().EndX,
-                        m_MyHero->CurrMotion().EndY,
-                        pCreature->X(),
-                        pCreature->Y(),
-                        MapID()}, false);
-            }
+    if(RetrieveUID(nUID)){
+        if(bForce || m_MyHero->StayIdle()){
+            return m_MyHero->ParseAction(ActionAttack(DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
         }
     }
     return false;

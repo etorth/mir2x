@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 10/31/2017 11:59:53
+ *  Last Modified: 12/07/2017 15:29:41
  *
  *    Description: 
  *
@@ -220,8 +220,6 @@ struct AMAction
     uint32_t MapID;
 
     int Action;
-    int ActionParam;
-
     int Speed;
     int Direction;
 
@@ -230,6 +228,9 @@ struct AMAction
     
     int AimX;
     int AimY;
+
+    uint32_t AimUID;
+    uint32_t ActionParam;
 };
 
 struct AMPullCOInfo

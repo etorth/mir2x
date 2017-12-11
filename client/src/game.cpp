@@ -3,7 +3,7 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 11/03/2017 17:58:16
+ *  Last Modified: 12/09/2017 12:03:29
  *
  *    Description:
  *
@@ -39,6 +39,7 @@
 Game::Game()
     : m_ServerDelay( 0.00)
     , m_NetPackTick(-1.00)
+    , m_RequestProcess(PROCESSID_NONE)
     , m_CurrentProcess(nullptr)
 {
     InitView(10);
@@ -72,32 +73,41 @@ void Game::MainLoop()
     auto fLastUpdate = SDL_GetTicks() * 1.0;
     auto fLastLoop   = SDL_GetTicks() * 1.0;
 
-    while(m_CurrentProcess->ID() != PROCESSID_EXIT){
+    while(true){
+        SwitchProcess();
+        if(true
+                && m_CurrentProcess
+                && m_CurrentProcess->ID() != PROCESSID_EXIT){
 
-        if(m_NetPackTick > 0.0){
-            if(SDL_GetTicks() * 1.0 - m_NetPackTick > 15.0 * 1000){
-                // std::exit(0);
+            if(m_NetPackTick > 0.0){
+                if(SDL_GetTicks() * 1.0 - m_NetPackTick > 15.0 * 1000){
+                    // std::exit(0);
+                }
             }
+
+            auto fCurrUpdate = 1.0 * SDL_GetTicks();
+            if(fCurrUpdate - fLastUpdate > fDelayUpdate){
+                auto fPastUpdate = fCurrUpdate - fLastUpdate;
+                fLastUpdate = fCurrUpdate;
+                Update(fPastUpdate);
+            }
+
+            auto fCurrDraw = 1.0 * SDL_GetTicks();
+            if(fCurrDraw - fLastDraw > fDelayDraw){
+                fLastDraw = fCurrDraw;
+                Draw();
+            }
+
+            auto fCurrLoop = 1.0 * SDL_GetTicks();
+            auto fPastLoop = fCurrLoop - fLastLoop;
+
+            fLastLoop = fCurrLoop;
+            EventDelay(fDelayLoop - fPastLoop);
+        }else{
+            // need to exit
+            // jump to the invalid process
+            break;
         }
-
-        auto fCurrUpdate = 1.0 * SDL_GetTicks();
-        if(fCurrUpdate - fLastUpdate > fDelayUpdate){
-            auto fPastUpdate = fCurrUpdate - fLastUpdate;
-            fLastUpdate = fCurrUpdate;
-            Update(fPastUpdate);
-        }
-
-        auto fCurrDraw = 1.0 * SDL_GetTicks();
-        if(fCurrDraw - fLastDraw > fDelayDraw){
-            fLastDraw = fCurrDraw;
-            Draw();
-        }
-
-        auto fCurrLoop = 1.0 * SDL_GetTicks();
-        auto fPastLoop = fCurrLoop - fLastLoop;
-
-        fLastLoop = fCurrLoop;
-        EventDelay(fDelayLoop - fPastLoop);
     }
 }
 
@@ -264,9 +274,19 @@ void Game::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
     }
 }
 
+void Game::SwitchProcess()
+{
+    if(true
+            && m_RequestProcess > PROCESSID_NONE
+            && m_RequestProcess > PROCESSID_MAX){
+        SwitchProcess((m_CurrentProcess ? m_CurrentProcess->ID() : PROCESSID_NONE), m_RequestProcess);
+    }
+    m_RequestProcess = PROCESSID_NONE;
+}
+
 void Game::SwitchProcess(int nNewID)
 {
-    SwitchProcess((m_CurrentProcess ? m_CurrentProcess->ID() : PROCESSID_NULL), nNewID);
+    SwitchProcess((m_CurrentProcess ? m_CurrentProcess->ID() : PROCESSID_NONE), nNewID);
 }
 
 void Game::SwitchProcess(int nOldID, int nNewID)
@@ -276,7 +296,7 @@ void Game::SwitchProcess(int nOldID, int nNewID)
 
     switch(nOldID)
     {
-        case PROCESSID_NULL:
+        case PROCESSID_NONE:
             {
                 switch(nNewID)
                 {

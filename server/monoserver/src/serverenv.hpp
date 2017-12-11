@@ -3,7 +3,7 @@
  *
  *       Filename: serverenv.hpp
  *        Created: 05/12/2017 16:33:25
- *  Last Modified: 05/17/2017 12:04:29
+ *  Last Modified: 12/09/2017 13:21:10
  *
  *    Description: use environment to setup the runtime message report:
  *

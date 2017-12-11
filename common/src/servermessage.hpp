@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 10/31/2017 14:22:27
+ *  Last Modified: 12/07/2017 16:16:03
  *
  *    Description: net message used by client and mono-server
  *
@@ -74,7 +74,6 @@ struct SMAction
     uint32_t MapID;
 
     uint8_t Action;
-    uint8_t ActionParam;
     uint8_t Speed;
     uint8_t Direction;
 
@@ -82,7 +81,9 @@ struct SMAction
     uint16_t Y;
     uint16_t AimX;
     uint16_t AimY;
+
     uint32_t AimUID;
+    uint32_t ActionParam;
 };
 
 union SMCORecord

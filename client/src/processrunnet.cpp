@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 11/11/2017 23:40:25
+ *  Last Modified: 12/10/2017 23:20:24
  *
  *    Description: 
  *
@@ -39,16 +39,18 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         SMLoginOK stSMLOK;
         std::memcpy(&stSMLOK, pBuf, nLen);
 
-        LoadMap(stSMLOK.MapID);
-        m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.DBID, (bool)(stSMLOK.Male), 0, this, 
-                {
-                    ACTION_STAND,
-                    0,
-                    stSMLOK.Direction,
-                    stSMLOK.X,
-                    stSMLOK.Y,
-                    stSMLOK.MapID
-                });
+        uint32_t nUID     = stSMLOK.UID;
+        uint32_t nDBID    = stSMLOK.DBID;
+        bool     bGender  = stSMLOK.Male;
+        uint32_t nMapID   = stSMLOK.MapID;
+        uint32_t nDressID = 0;
+
+        int nX = stSMLOK.X;
+        int nY = stSMLOK.Y;
+        int nDirection = stSMLOK.Direction;
+
+        LoadMap(nMapID);
+        m_MyHero = new MyHero(nUID, nDBID, bGender, nDressID, this, ActionStand(nX, nY, nDirection));
 
         CenterMyHero();
         m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
@@ -63,7 +65,6 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
     ActionNode stAction
     {
         stSMA.Action,
-        stSMA.ActionParam,
         stSMA.Speed,
         stSMA.Direction,
         stSMA.X,
@@ -71,14 +72,14 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         stSMA.AimX,
         stSMA.AimY,
         stSMA.AimUID,
-        stSMA.MapID
+        stSMA.ActionParam,
     };
 
     if(stSMA.MapID == MapID()){
         if(auto pCreature = RetrieveUID(stSMA.UID)){
-            pCreature->ParseNewAction(stAction, true);
+            pCreature->ParseAction(stAction);
             switch(stAction.Action){
-                case ACTION_SPACEMOVE:
+                case ACTION_SPACEMOVE2:
                     {
                         if(stSMA.UID == m_MyHero->UID()){
                             CenterMyHero();
@@ -112,12 +113,15 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
             auto nDress     = m_MyHero->Dress();
             auto nDirection = m_MyHero->CurrMotion().Direction;
 
+            auto nX = stSMA.X;
+            auto nY = stSMA.Y;
+
             ClearCreature();
-            m_MyHero = new MyHero(nUID, nDBID, bGender, nDress, this, {ACTION_STAND, 0, nDirection, stSMA.X, stSMA.Y, stSMA.MapID});
+            m_MyHero = new MyHero(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
             m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
 
             CenterMyHero();
-            m_MyHero->ParseNewAction(stAction, true);
+            m_MyHero->ParseAction(stAction);
         }
     }
 }
@@ -131,14 +135,14 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
         ActionNode stAction
         {
             stSMCOR.Common.Action,
-            stSMCOR.Common.ActionParam,
             stSMCOR.Common.Speed,
             stSMCOR.Common.Direction,
             stSMCOR.Common.X,
             stSMCOR.Common.Y,
             stSMCOR.Common.EndX,
             stSMCOR.Common.EndY,
-            stSMCOR.Common.MapID,
+            0,
+            stSMCOR.Common.ActionParam,
         };
 
         auto pRecord = m_CreatureRecord.find(stSMCOR.Common.UID);
@@ -164,7 +168,7 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
             }
         }else{
             if(pRecord->second){
-                pRecord->second->ParseNewAction(stAction, true);
+                pRecord->second->ParseAction(stAction);
             }
         }
     }

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 10/03/2017 10:42:12
+ *  Last Modified: 12/10/2017 23:55:08
  *
  *    Description: 
  *
@@ -97,9 +97,13 @@ Theron::Address CharObject::Activate()
 {
     auto stAddress = ActiveObject::Activate();
     if(ActorPodValid()){
-        DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), MapID()});
+        DispatchAction(ActionStand(X(), Y(), Direction()));
     }
     return stAddress;
+}
+
+void CharObject::ReportAction(uint32_t, const ActionNode &)
+{
 }
 
 void CharObject::DispatchAction(const ActionNode &rstAction)
@@ -116,7 +120,6 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
         stAMA.MapID = MapID();
 
         stAMA.Action      = rstAction.Action;
-        stAMA.ActionParam = rstAction.ActionParam;
         stAMA.Speed       = rstAction.Speed;
         stAMA.Direction   = rstAction.Direction;
 
@@ -124,6 +127,9 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
         stAMA.Y    = rstAction.Y;
         stAMA.AimX = rstAction.AimX;
         stAMA.AimY = rstAction.AimY;
+
+        stAMA.AimUID      = rstAction.AimUID;
+        stAMA.ActionParam = rstAction.ActionParam;
 
         m_ActorPod->Forward({MPK_ACTION, stAMA}, m_Map->GetAddress());
         return;
@@ -133,144 +139,101 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
     g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch action: %p", &rstAction);
 }
 
-bool CharObject::RequestMove(int nMoveMode, int nX, int nY, bool bAllowHalfMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
+bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
-    int nStepLen = 0;
-    switch(nMoveMode){
-        case MOTION_WALK        : nStepLen = 1; break;
-        case MOTION_RUN         : nStepLen = 2; break;
-        case MOTION_ONHORSEWALK : nStepLen = 1; break;
-        case MOTION_ONHORSERUN  : nStepLen = 3; break;
-        case MOTION_MON_WALK    : nStepLen = 1; break;
-        default                 : return false;
-    }
-
-    auto nLD2 = LDistance2(nX, nY, X(), Y());
     if(true
-            && ((CanMove()))
-            && ((nLD2 == nStepLen * nStepLen) || (nLD2 == 2 * nStepLen * nStepLen))){
+            && CanMove()
+            && EstimateHop(nX, nY) == 1){
 
-        int nNewDir = PathFind::GetDirection(X(), Y(), nX, nY);
-        int nMostStep = OneStepReach(nNewDir, nStepLen, nullptr, nullptr);
-        if(false
-                || (nMostStep == nStepLen)
-                || (bAllowHalfMove && (nMostStep > 0))){
+        AMTryMove stAMTM;
+        std::memset(&stAMTM, 0, sizeof(stAMTM));
 
-            // OK we should try move
-            // move request will be anwsered asynchronously
-            // so record the location when move request sent for verification
-            AMTryMove stAMTM;
-            stAMTM.UID           = UID();
-            stAMTM.MapID         = MapID();
-            stAMTM.X             = X();
-            stAMTM.Y             = Y();
-            stAMTM.EndX          = nX;
-            stAMTM.EndY          = nY;
-            stAMTM.AllowHalfMove = bAllowHalfMove;
+        stAMTM.UID           = UID();
+        stAMTM.MapID         = MapID();
+        stAMTM.X             = X();
+        stAMTM.Y             = Y();
+        stAMTM.EndX          = nX;
+        stAMTM.EndY          = nY;
+        stAMTM.AllowHalfMove = bAllowHalfMove;
 
-            int nOrigX = X();
-            int nOrigY = Y();
+        auto fnOnResp = [this, nX, nY, nSpeed, bAllowHalfMove, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK, const Theron::Address &rstAddr)
+        {
+            if(!m_MoveLock){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before server responds: ClassName = %s", ClassName());
+                g_MonoServer->Restart();
+            }
 
-            // be careful of the situation that new client motion request comes
-            // but the server map is so busy that last motion request is even not handled yet
-            // then all client request would be rejected and force client to do pull-back before handled
+            // 1. release the move lock no matter what kind of message we get
+            m_MoveLock = false;
 
-            auto fnOP = [this, nMoveMode, nX, nY, nOrigX, nOrigY, nNewDir, bAllowHalfMove, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK, const Theron::Address &rstAddr)
-            {
-                if(!m_MoveLock){
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before server responds: ClassName = %s", ClassName());
-                    g_MonoServer->Restart();
-                }
+            // 2. handle move, CO may be dead
+            //    need to check if current CO can move
 
-                if(false
-                        || (X() != nOrigX)
-                        || (Y() != nOrigY)){
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Motion detected during MoveLock set: ClassName = %s", ClassName());
-                    g_MonoServer->Restart();
-                }
+            auto nDir = PathFind::GetDirection(X(), Y(), nX, nY);
+            switch(rstMPK.Type()){
+                case MPK_MOVEOK:
+                    {
+                        AMMoveOK stAMMOK;
+                        std::memcpy(&stAMMOK, rstMPK.Data(), sizeof(stAMMOK));
 
-                // 1. release the move lock no matter what kind of message we get
-                m_MoveLock = false;
+                        // since we may allow half move
+                        // then servermap permitted dst may not be (nX, nY)
 
-                // 2. handle move
-                //    need to check if current CO can move even we checked before
+                        if(true
+                                && CanMove()
+                                && m_Map->ValidC(stAMMOK.EndX, stAMMOK.EndY)){
 
-                switch(rstMPK.Type()){
-                    case MPK_MOVEOK:
-                        {
-                            AMMoveOK stAMMOK;
-                            std::memcpy(&stAMMOK, rstMPK.Data(), sizeof(stAMMOK));
+                            auto nOldX = m_X;
+                            auto nOldY = m_Y;
 
-                            bool bValidMove = false;
-                            if(false
-                                    || ((bAllowHalfMove))
-                                    || ((nX == stAMMOK.EndX) && (nY == stAMMOK.EndY))){
+                            m_X = stAMMOK.EndX;
+                            m_Y = stAMMOK.EndY;
 
-                                int nDX = std::abs<int>(X() - stAMMOK.EndX);
-                                int nDY = std::abs<int>(Y() - stAMMOK.EndY);
+                            m_Direction = nDir;
 
-                                int nNewX = -1;
-                                int nNewY = -1;
-
-                                if(true
-                                        && NextLocation(&nNewX, &nNewY, nNewDir, std::max<int>(nDX, nDY))
-                                        && (nNewX == stAMMOK.EndX)
-                                        && (nNewY == stAMMOK.EndY)){ bValidMove = true; }
-                            }
-
-                            if(true
-                                    && bValidMove
-                                    && CanMove()){
-
-                                m_X = nX;
-                                m_Y = nY;
-                                m_Direction = nNewDir;
-
-                                extern MonoServer *g_MonoServer;
-                                m_LastMoveTime = g_MonoServer->GetTimeTick();
-
-                                m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-                                DispatchAction({ACTION_MOVE, nMoveMode, Speed(SPEED_MOVE), Direction(), nOrigX, nOrigY, X(), Y(), MapID()});
-
-                                if(fnOnMoveOK){ fnOnMoveOK(); }
-                            }else{
-                                m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
-                                if(fnOnMoveError){ fnOnMoveError(); }
-                            }
-
-                            break;
-                        }
-                    case MPK_ERROR:
-                        {
-                            // should add a new function: CanTurn()
-                            // for stone state we can't even make a turn
-
-                            m_Direction = nNewDir;
-                            DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), MapID()});
-
-                            if(fnOnMoveError){ fnOnMoveError(); }
-                            break;
-                        }
-                    default:
-                        {
                             extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Unsupported response type for MPK_TRYMOVE: %s", rstMPK.Name());
-                            break;
-                        }
-                }
-            };
+                            m_LastMoveTime = g_MonoServer->GetTimeTick();
 
-            // send request and lock the co
-            // 1. shouldn't have motion
-            // 2. shouldn't release the lock
-            m_MoveLock = true;
-            return m_ActorPod->Forward({MPK_TRYMOVE, stAMTM}, m_Map->GetAddress(), fnOP);
-        }
+                            m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
+                            DispatchAction(ActionMove(nOldX, nOldY, X(), Y(), nSpeed, Horse()));
+
+                            if(fnOnMoveOK){
+                                fnOnMoveOK();
+                            }
+                        }else{
+                            m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
+                            if(fnOnMoveError){
+                                fnOnMoveError();
+                            }
+                        }
+
+                        break;
+                    }
+                case MPK_ERROR:
+                    {
+                        // should add a new function: CanTurn()
+                        // for stone state we can't even make a turn
+
+                        m_Direction = nDir;
+                        DispatchAction(ActionStand(X(), Y(), Direction()));
+
+                        if(fnOnMoveError){
+                            fnOnMoveError();
+                        }
+
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        };
+
+        m_MoveLock = true;
+        return m_ActorPod->Forward({MPK_TRYMOVE, stAMTM}, m_Map->GetAddress(), fnOnResp);
     }
-    // currently not
-    // should I call fnOnMoveError here ?
     return false;
 }
 
@@ -283,7 +246,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
         // lambda function to do space move
         // accept map actor address, can be current map or another map
 
-        auto fnCOSpaceMove = [this, nX, nY, nMapID, bStrictMove, fnOnMoveOK, fnOnMoveError](const Theron::Address &rstMapAddress) -> bool
+        auto fnCOSpaceMove = [this, nMapID, nX, nY, bStrictMove, fnOnMoveOK, fnOnMoveError](const Theron::Address &rstMapAddress) -> bool
         {
             AMTrySpaceMove stAMTSM;
             stAMTSM.UID        = UID();
@@ -336,29 +299,40 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                                                 std::memcpy(&stAMSMOK, rstRMPK.Data(), sizeof(stAMSMOK));
 
                                                 if(CanMove()){
+
+                                                    // 1. dispatch space move part 1 on old map
+                                                    DispatchAction(ActionSpaceMove1(X(), Y(), Direction()));
+
+                                                    // 2. setup new map
                                                     m_X   = nX;
                                                     m_Y   = nY;
                                                     m_Map = (ServerMap *)(stAMSMOK.Data);
 
                                                     extern MonoServer *g_MonoServer;
                                                     m_LastMoveTime = g_MonoServer->GetTimeTick();
-
                                                     m_ActorPod->Forward(MPK_OK, rstRAddress, rstRMPK.ID());
-                                                    DispatchSpaceMove();
 
-                                                    ReportSpaceMove();
+                                                    // 3. dispatch/report space move part 2 on new map
+                                                    DispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
+                                                    ReportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
 
-                                                    if(fnOnMoveOK){ fnOnMoveOK(); }
+                                                    if(fnOnMoveOK){
+                                                        fnOnMoveOK();
+                                                    }
                                                 }else{
                                                     m_ActorPod->Forward(MPK_ERROR, rstRAddress, rstRMPK.ID());
-                                                    if(fnOnMoveError){ fnOnMoveError(); }
+                                                    if(fnOnMoveError){
+                                                        fnOnMoveError();
+                                                    }
                                                 }
 
                                                 break;
                                             }
                                         default:
                                             {
-                                                if(fnOnMoveError){ fnOnMoveError(); }
+                                                if(fnOnMoveError){
+                                                    fnOnMoveError();
+                                                }
                                                 break;
                                             }
                                     }
@@ -366,7 +340,6 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
 
                                 m_MoveLock = true;
                                 m_ActorPod->Forward({MPK_TRYLEAVE, stAMTL}, m_Map->GetAddress(), fnLeaveOP);
-                                break;
 
                             }else{
 
@@ -374,12 +347,17 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                                 // even we get MPK_SPACEMOVEOK
 
                                 m_ActorPod->Forward(MPK_ERROR, rstRAddress, rstRMPK.ID());
-                                if(fnOnMoveError){ fnOnMoveError(); }
+                                if(fnOnMoveError){
+                                    fnOnMoveError();
+                                }
                             }
+                            break;
                         }
                     default:
                         {
-                            if(fnOnMoveError){ fnOnMoveError(); }
+                            if(fnOnMoveError){
+                                fnOnMoveError();
+                            }
                             break;
                         }
                 }
@@ -407,13 +385,17 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                             if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMUID.UID)){
                                 fnCOSpaceMove(stUIDRecord.Address);
                             }else{
-                                if(fnOnMoveError){ fnOnMoveError(); }
+                                if(fnOnMoveError){
+                                    fnOnMoveError();
+                                }
                             }
                             break;
                         }
                     default:
                         {
-                            if(fnOnMoveError){ fnOnMoveError(); }
+                            if(fnOnMoveError){
+                                fnOnMoveError();
+                            }
                             break;
                         }
                 }
@@ -654,14 +636,6 @@ void CharObject::DispatchMHP()
     }
 }
 
-void CharObject::ReportSpaceMove()
-{
-}
-
-void CharObject::DispatchSpaceMove()
-{
-}
-
 void CharObject::DispatchAttack(uint32_t nUID, int nDC)
 {
     if(nUID && DCValid(nDC, true)){
@@ -735,4 +709,42 @@ void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bRandom)
         }
     };
     m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, m_ServiceCore->GetAddress(), fnOnRet);
+}
+
+int CharObject::EstimateHop(int nX, int nY)
+{
+    if(m_Map->ValidC(nX, nY)){
+
+        auto nMaxStep = MaxStep();
+        auto nLDistance2 = LDistance2(nX, nY, X(), Y());
+
+        switch(nLDistance2){
+            case 0:
+                {
+                    return 0;
+                }
+            case 1:
+            case 2:
+                {
+                    return 1;
+                }
+            default:
+                {
+                    if(false
+                            || nLDistance2 == 1 * nMaxStep * nMaxStep
+                            || nLDistance2 == 2 * nMaxStep * nMaxStep){
+
+                        auto nDir = PathFind::GetDirection(X(), Y(), nX, nY);
+                        auto nMaxReach = OneStepReach(nDir, nMaxStep, nullptr, nullptr);
+
+                        if(nMaxReach == nMaxStep){
+                            return 1;
+                        }
+                    }
+
+                    return 2;
+                }
+        }
+    }
+    return -1;
 }

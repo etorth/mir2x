@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 09/13/2017 23:11:46
+ *  Last Modified: 12/07/2017 21:57:55
  *
  *    Description: 
  *
@@ -47,11 +47,14 @@ enum ActionType: int
 {
     ACTION_NONE = 0,
     ACTION_STAND,
+    ACTION_PICKUP,
     ACTION_MOVE,
-    ACTION_SPACEMOVE,
+    ACTION_PUSHMOVE,
+    ACTION_SPACEMOVE1,
+    ACTION_SPACEMOVE2,
     ACTION_ATTACK,
     ACTION_SPELL,
-    ACTION_UNDERATTACK,
+    ACTION_HITTED,
     ACTION_DIE,
     ACTION_EXTENSION,
     ACTION_MAX,
@@ -89,7 +92,7 @@ enum DCType: int
     DC_PHY             = (1 << 8),
     DC_PHY_PLAIN       = (1 << 8) | 0,
     DC_PHY_WIDESWORD   = (1 << 8) | 1,
-    DC_PHY_FIRE        = (1 << 8) | 2,
+    DC_PHY_FIRESWORD   = (1 << 8) | 2,
 
     DC_MAG             = (2 << 8),
     DC_MAG_FIRE        = (2 << 8) | 0,

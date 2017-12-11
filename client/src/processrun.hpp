@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 11/29/2017 12:40:03
+ *  Last Modified: 12/01/2017 18:00:55
  *
  *    Description: 
  *
@@ -72,7 +72,7 @@ class ProcessRun: public Process
         MyHero *m_MyHero;
 
     private:
-        std::array<uint32_t, FOCUS_MAX> m_FocusUIDV;
+        std::array<uint32_t, FOCUS_MAX> m_FocusTable;
 
     private:
         int m_ViewX;
@@ -215,6 +215,18 @@ class ProcessRun: public Process
         const auto &GetGroundItemList() const
         {
             return m_GroundItemList;
+        }
+
+        GroundItem GetGroundItem(int nX, int nY)
+        {
+            for(auto &rstItem: GetGroundItemList()){
+                if(true
+                        && nX == rstItem.X
+                        && nY == rstItem.Y){
+                    return rstItem;
+                }
+            }
+            return {0};
         }
 
     public:

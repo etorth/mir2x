@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 11/22/2017 17:34:38
+ *  Last Modified: 12/07/2017 21:57:31
  *
  *    Description: 
  *
@@ -82,26 +82,25 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    if(stAMA.UID != UID()){
-        if(true
-                && (std::abs<int>(stAMA.X - X()) <= SYS_MAPVISIBLEW)
-                && (std::abs<int>(stAMA.Y - Y()) <= SYS_MAPVISIBLEH)){
+    if(true
+            && stAMA.UID != UID()
+            && stAMA.MapID == MapID()
+            && (std::abs<int>(stAMA.X - X()) <= SYS_MAPVISIBLEW)
+            && (std::abs<int>(stAMA.Y - Y()) <= SYS_MAPVISIBLEH)){
 
-            ReportAction(stAMA.UID,
-            {
-                stAMA.Action,
-                stAMA.ActionParam,
-                stAMA.Speed,
-                stAMA.Direction,
-                
-                stAMA.X,
-                stAMA.Y,
-                stAMA.AimX,
-                stAMA.AimY,
-                0,
-                stAMA.MapID
-            });
-        }
+        ReportAction(stAMA.UID, ActionNode
+        {
+            stAMA.Action,
+            stAMA.Speed,
+            stAMA.Direction,
+
+            stAMA.X,
+            stAMA.Y,
+            stAMA.AimX,
+            stAMA.AimY,
+            stAMA.AimUID,
+            stAMA.ActionParam,
+        });
     }
 }
 
@@ -133,7 +132,8 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
 
             // 1. send request to the new map
             //    if request rejected then it stays in current map
-            auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &){
+            auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &)
+            {
                 switch(rstRMPK.Type()){
                     case MPK_MAPSWITCHOK:
                         {
@@ -167,7 +167,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
                                                 m_ActorPod->Forward(MPK_OK, m_Map->GetAddress(), rstRMPK.ID());
 
                                                 // 2. notify all players on the new map
-                                                DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), m_Map->ID() });
+                                                DispatchAction(ActionStand(X(), Y(), Direction()));
 
                                                 // 3. inform the client for map swith
                                                 ReportStand();
@@ -235,17 +235,10 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
     AMAttack stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
+    DispatchAction(ActionHitted(X(), Y(), Direction()));
     StruckDamage({stAMA.UID, stAMA.Type, stAMA.Damage, stAMA.Element});
 
-    // issue here
-    // if we take delay as 200, then client makes non-smooth motion
-    // player in client is moving, then if we struck under-attach using current location
-    // the player will be forced to roll-back
-    Delay(0, [this]()
-    {
-        ReportAction(UID(), {ACTION_UNDERATTACK, 0, SYS_DEFSPEED, Direction(), X(), Y(), 0, MapID()});
-    });
+    ReportAction(UID(), ActionHitted(X(), Y(), Direction()));
 }
 
 void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)

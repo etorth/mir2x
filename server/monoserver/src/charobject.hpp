@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 09/26/2017 00:03:03
+ *  Last Modified: 12/10/2017 23:52:48
  *
  *    Description: 
  *
@@ -213,15 +213,6 @@ class CharObject: public ActiveObject
                 uint8_t);               // life cycle state
        ~CharObject() = default;
 
-    public:
-        bool Active()
-        {
-            if(GetState(STATE_DEAD   )){ return false; }
-            if(GetState(STATE_PHANTOM)){ return false; }
-
-            return true;
-        }
-
     protected:
         int X() { return m_X; }
         int Y() { return m_Y; }
@@ -258,7 +249,6 @@ class CharObject: public ActiveObject
         Theron::Address Activate();
 
     protected:
-        virtual void ReportSpaceMove();
         virtual void ReportCORecord(uint32_t) = 0;
 
     protected:
@@ -266,10 +256,8 @@ class CharObject: public ActiveObject
         void DispatchAttack(uint32_t, int);
 
     protected:
-        virtual void DispatchSpaceMove();
-
-    protected:
-        void DispatchAction(const ActionNode &);
+        virtual void DispatchAction(const ActionNode &);
+        virtual void ReportAction(uint32_t, const ActionNode &);
 
     protected:
         virtual int OneStepReach(int, int, int *, int *);
@@ -282,7 +270,14 @@ class CharObject: public ActiveObject
         virtual bool RetrieveLocation(uint32_t, std::function<void(const COLocation &)>);
 
     protected:
-        virtual bool RequestMove(int, int, int, bool, std::function<void()>, std::function<void()>);
+        virtual bool RequestMove(int,   // nX, should be one hop distance
+                int,                    // nY, should be one hop distance
+                int,                    // nSpeed, move speed
+                bool,                   // bAllowHalfMove, tolerate CO occupied error
+                std::function<void()>,  // fnOnOK
+                std::function<void()>); // fnOnError
+
+    protected:
         virtual bool RequestSpaceMove(uint32_t, int, int, bool, std::function<void()>, std::function<void()>);
 
     protected:
@@ -311,4 +306,42 @@ class CharObject: public ActiveObject
         virtual bool GoDie()     = 0;
         virtual bool GoGhost()   = 0;
         virtual bool GoSuicide() = 0;
+
+    protected:
+        virtual int MaxStep()
+        {
+            return 1;
+        }
+
+        virtual int MoveSpeed()
+        {
+            return SYS_DEFSPEED;
+        }
+
+    protected:
+        // estimate how many hops we need
+        // this function checks map but can't check CO
+        // if we found one-hop distance we need send move request to servermap
+        // return: 
+        //          -1: invalid
+        //           0: no move needed
+        //           1: one-hop can reach
+        //           2: more than one-hop can reach
+        int EstimateHop(int, int);
+
+    protected:
+        int AttackSpeed()
+        {
+            return SYS_DEFSPEED;
+        }
+
+        int MagicSpeed()
+        {
+            return SYS_DEFSPEED;
+        }
+
+        int Horse()
+        {
+            return 0;
+        }
 };

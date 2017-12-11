@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 11/22/2017 17:33:12
+ *  Last Modified: 12/09/2017 13:24:34
  *
  *    Description: 
  *
@@ -232,11 +232,6 @@ void Player::ReportStand()
     }
 }
 
-void Player::ReportSpaceMove()
-{
-    ReportAction(UID(), {ACTION_SPACEMOVE, X(), Y(), MapID()});
-}
-
 void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)
 {
     if(true
@@ -244,17 +239,22 @@ void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)
             && SessionID()){
 
         SMAction stSMA;
-        stSMA.UID         = nUID;
-        stSMA.MapID       = rstAction.MapID;
-        stSMA.Action      = rstAction.Action;
-        stSMA.ActionParam = rstAction.ActionParam;
-        stSMA.Speed       = rstAction.Speed;
-        stSMA.Direction   = rstAction.Direction;
-        stSMA.X           = rstAction.X;
-        stSMA.Y           = rstAction.Y;
-        stSMA.AimX        = rstAction.AimX;
-        stSMA.AimY        = rstAction.AimY;
+        std::memset(&stSMA, 0, sizeof(stSMA));
+
+        stSMA.UID   = nUID;
+        stSMA.MapID = MapID();
+
+        stSMA.Action    = rstAction.Action;
+        stSMA.Speed     = rstAction.Speed;
+        stSMA.Direction = rstAction.Direction;
+
+        stSMA.X    = rstAction.X;
+        stSMA.Y    = rstAction.Y;
+        stSMA.AimX = rstAction.AimX;
+        stSMA.AimY = rstAction.AimY;
+
         stSMA.AimUID      = rstAction.AimUID;
+        stSMA.ActionParam = rstAction.ActionParam;
 
         extern NetDriver *g_NetDriver;
         g_NetDriver->Send(SessionID(), SM_ACTION, stSMA);
@@ -392,189 +392,7 @@ bool Player::GoSuicide()
     return false;
 }
 
-void Player::OnCMActionSpell(const ActionNode &rstAction)
-{
-    if(true
-            && ActionValid(rstAction)
-            && rstAction.Action == ACTION_SPELL){
 
-        switch(rstAction.ActionParam){
-            case DBCOM_MAGICID(u8"雷电术"):
-                {
-                    SMFireMagic stSMFM;
-
-                    stSMFM.UID        = UID();
-                    stSMFM.MapID      = MapID();
-                    stSMFM.Magic      = rstAction.ActionParam;
-                    stSMFM.MagicParam = 0;
-                    stSMFM.Speed      = rstAction.Speed;
-                    stSMFM.Direction  = rstAction.Direction;
-                    stSMFM.X          = rstAction.X;
-                    stSMFM.Y          = rstAction.Y;
-                    stSMFM.AimX       = rstAction.AimX;
-                    stSMFM.AimY       = rstAction.AimY;
-                    stSMFM.AimUID     = rstAction.AimUID;
-
-                    // TODO
-                    // need more calculate for the network delay
-
-                    // delay in server rather than in client
-                    // if delay in client then player can cheat
-                    Delay(1400, [this, stSMFM]()
-                    {
-                        extern NetDriver *g_NetDriver;
-                        g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
-                    });
-                    break;
-                }
-            case DBCOM_MAGICID(u8"魔法盾"):
-                {
-                    SMFireMagic stSMFM;
-
-                    stSMFM.UID        = UID();
-                    stSMFM.MapID      = MapID();
-                    stSMFM.Magic      = rstAction.ActionParam;
-                    stSMFM.MagicParam = 0;
-                    stSMFM.Speed      = rstAction.Speed;
-                    stSMFM.Direction  = rstAction.Direction;
-                    stSMFM.X          = rstAction.X;
-                    stSMFM.Y          = rstAction.Y;
-                    stSMFM.AimX       = rstAction.AimX;
-                    stSMFM.AimY       = rstAction.AimY;
-                    stSMFM.AimUID     = rstAction.AimUID;
-
-                    // TODO
-                    // need more calculate for the network delay
-
-                    // delay in server rather than in client
-                    // if delay in client then player can cheat
-                    Delay(800, [this, stSMFM]()
-                    {
-                        extern NetDriver *g_NetDriver;
-                        g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
-                    });
-                    break;
-                }
-            case DBCOM_MAGICID(u8"召唤骷髅"):
-                {
-                    int nFrontX = -1;
-                    int nFrontY = -1;
-
-                    if(!PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2)){
-                        nFrontX = X() + 1;
-                        nFrontY = Y() + 1;
-                    }
-
-                    SMFireMagic stSMFM;
-                    stSMFM.UID        = UID();
-                    stSMFM.MapID      = MapID();
-                    stSMFM.Magic      = rstAction.ActionParam;
-                    stSMFM.MagicParam = 0;
-                    stSMFM.Speed      = rstAction.Speed;
-                    stSMFM.Direction  = rstAction.Direction;
-                    stSMFM.X          = rstAction.X;
-                    stSMFM.Y          = rstAction.Y;
-                    stSMFM.AimX       = nFrontX;
-                    stSMFM.AimY       = nFrontY;
-                    stSMFM.AimUID     = 0;
-
-                    Delay(600, [this, stSMFM]()
-                    {
-                        AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
-
-                        extern NetDriver *g_NetDriver;
-                        g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
-                    });
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-    }
-}
-
-void Player::OnCMActionAttack(int nX0, int nY0, int nX1, int nY1, int nAttackParam, int nSpeed, int nDirection)
-{
-    if(true
-            && m_Map
-            && m_Map->ValidC(nX0, nY0)
-            && m_Map->ValidC(nX1, nY1)
-            
-            && nSpeed >= SYS_MINSPEED
-            && nSpeed <= SYS_MAXSPEED
-
-            && nDirection > DIR_NONE
-            && nDirection < DIR_MAX){
-
-        // for client message action is for presenting
-        // then all parameters should pass the checking here
-
-        switch(nAttackParam){
-            case DC_PHY_PLAIN:
-            case DC_PHY_WIDESWORD:
-            case DC_PHY_FIRE:
-                {
-                    switch(LDistance2(X(), Y(), nX1, nY1)){
-                        case 1:
-                        case 2:
-                            {
-                                DispatchAction({
-                                        ACTION_ATTACK,
-                                        nAttackParam,
-                                        nSpeed,
-                                        nDirection,
-                                        X(),
-                                        Y(),
-                                        nX1,
-                                        nY1,
-                                        m_Map->ID()});
-
-                                auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &)
-                                {
-                                    switch(rstRMPK.Type()){
-                                        case MPK_UIDV:
-                                            {
-                                                AMUIDV stAMUIDV;
-                                                std::memcpy(&stAMUIDV, rstRMPK.Data(), sizeof(stAMUIDV));
-
-                                                for(size_t nIndex = 0; nIndex < sizeof(stAMUIDV.UIDV) / sizeof(stAMUIDV.UIDV[0]); ++nIndex){
-                                                    if(auto nUID = stAMUIDV.UIDV[nIndex]){
-                                                        DispatchAttack(nUID, DC_PHY_PLAIN);
-                                                    }else{
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                    }
-                                };
-
-                                AMQueryRectUIDV stAMQRUIDV;
-                                stAMQRUIDV.MapID = m_Map->ID();
-                                stAMQRUIDV.X     = nX1;
-                                stAMQRUIDV.Y     = nY1;
-                                stAMQRUIDV.W     = 1;
-                                stAMQRUIDV.H     = 1;
-
-                                m_ActorPod->Forward({MPK_QUERYRECTUIDV, stAMQRUIDV}, m_Map->GetAddress(), fnOnResp);
-                                break;
-                            }
-                        default:
-                            {
-                                // ReportStand();
-                                // return;
-                            }
-                    }
-
-                }
-            default:
-                {
-                    break;
-                }
-        }
-    }
-}
 
 bool Player::DCValid(int, bool)
 {
@@ -697,4 +515,278 @@ bool Player::PostNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
     extern NetDriver *g_NetDriver;
     return g_NetDriver->Send(SessionID(), nHC, pData, nDataLen);
+}
+
+void Player::OnCMActionStand(CMAction stCMA)
+{
+    int nX = stCMA.X;
+    int nY = stCMA.Y;
+    int nDirection = stCMA.Direction;
+
+    if(true
+            && m_Map
+            && m_Map->ValidC(nX, nY)){
+
+        // server get report stand
+        // means client is trying to re-sync
+        // try client's current location and always response
+
+        switch(EstimateHop(nX, nY)){
+            case 1:
+                {
+                    RequestMove(nX, nY, SYS_MAXSPEED, false,
+                    [this, stCMA]()
+                    {
+                        OnCMActionStand(stCMA);
+                    },
+                    [this]()
+                    {
+                        ReportStand();
+                    });
+                    return;
+                }
+            case 0:
+            default:
+                {
+                    if(true
+                            && nDirection > DIR_NONE
+                            && nDirection < DIR_MAX){
+                        m_Direction = nDirection;
+                    }
+
+                    ReportStand();
+                    return;
+                }
+        }
+    }
+}
+
+void Player::OnCMActionMove(CMAction stCMA)
+{
+    // server won't do any path finding
+    // client should sent action with only one-hop movement
+
+    int nX0 = stCMA.X;
+    int nY0 = stCMA.Y;
+    int nX1 = stCMA.AimX;
+    int nY1 = stCMA.AimY;
+
+    switch(EstimateHop(nX0, nY0)){
+        case 0:
+            {
+                RequestMove(nX1, nY1, MoveSpeed(), false, [](){}, [this]()
+                {   
+                    ReportStand();
+                });
+                return;
+            }
+        case 1:
+            {
+                RequestMove(nX0, nY0, SYS_MAXSPEED, false, [this, stCMA]()
+                {
+                    OnCMActionMove(stCMA);
+                },
+                [this]()
+                {
+                    ReportStand();
+                });
+                return;
+            }
+        default:
+            {
+                ReportStand();
+                return;
+            }
+    }
+}
+
+void Player::OnCMActionAttack(CMAction stCMA)
+{
+    RetrieveLocation(stCMA.AimUID, [this, stCMA](const COLocation &rstLocation)
+    {
+        int nX0 = stCMA.X;
+        int nY0 = stCMA.Y;
+
+        int nDCType = stCMA.ActionParam;
+        uint32_t nAimUID = stCMA.AimUID;
+
+        if(rstLocation.MapID == MapID()){
+            switch(nDCType){
+                case DC_PHY_PLAIN:
+                case DC_PHY_WIDESWORD:
+                case DC_PHY_FIRESWORD:
+                    {
+                        switch(EstimateHop(nX0, nY0)){
+                            case 0:
+                                {
+                                    switch(LDistance2(nX0, nY0, rstLocation.X, rstLocation.Y)){
+                                        case 1:
+                                        case 2:
+                                            {
+                                                DispatchAttack(nAimUID, nDCType);
+                                                return;
+                                            }
+                                        default:
+                                            {
+                                                return;
+                                            }
+                                    }
+                                    return;
+                                }
+                            case 1:
+                                {
+                                    RequestMove(nX0, nY0, SYS_MAXSPEED, false,
+                                    [this, stCMA]()
+                                    {
+                                        OnCMActionAttack(stCMA);
+                                    },
+                                    [this]()
+                                    {
+                                        ReportStand();
+                                    });
+                                    return;
+                                }
+                            default:
+                                {
+                                    return;
+                                }
+                        }
+                        return;
+                    }
+                default:
+                    {
+                        return;
+                    }
+            }
+        }
+    });
+}
+
+void Player::OnCMActionSpell(CMAction stCMA)
+{
+    int nX = stCMA.X;
+    int nY = stCMA.Y;
+    int nMagicID = stCMA.ActionParam;
+
+    switch(nMagicID){
+        case DBCOM_MAGICID(u8"雷电术"):
+            {
+                SMFireMagic stSMFM;
+                std::memset(&stSMFM, 0, sizeof(stSMFM));
+
+                stSMFM.UID    = UID();
+                stSMFM.MapID  = MapID();
+                stSMFM.Magic  = nMagicID;
+                stSMFM.Speed  = MagicSpeed();
+                stSMFM.X      = nX;
+                stSMFM.Y      = nY;
+                stSMFM.AimUID = stCMA.AimUID;
+
+                Delay(1400, [this, stSMFM]()
+                {
+                    extern NetDriver *g_NetDriver;
+                    g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                });
+                break;
+            }
+        case DBCOM_MAGICID(u8"魔法盾"):
+            {
+                SMFireMagic stSMFM;
+                std::memset(&stSMFM, 0, sizeof(stSMFM));
+
+                stSMFM.UID   = UID();
+                stSMFM.Magic = nMagicID;
+                stSMFM.Speed = MagicSpeed();
+
+                Delay(800, [this, stSMFM]()
+                {
+                    extern NetDriver *g_NetDriver;
+                    g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                });
+                break;
+            }
+        case DBCOM_MAGICID(u8"召唤骷髅"):
+            {
+                int nFrontX = -1;
+                int nFrontY = -1;
+
+                if(!PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2)){
+                    nFrontX = X() + 1;
+                    nFrontY = Y() + 1;
+                }
+
+                SMFireMagic stSMFM;
+                std::memset(&stSMFM, 0, sizeof(stSMFM));
+
+                stSMFM.UID   = UID();
+                stSMFM.MapID = MapID();
+                stSMFM.Magic = nMagicID;
+                stSMFM.Speed = MagicSpeed();
+                stSMFM.AimX  = nFrontX;
+                stSMFM.AimY  = nFrontY;
+
+                Delay(600, [this, stSMFM]()
+                {
+                    AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
+
+                    extern NetDriver *g_NetDriver;
+                    g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                });
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    // sync the location
+    // for spelling magic location is not critical
+    RequestMove(nX, nY, SYS_MAXSPEED, false, [](){}, [this]()
+    {
+        ReportStand();
+    });
+}
+
+void Player::OnCMActionPickUp(CMAction stCMA)
+{
+    switch(EstimateHop(stCMA.X, stCMA.Y)){
+        case 0:
+            {
+                AMPickUp stAMPU;
+                stAMPU.X      = stCMA.X;
+                stAMPU.Y      = stCMA.Y;
+                stAMPU.UID    = UID();
+                stAMPU.ItemID = stCMA.ActionParam;
+
+                m_ActorPod->Forward({MPK_PICKUP, stAMPU}, m_Map->GetAddress());
+                return;
+            }
+        case 1:
+            {
+                RequestMove(stCMA.X, stCMA.Y, SYS_MAXSPEED, false,
+                [this, stCMA]()
+                {
+                    OnCMActionPickUp(stCMA);
+                },
+                [this]()
+                {
+                    ReportStand();
+                });
+                return;
+            }
+        default:
+            {
+                return;
+            }
+    }
+}
+
+int Player::MaxStep()
+{
+    if(Horse()){
+        return 3;
+    }else{
+        return 2;
+    }
 }

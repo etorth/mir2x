@@ -3,7 +3,7 @@
  *
  *       Filename: process.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 10/02/2017 17:59:13
+ *  Last Modified: 12/08/2017 16:05:08
  *
  *    Description: public API for class game only
  *
@@ -23,12 +23,13 @@
 
 enum ProcessID: int
 {
-    PROCESSID_NULL  = 0,
+    PROCESSID_NONE  = 0,
     PROCESSID_LOGO  = 1,
     PROCESSID_SYRC  = 2,
     PROCESSID_LOGIN = 3,
     PROCESSID_RUN   = 4,
     PROCESSID_EXIT  = 5,
+    PROCESSID_MAX   = 6,
 };
 
 class Process

@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 10/14/2017 18:42:23
+ *  Last Modified: 12/06/2017 11:33:53
  *
  *    Description: how player respond for different net package
  *
@@ -30,180 +30,16 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
     std::memcpy(&stCMA, pBuf, sizeof(stCMA));
 
     if(true
-            && stCMA.UID   == UID()
-            && stCMA.MapID == MapID()
+            && stCMA.UID == UID()
+            && stCMA.MapID == MapID()){
 
-            && m_Map
-            && m_Map->ValidC(stCMA.X, stCMA.Y)
-            && m_Map->ValidC(stCMA.AimX, stCMA.AimY)){
         switch((int)(stCMA.Action)){
-            case ACTION_MOVE:
-                {
-                    // server won't do any path finding
-                    // client should sent action with only one-hop movement
-
-                    int nMotionMode = -1;
-                    switch(LDistance2(stCMA.X, stCMA.Y, stCMA.AimX, stCMA.AimY)){
-                        case 1:
-                        case 2:
-                            {
-                                nMotionMode = stCMA.ActionParam ? MOTION_ONHORSEWALK : MOTION_WALK;
-                                break;
-                            }
-                        case 4:
-                        case 8:
-                            {
-                                nMotionMode = MOTION_RUN;
-                                break;
-                            }
-                        case  9:
-                        case 18:
-                            {
-                                nMotionMode = MOTION_ONHORSERUN;
-                                break;
-                            }
-                        default:
-                            {
-                                extern MonoServer *g_MonoServer;
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::UID         = %d", (int)(stCMA.UID));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::MapID       = %d", (int)(stCMA.MapID));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Action      = %d", (int)(stCMA.Action));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::ActionParam = %d", (int)(stCMA.ActionParam));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Speed       = %d", (int)(stCMA.Speed));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Direction   = %d", (int)(stCMA.Direction));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::X           = %d", (int)(stCMA.X));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::Y           = %d", (int)(stCMA.Y));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::AimX        = %d", (int)(stCMA.AimX));
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid CMAction::AimY        = %d", (int)(stCMA.AimY));
-                                return;
-                            }
-                    }
-
-                    // OK the action is a valid one-hop motion
-                    // we should check if the player can apply it
-                    //
-                    // 1. if apples, apply it without response, but dispatch it to neighbors
-                    // 2. else send the pull back message
-
-                    auto nX0 = (int)(stCMA.X);
-                    auto nY0 = (int)(stCMA.Y);
-                    auto nX1 = (int)(stCMA.AimX);
-                    auto nY1 = (int)(stCMA.AimY);
-
-                    switch(LDistance2(X(), Y(), nX0, nY0)){
-                        case 0:
-                            {
-                                RequestMove(nMotionMode, nX1, nY1, false, [](){}, [this](){ ReportStand(); });
-                                return;
-                            }
-                        case  1:
-                        case  2:
-                        case  4:
-                        case  8:
-                        case  9:
-                        case 18:
-                            {
-                                // there is one hop delay, acceptable
-                                // try to do the one-hop and then try the client action if possible
-                                auto fnOnFirstMoveOK = [this, nMotionMode, nX1, nY1](){
-                                    RequestMove(nMotionMode, nX1, nY1, false, [](){}, [this](){ ReportStand(); });
-                                };
-
-                                RequestMove(nMotionMode, nX0, nY0, false, fnOnFirstMoveOK, [this](){ ReportStand(); });
-                                return;
-                            }
-                        default:
-                            {
-                                // difference is not acceptable
-                                // force the client to do pull-back
-                                ReportStand();
-                                return;
-                            }
-                    }
-                    break;
-                }
-            case ACTION_ATTACK:
-                {
-                    // auto nX0 = (int)(stCMA.X);
-                    // auto nY0 = (int)(stCMA.Y);
-                    auto nX1 = (int)(stCMA.AimX);
-                    auto nY1 = (int)(stCMA.AimY);
-
-                    switch(LDistance2(X(), Y(), nX1, nY1)){
-                        case 1:
-                        case 2:
-                            {
-                                DispatchAction({
-                                        ACTION_ATTACK,
-                                        stCMA.ActionParam,
-                                        stCMA.Speed,
-                                        stCMA.Direction,
-                                        X(),
-                                        Y(),
-                                        nX1,
-                                        nY1,
-                                        m_Map->ID()});
-
-                                auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &)
-                                {
-                                    switch(rstRMPK.Type()){
-                                        case MPK_UIDV:
-                                            {
-                                                AMUIDV stAMUIDV;
-                                                std::memcpy(&stAMUIDV, rstRMPK.Data(), sizeof(stAMUIDV));
-
-                                                for(size_t nIndex = 0; nIndex < sizeof(stAMUIDV.UIDV) / sizeof(stAMUIDV.UIDV[0]); ++nIndex){
-                                                    if(auto nUID = stAMUIDV.UIDV[nIndex]){
-                                                        DispatchAttack(nUID, DC_PHY_PLAIN);
-                                                    }else{
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                    }
-                                };
-
-                                AMQueryRectUIDV stAMQRUIDV;
-                                stAMQRUIDV.MapID = m_Map->ID();
-                                stAMQRUIDV.X     = nX1;
-                                stAMQRUIDV.Y     = nY1;
-                                stAMQRUIDV.W     = 1;
-                                stAMQRUIDV.H     = 1;
-
-                                m_ActorPod->Forward({MPK_QUERYRECTUIDV, stAMQRUIDV}, m_Map->GetAddress(), fnOnResp);
-                                break;
-                            }
-                        default:
-                            {
-                                // ReportStand();
-                                // return;
-                            }
-                    }
-                    break;
-                }
-            case ACTION_SPELL:
-                {
-                    OnCMActionSpell({
-                            stCMA.Action,
-                            stCMA.ActionParam,
-                            stCMA.Speed,
-                            stCMA.Direction,
-                            stCMA.X,
-                            stCMA.Y,
-                            stCMA.AimX,
-                            stCMA.AimY,
-                            stCMA.AimUID,
-                            stCMA.MapID});
-                    break;
-                }
-            case ACTION_STAND:
-                {
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
+            case ACTION_STAND : OnCMActionStand (stCMA); return;
+            case ACTION_MOVE  : OnCMActionMove  (stCMA); return;
+            case ACTION_ATTACK: OnCMActionAttack(stCMA); return;
+            case ACTION_SPELL : OnCMActionSpell (stCMA); return;
+            case ACTION_PICKUP: OnCMActionPickUp(stCMA); return;
+            default           :                          return;
         }
     }
 }
@@ -234,16 +70,9 @@ void Player::Net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
 
 void Player::Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *pBuf, size_t)
 {
-    auto pCM = (CMReqestSpaceMove *)(pBuf);
-    auto fnOnOK = []()
-    {
-    };
-
-    auto fnOnError = []()
-    {
-    };
-
-    RequestSpaceMove(pCM->MapID, pCM->X, pCM->Y, false, fnOnOK, fnOnError);
+    CMReqestSpaceMove stCMRSM;
+    std::memcpy(&stCMRSM, pBuf, sizeof(stCMRSM));
+    RequestSpaceMove(stCMRSM.MapID, stCMRSM.X, stCMRSM.Y, false, [](){}, [](){});
 }
 
 void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)

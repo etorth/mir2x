@@ -3,10 +3,10 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 11/29/2017 14:59:47
+ *  Last Modified: 12/08/2017 15:49:04
  *
- *    Description: ActionNode is used by both server and client
- *                 then don't define Print() for it
+ *    Description:
+ *
  *
  *        Version: 1.0
  *       Revision: none
@@ -21,47 +21,177 @@
 
 #pragma once
 #include <cstdint>
-#include "sysconst.hpp"
 #include "protocoldef.hpp"
+
+struct ActionDie
+{
+    int X = -1;
+    int Y = -1;
+    int Direction = -1;
+
+    ActionDie(int nX, int nY, int nDirection)
+        : X(nX)
+        , Y(nY)
+        , Direction(nDirection)
+    {}
+};
+
+struct ActionStand
+{
+    int X = -1;
+    int Y = -1;
+    int Direction = -1;
+
+    ActionStand(int nX, int nY, int nDirection)
+        : X(nX)
+        , Y(nY)
+        , Direction(nDirection)
+    {}
+};
+
+struct ActionSpell
+{
+    int X    = -1;
+    int Y    = -1;
+    int AimX = -1;
+    int AimY = -1;
+
+    uint32_t AimUID  = 0;
+    uint32_t MagicID = 0;
+
+    ActionSpell(int nX, int nY, uint32_t nAimUID, uint32_t nMagicID)
+        : X(nX)
+        , Y(nY)
+        , AimUID(nAimUID)
+        , MagicID(nMagicID)
+    {}
+
+    ActionSpell(int nX, int nY, int nAimX, int nAimY, uint32_t nMagicID)
+        : X(nX)
+        , Y(nY)
+        , AimX(nAimX)
+        , AimY(nAimY)
+        , MagicID(nMagicID)
+    {}
+};
+
+struct ActionMove
+{
+    int X     = -1;
+    int Y     = -1;
+    int AimX  = -1;
+    int AimY  = -1;
+    int Speed = -1;
+    int Horse = -1;
+
+    ActionMove(int nX, int nY, int nAimX, int nAimY, int nSpeed, int nHorse)
+        : X(nX)
+        , Y(nY)
+        , AimX(nAimX)
+        , AimY(nAimY)
+        , Speed(nSpeed)
+        , Horse(nHorse)
+    {}
+};
+
+struct ActionPushMove
+{
+    int X;
+    int Y;
+
+    ActionPushMove(int nX = -1, int nY = -1)
+        : X(nX)
+        , Y(nY)
+    {}
+};
+
+struct ActionSpaceMove1
+{
+    int X;
+    int Y;
+    int Direction;
+
+    ActionSpaceMove1(int nX = -1, int nY = -1, int nDirection = -1)
+        : X(nX)
+        , Y(nY)
+        , Direction(nDirection)
+    {}
+};
+
+struct ActionSpaceMove2
+{
+    int X;
+    int Y;
+    int Direction;
+
+    ActionSpaceMove2(int nX = -1, int nY = -1, int nDirection = -1)
+        : X(nX)
+        , Y(nY)
+        , Direction(nDirection)
+    {}
+};
+
+struct ActionAttack
+{
+    int DC;
+    int Speed;
+
+    uint32_t AimUID;
+
+    ActionAttack(int nDC = -1, int nSpeed = -1, uint32_t nAimUID = 0)
+        : DC(nDC)
+        , Speed(nSpeed)
+        , AimUID(nAimUID)
+    {}
+};
+
+struct ActionHitted
+{
+    int X;
+    int Y;
+    int Direction;
+
+    ActionHitted(int nX = -1, int nY = -1, int nDirection = -1)
+        : X(nX)
+        , Y(nY)
+        , Direction(nDirection)
+    {}
+};
 
 struct ActionPickUp
 {
-    int AimX;
-    int AimY;
+    int X;
+    int Y;
 
     uint32_t ItemID;
-    uint32_t MapID;
 
-    ActionPickUp(int nAimX = -1, int nAimY = -1, uint32_t nItemID = 0, uint32_t nMapID = 0)
-        : AimX(nAimX)
-        , AimY(nAimY)
+    ActionPickUp(int nX = -1, int nY = -1, uint32_t nItemID = 0)
+        : X(nX)
+        , Y(nY)
         , ItemID(nItemID)
-        , MapID(nMapID)
     {}
 };
 
 struct ActionNode
 {
-    const int Action;
-    const int ActionParam;
+    const int Action    =  ACTION_NONE;
+    const int Speed     = -1;
+    const int Direction = -1;
 
-    const int Speed;
-    const int Direction;
+    const int X    = -1;
+    const int Y    = -1;
+    const int AimX = -1;
+    const int AimY = -1;
 
-    const int X;
-    const int Y;
-    const int AimX;
-    const int AimY;
+    const uint32_t AimUID      = 0;
+    const uint32_t ActionParam = 0;
 
-    const uint32_t AimUID;
-    const uint32_t MapID;
+    ActionNode()
+        : Action(ACTION_NONE)
+    {}
 
-    // don't change it to avoid override error
-    // should be very careful for the following cotrs and it's short format
-
-    ActionNode(int nAction, int nActionParam, int nSpeed, int nDirection, int nX, int nY, int nAimX, int nAimY, uint32_t nAimUID, uint32_t nMapID)
+    ActionNode(int nAction, int nSpeed, int nDirection, int nX, int nY, int nAimX, int nAimY, uint32_t nAimUID, uint32_t nActionParam)
         : Action(nAction)
-        , ActionParam(nActionParam)
         , Speed(nSpeed)
         , Direction(nDirection)
         , X(nX)
@@ -69,35 +199,80 @@ struct ActionNode
         , AimX(nAimX)
         , AimY(nAimY)
         , AimUID(nAimUID)
-        , MapID(nMapID)
+        , ActionParam(nActionParam)
     {}
 
-    ActionNode(int nAction, int nActionParam, int nSpeed, int nDirection, int nX, int nY, int nAimX, int nAimY, uint32_t nMapID)
-        : ActionNode(nAction, nActionParam, nSpeed, nDirection, nX, nY, nAimX, nAimY, 0, nMapID)
+    ActionNode(const ActionDie &rstDie)
+        : Action(ACTION_DIE)
+        , Direction(rstDie.Direction)
+        , X(rstDie.X)
+        , Y(rstDie.Y)
     {}
 
-    ActionNode(int nAction, int nActionParam, int nSpeed, int nDirection, int nX, int nY, int nAimUID, uint32_t nMapID)
-        : ActionNode(nAction, nActionParam, nSpeed, nDirection, nX, nY, -1, -1, nAimUID, nMapID)
+    ActionNode(const ActionStand &rstStand)
+        : Action(ACTION_STAND)
+        , Direction(rstStand.Direction)
+        , X(rstStand.X)
+        , Y(rstStand.Y)
     {}
 
-    ActionNode(int nAction, int nActionParam, int nSpeed, int nDirection, int nX, int nY, uint32_t nMapID)
-        : ActionNode(nAction, nActionParam, nSpeed, nDirection, nX, nY, nX, nY, 0, nMapID)
+    ActionNode(const ActionMove &rstMove)
+        : Action(ACTION_MOVE)
+        , Speed(rstMove.Speed)
+        , X(rstMove.X)
+        , Y(rstMove.Y)
+        , AimX(rstMove.AimX)
+        , AimY(rstMove.AimY)
+        , ActionParam(rstMove.Horse)
     {}
 
-    ActionNode(int nAction, int nActionParam, int nDirection, int nX, int nY, uint32_t nMapID)
-        : ActionNode(nAction, nActionParam, SYS_DEFSPEED, nDirection, nX, nY, nX, nY, 0, nMapID)
+    ActionNode(const ActionSpell &rstSpell)
+        : Action(ACTION_SPELL)
+        , X(rstSpell.X)
+        , Y(rstSpell.Y)
+        , AimX(rstSpell.AimX)
+        , AimY(rstSpell.AimY)
+        , AimUID(rstSpell.AimUID)
+        , ActionParam(rstSpell.MagicID)
     {}
 
-    ActionNode(int nAction, int nActionParam, int nX, int nY, uint32_t nMapID)
-        : ActionNode(nAction, nActionParam, SYS_DEFSPEED, DIR_NONE, nX, nY, nX, nY, 0, nMapID)
+    ActionNode(const ActionPushMove &rstPushMove)
+        : Action(ACTION_PUSHMOVE)
+        , X(rstPushMove.X)
+        , Y(rstPushMove.Y)
     {}
 
-    ActionNode(int nAction, int nX, int nY, uint32_t nMapID)
-        : ActionNode(nAction, 0, SYS_DEFSPEED, DIR_NONE, nX, nY, nX, nY, 0, nMapID)
+    ActionNode(const ActionSpaceMove1 &rstSpaceMove1)
+        : Action(ACTION_SPACEMOVE1)
+        , X(rstSpaceMove1.X)
+        , Y(rstSpaceMove1.Y)
     {}
 
-    ActionNode()
-        : ActionNode(ACTION_NONE, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    ActionNode(const ActionSpaceMove2 &rstSpaceMove2)
+        : Action(ACTION_SPACEMOVE2)
+        , X(rstSpaceMove2.X)
+        , Y(rstSpaceMove2.Y)
+    {}
+
+    ActionNode(const ActionAttack &rstAttack)
+        : Action(ACTION_ATTACK)
+        , Speed(rstAttack.Speed)
+        , AimUID(rstAttack.AimUID)
+        , ActionParam(rstAttack.DC)
+    {}
+
+    ActionNode(const ActionHitted &rstHitted)
+        : Action(ACTION_HITTED)
+        , Direction(rstHitted.Direction)
+        , X(rstHitted.X)
+        , Y(rstHitted.Y)
+    {}
+
+    ActionNode(const ActionPickUp &rstPickUp)
+        : Action(ACTION_PICKUP)
+        , X(rstPickUp.X)
+        , Y(rstPickUp.Y)
+        , ActionParam(rstPickUp.ItemID)
     {}
 
     operator bool () const

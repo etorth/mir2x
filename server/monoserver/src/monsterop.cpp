@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 10/06/2017 16:40:22
+ *  Last Modified: 12/07/2017 22:14:04
  *
  *    Description: 
  *
@@ -57,18 +57,20 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
     if(stAMA.UID != UID()){
-        int nX = -1;
-        int nY = -1;
+        int nX   = -1;
+        int nY   = -1;
+        int nDir = -1;
         switch(stAMA.Action){
             case ACTION_STAND:
-            case ACTION_MOVE:
             case ACTION_ATTACK:
-            case ACTION_UNDERATTACK:
+            case ACTION_HITTED:
                 {
-                    nX = stAMA.X;
-                    nY = stAMA.Y;
+                    nX   = stAMA.X;
+                    nY   = stAMA.Y;
+                    nDir = stAMA.Direction;
                     break;
                 }
+            case ACTION_MOVE:
             case ACTION_SPELL:
                 {
                     nX = stAMA.X;
@@ -86,7 +88,6 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
                 }
         }
 
-
         extern MonoServer *g_MonoServer;
         m_LocationRecord[stAMA.UID] = COLocation
         {
@@ -95,7 +96,7 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
             g_MonoServer->GetTimeTick(),
             nX,
             nY,
-            stAMA.Direction
+            nDir,
         };
 
         if(InRange(RANGE_VISIBLE, stAMA.X, stAMA.Y)){
@@ -138,7 +139,7 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rs
         case 0:
             {
                 AddTarget(stAMAK.UID);
-                DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
+                DispatchAction(ActionHitted(X(), Y(), Direction()));
 
                 AddHitterUID(stAMAK.UID, stAMAK.Damage);
                 StruckDamage({stAMAK.UID, stAMAK.Type, stAMAK.Damage, stAMAK.Element, stAMAK.Effect});

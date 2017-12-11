@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 11/22/2017 17:32:57
+ *  Last Modified: 12/08/2017 17:10:03
  *
  *    Description: 
  *
@@ -141,7 +141,6 @@ class Player: public CharObject
     protected:
         void ReportMHP();
         void ReportStand();
-        void ReportSpaceMove();
         void ReportCORecord(uint32_t);
         void ReportOffline(uint32_t, uint32_t);
         void ReportAction(uint32_t, const ActionNode &);
@@ -167,9 +166,11 @@ class Player: public CharObject
         void CheckFriend(uint32_t, std::function<void(int)>);
 
     protected:
-        void OnCMActionMove();
-        void OnCMActionSpell(const ActionNode &);
-        void OnCMActionAttack(int, int, int, int, int, int, int);
+        void OnCMActionMove  (CMAction);
+        void OnCMActionStand (CMAction);
+        void OnCMActionSpell (CMAction);
+        void OnCMActionAttack(CMAction);
+        void OnCMActionPickUp(CMAction);
 
     private:
         bool PostNetMessage(uint8_t, const uint8_t *, size_t);
@@ -185,4 +186,7 @@ class Player: public CharObject
 
     protected:
         bool Offline();
+
+    protected:
+        virtual int MaxStep();
 };

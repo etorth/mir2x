@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 11/29/2017 16:22:38
+ *  Last Modified: 12/10/2017 22:36:16
  *
  *    Description: 
  *
@@ -23,6 +23,7 @@
 #include "myhero.hpp"
 #include "message.hpp"
 #include "mathfunc.hpp"
+#include "clientenv.hpp"
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
@@ -131,24 +132,6 @@ bool MyHero::MoveNextMotion()
     return false;
 }
 
-bool MyHero::ParseNewAction(const ActionNode &rstAction, bool bRemote)
-{
-    if(ActionValid(rstAction, bRemote)){
-        if(bRemote){
-            m_ActionQueue.clear();
-            return Hero::ParseNewAction(rstAction, true);
-        }else{
-            // OK it's a local action
-            // put it into the action queue for next update
-            m_ActionQueue.clear();
-            m_ActionQueue.push_back(rstAction);
-            return true;
-        }
-    }
-
-    return false;
-}
-
 bool MyHero::DecompMove(bool bCheckGround, bool bCheckCreature, bool bCheckMove, int nX0, int nY0, int nX1, int nY1, int *pXm, int *pYm)
 {
     auto stvPathNode = ParseMovePath(nX0, nY0, nX1, nY1, bCheckGround, bCheckCreature);
@@ -250,13 +233,13 @@ bool MyHero::DecompActionPickUp()
             && !m_ActionQueue.empty()
             &&  m_ActionQueue.front().Action == ACTION_PICKUP){
 
-        auto stCurrPickUp = m_ActionQueue.front().PickUp;
+        auto stCurrPickUp = m_ActionQueue.front();
         m_ActionQueue.pop_front();
 
         int nX0 = X();
         int nY0 = Y();
-        int nX1 = stCurrPickUp.AimX;
-        int nY1 = stCurrPickUp.AimY;
+        int nX1 = stCurrPickUp.X;
+        int nY1 = stCurrPickUp.Y;
 
         if(!m_ProcessRun->CanMove(false, nX0, nY0)){
             extern Log *g_Log;
@@ -277,6 +260,7 @@ bool MyHero::DecompActionPickUp()
         switch(LDistance2(nX0, nY0, nX1, nY1)){
             case 0:
                 {
+                    PickUp();
                     return true;
                 }
             default:
@@ -285,8 +269,8 @@ bool MyHero::DecompActionPickUp()
                     int nYm = -1;
 
                     if(DecompMove(true, true, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
-                        m_ActionQueue.emplace_front(ActionMove(nXm, nYm, m_ProcessRun->MapID()));
                         m_ActionQueue.emplace_front(stCurrPickUp);
+                        m_ActionQueue.emplace_front(ActionMove(nX0, nY0, nXm, nYm, SYS_DEFSPEED, OnHorse() ? 1 : 0));
                         return true;
                     }else{
                         if(DecompMove(true, false, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
@@ -311,11 +295,11 @@ bool MyHero::DecompActionMove()
             && !m_ActionQueue.empty()
             &&  m_ActionQueue.front().Action == ACTION_MOVE){
 
-        auto stCurrMove = m_ActionQueue.front().Move;
+        auto stCurrMove = m_ActionQueue.front();
         m_ActionQueue.pop_front();
 
-        int nX0 = X();
-        int nY0 = Y();
+        int nX0 = stCurrMove.X;
+        int nY0 = stCurrMove.Y;
         int nX1 = stCurrMove.AimX;
         int nY1 = stCurrMove.AimY;
 
@@ -341,141 +325,52 @@ bool MyHero::DecompActionMove()
                 }
             default:
                 {
-                    bool bCheckGround = m_ProcessRun->CanMove(false, nX1, nY1);
-                    auto stvPathNode  = ParseMovePath(nX0, nY0, nX1, nY1, bCheckGround, true);
-                    switch(stvPathNode.size()){
-                        case 0:
-                        case 1:
-                            {
-                                extern Log *g_Log;
-                                g_Log->AddLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+                    auto fnAddHop = [this, stCurrMove](int nXm, int nYm) -> bool
+                    {
+                        switch(LDistance2(stCurrMove.AimX, stCurrMove.AimY, nXm, nYm)){
+                            case 0:
+                                {
+                                    m_ActionQueue.emplace_front(stCurrMove);
+                                    return true;
+                                }
+                            default:
+                                {
+                                    m_ActionQueue.emplace_front(ActionMove(nXm, nYm, stCurrMove.AimX, stCurrMove.AimY, stCurrMove.Speed, 0));
+                                    m_ActionQueue.emplace_front(ActionMove(stCurrMove.X, stCurrMove.Y, nXm, nYm, stCurrMove.Speed, 0));
+                                    return true;
+                                }
+                        }
+                    };
 
-                                m_ActionQueue.clear();
+                    int nXm = -1;
+                    int nYm = -1;
+
+                    bool bCheckGround = m_ProcessRun->CanMove(false, nX1, nY1);
+                    if(DecompMove(bCheckGround, true, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
+                        return fnAddHop(nXm, nYm);
+                    }else{
+                        if(bCheckGround){
+                            // means there is no such way to there
+                            // move as much as possible
+                            if(DecompMove(false, true, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
+                                return fnAddHop(nXm, nYm);
+                            }else{
+                                // won't check the ground but failed
+                                // only one possibility: the first step is not legal
                                 return false;
                             }
-                        default:
-                            {
-                                // need to check the first step it gives
-                                // to avoid hero to move into an invalid grid on the map
-
-                                auto nXm = stvPathNode[1].X;
-                                auto nYm = stvPathNode[1].Y;
-
-                                int nDX = (nXm > nX0) - (nXm < nX0);
-                                int nDY = (nYm > nY0) - (nYm < nY0);
-
-                                int nIndexMax = 0;
-                                switch(LDistance2(nX0, nY0, nXm, nYm)){
-                                    case 1:
-                                    case 2:
-                                        {
-                                            nIndexMax = 1;
-                                            break;
-                                        }
-                                    case 4:
-                                    case 8:
-                                        {
-                                            nIndexMax = 2;
-                                            break;
-                                        }
-                                    case  9:
-                                    case 18:
-                                        {
-                                            nIndexMax = 3;
-                                            break;
-                                        }
-                                    default:
-                                        {
-                                            extern Log *g_Log;
-                                            g_Log->AddLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nXm, nYm);
-
-                                            m_ActionQueue.clear();
-                                            return false;
-                                        }
-                                }
-
-                                // reset (nXm, nYm) to be the max possible point
-                                {
-                                    nXm = nX0;
-                                    nYm = nY0;
-
-                                    for(int nIndex = 1; nIndex <= nIndexMax; ++nIndex){
-                                        if(m_ProcessRun->CanMove(true, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
-                                            nXm = nX0 + nDX * nIndex;
-                                            nYm = nY0 + nDY * nIndex;
-                                        }else{ break; }
-                                    }
-                                }
-
-                                switch(LDistance2(nX0, nY0, nXm, nYm)){
-                                    case 0:
-                                        {
-                                            // can't move since next is invalid
-                                            // but this doesn't means the parse failed
-
-                                            // make a turn if needed
-                                            static const int nDirV[][3] = {
-                                                {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
-                                                {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
-                                                {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
-
-                                            m_ActionQueue.emplace_front(
-                                                    ACTION_STAND,
-                                                    0,
-                                                    stCurrMove.Speed,
-                                                    nDirV[nDY + 1][nDX + 1],
-                                                    nX0,
-                                                    nY0,
-                                                    m_ProcessRun->MapID());
-                                            break;
-                                        }
-                                    default:
-                                        {
-                                            // decomposition succeeds
-                                            // need now to check if we are at the final point
-
-                                            if(LDistance2(nXm, nYm, nX1, nY1)){
-
-                                                // if current last grid is not the dst point
-                                                // we still have grid to cross
-
-                                                m_ActionQueue.emplace_front(
-                                                        ACTION_MOVE,
-                                                        stCurrMove.ActionParam,
-                                                        stCurrMove.Speed,
-                                                        DIR_NONE,
-                                                        nXm,
-                                                        nYm,
-                                                        nX1,
-                                                        nY1,
-                                                        m_ProcessRun->MapID());
-                                            }
-
-                                            m_ActionQueue.emplace_front(
-                                                    ACTION_MOVE,
-                                                    stCurrMove.ActionParam,
-                                                    stCurrMove.Speed,
-                                                    DIR_NONE,
-                                                    nX0,
-                                                    nY0,
-                                                    nXm,
-                                                    nYm,
-                                                    m_ProcessRun->MapID());
-                                            break;
-                                        }
-                                }
-
-                                return true;
-                            }
+                        }else{
+                            return false;
+                        }
                     }
-                    break;
                 }
+                break;
         }
     }
     return false;
 }
 
-bool MyHero::ParseActionAttack()
+bool MyHero::DecompActionAttack()
 {
     if(true
             && !m_ActionQueue.empty()
@@ -619,11 +514,56 @@ bool MyHero::ParseActionAttack()
     return false;
 }
 
+bool MyHero::DecompActionSpell()
+{
+    if(true
+            && !m_ActionQueue.empty()
+            &&  m_ActionQueue.front().Action == ACTION_SPELL){
+
+        auto stCurrAction = m_ActionQueue.front();
+        m_ActionQueue.pop_front();
+
+        // like dual axe
+        // some magic it has a attack distance
+
+        m_ActionQueue.emplace_front(stCurrAction);
+        return true;
+    }
+    return false;
+}
+
 bool MyHero::ParseActionQueue()
 {
     if(m_ActionQueue.empty()){
         return true;
     }
+
+    // trace message
+    // trace move action before parsing
+    {
+        extern ClientEnv *g_ClientEnv;
+        if(g_ClientEnv->TraceMove){
+            if((!m_ActionQueue.empty()) && (m_ActionQueue.front().Action == ACTION_MOVE)){
+                auto nMotionX0 = m_CurrMotion.X;
+                auto nMotionY0 = m_CurrMotion.Y;
+                auto nMotionX1 = m_CurrMotion.EndX;
+                auto nMotionY1 = m_CurrMotion.EndY;
+
+                auto nActionX0 = m_ActionQueue.front().X;
+                auto nActionY0 = m_ActionQueue.front().Y;
+                auto nActionX1 = m_ActionQueue.front().AimX;
+                auto nActionY1 = m_ActionQueue.front().AimY;
+
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_INFO, "BF: CurrMotion: (%d, %d) -> (%d, %d)", nMotionX0, nMotionY0, nMotionX1, nMotionY1);
+                g_Log->AddLog(LOGTYPE_INFO, "BF: CurrAction: (%d, %d) -> (%d, %d)", nActionX0, nActionY0, nActionX1, nActionY1);
+            }
+        }
+    }
+
+    // parsing action
+    // means pending motion queue must be empty
+    condcheck(m_MotionQueue.empty());
 
     // all actions in action queue is local and not verfified
     // present the action list immediately and sent it to server for verification
@@ -636,27 +576,30 @@ bool MyHero::ParseActionQueue()
     switch(m_ActionQueue.front().Action){
         case ACTION_PICKUP:
             {
-                if(!ParseActionPickUp()){
+                if(!DecompActionPickUp()){
                     return false;
                 }
                 break;
             }
         case ACTION_MOVE:
             {
-                if(!DecomActionMove()){
+                if(!DecompActionMove()){
                     return false;
                 }
                 break;
             }
         case ACTION_ATTACK:
             {
-                if(!ParseActionAttack()){
+                if(!DecompActionAttack()){
                     return false;
                 }
                 break;
             }
         case ACTION_SPELL:
             {
+                if(!DecompActionSpell()){
+                    return false;
+                }
                 break;
             }
         default:
@@ -673,17 +616,22 @@ bool MyHero::ParseActionQueue()
         // 2. send this action to server for verification
         {
             CMAction stCMA;
-            stCMA.UID         = UID();
-            stCMA.MapID       = stCurrAction.MapID;
-            stCMA.Action      = stCurrAction.Action;
-            stCMA.ActionParam = stCurrAction.ActionParam;
-            stCMA.Speed       = stCurrAction.Speed;
-            stCMA.Direction   = stCurrAction.Direction;
-            stCMA.X           = stCurrAction.X;
-            stCMA.Y           = stCurrAction.Y;
-            stCMA.AimX        = stCurrAction.AimX;
-            stCMA.AimY        = stCurrAction.AimY;
+            std::memset(&stCMA, 0, sizeof(stCMA));
+
+            stCMA.UID   = UID();
+            stCMA.MapID = m_ProcessRun->MapID();
+
+            stCMA.Action    = stCurrAction.Action;
+            stCMA.Speed     = stCurrAction.Speed;
+            stCMA.Direction = stCurrAction.Direction;
+
+            stCMA.X    = stCurrAction.X;
+            stCMA.Y    = stCurrAction.Y;
+            stCMA.AimX = stCurrAction.AimX;
+            stCMA.AimY = stCurrAction.AimY;
+
             stCMA.AimUID      = stCurrAction.AimUID;
+            stCMA.ActionParam = stCurrAction.ActionParam;
 
             extern Game *g_Game;
             g_Game->Send(CM_ACTION, stCMA);
@@ -692,9 +640,43 @@ bool MyHero::ParseActionQueue()
         // 3. present current *local* action
         //    we show the action without server verification
         //    later if server refused current action we'll do correction
-        if(Hero::ParseNewAction(stCurrAction, false)){
+        if(ParseAction(stCurrAction)){
+            // trace message
+            // trace move action after parsing
+            {
+                extern ClientEnv *g_ClientEnv;
+                if(g_ClientEnv->TraceMove){
+                    for(auto &rstMotion: m_MotionQueue){
+                        auto nMotionX0 = rstMotion.X;
+                        auto nMotionY0 = rstMotion.Y;
+                        auto nMotionX1 = rstMotion.EndX;
+                        auto nMotionY1 = rstMotion.EndY;
+
+                        extern Log *g_Log;
+                        g_Log->AddLog(LOGTYPE_INFO, "AF: CurrMotion: (%d, %d) -> (%d, %d)", nMotionX0, nMotionY0, nMotionX1, nMotionY1);
+                    }
+
+                    if(m_ActionQueue.empty()){
+                        extern Log *g_Log;
+                        g_Log->AddLog(LOGTYPE_INFO, "AF: CurrAction: NONE");
+                    }else{
+                        for(auto &rstAction: m_ActionQueue){
+                            auto nActionX0 = rstAction.X;
+                            auto nActionY0 = rstAction.Y;
+                            auto nActionX1 = rstAction.AimX;
+                            auto nActionY1 = rstAction.AimY;
+
+                            extern Log *g_Log;
+                            g_Log->AddLog(LOGTYPE_INFO, "AF: CurrAction: (%d, %d) -> (%d, %d)", nActionX0, nActionY0, nActionX1, nActionY1);
+                        }
+                    }
+                }
+            }
+
             m_CurrMotion = m_MotionQueue.front();
             m_MotionQueue.pop_front();
+        }else{
+            return false;
         }
     }
 
@@ -732,7 +714,7 @@ void MyHero::PickUp()
     }
 }
 
-bool MyHero::ParseLocalAction(const ActionNode &rsAction)
+bool MyHero::EmplaceAction(const ActionNode &rstAction)
 {
     m_ActionQueue.clear();
     m_ActionQueue.push_back(rstAction);
