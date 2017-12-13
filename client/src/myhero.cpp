@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 12/10/2017 22:36:16
+ *  Last Modified: 12/12/2017 17:30:38
  *
  *    Description: 
  *
@@ -236,8 +236,8 @@ bool MyHero::DecompActionPickUp()
         auto stCurrPickUp = m_ActionQueue.front();
         m_ActionQueue.pop_front();
 
-        int nX0 = X();
-        int nY0 = Y();
+        int nX0 = m_CurrMotion.EndX;
+        int nY0 = m_CurrMotion.EndY;
         int nX1 = stCurrPickUp.X;
         int nY1 = stCurrPickUp.Y;
 
@@ -260,7 +260,7 @@ bool MyHero::DecompActionPickUp()
         switch(LDistance2(nX0, nY0, nX1, nY1)){
             case 0:
                 {
-                    PickUp();
+                    m_ActionQueue.emplace_front(stCurrPickUp);
                     return true;
                 }
             default:
@@ -274,15 +274,15 @@ bool MyHero::DecompActionPickUp()
                         return true;
                     }else{
                         if(DecompMove(true, false, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
-                            // path occupied and we just wait...
+                            // reachable but blocked
+                            // path occupied, we restore it and wait
                             m_ActionQueue.emplace_front(stCurrPickUp);
-                            return true;
-                        }else{
-                            return false;
                         }
-                    }
 
-                    break;
+                        // report failure
+                        // head is not simple action
+                        return false;
+                    }
                 }
         }
     }
@@ -379,137 +379,126 @@ bool MyHero::DecompActionAttack()
         auto stCurrAction = m_ActionQueue.front();
         m_ActionQueue.pop_front();
 
-        int nX0 = m_CurrMotion.EndX;
-        int nY0 = m_CurrMotion.EndY;
-        int nX1 = stCurrAction.AimX;
-        int nY1 = stCurrAction.AimY;
+        // when parsing ActionAttack
+        // we don't use ActionAttack::X/Y
 
-        switch(LDistance2(nX0, nY0, nX1, nY1)){
-            case 0:
-                {
-                    extern Log *g_Log;
-                    g_Log->AddLog(LOGTYPE_WARNING, "Invalid attack location (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+        // this X/Y is used to send to the server
+        // for location verification only
 
-                    m_ActionQueue.clear();
-                    return false;
-                }
-            case 1:
-            case 2:
-                {
-                    // don't parse more than one action at one call
-                    // ok we are at the place for attack, assign direction here
+        auto nX0 = m_CurrMotion.EndX;
+        auto nY0 = m_CurrMotion.EndY;
 
-                    static const int nDirV[][3] = {
-                        {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
-                        {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
-                        {DIR_DOWNLEFT, DIR_DOWN, DIR_DOWNRIGHT}};
+        // use if need to keep the attack node
+        // we use m_CurrMotion.EndX/Y instead of rstAction.X/Y
 
-                    auto nSDX = nX1 - nX0 + 1;
-                    auto nSDY = nY1 - nY0 + 1;
+        ActionAttack stAttack
+        {
+            nX0,
+            nY0,
+            (int)(stCurrAction.ActionParam),
+            stCurrAction.Speed,
+            stCurrAction.AimUID,
+        };
 
-                    m_ActionQueue.emplace_front(
-                            ACTION_ATTACK,
-                            stCurrAction.ActionParam,
-                            stCurrAction.Speed,
-                            nDirV[nSDY][nSDX],
-                            m_CurrMotion.EndX,
-                            m_CurrMotion.EndY,
-                            stCurrAction.AimX,
-                            stCurrAction.AimY,
-                            m_ProcessRun->MapID());
-                    return true;
-                }
-            default:
-                {
-                    // complex part
-                    // not close enough for the PLAIN_PHY_ATTACK
-                    // need to schedule a path to move closer and then attack
+        if(auto pCreature = m_ProcessRun->RetrieveUID(stCurrAction.AimUID)){
+            auto nX1 = pCreature->X();
+            auto nY1 = pCreature->Y();
 
-                    int nXt = -1;
-                    int nYt = -1;
+            switch(LDistance2(nX0, nY0, nX1, nY1)){
+                case 0:
+                    {
+                        extern Log *g_Log;
+                        g_Log->AddLog(LOGTYPE_WARNING, "Invalid attack location (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
 
-                    if(DecompMove(true, true, true, nX0, nY0, nX1, nY1, &nXt, &nYt)){
-                        if(false
-                                || nXt != nX1
-                                || nYt != nY1){
-
-                            // we find a distinct point as middle point
-                            // we firstly move to (nXt, nYt) then parse the attack action
-                            m_ActionQueue.emplace_front(
-                                    ACTION_ATTACK,
-                                    stCurrAction.ActionParam,
-                                    stCurrAction.Speed,
-                                    DIR_NONE,
-                                    nXt,
-                                    nYt,
-                                    nX1,
-                                    nY1,
-                                    m_ProcessRun->MapID());
-
-                            m_ActionQueue.emplace_front(
-                                    ACTION_MOVE,
-                                    OnHorse() ? 1 : 0,
-                                    stCurrAction.Speed,
-                                    DIR_NONE,
-                                    nX0,
-                                    nY0,
-                                    nXt,
-                                    nYt,
-                                    m_ProcessRun->MapID());
-                        }else{
-
-                            // one hop we can reach the attack location
-                            // but we know step size between (nX0, nY0) and (nX1, nY1) > 1
-
-                            int nDX = (nXt > nX0) - (nXt < nX0);
-                            int nDY = (nYt > nY0) - (nYt < nY0);
-
-                            m_ActionQueue.emplace_front(
-                                    ACTION_ATTACK,
-                                    stCurrAction.ActionParam,
-                                    stCurrAction.Speed,
-                                    DIR_NONE,
-                                    nX0 + nDX,
-                                    nY0 + nDY,
-                                    nX1,
-                                    nY1,
-                                    m_ProcessRun->MapID());
-
-                            m_ActionQueue.emplace_front(
-                                    ACTION_MOVE,
-                                    OnHorse() ? 1 : 0,
-                                    stCurrAction.Speed,
-                                    DIR_NONE,
-                                    nX0,
-                                    nY0,
-                                    nX0 + nDX,
-                                    nY0 + nDY,
-                                    m_ProcessRun->MapID());
-                        }
-
-                        // ok action decomposition succeeds
-                        // now the first action node is proper to parse & send
+                        m_ActionQueue.clear();
+                        return false;
+                    }
+                case 1:
+                case 2:
+                    {
+                        m_ActionQueue.emplace_front(stAttack);
                         return true;
+                    }
+                default:
+                    {
+                        // not close enough for the PLAIN_PHY_ATTACK
+                        // need to schedule a path to move closer and then attack
 
-                    }else{
+                        int nXt = -1;
+                        int nYt = -1;
 
-                        // decompse failed, why it failed?
-                        // if can't reach we need to reject current action
-                        // if caused by occupied grids of creatures, we need to keep it
+                        if(DecompMove(true, true, true, nX0, nY0, nX1, nY1, &nXt, &nYt)){
 
-                        if(DecompMove(true, false, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
+                            // decompse the move
+                            // but need to check if it's one step distance
 
-                            // keep it
-                            m_ActionQueue.emplace_front(stCurrAction);
+                            switch(LDistance2(nXt, nYt, nX1, nY1)){
+                                case 0:
+                                    {
+                                        // one hop we can reach the attack location
+                                        // but we know step size between (nX0, nY0) and (nX1, nY1) > 1
+
+                                        int nXm  = -1;
+                                        int nYm  = -1;
+                                        int nDir = PathFind::GetDirection(nX0, nY0, nX1, nY1);
+                                        PathFind::GetFrontLocation(&nXm, &nYm, nX0, nY0, nDir, 1);
+
+                                        nXt = nXm;
+                                        nYt = nYm;
+
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        break;
+                                    }
+                            }
+
+                            m_ActionQueue.emplace_front(ActionAttack
+                            {
+                                nXt,
+                                nYt,
+                                (int)(stCurrAction.ActionParam),
+                                stCurrAction.Speed,
+                                stCurrAction.AimUID,
+                            });
+
+                            m_ActionQueue.emplace_front(ActionMove
+                            {
+                                nX0,
+                                nY0,
+                                nXt,
+                                nYt,
+                                SYS_DEFSPEED,
+                                (OnHorse() ? 1 : 0),
+                            });
+
                             return true;
                         }else{
 
-                            m_ActionQueue.clear();
+                            // decompse failed, why it failed?
+                            // if can't reach we need to reject current action
+                            // if caused by occupied grids of creatures, we need to keep it
+
+                            if(DecompMove(true, false, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
+                                // keep it
+                                // can reach but not now
+                                m_ActionQueue.emplace_front(stAttack);
+                            }else{
+                                m_ActionQueue.clear();
+                            }
+
+                            // decompse failed
+                            // the head of the action queue is not simple
                             return false;
                         }
                     }
-                }
+            }
         }
+
+        // we can't get the UID
+        // remove the attack node and return false
+        return false;
     }
     return false;
 }
@@ -613,33 +602,22 @@ bool MyHero::ParseActionQueue()
         auto stCurrAction = m_ActionQueue.front();
         m_ActionQueue.pop_front();
 
-        // 2. send this action to server for verification
+        ReportAction(ActionNode
         {
-            CMAction stCMA;
-            std::memset(&stCMA, 0, sizeof(stCMA));
+            stCurrAction.Action,
+            stCurrAction.Speed,
+            stCurrAction.Direction,
+            stCurrAction.X,
+            stCurrAction.Y,
+            stCurrAction.AimX,
+            stCurrAction.AimY,
+            stCurrAction.AimUID,
+            stCurrAction.ActionParam,
+        });
 
-            stCMA.UID   = UID();
-            stCMA.MapID = m_ProcessRun->MapID();
+        // present current *local* action without verification
+        // later if server refused current action we'll do correction by pullback
 
-            stCMA.Action    = stCurrAction.Action;
-            stCMA.Speed     = stCurrAction.Speed;
-            stCMA.Direction = stCurrAction.Direction;
-
-            stCMA.X    = stCurrAction.X;
-            stCMA.Y    = stCurrAction.Y;
-            stCMA.AimX = stCurrAction.AimX;
-            stCMA.AimY = stCurrAction.AimY;
-
-            stCMA.AimUID      = stCurrAction.AimUID;
-            stCMA.ActionParam = stCurrAction.ActionParam;
-
-            extern Game *g_Game;
-            g_Game->Send(CM_ACTION, stCMA);
-        }
-
-        // 3. present current *local* action
-        //    we show the action without server verification
-        //    later if server refused current action we'll do correction
         if(ParseAction(stCurrAction)){
             // trace message
             // trace move action after parsing
@@ -673,13 +651,17 @@ bool MyHero::ParseActionQueue()
                 }
             }
 
-            m_CurrMotion = m_MotionQueue.front();
-            m_MotionQueue.pop_front();
+            // ParseAction() can make m_MotionQueue empty
+            // Like for ACTION_PICKUP
+
+            if(!m_MotionQueue.empty()){
+                m_CurrMotion = m_MotionQueue.front();
+                m_MotionQueue.pop_front();
+            }
         }else{
             return false;
         }
     }
-
     return true;
 }
 
@@ -692,23 +674,12 @@ bool MyHero::StayIdle()
 
 void MyHero::PickUp()
 {
-    if(true
-            && StayIdle()
-            && CurrMotion().Frame == 0){
+    if(StayIdle()){
         for(auto &rstGroundItem: m_ProcessRun->GetGroundItemList()){
             if(true
                     && rstGroundItem.X == CurrMotion().X
                     && rstGroundItem.Y == CurrMotion().Y){
-
-                CMPickUp stCMPU;
-                stCMPU.X      = rstGroundItem.X;
-                stCMPU.Y      = rstGroundItem.Y;
-                stCMPU.UID    = UID();
-                stCMPU.MapID  = m_ProcessRun->MapID();
-                stCMPU.ItemID = rstGroundItem.ID;
-
-                extern Game *g_Game;
-                g_Game->Send(CM_PICKUP, stCMPU);
+                ReportAction(ActionPickUp(rstGroundItem.X, rstGroundItem.Y, rstGroundItem.ID));
             }
         }
     }
@@ -719,4 +690,28 @@ bool MyHero::EmplaceAction(const ActionNode &rstAction)
     m_ActionQueue.clear();
     m_ActionQueue.push_back(rstAction);
     return true;
+}
+
+void MyHero::ReportAction(const ActionNode &rstAction)
+{
+    CMAction stCMA;
+    std::memset(&stCMA, 0, sizeof(stCMA));
+
+    stCMA.UID   = UID();
+    stCMA.MapID = m_ProcessRun->MapID();
+
+    stCMA.Action    = rstAction.Action;
+    stCMA.Speed     = rstAction.Speed;
+    stCMA.Direction = rstAction.Direction;
+
+    stCMA.X    = rstAction.X;
+    stCMA.Y    = rstAction.Y;
+    stCMA.AimX = rstAction.AimX;
+    stCMA.AimY = rstAction.AimY;
+
+    stCMA.AimUID      = rstAction.AimUID;
+    stCMA.ActionParam = rstAction.ActionParam;
+
+    extern Game *g_Game;
+    g_Game->Send(CM_ACTION, stCMA);
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 12/01/2017 18:00:55
+ *  Last Modified: 12/12/2017 14:05:20
  *
  *    Description: 
  *
@@ -227,6 +227,24 @@ class ProcessRun: public Process
                 }
             }
             return {0};
+        }
+
+        void RemoveGroundItem(uint32_t nItemID, int nX, int nY)
+        {
+            for(size_t nIndex = 0; nIndex < m_GroundItemList.size(); ++nIndex){
+                if(true
+                        && m_GroundItemList[nIndex].X  == nX
+                        && m_GroundItemList[nIndex].Y  == nY
+                        && m_GroundItemList[nIndex].ID == nItemID){
+
+                    std::swap(m_GroundItemList[nIndex], m_GroundItemList.back());
+                    m_GroundItemList.pop_back();
+
+                    // could have more than one stay there
+                    // we only remove one item from the location
+                    return;
+                }
+            }
         }
 
     public:

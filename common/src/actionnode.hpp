@@ -3,7 +3,7 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 12/08/2017 15:49:04
+ *  Last Modified: 12/12/2017 17:15:29
  *
  *    Description:
  *
@@ -133,13 +133,18 @@ struct ActionSpaceMove2
 
 struct ActionAttack
 {
-    int DC;
-    int Speed;
+    int X = -1;
+    int Y = -1;
 
-    uint32_t AimUID;
+    int DC    = -1;
+    int Speed = -1;
 
-    ActionAttack(int nDC = -1, int nSpeed = -1, uint32_t nAimUID = 0)
-        : DC(nDC)
+    uint32_t AimUID = 0;
+
+    ActionAttack(int nX, int nY, int nDC, int nSpeed, uint32_t nAimUID)
+        : X(nX)
+        , Y(nY)
+        , DC(nDC)
         , Speed(nSpeed)
         , AimUID(nAimUID)
     {}
@@ -257,6 +262,8 @@ struct ActionNode
     ActionNode(const ActionAttack &rstAttack)
         : Action(ACTION_ATTACK)
         , Speed(rstAttack.Speed)
+        , X(rstAttack.X)
+        , Y(rstAttack.Y)
         , AimUID(rstAttack.AimUID)
         , ActionParam(rstAttack.DC)
     {}

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 12/10/2017 22:31:03
+ *  Last Modified: 12/12/2017 16:08:40
  *
  *    Description: 
  *
@@ -144,19 +144,7 @@ void ProcessRun::Update(double fUpdateTime)
         if(pCreature->StayDead()){
             m_FocusTable[FOCUS_ATTACK] = 0;
         }else{
-            auto nX = pCreature->X();
-            auto nY = pCreature->Y();
-
-            bool bForce = false;
-            if(false
-                    || m_AttackUIDX != nX
-                    || m_AttackUIDY != nY){
-
-                bForce = true;
-                m_AttackUIDX = nX;
-                m_AttackUIDY = nY;
-            }
-            TrackAttack(bForce, m_FocusTable[FOCUS_ATTACK]);
+            TrackAttack(false, m_FocusTable[FOCUS_ATTACK]);
         }
     }else{
         m_FocusTable[FOCUS_ATTACK] = 0;
@@ -556,7 +544,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
             {
                 int nMouseGridX = -1;
                 int nMouseGridY = -1;
-                ScreenPoint2Grid(rstEvent.button.x, rstEvent.button.y, &nMouseGridY, &nMouseGridY);
+                ScreenPoint2Grid(rstEvent.button.x, rstEvent.button.y, &nMouseGridX, &nMouseGridY);
 
                 switch(rstEvent.button.button){
                     case SDL_BUTTON_LEFT:
@@ -1306,7 +1294,9 @@ bool ProcessRun::TrackAttack(bool bForce, uint32_t nUID)
 {
     if(RetrieveUID(nUID)){
         if(bForce || m_MyHero->StayIdle()){
-            return m_MyHero->ParseAction(ActionAttack(DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
+            auto nEndX = m_MyHero->CurrMotion().EndX;
+            auto nEndY = m_MyHero->CurrMotion().EndY;
+            return m_MyHero->EmplaceAction(ActionAttack(nEndX, nEndY, DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
         }
     }
     return false;

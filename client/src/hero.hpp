@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 12/08/2017 09:44:44
+ *  Last Modified: 12/12/2017 00:02:48
  *
  *    Description: 
  *
@@ -112,4 +112,10 @@ class Hero: public Creature
     public:
         int  MaxStep() const;
         int CurrStep() const;
+
+    public:
+        virtual void PickUp()
+        {
+            // need to move this to myhero
+        }
 };

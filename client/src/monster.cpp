@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 12/08/2017 09:36:48
+ *  Last Modified: 12/12/2017 16:21:41
  *
  *    Description: 
  *
@@ -406,12 +406,17 @@ bool Monster::ParseAction(const ActionNode &rstAction)
             }
         case ACTION_ATTACK:
             {
-                m_MotionQueue.emplace_back(
-                        MOTION_MON_ATTACK0,
-                        0,
-                        rstAction.Direction,
-                        rstAction.X,
-                        rstAction.Y);
+                if(auto pCreature = m_ProcessRun->RetrieveUID(rstAction.AimUID)){
+                    auto nX   = pCreature->X();
+                    auto nY   = pCreature->Y();
+                    auto nDir = PathFind::GetDirection(rstAction.X, rstAction.Y, nX, nY);
+
+                    if(nDir > DIR_NONE && nDir < DIR_MAX){
+                        m_MotionQueue.emplace_back(MOTION_MON_ATTACK0, 0, nDir, rstAction.X, rstAction.Y);
+                    }
+                }else{
+                    return false;
+                }
                 break;
             }
         case ACTION_HITTED:

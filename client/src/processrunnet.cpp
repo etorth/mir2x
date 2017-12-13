@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 12/10/2017 23:20:24
+ *  Last Modified: 12/12/2017 17:49:38
  *
  *    Description: 
  *
@@ -227,6 +227,18 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
     if(auto &rstMR = DBCOM_MAGICRECORD(stSMFM.Magic)){
         AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"使用魔法: %s", rstMR.Name);
 
+        switch(stSMFM.Magic){
+            case DBCOM_MAGICID(u8"魔法盾"):
+                {
+                    if(auto stEntry = rstMR.GetGfxEntry(u8"开始")){
+                        if(auto pCreature = RetrieveUID(stSMFM.UID)){
+                            pCreature->AddAttachMagic(stSMFM.Magic, 0, stEntry.Stage);
+                        }
+                        return;
+                    }
+                }
+        }
+
         const GfxEntry *pEntry = nullptr;
         if(stSMFM.UID != m_MyHero->UID()){
             if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"启动")); }
@@ -298,7 +310,10 @@ void ProcessRun::Net_OFFLINE(const uint8_t *pBuf, size_t)
 
 void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
 {
-    auto pMSG = (SMPickUpOK *)(pBuf);
-    m_MyHero->GetInvPack().Add(pMSG->ItemID);
-    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(pMSG->ItemID).Name, (int)(pMSG->X), (int)(pMSG->Y));
+    SMPickUpOK stSMPUOK;
+    std::memcpy(&stSMPUOK, pBuf, sizeof(stSMPUOK));
+
+    m_MyHero->GetInvPack().Add(stSMPUOK.ItemID);
+    RemoveGroundItem(stSMPUOK.ItemID, stSMPUOK.X, stSMPUOK.Y);
+    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(stSMPUOK.ItemID).Name, (int)(stSMPUOK.X), (int)(stSMPUOK.Y));
 }

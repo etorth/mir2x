@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 12/10/2017 23:08:08
+ *  Last Modified: 12/12/2017 16:17:15
  *
  *    Description: 
  *
@@ -342,10 +342,10 @@ bool Hero::ParseAction(const ActionNode &rstAction)
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
     switch(rstAction.Action){
-        case ACTION_STAND:
         case ACTION_MOVE:
-        case ACTION_ATTACK:
         case ACTION_SPELL:
+        case ACTION_STAND:
+        case ACTION_ATTACK:
             {
                 // 1. clean all pending motions
                 m_MotionQueue.clear();
@@ -403,6 +403,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                 break;
             }
         case ACTION_HITTED:
+        case ACTION_PICKUP:
         default:
             {
                 break;
@@ -500,19 +501,19 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                         }
                 }
 
-                m_MotionQueue.emplace_back(
-                        nMotion,
-                        0,
-                        rstAction.Direction,
-                        rstAction.X,
-                        rstAction.Y);
+                if(auto pCreature = m_ProcessRun->RetrieveUID(rstAction.AimUID)){
+                    auto nX   = pCreature->X();
+                    auto nY   = pCreature->Y();
+                    auto nDir = PathFind::GetDirection(rstAction.X, rstAction.Y, nX, nY);
 
-                m_MotionQueue.emplace_back(
-                        MOTION_ATTACKMODE,
-                        0,
-                        rstAction.Direction,
-                        rstAction.X,
-                        rstAction.Y);
+                    if(nDir > DIR_NONE && nDir < DIR_MAX){
+                        m_MotionQueue.emplace_back(nMotion,           0, nDir, rstAction.X, rstAction.Y);
+                        m_MotionQueue.emplace_back(MOTION_ATTACKMODE, 0, nDir, rstAction.X, rstAction.Y);
+                    }
+                }else{
+                    return false;
+                }
+
                 break;
             }
         case ACTION_HITTED:
@@ -523,6 +524,11 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                         m_CurrMotion.Direction,
                         m_CurrMotion.EndX,
                         m_CurrMotion.EndY);
+                break;
+            }
+        case ACTION_PICKUP:
+            {
+                PickUp();
                 break;
             }
         case ACTION_DIE:

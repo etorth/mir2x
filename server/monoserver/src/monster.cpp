@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/07/2017 21:43:15
+ *  Last Modified: 12/12/2017 16:06:12
  *
  *    Description: 
  *
@@ -164,7 +164,7 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
                                             m_Direction = PathFind::GetDirection(X(), Y(), nX, nY);
                                             if(CanAttack()){
                                                 // 1. dispatch action to all
-                                                DispatchAction(ActionAttack(DC_PHY_PLAIN, AttackSpeed(), stRecord.UID));
+                                                DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), stRecord.UID));
 
                                                 extern MonoServer *g_MonoServer;
                                                 m_LastAttackTime = g_MonoServer->GetTimeTick();
