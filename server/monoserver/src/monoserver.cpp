@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 09/23/2017 22:57:45
+ *  Last Modified: 12/12/2017 22:43:24
  *
  *    Description: 
  *
@@ -811,13 +811,17 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
         // initialization before registration
         pModule->script(R"()");
 
-        // register command exitServer
-        // exit current server and free all related resource
-        pModule->set_function("exitServer", [](){ exit(0); });
+        // exit current server
+        // used in command window
+        pModule->set_function("exitServer", []()
+        {
+            std::exit(0);
+        });
 
         // register command exit
         // exit current command window and free all related resource
-        pModule->set_function("exit", [this, nCWID](){
+        pModule->set_function("exit", [this, nCWID]()
+        {
             // 1. show exiting messages
             AddCWLog(nCWID, 0, "> ", "Command window is requested to exit now...");
 
@@ -828,14 +832,6 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
             NotifyGUI(std::string("ExitCW ") + std::to_string(nCWID));
         });
 
-        // register command sleep
-        // sleep current lua thread and return after the specified ms
-        // can use posix.sleep(ms), but here use std::this_thread::sleep_for(x)
-        pModule->set_function("sleep", [this, nCWID](int nSleepMS){
-            if(nSleepMS > 0){
-                std::this_thread::sleep_for(std::chrono::milliseconds(nSleepMS));
-            }
-        });
 
         // register command printLine
         // print one line in command window
@@ -878,12 +874,14 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
         // register command mapList
         // get a list for all active maps
         // return a table (userData) to lua for ipairs() check
-        pModule->set_function("mapList", [this](sol::this_state stThisLua){
+        pModule->set_function("mapList", [this](sol::this_state stThisLua)
+        {
             return sol::make_object(sol::state_view(stThisLua), GetMapList());
         });
 
         // register command countMonster(monsterID, mapID)
-        pModule->set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int {
+        pModule->set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
+        {
             auto nRet = GetMonsterCount(nMonsterID, nMapID).value_or(-1);
             if(nRet < 0){
                 AddCWLog(nCWID, 2, ">>> ", "countMonster(MonsterID: int, MapID: int) failed");
@@ -903,7 +901,8 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
         //      end
         // here we get an exception from lua caught by sol2: ``std::bad_alloc"
         // but we want more detailed information like print the function usage out
-        pModule->set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool {
+        pModule->set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool
+        {
             auto fnPrintUsage = [this, nCWID]()
             {
                 AddCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int)");

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 10/31/2017 11:26:45
+ *  Last Modified: 12/13/2017 00:58:33
  *
  *    Description:
  *
@@ -24,6 +24,7 @@
 #include <cstdint>
 
 #include "sysconst.hpp"
+#include "luamodule.hpp"
 #include "querytype.hpp"
 #include "uidrecord.hpp"
 #include "metronome.hpp"
@@ -32,10 +33,32 @@
 #include "mir2xmapdata.hpp"
 #include "activeobject.hpp"
 
+class Player;
+class Monster;
 class ServiceCore;
 class ServerObject;
+
 class ServerMap: public ActiveObject
 {
+    private:
+        class ServerMapLuaModule: public LuaModule
+        {
+            private:
+                ServerMap  *m_Map;
+                std::string m_Command;
+
+            public:
+                ServerMapLuaModule(ServerMap *);
+
+            public:
+                ~ServerMapLuaModule() = default;
+
+            public:
+                // run one time of the script
+                // remeber the lua handler is there then it has memory
+                bool LoopOne();
+        };
+
     private:
         // bind to servermap
         // only for server map internal usage
@@ -96,6 +119,9 @@ class ServerMap: public ActiveObject
         Vec2D<CellRecord> m_CellRecordV2D;
 
     private:
+        ServerMapLuaModule *m_LuaModule;
+
+    private:
         void OperateAM(const MessagePack &, const Theron::Address &);
 
     public:
@@ -143,6 +169,16 @@ class ServerMap: public ActiveObject
         bool RandomLocation(int *, int *);
 
     private:
+        bool GetValidGrid(int *, int *, bool);
+
+    private:
+        Player  *AddPlayer (uint32_t, int, int, int, bool);
+        Monster *AddMonster(uint32_t, uint32_t, int, int, bool);
+
+    private:
+        int GetMonsterCount(uint32_t);
+
+    private:
         int FindGroundItem(int, int, uint32_t);
         int DropItemListCount(int, int);
         bool AddGroundItem(int, int, const CommonItem &);
@@ -174,4 +210,9 @@ class ServerMap: public ActiveObject
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYRECTUIDV(const MessagePack &, const Theron::Address &);
+
+    private:
+        // 1. create lua module handle
+        // 2. add lua functions correlated to current server map
+        bool RegisterLuaModule();
 };

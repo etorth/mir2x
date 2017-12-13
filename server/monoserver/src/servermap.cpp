@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 10/31/2017 15:45:22
+ *  Last Modified: 12/13/2017 01:18:54
  *
  *    Description: 
  *
@@ -18,6 +18,8 @@
  * =====================================================================================
  */
 
+#include <sstream>
+#include <fstream>
 #include <algorithm>
 #include "player.hpp"
 #include "dbcomid.hpp"
@@ -25,12 +27,56 @@
 #include "actorpod.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
+#include "condcheck.hpp"
 #include "servermap.hpp"
 #include "mapbindbn.hpp"
 #include "charobject.hpp"
 #include "monoserver.hpp"
 #include "dbcomrecord.hpp"
 #include "rotatecoord.hpp"
+
+ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *pMap)
+    : m_Map(pMap)
+    , m_Command([this]() -> std::string
+      {
+          std::string szScriptPath  = "/home/anhong/mir2x/server/monoserver/script";
+          std::string szCommandFile = ((szScriptPath + "/") + DBCOM_MAPRECORD(m_Map->ID()).Name) + ".lua";
+
+          std::stringstream stCommand;
+          std::ifstream stCommandFile(szCommandFile.c_str());
+
+          stCommand << stCommandFile.rdbuf();
+          return stCommand.str();
+      }())
+{
+    condcheck(m_Map);
+}
+
+bool ServerMap::ServerMapLuaModule::LoopOne()
+{
+    if(m_Command.empty()){
+        return true;
+    }
+
+    auto stCallResult = script(m_Command.c_str(), [](lua_State *, sol::protected_function_result stResult)
+    {
+        // default handler
+        // do nothing and let the call site handle the errors
+        return stResult;
+    });
+
+    if(stCallResult.valid()){
+        // default nothing printed
+        // we can put information here to show call succeeds
+        return true;
+    }else{
+        sol::error stError = stCallResult;
+
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Script fault: %s: %s", DBCOM_MAPRECORD(m_Map->ID()).Name, stError.what());
+        return false;
+    }
+}
 
 ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, bool bCheckCO)
     : AStarPathFinder(
@@ -257,6 +303,7 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     , m_Metronome(nullptr)
     , m_ServiceCore(pServiceCore)
     , m_CellRecordV2D()
+    , m_LuaModule(nullptr)
 {
     m_CellRecordV2D.clear();
     if(m_Mir2xMapData.Valid()){
@@ -569,6 +616,67 @@ double ServerMap::MoveCost(bool bCheckCO, bool bCheckLock, bool bSkipMiddleLock,
     return fMoveCost;
 }
 
+bool ServerMap::GetValidGrid(int *pX, int *pY, bool bRandom)
+{
+    if(pX && pY){
+
+        auto nX = *pX;
+        auto nY = *pY;
+
+        bool bValidLoc = true;
+        if(false
+                || !In(ID(), nX, nY)
+                || !CanMove(true, true, nX, nY)){
+
+            // have to check if we can do random pick
+            // the location field provides an invalid location
+            bValidLoc = false;
+
+            if(bRandom){
+                if(In(ID(), nX, nY)){
+                    // OK we failed to add monster at the specified location
+                    // but still to try to add near it
+                }else{
+                    // randomly pick one
+                    // an invalid location provided
+                    nX = std::rand() % W();
+                    nY = std::rand() % H();
+                }
+
+                RotateCoord stRC;
+                if(stRC.Reset(nX, nY, 0, 0, W(), H())){
+                    do{
+                        if(true
+                                && In(ID(), stRC.X(), stRC.Y())
+                                && CanMove(true, true, stRC.X(), stRC.Y())){
+
+                            // find a valid location
+                            // use it to add new charobject
+                            bValidLoc = true;
+
+                            nX = stRC.X();
+                            nY = stRC.Y();
+                            break;
+                        }
+                    }while(stRC.Forward());
+                }
+            }
+        }
+
+        // if we get the valid location, output it
+        // otherwise we keep it un-touched
+
+        if(bValidLoc){
+
+            *pX = nX;
+            *pY = nY;
+        }
+
+        return bValidLoc;
+    }
+    return false;
+}
+
 bool ServerMap::RandomLocation(int *pX, int *pY)
 {
     for(int nX = 0; nX < W(); ++nX){
@@ -603,6 +711,7 @@ Theron::Address ServerMap::Activate()
     m_Metronome = new Metronome(300);
     m_Metronome->Activate(GetAddress());
 
+    RegisterLuaModule();
     return stAddress;
 }
 
@@ -850,4 +959,183 @@ bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
         }
     }
     return false;
+}
+
+int ServerMap::GetMonsterCount(uint32_t nMonsterID)
+{
+    int nCount = 0;
+    for(auto &rstLine: m_CellRecordV2D){
+        for(auto &rstRecord: rstLine){
+            for(auto nUID: rstRecord.UIDList){
+                extern MonoServer *g_MonoServer;
+                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                    if(stUIDRecord.ClassFrom<Monster>()){
+                        if(nMonsterID){
+                            nCount += ((stUIDRecord.Desp.Monster.MonsterID == nMonsterID) ? 1 : 0);
+                        }else{
+                            nCount++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return nCount;
+}
+
+Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint32_t nMasterUID, int nX, int nY, bool bRandom)
+{
+    if(GetValidGrid(&nX, &nY, bRandom)){
+        auto pMonster = new Monster
+        {
+            nMonsterID,
+            m_ServiceCore,
+            this,
+            nX,
+            nY,
+            DIR_UP,
+            STATE_INCARNATED,
+            nMasterUID,
+        };
+
+        pMonster->Activate();
+        AddGridUID(pMonster->UID(), nX, nY);
+        return pMonster;
+    }
+    return nullptr;
+}
+
+Player *ServerMap::AddPlayer(uint32_t nDBID, int nX, int nY, int nDirection, bool bRandom)
+{
+    if(GetValidGrid(&nX, &nY, bRandom)){
+        auto pPlayer = new Player
+        {
+            nDBID,
+            m_ServiceCore,
+            this,
+            nX,
+            nY,
+            nDirection,
+            STATE_INCARNATED,
+        };
+
+        pPlayer->Activate();
+        AddGridUID(pPlayer->UID(), nX, nY);
+        return pPlayer;
+    }
+    return nullptr;
+}
+
+bool ServerMap::RegisterLuaModule()
+{
+    m_LuaModule = new ServerMapLuaModule(this);
+
+    // registers all functions and global variables
+    // all variables are kept in current lua module handler
+
+    m_LuaModule->set_function("addLog", [this](sol::object stLogType, sol::object stLogInfo)
+    {
+        extern MonoServer *g_MonoServer;
+        if(true
+                && stLogType.is<int>()
+                && stLogInfo.is<std::string>()){
+            switch(stLogType.as<int>()){
+                case 0  : g_MonoServer->AddLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
+                case 1  : g_MonoServer->AddLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
+                default : g_MonoServer->AddLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
+            }
+        }
+
+        // invalid argument provided
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "addLog(LogType: int, LogInfo: string)");
+    });
+
+    m_LuaModule->set_function("getTime", []() -> int
+    {
+        extern MonoServer *g_MonoServer;
+        return (int)(g_MonoServer->GetTimeTick());
+    });
+
+    m_LuaModule->set_function("getMonsterCount", [this](sol::variadic_args stVariadicArgs) -> int
+    {
+        std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
+        switch(stArgList.size()){
+            case 0:
+                {
+                    return GetMonsterCount(0);
+                }
+            case 1:
+                {
+                    if(stArgList[0].is<int>()){
+                        int nMonsterID = stArgList[0].as<int>();
+                        if(nMonsterID >= 0){
+                            return GetMonsterCount(nMonsterID);
+                        }
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+        return -1;
+    });
+
+    m_LuaModule->set_function("addMonster", [this](sol::object stMonsterID, sol::variadic_args stVariadicArgs) -> bool
+    {
+        uint32_t nMonsterID = 0;
+
+        if(stMonsterID.is<int>()){
+            nMonsterID = stMonsterID.as<int>();
+        }else if(stMonsterID.is<std::string>()){
+            nMonsterID = DBCOM_MONSTERID(stMonsterID.as<std::string>().c_str());
+        }else{
+            return false;
+        }
+
+        std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
+        switch(stArgList.size()){
+            case 0:
+                {
+                    return AddMonster(nMonsterID, 0, -1, -1, true);
+                }
+            case 2:
+                {
+                    if(true
+                            && stArgList[0].is<int>()
+                            && stArgList[1].is<int>()){
+
+                        auto nX = stArgList[0].as<int>();
+                        auto nY = stArgList[1].as<int>();
+
+                        return AddMonster(nMonsterID, 0, nX, nY, true);
+                    }
+                    break;
+                }
+            case 3:
+                {
+                    if(true
+                            && stArgList[0].is<int >()
+                            && stArgList[1].is<int >()
+                            && stArgList[2].is<bool>()){
+
+                        auto nX      = stArgList[0].as<int >();
+                        auto nY      = stArgList[1].as<int >();
+                        auto bRandom = stArgList[2].as<bool>();
+
+                        return AddMonster(nMonsterID, 0, nX, nY, bRandom);
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+
+        return false;
+    });
+
+    return true;
 }
