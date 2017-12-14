@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 12/12/2017 16:08:40
+ *  Last Modified: 12/13/2017 15:11:50
  *
  *    Description: 
  *
@@ -60,10 +60,8 @@ ProcessRun::ProcessRun()
     , m_InventoryBoard(0, 0, this)
     , m_GroundItemList()
     , m_CreatureRecord()
-    , m_AttackUIDX(-1)
-    , m_AttackUIDY(-1)
-    , m_PointerPixlInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
-    , m_PointerTileInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
+    , m_MousePixlLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
+    , m_MouseGridLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_AscendStrRecord()
 {
     m_FocusTable.fill(0);
@@ -523,11 +521,11 @@ void ProcessRun::Draw()
         int nPointY = -1;
         SDL_GetMouseState(&nPointX, &nPointY);
 
-        m_PointerPixlInfo.SetText("Pix_Loc: %3d, %3d", nPointX, nPointY);
-        m_PointerTileInfo.SetText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
+        m_MousePixlLoc.SetText("Pix_Loc: %3d, %3d", nPointX, nPointY);
+        m_MouseGridLoc.SetText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
 
-        m_PointerTileInfo.DrawEx(10, 10, 0, 0, m_PointerTileInfo.W(), m_PointerTileInfo.H());
-        m_PointerPixlInfo.DrawEx(10, 30, 0, 0, m_PointerPixlInfo.W(), m_PointerPixlInfo.H());
+        m_MouseGridLoc.DrawEx(10, 10, 0, 0, m_MouseGridLoc.W(), m_MouseGridLoc.H());
+        m_MousePixlLoc.DrawEx(10, 30, 0, 0, m_MousePixlLoc.W(), m_MousePixlLoc.H());
     }
 
     g_SDLDevice->Present();

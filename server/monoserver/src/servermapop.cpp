@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 12/13/2017 01:00:46
+ *  Last Modified: 12/13/2017 16:53:25
  *
  *    Description: 
  *
@@ -550,8 +550,8 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK, const Theron::Address
 
     // we fill all slots with -1 for initialization
     // won't keep a record of ``how many path nodes are valid"
-    auto nPathCount = (int)(sizeof(stAMPFOK.Point) / sizeof(stAMPFOK.Point[0]));
-    for(int nIndex = 0; nIndex < nPathCount; ++nIndex){
+    constexpr auto nPathCount = std::extent<decltype(stAMPFOK.Point)>::value;
+    for(int nIndex = 0; nIndex < (int)(nPathCount); ++nIndex){
         stAMPFOK.Point[nIndex].X = -1;
         stAMPFOK.Point[nIndex].Y = -1;
     }
@@ -580,7 +580,7 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK, const Theron::Address
         int nCurrY = nY0;
 
         while(auto pNode1 = stPathFinder.GetSolutionNext()){
-            if(nCurrN >= nPathCount){ break; }
+            if(nCurrN >= (int)(nPathCount)){ break; }
             int nEndX = pNode1->X();
             int nEndY = pNode1->Y();
             switch(LDistance2(nCurrX, nCurrY, nEndX, nEndY)){

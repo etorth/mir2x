@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 12/13/2017 01:18:54
+ *  Last Modified: 12/13/2017 23:44:15
  *
  *    Description: 
  *
@@ -1137,5 +1137,9 @@ bool ServerMap::RegisterLuaModule()
         return false;
     });
 
+    // some initialization before do LoopOne
+    // should always put here
+
+    m_LuaModule->script(R"#(math.randomseed(getTime()))#");
     return true;
 }

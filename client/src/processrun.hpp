@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 12/12/2017 14:05:20
+ *  Last Modified: 12/13/2017 15:11:55
  *
  *    Description: 
  *
@@ -21,8 +21,6 @@
 #include <map>
 #include <list>
 #include <cstdint>
-#include <unordered_map>
-
 #include "myhero.hpp"
 #include "process.hpp"
 #include "message.hpp"
@@ -98,15 +96,9 @@ class ProcessRun: public Process
         std::map<uint32_t, Creature*> m_CreatureRecord;
 
     private:
-        // used to keep a record of the UID under track/attack
-        // if it moved we need to re-calculate the track path to get it
-        int m_AttackUIDX;
-        int m_AttackUIDY;
-
-    private:
         // use a tokenboard to show all in future
-        LabelBoard m_PointerPixlInfo;
-        LabelBoard m_PointerTileInfo;
+        LabelBoard m_MousePixlLoc;
+        LabelBoard m_MouseGridLoc;
 
     private:
         std::list<AscendStr *> m_AscendStrRecord;

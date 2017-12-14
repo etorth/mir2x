@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45
- *  Last Modified: 12/07/2017 22:58:10
+ *  Last Modified: 12/13/2017 16:50:45
  *
  *    Description: 
  *
@@ -72,6 +72,30 @@ typedef struct stMONSTERRACEINFO
 class Monster: public CharObject
 {
     protected:
+
+        // a-star algorithm is so expensive
+        // current logic is every step we do MoveOneStep()
+
+        // cache the a-star result helps
+        // but it makes monster stop if path node is blocked
+        // so I need to keep tracking time to refresh the cache
+
+        struct AStarCache
+        {
+            // we refresh (drop) the cache every 1 sec
+            // since co's are moving and valid road won't keep valid
+            const static uint32_t Refresh = 1000;
+
+            uint32_t Time;
+            uint32_t MapID;
+            std::vector<PathFind::PathNode> Path;
+
+            AStarCache();
+            bool Retrieve(int *, int *, int, int, int, int, uint32_t);
+            void Cache(std::vector<PathFind::PathNode>, uint32_t);
+        };
+
+    protected:
         enum FPMethodType: int
         {
             FPMETHOD_NONE,
@@ -88,6 +112,9 @@ class Monster: public CharObject
 
     protected:
         const MonsterRecord &m_MonsterRecord;
+
+    protected:
+        AStarCache m_AStarCache;
 
     public:
         Monster(uint32_t,               // monster id
@@ -184,7 +211,7 @@ class Monster: public CharObject
         void CheckFriend(uint32_t, std::function<void(int)>);
 
     protected:
-        bool GreedyMove(int, int, std::function<void()>);
+        bool DogChaseMove(int, int, std::function<void()>);
 
     protected:
         bool MoveOneStepAStar  (int, int);

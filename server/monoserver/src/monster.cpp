@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/12/2017 16:06:12
+ *  Last Modified: 12/14/2017 00:25:17
  *
  *    Description: 
  *
@@ -38,6 +38,63 @@
 #include "messagepack.hpp"
 #include "protocoldef.hpp"
 
+Monster::AStarCache::AStarCache()
+    : Time(0)
+    , MapID(0)
+    , Path()
+{}
+
+bool Monster::AStarCache::Retrieve(int *pX, int *pY, int nX0, int nY0, int nX1, int nY1, uint32_t nMapID)
+{
+    extern MonoServer *g_MonoServer;
+    if(g_MonoServer->GetTimeTick() < (Time + Refresh)){
+
+        // if cache doesn't match we won't clean it
+        // only cleared by timeout
+
+        if((nMapID == MapID) && (Path.size() >= 3)){
+            auto fnFindIndex = [this](int nX, int nY) -> int
+            {
+                for(int nIndex = 0; nIndex < (int)(Path.size()); ++nIndex){
+                    if(true
+                            && Path[nIndex].X == nX
+                            && Path[nIndex].Y == nY){
+                        return nIndex;
+                    }
+                }
+                return -1;
+            };
+
+            auto nIndex0 = fnFindIndex(nX0, nY0);
+            auto nIndex1 = fnFindIndex(nX1, nY1);
+
+            if(true
+                    && nIndex0 >= 0
+                    && nIndex1 >= nIndex0 + 2){
+
+                if(pX){ *pX = Path[nIndex0 + 1].X; }
+                if(pY){ *pY = Path[nIndex0 + 1].Y; }
+
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // time out, clean it
+    Path.clear();
+    return false;
+}
+
+void Monster::AStarCache::Cache(std::vector<PathFind::PathNode> stvPathNode, uint32_t nMapID)
+{
+    MapID = nMapID;
+    Path.swap(stvPathNode);
+
+    extern MonoServer *g_MonoServer;
+    Time = g_MonoServer->GetTimeTick();
+}
+
 Monster::Monster(uint32_t   nMonsterID,
         ServiceCore        *pServiceCore,
         ServerMap          *pServerMap,
@@ -50,6 +107,7 @@ Monster::Monster(uint32_t   nMonsterID,
     , m_MonsterID(nMonsterID)
     , m_MasterUID(nMasterUID)
     , m_MonsterRecord(DBCOM_MONSTERRECORD(nMonsterID))
+    , m_AStarCache()
 {
     if(!m_MonsterRecord){
         extern MonoServer *g_MonoServer;
@@ -216,10 +274,7 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
 
 bool Monster::TrackUID(uint32_t nUID)
 {
-    if(true
-            && nUID
-            && CanMove()){
-
+    if(CanMove()){
         return RetrieveLocation(nUID, [this](const COLocation &rstCOLocation) -> bool
         {
             auto nX     = rstCOLocation.X;
@@ -752,7 +807,7 @@ bool Monster::MoveOneStep(int nX, int nY)
     }
 }
 
-bool Monster::GreedyMove(int nX, int nY, std::function<void()> fnOnError)
+bool Monster::DogChaseMove(int nX, int nY, std::function<void()> fnOnError)
 {
     int nX0 = X();
     int nY0 = Y();
@@ -793,7 +848,7 @@ bool Monster::GreedyMove(int nX, int nY, std::function<void()> fnOnError)
 
 bool Monster::MoveOneStepGreedy(int nX, int nY)
 {
-    return GreedyMove(nX, nY, [](){});
+    return DogChaseMove(nX, nY, [](){});
 }
 
 bool Monster::MoveOneStepCombine(int nX, int nY)
@@ -854,15 +909,15 @@ bool Monster::MoveOneStepCombine(int nX, int nY)
         {
             auto fnOnErrorRound2 = [this, nX, nY]()
             {
-                // greedy move failed
+                // dog chase move failed
                 // use the a-star algorithm or stop the co here
                 return MoveOneStepAStar(nX, nY);
             };
-            return GreedyMove(stvPathNode[2].X, stvPathNode[2].Y, fnOnErrorRound2);
+            return DogChaseMove(stvPathNode[2].X, stvPathNode[2].Y, fnOnErrorRound2);
         };
-        return GreedyMove(stvPathNode[1].X, stvPathNode[1].Y, fnOnErrorRound1);
+        return DogChaseMove(stvPathNode[1].X, stvPathNode[1].Y, fnOnErrorRound1);
     };
-    return GreedyMove(stvPathNode[0].X, stvPathNode[0].Y, fnOnErrorRound0);
+    return DogChaseMove(stvPathNode[0].X, stvPathNode[0].Y, fnOnErrorRound0);
 }
 
 bool Monster::MoveOneStepAStar(int nX, int nY)
@@ -883,6 +938,16 @@ bool Monster::MoveOneStepAStar(int nX, int nY)
             }
     }
 
+    // try a-star cache first
+    // if failed we need send resequst to server map
+
+    int nXm = -1;
+    int nYm = -1;
+
+    if(m_AStarCache.Retrieve(&nXm, &nYm, X(), Y(), nX, nY, MapID())){
+        return RequestMove(nXm, nYm, MoveSpeed(), false, [](){}, [](){});
+    }
+
     // can't reach in one hop
     // need firstly do path finding by server map
 
@@ -896,7 +961,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY)
     stAMPF.EndX    = nX;
     stAMPF.EndY    = nY;
 
-    auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &)
+    auto fnOnResp = [this, nX, nY](const MessagePack &rstRMPK, const Theron::Address &)
     {
         switch(rstRMPK.Type()){
             case MPK_PATHFINDOK:
@@ -904,10 +969,29 @@ bool Monster::MoveOneStepAStar(int nX, int nY)
                     AMPathFindOK stAMPFOK;
                     std::memcpy(&stAMPFOK, rstRMPK.Data(), sizeof(stAMPFOK));
 
-                    // 1. for all received result
-                    //    perform strict argument checking
+                    // cache current result
+                    // use it for next path finding
+                    constexpr auto nNodeCount = std::extent<decltype(stAMPFOK.Point)>::value;
+                    static_assert(nNodeCount >= 2, "");
 
-                    static_assert(std::extent<decltype(stAMPFOK.Point)>::value >= 2, "");
+                    auto pBegin = stAMPFOK.Point;
+                    auto pEnd   = stAMPFOK.Point + nNodeCount; 
+
+                    std::vector<PathFind::PathNode> stvPathNode;
+                    for(auto pCurr = pBegin; pCurr != pEnd; ++pCurr){
+                        if(m_Map->GroundValid(pCurr->X, pCurr->Y)){
+                            stvPathNode.emplace_back(pCurr->X, pCurr->Y);
+                        }else{
+                            break;
+                        }
+                    }
+
+                    stvPathNode.emplace_back(nX, nY);
+                    m_AStarCache.Cache(stvPathNode, MapID());
+
+                    // done cache
+                    // do request move as normal
+
                     RequestMove(stAMPFOK.Point[1].X, stAMPFOK.Point[1].Y, MoveSpeed(), false, [](){}, [](){});
                     break;
                 }

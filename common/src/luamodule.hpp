@@ -3,7 +3,7 @@
  *
  *       Filename: luamodule.hpp
  *        Created: 06/03/2017 20:24:34
- *  Last Modified: 06/03/2017 20:26:13
+ *  Last Modified: 12/13/2017 10:10:41
  *
  *    Description: 
  *
@@ -18,7 +18,7 @@
  * =====================================================================================
  */
 #pragma once
-#include <sol.hpp>
+#include <sol/sol.hpp>
 
 class LuaModule: public sol::state
 {
