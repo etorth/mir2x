@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/10/2017 23:55:08
+ *  Last Modified: 12/14/2017 21:39:29
  *
  *    Description: 
  *
@@ -618,7 +618,7 @@ int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
     return -1;
 }
 
-void CharObject::DispatchMHP()
+void CharObject::DispatchHealth()
 {
     AMUpdateHP stAMUHP;
     stAMUHP.UID   = UID();

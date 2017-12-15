@@ -3,7 +3,7 @@
  *
  *       Filename: log.hpp
  *        Created: 03/16/2016 16:05:17
- *  Last Modified: 04/12/2017 22:38:56
+ *  Last Modified: 12/14/2017 19:08:26
  *
  *    Description: log functionality enabled by g3Log
  *
@@ -43,19 +43,19 @@
 #endif
 
 
-#define LOGTYPE_DEBUG   {std::string("-1"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_INFO    {std::string( "0"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_WARNING {std::string( "1"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_FATAL   {std::string( "2"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_INFO    {std::string("0"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_WARNING {std::string("1"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_FATAL   {std::string("2"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_DEBUG   {std::string("3"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
 
 class Log final
 {
     public:
         enum {
-            LOGTYPEV_DEBUG   = -1,
-            LOGTYPEV_INFO    =  0,
-            LOGTYPEV_WARNING =  1,
-            LOGTYPEV_FATAL   =  2,
+            LOGTYPEV_INFO    = 0,
+            LOGTYPEV_WARNING = 1,
+            LOGTYPEV_FATAL   = 2,
+            LOGTYPEV_DEBUG   = 3,
         };
 
     private:
@@ -104,7 +104,6 @@ class Log final
         }
 
     public:
-        // to get rid of ``format-security" warning
         void AddLog(const std::array<std::string, 4> &stLoc, const char *szInfo)
         {
             int nLine = std::atoi(stLoc[2].c_str());

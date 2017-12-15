@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 12/10/2017 23:52:48
+ *  Last Modified: 12/14/2017 21:39:33
  *
  *    Description: 
  *
@@ -252,7 +252,7 @@ class CharObject: public ActiveObject
         virtual void ReportCORecord(uint32_t) = 0;
 
     protected:
-        void DispatchMHP();
+        void DispatchHealth();
         void DispatchAttack(uint32_t, int);
 
     protected:

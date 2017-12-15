@@ -3,7 +3,7 @@
  *
  *       Filename: clientenv.hpp
  *        Created: 05/12/2017 16:33:25
- *  Last Modified: 12/10/2017 01:31:53
+ *  Last Modified: 12/14/2017 19:38:20
  *
  *    Description: use environment to setup the runtime message report:
  *
@@ -29,15 +29,13 @@
 
 struct ClientEnv
 {
-    std::string DebugArgs;
+    const std::string DebugArgs;
+
+    const bool EnableDrawMapGrid;       // "--enable-draw-map-grid"
+    const bool EnableDrawCreatureCover; // "--enable-draw-creature-cover"
+    const bool EnableDrawMouseLocation; // "--enable-draw-mouse-location"
 
     bool TraceMove;
-
-
-    int  MIR2X_DEBUG;
-    bool MIR2X_DEBUG_SHOW_MAP_GRID;
-    bool MIR2X_DEBUG_SHOW_LOCATION;
-    bool MIR2X_DEBUG_SHOW_CREATURE_COVER;
 
     ClientEnv()
         : DebugArgs([]() -> std::string
@@ -48,14 +46,11 @@ struct ClientEnv
                   return std::string("");
               }
           }())
+        , EnableDrawMapGrid(CheckBoolArg("--enable-draw-map-grid"))
+        , EnableDrawCreatureCover(CheckBoolArg("--enable-draw-creature-cover"))
+        , EnableDrawMouseLocation(CheckBoolArg("--enable-draw-mouse-location"))
         , TraceMove(CheckBoolArg("--trace-move"))
-    {
-        MIR2X_DEBUG = std::getenv("MIR2X_DEBUG") ? std::atoi(std::getenv("MIR2X_DEBUG")) : 0;
-
-        MIR2X_DEBUG_SHOW_MAP_GRID       = (MIR2X_DEBUG >= 5) ? true : (std::getenv("MIR2X_DEBUG_SHOW_MAP_GRID"       ) ? true : false);
-        MIR2X_DEBUG_SHOW_LOCATION       = (MIR2X_DEBUG >= 5) ? true : (std::getenv("MIR2X_DEBUG_SHOW_LOCATION"       ) ? true : false);
-        MIR2X_DEBUG_SHOW_CREATURE_COVER = (MIR2X_DEBUG >= 5) ? true : (std::getenv("MIR2X_DEBUG_SHOW_CREATURE_COVER" ) ? true : false);
-    }
+    {}
 
     bool CheckBoolArg(const std::string &szArgName)
     {

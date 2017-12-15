@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/14/2017 15:20:51
+ *  Last Modified: 12/14/2017 21:39:47
  *
  *    Description: 
  *
@@ -787,7 +787,7 @@ bool Monster::StruckDamage(const DamageNode &rstDamage)
 {
     if(rstDamage){
         m_HP = std::max<int>(0, HP() - rstDamage.Damage);
-        DispatchMHP();
+        DispatchHealth();
 
         if(HP() <= 0){
             GoDie();

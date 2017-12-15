@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 12/08/2017 17:10:03
+ *  Last Modified: 12/14/2017 21:38:05
  *
  *    Description: 
  *
@@ -139,8 +139,8 @@ class Player: public CharObject
         void For_CheckTime();
 
     protected:
-        void ReportMHP();
         void ReportStand();
+        void ReportHealth();
         void ReportCORecord(uint32_t);
         void ReportOffline(uint32_t, uint32_t);
         void ReportAction(uint32_t, const ActionNode &);
@@ -189,4 +189,7 @@ class Player: public CharObject
 
     protected:
         virtual int MaxStep();
+
+    protected:
+        virtual void RecoverHealth();
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 07/04/2017 18:05:51
+ *  Last Modified: 12/14/2017 20:51:23
  *
  *    Description: 
  *
@@ -44,7 +44,7 @@ ActiveObject::ActiveObject()
                 try{
                     m_DelayCmdQ.top()();
                 }catch(...){
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "caught exception for delay cmd");
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Caught exception for delay cmd");
                 }
                 m_DelayCmdQ.pop();
             }
@@ -57,12 +57,12 @@ ActiveObject::ActiveObject()
     m_StateHook.Install("DelayCmdQueue", fnDelayCmdQueue);
 
     extern ServerEnv *g_ServerEnv;
-    if(g_ServerEnv->MIR2X_DEBUG_PRINT_AM_COUNT){
+    if(g_ServerEnv->TraceActorMessageCount){
         auto fnPrintAMCount = [this]() -> bool
         {
             if(ActorPodValid()){
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_INFO, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u, Length: %" PRIu32 ")",
+                g_MonoServer->AddLog(LOGTYPE_DEBUG, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u, Length: %" PRIu32 ")",
                         (int)(sizeof(this) * 2), (uintptr_t)(this), ClassName(), UID(), m_ActorPod->GetNumQueuedMessages());
             }
 

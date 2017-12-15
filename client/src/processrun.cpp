@@ -265,7 +265,7 @@ void ProcessRun::Draw()
         }
 
         extern ClientEnv *g_ClientEnv;
-        if(g_ClientEnv->MIR2X_DEBUG_SHOW_MAP_GRID){
+        if(g_ClientEnv->EnableDrawMapGrid){
             int nGridX0 = m_ViewX / SYS_MAPGRIDXP;
             int nGridY0 = m_ViewY / SYS_MAPGRIDYP;
 
@@ -394,7 +394,7 @@ void ProcessRun::Draw()
                             && !(pCreature.second->StayDead())){
 
                         extern ClientEnv *g_ClientEnv;
-                        if(g_ClientEnv->MIR2X_DEBUG_SHOW_CREATURE_COVER){
+                        if(g_ClientEnv->EnableDrawCreatureCover){
                             g_SDLDevice->PushColor(0, 0, 255, 128);
                             g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
                             g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
@@ -510,7 +510,7 @@ void ProcessRun::Draw()
 
     // draw cursor location information on top-left
     extern ClientEnv *g_ClientEnv;
-    if(g_ClientEnv->MIR2X_DEBUG_SHOW_LOCATION){
+    if(g_ClientEnv->EnableDrawMouseLocation){
         g_SDLDevice->PushColor(0, 0, 0, 230);
         g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
         g_SDLDevice->FillRectangle(0, 0, 200, 60);

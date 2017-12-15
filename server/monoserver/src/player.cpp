@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/12/2017 17:29:13
+ *  Last Modified: 12/14/2017 21:39:00
  *
  *    Description: 
  *
@@ -41,7 +41,12 @@ Player::Player(uint32_t nDBID,
     , m_SessionID(0)    // provide by bind
     , m_Level(0)        // after bind
 {
-    m_StateHook.Install("CheckTime", [this](){ For_CheckTime(); return false; });
+    m_StateHook.Install("CheckTime", [this]() -> bool
+    {
+        For_CheckTime();
+        return false;
+    });
+
     auto fnRegisterClass = [this]()
     {
         if(!RegisterClass<Player, CharObject>()){
@@ -57,6 +62,16 @@ Player::Player(uint32_t nDBID,
     m_HPMax = 10;
     m_MP    = 10;
     m_MPMax = 10;
+
+    m_StateHook.Install("RecoverHealth", [this, nLastTime = (uint32_t)(0)]() mutable -> bool
+    {
+        extern MonoServer *g_MonoServer;
+        if(g_MonoServer->GetTimeTick() >= (nLastTime + 1000)){
+            RecoverHealth();
+            nLastTime = g_MonoServer->GetTimeTick();
+        }
+        return false;
+    });
 }
 
 void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -261,7 +276,7 @@ void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)
     }
 }
 
-void Player::ReportMHP()
+void Player::ReportHealth()
 {
     if(SessionID()){
         SMUpdateHP stSMUHP;
@@ -419,8 +434,8 @@ bool Player::StruckDamage(const DamageNode &rstDamage)
 {
     if(rstDamage){
         m_HP = std::max<int>(0, HP() - rstDamage.Damage);
-        ReportMHP();
-        DispatchMHP();
+        ReportHealth();
+        DispatchHealth();
 
         if(HP() <= 0){
             GoDie();
@@ -789,4 +804,25 @@ int Player::MaxStep()
     }else{
         return 2;
     }
+}
+
+void Player::RecoverHealth()
+{
+    auto fnGetAdd = [](int nCurr, int nMax) -> int
+    {
+        if(true
+                && nCurr >= 0
+                && nMax  >= 0
+                && nCurr <= nMax){
+
+            auto nAdd = std::max<int>(nMax / 60, 1);
+            return std::min<int>(nAdd, nMax - nCurr);
+        }
+        return 0;
+    };
+
+    m_HP += fnGetAdd(m_HP, m_HPMax);
+    m_MP += fnGetAdd(m_MP, m_MPMax);
+
+    ReportHealth();
 }
