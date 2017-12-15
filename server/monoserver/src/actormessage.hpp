@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 12/07/2017 15:29:41
+ *  Last Modified: 12/14/2017 15:59:05
  *
  *    Description: 
  *
@@ -328,7 +328,7 @@ struct AMPathFindOK
     {
         int X;
         int Y;
-    }Point[4];
+    }Point[8];
 };
 
 struct AMAttack

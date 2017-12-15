@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 12/13/2017 16:53:25
+ *  Last Modified: 12/14/2017 15:00:12
  *
  *    Description: 
  *
@@ -24,6 +24,7 @@
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
 #include "actorpod.hpp"
+#include "serverenv.hpp"
 #include "metronome.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
@@ -32,7 +33,8 @@
 
 void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
-    if(m_LuaModule){
+    extern ServerEnv *g_ServerEnv;
+    if(m_LuaModule && !g_ServerEnv->DisableMapScript){
 
         // could this slow down the server
         // if so I have to move it to a seperated thread

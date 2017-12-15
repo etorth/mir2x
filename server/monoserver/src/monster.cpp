@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/14/2017 00:25:17
+ *  Last Modified: 12/14/2017 15:20:51
  *
  *    Description: 
  *
@@ -807,7 +807,7 @@ bool Monster::MoveOneStep(int nX, int nY)
     }
 }
 
-bool Monster::DogChaseMove(int nX, int nY, std::function<void()> fnOnError)
+bool Monster::MoveOneStepGreedy(int nX, int nY)
 {
     int nX0 = X();
     int nY0 = Y();
@@ -836,19 +836,10 @@ bool Monster::DogChaseMove(int nX, int nY, std::function<void()> fnOnError)
 
     if(CanMove()){
         if(m_Map && m_Map->GroundValid(nX1, nY1)){
-            return RequestMove(nX1, nY1, MoveSpeed(), false, [](){}, fnOnError);
+            return RequestMove(nX1, nY1, MoveSpeed(), false, [](){}, [](){});
         }
-
-        // we should call the error handler
-        // otherwise combined move can't check next point if (nX1, nY1) is non-walkable
-        fnOnError();
     }
     return false;
-}
-
-bool Monster::MoveOneStepGreedy(int nX, int nY)
-{
-    return DogChaseMove(nX, nY, [](){});
 }
 
 bool Monster::MoveOneStepCombine(int nX, int nY)
@@ -872,52 +863,30 @@ bool Monster::MoveOneStepCombine(int nX, int nY)
             }
     }
 
-    int nDX = ((nX > nX0) - (nX < nX0));
-    int nDY = ((nY > nY0) - (nY < nY0));
+    int nXm = -1;
+    int nYm = -1;
 
-    std::array<PathFind::PathNode, 3> stvPathNode;
-    switch(std::abs(nDX) + std::abs(nDY)){
-        case 1:
-            {
-                if(nDY){
-                    stvPathNode[0] = {nX0 + 0, nY0 + nDY};
-                    stvPathNode[1] = {nX0 - 1, nY0 + nDY};
-                    stvPathNode[2] = {nX0 + 1, nY0 + nDY};
-                }else{
-                    stvPathNode[0] = {nX0 + nDX, nY0 + 0};
-                    stvPathNode[1] = {nX0 + nDX, nY0 - 1};
-                    stvPathNode[2] = {nX0 + nDX, nY0 + 1};
-                }
-                break;
-            }
-        case 2:
-            {
-                stvPathNode[0] = {nX0 + nDX, nY0 + nDY};
-                stvPathNode[1] = {nX0      , nY0 + nDY};
-                stvPathNode[2] = {nX0 + nDX, nY0      };
-                break;
-            }
-        default:
-            {
-                return false;
-            }
+    if(m_AStarCache.Retrieve(&nXm, &nYm, X(), Y(), nX, nY, MapID())){
+        return RequestMove(nXm, nYm, MoveSpeed(), false, [](){}, [](){});
     }
 
+    // not a simple hop
+    // and the a-star cache can't help
+
+    auto stvPathNode = GetChaseGrid(nX, nY);
     auto fnOnErrorRound0 = [this, stvPathNode, nX, nY]()
     {
         auto fnOnErrorRound1 = [this, stvPathNode, nX, nY]()
         {
             auto fnOnErrorRound2 = [this, nX, nY]()
             {
-                // dog chase move failed
-                // use the a-star algorithm or stop the co here
                 return MoveOneStepAStar(nX, nY);
             };
-            return DogChaseMove(stvPathNode[2].X, stvPathNode[2].Y, fnOnErrorRound2);
+            return RequestMove(stvPathNode[2].X, stvPathNode[2].Y, MoveSpeed(), false, [](){}, fnOnErrorRound2);
         };
-        return DogChaseMove(stvPathNode[1].X, stvPathNode[1].Y, fnOnErrorRound1);
+        return RequestMove(stvPathNode[1].X, stvPathNode[1].Y, MoveSpeed(), false, [](){}, fnOnErrorRound1);
     };
-    return DogChaseMove(stvPathNode[0].X, stvPathNode[0].Y, fnOnErrorRound0);
+    return RequestMove(stvPathNode[0].X, stvPathNode[0].Y, MoveSpeed(), false, [](){}, fnOnErrorRound0);
 }
 
 bool Monster::MoveOneStepAStar(int nX, int nY)
@@ -1203,4 +1172,51 @@ InvarData Monster::GetInvarData() const
     InvarData stData;
     stData.Monster.MonsterID = MonsterID();
     return stData;
+}
+
+std::array<PathFind::PathNode, 3> Monster::GetChaseGrid(int nX, int nY)
+{
+    // always get the next step to chase
+    // this function won't check if (nX, nY) is valid
+
+    int nX0 = X();
+    int nY0 = Y();
+
+    std::array<PathFind::PathNode, 3> stvPathNode
+    {{
+        {-1, -1},
+        {-1, -1},
+        {-1, -1},
+    }};
+
+    int nDX = ((nX > nX0) - (nX < nX0));
+    int nDY = ((nY > nY0) - (nY < nY0));
+
+    switch(std::abs(nDX) + std::abs(nDY)){
+        case 1:
+            {
+                if(nDY){
+                    stvPathNode[0] = {nX0 + 0, nY0 + nDY};
+                    stvPathNode[1] = {nX0 - 1, nY0 + nDY};
+                    stvPathNode[2] = {nX0 + 1, nY0 + nDY};
+                }else{
+                    stvPathNode[0] = {nX0 + nDX, nY0 + 0};
+                    stvPathNode[1] = {nX0 + nDX, nY0 - 1};
+                    stvPathNode[2] = {nX0 + nDX, nY0 + 1};
+                }
+                break;
+            }
+        case 2:
+            {
+                stvPathNode[0] = {nX0 + nDX, nY0 + nDY};
+                stvPathNode[1] = {nX0      , nY0 + nDY};
+                stvPathNode[2] = {nX0 + nDX, nY0      };
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+    return stvPathNode;
 }

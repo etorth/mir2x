@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45
- *  Last Modified: 12/13/2017 16:50:45
+ *  Last Modified: 12/14/2017 16:03:15
  *
  *    Description: 
  *
@@ -82,9 +82,10 @@ class Monster: public CharObject
 
         struct AStarCache
         {
-            // we refresh (drop) the cache every 1 sec
+            // we refresh (drop) the cache every 2 sec
             // since co's are moving and valid road won't keep valid
-            const static uint32_t Refresh = 1000;
+            // 2sec because many monsters have WalkWait = 1sec
+            const static uint32_t Refresh = 2000;
 
             uint32_t Time;
             uint32_t MapID;
@@ -211,9 +212,6 @@ class Monster: public CharObject
         void CheckFriend(uint32_t, std::function<void(int)>);
 
     protected:
-        bool DogChaseMove(int, int, std::function<void()>);
-
-    protected:
         bool MoveOneStepAStar  (int, int);
         bool MoveOneStepGreedy (int, int);
         bool MoveOneStepCombine(int, int);
@@ -221,6 +219,9 @@ class Monster: public CharObject
     protected:
         bool CanMove();
         bool CanAttack();
+
+    protected:
+        std::array<PathFind::PathNode, 3> GetChaseGrid(int, int);
 
     protected:
         virtual bool GoDie();
