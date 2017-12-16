@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 12/13/2017 15:11:55
+ *  Last Modified: 12/14/2017 23:43:55
  *
  *    Description: 
  *
@@ -223,19 +223,29 @@ class ProcessRun: public Process
 
         void RemoveGroundItem(uint32_t nItemID, int nX, int nY)
         {
-            for(size_t nIndex = 0; nIndex < m_GroundItemList.size(); ++nIndex){
+            for(size_t nIndex = 0; nIndex < m_GroundItemList.size();){
                 if(true
                         && m_GroundItemList[nIndex].X  == nX
-                        && m_GroundItemList[nIndex].Y  == nY
-                        && m_GroundItemList[nIndex].ID == nItemID){
+                        && m_GroundItemList[nIndex].Y  == nY){
 
-                    std::swap(m_GroundItemList[nIndex], m_GroundItemList.back());
-                    m_GroundItemList.pop_back();
+                    if(nItemID){
+                        if(m_GroundItemList[nIndex].ID == nItemID){
+                            std::swap(m_GroundItemList[nIndex], m_GroundItemList.back());
+                            m_GroundItemList.pop_back();
 
-                    // could have more than one stay there
-                    // we only remove one item from the location
-                    return;
+                            // could have more than one stay there
+                            // we only remove one item from the location
+                            return;
+                        }
+                    }else{
+                        // zero item id
+                        // we need to remove all given location
+                        std::swap(m_GroundItemList[nIndex], m_GroundItemList.back());
+                        m_GroundItemList.pop_back();
+                        continue;
+                    }
                 }
+                nIndex++;
             }
         }
 

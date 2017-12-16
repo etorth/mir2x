@@ -2,7 +2,7 @@
 --
 --       Filename: 道馆.lua
 --        Created: 08/31/2015 08:52:57 PM
---  Last Modified: 12/14/2017 00:26:42
+--  Last Modified: 12/15/2017 20:57:53
 --
 --    Description: lua 5.3
 --
@@ -33,6 +33,14 @@ if g_Inited == nil then
         "沙漠石人"
     }
 
+    function getMonsterCountInList()
+        local nMonsterCount = 0
+        for i, v in pairs(g_MonsterList) do
+            nMonsterCount = nMonsterCount + math.max(0, getMonsterCount(v)) 
+        end
+        return nMonsterCount
+    end
+
     g_Inited = true
 end
 
@@ -43,7 +51,7 @@ if getTime() - g_LastInvokeTime > g_LogicDelay then
 
     g_LastInvokeTime = getTime()
 
-    if getMonsterCount() < g_MaxMonsterCount then
+    if getMonsterCountInList() < g_MaxMonsterCount then
 
         addMonster(g_MonsterList[math.random(#g_MonsterList)], 400 + math.random(1, 5), 120 + math.random(1, 5), true)
 

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/14/2017 21:39:00
+ *  Last Modified: 12/15/2017 23:21:32
  *
  *    Description: 
  *
@@ -227,24 +227,7 @@ void Player::ReportCORecord(uint32_t nSessionID)
 
 void Player::ReportStand()
 {
-    if(SessionID()){
-        // any error found when checking motion
-        // report an stand state to client for pull-back
-        SMAction stSMAction;
-        stSMAction.UID         = UID();
-        stSMAction.MapID       = MapID();
-        stSMAction.Action      = ACTION_STAND;
-        stSMAction.ActionParam = 0;
-        stSMAction.Speed       = SYS_DEFSPEED;
-        stSMAction.Direction   = Direction();
-        stSMAction.X           = X();
-        stSMAction.Y           = Y();
-        stSMAction.AimX        = X();
-        stSMAction.AimY        = Y();
-
-        extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(m_SessionID, SM_ACTION, stSMAction);
-    }
+    ReportAction(UID(), ActionStand(X(), Y(), Direction()));
 }
 
 void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)
@@ -821,8 +804,14 @@ void Player::RecoverHealth()
         return 0;
     };
 
-    m_HP += fnGetAdd(m_HP, m_HPMax);
-    m_MP += fnGetAdd(m_MP, m_MPMax);
+    auto nAddHP = fnGetAdd(m_HP, m_HPMax);
+    auto nAddMP = fnGetAdd(m_MP, m_MPMax);
 
-    ReportHealth();
+    if((nAddHP > 0) || (nAddMP > 0)){
+
+        m_HP += nAddHP;
+        m_MP += nAddMP;
+
+        ReportHealth();
+    }
 }

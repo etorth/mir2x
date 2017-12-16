@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/14/2017 21:39:47
+ *  Last Modified: 12/15/2017 23:30:18
  *
  *    Description: 
  *
@@ -438,7 +438,9 @@ bool Monster::Update()
         if(TrackAttack() ){ return true; }
         if(FollowMaster()){ return true; }
         if(RandomMove()  ){ return true; }
-    }else{ GoDie(); }
+    }else{
+        GoDie();
+    }
     return true;
 }
 
@@ -628,6 +630,9 @@ void Monster::RemoveTarget(uint32_t nUID)
         {
             return rstRecord.UID == nUID;
         };
+
+        // don't pass end() to std::deque::erase()
+        // loc should be valid and *dereferenceable* as requested by standard
 
         auto pLoc = std::find_if(m_TargetQ.begin(), m_TargetQ.end(), fnUIDCmp);
         if(pLoc != m_TargetQ.end()){

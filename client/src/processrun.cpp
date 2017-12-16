@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 12/13/2017 15:11:50
+ *  Last Modified: 12/15/2017 20:21:38
  *
  *    Description: 
  *
@@ -339,6 +339,14 @@ void ProcessRun::Draw()
                                             SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
                                         }
 
+                                        // 1. draw item shadow
+                                        SDL_SetTextureColorMod(pTexture, 0, 0, 0);
+                                        SDL_SetTextureAlphaMod(pTexture, 128);
+                                        g_SDLDevice->DrawTexture(pTexture, nXt + 1, nYt - 1);
+
+                                        // 2. draw item body
+                                        SDL_SetTextureColorMod(pTexture, 255, 255, 255);
+                                        SDL_SetTextureAlphaMod(pTexture, 255);
                                         g_SDLDevice->DrawTexture(pTexture, nXt, nYt);
 
                                         if(bChoose){

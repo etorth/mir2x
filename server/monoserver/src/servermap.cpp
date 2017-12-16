@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 12/13/2017 23:44:15
+ *  Last Modified: 12/15/2017 20:53:40
  *
  *    Description: 
  *
@@ -925,7 +925,8 @@ bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
 
         auto nEmptyIndex = FindGroundItem(nX, nY, 0);
         if(nEmptyIndex >= 0){
-            m_CellRecordV2D[nX][nY].GroundItemList[nEmptyIndex] = rstItem;
+            auto &rstGroundItemList = m_CellRecordV2D[nX][nY].GroundItemList;
+            rstGroundItemList[nEmptyIndex] = rstItem;
 
             // report to all charobject around
             // since there are one more drop item for each grid
@@ -935,9 +936,21 @@ bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
             // force they to contain the same set
 
             AMShowDropItem stAMSDI;
-            stAMSDI.ID = rstItem.ID();
-            stAMSDI.X  = nX;
-            stAMSDI.Y  = nY;
+            std::memset(&stAMSDI, 0, sizeof(stAMSDI));
+
+            stAMSDI.X = nX;
+            stAMSDI.Y = nY;
+
+            size_t nCurrLoc = 0;
+            for(size_t nIndex = 0; nIndex < rstGroundItemList.size(); ++nIndex){
+                if(rstGroundItemList[nIndex]){
+                    if(nCurrLoc < std::extent<decltype(stAMSDI.IDList)>::value){
+                        stAMSDI.IDList[nCurrLoc++] = rstGroundItemList[nIndex].ID();
+                    }else{
+                        break;
+                    }
+                }
+            }
 
             auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
             {
@@ -1042,7 +1055,8 @@ bool ServerMap::RegisterLuaModule()
             switch(stLogType.as<int>()){
                 case 0  : g_MonoServer->AddLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
                 case 1  : g_MonoServer->AddLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
-                default : g_MonoServer->AddLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
+                case 2  : g_MonoServer->AddLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
+                default : g_MonoServer->AddLog(LOGTYPE_DEBUG  , "%s", stLogInfo.as<std::string>().c_str()); return;
             }
         }
 
@@ -1068,6 +1082,11 @@ bool ServerMap::RegisterLuaModule()
                 {
                     if(stArgList[0].is<int>()){
                         int nMonsterID = stArgList[0].as<int>();
+                        if(nMonsterID >= 0){
+                            return GetMonsterCount(nMonsterID);
+                        }
+                    }else if(stArgList[0].is<std::string>()){
+                        int nMonsterID = DBCOM_MONSTERID(stArgList[0].as<std::string>().c_str());
                         if(nMonsterID >= 0){
                             return GetMonsterCount(nMonsterID);
                         }
@@ -1142,4 +1161,33 @@ bool ServerMap::RegisterLuaModule()
 
     m_LuaModule->script(R"#(math.randomseed(getTime()))#");
     return true;
+}
+
+void ServerMap::ReportGroundItem(uint32_t nSessionID, int nX, int nY)
+{
+    if(nSessionID && GroundValid(nX, nY)){
+        SMShowDropItem stSMSDI;
+        std::memset(&stSMSDI, 0, sizeof(stSMSDI));
+
+        auto &rstGroundItemList = m_CellRecordV2D[nX][nY].GroundItemList;
+        constexpr auto nSMIDListLen = std::extent<decltype(stSMSDI.IDList)>::value;
+        static_assert(nSMIDListLen >= std::tuple_size<std::remove_reference_t<decltype(rstGroundItemList)>>::value, "");
+
+        stSMSDI.X = nX;
+        stSMSDI.Y = nY;
+
+        size_t nCurrLoc = 0;
+        for(size_t nIndex = 0; nIndex < rstGroundItemList.size(); ++nIndex){
+            if(rstGroundItemList[nIndex]){
+                if(nCurrLoc < nSMIDListLen){
+                    stSMSDI.IDList[nCurrLoc++] = rstGroundItemList[nIndex].ID();
+                }else{
+                    break;
+                }
+            }
+        }
+
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(nSessionID, SM_SHOWDROPITEM, stSMSDI);
+    }
 }

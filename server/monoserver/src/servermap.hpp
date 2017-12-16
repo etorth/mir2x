@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 12/13/2017 00:58:33
+ *  Last Modified: 12/15/2017 00:05:32
  *
  *    Description:
  *
@@ -183,6 +183,7 @@ class ServerMap: public ActiveObject
         int DropItemListCount(int, int);
         bool AddGroundItem(int, int, const CommonItem &);
         void RemoveGroundItem(int, int, uint32_t);
+        void ReportGroundItem(uint32_t, int, int);
 
     private:
         void DoCircle(int, int, int,      const std::function<bool(int, int)> &);

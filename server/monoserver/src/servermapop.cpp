@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 12/14/2017 15:00:12
+ *  Last Modified: 12/15/2017 01:04:46
  *
  *    Description: 
  *
@@ -135,6 +135,16 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
                 if(auto pPlayer = AddPlayer(nDBID, nX, nY, nDirection, bRandom)){
                     m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
                     m_ActorPod->Forward({MPK_BINDSESSION, nSessionID}, pPlayer->GetAddress());
+
+                    auto fnReportGroundItem = [this, nSessionID](int nX, int nY) -> bool
+                    {
+                        if(true || ValidC(nX, nY)){
+                            // ReportGroundItem(nSessionID, nX, nY);
+                        }
+                        return false;
+                    };
+
+                    DoCircle(nX, nY, 20, fnReportGroundItem);
                     return;
                 }
                 break;
@@ -809,7 +819,9 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Addr
 
                                 // short it if it's an empty slot
                                 // directly use it and won't compare more
-                                if(nMinCount == 0){ break; }
+                                if(nMinCount == 0){
+                                    break;
+                                }
                             }
                         }
                     }

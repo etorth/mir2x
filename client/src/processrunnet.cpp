@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 12/12/2017 17:49:38
+ *  Last Modified: 12/14/2017 23:52:16
  *
  *    Description: 
  *
@@ -215,8 +215,14 @@ void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
     SMShowDropItem stSMSDI;
     std::memcpy(&stSMSDI, pBuf, sizeof(stSMSDI));
 
-    m_GroundItemList.emplace_back(stSMSDI.ID, stSMSDI.X, stSMSDI.Y);
-    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"发现(%d, %d): %s", stSMSDI.X, stSMSDI.Y, DBCOM_ITEMRECORD(stSMSDI.ID).Name);
+    RemoveGroundItem(0, stSMSDI.X, stSMSDI.Y);
+    for(size_t nIndex = 0; nIndex < std::extent<decltype(stSMSDI.IDList)>::value; ++nIndex){
+        if(stSMSDI.IDList[nIndex]){
+            m_GroundItemList.emplace_back(stSMSDI.IDList[nIndex], stSMSDI.X, stSMSDI.Y);
+        }else{
+            break;
+        }
+    }
 }
 
 void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)

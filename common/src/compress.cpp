@@ -3,7 +3,7 @@
  *
  *       Filename: compress.cpp
  *        Created: 04/23/2017 21:34:23
- *  Last Modified: 04/25/2017 14:25:47
+ *  Last Modified: 12/15/2017 19:31:43
  *
  *    Description: 
  *
@@ -27,6 +27,11 @@ int Compress::CountMask(const uint8_t *pData, size_t nDataLen)
     if(pData){
         int  nMaskCount = 0;
         auto pOrigBegin = pData;
+
+        for(size_t nIndex = 0; nIndex < nDataLen; ++nIndex){
+            nMaskCount += __builtin_popcount(pData[nIndex]);
+        }
+        return nMaskCount;
 
         // need better understanding of std::align()
         // http://en.cppreference.com/w/cpp/memory/align
