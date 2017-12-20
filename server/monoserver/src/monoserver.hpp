@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 12/19/2017 22:43:04
+ *  Last Modified: 12/20/2017 14:43:19
  *
  *    Description: 
  *
@@ -91,7 +91,6 @@ class MonoServer final
 
     private:
         void RunASIO();
-        void CreateServiceCore();
         void CreateDBConnection();
         void RegisterAMFallbackHandler();
         void LoadMapBinDBN();
@@ -120,6 +119,7 @@ class MonoServer final
 
     private:
         void StartNetwork();
+        void StartServiceCore();
 
     public:
         std::vector<int>   GetMapList();

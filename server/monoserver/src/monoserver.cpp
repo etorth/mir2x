@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 12/20/2017 11:11:13
+ *  Last Modified: 12/20/2017 14:44:27
  *
  *    Description: 
  *
@@ -263,7 +263,7 @@ void MonoServer::LoadMapBinDBN()
     }
 }
 
-void MonoServer::CreateServiceCore()
+void MonoServer::StartServiceCore()
 {
     delete m_ServiceCore;
     m_ServiceCore = new ServiceCore();
@@ -290,7 +290,7 @@ void MonoServer::Launch()
 
     LoadMapBinDBN();
 
-    CreateServiceCore();
+    StartServiceCore();
     StartNetwork();
 
     extern EventTaskHub *g_EventTaskHub;
