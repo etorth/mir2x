@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 10/31/2017 12:04:31
+ *  Last Modified: 12/14/2017 23:34:17
  *
  *    Description: 
  *
@@ -19,7 +19,7 @@
  */
 
 #include <cinttypes>
-#include "netpod.hpp"
+#include "netdriver.hpp"
 #include "player.hpp"
 #include "memorypn.hpp"
 #include "actorpod.hpp"
@@ -27,19 +27,21 @@
 
 void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
-    extern NetPodN *g_NetPodN;
+    extern NetDriver *g_NetDriver;
     extern MonoServer *g_MonoServer;
 
     Update();
 
     SMPing stSMP;
     stSMP.Tick = g_MonoServer->GetTimeTick();
-    g_NetPodN->Send(SessionID(), SM_PING, stSMP);
+    g_NetDriver->Send(SessionID(), SM_PING, stSMP);
 }
 
 void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address &)
 {
-    Bind(*((uint32_t *)rstMPK.Data()));
+    AMBadSession stAMBS;
+    std::memcpy(&stAMBS, rstMPK.Data(), sizeof(stAMBS));
+    Bind(stAMBS.SessionID);
 
     SMLoginOK stSMLOK;
     stSMLOK.UID       = UID();
@@ -52,8 +54,8 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     stSMLOK.JobID     = m_JobID;
     stSMLOK.Level     = m_Level;
 
-    extern NetPodN *g_NetPodN;
-    g_NetPodN->Send(SessionID(), SM_LOGINOK, stSMLOK);
+    extern NetDriver *g_NetDriver;
+    g_NetDriver->Send(SessionID(), SM_LOGINOK, stSMLOK);
 
     if(ActorPodValid() && m_Map->ActorPodValid()){
         AMPullCOInfo stAMPCOI;
@@ -80,26 +82,25 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    if(stAMA.UID != UID()){
-        if(true
-                && (std::abs<int>(stAMA.X - X()) <= SYS_MAPVISIBLEW)
-                && (std::abs<int>(stAMA.Y - Y()) <= SYS_MAPVISIBLEH)){
+    if(true
+            && stAMA.UID != UID()
+            && stAMA.MapID == MapID()
+            && (std::abs<int>(stAMA.X - X()) <= SYS_MAPVISIBLEW)
+            && (std::abs<int>(stAMA.Y - Y()) <= SYS_MAPVISIBLEH)){
 
-            ReportAction(stAMA.UID,
-            {
-                stAMA.Action,
-                stAMA.ActionParam,
-                stAMA.Speed,
-                stAMA.Direction,
-                
-                stAMA.X,
-                stAMA.Y,
-                stAMA.AimX,
-                stAMA.AimY,
-                0,
-                stAMA.MapID
-            });
-        }
+        ReportAction(stAMA.UID, ActionNode
+        {
+            stAMA.Action,
+            stAMA.Speed,
+            stAMA.Direction,
+
+            stAMA.X,
+            stAMA.Y,
+            stAMA.AimX,
+            stAMA.AimY,
+            stAMA.AimUID,
+            stAMA.ActionParam,
+        });
     }
 }
 
@@ -131,7 +132,8 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
 
             // 1. send request to the new map
             //    if request rejected then it stays in current map
-            auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &){
+            auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &)
+            {
                 switch(rstRMPK.Type()){
                     case MPK_MAPSWITCHOK:
                         {
@@ -165,7 +167,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
                                                 m_ActorPod->Forward(MPK_OK, m_Map->GetAddress(), rstRMPK.ID());
 
                                                 // 2. notify all players on the new map
-                                                DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), m_Map->ID() });
+                                                DispatchAction(ActionStand(X(), Y(), Direction()));
 
                                                 // 3. inform the client for map swith
                                                 ReportStand();
@@ -233,17 +235,10 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
     AMAttack stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    DispatchAction({ACTION_UNDERATTACK, 0, Direction(), X(), Y(), MapID()});
+    DispatchAction(ActionHitted(X(), Y(), Direction()));
     StruckDamage({stAMA.UID, stAMA.Type, stAMA.Damage, stAMA.Element});
 
-    // issue here
-    // if we take delay as 200, then client makes non-smooth motion
-    // player in client is moving, then if we struck under-attach using current location
-    // the player will be forced to roll-back
-    Delay(0, [this]()
-    {
-        ReportAction(UID(), {ACTION_UNDERATTACK, 0, SYS_DEFSPEED, Direction(), X(), Y(), 0, MapID()});
-    });
+    ReportAction(UID(), ActionHitted(X(), Y(), Direction()));
 }
 
 void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)
@@ -258,8 +253,8 @@ void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)
         stSMUHP.HP    = stAMUHP.HP;
         stSMUHP.HPMax = stAMUHP.HPMax;
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(SessionID(), SM_UPDATEHP, stSMUHP);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(SessionID(), SM_UPDATEHP, stSMUHP);
     }
 }
 
@@ -275,8 +270,8 @@ void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Address
         stSMDFO.X     = stAMDFO.X;
         stSMDFO.Y     = stAMDFO.Y;
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(SessionID(), SM_DEADFADEOUT, stSMDFO);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(SessionID(), SM_DEADFADEOUT, stSMDFO);
     }
 }
 
@@ -289,8 +284,8 @@ void Player::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
         SMExp stSME;
         stSME.Exp = stAME.Exp;
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(SessionID(), SM_EXP, stSME);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(SessionID(), SM_EXP, stSME);
     }
 }
 
@@ -300,12 +295,19 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK, const Theron::Addres
     std::memcpy(&stAMSDI, rstMPK.Data(), sizeof(stAMSDI));
 
     SMShowDropItem stSMSDI;
-    stSMSDI.ID = stAMSDI.ID;
+    std::memset(&stSMSDI, 0, sizeof(stSMSDI));
+
     stSMSDI.X  = stAMSDI.X;
     stSMSDI.Y  = stAMSDI.Y;
 
-    extern NetPodN *g_NetPodN;
-    g_NetPodN->Send(SessionID(), SM_SHOWDROPITEM, stSMSDI);
+    constexpr auto nSMIDListLen = std::extent<decltype(stSMSDI.IDList)>::value;
+    constexpr auto nAMIDListLen = std::extent<decltype(stAMSDI.IDList)>::value;
+
+    static_assert(nSMIDListLen >= nAMIDListLen, "");
+    std::memcpy(stSMSDI.IDList, stAMSDI.IDList, sizeof(stAMSDI.IDList));
+
+    extern NetDriver *g_NetDriver;
+    g_NetDriver->Send(SessionID(), SM_SHOWDROPITEM, stSMSDI);
 }
 
 void Player::On_MPK_BADSESSION(const MessagePack &rstMPK, const Theron::Address &)

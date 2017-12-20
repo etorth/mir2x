@@ -14,27 +14,31 @@ class ServerConfigureWindow {open
   } {
     Fl_Window m_Window {
       label ConfigureWindow open
-      xywh {1385 404 575 305} type Double labelfont 4 hide modal
+      xywh {878 318 625 360} type Double labelfont 4 modal visible
     } {
       Fl_Value_Input m_MaxPlayerCount {
         label {Maximal Player: }
-        xywh {172 96 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
+        xywh {172 146 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
       }
       Fl_Input m_MapFullName {
         label {Map Path: }
         xywh {172 20 273 24} labelfont 4 textfont 4
       }
+      Fl_Input m_ScriptFullName {
+        label {Script Path: }
+        xywh {172 61 273 24} labelfont 4 textfont 4
+      }
       Fl_Value_Input m_EquipRate {
         label {Equipment Rate: }
-        xywh {172 171 60 24} labelfont 4 minimum 1024 maximum 10000 value 1.5 textfont 4
+        xywh {172 221 60 24} labelfont 4 minimum 1024 maximum 10000 value 1.5 textfont 4
       }
       Fl_Value_Input m_ExpRate {
         label {Exprience Rate: }
-        xywh {172 133 60 24} labelfont 4 minimum 1024 maximum 10000 value 1.5 textfont 4
+        xywh {172 183 60 24} labelfont 4 minimum 1024 maximum 10000 value 1.5 textfont 4
       }
       Fl_Value_Input m_GoldRate {
         label {Gold Rate: }
-        xywh {172 209 60 24} labelfont 4 minimum 1024 maximum 10000 value 1.5 textfont 4
+        xywh {172 259 60 24} labelfont 4 minimum 1024 maximum 10000 value 1.5 textfont 4
       }
       Fl_Button {} {
         label {@fileopen}
@@ -76,23 +80,62 @@ class ServerConfigureWindow {open
       }
       Fl_Value_Input m_MaxMonsterCount {
         label {Maximal Monster: }
-        xywh {172 58 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
+        xywh {172 108 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
       }
       Fl_Button {} {
         label OK
         callback {{
 	m_Window->hide();
 }}
-        xywh {450 250 70 25}
+        xywh {450 315 70 25}
       }
       Fl_Value_Input m_Port {
         label {Listen Port: }
-        xywh {171 248 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
+        xywh {171 298 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
+      }
+      Fl_Button {} {
+        label {@fileopen}
+        callback {{
+    Fl_Native_File_Chooser stFileChooser;
+    stFileChooser.title("Load Map Database File...");
+    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
+
+    char szMatchedFileNames[] =
+        "MAPDBN\\t*.ZIP\\n"
+        ;
+
+    stFileChooser.filter(szMatchedFileNames);
+    stFileChooser.directory(".");
+
+    switch(stFileChooser.show()){
+        case -1:
+            {
+                fl_alert("%s", stFileChooser.errmsg());
+                break;
+            }
+        case 1:
+            {
+                break;
+            }
+        default:
+            {
+                std::string szPath = stFileChooser.filename();
+                std::replace(szPath.begin(), szPath.end(), '\\\\', '/');
+
+                m_MapFullName->value(szPath.c_str());
+            }
+    }
+}}
+        xywh {451 61 26 23}
+        code0 {\#include <string>}
+        code1 {\#include <FL/Fl_Native_File_Chooser.H>}
+        code2 {\#include <FL/fl_ask.H>}
       }
     }
     code {// set up the default map path
 {
     m_MapFullName->value("Res/Map/MapBinDBN.ZIP");
+    m_ScriptFullName->value("");
 }} {}
   }
   Function {ShowAll()} {} {
@@ -100,14 +143,20 @@ class ServerConfigureWindow {open
     m_Window->show();
 }} {}
   }
-  Function {GetMapPath()} {return_type {const char *}
+  Function {GetMapPath()} {return_type {std::string}
   } {
     code {{
 	// printf("%d\\n", std::lround(m_VIPort1->value()));
 	return m_MapFullName->value() ? m_MapFullName->value() : "";
 }} {}
   }
-  Function {MaxPlayerCount()} {return_type int
+  Function {GetScriptPath()} {return_type {std::string}
+  } {
+    code {{
+	return "";
+}} {}
+  }
+  Function {MaxPlayerCount()} {selected return_type int
   } {
     code {{
     return std::lround(m_MaxPlayerCount->value());

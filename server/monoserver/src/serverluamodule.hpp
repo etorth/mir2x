@@ -2,10 +2,11 @@
  * =====================================================================================
  *
  *       Filename: serverluamodule.hpp
- *        Created: 06/02/2017 17:39:56
- *  Last Modified: 06/11/2017 18:12:35
+ *        Created: 12/19/2017 01:07:36
+ *  Last Modified: 12/20/2017 00:27:49
  *
- *    Description: 
+ *    Description: base module for all server side lua support
+ *
  *
  *        Version: 1.0
  *       Revision: none
@@ -17,19 +18,16 @@
  *
  * =====================================================================================
  */
+
 #pragma once
-#include <cstdint>
 #include "luamodule.hpp"
 
 class ServerLuaModule: public LuaModule
 {
-    private:
-        uint32_t m_CWID;
-
     public:
-        uint32_t CWID() const { return m_CWID; }
-
-    public:
-        ServerLuaModule(uint32_t);
+        ServerLuaModule();
        ~ServerLuaModule() = default;
+
+    protected:
+       void addLog(int, const char *);
 };

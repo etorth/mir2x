@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.hpp
  *        Created: 04/22/2016 17:59:06
- *  Last Modified: 10/06/2017 17:17:50
+ *  Last Modified: 12/20/2017 00:13:33
  *
  *    Description: split monoserver into actor-code and non-actor code
  *                 put all actor code in this class
@@ -29,14 +29,15 @@
 #include <vector>
 #include <unordered_map>
 
-#include "netpod.hpp"
+#include "netdriver.hpp"
 #include "activeobject.hpp"
+#include "serverluamodule.hpp"
 
 class ServerMap;
 class ServiceCore: public ActiveObject
 {
     protected:
-        std::map<uint32_t, ServerMap *> m_MapRecord;
+        std::map<uint32_t, ServerMap *> m_MapList;
 
     public:
         ServiceCore();

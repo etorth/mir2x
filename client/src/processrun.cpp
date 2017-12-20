@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 11/03/2017 17:42:38
+ *  Last Modified: 12/20/2017 01:02:37
  *
  *    Description: 
  *
@@ -20,7 +20,6 @@
 
 #include <memory>
 #include <cstring>
-
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "mathfunc.hpp"
@@ -38,7 +37,7 @@ ProcessRun::ProcessRun()
     , m_MapID(0)
     , m_Mir2xMapData()
     , m_MyHero(nullptr)
-    , m_FocusUIDV()
+    , m_FocusTable()
     , m_ViewX(0)
     , m_ViewY(0)
     , m_RollMap(false)
@@ -61,13 +60,11 @@ ProcessRun::ProcessRun()
     , m_InventoryBoard(0, 0, this)
     , m_GroundItemList()
     , m_CreatureRecord()
-    , m_AttackUIDX(-1)
-    , m_AttackUIDY(-1)
-    , m_PointerPixlInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
-    , m_PointerTileInfo(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
+    , m_MousePixlLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
+    , m_MouseGridLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_AscendStrRecord()
 {
-    m_FocusUIDV.fill(0);
+    m_FocusTable.fill(0);
     RegisterUserCommand();
 }
 
@@ -141,32 +138,20 @@ void ProcessRun::Update(double fUpdateTime)
         }
     }
 
-    if(auto pCreature = RetrieveUID(m_FocusUIDV[FOCUS_ATTACK])){
+    if(auto pCreature = RetrieveUID(m_FocusTable[FOCUS_ATTACK])){
         if(pCreature->StayDead()){
-            m_FocusUIDV[FOCUS_ATTACK] = 0;
+            m_FocusTable[FOCUS_ATTACK] = 0;
         }else{
-            auto nX = pCreature->X();
-            auto nY = pCreature->Y();
-
-            bool bForce = false;
-            if(false
-                    || m_AttackUIDX != nX
-                    || m_AttackUIDY != nY){
-
-                bForce = true;
-                m_AttackUIDX = nX;
-                m_AttackUIDY = nY;
-            }
-            TrackAttack(bForce, m_FocusUIDV[FOCUS_ATTACK]);
+            TrackAttack(false, m_FocusTable[FOCUS_ATTACK]);
         }
     }else{
-        m_FocusUIDV[FOCUS_ATTACK] = 0;
+        m_FocusTable[FOCUS_ATTACK] = 0;
     }
 }
 
 uint32_t ProcessRun::FocusUID(int nFocusType)
 {
-    if(nFocusType < (int)(m_FocusUIDV.size())){
+    if(nFocusType < (int)(m_FocusTable.size())){
         switch(nFocusType){
             case FOCUS_NONE:
                 {
@@ -197,8 +182,8 @@ uint32_t ProcessRun::FocusUID(int nFocusType)
                     int nCheckPointX = nPointX + m_ViewX;
                     int nCheckPointY = nPointY + m_ViewY;
 
-                    if(fnCheckFocus(m_FocusUIDV[FOCUS_MOUSE], nCheckPointX, nCheckPointY)){
-                        return m_FocusUIDV[FOCUS_MOUSE];
+                    if(fnCheckFocus(m_FocusTable[FOCUS_MOUSE], nCheckPointX, nCheckPointY)){
+                        return m_FocusTable[FOCUS_MOUSE];
                     }
 
                     Creature *pFocus = nullptr;
@@ -214,12 +199,12 @@ uint32_t ProcessRun::FocusUID(int nFocusType)
                         }
                     }
 
-                    m_FocusUIDV[FOCUS_MOUSE] = pFocus ? pFocus->UID() : 0;
-                    return m_FocusUIDV[FOCUS_MOUSE];
+                    m_FocusTable[FOCUS_MOUSE] = pFocus ? pFocus->UID() : 0;
+                    return m_FocusTable[FOCUS_MOUSE];
                 }
             default:
                 {
-                    return m_FocusUIDV[nFocusType];
+                    return m_FocusTable[nFocusType];
                 }
         }
     }
@@ -280,7 +265,7 @@ void ProcessRun::Draw()
         }
 
         extern ClientEnv *g_ClientEnv;
-        if(g_ClientEnv->MIR2X_DEBUG_SHOW_MAP_GRID){
+        if(g_ClientEnv->EnableDrawMapGrid){
             int nGridX0 = m_ViewX / SYS_MAPGRIDXP;
             int nGridY0 = m_ViewY / SYS_MAPGRIDYP;
 
@@ -354,6 +339,14 @@ void ProcessRun::Draw()
                                             SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
                                         }
 
+                                        // 1. draw item shadow
+                                        SDL_SetTextureColorMod(pTexture, 0, 0, 0);
+                                        SDL_SetTextureAlphaMod(pTexture, 128);
+                                        g_SDLDevice->DrawTexture(pTexture, nXt + 1, nYt - 1);
+
+                                        // 2. draw item body
+                                        SDL_SetTextureColorMod(pTexture, 255, 255, 255);
+                                        SDL_SetTextureAlphaMod(pTexture, 255);
                                         g_SDLDevice->DrawTexture(pTexture, nXt, nYt);
 
                                         if(bChoose){
@@ -409,7 +402,7 @@ void ProcessRun::Draw()
                             && !(pCreature.second->StayDead())){
 
                         extern ClientEnv *g_ClientEnv;
-                        if(g_ClientEnv->MIR2X_DEBUG_SHOW_CREATURE_COVER){
+                        if(g_ClientEnv->EnableDrawCreatureCover){
                             g_SDLDevice->PushColor(0, 0, 255, 128);
                             g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
                             g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
@@ -525,7 +518,7 @@ void ProcessRun::Draw()
 
     // draw cursor location information on top-left
     extern ClientEnv *g_ClientEnv;
-    if(g_ClientEnv->MIR2X_DEBUG_SHOW_LOCATION){
+    if(g_ClientEnv->EnableDrawMouseLocation){
         g_SDLDevice->PushColor(0, 0, 0, 230);
         g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
         g_SDLDevice->FillRectangle(0, 0, 200, 60);
@@ -536,11 +529,11 @@ void ProcessRun::Draw()
         int nPointY = -1;
         SDL_GetMouseState(&nPointX, &nPointY);
 
-        m_PointerPixlInfo.SetText("Pix_Loc: %3d, %3d", nPointX, nPointY);
-        m_PointerTileInfo.SetText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
+        m_MousePixlLoc.SetText("Pix_Loc: %3d, %3d", nPointX, nPointY);
+        m_MouseGridLoc.SetText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
 
-        m_PointerTileInfo.DrawEx(10, 10, 0, 0, m_PointerTileInfo.W(), m_PointerTileInfo.H());
-        m_PointerPixlInfo.DrawEx(10, 30, 0, 0, m_PointerPixlInfo.W(), m_PointerPixlInfo.H());
+        m_MouseGridLoc.DrawEx(10, 10, 0, 0, m_MouseGridLoc.W(), m_MouseGridLoc.H());
+        m_MousePixlLoc.DrawEx(10, 30, 0, 0, m_MousePixlLoc.W(), m_MousePixlLoc.H());
     }
 
     g_SDLDevice->Present();
@@ -555,12 +548,20 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONDOWN:
             {
+                int nMouseGridX = -1;
+                int nMouseGridY = -1;
+                ScreenPoint2Grid(rstEvent.button.x, rstEvent.button.y, &nMouseGridX, &nMouseGridY);
+
                 switch(rstEvent.button.button){
                     case SDL_BUTTON_LEFT:
                         {
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
-                                m_FocusUIDV[FOCUS_ATTACK] = nUID;
+                                m_FocusTable[FOCUS_ATTACK] = nUID;
                                 TrackAttack(true, nUID);
+                            }else if(auto stFirstItem = GetGroundItem(nMouseGridX, nMouseGridY)){
+                                if(GetGroundItem(nMouseGridX, nMouseGridY)){
+                                    m_MyHero->EmplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, stFirstItem.ID));
+                                }
                             }
                             break;
                         }
@@ -573,31 +574,33 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             // 4. if "+GOOD" client will release the motion lock
                             // 5. if "+FAIL" client will use the backup position and direction
 
-                            m_FocusUIDV[FOCUS_ATTACK] = 0;
-                            m_FocusUIDV[FOCUS_FOLLOW] = 0;
+                            m_FocusTable[FOCUS_ATTACK] = 0;
+                            m_FocusTable[FOCUS_FOLLOW] = 0;
 
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
-                                m_FocusUIDV[FOCUS_FOLLOW] = nUID;
+                                m_FocusTable[FOCUS_FOLLOW] = nUID;
                             }else{
                                 int nX = -1;
                                 int nY = -1;
                                 if(true
-                                        && LocatePoint(rstEvent.button.x, rstEvent.button.y, &nX, &nY)
+                                        && ScreenPoint2Grid(rstEvent.button.x, rstEvent.button.y, &nX, &nY)
                                         && LDistance2(m_MyHero->CurrMotion().EndX, m_MyHero->CurrMotion().EndY, nX, nY)){
 
                                     // we get a valid dst to go
                                     // provide myHero with new move action command
 
-                                    m_MyHero->ParseNewAction({
-                                            ACTION_MOVE,
-                                            m_MyHero->OnHorse() ? 1 : 0,
-                                            100,
-                                            DIR_NONE,
-                                            m_MyHero->CurrMotion().EndX,
-                                            m_MyHero->CurrMotion().EndY,
-                                            nX,
-                                            nY,
-                                            MapID()}, false);
+                                    // when post move action don't use X() and Y()
+                                    // since if clicks during hero moving then X() may not equal to EndX
+
+                                    m_MyHero->EmplaceAction(ActionMove
+                                    {
+                                        m_MyHero->CurrMotion().EndX,    // don't use X()
+                                        m_MyHero->CurrMotion().EndY,    // don't use Y()
+                                        nX,
+                                        nY,
+                                        SYS_DEFSPEED,
+                                        m_MyHero->OnHorse() ? 1 : 0
+                                    });
                                 }
                             }
                             break;
@@ -623,32 +626,43 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                         }
                     case SDLK_ESCAPE:
                         {
-                            extern SDLDevice *g_SDLDevice;
-                            m_ViewX = std::max<int>(0, m_MyHero->X() - g_SDLDevice->WindowW(false) / 2 / SYS_MAPGRIDXP) * SYS_MAPGRIDXP;
-                            m_ViewY = std::max<int>(0, m_MyHero->Y() - g_SDLDevice->WindowH(false) / 2 / SYS_MAPGRIDYP) * SYS_MAPGRIDYP;
+                            CenterMyHero();
                             break;
                         }
                     case SDLK_t:
                         {
                             if(auto nMouseFocusUID = FocusUID(FOCUS_MOUSE)){
-                                m_FocusUIDV[FOCUS_MAGIC] = nMouseFocusUID;
+                                m_FocusTable[FOCUS_MAGIC] = nMouseFocusUID;
                             }else{
-                                if(!RetrieveUID(m_FocusUIDV[FOCUS_MAGIC])){
-                                    m_FocusUIDV[FOCUS_MAGIC] = 0;
+                                if(!RetrieveUID(m_FocusTable[FOCUS_MAGIC])){
+                                    m_FocusTable[FOCUS_MAGIC] = 0;
                                 }
                             }
 
-                            m_MyHero->ParseNewAction({
-                                    ACTION_SPELL,
+                            if(auto nFocusUID = FocusUID(FOCUS_MAGIC)){
+                                m_MyHero->EmplaceAction(ActionSpell
+                                {
+                                    m_MyHero->CurrMotion().EndX,
+                                    m_MyHero->CurrMotion().EndY,
+                                    nFocusUID,
                                     DBCOM_MAGICID(u8"雷电术"),
-                                    100,
-                                    m_MyHero->CurrMotion().Direction,
+                                });
+                            }else{
+                                int nAimX   = -1;
+                                int nAimY   = -1;
+                                int nMouseX = -1;
+                                int nMouseY = -1;
+                                SDL_GetMouseState(&nMouseX, &nMouseY);
+                                ScreenPoint2Grid(nMouseX, nMouseY, &nAimX, &nAimY);
+                                m_MyHero->EmplaceAction(ActionSpell
+                                {
                                     m_MyHero->CurrMotion().EndX,
                                     m_MyHero->CurrMotion().EndY,
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
-                                    FocusUID(FOCUS_MAGIC),
-                                    MapID()}, false);
+                                    nAimX,
+                                    nAimY,
+                                    DBCOM_MAGICID(u8"雷电术"),
+                                });
+                            }
                             break;
                         }
                     case SDLK_p:
@@ -658,32 +672,12 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                         }
                     case SDLK_y:
                         {
-                            m_MyHero->ParseNewAction({
-                                    ACTION_SPELL,
-                                    DBCOM_MAGICID(u8"魔法盾"),
-                                    100,
-                                    m_MyHero->CurrMotion().Direction,
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
-                                    m_MyHero->UID(),
-                                    MapID()}, false);
+                            m_MyHero->EmplaceAction(ActionSpell(m_MyHero->X(), m_MyHero->Y(), m_MyHero->UID(), DBCOM_MAGICID(u8"魔法盾")));
                             break;
                         }
                     case SDLK_u:
                         {
-                            m_MyHero->ParseNewAction({
-                                    ACTION_SPELL,
-                                    DBCOM_MAGICID(u8"召唤骷髅"),
-                                    100,
-                                    m_MyHero->CurrMotion().Direction,
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
-                                    m_MyHero->UID(),
-                                    MapID()}, false);
+                            m_MyHero->EmplaceAction(ActionSpell(m_MyHero->X(), m_MyHero->Y(), m_MyHero->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
                             break;
                         }
                     default:
@@ -850,7 +844,7 @@ double ProcessRun::MoveCost(bool bCheckCreature, int nX0, int nY0, int nX1, int 
     return fMoveCost;
 }
 
-bool ProcessRun::LocatePoint(int nPX, int nPY, int *pX, int *pY)
+bool ProcessRun::ScreenPoint2Grid(int nPX, int nPY, int *pX, int *pY)
 {
     if(pX){ *pX = (nPX + m_ViewX) / SYS_MAPGRIDXP; }
     if(pY){ *pY = (nPY + m_ViewY) / SYS_MAPGRIDYP; }
@@ -861,7 +855,7 @@ bool ProcessRun::LocatePoint(int nPX, int nPY, int *pX, int *pY)
 bool ProcessRun::LuaCommand(const char *szLuaCommand)
 {
     if(szLuaCommand){
-        auto stCallResult = m_LuaModule.script(szLuaCommand, [](lua_State *, sol::protected_function_result stResult){
+        auto stCallResult = m_LuaModule.GetLuaState().script(szLuaCommand, [](lua_State *, sol::protected_function_result stResult){
             // default handler
             // do nothing and let the call site handle the errors
             return stResult;
@@ -1043,43 +1037,12 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
     if(pModule){
 
         // initialization before registration
-        pModule->script(R"()");
-
-        // register command exitClient
-        // exit client and free all related resource
-        pModule->set_function("exitClient", []()
-        {
-            std::exit(0);
-        });
-
-        // register command exit
-        pModule->set_function("exit", []()
-        {
-            // reserve this command
-            // don't find what to exit here
-            std::exit(0);
-        });
-
-        // register command sleep
-        // sleep current thread and return after the specified ms
-        // can use posix.sleep(ms), but here use std::this_thread::sleep_for(x)
-        pModule->set_function("sleep", [](int nSleepMS)
-        {
-            if(nSleepMS > 0){
-                std::this_thread::sleep_for(std::chrono::milliseconds(nSleepMS));
-            }
-        });
+        pModule->GetLuaState().script(R"()");
 
         // register command printLine
         // print one line to the out port allocated for the lua module
-        // won't add message to log system, use addLog instead if needed
-        pModule->set_function("printLine", [this, nOutPort](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo)
+        pModule->GetLuaState().set_function("printLine", [this, nOutPort](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo)
         {
-            // use sol::object to accept arguments
-            // otherwise for follow code it throws exception for type unmatch
-            //      lua["f"] = [](int a){ return a; };
-            //      lua.script("print f(\"hello world\")")
-            // program crashes with exception.what() : expecting int, string provided
             if(true
                     && stLogType.is<int>()
                     &&  stPrompt.is<std::string>()
@@ -1094,15 +1057,18 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command addLog
         // add to client system log file only, same as g_Log->AddLog(LOGTYPE_XXXX, LogInfo)
-        pModule->set_function("addLog", [this, nOutPort](sol::object stLogType, sol::object stLogInfo){
+        pModule->GetLuaState().set_function("addLog", [this, nOutPort](sol::object stLogType, sol::object stLogInfo)
+        {
             if(true
                     && stLogType.is<int>()
                     && stLogInfo.is<std::string>()){
+
                 extern Log *g_Log;
                 switch(stLogType.as<int>()){
                     case 0  : g_Log->AddLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
                     case 1  : g_Log->AddLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
-                    default : g_Log->AddLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
+                    case 2  : g_Log->AddLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
+                    default : g_Log->AddLog(LOGTYPE_DEBUG  , "%s", stLogInfo.as<std::string>().c_str()); return;
                 }
             }
 
@@ -1111,16 +1077,15 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         });
 
         // register command playerList
-        // get a list for all active maps
         // return a table (userData) to lua for ipairs() check
-        pModule->set_function("playerList", [this](sol::this_state stThisLua)
+        pModule->GetLuaState().set_function("playerList", [this](sol::this_state stThisLua)
         {
             return sol::make_object(sol::state_view(stThisLua), GetPlayerList());
         });
 
         // register command moveTo(x, y)
         // wait for server to move player if possible
-        pModule->set_function("moveTo", [this, nOutPort](sol::object stLocX, sol::object stLocY)
+        pModule->GetLuaState().set_function("moveTo", [this, nOutPort](sol::object stLocX, sol::object stLocY)
         {
             if(true
                     && stLocX.is<int>()
@@ -1137,7 +1102,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command ``listPlayerInfo"
         // this command call to get a player info table and print to out port
-        pModule->script(R"#(
+        pModule->GetLuaState().script(R"#(
             function listPlayerInfo ()
                 for k, v in ipairs(playerList())
                 do
@@ -1148,7 +1113,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command ``help"
         // part-1: divide into two parts, part-1 create the table for help
-        pModule->script(R"#(
+        pModule->GetLuaState().script(R"#(
             helpInfoTable = {
                 wear     = "put on different dress",
                 moveTo   = "move to other position on current map",
@@ -1157,7 +1122,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         )#");
 
         // part-2: make up the function to print the table entry
-        pModule->script(R"#(
+        pModule->GetLuaState().script(R"#(
             function help (queryKey)
                 if helpInfoTable[queryKey]
                 then
@@ -1170,7 +1135,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command ``myHero.xxx"
         // I need to insert a table to micmic a instance myHero in the future
-        pModule->set_function("myHero_dress", [this](int nDress)
+        pModule->GetLuaState().set_function("myHero_dress", [this](int nDress)
         {
             if(nDress >= 0){
                 m_MyHero->Dress((uint32_t)(nDress));
@@ -1179,7 +1144,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command ``myHero.xxx"
         // I need to insert a table to micmic a instance myHero in the future
-        pModule->set_function("myHero_weapon", [this](int nWeapon)
+        pModule->GetLuaState().set_function("myHero_weapon", [this](int nWeapon)
         {
             if(nWeapon >= 0){
                 m_MyHero->Weapon((uint32_t)(nWeapon));
@@ -1304,20 +1269,11 @@ bool ProcessRun::LocateUID(uint32_t nUID, int *pX, int *pY)
 
 bool ProcessRun::TrackAttack(bool bForce, uint32_t nUID)
 {
-    if(nUID){
-        if(auto pCreature = RetrieveUID(nUID)){
-            if(bForce || m_MyHero->StayIdle()){
-                return m_MyHero->ParseNewAction({
-                        ACTION_ATTACK,
-                        DC_PHY_PLAIN,
-                        100,
-                        DIR_NONE,
-                        m_MyHero->CurrMotion().EndX,
-                        m_MyHero->CurrMotion().EndY,
-                        pCreature->X(),
-                        pCreature->Y(),
-                        MapID()}, false);
-            }
+    if(RetrieveUID(nUID)){
+        if(bForce || m_MyHero->StayIdle()){
+            auto nEndX = m_MyHero->CurrMotion().EndX;
+            auto nEndY = m_MyHero->CurrMotion().EndY;
+            return m_MyHero->EmplaceAction(ActionAttack(nEndX, nEndY, DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
         }
     }
     return false;

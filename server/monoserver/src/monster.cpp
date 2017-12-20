@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 10/06/2017 16:41:34
+ *  Last Modified: 12/15/2017 23:30:18
  *
  *    Description: 
  *
@@ -21,10 +21,11 @@
 #include <cinttypes>
 #include "player.hpp"
 #include "motion.hpp"
-#include "netpod.hpp"
 #include "dbconst.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
+#include "condcheck.hpp"
+#include "netdriver.hpp"
 #include "actorpod.hpp"
 #include "mathfunc.hpp"
 #include "memorypn.hpp"
@@ -36,6 +37,63 @@
 #include "dbcomrecord.hpp"
 #include "messagepack.hpp"
 #include "protocoldef.hpp"
+
+Monster::AStarCache::AStarCache()
+    : Time(0)
+    , MapID(0)
+    , Path()
+{}
+
+bool Monster::AStarCache::Retrieve(int *pX, int *pY, int nX0, int nY0, int nX1, int nY1, uint32_t nMapID)
+{
+    extern MonoServer *g_MonoServer;
+    if(g_MonoServer->GetTimeTick() < (Time + Refresh)){
+
+        // if cache doesn't match we won't clean it
+        // only cleared by timeout
+
+        if((nMapID == MapID) && (Path.size() >= 3)){
+            auto fnFindIndex = [this](int nX, int nY) -> int
+            {
+                for(int nIndex = 0; nIndex < (int)(Path.size()); ++nIndex){
+                    if(true
+                            && Path[nIndex].X == nX
+                            && Path[nIndex].Y == nY){
+                        return nIndex;
+                    }
+                }
+                return -1;
+            };
+
+            auto nIndex0 = fnFindIndex(nX0, nY0);
+            auto nIndex1 = fnFindIndex(nX1, nY1);
+
+            if(true
+                    && nIndex0 >= 0
+                    && nIndex1 >= nIndex0 + 2){
+
+                if(pX){ *pX = Path[nIndex0 + 1].X; }
+                if(pY){ *pY = Path[nIndex0 + 1].Y; }
+
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // time out, clean it
+    Path.clear();
+    return false;
+}
+
+void Monster::AStarCache::Cache(std::vector<PathFind::PathNode> stvPathNode, uint32_t nMapID)
+{
+    MapID = nMapID;
+    Path.swap(stvPathNode);
+
+    extern MonoServer *g_MonoServer;
+    Time = g_MonoServer->GetTimeTick();
+}
 
 Monster::Monster(uint32_t   nMonsterID,
         ServiceCore        *pServiceCore,
@@ -49,6 +107,7 @@ Monster::Monster(uint32_t   nMonsterID,
     , m_MonsterID(nMonsterID)
     , m_MasterUID(nMasterUID)
     , m_MonsterRecord(DBCOM_MONSTERRECORD(nMonsterID))
+    , m_AStarCache()
 {
     if(!m_MonsterRecord){
         extern MonoServer *g_MonoServer;
@@ -89,7 +148,7 @@ bool Monster::RandomMove()
             int nX = -1;
             int nY = -1;
             if(OneStepReach(Direction(), 1, &nX, &nY) == 1){
-                return RequestMove(MOTION_MON_WALK, nX, nY, false, [](){}, [](){});
+                return RequestMove(nX, nY, MoveSpeed(), false, [](){}, [](){});
             }
         }
 
@@ -122,7 +181,7 @@ bool Monster::RandomMove()
                         // don't do turn and motion now
                         // report the turn and do motion (by chance) in next update
                         m_Direction = nDirection;
-                        DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), MapID()});
+                        DispatchAction(ActionStand(X(), Y(), Direction()));
 
                         // TODO
                         // we won't do ReportStand() for monster
@@ -163,7 +222,7 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
                                             m_Direction = PathFind::GetDirection(X(), Y(), nX, nY);
                                             if(CanAttack()){
                                                 // 1. dispatch action to all
-                                                DispatchAction({ACTION_ATTACK, DC_PHY_PLAIN, Direction(), X(), Y(), MapID()});
+                                                DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), stRecord.UID));
 
                                                 extern MonoServer *g_MonoServer;
                                                 m_LastAttackTime = g_MonoServer->GetTimeTick();
@@ -215,10 +274,7 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
 
 bool Monster::TrackUID(uint32_t nUID)
 {
-    if(true
-            && nUID
-            && CanMove()){
-
+    if(CanMove()){
         return RetrieveLocation(nUID, [this](const COLocation &rstCOLocation) -> bool
         {
             auto nX     = rstCOLocation.X;
@@ -315,7 +371,7 @@ bool Monster::FollowMaster()
 
                                     if(Direction() != nDirection){
                                         m_Direction= nDirection;
-                                        DispatchAction({ACTION_STAND, 0, Direction(), X(), Y(), MapID()});
+                                        DispatchAction(ActionStand(X(), Y(), Direction()));
                                     }
                                     return true;
                                 }
@@ -382,7 +438,9 @@ bool Monster::Update()
         if(TrackAttack() ){ return true; }
         if(FollowMaster()){ return true; }
         if(RandomMove()  ){ return true; }
-    }else{ GoDie(); }
+    }else{
+        GoDie();
+    }
     return true;
 }
 
@@ -485,8 +543,8 @@ void Monster::ReportCORecord(uint32_t nSessionID)
         // 3. set specified info
         stSMCOR.Monster.MonsterID = m_MonsterID;
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(nSessionID, SM_CORECORD, stSMCOR);
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(nSessionID, SM_CORECORD, stSMCOR);
     }else{
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
@@ -573,6 +631,9 @@ void Monster::RemoveTarget(uint32_t nUID)
             return rstRecord.UID == nUID;
         };
 
+        // don't pass end() to std::deque::erase()
+        // loc should be valid and *dereferenceable* as requested by standard
+
         auto pLoc = std::find_if(m_TargetQ.begin(), m_TargetQ.end(), fnUIDCmp);
         if(pLoc != m_TargetQ.end()){
             m_TargetQ.erase(pLoc);
@@ -619,7 +680,7 @@ bool Monster::GoDie()
 
                             RandomDropItem();
                             DispatchHitterExp();
-                            DispatchAction({ACTION_DIE, 0, Direction(), X(), Y(), MapID()});
+                            DispatchAction(ActionDie(X(), Y(), Direction()));
 
                             extern MonoServer *g_MonoServer;
                             g_MonoServer->AddLog(LOGTYPE_WARNING, "Monster dead: %d", (int)(UID()));
@@ -731,7 +792,7 @@ bool Monster::StruckDamage(const DamageNode &rstDamage)
 {
     if(rstDamage){
         m_HP = std::max<int>(0, HP() - rstDamage.Damage);
-        DispatchMHP();
+        DispatchHealth();
 
         if(HP() <= 0){
             GoDie();
@@ -751,7 +812,7 @@ bool Monster::MoveOneStep(int nX, int nY)
     }
 }
 
-bool Monster::GreedyMove(int nX, int nY, std::function<void()> fnOnError)
+bool Monster::MoveOneStepGreedy(int nX, int nY)
 {
     int nX0 = X();
     int nY0 = Y();
@@ -780,19 +841,10 @@ bool Monster::GreedyMove(int nX, int nY, std::function<void()> fnOnError)
 
     if(CanMove()){
         if(m_Map && m_Map->GroundValid(nX1, nY1)){
-            return RequestMove(MOTION_MON_WALK, nX1, nY1, false, [](){}, fnOnError);
+            return RequestMove(nX1, nY1, MoveSpeed(), false, [](){}, [](){});
         }
-
-        // else we should call the error handler
-        // otherwise combined move can't check next point if (nX1, nY1) is non-walkable
-        fnOnError();
     }
     return false;
-}
-
-bool Monster::MoveOneStepGreedy(int nX, int nY)
-{
-    return GreedyMove(nX, nY, [](){});
 }
 
 bool Monster::MoveOneStepCombine(int nX, int nY)
@@ -808,7 +860,7 @@ bool Monster::MoveOneStepCombine(int nX, int nY)
         case 1:
         case 2:
             {
-                return RequestMove(MOTION_MON_WALK, nX, nY, false, [](){}, [](){});
+                return RequestMove(nX, nY, MoveSpeed(), false, [](){}, [](){});
             }
         default:
             {
@@ -816,95 +868,58 @@ bool Monster::MoveOneStepCombine(int nX, int nY)
             }
     }
 
-    int nDX = ((nX > nX0) - (nX < nX0));
-    int nDY = ((nY > nY0) - (nY < nY0));
+    int nXm = -1;
+    int nYm = -1;
 
-    std::array<PathFind::PathNode, 3> stvPathNode;
-    switch(std::abs(nDX) + std::abs(nDY)){
-        case 1:
-            {
-                if(nDY){
-                    stvPathNode[0] = {nX0 + 0, nY0 + nDY};
-                    stvPathNode[1] = {nX0 - 1, nY0 + nDY};
-                    stvPathNode[2] = {nX0 + 1, nY0 + nDY};
-                }else{
-                    stvPathNode[0] = {nX0 + nDX, nY0 + 0};
-                    stvPathNode[1] = {nX0 + nDX, nY0 - 1};
-                    stvPathNode[2] = {nX0 + nDX, nY0 + 1};
-                }
-                break;
-            }
-        case 2:
-            {
-                stvPathNode[0] = {nX0 + nDX, nY0 + nDY};
-                stvPathNode[1] = {nX0      , nY0 + nDY};
-                stvPathNode[2] = {nX0 + nDX, nY0      };
-                break;
-            }
-        default:
-            {
-                return false;
-            }
+    if(m_AStarCache.Retrieve(&nXm, &nYm, X(), Y(), nX, nY, MapID())){
+        return RequestMove(nXm, nYm, MoveSpeed(), false, [](){}, [](){});
     }
 
+    // not a simple hop
+    // and the a-star cache can't help
+
+    auto stvPathNode = GetChaseGrid(nX, nY);
     auto fnOnErrorRound0 = [this, stvPathNode, nX, nY]()
     {
         auto fnOnErrorRound1 = [this, stvPathNode, nX, nY]()
         {
             auto fnOnErrorRound2 = [this, nX, nY]()
             {
-                // we have no hope but use a-star
-                // or we can just let the monster stop here
                 return MoveOneStepAStar(nX, nY);
             };
-            return GreedyMove(stvPathNode[2].X, stvPathNode[2].Y, fnOnErrorRound2);
+            return RequestMove(stvPathNode[2].X, stvPathNode[2].Y, MoveSpeed(), false, [](){}, fnOnErrorRound2);
         };
-        return GreedyMove(stvPathNode[1].X, stvPathNode[1].Y, fnOnErrorRound1);
+        return RequestMove(stvPathNode[1].X, stvPathNode[1].Y, MoveSpeed(), false, [](){}, fnOnErrorRound1);
     };
-    return GreedyMove(stvPathNode[0].X, stvPathNode[0].Y, fnOnErrorRound0);
+    return RequestMove(stvPathNode[0].X, stvPathNode[0].Y, MoveSpeed(), false, [](){}, fnOnErrorRound0);
 }
 
 bool Monster::MoveOneStepAStar(int nX, int nY)
 {
-    int nMoveMode = MOTION_MON_WALK;
-
-    int nMaxStep = 0;
-    switch(nMoveMode){
-        case MOTION_WALK        : nMaxStep = 1; break;
-        case MOTION_RUN         : nMaxStep = 2; break;
-        case MOTION_ONHORSEWALK : nMaxStep = 1; break;
-        case MOTION_ONHORSERUN  : nMaxStep = 3; break;
-        case MOTION_MON_WALK    : nMaxStep = 1; break;
-        default                 : return false;
+    switch(LDistance2(X(), Y(), nX, nY)){
+        case 0:
+            {
+                return false;
+            }
+        case 1:
+        case 2:
+            {
+                return RequestMove(nX, nY, MoveSpeed(), false, [](){}, [](){});
+            }
+        default:
+            {
+                break;
+            }
     }
 
-    int nDX = std::abs<int>(X() - nX);
-    int nDY = std::abs<int>(Y() - nY);
+    // try a-star cache first
+    // if failed we need send resequst to server map
 
-    // +---+---+---+---+---+
-    // |   |   |   |   |   |    one-hop motion can reach:
-    // +---+---+---+---+---+
-    // | 3 |   |   | 3 |   |    1: walk, horse_walk
-    // +---+---+---+---+---+    2: run
-    // | 2 |   | 2 |   |   |    3: horse_run
-    // +---+---+---+---+---+
-    // | 1 | 1 |   |   |   |
-    // +---+---+---+---+---+
-    // | O | 1 | 2 | 3 |   |
-    // +---+---+---+---+---+
+    int nXm = -1;
+    int nYm = -1;
 
-    if((nDX == 0) && (nDY == 0)){ return true; }
-    if(true
-            && ((std::max<int>(nDX, nDY) <= nMaxStep))
-            && ((std::min<int>(nDX, nDY) == 0) || (nDX == nDY))){
-        // can reach (nX, nY) in one-hop
-        // possible reuslt for the motion request:
-        //      1. completed fully      : MPK_MOVEOK
-        //      2. completed partially  : MPK_MOVEOK
-        //      3. failed               : MPK_ERROR
-        // DON'T issue next motion if not complete the request
-        // no matter how far it's from the destination, it only do one step and stop
-        return RequestMove(nMoveMode, nX, nY, true, [](){}, [](){});
+    if(m_AStarCache.Retrieve(&nXm, &nYm, X(), Y(), nX, nY, MapID())){
+        return RequestMove(nXm, nYm, MoveSpeed(), false, [](){}, [](){});
     }
 
     // can't reach in one hop
@@ -920,85 +935,38 @@ bool Monster::MoveOneStepAStar(int nX, int nY)
     stAMPF.EndX    = nX;
     stAMPF.EndY    = nY;
 
-    auto fnOnResp = [this, nMoveMode, nMaxStep](const MessagePack &rstRMPK, const Theron::Address &){
+    auto fnOnResp = [this, nX, nY](const MessagePack &rstRMPK, const Theron::Address &)
+    {
         switch(rstRMPK.Type()){
             case MPK_PATHFINDOK:
                 {
                     AMPathFindOK stAMPFOK;
                     std::memcpy(&stAMPFOK, rstRMPK.Data(), sizeof(stAMPFOK));
 
-                    // 1. for all received result
-                    //    perform strict argument checking
+                    // cache current result
+                    // use it for next path finding
+                    constexpr auto nNodeCount = std::extent<decltype(stAMPFOK.Point)>::value;
+                    static_assert(nNodeCount >= 2, "");
 
-                    constexpr auto nPathNodeCount = sizeof(stAMPFOK.Point) / sizeof(stAMPFOK.Point[0]);
-                    static_assert(nPathNodeCount >= 2, "Invalid structure AMPathFindOK: Path node count should be at least 2");
+                    auto pBegin = stAMPFOK.Point;
+                    auto pEnd   = stAMPFOK.Point + nNodeCount; 
 
-                    auto fnReportBadPath = [&stAMPFOK, nPathNodeCount](size_t nBadNodeIndex){
-                        extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid path finding result: %p", &stAMPFOK);
-                        for(size_t nIndex = 0; nIndex <= std::min<size_t>(nPathNodeCount - 1, nBadNodeIndex); ++nIndex){
-                            g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::Point[%d]::X = %d", &stAMPFOK, (int)(nIndex), stAMPFOK.Point[nIndex].X);
-                            g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::Point[%d]::Y = %d", &stAMPFOK, (int)(nIndex), stAMPFOK.Point[nIndex].Y);
-                        }
-                    };
-
-                    for(size_t nIndex = 0; nIndex < nPathNodeCount; ++nIndex){
-                        if(true
-                                && m_Map
-                                && m_Map->In(stAMPFOK.MapID, stAMPFOK.Point[nIndex].X, stAMPFOK.Point[nIndex].Y)){
-                            if(nIndex > 0){
-                                int nX0 = stAMPFOK.Point[nIndex - 1].X;
-                                int nY0 = stAMPFOK.Point[nIndex - 1].Y;
-                                int nX1 = stAMPFOK.Point[nIndex    ].X;
-                                int nY1 = stAMPFOK.Point[nIndex    ].Y;
-                                switch(LDistance2(nX0, nY0, nX1, nY1)){
-                                    case 1:
-                                    case 2:
-                                        {
-                                            break;
-                                        }
-                                    default:
-                                        {
-                                            // nMaxStep could be more than 1
-                                            // but path finding result should always be one-grid distance
-                                            fnReportBadPath(nIndex);
-                                            return;
-                                        }
-                                }
-                            }
+                    std::vector<PathFind::PathNode> stvPathNode;
+                    for(auto pCurr = pBegin; pCurr != pEnd; ++pCurr){
+                        if(m_Map->GroundValid(pCurr->X, pCurr->Y)){
+                            stvPathNode.emplace_back(pCurr->X, pCurr->Y);
                         }else{
-                            // we allow invalid point (-1, -1) to indicate end
-                            // but we should at least have [0] and [1] valid in the result
-                            if(nIndex < 2){ fnReportBadPath(nIndex); return; }
                             break;
                         }
                     }
 
-                    // 2. minimize the hop count
-                    //    start to check from Point[2]
-                    //    Point[0] is the staring place and Point[1] is always OK
+                    stvPathNode.emplace_back(nX, nY);
+                    m_AStarCache.Cache(stvPathNode, MapID());
 
-                    auto nMaxStepCheck = std::min<int>(nMaxStep, nPathNodeCount - 1);
-                    auto nMaxStepReach = nMaxStepCheck;
+                    // done cache
+                    // do request move as normal
 
-                    for(int nStep = 1; nStep <= nMaxStepCheck; ++nStep){
-                        int nDX = std::abs<int>(stAMPFOK.Point[nStep].X - stAMPFOK.Point[0].X);
-                        int nDY = std::abs<int>(stAMPFOK.Point[nStep].Y - stAMPFOK.Point[0].Y);
-                        if(true
-                                // 1. current point is valid
-                                //    invalid (-1, -1) stays at the ending part
-                                && m_Map
-                                && m_Map->In(stAMPFOK.MapID, stAMPFOK.Point[nStep].X, stAMPFOK.Point[nStep].Y)
-
-                                // 2. current path stays straight
-                                && ((std::max<int>(nDX, nDY) == nStep))
-                                && ((std::min<int>(nDX, nDY) == 0) || (nDX == nDY))){ continue; }
-
-                        nMaxStepReach = nStep - 1;
-                        break;
-                    }
-
-                    RequestMove(nMoveMode, stAMPFOK.Point[nMaxStepReach].X, stAMPFOK.Point[nMaxStepReach].Y, true, [](){}, [](){});
+                    RequestMove(stAMPFOK.Point[1].X, stAMPFOK.Point[1].Y, MoveSpeed(), false, [](){}, [](){});
                     break;
                 }
             default:
@@ -1201,7 +1169,7 @@ void Monster::CheckFriend(uint32_t nCheckUID, std::function<void(int)> fnOnFrien
 
 void Monster::DispatchSpaceMove()
 {
-    DispatchAction({ACTION_SPACEMOVE, X(), Y(), MapID()});
+    DispatchAction(ActionSpaceMove1(X(), Y(), Direction()));
 }
 
 InvarData Monster::GetInvarData() const
@@ -1209,4 +1177,51 @@ InvarData Monster::GetInvarData() const
     InvarData stData;
     stData.Monster.MonsterID = MonsterID();
     return stData;
+}
+
+std::array<PathFind::PathNode, 3> Monster::GetChaseGrid(int nX, int nY)
+{
+    // always get the next step to chase
+    // this function won't check if (nX, nY) is valid
+
+    int nX0 = X();
+    int nY0 = Y();
+
+    std::array<PathFind::PathNode, 3> stvPathNode
+    {{
+        {-1, -1},
+        {-1, -1},
+        {-1, -1},
+    }};
+
+    int nDX = ((nX > nX0) - (nX < nX0));
+    int nDY = ((nY > nY0) - (nY < nY0));
+
+    switch(std::abs(nDX) + std::abs(nDY)){
+        case 1:
+            {
+                if(nDY){
+                    stvPathNode[0] = {nX0 + 0, nY0 + nDY};
+                    stvPathNode[1] = {nX0 - 1, nY0 + nDY};
+                    stvPathNode[2] = {nX0 + 1, nY0 + nDY};
+                }else{
+                    stvPathNode[0] = {nX0 + nDX, nY0 + 0};
+                    stvPathNode[1] = {nX0 + nDX, nY0 - 1};
+                    stvPathNode[2] = {nX0 + nDX, nY0 + 1};
+                }
+                break;
+            }
+        case 2:
+            {
+                stvPathNode[0] = {nX0 + nDX, nY0 + nDY};
+                stvPathNode[1] = {nX0      , nY0 + nDY};
+                stvPathNode[2] = {nX0 + nDX, nY0      };
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+    return stvPathNode;
 }

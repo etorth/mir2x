@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 09/05/2017 12:04:24
+ *  Last Modified: 12/20/2017 14:43:19
  *
  *    Description: 
  *
@@ -25,7 +25,7 @@
 #include <vector>
 #include <chrono>
 #include <cstdint>
-#include <sol.hpp>
+#include <sol/sol.hpp>
 #include <type_traits>
 #include <unordered_map>
 
@@ -35,7 +35,7 @@
 #include "database.hpp"
 #include "uidrecord.hpp"
 #include "eventtaskhub.hpp"
-#include "serverluamodule.hpp"
+#include "commandluamodule.hpp"
 
 class ServiceCore;
 class ServerObject;
@@ -91,7 +91,6 @@ class MonoServer final
 
     private:
         void RunASIO();
-        void CreateServiceCore();
         void CreateDBConnection();
         void RegisterAMFallbackHandler();
         void LoadMapBinDBN();
@@ -120,6 +119,7 @@ class MonoServer final
 
     private:
         void StartNetwork();
+        void StartServiceCore();
 
     public:
         std::vector<int>   GetMapList();
@@ -197,5 +197,5 @@ class MonoServer final
         }
 
     public:
-        bool RegisterLuaExport(ServerLuaModule *, uint32_t);
+        bool RegisterLuaExport(CommandLuaModule *, uint32_t);
 };

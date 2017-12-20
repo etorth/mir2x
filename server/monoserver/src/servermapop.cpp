@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 10/31/2017 12:01:31
+ *  Last Modified: 12/15/2017 01:04:46
  *
  *    Description: 
  *
@@ -24,6 +24,7 @@
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
 #include "actorpod.hpp"
+#include "serverenv.hpp"
 #include "metronome.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
@@ -32,6 +33,15 @@
 
 void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 {
+    extern ServerEnv *g_ServerEnv;
+    if(m_LuaModule && !g_ServerEnv->DisableMapScript){
+
+        // could this slow down the server
+        // if so I have to move it to a seperated thread
+
+        m_LuaModule->LoopOne();
+    }
+
     for(auto &rstRecordLine: m_CellRecordV2D){
         for(auto &rstRecordV: rstRecordLine){
 
@@ -99,97 +109,55 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
     AMAddCharObject stAMACO;
     std::memcpy(&stAMACO, rstMPK.Data(), sizeof(stAMACO));
 
-    bool bValidLoc = true;
-    if(false
-            || !In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y)
-            || !CanMove(true, true, stAMACO.Common.X, stAMACO.Common.Y)){
+    auto nX = stAMACO.Common.X;
+    auto nY = stAMACO.Common.Y;
 
-        // the location field provides an invalid location
-        // check if we can do random pick
-        bValidLoc = false;
+    auto bRandom = stAMACO.Common.Random;
 
-        if(stAMACO.Common.Random){
-            if(In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y)){
-                // OK we failed to add monster at the specified location
-                // but still to try to add near it
-            }else{
-                // an invalid location provided
-                // randomly pick one
-                stAMACO.Common.X = std::rand() % W();
-                stAMACO.Common.Y = std::rand() % H();
-            }
+    switch(stAMACO.Type){
+        case TYPE_MONSTER:
+            {
+                auto nMonsterID = stAMACO.Monster.MonsterID;
+                auto nMasterUID = stAMACO.Monster.MasterUID;
 
-            RotateCoord stRC;
-            if(stRC.Reset(stAMACO.Common.X, stAMACO.Common.Y, 0, 0, W(), H())){
-                do{
-                    if(true
-                            && In(stAMACO.Common.MapID, stRC.X(), stRC.Y())
-                            && CanMove(true, true, stRC.X(), stRC.Y())){
-
-                        // find a valid location
-                        // use it to add new charobject
-                        bValidLoc = true;
-
-                        stAMACO.Common.X = stRC.X();
-                        stAMACO.Common.Y = stRC.Y();
-                        break;
-                    }
-                }while(stRC.Forward());
-            }
-        }
-    }
-
-    if(bValidLoc){
-        switch(stAMACO.Type){
-            case TYPE_MONSTER:
-                {
-                    auto pCO = new Monster(stAMACO.Monster.MonsterID,
-                            m_ServiceCore,
-                            this,
-                            stAMACO.Common.X,
-                            stAMACO.Common.Y,
-                            DIR_UP,
-                            STATE_INCARNATED,
-                            stAMACO.Monster.MasterUID);
-
-                    auto nUID = pCO->UID();
-                    auto nX   = stAMACO.Common.X;
-                    auto nY   = stAMACO.Common.Y;
-
-                    pCO->Activate();
-                    AddGridUID(nUID, nX, nY);
+                if(AddMonster(nMonsterID, nMasterUID, nX, nY, bRandom)){
                     m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
                     return;
                 }
-            case TYPE_PLAYER:
-                {
-                    auto pCO = new Player(stAMACO.Player.DBID,
-                            m_ServiceCore,
-                            this,
-                            stAMACO.Common.X,
-                            stAMACO.Common.Y,
-                            stAMACO.Player.Direction,
-                            STATE_INCARNATED);
+                break;
+            }
+        case TYPE_PLAYER:
+            {
+                auto nDBID      = stAMACO.Player.DBID;
+                auto nSessionID = stAMACO.Player.SessionID;
+                auto nDirection = stAMACO.Player.Direction;
 
-                    auto nUID = pCO->UID();
-                    auto nX   = stAMACO.Common.X;
-                    auto nY   = stAMACO.Common.Y;
-
-                    pCO->Activate();
-                    AddGridUID(nUID, nX, nY);
+                if(auto pPlayer = AddPlayer(nDBID, nX, nY, nDirection, bRandom)){
                     m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
-                    m_ActorPod->Forward({MPK_BINDSESSION, stAMACO.Player.SessionID}, pCO->GetAddress());
+                    m_ActorPod->Forward({MPK_BINDSESSION, nSessionID}, pPlayer->GetAddress());
+
+                    auto fnReportGroundItem = [this, nSessionID](int nX, int nY) -> bool
+                    {
+                        if(true || ValidC(nX, nY)){
+                            // ReportGroundItem(nSessionID, nX, nY);
+                        }
+                        return false;
+                    };
+
+                    DoCircle(nX, nY, 20, fnReportGroundItem);
                     return;
                 }
-            default:
-                {
-                    break;
-                }
-        }
+                break;
+            }
+        default:
+            {
+                break;
+            }
     }
 
     // anything incorrect happened
     // report MPK_ERROR to service core that we failed
+
     m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
 }
 
@@ -594,8 +562,8 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK, const Theron::Address
 
     // we fill all slots with -1 for initialization
     // won't keep a record of ``how many path nodes are valid"
-    auto nPathCount = (int)(sizeof(stAMPFOK.Point) / sizeof(stAMPFOK.Point[0]));
-    for(int nIndex = 0; nIndex < nPathCount; ++nIndex){
+    constexpr auto nPathCount = std::extent<decltype(stAMPFOK.Point)>::value;
+    for(int nIndex = 0; nIndex < (int)(nPathCount); ++nIndex){
         stAMPFOK.Point[nIndex].X = -1;
         stAMPFOK.Point[nIndex].Y = -1;
     }
@@ -624,7 +592,7 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK, const Theron::Address
         int nCurrY = nY0;
 
         while(auto pNode1 = stPathFinder.GetSolutionNext()){
-            if(nCurrN >= nPathCount){ break; }
+            if(nCurrN >= (int)(nPathCount)){ break; }
             int nEndX = pNode1->X();
             int nEndY = pNode1->Y();
             switch(LDistance2(nCurrX, nCurrY, nEndX, nEndY)){
@@ -851,7 +819,9 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Addr
 
                                 // short it if it's an empty slot
                                 // directly use it and won't compare more
-                                if(nMinCount == 0){ break; }
+                                if(nMinCount == 0){
+                                    break;
+                                }
                             }
                         }
                     }

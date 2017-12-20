@@ -3,7 +3,7 @@
  *
  *       Filename: inventoryboard.cpp
  *        Created: 10/08/2017 19:22:30
- *  Last Modified: 11/11/2017 23:54:49
+ *  Last Modified: 11/12/2017 23:28:39
  *
  *    Description: 
  *
@@ -66,15 +66,13 @@ void InventoryBoard::DrawItem(int nDstX, int nDstY, const PackBin &rstBin)
             int nItemPH = -1;
             if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nItemPW, &nItemPH)){
 
-                int nInvGridX0 = 18;
-                int nInvGridY0 = 59;
-                int nInvGridPW = SYS_INVGRIDPW;
-                int nInvGridPH = SYS_INVGRIDPH;
+                const int nInvGridX0 = 18;
+                const int nInvGridY0 = 59;
 
                 extern SDLDevice *g_SDLDevice;
                 g_SDLDevice->DrawTexture(pTexture, 
-                        nDstX + nInvGridX0 + rstBin.X * nInvGridPW + (rstBin.W * nInvGridPW - nItemPW) / 2,
-                        nDstY + nInvGridY0 + rstBin.Y * nInvGridPH + (rstBin.H * nInvGridPH - nItemPH) / 2);
+                        nDstX + nInvGridX0 + rstBin.X * SYS_INVGRIDPW + (rstBin.W * SYS_INVGRIDPW - nItemPW) / 2,
+                        nDstY + nInvGridY0 + rstBin.Y * SYS_INVGRIDPH + (rstBin.H * SYS_INVGRIDPH - nItemPH) / 2);
             }
         }
     }

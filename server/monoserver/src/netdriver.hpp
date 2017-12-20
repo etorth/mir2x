@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: netpod.hpp
+ *       Filename: netdriver.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 10/06/2017 21:36:08
+ *  Last Modified: 11/22/2017 17:01:44
  *
  *    Description: this will serve as a stand-alone plugin for monoserver, it creates
  *                 with general info. and nothing will be done till Launch()
@@ -11,7 +11,7 @@
  *                 when Launch(Theron::Address) with the actor address of service core
  *                 this pod will start a new thread and run asio::run() inside
  *
- *                 when a new connection request received, if netpod decide to accept
+ *                 when a new connection request received, if net driver decide to accept
  *                 it, the pod will:
  *
  *                      1. allocate a channel, which consists of one session instance
@@ -20,7 +20,7 @@
  *                 then all service core <-> pod communication for this connection will
  *                 based on the session id.
  *
- *                 NetPodN doesn't need a Bind() method since it only communicates with
+ *                 NetDriver doesn't need a Bind() method since it only communicates with
  *                 ServiceCore, and this address is provided with Launch(), the member
  *                 function Bind() used to forward to Session
  *
@@ -29,7 +29,7 @@
  *
  *                 1. put it in class MonoServer
  *                    the best is to put net pod as a private class in class monoserver
- *                    but netpod is a complex class, I decide only put those const, log
+ *                    but net driver is a complex class, I decide only put those const, log
  *                    and tips in monoserver.
  *
  *                 2. put it in ServiceCore
@@ -40,7 +40,7 @@
  *
  *                 3. put it as a global variable
  *                    drawbacks: i have a rule that a global class is a self-contained
- *                    class, however netpodn need the address of servicecore before
+ *                    class, however net driver need the address of servicecore before
  *                    activated. currently I make it as a parameter for Launch()
  *
  *        Version: 1.0
@@ -69,7 +69,7 @@
 #include "syncdriver.hpp"
 #include "messagepack.hpp"
 
-class NetPodN: public SyncDriver
+class NetDriver: public SyncDriver
 {
     private:
         unsigned int                m_Port;
@@ -91,15 +91,17 @@ class NetPodN: public SyncDriver
         CacheQueue<uint32_t, SYS_MAXPLAYERNUM> m_ValidQ;
 
     public:
-        NetPodN();
-       ~NetPodN();
+        NetDriver();
+
+    public:
+        virtual ~NetDriver();
 
     protected:
         bool CheckPort(uint32_t);
         bool InitASIO(uint32_t);
 
     public:
-        // launch the netpod with (port, service_core_address)
+        // launch the net driver with (port, service_core_address)
         // before call this function, the service core should be ready
         // then connection request will be accepted and forward to the service core
         //

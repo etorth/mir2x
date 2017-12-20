@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 11/11/2017 23:40:25
+ *  Last Modified: 12/14/2017 23:52:16
  *
  *    Description: 
  *
@@ -39,16 +39,18 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         SMLoginOK stSMLOK;
         std::memcpy(&stSMLOK, pBuf, nLen);
 
-        LoadMap(stSMLOK.MapID);
-        m_MyHero = new MyHero(stSMLOK.UID, stSMLOK.DBID, (bool)(stSMLOK.Male), 0, this, 
-                {
-                    ACTION_STAND,
-                    0,
-                    stSMLOK.Direction,
-                    stSMLOK.X,
-                    stSMLOK.Y,
-                    stSMLOK.MapID
-                });
+        uint32_t nUID     = stSMLOK.UID;
+        uint32_t nDBID    = stSMLOK.DBID;
+        bool     bGender  = stSMLOK.Male;
+        uint32_t nMapID   = stSMLOK.MapID;
+        uint32_t nDressID = 0;
+
+        int nX = stSMLOK.X;
+        int nY = stSMLOK.Y;
+        int nDirection = stSMLOK.Direction;
+
+        LoadMap(nMapID);
+        m_MyHero = new MyHero(nUID, nDBID, bGender, nDressID, this, ActionStand(nX, nY, nDirection));
 
         CenterMyHero();
         m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
@@ -63,7 +65,6 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
     ActionNode stAction
     {
         stSMA.Action,
-        stSMA.ActionParam,
         stSMA.Speed,
         stSMA.Direction,
         stSMA.X,
@@ -71,14 +72,14 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         stSMA.AimX,
         stSMA.AimY,
         stSMA.AimUID,
-        stSMA.MapID
+        stSMA.ActionParam,
     };
 
     if(stSMA.MapID == MapID()){
         if(auto pCreature = RetrieveUID(stSMA.UID)){
-            pCreature->ParseNewAction(stAction, true);
+            pCreature->ParseAction(stAction);
             switch(stAction.Action){
-                case ACTION_SPACEMOVE:
+                case ACTION_SPACEMOVE2:
                     {
                         if(stSMA.UID == m_MyHero->UID()){
                             CenterMyHero();
@@ -112,12 +113,15 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
             auto nDress     = m_MyHero->Dress();
             auto nDirection = m_MyHero->CurrMotion().Direction;
 
+            auto nX = stSMA.X;
+            auto nY = stSMA.Y;
+
             ClearCreature();
-            m_MyHero = new MyHero(nUID, nDBID, bGender, nDress, this, {ACTION_STAND, 0, nDirection, stSMA.X, stSMA.Y, stSMA.MapID});
+            m_MyHero = new MyHero(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
             m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
 
             CenterMyHero();
-            m_MyHero->ParseNewAction(stAction, true);
+            m_MyHero->ParseAction(stAction);
         }
     }
 }
@@ -131,14 +135,14 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
         ActionNode stAction
         {
             stSMCOR.Common.Action,
-            stSMCOR.Common.ActionParam,
             stSMCOR.Common.Speed,
             stSMCOR.Common.Direction,
             stSMCOR.Common.X,
             stSMCOR.Common.Y,
             stSMCOR.Common.EndX,
             stSMCOR.Common.EndY,
-            stSMCOR.Common.MapID,
+            0,
+            stSMCOR.Common.ActionParam,
         };
 
         auto pRecord = m_CreatureRecord.find(stSMCOR.Common.UID);
@@ -164,7 +168,7 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
             }
         }else{
             if(pRecord->second){
-                pRecord->second->ParseNewAction(stAction, true);
+                pRecord->second->ParseAction(stAction);
             }
         }
     }
@@ -211,8 +215,14 @@ void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
     SMShowDropItem stSMSDI;
     std::memcpy(&stSMSDI, pBuf, sizeof(stSMSDI));
 
-    m_GroundItemList.emplace_back(stSMSDI.ID, stSMSDI.X, stSMSDI.Y);
-    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"发现(%d, %d): %s", stSMSDI.X, stSMSDI.Y, DBCOM_ITEMRECORD(stSMSDI.ID).Name);
+    RemoveGroundItem(0, stSMSDI.X, stSMSDI.Y);
+    for(size_t nIndex = 0; nIndex < std::extent<decltype(stSMSDI.IDList)>::value; ++nIndex){
+        if(stSMSDI.IDList[nIndex]){
+            m_GroundItemList.emplace_back(stSMSDI.IDList[nIndex], stSMSDI.X, stSMSDI.Y);
+        }else{
+            break;
+        }
+    }
 }
 
 void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
@@ -222,6 +232,18 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
 
     if(auto &rstMR = DBCOM_MAGICRECORD(stSMFM.Magic)){
         AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"使用魔法: %s", rstMR.Name);
+
+        switch(stSMFM.Magic){
+            case DBCOM_MAGICID(u8"魔法盾"):
+                {
+                    if(auto stEntry = rstMR.GetGfxEntry(u8"开始")){
+                        if(auto pCreature = RetrieveUID(stSMFM.UID)){
+                            pCreature->AddAttachMagic(stSMFM.Magic, 0, stEntry.Stage);
+                        }
+                        return;
+                    }
+                }
+        }
 
         const GfxEntry *pEntry = nullptr;
         if(stSMFM.UID != m_MyHero->UID()){
@@ -294,7 +316,10 @@ void ProcessRun::Net_OFFLINE(const uint8_t *pBuf, size_t)
 
 void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
 {
-    auto pMSG = (SMPickUpOK *)(pBuf);
-    m_MyHero->GetInvPack().Add(pMSG->ItemID);
-    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(pMSG->ItemID).Name, (int)(pMSG->X), (int)(pMSG->Y));
+    SMPickUpOK stSMPUOK;
+    std::memcpy(&stSMPUOK, pBuf, sizeof(stSMPUOK));
+
+    m_MyHero->GetInvPack().Add(stSMPUOK.ItemID);
+    RemoveGroundItem(stSMPUOK.ItemID, stSMPUOK.X, stSMPUOK.Y);
+    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(stSMPUOK.ItemID).Name, (int)(stSMPUOK.X), (int)(stSMPUOK.Y));
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 10/31/2017 11:26:45
+ *  Last Modified: 12/20/2017 00:50:13
  *
  *    Description:
  *
@@ -31,11 +31,23 @@
 #include "pathfinder.hpp"
 #include "mir2xmapdata.hpp"
 #include "activeobject.hpp"
+#include "batchluamodule.hpp"
 
+class Player;
+class Monster;
 class ServiceCore;
 class ServerObject;
+
 class ServerMap: public ActiveObject
 {
+    private:
+        class ServerMapLuaModule: public BatchLuaModule
+        {
+            public:
+                ServerMapLuaModule();
+               ~ServerMapLuaModule() = default;
+        };
+
     private:
         // bind to servermap
         // only for server map internal usage
@@ -96,6 +108,9 @@ class ServerMap: public ActiveObject
         Vec2D<CellRecord> m_CellRecordV2D;
 
     private:
+        ServerMapLuaModule *m_LuaModule;
+
+    private:
         void OperateAM(const MessagePack &, const Theron::Address &);
 
     public:
@@ -143,10 +158,21 @@ class ServerMap: public ActiveObject
         bool RandomLocation(int *, int *);
 
     private:
+        bool GetValidGrid(int *, int *, bool);
+
+    private:
+        Player  *AddPlayer (uint32_t, int, int, int, bool);
+        Monster *AddMonster(uint32_t, uint32_t, int, int, bool);
+
+    private:
+        int GetMonsterCount(uint32_t);
+
+    private:
         int FindGroundItem(int, int, uint32_t);
         int DropItemListCount(int, int);
         bool AddGroundItem(int, int, const CommonItem &);
         void RemoveGroundItem(int, int, uint32_t);
+        void ReportGroundItem(uint32_t, int, int);
 
     private:
         void DoCircle(int, int, int,      const std::function<bool(int, int)> &);
@@ -174,4 +200,7 @@ class ServerMap: public ActiveObject
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYRECTUIDV(const MessagePack &, const Theron::Address &);
+
+    private:
+        bool RegisterLuaExport(ServerMapLuaModule *);
 };

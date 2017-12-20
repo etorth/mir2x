@@ -3,7 +3,7 @@
  *
  *       Filename: creature.hpp
  *        Created: 04/07/2016 03:48:41
- *  Last Modified: 10/11/2017 23:16:23
+ *  Last Modified: 12/08/2017 09:44:22
  *
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
@@ -56,17 +56,17 @@
  *                          Monster *Create(nUID, pRun, stAction)
  *                          {
  *                              p = new Monster(nUID, pRun);
- *                              p->PrivateParseNewAction(stAction);
+ *                              p->PrivateParseAction(stAction);
  *
  *                              return p;
  *                          }
  *
  *                      then when get p, it's already in valid stAction. but this
- *                      need to define PrivateParseNewAction(), which can handle
+ *                      need to define PrivateParseAction(), which can handle
  *                      creature in invalid state.
  *
- *                      PrivateParseNewAction() first check if current state valid? if
- *                      not, make it valid and then call the public ParseNewAction()
+ *                      PrivateParseAction() first check if current state valid? if
+ *                      not, make it valid and then call the public ParseAction()
  *
  *                      but at the beginning how we to make it valid?? We have to make
  *                      one explicitly, which means we have to define a motion valid
@@ -77,7 +77,7 @@
  *                      but if MOTION_NONE is valid, we can just use
  *
  *                          auto p = new Monster(nUID, pRun);
- *                          p->ParseNewAction(stAction);
+ *                          p->ParseAction(stAction);
  *
  *                      we don't even need the factory method any more. the cost is for
  *                      all function of Monster, we have to take care of MOTION_NONE,
@@ -88,7 +88,7 @@
  *                          {
  *                              1. p = new Monster(nUID, pRun);
  *                              2. p->MakeMotion(MOTION_STAND, stAction.X, stAciton.Y)
- *                              3. p->ParseNewAction(stAction)
+ *                              3. p->ParseAction(stAction)
  *
  *                              return p;
  *                          }
@@ -245,7 +245,7 @@ class Creature
         virtual bool StayIdle();
 
     public:
-        virtual bool ParseNewAction(const ActionNode &, bool) = 0;
+        virtual bool ParseAction(const ActionNode &) = 0;
 
     protected:
         virtual bool AdvanceMotionFrame(int);
@@ -288,8 +288,7 @@ class Creature
         virtual bool MotionQueueValid();
 
     public:
-        virtual bool MotionValid(const MotionNode &)       const = 0;
-        virtual bool ActionValid(const ActionNode &, bool) const = 0;
+        virtual bool MotionValid(const MotionNode &) const = 0;
 
     public:
         virtual int UpdateHP(int, int);

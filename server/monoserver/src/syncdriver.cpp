@@ -3,7 +3,7 @@
  *
  *       Filename: syncdriver.cpp
  *        Created: 06/09/2016 17:32:50
- *  Last Modified: 06/13/2017 22:48:24
+ *  Last Modified: 12/14/2017 19:14:06
  *
  *    Description: 
  *
@@ -32,9 +32,9 @@
 int SyncDriver::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond)
 {
     extern ServerEnv *g_ServerEnv;
-    if(g_ServerEnv->MIR2X_DEBUG_PRINT_AM_FORWARD){
+    if(g_ServerEnv->TraceActorMessage){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_INFO, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ")",
+        g_MonoServer->AddLog(LOGTYPE_DEBUG, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ")",
                 (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
     }
     extern Theron::Framework *g_Framework;
@@ -80,9 +80,9 @@ int SyncDriver::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr,
     auto nCurrID = m_ValidID;
 
     extern ServerEnv *g_ServerEnv;
-    if(g_ServerEnv->MIR2X_DEBUG_PRINT_AM_FORWARD){
+    if(g_ServerEnv->TraceActorMessage){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_INFO, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
+        g_MonoServer->AddLog(LOGTYPE_DEBUG, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
                 (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nCurrID, nRespond);
     }
 

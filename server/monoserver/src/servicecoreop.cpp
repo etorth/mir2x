@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 10/06/2017 17:21:10
+ *  Last Modified: 12/19/2017 23:55:23
  *
  *    Description: 
  *
@@ -52,8 +52,8 @@ void ServiceCore::On_MPK_NEWCONNECTION(const MessagePack &rstMPK, const Theron::
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_INFO, "Service core get informed for new connection: %d", (int)(stAMNC.SessionID));
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Activate(stAMNC.SessionID, GetAddress());
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Activate(stAMNC.SessionID, GetAddress());
     }
 }
 
@@ -104,23 +104,23 @@ void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::A
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_INFO, "Login failed for (%d, %d, %d)", stAMLQDB.MapID, stAMLQDB.MapX, stAMLQDB.MapY);
 
-        extern NetPodN *g_NetPodN;
-        g_NetPodN->Send(stAMLQDB.SessionID, SM_LOGINFAIL, [nSID = stAMLQDB.SessionID](){g_NetPodN->Shutdown(nSID);});
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(stAMLQDB.SessionID, SM_LOGINFAIL, [nSID = stAMLQDB.SessionID](){g_NetDriver->Shutdown(nSID);});
     };
 
     if(stAMLQDB.MapID){
-        auto pMap = m_MapRecord.find(stAMLQDB.MapID);
-        if(pMap == m_MapRecord.end()){
+        auto pMap = m_MapList.find(stAMLQDB.MapID);
+        if(pMap == m_MapList.end()){
             if(!LoadMap(stAMLQDB.MapID)){
                 fnOnBadDBRecord();
                 return;
             }
-            pMap = m_MapRecord.find(stAMLQDB.MapID);
+            pMap = m_MapList.find(stAMLQDB.MapID);
         }
 
-        if((pMap == m_MapRecord.end()) || (pMap->second == nullptr) || (pMap->second->ID() != stAMLQDB.MapID)){
+        if((pMap == m_MapList.end()) || (pMap->second == nullptr) || (pMap->second->ID() != stAMLQDB.MapID)){
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_FATAL, "internal logic error");
+            g_MonoServer->AddLog(LOGTYPE_FATAL, "Internal logic error");
             g_MonoServer->Restart();
         }
 
@@ -166,7 +166,7 @@ void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK, const Theron::A
     std::memset(&stAMML, 0, sizeof(stAMML));
 
     size_t nIndex = 0;
-    for(auto pMap: m_MapRecord){
+    for(auto pMap: m_MapList){
         if(pMap.second && pMap.second->ID()){
             if(nIndex < (sizeof(stAMML.MapList) / sizeof(stAMML.MapList[0]))){
                 stAMML.MapList[nIndex++] = pMap.second->ID();
@@ -213,13 +213,13 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::A
 
     int nCheckCount = 0;
     if(stAMQCOC.MapID){
-        if(m_MapRecord.find(stAMQCOC.MapID) == m_MapRecord.end()){
+        if(m_MapList.find(stAMQCOC.MapID) == m_MapList.end()){
             nCheckCount = 0;
         }else{
             nCheckCount = 1;
         }
     }else{
-        nCheckCount = (int)(m_MapRecord.size());
+        nCheckCount = (int)(m_MapList.size());
     }
 
     switch(nCheckCount){
@@ -230,7 +230,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::A
             }
         case 1:
             {
-                if(auto pMap = (stAMQCOC.MapID ? m_MapRecord[stAMQCOC.MapID] : m_MapRecord.begin()->second)){
+                if(auto pMap = (stAMQCOC.MapID ? m_MapList[stAMQCOC.MapID] : m_MapList.begin()->second)){
                     auto fnOnResp = [this, rstMPK, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &)
                     {
                         switch(rstRMPK.Type()){
@@ -250,7 +250,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::A
                     m_ActorPod->Forward({MPK_QUERYCOCOUNT, stAMQCOC}, pMap->GetAddress(), fnOnResp);
                     return;
                 }else{
-                    m_MapRecord.erase(stAMQCOC.MapID);
+                    m_MapList.erase(stAMQCOC.MapID);
                     m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
                     return;
                 }
@@ -322,7 +322,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::A
                     }
                 };
 
-                for(auto pRecord: m_MapRecord){
+                for(auto pRecord: m_MapList){
                     m_ActorPod->Forward({MPK_QUERYCOCOUNT, stAMQCOC}, pRecord.second->GetAddress(), fnOnResp);
                 }
                 return;
@@ -335,6 +335,6 @@ void ServiceCore::On_MPK_BADSESSION(const MessagePack &rstMPK, const Theron::Add
     AMBadSession stAMBS;
     std::memcpy(&stAMBS, rstMPK.Data(), sizeof(stAMBS));
 
-    extern NetPodN *g_NetPodN;
-    g_NetPodN->Shutdown(stAMBS.SessionID);
+    extern NetDriver *g_NetDriver;
+    g_NetDriver->Shutdown(stAMBS.SessionID);
 }

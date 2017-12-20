@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: clientluamodule.hpp
- *        Created: 06/25/2017 18:57:17
- *  Last Modified: 12/19/2017 22:40:41
+ *       Filename: commandluamodule.cpp
+ *        Created: 06/02/2017 17:40:54
+ *  Last Modified: 12/19/2017 20:22:03
  *
  *    Description: 
  *
@@ -18,16 +18,13 @@
  * =====================================================================================
  */
 
-#pragma once
-#include "luamodule.hpp"
+#include "monoserver.hpp"
+#include "serverluamodule.hpp"
 
-class ProcessRun;
-class ClientLuaModule: public LuaModule
+CommandLuaModule::CommandLuaModule(uint32_t nCWID)
+    : ServerLuaModule()
+    , m_CWID(nCWID)
 {
-    public:
-        ClientLuaModule(ProcessRun *, int);
-       ~ClientLuaModule() = default;
-
-    protected:
-       void addLog(int, const char *);
-};
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->RegisterLuaExport(this, nCWID);
+}

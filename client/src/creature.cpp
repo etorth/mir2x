@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 10/02/2017 23:00:14
+ *  Last Modified: 12/07/2017 23:53:08
  *
  *    Description: 
  *
@@ -357,12 +357,12 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
                         // if path find succeed
                         // we retrive all nodes for the path vector
 
-                        std::vector<PathFind::PathNode> stPathNodeV(1, {nX0, nY0});
+                        std::vector<PathFind::PathNode> stvPathNode(1, {nX0, nY0});
                         while(auto pNode = stPathFinder.GetSolutionNext()){
-                            stPathNodeV.emplace_back(pNode->X(), pNode->Y());
+                            stvPathNode.emplace_back(pNode->X(), pNode->Y());
                         }
 
-                        return stPathNodeV;
+                        return stvPathNode;
                     }else{
 
                         // we can't find a path

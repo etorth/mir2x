@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 11/03/2017 17:57:29
+ *  Last Modified: 12/14/2017 23:43:55
  *
  *    Description: 
  *
@@ -21,8 +21,6 @@
 #include <map>
 #include <list>
 #include <cstdint>
-#include <unordered_map>
-
 #include "myhero.hpp"
 #include "process.hpp"
 #include "message.hpp"
@@ -72,7 +70,7 @@ class ProcessRun: public Process
         MyHero *m_MyHero;
 
     private:
-        std::array<uint32_t, FOCUS_MAX> m_FocusUIDV;
+        std::array<uint32_t, FOCUS_MAX> m_FocusTable;
 
     private:
         int m_ViewX;
@@ -98,15 +96,9 @@ class ProcessRun: public Process
         std::map<uint32_t, Creature*> m_CreatureRecord;
 
     private:
-        // used to keep a record of the UID under track/attack
-        // if it moved we need to re-calculate the track path to get it
-        int m_AttackUIDX;
-        int m_AttackUIDY;
-
-    private:
         // use a tokenboard to show all in future
-        LabelBoard m_PointerPixlInfo;
-        LabelBoard m_PointerTileInfo;
+        LabelBoard m_MousePixlLoc;
+        LabelBoard m_MouseGridLoc;
 
     private:
         std::list<AscendStr *> m_AscendStrRecord;
@@ -142,7 +134,7 @@ class ProcessRun: public Process
         virtual void ProcessEvent(const SDL_Event &);
 
     public:
-        bool LocatePoint(int, int, int *, int *);
+        bool ScreenPoint2Grid(int, int, int *, int *);
 
     public:
         bool OnMap(uint32_t, int, int) const;
@@ -215,6 +207,46 @@ class ProcessRun: public Process
         const auto &GetGroundItemList() const
         {
             return m_GroundItemList;
+        }
+
+        GroundItem GetGroundItem(int nX, int nY)
+        {
+            for(auto &rstItem: GetGroundItemList()){
+                if(true
+                        && nX == rstItem.X
+                        && nY == rstItem.Y){
+                    return rstItem;
+                }
+            }
+            return {0};
+        }
+
+        void RemoveGroundItem(uint32_t nItemID, int nX, int nY)
+        {
+            for(size_t nIndex = 0; nIndex < m_GroundItemList.size();){
+                if(true
+                        && m_GroundItemList[nIndex].X  == nX
+                        && m_GroundItemList[nIndex].Y  == nY){
+
+                    if(nItemID){
+                        if(m_GroundItemList[nIndex].ID == nItemID){
+                            std::swap(m_GroundItemList[nIndex], m_GroundItemList.back());
+                            m_GroundItemList.pop_back();
+
+                            // could have more than one stay there
+                            // we only remove one item from the location
+                            return;
+                        }
+                    }else{
+                        // zero item id
+                        // we need to remove all given location
+                        std::swap(m_GroundItemList[nIndex], m_GroundItemList.back());
+                        m_GroundItemList.pop_back();
+                        continue;
+                    }
+                }
+                nIndex++;
+            }
         }
 
     public:

@@ -3,7 +3,7 @@
  *
  *       Filename: log.hpp
  *        Created: 03/16/2016 16:05:17
- *  Last Modified: 04/12/2017 22:38:56
+ *  Last Modified: 12/20/2017 01:36:07
  *
  *    Description: log functionality enabled by g3Log
  *
@@ -43,34 +43,31 @@
 #endif
 
 
-#define LOGTYPE_DEBUG   {std::string("-1"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_INFO    {std::string( "0"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_WARNING {std::string( "1"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_FATAL   {std::string( "2"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_INFO    {std::string("0"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_WARNING {std::string("1"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_FATAL   {std::string("2"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_DEBUG   {std::string("3"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
 
 class Log final
 {
     public:
         enum {
-            LOGTYPEV_DEBUG   = -1,
-            LOGTYPEV_INFO    =  0,
-            LOGTYPEV_WARNING =  1,
-            LOGTYPEV_FATAL   =  2,
+            LOGTYPEV_INFO    = 0,
+            LOGTYPEV_WARNING = 1,
+            LOGTYPEV_FATAL   = 2,
+            LOGTYPEV_DEBUG   = 3,
         };
 
     private:
-        std::unique_ptr<g3::FileSinkHandle> m_Handler;
         std::unique_ptr<g3::LogWorker>      m_Worker;
+        std::unique_ptr<g3::FileSinkHandle> m_Handler;
         std::string                         m_LogFileName;
 
     public:
         Log(const char *szLogArg0 = LOG_ARGV0, const char *szLogPath = LOG_PATH)
+            : m_Worker(g3::LogWorker::createLogWorker())
+            , m_Handler(m_Worker->addDefaultLogger(szLogArg0, szLogPath))
         {
-            extern Log *g_Log;
-            if(g_Log){ throw std::runtime_error("only one Log instance please."); }
-
-            m_Worker  = g3::LogWorker::createLogWorker();
-            m_Handler = m_Worker->addDefaultLogger(szLogArg0, szLogPath);
             g3::initializeLogging(m_Worker.get());
 
             std::future<std::string> szLogFileName = m_Handler->call(&g3::FileSink::fileName);
@@ -88,7 +85,7 @@ class Log final
         ~Log() = default;
 
     public:
-        const char *FileName() const
+        const char *LogPath() const
         {
             return m_LogFileName.c_str();
         }
@@ -104,7 +101,6 @@ class Log final
         }
 
     public:
-        // to get rid of ``format-security" warning
         void AddLog(const std::array<std::string, 4> &stLoc, const char *szInfo)
         {
             int nLine = std::atoi(stLoc[2].c_str());

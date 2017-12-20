@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19
- *  Last Modified: 10/02/2017 20:01:07
+ *  Last Modified: 12/08/2017 09:44:58
  *
  *    Description:
  *
@@ -56,11 +56,10 @@ class Monster: public Creature
         bool Location(int *, int *);
 
     public:
-        bool ParseNewAction(const ActionNode &, bool);
+        bool ParseAction(const ActionNode &);
 
     public:
-        bool MotionValid(const MotionNode &)       const;
-        bool ActionValid(const ActionNode &, bool) const;
+        bool MotionValid(const MotionNode &) const;
 
     public:
         bool CanFocus(int, int);

@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 10/06/2017 17:17:33
+ *  Last Modified: 12/20/2017 00:13:41
  *
  *    Description: 
  *
@@ -30,7 +30,7 @@
 
 ServiceCore::ServiceCore()
     : ActiveObject()
-    , m_MapRecord()
+    , m_MapList()
 {
     auto fnRegisterClass = [this]()
     {
@@ -120,12 +120,12 @@ void ServiceCore::OperateNet(uint32_t nSID, uint8_t nType, const uint8_t *pData,
 bool ServiceCore::LoadMap(uint32_t nMapID)
 {
     if(nMapID){
-        if(m_MapRecord.find(nMapID) == m_MapRecord.end()){
+        if(m_MapList.find(nMapID) == m_MapList.end()){
             extern MapBinDBN *g_MapBinDBN;
             if(g_MapBinDBN->Retrieve(nMapID)){
                 auto pMap = new ServerMap(this, nMapID);
                 pMap->Activate();
-                m_MapRecord[nMapID] = pMap;
+                m_MapList[nMapID] = pMap;
                 return true;
             }else{
                 return false;
@@ -139,14 +139,14 @@ bool ServiceCore::LoadMap(uint32_t nMapID)
 const ServerMap *ServiceCore::RetrieveMap(uint32_t nMapID)
 {
     if(nMapID){
-        auto pMap = m_MapRecord.find(nMapID);
-        if(pMap == m_MapRecord.end()){
+        auto pMap = m_MapList.find(nMapID);
+        if(pMap == m_MapList.end()){
             if(LoadMap(nMapID)){
-                pMap = m_MapRecord.find(nMapID);
+                pMap = m_MapList.find(nMapID);
             }
         }
 
-        return (pMap == m_MapRecord.end()) ? nullptr : pMap->second;
+        return (pMap == m_MapList.end()) ? nullptr : pMap->second;
     }
     return nullptr;
 }

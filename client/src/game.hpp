@@ -3,7 +3,7 @@
  *
  *       Filename: game.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 10/02/2017 18:00:15
+ *  Last Modified: 12/08/2017 15:58:07
  *
  *    Description: public API for class game only
  *
@@ -37,6 +37,7 @@ class Game final
         NetIO m_NetIO;
 
     private:
+        int m_RequestProcess;
         Process *m_CurrentProcess;
 
     private:
@@ -61,6 +62,18 @@ class Game final
         }
 
     public:
+        int RequestProcess() const
+        {
+            return m_RequestProcess;
+        }
+
+        void RequestProcess(int nProcessID)
+        {
+            m_RequestProcess = nProcessID;
+        }
+
+    public:
+        void SwitchProcess();
         void SwitchProcess(int);
         void SwitchProcess(int, int);
 

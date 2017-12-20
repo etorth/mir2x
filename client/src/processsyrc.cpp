@@ -3,7 +3,7 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 09/15/2017 18:54:25
+ *  Last Modified: 12/08/2017 15:55:12
  *
  *    Description: 
  *
@@ -37,7 +37,7 @@ void ProcessSyrc::ProcessEvent(const SDL_Event &rstEvent)
             {
                 if(rstEvent.key.keysym.sym == SDLK_ESCAPE){
                     extern Game *g_Game;
-                    g_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_LOGIN);
+                    g_Game->RequestProcess(PROCESSID_LOGIN);
                 }
                 break;
             }

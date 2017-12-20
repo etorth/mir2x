@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 10/31/2017 15:45:22
+ *  Last Modified: 12/20/2017 02:38:00
  *
  *    Description: 
  *
@@ -18,6 +18,8 @@
  * =====================================================================================
  */
 
+#include <sstream>
+#include <fstream>
 #include <algorithm>
 #include "player.hpp"
 #include "dbcomid.hpp"
@@ -25,12 +27,18 @@
 #include "actorpod.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
+#include "condcheck.hpp"
 #include "servermap.hpp"
 #include "mapbindbn.hpp"
 #include "charobject.hpp"
 #include "monoserver.hpp"
 #include "dbcomrecord.hpp"
 #include "rotatecoord.hpp"
+#include "serverconfigurewindow.hpp"
+
+ServerMap::ServerMapLuaModule::ServerMapLuaModule()
+    : BatchLuaModule()
+{}
 
 ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, bool bCheckCO)
     : AStarPathFinder(
@@ -257,6 +265,7 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     , m_Metronome(nullptr)
     , m_ServiceCore(pServiceCore)
     , m_CellRecordV2D()
+    , m_LuaModule(nullptr)
 {
     m_CellRecordV2D.clear();
     if(m_Mir2xMapData.Valid()){
@@ -569,6 +578,67 @@ double ServerMap::MoveCost(bool bCheckCO, bool bCheckLock, bool bSkipMiddleLock,
     return fMoveCost;
 }
 
+bool ServerMap::GetValidGrid(int *pX, int *pY, bool bRandom)
+{
+    if(pX && pY){
+
+        auto nX = *pX;
+        auto nY = *pY;
+
+        bool bValidLoc = true;
+        if(false
+                || !In(ID(), nX, nY)
+                || !CanMove(true, true, nX, nY)){
+
+            // have to check if we can do random pick
+            // the location field provides an invalid location
+            bValidLoc = false;
+
+            if(bRandom){
+                if(In(ID(), nX, nY)){
+                    // OK we failed to add monster at the specified location
+                    // but still to try to add near it
+                }else{
+                    // randomly pick one
+                    // an invalid location provided
+                    nX = std::rand() % W();
+                    nY = std::rand() % H();
+                }
+
+                RotateCoord stRC;
+                if(stRC.Reset(nX, nY, 0, 0, W(), H())){
+                    do{
+                        if(true
+                                && In(ID(), stRC.X(), stRC.Y())
+                                && CanMove(true, true, stRC.X(), stRC.Y())){
+
+                            // find a valid location
+                            // use it to add new charobject
+                            bValidLoc = true;
+
+                            nX = stRC.X();
+                            nY = stRC.Y();
+                            break;
+                        }
+                    }while(stRC.Forward());
+                }
+            }
+        }
+
+        // if we get the valid location, output it
+        // otherwise we keep it un-touched
+
+        if(bValidLoc){
+
+            *pX = nX;
+            *pY = nY;
+        }
+
+        return bValidLoc;
+    }
+    return false;
+}
+
 bool ServerMap::RandomLocation(int *pX, int *pY)
 {
     for(int nX = 0; nX < W(); ++nX){
@@ -602,6 +672,10 @@ Theron::Address ServerMap::Activate()
     delete m_Metronome;
     m_Metronome = new Metronome(300);
     m_Metronome->Activate(GetAddress());
+
+    delete m_LuaModule;
+    m_LuaModule = new ServerMap::ServerMapLuaModule();
+    RegisterLuaExport(m_LuaModule);
 
     return stAddress;
 }
@@ -816,7 +890,8 @@ bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
 
         auto nEmptyIndex = FindGroundItem(nX, nY, 0);
         if(nEmptyIndex >= 0){
-            m_CellRecordV2D[nX][nY].GroundItemList[nEmptyIndex] = rstItem;
+            auto &rstGroundItemList = m_CellRecordV2D[nX][nY].GroundItemList;
+            rstGroundItemList[nEmptyIndex] = rstItem;
 
             // report to all charobject around
             // since there are one more drop item for each grid
@@ -826,9 +901,21 @@ bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
             // force they to contain the same set
 
             AMShowDropItem stAMSDI;
-            stAMSDI.ID = rstItem.ID();
-            stAMSDI.X  = nX;
-            stAMSDI.Y  = nY;
+            std::memset(&stAMSDI, 0, sizeof(stAMSDI));
+
+            stAMSDI.X = nX;
+            stAMSDI.Y = nY;
+
+            size_t nCurrLoc = 0;
+            for(size_t nIndex = 0; nIndex < rstGroundItemList.size(); ++nIndex){
+                if(rstGroundItemList[nIndex]){
+                    if(nCurrLoc < std::extent<decltype(stAMSDI.IDList)>::value){
+                        stAMSDI.IDList[nCurrLoc++] = rstGroundItemList[nIndex].ID();
+                    }else{
+                        break;
+                    }
+                }
+            }
 
             auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
             {
@@ -850,4 +937,221 @@ bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
         }
     }
     return false;
+}
+
+int ServerMap::GetMonsterCount(uint32_t nMonsterID)
+{
+    int nCount = 0;
+    for(auto &rstLine: m_CellRecordV2D){
+        for(auto &rstRecord: rstLine){
+            for(auto nUID: rstRecord.UIDList){
+                extern MonoServer *g_MonoServer;
+                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                    if(stUIDRecord.ClassFrom<Monster>()){
+                        if(nMonsterID){
+                            nCount += ((stUIDRecord.Desp.Monster.MonsterID == nMonsterID) ? 1 : 0);
+                        }else{
+                            nCount++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return nCount;
+}
+
+Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint32_t nMasterUID, int nX, int nY, bool bRandom)
+{
+    if(GetValidGrid(&nX, &nY, bRandom)){
+        auto pMonster = new Monster
+        {
+            nMonsterID,
+            m_ServiceCore,
+            this,
+            nX,
+            nY,
+            DIR_UP,
+            STATE_INCARNATED,
+            nMasterUID,
+        };
+
+        pMonster->Activate();
+        AddGridUID(pMonster->UID(), nX, nY);
+        return pMonster;
+    }
+    return nullptr;
+}
+
+Player *ServerMap::AddPlayer(uint32_t nDBID, int nX, int nY, int nDirection, bool bRandom)
+{
+    if(GetValidGrid(&nX, &nY, bRandom)){
+        auto pPlayer = new Player
+        {
+            nDBID,
+            m_ServiceCore,
+            this,
+            nX,
+            nY,
+            nDirection,
+            STATE_INCARNATED,
+        };
+
+        pPlayer->Activate();
+        AddGridUID(pPlayer->UID(), nX, nY);
+        return pPlayer;
+    }
+    return nullptr;
+}
+
+bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
+{
+    if(pModule){
+
+        // load lua script to the module
+        {
+            extern ServerConfigureWindow *g_ServerConfigureWindow;
+            auto szScriptPath = g_ServerConfigureWindow->GetScriptPath();
+            if(szScriptPath.empty()){
+                szScriptPath  = "/home/anhong/mir2x/server/monoserver/script/map";
+            }
+
+            std::string szCommandFile = ((szScriptPath + "/") + DBCOM_MAPRECORD(ID()).Name) + ".lua";
+
+            std::stringstream stCommand;
+            std::ifstream stCommandFile(szCommandFile.c_str());
+
+            stCommand << stCommandFile.rdbuf();
+            pModule->LoadBatch(stCommand.str().c_str());
+        }
+
+        // register lua functions/variables related *this* map
+
+        pModule->GetLuaState().set_function("getMapID", [this]() -> int
+        {
+            return (int)(ID());
+        });
+
+        pModule->GetLuaState().set_function("getMapName", [this]() -> std::string
+        {
+            return std::string(DBCOM_MAPRECORD(ID()).Name);
+        });
+
+        pModule->GetLuaState().set_function("getMonsterCount", [this](sol::variadic_args stVariadicArgs) -> int
+        {
+            std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
+            switch(stArgList.size()){
+                case 0:
+                    {
+                        return GetMonsterCount(0);
+                    }
+                case 1:
+                    {
+                        if(stArgList[0].is<int>()){
+                            int nMonsterID = stArgList[0].as<int>();
+                            if(nMonsterID >= 0){
+                                return GetMonsterCount(nMonsterID);
+                            }
+                        }else if(stArgList[0].is<std::string>()){
+                            int nMonsterID = DBCOM_MONSTERID(stArgList[0].as<std::string>().c_str());
+                            if(nMonsterID >= 0){
+                                return GetMonsterCount(nMonsterID);
+                            }
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+            return -1;
+        });
+
+        pModule->GetLuaState().set_function("addMonster", [this](sol::object stMonsterID, sol::variadic_args stVariadicArgs) -> bool
+        {
+            uint32_t nMonsterID = 0;
+
+            if(stMonsterID.is<int>()){
+                nMonsterID = stMonsterID.as<int>();
+            }else if(stMonsterID.is<std::string>()){
+                nMonsterID = DBCOM_MONSTERID(stMonsterID.as<std::string>().c_str());
+            }else{
+                return false;
+            }
+
+            std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
+            switch(stArgList.size()){
+                case 0:
+                    {
+                        return AddMonster(nMonsterID, 0, -1, -1, true);
+                    }
+                case 2:
+                    {
+                        if(true
+                                && stArgList[0].is<int>()
+                                && stArgList[1].is<int>()){
+
+                            auto nX = stArgList[0].as<int>();
+                            auto nY = stArgList[1].as<int>();
+
+                            return AddMonster(nMonsterID, 0, nX, nY, true);
+                        }
+                        break;
+                    }
+                case 3:
+                    {
+                        if(true
+                                && stArgList[0].is<int >()
+                                && stArgList[1].is<int >()
+                                && stArgList[2].is<bool>()){
+
+                            auto nX      = stArgList[0].as<int >();
+                            auto nY      = stArgList[1].as<int >();
+                            auto bRandom = stArgList[2].as<bool>();
+
+                            return AddMonster(nMonsterID, 0, nX, nY, bRandom);
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+
+            return false;
+        });
+        return true;
+    }
+    return false;
+}
+
+void ServerMap::ReportGroundItem(uint32_t nSessionID, int nX, int nY)
+{
+    if(nSessionID && GroundValid(nX, nY)){
+        SMShowDropItem stSMSDI;
+        std::memset(&stSMSDI, 0, sizeof(stSMSDI));
+
+        auto &rstGroundItemList = m_CellRecordV2D[nX][nY].GroundItemList;
+        constexpr auto nSMIDListLen = std::extent<decltype(stSMSDI.IDList)>::value;
+        static_assert(nSMIDListLen >= std::tuple_size<std::remove_reference_t<decltype(rstGroundItemList)>>::value, "");
+
+        stSMSDI.X = nX;
+        stSMSDI.Y = nY;
+
+        size_t nCurrLoc = 0;
+        for(size_t nIndex = 0; nIndex < rstGroundItemList.size(); ++nIndex){
+            if(rstGroundItemList[nIndex]){
+                if(nCurrLoc < nSMIDListLen){
+                    stSMSDI.IDList[nCurrLoc++] = rstGroundItemList[nIndex].ID();
+                }else{
+                    break;
+                }
+            }
+        }
+
+        extern NetDriver *g_NetDriver;
+        g_NetDriver->Send(nSessionID, SM_SHOWDROPITEM, stSMSDI);
+    }
 }

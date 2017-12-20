@@ -8,7 +8,7 @@ decl {\#include "taskhub.hpp"} {public global
 decl {\#include "commandinput.hpp"} {public global
 } 
 
-decl {\#include "serverluamodule.hpp"} {public global
+decl {\#include "commandluamodule.hpp"} {public global
 } 
 
 class CommandWindow {open
@@ -17,7 +17,7 @@ class CommandWindow {open
   }
   decl {TaskHub *m_LuaModuleTaskHub;} {private local
   }
-  decl {ServerLuaModule *m_LuaModule;} {private local
+  decl {CommandLuaModule *m_LuaModule;} {private local
   }
   Function {CommandWindow()} {open
   } {
@@ -107,7 +107,7 @@ class CommandWindow {open
 	return m_LuaModuleTaskHub;
 }} {}
   }
-  Function {GetLuaModule()} {return_type {ServerLuaModule *}
+  Function {GetLuaModule()} {return_type {CommandLuaModule *}
   } {
     code {{
 	// won't put any cv-qualifiers
@@ -141,7 +141,7 @@ class CommandWindow {open
 
             m_CWID             = nCWID;
             m_LuaModuleTaskHub = new TaskHub();
-            m_LuaModule        = new ServerLuaModule((uint32_t)(nCWID));
+            m_LuaModule        = new CommandLuaModule((uint32_t)(nCWID));
 
             // start the hub now
             m_LuaModuleTaskHub->Launch();

@@ -3,7 +3,7 @@
  *
  *       Filename: commandinput.cpp
  *        Created: 06/04/2017 13:01:35
- *  Last Modified: 06/14/2017 00:42:54
+ *  Last Modified: 12/20/2017 00:58:13
  *
  *    Description: 
  *
@@ -85,8 +85,11 @@ int CommandInput::handle(int nEvent)
 
                                 // 2. put a task in the LuaModule::TaskHub
                                 //    and return immediately for current thread
-                                m_Window->GetTaskHub()->Add([this, nCWID, szCommandStr](){
-                                    auto stCallResult = m_Window->GetLuaModule()->script(szCommandStr.c_str(), [](lua_State *, sol::protected_function_result stResult){
+                                m_Window->GetTaskHub()->Add([this, nCWID, szCommandStr]()
+                                {
+                                    auto stCallResult = m_Window->GetLuaModule()->GetLuaState().script(szCommandStr.c_str(),
+                                    [](lua_State *, sol::protected_function_result stResult)
+                                    {
                                         // default handler
                                         // do nothing and let the call site handle the errors
                                         return stResult;
