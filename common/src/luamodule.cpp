@@ -3,7 +3,7 @@
  *
  *       Filename: luamodule.cpp
  *        Created: 06/03/2017 20:26:17
- *  Last Modified: 12/20/2017 02:40:50
+ *  Last Modified: 12/20/2017 11:17:19
  *
  *    Description: 
  *
@@ -22,12 +22,14 @@
 #include <chrono>
 #include <thread>
 #include "luamodule.hpp"
+#include "dbcomrecord.hpp"
 
 LuaModule::LuaModule()
     : m_LuaState()
 {
     m_LuaState.open_libraries(sol::lib::base);
     m_LuaState.open_libraries(sol::lib::math);
+    m_LuaState.open_libraries(sol::lib::table);
     m_LuaState.open_libraries(sol::lib::debug);
     m_LuaState.open_libraries(sol::lib::string);
 
@@ -69,7 +71,7 @@ LuaModule::LuaModule()
     // but don't call it since this is in constructor!
     // this function need lua::getBackTraceLine() to append the logInfo
 
-    m_LuaState.set_function("_addLog_Raw", [this](sol::object stLogType, sol::object stLogInfo)
+    m_LuaState.set_function("addLog", [this](sol::object stLogType, sol::object stLogInfo)
     {
         if(stLogType.is<int>() && stLogInfo.is<std::string>()){
             addLog(stLogType.as<int>(), stLogInfo.as<std::string>().c_str());
@@ -103,19 +105,24 @@ LuaModule::LuaModule()
     });
 
     m_LuaState.script(
-            R"###( function addLog(logType, logInfo)                                    )###""\n"
+            R"###( function addExtLog(logType, logInfo)                                 )###""\n"
             R"###(                                                                      )###""\n"
             R"###(     -- add type checking here                                        )###""\n"
             R"###(     -- need logType as int and logInfo as string                     )###""\n"
             R"###(                                                                      )###""\n"
             R"###(     if type(logType) == "number" and type(logInfo) == "string" then  )###""\n"
-            R"###(         _addLog_Raw(logType, getBackTraceLine() .. ": " .. logInfo)  )###""\n"
+            R"###(         addLog(logType, getBackTraceLine() .. ": " .. logInfo)       )###""\n"
             R"###(         return                                                       )###""\n"
             R"###(     end                                                              )###""\n"
             R"###(                                                                      )###""\n"
             R"###(     -- else we need to give warning                                  )###""\n"
-            R"###(     _addLog_Raw(1, "addLog(logType: int, logInfo: string)")          )###""\n"
+            R"###(     addLog(1, "addLog(logType: int, logInfo: string)")               )###""\n"
             R"###( end                                                                  )###""\n");
+
+    m_LuaState.set_function("mapID2Name", [](int nMapID) -> std::string
+    {
+        return std::string(DBCOM_MAPRECORD((uint32_t)(nMapID)).Name);
+    });
 
     m_LuaState.set_function("sleep", [](int nSleepMS)
     {

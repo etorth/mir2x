@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 12/20/2017 00:53:48
+ *  Last Modified: 12/20/2017 11:11:13
  *
  *    Description: 
  *
@@ -838,13 +838,6 @@ bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
             AddCWLog(nCWID, 2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
         });
 
-        // register command mapList
-        // return a table (userData) to lua for ipairs() check
-        pModule->GetLuaState().set_function("mapList", [this](sol::this_state stThisLua)
-        {
-            return sol::make_object(sol::state_view(stThisLua), GetMapList());
-        });
-
         // register command countMonster(monsterID, mapID)
         pModule->GetLuaState().set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
         {
@@ -918,37 +911,40 @@ bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
             }
         });
 
+        // register command mapList
+        // return a table (userData) to lua for ipairs() check
+        pModule->GetLuaState().set_function("getMapIDList", [this](sol::this_state stThisLua)
+        {
+            return sol::make_object(sol::state_view(stThisLua), GetMapList());
+        });
+
         // register command ``listAllMap"
-        // this command call mapList to get a table and print to CommandWindow
-        pModule->GetLuaState().script(R"#(
-            function listAllMap ()
-                for k, v in ipairs(mapList())
-                do
-                    printLine(0, "> ", tostring(v))
-                end
-            end
-        )#");
+        // this command call getMapIDList to get a table and print to CommandWindow
+        pModule->GetLuaState().script(
+            R"###( function listMap()                                                      )###""\n"
+            R"###(     local mapNameTable = {}                                             )###""\n"
+            R"###(     for k, v in ipairs(getMapIDList()) do                               )###""\n"
+            R"###(         table.insert(mapNameTable, mapID2Name(v))                       )###""\n"
+            R"###(     end                                                                 )###""\n"
+            R"###(     return mapNameTable                                                 )###""\n"
+            R"###( end                                                                     )###""\n");
 
         // register command ``help"
         // part-1: divide into two parts, part-1 create the table
-        pModule->GetLuaState().script(R"#(
-            helpInfoTable = {
-                mapList    = "return a list of all currently active maps",
-                listAllMap = "print all map indices to current window"
-            }
-        )#");
+
+        pModule->GetLuaState().script(
+            R"###( g_HelpTable = {}                                                        )###""\n"
+            R"###( g_HelpTable["listMap"] = "print all map indices to current window"      )###""\n");
 
         // part-2: make up the function to print the table entry
-        pModule->GetLuaState().script(R"#(
-            function help (queryKey)
-                if helpInfoTable[queryKey]
-                then
-                    printLine(0, "> ", helpInfoTable[queryKey])
-                else
-                    printLine(2, "> ", "No entry find for input")
-                end
-            end
-        )#");
+        pModule->GetLuaState().script(
+            R"###( function help(queryKey)                                                 )###""\n"
+            R"###(     if g_HelpTable[queryKey] then                                       )###""\n"
+            R"###(         printLine(0, "> ", g_HelpTable[queryKey])                       )###""\n"
+            R"###(     else                                                                )###""\n"
+            R"###(         printLine(2, "> ", "No registered help information for input")  )###""\n"
+            R"###(     end                                                                 )###""\n"
+            R"###( end                                                                     )###""\n");
     }
     return false;
 }
