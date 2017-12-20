@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 12/15/2017 00:05:32
+ *  Last Modified: 12/20/2017 00:50:13
  *
  *    Description:
  *
@@ -24,7 +24,6 @@
 #include <cstdint>
 
 #include "sysconst.hpp"
-#include "luamodule.hpp"
 #include "querytype.hpp"
 #include "uidrecord.hpp"
 #include "metronome.hpp"
@@ -32,6 +31,7 @@
 #include "pathfinder.hpp"
 #include "mir2xmapdata.hpp"
 #include "activeobject.hpp"
+#include "batchluamodule.hpp"
 
 class Player;
 class Monster;
@@ -41,22 +41,11 @@ class ServerObject;
 class ServerMap: public ActiveObject
 {
     private:
-        class ServerMapLuaModule: public LuaModule
+        class ServerMapLuaModule: public BatchLuaModule
         {
-            private:
-                ServerMap  *m_Map;
-                std::string m_Command;
-
             public:
-                ServerMapLuaModule(ServerMap *);
-
-            public:
-                ~ServerMapLuaModule() = default;
-
-            public:
-                // run one time of the script
-                // remeber the lua handler is there then it has memory
-                bool LoopOne();
+                ServerMapLuaModule();
+               ~ServerMapLuaModule() = default;
         };
 
     private:
@@ -213,7 +202,5 @@ class ServerMap: public ActiveObject
         void On_MPK_QUERYRECTUIDV(const MessagePack &, const Theron::Address &);
 
     private:
-        // 1. create lua module handle
-        // 2. add lua functions correlated to current server map
-        bool RegisterLuaModule();
+        bool RegisterLuaExport(ServerMapLuaModule *);
 };

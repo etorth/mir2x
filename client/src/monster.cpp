@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 12/12/2017 16:21:41
+ *  Last Modified: 12/15/2017 23:55:01
  *
  *    Description: 
  *
@@ -18,7 +18,6 @@
  * =====================================================================================
  */
 #include <SDL2/SDL.h>
-
 #include "log.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 12/15/2017 20:53:40
+ *  Last Modified: 12/20/2017 02:38:00
  *
  *    Description: 
  *
@@ -34,49 +34,11 @@
 #include "monoserver.hpp"
 #include "dbcomrecord.hpp"
 #include "rotatecoord.hpp"
+#include "serverconfigurewindow.hpp"
 
-ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *pMap)
-    : m_Map(pMap)
-    , m_Command([this]() -> std::string
-      {
-          std::string szScriptPath  = "/home/anhong/mir2x/server/monoserver/script";
-          std::string szCommandFile = ((szScriptPath + "/") + DBCOM_MAPRECORD(m_Map->ID()).Name) + ".lua";
-
-          std::stringstream stCommand;
-          std::ifstream stCommandFile(szCommandFile.c_str());
-
-          stCommand << stCommandFile.rdbuf();
-          return stCommand.str();
-      }())
-{
-    condcheck(m_Map);
-}
-
-bool ServerMap::ServerMapLuaModule::LoopOne()
-{
-    if(m_Command.empty()){
-        return true;
-    }
-
-    auto stCallResult = script(m_Command.c_str(), [](lua_State *, sol::protected_function_result stResult)
-    {
-        // default handler
-        // do nothing and let the call site handle the errors
-        return stResult;
-    });
-
-    if(stCallResult.valid()){
-        // default nothing printed
-        // we can put information here to show call succeeds
-        return true;
-    }else{
-        sol::error stError = stCallResult;
-
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Script fault: %s: %s", DBCOM_MAPRECORD(m_Map->ID()).Name, stError.what());
-        return false;
-    }
-}
+ServerMap::ServerMapLuaModule::ServerMapLuaModule()
+    : BatchLuaModule()
+{}
 
 ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, bool bCheckCO)
     : AStarPathFinder(
@@ -711,7 +673,10 @@ Theron::Address ServerMap::Activate()
     m_Metronome = new Metronome(300);
     m_Metronome->Activate(GetAddress());
 
-    RegisterLuaModule();
+    delete m_LuaModule;
+    m_LuaModule = new ServerMap::ServerMapLuaModule();
+    RegisterLuaExport(m_LuaModule);
+
     return stAddress;
 }
 
@@ -1039,128 +1004,127 @@ Player *ServerMap::AddPlayer(uint32_t nDBID, int nX, int nY, int nDirection, boo
     return nullptr;
 }
 
-bool ServerMap::RegisterLuaModule()
+bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
 {
-    m_LuaModule = new ServerMapLuaModule(this);
+    if(pModule){
 
-    // registers all functions and global variables
-    // all variables are kept in current lua module handler
-
-    m_LuaModule->set_function("addLog", [this](sol::object stLogType, sol::object stLogInfo)
-    {
-        extern MonoServer *g_MonoServer;
-        if(true
-                && stLogType.is<int>()
-                && stLogInfo.is<std::string>()){
-            switch(stLogType.as<int>()){
-                case 0  : g_MonoServer->AddLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
-                case 1  : g_MonoServer->AddLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
-                case 2  : g_MonoServer->AddLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
-                default : g_MonoServer->AddLog(LOGTYPE_DEBUG  , "%s", stLogInfo.as<std::string>().c_str()); return;
+        // load lua script to the module
+        {
+            extern ServerConfigureWindow *g_ServerConfigureWindow;
+            auto szScriptPath = g_ServerConfigureWindow->GetScriptPath();
+            if(szScriptPath.empty()){
+                szScriptPath  = "/home/anhong/mir2x/server/monoserver/script/map";
             }
+
+            std::string szCommandFile = ((szScriptPath + "/") + DBCOM_MAPRECORD(ID()).Name) + ".lua";
+
+            std::stringstream stCommand;
+            std::ifstream stCommandFile(szCommandFile.c_str());
+
+            stCommand << stCommandFile.rdbuf();
+            pModule->LoadBatch(stCommand.str().c_str());
         }
 
-        // invalid argument provided
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "addLog(LogType: int, LogInfo: string)");
-    });
+        // register lua functions/variables related *this* map
 
-    m_LuaModule->set_function("getTime", []() -> int
-    {
-        extern MonoServer *g_MonoServer;
-        return (int)(g_MonoServer->GetTimeTick());
-    });
+        pModule->GetLuaState().set_function("getMapID", [this]() -> int
+        {
+            return (int)(ID());
+        });
 
-    m_LuaModule->set_function("getMonsterCount", [this](sol::variadic_args stVariadicArgs) -> int
-    {
-        std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
-        switch(stArgList.size()){
-            case 0:
-                {
-                    return GetMonsterCount(0);
-                }
-            case 1:
-                {
-                    if(stArgList[0].is<int>()){
-                        int nMonsterID = stArgList[0].as<int>();
-                        if(nMonsterID >= 0){
-                            return GetMonsterCount(nMonsterID);
-                        }
-                    }else if(stArgList[0].is<std::string>()){
-                        int nMonsterID = DBCOM_MONSTERID(stArgList[0].as<std::string>().c_str());
-                        if(nMonsterID >= 0){
-                            return GetMonsterCount(nMonsterID);
-                        }
+        pModule->GetLuaState().set_function("getMapName", [this]() -> std::string
+        {
+            return std::string(DBCOM_MAPRECORD(ID()).Name);
+        });
+
+        pModule->GetLuaState().set_function("getMonsterCount", [this](sol::variadic_args stVariadicArgs) -> int
+        {
+            std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
+            switch(stArgList.size()){
+                case 0:
+                    {
+                        return GetMonsterCount(0);
                     }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-        return -1;
-    });
+                case 1:
+                    {
+                        if(stArgList[0].is<int>()){
+                            int nMonsterID = stArgList[0].as<int>();
+                            if(nMonsterID >= 0){
+                                return GetMonsterCount(nMonsterID);
+                            }
+                        }else if(stArgList[0].is<std::string>()){
+                            int nMonsterID = DBCOM_MONSTERID(stArgList[0].as<std::string>().c_str());
+                            if(nMonsterID >= 0){
+                                return GetMonsterCount(nMonsterID);
+                            }
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+            return -1;
+        });
 
-    m_LuaModule->set_function("addMonster", [this](sol::object stMonsterID, sol::variadic_args stVariadicArgs) -> bool
-    {
-        uint32_t nMonsterID = 0;
+        pModule->GetLuaState().set_function("addMonster", [this](sol::object stMonsterID, sol::variadic_args stVariadicArgs) -> bool
+        {
+            uint32_t nMonsterID = 0;
 
-        if(stMonsterID.is<int>()){
-            nMonsterID = stMonsterID.as<int>();
-        }else if(stMonsterID.is<std::string>()){
-            nMonsterID = DBCOM_MONSTERID(stMonsterID.as<std::string>().c_str());
-        }else{
+            if(stMonsterID.is<int>()){
+                nMonsterID = stMonsterID.as<int>();
+            }else if(stMonsterID.is<std::string>()){
+                nMonsterID = DBCOM_MONSTERID(stMonsterID.as<std::string>().c_str());
+            }else{
+                return false;
+            }
+
+            std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
+            switch(stArgList.size()){
+                case 0:
+                    {
+                        return AddMonster(nMonsterID, 0, -1, -1, true);
+                    }
+                case 2:
+                    {
+                        if(true
+                                && stArgList[0].is<int>()
+                                && stArgList[1].is<int>()){
+
+                            auto nX = stArgList[0].as<int>();
+                            auto nY = stArgList[1].as<int>();
+
+                            return AddMonster(nMonsterID, 0, nX, nY, true);
+                        }
+                        break;
+                    }
+                case 3:
+                    {
+                        if(true
+                                && stArgList[0].is<int >()
+                                && stArgList[1].is<int >()
+                                && stArgList[2].is<bool>()){
+
+                            auto nX      = stArgList[0].as<int >();
+                            auto nY      = stArgList[1].as<int >();
+                            auto bRandom = stArgList[2].as<bool>();
+
+                            return AddMonster(nMonsterID, 0, nX, nY, bRandom);
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+
             return false;
-        }
-
-        std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
-        switch(stArgList.size()){
-            case 0:
-                {
-                    return AddMonster(nMonsterID, 0, -1, -1, true);
-                }
-            case 2:
-                {
-                    if(true
-                            && stArgList[0].is<int>()
-                            && stArgList[1].is<int>()){
-
-                        auto nX = stArgList[0].as<int>();
-                        auto nY = stArgList[1].as<int>();
-
-                        return AddMonster(nMonsterID, 0, nX, nY, true);
-                    }
-                    break;
-                }
-            case 3:
-                {
-                    if(true
-                            && stArgList[0].is<int >()
-                            && stArgList[1].is<int >()
-                            && stArgList[2].is<bool>()){
-
-                        auto nX      = stArgList[0].as<int >();
-                        auto nY      = stArgList[1].as<int >();
-                        auto bRandom = stArgList[2].as<bool>();
-
-                        return AddMonster(nMonsterID, 0, nX, nY, bRandom);
-                    }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-
-        return false;
-    });
-
-    // some initialization before do LoopOne
-    // should always put here
-
-    m_LuaModule->script(R"#(math.randomseed(getTime()))#");
-    return true;
+        });
+        return true;
+    }
+    return false;
 }
 
 void ServerMap::ReportGroundItem(uint32_t nSessionID, int nX, int nY)

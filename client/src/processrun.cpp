@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 12/15/2017 20:21:38
+ *  Last Modified: 12/20/2017 01:02:37
  *
  *    Description: 
  *
@@ -855,7 +855,7 @@ bool ProcessRun::ScreenPoint2Grid(int nPX, int nPY, int *pX, int *pY)
 bool ProcessRun::LuaCommand(const char *szLuaCommand)
 {
     if(szLuaCommand){
-        auto stCallResult = m_LuaModule.script(szLuaCommand, [](lua_State *, sol::protected_function_result stResult){
+        auto stCallResult = m_LuaModule.GetLuaState().script(szLuaCommand, [](lua_State *, sol::protected_function_result stResult){
             // default handler
             // do nothing and let the call site handle the errors
             return stResult;
@@ -1037,43 +1037,12 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
     if(pModule){
 
         // initialization before registration
-        pModule->script(R"()");
-
-        // register command exitClient
-        // exit client and free all related resource
-        pModule->set_function("exitClient", []()
-        {
-            std::exit(0);
-        });
-
-        // register command exit
-        pModule->set_function("exit", []()
-        {
-            // reserve this command
-            // don't find what to exit here
-            std::exit(0);
-        });
-
-        // register command sleep
-        // sleep current thread and return after the specified ms
-        // can use posix.sleep(ms), but here use std::this_thread::sleep_for(x)
-        pModule->set_function("sleep", [](int nSleepMS)
-        {
-            if(nSleepMS > 0){
-                std::this_thread::sleep_for(std::chrono::milliseconds(nSleepMS));
-            }
-        });
+        pModule->GetLuaState().script(R"()");
 
         // register command printLine
         // print one line to the out port allocated for the lua module
-        // won't add message to log system, use addLog instead if needed
-        pModule->set_function("printLine", [this, nOutPort](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo)
+        pModule->GetLuaState().set_function("printLine", [this, nOutPort](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo)
         {
-            // use sol::object to accept arguments
-            // otherwise for follow code it throws exception for type unmatch
-            //      lua["f"] = [](int a){ return a; };
-            //      lua.script("print f(\"hello world\")")
-            // program crashes with exception.what() : expecting int, string provided
             if(true
                     && stLogType.is<int>()
                     &&  stPrompt.is<std::string>()
@@ -1088,15 +1057,18 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command addLog
         // add to client system log file only, same as g_Log->AddLog(LOGTYPE_XXXX, LogInfo)
-        pModule->set_function("addLog", [this, nOutPort](sol::object stLogType, sol::object stLogInfo){
+        pModule->GetLuaState().set_function("addLog", [this, nOutPort](sol::object stLogType, sol::object stLogInfo)
+        {
             if(true
                     && stLogType.is<int>()
                     && stLogInfo.is<std::string>()){
+
                 extern Log *g_Log;
                 switch(stLogType.as<int>()){
                     case 0  : g_Log->AddLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
                     case 1  : g_Log->AddLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
-                    default : g_Log->AddLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
+                    case 2  : g_Log->AddLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
+                    default : g_Log->AddLog(LOGTYPE_DEBUG  , "%s", stLogInfo.as<std::string>().c_str()); return;
                 }
             }
 
@@ -1105,16 +1077,15 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         });
 
         // register command playerList
-        // get a list for all active maps
         // return a table (userData) to lua for ipairs() check
-        pModule->set_function("playerList", [this](sol::this_state stThisLua)
+        pModule->GetLuaState().set_function("playerList", [this](sol::this_state stThisLua)
         {
             return sol::make_object(sol::state_view(stThisLua), GetPlayerList());
         });
 
         // register command moveTo(x, y)
         // wait for server to move player if possible
-        pModule->set_function("moveTo", [this, nOutPort](sol::object stLocX, sol::object stLocY)
+        pModule->GetLuaState().set_function("moveTo", [this, nOutPort](sol::object stLocX, sol::object stLocY)
         {
             if(true
                     && stLocX.is<int>()
@@ -1131,7 +1102,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command ``listPlayerInfo"
         // this command call to get a player info table and print to out port
-        pModule->script(R"#(
+        pModule->GetLuaState().script(R"#(
             function listPlayerInfo ()
                 for k, v in ipairs(playerList())
                 do
@@ -1142,7 +1113,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command ``help"
         // part-1: divide into two parts, part-1 create the table for help
-        pModule->script(R"#(
+        pModule->GetLuaState().script(R"#(
             helpInfoTable = {
                 wear     = "put on different dress",
                 moveTo   = "move to other position on current map",
@@ -1151,7 +1122,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         )#");
 
         // part-2: make up the function to print the table entry
-        pModule->script(R"#(
+        pModule->GetLuaState().script(R"#(
             function help (queryKey)
                 if helpInfoTable[queryKey]
                 then
@@ -1164,7 +1135,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command ``myHero.xxx"
         // I need to insert a table to micmic a instance myHero in the future
-        pModule->set_function("myHero_dress", [this](int nDress)
+        pModule->GetLuaState().set_function("myHero_dress", [this](int nDress)
         {
             if(nDress >= 0){
                 m_MyHero->Dress((uint32_t)(nDress));
@@ -1173,7 +1144,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
 
         // register command ``myHero.xxx"
         // I need to insert a table to micmic a instance myHero in the future
-        pModule->set_function("myHero_weapon", [this](int nWeapon)
+        pModule->GetLuaState().set_function("myHero_weapon", [this](int nWeapon)
         {
             if(nWeapon >= 0){
                 m_MyHero->Weapon((uint32_t)(nWeapon));

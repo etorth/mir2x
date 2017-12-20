@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 12/13/2017 10:11:54
+ *  Last Modified: 12/19/2017 22:43:04
  *
  *    Description: 
  *
@@ -35,7 +35,7 @@
 #include "database.hpp"
 #include "uidrecord.hpp"
 #include "eventtaskhub.hpp"
-#include "serverluamodule.hpp"
+#include "commandluamodule.hpp"
 
 class ServiceCore;
 class ServerObject;
@@ -197,5 +197,5 @@ class MonoServer final
         }
 
     public:
-        bool RegisterLuaExport(ServerLuaModule *, uint32_t);
+        bool RegisterLuaExport(CommandLuaModule *, uint32_t);
 };

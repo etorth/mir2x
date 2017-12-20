@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 12/12/2017 22:43:24
+ *  Last Modified: 12/20/2017 00:53:48
  *
  *    Description: 
  *
@@ -802,25 +802,15 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
     return UIDRecord(0, {}, Theron::Address::Null(), stNullEntry);
 }
 
-bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
+bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
 {
     if(true
             && pModule      // module to execute lua script
             && nCWID){      // command window id to echo all execution information
 
-        // initialization before registration
-        pModule->script(R"()");
-
-        // exit current server
-        // used in command window
-        pModule->set_function("exitServer", []()
-        {
-            std::exit(0);
-        });
-
-        // register command exit
+        // register command quit
         // exit current command window and free all related resource
-        pModule->set_function("exit", [this, nCWID]()
+        pModule->GetLuaState().set_function("quit", [this, nCWID]()
         {
             // 1. show exiting messages
             AddCWLog(nCWID, 0, "> ", "Command window is requested to exit now...");
@@ -832,16 +822,10 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
             NotifyGUI(std::string("ExitCW ") + std::to_string(nCWID));
         });
 
-
         // register command printLine
-        // print one line in command window
-        // won't add message to log system, use addLog instead
-        pModule->set_function("printLine", [this, nCWID](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo){
-            // use sol::object to accept arguments
-            // otherwise for follow code it throws exception for type unmatch
-            //      lua["f"] = [](int a){ return a; };
-            //      lua.script("print f(\"hello world\")")
-            // program crashes with exception.what() : expecting int, string provided
+        // print one line in command window, won't add message to log system
+        pModule->GetLuaState().set_function("printLine", [this, nCWID](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo)
+        {
             if(true
                     && stLogType.is<int>()
                     && stPrompt.is<std::string>()
@@ -854,33 +838,15 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
             AddCWLog(nCWID, 2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
         });
 
-        // register command addLog
-        // add to system log file and main window history window
-        pModule->set_function("addLog", [this, nCWID](sol::object stLogType, sol::object stLogInfo){
-            if(true
-                    && stLogType.is<int>()
-                    && stLogInfo.is<std::string>()){
-                switch(stLogType.as<int>()){
-                    case 0  : AddLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
-                    case 1  : AddLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
-                    default : AddLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
-                }
-            }
-
-            // invalid argument provided
-            AddCWLog(nCWID, 2, ">>> ", "addLog(LogType: int, LogInfo: string)");
-        });
-
         // register command mapList
-        // get a list for all active maps
         // return a table (userData) to lua for ipairs() check
-        pModule->set_function("mapList", [this](sol::this_state stThisLua)
+        pModule->GetLuaState().set_function("mapList", [this](sol::this_state stThisLua)
         {
             return sol::make_object(sol::state_view(stThisLua), GetMapList());
         });
 
         // register command countMonster(monsterID, mapID)
-        pModule->set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
+        pModule->GetLuaState().set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
         {
             auto nRet = GetMonsterCount(nMonsterID, nMapID).value_or(-1);
             if(nRet < 0){
@@ -901,7 +867,7 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
         //      end
         // here we get an exception from lua caught by sol2: ``std::bad_alloc"
         // but we want more detailed information like print the function usage out
-        pModule->set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool
+        pModule->GetLuaState().set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool
         {
             auto fnPrintUsage = [this, nCWID]()
             {
@@ -954,7 +920,7 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
 
         // register command ``listAllMap"
         // this command call mapList to get a table and print to CommandWindow
-        pModule->script(R"#(
+        pModule->GetLuaState().script(R"#(
             function listAllMap ()
                 for k, v in ipairs(mapList())
                 do
@@ -965,7 +931,7 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
 
         // register command ``help"
         // part-1: divide into two parts, part-1 create the table
-        pModule->script(R"#(
+        pModule->GetLuaState().script(R"#(
             helpInfoTable = {
                 mapList    = "return a list of all currently active maps",
                 listAllMap = "print all map indices to current window"
@@ -973,7 +939,7 @@ bool MonoServer::RegisterLuaExport(ServerLuaModule *pModule, uint32_t nCWID)
         )#");
 
         // part-2: make up the function to print the table entry
-        pModule->script(R"#(
+        pModule->GetLuaState().script(R"#(
             function help (queryKey)
                 if helpInfoTable[queryKey]
                 then

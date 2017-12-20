@@ -1,10 +1,11 @@
 -- =====================================================================================
 --
---       Filename: 道馆.lua
---        Created: 08/31/2015 08:52:57 PM
---  Last Modified: 12/15/2017 20:57:53
+--       Filename: main.lua
+--        Created: 08/31/2015 08:52:57
+--  Last Modified: 12/18/2017 20:32:25
 --
 --    Description: lua 5.3
+--                 main entry of lua invoked by service core
 --
 --        Version: 1.0
 --       Revision: none
@@ -21,25 +22,8 @@ if g_Inited == nil then
     -- only initialize once
     -- initialize all global/constant variables
 
-    g_MaxMonsterCount = 3
     g_LogicDelay      = 1000
     g_LastInvokeTime  = getTime()
-
-    -- allowed monsters on current map
-
-    g_MonsterList =
-    {
-        "虎卫",
-        "沙漠石人"
-    }
-
-    function getMonsterCountInList()
-        local nMonsterCount = 0
-        for i, v in pairs(g_MonsterList) do
-            nMonsterCount = nMonsterCount + math.max(0, getMonsterCount(v)) 
-        end
-        return nMonsterCount
-    end
 
     g_Inited = true
 end

@@ -3,7 +3,7 @@
  *
  *       Filename: log.hpp
  *        Created: 03/16/2016 16:05:17
- *  Last Modified: 12/14/2017 19:08:26
+ *  Last Modified: 12/20/2017 01:36:07
  *
  *    Description: log functionality enabled by g3Log
  *
@@ -59,18 +59,15 @@ class Log final
         };
 
     private:
-        std::unique_ptr<g3::FileSinkHandle> m_Handler;
         std::unique_ptr<g3::LogWorker>      m_Worker;
+        std::unique_ptr<g3::FileSinkHandle> m_Handler;
         std::string                         m_LogFileName;
 
     public:
         Log(const char *szLogArg0 = LOG_ARGV0, const char *szLogPath = LOG_PATH)
+            : m_Worker(g3::LogWorker::createLogWorker())
+            , m_Handler(m_Worker->addDefaultLogger(szLogArg0, szLogPath))
         {
-            extern Log *g_Log;
-            if(g_Log){ throw std::runtime_error("only one Log instance please."); }
-
-            m_Worker  = g3::LogWorker::createLogWorker();
-            m_Handler = m_Worker->addDefaultLogger(szLogArg0, szLogPath);
             g3::initializeLogging(m_Worker.get());
 
             std::future<std::string> szLogFileName = m_Handler->call(&g3::FileSink::fileName);
@@ -88,7 +85,7 @@ class Log final
         ~Log() = default;
 
     public:
-        const char *FileName() const
+        const char *LogPath() const
         {
             return m_LogFileName.c_str();
         }
