@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 12/20/2017 01:02:37
+ *  Last Modified: 12/21/2017 00:33:40
  *
  *    Description: 
  *
@@ -922,7 +922,9 @@ bool ProcessRun::UserCommand(const char *szUserCommand)
                     }
                 case 1:
                     {
-                        if(pEntry->Callback){ pEntry->Callback(stvToken); }
+                        if(pEntry->Callback){
+                            pEntry->Callback(stvToken);
+                        }
                         break;
                     }
                 default:
@@ -1029,6 +1031,14 @@ bool ProcessRun::RegisterUserCommand()
         }
     };
     m_UserCommandGroup.emplace_back("makeItem", fnMakeItem);
+
+    auto fnGetAttackUID = [this](const std::vector<std::string> &) -> int
+    {
+        AddOPLog(OUTPORT_CONTROLBOARD, 2, "", std::to_string(FocusUID(FOCUS_ATTACK)).c_str());
+        return 0;
+    };
+    m_UserCommandGroup.emplace_back("getAttackUID", fnGetAttackUID);
+
     return true;
 }
 

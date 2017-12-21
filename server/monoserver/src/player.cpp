@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/15/2017 23:21:32
+ *  Last Modified: 12/20/2017 23:51:49
  *
  *    Description: 
  *
@@ -18,12 +18,13 @@
  * =====================================================================================
  */
 #include <cinttypes>
-#include "netdriver.hpp"
+#include "dbpod.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "threadpn.hpp"
 #include "memorypn.hpp"
 #include "sysconst.hpp"
+#include "netdriver.hpp"
 #include "charobject.hpp"
 #include "friendtype.hpp"
 #include "protocoldef.hpp"
@@ -814,4 +815,82 @@ void Player::RecoverHealth()
 
         ReportHealth();
     }
+}
+
+bool Player::DBRecord(const char *szFieldName, std::function<const char *(const char *, char *, size_t)> fnDBOperation)
+{
+    if(szFieldName && std::strlen(szFieldName)){
+
+        extern DBPodN *g_DBPodN;
+        auto pDBHDR = g_DBPodN->CreateDBHDR();
+
+        if(!pDBHDR->Execute("select %s from mir2x.tbl_dbid where fld_dbid = %" PRIu32, szFieldName, DBID())){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+            return false;
+        }
+
+        if(pDBHDR->RowCount() < 1){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_INFO, "no dbid created for this player: DBID = %" PRIu32, DBID());
+            return false;
+        }
+
+        pDBHDR->Fetch();
+
+        char szFieldBuf[256];
+        if(auto pRes = fnDBOperation(pDBHDR->Get(szFieldName), szFieldBuf, std::extent<decltype(szFieldBuf)>::value)){
+            // here we directly apply pRes
+            // if what to set is a string, we should return \"string\"
+            if(!pDBHDR->Execute("update mir2x.tbl_dbid set %s = %s where fld_dbid = %" PRIu32, szFieldName, pRes, DBID())){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+                return false;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+void Player::DBRecordLevelUp()
+{
+    DBRecord("fld_level", [this](const char *szFieldValue, char *pBuf, size_t nBufLen) -> const char *
+    {
+        auto nLevel = std::atoi(szFieldValue);
+        std::snprintf(pBuf, nBufLen, "%d", nLevel + 1);
+        return pBuf;
+    });
+}
+
+void Player::DBRecordGainExp(int nExp)
+{
+    if(nExp){
+        DBRecord("fld_exp", [this, nExp](const char *szFieldValue, char *pBuf, size_t nBufLen) -> const char *
+        {
+            auto nDBExp = std::atoi(szFieldValue);
+            auto nAddLevelExp = GetLevelExp();
+
+            auto nCurrExp = nDBExp + nExp;
+            if(nCurrExp >= nAddLevelExp){
+                DBRecordLevelUp();
+                nCurrExp -= nAddLevelExp;
+            }
+
+            std::snprintf(pBuf, nBufLen, "%d", nCurrExp);
+            return pBuf;
+        });
+    }
+}
+
+int Player::GetLevelExp()
+{
+    auto fnGetLevelExp = [](int nLevel, int nJobID) -> int
+    {
+        if(nLevel > 0 && nJobID >= 0){
+            return 10;
+        }
+        return -1;
+    };
+    return fnGetLevelExp(Level(), JobID());
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 12/14/2017 21:38:05
+ *  Last Modified: 12/20/2017 23:03:54
  *
  *    Description: 
  *
@@ -77,6 +77,11 @@ class Player: public CharObject
        ~Player() = default;
 
     public:
+        uint32_t Level() const
+        {
+            return m_Level;
+        }
+
         uint32_t DBID() const
         {
             return m_DBID;
@@ -192,4 +197,14 @@ class Player: public CharObject
 
     protected:
         virtual void RecoverHealth();
+
+    protected:
+        int GetLevelExp();
+
+    protected:
+        bool DBRecord(const char *, std::function<const char *(const char *, char *, size_t)>);
+
+    protected:
+        void DBRecordLevelUp();
+        void DBRecordGainExp(int);
 };

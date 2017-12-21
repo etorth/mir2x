@@ -100,7 +100,21 @@ bool DBRecord::StoreResult()
         m_SQLRES = nullptr;
     }
 
-    return Valid() && ((m_SQLRES = mysql_store_result(m_Connection->m_SQL)) != nullptr);
+    if(Valid()){
+
+        // get query result
+        // this result could be empty
+        // see comments in DBRecord::ColumnCount()
+
+        m_SQLRES = mysql_store_result(m_Connection->m_SQL);
+
+        if(m_SQLRES){
+            return true;
+        }else{
+            return mysql_field_count(m_Connection->m_SQL) == 0;
+        }
+    }
+    return false;
 }
 
 bool DBRecord::Fetch()
@@ -151,7 +165,7 @@ int DBRecord::ColumnCount()
     if(m_QuerySucceed){
         if(m_SQLRES){
             // there are rows
-            return (int)mysql_num_fields(m_SQLRES);
+            return (int)(mysql_num_fields(m_SQLRES));
         }else{
             // mysql_store_result() returned nothing, but should it have?
             if(mysql_field_count(m_Connection->m_SQL) == 0){

@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 12/14/2017 23:34:17
+ *  Last Modified: 12/20/2017 21:41:34
  *
  *    Description: 
  *
@@ -279,6 +279,8 @@ void Player::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
 {
     AMExp stAME;
     std::memcpy(&stAME, rstMPK.Data(), sizeof(stAME));
+
+    DBRecordGainExp(stAME.Exp);
 
     if(stAME.Exp > 0){
         SMExp stSME;

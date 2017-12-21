@@ -55,6 +55,7 @@ status, errmsg = conn:execute [[
 
         fld_mapx      int unsigned not null,
         fld_mapy      int unsigned not null,
+        fld_exp       int unsigned not null,
         fld_level     int unsigned not null,
         fld_jobid     int unsigned not null,
         fld_direction int unsigned not null
