@@ -3,7 +3,7 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 12/12/2017 17:15:29
+ *  Last Modified: 12/21/2017 01:06:57
  *
  *    Description:
  *
@@ -285,5 +285,23 @@ struct ActionNode
     operator bool () const
     {
         return Action != ACTION_NONE;
+    }
+
+    const char *ActionName() const
+    {
+        switch(Action){
+            case ACTION_NONE       : return "ACTION_NONE";
+            case ACTION_STAND      : return "ACTION_STAND";
+            case ACTION_PICKUP     : return "ACTION_PICKUP";
+            case ACTION_MOVE       : return "ACTION_MOVE";
+            case ACTION_PUSHMOVE   : return "ACTION_PUSHMOVE";
+            case ACTION_SPACEMOVE1 : return "ACTION_SPACEMOVE1";
+            case ACTION_SPACEMOVE2 : return "ACTION_SPACEMOVE2";
+            case ACTION_ATTACK     : return "ACTION_ATTACK";
+            case ACTION_SPELL      : return "ACTION_SPELL";
+            case ACTION_HITTED     : return "ACTION_HITTED";
+            case ACTION_DIE        : return "ACTION_DIE";
+            default                : return "ACTION_UNKNOWN";
+        }
     }
 };

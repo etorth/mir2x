@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/14/2017 21:39:29
+ *  Last Modified: 12/21/2017 02:12:25
  *
  *    Description: 
  *
@@ -108,6 +108,9 @@ void CharObject::ReportAction(uint32_t, const ActionNode &)
 
 void CharObject::DispatchAction(const ActionNode &rstAction)
 {
+    // should check to avoid dead CO call this function
+    // this would cause zombies
+
     if(true
             && ActorPodValid()
             && m_Map
@@ -215,8 +218,10 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
                         // should add a new function: CanTurn()
                         // for stone state we can't even make a turn
 
-                        m_Direction = nDir;
-                        DispatchAction(ActionStand(X(), Y(), Direction()));
+                        if(CanMove()){
+                            m_Direction = nDir;
+                            DispatchAction(ActionStand(X(), Y(), Direction()));
+                        }
 
                         if(fnOnMoveError){
                             fnOnMoveError();
