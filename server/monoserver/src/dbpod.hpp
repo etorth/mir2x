@@ -27,6 +27,7 @@
 
 #pragma once
 #include <memory>
+#include <string>
 
 #include "dbrecord.hpp"
 #include "dbconnection.hpp"

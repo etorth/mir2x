@@ -5,7 +5,7 @@
  *        Created: 06/18/2016 21:53:32
  *  Last Modified: 08/18/2017 15:32:40
  *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -22,6 +22,7 @@
 #include <vector>
 #include <utility>
 #include "condcheck.hpp"
+#include <numeric>
 
 template<typename Record>
 class RandomPick

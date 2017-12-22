@@ -5,7 +5,7 @@
  *        Created: 05/11/2016 17:37:54
  *  Last Modified: 12/14/2017 23:34:17
  *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -85,8 +85,8 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     if(true
             && stAMA.UID != UID()
             && stAMA.MapID == MapID()
-            && (std::abs<int>(stAMA.X - X()) <= SYS_MAPVISIBLEW)
-            && (std::abs<int>(stAMA.Y - Y()) <= SYS_MAPVISIBLEH)){
+            && (std::abs(stAMA.X - X()) <= SYS_MAPVISIBLEW)
+            && (std::abs(stAMA.Y - Y()) <= SYS_MAPVISIBLEH)){
 
         ReportAction(stAMA.UID, ActionNode
         {

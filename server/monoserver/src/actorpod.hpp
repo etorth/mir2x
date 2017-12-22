@@ -40,7 +40,7 @@
  *                      auto fnTrigger = [this](){ m_StateHook.Execute(); }
  *
  *                 and
- *                  
+ *
  *                      m_StateHook.Install("ClearQueue", fnClearQueue);
  *                      m_StateHook.Uninstall("ClearQueue");
  *
@@ -66,6 +66,8 @@
 
 #include "messagebuf.hpp"
 #include "messagepack.hpp"
+
+#include <string>
 
 class ActorPod final: public Theron::Actor
 {
@@ -95,7 +97,7 @@ class ActorPod final: public Theron::Actor
         // for actors the only chance to update their state is via message driving.
         //
         // conceptually one actor could have more than one trigger
-        // for that we should register / de-register those triggers to m_Trigger 
+        // for that we should register / de-register those triggers to m_Trigger
         // most likely here we use StateHook::Execute();
         //
         // trigger is provided at initialization and never change

@@ -20,6 +20,7 @@
 
 #include <cstdarg>
 #include <cstring>
+#include <string>
 #include <cinttypes>
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>

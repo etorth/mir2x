@@ -5,7 +5,7 @@
  *        Created: 03/29/2017 00:59:29
  *  Last Modified: 09/26/2017 11:20:40
  *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -36,7 +36,7 @@ bool AStarPathFinder::Search(int nX0, int nY0, int nX1, int nY1)
 int PathFind::MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_t nMaxStepLen)
 {
     if(true
-            && pNodeV           // 
+            && pNodeV           //
             && nSize            // if nSize == 1 then return 0
             && nMaxStepLen){    // doesn't request nMaxStepLen < nSize here
 
@@ -62,8 +62,8 @@ int PathFind::MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_
             case 2  : return  1;
             default : {
                           if(nMaxStepLen < nSize){
-                              int nDX = std::abs<int>(pNodeV[nMaxStepLen].X - pNodeV[0].X);
-                              int nDY = std::abs<int>(pNodeV[nMaxStepLen].Y - pNodeV[0].Y);
+                              int nDX = std::abs(pNodeV[nMaxStepLen].X - pNodeV[0].X);
+                              int nDY = std::abs(pNodeV[nMaxStepLen].Y - pNodeV[0].Y);
                               if(true
                                       && (std::max<size_t>(nDX, nDY) == nMaxStepLen)
                                       && (std::min<size_t>(nDX, nDY) == 0 || nDX == nDY)){

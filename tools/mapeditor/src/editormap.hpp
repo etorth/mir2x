@@ -14,7 +14,7 @@
  *
  *                 =====================================================================
  *                 Problem 1:
- *                             
+ *
  *                             |     |     |     |
  *                             |*****|     |     |
  *                             |**A**|     |     |
@@ -172,9 +172,9 @@ class EditorMap
                     uint8_t nByte1 = (uint8_t)((Image & 0X0000FF00) >>  8);
                     uint8_t nByte0 = (uint8_t)((Image & 0X000000FF) >>  0);
 
-                    return {nByte0, nByte1, nByte2, nByte3, nByte4};
+                    return { {nByte0, nByte1, nByte2, nByte3, nByte4} };
                 }else{
-                    return {0, 0, 0, 0, 0};
+                    return { {0, 0, 0, 0, 0} };
                 }
             }
         };

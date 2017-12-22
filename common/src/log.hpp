@@ -26,6 +26,7 @@
 #include <iostream>
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
+#include <array>
 
 #if (defined(WIN32) || defined(_WIN32) || defined(__WIN32__))
 #define LOG_PATH "./"
