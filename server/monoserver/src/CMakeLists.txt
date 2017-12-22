@@ -2,6 +2,10 @@ FILE(GLOB FLTK_ALL_SRC "*.[fF][lL]")
 
 SET(FLTK_CPP_SRC "")
 
+include_directories(SYSTEM
+  ${CMAKE_SOURCE_DIR}/external/include
+)
+
 FOREACH(FLTK_SRC ${FLTK_ALL_SRC})
     # generate fltk output source file name
     GET_FILENAME_COMPONENT(T_BASENAME ${FLTK_SRC} NAME_WE)
@@ -34,7 +38,7 @@ TARGET_LINK_LIBRARIES(monoserver dl                 )
 TARGET_LINK_LIBRARIES(monoserver common             )
 TARGET_LINK_LIBRARIES(monoserver pthread            )
 TARGET_LINK_LIBRARIES(monoserver mariadb            )
-TARGET_LINK_LIBRARIES(monoserver g3logger           )
+TARGET_LINK_LIBRARIES(monoserver ${G3LOG_LIBRARY}   )
 TARGET_LINK_LIBRARIES(monoserver theron             )
 TARGET_LINK_LIBRARIES(monoserver xs                 )
-TARGET_LINK_LIBRARIES(monoserver zip                )
+TARGET_LINK_LIBRARIES(monoserver ${ZIP_LIBRARY}     )

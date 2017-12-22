@@ -71,17 +71,25 @@ FOREACH(EXTERNAL_SUBDIR ${EXTERNAL_ALL_SUBDIR})
     ENDIF()
 ENDFOREACH()
 
+include(cmake/common.cmake)
+
 # 6. to include external cmake packages
 FIND_PACKAGE(Lua    REQUIRED)
 FIND_PACKAGE(SDL2   REQUIRED)
 FIND_PACKAGE(FLTK   REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
+FIND_PACKAGE(libpng REQUIRED)
+FIND_PACKAGE(g3log  REQUIRED)
+FIND_PACKAGE(zip    REQUIRED)
+FIND_PACKAGE(asio    REQUIRED)
+FIND_PACKAGE(tinyxml2    REQUIRED)
 
 # 7. for libthread, compile arguments matching is required
 #    reason why I disable NDEBUG
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DTHERON_CPP11=1 -DTHERON_POSIX=0 -DTHERON_XS=1")
 
 # 6. add tasks to build, each in a sub-dir
+ADD_SUBDIRECTORY(external)
 ADD_SUBDIRECTORY(tools)
 ADD_SUBDIRECTORY(common)
 ADD_SUBDIRECTORY(server)
