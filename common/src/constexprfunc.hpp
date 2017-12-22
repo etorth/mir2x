@@ -46,6 +46,9 @@ namespace ConstExprFunc
         return nCheckInt == nValidInt;
     }
 
+    template<typename... U> constexpr int CheckIntMap(const char *szStr, int nDefaultInt, const char *szOptStr1, int nOptInt1, U&&... u);
+    template<> constexpr int CheckIntMap(const char *szStr, int nDefaultInt, const char *szOptStr1, int nOptInt1);
+
     // CheckIntMap(szStr, D_NONE,
     //              u8"攻击", D_ATTACK,
     //              u8"挨打", D_HITTEF,
