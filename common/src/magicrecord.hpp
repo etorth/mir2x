@@ -65,6 +65,9 @@ struct GfxEntry
     int Speed;
     int Loop;
     int DirType;
+    constexpr GfxEntry(const GfxEntry& other) : Stage(other.Stage), Type(other.Type), GfxID(other.GfxID), FrameCount(other.FrameCount), Motion(other.Motion), Speed(other.Speed), Loop(other.Loop), DirType(other.DirType)
+    {
+    }
 
     // as entries in MagicRecord to use gfx resource
     // should provide default parameters to GfxEntry since it supports empty entries
@@ -181,7 +184,7 @@ class MagicRecord
             }
             return _Inn_Empty_MagicAnimation;
         }
-        
+
     public:
         constexpr operator bool () const
         {

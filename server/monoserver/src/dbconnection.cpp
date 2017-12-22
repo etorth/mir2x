@@ -5,7 +5,7 @@
  *        Created: 09/03/2015 03:49:00 AM
  *  Last Modified: 03/27/2017 13:20:07
  *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -17,7 +17,7 @@
  *
  * =====================================================================================
  */
-#include <mariadb/mysql.h>
+#include <mysql/mysql.h>
 #include "dbrecord.hpp"
 #include "dbconnection.hpp"
 
@@ -33,8 +33,8 @@ DBConnection::DBConnection(
     m_Valid = false;
     m_SQL   = mysql_init(nullptr);
 
-    mysql_options(m_SQL, MYSQL_SET_CHARSET_NAME, "utf8"); 
-    mysql_options(m_SQL, MYSQL_INIT_COMMAND, "SET NAMES utf8"); 
+    mysql_options(m_SQL, MYSQL_SET_CHARSET_NAME, "utf8");
+    mysql_options(m_SQL, MYSQL_INIT_COMMAND, "SET NAMES utf8");
 
     if(m_SQL){
         if(mysql_real_connect(m_SQL, szHostName, szUserName, szPassword, szDBName, nPort, nullptr, 0)){

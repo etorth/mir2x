@@ -28,7 +28,7 @@ Install the dependencies and devDependencies and start the server.
 $ git clone https://github.com/etorth/mir2x.git
 $ cd mir2x
 $ mkdir b
-$ cd b 
+$ cd b
 $ cmake ..
 $ make
 ```
@@ -84,7 +84,7 @@ mir2x uses a number of open source projects to work properly, and of course itse
 * [g3log](https://github.com/KjellKod/g3log) - An asynchronous, "crash safe", logger that is easy to use.
 * [lua](https://www.lua.org/) - A powerful, efficient, lightweight, embeddable scripting language.
 * [sol2](https://github.com/ThePhD/sol2) - A fast, simple C++ and Lua binding.
-* [mariadb](https://mariadb.org/) - A community-developed fork of the MySQL relational database management system.
+* [MySQL](https://www.mysql.com/) - The world's most popular open source database
 * [luasql](https://keplerproject.github.io/luasql/) - LuaSQL is a simple interface from Lua to a DBMS.
 * [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - A simple, small, efficient, C++ XML parser.
 * [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for UTF-8 string handling.

@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cstdarg>
 #include <cstring>
-#include <mariadb/mysql.h>
+#include <mysql/mysql.h>
 
 #include "dbrecord.hpp"
 #include "dbconnection.hpp"
@@ -68,7 +68,7 @@ bool DBRecord::Query(const char *szQueryCmd)
         goto __DBRECORD_QUERY_DONE_QUERY_LABEL_1;
     }
 
-    // ok now we can do the query 
+    // ok now we can do the query
 
     // 4. query
     if(!mysql_query(m_Connection->m_SQL, szQueryCmd)){

@@ -5,7 +5,7 @@
  *        Created: 09/03/2015 03:49:00 AM
  *  Last Modified: 03/27/2017 13:18:52
  *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -19,7 +19,7 @@
  */
 #pragma once
 #include <new>
-#include <mariadb/mysql.h>
+#include <mysql/mysql.h>
 
 #include "dbrecord.hpp"
 

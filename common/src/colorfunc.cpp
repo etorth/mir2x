@@ -5,7 +5,7 @@
  *        Created: 03/31/2016 19:48:57
  *  Last Modified: 08/22/2017 10:52:05
  *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -22,6 +22,7 @@
 #include <cstring>
 #include <algorithm>
 #include "colorfunc.hpp"
+#include <cmath>
 
 SDL_Color ColorFunc::RGBA2Color(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
 {
