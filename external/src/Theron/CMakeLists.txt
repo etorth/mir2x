@@ -18,4 +18,4 @@ include_directories(SYSTEM
   ${CMAKE_SOURCE_DIR}/external/include
 )
 
-add_library(therond STATIC ${THERON_SRCS})
+add_library(theron STATIC ${THERON_SRCS})
