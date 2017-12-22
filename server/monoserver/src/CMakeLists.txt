@@ -4,6 +4,7 @@ SET(FLTK_CPP_SRC "")
 
 include_directories(SYSTEM
   ${CMAKE_SOURCE_DIR}/external/include
+  ${MARIADB_INCLUDE_DIR}
 )
 
 FOREACH(FLTK_SRC ${FLTK_ALL_SRC})

@@ -84,6 +84,7 @@ FIND_PACKAGE(zip    REQUIRED)
 FIND_PACKAGE(asio    REQUIRED)
 FIND_PACKAGE(tinyxml2    REQUIRED)
 FIND_PACKAGE(xs    REQUIRED)
+FIND_PACKAGE(mariadb    REQUIRED)
 
 # 7. for libthread, compile arguments matching is required
 #    reason why I disable NDEBUG
