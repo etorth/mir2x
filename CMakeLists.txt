@@ -83,6 +83,7 @@ FIND_PACKAGE(g3log  REQUIRED)
 FIND_PACKAGE(zip    REQUIRED)
 FIND_PACKAGE(asio    REQUIRED)
 FIND_PACKAGE(tinyxml2    REQUIRED)
+FIND_PACKAGE(xs    REQUIRED)
 
 # 7. for libthread, compile arguments matching is required
 #    reason why I disable NDEBUG
