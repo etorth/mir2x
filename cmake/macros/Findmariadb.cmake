@@ -4,7 +4,11 @@
 # MARIADB_LIBRARY     - full path to the MARIADB library
 # MARIADB_FOUND       - TRUE if MARIADB was found
 
-FIND_PATH(MARIADB_INCLUDE_DIR mariadb/mysql.h)
+FIND_PATH(MARIADB_INCLUDE_DIR mysql.h
+    /usr/local/include/mariadb
+    /usr/include/mariadb
+)
+
 FIND_LIBRARY(MARIADB_LIBRARY NAMES mariadb)
 
 set(MARIADB_FOUND 0)
