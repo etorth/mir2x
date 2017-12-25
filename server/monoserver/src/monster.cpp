@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/21/2017 02:11:10
+ *  Last Modified: 12/21/2017 15:40:10
  *
  *    Description: 
  *
@@ -676,11 +676,14 @@ bool Monster::GoDie()
                 switch(GetState(STATE_DEAD)){
                     case 0:
                         {
-                            SetState(STATE_DEAD, 1);
-
                             RandomDropItem();
                             DispatchHitterExp();
                             DispatchAction(ActionDie(X(), Y(), Direction()));
+
+                            // let's dispatch ActionDie before mark it dead
+                            // theoratically dead actor shouldn't dispatch anything
+
+                            SetState(STATE_DEAD, 1);
 
                             extern MonoServer *g_MonoServer;
                             g_MonoServer->AddLog(LOGTYPE_WARNING, "Monster dead: %d", (int)(UID()));

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 12/20/2017 00:50:13
+ *  Last Modified: 12/24/2017 22:10:15
  *
  *    Description:
  *
@@ -79,7 +79,7 @@ class ServerMap: public ActiveObject
             int Query;
 
             // on every grid there could be one item on ground
-            std::array<CommonItem, SYS_MAXDROPITEM> GroundItemList;
+            CacheQueue<CommonItem, SYS_MAXDROPITEM> GroundItemQueue;
 
             CellRecord()
                 : Lock(false)
@@ -89,7 +89,7 @@ class ServerMap: public ActiveObject
                 , SwitchX(-1)
                 , SwitchY(-1)
                 , Query(QUERY_NONE)
-                , GroundItemList()
+                , GroundItemQueue()
             {}
         };
 
@@ -169,10 +169,10 @@ class ServerMap: public ActiveObject
 
     private:
         int FindGroundItem(int, int, uint32_t);
-        int DropItemListCount(int, int);
+        int GroundItemCount(int, int, uint32_t);
+
         bool AddGroundItem(int, int, const CommonItem &);
         void RemoveGroundItem(int, int, uint32_t);
-        void ReportGroundItem(uint32_t, int, int);
 
     private:
         void DoCircle(int, int, int,      const std::function<bool(int, int)> &);

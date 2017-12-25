@@ -3,17 +3,38 @@
  *
  *       Filename: cachequeue.hpp
  *        Created: 02/25/2016 01:01:40
- *  Last Modified: 05/20/2017 21:44:57
+ *  Last Modified: 12/24/2017 20:48:52
  *
- *    Description: linear cache queue
+ *    Description: fixed size linear cache queue
+ *                 may use Boost.Circular Buffer in furture
  *
- *                      1. no PushBack() since this is for LRU
- *                      2. accept N == 0 since which means we disable cache
- *                      3. to enable following traverse
+ *                 1. support push/pop at begin and end
+ *                    pop an empty cache queue will do nothing
+ *                    push to a full cache queue would override the data
+ *                        a. void PushHead(T &&)/PopHead()
+ *                        b. void PushBack(T &&)/PopBack()
  *
- *                          // for(stCQ.Reset(); !stCQ.Done(); stCQ.Forward()){
- *                          //     stCQ.Current();
- *                          // }
+ *                 2. support access the first and last element
+ *                    undefined behavior if current cache queue is zero-capacity/zero-length
+ *                        a. T& Head()
+ *                        b. T& Back()
+ *
+ *                 3. support circular iterator with self-increment
+ *                    itreator do circular addition with current cache queue size
+ *                        a. Begin()        // as v.begin()
+ *
+ *                    won't suppot end(), since p++ would never reach end()
+ *                    instead we use static method Null(), usage of iteration:
+ *
+ *                         // for(int nIndex = 0; nIndex < stQ.Length(); ++nIndex){
+ *                         //     func(stQ[nIndex]);
+ *                         // }
+ *
+ *                         // auto p = stQ.Begin()
+ *                         // for(int nIndex = 0; nIndex < stQ.Length(); ++nIndex, ++p){
+ *                         //     func(*p);
+ *                         // }
+ *
  *        Version: 1.0
  *       Revision: none
  *       Compiler: gcc
@@ -28,128 +49,451 @@
 #pragma once
 #include <array>
 #include <algorithm>
+#include "condcheck.hpp"
 
-template<typename T, size_t N>
-class CacheQueue final
+template<typename T, size_t N> class CacheQueue final
 {
+    public:
+
+        // iterator can be null or invalid after construction
+        // but when de-ref it we will do DerefCheck() and crash if dangling
+
+        class Iterator final
+        {
+            private:
+                CacheQueue<T, N> *m_CacheQueue;
+
+            private:
+                size_t m_At;
+
+            public:
+                Iterator()
+                    : m_CacheQueue(nullptr)
+                    , m_At(0)
+                {}
+
+               ~Iterator() = default;
+
+            private:
+
+                // hide from user
+                // only CacheQueue::Begin() can construct it
+
+                friend class CacheQueue<T, N>;
+                Iterator(CacheQueue<T, N> *pCacheQueue = nullptr, size_t nAt = 0)
+                    : m_CacheQueue(pCacheQueue)
+                    , m_At(nAt)
+                {}
+
+            public:
+                operator bool () const
+                {
+                    return m_CacheQueue != nullptr;
+                }
+
+            public:
+                size_t At() const
+                {
+                    return m_At;
+                }
+
+            private:
+                void DerefCheck() const
+                {
+                    condcheck(true
+                            &&  m_CacheQueue
+                            &&  m_CacheQueue->Capacity() > 0
+                            && !m_CacheQueue->Empty()
+
+                            && m_At >= 0
+                            && m_At <  m_CacheQueue->Length());
+                }
+
+            private:
+                void Forward(int nForward)
+                {
+                    if(nForward){
+                        DerefCheck();
+                        m_At = (m_At + nForward + m_CacheQueue->Length()) % m_CacheQueue->Length();
+                    }
+                }
+
+            public:
+                Iterator & operator ++ ()
+                {
+                    Forward(1);
+                    return *this;
+                }
+
+                Iterator operator ++ (int)
+                {
+                    auto stRet = *this;
+                    Forward(1);
+
+                    return stRet;
+                }
+
+                Iterator operator + (int nForward)
+                {
+                    auto stRet = *this;
+                    stRet.Forward(nForward);
+                    return stRet;
+                }
+
+                T & operator * ()
+                {
+                    DerefCheck();
+                    return m_CacheQueue->At(At());
+                }
+
+                const T & operator * () const
+                {
+                    DerefCheck();
+                    return m_CacheQueue->At(At());
+                }
+
+                T * operator -> ()
+                {
+                    DerefCheck();
+                    return &(m_CacheQueue->At(At()));
+                }
+
+                const T * operator -> () const
+                {
+                    DerefCheck();
+                    return &(m_CacheQueue->At(At()));
+                }
+
+            public:
+                bool operator == (const Iterator &stLHS) const
+                {
+                    return m_CacheQueue == stLHS.m_CacheQueue && m_At == stLHS.m_At;
+                }
+
+            public:
+                Iterator & operator = (const Iterator &rstLHS)
+                {
+                    // simple class
+                    // I won't use the swap here
+
+                    m_CacheQueue = rstLHS.m_CacheQueue;
+                    m_At         = rstLHS.m_At;
+                }
+        };
+
+        // const version of the iterator
+        // used for iteratioin on const cache queue
+
+        class CIterator
+        {
+            private:
+                CacheQueue<T, N> *m_CacheQueue;
+
+            private:
+                size_t m_At;
+
+            public:
+                CIterator()
+                    : m_CacheQueue(nullptr)
+                    , m_At(0)
+                {}
+
+               ~CIterator() = default;
+
+            private:
+
+                // hide it from user
+                // only CacheQueue::Begin() can construct it
+
+                friend class CacheQueue<T, N>;
+                CIterator(CacheQueue<T, N> *pCacheQueue = nullptr, size_t nAt = 0)
+                    : m_CacheQueue(pCacheQueue)
+                    , m_At(nAt)
+                {}
+
+            public:
+                operator bool () const
+                {
+                    return m_CacheQueue != nullptr;
+                }
+
+            public:
+                size_t At() const
+                {
+                    return m_At;
+                }
+
+            private:
+                void DerefCheck() const
+                {
+                    condcheck(false
+                            &&  m_CacheQueue
+                            &&  m_CacheQueue->Capacity() != 0
+                            && !m_CacheQueue->Empty()
+
+                            && m_At >= 0
+                            && m_At <  m_CacheQueue->Length());
+                }
+
+            protected:
+                void Forward(int nForward)
+                {
+                    if(nForward){
+                        DerefCheck();
+                        m_At = (m_At + nForward + m_CacheQueue->Length()) % m_CacheQueue->Length();
+                    }
+                }
+
+            public:
+                CIterator & operator ++ ()
+                {
+                    Forward(1);
+                    return *this;
+                }
+
+                CIterator operator ++ (int)
+                {
+                    auto stRet = *this;
+                    Forward(1);
+
+                    return stRet;
+                }
+
+                CIterator operator + (int nForward)
+                {
+                    auto stRet = *this;
+                    stRet.Forward(nForward);
+                    return stRet;
+                }
+
+                const T & operator * () const
+                {
+                    DerefCheck();
+                    return m_CacheQueue->At(At());
+                }
+
+                const T * operator -> () const
+                {
+                    DerefCheck();
+                    return &(m_CacheQueue->At(At()));
+                }
+
+            public:
+                bool operator == (const Iterator &stLHS) const
+                {
+                    return m_CacheQueue == stLHS.m_CacheQueue && m_At == stLHS.m_At;
+                }
+
+            public:
+                Iterator & operator = (const Iterator &rstLHS)
+                {
+                    // simple class
+                    // I won't use the swap here
+
+                    m_CacheQueue = rstLHS.m_CacheQueue;
+                    m_At         = rstLHS.m_At;
+                }
+        };
+
     private:
         std::array<T, N> m_CircleQ;
 
     private:
-        size_t m_Head;
-        size_t m_Size;
-        size_t m_CheckCount;
+        size_t m_Head;          // point to the first element
+        size_t m_CurrSize;      // how many elements we have in the queue
 
     public:
         CacheQueue()
             : m_CircleQ()
             , m_Head(0)
-            , m_Size(0)
-            , m_CheckCount(0){}
+            , m_CurrSize(0)
+        {}
 
        ~CacheQueue() = default;
 
     public:
-        size_t Capacity() const
+        static Iterator Null()
         {
-            return N;
+            return {nullptr, 0};
         }
 
+        static CIterator CNull()
+        {
+            return {nullptr, 0};
+        }
+
+    public:
+        Iterator Begin()
+        {
+            return Empty() ? Null() : Iterator(this, 0);
+        }
+
+        CIterator Begin() const
+        {
+            return Empty() ? Null() : CIterator(this, 0);
+        }
+
+        CIterator CBegin() const
+        {
+            return Empty() ? Null() : CIterator(this, 0);
+        }
+
+    public:
+        constexpr size_t Capacity() const
+        {
+            return m_CircleQ.size();
+        }
+
+    public:
         size_t Size() const
         {
-            return m_Size;
+            return m_CurrSize;
         }
 
+        size_t Length() const
+        {
+            return Size();
+        }
+
+    public:
         bool Empty() const
         {
-            return m_Size == 0;
+            return m_CurrSize == 0;
         }
 
         bool Full() const
         {
-            return m_Size == N;
+            return m_CurrSize == Capacity();
         }
 
-        size_t Index() const
-        {
-            return (m_Head + m_CheckCount) % N;
-        }
-
+    public:
         T &Head()
         {
-            // undefined when N == 0
-            // but seems std::array<T, 0> won't fail
-            // request of CacheQueue<T, N> is by std::array<T, N>
+            condcheck((Capacity() != 0) && (!Empty()));
+            return m_CircleQ[m_Head];
+        }
+
+        const T &Head() const
+        {
+            condcheck((Capacity() != 0) && (!Empty()));
             return m_CircleQ[m_Head];
         }
 
         T &Back()
         {
-            return m_CircleQ[(m_Head + m_Size - 1 + N) % N];
+            condcheck((Capacity() != 0) && (!Empty()));
+            return m_CircleQ[(m_Head + Length() + Capacity() - 1) % Capacity()];
         }
 
-        T &Current()
+        const T &Back() const
         {
-            return m_CircleQ[Index()];
+            condcheck((Capacity() != 0) && (!Empty()));
+            return m_CircleQ[(m_Head + Length() + Capacity() - 1) % Capacity()];
         }
 
-        void SwapHead(size_t nIndex)
-        {
-            std::swap(Head(), m_CircleQ[nIndex]);
-        }
-
+    public:
         template<typename... U> void PushHead(U&&... u)
         {
-            // 1. don't call it during the traversing
-            // 2. may throw
-            if(m_Size == 0){
-                // empty queue we need to use PushBack() instead
-                m_CircleQ[0] = T(std::forward<U>(u)...);
+            condcheck(Capacity() != 0);
+            if(Empty()){
                 m_Head       = 0;
-                m_Size       = 1;
+                m_CircleQ[0] = T(std::forward<U>(u)...);
+                m_CurrSize   = 1;
             }else{
-                m_CircleQ[(m_Head - 1 + N) % N] = T(std::forward<U>(u)...);
-                m_Head = ((m_Head - 1 + N) % N);
-                m_Size = std::min(N, m_Size + 1);
+                m_Head = ((m_Head + Capacity() - 1) % Capacity());
+                m_CircleQ[m_Head] = T(std::forward<U>(u)...);
+                m_CurrSize = std::min<size_t>(m_CurrSize + 1, Capacity());
             }
         }
 
-        // TODO
-        // for LRU we don't need this pop function
-        // keep it for completion
+        template<typename... U> void PushBack(U&&... u)
+        {
+            condcheck(Capacity() != 0);
+            if(Empty()){
+                m_Head       = 0;
+                m_CircleQ[0] = T(std::forward<U>(u)...);
+                m_CurrSize   = 1;
+            }else if(Full()){
+                m_CircleQ[m_Head] = T(std::forward<U>(u)...);
+                m_Head = (m_Head + 1) % Capacity();
+            }else{
+                m_CircleQ[(m_Head + Length()) % Capacity()] = T(std::forward<U>(u)...);
+                m_CurrSize = std::min<size_t>(m_CurrSize + 1, Capacity());
+            }
+        }
+
+    public:
         void PopHead()
         {
-            // 1. if there is no element, do nothing
-            if(Empty()){ return; }
-
-            // now at least there is one element
-
-            // 2. move the head forward
-            m_Head = ((m_Head + 1) % N);
-
-            // 3. decrease the size by one
-            m_Size--;
+            if(!Empty()){
+                m_Head = (m_Head + 1) % Capacity();
+                m_CurrSize--;
+            }
         }
 
-        void Reset()
+        void PopBack()
         {
-            m_CheckCount = 0;
+            if(!Empty()){
+                m_CurrSize--;
+            }
         }
 
-        bool Done()
-        {
-            return m_CheckCount == m_Size;
-        }
-
-        void Forward()
-        {
-            m_CheckCount++;
-        }
-
+    public:
         void Clear()
         {
-            m_Head       = 0;
-            m_Size       = 0;
-            m_CheckCount = 0;
+            m_Head = 0;
+            m_CurrSize = 0;
+        }
+
+    public:
+        void Reset()
+        {
+            // circular queue rotation
+            // need to optimize since we do extra copy when queue is not full
+            std::rotate(m_CircleQ.begin(), m_CircleQ.end(), m_CircleQ.begin() + m_Head);
+        }
+
+    public:
+        T &Off(size_t nOff)
+        {
+            return m_CircleQ[nOff];
+        }
+
+        const T &Off(size_t nOff) const
+        {
+            return m_CircleQ[nOff];
+        }
+        
+    public:
+        T &At(size_t nIndex)
+        {
+            return m_CircleQ[(m_Head + nIndex + Capacity()) % Capacity()];
+        }
+
+        const T &At(size_t nIndex) const
+        {
+            return m_CircleQ[(m_Head + nIndex + Capacity()) % Capacity()];
+        }
+
+    public:
+        T & operator [] (size_t nIndex)
+        {
+            return At(nIndex);
+        }
+
+        const T & operator [] (size_t nIndex) const
+        {
+            return At(nIndex);
+        }
+
+    public:
+        size_t HeadOff() const
+        {
+            return m_Head;
+        }
+
+        size_t BackOff() const
+        {
+            return (m_Head + Length() - 1 + Capacity()) % Capacity();
         }
 };

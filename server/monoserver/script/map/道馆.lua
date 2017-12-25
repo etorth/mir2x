@@ -2,7 +2,7 @@
 --
 --       Filename: 道馆.lua
 --        Created: 08/31/2015 08:52:57 PM
---  Last Modified: 12/21/2017 00:18:17
+--  Last Modified: 12/25/2017 01:45:47
 --
 --    Description: lua 5.3
 --
@@ -21,7 +21,7 @@ if g_Inited == nil then
     -- only initialize once
     -- initialize all global/constant variables
 
-    g_MaxMonsterCount = 4
+    g_MaxMonsterCount = 3
     g_LogicDelay      = 1000
     g_LastInvokeTime  = getTime()
 
@@ -54,6 +54,7 @@ if getTime() - g_LastInvokeTime > g_LogicDelay then
     if getMonsterCountInList() < g_MaxMonsterCount then
 
         addMonster(g_MonsterList[math.random(#g_MonsterList)], 400 + math.random(1, 5), 120 + math.random(1, 5), true)
+        addLog(LOGTYPE_WARNING, tostring(getMonsterCountInList()))
 
     end
 

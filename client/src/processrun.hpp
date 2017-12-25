@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 12/14/2017 23:43:55
+ *  Last Modified: 12/25/2017 00:09:14
  *
  *    Description: 
  *
@@ -17,10 +17,13 @@
  *
  * =====================================================================================
  */
+
 #pragma once
 #include <map>
 #include <list>
 #include <cstdint>
+#include <algorithm>
+
 #include "myhero.hpp"
 #include "process.hpp"
 #include "message.hpp"
@@ -92,7 +95,11 @@ class ProcessRun: public Process
         std::vector<std::shared_ptr<IndepMagic>> m_IndepMagicList;
 
     private:
+        // items in this list would keep in ordered
+        // then don't directly call push_back(), use AddGroundItem() instead
         std::vector<GroundItem> m_GroundItemList;
+
+    private:
         std::map<uint32_t, Creature*> m_CreatureRecord;
 
     private:
@@ -209,43 +216,48 @@ class ProcessRun: public Process
             return m_GroundItemList;
         }
 
-        GroundItem GetGroundItem(int nX, int nY)
+        std::vector<size_t> FindGroundItem(uint32_t nItemID, int nX, int nY)
         {
-            for(auto &rstItem: GetGroundItemList()){
+            std::vector<size_t> stvRet;
+            for(size_t nIndex = 0; nIndex < m_GroundItemList.size(); ++nIndex){
                 if(true
-                        && nX == rstItem.X
-                        && nY == rstItem.Y){
-                    return rstItem;
+                        && m_GroundItemList[nIndex].X == nX
+                        && m_GroundItemList[nIndex].Y == nY){
+
+                    if(false
+                            || nItemID == 0
+                            || nItemID == m_GroundItemList[nIndex].ID){
+                        stvRet.push_back(nIndex);
+                    }
                 }
             }
-            return {0};
+            return stvRet;
+        }
+
+        bool AddGroundItem(uint32_t nItemID, int nX, int nY)
+        {
+            if(nItemID && m_Mir2xMapData.ValidC(nX, nY)){
+                m_GroundItemList.push_back(GroundItem(nItemID, nX, nY));
+                return true;
+            }
+            return false;
         }
 
         void RemoveGroundItem(uint32_t nItemID, int nX, int nY)
         {
-            for(size_t nIndex = 0; nIndex < m_GroundItemList.size();){
+            for(auto pCurr = m_GroundItemList.begin(); pCurr != m_GroundItemList.end();){
                 if(true
-                        && m_GroundItemList[nIndex].X  == nX
-                        && m_GroundItemList[nIndex].Y  == nY){
+                        && pCurr->X == nX
+                        && pCurr->Y == nY){
 
-                    if(nItemID){
-                        if(m_GroundItemList[nIndex].ID == nItemID){
-                            std::swap(m_GroundItemList[nIndex], m_GroundItemList.back());
-                            m_GroundItemList.pop_back();
-
-                            // could have more than one stay there
-                            // we only remove one item from the location
-                            return;
-                        }
-                    }else{
-                        // zero item id
-                        // we need to remove all given location
-                        std::swap(m_GroundItemList[nIndex], m_GroundItemList.back());
-                        m_GroundItemList.pop_back();
+                    if(false
+                            || nItemID
+                            || nItemID == pCurr->ID){
+                        pCurr = m_GroundItemList.erase(pCurr);
                         continue;
                     }
                 }
-                nIndex++;
+                pCurr++;
             }
         }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 12/20/2017 02:38:00
+ *  Last Modified: 12/24/2017 22:11:58
  *
  *    Description: 
  *
@@ -843,9 +843,9 @@ void ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
 int ServerMap::FindGroundItem(int nX, int nY, uint32_t nItemID)
 {
     if(ValidC(nX, nY)){
-        auto &rstGroundItemList = m_CellRecordV2D[nX][nY].GroundItemList;
-        for(size_t nIndex = 0; nIndex < rstGroundItemList.size(); ++nIndex){
-            if(rstGroundItemList[nIndex].ID() == nItemID){
+        auto &rstGroundItemQueue = m_CellRecordV2D[nX][nY].GroundItemQueue;
+        for(size_t nIndex = 0; nIndex < rstGroundItemQueue.Length(); ++nIndex){
+            if(rstGroundItemQueue[nIndex].ID() == nItemID){
                 return (int)(nIndex);
             }
         }
@@ -853,30 +853,35 @@ int ServerMap::FindGroundItem(int nX, int nY, uint32_t nItemID)
     return -1;
 }
 
-void ServerMap::RemoveGroundItem(int nX, int nY, uint32_t nItemID)
+int ServerMap::GroundItemCount(int nX, int nY, uint32_t nItemID)
 {
-    while(true){
-        auto nIndex = FindGroundItem(nX, nY, nItemID);
-        if(nIndex >= 0){
-            m_CellRecordV2D[nX][nY].GroundItemList[nIndex] = CommonItem(0, 0);
+    if(ValidC(nX, nY)){
+        auto &rstGroundItemQueue = m_CellRecordV2D[nX][nY].GroundItemQueue;
+        if(nItemID == 0){
+            return (int)(rstGroundItemQueue.Length());
         }else{
-            return;
-        }
-    }
-}
-
-int ServerMap::DropItemListCount(int nX, int nY)
-{
-    if(GroundValid(nX, nY)){
-        int nCount = 0;
-        for(auto &rstCurrItem: m_CellRecordV2D[nX][nY].GroundItemList){
-            if(rstCurrItem){
-                nCount++;
+            int nCount = 0;
+            for(size_t nIndex = 0; nIndex < rstGroundItemQueue.Length(); ++nIndex){
+                if(rstGroundItemQueue[nIndex].ID() == nItemID){
+                    nCount++;
+                }
             }
+            return nCount;
         }
-        return nCount;
     }
     return -1;
+}
+
+void ServerMap::RemoveGroundItem(int nX, int nY, uint32_t nItemID)
+{
+    auto nFind = FindGroundItem(nX, nY, nItemID);
+    if(nFind >= 0){
+        auto &rstGroundItemQueue = m_CellRecordV2D[nX][nY].GroundItemQueue;
+        for(int nIndex = nFind; nIndex < ((int)(rstGroundItemQueue.Length()) - 1); ++nIndex){
+            rstGroundItemQueue[nIndex] = rstGroundItemQueue[nIndex + 1];
+        }
+        rstGroundItemQueue.PopBack();
+    }
 }
 
 bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
@@ -885,56 +890,46 @@ bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
             && rstItem
             && GroundValid(nX, nY)){
 
-        // search for item id as 0
-        // find a slot to store the new item
+        // check if item is valid
+        // then push back and report, would override if already full
 
-        auto nEmptyIndex = FindGroundItem(nX, nY, 0);
-        if(nEmptyIndex >= 0){
-            auto &rstGroundItemList = m_CellRecordV2D[nX][nY].GroundItemList;
-            rstGroundItemList[nEmptyIndex] = rstItem;
+        auto &rstGroundItemQueue = m_CellRecordV2D[nX][nY].GroundItemQueue;
+        rstGroundItemQueue.PushBack(rstItem);
 
-            // report to all charobject around
-            // since there are one more drop item for each grid
-            // client / server side may have different drop item list
+        AMShowDropItem stAMSDI;
+        std::memset(&stAMSDI, 0, sizeof(stAMSDI));
 
-            // not a big issue
-            // force they to contain the same set
+        stAMSDI.X = nX;
+        stAMSDI.Y = nY;
 
-            AMShowDropItem stAMSDI;
-            std::memset(&stAMSDI, 0, sizeof(stAMSDI));
-
-            stAMSDI.X = nX;
-            stAMSDI.Y = nY;
-
-            size_t nCurrLoc = 0;
-            for(size_t nIndex = 0; nIndex < rstGroundItemList.size(); ++nIndex){
-                if(rstGroundItemList[nIndex]){
-                    if(nCurrLoc < std::extent<decltype(stAMSDI.IDList)>::value){
-                        stAMSDI.IDList[nCurrLoc++] = rstGroundItemList[nIndex].ID();
-                    }else{
-                        break;
-                    }
+        size_t nCurrLoc = 0;
+        for(size_t nIndex = 0; nIndex < rstGroundItemQueue.Length(); ++nIndex){
+            if(rstGroundItemQueue[nIndex]){
+                if(nCurrLoc < std::extent<decltype(stAMSDI.IDList)>::value){
+                    stAMSDI.IDList[nCurrLoc++] = rstGroundItemQueue[nIndex].ID();
+                }else{
+                    break;
                 }
             }
+        }
 
-            auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
-            {
-                if(true || ValidC(nX, nY)){
-                    for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
-                        extern MonoServer *g_MonoServer;
-                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(stUIDRecord.ClassFrom<Player>()){
-                                m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.Address);
-                            }
+        auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
+        {
+            if(true || ValidC(nX, nY)){
+                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                    extern MonoServer *g_MonoServer;
+                    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                        if(stUIDRecord.ClassFrom<Player>()){
+                            m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.Address);
                         }
                     }
                 }
-                return false;
-            };
+            }
+            return false;
+        };
 
-            DoCircle(nX, nY, 10, fnNotifyDropItem);
-            return true;
-        }
+        DoCircle(nX, nY, 10, fnNotifyDropItem);
+        return true;
     }
     return false;
 }
@@ -1125,33 +1120,4 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
         return true;
     }
     return false;
-}
-
-void ServerMap::ReportGroundItem(uint32_t nSessionID, int nX, int nY)
-{
-    if(nSessionID && GroundValid(nX, nY)){
-        SMShowDropItem stSMSDI;
-        std::memset(&stSMSDI, 0, sizeof(stSMSDI));
-
-        auto &rstGroundItemList = m_CellRecordV2D[nX][nY].GroundItemList;
-        constexpr auto nSMIDListLen = std::extent<decltype(stSMSDI.IDList)>::value;
-        static_assert(nSMIDListLen >= std::tuple_size<std::remove_reference_t<decltype(rstGroundItemList)>>::value, "");
-
-        stSMSDI.X = nX;
-        stSMSDI.Y = nY;
-
-        size_t nCurrLoc = 0;
-        for(size_t nIndex = 0; nIndex < rstGroundItemList.size(); ++nIndex){
-            if(rstGroundItemList[nIndex]){
-                if(nCurrLoc < nSMIDListLen){
-                    stSMSDI.IDList[nCurrLoc++] = rstGroundItemList[nIndex].ID();
-                }else{
-                    break;
-                }
-            }
-        }
-
-        extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(nSessionID, SM_SHOWDROPITEM, stSMSDI);
-    }
 }

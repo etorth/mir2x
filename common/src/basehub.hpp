@@ -3,7 +3,7 @@
  *
  *       Filename: basehub.hpp
  *        Created: 04/03/2016 03:49:00
- *  Last Modified: 05/21/2017 00:30:28
+ *  Last Modified: 12/25/2017 00:32:16
  *
  *    Description: 
  *
@@ -47,7 +47,9 @@ class BaseHub
         void Launch()
         {
             // 1. if running then do nothing
-            if(State()){ return; }
+            if(State()){
+                return;
+            }
 
             // ok it's stopped
 
@@ -67,7 +69,9 @@ class BaseHub
     protected:
         void Join()
         {
-            if(m_Thread.joinable()){ m_Thread.join(); }
+            if(m_Thread.joinable()){
+                m_Thread.join();
+            }
         }
 
     protected:

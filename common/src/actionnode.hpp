@@ -3,7 +3,7 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 12/21/2017 01:06:57
+ *  Last Modified: 12/25/2017 00:50:15
  *
  *    Description:
  *
@@ -96,22 +96,27 @@ struct ActionMove
 
 struct ActionPushMove
 {
-    int X;
-    int Y;
+    int X = -1;
+    int Y = -1;
 
-    ActionPushMove(int nX = -1, int nY = -1)
+    int AimX = -1;
+    int AimY = -1;
+
+    ActionPushMove(int nX, int nY, int nAimX, int nAimY)
         : X(nX)
         , Y(nY)
+        , AimX(nAimX)
+        , AimY(nAimY)
     {}
 };
 
 struct ActionSpaceMove1
 {
-    int X;
-    int Y;
-    int Direction;
+    int X = -1;
+    int Y = -1;
+    int Direction = -1;
 
-    ActionSpaceMove1(int nX = -1, int nY = -1, int nDirection = -1)
+    ActionSpaceMove1(int nX, int nY, int nDirection)
         : X(nX)
         , Y(nY)
         , Direction(nDirection)
@@ -120,11 +125,11 @@ struct ActionSpaceMove1
 
 struct ActionSpaceMove2
 {
-    int X;
-    int Y;
-    int Direction;
+    int X = -1;
+    int Y = -1;
+    int Direction = -1;
 
-    ActionSpaceMove2(int nX = -1, int nY = -1, int nDirection = -1)
+    ActionSpaceMove2(int nX, int nY, int nDirection)
         : X(nX)
         , Y(nY)
         , Direction(nDirection)
@@ -152,11 +157,11 @@ struct ActionAttack
 
 struct ActionHitted
 {
-    int X;
-    int Y;
-    int Direction;
+    int X = -1;
+    int Y = -1;
+    int Direction = -1;
 
-    ActionHitted(int nX = -1, int nY = -1, int nDirection = -1)
+    ActionHitted(int nX, int nY, int nDirection)
         : X(nX)
         , Y(nY)
         , Direction(nDirection)
@@ -165,12 +170,12 @@ struct ActionHitted
 
 struct ActionPickUp
 {
-    int X;
-    int Y;
+    int X = -1;
+    int Y = -1;
 
-    uint32_t ItemID;
+    uint32_t ItemID = 0;
 
-    ActionPickUp(int nX = -1, int nY = -1, uint32_t nItemID = 0)
+    ActionPickUp(int nX, int nY, uint32_t nItemID)
         : X(nX)
         , Y(nY)
         , ItemID(nItemID)

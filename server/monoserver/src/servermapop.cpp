@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 12/15/2017 01:04:46
+ *  Last Modified: 12/24/2017 22:19:49
  *
  *    Description: 
  *
@@ -775,7 +775,7 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Addr
     if(true
             && stAMNDI.ID
             && stAMNDI.Value > 0
-            && ValidC(stAMNDI.X, stAMNDI.Y)){
+            && GroundValid(stAMNDI.X, stAMNDI.Y)){
 
         bool bHoldInOne = false;
         switch(stAMNDI.ID){
@@ -804,13 +804,12 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Addr
             RotateCoord stRC;
             if(stRC.Reset(stAMNDI.X, stAMNDI.Y, 0, 0, W(), H())){
                 do{
-                    if(true
-                            && ValidC(stRC.X(), stRC.Y())
-                            && GroundValid(stRC.X(), stRC.Y())){
+                    if(GroundValid(stRC.X(), stRC.Y())){
 
                         // valid grid
                         // check if gird good to hold
-                        auto nCurrCount = DropItemListCount(stRC.X(), stRC.Y());
+
+                        auto nCurrCount = GroundItemCount(stRC.X(), stRC.Y(), 0);
                         if(nCurrCount >= 0){
                             if(nCurrCount < nMinCount){
                                 nMinCount = nCurrCount;
@@ -819,13 +818,14 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Addr
 
                                 // short it if it's an empty slot
                                 // directly use it and won't compare more
+
                                 if(nMinCount == 0){
                                     break;
                                 }
                             }
                         }
                     }
-                }while(stRC.Forward() && (nCheckGrid <= SYS_MAXDROPITEMGRID));
+                }while(stRC.Forward() && (nCheckGrid++ <= SYS_MAXDROPITEMGRID));
             }
 
             if(GroundValid(nBestX, nBestY)){

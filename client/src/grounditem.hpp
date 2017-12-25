@@ -3,7 +3,7 @@
  *
  *       Filename: grounditem.hpp
  *        Created: 07/30/2017 20:59:10
- *  Last Modified: 12/01/2017 18:02:22
+ *  Last Modified: 12/24/2017 23:31:41
  *
  *    Description: 
  *
@@ -21,12 +21,12 @@
 #pragma once
 struct GroundItem
 {
-    uint32_t ID;
+    uint32_t ID = 0;
 
-    int X;
-    int Y;
+    int X = -1;
+    int Y = -1;
 
-    GroundItem(uint32_t nID = 0, int nX = -1, int nY = -1)
+    GroundItem(uint32_t nID, int nX, int nY)
         : ID(nID)
         , X(nX)
         , Y(nY)
