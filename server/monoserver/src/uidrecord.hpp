@@ -3,7 +3,7 @@
  *
  *       Filename: uidrecord.hpp
  *        Created: 05/01/2017 11:35:58
- *  Last Modified: 09/23/2017 22:24:43
+ *  Last Modified: 12/26/2017 01:11:02
  *
  *    Description: UID entry won't take care of one specific class
  *                 It's a framework for all classes derived from ServerObject
@@ -22,6 +22,7 @@
 #pragma once
 #include <vector>
 #include <cstdint>
+#include <typeinfo>
 #include <Theron/Address.h>
 
 #include "invardata.hpp"
@@ -57,8 +58,10 @@ struct UIDRecord
         if(Valid()){
             for(const auto &rstCodeName: ClassEntry){
                 if(true
-                        && rstCodeName.Name == typeid(T).name()
-                        && rstCodeName.Code == typeid(T).hash_code()){ return true; }
+                     // && rstCodeName.Name == typeid(T).name()
+                        && rstCodeName.Code == typeid(T).hash_code()){
+                    return true;
+                }
             }
         }
         return false;

@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 12/14/2017 20:51:23
+ *  Last Modified: 12/26/2017 06:06:24
  *
  *    Description: 
  *
@@ -40,7 +40,7 @@ ActiveObject::ActiveObject()
     {
         extern MonoServer *g_MonoServer;
         if(!m_DelayCmdQ.empty()){
-            if(m_DelayCmdQ.top().Tick() <= g_MonoServer->GetTimeTick()){
+            if(g_MonoServer->GetTimeTick() >= m_DelayCmdQ.top().Tick()){
                 try{
                     m_DelayCmdQ.top()();
                 }catch(...){

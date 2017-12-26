@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 12/25/2017 03:09:53
+ *  Last Modified: 12/26/2017 00:55:20
  *
  *    Description: 
  *
@@ -675,10 +675,14 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
                         //    this helps to detach *this* from the actor thread of m_ActorPod, then deletion in other thread is OK
                         //
                         //    then deletion of m_ActorPod will wait if m_ActorPod is scheduled in actor threads
-                        //
-                        auto bActive = pRecord->second->ClassFrom<ActiveObject>();
-                        auto stAddress = bActive ? ((ActiveObject *)(pRecord->second))->GetAddress() : Theron::Address::Null();
-                        return {nUID, pRecord->second->GetInvarData(), stAddress, pRecord->second->ClassEntry()};
+
+                        // TODO:
+                        // GetUIDRecord() is called with very high frequency
+                        // then here I ignore the check:
+                        //      pRecord->second->ClassFrom<ActiveObject>()
+                        // just assume by default all server object is created as active object in the hash map
+
+                        return {nUID, pRecord->second->GetInvarData(), ((ActiveObject *)(pRecord->second))->GetAddress(), pRecord->second->ClassEntry()};
                     }else{
                         AddLog(LOGTYPE_WARNING, "UIDArray mismatch: UID = (%" PRIu32 ", %" PRIu32 ")", nUID, pRecord->second->UID());
                     }

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/25/2017 15:51:31
+ *  Last Modified: 12/26/2017 06:05:01
  *
  *    Description: 
  *
@@ -478,7 +478,10 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLoca
                                     stAML.Y,
                                     stAML.Direction
                                 };
-                                if(fnOnLocationOK){ fnOnLocationOK(m_LocationRecord[nUID]); }
+
+                                if(fnOnLocationOK){
+                                    fnOnLocationOK(m_LocationRecord[nUID]);
+                                }
                             }else{
                                 m_LocationRecord.erase(nUID);
                             }
@@ -513,8 +516,11 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLoca
         if(true
                 && m_Map
                 && m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)
-                && (rstRecord.RecordTime + 2 * 1000 < g_MonoServer->GetTimeTick())){
-            if(fnOnLocationOK){ fnOnLocationOK(rstRecord); }
+                && g_MonoServer->GetTimeTick() <= rstRecord.RecordTime + 2 * 1000){
+
+            if(fnOnLocationOK){
+                fnOnLocationOK(rstRecord);
+            }
             return true;
         }
 

@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/25/2017 18:25:53
+ *  Last Modified: 12/26/2017 06:24:25
  *
  *    Description: 
  *
@@ -142,18 +142,17 @@ Monster::Monster(uint32_t   nMonsterID,
 bool Monster::RandomMove()
 {
     if(CanMove()){
-        // 1. try move ahead
-        //    would fail if next grid is not walkable
+        auto fnMoveOneStep = [this]() -> bool
         {
             int nX = -1;
             int nY = -1;
             if(OneStepReach(Direction(), 1, &nX, &nY) == 1){
                 return RequestMove(nX, nY, MoveSpeed(), false, [](){}, [](){});
             }
-        }
+            return false;
+        };
 
-        // 2. if current direction leads to a *impossible* place
-        //    then randomly take a new direction and try
+        auto fnMakeOneTurn = [this]() -> bool
         {
             static const int nDirV[]
             {
@@ -176,24 +175,39 @@ bool Monster::RandomMove()
                     int nX = -1;
                     int nY = -1;
                     if(OneStepReach(nDirection, 1, &nX, &nY) == 1){
-                        // TODO
                         // current direction is possible for next move
-                        // don't do turn and motion now
                         // report the turn and do motion (by chance) in next update
                         m_Direction = nDirection;
                         DispatchAction(ActionStand(X(), Y(), Direction()));
 
-                        // TODO
                         // we won't do ReportStand() for monster
                         // monster's moving is only driven by server currently
                         return true;
                     }
                 }
             }
+            return false;
+        };
+
+        // by 20% make a move
+        // if move failed we make a turn
+
+        if(std::rand() % 97 < 20){
+            if(!fnMoveOneStep()){
+                return fnMakeOneTurn();
+            }
+            return true;
         }
 
-        // 3. more motion method
-        //    ....
+        // by 20% make a turn only
+        // if didn't try the move/trun
+
+        if(std::rand() % 97 < 20){
+            return fnMakeOneTurn();
+        }
+
+        // do nothing
+        // stay as idle state
     }
     return false;
 }
@@ -602,7 +616,7 @@ bool Monster::CanMove()
 {
     if(CharObject::CanMove()){
         extern MonoServer *g_MonoServer;
-        return m_LastMoveTime + m_MonsterRecord.WalkWait <= g_MonoServer->GetTimeTick();
+        return g_MonoServer->GetTimeTick() >= m_LastMoveTime + m_MonsterRecord.WalkWait;
     }
     return false;
 }
@@ -611,7 +625,7 @@ bool Monster::CanAttack()
 {
     if(CharObject::CanAttack()){
         extern MonoServer *g_MonoServer;
-        return m_LastAttackTime + m_MonsterRecord.AttackWait <= g_MonoServer->GetTimeTick();
+        return g_MonoServer->GetTimeTick() >= m_LastAttackTime + m_MonsterRecord.AttackWait;
     }
     return false;
 }
@@ -694,7 +708,7 @@ bool Monster::GoDie()
                             extern MonoServer *g_MonoServer;
                             g_MonoServer->AddLog(LOGTYPE_WARNING, "Monster dead: %d", (int)(UID()));
 
-                            Delay(10 * 1000, [this](){ GoGhost(); });
+                            Delay(2 * 1000, [this](){ GoGhost(); });
                             return true;
                         }
                     default:
@@ -1029,7 +1043,7 @@ void Monster::CheckCurrTarget()
         // 1. check time-out
         {
             extern MonoServer *g_MonoServer;
-            if(m_TargetQueue[0].ActiveTime + 60 * 1000 < g_MonoServer->GetTimeTick()){
+            if(g_MonoServer->GetTimeTick() >= m_TargetQueue[0].ActiveTime + 60 * 1000){
                 m_TargetQueue.PopHead();
                 continue;
             }
