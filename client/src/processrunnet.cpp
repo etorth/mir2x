@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 12/23/2017 02:01:34
+ *  Last Modified: 12/25/2017 16:51:02
  *
  *    Description: 
  *
@@ -131,34 +131,34 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
     SMCORecord stSMCOR;
     std::memcpy(&stSMCOR, pBuf, sizeof(stSMCOR));
 
-    if(stSMCOR.Common.MapID == MapID()){
+    if(stSMCOR.Action.MapID == MapID()){
         ActionNode stAction
         {
-            stSMCOR.Common.Action,
-            stSMCOR.Common.Speed,
-            stSMCOR.Common.Direction,
-            stSMCOR.Common.X,
-            stSMCOR.Common.Y,
-            stSMCOR.Common.EndX,
-            stSMCOR.Common.EndY,
-            0,
-            stSMCOR.Common.ActionParam,
+            stSMCOR.Action.Action,
+            stSMCOR.Action.Speed,
+            stSMCOR.Action.Direction,
+            stSMCOR.Action.X,
+            stSMCOR.Action.Y,
+            stSMCOR.Action.AimX,
+            stSMCOR.Action.AimY,
+            stSMCOR.Action.AimUID,
+            stSMCOR.Action.ActionParam,
         };
 
-        auto pRecord = m_CreatureRecord.find(stSMCOR.Common.UID);
+        auto pRecord = m_CreatureRecord.find(stSMCOR.Action.UID);
         if(pRecord == m_CreatureRecord.end()){
-            switch(stSMCOR.Type){
+            switch(stSMCOR.COType){
                 case CREATURE_MONSTER:
                     {
-                        if(auto pMonster = Monster::Create(stSMCOR.Common.UID, stSMCOR.Monster.MonsterID, this, stAction)){
-                            m_CreatureRecord[stSMCOR.Common.UID] = pMonster;
+                        if(auto pMonster = Monster::Create(stSMCOR.Action.UID, stSMCOR.Monster.MonsterID, this, stAction)){
+                            m_CreatureRecord[stSMCOR.Action.UID] = pMonster;
                         }
                         break;
                     }
                 case CREATURE_PLAYER:
                     {
-                        auto pHero = new Hero(stSMCOR.Common.UID, stSMCOR.Player.DBID, true, 0, this, stAction);
-                        m_CreatureRecord[stSMCOR.Common.UID] = pHero;
+                        auto pHero = new Hero(stSMCOR.Action.UID, stSMCOR.Player.DBID, true, 0, this, stAction);
+                        m_CreatureRecord[stSMCOR.Action.UID] = pHero;
                         break;
                     }
                 default:

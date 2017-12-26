@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/21/2017 02:12:25
+ *  Last Modified: 12/25/2017 15:51:31
  *
  *    Description: 
  *
@@ -50,8 +50,8 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_AttackLock(false)
     , m_LastMoveTime(0)
     , m_LastAttackTime(0)
-    , m_TargetQ()
     , m_HitterUIDRecord()
+    , m_TargetQueue()
     , m_Ability()
     , m_WAbility()
     , m_AddAbility()

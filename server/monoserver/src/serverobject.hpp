@@ -3,7 +3,7 @@
  *
  *       Filename: serverobject.hpp
  *        Created: 04/13/2016 20:04:39
- *  Last Modified: 09/23/2017 22:44:38
+ *  Last Modified: 12/25/2017 03:12:19
  *
  *    Description: basis of all objects in monoserver, with
  *
@@ -99,7 +99,9 @@ class ServerObject
             for(const auto &rstCodeName: ClassEntry()){
                 if(true
                         && rstCodeName.Name == typeid(T).name()
-                        && rstCodeName.Code == typeid(T).hash_code()){ return true; }
+                        && rstCodeName.Code == typeid(T).hash_code()){
+                    return true;
+                }
             }
             return false;
         }

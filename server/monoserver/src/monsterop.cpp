@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 12/15/2017 23:44:13
+ *  Last Modified: 12/25/2017 14:52:13
  *
  *    Description: 
  *
@@ -36,7 +36,7 @@ void Monster::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address
     AMPullCOInfo stAMPCOI;
     std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
 
-    ReportCORecord(stAMPCOI.SessionID);
+    ReportCORecord(stAMPCOI.UID);
 }
 
 void Monster::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)

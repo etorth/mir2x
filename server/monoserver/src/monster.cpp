@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/21/2017 15:40:10
+ *  Last Modified: 12/25/2017 18:25:53
  *
  *    Description: 
  *
@@ -393,42 +393,45 @@ bool Monster::FollowMaster()
 
 bool Monster::TrackAttack()
 {
-    CheckTarget();
-    while(!m_TargetQ.empty()){
-        // 2. ok not expired
-        //    check if current UID is valid
-        //    track and record the track time if succeed
-        extern MonoServer *g_MonoServer;
-        if(auto stRecord = g_MonoServer->GetUIDRecord(m_TargetQ.front().UID)){
-            // 1. try to attack uid
-            for(auto nDC: m_MonsterRecord.DCList()){
-                if(AttackUID(stRecord.UID, nDC)){
-                    extern MonoServer *g_MonoServer;
-                    m_TargetQ.front().ActiveTime = g_MonoServer->GetTimeTick();
+    do{
+        CheckCurrTarget();
+        if(!m_TargetQueue.Empty()){
+
+            extern MonoServer *g_MonoServer;
+            if(auto stRecord = g_MonoServer->GetUIDRecord(m_TargetQueue[0].UID)){
+
+                // 1. try to attack uid
+                for(auto nDC: m_MonsterRecord.DCList()){
+                    if(AttackUID(stRecord.UID, nDC)){
+                        m_TargetQueue[0].ActiveTime = g_MonoServer->GetTimeTick();
+                        return true;
+                    }
+                }
+
+                // 2. try to track uid
+                if(TrackUID(stRecord.UID)){
+                    m_TargetQueue[0].ActiveTime = g_MonoServer->GetTimeTick();
                     return true;
                 }
-            }
 
-            // 2. try to track uid
-            if(TrackUID(stRecord.UID)){
-                m_TargetQ.front().ActiveTime = g_MonoServer->GetTimeTick();
-                return true;
-            }
+                // 3. not a proper target now
+                //    we keep the target (for 1min) and try next one
+                m_TargetQueue.Rotate(1);
 
-            // 3. not a proper target
-            //    try next one
-            m_TargetQ.push_back(m_TargetQ.front());
-            m_TargetQ.pop_front();
-            continue;
-        }else{
-            // 3. not valid even
-            //    delete directly and try next one
-            m_TargetQ.pop_front();
-            continue;
+            }else{
+
+                // head target is not valid anymore
+                // remove it from the target queue and try next
+
+                m_TargetQueue.PopHead();
+                continue;
+            }
         }
-    }
 
-    // no operation performed or issued
+    }while(!m_TargetQueue.Empty());
+
+    // no target
+    // this track-attack failed
     return false;
 }
 
@@ -516,39 +519,43 @@ void Monster::SearchViewRange()
 {
 }
 
-void Monster::ReportCORecord(uint32_t nSessionID)
+void Monster::ReportCORecord(uint32_t nUID)
 {
-    if(nSessionID){
-        SMCORecord stSMCOR;
-        // TODO: don't use OBJECT_MONSTER, we need translation
-        //       rule of communication, the sender is responsible to translate
-
-        // 1. set type
-        stSMCOR.Type = CREATURE_MONSTER;
-
-        // 2. set common info
-        stSMCOR.Common.UID   = UID();
-        stSMCOR.Common.MapID = MapID();
-
-        stSMCOR.Common.Action      = ACTION_STAND;
-        stSMCOR.Common.ActionParam = 0;
-        stSMCOR.Common.Speed       = SYS_DEFSPEED;
-        stSMCOR.Common.Direction   = Direction();
-
-        stSMCOR.Common.X    = X();
-        stSMCOR.Common.Y    = Y();
-        stSMCOR.Common.EndX = X();
-        stSMCOR.Common.EndY = Y();
-
-        // 3. set specified info
-        stSMCOR.Monster.MonsterID = m_MonsterID;
-
-        extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(nSessionID, SM_CORECORD, stSMCOR);
-    }else{
+    if(nUID){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
-        g_MonoServer->Restart();
+        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+            AMCORecord stAMCOR;
+            std::memset(&stAMCOR, 0, sizeof(stAMCOR));
+
+            // TODO: don't use OBJECT_MONSTER, we need translation
+            //       rule of communication, the sender is responsible to translate
+
+            // 1. set type
+            stAMCOR.COType = CREATURE_MONSTER;
+
+            // 2. set current action
+            stAMCOR.Action.UID   = UID();
+            stAMCOR.Action.MapID = MapID();
+
+            stAMCOR.Action.Action    = ACTION_STAND;
+            stAMCOR.Action.Speed     = SYS_DEFSPEED;
+            stAMCOR.Action.Direction = Direction();
+
+            stAMCOR.Action.X    = X();
+            stAMCOR.Action.Y    = Y();
+            stAMCOR.Action.AimX = X();
+            stAMCOR.Action.AimY = Y();
+
+            stAMCOR.Action.AimUID      = 0;
+            stAMCOR.Action.ActionParam = 0;
+
+            // 3. set specified co information
+            stAMCOR.Monster.MonsterID = MonsterID();
+
+            // don't reply to server map
+            // even get co information pull request from map
+            m_ActorPod->Forward({MPK_CORECORD, stAMCOR}, stUIDRecord.Address);
+        }
     }
 }
 
@@ -626,17 +633,25 @@ bool Monster::DCValid(int nDC, bool bCheck)
 void Monster::RemoveTarget(uint32_t nUID)
 {
     if(nUID){
-        auto fnUIDCmp = [nUID](const TargetRecord &rstRecord) -> bool
+
+        // cache queue don't support remove in middle
+        // we implement here
+
+        auto fnRemoveIndex = [this](int nIndex)
         {
-            return rstRecord.UID == nUID;
+            if(nIndex >= 0 && nIndex < (int)(m_TargetQueue.Length())){
+                m_TargetQueue.Rotate(nIndex);
+                m_TargetQueue.PopHead();
+                m_TargetQueue.Rotate(-1 * nIndex);
+            }
         };
 
-        // don't pass end() to std::deque::erase()
-        // loc should be valid and *dereferenceable* as requested by standard
-
-        auto pLoc = std::find_if(m_TargetQ.begin(), m_TargetQ.end(), fnUIDCmp);
-        if(pLoc != m_TargetQ.end()){
-            m_TargetQ.erase(pLoc);
+        for(size_t nIndex = 0; nIndex < m_TargetQueue.Length();){
+            if(m_TargetQueue[nIndex].UID == nUID){
+                fnRemoveIndex(nIndex);
+            }else{
+                nIndex++;
+            }
         }
     }
 }
@@ -647,24 +662,15 @@ void Monster::AddTarget(uint32_t nUID)
             && nUID
             && nUID != MasterUID()){
 
-        auto fnFindUID = [nUID](TargetRecord &rstRecord) -> bool
-        {
-            if(rstRecord.UID == nUID){
-                extern MonoServer *g_MonoServer;
-                rstRecord.ActiveTime = g_MonoServer->GetTimeTick();
-                return true;
-            }else{
-                return false;
+        extern MonoServer *g_MonoServer;
+        for(size_t nIndex = 0; nIndex < m_TargetQueue.Length(); ++nIndex){
+            if(m_TargetQueue[nIndex].UID == nUID){
+                m_TargetQueue[nIndex].ActiveTime = g_MonoServer->GetTimeTick();
+                return;
             }
-        };
-
-        // fnFindUID will update time stamp if find UID
-        // otherwise new record will be inserted to m_TargetQ
-
-        if(std::find_if(m_TargetQ.begin(), m_TargetQ.end(), fnFindUID) == m_TargetQ.end()){
-            extern MonoServer *g_MonoServer;
-            m_TargetQ.emplace_back(nUID, g_MonoServer->GetTimeTick());
         }
+
+        m_TargetQueue.PushBack(TargetRecord(nUID, g_MonoServer->GetTimeTick()));
     }
 }
 
@@ -1012,45 +1018,65 @@ void Monster::RandomDropItem()
     }
 }
 
-void Monster::CheckTarget()
+void Monster::CheckCurrTarget()
 {
-    for(auto pInst = m_TargetQ.begin(); pInst != m_TargetQ.end();){
-        extern MonoServer *g_MonoServer;
-        if(pInst->ActiveTime + 60 * 1000 <= g_MonoServer->GetTimeTick()){
-            pInst = m_TargetQ.erase(pInst);
-        }else{
-            pInst++;
-        }
-    }
+    // make the first target valid, means
+    // 1. not time out
+    // 2. not friend
 
-    for(auto &rstTarget: m_TargetQ){
-        auto fnOnFriend = [this, nUID = rstTarget.UID](int nFriendType)
+    while(!m_TargetQueue.Empty()){
+
+        // 1. check time-out
         {
-            switch(nFriendType){
-                case FRIENDTYPE_ENEMY:
-                    {
-                        break;
-                    }
-                default:
-                    {
-                        RemoveTarget(nUID);
-                        break;
-                    }
+            extern MonoServer *g_MonoServer;
+            if(m_TargetQueue[0].ActiveTime + 60 * 1000 < g_MonoServer->GetTimeTick()){
+                m_TargetQueue.PopHead();
+                continue;
             }
-        };
-        CheckFriend(rstTarget.UID, fnOnFriend);
+        }
+
+        // 2. remove friend
+        {
+            bool bFriend  = false;
+            auto nCurrUID = m_TargetQueue[0].UID;
+
+            CheckFriend(nCurrUID, [&bFriend](int nFriendType)
+            {
+                switch(nFriendType){
+                    case FRIENDTYPE_ENEMY:
+                        {
+                            break;
+                        }
+                    default:
+                        {
+                            bFriend = true;
+                            break;
+                        }
+                }
+            });
+
+            if(bFriend){
+                m_TargetQueue.PopHead();
+                continue;
+            }
+        }
+
+        // pass tests
+        // keep the head as current target
+
+        return;
     }
 }
 
-void Monster::CheckFriend(uint32_t nCheckUID, std::function<void(int)> fnOnFriend)
+void Monster::CheckFriend(uint32_t nCheckUID, const std::function<void(int)> &fnOnFriend)
 {
     enum UIDFromType: int
     {
-        UIDFROM_NONE             = 0,
-        UIDFROM_PLAYER           = 1,
-        UIDFROM_SUMMON           = 2,
-        UIDFROM_MONSTER_TAMEABLE = 3,
-        UIDFROM_MONSTER          = 4,
+        UIDFROM_NONE    = 0,
+        UIDFROM_PLAYER  = 1,
+        UIDFROM_SUMMON  = 2,
+        UIDFROM_SLAVE   = 3,
+        UIDFROM_MONSTER = 4,
     };
 
     auto fnUIDFrom = [](uint32_t nUID) -> int
@@ -1075,10 +1101,7 @@ void Monster::CheckFriend(uint32_t nCheckUID, std::function<void(int)> fnOnFrien
                         }
                     default:
                         {
-                            if(auto &rstMR = DBCOM_MONSTERRECORD(stUIDRecord.Desp.Monster.MonsterID)){
-                                return rstMR.Tameable ? UIDFROM_MONSTER_TAMEABLE : UIDFROM_MONSTER;
-                            }
-                            break;
+                            return UIDFROM_MONSTER;
                         }
                 }
             }
@@ -1095,10 +1118,6 @@ void Monster::CheckFriend(uint32_t nCheckUID, std::function<void(int)> fnOnFrien
                         case UIDFROM_SUMMON:
                             {
                                 fnOnFriend(FRIENDTYPE_FRIEND);
-                                return;
-                            }
-                        case UIDFROM_MONSTER_TAMEABLE:
-                            {
                                 return;
                             }
                         case UIDFROM_MONSTER:
@@ -1119,10 +1138,6 @@ void Monster::CheckFriend(uint32_t nCheckUID, std::function<void(int)> fnOnFrien
                         case UIDFROM_SUMMON:
                             {
                                 fnOnFriend(FRIENDTYPE_ENEMY);
-                                return;
-                            }
-                        case UIDFROM_MONSTER_TAMEABLE:
-                            {
                                 return;
                             }
                         case UIDFROM_MONSTER:
@@ -1145,15 +1160,12 @@ void Monster::CheckFriend(uint32_t nCheckUID, std::function<void(int)> fnOnFrien
 
         // a monster without master
         // do everything decided by itself
+
         switch(fnUIDFrom(nCheckUID)){
             case UIDFROM_PLAYER:
             case UIDFROM_SUMMON:
                 {
                     fnOnFriend(FRIENDTYPE_ENEMY);
-                    return;
-                }
-            case UIDFROM_MONSTER_TAMEABLE:
-                {
                     return;
                 }
             case UIDFROM_MONSTER:
@@ -1166,13 +1178,7 @@ void Monster::CheckFriend(uint32_t nCheckUID, std::function<void(int)> fnOnFrien
                     return;
                 }
         }
-
     }
-}
-
-void Monster::DispatchSpaceMove()
-{
-    DispatchAction(ActionSpaceMove1(X(), Y(), Direction()));
 }
 
 InvarData Monster::GetInvarData() const

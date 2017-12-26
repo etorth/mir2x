@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/21/2017 02:07:16
+ *  Last Modified: 12/25/2017 18:27:25
  *
  *    Description: 
  *
@@ -158,6 +158,16 @@ void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFrom
                 On_MPK_PICKUPOK(rstMPK, rstFromAddr);
                 break;
             }
+        case MPK_CORECORD:
+            {
+                On_MPK_CORECORD(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_NOTIFYDEAD:
+            {
+                On_MPK_NOTIFYDEAD(rstMPK, rstFromAddr);
+                break;
+            }
         default:
             {
                 extern MonoServer *g_MonoServer;
@@ -196,33 +206,45 @@ bool Player::Bind(uint32_t nSessionID)
     return true;
 }
 
-void Player::ReportCORecord(uint32_t nSessionID)
+void Player::ReportCORecord(uint32_t nUID)
 {
-    if(nSessionID){
-        SMCORecord stSMCOR;
-
-        stSMCOR.Type = CREATURE_PLAYER;
-
-        stSMCOR.Common.UID       = UID();
-        stSMCOR.Common.MapID     = MapID();
-        stSMCOR.Common.X         = X();
-        stSMCOR.Common.Y         = Y();
-        stSMCOR.Common.EndX      = X();
-        stSMCOR.Common.EndY      = Y();
-        stSMCOR.Common.Direction = Direction();
-        stSMCOR.Common.Speed     = Speed();
-        stSMCOR.Common.Action    = ACTION_STAND;
-
-        stSMCOR.Player.DBID      = m_DBID;
-        stSMCOR.Player.JobID     = m_JobID;
-        stSMCOR.Player.Level     = m_Level;
-
-        extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(nSessionID, SM_CORECORD, stSMCOR);
-    }else{
+    if(nUID){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
-        g_MonoServer->Restart();
+        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+            AMCORecord stAMCOR;
+            std::memset(&stAMCOR, 0, sizeof(stAMCOR));
+
+            // TODO: don't use OBJECT_PLAYER, we need translation
+            //       rule of communication, the sender is responsible to translate
+
+            // 1. set type
+            stAMCOR.COType = CREATURE_PLAYER;
+
+            // 2. set current action
+            stAMCOR.Action.UID   = UID();
+            stAMCOR.Action.MapID = MapID();
+
+            stAMCOR.Action.Action    = ACTION_STAND;
+            stAMCOR.Action.Speed     = SYS_DEFSPEED;
+            stAMCOR.Action.Direction = Direction();
+
+            stAMCOR.Action.X    = X();
+            stAMCOR.Action.Y    = Y();
+            stAMCOR.Action.AimX = X();
+            stAMCOR.Action.AimY = Y();
+
+            stAMCOR.Action.AimUID      = 0;
+            stAMCOR.Action.ActionParam = 0;
+
+            // 3. set specified co information
+            stAMCOR.Player.DBID  = DBID();
+            stAMCOR.Player.JobID = JobID();
+            stAMCOR.Player.Level = Level();
+
+            // don't reply to server map
+            // even get co information pull request from map
+            m_ActorPod->Forward({MPK_CORECORD, stAMCOR}, stUIDRecord.Address);
+        }
     }
 }
 
@@ -434,7 +456,7 @@ bool Player::ActionValid(const ActionNode &)
     return true;
 }
 
-void Player::CheckFriend(uint32_t nUID, std::function<void(int)> fnOnFriend)
+void Player::CheckFriend(uint32_t nUID, const std::function<void(int)> &fnOnFriend)
 {
     if(nUID){
         if(0){
@@ -512,8 +534,11 @@ InvarData Player::GetInvarData() const
 
 bool Player::PostNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
-    extern NetDriver *g_NetDriver;
-    return g_NetDriver->Send(SessionID(), nHC, pData, nDataLen);
+    if(SessionID()){
+        extern NetDriver *g_NetDriver;
+        return g_NetDriver->Send(SessionID(), nHC, pData, nDataLen);
+    }
+    return false;
 }
 
 void Player::OnCMActionStand(CMAction stCMA)
@@ -815,6 +840,46 @@ void Player::RecoverHealth()
 
         ReportHealth();
     }
+}
+
+bool Player::DBRecord(const char *szFieldName, std::function<std::string(const char *)> fnDBOperation)
+{
+    if(szFieldName && std::strlen(szFieldName)){
+
+        extern DBPodN *g_DBPodN;
+        auto pDBHDR = g_DBPodN->CreateDBHDR();
+
+        if(!pDBHDR->Execute("select %s from mir2x.tbl_dbid where fld_dbid = %" PRIu32, szFieldName, DBID())){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+            return false;
+        }
+
+        if(pDBHDR->RowCount() < 1){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_INFO, "no dbid created for this player: DBID = %" PRIu32, DBID());
+            return false;
+        }
+
+        pDBHDR->Fetch();
+        auto szRes = fnDBOperation(pDBHDR->Get(szFieldName));
+
+        // if need to return a string we should do:
+        //     return "\"xxxx\"";
+        // then empty string should be "\"\"", not szRes.empty()
+
+        if(!szRes.empty()){
+            // here we directly apply pRes
+            // if what to set is a string, we should return \"string\"
+            if(!pDBHDR->Execute("update mir2x.tbl_dbid set %s = %s where fld_dbid = %" PRIu32, szFieldName, szRes.c_str(), DBID())){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+                return false;
+            }
+            return true;
+        }
+    }
+    return false;
 }
 
 bool Player::DBRecord(const char *szFieldName, std::function<const char *(const char *, char *, size_t)> fnDBOperation)

@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 12/14/2017 23:19:09
+ *  Last Modified: 12/25/2017 17:28:11
  *
  *    Description: 
  *
@@ -72,6 +72,7 @@ enum MessagePackType: int
     MPK_PICKUP,
     MPK_PICKUPOK,
     MPK_REMOVEGROUNDITEM,
+    MPK_CORECORD,
 };
 
 struct AMBadActorPod
@@ -235,7 +236,7 @@ struct AMAction
 
 struct AMPullCOInfo
 {
-    uint32_t SessionID;
+    uint32_t UID;
 };
 
 struct AMNewConnection
@@ -373,8 +374,7 @@ struct AMQueryCORecord
 
     int X;
     int Y;
-
-    uint32_t SessionID;
+    uint32_t AimUID;
 };
 
 struct AMQueryCOCount
@@ -479,4 +479,54 @@ struct AMRemoveGroundItem
 
     uint32_t DBID;
     uint32_t ItemID;
+};
+
+struct AMCORecord
+{
+    uint8_t COType;
+
+    struct _Action
+    {
+        uint32_t UID;
+        uint32_t MapID;
+
+        int Action;
+        int Speed;
+        int Direction;
+
+        int X;
+        int Y;
+        int AimX;
+        int AimY;
+
+        uint32_t AimUID;
+        uint32_t ActionParam;
+    }Action;
+
+    // instantiation of anonymous struct is supported in C11
+    // not C++11, so we define structs outside of anonymous union
+
+    struct _AMCORecord_Monster
+    {
+        uint32_t MonsterID;
+    };
+
+    struct _AMCORecord_Player
+    {
+        uint32_t DBID;
+        uint32_t JobID;
+        uint32_t Level;
+    };
+
+    struct _AMCORecord_NPC
+    {
+        uint32_t NPCID;
+    };
+
+    union
+    {
+        _AMCORecord_Monster Monster;
+        _AMCORecord_Player  Player;
+        _AMCORecord_NPC     NPC;
+    };
 };

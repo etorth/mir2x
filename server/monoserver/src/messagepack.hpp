@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 10/06/2017 00:06:15
+ *  Last Modified: 12/25/2017 14:11:06
  *
  *    Description: message class for actor system
  *
@@ -304,6 +304,7 @@ class InnMessagePack final
                 case MPK_SHOWDROPITEM        : return "MPK_SHOWDROPITEM";
                 case MPK_NOTIFYDEAD          : return "MPK_NOTIFYDEAD";
                 case MPK_OFFLINE             : return "MPK_OFFLINE";
+                case MPK_CORECORD            : return "MPK_CORECORD";
                 default                      : return "MPK_UNKNOWN";
             }
         }

@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 12/20/2017 21:41:34
+ *  Last Modified: 12/25/2017 17:58:41
  *
  *    Description: 
  *
@@ -59,7 +59,7 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
 
     if(ActorPodValid() && m_Map->ActorPodValid()){
         AMPullCOInfo stAMPCOI;
-        stAMPCOI.SessionID = SessionID();
+        stAMPCOI.UID = UID();
         m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
     }
 }
@@ -108,8 +108,9 @@ void Player::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address 
 {
     AMPullCOInfo stAMPCOI;
     std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
-    if(stAMPCOI.SessionID != SessionID()){
-        ReportCORecord(stAMPCOI.SessionID);
+
+    if(stAMPCOI.UID != UID()){
+        ReportCORecord(stAMPCOI.UID);
     }
 }
 
@@ -174,7 +175,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
 
                                                 // 4. pull all co's on the new map
                                                 AMPullCOInfo stAMPCOI;
-                                                stAMPCOI.SessionID = SessionID();
+                                                stAMPCOI.UID = UID();
                                                 m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
 
                                                 break;
@@ -355,4 +356,58 @@ void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK, const Theron::Address &)
     stSMPUOK.ItemID = stAMPUOK.ItemID;
 
     PostNetMessage(SM_PICKUPOK, stSMPUOK);
+}
+
+void Player::On_MPK_CORECORD(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMCORecord stAMCOR;
+    std::memcpy(&stAMCOR, rstMPK.Data(), sizeof(stAMCOR));
+
+    SMCORecord stSMCOR;
+    std::memset(&stSMCOR, 0, sizeof(stSMCOR));
+
+    // 1. set type
+    stSMCOR.COType = stAMCOR.COType;
+
+    // 2. set common info
+    stSMCOR.Action.UID   = stAMCOR.Action.UID;
+    stSMCOR.Action.MapID = stAMCOR.Action.MapID;
+
+    stSMCOR.Action.Action    = stAMCOR.Action.Action;
+    stSMCOR.Action.Speed     = stAMCOR.Action.Speed;
+    stSMCOR.Action.Direction = stAMCOR.Action.Direction;
+
+    stSMCOR.Action.X    = stAMCOR.Action.X;
+    stSMCOR.Action.Y    = stAMCOR.Action.Y;
+    stSMCOR.Action.AimX = stAMCOR.Action.AimX;
+    stSMCOR.Action.AimY = stAMCOR.Action.AimY;
+
+    stSMCOR.Action.AimUID      = stAMCOR.Action.AimUID;
+    stSMCOR.Action.ActionParam = stAMCOR.Action.ActionParam;
+
+    // 3. set specified info
+    switch(stAMCOR.COType){
+        case CREATURE_PLAYER:
+            {
+                stSMCOR.Player.DBID  = stAMCOR.Player.DBID;
+                stSMCOR.Player.JobID = stAMCOR.Player.JobID;
+                stSMCOR.Player.Level = stAMCOR.Player.Level;
+                break;
+            }
+        case CREATURE_MONSTER:
+            {
+                stSMCOR.Monster.MonsterID = stAMCOR.Monster.MonsterID;
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    PostNetMessage(SM_CORECORD, stSMCOR);
+}
+
+void Player::On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &)
+{
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 12/21/2017 00:56:36
+ *  Last Modified: 12/25/2017 03:09:53
  *
  *    Description: 
  *
@@ -692,6 +692,7 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
     // 2. record doesn't exist
     // 3. record contains an empty pointer
     // 4. record mismatch
+
     static const std::vector<ServerObject::ClassCodeName> stNullEntry {};
     return UIDRecord(0, {}, Theron::Address::Null(), stNullEntry);
 }

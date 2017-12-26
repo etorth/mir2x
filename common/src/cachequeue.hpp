@@ -3,7 +3,7 @@
  *
  *       Filename: cachequeue.hpp
  *        Created: 02/25/2016 01:01:40
- *  Last Modified: 12/24/2017 20:48:52
+ *  Last Modified: 12/25/2017 15:37:33
  *
  *    Description: fixed size linear cache queue
  *                 may use Boost.Circular Buffer in furture
@@ -451,6 +451,31 @@ template<typename T, size_t N> class CacheQueue final
             // circular queue rotation
             // need to optimize since we do extra copy when queue is not full
             std::rotate(m_CircleQ.begin(), m_CircleQ.end(), m_CircleQ.begin() + m_Head);
+        }
+
+    public:
+        void Rotate(int nRotate)
+        {
+            // quick fix
+            // need optimization
+
+            if(!Empty()){
+                if(auto nCount = std::abs<int>(nRotate)){
+                    if(nRotate > 0){
+                        for(auto nIndex = 0; nIndex < nCount; ++nIndex){
+                            auto stHead = Head();
+                            PopHead();
+                            PushBack(stHead);
+                        }
+                    }else{
+                        for(auto nIndex = 0; nIndex < nCount; ++nIndex){
+                            auto stBack = Back();
+                            PopBack();
+                            PushHead(stBack);
+                        }
+                    }
+                }
+            }
         }
 
     public:

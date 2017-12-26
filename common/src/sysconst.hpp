@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 12/24/2017 22:15:54
+ *  Last Modified: 12/25/2017 14:59:48
  *
  *    Description: 
  *
@@ -56,3 +56,5 @@ const int SYS_MAXSPEED = 500;
 const int SYS_INVGRIDW  = 6;
 const int SYS_INVGRIDPW = 38;
 const int SYS_INVGRIDPH = 38;
+
+const int SYS_MAXTARGET = 8;

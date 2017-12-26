@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 12/24/2017 22:19:49
+ *  Last Modified: 12/25/2017 17:34:20
  *
  *    Description: 
  *
@@ -686,6 +686,7 @@ void ServerMap::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Ad
 
     if(true
             && stAMQCOR.UID
+            && stAMQCOR.AimUID
             && stAMQCOR.MapID == ID()
             && ValidC(stAMQCOR.X, stAMQCOR.Y)){
 
@@ -693,11 +694,11 @@ void ServerMap::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Ad
         {
             if(true || ValidC(nX, nY)){
                 for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
-                    if(nUID == stAMQCOR.UID){
+                    if(nUID == stAMQCOR.AimUID){
                         extern MonoServer *g_MonoServer;
                         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
                             if(stUIDRecord.ClassFrom<CharObject>()){
-                                m_ActorPod->Forward({MPK_PULLCOINFO, stAMQCOR.SessionID}, stUIDRecord.Address);
+                                m_ActorPod->Forward({MPK_PULLCOINFO, stAMQCOR.UID}, stUIDRecord.Address);
                                 return true;
                             }
                         }
@@ -706,7 +707,7 @@ void ServerMap::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Ad
             }
             return false;
         };
-        DoCircle(stAMQCOR.X, stAMQCOR.Y, 10, fnQueryCORecord);
+        DoCenterCircle(stAMQCOR.X, stAMQCOR.Y, 10, true, fnQueryCORecord);
     }
 }
 

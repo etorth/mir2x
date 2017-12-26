@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 12/14/2017 23:30:13
+ *  Last Modified: 12/25/2017 16:46:15
  *
  *    Description: net message used by client and mono-server
  *
@@ -86,47 +86,51 @@ struct SMAction
     uint32_t ActionParam;
 };
 
-union SMCORecord
+struct SMCORecord
 {
-    uint8_t Type;
+    uint8_t COType;
 
-    struct _Common
+    struct _Action
     {
-        uint8_t _MemoryAlign;
-
         uint32_t UID;
         uint32_t MapID;
 
         uint8_t Action;
-        uint8_t ActionParam;
         uint8_t Speed;
         uint8_t Direction;
 
         uint16_t X;
         uint16_t Y;
-        uint16_t EndX;
-        uint16_t EndY;
-    }Common;
+        uint16_t AimX;
+        uint16_t AimY;
 
-    struct _Monster
+        uint32_t AimUID;
+        uint32_t ActionParam;
+    }Action;
+
+    struct _SMCORecord_Monster
     {
-        struct _Common _MemoryAlign;
         uint32_t MonsterID;
-    }Monster;
+    };
 
-    struct _Player
+    struct _SMCORecord_Player
     {
-        struct _Common _MemoryAlign;
         uint32_t DBID;
         uint32_t JobID;
         uint32_t Level;
-    }Player;
+    };
 
-    struct _NPC
+    struct _SMCORecord_NPC
     {
-        struct _Common _MemoryAlign;
         uint32_t NPCID;
-    }NPC;
+    };
+
+    union
+    {
+        _SMCORecord_Monster Monster;
+        _SMCORecord_Player  Player;
+        _SMCORecord_NPC     NPC;
+    };
 };
 
 struct SMUpdateHP

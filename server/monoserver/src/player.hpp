@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 12/20/2017 23:03:54
+ *  Last Modified: 12/25/2017 18:27:42
  *
  *    Description: 
  *
@@ -121,12 +121,14 @@ class Player: public CharObject
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
         void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);
         void On_MPK_OFFLINE(const MessagePack &, const Theron::Address &);
+        void On_MPK_CORECORD(const MessagePack &, const Theron::Address &);
         void On_MPK_PICKUPOK(const MessagePack &, const Theron::Address &);
         void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &);
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
         void On_MPK_BADSESSION(const MessagePack &, const Theron::Address &);
+        void On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &);
         void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_DEADFADEOUT(const MessagePack &, const Theron::Address &);
         void On_MPK_BINDSESSION(const MessagePack &, const Theron::Address &);
@@ -168,7 +170,7 @@ class Player: public CharObject
         bool MotionValid(const ActionNode &);
 
     protected:
-        void CheckFriend(uint32_t, std::function<void(int)>);
+        void CheckFriend(uint32_t, const std::function<void(int)> &);
 
     protected:
         void OnCMActionMove  (CMAction);
@@ -202,6 +204,7 @@ class Player: public CharObject
         int GetLevelExp();
 
     protected:
+        bool DBRecord(const char *, std::function<std::string(const char *)>);
         bool DBRecord(const char *, std::function<const char *(const char *, char *, size_t)>);
 
     protected:

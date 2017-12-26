@@ -3,7 +3,7 @@
  *
  *       Filename: serverenv.hpp
  *        Created: 05/12/2017 16:33:25
- *  Last Modified: 12/14/2017 18:59:08
+ *  Last Modified: 12/25/2017 19:16:44
  *
  *    Description:
  *
@@ -45,8 +45,44 @@ struct ServerEnv
         , TraceActorMessageCount(CheckBoolArg("--trace-actor-message-count"))
     {}
 
+
     bool CheckBoolArg(const std::string &szArgName)
     {
-        return DebugArgs.find(szArgName) != std::string::npos;
+        if(szArgName.empty()){
+            return false;
+        }
+
+        size_t nPos = 0;
+        while(true){
+            nPos = DebugArgs.find(szArgName, nPos);
+            if(nPos == std::string::npos){
+                return false;
+            }
+
+            // if found, we need to make sure
+            auto pEnd = DebugArgs.begin() + nPos + szArgName.size();
+            if(pEnd == DebugArgs.end()){
+                return true;
+            }
+
+            switch(*pEnd){
+                case ' ' :
+                case '\0':
+                case '\t':
+                case '\n':
+                    {
+                        return true;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+
+            // continue to check
+            nPos += szArgName.size();
+        }
+
+        return false;
     }
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 12/14/2017 21:39:33
+ *  Last Modified: 12/25/2017 18:26:54
  *
  *    Description: 
  *
@@ -27,6 +27,7 @@
 #include "servermap.hpp"
 #include "damagenode.hpp"
 #include "actionnode.hpp"
+#include "cachequeue.hpp"
 #include "servicecore.hpp"
 #include "protocoldef.hpp"
 #include "activeobject.hpp"
@@ -150,7 +151,7 @@ class CharObject: public ActiveObject
             uint32_t UID;
             uint32_t ActiveTime;
 
-            TargetRecord(uint32_t nUID, uint32_t nActiveTime)
+            TargetRecord(uint32_t nUID = 0, uint32_t nActiveTime = 0)
                 : UID(nUID)
                 , ActiveTime(nActiveTime)
             {}
@@ -194,10 +195,10 @@ class CharObject: public ActiveObject
         uint32_t m_LastAttackTime;
 
     protected:
-        std::deque<TargetRecord> m_TargetQ;
+        std::vector<HitterUIDRecord> m_HitterUIDRecord;
 
     protected:
-        std::vector<HitterUIDRecord> m_HitterUIDRecord;
+        CacheQueue<TargetRecord, SYS_MAXTARGET> m_TargetQueue;
 
     protected:
         OBJECTABILITY       m_Ability;
@@ -300,7 +301,7 @@ class CharObject: public ActiveObject
         void AddMonster(uint32_t, int, int, bool);
 
     protected:
-        virtual void CheckFriend(uint32_t, std::function<void(int)>) = 0;
+        virtual void CheckFriend(uint32_t, const std::function<void(int)> &) = 0;
 
     protected:
         virtual bool GoDie()     = 0;
