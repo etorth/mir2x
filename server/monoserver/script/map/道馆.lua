@@ -2,7 +2,7 @@
 --
 --       Filename: 道馆.lua
 --        Created: 08/31/2015 08:52:57 PM
---  Last Modified: 12/25/2017 19:33:53
+--  Last Modified: 12/25/2017 23:37:35
 --
 --    Description: lua 5.3
 --
@@ -21,7 +21,7 @@ if g_Inited == nil then
     -- only initialize once
     -- initialize all global/constant variables
 
-    g_MaxMonsterCount = 20
+    g_MaxMonsterCount = 3
     g_LogicDelay      = 1000
     g_LastInvokeTime  = getTime()
 
