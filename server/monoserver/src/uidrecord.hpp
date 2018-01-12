@@ -3,7 +3,7 @@
  *
  *       Filename: uidrecord.hpp
  *        Created: 05/01/2017 11:35:58
- *  Last Modified: 12/26/2017 01:11:02
+ *  Last Modified: 01/10/2018 21:13:52
  *
  *    Description: UID entry won't take care of one specific class
  *                 It's a framework for all classes derived from ServerObject
