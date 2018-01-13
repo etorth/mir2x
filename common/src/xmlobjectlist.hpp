@@ -3,7 +3,7 @@
  *
  *       Filename: xmlobjectlist.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 09/24/2017 01:02:49
+ *  Last Modified: 01/12/2018 18:29:47
  *
  *    Description: analyze specifically formatted XML
  *                      <ROOT>
@@ -68,7 +68,7 @@ class XMLObjectList final
             bool bRes = false;
             if(true
                     && szFileName
-                    && m_XMLDoc.LoadFile(szFileName) == tinyxml2::XML_NO_ERROR){
+                    && m_XMLDoc.LoadFile(szFileName) == tinyxml2::XML_SUCCESS){
                 bRes = bValidate ? Validate() : true;
             }
 
@@ -81,7 +81,7 @@ class XMLObjectList final
             bool bRes = false;
             if(true
                     && szXMLContent
-                    && m_XMLDoc.Parse(szXMLContent) == tinyxml2::XML_NO_ERROR){
+                    && m_XMLDoc.Parse(szXMLContent) == tinyxml2::XML_SUCCESS){
                 bRes = bValidate ? Validate() : true;
             }
 
