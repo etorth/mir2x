@@ -14,3 +14,7 @@ TARGET_LINK_LIBRARIES(client SDL2                 )
 TARGET_LINK_LIBRARIES(client SDL2_ttf             )
 TARGET_LINK_LIBRARIES(client SDL2_image           )
 TARGET_LINK_LIBRARIES(client ${LUA_LIBRARIES}     )
+
+INSTALL(TARGETS client DESTINATION client)
+INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/client/bin/Res DESTINATION client)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/client/bin/configuration.xml DESTINATION client)
