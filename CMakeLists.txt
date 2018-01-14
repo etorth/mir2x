@@ -2,7 +2,7 @@
 #
 #        Filename: CMakeLists.txt
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 01/13/2018 15:56:29
+#   Last Modified: 01/13/2018 18:46:01
 #
 #     Description:
 #
@@ -81,6 +81,8 @@ FIND_PACKAGE(ZLIB   REQUIRED)
 # for libtheron, compile arguments matching is required
 # reason why I disable NDEBUG
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DTHERON_CPP11=1 -DTHERON_POSIX=0 -DTHERON_XS=0")
+
+SET(CMAKE_SKIP_RPATH TRUE)
 
 ADD_SUBDIRECTORY(common)
 ADD_SUBDIRECTORY(server)
