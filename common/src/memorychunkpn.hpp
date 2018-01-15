@@ -3,7 +3,7 @@
  *
  *       Filename: memorychunkpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 04/24/2017 18:45:52
+ *  Last Modified: 01/14/2018 18:52:30
  *
  *    Description: unfixed-size memory chunk pool, thread safe is optional, but self-contained
  *                 this algorithm is based on buddy algorithm
@@ -27,8 +27,8 @@
  *         |       +-----+-------+-----+--
  *         |
  *         |
- *         |       +---+   +---+ 
- *         |       |   |   |   | 
+ *         |       +---+   +---+
+ *         |       |   |   |   |
  *         |       +---+   |   |                   then there are three branches, each branch can
  *         |       |   |   +---+  .....            grow independently and dynamically.
  *         |       +---+   +---+
@@ -53,7 +53,7 @@
  *         |       +-----+-------+-----+--
  *         +-----> |     |       |     |  ....
  *                 +-----+-------+-----+--
- *        
+ *
  *
  *        Version: 1.0
  *       Revision: none
@@ -73,6 +73,7 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
+#include <cstddef>
 
 #include "mathfunc.hpp"
 #include "cachequeue.hpp"
@@ -87,7 +88,7 @@
 //                 to wait the lock, otherwise all request need to wait for one lock,
 //                 this helps to performance, however, for BranchSize == 1 there is no
 //                 need for thread safity
-//                  
+//
 template<size_t UnitSize, size_t PoolSize, size_t BranchSize>
 class MemoryChunkPN
 {
@@ -281,7 +282,7 @@ class MemoryChunkPN
                 //
                 auto pHead = ((InnMemoryChunk *)(Data + nOffset * UnitSize));
                 pHead->In = true;
-                pHead->NodeID = nIndex; 
+                pHead->NodeID = nIndex;
                 pHead->PoolID = PoolID;
 
                 if(BranchSize > 1){
@@ -435,7 +436,7 @@ class MemoryChunkPN
     public:
         void *Get(size_t nSizeInByte)
         {
-            constexpr auto nOff = (size_t)(uintptr_t)(&((*((InnMemoryChunk *)(0))).Data[0]));
+            constexpr auto nOff = offsetof(InnMemoryChunk, Data);
             size_t nSizeInUnit = (nSizeInByte + nOff + UnitSize - 1) / UnitSize;
 
             // then nSizeInUnit == 0 won't happen

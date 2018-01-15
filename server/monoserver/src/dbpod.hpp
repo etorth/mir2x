@@ -3,7 +3,7 @@
  *
  *       Filename: dbpod.hpp
  *        Created: 05/20/2016 14:31:19
- *  Last Modified: 06/05/2016 21:40:13
+ *  Last Modified: 01/14/2018 18:58:22
  *
  *    Description: so many db interaction, so enable the multi-thread support
  *                 when got a DBRecord, the corresponding DBConnection would
@@ -27,6 +27,7 @@
 
 #pragma once
 #include <memory>
+#include <string>
 
 #include "dbrecord.hpp"
 #include "dbconnection.hpp"

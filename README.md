@@ -28,7 +28,7 @@ Install the dependencies and devDependencies and start the server.
 $ git clone https://github.com/etorth/mir2x.git
 $ cd mir2x
 $ mkdir b
-$ cd b 
+$ cd b
 $ cmake ..
 $ make
 ```

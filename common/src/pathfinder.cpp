@@ -3,9 +3,9 @@
  *
  *       Filename: pathfinder.cpp
  *        Created: 03/29/2017 00:59:29
- *  Last Modified: 09/26/2017 11:20:40
+ *  Last Modified: 01/14/2018 18:54:09
  *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -36,7 +36,7 @@ bool AStarPathFinder::Search(int nX0, int nY0, int nX1, int nY1)
 int PathFind::MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_t nMaxStepLen)
 {
     if(true
-            && pNodeV           // 
+            && pNodeV           //
             && nSize            // if nSize == 1 then return 0
             && nMaxStepLen){    // doesn't request nMaxStepLen < nSize here
 

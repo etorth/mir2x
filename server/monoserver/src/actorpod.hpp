@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 12/25/2017 17:22:44
+ *  Last Modified: 01/14/2018 18:56:57
  *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
@@ -40,7 +40,7 @@
  *                      auto fnTrigger = [this](){ m_StateHook.Execute(); }
  *
  *                 and
- *                  
+ *
  *                      m_StateHook.Install("ClearQueue", fnClearQueue);
  *                      m_StateHook.Uninstall("ClearQueue");
  *
@@ -61,6 +61,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include <functional>
 #include <Theron/Theron.h>
 

@@ -3,9 +3,9 @@
  *
  *       Filename: monsterrecord.hpp
  *        Created: 05/08/2017 16:21:14
- *  Last Modified: 07/30/2017 20:46:36
+ *  Last Modified: 01/14/2018 18:53:40
  *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -204,6 +204,6 @@ class MonsterRecord
 
         std::array<int, 8> DCList() const
         {
-            return {DCType0, DCType1, DCType2, DCType3, DCType4, DCType5, DCType6, DCType7};
+            return {{DCType0, DCType1, DCType2, DCType3, DCType4, DCType5, DCType6, DCType7}};
         }
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: randompick.hpp
  *        Created: 06/18/2016 21:53:32
- *  Last Modified: 08/18/2017 15:32:40
+ *  Last Modified: 01/14/2018 18:54:40
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #pragma once
 #include <vector>
+#include <numeric>
 #include <utility>
 #include "condcheck.hpp"
 

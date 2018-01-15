@@ -3,9 +3,9 @@
  *
  *       Filename: constexprfunc.hpp
  *        Created: 08/05/2017 12:14:11
- *  Last Modified: 08/08/2017 00:53:28
+ *  Last Modified: 01/14/2018 18:50:20
  *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

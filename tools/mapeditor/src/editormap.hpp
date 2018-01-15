@@ -3,7 +3,7 @@
  *
  *       Filename: editormap.hpp
  *        Created: 02/08/2016 22:17:08
- *  Last Modified: 08/25/2017 11:55:39
+ *  Last Modified: 01/14/2018 19:02:48
  *
  *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
  *                 Use function handler to handle draw, cache, etc
@@ -14,7 +14,7 @@
  *
  *                 =====================================================================
  *                 Problem 1:
- *                             
+ *
  *                             |     |     |     |
  *                             |*****|     |     |
  *                             |**A**|     |     |
@@ -172,9 +172,9 @@ class EditorMap
                     uint8_t nByte1 = (uint8_t)((Image & 0X0000FF00) >>  8);
                     uint8_t nByte0 = (uint8_t)((Image & 0X000000FF) >>  0);
 
-                    return {nByte0, nByte1, nByte2, nByte3, nByte4};
+                    return {{nByte0, nByte1, nByte2, nByte3, nByte4}};
                 }else{
-                    return {0, 0, 0, 0, 0};
+                    return {{0, 0, 0, 0, 0}};
                 }
             }
         };

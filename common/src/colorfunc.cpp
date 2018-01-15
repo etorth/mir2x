@@ -3,9 +3,9 @@
  *
  *       Filename: colorfunc.cpp
  *        Created: 03/31/2016 19:48:57
- *  Last Modified: 08/22/2017 10:52:05
+ *  Last Modified: 01/14/2018 18:49:57
  *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -18,6 +18,7 @@
  * =====================================================================================
  */
 
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
