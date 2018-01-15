@@ -19,6 +19,7 @@
     <Texture>
         <ProgUseDBN>Res/Texture/ProgUseDBN.ZIP</ProgUseDBN>
         <GroundItemDBN>Res/Texture/GroundItemDBN.ZIP</GroundItemDBN>
+        <CommonItemDBN>Res/Texture/CommonItemDBN.ZIP</CommonItemDBN>
         <MapDBN>Res/Texture/MapDBN.ZIP</MapDBN>
         <HeroDBN>Res/Texture/HeroDBN.ZIP</HeroDBN>
         <MonsterDBN>Res/Texture/MonsterDBN.ZIP</MonsterDBN>

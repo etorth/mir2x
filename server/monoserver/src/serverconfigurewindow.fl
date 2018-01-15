@@ -134,7 +134,7 @@ class ServerConfigureWindow {open
     }
     code {// set up the default map path
 {
-    m_MapFullName->value("Res/Map/MapBinDBN.ZIP");
+    m_MapFullName->value("Map/MapBinDBN.ZIP");
     m_ScriptFullName->value("");
 }} {}
   }
