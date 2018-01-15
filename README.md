@@ -22,15 +22,16 @@ mir2x is a c/s based mir2ei implementation with various platforms supported. It 
 
 mir2x requires [cmake](https://cmake.org/) v3+ and [gcc](https://gcc.gnu.org/) support c++14 to run.
 
-Install the dependencies and devDependencies and start the server.
+Install the dependencies and devDependencies and start the server, by default it tries to install in /usr/local. use ``CMAKE_INSTALL_PREFIX" to customize.
 
 ```sh
 $ git clone https://github.com/etorth/mir2x.git
 $ cd mir2x
 $ mkdir b
 $ cd b
-$ cmake ..
+$ cmake .. -DCMAKE_INSTALL_PREFIX=${PWD}/install
 $ make
+$ make install
 ```
 
 ### Code style
