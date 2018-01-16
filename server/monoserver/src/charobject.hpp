@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 01/15/2018 21:39:03
+ *  Last Modified: 01/16/2018 00:15:52
  *
  *    Description: 
  *
@@ -175,7 +175,7 @@ class CharObject: public ActiveObject
         const ServerMap   *m_Map;
 
     protected:
-        std::map<uint32_t, COLocation> m_LocationRecord;
+        std::map<uint32_t, COLocation> m_LocationList;
 
     protected:
         int m_X;

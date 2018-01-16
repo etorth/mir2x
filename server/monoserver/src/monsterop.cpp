@@ -89,7 +89,7 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
         }
 
         extern MonoServer *g_MonoServer;
-        m_LocationRecord[stAMA.UID] = COLocation
+        m_LocationList[stAMA.UID] = COLocation
         {
             stAMA.UID,
             stAMA.MapID,
@@ -186,7 +186,7 @@ void Monster::On_MPK_NOTIFYDEAD(const MessagePack &rstMPK, const Theron::Address
     std::memcpy(&stAMND, rstMPK.Data(), sizeof(stAMND));
 
     RemoveTarget(stAMND.UID);
-    m_LocationRecord.erase(stAMND.UID);
+    m_LocationList.erase(stAMND.UID);
 }
 
 void Monster::On_MPK_OFFLINE(const MessagePack &rstMPK, const Theron::Address &)

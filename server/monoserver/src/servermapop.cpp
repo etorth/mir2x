@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 12/25/2017 17:34:20
+ *  Last Modified: 01/16/2018 14:54:35
  *
  *    Description: 
  *
@@ -241,9 +241,22 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
     AMTryMove stAMTM;
     std::memcpy(&stAMTM, rstMPK.Data(), sizeof(stAMTM));
 
+    auto fnPrintMoveError = [&stAMTM]()
+    {
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::UID           = %" PRIu32 , &stAMTM, stAMTM.UID);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::MapID         = %" PRIu32 , &stAMTM, stAMTM.MapID);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::X             = %d"       , &stAMTM, stAMTM.X);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::Y             = %d"       , &stAMTM, stAMTM.Y);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::EndX          = %d"       , &stAMTM, stAMTM.EndX);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::EndY          = %d"       , &stAMTM, stAMTM.EndY);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::AllowHalfMove = %s"       , &stAMTM, stAMTM.AllowHalfMove ? "true" : "false");
+    };
+
     if(!In(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid location: (MapID = %d, X = %d, Y = %d)", stAMTM.MapID, stAMTM.X, stAMTM.Y);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
+        fnPrintMoveError();
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
@@ -253,7 +266,8 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
 
     if(!In(stAMTM.MapID, stAMTM.EndX, stAMTM.EndY)){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid location: (MapID = %d, X = %d, Y = %d)", stAMTM.MapID, stAMTM.EndX, stAMTM.EndY);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
+        fnPrintMoveError();
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
@@ -268,24 +282,14 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
 
     if(!bFindCO){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "CO is not at current location: UID = %" PRIu32 , stAMTM.UID);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
+        fnPrintMoveError();
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
 
-    // we add new concept here: allow-half-move
-    // means if we request StepSize = 2 or 3 failed
-    // we try StepSize = 1 move move as much as possible
-
     int nStepSize = -1;
     switch(LDistance2(stAMTM.X, stAMTM.Y, stAMTM.EndX, stAMTM.EndY)){
-        case 0:
-            {
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Empty move request from UID = %" PRIu32 , stAMTM.UID);
-                m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
-                return;
-            }
         case 1:
         case 2:
             {
@@ -307,37 +311,64 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
         default:
             {
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid move request from UID = %" PRIu32 , stAMTM.UID);
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid move request: (X, Y) -> (EndX, EndY)");
+                fnPrintMoveError();
                 m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
                 return;
             }
     }
 
-    int nDX = (stAMTM.EndX > stAMTM.X) - (stAMTM.EndX < stAMTM.X);
-    int nDY = (stAMTM.EndY > stAMTM.Y) - (stAMTM.EndY < stAMTM.Y);
+    bool bCheckMove = false;
+    auto nMostX = stAMTM.EndX;
+    auto nMostY = stAMTM.EndY;
 
-    int nMostDistance = 0;
-    for(int nDistance = 1; nDistance <= nStepSize; ++nDistance){
-        if(true
-                && CanMove(false, true,  true,  stAMTM.X,       stAMTM.Y,       stAMTM.X + nDX * nDistance, stAMTM.Y + nDY * nDistance)
-                && CanMove(true,  false, false, stAMTM.X + nDX, stAMTM.Y + nDY, stAMTM.X + nDX * nDistance, stAMTM.Y + nDY * nDistance)){
+    switch(nStepSize){
+        case 1:
+            {
+                bCheckMove = false;
+                if(CanMove(true, true, stAMTM.EndX, stAMTM.EndY)){
+                    bCheckMove = true;
+                }
+                break;
+            }
+        default:
+            {
+                // for step size > 1
+                // we check the end grids for CO and Lock
+                // but for middle grids we only check the CO, no Lock
 
-            // 1. check locks for all grids except two end points
-            // 2. check co's  for all grids except the starting point
+                condcheck(nStepSize == 2 || nStepSize == 3);
 
-            nMostDistance = nDistance;
-        }else{ break; }
+                int nDX = (stAMTM.EndX > stAMTM.X) - (stAMTM.EndX < stAMTM.X);
+                int nDY = (stAMTM.EndY > stAMTM.Y) - (stAMTM.EndY < stAMTM.Y);
+
+                bCheckMove = true;
+                if(CanMove(true, true, stAMTM.EndX, stAMTM.EndY)){
+                    for(int nIndex = 1; nIndex < nStepSize; ++nIndex){
+                        if(!CanMove(true, false, stAMTM.X + nDX * nIndex, stAMTM.Y + nDY * nIndex)){
+                            bCheckMove = false;
+                            break;
+                        }
+                    }
+                }
+
+                if(!bCheckMove){
+                    if(true
+                            && stAMTM.AllowHalfMove
+                            && CanMove(true, true, stAMTM.X + nDX, stAMTM.Y + nDY)){
+                        bCheckMove = true;
+                        nMostX = stAMTM.X + nDX;
+                        nMostY = stAMTM.Y + nDY;
+                    }
+                }
+                break;
+            }
     }
 
-    if(false
-            || ((nMostDistance == 0))
-            || ((nMostDistance != nStepSize) && !(stAMTM.AllowHalfMove))){
+    if(!bCheckMove){
         m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
         return;
     }
-
-    int nMostX = stAMTM.X + nDX * nMostDistance;
-    int nMostY = stAMTM.Y + nDY * nMostDistance;
 
     auto fnOnR = [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK, const Theron::Address &)
     {
@@ -349,13 +380,13 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
 
                     // 1. leave last cell
                     {
-                        bool bFind = false;
+                        bool bFindCO = false;
                         auto &rstRecordV = m_CellRecordV2D[stAMTM.X][stAMTM.Y].UIDList;
 
                         for(auto &nUID: rstRecordV){
                             if(nUID == stAMTM.UID){
                                 // 1. mark as find
-                                bFind = true;
+                                bFindCO = true;
 
                                 // 2. remove from the object list
                                 std::swap(nUID, rstRecordV.back());
@@ -365,9 +396,9 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                             }
                         }
 
-                        if(!bFind){
+                        if(!bFindCO){
                             extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_FATAL, "CO is not at current location: UID = %" PRIu32 , stAMTM.UID);
+                            g_MonoServer->AddLog(LOGTYPE_FATAL, "CO location error: (UD = %" PRIu32 ", X = %d, Y = %d)", stAMTM.UID, stAMTM.X, stAMTM.Y);
                             g_MonoServer->Restart();
                         }
                     }

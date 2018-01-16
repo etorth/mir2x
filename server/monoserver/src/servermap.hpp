@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 01/15/2018 00:07:04
+ *  Last Modified: 01/16/2018 15:32:13
  *
  *    Description:
  *
@@ -130,10 +130,7 @@ class ServerMap: public ActiveObject
 
     protected:
         bool CanMove(bool, bool, int, int);
-        bool CanMove(bool, bool, bool, int, int, int, int);
-
-    protected:
-        double MoveCost(bool, bool, bool, int, int, int, int);
+        double MoveCost(bool, bool, int, int, int, int);
 
     public:
         int W() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0; }

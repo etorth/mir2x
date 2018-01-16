@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 01/15/2018 21:39:48
+ *  Last Modified: 01/16/2018 02:00:49
  *
  *    Description: 
  *
@@ -38,7 +38,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     : ActiveObject()
     , m_ServiceCore(pServiceCore)
     , m_Map(pServerMap)
-    , m_LocationRecord()
+    , m_LocationList()
     , m_X(nMapX)
     , m_Y(nMapY)
     , m_Direction(nDirection)
@@ -146,9 +146,25 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
 
 bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
+    // we can check cache
+    // if current location is occupied we *may* not try the move
+
+    auto fnCheckLocationCache = [this](int nX, int nY) -> bool
+    {
+        for(auto stLocation: m_LocationList){
+            if(true
+                    && stLocation.second.X == nX
+                    && stLocation.second.Y == nY){
+                return false;
+            }
+        }
+        return true;
+    };
+
     if(true
             && CanMove()
-            && EstimateHop(nX, nY) == 1){
+            && EstimateHop(nX, nY) == 1
+            && fnCheckLocationCache(nX, nY)){
 
         AMTryMove stAMTM;
         std::memset(&stAMTM, 0, sizeof(stAMTM));
@@ -471,7 +487,7 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLoca
                                     && m_Map
                                     && m_Map->In(stAML.MapID, stAML.X, stAML.Y)){
 
-                                m_LocationRecord[nUID] = COLocation
+                                m_LocationList[nUID] = COLocation
                                 {
                                     UID(),
                                     MapID(),
@@ -482,16 +498,16 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLoca
                                 };
 
                                 if(fnOnLocationOK){
-                                    fnOnLocationOK(m_LocationRecord[nUID]);
+                                    fnOnLocationOK(m_LocationList[nUID]);
                                 }
                             }else{
-                                m_LocationRecord.erase(nUID);
+                                m_LocationList.erase(nUID);
                             }
                             break;
                         }
                     default:
                         {
-                            m_LocationRecord.erase(nUID);
+                            m_LocationList.erase(nUID);
                             break;
                         }
                 }
@@ -507,14 +523,14 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLoca
 
         // no entry found
         // do query and invocation, delay fnOnLocationOK by one step
-        if(m_LocationRecord.find(nUID) == m_LocationRecord.end()){
+        if(m_LocationList.find(nUID) == m_LocationList.end()){
             return fnQueryLocation();
         }
 
         // we find an entry
         // valid the entry, could be expired
         extern MonoServer *g_MonoServer;
-        auto &rstRecord = m_LocationRecord[nUID];
+        auto &rstRecord = m_LocationList[nUID];
         if(true
                 && m_Map
                 && m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)

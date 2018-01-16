@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 01/15/2018 21:40:15
+ *  Last Modified: 01/16/2018 15:31:19
  *
  *    Description: 
  *
@@ -83,7 +83,15 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
                 // no matter bCheckCO set or not
                 // we allow all grids if the ground is valid, ignoring the creature and lock
 
-                return pMap->CanMove(false, false, false, nSrcX, nSrcY, nDstX, nDstY);
+                int nDX = (nDstX > nSrcX) - (nDstX < nSrcX);
+                int nDY = (nDstY > nSrcY) - (nDstY < nSrcY);
+
+                for(int nIndex = 0; nIndex <= nMaxStep; ++nIndex){
+                    if(!(pMap->GroundValid(nSrcX + nDX, nSrcY + nDY))){
+                        return false;
+                    }
+                }
+                return true;
             },
 
             // 2. move cost function, for directions as following
@@ -210,7 +218,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
                     // in future's version fExtraPen should be penalty for turn
                     // and this function can enable we put dynamical cost for some busy hops
 
-                    return pMap->MoveCost(true, true, true, nSrcX, nSrcY, nDstX, nDstY) + fExtraPen;
+                    return pMap->MoveCost(true, true, nSrcX, nSrcY, nDstX, nDstY) + fExtraPen;
                 }else{
                     // won't check creature
                     // then all walk-able step get cost 1.0 + delta
@@ -444,65 +452,7 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
     return false;
 }
 
-bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, bool bSkipMiddleLock, int nX0, int nY0, int nX1, int nY1)
-{
-    int nMaxIndex = -1;
-    switch(LDistance2(nX0, nY0, nX1, nY1)){
-        case 0:
-            {
-                nMaxIndex = 0;
-                break;
-            }
-        case 1:
-        case 2:
-            {
-                nMaxIndex = 1;
-                break;
-            }
-        case 4:
-        case 8:
-            {
-                nMaxIndex = 2;
-                break;
-            }
-        case  9:
-        case 18:
-            {
-                nMaxIndex = 3;
-                break;
-            }
-        default:
-            {
-                return false;
-            }
-    }
-
-    int nDX = (nX1 > nX0) - (nX1 < nX0);
-    int nDY = (nY1 > nY0) - (nY1 < nY0);
-
-    for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
-
-        bool bCheckCurrLock = false;
-        if(bCheckLock){
-            if(bSkipMiddleLock){
-                if((nIndex != 0) && (nIndex != nMaxIndex)){
-                    bCheckCurrLock = false;
-                }else{
-                    bCheckCurrLock = true;
-                }
-            }else{
-                bCheckCurrLock = true;
-            }
-        }
-
-        if(!CanMove(bCheckCO, bCheckCurrLock, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
-            return false;
-        }
-    }
-    return true;
-}
-
-double ServerMap::MoveCost(bool bCheckCO, bool bCheckLock, bool bSkipMiddleLock, int nX0, int nY0, int nX1, int nY1)
+double ServerMap::MoveCost(bool bCheckCO, bool bCheckLock, int nX0, int nY0, int nX1, int nY1)
 {
     int nMaxIndex = -1;
     switch(LDistance2(nX0, nY0, nX1, nY1)){
@@ -552,16 +502,10 @@ double ServerMap::MoveCost(bool bCheckCO, bool bCheckLock, bool bSkipMiddleLock,
             // check the co's and locks
 
             bool bCheckCurrLock = false;
-            if(bCheckLock){
-                if(bSkipMiddleLock){
-                    if((nIndex != 0) && (nIndex != nMaxIndex)){
-                        bCheckCurrLock = false;
-                    }else{
-                        bCheckCurrLock = true;
-                    }
-                }else{
-                    bCheckCurrLock = true;
-                }
+            if(true
+                    && bCheckLock
+                    && ((nIndex == 0) || (nIndex == nMaxIndex))){
+                bCheckCurrLock = true;
             }
 
             fMoveCost += (CanMove(bCheckCO, bCheckCurrLock, nCurrX, nCurrY) ? 1.00 : 100.00);
