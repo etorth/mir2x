@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/26/2017 06:05:01
+ *  Last Modified: 01/15/2018 21:39:48
  *
  *    Description: 
  *
@@ -99,6 +99,8 @@ Theron::Address CharObject::Activate()
     if(ActorPodValid()){
         DispatchAction(ActionStand(X(), Y(), Direction()));
     }
+
+    AddTick();
     return stAddress;
 }
 

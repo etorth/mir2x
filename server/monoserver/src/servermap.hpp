@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 12/24/2017 22:10:15
+ *  Last Modified: 01/15/2018 00:07:04
  *
  *    Description:
  *
@@ -101,7 +101,6 @@ class ServerMap: public ActiveObject
         const Mir2xMapData m_Mir2xMapData;
 
     private:
-        Metronome   *m_Metronome;
         ServiceCore *m_ServiceCore;
 
     private:

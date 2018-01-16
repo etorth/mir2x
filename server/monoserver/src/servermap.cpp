@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 12/24/2017 22:11:58
+ *  Last Modified: 01/15/2018 21:40:15
  *
  *    Description: 
  *
@@ -262,7 +262,6 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
           condcheck(pMir2xMapData);
           return pMir2xMapData;
       }()))
-    , m_Metronome(nullptr)
     , m_ServiceCore(pServiceCore)
     , m_CellRecordV2D()
     , m_LuaModule(nullptr)
@@ -669,14 +668,11 @@ Theron::Address ServerMap::Activate()
 {
     auto stAddress = ActiveObject::Activate();
 
-    delete m_Metronome;
-    m_Metronome = new Metronome(300);
-    m_Metronome->Activate(GetAddress());
-
     delete m_LuaModule;
     m_LuaModule = new ServerMap::ServerMapLuaModule();
     RegisterLuaExport(m_LuaModule);
 
+    AddTick();
     return stAddress;
 }
 

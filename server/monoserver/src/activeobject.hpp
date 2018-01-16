@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 08/10/2017 23:07:36
+ *  Last Modified: 01/15/2018 21:39:08
  *
  *    Description: server object with active state
  *                      1. it's active via actor pod
@@ -165,4 +165,8 @@ class ActiveObject: public ServerObject
 
     public:
         void Delay(uint32_t, const std::function<void()> &);
+
+    protected:
+        bool AddTick();
+        void RemoveTick();
 };

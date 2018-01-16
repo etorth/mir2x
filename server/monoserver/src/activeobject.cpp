@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 12/26/2017 06:06:24
+ *  Last Modified: 01/15/2018 21:41:25
  *
  *    Description: 
  *
@@ -20,6 +20,7 @@
 
 #include <cinttypes>
 #include "actorpod.hpp"
+#include "metronome.hpp"
 #include "serverenv.hpp"
 #include "monoserver.hpp"
 #include "activeobject.hpp"
@@ -149,4 +150,16 @@ uint32_t ActiveObject::StateTime(uint8_t nState)
 {
     extern MonoServer *g_MonoServer;
     return g_MonoServer->GetTimeTick() - m_StateTimeV[nState];
+}
+
+bool ActiveObject::AddTick()
+{
+    extern Metronome *g_Metronome;
+    return g_Metronome->Add(m_ActorPod->GetAddress());
+}
+
+void ActiveObject::RemoveTick()
+{
+    extern Metronome *g_Metronome;
+    g_Metronome->Remove(m_ActorPod->GetAddress());
 }

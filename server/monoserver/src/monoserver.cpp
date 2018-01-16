@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 12/26/2017 00:55:20
+ *  Last Modified: 01/15/2018 13:03:02
  *
  *    Description: 
  *
@@ -292,8 +292,8 @@ void MonoServer::Launch()
     StartServiceCore();
     StartNetwork();
 
-    extern EventTaskHub *g_EventTaskHub;
-    g_EventTaskHub->Launch();
+    extern Metronome *g_Metronome;
+    g_Metronome->Launch();
 }
 
 void MonoServer::Restart()
