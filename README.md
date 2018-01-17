@@ -20,9 +20,20 @@ mir2x is a c/s based mir2ei implementation with various platforms supported. It 
 
 ### Building from source
 
-mir2x requires [cmake](https://cmake.org/) v3+ and [gcc](https://gcc.gnu.org/) support c++14 to run.
+mir2x requires [cmake](https://cmake.org/) v3+ and [gcc](https://gcc.gnu.org/) support c++14 to run. Mir2x needs some pre-installed packages before compile:
 
-Install the dependencies and devDependencies and start the server, by default it tries to install in /usr/local. use ``CMAKE_INSTALL_PREFIX" to customize.
+```sh
+libsdl2-dev
+libsdl2-image-dev
+libsdl2-ttf-dev
+libsdl2-mixer-dev
+libpng-dev
+liblua5.3-dev
+libmysqlclient-dev
+libfltk1.3-dev
+```
+
+Generally cmake complains when libs are missing. After install all these dependencies and devDependencies, clone the repo and compile with cmake. By default it tries to install in /usr/local. use ``CMAKE_INSTALL_PREFIX" to customize.
 
 ```sh
 $ git clone https://github.com/etorth/mir2x.git
