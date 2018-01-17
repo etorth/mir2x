@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 01/16/2018 15:32:13
+ *  Last Modified: 01/16/2018 15:50:05
  *
  *    Description:
  *
@@ -130,6 +130,9 @@ class ServerMap: public ActiveObject
 
     protected:
         bool CanMove(bool, bool, int, int);
+        bool CanMove(bool, bool, int, int, int, int);
+
+    protected:
         double MoveCost(bool, bool, int, int, int, int);
 
     public:

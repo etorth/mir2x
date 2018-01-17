@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 01/16/2018 14:54:35
+ *  Last Modified: 01/16/2018 18:35:22
  *
  *    Description: 
  *
@@ -40,37 +40,6 @@ void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
         // if so I have to move it to a seperated thread
 
         m_LuaModule->LoopOne();
-    }
-
-    for(auto &rstRecordLine: m_CellRecordV2D){
-        for(auto &rstRecordV: rstRecordLine){
-
-            // this part check all recorded UID and remove those invalid ones
-            // do it periodically in 1s, then for all rest logic we can skip the clean job
-
-            for(size_t nIndex = 0; nIndex < rstRecordV.UIDList.size();){
-                extern MonoServer *g_MonoServer;
-                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(rstRecordV.UIDList[nIndex])){
-                    if(stUIDRecord.ClassFrom<ActiveObject>()){
-                        if(m_ActorPod->Forward(MPK_METRONOME, stUIDRecord.Address)){
-                            nIndex++;
-                            continue;
-                        }else{
-                            std::swap(rstRecordV.UIDList[nIndex], rstRecordV.UIDList.back());
-                            rstRecordV.UIDList.pop_back();
-                            continue;
-                        }
-                    }else{
-                        nIndex++;
-                        continue;
-                    }
-                }else{
-                    std::swap(rstRecordV.UIDList[nIndex], rstRecordV.UIDList.back());
-                    rstRecordV.UIDList.pop_back();
-                    continue;
-                }
-            }
-        }
     }
 }
 
