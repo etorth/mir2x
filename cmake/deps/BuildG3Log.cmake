@@ -2,7 +2,7 @@
 #
 #        Filename: BuildG3Log.cmake
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 01/12/2018 16:29:03
+#   Last Modified: 01/16/2018 19:01:54
 #
 #     Description: required: MIR2X_3RD_PARTY_DIR
 #
@@ -29,7 +29,6 @@ ExternalProject_Add(
 
     UPDATE_COMMAND ""
     PATCH_COMMAND ""
-    INSTALL_COMMAND ""
 
     CMAKE_ARGS -DCPACK_PACKAGING_INSTALL_PREFIX=${MIR2X_3RD_PARTY_DIR}/g3log/build/install -DCMAKE_BUILD_TYPE=Release -DG3_SHARED_LIB=OFF
 

@@ -3,7 +3,7 @@
  *
  *       Filename: dbconnection.cpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 01/14/2018 18:57:41
+ *  Last Modified: 01/16/2018 19:14:02
  *
  *    Description:
  *
@@ -17,7 +17,7 @@
  *
  * =====================================================================================
  */
-#include <mariadb/mysql.h>
+#include "mysqlinc.hpp"
 #include "dbrecord.hpp"
 #include "dbconnection.hpp"
 

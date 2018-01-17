@@ -3,7 +3,7 @@
  *
  *       Filename: dbconnection.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 01/14/2018 18:58:03
+ *  Last Modified: 01/16/2018 19:13:54
  *
  *    Description:
  *
@@ -19,8 +19,7 @@
  */
 #pragma once
 #include <new>
-#include <mariadb/mysql.h>
-
+#include "mysqlinc.hpp"
 #include "dbrecord.hpp"
 
 class DBConnection

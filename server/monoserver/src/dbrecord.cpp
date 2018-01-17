@@ -1,8 +1,8 @@
 #include <cstdio>
 #include <cstdarg>
 #include <cstring>
-#include <mariadb/mysql.h>
 
+#include "mysqlinc.hpp"
 #include "dbrecord.hpp"
 #include "dbconnection.hpp"
 

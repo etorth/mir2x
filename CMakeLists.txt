@@ -2,7 +2,7 @@
 #
 #        Filename: CMakeLists.txt
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 01/15/2018 21:49:19
+#   Last Modified: 01/16/2018 19:04:35
 #
 #     Description:
 #
@@ -77,6 +77,7 @@ FIND_PACKAGE(SDL2   REQUIRED)
 FIND_PACKAGE(FLTK   REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
 FIND_PACKAGE(ZLIB   REQUIRED)
+FIND_PACKAGE(PNG    REQUIRED)
 
 # for libtheron, compile arguments matching is required
 # reason why I disable NDEBUG
