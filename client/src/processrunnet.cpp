@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 12/25/2017 16:51:02
+ *  Last Modified: 01/18/2018 00:47:27
  *
  *    Description: 
  *
@@ -215,10 +215,11 @@ void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
     SMShowDropItem stSMSDI;
     std::memcpy(&stSMSDI, pBuf, sizeof(stSMSDI));
 
-    RemoveGroundItem(0, stSMSDI.X, stSMSDI.Y);
+    ClearGroundItem(stSMSDI.X, stSMSDI.Y);
     for(size_t nIndex = 0; nIndex < std::extent<decltype(stSMSDI.IDList)>::value; ++nIndex){
-        if(stSMSDI.IDList[nIndex]){
-            AddGroundItem(stSMSDI.IDList[nIndex], stSMSDI.X, stSMSDI.Y);
+        CommonItem stCommonItem(stSMSDI.IDList[nIndex].ID, stSMSDI.IDList[nIndex].DBID);
+        if(stCommonItem){
+            AddGroundItem(stCommonItem, stSMSDI.X, stSMSDI.Y);
         }else{
             break;
         }
@@ -320,6 +321,6 @@ void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMPUOK, pBuf, sizeof(stSMPUOK));
 
     m_MyHero->GetInvPack().Add(stSMPUOK.ItemID);
-    RemoveGroundItem(stSMPUOK.ItemID, stSMPUOK.X, stSMPUOK.Y);
+    RemoveGroundItem(CommonItem(stSMPUOK.ItemID, 0), stSMPUOK.X, stSMPUOK.Y);
     AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(stSMPUOK.ItemID).Name, (int)(stSMPUOK.X), (int)(stSMPUOK.Y));
 }

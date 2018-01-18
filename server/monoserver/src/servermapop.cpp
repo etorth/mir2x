@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 01/16/2018 18:35:22
+ *  Last Modified: 01/18/2018 00:45:27
  *
  *    Description: 
  *
@@ -810,19 +810,17 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Addr
                         // valid grid
                         // check if gird good to hold
 
-                        auto nCurrCount = GroundItemCount(stRC.X(), stRC.Y(), 0);
-                        if(nCurrCount >= 0){
-                            if(nCurrCount < nMinCount){
-                                nMinCount = nCurrCount;
-                                nBestX    = stRC.X();
-                                nBestY    = stRC.Y();
+                        auto nCurrCount = GetGroundItemList(stRC.X(), stRC.Y()).Length();
+                        if((int)(nCurrCount) < nMinCount){
+                            nMinCount = nCurrCount;
+                            nBestX    = stRC.X();
+                            nBestY    = stRC.Y();
 
-                                // short it if it's an empty slot
-                                // directly use it and won't compare more
+                            // short it if it's an empty slot
+                            // directly use it and won't compare more
 
-                                if(nMinCount == 0){
-                                    break;
-                                }
+                            if(nMinCount == 0){
+                                break;
                             }
                         }
                     }
@@ -830,7 +828,7 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Addr
             }
 
             if(GroundValid(nBestX, nBestY)){
-                AddGroundItem(nBestX, nBestY, {stAMNDI.ID, 0});
+                AddGroundItem(CommonItem(stAMNDI.ID, 0), nBestX, nBestY);
             }else{
 
                 // we scanned the square but find we can't find a valid place
@@ -872,9 +870,9 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK, const Theron::Address &
     if(ValidC(stAMPU.X, stAMPU.Y) && stAMPU.ItemID){
         extern MonoServer *g_MonoServer;
         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMPU.UID)){
-            auto nIndex = FindGroundItem(stAMPU.X, stAMPU.Y, stAMPU.ItemID);
+            auto nIndex = FindGroundItem(CommonItem(stAMPU.ItemID, 0), stAMPU.X, stAMPU.Y);
             if(nIndex >= 0){
-                RemoveGroundItem(stAMPU.X, stAMPU.Y, stAMPU.ItemID);
+                RemoveGroundItem(CommonItem(stAMPU.ItemID, 0), stAMPU.X, stAMPU.Y);
                 auto fnRemoveGroundItem = [this, stAMPU](int nX, int nY) -> bool
                 {
                     if(true || ValidC(nX, nY)){

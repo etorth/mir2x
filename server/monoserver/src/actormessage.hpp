@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 12/25/2017 17:28:11
+ *  Last Modified: 01/17/2018 22:12:57
  *
  *    Description: 
  *
@@ -433,7 +433,12 @@ struct AMNewDropItem
 
 struct AMShowDropItem
 {
-    uint32_t IDList[16];
+    struct _CommonItem
+    {
+        uint32_t ID;
+        uint32_t DBID;
+    }IDList[16];
+
     int X;
     int Y;
 };

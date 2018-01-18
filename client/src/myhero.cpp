@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 12/12/2017 17:30:38
+ *  Last Modified: 01/17/2018 23:00:01
  *
  *    Description: 
  *
@@ -675,12 +675,13 @@ bool MyHero::StayIdle()
 void MyHero::PickUp()
 {
     if(StayIdle()){
-        for(auto &rstGroundItem: m_ProcessRun->GetGroundItemList()){
-            if(true
-                    && rstGroundItem.X == CurrMotion().X
-                    && rstGroundItem.Y == CurrMotion().Y){
-                ReportAction(ActionPickUp(rstGroundItem.X, rstGroundItem.Y, rstGroundItem.ID));
-            }
+
+        int nX = CurrMotion().X;
+        int nY = CurrMotion().Y;
+
+        auto &rstGroundItemList = m_ProcessRun->GetGroundItemList(nX, nY);
+        if(!rstGroundItemList.empty()){
+            ReportAction(ActionPickUp(nX, nY, rstGroundItemList.back().ID()));
         }
     }
 }

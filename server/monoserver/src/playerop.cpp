@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 01/14/2018 18:59:56
+ *  Last Modified: 01/17/2018 22:16:10
  *
  *    Description:
  *
@@ -307,7 +307,14 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK, const Theron::Addres
     constexpr auto nAMIDListLen = std::extent<decltype(stAMSDI.IDList)>::value;
 
     static_assert(nSMIDListLen >= nAMIDListLen, "");
-    std::memcpy(stSMSDI.IDList, stAMSDI.IDList, sizeof(stAMSDI.IDList));
+    for(size_t nIndex = 0; nIndex < nAMIDListLen; ++nIndex){
+        if(stAMSDI.IDList[nIndex].ID){
+            stSMSDI.IDList[nIndex].ID   = stAMSDI.IDList[nIndex].ID;
+            stSMSDI.IDList[nIndex].DBID = stAMSDI.IDList[nIndex].DBID;
+        }else{
+            break;
+        }
+    }
 
     extern NetDriver *g_NetDriver;
     g_NetDriver->Send(SessionID(), SM_SHOWDROPITEM, stSMSDI);

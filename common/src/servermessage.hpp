@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 12/25/2017 16:46:15
+ *  Last Modified: 01/17/2018 19:55:59
  *
  *    Description: net message used by client and mono-server
  *
@@ -158,7 +158,12 @@ struct SMExp
 
 struct SMShowDropItem
 {
-    uint32_t IDList[16];
+    struct _CommonItem
+    {
+        uint32_t ID;
+        uint32_t DBID;
+    }IDList[16];
+
     uint16_t X;
     uint16_t Y;
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 12/25/2017 00:09:14
+ *  Last Modified: 01/17/2018 22:27:40
  *
  *    Description: 
  *
@@ -30,7 +30,7 @@
 #include "creature.hpp"
 #include "focustype.hpp"
 #include "ascendstr.hpp"
-#include "grounditem.hpp"
+#include "commonitem.hpp"
 #include "indepmagic.hpp"
 #include "labelboard.hpp"
 #include "mir2xmapdata.hpp"
@@ -70,6 +70,9 @@ class ProcessRun: public Process
         Mir2xMapData m_Mir2xMapData;
 
     private:
+        std::vector<std::vector<std::vector<CommonItem>>> m_GroundItemList;
+
+    private:
         MyHero *m_MyHero;
 
     private:
@@ -93,11 +96,6 @@ class ProcessRun: public Process
 
     private:
         std::vector<std::shared_ptr<IndepMagic>> m_IndepMagicList;
-
-    private:
-        // items in this list would keep in ordered
-        // then don't directly call push_back(), use AddGroundItem() instead
-        std::vector<GroundItem> m_GroundItemList;
 
     private:
         std::map<uint32_t, Creature*> m_CreatureRecord;
@@ -211,54 +209,42 @@ class ProcessRun: public Process
         }
 
     public:
-        const auto &GetGroundItemList() const
+        const auto &GetGroundItemList(int nX, int nY) const
         {
-            return m_GroundItemList;
+            return m_GroundItemList[nX][nY];
         }
 
-        std::vector<size_t> FindGroundItem(uint32_t nItemID, int nX, int nY)
+        int FindGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         {
-            std::vector<size_t> stvRet;
-            for(size_t nIndex = 0; nIndex < m_GroundItemList.size(); ++nIndex){
-                if(true
-                        && m_GroundItemList[nIndex].X == nX
-                        && m_GroundItemList[nIndex].Y == nY){
-
-                    if(false
-                            || nItemID == 0
-                            || nItemID == m_GroundItemList[nIndex].ID){
-                        stvRet.push_back(nIndex);
-                    }
+            for(int nIndex = (int)(m_GroundItemList[nX][nY].size()) - 1; nIndex >= 0; --nIndex){
+                if(m_GroundItemList[nX][nY][nIndex] == rstCommonItem){
+                    return nIndex;
                 }
             }
-            return stvRet;
+            return -1;
         }
 
-        bool AddGroundItem(uint32_t nItemID, int nX, int nY)
+        bool AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         {
-            if(nItemID && m_Mir2xMapData.ValidC(nX, nY)){
-                m_GroundItemList.push_back(GroundItem(nItemID, nX, nY));
+            if(rstCommonItem && m_Mir2xMapData.ValidC(nX, nY)){
+                m_GroundItemList[nX][nY].push_back(rstCommonItem);
                 return true;
             }
             return false;
         }
 
-        void RemoveGroundItem(uint32_t nItemID, int nX, int nY)
+        void RemoveGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         {
-            for(auto pCurr = m_GroundItemList.begin(); pCurr != m_GroundItemList.end();){
-                if(true
-                        && pCurr->X == nX
-                        && pCurr->Y == nY){
-
-                    if(false
-                            || nItemID
-                            || nItemID == pCurr->ID){
-                        pCurr = m_GroundItemList.erase(pCurr);
-                        continue;
-                    }
+            for(auto pCurr = m_GroundItemList[nX][nY].begin(); pCurr != m_GroundItemList[nX][nY].end(); ++pCurr){
+                if(*pCurr == rstCommonItem){
+                    m_GroundItemList[nX][nY].erase(pCurr);
                 }
-                pCurr++;
             }
+        }
+
+        void ClearGroundItem(int nX, int nY)
+        {
+            m_GroundItemList[nX][nY].clear();
         }
 
     public:

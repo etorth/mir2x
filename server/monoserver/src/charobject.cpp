@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 01/16/2018 02:00:49
+ *  Last Modified: 01/16/2018 23:47:22
  *
  *    Description: 
  *
@@ -146,25 +146,9 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
 
 bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
-    // we can check cache
-    // if current location is occupied we *may* not try the move
-
-    auto fnCheckLocationCache = [this](int nX, int nY) -> bool
-    {
-        for(auto stLocation: m_LocationList){
-            if(true
-                    && stLocation.second.X == nX
-                    && stLocation.second.Y == nY){
-                return false;
-            }
-        }
-        return true;
-    };
-
     if(true
             && CanMove()
-            && EstimateHop(nX, nY) == 1
-            && fnCheckLocationCache(nX, nY)){
+            && EstimateHop(nX, nY) == 1){
 
         AMTryMove stAMTM;
         std::memset(&stAMTM, 0, sizeof(stAMTM));
@@ -776,4 +760,26 @@ int CharObject::EstimateHop(int nX, int nY)
         }
     }
     return -1;
+}
+
+bool CharObject::CheckCacheLocation(int nX, int nY, uint32_t nTimeOut)
+{
+    // we can check cache location
+    // if current location is occupied we *may* not try the move
+
+    for(auto stLocation: m_LocationList){
+        if(nTimeOut){
+            extern MonoServer *g_MonoServer;
+            if(g_MonoServer->GetTimeTick() > stLocation.second.RecordTime + nTimeOut){
+                continue;
+            }
+        }
+
+        if(true
+                && stLocation.second.X == nX
+                && stLocation.second.Y == nY){
+            return false;
+        }
+    }
+    return true;
 }

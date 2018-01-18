@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 01/16/2018 15:50:05
+ *  Last Modified: 01/18/2018 00:34:48
  *
  *    Description:
  *
@@ -167,11 +167,24 @@ class ServerMap: public ActiveObject
         int GetMonsterCount(uint32_t);
 
     private:
-        int FindGroundItem(int, int, uint32_t);
-        int GroundItemCount(int, int, uint32_t);
+        auto &GetGroundItemList(int nX, int nY)
+        {
+            return m_CellRecordV2D[nX][nY].GroundItemQueue;
+        }
 
-        bool AddGroundItem(int, int, const CommonItem &);
-        void RemoveGroundItem(int, int, uint32_t);
+        const auto &GetGroundItemList(int nX, int nY) const
+        {
+            return m_CellRecordV2D[nX][nY].GroundItemQueue;
+        }
+
+    private:
+        int FindGroundItem(const CommonItem &, int, int);
+        int GroundItemCount(const CommonItem &, int, int);
+
+        bool AddGroundItem(const CommonItem &, int, int);
+        void RemoveGroundItem(const CommonItem &, int, int);
+
+        void ClearGroundItem(int, int);
 
     private:
         void DoCircle(int, int, int,      const std::function<bool(int, int)> &);

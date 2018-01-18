@@ -2,17 +2,23 @@
 
 if [[ $# != 1 ]]
 then
-    echo "Usage: mir2x-client.sh build-path"
+    echo "Usage: mir2x-client.sh install-path"
     exit 1
 fi
 
-env \
-    CPUPROFILE=./mir2x-client.log       \
-    LD_PRELOAD=/usr/lib/libprofiler.so  \
-    MIR2X_DEBUG_SHOW_MAP_GRID=1         \
-    MIR2X_DEBUG_SHOW_LOCATION=1         \
-    MIR2X_DEBUG_SHOW_CREATURE_COVER=1   \
-    $1/client/src/client
+BIN_DIR=$1
+LOG_DIR=${PWD}
 
-google-pprof --callgrind $1/client/src/client ./mir2x-client.log > ./mir2x-client.callgrind
-kcachegrind ./mir2x-client.callgrind
+echo "Profiling client installed at: ${BIN_DIR}"
+echo "Profiling result generated at: ${LOG_DIR}"
+
+(\
+    cd ${BIN_DIR};  \
+    env             \
+    CPUPROFILE=${LOG_DIR}/mir2x-client.log  \
+    LD_PRELOAD="/usr/lib/libprofiler.so"    \
+    ./client                                \
+)
+
+google-pprof --callgrind ${BIN_DIR}/client ${LOG_DIR}/mir2x-client.log > ${LOG_DIR}/mir2x-client.callgrind
+kcachegrind ${LOG_DIR}/mir2x-client.callgrind

@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 01/16/2018 16:02:08
+ *  Last Modified: 01/18/2018 00:35:24
  *
  *    Description: 
  *
@@ -823,12 +823,12 @@ void ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
     }
 }
 
-int ServerMap::FindGroundItem(int nX, int nY, uint32_t nItemID)
+int ServerMap::FindGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
 {
     if(ValidC(nX, nY)){
-        auto &rstGroundItemQueue = m_CellRecordV2D[nX][nY].GroundItemQueue;
-        for(size_t nIndex = 0; nIndex < rstGroundItemQueue.Length(); ++nIndex){
-            if(rstGroundItemQueue[nIndex].ID() == nItemID){
+        auto &rstGroundItemList = GetGroundItemList(nX, nY);
+        for(size_t nIndex = 0; nIndex < rstGroundItemList.Length(); ++nIndex){
+            if(rstGroundItemList[nIndex] == rstCommonItem){
                 return (int)(nIndex);
             }
         }
@@ -836,48 +836,44 @@ int ServerMap::FindGroundItem(int nX, int nY, uint32_t nItemID)
     return -1;
 }
 
-int ServerMap::GroundItemCount(int nX, int nY, uint32_t nItemID)
+int ServerMap::GroundItemCount(const CommonItem &rstCommonItem, int nX, int nY)
 {
     if(ValidC(nX, nY)){
-        auto &rstGroundItemQueue = m_CellRecordV2D[nX][nY].GroundItemQueue;
-        if(nItemID == 0){
-            return (int)(rstGroundItemQueue.Length());
-        }else{
-            int nCount = 0;
-            for(size_t nIndex = 0; nIndex < rstGroundItemQueue.Length(); ++nIndex){
-                if(rstGroundItemQueue[nIndex].ID() == nItemID){
-                    nCount++;
-                }
+        auto &rstGroundItemList = GetGroundItemList(nX, nY);
+        int nCount = 0;
+        for(size_t nIndex = 0; nIndex < rstGroundItemList.Length(); ++nIndex){
+            if(rstGroundItemList[nIndex] == rstCommonItem){
+                nCount++;
             }
-            return nCount;
         }
+        return nCount;
     }
     return -1;
 }
 
-void ServerMap::RemoveGroundItem(int nX, int nY, uint32_t nItemID)
+void ServerMap::RemoveGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
 {
-    auto nFind = FindGroundItem(nX, nY, nItemID);
+    auto nFind = FindGroundItem(rstCommonItem, nX, nY);
     if(nFind >= 0){
-        auto &rstGroundItemQueue = m_CellRecordV2D[nX][nY].GroundItemQueue;
-        for(int nIndex = nFind; nIndex < ((int)(rstGroundItemQueue.Length()) - 1); ++nIndex){
-            rstGroundItemQueue[nIndex] = rstGroundItemQueue[nIndex + 1];
+        auto &rstGroundItemList = GetGroundItemList(nX, nY);
+        for(int nIndex = nFind; nIndex < ((int)(rstGroundItemList.Length()) - 1); ++nIndex){
+            rstGroundItemList[nIndex] = rstGroundItemList[nIndex + 1];
         }
-        rstGroundItemQueue.PopBack();
+        rstGroundItemList.PopBack();
     }
 }
 
-bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
+bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
 {
     if(true
-            && rstItem
+            && rstCommonItem
             && GroundValid(nX, nY)){
 
         // check if item is valid
         // then push back and report, would override if already full
 
-        auto &rstGroundItemQueue = m_CellRecordV2D[nX][nY].GroundItemQueue;
-        rstGroundItemQueue.PushBack(rstItem);
+        auto &rstGroundItemList = GetGroundItemList(nX, nY);
+        rstGroundItemList.PushBack(rstCommonItem);
 
         AMShowDropItem stAMSDI;
         std::memset(&stAMSDI, 0, sizeof(stAMSDI));
@@ -886,10 +882,12 @@ bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
         stAMSDI.Y = nY;
 
         size_t nCurrLoc = 0;
-        for(size_t nIndex = 0; nIndex < rstGroundItemQueue.Length(); ++nIndex){
-            if(rstGroundItemQueue[nIndex]){
+        for(size_t nIndex = 0; nIndex < rstGroundItemList.Length(); ++nIndex){
+            if(rstGroundItemList[nIndex]){
                 if(nCurrLoc < std::extent<decltype(stAMSDI.IDList)>::value){
-                    stAMSDI.IDList[nCurrLoc++] = rstGroundItemQueue[nIndex].ID();
+                    stAMSDI.IDList[nCurrLoc].ID   = rstGroundItemList[nIndex].ID();
+                    stAMSDI.IDList[nCurrLoc].DBID = rstGroundItemList[nIndex].DBID();
+                    nCurrLoc++;
                 }else{
                     break;
                 }

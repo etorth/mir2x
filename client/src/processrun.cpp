@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 12/25/2017 00:16:35
+ *  Last Modified: 01/17/2018 22:31:01
  *
  *    Description: 
  *
@@ -36,6 +36,7 @@ ProcessRun::ProcessRun()
     : Process()
     , m_MapID(0)
     , m_Mir2xMapData()
+    , m_GroundItemList()
     , m_MyHero(nullptr)
     , m_FocusTable()
     , m_ViewX(0)
@@ -58,7 +59,6 @@ ProcessRun::ProcessRun()
             nullptr,            // independent widget
             false)              // 
     , m_InventoryBoard(0, 0, this)
-    , m_GroundItemList()
     , m_CreatureRecord()
     , m_MousePixlLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_MouseGridLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
@@ -302,9 +302,9 @@ void ProcessRun::Draw()
         // should be over dead actors
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
-                auto stvIndex = FindGroundItem(0, nX, nY);
-                for(auto nIndex: stvIndex){
-                    if(auto &rstIR = DBCOM_ITEMRECORD(GetGroundItemList()[nIndex].ID)){
+                auto &rstGroundItemList = GetGroundItemList(nX, nY);
+                for(auto rstGroundItem: rstGroundItemList){
+                    if(auto &rstIR = DBCOM_ITEMRECORD(rstGroundItem.ID())){
                         if(rstIR.PkgGfxID >= 0){
                             extern SDLDevice *g_SDLDevice;
                             extern PNGTexDBN *g_GroundItemDBN;
@@ -428,7 +428,7 @@ void ProcessRun::Draw()
             for(int nY = nY0; nY <= nY1; ++nY){
                 for(int nX = nX0; nX <= nX1; ++nX){
 
-                    if(!FindGroundItem(0, nX, nY).empty()){
+                    if(!GetGroundItemList(nX, nY).empty()){
                         extern SDLDevice *g_SDLDevice;
                         extern PNGTexDBN *g_GroundItemDBN;
 
@@ -539,9 +539,9 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                 m_FocusTable[FOCUS_ATTACK] = nUID;
                                 TrackAttack(true, nUID);
                             }else{
-                                auto stvIndex = FindGroundItem(0, nMouseGridX, nMouseGridY);
-                                if(!stvIndex.empty()){
-                                    m_MyHero->EmplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, GetGroundItemList()[stvIndex.back()].ID));
+                                auto &rstGroundItemList = GetGroundItemList(nMouseGridX, nMouseGridY);
+                                if(!rstGroundItemList.empty()){
+                                    m_MyHero->EmplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, rstGroundItemList.back().ID()));
                                 }
                             }
                             break;
@@ -682,10 +682,21 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
 int ProcessRun::LoadMap(uint32_t nMapID)
 {
     if(nMapID){
-        m_MapID = nMapID;
         extern MapBinDBN *g_MapBinDBN;
         if(auto pMapBin = g_MapBinDBN->Retrieve(nMapID)){
+            m_MapID        =  nMapID;
             m_Mir2xMapData = *pMapBin;
+
+            auto nW = m_Mir2xMapData.W();
+            auto nH = m_Mir2xMapData.H();
+
+            m_GroundItemList.clear();
+            m_GroundItemList.resize(nW);
+
+            for(int nX = 0; nX < nW; ++nX){
+                m_GroundItemList[nX].resize(nH);
+            }
+
             return 0;
         }
     }

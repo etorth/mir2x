@@ -2,7 +2,7 @@
 #
 #        Filename: CMakeLists.txt
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 01/16/2018 19:04:35
+#   Last Modified: 01/17/2018 12:09:34
 #
 #     Description:
 #
@@ -45,9 +45,27 @@ SET(CMAKE_BUILD_TYPE "Debug")
 SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
-# SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
-# SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
+# enable check for asan/usan/tsan
+# keep in mind that these three can't be set at the same time
+
+OPTION(MIR2X_ENABLE_ASAN "Enable ASAN" OFF)
+OPTION(MIR2X_ENABLE_USAN "Enable USAN" OFF)
+OPTION(MIR2X_ENABLE_TSAN "Enable TSAN" OFF)
+
+IF(MIR2X_ENABLE_ASAN)
+    MESSAGE(STATUS "ASAN enabled")
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
+ENDIF()
+
+IF(MIR2X_ENABLE_USAN)
+    MESSAGE(STATUS "USAN enabled")
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
+ENDIF()
+
+IF(MIR2X_ENABLE_TSAN)
+    MESSAGE(STATUS "TSAN enabled")
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
+ENDIF()
 
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
