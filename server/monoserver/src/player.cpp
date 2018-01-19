@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/25/2017 18:27:25
+ *  Last Modified: 01/19/2018 00:08:16
  *
  *    Description: 
  *
@@ -47,17 +47,6 @@ Player::Player(uint32_t nDBID,
         For_CheckTime();
         return false;
     });
-
-    auto fnRegisterClass = [this]()
-    {
-        if(!RegisterClass<Player, CharObject>()){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <Player, CharObject> failed");
-            g_MonoServer->Restart();
-        }
-    };
-    static std::once_flag stFlag;
-    std::call_once(stFlag, fnRegisterClass);
 
     m_HP    = 10;
     m_HPMax = 10;
@@ -243,7 +232,7 @@ void Player::ReportCORecord(uint32_t nUID)
 
             // don't reply to server map
             // even get co information pull request from map
-            m_ActorPod->Forward({MPK_CORECORD, stAMCOR}, stUIDRecord.Address);
+            m_ActorPod->Forward({MPK_CORECORD, stAMCOR}, stUIDRecord.GetAddress());
         }
     }
 }

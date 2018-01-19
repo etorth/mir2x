@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 01/16/2018 23:47:22
+ *  Last Modified: 01/18/2018 23:38:11
  *
  *    Description: 
  *
@@ -58,17 +58,6 @@ CharObject::CharObject(ServiceCore *pServiceCore,
 {
     condcheck(m_Map);
     SetState(STATE_LIFECYCLE, nLifeState);
-
-    auto fnRegisterClass = [this]()
-    {
-        if(!RegisterClass<CharObject, ActiveObject>()){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <CharObject, ActiveObject> failed");
-            g_MonoServer->Restart();
-        }
-    };
-    static std::once_flag stFlag;
-    std::call_once(stFlag, fnRegisterClass);
 }
 
 bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
@@ -390,7 +379,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
 
                             extern MonoServer *g_MonoServer;
                             if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMUID.UID)){
-                                fnCOSpaceMove(stUIDRecord.Address);
+                                fnCOSpaceMove(stUIDRecord.GetAddress());
                             }else{
                                 if(fnOnMoveError){
                                     fnOnMoveError();
@@ -499,7 +488,7 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLoca
 
             extern MonoServer *g_MonoServer;
             if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
-                return m_ActorPod->Forward({MPK_QUERYLOCATION, stAMQL}, stRecord.Address, fnOnResp);
+                return m_ActorPod->Forward({MPK_QUERYLOCATION, stAMQL}, stRecord.GetAddress(), fnOnResp);
             }
 
             return false;
@@ -593,7 +582,7 @@ bool CharObject::DispatchHitterExp()
         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(rstRecord.UID)){
             AMExp stAME;
             stAME.Exp = fnCalcExp(rstRecord.Damage);
-            m_ActorPod->Forward({MPK_EXP, stAME}, stUIDRecord.Address);
+            m_ActorPod->Forward({MPK_EXP, stAME}, stUIDRecord.GetAddress());
         }
     }
 
@@ -676,7 +665,7 @@ void CharObject::DispatchAttack(uint32_t nUID, int nDC)
                 }
             }
 
-            m_ActorPod->Forward({MPK_ATTACK, stAMA}, stRecord.Address);
+            m_ActorPod->Forward({MPK_ATTACK, stAMA}, stRecord.GetAddress());
         }
     }
 }

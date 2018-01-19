@@ -3,10 +3,9 @@
  *
  *       Filename: uidrecord.hpp
  *        Created: 05/01/2017 11:35:58
- *  Last Modified: 01/10/2018 21:13:52
+ *  Last Modified: 01/19/2018 00:20:39
  *
- *    Description: UID entry won't take care of one specific class
- *                 It's a framework for all classes derived from ServerObject
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -20,50 +19,70 @@
  */
 
 #pragma once
-#include <vector>
 #include <cstdint>
 #include <typeinfo>
+#include <type_traits>
 #include <Theron/Address.h>
-
 #include "invardata.hpp"
-#include "serverobject.hpp"
 
-struct UIDRecord
+class UIDRecord
 {
-    uint32_t  UID;
-    InvarData Desp;
+    private:
+        uint32_t m_UID;
 
-    Theron::Address Address;
-    const std::vector<ServerObject::ClassCodeName> &ClassEntry;
+    private:
+        size_t m_ClassCode;
 
-    UIDRecord(uint32_t,
-            const InvarData &,
-            const Theron::Address &,
-            const std::vector<ServerObject::ClassCodeName> &);
+    private:
+        InvarData m_InvarData;
 
-    bool Valid() const
-    {
-        return UID;
-    }
+    private:
+        Theron::Address m_Address;
 
-    operator bool () const
-    {
-        return Valid();
-    }
+    public:
+        UIDRecord(uint32_t nUID, size_t nClassCode, const InvarData &rstData, const Theron::Address &rstAddress)
+            : m_UID(nUID)
+            , m_ClassCode(nClassCode)
+            , m_InvarData(rstData)
+            , m_Address(rstAddress)
+        {}
 
-    void Print() const;
+        UIDRecord()
+            : UIDRecord(0, 0, {}, Theron::Address::Null())
+        {}
 
-    template<typename T> bool ClassFrom()
-    {
-        if(Valid()){
-            for(const auto &rstCodeName: ClassEntry){
-                if(true
-                     // && rstCodeName.Name == typeid(T).name()
-                        && rstCodeName.Code == typeid(T).hash_code()){
-                    return true;
-                }
-            }
+    public:
+        uint32_t UID() const
+        {
+            return m_UID;
         }
-        return false;
-    }
+
+        size_t ClassCode() const
+        {
+            return m_ClassCode;
+        }
+
+        const InvarData &GetInvarData() const
+        {
+            return m_InvarData;
+        }
+
+        const Theron::Address &GetAddress() const
+        {
+            return m_Address;
+        }
+
+    public:
+        operator bool () const
+        {
+            return UID() != 0;
+        }
+
+    public:
+        template<typename T> bool ClassFrom() const
+        {
+            return true
+                && std::is_final<T>::value
+                && ClassCode() == typeid(T).hash_code();
+        }
 };

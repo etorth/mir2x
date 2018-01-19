@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 01/18/2018 00:45:27
+ *  Last Modified: 01/19/2018 00:47:13
  *
  *    Description: 
  *
@@ -60,8 +60,10 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &
                     if(nUID != stAMA.UID){
                         extern MonoServer *g_MonoServer;
                         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(stUIDRecord.ClassFrom<CharObject>()){
-                                m_ActorPod->Forward({MPK_ACTION, stAMA}, stUIDRecord.Address);
+                            if(false
+                                    || stUIDRecord.ClassFrom<Player >()
+                                    || stUIDRecord.ClassFrom<Monster>()){
+                                m_ActorPod->Forward({MPK_ACTION, stAMA}, stUIDRecord.GetAddress());
                             }
                         }
                     }
@@ -386,7 +388,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                                 stAMMS.MapID = m_CellRecordV2D[nMostX][nMostY].MapID;
                                 stAMMS.X     = m_CellRecordV2D[nMostX][nMostY].SwitchX;
                                 stAMMS.Y     = m_CellRecordV2D[nMostX][nMostY].SwitchY;
-                                m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.Address);
+                                m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.GetAddress());
                             }else{
                                 switch(m_CellRecordV2D[nMostX][nMostY].Query){
                                     case QUERY_NONE:
@@ -408,7 +410,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                                                                 stAMMS.MapID = m_CellRecordV2D[nMostX][nMostY].MapID;
                                                                 stAMMS.X     = m_CellRecordV2D[nMostX][nMostY].SwitchX;
                                                                 stAMMS.Y     = m_CellRecordV2D[nMostX][nMostY].SwitchY;
-                                                                m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.Address);
+                                                                m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.GetAddress());
                                                             }
 
                                                             break;
@@ -496,7 +498,11 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Addre
             for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
                 extern MonoServer *g_MonoServer;
                 if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                    m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, stUIDRecord.Address);
+                    if(false
+                            || stUIDRecord.ClassFrom<Player >()
+                            || stUIDRecord.ClassFrom<Monster>()){
+                        m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, stUIDRecord.GetAddress());
+                    }
                 }
             }
         }
@@ -525,7 +531,7 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Add
                     {
                         extern MonoServer *g_MonoServer;
                         if(auto stRecord = g_MonoServer->GetUIDRecord(stAMTMS.UID)){
-                            AddGridUID(stRecord.UID, stAMMSOK.X, stAMMSOK.Y);
+                            AddGridUID(stRecord.UID(), stAMMSOK.X, stAMMSOK.Y);
                         }
                         // won't check map switch here
                         break;
@@ -640,8 +646,10 @@ void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address
                     if(nUID != stAMUHP.UID){
                         extern MonoServer *g_MonoServer;
                         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(stUIDRecord.ClassFrom<CharObject>()){
-                                m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, stUIDRecord.Address);
+                            if(false
+                                    || stUIDRecord.ClassFrom<Player >()
+                                    || stUIDRecord.ClassFrom<Monster>()){
+                                m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, stUIDRecord.GetAddress());
                             }
                         }
                     }
@@ -667,7 +675,7 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Addr
                         extern MonoServer *g_MonoServer;
                         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
                             if(stUIDRecord.ClassFrom<Player>()){
-                                m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, stUIDRecord.Address);
+                                m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, stUIDRecord.GetAddress());
                             }
                         }
                     }
@@ -697,8 +705,10 @@ void ServerMap::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Ad
                     if(nUID == stAMQCOR.AimUID){
                         extern MonoServer *g_MonoServer;
                         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(stUIDRecord.ClassFrom<CharObject>()){
-                                m_ActorPod->Forward({MPK_PULLCOINFO, stAMQCOR.UID}, stUIDRecord.Address);
+                            if(false
+                                    || stUIDRecord.ClassFrom<Player >()
+                                    || stUIDRecord.ClassFrom<Monster>()){
+                                m_ActorPod->Forward({MPK_PULLCOINFO, stAMQCOR.UID}, stUIDRecord.GetAddress());
                                 return true;
                             }
                         }
@@ -725,7 +735,9 @@ void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::Add
                 std::for_each(m_CellRecordV2D[nX][nY].UIDList.begin(), m_CellRecordV2D[nX][nY].UIDList.end(), [stAMQCOC, &nCOCount](uint32_t nUID){
                     extern MonoServer *g_MonoServer;
                     if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                        if(stUIDRecord.ClassFrom<CharObject>()){
+                        if(false
+                                || stUIDRecord.ClassFrom<Player >()
+                                || stUIDRecord.ClassFrom<Monster>()){
                             if(stAMQCOC.Check.NPC    ){ nCOCount++; return; }
                             if(stAMQCOC.Check.Player ){ nCOCount++; return; }
                             if(stAMQCOC.Check.Monster){ nCOCount++; return; }
@@ -851,7 +863,7 @@ void ServerMap::On_MPK_OFFLINE(const MessagePack &rstMPK, const Theron::Address 
                 if(nUID != stAMO.UID){
                     extern MonoServer *g_MonoServer;
                     if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                        m_ActorPod->Forward({MPK_OFFLINE, stAMO}, stUIDRecord.Address);
+                        m_ActorPod->Forward({MPK_OFFLINE, stAMO}, stUIDRecord.GetAddress());
                     }
                 }
             }
@@ -885,7 +897,7 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK, const Theron::Address &
                                     stAMRGI.Y      = nY;
                                     stAMRGI.DBID   = stAMPU.DBID;
                                     stAMRGI.ItemID = stAMPU.ItemID;
-                                    m_ActorPod->Forward({MPK_REMOVEGROUNDITEM, stAMRGI}, stUIDRecord.Address);
+                                    m_ActorPod->Forward({MPK_REMOVEGROUNDITEM, stAMRGI}, stUIDRecord.GetAddress());
                                 }
                             }
                         }
@@ -899,8 +911,9 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK, const Theron::Address &
                 stAMPUOK.X      = stAMPU.X;
                 stAMPUOK.Y      = stAMPU.Y;
                 stAMPUOK.UID    = stAMPU.UID;
+                stAMPUOK.DBID   = 0;
                 stAMPUOK.ItemID = stAMPU.ItemID;
-                m_ActorPod->Forward({MPK_PICKUPOK, stAMPUOK}, stUIDRecord.Address);
+                m_ActorPod->Forward({MPK_PICKUPOK, stAMPUOK}, stUIDRecord.GetAddress());
             }else{
                 // no such item
                 // likely the client need re-sync for the gound items

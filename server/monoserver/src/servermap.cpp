@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 01/18/2018 00:35:24
+ *  Last Modified: 01/19/2018 00:09:56
  *
  *    Description: 
  *
@@ -297,17 +297,6 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
             break;
         }
     }
-
-    auto fnRegisterClass = [this]()
-    {
-        if(!RegisterClass<ServerMap, ActiveObject>()){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <ServerMap, ActiveObject> failed");
-            g_MonoServer->Restart();
-        }
-    };
-    static std::once_flag stFlag;
-    std::call_once(stFlag, fnRegisterClass);
 }
 
 void ServerMap::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -427,7 +416,9 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
             for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
                 extern MonoServer *g_MonoServer;
                 if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                    if(stUIDRecord.ClassFrom<CharObject>()){
+                    if(false
+                            || stUIDRecord.ClassFrom<Player >()
+                            || stUIDRecord.ClassFrom<Monster>()){
                         return false;
                     }
                 }
@@ -901,7 +892,7 @@ bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
                     extern MonoServer *g_MonoServer;
                     if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
                         if(stUIDRecord.ClassFrom<Player>()){
-                            m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.Address);
+                            m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.GetAddress());
                         }
                     }
                 }
@@ -925,7 +916,7 @@ int ServerMap::GetMonsterCount(uint32_t nMonsterID)
                 if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
                     if(stUIDRecord.ClassFrom<Monster>()){
                         if(nMonsterID){
-                            nCount += ((stUIDRecord.Desp.Monster.MonsterID == nMonsterID) ? 1 : 0);
+                            nCount += ((stUIDRecord.GetInvarData().Monster.MonsterID == nMonsterID) ? 1 : 0);
                         }else{
                             nCount++;
                         }

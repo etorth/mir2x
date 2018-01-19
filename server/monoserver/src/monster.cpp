@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/26/2017 06:24:25
+ *  Last Modified: 01/18/2018 23:50:26
  *
  *    Description: 
  *
@@ -115,17 +115,6 @@ Monster::Monster(uint32_t   nMonsterID,
         g_MonoServer->Restart();
     }
 
-    auto fnRegisterClass = [this]()
-    {
-        if(!RegisterClass<Monster, CharObject>()){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <Monster, CharObject> failed");
-            g_MonoServer->Restart();
-        }
-    };
-    static std::once_flag stFlag;
-    std::call_once(stFlag, fnRegisterClass);
-
     SetState(STATE_DEAD    , 0);
     SetState(STATE_NEVERDIE, 0);
 
@@ -236,14 +225,14 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
                                             m_Direction = PathFind::GetDirection(X(), Y(), nX, nY);
                                             if(CanAttack()){
                                                 // 1. dispatch action to all
-                                                DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), stRecord.UID));
+                                                DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), stRecord.UID()));
 
                                                 extern MonoServer *g_MonoServer;
                                                 m_LastAttackTime = g_MonoServer->GetTimeTick();
 
                                                 // 2. send attack message to target
                                                 //    target can ignore this message directly
-                                                DispatchAttack(stRecord.UID, DC_PHY_PLAIN);
+                                                DispatchAttack(stRecord.UID(), DC_PHY_PLAIN);
                                             }
                                             return true;
                                         }
@@ -258,7 +247,7 @@ bool Monster::AttackUID(uint32_t nUID, int nDC)
                                             // then could be a case everytime we schedule an attack operation
                                             // but actually this attack can't be done successfully
                                             // then we don't do AttackUID() nor TrackUID()
-                                            TrackUID(stRecord.UID);
+                                            TrackUID(stRecord.UID());
                                             return false;
                                         }
                                 }
@@ -416,14 +405,14 @@ bool Monster::TrackAttack()
 
                 // 1. try to attack uid
                 for(auto nDC: m_MonsterRecord.DCList()){
-                    if(AttackUID(stRecord.UID, nDC)){
+                    if(AttackUID(stRecord.UID(), nDC)){
                         m_TargetQueue[0].ActiveTime = g_MonoServer->GetTimeTick();
                         return true;
                     }
                 }
 
                 // 2. try to track uid
-                if(TrackUID(stRecord.UID)){
+                if(TrackUID(stRecord.UID())){
                     m_TargetQueue[0].ActiveTime = g_MonoServer->GetTimeTick();
                     return true;
                 }
@@ -568,7 +557,7 @@ void Monster::ReportCORecord(uint32_t nUID)
 
             // don't reply to server map
             // even get co information pull request from map
-            m_ActorPod->Forward({MPK_CORECORD, stAMCOR}, stUIDRecord.Address);
+            m_ActorPod->Forward({MPK_CORECORD, stAMCOR}, stUIDRecord.GetAddress());
         }
     }
 }
@@ -1107,7 +1096,7 @@ void Monster::CheckFriend(uint32_t nCheckUID, const std::function<void(int)> &fn
             if(stUIDRecord.ClassFrom<Player>()){
                 return UIDFROM_PLAYER;
             }else if(stUIDRecord.ClassFrom<Monster>()){
-                switch(stUIDRecord.Desp.Monster.MonsterID){
+                switch(stUIDRecord.GetInvarData().Monster.MonsterID){
                     case DBCOM_MONSTERID(u8"神兽"):
                     case DBCOM_MONSTERID(u8"变异骷髅"):
                         {

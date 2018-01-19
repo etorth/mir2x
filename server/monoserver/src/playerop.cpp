@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 01/17/2018 22:16:10
+ *  Last Modified: 01/19/2018 00:01:21
  *
  *    Description:
  *
@@ -210,7 +210,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
                         }
                 }
             };
-            m_ActorPod->Forward({MPK_TRYMAPSWITCH, stAMTMS}, stUIDRecord.Address, fnOnResp);
+            m_ActorPod->Forward({MPK_TRYMAPSWITCH, stAMTMS}, stUIDRecord.GetAddress(), fnOnResp);
             return;
         }
     }

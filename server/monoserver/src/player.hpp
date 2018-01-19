@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 12/25/2017 18:27:42
+ *  Last Modified: 01/18/2018 23:05:24
  *
  *    Description: 
  *
@@ -52,7 +52,7 @@ typedef struct stPLAYERFEATUREEX
 }PLAYERFEATUREEX;
 #pragma pack(pop)
 
-class Player: public CharObject
+class Player final: public CharObject
 {
     protected:
         const uint32_t m_DBID;

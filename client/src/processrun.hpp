@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 01/17/2018 22:27:40
+ *  Last Modified: 01/19/2018 00:46:07
  *
  *    Description: 
  *
@@ -238,6 +238,7 @@ class ProcessRun: public Process
             for(auto pCurr = m_GroundItemList[nX][nY].begin(); pCurr != m_GroundItemList[nX][nY].end(); ++pCurr){
                 if(*pCurr == rstCommonItem){
                     m_GroundItemList[nX][nY].erase(pCurr);
+                    return;
                 }
             }
         }

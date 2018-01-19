@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 01/18/2018 00:34:48
+ *  Last Modified: 01/18/2018 23:06:00
  *
  *    Description:
  *
@@ -38,7 +38,7 @@ class Monster;
 class ServiceCore;
 class ServerObject;
 
-class ServerMap: public ActiveObject
+class ServerMap final: public ActiveObject
 {
     private:
         class ServerMapLuaModule: public BatchLuaModule

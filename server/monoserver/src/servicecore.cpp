@@ -3,7 +3,7 @@
  *
  *       Filename: servicecore.cpp
  *        Created: 04/22/2016 18:16:53
- *  Last Modified: 12/20/2017 00:13:41
+ *  Last Modified: 01/18/2018 23:51:50
  *
  *    Description: 
  *
@@ -31,18 +31,7 @@
 ServiceCore::ServiceCore()
     : ActiveObject()
     , m_MapList()
-{
-    auto fnRegisterClass = [this]()
-    {
-        if(!RegisterClass<ServiceCore, ActiveObject>()){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <ServiceCore, ActiveObject> failed");
-            g_MonoServer->Restart();
-        }
-    };
-    static std::once_flag stFlag;
-    std::call_once(stFlag, fnRegisterClass);
-}
+{}
 
 void ServiceCore::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstAddr)
 {

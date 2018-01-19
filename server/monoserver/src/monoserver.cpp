@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 01/15/2018 13:03:02
+ *  Last Modified: 01/18/2018 23:31:49
  *
  *    Description: 
  *
@@ -645,44 +645,7 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
             if(pRecord != rstUIDArrayEntry.Record.end()){
                 if(pRecord->second){
                     if(pRecord->second->UID() == nUID){
-                        // two solutions
-                        // 1. for server object, define a virtual UIDRecord GetUIDRecord()
-                        //    then here directly forward the result
-                        //
-                        // 2. maintain UID() for server object
-                        //    maintain UID() and GetAddress() for classes from ActiveObject
-                        //    then construct a temporary UIDRecord and return
-                        //
-                        // solution-1 : simpler but it introduces concept of address to server object
-                        // solution-2 : means I should make both UID() and GetAddress() atomically accessable
-                        //
-                        // UID()        : OK by default
-                        // GetAddress() : which calls m_ActorPod->GetAddress()
-                        //                m_ActorPod could change when other threads accessing it
-                        //
-                        // solution:
-                        // 1. we constrains that we can only access an UID if the object actively given it
-                        //    means if we try to access object through GetUIDRecord(nUID), then the nUID is reported
-                        //    by the object itself. rather than we do randomly draw an UID and access it
-                        //
-                        //    an UID can be deleted then we get an invalid UIDRecord
-                        //    this behaves like malloc() / free(), any pointer try to free() should be from malloc()
-                        //
-                        //    this means if we trying to access ActiveObject::GetAddress(), its m_ActorPod has
-                        //    already be initialized otherwise we can't get its UID
-                        //
-                        // 2. before deletion of active object we should call Deactivate() which calls m_ActorPod->Detach()
-                        //    this helps to detach *this* from the actor thread of m_ActorPod, then deletion in other thread is OK
-                        //
-                        //    then deletion of m_ActorPod will wait if m_ActorPod is scheduled in actor threads
-
-                        // TODO:
-                        // GetUIDRecord() is called with very high frequency
-                        // then here I ignore the check:
-                        //      pRecord->second->ClassFrom<ActiveObject>()
-                        // just assume by default all server object is created as active object in the hash map
-
-                        return {nUID, pRecord->second->GetInvarData(), ((ActiveObject *)(pRecord->second))->GetAddress(), pRecord->second->ClassEntry()};
+                        return ((ActiveObject *)(pRecord->second))->GetUIDRecord();
                     }else{
                         AddLog(LOGTYPE_WARNING, "UIDArray mismatch: UID = (%" PRIu32 ", %" PRIu32 ")", nUID, pRecord->second->UID());
                     }
@@ -691,14 +654,7 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
         }
     }
 
-    // for all other cases, return empty record
-    // 1. provided uid as zero
-    // 2. record doesn't exist
-    // 3. record contains an empty pointer
-    // 4. record mismatch
-
-    static const std::vector<ServerObject::ClassCodeName> stNullEntry {};
-    return UIDRecord(0, {}, Theron::Address::Null(), stNullEntry);
+    return UIDRecord();
 }
 
 bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)

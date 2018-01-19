@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 12/25/2017 14:52:13
+ *  Last Modified: 01/18/2018 23:32:27
  *
  *    Description: 
  *
@@ -44,7 +44,7 @@ void Monster::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
     if(MasterUID()){
         extern MonoServer *g_MonoServer;
         if(auto stRecord = g_MonoServer->GetUIDRecord(MasterUID())){
-            m_ActorPod->Forward({rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen()}, stRecord.Address);
+            m_ActorPod->Forward({rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen()}, stRecord.GetAddress());
         }else{
             GoDie();
         }

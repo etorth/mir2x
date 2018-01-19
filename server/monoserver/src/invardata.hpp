@@ -3,7 +3,7 @@
  *
  *       Filename: invardata.hpp
  *        Created: 09/23/2017 13:04:02
- *  Last Modified: 10/14/2017 21:04:44
+ *  Last Modified: 01/18/2018 23:03:25
  *
  *    Description: every actor has invariant attributes
  *                 for the scenario A want to know B::m_ConstAttrib
@@ -47,7 +47,7 @@ union InvarData
         uint32_t DBID;
     }Player;
 
-    struct _MiscDdsp
+    struct _MiscDesp
     {
         uint8_t Data[32];
     }Misc;

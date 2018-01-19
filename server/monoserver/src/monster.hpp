@@ -3,7 +3,7 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45
- *  Last Modified: 12/25/2017 18:18:28
+ *  Last Modified: 01/18/2018 23:04:49
  *
  *    Description: 
  *
@@ -69,7 +69,7 @@ typedef struct stMONSTERRACEINFO
     {}
 }MONSTERRACEINFO;
 
-class Monster: public CharObject
+class Monster final: public CharObject
 {
     protected:
 
