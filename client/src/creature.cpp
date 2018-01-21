@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 12/07/2017 23:53:08
+ *  Last Modified: 01/20/2018 22:39:16
  *
  *    Description: 
  *
@@ -406,7 +406,10 @@ bool Creature::UpdateMotion(bool bLooped)
 
 bool Creature::MotionQueueValid()
 {
-    if(m_MotionQueue.empty()){ return true; }
+    if(m_MotionQueue.empty()){
+        return true;
+    }
+
     auto pLast = &m_CurrMotion;
     for(auto &rstMotion: m_MotionQueue){
         if(true

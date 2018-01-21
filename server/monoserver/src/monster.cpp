@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 01/18/2018 23:50:26
+ *  Last Modified: 01/20/2018 23:26:28
  *
  *    Description: 
  *
@@ -441,9 +441,15 @@ bool Monster::TrackAttack()
 bool Monster::Update()
 {
     if(HP() > 0){
-        if(TrackAttack() ){ return true; }
-        if(FollowMaster()){ return true; }
-        if(RandomMove()  ){ return true; }
+        if(TrackAttack()){
+            return true;
+        }
+        if(FollowMaster()){
+            return true;
+        }
+        if(RandomMove()){
+            return true;
+        }
     }else{
         GoDie();
     }
@@ -685,7 +691,7 @@ bool Monster::GoDie()
                 switch(GetState(STATE_DEAD)){
                     case 0:
                         {
-                            RandomDropItem();
+                            RandomDrop();
                             DispatchHitterExp();
                             DispatchAction(ActionDie(X(), Y(), Direction()));
 
@@ -995,7 +1001,7 @@ int Monster::FindPathMethod()
     return FPMETHOD_COMBINE;
 }
 
-void Monster::RandomDropItem()
+void Monster::RandomDrop()
 {
     for(auto &rstGroupRecord: DB_MONSTERDROPITEM(MonsterID())){
         for(auto &rstItemRecord: rstGroupRecord.second){

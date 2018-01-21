@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 01/18/2018 23:32:27
+ *  Last Modified: 01/20/2018 23:21:52
  *
  *    Description: 
  *
@@ -105,19 +105,25 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
                 switch(GetState(STATE_ATTACKMODE)){
                     case STATE_ATTACKMODE_NORMAL:
                         {
-                            if(stRecord.ClassFrom<Player>()){ AddTarget(stAMA.UID); }
+                            if(stRecord.ClassFrom<Player>()){
+                                AddTarget(stAMA.UID);
+                            }
                             break;
                         }
                     case STATE_ATTACKMODE_DOGZ:
                         {
-                            if(stRecord.ClassFrom<Monster>()){ AddTarget(stAMA.UID); }
+                            if(stRecord.ClassFrom<Monster>()){
+                                AddTarget(stAMA.UID);
+                            }
                             break;
                         }
                     case STATE_ATTACKMODE_ATTACKALL:
                         {
                             if(false
                                     || stRecord.ClassFrom<Player>()
-                                    || stRecord.ClassFrom<Monster>()){ AddTarget(stAMA.UID); }
+                                    || stRecord.ClassFrom<Monster>()){
+                                AddTarget(stAMA.UID);
+                            }
                             break;
                         }
                     default:
