@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 01/20/2018 23:26:28
+ *  Last Modified: 01/21/2018 14:32:04
  *
  *    Description: 
  *
@@ -699,9 +699,6 @@ bool Monster::GoDie()
                             // theoratically dead actor shouldn't dispatch anything
 
                             SetState(STATE_DEAD, 1);
-
-                            extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Monster dead: %d", (int)(UID()));
 
                             Delay(2 * 1000, [this](){ GoGhost(); });
                             return true;

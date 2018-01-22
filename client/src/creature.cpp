@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 01/20/2018 22:39:16
+ *  Last Modified: 01/21/2018 14:37:30
  *
  *    Description: 
  *
@@ -230,23 +230,12 @@ bool Creature::MoveNextMotion()
     // invalid motion queue
     // clear all pending motions and reset creature to idle state
 
-    // 1. reset creature to idle state
+    extern Log *g_Log;
+    g_Log->AddLog(LOGTYPE_WARNING, "Motion queue invalid, reset idle state");
+
+    m_MotionQueue.clear();
     m_CurrMotion = MakeMotionIdle();
 
-    // 2. print the motion queue
-    extern Log *g_Log;
-    g_Log->AddLog(LOGTYPE_WARNING, "Invalid motion queue:");
-
-    m_CurrMotion.Print();
-    for(auto &rstMotion: m_MotionQueue){
-        rstMotion.Print();
-    }
-
-    extern Log *g_Log;
-    g_Log->AddLog(LOGTYPE_WARNING, "Current motion is not valid");
-
-    // 3. clear the motion queue
-    m_MotionQueue.clear();
     return false;
 }
 
@@ -422,8 +411,8 @@ bool Creature::MotionQueueValid()
             g_Log->AddLog(LOGTYPE_WARNING, "Invalid motion queue:");
 
             m_CurrMotion.Print();
-            for(auto &rstMotion: m_MotionQueue){
-                rstMotion.Print();
+            for(auto &rstMotionNode: m_MotionQueue){
+                rstMotionNode.Print();
             }
             return false;
         }

@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 01/18/2018 23:31:49
+ *  Last Modified: 01/21/2018 18:51:36
  *
  *    Description: 
  *
@@ -231,20 +231,21 @@ void MonoServer::RegisterAMFallbackHandler()
     {
         void Handler(const void *pData, const Theron::uint32_t, const Theron::Address stFromAddress)
         {
-            // dangerous part
-            // try to recover basic information of the message
-            // don't refer to the data field here, it could be dynamically allcoated
-            MessagePack stRawMPK;
-            std::memcpy(&stRawMPK, pData, sizeof(stRawMPK));
+            // dangerous part !!!
+            // recover basic information of the message by memory copy
+            // reconstruction the pack causes double free if MessagePack::Data() is dynamically allcoated
+
+            // don't refer to any other field
+            // type, id, response are OK since there are static located in front of the pack class
 
             AMBadActorPod stAMBAP;
-            stAMBAP.Type    = stRawMPK.Type();
-            stAMBAP.ID      = stRawMPK.ID();
-            stAMBAP.Respond = stRawMPK.Respond();
+            stAMBAP.Type    = ((MessagePack *)(pData))->Type();
+            stAMBAP.ID      = ((MessagePack *)(pData))->ID();
+            stAMBAP.Respond = ((MessagePack *)(pData))->Respond();
 
             // we know which actor sent this message
             // but we lost the information that which actor it sent to
-            SyncDriver().Forward({MPK_BADACTORPOD, stAMBAP}, stFromAddress, stRawMPK.ID());
+            SyncDriver().Forward({MPK_BADACTORPOD, stAMBAP}, stFromAddress, stAMBAP.ID);
         }
     }stFallbackHandler;
 
