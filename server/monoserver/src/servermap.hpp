@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 01/18/2018 23:06:00
+ *  Last Modified: 01/21/2018 22:30:23
  *
  *    Description:
  *
@@ -165,6 +165,17 @@ class ServerMap final: public ActiveObject
 
     private:
         int GetMonsterCount(uint32_t);
+
+    private:
+        auto &GetUIDList(int nX, int nY)
+        {
+            return m_CellRecordV2D[nX][nY].UIDList;
+        }
+
+        const auto &GetUIDList(int nX, int nY) const
+        {
+            return m_CellRecordV2D[nX][nY].UIDList;
+        }
 
     private:
         auto &GetGroundItemList(int nX, int nY)
