@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 01/19/2018 23:14:20
+ *  Last Modified: 01/23/2018 00:45:41
  *
  *    Description:
  *
@@ -47,19 +47,22 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     stSMLOK.UID       = UID();
     stSMLOK.DBID      = DBID();
     stSMLOK.MapID     = m_Map->ID();
-    stSMLOK.X         = m_X;
-    stSMLOK.Y         = m_Y;
+    stSMLOK.X         = X();
+    stSMLOK.Y         = Y();
     stSMLOK.Male      = true;
-    stSMLOK.Direction = m_Direction;
-    stSMLOK.JobID     = m_JobID;
-    stSMLOK.Level     = m_Level;
+    stSMLOK.Direction = Direction();
+    stSMLOK.JobID     = JobID();
+    stSMLOK.Level     = Level();
 
     extern NetDriver *g_NetDriver;
     g_NetDriver->Send(SessionID(), SM_LOGINOK, stSMLOK);
 
     if(ActorPodValid() && m_Map->ActorPodValid()){
         AMPullCOInfo stAMPCOI;
-        stAMPCOI.UID = UID();
+        stAMPCOI.X     = X();
+        stAMPCOI.Y     = Y();
+        stAMPCOI.UID   = UID();
+        stAMPCOI.MapID = m_Map->ID();
         m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
     }
 }

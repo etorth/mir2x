@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 01/21/2018 14:32:04
+ *  Last Modified: 01/23/2018 01:15:15
  *
  *    Description: 
  *
@@ -530,7 +530,10 @@ void Monster::SearchViewRange()
 
 void Monster::ReportCORecord(uint32_t nUID)
 {
-    if(nUID){
+    if(true
+            && nUID
+            && nUID != UID()){
+
         extern MonoServer *g_MonoServer;
         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
             AMCORecord stAMCOR;

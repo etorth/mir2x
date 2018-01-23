@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 01/22/2018 22:14:07
+ *  Last Modified: 01/23/2018 11:09:13
  *
  *    Description: 
  *
@@ -56,18 +56,18 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &
         auto fnNotifyAction = [this, stAMA](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
-                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
-                    if(nUID != stAMA.UID){
-                        extern MonoServer *g_MonoServer;
-                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(false
-                                    || stUIDRecord.ClassFrom<Player >()
-                                    || stUIDRecord.ClassFrom<Monster>()){
-                                m_ActorPod->Forward({MPK_ACTION, stAMA}, stUIDRecord.GetAddress());
-                            }
+                auto fnDoList = [this, stAMA](const UIDRecord &rstUIDRecord) -> bool
+                {
+                    if(rstUIDRecord.UID() != stAMA.UID){
+                        if(false
+                                || rstUIDRecord.ClassFrom<Player >()
+                                || rstUIDRecord.ClassFrom<Monster>()){
+                            m_ActorPod->Forward({MPK_ACTION, stAMA}, rstUIDRecord.GetAddress());
                         }
                     }
-                }
+                    return false;
+                };
+                DoUIDList(nX, nY, fnDoList);
             }
             return false;
         };
@@ -495,20 +495,22 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Addre
     auto fnPullCOInfo = [this, stAMPCOI](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
-            for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
-                extern MonoServer *g_MonoServer;
-                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+            auto fnDoList = [this, stAMPCOI](const UIDRecord &rstUIDRecord) -> bool
+            {
+                if(rstUIDRecord.UID() != stAMPCOI.UID){
                     if(false
-                            || stUIDRecord.ClassFrom<Player >()
-                            || stUIDRecord.ClassFrom<Monster>()){
-                        m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, stUIDRecord.GetAddress());
+                            || rstUIDRecord.ClassFrom<Player >()
+                            || rstUIDRecord.ClassFrom<Monster>()){
+                        m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, rstUIDRecord.GetAddress());
                     }
                 }
-            }
+                return false;
+            };
+            DoUIDList(nX, nY, fnDoList);
         }
         return false;
     };
-    DoSquare(0, 0, W(), H(), fnPullCOInfo);
+    DoCircle(stAMPCOI.X, stAMPCOI.Y, 10, fnPullCOInfo);
 }
 
 void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)

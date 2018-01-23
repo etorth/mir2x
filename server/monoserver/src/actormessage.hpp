@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 01/22/2018 22:06:14
+ *  Last Modified: 01/23/2018 00:46:06
  *
  *    Description: 
  *
@@ -236,7 +236,11 @@ struct AMAction
 
 struct AMPullCOInfo
 {
+    int X;
+    int Y;
+
     uint32_t UID;
+    uint32_t MapID;
 };
 
 struct AMNewConnection
