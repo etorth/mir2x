@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 01/17/2018 22:12:57
+ *  Last Modified: 01/22/2018 22:06:14
  *
  *    Description: 
  *
@@ -62,8 +62,8 @@ enum MessagePackType: int
     MPK_QUERYCORECORD,
     MPK_QUERYCOCOUNT,
     MPK_COCOUNT,
-    MPK_QUERYRECTUIDV,
-    MPK_UIDV,
+    MPK_QUERYRECTUIDLIST,
+    MPK_UIDLIST,
     MPK_EXP,
     MPK_NEWDROPITEM,
     MPK_SHOWDROPITEM,
@@ -401,7 +401,7 @@ struct AMCOCount
     uint32_t Count;
 };
 
-struct AMQueryRectUIDV
+struct AMQueryRectUIDList
 {
     uint32_t MapID;
 
@@ -411,9 +411,9 @@ struct AMQueryRectUIDV
     int H;
 };
 
-struct AMUIDV
+struct AMUIDList
 {
-    uint32_t UIDV[128];
+    uint32_t UIDList[128];
 };
 
 struct AMExp

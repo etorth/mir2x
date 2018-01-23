@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 01/19/2018 00:09:56
+ *  Last Modified: 01/22/2018 22:07:51
  *
  *    Description: 
  *
@@ -382,9 +382,9 @@ void ServerMap::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstF
                 On_MPK_QUERYCOCOUNT(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_QUERYRECTUIDV:
+        case MPK_QUERYRECTUIDLIST:
             {
-                On_MPK_QUERYRECTUIDV(rstMPK, rstFromAddr);
+                On_MPK_QUERYRECTUIDLIST(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_OFFLINE:
@@ -660,7 +660,7 @@ void ServerMap::AddGridUID(uint32_t nUID, int nX, int nY)
             && ValidC(nX, nY)
             && GroundValid(nX, nY)){
 
-        auto &rstUIDList = m_CellRecordV2D[nX][nY].UIDList;
+        auto &rstUIDList = GetUIDList(nX, nY);
         if(std::find(rstUIDList.begin(), rstUIDList.end(), nUID) == rstUIDList.end()){
             rstUIDList.push_back(nUID);
         }
@@ -673,7 +673,7 @@ void ServerMap::RemoveGridUID(uint32_t nUID, int nX, int nY)
             && ValidC(nX, nY)
             && GroundValid(nX, nY)){
 
-        auto &rstUIDList = m_CellRecordV2D[nX][nY].UIDList;
+        auto &rstUIDList = GetUIDList(nX, nY);
         auto pUIDRecord  = std::find(rstUIDList.begin(), rstUIDList.end(), nUID);
 
         if(pUIDRecord != rstUIDList.end()){
@@ -681,6 +681,30 @@ void ServerMap::RemoveGridUID(uint32_t nUID, int nX, int nY)
             rstUIDList.pop_back();
         }
     }
+}
+
+bool ServerMap::DoUIDList(int nX, int nY, const std::function<bool(const UIDRecord &)> &fnOP)
+{
+    if(ValidC(nX, nY)){
+        auto &rstUIDList = GetUIDList(nX, nY);
+        for(size_t nIndex = 0; nIndex < rstUIDList.size();){
+            extern MonoServer *g_MonoServer;
+            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(rstUIDList[nIndex])){
+                if(!fnOP){
+                    return false;
+                }
+
+                if(fnOP(stUIDRecord)){
+                    return true;
+                }
+                nIndex++;
+            }else{
+                rstUIDList[nIndex] = rstUIDList.back();
+                rstUIDList.pop_back();
+            }
+        }
+    }
+    return false;
 }
 
 void ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(int, int)> &fnOP)

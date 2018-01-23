@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 01/21/2018 22:34:43
+ *  Last Modified: 01/22/2018 22:14:07
  *
  *    Description: 
  *
@@ -525,7 +525,8 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Add
         stAMMSOK.X    = nX;
         stAMMSOK.Y    = nY;
 
-        auto fnOnResp = [this, stAMTMS, stAMMSOK](const MessagePack &rstRMPK, const Theron::Address &){
+        auto fnOnResp = [this, stAMTMS, stAMMSOK](const MessagePack &rstRMPK, const Theron::Address &)
+        {
             switch(rstRMPK.Type()){
                 case MPK_OK:
                     {
@@ -758,26 +759,26 @@ void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::Add
     m_ActorPod->Forward(MPK_ERROR, rstAddress, rstMPK.ID());
 }
 
-void ServerMap::On_MPK_QUERYRECTUIDV(const MessagePack &rstMPK, const Theron::Address &rstAddress)
+void ServerMap::On_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK, const Theron::Address &rstAddress)
 {
-    AMQueryRectUIDV stAMQRUIDV;
-    std::memcpy(&stAMQRUIDV, rstMPK.Data(), sizeof(stAMQRUIDV));
+    AMQueryRectUIDList stAMQRUIDL;
+    std::memcpy(&stAMQRUIDL, rstMPK.Data(), sizeof(stAMQRUIDL));
 
-    AMUIDV stAMUIDV;
-    std::memset(&stAMUIDV, 0, sizeof(stAMUIDV));
+    AMUIDList stAMUIDL;
+    std::memset(&stAMUIDL, 0, sizeof(stAMUIDL));
 
     size_t nIndex = 0;
-    for(int nY = stAMQRUIDV.Y; nY < stAMQRUIDV.Y + stAMQRUIDV.H; ++nY){
-        for(int nX = stAMQRUIDV.X; nX < stAMQRUIDV.X + stAMQRUIDV.W; ++nX){
-            if(In(stAMQRUIDV.MapID, nX, nY)){
+    for(int nY = stAMQRUIDL.Y; nY < stAMQRUIDL.Y + stAMQRUIDL.H; ++nY){
+        for(int nX = stAMQRUIDL.X; nX < stAMQRUIDL.X + stAMQRUIDL.W; ++nX){
+            if(In(stAMQRUIDL.MapID, nX, nY)){
                 for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
-                    stAMUIDV.UIDV[nIndex++] = nUID;
+                    stAMUIDL.UIDList[nIndex++] = nUID;
                 }
             }
         }
     }
 
-    m_ActorPod->Forward({MPK_UIDV, stAMUIDV}, rstAddress, rstMPK.ID());
+    m_ActorPod->Forward({MPK_UIDLIST, stAMUIDL}, rstAddress, rstMPK.ID());
 }
 
 void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Address &)

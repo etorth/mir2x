@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 01/21/2018 22:30:23
+ *  Last Modified: 01/22/2018 22:09:03
  *
  *    Description:
  *
@@ -198,6 +198,9 @@ class ServerMap final: public ActiveObject
         void ClearGroundItem(int, int);
 
     private:
+        bool DoUIDList(int, int, const std::function<bool(const UIDRecord &)> &);
+
+    private:
         void DoCircle(int, int, int,      const std::function<bool(int, int)> &);
         void DoSquare(int, int, int, int, const std::function<bool(int, int)> &);
 
@@ -222,7 +225,7 @@ class ServerMap final: public ActiveObject
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYRECTUIDV(const MessagePack &, const Theron::Address &);
+        void On_MPK_QUERYRECTUIDLIST(const MessagePack &, const Theron::Address &);
 
     private:
         bool RegisterLuaExport(ServerMapLuaModule *);

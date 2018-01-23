@@ -3,7 +3,7 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 01/21/2018 18:38:51
+ *  Last Modified: 01/22/2018 22:06:40
  *
  *    Description:
  *
@@ -220,8 +220,8 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
                 case MPK_QUERYCORECORD       : return "MPK_QUERYCORECORD";
                 case MPK_QUERYCOCOUNT        : return "MPK_QUERYCOCOUNT";
                 case MPK_COCOUNT             : return "MPK_COCOUNT";
-                case MPK_QUERYRECTUIDV       : return "MPK_QUERYRECTUIDV";
-                case MPK_UIDV                : return "MPK_UIDV";
+                case MPK_QUERYRECTUIDLIST    : return "MPK_QUERYRECTUIDLIST";
+                case MPK_UIDLIST             : return "MPK_UIDLIST";
                 case MPK_EXP                 : return "MPK_EXP";
                 case MPK_NEWDROPITEM         : return "MPK_NEWDROPITEM";
                 case MPK_SHOWDROPITEM        : return "MPK_SHOWDROPITEM";
