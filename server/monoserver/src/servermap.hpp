@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 01/22/2018 22:09:03
+ *  Last Modified: 01/23/2018 00:07:37
  *
  *    Description:
  *
@@ -201,11 +201,11 @@ class ServerMap final: public ActiveObject
         bool DoUIDList(int, int, const std::function<bool(const UIDRecord &)> &);
 
     private:
-        void DoCircle(int, int, int,      const std::function<bool(int, int)> &);
-        void DoSquare(int, int, int, int, const std::function<bool(int, int)> &);
+        bool DoCircle(int, int, int,      const std::function<bool(int, int)> &);
+        bool DoSquare(int, int, int, int, const std::function<bool(int, int)> &);
 
-        void DoCenterCircle(int, int, int,      bool, const std::function<bool(int, int)> &);
-        void DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
+        bool DoCenterCircle(int, int, int,      bool, const std::function<bool(int, int)> &);
+        bool DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
 
     private:
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);

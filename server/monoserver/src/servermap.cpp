@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 01/22/2018 22:07:51
+ *  Last Modified: 01/23/2018 00:07:18
  *
  *    Description: 
  *
@@ -707,7 +707,7 @@ bool ServerMap::DoUIDList(int nX, int nY, const std::function<bool(const UIDReco
     return false;
 }
 
-void ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(int, int)> &fnOP)
+bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(int, int)> &fnOP)
 {
     int nW = 2 * nCR - 1;
     int nH = 2 * nCR - 1;
@@ -727,19 +727,22 @@ void ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(i
             for(int nY = nY0; nY < nY0 + nH; ++nY){
                 if(true || ValidC(nX, nY)){
                     if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
-                        if(false
-                                || !fnOP
-                                ||  fnOP(nX, nY)){
-                            return;
+                        if(!fnOP){
+                            return false;
+                        }
+
+                        if(fnOP(nX, nY)){
+                            return true;
                         }
                     }
                 }
             }
         }
     }
+    return false;
 }
 
-void ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<bool(int, int)> &fnOP)
+bool ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<bool(int, int)> &fnOP)
 {
     if(true
             && nW > 0
@@ -752,90 +755,99 @@ void ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<b
         for(int nX = nX0; nX < nX0 + nW; ++nX){
             for(int nY = nY0; nY < nY0 + nH; ++nY){
                 if(true || ValidC(nX, nY)){
-                    if(false
-                            || !fnOP
-                            ||  fnOP(nX, nY)){
-                        return;
+                    if(!fnOP){
+                        return false;
+                    }
+
+                    if(fnOP(nX, nY)){
+                        return true;
                     }
                 }
             }
         }
     }
+    return false;
 }
 
-void ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, const std::function<bool(int, int)> &fnOP)
+bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, const std::function<bool(int, int)> &fnOP)
 {
-    if(bPriority){
-        int nW = 2 * nCR - 1;
-        int nH = 2 * nCR - 1;
+    if(!bPriority){
+        return DoCircle(nCX0, nCY0, nCR, fnOP);
+    }
 
-        int nX0 = nCX0 - nCR + 1;
-        int nY0 = nCY0 - nCR + 1;
+    int nW = 2 * nCR - 1;
+    int nH = 2 * nCR - 1;
 
-        if(true
-                && nW > 0
-                && nH > 0
-                && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+    int nX0 = nCX0 - nCR + 1;
+    int nY0 = nCY0 - nCR + 1;
 
-            // get the clip region over the map
-            // if no valid region we won't do the rest
+    if(true
+            && nW > 0
+            && nH > 0
+            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
-            RotateCoord stRC;
-            if(stRC.Reset(nCX0, nCY0, nX0, nY0, nW, nH)){
-                do{
-                    int nX = stRC.X();
-                    int nY = stRC.Y();
+        // get the clip region over the map
+        // if no valid region we won't do the rest
 
-                    if(true || ValidC(nX, nY)){
-                        if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
-                            if(false
-                                    || !fnOP
-                                    ||  fnOP(nX, nY)){
-                                return;
-                            }
+        RotateCoord stRC;
+        if(stRC.Reset(nCX0, nCY0, nX0, nY0, nW, nH)){
+            do{
+                int nX = stRC.X();
+                int nY = stRC.Y();
+
+                if(true || ValidC(nX, nY)){
+                    if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                        if(!fnOP){
+                            return false;
+                        }
+
+                        if(fnOP(nX, nY)){
+                            return true;
                         }
                     }
-                }while(stRC.Forward());
-            }
+                }
+            }while(stRC.Forward());
         }
-    }else{
-        DoCircle(nCX0, nCY0, nCR, fnOP);
     }
+    return false;
 }
 
-void ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority, const std::function<bool(int, int)> &fnOP)
+bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority, const std::function<bool(int, int)> &fnOP)
 {
-    if(bPriority){
-        int nX0 = nCX - nW / 2;
-        int nY0 = nCY - nH / 2;
-
-        if(true
-                && nW > 0
-                && nH > 0
-                && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
-
-            // get the clip region over the map
-            // if no valid region we won't do the rest
-
-            RotateCoord stRC;
-            if(stRC.Reset(nCX, nCY, nX0, nY0, nW, nH)){
-                do{
-                    int nX = stRC.X();
-                    int nY = stRC.Y();
-
-                    if(true || ValidC(nX, nY)){
-                        if(false
-                                || !fnOP
-                                ||  fnOP(nX, nY)){
-                            return;
-                        }
-                    }
-                }while(stRC.Forward());
-            }
-        }
-    }else{
-        DoSquare(nCX - nW / 2, nCY - nH / 2, nW, nH, fnOP);
+    if(!bPriority){
+        return DoSquare(nCX - nW / 2, nCY - nH / 2, nW, nH, fnOP);
     }
+
+    int nX0 = nCX - nW / 2;
+    int nY0 = nCY - nH / 2;
+
+    if(true
+            && nW > 0
+            && nH > 0
+            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+
+        // get the clip region over the map
+        // if no valid region we won't do the rest
+
+        RotateCoord stRC;
+        if(stRC.Reset(nCX, nCY, nX0, nY0, nW, nH)){
+            do{
+                int nX = stRC.X();
+                int nY = stRC.Y();
+
+                if(true || ValidC(nX, nY)){
+                    if(!fnOP){
+                        return false;
+                    }
+
+                    if(fnOP(nX, nY)){
+                        return true;
+                    }
+                }
+            }while(stRC.Forward());
+        }
+    }
+    return false;
 }
 
 int ServerMap::FindGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
