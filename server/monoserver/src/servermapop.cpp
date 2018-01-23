@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 01/23/2018 11:09:13
+ *  Last Modified: 01/23/2018 12:45:45
  *
  *    Description: 
  *
@@ -711,7 +711,17 @@ void ServerMap::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Ad
                             if(false
                                     || stUIDRecord.ClassFrom<Player >()
                                     || stUIDRecord.ClassFrom<Monster>()){
-                                m_ActorPod->Forward({MPK_PULLCOINFO, stAMQCOR.UID}, stUIDRecord.GetAddress());
+
+                                // FIXME
+                                // here I didn't set other fields of PULLCOINFO
+                                // PULLCOINFO and QUERYCORECORD need to be merged
+
+                                AMPullCOInfo stAMPCOI;
+                                std::memset(&stAMPCOI, 0, sizeof(stAMPCOI));
+
+                                stAMPCOI.UID = stAMQCOR.UID;
+
+                                m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, stUIDRecord.GetAddress());
                                 return true;
                             }
                         }
