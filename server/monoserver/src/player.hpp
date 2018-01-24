@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 01/18/2018 23:05:24
+ *  Last Modified: 01/24/2018 11:13:21
  *
  *    Description: 
  *
@@ -129,10 +129,10 @@ class Player final: public CharObject
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
         void On_MPK_BADSESSION(const MessagePack &, const Theron::Address &);
         void On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &);
-        void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_DEADFADEOUT(const MessagePack &, const Theron::Address &);
         void On_MPK_BINDSESSION(const MessagePack &, const Theron::Address &);
         void On_MPK_SHOWDROPITEM(const MessagePack &, const Theron::Address &);
+        void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);
         void On_MPK_REMOVEGROUNDITEM(const MessagePack &, const Theron::Address &);
 
@@ -210,4 +210,7 @@ class Player final: public CharObject
     protected:
         void DBRecordLevelUp();
         void DBRecordGainExp(int);
+
+    protected:
+        void PullRectCO(int, int);
 };

@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 01/23/2018 12:45:45
+ *  Last Modified: 01/24/2018 11:53:38
  *
  *    Description: 
  *
@@ -369,7 +369,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
 
                         if(!bFindCO){
                             extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_FATAL, "CO location error: (UD = %" PRIu32 ", X = %d, Y = %d)", stAMTM.UID, stAMTM.X, stAMTM.Y);
+                            g_MonoServer->AddLog(LOGTYPE_FATAL, "CO location error: (UID = %" PRIu32 ", X = %d, Y = %d)", stAMTM.UID, stAMTM.X, stAMTM.Y);
                             g_MonoServer->Restart();
                         }
                     }
@@ -501,7 +501,11 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Addre
                     if(false
                             || rstUIDRecord.ClassFrom<Player >()
                             || rstUIDRecord.ClassFrom<Monster>()){
-                        m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, rstUIDRecord.GetAddress());
+                        AMQueryCORecord stAMQCOR;
+                        std::memset(&stAMQCOR, 0, sizeof(stAMQCOR));
+
+                        stAMQCOR.UID = stAMPCOI.UID;
+                        m_ActorPod->Forward({MPK_QUERYCORECORD, stAMPCOI}, rstUIDRecord.GetAddress());
                     }
                 }
                 return false;
@@ -510,7 +514,7 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Addre
         }
         return false;
     };
-    DoCircle(stAMPCOI.X, stAMPCOI.Y, 10, fnPullCOInfo);
+    DoCenterSquare(stAMPCOI.X, stAMPCOI.Y, stAMPCOI.W, stAMPCOI.H, false, fnPullCOInfo);
 }
 
 void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -687,50 +691,6 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Addr
             return false;
         };
         DoCircle(stAMDFO.X, stAMDFO.Y, 20, fnDeadFadeOut);
-    }
-}
-
-void ServerMap::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Address &)
-{
-    AMQueryCORecord stAMQCOR;
-    std::memcpy(&stAMQCOR, rstMPK.Data(), sizeof(stAMQCOR));
-
-    if(true
-            && stAMQCOR.UID
-            && stAMQCOR.AimUID
-            && stAMQCOR.MapID == ID()
-            && ValidC(stAMQCOR.X, stAMQCOR.Y)){
-
-        auto fnQueryCORecord = [this, stAMQCOR](int nX, int nY) -> bool
-        {
-            if(true || ValidC(nX, nY)){
-                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
-                    if(nUID == stAMQCOR.AimUID){
-                        extern MonoServer *g_MonoServer;
-                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(false
-                                    || stUIDRecord.ClassFrom<Player >()
-                                    || stUIDRecord.ClassFrom<Monster>()){
-
-                                // FIXME
-                                // here I didn't set other fields of PULLCOINFO
-                                // PULLCOINFO and QUERYCORECORD need to be merged
-
-                                AMPullCOInfo stAMPCOI;
-                                std::memset(&stAMPCOI, 0, sizeof(stAMPCOI));
-
-                                stAMPCOI.UID = stAMQCOR.UID;
-
-                                m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, stUIDRecord.GetAddress());
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-            return false;
-        };
-        DoCenterCircle(stAMQCOR.X, stAMQCOR.Y, 10, true, fnQueryCORecord);
     }
 }
 

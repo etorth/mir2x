@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 01/23/2018 00:07:37
+ *  Last Modified: 01/24/2018 11:19:20
  *
  *    Description:
  *
@@ -224,7 +224,6 @@ class ServerMap final: public ActiveObject
         void On_MPK_QUERYCOCOUNT(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYRECTUIDLIST(const MessagePack &, const Theron::Address &);
 
     private:

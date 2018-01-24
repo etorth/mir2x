@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 01/18/2018 00:47:27
+ *  Last Modified: 01/24/2018 10:52:59
  *
  *    Description: 
  *
@@ -95,10 +95,9 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
             // can't find it
             // we have to create a new actor but need more information
             CMQueryCORecord stCMQCOR;
-            stCMQCOR.UID   = stSMA.UID;
-            stCMQCOR.MapID = stSMA.MapID;
-            stCMQCOR.X     = stSMA.X;
-            stCMQCOR.Y     = stSMA.Y;
+            std::memset(&stCMQCOR, 0, sizeof(stCMQCOR));
+
+            stCMQCOR.AimUID = stSMA.UID;
 
             extern Game *g_Game;
             g_Game->Send(CM_QUERYCORECORD, stCMQCOR);

@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 01/20/2018 23:21:52
+ *  Last Modified: 01/24/2018 11:03:52
  *
  *    Description: 
  *
@@ -31,12 +31,12 @@ void Monster::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
     Update();
 }
 
-void Monster::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address &)
+void Monster::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMPullCOInfo stAMPCOI;
-    std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
+    AMQueryCORecord stAMQCOR;
+    std::memcpy(&stAMQCOR, rstMPK.Data(), sizeof(stAMQCOR));
 
-    ReportCORecord(stAMPCOI.UID);
+    ReportCORecord(stAMQCOR.UID);
 }
 
 void Monster::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)

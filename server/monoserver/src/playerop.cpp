@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 01/23/2018 00:45:41
+ *  Last Modified: 01/24/2018 11:17:02
  *
  *    Description:
  *
@@ -39,7 +39,7 @@ void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 
 void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMBadSession stAMBS;
+    AMBindSession stAMBS;
     std::memcpy(&stAMBS, rstMPK.Data(), sizeof(stAMBS));
     Bind(stAMBS.SessionID);
 
@@ -57,14 +57,7 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     extern NetDriver *g_NetDriver;
     g_NetDriver->Send(SessionID(), SM_LOGINOK, stSMLOK);
 
-    if(ActorPodValid() && m_Map->ActorPodValid()){
-        AMPullCOInfo stAMPCOI;
-        stAMPCOI.X     = X();
-        stAMPCOI.Y     = Y();
-        stAMPCOI.UID   = UID();
-        stAMPCOI.MapID = m_Map->ID();
-        m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
-    }
+    PullRectCO(10, 10);
 }
 
 void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &)
@@ -107,14 +100,12 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     }
 }
 
-void Player::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMPullCOInfo stAMPCOI;
-    std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
+    AMQueryCORecord stAMQCOR;
+    std::memcpy(&stAMQCOR, rstMPK.Data(), sizeof(stAMQCOR));
 
-    if(stAMPCOI.UID != UID()){
-        ReportCORecord(stAMPCOI.UID);
-    }
+    ReportCORecord(stAMQCOR.UID);
 }
 
 void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &)
@@ -177,10 +168,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
                                                 ReportStand();
 
                                                 // 4. pull all co's on the new map
-                                                AMPullCOInfo stAMPCOI;
-                                                stAMPCOI.UID = UID();
-                                                m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
-
+                                                PullRectCO(10, 10);
                                                 break;
                                             }
                                         default:

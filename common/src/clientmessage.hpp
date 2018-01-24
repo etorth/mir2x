@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 12/08/2017 23:56:11
+ *  Last Modified: 01/24/2018 10:53:07
  *
  *    Description: net message used by client and mono-server
  *
@@ -69,11 +69,7 @@ struct CMAction
 
 struct CMQueryCORecord
 {
-    uint32_t UID;
-    uint32_t MapID;
-
-    uint16_t X;
-    uint16_t Y;
+    uint32_t AimUID;
 };
 
 struct CMReqestSpaceMove

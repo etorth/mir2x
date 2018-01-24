@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 01/19/2018 00:08:16
+ *  Last Modified: 01/24/2018 11:18:17
  *
  *    Description: 
  *
@@ -122,9 +122,9 @@ void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFrom
                 On_MPK_NETPACKAGE(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_PULLCOINFO:
+        case MPK_QUERYCORECORD:
             {
-                On_MPK_PULLCOINFO(rstMPK, rstFromAddr);
+                On_MPK_QUERYCORECORD(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_BADSESSION:
@@ -947,4 +947,26 @@ int Player::GetLevelExp()
         return -1;
     };
     return fnGetLevelExp(Level(), JobID());
+}
+
+void Player::PullRectCO(int nW, int nH)
+{
+    // pull all co's on current map
+    // in rectangle center on (X(), Y()) and (nW, nH)
+
+    if(true
+            && nW > 0
+            && nH > 0
+            && ActorPodValid()
+            && m_Map->ActorPodValid()){
+
+        AMPullCOInfo stAMPCOI;
+        stAMPCOI.X     = X();
+        stAMPCOI.Y     = Y();
+        stAMPCOI.W     = nW;
+        stAMPCOI.H     = nH;
+        stAMPCOI.UID   = UID();
+        stAMPCOI.MapID = m_Map->ID();
+        m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
+    }
 }

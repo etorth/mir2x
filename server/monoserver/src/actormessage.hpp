@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 01/23/2018 00:46:06
+ *  Last Modified: 01/24/2018 11:07:37
  *
  *    Description: 
  *
@@ -238,6 +238,8 @@ struct AMPullCOInfo
 {
     int X;
     int Y;
+    int W;
+    int H;
 
     uint32_t UID;
     uint32_t MapID;
@@ -374,11 +376,6 @@ struct AMDeadFadeOut
 struct AMQueryCORecord
 {
     uint32_t UID;
-    uint32_t MapID;
-
-    int X;
-    int Y;
-    uint32_t AimUID;
 };
 
 struct AMQueryCOCount
