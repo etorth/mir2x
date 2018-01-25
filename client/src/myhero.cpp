@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 01/17/2018 23:00:01
+ *  Last Modified: 01/25/2018 12:31:08
  *
  *    Description: 
  *
@@ -715,4 +715,10 @@ void MyHero::ReportAction(const ActionNode &rstAction)
 
     extern Game *g_Game;
     g_Game->Send(CM_ACTION, stCMA);
+}
+
+void MyHero::PullGold()
+{
+    extern Game *g_Game;
+    g_Game->Send(CM_QUERYGOLD);
 }

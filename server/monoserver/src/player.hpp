@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 01/24/2018 11:13:21
+ *  Last Modified: 01/25/2018 12:53:18
  *
  *    Description: 
  *
@@ -63,6 +63,10 @@ class Player final: public CharObject
         uint32_t m_Level;
 
     protected:
+        uint32_t m_Gold;
+        std::vector<CommonItem> m_Inventory;
+
+    protected:
         PLAYERFEATURE   m_Feature;
         PLAYERFEATUREEX m_FeatureEx;
 
@@ -74,7 +78,9 @@ class Player final: public CharObject
                 int,                    // map y
                 int,                    // direction
                 uint8_t);               // life cycle state
-       ~Player() = default;
+
+    public:
+        ~Player();
 
     public:
         uint32_t Level() const
@@ -141,6 +147,7 @@ class Player final: public CharObject
         void Net_CM_QUERYCORECORD   (uint8_t, const uint8_t *, size_t);
         void Net_CM_ACTION          (uint8_t, const uint8_t *, size_t);
         void Net_CM_PICKUP          (uint8_t, const uint8_t *, size_t);
+        void Net_CM_QUERYGOLD       (uint8_t, const uint8_t *, size_t);
 
     private:
         void For_CheckTime();
@@ -213,4 +220,14 @@ class Player final: public CharObject
 
     protected:
         void PullRectCO(int, int);
+
+    protected:
+        bool CanPickUp(uint32_t, uint32_t);
+
+    protected:
+        bool DBCommand(const char *, const char * = nullptr);
+
+    protected:
+        bool DBLoadPlayer();
+        bool DBSavePlayer();
 };

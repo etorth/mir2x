@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 01/17/2018 19:55:59
+ *  Last Modified: 01/25/2018 00:35:34
  *
  *    Description: net message used by client and mono-server
  *
@@ -39,7 +39,8 @@ enum: uint8_t
     SM_SPACEMOVE,
     SM_OFFLINE,
     SM_REMOVEGROUNDITEM,
-    SM_PICKUPOK
+    SM_PICKUPOK,
+    SM_GOLD,
 };
 
 #pragma pack(push, 1)
@@ -207,6 +208,11 @@ struct SMPickUpOK
     uint32_t ItemID;
 };
 
+struct SMGold
+{
+    uint32_t Gold;
+};
+
 #pragma pack(pop)
 
 class SMSGParam: public MessageBase
@@ -240,6 +246,7 @@ class SMSGParam: public MessageBase
                 {SM_OFFLINE,          {1, sizeof(SMOffline),               "SM_OFFLINE"         }},
                 {SM_PICKUPOK,         {1, sizeof(SMPickUpOK),              "SM_PICKUPOK"        }},
                 {SM_REMOVEGROUNDITEM, {1, sizeof(SMRemoveGroundItem),      "SM_REMOVEGROUNDITEM"}},
+                {SM_GOLD,             {1, sizeof(SMGold),                  "SM_GOLD"            }},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(SM_NONE) : nHC);

@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 01/24/2018 11:18:17
+ *  Last Modified: 01/25/2018 12:54:40
  *
  *    Description: 
  *
@@ -62,6 +62,11 @@ Player::Player(uint32_t nDBID,
         }
         return false;
     });
+}
+
+Player::~Player()
+{
+    DBSavePlayer();
 }
 
 void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -173,6 +178,7 @@ void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         case CM_REQUESTSPACEMOVE: Net_CM_REQUESTSPACEMOVE(nType, pData, nDataLen); break;
         case CM_ACTION          : Net_CM_ACTION          (nType, pData, nDataLen); break;
         case CM_PICKUP          : Net_CM_PICKUP          (nType, pData, nDataLen); break;
+        case CM_QUERYGOLD       : Net_CM_QUERYGOLD       (nType, pData, nDataLen); break;
         default                 :                                                  break;
     }
 }
@@ -969,4 +975,59 @@ void Player::PullRectCO(int nW, int nH)
         stAMPCOI.MapID = m_Map->ID();
         m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
     }
+}
+
+bool Player::CanPickUp(uint32_t, uint32_t)
+{
+    return true;
+}
+
+bool Player::DBCommand(const char *szCommand, const char *szTableName)
+{
+    if(szCommand && std::strlen(szCommand)){
+        extern DBPodN *g_DBPodN;
+        auto pDBHDR = g_DBPodN->CreateDBHDR();
+
+        if(!pDBHDR->Execute("select %s from mir2x.tbl_dbid where fld_dbid = %" PRIu32, szFieldName, DBID())){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+            return false;
+        }
+
+        if(pDBHDR->RowCount() < 1){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_INFO, "no dbid created for this player: DBID = %" PRIu32, DBID());
+            return false;
+        }
+
+        pDBHDR->Fetch();
+        auto szRes = fnDBOperation(pDBHDR->Get(szFieldName));
+
+        // if need to return a string we should do:
+        //     return "\"xxxx\"";
+        // then empty string should be "\"\"", not szRes.empty()
+
+        if(!szRes.empty()){
+            // here we directly apply pRes
+            // if what to set is a string, we should return \"string\"
+            if(!pDBHDR->Execute("update mir2x.tbl_dbid set %s = %s where fld_dbid = %" PRIu32, szFieldName, szRes.c_str(), DBID())){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+                return false;
+            }
+            return true;
+        }
+
+    }
+    return true;
+}
+
+bool Player::DBLoadPlayer()
+{
+    return true;
+}
+
+bool Player::DBSavePlayer()
+{
+    return true;
 }

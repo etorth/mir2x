@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 01/24/2018 11:17:02
+ *  Last Modified: 01/25/2018 12:50:14
  *
  *    Description:
  *
@@ -19,10 +19,11 @@
  */
 
 #include <cinttypes>
-#include "netdriver.hpp"
 #include "player.hpp"
+#include "dbcomid.hpp"
 #include "memorypn.hpp"
 #include "actorpod.hpp"
+#include "netdriver.hpp"
 #include "monoserver.hpp"
 
 void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
@@ -352,6 +353,17 @@ void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK, const Theron::Address &)
     stSMPUOK.Y      = stAMPUOK.Y;
     stSMPUOK.DBID   = stAMPUOK.DBID;
     stSMPUOK.ItemID = stAMPUOK.ItemID;
+
+    switch(stAMPUOK.ItemID){
+        case DBCOM_ITEMID(u8"金币"):
+            {
+                m_Gold += std::rand() % 500;
+            }
+        default:
+            {
+                m_Inventory.emplace_back(stAMPUOK.ItemID, stAMPUOK.DBID);
+            }
+    }
 
     PostNetMessage(SM_PICKUPOK, stSMPUOK);
 }

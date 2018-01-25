@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 01/24/2018 10:53:07
+ *  Last Modified: 01/24/2018 23:41:26
  *
  *    Description: net message used by client and mono-server
  *
@@ -35,6 +35,7 @@ enum: uint8_t
 
     CM_REQUESTSPACEMOVE,
     CM_PICKUP,
+    CM_QUERYGOLD,
 };
 
 #pragma pack(push, 1)
@@ -117,6 +118,7 @@ class CMSGParam: public MessageBase
                 {CM_QUERYCORECORD,    {1, sizeof(CMQueryCORecord),   "CM_QUERYCORECORD"   }},
                 {CM_REQUESTSPACEMOVE, {1, sizeof(CMReqestSpaceMove), "CM_REQUESTSPACEMOVE"}},
                 {CM_PICKUP,           {1, sizeof(CMPickUp),          "CM_PICKUP"          }},
+                {CM_QUERYGOLD,        {0, 0,                         "CM_QUERYGOLD"       }},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(CM_NONE) : nHC);

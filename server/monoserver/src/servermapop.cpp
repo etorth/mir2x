@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *  Last Modified: 01/24/2018 11:53:38
+ *  Last Modified: 01/25/2018 12:32:11
  *
  *    Description: 
  *
@@ -215,13 +215,13 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
     auto fnPrintMoveError = [&stAMTM]()
     {
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::UID           = %" PRIu32 , &stAMTM, stAMTM.UID);
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::MapID         = %" PRIu32 , &stAMTM, stAMTM.MapID);
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::X             = %d"       , &stAMTM, stAMTM.X);
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::Y             = %d"       , &stAMTM, stAMTM.Y);
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::EndX          = %d"       , &stAMTM, stAMTM.EndX);
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::EndY          = %d"       , &stAMTM, stAMTM.EndY);
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "[%p]::AllowHalfMove = %s"       , &stAMTM, stAMTM.AllowHalfMove ? "true" : "false");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "TRYMOVE[%p]::UID           = %" PRIu32 , &stAMTM, stAMTM.UID);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "TRYMOVE[%p]::MapID         = %" PRIu32 , &stAMTM, stAMTM.MapID);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "TRYMOVE[%p]::X             = %d"       , &stAMTM, stAMTM.X);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "TRYMOVE[%p]::Y             = %d"       , &stAMTM, stAMTM.Y);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndX          = %d"       , &stAMTM, stAMTM.EndX);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndY          = %d"       , &stAMTM, stAMTM.EndY);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "TRYMOVE[%p]::AllowHalfMove = %s"       , &stAMTM, stAMTM.AllowHalfMove ? "true" : "false");
     };
 
     if(!In(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
@@ -244,7 +244,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
     }
 
     bool bFindCO = false;
-    for(auto nUID: m_CellRecordV2D[stAMTM.X][stAMTM.Y].UIDList){
+    for(auto nUID: GetUIDList(stAMTM.X, stAMTM.Y)){
         if(nUID == stAMTM.UID){
             bFindCO = true;
             break;
@@ -861,19 +861,22 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK, const Theron::Address &
                 auto fnRemoveGroundItem = [this, stAMPU](int nX, int nY) -> bool
                 {
                     if(true || ValidC(nX, nY)){
-                        for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
-                            extern MonoServer *g_MonoServer;
-                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                                if(stUIDRecord.ClassFrom<Player>()){
-                                    AMRemoveGroundItem stAMRGI;
-                                    stAMRGI.X      = nX;
-                                    stAMRGI.Y      = nY;
-                                    stAMRGI.DBID   = stAMPU.DBID;
-                                    stAMRGI.ItemID = stAMPU.ItemID;
-                                    m_ActorPod->Forward({MPK_REMOVEGROUNDITEM, stAMRGI}, stUIDRecord.GetAddress());
-                                }
+                        AMRemoveGroundItem stAMRGI;
+                        std::memset(&stAMRGI, 0, sizeof(stAMRGI));
+
+                        stAMRGI.X      = nX;
+                        stAMRGI.Y      = nY;
+                        stAMRGI.DBID   = stAMPU.DBID;
+                        stAMRGI.ItemID = stAMPU.ItemID;
+
+                        auto fnDoList = [this, &stAMRGI](const UIDRecord &rstUIDRecord) -> bool
+                        {
+                            if(rstUIDRecord.ClassFrom<Player>()){
+                                m_ActorPod->Forward({MPK_REMOVEGROUNDITEM, stAMRGI}, rstUIDRecord.GetAddress());
                             }
-                        }
+                            return false;
+                        };
+                        DoUIDList(nX, nY, fnDoList);
                     }
                     return false;
                 };

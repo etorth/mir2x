@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 01/19/2018 00:46:07
+ *  Last Modified: 01/25/2018 11:40:00
  *
  *    Description: 
  *
@@ -146,6 +146,7 @@ class ProcessRun: public Process
 
     public:
         void Net_EXP(const uint8_t *, size_t);
+        void Net_GOLD(const uint8_t *, size_t);
         void Net_ACTION(const uint8_t *, size_t);
         void Net_OFFLINE(const uint8_t *, size_t);
         void Net_LOGINOK(const uint8_t *, size_t);

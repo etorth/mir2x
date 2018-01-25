@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/12/2017 00:02:27
+ *  Last Modified: 01/25/2018 11:42:57
  *
  *    Description: 
  *
@@ -85,6 +85,11 @@ class MyHero: public Hero
             return m_Gold;
         }
 
+        void SetGold(uint32_t nGold)
+        {
+            m_Gold = nGold;
+        }
+
     public:
         InvPack &GetInvPack()
         {
@@ -102,4 +107,7 @@ class MyHero: public Hero
 
     public:
         void ReportAction(const ActionNode &);
+
+    public:
+        void PullGold();
 };
