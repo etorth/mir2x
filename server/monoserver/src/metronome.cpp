@@ -3,7 +3,7 @@
  *
  *       Filename: metronome.cpp
  *        Created: 01/14/2018 22:03:25
- *  Last Modified: 01/15/2018 00:01:35
+ *  Last Modified: 01/24/2018 20:57:06
  *
  *    Description: 
  *
@@ -47,7 +47,6 @@ bool Metronome::Launch()
 
             extern MonoServer *g_MonoServer;
             auto nInitTick = g_MonoServer->GetTimeTick();
-
             {
                 std::lock_guard<std::mutex> stLockGuard(m_Lock);
                 for(auto pCurr = m_AddressList.begin(); pCurr != m_AddressList.end();){
@@ -63,7 +62,12 @@ bool Metronome::Launch()
             if(nCurrTick < nInitTick + m_Tick){
                 Delay(nInitTick + m_Tick - nCurrTick);
             }else{
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Metronome [%p] is over running", this);
+                size_t nAddressCount = 0;
+                {
+                    std::lock_guard<std::mutex> stLockGuard(m_Lock);
+                    nAddressCount = m_AddressList.size();
+                }
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Metronome [%p] is over running, address count = %d", this, (int)(nAddressCount));
             }
         }
     });
