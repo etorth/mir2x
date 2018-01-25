@@ -3,7 +3,7 @@
  *
  *       Filename: metronome.hpp
  *        Created: 04/21/2016 17:29:38
- *  Last Modified: 01/15/2018 10:16:46
+ *  Last Modified: 01/24/2018 22:02:42
  *
  *    Description: generate MPK_METRONOME to registered actor addresses
  *                 keep it as simple as possible
@@ -43,7 +43,7 @@ class Metronome final
         std::atomic<bool> m_State;
 
     private:
-        std::set<Theron::Address> m_AddressList;
+        std::set<uint32_t> m_UIDList;
 
     private:
         SyncDriver m_Driver;
@@ -54,7 +54,7 @@ class Metronome final
             , m_Lock()
             , m_Thread()
             , m_State(false)
-            , m_AddressList()
+            , m_UIDList()
             , m_Driver()
         {}
 
@@ -74,15 +74,15 @@ class Metronome final
         bool Launch();
 
     public:
-        bool Add(const Theron::Address &rstAddress)
+        bool Add(uint32_t nUID)
         {
             std::lock_guard<std::mutex> stLockGuard(m_Lock);
-            return m_AddressList.insert(rstAddress).second;
+            return m_UIDList.insert(nUID).second;
         }
 
-        void Remove(const Theron::Address &rstAddress)
+        void Remove(uint32_t nUID)
         {
             std::lock_guard<std::mutex> stLockGuard(m_Lock);
-            m_AddressList.erase(rstAddress);
+            m_UIDList.erase(nUID);
         }
 };

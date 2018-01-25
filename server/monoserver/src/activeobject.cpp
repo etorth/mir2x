@@ -3,7 +3,7 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 01/19/2018 00:07:08
+ *  Last Modified: 01/24/2018 22:00:47
  *
  *    Description: 
  *
@@ -143,11 +143,11 @@ uint32_t ActiveObject::StateTime(uint8_t nState)
 bool ActiveObject::AddTick()
 {
     extern Metronome *g_Metronome;
-    return g_Metronome->Add(m_ActorPod->GetAddress());
+    return g_Metronome->Add(UID());
 }
 
 void ActiveObject::RemoveTick()
 {
     extern Metronome *g_Metronome;
-    g_Metronome->Remove(m_ActorPod->GetAddress());
+    g_Metronome->Remove(UID());
 }

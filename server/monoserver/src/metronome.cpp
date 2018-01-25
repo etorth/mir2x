@@ -3,7 +3,7 @@
  *
  *       Filename: metronome.cpp
  *        Created: 01/14/2018 22:03:25
- *  Last Modified: 01/24/2018 20:57:06
+ *  Last Modified: 01/24/2018 22:06:39
  *
  *    Description: 
  *
@@ -49,12 +49,15 @@ bool Metronome::Launch()
             auto nInitTick = g_MonoServer->GetTimeTick();
             {
                 std::lock_guard<std::mutex> stLockGuard(m_Lock);
-                for(auto pCurr = m_AddressList.begin(); pCurr != m_AddressList.end();){
-                    if(m_Driver.Forward({MPK_METRONOME}, *pCurr)){
-                        pCurr = m_AddressList.erase(pCurr);
-                    }else{
-                        pCurr++;
+                for(auto pCurr = m_UIDList.begin(); pCurr != m_UIDList.end();){
+                    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(*pCurr)){
+                        if(!m_Driver.Forward({MPK_METRONOME}, stUIDRecord.GetAddress())){
+                            pCurr++;
+                            continue;
+                        }
                     }
+
+                    pCurr = m_UIDList.erase(pCurr);
                 }
             }
 
@@ -62,12 +65,12 @@ bool Metronome::Launch()
             if(nCurrTick < nInitTick + m_Tick){
                 Delay(nInitTick + m_Tick - nCurrTick);
             }else{
-                size_t nAddressCount = 0;
+                size_t nUIDCount = 0;
                 {
                     std::lock_guard<std::mutex> stLockGuard(m_Lock);
-                    nAddressCount = m_AddressList.size();
+                    nUIDCount = m_UIDList.size();
                 }
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Metronome [%p] is over running, address count = %d", this, (int)(nAddressCount));
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Metronome [%p] is over running, UID count = %d", this, (int)(nUIDCount));
             }
         }
     });
