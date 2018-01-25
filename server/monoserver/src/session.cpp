@@ -932,7 +932,7 @@ bool Session::Launch(const Theron::Address &rstAddr)
     // 5. multithread: shutdown()
     // 6. multithread: delete
 
-    if(rstAddr){
+    if(rstAddr != Theron::Address::Null()){
         m_BindAddress = rstAddr;
         switch(auto nCurrState = m_State.exchange(SESSTYPE_RUNNING)){
             case SESSTYPE_NONE:

@@ -173,7 +173,7 @@ bool ActorPod::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, 
                 (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), 0, nRespond);
     }
 
-    if(!rstAddr){
+    if(rstAddr == Theron::Address::Null()){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u) : Try to send message to an emtpy address",
                 (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), 0, nRespond);
@@ -211,7 +211,7 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
                 (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
     }
 
-    if(!rstAddr){
+    if(rstAddr == Theron::Address::Null()){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u) -> (Type: %s, ID: %u, Resp: %u) : Try to send message to an empty address",
                 (int)(sizeof(this) * 2), (uintptr_t)(this), Name(), UID(), MessagePack(rstMB.Type()).Name(), nID, nRespond);

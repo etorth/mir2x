@@ -62,7 +62,7 @@ class Metronome final: public Theron::Receiver
 
                     while(nIndex < m_AddressV.size()){
                         if(true
-                                && m_AddressV[nIndex]
+                                && m_AddressV[nIndex] != Theron::Address::Null()
                                 // must use MessagePack(MPK_METRONOME)
                                 // otherwise Theron::Framework::Send<T>(MPK_METRONOME) takes T as int
                                 && g_Framework->Send(MessagePack(MPK_METRONOME), GetAddress(), m_AddressV[nIndex])){
