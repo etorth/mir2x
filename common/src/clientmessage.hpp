@@ -3,7 +3,7 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 01/24/2018 23:41:26
+ *  Last Modified: 01/25/2018 19:16:37
  *
  *    Description: net message used by client and mono-server
  *
@@ -86,7 +86,8 @@ struct CMPickUp
     uint16_t Y;
     uint32_t UID;
     uint32_t MapID;
-    uint32_t ItemID;
+    uint32_t ID;
+    uint32_t DBID;
 };
 #pragma pack(pop)
 

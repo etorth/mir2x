@@ -3,7 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 01/25/2018 12:50:14
+ *  Last Modified: 01/25/2018 21:16:02
  *
  *    Description:
  *
@@ -273,7 +273,7 @@ void Player::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
     AMExp stAME;
     std::memcpy(&stAME, rstMPK.Data(), sizeof(stAME));
 
-    DBRecordGainExp(stAME.Exp);
+    GainExp(stAME.Exp);
 
     if(stAME.Exp > 0){
         SMExp stSME;
@@ -335,10 +335,10 @@ void Player::On_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK, const Theron::Ad
     std::memcpy(&stAMRGI, rstMPK.Data(), sizeof(stAMRGI));
 
     SMRemoveGroundItem stSMRGI;
-    stSMRGI.X      = stAMRGI.X;
-    stSMRGI.Y      = stAMRGI.Y;
-    stSMRGI.DBID   = stAMRGI.DBID;
-    stSMRGI.ItemID = stAMRGI.ItemID;
+    stSMRGI.X    = stAMRGI.X;
+    stSMRGI.Y    = stAMRGI.Y;
+    stSMRGI.ID   = stAMRGI.ID;
+    stSMRGI.DBID = stAMRGI.DBID;
 
     PostNetMessage(SM_REMOVEGROUNDITEM, stSMRGI);
 }
@@ -349,23 +349,29 @@ void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK, const Theron::Address &)
     std::memcpy(&stAMPUOK, rstMPK.Data(), sizeof(stAMPUOK));
 
     SMPickUpOK stSMPUOK;
-    stSMPUOK.X      = stAMPUOK.X;
-    stSMPUOK.Y      = stAMPUOK.Y;
-    stSMPUOK.DBID   = stAMPUOK.DBID;
-    stSMPUOK.ItemID = stAMPUOK.ItemID;
+    std::memset(&stSMPUOK, 0, sizeof(stSMPUOK));
 
-    switch(stAMPUOK.ItemID){
+    stSMPUOK.X    = stAMPUOK.X;
+    stSMPUOK.Y    = stAMPUOK.Y;
+    stSMPUOK.ID   = stAMPUOK.ID;
+    stSMPUOK.DBID = stAMPUOK.DBID;
+
+    PostNetMessage(SM_PICKUPOK, stSMPUOK);
+
+    switch(stAMPUOK.ID){
         case DBCOM_ITEMID(u8"金币"):
             {
                 m_Gold += std::rand() % 500;
+                ReportGold();
+                break;
             }
         default:
             {
-                m_Inventory.emplace_back(stAMPUOK.ItemID, stAMPUOK.DBID);
+                m_Inventory.emplace_back(stAMPUOK.ID, stAMPUOK.DBID);
+                break;
             }
     }
 
-    PostNetMessage(SM_PICKUPOK, stSMPUOK);
 }
 
 void Player::On_MPK_CORECORD(const MessagePack &rstMPK, const Theron::Address &)

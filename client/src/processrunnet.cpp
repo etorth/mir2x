@@ -3,7 +3,7 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 01/25/2018 12:30:42
+ *  Last Modified: 01/25/2018 18:44:33
  *
  *    Description: 
  *
@@ -319,9 +319,9 @@ void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
     SMPickUpOK stSMPUOK;
     std::memcpy(&stSMPUOK, pBuf, sizeof(stSMPUOK));
 
-    m_MyHero->GetInvPack().Add(stSMPUOK.ItemID);
-    RemoveGroundItem(CommonItem(stSMPUOK.ItemID, 0), stSMPUOK.X, stSMPUOK.Y);
-    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(stSMPUOK.ItemID).Name, (int)(stSMPUOK.X), (int)(stSMPUOK.Y));
+    m_MyHero->GetInvPack().Add(stSMPUOK.ID);
+    RemoveGroundItem(CommonItem(stSMPUOK.ID, 0), stSMPUOK.X, stSMPUOK.Y);
+    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(stSMPUOK.ID).Name, (int)(stSMPUOK.X), (int)(stSMPUOK.Y));
 }
 
 void ProcessRun::Net_GOLD(const uint8_t *pBuf, size_t)

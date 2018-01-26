@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 01/25/2018 12:53:18
+ *  Last Modified: 01/25/2018 21:16:42
  *
  *    Description: 
  *
@@ -19,38 +19,9 @@
  */
 
 #pragma once
-
 #include <cstdint>
-
 #include "monoserver.hpp"
 #include "charobject.hpp"
-
-#pragma pack(push, 1)
-typedef struct stPLAYERFEATURE
-{
-    uint8_t     Gender;
-    uint8_t     Wear;
-    uint8_t     Hair;
-    uint8_t     Weapon;
-
-    stPLAYERFEATURE()
-    {
-        std::memset(this, 0, sizeof(*this));
-    }
-}PLAYERFEATURE;
-
-typedef struct stPLAYERFEATUREEX
-{
-    uint8_t     Horse;
-    uint32_t    HairColor;
-    uint32_t    WearColor;
-
-    stPLAYERFEATUREEX()
-    {
-        std::memset(this, 0, sizeof(*this));
-    }
-}PLAYERFEATUREEX;
-#pragma pack(pop)
 
 class Player final: public CharObject
 {
@@ -60,18 +31,17 @@ class Player final: public CharObject
 
     protected:
         uint32_t m_SessionID;
+
+    protected:
+        uint32_t m_Exp;
         uint32_t m_Level;
 
     protected:
         uint32_t m_Gold;
         std::vector<CommonItem> m_Inventory;
 
-    protected:
-        PLAYERFEATURE   m_Feature;
-        PLAYERFEATUREEX m_FeatureEx;
-
     public:
-        Player(uint32_t,                // GUID
+        Player(uint32_t,                // DBID 
                 ServiceCore *,          //
                 ServerMap *,            //
                 int,                    // map x
@@ -82,7 +52,17 @@ class Player final: public CharObject
     public:
         ~Player();
 
-    public:
+    protected:
+        uint32_t Exp() const
+        {
+            return m_Exp;
+        }
+
+        uint32_t Gold() const
+        {
+            return m_Gold;
+        }
+
         uint32_t Level() const
         {
             return m_Level;
@@ -153,6 +133,7 @@ class Player final: public CharObject
         void For_CheckTime();
 
     protected:
+        void ReportGold();
         void ReportStand();
         void ReportHealth();
         void ReportCORecord(uint32_t);
@@ -208,24 +189,20 @@ class Player final: public CharObject
         virtual void RecoverHealth();
 
     protected:
-        int GetLevelExp();
+        uint32_t GetLevelExp();
 
     protected:
-        bool DBRecord(const char *, std::function<std::string(const char *)>);
-        bool DBRecord(const char *, std::function<const char *(const char *, char *, size_t)>);
+        bool DBUpdate(const char *, const char *, ...);
+        bool DBAccess(const char *, const char *, std::function<std::string(const char *)>);
 
     protected:
-        void DBRecordLevelUp();
-        void DBRecordGainExp(int);
+        void GainExp(int);
 
     protected:
         void PullRectCO(int, int);
 
     protected:
         bool CanPickUp(uint32_t, uint32_t);
-
-    protected:
-        bool DBCommand(const char *, const char * = nullptr);
 
     protected:
         bool DBLoadPlayer();

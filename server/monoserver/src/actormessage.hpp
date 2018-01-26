@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 01/24/2018 11:07:37
+ *  Last Modified: 01/25/2018 18:41:46
  *
  *    Description: 
  *
@@ -461,8 +461,8 @@ struct AMOffline
 struct AMPickUp
 {
     uint32_t UID;
+    uint32_t ID;
     uint32_t DBID;
-    uint32_t ItemID;
 
     int X;
     int Y;
@@ -471,8 +471,8 @@ struct AMPickUp
 struct AMPickUpOK
 {
     uint32_t UID;
+    uint32_t ID;
     uint32_t DBID;
-    uint32_t ItemID;
 
     int X;
     int Y;
@@ -483,8 +483,8 @@ struct AMRemoveGroundItem
     int X;
     int Y;
 
+    uint32_t ID;
     uint32_t DBID;
-    uint32_t ItemID;
 };
 
 struct AMCORecord

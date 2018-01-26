@@ -852,12 +852,12 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK, const Theron::Address &
     AMPickUp stAMPU;
     std::memcpy(&stAMPU, rstMPK.Data(), sizeof(stAMPU));
 
-    if(ValidC(stAMPU.X, stAMPU.Y) && stAMPU.ItemID){
+    if(ValidC(stAMPU.X, stAMPU.Y) && stAMPU.ID){
         extern MonoServer *g_MonoServer;
         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMPU.UID)){
-            auto nIndex = FindGroundItem(CommonItem(stAMPU.ItemID, 0), stAMPU.X, stAMPU.Y);
+            auto nIndex = FindGroundItem(CommonItem(stAMPU.ID, 0), stAMPU.X, stAMPU.Y);
             if(nIndex >= 0){
-                RemoveGroundItem(CommonItem(stAMPU.ItemID, 0), stAMPU.X, stAMPU.Y);
+                RemoveGroundItem(CommonItem(stAMPU.ID, 0), stAMPU.X, stAMPU.Y);
                 auto fnRemoveGroundItem = [this, stAMPU](int nX, int nY) -> bool
                 {
                     if(true || ValidC(nX, nY)){
@@ -867,7 +867,7 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK, const Theron::Address &
                         stAMRGI.X      = nX;
                         stAMRGI.Y      = nY;
                         stAMRGI.DBID   = stAMPU.DBID;
-                        stAMRGI.ItemID = stAMPU.ItemID;
+                        stAMRGI.ID = stAMPU.ID;
 
                         auto fnDoList = [this, &stAMRGI](const UIDRecord &rstUIDRecord) -> bool
                         {
@@ -888,7 +888,7 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK, const Theron::Address &
                 stAMPUOK.Y      = stAMPU.Y;
                 stAMPUOK.UID    = stAMPU.UID;
                 stAMPUOK.DBID   = 0;
-                stAMPUOK.ItemID = stAMPU.ItemID;
+                stAMPUOK.ID = stAMPU.ID;
                 m_ActorPod->Forward({MPK_PICKUPOK, stAMPUOK}, stUIDRecord.GetAddress());
             }else{
                 // no such item

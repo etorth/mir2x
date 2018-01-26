@@ -3,7 +3,7 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 01/25/2018 00:35:34
+ *  Last Modified: 01/25/2018 19:01:48
  *
  *    Description: net message used by client and mono-server
  *
@@ -196,16 +196,16 @@ struct SMRemoveGroundItem
 {
     uint16_t X;
     uint16_t Y;
+    uint32_t ID;
     uint32_t DBID;
-    uint32_t ItemID;
 };
 
 struct SMPickUpOK
 {
     uint16_t X;
     uint16_t Y;
+    uint32_t ID;
     uint32_t DBID;
-    uint32_t ItemID;
 };
 
 struct SMGold

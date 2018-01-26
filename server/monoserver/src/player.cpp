@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 01/25/2018 12:54:40
+ *  Last Modified: 01/25/2018 21:17:09
  *
  *    Description: 
  *
@@ -40,7 +40,10 @@ Player::Player(uint32_t nDBID,
     , m_DBID(nDBID)
     , m_JobID(0)        // will provide after bind
     , m_SessionID(0)    // provide by bind
+    , m_Exp(0)
     , m_Level(0)        // after bind
+    , m_Gold(0)
+    , m_Inventory()
 {
     m_StateHook.Install("CheckTime", [this]() -> bool
     {
@@ -773,10 +776,11 @@ void Player::OnCMActionPickUp(CMAction stCMA)
         case 0:
             {
                 AMPickUp stAMPU;
-                stAMPU.X      = stCMA.X;
-                stAMPU.Y      = stCMA.Y;
-                stAMPU.UID    = UID();
-                stAMPU.ItemID = stCMA.ActionParam;
+                stAMPU.X    = stCMA.X;
+                stAMPU.Y    = stCMA.Y;
+                stAMPU.UID  = UID();
+                stAMPU.ID   = stCMA.ActionParam;
+                stAMPU.DBID = 0;
 
                 m_ActorPod->Forward({MPK_PICKUP, stAMPU}, m_Map->GetAddress());
                 return;
@@ -837,118 +841,29 @@ void Player::RecoverHealth()
     }
 }
 
-bool Player::DBRecord(const char *szFieldName, std::function<std::string(const char *)> fnDBOperation)
-{
-    if(szFieldName && std::strlen(szFieldName)){
-
-        extern DBPodN *g_DBPodN;
-        auto pDBHDR = g_DBPodN->CreateDBHDR();
-
-        if(!pDBHDR->Execute("select %s from mir2x.tbl_dbid where fld_dbid = %" PRIu32, szFieldName, DBID())){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-            return false;
-        }
-
-        if(pDBHDR->RowCount() < 1){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_INFO, "no dbid created for this player: DBID = %" PRIu32, DBID());
-            return false;
-        }
-
-        pDBHDR->Fetch();
-        auto szRes = fnDBOperation(pDBHDR->Get(szFieldName));
-
-        // if need to return a string we should do:
-        //     return "\"xxxx\"";
-        // then empty string should be "\"\"", not szRes.empty()
-
-        if(!szRes.empty()){
-            // here we directly apply pRes
-            // if what to set is a string, we should return \"string\"
-            if(!pDBHDR->Execute("update mir2x.tbl_dbid set %s = %s where fld_dbid = %" PRIu32, szFieldName, szRes.c_str(), DBID())){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-                return false;
-            }
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Player::DBRecord(const char *szFieldName, std::function<const char *(const char *, char *, size_t)> fnDBOperation)
-{
-    if(szFieldName && std::strlen(szFieldName)){
-
-        extern DBPodN *g_DBPodN;
-        auto pDBHDR = g_DBPodN->CreateDBHDR();
-
-        if(!pDBHDR->Execute("select %s from mir2x.tbl_dbid where fld_dbid = %" PRIu32, szFieldName, DBID())){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-            return false;
-        }
-
-        if(pDBHDR->RowCount() < 1){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_INFO, "no dbid created for this player: DBID = %" PRIu32, DBID());
-            return false;
-        }
-
-        pDBHDR->Fetch();
-
-        char szFieldBuf[256];
-        if(auto pRes = fnDBOperation(pDBHDR->Get(szFieldName), szFieldBuf, std::extent<decltype(szFieldBuf)>::value)){
-            // here we directly apply pRes
-            // if what to set is a string, we should return \"string\"
-            if(!pDBHDR->Execute("update mir2x.tbl_dbid set %s = %s where fld_dbid = %" PRIu32, szFieldName, pRes, DBID())){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-                return false;
-            }
-            return true;
-        }
-    }
-    return false;
-}
-
-void Player::DBRecordLevelUp()
-{
-    DBRecord("fld_level", [this](const char *szFieldValue, char *pBuf, size_t nBufLen) -> const char *
-    {
-        auto nLevel = std::atoi(szFieldValue);
-        std::snprintf(pBuf, nBufLen, "%d", nLevel + 1);
-        return pBuf;
-    });
-}
-
-void Player::DBRecordGainExp(int nExp)
+void Player::GainExp(int nExp)
 {
     if(nExp){
-        DBRecord("fld_exp", [this, nExp](const char *szFieldValue, char *pBuf, size_t nBufLen) -> const char *
-        {
-            auto nDBExp = std::atoi(szFieldValue);
-            auto nAddLevelExp = GetLevelExp();
+        if((int)(m_Exp) + nExp < 0){
+            m_Exp = 0;
+        }else{
+            m_Exp += (uint32_t)(nExp);
+        }
 
-            auto nCurrExp = nDBExp + nExp;
-            if(nCurrExp >= nAddLevelExp){
-                DBRecordLevelUp();
-                nCurrExp -= nAddLevelExp;
-            }
-
-            std::snprintf(pBuf, nBufLen, "%d", nCurrExp);
-            return pBuf;
-        });
+        auto nLevelExp = GetLevelExp();
+        if(m_Exp >= nLevelExp){
+            m_Exp    = m_Exp - nLevelExp;
+            m_Level += 1;
+        }
     }
 }
 
-int Player::GetLevelExp()
+uint32_t Player::GetLevelExp()
 {
     auto fnGetLevelExp = [](int nLevel, int nJobID) -> int
     {
         if(nLevel > 0 && nJobID >= 0){
-            return 10;
+            return 1000;
         }
         return -1;
     };
@@ -982,13 +897,87 @@ bool Player::CanPickUp(uint32_t, uint32_t)
     return true;
 }
 
-bool Player::DBCommand(const char *szCommand, const char *szTableName)
+bool Player::DBUpdate(const char *szTableName, const char *szFieldList, ...)
 {
-    if(szCommand && std::strlen(szCommand)){
+    if(true
+            && (szTableName && std::strlen(szTableName))
+            && (szFieldList && std::strlen(szFieldList))){
+
+        auto fnWriteDB = [this](const char *szTableName, const char *szSQLCommand) -> bool
+        {
+            extern DBPodN *g_DBPodN;
+            auto pDBHDR = g_DBPodN->CreateDBHDR();
+
+            if(!pDBHDR->Execute("update mir2x.%s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand, DBID())){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+                return false;
+            }
+            return true;
+        };
+
+        int nCmdLen = 0;
+
+        // 1. try static buffer
+        //    give an enough size so we can hopefully stop here
+        {
+            char szSBuf[1024];
+
+            va_list ap;
+            va_start(ap, szFieldList);
+            nCmdLen = std::vsnprintf(szSBuf, std::extent<decltype(szSBuf)>::value, szFieldList, ap);
+            va_end(ap);
+
+            if(nCmdLen >= 0){
+                if((size_t)(nCmdLen + 1) < std::extent<decltype(szSBuf)>::value){
+                    return fnWriteDB(szTableName, szSBuf);
+                }else{
+                    // do nothing
+                    // have to try the dynamic buffer method
+                }
+            }else{
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL table %s update command parsing failed: %s", szTableName, szFieldList);
+                return false;
+            }
+        }
+
+        // 2. try dynamic buffer
+        //    use the parsed buffer size above to get enough memory
+        while(true){
+            std::vector<char> szDBuf(nCmdLen + 1 + 64);
+
+            va_list ap;
+            va_start(ap, szFieldList);
+            nCmdLen = std::vsnprintf(&(szDBuf[0]), szDBuf.size(), szFieldList, ap);
+            va_end(ap);
+
+            if(nCmdLen >= 0){
+                if((size_t)(nCmdLen + 1) < szDBuf.size()){
+                    return fnWriteDB(szTableName, &(szDBuf[0]));
+                }else{
+                    szDBuf.resize(nCmdLen + 1 + 64);
+                }
+            }else{
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL table %s update command parsing failed: %s", szTableName, szFieldList);
+                return false;
+            }
+        }
+    }
+    return false;
+}
+
+bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::function<std::string(const char *)> fnDBOperation)
+{
+    if(true
+            && (szTableName && std::strlen(szTableName))
+            && (szFieldName && std::strlen(szFieldName))){
+
         extern DBPodN *g_DBPodN;
         auto pDBHDR = g_DBPodN->CreateDBHDR();
 
-        if(!pDBHDR->Execute("select %s from mir2x.tbl_dbid where fld_dbid = %" PRIu32, szFieldName, DBID())){
+        if(!pDBHDR->Execute("select %s from mir2x.%s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID())){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
             return false;
@@ -996,7 +985,7 @@ bool Player::DBCommand(const char *szCommand, const char *szTableName)
 
         if(pDBHDR->RowCount() < 1){
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_INFO, "no dbid created for this player: DBID = %" PRIu32, DBID());
+            g_MonoServer->AddLog(LOGTYPE_INFO, "No dbid created for this player: DBID = %" PRIu32, DBID());
             return false;
         }
 
@@ -1008,18 +997,15 @@ bool Player::DBCommand(const char *szCommand, const char *szTableName)
         // then empty string should be "\"\"", not szRes.empty()
 
         if(!szRes.empty()){
-            // here we directly apply pRes
-            // if what to set is a string, we should return \"string\"
-            if(!pDBHDR->Execute("update mir2x.tbl_dbid set %s = %s where fld_dbid = %" PRIu32, szFieldName, szRes.c_str(), DBID())){
+            if(!pDBHDR->Execute("update mir2x.%s set %s = %s where fld_dbid = %" PRIu32, szTableName, szFieldName, szRes.c_str(), DBID())){
                 extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
                 return false;
             }
             return true;
         }
-
     }
-    return true;
+    return false;
 }
 
 bool Player::DBLoadPlayer()
@@ -1029,5 +1015,14 @@ bool Player::DBLoadPlayer()
 
 bool Player::DBSavePlayer()
 {
-    return true;
+    return DBUpdate("tbl_dbid", "fld_gold = %d, fld_level = %d", Gold(), Level());
+}
+
+void Player::ReportGold()
+{
+    SMGold stSMG;
+    std::memset(&stSMG, 0, sizeof(stSMG));
+
+    stSMG.Gold = Gold();
+    PostNetMessage(SM_GOLD, stSMG);
 }

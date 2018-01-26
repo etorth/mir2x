@@ -3,7 +3,7 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 01/25/2018 12:37:41
+ *  Last Modified: 01/25/2018 21:17:23
  *
  *    Description: how player respond for different net package
  *
@@ -79,13 +79,14 @@ void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
 {
     auto pCM = (CMPickUp *)(pBuf);
     if(pCM->MapID == m_Map->ID()){
-        if(CanPickUp(pCM->ItemID, 0)){
+        if(CanPickUp(pCM->ID, 0)){
             AMPickUp stAMPU;
             std::memset(&stAMPU, 0, sizeof(stAMPU));
-            stAMPU.X      = pCM->X;
-            stAMPU.Y      = pCM->Y;
-            stAMPU.UID    = pCM->UID;
-            stAMPU.ItemID = pCM->ItemID;
+            stAMPU.X    = pCM->X;
+            stAMPU.Y    = pCM->Y;
+            stAMPU.UID  = pCM->UID;
+            stAMPU.ID   = pCM->ID;
+            stAMPU.DBID = pCM->DBID;
             m_ActorPod->Forward({MPK_PICKUP, stAMPU}, m_Map->GetAddress());
         }
     }
@@ -93,9 +94,5 @@ void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
 
 void Player::Net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t)
 {
-    SMGold stSMG;
-    std::memset(&stSMG, 0, sizeof(stSMG));
-
-    stSMG.Gold = m_Gold;
-    PostNetMessage(SM_GOLD, stSMG);
+    ReportGold();
 }
