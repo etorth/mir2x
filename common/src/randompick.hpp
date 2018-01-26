@@ -3,8 +3,6 @@
  *
  *       Filename: randompick.hpp
  *        Created: 06/18/2016 21:53:32
- *  Last Modified: 01/14/2018 18:54:40
- *
  *    Description: 
  *
  *        Version: 1.0

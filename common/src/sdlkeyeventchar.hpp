@@ -3,8 +3,6 @@
  *
  *       Filename: sdlkeyeventchar.hpp
  *        Created: 03/12/2016 19:27:07
- *  Last Modified: 03/12/2016 19:39:48
- *
  *    Description: 
  *
  *        Version: 1.0

@@ -3,8 +3,6 @@
  *
  *       Filename: platforms.hpp
  *        Created: 02/06/2016 17:41:44
- *  Last Modified: 02/06/2016 18:00:27
- *
  *    Description: 
  *
  *        Version: 1.0

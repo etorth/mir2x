@@ -3,8 +3,6 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 01/19/2018 23:07:51
- *
  *    Description: For scenarios we need text-emoticon mixed boards:
  *
  *                 1. button like text terminal. which we only need to support emoticon

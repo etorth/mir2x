@@ -3,8 +3,6 @@
  *
  *       Filename: inndb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 12/24/2017 21:38:07
- *
  *    Description: base of all integral based map cache
  *
  *                 Internal Database support for 

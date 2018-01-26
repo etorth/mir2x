@@ -3,8 +3,6 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 12/21/2017 01:07:21
- *
  *    Description: 
  *
  *        Version: 1.0

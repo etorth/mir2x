@@ -3,8 +3,6 @@
  *
  *       Filename: memorychunkpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 01/14/2018 18:52:30
- *
  *    Description: unfixed-size memory chunk pool, thread safe is optional, but self-contained
  *                 this algorithm is based on buddy algorithm
  *

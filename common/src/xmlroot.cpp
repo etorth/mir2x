@@ -3,8 +3,6 @@
  *
  *       Filename: xmlroot.cpp
  *        Created: 06/17/2015 06:25:24
- *  Last Modified: 07/18/2017 23:48:53
- *
  *    Description: 
  *
  *        Version: 1.0

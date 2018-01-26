@@ -3,8 +3,6 @@
  *
  *       Filename: dropitem.hpp
  *        Created: 07/28/2017 12:25:39
- *  Last Modified: 07/28/2017 16:46:46
- *
  *    Description: 
  *
  *        Version: 1.0

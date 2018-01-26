@@ -3,8 +3,6 @@
  *
  *       Filename: savepng.hpp
  *        Created: 02/06/2016 04:25:06
- *  Last Modified: 02/06/2016 04:28:18
- *
  *    Description: 
  *
  *        Version: 1.0

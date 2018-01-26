@@ -3,8 +3,6 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 01/19/2018 23:10:19
- *
  *    Description: 
  *
  *        Version: 1.0

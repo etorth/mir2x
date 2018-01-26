@@ -3,8 +3,6 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 01/24/2018 11:19:18
- *
  *    Description: 
  *
  *        Version: 1.0

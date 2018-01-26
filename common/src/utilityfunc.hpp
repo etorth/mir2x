@@ -3,8 +3,6 @@
  *
  *       Filename: utilityfunc.hpp
  *        Created: 06/03/2016 12:18:05
- *  Last Modified: 06/03/2016 12:18:51
- *
  *    Description: 
  *
  *        Version: 1.0

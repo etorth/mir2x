@@ -3,8 +3,6 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 01/24/2018 11:03:52
- *
  *    Description: 
  *
  *        Version: 1.0

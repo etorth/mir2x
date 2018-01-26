@@ -3,8 +3,6 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 01/24/2018 11:19:20
- *
  *    Description:
  *
  *        Version: 1.0

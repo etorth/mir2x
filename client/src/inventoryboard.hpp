@@ -3,8 +3,6 @@
  *
  *       Filename: inventoryboard.hpp
  *        Created: 10/08/2017 19:06:52
- *  Last Modified: 11/11/2017 23:43:36
- *
  *    Description: inventory class
  *                 server won't store the item place
  *                 it only stores the item weight in total

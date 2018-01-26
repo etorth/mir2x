@@ -3,8 +3,6 @@
  *
  *       Filename: commandinput.cpp
  *        Created: 06/04/2017 13:01:35
- *  Last Modified: 12/25/2017 23:36:09
- *
  *    Description: 
  *
  *        Version: 1.0

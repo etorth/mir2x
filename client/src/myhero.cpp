@@ -3,8 +3,6 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 01/25/2018 12:31:08
- *
  *    Description: 
  *
  *        Version: 1.0

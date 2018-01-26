@@ -3,8 +3,6 @@
  *
  *       Filename: layereditarea.cpp
  *        Created: 08/24/2017 15:52:11
- *  Last Modified: 08/25/2017 17:03:21
- *
  *    Description: 
  *
  *        Version: 1.0

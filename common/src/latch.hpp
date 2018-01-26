@@ -3,8 +3,6 @@
  *
  *       Filename: latch.hpp
  *        Created: 10/04/2017 11:51:45
- *  Last Modified: 10/04/2017 11:59:20
- *
  *    Description: 
  *
  *        Version: 1.0

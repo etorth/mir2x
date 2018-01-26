@@ -3,8 +3,6 @@
  *
  *       Filename: operationarea.cpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 06/04/2016 03:10:09
- *
  *    Description: 
  *
  *        Version: 1.0

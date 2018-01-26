@@ -3,8 +3,6 @@
  *
  *       Filename: pack2d.hpp
  *        Created: 11/07/2017 23:30:43
- *  Last Modified: 11/11/2017 23:21:33
- *
  *    Description: maintain a 2D mask to take care of valid grids
  *                 if one grid is taken then mask it as 1
  *

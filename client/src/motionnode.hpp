@@ -3,8 +3,6 @@
  *
  *       Filename: motionnode.hpp
  *        Created: 04/05/2017 12:38:46
- *  Last Modified: 08/05/2017 22:53:59
- *
  *    Description: for field MotionNode::Speed
  *                  
  *                      means % Speed of default speed

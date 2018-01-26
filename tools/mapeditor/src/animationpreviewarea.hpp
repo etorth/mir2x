@@ -3,8 +3,6 @@
  *
  *       Filename: animationpreviewarea.hpp
  *        Created: 06/28/2016 23:27:58
- *  Last Modified: 06/30/2016 00:55:47
- *
  *    Description: 
  *
  *        Version: 1.0

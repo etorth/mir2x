@@ -3,8 +3,6 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *  Last Modified: 01/25/2018 21:16:42
- *
  *    Description: 
  *
  *        Version: 1.0

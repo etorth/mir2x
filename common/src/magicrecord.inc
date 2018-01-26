@@ -3,8 +3,6 @@
  *
  *       Filename: magicrecord.inc
  *        Created: 08/04/2017 23:00:09
- *  Last Modified: 10/03/2017 10:22:41
- *
  *    Description: description of magic
  *                 1. prayer
  *                 2. magic

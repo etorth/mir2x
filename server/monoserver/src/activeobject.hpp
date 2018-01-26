@@ -3,8 +3,6 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 01/18/2018 23:29:47
- *
  *    Description: server object with active state
  *                      1. it's active via actor pod
  *                      2. it's stateful

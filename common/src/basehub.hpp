@@ -3,8 +3,6 @@
  *
  *       Filename: basehub.hpp
  *        Created: 04/03/2016 03:49:00
- *  Last Modified: 12/25/2017 00:32:16
- *
  *    Description: 
  *
  *        Version: 1.0

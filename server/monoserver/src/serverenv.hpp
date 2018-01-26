@@ -3,8 +3,6 @@
  *
  *       Filename: serverenv.hpp
  *        Created: 05/12/2017 16:33:25
- *  Last Modified: 12/25/2017 19:16:44
- *
  *    Description:
  *
  *

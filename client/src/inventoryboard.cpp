@@ -3,8 +3,6 @@
  *
  *       Filename: inventoryboard.cpp
  *        Created: 10/08/2017 19:22:30
- *  Last Modified: 01/22/2018 18:02:56
- *
  *    Description: 
  *
  *        Version: 1.0

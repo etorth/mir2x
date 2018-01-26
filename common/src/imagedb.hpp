@@ -3,8 +3,6 @@
  *
  *       Filename: imagedb.hpp
  *        Created: 02/14/2016 16:33:12
- *  Last Modified: 09/03/2017 20:14:06
- *
  *    Description: Handle operation against wilimagepackage
  *
  *        Version: 1.0

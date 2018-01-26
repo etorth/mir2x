@@ -3,8 +3,6 @@
  *
  *       Filename: querytype.hpp
  *        Created: 09/21/2017 22:31:02
- *  Last Modified: 09/21/2017 22:32:31
- *
  *    Description:
  *
  *        Version: 1.0

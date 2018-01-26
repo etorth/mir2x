@@ -3,8 +3,6 @@
  *
  *       Filename: rotatecoord.cpp
  *        Created: 08/15/2015 04:01:57
- *  Last Modified: 06/13/2017 12:53:08
- *
  *    Description: 
  *
  *        Version: 1.0

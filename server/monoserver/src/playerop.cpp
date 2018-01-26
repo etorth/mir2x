@@ -3,8 +3,6 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 01/25/2018 21:16:02
- *
  *    Description:
  *
  *        Version: 1.0

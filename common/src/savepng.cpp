@@ -3,8 +3,6 @@
  *
  *       Filename: savepng.cpp
  *        Created: 02/06/2016 04:25:40
- *  Last Modified: 08/22/2017 13:00:55
- *
  *    Description: 
  *
  *        Version: 1.0

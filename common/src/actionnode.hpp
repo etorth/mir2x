@@ -3,8 +3,6 @@
  *
  *       Filename: actionnode.hpp
  *        Created: 04/06/2017 13:03:56
- *  Last Modified: 12/25/2017 00:50:15
- *
  *    Description:
  *
  *

@@ -3,8 +3,6 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 01/24/2018 22:00:47
- *
  *    Description: 
  *
  *        Version: 1.0

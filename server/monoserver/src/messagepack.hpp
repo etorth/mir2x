@@ -3,8 +3,6 @@
  *
  *       Filename: messagepack.hpp
  *        Created: 04/20/2016 21:57:08
- *  Last Modified: 01/22/2018 22:06:40
- *
  *    Description:
  *
  *        Version: 1.0

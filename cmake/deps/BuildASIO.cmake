@@ -2,8 +2,6 @@
 #
 #        Filename: BuildASIO.cmake
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 01/16/2018 19:41:42
-#
 #     Description: required: MIR2X_3RD_PARTY_DIR
 #
 #         Version: 1.0

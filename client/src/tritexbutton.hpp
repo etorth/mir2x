@@ -3,8 +3,6 @@
  *
  *       Filename: tritexbutton.hpp
  *        Created: 08/26/2016 13:20:23
- *  Last Modified: 10/12/2017 15:56:26
- *
  *    Description: button with three texture, it has a position shift when
  *                 state changes.
  *

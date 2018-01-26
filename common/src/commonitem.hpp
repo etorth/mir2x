@@ -3,8 +3,6 @@
  *
  *       Filename: commonitem.hpp
  *        Created: 07/30/2017 18:44:32
- *  Last Modified: 01/18/2018 00:42:08
- *
  *    Description: common item is by two parts
  *                 1. ItemRecord
  *                 2. AdditionalAttributes

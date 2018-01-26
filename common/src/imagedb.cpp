@@ -3,8 +3,6 @@
  *
  *       Filename: imagedb.cpp
  *        Created: 02/14/2016 16:35:49
- *  Last Modified: 09/08/2017 02:48:42
- *
  *    Description:
  *
  *        Version: 1.0

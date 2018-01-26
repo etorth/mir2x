@@ -3,8 +3,6 @@
  *
  *       Filename: session.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 10/08/2017 12:54:22
- *
  *    Description: basic class from client-server communication
  *
  *                 for server -> client: Session::Send(server_message)

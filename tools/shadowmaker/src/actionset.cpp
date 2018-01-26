@@ -3,8 +3,6 @@
  *
  *       Filename: actionset.cpp
  *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 01/14/2018 19:03:56
- *
  *    Description:
  *
  *        Version: 1.0

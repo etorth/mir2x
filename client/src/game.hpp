@@ -3,8 +3,6 @@
  *
  *       Filename: game.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 12/08/2017 15:58:07
- *
  *    Description: public API for class game only
  *
  *        Version: 1.0

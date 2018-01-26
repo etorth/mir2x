@@ -2,8 +2,6 @@
 --
 --       Filename: 道馆.lua
 --        Created: 08/31/2015 08:52:57 PM
---  Last Modified: 01/21/2018 20:38:27
---
 --    Description: lua 5.3
 --
 --        Version: 1.0

@@ -3,8 +3,6 @@
  *
  *       Filename: serverobject.hpp
  *        Created: 04/13/2016 20:04:39
- *  Last Modified: 01/19/2018 00:04:29
- *
  *    Description: basis of all objects in monoserver, with
  *
  *                   --UID()

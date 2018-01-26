@@ -3,8 +3,6 @@
  *
  *       Filename: clientpathfinder.cpp
  *        Created: 03/28/2017 21:15:25
- *  Last Modified: 01/16/2018 15:36:31
- *
  *    Description: class for path finding in ProcessRun
  *
  *        Version: 1.0

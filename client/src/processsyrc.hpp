@@ -3,8 +3,6 @@
  *
  *       Filename: processsyrc.hpp
  *        Created: 08/14/2015 02:47:30
- *  Last Modified: 09/15/2017 18:53:13
- *
  *    Description: 
  *
  *        Version: 1.0

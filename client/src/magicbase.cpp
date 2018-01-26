@@ -3,8 +3,6 @@
  *
  *       Filename: magicbase.cpp
  *        Created: 08/08/2017 12:43:18
- *  Last Modified: 08/10/2017 21:10:28
- *
  *    Description: 
  *
  *        Version: 1.0

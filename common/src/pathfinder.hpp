@@ -3,8 +3,6 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 01/16/2018 15:14:49
- *
  *    Description: A-Star algorithm for path finding
  *
  *                 if we have a prefperence, we should make it by the cost function,

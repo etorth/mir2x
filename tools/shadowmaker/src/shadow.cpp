@@ -3,8 +3,6 @@
  *
  *       Filename: shadow.cpp
  *        Created: 07/24/2015 07:20:18 PM
- *  Last Modified: 01/14/2018 19:04:49
- *
  *    Description:
  *
  *        Version: 1.0

@@ -3,8 +3,6 @@
  *
  *       Filename: dropitemconfig.hpp
  *        Created: 07/30/2017 00:11:10
- *  Last Modified: 07/30/2017 00:11:37
- *
  *    Description: 
  *
  *        Version: 1.0

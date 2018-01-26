@@ -3,8 +3,6 @@
  *
  *       Filename: metronome.cpp
  *        Created: 01/14/2018 22:03:25
- *  Last Modified: 01/24/2018 22:06:39
- *
  *    Description: 
  *
  *        Version: 1.0

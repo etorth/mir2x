@@ -3,8 +3,6 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *  Last Modified: 12/19/2017 23:55:23
- *
  *    Description: 
  *
  *        Version: 1.0

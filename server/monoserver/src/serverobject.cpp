@@ -3,8 +3,6 @@
  *
  *       Filename: serverobject.cpp
  *        Created: 05/23/2016 18:22:01
- *  Last Modified: 01/19/2018 00:02:51
- *
  *    Description: 
  *
  *        Version: 1.0

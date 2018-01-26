@@ -3,8 +3,6 @@
  *
  *       Filename: buttonbase.hpp
  *        Created: 08/25/2016 04:12:57
- *  Last Modified: 10/12/2017 13:46:02
- *
  *    Description: basic button class to handle event logic only
  *
  *                 1. use g_ProgUse for texture storage

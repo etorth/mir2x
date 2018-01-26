@@ -3,8 +3,6 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 12/25/2017 14:59:48
- *
  *    Description: 
  *
  *        Version: 1.0

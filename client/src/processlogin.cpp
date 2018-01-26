@@ -3,8 +3,6 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 09/14/2017 21:04:40
- *
  *    Description: 
  *
  *        Version: 1.0

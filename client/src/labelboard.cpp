@@ -3,8 +3,6 @@
  *
  *       Filename: labelboard.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 08/22/2017 00:46:47
- *
  *    Description:
  *
  *        Version: 1.0

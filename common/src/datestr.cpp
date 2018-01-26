@@ -3,8 +3,6 @@
  *
  *       Filename: datestr.cpp
  *        Created: 08/21/2017 16:07:19
- *  Last Modified: 08/21/2017 16:19:12
- *
  *    Description: 
  *
  *        Version: 1.0

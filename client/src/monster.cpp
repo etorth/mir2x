@@ -3,8 +3,6 @@
  *
  *       Filename: monster.cpp
  *        Created: 08/31/2015 08:26:57
- *  Last Modified: 12/15/2017 23:55:01
- *
  *    Description: 
  *
  *        Version: 1.0

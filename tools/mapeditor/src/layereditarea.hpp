@@ -3,8 +3,6 @@
  *
  *       Filename: layereditarea.hpp
  *        Created: 07/26/2017 04:27:57
- *  Last Modified: 08/25/2017 16:35:15
- *
  *    Description:
  *
  *        Version: 1.0

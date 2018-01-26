@@ -3,8 +3,6 @@
  *
  *       Filename: xmlobjectlist.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 01/19/2018 22:57:59
- *
  *    Description: analyze specifically formatted XML
  *                      <ROOT>
  *                          <OBJECT TYPE="T0"></OBJECT>

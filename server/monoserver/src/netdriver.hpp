@@ -3,8 +3,6 @@
  *
  *       Filename: netdriver.hpp
  *        Created: 08/14/2015 11:34:33
- *  Last Modified: 11/22/2017 17:01:44
- *
  *    Description: this will serve as a stand-alone plugin for monoserver, it creates
  *                 with general info. and nothing will be done till Launch()
  *

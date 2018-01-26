@@ -3,8 +3,6 @@
  *
  *       Filename: processlogo.hpp
  *        Created: 08/13/2015 12:07:39
- *  Last Modified: 10/02/2017 18:01:40
- *
  *    Description: 
  *
  *        Version: 1.0

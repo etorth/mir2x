@@ -3,8 +3,6 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 01/24/2018 20:49:18
- *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
  *

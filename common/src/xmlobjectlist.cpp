@@ -3,8 +3,6 @@
  *
  *       Filename: xmlobjectlist.cpp
  *        Created: 06/17/2015 06:25:24
- *  Last Modified: 01/19/2018 23:06:15
- *
  *    Description: 
  *
  *        Version: 1.0

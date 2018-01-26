@@ -3,8 +3,6 @@
  *
  *       Filename: messageattribute.hpp
  *        Created: 04/23/2017 23:05:02
- *  Last Modified: 08/18/2017 15:37:23
- *
  *    Description: 
  *
  *        Version: 1.0

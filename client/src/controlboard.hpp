@@ -3,8 +3,6 @@
  *
  *       Filename: controlboard.hpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 10/13/2017 17:27:22
- *
  *    Description: main control pannel for running game
  *                 try support dynamically allocated control board
  *

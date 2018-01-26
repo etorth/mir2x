@@ -3,8 +3,6 @@
  *
  *       Filename: uidrecord.hpp
  *        Created: 05/01/2017 11:35:58
- *  Last Modified: 01/19/2018 00:20:39
- *
  *    Description:
  *
  *        Version: 1.0

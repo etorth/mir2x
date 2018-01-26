@@ -3,8 +3,6 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 12/26/2017 06:07:15
- *
  *    Description: 
  *
  *        Version: 1.0

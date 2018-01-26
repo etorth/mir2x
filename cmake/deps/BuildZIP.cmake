@@ -2,8 +2,6 @@
 #
 #        Filename: BuildZIP.cmake
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 01/12/2018 18:47:47
-#
 #     Description: required: MIR2X_3RD_PARTY_DIR
 #
 #         Version: 1.0

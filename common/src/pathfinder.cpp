@@ -3,8 +3,6 @@
  *
  *       Filename: pathfinder.cpp
  *        Created: 03/29/2017 00:59:29
- *  Last Modified: 01/14/2018 18:54:09
- *
  *    Description:
  *
  *        Version: 1.0

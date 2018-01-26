@@ -3,8 +3,6 @@
  *
  *       Filename: processlogin.hpp
  *        Created: 08/14/2015 02:47:30 PM
- *  Last Modified: 07/17/2017 17:29:28
- *
  *    Description: 
  *
  *        Version: 1.0

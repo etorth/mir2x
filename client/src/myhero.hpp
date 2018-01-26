@@ -3,8 +3,6 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 01/25/2018 11:42:57
- *
  *    Description: 
  *
  *        Version: 1.0

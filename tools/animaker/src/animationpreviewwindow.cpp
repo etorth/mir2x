@@ -3,8 +3,6 @@
  *
  *       Filename: animationpreviewwindow.cpp
  *        Created: 7/22/2015 3:16:57 AM
- *  Last Modified: 05/21/2017 01:37:23
- *
  *    Description: 
  *
  *        Version: 1.0

@@ -3,8 +3,6 @@
  *
  *       Filename: idbox.hpp
  *        Created: 06/17/2015 10:24:27 PM
- *  Last Modified: 09/15/2017 17:19:33
- *
  *    Description: 
  *
  *        Version: 1.0

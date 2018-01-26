@@ -3,8 +3,6 @@
  *
  *       Filename: mysqlinc.hpp
  *        Created: 01/16/2018 19:09:23
- *  Last Modified: 01/16/2018 19:13:12
- *
  *    Description: select an implementation of MYSQL
  *
  *        Version: 1.0

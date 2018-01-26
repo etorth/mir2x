@@ -3,8 +3,6 @@
  *
  *       Filename: drawarea.hpp
  *        Created: 07/26/2017 04:27:57
- *  Last Modified: 08/28/2017 22:13:17
- *
  *    Description:
  *
  *        Version: 1.0

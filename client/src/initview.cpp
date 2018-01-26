@@ -3,8 +3,6 @@
  *
  *       Filename: initview.cpp
  *        Created: 07/18/2017 16:04:25
- *  Last Modified: 11/06/2017 15:21:27
- *
  *    Description: 
  *
  *        Version: 1.0

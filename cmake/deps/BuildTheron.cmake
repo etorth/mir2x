@@ -2,8 +2,6 @@
 #
 #        Filename: BuildTheron.cmake
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 01/11/2018 21:24:59
-#
 #     Description: required: MIR2X_3RD_PARTY_DIR
 #
 #         Version: 1.0

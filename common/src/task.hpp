@@ -3,8 +3,6 @@
  *
  *       Filename: task.hpp
  *        Created: 04/03/2016 19:40:00
- *  Last Modified: 06/11/2017 18:39:41
- *
  *    Description: 
  *
  *        Version: 1.0

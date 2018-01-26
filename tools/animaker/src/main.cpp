@@ -3,8 +3,6 @@
  *
  *       Filename: main.cpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 05/21/2017 01:36:11
- *
  *    Description: set all kinds of align, for animation center (X, Y)
  *                 1. animation align:
  *                      the offset for all actionsets in this animation, like for a

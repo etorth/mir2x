@@ -3,8 +3,6 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 01/18/2018 23:38:11
- *
  *    Description: 
  *
  *        Version: 1.0

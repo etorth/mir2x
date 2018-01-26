@@ -3,8 +3,6 @@
  *
  *       Filename: batchluamodule.cpp
  *        Created: 12/19/2017 23:42:06
- *  Last Modified: 12/20/2017 01:37:09
- *
  *    Description: 
  *
  *        Version: 1.0

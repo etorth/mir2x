@@ -3,8 +3,6 @@
  *
  *       Filename: imagecache.hpp
  *        Created: 02/14/2016 15:40:17
- *  Last Modified: 08/19/2017 12:12:16
- *
  *    Description: Interaction with WilImagePackage
  *                 return drawable objects with ImageKey provided by EditorMap
  *

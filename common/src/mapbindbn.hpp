@@ -3,8 +3,6 @@
  *
  *       Filename: mapbindbn.hpp
  *        Created: 09/05/2017 10:33:14
- *  Last Modified: 09/05/2017 10:47:28
- *
  *    Description: 
  *
  *        Version: 1.0

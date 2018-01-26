@@ -3,8 +3,6 @@
  *
  *       Filename: cachequeue.hpp
  *        Created: 02/25/2016 01:01:40
- *  Last Modified: 12/25/2017 15:37:33
- *
  *    Description: fixed size linear cache queue
  *                 may use Boost.Circular Buffer in furture
  *

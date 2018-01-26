@@ -3,8 +3,6 @@
  *
  *       Filename: mapbindb.hpp
  *        Created: 08/31/2017 17:23:35
- *  Last Modified: 09/07/2017 00:29:15
- *
  *    Description: 
  *
  *        Version: 1.0

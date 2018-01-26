@@ -3,8 +3,6 @@
  *
  *       Filename: focustype.hpp
  *        Created: 06/27/2017 11:39:59
- *  Last Modified: 08/08/2017 22:59:19
- *
  *    Description: 
  *
  *        Version: 1.0

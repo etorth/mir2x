@@ -3,8 +3,6 @@
  *
  *       Filename: rectcover.cpp
  *        Created: 8/7/2015 2:36:13 AM
- *  Last Modified: 04/15/2016 22:29:26
- *
  *    Description: 
  *
  *        Version: 1.0

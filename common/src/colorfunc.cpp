@@ -3,8 +3,6 @@
  *
  *       Filename: colorfunc.cpp
  *        Created: 03/31/2016 19:48:57
- *  Last Modified: 01/14/2018 18:49:57
- *
  *    Description:
  *
  *        Version: 1.0

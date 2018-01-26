@@ -3,8 +3,6 @@
  *
  *       Filename: main.cpp
  *        Created: 04/03/2017 18:02:52
- *  Last Modified: 08/09/2017 20:51:18
- *
  *    Description: convert hero graphics res to png files, usage:
  *
  *                      monsterwil2png fileIndex            # index for monster files, 0 ~ 19

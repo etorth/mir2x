@@ -3,8 +3,6 @@
  *
  *       Filename: commandinput.hpp
  *        Created: 06/03/2017 00:14:31
- *  Last Modified: 06/04/2017 17:21:25
- *
  *    Description: widget to do command line input
  *                 based on Fl_Multiline_Input
  *

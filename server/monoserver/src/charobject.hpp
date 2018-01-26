@@ -3,8 +3,6 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *  Last Modified: 01/16/2018 23:46:13
- *
  *    Description: 
  *
  *        Version: 1.0

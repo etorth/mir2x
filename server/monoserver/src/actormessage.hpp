@@ -3,8 +3,6 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 01/25/2018 18:41:46
- *
  *    Description: 
  *
  *        Version: 1.0

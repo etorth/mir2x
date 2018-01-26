@@ -3,8 +3,6 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 01/25/2018 21:17:09
- *
  *    Description: 
  *
  *        Version: 1.0

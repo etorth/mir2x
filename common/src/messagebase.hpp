@@ -3,8 +3,6 @@
  *
  *       Filename: messagebase.hpp
  *        Created: 04/24/2017 00:46:48
- *  Last Modified: 04/24/2017 14:42:36
- *
  *    Description: length encoding for mode 1:
  *
  *                  [0 - 254]          : length in 0 ~ 254

@@ -3,8 +3,6 @@
  *
  *       Filename: dbconst.hpp
  *        Created: 05/12/2017 17:57:04
- *  Last Modified: 07/30/2017 00:05:59
- *
  *    Description: 
  *
  *        Version: 1.0

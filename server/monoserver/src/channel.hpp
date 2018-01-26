@@ -3,8 +3,6 @@
  *
  *       Filename: channel.hpp
  *        Created: 10/04/2017 12:36:13
- *  Last Modified: 11/23/2017 00:59:14
- *
  *    Description: 
  *
  *        Version: 1.0

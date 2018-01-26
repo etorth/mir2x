@@ -3,8 +3,6 @@
  *
  *       Filename: indepmagic.cpp
  *        Created: 08/07/2017 21:31:24
- *  Last Modified: 08/10/2017 16:57:56
- *
  *    Description: 
  *
  *        Version: 1.0

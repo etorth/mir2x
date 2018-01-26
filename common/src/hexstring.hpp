@@ -3,8 +3,6 @@
  *
  *       Filename: hexstring.hpp
  *        Created: 02/06/2016 13:35:51
- *  Last Modified: 09/07/2017 00:23:34
- *
  *    Description: 
  *
  *        Version: 1.0

@@ -3,8 +3,6 @@
  *
  *       Filename: labelboard.hpp
  *        Created: 08/20/2015 08:59:11
- *  Last Modified: 08/01/2017 00:30:44
- *
  *    Description: LabelBoard is a class
  *                      1. without padding
  *                      2. without wrapping

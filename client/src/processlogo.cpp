@@ -3,8 +3,6 @@
  *
  *       Filename: processlogo.cpp
  *        Created: 08/13/2015 12:15:38
- *  Last Modified: 10/02/2017 17:58:39
- *
  *    Description: 
  *
  *        Version: 1.0

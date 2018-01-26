@@ -3,8 +3,6 @@
  *
  *       Filename: session.cpp
  *        Created: 09/03/2015 03:48:41 AM
- *  Last Modified: 10/08/2017 02:20:52
- *
  *    Description: for received messages we won't crash if get invalid ones
  *                 but for messages to send we take zero tolerance
  *

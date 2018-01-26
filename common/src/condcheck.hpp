@@ -3,8 +3,6 @@
  *
  *       Filename: condcheck.hpp
  *        Created: 08/18/2017 14:59:38
- *  Last Modified: 12/25/2017 00:33:27
- *
  *    Description: don't use assert
  *
  *        Version: 1.0

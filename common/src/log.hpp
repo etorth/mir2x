@@ -3,8 +3,6 @@
  *
  *       Filename: log.hpp
  *        Created: 03/16/2016 16:05:17
- *  Last Modified: 01/14/2018 18:50:56
- *
  *    Description: log functionality enabled by g3Log
  *
  *        Version: 1.0

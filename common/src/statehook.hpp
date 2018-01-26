@@ -3,8 +3,6 @@
  *
  *       Filename: statehook.hpp
  *        Created: 06/05/2016 02:03:44
- *  Last Modified: 05/09/2017 00:28:54
- *
  *    Description: I decide to make a general class with name StateHook, hook should
  *                 be driven by other loop, like actor message operation handling, or
  *                 time loop, etc, hook won't occupy a thread to execute

@@ -3,8 +3,6 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16
- *  Last Modified: 01/19/2018 23:05:07
- *
  *    Description: 
  *
  *        Version: 1.0

@@ -3,8 +3,6 @@
  *
  *       Filename: monsterrecord.hpp
  *        Created: 05/08/2017 16:21:14
- *  Last Modified: 01/14/2018 18:53:40
- *
  *    Description:
  *
  *        Version: 1.0

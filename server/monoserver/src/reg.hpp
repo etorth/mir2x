@@ -3,8 +3,6 @@
  *
  *       Filename: reg.hpp
  *        Created: 12/21/2017 13:48:41
- *  Last Modified: 12/21/2017 15:43:04
- *
  *    Description: regs are initialized as zero
  *                 then when define state, define zero as most *normal* one
  *

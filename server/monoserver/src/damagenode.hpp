@@ -3,8 +3,6 @@
  *
  *       Filename: damagenode.hpp
  *        Created: 07/21/2017 17:12:19
- *  Last Modified: 07/25/2017 13:29:10
- *
  *    Description: description of a damage
  *
  *        Version: 1.0

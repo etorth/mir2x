@@ -3,8 +3,6 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 08/23/2017 00:53:39
- *
  *    Description: 
  *
  *        Version: 1.0

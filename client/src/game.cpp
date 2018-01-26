@@ -3,8 +3,6 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 01/25/2018 11:41:24
- *
  *    Description:
  *
  *        Version: 1.0

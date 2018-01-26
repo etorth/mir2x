@@ -3,8 +3,6 @@
  *
  *       Filename: animationpreviewarea.cpp
  *        Created: 06/28/2016 23:29:25
- *  Last Modified: 04/14/2017 22:17:42
- *
  *    Description: 
  *
  *        Version: 1.0

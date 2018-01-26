@@ -3,8 +3,6 @@
  *
  *       Filename: linebrowserboard.hpp
  *        Created: 07/12/2017 23:09:28
- *  Last Modified: 01/14/2018 18:44:35
- *
  *    Description:
  *
  *        Version: 1.0

@@ -3,8 +3,6 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 01/25/2018 21:17:23
- *
  *    Description: how player respond for different net package
  *
  *        Version: 1.0

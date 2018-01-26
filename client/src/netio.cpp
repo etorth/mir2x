@@ -3,8 +3,6 @@
  *
  *       Filename: netio.cpp
  *        Created: 06/29/2015 07:18:27 PM
- *  Last Modified: 08/18/2017 15:34:23
- *
  *    Description:
  *
  *        Version: 1.0

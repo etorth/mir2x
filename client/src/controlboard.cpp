@@ -3,8 +3,6 @@
  *
  *       Filename: controlboard.cpp
  *        Created: 08/21/2016 04:12:57
- *  Last Modified: 10/13/2017 18:13:19
- *
  *    Description:
  *
  *        Version: 1.0

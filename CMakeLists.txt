@@ -2,8 +2,6 @@
 #
 #        Filename: CMakeLists.txt
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 01/17/2018 12:09:34
-#
 #     Description:
 #
 #         Version: 1.0

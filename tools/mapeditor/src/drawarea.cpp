@@ -3,8 +3,6 @@
  *
  *       Filename: drawarea.cpp
  *        Created: 07/26/2017 04:27:57
- *  Last Modified: 09/06/2017 23:56:43
- *
  *    Description:
  *
  *        Version: 1.0

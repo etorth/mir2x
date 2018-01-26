@@ -3,8 +3,6 @@
  *
  *       Filename: metronome.hpp
  *        Created: 04/21/2016 17:29:38
- *  Last Modified: 01/24/2018 22:02:42
- *
  *    Description: generate MPK_METRONOME to registered actor addresses
  *                 keep it as simple as possible
  *

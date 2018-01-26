@@ -3,8 +3,6 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41
- *  Last Modified: 12/12/2017 00:02:48
- *
  *    Description: 
  *
  *        Version: 1.0

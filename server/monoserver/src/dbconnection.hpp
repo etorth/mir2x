@@ -3,8 +3,6 @@
  *
  *       Filename: dbconnection.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 01/16/2018 19:13:54
- *
  *    Description:
  *
  *        Version: 1.0

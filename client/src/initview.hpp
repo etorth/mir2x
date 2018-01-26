@@ -3,8 +3,6 @@
  *
  *       Filename: initview.hpp
  *        Created: 07/18/2017 16:00:20
- *  Last Modified: 08/13/2017 23:08:18
- *
  *    Description: a seperate procedure to load all resource at beginning
  *                 this procedure has its own event loop and two threads
  *

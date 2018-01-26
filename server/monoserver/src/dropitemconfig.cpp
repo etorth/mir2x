@@ -3,8 +3,6 @@
  *
  *       Filename: dropitemconfig.cpp
  *        Created: 07/30/2017 00:12:33
- *  Last Modified: 07/30/2017 17:20:26
- *
  *    Description: 
  *
  *        Version: 1.0

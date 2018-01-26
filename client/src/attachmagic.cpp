@@ -3,8 +3,6 @@
  *
  *       Filename: attachmagic.cpp
  *        Created: 08/10/2017 12:46:45
- *  Last Modified: 08/10/2017 21:08:44
- *
  *    Description: 
  *
  *        Version: 1.0

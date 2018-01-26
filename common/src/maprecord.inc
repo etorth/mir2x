@@ -3,8 +3,6 @@
  *
  *       Filename: maprecord.inc
  *        Created: 05/12/2017 17:58:02
- *  Last Modified: 09/09/2017 01:03:18
- *
  *    Description: 
  *
  *        Version: 1.0

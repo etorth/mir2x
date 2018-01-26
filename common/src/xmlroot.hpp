@@ -3,8 +3,6 @@
  *
  *       Filename: xmlroot.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 01/12/2018 18:29:15
- *
  *    Description: analyze specifically formatted XML
  *                      <ROOT>
  *                          <NODE>

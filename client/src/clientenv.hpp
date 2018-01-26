@@ -3,8 +3,6 @@
  *
  *       Filename: clientenv.hpp
  *        Created: 05/12/2017 16:33:25
- *  Last Modified: 12/25/2017 19:17:04
- *
  *    Description: use environment to setup the runtime message report:
  *
  *                 MIR2X_INFO_XXXX      : configured one by one

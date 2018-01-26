@@ -3,8 +3,6 @@
  *
  *       Filename: basearea.cpp
  *        Created: 07/26/2015 04:27:57
- *  Last Modified: 01/14/2018 19:02:20
- *
  *    Description:
  *
  *        Version: 1.0

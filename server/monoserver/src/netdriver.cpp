@@ -3,8 +3,6 @@
  *
  *       Filename: netdriver.cpp
  *        Created: 06/25/2017 12:05:00
- *  Last Modified: 10/04/2017 16:46:57
- *
  *    Description: 
  *
  *        Version: 1.0

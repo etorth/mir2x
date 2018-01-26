@@ -2,8 +2,6 @@
 #
 #        Filename: BuildSOL2.cmake
 #         Created: 05/03/2016 13:19:07
-#   Last Modified: 01/10/2018 21:21:34
-#
 #     Description: required: MIR2X_3RD_PARTY_DIR
 #
 #         Version: 1.0
