@@ -22,6 +22,7 @@
 #include "compress.hpp"
 #include "condcheck.hpp"
 #include "monoserver.hpp"
+#include "messagepack.hpp"
 
 Session::SendTask::SendTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnOnDone)
     : HC(nHC)
@@ -109,7 +110,7 @@ Session::SendTask::SendTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, 
 
 Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
     : m_ID(nSessionID)
-    , m_SyncDriver()
+    , m_Dispatcher()
     , m_Socket(std::move(stSocket))
     , m_IP(m_Socket.remote_endpoint().address().to_string())
     , m_Port(m_Socket.remote_endpoint().port())
@@ -868,7 +869,7 @@ bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
     // if we support response
     // we can free the memory allocated by memory pool
     // currently I free it in the destination actor handling logic
-    return m_SyncDriver.Forward({MPK_NETPACKAGE, stAMNP}, m_BindAddress);
+    return m_Dispatcher.Forward({MPK_NETPACKAGE, stAMNP}, m_BindAddress);
 }
 
 void Session::Shutdown(bool bForce)
@@ -885,7 +886,7 @@ void Session::Shutdown(bool bForce)
                     AMBadSession stAMBS;
                     stAMBS.SessionID = pThis->ID();
 
-                    pThis->m_SyncDriver.Forward({MPK_BADSESSION, stAMBS}, pThis->m_BindAddress);
+                    pThis->m_Dispatcher.Forward({MPK_BADSESSION, stAMBS}, pThis->m_BindAddress);
                     pThis->m_BindAddress = Theron::Address::Null();
 
                     // if we call shutdown() here

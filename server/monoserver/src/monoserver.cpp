@@ -34,8 +34,10 @@
 #include "threadpn.hpp"
 #include "mapbindbn.hpp"
 #include "uidrecord.hpp"
+#include "syncdriver.hpp"
 #include "mainwindow.hpp"
 #include "monoserver.hpp"
+#include "dispatcher.hpp"
 #include "servicecore.hpp"
 #include "eventtaskhub.hpp"
 #include "commandwindow.hpp"
@@ -243,7 +245,7 @@ void MonoServer::RegisterAMFallbackHandler()
 
             // we know which actor sent this message
             // but we lost the information that which actor it sent to
-            SyncDriver().Forward({MPK_BADACTORPOD, stAMBAP}, stFromAddress, stAMBAP.ID);
+            Dispatcher().Forward({MPK_BADACTORPOD, stAMBAP}, stFromAddress, stAMBAP.ID);
         }
     }stFallbackHandler;
 

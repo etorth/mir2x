@@ -100,7 +100,7 @@
 #include <functional>
 #include <Theron/Theron.h>
 
-#include "syncdriver.hpp"
+#include "dispatcher.hpp"
 #include "memorychunkpn.hpp"
 
 class Session: public std::enable_shared_from_this<Session>
@@ -145,7 +145,7 @@ class Session: public std::enable_shared_from_this<Session>
         const uint32_t m_ID;
 
     private:
-        SyncDriver m_SyncDriver;
+        Dispatcher m_Dispatcher;
 
     private:
         asio::ip::tcp::socket m_Socket;

@@ -64,10 +64,10 @@
 #include "sysconst.hpp"
 #include "monoserver.hpp"
 #include "cachequeue.hpp"
-#include "syncdriver.hpp"
+#include "dispatcher.hpp"
 #include "messagepack.hpp"
 
-class NetDriver: public SyncDriver
+class NetDriver: public Dispatcher
 {
     private:
         unsigned int                m_Port;

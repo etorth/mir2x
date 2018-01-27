@@ -24,7 +24,7 @@
 #include <atomic>
 #include <cstdint>
 #include <Theron/Theron.h>
-#include "syncdriver.hpp"
+#include "dispatcher.hpp"
 
 class Metronome final
 {
@@ -44,7 +44,7 @@ class Metronome final
         std::set<uint32_t> m_UIDList;
 
     private:
-        SyncDriver m_Driver;
+        Dispatcher m_Dispatcher;
 
     public:
         Metronome(uint32_t nTick)
@@ -53,7 +53,7 @@ class Metronome final
             , m_Thread()
             , m_State(false)
             , m_UIDList()
-            , m_Driver()
+            , m_Dispatcher()
         {}
 
     public:

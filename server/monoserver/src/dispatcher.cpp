@@ -22,15 +22,15 @@
 #include "dispatcher.hpp"
 #include "messagepack.hpp"
 
-bool Dispatcher::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr)
+bool Dispatcher::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond)
 {
     extern ServerEnv *g_ServerEnv;
     if(g_ServerEnv->TraceActorMessage){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_DEBUG, "(Dispatcher: 0X%0*" PRIXPTR ", Name: Dispatcher, UID: NA) -> (Type: %s, ID: 0, Resp: 0)",
-                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name());
+        g_MonoServer->AddLog(LOGTYPE_DEBUG, "(Dispatcher: 0X%0*" PRIXPTR ", Name: Dispatcher, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ")",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
     }
 
     extern Theron::Framework *g_Framework;
-    return g_Framework->Send<MessagePack>({rstMB, 0, 0}, Theron::Address::Null(), rstAddr);
+    return g_Framework->Send<MessagePack>({rstMB, 0, nRespond}, Theron::Address::Null(), rstAddr);
 }

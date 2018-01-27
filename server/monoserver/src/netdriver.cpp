@@ -21,7 +21,7 @@
 #include "monoserver.hpp"
 
 NetDriver::NetDriver()
-    : SyncDriver()
+    : Dispatcher()
     , m_Port(0)
     , m_IO(nullptr)
     , m_EndPoint(nullptr)
@@ -183,7 +183,7 @@ void NetDriver::Accept()
         AMNewConnection stAMNC;
         stAMNC.SessionID = nValidID;
 
-        if(Forward({MPK_NEWCONNECTION, stAMNC}, m_SCAddress)){
+        if(!Forward({MPK_NEWCONNECTION, stAMNC}, m_SCAddress)){
             m_ValidQ.PushHead(nValidID);
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't inform servicec core for connection id = %d", (int)(nValidID));
             return;

@@ -19,6 +19,7 @@
 #include "dbcomid.hpp"
 #include "threadpn.hpp"
 #include "monoserver.hpp"
+#include "dispatcher.hpp"
 #include "servicecore.hpp"
 
 void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pData, size_t)
@@ -39,13 +40,13 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
 
         if(!pDBHDR->Execute("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", stCML.ID, stCML.Password)){
             g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-            SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
+            Dispatcher().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
 
         if(pDBHDR->RowCount() < 1){
             g_MonoServer->AddLog(LOGTYPE_INFO, "can't find account: (%s:%s)", stCML.ID, stCML.Password);
-            SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
+            Dispatcher().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
 
@@ -55,13 +56,13 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
         int nID = std::atoi(pDBHDR->Get("fld_id"));
         if(!pDBHDR->Execute("select * from mir2x.tbl_dbid where fld_id = %d", nID)){
             g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-            SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
+            Dispatcher().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
 
         if(pDBHDR->RowCount() < 1){
             g_MonoServer->AddLog(LOGTYPE_INFO, "no dbid created for this account: (%s:%s)", stCML.ID, stCML.Password);
-            SyncDriver().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
+            Dispatcher().Forward({SM_LOGINFAIL, nSessionID}, stSCAddr);
             return;
         }
 
@@ -90,7 +91,7 @@ void ServiceCore::Net_CM_Login(uint32_t nSessionID, uint8_t, const uint8_t *pDat
         stAMLQDB.JobID     = std::atoi(pDBHDR->Get("fld_jobid"));
         stAMLQDB.Direction = std::atoi(pDBHDR->Get("fld_direction"));
 
-        SyncDriver().Forward({MPK_LOGINQUERYDB, stAMLQDB}, stSCAddr);
+        Dispatcher().Forward({MPK_LOGINQUERYDB, stAMLQDB}, stSCAddr);
     };
 
     extern ThreadPN *g_ThreadPN;
