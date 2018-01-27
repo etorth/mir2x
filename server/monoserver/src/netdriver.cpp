@@ -34,7 +34,10 @@ NetDriver::NetDriver()
 
 NetDriver::~NetDriver()
 {
-    Shutdown(0);
+    m_IO->stop();
+    if(m_Thread.joinable()){
+        m_Thread.join();
+    }
 
     delete m_Socket;
     delete m_Acceptor;
@@ -57,7 +60,6 @@ bool NetDriver::CheckPort(uint32_t nPort)
     return true;
 }
 
-// TODO stop io before we restart it
 bool NetDriver::InitASIO(uint32_t nPort)
 {
     // 1. set server listen port
@@ -91,110 +93,58 @@ bool NetDriver::InitASIO(uint32_t nPort)
 
 int NetDriver::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
 {
-    // 1. check parameter
-    if(!CheckPort(nPort) || rstSCAddr == Theron::Address::Null()){ return 1; }
+    if(!CheckPort(nPort) || rstSCAddr == Theron::Address::Null()){
+        return 1;
+    }
 
-    // 2. assign the target address
     m_SCAddress = rstSCAddr;
 
-    // 3. make sure the internal thread has ended
     if(m_Thread.joinable()){
         m_Thread.join();
     }
 
-    // 4. prepare valid session ID
-    m_ValidQ.Clear();
-    for(uint32_t nID = 1; nID < (uint32_t)(std::extent<decltype(m_ChannelList)>::value); ++nID){
-        m_ValidQ.PushHead(nID);
+    if(!InitASIO(nPort)){
+        return 2;
     }
 
-    // 5. init ASIO
-    if(!InitASIO(nPort)){ return 2; }
-
-    // 6. put one accept handler inside the event loop
-    //    but the asio main loop is not driven by m_Thread yet here
-    Accept();
-
-    // 7. start the internal thread to driven the loop
+    // put one accept handler inside the event loop
+    // but the asio main loop is not driven by m_Thread yet here
+    AcceptNewConnection();
     m_Thread = std::thread([this](){ m_IO->run(); });
 
-    // 8. all Launch() function will return 0 when succceeds
     return 0;
 }
 
-bool NetDriver::Activate(uint32_t nSessionID, const Theron::Address &rstTargetAddress)
-{
-    if(nSessionID && nSessionID < (uint32_t)(std::extent<decltype(m_ChannelList)>::value)){
-        if(rstTargetAddress == m_SCAddress){
-            return m_ChannelList[nSessionID].Launch(rstTargetAddress);
-        }else{
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Channel %d is not activated by service core");
-            g_MonoServer->Restart();
-        }
-    }
-    return false;
-}
-
-void NetDriver::Accept()
+void NetDriver::AcceptNewConnection()
 {
     auto fnAccept = [this](std::error_code stEC)
     {
-        extern MonoServer *g_MonoServer;
         if(stEC){
             // error occurs, stop the network
             // assume g_MonoServer is ready for log
+            extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Get network error when accepting: %s", stEC.message().c_str());
             g_MonoServer->Restart();
 
             // IO will stop after this
-            // won't feed Accept() to event loop again
+            // won't feed AcceptNewConnection() to event loop again
             return;
         }
 
-        auto nReqPort = m_Socket->remote_endpoint().port();
-        auto szIPAddr = m_Socket->remote_endpoint().address().to_string();
-        g_MonoServer->AddLog(LOGTYPE_INFO, "Connection requested from (%s:%d)", szIPAddr.c_str(), nReqPort);
+        if(auto pChann = ChannBuild(std::move(*m_Socket))){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_INFO, "Connection requested from (%s:%d)", pChann->GetIP().c_str(), pChann->GetPort());
 
-        if(m_ValidQ.Empty()){
-            g_MonoServer->AddLog(LOGTYPE_INFO, "No valid slot for new connection request");
+            // directly lanuch the channel here
+            // won't forward the new connection to the service core
+            pCann->Launch(m_SCAddress);
+        }else{
 
-            // currently no valid slot
-            // but should wait for new accepting request
-            Accept();
-            return;
+            // establish connction error
+            // we silently drop the failure here
         }
 
-        auto nValidID = m_ValidQ.Head();
-        m_ValidQ.PopHead();
-
-        if(!nValidID){
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Get zero from reserved session ID queue");
-            g_MonoServer->Restart();
-            return;
-        }
-
-        // use channel nValidID to host the accept
-        // if not use std::move() we'll get ``already open" error
-        m_ChannelList[nValidID].ChannBuild(nValidID, std::move(*m_Socket));
-
-        // forward a message by SyncDriver::Forward()
-        // inform the serice core that there is a new connection
-        AMNewConnection stAMNC;
-        stAMNC.SessionID = nValidID;
-
-        if(!Forward({MPK_NEWCONNECTION, stAMNC}, m_SCAddress)){
-            m_ValidQ.PushHead(nValidID);
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't inform servicec core for connection id = %d", (int)(nValidID));
-            return;
-        }
-
-        // notification sent
-        // but service core may failed to receive it
-        // print log message in ServiceCore::OperateAM() instead here
-
-        // accept next request
-        Accept();
+        AcceptNewConnection();
     };
 
     m_Acceptor->async_accept(*m_Socket, fnAccept);

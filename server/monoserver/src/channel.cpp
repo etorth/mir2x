@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: session.cpp
+ *       Filename: channel.cpp
  *        Created: 09/03/2015 03:48:41 AM
  *    Description: for received messages we won't crash if get invalid ones
  *                 but for messages to send we take zero tolerance
@@ -24,7 +24,7 @@
 #include "monoserver.hpp"
 #include "messagepack.hpp"
 
-Session::SendTask::SendTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnOnDone)
+Channel::SendTask::SendTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnOnDone)
     : HC(nHC)
     , Data(pData)
     , DataLen(nDataLen)
@@ -108,7 +108,7 @@ Session::SendTask::SendTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, 
     }
 }
 
-Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
+Channel::Channel(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
     : m_ID(nSessionID)
     , m_Dispatcher()
     , m_Socket(std::move(stSocket))
@@ -125,10 +125,10 @@ Session::Session(uint32_t nSessionID, asio::ip::tcp::socket stSocket)
     , m_CurrSendQ(&(m_SendQBuf0))
     , m_NextSendQ(&(m_SendQBuf1))
     , m_MemoryPN()
-    , m_State(SESSTYPE_NONE)
+    , m_State(CHANNTYPE_NONE)
 {}
 
-Session::~Session()
+Channel::~Channel()
 {
     // handlers posted to the asio main loop will refer to *this
     // when calling destructor make sure no outstanding handlers posted by it
@@ -138,14 +138,14 @@ Session::~Session()
     Shutdown(true);
 }
 
-void Session::DoReadHC()
+void Channel::DoReadHC()
 {
     switch(auto nCurrState = m_State.load()){
-        case SESSTYPE_STOPPED:
+        case CHANNTYPE_STOPPED:
             {
                 return;
             }
-        case SESSTYPE_RUNNING:
+        case CHANNTYPE_RUNNING:
             {
                 auto fnReportCurrentMessage = [pThis = shared_from_this()]()
                 {
@@ -296,14 +296,14 @@ void Session::DoReadHC()
     }
 }
 
-void Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
+void Channel::DoReadBody(size_t nMaskLen, size_t nBodyLen)
 {
     switch(auto nCurrState = m_State.load()){
-        case SESSTYPE_STOPPED:
+        case CHANNTYPE_STOPPED:
             {
                 return;
             }
-        case SESSTYPE_RUNNING:
+        case CHANNTYPE_RUNNING:
             {
                 auto fnReportCurrentMessage = [pThis = shared_from_this()]()
                 {
@@ -457,14 +457,14 @@ void Session::DoReadBody(size_t nMaskLen, size_t nBodyLen)
     }
 }
 
-void Session::DoSendNext()
+void Channel::DoSendNext()
 {
     switch(auto nCurrState = m_State.load()){
-        case SESSTYPE_STOPPED:
+        case CHANNTYPE_STOPPED:
             {
                 return;
             }
-        case SESSTYPE_RUNNING:
+        case CHANNTYPE_RUNNING:
             {
                 condcheck(m_FlushFlag);
                 condcheck(!m_CurrSendQ->empty());
@@ -491,14 +491,14 @@ void Session::DoSendNext()
     }
 }
 
-void Session::DoSendBuf()
+void Channel::DoSendBuf()
 {
     switch(auto nCurrState = m_State.load()){
-        case SESSTYPE_STOPPED:
+        case CHANNTYPE_STOPPED:
             {
                 return;
             }
-        case SESSTYPE_RUNNING:
+        case CHANNTYPE_RUNNING:
             {
                 condcheck(m_FlushFlag);
                 condcheck(!m_CurrSendQ->empty());
@@ -522,7 +522,7 @@ void Session::DoSendBuf()
                     };
 
                     // the Data field should contains all needed size info
-                    // when call Session::Send() it should be compressed if necessary and put it there
+                    // when call Channel::Send() it should be compressed if necessary and put it there
                     asio::async_write(m_Socket, asio::buffer(m_CurrSendQ->front().Data, m_CurrSendQ->front().DataLen), fnDoneSend);
                 }else{
                     DoSendNext();
@@ -538,20 +538,20 @@ void Session::DoSendBuf()
     }
 }
 
-void Session::DoSendHC()
+void Channel::DoSendHC()
 {
     // 1. only called in asio main loop thread
     // 2. only called in RUNNING / STOPPED state
 
     switch(auto nCurrState = m_State.load()){
-        case SESSTYPE_STOPPED:
+        case CHANNTYPE_STOPPED:
             {
                 // asio can't cancel a handler after post
                 // so we have to check it here and exit directly if session stopped
                 // nothing is important now, we just return and won't take care of m_FlushFlag
                 return;
             }
-        case SESSTYPE_RUNNING:
+        case CHANNTYPE_RUNNING:
             {
                 // will send this header code
                 // session state could switch to STOPPED during sending
@@ -616,12 +616,12 @@ void Session::DoSendHC()
     }
 }
 
-bool Session::FlushSendQ()
+bool Channel::FlushSendQ()
 {
     auto fnFlushSendQ = [pThis = shared_from_this()]()
     {
         // m_CurrSendQ assessing should always be in the asio main loop
-        // the Session::Send() should only access m_NextSendQ
+        // the Channel::Send() should only access m_NextSendQ
 
         // then we don't have to put lock to protect m_CurrSendQ
         // but we need lock for m_NextSendQ, in child threads, in asio main loop
@@ -631,7 +631,7 @@ bool Session::FlushSendQ()
         // one package only get erased after Data is sent
         // then multiple procesdure in asio main loop may send HC / Data more than one time
 
-        // use shared_ptr<Session>() instead of raw this
+        // use shared_ptr<Channel>() instead of raw this
         // then outside of asio main loop we use shared_ptr::reset()
 
         if(!pThis->m_FlushFlag){
@@ -648,7 +648,7 @@ bool Session::FlushSendQ()
     return true;
 }
 
-bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnDone)
+bool Channel::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnDone)
 {
     // BuildTask should be thread-safe
     // it's using the internal memory pool to build the task block
@@ -666,7 +666,7 @@ bool Session::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
     return false;
 }
 
-Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnDone)
+Channel::SendTask Channel::BuildTask(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnDone)
 {
     size_t   nEncodeSize = 0;
     uint8_t *pEncodeData = nullptr;
@@ -683,7 +683,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
             {
                 if(pData || nDataLen){
                     fnReportError("Invalid argument");
-                    return Session::SendTask::Null();
+                    return Channel::SendTask::Null();
                 }
                 break;
             }
@@ -692,7 +692,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
                 // not empty, fixed size, comperssed
                 if(!(pData && (nDataLen == stSMSG.DataLen()))){
                     fnReportError("Invalid argument");
-                    return Session::SendTask::Null();
+                    return Channel::SendTask::Null();
                 }
 
                 // do compression, two solutions
@@ -711,7 +711,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
                 auto nCountData = Compress::CountData(pData, nDataLen);
                 if(nCountData < 0){
                     fnReportError("Count data failed");
-                    return Session::SendTask::Null();
+                    return Channel::SendTask::Null();
                 }else if(nCountData <= 254){
                     // we need only one byte for length info
                     pEncodeData = (uint8_t *)(m_MemoryPN.Get(stSMSG.MaskLen() + (size_t)(nCountData) + 1));
@@ -721,7 +721,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
 
                         // 2. free memory allocated and return immediately
                         m_MemoryPN.Free(pEncodeData);
-                        return Session::SendTask::Null();
+                        return Channel::SendTask::Null();
                     }
 
                     pEncodeData[0] = (uint8_t)(nCountData);
@@ -735,7 +735,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
 
                         // 2. free memory allocated and return immediately
                         m_MemoryPN.Free(pEncodeData);
-                        return Session::SendTask::Null();
+                        return Channel::SendTask::Null();
                     }
 
                     pEncodeData[0] = 255;
@@ -750,7 +750,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
 
                     // 2. free memory allocated and return immediately
                     m_MemoryPN.Free(pEncodeData);
-                    return Session::SendTask::Null();
+                    return Channel::SendTask::Null();
                 }
                 break;
             }
@@ -759,7 +759,7 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
                 // not empty, fixed size, not compressed
                 if(!(pData && (nDataLen == stSMSG.DataLen()))){
                     fnReportError("Invalid argument");
-                    return Session::SendTask::Null();
+                    return Channel::SendTask::Null();
                 }
 
                 pEncodeData = (uint8_t *)(m_MemoryPN.Get(nDataLen));
@@ -776,12 +776,12 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
                 if(pData){
                     if((nDataLen == 0) || (nDataLen > 0XFFFFFFFF)){
                         fnReportError("Invalid argument");
-                        return Session::SendTask::Null();
+                        return Channel::SendTask::Null();
                     }
                 }else{
                     if(nDataLen){
                         fnReportError("Invalid argument");
-                        return Session::SendTask::Null();
+                        return Channel::SendTask::Null();
                     }
                 }
 
@@ -801,16 +801,16 @@ Session::SendTask Session::BuildTask(uint8_t nHC, const uint8_t *pData, size_t n
         default:
             {
                 fnReportError("Invalid argument");
-                return Session::SendTask::Null();
+                return Channel::SendTask::Null();
             }
     }
 
     return {nHC, pEncodeData, nEncodeSize, std::move(fnDone)};
 }
 
-bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
+bool Channel::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
-    auto fnReportError = [nHC, pData, nDataLen]()
+    auto fnReportBadArgs = [nHC, pData, nDataLen]()
     {
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument: (%d, %p, %d)", (int)(nHC), pData, (int)(nDataLen));
@@ -821,7 +821,7 @@ bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
         case 0:
             {
                 if(pData || nDataLen){
-                    fnReportError();
+                    fnReportBadArgs();
                     return false;
                 }
                 break;
@@ -830,7 +830,7 @@ bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
         case 2:
             {
                 if(!(pData && (nDataLen == stCMSG.DataLen()))){
-                    fnReportError();
+                    fnReportBadArgs();
                     return false;
                 }
                 break;
@@ -839,12 +839,12 @@ bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
             {
                 if(pData){
                     if((nDataLen == 0) || (nDataLen > 0XFFFFFFFF)){
-                        fnReportError();
+                        fnReportBadArgs();
                         return false;
                     }
                 }else{
                     if(nDataLen){
-                        fnReportError();
+                        fnReportBadArgs();
                         return false;
                     }
                 }
@@ -857,10 +857,18 @@ bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
     }
 
     AMNetPackage stAMNP;
-    stAMNP.SessionID = ID();
-    stAMNP.Type      = nHC;
-    stAMNP.Data      = pData;
-    stAMNP.DataLen   = nDataLen;
+    std::memset(&stAMNP, 0, sizeof(stAMNP));
+
+    stAMNP.Channel = this;
+    stAMNP.Type    = nHC;
+    stAMNP.DataLen = nDataLen;
+
+    if(nDataLen <= std::extent<decltype(stAMNP.DataBuf)>::value){
+
+    }
+
+
+    stAMNP.Data    = pData;
 
     // didn't register any response for net package
     // session is a sync-driver, means if we request a response
@@ -872,21 +880,25 @@ bool Session::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
     return m_Dispatcher.Forward({MPK_NETPACKAGE, stAMNP}, m_BindAddress);
 }
 
-void Session::Shutdown(bool bForce)
+void Channel::Shutdown(bool bForce)
 {
     auto fnShutdown = [](auto pThis)
     {
-        switch(auto nCurrState = pThis->m_State.exchange(SESSTYPE_STOPPED)){
-            case SESSTYPE_STOPPED:
+        switch(auto nCurrState = pThis->m_State.exchange(CHANNTYPE_STOPPED)){
+            case CHANNTYPE_STOPPED:
                 {
                     return;
                 }
-            case SESSTYPE_RUNNING:
+            case CHANNTYPE_RUNNING:
                 {
-                    AMBadSession stAMBS;
-                    stAMBS.SessionID = pThis->ID();
+                    AMBadChannel stAMBC;
+                    std::memset(&stAMBC, 0, sizeof(stAMBC));
 
-                    pThis->m_Dispatcher.Forward({MPK_BADSESSION, stAMBS}, pThis->m_BindAddress);
+                    // can forward to servicecore or player
+                    // servicecore won't keep pointer *this* then we need to report it
+                    stAMBC.Channel = this;
+
+                    pThis->m_Dispatcher.Forward({MPK_BADCHANNEL, stAMBC}, pThis->m_BindAddress);
                     pThis->m_BindAddress = Theron::Address::Null();
 
                     // if we call shutdown() here
@@ -913,39 +925,36 @@ void Session::Shutdown(bool bForce)
     if(bForce){
         fnShutdown(this);
     }else{
-        m_Socket.get_io_service().post([pThis = shared_from_this(), fnShutdown](){ fnShutdown(pThis); });
+        m_Socket.get_io_service().post([pThis = shared_from_this(), fnShutdown]()
+        {
+            fnShutdown(pThis);
+        });
     }
 }
 
-bool Session::Launch(const Theron::Address &rstAddr)
+bool Channel::Launch(const Theron::Address &rstAddr)
 {
     // Launch is not thread safe
     // because it's accessing m_BindAddress directly without protection
 
-    // life circle of a session 
-    // 1. create
-    // 2. Launch(service_core_address)
-    // 3. Bind(player_address)
-    //
-    // 4. multithread: accessing send / receive
-    // 5. multithread: shutdown()
-    // 6. multithread: delete
-
     if(rstAddr){
         m_BindAddress = rstAddr;
-        switch(auto nCurrState = m_State.exchange(SESSTYPE_RUNNING)){
-            case SESSTYPE_NONE:
+        switch(auto nCurrState = m_State.exchange(CHANNTYPE_RUNNING)){
+            case CHANNTYPE_NONE:
                 {
                     // make state RUNNING first
                     // otherwise all DoXXXXFunc() will exit directly
 
-                    m_Socket.get_io_service().post([pThis = shared_from_this()](){ pThis->DoReadHC(); });
-                    break;
+                    m_Socket.get_io_service().post([pThis = shared_from_this()]()
+                    {
+                        pThis->DoReadHC();
+                    });
+                    return true;
                 }
             default:
                 {
                     extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Calling Launch() with invalid state: %d", nCurrState);
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid channel state to launch: %d", nCurrState);
                     return false;
                 }
         }
