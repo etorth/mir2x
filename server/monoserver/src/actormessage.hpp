@@ -24,7 +24,7 @@ enum MessagePackType: int
     MPK_OK,
     MPK_ERROR,
     MPK_BADACTORPOD,
-    MPK_BADSESSION,
+    MPK_BADCHANNEL,
     MPK_TIMEOUT,
     MPK_UID,
     MPK_PING,
@@ -40,10 +40,9 @@ enum MessagePackType: int
     MPK_LOGINQUERYDB,
     MPK_NETPACKAGE,
     MPK_ADDCHAROBJECT,
-    MPK_BINDSESSION,
+    MPK_BINDCHANNEL,
     MPK_ACTION,
     MPK_PULLCOINFO,
-    MPK_NEWCONNECTION,
     MPK_QUERYMAPLIST,
     MPK_MAPLIST,
     MPK_MAPSWITCH,
@@ -80,9 +79,9 @@ struct AMBadActorPod
     uint32_t Respond;
 };
 
-struct AMBadSession
+struct AMBadChannel
 {
-    uint32_t SessionID;
+    uint32_t ChannID;
 };
 
 struct AMTryLeave
@@ -123,7 +122,7 @@ union AMAddCharObject
         uint32_t JobID;
         int Level;
         int Direction;
-        uint32_t SessionID;
+        uint32_t ChannID;
     }Player;
 
     struct _NPC
@@ -188,7 +187,7 @@ struct AMMoveOK
 
 struct AMLoginQueryDB
 {
-    uint32_t SessionID;
+    uint32_t ChannID;
 
     uint32_t DBID;
     uint32_t MapID;
@@ -201,16 +200,18 @@ struct AMLoginQueryDB
 
 struct AMNetPackage
 {
-    uint32_t SessionID;
+    uint32_t ChannID;
     uint8_t  Type;
 
-    const uint8_t *Data;
+    uint8_t *Data;
+    uint8_t  DataBuf[256];
+
     size_t DataLen;
 };
 
-struct AMBindSession
+struct AMBindChannel
 {
-    uint32_t SessionID;
+    uint32_t ChannID;
 };
 
 struct AMAction
@@ -241,11 +242,6 @@ struct AMPullCOInfo
 
     uint32_t UID;
     uint32_t MapID;
-};
-
-struct AMNewConnection
-{
-    uint32_t SessionID;
 };
 
 struct AMMapList

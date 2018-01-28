@@ -37,7 +37,7 @@ Player::Player(uint32_t nDBID,
     : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
     , m_DBID(nDBID)
     , m_JobID(0)        // will provide after bind
-    , m_SessionID(0)    // provide by bind
+    , m_ChannID(0)    // provide by bind
     , m_Exp(0)
     , m_Level(0)        // after bind
     , m_Gold(0)
@@ -118,9 +118,9 @@ void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFrom
                 On_MPK_SHOWDROPITEM(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_BINDSESSION:
+        case MPK_BINDCHANNEL:
             {
-                On_MPK_BINDSESSION(rstMPK, rstFromAddr);
+                On_MPK_BINDCHANNEL(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_NETPACKAGE:
@@ -133,9 +133,9 @@ void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFrom
                 On_MPK_QUERYCORECORD(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_BADSESSION:
+        case MPK_BADCHANNEL:
             {
-                On_MPK_BADSESSION(rstMPK, rstFromAddr);
+                On_MPK_BADCHANNEL(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_OFFLINE:
@@ -193,15 +193,6 @@ bool Player::Update()
     return true;
 }
 
-bool Player::Bind(uint32_t nSessionID)
-{
-    m_SessionID = nSessionID;
-
-    extern NetDriver *g_NetDriver;
-    g_NetDriver->Bind(SessionID(), GetAddress());
-    return true;
-}
-
 void Player::ReportCORecord(uint32_t nUID)
 {
     if(nUID){
@@ -253,7 +244,7 @@ void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)
 {
     if(true
             && nUID
-            && SessionID()){
+            && ChannID()){
 
         SMAction stSMA;
         std::memset(&stSMA, 0, sizeof(stSMA));
@@ -274,13 +265,13 @@ void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)
         stSMA.ActionParam = rstAction.ActionParam;
 
         extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(SessionID(), SM_ACTION, stSMA);
+        g_NetDriver->Post(ChannID(), SM_ACTION, stSMA);
     }
 }
 
 void Player::ReportHealth()
 {
-    if(SessionID()){
+    if(ChannID()){
         SMUpdateHP stSMUHP;
         stSMUHP.UID   = UID();
         stSMUHP.MapID = MapID();
@@ -288,7 +279,7 @@ void Player::ReportHealth()
         stSMUHP.HPMax = HPMax();
 
         extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(SessionID(), SM_UPDATEHP, stSMUHP);
+        g_NetDriver->Post(ChannID(), SM_UPDATEHP, stSMUHP);
     }
 }
 
@@ -488,14 +479,14 @@ void Player::ReportOffline(uint32_t nUID, uint32_t nMapID)
     if(true
             && nUID
             && nMapID
-            && SessionID()){
+            && ChannID()){
 
         SMOffline stSMO;
         stSMO.UID   = nUID;
         stSMO.MapID = nMapID;
 
         extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(SessionID(), SM_OFFLINE, stSMO);
+        g_NetDriver->Post(ChannID(), SM_OFFLINE, stSMO);
     }
 }
 
@@ -530,9 +521,9 @@ InvarData Player::GetInvarData() const
 
 bool Player::PostNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
-    if(SessionID()){
+    if(ChannID()){
         extern NetDriver *g_NetDriver;
-        return g_NetDriver->Send(SessionID(), nHC, pData, nDataLen);
+        return g_NetDriver->Post(ChannID(), nHC, pData, nDataLen);
     }
     return false;
 }
@@ -705,7 +696,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 Delay(1400, [this, stSMFM]()
                 {
                     extern NetDriver *g_NetDriver;
-                    g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                    g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
                 });
                 break;
             }
@@ -721,7 +712,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 Delay(800, [this, stSMFM]()
                 {
                     extern NetDriver *g_NetDriver;
-                    g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                    g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
                 });
                 break;
             }
@@ -750,7 +741,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
                     AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
 
                     extern NetDriver *g_NetDriver;
-                    g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                    g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
                 });
                 break;
             }

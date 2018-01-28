@@ -33,25 +33,21 @@
 void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &)
 {
     AMNetPackage stAMNP;
-    std::memcpy(&stAMNP, rstMPK.Data(), sizeof(stAMNP));
+    std::memcpy(&stAMNP, rstMPK.Data(), sizeof(AMNetPackage));
 
-    OperateNet(stAMNP.SessionID, stAMNP.Type, stAMNP.Data, stAMNP.DataLen);
-}
+    uint8_t *pDataBuf = nullptr;
+    if(stAMNP.DataLen){
+        if(stAMNP.Data){
+            pDataBuf = stAMNP.Data;
+        }else{
+            pDataBuf = stAMNP.DataBuf;
+        }
+    }
 
-// TODO
-// based on the information of coming connection
-// do IP banning etc. currently only activate this session
-void ServiceCore::On_MPK_NEWCONNECTION(const MessagePack &rstMPK, const Theron::Address &)
-{
-    AMNewConnection stAMNC;
-    std::memcpy(&stAMNC, rstMPK.Data(), sizeof(stAMNC));
+    OperateNet(stAMNP.ChannID, stAMNP.Type, pDataBuf, stAMNP.DataLen);
 
-    if(stAMNC.SessionID){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_INFO, "Service core get informed for new connection: %d", (int)(stAMNC.SessionID));
-
-        extern NetDriver *g_NetDriver;
-        g_NetDriver->Activate(stAMNC.SessionID, GetAddress());
+    if(stAMNP.Data){
+        delete [] stAMNP.Data;
     }
 }
 
@@ -88,74 +84,6 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::
 
     // invalid location info, return error directly
     m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
-}
-
-// don't try to find its sender, it's from a temp SyncDriver in the lambda
-void ServiceCore::On_MPK_LOGINQUERYDB(const MessagePack &rstMPK, const Theron::Address &)
-{
-    AMLoginQueryDB stAMLQDB;
-    std::memcpy(&stAMLQDB, rstMPK.Data(), sizeof(stAMLQDB));
-
-    // error handler when error happens
-    auto fnOnBadDBRecord = [stAMLQDB]()
-    {
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_INFO, "Login failed for (%d, %d, %d)", stAMLQDB.MapID, stAMLQDB.MapX, stAMLQDB.MapY);
-
-        extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(stAMLQDB.SessionID, SM_LOGINFAIL, [nSID = stAMLQDB.SessionID](){g_NetDriver->Shutdown(nSID);});
-    };
-
-    if(stAMLQDB.MapID){
-        auto pMap = m_MapList.find(stAMLQDB.MapID);
-        if(pMap == m_MapList.end()){
-            if(!LoadMap(stAMLQDB.MapID)){
-                fnOnBadDBRecord();
-                return;
-            }
-            pMap = m_MapList.find(stAMLQDB.MapID);
-        }
-
-        if((pMap == m_MapList.end()) || (pMap->second == nullptr) || (pMap->second->ID() != stAMLQDB.MapID)){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_FATAL, "Internal logic error");
-            g_MonoServer->Restart();
-        }
-
-        if(pMap->second->In(stAMLQDB.MapID, stAMLQDB.MapX, stAMLQDB.MapY)){
-            AMAddCharObject stAMACO;
-            stAMACO.Type = TYPE_PLAYER;
-            stAMACO.Common.MapID     = stAMLQDB.MapID;
-            stAMACO.Common.X         = stAMLQDB.MapX;
-            stAMACO.Common.Y         = stAMLQDB.MapY;
-            stAMACO.Common.Random    = true;
-            stAMACO.Player.DBID      = stAMLQDB.DBID;
-            stAMACO.Player.Level     = stAMLQDB.Level;
-            stAMACO.Player.JobID     = stAMLQDB.JobID;
-            stAMACO.Player.Direction = stAMLQDB.Direction;
-            stAMACO.Player.SessionID = stAMLQDB.SessionID;
-
-            auto fnOnR = [this, stAMACO, fnOnBadDBRecord, pMap](const MessagePack &rstRMPK, const Theron::Address &)
-            {
-                switch(rstRMPK.Type()){
-                    case MPK_OK:
-                        {
-                            break;
-                        }
-                    default:
-                        {
-                            fnOnBadDBRecord();
-                            break;
-                        }
-                }
-            };
-
-            m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, pMap->second->GetAddress(), fnOnR);
-            return;
-        }
-    }
-
-    fnOnBadDBRecord();
 }
 
 void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -328,11 +256,14 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::A
     }
 }
 
-void ServiceCore::On_MPK_BADSESSION(const MessagePack &rstMPK, const Theron::Address &)
+void ServiceCore::On_MPK_BADCHANNEL(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMBadSession stAMBS;
-    std::memcpy(&stAMBS, rstMPK.Data(), sizeof(stAMBS));
+    // channel may go down before bind to one actor
+    // then stop it here
+
+    AMBadChannel stAMBC;
+    std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
 
     extern NetDriver *g_NetDriver;
-    g_NetDriver->Shutdown(stAMBS.SessionID);
+    g_NetDriver->Shutdown(stAMBC.ChannID, false);
 }

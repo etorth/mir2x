@@ -51,14 +51,12 @@ class ServiceCore final: public ActiveObject
 
     private:
         void On_MPK_LOGIN(const MessagePack &, const Theron::Address &);
-        void On_MPK_BADSESSION(const MessagePack &, const Theron::Address &);
+        void On_MPK_BADCHANNEL(const MessagePack &, const Theron::Address &);
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYMAPUID(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYMAPSWITCH(const MessagePack &, const Theron::Address &);
-        void On_MPK_LOGINQUERYDB(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYMAPLIST(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYCOCOUNT(const MessagePack &, const Theron::Address &);
-        void On_MPK_NEWCONNECTION(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
 
     private:

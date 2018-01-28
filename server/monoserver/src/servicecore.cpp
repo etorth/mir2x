@@ -34,14 +34,9 @@ ServiceCore::ServiceCore()
 void ServiceCore::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstAddr)
 {
     switch(rstMPK.Type()){
-        case MPK_BADSESSION:
+        case MPK_BADCHANNEL:
             {
-                On_MPK_BADSESSION(rstMPK, rstAddr);
-                break;
-            }
-        case MPK_LOGINQUERYDB:
-            {
-                On_MPK_LOGINQUERYDB(rstMPK, rstAddr);
+                On_MPK_BADCHANNEL(rstMPK, rstAddr);
                 break;
             }
         case MPK_ADDCHAROBJECT:
@@ -52,11 +47,6 @@ void ServiceCore::OperateAM(const MessagePack &rstMPK, const Theron::Address &rs
         case MPK_TRYMAPSWITCH:
             {
                 On_MPK_TRYMAPSWITCH(rstMPK, rstAddr);
-                break;
-            }
-        case MPK_NEWCONNECTION:
-            {
-                On_MPK_NEWCONNECTION(rstMPK, rstAddr);
                 break;
             }
         case MPK_NETPACKAGE:

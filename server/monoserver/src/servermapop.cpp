@@ -98,17 +98,17 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
         case TYPE_PLAYER:
             {
                 auto nDBID      = stAMACO.Player.DBID;
-                auto nSessionID = stAMACO.Player.SessionID;
+                auto nChannID   = stAMACO.Player.ChannID;
                 auto nDirection = stAMACO.Player.Direction;
 
                 if(auto pPlayer = AddPlayer(nDBID, nX, nY, nDirection, bRandom)){
                     m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
-                    m_ActorPod->Forward({MPK_BINDSESSION, nSessionID}, pPlayer->GetAddress());
+                    m_ActorPod->Forward({MPK_BINDCHANNEL, nChannID}, pPlayer->GetAddress());
 
-                    auto fnReportGroundItem = [this, nSessionID](int nX, int nY) -> bool
+                    auto fnReportGroundItem = [this, nChannID](int nX, int nY) -> bool
                     {
                         if(true || ValidC(nX, nY)){
-                            // ReportGroundItem(nSessionID, nX, nY);
+                            // ReportGroundItem(nChannID, nX, nY);
                         }
                         return false;
                     };

@@ -33,16 +33,24 @@ void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 
     SMPing stSMP;
     stSMP.Tick = g_MonoServer->GetTimeTick();
-    g_NetDriver->Send(SessionID(), SM_PING, stSMP);
+    g_NetDriver->Post(ChannID(), SM_PING, stSMP);
 }
 
-void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMBindSession stAMBS;
-    std::memcpy(&stAMBS, rstMPK.Data(), sizeof(stAMBS));
-    Bind(stAMBS.SessionID);
+    AMBindChannel stAMBC;
+    std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
+
+    // bind channel here
+    // set the channel actor as this->GetAddress()
+    m_ChannID = stAMBC.ChannID;
+
+    extern NetDriver *g_NetDriver;
+    g_NetDriver->BindActor(ChannID(), GetAddress());
 
     SMLoginOK stSMLOK;
+    std::memset(&stSMLOK, 0, sizeof(stSMLOK));
+
     stSMLOK.UID       = UID();
     stSMLOK.DBID      = DBID();
     stSMLOK.MapID     = m_Map->ID();
@@ -54,7 +62,7 @@ void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address
     stSMLOK.Level     = Level();
 
     extern NetDriver *g_NetDriver;
-    g_NetDriver->Send(SessionID(), SM_LOGINOK, stSMLOK);
+    g_NetDriver->Post(ChannID(), SM_LOGINOK, stSMLOK);
 
     PullRectCO(10, 10);
 }
@@ -64,11 +72,19 @@ void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address 
     AMNetPackage stAMNP;
     std::memcpy(&stAMNP, rstMPK.Data(), sizeof(AMNetPackage));
 
-    OperateNet(stAMNP.Type, stAMNP.Data, stAMNP.DataLen);
+    uint8_t *pDataBuf = nullptr;
+    if(stAMNP.DataLen){
+        if(stAMNP.Data){
+            pDataBuf = stAMNP.Data;
+        }else{
+            pDataBuf = stAMNP.DataBuf;
+        }
+    }
+
+    OperateNet(stAMNP.Type, pDataBuf, stAMNP.DataLen);
 
     if(stAMNP.Data){
-        extern MemoryPN *g_MemoryPN;
-        g_MemoryPN->Free(const_cast<uint8_t *>(stAMNP.Data));
+        delete [] stAMNP.Data;
     }
 }
 
@@ -245,7 +261,7 @@ void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)
         stSMUHP.HPMax = stAMUHP.HPMax;
 
         extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(SessionID(), SM_UPDATEHP, stSMUHP);
+        g_NetDriver->Post(ChannID(), SM_UPDATEHP, stSMUHP);
     }
 }
 
@@ -262,7 +278,7 @@ void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Address
         stSMDFO.Y     = stAMDFO.Y;
 
         extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(SessionID(), SM_DEADFADEOUT, stSMDFO);
+        g_NetDriver->Post(ChannID(), SM_DEADFADEOUT, stSMDFO);
     }
 }
 
@@ -278,7 +294,7 @@ void Player::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
         stSME.Exp = stAME.Exp;
 
         extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(SessionID(), SM_EXP, stSME);
+        g_NetDriver->Post(ChannID(), SM_EXP, stSME);
     }
 }
 
@@ -307,15 +323,19 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK, const Theron::Addres
     }
 
     extern NetDriver *g_NetDriver;
-    g_NetDriver->Send(SessionID(), SM_SHOWDROPITEM, stSMSDI);
+    g_NetDriver->Post(ChannID(), SM_SHOWDROPITEM, stSMSDI);
 }
 
-void Player::On_MPK_BADSESSION(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_BADCHANNEL(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMBadSession stAMBS;
-    std::memcpy(&stAMBS, rstMPK.Data(), sizeof(stAMBS));
+    AMBadChannel stAMBC;
+    std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
 
-    m_ActorPod->Forward({MPK_BADSESSION, stAMBS}, m_ServiceCore->GetAddress());
+    condcheck(ChannID() == stAMBC.ChannID);
+
+    extern NetDriver *g_NetDriver;
+    g_NetDriver->Shutdown(ChannID(), false);
+
     Offline();
 }
 

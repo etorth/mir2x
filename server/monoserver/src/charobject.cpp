@@ -19,6 +19,7 @@
 #include "motion.hpp"
 #include "player.hpp"
 #include "monster.hpp"
+#include "mathfunc.hpp"
 #include "actorpod.hpp"
 #include "condcheck.hpp"
 #include "monoserver.hpp"

@@ -29,7 +29,7 @@ NetDriver::NetDriver()
     , m_Socket(nullptr)
     , m_Thread()
     , m_SCAddress(Theron::Address::Null())
-    , m_ValidQ()
+    , m_ChannIDQ()
 {}
 
 NetDriver::~NetDriver()
@@ -107,10 +107,16 @@ int NetDriver::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
         return 2;
     }
 
-    // put one accept handler inside the event loop
-    // but the asio main loop is not driven by m_Thread yet here
+    m_ChannIDQ.Clear();
+    for(int nIndex = 1; nIndex <= SYS_MAXPLAYERNUM; ++nIndex){
+        m_ChannIDQ.PushBack(nIndex);
+    }
+
     AcceptNewConnection();
-    m_Thread = std::thread([this](){ m_IO->run(); });
+    m_Thread = std::thread([this]()
+    {
+        m_IO->run();
+    });
 
     return 0;
 }
@@ -131,19 +137,50 @@ void NetDriver::AcceptNewConnection()
             return;
         }
 
-        if(auto pChann = ChannBuild(std::move(*m_Socket))){
+        if(m_ChannIDQ.Empty()){
             extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_INFO, "Connection requested from (%s:%d)", pChann->GetIP().c_str(), pChann->GetPort());
+            g_MonoServer->AddLog(LOGTYPE_INFO, "No valid slot for new connection request");
 
-            // directly lanuch the channel here
-            // won't forward the new connection to the service core
-            pCann->Launch(m_SCAddress);
-        }else{
-
-            // establish connction error
-            // we silently drop the failure here
+            // currently no valid slot
+            // but should wait for new accepting request
+            AcceptNewConnection();
+            return;
         }
 
+        auto nChannID = m_ChannIDQ.Head();
+        m_ChannIDQ.PopHead();
+
+        if(!CheckChannID(nChannID)){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Get invalid channel ID from reserved queue");
+            g_MonoServer->Restart();
+            return;
+        }
+
+        auto szIP  = m_Socket->remote_endpoint().address().to_string();
+        auto nPort = m_Socket->remote_endpoint().port();
+
+        if(!ChannBuild(nChannID, std::move(*m_Socket))){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Creating channel for endpoint (%s:%d) failed", szIP.c_str(), nPort);
+
+            // build channel for the allocated id failed
+            // recycle the id and post the accept for new request
+
+            m_ChannIDQ.PushBack(nChannID);
+            AcceptNewConnection();
+            return;
+        }
+
+        auto pChann = m_ChannelList[nChannID];
+
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_INFO, "Channel %d established for endpoint (%s:%d)", pChann->ID(), pChann->IP(), pChann->Port());
+
+        // directly lanuch the channel here
+        // won't forward the new connection to the service core
+
+        pChann->Launch(m_SCAddress);
         AcceptNewConnection();
     };
 

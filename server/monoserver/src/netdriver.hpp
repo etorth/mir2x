@@ -37,8 +37,12 @@
 #include "dispatcher.hpp"
 #include "messagepack.hpp"
 
-class NetDriver: public Dispatcher
+class Channel;
+class NetDriver final: public Dispatcher
 {
+    private:
+        friend class Channel;
+
     private:
         unsigned int                m_Port;
         asio::io_service           *m_IO;
@@ -53,10 +57,10 @@ class NetDriver: public Dispatcher
         Theron::Address m_SCAddress;
 
     private:
-        Channel m_ChannelList[SYS_MAXPLAYERNUM];
+        CacheQueue<uint32_t, SYS_MAXPLAYERNUM> m_ChannIDQ;
 
     private:
-        CacheQueue<uint32_t, SYS_MAXPLAYERNUM> m_ValidQ;
+        std::shared_ptr<Channel> m_ChannelList[SYS_MAXPLAYERNUM + 1];
 
     public:
         NetDriver();
@@ -67,6 +71,18 @@ class NetDriver: public Dispatcher
     protected:
         bool CheckPort(uint32_t);
         bool InitASIO(uint32_t);
+
+    private:
+        void RecycleChannID(uint32_t nChannID)
+        {
+            m_ChannIDQ.PushBack(nChannID);
+        }
+
+    private:
+        bool CheckChannID(uint32_t nChannID)
+        {
+            return (nChannID > 0) && (nChannID <= std::extent<decltype(m_ChannelList)>::value);
+        }
 
     public:
         // launch the net driver with (port, service_core_address)
@@ -79,15 +95,44 @@ class NetDriver: public Dispatcher
         //      2: asio initialization failed
         int Launch(uint32_t, const Theron::Address &);
 
-    private:
-        std::shared_ptr<Channel> ChannBuild(asio::ip::tcp::socket stSocket)
+    public:
+        template<typename... Args> bool Post(uint32_t nChannID, uint8_t nHC, Args&&... args)
         {
-            return std::make_shared<Channel>(std::move(stSocket));
+            if(CheckChannID(nChannID)){
+                return m_ChannelList[nChannID]->Post(nHC, std::forward<Args>(args)...);
+            }
+            return false;
         }
 
-        void ChannRelease()
+        void BindActor(uint32_t nChannID, const Theron::Address &rstAddr)
         {
+            if(CheckChannID(nChannID)){
+                m_ChannelList[nChannID]->BindActor(rstAddr);
+            }
+        }
 
+        void Shutdown(uint32_t nChannID, bool bForce)
+        {
+            if(CheckChannID(nChannID)){
+                m_ChannelList[nChannID]->Shutdown(bForce);
+            }
+        }
+
+    private:
+        bool ChannBuild(uint32_t nChannID, asio::ip::tcp::socket stSocket)
+        {
+            if(CheckChannID(nChannID)){
+                m_ChannelList[nChannID] = std::make_shared<Channel>(nChannID, std::move(stSocket));
+                return true;
+            }
+            return false;
+        }
+
+        void ChannRelease(uint32_t nChannID)
+        {
+            if(CheckChannID(nChannID)){
+                m_ChannelList[nChannID].reset();
+            }
         }
 
     private:

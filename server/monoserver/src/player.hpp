@@ -28,7 +28,7 @@ class Player final: public CharObject
         const uint32_t m_JobID;
 
     protected:
-        uint32_t m_SessionID;
+        uint32_t m_ChannID;
 
     protected:
         uint32_t m_Exp;
@@ -76,9 +76,9 @@ class Player final: public CharObject
             return m_JobID;
         }
 
-        uint32_t SessionID()
+        uint32_t ChannID()
         {
-            return m_SessionID;
+            return m_ChannID;
         }
 
     public:
@@ -88,8 +88,6 @@ class Player final: public CharObject
         }
 
         bool Update();
-
-        bool Bind(uint32_t);
 
     public:
         InvarData GetInvarData() const;
@@ -111,10 +109,10 @@ class Player final: public CharObject
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &);
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
-        void On_MPK_BADSESSION(const MessagePack &, const Theron::Address &);
+        void On_MPK_BADCHANNEL(const MessagePack &, const Theron::Address &);
         void On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &);
         void On_MPK_DEADFADEOUT(const MessagePack &, const Theron::Address &);
-        void On_MPK_BINDSESSION(const MessagePack &, const Theron::Address &);
+        void On_MPK_BINDCHANNEL(const MessagePack &, const Theron::Address &);
         void On_MPK_SHOWDROPITEM(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);

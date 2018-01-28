@@ -183,7 +183,7 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
                 case MPK_OK                  : return "MPK_OK";
                 case MPK_ERROR               : return "MPK_ERROR";
                 case MPK_BADACTORPOD         : return "MPK_BADACTORPOD";
-                case MPK_BADSESSION          : return "MPK_BADSESSION";
+                case MPK_BADCHANNEL          : return "MPK_BADCHANNEL";
                 case MPK_TIMEOUT             : return "MPK_TIMEOUT";
                 case MPK_UID                 : return "MPK_UID";
                 case MPK_PING                : return "MPK_PING";
@@ -198,10 +198,9 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
                 case MPK_LOGINQUERYDB        : return "MPK_LOGINQUERYDB";
                 case MPK_NETPACKAGE          : return "MPK_NETPACKAGE";
                 case MPK_ADDCHAROBJECT       : return "MPK_ADDCHAROBJECT";
-                case MPK_BINDSESSION         : return "MPK_BINDSESSION";
+                case MPK_BINDCHANNEL         : return "MPK_BINDCHANNEL";
                 case MPK_ACTION              : return "MPK_ACTION";
                 case MPK_PULLCOINFO          : return "MPK_PULLCOINFO";
-                case MPK_NEWCONNECTION       : return "MPK_NEWCONNECTION";
                 case MPK_QUERYMAPLIST        : return "MPK_QUERYMAPLIST";
                 case MPK_MAPLIST             : return "MPK_MAPLIST";
                 case MPK_MAPSWITCH           : return "MPK_MAPSWITCH";

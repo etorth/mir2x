@@ -10,20 +10,6 @@
  *                 actually stateless object can be implemented as a static object
  *                 after activated this kind of object can only be modified via messages
  *
- *                 This prevent me implement MonoServer as react object. For MonoServer
- *                 it needs to manager SessionHub. However SessionHub is not an actor, so
- *                 if MonoServer is an react object, we have to launch SessionHub before
- *                 calling of MonoServer::Activate(), but, before activation of MonoServer
- *                 we don't have the address of Mo MonoServer to pass to SessionHub!
- *
- *                 In my design, SessionHub create Session's with SID and pass it to the
- *                 MonoServer, then MonoServer check info of this connection from DB and
- *                 create player object, bind Session pointer to the player and send the
- *                 player to proper RegionMonitor via ServerMap object.
- *
- *                 Another thing is for g_MonoServer->AddLog(...), if make MonoServer as
- *                 a react object, we can't use it anymore
- *
  *                 access control protocol for ActiveObject
  *                 for active object A and B, A can access B through b->func() iif
  *                    1. B outlives A
