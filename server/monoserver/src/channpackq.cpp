@@ -156,13 +156,15 @@ bool ChannPackQ::AddPackMark(size_t nLoc, size_t nLength, std::function<void()> 
 
 uint8_t *ChannPackQ::GetNextBuf(size_t nNextLen)
 {
-    if(nNextLen){
-        m_PackBuf.resize(m_PackBuf.size() + nNextLen + 16);
+    // find the first byte of the new buffer to allocate
+    // make sure current buffer can hold more nNextLen bytes for the new one
+
+    size_t nNextLoc0 = 0;
+
+    if(!m_PackMarkQ.empty()){
+        nNextLoc0 = m_PackMarkQ.back().Loc + m_PackMarkQ.back().Length;
     }
 
-    if(m_PackMarkQ.empty()){
-        return &(m_PackBuf[0]);
-    }else{
-        return &(m_PackBuf[0]) + m_PackMarkQ.back().Loc + m_PackMarkQ.back().Length;
-    }
+    m_PackBuf.resize(nNextLoc0 + nNextLen + 16);
+    return &(m_PackBuf[0]) + nNextLoc0;
 }

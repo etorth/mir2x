@@ -56,6 +56,7 @@ status, errmsg = conn:execute [[
         fld_mapx      int unsigned not null,
         fld_mapy      int unsigned not null,
         fld_exp       int unsigned not null,
+        fld_gold      int unsigned not null,
         fld_level     int unsigned not null,
         fld_jobid     int unsigned not null,
         fld_direction int unsigned not null
@@ -66,10 +67,10 @@ if errmsg then print(status, errmsg) end
 
 -- try to add new dbid
 status, errmsg = conn:execute [[
-    insert tbl_dbid (fld_id, fld_name, fld_mapname, fld_mapx, fld_mapy, fld_level, fld_jobid, fld_direction) values
-        (1, "亚当", "道馆",   405, 120, 1, 1, 1),
-        (2, "夏娃", "比奇省", 441, 381, 1, 1, 1),
-        (3, "逗逼", "比奇省", 440, 381, 1, 1, 1)
+    insert tbl_dbid (fld_id, fld_name, fld_mapname, fld_mapx, fld_mapy, fld_exp, fld_gold, fld_level, fld_jobid, fld_direction) values
+        (1, "亚当", "道馆",   405, 120, 0, 0, 1, 1, 1),
+        (2, "夏娃", "比奇省", 441, 381, 0, 0, 1, 1, 1),
+        (3, "逗逼", "比奇省", 440, 381, 0, 0, 1, 1, 1)
 ]]
 
 if errmsg then print(status, errmsg) end
