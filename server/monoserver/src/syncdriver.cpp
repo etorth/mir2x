@@ -35,6 +35,21 @@ int SyncDriver::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr,
         g_MonoServer->AddLog(LOGTYPE_DEBUG, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ")",
                 (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
     }
+
+    if(!rstAddr){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ") : Try to send message to an emtpy address",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
+        return 1;
+    }
+
+    if(rstAddr == GetAddress()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ") : Try to send message to itself",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
+        return 1;
+    }
+
     extern Theron::Framework *g_Framework;
     return g_Framework->Send<MessagePack>({rstMB, 0, nRespond}, m_Receiver.GetAddress(), rstAddr) ? 0 : 1;
 }
@@ -82,6 +97,20 @@ int SyncDriver::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr,
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_DEBUG, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
                 (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nCurrID, nRespond);
+    }
+
+    if(!rstAddr){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ") : Try to send message to an emtpy address",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
+        return 1;
+    }
+
+    if(rstAddr == GetAddress()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ") : Try to send message to itself",
+                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
+        return 1;
     }
 
     // 2. send message

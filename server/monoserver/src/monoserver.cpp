@@ -245,7 +245,13 @@ void MonoServer::RegisterAMFallbackHandler()
 
             // we know which actor sent this message
             // but we lost the information that which actor it sent to
-            Dispatcher().Forward({MPK_BADACTORPOD, stAMBAP}, stFromAddress, stAMBAP.ID);
+
+            // for dispatcher sent message
+            // we can't even respond with the notification
+
+            if(stFromAddress){
+                Dispatcher().Forward({MPK_BADACTORPOD, stAMBAP}, stFromAddress, stAMBAP.ID);
+            }
         }
     }stFallbackHandler;
 

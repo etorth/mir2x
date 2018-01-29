@@ -53,6 +53,12 @@ class SyncDriver
         virtual ~SyncDriver() = default;
 
     public:
+        Theron::Address GetAddress() const
+        {
+            return m_Receiver.GetAddress();
+        }
+
+    public:
         int Forward(const MessageBuf &, const Theron::Address &, uint32_t);
         int Forward(const MessageBuf &, const Theron::Address &, uint32_t, MessagePack *);
 
