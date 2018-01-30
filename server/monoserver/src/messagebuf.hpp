@@ -3,8 +3,6 @@
  *
  *       Filename: messagebuf.hpp
  *        Created: 05/03/2016 13:14:40
- *  Last Modified: 06/05/2016 21:48:52
- *
  *    Description: used to shorten the argument list, so keep it simple
  *                 MessageBuf won't maintain the validation of the pointer
  *

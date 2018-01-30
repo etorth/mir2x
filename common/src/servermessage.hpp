@@ -3,8 +3,6 @@
  *
  *       Filename: servermessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 12/14/2017 23:30:13
- *
  *    Description: net message used by client and mono-server
  *
  *        Version: 1.0
@@ -39,7 +37,8 @@ enum: uint8_t
     SM_SPACEMOVE,
     SM_OFFLINE,
     SM_REMOVEGROUNDITEM,
-    SM_PICKUPOK
+    SM_PICKUPOK,
+    SM_GOLD,
 };
 
 #pragma pack(push, 1)
@@ -86,47 +85,51 @@ struct SMAction
     uint32_t ActionParam;
 };
 
-union SMCORecord
+struct SMCORecord
 {
-    uint8_t Type;
+    uint8_t COType;
 
-    struct _Common
+    struct _Action
     {
-        uint8_t _MemoryAlign;
-
         uint32_t UID;
         uint32_t MapID;
 
         uint8_t Action;
-        uint8_t ActionParam;
         uint8_t Speed;
         uint8_t Direction;
 
         uint16_t X;
         uint16_t Y;
-        uint16_t EndX;
-        uint16_t EndY;
-    }Common;
+        uint16_t AimX;
+        uint16_t AimY;
 
-    struct _Monster
+        uint32_t AimUID;
+        uint32_t ActionParam;
+    }Action;
+
+    struct _SMCORecord_Monster
     {
-        struct _Common _MemoryAlign;
         uint32_t MonsterID;
-    }Monster;
+    };
 
-    struct _Player
+    struct _SMCORecord_Player
     {
-        struct _Common _MemoryAlign;
         uint32_t DBID;
         uint32_t JobID;
         uint32_t Level;
-    }Player;
+    };
 
-    struct _NPC
+    struct _SMCORecord_NPC
     {
-        struct _Common _MemoryAlign;
         uint32_t NPCID;
-    }NPC;
+    };
+
+    union
+    {
+        _SMCORecord_Monster Monster;
+        _SMCORecord_Player  Player;
+        _SMCORecord_NPC     NPC;
+    };
 };
 
 struct SMUpdateHP
@@ -154,7 +157,12 @@ struct SMExp
 
 struct SMShowDropItem
 {
-    uint32_t IDList[16];
+    struct _CommonItem
+    {
+        uint32_t ID;
+        uint32_t DBID;
+    }IDList[16];
+
     uint16_t X;
     uint16_t Y;
 };
@@ -186,16 +194,21 @@ struct SMRemoveGroundItem
 {
     uint16_t X;
     uint16_t Y;
+    uint32_t ID;
     uint32_t DBID;
-    uint32_t ItemID;
 };
 
 struct SMPickUpOK
 {
     uint16_t X;
     uint16_t Y;
+    uint32_t ID;
     uint32_t DBID;
-    uint32_t ItemID;
+};
+
+struct SMGold
+{
+    uint32_t Gold;
 };
 
 #pragma pack(pop)
@@ -231,6 +244,7 @@ class SMSGParam: public MessageBase
                 {SM_OFFLINE,          {1, sizeof(SMOffline),               "SM_OFFLINE"         }},
                 {SM_PICKUPOK,         {1, sizeof(SMPickUpOK),              "SM_PICKUPOK"        }},
                 {SM_REMOVEGROUNDITEM, {1, sizeof(SMRemoveGroundItem),      "SM_REMOVEGROUNDITEM"}},
+                {SM_GOLD,             {1, sizeof(SMGold),                  "SM_GOLD"            }},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(SM_NONE) : nHC);

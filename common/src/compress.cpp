@@ -3,8 +3,6 @@
  *
  *       Filename: compress.cpp
  *        Created: 04/23/2017 21:34:23
- *  Last Modified: 12/15/2017 19:31:43
- *
  *    Description: 
  *
  *        Version: 1.0

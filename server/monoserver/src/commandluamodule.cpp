@@ -3,8 +3,6 @@
  *
  *       Filename: commandluamodule.cpp
  *        Created: 06/02/2017 17:40:54
- *  Last Modified: 12/19/2017 20:22:03
- *
  *    Description: 
  *
  *        Version: 1.0

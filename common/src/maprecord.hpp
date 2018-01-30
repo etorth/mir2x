@@ -3,8 +3,6 @@
  *
  *       Filename: maprecord.hpp
  *        Created: 08/31/2017 11:12:01
- *  Last Modified: 09/09/2017 00:23:29
- *
  *    Description: configuration of mir2x map data
  *
  *        Version: 1.0

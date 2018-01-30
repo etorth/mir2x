@@ -3,8 +3,6 @@
  *
  *       Filename: mir2xmapdata.cpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 08/31/2017 23:29:08
- *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
  *

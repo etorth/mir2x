@@ -3,8 +3,6 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 12/12/2017 16:17:15
- *
  *    Description: 
  *
  *        Version: 1.0

@@ -3,8 +3,6 @@
  *
  *       Filename: luamodule.hpp
  *        Created: 06/03/2017 20:24:34
- *  Last Modified: 12/20/2017 01:40:27
- *
  *    Description: make dtor simple to use sol::state::~state()
  *                 if we do need to release anything, put in LuaModule::Release()
  *

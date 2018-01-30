@@ -3,8 +3,6 @@
  *
  *       Filename: linebrowserboard.cpp
  *        Created: 07/12/2017 23:20:41
- *  Last Modified: 09/18/2017 12:33:16
- *
  *    Description: 
  *
  *        Version: 1.0

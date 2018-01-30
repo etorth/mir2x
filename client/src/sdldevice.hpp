@@ -3,8 +3,6 @@
  *
  *       Filename: sdldevice.hpp
  *        Created: 03/07/2016 23:57:04
- *  Last Modified: 08/22/2017 00:44:00
- *
  *    Description:
  *
  *        Version: 1.0

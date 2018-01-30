@@ -3,9 +3,7 @@
  *
  *       Filename: playerop.cpp
  *        Created: 05/11/2016 17:37:54
- *  Last Modified: 12/14/2017 23:34:17
- *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -19,10 +17,11 @@
  */
 
 #include <cinttypes>
-#include "netdriver.hpp"
 #include "player.hpp"
+#include "dbcomid.hpp"
 #include "memorypn.hpp"
 #include "actorpod.hpp"
+#include "netdriver.hpp"
 #include "monoserver.hpp"
 
 void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
@@ -34,34 +33,38 @@ void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
 
     SMPing stSMP;
     stSMP.Tick = g_MonoServer->GetTimeTick();
-    g_NetDriver->Send(SessionID(), SM_PING, stSMP);
+    g_NetDriver->Post(ChannID(), SM_PING, stSMP);
 }
 
-void Player::On_MPK_BINDSESSION(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMBadSession stAMBS;
-    std::memcpy(&stAMBS, rstMPK.Data(), sizeof(stAMBS));
-    Bind(stAMBS.SessionID);
+    AMBindChannel stAMBC;
+    std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
+
+    // bind channel here
+    // set the channel actor as this->GetAddress()
+    m_ChannID = stAMBC.ChannID;
+
+    extern NetDriver *g_NetDriver;
+    g_NetDriver->BindActor(ChannID(), GetAddress());
 
     SMLoginOK stSMLOK;
+    std::memset(&stSMLOK, 0, sizeof(stSMLOK));
+
     stSMLOK.UID       = UID();
     stSMLOK.DBID      = DBID();
     stSMLOK.MapID     = m_Map->ID();
-    stSMLOK.X         = m_X;
-    stSMLOK.Y         = m_Y;
+    stSMLOK.X         = X();
+    stSMLOK.Y         = Y();
     stSMLOK.Male      = true;
-    stSMLOK.Direction = m_Direction;
-    stSMLOK.JobID     = m_JobID;
-    stSMLOK.Level     = m_Level;
+    stSMLOK.Direction = Direction();
+    stSMLOK.JobID     = JobID();
+    stSMLOK.Level     = Level();
 
     extern NetDriver *g_NetDriver;
-    g_NetDriver->Send(SessionID(), SM_LOGINOK, stSMLOK);
+    g_NetDriver->Post(ChannID(), SM_LOGINOK, stSMLOK);
 
-    if(ActorPodValid() && m_Map->ActorPodValid()){
-        AMPullCOInfo stAMPCOI;
-        stAMPCOI.SessionID = SessionID();
-        m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
-    }
+    PullRectCO(10, 10);
 }
 
 void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &)
@@ -69,11 +72,19 @@ void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address 
     AMNetPackage stAMNP;
     std::memcpy(&stAMNP, rstMPK.Data(), sizeof(AMNetPackage));
 
-    OperateNet(stAMNP.Type, stAMNP.Data, stAMNP.DataLen);
+    uint8_t *pDataBuf = nullptr;
+    if(stAMNP.DataLen){
+        if(stAMNP.Data){
+            pDataBuf = stAMNP.Data;
+        }else{
+            pDataBuf = stAMNP.DataBuf;
+        }
+    }
+
+    OperateNet(stAMNP.Type, pDataBuf, stAMNP.DataLen);
 
     if(stAMNP.Data){
-        extern MemoryPN *g_MemoryPN;
-        g_MemoryPN->Free(const_cast<uint8_t *>(stAMNP.Data));
+        delete [] stAMNP.Data;
     }
 }
 
@@ -104,13 +115,12 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     }
 }
 
-void Player::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMPullCOInfo stAMPCOI;
-    std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
-    if(stAMPCOI.SessionID != SessionID()){
-        ReportCORecord(stAMPCOI.SessionID);
-    }
+    AMQueryCORecord stAMQCOR;
+    std::memcpy(&stAMQCOR, rstMPK.Data(), sizeof(stAMQCOR));
+
+    ReportCORecord(stAMQCOR.UID);
 }
 
 void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &)
@@ -173,10 +183,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
                                                 ReportStand();
 
                                                 // 4. pull all co's on the new map
-                                                AMPullCOInfo stAMPCOI;
-                                                stAMPCOI.SessionID = SessionID();
-                                                m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
-
+                                                PullRectCO(10, 10);
                                                 break;
                                             }
                                         default:
@@ -209,7 +216,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &
                         }
                 }
             };
-            m_ActorPod->Forward({MPK_TRYMAPSWITCH, stAMTMS}, stUIDRecord.Address, fnOnResp);
+            m_ActorPod->Forward({MPK_TRYMAPSWITCH, stAMTMS}, stUIDRecord.GetAddress(), fnOnResp);
             return;
         }
     }
@@ -254,7 +261,7 @@ void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)
         stSMUHP.HPMax = stAMUHP.HPMax;
 
         extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(SessionID(), SM_UPDATEHP, stSMUHP);
+        g_NetDriver->Post(ChannID(), SM_UPDATEHP, stSMUHP);
     }
 }
 
@@ -271,7 +278,7 @@ void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Address
         stSMDFO.Y     = stAMDFO.Y;
 
         extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(SessionID(), SM_DEADFADEOUT, stSMDFO);
+        g_NetDriver->Post(ChannID(), SM_DEADFADEOUT, stSMDFO);
     }
 }
 
@@ -280,12 +287,14 @@ void Player::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
     AMExp stAME;
     std::memcpy(&stAME, rstMPK.Data(), sizeof(stAME));
 
+    GainExp(stAME.Exp);
+
     if(stAME.Exp > 0){
         SMExp stSME;
         stSME.Exp = stAME.Exp;
 
         extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(SessionID(), SM_EXP, stSME);
+        g_NetDriver->Post(ChannID(), SM_EXP, stSME);
     }
 }
 
@@ -304,18 +313,29 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK, const Theron::Addres
     constexpr auto nAMIDListLen = std::extent<decltype(stAMSDI.IDList)>::value;
 
     static_assert(nSMIDListLen >= nAMIDListLen, "");
-    std::memcpy(stSMSDI.IDList, stAMSDI.IDList, sizeof(stAMSDI.IDList));
+    for(size_t nIndex = 0; nIndex < nAMIDListLen; ++nIndex){
+        if(stAMSDI.IDList[nIndex].ID){
+            stSMSDI.IDList[nIndex].ID   = stAMSDI.IDList[nIndex].ID;
+            stSMSDI.IDList[nIndex].DBID = stAMSDI.IDList[nIndex].DBID;
+        }else{
+            break;
+        }
+    }
 
     extern NetDriver *g_NetDriver;
-    g_NetDriver->Send(SessionID(), SM_SHOWDROPITEM, stSMSDI);
+    g_NetDriver->Post(ChannID(), SM_SHOWDROPITEM, stSMSDI);
 }
 
-void Player::On_MPK_BADSESSION(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_BADCHANNEL(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMBadSession stAMBS;
-    std::memcpy(&stAMBS, rstMPK.Data(), sizeof(stAMBS));
+    AMBadChannel stAMBC;
+    std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
 
-    m_ActorPod->Forward({MPK_BADSESSION, stAMBS}, m_ServiceCore->GetAddress());
+    condcheck(ChannID() == stAMBC.ChannID);
+
+    extern NetDriver *g_NetDriver;
+    g_NetDriver->Shutdown(ChannID(), false);
+
     Offline();
 }
 
@@ -333,10 +353,10 @@ void Player::On_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK, const Theron::Ad
     std::memcpy(&stAMRGI, rstMPK.Data(), sizeof(stAMRGI));
 
     SMRemoveGroundItem stSMRGI;
-    stSMRGI.X      = stAMRGI.X;
-    stSMRGI.Y      = stAMRGI.Y;
-    stSMRGI.DBID   = stAMRGI.DBID;
-    stSMRGI.ItemID = stAMRGI.ItemID;
+    stSMRGI.X    = stAMRGI.X;
+    stSMRGI.Y    = stAMRGI.Y;
+    stSMRGI.ID   = stAMRGI.ID;
+    stSMRGI.DBID = stAMRGI.DBID;
 
     PostNetMessage(SM_REMOVEGROUNDITEM, stSMRGI);
 }
@@ -347,10 +367,81 @@ void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK, const Theron::Address &)
     std::memcpy(&stAMPUOK, rstMPK.Data(), sizeof(stAMPUOK));
 
     SMPickUpOK stSMPUOK;
-    stSMPUOK.X      = stAMPUOK.X;
-    stSMPUOK.Y      = stAMPUOK.Y;
-    stSMPUOK.DBID   = stAMPUOK.DBID;
-    stSMPUOK.ItemID = stAMPUOK.ItemID;
+    std::memset(&stSMPUOK, 0, sizeof(stSMPUOK));
+
+    stSMPUOK.X    = stAMPUOK.X;
+    stSMPUOK.Y    = stAMPUOK.Y;
+    stSMPUOK.ID   = stAMPUOK.ID;
+    stSMPUOK.DBID = stAMPUOK.DBID;
 
     PostNetMessage(SM_PICKUPOK, stSMPUOK);
+
+    switch(stAMPUOK.ID){
+        case DBCOM_ITEMID(u8"金币"):
+            {
+                m_Gold += std::rand() % 500;
+                ReportGold();
+                break;
+            }
+        default:
+            {
+                m_Inventory.emplace_back(stAMPUOK.ID, stAMPUOK.DBID);
+                break;
+            }
+    }
+
+}
+
+void Player::On_MPK_CORECORD(const MessagePack &rstMPK, const Theron::Address &)
+{
+    AMCORecord stAMCOR;
+    std::memcpy(&stAMCOR, rstMPK.Data(), sizeof(stAMCOR));
+
+    SMCORecord stSMCOR;
+    std::memset(&stSMCOR, 0, sizeof(stSMCOR));
+
+    // 1. set type
+    stSMCOR.COType = stAMCOR.COType;
+
+    // 2. set common info
+    stSMCOR.Action.UID   = stAMCOR.Action.UID;
+    stSMCOR.Action.MapID = stAMCOR.Action.MapID;
+
+    stSMCOR.Action.Action    = stAMCOR.Action.Action;
+    stSMCOR.Action.Speed     = stAMCOR.Action.Speed;
+    stSMCOR.Action.Direction = stAMCOR.Action.Direction;
+
+    stSMCOR.Action.X    = stAMCOR.Action.X;
+    stSMCOR.Action.Y    = stAMCOR.Action.Y;
+    stSMCOR.Action.AimX = stAMCOR.Action.AimX;
+    stSMCOR.Action.AimY = stAMCOR.Action.AimY;
+
+    stSMCOR.Action.AimUID      = stAMCOR.Action.AimUID;
+    stSMCOR.Action.ActionParam = stAMCOR.Action.ActionParam;
+
+    // 3. set specified info
+    switch(stAMCOR.COType){
+        case CREATURE_PLAYER:
+            {
+                stSMCOR.Player.DBID  = stAMCOR.Player.DBID;
+                stSMCOR.Player.JobID = stAMCOR.Player.JobID;
+                stSMCOR.Player.Level = stAMCOR.Player.Level;
+                break;
+            }
+        case CREATURE_MONSTER:
+            {
+                stSMCOR.Monster.MonsterID = stAMCOR.Monster.MonsterID;
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    PostNetMessage(SM_CORECORD, stSMCOR);
+}
+
+void Player::On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &)
+{
 }

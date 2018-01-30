@@ -3,8 +3,6 @@
  *
  *       Filename: mir2xmapdata.hpp
  *        Created: 08/31/2015 18:26:57
- *  Last Modified: 09/10/2017 00:53:54
- *
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
  *
@@ -163,7 +161,7 @@ class Mir2xMapData final
                     uint8_t nByte2 = (uint8_t)((Obj[0].Param & 0X00FF0000) >> 16);
                     uint8_t nByte1 = (uint8_t)((Obj[0].Param & 0X0000FF00) >>  8);
                     uint8_t nByte0 = (uint8_t)((Obj[0].Param & 0X000000FF) >>  0);
-                    return {nByte0, nByte1, nByte2, nByte3, nByte4};
+                    return {{nByte0, nByte1, nByte2, nByte3, nByte4}};
                 }
 
                 if(true
@@ -179,10 +177,10 @@ class Mir2xMapData final
                     uint8_t nByte2 = (uint8_t)((Obj[1].Param & 0X00FF0000) >> 16);
                     uint8_t nByte1 = (uint8_t)((Obj[1].Param & 0X0000FF00) >>  8);
                     uint8_t nByte0 = (uint8_t)((Obj[1].Param & 0X000000FF) >>  0);
-                    return {nByte0, nByte1, nByte2, nByte3, nByte4};
+                    return {{nByte0, nByte1, nByte2, nByte3, nByte4}};
                 }
 
-                return {0, 0, 0, 0, 0};
+                return {{0, 0, 0, 0, 0}};
             }
         }CELL;
 

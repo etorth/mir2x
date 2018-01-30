@@ -3,8 +3,6 @@
  *
  *       Filename: magicrecord.hpp
  *        Created: 08/04/2017 23:00:09
- *  Last Modified: 08/10/2017 13:39:19
- *
  *    Description: description of magic
  *
  *        Version: 1.0

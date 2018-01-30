@@ -3,8 +3,6 @@
  *
  *       Filename: invpack.cpp
  *        Created: 11/11/2017 01:03:43
- *  Last Modified: 11/11/2017 23:55:40
- *
  *    Description: 
  *
  *        Version: 1.0

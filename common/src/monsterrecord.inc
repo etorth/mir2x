@@ -3,8 +3,6 @@
  *
  *       Filename: monsterrecord.inc
  *        Created: 05/12/2017 17:58:02
- *  Last Modified: 08/10/2017 22:50:50
- *
  *    Description: 
  *
  *        Version: 1.0

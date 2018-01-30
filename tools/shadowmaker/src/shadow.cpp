@@ -3,9 +3,7 @@
  *
  *       Filename: shadow.cpp
  *        Created: 07/24/2015 07:20:18 PM
- *  Last Modified: 04/15/2016 22:24:52
- *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -18,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <cmath>
 #include <utility>
 #include <cstdint>
 #include <cstring>
@@ -91,7 +90,7 @@ uint32_t *TwoPointShadowDecode(uint32_t *pData,
         // +----+  |       |
         // |     \ |       |
         // |      \|       |
-        // |   (P2)+-------+    
+        // |   (P2)+-------+
         // |               |
         // |(A4)           |
         // +---------------+
@@ -126,7 +125,7 @@ uint32_t *TwoPointShadowDecode(uint32_t *pData,
                     bExpand = true;
                     bMapped = true;
                 }else if(nX1 - (nY2 - nY1) <= nCrossX && nCrossX < nX2){
-                    double dRatio = 1.0 * 
+                    double dRatio = 1.0 *
                         (nCrossX - (nX1 - (nY2 - nY1))) / (std::max)(1, nX2 - (nX1 - (nY2 - nY1)));
                     dRatio = (std::max)(0.0, (std::min)(dRatio, 1.0));
                     int nRealCrossX = nX1 + std::lround((nX2 - nX1) * dRatio);
@@ -223,7 +222,7 @@ __TwoPointShadowDecode_Pixel_Set: ;
                         bMapped = true;
                         bMiddle = false;
                     }else if(nX1 <= nCrossX && nCrossX <  nX2 - (nY1 - nY2)){
-                        double dRatio = 1.0 * 
+                        double dRatio = 1.0 *
                             (nCrossX - nX1) / (std::max)(1, (nX2 - (nY1 - nY2)) - nX1);
                         dRatio = (std::max)(0.0, (std::min)(dRatio, 1.0));
                         int nRealCrossX = nX1 + std::lround((nX2 - nX1) * dRatio);
@@ -281,7 +280,7 @@ __TwoPointShadowDecode_Pixel_Set2: ;
                         nMapX[2] = nCrossX + (nY1 - nY2);
                         nMapY[2] = nY2 - 2 * (nY2 / 2 - nYCnt);
                         { // middle point, since nX1 > (nX2 - (nY1 - nY2)) here, skip max(1, x)
-                            double dRatio = 1.0 * 
+                            double dRatio = 1.0 *
                                 (nCrossX - (nX2 - (nY1 - nY2))) / (nX1 - (nX2 - (nY1 - nY2)));
                             int nRealCrossX = nX1 + std::lround((nX2 - nX1) * (1.0 - dRatio));
                             int nRealCrossY = nY2 + std::lround((nY1 - nY2) * dRatio);

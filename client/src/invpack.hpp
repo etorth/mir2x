@@ -3,8 +3,6 @@
  *
  *       Filename: invpack.hpp
  *        Created: 11/11/2017 00:55:42
- *  Last Modified: 11/11/2017 23:42:01
- *
  *    Description: class private to MyHero
  *
  *        Version: 1.0

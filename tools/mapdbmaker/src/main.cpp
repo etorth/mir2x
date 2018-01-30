@@ -3,8 +3,6 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2017 16:12:32
- *  Last Modified: 08/31/2017 16:16:49
- *
  *    Description: convert a file name to its code
  *
  *        Version: 1.0

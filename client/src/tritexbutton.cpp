@@ -3,8 +3,6 @@
  *
  *       Filename: tritexbutton.cpp
  *        Created: 03/16/2017 15:04:17
- *  Last Modified: 10/13/2017 00:58:23
- *
  *    Description: 
  *
  *        Version: 1.0

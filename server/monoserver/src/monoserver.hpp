@@ -3,8 +3,6 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *  Last Modified: 12/20/2017 14:43:19
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -108,14 +106,6 @@ class MonoServer final
 
     private:
         bool AddPlayer(uint32_t, uint32_t);
-
-    private:
-        bool InitMonsterRace();
-        bool InitMonsterItem();
-        bool LoadMonsterRecord()
-        {
-           return InitMonsterRace() && InitMonsterItem();
-        }
 
     private:
         void StartNetwork();

@@ -3,8 +3,6 @@
  *
  *       Filename: animation.hpp
  *        Created: 06/20/2016 19:41:08
- *  Last Modified: 08/15/2017 22:48:19
- *
  *    Description: animation for test, we only support monster animation currently
  *                 how about for human with weapon? do I need to support it?
  *

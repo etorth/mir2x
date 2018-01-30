@@ -3,8 +3,6 @@
  *
  *       Filename: eventtaskhub.hpp
  *        Created: 04/03/2016 22:55:21
- *  Last Modified: 05/21/2017 00:29:12
- *
  *    Description: this class support event executation after a delay
  *                 so don't think too much of performance
  *

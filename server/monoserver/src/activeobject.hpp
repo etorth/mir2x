@@ -3,28 +3,12 @@
  *
  *       Filename: activeobject.hpp
  *        Created: 04/21/2016 23:02:31
- *  Last Modified: 08/10/2017 23:07:36
- *
  *    Description: server object with active state
  *                      1. it's active via actor pod
  *                      2. it's stateful
  *
  *                 actually stateless object can be implemented as a static object
  *                 after activated this kind of object can only be modified via messages
- *
- *                 This prevent me implement MonoServer as react object. For MonoServer
- *                 it needs to manager SessionHub. However SessionHub is not an actor, so
- *                 if MonoServer is an react object, we have to launch SessionHub before
- *                 calling of MonoServer::Activate(), but, before activation of MonoServer
- *                 we don't have the address of Mo MonoServer to pass to SessionHub!
- *
- *                 In my design, SessionHub create Session's with SID and pass it to the
- *                 MonoServer, then MonoServer check info of this connection from DB and
- *                 create player object, bind Session pointer to the player and send the
- *                 player to proper RegionMonitor via ServerMap object.
- *
- *                 Another thing is for g_MonoServer->AddLog(...), if make MonoServer as
- *                 a react object, we can't use it anymore
  *
  *                 access control protocol for ActiveObject
  *                 for active object A and B, A can access B through b->func() iif
@@ -146,6 +130,12 @@ class ActiveObject: public ServerObject
     public:
         Theron::Address Activate();
 
+    public:
+        UIDRecord GetUIDRecord() const
+        {
+            return UIDRecord(UID(), ClassCode(), GetInvarData(), GetAddress());
+        }
+
     protected:
         void Deactivate();
 
@@ -165,4 +155,8 @@ class ActiveObject: public ServerObject
 
     public:
         void Delay(uint32_t, const std::function<void()> &);
+
+    protected:
+        bool AddTick();
+        void RemoveTick();
 };

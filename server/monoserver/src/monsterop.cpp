@@ -3,8 +3,6 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *  Last Modified: 12/15/2017 23:44:13
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -31,12 +29,12 @@ void Monster::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
     Update();
 }
 
-void Monster::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address &)
+void Monster::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Address &)
 {
-    AMPullCOInfo stAMPCOI;
-    std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
+    AMQueryCORecord stAMQCOR;
+    std::memcpy(&stAMQCOR, rstMPK.Data(), sizeof(stAMQCOR));
 
-    ReportCORecord(stAMPCOI.SessionID);
+    ReportCORecord(stAMQCOR.UID);
 }
 
 void Monster::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
@@ -44,7 +42,7 @@ void Monster::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
     if(MasterUID()){
         extern MonoServer *g_MonoServer;
         if(auto stRecord = g_MonoServer->GetUIDRecord(MasterUID())){
-            m_ActorPod->Forward({rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen()}, stRecord.Address);
+            m_ActorPod->Forward({rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen()}, stRecord.GetAddress());
         }else{
             GoDie();
         }
@@ -89,7 +87,7 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
         }
 
         extern MonoServer *g_MonoServer;
-        m_LocationRecord[stAMA.UID] = COLocation
+        m_LocationList[stAMA.UID] = COLocation
         {
             stAMA.UID,
             stAMA.MapID,
@@ -105,19 +103,25 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
                 switch(GetState(STATE_ATTACKMODE)){
                     case STATE_ATTACKMODE_NORMAL:
                         {
-                            if(stRecord.ClassFrom<Player>()){ AddTarget(stAMA.UID); }
+                            if(stRecord.ClassFrom<Player>()){
+                                AddTarget(stAMA.UID);
+                            }
                             break;
                         }
                     case STATE_ATTACKMODE_DOGZ:
                         {
-                            if(stRecord.ClassFrom<Monster>()){ AddTarget(stAMA.UID); }
+                            if(stRecord.ClassFrom<Monster>()){
+                                AddTarget(stAMA.UID);
+                            }
                             break;
                         }
                     case STATE_ATTACKMODE_ATTACKALL:
                         {
                             if(false
                                     || stRecord.ClassFrom<Player>()
-                                    || stRecord.ClassFrom<Monster>()){ AddTarget(stAMA.UID); }
+                                    || stRecord.ClassFrom<Monster>()){
+                                AddTarget(stAMA.UID);
+                            }
                             break;
                         }
                     default:
@@ -186,7 +190,7 @@ void Monster::On_MPK_NOTIFYDEAD(const MessagePack &rstMPK, const Theron::Address
     std::memcpy(&stAMND, rstMPK.Data(), sizeof(stAMND));
 
     RemoveTarget(stAMND.UID);
-    m_LocationRecord.erase(stAMND.UID);
+    m_LocationList.erase(stAMND.UID);
 }
 
 void Monster::On_MPK_OFFLINE(const MessagePack &rstMPK, const Theron::Address &)

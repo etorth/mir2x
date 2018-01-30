@@ -3,8 +3,6 @@
  *
  *       Filename: monoserver.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *  Last Modified: 12/20/2017 14:44:27
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -36,8 +34,10 @@
 #include "threadpn.hpp"
 #include "mapbindbn.hpp"
 #include "uidrecord.hpp"
+#include "syncdriver.hpp"
 #include "mainwindow.hpp"
 #include "monoserver.hpp"
+#include "dispatcher.hpp"
 #include "servicecore.hpp"
 #include "eventtaskhub.hpp"
 #include "commandwindow.hpp"
@@ -231,20 +231,27 @@ void MonoServer::RegisterAMFallbackHandler()
     {
         void Handler(const void *pData, const Theron::uint32_t, const Theron::Address stFromAddress)
         {
-            // dangerous part
-            // try to recover basic information of the message
-            // don't refer to the data field here, it could be dynamically allcoated
-            MessagePack stRawMPK;
-            std::memcpy(&stRawMPK, pData, sizeof(stRawMPK));
+            // dangerous part !!!
+            // recover basic information of the message by memory copy
+            // reconstruction the pack causes double free if MessagePack::Data() is dynamically allcoated
+
+            // don't refer to any other field
+            // type, id, response are OK since there are static located in front of the pack class
 
             AMBadActorPod stAMBAP;
-            stAMBAP.Type    = stRawMPK.Type();
-            stAMBAP.ID      = stRawMPK.ID();
-            stAMBAP.Respond = stRawMPK.Respond();
+            stAMBAP.Type    = ((MessagePack *)(pData))->Type();
+            stAMBAP.ID      = ((MessagePack *)(pData))->ID();
+            stAMBAP.Respond = ((MessagePack *)(pData))->Respond();
 
             // we know which actor sent this message
             // but we lost the information that which actor it sent to
-            SyncDriver().Forward({MPK_BADACTORPOD, stAMBAP}, stFromAddress, stRawMPK.ID());
+
+            // for dispatcher sent message
+            // we can't even respond with the notification
+
+            if(stFromAddress){
+                Dispatcher().Forward({MPK_BADACTORPOD, stAMBAP}, stFromAddress, stAMBAP.ID);
+            }
         }
     }stFallbackHandler;
 
@@ -285,7 +292,6 @@ void MonoServer::StartNetwork()
 void MonoServer::Launch()
 {
     CreateDBConnection();
-    LoadMonsterRecord();
     RegisterAMFallbackHandler();
 
     LoadMapBinDBN();
@@ -293,8 +299,8 @@ void MonoServer::Launch()
     StartServiceCore();
     StartNetwork();
 
-    extern EventTaskHub *g_EventTaskHub;
-    g_EventTaskHub->Launch();
+    extern Metronome *g_Metronome;
+    g_Metronome->Launch();
 }
 
 void MonoServer::Restart()
@@ -309,111 +315,6 @@ void MonoServer::Restart()
     //   1. main loop
     //   2. child thread
     NotifyGUI("Restart");
-}
-
-// I have to put it here, since in actorpod.hpp I used MonoServer::AddLog()
-// then in monoserver.hpp if I use monster.hpp which includes actorpod.hpp
-// it won't compile
-//
-// and it's good for me to make monoserver.hpp to be compact by moving these
-// constant variables out
-static std::vector<MONSTERRACEINFO> s_MonsterRaceInfoV;
-bool MonoServer::InitMonsterRace()
-{
-    extern DBPodN *g_DBPodN;
-    auto pRecord = g_DBPodN->CreateDBHDR();
-
-    if(!pRecord){
-        AddLog(LOGTYPE_WARNING, "create database handler failed");
-        return false;
-    }
-
-    if(!pRecord->Execute("select * from mir2x.tbl_monster order by fld_index")){
-        AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
-        return false;
-    }
-
-    if(pRecord->RowCount() < 1){
-        AddLog(LOGTYPE_INFO, "no monster info found");
-        return true;
-    }
-
-    AddLog(LOGTYPE_INFO, "starting add monster info:");
-
-    while(pRecord->Fetch()){
-        MONSTERRACEINFO stRaceInfo;
-        // 1. record the monster race info
-        stRaceInfo.Name        = std::string(pRecord->Get("fld_name"));
-        stRaceInfo.Index       = std::atoi(pRecord->Get("fld_index"));
-        stRaceInfo.Race        = std::atoi(pRecord->Get("fld_race"));
-        stRaceInfo.LID         = std::atoi(pRecord->Get("fld_lid"));
-        stRaceInfo.Undead      = std::atoi(pRecord->Get("fld_undead"));
-        stRaceInfo.Level       = std::atoi(pRecord->Get("fld_level"));
-        stRaceInfo.HP          = std::atoi(pRecord->Get("fld_hp"));
-        stRaceInfo.MP          = std::atoi(pRecord->Get("fld_mp"));
-        stRaceInfo.AC          = std::atoi(pRecord->Get("fld_ac"));
-        stRaceInfo.MAC         = std::atoi(pRecord->Get("fld_mac"));
-        stRaceInfo.DC          = std::atoi(pRecord->Get("fld_dc"));
-        stRaceInfo.AttackSpead = std::atoi(pRecord->Get("fld_attackspeed"));
-        stRaceInfo.WalkSpead   = std::atoi(pRecord->Get("fld_walkspeed"));
-        stRaceInfo.Spead       = std::atoi(pRecord->Get("fld_speed"));
-        stRaceInfo.Hit         = std::atoi(pRecord->Get("fld_hit"));
-        stRaceInfo.ViewRange   = std::atoi(pRecord->Get("fld_viewrange"));
-        stRaceInfo.RaceIndex   = std::atoi(pRecord->Get("fld_raceindex"));
-        stRaceInfo.Exp         = std::atoi(pRecord->Get("fld_exp"));
-        stRaceInfo.Escape      = std::atoi(pRecord->Get("fld_escape"));
-        stRaceInfo.Water       = std::atoi(pRecord->Get("fld_water"));
-        stRaceInfo.Fire        = std::atoi(pRecord->Get("fld_fire"));
-        stRaceInfo.Wind        = std::atoi(pRecord->Get("fld_wind"));
-        stRaceInfo.Light       = std::atoi(pRecord->Get("fld_light"));
-        stRaceInfo.Earth       = std::atoi(pRecord->Get("fld_earth"));
-
-        // 2. make a room in the global table
-        s_MonsterRaceInfoV.resize(stRaceInfo.Index + 1, -1);
-
-        // 3. store the result
-        s_MonsterRaceInfoV[stRaceInfo.Index] = stRaceInfo;
-
-        // 3. log it
-        AddLog(LOGTYPE_INFO, "monster added, index = %d, name = %s.", stRaceInfo.Index, stRaceInfo.Name.c_str());
-    }
-
-    AddLog(LOGTYPE_INFO, "finished monster info: %d monster added", pRecord->RowCount());
-    return true;
-}
-
-bool MonoServer::InitMonsterItem()
-{
-    extern DBPodN *g_DBPodN;
-    auto pRecord = g_DBPodN->CreateDBHDR();
-    if(!pRecord->Execute("select * from mir2x.tbl_monsteritem")){
-        AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pRecord->ErrorID(), pRecord->ErrorInfo());
-        return false;
-    }
-
-    if(pRecord->RowCount() < 1){
-        AddLog(LOGTYPE_INFO, "no monster item found");
-        return true;
-    }
-
-    AddLog(LOGTYPE_INFO, "starting add monster item:");
-
-    while(pRecord->Fetch()){
-        MONSTERITEMINFO stItemInfo;
-        // 1. get the item desc
-        stItemInfo.MonsterIndex = std::atoi(pRecord->Get("fld_monster"));
-        stItemInfo.Type         = std::atoi(pRecord->Get("fld_type"));
-        stItemInfo.Chance       = std::atoi(pRecord->Get("fld_chance"));
-        stItemInfo.Count        = std::atoi(pRecord->Get("fld_count"));
-        // 2. make a room for it
-        if(true 
-                && stItemInfo.MonsterIndex > 0
-                && stItemInfo.MonsterIndex < (int)s_MonsterRaceInfoV.size()){
-            s_MonsterRaceInfoV[stItemInfo.MonsterIndex].ItemV.push_back(stItemInfo);
-        }
-    }
-    AddLog(LOGTYPE_INFO, "finished monster item: %d added", pRecord->RowCount());
-    return true;
 }
 
 bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bRandom)
@@ -751,40 +652,7 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
             if(pRecord != rstUIDArrayEntry.Record.end()){
                 if(pRecord->second){
                     if(pRecord->second->UID() == nUID){
-                        // two solutions
-                        // 1. for server object, define a virtual UIDRecord GetUIDRecord()
-                        //    then here directly forward the result
-                        //
-                        // 2. maintain UID() for server object
-                        //    maintain UID() and GetAddress() for classes from ActiveObject
-                        //    then construct a temporary UIDRecord and return
-                        //
-                        // solution-1 : simpler but it introduces concept of address to server object
-                        // solution-2 : means I should make both UID() and GetAddress() atomically accessable
-                        //
-                        // UID()        : OK by default
-                        // GetAddress() : which calls m_ActorPod->GetAddress()
-                        //                m_ActorPod could change when other threads accessing it
-                        //
-                        // solution:
-                        // 1. we constrains that we can only access an UID if the object actively given it
-                        //    means if we try to access object through GetUIDRecord(nUID), then the nUID is reported
-                        //    by the object itself. rather than we do randomly draw an UID and access it
-                        //
-                        //    an UID can be deleted then we get an invalid UIDRecord
-                        //    this behaves like malloc() / free(), any pointer try to free() should be from malloc()
-                        //
-                        //    this means if we trying to access ActiveObject::GetAddress(), its m_ActorPod has
-                        //    already be initialized otherwise we can't get its UID
-                        //
-                        // 2. before deletion of active object we should call Deactivate() which calls m_ActorPod->Detach()
-                        //    this helps to detach *this* from the actor thread of m_ActorPod, then deletion in other thread is OK
-                        //
-                        //    then deletion of m_ActorPod will wait if m_ActorPod is scheduled in actor threads
-                        //
-                        auto bActive = pRecord->second->ClassFrom<ActiveObject>();
-                        auto stAddress = bActive ? ((ActiveObject *)(pRecord->second))->GetAddress() : Theron::Address::Null();
-                        return {nUID, pRecord->second->GetInvarData(), stAddress, pRecord->second->ClassEntry()};
+                        return ((ActiveObject *)(pRecord->second))->GetUIDRecord();
                     }else{
                         AddLog(LOGTYPE_WARNING, "UIDArray mismatch: UID = (%" PRIu32 ", %" PRIu32 ")", nUID, pRecord->second->UID());
                     }
@@ -793,13 +661,7 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
         }
     }
 
-    // for all other cases, return empty record
-    // 1. provided uid as zero
-    // 2. record doesn't exist
-    // 3. record contains an empty pointer
-    // 4. record mismatch
-    static const std::vector<ServerObject::ClassCodeName> stNullEntry {};
-    return UIDRecord(0, {}, Theron::Address::Null(), stNullEntry);
+    return UIDRecord();
 }
 
 bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)

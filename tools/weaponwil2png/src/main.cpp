@@ -3,8 +3,6 @@
  *
  *       Filename: main.cpp
  *        Created: 04/03/2017 18:02:52
- *  Last Modified: 06/24/2017 01:09:53
- *
  *    Description: convert hero graphics res to png files, usage:
  *
  *                      weaponwil2png gender index                                  \

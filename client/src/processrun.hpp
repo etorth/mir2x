@@ -3,8 +3,6 @@
  *
  *       Filename: processrun.hpp
  *        Created: 08/31/2015 03:42:07
- *  Last Modified: 12/14/2017 23:43:55
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -17,17 +15,20 @@
  *
  * =====================================================================================
  */
+
 #pragma once
 #include <map>
 #include <list>
 #include <cstdint>
+#include <algorithm>
+
 #include "myhero.hpp"
 #include "process.hpp"
 #include "message.hpp"
 #include "creature.hpp"
 #include "focustype.hpp"
 #include "ascendstr.hpp"
-#include "grounditem.hpp"
+#include "commonitem.hpp"
 #include "indepmagic.hpp"
 #include "labelboard.hpp"
 #include "mir2xmapdata.hpp"
@@ -67,6 +68,9 @@ class ProcessRun: public Process
         Mir2xMapData m_Mir2xMapData;
 
     private:
+        std::vector<std::vector<std::vector<CommonItem>>> m_GroundItemList;
+
+    private:
         MyHero *m_MyHero;
 
     private:
@@ -92,7 +96,6 @@ class ProcessRun: public Process
         std::vector<std::shared_ptr<IndepMagic>> m_IndepMagicList;
 
     private:
-        std::vector<GroundItem> m_GroundItemList;
         std::map<uint32_t, Creature*> m_CreatureRecord;
 
     private:
@@ -141,6 +144,7 @@ class ProcessRun: public Process
 
     public:
         void Net_EXP(const uint8_t *, size_t);
+        void Net_GOLD(const uint8_t *, size_t);
         void Net_ACTION(const uint8_t *, size_t);
         void Net_OFFLINE(const uint8_t *, size_t);
         void Net_LOGINOK(const uint8_t *, size_t);
@@ -204,49 +208,43 @@ class ProcessRun: public Process
         }
 
     public:
-        const auto &GetGroundItemList() const
+        const auto &GetGroundItemList(int nX, int nY) const
         {
-            return m_GroundItemList;
+            return m_GroundItemList[nX][nY];
         }
 
-        GroundItem GetGroundItem(int nX, int nY)
+        int FindGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         {
-            for(auto &rstItem: GetGroundItemList()){
-                if(true
-                        && nX == rstItem.X
-                        && nY == rstItem.Y){
-                    return rstItem;
+            for(int nIndex = (int)(m_GroundItemList[nX][nY].size()) - 1; nIndex >= 0; --nIndex){
+                if(m_GroundItemList[nX][nY][nIndex] == rstCommonItem){
+                    return nIndex;
                 }
             }
-            return {0};
+            return -1;
         }
 
-        void RemoveGroundItem(uint32_t nItemID, int nX, int nY)
+        bool AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         {
-            for(size_t nIndex = 0; nIndex < m_GroundItemList.size();){
-                if(true
-                        && m_GroundItemList[nIndex].X  == nX
-                        && m_GroundItemList[nIndex].Y  == nY){
-
-                    if(nItemID){
-                        if(m_GroundItemList[nIndex].ID == nItemID){
-                            std::swap(m_GroundItemList[nIndex], m_GroundItemList.back());
-                            m_GroundItemList.pop_back();
-
-                            // could have more than one stay there
-                            // we only remove one item from the location
-                            return;
-                        }
-                    }else{
-                        // zero item id
-                        // we need to remove all given location
-                        std::swap(m_GroundItemList[nIndex], m_GroundItemList.back());
-                        m_GroundItemList.pop_back();
-                        continue;
-                    }
-                }
-                nIndex++;
+            if(rstCommonItem && m_Mir2xMapData.ValidC(nX, nY)){
+                m_GroundItemList[nX][nY].push_back(rstCommonItem);
+                return true;
             }
+            return false;
+        }
+
+        void RemoveGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
+        {
+            for(auto pCurr = m_GroundItemList[nX][nY].begin(); pCurr != m_GroundItemList[nX][nY].end(); ++pCurr){
+                if(*pCurr == rstCommonItem){
+                    m_GroundItemList[nX][nY].erase(pCurr);
+                    return;
+                }
+            }
+        }
+
+        void ClearGroundItem(int nX, int nY)
+        {
+            m_GroundItemList[nX][nY].clear();
         }
 
     public:

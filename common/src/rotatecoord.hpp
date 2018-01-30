@@ -3,8 +3,6 @@
  *
  *       Filename: rotatecoord.hpp
  *        Created: 08/15/2015 04:01:57
- *  Last Modified: 10/06/2017 15:49:07
- *
  *    Description: 
  *
  *        Version: 1.0

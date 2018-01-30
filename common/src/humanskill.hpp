@@ -3,8 +3,6 @@
  *
  *       Filename: humanskill.hpp
  *        Created: 05/06/2017 21:12:35
- *  Last Modified: 05/08/2017 10:23:54
- *
  *    Description: 
  *
  *        Version: 1.0

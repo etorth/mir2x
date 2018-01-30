@@ -3,8 +3,6 @@
  *
  *       Filename: processrunnet.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 12/14/2017 23:52:16
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -95,10 +93,9 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
             // can't find it
             // we have to create a new actor but need more information
             CMQueryCORecord stCMQCOR;
-            stCMQCOR.UID   = stSMA.UID;
-            stCMQCOR.MapID = stSMA.MapID;
-            stCMQCOR.X     = stSMA.X;
-            stCMQCOR.Y     = stSMA.Y;
+            std::memset(&stCMQCOR, 0, sizeof(stCMQCOR));
+
+            stCMQCOR.AimUID = stSMA.UID;
 
             extern Game *g_Game;
             g_Game->Send(CM_QUERYCORECORD, stCMQCOR);
@@ -131,34 +128,34 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
     SMCORecord stSMCOR;
     std::memcpy(&stSMCOR, pBuf, sizeof(stSMCOR));
 
-    if(stSMCOR.Common.MapID == MapID()){
+    if(stSMCOR.Action.MapID == MapID()){
         ActionNode stAction
         {
-            stSMCOR.Common.Action,
-            stSMCOR.Common.Speed,
-            stSMCOR.Common.Direction,
-            stSMCOR.Common.X,
-            stSMCOR.Common.Y,
-            stSMCOR.Common.EndX,
-            stSMCOR.Common.EndY,
-            0,
-            stSMCOR.Common.ActionParam,
+            stSMCOR.Action.Action,
+            stSMCOR.Action.Speed,
+            stSMCOR.Action.Direction,
+            stSMCOR.Action.X,
+            stSMCOR.Action.Y,
+            stSMCOR.Action.AimX,
+            stSMCOR.Action.AimY,
+            stSMCOR.Action.AimUID,
+            stSMCOR.Action.ActionParam,
         };
 
-        auto pRecord = m_CreatureRecord.find(stSMCOR.Common.UID);
+        auto pRecord = m_CreatureRecord.find(stSMCOR.Action.UID);
         if(pRecord == m_CreatureRecord.end()){
-            switch(stSMCOR.Type){
+            switch(stSMCOR.COType){
                 case CREATURE_MONSTER:
                     {
-                        if(auto pMonster = Monster::Create(stSMCOR.Common.UID, stSMCOR.Monster.MonsterID, this, stAction)){
-                            m_CreatureRecord[stSMCOR.Common.UID] = pMonster;
+                        if(auto pMonster = Monster::Create(stSMCOR.Action.UID, stSMCOR.Monster.MonsterID, this, stAction)){
+                            m_CreatureRecord[stSMCOR.Action.UID] = pMonster;
                         }
                         break;
                     }
                 case CREATURE_PLAYER:
                     {
-                        auto pHero = new Hero(stSMCOR.Common.UID, stSMCOR.Player.DBID, true, 0, this, stAction);
-                        m_CreatureRecord[stSMCOR.Common.UID] = pHero;
+                        auto pHero = new Hero(stSMCOR.Action.UID, stSMCOR.Player.DBID, true, 0, this, stAction);
+                        m_CreatureRecord[stSMCOR.Action.UID] = pHero;
                         break;
                     }
                 default:
@@ -215,10 +212,11 @@ void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
     SMShowDropItem stSMSDI;
     std::memcpy(&stSMSDI, pBuf, sizeof(stSMSDI));
 
-    RemoveGroundItem(0, stSMSDI.X, stSMSDI.Y);
+    ClearGroundItem(stSMSDI.X, stSMSDI.Y);
     for(size_t nIndex = 0; nIndex < std::extent<decltype(stSMSDI.IDList)>::value; ++nIndex){
-        if(stSMSDI.IDList[nIndex]){
-            m_GroundItemList.emplace_back(stSMSDI.IDList[nIndex], stSMSDI.X, stSMSDI.Y);
+        CommonItem stCommonItem(stSMSDI.IDList[nIndex].ID, stSMSDI.IDList[nIndex].DBID);
+        if(stCommonItem){
+            AddGroundItem(stCommonItem, stSMSDI.X, stSMSDI.Y);
         }else{
             break;
         }
@@ -319,7 +317,14 @@ void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
     SMPickUpOK stSMPUOK;
     std::memcpy(&stSMPUOK, pBuf, sizeof(stSMPUOK));
 
-    m_MyHero->GetInvPack().Add(stSMPUOK.ItemID);
-    RemoveGroundItem(stSMPUOK.ItemID, stSMPUOK.X, stSMPUOK.Y);
-    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(stSMPUOK.ItemID).Name, (int)(stSMPUOK.X), (int)(stSMPUOK.Y));
+    m_MyHero->GetInvPack().Add(stSMPUOK.ID);
+    RemoveGroundItem(CommonItem(stSMPUOK.ID, 0), stSMPUOK.X, stSMPUOK.Y);
+    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(stSMPUOK.ID).Name, (int)(stSMPUOK.X), (int)(stSMPUOK.Y));
+}
+
+void ProcessRun::Net_GOLD(const uint8_t *pBuf, size_t)
+{
+    SMGold stSMG;
+    std::memcpy(&stSMG, pBuf, sizeof(stSMG));
+    GetMyHero()->SetGold(stSMG.Gold);
 }

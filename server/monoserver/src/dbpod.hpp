@@ -3,8 +3,6 @@
  *
  *       Filename: dbpod.hpp
  *        Created: 05/20/2016 14:31:19
- *  Last Modified: 06/05/2016 21:40:13
- *
  *    Description: so many db interaction, so enable the multi-thread support
  *                 when got a DBRecord, the corresponding DBConnection would
  *                 be locked, this is the reason I have to introduce DBHDR, by
@@ -27,6 +25,7 @@
 
 #pragma once
 #include <memory>
+#include <string>
 
 #include "dbrecord.hpp"
 #include "dbconnection.hpp"

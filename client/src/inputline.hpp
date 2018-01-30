@@ -3,8 +3,6 @@
  *
  *       Filename: inputline.hpp
  *        Created: 06/19/2017 11:05:07
- *  Last Modified: 06/19/2017 23:18:14
- *
  *    Description: for InputBoard I take TokenBoard as an internal component
  *                 because I think InputBoard is something to handle input/output
  *                 

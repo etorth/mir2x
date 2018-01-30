@@ -3,8 +3,6 @@
  *
  *       Filename: landtype.hpp
  *        Created: 08/16/2017 23:36:45
- *  Last Modified: 08/19/2017 23:39:58
- *
  *    Description: for every cell we have land type
  *
  *                 LandType is a bitfiled in EditorMap and Mir2xMapData

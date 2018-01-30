@@ -3,8 +3,6 @@
  *
  *       Filename: delaycmd.hpp
  *        Created: 05/04/2016 14:13:04
- *  Last Modified: 05/09/2017 12:03:41
- *
  *    Description: delay cmd for active object
  *                 and field m_Count for issue that std::priority_queue not stable
  *

@@ -3,9 +3,7 @@
  *
  *       Filename: linebrowserboard.hpp
  *        Created: 07/12/2017 23:09:28
- *  Last Modified: 07/16/2017 00:06:31
- *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -21,6 +19,7 @@
 #pragma once
 #include <map>
 #include <deque>
+#include <string>
 #include <functional>
 #include "widget.hpp"
 #include "tokenboard.hpp"

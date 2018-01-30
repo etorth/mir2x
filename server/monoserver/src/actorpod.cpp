@@ -3,8 +3,6 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 12/14/2017 19:13:25
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -39,7 +37,7 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFro
     if(m_ExpireTime){
         while(!m_RespondMessageRecord.empty()){
             extern MonoServer *g_MonoServer;
-            if(m_RespondMessageRecord.begin()->second.ExpireTime < g_MonoServer->GetTimeTick()){
+            if(g_MonoServer->GetTimeTick() >= m_RespondMessageRecord.begin()->second.ExpireTime){
                 // expired, erase current message handler
                 // send MPK_TIMEOUT to registered message handler to indicate erasion
                 try{
@@ -121,6 +119,7 @@ void ActorPod::InnHandler(const MessagePack &rstMPK, const Theron::Address stFro
 
     // no matter this message is for response or initialized by others
     // every time when a message caught, we call trigger to do condition check
+
     if(m_Trigger){
         try{
             m_Trigger();

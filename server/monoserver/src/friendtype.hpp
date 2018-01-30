@@ -3,8 +3,6 @@
  *
  *       Filename: friendtype.hpp
  *        Created: 09/23/2017 22:30:18
- *  Last Modified: 09/24/2017 00:29:59
- *
  *    Description: 
  *
  *        Version: 1.0

@@ -3,8 +3,6 @@
  *
  *       Filename: dbconst.cpp
  *        Created: 05/12/2017 17:58:02
- *  Last Modified: 07/30/2017 16:47:28
- *
  *    Description: 
  *
  *        Version: 1.0

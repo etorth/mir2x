@@ -3,8 +3,6 @@
  *
  *       Filename: wilimagepackage.cpp
  *        Created: 02/14/2016 16:33:12
- *  Last Modified: 09/04/2017 02:35:29
- *
  *    Description:
  *
  *        Version: 1.0

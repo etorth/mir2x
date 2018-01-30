@@ -3,8 +3,6 @@
  *
  *       Filename: previewwindow.hpp
  *        Created: 07/22/2015 03:16:57 AM
- *  Last Modified: 08/10/2017 18:16:33
- *
  *    Description: 
  *
  *        Version: 1.0

@@ -3,8 +3,6 @@
  *
  *       Filename: tokenboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 09/24/2017 01:02:09
- *
  *    Description: For scenarios we need text-emoticon mixed boards:
  *
  *                 1. button like text terminal. which we only need to support emoticon
@@ -409,10 +407,9 @@ class TokenBoard: public Widget
         // 2. failed then board is undefined
         // 3. TBD:
         //      if m_WithCursor is false, then last empty line will be deleted
-        bool Load(XMLObjectList &rstXMLObjectList, const IDHandlerMap &rstMap = IDHandlerMap())
+        bool Load(const XMLObjectList &rstXMLObjectList, const IDHandlerMap &rstMap = IDHandlerMap())
         {
             Reset();
-            rstXMLObjectList.Reset();
             bool bRes = InnInsert(rstXMLObjectList, rstMap);
             if(bRes && !m_WithCursor){
                 DeleteEmptyBottomLine();
@@ -424,7 +421,6 @@ class TokenBoard: public Widget
         {
             XMLObjectList stXMLObjectList;
             if(stXMLObjectList.Parse(szXML, true)){
-                stXMLObjectList.Reset();
                 return Load(stXMLObjectList, rstMap);
             }
             return false;
@@ -528,7 +524,7 @@ class TokenBoard: public Widget
         }
 
     private:
-        bool InnInsert(XMLObjectList &, const std::unordered_map<std::string, std::function<void()>> &);
+        bool InnInsert(const XMLObjectList &, const std::unordered_map<std::string, std::function<void()>> &);
 
     public:
         int LineFullWidth(int) const;

@@ -3,8 +3,6 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *  Last Modified: 11/13/2017 16:53:51
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -47,7 +45,7 @@ const int SYS_MAPVISIBLECD = 100;
 const int SYS_MAXPLAYERNUM = 8192;
 
 const int SYS_MAXDROPITEM     = 10;
-const int SYS_MAXDROPITEMGRID = 100;
+const int SYS_MAXDROPITEMGRID = 81;
 
 const int SYS_MINSPEED =  20;
 const int SYS_DEFSPEED = 100;
@@ -56,3 +54,5 @@ const int SYS_MAXSPEED = 500;
 const int SYS_INVGRIDW  = 6;
 const int SYS_INVGRIDPW = 38;
 const int SYS_INVGRIDPH = 38;
+
+const int SYS_MAXTARGET = 8;

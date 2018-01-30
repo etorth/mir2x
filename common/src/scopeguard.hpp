@@ -3,8 +3,6 @@
  *
  *       Filename: scopeguard.hpp
  *        Created: 03/11/2016 14:36:20
- *  Last Modified: 03/11/2016 14:59:17
- *
  *    Description: 
  *
  *        Version: 1.0

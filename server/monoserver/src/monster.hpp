@@ -3,8 +3,6 @@
  *
  *       Filename: monster.hpp
  *        Created: 04/10/2016 02:32:45
- *  Last Modified: 12/14/2017 16:03:15
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -69,7 +67,7 @@ typedef struct stMONSTERRACEINFO
     {}
 }MONSTERRACEINFO;
 
-class Monster: public CharObject
+class Monster final: public CharObject
 {
     protected:
 
@@ -171,9 +169,6 @@ class Monster: public CharObject
     protected:
         DamageNode GetAttackDamage(int);
 
-    protected:
-        void DispatchSpaceMove();
-
     private:
         void On_MPK_EXP(const MessagePack &, const Theron::Address &);
         void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);
@@ -183,8 +178,8 @@ class Monster: public CharObject
         void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
         void On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &);
         void On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &);
-        void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
         void On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &);
+        void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);
 
     protected:
@@ -197,19 +192,19 @@ class Monster: public CharObject
         bool MoveOneStep(int, int);
 
     protected:
-        void CheckTarget();
+        void CheckCurrTarget();
 
     protected:
         int FindPathMethod();
 
     protected:
-        void RandomDropItem();
+        void RandomDrop();
 
     public:
         InvarData GetInvarData() const;
 
     protected:
-        void CheckFriend(uint32_t, std::function<void(int)>);
+        void CheckFriend(uint32_t, const std::function<void(int)> &);
 
     protected:
         bool MoveOneStepAStar  (int, int);

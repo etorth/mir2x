@@ -3,8 +3,6 @@
  *
  *       Filename: attachmagic.hpp
  *        Created: 08/10/2017 12:17:50
- *  Last Modified: 08/10/2017 16:14:28
- *
  *    Description: For attached magic we don't need its location info
  *
  *        Version: 1.0

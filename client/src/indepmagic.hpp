@@ -3,8 +3,6 @@
  *
  *       Filename: indepmagic.hpp
  *        Created: 08/07/2017 21:19:44
- *  Last Modified: 08/10/2017 16:15:49
- *
  *    Description: 
  *
  *        Version: 1.0

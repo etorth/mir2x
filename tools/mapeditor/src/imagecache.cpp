@@ -3,8 +3,6 @@
  *
  *       Filename: imagecache.cpp
  *        Created: 02/14/2016 15:54:58
- *  Last Modified: 09/07/2017 00:36:10
- *
  *    Description: This class won't handle WilImagePackage directly
  *                 Actually it only deal with all PNG files
  *                 So, don't create Fl_Image and put inside

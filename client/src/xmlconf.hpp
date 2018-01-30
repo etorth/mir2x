@@ -3,8 +3,6 @@
  *
  *       Filename: xmlconf.hpp
  *        Created: 03/16/2016 23:57:57
- *  Last Modified: 07/18/2017 15:06:40
- *
  *    Description: 
  *
  *        Version: 1.0

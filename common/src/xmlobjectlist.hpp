@@ -3,8 +3,6 @@
  *
  *       Filename: xmlobjectlist.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 09/24/2017 01:02:49
- *
  *    Description: analyze specifically formatted XML
  *                      <ROOT>
  *                          <OBJECT TYPE="T0"></OBJECT>
@@ -14,6 +12,9 @@
  *                      </ROOT>
  *                 start with root node <ROOT> and format as flat object list,
  *                 for hierarchical text desc use XMLRoot
+ *
+ *                 keep a internal vector for all objects at loading
+ *                 and won't use Fetch() anymore
  *
  *        Version: 1.0
  *       Revision: none
@@ -35,31 +36,51 @@ class XMLObjectList final
     private:
         tinyxml2::XMLDocument m_XMLDoc;
 
-    private:
-        const tinyxml2::XMLElement *m_CurrentObject;
-
     public:
         XMLObjectList()
             : m_XMLDoc()
-            , m_CurrentObject(nullptr)
         {}
 
-       ~XMLObjectList() = default;
+    public:
+        ~XMLObjectList() = default;
 
     public:
-        const tinyxml2::XMLElement *Root()
+        tinyxml2::XMLElement *Root()
         {
             return m_XMLDoc.RootElement();
         }
 
-        void Reset();
-        const tinyxml2::XMLElement *Fetch();
+        const tinyxml2::XMLElement *Root() const
+        {
+            return m_XMLDoc.RootElement();
+        }
 
     public:
-        bool Validate();
+        tinyxml2::XMLElement *FirstElement()
+        {
+            if(auto pRoot = Root()){
+                return pRoot->FirstChildElement();
+            }
+            return nullptr;
+        }
+
+        const tinyxml2::XMLElement *FirstElement() const
+        {
+            if(auto pRoot = Root()){
+                return pRoot->FirstChildElement();
+            }
+            return nullptr;
+        }
 
     public:
-        std::string Print();
+        std::string Print() const
+        {
+            tinyxml2::XMLPrinter stPrinter;
+            m_XMLDoc.Print(&stPrinter);
+            return std::string(stPrinter.CStr());
+        }
+
+    public:
         bool Add(const std::vector<std::pair<std::string, std::string>> &, const char *);
 
     public:
@@ -68,11 +89,9 @@ class XMLObjectList final
             bool bRes = false;
             if(true
                     && szFileName
-                    && m_XMLDoc.LoadFile(szFileName) == tinyxml2::XML_NO_ERROR){
-                bRes = bValidate ? Validate() : true;
+                    && m_XMLDoc.LoadFile(szFileName) == tinyxml2::XML_SUCCESS){
+                bRes = bValidate ? ValidateXML() : true;
             }
-
-            Reset();
             return bRes;
         }
 
@@ -81,13 +100,14 @@ class XMLObjectList final
             bool bRes = false;
             if(true
                     && szXMLContent
-                    && m_XMLDoc.Parse(szXMLContent) == tinyxml2::XML_NO_ERROR){
-                bRes = bValidate ? Validate() : true;
+                    && m_XMLDoc.Parse(szXMLContent) == tinyxml2::XML_SUCCESS){
+                bRes = bValidate ? ValidateXML() : true;
             }
-
-            Reset();
             return bRes;
         }
+
+    private:
+        bool ValidateXML();
 
     private:
         bool ValidObjectNode(const tinyxml2::XMLElement *);

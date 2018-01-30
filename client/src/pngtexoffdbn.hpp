@@ -3,8 +3,6 @@
  *
  *       Filename: pngtexoffdbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 07/06/2017 23:51:59
- *
  *    Description: 
  *
  *        Version: 1.0

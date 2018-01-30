@@ -3,8 +3,6 @@
  *
  *       Filename: animation.cpp
  *        Created: 06/20/2016 19:56:07
- *  Last Modified: 08/10/2017 20:10:59
- *
  *    Description: 
  *
  *        Version: 1.0

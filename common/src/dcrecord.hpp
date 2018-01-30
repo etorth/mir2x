@@ -3,8 +3,6 @@
  *
  *       Filename: dcrecord.hpp
  *        Created: 05/08/2017 16:21:14
- *  Last Modified: 07/28/2017 18:51:25
- *
  *    Description: 
  *
  *        Version: 1.0

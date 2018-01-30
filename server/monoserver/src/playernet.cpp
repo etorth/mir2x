@@ -3,8 +3,6 @@
  *
  *       Filename: playernet.cpp
  *        Created: 05/19/2016 15:26:25
- *  Last Modified: 12/06/2017 11:33:53
- *
  *    Description: how player respond for different net package
  *
  *        Version: 1.0
@@ -50,21 +48,21 @@ void Player::Net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
     std::memcpy(&stCMQCOR, pBuf, sizeof(stCMQCOR));
 
     if(true
-            && stCMQCOR.UID
-            && stCMQCOR.MapID == MapID()
+            && stCMQCOR.AimUID
+            && stCMQCOR.AimUID != UID()){
 
-            && m_Map
-            && m_Map->ValidC(stCMQCOR.X, stCMQCOR.Y)
-            && m_Map->ActorPodValid()){
-        // 1. check cached actor address first
-        // 2. then send to map
-        AMQueryCORecord stAMQCOR;
-        stAMQCOR.UID       = stCMQCOR.UID;
-        stAMQCOR.MapID     = stCMQCOR.MapID;
-        stAMQCOR.X         = stCMQCOR.X;
-        stAMQCOR.Y         = stCMQCOR.Y;
-        stAMQCOR.SessionID = SessionID();
-        m_ActorPod->Forward({MPK_QUERYCORECORD, stAMQCOR}, m_Map->GetAddress());
+        extern MonoServer *g_MonoServer;
+        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stCMQCOR.AimUID)){
+
+            AMQueryCORecord stAMQCOR;
+            std::memset(&stAMQCOR, 0, sizeof(stAMQCOR));
+
+            // target UID can ignore it
+            // send the query without response requirement
+
+            stAMQCOR.UID = UID();
+            m_ActorPod->Forward({MPK_QUERYCORECORD, stAMQCOR}, stUIDRecord.GetAddress());
+        }
     }
 }
 
@@ -79,12 +77,20 @@ void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
 {
     auto pCM = (CMPickUp *)(pBuf);
     if(pCM->MapID == m_Map->ID()){
-        AMPickUp stAMPU;
-        stAMPU.X      = pCM->X;
-        stAMPU.Y      = pCM->Y;
-        stAMPU.UID    = pCM->UID;
-        stAMPU.ItemID = pCM->ItemID;
-
-        m_ActorPod->Forward({MPK_PICKUP, stAMPU}, m_Map->GetAddress());
+        if(CanPickUp(pCM->ID, 0)){
+            AMPickUp stAMPU;
+            std::memset(&stAMPU, 0, sizeof(stAMPU));
+            stAMPU.X    = pCM->X;
+            stAMPU.Y    = pCM->Y;
+            stAMPU.UID  = pCM->UID;
+            stAMPU.ID   = pCM->ID;
+            stAMPU.DBID = pCM->DBID;
+            m_ActorPod->Forward({MPK_PICKUP, stAMPU}, m_Map->GetAddress());
+        }
     }
+}
+
+void Player::Net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t)
+{
+    ReportGold();
 }

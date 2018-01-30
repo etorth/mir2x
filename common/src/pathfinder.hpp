@@ -3,8 +3,6 @@
  *
  *       Filename: pathfinder.hpp
  *        Created: 03/28/2017 17:04:54
- *  Last Modified: 09/26/2017 11:20:07
- *
  *    Description: A-Star algorithm for path finding
  *
  *                 if we have a prefperence, we should make it by the cost function,
@@ -250,7 +248,9 @@ class AStarPathFinderNode
                     if(true
                             && pParentNode
                             && pParentNode->X() == nNewX
-                            && pParentNode->Y() == nNewY){ continue; }
+                            && pParentNode->Y() == nNewY){
+                        continue;
+                    }
 
                     // when add a successor we always check it's distance between the ParentNode
                     // means for m_MoveChecker(x0, y0, x1, y1) we guarentee that (x1, y1) inside propor distance to (x0, y0)

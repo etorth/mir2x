@@ -3,8 +3,6 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *  Last Modified: 05/15/2017 13:58:35
- *
  *    Description: why I made actor as a plug, because I want it to be a one to zero/one
  *                 mapping as ServerObject -> Actor
  *
@@ -40,7 +38,7 @@
  *                      auto fnTrigger = [this](){ m_StateHook.Execute(); }
  *
  *                 and
- *                  
+ *
  *                      m_StateHook.Install("ClearQueue", fnClearQueue);
  *                      m_StateHook.Uninstall("ClearQueue");
  *
@@ -61,6 +59,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include <functional>
 #include <Theron/Theron.h>
 
@@ -156,7 +155,8 @@ class ActorPod final: public Theron::Actor
             : ActorPod(pFramework, std::function<void()>(), fnOperate, nExpireTime)
         {}
 
-       ~ActorPod() = default;
+    public:
+        ~ActorPod() = default;
 
     private:
         // get an ID to a message expcecting a response

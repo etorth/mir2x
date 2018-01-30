@@ -3,8 +3,6 @@
  *
  *       Filename: magicbase.hpp
  *        Created: 08/05/2017 22:58:20
- *  Last Modified: 08/10/2017 16:56:01
- *
  *    Description: base of AttachMagic and IndepMagic
  *
  *        Version: 1.0

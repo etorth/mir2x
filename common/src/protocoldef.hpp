@@ -3,8 +3,6 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *  Last Modified: 12/07/2017 21:57:55
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -56,7 +54,6 @@ enum ActionType: int
     ACTION_SPELL,
     ACTION_HITTED,
     ACTION_DIE,
-    ACTION_EXTENSION,
     ACTION_MAX,
 };
 

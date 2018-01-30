@@ -3,8 +3,6 @@
  *
  *       Filename: inndb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 09/05/2017 10:42:57
- *
  *    Description: base of all integral based map cache
  *
  *                 Internal Database support for 
@@ -169,12 +167,12 @@ class InnDB
                     // find resource in LC, good!
                     //
                     // 1. move the record in LC to its head
-                    m_LCache[nLCacheKey].SwapHead(nLocationInLC);
+                    std::swap(m_LCache[nLCacheKey][0], m_LCache[nLCacheKey][nLocationInLC]);
 
                     // 2. update access time stamp in LC *only*
                     //    *important*:
                     //    didn't update the access time in hash map Cache!
-                    std::get<1>(m_LCache[nLCacheKey].Head()) = m_CurrentTime;
+                    std::get<1>(m_LCache[nLCacheKey][0]) = m_CurrentTime;
 
                     // 3. push the access stamp at the end of the time stamp queue
                     m_TimeStampQ.emplace(m_CurrentTime, nKey);
@@ -354,10 +352,10 @@ class InnDB
         // assume UseLC() is true, parameters should be checked before invocation
         bool LocateInLinearCache(int nLCKey, KeyT nKey, size_t *pLocationInLC)
         {
-            for(m_LCache[nLCKey].Reset(); !m_LCache[nLCKey].Done(); m_LCache[nLCKey].Forward()){
-                if(std::get<2>(m_LCache[nLCKey].Current()) == nKey){
+            for(size_t nIndex = 0; nIndex < m_LCache[nLCKey].Length(); ++nIndex){
+                if(std::get<2>(m_LCache[nLCKey][nIndex]) == nKey){
                     if(pLocationInLC){
-                        *pLocationInLC = m_LCache[nLCKey].Index();
+                        *pLocationInLC = nIndex;
                     }
                     return true;
                 }

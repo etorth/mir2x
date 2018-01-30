@@ -3,8 +3,6 @@
  *
  *       Filename: animationdb.hpp
  *        Created: 06/22/2016 18:19:55
- *  Last Modified: 06/22/2016 22:58:18
- *
  *    Description: db for testing animation
  *
  *        Version: 1.0

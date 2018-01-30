@@ -3,8 +3,6 @@
  *
  *       Filename: damagenode.cpp
  *        Created: 07/21/2017 17:55:30
- *  Last Modified: 07/25/2017 12:09:31
- *
  *    Description: 
  *
  *        Version: 1.0

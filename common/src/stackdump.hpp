@@ -1,11 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: commonitem.cpp
- *        Created: 07/30/2017 18:58:16
- *  Last Modified: 07/30/2017 18:58:37
- *
- *    Description: 
+ *       Filename: stackdump.hpp
+ *        Created: 01/20/2018 20:19:36
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -18,4 +16,12 @@
  * =====================================================================================
  */
 
-#include "commonitem.hpp"
+#pragma once
+
+#include <vector>
+#include <string>
+
+namespace StackDump
+{
+    std::vector<std::string> Dump(size_t);
+}

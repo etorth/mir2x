@@ -3,8 +3,6 @@
  *
  *       Filename: hexstring.inc
  *        Created: 02/06/2016 13:35:51
- *  Last Modified: 09/07/2017 00:12:29
- *
  *    Description: each entry for one byte, i.e.
  *
  *                 0   => "0X00" => "00" => '0' << 8 | '0'

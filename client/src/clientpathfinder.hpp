@@ -3,8 +3,6 @@
  *
  *       Filename: clientpathfinder.hpp
  *        Created: 03/28/2017 21:13:11
- *  Last Modified: 07/01/2017 12:17:48
- *
  *    Description: path finding parameters needed:
  *          
  *                  bCheckGround   : true  : will fail if we can't get a path from valid grids

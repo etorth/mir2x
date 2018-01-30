@@ -3,8 +3,6 @@
  *
  *       Filename: animationdraw.hpp
  *        Created: 06/22/2016 22:24:59
- *  Last Modified: 08/07/2016 22:15:55
- *
  *    Description: 
  *
  *        Version: 1.0

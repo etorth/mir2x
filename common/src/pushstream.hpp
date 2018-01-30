@@ -3,8 +3,6 @@
  *
  *       Filename: pushstream.hpp
  *        Created: 08/17/2017 19:32:15
- *  Last Modified: 08/18/2017 16:54:24
- *
  *    Description: 
  *
  *        Version: 1.0

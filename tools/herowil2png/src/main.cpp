@@ -3,8 +3,6 @@
  *
  *       Filename: main.cpp
  *        Created: 04/03/2017 18:02:52
- *  Last Modified: 06/22/2017 23:29:17
- *
  *    Description: convert hero graphics res to png files, usage:
  *
  *                      herowil2png gender path-to-package basename extension out-dir

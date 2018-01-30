@@ -3,8 +3,6 @@
  *
  *       Filename: mir2map.hpp
  *        Created: 05/03/2016 15:00:35
- *  Last Modified: 09/08/2017 02:19:42
- *
  *    Description: 
  *
  *        Version: 1.0

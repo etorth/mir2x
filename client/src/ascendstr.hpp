@@ -3,8 +3,6 @@
  *
  *       Filename: ascendstr.hpp
  *        Created: 07/20/2017 00:31:01
- *  Last Modified: 07/20/2017 18:54:32
- *
  *    Description: decide to not implement it as magic
  *
  *        Version: 1.0
@@ -19,6 +17,8 @@
  */
 
 #pragma once
+#include <cmath>
+
 enum AscendStrType: int
 {
     ASCENDSTR_MISS = 0,

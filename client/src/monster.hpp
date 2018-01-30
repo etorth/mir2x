@@ -3,8 +3,6 @@
  *
  *       Filename: monster.hpp
  *        Created: 08/31/2015 08:26:19
- *  Last Modified: 12/08/2017 09:44:58
- *
  *    Description:
  *
  *        Version: 1.0

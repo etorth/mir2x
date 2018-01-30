@@ -3,8 +3,6 @@
  *
  *       Filename: commandluamodule.hpp
  *        Created: 06/02/2017 17:39:56
- *  Last Modified: 12/19/2017 20:21:50
- *
  *    Description: 
  *
  *        Version: 1.0

@@ -3,8 +3,6 @@
  *
  *       Filename: clientpathfinder.cpp
  *        Created: 03/28/2017 21:15:25
- *  Last Modified: 07/06/2017 00:40:08
- *
  *    Description: class for path finding in ProcessRun
  *
  *        Version: 1.0
@@ -76,7 +74,9 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, bool bCheckCreature, int n
                         g_Log->AddLog(LOGTYPE_FATAL, "Current process is not ProcessRun");
                         return false;
                     }
-                }else{ return true; }
+                }else{
+                    return true;
+                }
             },
 
             [bCheckCreature, nMaxStep](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double

@@ -3,8 +3,6 @@
  *
  *       Filename: animationset.cpp
  *        Created: 8/6/2015 5:43:46 AM
- *  Last Modified: 04/15/2016 22:17:40
- *
  *    Description: 
  *
  *        Version: 1.0

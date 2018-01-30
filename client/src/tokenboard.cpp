@@ -3,8 +3,6 @@
  *
  *       Filename: tokenboard.cpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 09/24/2017 01:33:02
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -41,19 +39,13 @@
 
 // insert an XML file to current board
 // assumption: current board is well-prepared
-bool TokenBoard::InnInsert(XMLObjectList &rstXMLObjectList, const IDHandlerMap &rstIDHandleMap)
+bool TokenBoard::InnInsert(const XMLObjectList &rstXMLObjectList, const IDHandlerMap &rstIDHandleMap)
 {
-    // 1. prepare for the traverse
-    rstXMLObjectList.Reset();
+    // if XMLObjectList is empty, this is OK and we return true
+    // if unknown section type detected we give a warning and won't abort parsing
 
-    // 2. get the first object
-    const auto *pObject = rstXMLObjectList.Fetch();
-
-    // 3. if XMLObjectList is empty, this is OK and we return true
-    //    if unknown section type detected we give a warning and won't abort parsing
     bool bRes = true;
-
-    while(pObject && bRes){
+    for(auto pObject = rstXMLObjectList.FirstElement(); pObject && bRes; pObject = pObject->NextSiblingElement()){
         switch(auto nObjectType = XMLObject::ObjectType(*pObject)){
             case OBJECTTYPE_RETURN:
                 {
@@ -80,8 +72,6 @@ bool TokenBoard::InnInsert(XMLObjectList &rstXMLObjectList, const IDHandlerMap &
                     break;
                 }
         }
-        // move to next
-        pObject = rstXMLObjectList.Fetch();
     }
     return bRes;
 }

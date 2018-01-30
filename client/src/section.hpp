@@ -3,8 +3,6 @@
  *
  *       Filename: section.hpp
  *        Created: 8/18/2015 6:56:11 PM
- *  Last Modified: 09/19/2017 11:01:06
- *
  *    Description: 
  *
  *        Version: 1.0

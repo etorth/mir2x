@@ -3,8 +3,6 @@
  *
  *       Filename: pack2d.cpp
  *        Created: 11/07/2017 23:35:04
- *  Last Modified: 11/13/2017 11:07:09
- *
  *    Description: 
  *
  *        Version: 1.0

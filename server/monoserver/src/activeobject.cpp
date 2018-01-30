@@ -3,8 +3,6 @@
  *
  *       Filename: activeobject.cpp
  *        Created: 04/28/2016 20:51:29
- *  Last Modified: 12/14/2017 20:51:23
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -20,6 +18,7 @@
 
 #include <cinttypes>
 #include "actorpod.hpp"
+#include "metronome.hpp"
 #include "serverenv.hpp"
 #include "monoserver.hpp"
 #include "activeobject.hpp"
@@ -40,7 +39,7 @@ ActiveObject::ActiveObject()
     {
         extern MonoServer *g_MonoServer;
         if(!m_DelayCmdQ.empty()){
-            if(m_DelayCmdQ.top().Tick() <= g_MonoServer->GetTimeTick()){
+            if(g_MonoServer->GetTimeTick() >= m_DelayCmdQ.top().Tick()){
                 try{
                     m_DelayCmdQ.top()();
                 }catch(...){
@@ -71,18 +70,6 @@ ActiveObject::ActiveObject()
         };
         m_StateHook.Install("PrintAMCount", fnPrintAMCount);
     }
-
-    auto fnRegisterClass = [this]()
-    {
-        if(!RegisterClass<ActiveObject, ServerObject>()){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <ActiveObject, ServerObject> failed");
-            g_MonoServer->Restart();
-        }
-    };
-
-    static std::once_flag stFlag;
-    std::call_once(stFlag, fnRegisterClass);
 }
 
 ActiveObject::~ActiveObject()
@@ -149,4 +136,16 @@ uint32_t ActiveObject::StateTime(uint8_t nState)
 {
     extern MonoServer *g_MonoServer;
     return g_MonoServer->GetTimeTick() - m_StateTimeV[nState];
+}
+
+bool ActiveObject::AddTick()
+{
+    extern Metronome *g_Metronome;
+    return g_Metronome->Add(UID());
+}
+
+void ActiveObject::RemoveTick()
+{
+    extern Metronome *g_Metronome;
+    g_Metronome->Remove(UID());
 }

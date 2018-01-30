@@ -1,0 +1,33 @@
+AUX_SOURCE_DIRECTORY(. CLIENT_SRC)
+ADD_EXECUTABLE(client ${CLIENT_SRC})
+
+TARGET_INCLUDE_DIRECTORIES(client PRIVATE ${COMMON_SOURCE_DIR})
+
+<<<<<<< HEAD
+TARGET_LINK_LIBRARIES(client g3logger        )
+TARGET_LINK_LIBRARIES(client tinyxml2        )
+TARGET_LINK_LIBRARIES(client pthread         )
+TARGET_LINK_LIBRARIES(client zip             )
+TARGET_LINK_LIBRARIES(client ${CMAKE_DL_LIBS})
+TARGET_LINK_LIBRARIES(client common          )
+TARGET_LINK_LIBRARIES(client SDL2            )
+TARGET_LINK_LIBRARIES(client SDL2_ttf        )
+TARGET_LINK_LIBRARIES(client SDL2_image      )
+TARGET_LINK_LIBRARIES(client ${LUA_LIBRARIES})
+=======
+TARGET_LINK_LIBRARIES(client ${G3LOG_LIBRARIES}   )
+TARGET_LINK_LIBRARIES(client ${TINYXML2_LIBRARIES})
+TARGET_LINK_LIBRARIES(client pthread              )
+TARGET_LINK_LIBRARIES(client ${ZIP_LIBRARIES}     )
+TARGET_LINK_LIBRARIES(client ${ZLIB_LIBRARIES}    )
+TARGET_LINK_LIBRARIES(client dl                   )
+TARGET_LINK_LIBRARIES(client common               )
+TARGET_LINK_LIBRARIES(client SDL2                 )
+TARGET_LINK_LIBRARIES(client SDL2_ttf             )
+TARGET_LINK_LIBRARIES(client SDL2_image           )
+TARGET_LINK_LIBRARIES(client ${LUA_LIBRARIES}     )
+
+INSTALL(TARGETS client DESTINATION client)
+INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/client/bin/Res DESTINATION client)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/client/bin/configuration.xml DESTINATION client)
+>>>>>>> dev

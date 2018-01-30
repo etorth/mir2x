@@ -3,8 +3,6 @@
  *
  *       Filename: sfinaecheck.hpp
  *        Created: 04/09/2016 03:48:41 AM
- *  Last Modified: 04/09/2016 22:31:22
- *
  *    Description: copy from wikibooks: more c++ idioms/member detector
  *
  *        Version: 1.0

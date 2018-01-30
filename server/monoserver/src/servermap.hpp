@@ -3,8 +3,6 @@
  *
  *       Filename: servermap.hpp
  *        Created: 09/03/2015 03:49:00
- *  Last Modified: 12/20/2017 00:50:13
- *
  *    Description:
  *
  *        Version: 1.0
@@ -38,7 +36,7 @@ class Monster;
 class ServiceCore;
 class ServerObject;
 
-class ServerMap: public ActiveObject
+class ServerMap final: public ActiveObject
 {
     private:
         class ServerMapLuaModule: public BatchLuaModule
@@ -79,7 +77,7 @@ class ServerMap: public ActiveObject
             int Query;
 
             // on every grid there could be one item on ground
-            std::array<CommonItem, SYS_MAXDROPITEM> GroundItemList;
+            CacheQueue<CommonItem, SYS_MAXDROPITEM> GroundItemQueue;
 
             CellRecord()
                 : Lock(false)
@@ -89,7 +87,7 @@ class ServerMap: public ActiveObject
                 , SwitchX(-1)
                 , SwitchY(-1)
                 , Query(QUERY_NONE)
-                , GroundItemList()
+                , GroundItemQueue()
             {}
         };
 
@@ -101,7 +99,6 @@ class ServerMap: public ActiveObject
         const Mir2xMapData m_Mir2xMapData;
 
     private:
-        Metronome   *m_Metronome;
         ServiceCore *m_ServiceCore;
 
     private:
@@ -131,10 +128,10 @@ class ServerMap: public ActiveObject
 
     protected:
         bool CanMove(bool, bool, int, int);
-        bool CanMove(bool, bool, bool, int, int, int, int);
+        bool CanMove(bool, bool, int, int, int, int);
 
     protected:
-        double MoveCost(bool, bool, bool, int, int, int, int);
+        double MoveCost(bool, bool, int, int, int, int);
 
     public:
         int W() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0; }
@@ -168,18 +165,45 @@ class ServerMap: public ActiveObject
         int GetMonsterCount(uint32_t);
 
     private:
-        int FindGroundItem(int, int, uint32_t);
-        int DropItemListCount(int, int);
-        bool AddGroundItem(int, int, const CommonItem &);
-        void RemoveGroundItem(int, int, uint32_t);
-        void ReportGroundItem(uint32_t, int, int);
+        auto &GetUIDList(int nX, int nY)
+        {
+            return m_CellRecordV2D[nX][nY].UIDList;
+        }
+
+        const auto &GetUIDList(int nX, int nY) const
+        {
+            return m_CellRecordV2D[nX][nY].UIDList;
+        }
 
     private:
-        void DoCircle(int, int, int,      const std::function<bool(int, int)> &);
-        void DoSquare(int, int, int, int, const std::function<bool(int, int)> &);
+        auto &GetGroundItemList(int nX, int nY)
+        {
+            return m_CellRecordV2D[nX][nY].GroundItemQueue;
+        }
 
-        void DoCenterCircle(int, int, int,      bool, const std::function<bool(int, int)> &);
-        void DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
+        const auto &GetGroundItemList(int nX, int nY) const
+        {
+            return m_CellRecordV2D[nX][nY].GroundItemQueue;
+        }
+
+    private:
+        int FindGroundItem(const CommonItem &, int, int);
+        int GroundItemCount(const CommonItem &, int, int);
+
+        bool AddGroundItem(const CommonItem &, int, int);
+        void RemoveGroundItem(const CommonItem &, int, int);
+
+        void ClearGroundItem(int, int);
+
+    private:
+        bool DoUIDList(int, int, const std::function<bool(const UIDRecord &)> &);
+
+    private:
+        bool DoCircle(int, int, int,      const std::function<bool(int, int)> &);
+        bool DoSquare(int, int, int, int, const std::function<bool(int, int)> &);
+
+        bool DoCenterCircle(int, int, int,      bool, const std::function<bool(int, int)> &);
+        bool DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
 
     private:
         void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
@@ -198,8 +222,7 @@ class ServerMap: public ActiveObject
         void On_MPK_QUERYCOCOUNT(const MessagePack &, const Theron::Address &);
         void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYRECTUIDV(const MessagePack &, const Theron::Address &);
+        void On_MPK_QUERYRECTUIDLIST(const MessagePack &, const Theron::Address &);
 
     private:
         bool RegisterLuaExport(ServerMapLuaModule *);

@@ -3,8 +3,6 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *  Last Modified: 12/20/2017 01:02:37
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -36,6 +34,7 @@ ProcessRun::ProcessRun()
     : Process()
     , m_MapID(0)
     , m_Mir2xMapData()
+    , m_GroundItemList()
     , m_MyHero(nullptr)
     , m_FocusTable()
     , m_ViewX(0)
@@ -58,7 +57,6 @@ ProcessRun::ProcessRun()
             nullptr,            // independent widget
             false)              // 
     , m_InventoryBoard(0, 0, this)
-    , m_GroundItemList()
     , m_CreatureRecord()
     , m_MousePixlLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_MouseGridLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
@@ -302,63 +300,55 @@ void ProcessRun::Draw()
         // should be over dead actors
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
-                for(auto &rstGI: m_GroundItemList){
-                    if(true
-                            && rstGI.ID
-                            && rstGI.X == nX
-                            && rstGI.Y == nY){
+                auto &rstGroundItemList = GetGroundItemList(nX, nY);
+                for(auto rstGroundItem: rstGroundItemList){
+                    if(auto &rstIR = DBCOM_ITEMRECORD(rstGroundItem.ID())){
+                        if(rstIR.PkgGfxID >= 0){
+                            extern SDLDevice *g_SDLDevice;
+                            extern PNGTexDBN *g_GroundItemDBN;
+                            if(auto pTexture = g_GroundItemDBN->Retrieve(rstIR.PkgGfxID)){
+                                int nW = -1;
+                                int nH = -1;
+                                if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
+                                    int nXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nW / 2;
+                                    int nYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nH / 2;
 
-                        // draw ground item
-                        // only need information of item record
+                                    int nPointX = -1;
+                                    int nPointY = -1;
+                                    SDL_GetMouseState(&nPointX, &nPointY);
 
-                        if(auto &rstIR = DBCOM_ITEMRECORD(rstGI.ID)){
-                            if(rstIR.PkgGfxID >= 0){
-                                extern SDLDevice *g_SDLDevice;
-                                extern PNGTexDBN *g_GroundItemDBN;
-                                if(auto pTexture = g_GroundItemDBN->Retrieve(rstIR.PkgGfxID)){
-                                    int nW = -1;
-                                    int nH = -1;
-                                    if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
-                                        int nXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nW / 2;
-                                        int nYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nH / 2;
+                                    int nCurrX = (nPointX + m_ViewX) / SYS_MAPGRIDXP;
+                                    int nCurrY = (nPointY + m_ViewY) / SYS_MAPGRIDYP;
 
-                                        int nPointX = -1;
-                                        int nPointY = -1;
-                                        SDL_GetMouseState(&nPointX, &nPointY);
+                                    bool bChoose = false;
+                                    if(true
+                                            && nCurrX == nX
+                                            && nCurrY == nY){
+                                        bChoose = true;
+                                        SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_ADD);
+                                    }else{
+                                        SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
+                                    }
 
-                                        int nCurrX = (nPointX + m_ViewX) / SYS_MAPGRIDXP;
-                                        int nCurrY = (nPointY + m_ViewY) / SYS_MAPGRIDYP;
+                                    // 1. draw item shadow
+                                    SDL_SetTextureColorMod(pTexture, 0, 0, 0);
+                                    SDL_SetTextureAlphaMod(pTexture, 128);
+                                    g_SDLDevice->DrawTexture(pTexture, nXt + 1, nYt - 1);
 
-                                        bool bChoose = false;
-                                        if(true
-                                                && nCurrX == nX
-                                                && nCurrY == nY){
-                                            bChoose = true;
-                                            SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_ADD);
-                                        }else{
-                                            SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
-                                        }
+                                    // 2. draw item body
+                                    SDL_SetTextureColorMod(pTexture, 255, 255, 255);
+                                    SDL_SetTextureAlphaMod(pTexture, 255);
+                                    g_SDLDevice->DrawTexture(pTexture, nXt, nYt);
 
-                                        // 1. draw item shadow
-                                        SDL_SetTextureColorMod(pTexture, 0, 0, 0);
-                                        SDL_SetTextureAlphaMod(pTexture, 128);
-                                        g_SDLDevice->DrawTexture(pTexture, nXt + 1, nYt - 1);
+                                    if(bChoose){
+                                        LabelBoard stItemName(0, 0, rstIR.Name, 1, 12, 0, {0XFF, 0XFF, 0X00, 0X00});
+                                        int nLW = stItemName.W();
+                                        int nLH = stItemName.H();
 
-                                        // 2. draw item body
-                                        SDL_SetTextureColorMod(pTexture, 255, 255, 255);
-                                        SDL_SetTextureAlphaMod(pTexture, 255);
-                                        g_SDLDevice->DrawTexture(pTexture, nXt, nYt);
+                                        int nLXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nLW / 2;
+                                        int nLYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nLH / 2 - 20;
 
-                                        if(bChoose){
-                                            LabelBoard stItemName(0, 0, rstIR.Name, 1, 12, 0, {0XFF, 0XFF, 0X00, 0X00});
-                                            int nLW = stItemName.W();
-                                            int nLH = stItemName.H();
-
-                                            int nLXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nLW / 2;
-                                            int nLYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nLH / 2 - 20;
-
-                                            stItemName.DrawEx(nLXt, nLYt, 0, 0, nLW, nLH);
-                                        }
+                                        stItemName.DrawEx(nLXt, nLYt, 0, 0, nLW, nLH);
                                     }
                                 }
                             }
@@ -436,19 +426,7 @@ void ProcessRun::Draw()
             for(int nY = nY0; nY <= nY1; ++nY){
                 for(int nX = nX0; nX <= nX1; ++nX){
 
-                    bool bShowStar = false;
-                    for(auto &rstGI: m_GroundItemList){
-                        if(true
-                                && rstGI.ID
-                                && rstGI.X == nX
-                                && rstGI.Y == nY){
-
-                            bShowStar = true;
-                            break;
-                        }
-                    }
-
-                    if(bShowStar){
+                    if(!GetGroundItemList(nX, nY).empty()){
                         extern SDLDevice *g_SDLDevice;
                         extern PNGTexDBN *g_GroundItemDBN;
 
@@ -558,9 +536,10 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
                                 m_FocusTable[FOCUS_ATTACK] = nUID;
                                 TrackAttack(true, nUID);
-                            }else if(auto stFirstItem = GetGroundItem(nMouseGridX, nMouseGridY)){
-                                if(GetGroundItem(nMouseGridX, nMouseGridY)){
-                                    m_MyHero->EmplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, stFirstItem.ID));
+                            }else{
+                                auto &rstGroundItemList = GetGroundItemList(nMouseGridX, nMouseGridY);
+                                if(!rstGroundItemList.empty()){
+                                    m_MyHero->EmplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, rstGroundItemList.back().ID()));
                                 }
                             }
                             break;
@@ -701,10 +680,21 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
 int ProcessRun::LoadMap(uint32_t nMapID)
 {
     if(nMapID){
-        m_MapID = nMapID;
         extern MapBinDBN *g_MapBinDBN;
         if(auto pMapBin = g_MapBinDBN->Retrieve(nMapID)){
+            m_MapID        =  nMapID;
             m_Mir2xMapData = *pMapBin;
+
+            auto nW = m_Mir2xMapData.W();
+            auto nH = m_Mir2xMapData.H();
+
+            m_GroundItemList.clear();
+            m_GroundItemList.resize(nW);
+
+            for(int nX = 0; nX < nW; ++nX){
+                m_GroundItemList[nX].resize(nH);
+            }
+
             return 0;
         }
     }
@@ -922,7 +912,9 @@ bool ProcessRun::UserCommand(const char *szUserCommand)
                     }
                 case 1:
                     {
-                        if(pEntry->Callback){ pEntry->Callback(stvToken); }
+                        if(pEntry->Callback){
+                            pEntry->Callback(stvToken);
+                        }
                         break;
                     }
                 default:
@@ -1029,6 +1021,14 @@ bool ProcessRun::RegisterUserCommand()
         }
     };
     m_UserCommandGroup.emplace_back("makeItem", fnMakeItem);
+
+    auto fnGetAttackUID = [this](const std::vector<std::string> &) -> int
+    {
+        AddOPLog(OUTPORT_CONTROLBOARD, 2, "", std::to_string(FocusUID(FOCUS_ATTACK)).c_str());
+        return 0;
+    };
+    m_UserCommandGroup.emplace_back("getAttackUID", fnGetAttackUID);
+
     return true;
 }
 

@@ -3,9 +3,7 @@
  *
  *       Filename: actionset.cpp
  *        Created: 8/5/2015 11:22:52 PM
- *  Last Modified: 05/21/2017 01:33:08
- *
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -17,6 +15,7 @@
  *
  * =====================================================================================
  */
+#include <cmath>
 #include <FL/Fl.H>
 #include <algorithm>
 #include <cinttypes>
@@ -213,7 +212,7 @@ void ActionSet::Draw(int nVStartPX, int nVStartPY)
 {
     // nVStartPX: x position on the virtual canvas, (0, 0) is on top-left
     // nVStartPY: y position on the virtual canvas
-    // 
+    //
     extern MainWindow *g_MainWindow;
     if(g_MainWindow->TestMode() && !g_MainWindow->TestAnimation()){
         //selecting action set to show
@@ -224,7 +223,7 @@ void ActionSet::Draw(int nVStartPX, int nVStartPY)
         extern MainWindow *g_MainWindow;
         if(g_MainWindow->ShowShadowLayer()){
             m_PNG[1][m_CurrentFrameIndex]->draw(
-                    m_ActionSetAlignX + m_PX[m_CurrentFrameIndex] + m_DSX[m_CurrentFrameIndex] + nVStartPX, 
+                    m_ActionSetAlignX + m_PX[m_CurrentFrameIndex] + m_DSX[m_CurrentFrameIndex] + nVStartPX,
                     m_ActionSetAlignY + m_PY[m_CurrentFrameIndex] + m_DSY[m_CurrentFrameIndex] + nVStartPY);
         }
         if(g_MainWindow->ShowShadowFrame()){
@@ -246,7 +245,7 @@ void ActionSet::Draw(int nVStartPX, int nVStartPY)
         extern MainWindow *g_MainWindow;
         if(g_MainWindow->ShowBodyLayer()){
             m_PNG[0][m_CurrentFrameIndex]->draw(
-                    m_ActionSetAlignX + m_PX[m_CurrentFrameIndex] + nVStartPX, 
+                    m_ActionSetAlignX + m_PX[m_CurrentFrameIndex] + nVStartPX,
                     m_ActionSetAlignY + m_PY[m_CurrentFrameIndex] + nVStartPY);
         }
         if(g_MainWindow->ShowBodyFrame()){
@@ -623,7 +622,7 @@ bool ActionSet::Export(
                 // precode | monster SID | Image Index
                 //  0 ~ 63 |    0 ~ 1023 |  0 ~ 65535
                 // 2 bytes      4 bytes      5 bytes  of char
-                // 
+                //
                 // shadow:
                 //       2 |    SID      |  ImageIndex
                 // body:
@@ -738,7 +737,7 @@ bool ActionSet::Export(
                     char szFileName[512];
                     std::sprintf(szFileName, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
                             szIMGFolderName,
-                            nEncode, 
+                            nEncode,
                             ((nDX > 0) ? "1" : "0"),
                             ((nDY > 0) ? "1" : "0"),
                             std::abs(nDX),

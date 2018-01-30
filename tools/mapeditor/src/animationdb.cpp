@@ -3,8 +3,6 @@
  *
  *       Filename: animationdb.cpp
  *        Created: 06/22/2016 18:21:16
- *  Last Modified: 09/07/2017 00:25:44
- *
  *    Description: 
  *
  *        Version: 1.0

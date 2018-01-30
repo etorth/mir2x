@@ -3,8 +3,6 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/15/2017 23:21:32
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -18,12 +16,13 @@
  * =====================================================================================
  */
 #include <cinttypes>
-#include "netdriver.hpp"
+#include "dbpod.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "threadpn.hpp"
 #include "memorypn.hpp"
 #include "sysconst.hpp"
+#include "netdriver.hpp"
 #include "charobject.hpp"
 #include "friendtype.hpp"
 #include "protocoldef.hpp"
@@ -38,25 +37,17 @@ Player::Player(uint32_t nDBID,
     : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
     , m_DBID(nDBID)
     , m_JobID(0)        // will provide after bind
-    , m_SessionID(0)    // provide by bind
+    , m_ChannID(0)    // provide by bind
+    , m_Exp(0)
     , m_Level(0)        // after bind
+    , m_Gold(0)
+    , m_Inventory()
 {
     m_StateHook.Install("CheckTime", [this]() -> bool
     {
         For_CheckTime();
         return false;
     });
-
-    auto fnRegisterClass = [this]()
-    {
-        if(!RegisterClass<Player, CharObject>()){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <Player, CharObject> failed");
-            g_MonoServer->Restart();
-        }
-    };
-    static std::once_flag stFlag;
-    std::call_once(stFlag, fnRegisterClass);
 
     m_HP    = 10;
     m_HPMax = 10;
@@ -72,6 +63,11 @@ Player::Player(uint32_t nDBID,
         }
         return false;
     });
+}
+
+Player::~Player()
+{
+    DBSavePlayer();
 }
 
 void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -122,9 +118,9 @@ void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFrom
                 On_MPK_SHOWDROPITEM(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_BINDSESSION:
+        case MPK_BINDCHANNEL:
             {
-                On_MPK_BINDSESSION(rstMPK, rstFromAddr);
+                On_MPK_BINDCHANNEL(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_NETPACKAGE:
@@ -132,14 +128,14 @@ void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFrom
                 On_MPK_NETPACKAGE(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_PULLCOINFO:
+        case MPK_QUERYCORECORD:
             {
-                On_MPK_PULLCOINFO(rstMPK, rstFromAddr);
+                On_MPK_QUERYCORECORD(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_BADSESSION:
+        case MPK_BADCHANNEL:
             {
-                On_MPK_BADSESSION(rstMPK, rstFromAddr);
+                On_MPK_BADCHANNEL(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_OFFLINE:
@@ -155,6 +151,16 @@ void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFrom
         case MPK_PICKUPOK:
             {
                 On_MPK_PICKUPOK(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_CORECORD:
+            {
+                On_MPK_CORECORD(rstMPK, rstFromAddr);
+                break;
+            }
+        case MPK_NOTIFYDEAD:
+            {
+                On_MPK_NOTIFYDEAD(rstMPK, rstFromAddr);
                 break;
             }
         default:
@@ -173,6 +179,7 @@ void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         case CM_REQUESTSPACEMOVE: Net_CM_REQUESTSPACEMOVE(nType, pData, nDataLen); break;
         case CM_ACTION          : Net_CM_ACTION          (nType, pData, nDataLen); break;
         case CM_PICKUP          : Net_CM_PICKUP          (nType, pData, nDataLen); break;
+        case CM_QUERYGOLD       : Net_CM_QUERYGOLD       (nType, pData, nDataLen); break;
         default                 :                                                  break;
     }
 }
@@ -186,42 +193,45 @@ bool Player::Update()
     return true;
 }
 
-bool Player::Bind(uint32_t nSessionID)
+void Player::ReportCORecord(uint32_t nUID)
 {
-    m_SessionID = nSessionID;
-
-    extern NetDriver *g_NetDriver;
-    g_NetDriver->Bind(SessionID(), GetAddress());
-    return true;
-}
-
-void Player::ReportCORecord(uint32_t nSessionID)
-{
-    if(nSessionID){
-        SMCORecord stSMCOR;
-
-        stSMCOR.Type = CREATURE_PLAYER;
-
-        stSMCOR.Common.UID       = UID();
-        stSMCOR.Common.MapID     = MapID();
-        stSMCOR.Common.X         = X();
-        stSMCOR.Common.Y         = Y();
-        stSMCOR.Common.EndX      = X();
-        stSMCOR.Common.EndY      = Y();
-        stSMCOR.Common.Direction = Direction();
-        stSMCOR.Common.Speed     = Speed();
-        stSMCOR.Common.Action    = ACTION_STAND;
-
-        stSMCOR.Player.DBID      = m_DBID;
-        stSMCOR.Player.JobID     = m_JobID;
-        stSMCOR.Player.Level     = m_Level;
-
-        extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(nSessionID, SM_CORECORD, stSMCOR);
-    }else{
+    if(nUID){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "invalid session id");
-        g_MonoServer->Restart();
+        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+            AMCORecord stAMCOR;
+            std::memset(&stAMCOR, 0, sizeof(stAMCOR));
+
+            // TODO: don't use OBJECT_PLAYER, we need translation
+            //       rule of communication, the sender is responsible to translate
+
+            // 1. set type
+            stAMCOR.COType = CREATURE_PLAYER;
+
+            // 2. set current action
+            stAMCOR.Action.UID   = UID();
+            stAMCOR.Action.MapID = MapID();
+
+            stAMCOR.Action.Action    = ACTION_STAND;
+            stAMCOR.Action.Speed     = SYS_DEFSPEED;
+            stAMCOR.Action.Direction = Direction();
+
+            stAMCOR.Action.X    = X();
+            stAMCOR.Action.Y    = Y();
+            stAMCOR.Action.AimX = X();
+            stAMCOR.Action.AimY = Y();
+
+            stAMCOR.Action.AimUID      = 0;
+            stAMCOR.Action.ActionParam = 0;
+
+            // 3. set specified co information
+            stAMCOR.Player.DBID  = DBID();
+            stAMCOR.Player.JobID = JobID();
+            stAMCOR.Player.Level = Level();
+
+            // don't reply to server map
+            // even get co information pull request from map
+            m_ActorPod->Forward({MPK_CORECORD, stAMCOR}, stUIDRecord.GetAddress());
+        }
     }
 }
 
@@ -234,7 +244,7 @@ void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)
 {
     if(true
             && nUID
-            && SessionID()){
+            && ChannID()){
 
         SMAction stSMA;
         std::memset(&stSMA, 0, sizeof(stSMA));
@@ -255,13 +265,13 @@ void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)
         stSMA.ActionParam = rstAction.ActionParam;
 
         extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(SessionID(), SM_ACTION, stSMA);
+        g_NetDriver->Post(ChannID(), SM_ACTION, stSMA);
     }
 }
 
 void Player::ReportHealth()
 {
-    if(SessionID()){
+    if(ChannID()){
         SMUpdateHP stSMUHP;
         stSMUHP.UID   = UID();
         stSMUHP.MapID = MapID();
@@ -269,7 +279,7 @@ void Player::ReportHealth()
         stSMUHP.HPMax = HPMax();
 
         extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(SessionID(), SM_UPDATEHP, stSMUHP);
+        g_NetDriver->Post(ChannID(), SM_UPDATEHP, stSMUHP);
     }
 }
 
@@ -433,7 +443,7 @@ bool Player::ActionValid(const ActionNode &)
     return true;
 }
 
-void Player::CheckFriend(uint32_t nUID, std::function<void(int)> fnOnFriend)
+void Player::CheckFriend(uint32_t nUID, const std::function<void(int)> &fnOnFriend)
 {
     if(nUID){
         if(0){
@@ -469,14 +479,14 @@ void Player::ReportOffline(uint32_t nUID, uint32_t nMapID)
     if(true
             && nUID
             && nMapID
-            && SessionID()){
+            && ChannID()){
 
         SMOffline stSMO;
         stSMO.UID   = nUID;
         stSMO.MapID = nMapID;
 
         extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(SessionID(), SM_OFFLINE, stSMO);
+        g_NetDriver->Post(ChannID(), SM_OFFLINE, stSMO);
     }
 }
 
@@ -511,8 +521,11 @@ InvarData Player::GetInvarData() const
 
 bool Player::PostNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
-    extern NetDriver *g_NetDriver;
-    return g_NetDriver->Send(SessionID(), nHC, pData, nDataLen);
+    if(ChannID()){
+        extern NetDriver *g_NetDriver;
+        return g_NetDriver->Post(ChannID(), nHC, pData, nDataLen);
+    }
+    return false;
 }
 
 void Player::OnCMActionStand(CMAction stCMA)
@@ -683,7 +696,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 Delay(1400, [this, stSMFM]()
                 {
                     extern NetDriver *g_NetDriver;
-                    g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                    g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
                 });
                 break;
             }
@@ -699,7 +712,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 Delay(800, [this, stSMFM]()
                 {
                     extern NetDriver *g_NetDriver;
-                    g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                    g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
                 });
                 break;
             }
@@ -728,7 +741,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
                     AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
 
                     extern NetDriver *g_NetDriver;
-                    g_NetDriver->Send(SessionID(), SM_FIREMAGIC, stSMFM);
+                    g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
                 });
                 break;
             }
@@ -752,10 +765,11 @@ void Player::OnCMActionPickUp(CMAction stCMA)
         case 0:
             {
                 AMPickUp stAMPU;
-                stAMPU.X      = stCMA.X;
-                stAMPU.Y      = stCMA.Y;
-                stAMPU.UID    = UID();
-                stAMPU.ItemID = stCMA.ActionParam;
+                stAMPU.X    = stCMA.X;
+                stAMPU.Y    = stCMA.Y;
+                stAMPU.UID  = UID();
+                stAMPU.ID   = stCMA.ActionParam;
+                stAMPU.DBID = 0;
 
                 m_ActorPod->Forward({MPK_PICKUP, stAMPU}, m_Map->GetAddress());
                 return;
@@ -814,4 +828,190 @@ void Player::RecoverHealth()
 
         ReportHealth();
     }
+}
+
+void Player::GainExp(int nExp)
+{
+    if(nExp){
+        if((int)(m_Exp) + nExp < 0){
+            m_Exp = 0;
+        }else{
+            m_Exp += (uint32_t)(nExp);
+        }
+
+        auto nLevelExp = GetLevelExp();
+        if(m_Exp >= nLevelExp){
+            m_Exp    = m_Exp - nLevelExp;
+            m_Level += 1;
+        }
+    }
+}
+
+uint32_t Player::GetLevelExp()
+{
+    auto fnGetLevelExp = [](int nLevel, int nJobID) -> int
+    {
+        if(nLevel > 0 && nJobID >= 0){
+            return 1000;
+        }
+        return -1;
+    };
+    return fnGetLevelExp(Level(), JobID());
+}
+
+void Player::PullRectCO(int nW, int nH)
+{
+    // pull all co's on current map
+    // in rectangle center on (X(), Y()) and (nW, nH)
+
+    if(true
+            && nW > 0
+            && nH > 0
+            && ActorPodValid()
+            && m_Map->ActorPodValid()){
+
+        AMPullCOInfo stAMPCOI;
+        stAMPCOI.X     = X();
+        stAMPCOI.Y     = Y();
+        stAMPCOI.W     = nW;
+        stAMPCOI.H     = nH;
+        stAMPCOI.UID   = UID();
+        stAMPCOI.MapID = m_Map->ID();
+        m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
+    }
+}
+
+bool Player::CanPickUp(uint32_t, uint32_t)
+{
+    return true;
+}
+
+bool Player::DBUpdate(const char *szTableName, const char *szFieldList, ...)
+{
+    if(true
+            && (szTableName && std::strlen(szTableName))
+            && (szFieldList && std::strlen(szFieldList))){
+
+        auto fnWriteDB = [this](const char *szTableName, const char *szSQLCommand) -> bool
+        {
+            extern DBPodN *g_DBPodN;
+            auto pDBHDR = g_DBPodN->CreateDBHDR();
+
+            if(!pDBHDR->Execute("update mir2x.%s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand, DBID())){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+                return false;
+            }
+            return true;
+        };
+
+        int nCmdLen = 0;
+
+        // 1. try static buffer
+        //    give an enough size so we can hopefully stop here
+        {
+            char szSBuf[1024];
+
+            va_list ap;
+            va_start(ap, szFieldList);
+            nCmdLen = std::vsnprintf(szSBuf, std::extent<decltype(szSBuf)>::value, szFieldList, ap);
+            va_end(ap);
+
+            if(nCmdLen >= 0){
+                if((size_t)(nCmdLen + 1) < std::extent<decltype(szSBuf)>::value){
+                    return fnWriteDB(szTableName, szSBuf);
+                }else{
+                    // do nothing
+                    // have to try the dynamic buffer method
+                }
+            }else{
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL table %s update command parsing failed: %s", szTableName, szFieldList);
+                return false;
+            }
+        }
+
+        // 2. try dynamic buffer
+        //    use the parsed buffer size above to get enough memory
+        while(true){
+            std::vector<char> szDBuf(nCmdLen + 1 + 64);
+
+            va_list ap;
+            va_start(ap, szFieldList);
+            nCmdLen = std::vsnprintf(&(szDBuf[0]), szDBuf.size(), szFieldList, ap);
+            va_end(ap);
+
+            if(nCmdLen >= 0){
+                if((size_t)(nCmdLen + 1) < szDBuf.size()){
+                    return fnWriteDB(szTableName, &(szDBuf[0]));
+                }else{
+                    szDBuf.resize(nCmdLen + 1 + 64);
+                }
+            }else{
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL table %s update command parsing failed: %s", szTableName, szFieldList);
+                return false;
+            }
+        }
+    }
+    return false;
+}
+
+bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::function<std::string(const char *)> fnDBOperation)
+{
+    if(true
+            && (szTableName && std::strlen(szTableName))
+            && (szFieldName && std::strlen(szFieldName))){
+
+        extern DBPodN *g_DBPodN;
+        auto pDBHDR = g_DBPodN->CreateDBHDR();
+
+        if(!pDBHDR->Execute("select %s from mir2x.%s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID())){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+            return false;
+        }
+
+        if(pDBHDR->RowCount() < 1){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_INFO, "No dbid created for this player: DBID = %" PRIu32, DBID());
+            return false;
+        }
+
+        pDBHDR->Fetch();
+        auto szRes = fnDBOperation(pDBHDR->Get(szFieldName));
+
+        // if need to return a string we should do:
+        //     return "\"xxxx\"";
+        // then empty string should be "\"\"", not szRes.empty()
+
+        if(!szRes.empty()){
+            if(!pDBHDR->Execute("update mir2x.%s set %s = %s where fld_dbid = %" PRIu32, szTableName, szFieldName, szRes.c_str(), DBID())){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+                return false;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Player::DBLoadPlayer()
+{
+    return true;
+}
+
+bool Player::DBSavePlayer()
+{
+    return DBUpdate("tbl_dbid", "fld_gold = %d, fld_level = %d", Gold(), Level());
+}
+
+void Player::ReportGold()
+{
+    SMGold stSMG;
+    std::memset(&stSMG, 0, sizeof(stSMG));
+
+    stSMG.Gold = Gold();
+    PostNetMessage(SM_GOLD, stSMG);
 }

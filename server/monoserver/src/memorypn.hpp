@@ -3,8 +3,6 @@
  *
  *       Filename: memorypn.hpp
  *        Created: 05/24/2016 19:11:41
- *  Last Modified: 03/22/2017 18:34:43
- *
  *    Description: 
  *
  *        Version: 1.0

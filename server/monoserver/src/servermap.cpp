@@ -3,8 +3,6 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *  Last Modified: 12/20/2017 02:38:00
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -83,7 +81,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
                 // no matter bCheckCO set or not
                 // we allow all grids if the ground is valid, ignoring the creature and lock
 
-                return pMap->CanMove(false, false, false, nSrcX, nSrcY, nDstX, nDstY);
+                return pMap->CanMove(false, false, nSrcX, nSrcY, nDstX, nDstY);
             },
 
             // 2. move cost function, for directions as following
@@ -210,7 +208,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
                     // in future's version fExtraPen should be penalty for turn
                     // and this function can enable we put dynamical cost for some busy hops
 
-                    return pMap->MoveCost(true, true, true, nSrcX, nSrcY, nDstX, nDstY) + fExtraPen;
+                    return pMap->MoveCost(true, true, nSrcX, nSrcY, nDstX, nDstY) + fExtraPen;
                 }else{
                     // won't check creature
                     // then all walk-able step get cost 1.0 + delta
@@ -262,7 +260,6 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
           condcheck(pMir2xMapData);
           return pMir2xMapData;
       }()))
-    , m_Metronome(nullptr)
     , m_ServiceCore(pServiceCore)
     , m_CellRecordV2D()
     , m_LuaModule(nullptr)
@@ -298,17 +295,6 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
             break;
         }
     }
-
-    auto fnRegisterClass = [this]()
-    {
-        if(!RegisterClass<ServerMap, ActiveObject>()){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <ServerMap, ActiveObject> failed");
-            g_MonoServer->Restart();
-        }
-    };
-    static std::once_flag stFlag;
-    std::call_once(stFlag, fnRegisterClass);
 }
 
 void ServerMap::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
@@ -384,19 +370,14 @@ void ServerMap::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstF
                 On_MPK_PULLCOINFO(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_QUERYCORECORD:
-            {
-                On_MPK_QUERYCORECORD(rstMPK, rstFromAddr);
-                break;
-            }
         case MPK_QUERYCOCOUNT:
             {
                 On_MPK_QUERYCOCOUNT(rstMPK, rstFromAddr);
                 break;
             }
-        case MPK_QUERYRECTUIDV:
+        case MPK_QUERYRECTUIDLIST:
             {
-                On_MPK_QUERYRECTUIDV(rstMPK, rstFromAddr);
+                On_MPK_QUERYRECTUIDLIST(rstMPK, rstFromAddr);
                 break;
             }
         case MPK_OFFLINE:
@@ -428,7 +409,9 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
             for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
                 extern MonoServer *g_MonoServer;
                 if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                    if(stUIDRecord.ClassFrom<CharObject>()){
+                    if(false
+                            || stUIDRecord.ClassFrom<Player >()
+                            || stUIDRecord.ClassFrom<Monster>()){
                         return false;
                     }
                 }
@@ -445,7 +428,7 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
     return false;
 }
 
-bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, bool bSkipMiddleLock, int nX0, int nY0, int nX1, int nY1)
+bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX0, int nY0, int nX1, int nY1)
 {
     int nMaxIndex = -1;
     switch(LDistance2(nX0, nY0, nX1, nY1)){
@@ -482,18 +465,11 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, bool bSkipMiddleLock, in
     int nDY = (nY1 > nY0) - (nY1 < nY0);
 
     for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
-
         bool bCheckCurrLock = false;
-        if(bCheckLock){
-            if(bSkipMiddleLock){
-                if((nIndex != 0) && (nIndex != nMaxIndex)){
-                    bCheckCurrLock = false;
-                }else{
-                    bCheckCurrLock = true;
-                }
-            }else{
-                bCheckCurrLock = true;
-            }
+        if(true
+                && bCheckLock
+                && ((nIndex == 0) || (nIndex == nMaxIndex))){
+            bCheckCurrLock = true;
         }
 
         if(!CanMove(bCheckCO, bCheckCurrLock, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
@@ -503,7 +479,7 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, bool bSkipMiddleLock, in
     return true;
 }
 
-double ServerMap::MoveCost(bool bCheckCO, bool bCheckLock, bool bSkipMiddleLock, int nX0, int nY0, int nX1, int nY1)
+double ServerMap::MoveCost(bool bCheckCO, bool bCheckLock, int nX0, int nY0, int nX1, int nY1)
 {
     int nMaxIndex = -1;
     switch(LDistance2(nX0, nY0, nX1, nY1)){
@@ -553,16 +529,10 @@ double ServerMap::MoveCost(bool bCheckCO, bool bCheckLock, bool bSkipMiddleLock,
             // check the co's and locks
 
             bool bCheckCurrLock = false;
-            if(bCheckLock){
-                if(bSkipMiddleLock){
-                    if((nIndex != 0) && (nIndex != nMaxIndex)){
-                        bCheckCurrLock = false;
-                    }else{
-                        bCheckCurrLock = true;
-                    }
-                }else{
-                    bCheckCurrLock = true;
-                }
+            if(true
+                    && bCheckLock
+                    && ((nIndex == 0) || (nIndex == nMaxIndex))){
+                bCheckCurrLock = true;
             }
 
             fMoveCost += (CanMove(bCheckCO, bCheckCurrLock, nCurrX, nCurrY) ? 1.00 : 100.00);
@@ -669,14 +639,11 @@ Theron::Address ServerMap::Activate()
 {
     auto stAddress = ActiveObject::Activate();
 
-    delete m_Metronome;
-    m_Metronome = new Metronome(300);
-    m_Metronome->Activate(GetAddress());
-
     delete m_LuaModule;
     m_LuaModule = new ServerMap::ServerMapLuaModule();
     RegisterLuaExport(m_LuaModule);
 
+    AddTick();
     return stAddress;
 }
 
@@ -686,7 +653,7 @@ void ServerMap::AddGridUID(uint32_t nUID, int nX, int nY)
             && ValidC(nX, nY)
             && GroundValid(nX, nY)){
 
-        auto &rstUIDList = m_CellRecordV2D[nX][nY].UIDList;
+        auto &rstUIDList = GetUIDList(nX, nY);
         if(std::find(rstUIDList.begin(), rstUIDList.end(), nUID) == rstUIDList.end()){
             rstUIDList.push_back(nUID);
         }
@@ -699,7 +666,7 @@ void ServerMap::RemoveGridUID(uint32_t nUID, int nX, int nY)
             && ValidC(nX, nY)
             && GroundValid(nX, nY)){
 
-        auto &rstUIDList = m_CellRecordV2D[nX][nY].UIDList;
+        auto &rstUIDList = GetUIDList(nX, nY);
         auto pUIDRecord  = std::find(rstUIDList.begin(), rstUIDList.end(), nUID);
 
         if(pUIDRecord != rstUIDList.end()){
@@ -709,7 +676,31 @@ void ServerMap::RemoveGridUID(uint32_t nUID, int nX, int nY)
     }
 }
 
-void ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(int, int)> &fnOP)
+bool ServerMap::DoUIDList(int nX, int nY, const std::function<bool(const UIDRecord &)> &fnOP)
+{
+    if(ValidC(nX, nY)){
+        auto &rstUIDList = GetUIDList(nX, nY);
+        for(size_t nIndex = 0; nIndex < rstUIDList.size();){
+            extern MonoServer *g_MonoServer;
+            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(rstUIDList[nIndex])){
+                if(!fnOP){
+                    return false;
+                }
+
+                if(fnOP(stUIDRecord)){
+                    return true;
+                }
+                nIndex++;
+            }else{
+                rstUIDList[nIndex] = rstUIDList.back();
+                rstUIDList.pop_back();
+            }
+        }
+    }
+    return false;
+}
+
+bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(int, int)> &fnOP)
 {
     int nW = 2 * nCR - 1;
     int nH = 2 * nCR - 1;
@@ -729,19 +720,22 @@ void ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(i
             for(int nY = nY0; nY < nY0 + nH; ++nY){
                 if(true || ValidC(nX, nY)){
                     if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
-                        if(false
-                                || !fnOP
-                                ||  fnOP(nX, nY)){
-                            return;
+                        if(!fnOP){
+                            return false;
+                        }
+
+                        if(fnOP(nX, nY)){
+                            return true;
                         }
                     }
                 }
             }
         }
     }
+    return false;
 }
 
-void ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<bool(int, int)> &fnOP)
+bool ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<bool(int, int)> &fnOP)
 {
     if(true
             && nW > 0
@@ -754,98 +748,107 @@ void ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<b
         for(int nX = nX0; nX < nX0 + nW; ++nX){
             for(int nY = nY0; nY < nY0 + nH; ++nY){
                 if(true || ValidC(nX, nY)){
-                    if(false
-                            || !fnOP
-                            ||  fnOP(nX, nY)){
-                        return;
+                    if(!fnOP){
+                        return false;
+                    }
+
+                    if(fnOP(nX, nY)){
+                        return true;
                     }
                 }
             }
         }
     }
+    return false;
 }
 
-void ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, const std::function<bool(int, int)> &fnOP)
+bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, const std::function<bool(int, int)> &fnOP)
 {
-    if(bPriority){
-        int nW = 2 * nCR - 1;
-        int nH = 2 * nCR - 1;
+    if(!bPriority){
+        return DoCircle(nCX0, nCY0, nCR, fnOP);
+    }
 
-        int nX0 = nCX0 - nCR + 1;
-        int nY0 = nCY0 - nCR + 1;
+    int nW = 2 * nCR - 1;
+    int nH = 2 * nCR - 1;
 
-        if(true
-                && nW > 0
-                && nH > 0
-                && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+    int nX0 = nCX0 - nCR + 1;
+    int nY0 = nCY0 - nCR + 1;
 
-            // get the clip region over the map
-            // if no valid region we won't do the rest
+    if(true
+            && nW > 0
+            && nH > 0
+            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
-            RotateCoord stRC;
-            if(stRC.Reset(nCX0, nCY0, nX0, nY0, nW, nH)){
-                do{
-                    int nX = stRC.X();
-                    int nY = stRC.Y();
+        // get the clip region over the map
+        // if no valid region we won't do the rest
 
-                    if(true || ValidC(nX, nY)){
-                        if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
-                            if(false
-                                    || !fnOP
-                                    ||  fnOP(nX, nY)){
-                                return;
-                            }
+        RotateCoord stRC;
+        if(stRC.Reset(nCX0, nCY0, nX0, nY0, nW, nH)){
+            do{
+                int nX = stRC.X();
+                int nY = stRC.Y();
+
+                if(true || ValidC(nX, nY)){
+                    if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                        if(!fnOP){
+                            return false;
+                        }
+
+                        if(fnOP(nX, nY)){
+                            return true;
                         }
                     }
-                }while(stRC.Forward());
-            }
+                }
+            }while(stRC.Forward());
         }
-    }else{
-        DoCircle(nCX0, nCY0, nCR, fnOP);
     }
+    return false;
 }
 
-void ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority, const std::function<bool(int, int)> &fnOP)
+bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority, const std::function<bool(int, int)> &fnOP)
 {
-    if(bPriority){
-        int nX0 = nCX - nW / 2;
-        int nY0 = nCY - nH / 2;
-
-        if(true
-                && nW > 0
-                && nH > 0
-                && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
-
-            // get the clip region over the map
-            // if no valid region we won't do the rest
-
-            RotateCoord stRC;
-            if(stRC.Reset(nCX, nCY, nX0, nY0, nW, nH)){
-                do{
-                    int nX = stRC.X();
-                    int nY = stRC.Y();
-
-                    if(true || ValidC(nX, nY)){
-                        if(false
-                                || !fnOP
-                                ||  fnOP(nX, nY)){
-                            return;
-                        }
-                    }
-                }while(stRC.Forward());
-            }
-        }
-    }else{
-        DoSquare(nCX - nW / 2, nCY - nH / 2, nW, nH, fnOP);
+    if(!bPriority){
+        return DoSquare(nCX - nW / 2, nCY - nH / 2, nW, nH, fnOP);
     }
+
+    int nX0 = nCX - nW / 2;
+    int nY0 = nCY - nH / 2;
+
+    if(true
+            && nW > 0
+            && nH > 0
+            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+
+        // get the clip region over the map
+        // if no valid region we won't do the rest
+
+        RotateCoord stRC;
+        if(stRC.Reset(nCX, nCY, nX0, nY0, nW, nH)){
+            do{
+                int nX = stRC.X();
+                int nY = stRC.Y();
+
+                if(true || ValidC(nX, nY)){
+                    if(!fnOP){
+                        return false;
+                    }
+
+                    if(fnOP(nX, nY)){
+                        return true;
+                    }
+                }
+            }while(stRC.Forward());
+        }
+    }
+    return false;
 }
 
-int ServerMap::FindGroundItem(int nX, int nY, uint32_t nItemID)
+int ServerMap::FindGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
 {
     if(ValidC(nX, nY)){
-        auto &rstGroundItemList = m_CellRecordV2D[nX][nY].GroundItemList;
-        for(size_t nIndex = 0; nIndex < rstGroundItemList.size(); ++nIndex){
-            if(rstGroundItemList[nIndex].ID() == nItemID){
+        auto &rstGroundItemList = GetGroundItemList(nX, nY);
+        for(size_t nIndex = 0; nIndex < rstGroundItemList.Length(); ++nIndex){
+            if(rstGroundItemList[nIndex] == rstCommonItem){
                 return (int)(nIndex);
             }
         }
@@ -853,24 +856,13 @@ int ServerMap::FindGroundItem(int nX, int nY, uint32_t nItemID)
     return -1;
 }
 
-void ServerMap::RemoveGroundItem(int nX, int nY, uint32_t nItemID)
+int ServerMap::GroundItemCount(const CommonItem &rstCommonItem, int nX, int nY)
 {
-    while(true){
-        auto nIndex = FindGroundItem(nX, nY, nItemID);
-        if(nIndex >= 0){
-            m_CellRecordV2D[nX][nY].GroundItemList[nIndex] = CommonItem(0, 0);
-        }else{
-            return;
-        }
-    }
-}
-
-int ServerMap::DropItemListCount(int nX, int nY)
-{
-    if(GroundValid(nX, nY)){
+    if(ValidC(nX, nY)){
+        auto &rstGroundItemList = GetGroundItemList(nX, nY);
         int nCount = 0;
-        for(auto &rstCurrItem: m_CellRecordV2D[nX][nY].GroundItemList){
-            if(rstCurrItem){
+        for(size_t nIndex = 0; nIndex < rstGroundItemList.Length(); ++nIndex){
+            if(rstGroundItemList[nIndex] == rstCommonItem){
                 nCount++;
             }
         }
@@ -879,62 +871,66 @@ int ServerMap::DropItemListCount(int nX, int nY)
     return -1;
 }
 
-bool ServerMap::AddGroundItem(int nX, int nY, const CommonItem &rstItem)
+void ServerMap::RemoveGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
+{
+    auto nFind = FindGroundItem(rstCommonItem, nX, nY);
+    if(nFind >= 0){
+        auto &rstGroundItemList = GetGroundItemList(nX, nY);
+        for(int nIndex = nFind; nIndex < ((int)(rstGroundItemList.Length()) - 1); ++nIndex){
+            rstGroundItemList[nIndex] = rstGroundItemList[nIndex + 1];
+        }
+        rstGroundItemList.PopBack();
+    }
+}
+
+bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
 {
     if(true
-            && rstItem
+            && rstCommonItem
             && GroundValid(nX, nY)){
 
-        // search for item id as 0
-        // find a slot to store the new item
+        // check if item is valid
+        // then push back and report, would override if already full
 
-        auto nEmptyIndex = FindGroundItem(nX, nY, 0);
-        if(nEmptyIndex >= 0){
-            auto &rstGroundItemList = m_CellRecordV2D[nX][nY].GroundItemList;
-            rstGroundItemList[nEmptyIndex] = rstItem;
+        auto &rstGroundItemList = GetGroundItemList(nX, nY);
+        rstGroundItemList.PushBack(rstCommonItem);
 
-            // report to all charobject around
-            // since there are one more drop item for each grid
-            // client / server side may have different drop item list
+        AMShowDropItem stAMSDI;
+        std::memset(&stAMSDI, 0, sizeof(stAMSDI));
 
-            // not a big issue
-            // force they to contain the same set
+        stAMSDI.X = nX;
+        stAMSDI.Y = nY;
 
-            AMShowDropItem stAMSDI;
-            std::memset(&stAMSDI, 0, sizeof(stAMSDI));
-
-            stAMSDI.X = nX;
-            stAMSDI.Y = nY;
-
-            size_t nCurrLoc = 0;
-            for(size_t nIndex = 0; nIndex < rstGroundItemList.size(); ++nIndex){
-                if(rstGroundItemList[nIndex]){
-                    if(nCurrLoc < std::extent<decltype(stAMSDI.IDList)>::value){
-                        stAMSDI.IDList[nCurrLoc++] = rstGroundItemList[nIndex].ID();
-                    }else{
-                        break;
-                    }
+        size_t nCurrLoc = 0;
+        for(size_t nIndex = 0; nIndex < rstGroundItemList.Length(); ++nIndex){
+            if(rstGroundItemList[nIndex]){
+                if(nCurrLoc < std::extent<decltype(stAMSDI.IDList)>::value){
+                    stAMSDI.IDList[nCurrLoc].ID   = rstGroundItemList[nIndex].ID();
+                    stAMSDI.IDList[nCurrLoc].DBID = rstGroundItemList[nIndex].DBID();
+                    nCurrLoc++;
+                }else{
+                    break;
                 }
             }
+        }
 
-            auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
-            {
-                if(true || ValidC(nX, nY)){
-                    for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
-                        extern MonoServer *g_MonoServer;
-                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(stUIDRecord.ClassFrom<Player>()){
-                                m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.Address);
-                            }
+        auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
+        {
+            if(true || ValidC(nX, nY)){
+                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                    extern MonoServer *g_MonoServer;
+                    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+                        if(stUIDRecord.ClassFrom<Player>()){
+                            m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.GetAddress());
                         }
                     }
                 }
-                return false;
-            };
+            }
+            return false;
+        };
 
-            DoCircle(nX, nY, 10, fnNotifyDropItem);
-            return true;
-        }
+        DoCircle(nX, nY, 10, fnNotifyDropItem);
+        return true;
     }
     return false;
 }
@@ -949,7 +945,7 @@ int ServerMap::GetMonsterCount(uint32_t nMonsterID)
                 if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
                     if(stUIDRecord.ClassFrom<Monster>()){
                         if(nMonsterID){
-                            nCount += ((stUIDRecord.Desp.Monster.MonsterID == nMonsterID) ? 1 : 0);
+                            nCount += ((stUIDRecord.GetInvarData().Monster.MonsterID == nMonsterID) ? 1 : 0);
                         }else{
                             nCount++;
                         }
@@ -1125,33 +1121,4 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
         return true;
     }
     return false;
-}
-
-void ServerMap::ReportGroundItem(uint32_t nSessionID, int nX, int nY)
-{
-    if(nSessionID && GroundValid(nX, nY)){
-        SMShowDropItem stSMSDI;
-        std::memset(&stSMSDI, 0, sizeof(stSMSDI));
-
-        auto &rstGroundItemList = m_CellRecordV2D[nX][nY].GroundItemList;
-        constexpr auto nSMIDListLen = std::extent<decltype(stSMSDI.IDList)>::value;
-        static_assert(nSMIDListLen >= std::tuple_size<std::remove_reference_t<decltype(rstGroundItemList)>>::value, "");
-
-        stSMSDI.X = nX;
-        stSMSDI.Y = nY;
-
-        size_t nCurrLoc = 0;
-        for(size_t nIndex = 0; nIndex < rstGroundItemList.size(); ++nIndex){
-            if(rstGroundItemList[nIndex]){
-                if(nCurrLoc < nSMIDListLen){
-                    stSMSDI.IDList[nCurrLoc++] = rstGroundItemList[nIndex].ID();
-                }else{
-                    break;
-                }
-            }
-        }
-
-        extern NetDriver *g_NetDriver;
-        g_NetDriver->Send(nSessionID, SM_SHOWDROPITEM, stSMSDI);
-    }
 }

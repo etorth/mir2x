@@ -3,8 +3,6 @@
  *
  *       Filename: widget.hpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 09/15/2017 10:41:13
- *
  *    Description: public API for class game only
  *
  *        Version: 1.0

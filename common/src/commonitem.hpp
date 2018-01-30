@@ -3,8 +3,6 @@
  *
  *       Filename: commonitem.hpp
  *        Created: 07/30/2017 18:44:32
- *  Last Modified: 07/30/2017 19:04:03
- *
  *    Description: common item is by two parts
  *                 1. ItemRecord
  *                 2. AdditionalAttributes
@@ -36,11 +34,14 @@
 class CommonItem
 {
     private:
-        uint32_t m_ID;
-        uint32_t m_DBID;
+        uint32_t m_ID   = 0;
+        uint32_t m_DBID = 0;
 
     public:
-        CommonItem(uint32_t nID = 0, uint32_t nDBID = 0)
+        CommonItem() = default;
+
+    public:
+        CommonItem(uint32_t nID, uint32_t nDBID)
             : m_ID(nID)
             , m_DBID(nDBID)
         {}

@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <mariadb/mysql.h>
+#include "mysqlinc.hpp"
 
 class DBConnection;
 class DBRecord final

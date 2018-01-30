@@ -3,8 +3,6 @@
  *
  *       Filename: netio.hpp
  *        Created: 09/03/2015 03:49:00 AM
- *  Last Modified: 04/26/2017 11:55:49
- *
  *    Description: read / write for 1 to 1 map network, for the server part we use class
  *                 session since it's 1 to N map.
  *

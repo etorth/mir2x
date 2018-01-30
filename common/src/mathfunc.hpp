@@ -3,8 +3,6 @@
  *
  *       Filename: mathfunc.hpp
  *        Created: 02/02/2016 20:50:30
- *  Last Modified: 08/24/2017 15:51:10
- *
  *    Description: 
  *
  *        Version: 1.0

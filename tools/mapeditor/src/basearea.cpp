@@ -3,8 +3,6 @@
  *
  *       Filename: basearea.cpp
  *        Created: 07/26/2015 04:27:57
- *  Last Modified: 08/24/2017 21:48:11
- *
  *    Description:
  *
  *        Version: 1.0
@@ -18,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <string>
 #include <cstdarg>
 #include <cstring>
 #include <cinttypes>

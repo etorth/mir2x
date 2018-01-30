@@ -3,8 +3,6 @@
  *
  *       Filename: inventoryboard.cpp
  *        Created: 10/08/2017 19:22:30
- *  Last Modified: 11/12/2017 23:28:39
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -25,7 +23,7 @@
 
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pWidget, bool bAutoFree)
     : Widget(nX, nY, 0, 0, pWidget, bAutoFree)
-    , m_GoldBoard(70, 408, "", 0, 15, 0, {0XFF, 0XFF, 0X00, 0X00}, this, false)
+    , m_GoldBoard(70, 403, "", 0, 15, 0, {0XFF, 0XFF, 0X00, 0X00}, this, false)
     , m_CloseButton(
             242,
             422,

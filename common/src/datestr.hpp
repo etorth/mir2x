@@ -3,8 +3,6 @@
  *
  *       Filename: datestr.hpp
  *        Created: 08/21/2017 16:03:41
- *  Last Modified: 08/21/2017 16:09:05
- *
  *    Description: 
  *
  *        Version: 1.0

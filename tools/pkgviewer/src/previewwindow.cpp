@@ -3,8 +3,6 @@
  *
  *       Filename: previewwindow.cpp
  *        Created: 07/22/2015 03:16:57 AM
- *  Last Modified: 08/10/2017 18:21:45
- *
  *    Description: 
  *
  *        Version: 1.0

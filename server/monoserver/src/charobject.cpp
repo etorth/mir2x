@@ -3,8 +3,6 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *  Last Modified: 12/14/2017 21:39:29
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -21,6 +19,7 @@
 #include "motion.hpp"
 #include "player.hpp"
 #include "monster.hpp"
+#include "mathfunc.hpp"
 #include "actorpod.hpp"
 #include "condcheck.hpp"
 #include "monoserver.hpp"
@@ -38,7 +37,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     : ActiveObject()
     , m_ServiceCore(pServiceCore)
     , m_Map(pServerMap)
-    , m_LocationRecord()
+    , m_LocationList()
     , m_X(nMapX)
     , m_Y(nMapY)
     , m_Direction(nDirection)
@@ -50,25 +49,14 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_AttackLock(false)
     , m_LastMoveTime(0)
     , m_LastAttackTime(0)
-    , m_TargetQ()
     , m_HitterUIDRecord()
+    , m_TargetQueue()
     , m_Ability()
     , m_WAbility()
     , m_AddAbility()
 {
     condcheck(m_Map);
     SetState(STATE_LIFECYCLE, nLifeState);
-
-    auto fnRegisterClass = [this]()
-    {
-        if(!RegisterClass<CharObject, ActiveObject>()){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Class registration for <CharObject, ActiveObject> failed");
-            g_MonoServer->Restart();
-        }
-    };
-    static std::once_flag stFlag;
-    std::call_once(stFlag, fnRegisterClass);
 }
 
 bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
@@ -99,6 +87,8 @@ Theron::Address CharObject::Activate()
     if(ActorPodValid()){
         DispatchAction(ActionStand(X(), Y(), Direction()));
     }
+
+    AddTick();
     return stAddress;
 }
 
@@ -108,6 +98,9 @@ void CharObject::ReportAction(uint32_t, const ActionNode &)
 
 void CharObject::DispatchAction(const ActionNode &rstAction)
 {
+    // should check to avoid dead CO call this function
+    // this would cause zombies
+
     if(true
             && ActorPodValid()
             && m_Map
@@ -215,8 +208,10 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
                         // should add a new function: CanTurn()
                         // for stone state we can't even make a turn
 
-                        m_Direction = nDir;
-                        DispatchAction(ActionStand(X(), Y(), Direction()));
+                        if(CanMove()){
+                            m_Direction = nDir;
+                            DispatchAction(ActionStand(X(), Y(), Direction()));
+                        }
 
                         if(fnOnMoveError){
                             fnOnMoveError();
@@ -383,7 +378,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
 
                             extern MonoServer *g_MonoServer;
                             if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMUID.UID)){
-                                fnCOSpaceMove(stUIDRecord.Address);
+                                fnCOSpaceMove(stUIDRecord.GetAddress());
                             }else{
                                 if(fnOnMoveError){
                                     fnOnMoveError();
@@ -464,7 +459,7 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLoca
                                     && m_Map
                                     && m_Map->In(stAML.MapID, stAML.X, stAML.Y)){
 
-                                m_LocationRecord[nUID] = COLocation
+                                m_LocationList[nUID] = COLocation
                                 {
                                     UID(),
                                     MapID(),
@@ -473,15 +468,18 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLoca
                                     stAML.Y,
                                     stAML.Direction
                                 };
-                                if(fnOnLocationOK){ fnOnLocationOK(m_LocationRecord[nUID]); }
+
+                                if(fnOnLocationOK){
+                                    fnOnLocationOK(m_LocationList[nUID]);
+                                }
                             }else{
-                                m_LocationRecord.erase(nUID);
+                                m_LocationList.erase(nUID);
                             }
                             break;
                         }
                     default:
                         {
-                            m_LocationRecord.erase(nUID);
+                            m_LocationList.erase(nUID);
                             break;
                         }
                 }
@@ -489,7 +487,7 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLoca
 
             extern MonoServer *g_MonoServer;
             if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
-                return m_ActorPod->Forward({MPK_QUERYLOCATION, stAMQL}, stRecord.Address, fnOnResp);
+                return m_ActorPod->Forward({MPK_QUERYLOCATION, stAMQL}, stRecord.GetAddress(), fnOnResp);
             }
 
             return false;
@@ -497,19 +495,22 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLoca
 
         // no entry found
         // do query and invocation, delay fnOnLocationOK by one step
-        if(m_LocationRecord.find(nUID) == m_LocationRecord.end()){
+        if(m_LocationList.find(nUID) == m_LocationList.end()){
             return fnQueryLocation();
         }
 
         // we find an entry
         // valid the entry, could be expired
         extern MonoServer *g_MonoServer;
-        auto &rstRecord = m_LocationRecord[nUID];
+        auto &rstRecord = m_LocationList[nUID];
         if(true
                 && m_Map
                 && m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)
-                && (rstRecord.RecordTime + 2 * 1000 < g_MonoServer->GetTimeTick())){
-            if(fnOnLocationOK){ fnOnLocationOK(rstRecord); }
+                && g_MonoServer->GetTimeTick() <= rstRecord.RecordTime + 2 * 1000){
+
+            if(fnOnLocationOK){
+                fnOnLocationOK(rstRecord);
+            }
             return true;
         }
 
@@ -580,7 +581,7 @@ bool CharObject::DispatchHitterExp()
         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(rstRecord.UID)){
             AMExp stAME;
             stAME.Exp = fnCalcExp(rstRecord.Damage);
-            m_ActorPod->Forward({MPK_EXP, stAME}, stUIDRecord.Address);
+            m_ActorPod->Forward({MPK_EXP, stAME}, stUIDRecord.GetAddress());
         }
     }
 
@@ -663,7 +664,7 @@ void CharObject::DispatchAttack(uint32_t nUID, int nDC)
                 }
             }
 
-            m_ActorPod->Forward({MPK_ATTACK, stAMA}, stRecord.Address);
+            m_ActorPod->Forward({MPK_ATTACK, stAMA}, stRecord.GetAddress());
         }
     }
 }
@@ -747,4 +748,26 @@ int CharObject::EstimateHop(int nX, int nY)
         }
     }
     return -1;
+}
+
+bool CharObject::CheckCacheLocation(int nX, int nY, uint32_t nTimeOut)
+{
+    // we can check cache location
+    // if current location is occupied we *may* not try the move
+
+    for(auto stLocation: m_LocationList){
+        if(nTimeOut){
+            extern MonoServer *g_MonoServer;
+            if(g_MonoServer->GetTimeTick() > stLocation.second.RecordTime + nTimeOut){
+                continue;
+            }
+        }
+
+        if(true
+                && stLocation.second.X == nX
+                && stLocation.second.Y == nY){
+            return false;
+        }
+    }
+    return true;
 }

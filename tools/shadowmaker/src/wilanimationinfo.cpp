@@ -3,8 +3,6 @@
  *
  *       Filename: wilanimationinfo.cpp
  *        Created: 8/8/2015 4:41:53 AM
- *  Last Modified: 07/26/2017 15:06:08
- *
  *    Description: 
  *
  *        Version: 1.0

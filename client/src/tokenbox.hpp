@@ -3,8 +3,6 @@
  *
  *       Filename: tokenbox.hpp
  *        Created: 7/2/2015 3:31:13 PM
- *  Last Modified: 03/20/2016 12:11:15
- *
  *    Description: 
  *
  *        Version: 1.0

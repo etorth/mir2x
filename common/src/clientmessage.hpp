@@ -3,8 +3,6 @@
  *
  *       Filename: clientmessage.hpp
  *        Created: 01/24/2016 19:30:45
- *  Last Modified: 12/08/2017 23:56:11
- *
  *    Description: net message used by client and mono-server
  *
  *        Version: 1.0
@@ -35,6 +33,7 @@ enum: uint8_t
 
     CM_REQUESTSPACEMOVE,
     CM_PICKUP,
+    CM_QUERYGOLD,
 };
 
 #pragma pack(push, 1)
@@ -69,11 +68,7 @@ struct CMAction
 
 struct CMQueryCORecord
 {
-    uint32_t UID;
-    uint32_t MapID;
-
-    uint16_t X;
-    uint16_t Y;
+    uint32_t AimUID;
 };
 
 struct CMReqestSpaceMove
@@ -89,7 +84,8 @@ struct CMPickUp
     uint16_t Y;
     uint32_t UID;
     uint32_t MapID;
-    uint32_t ItemID;
+    uint32_t ID;
+    uint32_t DBID;
 };
 #pragma pack(pop)
 
@@ -121,6 +117,7 @@ class CMSGParam: public MessageBase
                 {CM_QUERYCORECORD,    {1, sizeof(CMQueryCORecord),   "CM_QUERYCORECORD"   }},
                 {CM_REQUESTSPACEMOVE, {1, sizeof(CMReqestSpaceMove), "CM_REQUESTSPACEMOVE"}},
                 {CM_PICKUP,           {1, sizeof(CMPickUp),          "CM_PICKUP"          }},
+                {CM_QUERYGOLD,        {0, 0,                         "CM_QUERYGOLD"       }},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(CM_NONE) : nHC);

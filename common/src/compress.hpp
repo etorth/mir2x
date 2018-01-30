@@ -3,8 +3,6 @@
  *
  *       Filename: compress.hpp
  *        Created: 04/23/2017 21:33:02
- *  Last Modified: 04/24/2017 15:33:52
- *
  *    Description: 
  *
  *        Version: 1.0

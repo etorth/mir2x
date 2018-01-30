@@ -3,8 +3,6 @@
  *
  *       Filename: utf8char.hpp
  *        Created: 7/3/2015 2:05:13 PM
- *  Last Modified: 05/13/2017 22:20:10
- *
  *    Description: 
  *
  *        Version: 1.0

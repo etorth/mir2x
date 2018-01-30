@@ -3,8 +3,6 @@
  *
  *       Filename: xmlroot.hpp
  *        Created: 06/17/2015 06:24:14
- *  Last Modified: 07/18/2017 23:48:45
- *
  *    Description: analyze specifically formatted XML
  *                      <ROOT>
  *                          <NODE>
@@ -60,11 +58,11 @@ class XMLRoot
 
        bool Load(const char *szFileName)
        {
-           return szFileName && (m_XMLDoc.LoadFile(szFileName) == tinyxml2::XML_NO_ERROR);
+           return szFileName && (m_XMLDoc.LoadFile(szFileName) == tinyxml2::XML_SUCCESS);
        }
 
        bool Parse(const char *szRawBuf)
        {
-           return szRawBuf && (m_XMLDoc.Parse(szRawBuf) == tinyxml2::XML_NO_ERROR);
+           return szRawBuf && (m_XMLDoc.Parse(szRawBuf) == tinyxml2::XML_SUCCESS);
        }
 };

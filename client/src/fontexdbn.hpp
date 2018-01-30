@@ -3,8 +3,6 @@
  *
  *       Filename: fontexdbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 07/04/2017 14:18:48
- *
  *    Description: 
  *
  *        Version: 1.0

@@ -3,8 +3,6 @@
  *
  *       Filename: dbcomrecord.hpp
  *        Created: 07/28/2017 23:03:43
- *  Last Modified: 09/05/2017 00:07:09
- *
  *    Description: split from dbcom.hpp
  *                 don't include dbcomid.hpp in this header file
  *

@@ -3,8 +3,6 @@
  *
  *       Filename: inputboard.cpp
  *        Created: 08/21/2015 07:04:16
- *  Last Modified: 09/24/2017 01:10:08
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -433,8 +431,7 @@ std::string InputBoard::Content()
     XMLObjectList stList;
     stList.Parse(Print(false).c_str(), true);
 
-    stList.Reset();
-    while(auto pObject = stList.Fetch()){
+    for(auto pObject = stList.FirstElement(); pObject; pObject = pObject->NextSiblingElement()){
         switch(XMLObject::ObjectType(*pObject)){
             case OBJECTTYPE_RETURN:
                 {

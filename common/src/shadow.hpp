@@ -3,8 +3,6 @@
  *
  *       Filename: shadow.hpp
  *        Created: 06/22/2017 17:02:45
- *  Last Modified: 06/22/2017 17:42:57
- *
  *    Description: 
  *
  *        Version: 1.0

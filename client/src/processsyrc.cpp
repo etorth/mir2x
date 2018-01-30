@@ -3,8 +3,6 @@
  *
  *       Filename: processsyrc.cpp
  *        Created: 08/14/2015 02:47:49
- *  Last Modified: 12/08/2017 15:55:12
- *
  *    Description: 
  *
  *        Version: 1.0

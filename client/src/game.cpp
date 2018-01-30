@@ -3,8 +3,6 @@
  *
  *       Filename: game.cpp
  *        Created: 08/12/2015 09:59:15
- *  Last Modified: 12/09/2017 12:03:29
- *
  *    Description:
  *
  *        Version: 1.0
@@ -201,6 +199,13 @@ void Game::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
                     pRun->Net_EXP(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_GOLD:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_GOLD(pData, nDataLen);
                 }
                 break;
             }

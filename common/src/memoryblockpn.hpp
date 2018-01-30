@@ -3,8 +3,6 @@
  *
  *       Filename: memoryblockpn.hpp
  *        Created: 05/12/2016 23:01:23
- *  Last Modified: 06/12/2017 16:27:37
- *
  *    Description: fixed size memory block pool
  *                 simple implementation for performance
  *                 thread safe is optional, but self-contained

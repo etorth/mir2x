@@ -3,8 +3,6 @@
  *
  *       Filename: eventtask.hpp
  *        Created: 04/03/2016 22:55:21
- *  Last Modified: 05/20/2017 22:18:33
- *
  *    Description: 
  *
  *        Version: 1.0

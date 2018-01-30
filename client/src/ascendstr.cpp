@@ -3,8 +3,6 @@
  *
  *       Filename: ascendstr.cpp
  *        Created: 07/20/2017 00:34:13
- *  Last Modified: 07/20/2017 19:02:01
- *
  *    Description: 
  *
  *        Version: 1.0

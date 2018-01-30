@@ -3,8 +3,6 @@
  *
  *       Filename: myhero.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 12/12/2017 17:30:38
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -675,12 +673,13 @@ bool MyHero::StayIdle()
 void MyHero::PickUp()
 {
     if(StayIdle()){
-        for(auto &rstGroundItem: m_ProcessRun->GetGroundItemList()){
-            if(true
-                    && rstGroundItem.X == CurrMotion().X
-                    && rstGroundItem.Y == CurrMotion().Y){
-                ReportAction(ActionPickUp(rstGroundItem.X, rstGroundItem.Y, rstGroundItem.ID));
-            }
+
+        int nX = CurrMotion().X;
+        int nY = CurrMotion().Y;
+
+        auto &rstGroundItemList = m_ProcessRun->GetGroundItemList(nX, nY);
+        if(!rstGroundItemList.empty()){
+            ReportAction(ActionPickUp(nX, nY, rstGroundItemList.back().ID()));
         }
     }
 }
@@ -714,4 +713,10 @@ void MyHero::ReportAction(const ActionNode &rstAction)
 
     extern Game *g_Game;
     g_Game->Send(CM_ACTION, stCMA);
+}
+
+void MyHero::PullGold()
+{
+    extern Game *g_Game;
+    g_Game->Send(CM_QUERYGOLD);
 }

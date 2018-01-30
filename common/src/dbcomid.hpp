@@ -3,8 +3,6 @@
  *
  *       Filename: dbcomid.hpp
  *        Created: 07/28/2017 23:03:43
- *  Last Modified: 08/31/2017 14:01:37
- *
  *    Description: global constexpr _Inn_XXXXX[] declared here
  *                 any files including this would have an identical copy of them
  *

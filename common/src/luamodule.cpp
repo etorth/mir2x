@@ -3,8 +3,6 @@
  *
  *       Filename: luamodule.cpp
  *        Created: 06/03/2017 20:26:17
- *  Last Modified: 12/20/2017 11:17:19
- *
  *    Description: 
  *
  *        Version: 1.0

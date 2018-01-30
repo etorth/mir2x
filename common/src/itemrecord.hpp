@@ -3,8 +3,6 @@
  *
  *       Filename: itemrecord.hpp
  *        Created: 07/28/2017 17:12:29
- *  Last Modified: 08/05/2017 12:19:01
- *
  *    Description: for each item I have two GfxID:
  *                      PkgGfxID : when on ground and in inventory
  *                      UseGfxID : when drawing with player body

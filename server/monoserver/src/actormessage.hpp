@@ -3,8 +3,6 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *  Last Modified: 12/14/2017 23:19:09
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -26,7 +24,7 @@ enum MessagePackType: int
     MPK_OK,
     MPK_ERROR,
     MPK_BADACTORPOD,
-    MPK_BADSESSION,
+    MPK_BADCHANNEL,
     MPK_TIMEOUT,
     MPK_UID,
     MPK_PING,
@@ -42,10 +40,9 @@ enum MessagePackType: int
     MPK_LOGINQUERYDB,
     MPK_NETPACKAGE,
     MPK_ADDCHAROBJECT,
-    MPK_BINDSESSION,
+    MPK_BINDCHANNEL,
     MPK_ACTION,
     MPK_PULLCOINFO,
-    MPK_NEWCONNECTION,
     MPK_QUERYMAPLIST,
     MPK_MAPLIST,
     MPK_MAPSWITCH,
@@ -62,8 +59,8 @@ enum MessagePackType: int
     MPK_QUERYCORECORD,
     MPK_QUERYCOCOUNT,
     MPK_COCOUNT,
-    MPK_QUERYRECTUIDV,
-    MPK_UIDV,
+    MPK_QUERYRECTUIDLIST,
+    MPK_UIDLIST,
     MPK_EXP,
     MPK_NEWDROPITEM,
     MPK_SHOWDROPITEM,
@@ -72,6 +69,7 @@ enum MessagePackType: int
     MPK_PICKUP,
     MPK_PICKUPOK,
     MPK_REMOVEGROUNDITEM,
+    MPK_CORECORD,
 };
 
 struct AMBadActorPod
@@ -81,9 +79,9 @@ struct AMBadActorPod
     uint32_t Respond;
 };
 
-struct AMBadSession
+struct AMBadChannel
 {
-    uint32_t SessionID;
+    uint32_t ChannID;
 };
 
 struct AMTryLeave
@@ -124,7 +122,7 @@ union AMAddCharObject
         uint32_t JobID;
         int Level;
         int Direction;
-        uint32_t SessionID;
+        uint32_t ChannID;
     }Player;
 
     struct _NPC
@@ -189,7 +187,7 @@ struct AMMoveOK
 
 struct AMLoginQueryDB
 {
-    uint32_t SessionID;
+    uint32_t ChannID;
 
     uint32_t DBID;
     uint32_t MapID;
@@ -202,16 +200,18 @@ struct AMLoginQueryDB
 
 struct AMNetPackage
 {
-    uint32_t SessionID;
+    uint32_t ChannID;
     uint8_t  Type;
 
-    const uint8_t *Data;
+    uint8_t *Data;
+    uint8_t  DataBuf[256];
+
     size_t DataLen;
 };
 
-struct AMBindSession
+struct AMBindChannel
 {
-    uint32_t SessionID;
+    uint32_t ChannID;
 };
 
 struct AMAction
@@ -235,12 +235,13 @@ struct AMAction
 
 struct AMPullCOInfo
 {
-    uint32_t SessionID;
-};
+    int X;
+    int Y;
+    int W;
+    int H;
 
-struct AMNewConnection
-{
-    uint32_t SessionID;
+    uint32_t UID;
+    uint32_t MapID;
 };
 
 struct AMMapList
@@ -369,12 +370,6 @@ struct AMDeadFadeOut
 struct AMQueryCORecord
 {
     uint32_t UID;
-    uint32_t MapID;
-
-    int X;
-    int Y;
-
-    uint32_t SessionID;
 };
 
 struct AMQueryCOCount
@@ -401,7 +396,7 @@ struct AMCOCount
     uint32_t Count;
 };
 
-struct AMQueryRectUIDV
+struct AMQueryRectUIDList
 {
     uint32_t MapID;
 
@@ -411,9 +406,9 @@ struct AMQueryRectUIDV
     int H;
 };
 
-struct AMUIDV
+struct AMUIDList
 {
-    uint32_t UIDV[128];
+    uint32_t UIDList[128];
 };
 
 struct AMExp
@@ -433,7 +428,12 @@ struct AMNewDropItem
 
 struct AMShowDropItem
 {
-    uint32_t IDList[16];
+    struct _CommonItem
+    {
+        uint32_t ID;
+        uint32_t DBID;
+    }IDList[16];
+
     int X;
     int Y;
 };
@@ -455,8 +455,8 @@ struct AMOffline
 struct AMPickUp
 {
     uint32_t UID;
+    uint32_t ID;
     uint32_t DBID;
-    uint32_t ItemID;
 
     int X;
     int Y;
@@ -465,8 +465,8 @@ struct AMPickUp
 struct AMPickUpOK
 {
     uint32_t UID;
+    uint32_t ID;
     uint32_t DBID;
-    uint32_t ItemID;
 
     int X;
     int Y;
@@ -477,6 +477,56 @@ struct AMRemoveGroundItem
     int X;
     int Y;
 
+    uint32_t ID;
     uint32_t DBID;
-    uint32_t ItemID;
+};
+
+struct AMCORecord
+{
+    uint8_t COType;
+
+    struct _Action
+    {
+        uint32_t UID;
+        uint32_t MapID;
+
+        int Action;
+        int Speed;
+        int Direction;
+
+        int X;
+        int Y;
+        int AimX;
+        int AimY;
+
+        uint32_t AimUID;
+        uint32_t ActionParam;
+    }Action;
+
+    // instantiation of anonymous struct is supported in C11
+    // not C++11, so we define structs outside of anonymous union
+
+    struct _AMCORecord_Monster
+    {
+        uint32_t MonsterID;
+    };
+
+    struct _AMCORecord_Player
+    {
+        uint32_t DBID;
+        uint32_t JobID;
+        uint32_t Level;
+    };
+
+    struct _AMCORecord_NPC
+    {
+        uint32_t NPCID;
+    };
+
+    union
+    {
+        _AMCORecord_Monster Monster;
+        _AMCORecord_Player  Player;
+        _AMCORecord_NPC     NPC;
+    };
 };

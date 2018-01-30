@@ -3,8 +3,6 @@
  *
  *       Filename: threadpn.hpp
  *        Created: 04/19/2016 17:36:43
- *  Last Modified: 04/28/2016 00:11:43
- *
  *    Description: 
  *
  *        Version: 1.0

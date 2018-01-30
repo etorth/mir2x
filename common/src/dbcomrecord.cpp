@@ -3,8 +3,6 @@
  *
  *       Filename: dbcomrecord.cpp
  *        Created: 07/30/2017 02:01:02
- *  Last Modified: 09/05/2017 00:09:23
- *
  *    Description: split from dbcom.hpp
  *                 here we include dbcomid.hpp means we have a copy of the
  *                 constexpr _Inn_XXXX[] declared in dbcomid.hpp

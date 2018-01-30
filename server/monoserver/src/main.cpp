@@ -3,8 +3,6 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *  Last Modified: 09/05/2017 13:04:52
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -23,28 +21,24 @@
 #include "log.hpp"
 #include "dbpod.hpp"
 #include "netdriver.hpp"
-#include "taskhub.hpp"
 #include "memorypn.hpp"
 #include "threadpn.hpp"
 #include "mapbindbn.hpp"
 #include "metronome.hpp"
 #include "serverenv.hpp"
 #include "mainwindow.hpp"
-#include "eventtaskhub.hpp"
 #include "scriptwindow.hpp"
 #include "serverconfigurewindow.hpp"
 #include "databaseconfigurewindow.hpp"
 
 Log                      *g_Log;
 ServerEnv                *g_ServerEnv;
-TaskHub                  *g_TaskHub;
 MemoryPN                 *g_MemoryPN;
-EventTaskHub             *g_EventTaskHub;
-Theron::EndPoint         *g_EndPoint;
 Theron::Framework        *g_Framework;
 ThreadPN                 *g_ThreadPN;
-NetDriver                  *g_NetDriver;
+NetDriver                *g_NetDriver;
 DBPodN                   *g_DBPodN;
+Metronome                *g_Metronome;
 
 MapBinDBN                *g_MapBinDBN;
 ScriptWindow             *g_ScriptWindow;
@@ -63,7 +57,6 @@ int main()
 
     g_Log                     = new Log("mir2x-monoserver-v0.1");
     g_ServerEnv               = new ServerEnv();
-    g_TaskHub                 = new TaskHub();
     g_ScriptWindow            = new ScriptWindow();
     g_MainWindow              = new MainWindow();
     g_MonoServer              = new MonoServer();
@@ -71,12 +64,11 @@ int main()
     g_MapBinDBN               = new MapBinDBN();
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
-    g_EventTaskHub            = new EventTaskHub();
-    g_EndPoint                = new Theron::EndPoint("monoserver", "tcp://127.0.0.1:5556");
-    g_Framework               = new Theron::Framework(*g_EndPoint);
+    g_Framework               = new Theron::Framework();
     g_ThreadPN                = new ThreadPN(4);
     g_DBPodN                  = new DBPodN();
-    g_NetDriver                 = new NetDriver();
+    g_Metronome               = new Metronome(500);
+    g_NetDriver               = new NetDriver();
 
     g_MainWindow->ShowAll();
 

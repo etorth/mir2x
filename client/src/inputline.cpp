@@ -3,8 +3,6 @@
  *
  *       Filename: inputline.cpp
  *        Created: 06/19/2017 11:29:06
- *  Last Modified: 09/14/2017 19:44:12
- *
  *    Description: 
  *
  *        Version: 1.0

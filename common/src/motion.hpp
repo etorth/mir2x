@@ -3,8 +3,6 @@
  *
  *       Filename: motion.hpp
  *        Created: 04/04/2017 23:57:00
- *  Last Modified: 07/08/2017 14:20:36
- *
  *    Description: 
  *
  *        Version: 1.0

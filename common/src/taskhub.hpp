@@ -3,8 +3,6 @@
  *
  *       Filename: taskhub.hpp
  *        Created: 04/03/2016 22:14:46
- *  Last Modified: 06/11/2017 19:00:02
- *
  *    Description: this makes me very confused, std::function may use internally
  *                 dynamically allocated memory, if so, it's nonsense of using
  *                 the MemoryBlockPN to allocated std::function itself

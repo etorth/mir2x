@@ -3,8 +3,6 @@
  *
  *       Filename: serverluamodule.hpp
  *        Created: 12/19/2017 01:07:36
- *  Last Modified: 12/20/2017 00:27:49
- *
  *    Description: base module for all server side lua support
  *
  *

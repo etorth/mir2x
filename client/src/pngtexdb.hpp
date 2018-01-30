@@ -3,8 +3,6 @@
  *
  *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
- *  Last Modified: 09/07/2017 00:30:29
- *
  *    Description: 
  *
  *        Version: 1.0

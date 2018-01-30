@@ -3,8 +3,6 @@
  *
  *       Filename: inputboard.hpp
  *        Created: 06/17/2015 10:24:27
- *  Last Modified: 09/16/2017 11:25:58
- *
  *    Description: 
  *
  *        Version: 1.0

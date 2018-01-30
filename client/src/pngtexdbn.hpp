@@ -3,8 +3,6 @@
  *
  *       Filename: pngtexdbn.hpp
  *        Created: 03/17/2016 01:17:51
- *  Last Modified: 07/17/2017 15:11:40
- *
  *    Description: 
  *
  *        Version: 1.0

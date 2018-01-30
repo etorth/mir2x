@@ -3,8 +3,6 @@
  *
  *       Filename: syncdriver.hpp
  *        Created: 04/27/2016 00:28:05
- *  Last Modified: 06/13/2017 22:58:07
- *
  *    Description: class which behaves as:
  *                      ``send-wait-receive-action-.....-send-wait-receive-action..."
  *
@@ -53,6 +51,12 @@ class SyncDriver
         }
 
         virtual ~SyncDriver() = default;
+
+    public:
+        Theron::Address GetAddress() const
+        {
+            return m_Receiver.GetAddress();
+        }
 
     public:
         int Forward(const MessageBuf &, const Theron::Address &, uint32_t);

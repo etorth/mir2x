@@ -3,8 +3,6 @@
  *
  *       Filename: commandinput.cpp
  *        Created: 06/04/2017 13:01:35
- *  Last Modified: 12/20/2017 00:58:13
- *
  *    Description: 
  *
  *        Version: 1.0
@@ -101,9 +99,16 @@ int CommandInput::handle(int nEvent)
                                         // or we can unlock the input widget to allow next command
                                     }else{
                                         sol::error stError = stCallResult;
+                                        std::stringstream stErrorStream(stError.what());
 
-                                        extern MonoServer *g_MonoServer;
-                                        g_MonoServer->AddCWLog(nCWID, 2, ">>> ", stError.what());
+                                        // need to handle here
+                                        // error message could be more than one line
+
+                                        std::string szErrorLine;
+                                        while(std::getline(stErrorStream, szErrorLine, '\n')){
+                                            extern MonoServer *g_MonoServer;
+                                            g_MonoServer->AddCWLog(nCWID, 2, ">>> ", szErrorLine.c_str());
+                                        }
                                     }
                                 });
 
