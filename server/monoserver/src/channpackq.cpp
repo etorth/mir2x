@@ -39,7 +39,7 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
                     return false;
                 }
 
-                auto pDst = GetNextBuf(1);
+                auto pDst = GetPostBuf(1);
 
                 pDst[0] = nHC;
                 AddPackMark(GetBufOff(pDst), 1, std::move(rstDoneCB));
@@ -63,7 +63,7 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
                 // 2. if compressed length more than 254 we need two bytes
                 // 3. we support range in [0, 255 + 255]
 
-                auto pCompBuf = GetNextBuf(stSMSG.MaskLen() + ((nDataLen + 7) / 8) + 16);
+                auto pCompBuf = GetPostBuf(stSMSG.MaskLen() + ((nDataLen + 7) / 8) + 16);
                 auto nCompCnt = Compress::Encode(pCompBuf + 4, pData, nDataLen);
 
                 if(nCompCnt < 0){
@@ -98,7 +98,7 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
                 // for fixed size and uncompressed message
                 // we don't need to send the length info since it's public known
 
-                auto pDst = GetNextBuf(stSMSG.DataLen() + 1);
+                auto pDst = GetPostBuf(stSMSG.DataLen() + 1);
                 pDst[0] = nHC;
                 std::memcpy(pDst + 1, pData, nDataLen);
                 return AddPackMark(GetBufOff(pDst), 1 + stSMSG.DataLen(), std::move(rstDoneCB));
@@ -119,7 +119,7 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
                     }
                 }
 
-                auto pDst = GetNextBuf(nDataLen + 4);
+                auto pDst = GetPostBuf(nDataLen + 4);
 
                 // 1. setup the message length encoding
                 {
@@ -154,7 +154,7 @@ bool ChannPackQ::AddPackMark(size_t nLoc, size_t nLength, std::function<void()> 
     return true;
 }
 
-uint8_t *ChannPackQ::GetNextBuf(size_t nNextLen)
+uint8_t *ChannPackQ::GetPostBuf(size_t nNextLen)
 {
     // find the first byte of the new buffer to allocate
     // make sure current buffer can hold more nNextLen bytes for the new one

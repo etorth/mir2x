@@ -110,7 +110,7 @@ class ChannPackQ
         }
 
     public:
-        uint8_t *GetNextBuf(size_t);
+        uint8_t *GetPostBuf(size_t);
 
     public:
         bool AddChannPack(uint8_t, const uint8_t *, size_t, std::function<void()> &&);

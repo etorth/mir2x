@@ -54,9 +54,15 @@ class Channel final: public std::enable_shared_from_this<Channel>
     private:
         // for read channel packets
         // only asio main loop accesses these fields
-        uint8_t         m_ReadHC;
-        uint8_t         m_ReadLen[4];
-        uint32_t        m_BodyLen;
+        uint8_t  m_ReadHC;
+        uint8_t  m_ReadLen[4];
+        uint32_t m_BodyLen;
+
+    private:
+        std::vector<uint8_t> m_ReadBuf;
+        std::vector<uint8_t> m_DecodeBuf;
+
+    private:
         Theron::Address m_BindAddress;
 
     private:
@@ -166,6 +172,19 @@ class Channel final: public std::enable_shared_from_this<Channel>
         template<typename T> bool Post(uint8_t nHC, const T &stMsgT)
         {
             return Post(nHC, (const uint8_t *)(&stMsgT), sizeof(stMsgT));
+        }
+
+    private:
+        uint8_t *GetReadBuf(size_t nBufLen)
+        {
+            m_ReadBuf.resize(nBufLen + 16);
+            return &(m_ReadBuf[0]);
+        }
+
+        uint8_t *GetDecodeBuf(size_t nBufLen)
+        {
+            m_DecodeBuf.resize(nBufLen + 16);
+            return &(m_DecodeBuf[0]);
         }
 
     private:

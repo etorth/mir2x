@@ -18,7 +18,6 @@
  */
 
 #include "channel.hpp"
-#include "memorypn.hpp"
 #include "compress.hpp"
 #include "netdriver.hpp"
 #include "condcheck.hpp"
@@ -35,6 +34,8 @@ Channel::Channel(uint32_t nChannID, asio::ip::tcp::socket stSocket)
     , m_ReadHC(0)
     , m_ReadLen {0, 0, 0, 0}
     , m_BodyLen(0)
+    , m_ReadBuf()
+    , m_DecodeBuf()
     , m_BindAddress(Theron::Address::Null())
     , m_FlushFlag(false)
     , m_NextQLock()
@@ -292,12 +293,7 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                 }
 
                 if(auto nDataLen = nMaskLen + nBodyLen){
-                    // we use global memory pool for read
-                    // since the allocated buffer will be passed to actor
-                    // and it's de-allocated by actor message handler, not here
-                    extern MemoryPN *g_MemoryPN;
-                    auto pMem = (uint8_t *)(g_MemoryPN->Get(nDataLen));
-
+                    auto pMem = GetReadBuf(nDataLen);
                     auto fnDoneReadData = [pThis = shared_from_this(), nMaskLen, nBodyLen, pMem, stCMSG, fnReportLastPack, fnOnNetError](std::error_code stEC, size_t)
                     {
                         if(stEC){
@@ -322,23 +318,12 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                                 // we need to decode it
                                 // we do have a compressed version of data
                                 if(nBodyLen <= stCMSG.DataLen()){
-                                    extern MemoryPN *g_MemoryPN;
-                                    pDecodeMem = (uint8_t *)(g_MemoryPN->Get(stCMSG.DataLen()));
+                                    pDecodeMem = pThis->GetDecodeBuf(stCMSG.DataLen());
                                     if(Compress::Decode(pDecodeMem, stCMSG.DataLen(), pMem, pMem + nMaskLen) != (int)(nBodyLen)){
-                                        // 1. keep a record for this failure
                                         extern MonoServer *g_MonoServer;
                                         g_MonoServer->AddLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
                                         fnReportLastPack();
-
-                                        // 2. free memory
-                                        g_MemoryPN->Free(pMem);
-                                        g_MemoryPN->Free(pDecodeMem);
-
-                                        // 3. do nothing but return directly
                                         return;
-                                    }else{
-                                        // ok decoding succeed, free pMem
-                                        g_MemoryPN->Free(pMem);
                                     }
                                 }else{
                                     extern MonoServer *g_MonoServer;
@@ -349,7 +334,7 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                             }
 
                             // decoding and verification done
-                            // we pass the pointer to actor and it's released inside actor
+                            // we forward the (decoded/origin) data to the bind actor
                             pThis->ForwardActorMessage(pThis->m_ReadHC, pDecodeMem ? pDecodeMem : pMem, nMaskLen ? stCMSG.DataLen() : nBodyLen);
                             pThis->DoReadPackHC();
                         }
