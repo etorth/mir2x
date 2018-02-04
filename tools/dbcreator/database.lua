@@ -10,6 +10,8 @@ status, errmsg = conn:execute [[
     create database if not exists mir2x character set utf8
 ]]
 
+conn:execute [[ use mir2x ]]
+
 -- create table for user account info
 status, errmsg = conn:execute [[
     create table if not exists tbl_account
