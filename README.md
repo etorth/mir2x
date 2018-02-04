@@ -33,7 +33,7 @@ libmysqlclient-dev
 libfltk1.3-dev
 ```
 
-Generally cmake complains when libs are missing. After install all these dependencies and devDependencies, clone the repo and compile with cmake. By default it tries to install in /usr/local. use ``CMAKE_INSTALL_PREFIX" to customize.
+Cmake complains if libs are missing. After install all these dependencies, clone and compile the repo. By default cmake tries to install in /usr/local. use ``CMAKE_INSTALL_PREFIX" to customize.
 
 ```sh
 $ git clone https://github.com/etorth/mir2x.git
@@ -43,6 +43,27 @@ $ cd b
 $ cmake .. -DCMAKE_INSTALL_PREFIX=${PWD}/install
 $ make
 $ make install
+```
+### First time run
+The above steps install binaries in mir2x/b/install. Before run the server/client you need to start mysql server on your host. Then create the default database:
+
+```sh
+$ cd mir2x/b/install/tools/dbcreator/
+$ ./main.sh
+```
+
+Start the monoserver, click menu server/launch to start the service before start client:
+
+```sh
+$ cd mir2x/b/install/server
+$ ./monoserver
+```
+
+Start client, currently you can use default account (id = test, pwd = 123456) to try it:
+
+```sh
+$ cd mir2x/b/install/client
+$ ./client
 ```
 
 ### Code style

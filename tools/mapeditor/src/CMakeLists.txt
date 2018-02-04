@@ -32,3 +32,5 @@ TARGET_LINK_LIBRARIES(mapeditor ${OPENGL_LIBRARIES})
 TARGET_LINK_LIBRARIES(mapeditor dl                 )
 TARGET_LINK_LIBRARIES(mapeditor common             )
 TARGET_LINK_LIBRARIES(mapeditor png                )
+
+INSTALL(TARGETS mapeditor DESTINATION tools/mapeditor)

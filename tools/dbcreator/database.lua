@@ -1,7 +1,7 @@
 mysql = require "luasql.mysql"
 
 local env  = assert(mysql.mysql())
-local conn = assert(env:connect('mir2x', 'root', '123456', "localhost", 3306))
+local conn = assert(env:connect('mysql', 'root', '123456', "localhost", 3306))
 print(env, conn)
 
 conn:execute [[ set names utf8 ]]
