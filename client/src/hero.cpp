@@ -343,6 +343,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
         case ACTION_MOVE:
         case ACTION_SPELL:
         case ACTION_STAND:
+        case ACTION_HITTED:
         case ACTION_ATTACK:
             {
                 // 1. clean all pending motions
@@ -400,7 +401,6 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                 m_MotionQueue.clear();
                 break;
             }
-        case ACTION_HITTED:
         case ACTION_PICKUP:
         default:
             {
@@ -519,9 +519,9 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                 m_MotionQueue.emplace_front(
                         OnHorse() ? MOTION_ONHORSEHITTED : MOTION_HITTED,
                         0,
-                        m_CurrMotion.Direction,
-                        m_CurrMotion.EndX,
-                        m_CurrMotion.EndY);
+                        rstAction.Direction,
+                        rstAction.X,
+                        rstAction.Y);
                 break;
             }
         case ACTION_PICKUP:
@@ -531,12 +531,12 @@ bool Hero::ParseAction(const ActionNode &rstAction)
             }
         case ACTION_DIE:
             {
-                m_MotionQueue.emplace_back(
+                m_MotionQueue.emplace_front(
                         OnHorse() ? MOTION_ONHORSEDIE : MOTION_DIE,
                         0,
-                        m_CurrMotion.Direction,
-                        m_CurrMotion.EndX,
-                        m_CurrMotion.EndY);
+                        rstAction.Direction,
+                        rstAction.X,
+                        rstAction.Y);
                 break;
             }
         default:

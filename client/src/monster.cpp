@@ -300,6 +300,7 @@ bool Monster::ParseAction(const ActionNode &rstAction)
         case ACTION_STAND:
         case ACTION_MOVE:
         case ACTION_ATTACK:
+        case ACTION_HITTED:
             {
                 // when cleaning pending queue
                 // there could be MOTION_MON_DIE skipped
@@ -361,7 +362,6 @@ bool Monster::ParseAction(const ActionNode &rstAction)
                 m_MotionQueue.clear();
                 break;
             }
-        case ACTION_HITTED:
         default:
             {
                 break;
@@ -370,14 +370,19 @@ bool Monster::ParseAction(const ActionNode &rstAction)
 
     // 2. parse the action
     switch(rstAction.Action){
+        case ACTION_DIE:
+            {
+                m_MotionQueue.emplace_back(MOTION_MON_DIE, 0, rstAction.Direction, rstAction.X, rstAction.Y);
+                break;
+            }
         case ACTION_STAND:
             {
-                m_MotionQueue.emplace_back(
-                        MOTION_MON_STAND,
-                        0,
-                        rstAction.Direction,
-                        rstAction.X,
-                        rstAction.Y);
+                m_MotionQueue.emplace_back(MOTION_MON_STAND, 0, rstAction.Direction, rstAction.X, rstAction.Y);
+                break;
+            }
+        case ACTION_HITTED:
+            {
+                m_MotionQueue.emplace_back(MOTION_MON_HITTED, 0, rstAction.Direction, rstAction.X, rstAction.Y);
                 break;
             }
         case ACTION_MOVE:
@@ -392,10 +397,10 @@ bool Monster::ParseAction(const ActionNode &rstAction)
                 m_CurrMotion = MotionNode
                 {
                     MOTION_MON_STAND,
-                        0,
-                        m_CurrMotion.Direction,
-                        rstAction.X,
-                        rstAction.Y,
+                    0,
+                    m_CurrMotion.Direction,
+                    rstAction.X,
+                    rstAction.Y,
                 };
 
                 AddAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_DONE);
@@ -414,21 +419,6 @@ bool Monster::ParseAction(const ActionNode &rstAction)
                 }else{
                     return false;
                 }
-                break;
-            }
-        case ACTION_HITTED:
-            {
-                m_MotionQueue.emplace_front(
-                        MOTION_MON_HITTED,
-                        0,
-                        m_CurrMotion.Direction,
-                        m_CurrMotion.EndX,
-                        m_CurrMotion.EndY);
-                break;
-            }
-        case ACTION_DIE:
-            {
-                m_MotionQueue.emplace_back(MOTION_MON_DIE, 0, rstAction.Direction, rstAction.X, rstAction.Y);
                 break;
             }
         default:
