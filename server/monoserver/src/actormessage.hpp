@@ -70,6 +70,7 @@ enum MessagePackType: int
     MPK_PICKUPOK,
     MPK_REMOVEGROUNDITEM,
     MPK_CORECORD,
+    MPK_NOTIFYNEWCO,
 };
 
 struct AMBadActorPod
@@ -529,4 +530,9 @@ struct AMCORecord
         _AMCORecord_Player  Player;
         _AMCORecord_NPC     NPC;
     };
+};
+
+struct AMNotifyNewCO
+{
+    uint32_t UID;
 };

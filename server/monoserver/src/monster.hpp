@@ -179,6 +179,7 @@ class Monster final: public CharObject
         void On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &);
         void On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &);
         void On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &);
+        void On_MPK_NOTIFYNEWCO(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
         void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);
 

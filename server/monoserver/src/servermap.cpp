@@ -957,6 +957,34 @@ int ServerMap::GetMonsterCount(uint32_t nMonsterID)
     return nCount;
 }
 
+void ServerMap::NotifyNewCO(uint32_t nUID, int nX, int nY)
+{
+    extern MonoServer *g_MonoServer;
+    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+
+        AMNotifyNewCO stAMNNCO;
+        std::memset(&stAMNNCO, 0, sizeof(stAMNNCO));
+
+        stAMNNCO.UID = nUID;
+
+        auto fnNotifyNewCO = [this, stAMNNCO](int nX, int nY) -> bool
+        {
+            if(true || ValidC(nX, nY)){
+                auto fnDoList = [this, stAMNNCO](const UIDRecord &rstUIDRecord) -> bool
+                {
+                    if(rstUIDRecord.UID() != stAMNNCO.UID){
+                        m_ActorPod->Forward({MPK_NOTIFYNEWCO, stAMNNCO}, rstUIDRecord.GetAddress());
+                    }
+                    return false;
+                };
+                DoUIDList(nX, nY, fnDoList);
+            }
+            return false;
+        };
+        DoCircle(nX, nY, 20, fnNotifyNewCO);
+    }
+}
+
 Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint32_t nMasterUID, int nX, int nY, bool bRandom)
 {
     if(GetValidGrid(&nX, &nY, bRandom)){
@@ -973,7 +1001,10 @@ Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint32_t nMasterUID, int nX,
         };
 
         pMonster->Activate();
+
         AddGridUID(pMonster->UID(), nX, nY);
+        NotifyNewCO(pMonster->UID(), nX, nY);
+
         return pMonster;
     }
     return nullptr;
@@ -994,7 +1025,10 @@ Player *ServerMap::AddPlayer(uint32_t nDBID, int nX, int nY, int nDirection, boo
         };
 
         pPlayer->Activate();
+
         AddGridUID(pPlayer->UID(), nX, nY);
+        NotifyNewCO(pPlayer->UID(), nX, nY);
+
         return pPlayer;
     }
     return nullptr;

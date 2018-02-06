@@ -158,6 +158,9 @@ class ServerMap final: public ActiveObject
         bool GetValidGrid(int *, int *, bool);
 
     private:
+        void NotifyNewCO(uint32_t, int, int);
+
+    private:
         Player  *AddPlayer (uint32_t, int, int, int, bool);
         Monster *AddMonster(uint32_t, uint32_t, int, int, bool);
 

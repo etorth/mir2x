@@ -111,6 +111,7 @@ class Player final: public CharObject
         void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
         void On_MPK_BADCHANNEL(const MessagePack &, const Theron::Address &);
         void On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &);
+        void On_MPK_NOTIFYNEWCO(const MessagePack &, const Theron::Address &);
         void On_MPK_DEADFADEOUT(const MessagePack &, const Theron::Address &);
         void On_MPK_BINDCHANNEL(const MessagePack &, const Theron::Address &);
         void On_MPK_SHOWDROPITEM(const MessagePack &, const Theron::Address &);

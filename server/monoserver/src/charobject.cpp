@@ -112,9 +112,9 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
         stAMA.UID   = UID();
         stAMA.MapID = MapID();
 
-        stAMA.Action      = rstAction.Action;
-        stAMA.Speed       = rstAction.Speed;
-        stAMA.Direction   = rstAction.Direction;
+        stAMA.Action    = rstAction.Action;
+        stAMA.Speed     = rstAction.Speed;
+        stAMA.Direction = rstAction.Direction;
 
         stAMA.X    = rstAction.X;
         stAMA.Y    = rstAction.Y;
@@ -440,6 +440,8 @@ bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLoca
         auto fnQueryLocation = [this, nUID, fnOnLocationOK]() -> bool
         {
             AMQueryLocation stAMQL;
+            std::memset(&stAMQL, 0, sizeof(stAMQL));
+
             stAMQL.UID   = UID();
             stAMQL.MapID = MapID();
 

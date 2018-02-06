@@ -462,6 +462,11 @@ void Monster::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstAdd
                 On_MPK_METRONOME(rstMPK, rstAddress);
                 break;
             }
+        case MPK_NOTIFYNEWCO:
+            {
+                On_MPK_NOTIFYNEWCO(rstMPK, rstAddress);
+                break;
+            }
         case MPK_NOTIFYDEAD:
             {
                 On_MPK_NOTIFYDEAD(rstMPK, rstAddress);

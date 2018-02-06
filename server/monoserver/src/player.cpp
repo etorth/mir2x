@@ -78,6 +78,11 @@ void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFrom
                 On_MPK_METRONOME(rstMPK, rstFromAddr);
                 break;
             }
+        case MPK_NOTIFYNEWCO:
+            {
+                On_MPK_NOTIFYNEWCO(rstMPK, rstFromAddr);
+                break;
+            }
         case MPK_MAPSWITCH:
             {
                 On_MPK_MAPSWITCH(rstMPK, rstFromAddr);
