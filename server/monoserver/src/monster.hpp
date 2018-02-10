@@ -20,57 +20,9 @@
 #include "charobject.hpp"
 #include "monsterrecord.hpp"
 
-typedef struct stMONSTERITEMINFO
-{
-    int     MonsterIndex;
-    int     Type;
-    int     Chance;
-    int     Count;
-
-    stMONSTERITEMINFO(int nMonsterIndex = -1)
-        : MonsterIndex(nMonsterIndex)
-    {}
-}MONSTERITEMINFO;
-
-typedef struct stMONSTERRACEINFO
-{
-    int     Index;
-    int     Race;
-    int     LID;
-    int     Undead;
-    int     Level;
-    int     HP;
-    int     MP;
-    int     AC;
-    int     MAC;
-    int     DC;
-    int     AttackSpead;
-    int     WalkSpead;
-    int     Spead;
-    int     Hit;
-    int     ViewRange;
-    int     RaceIndex;
-    int     Exp;
-    int     Escape;
-    int     Water;
-    int     Fire;
-    int     Wind;
-    int     Light;
-    int     Earth;
-
-    std::string Name;
-    std::vector<MONSTERITEMINFO> ItemV;
-
-    stMONSTERRACEINFO(int nIndex = -1)
-        : Index(nIndex)
-        , Name("")
-    {}
-}MONSTERRACEINFO;
-
 class Monster final: public CharObject
 {
     protected:
-
         // a-star algorithm is so expensive
         // current logic is every step we do MoveOneStep()
 
