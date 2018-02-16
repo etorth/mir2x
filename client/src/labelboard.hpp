@@ -3,7 +3,10 @@
  *
  *       Filename: labelboard.hpp
  *        Created: 08/20/2015 08:59:11
- *    Description: LabelBoard is a class
+ *    Description:
+ *
+ *              LabelBoard is a class with features:
+ *
  *                      1. without padding
  *                      2. without wrapping
  *                      3. non-editable
@@ -36,11 +39,9 @@
 class LabelBoard: public Widget
 {
     private:
-        uint8_t m_Font;
-        uint8_t m_FontSize;
-        uint8_t m_FontStyle;
-
-    private:
+        uint8_t   m_Font;
+        uint8_t   m_FontSize;
+        uint8_t   m_FontStyle;
         SDL_Color m_FontColor;
 
     private:
@@ -88,7 +89,6 @@ class LabelBoard: public Widget
             SetText("%s", szContent);
         }
 
-
     public:
         ~LabelBoard() = default;
 
@@ -104,17 +104,39 @@ class LabelBoard: public Widget
             return m_Content.c_str();
         }
 
+    public:
         void SetText(const char *, ...);
+
+    public:
+        void SetColor(const SDL_Color &rstColor)
+        {
+            if(false
+                    || rstColor.r != m_FontColor.r
+                    || rstColor.g != m_FontColor.g
+                    || rstColor.b != m_FontColor.b
+                    || rstColor.a != m_FontColor.a){
+
+                m_FontColor = rstColor;
+
+                auto szOld = m_Content;
+                SetText(szOld.c_str());
+            }
+        }
+
+    public:
+        void Clear()
+        {
+            m_Content = "";
+            m_TokenBoard.Clear();
+        }
 
     public:
         std::string Print   () const;
         std::string PrintXML() const;
 
     public:
-        void DrawEx(int nX, int nY, int, int, int, int)
+        void DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
         {
-            int nTBW = m_TokenBoard.W();
-            int nTBH = m_TokenBoard.H();
-            m_TokenBoard.DrawEx(nX, nY, 0, 0, nTBW, nTBH);
+            m_TokenBoard.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
         }
 };

@@ -29,10 +29,10 @@
 
 ProcessLogin::ProcessLogin()
 	: Process()
-	, m_Button1(150, 482, 0X00000005, [](){})
-	, m_Button2(352, 482, 0X00000008, [](){})
-	, m_Button3(554, 482, 0X0000000B, [](){ exit(0); })
-    , m_Button4(600, 536, 0X0000000E, [this](){ DoLogin(); })
+	, m_Button1(150, 482, 0X00000005, []{}, [this](){ DoCreateAccount(); })
+	, m_Button2(352, 482, 0X00000008, []{}, [    ](){                    })
+	, m_Button3(554, 482, 0X0000000B, []{}, [    ](){ std::exit(0);      })
+    , m_Button4(600, 536, 0X0000000E, []{}, [this](){ DoLogin();         })
 	, m_IDBox(
             159,
             540,
@@ -168,4 +168,10 @@ void ProcessLogin::DoLogin()
         extern Game *g_Game;
         g_Game->Send(CM_LOGIN, stCML);
     }
+}
+
+void ProcessLogin::DoCreateAccount()
+{
+    extern Game *g_Game;
+    g_Game->RequestProcess(PROCESSID_NEW);
 }

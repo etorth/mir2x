@@ -16,13 +16,13 @@
  * =====================================================================================
  */
 
+#include <map>
 #include <utf8.h>
 #include <string>
 #include <algorithm>
 #include <functional>
 #include <tinyxml2.h>
 #include <SDL2/SDL.h>
-#include <unordered_map>
 
 #include "log.hpp"
 #include "section.hpp"
@@ -2495,7 +2495,7 @@ int TokenBoard::GetLineMaxH1(int nLine)
     return -1;
 }
 
-bool TokenBoard::ParseXML(const char *szXML, const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
+bool TokenBoard::ParseXML(const char *szXML, const std::map<std::string, std::function<void()>> &rstIDHandleMap)
 {
     XMLObjectList stXMLObjectList;
     if(stXMLObjectList.Parse(szXML)){
@@ -2519,7 +2519,7 @@ bool TokenBoard::Append(const char *pText)
     return false;
 }
 
-bool TokenBoard::AppendXML(const char *szXML, const std::unordered_map<std::string, std::function<void()>> &rstIDHandleMap)
+bool TokenBoard::AppendXML(const char *szXML, const std::map<std::string, std::function<void()>> &rstIDHandleMap)
 {
     MoveCursorBack();
     return ParseXML(szXML, rstIDHandleMap);
@@ -2570,4 +2570,33 @@ int TokenBoard::SelectBox(int nX0, int nY0, int nX1, int nY1, const SDL_Color &r
         }
     }
     return -1;
+}
+
+// remove whole lines, will adjust (startLine, lineCount)
+// assumption
+//      1. valid board
+//      2. after this the cursor could be relocated
+// return:
+//      a valid board
+// we can select lines to be selected and then call Delete()
+// but I use this more direct way
+void TokenBoard::RemoveLine(int nStartLine, int nLineCount)
+{
+    nStartLine = std::max<int>(nStartLine, 0);
+    nLineCount = std::min<int>(nLineCount, GetLineCount() - nStartLine);
+
+    m_LineV.erase(m_LineV.begin() + nStartLine, m_LineV.begin() + nStartLine + nLineCount);
+    ResetLine(nStartLine);
+
+    // adjust cursor
+    if(m_CursorLoc.X < nStartLine){
+        // do nothing
+        // we keep the old cursor location
+    }else if(m_CursorLoc.X >= nStartLine + nLineCount){
+        m_CursorLoc.X -= nLineCount;
+    }else{
+        // since we assume it's a valid board
+        // here cursor could only be inside the delete lines
+        m_CursorLoc = {nStartLine, 0};
+    }
 }

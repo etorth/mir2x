@@ -30,7 +30,7 @@ bool LineBrowserBoard::Add(const char *szContent)
     return AddXML(szXMLContent.c_str(), {});
 }
 
-bool LineBrowserBoard::AddXML(const char *szXML, const std::unordered_map<std::string, std::function<void()>> &rstMap)
+bool LineBrowserBoard::AddXML(const char *szXML, const std::map<std::string, std::function<void()>> &rstMap)
 {
     bool bRes = true;
     if(!m_TokenBoard.Empty(false)){

@@ -27,6 +27,7 @@
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
 #include "fontexdbn.hpp"
+#include "processnew.hpp"
 #include "processrun.hpp"
 #include "processlogo.hpp"
 #include "processsyrc.hpp"
@@ -283,7 +284,7 @@ void Game::SwitchProcess()
 {
     if(true
             && m_RequestProcess > PROCESSID_NONE
-            && m_RequestProcess > PROCESSID_MAX){
+            && m_RequestProcess < PROCESSID_MAX){
         SwitchProcess((m_CurrentProcess ? m_CurrentProcess->ID() : PROCESSID_NONE), m_RequestProcess);
     }
     m_RequestProcess = PROCESSID_NONE;
@@ -368,6 +369,11 @@ void Game::SwitchProcess(int nOldID, int nNewID)
         case PROCESSID_LOGIN:
             {
                 switch(nNewID){
+                    case PROCESSID_NEW:
+                        {
+                            m_CurrentProcess = new ProcessNew();
+                            break;
+                        }
                     case PROCESSID_RUN:
                         {
                             m_CurrentProcess = new ProcessRun();

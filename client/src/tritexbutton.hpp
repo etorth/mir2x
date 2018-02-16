@@ -19,93 +19,121 @@
 
 #pragma once
 #include <array>
+#include "pngtexdbn.hpp"
+#include "sdldevice.hpp"
 #include "buttonbase.hpp"
 
 class TritexButton: public ButtonBase
 {
     private:
-        int m_Offset[3][2];
+        uint32_t m_TexID[3];
 
     public:
         TritexButton(
-                int                          nX,
-                int                          nY,
-                std::array<uint32_t, 3>      stvTexID,
-                int                          nOffsetXOnOver  = 0,
-                int                          nOffsetYOnOver  = 0,
-                int                          nOffsetXOnClick = 0,
-                int                          nOffsetYOnClick = 0,
-                const std::function<void()> &fnOnOver        = [](){},
-                const std::function<void()> &fnOnClick       = [](){},
-                bool                         bOnClickDone    = true,
-                Widget                      *pWidget         = nullptr,
-                bool                         bFreeWidget     = false)
-            : ButtonBase(
-                    nX, 
-                    nY,
-                    stvTexID[0],
-                    stvTexID[1],
-                    stvTexID[2],
-                    fnOnOver,
-                    fnOnClick,
-                    bOnClickDone,
-                    pWidget,
-                    bFreeWidget)
-            , m_Offset {{0, 0}, {nOffsetXOnOver, nOffsetYOnOver}, {nOffsetXOnClick, nOffsetYOnClick}}
-        {}
+                int nX,
+                int nY,
+
+                const uint32_t (&rstvTexID)[3],
+
+                const std::function<void()> &fnOnOver  = [](){},
+                const std::function<void()> &fnOnClick = [](){},
+
+                int nOffXOnOver  = 0,
+                int nOffYOnOver  = 0,
+                int nOffXOnClick = 0,
+                int nOffYOnClick = 0,
+
+                bool    bOnClickDone = true,
+                Widget *pWidget      = nullptr,
+                bool    bFreeWidget  = false)
+            : ButtonBase
+              {
+                  nX, 
+                  nY,
+                  0,
+                  0,
+
+                  fnOnOver,
+                  fnOnClick,
+
+                  nOffXOnOver,
+                  nOffYOnOver,
+                  nOffXOnClick,
+                  nOffYOnClick,
+
+                  bOnClickDone,
+                  pWidget,
+                  bFreeWidget,
+              }
+            , m_TexID
+              {
+                  rstvTexID[0],
+                  rstvTexID[1],
+                  rstvTexID[2],
+              }
+        {
+            int nW = 0;
+            int nH = 0;
+            for(int nState = 0; nState < 3; ++nState){
+                if(m_TexID[nState]){
+                    extern PNGTexDBN *g_ProgUseDBN;
+                    if(auto pTexture = g_ProgUseDBN->Retrieve(m_TexID[nState])){
+                        int nCurrW, nCurrH;
+                        if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nCurrW, &nCurrH)){
+                            nW = std::max(nCurrW, nW);
+                            nH = std::max(nCurrH, nH);
+                        }
+                    }
+                }
+            }
+
+            // we allow buttons without any valid texture, in that case some extra work
+            // can be done for special drawing
+            m_W = nW;
+            m_H = nH;
+        }
 
         // use one specified texture ID
         TritexButton(
-                int                          nX,
-                int                          nY,
-                uint32_t                     nBaseTexID,
-                int                          nOffsetXOnOver  = 0,
-                int                          nOffsetYOnOver  = 0,
-                int                          nOffsetXOnClick = 0,
-                int                          nOffsetYOnClick = 0,
-                const std::function<void()> &fnOnOver        = [](){},
-                const std::function<void()> &fnOnClick       = [](){},
-                bool                         bOnClickDone    = true,
-                Widget                      *pWidget         = nullptr,
-                bool                         bFreeWidget     = false)
-            : TritexButton(
-                    nX,
-                    nY,
-                    {nBaseTexID + 0, nBaseTexID + 1, nBaseTexID + 2},
-                    nOffsetXOnOver,
-                    nOffsetYOnOver,
-                    nOffsetXOnClick,
-                    nOffsetYOnClick,
-                    fnOnOver,
-                    fnOnClick,
-                    bOnClickDone,
-                    pWidget,
-                    bFreeWidget)
-        {}
+                int nX,
+                int nY,
 
-        // use one specified texture ID
-        // use default offset when event issued
-        TritexButton(
-                int                          nX,
-                int                          nY,
-                uint32_t                     nBaseTexID,
-                const std::function<void()> &fnOnClick       = [](){},
-                bool                         bOnClickDone    = true,
-                Widget                      *pWidget         = nullptr,
-                bool                         bFreeWidget     = false)
-            : TritexButton(
-                    nX,
-                    nY,
-                    nBaseTexID,
-                    1,
-                    1,
-                    2,
-                    2,
-                    [](){},
-                    fnOnClick,
-                    bOnClickDone,
-                    pWidget,
-                    bFreeWidget)
+                uint32_t nBaseTexID,
+
+                const std::function<void()> &fnOnOver  = [](){},
+                const std::function<void()> &fnOnClick = [](){},
+
+                int nOffXOnOver  = 0,
+                int nOffYOnOver  = 0,
+                int nOffXOnClick = 0,
+                int nOffYOnClick = 0,
+
+                bool    bOnClickDone = true,
+                Widget *pWidget      = nullptr,
+                bool    bFreeWidget  = false)
+            : TritexButton
+              {
+                  nX,
+                  nY,
+
+                  {
+                      nBaseTexID + 0,
+                      nBaseTexID + 1,
+                      nBaseTexID + 2,
+                  },
+
+                  fnOnOver,
+                  fnOnClick,
+
+                  nOffXOnOver,
+                  nOffYOnOver,
+                  nOffXOnClick,
+                  nOffYOnClick,
+
+                  bOnClickDone,
+                  pWidget,
+                  bFreeWidget
+              }
         {}
 
     public:

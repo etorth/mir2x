@@ -34,6 +34,7 @@ enum: uint8_t
     CM_REQUESTSPACEMOVE,
     CM_PICKUP,
     CM_QUERYGOLD,
+    CM_ACCOUNT,
 };
 
 #pragma pack(push, 1)
@@ -87,6 +88,18 @@ struct CMPickUp
     uint32_t ID;
     uint32_t DBID;
 };
+
+struct CMAccount
+{
+    // register operation for the account
+    // 0 : validate this account
+    // 1 : create account
+    // 2 : login
+    uint8_t Operation;
+
+    char ID[64];
+    char Password[128];
+};
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -118,6 +131,7 @@ class CMSGParam: public MessageBase
                 {CM_REQUESTSPACEMOVE, {1, sizeof(CMReqestSpaceMove), "CM_REQUESTSPACEMOVE"}},
                 {CM_PICKUP,           {1, sizeof(CMPickUp),          "CM_PICKUP"          }},
                 {CM_QUERYGOLD,        {0, 0,                         "CM_QUERYGOLD"       }},
+                {CM_ACCOUNT,          {0, sizeof(CMAccount),         "CM_ACCOUNT"         }},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(CM_NONE) : nHC);

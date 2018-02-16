@@ -47,6 +47,19 @@ struct SMPing
     uint32_t Tick;
 };
 
+struct SMAccount
+{
+    // register operation for the account
+    // 0 : validate this account
+    // 1 : create account
+    // 2 : login
+    uint8_t Operation;
+    uint8_t Respond;
+
+    char ID[64];
+    char Password[128];
+};
+
 struct SMLoginOK
 {
     uint32_t UID;

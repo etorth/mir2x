@@ -148,11 +148,19 @@ SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
     return pstTexture;
 }
 
+void SDLDevice::DrawTexture(SDL_Texture *pstTexture,
+        int nDstX, int nDstY,
+        int nDstW, int nDstH,
+        int nSrcX, int nSrcY,
+        int nSrcW, int nSrcH)
+{
+    if(pstTexture){
+        SDL_Rect stSrc {nSrcX, nSrcY, nSrcW, nSrcH};
+        SDL_Rect stDst {nDstX, nDstY, nDstW, nDstH};
+        SDL_RenderCopy(m_Renderer, pstTexture, &stSrc, &stDst);
+    }
+}
 
-// TODO
-// didn't check the validation of parameters
-// 1. non-negative w/h
-// 2. out of boundary
 void SDLDevice::DrawTexture(SDL_Texture *pstTexture,
         int nDstX, int nDstY,
         int nSrcX, int nSrcY,

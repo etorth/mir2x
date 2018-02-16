@@ -23,6 +23,7 @@
 #include "fontexdbn.hpp"
 #include "mapbindbn.hpp"
 #include "emoticondbn.hpp"
+#include "notifyboard.hpp"
 #include "pngtexoffdbn.hpp"
 
 // global variables, decide to follow pattern in MapEditor
@@ -43,6 +44,7 @@ MapBinDBN      *g_MapBinDBN     = nullptr;
 FontexDBN      *g_FontexDBN     = nullptr;
 XMLConf        *g_XMLConf       = nullptr; // for game configure XML parsing
 SDLDevice      *g_SDLDevice     = nullptr; // for SDL hardware device
+NotifyBoard    *g_NotifyBoard   = nullptr;
 Game           *g_Game          = nullptr; // gobal instance
 
 int main()
@@ -64,6 +66,7 @@ int main()
         delete g_FontexDBN     ; g_FontexDBN     = nullptr;
         delete g_MapBinDBN     ; g_MapBinDBN     = nullptr;
         delete g_EmoticonDBN   ; g_EmoticonDBN   = nullptr;
+        delete g_NotifyBoard   ; g_NotifyBoard   = nullptr;
         delete g_Game          ; g_Game          = nullptr;
     };
 
@@ -84,6 +87,7 @@ int main()
     g_FontexDBN     = new FontexDBN();
     g_MapBinDBN     = new MapBinDBN();
     g_EmoticonDBN   = new EmoticonDBN();
+    g_NotifyBoard   = new NotifyBoard();
     g_Game          = new Game();
 
     g_Game->MainLoop();

@@ -84,7 +84,7 @@ class LineBrowserBoard: public Widget
 
     public:
         bool Add   (const char *);
-        bool AddXML(const char *, const std::unordered_map<std::string, std::function<void()>> &);
+        bool AddXML(const char *, const std::map<std::string, std::function<void()>> &);
 
     public:
         void DrawEx(int, int, int, int, int, int);
