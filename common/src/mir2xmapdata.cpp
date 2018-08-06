@@ -110,7 +110,7 @@ bool Mir2xMapData::Save(const char *szFullName)
 bool Mir2xMapData::Allocate(uint16_t nW, uint16_t nH)
 {
     if(nW % 2 || nH % 2){ return false; }
-    if(nW * nH){
+    if(nW * nH > 0){
         m_W = nW;
         m_H = nH;
 

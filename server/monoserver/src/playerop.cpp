@@ -96,8 +96,8 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     if(true
             && stAMA.UID != UID()
             && stAMA.MapID == MapID()
-            && (std::abs<int>(stAMA.X - X()) <= SYS_MAPVISIBLEW)
-            && (std::abs<int>(stAMA.Y - Y()) <= SYS_MAPVISIBLEH)){
+            && (std::abs(stAMA.X - X()) <= SYS_MAPVISIBLEW)
+            && (std::abs(stAMA.Y - Y()) <= SYS_MAPVISIBLEH)){
 
         ReportAction(stAMA.UID, ActionNode
         {

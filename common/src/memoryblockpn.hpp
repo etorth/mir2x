@@ -266,8 +266,7 @@ class MemoryBlockPN
 
             // pOff is the constant offset of a memory block to its data field
             // pHead is the starting address of the memory block, w.r.t. the data chunk to free
-            constexpr auto pOff  = (uint8_t *)(&((*((InnMemoryBlock *)(0))).Data[0]));
-            const     auto pHead = (InnMemoryBlock *)((uint8_t *)pData - pOff);
+            const auto pHead = (InnMemoryBlock *)((uint8_t *)pData - offsetof(InnMemoryBlock, Data));
 
             // 1. get the branch index
             size_t nBranchIndex = ((BranchSize > 1) ? (pHead->BranchID) : 0);

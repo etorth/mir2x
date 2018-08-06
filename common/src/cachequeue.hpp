@@ -458,7 +458,7 @@ template<typename T, size_t N> class CacheQueue final
             // need optimization
 
             if(!Empty()){
-                if(auto nCount = std::abs<int>(nRotate)){
+                if(auto nCount = std::abs(nRotate)){
                     if(nRotate > 0){
                         for(auto nIndex = 0; nIndex < nCount; ++nIndex){
                             auto stHead = Head();
