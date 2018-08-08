@@ -25,9 +25,9 @@ void DamageNode::EffectArrayType::LogError(int nLogType, const char *szLogInfo) 
 {
     extern MonoServer *g_MonoServer;
     switch(nLogType){
-        case 0  : g_MonoServer->AddLog(LOGTYPE_INFO,    szLogInfo);
-        case 1  : g_MonoServer->AddLog(LOGTYPE_WARNING, szLogInfo);
-        default : g_MonoServer->AddLog(LOGTYPE_FATAL,   szLogInfo);
+        case 0  : g_MonoServer->AddLog(LOGTYPE_INFO,    szLogInfo); break;
+        case 1  : g_MonoServer->AddLog(LOGTYPE_WARNING, szLogInfo); break;
+        default : g_MonoServer->AddLog(LOGTYPE_FATAL,   szLogInfo); break;
     }
 }
 

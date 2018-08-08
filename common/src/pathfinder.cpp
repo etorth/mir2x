@@ -60,8 +60,8 @@ int PathFind::MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_
             case 2  : return  1;
             default : {
                           if(nMaxStepLen < nSize){
-                              int nDX = std::abs<int>(pNodeV[nMaxStepLen].X - pNodeV[0].X);
-                              int nDY = std::abs<int>(pNodeV[nMaxStepLen].Y - pNodeV[0].Y);
+                              int nDX = std::abs(pNodeV[nMaxStepLen].X - pNodeV[0].X);
+                              int nDY = std::abs(pNodeV[nMaxStepLen].Y - pNodeV[0].Y);
                               if(true
                                       && (std::max<size_t>(nDX, nDY) == nMaxStepLen)
                                       && (std::min<size_t>(nDX, nDY) == 0 || nDX == nDY)){
