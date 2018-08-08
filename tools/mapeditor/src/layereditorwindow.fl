@@ -1,18 +1,21 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0303 
-header_name {.hpp} 
+version 1.0304
+header_name {.hpp}
 code_name {.cpp}
 decl {\#include "layereditarea.hpp"} {public global
-} 
+}
+
+decl {\#include <functional>} {selected public global
+}
 
 class LayerEditorWindow {open
 } {
   Function {LayerEditorWindow()} {open
   } {
     Fl_Window m_Window {open
-      xywh {58 174 800 600} type Double visible
+      xywh {673 263 800 600} type Double visible
     } {
-      Fl_Menu_Bar {} {open selected
+      Fl_Menu_Bar {} {open
         xywh {0 0 800 25} box THIN_UP_BOX labelfont 4
       } {
         Submenu {} {
@@ -216,4 +219,4 @@ class LayerEditorWindow {open
     }
 }} {}
   }
-} 
+}

@@ -1652,6 +1652,7 @@ bool TokenBoard::Delete(bool bSelectedOnly)
                     nY0 = m_SelectLoc[0].Y;
                     nX1 = m_SelectLoc[1].X;
                     nY1 = m_SelectLoc[1].Y;
+                    break;
                 }
             default:
                 {

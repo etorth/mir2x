@@ -477,9 +477,7 @@ class MemoryChunkPN
         {
             if(!pBuf){ return; }
 
-            constexpr auto pOff = (uint8_t *)(&((*((InnMemoryChunk *)(0))).Data[0]));
-            auto pHead = (InnMemoryChunk *)((uint8_t *)pBuf - pOff);
-
+            auto pHead = (InnMemoryChunk *)((uint8_t *)pBuf - offsetof(InnMemoryChunk, Data));
             if(!pHead->In){
                 delete [] (uint8_t *)pHead; return;
             }
