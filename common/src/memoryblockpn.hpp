@@ -68,6 +68,7 @@
 #include <memory>
 #include <cstdint>
 #include <cstddef>
+
 #include "cachequeue.hpp"
 
 // BlockSize  : size of memory block in byte, fixed
