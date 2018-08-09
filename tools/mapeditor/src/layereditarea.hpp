@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <functional>
 #include "basearea.hpp"
 
 class EditorMap;

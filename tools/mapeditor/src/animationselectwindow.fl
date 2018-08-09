@@ -1,15 +1,18 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302 
-header_name {.hpp} 
+version 1.0304
+header_name {.hpp}
 code_name {.cpp}
+decl {\#include <cmath>} {selected public global
+}
+
 decl {\#include <cstdint>} {public global
-} 
+}
 
 decl {\#include <algorithm>} {public global
-} 
+}
 
 decl {\#include "animationdb.hpp"} {private local
-} 
+}
 
 class AnimationSelectWindow {open
 } {
@@ -21,7 +24,7 @@ class AnimationSelectWindow {open
               // this variable will be updated by time callback functioin
               // we don't have m_Action and m_Direction since it can be read from the browser->selected(i)} {}
     Fl_Window m_Window {open
-      xywh {2159 227 650 500} type Double non_modal visible
+      xywh {831 350 650 500} type Double non_modal visible
     } {
       Fl_Browser m_BrowserAnimation {
         callback {{
@@ -50,7 +53,7 @@ class AnimationSelectWindow {open
 }}
         xywh {0 0 300 500} type Hold labelfont 4 textfont 4
       }
-      Fl_Box m_AnimationPreviewArea {selected
+      Fl_Box m_AnimationPreviewArea {
         xywh {300 0 350 280} box UP_BOX labelfont 4
         code0 {\#include "animationpreviewarea.hpp"}
         class AnimationPreviewArea
@@ -269,4 +272,4 @@ class AnimationSelectWindow {open
     m_Frame = -1;
 }} {}
   }
-} 
+}
