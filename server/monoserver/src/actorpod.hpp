@@ -181,19 +181,44 @@ class ActorPod final: public Theron::Actor
             return Forward(rstMB, rstAddr, 0);
         }
 
+        // uid->address version
+        bool Forward(const MessageBuf &rstMB, uint32_t nUID)
+        {
+            return Forward(rstMB, Theron::Address(std::to_string(nUID).c_str()));
+        }
+
+    public:
         // sending a response, won't exptect a reply
         bool Forward(const MessageBuf &, const Theron::Address &, uint32_t);
 
+        // uid->address version
+        bool Forward(const MessageBuf &rstMB, uint32_t nUID, uint32_t nResp)
+        {
+            return Forward(rstMB, Theron::Address(std::to_string(nUID).c_str()), nResp);
+        }
+
+    public:
         // send a non-responding message and exptecting a reply
-        bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr,
-                const std::function<void(const MessagePack&, const Theron::Address &)> &fnOPR)
+        bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, const std::function<void(const MessagePack&, const Theron::Address &)> &fnOPR)
         {
             return Forward(rstMB, rstAddr, 0, fnOPR);
         }
 
+        // uid->address version
+        bool Forward(const MessageBuf &rstMB, uint32_t nUID, const std::function<void(const MessagePack&, const Theron::Address &)> &fnOPR)
+        {
+            return Forward(rstMB, Theron::Address(std::to_string(nUID).c_str()), fnOPR);
+        }
+
+    public:
         // send a responding message and exptecting a reply
-        bool Forward(const MessageBuf &, const Theron::Address &, uint32_t,
-                const std::function<void(const MessagePack&, const Theron::Address &)> &);
+        bool Forward(const MessageBuf &, const Theron::Address &, uint32_t, const std::function<void(const MessagePack&, const Theron::Address &)> &);
+
+        // uid->address version
+        bool Forward(const MessageBuf &rstMB, uint32_t nUID, uint32_t nResp, const std::function<void(const MessagePack&, const Theron::Address &)> &fnOPR)
+        {
+            return Forward(rstMB, Theron::Address(std::to_string(nUID).c_str()), nResp, fnOPR);
+        }
 
     public:
         const char *Name() const
