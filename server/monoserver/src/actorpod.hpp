@@ -135,24 +135,26 @@ class ActorPod final: public Theron::Actor
 
     public:
         // actor with trigger provided externally
-        explicit ActorPod(Theron::Framework *pFramework, const std::function<void()> &fnTrigger,
+        explicit ActorPod(Theron::Framework *pFramework,
+                uint32_t nUID, const std::string &szName, const std::function<void()> &fnTrigger,
                 const std::function<void(const MessagePack &, const Theron::Address &)> &fnOperate, uint32_t nExpireTime = 3600 * 1000)
-            : Theron::Actor(*pFramework)
+            : Theron::Actor(*pFramework, std::to_string(nUID).c_str())
             , m_Trigger(fnTrigger)
             , m_Operation(fnOperate)
             , m_ValidID(0)
             , m_ExpireTime(nExpireTime)
             , m_RespondMessageRecord()
-            , m_UID(0)
-            , m_Name("ActorPod")
+            , m_UID(nUID)
+            , m_Name(szName)
         {
             RegisterHandler(this, &ActorPod::InnHandler);
         }
 
         // actor without trigger, we just put a empty handler here
         explicit ActorPod(Theron::Framework *pFramework,
+                uint32_t nUID, const std::string &szName,
                 const std::function<void(const MessagePack &, const Theron::Address &)> &fnOperate, uint32_t nExpireTime = 3600 * 1000)
-            : ActorPod(pFramework, std::function<void()>(), fnOperate, nExpireTime)
+            : ActorPod(pFramework, nUID, szName, std::function<void()>(), fnOperate, nExpireTime)
         {}
 
     public:
@@ -205,12 +207,6 @@ class ActorPod final: public Theron::Actor
         }
 
     public:
-        void BindPod(uint32_t nUID, const char *szName)
-        {
-            m_UID  = nUID;
-            m_Name = szName;
-        }
-
         void Detach()
         {
             DeregisterHandler(this, &ActorPod::InnHandler);

@@ -92,12 +92,11 @@ Theron::Address ActiveObject::Activate()
     if(!m_ActorPod){
         // 1. enable the scheduling by actor threads
         extern Theron::Framework *g_Framework;
-        m_ActorPod = new ActorPod(g_Framework, [this](){ m_StateHook.Execute(); },
+        m_ActorPod = new ActorPod(g_Framework, UID(), ClassName(), [this](){ m_StateHook.Execute(); },
                 [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){ OperateAM(rstMPK, stFromAddr); });
         // 2. bind the class information to the actorpod
         //    between 1 and 2 there could be gap but OK since before exiting current function
         //    no actor message will be passed or forwarded
-        m_ActorPod->BindPod(UID(), ClassName());
         return GetAddress();
     }else{
         extern MonoServer *g_MonoServer;
