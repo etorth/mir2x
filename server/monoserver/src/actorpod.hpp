@@ -138,7 +138,12 @@ class ActorPod final: public Theron::Actor
         explicit ActorPod(Theron::Framework *pFramework,
                 uint32_t nUID, const std::string &szName, const std::function<void()> &fnTrigger,
                 const std::function<void(const MessagePack &, const Theron::Address &)> &fnOperate, uint32_t nExpireTime = 3600 * 1000)
-            : Theron::Actor(*pFramework, std::to_string(nUID).c_str())
+            : Theron::Actor(*pFramework, [](uint32_t nUID) -> std::string
+              {
+                  char szUIDStr[64];
+                  std::sprintf(szUIDStr, "%08X", nUID);
+                  return std::string(szUIDStr);
+              }(nUID).c_str())
             , m_Trigger(fnTrigger)
             , m_Operation(fnOperate)
             , m_ValidID(0)
