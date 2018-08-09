@@ -125,13 +125,13 @@ class CMSGParam: public MessageBase
 
                 {CM_NONE,             {0, 0,                         "CM_NONE"            }},
                 {CM_PING,             {2, sizeof(CMPing),            "CM_PING"            }},
-                {CM_LOGIN,            {3, 0,                         "CM_LOGIN"           }},
+                {CM_LOGIN,            {1, sizeof(CMLogin),           "CM_LOGIN"           }},
                 {CM_ACTION,           {1, sizeof(CMAction),          "CM_ACTION"          }},
                 {CM_QUERYCORECORD,    {1, sizeof(CMQueryCORecord),   "CM_QUERYCORECORD"   }},
                 {CM_REQUESTSPACEMOVE, {1, sizeof(CMReqestSpaceMove), "CM_REQUESTSPACEMOVE"}},
                 {CM_PICKUP,           {1, sizeof(CMPickUp),          "CM_PICKUP"          }},
                 {CM_QUERYGOLD,        {0, 0,                         "CM_QUERYGOLD"       }},
-                {CM_ACCOUNT,          {0, sizeof(CMAccount),         "CM_ACCOUNT"         }},
+                {CM_ACCOUNT,          {1, sizeof(CMAccount),         "CM_ACCOUNT"         }},
             };
 
             return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(CM_NONE) : nHC);
