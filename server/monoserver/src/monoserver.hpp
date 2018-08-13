@@ -36,13 +36,13 @@
 #include "commandluamodule.hpp"
 
 class ServiceCore;
-class ServerObject;
+class ActiveObject;
 class MonoServer final
 {
     struct UIDLockRecord
     {
         std::mutex Lock;
-        std::unordered_map<uint32_t, const ServerObject *> Record;
+        std::unordered_map<uint32_t, const ActiveObject *> Record;
     };
 
     private:
@@ -132,7 +132,7 @@ class MonoServer final
         // this causes the potential issue to call GetAddress() over an actor which is already deleted
         //
         // when a server object is created, it calls LinkUID() to keep a global record
-        // and we *only* use EraseUID(ServerObject::UID()) to delete an object allocated on heap
+        // and we *only* use EraseUID(ActiveObject::UID()) to delete an object allocated on heap
         // this ensures pObject->GetAddress() in GetUIDAddress() always be well-defined
         //
         // requirements:
@@ -161,13 +161,13 @@ class MonoServer final
 
         // allocate an *unique* uid during current server runtime
         // if an uid is used sometime, it won't be used again anymore
-        // don't call MonoServer::GetUID() explicitly, should be called in ServerObject ctor
+        // don't call MonoServer::GetUID() explicitly, should be called in ActiveObject ctor
         uint32_t GetUID();
 
         // register (uid, instance) pair in global table
         // return false if invlaid arguments or uid has linked to other instance
         // this function is called automatically when constructing the server ojbect
-        bool LinkUID(uint32_t, ServerObject *);
+        bool LinkUID(uint32_t, ActiveObject *);
 
         // remove the uid record and its respective instance or do nothing if not exists
         // after this invocation it's guaranteed there shouldn't be an object with given uid

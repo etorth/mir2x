@@ -103,23 +103,21 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
                 switch(GetState(STATE_ATTACKMODE)){
                     case STATE_ATTACKMODE_NORMAL:
                         {
-                            if(stRecord.ClassFrom<Player>()){
+                            if(UIDFunc::GetUIDType(stAMA.UID) == UID_PLY){
                                 AddTarget(stAMA.UID);
                             }
                             break;
                         }
                     case STATE_ATTACKMODE_DOGZ:
                         {
-                            if(stRecord.ClassFrom<Monster>()){
+                            if(UIDFunc::GetUIDType(stAMA.UID) == UID_MON){
                                 AddTarget(stAMA.UID);
                             }
                             break;
                         }
                     case STATE_ATTACKMODE_ATTACKALL:
                         {
-                            if(false
-                                    || stRecord.ClassFrom<Player>()
-                                    || stRecord.ClassFrom<Monster>()){
+                            if(auto nType = UIDFunc::GetUIDType(stAMA.UID); nType == UID_PLY || nType == UID_MON){
                                 AddTarget(stAMA.UID);
                             }
                             break;

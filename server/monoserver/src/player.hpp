@@ -89,9 +89,6 @@ class Player final: public CharObject
 
         bool Update();
 
-    public:
-        InvarData GetInvarData() const;
-
     protected:
         void OperateNet(uint8_t, const uint8_t *, size_t);
 

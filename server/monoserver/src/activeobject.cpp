@@ -23,8 +23,8 @@
 #include "monoserver.hpp"
 #include "activeobject.hpp"
 
-ActiveObject::ActiveObject()
-    : ServerObject()
+ActiveObject::ActiveObject(uint32_t nUID)
+    : m_UID(nUID)
     , m_StateV()
     , m_StateTimeV()
     , m_ActorPod(nullptr)
@@ -32,6 +32,13 @@ ActiveObject::ActiveObject()
     , m_DelayCmdCount(0)
     , m_DelayCmdQ()
 {
+
+    // link to the mono object pool
+    // never allocate ServerObject on stack
+    // MonoServer::EraseUID() will use *this* to call destructor
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->LinkUID(m_UID, this);
+
     m_StateV.fill(0);
     m_StateTimeV.fill(0);
 

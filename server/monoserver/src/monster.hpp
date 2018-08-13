@@ -153,9 +153,6 @@ class Monster final: public CharObject
     protected:
         void RandomDrop();
 
-    public:
-        InvarData GetInvarData() const;
-
     protected:
         void CheckFriend(uint32_t, const std::function<void(int)> &);
 

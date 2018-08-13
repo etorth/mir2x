@@ -33,11 +33,11 @@
 #include <atomic>
 #include <Theron/Theron.h>
 
+#include "uidfunc.hpp"
 #include "actorpod.hpp"
 #include "statehook.hpp"
 #include "delaycmd.hpp"
 #include "messagepack.hpp"
-#include "serverobject.hpp"
 
 enum ObjectType: uint8_t
 {
@@ -99,8 +99,11 @@ enum ObjectState: uint8_t
     STATE_ONHORSE,
 };
 
-class ActiveObject: public ServerObject
+class ActiveObject
 {
+    private:
+        const uint32_t m_UID;
+
     protected:
         std::array< uint8_t, 255> m_StateV;
         std::array<uint32_t, 255> m_StateTimeV;
@@ -117,8 +120,21 @@ class ActiveObject: public ServerObject
         std::priority_queue<DelayCmd> m_DelayCmdQ;
 
     public:
-        ActiveObject();
-       ~ActiveObject();
+        ActiveObject(uint32_t);
+
+    public:
+        virtual ~ActiveObject();
+
+    public:
+       uint32_t UID() const
+       {
+           return m_UID;
+       }
+
+       std::string ClassName() const
+       {
+           return UIDFunc::GetUIDString(UID());
+       }
 
     protected:
         uint8_t GetState(uint8_t);
@@ -133,7 +149,7 @@ class ActiveObject: public ServerObject
     public:
         UIDRecord GetUIDRecord() const
         {
-            return UIDRecord(UID(), ClassCode(), GetInvarData(), GetAddress());
+            return UIDRecord(UID(), GetAddress());
         }
 
     protected:

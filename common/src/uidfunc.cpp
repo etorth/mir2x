@@ -22,7 +22,7 @@
 #include <atomic>
 #include "uidfunc.hpp"
 
-uint32_t BuildUID_MON(uint32_t nMonsterID)
+uint32_t UIDFunc::BuildUID_MON(uint32_t nMonsterID)
 {
     // monster
     // data field is monster id [1, 2048)
@@ -77,7 +77,7 @@ uint32_t BuildUID_MON(uint32_t nMonsterID)
     return ((uint32_t)(1) << 30) + (nMonsterID << 19) + nSeq;
 }
 
-uint32_t BuildUID_PLY(bool bMale, int nJob, uint32_t nDBID)
+uint32_t UIDFunc::BuildUID_PLY(bool bMale, int nJob, uint32_t nDBID)
 {
     // 31-30 : 0b00
     // 29-29 : 1->male, 0->female
@@ -100,7 +100,7 @@ uint32_t BuildUID_PLY(bool bMale, int nJob, uint32_t nDBID)
     return ((uint32_t)(0b10) << 30) + (nSexID << 29) + (nJobID << 27) + nDBID;
 }
 
-uint32_t BuildUID_MAP(uint32_t nMapID)
+uint32_t UIDFunc::BuildUID_MAP(uint32_t nMapID)
 {
     // 31-28 : 0b1110
     // 27-12 : map id
@@ -131,12 +131,12 @@ uint32_t BuildUID_MAP(uint32_t nMapID)
     return 0XE0000000 + (nMapID << 12) + nSeq;
 }
 
-uint32_t BuildUID_COR()
+uint32_t UIDFunc::BuildUID_COR()
 {
-    return 0XFFFC;
+    return 0XFFFC0000;
 }
 
-uint32_t BuildUID_ETC()
+uint32_t UIDFunc::BuildUID_ETC()
 {
     static std::atomic<uint32_t> s_ETCUID {1};
     if(auto nSeq = s_ETCUID.fetch_add(1); nSeq <= 0X00FFFFFF){
@@ -151,12 +151,12 @@ std::string UIDFunc::GetUIDString(uint32_t nUID)
     switch(GetUIDType(nUID)){
         case UID_PLY:
             {
-                std::sprintf(szUIDString, "PLY:%" PRIu32, nUID & 0X7FFFFFF);
+                std::sprintf(szUIDString, "PLY%" PRIu32, nUID & 0X7FFFFFF);
                 return szUIDString;
             }
         case UID_MON:
             {
-                std::sprintf(szUIDString, "MON_%" PRIu32 ":%" PRIu32, GetMonsterID(nUID), GetMonsterSeq(nUID));
+                std::sprintf(szUIDString, "MON%" PRIu32 "_%" PRIu32, GetMonsterID(nUID), GetMonsterSeq(nUID));
                 return szUIDString;
             }
         case UID_MAP:
@@ -164,7 +164,7 @@ std::string UIDFunc::GetUIDString(uint32_t nUID)
                 uint32_t nMapID  = (nUID & 0X0FFFF000) >> 12;
                 uint32_t nMapSeq = (nUID & 0X00000FFF) >>  0;
 
-                std::sprintf(szUIDString, "MAP_%" PRIu32 ":%" PRIu32, nMapID, nMapSeq);
+                std::sprintf(szUIDString, "MAP%" PRIu32 "_%" PRIu32, nMapID, nMapSeq);
                 return szUIDString;
             }
         case UID_COR:
@@ -174,7 +174,7 @@ std::string UIDFunc::GetUIDString(uint32_t nUID)
             }
         case UID_ETC:
             {
-                std::sprintf(szUIDString, "ETC:%" PRIu32, nUID & 0X00FFFFFF);
+                std::sprintf(szUIDString, "ETC%" PRIu32, nUID & 0X00FFFFFF);
                 return szUIDString;
             }
         default:
@@ -183,7 +183,7 @@ std::string UIDFunc::GetUIDString(uint32_t nUID)
             }
     }
 
-    std::sprintf(szUIDString, "UID_ERR:%" PRIu32, nUID);
+    std::sprintf(szUIDString, "ERR%" PRIu32, nUID);
     return szUIDString;
 }
 

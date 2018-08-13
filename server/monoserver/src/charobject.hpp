@@ -206,6 +206,7 @@ class CharObject: public ActiveObject
     public:
         CharObject(ServiceCore *,       // service core
                 ServerMap *,            // server map
+                uint32_t,               // uid
                 int,                    // map x
                 int,                    // map y
                 int,                    // direction

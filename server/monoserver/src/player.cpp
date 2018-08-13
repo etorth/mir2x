@@ -18,6 +18,7 @@
 #include <cinttypes>
 #include "dbpod.hpp"
 #include "player.hpp"
+#include "uidfunc.hpp"
 #include "dbcomid.hpp"
 #include "threadpn.hpp"
 #include "memorypn.hpp"
@@ -34,7 +35,7 @@ Player::Player(uint32_t nDBID,
         int             nMapY,
         int             nDirection,
         uint8_t         nLifeState)
-    : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
+    : CharObject(pServiceCore, pServerMap, UIDFunc::BuildUID_PLY(true, JOB_WAR, nDBID), nMapX, nMapY, nDirection, nLifeState)
     , m_DBID(nDBID)
     , m_JobID(0)        // will provide after bind
     , m_ChannID(0)    // provide by bind
@@ -515,13 +516,6 @@ bool Player::Offline()
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Offline with empty UID");
         }
     });
-}
-
-InvarData Player::GetInvarData() const
-{
-    InvarData stData;
-    stData.Player.DBID = DBID();
-    return stData;
 }
 
 bool Player::PostNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)

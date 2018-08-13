@@ -19,6 +19,7 @@
 #include <cinttypes>
 #include "player.hpp"
 #include "motion.hpp"
+#include "uidfunc.hpp"
 #include "dbconst.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
@@ -101,7 +102,7 @@ Monster::Monster(uint32_t   nMonsterID,
         int                 nDirection,
         uint8_t             nLifeState,
         uint32_t            nMasterUID)
-    : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
+    : CharObject(pServiceCore, pServerMap, UIDFunc::BuildUID_MON(nMonsterID), nMapX, nMapY, nDirection, nLifeState)
     , m_MonsterID(nMonsterID)
     , m_MasterUID(nMasterUID)
     , m_MonsterRecord(DBCOM_MONSTERRECORD(nMonsterID))
@@ -1102,10 +1103,10 @@ void Monster::CheckFriend(uint32_t nCheckUID, const std::function<void(int)> &fn
 
         extern MonoServer *g_MonoServer;
         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-            if(stUIDRecord.ClassFrom<Player>()){
+            if(UIDFunc::GetUIDType(nUID) == UID_PLY){
                 return UIDFROM_PLAYER;
-            }else if(stUIDRecord.ClassFrom<Monster>()){
-                switch(stUIDRecord.GetInvarData().Monster.MonsterID){
+            }else if(UIDFunc::GetUIDType(nUID) == UID_MON){
+                switch(UIDFunc::GetMonsterID(nUID)){
                     case DBCOM_MONSTERID(u8"神兽"):
                     case DBCOM_MONSTERID(u8"变异骷髅"):
                         {
@@ -1191,13 +1192,6 @@ void Monster::CheckFriend(uint32_t nCheckUID, const std::function<void(int)> &fn
                 }
         }
     }
-}
-
-InvarData Monster::GetInvarData() const
-{
-    InvarData stData;
-    stData.Monster.MonsterID = MonsterID();
-    return stData;
 }
 
 std::array<PathFind::PathNode, 3> Monster::GetChaseGrid(int nX, int nY)

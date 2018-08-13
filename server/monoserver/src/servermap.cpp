@@ -245,7 +245,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
 }
 
 ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
-    : ActiveObject()
+    : ActiveObject(UIDFunc::BuildUID_MAP(nMapID))
     , m_ID(nMapID)
     , m_Mir2xMapData(*([nMapID]() -> Mir2xMapData *
       {
@@ -409,9 +409,7 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
             for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
                 extern MonoServer *g_MonoServer;
                 if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                    if(false
-                            || stUIDRecord.ClassFrom<Player >()
-                            || stUIDRecord.ClassFrom<Monster>()){
+                    if(auto nType = UIDFunc::GetUIDType(nUID); nType == UID_PLY || nType == UID_MON){
                         return false;
                     }
                 }
@@ -920,7 +918,7 @@ bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
                 for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
                     extern MonoServer *g_MonoServer;
                     if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                        if(stUIDRecord.ClassFrom<Player>()){
+                        if(UIDFunc::GetUIDType(nUID) == UID_PLY){
                             m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.GetAddress());
                         }
                     }
@@ -943,9 +941,9 @@ int ServerMap::GetMonsterCount(uint32_t nMonsterID)
             for(auto nUID: rstRecord.UIDList){
                 extern MonoServer *g_MonoServer;
                 if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                    if(stUIDRecord.ClassFrom<Monster>()){
+                    if(UIDFunc::GetUIDType(nUID) == UID_MON){
                         if(nMonsterID){
-                            nCount += ((stUIDRecord.GetInvarData().Monster.MonsterID == nMonsterID) ? 1 : 0);
+                            nCount += ((UIDFunc::GetMonsterID(nUID) == nMonsterID) ? 1 : 0);
                         }else{
                             nCount++;
                         }

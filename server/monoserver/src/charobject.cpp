@@ -30,11 +30,12 @@
 
 CharObject::CharObject(ServiceCore *pServiceCore,
         ServerMap                  *pServerMap,
+        uint32_t                    nUID,
         int                         nMapX,
         int                         nMapY,
         int                         nDirection,
         uint8_t                     nLifeState)
-    : ActiveObject()
+    : ActiveObject(nUID)
     , m_ServiceCore(pServiceCore)
     , m_Map(pServerMap)
     , m_LocationList()
@@ -554,10 +555,7 @@ bool CharObject::DispatchHitterExp()
 
             extern MonoServer *g_MonoServer;
             if(auto stUIDRecord = g_MonoServer->GetUIDRecord(m_HitterUIDRecord[nIndex].UID)){
-                if(false
-                        || stUIDRecord.ClassFrom<Player>()
-                        || stUIDRecord.ClassFrom<Monster>()){
-
+                if(auto nType = UIDFunc::GetUIDType(stUIDRecord.UID()); nType == UID_MON || nType == UID_PLY){
                     // record is valid
                     // record is not time-out
                     // record is monster or player

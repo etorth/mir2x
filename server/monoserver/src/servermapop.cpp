@@ -57,9 +57,7 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &
                 auto fnDoList = [this, stAMA](const UIDRecord &rstUIDRecord) -> bool
                 {
                     if(rstUIDRecord.UID() != stAMA.UID){
-                        if(false
-                                || rstUIDRecord.ClassFrom<Player >()
-                                || rstUIDRecord.ClassFrom<Monster>()){
+                        if(auto nType = UIDFunc::GetUIDType(rstUIDRecord.UID()); nType == UID_PLY || nType == UID_MON){
                             m_ActorPod->Forward({MPK_ACTION, stAMA}, rstUIDRecord.GetAddress());
                         }
                     }
@@ -377,9 +375,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                     extern MonoServer *g_MonoServer;
                     if(auto stRecord = g_MonoServer->GetUIDRecord(stAMTM.UID)){
                         AddGridUID(stAMTM.UID, nMostX, nMostY);
-                        if(true
-                                && stRecord.ClassFrom<Player>()
-                                && m_CellRecordV2D[nMostX][nMostY].MapID){
+                        if(UIDFunc::GetUIDType(stAMTM.UID) == UID_PLY && m_CellRecordV2D[nMostX][nMostY].MapID){
                             if(m_CellRecordV2D[nMostX][nMostY].UID){
                                 AMMapSwitch stAMMS;
                                 stAMMS.UID   = m_CellRecordV2D[nMostX][nMostY].UID;
@@ -496,9 +492,7 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Addre
             auto fnDoList = [this, stAMPCOI](const UIDRecord &rstUIDRecord) -> bool
             {
                 if(rstUIDRecord.UID() != stAMPCOI.UID){
-                    if(false
-                            || rstUIDRecord.ClassFrom<Player >()
-                            || rstUIDRecord.ClassFrom<Monster>()){
+                    if(UIDFunc::GetUIDType(rstUIDRecord.UID()) == UID_PLY || UIDFunc::GetUIDType(rstUIDRecord.UID()) == UID_MON){
                         AMQueryCORecord stAMQCOR;
                         std::memset(&stAMQCOR, 0, sizeof(stAMQCOR));
 
@@ -651,9 +645,7 @@ void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address
                     if(nUID != stAMUHP.UID){
                         extern MonoServer *g_MonoServer;
                         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(false
-                                    || stUIDRecord.ClassFrom<Player >()
-                                    || stUIDRecord.ClassFrom<Monster>()){
+                            if(UIDFunc::GetUIDType(nUID) == UID_PLY || UIDFunc::GetUIDType(nUID) == UID_MON){
                                 m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, stUIDRecord.GetAddress());
                             }
                         }
@@ -679,7 +671,7 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Addr
                     if(nUID != stAMDFO.UID){
                         extern MonoServer *g_MonoServer;
                         if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(stUIDRecord.ClassFrom<Player>()){
+                            if(UIDFunc::GetUIDType(nUID) == UID_PLY){
                                 m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, stUIDRecord.GetAddress());
                             }
                         }
@@ -706,9 +698,7 @@ void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::Add
                 std::for_each(m_CellRecordV2D[nX][nY].UIDList.begin(), m_CellRecordV2D[nX][nY].UIDList.end(), [stAMQCOC, &nCOCount](uint32_t nUID){
                     extern MonoServer *g_MonoServer;
                     if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                        if(false
-                                || stUIDRecord.ClassFrom<Player >()
-                                || stUIDRecord.ClassFrom<Monster>()){
+                        if(UIDFunc::GetUIDType(nUID) == UID_PLY || UIDFunc::GetUIDType(nUID) == UID_MON){
                             if(stAMQCOC.Check.NPC    ){ nCOCount++; return; }
                             if(stAMQCOC.Check.Player ){ nCOCount++; return; }
                             if(stAMQCOC.Check.Monster){ nCOCount++; return; }
@@ -869,7 +859,7 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK, const Theron::Address &
 
                         auto fnDoList = [this, &stAMRGI](const UIDRecord &rstUIDRecord) -> bool
                         {
-                            if(rstUIDRecord.ClassFrom<Player>()){
+                            if(UIDFunc::GetUIDType(rstUIDRecord.UID()) == UID_PLY){
                                 m_ActorPod->Forward({MPK_REMOVEGROUNDITEM, stAMRGI}, rstUIDRecord.GetAddress());
                             }
                             return false;
