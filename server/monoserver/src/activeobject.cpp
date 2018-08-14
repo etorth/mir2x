@@ -116,7 +116,9 @@ Theron::Address ActiveObject::Activate()
 
 void ActiveObject::Deactivate()
 {
-    if(m_ActorPod){ m_ActorPod->Detach(); }
+    if(m_ActorPod){
+        m_ActorPod->Detach();
+    }
 }
 
 void ActiveObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
