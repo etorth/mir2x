@@ -994,7 +994,6 @@ Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint32_t nMasterUID, int nX,
             nX,
             nY,
             DIR_UP,
-            STATE_INCARNATED,
             nMasterUID,
         };
 
@@ -1019,7 +1018,6 @@ Player *ServerMap::AddPlayer(uint32_t nDBID, int nX, int nY, int nDirection, boo
             nX,
             nY,
             nDirection,
-            STATE_INCARNATED,
         };
 
         pPlayer->Activate();

@@ -209,8 +209,7 @@ class CharObject: public ActiveObject
                 uint32_t,               // uid
                 int,                    // map x
                 int,                    // map y
-                int,                    // direction
-                uint8_t);               // life cycle state
+                int);                   // direction
        ~CharObject() = default;
 
     protected:

@@ -74,11 +74,6 @@ enum ObjectState: uint8_t
     // three states of an active object
     STATE_NONE = 0,
 
-    STATE_LIFECYCLE,
-    STATE_EMBRYO,
-    STATE_INCARNATED,
-    STATE_PHANTOM,
-
     STATE_MOTION,
     STATE_MOVING,
     STATE_DEAD,

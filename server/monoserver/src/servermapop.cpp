@@ -16,8 +16,8 @@
  * =====================================================================================
  */
 #include <cinttypes>
-#include "dbcomid.hpp"
 #include "player.hpp"
+#include "dbcomid.hpp"
 #include "monster.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"

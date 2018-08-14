@@ -100,9 +100,8 @@ Monster::Monster(uint32_t   nMonsterID,
         int                 nMapX,
         int                 nMapY,
         int                 nDirection,
-        uint8_t             nLifeState,
         uint32_t            nMasterUID)
-    : CharObject(pServiceCore, pServerMap, UIDFunc::BuildUID_MON(nMonsterID), nMapX, nMapY, nDirection, nLifeState)
+    : CharObject(pServiceCore, pServerMap, UIDFunc::BuildUID_MON(nMonsterID), nMapX, nMapY, nDirection)
     , m_MonsterID(nMonsterID)
     , m_MasterUID(nMasterUID)
     , m_MonsterRecord(DBCOM_MONSTERRECORD(nMonsterID))

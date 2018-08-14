@@ -74,7 +74,6 @@ class Monster final: public CharObject
                 int,                    // map x
                 int,                    // map y
                 int,                    // direction
-                uint8_t,                // life cycle state
                 uint32_t);              // master uid
 
     public:

@@ -44,8 +44,7 @@ class Player final: public CharObject
                 ServerMap *,            //
                 int,                    // map x
                 int,                    // map y
-                int,                    // direction
-                uint8_t);               // life cycle state
+                int);                   // direction
 
     public:
         ~Player();

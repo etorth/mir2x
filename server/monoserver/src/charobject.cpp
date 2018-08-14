@@ -33,8 +33,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
         uint32_t                    nUID,
         int                         nMapX,
         int                         nMapY,
-        int                         nDirection,
-        uint8_t                     nLifeState)
+        int                         nDirection)
     : ActiveObject(nUID)
     , m_ServiceCore(pServiceCore)
     , m_Map(pServerMap)
@@ -57,7 +56,6 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_AddAbility()
 {
     condcheck(m_Map);
-    SetState(STATE_LIFECYCLE, nLifeState);
 }
 
 bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
