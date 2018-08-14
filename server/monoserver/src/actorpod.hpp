@@ -123,7 +123,7 @@ class ActorPod final: public Theron::Actor
         //    but it's hard to remove those entry which executed before expire from the queue
         //
         // 2. std::map keeps entries in order by Resp number
-        //    Resp number gives strict order of expire time, excellent freature by std::map
+        //    Resp number gives strict order of expire time, excellent feature by std::map
         //    then when checking expired ones, we start from std::map::begin() and stop at the fist non-expired one
         std::map<uint32_t, RespondMessageRecord> m_RespondMessageRecord;
 
