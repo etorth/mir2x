@@ -296,7 +296,7 @@ void SDLDevice::CreateInitViewWindow()
         }
     }
 
-    m_Window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nWindowW, nWindowH, 0);
+    m_Window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nWindowW, nWindowH, SDL_WINDOW_BORDERLESS);
     if(!m_Window){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_FATAL, "Failed to create SDL window handler: %s", SDL_GetError());
