@@ -28,7 +28,7 @@
 #include "cachequeue.hpp"
 #include "servicecore.hpp"
 #include "protocoldef.hpp"
-#include "activeobject.hpp"
+#include "serverobject.hpp"
 
 enum _RangeType: uint8_t
 {
@@ -124,7 +124,7 @@ struct COLocation
     {}
 };
 
-class CharObject: public ActiveObject
+class CharObject: public ServerObject
 {
     protected:
         enum QueryType: int

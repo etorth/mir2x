@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: activeobject.cpp
+ *       Filename: serverobject.cpp
  *        Created: 04/28/2016 20:51:29
  *    Description: 
  *
@@ -21,9 +21,9 @@
 #include "metronome.hpp"
 #include "serverenv.hpp"
 #include "monoserver.hpp"
-#include "activeobject.hpp"
+#include "serverobject.hpp"
 
-ActiveObject::ActiveObject(uint32_t nUID)
+ServerObject::ServerObject(uint32_t nUID)
     : m_UID(nUID)
     , m_StateV()
     , m_StateTimeV()
@@ -79,7 +79,7 @@ ActiveObject::ActiveObject(uint32_t nUID)
     }
 }
 
-ActiveObject::~ActiveObject()
+ServerObject::~ServerObject()
 {
     delete m_ActorPod;
 }
@@ -94,7 +94,7 @@ ActiveObject::~ActiveObject()
 //
 // And if we really want to change the address of current object, maybe we need to
 // delte current object in total and create a new one instead
-Theron::Address ActiveObject::Activate()
+Theron::Address ServerObject::Activate()
 {
     if(!m_ActorPod){
         // 1. enable the scheduling by actor threads
@@ -114,45 +114,45 @@ Theron::Address ActiveObject::Activate()
     }
 }
 
-void ActiveObject::Deactivate()
+void ServerObject::Deactivate()
 {
     if(m_ActorPod){
         m_ActorPod->Detach();
     }
 }
 
-void ActiveObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
+void ServerObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
 {
     extern MonoServer *g_MonoServer;
     m_DelayCmdCount = m_DelayCmdQ.empty() ? 0 : (m_DelayCmdCount + 1);
     m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTimeTick(), m_DelayCmdCount, fnCmd);
 }
 
-uint8_t ActiveObject::GetState(uint8_t nState)
+uint8_t ServerObject::GetState(uint8_t nState)
 {
     return m_StateV[nState];
 }
 
-void ActiveObject::SetState(uint8_t nStateLoc, uint8_t nStateValue)
+void ServerObject::SetState(uint8_t nStateLoc, uint8_t nStateValue)
 {
     extern MonoServer *g_MonoServer;
     m_StateV[nStateLoc] = nStateValue;
     m_StateTimeV[nStateLoc] = g_MonoServer->GetTimeTick();
 }
 
-uint32_t ActiveObject::StateTime(uint8_t nState)
+uint32_t ServerObject::StateTime(uint8_t nState)
 {
     extern MonoServer *g_MonoServer;
     return g_MonoServer->GetTimeTick() - m_StateTimeV[nState];
 }
 
-bool ActiveObject::AddTick()
+bool ServerObject::AddTick()
 {
     extern Metronome *g_Metronome;
     return g_Metronome->Add(UID());
 }
 
-void ActiveObject::RemoveTick()
+void ServerObject::RemoveTick()
 {
     extern Metronome *g_Metronome;
     g_Metronome->Remove(UID());

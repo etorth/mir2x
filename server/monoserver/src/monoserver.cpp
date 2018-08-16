@@ -601,7 +601,7 @@ uint32_t MonoServer::GetUID()
     return m_GlobalUID.fetch_add(1);
 }
 
-bool MonoServer::LinkUID(uint32_t nUID, ActiveObject *pObject)
+bool MonoServer::LinkUID(uint32_t nUID, ServerObject *pObject)
 {
     if(nUID && pObject){
         auto &rstRecord = m_UIDArray[nUID % m_UIDArray.size()];
@@ -618,7 +618,7 @@ bool MonoServer::LinkUID(uint32_t nUID, ActiveObject *pObject)
         }
     }
 
-    AddLog(LOGTYPE_WARNING, "Invalid argument LinkUID(UID = %" PRIu32 ", ActiveObject = %p)", nUID, pObject);
+    AddLog(LOGTYPE_WARNING, "Invalid argument LinkUID(UID = %" PRIu32 ", ServerObject = %p)", nUID, pObject);
     return false;
 }
 
@@ -652,7 +652,7 @@ UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
             if(pRecord != rstUIDArrayEntry.Record.end()){
                 if(pRecord->second){
                     if(pRecord->second->UID() == nUID){
-                        return ((ActiveObject *)(pRecord->second))->GetUIDRecord();
+                        return ((ServerObject *)(pRecord->second))->GetUIDRecord();
                     }else{
                         AddLog(LOGTYPE_WARNING, "UIDArray mismatch: UID = (%" PRIu32 ", %" PRIu32 ")", nUID, pRecord->second->UID());
                     }

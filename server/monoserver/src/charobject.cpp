@@ -34,7 +34,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
         int                         nMapX,
         int                         nMapY,
         int                         nDirection)
-    : ActiveObject(nUID)
+    : ServerObject(nUID)
     , m_ServiceCore(pServiceCore)
     , m_Map(pServerMap)
     , m_LocationList()
@@ -82,7 +82,7 @@ bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
 
 Theron::Address CharObject::Activate()
 {
-    auto stAddress = ActiveObject::Activate();
+    auto stAddress = ServerObject::Activate();
     if(ActorPodValid()){
         DispatchAction(ActionStand(X(), Y(), Direction()));
     }

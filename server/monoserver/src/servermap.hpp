@@ -28,7 +28,7 @@
 #include "commonitem.hpp"
 #include "pathfinder.hpp"
 #include "mir2xmapdata.hpp"
-#include "activeobject.hpp"
+#include "serverobject.hpp"
 #include "batchluamodule.hpp"
 
 class Player;
@@ -36,7 +36,7 @@ class Monster;
 class ServiceCore;
 class ServerObject;
 
-class ServerMap final: public ActiveObject
+class ServerMap final: public ServerObject
 {
     private:
         class ServerMapLuaModule: public BatchLuaModule

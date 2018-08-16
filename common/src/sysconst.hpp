@@ -56,6 +56,7 @@ const int SYS_INVGRIDPW = 38;
 const int SYS_INVGRIDPH = 38;
 
 const int SYS_MAXTARGET = 8;
+const int SYS_MAXACTOR  = 65521;
 
 const uint32_t SYS_NEEDEXP[]
 {

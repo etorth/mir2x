@@ -28,11 +28,11 @@
 #include <unordered_map>
 
 #include "netdriver.hpp"
-#include "activeobject.hpp"
+#include "serverobject.hpp"
 #include "serverluamodule.hpp"
 
 class ServerMap;
-class ServiceCore final: public ActiveObject
+class ServiceCore final: public ServerObject
 {
     protected:
         std::map<uint32_t, ServerMap *> m_MapList;

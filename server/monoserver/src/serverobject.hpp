@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: activeobject.hpp
+ *       Filename: serverobject.hpp
  *        Created: 04/21/2016 23:02:31
  *    Description: server object with active state
  *                      1. it's active via actor pod
@@ -10,7 +10,7 @@
  *                 actually stateless object can be implemented as a static object
  *                 after activated this kind of object can only be modified via messages
  *
- *                 access control protocol for ActiveObject
+ *                 access control protocol for ServerObject
  *                 for active object A and B, A can access B through b->func() iif
  *                    1. B outlives A
  *                    2. B::func() is constant qualified
@@ -94,7 +94,7 @@ enum ObjectState: uint8_t
     STATE_ONHORSE,
 };
 
-class ActiveObject
+class ServerObject
 {
     private:
         const uint32_t m_UID;
@@ -115,10 +115,10 @@ class ActiveObject
         std::priority_queue<DelayCmd> m_DelayCmdQ;
 
     public:
-        ActiveObject(uint32_t);
+        ServerObject(uint32_t);
 
     public:
-        virtual ~ActiveObject();
+        virtual ~ServerObject();
 
     public:
        uint32_t UID() const

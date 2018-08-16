@@ -27,7 +27,7 @@
 #include "servicecore.hpp"
 
 ServiceCore::ServiceCore()
-    : ActiveObject(UIDFunc::BuildUID_COR())
+    : ServerObject(UIDFunc::BuildUID_COR())
     , m_MapList()
 {}
 

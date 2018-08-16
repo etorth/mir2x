@@ -27,7 +27,7 @@
  *                 }
  *
  *                 the best place to put trigger is inside class ActorPod, this means for
- *                 ActiveObject, we can't use trigger before activate it, define ctor of
+ *                 ServerObject, we can't use trigger before activate it, define ctor of
  *                 ActorPod as:
  *
  *                 ActorPod(Trigger, Operation);

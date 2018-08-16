@@ -245,7 +245,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
 }
 
 ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
-    : ActiveObject(UIDFunc::BuildUID_MAP(nMapID))
+    : ServerObject(UIDFunc::BuildUID_MAP(nMapID))
     , m_ID(nMapID)
     , m_Mir2xMapData(*([nMapID]() -> Mir2xMapData *
       {
@@ -635,7 +635,7 @@ bool ServerMap::Empty()
 
 Theron::Address ServerMap::Activate()
 {
-    auto stAddress = ActiveObject::Activate();
+    auto stAddress = ServerObject::Activate();
 
     delete m_LuaModule;
     m_LuaModule = new ServerMap::ServerMapLuaModule();
