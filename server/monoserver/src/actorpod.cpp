@@ -234,3 +234,9 @@ bool ActorPod::Forward(const MessageBuf &rstMB,
     extern MonoServer *g_MonoServer;
     return m_RespondMessageRecord.emplace(nID, RespondMessageRecord((g_MonoServer->GetTimeTick() + m_ExpireTime), fnOPR)).second;
 }
+
+void ActorPod::Detach()
+{
+    extern ActorPool *g_ActorPool;
+    g_ActorPool->EraseLink(UID(), this);
+}

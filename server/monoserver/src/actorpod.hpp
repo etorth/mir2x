@@ -69,6 +69,62 @@
 class ActorPod final: public Theron::Actor
 {
     private:
+        friend class ActorPool;
+
+    private:
+        std::atomic<bool> m_Dead;
+
+    private:
+        bool PushMPK(const MessagePack *, size_t);
+
+    private:
+        bool Dead() const
+        {
+            return m_Dead.load();
+        }
+
+        void Die()
+        {
+            m_Dead.exchange(true);
+        }
+
+    private:
+        bool PushMPK(const MessagePack &rstMPK)
+        {
+            std::lock_guard<std::mutex> stLockGuard(m_NextMPKQLock);
+            m_NextMPKQ.push_back(rstMPK);
+        }
+
+        bool PushMPK(const MessagePack *pMPK, size_t nMPKNum)
+        {
+            std::lock_guard<std::mutex> stLockGuard(m_NextMPKQLock);
+            auto nLastLen = m_NextMPKQ.size();
+
+            m_NextMPKQ.resize(m_NextMPKQ.size() + nMPKNum);
+            std::memcpy(m_NextMPKQ.data() + nLastLen, pMPK, nMPKNum);
+        }
+
+        void Execute()
+        {
+            if(!Dead()){
+                InnHandler({MPK_METRONOME}, 0);
+            }
+
+            if(m_CurrMPKQ.empty()){
+                std::lock_guard<std::mutex> stLockGuard(m_NextMPKQLock);
+                if(m_NextMPKQ.empty()){
+                    return;
+                }
+                std::swap(m_CurrMPKQ, m_NextMPKQ);
+            }
+
+            condcheck(!m_CurrMPKQ.empty());
+            while(!m_CurrMPKQ.empty()){
+                InnHandler(Dead() ? m_CurrMPKQ.top() : {MPK_BADACTORPOD});
+            }
+        }
+
+    private:
         using MessagePackOperation = std::function<void(const MessagePack&, const Theron::Address &)>;
         // no need to keep the message pack itself
         // since when registering response operation, we always have the message pack avaliable

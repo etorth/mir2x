@@ -22,22 +22,20 @@
 #include "dispatcher.hpp"
 #include "messagepack.hpp"
 
-bool Dispatcher::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond)
+void Dispatcher::Forward(const MessageBuf &rstMB, uint32_t nUID, uint32_t nRespond)
 {
     extern ServerEnv *g_ServerEnv;
     if(g_ServerEnv->TraceActorMessage){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_DEBUG, "(Dispatcher: 0X%0*" PRIXPTR ", Name: Dispatcher, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ")",
-                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
+        g_MonoServer->AddLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %" PRIu32 ")", UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
     }
 
-    if(!rstAddr){
+    if(!nUID){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "(Dispatcher: 0X%0*" PRIXPTR ", Name: Dispatcher, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ") : Try to send message to an emtpy address",
-                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
-        return false;
+        g_MonoServer->AddLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to UID 0", UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
+        return;
     }
 
-    extern Theron::Framework *g_Framework;
-    return g_Framework->Send<MessagePack>({rstMB, 0, nRespond}, Theron::Address::Null(), rstAddr);
+    extern ActorPool *g_ActorPool;
+    g_ActorPool->PostMessage(nUID, {rstMB, 0, nRespond});
 }

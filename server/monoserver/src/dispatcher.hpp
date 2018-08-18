@@ -5,7 +5,7 @@
  *        Created: 01/26/2018 15:36:14
  *    Description:
  *                 anonymous message sender
- *                 actor who receives the message will get from-address as Null()
+ *                 actor who receives the message will uid zero
  *
  *        Version: 1.0
  *       Revision: none
