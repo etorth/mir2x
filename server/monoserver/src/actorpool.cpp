@@ -20,6 +20,11 @@ ActorPool::ActorPool()
 {
 }
 
+void ActorPool::ProcessChainNode(int nChainNode)
+{
+    std::lock_guard<ActorPool::SpinLock> stLockGuard(m_UIDArray[nChainNode].Lock);
+}
+
 bool ActorPool::PostMessage(uint32_t nUID, const MessagePack &rstMPK)
 {
     return PostMessage(nUID, &rstMPK, 1);
@@ -120,5 +125,27 @@ void ActorPool::Launch()
                 }
             }
         });
+    }
+}
+
+void ActorPool::PostMessage(uint32_t nUID, const MessagePack *pMPK, size_t nNum)
+{
+    // if current uid is stopped
+    // then no message should reach the mailbox
+
+    auto nChainNode = InnGet(nUID);
+    if(nChainNode < 0 || m_UIDArray[nChainNode].Mailbox->Reg.fetch_and(REG_STOPPED)){
+        if(Reg.fetch_and(REG_STOPPED)){
+            for(auto p = pMPK; p != pMPK + nNum; ++p){
+                PostMessage(p->From(), {MPK_BADACTORPOD});
+            }
+            return;
+        }
+    }
+
+    // is pushing
+    {
+        std::lock_guard<SpinLock> stLockGuard(Lock);
+        NextQ.insert(NextQ.end(), pMPK, pMPK + nNum);
     }
 }
