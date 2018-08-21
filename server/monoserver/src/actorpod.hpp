@@ -66,61 +66,59 @@
 #include "messagebuf.hpp"
 #include "messagepack.hpp"
 
-class ActorPod final: public Theron::Actor
+class ActorPod final
 {
     private:
         friend class ActorPool;
 
     private:
-        std::atomic<bool> m_Dead;
+        struct SpinLock
+        {
+            std::atomic_flag Latch;
+            SpinLock()
+                : Latch {ATOMIC_FLAG_INIT}
+            {}
+
+            void lock()
+            {
+                while (Latch.test_and_set(std::memory_order_acquire)){
+                    continue;
+                }
+            }
+
+            void unlock()
+            {
+                Latch.clear(std::memory_order_release);
+            }
+        };
 
     private:
-        bool PushMPK(const MessagePack *, size_t);
+        SpinLock m_NextQLock;
 
     private:
-        bool Dead() const
-        {
-            return m_Dead.load();
-        }
-
-        void Die()
-        {
-            m_Dead.exchange(true);
-        }
+        std::vector<MessagePack> m_CurrQ;
+        std::vector<MessagePack> m_NextQ;
 
     private:
-        bool PushMPK(const MessagePack &rstMPK)
+        bool PushMessage(const MessagePack *pMPK, size_t nMPKLen)
         {
-            std::lock_guard<std::mutex> stLockGuard(m_NextMPKQLock);
-            m_NextMPKQ.push_back(rstMPK);
-        }
-
-        bool PushMPK(const MessagePack *pMPK, size_t nMPKNum)
-        {
-            std::lock_guard<std::mutex> stLockGuard(m_NextMPKQLock);
-            auto nLastLen = m_NextMPKQ.size();
-
-            m_NextMPKQ.resize(m_NextMPKQ.size() + nMPKNum);
-            std::memcpy(m_NextMPKQ.data() + nLastLen, pMPK, nMPKNum);
+            std::lock_guard<std::mutex> stLockGuard(m_NextQLock);
+            m_NextQ.insert(m_NextQ.end(), pMPK, nMPKLen);
         }
 
         void Execute()
         {
-            if(!Dead()){
-                InnHandler({MPK_METRONOME}, 0);
-            }
-
-            if(m_CurrMPKQ.empty()){
-                std::lock_guard<std::mutex> stLockGuard(m_NextMPKQLock);
-                if(m_NextMPKQ.empty()){
+            if(m_CurrQ.empty()){
+                std::lock_guard<std::mutex> stLockGuard(m_NextQLock);
+                if(m_NextQ.empty()){
                     return;
                 }
-                std::swap(m_CurrMPKQ, m_NextMPKQ);
+                std::swap(m_CurrQ, m_NextQ);
             }
 
-            condcheck(!m_CurrMPKQ.empty());
-            while(!m_CurrMPKQ.empty()){
-                InnHandler(Dead() ? m_CurrMPKQ.top() : {MPK_BADACTORPOD});
+            condcheck(!m_CurrQ.empty());
+            for(auto p = m_CurrQ.begin(); p != m_CurrQ.end(); ++p){
+                InnHandler(*p);
             }
         }
 

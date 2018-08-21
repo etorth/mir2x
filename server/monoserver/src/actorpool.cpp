@@ -20,132 +20,60 @@ ActorPool::ActorPool()
 {
 }
 
-void ActorPool::ProcessChainNode(int nChainNode)
+bool ActorPool::LinkUID(uint32_t nUID, ActorPod *pActor)
 {
-    std::lock_guard<ActorPool::SpinLock> stLockGuard(m_UIDArray[nChainNode].Lock);
-}
-
-bool ActorPool::PostMessage(uint32_t nUID, const MessagePack &rstMPK)
-{
-    return PostMessage(nUID, &rstMPK, 1);
-}
-
-void ActorPool::PostMessage(uint32_t nUID, const MessagePack *pMPK, size_t nMPKNum)
-{
-    for(auto nChainNode = m_UIDArray[InnHashCode(nUID)].Loc0.load(); nChainNode >= 0;){
-        if(auto pActor = m_UIDArray[nChainNode].Actor.load(); pActor && pActor->UID() == nUID){
-            if(pActor->Dead()){
-                for(size_t nIndex = 0; nIndex < nMPKNum; ++nIndex){
-                    PostMessage(pMPK[nIndex].From(), {MPK_BADACTORPOD, 0, pMPK[nIndex].Resp()});
-                }
-                return;
+    if(nUID && pActor && (nUID == pActor->UID())){
+        auto &rstBucket = m_UIDArray[nUID % m_UIDArrayNum];
+        {
+            std::unique_lock<std::shared_mutex> stLock(rstBucket.Lock);
+            if(rstBucket.List.find(nUID) != rstBucket.end()){
+                rstBucket.List[nUID] = pActor;
+                return true;
             }
-            return pActor->PushMPK(pMPK, nMPKNum);
         }
-
-        // else
-        // 1. current slot is nullptr
-        // 2. the uid doesn't match
-        nChainNode = m_UIDArray[nChainNode].Loc.load().Loc1;
     }
-    return -1;
+    return false;
 }
 
-int ActorPool::InnGet(uint32_t nUID)
+void ActorPool::EraseUID(uint32_t nUID)
 {
-    for(auto nChainNode = m_UIDArray[InnHashCode(nUID)].Loc.load().Loc0; nChainNode >= 0;){
-        if(auto pActor = m_UIDArray[nChainNode].Actor.load(); pActor && pActor->UID() == nUID){
-            return nChainNode;
-        }
-
-        // else
-        // 1. current slot is nullptr
-        // 2. the uid doesn't match
-        nChainNode = m_UIDArray[nChainNode].Loc.load().Loc1;
-    }
-    return -1;
-}
-
-void ActorPool::LinkUID(uint32_t nUID, ServerObject *pObject)
-{
-}
-
-void ActorPool::ExecuteChain(int nChainHead)
-{
-    for(auto nChainNode = m_UIDArray[nChainHead].Loc0.load(); nChainNode >= 0;){
-        if(auto pActor = m_UIDArray[nChainNode].Actor.load()){
-            pActor->
-        }
-
-        // else
-        // 1. current slot is nullptr
-        // 2. the uid doesn't match
-        nChainNode = m_UIDArray[nChainNode].Loc.load().Loc1;
+    auto &rstBucket = m_UIDArray[nUID % m_UIDArrayNum];
+    {
+        std::unique_lock<std::shared_mutex> stLock(rstBucket.Lock);
+        rstBucket.erase(nUID);
     }
 }
 
-void ActorPool::DetachUID(uint32_t nUID)
+void ActorPool::PostMessage(uint32_t nUID, const MessagePack *pMPK, size_t nMPKLen)
 {
-    if(auto nChainNode = InnGet(nUID); nChainNode >= 0){
-        m_UIDArray[nChainNode].Actor.load()->Die();
-    }
-}
-
-// QSBR update
-// there is only one thread calling delete
-// other thread can find/access the pod but can't remove it
-void ActorPool::EraseChainDead(int nChainHead)
-{
-    for(auto nCurrNode = nChainHead, nLastNode = -1; nCurrNode >= 0;){
-        if(auto pActor = m_UIDArray[nCurrNode].Actor.load(); pActor && pActor->Dead()){
-            if(nLastNode >= 0){
-                m_UIDArray[nLastNode].Loc1.store(m_UIDArray[nCurrNode].Loc1.load());
-            }
-            delete m_UIDArray[nCurr].Data.exchange(nullptr);
+    auto &rstBucket = m_UIDArray[nUID % m_UIDArrayNum];
+    {
+        std::shared_lock<std::shared_mutex> stLock(rstBucket.Lock);
+        if(auto pActor = rstBucket.find(nUID); pActor != rstBucket.end()){
+            pActor->PushMessage(pMPK, nMPKLen);
+            return;
         }
+    }
 
-        nLastNode = nCurrNode;
-        nCurrNode = m_UIDArray[nCurrNode].Loc1.load();
+    for(size_t nIndex = 0; nIndex < nMPKLen; ++nIndex){
+        PostMessage(pMPK[nIndex].From(), {MPK_BADACTORPOD, 0, pMPK[nIndex].Resp()});
     }
 }
 
 void ActorPool::Launch()
 {
-    for(int nIndex = 0; nIndex < m_ThreadCount; ++nIndex){
+    for(int nIndex = 0; nIndex < m_UIDArrayNum; ++nIndex){
         m_Feature[nIndex] = std::async(std::launch::async, [nIndex, this]()
         {
-            const int nChainPerThread = m_UIDArray.size() / m_ThreadCount;
-            const int nChainHead0     = nIndex * nChainPerThread;
-            const int nChainHead1     = std::min<int>((nIndex + 1) * nChainPerThread, m_UIDArray.size());
-
-            while(m_Running.load()){
-                for(auto nChainHead = nChainHead0; nChainHead < nChainHead1; ++nChainHead){
-                    ExecuteChain(nChainHead);
-                    EraseChainDead(nChainHead);
+            auto &rstBucket = m_UIDArray[nUID % m_UIDArrayNum];
+            while(true){
+                std::shared_lock<std::shared_mutex> stLock(rstBucket.Lock);
+                {
+                    for(auto pActor = rstBucket.List.begin(); pActor != rstBucket.List.end(); ++pActor){
+                        pActor->second.Execute();
+                    }
                 }
             }
         });
-    }
-}
-
-void ActorPool::PostMessage(uint32_t nUID, const MessagePack *pMPK, size_t nNum)
-{
-    // if current uid is stopped
-    // then no message should reach the mailbox
-
-    auto nChainNode = InnGet(nUID);
-    if(nChainNode < 0 || m_UIDArray[nChainNode].Mailbox->Reg.fetch_and(REG_STOPPED)){
-        if(Reg.fetch_and(REG_STOPPED)){
-            for(auto p = pMPK; p != pMPK + nNum; ++p){
-                PostMessage(p->From(), {MPK_BADACTORPOD});
-            }
-            return;
-        }
-    }
-
-    // is pushing
-    {
-        std::lock_guard<SpinLock> stLockGuard(Lock);
-        NextQ.insert(NextQ.end(), pMPK, pMPK + nNum);
     }
 }
