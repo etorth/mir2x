@@ -71,33 +71,9 @@ class ActorPod final
     private:
         friend class ActorPool;
 
-    private:
-        struct SpinLock
-        {
-            std::atomic_flag Latch;
-            SpinLock()
-                : Latch {ATOMIC_FLAG_INIT}
-            {}
+    public:
+        void Detach() const;
 
-            void lock()
-            {
-                while (Latch.test_and_set(std::memory_order_acquire)){
-                    continue;
-                }
-            }
-
-            void unlock()
-            {
-                Latch.clear(std::memory_order_release);
-            }
-        };
-
-    private:
-        SpinLock m_NextQLock;
-
-    private:
-        std::vector<MessagePack> m_CurrQ;
-        std::vector<MessagePack> m_NextQ;
 
     private:
         bool PushMessage(const MessagePack *pMPK, size_t nMPKLen)
@@ -286,8 +262,5 @@ class ActorPod final
         }
 
     public:
-        void Detach()
-        {
-            DeregisterHandler(this, &ActorPod::InnHandler);
-        }
+        void Detach() const;
 };

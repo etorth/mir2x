@@ -31,5 +31,5 @@ class Dispatcher
         virtual ~Dispatcher() = default;
 
     public:
-        bool Forward(const MessageBuf &, const Theron::Address &, uint32_t = 0);
+        bool Forward(uint64_t, const MessageBuf &, uint32_t = 0);
 };

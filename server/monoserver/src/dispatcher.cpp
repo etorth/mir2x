@@ -22,7 +22,7 @@
 #include "dispatcher.hpp"
 #include "messagepack.hpp"
 
-void Dispatcher::Forward(const MessageBuf &rstMB, uint32_t nUID, uint32_t nRespond)
+void Dispatcher::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond)
 {
     extern ServerEnv *g_ServerEnv;
     if(g_ServerEnv->TraceActorMessage){
@@ -37,5 +37,5 @@ void Dispatcher::Forward(const MessageBuf &rstMB, uint32_t nUID, uint32_t nRespo
     }
 
     extern ActorPool *g_ActorPool;
-    g_ActorPool->PostMessage(nUID, {rstMB, 0, nRespond});
+    g_ActorPool->PostMessage(nUID, {rstMB, 0, 0, nRespond});
 }
