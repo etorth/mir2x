@@ -91,20 +91,31 @@ bool NetDriver::InitASIO(uint32_t nPort)
     return true;
 }
 
-int NetDriver::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
+int NetDriver::Launch(uint32_t nPort, uint64_t nUID)
 {
-    if(!CheckPort(nPort) || rstSCAddr == Theron::Address::Null()){
-        return 1;
+    if(CheckPort(nPort)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Using invalid port: %" PRIu32, nPort);
+        return false;
     }
 
-    m_SCAddress = rstSCAddr;
+    extern ActorPool *g_ActorPool;
+    if(g_ActorPool->CheckInvalid(nUID)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Launch with invaid UID: " PRIu64, nUID);
+        return false;
+    }
+
+    m_SCUID = nUID;
 
     if(m_Thread.joinable()){
         m_Thread.join();
     }
 
     if(!InitASIO(nPort)){
-        return 2;
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "InitASIO failed in NetDriver");
+        return false;
     }
 
     m_ChannIDQ.Clear();
@@ -118,7 +129,7 @@ int NetDriver::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
         m_IO->run();
     });
 
-    return 0;
+    return true;
 }
 
 void NetDriver::AcceptNewConnection()

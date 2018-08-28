@@ -92,28 +92,28 @@ class Player final: public CharObject
         void OperateNet(uint8_t, const uint8_t *, size_t);
 
     protected:
-        void OperateAM(const MessagePack &, const Theron::Address &);
+        void OperateAM(const MessagePack &);
 
     private:
-        void On_MPK_EXP(const MessagePack &, const Theron::Address &);
-        void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
-        void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);
-        void On_MPK_OFFLINE(const MessagePack &, const Theron::Address &);
-        void On_MPK_CORECORD(const MessagePack &, const Theron::Address &);
-        void On_MPK_PICKUPOK(const MessagePack &, const Theron::Address &);
-        void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);
-        void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
-        void On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &);
-        void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
-        void On_MPK_BADCHANNEL(const MessagePack &, const Theron::Address &);
-        void On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &);
-        void On_MPK_NOTIFYNEWCO(const MessagePack &, const Theron::Address &);
-        void On_MPK_DEADFADEOUT(const MessagePack &, const Theron::Address &);
-        void On_MPK_BINDCHANNEL(const MessagePack &, const Theron::Address &);
-        void On_MPK_SHOWDROPITEM(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);
-        void On_MPK_REMOVEGROUNDITEM(const MessagePack &, const Theron::Address &);
+        void On_MPK_EXP(const MessagePack &);
+        void On_MPK_ACTION(const MessagePack &);
+        void On_MPK_ATTACK(const MessagePack &);
+        void On_MPK_OFFLINE(const MessagePack &);
+        void On_MPK_CORECORD(const MessagePack &);
+        void On_MPK_PICKUPOK(const MessagePack &);
+        void On_MPK_UPDATEHP(const MessagePack &);
+        void On_MPK_METRONOME(const MessagePack &);
+        void On_MPK_MAPSWITCH(const MessagePack &);
+        void On_MPK_NETPACKAGE(const MessagePack &);
+        void On_MPK_BADCHANNEL(const MessagePack &);
+        void On_MPK_NOTIFYDEAD(const MessagePack &);
+        void On_MPK_NOTIFYNEWCO(const MessagePack &);
+        void On_MPK_DEADFADEOUT(const MessagePack &);
+        void On_MPK_BINDCHANNEL(const MessagePack &);
+        void On_MPK_SHOWDROPITEM(const MessagePack &);
+        void On_MPK_QUERYCORECORD(const MessagePack &);
+        void On_MPK_QUERYLOCATION(const MessagePack &);
+        void On_MPK_REMOVEGROUNDITEM(const MessagePack &);
 
     private:
         void Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *, size_t);

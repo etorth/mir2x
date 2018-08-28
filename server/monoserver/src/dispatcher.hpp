@@ -19,7 +19,7 @@
  */
 
 #pragma once
-#include <Theron/Theron.h>
+#include <cstdint>
 #include "messagebuf.hpp"
 
 class Dispatcher

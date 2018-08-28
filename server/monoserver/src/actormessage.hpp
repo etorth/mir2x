@@ -157,7 +157,7 @@ struct AMTrySpaceMove
 
 struct AMSpaceMoveOK
 {
-    void *Data;
+    void *Ptr;
 };
 
 struct AMTryMove

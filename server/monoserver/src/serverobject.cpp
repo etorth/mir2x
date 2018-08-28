@@ -23,8 +23,9 @@
 #include "monoserver.hpp"
 #include "serverobject.hpp"
 
-ServerObject::ServerObject(uint32_t nUID)
+ServerObject::ServerObject(uint64_t nUID)
     : m_UID(nUID)
+    , m_UIDName(UIDFunc::GetUIDString(nUID))
     , m_StateV()
     , m_StateTimeV()
     , m_ActorPod(nullptr)
@@ -93,25 +94,23 @@ ServerObject::~ServerObject()
 // for communication, delete it may cause problems
 //
 // And if we really want to change the address of current object, maybe we need to
-// delte current object in total and create a new one instead
-Theron::Address ServerObject::Activate()
+// delete current object totally and create a new one instead
+uint64_t ServerObject::Activate()
 {
     if(!m_ActorPod){
-        // 1. enable the scheduling by actor threads
-        extern Theron::Framework *g_Framework;
-        m_ActorPod = new ActorPod(g_Framework, UID(), ClassName(), [this](){ m_StateHook.Execute(); },
-                [this](const MessagePack &rstMPK, const Theron::Address &stFromAddr){ OperateAM(rstMPK, stFromAddr); });
-        // 2. bind the class information to the actorpod
-        //    between 1 and 2 there could be gap but OK since before exiting current function
-        //    no actor message will be passed or forwarded
-        return GetAddress();
+        try{
+            m_ActorPod = new ActorPod(m_UID, [this](){ m_StateHook.Execute(); }, [this](const MessagePack &rstMPK){ OperateAM(rstMPK, stFromAddr); });
+        }catch(...){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Activate server object failed: %s", UIDFunc::GetUIDString(m_UID).c_str());
+            g_MonoServer->Restart();
+        }
     }else{
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Try to do activation twice: UID = %" PRIu32 ", ClassName = %s", UID(), ClassName());
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Activation twice: %s", UIDFunc::GetUIDString(UID()).c_str());
         g_MonoServer->Restart();
-
-        return Theron::Address::Null();
     }
+    return UID();
 }
 
 void ServerObject::Deactivate()

@@ -121,21 +121,21 @@ class Monster final: public CharObject
         DamageNode GetAttackDamage(int);
 
     private:
-        void On_MPK_EXP(const MessagePack &, const Theron::Address &);
-        void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);
-        void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
-        void On_MPK_OFFLINE(const MessagePack &, const Theron::Address &);
-        void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);
-        void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
-        void On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &);
-        void On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &);
-        void On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &);
-        void On_MPK_NOTIFYNEWCO(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);
+        void On_MPK_EXP           (const MessagePack &);
+        void On_MPK_ATTACK        (const MessagePack &);
+        void On_MPK_ACTION        (const MessagePack &);
+        void On_MPK_OFFLINE       (const MessagePack &);
+        void On_MPK_UPDATEHP      (const MessagePack &);
+        void On_MPK_METRONOME     (const MessagePack &);
+        void On_MPK_MAPSWITCH     (const MessagePack &);
+        void On_MPK_NOTIFYDEAD    (const MessagePack &);
+        void On_MPK_BADACTORPOD   (const MessagePack &);
+        void On_MPK_NOTIFYNEWCO   (const MessagePack &);
+        void On_MPK_QUERYCORECORD (const MessagePack &);
+        void On_MPK_QUERYLOCATION (const MessagePack &);
 
     protected:
-        void OperateAM(const MessagePack &, const Theron::Address &);
+        void OperateAM(const MessagePack &);
 
     protected:
         void ReportCORecord(uint32_t);

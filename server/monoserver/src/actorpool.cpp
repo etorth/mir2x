@@ -20,30 +20,38 @@
  * =====================================================================================
  */
 
+#include <mutex>
+#include <thread>
 #include <cstdint>
 #include <cinttypes>
+#include "receiver.hpp"
+#include "actorpod.hpp"
 #include "actorpool.hpp"
 #include "monoserver.hpp"
 
-ActorPool(int nBucketCount = 0)
-    : m_BucketCount(nBucketCount > 0 ? nBucketCount : (std::hardware_concurrency() * 2 + 1))
+ActorPool::ActorPool(uint32_t nBucketCount)
+    : m_BucketCount(nBucketCount > 0 ? nBucketCount : (std::thread::hardware_concurrency() * 2 + 1))
+    , m_LogicFPS(60)
     , m_Terminated(false)
-    , m_Futures();
+    , m_FutureList()
+    , m_BucketList()
+    , m_ReceiverLock()
+    , m_ReceiverList()
 {}
 
 ActorPool::~ActorPool()
 {
     if(IsActorThread()){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Trying to destroy actor pool in actor thread.");
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Trying to destroy actor pool in actor thread");
         return;
     }
 
     m_Terminated.store(true);
-    for(auto p = m_Futures.begin(); p != m_Futures.end(); ++p){
+    for(auto p = m_FutureList.begin(); p != m_FutureList.end(); ++p){
         p->get();
     }
-    m_Futures.clear();
+    m_FutureList.clear();
 }
 
 bool ActorPool::Register(ActorPod *pActor)
@@ -55,7 +63,7 @@ bool ActorPool::Register(ActorPod *pActor)
     }
 
     auto nUID = pActor->UID();
-    auto &rstBucket = m_BucketArray[nUID % m_BucketCount];
+    auto &rstBucket = m_BucketList[nUID % m_BucketCount];
     auto pMailbox = std::make_shared<ActorMailbox>(pActor);
 
     // can call this function from:
@@ -69,7 +77,7 @@ bool ActorPool::Register(ActorPod *pActor)
     const ActorPod *pExistActor = nullptr;
     {
         std::unique_lock<std::shared_mutex> stLock(rstBucket.BucketLock);
-        if(auto p = rstBucket.MailboxList.find(nUID); p != rstBucket.end()){
+        if(auto p = rstBucket.MailboxList.find(nUID); p != rstBucket.MailboxList.end()){
             rstBucket.MailboxList[nUID] = pMailbox;
             return true;
         }else{
@@ -94,9 +102,9 @@ bool ActorPool::Detach(const ActorPod *pActor)
     // but use actor address prevents other thread do detach blindly
 
     auto nUID = pActor->UID();
-    auto &rstBucket = m_BucketArray[nUID % m_BucketCount];
+    auto &rstBucket = m_BucketList[nUID % m_BucketCount];
 
-    auto fnDoDetach = [&rstBucket, pActor]() -> bool
+    auto fnDoDetach = [&rstBucket, pActor, nUID]() -> bool
     {
         if(auto p = rstBucket.MailboxList.find(nUID); (p != rstBucket.MailboxList.end()) && (p->second->Actor == pActor)){
             p->second->Actor = nullptr;
@@ -120,22 +128,22 @@ bool ActorPool::Detach(const ActorPod *pActor)
     }
 
     extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't find (ActorPod = %p, ActorPod::UID() = %" PRIu64 ") in actor pool", pActor, pActor->UID());
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "Actor doesn't exist: (ActorPod = %p, ActorPod::UID() = %" PRIu64 ")", pActor, pActor->UID());
     return false;
 }
 
-void ActorPool::PostMessage(uint64_t nUID, const MessagePack *pMPK, size_t nMPKLen)
+bool ActorPool::PostMessage(uint64_t nUID, const MessagePack *pMPK, size_t nMPKLen)
 {
     if(!(pMPK && nMPKLen)){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_FATAL, "Posting empty message buffer");
-        return;
+        return false;
     }
 
     auto fnOnBadPod = [this, pMPK, nMPKLen]()
     {
         for(size_t nIndex = 0; nIndex < nMPKLen; ++nIndex){
-            PostMessage(pMPK[nIndex].From(), {MPK_BADACTORPOD, 0, pMPK[nIndex].Resp()});
+            PostMessage(pMPK[nIndex].From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, pMPK[nIndex].Respond()});
         }
     };
 
@@ -146,22 +154,22 @@ void ActorPool::PostMessage(uint64_t nUID, const MessagePack *pMPK, size_t nMPKL
             std::lock_guard<std::mutex> stLockGuard(m_ReceiverLock);
             if(auto p = m_ReceiverList.find(nUID); p != m_ReceiverList.end() && p->second){
                 p->second->PushMessage(pMPK, nMPKLen);
-                return;
+                return true;
             }
         }
 
         // no such receiver
         // report BAD_ACTORPOD even we know it's a receiver
         fnOnBadPod();
-        return;
+        return false;
     }
 
-    auto &rstBucket = m_BucketArray[nUID % m_BucketCount];
-    auto fnPushMessage = [&rstBucket, pMPK, nMPKLen]()
+    auto &rstBucket = m_BucketList[nUID % m_BucketCount];
+    auto fnPushMessage = [&rstBucket, pMPK, nMPKLen, nUID]()
     {
         if(auto p = rstBucket.MailboxList.find(nUID); p != rstBucket.MailboxList.end()){
-            std::lock_guard<SpinLock> stLockGuard(p->second.NextQLock);
-            p->second.NextQ.insert(p->second.NextQ.end(), pMPK, pMPK + nMPKLen);
+            std::lock_guard<SpinLock> stLockGuard(p->second->NextQLock);
+            p->second->NextQ.insert(p->second->NextQ.end(), pMPK, pMPK + nMPKLen);
             return true;
         }
         return false;
@@ -169,26 +177,27 @@ void ActorPool::PostMessage(uint64_t nUID, const MessagePack *pMPK, size_t nMPKL
 
     if(std::this_thread::get_id() == rstBucket.ID){
         if(fnPushMessage()){
-            return;
-        }
-
-        for(size_t nIndex = 0; nIndex < nMPKLen; ++nIndex){
-            PostMessage(pMPK[nIndex].From(), {MPK_BADACTORPOD, 0, pMPK[nIndex].Resp()});
+            return true;
         }
     }else{
         std::shared_lock<std::shared_mutex> stLock(rstBucket.BucketLock);
         if(fnPushMessage()){
-            return;
+            return true;
         }
     }
+
+    for(size_t nIndex = 0; nIndex < nMPKLen; ++nIndex){
+        PostMessage(pMPK[nIndex].From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, pMPK[nIndex].Respond()});
+    }
+    return false;
 }
 
 void ActorPool::Launch()
 {
-    for(int nIndex = 0; nIndex < m_BucketCount; ++nIndex){
-        m_Feature[nIndex] = std::async(std::launch::async, [nIndex, this]()
+    for(int nIndex = 0; nIndex < (int)(m_BucketCount); ++nIndex){
+        m_FutureList[nIndex] = std::async(std::launch::async, [nIndex, this]()
         {
-            auto &rstBucket = m_BucketArray[nUID % m_BucketCount];
+            auto &rstBucket = m_BucketList[nIndex];
             rstBucket.ID = std::this_thread::get_id();
 
             extern MonoServer *g_MonoServer;
@@ -198,21 +207,21 @@ void ActorPool::Launch()
                 auto fnUpdate = [&rstBucket](auto pCurr)
                 {
                     while(pCurr != rstBucket.MailboxList.end()){
-                        if(auto &rstMailbox = pCurr->second; rstMailbox.Actor){
-                            if(rstMailbox.CurrQ.empty()){
-                                std::lock_guard<SpinLock> stLockGuard(rstMailbox.NextQLock);
-                                if(rstMailbox.NextQ.empty()){
+                        if(auto pMailbox = pCurr->second; pMailbox->Actor){
+                            if(pMailbox->CurrQ.empty()){
+                                std::lock_guard<SpinLock> stLockGuard(pMailbox->NextQLock);
+                                if(pMailbox->NextQ.empty()){
                                     ++pCurr;
                                     continue;
                                 }
-                                std::swap(rstMailbox.CurrQ, rstMailbox.NextQ);
+                                std::swap(pMailbox->CurrQ, pMailbox->NextQ);
                             }
 
-                            for(auto p = CurrQ.begin(); p != CurrQ.end(); ++p){
-                                rstMailbox.Actor->InnHandler(*p);
+                            for(auto p = pCurr->second->CurrQ.begin(); p != pCurr->second->CurrQ.end(); ++p){
+                                pMailbox->Actor->InnHandler(*p);
                             }
 
-                            rstMailbox.Actor->InnHandler({MPK_METRONOME, 0, 0});
+                            pMailbox->Actor->InnHandler({MPK_METRONOME, 0, 0});
 
                             ++pCurr;
                             continue;
@@ -228,10 +237,10 @@ void ActorPool::Launch()
                 // start to update
                 // if found detached actor, remove it
                 for(auto p = rstBucket.MailboxList.begin(); p != rstBucket.MailboxList.end();){
-                    if(p = fnUpdate(); p == rstBucket.MailboxList.end()){
+                    if(p = fnUpdate(p); p == rstBucket.MailboxList.end()){
                         break;
                     }else{
-                        std::unique_lock<std::shared_lock> stLock(rstBucket.BucketLock);
+                        std::unique_lock<std::shared_mutex> stLock(rstBucket.BucketLock);
                         p = rstBucket.MailboxList.erase(p);
                     }
                 }
@@ -248,7 +257,7 @@ void ActorPool::Launch()
             // terminted
             // need to clean all mailboxes
             {
-                std::unique_lock<std::shared_lock> stLock(rstBucket.BucketLock);
+                std::unique_lock<std::shared_mutex> stLock(rstBucket.BucketLock);
                 rstBucket.MailboxList.clear();
             }
             return true;
@@ -256,16 +265,16 @@ void ActorPool::Launch()
     }
 }
 
-void ActorPool::CheckInvalid(uint32_t nUID) const
+bool ActorPool::CheckInvalid(uint64_t nUID) const
 {
-    auto &rstBucket = m_BucketArray[nUID % m_BucketCount];
-    auto fnGetInvalid = [this, rstBucket, nUID] -> bool
+    auto &rstBucket = m_BucketList[nUID % m_BucketCount];
+    auto fnGetInvalid = [this, &rstMailboxList = rstBucket.MailboxList, nUID]() -> bool
     {
-        if(auto p = rstBucket.find(nUID); p == rstBucket.end() || p->second->Actor == nullptr){
+        if(auto p = rstMailboxList.find(nUID); p == rstMailboxList.end() || p->second->Actor == nullptr){
             return true;
         }
         return false;
-    }
+    };
 
     if(std::this_thread::get_id() == rstBucket.ID){
         return fnGetInvalid();
@@ -273,4 +282,15 @@ void ActorPool::CheckInvalid(uint32_t nUID) const
         std::shared_lock<std::shared_mutex> stLock(rstBucket.BucketLock);
         return fnGetInvalid();
     }
+}
+
+uint64_t ActorPool::GetInnActorUID()
+{
+    if(auto nUID = m_InnActorUID.fetch_add(1); nUID < 0X0000FFFFFFFFFFFF){
+        return 0X00FF000000000000 + nUID;
+    }
+
+    extern MonoServer *g_MonoServer;
+    g_MonoServer->AddLog(LOGTYPE_FATAL, "InnActorUID overflows");
+    return 0;
 }

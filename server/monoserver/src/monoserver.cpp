@@ -49,7 +49,7 @@ MonoServer::MonoServer()
     , m_ServiceCore(nullptr)
     , m_GlobalUID {1}
     , m_UIDArray()
-    , m_StartTime(std::chrono::system_clock::now())
+    , m_StartTime(std::chrono::steady_clock::now())
 {}
 
 void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char *szLogFormat, ...)
@@ -283,7 +283,7 @@ void MonoServer::StartNetwork()
     extern ServerConfigureWindow *g_ServerConfigureWindow;
 
     uint32_t nPort = g_ServerConfigureWindow->Port();
-    if(g_NetDriver->Launch(nPort, m_ServiceCore->GetAddress())){
+    if(!g_NetDriver->Launch(nPort, m_ServiceCore->GetAddress())){
         AddLog(LOGTYPE_FATAL, "Failed to launch the network");
         Restart();
     }
@@ -596,72 +596,23 @@ void MonoServer::FlushCWBrowser()
     }
 }
 
-uint32_t MonoServer::GetUID()
+uint32_t MonoServer::SleepEx(uint32_t nTick)
 {
-    return m_GlobalUID.fetch_add(1);
-}
+    auto stEnterTime = std::chrono::steady_clock::now();
+    auto stExpectedTime = stEnterTime + std::chrono::milliseconds(nTick);
 
-bool MonoServer::LinkUID(uint32_t nUID, ServerObject *pObject)
-{
-    if(nUID && pObject){
-        auto &rstRecord = m_UIDArray[nUID % m_UIDArray.size()];
-        {
-            std::lock_guard<std::mutex> stLockGuard(rstRecord.Lock);
-            auto stFind = rstRecord.Record.find(nUID);
-            if(stFind == rstRecord.Record.end()){
-                rstRecord.Record[nUID] = pObject;
-                return true;
-            }else{
-                AddLog(LOGTYPE_WARNING, "UIDArray duplicated UID: (%" PRIu32 ", %p, %p)", nUID, stFind->second, pObject);
-                return false;
-            }
-        }
+    if(nTick > 20){
+        std::this_thread::sleep_for(std::chrono::milliseconds(nTick - 10));
     }
 
-    AddLog(LOGTYPE_WARNING, "Invalid argument LinkUID(UID = %" PRIu32 ", ServerObject = %p)", nUID, pObject);
-    return false;
-}
-
-void MonoServer::EraseUID(uint32_t nUID)
-{
-    if(nUID){
-        auto &rstRecord = m_UIDArray[nUID % m_UIDArray.size()];
-        {
-            std::lock_guard<std::mutex> stLockGuard(rstRecord.Lock);
-            auto stFind = rstRecord.Record.find(nUID);
-            if(stFind != rstRecord.Record.end()){
-                if(stFind->second){
-                    if(stFind->second->UID() != nUID){
-                        AddLog(LOGTYPE_WARNING, "UIDArray mismatch: UID = (%" PRIu32 ", %" PRIu32 ")", nUID, stFind->second->UID());
-                    }
-                    delete stFind->second;
-                }
-                rstRecord.Record.erase(stFind);
-            }
+    while(true){
+        if(auto stCurrTime = std::chrono::steady_clock::now(); stCurrTime >= stExpectedTime){
+            return (uint32_t)(std::chrono::duration_cast<std::chrono::microseconds>(stCurrTime - stEnterTime).count());
+        }else{
+            std::this_thread::sleep_for((stExpectedTime - stCurrTime) / 2);
         }
     }
-}
-
-UIDRecord MonoServer::GetUIDRecord(uint32_t nUID)
-{
-    if(nUID){
-        auto &rstUIDArrayEntry = m_UIDArray[nUID % m_UIDArray.size()];
-        {
-            std::lock_guard<std::mutex> stLockGuard(rstUIDArrayEntry.Lock);
-            auto pRecord = rstUIDArrayEntry.Record.find(nUID);
-            if(pRecord != rstUIDArrayEntry.Record.end()){
-                if(pRecord->second){
-                    if(pRecord->second->UID() == nUID){
-                        return ((ServerObject *)(pRecord->second))->GetUIDRecord();
-                    }else{
-                        AddLog(LOGTYPE_WARNING, "UIDArray mismatch: UID = (%" PRIu32 ", %" PRIu32 ")", nUID, pRecord->second->UID());
-                    }
-                }
-            }
-        }
-    }
-
-    return UIDRecord();
+    return 0;
 }
 
 bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)

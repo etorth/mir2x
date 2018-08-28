@@ -31,8 +31,6 @@
 #pragma once
 #include <queue>
 #include <atomic>
-#include <Theron/Theron.h>
-
 #include "uidfunc.hpp"
 #include "actorpod.hpp"
 #include "statehook.hpp"
@@ -97,7 +95,8 @@ enum ObjectState: uint8_t
 class ServerObject
 {
     private:
-        const uint32_t m_UID;
+        const uint64_t m_UID;
+        const std::string m_UIDName;
 
     protected:
         std::array< uint8_t, 255> m_StateV;
@@ -121,15 +120,15 @@ class ServerObject
         virtual ~ServerObject();
 
     public:
-       uint32_t UID() const
-       {
-           return m_UID;
-       }
+        uint64_t UID() const
+        {
+            return ActorPodValid() ? m_UID : 0;
+        }
 
-       std::string ClassName() const
-       {
-           return UIDFunc::GetUIDString(UID());
-       }
+        const char *UIDName() const
+        {
+            return ActorPodValid() ? m_UIDName.c_str() : "UID_INACTIVE";
+        }
 
     protected:
         uint8_t GetState(uint8_t);
@@ -139,13 +138,7 @@ class ServerObject
         void SetState(uint8_t, uint8_t);
 
     public:
-        Theron::Address Activate();
-
-    public:
-        UIDRecord GetUIDRecord() const
-        {
-            return UIDRecord(UID(), GetAddress());
-        }
+        uint64_t Activate();
 
     protected:
         void Deactivate();
@@ -153,16 +146,11 @@ class ServerObject
     public:
         bool ActorPodValid() const
         {
-            return GetAddress() != Theron::Address::Null();
-        }
-
-        Theron::Address GetAddress() const
-        {
-            return m_ActorPod ? m_ActorPod->GetAddress() : Theron::Address::Null();
+            return m_ActorPod && m_ActorPod->UID();
         }
 
     public:
-        virtual void OperateAM(const MessagePack &, const Theron::Address &) = 0;
+        virtual void OperateAM(const MessagePack &) = 0;
 
     public:
         void Delay(uint32_t, const std::function<void()> &);

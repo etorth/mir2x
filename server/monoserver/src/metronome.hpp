@@ -23,7 +23,6 @@
 #include <mutex>
 #include <atomic>
 #include <cstdint>
-#include <Theron/Theron.h>
 #include "dispatcher.hpp"
 
 class Metronome final

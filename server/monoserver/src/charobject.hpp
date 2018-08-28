@@ -245,7 +245,7 @@ class CharObject: public ServerObject
         }
 
     public:
-        Theron::Address Activate();
+        uint64_t Activate();
 
     protected:
         virtual void ReportCORecord(uint32_t) = 0;
@@ -266,7 +266,7 @@ class CharObject: public ServerObject
 
     protected:
         virtual bool CanMove();
-        virtual bool RetrieveLocation(uint32_t, std::function<void(const COLocation &)>);
+        virtual bool RetrieveLocation(uint64_t, std::function<void(const COLocation &)>);
 
     protected:
         virtual bool RequestMove(int,   // nX, should be one hop distance

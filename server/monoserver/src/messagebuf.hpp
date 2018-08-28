@@ -19,6 +19,7 @@
 
 #pragma once
 #include <cstdint>
+#include "actormessage.hpp"
 
 class MessageBuf
 {
@@ -50,6 +51,12 @@ class MessageBuf
             : MessageBuf(nMsgType, (const uint8_t *)&rstPOD, sizeof(rstPOD))
         {
             static_assert(std::is_pod<T>::value, "POD data type supported only");
+        }
+
+    public:
+        operator bool () const
+        {
+            return Type() != MPK_NONE;
         }
 
     public:

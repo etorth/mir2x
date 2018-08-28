@@ -23,7 +23,6 @@
 
 #include "sysconst.hpp"
 #include "querytype.hpp"
-#include "uidrecord.hpp"
 #include "metronome.hpp"
 #include "commonitem.hpp"
 #include "pathfinder.hpp"
@@ -108,7 +107,7 @@ class ServerMap final: public ServerObject
         ServerMapLuaModule *m_LuaModule;
 
     private:
-        void OperateAM(const MessagePack &, const Theron::Address &);
+        void OperateAM(const MessagePack &);
 
     public:
         ServerMap(ServiceCore *, uint32_t);
@@ -141,7 +140,7 @@ class ServerMap final: public ServerObject
         bool ValidP(int nX, int nY) const { return m_Mir2xMapData.ValidP(nX, nY); }
 
     public:
-        Theron::Address Activate();
+        uint64_t Activate();
 
     private:
         bool Load(const char *);
@@ -199,7 +198,7 @@ class ServerMap final: public ServerObject
         void ClearGroundItem(int, int);
 
     private:
-        bool DoUIDList(int, int, const std::function<bool(const UIDRecord &)> &);
+        bool DoUIDList(int, int, const std::function<bool(uint64_t)> &);
 
     private:
         bool DoCircle(int, int, int,      const std::function<bool(int, int)> &);
@@ -209,23 +208,23 @@ class ServerMap final: public ServerObject
         bool DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
 
     private:
-        void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
-        void On_MPK_PICKUP(const MessagePack &, const Theron::Address &);
-        void On_MPK_OFFLINE(const MessagePack &, const Theron::Address &);
-        void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
-        void On_MPK_TRYLEAVE(const MessagePack &, const Theron::Address &);
-        void On_MPK_PATHFIND(const MessagePack &, const Theron::Address &);
-        void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);
-        void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
-        void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
-        void On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &);
-        void On_MPK_DEADFADEOUT(const MessagePack &, const Theron::Address &);
-        void On_MPK_NEWDROPITEM(const MessagePack &, const Theron::Address &);
-        void On_MPK_TRYMAPSWITCH(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYCOCOUNT(const MessagePack &, const Theron::Address &);
-        void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
-        void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYRECTUIDLIST(const MessagePack &, const Theron::Address &);
+        void On_MPK_ACTION(const MessagePack &);
+        void On_MPK_PICKUP(const MessagePack &);
+        void On_MPK_OFFLINE(const MessagePack &);
+        void On_MPK_TRYMOVE(const MessagePack &);
+        void On_MPK_TRYLEAVE(const MessagePack &);
+        void On_MPK_PATHFIND(const MessagePack &);
+        void On_MPK_UPDATEHP(const MessagePack &);
+        void On_MPK_METRONOME(const MessagePack &);
+        void On_MPK_PULLCOINFO(const MessagePack &);
+        void On_MPK_BADACTORPOD(const MessagePack &);
+        void On_MPK_DEADFADEOUT(const MessagePack &);
+        void On_MPK_NEWDROPITEM(const MessagePack &);
+        void On_MPK_TRYMAPSWITCH(const MessagePack &);
+        void On_MPK_QUERYCOCOUNT(const MessagePack &);
+        void On_MPK_TRYSPACEMOVE(const MessagePack &);
+        void On_MPK_ADDCHAROBJECT(const MessagePack &);
+        void On_MPK_QUERYRECTUIDLIST(const MessagePack &);
 
     private:
         bool RegisterLuaExport(ServerMapLuaModule *);

@@ -80,15 +80,13 @@ bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
     return true;
 }
 
-Theron::Address CharObject::Activate()
+uint64_t CharObject::Activate()
 {
-    auto stAddress = ServerObject::Activate();
-    if(ActorPodValid()){
+    if(auto nUID = ServerObject::Activate(); nUID){
         DispatchAction(ActionStand(X(), Y(), Direction()));
+        return nUID;
     }
-
-    AddTick();
-    return stAddress;
+    return 0;
 }
 
 void CharObject::ReportAction(uint32_t, const ActionNode &)
@@ -123,281 +121,241 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
         stAMA.AimUID      = rstAction.AimUID;
         stAMA.ActionParam = rstAction.ActionParam;
 
-        m_ActorPod->Forward({MPK_ACTION, stAMA}, m_Map->GetAddress());
+        m_ActorPod->Forward(m_Map->UID(), {MPK_ACTION, stAMA});
         return;
     }
 
     extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch action: %p", &rstAction);
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch action: %s", rstAction.ActionName());
 }
 
 bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
-    if(true
-            && CanMove()
-            && EstimateHop(nX, nY) == 1){
+    if(!CanMove()){
+        return false;
+    }
 
-        AMTryMove stAMTM;
-        std::memset(&stAMTM, 0, sizeof(stAMTM));
+    if(EstimateHop(nX, nY) != 1){
+        return false;
+    }
 
-        stAMTM.UID           = UID();
-        stAMTM.MapID         = MapID();
-        stAMTM.X             = X();
-        stAMTM.Y             = Y();
-        stAMTM.EndX          = nX;
-        stAMTM.EndY          = nY;
-        stAMTM.AllowHalfMove = bAllowHalfMove;
+    AMTryMove stAMTM;
+    std::memset(&stAMTM, 0, sizeof(stAMTM));
 
-        auto fnOnResp = [this, nX, nY, nSpeed, bAllowHalfMove, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK, const Theron::Address &rstAddr)
-        {
-            if(!m_MoveLock){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before server responds: ClassName = %s", ClassName());
-                g_MonoServer->Restart();
-            }
+    stAMTM.UID           = UID();
+    stAMTM.MapID         = MapID();
+    stAMTM.X             = X();
+    stAMTM.Y             = Y();
+    stAMTM.EndX          = nX;
+    stAMTM.EndY          = nY;
+    stAMTM.AllowHalfMove = bAllowHalfMove;
 
-            // 1. release the move lock no matter what kind of message we get
-            m_MoveLock = false;
+    m_MoveLock = true;
+    return m_ActorPod->Forward(m_Map->UID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, bAllowHalfMove, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)
+    {
+        if(!m_MoveLock){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before map responds: ClassName = %s", UIDName());
+            g_MonoServer->Restart();
+        }
 
-            // 2. handle move, CO may be dead
-            //    need to check if current CO can move
+        // 1. release the move lock no matter what kind of message we get
+        m_MoveLock = false;
 
-            auto nDir = PathFind::GetDirection(X(), Y(), nX, nY);
-            switch(rstMPK.Type()){
-                case MPK_MOVEOK:
-                    {
-                        AMMoveOK stAMMOK;
-                        std::memcpy(&stAMMOK, rstMPK.Data(), sizeof(stAMMOK));
+        // 2. handle move, CO may be dead
+        //    need to check if current CO can move
 
-                        // since we may allow half move
-                        // then servermap permitted dst may not be (nX, nY)
+        auto nDir = PathFind::GetDirection(X(), Y(), nX, nY);
+        switch(rstMPK.Type()){
+            case MPK_MOVEOK:
+                {
+                    AMMoveOK stAMMOK;
+                    std::memcpy(&stAMMOK, rstMPK.Data(), sizeof(stAMMOK));
 
-                        if(true
-                                && CanMove()
-                                && m_Map->ValidC(stAMMOK.EndX, stAMMOK.EndY)){
+                    // since we may allow half move
+                    // servermap permitted dst may not be (nX, nY)
 
-                            auto nOldX = m_X;
-                            auto nOldY = m_Y;
+                    if(true
+                            && CanMove()
+                            && m_Map->ValidC(stAMMOK.EndX, stAMMOK.EndY)){
 
-                            m_X = stAMMOK.EndX;
-                            m_Y = stAMMOK.EndY;
+                        auto nOldX = m_X;
+                        auto nOldY = m_Y;
 
-                            m_Direction = nDir;
+                        m_X = stAMMOK.EndX;
+                        m_Y = stAMMOK.EndY;
 
-                            extern MonoServer *g_MonoServer;
-                            m_LastMoveTime = g_MonoServer->GetTimeTick();
+                        m_Direction = nDir;
 
-                            m_ActorPod->Forward(MPK_OK, rstAddr, rstMPK.ID());
-                            DispatchAction(ActionMove(nOldX, nOldY, X(), Y(), nSpeed, Horse()));
+                        extern MonoServer *g_MonoServer;
+                        m_LastMoveTime = g_MonoServer->GetTimeTick();
 
-                            if(fnOnMoveOK){
-                                fnOnMoveOK();
-                            }
-                        }else{
-                            m_ActorPod->Forward(MPK_ERROR, rstAddr, rstMPK.ID());
-                            if(fnOnMoveError){
-                                fnOnMoveError();
-                            }
+                        m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
+                        DispatchAction(ActionMove(nOldX, nOldY, X(), Y(), nSpeed, Horse()));
+
+                        if(fnOnMoveOK){
+                            fnOnMoveOK();
                         }
-
-                        break;
-                    }
-                case MPK_ERROR:
-                    {
-                        // should add a new function: CanTurn()
-                        // for stone state we can't even make a turn
-
-                        if(CanMove()){
-                            m_Direction = nDir;
-                            DispatchAction(ActionStand(X(), Y(), Direction()));
-                        }
-
+                    }else{
+                        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                         if(fnOnMoveError){
                             fnOnMoveError();
                         }
-
-                        break;
                     }
-                default:
-                    {
-                        break;
-                    }
-            }
-        };
 
-        m_MoveLock = true;
-        return m_ActorPod->Forward({MPK_TRYMOVE, stAMTM}, m_Map->GetAddress(), fnOnResp);
-    }
-    return false;
+                    break;
+                }
+            case MPK_ERROR:
+                {
+                    // should add a new function: CanTurn()
+                    // for stone state we can't even make a turn
+
+                    if(CanMove() && m_Direction != nDir){
+                        m_Direction = nDir;
+                        DispatchAction(ActionStand(X(), Y(), Direction()));
+                    }
+
+                    if(fnOnMoveError){
+                        fnOnMoveError();
+                    }
+
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    });
 }
 
 bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
-    if(true
-            && nMapID
-            && CanMove()){
-
-        // lambda function to do space move
-        // accept map actor address, can be current map or another map
-
-        auto fnCOSpaceMove = [this, nMapID, nX, nY, bStrictMove, fnOnMoveOK, fnOnMoveError](const Theron::Address &rstMapAddress) -> bool
-        {
-            AMTrySpaceMove stAMTSM;
-            stAMTSM.UID        = UID();
-            stAMTSM.X          = nX;
-            stAMTSM.Y          = nY;
-            stAMTSM.StrictMove = bStrictMove;
-
-            auto fnMapResp = [this, nX, nY, fnOnMoveOK, fnOnMoveError](const MessagePack &rstRMPK, const Theron::Address &rstRAddress)
-            {
-                // 1. check if lock released
-                //    shouldn't release before get service core's response
-
-                if(!m_MoveLock){
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before service core responds: ClassName = %s", ClassName());
-                    g_MonoServer->Restart();
-                }
-
-                m_MoveLock = false;
-
-                // 2. handle move
-                //    need to check if current CO can move even we checked before
-
-                switch(rstRMPK.Type()){
-                    case MPK_SPACEMOVEOK:
-                        {
-                            // need to leave src map
-                            // dst map already says OK for current move
-
-                            // was to decleare a new function CharObject::LeaveMap(fnLeaveOK)
-                            // but it could cause the issue that m_Map may stay invalid if after MPK_TRYLEAVE succeeds but
-                            // fnLeaveOK doesn't provide a new map pointer
-
-                            if(CanMove()){
-
-                                AMTryLeave stAMTL;
-                                stAMTL.UID   = UID();
-                                stAMTL.MapID = m_Map->ID();
-                                stAMTL.X     = X();
-                                stAMTL.Y     = Y();
-
-                                auto fnLeaveOP = [this, rstRMPK, rstRAddress, nX, nY, fnOnMoveOK, fnOnMoveError](const MessagePack &rstLeaveRMPK, const Theron::Address &)
-                                {
-                                    m_MoveLock = false;
-
-                                    switch(rstLeaveRMPK.Type()){
-                                        case MPK_OK:
-                                            {
-                                                AMSpaceMoveOK stAMSMOK;
-                                                std::memcpy(&stAMSMOK, rstRMPK.Data(), sizeof(stAMSMOK));
-
-                                                if(CanMove()){
-
-                                                    // 1. dispatch space move part 1 on old map
-                                                    DispatchAction(ActionSpaceMove1(X(), Y(), Direction()));
-
-                                                    // 2. setup new map
-                                                    m_X   = nX;
-                                                    m_Y   = nY;
-                                                    m_Map = (ServerMap *)(stAMSMOK.Data);
-
-                                                    extern MonoServer *g_MonoServer;
-                                                    m_LastMoveTime = g_MonoServer->GetTimeTick();
-                                                    m_ActorPod->Forward(MPK_OK, rstRAddress, rstRMPK.ID());
-
-                                                    // 3. dispatch/report space move part 2 on new map
-                                                    DispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
-                                                    ReportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
-
-                                                    if(fnOnMoveOK){
-                                                        fnOnMoveOK();
-                                                    }
-                                                }else{
-                                                    m_ActorPod->Forward(MPK_ERROR, rstRAddress, rstRMPK.ID());
-                                                    if(fnOnMoveError){
-                                                        fnOnMoveError();
-                                                    }
-                                                }
-
-                                                break;
-                                            }
-                                        default:
-                                            {
-                                                if(fnOnMoveError){
-                                                    fnOnMoveError();
-                                                }
-                                                break;
-                                            }
-                                    }
-                                };
-
-                                m_MoveLock = true;
-                                m_ActorPod->Forward({MPK_TRYLEAVE, stAMTL}, m_Map->GetAddress(), fnLeaveOP);
-
-                            }else{
-
-                                // CanMove() check fails
-                                // even we get MPK_SPACEMOVEOK
-
-                                m_ActorPod->Forward(MPK_ERROR, rstRAddress, rstRMPK.ID());
-                                if(fnOnMoveError){
-                                    fnOnMoveError();
-                                }
-                            }
-                            break;
-                        }
-                    default:
-                        {
-                            if(fnOnMoveError){
-                                fnOnMoveError();
-                            }
-                            break;
-                        }
-                }
-            };
-
-            m_MoveLock = true;
-            return m_ActorPod->Forward({MPK_TRYSPACEMOVE, stAMTSM}, rstMapAddress, fnMapResp);
-        };
-
-        if(nMapID == m_Map->ID()){
-            return fnCOSpaceMove(m_Map->GetAddress());
-        }else{
-            AMQueryMapUID stAMQMUID;
-            stAMQMUID.MapID = nMapID;
-
-            auto fnOnMapUID = [fnCOSpaceMove, fnOnMoveError](const MessagePack &rstRMPK, const Theron::Address &)
-            {
-                switch(rstRMPK.Type()){
-                    case MPK_UID:
-                        {
-                            AMUID stAMUID;
-                            std::memcpy(&stAMUID, rstRMPK.Data(), sizeof(stAMUID));
-
-                            extern MonoServer *g_MonoServer;
-                            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMUID.UID)){
-                                fnCOSpaceMove(stUIDRecord.GetAddress());
-                            }else{
-                                if(fnOnMoveError){
-                                    fnOnMoveError();
-                                }
-                            }
-                            break;
-                        }
-                    default:
-                        {
-                            if(fnOnMoveError){
-                                fnOnMoveError();
-                            }
-                            break;
-                        }
-                }
-            };
-            return m_ActorPod->Forward({MPK_QUERYMAPUID, stAMQMUID}, m_ServiceCore->GetAddress(), fnOnMapUID);
-        }
+    if(!CanMove()){
+        return false;
     }
-    return false;
+
+    if(!UIDFunc::GetMapUID(nMapID)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid MapID: %" PRIu32, nMapID);
+        return false;
+    }
+
+    AMTrySpaceMove stAMTSM;
+    std::memset(&stAMTSM, 0, sizeof(stAMTSM));
+
+    stAMTSM.UID        = UID();
+    stAMTSM.X          = nX;
+    stAMTSM.Y          = nY;
+    stAMTSM.StrictMove = bStrictMove;
+
+    m_MoveLock = true;
+    return m_ActorPod->Forward(UIDFunc::GetMapUID(nMapID), {MPK_TRYSPACEMOVE, stAMTSM}, [this, nX, nY, fnOnMoveOK, fnOnMoveError](const MessagePack &rstRMPK)
+    {
+        // 1. check if lock released
+        //    shouldn't release before get map's response
+
+        if(!m_MoveLock){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before map responds: UIDName = %s", UIDName());
+            g_MonoServer->Restart();
+        }
+
+        m_MoveLock = false;
+
+        // 2. handle move
+        //    need to check if current CO can move even we checked before
+
+        switch(rstRMPK.Type()){
+            case MPK_SPACEMOVEOK:
+                {
+                    // need to leave src map
+                    // dst map already says OK for current move
+
+                    // was to decleare a new function CharObject::LeaveMap(fnLeaveOK)
+                    // but it could cause the issue that m_Map may stay invalid if after MPK_TRYLEAVE succeeds but
+                    // fnLeaveOK doesn't provide a new map pointer
+
+                    if(!CanMove()){
+                        m_ActorPod->Forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
+                        if(fnOnMoveError){
+                            fnOnMoveError();
+                        }
+                        return;
+                    }
+
+                    AMTryLeave stAMTL;
+                    std::memset(&stAMTL, 0, sizeof(stAMTL));
+
+                    stAMTL.UID   = UID();
+                    stAMTL.MapID = m_Map->ID();
+                    stAMTL.X     = X();
+                    stAMTL.Y     = Y();
+
+                    m_MoveLock = true;
+                    m_ActorPod->Forward(m_Map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, rstRMPK, nX, nY, fnOnMoveOK, fnOnMoveError](const MessagePack &rstLeaveRMPK)
+                    {
+                        if(!m_MoveLock){
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before map responds: UIDName = %s", UIDName());
+                            g_MonoServer->Restart();
+                        }
+
+                        m_MoveLock = false;
+                        switch(rstLeaveRMPK.Type()){
+                            case MPK_OK:
+                                {
+                                    AMSpaceMoveOK stAMSMOK;
+                                    std::memcpy(&stAMSMOK, rstRMPK.Data(), sizeof(stAMSMOK));
+
+                                    if(!CanMove()){
+                                        m_ActorPod->Forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
+                                        if(fnOnMoveError){
+                                            fnOnMoveError();
+                                        }
+                                    }else{
+                                        // 1. dispatch space move part 1 on old map
+                                        DispatchAction(ActionSpaceMove1(X(), Y(), Direction()));
+
+                                        // 2. setup new map
+                                        m_X   = nX;
+                                        m_Y   = nY;
+                                        m_Map = (ServerMap *)(stAMSMOK.Ptr);
+
+                                        extern MonoServer *g_MonoServer;
+                                        m_LastMoveTime = g_MonoServer->GetTimeTick();
+                                        m_ActorPod->Forward(rstRMPK.From(), MPK_OK, rstRMPK.ID());
+
+                                        // 3. dispatch/report space move part 2 on new map
+                                        DispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
+                                        ReportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
+
+                                        if(fnOnMoveOK){
+                                            fnOnMoveOK();
+                                        }
+                                    }
+                                    break;
+                                }
+                            default:
+                                {
+                                    if(fnOnMoveError){
+                                        fnOnMoveError();
+                                    }
+                                    break;
+                                }
+                        }
+                    });
+                    break;
+                }
+            default:
+                {
+                    if(fnOnMoveError){
+                        fnOnMoveError();
+                    }
+                    break;
+                }
+        }
+    });
 }
 
 bool CharObject::CanMove()
@@ -428,101 +386,92 @@ bool CharObject::CanAttack()
     }
 }
 
-bool CharObject::RetrieveLocation(uint32_t nUID, std::function<void(const COLocation &)> fnOnLocationOK)
+bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnLocationOK)
 {
-    if(nUID){
-
-        // current the UID is valid
-        // lambda captured fnOnLocationOK then can be delayed by one step
-        // 1.     valid cache : call fnOnLocationOK
-        // 2. not valid cache : call fnOnLocationOK after refresh
-        auto fnQueryLocation = [this, nUID, fnOnLocationOK]() -> bool
-        {
-            AMQueryLocation stAMQL;
-            std::memset(&stAMQL, 0, sizeof(stAMQL));
-
-            stAMQL.UID   = UID();
-            stAMQL.MapID = MapID();
-
-            auto fnOnResp = [this, nUID, fnOnLocationOK](const MessagePack &rstRMPK, const Theron::Address &)
-            {
-                switch(rstRMPK.Type()){
-                    case MPK_LOCATION:
-                        {
-                            AMLocation stAML;
-                            std::memcpy(&stAML, rstRMPK.Data(), sizeof(stAML));
-
-                            // TODO
-                            // when we get this response
-                            // it's possible that the co has switched map
-
-                            if(true
-                                    && m_Map
-                                    && m_Map->In(stAML.MapID, stAML.X, stAML.Y)){
-
-                                m_LocationList[nUID] = COLocation
-                                {
-                                    UID(),
-                                    MapID(),
-                                    stAML.RecordTime,
-                                    stAML.X,
-                                    stAML.Y,
-                                    stAML.Direction
-                                };
-
-                                if(fnOnLocationOK){
-                                    fnOnLocationOK(m_LocationList[nUID]);
-                                }
-                            }else{
-                                m_LocationList.erase(nUID);
-                            }
-                            break;
-                        }
-                    default:
-                        {
-                            m_LocationList.erase(nUID);
-                            break;
-                        }
-                }
-            };
-
-            extern MonoServer *g_MonoServer;
-            if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
-                return m_ActorPod->Forward({MPK_QUERYLOCATION, stAMQL}, stRecord.GetAddress(), fnOnResp);
-            }
-
-            return false;
-        };
-
-        // no entry found
-        // do query and invocation, delay fnOnLocationOK by one step
-        if(m_LocationList.find(nUID) == m_LocationList.end()){
-            return fnQueryLocation();
-        }
-
-        // we find an entry
-        // valid the entry, could be expired
+    if(!nUID){
         extern MonoServer *g_MonoServer;
-        auto &rstRecord = m_LocationList[nUID];
-        if(true
-                && m_Map
-                && m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)
-                && g_MonoServer->GetTimeTick() <= rstRecord.RecordTime + 2 * 1000){
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Query location with zero UID");
+        return false;
+    }
 
-            if(fnOnLocationOK){
-                fnOnLocationOK(rstRecord);
+    // current the UID is valid
+    // lambda captured fnOnLocationOK then can be delayed by one step
+    // 1.     valid cache : call fnOnLocationOK
+    // 2. not valid cache : call fnOnLocationOK after refresh
+
+    auto fnQueryLocation = [this, nUID, fnOnLocationOK]() -> bool
+    {
+        AMQueryLocation stAMQL;
+        std::memset(&stAMQL, 0, sizeof(stAMQL));
+
+        stAMQL.UID   = UID();
+        stAMQL.MapID = MapID();
+
+        return m_ActorPod->Forward(nUID, {MPK_QUERYLOCATION, stAMQL}, [this, nUID, fnOnLocationOK](const MessagePack &rstRMPK)
+        {
+            switch(rstRMPK.Type()){
+                case MPK_LOCATION:
+                    {
+                        AMLocation stAML;
+                        std::memcpy(&stAML, rstRMPK.Data(), sizeof(stAML));
+
+                        // TODO
+                        // when we get this response
+                        // it's possible that the co has switched map
+
+                        if(m_Map->In(stAML.MapID, stAML.X, stAML.Y)){
+                            m_LocationList[nUID] = COLocation
+                            {
+                                UID(),
+                                MapID(),
+                                stAML.RecordTime,
+                                stAML.X,
+                                stAML.Y,
+                                stAML.Direction
+                            };
+
+                            if(fnOnLocationOK){
+                                fnOnLocationOK(m_LocationList[nUID]);
+                            }
+                        }else{
+                            m_LocationList.erase(nUID);
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        m_LocationList.erase(nUID);
+                        break;
+                    }
             }
-            return true;
-        }
+        });
+    };
 
-        // do query new location
-        // found record is out of time
+    // no entry found
+    // do query and invocation, delay fnOnLocationOK by one step
+    if(m_LocationList.find(nUID) == m_LocationList.end()){
         return fnQueryLocation();
     }
-    return false;
+
+    // we find an entry
+    // valid the entry, could be expired
+    extern MonoServer *g_MonoServer;
+    auto &rstRecord = m_LocationList[nUID];
+    if(m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)
+            && g_MonoServer->GetTimeTick() <= rstRecord.RecordTime + 2 * 1000){
+
+        if(fnOnLocationOK){
+            fnOnLocationOK(rstRecord);
+        }
+        return true;
+    }
+
+    // do query new location
+    // found record is out of time
+    return fnQueryLocation();
 }
 
-bool CharObject::AddHitterUID(uint32_t nUID, int nDamage)
+bool CharObject::AddHitterUID(uint64_t nUID, int nDamage)
 {
     if(nUID){
         for(auto rstRecord: m_HitterUIDRecord){

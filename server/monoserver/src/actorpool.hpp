@@ -20,10 +20,17 @@
  */
 
 #pragma once
+#include <map>
+#include <mutex>
+#include <future>
 #include <atomic>
 #include <vector>
+#include <thread>
 #include <cstdint>
+#include <shared_mutex>
+#include "messagepack.hpp"
 
+class Receiver;
 class ActorPod;
 class ActorPool final
 {
@@ -65,7 +72,7 @@ class ActorPool final
         struct MailboxBucket
         {
             std::thread::id ID;
-            std::shared_lock BucketLock;
+            mutable std::shared_mutex BucketLock;
             std::map<uint64_t, std::shared_ptr<ActorMailbox>> MailboxList;
         };
 
@@ -73,28 +80,34 @@ class ActorPool final
         const uint32_t m_BucketCount;
 
     private:
+        const uint32_t m_LogicFPS;
+
+    private:
         std::atomic<bool> m_Terminated;
 
     private:
-        std::vector<std::shared_future<bool>> m_Futures;
+        std::vector<std::shared_future<bool>> m_FutureList;
 
     private:
-        MailboxBucket m_BucketArray[m_BucketCount];
+        std::vector<MailboxBucket> m_BucketList;
 
     private:
         std::mutex m_ReceiverLock;
-        std::map<uint64_t, SyncDriver *> m_ReceiverList;
+        std::map<uint64_t, Receiver *> m_ReceiverList;
+
+    private:
+        std::atomic<uint64_t> m_InnActorUID;
 
     public:
-        ActorPool(int = 0);
+        ActorPool(uint32_t = 0);
 
     public:
-        ~ActorPod();
+        ~ActorPool();
 
     private:
         bool IsActorThread() const
         {
-            for(auto p = m_BucketArray; p != m_BucketArray + m_BucketCount; ++p){
+            for(auto p = m_BucketList.begin(); p != m_BucketList.end(); ++p){
                 if(std::this_thread::get_id() == p->ID){
                     return true;
                 }
@@ -109,7 +122,7 @@ class ActorPool final
         bool Register(ActorPod *);
 
     private:
-        void Detach(const ActorPod *);
+        bool Detach(const ActorPod *);
 
     public:
         void Launch();
@@ -120,4 +133,16 @@ class ActorPool final
         {
             return nUID & 0XFFFF000000000000;
         }
+
+    private:
+        uint64_t GetInnActorUID();
+
+    private:
+        bool PostMessage(uint64_t nUID, const MessagePack &rstMPK)
+        {
+            return PostMessage(nUID, &rstMPK, 1);
+        }
+
+    private:
+        bool PostMessage(uint64_t, const MessagePack *, size_t);
 };

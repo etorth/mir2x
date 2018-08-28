@@ -36,7 +36,7 @@ Channel::Channel(uint32_t nChannID, asio::ip::tcp::socket stSocket)
     , m_BodyLen(0)
     , m_ReadBuf()
     , m_DecodeBuf()
-    , m_BindAddress(Theron::Address::Null())
+    , m_BindUID(0)
     , m_FlushFlag(false)
     , m_NextQLock()
     , m_SendPackQ0()
@@ -545,7 +545,7 @@ bool Channel::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
         }
     }
 
-    return m_Dispatcher.Forward({MPK_NETPACKAGE, stAMNP}, m_BindAddress);
+    return m_Dispatcher.Forward(m_BindUID, {MPK_NETPACKAGE, stAMNP});
 }
 
 void Channel::Shutdown(bool bForce)
@@ -566,8 +566,8 @@ void Channel::Shutdown(bool bForce)
                     // servicecore won't keep pointer *this* then we need to report it
                     stAMBC.ChannID = pThis->ID();
 
-                    pThis->m_Dispatcher.Forward({MPK_BADCHANNEL, stAMBC}, pThis->m_BindAddress);
-                    pThis->m_BindAddress = Theron::Address::Null();
+                    pThis->m_Dispatcher.Forward(pThis->m_BindUID, {MPK_BADCHANNEL, stAMBC});
+                    pThis->m_BindUID = 0;
 
                     // if we call shutdown() here
                     // we need to use try-catch since if connection has already
@@ -600,13 +600,13 @@ void Channel::Shutdown(bool bForce)
     }
 }
 
-bool Channel::Launch(const Theron::Address &rstAddr)
+bool Channel::Launch(uint64_t rstAddr)
 {
     // Launch is not thread safe
-    // because it's accessing m_BindAddress directly without protection
+    // because it's accessing m_BindUID directly without protection
 
     if(rstAddr){
-        m_BindAddress = rstAddr;
+        m_BindUID = rstAddr;
         switch(auto nCurrState = m_State.exchange(CHANNTYPE_RUNNING)){
             case CHANNTYPE_NONE:
                 {

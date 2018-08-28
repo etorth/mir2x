@@ -17,10 +17,16 @@
  */
 
 #pragma once
+#include <vector>
 #include <cstdint>
+#include <condition_variable>
+#include "messagepack.hpp"
 
 class Receiver
 {
+    private:
+        friend class ActorPool;
+
     private:
         uint64_t m_UID;
 
