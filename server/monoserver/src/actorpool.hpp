@@ -2,11 +2,8 @@
  * =====================================================================================
  *
  *       Filename: actorpool.hpp
- *        Created: 08/16/2018 23:44:37
- *    Description: simple actor model to replace libtheron
- *                 1. use uint32_t as address
- *                 2. use MessagePack as message type
- *                 3. support efficient call to CheckInvalid()
+ *        Created: 09/02/2018 18:20:15
+ *    Description: 
  *
  *        Version: 1.0
  *       Revision: none
@@ -28,6 +25,7 @@
 #include <thread>
 #include <cstdint>
 #include <shared_mutex>
+#include "condcheck.hpp"
 #include "messagepack.hpp"
 
 class Receiver;
@@ -56,28 +54,110 @@ class ActorPool final
         };
 
     private:
-        struct ActorMailbox
+        template<size_t AVG_LEN = 16> struct AvgTimer 
         {
+            std::atomic<long> CurrSum;
+
+            size_t Curr;
+            std::array<long, AVG_LEN> Array;
+
+            AvgTimer()
+                : CurrSum{0}
+                , Curr(0)
+                , Array()
+            {
+                for(size_t nIndex = 0; nIndex < Array.size(); ++nIndex){
+                    Array[nIndex] = 0;
+                }
+            }
+
+            void Push(long nNewTime)
+            {
+                Curr = ((Curr + 1) % Array.size());
+                CurrSum.fetch_add(nNewTime - Array[Curr]);
+            }
+
+            long GetAvgTime() const
+            {
+                return CurrSum.load() / Array.size();
+            }
+        };
+
+    private:
+        struct Mailbox
+        {
+            // status of current mailbox/actor
+            //   0 : [r]eady
+            //   1 : [b]unning in one thread
+            //   2 : [d]etached
+            // can change betwwen ready/busy before jumps to detached
+            // use MailboxLock for RAII access
+            std::atomic<char> Status;
+
+            AvgTimer<32> RunTimer;
+            AvgTimer<32> StealTimer;
+
+            ActorPod *Actor;
+            SpinLock  NextQLock;
+
             std::vector<MessagePack> CurrQ;
             std::vector<MessagePack> NextQ;
 
-            SpinLock  NextQLock;
-            ActorPod *Actor;
-
-            ActorMailbox(ActorPod *pActor)
-                : Actor(pActor)
+            Mailbox(ActorPod *pActor)
+                : Status('R')
+                , RunTimer()
+                , StealTimer()
+                , Actor(pActor)
+                , NextQLock()
+                , CurrQ()
+                , NextQ()
             {}
+        };
+
+        struct MailboxLock
+        {
+            char Expected;
+            Mailbox &MailboxRef;
+
+            MailboxLock(Mailbox &rstMailbox)
+                : Expected('R')
+                , MailboxRef(rstMailbox)
+            {
+                MailboxRef.Status.compare_exchange_strong(Expected, 'B');
+            }
+
+            ~MailboxLock()
+            {
+                if(Locked()){
+                    // when actor has been detached
+                    // here the compare_exchange_strong() will fail
+                    Expected = 'B';
+                    if(!MailboxRef.Status.compare_exchange_strong(Expected, 'R')){
+                        condcheck(Expected == 'D');
+                    }
+                }
+            }
+
+            MailboxLock(const MailboxLock &) = delete;
+            MailboxLock &operator = (MailboxLock) = delete;
+
+            bool Locked() const
+            {
+                return LockType() == 'R';
+            }
+
+            char LockType() const
+            {
+                return Expected;
+            }
         };
 
         struct MailboxBucket
         {
-            std::thread::id ID;
+            std::thread::id WorkerID;
             mutable std::shared_mutex BucketLock;
-            std::map<uint64_t, std::shared_ptr<ActorMailbox>> MailboxList;
+            std::map<uint64_t, std::shared_ptr<Mailbox>> MailboxList;
         };
-
-    private:
-        const uint32_t m_BucketCount;
 
     private:
         const uint32_t m_LogicFPS;
@@ -95,11 +175,8 @@ class ActorPool final
         std::mutex m_ReceiverLock;
         std::map<uint64_t, Receiver *> m_ReceiverList;
 
-    private:
-        std::atomic<uint64_t> m_InnActorUID;
-
     public:
-        ActorPool(uint32_t = 0);
+        ActorPool(uint32_t = 23, uint32_t = 5);
 
     public:
         ~ActorPool();
@@ -108,7 +185,7 @@ class ActorPool final
         bool IsActorThread() const
         {
             for(auto p = m_BucketList.begin(); p != m_BucketList.end(); ++p){
-                if(std::this_thread::get_id() == p->ID){
+                if(std::this_thread::get_id() == p->WorkerID){
                     return true;
                 }
             }
@@ -145,4 +222,18 @@ class ActorPool final
 
     private:
         bool PostMessage(uint64_t, const MessagePack *, size_t);
+
+    private:
+        bool HasWorkSteal() const
+        {
+            static bool bDisabled = std::getenv("MIR2X_DISABLE_WORK_STEAL");
+            return !bDisabled && (m_BucketList.size() > 1);
+        }
+
+    private:
+        static uint64_t CreateReceiverUID()
+        {
+            static std::atomic<uint64_t> s_RecvUID(1);
+            return 0XFFFF000000000000 + s_RecvUID.fetch_add(1);
+        }
 };
