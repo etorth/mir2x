@@ -24,12 +24,12 @@
 #include "mathfunc.hpp"
 #include "monoserver.hpp"
 
-void Monster::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
+void Monster::On_MPK_METRONOME(const MessagePack &)
 {
     Update();
 }
 
-void Monster::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Address &)
+void Monster::On_MPK_QUERYCORECORD(const MessagePack &rstMPK)
 {
     AMQueryCORecord stAMQCOR;
     std::memcpy(&stAMQCOR, rstMPK.Data(), sizeof(stAMQCOR));
@@ -37,19 +37,14 @@ void Monster::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Addr
     ReportCORecord(stAMQCOR.UID);
 }
 
-void Monster::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
+void Monster::On_MPK_EXP(const MessagePack &rstMPK)
 {
     if(MasterUID()){
-        extern MonoServer *g_MonoServer;
-        if(auto stRecord = g_MonoServer->GetUIDRecord(MasterUID())){
-            m_ActorPod->Forward({rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen()}, stRecord.GetAddress());
-        }else{
-            GoDie();
-        }
+        m_ActorPod->Forward(MasterUID(), {rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen()});
     }
 }
 
-void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
+void Monster::On_MPK_ACTION(const MessagePack &rstMPK)
 {
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
@@ -98,69 +93,64 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
         };
 
         if(InRange(RANGE_VISIBLE, stAMA.X, stAMA.Y)){
-            extern MonoServer *g_MonoServer;
-            if(auto stRecord = g_MonoServer->GetUIDRecord(stAMA.UID)){
-                switch(GetState(STATE_ATTACKMODE)){
-                    case STATE_ATTACKMODE_NORMAL:
-                        {
-                            if(UIDFunc::GetUIDType(stAMA.UID) == UID_PLY){
-                                AddTarget(stAMA.UID);
-                            }
-                            break;
+            switch(GetState(STATE_ATTACKMODE)){
+                case STATE_ATTACKMODE_NORMAL:
+                    {
+                        if(UIDFunc::GetUIDType(stAMA.UID) == UID_PLY){
+                            AddTarget(stAMA.UID);
                         }
-                    case STATE_ATTACKMODE_DOGZ:
-                        {
-                            if(UIDFunc::GetUIDType(stAMA.UID) == UID_MON){
-                                AddTarget(stAMA.UID);
-                            }
-                            break;
+                        break;
+                    }
+                case STATE_ATTACKMODE_DOGZ:
+                    {
+                        if(UIDFunc::GetUIDType(stAMA.UID) == UID_MON){
+                            AddTarget(stAMA.UID);
                         }
-                    case STATE_ATTACKMODE_ATTACKALL:
-                        {
-                            if(auto nType = UIDFunc::GetUIDType(stAMA.UID); nType == UID_PLY || nType == UID_MON){
-                                AddTarget(stAMA.UID);
-                            }
-                            break;
+                        break;
+                    }
+                case STATE_ATTACKMODE_ATTACKALL:
+                    {
+                        if(auto nType = UIDFunc::GetUIDType(stAMA.UID); nType == UID_PLY || nType == UID_MON){
+                            AddTarget(stAMA.UID);
                         }
-                    default:
-                        {
-                            break;
-                        }
-                }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
             }
         }
     }
 }
 
-void Monster::On_MPK_NOTIFYNEWCO(const MessagePack &rstMPK, const Theron::Address &)
+void Monster::On_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
 {
     AMNotifyNewCO stAMNNCO;
     std::memcpy(&stAMNNCO, rstMPK.Data(), sizeof(stAMNNCO));
 
-    extern MonoServer *g_MonoServer;
-    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMNNCO.UID)){
-        switch(GetState(STATE_DEAD)){
-            case 0:
-                {
-                    // should make an valid action node and send it
-                    // currently just dispatch through map
+    switch(GetState(STATE_DEAD)){
+        case 0:
+            {
+                // should make an valid action node and send it
+                // currently just dispatch through map
 
-                    DispatchAction(ActionStand(X(), Y(), Direction()));
-                    break;
-                }
-            default:
-                {
-                    AMNotifyDead stAMND;
+                DispatchAction(ActionStand(X(), Y(), Direction()));
+                break;
+            }
+        default:
+            {
+                AMNotifyDead stAMND;
+                std::memset(&stAMND, 0, sizeof(stAMND));
 
-                    stAMND.UID = UID();
-                    m_ActorPod->Forward({MPK_NOTIFYDEAD, stAMND}, stUIDRecord.GetAddress());
-                    break;
-                }
-        }
+                stAMND.UID = UID();
+                m_ActorPod->Forward(stAMNNCO.UID, {MPK_NOTIFYDEAD, stAMND});
+                break;
+            }
     }
 }
 
-void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rstAddress)
+void Monster::On_MPK_ATTACK(const MessagePack &rstMPK)
 {
     AMAttack stAMAK;
     std::memcpy(&stAMAK, rstMPK.Data(), sizeof(stAMAK));
@@ -178,39 +168,42 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &rs
         default:
             {
                 AMNotifyDead stAMND;
+                std::memset(&stAMND, 0, sizeof(stAMND));
 
                 stAMND.UID = UID();
-                m_ActorPod->Forward({MPK_NOTIFYDEAD, stAMND}, rstAddress);
+                m_ActorPod->Forward(stAMAK.UID, {MPK_NOTIFYDEAD, stAMND});
                 break;
             }
     }
 }
 
-void Monster::On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &)
+void Monster::On_MPK_MAPSWITCH(const MessagePack &)
 {
 }
 
-void Monster::On_MPK_QUERYLOCATION(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void Monster::On_MPK_QUERYLOCATION(const MessagePack &rstMPK)
 {
     AMLocation stAML;
+    std::memset(&stAML, 0, sizeof(stAML));
+
     stAML.UID       = UID();
     stAML.MapID     = MapID();
     stAML.X         = X();
     stAML.Y         = Y();
     stAML.Direction = Direction();
 
-    m_ActorPod->Forward({MPK_LOCATION, stAML}, rstFromAddr, rstMPK.ID());
+    m_ActorPod->Forward(rstMPK.From(), {MPK_LOCATION, stAML}, rstMPK.ID());
 }
 
-void Monster::On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &)
+void Monster::On_MPK_UPDATEHP(const MessagePack &)
 {
 }
 
-void Monster::On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &)
+void Monster::On_MPK_BADACTORPOD(const MessagePack &)
 {
 }
 
-void Monster::On_MPK_NOTIFYDEAD(const MessagePack &rstMPK, const Theron::Address &)
+void Monster::On_MPK_NOTIFYDEAD(const MessagePack &rstMPK)
 {
     AMNotifyDead stAMND;
     std::memcpy(&stAMND, rstMPK.Data(), sizeof(stAMND));
@@ -219,7 +212,7 @@ void Monster::On_MPK_NOTIFYDEAD(const MessagePack &rstMPK, const Theron::Address
     m_LocationList.erase(stAMND.UID);
 }
 
-void Monster::On_MPK_OFFLINE(const MessagePack &rstMPK, const Theron::Address &)
+void Monster::On_MPK_OFFLINE(const MessagePack &rstMPK)
 {
     AMOffline stAMO;
     std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));

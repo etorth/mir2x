@@ -28,7 +28,7 @@ NetDriver::NetDriver()
     , m_Acceptor(nullptr)
     , m_Socket(nullptr)
     , m_Thread()
-    , m_SCAddress(Theron::Address::Null())
+    , m_SCAddress(0)
     , m_ChannIDQ()
 {}
 

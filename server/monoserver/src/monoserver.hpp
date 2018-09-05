@@ -89,7 +89,6 @@ class MonoServer final
     private:
         void RunASIO();
         void CreateDBConnection();
-        void RegisterAMFallbackHandler();
         void LoadMapBinDBN();
 
     public:
@@ -122,10 +121,32 @@ class MonoServer final
                 bool);                  // do random throw if (x, y) is invalid
 
     public:
+        std::chrono::time_point<std::chrono::steady_clock> GetTimeNow()
+        {
+            return std::chrono::steady_clock::now();
+        }
+
+        uint32_t GetTimeDiff(std::chrono::time_point<std::chrono::steady_clock> stBegin, const char *szUnit)
+        {
+            if(!std::strcmp(szUnit, "ns")){
+                return std::chrono::duration_cast<std::chrono::microseconds>(GetTimeNow() - stBegin).count();
+            }
+
+            if(!std::strcmp(szUnit, "ms")){
+                return std::chrono::duration_cast<std::chrono::milliseconds>(GetTimeNow() - stBegin).count();
+            }
+
+            if(!std::strcmp(szUnit, "s") || !std::strcmp(szUnit, "sec")){
+                return std::chrono::duration_cast<std::chrono::seconds>(GetTimeNow() - stBegin).count();
+            }
+            return 0;
+        }
+
         uint32_t GetTimeTick() const
         {
             return (uint32_t)(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_StartTime).count());
         }
+
 
     public:
         bool RegisterLuaExport(CommandLuaModule *, uint32_t);

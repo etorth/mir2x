@@ -103,8 +103,8 @@ class Monster final: public CharObject
         bool FollowMaster();
 
     protected:
-        bool TrackUID(uint32_t);
-        bool AttackUID(uint32_t, int);
+        bool TrackUID(uint64_t);
+        bool AttackUID(uint64_t, int);
 
     protected:
         bool DCValid(int, bool);
@@ -138,7 +138,7 @@ class Monster final: public CharObject
         void OperateAM(const MessagePack &);
 
     protected:
-        void ReportCORecord(uint32_t);
+        void ReportCORecord(uint64_t);
 
     protected:
         bool MoveOneStep(int, int);
@@ -153,7 +153,7 @@ class Monster final: public CharObject
         void RandomDrop();
 
     protected:
-        void CheckFriend(uint32_t, const std::function<void(int)> &);
+        void CheckFriend(uint64_t, const std::function<void(int)> &);
 
     protected:
         bool MoveOneStepAStar  (int, int);
@@ -163,6 +163,9 @@ class Monster final: public CharObject
     protected:
         bool CanMove();
         bool CanAttack();
+
+    protected:
+        void CheckMaster();
 
     protected:
         std::array<PathFind::PathNode, 3> GetChaseGrid(int, int);

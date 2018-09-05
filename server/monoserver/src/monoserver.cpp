@@ -33,7 +33,6 @@
 #include "database.hpp"
 #include "threadpn.hpp"
 #include "mapbindbn.hpp"
-#include "uidrecord.hpp"
 #include "syncdriver.hpp"
 #include "mainwindow.hpp"
 #include "monoserver.hpp"
@@ -225,40 +224,6 @@ void MonoServer::CreateDBConnection()
     }
 }
 
-void MonoServer::RegisterAMFallbackHandler()
-{
-    static struct FrameworkFallbackHandler
-    {
-        void Handler(const void *pData, const Theron::uint32_t, const Theron::Address stFromAddress)
-        {
-            // dangerous part !!!
-            // recover basic information of the message by memory copy
-            // reconstruction the pack causes double free if MessagePack::Data() is dynamically allcoated
-
-            // don't refer to any other field
-            // type, id, response are OK since there are static located in front of the pack class
-
-            AMBadActorPod stAMBAP;
-            stAMBAP.Type    = ((MessagePack *)(pData))->Type();
-            stAMBAP.ID      = ((MessagePack *)(pData))->ID();
-            stAMBAP.Respond = ((MessagePack *)(pData))->Respond();
-
-            // we know which actor sent this message
-            // but we lost the information that which actor it sent to
-
-            // for dispatcher sent message
-            // we can't even respond with the notification
-
-            if(stFromAddress){
-                Dispatcher().Forward({MPK_BADACTORPOD, stAMBAP}, stFromAddress, stAMBAP.ID);
-            }
-        }
-    }stFallbackHandler;
-
-    extern Theron::Framework *g_Framework;
-    g_Framework->SetFallbackHandler(&stFallbackHandler, &FrameworkFallbackHandler::Handler);
-}
-
 void MonoServer::LoadMapBinDBN()
 {
     extern ServerConfigureWindow *g_ServerConfigureWindow;
@@ -283,7 +248,7 @@ void MonoServer::StartNetwork()
     extern ServerConfigureWindow *g_ServerConfigureWindow;
 
     uint32_t nPort = g_ServerConfigureWindow->Port();
-    if(!g_NetDriver->Launch(nPort, m_ServiceCore->GetAddress())){
+    if(!g_NetDriver->Launch(nPort, m_ServiceCore->UID())){
         AddLog(LOGTYPE_FATAL, "Failed to launch the network");
         Restart();
     }
@@ -292,15 +257,10 @@ void MonoServer::StartNetwork()
 void MonoServer::Launch()
 {
     CreateDBConnection();
-    RegisterAMFallbackHandler();
-
     LoadMapBinDBN();
 
     StartServiceCore();
     StartNetwork();
-
-    extern Metronome *g_Metronome;
-    g_Metronome->Launch();
 }
 
 void MonoServer::Restart()
@@ -320,6 +280,8 @@ void MonoServer::Restart()
 bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bRandom)
 {
     AMAddCharObject stAMACO;
+    std::memset(&stAMACO, 0, sizeof(stAMACO));
+
     stAMACO.Type = TYPE_MONSTER;
 
     stAMACO.Common.MapID  = nMapID;
@@ -331,9 +293,7 @@ bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
     stAMACO.Monster.MasterUID = 0;
     AddLog(LOGTYPE_INFO, "Try to add monster, MonsterID = %d", nMonsterID);
 
-    MessagePack stRMPK;
-    SyncDriver().Forward({MPK_ADDCHAROBJECT, stAMACO}, m_ServiceCore->GetAddress(), &stRMPK);
-    switch(stRMPK.Type()){
+    switch(auto stRMPK = SyncDriver().Forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
         case MPK_OK:
             {
                 AddLog(LOGTYPE_INFO, "Add monster succeeds");
@@ -354,16 +314,14 @@ bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
 
 std::vector<int> MonoServer::GetMapList()
 {
-    MessagePack stRMPK;
-    SyncDriver().Forward(MPK_QUERYMAPLIST, m_ServiceCore->GetAddress(), &stRMPK);
-    switch(stRMPK.Type()){
+    switch(auto stRMPK = SyncDriver().Forward(MPK_QUERYMAPLIST, m_ServiceCore->UID()); stRMPK.Type()){
         case MPK_MAPLIST:
             {
                 AMMapList stAMML;
                 std::memcpy(&stAMML, stRMPK.Data(), sizeof(stAMML));
 
                 std::vector<int> stMapList;
-                for(size_t nIndex = 0; nIndex < sizeof(stAMML.MapList) / sizeof(stAMML.MapList[0]); ++nIndex){
+                for(size_t nIndex = 0; nIndex < std::extent<decltype(stAMML.MapList)>::value; ++nIndex){
                     if(stAMML.MapList[nIndex]){
                         stMapList.push_back((int)(stAMML.MapList[nIndex]));
                     }else{
@@ -400,9 +358,7 @@ sol::optional<int> MonoServer::GetMonsterCount(int nMonsterID, int nMapID)
         stAMQCOC.Check.Monster        = true;
         stAMQCOC.CheckParam.MonsterID = (uint32_t)(nMonsterID);
 
-        MessagePack stRMPK;
-        SyncDriver().Forward({MPK_QUERYCOCOUNT, stAMQCOC}, m_ServiceCore->GetAddress(), &stRMPK);
-        switch(stRMPK.Type()){
+        switch(auto stRMPK = SyncDriver().Forward(m_ServiceCore->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}); stRMPK.Type()){
             case MPK_COCOUNT:
                 {
                     AMCOCount stAMCOC;

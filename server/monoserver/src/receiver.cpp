@@ -45,10 +45,10 @@ Receiver::~Receiver()
     }
 }
 
-void Receiver::PushMessage(const MessagePack *pMPK, size_t nMPKLen)
+void Receiver::PushMessage(MessagePack stMPK)
 {
     std::unique_lock<std::mutex> stLock(m_Lock);
-    m_MessageList.insert(m_MessageList.end(), pMPK, nMPKLen);
+    m_MessageList.push_back(std::move(stMPK));
     m_Condition.notify_all();
 }
 

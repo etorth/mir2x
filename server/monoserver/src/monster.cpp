@@ -199,107 +199,113 @@ bool Monster::RandomMove()
     return false;
 }
 
-bool Monster::AttackUID(uint32_t nUID, int nDC)
+bool Monster::AttackUID(uint64_t nUID, int nDC)
 {
-    if(CanAttack()){
-        extern MonoServer *g_MonoServer;
-        if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
-            if(DCValid(nDC, true)){
-                auto fnQueryLocationOK = [this, nDC, stRecord](const COLocation &stCOLocation) -> bool
+    if(!CanAttack()){
+        return false;
+    }
+
+    if(!DCValid(nDC, true)){
+        return false;
+    }
+
+    // retrieving could schedule location query
+    // before response received we can't allow any attack request
+
+    m_AttackLock = true;
+    return RetrieveLocation(nUID, [this, nDC, nUID](const COLocation &stCOLocation) -> bool
+    {
+        if(!m_AttackLock){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "AttackLock released before location query done");
+            return false;
+        }
+
+        // if we get inside current block, we should release the attack lock
+        // it can be released immediately if location retrieve succeeds without querying
+        m_AttackLock = false;
+
+        auto nX = stCOLocation.X;
+        auto nY = stCOLocation.Y;
+
+        switch(nDC){
+            case DC_PHY_PLAIN:
                 {
-                    auto nX = stCOLocation.X;
-                    auto nY = stCOLocation.Y;
-
-                    // if we get inside current block, we should release the attack lock
-                    // it can be released immediately if location retrieve succeeds without querying
-                    m_AttackLock = false;
-                    switch(nDC){
-                        case DC_PHY_PLAIN:
+                    switch(LDistance2(X(), Y(), nX, nY)){
+                        case 1:
+                        case 2:
                             {
-                                switch(LDistance2(X(), Y(), nX, nY)){
-                                    case 1:
-                                    case 2:
-                                        {
-                                            m_Direction = PathFind::GetDirection(X(), Y(), nX, nY);
-                                            if(CanAttack()){
-                                                // 1. dispatch action to all
-                                                DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), stRecord.UID()));
+                                m_Direction = PathFind::GetDirection(X(), Y(), nX, nY);
+                                if(CanAttack()){
+                                    // 1. dispatch action to all
+                                    DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), nUID));
 
-                                                extern MonoServer *g_MonoServer;
-                                                m_LastAttackTime = g_MonoServer->GetTimeTick();
+                                    extern MonoServer *g_MonoServer;
+                                    m_LastAttackTime = g_MonoServer->GetTimeTick();
 
-                                                // 2. send attack message to target
-                                                //    target can ignore this message directly
-                                                DispatchAttack(stRecord.UID(), DC_PHY_PLAIN);
-                                            }
-                                            return true;
-                                        }
-                                    case 0:
-                                    default:
-                                        {
-                                            // if distance is zero
-                                            // means the location cache is out of time
-
-                                            // TODO
-                                            // one issue is evertime we do AttackUID() || TrackUID()
-                                            // then could be a case everytime we schedule an attack operation
-                                            // but actually this attack can't be done successfully
-                                            // then we don't do AttackUID() nor TrackUID()
-                                            TrackUID(stRecord.UID());
-                                            return false;
-                                        }
+                                    // 2. send attack message to target
+                                    //    target can ignore this message directly
+                                    DispatchAttack(nUID, DC_PHY_PLAIN);
                                 }
+                                return true;
                             }
-                        case DC_MAG_FIRE:
-                            {
-                                return false;
-                            }
+                        case 0:
                         default:
                             {
-                                break;
+                                // if distance is zero
+                                // means the location cache is out of time
+
+                                // TODO
+                                // one issue is evertime we do AttackUID() || TrackUID()
+                                // then could be a case everytime we schedule an attack operation
+                                // but actually this attack can't be done successfully
+                                // then we don't do AttackUID() nor TrackUID()
+                                TrackUID(nUID);
+                                return false;
                             }
                     }
+                }
+            case DC_MAG_FIRE:
+                {
                     return false;
-                };
-
-                // retrieving could schedule an location query
-                // before the response we can't allow any attack request
-
-                m_AttackLock = true;
-                return RetrieveLocation(nUID, fnQueryLocationOK);
-            }
+                }
+            default:
+                {
+                    break;
+                }
         }
-    }
-    return false;
+        return false;
+    });
 }
 
-bool Monster::TrackUID(uint32_t nUID)
+bool Monster::TrackUID(uint64_t nUID)
 {
-    if(CanMove()){
-        return RetrieveLocation(nUID, [this](const COLocation &rstCOLocation) -> bool
-        {
-            auto nX     = rstCOLocation.X;
-            auto nY     = rstCOLocation.Y;
-            auto nMapID = rstCOLocation.MapID;
-
-            if(nMapID == MapID()){
-                switch(LDistance2(nX, nY, X(), Y())){
-                    case 0:
-                    case 1:
-                    case 2:
-                        {
-                            return true;
-                        }
-                    default:
-                        {
-                            return MoveOneStep(nX, nY);
-                        }
-                }
-            }
-            return false;
-        });
+    if(!CanMove()){
+        return false;
     }
-    return false;
+
+    return RetrieveLocation(nUID, [this](const COLocation &rstCOLocation) -> bool
+    {
+        auto nX     = rstCOLocation.X;
+        auto nY     = rstCOLocation.Y;
+        auto nMapID = rstCOLocation.MapID;
+
+        if(nMapID == MapID()){
+            switch(LDistance2(nX, nY, X(), Y())){
+                case 0:
+                case 1:
+                case 2:
+                    {
+                        return true;
+                    }
+                default:
+                    {
+                        return MoveOneStep(nX, nY);
+                    }
+            }
+        }
+        return false;
+    });
 }
 
 bool Monster::FollowMaster()
@@ -394,51 +400,49 @@ bool Monster::FollowMaster()
 
 bool Monster::TrackAttack()
 {
-    do{
+    uint64_t nFirstTarget = 0;
+    while(true){
         CheckCurrTarget();
-        if(!m_TargetQueue.Empty()){
+        if(m_TargetQueue.Empty()){
+            return false;
+        }
 
-            extern MonoServer *g_MonoServer;
-            if(auto stRecord = g_MonoServer->GetUIDRecord(m_TargetQueue[0].UID)){
+        // to prevent deadloop
+        // we rotate till reach the old head
 
-                // 1. try to attack uid
-                for(auto nDC: m_MonsterRecord.DCList()){
-                    if(AttackUID(stRecord.UID(), nDC)){
-                        m_TargetQueue[0].ActiveTime = g_MonoServer->GetTimeTick();
-                        return true;
-                    }
-                }
+        if(nFirstTarget){
+            if(m_TargetQueue[0].UID == nFirstTarget){
+                return false;
+            }
+        }else{
+            nFirstTarget = m_TargetQueue[0].UID;
+        }
 
-                // 2. try to track uid
-                if(TrackUID(stRecord.UID())){
-                    m_TargetQueue[0].ActiveTime = g_MonoServer->GetTimeTick();
-                    return true;
-                }
-
-                // 3. not a proper target now
-                //    we keep the target (for 1min) and try next one
-                m_TargetQueue.Rotate(1);
-
-            }else{
-
-                // head target is not valid anymore
-                // remove it from the target queue and try next
-
-                m_TargetQueue.PopHead();
-                continue;
+        for(auto nDC: m_MonsterRecord.DCList()){
+            if(AttackUID(m_TargetQueue[0].UID, nDC)){
+                extern MonoServer *g_MonoServer;
+                m_TargetQueue[0].ActiveTime = g_MonoServer->GetTimeTick();
+                return true;
             }
         }
 
-    }while(!m_TargetQueue.Empty());
+        if(TrackUID(m_TargetQueue[0].UID)){
+            extern MonoServer *g_MonoServer;
+            m_TargetQueue[0].ActiveTime = g_MonoServer->GetTimeTick();
+            return true;
+        }
 
-    // no target
-    // this track-attack failed
+        // not a proper target now
+        // we keep the target (for 1min) and try next one
+        m_TargetQueue.Rotate(1);
+    }
     return false;
 }
 
 bool Monster::Update()
 {
     if(HP() > 0){
+        CheckMaster();
         if(TrackAttack()){
             return true;
         }
@@ -454,67 +458,67 @@ bool Monster::Update()
     return true;
 }
 
-void Monster::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstAddress)
+void Monster::OperateAM(const MessagePack &rstMPK)
 {
     switch(rstMPK.Type()){
         case MPK_METRONOME:
             {
-                On_MPK_METRONOME(rstMPK, rstAddress);
+                On_MPK_METRONOME(rstMPK);
                 break;
             }
         case MPK_NOTIFYNEWCO:
             {
-                On_MPK_NOTIFYNEWCO(rstMPK, rstAddress);
+                On_MPK_NOTIFYNEWCO(rstMPK);
                 break;
             }
         case MPK_NOTIFYDEAD:
             {
-                On_MPK_NOTIFYDEAD(rstMPK, rstAddress);
+                On_MPK_NOTIFYDEAD(rstMPK);
                 break;
             }
         case MPK_UPDATEHP:
             {
-                On_MPK_UPDATEHP(rstMPK, rstAddress);
+                On_MPK_UPDATEHP(rstMPK);
                 break;
             }
         case MPK_EXP:
             {
-                On_MPK_EXP(rstMPK, rstAddress);
+                On_MPK_EXP(rstMPK);
                 break;
             }
         case MPK_ACTION:
             {
-                On_MPK_ACTION(rstMPK, rstAddress);
+                On_MPK_ACTION(rstMPK);
                 break;
             }
         case MPK_ATTACK:
             {
-                On_MPK_ATTACK(rstMPK, rstAddress);
+                On_MPK_ATTACK(rstMPK);
                 break;
             }
         case MPK_MAPSWITCH:
             {
-                On_MPK_MAPSWITCH(rstMPK, rstAddress);
+                On_MPK_MAPSWITCH(rstMPK);
                 break;
             }
         case MPK_QUERYLOCATION:
             {
-                On_MPK_QUERYLOCATION(rstMPK, rstAddress);
+                On_MPK_QUERYLOCATION(rstMPK);
                 break;
             }
         case MPK_QUERYCORECORD:
             {
-                On_MPK_QUERYCORECORD(rstMPK, rstAddress);
+                On_MPK_QUERYCORECORD(rstMPK);
                 break;
             }
         case MPK_BADACTORPOD:
             {
-                On_MPK_BADACTORPOD(rstMPK, rstAddress);
+                On_MPK_BADACTORPOD(rstMPK);
                 break;
             }
         case MPK_OFFLINE:
             {
-                On_MPK_OFFLINE(rstMPK, rstAddress);
+                On_MPK_OFFLINE(rstMPK);
                 break;
             }
         default:
@@ -531,47 +535,43 @@ void Monster::SearchViewRange()
 {
 }
 
-void Monster::ReportCORecord(uint32_t nUID)
+void Monster::ReportCORecord(uint64_t nUID)
 {
-    if(true
-            && nUID
-            && nUID != UID()){
-
-        extern MonoServer *g_MonoServer;
-        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-            AMCORecord stAMCOR;
-            std::memset(&stAMCOR, 0, sizeof(stAMCOR));
-
-            // TODO: don't use OBJECT_MONSTER, we need translation
-            //       rule of communication, the sender is responsible to translate
-
-            // 1. set type
-            stAMCOR.COType = CREATURE_MONSTER;
-
-            // 2. set current action
-            stAMCOR.Action.UID   = UID();
-            stAMCOR.Action.MapID = MapID();
-
-            stAMCOR.Action.Action    = ACTION_STAND;
-            stAMCOR.Action.Speed     = SYS_DEFSPEED;
-            stAMCOR.Action.Direction = Direction();
-
-            stAMCOR.Action.X    = X();
-            stAMCOR.Action.Y    = Y();
-            stAMCOR.Action.AimX = X();
-            stAMCOR.Action.AimY = Y();
-
-            stAMCOR.Action.AimUID      = 0;
-            stAMCOR.Action.ActionParam = 0;
-
-            // 3. set specified co information
-            stAMCOR.Monster.MonsterID = MonsterID();
-
-            // don't reply to server map
-            // even get co information pull request from map
-            m_ActorPod->Forward({MPK_CORECORD, stAMCOR}, stUIDRecord.GetAddress());
-        }
+    if(!nUID || nUID == UID()){
+        return;
     }
+
+    AMCORecord stAMCOR;
+    std::memset(&stAMCOR, 0, sizeof(stAMCOR));
+
+    // TODO: don't use OBJECT_MONSTER, we need translation
+    //       rule of communication, the sender is responsible to translate
+
+    // 1. set type
+    stAMCOR.COType = CREATURE_MONSTER;
+
+    // 2. set current action
+    stAMCOR.Action.UID   = UID();
+    stAMCOR.Action.MapID = MapID();
+
+    stAMCOR.Action.Action    = ACTION_STAND;
+    stAMCOR.Action.Speed     = SYS_DEFSPEED;
+    stAMCOR.Action.Direction = Direction();
+
+    stAMCOR.Action.X    = X();
+    stAMCOR.Action.Y    = Y();
+    stAMCOR.Action.AimX = X();
+    stAMCOR.Action.AimY = Y();
+
+    stAMCOR.Action.AimUID      = 0;
+    stAMCOR.Action.ActionParam = 0;
+
+    // 3. set specified co information
+    stAMCOR.Monster.MonsterID = MonsterID();
+
+    // don't reply to server map
+    // even get co information pull request from map
+    m_ActorPod->Forward(nUID, {MPK_CORECORD, stAMCOR});
 }
 
 bool Monster::InRange(int nRangeType, int nX, int nY)
@@ -747,7 +747,7 @@ bool Monster::GoGhost()
                                     && ActorPodValid()
                                     && m_Map
                                     && m_Map->ActorPodValid()){
-                                m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, m_Map->GetAddress());
+                                m_ActorPod->Forward(m_Map->UID(), {MPK_DEADFADEOUT, stAMDFO});
                             }
 
                             // 2. deactivate the actor here
@@ -760,7 +760,7 @@ bool Monster::GoGhost()
                             Deactivate();
 
                             // 3. without message driving it
-                            //    the char object will be inactive and activities after this
+                            //    the char object will be inactive after this
                             GoSuicide();
                             return true;
 
@@ -787,18 +787,10 @@ bool Monster::GoSuicide()
             && GetState(STATE_DEAD)
             && GetState(STATE_GHOST)){
 
-        // 1. register a operationi to the thread pool to delete
-        // 2. don't pass *this* to any other threads, pass UID instead
+        // register for self-destruction
+        // this is dirty but do I have better options?
         extern ThreadPN *g_ThreadPN;
-        return g_ThreadPN->Add([nUID = UID()](){
-            if(nUID){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->EraseUID(nUID);
-            }else{
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Suicide with empty UID");
-            }
-        });
+        return g_ThreadPN->Add([this](){ delete this; });
 
         // after this line
         // *this* is invalid and should never be refered
@@ -947,6 +939,8 @@ bool Monster::MoveOneStepAStar(int nX, int nY)
     // need firstly do path finding by server map
 
     AMPathFind stAMPF;
+    std::memset(&stAMPF, 0, sizeof(stAMPF));
+
     stAMPF.UID     = UID();
     stAMPF.MapID   = MapID();
     stAMPF.MaxStep = 1;
@@ -956,7 +950,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY)
     stAMPF.EndX    = nX;
     stAMPF.EndY    = nY;
 
-    auto fnOnResp = [this, nX, nY](const MessagePack &rstRMPK, const Theron::Address &)
+    return m_ActorPod->Forward(m_Map->UID(), {MPK_PATHFIND, stAMPF}, [this, nX, nY](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_PATHFINDOK:
@@ -995,8 +989,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY)
                     break;
                 }
         }
-    };
-    return m_ActorPod->Forward({MPK_PATHFIND, stAMPF}, m_Map->GetAddress(), fnOnResp);
+    });
 }
 
 int Monster::FindPathMethod()
@@ -1021,7 +1014,7 @@ void Monster::RandomDrop()
                 //
                 // and if we are not in group-0
                 // break if we select the first one item
-                m_ActorPod->Forward({MPK_NEWDROPITEM, stAMNDI}, m_Map->GetAddress());
+                m_ActorPod->Forward(m_Map->UID(), {MPK_NEWDROPITEM, stAMNDI});
                 if(rstGroupRecord.first != 0){
                     break;
                 }
@@ -1037,50 +1030,43 @@ void Monster::CheckCurrTarget()
     // 2. not friend
 
     while(!m_TargetQueue.Empty()){
-
-        // 1. check time-out
-        {
-            extern MonoServer *g_MonoServer;
-            if(g_MonoServer->GetTimeTick() >= m_TargetQueue[0].ActiveTime + 60 * 1000){
-                m_TargetQueue.PopHead();
-                continue;
-            }
+        // 1. check timeout
+        extern MonoServer *g_MonoServer;
+        if(g_MonoServer->GetTimeTick() >= m_TargetQueue[0].ActiveTime + 60 * 1000){
+            m_TargetQueue.PopHead();
+            continue;
         }
 
-        // 2. remove friend
+        // 2. check friend
+        bool bFriend  = false;
+        auto nCurrUID = m_TargetQueue[0].UID;
+        CheckFriend(nCurrUID, [&bFriend](int nFriendType)
         {
-            bool bFriend  = false;
-            auto nCurrUID = m_TargetQueue[0].UID;
-
-            CheckFriend(nCurrUID, [&bFriend](int nFriendType)
-            {
-                switch(nFriendType){
-                    case FRIENDTYPE_ENEMY:
-                        {
-                            break;
-                        }
-                    default:
-                        {
-                            bFriend = true;
-                            break;
-                        }
-                }
-            });
-
-            if(bFriend){
-                m_TargetQueue.PopHead();
-                continue;
+            switch(nFriendType){
+                case FRIENDTYPE_ENEMY:
+                    {
+                        break;
+                    }
+                default:
+                    {
+                        bFriend = true;
+                        break;
+                    }
             }
+        });
+
+        if(bFriend){
+            m_TargetQueue.PopHead();
+            continue;
         }
 
-        // pass tests
-        // keep the head as current target
-
+        // tests passed
+        // keep the first target as valid
         return;
     }
 }
 
-void Monster::CheckFriend(uint32_t nCheckUID, const std::function<void(int)> &fnOnFriend)
+void Monster::CheckFriend(uint64_t nCheckUID, const std::function<void(int)> &fnOnFriend)
 {
     enum UIDFromType: int
     {
@@ -1091,7 +1077,7 @@ void Monster::CheckFriend(uint32_t nCheckUID, const std::function<void(int)> &fn
         UIDFROM_MONSTER = 4,
     };
 
-    auto fnUIDFrom = [](uint32_t nUID) -> int
+    auto fnUIDFrom = [](uint64_t nUID) -> int
     {
         // define return code
         // <= 0: error
@@ -1100,22 +1086,19 @@ void Monster::CheckFriend(uint32_t nCheckUID, const std::function<void(int)> &fn
         //    3: monster, but tameble
         //    4: monster
 
-        extern MonoServer *g_MonoServer;
-        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-            if(UIDFunc::GetUIDType(nUID) == UID_PLY){
-                return UIDFROM_PLAYER;
-            }else if(UIDFunc::GetUIDType(nUID) == UID_MON){
-                switch(UIDFunc::GetMonsterID(nUID)){
-                    case DBCOM_MONSTERID(u8"神兽"):
-                    case DBCOM_MONSTERID(u8"变异骷髅"):
-                        {
-                            return UIDFROM_SUMMON;
-                        }
-                    default:
-                        {
-                            return UIDFROM_MONSTER;
-                        }
-                }
+        if(UIDFunc::GetUIDType(nUID) == UID_PLY){
+            return UIDFROM_PLAYER;
+        }else if(UIDFunc::GetUIDType(nUID) == UID_MON){
+            switch(UIDFunc::GetMonsterID(nUID)){
+                case DBCOM_MONSTERID(u8"神兽"):
+                case DBCOM_MONSTERID(u8"变异骷髅"):
+                    {
+                        return UIDFROM_SUMMON;
+                    }
+                default:
+                    {
+                        return UIDFROM_MONSTER;
+                    }
             }
         }
         return UIDFROM_NONE;
@@ -1238,4 +1221,24 @@ std::array<PathFind::PathNode, 3> Monster::GetChaseGrid(int nX, int nY)
             }
     }
     return stvPathNode;
+}
+
+void Monster::CheckMaster()
+{
+    if(MasterUID()){
+        m_ActorPod->Forward(MasterUID(), MPK_CHECKMASTER, [this](const MessagePack &rstRMPK)
+        {
+            switch(rstRMPK.Type()){
+                case MPK_BADACTORPOD:
+                    {
+                        GoDie();
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        });
+    }
 }

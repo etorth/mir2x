@@ -71,6 +71,7 @@ enum MessagePackType: int
     MPK_REMOVEGROUNDITEM,
     MPK_CORECORD,
     MPK_NOTIFYNEWCO,
+    MPK_CHECKMASTER,
 };
 
 struct AMBadActorPod
@@ -87,7 +88,7 @@ struct AMBadChannel
 
 struct AMTryLeave
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     int X;
@@ -113,7 +114,7 @@ union AMAddCharObject
     {
         struct _Common _MemoryAlign;
         uint32_t MonsterID;
-        uint32_t MasterUID;
+        uint64_t MasterUID;
     }Monster;
 
     struct _Player
@@ -136,7 +137,7 @@ union AMAddCharObject
 struct AMLogin
 {
     uint32_t DBID;
-    uint32_t UID;
+    uint64_t UID;
     uint32_t SID;
     uint32_t MapID;
     uint64_t Key;
@@ -147,7 +148,7 @@ struct AMLogin
 
 struct AMTrySpaceMove
 {
-    uint32_t UID;
+    uint64_t UID;
 
     int X;
     int Y;
@@ -162,7 +163,7 @@ struct AMSpaceMoveOK
 
 struct AMTryMove
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     int X;
@@ -176,7 +177,7 @@ struct AMTryMove
 
 struct AMMoveOK
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     int X;
@@ -217,7 +218,7 @@ struct AMBindChannel
 
 struct AMAction
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     int Action;
@@ -230,7 +231,7 @@ struct AMAction
     int AimX;
     int AimY;
 
-    uint32_t AimUID;
+    uint64_t AimUID;
     uint32_t ActionParam;
 };
 
@@ -241,7 +242,7 @@ struct AMPullCOInfo
     int W;
     int H;
 
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 };
 
@@ -253,7 +254,7 @@ struct AMMapList
 struct AMMapSwitch
 {
     uint32_t MapID;
-    uint32_t UID;
+    uint64_t UID;
 
     int X;
     int Y;
@@ -261,9 +262,9 @@ struct AMMapSwitch
 
 struct AMTryMapSwitch
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
-    uint32_t MapUID;
+    uint64_t MapUID;
 
     int X;
     int Y;
@@ -279,7 +280,7 @@ struct AMQueryMapUID
 
 struct AMUID
 {
-    uint32_t UID;
+    uint64_t UID;
 };
 
 struct AMMapSwitchOK
@@ -292,13 +293,13 @@ struct AMMapSwitchOK
 
 struct AMQueryLocation
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 };
 
 struct AMLocation
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
     uint32_t RecordTime;
     
@@ -309,7 +310,7 @@ struct AMLocation
 
 struct AMPathFind
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     int MaxStep;
@@ -323,7 +324,7 @@ struct AMPathFind
 
 struct AMPathFindOK
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     struct _Point
@@ -335,7 +336,7 @@ struct AMPathFindOK
 
 struct AMAttack
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     int X;
@@ -349,7 +350,7 @@ struct AMAttack
 
 struct AMUpdateHP
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     int X;
@@ -361,7 +362,7 @@ struct AMUpdateHP
 
 struct AMDeadFadeOut
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     int X;
@@ -370,7 +371,7 @@ struct AMDeadFadeOut
 
 struct AMQueryCORecord
 {
-    uint32_t UID;
+    uint64_t UID;
 };
 
 struct AMQueryCOCount
@@ -409,7 +410,7 @@ struct AMQueryRectUIDList
 
 struct AMUIDList
 {
-    uint32_t UIDList[128];
+    uint64_t UIDList[128];
 };
 
 struct AMExp
@@ -419,7 +420,7 @@ struct AMExp
 
 struct AMNewDropItem
 {
-    uint32_t UID;
+    uint64_t UID;
     int X;
     int Y;
 
@@ -441,12 +442,12 @@ struct AMShowDropItem
 
 struct AMNotifyDead
 {
-    uint32_t UID;
+    uint64_t UID;
 };
 
 struct AMOffline
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     int X;
@@ -455,7 +456,7 @@ struct AMOffline
 
 struct AMPickUp
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t ID;
     uint32_t DBID;
 
@@ -465,7 +466,7 @@ struct AMPickUp
 
 struct AMPickUpOK
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t ID;
     uint32_t DBID;
 
@@ -488,7 +489,7 @@ struct AMCORecord
 
     struct _Action
     {
-        uint32_t UID;
+        uint64_t UID;
         uint32_t MapID;
 
         int Action;
@@ -500,7 +501,7 @@ struct AMCORecord
         int AimX;
         int AimY;
 
-        uint32_t AimUID;
+        uint64_t AimUID;
         uint32_t ActionParam;
     }Action;
 
@@ -534,5 +535,5 @@ struct AMCORecord
 
 struct AMNotifyNewCO
 {
-    uint32_t UID;
+    uint64_t UID;
 };

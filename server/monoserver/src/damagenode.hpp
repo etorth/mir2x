@@ -104,7 +104,7 @@ class DamageNode
         };
 
     public:
-        const uint32_t UID;
+        const uint64_t UID;
 
         const int Type;
         const int Damage;
@@ -113,7 +113,7 @@ class DamageNode
         const EffectArrayType EffectArray;
 
     public:
-        template<typename... U> DamageNode(uint32_t nUID, int nType, int nDamage, int nElement, U&&... u)
+        template<typename... U> DamageNode(uint64_t nUID, int nType, int nDamage, int nElement, U&&... u)
             : UID(nUID)
             , Type(nType)
             , Damage(nDamage)

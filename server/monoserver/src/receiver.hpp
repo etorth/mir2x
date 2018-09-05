@@ -43,8 +43,14 @@ class Receiver
     public:
         ~Receiver();
 
+    public:
+        uint64_t UID() const
+        {
+            return m_UID;
+        }
+
     private:
-        void PushMessage(const MessagePack *, size_t);
+        void PushMessage(MessagePack);
 
     public:
         int Wait(uint32_t = 0);

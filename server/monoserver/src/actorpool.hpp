@@ -19,6 +19,7 @@
 #pragma once
 #include <map>
 #include <mutex>
+#include <chrono>
 #include <future>
 #include <atomic>
 #include <vector>
@@ -28,10 +29,34 @@
 #include "condcheck.hpp"
 #include "messagepack.hpp"
 
-class Receiver;
 class ActorPod;
+class Receiver;
+class Dispatcher;
+
 class ActorPool final
 {
+    private:
+        static void Backoff(uint32_t &nBackoff)
+        {
+            nBackoff++;
+
+            if(nBackoff < 20){
+                return;
+            }
+
+            if(nBackoff < 50){
+                std::this_thread::yield();
+                return;
+            }
+
+            if(nBackoff < 50){
+                std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+                return;
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+
     private:
         struct SpinLock
         {
@@ -42,8 +67,9 @@ class ActorPool final
 
             void lock()
             {
+                uint32_t nBackoff = 0;
                 while (Latch.test_and_set(std::memory_order_acquire)){
-                    continue;
+                    Backoff(nBackoff);
                 }
             }
 
@@ -94,9 +120,6 @@ class ActorPool final
             // use MailboxLock for RAII access
             std::atomic<char> Status;
 
-            AvgTimer<32> RunTimer;
-            AvgTimer<32> StealTimer;
-
             ActorPod *Actor;
             SpinLock  NextQLock;
 
@@ -105,8 +128,6 @@ class ActorPool final
 
             Mailbox(ActorPod *pActor)
                 : Status('R')
-                , RunTimer()
-                , StealTimer()
                 , Actor(pActor)
                 , NextQLock()
                 , CurrQ()
@@ -155,6 +176,10 @@ class ActorPool final
         struct MailboxBucket
         {
             std::thread::id WorkerID;
+
+            AvgTimer<32> RunTimer;
+            AvgTimer<32> StealTimer;
+
             mutable std::shared_mutex BucketLock;
             std::map<uint64_t, std::shared_ptr<Mailbox>> MailboxList;
         };
@@ -194,12 +219,16 @@ class ActorPool final
 
     private:
         friend class ActorPod;
+        friend class Receiver;
+        friend class Dispatcher;
 
     private:
         bool Register(ActorPod *);
+        bool Register(Receiver *);
 
     private:
         bool Detach(const ActorPod *);
+        bool Detach(const Receiver *);
 
     public:
         void Launch();
@@ -215,13 +244,7 @@ class ActorPool final
         uint64_t GetInnActorUID();
 
     private:
-        bool PostMessage(uint64_t nUID, const MessagePack &rstMPK)
-        {
-            return PostMessage(nUID, &rstMPK, 1);
-        }
-
-    private:
-        bool PostMessage(uint64_t, const MessagePack *, size_t);
+        bool PostMessage(uint64_t, MessagePack);
 
     private:
         bool HasWorkSteal() const
@@ -236,4 +259,13 @@ class ActorPool final
             static std::atomic<uint64_t> s_RecvUID(1);
             return 0XFFFF000000000000 + s_RecvUID.fetch_add(1);
         }
+
+    private:
+        std::tuple<long, size_t> CheckWorkerTime() const;
+
+    private:
+        void RunWorker(size_t);
+        void RunWorkerSteal(size_t);
+        void RunWorkerOneLoop(size_t);
+        void RunOneMailbox(Mailbox *, bool);
 };

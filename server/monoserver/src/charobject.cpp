@@ -499,16 +499,12 @@ bool CharObject::DispatchHitterExp()
         if(true
                 && m_HitterUIDRecord[nIndex].UID
                 && m_HitterUIDRecord[nIndex].ActiveTime + 2 * 60 * 1000 >= nNowTick){
-
-            extern MonoServer *g_MonoServer;
-            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(m_HitterUIDRecord[nIndex].UID)){
-                if(auto nType = UIDFunc::GetUIDType(stUIDRecord.UID()); nType == UID_MON || nType == UID_PLY){
-                    // record is valid
-                    // record is not time-out
-                    // record is monster or player
-                    nIndex++;
-                    continue;
-                }
+            if(auto nType = UIDFunc::GetUIDType(m_HitterUIDRecord[nIndex].UID); nType == UID_MON || nType == UID_PLY){
+                // record is valid
+                // record is not time-out
+                // record is monster or player
+                nIndex++;
+                continue;
             }
         }
 
@@ -524,12 +520,10 @@ bool CharObject::DispatchHitterExp()
     };
 
     for(auto rstRecord: m_HitterUIDRecord){
-        extern MonoServer *g_MonoServer;
-        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(rstRecord.UID)){
-            AMExp stAME;
-            stAME.Exp = fnCalcExp(rstRecord.Damage);
-            m_ActorPod->Forward({MPK_EXP, stAME}, stUIDRecord.GetAddress());
-        }
+        AMExp stAME;
+        std::memset(&stAME, 0, sizeof(stAME));
+        stAME.Exp = fnCalcExp(rstRecord.Damage);
+        m_ActorPod->Forward(rstRecord.UID, {MPK_EXP, stAME});
     }
 
     return true;
@@ -569,6 +563,8 @@ int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
 void CharObject::DispatchHealth()
 {
     AMUpdateHP stAMUHP;
+    std::memset(&stAMUHP, 0, sizeof(stAMUHP));
+
     stAMUHP.UID   = UID();
     stAMUHP.MapID = MapID();
     stAMUHP.X     = X();
@@ -580,39 +576,35 @@ void CharObject::DispatchHealth()
             && ActorPodValid()
             && m_Map
             && m_Map->ActorPodValid()){
-        m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, m_Map->GetAddress());
+        m_ActorPod->Forward(m_Map->UID(), {MPK_UPDATEHP, stAMUHP});
     }
 }
 
 void CharObject::DispatchAttack(uint32_t nUID, int nDC)
 {
     if(nUID && DCValid(nDC, true)){
-        extern MonoServer *g_MonoServer;
-        if(auto stRecord = g_MonoServer->GetUIDRecord(nUID)){
+        AMAttack stAMA;
+        std::memset(&stAMA, 0, sizeof(stAMA));
 
-            AMAttack stAMA;
-            stAMA.UID   = UID();
-            stAMA.MapID = MapID();
+        stAMA.UID   = UID();
+        stAMA.MapID = MapID();
 
-            stAMA.X = X();
-            stAMA.Y = Y();
+        stAMA.X = X();
+        stAMA.Y = Y();
 
-            auto stDamage = GetAttackDamage(nDC);
-            stAMA.Type    = stDamage.Type;
-            stAMA.Damage  = stDamage.Damage;
-            stAMA.Element = stDamage.Element;
+        auto stDamage = GetAttackDamage(nDC);
+        stAMA.Type    = stDamage.Type;
+        stAMA.Damage  = stDamage.Damage;
+        stAMA.Element = stDamage.Element;
 
-            // copy the effect array
-            for(size_t nIndex = 0; nIndex < sizeof(stAMA.Effect) / sizeof(stAMA.Effect[0]); ++nIndex){
-                if(nIndex < stDamage.EffectArray.EffectLen()){
-                    stAMA.Effect[nIndex] = stDamage.EffectArray.Effect()[nIndex];
-                }else{
-                    stAMA.Effect[nIndex] = EFF_NONE;
-                }
+        for(size_t nIndex = 0; nIndex < sizeof(stAMA.Effect) / sizeof(stAMA.Effect[0]); ++nIndex){
+            if(nIndex < stDamage.EffectArray.EffectLen()){
+                stAMA.Effect[nIndex] = stDamage.EffectArray.Effect()[nIndex];
+            }else{
+                stAMA.Effect[nIndex] = EFF_NONE;
             }
-
-            m_ActorPod->Forward({MPK_ATTACK, stAMA}, stRecord.GetAddress());
         }
+        m_ActorPod->Forward(nUID, {MPK_ATTACK, stAMA});
     }
 }
 
@@ -637,6 +629,8 @@ int CharObject::Speed(int nSpeedType) const
 void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bRandom)
 {
     AMAddCharObject stAMACO;
+    std::memset(&stAMACO, 0, sizeof(stAMACO));
+
     stAMACO.Type = TYPE_MONSTER;
 
     stAMACO.Common.MapID  = m_Map->ID();
@@ -647,7 +641,7 @@ void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bRandom)
     stAMACO.Monster.MonsterID = nMonsterID;
     stAMACO.Monster.MasterUID = UID();
 
-    auto fnOnRet = [](const MessagePack &rstRMPK, const Theron::Address &)
+    auto fnOnRet = [](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.ID()){
             default:
@@ -656,7 +650,7 @@ void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bRandom)
                 }
         }
     };
-    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, m_ServiceCore->GetAddress(), fnOnRet);
+    m_ActorPod->Forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, fnOnRet);
 }
 
 int CharObject::EstimateHop(int nX, int nY)

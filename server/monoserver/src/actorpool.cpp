@@ -106,7 +106,7 @@ bool ActorPool::Register(Receiver *pReceiver)
     }
 
     extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "UID exists: UID = %" PRIu32 ", Receiver = %p", nUID, pExistReceiver);
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "UID exists: UID = %" PRIu32 ", Receiver = %p", pExistReceiver->UID(), pExistReceiver);
     return false;
 }
 
@@ -125,25 +125,46 @@ bool ActorPool::Detach(const ActorPod *pActor)
     auto nIndex = nUID % m_BucketList.size();
     auto fnDoDetach = [&rstMailboxList = m_BucketList[nIndex].MailboxList, pActor, nUID]() -> bool
     {
-        if(auto p = rstMailboxList.find(nUID); (p != rstMailboxList.end()) && (p->second->Actor == pActor)){
-            switch(auto chStatus = p->second->Status.exchange('D'); chStatus){
-                case 'B':
-                case 'R':
-                    {
-                        return true;
-                    }
-                case 'D':
-                    {
-                        extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Double-detach an actor: ActorPod = %p, ActorPod::UID() = %" PRIu64, pActor, pActor->UID());
-                        return false;
-                    }
-                default:
-                    {
-                        extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid actor status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %c", pActor, pActor->UID(), chStatus);
-                        return false;
-                    }
+        if(auto p = rstMailboxList.find(nUID); (p != rstMailboxList.end())){
+            if(p->second->Actor != pActor){
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Different actors with same UID: ActorPod = (%p, %p), ActorPod::UID() = %" PRIu64, pActor, p->second->Actor, pActor->UID());
+                return false;
+            }
+
+            // we need to make sure after this funtion
+            // the isn't any threads accessing the internal actor state
+
+            uint32_t nBackoff = 0;
+            while(true){
+                switch(MailboxLock stMailboxLock(*(p->second.get())); stMailboxLock.LockType()){
+                    case 'B':
+                        {
+                            Backoff(nBackoff);
+                            break;
+                        }
+                    case 'R':
+                        {
+                            if(char chStatus = p->second->Status.exchange('D'); chStatus != 'B'){
+                                extern MonoServer *g_MonoServer;
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Locked actor has no BUSY status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", Status = %c", pActor, pActor->UID(), chStatus);
+                                return false;
+                            }
+                            return true;
+                        }
+                    case 'D':
+                        {
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Double-detach an actor: ActorPod = %p, ActorPod::UID() = %" PRIu64, pActor, pActor->UID());
+                            return false;
+                        }
+                    default:
+                        {
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid actor status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %c", pActor, pActor->UID(), stMailboxLock.LockType());
+                            return false;
+                        }
+                }
             }
         }
         extern MonoServer *g_MonoServer;
@@ -157,7 +178,7 @@ bool ActorPool::Detach(const ActorPod *pActor)
     if(std::this_thread::get_id() == m_BucketList[nIndex].WorkerID){
         return fnDoDetach();
     }else{
-        std::shared_lock<std::shared_mutex> stLock(rstBucket.BucketLock);
+        std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
         return fnDoDetach();
     }
 }
@@ -195,17 +216,17 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
         {
             std::lock_guard<std::mutex> stLockGuard(m_ReceiverLock);
             if(auto p = m_ReceiverList.find(nUID); p != m_ReceiverList.end()){
-                p->second->PushMessage(pMPK, nMPKLen);
+                p->second->PushMessage(std::move(stMPK));
                 return true;
             }
         }
 
-        PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, pMPK[nIndex].Respond()});
+        PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, stMPK.Respond()});
         return false;
     }
 
     auto nIndex = nUID % m_BucketList.size();
-    auto fnPushMessage = [nIndex, nUID](MessagePack stMPK)
+    auto fnPushMessage = [this, nIndex, nUID](MessagePack stMPK)
     {
         if(auto p = m_BucketList[nIndex].MailboxList.find(nUID); p != m_BucketList[nIndex].MailboxList.end()){
             std::lock_guard<SpinLock> stLockGuard(p->second->NextQLock);
@@ -226,7 +247,7 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
         }
     }
 
-    PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, pMPK[nIndex].Respond()});
+    PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, stMPK.Respond()});
     return false;
 }
 
@@ -252,21 +273,21 @@ void ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
 void ActorPool::RunWorkerSteal(size_t nMaxIndex)
 {
     std::shared_lock<std::shared_mutex> stLock(m_BucketList[nMaxIndex].BucketLock);
-    for(auto p = m_BucketList[nMaxIndex].rbegin(); p != m_BucketList[nMaxIndex].rend(); ++p){
-        if(MailboxLock stLock(*(p->second.get())); stLock.Locked()){
-            RunOneMailbox(p->second->get(), true);
+    for(auto p = m_BucketList[nMaxIndex].MailboxList.rbegin(); p != m_BucketList[nMaxIndex].MailboxList.rend(); ++p){
+        if(MailboxLock stMailboxLock(*(p->second.get())); stMailboxLock.Locked()){
+            RunOneMailbox(p->second.get(), true);
         }
     }
 }
 
-std::tuple<long, size_t> ActorPool::CheckWorkerTime()
+std::tuple<long, size_t> ActorPool::CheckWorkerTime() const
 {
     long nSum = 0;
     size_t nMaxIndex = 0;
 
     for(int nIndex = 0; nIndex < (int)(m_BucketList.size()); ++nIndex){
-        nSum += m_BucketList[nIndex].Timer.GetAvgTime();
-        if(m_BucketList[nIndex].GetAvgTime() > m_BucketList[nMaxIndex].GetAvgTime()){
+        nSum += m_BucketList[nIndex].RunTimer.GetAvgTime();
+        if(m_BucketList[nIndex].RunTimer.GetAvgTime() > m_BucketList[nMaxIndex].RunTimer.GetAvgTime()){
             nMaxIndex = nIndex;
         }
     }
@@ -284,7 +305,7 @@ void ActorPool::RunWorker(size_t nIndex)
 
     if(!HasWorkSteal()){
         auto [nAvgTime, nMaxIndex] = CheckWorkerTime();
-        if(m_BucketList[nIndex].Timer.GetAvgTime() < nAvgTime){
+        if(m_BucketList[nIndex].RunTimer.GetAvgTime() < nAvgTime){
             extern MonoServer *g_MonoServer;
             auto stBeginSteal = g_MonoServer->GetTimeNow();
             {
@@ -295,15 +316,15 @@ void ActorPool::RunWorker(size_t nIndex)
     }
 }
 
-void ActorPod::RunWorkerOneLoop(size_t nIndex)
+void ActorPool::RunWorkerOneLoop(size_t nIndex)
 {
-    auto fnUpdate = [](size_t nIndex, auto p)
+    auto fnUpdate = [this](size_t nIndex, auto p)
     {
         while(p != m_BucketList[nIndex].MailboxList.end()){
             switch(MailboxLock stLock(*(p->second.get())); stLock.LockType()){
                 case 'R':
                     {
-                        RunOneMailbox(p->second->get());
+                        RunOneMailbox(p->second.get(), true);
                         ++p;
                         break;
                     }
@@ -318,7 +339,7 @@ void ActorPod::RunWorkerOneLoop(size_t nIndex)
                 default:
                     {
                         extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Unexpected mailbox detected: %c", chStatus);
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Unexpected mailbox detected: %c", stLock.LockType());
                         g_MonoServer->Restart();
                         break;
                     }
@@ -327,7 +348,7 @@ void ActorPod::RunWorkerOneLoop(size_t nIndex)
         return m_BucketList[nIndex].MailboxList.end();
     };
 
-    for(auto p = fnUpdate(m_BucketList[nIndex].MailboxList.begin()); p != m_BucketList[nIndex].MailboxList.end(); p = fnUpdate(p)){
+    for(auto p = fnUpdate(nIndex, m_BucketList[nIndex].MailboxList.begin()); p != m_BucketList[nIndex].MailboxList.end(); p = fnUpdate(nIndex, p)){
         std::unique_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
         p = m_BucketList[nIndex].MailboxList.erase(p);
     }

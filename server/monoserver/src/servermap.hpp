@@ -23,7 +23,6 @@
 
 #include "sysconst.hpp"
 #include "querytype.hpp"
-#include "metronome.hpp"
 #include "commonitem.hpp"
 #include "pathfinder.hpp"
 #include "mir2xmapdata.hpp"

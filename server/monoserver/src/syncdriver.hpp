@@ -19,7 +19,7 @@
 
 #pragma once
 #include <cstdint>
-#include <Theron/Theron.h>
+#include "receiver.hpp"
 #include "messagepack.hpp"
 
 class SyncDriver final

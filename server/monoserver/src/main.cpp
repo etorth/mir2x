@@ -25,7 +25,6 @@
 #include "mapbindbn.hpp"
 #include "actorpool.hpp"
 #include "netdriver.hpp"
-#include "metronome.hpp"
 #include "serverenv.hpp"
 #include "mainwindow.hpp"
 #include "scriptwindow.hpp"

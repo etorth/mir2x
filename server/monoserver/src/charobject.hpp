@@ -99,7 +99,7 @@ typedef struct
 // should be visible for CharObject and its derived classes
 struct COLocation
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
     uint32_t RecordTime;
 
@@ -108,7 +108,7 @@ struct COLocation
     int Direction;
 
     COLocation(
-            uint32_t nUID        = 0,
+            uint64_t nUID        = 0,
             uint32_t nMapID      = 0,
             uint32_t nRecordTime = 0,
 
@@ -280,7 +280,7 @@ class CharObject: public ServerObject
         virtual bool RequestSpaceMove(uint32_t, int, int, bool, std::function<void()>, std::function<void()>);
 
     protected:
-        bool AddHitterUID(uint32_t, int);
+        bool AddHitterUID(uint64_t, int);
         bool DispatchHitterExp();
 
     protected:
