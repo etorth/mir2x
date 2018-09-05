@@ -70,102 +70,102 @@ Player::~Player()
     DBSavePlayer();
 }
 
-void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void Player::OperateAM(const MessagePack &rstMPK)
 {
     switch(rstMPK.Type()){
         case MPK_METRONOME:
             {
-                On_MPK_METRONOME(rstMPK, rstFromAddr);
+                On_MPK_METRONOME(rstMPK);
                 break;
             }
         case MPK_NOTIFYNEWCO:
             {
-                On_MPK_NOTIFYNEWCO(rstMPK, rstFromAddr);
+                On_MPK_NOTIFYNEWCO(rstMPK);
                 break;
             }
         case MPK_MAPSWITCH:
             {
-                On_MPK_MAPSWITCH(rstMPK, rstFromAddr);
+                On_MPK_MAPSWITCH(rstMPK);
                 break;
             }
         case MPK_QUERYLOCATION:
             {
-                On_MPK_QUERYLOCATION(rstMPK, rstFromAddr);
+                On_MPK_QUERYLOCATION(rstMPK);
                 break;
             }
         case MPK_EXP:
             {
-                On_MPK_EXP(rstMPK, rstFromAddr);
+                On_MPK_EXP(rstMPK);
                 break;
             }
         case MPK_ACTION:
             {
-                On_MPK_ACTION(rstMPK, rstFromAddr);
+                On_MPK_ACTION(rstMPK);
                 break;
             }
         case MPK_ATTACK:
             {
-                On_MPK_ATTACK(rstMPK, rstFromAddr);
+                On_MPK_ATTACK(rstMPK);
                 break;
             }
         case MPK_UPDATEHP:
             {
-                On_MPK_UPDATEHP(rstMPK, rstFromAddr);
+                On_MPK_UPDATEHP(rstMPK);
                 break;
             }
         case MPK_DEADFADEOUT:
             {
-                On_MPK_DEADFADEOUT(rstMPK, rstFromAddr);
+                On_MPK_DEADFADEOUT(rstMPK);
                 break;
             }
         case MPK_SHOWDROPITEM:
             {
-                On_MPK_SHOWDROPITEM(rstMPK, rstFromAddr);
+                On_MPK_SHOWDROPITEM(rstMPK);
                 break;
             }
         case MPK_BINDCHANNEL:
             {
-                On_MPK_BINDCHANNEL(rstMPK, rstFromAddr);
+                On_MPK_BINDCHANNEL(rstMPK);
                 break;
             }
         case MPK_NETPACKAGE:
             {
-                On_MPK_NETPACKAGE(rstMPK, rstFromAddr);
+                On_MPK_NETPACKAGE(rstMPK);
                 break;
             }
         case MPK_QUERYCORECORD:
             {
-                On_MPK_QUERYCORECORD(rstMPK, rstFromAddr);
+                On_MPK_QUERYCORECORD(rstMPK);
                 break;
             }
         case MPK_BADCHANNEL:
             {
-                On_MPK_BADCHANNEL(rstMPK, rstFromAddr);
+                On_MPK_BADCHANNEL(rstMPK);
                 break;
             }
         case MPK_OFFLINE:
             {
-                On_MPK_OFFLINE(rstMPK, rstFromAddr);
+                On_MPK_OFFLINE(rstMPK);
                 break;
             }
         case MPK_REMOVEGROUNDITEM:
             {
-                On_MPK_REMOVEGROUNDITEM(rstMPK, rstFromAddr);
+                On_MPK_REMOVEGROUNDITEM(rstMPK);
                 break;
             }
         case MPK_PICKUPOK:
             {
-                On_MPK_PICKUPOK(rstMPK, rstFromAddr);
+                On_MPK_PICKUPOK(rstMPK);
                 break;
             }
         case MPK_CORECORD:
             {
-                On_MPK_CORECORD(rstMPK, rstFromAddr);
+                On_MPK_CORECORD(rstMPK);
                 break;
             }
         case MPK_NOTIFYDEAD:
             {
-                On_MPK_NOTIFYDEAD(rstMPK, rstFromAddr);
+                On_MPK_NOTIFYDEAD(rstMPK);
                 break;
             }
         default:

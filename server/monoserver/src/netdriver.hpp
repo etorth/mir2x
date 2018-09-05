@@ -52,7 +52,7 @@ class NetDriver final: public Dispatcher
         std::thread m_Thread;
 
     private:
-        uint64_t m_SCAddress;
+        uint64_t m_ServiceCoreUID;
 
     private:
         CacheQueue<uint32_t, SYS_MAXPLAYERNUM> m_ChannIDQ;

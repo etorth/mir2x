@@ -16,8 +16,10 @@
  * =====================================================================================
  */
 
-#include "netdriver.hpp"
+#include <cinttypes>
 #include "sysconst.hpp"
+#include "actorpool.hpp"
+#include "netdriver.hpp"
 #include "monoserver.hpp"
 
 NetDriver::NetDriver()
@@ -28,7 +30,7 @@ NetDriver::NetDriver()
     , m_Acceptor(nullptr)
     , m_Socket(nullptr)
     , m_Thread()
-    , m_SCAddress(0)
+    , m_ServiceCoreUID(0)
     , m_ChannIDQ()
 {}
 
@@ -106,7 +108,7 @@ int NetDriver::Launch(uint32_t nPort, uint64_t nUID)
         return false;
     }
 
-    m_SCUID = nUID;
+    m_ServiceCoreUID = nUID;
 
     if(m_Thread.joinable()){
         m_Thread.join();
@@ -191,7 +193,7 @@ void NetDriver::AcceptNewConnection()
         // directly lanuch the channel here
         // won't forward the new connection to the service core
 
-        pChann->Launch(m_SCAddress);
+        pChann->Launch(m_ServiceCoreUID);
         AcceptNewConnection();
     };
 
