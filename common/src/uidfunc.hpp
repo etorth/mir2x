@@ -21,14 +21,6 @@
 #include <cstdint>
 #include <cinttypes>
 
-enum JobType: int
-{
-    JOB_ERR = 0,
-    JOB_WAR = 1,
-    JOB_TAO = 2,
-    JOB_MAG = 3,
-};
-
 enum UIDType: int
 {
     UID_ERR =  0,
@@ -47,21 +39,31 @@ enum UIDType: int
     UID_U13 = 13,
     UID_COR = 14,
     UID_ETC = 15,
-    UID_INN = 16, // out of 4bits for inn actor type
+    UID_INN = 16, // put the internal out of 0 ~ 15
 };
 
 namespace UIDFunc
 {
-    uint64_t GetMapUID(uint32_t);
+    inline uint64_t GetMapUID(uint32_t nMapID)
+    {
+        return nMapID ? (((uint64_t)(UID_MAP) << 44) + (uint64_t)(nMapID)) : 0;
+    }
+
+    inline uint64_t GetServiceCoreUID()
+    {
+        return (uint64_t)(UID_COR) << 44;
+    }
+
+    inline uint64_t GetPlayerUID(uint32_t nDBID)
+    {
+        return ((uint64_t)(UID_PLY) << 44) + nDBID;
+    }
 }
 
 namespace UIDFunc
 {
-    uint64_t BuildUID_MON(uint32_t);
-    uint64_t BuildUID_PLY(bool, int, uint32_t);
-    uint64_t BuildUID_MAP(uint32_t);
-    uint64_t BuildUID_COR();
-    uint64_t BuildUID_ETC();
+    uint64_t BuildEtcUID();
+    uint64_t BuildMonsterUID(uint32_t);
 }
 
 namespace UIDFunc

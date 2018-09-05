@@ -91,7 +91,7 @@ class NetDriver final: public Dispatcher
         //      0: OK
         //      1: invalid argument
         //      2: asio initialization failed
-        int Launch(uint32_t, uint64_t);
+        bool Launch(uint32_t, uint64_t);
 
     public:
         template<typename... Args> bool Post(uint32_t nChannID, uint8_t nHC, Args&&... args)

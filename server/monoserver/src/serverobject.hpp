@@ -114,7 +114,7 @@ class ServerObject
         std::priority_queue<DelayCmd> m_DelayCmdQ;
 
     public:
-        ServerObject(uint32_t);
+        ServerObject(uint64_t);
 
     public:
         virtual ~ServerObject();
@@ -154,8 +154,4 @@ class ServerObject
 
     public:
         void Delay(uint32_t, const std::function<void()> &);
-
-    protected:
-        bool AddTick();
-        void RemoveTick();
 };

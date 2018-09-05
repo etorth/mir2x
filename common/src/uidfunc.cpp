@@ -22,7 +22,7 @@
 #include <atomic>
 #include "uidfunc.hpp"
 
-uint64_t UIDFunc::BuildUID_MON(uint32_t nMonsterID)
+uint64_t UIDFunc::BuildMonsterUID(uint32_t nMonsterID)
 {
     // 47-44 43-33 32 31-0
     // |  |  |  |  |  |  |
@@ -54,47 +54,7 @@ uint64_t UIDFunc::BuildUID_MON(uint32_t nMonsterID)
     return 0;
 }
 
-uint64_t UIDFunc::BuildUID_PLY(bool bMale, int nJob, uint32_t nDBID)
-{
-    // 47-44 43 42-41 40-32 31-0
-    // |  |  |  |  |  |  |  |  |
-    // |  |  |  |  |  |  |  +--+----> DBID
-    // |  |  |  |  |  +--+----------> reserved
-    // |  |  |  +--+----------------> job id
-    // |  |  +----------------------> sex, 1: male
-    // +--+-------------------------> UID_PLY
-
-    if(false
-            || nJob != JOB_WAR
-            || nJob != JOB_TAO
-            || nJob != JOB_MAG){
-        return 0;
-    }
-
-    if(!nDBID){
-        return 0;
-    }
-
-    uint64_t nSexID = bMale ? 1 : 0;
-    return ((uint64_t)(UID_PLY) << 44) + (nSexID << 43) + ((uint64_t)(nJob) << 41) + nDBID;
-}
-
-uint64_t UIDFunc::GetMapUID(uint32_t nMapID)
-{
-    return nMapID ? (((uint64_t)(UID_MAP) << 44) + (uint64_t)(nMapID)) : 0;
-}
-
-uint64_t UIDFunc::BuildUID_MAP(uint32_t nMapID)
-{
-    return nMapID ? (((uint64_t)(UID_MAP) << 44) + (uint64_t)(nMapID)) : 0;
-}
-
-uint64_t UIDFunc::BuildUID_COR()
-{
-    return (uint64_t)(UID_COR) << 44;
-}
-
-uint64_t UIDFunc::BuildUID_ETC()
+uint64_t UIDFunc::BuildEtcUID()
 {
     static std::atomic<uint32_t> s_ETCUID {1};
     if(auto nSeq = s_ETCUID.fetch_add(1); nSeq){
@@ -124,7 +84,7 @@ std::string UIDFunc::GetUIDString(uint64_t nUID)
             }
         case UID_COR:
             {
-                std::sprintf(szUIDString, "COR");
+                std::sprintf(szUIDString, "CORE");
                 return szUIDString;
             }
         case UID_ETC:

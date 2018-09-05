@@ -112,7 +112,7 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     stAMACO.Player.Direction = nDirection;
     stAMACO.Player.ChannID   = nChannID;
 
-    auto fnOnR = [this, fnOnLoginFail](const MessagePack &rstRMPK, const Theron::Address &)
+    m_ActorPod->Forward(pMap->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [this, fnOnLoginFail](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_OK:
@@ -125,7 +125,5 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
                     break;
                 }
         }
-    };
-
-    m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, pMap->GetAddress(), fnOnR);
+    });
 }

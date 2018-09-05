@@ -26,27 +26,26 @@
 #include "monoserver.hpp"
 
 ActorPod::ActorPod(uint64_t nUID,
-        const std::string &szName,
         const std::function<void()> &fnTrigger,
         const std::function<void(const MessagePack &)> &fnOperation, uint32_t nExpireTime)
     : m_UID([nUID]() -> uint64_t
       {
-          if(nUID){
-              if(nUID & 0XFFFF000000000000){
-                  extern MonoServer *g_MonoServer;
-                  g_MonoServer->AddLog(LOGTYPE_FATAL, "Provide user-defined UID greater than 0XFFFF000000000000: %" PRIu64, nUID);
-                  return 0;
-              }
-              return nUID;
+          if(!nUID){
+              extern MonoServer *g_MonoServer;
+              g_MonoServer->AddLog(LOGTYPE_WARNING, "Provide user-defined zero UID");
+              g_MonoServer->Restart();
+              return 0;
           }
 
-          // user won't provide uid by themselves
-          // generate an UID from reserved uid region
+          if(nUID & 0XFFFF000000000000){
+              extern MonoServer *g_MonoServer;
+              g_MonoServer->AddLog(LOGTYPE_WARNING, "Provide user-defined UID greater than 0XFFFF000000000000: %" PRIu64, nUID);
+              g_MonoServer->Restart();
+              return 0;
+          }
 
-          extern ActorPool *g_ActorPool;
-          return g_ActorPool->GetInnActorUID();
+          return nUID;
       }())
-    , m_Name(szName)
     , m_Trigger(fnTrigger)
     , m_Operation(fnOperation)
     , m_ValidID(0)
@@ -55,6 +54,16 @@ ActorPod::ActorPod(uint64_t nUID,
 {
     extern ActorPool *g_ActorPool;
     g_ActorPool->Register(this);
+}
+
+ActorPod::~ActorPod()
+{
+    extern ActorPool *g_ActorPool;
+    if(g_ActorPool->IsActorThread(UID())){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Delete actor in its actor thread: ActorPod::UID() = %" PRIu64, UID());
+        g_MonoServer->Restart();
+    }
 }
 
 void ActorPod::InnHandler(const MessagePack &rstMPK)

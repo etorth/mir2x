@@ -162,14 +162,18 @@ void ServerMap::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK)
     }
 
     if(!bDstOK){
-        m_ActorPod->Forward(MPK_ERROR, rstAddress, rstMPK.ID());
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
 
     // get valid location
     // respond with MPK_SPACEMOVEOK and wait for response
 
-    auto fnOP = [this, nUID = stAMTSM.UID, nDstX, nDstY](const MessagePack &rstRMPK)
+    AMSpaceMoveOK stAMSMOK;
+    std::memset(&stAMSMOK, 0, sizeof(stAMSMOK));
+
+    stAMSMOK.Ptr = this;
+    m_ActorPod->Forward(rstMPK.From(), {MPK_SPACEMOVEOK, stAMSMOK}, rstMPK.ID(), [this, nUID = stAMTSM.UID, nDstX, nDstY](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_OK:
@@ -190,12 +194,7 @@ void ServerMap::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK)
                     break;
                 }
         }
-    };
-
-    AMSpaceMoveOK stAMSMOK;
-    stAMSMOK.Data  = this;
-
-    m_ActorPod->Forward({MPK_SPACEMOVEOK, stAMSMOK}, rstAddress, rstMPK.ID(), fnOP);
+    });
 }
 
 void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
@@ -219,7 +218,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
 
@@ -230,7 +229,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintMoveError();
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
 
@@ -246,7 +245,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintMoveError();
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
 
@@ -275,7 +274,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
                 extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid move request: (X, Y) -> (EndX, EndY)");
                 fnPrintMoveError();
-                m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                 return;
             }
     }
@@ -328,118 +327,13 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     }
 
     if(!bCheckMove){
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
 
-    auto fnOnR = [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK)
-    {
-        switch(rstRMPK.Type()){
-            case MPK_OK:
-                {
-                    // the object comfirm to move
-                    // and it's internal state has changed
-
-                    // 1. leave last cell
-                    {
-                        bool bFindCO = false;
-                        auto &rstRecordV = m_CellRecordV2D[stAMTM.X][stAMTM.Y].UIDList;
-
-                        for(auto &nUID: rstRecordV){
-                            if(nUID == stAMTM.UID){
-                                // 1. mark as find
-                                bFindCO = true;
-
-                                // 2. remove from the object list
-                                std::swap(nUID, rstRecordV.back());
-                                rstRecordV.pop_back();
-
-                                break;
-                            }
-                        }
-
-                        if(!bFindCO){
-                            extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_FATAL, "CO location error: (UID = %" PRIu32 ", X = %d, Y = %d)", stAMTM.UID, stAMTM.X, stAMTM.Y);
-                            g_MonoServer->Restart();
-                        }
-                    }
-
-                    // 2. push it to the new cell
-                    //    check if it should switch the map
-                    extern MonoServer *g_MonoServer;
-                    if(auto stRecord = g_MonoServer->GetUIDRecord(stAMTM.UID)){
-                        AddGridUID(stAMTM.UID, nMostX, nMostY);
-                        if(UIDFunc::GetUIDType(stAMTM.UID) == UID_PLY && m_CellRecordV2D[nMostX][nMostY].MapID){
-                            if(m_CellRecordV2D[nMostX][nMostY].UID){
-                                AMMapSwitch stAMMS;
-                                stAMMS.UID   = m_CellRecordV2D[nMostX][nMostY].UID;
-                                stAMMS.MapID = m_CellRecordV2D[nMostX][nMostY].MapID;
-                                stAMMS.X     = m_CellRecordV2D[nMostX][nMostY].SwitchX;
-                                stAMMS.Y     = m_CellRecordV2D[nMostX][nMostY].SwitchY;
-                                m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.GetAddress());
-                            }else{
-                                switch(m_CellRecordV2D[nMostX][nMostY].Query){
-                                    case QUERY_NONE:
-                                        {
-                                            auto fnOnResp = [this, nMostX, nMostY, stRecord](const MessagePack &rstMPK)
-                                                switch(rstMPK.Type()){
-                                                    case MPK_UID:
-                                                        {
-                                                            AMUID stAMUID;
-                                                            std::memcpy(&stAMUID, rstMPK.Data(), sizeof(stAMUID));
-
-                                                            if(stAMUID.UID){
-                                                                m_CellRecordV2D[nMostX][nMostY].UID   = stAMUID.UID;
-                                                                m_CellRecordV2D[nMostX][nMostY].Query = QUERY_OK;
-
-                                                                // then we do the map switch notification
-                                                                AMMapSwitch stAMMS;
-                                                                stAMMS.UID   = m_CellRecordV2D[nMostX][nMostY].UID;
-                                                                stAMMS.MapID = m_CellRecordV2D[nMostX][nMostY].MapID;
-                                                                stAMMS.X     = m_CellRecordV2D[nMostX][nMostY].SwitchX;
-                                                                stAMMS.Y     = m_CellRecordV2D[nMostX][nMostY].SwitchY;
-                                                                m_ActorPod->Forward({MPK_MAPSWITCH, stAMMS}, stRecord.GetAddress());
-                                                            }
-
-                                                            break;
-                                                        }
-                                                    default:
-                                                        {
-                                                            m_CellRecordV2D[nMostX][nMostY].UID   = 0;
-                                                            m_CellRecordV2D[nMostX][nMostY].Query = QUERY_ERROR;
-                                                            break;
-                                                        }
-                                                }
-                                            };
-
-                                            AMQueryMapUID stAMQMUID;
-                                            stAMQMUID.MapID = m_CellRecordV2D[nMostX][nMostY].MapID;
-                                            m_ActorPod->Forward({MPK_QUERYMAPUID, stAMQMUID}, m_ServiceCore->GetAddress(), fnOnResp);
-                                            m_CellRecordV2D[nMostX][nMostY].Query = QUERY_PENDING;
-                                        }
-                                    case QUERY_PENDING:
-                                    case QUERY_OK:
-                                    case QUERY_ERROR:
-                                    default:
-                                        {
-                                            break;
-                                        }
-                                }
-                            }
-                        }
-                    }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-        m_CellRecordV2D[nMostX][nMostY].Lock = false;
-    };
-
     AMMoveOK stAMMOK;
+    std::memset(&stAMMOK, 0, sizeof(stAMMOK));
+
     stAMMOK.UID   = UID();
     stAMMOK.MapID = ID();
     stAMMOK.X     = stAMTM.X;
@@ -448,7 +342,62 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     stAMMOK.EndY  = nMostY;
 
     m_CellRecordV2D[nMostX][nMostY].Lock = true;
-    m_ActorPod->Forward({MPK_MOVEOK, stAMMOK}, rstFromAddr, rstMPK.ID(), fnOnR);
+    m_ActorPod->Forward(rstMPK.From(), {MPK_MOVEOK, stAMMOK}, rstMPK.ID(), [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK)
+    {
+        if(!m_CellRecordV2D[nMostX][nMostY].Lock){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Cell lock released before MOVEOK get responsed: MapUID = %" PRIu64, UID());
+            g_MonoServer->Restart();
+            return;
+        }
+
+        m_CellRecordV2D[nMostX][nMostY].Lock = false;
+        switch(rstRMPK.Type()){
+            case MPK_OK:
+                {
+                    // the object comfirm to move
+                    // and it's internal state has changed
+
+                    // 1. leave last cell
+                    bool bFindCO = false;
+                    auto &rstUIDList = GetUIDList(stAMTM.X, stAMTM.Y);
+
+                    for(auto &nUID: rstUIDList){
+                        if(nUID == stAMTM.UID){
+                            bFindCO = true;
+                            std::swap(nUID, rstUIDList.back());
+                            rstUIDList.pop_back();
+                            break;
+                        }
+                    }
+
+                    if(!bFindCO){
+                        extern MonoServer *g_MonoServer;
+                        g_MonoServer->AddLog(LOGTYPE_FATAL, "CO location error: (UID = %" PRIu32 ", X = %d, Y = %d)", stAMTM.UID, stAMTM.X, stAMTM.Y);
+                        g_MonoServer->Restart();
+                    }
+
+                    // 2. push to the new cell
+                    //    check if it should switch the map
+                    AddGridUID(stAMTM.UID, nMostX, nMostY);
+                    if(UIDFunc::GetUIDType(stAMTM.UID) == UID_PLY && GetCell(nMostX, nMostY).MapID){
+                        AMMapSwitch stAMMS;
+                        std::memset(&stAMMS, 0, sizeof(stAMMS));
+
+                        stAMMS.UID   = UIDFunc::GetMapUID(GetCell(nMostX, nMostY).MapID);
+                        stAMMS.MapID = GetCell(nMostX, nMostY).MapID;
+                        stAMMS.X     = GetCell(nMostX, nMostY).SwitchX;
+                        stAMMS.Y     = GetCell(nMostX, nMostY).SwitchY;
+                        m_ActorPod->Forward(stAMTM.UID, {MPK_MAPSWITCH, stAMMS});
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    });
 }
 
 void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK)
@@ -460,11 +409,11 @@ void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK)
             && stAMTL.UID
             && stAMTL.MapID
             && ValidC(stAMTL.X, stAMTL.Y)){
-        auto &rstRecordV = m_CellRecordV2D[stAMTL.X][stAMTL.Y].UIDList;
-        for(auto &nUID: rstRecordV){
+        auto &rstUIDList = GetUIDList(stAMTL.X, stAMTL.Y);
+        for(auto &nUID: rstUIDList){
             if(nUID == stAMTL.UID){
                 RemoveGridUID(nUID, stAMTL.X, stAMTL.Y);
-                m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
+                m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
                 return;
             }
         }
@@ -473,7 +422,7 @@ void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK)
     // otherwise try leave failed
     // can't leave means it's illegal then we won't report MPK_ERROR
     extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "Leave request failed: UID = " PRIu32 ", X = %d, Y = %d", stAMTL.UID, stAMTL.X, stAMTL.Y);
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "Leave request failed: UID = " PRIu64 ", X = %d, Y = %d", stAMTL.UID, stAMTL.X, stAMTL.Y);
 }
 
 void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK)
@@ -481,27 +430,25 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK)
     AMPullCOInfo stAMPCOI;
     std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
 
-    auto fnPullCOInfo = [this, stAMPCOI](int nX, int nY) -> bool
+    DoCenterSquare(stAMPCOI.X, stAMPCOI.Y, stAMPCOI.W, stAMPCOI.H, false, [this, stAMPCOI](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
-            auto fnDoList = [this, stAMPCOI](const UIDRecord &rstUIDRecord) -> bool
+            DoUIDList(nX, nY, [this, stAMPCOI](uint64_t nUID) -> bool
             {
-                if(rstUIDRecord.UID() != stAMPCOI.UID){
-                    if(UIDFunc::GetUIDType(rstUIDRecord.UID()) == UID_PLY || UIDFunc::GetUIDType(rstUIDRecord.UID()) == UID_MON){
+                if(nUID != stAMPCOI.UID){
+                    if(UIDFunc::GetUIDType(nUID) == UID_PLY || UIDFunc::GetUIDType(nUID) == UID_MON){
                         AMQueryCORecord stAMQCOR;
                         std::memset(&stAMQCOR, 0, sizeof(stAMQCOR));
 
                         stAMQCOR.UID = stAMPCOI.UID;
-                        m_ActorPod->Forward({MPK_QUERYCORECORD, stAMPCOI}, rstUIDRecord.GetAddress());
+                        m_ActorPod->Forward(nUID, {MPK_QUERYCORECORD, stAMPCOI});
                     }
                 }
                 return false;
-            };
-            DoUIDList(nX, nY, fnDoList);
+            });
         }
         return false;
-    };
-    DoCenterSquare(stAMPCOI.X, stAMPCOI.Y, stAMPCOI.W, stAMPCOI.H, false, fnPullCOInfo);
+    });
 }
 
 void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
@@ -512,38 +459,45 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
     int nX = stAMTMS.EndX;
     int nY = stAMTMS.EndY;
 
-    if(CanMove(false, false, nX, nY)){
-        AMMapSwitchOK stAMMSOK;
-        stAMMSOK.Data = this;
-        stAMMSOK.X    = nX;
-        stAMMSOK.Y    = nY;
-
-        auto fnOnResp = [this, stAMTMS, stAMMSOK](const MessagePack &rstRMPK)
-        {
-            switch(rstRMPK.Type()){
-                case MPK_OK:
-                    {
-                        extern MonoServer *g_MonoServer;
-                        if(auto stRecord = g_MonoServer->GetUIDRecord(stAMTMS.UID)){
-                            AddGridUID(stRecord.UID(), stAMMSOK.X, stAMMSOK.Y);
-                        }
-                        // won't check map switch here
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
-            m_CellRecordV2D[stAMMSOK.X][stAMMSOK.Y].Lock = false;
-        };
-        m_CellRecordV2D[nX][nY].Lock = true;
-        m_ActorPod->Forward({MPK_MAPSWITCHOK, stAMMSOK}, rstFromAddr, rstMPK.ID(), fnOnResp);
-    }else{
+    if(!CanMove(false, false, nX, nY)){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Requested map switch location is invalid: MapName = %s, X = %d, Y = %d", DBCOM_MAPRECORD(ID()).Name, nX, nY);
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+        return;
     }
+
+    AMMapSwitchOK stAMMSOK;
+    std::memset(&stAMMSOK, 0, sizeof(stAMMSOK));
+
+    stAMMSOK.Ptr = this;
+    stAMMSOK.X   = nX;
+    stAMMSOK.Y   = nY;
+
+    GetCell(nX, nY).Lock = true;
+    m_ActorPod->Forward(rstMPK.From(), {MPK_MAPSWITCHOK, stAMMSOK}, rstMPK.ID(), [this, stAMTMS, stAMMSOK](const MessagePack &rstRMPK)
+    {
+        if(!GetCell(stAMMSOK.X, stAMMSOK.Y).Lock){
+            extern MonoServer *g_MonoServer;
+            g_MonoServer->AddLog(LOGTYPE_WARNING, "Cell lock released before MAPSWITCHOK get responsed: MapUID = %" PRIu64, UID());
+            g_MonoServer->Restart();
+            return;
+        }
+
+        GetCell(stAMMSOK.X, stAMMSOK.Y).Lock = false;
+        switch(rstRMPK.Type()){
+            case MPK_OK:
+                {
+                    // didn't check map switch here
+                    // map switch should be triggered by move request
+                    AddGridUID(stAMTMS.UID, stAMMSOK.X, stAMMSOK.Y);
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    });
 }
 
 void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
@@ -583,48 +537,48 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
     }
 
     ServerPathFinder stPathFinder(this, stAMPF.MaxStep, stAMPF.CheckCO);
-    if(true
-            && stPathFinder.Search(nX0, nY0, nX1, nY1)
-            && stPathFinder.GetSolutionStart()){
-
-        int nCurrN = 0;
-        int nCurrX = nX0;
-        int nCurrY = nY0;
-
-        while(auto pNode1 = stPathFinder.GetSolutionNext()){
-            if(nCurrN >= (int)(nPathCount)){ break; }
-            int nEndX = pNode1->X();
-            int nEndY = pNode1->Y();
-            switch(LDistance2(nCurrX, nCurrY, nEndX, nEndY)){
-                case 1:
-                case 2:
-                    {
-                        stAMPFOK.Point[nCurrN].X = nCurrX;
-                        stAMPFOK.Point[nCurrN].Y = nCurrY;
-
-                        nCurrN++;
-
-                        nCurrX = nEndX;
-                        nCurrY = nEndY;
-                        break;
-                    }
-                case 0:
-                default:
-                    {
-                        extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid path node");
-                        break;
-                    }
-            }
-        }
-
-        // we filled all possible nodes to the message
-        m_ActorPod->Forward({MPK_PATHFINDOK, stAMPFOK}, rstFromAddr, rstMPK.ID());
+    if(!stPathFinder.Search(nX0, nY0, nX1, nY1)){
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
 
-    // failed to find a path
-    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+    // drop the first node
+    // it's should be the provided start point
+    stPathFinder.GetSolutionStart();
+
+    int nCurrN = 0;
+    int nCurrX = nX0;
+    int nCurrY = nY0;
+
+    while(auto pNode1 = stPathFinder.GetSolutionNext()){
+        if(nCurrN >= (int)(nPathCount)){
+            break;
+        }
+        int nEndX = pNode1->X();
+        int nEndY = pNode1->Y();
+        switch(LDistance2(nCurrX, nCurrY, nEndX, nEndY)){
+            case 1:
+            case 2:
+                {
+                    stAMPFOK.Point[nCurrN].X = nCurrX;
+                    stAMPFOK.Point[nCurrN].Y = nCurrY;
+
+                    nCurrN++;
+
+                    nCurrX = nEndX;
+                    nCurrY = nEndY;
+                    break;
+                }
+            case 0:
+            default:
+                {
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid path node found");
+                    break;
+                }
+        }
+    }
+    m_ActorPod->Forward(rstMPK.From(), {MPK_PATHFINDOK, stAMPFOK}, rstMPK.ID());
 }
 
 void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK)
@@ -633,23 +587,19 @@ void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK)
     std::memcpy(&stAMUHP, rstMPK.Data(), sizeof(stAMUHP));
 
     if(ValidC(stAMUHP.X, stAMUHP.Y)){
-        auto fnUpdateHP = [this, stAMUHP](int nX, int nY) -> bool
+        DoCircle(stAMUHP.X, stAMUHP.Y, 20, [this, stAMUHP](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
-                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                for(auto nUID: GetUIDList(nX, nY)){
                     if(nUID != stAMUHP.UID){
-                        extern MonoServer *g_MonoServer;
-                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(UIDFunc::GetUIDType(nUID) == UID_PLY || UIDFunc::GetUIDType(nUID) == UID_MON){
-                                m_ActorPod->Forward({MPK_UPDATEHP, stAMUHP}, stUIDRecord.GetAddress());
-                            }
+                        if(UIDFunc::GetUIDType(nUID) == UID_PLY || UIDFunc::GetUIDType(nUID) == UID_MON){
+                            m_ActorPod->Forward(nUID, {MPK_UPDATEHP, stAMUHP});
                         }
                     }
                 }
             }
             return false;
-        };
-        DoCircle(stAMUHP.X, stAMUHP.Y, 20, fnUpdateHP);
+        });
     }
 }
 
@@ -659,23 +609,19 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
     std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
 
     if(ValidC(stAMDFO.X, stAMDFO.Y)){
-        auto fnDeadFadeOut = [this, stAMDFO](int nX, int nY) -> bool
+        DoCircle(stAMDFO.X, stAMDFO.Y, 20, [this, stAMDFO](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
-                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                for(auto nUID: GetUIDList(nX, nY)){
                     if(nUID != stAMDFO.UID){
-                        extern MonoServer *g_MonoServer;
-                        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                            if(UIDFunc::GetUIDType(nUID) == UID_PLY){
-                                m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, stUIDRecord.GetAddress());
-                            }
+                        if(UIDFunc::GetUIDType(nUID) == UID_PLY){
+                            m_ActorPod->Forward(nUID, {MPK_DEADFADEOUT, stAMDFO});
                         }
                     }
                 }
             }
             return false;
-        };
-        DoCircle(stAMDFO.X, stAMDFO.Y, 20, fnDeadFadeOut);
+        });
     }
 }
 
@@ -684,34 +630,29 @@ void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
     AMQueryCOCount stAMQCOC;
     std::memcpy(&stAMQCOC, rstMPK.Data(), sizeof(stAMQCOC));
 
-    if(false
-            || (stAMQCOC.MapID == 0)
-            || (stAMQCOC.MapID == ID())){
-        int nCOCount = 0;
-        for(size_t nX = 0; nX < m_CellRecordV2D.size(); ++nX){
-            for(size_t nY = 0; nY < m_CellRecordV2D[0].size(); ++nY){
-                std::for_each(m_CellRecordV2D[nX][nY].UIDList.begin(), m_CellRecordV2D[nX][nY].UIDList.end(), [stAMQCOC, &nCOCount](uint32_t nUID){
-                    extern MonoServer *g_MonoServer;
-                    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                        if(UIDFunc::GetUIDType(nUID) == UID_PLY || UIDFunc::GetUIDType(nUID) == UID_MON){
-                            if(stAMQCOC.Check.NPC    ){ nCOCount++; return; }
-                            if(stAMQCOC.Check.Player ){ nCOCount++; return; }
-                            if(stAMQCOC.Check.Monster){ nCOCount++; return; }
-                        }
-                    }
-                });
-            }
-        }
-
-        // done the count and return it
-        AMCOCount stAMCOC;
-        stAMCOC.Count = nCOCount;
-        m_ActorPod->Forward({MPK_COCOUNT, stAMCOC}, rstAddress, rstMPK.ID());
+    if(stAMQCOC.MapID && (stAMQCOC.MapID != ID())){
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
 
-    // failed to count and report error
-    m_ActorPod->Forward(MPK_ERROR, rstAddress, rstMPK.ID());
+    int nCOCount = 0;
+    for(int nX = 0; nX < W(); ++nX){
+        for(int nY = 0; nY < H(); ++nY){
+            std::for_each(GetUIDList(nX, nY).begin(), GetUIDList(nX, nY).end(), [stAMQCOC, &nCOCount](uint64_t nUID){
+                if(UIDFunc::GetUIDType(nUID) == UID_PLY || UIDFunc::GetUIDType(nUID) == UID_MON){
+                    if(stAMQCOC.Check.NPC    ){ nCOCount++; return; }
+                    if(stAMQCOC.Check.Player ){ nCOCount++; return; }
+                    if(stAMQCOC.Check.Monster){ nCOCount++; return; }
+                }
+            });
+        }
+    }
+
+    AMCOCount stAMCOC;
+    std::memset(&stAMCOC, 0, sizeof(stAMCOC));
+
+    stAMCOC.Count = nCOCount;
+    m_ActorPod->Forward(rstMPK.From(), {MPK_COCOUNT, stAMCOC}, rstMPK.ID());
 }
 
 void ServerMap::On_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK)
@@ -726,14 +667,14 @@ void ServerMap::On_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK)
     for(int nY = stAMQRUIDL.Y; nY < stAMQRUIDL.Y + stAMQRUIDL.H; ++nY){
         for(int nX = stAMQRUIDL.X; nX < stAMQRUIDL.X + stAMQRUIDL.W; ++nX){
             if(In(stAMQRUIDL.MapID, nX, nY)){
-                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+                for(auto nUID: GetUIDList(nX, nY)){
                     stAMUIDL.UIDList[nIndex++] = nUID;
                 }
             }
         }
     }
 
-    m_ActorPod->Forward({MPK_UIDLIST, stAMUIDL}, rstAddress, rstMPK.ID());
+    m_ActorPod->Forward(rstMPK.From(), {MPK_UIDLIST, stAMUIDL}, rstMPK.ID());
 }
 
 void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK)
@@ -830,48 +771,47 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK)
     AMPickUp stAMPU;
     std::memcpy(&stAMPU, rstMPK.Data(), sizeof(stAMPU));
 
-    if(ValidC(stAMPU.X, stAMPU.Y) && stAMPU.ID){
+    if(!ValidC(stAMPU.X, stAMPU.Y) || !stAMPU.ID){
         extern MonoServer *g_MonoServer;
-        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMPU.UID)){
-            auto nIndex = FindGroundItem(CommonItem(stAMPU.ID, 0), stAMPU.X, stAMPU.Y);
-            if(nIndex >= 0){
-                RemoveGroundItem(CommonItem(stAMPU.ID, 0), stAMPU.X, stAMPU.Y);
-                auto fnRemoveGroundItem = [this, stAMPU](int nX, int nY) -> bool
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid pickup request: X = %d, Y = %d, ID = %" PRIu32, stAMPU.X, stAMPU.Y, stAMPU.ID);
+        return;
+    }
+
+    if(auto nIndex = FindGroundItem(CommonItem(stAMPU.ID, 0), stAMPU.X, stAMPU.Y); nIndex >= 0){
+        RemoveGroundItem(CommonItem(stAMPU.ID, 0), stAMPU.X, stAMPU.Y);
+        DoCircle(stAMPU.X, stAMPU.Y, 10, [this, stAMPU](int nX, int nY) -> bool
+        {
+            if(true || ValidC(nX, nY)){
+                AMRemoveGroundItem stAMRGI;
+                std::memset(&stAMRGI, 0, sizeof(stAMRGI));
+
+                stAMRGI.X      = nX;
+                stAMRGI.Y      = nY;
+                stAMRGI.DBID   = stAMPU.DBID;
+                stAMRGI.ID = stAMPU.ID;
+
+                DoUIDList(nX, nY, [this, &stAMRGI](uint64_t nUID) -> bool
                 {
-                    if(true || ValidC(nX, nY)){
-                        AMRemoveGroundItem stAMRGI;
-                        std::memset(&stAMRGI, 0, sizeof(stAMRGI));
-
-                        stAMRGI.X      = nX;
-                        stAMRGI.Y      = nY;
-                        stAMRGI.DBID   = stAMPU.DBID;
-                        stAMRGI.ID = stAMPU.ID;
-
-                        auto fnDoList = [this, &stAMRGI](const UIDRecord &rstUIDRecord) -> bool
-                        {
-                            if(UIDFunc::GetUIDType(rstUIDRecord.UID()) == UID_PLY){
-                                m_ActorPod->Forward({MPK_REMOVEGROUNDITEM, stAMRGI}, rstUIDRecord.GetAddress());
-                            }
-                            return false;
-                        };
-                        DoUIDList(nX, nY, fnDoList);
+                    if(UIDFunc::GetUIDType(nUID) == UID_PLY){
+                        m_ActorPod->Forward(nUID, {MPK_REMOVEGROUNDITEM, stAMRGI});
                     }
                     return false;
-                };
-                DoCircle(stAMPU.X, stAMPU.Y, 10, fnRemoveGroundItem);
-
-                // notify the picker
-                AMPickUpOK stAMPUOK;
-                stAMPUOK.X      = stAMPU.X;
-                stAMPUOK.Y      = stAMPU.Y;
-                stAMPUOK.UID    = stAMPU.UID;
-                stAMPUOK.DBID   = 0;
-                stAMPUOK.ID = stAMPU.ID;
-                m_ActorPod->Forward({MPK_PICKUPOK, stAMPUOK}, stUIDRecord.GetAddress());
-            }else{
-                // no such item
-                // likely the client need re-sync for the gound items
+                });
             }
-        }
+            return false;
+        });
+
+        AMPickUpOK stAMPUOK;
+        std::memset(&stAMPUOK, 0, sizeof(stAMPUOK));
+
+        stAMPUOK.X    = stAMPU.X;
+        stAMPUOK.Y    = stAMPU.Y;
+        stAMPUOK.UID  = stAMPU.UID;
+        stAMPUOK.DBID = 0;
+        stAMPUOK.ID   = stAMPU.ID;
+        m_ActorPod->Forward(stAMPU.UID, {MPK_PICKUPOK, stAMPUOK});
+    }else{
+        // no such item
+        // likely the client need re-sync for the gound items
     }
 }

@@ -30,7 +30,7 @@
 // in the net package otherwise we can't find the session even we have session's 
 // address, session is a sync-driver, even we have it's address we can't find it
 //
-void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &)
+void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK)
 {
     AMNetPackage stAMNP;
     std::memcpy(&stAMNP, rstMPK.Data(), sizeof(AMNetPackage));
@@ -51,7 +51,11 @@ void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Add
     }
 }
 
-void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void ServiceCore::On_MPK_METRONOME(const MessagePack &)
+{
+}
+
+void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
 {
     AMAddCharObject stAMACO;
     std::memcpy(&stAMACO, rstMPK.Data(), sizeof(stAMACO));
@@ -62,31 +66,31 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::
                     || stAMACO.Common.Random
                     || pMap->In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y)){
 
-                auto fnOP = [this, stAMACO, rstMPK, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &){
+                m_ActorPod->Forward(pMap->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [this, stAMACO, rstMPK](const MessagePack &rstRMPK)
+                {
                     switch(rstRMPK.Type()){
                         case MPK_OK:
                             {
-                                m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
+                                m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
                                 break;
                             }
                         default:
                             {
-                                m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                                m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                                 break;
                             }
                     }
-                };
-                m_ActorPod->Forward({MPK_ADDCHAROBJECT, stAMACO}, pMap->GetAddress(), fnOP);
+                });
                 return;
             }
         }
     }
 
     // invalid location info, return error directly
-    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+    m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
 }
 
-void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK)
 {
     AMMapList stAMML;
     std::memset(&stAMML, 0, sizeof(stAMML));
@@ -103,36 +107,38 @@ void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK, const Theron::A
             }
         }
     }
-    m_ActorPod->Forward({MPK_MAPLIST, stAMML}, rstFromAddr, rstMPK.ID());
+    m_ActorPod->Forward(rstMPK.From(), {MPK_MAPLIST, stAMML}, rstMPK.ID());
 }
 
-void ServiceCore::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Address &)
+void ServiceCore::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
 {
     AMTryMapSwitch stAMTMS;
     std::memcpy(&stAMTMS, rstMPK.Data(), sizeof(stAMTMS));
 
     if(stAMTMS.MapID){
         if(auto pMap = RetrieveMap(stAMTMS.MapID)){
-            m_ActorPod->Forward({MPK_TRYMAPSWITCH, stAMTMS}, pMap->GetAddress());
+            m_ActorPod->Forward(pMap->UID(), {MPK_TRYMAPSWITCH, stAMTMS});
         }
     }
 }
 
-void ServiceCore::On_MPK_QUERYMAPUID(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void ServiceCore::On_MPK_QUERYMAPUID(const MessagePack &rstMPK)
 {
     AMQueryMapUID stAMQMUID;
     std::memcpy(&stAMQMUID, rstMPK.Data(), sizeof(stAMQMUID));
 
     if(auto pMap = RetrieveMap(stAMQMUID.MapID)){
         AMUID stAMUID;
+        std::memset(&stAMUID, 0, sizeof(stAMUID));
+
         stAMUID.UID = pMap->UID();
-        m_ActorPod->Forward({MPK_UID, stAMUID}, rstFromAddr, rstMPK.ID());
+        m_ActorPod->Forward(rstMPK.From(), {MPK_UID, stAMUID}, rstMPK.ID());
     }else{
-        m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
     }
 }
 
-void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
 {
     AMQueryCOCount stAMQCOC;
     std::memcpy(&stAMQCOC, rstMPK.Data(), sizeof(stAMQCOC));
@@ -151,33 +157,32 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::A
     switch(nCheckCount){
         case 0:
             {
-                m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                 return;
             }
         case 1:
             {
                 if(auto pMap = (stAMQCOC.MapID ? m_MapList[stAMQCOC.MapID] : m_MapList.begin()->second)){
-                    auto fnOnResp = [this, rstMPK, rstFromAddr](const MessagePack &rstRMPK, const Theron::Address &)
+                    m_ActorPod->Forward(pMap->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}, [this, rstMPK](const MessagePack &rstRMPK)
                     {
                         switch(rstRMPK.Type()){
                             case MPK_COCOUNT:
                                 {
-                                    m_ActorPod->Forward({MPK_COCOUNT, rstRMPK.Data(), rstRMPK.DataLen()}, rstFromAddr, rstMPK.ID());
+                                    m_ActorPod->Forward(rstMPK.From(), {MPK_COCOUNT, rstRMPK.Data(), rstRMPK.DataLen()}, rstMPK.ID());
                                     return;
                                 }
                             case MPK_ERROR:
                             default:
                                 {
-                                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                                    m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                                     return;
                                 }
                         }
-                    };
-                    m_ActorPod->Forward({MPK_QUERYCOCOUNT, stAMQCOC}, pMap->GetAddress(), fnOnResp);
+                    });
                     return;
                 }else{
                     m_MapList.erase(stAMQCOC.MapID);
-                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                    m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                     return;
                 }
             }
@@ -207,7 +212,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::A
                 // to solve this issue, we can install an state hook but for simplity not now
 
                 auto pSharedState = std::make_shared<SharedState>(nCheckCount);
-                auto fnOnResp = [pSharedState, this, rstFromAddr, rstMPK](const MessagePack &rstRMPK, const Theron::Address &)
+                auto fnOnResp = [pSharedState, this, rstMPK](const MessagePack &rstRMPK)
                 {
                     switch(rstRMPK.Type()){
                         case MPK_COCOUNT:
@@ -224,7 +229,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::A
 
                                     if(pSharedState->CheckCount == 1){
                                         stAMCOC.Count += pSharedState->COCount;
-                                        m_ActorPod->Forward({MPK_COCOUNT, stAMCOC}, rstFromAddr, rstMPK.ID());
+                                        m_ActorPod->Forward(rstMPK.From(), {MPK_COCOUNT, stAMCOC}, rstMPK.ID());
                                     }else{
                                         pSharedState->CheckCount--;
                                         pSharedState->COCount += (int)(stAMCOC.Count);
@@ -241,22 +246,22 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::A
                                     // do nothing
                                 }else{
                                     // get first error
-                                    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+                                    m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                                 }
                                 return;
                             }
                     }
                 };
 
-                for(auto pRecord: m_MapList){
-                    m_ActorPod->Forward({MPK_QUERYCOCOUNT, stAMQCOC}, pRecord.second->GetAddress(), fnOnResp);
+                for(auto p: m_MapList){
+                    m_ActorPod->Forward(p.second->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}, fnOnResp);
                 }
                 return;
             }
     }
 }
 
-void ServiceCore::On_MPK_BADCHANNEL(const MessagePack &rstMPK, const Theron::Address &)
+void ServiceCore::On_MPK_BADCHANNEL(const MessagePack &rstMPK)
 {
     // channel may go down before bind to one actor
     // then stop it here

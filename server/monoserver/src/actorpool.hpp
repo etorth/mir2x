@@ -32,9 +32,16 @@
 class ActorPod;
 class Receiver;
 class Dispatcher;
+class SyncDriver;
 
 class ActorPool final
 {
+    private:
+        friend class ActorPod;
+        friend class Receiver;
+        friend class Dispatcher;
+        friend class SyncDriver;
+
     private:
         static void Backoff(uint32_t &nBackoff)
         {
@@ -207,8 +214,12 @@ class ActorPool final
         ~ActorPool();
 
     private:
-        bool IsActorThread() const
+        bool IsActorThread(uint64_t nUID = 0) const
         {
+            if(nUID){
+                return std::this_thread::get_id() == m_BucketList[nUID % m_BucketList.size()].WorkerID;
+            }
+
             for(auto p = m_BucketList.begin(); p != m_BucketList.end(); ++p){
                 if(std::this_thread::get_id() == p->WorkerID){
                     return true;
@@ -216,11 +227,6 @@ class ActorPool final
             }
             return false;
         }
-
-    private:
-        friend class ActorPod;
-        friend class Receiver;
-        friend class Dispatcher;
 
     private:
         bool Register(ActorPod *);

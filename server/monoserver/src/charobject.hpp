@@ -206,7 +206,7 @@ class CharObject: public ServerObject
     public:
         CharObject(ServiceCore *,       // service core
                 ServerMap *,            // server map
-                uint32_t,               // uid
+                uint64_t,               // uid
                 int,                    // map x
                 int,                    // map y
                 int);                   // direction

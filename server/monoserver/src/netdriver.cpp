@@ -93,9 +93,9 @@ bool NetDriver::InitASIO(uint32_t nPort)
     return true;
 }
 
-int NetDriver::Launch(uint32_t nPort, uint64_t nUID)
+bool NetDriver::Launch(uint32_t nPort, uint64_t nUID)
 {
-    if(CheckPort(nPort)){
+    if(!CheckPort(nPort)){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Using invalid port: %" PRIu32, nPort);
         return false;

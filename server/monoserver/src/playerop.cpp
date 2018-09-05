@@ -181,10 +181,10 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                     AMMapSwitchOK stAMMSOK;
                     std::memcpy(&stAMMSOK, rstRMPK.Data(), sizeof(stAMMSOK));
                     if(true
-                            && ((ServerMap *)(stAMMSOK.Data))
-                            && ((ServerMap *)(stAMMSOK.Data))->ID()
-                            && ((ServerMap *)(stAMMSOK.Data))->UID()
-                            && ((ServerMap *)(stAMMSOK.Data))->ValidC(stAMMSOK.X, stAMMSOK.Y)){
+                            && ((ServerMap *)(stAMMSOK.Ptr))
+                            && ((ServerMap *)(stAMMSOK.Ptr))->ID()
+                            && ((ServerMap *)(stAMMSOK.Ptr))->UID()
+                            && ((ServerMap *)(stAMMSOK.Ptr))->ValidC(stAMMSOK.X, stAMMSOK.Y)){
 
                         AMTryLeave stAMTL;
                         std::memset(&stAMTL, 0, sizeof(stAMTL));
@@ -202,7 +202,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                                 case MPK_OK:
                                     {
                                         // 1. response to new map ``I am here"
-                                        m_Map   = (ServerMap *)(stAMMSOK.Data);
+                                        m_Map   = (ServerMap *)(stAMMSOK.Ptr);
                                         m_X = stAMMSOK.X;
                                         m_Y = stAMMSOK.Y;
                                         m_ActorPod->Forward(m_Map->UID(), MPK_OK, rstRMPK.ID());
@@ -222,10 +222,10 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                                         // can't leave???, illegal response
                                         // server map won't respond any other message not MPK_OK
                                         // dangerous issue since we then can never inform the new map ``we can't come to you"
-                                        m_ActorPod->Forward(((ServerMap *)(stAMMSOK.Data))->UID(), MPK_ERROR, rstRMPK.ID());
+                                        m_ActorPod->Forward(((ServerMap *)(stAMMSOK.Ptr))->UID(), MPK_ERROR, rstRMPK.ID());
 
                                         extern MonoServer *g_MonoServer;
-                                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Leave request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", UID(), ((ServerMap *)(stAMMSOK.Data))->ID());
+                                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Leave request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", UID(), ((ServerMap *)(stAMMSOK.Ptr))->ID());
                                         break;
                                     }
                             }
@@ -235,7 +235,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
 
                     // AMMapSwitchOK invalid
                     extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid AMMapSwitchOK: Map = %p", stAMMSOK.Data);
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid AMMapSwitchOK: Map = %p", stAMMSOK.Ptr);
                     return;
                 }
             default:

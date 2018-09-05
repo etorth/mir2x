@@ -30,7 +30,7 @@
 
 CharObject::CharObject(ServiceCore *pServiceCore,
         ServerMap                  *pServerMap,
-        uint32_t                    nUID,
+        uint64_t                    nUID,
         int                         nMapX,
         int                         nMapY,
         int                         nDirection)

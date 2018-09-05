@@ -34,7 +34,7 @@ Player::Player(uint32_t nDBID,
         int             nMapX,
         int             nMapY,
         int             nDirection)
-    : CharObject(pServiceCore, pServerMap, UIDFunc::BuildUID_PLY(true, JOB_WAR, nDBID), nMapX, nMapY, nDirection)
+    : CharObject(pServiceCore, pServerMap, UIDFunc::GetPlayerUID(nDBID), nMapX, nMapY, nDirection)
     , m_DBID(nDBID)
     , m_JobID(0)        // will provide after bind
     , m_ChannID(0)    // provide by bind

@@ -32,6 +32,7 @@
 #include "monster.hpp"
 #include "database.hpp"
 #include "threadpn.hpp"
+#include "actorpool.hpp"
 #include "mapbindbn.hpp"
 #include "syncdriver.hpp"
 #include "mainwindow.hpp"
@@ -231,13 +232,16 @@ void MonoServer::LoadMapBinDBN()
 
     extern MapBinDBN *g_MapBinDBN;
     if(!g_MapBinDBN->Load(szMapPath.c_str())){
-        AddLog(LOGTYPE_FATAL, "Failed to load mapbindbn");
+        AddLog(LOGTYPE_WARNING, "Failed to load mapbindbn");
+        Restart();
     }
 }
 
 void MonoServer::StartServiceCore()
 {
-    delete m_ServiceCore;
+    extern ActorPool *g_ActorPool;
+    g_ActorPool->Launch();
+
     m_ServiceCore = new ServiceCore();
     m_ServiceCore->Activate();
 }
@@ -249,7 +253,7 @@ void MonoServer::StartNetwork()
 
     uint32_t nPort = g_ServerConfigureWindow->Port();
     if(!g_NetDriver->Launch(nPort, m_ServiceCore->UID())){
-        AddLog(LOGTYPE_FATAL, "Failed to launch the network");
+        AddLog(LOGTYPE_WARNING, "Failed to launch the network");
         Restart();
     }
 }

@@ -285,7 +285,7 @@ struct AMUID
 
 struct AMMapSwitchOK
 {
-    void *Data;
+    void *Ptr;
 
     int X;
     int Y;

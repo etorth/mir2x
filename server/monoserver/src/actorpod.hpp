@@ -84,7 +84,6 @@ class ActorPod final
 
     private:
         const uint64_t m_UID;
-        const std::string m_Name;
 
     private:
         // trigger is only for state update, so it won't accept any parameters w.r.t
@@ -129,7 +128,6 @@ class ActorPod final
 
     public:
         explicit ActorPod(uint64_t,
-                const std::string &,
                 const std::function<void()> &,
                 const std::function<void(const MessagePack &)> &, uint32_t = 3600 * 1000);                            
 
@@ -159,16 +157,17 @@ class ActorPod final
         bool Forward(uint64_t, const MessageBuf &, uint32_t, std::function<void(const MessagePack &)>);
 
     public:
-        const char *Name() const
-        {
-            return m_Name.c_str();
-        }
-
-        uint32_t UID() const
+        uint64_t UID() const
         {
             return m_UID;
         }
 
     public:
         void Detach() const;
+
+    public:
+        uint32_t GetMessageCount() const
+        {
+            return 0;
+        }
 };

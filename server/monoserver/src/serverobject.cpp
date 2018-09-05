@@ -18,7 +18,6 @@
 
 #include <cinttypes>
 #include "actorpod.hpp"
-#include "metronome.hpp"
 #include "serverenv.hpp"
 #include "monoserver.hpp"
 #include "serverobject.hpp"
@@ -33,17 +32,10 @@ ServerObject::ServerObject(uint64_t nUID)
     , m_DelayCmdCount(0)
     , m_DelayCmdQ()
 {
-
-    // link to the mono object pool
-    // never allocate ServerObject on stack
-    // MonoServer::EraseUID() will use *this* to call destructor
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->LinkUID(m_UID, this);
-
     m_StateV.fill(0);
     m_StateTimeV.fill(0);
 
-    auto fnDelayCmdQueue = [this]() -> bool
+    m_StateHook.Install("DelayCmdQueue", [this]() -> bool
     {
         extern MonoServer *g_MonoServer;
         if(!m_DelayCmdQ.empty()){
@@ -51,7 +43,7 @@ ServerObject::ServerObject(uint64_t nUID)
                 try{
                     m_DelayCmdQ.top()();
                 }catch(...){
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Caught exception for delay cmd");
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Caught exception for delay command");
                 }
                 m_DelayCmdQ.pop();
             }
@@ -59,24 +51,20 @@ ServerObject::ServerObject(uint64_t nUID)
 
         // it's never done
         return false;
-    };
-
-    m_StateHook.Install("DelayCmdQueue", fnDelayCmdQueue);
+    });
 
     extern ServerEnv *g_ServerEnv;
     if(g_ServerEnv->TraceActorMessageCount){
-        auto fnPrintAMCount = [this]() -> bool
+        m_StateHook.Install("PrintAMCount", [this]() -> bool
         {
             if(ActorPodValid()){
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_DEBUG, "(ActorPod: 0X%0*" PRIXPTR ", Name: %s, UID: %u, Length: %" PRIu32 ")",
-                        (int)(sizeof(this) * 2), (uintptr_t)(this), ClassName(), UID(), m_ActorPod->GetNumQueuedMessages());
+                g_MonoServer->AddLog(LOGTYPE_DEBUG, "(UIDName: %s, Length: %" PRIu32 ")", UIDName(), m_ActorPod->GetMessageCount());
             }
 
             // it's never done
             return false;
-        };
-        m_StateHook.Install("PrintAMCount", fnPrintAMCount);
+        });
     }
 }
 
@@ -99,7 +87,7 @@ uint64_t ServerObject::Activate()
 {
     if(!m_ActorPod){
         try{
-            m_ActorPod = new ActorPod(m_UID, [this](){ m_StateHook.Execute(); }, [this](const MessagePack &rstMPK){ OperateAM(rstMPK, stFromAddr); });
+            m_ActorPod = new ActorPod(m_UID, [this](){ m_StateHook.Execute(); }, [this](const MessagePack &rstMPK){ OperateAM(rstMPK); });
         }catch(...){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Activate server object failed: %s", UIDFunc::GetUIDString(m_UID).c_str());
@@ -143,16 +131,4 @@ uint32_t ServerObject::StateTime(uint8_t nState)
 {
     extern MonoServer *g_MonoServer;
     return g_MonoServer->GetTimeTick() - m_StateTimeV[nState];
-}
-
-bool ServerObject::AddTick()
-{
-    extern Metronome *g_Metronome;
-    return g_Metronome->Add(UID());
-}
-
-void ServerObject::RemoveTick()
-{
-    extern Metronome *g_Metronome;
-    g_Metronome->Remove(UID());
 }

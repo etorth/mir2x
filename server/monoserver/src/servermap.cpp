@@ -245,7 +245,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(ServerMap *pMap, int nMaxStep, boo
 }
 
 ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
-    : ServerObject(UIDFunc::BuildUID_MAP(nMapID))
+    : ServerObject(UIDFunc::GetMapUID(nMapID))
     , m_ID(nMapID)
     , m_Mir2xMapData(*([nMapID]() -> Mir2xMapData *
       {
@@ -284,11 +284,9 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
 
             for(int nW = 0; nW < stLinkEntry.W; ++nW){
                 for(int nH = 0; nH < stLinkEntry.H; ++nH){
-                    m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].UID     = 0;
-                    m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].MapID   = DBCOM_MAPID(stLinkEntry.EndName);
-                    m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].SwitchX = stLinkEntry.EndX;
-                    m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].SwitchY = stLinkEntry.EndY;
-                    m_CellRecordV2D[stLinkEntry.X + nW][stLinkEntry.Y + nH].Query   = QUERY_NONE;
+                    GetCell(stLinkEntry.X + nW,stLinkEntry.Y + nH).MapID   = DBCOM_MAPID(stLinkEntry.EndName);
+                    GetCell(stLinkEntry.X + nW,stLinkEntry.Y + nH).SwitchX = stLinkEntry.EndX;
+                    GetCell(stLinkEntry.X + nW,stLinkEntry.Y + nH).SwitchY = stLinkEntry.EndY;
                 }
             }
         }else{
@@ -641,7 +639,7 @@ uint64_t ServerMap::Activate()
     return 0;
 }
 
-void ServerMap::AddGridUID(uint32_t nUID, int nX, int nY)
+void ServerMap::AddGridUID(uint64_t nUID, int nX, int nY)
 {
     if(true
             && ValidC(nX, nY)
@@ -654,7 +652,7 @@ void ServerMap::AddGridUID(uint32_t nUID, int nX, int nY)
     }
 }
 
-void ServerMap::RemoveGridUID(uint32_t nUID, int nX, int nY)
+void ServerMap::RemoveGridUID(uint64_t nUID, int nX, int nY)
 {
     if(true
             && ValidC(nX, nY)

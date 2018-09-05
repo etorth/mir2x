@@ -62,29 +62,20 @@ class ServerMap final: public ServerObject
         struct CellRecord
         {
             bool Lock;
-            std::vector<uint32_t> UIDList;
+            std::vector<uint64_t> UIDList;
 
-            uint32_t UID;
             uint32_t MapID;
             int      SwitchX;
             int      SwitchY;
 
-            // query service core for the map UID
-            // for a map switch point record it's query state
-            // can't use pServiceCore->GetMapUID() since map in service core could load / unload
-            int Query;
-
-            // on every grid there could be one item on ground
             CacheQueue<CommonItem, SYS_MAXDROPITEM> GroundItemQueue;
 
             CellRecord()
                 : Lock(false)
                 , UIDList()
-                , UID(0)
                 , MapID(0)
                 , SwitchX(-1)
                 , SwitchY(-1)
-                , Query(QUERY_NONE)
                 , GroundItemQueue()
             {}
         };
@@ -160,8 +151,8 @@ class ServerMap final: public ServerObject
         bool Load(const char *);
 
     private:
-        void AddGridUID(uint32_t, int, int);
-        void RemoveGridUID(uint32_t, int, int);
+        void AddGridUID(uint64_t, int, int);
+        void RemoveGridUID(uint64_t, int, int);
 
     private:
         bool Empty();
@@ -179,6 +170,17 @@ class ServerMap final: public ServerObject
 
     private:
         int GetMonsterCount(uint32_t);
+
+    private:
+        auto &GetCell(int nX, int nY)
+        {
+            return m_CellRecordV2D[nX][nY];
+        }
+
+        const auto &GetCell(int nX, int nY) const
+        {
+            return m_CellRecordV2D[nX][nY];
+        }
 
     private:
         auto &GetUIDList(int nX, int nY)

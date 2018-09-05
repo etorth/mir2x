@@ -73,7 +73,7 @@ bool ActorPool::Register(ActorPod *pActor)
     const ActorPod *pExistActor = nullptr;
     {
         std::unique_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
-        if(auto p = m_BucketList[nIndex].MailboxList.find(nUID); p != m_BucketList[nIndex].MailboxList.end()){
+        if(auto p = m_BucketList[nIndex].MailboxList.find(nUID); p == m_BucketList[nIndex].MailboxList.end()){
             m_BucketList[nIndex].MailboxList[nUID] = pMailbox;
             return true;
         }else{
@@ -82,7 +82,7 @@ bool ActorPool::Register(ActorPod *pActor)
     }
 
     extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "UID exists: UID = %" PRIu32 ", ActorPod = %p", nUID, pExistActor);
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "UID exists: UID = %" PRIu64 ", ActorPod = %p", nUID, pExistActor);
     return false;
 }
 
@@ -106,7 +106,7 @@ bool ActorPool::Register(Receiver *pReceiver)
     }
 
     extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "UID exists: UID = %" PRIu32 ", Receiver = %p", pExistReceiver->UID(), pExistReceiver);
+    g_MonoServer->AddLog(LOGTYPE_WARNING, "UID exists: UID = %" PRIu64 ", Receiver = %p", pExistReceiver->UID(), pExistReceiver);
     return false;
 }
 
@@ -253,6 +253,10 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
 
 void ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
 {
+    if(bMetronome){
+        pMailbox->Actor->InnHandler({MPK_METRONOME, 0, 0});
+    }
+
     if(pMailbox->CurrQ.empty()){
         std::lock_guard<SpinLock> stLockGuard(pMailbox->NextQLock);
         if(pMailbox->NextQ.empty()){
@@ -264,10 +268,6 @@ void ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
     for(auto p = pMailbox->CurrQ.begin(); p != pMailbox->CurrQ.end(); ++p){
         pMailbox->Actor->InnHandler(*p);
     }
-
-    if(bMetronome){
-        pMailbox->Actor->InnHandler({MPK_METRONOME, 0, 0});
-    }
 }
 
 void ActorPool::RunWorkerSteal(size_t nMaxIndex)
@@ -275,7 +275,7 @@ void ActorPool::RunWorkerSteal(size_t nMaxIndex)
     std::shared_lock<std::shared_mutex> stLock(m_BucketList[nMaxIndex].BucketLock);
     for(auto p = m_BucketList[nMaxIndex].MailboxList.rbegin(); p != m_BucketList[nMaxIndex].MailboxList.rend(); ++p){
         if(MailboxLock stMailboxLock(*(p->second.get())); stMailboxLock.Locked()){
-            RunOneMailbox(p->second.get(), true);
+            RunOneMailbox(p->second.get(), false);
         }
     }
 }
@@ -357,7 +357,7 @@ void ActorPool::RunWorkerOneLoop(size_t nIndex)
 void ActorPool::Launch()
 {
     for(int nIndex = 0; nIndex < (int)(m_BucketList.size()); ++nIndex){
-        m_FutureList[nIndex] = std::async(std::launch::async, [nIndex, this]()
+        m_FutureList.emplace_back(std::async(std::launch::async, [nIndex, this]()
         {
             m_BucketList[nIndex].WorkerID = std::this_thread::get_id();
 
@@ -382,7 +382,7 @@ void ActorPool::Launch()
                 m_BucketList[nIndex].MailboxList.clear();
             }
             return true;
-        });
+        }).share());
     }
 }
 
