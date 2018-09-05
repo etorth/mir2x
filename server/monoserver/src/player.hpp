@@ -129,7 +129,7 @@ class Player final: public CharObject
         void ReportGold();
         void ReportStand();
         void ReportHealth();
-        void ReportCORecord(uint32_t);
+        void ReportCORecord(uint64_t);
         void ReportOffline(uint32_t, uint32_t);
         void ReportAction(uint32_t, const ActionNode &);
 
@@ -151,7 +151,7 @@ class Player final: public CharObject
         bool MotionValid(const ActionNode &);
 
     protected:
-        void CheckFriend(uint32_t, const std::function<void(int)> &);
+        void CheckFriend(uint64_t, const std::function<void(int)> &);
 
     protected:
         void OnCMActionMove  (CMAction);

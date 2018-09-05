@@ -248,7 +248,7 @@ class CharObject: public ServerObject
         uint64_t Activate();
 
     protected:
-        virtual void ReportCORecord(uint32_t) = 0;
+        virtual void ReportCORecord(uint64_t) = 0;
 
     protected:
         void DispatchHealth();
@@ -299,7 +299,7 @@ class CharObject: public ServerObject
         void AddMonster(uint32_t, int, int, bool);
 
     protected:
-        virtual void CheckFriend(uint32_t, const std::function<void(int)> &) = 0;
+        virtual void CheckFriend(uint64_t, const std::function<void(int)> &) = 0;
 
     protected:
         virtual bool GoDie()     = 0;

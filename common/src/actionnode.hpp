@@ -54,10 +54,10 @@ struct ActionSpell
     int AimX = -1;
     int AimY = -1;
 
-    uint32_t AimUID  = 0;
+    uint64_t AimUID  = 0;
     uint32_t MagicID = 0;
 
-    ActionSpell(int nX, int nY, uint32_t nAimUID, uint32_t nMagicID)
+    ActionSpell(int nX, int nY, uint64_t nAimUID, uint32_t nMagicID)
         : X(nX)
         , Y(nY)
         , AimUID(nAimUID)
@@ -142,9 +142,9 @@ struct ActionAttack
     int DC    = -1;
     int Speed = -1;
 
-    uint32_t AimUID = 0;
+    uint64_t AimUID = 0;
 
-    ActionAttack(int nX, int nY, int nDC, int nSpeed, uint32_t nAimUID)
+    ActionAttack(int nX, int nY, int nDC, int nSpeed, uint64_t nAimUID)
         : X(nX)
         , Y(nY)
         , DC(nDC)
@@ -191,14 +191,14 @@ struct ActionNode
     const int AimX = -1;
     const int AimY = -1;
 
-    const uint32_t AimUID      = 0;
+    const uint64_t AimUID      = 0;
     const uint32_t ActionParam = 0;
 
     ActionNode()
         : Action(ACTION_NONE)
     {}
 
-    ActionNode(int nAction, int nSpeed, int nDirection, int nX, int nY, int nAimX, int nAimY, uint32_t nAimUID, uint32_t nActionParam)
+    ActionNode(int nAction, int nSpeed, int nDirection, int nX, int nY, int nAimX, int nAimY, uint64_t nAimUID, uint32_t nActionParam)
         : Action(nAction)
         , Speed(nSpeed)
         , Direction(nDirection)

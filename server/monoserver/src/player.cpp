@@ -198,46 +198,45 @@ bool Player::Update()
     return true;
 }
 
-void Player::ReportCORecord(uint32_t nUID)
+void Player::ReportCORecord(uint64_t nUID)
 {
-    if(nUID){
-        extern MonoServer *g_MonoServer;
-        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-            AMCORecord stAMCOR;
-            std::memset(&stAMCOR, 0, sizeof(stAMCOR));
-
-            // TODO: don't use OBJECT_PLAYER, we need translation
-            //       rule of communication, the sender is responsible to translate
-
-            // 1. set type
-            stAMCOR.COType = CREATURE_PLAYER;
-
-            // 2. set current action
-            stAMCOR.Action.UID   = UID();
-            stAMCOR.Action.MapID = MapID();
-
-            stAMCOR.Action.Action    = ACTION_STAND;
-            stAMCOR.Action.Speed     = SYS_DEFSPEED;
-            stAMCOR.Action.Direction = Direction();
-
-            stAMCOR.Action.X    = X();
-            stAMCOR.Action.Y    = Y();
-            stAMCOR.Action.AimX = X();
-            stAMCOR.Action.AimY = Y();
-
-            stAMCOR.Action.AimUID      = 0;
-            stAMCOR.Action.ActionParam = 0;
-
-            // 3. set specified co information
-            stAMCOR.Player.DBID  = DBID();
-            stAMCOR.Player.JobID = JobID();
-            stAMCOR.Player.Level = Level();
-
-            // don't reply to server map
-            // even get co information pull request from map
-            m_ActorPod->Forward({MPK_CORECORD, stAMCOR}, stUIDRecord.GetAddress());
-        }
+    if(!nUID){
+        return;
     }
+
+    AMCORecord stAMCOR;
+    std::memset(&stAMCOR, 0, sizeof(stAMCOR));
+
+    // TODO: don't use OBJECT_PLAYER, we need translation
+    //       rule of communication, the sender is responsible to translate
+
+    // 1. set type
+    stAMCOR.COType = CREATURE_PLAYER;
+
+    // 2. set current action
+    stAMCOR.Action.UID   = UID();
+    stAMCOR.Action.MapID = MapID();
+
+    stAMCOR.Action.Action    = ACTION_STAND;
+    stAMCOR.Action.Speed     = SYS_DEFSPEED;
+    stAMCOR.Action.Direction = Direction();
+
+    stAMCOR.Action.X    = X();
+    stAMCOR.Action.Y    = Y();
+    stAMCOR.Action.AimX = X();
+    stAMCOR.Action.AimY = Y();
+
+    stAMCOR.Action.AimUID      = 0;
+    stAMCOR.Action.ActionParam = 0;
+
+    // 3. set specified co information
+    stAMCOR.Player.DBID  = DBID();
+    stAMCOR.Player.JobID = JobID();
+    stAMCOR.Player.Level = Level();
+
+    // don't reply to server map
+    // even get co information pull request from map
+    m_ActorPod->Forward(nUID, {MPK_CORECORD, stAMCOR});
 }
 
 void Player::ReportStand()
@@ -334,6 +333,8 @@ bool Player::GoGhost()
                             SetState(STATE_GHOST, 1);
 
                             AMDeadFadeOut stAMDFO;
+                            std::memset(&stAMDFO, 0, sizeof(stAMDFO));
+
                             stAMDFO.UID   = UID();
                             stAMDFO.MapID = MapID();
                             stAMDFO.X     = X();
@@ -343,7 +344,7 @@ bool Player::GoGhost()
                                     && ActorPodValid()
                                     && m_Map
                                     && m_Map->ActorPodValid()){
-                                m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, m_Map->GetAddress());
+                                m_ActorPod->Forward(m_Map->UID(), {MPK_DEADFADEOUT, stAMDFO});
                             }
 
                             // 2. deactivate the actor here
@@ -386,15 +387,7 @@ bool Player::GoSuicide()
         // 1. register a operationi to the thread pool to delete
         // 2. don't pass *this* to any other threads, pass UID instead
         extern ThreadPN *g_ThreadPN;
-        return g_ThreadPN->Add([nUID = UID()](){
-            if(nUID){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->EraseUID(nUID);
-            }else{
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Suicide with empty UID");
-            }
-        });
+        return g_ThreadPN->Add([this](){ delete this; });
 
         // after this line
         // *this* is invalid and should never be refered
@@ -448,7 +441,7 @@ bool Player::ActionValid(const ActionNode &)
     return true;
 }
 
-void Player::CheckFriend(uint32_t nUID, const std::function<void(int)> &fnOnFriend)
+void Player::CheckFriend(uint64_t nUID, const std::function<void(int)> &fnOnFriend)
 {
     if(nUID){
         if(0){
@@ -465,13 +458,14 @@ void Player::DispatchOffline()
             && m_Map->ActorPodValid()){
 
         AMOffline stAMO;
+        std::memset(&stAMO, 0, sizeof(stAMO));
 
         stAMO.UID   = UID();
         stAMO.MapID = MapID();
         stAMO.X     = X();
         stAMO.Y     = Y();
 
-        m_ActorPod->Forward({MPK_OFFLINE, stAMO}, m_Map->GetAddress());
+        m_ActorPod->Forward(m_Map->UID(), {MPK_OFFLINE, stAMO});
         return;
     }
 
@@ -502,19 +496,10 @@ bool Player::Offline()
 
     Deactivate();
 
-    // 1. register a operationi to the thread pool to delete
+    // 1. register a operation to the thread pool to delete
     // 2. don't pass *this* to any other threads, pass UID instead
     extern ThreadPN *g_ThreadPN;
-    return g_ThreadPN->Add([nUID = UID()](){
-        if(nUID){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->EraseUID(nUID);
-        }
-        else{
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Offline with empty UID");
-        }
-    });
+    return g_ThreadPN->Add([this](){ delete this; });
 }
 
 bool Player::PostNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
@@ -769,7 +754,7 @@ void Player::OnCMActionPickUp(CMAction stCMA)
                 stAMPU.ID   = stCMA.ActionParam;
                 stAMPU.DBID = 0;
 
-                m_ActorPod->Forward({MPK_PICKUP, stAMPU}, m_Map->GetAddress());
+                m_ActorPod->Forward(m_Map->UID(), {MPK_PICKUP, stAMPU});
                 return;
             }
         case 1:
@@ -859,9 +844,6 @@ uint32_t Player::GetLevelExp()
 
 void Player::PullRectCO(int nW, int nH)
 {
-    // pull all co's on current map
-    // in rectangle center on (X(), Y()) and (nW, nH)
-
     if(true
             && nW > 0
             && nH > 0
@@ -869,13 +851,15 @@ void Player::PullRectCO(int nW, int nH)
             && m_Map->ActorPodValid()){
 
         AMPullCOInfo stAMPCOI;
+        std::memset(&stAMPCOI, 0, sizeof(stAMPCOI));
+
         stAMPCOI.X     = X();
         stAMPCOI.Y     = Y();
         stAMPCOI.W     = nW;
         stAMPCOI.H     = nH;
         stAMPCOI.UID   = UID();
         stAMPCOI.MapID = m_Map->ID();
-        m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
+        m_ActorPod->Forward(m_Map->UID(), {MPK_PULLCOINFO, stAMPCOI});
     }
 }
 

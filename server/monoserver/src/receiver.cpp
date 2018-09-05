@@ -17,6 +17,7 @@
  */
 
 #include "receiver.hpp"
+#include "actorpool.hpp"
 #include "monoserver.hpp"
 
 Receiver::Receiver()

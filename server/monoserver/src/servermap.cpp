@@ -297,92 +297,92 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     }
 }
 
-void ServerMap::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void ServerMap::OperateAM(const MessagePack &rstMPK)
 {
     switch(rstMPK.Type()){
         case MPK_PICKUP:
             {
-                On_MPK_PICKUP(rstMPK, rstFromAddr);
+                On_MPK_PICKUP(rstMPK);
                 break;
             }
         case MPK_NEWDROPITEM:
             {
-                On_MPK_NEWDROPITEM(rstMPK, rstFromAddr);
+                On_MPK_NEWDROPITEM(rstMPK);
                 break;
             }
         case MPK_TRYLEAVE:
             {
-                On_MPK_TRYLEAVE(rstMPK, rstFromAddr);
+                On_MPK_TRYLEAVE(rstMPK);
                 break;
             }
         case MPK_UPDATEHP:
             {
-                On_MPK_UPDATEHP(rstMPK, rstFromAddr);
+                On_MPK_UPDATEHP(rstMPK);
                 break;
             }
         case MPK_DEADFADEOUT:
             {
-                On_MPK_DEADFADEOUT(rstMPK, rstFromAddr);
+                On_MPK_DEADFADEOUT(rstMPK);
                 break;
             }
         case MPK_ACTION:
             {
-                On_MPK_ACTION(rstMPK, rstFromAddr);
+                On_MPK_ACTION(rstMPK);
                 break;
             }
         case MPK_BADACTORPOD:
             {
-                On_MPK_BADACTORPOD(rstMPK, rstFromAddr);
+                On_MPK_BADACTORPOD(rstMPK);
                 break;
             }
         case MPK_TRYMOVE:
             {
-                On_MPK_TRYMOVE(rstMPK, rstFromAddr);
+                On_MPK_TRYMOVE(rstMPK);
                 break;
             }
         case MPK_PATHFIND:
             {
-                On_MPK_PATHFIND(rstMPK, rstFromAddr);
+                On_MPK_PATHFIND(rstMPK);
                 break;
             }
         case MPK_TRYMAPSWITCH:
             {
-                On_MPK_TRYMAPSWITCH(rstMPK, rstFromAddr);
+                On_MPK_TRYMAPSWITCH(rstMPK);
                 break;
             }
         case MPK_METRONOME:
             {
-                On_MPK_METRONOME(rstMPK, rstFromAddr);
+                On_MPK_METRONOME(rstMPK);
                 break;
             }
         case MPK_TRYSPACEMOVE:
             {
-                On_MPK_TRYSPACEMOVE(rstMPK, rstFromAddr);
+                On_MPK_TRYSPACEMOVE(rstMPK);
                 break;
             }
         case MPK_ADDCHAROBJECT:
             {
-                On_MPK_ADDCHAROBJECT(rstMPK, rstFromAddr);
+                On_MPK_ADDCHAROBJECT(rstMPK);
                 break;
             }
         case MPK_PULLCOINFO:
             {
-                On_MPK_PULLCOINFO(rstMPK, rstFromAddr);
+                On_MPK_PULLCOINFO(rstMPK);
                 break;
             }
         case MPK_QUERYCOCOUNT:
             {
-                On_MPK_QUERYCOCOUNT(rstMPK, rstFromAddr);
+                On_MPK_QUERYCOCOUNT(rstMPK);
                 break;
             }
         case MPK_QUERYRECTUIDLIST:
             {
-                On_MPK_QUERYRECTUIDLIST(rstMPK, rstFromAddr);
+                On_MPK_QUERYRECTUIDLIST(rstMPK);
                 break;
             }
         case MPK_OFFLINE:
             {
-                On_MPK_OFFLINE(rstMPK, rstFromAddr);
+                On_MPK_OFFLINE(rstMPK);
                 break;
             }
         default:
@@ -407,11 +407,8 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
     if(GroundValid(nX, nY)){
         if(bCheckCO){
             for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
-                extern MonoServer *g_MonoServer;
-                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                    if(auto nType = UIDFunc::GetUIDType(nUID); nType == UID_PLY || nType == UID_MON){
-                        return false;
-                    }
+                if(auto nType = UIDFunc::GetUIDType(nUID); nType == UID_PLY || nType == UID_MON){
+                    return false;
                 }
             }
         }
@@ -633,16 +630,15 @@ bool ServerMap::Empty()
     return true;
 }
 
-Theron::Address ServerMap::Activate()
+uint64_t ServerMap::Activate()
 {
-    auto stAddress = ServerObject::Activate();
-
-    delete m_LuaModule;
-    m_LuaModule = new ServerMap::ServerMapLuaModule();
-    RegisterLuaExport(m_LuaModule);
-
-    AddTick();
-    return stAddress;
+    if(auto nUID = ServerObject::Activate()){
+        delete m_LuaModule;
+        m_LuaModule = new ServerMap::ServerMapLuaModule();
+        RegisterLuaExport(m_LuaModule);
+        return nUID;
+    }
+    return 0;
 }
 
 void ServerMap::AddGridUID(uint32_t nUID, int nX, int nY)
@@ -674,25 +670,19 @@ void ServerMap::RemoveGridUID(uint32_t nUID, int nX, int nY)
     }
 }
 
-bool ServerMap::DoUIDList(int nX, int nY, const std::function<bool(const UIDRecord &)> &fnOP)
+bool ServerMap::DoUIDList(int nX, int nY, const std::function<bool(uint64_t)> &fnOP)
 {
-    if(ValidC(nX, nY)){
-        auto &rstUIDList = GetUIDList(nX, nY);
-        for(size_t nIndex = 0; nIndex < rstUIDList.size();){
-            extern MonoServer *g_MonoServer;
-            if(auto stUIDRecord = g_MonoServer->GetUIDRecord(rstUIDList[nIndex])){
-                if(!fnOP){
-                    return false;
-                }
+    if(!ValidC(nX, nY)){
+        return false;
+    }
 
-                if(fnOP(stUIDRecord)){
-                    return true;
-                }
-                nIndex++;
-            }else{
-                rstUIDList[nIndex] = rstUIDList.back();
-                rstUIDList.pop_back();
-            }
+    if(!fnOP){
+        return false;
+    }
+
+    for(auto nUID: GetUIDList(nX, nY)){
+        if(fnOP(nUID)){
+            return true;
         }
     }
     return false;
@@ -915,12 +905,9 @@ bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
-                for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
-                    extern MonoServer *g_MonoServer;
-                    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                        if(UIDFunc::GetUIDType(nUID) == UID_PLY){
-                            m_ActorPod->Forward({MPK_SHOWDROPITEM, stAMSDI}, stUIDRecord.GetAddress());
-                        }
+                for(auto nUID: GetUIDList(nX, nY)){
+                    if(UIDFunc::GetUIDType(nUID) == UID_PLY){
+                        m_ActorPod->Forward(nUID, {MPK_SHOWDROPITEM, stAMSDI});
                     }
                 }
             }
@@ -936,17 +923,14 @@ bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
 int ServerMap::GetMonsterCount(uint32_t nMonsterID)
 {
     int nCount = 0;
-    for(auto &rstLine: m_CellRecordV2D){
-        for(auto &rstRecord: rstLine){
-            for(auto nUID: rstRecord.UIDList){
-                extern MonoServer *g_MonoServer;
-                if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                    if(UIDFunc::GetUIDType(nUID) == UID_MON){
-                        if(nMonsterID){
-                            nCount += ((UIDFunc::GetMonsterID(nUID) == nMonsterID) ? 1 : 0);
-                        }else{
-                            nCount++;
-                        }
+    for(int nX = 0; nX < W(); ++nX){
+        for(int nY = 0; nY < H(); ++nY){
+            for(auto nUID: GetUIDList(nX, nY)){
+                if(UIDFunc::GetUIDType(nUID) == UID_MON){
+                    if(nMonsterID){
+                        nCount += ((UIDFunc::GetMonsterID(nUID) == nMonsterID) ? 1 : 0);
+                    }else{
+                        nCount++;
                     }
                 }
             }
@@ -955,32 +939,25 @@ int ServerMap::GetMonsterCount(uint32_t nMonsterID)
     return nCount;
 }
 
-void ServerMap::NotifyNewCO(uint32_t nUID, int nX, int nY)
+void ServerMap::NotifyNewCO(uint64_t nUID, int nX, int nY)
 {
-    extern MonoServer *g_MonoServer;
-    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
+    AMNotifyNewCO stAMNNCO;
+    std::memset(&stAMNNCO, 0, sizeof(stAMNNCO));
 
-        AMNotifyNewCO stAMNNCO;
-        std::memset(&stAMNNCO, 0, sizeof(stAMNNCO));
-
-        stAMNNCO.UID = nUID;
-
-        auto fnNotifyNewCO = [this, stAMNNCO](int nX, int nY) -> bool
-        {
-            if(true || ValidC(nX, nY)){
-                auto fnDoList = [this, stAMNNCO](const UIDRecord &rstUIDRecord) -> bool
-                {
-                    if(rstUIDRecord.UID() != stAMNNCO.UID){
-                        m_ActorPod->Forward({MPK_NOTIFYNEWCO, stAMNNCO}, rstUIDRecord.GetAddress());
-                    }
-                    return false;
-                };
-                DoUIDList(nX, nY, fnDoList);
-            }
-            return false;
-        };
-        DoCircle(nX, nY, 20, fnNotifyNewCO);
-    }
+    stAMNNCO.UID = nUID;
+    DoCircle(nX, nY, 20, [this, stAMNNCO](int nX, int nY) -> bool
+    {
+        if(true || ValidC(nX, nY)){
+            DoUIDList(nX, nY, [this, stAMNNCO](uint64_t nUID)
+            {
+                if(nUID != stAMNNCO.UID){
+                    m_ActorPod->Forward(nUID, {MPK_NOTIFYNEWCO, stAMNNCO});
+                }
+                return false;
+            });
+        }
+        return false;
+    });
 }
 
 Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint32_t nMasterUID, int nX, int nY, bool bRandom)

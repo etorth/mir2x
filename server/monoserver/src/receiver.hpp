@@ -53,5 +53,8 @@ class Receiver
         void PushMessage(MessagePack);
 
     public:
-        int Wait(uint32_t = 0);
+        size_t Wait(uint32_t = 0);
+
+    public:
+        std::vector<MessagePack> Pop();
 };

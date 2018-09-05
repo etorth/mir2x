@@ -23,13 +23,12 @@
 #include "sysconst.hpp"
 #include "actorpod.hpp"
 #include "serverenv.hpp"
-#include "metronome.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
 #include "rotatecoord.hpp"
 #include "dbcomrecord.hpp"
 
-void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
+void ServerMap::On_MPK_METRONOME(const MessagePack &)
 {
     extern ServerEnv *g_ServerEnv;
     if(m_LuaModule && !g_ServerEnv->DisableMapScript){
@@ -41,37 +40,35 @@ void ServerMap::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
     }
 }
 
-void ServerMap::On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &)
+void ServerMap::On_MPK_BADACTORPOD(const MessagePack &)
 {
 }
 
-void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
+void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK)
 {
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
     if(ValidC(stAMA.X, stAMA.Y)){
-        auto fnNotifyAction = [this, stAMA](int nX, int nY) -> bool
+        DoCircle(stAMA.X, stAMA.Y, 10, [this, stAMA](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
-                auto fnDoList = [this, stAMA](const UIDRecord &rstUIDRecord) -> bool
+                DoUIDList(nX, nY, [this, stAMA](uint64_t nUID) -> bool
                 {
-                    if(rstUIDRecord.UID() != stAMA.UID){
-                        if(auto nType = UIDFunc::GetUIDType(rstUIDRecord.UID()); nType == UID_PLY || nType == UID_MON){
-                            m_ActorPod->Forward({MPK_ACTION, stAMA}, rstUIDRecord.GetAddress());
+                    if(nUID != stAMA.UID){
+                        if(auto nType = UIDFunc::GetUIDType(nUID); nType == UID_PLY || nType == UID_MON){
+                            m_ActorPod->Forward(nUID, {MPK_ACTION, stAMA});
                         }
                     }
                     return false;
-                };
-                DoUIDList(nX, nY, fnDoList);
+                });
             }
             return false;
-        };
-        DoCircle(stAMA.X, stAMA.Y, 10, fnNotifyAction);
+        });
     }
 }
 
-void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
 {
     AMAddCharObject stAMACO;
     std::memcpy(&stAMACO, rstMPK.Data(), sizeof(stAMACO));
@@ -88,7 +85,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
                 auto nMasterUID = stAMACO.Monster.MasterUID;
 
                 if(AddMonster(nMonsterID, nMasterUID, nX, nY, bRandom)){
-                    m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
+                    m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
                     return;
                 }
                 break;
@@ -100,18 +97,16 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
                 auto nDirection = stAMACO.Player.Direction;
 
                 if(auto pPlayer = AddPlayer(nDBID, nX, nY, nDirection, bRandom)){
-                    m_ActorPod->Forward(MPK_OK, rstFromAddr, rstMPK.ID());
-                    m_ActorPod->Forward({MPK_BINDCHANNEL, nChannID}, pPlayer->GetAddress());
+                    m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
+                    m_ActorPod->Forward(pPlayer->UID(), {MPK_BINDCHANNEL, nChannID});
 
-                    auto fnReportGroundItem = [this, nChannID](int nX, int nY) -> bool
+                    DoCircle(nX, nY, 20, [this, nChannID](int nX, int nY) -> bool
                     {
                         if(true || ValidC(nX, nY)){
                             // ReportGroundItem(nChannID, nX, nY);
                         }
                         return false;
-                    };
-
-                    DoCircle(nX, nY, 20, fnReportGroundItem);
+                    });
                     return;
                 }
                 break;
@@ -125,10 +120,10 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK, const Theron::Ad
     // anything incorrect happened
     // report MPK_ERROR to service core that we failed
 
-    m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
+    m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
 }
 
-void ServerMap::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK, const Theron::Address &rstAddress)
+void ServerMap::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK)
 {
     AMTrySpaceMove stAMTSM;
     std::memcpy(&stAMTSM, rstMPK.Data(), sizeof(stAMTSM));
@@ -174,7 +169,7 @@ void ServerMap::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK, const Theron::Add
     // get valid location
     // respond with MPK_SPACEMOVEOK and wait for response
 
-    auto fnOP = [this, nUID = stAMTSM.UID, nDstX, nDstY](const MessagePack &rstRMPK, const Theron::Address &)
+    auto fnOP = [this, nUID = stAMTSM.UID, nDstX, nDstY](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_OK:
@@ -203,7 +198,7 @@ void ServerMap::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK, const Theron::Add
     m_ActorPod->Forward({MPK_SPACEMOVEOK, stAMSMOK}, rstAddress, rstMPK.ID(), fnOP);
 }
 
-void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
 {
     AMTryMove stAMTM;
     std::memcpy(&stAMTM, rstMPK.Data(), sizeof(stAMTM));
@@ -337,7 +332,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
         return;
     }
 
-    auto fnOnR = [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK, const Theron::Address &)
+    auto fnOnR = [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_OK:
@@ -387,7 +382,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
                                 switch(m_CellRecordV2D[nMostX][nMostY].Query){
                                     case QUERY_NONE:
                                         {
-                                            auto fnOnResp = [this, nMostX, nMostY, stRecord](const MessagePack &rstMPK, const Theron::Address &){
+                                            auto fnOnResp = [this, nMostX, nMostY, stRecord](const MessagePack &rstMPK)
                                                 switch(rstMPK.Type()){
                                                     case MPK_UID:
                                                         {
@@ -456,7 +451,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK, const Theron::Address 
     m_ActorPod->Forward({MPK_MOVEOK, stAMMOK}, rstFromAddr, rstMPK.ID(), fnOnR);
 }
 
-void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK)
 {
     AMTryLeave stAMTL;
     std::memcpy(&stAMTL, rstMPK.Data(), rstMPK.DataLen());
@@ -481,7 +476,7 @@ void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK, const Theron::Address
     g_MonoServer->AddLog(LOGTYPE_WARNING, "Leave request failed: UID = " PRIu32 ", X = %d, Y = %d", stAMTL.UID, stAMTL.X, stAMTL.Y);
 }
 
-void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Address &)
+void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK)
 {
     AMPullCOInfo stAMPCOI;
     std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
@@ -509,7 +504,7 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK, const Theron::Addre
     DoCenterSquare(stAMPCOI.X, stAMPCOI.Y, stAMPCOI.W, stAMPCOI.H, false, fnPullCOInfo);
 }
 
-void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
 {
     AMTryMapSwitch stAMTMS;
     std::memcpy(&stAMTMS, rstMPK.Data(), sizeof(stAMTMS));
@@ -523,7 +518,7 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Add
         stAMMSOK.X    = nX;
         stAMMSOK.Y    = nY;
 
-        auto fnOnResp = [this, stAMTMS, stAMMSOK](const MessagePack &rstRMPK, const Theron::Address &)
+        auto fnOnResp = [this, stAMTMS, stAMMSOK](const MessagePack &rstRMPK)
         {
             switch(rstRMPK.Type()){
                 case MPK_OK:
@@ -551,7 +546,7 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK, const Theron::Add
     }
 }
 
-void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
 {
     AMPathFind stAMPF;
     std::memcpy(&stAMPF, rstMPK.Data(), sizeof(stAMPF));
@@ -632,7 +627,7 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK, const Theron::Address
     m_ActorPod->Forward(MPK_ERROR, rstFromAddr, rstMPK.ID());
 }
 
-void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)
+void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK)
 {
     AMUpdateHP stAMUHP;
     std::memcpy(&stAMUHP, rstMPK.Data(), sizeof(stAMUHP));
@@ -658,7 +653,7 @@ void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address
     }
 }
 
-void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Address &)
+void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
 {
     AMDeadFadeOut stAMDFO;
     std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
@@ -684,7 +679,7 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Addr
     }
 }
 
-void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::Address &rstAddress)
+void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
 {
     AMQueryCOCount stAMQCOC;
     std::memcpy(&stAMQCOC, rstMPK.Data(), sizeof(stAMQCOC));
@@ -719,7 +714,7 @@ void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK, const Theron::Add
     m_ActorPod->Forward(MPK_ERROR, rstAddress, rstMPK.ID());
 }
 
-void ServerMap::On_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK, const Theron::Address &rstAddress)
+void ServerMap::On_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK)
 {
     AMQueryRectUIDList stAMQRUIDL;
     std::memcpy(&stAMQRUIDL, rstMPK.Data(), sizeof(stAMQRUIDL));
@@ -741,7 +736,7 @@ void ServerMap::On_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK, const Theron:
     m_ActorPod->Forward({MPK_UIDLIST, stAMUIDL}, rstAddress, rstMPK.ID());
 }
 
-void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Address &)
+void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK)
 {
     AMNewDropItem stAMNDI;
     std::memcpy(&stAMNDI, rstMPK.Data(), sizeof(stAMNDI));
@@ -812,30 +807,25 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK, const Theron::Addr
     }
 }
 
-void ServerMap::On_MPK_OFFLINE(const MessagePack &rstMPK, const Theron::Address &)
+void ServerMap::On_MPK_OFFLINE(const MessagePack &rstMPK)
 {
     AMOffline stAMO;
     std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));
        
-    auto fnNotifyOffline = [stAMO, this](int nX, int nY) -> bool
+    DoCircle(stAMO.X, stAMO.Y, 10, [stAMO, this](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
-            for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+            for(auto nUID: GetUIDList(nX, nY)){
                 if(nUID != stAMO.UID){
-                    extern MonoServer *g_MonoServer;
-                    if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-                        m_ActorPod->Forward({MPK_OFFLINE, stAMO}, stUIDRecord.GetAddress());
-                    }
+                    m_ActorPod->Forward(nUID, {MPK_OFFLINE, stAMO});
                 }
             }
         }
         return false;
-    };
-
-    DoCircle(stAMO.X, stAMO.Y, 10, fnNotifyOffline);
+    });
 }
 
-void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK, const Theron::Address &)
+void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK)
 {
     AMPickUp stAMPU;
     std::memcpy(&stAMPU, rstMPK.Data(), sizeof(stAMPU));

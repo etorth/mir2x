@@ -132,11 +132,26 @@ class ServerMap final: public ServerObject
         double MoveCost(bool, bool, int, int, int, int);
 
     public:
-        int W() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0; }
-        int H() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.H() : 0; }
+        int W() const
+        {
+            return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0;
+        }
 
-        bool ValidC(int nX, int nY) const { return m_Mir2xMapData.ValidC(nX, nY); }
-        bool ValidP(int nX, int nY) const { return m_Mir2xMapData.ValidP(nX, nY); }
+        int H() const
+        {
+            return m_Mir2xMapData.Valid() ? m_Mir2xMapData.H() : 0;
+        }
+
+    public:
+        bool ValidC(int nX, int nY) const
+        {
+            return m_Mir2xMapData.ValidC(nX, nY);
+        }
+
+        bool ValidP(int nX, int nY) const
+        {
+            return m_Mir2xMapData.ValidP(nX, nY);
+        }
 
     public:
         uint64_t Activate();
@@ -156,7 +171,7 @@ class ServerMap final: public ServerObject
         bool GetValidGrid(int *, int *, bool);
 
     private:
-        void NotifyNewCO(uint32_t, int, int);
+        void NotifyNewCO(uint64_t, int, int);
 
     private:
         Player  *AddPlayer (uint32_t, int, int, int, bool);
