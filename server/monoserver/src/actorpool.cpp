@@ -206,6 +206,12 @@ bool ActorPool::Detach(const Receiver *pReceiver)
 
 bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
 {
+    if(!nUID){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Sending %s to zero UID", stMPK.Name());
+        return false;
+    }
+
     if(!stMPK){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Sending empty message to UID = %" PRIu64, nUID);
@@ -221,7 +227,9 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
             }
         }
 
-        PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, stMPK.Respond()});
+        if(stMPK.From()){
+            PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, stMPK.Respond()});
+        }
         return false;
     }
 
@@ -247,7 +255,9 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
         }
     }
 
-    PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, stMPK.Respond()});
+    if(stMPK.From()){
+        PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, stMPK.Respond()});
+    }
     return false;
 }
 
