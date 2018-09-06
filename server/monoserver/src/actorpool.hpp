@@ -208,7 +208,7 @@ class ActorPool final
         std::map<uint64_t, Receiver *> m_ReceiverList;
 
     public:
-        ActorPool(uint32_t = 23, uint32_t = 5);
+        ActorPool(uint32_t = 23, uint32_t = 30);
 
     public:
         ~ActorPool();
@@ -255,8 +255,8 @@ class ActorPool final
     private:
         bool HasWorkSteal() const
         {
-            static bool bDisabled = std::getenv("MIR2X_DISABLE_WORK_STEAL");
-            return !bDisabled && (m_BucketList.size() > 1);
+            static bool bEnabled= std::getenv("MIR2X_ENABLE_WORK_STEAL");
+            return bEnabled && (m_BucketList.size() > 1);
         }
 
     private:

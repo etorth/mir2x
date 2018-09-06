@@ -278,6 +278,7 @@ void ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
     for(auto p = pMailbox->CurrQ.begin(); p != pMailbox->CurrQ.end(); ++p){
         pMailbox->Actor->InnHandler(*p);
     }
+    pMailbox->CurrQ.clear();
 }
 
 void ActorPool::RunWorkerSteal(size_t nMaxIndex)
@@ -313,7 +314,7 @@ void ActorPool::RunWorker(size_t nIndex)
     }
     m_BucketList[nIndex].RunTimer.Push(g_MonoServer->GetTimeDiff(stBeginRun, "ns"));
 
-    if(!HasWorkSteal()){
+    if(HasWorkSteal()){
         auto [nAvgTime, nMaxIndex] = CheckWorkerTime();
         if(m_BucketList[nIndex].RunTimer.GetAvgTime() < nAvgTime){
             extern MonoServer *g_MonoServer;
