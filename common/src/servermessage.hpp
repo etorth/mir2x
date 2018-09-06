@@ -62,7 +62,7 @@ struct SMAccount
 
 struct SMLoginOK
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t DBID;
     uint32_t MapID;
     uint16_t X;
@@ -82,7 +82,7 @@ struct SMLoginFail
 
 struct SMAction
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     uint8_t Action;
@@ -94,7 +94,7 @@ struct SMAction
     uint16_t AimX;
     uint16_t AimY;
 
-    uint32_t AimUID;
+    uint64_t AimUID;
     uint32_t ActionParam;
 };
 
@@ -104,7 +104,7 @@ struct SMCORecord
 
     struct _Action
     {
-        uint32_t UID;
+        uint64_t UID;
         uint32_t MapID;
 
         uint8_t Action;
@@ -116,7 +116,7 @@ struct SMCORecord
         uint16_t AimX;
         uint16_t AimY;
 
-        uint32_t AimUID;
+        uint64_t AimUID;
         uint32_t ActionParam;
     }Action;
 
@@ -147,7 +147,7 @@ struct SMCORecord
 
 struct SMUpdateHP
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     uint32_t HP;
@@ -156,7 +156,7 @@ struct SMUpdateHP
 
 struct SMDeadFadeOut
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     uint32_t X;
@@ -182,7 +182,7 @@ struct SMShowDropItem
 
 struct SMFireMagic
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     uint8_t Magic;
@@ -194,12 +194,12 @@ struct SMFireMagic
     uint16_t Y;
     uint16_t AimX;
     uint16_t AimY;
-    uint32_t AimUID;
+    uint64_t AimUID;
 };
 
 struct SMOffline
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 };
 

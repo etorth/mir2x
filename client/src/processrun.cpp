@@ -147,7 +147,7 @@ void ProcessRun::Update(double fUpdateTime)
     }
 }
 
-uint32_t ProcessRun::FocusUID(int nFocusType)
+uint64_t ProcessRun::FocusUID(int nFocusType)
 {
     if(nFocusType < (int)(m_FocusTable.size())){
         switch(nFocusType){
@@ -160,7 +160,7 @@ uint32_t ProcessRun::FocusUID(int nFocusType)
                     // use the cached mouse focus first
                     // if can't get it then scan the whole creature list
 
-                    auto fnCheckFocus = [this](uint32_t nUID, int nX, int nY) -> bool
+                    auto fnCheckFocus = [this](uint64_t nUID, int nX, int nY) -> bool
                     {
                         if(auto pCreature = RetrieveUID(nUID)){
                             if(pCreature != m_MyHero){
@@ -1234,7 +1234,7 @@ bool ProcessRun::OnMap(uint32_t nMapID, int nX, int nY) const
     return (MapID() == nMapID) && m_Mir2xMapData.ValidC(nX, nY);
 }
 
-Creature *ProcessRun::RetrieveUID(uint32_t nUID)
+Creature *ProcessRun::RetrieveUID(uint64_t nUID)
 {
     if(nUID){
         auto pRecord = m_CreatureRecord.find(nUID);
@@ -1257,7 +1257,7 @@ Creature *ProcessRun::RetrieveUID(uint32_t nUID)
     return nullptr;
 }
 
-bool ProcessRun::LocateUID(uint32_t nUID, int *pX, int *pY)
+bool ProcessRun::LocateUID(uint64_t nUID, int *pX, int *pY)
 {
     if(auto pCreature = RetrieveUID(nUID)){
         if(pX){ *pX = pCreature->X(); }
@@ -1314,7 +1314,7 @@ void ProcessRun::AddAscendStr(int nType, int nValue, int nX, int nY)
     m_AscendStrRecord.emplace_back(new AscendStr(nType, nValue, nX, nY));
 }
 
-bool ProcessRun::GetUIDLocation(uint32_t nUID, bool bDrawLoc, int *pX, int *pY)
+bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
 {
     if(auto pCreature = RetrieveUID(nUID)){
         if(bDrawLoc){

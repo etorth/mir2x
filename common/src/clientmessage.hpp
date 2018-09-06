@@ -51,7 +51,7 @@ struct CMLogin
 
 struct CMAction
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
 
     uint8_t Action;
@@ -63,13 +63,13 @@ struct CMAction
     uint16_t AimX;
     uint16_t AimY;
 
-    uint32_t AimUID;
+    uint64_t AimUID;
     uint32_t ActionParam;
 };
 
 struct CMQueryCORecord
 {
-    uint32_t AimUID;
+    uint64_t AimUID;
 };
 
 struct CMReqestSpaceMove
@@ -83,7 +83,7 @@ struct CMPickUp
 {
     uint16_t X;
     uint16_t Y;
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
     uint32_t ID;
     uint32_t DBID;

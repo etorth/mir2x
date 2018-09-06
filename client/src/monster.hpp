@@ -28,10 +28,10 @@ class Monster: public Creature
         const uint32_t m_MonsterID;
 
     public:
-       static Monster *Create(uint32_t, uint32_t, ProcessRun *, const ActionNode &);
+       static Monster *Create(uint64_t, uint32_t, ProcessRun *, const ActionNode &);
 
     protected:
-        Monster(uint32_t, uint32_t, ProcessRun *);
+        Monster(uint64_t, uint32_t, ProcessRun *);
        ~Monster() = default;
 
     public:

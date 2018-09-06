@@ -37,7 +37,7 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         SMLoginOK stSMLOK;
         std::memcpy(&stSMLOK, pBuf, nLen);
 
-        uint32_t nUID     = stSMLOK.UID;
+        uint64_t nUID     = stSMLOK.UID;
         uint32_t nDBID    = stSMLOK.DBID;
         bool     bGender  = stSMLOK.Male;
         uint32_t nMapID   = stSMLOK.MapID;

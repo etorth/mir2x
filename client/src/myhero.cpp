@@ -25,7 +25,7 @@
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
-MyHero::MyHero(uint32_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, ProcessRun *pRun, const ActionNode &rstAction)
+MyHero::MyHero(uint64_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, ProcessRun *pRun, const ActionNode &rstAction)
 	: Hero(nUID, nDBID, bMale, nDressID, pRun, rstAction)
     , m_Gold(0)
     , m_InvPack()

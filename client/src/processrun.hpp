@@ -164,7 +164,7 @@ class ProcessRun: public Process
         double MoveCost(bool, int, int, int, int);
 
     private:
-        uint32_t FocusUID(int);
+        uint64_t FocusUID(int);
 
     public:
         bool  LuaCommand(const char *);
@@ -186,8 +186,8 @@ class ProcessRun: public Process
         bool RegisterLuaExport(ClientLuaModule *, int);
 
     public:
-        Creature *RetrieveUID(uint32_t);
-        bool LocateUID(uint32_t, int *, int *);
+        Creature *RetrieveUID(uint64_t);
+        bool LocateUID(uint64_t, int *, int *);
 
     private:
         bool TrackAttack(bool, uint32_t);
@@ -196,7 +196,7 @@ class ProcessRun: public Process
         void AddAscendStr(int, int, int, int);
 
     public:
-        bool GetUIDLocation(uint32_t, bool, int *, int *);
+        bool GetUIDLocation(uint64_t, bool, int *, int *);
 
     public:
         void CenterMyHero();
