@@ -3,7 +3,7 @@
  *
  *       Filename: actorpod.cpp
  *        Created: 05/03/2016 15:00:35
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -53,7 +53,7 @@ ActorPod::ActorPod(uint64_t nUID,
     , m_RespondHandlerGroup()
 {
     extern ActorPool *g_ActorPool;
-    g_ActorPool->Register(this);
+    m_Mailbox = g_ActorPool->Register(this);
 }
 
 ActorPod::~ActorPod()
@@ -62,6 +62,12 @@ ActorPod::~ActorPod()
     if(g_ActorPool->IsActorThread(UID())){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Delete actor in its actor thread: ActorPod::UID() = %" PRIu64, UID());
+        g_MonoServer->Restart();
+    }
+
+    if(!g_ActorPool->Remove(this)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "ActorPool::Detach(ActorPod = %p) failed", this);
         g_MonoServer->Restart();
     }
 }
@@ -276,6 +282,26 @@ bool ActorPod::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
 
 void ActorPod::Detach() const
 {
-    extern ActorPool *g_ActorPool;
-    g_ActorPool->Detach(this);
+    // we can call detach in its message handler
+    // remember the message handler can be executed by worker thread or stealing worker thread
+    // we can't guarantee that after detach no thread can access the actor
+    //
+    //  void MessageHandler()
+    //  {
+    //      if(bNeedDetach){
+    //          Detach();
+    //          OtherRelease(); // here still accessing the actor
+    //          return;         // after this line we can guarantee actor is not running
+    //      }
+    //  }
+    //
+    // it's worse to call it out of its message handler
+    // when detach returns we can't guarantee if the actor is till handling message
+
+    // theron library also has this issue
+    // only destructor can guarentee the actor is not running any more
+
+    // never check current status
+    // any status can directly jump to detached
+    m_Mailbox->Status.load('D');
 }

@@ -3,7 +3,7 @@
  *
  *       Filename: actorpool.hpp
  *        Created: 09/02/2018 18:20:15
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -87,7 +87,7 @@ class ActorPool final
         };
 
     private:
-        template<size_t AVG_LEN = 16> struct AvgTimer 
+        template<size_t AVG_LEN = 16> struct AvgTimer
         {
             std::atomic<long> CurrSum;
 
@@ -120,11 +120,12 @@ class ActorPool final
         struct Mailbox
         {
             // status of current mailbox/actor
-            //   0 : [r]eady
-            //   1 : [b]unning in one thread
-            //   2 : [d]etached
+            //   0 : [R]eady
+            //   1 : [B]unning in one thread
+            //   2 : [D]etached
             // can change betwwen ready/busy before jumps to detached
             // use MailboxLock for RAII access
+            std::atomic<uint32_t> WorkerID;
             std::atomic<char> Status;
 
             ActorPod *Actor;
@@ -229,12 +230,12 @@ class ActorPool final
         }
 
     private:
-        bool Register(ActorPod *);
-        bool Register(Receiver *);
+        bool     Register(Receiver *);
+        Mailbox *Register(ActorPod *);
 
     private:
-        bool Detach(const ActorPod *);
-        bool Detach(const Receiver *);
+        bool Remove(const Receiver *);
+        bool Remove(const ActorPod *);
 
     public:
         void Launch();

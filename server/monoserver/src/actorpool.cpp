@@ -3,7 +3,7 @@
  *
  *       Filename: actorpool.cpp
  *        Created: 09/02/2018 19:07:15
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -24,6 +24,12 @@
 #include "actorpod.hpp"
 #include "actorpool.hpp"
 #include "monoserver.hpp"
+
+thread_local uint32_t g_WorkerID = -1;
+static uint32_t GetWorkerID()
+{
+    return g_WorkerID;
+}
 
 ActorPool::ActorPool(uint32_t nBucketCount, uint32_t nLogicFPS)
     : m_LogicFPS(nLogicFPS)
@@ -50,12 +56,12 @@ ActorPool::~ActorPool()
     m_FutureList.clear();
 }
 
-bool ActorPool::Register(ActorPod *pActor)
+ActorPool::Mailbox *ActorPool::Register(ActorPod *pActor)
 {
     if(!(pActor && pActor->UID())){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid arguments: ActorPod = %p, ActorPod::UID() = %" PRIu64, pActor, pActor->UID());
-        return false;
+        return nullptr;
     }
 
     auto nUID = pActor->UID();
@@ -75,7 +81,7 @@ bool ActorPool::Register(ActorPod *pActor)
         std::unique_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
         if(auto p = m_BucketList[nIndex].MailboxList.find(nUID); p == m_BucketList[nIndex].MailboxList.end()){
             m_BucketList[nIndex].MailboxList[nUID] = pMailbox;
-            return true;
+            return pMailbox.get();
         }else{
             pExistActor = p->second->Actor;
         }
@@ -83,7 +89,7 @@ bool ActorPool::Register(ActorPod *pActor)
 
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "UID exists: UID = %" PRIu64 ", ActorPod = %p", nUID, pExistActor);
-    return false;
+    return nullptr;
 }
 
 bool ActorPool::Register(Receiver *pReceiver)
@@ -110,7 +116,7 @@ bool ActorPool::Register(Receiver *pReceiver)
     return false;
 }
 
-bool ActorPool::Detach(const ActorPod *pActor)
+bool ActorPool::Remove(const ActorPod *pActor)
 {
     if(!(pActor && pActor->UID())){
         extern MonoServer *g_MonoServer;
@@ -119,11 +125,11 @@ bool ActorPool::Detach(const ActorPod *pActor)
     }
 
     // we can use UID as parameter
-    // but use actor address prevents other thread do detach blindly
+    // but use actor address prevents other thread do remove blindly
 
     auto nUID = pActor->UID();
     auto nIndex = nUID % m_BucketList.size();
-    auto fnDoDetach = [&rstMailboxList = m_BucketList[nIndex].MailboxList, pActor, nUID]() -> bool
+    auto fnDoRemove = [&rstMailboxList = m_BucketList[nIndex].MailboxList, pActor, nUID]() -> bool
     {
         if(auto p = rstMailboxList.find(nUID); (p != rstMailboxList.end())){
             if(p->second->Actor != pActor){
@@ -155,7 +161,7 @@ bool ActorPool::Detach(const ActorPod *pActor)
                     case 'D':
                         {
                             extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Double-detach an actor: ActorPod = %p, ActorPod::UID() = %" PRIu64, pActor, pActor->UID());
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Double-remove an actor: ActorPod = %p, ActorPod::UID() = %" PRIu64, pActor, pActor->UID());
                             return false;
                         }
                     default:
@@ -176,14 +182,14 @@ bool ActorPool::Detach(const ActorPod *pActor)
     // any other thread can only accquire in read mode
 
     if(std::this_thread::get_id() == m_BucketList[nIndex].WorkerID){
-        return fnDoDetach();
+        return fnDoRemove();
     }else{
         std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
-        return fnDoDetach();
+        return fnDoRemove();
     }
 }
 
-bool ActorPool::Detach(const Receiver *pReceiver)
+bool ActorPool::Remove(const Receiver *pReceiver)
 {
     if(!(pReceiver && pReceiver->UID())){
         extern MonoServer *g_MonoServer;
@@ -237,9 +243,18 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
     auto fnPushMessage = [this, nIndex, nUID](MessagePack stMPK)
     {
         if(auto p = m_BucketList[nIndex].MailboxList.find(nUID); p != m_BucketList[nIndex].MailboxList.end()){
-            std::lock_guard<SpinLock> stLockGuard(p->second->NextQLock);
-            p->second->NextQ.push_back(std::move(stMPK));
-            return true;
+            switch(auto chStatus = p->second.Status.load()){
+                case 'D':
+                    {
+                        return false;
+                    }
+                default:
+                    {
+                        std::lock_guard<SpinLock> stLockGuard(p->second->NextQLock);
+                        p->second->NextQ.push_back(std::move(stMPK));
+                        return true;
+                    }
+            }
         }
         return false;
     };
