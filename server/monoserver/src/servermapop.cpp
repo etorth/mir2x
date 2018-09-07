@@ -441,7 +441,7 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK)
                         std::memset(&stAMQCOR, 0, sizeof(stAMQCOR));
 
                         stAMQCOR.UID = stAMPCOI.UID;
-                        m_ActorPod->Forward(nUID, {MPK_QUERYCORECORD, stAMPCOI});
+                        m_ActorPod->Forward(nUID, {MPK_QUERYCORECORD, stAMQCOR});
                     }
                 }
                 return false;
