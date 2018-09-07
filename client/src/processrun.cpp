@@ -1267,7 +1267,7 @@ bool ProcessRun::LocateUID(uint64_t nUID, int *pX, int *pY)
     return false;
 }
 
-bool ProcessRun::TrackAttack(bool bForce, uint32_t nUID)
+bool ProcessRun::TrackAttack(bool bForce, uint64_t nUID)
 {
     if(RetrieveUID(nUID)){
         if(bForce || m_MyHero->StayIdle()){

@@ -166,7 +166,7 @@ class ServerMap final: public ServerObject
 
     private:
         Player  *AddPlayer (uint32_t, int, int, int, bool);
-        Monster *AddMonster(uint32_t, uint32_t, int, int, bool);
+        Monster *AddMonster(uint32_t, uint64_t, int, int, bool);
 
     private:
         int GetMonsterCount(uint32_t);

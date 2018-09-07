@@ -249,7 +249,7 @@ void Player::ReportStand()
     ReportAction(UID(), ActionStand(X(), Y(), Direction()));
 }
 
-void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)
+void Player::ReportAction(uint64_t nUID, const ActionNode &rstAction)
 {
     if(true
             && nUID
@@ -478,7 +478,7 @@ void Player::DispatchOffline()
     g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch offline event");
 }
 
-void Player::ReportOffline(uint32_t nUID, uint32_t nMapID)
+void Player::ReportOffline(uint64_t nUID, uint32_t nMapID)
 {
     if(true
             && nUID
@@ -607,7 +607,7 @@ void Player::OnCMActionAttack(CMAction stCMA)
         int nY0 = stCMA.Y;
 
         int nDCType = stCMA.ActionParam;
-        uint32_t nAimUID = stCMA.AimUID;
+        uint64_t nAimUID = stCMA.AimUID;
 
         if(rstLocation.MapID == MapID()){
             switch(nDCType){

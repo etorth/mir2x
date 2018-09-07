@@ -146,10 +146,10 @@ class CharObject: public ServerObject
     protected:
         struct TargetRecord
         {
-            uint32_t UID;
+            uint64_t UID;
             uint32_t ActiveTime;
 
-            TargetRecord(uint32_t nUID = 0, uint32_t nActiveTime = 0)
+            TargetRecord(uint64_t nUID = 0, uint32_t nActiveTime = 0)
                 : UID(nUID)
                 , ActiveTime(nActiveTime)
             {}
@@ -157,11 +157,11 @@ class CharObject: public ServerObject
 
         struct HitterUIDRecord
         {
-            uint32_t UID;
+            uint64_t UID;
             uint32_t Damage;
             uint32_t ActiveTime;
 
-            HitterUIDRecord(uint32_t nUID = 0, uint32_t nDamage = 0, uint32_t nActiveTime = 0)
+            HitterUIDRecord(uint64_t nUID = 0, uint32_t nDamage = 0, uint32_t nActiveTime = 0)
                 : UID(nUID)
                 , Damage(nDamage)
                 , ActiveTime(nActiveTime)
@@ -252,7 +252,7 @@ class CharObject: public ServerObject
 
     protected:
         void DispatchHealth();
-        void DispatchAttack(uint32_t, int);
+        void DispatchAttack(uint64_t, int);
 
     protected:
         virtual void DispatchAction(const ActionNode &);

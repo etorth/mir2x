@@ -59,7 +59,7 @@ class Monster final: public CharObject
         const uint32_t m_MonsterID;
 
     protected:
-        uint32_t m_MasterUID;
+        uint64_t m_MasterUID;
 
     protected:
         const MonsterRecord &m_MonsterRecord;
@@ -74,7 +74,7 @@ class Monster final: public CharObject
                 int,                    // map x
                 int,                    // map y
                 int,                    // direction
-                uint32_t);              // master uid
+                uint64_t);              // master uid
 
     public:
         ~Monster() = default;
@@ -88,7 +88,7 @@ class Monster final: public CharObject
     protected:
        // don't expose it to public
        // master may change by time or by magic
-       uint32_t MasterUID()
+       uint64_t MasterUID()
        {
            return m_MasterUID;
        }
@@ -111,8 +111,8 @@ class Monster final: public CharObject
         bool InRange(int, int, int);
 
     protected:
-        void AddTarget(uint32_t);
-        void RemoveTarget(uint32_t);
+        void AddTarget(uint64_t);
+        void RemoveTarget(uint64_t);
 
     protected:
         bool StruckDamage(const DamageNode &);

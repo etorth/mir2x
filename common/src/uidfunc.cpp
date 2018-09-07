@@ -65,6 +65,10 @@ uint64_t UIDFunc::BuildEtcUID()
 
 std::string UIDFunc::GetUIDString(uint64_t nUID)
 {
+    if(!nUID){
+        return std::string("ZERO");
+    }
+
     char szUIDString[128];
     switch(GetUIDType(nUID)){
         case UID_PLY:

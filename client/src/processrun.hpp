@@ -190,7 +190,7 @@ class ProcessRun: public Process
         bool LocateUID(uint64_t, int *, int *);
 
     private:
-        bool TrackAttack(bool, uint32_t);
+        bool TrackAttack(bool, uint64_t);
 
     public:
         void AddAscendStr(int, int, int, int);

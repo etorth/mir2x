@@ -958,7 +958,7 @@ void ServerMap::NotifyNewCO(uint64_t nUID, int nX, int nY)
     });
 }
 
-Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint32_t nMasterUID, int nX, int nY, bool bRandom)
+Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nX, int nY, bool bRandom)
 {
     if(GetValidGrid(&nX, &nY, bRandom)){
         auto pMonster = new Monster

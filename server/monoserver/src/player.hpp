@@ -131,8 +131,8 @@ class Player final: public CharObject
         void ReportStand();
         void ReportHealth();
         void ReportCORecord(uint64_t);
-        void ReportOffline(uint32_t, uint32_t);
-        void ReportAction(uint32_t, const ActionNode &);
+        void ReportOffline(uint64_t, uint32_t);
+        void ReportAction(uint64_t, const ActionNode &);
 
     protected:
         void DispatchOffline();

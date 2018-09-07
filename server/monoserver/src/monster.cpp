@@ -100,7 +100,7 @@ Monster::Monster(uint32_t   nMonsterID,
         int                 nMapX,
         int                 nMapY,
         int                 nDirection,
-        uint32_t            nMasterUID)
+        uint64_t            nMasterUID)
     : CharObject(pServiceCore, pServerMap, UIDFunc::BuildMonsterUID(nMonsterID), nMapX, nMapY, nDirection)
     , m_MonsterID(nMonsterID)
     , m_MasterUID(nMasterUID)
@@ -645,7 +645,7 @@ bool Monster::DCValid(int nDC, bool bCheck)
     return false;
 }
 
-void Monster::RemoveTarget(uint32_t nUID)
+void Monster::RemoveTarget(uint64_t nUID)
 {
     if(nUID){
 
@@ -671,7 +671,7 @@ void Monster::RemoveTarget(uint32_t nUID)
     }
 }
 
-void Monster::AddTarget(uint32_t nUID)
+void Monster::AddTarget(uint64_t nUID)
 {
     if(true
             && nUID

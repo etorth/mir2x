@@ -580,7 +580,7 @@ void CharObject::DispatchHealth()
     }
 }
 
-void CharObject::DispatchAttack(uint32_t nUID, int nDC)
+void CharObject::DispatchAttack(uint64_t nUID, int nDC)
 {
     if(nUID && DCValid(nDC, true)){
         AMAttack stAMA;
