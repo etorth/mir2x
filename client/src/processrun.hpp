@@ -74,7 +74,7 @@ class ProcessRun: public Process
         MyHero *m_MyHero;
 
     private:
-        std::array<uint32_t, FOCUS_MAX> m_FocusTable;
+        std::array<uint64_t, FOCUS_MAX> m_FocusTable;
 
     private:
         int m_ViewX;
@@ -96,7 +96,7 @@ class ProcessRun: public Process
         std::vector<std::shared_ptr<IndepMagic>> m_IndepMagicList;
 
     private:
-        std::map<uint32_t, Creature*> m_CreatureRecord;
+        std::map<uint64_t, Creature*> m_CreatureRecord;
 
     private:
         // use a tokenboard to show all in future

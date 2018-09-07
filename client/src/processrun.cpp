@@ -1236,23 +1236,24 @@ bool ProcessRun::OnMap(uint32_t nMapID, int nX, int nY) const
 
 Creature *ProcessRun::RetrieveUID(uint64_t nUID)
 {
-    if(nUID){
-        auto pRecord = m_CreatureRecord.find(nUID);
-        if(pRecord != m_CreatureRecord.end()){
-            if(true
-                    && pRecord->second
-                    && pRecord->second->Active()
-                    && pRecord->second->UID() == nUID){
-                // here return the naked pointer
-                // OK since we force to use single thread
-                return pRecord->second;
-            }
+    if(!nUID){
+        return nullptr;
+    }
 
-            // invalid record found
-            // delete it as garbage collector
-            delete pRecord->second;
-            m_CreatureRecord.erase(pRecord);
+    if(auto p = m_CreatureRecord.find(nUID); p != m_CreatureRecord.end()){
+        if(true
+                && p->second
+                && p->second->Active()
+                && p->second->UID() == nUID){
+            // here return the naked pointer
+            // OK since we force to use single thread
+            return p->second;
         }
+
+        // invalid record found
+        // delete it as garbage collector
+        delete p->second;
+        m_CreatureRecord.erase(p);
     }
     return nullptr;
 }
