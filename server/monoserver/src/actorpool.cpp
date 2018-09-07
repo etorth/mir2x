@@ -378,7 +378,7 @@ bool ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
     }
 
     pMailbox->CurrQ.clear();
-    return pMailbox->SchedLock.Detached();
+    return !pMailbox->SchedLock.Detached();
 }
 
 void ActorPool::RunWorkerSteal(size_t nMaxIndex)
