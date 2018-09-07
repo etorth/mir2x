@@ -291,6 +291,8 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
         // but it will check if the mailbox is detached
 
         if(auto p = m_BucketList[nIndex].MailboxList.find(nUID); p != m_BucketList[nIndex].MailboxList.end()){
+            // just a cheat and can remove it
+            // try return earlier with acquire the NextQLock
             if(p->second->SchedLock.Detached()){
                 return false;
             }
@@ -299,6 +301,9 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
             // need the actor thread do fully clear job
             {
                 std::lock_guard<SpinLock> stLockGuard(p->second->NextQLock);
+                if(p->second->SchedLock.Detached()){
+                    return false;
+                }
                 p->second->NextQ.push_back(std::move(stMPK));
                 return true;
             }
@@ -423,16 +428,47 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
 {
     if(GetWorkerID() != (int)(pMailbox->Actor->UID() % m_BucketList.size())){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Clean queued message outside of its actor thread");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Clear queued messages outside of its actor thread");
         g_MonoServer->Restart();
         return;
     }
 
-    // actually we can skip lock the NextQLock here
-    // because if we call this function we have accquired the bucket lock in write mode
+    // clean one mailbox means:
+    // 1. make sure all actor/application threads DONE posting to it
+    // 2. make sure all actor/application threads can not post new messages to it
+    // 3. make sure all queued message are responded with MPK_BADACTORPOD
 
-    // for any other application/actor threads
-    // if it want to post message to NextQ it should firstly accquire the bucket lock in reader mode
+    // I call this function that:
+    // 1. without accquiring writer lock
+    // 2. always with Mailbox.Detached() as TRUE
+
+    // 0 // thread-1: posting message to NextQ  | 0 // thread-2: try clear all pending/sending messages
+    // 1 {                                      | 1 if(Mailbox.Detached()){
+    // 2     LockGuard(Mailbox.NextQLock);      | 2     {                                         // ClearOneMailbox() begins
+    // 3     if(Mailbox.Detached()){            | 3         LockGuard(Mailbox.NextQLock);         //
+    // 4         return false;                  | 4         Mailbox.CurrQ.Enqueue(Mailbox.NextQ); //
+    // 5     }                                  | 5     }                                         //
+    // 6     Mailbox.NextQ.Enqueue(MSG);        | 6                                               //
+    // 7     return true                        | 7     Handle(Mailbox.CurrQ);                    // ClearOneMailbox() ends
+    // 8 }                                      | 8 }
+
+    // CurrQ is only used in main/stealing actor threads
+    // what I want to make sure is:
+    //
+    //      when thread-2 is at or after line 4, threads like thread-1 can't reach line 6
+    //
+    // 1. when thread-2 is at line 4, thread-1 can't acquire the lock, simple
+    // 2. when thread-2 is after line 4 (i.e. at line 7), if thread-1 is at line 6, this means that
+    //
+    //      a. thread-1 has accquired the lock
+    //      b. at the time it accquired the lock, thread-1 didn't see mailbox detached
+    // 
+    // it's possible that when thread-1 reaches line 6 and sleeps, then thread-2 reaches line 2.
+    // but thread-2 can't reach line 7 because it can't pass line 3
+
+    // so we conclude if in thread-2 ClearOneMailbox() returns
+    // we are sure there is no message is posting or to post message to NextQ
+
     {
         std::lock_guard<SpinLock> stLockGuard(pMailbox->NextQLock);
         if(!pMailbox->NextQ.empty()){
@@ -523,52 +559,10 @@ void ActorPool::RunWorkerOneLoop(size_t nIndex)
 
     for(auto p = fnUpdate(nIndex, m_BucketList[nIndex].MailboxList.begin()); p != m_BucketList[nIndex].MailboxList.end(); p = fnUpdate(nIndex, p)){
         // we detected a detached actor
-        // and need to clean all its queued messages and remove it
-
-        // clean one mailbox means:
-        // 1. make sure all actor/application threads DONE posting to it
-        // 2. make sure all actor/application threads can not post new messages to it
-        // 3. make sure all queued message are responded with MPK_BADACTORPOD
+        // and need to clean all its queued messages and remove it if ready
+        ClearOneMailbox(p->second.get());
         {
             std::unique_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
-
-            // accquire unique lock is expensive
-            // so do as much as possible if you successfully grabbed it
-
-            // we must call ClearOneMailbox() under accquiring the bucket lock in write mode
-            // think about this:
-            //
-            //                   thread-1: posting message           |              thread-2: actor main thread
-            // {                                                     |
-            //     accqure_reader_lock(BucketLock);                  |
-            //                                                       |
-            //     if(pMailbox->Detached()){                         |
-            //         return false;                                 |
-            //     }                                                 |   for_each(pMailbox in bucket){
-            //                                                       |       .....
-            // ------------------------------------------------------+--------------------------------------------------
-            //                                                       |       if(pMailbox->Detached()){
-            //     // some OS delay here                             |           ClearOneMailbox(pMailbox);
-            //                                                       |       }
-            // ------------------------------------------------------+--------------------------------------------------
-            //     {                                                 |
-            //         std::lock_guard stLock(pMailbox->NextQLock);  |
-            //         NextQ.push_back(NewMessage);                  |
-            //         return true;                                  |
-            //     }                                                 |
-            // } ----------------------------------------------------+------- // reader_lock released here
-            //                                                       |        // now writer lock can be accqured
-            //                                                       |        {
-            //                                                       |            accquire_writer_lock(BucketLock);
-            //                                                       |            pMailbox = mail_list.erase(pMailbox);
-            //                                                       |        }
-            //                                                       |    }
-            //
-            // here if we don't call ClearOneMailbox() with writer lock
-            // then ClearOneMailbox() can't guarantee it cleaned all coming messages
-            // lock the NextQLock is not enough, it can only guarentee those threads already grabbed NextQLock to finish
-
-            ClearOneMailbox(p->second.get());
             p = m_BucketList[nIndex].MailboxList.erase(p);
         }
     }
