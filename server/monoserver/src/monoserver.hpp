@@ -60,12 +60,6 @@ class MonoServer final
         ServiceCore *m_ServiceCore;
 
     private:
-        std::atomic<uint32_t> m_GlobalUID;
-
-    private:
-        std::array<UIDLockRecord, 17> m_UIDArray;
-
-    private:
         const std::chrono::time_point<std::chrono::steady_clock> m_StartTime;
 
     public:

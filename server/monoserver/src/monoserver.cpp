@@ -47,8 +47,6 @@ MonoServer::MonoServer()
     : m_LogLock()
     , m_LogBuf()
     , m_ServiceCore(nullptr)
-    , m_GlobalUID {1}
-    , m_UIDArray()
     , m_StartTime(std::chrono::steady_clock::now())
 {}
 
