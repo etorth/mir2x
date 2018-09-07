@@ -215,9 +215,10 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
                 case MPK_LOGIN               : return "MPK_LOGIN";
                 case MPK_METRONOME           : return "MPK_METRONOME";
                 case MPK_TRYMOVE             : return "MPK_TRYMOVE";
-                case MPK_MOVEOK              : return "MPK_MOVEOK";
-                case MPK_TRYLEAVE            : return "MPK_TRYLEAVE";
                 case MPK_TRYSPACEMOVE        : return "MPK_TRYSPACEMOVE";
+                case MPK_MOVEOK              : return "MPK_MOVEOK";
+                case MPK_SPACEMOVEOK         : return "MPK_SPACEMOVEOK";
+                case MPK_TRYLEAVE            : return "MPK_TRYLEAVE";
                 case MPK_LOGINOK             : return "MPK_LOGINOK";
                 case MPK_ADDRESS             : return "MPK_ADDRESS";
                 case MPK_LOGINQUERYDB        : return "MPK_LOGINQUERYDB";
@@ -249,7 +250,12 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
                 case MPK_SHOWDROPITEM        : return "MPK_SHOWDROPITEM";
                 case MPK_NOTIFYDEAD          : return "MPK_NOTIFYDEAD";
                 case MPK_OFFLINE             : return "MPK_OFFLINE";
+                case MPK_PICKUP              : return "MPK_PICKUP";
+                case MPK_PICKUPOK            : return "MPK_PICKUPOK";
+                case MPK_REMOVEGROUNDITEM    : return "MPK_REMOVEGROUNDITEM";
                 case MPK_CORECORD            : return "MPK_CORECORD";
+                case MPK_NOTIFYNEWCO         : return "MPK_NOTIFYNEWCO";
+                case MPK_CHECKMASTER         : return "MPK_CHECKMASTER";
                 default                      : return "MPK_UNKNOWN";
             }
         }

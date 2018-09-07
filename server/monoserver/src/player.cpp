@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -76,6 +76,11 @@ void Player::OperateAM(const MessagePack &rstMPK)
         case MPK_METRONOME:
             {
                 On_MPK_METRONOME(rstMPK);
+                break;
+            }
+        case MPK_BADACTORPOD:
+            {
+                On_MPK_BADACTORPOD(rstMPK);
                 break;
             }
         case MPK_NOTIFYNEWCO:
@@ -569,7 +574,7 @@ void Player::OnCMActionMove(CMAction stCMA)
         case 0:
             {
                 RequestMove(nX1, nY1, MoveSpeed(), false, [](){}, [this]()
-                {   
+                {
                     ReportStand();
                 });
                 return;

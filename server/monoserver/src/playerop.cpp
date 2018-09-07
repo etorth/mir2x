@@ -36,6 +36,10 @@ void Player::On_MPK_METRONOME(const MessagePack &)
     g_NetDriver->Post(ChannID(), SM_PING, stSMP);
 }
 
+void Player::On_MPK_BADACTORPOD(const MessagePack &)
+{
+}
+
 void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK)
 {
     AMBindChannel stAMBC;

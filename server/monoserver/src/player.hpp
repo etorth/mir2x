@@ -109,6 +109,7 @@ class Player final: public CharObject
         void On_MPK_NOTIFYDEAD(const MessagePack &);
         void On_MPK_NOTIFYNEWCO(const MessagePack &);
         void On_MPK_DEADFADEOUT(const MessagePack &);
+        void On_MPK_BADACTORPOD(const MessagePack &);
         void On_MPK_BINDCHANNEL(const MessagePack &);
         void On_MPK_SHOWDROPITEM(const MessagePack &);
         void On_MPK_QUERYCORECORD(const MessagePack &);
