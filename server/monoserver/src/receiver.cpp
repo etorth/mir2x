@@ -40,7 +40,7 @@ Receiver::Receiver()
 Receiver::~Receiver()
 {
     extern ActorPool *g_ActorPool;
-    if(!g_ActorPool->Remove(this)){
+    if(!g_ActorPool->Detach(this)){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_FATAL, "ActorPool::Detach(Reciver = %p) failed", this);
     }

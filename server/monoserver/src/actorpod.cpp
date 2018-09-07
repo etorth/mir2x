@@ -53,19 +53,26 @@ ActorPod::ActorPod(uint64_t nUID,
     , m_RespondHandlerGroup()
 {
     extern ActorPool *g_ActorPool;
-    m_Mailbox = g_ActorPool->Register(this);
+    if(!g_ActorPool->Register(this)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Register actor failed: ActorPod = %p, ActorPod::UID() = %" PRIu64, this, UID());
+        g_MonoServer->Restart();
+    }
 }
 
 ActorPod::~ActorPod()
 {
-    extern ActorPool *g_ActorPool;
-    if(g_ActorPool->IsActorThread(UID())){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Delete actor in its actor thread: ActorPod::UID() = %" PRIu64, UID());
-        g_MonoServer->Restart();
-    }
+    // don't call destructor in running actor thread
+    // could be its actor thread or the stealing actor thread
 
-    if(!g_ActorPool->Remove(this)){
+    // we can't check it here...
+    // in ActorPod it shouldn't be aware who is calling itself
+
+    // Detach(this, true) will report error if called in running actor thread
+    // good enough
+
+    extern ActorPool *g_ActorPool;
+    if(!g_ActorPool->Detach(this, true)){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "ActorPool::Detach(ActorPod = %p) failed", this);
         g_MonoServer->Restart();
@@ -280,7 +287,7 @@ bool ActorPod::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
     return m_RespondHandlerGroup.emplace(nID, RespondHandler(g_MonoServer->GetTimeTick() + m_ExpireTime, std::move(fnOPR))).second;
 }
 
-void ActorPod::Detach() const
+bool ActorPod::Detach(bool bForce) const
 {
     // we can call detach in its message handler
     // remember the message handler can be executed by worker thread or stealing worker thread
@@ -300,8 +307,11 @@ void ActorPod::Detach() const
 
     // theron library also has this issue
     // only destructor can guarentee the actor is not running any more
+    extern ActorPool *g_ActorPool;
+    return g_ActorPool->Detach(this, bForce);
+}
 
-    // never check current status
-    // any status can directly jump to detached
-    m_Mailbox->Status.load('D');
+uint32_t ActorPod::GetMessageCount() const
+{
+    return 0;
 }

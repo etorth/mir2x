@@ -56,7 +56,7 @@ class ActorPool final
                 return;
             }
 
-            if(nBackoff < 50){
+            if(nBackoff < 100){
                 std::this_thread::sleep_for(std::chrono::nanoseconds(1));
                 return;
             }
@@ -116,75 +116,116 @@ class ActorPool final
             }
         };
 
+    public:
+        enum
+        {
+            MAILBOX_ERROR          = -4,
+            MAILBOX_DETACHED       = -3,
+            MAILBOX_READY          = -2,
+            MAILBOX_ACCESS_PUB     = -1,
+            MAILBOX_ACCESS_WORKER0 =  0,
+            MAILBOX_ACCESS_WORKER1 =  1,
+        };
+
     private:
+        class MailboxLock;
+        class MailboxMutex
+        {
+            private:
+                friend class MailboxLock;
+
+            private:
+                // make the atomic status encapsulated
+                // then no one can legally access it except the MailboxLock
+                std::atomic<int> m_Status;
+
+            public:
+                MailboxMutex()
+                    : m_Status(MAILBOX_READY)
+                {}
+
+                int Detach()
+                {
+                    return m_Status.exchange(MAILBOX_DETACHED);
+                }
+
+                bool Detached() const
+                {
+                    return m_Status.load() == MAILBOX_DETACHED;
+                }
+        };
+
+        class MailboxLock
+        {
+            private:
+                int m_Expected;
+                int m_WorkerID;
+
+            private:
+                MailboxMutex &m_MutexRef;
+
+            public:
+                MailboxLock(MailboxMutex &rstMutex, int nWorkerID)
+                    : m_Expected(MAILBOX_READY)
+                    , m_WorkerID(MAILBOX_ERROR)
+                    , m_MutexRef(rstMutex)
+                {
+                    // need to save the worker id
+                    // since the mailbox may get detached quietly
+                    if(m_MutexRef.m_Status.compare_exchange_strong(m_Expected, nWorkerID)){
+                        m_WorkerID = nWorkerID;
+                    }
+                }
+
+                ~MailboxLock()
+                {
+                    if(Locked()){
+                        m_Expected = m_WorkerID;
+                        if(!m_MutexRef.m_Status.compare_exchange_strong(m_Expected, MAILBOX_READY)){
+                            if(m_Expected != MAILBOX_DETACHED){
+                                // big error here and should never happen
+                                // someone stolen the mailbox without accquire the lock
+                                condcheck(m_Expected == MAILBOX_DETACHED);
+                            }
+                        }
+                    }
+                }
+
+                MailboxLock(const MailboxLock &) = delete;
+                MailboxLock &operator = (MailboxLock) = delete;
+
+            public:
+                bool Locked() const
+                {
+                    return LockType() == MAILBOX_READY;
+                }
+
+                int LockType() const
+                {
+                    return m_Expected;
+                }
+        };
+
         struct Mailbox
         {
-            // status of current mailbox/actor
-            //   0 : [R]eady
-            //   1 : [B]unning in one thread
-            //   2 : [D]etached
-            // can change betwwen ready/busy before jumps to detached
-            // use MailboxLock for RAII access
-            std::atomic<uint32_t> WorkerID;
-            std::atomic<char> Status;
-
-            ActorPod *Actor;
-            SpinLock  NextQLock;
+            ActorPod    *Actor;
+            MailboxMutex SchedLock;
+            SpinLock     NextQLock;
 
             std::vector<MessagePack> CurrQ;
             std::vector<MessagePack> NextQ;
 
             Mailbox(ActorPod *pActor)
-                : Status('R')
-                , Actor(pActor)
+                : Actor(pActor)
+                , SchedLock()
                 , NextQLock()
                 , CurrQ()
                 , NextQ()
             {}
         };
 
-        struct MailboxLock
-        {
-            char Expected;
-            Mailbox &MailboxRef;
-
-            MailboxLock(Mailbox &rstMailbox)
-                : Expected('R')
-                , MailboxRef(rstMailbox)
-            {
-                MailboxRef.Status.compare_exchange_strong(Expected, 'B');
-            }
-
-            ~MailboxLock()
-            {
-                if(Locked()){
-                    // when actor has been detached
-                    // here the compare_exchange_strong() will fail
-                    Expected = 'B';
-                    if(!MailboxRef.Status.compare_exchange_strong(Expected, 'R')){
-                        condcheck(Expected == 'D');
-                    }
-                }
-            }
-
-            MailboxLock(const MailboxLock &) = delete;
-            MailboxLock &operator = (MailboxLock) = delete;
-
-            bool Locked() const
-            {
-                return LockType() == 'R';
-            }
-
-            char LockType() const
-            {
-                return Expected;
-            }
-        };
-
         struct MailboxBucket
         {
-            std::thread::id WorkerID;
-
             AvgTimer<32> RunTimer;
             AvgTimer<32> StealTimer;
 
@@ -215,27 +256,16 @@ class ActorPool final
         ~ActorPool();
 
     private:
-        bool IsActorThread(uint64_t nUID = 0) const
-        {
-            if(nUID){
-                return std::this_thread::get_id() == m_BucketList[nUID % m_BucketList.size()].WorkerID;
-            }
-
-            for(auto p = m_BucketList.begin(); p != m_BucketList.end(); ++p){
-                if(std::this_thread::get_id() == p->WorkerID){
-                    return true;
-                }
-            }
-            return false;
-        }
+        bool IsActorThread()    const;
+        bool IsActorThread(int) const;
 
     private:
-        bool     Register(Receiver *);
-        Mailbox *Register(ActorPod *);
+        bool Register(Receiver *);
+        bool Register(ActorPod *);
 
     private:
-        bool Remove(const Receiver *);
-        bool Remove(const ActorPod *);
+        bool Detach(const Receiver *);
+        bool Detach(const ActorPod *, bool);
 
     public:
         void Launch();
@@ -274,5 +304,8 @@ class ActorPool final
         void RunWorker(size_t);
         void RunWorkerSteal(size_t);
         void RunWorkerOneLoop(size_t);
-        void RunOneMailbox(Mailbox *, bool);
+        bool RunOneMailbox(Mailbox *, bool);
+
+    private:
+        void ClearOneMailbox(Mailbox *);
 };

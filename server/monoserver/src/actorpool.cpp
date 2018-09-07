@@ -25,10 +25,17 @@
 #include "actorpool.hpp"
 #include "monoserver.hpp"
 
-thread_local uint32_t g_WorkerID = -1;
-static uint32_t GetWorkerID()
+// keep in mind:
+// 1. at ANY time only one thread can access one actor message handler
+// 2. at ANY time one thread must grab the SchedLock before detach the mailbox
+
+// actor thread id marker
+// only get explicit assignment in actor threads
+// for any other application threads it returns the defaut value
+static thread_local int t_WorkerID = ActorPool::MAILBOX_ACCESS_PUB;
+static int GetWorkerID()
 {
-    return g_WorkerID;
+    return t_WorkerID;
 }
 
 ActorPool::ActorPool(uint32_t nBucketCount, uint32_t nLogicFPS)
@@ -44,24 +51,26 @@ ActorPool::~ActorPool()
 {
     if(IsActorThread()){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Trying to destroy actor pool in actor thread");
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Trying to destroy actor pool in actor thread %d", GetWorkerID());
         g_MonoServer->Restart();
         return;
     }
 
     m_Terminated.store(true);
     for(auto p = m_FutureList.begin(); p != m_FutureList.end(); ++p){
+        // in lanuch part if an actor thread can join
+        // it already passed the unique_lock to clean all readers
         p->get();
     }
     m_FutureList.clear();
 }
 
-ActorPool::Mailbox *ActorPool::Register(ActorPod *pActor)
+bool ActorPool::Register(ActorPod *pActor)
 {
     if(!(pActor && pActor->UID())){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid arguments: ActorPod = %p, ActorPod::UID() = %" PRIu64, pActor, pActor->UID());
-        return nullptr;
+        return false;
     }
 
     auto nUID = pActor->UID();
@@ -70,18 +79,21 @@ ActorPool::Mailbox *ActorPool::Register(ActorPod *pActor)
 
     // can call this function from:
     // 1. application thread
-    // 2. other/current actor thread
+    // 2. other/current actor thread spawning new actors
 
     // exclusively lock before write
     // 1. to make sure any other reading thread done
     // 2. current thread won't accquire the lock in read mode
+
+    // remeber here the writer thread may starve, check:
+    // https://stackoverflow.com/questions/2190090/how-to-prevent-writer-starvation-in-a-read-write-lock-in-pthreads
 
     const ActorPod *pExistActor = nullptr;
     {
         std::unique_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
         if(auto p = m_BucketList[nIndex].MailboxList.find(nUID); p == m_BucketList[nIndex].MailboxList.end()){
             m_BucketList[nIndex].MailboxList[nUID] = pMailbox;
-            return pMailbox.get();
+            return true;
         }else{
             pExistActor = p->second->Actor;
         }
@@ -89,7 +101,7 @@ ActorPool::Mailbox *ActorPool::Register(ActorPod *pActor)
 
     extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "UID exists: UID = %" PRIu64 ", ActorPod = %p", nUID, pExistActor);
-    return nullptr;
+    return false;
 }
 
 bool ActorPool::Register(Receiver *pReceiver)
@@ -116,7 +128,7 @@ bool ActorPool::Register(Receiver *pReceiver)
     return false;
 }
 
-bool ActorPool::Remove(const ActorPod *pActor)
+bool ActorPool::Detach(const ActorPod *pActor, bool bForce)
 {
     if(!(pActor && pActor->UID())){
         extern MonoServer *g_MonoServer;
@@ -125,13 +137,12 @@ bool ActorPool::Remove(const ActorPod *pActor)
     }
 
     // we can use UID as parameter
-    // but use actor address prevents other thread do remove blindly
+    // but use actor address prevents other thread detach blindly
 
-    auto nUID = pActor->UID();
-    auto nIndex = nUID % m_BucketList.size();
-    auto fnDoRemove = [&rstMailboxList = m_BucketList[nIndex].MailboxList, pActor, nUID]() -> bool
+    auto nIndex = pActor->UID() % m_BucketList.size();
+    auto fnDoDetach = [this, &rstMailboxList = m_BucketList[nIndex].MailboxList, pActor, bForce]() -> bool
     {
-        if(auto p = rstMailboxList.find(nUID); (p != rstMailboxList.end())){
+        if(auto p = rstMailboxList.find(pActor->UID()); p != rstMailboxList.end()){
             if(p->second->Actor != pActor){
                 extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Different actors with same UID: ActorPod = (%p, %p), ActorPod::UID() = %" PRIu64, pActor, p->second->Actor, pActor->UID());
@@ -143,53 +154,87 @@ bool ActorPool::Remove(const ActorPod *pActor)
 
             uint32_t nBackoff = 0;
             while(true){
-                switch(MailboxLock stMailboxLock(*(p->second.get())); stMailboxLock.LockType()){
-                    case 'B':
+                switch(MailboxLock stMailboxLock(p->second->SchedLock, GetWorkerID()); stMailboxLock.LockType()){
+                    case MAILBOX_DETACHED:
                         {
-                            Backoff(nBackoff);
-                            break;
+                            // we allow double detach an actor
+                            // this helps to always legally call Detach() in actor destructor
+                            return true;
                         }
-                    case 'R':
+                    case MAILBOX_READY:
                         {
-                            if(char chStatus = p->second->Status.exchange('D'); chStatus != 'B'){
+                            // locked the mailbox
+                            // but actor thread can freely detach it if call Detach() in message handler
+                            if(auto nWorkerID = p->second->SchedLock.Detach(); (nWorkerID != GetWorkerID()) && (nWorkerID != MAILBOX_DETACHED)){
                                 extern MonoServer *g_MonoServer;
-                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Locked actor has no BUSY status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", Status = %c", pActor, pActor->UID(), chStatus);
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Locked actor flips to invalid status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", Status = %d", pActor, pActor->UID(), nWorkerID);
+                                g_MonoServer->Restart();
                                 return false;
                             }
                             return true;
                         }
-                    case 'D':
+                    case MAILBOX_ACCESS_PUB:
                         {
-                            extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Double-remove an actor: ActorPod = %p, ActorPod::UID() = %" PRIu64, pActor, pActor->UID());
-                            return false;
+                            Backoff(nBackoff);
+                            break;
                         }
                     default:
                         {
-                            extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid actor status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %c", pActor, pActor->UID(), stMailboxLock.LockType());
-                            return false;
+                            if(!IsActorThread(stMailboxLock.LockType())){
+                                extern MonoServer *g_MonoServer;
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid actor status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %c", pActor, pActor->UID(), stMailboxLock.LockType());
+                                g_MonoServer->Restart();
+                                return false;
+                            }
+
+                            // now it's in one actor thread
+                            // if calling detach in the actor itself's message handler we can only mark the DETACHED status
+
+                            if(stMailboxLock.LockType() == GetWorkerID()){
+                                if(bForce){
+                                    extern MonoServer *g_MonoServer;
+                                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Actor can't be completed detached from it's message handler: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %c", pActor, pActor->UID());
+                                    g_MonoServer->Restart();
+                                    return false;
+                                }
+
+                                p->second->SchedLock.Detach();
+                                return true;
+                            }
+
+                            // target actor is in running status
+                            // and current thread is other actor thread not driving the target actor
+                            Backoff(nBackoff);
+                            break;
                         }
                 }
             }
         }
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Actor doesn't exist: (ActorPod = %p, ActorPod::UID() = %" PRIu64 ")", pActor, pActor->UID());
-        return false;
+
+        // we allow double-detach an actor
+        // this helps to put Detach() call in actor destructor
+
+        // then if we can't find this actor
+        // most likely it's removed already by its worker thread
+
+        // but if call from the message handler inside
+        // we still can't find it in the pool then it's an error
+        // how can I check it?
+        return true;
     };
 
     // current thread won't lock current actor bucket in read mode
     // any other thread can only accquire in read mode
 
-    if(std::this_thread::get_id() == m_BucketList[nIndex].WorkerID){
-        return fnDoRemove();
+    if(GetWorkerID() == (int)(nIndex)){
+        return fnDoDetach();
     }else{
         std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
-        return fnDoRemove();
+        return fnDoDetach();
     }
 }
 
-bool ActorPool::Remove(const Receiver *pReceiver)
+bool ActorPool::Detach(const Receiver *pReceiver)
 {
     if(!(pReceiver && pReceiver->UID())){
         extern MonoServer *g_MonoServer;
@@ -240,32 +285,34 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
     }
 
     auto nIndex = nUID % m_BucketList.size();
-    auto fnPushMessage = [this, nIndex, nUID](MessagePack stMPK)
+    auto fnPostMessage = [this, nIndex, nUID](MessagePack stMPK)
     {
+        // here won't try lock the mailbox
+        // but it will check if the mailbox is detached
+
         if(auto p = m_BucketList[nIndex].MailboxList.find(nUID); p != m_BucketList[nIndex].MailboxList.end()){
-            switch(auto chStatus = p->second.Status.load()){
-                case 'D':
-                    {
-                        return false;
-                    }
-                default:
-                    {
-                        std::lock_guard<SpinLock> stLockGuard(p->second->NextQLock);
-                        p->second->NextQ.push_back(std::move(stMPK));
-                        return true;
-                    }
+            if(p->second->SchedLock.Detached()){
+                return false;
+            }
+
+            // still here the mailbox can freely switch to detached status
+            // need the actor thread do fully clear job
+            {
+                std::lock_guard<SpinLock> stLockGuard(p->second->NextQLock);
+                p->second->NextQ.push_back(std::move(stMPK));
+                return true;
             }
         }
         return false;
     };
 
-    if(std::this_thread::get_id() == m_BucketList[nIndex].WorkerID){
-        if(fnPushMessage(std::move(stMPK))){
+    if(GetWorkerID() == (int)(nIndex)){
+        if(fnPostMessage(std::move(stMPK))){
             return true;
         }
     }else{
         std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
-        if(fnPushMessage(std::move(stMPK))){
+        if(fnPostMessage(std::move(stMPK))){
             return true;
         }
     }
@@ -276,31 +323,61 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
     return false;
 }
 
-void ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
+bool ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
 {
+    if(!IsActorThread()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Accessing actor message handlers outside of any actor threads: %d", GetWorkerID());
+        g_MonoServer->Restart();
+        return false;
+    }
+
+    // before every call to InnHandler()
+    // check if it's detached in case actor call Detach() in its message handler
+    //
+    //     if(pActor->Detached()){       // 1. check
+    //         return false;             // 2. return
+    //     }                             // 3. actor can't flip to detached here
+    //     pActor->InnHandler(stMPK);    // 4. handle
+
+    // don't worry about actor detached at line-3
+    // because it's in the message handling thread and it grabs the SchedLock
+    // any thread want to flip the actor to detached status must firstly grab its SchedLock
+
     if(bMetronome){
+        if(pMailbox->SchedLock.Detached()){
+            return false;
+        }
         pMailbox->Actor->InnHandler({MPK_METRONOME, 0, 0});
     }
 
     if(pMailbox->CurrQ.empty()){
         std::lock_guard<SpinLock> stLockGuard(pMailbox->NextQLock);
         if(pMailbox->NextQ.empty()){
-            return;
+            return true;
         }
         std::swap(pMailbox->CurrQ, pMailbox->NextQ);
     }
 
+    // if we return in the middle
+    // we may leave unhandled message in CurrQ
+
     for(auto p = pMailbox->CurrQ.begin(); p != pMailbox->CurrQ.end(); ++p){
+        if(pMailbox->SchedLock.Detached()){
+            return false;
+        }
         pMailbox->Actor->InnHandler(*p);
     }
+
     pMailbox->CurrQ.clear();
+    return pMailbox->SchedLock.Detached();
 }
 
 void ActorPool::RunWorkerSteal(size_t nMaxIndex)
 {
     std::shared_lock<std::shared_mutex> stLock(m_BucketList[nMaxIndex].BucketLock);
     for(auto p = m_BucketList[nMaxIndex].MailboxList.rbegin(); p != m_BucketList[nMaxIndex].MailboxList.rend(); ++p){
-        if(MailboxLock stMailboxLock(*(p->second.get())); stMailboxLock.Locked()){
+        if(MailboxLock stMailboxLock(p->second->SchedLock, GetWorkerID()); stMailboxLock.Locked()){
             RunOneMailbox(p->second.get(), false);
         }
     }
@@ -342,31 +419,101 @@ void ActorPool::RunWorker(size_t nIndex)
     }
 }
 
+void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
+{
+    if(GetWorkerID() != (int)(pMailbox->Actor->UID() % m_BucketList.size())){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Clean queued message outside of its actor thread");
+        g_MonoServer->Restart();
+        return;
+    }
+
+    // actually we can skip lock the NextQLock here
+    // because if we call this function we have accquired the bucket lock in write mode
+
+    // for any other application/actor threads
+    // if it want to post message to NextQ it should firstly accquire the bucket lock in reader mode
+    {
+        std::lock_guard<SpinLock> stLockGuard(pMailbox->NextQLock);
+        if(!pMailbox->NextQ.empty()){
+            pMailbox->CurrQ.insert(pMailbox->CurrQ.end(), pMailbox->NextQ.begin(), pMailbox->NextQ.end());
+        }
+    }
+
+    for(auto pMPK = pMailbox->CurrQ.begin(); pMPK != pMailbox->CurrQ.end(); ++pMPK){
+        if(pMPK->From()){
+            PostMessage(pMPK->From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, pMPK->Respond()});
+        }
+    }
+    pMailbox->CurrQ.clear();
+}
+
 void ActorPool::RunWorkerOneLoop(size_t nIndex)
 {
+    // check if in the correct thread
+    // stealing actor thread can't call this function
+
+    if(GetWorkerID() != (int)(nIndex)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Accessing message handlers outside of its actor thread: WorkerID = %d, BucketID = %d", GetWorkerID(), (int)(nIndex));
+        g_MonoServer->Restart();
+        return;
+    }
+
     auto fnUpdate = [this](size_t nIndex, auto p)
     {
         while(p != m_BucketList[nIndex].MailboxList.end()){
-            switch(MailboxLock stLock(*(p->second.get())); stLock.LockType()){
-                case 'R':
-                    {
-                        RunOneMailbox(p->second.get(), true);
-                        ++p;
-                        break;
-                    }
-                case 'B':
-                    {
-                        break;
-                    }
-                case 'D':
+            switch(MailboxLock stMailboxLock(p->second->SchedLock, GetWorkerID()); stMailboxLock.LockType()){
+                case MAILBOX_DETACHED:
                     {
                         return p;
                     }
-                default:
+                case MAILBOX_READY:
+                    {
+                        // we grabbed the mailbox successfully
+                        // but it can still flip to detached if call Detach() in its message handler
+
+                        // if between message handling it flips to detached
+                        // we just return immediately and leave the rest handled message there
+
+                        // don't try clean it
+                        // since we can't guarentee to clean it complately
+                        if(!RunOneMailbox(p->second.get(), true)){
+                            return p;
+                        }
+
+                        ++p;
+                        break;
+                    }
+                case MAILBOX_ACCESS_PUB:
                     {
                         extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Unexpected mailbox detected: %c", stLock.LockType());
+                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Actor message handler executed by application thread, should never happen");
                         g_MonoServer->Restart();
+                        break;
+                    }
+                default:
+                    {
+                        if(!IsActorThread(stMailboxLock.LockType())){
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid actor status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %d", p->second->Actor, p->second->Actor->UID(), stMailboxLock.LockType());
+                            g_MonoServer->Restart();
+                            return p;
+                        }
+
+                        // shouldn't by current actor thread
+                        // the mailbox is running in work stealing thread
+
+                        if(stMailboxLock.LockType() == GetWorkerID()){
+                            extern MonoServer *g_MonoServer;
+                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Incorrect actor worker id: %d", stMailboxLock.LockType());
+                            g_MonoServer->Restart();
+                            return p;
+                        }
+
+                        // if a mailbox grabbed by an actor thread
+                        // the thead will handle all its queued message
+                        ++p;
                         break;
                     }
             }
@@ -375,8 +522,55 @@ void ActorPool::RunWorkerOneLoop(size_t nIndex)
     };
 
     for(auto p = fnUpdate(nIndex, m_BucketList[nIndex].MailboxList.begin()); p != m_BucketList[nIndex].MailboxList.end(); p = fnUpdate(nIndex, p)){
-        std::unique_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
-        p = m_BucketList[nIndex].MailboxList.erase(p);
+        // we detected a detached actor
+        // and need to clean all its queued messages and remove it
+
+        // clean one mailbox means:
+        // 1. make sure all actor/application threads DONE posting to it
+        // 2. make sure all actor/application threads can not post new messages to it
+        // 3. make sure all queued message are responded with MPK_BADACTORPOD
+        {
+            std::unique_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
+
+            // accquire unique lock is expensive
+            // so do as much as possible if you successfully grabbed it
+
+            // we must call ClearOneMailbox() under accquiring the bucket lock in write mode
+            // think about this:
+            //
+            //                   thread-1: posting message           |              thread-2: actor main thread
+            // {                                                     |
+            //     accqure_reader_lock(BucketLock);                  |
+            //                                                       |
+            //     if(pMailbox->Detached()){                         |
+            //         return false;                                 |
+            //     }                                                 |   for_each(pMailbox in bucket){
+            //                                                       |       .....
+            // ------------------------------------------------------+--------------------------------------------------
+            //                                                       |       if(pMailbox->Detached()){
+            //     // some OS delay here                             |           ClearOneMailbox(pMailbox);
+            //                                                       |       }
+            // ------------------------------------------------------+--------------------------------------------------
+            //     {                                                 |
+            //         std::lock_guard stLock(pMailbox->NextQLock);  |
+            //         NextQ.push_back(NewMessage);                  |
+            //         return true;                                  |
+            //     }                                                 |
+            // } ----------------------------------------------------+------- // reader_lock released here
+            //                                                       |        // now writer lock can be accqured
+            //                                                       |        {
+            //                                                       |            accquire_writer_lock(BucketLock);
+            //                                                       |            pMailbox = mail_list.erase(pMailbox);
+            //                                                       |        }
+            //                                                       |    }
+            //
+            // here if we don't call ClearOneMailbox() with writer lock
+            // then ClearOneMailbox() can't guarantee it cleaned all coming messages
+            // lock the NextQLock is not enough, it can only guarentee those threads already grabbed NextQLock to finish
+
+            ClearOneMailbox(p->second.get());
+            p = m_BucketList[nIndex].MailboxList.erase(p);
+        }
     }
 }
 
@@ -385,7 +579,9 @@ void ActorPool::Launch()
     for(int nIndex = 0; nIndex < (int)(m_BucketList.size()); ++nIndex){
         m_FutureList.emplace_back(std::async(std::launch::async, [nIndex, this]()
         {
-            m_BucketList[nIndex].WorkerID = std::this_thread::get_id();
+            // record the worker id
+            // for application this won't get assigned
+            t_WorkerID = nIndex;
 
             extern MonoServer *g_MonoServer;
             auto nCurrTick = g_MonoServer->GetTimeTick();
@@ -409,6 +605,9 @@ void ActorPool::Launch()
             }
             return true;
         }).share());
+
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_INFO, "Actor thread %d launched", nIndex);
     }
 }
 
@@ -417,16 +616,26 @@ bool ActorPool::CheckInvalid(uint64_t nUID) const
     auto nIndex = nUID % m_BucketList.size();
     auto fnGetInvalid = [this, &rstMailboxList = m_BucketList[nIndex].MailboxList, nUID]() -> bool
     {
-        if(auto p = rstMailboxList.find(nUID); p == rstMailboxList.end() || p->second->Status.load() == 'D'){
+        if(auto p = rstMailboxList.find(nUID); p == rstMailboxList.end() || p->second->SchedLock.Detached()){
             return true;
         }
         return false;
     };
 
-    if(std::this_thread::get_id() == m_BucketList[nIndex].WorkerID){
+    if(GetWorkerID() == (int)(nIndex)){
         return fnGetInvalid();
     }else{
         std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
         return fnGetInvalid();
     }
+}
+
+bool ActorPool::IsActorThread() const
+{
+    return IsActorThread(GetWorkerID());
+}
+
+bool ActorPool::IsActorThread(int nWorkerID) const
+{
+    return (nWorkerID >= 0) && (nWorkerID < (int)(m_BucketList.size()));
 }

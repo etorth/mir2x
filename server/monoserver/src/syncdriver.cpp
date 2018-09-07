@@ -31,6 +31,10 @@ MessagePack SyncDriver::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
         return {MPK_NONE};
     }
 
+    // don't use in actor thread
+    // because we can use actor send message directly!
+    // and this blocks the actor thread caused the wait never finish
+
     extern ActorPool *g_ActorPool;
     if(g_ActorPool->IsActorThread()){
         extern MonoServer *g_MonoServer;

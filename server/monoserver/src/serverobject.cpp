@@ -104,7 +104,7 @@ uint64_t ServerObject::Activate()
 void ServerObject::Deactivate()
 {
     if(m_ActorPod){
-        m_ActorPod->Detach();
+        m_ActorPod->Detach(false);
     }
 }
 

@@ -163,11 +163,8 @@ class ActorPod final
         }
 
     public:
-        void Detach() const;
+        bool Detach(bool) const;
 
     public:
-        uint32_t GetMessageCount() const
-        {
-            return 0;
-        }
+        uint32_t GetMessageCount() const;
 };
