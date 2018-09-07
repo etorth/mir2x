@@ -752,7 +752,11 @@ void ServerMap::On_MPK_OFFLINE(const MessagePack &rstMPK)
 {
     AMOffline stAMO;
     std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));
-       
+
+    // this may fail
+    // because player may get offline at try move
+    RemoveGridUID(stAMO.UID, stAMO.X, stAMO.Y);
+
     DoCircle(stAMO.X, stAMO.Y, 10, [stAMO, this](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
