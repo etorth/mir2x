@@ -312,15 +312,18 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
     };
 
     if(GetWorkerID() == (int)(nIndex)){
-        if(fnPostMessage(std::move(stMPK))){
+        if(fnPostMessage(stMPK)){
             return true;
         }
     }else{
         std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
-        if(fnPostMessage(std::move(stMPK))){
+        if(fnPostMessage(stMPK)){
             return true;
         }
     }
+
+    // be careful here
+    // if use std::move(stMPK) above then here From() is invalid
 
     if(stMPK.From()){
         PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, stMPK.Respond()});
