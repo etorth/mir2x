@@ -48,6 +48,7 @@ ActorPod::ActorPod(uint64_t nUID,
       }())
     , m_Trigger(fnTrigger)
     , m_Operation(fnOperation)
+    , m_Detached(std::make_shared<std::atomic<bool>>(false))
     , m_ValidID(0)
     , m_ExpireTime(nExpireTime)
     , m_RespondHandlerGroup()
@@ -89,17 +90,48 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
                 UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
     }
 
+    if(m_Detached->load()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING,
+                "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Detached actor get scheduled",
+                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+    }
+
     if(m_ExpireTime){
         while(!m_RespondHandlerGroup.empty()){
             extern MonoServer *g_MonoServer;
             if(g_MonoServer->GetTimeTick() >= m_RespondHandlerGroup.begin()->second.ExpireTime){
+                // save the information ref to this actor
+                // to support actor to call Detach() inside its message handler
+                // need to use std::shared_ptr<> to keep m_Detached
+                auto pDetached  = m_Detached;
+                uint64_t nUID   = UID();
+                uint32_t nMPKID = m_RespondHandlerGroup.begin()->first;
                 try{
                     m_RespondHandlerGroup.begin()->second.Operation(MPK_TIMEOUT);
                 }catch(...){
                     extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_WARNING,
                             "%s <- NA : (Type: MPK_TIMEOUT, ID: %" PRIu32 ", Resp: NA): Caught exception in handing timeout",
-                            UIDFunc::GetUIDString(UID()).c_str(), m_RespondHandlerGroup.begin()->first, rstMPK.Respond());
+                            UIDFunc::GetUIDString(nUID).c_str(), nMPKID, rstMPK.Respond());
+                }
+
+                // detached in message handler detected, immediate leave it
+                // user can do suicide inside the message handler
+                //
+                //    if(need_detach){
+                //        Detach();
+                //        delete this;
+                //    }
+                //
+                // here deletion invalidate the this->m_Detached
+                // but pDetached is still valid for check
+
+                // check detached status after message handler
+                // immediately return if detached
+
+                if(pDetached->load()){
+                    return;
                 }
 
                 m_RespondHandlerGroup.erase(m_RespondHandlerGroup.begin());
@@ -129,13 +161,21 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
             // could be legal if then responding actor delays too much
         }else{
             if(p->second.Operation){
+                auto pDetached = m_Detached;
+                uint64_t nUID  = UID();
                 try{
                     p->second.Operation(rstMPK);
                 }catch(...){
                     extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_WARNING,
                             "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Caught exception in response handler",
-                            UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+                            UIDFunc::GetUIDString(nUID).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+                }
+
+                // check detached status after message handler
+                // immediately return if detached
+                if(pDetached->load()){
+                    return;
                 }
             }else{
                 extern MonoServer *g_MonoServer;
@@ -149,13 +189,21 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
         // this is not a responding message
         // use default message handling operation
         if(m_Operation){
+            auto pDetached = m_Detached;
+            uint64_t nUID  = UID();
             try{
                 m_Operation(rstMPK);
             }catch(...){
                 extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_WARNING,
                         "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Caught exception in message handler",
-                        UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+                        UIDFunc::GetUIDString(nUID).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+            }
+
+            // check detached status after message handler
+            // immediately return if detached
+            if(pDetached->load()){
+                return;
             }
         }else{
             // shoud I make it fatal?
@@ -168,13 +216,21 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
     }
 
     if(m_Trigger){
+        auto pDetached = m_Detached;
+        uint64_t nUID  = UID();
         try{
             m_Trigger();
         }catch(...){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING,
                     "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Caught exeption in trigger after message handling",
-                    UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+                    UIDFunc::GetUIDString(nUID).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+        }
+
+        // check detached status after message handler
+        // immediately return if detached
+        if(pDetached->load()){
+            return;
         }
     }
 }
@@ -308,7 +364,11 @@ bool ActorPod::Detach(bool bForce) const
     // theron library also has this issue
     // only destructor can guarentee the actor is not running any more
     extern ActorPool *g_ActorPool;
-    return g_ActorPool->Detach(this, bForce);
+    if(g_ActorPool->Detach(this, bForce)){
+        m_Detached->store(true);
+        return true;
+    }
+    return false;
 }
 
 uint32_t ActorPod::GetMessageCount() const

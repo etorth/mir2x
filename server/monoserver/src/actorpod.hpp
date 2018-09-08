@@ -3,48 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *    Description: why I made actor as a plug, because I want it to be a one to zero/one
- *                 mapping as ServerObject -> Actor
- *
- *                 Then a server object can plug to the actor system slot for concurrent
- *                 operation, but also some server objects don't need this functionality
- *
- *                 And what's more, if an object is both ServerObject and Actor, we need
- *                 MI, but I really don't want to use MI
- *
- *                 every time when class state updated, we call the trigger to check what
- *                 should be done, for actor the only way to update state is to handle
- *                 message, then:
- *
- *                 if(response message){
- *                     check response pool;
- *                 }else{
- *                     call operation handler;
- *                 }
- *
- *                 if(trigger registered){
- *                     call trigger;
- *                 }
- *
- *                 the best place to put trigger is inside class ActorPod, this means for
- *                 ServerObject, we can't use trigger before activate it, define ctor of
- *                 ActorPod as:
- *
- *                 ActorPod(Trigger, Operation);
- *
- *                 to provide the trigger, this trigger can handle delay commands, so we
- *                 define class DelayCmd and take the trigger as:
- *
- *                      auto fnTrigger = [this](){ m_StateHook.Execute(); }
- *
- *                 and
- *
- *                      m_StateHook.Install("ClearQueue", fnClearQueue);
- *                      m_StateHook.Uninstall("ClearQueue");
- *
- *                 then every time when new actor messages handled, we can check it
- *                 put the trigger here. Then for Transponder and ReactObject, we
- *                 provide method to install trigger handler:
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -59,7 +18,9 @@
 #pragma once
 
 #include <map>
+#include <atomic>
 #include <string>
+#include <memory>
 #include <functional>
 
 #include "messagebuf.hpp"
@@ -103,6 +64,20 @@ class ActorPod final
         // informing messges means we didn't register an handler for it
         // this handler is provided at the initialization time and never change
         const std::function<void(const MessagePack &)> m_Operation;
+
+    private:
+        // mark to check if the pod has called Detach()
+        // don't ref to mailbox pointer in actorpool because mailbox has independent life-cycle and
+        // it may be deleted immediately after called ActorPool::Detach(this)
+        // use in this way:
+        //
+        //      auto pDetached = m_Detached;
+        //      HandleMessage(pMSG);  // may call ``delete this" inside
+        //      if(p->load()){        // this shared_ptr trick helps to not deref deleted m_Detached
+        //          return;
+        //      }
+        //
+        std::shared_ptr<std::atomic<bool>> m_Detached;
 
     private:
         // used by ValidID()
