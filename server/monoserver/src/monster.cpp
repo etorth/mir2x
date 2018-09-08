@@ -466,6 +466,11 @@ void Monster::OperateAM(const MessagePack &rstMPK)
                 On_MPK_METRONOME(rstMPK);
                 break;
             }
+        case MPK_CHECKMASTER:
+            {
+                On_MPK_CHECKMASTER(rstMPK);
+                break;
+            }
         case MPK_NOTIFYNEWCO:
             {
                 On_MPK_NOTIFYNEWCO(rstMPK);

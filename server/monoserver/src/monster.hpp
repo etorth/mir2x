@@ -130,6 +130,7 @@ class Monster final: public CharObject
         void On_MPK_MAPSWITCH     (const MessagePack &);
         void On_MPK_NOTIFYDEAD    (const MessagePack &);
         void On_MPK_BADACTORPOD   (const MessagePack &);
+        void On_MPK_CHECKMASTER   (const MessagePack &);
         void On_MPK_NOTIFYNEWCO   (const MessagePack &);
         void On_MPK_QUERYCORECORD (const MessagePack &);
         void On_MPK_QUERYLOCATION (const MessagePack &);

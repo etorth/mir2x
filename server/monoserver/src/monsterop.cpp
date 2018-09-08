@@ -223,3 +223,7 @@ void Monster::On_MPK_OFFLINE(const MessagePack &rstMPK)
         GoDie();
     }
 }
+
+void Monster::On_MPK_CHECKMASTER(const MessagePack &)
+{
+}
