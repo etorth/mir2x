@@ -428,6 +428,10 @@ DamageNode Player::GetAttackDamage(int nDC)
 
 bool Player::StruckDamage(const DamageNode &rstDamage)
 {
+    // hack for debug
+    // make the player never die
+    return true;
+
     if(rstDamage){
         m_HP = std::max<int>(0, HP() - rstDamage.Damage);
         ReportHealth();

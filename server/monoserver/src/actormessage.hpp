@@ -77,6 +77,7 @@ enum MessagePackType: int
 struct AMBadActorPod
 {
     int      Type;
+    uint64_t From;
     uint32_t ID;
     uint32_t Respond;
 };
