@@ -171,6 +171,10 @@ bool ActorPool::Detach(const ActorPod *pActor, bool bForce)
                                 g_MonoServer->Restart();
                                 return false;
                             }
+
+                            // help to never access to it
+                            // detached actor outside of the pool can free itself immediately
+                            p->second->Actor = nullptr;
                             return true;
                         }
                     case MAILBOX_ACCESS_PUB:
@@ -199,6 +203,7 @@ bool ActorPool::Detach(const ActorPod *pActor, bool bForce)
                                 }
 
                                 p->second->SchedLock.Detach();
+                                p->second->Actor = nullptr;
                                 return true;
                             }
 
@@ -429,12 +434,8 @@ void ActorPool::RunWorker(size_t nIndex)
 
 void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
 {
-    if(GetWorkerID() != (int)(pMailbox->Actor->UID() % m_BucketList.size())){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Clear queued messages outside of its actor thread");
-        g_MonoServer->Restart();
-        return;
-    }
+    // actor can detach and immedately deconstruct it self
+    // when found a mailbox is detached never access it's actor pointer
 
     // clean one mailbox means:
     // 1. make sure all actor/application threads DONE posting to it
