@@ -474,3 +474,7 @@ void Player::On_MPK_CORECORD(const MessagePack &rstMPK)
 void Player::On_MPK_NOTIFYDEAD(const MessagePack &)
 {
 }
+
+void Player::On_MPK_CHECKMASTER(const MessagePack &)
+{
+}

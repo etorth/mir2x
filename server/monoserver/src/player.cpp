@@ -88,6 +88,11 @@ void Player::OperateAM(const MessagePack &rstMPK)
                 On_MPK_NOTIFYNEWCO(rstMPK);
                 break;
             }
+        case MPK_CHECKMASTER:
+            {
+                On_MPK_CHECKMASTER(rstMPK);
+                break;
+            }
         case MPK_MAPSWITCH:
             {
                 On_MPK_MAPSWITCH(rstMPK);
