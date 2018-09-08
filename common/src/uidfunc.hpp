@@ -89,7 +89,7 @@ namespace UIDFunc
         if(GetUIDType(nUID) != UID_MON){
             return 0;
         }
-        return (nUID & 0X00000FFE00000000) >> 32;
+        return (uint32_t)((nUID & 0X00000FFE00000000) >> 33);
     }
 
     inline uint32_t GetMonsterSeq(uint64_t nUID)
