@@ -115,11 +115,6 @@ void ServerObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd
     m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTimeTick(), m_DelayCmdCount, fnCmd);
 }
 
-uint8_t ServerObject::GetState(uint8_t nState)
-{
-    return m_StateV[nState];
-}
-
 void ServerObject::SetState(uint8_t nStateLoc, uint8_t nStateValue)
 {
     extern MonoServer *g_MonoServer;
@@ -127,7 +122,12 @@ void ServerObject::SetState(uint8_t nStateLoc, uint8_t nStateValue)
     m_StateTimeV[nStateLoc] = g_MonoServer->GetTimeTick();
 }
 
-uint32_t ServerObject::StateTime(uint8_t nState)
+uint8_t ServerObject::GetState(uint8_t nState) const
+{
+    return m_StateV[nState];
+}
+
+uint32_t ServerObject::GetStateTime(uint8_t nState) const
 {
     extern MonoServer *g_MonoServer;
     return g_MonoServer->GetTimeTick() - m_StateTimeV[nState];

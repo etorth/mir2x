@@ -738,6 +738,8 @@ bool Monster::GoGhost()
                             SetState(STATE_GHOST, 1);
 
                             AMDeadFadeOut stAMDFO;
+                            std::memset(&stAMDFO, 0, sizeof(stAMDFO));
+
                             stAMDFO.UID   = UID();
                             stAMDFO.MapID = MapID();
                             stAMDFO.X     = X();

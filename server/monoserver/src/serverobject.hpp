@@ -131,11 +131,11 @@ class ServerObject
         }
 
     protected:
-        uint8_t GetState(uint8_t);
-        uint32_t StateTime(uint8_t);
+        void SetState(uint8_t, uint8_t);
 
     protected:
-        void SetState(uint8_t, uint8_t);
+        uint8_t  GetState    (uint8_t) const;
+        uint32_t GetStateTime(uint8_t) const;
 
     public:
         uint64_t Activate();
