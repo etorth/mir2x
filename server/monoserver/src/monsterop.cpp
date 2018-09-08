@@ -224,6 +224,7 @@ void Monster::On_MPK_OFFLINE(const MessagePack &rstMPK)
     }
 }
 
-void Monster::On_MPK_CHECKMASTER(const MessagePack &)
+void Monster::On_MPK_CHECKMASTER(const MessagePack &rstMPK)
 {
+    m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
 }

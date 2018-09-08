@@ -475,6 +475,7 @@ void Player::On_MPK_NOTIFYDEAD(const MessagePack &)
 {
 }
 
-void Player::On_MPK_CHECKMASTER(const MessagePack &)
+void Player::On_MPK_CHECKMASTER(const MessagePack &rstMPK)
 {
+    m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
 }
