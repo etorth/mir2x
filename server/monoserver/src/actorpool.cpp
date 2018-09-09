@@ -128,7 +128,7 @@ bool ActorPool::Register(Receiver *pReceiver)
     return false;
 }
 
-bool ActorPool::Detach(const ActorPod *pActor, bool bForce)
+bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAtExit)
 {
     if(!(pActor && pActor->UID())){
         extern MonoServer *g_MonoServer;
@@ -140,7 +140,7 @@ bool ActorPool::Detach(const ActorPod *pActor, bool bForce)
     // but use actor address prevents other thread detach blindly
 
     auto nIndex = pActor->UID() % m_BucketList.size();
-    auto fnDoDetach = [this, &rstMailboxList = m_BucketList[nIndex].MailboxList, pActor, bForce]() -> bool
+    auto fnDoDetach = [this, &rstMailboxList = m_BucketList[nIndex].MailboxList, pActor, &fnAtExit]() -> bool
     {
         // we need to make sure after this funtion
         // the isn't any threads accessing the internal actor state
@@ -164,6 +164,9 @@ bool ActorPool::Detach(const ActorPod *pActor, bool bForce)
                         }
                     case MAILBOX_READY:
                         {
+                            // grabbed the SchedLock successfully
+                            // no other thread can access the message handler before unlock
+
                             // only check this consistancy when grabbed the lock
                             // otherwise other thread may change the actor pointer to null at any time
                             if(p->second->Actor != pActor){
@@ -172,13 +175,19 @@ bool ActorPool::Detach(const ActorPod *pActor, bool bForce)
                                 return false;
                             }
 
-                            // locked the mailbox
-                            // but actor thread can freely detach it if call Detach() in message handler
-                            if(auto nWorkerID = p->second->SchedLock.Detach(); (nWorkerID != GetWorkerID()) && (nWorkerID != MAILBOX_DETACHED)){
+                            // detach a locked mailbox
+                            // remember any thread can't flip mailbox to detach before lock it
+                            if(auto nWorkerID = p->second->SchedLock.Detach(); nWorkerID != GetWorkerID()){
                                 extern MonoServer *g_MonoServer;
                                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Locked actor flips to invalid status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", Status = %d", pActor, pActor->UID(), nWorkerID);
                                 g_MonoServer->Restart();
                                 return false;
+                            }
+
+                            // call actor atexit() function immediately
+                            // don't need to delay it since it's not in the actor thread
+                            if(fnAtExit){
+                                fnAtExit();
                             }
 
                             // help to never access to it
@@ -200,8 +209,8 @@ bool ActorPool::Detach(const ActorPod *pActor, bool bForce)
                                 return false;
                             }
 
-                            // now it's in one actor thread
-                            // if calling detach in the actor itself's message handler we can only mark the DETACHED status
+                            // in these actor threads
+                            // if calling detach in the actor's message handler we can only mark the DETACHED status
 
                             if(stMailboxLock.LockType() == GetWorkerID()){
                                 // only check this consistancy when grabbed the lock
@@ -212,14 +221,13 @@ bool ActorPool::Detach(const ActorPod *pActor, bool bForce)
                                     return false;
                                 }
 
-                                if(bForce){
-                                    extern MonoServer *g_MonoServer;
-                                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Actor can't be completed detached from it's message handler: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %c", pActor, pActor->UID());
-                                    g_MonoServer->Restart();
-                                    return false;
+                                // this is from inside the actor's actor thread
+                                // have to delay the atexit() since the message handler is not done yet
+                                p->second->SchedLock.Detach();
+                                if(fnAtExit){
+                                    p->second->AtExit = fnAtExit;
                                 }
 
-                                p->second->SchedLock.Detach();
                                 p->second->Actor = nullptr;
                                 return true;
                             }
@@ -528,7 +536,7 @@ void ActorPool::RunWorkerOneLoop(size_t nIndex)
                 case MAILBOX_READY:
                     {
                         // we grabbed the mailbox successfully
-                        // but it can still flip to detached if call Detach() in its message handler
+                        // but it can flip to detached if call Detach() in its message handler
 
                         // if between message handling it flips to detached
                         // we just return immediately and leave the rest handled message there
@@ -580,7 +588,11 @@ void ActorPool::RunWorkerOneLoop(size_t nIndex)
 
     for(auto p = fnUpdate(nIndex, m_BucketList[nIndex].MailboxList.begin()); p != m_BucketList[nIndex].MailboxList.end(); p = fnUpdate(nIndex, p)){
         // we detected a detached actor
-        // and need to clean all its queued messages and remove it if ready
+        // clear all its queued messages and remove it if ready
+        if(p->second->AtExit){
+            p->second->AtExit();
+            p->second->AtExit = {};
+        }
         ClearOneMailbox(p->second.get());
         {
             std::unique_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);

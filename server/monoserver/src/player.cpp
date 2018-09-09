@@ -365,19 +365,7 @@ bool Player::GoGhost()
                             //    don't do delete m_ActorPod to disable the actor
                             //    since currently we are in the actor thread which accquired by m_ActorPod
                             Deactivate();
-
-                            // 3. without message driving it
-                            //    the char object will be inactive and activities after this
-                            GoSuicide();
                             return true;
-
-                            // there is an time gap after Deactivate() and before deletion handler called in GoSuicide
-                            // then during this gap even if the actor is scheduled we won't have data race anymore
-                            // since we called Deactivate() which deregistered Innhandler refers *this*
-                            //
-                            // note that even if during this gap we have functions call GetAddress()
-                            // we are still OK since m_ActorPod is still valid
-                            // but if then send to this address, it will drain to the default message handler
                         }
                 }
             }
@@ -387,28 +375,6 @@ bool Player::GoGhost()
             }
     }
 }
-
-bool Player::GoSuicide()
-{
-    if(true
-            && GetState(STATE_DEAD)
-            && GetState(STATE_GHOST)){
-
-        // 1. register a operationi to the thread pool to delete
-        // 2. don't pass *this* to any other threads, pass UID instead
-        extern ThreadPN *g_ThreadPN;
-        return g_ThreadPN->Add([this](){ delete this; });
-
-        // after this line
-        // *this* is invalid and should never be refered
-    }
-
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "GoSuicide(this = %p, UID = %" PRIu32 ") failed", this, UID());
-    return false;
-}
-
-
 
 bool Player::DCValid(int, bool)
 {

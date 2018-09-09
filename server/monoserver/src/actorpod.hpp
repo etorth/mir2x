@@ -18,9 +18,7 @@
 #pragma once
 
 #include <map>
-#include <atomic>
 #include <string>
-#include <memory>
 #include <functional>
 
 #include "messagebuf.hpp"
@@ -64,20 +62,6 @@ class ActorPod final
         // informing messges means we didn't register an handler for it
         // this handler is provided at the initialization time and never change
         const std::function<void(const MessagePack &)> m_Operation;
-
-    private:
-        // mark to check if the pod has called Detach()
-        // don't ref to mailbox pointer in actorpool because mailbox has independent life-cycle and
-        // it may be deleted immediately after called ActorPool::Detach(this)
-        // use in this way:
-        //
-        //      auto pDetached = m_Detached;
-        //      HandleMessage(pMSG);  // may call ``delete this" inside
-        //      if(p->load()){        // this shared_ptr trick helps to not deref deleted m_Detached
-        //          return;
-        //      }
-        //
-        std::shared_ptr<std::atomic<bool>> m_Detached;
 
     private:
         // used by ValidID()
@@ -138,7 +122,7 @@ class ActorPod final
         }
 
     public:
-        bool Detach(bool) const;
+        bool Detach(const std::function<void()> &) const;
 
     public:
         uint32_t GetMessageCount() const;

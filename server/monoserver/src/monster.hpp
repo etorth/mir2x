@@ -174,5 +174,4 @@ class Monster final: public CharObject
     protected:
         virtual bool GoDie();
         virtual bool GoGhost();
-        virtual bool GoSuicide();
 };

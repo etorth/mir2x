@@ -215,12 +215,15 @@ class ActorPool final
             std::vector<MessagePack> CurrQ;
             std::vector<MessagePack> NextQ;
 
+            std::function<void()> AtExit;
+
             Mailbox(ActorPod *pActor)
                 : Actor(pActor)
                 , SchedLock()
                 , NextQLock()
                 , CurrQ()
                 , NextQ()
+                , AtExit()
             {}
         };
 
@@ -265,7 +268,7 @@ class ActorPool final
 
     private:
         bool Detach(const Receiver *);
-        bool Detach(const ActorPod *, bool);
+        bool Detach(const ActorPod *, const std::function<void()> &);
 
     public:
         void Launch();

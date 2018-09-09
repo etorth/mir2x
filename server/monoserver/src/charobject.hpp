@@ -302,9 +302,8 @@ class CharObject: public ServerObject
         virtual void CheckFriend(uint64_t, const std::function<void(int)> &) = 0;
 
     protected:
-        virtual bool GoDie()     = 0;
-        virtual bool GoGhost()   = 0;
-        virtual bool GoSuicide() = 0;
+        virtual bool GoDie()   = 0;
+        virtual bool GoGhost() = 0;
 
     protected:
         virtual int MaxStep()
