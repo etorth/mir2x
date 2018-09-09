@@ -309,7 +309,15 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
         }
 
         if(stMPK.From()){
-            PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, stMPK.Respond()});
+            AMBadActorPod stAMBAP;
+            std::memset(&stAMBAP, 0, sizeof(stAMBAP));
+
+            stAMBAP.Type    = stMPK.Type();
+            stAMBAP.From    = stMPK.From();
+            stAMBAP.ID      = stMPK.ID();
+            stAMBAP.Respond = stMPK.Respond();
+
+            PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, stMPK.ID()});
         }
         return false;
     }
@@ -356,7 +364,15 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
     // if use std::move(stMPK) above then here From() is invalid
 
     if(stMPK.From()){
-        PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, stMPK.Respond()});
+        AMBadActorPod stAMBAP;
+        std::memset(&stAMBAP, 0, sizeof(stAMBAP));
+
+        stAMBAP.Type    = stMPK.Type();
+        stAMBAP.From    = stMPK.From();
+        stAMBAP.ID      = stMPK.ID();
+        stAMBAP.Respond = stMPK.Respond();
+
+        PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, stMPK.ID()});
     }
     return false;
 }
@@ -507,7 +523,15 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
 
     for(auto pMPK = pMailbox->CurrQ.begin(); pMPK != pMailbox->CurrQ.end(); ++pMPK){
         if(pMPK->From()){
-            PostMessage(pMPK->From(), {MessageBuf(MPK_BADACTORPOD), 0, 0, pMPK->Respond()});
+            AMBadActorPod stAMBAP;
+            std::memset(&stAMBAP, 0, sizeof(stAMBAP));
+
+            stAMBAP.Type    = pMPK->Type();
+            stAMBAP.From    = pMPK->From();
+            stAMBAP.ID      = pMPK->ID();
+            stAMBAP.Respond = pMPK->Respond();
+
+            PostMessage(pMPK->From(), {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, pMPK->ID()});
         }
     }
     pMailbox->CurrQ.clear();

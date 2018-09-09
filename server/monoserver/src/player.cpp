@@ -475,11 +475,7 @@ bool Player::Offline()
     ReportOffline(UID(), MapID());
 
     Deactivate();
-
-    // 1. register a operation to the thread pool to delete
-    // 2. don't pass *this* to any other threads, pass UID instead
-    extern ThreadPN *g_ThreadPN;
-    return g_ThreadPN->Add([this](){ delete this; });
+    return true;
 }
 
 bool Player::PostNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
