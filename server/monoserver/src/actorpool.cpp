@@ -142,16 +142,9 @@ bool ActorPool::Detach(const ActorPod *pActor, bool bForce)
     auto nIndex = pActor->UID() % m_BucketList.size();
     auto fnDoDetach = [this, &rstMailboxList = m_BucketList[nIndex].MailboxList, pActor, bForce]() -> bool
     {
+        // we need to make sure after this funtion
+        // the isn't any threads accessing the internal actor state
         if(auto p = rstMailboxList.find(pActor->UID()); p != rstMailboxList.end()){
-            if(p->second->Actor != pActor){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Different actors with same UID: ActorPod = (%p, %p), ActorPod::UID() = %" PRIu64, pActor, p->second->Actor, pActor->UID());
-                return false;
-            }
-
-            // we need to make sure after this funtion
-            // the isn't any threads accessing the internal actor state
-
             uint32_t nBackoff = 0;
             while(true){
                 switch(MailboxLock stMailboxLock(p->second->SchedLock, GetWorkerID()); stMailboxLock.LockType()){
@@ -159,10 +152,26 @@ bool ActorPool::Detach(const ActorPod *pActor, bool bForce)
                         {
                             // we allow double detach an actor
                             // this helps to always legally call Detach() in actor destructor
+
+                            // if found a detached actor
+                            // then the actor pointer should be null
+                            if(p->second->Actor){
+                                extern MonoServer *g_MonoServer;
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Detached mailbox has non-zero actor pointer: ActorPod = %p, ActorPod::UID() = %" PRIu64, p->second->Actor, pActor->UID());
+                                return false;
+                            }
                             return true;
                         }
                     case MAILBOX_READY:
                         {
+                            // only check this consistancy when grabbed the lock
+                            // otherwise other thread may change the actor pointer to null at any time
+                            if(p->second->Actor != pActor){
+                                extern MonoServer *g_MonoServer;
+                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Different actors with same UID: ActorPod = (%p, %p), ActorPod::UID() = %" PRIu64, pActor, p->second->Actor, pActor->UID());
+                                return false;
+                            }
+
                             // locked the mailbox
                             // but actor thread can freely detach it if call Detach() in message handler
                             if(auto nWorkerID = p->second->SchedLock.Detach(); (nWorkerID != GetWorkerID()) && (nWorkerID != MAILBOX_DETACHED)){
@@ -195,6 +204,14 @@ bool ActorPool::Detach(const ActorPod *pActor, bool bForce)
                             // if calling detach in the actor itself's message handler we can only mark the DETACHED status
 
                             if(stMailboxLock.LockType() == GetWorkerID()){
+                                // only check this consistancy when grabbed the lock
+                                // otherwise other thread may change the actor pointer to null at any time
+                                if(p->second->Actor != pActor){
+                                    extern MonoServer *g_MonoServer;
+                                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Different actors with same UID: ActorPod = (%p, %p), ActorPod::UID() = %" PRIu64, pActor, p->second->Actor, pActor->UID());
+                                    return false;
+                                }
+
                                 if(bForce){
                                     extern MonoServer *g_MonoServer;
                                     g_MonoServer->AddLog(LOGTYPE_WARNING, "Actor can't be completed detached from it's message handler: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %c", pActor, pActor->UID());
