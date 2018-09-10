@@ -384,6 +384,9 @@ bool ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
 
     for(auto p = pMailbox->CurrQ.begin(); p != pMailbox->CurrQ.end(); ++p){
         if(pMailbox->SchedLock.Detached()){
+            // need to erase all handled messages: [begin, p)
+            // otherwise in ClearOneMailbox() will get handled again with MPK_BADACTORPOD
+            pMailbox->CurrQ.erase(pMailbox->CurrQ.begin(), p);
             return false;
         }
         pMailbox->Actor->InnHandler(*p);
