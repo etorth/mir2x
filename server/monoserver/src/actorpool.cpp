@@ -300,24 +300,10 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
     }
 
     if(IsReceiver(nUID)){
-        {
-            std::lock_guard<std::mutex> stLockGuard(m_ReceiverLock);
-            if(auto p = m_ReceiverList.find(nUID); p != m_ReceiverList.end()){
-                p->second->PushMessage(std::move(stMPK));
-                return true;
-            }
-        }
-
-        if(stMPK.From()){
-            AMBadActorPod stAMBAP;
-            std::memset(&stAMBAP, 0, sizeof(stAMBAP));
-
-            stAMBAP.Type    = stMPK.Type();
-            stAMBAP.From    = stMPK.From();
-            stAMBAP.ID      = stMPK.ID();
-            stAMBAP.Respond = stMPK.Respond();
-
-            PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, stMPK.ID()});
+        std::lock_guard<std::mutex> stLockGuard(m_ReceiverLock);
+        if(auto p = m_ReceiverList.find(nUID); p != m_ReceiverList.end()){
+            p->second->PushMessage(std::move(stMPK));
+            return true;
         }
         return false;
     }
@@ -350,31 +336,11 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
     };
 
     if(GetWorkerID() == (int)(nIndex)){
-        if(fnPostMessage(stMPK)){
-            return true;
-        }
+        return fnPostMessage(stMPK);
     }else{
         std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
-        if(fnPostMessage(stMPK)){
-            return true;
-        }
+        return fnPostMessage(stMPK);
     }
-
-    // be careful here
-    // if use std::move(stMPK) above then here From() is invalid
-
-    if(stMPK.From()){
-        AMBadActorPod stAMBAP;
-        std::memset(&stAMBAP, 0, sizeof(stAMBAP));
-
-        stAMBAP.Type    = stMPK.Type();
-        stAMBAP.From    = stMPK.From();
-        stAMBAP.ID      = stMPK.ID();
-        stAMBAP.Respond = stMPK.Respond();
-
-        PostMessage(stMPK.From(), {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, stMPK.ID()});
-    }
-    return false;
 }
 
 bool ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)

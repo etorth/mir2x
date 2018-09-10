@@ -32,7 +32,7 @@ MessagePack SyncDriver::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
     }
 
     // don't use in actor thread
-    // because we can use actor send message directly!
+    // because we can use actor send message directly
     // and this blocks the actor thread caused the wait never finish
 
     extern ActorPool *g_ActorPool;
@@ -51,7 +51,18 @@ MessagePack SyncDriver::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
         g_MonoServer->AddLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")", UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), nCurrID, nRespond);
     }
 
-    g_ActorPool->PostMessage(nUID, {rstMB, UID(), nCurrID, nRespond});
+    if(!g_ActorPool->PostMessage(nUID, {rstMB, UID(), nCurrID, nRespond})){
+        AMBadActorPod stAMBAP;
+        std::memset(&stAMBAP, 0, sizeof(stAMBAP));
+
+        stAMBAP.Type    = rstMB.Type();
+        stAMBAP.From    = UID();
+        stAMBAP.ID      = nCurrID;
+        stAMBAP.Respond = nRespond;
+
+        return {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, nCurrID};
+    }
+
     switch(m_Receiver.Wait(nTimeout)){
         case 0:
             {
