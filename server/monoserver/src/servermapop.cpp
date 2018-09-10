@@ -609,6 +609,7 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
     std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
 
     if(ValidC(stAMDFO.X, stAMDFO.Y)){
+        RemoveGridUID(stAMDFO.UID, stAMDFO.X, stAMDFO.Y);
         DoCircle(stAMDFO.X, stAMDFO.Y, 20, [this, stAMDFO](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){

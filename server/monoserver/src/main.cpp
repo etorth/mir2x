@@ -63,7 +63,7 @@ int main()
     g_MapBinDBN               = new MapBinDBN();
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
-    g_ActorPool               = new ActorPool(5);
+    g_ActorPool               = new ActorPool(1);
     g_ThreadPN                = new ThreadPN(4);
     g_DBPodN                  = new DBPodN();
     g_NetDriver               = new NetDriver();
