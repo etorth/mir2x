@@ -113,7 +113,6 @@ mir2x uses a number of open source projects to work properly, and of course itse
 * [SDL2](https://www.libsdl.org/) - A cross-platform development library designed to provide a hardware abstraction layer.
 * [FLTK](http://www.fltk.org) - A cross-platform C++ GUI toolkit for UNIX®/Linux® (X11), Microsoft® Windows®, and MacOS® X.
 * [asio](http://www.think-async.com/) - A cross-platform C++ library for network and low-level I/O programming.
-* [theron](http://www.theron-library.com/) - A lightweight C++ concurrency library based on the Actor Model.
 * [g3log](https://github.com/KjellKod/g3log) - An asynchronous, "crash safe", logger that is easy to use.
 * [lua](https://www.lua.org/) - A powerful, efficient, lightweight, embeddable scripting language.
 * [sol2](https://github.com/ThePhD/sol2) - A fast, simple C++ and Lua binding.
