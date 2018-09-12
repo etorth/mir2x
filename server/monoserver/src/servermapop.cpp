@@ -511,6 +511,8 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
     int nY1 = stAMPF.EndY;
 
     AMPathFindOK stAMPFOK;
+    std::memset(&stAMPFOK, 0, sizeof(stAMPFOK));
+
     stAMPFOK.UID   = stAMPF.UID;
     stAMPFOK.MapID = ID();
 
@@ -544,7 +546,10 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
 
     // drop the first node
     // it's should be the provided start point
-    stPathFinder.GetSolutionStart();
+    if(!stPathFinder.GetSolutionStart()){
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+        return;
+    }
 
     int nCurrN = 0;
     int nCurrX = nX0;
