@@ -118,6 +118,9 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
     private:
         int m_MaxStep;
 
+    private:
+        bool m_HasSolution;
+
     public:
         friend class AStarPathFinderNode;
 
@@ -130,6 +133,7 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
             , m_MoveChecker(fnMoveChecker)
             , m_MoveCost(fnMoveCost)
             , m_MaxStep(nMaxStepSize)
+            , m_HasSolution(false)
         {
             condcheck(m_MoveChecker);
             condcheck(m_MoveCost);
@@ -142,7 +146,9 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
     public:
         ~AStarPathFinder()
         {
-            FreeSolutionNodes();
+            if(m_HasSolution){
+                FreeSolutionNodes();
+            }
             EnsureMemoryFreed();
         }
 

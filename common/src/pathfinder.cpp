@@ -28,7 +28,11 @@ bool AStarPathFinder::Search(int nX0, int nY0, int nX1, int nY1)
     do{
         nSearchState = SearchStep();
     }while(nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SEARCHING);
-    return nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SUCCEEDED;
+
+    // only update m_HasSolution here
+    // we won't do search twice using one AStarPathFinder instance
+    m_HasSolution = (nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SUCCEEDED);
+    return m_HasSolution;
 }
 
 int PathFind::MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_t nMaxStepLen)
