@@ -89,7 +89,7 @@ uint64_t CharObject::Activate()
     return 0;
 }
 
-void CharObject::ReportAction(uint32_t, const ActionNode &)
+void CharObject::ReportAction(uint64_t, const ActionNode &)
 {
 }
 

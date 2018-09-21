@@ -256,7 +256,7 @@ class CharObject: public ServerObject
 
     protected:
         virtual void DispatchAction(const ActionNode &);
-        virtual void ReportAction(uint32_t, const ActionNode &);
+        virtual void ReportAction(uint64_t, const ActionNode &);
 
     protected:
         virtual int OneStepReach(int, int, int *, int *);
