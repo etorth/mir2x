@@ -102,6 +102,35 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
             && stAMA.MapID == MapID()
             && LDistance2(stAMA.X, stAMA.Y, X(), Y()) < 400){
 
+        // for all action types
+        // the x/y are always well-defined
+
+        int nDirection = -1;
+        switch(stAMA.Action){
+            case ACTION_STAND:
+            case ACTION_ATTACK:
+            case ACTION_HITTED:
+                {
+                    nDirection = stAMA.Direction;
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+
+        extern MonoServer *g_MonoServer;
+        m_LocationList[stAMA.UID] = COLocation
+        {
+            stAMA.UID,
+            stAMA.MapID,
+            g_MonoServer->GetTimeTick(),
+            stAMA.X,
+            stAMA.Y,
+            nDirection
+        };
+
         ReportAction(stAMA.UID, ActionNode
         {
             stAMA.Action,

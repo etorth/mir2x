@@ -98,35 +98,71 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
     // should check to avoid dead CO call this function
     // this would cause zombies
 
-    if(true
-            && ActorPodValid()
-            && m_Map
-            && m_Map->ActorPodValid()){
-
-        AMAction stAMA;
-        std::memset(&stAMA, 0, sizeof(stAMA));
-
-        stAMA.UID   = UID();
-        stAMA.MapID = MapID();
-
-        stAMA.Action    = rstAction.Action;
-        stAMA.Speed     = rstAction.Speed;
-        stAMA.Direction = rstAction.Direction;
-
-        stAMA.X    = rstAction.X;
-        stAMA.Y    = rstAction.Y;
-        stAMA.AimX = rstAction.AimX;
-        stAMA.AimY = rstAction.AimY;
-
-        stAMA.AimUID      = rstAction.AimUID;
-        stAMA.ActionParam = rstAction.ActionParam;
-
-        m_ActorPod->Forward(m_Map->UID(), {MPK_ACTION, stAMA});
+    if(!ActorPodValid()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch action: %s", rstAction.ActionName());
         return;
     }
 
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch action: %s", rstAction.ActionName());
+    AMAction stAMA;
+    std::memset(&stAMA, 0, sizeof(stAMA));
+
+    stAMA.UID   = UID();
+    stAMA.MapID = MapID();
+
+    stAMA.Action    = rstAction.Action;
+    stAMA.Speed     = rstAction.Speed;
+    stAMA.Direction = rstAction.Direction;
+
+    stAMA.X    = rstAction.X;
+    stAMA.Y    = rstAction.Y;
+    stAMA.AimX = rstAction.AimX;
+    stAMA.AimY = rstAction.AimY;
+
+    stAMA.AimUID      = rstAction.AimUID;
+    stAMA.ActionParam = rstAction.ActionParam;
+
+    switch(stAMA.Action){
+        case ACTION_MOVE:
+        case ACTION_PUSHMOVE:
+        case ACTION_SPACEMOVE1:
+        case ACTION_SPACEMOVE2:
+            {
+                m_ActorPod->Forward(m_Map->UID(), {MPK_ACTION, stAMA});
+                return;
+            }
+        default:
+            {
+                for(auto pLoc = m_LocationList.begin(); pLoc != m_LocationList.end();){
+                    auto pNext  = std::next(pLoc);
+                    auto nX     = pLoc->second.X;
+                    auto nY     = pLoc->second.Y;
+                    auto nMapID = pLoc->second.MapID;
+
+                    if(m_Map->In(nMapID, nX, nY) && LDistance2(nX, nY, X(), Y()) < 100){
+                        // if one co becomes my new neighbor
+                        // is should be included in the list already
+                        // but if we find a neighbor in the cache list we need to refresh it
+                        RetrieveLocation(pLoc->first, [this, stAMA](const COLocation &rstLocation)
+                        {
+                            auto nX = rstLocation.X;
+                            auto nY = rstLocation.Y;
+                            auto nMapID = rstLocation.MapID;
+                            if(m_Map->In(nMapID, nX, nY) && LDistance2(nX, nY, X(), Y()) < 100){
+                                m_ActorPod->Forward(rstLocation.UID, {MPK_ACTION, stAMA});
+                            }
+                        });
+
+                        // we need to keep pNext
+                        // since RetrieveLocation may remove current node
+                        pLoc = pNext;
+                    }else{
+                        pLoc = m_LocationList.erase(pLoc);
+                    }
+                }
+                return;
+            }
+    }
 }
 
 bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
