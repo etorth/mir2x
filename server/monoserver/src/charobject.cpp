@@ -430,6 +430,12 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
         return false;
     }
 
+    if(nUID == UID()){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Query UID to co itself");
+        return false;
+    }
+
     // current the UID is valid
     // lambda captured fnOnLocationOK then can be delayed by one step
     // 1.     valid cache : call fnOnLocationOK
@@ -455,11 +461,11 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
                         // when we get this response
                         // it's possible that the co has switched map
 
-                        if(m_Map->In(stAML.MapID, stAML.X, stAML.Y)){
+                        if(m_Map->In(stAML.MapID, stAML.X, stAML.Y) && stAML.UID == nUID){
                             m_LocationList[nUID] = COLocation
                             {
-                                UID(),
-                                MapID(),
+                                stAML.UID,
+                                stAML.MapID,
                                 stAML.RecordTime,
                                 stAML.X,
                                 stAML.Y,
