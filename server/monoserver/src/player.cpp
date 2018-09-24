@@ -297,9 +297,27 @@ void Player::ReportHealth()
     }
 }
 
-bool Player::InRange(int, int, int)
+bool Player::InRange(int nRangeType, int nX, int nY)
 {
-    return true;
+    if(!m_Map->ValidC(nX, nY)){
+        return false;
+    }
+
+    switch(nRangeType){
+        case RANGE_VISIBLE:
+            {
+                return LDistance2(X(), Y(), nX, nY) < 20 * 20;
+            }
+        case RANGE_ATTACK:
+            {
+                return LDistance2(X(), Y(), nX, nY) < 10 * 10;
+            }
+        default:
+            {
+                break;
+            }
+    }
+    return false;
 }
 
 bool Player::GoDie()
