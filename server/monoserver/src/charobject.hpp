@@ -173,7 +173,7 @@ class CharObject: public ServerObject
         const ServerMap   *m_Map;
 
     protected:
-        std::map<uint32_t, COLocation> m_LocationList;
+        std::map<uint64_t, COLocation> m_LocationList;
 
     protected:
         int m_X;
