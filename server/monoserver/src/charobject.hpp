@@ -126,6 +126,12 @@ struct COLocation
 
 class CharObject: public ServerObject
 {
+    public:
+        class COPathFinder
+        {
+
+        };
+
     protected:
         enum QueryType: int
         {
