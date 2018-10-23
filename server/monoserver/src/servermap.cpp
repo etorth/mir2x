@@ -109,13 +109,13 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
           return pMir2xMapData;
       }()))
     , m_ServiceCore(pServiceCore)
-    , m_CellRecordV2D()
+    , m_CellVec2D()
     , m_LuaModule(nullptr)
 {
-    m_CellRecordV2D.clear();
+    m_CellVec2D.clear();
     if(m_Mir2xMapData.Valid()){
-        m_CellRecordV2D.resize(W());
-        for(auto &rstStateLine: m_CellRecordV2D){
+        m_CellVec2D.resize(W());
+        for(auto &rstStateLine: m_CellVec2D){
             rstStateLine.resize(H());
         }
     }else{
@@ -252,7 +252,7 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
 {
     if(GroundValid(nX, nY)){
         if(bCheckCO){
-            for(auto nUID: m_CellRecordV2D[nX][nY].UIDList){
+            for(auto nUID: GetUIDList(nX, nY)){
                 if(auto nType = UIDFunc::GetUIDType(nUID); nType == UID_PLY || nType == UID_MON){
                     return false;
                 }
@@ -260,7 +260,7 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
         }
 
         if(bCheckLock){
-            if(m_CellRecordV2D[nX][nY].Locked){
+            if(GetCell(nX, nY).Locked){
                 return false;
             }
         }

@@ -341,17 +341,17 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     stAMMOK.EndX  = nMostX;
     stAMMOK.EndY  = nMostY;
 
-    m_CellRecordV2D[nMostX][nMostY].Locked = true;
+    GetCell(nMostX, nMostY).Locked = true;
     m_ActorPod->Forward(rstMPK.From(), {MPK_MOVEOK, stAMMOK}, rstMPK.ID(), [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK)
     {
-        if(!m_CellRecordV2D[nMostX][nMostY].Locked){
+        if(!GetCell(nMostX, nMostY).Locked){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Cell lock released before MOVEOK get responsed: MapUID = %" PRIu64, UID());
             g_MonoServer->Restart();
             return;
         }
 
-        m_CellRecordV2D[nMostX][nMostY].Locked = false;
+        GetCell(nMostX, nMostY).Locked = false;
         switch(rstRMPK.Type()){
             case MPK_OK:
                 {

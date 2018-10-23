@@ -97,7 +97,7 @@ class ServerMap final: public ServerObject
         ServiceCore *m_ServiceCore;
 
     private:
-        Vec2D<CellRecord> m_CellRecordV2D;
+        Vec2D<CellRecord> m_CellVec2D;
 
     private:
         ServerMapLuaModule *m_LuaModule;
@@ -186,34 +186,34 @@ class ServerMap final: public ServerObject
     private:
         auto &GetCell(int nX, int nY)
         {
-            return m_CellRecordV2D[nX][nY];
+            return m_CellVec2D[nX][nY];
         }
 
         const auto &GetCell(int nX, int nY) const
         {
-            return m_CellRecordV2D[nX][nY];
+            return m_CellVec2D[nX][nY];
         }
 
     private:
         auto &GetUIDList(int nX, int nY)
         {
-            return m_CellRecordV2D[nX][nY].UIDList;
+            return m_CellVec2D[nX][nY].UIDList;
         }
 
         const auto &GetUIDList(int nX, int nY) const
         {
-            return m_CellRecordV2D[nX][nY].UIDList;
+            return m_CellVec2D[nX][nY].UIDList;
         }
 
     private:
         auto &GetGroundItemList(int nX, int nY)
         {
-            return m_CellRecordV2D[nX][nY].GroundItemQueue;
+            return m_CellVec2D[nX][nY].GroundItemQueue;
         }
 
         const auto &GetGroundItemList(int nX, int nY) const
         {
-            return m_CellRecordV2D[nX][nY].GroundItemQueue;
+            return m_CellVec2D[nX][nY].GroundItemQueue;
         }
 
     private:
