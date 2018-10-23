@@ -37,6 +37,7 @@
 #include "clientluamodule.hpp"
 #include "linebrowserboard.hpp"
 
+class ClientPathFinder;
 class ProcessRun: public Process
 {
     private:
@@ -73,6 +74,12 @@ class ProcessRun: public Process
     private:
         MyHero *m_MyHero;
 
+    public:
+        bool ValidC(int nX, int nY) const
+        {
+            return m_Mir2xMapData.ValidC(nX, nY);
+        }
+
     private:
         std::array<uint64_t, FOCUS_MAX> m_FocusTable;
 
@@ -96,7 +103,7 @@ class ProcessRun: public Process
         std::vector<std::shared_ptr<IndepMagic>> m_IndepMagicList;
 
     private:
-        std::map<uint64_t, Creature*> m_CreatureRecord;
+        std::map<uint64_t, Creature*> m_CreatureList;
 
     private:
         // use a tokenboard to show all in future
@@ -246,6 +253,10 @@ class ProcessRun: public Process
         {
             m_GroundItemList[nX][nY].clear();
         }
+
+    public:
+        int CheckPathGrid(int, int) const;
+        double OneStepCost(const ClientPathFinder *, bool, int, int, int, int) const;
 
     public:
         bool RequestSpaceMove(uint32_t, int, int);

@@ -341,17 +341,17 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     stAMMOK.EndX  = nMostX;
     stAMMOK.EndY  = nMostY;
 
-    m_CellRecordV2D[nMostX][nMostY].Lock = true;
+    m_CellRecordV2D[nMostX][nMostY].Locked = true;
     m_ActorPod->Forward(rstMPK.From(), {MPK_MOVEOK, stAMMOK}, rstMPK.ID(), [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK)
     {
-        if(!m_CellRecordV2D[nMostX][nMostY].Lock){
+        if(!m_CellRecordV2D[nMostX][nMostY].Locked){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Cell lock released before MOVEOK get responsed: MapUID = %" PRIu64, UID());
             g_MonoServer->Restart();
             return;
         }
 
-        m_CellRecordV2D[nMostX][nMostY].Lock = false;
+        m_CellRecordV2D[nMostX][nMostY].Locked = false;
         switch(rstRMPK.Type()){
             case MPK_OK:
                 {
@@ -473,17 +473,17 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
     stAMMSOK.X   = nX;
     stAMMSOK.Y   = nY;
 
-    GetCell(nX, nY).Lock = true;
+    GetCell(nX, nY).Locked = true;
     m_ActorPod->Forward(rstMPK.From(), {MPK_MAPSWITCHOK, stAMMSOK}, rstMPK.ID(), [this, stAMTMS, stAMMSOK](const MessagePack &rstRMPK)
     {
-        if(!GetCell(stAMMSOK.X, stAMMSOK.Y).Lock){
+        if(!GetCell(stAMMSOK.X, stAMMSOK.Y).Locked){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Cell lock released before MAPSWITCHOK get responsed: MapUID = %" PRIu64, UID());
             g_MonoServer->Restart();
             return;
         }
 
-        GetCell(stAMMSOK.X, stAMMSOK.Y).Lock = false;
+        GetCell(stAMMSOK.X, stAMMSOK.Y).Locked = false;
         switch(rstRMPK.Type()){
             case MPK_OK:
                 {

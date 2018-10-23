@@ -49,8 +49,14 @@ class ServerMap final: public ServerObject
         // only for server map internal usage
         class ServerPathFinder: public AStarPathFinder
         {
+            private:
+                const ServerMap *m_Map;
+
+            private:
+                const bool m_CheckCO;
+
             public:
-                ServerPathFinder(ServerMap*, int, bool);
+                ServerPathFinder(const ServerMap*, int, bool);
                ~ServerPathFinder() = default;
         };
 
@@ -61,7 +67,7 @@ class ServerMap final: public ServerObject
     private:
         struct CellRecord
         {
-            bool Lock;
+            bool Locked;
             std::vector<uint64_t> UIDList;
 
             uint32_t MapID;
@@ -71,7 +77,7 @@ class ServerMap final: public ServerObject
             CacheQueue<CommonItem, SYS_MAXDROPITEM> GroundItemQueue;
 
             CellRecord()
-                : Lock(false)
+                : Locked(false)
                 , UIDList()
                 , MapID(0)
                 , SwitchX(-1)
@@ -120,7 +126,13 @@ class ServerMap final: public ServerObject
         bool CanMove(bool, bool, int, int, int, int);
 
     protected:
-        double MoveCost(bool, bool, int, int, int, int);
+        double OneStepCost(bool, bool, int, int, int, int) const;
+
+    public:
+        const Mir2xMapData &GetMir2xMapData() const
+        {
+            return m_Mir2xMapData;
+        }
 
     public:
         int W() const
@@ -212,6 +224,9 @@ class ServerMap final: public ServerObject
         void RemoveGroundItem(const CommonItem &, int, int);
 
         void ClearGroundItem(int, int);
+
+    private:
+        int CheckPathGrid(int, int) const;
 
     private:
         bool DoUIDList(int, int, const std::function<bool(uint64_t)> &);

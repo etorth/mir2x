@@ -18,23 +18,6 @@
 #include "mathfunc.hpp"
 #include "pathfinder.hpp"
 
-bool AStarPathFinder::Search(int nX0, int nY0, int nX1, int nY1)
-{
-    AStarPathFinderNode stNode0 {nX0, nY0, -1, this};
-    AStarPathFinderNode stNode1 {nX1, nY1, -1, this};
-    SetStartAndGoalStates(stNode0, stNode1);
-
-    unsigned int nSearchState;
-    do{
-        nSearchState = SearchStep();
-    }while(nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SEARCHING);
-
-    // only update m_HasSolution here
-    // we won't do search twice using one AStarPathFinder instance
-    m_HasSolution = (nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SUCCEEDED);
-    return m_HasSolution;
-}
-
 int PathFind::MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_t nMaxStepLen)
 {
     if(true

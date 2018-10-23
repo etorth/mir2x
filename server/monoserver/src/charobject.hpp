@@ -126,10 +126,27 @@ struct COLocation
 
 class CharObject: public ServerObject
 {
-    public:
-        class COPathFinder
+    protected:
+        class COPathFinder final: public AStarPathFinder
         {
+            private:
+                friend class CharObject;
 
+            private:
+                const CharObject *m_CO;
+
+            private:
+                const bool m_CheckCO;
+
+            private:
+                mutable std::map<uint32_t, int> m_Cache;
+
+            public:
+                COPathFinder(const CharObject *, bool);
+               ~COPathFinder() = default;
+
+            private:
+               int GetGrid(int, int) const;
         };
 
     protected:
@@ -177,6 +194,12 @@ class CharObject: public ServerObject
     protected:
         const ServiceCore *m_ServiceCore;
         const ServerMap   *m_Map;
+
+    protected:
+        const ServerMap *GetServerMap() const
+        {
+            return m_Map;
+        }
 
     protected:
         std::map<uint64_t, COLocation> m_LocationList;
@@ -312,7 +335,7 @@ class CharObject: public ServerObject
         virtual bool GoGhost() = 0;
 
     protected:
-        virtual int MaxStep()
+        virtual int MaxStep() const
         {
             return 1;
         }
@@ -350,5 +373,6 @@ class CharObject: public ServerObject
         }
 
     protected:
-        bool CheckCacheLocation(int, int, uint32_t = 0);
+        int CheckPathGrid(int, int, uint32_t = 0) const;
+        double OneStepCost(const CharObject::COPathFinder *, bool, int, int, int, int) const;
 };

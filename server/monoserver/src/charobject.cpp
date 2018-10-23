@@ -28,6 +28,79 @@
 #include "protocoldef.hpp"
 #include "eventtaskhub.hpp"
 
+CharObject::COPathFinder::COPathFinder(const CharObject *pCO, bool bCheckCO)
+    : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
+      {
+          // we pass lambda to ctor of AStarPathFinder()
+          // only capture *this*, this helps std::function to be not expensive
+
+          if(0){
+              if(true
+                      && MaxStep() != 1
+                      && MaxStep() != 2
+                      && MaxStep() != 3){
+
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
+                    return 10000.00;
+              }
+
+              int nDistance2 = LDistance2(nSrcX, nSrcY, nDstX, nDstY);
+              if(true
+                      && nDistance2 != 1
+                      && nDistance2 != 2
+                      && nDistance2 != MaxStep() * MaxStep()
+                      && nDistance2 != MaxStep() * MaxStep() * 2){
+
+                  extern MonoServer *g_MonoServer;
+                  g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
+                  return 10000.00;
+              }
+          }
+
+          return m_CO->OneStepCost(this, m_CheckCO, nSrcX, nSrcY, nDstX, nDstY);
+      }, pCO->MaxStep())
+    , m_CO(pCO)
+    , m_CheckCO(bCheckCO)
+    , m_Cache()
+{
+    if(!m_CO){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: CO = %p, CheckCreature = %d", m_CO, (int)(bCheckCO));
+    }
+
+    switch(m_CO->MaxStep()){
+        case 1:
+        case 2:
+        case 3:
+            {
+                break;
+            }
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", m_CO->MaxStep());
+                break;
+            }
+    }
+}
+
+int CharObject::COPathFinder::GetGrid(int nX, int nY) const
+{
+    if(!m_CO->GetServerMap()->ValidC(nX, nY)){
+        return PathFind::INVALID;
+    }
+
+    uint32_t nKey = ((uint32_t)(nX) << 16) | (uint32_t)(nY);
+    if(auto p = m_Cache.find(nKey); p != m_Cache.end()){
+        return p->second;
+    }
+
+    auto nGrid = m_CO->CheckPathGrid(nX, nY);
+    m_Cache[nKey] = nGrid;
+    return nGrid;
+}
+
 CharObject::CharObject(ServiceCore *pServiceCore,
         ServerMap                  *pServerMap,
         uint64_t                    nUID,
@@ -733,10 +806,15 @@ int CharObject::EstimateHop(int nX, int nY)
     return -1;
 }
 
-bool CharObject::CheckCacheLocation(int nX, int nY, uint32_t nTimeOut)
+int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
 {
-    // we can check cache location
-    // if current location is occupied we *may* not try the move
+    if(!m_Map->GetMir2xMapData().ValidC(nX, nY)){
+        return PathFind::INVALID;
+    }
+
+    if(!m_Map->GetMir2xMapData().Cell(nX, nY).CanThrough()){
+        return PathFind::OBSTACLE;
+    }
 
     for(auto stLocation: m_LocationList){
         if(nTimeOut){
@@ -749,8 +827,76 @@ bool CharObject::CheckCacheLocation(int nX, int nY, uint32_t nTimeOut)
         if(true
                 && stLocation.second.X == nX
                 && stLocation.second.Y == nY){
-            return false;
+            return PathFind::OCCUPIED;
         }
     }
-    return true;
+
+    return PathFind::FREE;
+}
+
+double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, bool bCheckCO, int nX0, int nY0, int nX1, int nY1) const
+{
+    int nMaxIndex = -1;
+    switch(LDistance2(nX0, nY0, nX1, nY1)){
+        case 0:
+            {
+                nMaxIndex = 0;
+                break;
+            }
+        case 1:
+        case 2:
+            {
+                nMaxIndex = 1;
+                break;
+            }
+        case 4:
+        case 8:
+            {
+                nMaxIndex = 2;
+                break;
+            }
+        case  9:
+        case 18:
+            {
+                nMaxIndex = 3;
+                break;
+            }
+        default:
+            {
+                return -1.00;
+            }
+    }
+
+    int nDX = (nX1 > nX0) - (nX1 < nX0);
+    int nDY = (nY1 > nY0) - (nY1 < nY0);
+
+    double fExtraPen = 0.00;
+    for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
+        switch(auto nGrid = pFinder->GetGrid(nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+            case PathFind::FREE:
+                {
+                    break;
+                }
+            case PathFind::OCCUPIED:
+                {
+                    if(bCheckCO){
+                        fExtraPen += 100.00;
+                    }
+                    break;
+                }
+            case PathFind::INVALID:
+            case PathFind::OBSTACLE:
+                {
+                    return -1.00;
+                }
+            default:
+                {
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nX0 + nDX * nIndex, nY0 + nDY * nIndex);
+                    break;
+                }
+        }
+    }
+
+    return 1.00 + nMaxIndex * 0.10 + fExtraPen;
 }

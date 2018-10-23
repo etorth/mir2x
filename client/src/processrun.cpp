@@ -29,6 +29,7 @@
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
 #include "clientluamodule.hpp"
+#include "clientpathfinder.hpp"
 
 ProcessRun::ProcessRun()
     : Process()
@@ -57,7 +58,7 @@ ProcessRun::ProcessRun()
             nullptr,            // independent widget
             false)              // 
     , m_InventoryBoard(0, 0, this)
-    , m_CreatureRecord()
+    , m_CreatureList()
     , m_MousePixlLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_MouseGridLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_AscendStrRecord()
@@ -104,7 +105,7 @@ void ProcessRun::Update(double fUpdateTime)
     ScrollMap();
     m_ControbBoard.Update(fUpdateTime);
 
-    for(auto pRecord = m_CreatureRecord.begin(); pRecord != m_CreatureRecord.end();){
+    for(auto pRecord = m_CreatureList.begin(); pRecord != m_CreatureList.end();){
         if(true
                 && pRecord->second
                 && pRecord->second->Active()){
@@ -112,7 +113,7 @@ void ProcessRun::Update(double fUpdateTime)
             ++pRecord;
         }else{
             delete pRecord->second;
-            pRecord = m_CreatureRecord.erase(pRecord);
+            pRecord = m_CreatureList.erase(pRecord);
         }
     }
 
@@ -185,7 +186,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                     }
 
                     Creature *pFocus = nullptr;
-                    for(auto pRecord: m_CreatureRecord){
+                    for(auto pRecord: m_CreatureList){
                         if(fnCheckFocus(pRecord.second->UID(), nCheckPointX, nCheckPointY)){
                             if(false
                                     || !pFocus
@@ -284,7 +285,7 @@ void ProcessRun::Draw()
         // dead actors are shown before all active actors
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
-                for(auto pCreature: m_CreatureRecord){
+                for(auto pCreature: m_CreatureList){
                     if(true
                             && (pCreature.second)
                             && (pCreature.second->X() == nX)
@@ -384,7 +385,7 @@ void ProcessRun::Draw()
 
             // draw alive actors
             for(int nX = nX0; nX <= nX1; ++nX){
-                for(auto pCreature: m_CreatureRecord){
+                for(auto pCreature: m_CreatureList){
                     if(true
                             &&  (pCreature.second)
                             &&  (pCreature.second->X() == nX)
@@ -705,71 +706,69 @@ int ProcessRun::LoadMap(uint32_t nMapID)
 
 bool ProcessRun::CanMove(bool bCheckCreature, int nX, int nY)
 {
-    if(true
-            && m_Mir2xMapData.Valid()
-            && m_Mir2xMapData.ValidC(nX, nY)
-            && m_Mir2xMapData.Cell(nX, nY).CanThrough()){
-
-        if(bCheckCreature){
-            for(auto pCreature: m_CreatureRecord){
-                if(true
-                        && (pCreature.second)
-                        && (pCreature.second->X() == nX)
-                        && (pCreature.second->Y() == nY)){
-                    return false;
-                }
+    switch(auto nGrid = CheckPathGrid(nX, nY)){
+        case PathFind::FREE:
+            {
+                return true;
             }
-        }
-        return true;
+        case PathFind::OBSTACLE:
+        case PathFind::INVALID:
+            {
+                return false;
+            }
+        case PathFind::OCCUPIED:
+        case PathFind::LOCKED:
+            {
+                return bCheckCreature ? false : true;
+            }
+        default:
+            {
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nX, nY);
+                return false;
+            }
     }
-    return false;
+}
+
+int ProcessRun::CheckPathGrid(int nX, int nY) const
+{
+    if(!m_Mir2xMapData.ValidC(nX, nY)){
+        return PathFind::INVALID;
+    }
+
+    if(!m_Mir2xMapData.Cell(nX, nY).CanThrough()){
+        return PathFind::OBSTACLE;
+    }
+
+    bool bLocked = false;
+    for(auto pCreature: m_CreatureList){
+        if(true
+                && (pCreature.second)
+                && (pCreature.second->X() == nX)
+                && (pCreature.second->Y() == nY)){
+            return PathFind::OCCUPIED;
+        }
+
+        if(true
+                && pCreature.second->CurrMotion().EndX == nX
+                && pCreature.second->CurrMotion().EndY == nY){
+            bLocked = true;
+        }
+    }
+
+    if(bLocked){
+        return PathFind::LOCKED;
+    }
+
+    return PathFind::FREE;
 }
 
 bool ProcessRun::CanMove(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1)
 {
-    int nMaxIndex = -1;
-    switch(LDistance2(nX0, nY0, nX1, nY1)){
-        case 0:
-            {
-                nMaxIndex = 0;
-                break;
-            }
-        case 1:
-        case 2:
-            {
-                nMaxIndex = 1;
-                break;
-            }
-        case 4:
-        case 8:
-            {
-                nMaxIndex = 2;
-                break;
-            }
-        case  9:
-        case 18:
-            {
-                nMaxIndex = 3;
-                break;
-            }
-        default:
-            {
-                return false;
-            }
-    }
-
-    int nDX = (nX1 > nX0) - (nX1 < nX0);
-    int nDY = (nY1 > nY0) - (nY1 < nY0);
-
-    for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
-        if(!CanMove(bCheckCreature, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
-            return false;
-        }
-    }
-    return true;
+    return OneStepCost(nullptr, bCheckCreature, nX0, nY0, nX1, nY1) >= 0.00;
 }
 
-double ProcessRun::MoveCost(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1)
+double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckCreature, int nX0, int nY0, int nX1, int nY1) const
 {
     int nMaxIndex = -1;
     switch(LDistance2(nX0, nY0, nX1, nY1)){
@@ -798,40 +797,46 @@ double ProcessRun::MoveCost(bool bCheckCreature, int nX0, int nY0, int nX1, int 
             }
         default:
             {
-                return false;
+                return -1.00;
             }
     }
 
     int nDX = (nX1 > nX0) - (nX1 < nX0);
     int nDY = (nY1 > nY0) - (nY1 < nY0);
 
-    double fMoveCost = 0.0;
+    double fExtraPen = 0.00;
     for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
-        auto nCurrX = nX0 + nDX * nIndex;
-        auto nCurrY = nY0 + nDY * nIndex;
-
-        // validate crrent grid first
-        // for client's part we allow motion parse with invalid grids
-
-        // main purpose of this function:
-        // if CanMove(checkCreature = true, srcLoc, dstLoc) failed
-        // we need to give different cost for ground issue / creature occupation issue
-
-        if(CanMove(false, nCurrX, nCurrY)){
-            if(bCheckCreature){
-                fMoveCost += (CanMove(true, nCurrX, nCurrY) ? 1.00 : 100.00);
-            }else{
-                // not check the creatures
-                // then any valid grids get unique cost
-                fMoveCost += 1.00;
-            }
-        }else{
-            // since we allow motion into invalid grids
-            // we accumulate the ``infinite" here if current grid is invalid
-            fMoveCost += 10000.00;
+        int nCurrX = nX0 + nDX * nIndex;
+        int nCurrY = nY0 + nDY * nIndex;
+        switch(auto nGrid = pFinder ? pFinder->GetGrid(nCurrX, nCurrY) : this->CheckPathGrid(nCurrX, nCurrY)){
+            case PathFind::FREE:
+                {
+                    break;
+                }
+            case PathFind::LOCKED:
+            case PathFind::OCCUPIED:
+                {
+                    if(bCheckCreature){
+                        fExtraPen += 100.00;
+                    }
+                    break;
+                }
+            case PathFind::INVALID:
+            case PathFind::OBSTACLE:
+                {
+                    fExtraPen += 10000.00;
+                    break;
+                }
+            default:
+                {
+                    extern Log *g_Log;
+                    g_Log->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nCurrX, nCurrY);
+                    break;
+                }
         }
     }
-    return fMoveCost;
+
+    return 1.00 + nMaxIndex * 0.10 + fExtraPen;
 }
 
 bool ProcessRun::ScreenPoint2Grid(int nPX, int nPY, int *pX, int *pY)
@@ -936,7 +941,7 @@ bool ProcessRun::UserCommand(const char *szUserCommand)
 std::vector<int> ProcessRun::GetPlayerList()
 {
     std::vector<int> stRetV {};
-    for(auto pRecord = m_CreatureRecord.begin(); pRecord != m_CreatureRecord.end();){
+    for(auto pRecord = m_CreatureList.begin(); pRecord != m_CreatureList.end();){
         if(true
                 && pRecord->second
                 && pRecord->second->Active()){
@@ -954,7 +959,7 @@ std::vector<int> ProcessRun::GetPlayerList()
             ++pRecord;
         }else{
             delete pRecord->second;
-            pRecord = m_CreatureRecord.erase(pRecord);
+            pRecord = m_CreatureList.erase(pRecord);
         }
     }
     return stRetV;
@@ -1240,7 +1245,7 @@ Creature *ProcessRun::RetrieveUID(uint64_t nUID)
         return nullptr;
     }
 
-    if(auto p = m_CreatureRecord.find(nUID); p != m_CreatureRecord.end()){
+    if(auto p = m_CreatureList.find(nUID); p != m_CreatureList.end()){
         if(true
                 && p->second
                 && p->second->Active()
@@ -1253,7 +1258,7 @@ Creature *ProcessRun::RetrieveUID(uint64_t nUID)
         // invalid record found
         // delete it as garbage collector
         delete p->second;
-        m_CreatureRecord.erase(p);
+        m_CreatureList.erase(p);
     }
     return nullptr;
 }
@@ -1422,10 +1427,10 @@ void ProcessRun::ClearCreature()
 {
     m_MyHero = nullptr;
 
-    for(auto pRecord: m_CreatureRecord){
+    for(auto pRecord: m_CreatureList){
         delete pRecord.second;
     }
-    m_CreatureRecord.clear();
+    m_CreatureList.clear();
 }
 
 Widget *ProcessRun::GetWidget(const char *szWidgetName)
