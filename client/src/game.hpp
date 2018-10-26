@@ -70,7 +70,7 @@ class Game final
             m_RequestProcess = nProcessID;
         }
 
-    public:
+    private:
         void SwitchProcess();
         void SwitchProcess(int);
         void SwitchProcess(int, int);

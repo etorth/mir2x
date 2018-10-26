@@ -20,57 +20,9 @@
 #include "charobject.hpp"
 #include "monsterrecord.hpp"
 
-typedef struct stMONSTERITEMINFO
-{
-    int     MonsterIndex;
-    int     Type;
-    int     Chance;
-    int     Count;
-
-    stMONSTERITEMINFO(int nMonsterIndex = -1)
-        : MonsterIndex(nMonsterIndex)
-    {}
-}MONSTERITEMINFO;
-
-typedef struct stMONSTERRACEINFO
-{
-    int     Index;
-    int     Race;
-    int     LID;
-    int     Undead;
-    int     Level;
-    int     HP;
-    int     MP;
-    int     AC;
-    int     MAC;
-    int     DC;
-    int     AttackSpead;
-    int     WalkSpead;
-    int     Spead;
-    int     Hit;
-    int     ViewRange;
-    int     RaceIndex;
-    int     Exp;
-    int     Escape;
-    int     Water;
-    int     Fire;
-    int     Wind;
-    int     Light;
-    int     Earth;
-
-    std::string Name;
-    std::vector<MONSTERITEMINFO> ItemV;
-
-    stMONSTERRACEINFO(int nIndex = -1)
-        : Index(nIndex)
-        , Name("")
-    {}
-}MONSTERRACEINFO;
-
 class Monster final: public CharObject
 {
     protected:
-
         // a-star algorithm is so expensive
         // current logic is every step we do MoveOneStep()
 
@@ -101,13 +53,14 @@ class Monster final: public CharObject
             FPMETHOD_ASTAR,
             FPMETHOD_GREEDY,
             FPMETHOD_COMBINE,
+            FPMETHOD_NEIGHBOR,
         };
 
     protected:
         const uint32_t m_MonsterID;
 
     protected:
-        uint32_t m_MasterUID;
+        uint64_t m_MasterUID;
 
     protected:
         const MonsterRecord &m_MonsterRecord;
@@ -122,8 +75,7 @@ class Monster final: public CharObject
                 int,                    // map x
                 int,                    // map y
                 int,                    // direction
-                uint8_t,                // life cycle state
-                uint32_t);              // master uid
+                uint64_t);              // master uid
 
     public:
         ~Monster() = default;
@@ -137,7 +89,7 @@ class Monster final: public CharObject
     protected:
        // don't expose it to public
        // master may change by time or by magic
-       uint32_t MasterUID()
+       uint64_t MasterUID()
        {
            return m_MasterUID;
        }
@@ -152,16 +104,16 @@ class Monster final: public CharObject
         bool FollowMaster();
 
     protected:
-        bool TrackUID(uint32_t);
-        bool AttackUID(uint32_t, int);
+        bool TrackUID(uint64_t);
+        bool AttackUID(uint64_t, int);
 
     protected:
         bool DCValid(int, bool);
         bool InRange(int, int, int);
 
     protected:
-        void AddTarget(uint32_t);
-        void RemoveTarget(uint32_t);
+        void AddTarget(uint64_t);
+        void RemoveTarget(uint64_t);
 
     protected:
         bool StruckDamage(const DamageNode &);
@@ -170,23 +122,25 @@ class Monster final: public CharObject
         DamageNode GetAttackDamage(int);
 
     private:
-        void On_MPK_EXP(const MessagePack &, const Theron::Address &);
-        void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);
-        void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
-        void On_MPK_OFFLINE(const MessagePack &, const Theron::Address &);
-        void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);
-        void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
-        void On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &);
-        void On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &);
-        void On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);
+        void On_MPK_EXP           (const MessagePack &);
+        void On_MPK_ATTACK        (const MessagePack &);
+        void On_MPK_ACTION        (const MessagePack &);
+        void On_MPK_OFFLINE       (const MessagePack &);
+        void On_MPK_UPDATEHP      (const MessagePack &);
+        void On_MPK_METRONOME     (const MessagePack &);
+        void On_MPK_MAPSWITCH     (const MessagePack &);
+        void On_MPK_NOTIFYDEAD    (const MessagePack &);
+        void On_MPK_BADACTORPOD   (const MessagePack &);
+        void On_MPK_CHECKMASTER   (const MessagePack &);
+        void On_MPK_NOTIFYNEWCO   (const MessagePack &);
+        void On_MPK_QUERYCORECORD (const MessagePack &);
+        void On_MPK_QUERYLOCATION (const MessagePack &);
 
     protected:
-        void OperateAM(const MessagePack &, const Theron::Address &);
+        void OperateAM(const MessagePack &);
 
     protected:
-        void ReportCORecord(uint32_t);
+        void ReportCORecord(uint64_t);
 
     protected:
         bool MoveOneStep(int, int);
@@ -200,20 +154,21 @@ class Monster final: public CharObject
     protected:
         void RandomDrop();
 
-    public:
-        InvarData GetInvarData() const;
+    protected:
+        void CheckFriend(uint64_t, const std::function<void(int)> &);
 
     protected:
-        void CheckFriend(uint32_t, const std::function<void(int)> &);
-
-    protected:
-        bool MoveOneStepAStar  (int, int);
-        bool MoveOneStepGreedy (int, int);
-        bool MoveOneStepCombine(int, int);
+        bool MoveOneStepAStar   (int, int);
+        bool MoveOneStepGreedy  (int, int);
+        bool MoveOneStepCombine (int, int);
+        bool MoveOneStepNeighbor(int, int);
 
     protected:
         bool CanMove();
         bool CanAttack();
+
+    protected:
+        void CheckMaster();
 
     protected:
         std::array<PathFind::PathNode, 3> GetChaseGrid(int, int);
@@ -221,5 +176,4 @@ class Monster final: public CharObject
     protected:
         virtual bool GoDie();
         virtual bool GoGhost();
-        virtual bool GoSuicide();
 };

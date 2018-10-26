@@ -28,11 +28,11 @@
 #include <unordered_map>
 
 #include "netdriver.hpp"
-#include "activeobject.hpp"
+#include "serverobject.hpp"
 #include "serverluamodule.hpp"
 
 class ServerMap;
-class ServiceCore final: public ActiveObject
+class ServiceCore final: public ServerObject
 {
     protected:
         std::map<uint32_t, ServerMap *> m_MapList;
@@ -42,7 +42,7 @@ class ServiceCore final: public ActiveObject
        ~ServiceCore() = default;
 
     protected:
-        void OperateAM(const MessagePack &, const Theron::Address &);
+        void OperateAM(const MessagePack &);
         void OperateNet(uint32_t, uint8_t, const uint8_t *, size_t);
 
     protected:
@@ -50,14 +50,15 @@ class ServiceCore final: public ActiveObject
         const ServerMap *RetrieveMap(uint32_t);
 
     private:
-        void On_MPK_LOGIN(const MessagePack &, const Theron::Address &);
-        void On_MPK_BADCHANNEL(const MessagePack &, const Theron::Address &);
-        void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYMAPUID(const MessagePack &, const Theron::Address &);
-        void On_MPK_TRYMAPSWITCH(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYMAPLIST(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYCOCOUNT(const MessagePack &, const Theron::Address &);
-        void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
+        void On_MPK_LOGIN(const MessagePack &);
+        void On_MPK_METRONOME(const MessagePack &);
+        void On_MPK_BADCHANNEL(const MessagePack &);
+        void On_MPK_NETPACKAGE(const MessagePack &);
+        void On_MPK_QUERYMAPUID(const MessagePack &);
+        void On_MPK_TRYMAPSWITCH(const MessagePack &);
+        void On_MPK_QUERYMAPLIST(const MessagePack &);
+        void On_MPK_QUERYCOCOUNT(const MessagePack &);
+        void On_MPK_ADDCHAROBJECT(const MessagePack &);
 
     private:
         void Net_CM_Login(uint32_t, uint8_t, const uint8_t *, size_t);

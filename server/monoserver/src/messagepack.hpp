@@ -32,6 +32,9 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
         int m_Type;
 
     private:
+        uint64_t m_From;
+
+    private:
         uint32_t m_ID;
         uint32_t m_Respond;
 
@@ -44,8 +47,9 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
         size_t   m_DBufLen;
 
     public:
-        InnMessagePack(int nType = MPK_NONE, const uint8_t *pData = nullptr, size_t nDataLen = 0, uint32_t nID = 0, uint32_t nRespond = 0)
+        InnMessagePack(int nType = MPK_NONE, const uint8_t *pData = nullptr, size_t nDataLen = 0, uint64_t nFrom = 0, uint32_t nID = 0, uint32_t nRespond = 0)
             : m_Type(nType)
+            , m_From(nFrom)
             , m_ID(nID)
             , m_Respond(nRespond)
         {
@@ -71,19 +75,29 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
             }
         }
 
-        InnMessagePack(const MessageBuf &rstMB, uint32_t nID = 0, uint32_t nRespond = 0)
-            : InnMessagePack(rstMB.Type(), rstMB.Data(), rstMB.DataLen(), nID, nRespond)
+        InnMessagePack(const MessageBuf &rstMB, uint64_t nFrom = 0, uint32_t nID = 0, uint32_t nRespond = 0)
+            : InnMessagePack(rstMB.Type(), rstMB.Data(), rstMB.DataLen(), nFrom, nID, nRespond)
         {}
 
         InnMessagePack(const InnMessagePack &rstMPK)
-            : InnMessagePack(rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen(), rstMPK.ID(), rstMPK.Respond())
+            : InnMessagePack(rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen(), rstMPK.From(), rstMPK.ID(), rstMPK.Respond())
         {}
 
         InnMessagePack(InnMessagePack &&rstMPK)
             : m_Type(rstMPK.Type())
+            , m_From(rstMPK.From())
             , m_ID(rstMPK.ID())
             , m_Respond(rstMPK.Respond())
         {
+            // invalidate the r-ref message by
+            // 1. remove its from/id/resp
+            // 2. remove its buffer
+
+            rstMPK.m_Type    = MPK_NONE;
+            rstMPK.m_From    = 0;
+            rstMPK.m_ID      = 0;
+            rstMPK.m_Respond = 0;
+
             // case-1: use dynamic buffer, steal the buffer
             //         after this call rstMPK should be destructed immediately
             if(rstMPK.m_DBuf && rstMPK.m_DBufLen){
@@ -128,9 +142,10 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
         }
 
     public:
-       InnMessagePack &operator = (InnMessagePack stMPK)
+       InnMessagePack & operator = (InnMessagePack stMPK)
        {
            std::swap(m_Type   , stMPK.m_Type   );
+           std::swap(m_From   , stMPK.m_From   );
            std::swap(m_ID     , stMPK.m_ID     );
            std::swap(m_Respond, stMPK.m_Respond);
 
@@ -143,6 +158,11 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
            }
 
            return *this;
+       }
+
+       operator bool () const
+       {
+           return Type() != MPK_NONE;
        }
 
     public:
@@ -166,14 +186,19 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
             return DataLen();
         }
 
-        uint32_t Respond() const
+        uint64_t From() const
         {
-            return m_Respond;
+            return m_From;
         }
 
         uint32_t ID() const
         {
             return m_ID;
+        }
+
+        uint32_t Respond() const
+        {
+            return m_Respond;
         }
 
         const char *Name() const
@@ -190,9 +215,10 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
                 case MPK_LOGIN               : return "MPK_LOGIN";
                 case MPK_METRONOME           : return "MPK_METRONOME";
                 case MPK_TRYMOVE             : return "MPK_TRYMOVE";
-                case MPK_MOVEOK              : return "MPK_MOVEOK";
-                case MPK_TRYLEAVE            : return "MPK_TRYLEAVE";
                 case MPK_TRYSPACEMOVE        : return "MPK_TRYSPACEMOVE";
+                case MPK_MOVEOK              : return "MPK_MOVEOK";
+                case MPK_SPACEMOVEOK         : return "MPK_SPACEMOVEOK";
+                case MPK_TRYLEAVE            : return "MPK_TRYLEAVE";
                 case MPK_LOGINOK             : return "MPK_LOGINOK";
                 case MPK_ADDRESS             : return "MPK_ADDRESS";
                 case MPK_LOGINQUERYDB        : return "MPK_LOGINQUERYDB";
@@ -224,7 +250,12 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
                 case MPK_SHOWDROPITEM        : return "MPK_SHOWDROPITEM";
                 case MPK_NOTIFYDEAD          : return "MPK_NOTIFYDEAD";
                 case MPK_OFFLINE             : return "MPK_OFFLINE";
+                case MPK_PICKUP              : return "MPK_PICKUP";
+                case MPK_PICKUPOK            : return "MPK_PICKUPOK";
+                case MPK_REMOVEGROUNDITEM    : return "MPK_REMOVEGROUNDITEM";
                 case MPK_CORECORD            : return "MPK_CORECORD";
+                case MPK_NOTIFYNEWCO         : return "MPK_NOTIFYNEWCO";
+                case MPK_CHECKMASTER         : return "MPK_CHECKMASTER";
                 default                      : return "MPK_UNKNOWN";
             }
         }

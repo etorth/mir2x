@@ -16,8 +16,10 @@
  * =====================================================================================
  */
 
-#include "netdriver.hpp"
+#include <cinttypes>
 #include "sysconst.hpp"
+#include "actorpool.hpp"
+#include "netdriver.hpp"
 #include "monoserver.hpp"
 
 NetDriver::NetDriver()
@@ -28,7 +30,7 @@ NetDriver::NetDriver()
     , m_Acceptor(nullptr)
     , m_Socket(nullptr)
     , m_Thread()
-    , m_SCAddress(Theron::Address::Null())
+    , m_ServiceCoreUID(0)
     , m_ChannIDQ()
 {}
 
@@ -91,20 +93,31 @@ bool NetDriver::InitASIO(uint32_t nPort)
     return true;
 }
 
-int NetDriver::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
+bool NetDriver::Launch(uint32_t nPort, uint64_t nUID)
 {
-    if(!CheckPort(nPort) || rstSCAddr == Theron::Address::Null()){
-        return 1;
+    if(!CheckPort(nPort)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Using invalid port: %" PRIu32, nPort);
+        return false;
     }
 
-    m_SCAddress = rstSCAddr;
+    extern ActorPool *g_ActorPool;
+    if(g_ActorPool->CheckInvalid(nUID)){
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Launch with invaid UID: " PRIu64, nUID);
+        return false;
+    }
+
+    m_ServiceCoreUID = nUID;
 
     if(m_Thread.joinable()){
         m_Thread.join();
     }
 
     if(!InitASIO(nPort)){
-        return 2;
+        extern MonoServer *g_MonoServer;
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "InitASIO failed in NetDriver");
+        return false;
     }
 
     m_ChannIDQ.Clear();
@@ -118,7 +131,7 @@ int NetDriver::Launch(uint32_t nPort, const Theron::Address &rstSCAddr)
         m_IO->run();
     });
 
-    return 0;
+    return true;
 }
 
 void NetDriver::AcceptNewConnection()
@@ -180,7 +193,7 @@ void NetDriver::AcceptNewConnection()
         // directly lanuch the channel here
         // won't forward the new connection to the service core
 
-        pChann->Launch(m_SCAddress);
+        pChann->Launch(m_ServiceCoreUID);
         AcceptNewConnection();
     };
 

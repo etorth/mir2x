@@ -40,6 +40,13 @@ ENDIF()
 # cmake disble assert() if in release mode
 ADD_DEFINITIONS(-DCONDCHECK)
 
+# add flags to release mode
+# by default won't use release mode
+SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -Wunused -Werror")
+
 # always compile mir2x in debug mode
 # for trace message use MIR2X_DEBUG_ARG_LIST to enable
 SET(CMAKE_BUILD_TYPE "Debug")
@@ -97,10 +104,6 @@ FIND_PACKAGE(FLTK   REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
 FIND_PACKAGE(ZLIB   REQUIRED)
 FIND_PACKAGE(PNG    REQUIRED)
-
-# for libtheron, compile arguments matching is required
-# reason why I disable NDEBUG
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DTHERON_CPP11=1 -DTHERON_POSIX=0 -DTHERON_XS=0")
 
 SET(CMAKE_SKIP_RPATH TRUE)
 

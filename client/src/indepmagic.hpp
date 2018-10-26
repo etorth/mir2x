@@ -28,7 +28,7 @@ class IndepMagic: public MagicBase
     // if bound to creture then use effect to present
 
     private:
-        const uint32_t m_UID;
+        const uint64_t m_UID;
 
     private:
         int m_Direction;
@@ -42,10 +42,10 @@ class IndepMagic: public MagicBase
         int m_AimY;
 
     private:
-        const uint32_t m_AimUID;
+        const uint64_t m_AimUID;
 
     public:
-        IndepMagic(uint32_t,    // UID
+        IndepMagic(uint64_t,    // UID
                 int,            // MagicID
                 int,            // MagicParam
                 int,            // MagicStage
@@ -54,10 +54,10 @@ class IndepMagic: public MagicBase
                 int,            // Y
                 int,            // AimX
                 int,            // AimY
-                uint32_t);      // AimUID
+                uint64_t);      // AimUID
 
     public:
-        IndepMagic(uint32_t,    // UID
+        IndepMagic(uint64_t,    // UID
                 int,            // MagicID
                 int,            // MagicParam
                 int,            // MagicStage
@@ -67,14 +67,14 @@ class IndepMagic: public MagicBase
                 int,            // AimX
                 int);           // AimY
 
-        IndepMagic(uint32_t,    // UID
+        IndepMagic(uint64_t,    // UID
                 int,            // MagicID
                 int,            // MagicParam
                 int,            // MagicStage
                 int,            // Direction
                 int,            // X
                 int,            // Y
-                uint32_t);      // AimUID
+                uint64_t);      // AimUID
 
     private:
         bool DrawPLoc(int *, int *) const;
@@ -113,7 +113,7 @@ class IndepMagic: public MagicBase
             return m_AimY;
         }
 
-        uint32_t AimUID() const
+        uint64_t AimUID() const
         {
             return m_AimUID;
         }

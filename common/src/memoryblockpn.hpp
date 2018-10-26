@@ -67,6 +67,7 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
+#include <cstddef>
 
 #include "cachequeue.hpp"
 

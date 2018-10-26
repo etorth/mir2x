@@ -31,7 +31,7 @@ void ProcessLogo::ProcessEvent(const SDL_Event &rstEvent)
                     case SDLK_ESCAPE:
                         {
                             extern Game *g_Game;
-                            g_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
+                            g_Game->RequestProcess(PROCESSID_SYRC);
                         }
                         break;
                     default:
@@ -49,7 +49,7 @@ void ProcessLogo::Update(double fDTime)
     m_TotalTime += fDTime;
     if(m_TotalTime >= m_FullTime){
         extern Game *g_Game;
-        g_Game->SwitchProcess(PROCESSID_LOGO, PROCESSID_SYRC);
+        g_Game->RequestProcess(PROCESSID_SYRC);
     }
 }
 

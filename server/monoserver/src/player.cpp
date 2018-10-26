@@ -3,7 +3,7 @@
  *
  *       Filename: player.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -18,6 +18,7 @@
 #include <cinttypes>
 #include "dbpod.hpp"
 #include "player.hpp"
+#include "uidfunc.hpp"
 #include "dbcomid.hpp"
 #include "threadpn.hpp"
 #include "memorypn.hpp"
@@ -32,9 +33,8 @@ Player::Player(uint32_t nDBID,
         ServerMap      *pServerMap,
         int             nMapX,
         int             nMapY,
-        int             nDirection,
-        uint8_t         nLifeState)
-    : CharObject(pServiceCore, pServerMap, nMapX, nMapY, nDirection, nLifeState)
+        int             nDirection)
+    : CharObject(pServiceCore, pServerMap, UIDFunc::GetPlayerUID(nDBID), nMapX, nMapY, nDirection)
     , m_DBID(nDBID)
     , m_JobID(0)        // will provide after bind
     , m_ChannID(0)    // provide by bind
@@ -70,97 +70,112 @@ Player::~Player()
     DBSavePlayer();
 }
 
-void Player::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void Player::OperateAM(const MessagePack &rstMPK)
 {
     switch(rstMPK.Type()){
         case MPK_METRONOME:
             {
-                On_MPK_METRONOME(rstMPK, rstFromAddr);
+                On_MPK_METRONOME(rstMPK);
+                break;
+            }
+        case MPK_BADACTORPOD:
+            {
+                On_MPK_BADACTORPOD(rstMPK);
+                break;
+            }
+        case MPK_NOTIFYNEWCO:
+            {
+                On_MPK_NOTIFYNEWCO(rstMPK);
+                break;
+            }
+        case MPK_CHECKMASTER:
+            {
+                On_MPK_CHECKMASTER(rstMPK);
                 break;
             }
         case MPK_MAPSWITCH:
             {
-                On_MPK_MAPSWITCH(rstMPK, rstFromAddr);
+                On_MPK_MAPSWITCH(rstMPK);
                 break;
             }
         case MPK_QUERYLOCATION:
             {
-                On_MPK_QUERYLOCATION(rstMPK, rstFromAddr);
+                On_MPK_QUERYLOCATION(rstMPK);
                 break;
             }
         case MPK_EXP:
             {
-                On_MPK_EXP(rstMPK, rstFromAddr);
+                On_MPK_EXP(rstMPK);
                 break;
             }
         case MPK_ACTION:
             {
-                On_MPK_ACTION(rstMPK, rstFromAddr);
+                On_MPK_ACTION(rstMPK);
                 break;
             }
         case MPK_ATTACK:
             {
-                On_MPK_ATTACK(rstMPK, rstFromAddr);
+                On_MPK_ATTACK(rstMPK);
                 break;
             }
         case MPK_UPDATEHP:
             {
-                On_MPK_UPDATEHP(rstMPK, rstFromAddr);
+                On_MPK_UPDATEHP(rstMPK);
                 break;
             }
         case MPK_DEADFADEOUT:
             {
-                On_MPK_DEADFADEOUT(rstMPK, rstFromAddr);
+                On_MPK_DEADFADEOUT(rstMPK);
                 break;
             }
         case MPK_SHOWDROPITEM:
             {
-                On_MPK_SHOWDROPITEM(rstMPK, rstFromAddr);
+                On_MPK_SHOWDROPITEM(rstMPK);
                 break;
             }
         case MPK_BINDCHANNEL:
             {
-                On_MPK_BINDCHANNEL(rstMPK, rstFromAddr);
+                On_MPK_BINDCHANNEL(rstMPK);
                 break;
             }
         case MPK_NETPACKAGE:
             {
-                On_MPK_NETPACKAGE(rstMPK, rstFromAddr);
+                On_MPK_NETPACKAGE(rstMPK);
                 break;
             }
         case MPK_QUERYCORECORD:
             {
-                On_MPK_QUERYCORECORD(rstMPK, rstFromAddr);
+                On_MPK_QUERYCORECORD(rstMPK);
                 break;
             }
         case MPK_BADCHANNEL:
             {
-                On_MPK_BADCHANNEL(rstMPK, rstFromAddr);
+                On_MPK_BADCHANNEL(rstMPK);
                 break;
             }
         case MPK_OFFLINE:
             {
-                On_MPK_OFFLINE(rstMPK, rstFromAddr);
+                On_MPK_OFFLINE(rstMPK);
                 break;
             }
         case MPK_REMOVEGROUNDITEM:
             {
-                On_MPK_REMOVEGROUNDITEM(rstMPK, rstFromAddr);
+                On_MPK_REMOVEGROUNDITEM(rstMPK);
                 break;
             }
         case MPK_PICKUPOK:
             {
-                On_MPK_PICKUPOK(rstMPK, rstFromAddr);
+                On_MPK_PICKUPOK(rstMPK);
                 break;
             }
         case MPK_CORECORD:
             {
-                On_MPK_CORECORD(rstMPK, rstFromAddr);
+                On_MPK_CORECORD(rstMPK);
                 break;
             }
         case MPK_NOTIFYDEAD:
             {
-                On_MPK_NOTIFYDEAD(rstMPK, rstFromAddr);
+                On_MPK_NOTIFYDEAD(rstMPK);
                 break;
             }
         default:
@@ -193,46 +208,45 @@ bool Player::Update()
     return true;
 }
 
-void Player::ReportCORecord(uint32_t nUID)
+void Player::ReportCORecord(uint64_t nUID)
 {
-    if(nUID){
-        extern MonoServer *g_MonoServer;
-        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(nUID)){
-            AMCORecord stAMCOR;
-            std::memset(&stAMCOR, 0, sizeof(stAMCOR));
-
-            // TODO: don't use OBJECT_PLAYER, we need translation
-            //       rule of communication, the sender is responsible to translate
-
-            // 1. set type
-            stAMCOR.COType = CREATURE_PLAYER;
-
-            // 2. set current action
-            stAMCOR.Action.UID   = UID();
-            stAMCOR.Action.MapID = MapID();
-
-            stAMCOR.Action.Action    = ACTION_STAND;
-            stAMCOR.Action.Speed     = SYS_DEFSPEED;
-            stAMCOR.Action.Direction = Direction();
-
-            stAMCOR.Action.X    = X();
-            stAMCOR.Action.Y    = Y();
-            stAMCOR.Action.AimX = X();
-            stAMCOR.Action.AimY = Y();
-
-            stAMCOR.Action.AimUID      = 0;
-            stAMCOR.Action.ActionParam = 0;
-
-            // 3. set specified co information
-            stAMCOR.Player.DBID  = DBID();
-            stAMCOR.Player.JobID = JobID();
-            stAMCOR.Player.Level = Level();
-
-            // don't reply to server map
-            // even get co information pull request from map
-            m_ActorPod->Forward({MPK_CORECORD, stAMCOR}, stUIDRecord.GetAddress());
-        }
+    if(!nUID){
+        return;
     }
+
+    AMCORecord stAMCOR;
+    std::memset(&stAMCOR, 0, sizeof(stAMCOR));
+
+    // TODO: don't use OBJECT_PLAYER, we need translation
+    //       rule of communication, the sender is responsible to translate
+
+    // 1. set type
+    stAMCOR.COType = CREATURE_PLAYER;
+
+    // 2. set current action
+    stAMCOR.Action.UID   = UID();
+    stAMCOR.Action.MapID = MapID();
+
+    stAMCOR.Action.Action    = ACTION_STAND;
+    stAMCOR.Action.Speed     = SYS_DEFSPEED;
+    stAMCOR.Action.Direction = Direction();
+
+    stAMCOR.Action.X    = X();
+    stAMCOR.Action.Y    = Y();
+    stAMCOR.Action.AimX = X();
+    stAMCOR.Action.AimY = Y();
+
+    stAMCOR.Action.AimUID      = 0;
+    stAMCOR.Action.ActionParam = 0;
+
+    // 3. set specified co information
+    stAMCOR.Player.DBID  = DBID();
+    stAMCOR.Player.JobID = JobID();
+    stAMCOR.Player.Level = Level();
+
+    // don't reply to server map
+    // even get co information pull request from map
+    m_ActorPod->Forward(nUID, {MPK_CORECORD, stAMCOR});
 }
 
 void Player::ReportStand()
@@ -240,7 +254,7 @@ void Player::ReportStand()
     ReportAction(UID(), ActionStand(X(), Y(), Direction()));
 }
 
-void Player::ReportAction(uint32_t nUID, const ActionNode &rstAction)
+void Player::ReportAction(uint64_t nUID, const ActionNode &rstAction)
 {
     if(true
             && nUID
@@ -283,9 +297,27 @@ void Player::ReportHealth()
     }
 }
 
-bool Player::InRange(int, int, int)
+bool Player::InRange(int nRangeType, int nX, int nY)
 {
-    return true;
+    if(!m_Map->ValidC(nX, nY)){
+        return false;
+    }
+
+    switch(nRangeType){
+        case RANGE_VISIBLE:
+            {
+                return LDistance2(X(), Y(), nX, nY) < 20 * 20;
+            }
+        case RANGE_ATTACK:
+            {
+                return LDistance2(X(), Y(), nX, nY) < 10 * 10;
+            }
+        default:
+            {
+                break;
+            }
+    }
+    return false;
 }
 
 bool Player::GoDie()
@@ -329,6 +361,8 @@ bool Player::GoGhost()
                             SetState(STATE_GHOST, 1);
 
                             AMDeadFadeOut stAMDFO;
+                            std::memset(&stAMDFO, 0, sizeof(stAMDFO));
+
                             stAMDFO.UID   = UID();
                             stAMDFO.MapID = MapID();
                             stAMDFO.X     = X();
@@ -338,7 +372,7 @@ bool Player::GoGhost()
                                     && ActorPodValid()
                                     && m_Map
                                     && m_Map->ActorPodValid()){
-                                m_ActorPod->Forward({MPK_DEADFADEOUT, stAMDFO}, m_Map->GetAddress());
+                                m_ActorPod->Forward(m_Map->UID(), {MPK_DEADFADEOUT, stAMDFO});
                             }
 
                             // 2. deactivate the actor here
@@ -349,19 +383,7 @@ bool Player::GoGhost()
                             //    don't do delete m_ActorPod to disable the actor
                             //    since currently we are in the actor thread which accquired by m_ActorPod
                             Deactivate();
-
-                            // 3. without message driving it
-                            //    the char object will be inactive and activities after this
-                            GoSuicide();
                             return true;
-
-                            // there is an time gap after Deactivate() and before deletion handler called in GoSuicide
-                            // then during this gap even if the actor is scheduled we won't have data race anymore
-                            // since we called Deactivate() which deregistered Innhandler refers *this*
-                            //
-                            // note that even if during this gap we have functions call GetAddress()
-                            // we are still OK since m_ActorPod is still valid
-                            // but if then send to this address, it will drain to the default message handler
                         }
                 }
             }
@@ -371,36 +393,6 @@ bool Player::GoGhost()
             }
     }
 }
-
-bool Player::GoSuicide()
-{
-    if(true
-            && GetState(STATE_DEAD)
-            && GetState(STATE_GHOST)){
-
-        // 1. register a operationi to the thread pool to delete
-        // 2. don't pass *this* to any other threads, pass UID instead
-        extern ThreadPN *g_ThreadPN;
-        return g_ThreadPN->Add([nUID = UID()](){
-            if(nUID){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->EraseUID(nUID);
-            }else{
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Suicide with empty UID");
-            }
-        });
-
-        // after this line
-        // *this* is invalid and should never be refered
-    }
-
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "GoSuicide(this = %p, UID = %" PRIu32 ") failed", this, UID());
-    return false;
-}
-
-
 
 bool Player::DCValid(int, bool)
 {
@@ -425,6 +417,10 @@ DamageNode Player::GetAttackDamage(int nDC)
 
 bool Player::StruckDamage(const DamageNode &rstDamage)
 {
+    // hack for debug
+    // make the player never die
+    return true;
+
     if(rstDamage){
         m_HP = std::max<int>(0, HP() - rstDamage.Damage);
         ReportHealth();
@@ -443,7 +439,7 @@ bool Player::ActionValid(const ActionNode &)
     return true;
 }
 
-void Player::CheckFriend(uint32_t nUID, const std::function<void(int)> &fnOnFriend)
+void Player::CheckFriend(uint64_t nUID, const std::function<void(int)> &fnOnFriend)
 {
     if(nUID){
         if(0){
@@ -460,13 +456,14 @@ void Player::DispatchOffline()
             && m_Map->ActorPodValid()){
 
         AMOffline stAMO;
+        std::memset(&stAMO, 0, sizeof(stAMO));
 
         stAMO.UID   = UID();
         stAMO.MapID = MapID();
         stAMO.X     = X();
         stAMO.Y     = Y();
 
-        m_ActorPod->Forward({MPK_OFFLINE, stAMO}, m_Map->GetAddress());
+        m_ActorPod->Forward(m_Map->UID(), {MPK_OFFLINE, stAMO});
         return;
     }
 
@@ -474,7 +471,7 @@ void Player::DispatchOffline()
     g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch offline event");
 }
 
-void Player::ReportOffline(uint32_t nUID, uint32_t nMapID)
+void Player::ReportOffline(uint64_t nUID, uint32_t nMapID)
 {
     if(true
             && nUID
@@ -496,27 +493,7 @@ bool Player::Offline()
     ReportOffline(UID(), MapID());
 
     Deactivate();
-
-    // 1. register a operationi to the thread pool to delete
-    // 2. don't pass *this* to any other threads, pass UID instead
-    extern ThreadPN *g_ThreadPN;
-    return g_ThreadPN->Add([nUID = UID()](){
-        if(nUID){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->EraseUID(nUID);
-        }
-        else{
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Offline with empty UID");
-        }
-    });
-}
-
-InvarData Player::GetInvarData() const
-{
-    InvarData stData;
-    stData.Player.DBID = DBID();
-    return stData;
+    return true;
 }
 
 bool Player::PostNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
@@ -586,7 +563,7 @@ void Player::OnCMActionMove(CMAction stCMA)
         case 0:
             {
                 RequestMove(nX1, nY1, MoveSpeed(), false, [](){}, [this]()
-                {   
+                {
                     ReportStand();
                 });
                 return;
@@ -619,7 +596,7 @@ void Player::OnCMActionAttack(CMAction stCMA)
         int nY0 = stCMA.Y;
 
         int nDCType = stCMA.ActionParam;
-        uint32_t nAimUID = stCMA.AimUID;
+        uint64_t nAimUID = stCMA.AimUID;
 
         if(rstLocation.MapID == MapID()){
             switch(nDCType){
@@ -771,7 +748,7 @@ void Player::OnCMActionPickUp(CMAction stCMA)
                 stAMPU.ID   = stCMA.ActionParam;
                 stAMPU.DBID = 0;
 
-                m_ActorPod->Forward({MPK_PICKUP, stAMPU}, m_Map->GetAddress());
+                m_ActorPod->Forward(m_Map->UID(), {MPK_PICKUP, stAMPU});
                 return;
             }
         case 1:
@@ -861,9 +838,6 @@ uint32_t Player::GetLevelExp()
 
 void Player::PullRectCO(int nW, int nH)
 {
-    // pull all co's on current map
-    // in rectangle center on (X(), Y()) and (nW, nH)
-
     if(true
             && nW > 0
             && nH > 0
@@ -871,13 +845,15 @@ void Player::PullRectCO(int nW, int nH)
             && m_Map->ActorPodValid()){
 
         AMPullCOInfo stAMPCOI;
+        std::memset(&stAMPCOI, 0, sizeof(stAMPCOI));
+
         stAMPCOI.X     = X();
         stAMPCOI.Y     = Y();
         stAMPCOI.W     = nW;
         stAMPCOI.H     = nH;
         stAMPCOI.UID   = UID();
         stAMPCOI.MapID = m_Map->ID();
-        m_ActorPod->Forward({MPK_PULLCOINFO, stAMPCOI}, m_Map->GetAddress());
+        m_ActorPod->Forward(m_Map->UID(), {MPK_PULLCOINFO, stAMPCOI});
     }
 }
 

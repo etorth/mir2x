@@ -25,9 +25,11 @@ enum ProcessID: int
     PROCESSID_LOGO  = 1,
     PROCESSID_SYRC  = 2,
     PROCESSID_LOGIN = 3,
-    PROCESSID_RUN   = 4,
-    PROCESSID_EXIT  = 5,
-    PROCESSID_MAX   = 6,
+    PROCESSID_NEW   = 4,
+    PROCESSID_PWD   = 5,
+    PROCESSID_RUN   = 6,
+    PROCESSID_EXIT  = 7,
+    PROCESSID_MAX   = 8,
 };
 
 class Process

@@ -28,15 +28,15 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pWidget
             242,
             422,
             {0XFFFFFFFF, 0X0000001C, 0X0000001D},
-            0,
-            0,
-            0,
-            0,
             [](){},
             [this]()
             {
                 Show(false);
             },
+            0,
+            0,
+            0,
+            0,
             true,
             this,
             false)

@@ -28,7 +28,7 @@
 #include "cachequeue.hpp"
 #include "servicecore.hpp"
 #include "protocoldef.hpp"
-#include "activeobject.hpp"
+#include "serverobject.hpp"
 
 enum _RangeType: uint8_t
 {
@@ -99,7 +99,7 @@ typedef struct
 // should be visible for CharObject and its derived classes
 struct COLocation
 {
-    uint32_t UID;
+    uint64_t UID;
     uint32_t MapID;
     uint32_t RecordTime;
 
@@ -108,7 +108,7 @@ struct COLocation
     int Direction;
 
     COLocation(
-            uint32_t nUID        = 0,
+            uint64_t nUID        = 0,
             uint32_t nMapID      = 0,
             uint32_t nRecordTime = 0,
 
@@ -124,8 +124,31 @@ struct COLocation
     {}
 };
 
-class CharObject: public ActiveObject
+class CharObject: public ServerObject
 {
+    protected:
+        class COPathFinder final: public AStarPathFinder
+        {
+            private:
+                friend class CharObject;
+
+            private:
+                const CharObject *m_CO;
+
+            private:
+                const bool m_CheckCO;
+
+            private:
+                mutable std::map<uint32_t, int> m_Cache;
+
+            public:
+                COPathFinder(const CharObject *, bool);
+               ~COPathFinder() = default;
+
+            private:
+               int GetGrid(int, int) const;
+        };
+
     protected:
         enum QueryType: int
         {
@@ -146,10 +169,10 @@ class CharObject: public ActiveObject
     protected:
         struct TargetRecord
         {
-            uint32_t UID;
+            uint64_t UID;
             uint32_t ActiveTime;
 
-            TargetRecord(uint32_t nUID = 0, uint32_t nActiveTime = 0)
+            TargetRecord(uint64_t nUID = 0, uint32_t nActiveTime = 0)
                 : UID(nUID)
                 , ActiveTime(nActiveTime)
             {}
@@ -157,11 +180,11 @@ class CharObject: public ActiveObject
 
         struct HitterUIDRecord
         {
-            uint32_t UID;
+            uint64_t UID;
             uint32_t Damage;
             uint32_t ActiveTime;
 
-            HitterUIDRecord(uint32_t nUID = 0, uint32_t nDamage = 0, uint32_t nActiveTime = 0)
+            HitterUIDRecord(uint64_t nUID = 0, uint32_t nDamage = 0, uint32_t nActiveTime = 0)
                 : UID(nUID)
                 , Damage(nDamage)
                 , ActiveTime(nActiveTime)
@@ -173,7 +196,13 @@ class CharObject: public ActiveObject
         const ServerMap   *m_Map;
 
     protected:
-        std::map<uint32_t, COLocation> m_LocationList;
+        const ServerMap *GetServerMap() const
+        {
+            return m_Map;
+        }
+
+    protected:
+        std::map<uint64_t, COLocation> m_LocationList;
 
     protected:
         int m_X;
@@ -206,10 +235,10 @@ class CharObject: public ActiveObject
     public:
         CharObject(ServiceCore *,       // service core
                 ServerMap *,            // server map
+                uint64_t,               // uid
                 int,                    // map x
                 int,                    // map y
-                int,                    // direction
-                uint8_t);               // life cycle state
+                int);                   // direction
        ~CharObject() = default;
 
     protected:
@@ -245,18 +274,18 @@ class CharObject: public ActiveObject
         }
 
     public:
-        Theron::Address Activate();
+        uint64_t Activate();
 
     protected:
-        virtual void ReportCORecord(uint32_t) = 0;
+        virtual void ReportCORecord(uint64_t) = 0;
 
     protected:
         void DispatchHealth();
-        void DispatchAttack(uint32_t, int);
+        void DispatchAttack(uint64_t, int);
 
     protected:
         virtual void DispatchAction(const ActionNode &);
-        virtual void ReportAction(uint32_t, const ActionNode &);
+        virtual void ReportAction(uint64_t, const ActionNode &);
 
     protected:
         virtual int OneStepReach(int, int, int *, int *);
@@ -266,7 +295,7 @@ class CharObject: public ActiveObject
 
     protected:
         virtual bool CanMove();
-        virtual bool RetrieveLocation(uint32_t, std::function<void(const COLocation &)>);
+        virtual bool RetrieveLocation(uint64_t, std::function<void(const COLocation &)>);
 
     protected:
         virtual bool RequestMove(int,   // nX, should be one hop distance
@@ -280,7 +309,7 @@ class CharObject: public ActiveObject
         virtual bool RequestSpaceMove(uint32_t, int, int, bool, std::function<void()>, std::function<void()>);
 
     protected:
-        bool AddHitterUID(uint32_t, int);
+        bool AddHitterUID(uint64_t, int);
         bool DispatchHitterExp();
 
     protected:
@@ -299,15 +328,14 @@ class CharObject: public ActiveObject
         void AddMonster(uint32_t, int, int, bool);
 
     protected:
-        virtual void CheckFriend(uint32_t, const std::function<void(int)> &) = 0;
+        virtual void CheckFriend(uint64_t, const std::function<void(int)> &) = 0;
 
     protected:
-        virtual bool GoDie()     = 0;
-        virtual bool GoGhost()   = 0;
-        virtual bool GoSuicide() = 0;
+        virtual bool GoDie()   = 0;
+        virtual bool GoGhost() = 0;
 
     protected:
-        virtual int MaxStep()
+        virtual int MaxStep() const
         {
             return 1;
         }
@@ -345,5 +373,6 @@ class CharObject: public ActiveObject
         }
 
     protected:
-        bool CheckCacheLocation(int, int, uint32_t = 0);
+        int CheckPathGrid(int, int, uint32_t = 0) const;
+        double OneStepCost(const CharObject::COPathFinder *, bool, int, int, int, int) const;
 };

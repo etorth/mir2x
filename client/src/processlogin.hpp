@@ -54,4 +54,5 @@ class ProcessLogin: public Process
 
     private:
         void DoLogin();
+        void DoCreateAccount();
 };

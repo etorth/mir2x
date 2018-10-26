@@ -148,11 +148,19 @@ SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
     return pstTexture;
 }
 
+void SDLDevice::DrawTexture(SDL_Texture *pstTexture,
+        int nDstX, int nDstY,
+        int nDstW, int nDstH,
+        int nSrcX, int nSrcY,
+        int nSrcW, int nSrcH)
+{
+    if(pstTexture){
+        SDL_Rect stSrc {nSrcX, nSrcY, nSrcW, nSrcH};
+        SDL_Rect stDst {nDstX, nDstY, nDstW, nDstH};
+        SDL_RenderCopy(m_Renderer, pstTexture, &stSrc, &stDst);
+    }
+}
 
-// TODO
-// didn't check the validation of parameters
-// 1. non-negative w/h
-// 2. out of boundary
 void SDLDevice::DrawTexture(SDL_Texture *pstTexture,
         int nDstX, int nDstY,
         int nSrcX, int nSrcY,
@@ -288,7 +296,7 @@ void SDLDevice::CreateInitViewWindow()
         }
     }
 
-    m_Window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nWindowW, nWindowH, 0);
+    m_Window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nWindowW, nWindowH, SDL_WINDOW_BORDERLESS);
     if(!m_Window){
         extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_FATAL, "Failed to create SDL window handler: %s", SDL_GetError());

@@ -37,6 +37,7 @@
 #include "clientluamodule.hpp"
 #include "linebrowserboard.hpp"
 
+class ClientPathFinder;
 class ProcessRun: public Process
 {
     private:
@@ -73,8 +74,14 @@ class ProcessRun: public Process
     private:
         MyHero *m_MyHero;
 
+    public:
+        bool ValidC(int nX, int nY) const
+        {
+            return m_Mir2xMapData.ValidC(nX, nY);
+        }
+
     private:
-        std::array<uint32_t, FOCUS_MAX> m_FocusTable;
+        std::array<uint64_t, FOCUS_MAX> m_FocusTable;
 
     private:
         int m_ViewX;
@@ -96,7 +103,7 @@ class ProcessRun: public Process
         std::vector<std::shared_ptr<IndepMagic>> m_IndepMagicList;
 
     private:
-        std::map<uint32_t, Creature*> m_CreatureRecord;
+        std::map<uint64_t, Creature*> m_CreatureList;
 
     private:
         // use a tokenboard to show all in future
@@ -164,7 +171,7 @@ class ProcessRun: public Process
         double MoveCost(bool, int, int, int, int);
 
     private:
-        uint32_t FocusUID(int);
+        uint64_t FocusUID(int);
 
     public:
         bool  LuaCommand(const char *);
@@ -186,17 +193,17 @@ class ProcessRun: public Process
         bool RegisterLuaExport(ClientLuaModule *, int);
 
     public:
-        Creature *RetrieveUID(uint32_t);
-        bool LocateUID(uint32_t, int *, int *);
+        Creature *RetrieveUID(uint64_t);
+        bool LocateUID(uint64_t, int *, int *);
 
     private:
-        bool TrackAttack(bool, uint32_t);
+        bool TrackAttack(bool, uint64_t);
 
     public:
         void AddAscendStr(int, int, int, int);
 
     public:
-        bool GetUIDLocation(uint32_t, bool, int *, int *);
+        bool GetUIDLocation(uint64_t, bool, int *, int *);
 
     public:
         void CenterMyHero();
@@ -246,6 +253,10 @@ class ProcessRun: public Process
         {
             m_GroundItemList[nX][nY].clear();
         }
+
+    public:
+        int CheckPathGrid(int, int) const;
+        double OneStepCost(const ClientPathFinder *, bool, int, int, int, int) const;
 
     public:
         bool RequestSpaceMove(uint32_t, int, int);

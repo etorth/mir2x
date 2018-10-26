@@ -50,14 +50,7 @@ void ProcessSyrc::Update(double fDeltaMS)
 {
     if(m_Ratio >= 100){
         extern Game *g_Game;
-        g_Game->SwitchProcess(PROCESSID_SYRC, PROCESSID_LOGIN);
-
-        // TODO
-        // return here immediately since ProcessSyrc is deleted
-        // otherwise next line will be executed
-
-        // to avoid this issue
-        // should make Game::RequestSwitch(PROCESSID_LOGIN)
+        g_Game->RequestProcess(PROCESSID_LOGIN);
         return;
     }
 

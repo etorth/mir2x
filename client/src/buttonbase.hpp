@@ -3,17 +3,15 @@
  *
  *       Filename: buttonbase.hpp
  *        Created: 08/25/2016 04:12:57
- *    Description: basic button class to handle event logic only
+ *    Description:
+ *              
+ *              basic button class to handle event logic only
+ *              1. no draw
+ *              2. no texture id field
  *
- *                 1. use g_ProgUse for texture storage
- *                 2. use three textures for three states
- *
- *                 I support two callbaks only: off->on and on->click
- *                 this class ask user to configure whether the on->click is triggered
- *                 at the PRESS or RELEASE event.
- *
- *                 I require the size of three textures should be approximately same to
- *                 avoid unnecessay complexity
+ *              I support two callbacks only: off->on and on->click
+ *              this class ask user to configure whether the on->click is triggered
+ *              at the PRESS or RELEASE event.
  *
  *        Version: 1.0
  *       Revision: none
@@ -36,57 +34,80 @@
 
 class ButtonBase: public Widget
 {
+    public:
+        enum ButtonState: int
+        {
+            BUTTON_OFF     = 0,
+            BUTTON_OVER    = 1,
+            BUTTON_PRESSED = 2,
+        };
+
     protected:
-        // 0: off
-        // 1: over
-        // 2: pressed
-        int                    m_State;
-        bool                   m_OnClickDone;
-        uint32_t               m_TexIDV[3];
-        std::function<void()>  m_OnOver;
-        std::function<void()>  m_OnClick;
+        int m_State;
+
+    protected:
+        bool m_OnClickDone;
+
+    protected:
+        int m_Offset[3][2];
+
+    protected:
+        std::function<void()> m_OnOver;
+        std::function<void()> m_OnClick;
         
     public:
         ButtonBase(
-                int                          nX,
-                int                          nY,
-                uint32_t                     nTexID0,
-                uint32_t                     nTexID1,
-                uint32_t                     nTexID2,
-                const std::function<void()> &fnOnOver     = [](){},
-                const std::function<void()> &fnOnClick    = [](){},
-                bool                         bOnClickDone = true,
-                Widget                      *pWidget      = nullptr,
-                bool                         bFreeWidget  = false)
-            : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
-            , m_State(0)
+                int nX,
+                int nY,
+                int nW,
+                int nH,
+
+                const std::function<void()> &fnOnOver  = [](){},
+                const std::function<void()> &fnOnClick = [](){},
+
+                int nOffXOnOver  = 0,
+                int nOffYOnOver  = 0,
+                int nOffXOnClick = 0,
+                int nOffYOnClick = 0,
+
+                bool    bOnClickDone = true,
+                Widget *pWidget      = nullptr,
+                bool    bFreeWidget  = false)
+            : Widget(nX, nY, nW, nH, pWidget, bFreeWidget)
+            , m_State(BUTTON_OFF)
             , m_OnClickDone(bOnClickDone)
-            , m_TexIDV {nTexID0, nTexID1, nTexID2}
-            , m_OnOver(fnOnOver)
+            , m_Offset
+              {
+                  {0            , 0           },
+                  {nOffXOnOver  , nOffYOnOver },
+                  {nOffXOnClick , nOffYOnClick},
+              }
+            , m_OnOver (fnOnOver)
             , m_OnClick(fnOnClick)
         {
-            int nW = 0;
-            int nH = 0;
-            for(int nState = 0; nState < 3; ++nState){
-                if(m_TexIDV[nState]){
-                    extern PNGTexDBN *g_ProgUseDBN;
-                    if(auto pTexture = g_ProgUseDBN->Retrieve(m_TexIDV[nState])){
-                        int nCurrW, nCurrH;
-                        if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nCurrW, &nCurrH)){
-                            nW = std::max(nCurrW, nW);
-                            nH = std::max(nCurrH, nH);
-                        }
-                    }
-                }
-            }
-
-            // we allow buttons without any valid texture, in that case some extra work
-            // can be done for special drawing
-            m_W = nW;
-            m_H = nH;
+            // we don't fail even if x, y, w, h are invalid
+            // because derived class could reset it in its constructor
         }
+
+    public:
         virtual ~ButtonBase() = default;
 
     public:
         bool ProcessEvent(const SDL_Event &, bool *);
+
+    protected:
+        int OffX() const
+        {
+            return m_Offset[State()][0];
+        }
+
+        int OffY() const
+        {
+            return m_Offset[State()][1];
+        }
+
+        int State() const
+        {
+            return m_State;
+        }
 };

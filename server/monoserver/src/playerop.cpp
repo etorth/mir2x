@@ -24,7 +24,7 @@
 #include "netdriver.hpp"
 #include "monoserver.hpp"
 
-void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
+void Player::On_MPK_METRONOME(const MessagePack &)
 {
     extern NetDriver *g_NetDriver;
     extern MonoServer *g_MonoServer;
@@ -36,7 +36,11 @@ void Player::On_MPK_METRONOME(const MessagePack &, const Theron::Address &)
     g_NetDriver->Post(ChannID(), SM_PING, stSMP);
 }
 
-void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_BADACTORPOD(const MessagePack &)
+{
+}
+
+void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK)
 {
     AMBindChannel stAMBC;
     std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
@@ -46,7 +50,7 @@ void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK, const Theron::Address
     m_ChannID = stAMBC.ChannID;
 
     extern NetDriver *g_NetDriver;
-    g_NetDriver->BindActor(ChannID(), GetAddress());
+    g_NetDriver->BindActor(ChannID(), UID());
 
     SMLoginOK stSMLOK;
     std::memset(&stSMLOK, 0, sizeof(stSMLOK));
@@ -67,7 +71,7 @@ void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK, const Theron::Address
     PullRectCO(10, 10);
 }
 
-void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK)
 {
     AMNetPackage stAMNP;
     std::memcpy(&stAMNP, rstMPK.Data(), sizeof(AMNetPackage));
@@ -88,7 +92,7 @@ void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK, const Theron::Address 
     }
 }
 
-void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_ACTION(const MessagePack &rstMPK)
 {
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
@@ -96,8 +100,36 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     if(true
             && stAMA.UID != UID()
             && stAMA.MapID == MapID()
-            && (std::abs(stAMA.X - X()) <= SYS_MAPVISIBLEW)
-            && (std::abs(stAMA.Y - Y()) <= SYS_MAPVISIBLEH)){
+            && LDistance2(stAMA.X, stAMA.Y, X(), Y()) < 400){
+
+        // for all action types
+        // the x/y are always well-defined
+
+        int nDirection = -1;
+        switch(stAMA.Action){
+            case ACTION_STAND:
+            case ACTION_ATTACK:
+            case ACTION_HITTED:
+                {
+                    nDirection = stAMA.Direction;
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+
+        extern MonoServer *g_MonoServer;
+        m_LocationList[stAMA.UID] = COLocation
+        {
+            stAMA.UID,
+            stAMA.MapID,
+            g_MonoServer->GetTimeTick(),
+            stAMA.X,
+            stAMA.Y,
+            nDirection
+        };
 
         ReportAction(stAMA.UID, ActionNode
         {
@@ -115,7 +147,33 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK, const Theron::Address &)
     }
 }
 
-void Player::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
+{
+    AMNotifyNewCO stAMNNCO;
+    std::memcpy(&stAMNNCO, rstMPK.Data(), sizeof(stAMNNCO));
+
+    switch(GetState(STATE_DEAD)){
+        case 0:
+            {
+                // should make an valid action node and send it
+                // currently just dispatch through map
+
+                DispatchAction(ActionStand(X(), Y(), Direction()));
+                break;
+            }
+        default:
+            {
+                AMNotifyDead stAMND;
+                std::memset(&stAMND, 0, sizeof(stAMND));
+
+                stAMND.UID = UID();
+                m_ActorPod->Forward(stAMNNCO.UID, {MPK_NOTIFYDEAD, stAMND});
+                break;
+            }
+    }
+}
+
+void Player::On_MPK_QUERYCORECORD(const MessagePack &rstMPK)
 {
     AMQueryCORecord stAMQCOR;
     std::memcpy(&stAMQCOR, rstMPK.Data(), sizeof(stAMQCOR));
@@ -123,121 +181,121 @@ void Player::On_MPK_QUERYCORECORD(const MessagePack &rstMPK, const Theron::Addre
     ReportCORecord(stAMQCOR.UID);
 }
 
-void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
 {
     AMMapSwitch stAMMS;
     std::memcpy(&stAMMS, rstMPK.Data(), sizeof(stAMMS));
 
-    if(stAMMS.UID && stAMMS.MapID){
+    if(!(stAMMS.UID && stAMMS.MapID)){
         extern MonoServer *g_MonoServer;
-        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stAMMS.UID)){
-            AMTryMapSwitch stAMTMS;
-            stAMTMS.UID    = UID();         //
-            stAMTMS.MapID  = m_Map->ID();   // current map
-            stAMTMS.MapUID = m_Map->UID();  // current map
-            stAMTMS.X      = X();           // current map
-            stAMTMS.Y      = Y();           // current map
-            stAMTMS.EndX   = stAMMS.X;      // map to switch to
-            stAMTMS.EndY   = stAMMS.Y;      // map to switch to
-
-            // 1. send request to the new map
-            //    if request rejected then it stays in current map
-            auto fnOnResp = [this](const MessagePack &rstRMPK, const Theron::Address &)
-            {
-                switch(rstRMPK.Type()){
-                    case MPK_MAPSWITCHOK:
-                        {
-                            // new map permit this switch request
-                            // new map will guarante to outlive current object
-                            AMMapSwitchOK stAMMSOK;
-                            std::memcpy(&stAMMSOK, rstRMPK.Data(), sizeof(stAMMSOK));
-                            if(true
-                                    && ((ServerMap *)(stAMMSOK.Data))
-                                    && ((ServerMap *)(stAMMSOK.Data))->ID()
-                                    && ((ServerMap *)(stAMMSOK.Data))->UID()
-                                    && ((ServerMap *)(stAMMSOK.Data))->ValidC(stAMMSOK.X, stAMMSOK.Y)){
-
-                                AMTryLeave stAMTL;
-                                stAMTL.UID   = UID();
-                                stAMTL.MapID = m_Map->ID();
-                                stAMTL.X     = X();
-                                stAMTL.Y     = Y();
-
-                                // current map respond for the leave request
-                                // dangerous here, we should keep m_Map always valid
-                                auto fnOnLeaveResp = [this, stAMMSOK, rstRMPK](const MessagePack &rstLeaveRMPK, const Theron::Address &)
-                                {
-                                    switch(rstLeaveRMPK.Type()){
-                                        case MPK_OK:
-                                            {
-                                                // 1. response to new map ``I am here"
-                                                m_Map   = (ServerMap *)(stAMMSOK.Data);
-                                                m_X = stAMMSOK.X;
-                                                m_Y = stAMMSOK.Y;
-                                                m_ActorPod->Forward(MPK_OK, m_Map->GetAddress(), rstRMPK.ID());
-
-                                                // 2. notify all players on the new map
-                                                DispatchAction(ActionStand(X(), Y(), Direction()));
-
-                                                // 3. inform the client for map swith
-                                                ReportStand();
-
-                                                // 4. pull all co's on the new map
-                                                PullRectCO(10, 10);
-                                                break;
-                                            }
-                                        default:
-                                            {
-                                                // can't leave???, illegal response
-                                                // server map won't respond any other message not MPK_OK
-                                                // dangerous issue since we then can never inform the new map ``we can't come to you"
-                                                m_ActorPod->Forward(MPK_ERROR, ((ServerMap *)(stAMMSOK.Data))->GetAddress(), rstRMPK.ID());
-
-                                                extern MonoServer *g_MonoServer;
-                                                g_MonoServer->AddLog(LOGTYPE_WARNING, "Leave request failed: (UID = %" PRIu32 ", MapID = %" PRIu32 ")", UID(), ((ServerMap *)(stAMMSOK.Data))->ID());
-                                                break;
-                                            }
-                                    }
-                                };
-                                m_ActorPod->Forward({MPK_TRYLEAVE, stAMTL}, m_Map->GetAddress(), fnOnLeaveResp);
-                                return;
-                            }
-
-                            // AMMapSwitchOK invalid
-                            extern MonoServer *g_MonoServer;
-                            g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid AMMapSwitchOK: Map = %p", stAMMSOK.Data);
-                            return;
-                        }
-                    default:
-                        {
-                            // do nothing
-                            // new map reject this switch request
-                            return;
-                        }
-                }
-            };
-            m_ActorPod->Forward({MPK_TRYMAPSWITCH, stAMTMS}, stUIDRecord.GetAddress(), fnOnResp);
-            return;
-        }
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", stAMMS.UID, stAMMS.MapID);
     }
 
-    extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %" PRIu32 ", MapID = %" PRIu32 ")", stAMMS.UID, stAMMS.MapID);
+    AMTryMapSwitch stAMTMS;
+    std::memset(&stAMTMS, 0, sizeof(stAMTMS));
+
+    stAMTMS.UID    = UID();         //
+    stAMTMS.MapID  = m_Map->ID();   // current map
+    stAMTMS.MapUID = m_Map->UID();  // current map
+    stAMTMS.X      = X();           // current map
+    stAMTMS.Y      = Y();           // current map
+    stAMTMS.EndX   = stAMMS.X;      // map to switch to
+    stAMTMS.EndY   = stAMMS.Y;      // map to switch to
+
+    // send request to the new map
+    // if request rejected then it stays in current map
+    m_ActorPod->Forward(stAMMS.UID, {MPK_TRYMAPSWITCH, stAMTMS}, [this](const MessagePack &rstRMPK)
+    {
+        switch(rstRMPK.Type()){
+            case MPK_MAPSWITCHOK:
+                {
+                    // new map accepts this switch request
+                    // new map will guarantee to outlive current object
+                    AMMapSwitchOK stAMMSOK;
+                    std::memcpy(&stAMMSOK, rstRMPK.Data(), sizeof(stAMMSOK));
+                    if(true
+                            && ((ServerMap *)(stAMMSOK.Ptr))
+                            && ((ServerMap *)(stAMMSOK.Ptr))->ID()
+                            && ((ServerMap *)(stAMMSOK.Ptr))->UID()
+                            && ((ServerMap *)(stAMMSOK.Ptr))->ValidC(stAMMSOK.X, stAMMSOK.Y)){
+
+                        AMTryLeave stAMTL;
+                        std::memset(&stAMTL, 0, sizeof(stAMTL));
+
+                        stAMTL.UID   = UID();
+                        stAMTL.MapID = m_Map->ID();
+                        stAMTL.X     = X();
+                        stAMTL.Y     = Y();
+
+                        // current map respond for the leave request
+                        // dangerous here, we should keep m_Map always valid
+                        m_ActorPod->Forward(m_Map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, stAMMSOK, rstRMPK](const MessagePack &rstLeaveRMPK)
+                        {
+                            switch(rstLeaveRMPK.Type()){
+                                case MPK_OK:
+                                    {
+                                        // 1. response to new map ``I am here"
+                                        m_Map   = (ServerMap *)(stAMMSOK.Ptr);
+                                        m_X = stAMMSOK.X;
+                                        m_Y = stAMMSOK.Y;
+                                        m_ActorPod->Forward(m_Map->UID(), MPK_OK, rstRMPK.ID());
+
+                                        // 2. notify all players on the new map
+                                        DispatchAction(ActionStand(X(), Y(), Direction()));
+
+                                        // 3. inform the client for map swith
+                                        ReportStand();
+
+                                        // 4. pull all co's on the new map
+                                        PullRectCO(10, 10);
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        // can't leave???, illegal response
+                                        // server map won't respond any other message not MPK_OK
+                                        // dangerous issue since we then can never inform the new map ``we can't come to you"
+                                        m_ActorPod->Forward(((ServerMap *)(stAMMSOK.Ptr))->UID(), MPK_ERROR, rstRMPK.ID());
+
+                                        extern MonoServer *g_MonoServer;
+                                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Leave request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", UID(), ((ServerMap *)(stAMMSOK.Ptr))->ID());
+                                        break;
+                                    }
+                            }
+                        });
+                        return;
+                    }
+
+                    // AMMapSwitchOK invalid
+                    extern MonoServer *g_MonoServer;
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid AMMapSwitchOK: Map = %p", stAMMSOK.Ptr);
+                    return;
+                }
+            default:
+                {
+                    // do nothing
+                    // new map reject this switch request
+                    return;
+                }
+        }
+    });
 }
 
-void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK, const Theron::Address &rstFromAddr)
+void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK)
 {
     AMLocation stAML;
+    std::memset(&stAML, 0, sizeof(stAML));
+
     stAML.UID       = UID();
     stAML.MapID     = MapID();
     stAML.X         = X();
     stAML.Y         = Y();
     stAML.Direction = Direction();
 
-    m_ActorPod->Forward({MPK_LOCATION, stAML}, rstFromAddr, rstMPK.ID());
+    m_ActorPod->Forward(rstMPK.From(), {MPK_LOCATION, stAML}, rstMPK.ID());
 }
 
-void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_ATTACK(const MessagePack &rstMPK)
 {
     AMAttack stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
@@ -248,7 +306,7 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK, const Theron::Address &)
     ReportAction(UID(), ActionHitted(X(), Y(), Direction()));
 }
 
-void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK)
 {
     AMUpdateHP stAMUHP;
     std::memcpy(&stAMUHP, rstMPK.Data(), sizeof(stAMUHP));
@@ -265,7 +323,7 @@ void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK, const Theron::Address &)
     }
 }
 
-void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
 {
     AMDeadFadeOut stAMDFO;
     std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
@@ -282,7 +340,7 @@ void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK, const Theron::Address
     }
 }
 
-void Player::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_EXP(const MessagePack &rstMPK)
 {
     AMExp stAME;
     std::memcpy(&stAME, rstMPK.Data(), sizeof(stAME));
@@ -298,7 +356,7 @@ void Player::On_MPK_EXP(const MessagePack &rstMPK, const Theron::Address &)
     }
 }
 
-void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
 {
     AMShowDropItem stAMSDI;
     std::memcpy(&stAMSDI, rstMPK.Data(), sizeof(stAMSDI));
@@ -326,7 +384,7 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK, const Theron::Addres
     g_NetDriver->Post(ChannID(), SM_SHOWDROPITEM, stSMSDI);
 }
 
-void Player::On_MPK_BADCHANNEL(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_BADCHANNEL(const MessagePack &rstMPK)
 {
     AMBadChannel stAMBC;
     std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
@@ -339,7 +397,7 @@ void Player::On_MPK_BADCHANNEL(const MessagePack &rstMPK, const Theron::Address 
     Offline();
 }
 
-void Player::On_MPK_OFFLINE(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_OFFLINE(const MessagePack &rstMPK)
 {
     AMOffline stAMO;
     std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));
@@ -347,7 +405,7 @@ void Player::On_MPK_OFFLINE(const MessagePack &rstMPK, const Theron::Address &)
     ReportOffline(stAMO.UID, stAMO.MapID);
 }
 
-void Player::On_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK)
 {
     AMRemoveGroundItem stAMRGI;
     std::memcpy(&stAMRGI, rstMPK.Data(), sizeof(stAMRGI));
@@ -361,7 +419,7 @@ void Player::On_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK, const Theron::Ad
     PostNetMessage(SM_REMOVEGROUNDITEM, stSMRGI);
 }
 
-void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK)
 {
     AMPickUpOK stAMPUOK;
     std::memcpy(&stAMPUOK, rstMPK.Data(), sizeof(stAMPUOK));
@@ -392,7 +450,7 @@ void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK, const Theron::Address &)
 
 }
 
-void Player::On_MPK_CORECORD(const MessagePack &rstMPK, const Theron::Address &)
+void Player::On_MPK_CORECORD(const MessagePack &rstMPK)
 {
     AMCORecord stAMCOR;
     std::memcpy(&stAMCOR, rstMPK.Data(), sizeof(stAMCOR));
@@ -442,6 +500,11 @@ void Player::On_MPK_CORECORD(const MessagePack &rstMPK, const Theron::Address &)
     PostNetMessage(SM_CORECORD, stSMCOR);
 }
 
-void Player::On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &)
+void Player::On_MPK_NOTIFYDEAD(const MessagePack &)
 {
+}
+
+void Player::On_MPK_CHECKMASTER(const MessagePack &rstMPK)
+{
+    m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
 }

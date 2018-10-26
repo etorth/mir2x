@@ -34,7 +34,20 @@
 
 class ClientPathFinder final: public AStarPathFinder
 {
+    private:
+        friend class ProcessRun;
+
+    private:
+        bool m_CheckGround;
+        bool m_CheckCreature;
+
+    private:
+        mutable std::map<uint64_t, int> m_Cache;
+
     public:
         ClientPathFinder(bool, bool, int);
        ~ClientPathFinder() = default;
+
+    private:
+       int GetGrid(int, int) const;
 };

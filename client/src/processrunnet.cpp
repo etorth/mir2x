@@ -37,7 +37,7 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         SMLoginOK stSMLOK;
         std::memcpy(&stSMLOK, pBuf, nLen);
 
-        uint32_t nUID     = stSMLOK.UID;
+        uint64_t nUID     = stSMLOK.UID;
         uint32_t nDBID    = stSMLOK.DBID;
         bool     bGender  = stSMLOK.Male;
         uint32_t nMapID   = stSMLOK.MapID;
@@ -51,7 +51,7 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         m_MyHero = new MyHero(nUID, nDBID, bGender, nDressID, this, ActionStand(nX, nY, nDirection));
 
         CenterMyHero();
-        m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
+        m_CreatureList[m_MyHero->UID()] = m_MyHero;
     }
 }
 
@@ -115,7 +115,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
 
             ClearCreature();
             m_MyHero = new MyHero(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
-            m_CreatureRecord[m_MyHero->UID()] = m_MyHero;
+            m_CreatureList[m_MyHero->UID()] = m_MyHero;
 
             CenterMyHero();
             m_MyHero->ParseAction(stAction);
@@ -142,20 +142,20 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
             stSMCOR.Action.ActionParam,
         };
 
-        auto pRecord = m_CreatureRecord.find(stSMCOR.Action.UID);
-        if(pRecord == m_CreatureRecord.end()){
+        auto pRecord = m_CreatureList.find(stSMCOR.Action.UID);
+        if(pRecord == m_CreatureList.end()){
             switch(stSMCOR.COType){
                 case CREATURE_MONSTER:
                     {
                         if(auto pMonster = Monster::Create(stSMCOR.Action.UID, stSMCOR.Monster.MonsterID, this, stAction)){
-                            m_CreatureRecord[stSMCOR.Action.UID] = pMonster;
+                            m_CreatureList[stSMCOR.Action.UID] = pMonster;
                         }
                         break;
                     }
                 case CREATURE_PLAYER:
                     {
                         auto pHero = new Hero(stSMCOR.Action.UID, stSMCOR.Player.DBID, true, 0, this, stAction);
-                        m_CreatureRecord[stSMCOR.Action.UID] = pHero;
+                        m_CreatureList[stSMCOR.Action.UID] = pHero;
                         break;
                     }
                 default:
@@ -177,8 +177,8 @@ void ProcessRun::Net_UPDATEHP(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMUHP, pBuf, sizeof(stSMUHP));
 
     if(stSMUHP.MapID == MapID()){
-        auto pRecord = m_CreatureRecord.find(stSMUHP.UID);
-        if((pRecord != m_CreatureRecord.end()) && pRecord->second){
+        auto pRecord = m_CreatureList.find(stSMUHP.UID);
+        if((pRecord != m_CreatureList.end()) && pRecord->second){
             pRecord->second->UpdateHP(stSMUHP.HP, stSMUHP.HPMax);
         }
     }
@@ -190,8 +190,8 @@ void ProcessRun::Net_DEADFADEOUT(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMDFO, pBuf, sizeof(stSMDFO));
 
     if(stSMDFO.MapID == MapID()){
-        auto pRecord = m_CreatureRecord.find(stSMDFO.UID);
-        if((pRecord != m_CreatureRecord.end()) && pRecord->second){
+        auto pRecord = m_CreatureList.find(stSMDFO.UID);
+        if((pRecord != m_CreatureList.end()) && pRecord->second){
             pRecord->second->DeadFadeOut();
         }
     }

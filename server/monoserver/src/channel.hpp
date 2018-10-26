@@ -22,8 +22,6 @@
 #include <cstdint>
 #include <asio.hpp>
 #include <functional>
-#include <Theron/Theron.h>
-
 #include "dispatcher.hpp"
 #include "channpackq.hpp"
 
@@ -63,7 +61,7 @@ class Channel final: public std::enable_shared_from_this<Channel>
         std::vector<uint8_t> m_DecodeBuf;
 
     private:
-        Theron::Address m_BindAddress;
+        uint64_t m_BindUID;
 
     private:
         // for post channel packets
@@ -211,21 +209,21 @@ class Channel final: public std::enable_shared_from_this<Channel>
         void Shutdown(bool);
 
     public:
-        bool Launch(const Theron::Address &rstAddr);
+        bool Launch(uint64_t);
 
     public:
-        void BindActor(const Theron::Address &rstAddr)
+        void BindActor(uint64_t nUID)
         {
             // force messages forward to the new actor
             // use post rather than directly assignement
-            // since asio main loop thread will access m_BindAddress
+            // since asio main loop thread will access m_BindUID
 
             // potential bug:
             // internal actor address won't get update immediately after this call
 
-            auto fnBind = [rstAddr, this]()
+            auto fnBind = [nUID, this]()
             {
-                m_BindAddress = rstAddr;
+                m_BindUID = nUID;
             };
             m_Socket.get_io_service().post(fnBind);
         }

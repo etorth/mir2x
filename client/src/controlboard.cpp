@@ -30,50 +30,56 @@
 ControlBoard::ControlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWidget, bool bAutoDelete)
     : Widget(nX, nY, nW, 135, pWidget, bAutoDelete)
     , m_ProcessRun(pRun)
-    , m_ButtonClose(
-            8,
-            72,
-            {0XFFFFFFFF, 0X0000001E, 0X0000001F},
-            0,
-            0,
-            0,
-            0,
-            [](){},
-            [](){},
-            true,
-            this,
-            false)
-    , m_ButtonMinize(
-            109,
-            72,
-            {0XFFFFFFFF, 0X00000020, 0X00000021},
-            0,
-            0,
-            0,
-            0,
-            [](){},
-            [](){},
-            true,
-            this,
-            false)
-    , m_ButtonInventory(
-            682,
-            33,
-            {0XFFFFFFFF, 0X00000030, 0X00000031},
-            0,
-            0,
-            0,
-            0,
-            [](){},
-            [this]()
-            {
-                if(auto pInventory = m_ProcessRun->GetWidget("InventoryBoard")){
-                    pInventory->Show(!pInventory->Show());
-                }
-            },
-            true,
-            this,
-            false)
+    , m_ButtonClose
+      {
+          8,
+          72,
+          {0XFFFFFFFF, 0X0000001E, 0X0000001F},
+          [](){},
+          [](){},
+          0,
+          0,
+          0,
+          0,
+          true,
+          this,
+          false,
+      }
+    , m_ButtonMinize
+      {
+          109,
+          72,
+          {0XFFFFFFFF, 0X00000020, 0X00000021},
+          [](){},
+          [](){},
+          0,
+          0,
+          0,
+          0,
+          true,
+          this,
+          false,
+      }
+    , m_ButtonInventory
+      {
+          682,
+          33,
+          {0XFFFFFFFF, 0X00000030, 0X00000031},
+          [](){},
+          [this]()
+          {
+              if(auto pInventory = m_ProcessRun->GetWidget("InventoryBoard")){
+                  pInventory->Show(!pInventory->Show());
+              }
+          },
+          0,
+          0,
+          0,
+          0,
+          true,
+          this,
+          false,
+      }
     , m_CmdLine(
             185,
             108,

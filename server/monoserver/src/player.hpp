@@ -44,8 +44,7 @@ class Player final: public CharObject
                 ServerMap *,            //
                 int,                    // map x
                 int,                    // map y
-                int,                    // direction
-                uint8_t);               // life cycle state
+                int);                   // direction
 
     public:
         ~Player();
@@ -89,34 +88,34 @@ class Player final: public CharObject
 
         bool Update();
 
-    public:
-        InvarData GetInvarData() const;
-
     protected:
         void OperateNet(uint8_t, const uint8_t *, size_t);
 
     protected:
-        void OperateAM(const MessagePack &, const Theron::Address &);
+        void OperateAM(const MessagePack &);
 
     private:
-        void On_MPK_EXP(const MessagePack &, const Theron::Address &);
-        void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
-        void On_MPK_ATTACK(const MessagePack &, const Theron::Address &);
-        void On_MPK_OFFLINE(const MessagePack &, const Theron::Address &);
-        void On_MPK_CORECORD(const MessagePack &, const Theron::Address &);
-        void On_MPK_PICKUPOK(const MessagePack &, const Theron::Address &);
-        void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);
-        void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
-        void On_MPK_MAPSWITCH(const MessagePack &, const Theron::Address &);
-        void On_MPK_NETPACKAGE(const MessagePack &, const Theron::Address &);
-        void On_MPK_BADCHANNEL(const MessagePack &, const Theron::Address &);
-        void On_MPK_NOTIFYDEAD(const MessagePack &, const Theron::Address &);
-        void On_MPK_DEADFADEOUT(const MessagePack &, const Theron::Address &);
-        void On_MPK_BINDCHANNEL(const MessagePack &, const Theron::Address &);
-        void On_MPK_SHOWDROPITEM(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYCORECORD(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYLOCATION(const MessagePack &, const Theron::Address &);
-        void On_MPK_REMOVEGROUNDITEM(const MessagePack &, const Theron::Address &);
+        void On_MPK_EXP(const MessagePack &);
+        void On_MPK_ACTION(const MessagePack &);
+        void On_MPK_ATTACK(const MessagePack &);
+        void On_MPK_OFFLINE(const MessagePack &);
+        void On_MPK_CORECORD(const MessagePack &);
+        void On_MPK_PICKUPOK(const MessagePack &);
+        void On_MPK_UPDATEHP(const MessagePack &);
+        void On_MPK_METRONOME(const MessagePack &);
+        void On_MPK_MAPSWITCH(const MessagePack &);
+        void On_MPK_NETPACKAGE(const MessagePack &);
+        void On_MPK_BADCHANNEL(const MessagePack &);
+        void On_MPK_NOTIFYDEAD(const MessagePack &);
+        void On_MPK_NOTIFYNEWCO(const MessagePack &);
+        void On_MPK_DEADFADEOUT(const MessagePack &);
+        void On_MPK_BADACTORPOD(const MessagePack &);
+        void On_MPK_BINDCHANNEL(const MessagePack &);
+        void On_MPK_CHECKMASTER(const MessagePack &);
+        void On_MPK_SHOWDROPITEM(const MessagePack &);
+        void On_MPK_QUERYCORECORD(const MessagePack &);
+        void On_MPK_QUERYLOCATION(const MessagePack &);
+        void On_MPK_REMOVEGROUNDITEM(const MessagePack &);
 
     private:
         void Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *, size_t);
@@ -132,9 +131,9 @@ class Player final: public CharObject
         void ReportGold();
         void ReportStand();
         void ReportHealth();
-        void ReportCORecord(uint32_t);
-        void ReportOffline(uint32_t, uint32_t);
-        void ReportAction(uint32_t, const ActionNode &);
+        void ReportCORecord(uint64_t);
+        void ReportOffline(uint64_t, uint32_t);
+        void ReportAction(uint64_t, const ActionNode &);
 
     protected:
         void DispatchOffline();
@@ -154,7 +153,7 @@ class Player final: public CharObject
         bool MotionValid(const ActionNode &);
 
     protected:
-        void CheckFriend(uint32_t, const std::function<void(int)> &);
+        void CheckFriend(uint64_t, const std::function<void(int)> &);
 
     protected:
         void OnCMActionMove  (CMAction);
@@ -173,7 +172,6 @@ class Player final: public CharObject
     protected:
         virtual bool GoDie();
         virtual bool GoGhost();
-        virtual bool GoSuicide();
 
     protected:
         bool Offline();

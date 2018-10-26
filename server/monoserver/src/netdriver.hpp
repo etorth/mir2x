@@ -28,8 +28,6 @@
 #include <thread>
 #include <cstdint>
 #include <asio.hpp>
-#include <Theron/Theron.h>
-
 #include "channel.hpp"
 #include "sysconst.hpp"
 #include "monoserver.hpp"
@@ -54,7 +52,7 @@ class NetDriver final: public Dispatcher
         std::thread m_Thread;
 
     private:
-        Theron::Address m_SCAddress;
+        uint64_t m_ServiceCoreUID;
 
     private:
         CacheQueue<uint32_t, SYS_MAXPLAYERNUM> m_ChannIDQ;
@@ -93,7 +91,7 @@ class NetDriver final: public Dispatcher
         //      0: OK
         //      1: invalid argument
         //      2: asio initialization failed
-        int Launch(uint32_t, const Theron::Address &);
+        bool Launch(uint32_t, uint64_t);
 
     public:
         template<typename... Args> bool Post(uint32_t nChannID, uint8_t nHC, Args&&... args)
@@ -104,10 +102,10 @@ class NetDriver final: public Dispatcher
             return false;
         }
 
-        void BindActor(uint32_t nChannID, const Theron::Address &rstAddr)
+        void BindActor(uint32_t nChannID, uint64_t nUID)
         {
             if(CheckChannID(nChannID)){
-                m_ChannelList[nChannID]->BindActor(rstAddr);
+                m_ChannelList[nChannID]->BindActor(nUID);
             }
         }
 

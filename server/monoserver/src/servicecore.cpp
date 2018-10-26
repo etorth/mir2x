@@ -21,59 +21,62 @@
 
 #include "player.hpp"
 #include "actorpod.hpp"
-#include "metronome.hpp"
 #include "mapbindbn.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
 
 ServiceCore::ServiceCore()
-    : ActiveObject()
+    : ServerObject(UIDFunc::GetServiceCoreUID())
     , m_MapList()
 {}
 
-void ServiceCore::OperateAM(const MessagePack &rstMPK, const Theron::Address &rstAddr)
+void ServiceCore::OperateAM(const MessagePack &rstMPK)
 {
     switch(rstMPK.Type()){
         case MPK_BADCHANNEL:
             {
-                On_MPK_BADCHANNEL(rstMPK, rstAddr);
+                On_MPK_BADCHANNEL(rstMPK);
+                break;
+            }
+        case MPK_METRONOME:
+            {
+                On_MPK_METRONOME(rstMPK);
                 break;
             }
         case MPK_ADDCHAROBJECT:
             {
-                On_MPK_ADDCHAROBJECT(rstMPK, rstAddr);
+                On_MPK_ADDCHAROBJECT(rstMPK);
                 break;
             }
         case MPK_TRYMAPSWITCH:
             {
-                On_MPK_TRYMAPSWITCH(rstMPK, rstAddr);
+                On_MPK_TRYMAPSWITCH(rstMPK);
                 break;
             }
         case MPK_NETPACKAGE:
             {
-                On_MPK_NETPACKAGE(rstMPK, rstAddr);
+                On_MPK_NETPACKAGE(rstMPK);
                 break;
             }
         case MPK_QUERYMAPLIST:
             {
-                On_MPK_QUERYMAPLIST(rstMPK, rstAddr);
+                On_MPK_QUERYMAPLIST(rstMPK);
                 break;
             }
         case MPK_QUERYCOCOUNT:
             {
-                On_MPK_QUERYCOCOUNT(rstMPK, rstAddr);
+                On_MPK_QUERYCOCOUNT(rstMPK);
                 break;
             }
         case MPK_QUERYMAPUID:
             {
-                On_MPK_QUERYMAPUID(rstMPK, rstAddr);
+                On_MPK_QUERYMAPUID(rstMPK);
                 break;
             }
         default:
             {
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "unsupported message: %s", rstMPK.Name());
-                g_MonoServer->Restart();
+                g_MonoServer->AddLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
     }

@@ -153,7 +153,6 @@
 #include <SDL2/SDL.h>
 #include <tinyxml2.h>
 #include <functional>
-#include <unordered_map>
 
 #include "widget.hpp"
 #include "section.hpp"
@@ -224,7 +223,7 @@ class TokenBoard: public Widget
         };
 
     private:
-        using IDHandlerMap = std::unordered_map<std::string, std::function<void()>>;
+        using IDHandlerMap = std::map<std::string, std::function<void()>>;
 
     private:
         bool m_Selectable;
@@ -382,6 +381,12 @@ class TokenBoard: public Widget
         void Reset();
 
     public:
+        void Clear()
+        {
+            Reset();
+        }
+
+    public:
         void Update(double);
 
     public:
@@ -429,7 +434,7 @@ class TokenBoard: public Widget
     private:
         bool ParseReturnObject();
         bool ParseEmoticonObject(const tinyxml2::XMLElement &);
-        bool ParseTextObject(const tinyxml2::XMLElement &, int, const std::unordered_map<std::string, std::function<void()>> &);
+        bool ParseTextObject(const tinyxml2::XMLElement &, int, const std::map<std::string, std::function<void()>> &);
 
     private:
         bool GetAttributeColor(SDL_Color *, const SDL_Color &, const tinyxml2::XMLElement &, const std::vector<std::string> &);
@@ -524,7 +529,7 @@ class TokenBoard: public Widget
         }
 
     private:
-        bool InnInsert(const XMLObjectList &, const std::unordered_map<std::string, std::function<void()>> &);
+        bool InnInsert(const XMLObjectList &, const std::map<std::string, std::function<void()>> &);
 
     public:
         int LineFullWidth(int) const;
@@ -534,13 +539,17 @@ class TokenBoard: public Widget
     public:
         void MoveCursorFront()
         {
-            if(m_LineV.empty()){ Reset(); }
+            if(m_LineV.empty()){
+                Reset();
+            }
             m_CursorLoc = {0, 0};
         }
 
         void MoveCursorBack()
         {
-            if(m_LineV.empty()){ Reset(); }
+            if(m_LineV.empty()){
+                Reset();
+            }
             m_CursorLoc = {(int)(m_LineV.back().Content.size()), (int)(m_LineV.size()) - 1};
         }
 
@@ -654,7 +663,7 @@ class TokenBoard: public Widget
         }
 
     public:
-        bool ParseXML(const char *, const std::unordered_map<std::string, std::function<void()>> &);
+        bool ParseXML(const char *, const std::map<std::string, std::function<void()>> &);
 
     public:
         // add char/string before current cursor
@@ -666,5 +675,8 @@ class TokenBoard: public Widget
         // create a new section of current content
         // append string/xml at the end of current board
         bool Append   (const char *);
-        bool AppendXML(const char *, const std::unordered_map<std::string, std::function<void()>> &);
+        bool AppendXML(const char *, const std::map<std::string, std::function<void()>> &);
+
+    public:
+        void RemoveLine(int, int);
 };

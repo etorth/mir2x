@@ -20,7 +20,7 @@
 #include "dbcomrecord.hpp"
 #include "pngtexoffdbn.hpp"
 
-IndepMagic::IndepMagic(uint32_t nUID,
+IndepMagic::IndepMagic(uint64_t nUID,
         int nMagicID,
         int nMagicParam,
         int nMagicStage,
@@ -29,7 +29,7 @@ IndepMagic::IndepMagic(uint32_t nUID,
         int nY,
         int nAimX,
         int nAimY,
-        uint32_t nAimUID)
+        uint64_t nAimUID)
     : MagicBase(nMagicID, nMagicParam, nMagicStage)
     , m_UID(nUID)
     , m_Direction(nDirection)
@@ -40,7 +40,7 @@ IndepMagic::IndepMagic(uint32_t nUID,
     , m_AimUID(nAimUID)
 {}
 
-IndepMagic::IndepMagic(uint32_t nUID,
+IndepMagic::IndepMagic(uint64_t nUID,
         int nMagicID,
         int nMagicParam,
         int nSpeed,
@@ -61,14 +61,14 @@ IndepMagic::IndepMagic(uint32_t nUID,
             0)
 {}
 
-IndepMagic::IndepMagic(uint32_t nUID,
+IndepMagic::IndepMagic(uint64_t nUID,
         int nMagicID,
         int nMagicParam,
         int nSpeed,
         int nDirection,
         int nX,
         int nY,
-        uint32_t nAimUID)
+        uint64_t nAimUID)
     : IndepMagic(nUID,
             nMagicID,
             nMagicParam,

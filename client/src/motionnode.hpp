@@ -54,6 +54,14 @@ struct MotionNode
     int Frame;
     int FadeOut;
 
+    struct _InterpMotion
+    {
+        int Motion      = MOTION_NONE;
+        int MotionParam = 0;
+
+        int Frame       = 0;
+    }InterpMotion;
+
     // don't put any simple data memeber check in constructor
     // in main code there is need to return an invalid motion node
 

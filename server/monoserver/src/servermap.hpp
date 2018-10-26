@@ -23,12 +23,10 @@
 
 #include "sysconst.hpp"
 #include "querytype.hpp"
-#include "uidrecord.hpp"
-#include "metronome.hpp"
 #include "commonitem.hpp"
 #include "pathfinder.hpp"
 #include "mir2xmapdata.hpp"
-#include "activeobject.hpp"
+#include "serverobject.hpp"
 #include "batchluamodule.hpp"
 
 class Player;
@@ -36,7 +34,7 @@ class Monster;
 class ServiceCore;
 class ServerObject;
 
-class ServerMap final: public ActiveObject
+class ServerMap final: public ServerObject
 {
     private:
         class ServerMapLuaModule: public BatchLuaModule
@@ -51,8 +49,14 @@ class ServerMap final: public ActiveObject
         // only for server map internal usage
         class ServerPathFinder: public AStarPathFinder
         {
+            private:
+                const ServerMap *m_Map;
+
+            private:
+                const bool m_CheckCO;
+
             public:
-                ServerPathFinder(ServerMap*, int, bool);
+                ServerPathFinder(const ServerMap*, int, bool);
                ~ServerPathFinder() = default;
         };
 
@@ -63,30 +67,21 @@ class ServerMap final: public ActiveObject
     private:
         struct CellRecord
         {
-            bool Lock;
-            std::vector<uint32_t> UIDList;
+            bool Locked;
+            std::vector<uint64_t> UIDList;
 
-            uint32_t UID;
             uint32_t MapID;
             int      SwitchX;
             int      SwitchY;
 
-            // query service core for the map UID
-            // for a map switch point record it's query state
-            // can't use pServiceCore->GetMapUID() since map in service core could load / unload
-            int Query;
-
-            // on every grid there could be one item on ground
             CacheQueue<CommonItem, SYS_MAXDROPITEM> GroundItemQueue;
 
             CellRecord()
-                : Lock(false)
+                : Locked(false)
                 , UIDList()
-                , UID(0)
                 , MapID(0)
                 , SwitchX(-1)
                 , SwitchY(-1)
-                , Query(QUERY_NONE)
                 , GroundItemQueue()
             {}
         };
@@ -102,13 +97,13 @@ class ServerMap final: public ActiveObject
         ServiceCore *m_ServiceCore;
 
     private:
-        Vec2D<CellRecord> m_CellRecordV2D;
+        Vec2D<CellRecord> m_CellVec2D;
 
     private:
         ServerMapLuaModule *m_LuaModule;
 
     private:
-        void OperateAM(const MessagePack &, const Theron::Address &);
+        void OperateAM(const MessagePack &);
 
     public:
         ServerMap(ServiceCore *, uint32_t);
@@ -131,24 +126,45 @@ class ServerMap final: public ActiveObject
         bool CanMove(bool, bool, int, int, int, int);
 
     protected:
-        double MoveCost(bool, bool, int, int, int, int);
+        double OneStepCost(bool, bool, int, int, int, int) const;
 
     public:
-        int W() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0; }
-        int H() const { return m_Mir2xMapData.Valid() ? m_Mir2xMapData.H() : 0; }
-
-        bool ValidC(int nX, int nY) const { return m_Mir2xMapData.ValidC(nX, nY); }
-        bool ValidP(int nX, int nY) const { return m_Mir2xMapData.ValidP(nX, nY); }
+        const Mir2xMapData &GetMir2xMapData() const
+        {
+            return m_Mir2xMapData;
+        }
 
     public:
-        Theron::Address Activate();
+        int W() const
+        {
+            return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0;
+        }
+
+        int H() const
+        {
+            return m_Mir2xMapData.Valid() ? m_Mir2xMapData.H() : 0;
+        }
+
+    public:
+        bool ValidC(int nX, int nY) const
+        {
+            return m_Mir2xMapData.ValidC(nX, nY);
+        }
+
+        bool ValidP(int nX, int nY) const
+        {
+            return m_Mir2xMapData.ValidP(nX, nY);
+        }
+
+    public:
+        uint64_t Activate();
 
     private:
         bool Load(const char *);
 
     private:
-        void AddGridUID(uint32_t, int, int);
-        void RemoveGridUID(uint32_t, int, int);
+        void AddGridUID(uint64_t, int, int);
+        void RemoveGridUID(uint64_t, int, int);
 
     private:
         bool Empty();
@@ -158,32 +174,46 @@ class ServerMap final: public ActiveObject
         bool GetValidGrid(int *, int *, bool);
 
     private:
+        void NotifyNewCO(uint64_t, int, int);
+
+    private:
         Player  *AddPlayer (uint32_t, int, int, int, bool);
-        Monster *AddMonster(uint32_t, uint32_t, int, int, bool);
+        Monster *AddMonster(uint32_t, uint64_t, int, int, bool);
 
     private:
         int GetMonsterCount(uint32_t);
 
     private:
+        auto &GetCell(int nX, int nY)
+        {
+            return m_CellVec2D[nX][nY];
+        }
+
+        const auto &GetCell(int nX, int nY) const
+        {
+            return m_CellVec2D[nX][nY];
+        }
+
+    private:
         auto &GetUIDList(int nX, int nY)
         {
-            return m_CellRecordV2D[nX][nY].UIDList;
+            return m_CellVec2D[nX][nY].UIDList;
         }
 
         const auto &GetUIDList(int nX, int nY) const
         {
-            return m_CellRecordV2D[nX][nY].UIDList;
+            return m_CellVec2D[nX][nY].UIDList;
         }
 
     private:
         auto &GetGroundItemList(int nX, int nY)
         {
-            return m_CellRecordV2D[nX][nY].GroundItemQueue;
+            return m_CellVec2D[nX][nY].GroundItemQueue;
         }
 
         const auto &GetGroundItemList(int nX, int nY) const
         {
-            return m_CellRecordV2D[nX][nY].GroundItemQueue;
+            return m_CellVec2D[nX][nY].GroundItemQueue;
         }
 
     private:
@@ -196,7 +226,10 @@ class ServerMap final: public ActiveObject
         void ClearGroundItem(int, int);
 
     private:
-        bool DoUIDList(int, int, const std::function<bool(const UIDRecord &)> &);
+        int CheckPathGrid(int, int) const;
+
+    private:
+        bool DoUIDList(int, int, const std::function<bool(uint64_t)> &);
 
     private:
         bool DoCircle(int, int, int,      const std::function<bool(int, int)> &);
@@ -206,23 +239,23 @@ class ServerMap final: public ActiveObject
         bool DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
 
     private:
-        void On_MPK_ACTION(const MessagePack &, const Theron::Address &);
-        void On_MPK_PICKUP(const MessagePack &, const Theron::Address &);
-        void On_MPK_OFFLINE(const MessagePack &, const Theron::Address &);
-        void On_MPK_TRYMOVE(const MessagePack &, const Theron::Address &);
-        void On_MPK_TRYLEAVE(const MessagePack &, const Theron::Address &);
-        void On_MPK_PATHFIND(const MessagePack &, const Theron::Address &);
-        void On_MPK_UPDATEHP(const MessagePack &, const Theron::Address &);
-        void On_MPK_METRONOME(const MessagePack &, const Theron::Address &);
-        void On_MPK_PULLCOINFO(const MessagePack &, const Theron::Address &);
-        void On_MPK_BADACTORPOD(const MessagePack &, const Theron::Address &);
-        void On_MPK_DEADFADEOUT(const MessagePack &, const Theron::Address &);
-        void On_MPK_NEWDROPITEM(const MessagePack &, const Theron::Address &);
-        void On_MPK_TRYMAPSWITCH(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYCOCOUNT(const MessagePack &, const Theron::Address &);
-        void On_MPK_TRYSPACEMOVE(const MessagePack &, const Theron::Address &);
-        void On_MPK_ADDCHAROBJECT(const MessagePack &, const Theron::Address &);
-        void On_MPK_QUERYRECTUIDLIST(const MessagePack &, const Theron::Address &);
+        void On_MPK_ACTION(const MessagePack &);
+        void On_MPK_PICKUP(const MessagePack &);
+        void On_MPK_OFFLINE(const MessagePack &);
+        void On_MPK_TRYMOVE(const MessagePack &);
+        void On_MPK_TRYLEAVE(const MessagePack &);
+        void On_MPK_PATHFIND(const MessagePack &);
+        void On_MPK_UPDATEHP(const MessagePack &);
+        void On_MPK_METRONOME(const MessagePack &);
+        void On_MPK_PULLCOINFO(const MessagePack &);
+        void On_MPK_BADACTORPOD(const MessagePack &);
+        void On_MPK_DEADFADEOUT(const MessagePack &);
+        void On_MPK_NEWDROPITEM(const MessagePack &);
+        void On_MPK_TRYMAPSWITCH(const MessagePack &);
+        void On_MPK_QUERYCOCOUNT(const MessagePack &);
+        void On_MPK_TRYSPACEMOVE(const MessagePack &);
+        void On_MPK_ADDCHAROBJECT(const MessagePack &);
+        void On_MPK_QUERYRECTUIDLIST(const MessagePack &);
 
     private:
         bool RegisterLuaExport(ServerMapLuaModule *);

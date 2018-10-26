@@ -56,6 +56,7 @@ class SDLDevice final
        void SetWindowIcon();
        void DrawTexture(SDL_Texture *, int, int);
        void DrawTexture(SDL_Texture *, int, int, int, int, int, int);
+       void DrawTexture(SDL_Texture *, int, int, int, int, int, int, int, int);
 
     public:
        void DrawTextureEx(SDL_Texture *,  
@@ -128,10 +129,28 @@ class SDLDevice final
 
        void DrawRectangle(int nX, int nY, int nW, int nH)
        {
-           DrawLine(nX     , nY     , nX + nW, nY     );
-           DrawLine(nX     , nY     , nX     , nY + nH);
-           DrawLine(nX + nW, nY     , nX + nW, nY + nH);
-           DrawLine(nX     , nY + nH, nX + nW, nY + nH);
+           SDL_Rect stRect;
+           stRect.x = nX;
+           stRect.y = nY;
+           stRect.w = nW;
+           stRect.h = nH;
+
+           SDL_RenderDrawRect(m_Renderer, &stRect);
+       }
+
+       void DrawRectangle(int nFrameLineWidth, int nX, int nY, int nW, int nH)
+       {
+           if(nFrameLineWidth > 0){
+               if(nFrameLineWidth == 1){
+                   DrawRectangle(nX, nY, nW, nH);
+               }else{
+                   FillRectangle(nX, nY,                            nW, nFrameLineWidth);
+                   FillRectangle(nX, nY + nW - 2 * nFrameLineWidth, nW, nFrameLineWidth);
+
+                   FillRectangle(nX,                            nY + nFrameLineWidth, nFrameLineWidth, nH - 2 * nFrameLineWidth);
+                   FillRectangle(nX + nW - 2 * nFrameLineWidth, nY + nFrameLineWidth, nFrameLineWidth, nH - 2 * nFrameLineWidth);
+               }
+           }
        }
 
        SDL_Texture *CreateTextureFromSurface(SDL_Surface * pSurface)
@@ -163,6 +182,12 @@ class SDLDevice final
 
     public:
        void PushColor(uint8_t, uint8_t, uint8_t, uint8_t);
+       void PushColor(const SDL_Color &rstColor)
+       {
+           PushColor(rstColor.r, rstColor.g, rstColor.b, rstColor.a);
+       }
+
+    public:
        void PopColor();
 
     public:

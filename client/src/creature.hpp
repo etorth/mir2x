@@ -134,7 +134,7 @@ class ProcessRun;
 class Creature
 {
     protected:
-        const uint32_t m_UID;
+        const uint64_t m_UID;
 
     protected:
         ProcessRun *m_ProcessRun;
@@ -158,7 +158,7 @@ class Creature
         double m_LastUpdateTime;
 
     protected:
-        Creature(uint32_t nUID, ProcessRun *pRun)
+        Creature(uint64_t nUID, ProcessRun *pRun)
             : m_UID(nUID)
             , m_ProcessRun(pRun)
             , m_HP(0)
@@ -178,7 +178,7 @@ class Creature
         virtual ~Creature() = default;
 
     public:
-        uint32_t UID() const
+        uint64_t UID() const
         {
             return m_UID;
         }

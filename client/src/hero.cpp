@@ -29,7 +29,7 @@
 #include "dbcomrecord.hpp"
 #include "pngtexoffdbn.hpp"
 
-Hero::Hero(uint32_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, ProcessRun *pRun, const ActionNode &rstAction)
+Hero::Hero(uint64_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, ProcessRun *pRun, const ActionNode &rstAction)
     : Creature(nUID, pRun)
     , m_DBID(nDBID)
     , m_Gender(bGender)

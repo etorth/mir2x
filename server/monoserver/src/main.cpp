@@ -20,11 +20,11 @@
 
 #include "log.hpp"
 #include "dbpod.hpp"
-#include "netdriver.hpp"
 #include "memorypn.hpp"
 #include "threadpn.hpp"
 #include "mapbindbn.hpp"
-#include "metronome.hpp"
+#include "actorpool.hpp"
+#include "netdriver.hpp"
 #include "serverenv.hpp"
 #include "mainwindow.hpp"
 #include "scriptwindow.hpp"
@@ -34,11 +34,10 @@
 Log                      *g_Log;
 ServerEnv                *g_ServerEnv;
 MemoryPN                 *g_MemoryPN;
-Theron::Framework        *g_Framework;
+ActorPool                *g_ActorPool;
 ThreadPN                 *g_ThreadPN;
 NetDriver                *g_NetDriver;
 DBPodN                   *g_DBPodN;
-Metronome                *g_Metronome;
 
 MapBinDBN                *g_MapBinDBN;
 ScriptWindow             *g_ScriptWindow;
@@ -64,10 +63,9 @@ int main()
     g_MapBinDBN               = new MapBinDBN();
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
-    g_Framework               = new Theron::Framework();
+    g_ActorPool               = new ActorPool(1);
     g_ThreadPN                = new ThreadPN(4);
     g_DBPodN                  = new DBPodN();
-    g_Metronome               = new Metronome(500);
     g_NetDriver               = new NetDriver();
 
     g_MainWindow->ShowAll();

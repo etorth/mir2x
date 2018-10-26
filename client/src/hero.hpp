@@ -39,7 +39,7 @@ class Hero: public Creature
         bool m_OnHorse;
 
     public:
-        Hero(uint32_t, uint32_t, bool, uint32_t, ProcessRun *, const ActionNode &);
+        Hero(uint64_t, uint32_t, bool, uint32_t, ProcessRun *, const ActionNode &);
 
     public:
        ~Hero() = default;

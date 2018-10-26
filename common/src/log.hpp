@@ -26,6 +26,8 @@
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
 
+#include "logtype.hpp"
+
 #if (defined(WIN32) || defined(_WIN32) || defined(__WIN32__))
 #define LOG_PATH "./"
 #else
@@ -40,12 +42,6 @@
 #else
 #define LOG_ARGV0 "mir2x"
 #endif
-
-
-#define LOGTYPE_INFO    {std::string("0"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_WARNING {std::string("1"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_FATAL   {std::string("2"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
-#define LOGTYPE_DEBUG   {std::string("3"), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
 
 class Log final
 {

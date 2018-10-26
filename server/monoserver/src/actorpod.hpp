@@ -3,48 +3,7 @@
  *
  *       Filename: actorpod.hpp
  *        Created: 04/20/2016 21:49:14
- *    Description: why I made actor as a plug, because I want it to be a one to zero/one
- *                 mapping as ServerObject -> Actor
- *
- *                 Then a server object can plug to the actor system slot for concurrent
- *                 operation, but also some server objects don't need this functionality
- *
- *                 And what's more, if an object is both ServerObject and Actor, we need
- *                 MI, but I really don't want to use MI
- *
- *                 every time when class state updated, we call the trigger to check what
- *                 should be done, for actor the only way to update state is to handle
- *                 message, then:
- *
- *                 if(response message){
- *                     check response pool;
- *                 }else{
- *                     call operation handler;
- *                 }
- *
- *                 if(trigger registered){
- *                     call trigger;
- *                 }
- *
- *                 the best place to put trigger is inside class ActorPod, this means for
- *                 ActiveObject, we can't use trigger before activate it, define ctor of
- *                 ActorPod as:
- *
- *                 ActorPod(Trigger, Operation);
- *
- *                 to provide the trigger, this trigger can handle delay commands, so we
- *                 define class DelayCmd and take the trigger as:
- *
- *                      auto fnTrigger = [this](){ m_StateHook.Execute(); }
- *
- *                 and
- *
- *                      m_StateHook.Install("ClearQueue", fnClearQueue);
- *                      m_StateHook.Uninstall("ClearQueue");
- *
- *                 then every time when new actor messages handled, we can check it
- *                 put the trigger here. Then for Transponder and ReactObject, we
- *                 provide method to install trigger handler:
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -61,30 +20,29 @@
 #include <map>
 #include <string>
 #include <functional>
-#include <Theron/Theron.h>
 
 #include "messagebuf.hpp"
 #include "messagepack.hpp"
 
-class ActorPod final: public Theron::Actor
+class ActorPod final
 {
     private:
-        using MessagePackOperation = std::function<void(const MessagePack&, const Theron::Address &)>;
-        // no need to keep the message pack itself
-        // since when registering response operation, we always have the message pack avaliable
-        // so we can put the pack copy in the lambda function capture list instead of here
-        struct RespondMessageRecord
-        {
-            // we put an expire time here
-            // to support automatically remove the registered response handler
-            uint32_t ExpireTime;
-            MessagePackOperation RespondOperation;
+        friend class ActorPool;
 
-            RespondMessageRecord(uint32_t nExpireTime, const MessagePackOperation &rstOperation)
+    private:
+        struct RespondHandler
+        {
+            uint32_t ExpireTime;
+            std::function<void(const MessagePack &)> Operation;
+
+            RespondHandler(uint32_t nExpireTime, std::function<void(const MessagePack &)> stOperation)
                 : ExpireTime(nExpireTime)
-                , RespondOperation(rstOperation)
+                , Operation(std::move(stOperation))
             {}
         };
+
+    private:
+        const uint64_t m_UID;
 
     private:
         // trigger is only for state update, so it won't accept any parameters w.r.t
@@ -103,7 +61,7 @@ class ActorPod final: public Theron::Actor
         // handler to handle every informing messages
         // informing messges means we didn't register an handler for it
         // this handler is provided at the initialization time and never change
-        const MessagePackOperation m_Operation;
+        const std::function<void(const MessagePack &)> m_Operation;
 
     private:
         // used by ValidID()
@@ -123,96 +81,49 @@ class ActorPod final: public Theron::Actor
         //    but it's hard to remove those entry which executed before expire from the queue
         //
         // 2. std::map keeps entries in order by Resp number
-        //    Resp number gives strict order of expire time, excellent freature by std::map
+        //    Resp number gives strict order of expire time, excellent feature by std::map
         //    then when checking expired ones, we start from std::map::begin() and stop at the fist non-expired one
-        std::map<uint32_t, RespondMessageRecord> m_RespondMessageRecord;
+        std::map<uint32_t, RespondHandler> m_RespondHandlerGroup;
+
+    public:
+        explicit ActorPod(uint64_t,
+                const std::function<void()> &,
+                const std::function<void(const MessagePack &)> &, uint32_t = 3600 * 1000);                            
+
+    public:
+        ~ActorPod();
 
     private:
-        // actor information provided by BindPod()
-        // actor itself don't create this UID / Name info
-        uint32_t    m_UID;
-        std::string m_Name;
-
-    public:
-        // actor with trigger provided externally
-        explicit ActorPod(Theron::Framework *pFramework, const std::function<void()> &fnTrigger,
-                const std::function<void(const MessagePack &, const Theron::Address &)> &fnOperate, uint32_t nExpireTime = 3600 * 1000)
-            : Theron::Actor(*pFramework)
-            , m_Trigger(fnTrigger)
-            , m_Operation(fnOperate)
-            , m_ValidID(0)
-            , m_ExpireTime(nExpireTime)
-            , m_RespondMessageRecord()
-            , m_UID(0)
-            , m_Name("ActorPod")
-        {
-            RegisterHandler(this, &ActorPod::InnHandler);
-        }
-
-        // actor without trigger, we just put a empty handler here
-        explicit ActorPod(Theron::Framework *pFramework,
-                const std::function<void(const MessagePack &, const Theron::Address &)> &fnOperate, uint32_t nExpireTime = 3600 * 1000)
-            : ActorPod(pFramework, std::function<void()>(), fnOperate, nExpireTime)
-        {}
-
-    public:
-        ~ActorPod() = default;
+        uint32_t GetValidID();
 
     private:
-        // get an ID to a message expcecting a response
-        // when the responding message comes we use the Resp to find its responding handler
-        // requirement for the ID:
-        // 1. non-zero, zero ID means no response expected
-        // 2. unique for registered handler in m_RespondMessageRecord at one time
-        //    a number can be re-used, but we should make sure no mistake happen for ID -> Hanlder mapping
-        uint32_t ValidID();
-
-        // to register to Theron::Actor
-        // works as a wrapper for (m_Operation, m_Trigger, m_RespondMessageRecord)
-        // Theron::Actor accept Theron::Actor::InnHandler only instead of std::function<void(...)>
-        void InnHandler(const MessagePack &, const Theron::Address);
+        void InnHandler(const MessagePack &);
 
     public:
-        // just send a message, not a response, and won't exptect a reply
-        bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr)
+        bool Forward(uint64_t nUID, const MessageBuf &rstMB)
         {
-            return Forward(rstMB, rstAddr, 0);
+            return Forward(nUID, rstMB, 0);
         }
-
-        // sending a response, won't exptect a reply
-        bool Forward(const MessageBuf &, const Theron::Address &, uint32_t);
-
-        // send a non-responding message and exptecting a reply
-        bool Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr,
-                const std::function<void(const MessagePack&, const Theron::Address &)> &fnOPR)
-        {
-            return Forward(rstMB, rstAddr, 0, fnOPR);
-        }
-
-        // send a responding message and exptecting a reply
-        bool Forward(const MessageBuf &, const Theron::Address &, uint32_t,
-                const std::function<void(const MessagePack&, const Theron::Address &)> &);
 
     public:
-        const char *Name() const
+        bool Forward(uint64_t nUID, const MessageBuf &rstMB, std::function<void(const MessagePack &)> fnOPR)
         {
-            return m_Name.c_str();
+            return Forward(nUID, rstMB, 0, std::move(fnOPR));
         }
 
-        uint32_t UID() const
+    public:
+        bool Forward(uint64_t, const MessageBuf &, uint32_t);
+        bool Forward(uint64_t, const MessageBuf &, uint32_t, std::function<void(const MessagePack &)>);
+
+    public:
+        uint64_t UID() const
         {
             return m_UID;
         }
 
     public:
-        void BindPod(uint32_t nUID, const char *szName)
-        {
-            m_UID  = nUID;
-            m_Name = szName;
-        }
+        bool Detach(const std::function<void()> &) const;
 
-        void Detach()
-        {
-            DeregisterHandler(this, &ActorPod::InnHandler);
-        }
+    public:
+        uint32_t GetMessageCount() const;
 };

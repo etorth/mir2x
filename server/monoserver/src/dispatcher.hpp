@@ -5,7 +5,7 @@
  *        Created: 01/26/2018 15:36:14
  *    Description:
  *                 anonymous message sender
- *                 actor who receives the message will get from-address as Null()
+ *                 actor who receives the message will uid zero
  *
  *        Version: 1.0
  *       Revision: none
@@ -19,7 +19,7 @@
  */
 
 #pragma once
-#include <Theron/Theron.h>
+#include <cstdint>
 #include "messagebuf.hpp"
 
 class Dispatcher
@@ -31,5 +31,5 @@ class Dispatcher
         virtual ~Dispatcher() = default;
 
     public:
-        bool Forward(const MessageBuf &, const Theron::Address &, uint32_t = 0);
+        bool Forward(uint64_t, const MessageBuf &, uint32_t = 0);
 };

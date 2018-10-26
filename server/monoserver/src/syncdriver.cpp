@@ -17,144 +17,68 @@
  */
 
 #include <cinttypes>
+#include "uidfunc.hpp"
 #include "serverenv.hpp"
+#include "actorpool.hpp"
 #include "monoserver.hpp"
 #include "syncdriver.hpp"
 
-// send without waiting for response
-// also for SyncDriver we have no registed response handler
-//
-// return value:
-//      0. no error
-//      1. send failed
-int SyncDriver::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond)
+MessagePack SyncDriver::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, uint32_t nTimeout)
 {
-    extern ServerEnv *g_ServerEnv;
-    if(g_ServerEnv->TraceActorMessage){
+    if(!nUID){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_DEBUG, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ")",
-                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "Sending message to UID 0");
+        return {MPK_NONE};
     }
 
-    if(!rstAddr){
+    // don't use in actor thread
+    // because we can use actor send message directly
+    // and this blocks the actor thread caused the wait never finish
+
+    extern ActorPool *g_ActorPool;
+    if(g_ActorPool->IsActorThread()){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ") : Try to send message to an emtpy address",
-                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
-        return 1;
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Calling SyncDriver::Forward() in actor thread, SyncDriver = %p, SyncDriver::UID() = %" PRIu64, this, UID());
+        return {MPK_NONE};
     }
 
-    if(rstAddr == GetAddress()){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ") : Try to send message to itself",
-                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
-        return 1;
-    }
-
-    extern Theron::Framework *g_Framework;
-    return g_Framework->Send<MessagePack>({rstMB, 0, nRespond}, m_Receiver.GetAddress(), rstAddr) ? 0 : 1;
-}
-
-// send with expection of response message, this function firstly clear all cached
-// message in the receiver, then send it and wait to the response.
-//
-// TODO it's very easy to get blocked if we don't put timeout support here. we can
-// use Theron::Receiver::Comsume() instead of Theron::Receiver::Wait() to support
-// the timeout functionality
-//
-// input argument
-//      rstMPK      :
-//      rstAddr     :
-//      pMPK        : to copy the respond message out
-//                    null if we need reponse but don't care what's the response is
-//
-// define error code of return:
-//      0   : no error
-//      1   : send failed
-//      2   : send succeed but wait for response failed
-//      3   : fail to pop the received message
-//      4   : mysterious error, can rarely happen
-int SyncDriver::Forward(const MessageBuf &rstMB, const Theron::Address &rstAddr, uint32_t nRespond, MessagePack *pMPK)
-{
-    MessagePack stTmpMPK;
-    Theron::Address stTmpAddress;
-
-    // 1. clean the catcher
-    //    this clean all cached messages in the receiver
-    //    or use m_Receiver.Reset()
-    while(true){
-        if(!m_Catcher.Pop(stTmpMPK, stTmpAddress)){
-            break;
-        }
-    }
-
-    // to avoid the overflow
-    // but never check the uniqueness when wrap back
-    m_ValidID = (m_ValidID + 1) ? (m_ValidID + 1) : 1;
-    auto nCurrID = m_ValidID;
+    m_CurrID = (m_CurrID + 1) ? (m_CurrID + 1) : 1;
+    auto nCurrID = m_CurrID;
 
     extern ServerEnv *g_ServerEnv;
     if(g_ServerEnv->TraceActorMessage){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_DEBUG, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
-                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nCurrID, nRespond);
+        g_MonoServer->AddLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")", UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), nCurrID, nRespond);
     }
 
-    if(!rstAddr){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ") : Try to send message to an emtpy address",
-                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
-        return 1;
+    if(!g_ActorPool->PostMessage(nUID, {rstMB, UID(), nCurrID, nRespond})){
+        AMBadActorPod stAMBAP;
+        std::memset(&stAMBAP, 0, sizeof(stAMBAP));
+
+        stAMBAP.Type    = rstMB.Type();
+        stAMBAP.From    = UID();
+        stAMBAP.ID      = nCurrID;
+        stAMBAP.Respond = nRespond;
+
+        return {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, nCurrID};
     }
 
-    if(rstAddr == GetAddress()){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "(Driver: 0X%0*" PRIXPTR ", Name: SyncDriver, UID: NA) -> (Type: %s, ID: 0, Resp: %" PRIu32 ") : Try to send message to itself",
-                (int)(sizeof(this) * 2), (uintptr_t)(this), MessagePack(rstMB.Type()).Name(), nRespond);
-        return 1;
+    switch(m_Receiver.Wait(nTimeout)){
+        case 0:
+            {
+                break;
+            }
+        case 1:
+        default:
+            {
+                if(auto stvMPK = m_Receiver.Pop(); stvMPK.size()){
+                    for(auto p = stvMPK.begin(); p != stvMPK.end(); ++p){
+                        if(p->Respond() == nCurrID){
+                            return *p;
+                        }
+                    }
+                }
+            }
     }
-
-    // 2. send message
-    extern Theron::Framework *g_Framework;
-    if(!g_Framework->Send<MessagePack>({rstMB, nCurrID, nRespond}, m_Receiver.GetAddress(), rstAddr)){
-        // 3. ooops send failed
-        //    won't print any warning message since we take this as ``normal"
-        return 1;
-    }
-
-    // 4. send succeed, wait for response
-    while(true){
-        if(m_Receiver.Wait(1) != 1){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "(SyncDriver 0X%0*" PRIXPTR "::Wait(1) failed", (int)(sizeof(this) * 2), (uintptr_t)(this));
-            return 2;
-        }
-
-        // handle response
-        // now we already has >= 1 response in catcher
-        if(!m_Catcher.Pop(stTmpMPK, stTmpAddress)){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "(SyncDriver 0X%0*" PRIXPTR "::Pop() failed", (int)(sizeof(this) * 2), (uintptr_t)(this));
-            return 3;
-        }
-
-        // since the syncdriver may send / receive multiple messages
-        // here it could mess up with other actor's response or the receiver's last response
-        //      1. check stTmpAddress == rstAddr
-        //      2. check stTmpMPK.Respond() == nCurrID
-        // method-2 is always OK
-        // method-1 could failed if trying to send to an dead actor and stTmpAddress is of the g_Framework
-        if(stTmpMPK.Respond() != nCurrID){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "(SyncDriver 0X%0*" PRIXPTR " get ID = %" PRIu32 ", expected ID = %" PRIu32, (int)(sizeof(this) * 2), (uintptr_t)(this), stTmpMPK.Respond(), nCurrID);
-            continue;
-        }
-
-        // ok finally we get what we want
-        if(pMPK){ *pMPK = stTmpMPK; }
-
-        return 0;
-    }
-
-    // 5. mysterious errors...
-    return 4;
+    return {MPK_NONE};
 }

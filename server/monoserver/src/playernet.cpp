@@ -51,18 +51,14 @@ void Player::Net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
             && stCMQCOR.AimUID
             && stCMQCOR.AimUID != UID()){
 
-        extern MonoServer *g_MonoServer;
-        if(auto stUIDRecord = g_MonoServer->GetUIDRecord(stCMQCOR.AimUID)){
+        AMQueryCORecord stAMQCOR;
+        std::memset(&stAMQCOR, 0, sizeof(stAMQCOR));
 
-            AMQueryCORecord stAMQCOR;
-            std::memset(&stAMQCOR, 0, sizeof(stAMQCOR));
+        // target UID can ignore it
+        // send the query without response requirement
 
-            // target UID can ignore it
-            // send the query without response requirement
-
-            stAMQCOR.UID = UID();
-            m_ActorPod->Forward({MPK_QUERYCORECORD, stAMQCOR}, stUIDRecord.GetAddress());
-        }
+        stAMQCOR.UID = UID();
+        m_ActorPod->Forward(stCMQCOR.AimUID, {MPK_QUERYCORECORD, stAMQCOR});
     }
 }
 
@@ -75,8 +71,7 @@ void Player::Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *pBuf, size_t)
 
 void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
 {
-    auto pCM = (CMPickUp *)(pBuf);
-    if(pCM->MapID == m_Map->ID()){
+    if(auto pCM = (CMPickUp *)(pBuf); pCM->MapID == m_Map->ID()){
         if(CanPickUp(pCM->ID, 0)){
             AMPickUp stAMPU;
             std::memset(&stAMPU, 0, sizeof(stAMPU));
@@ -85,7 +80,7 @@ void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
             stAMPU.UID  = pCM->UID;
             stAMPU.ID   = pCM->ID;
             stAMPU.DBID = pCM->DBID;
-            m_ActorPod->Forward({MPK_PICKUP, stAMPU}, m_Map->GetAddress());
+            m_ActorPod->Forward(m_Map->UID(), {MPK_PICKUP, stAMPU});
         }
     }
 }

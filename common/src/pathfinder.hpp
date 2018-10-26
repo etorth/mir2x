@@ -11,6 +11,7 @@
  *                 support jump on the map with step size as (1, 2, 3)
  *                 store direction information in each node and calculate cost with it
  *
+ *
  *        Version: 1.0
  *       Revision: none
  *       Compiler: gcc
@@ -24,6 +25,7 @@
 
 #pragma once
 #include <cmath>
+#include <array>
 #include <functional>
 
 #include "fsa.h"
@@ -33,6 +35,11 @@
 
 namespace PathFind
 {
+    enum
+    {
+        FREE, LOCKED, OCCUPIED, OBSTACLE, INVALID,
+    };
+
     struct PathNode final
     {
         int X;
@@ -43,26 +50,39 @@ namespace PathFind
             , Y(nY)
         {}
 
-        // I don't want to make it friend
-        // which needs another free function declaration
         bool operator == (const PathNode & rstNode)
         {
             return (rstNode.X == X) && (rstNode.Y == Y);
         }
     };
 
+    inline const char *GetDirectionName(int nDirection)
+    {
+        switch (nDirection){
+            case DIR_UP        : return "DIR_UP";
+            case DIR_DOWN      : return "DIR_DOWN";
+            case DIR_LEFT      : return "DIR_LEFT";
+            case DIR_RIGHT     : return "DIR_RIGHT";
+            case DIR_UPLEFT    : return "DIR_UPLEFT";
+            case DIR_UPRIGHT   : return "DIR_UPRIGHT";
+            case DIR_DOWNLEFT  : return "DIR_DOWNLEFT";
+            case DIR_DOWNRIGHT : return "DIR_DOWNRIGHT";
+            default            : return "DIR_NONE";
+        }
+    }
+
     inline int GetBack(int nDirection)
     {
         switch (nDirection){
-            case DIR_UP       : return DIR_DOWN;
-            case DIR_DOWN     : return DIR_UP;
-            case DIR_LEFT     : return DIR_RIGHT;
-            case DIR_RIGHT    : return DIR_LEFT;
-            case DIR_UPLEFT   : return DIR_DOWNRIGHT;
-            case DIR_UPRIGHT  : return DIR_DOWNLEFT;
-            case DIR_DOWNLEFT : return DIR_UPRIGHT;
-            case DIR_DOWNRIGHT: return DIR_UPLEFT;
-            default           : return DIR_NONE;
+            case DIR_UP        : return DIR_DOWN;
+            case DIR_DOWN      : return DIR_UP;
+            case DIR_LEFT      : return DIR_RIGHT;
+            case DIR_RIGHT     : return DIR_LEFT;
+            case DIR_UPLEFT    : return DIR_DOWNRIGHT;
+            case DIR_UPRIGHT   : return DIR_DOWNLEFT;
+            case DIR_DOWNLEFT  : return DIR_UPRIGHT;
+            case DIR_DOWNRIGHT : return DIR_UPLEFT;
+            default            : return DIR_NONE;
         }
     }
 
@@ -112,27 +132,25 @@ class AStarPathFinderNode;
 class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
 {
     private:
-        std::function<bool  (int, int, int, int)> m_MoveChecker;
-        std::function<double(int, int, int, int)> m_MoveCost;
-
-    private:
-        int m_MaxStep;
-
-    public:
         friend class AStarPathFinderNode;
 
+    private:
+        const std::function<double(int, int, int, int)> m_OneStepCost;
+
+    private:
+        const int m_MaxStep;
+
+    private:
+        bool m_FoundPath;
+
     public:
-        AStarPathFinder(
-                std::function<  bool(int, int, int, int)> fnMoveChecker, // (x0, y0) -> (x1, y1) : possibility
-                std::function<double(int, int, int, int)> fnMoveCost,    // (x0, y0) -> (x1, y1) : cost
-                int nMaxStepSize = 1)                                    // (x0, y0) -> (x1, y1) : max step size
+        AStarPathFinder(std::function<double(int, int, int, int)> fnOneStepCost, int nMaxStepSize = 1)
             : AStarSearch<AStarPathFinderNode>()
-            , m_MoveChecker(fnMoveChecker)
-            , m_MoveCost(fnMoveCost)
+            , m_OneStepCost(fnOneStepCost)
             , m_MaxStep(nMaxStepSize)
+            , m_FoundPath(false)
         {
-            condcheck(m_MoveChecker);
-            condcheck(m_MoveCost);
+            condcheck(m_OneStepCost);
             condcheck(false
                     || (m_MaxStep == 1)
                     || (m_MaxStep == 2)
@@ -142,18 +160,29 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
     public:
         ~AStarPathFinder()
         {
-            FreeSolutionNodes();
+            if(m_FoundPath){
+                FreeSolutionNodes();
+            }
             EnsureMemoryFreed();
         }
 
-    private:
+    protected:
         int MaxStep() const
         {
             return m_MaxStep;
         }
 
     public:
-        bool Search(int, int, int, int);
+        bool PathFound() const
+        {
+            return m_FoundPath;
+        }
+
+    public:
+        inline bool Search(int, int, int, int);
+
+    public:
+        template<size_t PathNodeNum> std::array<PathFind::PathNode, PathNodeNum> GetPathNode();
 };
 
 class AStarPathFinderNode
@@ -215,7 +244,7 @@ class AStarPathFinderNode
         }
 
     public:
-        float GoalDistanceEstimate(AStarPathFinderNode &rstGoalNode)
+        float GoalDistanceEstimate(const AStarPathFinderNode &rstGoalNode) const
         {
             // we use Chebyshev's distance instead of Manhattan distance
             // since we allow max step size as 1, 2, 3, and for optimal solution
@@ -230,12 +259,12 @@ class AStarPathFinderNode
             return std::max<float>(nXDistance, nYDistance);
         }
 
-        bool IsGoal(AStarPathFinderNode &rstGoalNode)
+        bool IsGoal(const AStarPathFinderNode &rstGoalNode) const
         {
             return (X() == rstGoalNode.X()) && (Y() == rstGoalNode.Y());
         }
 
-        bool GetSuccessors(AStarSearch<AStarPathFinderNode> *pAStarSearch, AStarPathFinderNode *pParentNode)
+        bool GetSuccessors(AStarSearch<AStarPathFinderNode> *pAStarSearch, const AStarPathFinderNode *pParentNode) const
         {
             static const int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
             static const int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
@@ -255,7 +284,7 @@ class AStarPathFinderNode
                     // when add a successor we always check it's distance between the ParentNode
                     // means for m_MoveChecker(x0, y0, x1, y1) we guarentee that (x1, y1) inside propor distance to (x0, y0)
 
-                    if(m_Finder->m_MoveChecker(X(), Y(), nNewX, nNewY)){
+                    if(m_Finder->m_OneStepCost(X(), Y(), nNewX, nNewY) >= 0.00){
                         AStarPathFinderNode stFinderNode {nNewX, nNewY, nDirIndex, m_Finder};
                         pAStarSearch->AddSuccessor(stFinderNode);
                     }
@@ -267,45 +296,110 @@ class AStarPathFinderNode
             return true;
         }
 
-        float GetCost(AStarPathFinderNode &rstNode)
+        // give very close weight for StepSize = 1 and StepSize = MaxStep to prefer bigger hops
+        // but I have to make Weight(MaxStep) = Weight(1) + dW ( > 0 ), reason:
+        //       for MaxStep = 3 and path as following:
+        //                       A B C D E
+        //       if I want to move (A->C), we can do (A->B->C) and (A->D->C)
+        //       then if there are of same weight I can't prefer (A->B->C)
+        //
+        //       but for MaxStep = 2 I don't have this issue
+        // actually for dW < Weight(1) is good enough
+
+        // cost :   valid  :     1.00
+        //        occupied :   100.00
+        //         invalid : 10000.00
+        //
+        // we should have cost(invalid) >> cost(occupied), otherwise
+        //          XXAXX
+        //          XOXXX
+        //          XXBXX
+        // path (A->O->B) and (A->X->B) are of equal cost
+
+        // if can't go through we return the infinite
+        // be careful of following situation which could make mistake
+        //
+        //     XOOAOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+        //     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXO
+        //     XOOBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+        //
+        // here ``O" means ``can pass" and ``X" means not, then if we do move (A->B)
+        // if the path is too long then likely it takes(A->X->B) rather than (A->OOOOOOO...OOO->B)
+        //
+        // method to solve it:
+        //  1. put path length constraits
+        //  2. define inifinite = Map::W() * Map::H() as any path can have
+
+        float GetCost(const AStarPathFinderNode &rstNode) const
         {
             int nSrcX = X();
             int nSrcY = Y();
             int nDstX = rstNode.X();
             int nDstY = rstNode.Y();
 
-            if(m_Finder->m_MoveCost){
-                auto fCost = m_Finder->m_MoveCost(nSrcX, nSrcY, nDstX, nDstY);
-                if(fCost >= 0.00){
-                    auto nOldDirIndex = Direction();
-                    auto nNewDirIndex = PathFind::GetDirection(nSrcX, nSrcY, nDstX, nDstY) - (DIR_NONE + 1);
-                    if(true
-                            && (nOldDirIndex >= 0) && (nOldDirIndex < 8)
-                            && (nNewDirIndex >= 0) && (nNewDirIndex < 8)){
+            auto fCost = m_Finder->m_OneStepCost(nSrcX, nSrcY, nDstX, nDstY);
+            condcheck(fCost >= 0.00);
 
-                        static const float fTurnCost[]
-                        {
-                            0.00,   // 0
-                            1.00,   // 1
-                            2.00,   // 2
-                            3.00,   // 3
-                            4.00,   // 4
-                            5.00,   // 5
-                            6.00,   // 6
-                            7.00,   // 7
-                        };
-
-                        auto nDDirIndex = ((nNewDirIndex - nOldDirIndex) + 8) % 8;
-                        fCost += fTurnCost[std::min<int>(nDDirIndex, 8 - nDDirIndex)];
-                    }
-                    return (float)(fCost);
-                }
+            if(Direction() < 0){
+                return (float)(fCost);
             }
-            return 1.00;
+
+            // need to add turn cost
+            // current node has direction info
+
+            auto nOldDirIndex = Direction();
+            auto nNewDirIndex = PathFind::GetDirection(nSrcX, nSrcY, nDstX, nDstY) - (DIR_NONE + 1);
+            condcheck(true
+                    && (nOldDirIndex >= 0) && (nOldDirIndex < 8)
+                    && (nNewDirIndex >= 0) && (nNewDirIndex < 8));
+
+            auto nDDirIndex = ((nNewDirIndex - nOldDirIndex) + 8) % 8;
+            return (float)(fCost) + 1.00 * std::min<int>(nDDirIndex, 8 - nDDirIndex);
         }
 
-        bool IsSameState(AStarPathFinderNode &rstNode)
+        bool IsSameState(const AStarPathFinderNode &rstNode) const
         {
             return (X() == rstNode.X()) && (Y() == rstNode.Y());
         }
 };
+
+inline bool AStarPathFinder::Search(int nX0, int nY0, int nX1, int nY1)
+{
+    AStarPathFinderNode stNode0 {nX0, nY0, -1, this};
+    AStarPathFinderNode stNode1 {nX1, nY1, -1, this};
+
+    SetStartAndGoalStates(stNode0, stNode1);
+
+    unsigned int nSearchState;
+    do{
+        nSearchState = SearchStep();
+    }while(nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SEARCHING);
+
+    m_FoundPath = (nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SUCCEEDED);
+    return m_FoundPath;
+}
+
+template<size_t PathNodeNum> std::array<PathFind::PathNode, PathNodeNum> AStarPathFinder::GetPathNode()
+{
+    static_assert(PathNodeNum >= 2, "PathFinder::GetPathNode(): template argument invalid");
+    if(!PathFound()){
+        return {{-1, -1}};
+    }
+
+    std::array<PathFind::PathNode, PathNodeNum> stPathRes;
+    if(auto pNode0 = GetSolutionStart()){
+        stPathRes[0] = {pNode0->X(), pNode0->Y()};
+    }else{
+        return {{-1, -1}};
+    }
+
+    for(size_t nIndex = 1; nIndex < stPathRes.size(); ++nIndex){
+        if(auto pNode = GetSolutionNext()){
+            stPathRes[nIndex] = {pNode->X(), pNode->Y()};
+        }else{
+            stPathRes[nIndex] = {-1, -1};
+        }
+    }
+
+    return stPathRes;
+}

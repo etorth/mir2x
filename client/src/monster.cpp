@@ -27,7 +27,7 @@
 #include "pngtexoffdbn.hpp"
 #include "clientpathfinder.hpp"
 
-Monster::Monster(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun)
+Monster::Monster(uint64_t nUID, uint32_t nMonsterID, ProcessRun *pRun)
     : Creature(nUID, pRun)
     , m_MonsterID(nMonsterID)
 {
@@ -597,7 +597,7 @@ bool Monster::CanFocus(int nPointX, int nPointY)
     return false;
 }
 
-Monster *Monster::Create(uint32_t nUID, uint32_t nMonsterID, ProcessRun *pRun, const ActionNode &rstAction)
+Monster *Monster::Create(uint64_t nUID, uint32_t nMonsterID, ProcessRun *pRun, const ActionNode &rstAction)
 {
     auto pNew = new Monster(nUID, nMonsterID, pRun);
     pNew->m_CurrMotion = {MOTION_MON_STAND, 0, DIR_UP, rstAction.X, rstAction.Y};
