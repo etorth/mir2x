@@ -807,11 +807,52 @@ bool Monster::StruckDamage(const DamageNode &rstDamage)
 bool Monster::MoveOneStep(int nX, int nY)
 {
     switch(FindPathMethod()){
-        case FPMETHOD_ASTAR   : return MoveOneStepAStar  (nX, nY);
-        case FPMETHOD_GREEDY  : return MoveOneStepGreedy (nX, nY);
-        case FPMETHOD_COMBINE : return MoveOneStepCombine(nX, nY);
-        default               : return false;
+        case FPMETHOD_ASTAR    : return MoveOneStepAStar   (nX, nY);
+        case FPMETHOD_GREEDY   : return MoveOneStepGreedy  (nX, nY);
+        case FPMETHOD_COMBINE  : return MoveOneStepCombine (nX, nY);
+        case FPMETHOD_NEIGHBOR : return MoveOneStepNeighbor(nX, nY);
+        default                : return false;
     }
+}
+
+bool Monster::MoveOneStepNeighbor(int nX, int nY)
+{
+    switch(LDistance2(X(), Y(), nX, nY)){
+        case 0:
+            {
+                return false;
+            }
+        case 1:
+        case 2:
+            {
+                return RequestMove(nX, nY, MoveSpeed(), false, [](){}, [](){});
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    // try a-star cache first
+    // if failed we need send resequst to server map
+
+    int nXm = -1;
+    int nYm = -1;
+
+    if(m_AStarCache.Retrieve(&nXm, &nYm, X(), Y(), nX, nY, MapID())){
+        return RequestMove(nXm, nYm, MoveSpeed(), false, [](){}, [](){});
+    }
+
+    // can't reach in one hop
+    // need firstly do path finding by server map
+
+    COPathFinder stFinder(this, true);
+    if(!stFinder.Search(X(), Y(), nX, nY)){
+        return false;
+    }
+
+    auto stPathNode = stFinder.GetPathNode<2>();
+    return RequestMove(stPathNode[1].X, stPathNode[1].Y, MoveSpeed(), false, [](){}, [](){});
 }
 
 bool Monster::MoveOneStepGreedy(int nX, int nY)

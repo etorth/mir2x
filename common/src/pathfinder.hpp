@@ -25,6 +25,7 @@
 
 #pragma once
 #include <cmath>
+#include <array>
 #include <functional>
 
 #include "fsa.h"
@@ -172,7 +173,16 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
         }
 
     public:
+        bool PathFound() const
+        {
+            return m_FoundPath;
+        }
+
+    public:
         inline bool Search(int, int, int, int);
+
+    public:
+        template<size_t PathNodeNum> std::array<PathFind::PathNode, PathNodeNum> GetPathNode();
 };
 
 class AStarPathFinderNode
@@ -367,4 +377,29 @@ inline bool AStarPathFinder::Search(int nX0, int nY0, int nX1, int nY1)
 
     m_FoundPath = (nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SUCCEEDED);
     return m_FoundPath;
+}
+
+template<size_t PathNodeNum> std::array<PathFind::PathNode, PathNodeNum> AStarPathFinder::GetPathNode()
+{
+    static_assert(PathNodeNum >= 2, "PathFinder::GetPathNode(): template argument invalid");
+    if(!PathFound()){
+        return {{-1, -1}};
+    }
+
+    std::array<PathFind::PathNode, PathNodeNum> stPathRes;
+    if(auto pNode0 = GetSolutionStart()){
+        stPathRes[0] = {pNode0->X(), pNode0->Y()};
+    }else{
+        return {{-1, -1}};
+    }
+
+    for(size_t nIndex = 1; nIndex < stPathRes.size(); ++nIndex){
+        if(auto pNode = GetSolutionNext()){
+            stPathRes[nIndex] = {pNode->X(), pNode->Y()};
+        }else{
+            stPathRes[nIndex] = {-1, -1};
+        }
+    }
+
+    return stPathRes;
 }

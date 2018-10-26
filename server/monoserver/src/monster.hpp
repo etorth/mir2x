@@ -53,6 +53,7 @@ class Monster final: public CharObject
             FPMETHOD_ASTAR,
             FPMETHOD_GREEDY,
             FPMETHOD_COMBINE,
+            FPMETHOD_NEIGHBOR,
         };
 
     protected:
@@ -157,9 +158,10 @@ class Monster final: public CharObject
         void CheckFriend(uint64_t, const std::function<void(int)> &);
 
     protected:
-        bool MoveOneStepAStar  (int, int);
-        bool MoveOneStepGreedy (int, int);
-        bool MoveOneStepCombine(int, int);
+        bool MoveOneStepAStar   (int, int);
+        bool MoveOneStepGreedy  (int, int);
+        bool MoveOneStepCombine (int, int);
+        bool MoveOneStepNeighbor(int, int);
 
     protected:
         bool CanMove();
