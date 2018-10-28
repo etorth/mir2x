@@ -806,6 +806,22 @@ bool Monster::StruckDamage(const DamageNode &rstDamage)
 
 bool Monster::MoveOneStep(int nX, int nY)
 {
+    switch(LDistance2(X(), Y(), nX, nY)){
+        case 0:
+            {
+                return false;
+            }
+        case 1:
+        case 2:
+            {
+                return RequestMove(nX, nY, MoveSpeed(), false, [](){}, [](){});
+            }
+        default:
+            {
+                break;
+            }
+    }
+
     switch(FindPathMethod()){
         case FPMETHOD_ASTAR    : return MoveOneStepAStar   (nX, nY);
         case FPMETHOD_GREEDY   : return MoveOneStepGreedy  (nX, nY);
