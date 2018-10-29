@@ -614,8 +614,8 @@ MotionNode Monster::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpee
 {
     if(true
             && m_ProcessRun
-            && m_ProcessRun->CanMove(false, nX0, nY0)
-            && m_ProcessRun->CanMove(false, nX1, nY1)
+            && m_ProcessRun->CanMove(true, 0, nX0, nY0)
+            && m_ProcessRun->CanMove(true, 0, nX1, nY1)
 
             && nSpeed >= SYS_MINSPEED
             && nSpeed <= SYS_MAXSPEED){

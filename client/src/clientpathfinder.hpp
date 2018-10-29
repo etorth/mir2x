@@ -3,20 +3,7 @@
  *
  *       Filename: clientpathfinder.hpp
  *        Created: 03/28/2017 21:13:11
- *    Description: path finding parameters needed:
- *          
- *                  bCheckGround   : true  : will fail if we can't get a path from valid grids
- *                                   false : always return a path which prefers valid grids
- *                  
- *                  bCheckCreature : true  : return path which prefers valid empty grids if one path found
- *                                   false : find the path by ignoring all creatures
- *
- *
- *                  nMaxStep       : 0 / 1 / 2
- *
- *
- *                  1. set bCheckGround can fail a seach
- *                  2. set bCheckCreature won't fail the search
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -38,14 +25,16 @@ class ClientPathFinder final: public AStarPathFinder
         friend class ProcessRun;
 
     private:
-        bool m_CheckGround;
-        bool m_CheckCreature;
+        const bool m_CheckGround;
+
+    private:
+        const int m_CheckCreature;
 
     private:
         mutable std::map<uint64_t, int> m_Cache;
 
     public:
-        ClientPathFinder(bool, bool, int);
+        ClientPathFinder(bool, int, int);
        ~ClientPathFinder() = default;
 
     private:

@@ -153,7 +153,7 @@ bool Monster::RandomMove()
                 DIR_UPLEFT,
             };
 
-            auto nDirCount = (int)(sizeof(nDirV) / sizeof(nDirV[0]));
+            auto nDirCount = (int)(std::extent<decltype(nDirV)>::value);
             auto nDirStart = (int)(std::rand() % nDirCount);
 
             for(int nIndex = 0; nIndex < nDirCount; ++nIndex){
@@ -862,13 +862,14 @@ bool Monster::MoveOneStepNeighbor(int nX, int nY)
     // can't reach in one hop
     // need firstly do path finding by server map
 
-    COPathFinder stFinder(this, true);
+    CharObject::COPathFinder stFinder(this, true);
     if(!stFinder.Search(X(), Y(), nX, nY)){
         return false;
     }
 
-    auto stPathNode = stFinder.GetPathNode<2>();
-    return RequestMove(stPathNode[1].X, stPathNode[1].Y, MoveSpeed(), false, [](){}, [](){});
+    auto [stPathNode, nNodeNum] = stFinder.GetFirstNPathNode<8>();
+    m_AStarCache.Cache({stPathNode.begin(), stPathNode.begin() + nNodeNum}, MapID());
+    return nNodeNum >= 2 ? RequestMove(stPathNode[1].X, stPathNode[1].Y, MoveSpeed(), false, [](){}, [](){}) : false;
 }
 
 bool Monster::MoveOneStepGreedy(int nX, int nY)

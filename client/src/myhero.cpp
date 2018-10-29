@@ -130,9 +130,9 @@ bool MyHero::MoveNextMotion()
     return false;
 }
 
-bool MyHero::DecompMove(bool bCheckGround, bool bCheckCreature, bool bCheckMove, int nX0, int nY0, int nX1, int nY1, int *pXm, int *pYm)
+bool MyHero::DecompMove(bool bCheckGround, int nCheckCreature, bool bCheckMove, int nX0, int nY0, int nX1, int nY1, int *pXm, int *pYm)
 {
-    auto stvPathNode = ParseMovePath(nX0, nY0, nX1, nY1, bCheckGround, bCheckCreature);
+    auto stvPathNode = ParseMovePath(nX0, nY0, nX1, nY1, bCheckGround, nCheckCreature);
     switch(stvPathNode.size()){
         case 0:
         case 1:
@@ -180,7 +180,7 @@ bool MyHero::DecompMove(bool bCheckGround, bool bCheckCreature, bool bCheckMove,
 
                     int nReachIndexMax = 0;
                     for(int nIndex = 1; nIndex <= nIndexMax; ++nIndex){
-                        if(m_ProcessRun->CanMove(true, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+                        if(m_ProcessRun->CanMove(true, 2, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
                             nReachIndexMax = nIndex;
                         }else{ break; }
                     }
@@ -203,8 +203,13 @@ bool MyHero::DecompMove(bool bCheckGround, bool bCheckCreature, bool bCheckMove,
                                 // like if human on horse failed for a MOTION_HORSERUN
                                 // then it should only use MOTION_HORSEWALK, rather than MOTION_RUN
 
-                                if(pXm){ *pXm = (nReachIndexMax == nIndexMax) ? nXt : (nX0 + nDX); }
-                                if(pYm){ *pYm = (nReachIndexMax == nIndexMax) ? nYt : (nY0 + nDY); }
+                                if(pXm){
+                                    *pXm = (nReachIndexMax == nIndexMax) ? nXt : (nX0 + nDX);
+                                }
+
+                                if(pYm){
+                                    *pYm = (nReachIndexMax == nIndexMax) ? nYt : (nY0 + nDY);
+                                }
 
                                 return true;
                             }
@@ -216,8 +221,13 @@ bool MyHero::DecompMove(bool bCheckGround, bool bCheckCreature, bool bCheckMove,
                     // 1. could contain invalid grids if not set bCheckGround
                     // 2. could contain occuped grids if not set bCheckCreature
 
-                    if(pXm){ *pXm = stvPathNode[1].X; }
-                    if(pYm){ *pYm = stvPathNode[1].Y; }
+                    if(pXm){
+                        *pXm = stvPathNode[1].X;
+                    }
+
+                    if(pYm){
+                        *pYm = stvPathNode[1].Y;
+                    }
 
                     return true;
                 }
@@ -239,7 +249,7 @@ bool MyHero::DecompActionPickUp()
         int nX1 = stCurrPickUp.X;
         int nY1 = stCurrPickUp.Y;
 
-        if(!m_ProcessRun->CanMove(false, nX0, nY0)){
+        if(!m_ProcessRun->CanMove(true, 0, nX0, nY0)){
             extern Log *g_Log;
             g_Log->AddLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
 
@@ -247,7 +257,7 @@ bool MyHero::DecompActionPickUp()
             return false;
         }
 
-        if(!m_ProcessRun->CanMove(false, nX1, nY1)){
+        if(!m_ProcessRun->CanMove(true, 0, nX1, nY1)){
             extern Log *g_Log;
             g_Log->AddLog(LOGTYPE_WARNING, "Pick up at an invalid grid (%d, %d)", nX1, nY1);
 
@@ -301,7 +311,7 @@ bool MyHero::DecompActionMove()
         int nX1 = stCurrMove.AimX;
         int nY1 = stCurrMove.AimY;
 
-        if(!m_ProcessRun->CanMove(false, nX0, nY0)){
+        if(!m_ProcessRun->CanMove(true, 0, nX0, nY0)){
             extern Log *g_Log;
             g_Log->AddLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
 
@@ -343,7 +353,7 @@ bool MyHero::DecompActionMove()
                     int nXm = -1;
                     int nYm = -1;
 
-                    bool bCheckGround = m_ProcessRun->CanMove(false, nX1, nY1);
+                    bool bCheckGround = m_ProcessRun->CanMove(true, 0, nX1, nY1);
                     if(DecompMove(bCheckGround, true, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
                         return fnAddHop(nXm, nYm);
                     }else{

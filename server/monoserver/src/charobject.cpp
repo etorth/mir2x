@@ -28,7 +28,7 @@
 #include "protocoldef.hpp"
 #include "eventtaskhub.hpp"
 
-CharObject::COPathFinder::COPathFinder(const CharObject *pCO, bool bCheckCO)
+CharObject::COPathFinder::COPathFinder(const CharObject *pCO, int nCheckCO)
     : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
       {
           // we pass lambda to ctor of AStarPathFinder()
@@ -61,12 +61,27 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, bool bCheckCO)
           return m_CO->OneStepCost(this, m_CheckCO, nSrcX, nSrcY, nDstX, nDstY);
       }, pCO->MaxStep())
     , m_CO(pCO)
-    , m_CheckCO(bCheckCO)
+    , m_CheckCO(nCheckCO)
     , m_Cache()
 {
     if(!m_CO){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: CO = %p, CheckCreature = %d", m_CO, (int)(bCheckCO));
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: CO = %p, CheckCO = %d", m_CO, m_CheckCO);
+    }
+
+    switch(m_CheckCO){
+        case 0:
+        case 1:
+        case 2:
+            {
+                break;
+            }
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: CO = %p, CheckCO = %d", m_CO, m_CheckCO);
+                break;
+            }
     }
 
     switch(m_CO->MaxStep()){
@@ -834,8 +849,23 @@ int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
     return PathFind::FREE;
 }
 
-double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, bool bCheckCO, int nX0, int nY0, int nX1, int nY1) const
+double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nCheckCO, int nX0, int nY0, int nX1, int nY1) const
 {
+    switch(nCheckCO){
+        case 0:
+        case 1:
+        case 2:
+            {
+                break;
+            }
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: COPathFinder = %p, CheckCO = %d", pFinder, nCheckCO);
+                break;
+            }
+    }
+
     int nMaxIndex = -1;
     switch(LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
@@ -879,8 +909,20 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, bool bCh
                 }
             case PathFind::OCCUPIED:
                 {
-                    if(bCheckCO){
-                        fExtraPen += 100.00;
+                    switch(nCheckCO){
+                        case 1:
+                            {
+                                fExtraPen += 100.00;
+                                break;
+                            }
+                        case 2:
+                            {
+                                return -1.00;
+                            }
+                        default:
+                            {
+                                break;
+                            }
                     }
                     break;
                 }

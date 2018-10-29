@@ -164,8 +164,8 @@ class ProcessRun: public Process
         void Net_SHOWDROPITEM(const uint8_t *, size_t);
 
     public:
-        bool CanMove(bool, int, int);
-        bool CanMove(bool, int, int, int, int);
+        bool CanMove(bool, int, int, int);
+        bool CanMove(bool, int, int, int, int, int);
 
     public:
         double MoveCost(bool, int, int, int, int);
@@ -256,7 +256,7 @@ class ProcessRun: public Process
 
     public:
         int CheckPathGrid(int, int) const;
-        double OneStepCost(const ClientPathFinder *, bool, int, int, int, int) const;
+        double OneStepCost(const ClientPathFinder *, bool, int, int, int, int, int) const;
 
     public:
         bool RequestSpaceMove(uint32_t, int, int);

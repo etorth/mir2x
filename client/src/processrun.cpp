@@ -704,7 +704,7 @@ int ProcessRun::LoadMap(uint32_t nMapID)
     return -1;
 }
 
-bool ProcessRun::CanMove(bool bCheckCreature, int nX, int nY)
+bool ProcessRun::CanMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
 {
     switch(auto nGrid = CheckPathGrid(nX, nY)){
         case PathFind::FREE:
@@ -714,12 +714,28 @@ bool ProcessRun::CanMove(bool bCheckCreature, int nX, int nY)
         case PathFind::OBSTACLE:
         case PathFind::INVALID:
             {
-                return false;
+                return bCheckGround ? false : true;
             }
         case PathFind::OCCUPIED:
         case PathFind::LOCKED:
             {
-                return bCheckCreature ? false : true;
+                switch(nCheckCreature){
+                    case 0:
+                    case 1:
+                        {
+                            return true;
+                        }
+                    case 2:
+                        {
+                            return false;
+                        }
+                    default:
+                        {
+                            extern Log *g_Log;
+                            g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
+                            return false;
+                        }
+                }
             }
         default:
             {
@@ -763,13 +779,28 @@ int ProcessRun::CheckPathGrid(int nX, int nY) const
     return PathFind::FREE;
 }
 
-bool ProcessRun::CanMove(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1)
+bool ProcessRun::CanMove(bool bCheckGround, int nCheckCreature, int nX0, int nY0, int nX1, int nY1)
 {
-    return OneStepCost(nullptr, bCheckCreature, nX0, nY0, nX1, nY1) >= 0.00;
+    return OneStepCost(nullptr, bCheckGround, nCheckCreature, nX0, nY0, nX1, nY1) >= 0.00;
 }
 
-double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckCreature, int nX0, int nY0, int nX1, int nY1) const
+double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckGround, int nCheckCreature, int nX0, int nY0, int nX1, int nY1) const
 {
+    switch(nCheckCreature){
+        case 0:
+        case 1:
+        case 2:
+            {
+                break;
+            }
+        default:
+            {
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
+                break;
+            }
+    }
+
     int nMaxIndex = -1;
     switch(LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
@@ -816,14 +847,30 @@ double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckCreat
             case PathFind::LOCKED:
             case PathFind::OCCUPIED:
                 {
-                    if(bCheckCreature){
-                        fExtraPen += 100.00;
+                    switch(nCheckCreature){
+                        case 1:
+                            {
+                                fExtraPen += 100.00;
+                                break;
+                            }
+                        case 2:
+                            {
+                                return -1.00;
+                            }
+                        default:
+                            {
+                                break;
+                            }
                     }
                     break;
                 }
             case PathFind::INVALID:
             case PathFind::OBSTACLE:
                 {
+                    if(bCheckGround){
+                        return -1.00;
+                    }
+
                     fExtraPen += 10000.00;
                     break;
                 }

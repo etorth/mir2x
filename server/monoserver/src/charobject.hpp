@@ -136,13 +136,13 @@ class CharObject: public ServerObject
                 const CharObject *m_CO;
 
             private:
-                const bool m_CheckCO;
+                const int m_CheckCO;
 
             private:
                 mutable std::map<uint32_t, int> m_Cache;
 
             public:
-                COPathFinder(const CharObject *, bool);
+                COPathFinder(const CharObject *, int);
                ~COPathFinder() = default;
 
             private:
@@ -374,5 +374,5 @@ class CharObject: public ServerObject
 
     protected:
         int CheckPathGrid(int, int, uint32_t = 0) const;
-        double OneStepCost(const CharObject::COPathFinder *, bool, int, int, int, int) const;
+        double OneStepCost(const CharObject::COPathFinder *, int, int, int, int, int) const;
 };

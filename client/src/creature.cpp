@@ -3,7 +3,7 @@
  *
  *       Filename: creature.cpp
  *        Created: 08/31/2015 10:45:48 PM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -250,119 +250,103 @@ bool Creature::AdvanceMotionFrame(int nDFrame)
     }
 }
 
-std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX1, int nY1, bool bCheckGround, bool bCheckCreature)
+std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX1, int nY1, bool bCheckGround, int nCheckCreature)
 {
-    if(true
-            && m_ProcessRun
-            && m_ProcessRun->CanMove(false, nX0, nY0)){
+    condcheck(m_ProcessRun);
+    if(!m_ProcessRun->CanMove(true, 0, nX0, nY0)){
+        return {};
+    }
 
-        auto nMaxStep = MaxStep();
-        switch(auto nLDistance2 = LDistance2(nX0, nY0, nX1, nY1)){
-            case 0:
-                {
-                    return {{nX0, nY0}};
-                }
-            case 1:
-            case 2:
-                {
-                    // dst is at one-hop distance
-                    // so there couldn't be any middle grids blocking
+    auto nMaxStep = MaxStep();
+    switch(auto nLDistance2 = LDistance2(nX0, nY0, nX1, nY1)){
+        case 0:
+            {
+                return {{nX0, nY0}};
+            }
+        case 1:
+        case 2:
+            {
+                // dst is at one-hop distance
+                // so there couldn't be any middle grids blocking
 
-                    if(bCheckGround){
-                        if(m_ProcessRun->CanMove(false, nX1, nY1)){
-                            // we ignore bCheckCreature
-                            // because this always gives the best path
-                            return {{nX0, nY0}, {nX1, nY1}};
-                        }else{
-                            // can't find a path to dst
-                            // return the starting node, return empty means errors
-                            return {{nX0, nY0}};
-                        }
-                    }else{
-                        // won't check ground
-                        // then directly return the unique path
+                if(bCheckGround){
+                    if(m_ProcessRun->CanMove(true, 0, nX1, nY1)){
+                        // we ignore bCheckCreature
+                        // because this always gives the best path
                         return {{nX0, nY0}, {nX1, nY1}};
+                    }else{
+                        // can't find a path to dst
+                        // return the starting node, return empty means errors
+                        return {{nX0, nY0}};
                     }
+                }else{
+                    // won't check ground
+                    // then directly return the unique path
+                    return {{nX0, nY0}, {nX1, nY1}};
                 }
-            default:
-                {
-                    // 1. one hop distance
-                    // 2. more complex distance
+            }
+        default:
+            {
+                // 1. one hop distance
+                // 2. more complex distance
 
-                    if(false
-                            || nLDistance2 == nMaxStep * nMaxStep
-                            || nLDistance2 == nMaxStep * nMaxStep * 2){
+                if(false
+                        || nLDistance2 == nMaxStep * nMaxStep
+                        || nLDistance2 == nMaxStep * nMaxStep * 2){
 
-                        // one hop distance
-                        // but not with distance = 1 or 2
-                        // there could be middle grid blocking this hop
+                    // one hop distance
+                    // but not with distance = 1 or 2
+                    // there could be middle grid blocking this hop
 
-                        if(m_ProcessRun->CanMove(false, nX0, nY0, nX1, nY1)){
-                            if(bCheckCreature){
+                    if(m_ProcessRun->CanMove(true, 0, nX0, nY0, nX1, nY1)){
+                        if(nCheckCreature){
 
-                                int nDX = (nX1 > nX0) - (nX1 < nX0);
-                                int nDY = (nY1 > nY0) - (nY1 < nY0);
+                            int nDX = (nX1 > nX0) - (nX1 < nX0);
+                            int nDY = (nY1 > nY0) - (nY1 < nY0);
 
-                                // we need to avoid check the first node
-                                // since it will fail by occupation of itself
+                            // we need to avoid check the first node
+                            // since it will fail by occupation of itself
 
-                                if(m_ProcessRun->CanMove(true, nX0 + nDX, nY0 + nDY, nX1, nY1)){
-                                    // we are checking the creatures
-                                    // and no creaturs standing on the one-hop path
-                                    return {{nX0, nY0}, {nX1, nY1}};
-                                }
-
-                                // can reach in one hop but there is creatures on the path
-                                // and we can't ignore the creatures
-                                // leave it to the complex path solver
-
-                            }else{
-                                // not check creatures
-                                // and we can reach dst in one-hop
+                            if(m_ProcessRun->CanMove(true, 2, nX0 + nDX, nY0 + nDY, nX1, nY1)){
+                                // we are checking the creatures
+                                // and no creaturs standing on the one-hop path
                                 return {{nX0, nY0}, {nX1, nY1}};
                             }
-                        }else{
-                            // can't reach in one hop
-                            // means there is middle grids blocking this path
+
+                            // can reach in one hop but there is creatures on the path
+                            // and we can't ignore the creatures
                             // leave it to the complex path solver
+
+                        }else{
+                            // not check creatures
+                            // and we can reach dst in one-hop
+                            return {{nX0, nY0}, {nX1, nY1}};
                         }
-
                     }else{
-
-                        // not one-hop distance 
+                        // can't reach in one hop
+                        // means there is middle grids blocking this path
                         // leave it to the complex path solver
                     }
 
-                    // the complex path solver
-                    // we can always use this solver only
+                }else{
 
-                    ClientPathFinder stPathFinder(bCheckGround, bCheckCreature, nMaxStep);
-                    if(true
-                            && stPathFinder.Search(nX0, nY0, nX1, nY1)
-                            && stPathFinder.GetSolutionStart()){
-
-                        // if path find succeed
-                        // we retrive all nodes for the path vector
-
-                        std::vector<PathFind::PathNode> stvPathNode(1, {nX0, nY0});
-                        while(auto pNode = stPathFinder.GetSolutionNext()){
-                            stvPathNode.emplace_back(pNode->X(), pNode->Y());
-                        }
-
-                        return stvPathNode;
-                    }else{
-
-                        // we can't find a path
-                        // return the starting point only
-                        return {{nX0, nY0}};
-                    }
+                    // not one-hop distance
+                    // leave it to the complex path solver
                 }
-        }
-    }
 
-    // invalid src point means error
-    // invalid dst point should be accepted as a valid input
-    return {};
+                // the complex path solver
+                // we can always use this solver only
+
+                ClientPathFinder stPathFinder(bCheckGround, nCheckCreature, nMaxStep);
+                if(stPathFinder.Search(nX0, nY0, nX1, nY1)){
+                    return stPathFinder.GetPathNode();
+                }else{
+                    // we can't find a path
+                    // return the starting point only
+                    return {{nX0, nY0}};
+                }
+            }
+    }
 }
 
 void Creature::UpdateAttachMagic(double fUpdateTime)
