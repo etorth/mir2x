@@ -242,22 +242,22 @@ class CharObject: public ServerObject
        ~CharObject() = default;
 
     protected:
-        int X() { return m_X; }
-        int Y() { return m_Y; }
+        int X() const { return m_X; }
+        int Y() const { return m_Y; }
 
     protected:
-        int HP()    { return m_HP; }
-        int MP()    { return m_MP; }
-        int HPMax() { return m_HPMax; }
-        int MPMax() { return m_MPMax; }
+        int HP()    const { return m_HP; }
+        int MP()    const { return m_MP; }
+        int HPMax() const { return m_HPMax; }
+        int MPMax() const { return m_MPMax; }
 
     protected:
-        int Direction()
+        int Direction() const
         {
             return m_Direction;
         }
 
-        uint32_t MapID()
+        uint32_t MapID() const
         {
             return m_Map ? m_Map->ID() : 0;
         }
@@ -371,6 +371,9 @@ class CharObject: public ServerObject
         {
             return 0;
         }
+
+    protected:
+        std::array<PathFind::PathNode, 3> GetChaseGrid(int, int, int) const;
 
     protected:
         int CheckPathGrid(int, int, uint32_t = 0) const;

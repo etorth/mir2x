@@ -263,6 +263,23 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
         return false;
     }
 
+    if(OneStepCost(nullptr, 2, X(), Y(), nX, nY) < 0.00){
+        switch(LDistance2(X(), Y(), nX, nY)){
+            case 1:
+            case 2:
+                {
+                    return false;
+                }
+            default:
+                {
+                    if(!bAllowHalfMove){
+                        return false;
+                    }
+                    break;
+                }
+        }
+    }
+
     AMTryMove stAMTM;
     std::memset(&stAMTM, 0, sizeof(stAMTM));
 
@@ -785,44 +802,49 @@ void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bRandom)
 
 int CharObject::EstimateHop(int nX, int nY)
 {
-    if(m_Map->ValidC(nX, nY)){
-
-        auto nMaxStep = MaxStep();
-        auto nLDistance2 = LDistance2(nX, nY, X(), Y());
-
-        switch(nLDistance2){
-            case 0:
-                {
-                    return 0;
-                }
-            case 1:
-            case 2:
-                {
-                    return 1;
-                }
-            default:
-                {
-                    if(false
-                            || nLDistance2 == 1 * nMaxStep * nMaxStep
-                            || nLDistance2 == 2 * nMaxStep * nMaxStep){
-
-                        auto nDir = PathFind::GetDirection(X(), Y(), nX, nY);
-                        auto nMaxReach = OneStepReach(nDir, nMaxStep, nullptr, nullptr);
-
-                        if(nMaxReach == nMaxStep){
-                            return 1;
-                        }
-                    }
-
-                    return 2;
-                }
-        }
+    condcheck(m_Map);
+    if(!m_Map->ValidC(nX, nY)){
+        return -1;
     }
-    return -1;
+
+    int nLDistance2 = LDistance2(nX, nY, X(), Y());
+    switch(nLDistance2){
+        case 0:
+            {
+                return 0;
+            }
+        case 1:
+        case 2:
+            {
+                return 1;
+            }
+        default:
+            {
+                auto nMaxStep = MaxStep();
+                condcheck(false
+                        || nMaxStep == 1
+                        || nMaxStep == 2
+                        || nMaxStep == 3);
+
+                if(false
+                        || nLDistance2 == 1 * nMaxStep * nMaxStep
+                        || nLDistance2 == 2 * nMaxStep * nMaxStep){
+
+                    auto nDir = PathFind::GetDirection(X(), Y(), nX, nY);
+                    auto nMaxReach = OneStepReach(nDir, nMaxStep, nullptr, nullptr);
+
+                    if(nMaxReach == nMaxStep){
+                        return 1;
+                    }
+                }
+                return 2;
+            }
+    }
 }
 
 int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
 {
+    condcheck(m_Map);
     if(!m_Map->GetMir2xMapData().ValidC(nX, nY)){
         return PathFind::INVALID;
     }
@@ -847,6 +869,53 @@ int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
     }
 
     return PathFind::FREE;
+}
+
+std::array<PathFind::PathNode, 3> CharObject::GetChaseGrid(int nX, int nY, int nDLen) const
+{
+    // always get the next step to chase
+    // this function won't check if (nX, nY) is valid
+
+    int nX0 = X();
+    int nY0 = Y();
+
+    std::array<PathFind::PathNode, 3> stvPathNode
+    {{
+        {-1, -1},
+        {-1, -1},
+        {-1, -1},
+    }};
+
+    int nDX = ((nX > nX0) - (nX < nX0));
+    int nDY = ((nY > nY0) - (nY < nY0));
+
+    switch(std::abs(nDX) + std::abs(nDY)){
+        case 1:
+            {
+                if(nDY){
+                    stvPathNode[0] = {nX0        , nY0 + nDY * nDLen};
+                    stvPathNode[1] = {nX0 - nDLen, nY0 + nDY * nDLen};
+                    stvPathNode[2] = {nX0 + nDLen, nY0 + nDY * nDLen};
+                }else{
+                    stvPathNode[0] = {nX0 + nDX * nDLen, nY0        };
+                    stvPathNode[1] = {nX0 + nDX * nDLen, nY0 - nDLen};
+                    stvPathNode[2] = {nX0 + nDX * nDLen, nY0 + nDLen};
+                }
+                break;
+            }
+        case 2:
+            {
+                stvPathNode[0] = {nX0 + nDX * nDLen, nY0 + nDY * nDLen};
+                stvPathNode[1] = {nX0              , nY0 + nDY * nDLen};
+                stvPathNode[2] = {nX0 + nDX * nDLen, nY0              };
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+    return stvPathNode;
 }
 
 double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nCheckCO, int nX0, int nY0, int nX1, int nY1) const
@@ -902,7 +971,9 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nChe
 
     double fExtraPen = 0.00;
     for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
-        switch(auto nGrid = pFinder->GetGrid(nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+        int nCurrX = nX0 + nDX * nIndex;
+        int nCurrY = nY0 + nDY * nIndex;
+        switch(auto nGrid = pFinder ? pFinder->GetGrid(nCurrX, nCurrY) : CheckPathGrid(nCurrX, nCurrY)){
             case PathFind::FREE:
                 {
                     break;
@@ -934,7 +1005,7 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nChe
             default:
                 {
                     extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nX0 + nDX * nIndex, nY0 + nDY * nIndex);
+                    g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nCurrX, nCurrY);
                     break;
                 }
         }

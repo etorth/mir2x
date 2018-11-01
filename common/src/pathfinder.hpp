@@ -56,6 +56,11 @@ namespace PathFind
         {
             return (rstNode.X == X) && (rstNode.Y == Y);
         }
+
+        bool Eq(int nX, int nY) const
+        {
+            return X == nX && Y == nY;
+        }
     };
 
     inline const char *GetDirectionName(int nDirection)
