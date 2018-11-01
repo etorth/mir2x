@@ -853,6 +853,10 @@ int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
         return PathFind::OBSTACLE;
     }
 
+    if(X() == nX && Y() == nY){
+        return PathFind::OCCUPIED;
+    }
+
     for(auto stLocation: m_LocationList){
         if(nTimeOut){
             extern MonoServer *g_MonoServer;

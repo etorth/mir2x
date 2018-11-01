@@ -271,7 +271,7 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
 
                 if(bCheckGround){
                     if(m_ProcessRun->CanMove(true, 0, nX1, nY1)){
-                        // we ignore bCheckCreature
+                        // we ignore nCheckCreature
                         // because this always gives the best path
                         return {{nX0, nY0}, {nX1, nY1}};
                     }else{
@@ -299,29 +299,41 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
                     // there could be middle grid blocking this hop
 
                     if(m_ProcessRun->CanMove(true, 0, nX0, nY0, nX1, nY1)){
-                        if(nCheckCreature){
+                        switch(nCheckCreature){
+                            case 0:
+                            case 1:
+                                {
+                                    // not check creatures
+                                    // and we can reach dst in one-hop
+                                    return {{nX0, nY0}, {nX1, nY1}};
+                                }
+                            case 2:
+                                {
+                                    int nDX = (nX1 > nX0) - (nX1 < nX0);
+                                    int nDY = (nY1 > nY0) - (nY1 < nY0);
 
-                            int nDX = (nX1 > nX0) - (nX1 < nX0);
-                            int nDY = (nY1 > nY0) - (nY1 < nY0);
+                                    // we need to avoid check the first node
+                                    // since it will fail by occupation of itself
 
-                            // we need to avoid check the first node
-                            // since it will fail by occupation of itself
+                                    if(m_ProcessRun->CanMove(true, 2, nX0 + nDX, nY0 + nDY, nX1, nY1)){
+                                        // we are checking the creatures
+                                        // and no creaturs standing on the one-hop path
+                                        return {{nX0, nY0}, {nX1, nY1}};
+                                    }
 
-                            if(m_ProcessRun->CanMove(true, 2, nX0 + nDX, nY0 + nDY, nX1, nY1)){
-                                // we are checking the creatures
-                                // and no creaturs standing on the one-hop path
-                                return {{nX0, nY0}, {nX1, nY1}};
-                            }
-
-                            // can reach in one hop but there is creatures on the path
-                            // and we can't ignore the creatures
-                            // leave it to the complex path solver
-
-                        }else{
-                            // not check creatures
-                            // and we can reach dst in one-hop
-                            return {{nX0, nY0}, {nX1, nY1}};
+                                    // can reach in one hop but there is creatures on the path
+                                    // and we can't ignore the creatures
+                                    // leave it to the complex path solver
+                                    break;
+                                }
+                            default:
+                                {
+                                    extern Log *g_Log;
+                                    g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
+                                    break;
+                                }
                         }
+
                     }else{
                         // can't reach in one hop
                         // means there is middle grids blocking this path
