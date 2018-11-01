@@ -771,7 +771,7 @@ void Player::OnCMActionPickUp(CMAction stCMA)
     }
 }
 
-int Player::MaxStep()
+int Player::MaxStep() const
 {
     if(Horse()){
         return 3;

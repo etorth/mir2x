@@ -263,21 +263,43 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
         return false;
     }
 
-    if(OneStepCost(nullptr, 2, X(), Y(), nX, nY) < 0.00){
-        switch(LDistance2(X(), Y(), nX, nY)){
-            case 1:
-            case 2:
-                {
+    switch(LDistance2(X(), Y(), nX, nY)){
+        case 1:
+        case 2:
+            {
+                switch(CheckPathGrid(nX, nY, 0)){
+                    case PathFind::FREE:
+                        {
+                            break;
+                        }
+                    case PathFind::OCCUPIED:
+                    default:
+                        {
+                            return false;
+                        }
+                }
+                break;
+            }
+        default:
+            {
+                // one-hop distance but has internal steps
+                // need to check if there is co blocking the path
+                int nXm = -1;
+                int nYm = -1;
+                if(!PathFind::GetFrontLocation(&nXm, &nYm, X(), Y(), PathFind::GetDirection(X(), Y(), nX, nY), 1)){
                     return false;
                 }
-            default:
-                {
+
+                // for strict co check
+                // need to skip the current (X(), Y())
+
+                if(OneStepCost(nullptr, 2, nXm, nYm, nX, nY) < 0.00){
                     if(!bAllowHalfMove){
                         return false;
                     }
-                    break;
                 }
-        }
+                break;
+            }
     }
 
     AMTryMove stAMTM;

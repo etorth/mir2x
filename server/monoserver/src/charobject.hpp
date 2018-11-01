@@ -357,17 +357,17 @@ class CharObject: public ServerObject
         int EstimateHop(int, int);
 
     protected:
-        int AttackSpeed()
+        int AttackSpeed() const
         {
             return SYS_DEFSPEED;
         }
 
-        int MagicSpeed()
+        int MagicSpeed() const
         {
             return SYS_DEFSPEED;
         }
 
-        int Horse()
+        int Horse() const
         {
             return 0;
         }
