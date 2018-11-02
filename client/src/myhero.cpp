@@ -276,7 +276,7 @@ bool MyHero::DecompActionPickUp()
                     int nXm = -1;
                     int nYm = -1;
 
-                    if(DecompMove(true, 2, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
+                    if(DecompMove(true, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
                         m_ActionQueue.emplace_front(stCurrPickUp);
                         m_ActionQueue.emplace_front(ActionMove(nX0, nY0, nXm, nYm, SYS_DEFSPEED, OnHorse() ? 1 : 0));
                         return true;
@@ -354,13 +354,13 @@ bool MyHero::DecompActionMove()
                     int nYm = -1;
 
                     bool bCheckGround = m_ProcessRun->CanMove(true, 0, nX1, nY1);
-                    if(DecompMove(bCheckGround, 2, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
+                    if(DecompMove(bCheckGround, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
                         return fnAddHop(nXm, nYm);
                     }else{
                         if(bCheckGround){
                             // means there is no such way to there
                             // move as much as possible
-                            if(DecompMove(false, 2, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
+                            if(DecompMove(false, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
                                 return fnAddHop(nXm, nYm);
                             }else{
                                 // won't check the ground but failed
@@ -435,7 +435,7 @@ bool MyHero::DecompActionAttack()
                         int nXt = -1;
                         int nYt = -1;
 
-                        if(DecompMove(true, 2, true, nX0, nY0, nX1, nY1, &nXt, &nYt)){
+                        if(DecompMove(true, 1, true, nX0, nY0, nX1, nY1, &nXt, &nYt)){
 
                             // decompse the move
                             // but need to check if it's one step distance
