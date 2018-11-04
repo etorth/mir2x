@@ -36,7 +36,7 @@ ProcessRun::ProcessRun()
     , m_MapID(0)
     , m_Mir2xMapData()
     , m_GroundItemList()
-    , m_MyHero(nullptr)
+    , m_MyHeroUID(0)
     , m_FocusTable()
     , m_ViewX(0)
     , m_ViewY(0)
@@ -61,7 +61,7 @@ ProcessRun::ProcessRun()
     , m_CreatureList()
     , m_MousePixlLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_MouseGridLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
-    , m_AscendStrRecord()
+    , m_AscendStrList()
 {
     m_FocusTable.fill(0);
     RegisterUserCommand();
@@ -73,30 +73,34 @@ void ProcessRun::ScrollMap()
     auto nShowWindowW = g_SDLDevice->WindowW(false);
     auto nShowWindowH = g_SDLDevice->WindowH(false);
 
-    if(m_MyHero){
-        int nViewX = m_MyHero->X() * SYS_MAPGRIDXP - nShowWindowW / 2;
-        int nViewY = m_MyHero->Y() * SYS_MAPGRIDYP - nShowWindowH / 2;
+    if(!GetMyHero()){
+        return;
+    }
 
-        int nDViewX = nViewX - m_ViewX;
-        int nDViewY = nViewY - m_ViewY;
+    int nViewX = GetMyHero()->X() * SYS_MAPGRIDXP - nShowWindowW / 2;
+    int nViewY = GetMyHero()->Y() * SYS_MAPGRIDYP - nShowWindowH / 2;
 
-        if(m_RollMap
-                ||  (std::abs(nDViewX) > nShowWindowW / 4)
-                ||  (std::abs(nDViewY) > nShowWindowH / 4)){
+    int nDViewX = nViewX - m_ViewX;
+    int nDViewY = nViewY - m_ViewY;
 
-            m_RollMap = true;
+    if(m_RollMap
+            ||  (std::abs(nDViewX) > nShowWindowW / 4)
+            ||  (std::abs(nDViewY) > nShowWindowH / 4)){
 
-            m_ViewX += (int)(std::lround(std::copysign(std::min<int>(3, std::abs(nDViewX)), nDViewX)));
-            m_ViewY += (int)(std::lround(std::copysign(std::min<int>(2, std::abs(nDViewY)), nDViewY)));
+        m_RollMap = true;
 
-            m_ViewX = std::max<int>(0, m_ViewX);
-            m_ViewY = std::max<int>(0, m_ViewY);
-        }
+        m_ViewX += (int)(std::lround(std::copysign(std::min<int>(3, std::abs(nDViewX)), nDViewX)));
+        m_ViewY += (int)(std::lround(std::copysign(std::min<int>(2, std::abs(nDViewY)), nDViewY)));
 
-        // stop rolling the map when
-        //   1. the hero is at the required position
-        //   2. the hero is not moving
-        if((nDViewX == 0) && (nDViewY == 0) && !m_MyHero->Moving()){ m_RollMap = false; }
+        m_ViewX = std::max<int>(0, m_ViewX);
+        m_ViewY = std::max<int>(0, m_ViewY);
+    }
+
+    // stop rolling the map when
+    //   1. the hero is at the required position
+    //   2. the hero is not moving
+    if((nDViewX == 0) && (nDViewY == 0) && !GetMyHero()->Moving()){
+        m_RollMap = false;
     }
 }
 
@@ -105,40 +109,35 @@ void ProcessRun::Update(double fUpdateTime)
     ScrollMap();
     m_ControbBoard.Update(fUpdateTime);
 
-    for(auto pRecord = m_CreatureList.begin(); pRecord != m_CreatureList.end();){
-        if(true
-                && pRecord->second
-                && pRecord->second->Active()){
-            pRecord->second->Update(fUpdateTime);
-            ++pRecord;
+    for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
+        if(p->second->Active()){
+            p->second->Update(fUpdateTime);
+            ++p;
         }else{
-            delete pRecord->second;
-            pRecord = m_CreatureList.erase(pRecord);
+            p = m_CreatureList.erase(p);
         }
     }
 
-    for(size_t nIndex = 0; nIndex < m_IndepMagicList.size();){
-        m_IndepMagicList[nIndex]->Update(fUpdateTime);
-        if(m_IndepMagicList[nIndex]->Done()){
-            std::swap(m_IndepMagicList[nIndex], m_IndepMagicList.back());
-            m_IndepMagicList.pop_back();
+    for(auto p = m_IndepMagicList.begin(); p != m_IndepMagicList.end();){
+        if((*p)->Done()){
+            p = m_IndepMagicList.erase(p);
         }else{
-            nIndex++;
+            (*p)->Update(fUpdateTime);
+            ++p;
         }
     }
 
-    for(auto pRecord = m_AscendStrRecord.begin(); pRecord != m_AscendStrRecord.end();){
-        if((*pRecord)->Ratio() < 1.0){
-            (*pRecord)->Update(fUpdateTime);
-            ++pRecord;
+    for(auto p = m_AscendStrList.begin(); p != m_AscendStrList.end();){
+        if((*p)->Ratio() < 1.00){
+            (*p)->Update(fUpdateTime);
+            ++p;
         }else{
-            delete (*pRecord);
-            pRecord = m_AscendStrRecord.erase(pRecord);
+            p = m_AscendStrList.erase(p);
         }
     }
 
-    if(auto pCreature = RetrieveUID(m_FocusTable[FOCUS_ATTACK])){
-        if(pCreature->StayDead()){
+    if(auto p = RetrieveUID(m_FocusTable[FOCUS_ATTACK])){
+        if(p->StayDead()){
             m_FocusTable[FOCUS_ATTACK] = 0;
         }else{
             TrackAttack(false, m_FocusTable[FOCUS_ATTACK]);
@@ -164,7 +163,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                     auto fnCheckFocus = [this](uint64_t nUID, int nX, int nY) -> bool
                     {
                         if(auto pCreature = RetrieveUID(nUID)){
-                            if(pCreature != m_MyHero){
+                            if(nUID != m_MyHeroUID){
                                 if(pCreature->CanFocus(nX, nY)){
                                     return true;
                                 }
@@ -193,7 +192,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                                     ||  pFocus->Y() < pRecord.second->Y()){
                                 // 1. currently we have no candidate yet
                                 // 2. we have candidate but it's not at more front location
-                                pFocus = pRecord.second;
+                                pFocus = pRecord.second.get();
                             }
                         }
                     }
@@ -464,12 +463,9 @@ void ProcessRun::Draw()
         }
 
         // draw magics
-        for(auto pMagic: m_IndepMagicList){
-            if(true
-                    &&  pMagic
-                    && !pMagic->Done()){
-
-                pMagic->Draw(m_ViewX, m_ViewY);
+        for(auto p: m_IndepMagicList){
+            if(!p->Done()){
+                p->Draw(m_ViewX, m_ViewY);
             }
         }
 
@@ -488,8 +484,8 @@ void ProcessRun::Draw()
         g_SDLDevice->PopColor();
     }
 
-    for(auto pRecord: m_AscendStrRecord){
-        pRecord->Draw(m_ViewX, m_ViewY);
+    for(auto p: m_AscendStrList){
+        p->Draw(m_ViewX, m_ViewY);
     }
 
     m_ControbBoard  .Draw();
@@ -540,7 +536,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             }else{
                                 auto &rstGroundItemList = GetGroundItemList(nMouseGridX, nMouseGridY);
                                 if(!rstGroundItemList.empty()){
-                                    m_MyHero->EmplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, rstGroundItemList.back().ID()));
+                                    GetMyHero()->EmplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, rstGroundItemList.back().ID()));
                                 }
                             }
                             break;
@@ -564,7 +560,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                 int nY = -1;
                                 if(true
                                         && ScreenPoint2Grid(rstEvent.button.x, rstEvent.button.y, &nX, &nY)
-                                        && LDistance2(m_MyHero->CurrMotion().EndX, m_MyHero->CurrMotion().EndY, nX, nY)){
+                                        && LDistance2(GetMyHero()->CurrMotion().EndX, GetMyHero()->CurrMotion().EndY, nX, nY)){
 
                                     // we get a valid dst to go
                                     // provide myHero with new move action command
@@ -572,14 +568,14 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                     // when post move action don't use X() and Y()
                                     // since if clicks during hero moving then X() may not equal to EndX
 
-                                    m_MyHero->EmplaceAction(ActionMove
+                                    GetMyHero()->EmplaceAction(ActionMove
                                     {
-                                        m_MyHero->CurrMotion().EndX,    // don't use X()
-                                        m_MyHero->CurrMotion().EndY,    // don't use Y()
+                                        GetMyHero()->CurrMotion().EndX,    // don't use X()
+                                        GetMyHero()->CurrMotion().EndY,    // don't use Y()
                                         nX,
                                         nY,
                                         SYS_DEFSPEED,
-                                        m_MyHero->OnHorse() ? 1 : 0
+                                        GetMyHero()->OnHorse() ? 1 : 0
                                     });
                                 }
                             }
@@ -620,10 +616,10 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             }
 
                             if(auto nFocusUID = FocusUID(FOCUS_MAGIC)){
-                                m_MyHero->EmplaceAction(ActionSpell
+                                GetMyHero()->EmplaceAction(ActionSpell
                                 {
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
+                                    GetMyHero()->CurrMotion().EndX,
+                                    GetMyHero()->CurrMotion().EndY,
                                     nFocusUID,
                                     DBCOM_MAGICID(u8"雷电术"),
                                 });
@@ -634,10 +630,10 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                 int nMouseY = -1;
                                 SDL_GetMouseState(&nMouseX, &nMouseY);
                                 ScreenPoint2Grid(nMouseX, nMouseY, &nAimX, &nAimY);
-                                m_MyHero->EmplaceAction(ActionSpell
+                                GetMyHero()->EmplaceAction(ActionSpell
                                 {
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
+                                    GetMyHero()->CurrMotion().EndX,
+                                    GetMyHero()->CurrMotion().EndY,
                                     nAimX,
                                     nAimY,
                                     DBCOM_MAGICID(u8"雷电术"),
@@ -647,17 +643,17 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                         }
                     case SDLK_p:
                         {
-                            m_MyHero->PickUp();
+                            GetMyHero()->PickUp();
                             break;
                         }
                     case SDLK_y:
                         {
-                            m_MyHero->EmplaceAction(ActionSpell(m_MyHero->X(), m_MyHero->Y(), m_MyHero->UID(), DBCOM_MAGICID(u8"魔法盾")));
+                            GetMyHero()->EmplaceAction(ActionSpell(GetMyHero()->X(), GetMyHero()->Y(), GetMyHero()->UID(), DBCOM_MAGICID(u8"魔法盾")));
                             break;
                         }
                     case SDLK_u:
                         {
-                            m_MyHero->EmplaceAction(ActionSpell(m_MyHero->X(), m_MyHero->Y(), m_MyHero->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
+                            GetMyHero()->EmplaceAction(ActionSpell(GetMyHero()->X(), GetMyHero()->Y(), GetMyHero()->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
                             break;
                         }
                     default:
@@ -988,14 +984,12 @@ bool ProcessRun::UserCommand(const char *szUserCommand)
 std::vector<int> ProcessRun::GetPlayerList()
 {
     std::vector<int> stRetV {};
-    for(auto pRecord = m_CreatureList.begin(); pRecord != m_CreatureList.end();){
-        if(true
-                && pRecord->second
-                && pRecord->second->Active()){
-            switch(pRecord->second->Type()){
+    for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
+        if(p->second->Active()){
+            switch(p->second->Type()){
                 case CREATURE_PLAYER:
                     {
-                        stRetV.push_back(pRecord->second->UID());
+                        stRetV.push_back(p->second->UID());
                         break;
                     }
                 default:
@@ -1003,10 +997,9 @@ std::vector<int> ProcessRun::GetPlayerList()
                         break;
                     }
             }
-            ++pRecord;
+            ++p;
         }else{
-            delete pRecord->second;
-            pRecord = m_CreatureList.erase(pRecord);
+            p = m_CreatureList.erase(p);
         }
     }
     return stRetV;
@@ -1190,7 +1183,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         pModule->GetLuaState().set_function("myHero_dress", [this](int nDress)
         {
             if(nDress >= 0){
-                m_MyHero->Dress((uint32_t)(nDress));
+                GetMyHero()->Dress((uint32_t)(nDress));
             }
         });
 
@@ -1199,7 +1192,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         pModule->GetLuaState().set_function("myHero_weapon", [this](int nWeapon)
         {
             if(nWeapon >= 0){
-                m_MyHero->Weapon((uint32_t)(nWeapon));
+                GetMyHero()->Weapon((uint32_t)(nWeapon));
             }
         });
 
@@ -1293,18 +1286,14 @@ Creature *ProcessRun::RetrieveUID(uint64_t nUID)
     }
 
     if(auto p = m_CreatureList.find(nUID); p != m_CreatureList.end()){
-        if(true
-                && p->second
-                && p->second->Active()
-                && p->second->UID() == nUID){
-            // here return the naked pointer
-            // OK since we force to use single thread
-            return p->second;
+        if(p->second->Active()){
+            if(p->second->UID() != nUID){
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_FATAL, "Invalid creature record: %p, UID = %" PRIu64, p->second, p->second->UID());
+                return nullptr;
+            }
+            return p->second.get();
         }
-
-        // invalid record found
-        // delete it as garbage collector
-        delete p->second;
         m_CreatureList.erase(p);
     }
     return nullptr;
@@ -1323,10 +1312,10 @@ bool ProcessRun::LocateUID(uint64_t nUID, int *pX, int *pY)
 bool ProcessRun::TrackAttack(bool bForce, uint64_t nUID)
 {
     if(RetrieveUID(nUID)){
-        if(bForce || m_MyHero->StayIdle()){
-            auto nEndX = m_MyHero->CurrMotion().EndX;
-            auto nEndY = m_MyHero->CurrMotion().EndY;
-            return m_MyHero->EmplaceAction(ActionAttack(nEndX, nEndY, DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
+        if(bForce || GetMyHero()->StayIdle()){
+            auto nEndX = GetMyHero()->CurrMotion().EndX;
+            auto nEndY = GetMyHero()->CurrMotion().EndY;
+            return GetMyHero()->EmplaceAction(ActionAttack(nEndX, nEndY, DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
         }
     }
     return false;
@@ -1364,7 +1353,7 @@ uint32_t ProcessRun::GetFocusFaceKey()
 
 void ProcessRun::AddAscendStr(int nType, int nValue, int nX, int nY)
 {
-    m_AscendStrRecord.emplace_back(new AscendStr(nType, nValue, nX, nY));
+    m_AscendStrList.emplace_back(std::make_shared<AscendStr>(nType, nValue, nX, nY));
 }
 
 bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
@@ -1382,13 +1371,13 @@ bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
 
 void ProcessRun::CenterMyHero()
 {
-    if(m_MyHero){
-        auto nMotion     = m_MyHero->CurrMotion().Motion;
-        auto nDirection  = m_MyHero->CurrMotion().Direction;
-        auto nX          = m_MyHero->CurrMotion().X;
-        auto nY          = m_MyHero->CurrMotion().Y;
-        auto nFrame      = m_MyHero->CurrMotion().Frame;
-        auto nFrameCount = m_MyHero->MotionFrameCount(nMotion, nDirection);
+    if(GetMyHero()){
+        auto nMotion     = GetMyHero()->CurrMotion().Motion;
+        auto nDirection  = GetMyHero()->CurrMotion().Direction;
+        auto nX          = GetMyHero()->CurrMotion().X;
+        auto nY          = GetMyHero()->CurrMotion().Y;
+        auto nFrame      = GetMyHero()->CurrMotion().Frame;
+        auto nFrameCount = GetMyHero()->MotionFrameCount(nMotion, nDirection);
 
         if(nFrameCount > 0){
             auto fnSetOff = [this, nX, nY, nDirection, nFrame, nFrameCount](int nStepLen)
@@ -1472,11 +1461,6 @@ bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
 
 void ProcessRun::ClearCreature()
 {
-    m_MyHero = nullptr;
-
-    for(auto pRecord: m_CreatureList){
-        delete pRecord.second;
-    }
     m_CreatureList.clear();
 }
 

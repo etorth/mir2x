@@ -32,7 +32,9 @@ class Monster: public Creature
 
     protected:
         Monster(uint64_t, uint32_t, ProcessRun *);
-       ~Monster() = default;
+
+    public:
+        ~Monster() = default;
 
     public:
         int Type() const
