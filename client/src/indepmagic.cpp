@@ -130,7 +130,7 @@ void IndepMagic::Update(double fTime)
             switch(Stage()){
                 case EGS_START:
                     {
-                        if(fnCheckStageValid(EGS_RUN )){
+                        if(fnCheckStageValid(EGS_RUN)){
                             m_Stage = EGS_RUN;
                         }else if(fnCheckStageValid(EGS_DONE)){
                             m_Stage = EGS_DONE;

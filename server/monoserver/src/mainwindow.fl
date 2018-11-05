@@ -1,38 +1,38 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0303 
-header_name {.hpp} 
+version 1.0304
+header_name {.hpp}
 code_name {.cpp}
 decl {\#include <asio.hpp>} {public global
-} 
+}
 
 decl {\#include <ctime>} {public global
-} 
+}
 
 decl {\#include <string>} {public global
-} 
+}
 
 decl {\#include <mutex>} {private local
-} 
+}
 
 decl {class CommandWindow;} {public global
-} 
+}
 
 class MainWindow {open
 } {
   Function {MainWindow()} {open
   } {
     Fl_Window m_Window {
-      label {Scene Server}
+      label MonoServer
       callback {{
 	// do nothing
 }} open
-      xywh {746 272 720 400} type Double labelfont 4 resizable visible
+      xywh {446 289 720 400} type Double labelfont 4 resizable visible
     } {
       Fl_Menu_Bar {} {open
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
-          label Server open
+          label Server
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -78,12 +78,16 @@ class MainWindow {open
 	extern DatabaseConfigureWindow	*g_DatabaseConfigureWindow;
 	g_DatabaseConfigureWindow->ShowAll();
 }}
-            xywh {0 0 30 20} labelfont 4
+            xywh {0 0 30 20} labelfont 4 divider
             code0 {\#include "databaseconfigurewindow.hpp"}
+          }
+          MenuItem m_MenuItemFonts {
+            label Fonts selected
+            xywh {10 10 30 20} labelfont 4
           }
         }
         Submenu m_CommandMenuButton {
-          label Command open
+          label Command
           xywh {15 15 62 20} labelfont 4
         } {
           MenuItem m_SubMenuRunCommand {
@@ -337,7 +341,7 @@ class MainWindow {open
           }
         }
         Submenu {} {
-          label Script open
+          label Script
           xywh {0 0 100 20} labelfont 4
         } {
           MenuItem {} {
@@ -376,10 +380,16 @@ class MainWindow {open
           }
         }
       }
-      Fl_Browser m_Browser {selected
+      Fl_Browser m_Browser {
         xywh {0 24 720 375} type Hold labelfont 4 textfont 4 resizable
       }
     }
+    code {// insert font menus
+{
+    // give up
+    // was trying to insert font-selection menu items
+    // but dynamically changing menus for fluid created gui is dangerous
+}} {}
   }
   Function {ShowAll()} {} {
     code {{
@@ -539,4 +549,13 @@ class MainWindow {open
     }
 }} {}
   }
-} 
+  Function {GetMenuItemFonts()} {open return_type {Fl_Menu_Item *}
+  } {
+    code {// GetMenuItemFonts()
+// call it to get the Configure/Fonts menu item
+// used to dynamically insert all fonts for main window
+{
+    return m_MenuItemFonts;
+}} {}
+  }
+}
