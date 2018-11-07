@@ -604,8 +604,30 @@ Monster *Monster::CreateMonster(uint64_t nUID, ProcessRun *pRun, const ActionNod
         return nullptr;
     }
 
-    auto pMonster = new Monster(nUID, pRun);
-    pMonster->m_CurrMotion = {MOTION_MON_STAND, 0, DIR_UP, rstAction.X, rstAction.Y};
+    Monster *pMonster = nullptr;
+    try
+    {
+        pMonster = new Monster(nUID, pRun);
+    }catch(...){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "Create monster failed: UIDName = %s", UIDFunc::GetUIDString(nUID).c_str());
+        return nullptr;
+    }
+
+    // setup the initial motion
+    // this motion may never be present since we immediately call ParseAction()
+    switch(pMonster->MonsterID()){
+        case DBCOM_MONSTERID(u8"变异骷髅"):
+            {
+                pMonster->m_CurrMotion = {MOTION_MON_STAND, 0, DIR_DOWNLEFT, rstAction.X, rstAction.Y};
+                break;
+            }
+        default:
+            {
+                pMonster->m_CurrMotion = {MOTION_MON_STAND, 0, DIR_UP, rstAction.X, rstAction.Y};
+                break;
+            }
+    }
 
     if(pMonster->ParseAction(rstAction)){
         return pMonster;

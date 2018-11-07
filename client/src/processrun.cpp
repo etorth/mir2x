@@ -26,6 +26,7 @@
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
 #include "clientenv.hpp"
+#include "pathfinder.hpp"
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
 #include "clientluamodule.hpp"
@@ -1462,6 +1463,61 @@ bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
 void ProcessRun::ClearCreature()
 {
     m_CreatureList.clear();
+}
+
+void ProcessRun::QueryCORecord(uint64_t nUID) const
+{
+    CMQueryCORecord stCMQCOR;
+    std::memset(&stCMQCOR, 0, sizeof(stCMQCOR));
+
+    stCMQCOR.AimUID = nUID;
+
+    extern Game *g_Game;
+    g_Game->Send(CM_QUERYCORECORD, stCMQCOR);
+}
+
+void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
+{
+    condcheck(nUID);
+    condcheck(rstAction.Action == ACTION_SPAWN);
+
+    if(UIDFunc::GetUIDType(nUID) != UID_MON){
+        QueryCORecord(nUID);
+        return;
+    }
+
+    switch(UIDFunc::GetMonsterID(nUID)){
+        case DBCOM_MONSTERID(u8"变异骷髅"):
+            {
+                ActionStand stActionStand
+                {
+                    rstAction.X,
+                    rstAction.Y,
+                    DIR_DOWNLEFT,
+                };
+
+                if(auto pMonster = Monster::CreateMonster(nUID, this, stActionStand)){
+                    m_CreatureList[nUID].reset(pMonster);
+                }
+                return;
+            }
+        default:
+            {
+                ActionStand stActionStand
+                {
+                    rstAction.X,
+                    rstAction.Y,
+                    PathFind::ValidDir(rstAction.Direction) ? rstAction.Direction : DIR_UP,
+                };
+
+                if(auto pMonster = Monster::CreateMonster(nUID, this, stActionStand)){
+                    m_CreatureList[nUID].reset(pMonster);
+                }
+
+                QueryCORecord(nUID);
+                return;
+            }
+    }
 }
 
 Widget *ProcessRun::GetWidget(const char *szWidgetName)

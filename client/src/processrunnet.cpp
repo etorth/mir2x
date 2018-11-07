@@ -23,6 +23,7 @@
 #include "game.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
+#include "uidfunc.hpp"
 #include "sysconst.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
@@ -74,56 +75,91 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         stSMA.ActionParam,
     };
 
-    if(stSMA.MapID == MapID()){
-        if(auto pCreature = RetrieveUID(stSMA.UID)){
-            pCreature->ParseAction(stAction);
-            switch(stAction.Action){
-                case ACTION_SPAWN:
-                    {
-                        break;
+    if(stSMA.MapID != MapID()){
+        if(stSMA.UID != GetMyHero()->UID()){
+            return;
+        }
+
+        // detected map switch for myhero
+        // need to do map switch and parse current action
+
+        LoadMap(stSMA.MapID);
+
+        auto nUID       = GetMyHero()->UID();
+        auto nDBID      = GetMyHero()->DBID();
+        auto bGender    = GetMyHero()->Gender();
+        auto nDress     = GetMyHero()->Dress();
+        auto nDirection = GetMyHero()->CurrMotion().Direction;
+
+        auto nX = stSMA.X;
+        auto nY = stSMA.Y;
+
+        ClearCreature();
+        m_CreatureList[m_MyHeroUID] = std::make_shared<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
+
+        CenterMyHero();
+        GetMyHero()->ParseAction(stAction);
+        return;
+    }
+
+    // map doesn't change
+    // action from an existing charobject for current processrun
+
+    if(auto pCreature = RetrieveUID(stSMA.UID)){
+        // shouldn't accept ACTION_SPAWN
+        // we shouldn't have spawn action after co created
+        condcheck(stSMA.Action != ACTION_SPAWN);
+
+        pCreature->ParseAction(stAction);
+        switch(stAction.Action){
+            case ACTION_SPACEMOVE2:
+                {
+                    if(stSMA.UID == m_MyHeroUID){
+                        CenterMyHero();
                     }
-                case ACTION_SPACEMOVE2:
-                    {
-                        if(stSMA.UID == m_MyHeroUID){
-                            CenterMyHero();
-                        }
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
+                    return;
+                }
+            default:
+                {
+                    return;
+                }
+        }
+        return;
+    }
+
+    // map doesn't change
+    // action from an non-existing charobject, may need query
+
+    switch(UIDFunc::GetUIDType(stSMA.UID)){
+        case UID_PLY:
+            {
+                // do query only for player
+                // can't create new player based on action information
+                QueryCORecord(stSMA.UID);
+                return;
             }
-        }else{
-            // can't find it
-            // we have to create a new actor but need more information
-            CMQueryCORecord stCMQCOR;
-            std::memset(&stCMQCOR, 0, sizeof(stCMQCOR));
-
-            stCMQCOR.AimUID = stSMA.UID;
-
-            extern Game *g_Game;
-            g_Game->Send(CM_QUERYCORECORD, stCMQCOR);
-        }
-    }else{
-        if(m_MyHeroUID == stSMA.UID){
-            LoadMap(stSMA.MapID);
-
-            auto nUID       = GetMyHero()->UID();
-            auto nDBID      = GetMyHero()->DBID();
-            auto bGender    = GetMyHero()->Gender();
-            auto nDress     = GetMyHero()->Dress();
-            auto nDirection = GetMyHero()->CurrMotion().Direction;
-
-            auto nX = stSMA.X;
-            auto nY = stSMA.Y;
-
-            ClearCreature();
-            m_CreatureList[m_MyHeroUID] = std::make_shared<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
-
-            CenterMyHero();
-            GetMyHero()->ParseAction(stAction);
-        }
+        case UID_MON:
+            {
+                switch(stSMA.Action){
+                    case ACTION_SPAWN:
+                        {
+                            OnActionSpawn(stSMA.UID, stAction);
+                            return;
+                        }
+                    default:
+                        {
+                            if(auto pMonster = Monster::CreateMonster(stSMA.UID, this, stAction)){
+                                m_CreatureList[stSMA.UID].reset(pMonster);
+                            }
+                            return;
+                        }
+                }
+                return;
+            }
+        default:
+            {
+                return;
+            }
     }
 }
 

@@ -274,5 +274,9 @@ class ProcessRun: public Process
         void ClearCreature();
 
     public:
+        void QueryCORecord(uint64_t) const;
+        void OnActionSpawn(uint64_t, const ActionNode &);
+
+    public:
         Widget *GetWidget(const char *);
 };

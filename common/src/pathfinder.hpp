@@ -63,7 +63,12 @@ namespace PathFind
         }
     };
 
-    inline const char *GetDirectionName(int nDirection)
+    inline bool ValidDir(int nDirection)
+    {
+        return  nDirection > DIR_NONE && nDirection < DIR_MAX;
+    }
+
+    inline const char *GetDirName(int nDirection)
     {
         switch (nDirection){
             case DIR_UP        : return "DIR_UP";
