@@ -19,6 +19,7 @@
 #include "log.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
+#include "uidfunc.hpp"
 #include "mathfunc.hpp"
 #include "condcheck.hpp"
 #include "processrun.hpp"
@@ -27,12 +28,10 @@
 #include "pngtexoffdbn.hpp"
 #include "clientpathfinder.hpp"
 
-Monster::Monster(uint64_t nUID, uint32_t nMonsterID, ProcessRun *pRun)
+Monster::Monster(uint64_t nUID, ProcessRun *pRun)
     : Creature(nUID, pRun)
-    , m_MonsterID(nMonsterID)
 {
     condcheck(nUID);
-    condcheck(nMonsterID);
     condcheck(pRun);
 }
 
@@ -597,16 +596,22 @@ bool Monster::CanFocus(int nPointX, int nPointY)
     return false;
 }
 
-Monster *Monster::Create(uint64_t nUID, uint32_t nMonsterID, ProcessRun *pRun, const ActionNode &rstAction)
+Monster *Monster::CreateMonster(uint64_t nUID, ProcessRun *pRun, const ActionNode &rstAction)
 {
-    auto pNew = new Monster(nUID, nMonsterID, pRun);
-    pNew->m_CurrMotion = {MOTION_MON_STAND, 0, DIR_UP, rstAction.X, rstAction.Y};
-
-    if(pNew->ParseAction(rstAction)){
-        return pNew;
+    if(UIDFunc::GetUIDType(nUID) != UID_MON){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "Invalid UID provided for monster type: UIDName = %s", UIDFunc::GetUIDString(nUID).c_str());
+        return nullptr;
     }
 
-    delete pNew;
+    auto pMonster = new Monster(nUID, pRun);
+    pMonster->m_CurrMotion = {MOTION_MON_STAND, 0, DIR_UP, rstAction.X, rstAction.Y};
+
+    if(pMonster->ParseAction(rstAction)){
+        return pMonster;
+    }
+
+    delete pMonster;
     return nullptr;
 }
 

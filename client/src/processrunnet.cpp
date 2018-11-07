@@ -78,6 +78,10 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         if(auto pCreature = RetrieveUID(stSMA.UID)){
             pCreature->ParseAction(stAction);
             switch(stAction.Action){
+                case ACTION_SPAWN:
+                    {
+                        break;
+                    }
                 case ACTION_SPACEMOVE2:
                     {
                         if(stSMA.UID == m_MyHeroUID){
@@ -153,7 +157,7 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
     switch(stSMCOR.COType){
         case CREATURE_MONSTER:
             {
-                if(auto pMonster = Monster::Create(stSMCOR.Action.UID, stSMCOR.Monster.MonsterID, this, stAction)){
+                if(auto pMonster = Monster::CreateMonster(stSMCOR.Action.UID, this, stAction)){
                     m_CreatureList[stSMCOR.Action.UID].reset(pMonster);
                 }
                 break;
