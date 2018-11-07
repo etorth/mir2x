@@ -100,7 +100,7 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
     if(true
             && stAMA.UID != UID()
             && stAMA.MapID == MapID()
-            && LDistance2(stAMA.X, stAMA.Y, X(), Y()) < 400){
+            && LDistance2(stAMA.X, stAMA.Y, X(), Y()) < 20 * 20){
 
         // for all action types
         // the x/y are always well-defined

@@ -717,8 +717,8 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 {
                     AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
 
-                    extern NetDriver *g_NetDriver;
-                    g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
+                    // extern NetDriver *g_NetDriver;
+                    // g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
                 });
                 break;
             }

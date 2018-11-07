@@ -171,7 +171,7 @@ bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
 uint64_t CharObject::Activate()
 {
     if(auto nUID = ServerObject::Activate(); nUID){
-        DispatchAction(ActionStand(X(), Y(), Direction()));
+        DispatchAction(ActionSpawn(X(), Y(), Direction()));
         return nUID;
     }
     return 0;
@@ -215,6 +215,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
         case ACTION_PUSHMOVE:
         case ACTION_SPACEMOVE1:
         case ACTION_SPACEMOVE2:
+        case ACTION_SPAWN:
             {
                 m_ActorPod->Forward(m_Map->UID(), {MPK_ACTION, stAMA});
                 return;
@@ -227,7 +228,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
                     auto nY     = pLoc->second.Y;
                     auto nMapID = pLoc->second.MapID;
 
-                    if(m_Map->In(nMapID, nX, nY) && LDistance2(nX, nY, X(), Y()) < 100){
+                    if(m_Map->In(nMapID, nX, nY) && LDistance2(nX, nY, X(), Y()) < 10 * 10){
                         // if one co becomes my new neighbor
                         // is should be included in the list already
                         // but if we find a neighbor in the cache list we need to refresh it
@@ -810,7 +811,7 @@ void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bRandom)
     stAMACO.Monster.MonsterID = nMonsterID;
     stAMACO.Monster.MasterUID = UID();
 
-    auto fnOnRet = [](const MessagePack &rstRMPK)
+    m_ActorPod->Forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.ID()){
             default:
@@ -818,8 +819,7 @@ void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bRandom)
                     break;
                 }
         }
-    };
-    m_ActorPod->Forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, fnOnRet);
+    });
 }
 
 int CharObject::EstimateHop(int nX, int nY)
