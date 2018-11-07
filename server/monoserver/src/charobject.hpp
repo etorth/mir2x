@@ -284,7 +284,10 @@ class CharObject: public ServerObject
         void DispatchAttack(uint64_t, int);
 
     protected:
-        virtual void DispatchAction(const ActionNode &);
+        virtual void DispatchAction(          const ActionNode &);
+        virtual void DispatchAction(uint64_t, const ActionNode &);
+
+    protected:
         virtual void ReportAction(uint64_t, const ActionNode &);
 
     protected:

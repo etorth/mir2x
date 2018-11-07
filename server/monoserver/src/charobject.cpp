@@ -254,6 +254,35 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
     }
 }
 
+void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
+{
+    // should check to avoid dead CO call this function
+    // this would cause zombies
+
+    condcheck(nUID);
+    condcheck(ActorPodValid());
+
+    AMAction stAMA;
+    std::memset(&stAMA, 0, sizeof(stAMA));
+
+    stAMA.UID   = UID();
+    stAMA.MapID = MapID();
+
+    stAMA.Action    = rstAction.Action;
+    stAMA.Speed     = rstAction.Speed;
+    stAMA.Direction = rstAction.Direction;
+
+    stAMA.X    = rstAction.X;
+    stAMA.Y    = rstAction.Y;
+    stAMA.AimX = rstAction.AimX;
+    stAMA.AimY = rstAction.AimY;
+
+    stAMA.AimUID      = rstAction.AimUID;
+    stAMA.ActionParam = rstAction.ActionParam;
+
+    m_ActorPod->Forward(nUID, {MPK_ACTION, stAMA});
+}
+
 bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
     if(!CanMove()){
