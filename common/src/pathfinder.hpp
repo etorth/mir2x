@@ -24,8 +24,10 @@
  */
 
 #pragma once
+#include <tuple>
 #include <cmath>
 #include <array>
+#include <vector>
 #include <functional>
 
 #include "fsa.h"
@@ -54,9 +56,19 @@ namespace PathFind
         {
             return (rstNode.X == X) && (rstNode.Y == Y);
         }
+
+        bool Eq(int nX, int nY) const
+        {
+            return X == nX && Y == nY;
+        }
     };
 
-    inline const char *GetDirectionName(int nDirection)
+    inline bool ValidDir(int nDirection)
+    {
+        return  nDirection > DIR_NONE && nDirection < DIR_MAX;
+    }
+
+    inline const char *GetDirName(int nDirection)
     {
         switch (nDirection){
             case DIR_UP        : return "DIR_UP";
@@ -182,7 +194,10 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
         inline bool Search(int, int, int, int);
 
     public:
-        template<size_t PathNodeNum> std::array<PathFind::PathNode, PathNodeNum> GetPathNode();
+        inline std::vector<PathFind::PathNode> GetPathNode();
+
+    public:
+        template<size_t PathNodeNum> std::tuple<std::array<PathFind::PathNode, PathNodeNum>, size_t> GetFirstNPathNode();
 };
 
 class AStarPathFinderNode
@@ -379,27 +394,50 @@ inline bool AStarPathFinder::Search(int nX0, int nY0, int nX1, int nY1)
     return m_FoundPath;
 }
 
-template<size_t PathNodeNum> std::array<PathFind::PathNode, PathNodeNum> AStarPathFinder::GetPathNode()
+inline std::vector<PathFind::PathNode> AStarPathFinder::GetPathNode()
 {
-    static_assert(PathNodeNum >= 2, "PathFinder::GetPathNode(): template argument invalid");
     if(!PathFound()){
-        return {{-1, -1}};
+        return {};
     }
 
+    std::vector<PathFind::PathNode> stPathRes;
+    if(auto pNode0 = GetSolutionStart()){
+        stPathRes.emplace_back(pNode0->X(), pNode0->Y());
+    }else{
+        return {};
+    }
+
+    while(auto pNode = GetSolutionNext()){
+        stPathRes.emplace_back(pNode->X(), pNode->Y());
+    }
+
+    return stPathRes;
+}
+
+template<size_t PathNodeNum> std::tuple<std::array<PathFind::PathNode, PathNodeNum>, size_t> AStarPathFinder::GetFirstNPathNode()
+{
+    static_assert(PathNodeNum >= 2, "PathFinder::GetFirstNPathNode(): template argument invalid");
     std::array<PathFind::PathNode, PathNodeNum> stPathRes;
+
+    // some C++ question to myself:
+    // why I can't directly return {{}, 0} ? what's implicit constructible?
+
+    if(!PathFound()){
+        return {stPathRes, 0};
+    }
+
     if(auto pNode0 = GetSolutionStart()){
         stPathRes[0] = {pNode0->X(), pNode0->Y()};
     }else{
-        return {{-1, -1}};
+        return {stPathRes, 0};
     }
 
     for(size_t nIndex = 1; nIndex < stPathRes.size(); ++nIndex){
         if(auto pNode = GetSolutionNext()){
             stPathRes[nIndex] = {pNode->X(), pNode->Y()};
         }else{
-            stPathRes[nIndex] = {-1, -1};
+            return {stPathRes, nIndex};
         }
     }
-
-    return stPathRes;
+    return {stPathRes, stPathRes.size()};
 }

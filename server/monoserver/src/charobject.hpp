@@ -136,13 +136,13 @@ class CharObject: public ServerObject
                 const CharObject *m_CO;
 
             private:
-                const bool m_CheckCO;
+                const int m_CheckCO;
 
             private:
                 mutable std::map<uint32_t, int> m_Cache;
 
             public:
-                COPathFinder(const CharObject *, bool);
+                COPathFinder(const CharObject *, int);
                ~COPathFinder() = default;
 
             private:
@@ -242,22 +242,22 @@ class CharObject: public ServerObject
        ~CharObject() = default;
 
     protected:
-        int X() { return m_X; }
-        int Y() { return m_Y; }
+        int X() const { return m_X; }
+        int Y() const { return m_Y; }
 
     protected:
-        int HP()    { return m_HP; }
-        int MP()    { return m_MP; }
-        int HPMax() { return m_HPMax; }
-        int MPMax() { return m_MPMax; }
+        int HP()    const { return m_HP; }
+        int MP()    const { return m_MP; }
+        int HPMax() const { return m_HPMax; }
+        int MPMax() const { return m_MPMax; }
 
     protected:
-        int Direction()
+        int Direction() const
         {
             return m_Direction;
         }
 
-        uint32_t MapID()
+        uint32_t MapID() const
         {
             return m_Map ? m_Map->ID() : 0;
         }
@@ -284,7 +284,10 @@ class CharObject: public ServerObject
         void DispatchAttack(uint64_t, int);
 
     protected:
-        virtual void DispatchAction(const ActionNode &);
+        virtual void DispatchAction(          const ActionNode &);
+        virtual void DispatchAction(uint64_t, const ActionNode &);
+
+    protected:
         virtual void ReportAction(uint64_t, const ActionNode &);
 
     protected:
@@ -357,22 +360,25 @@ class CharObject: public ServerObject
         int EstimateHop(int, int);
 
     protected:
-        int AttackSpeed()
+        int AttackSpeed() const
         {
             return SYS_DEFSPEED;
         }
 
-        int MagicSpeed()
+        int MagicSpeed() const
         {
             return SYS_DEFSPEED;
         }
 
-        int Horse()
+        int Horse() const
         {
             return 0;
         }
 
     protected:
+        std::array<PathFind::PathNode, 3> GetChaseGrid(int, int, int) const;
+
+    protected:
         int CheckPathGrid(int, int, uint32_t = 0) const;
-        double OneStepCost(const CharObject::COPathFinder *, bool, int, int, int, int) const;
+        double OneStepCost(const CharObject::COPathFinder *, int, int, int, int, int) const;
 };

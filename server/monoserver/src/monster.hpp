@@ -158,10 +158,10 @@ class Monster final: public CharObject
         void CheckFriend(uint64_t, const std::function<void(int)> &);
 
     protected:
-        bool MoveOneStepAStar   (int, int);
-        bool MoveOneStepGreedy  (int, int);
-        bool MoveOneStepCombine (int, int);
-        bool MoveOneStepNeighbor(int, int);
+        bool MoveOneStepAStar   (int, int, std::function<void()> /* fnOnError */);
+        bool MoveOneStepGreedy  (int, int, std::function<void()> /* fnOnError */);
+        bool MoveOneStepCombine (int, int, std::function<void()> /* fnOnError */);
+        bool MoveOneStepNeighbor(int, int, std::function<void()> /* fnOnError */);
 
     protected:
         bool CanMove();
@@ -169,9 +169,6 @@ class Monster final: public CharObject
 
     protected:
         void CheckMaster();
-
-    protected:
-        std::array<PathFind::PathNode, 3> GetChaseGrid(int, int);
 
     protected:
         virtual bool GoDie();

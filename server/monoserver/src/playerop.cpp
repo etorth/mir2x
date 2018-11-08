@@ -97,54 +97,74 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    if(true
-            && stAMA.UID != UID()
-            && stAMA.MapID == MapID()
-            && LDistance2(stAMA.X, stAMA.Y, X(), Y()) < 400){
-
-        // for all action types
-        // the x/y are always well-defined
-
-        int nDirection = -1;
-        switch(stAMA.Action){
-            case ACTION_STAND:
-            case ACTION_ATTACK:
-            case ACTION_HITTED:
-                {
-                    nDirection = stAMA.Direction;
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-
-        extern MonoServer *g_MonoServer;
-        m_LocationList[stAMA.UID] = COLocation
-        {
-            stAMA.UID,
-            stAMA.MapID,
-            g_MonoServer->GetTimeTick(),
-            stAMA.X,
-            stAMA.Y,
-            nDirection
-        };
-
-        ReportAction(stAMA.UID, ActionNode
-        {
-            stAMA.Action,
-            stAMA.Speed,
-            stAMA.Direction,
-
-            stAMA.X,
-            stAMA.Y,
-            stAMA.AimX,
-            stAMA.AimY,
-            stAMA.AimUID,
-            stAMA.ActionParam,
-        });
+    if(stAMA.UID == UID()){
+        return;
     }
+
+    if(stAMA.MapID != MapID()){
+        m_LocationList.erase(stAMA.UID);
+        return;
+    }
+
+    // for all action types
+    // the x/y are always well-defined
+
+    int nDirection = -1;
+    switch(stAMA.Action){
+        case ACTION_STAND:
+        case ACTION_ATTACK:
+        case ACTION_HITTED:
+            {
+                nDirection = stAMA.Direction;
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    if(LDistance2(stAMA.X, stAMA.Y, X(), Y()) > 20 * 20){
+        return;
+    }
+
+    switch(stAMA.Action){
+        case ACTION_SPAWN:
+        case ACTION_SPACEMOVE2:
+            {
+                DispatchAction(stAMA.UID, ActionStand(X(), Y(), Direction()));
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    extern MonoServer *g_MonoServer;
+    m_LocationList[stAMA.UID] = COLocation
+    {
+        stAMA.UID,
+        stAMA.MapID,
+        g_MonoServer->GetTimeTick(),
+        stAMA.X,
+        stAMA.Y,
+        nDirection
+    };
+
+    ReportAction(stAMA.UID, ActionNode
+    {
+        stAMA.Action,
+        stAMA.Speed,
+        stAMA.Direction,
+
+        stAMA.X,
+        stAMA.Y,
+        stAMA.AimX,
+        stAMA.AimY,
+        stAMA.AimUID,
+        stAMA.ActionParam,
+    });
 }
 
 void Player::On_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)

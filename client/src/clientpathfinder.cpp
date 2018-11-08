@@ -21,7 +21,7 @@
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
-ClientPathFinder::ClientPathFinder(bool bCheckGround, bool bCheckCreature, int nMaxStep)
+ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nMaxStep)
     : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
       {
           if(0){
@@ -56,11 +56,26 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, bool bCheckCreature, int n
               g_Log->AddLog(LOGTYPE_FATAL, "ProcessRun is invalid");
               return -1.00;
           }
-          return pRun->OneStepCost(this, m_CheckCreature, nSrcX, nSrcY, nDstX, nDstY);
+          return pRun->OneStepCost(this, m_CheckGround, m_CheckCreature, nSrcX, nSrcY, nDstX, nDstY);
       }, nMaxStep)
     , m_CheckGround(bCheckGround)
-    , m_CheckCreature(bCheckCreature)
+    , m_CheckCreature(nCheckCreature)
 {
+    switch(m_CheckCreature){
+        case 0:
+        case 1:
+        case 2:
+            {
+                break;
+            }
+        default:
+            {
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", m_CheckCreature);
+                break;
+            }
+    }
+
     switch(MaxStep()){
         case 1:
         case 2:
@@ -84,7 +99,7 @@ int ClientPathFinder::GetGrid(int nX, int nY) const
 
     if(!pRun){
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "ProcessRun is not valid", pRun);
+        g_Log->AddLog(LOGTYPE_FATAL, "ProcessRun is invalid", pRun);
     }
 
     if(!pRun->ValidC(nX, nY)){

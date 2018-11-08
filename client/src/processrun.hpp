@@ -19,6 +19,7 @@
 #pragma once
 #include <map>
 #include <list>
+#include <memory>
 #include <cstdint>
 #include <algorithm>
 
@@ -72,7 +73,7 @@ class ProcessRun: public Process
         std::vector<std::vector<std::vector<CommonItem>>> m_GroundItemList;
 
     private:
-        MyHero *m_MyHero;
+        uint64_t m_MyHeroUID;
 
     public:
         bool ValidC(int nX, int nY) const
@@ -100,10 +101,10 @@ class ProcessRun: public Process
         InventoryBoard m_InventoryBoard;
 
     private:
-        std::vector<std::shared_ptr<IndepMagic>> m_IndepMagicList;
+        std::list<std::shared_ptr<IndepMagic>> m_IndepMagicList;
 
     private:
-        std::map<uint64_t, Creature*> m_CreatureList;
+        std::map<uint64_t, std::shared_ptr<Creature>> m_CreatureList;
 
     private:
         // use a tokenboard to show all in future
@@ -111,7 +112,7 @@ class ProcessRun: public Process
         LabelBoard m_MouseGridLoc;
 
     private:
-        std::list<AscendStr *> m_AscendStrRecord;
+        std::list<std::shared_ptr<AscendStr>> m_AscendStrList;
 
     private:
         void ScrollMap();
@@ -164,8 +165,8 @@ class ProcessRun: public Process
         void Net_SHOWDROPITEM(const uint8_t *, size_t);
 
     public:
-        bool CanMove(bool, int, int);
-        bool CanMove(bool, int, int, int, int);
+        bool CanMove(bool, int, int, int);
+        bool CanMove(bool, int, int, int, int, int);
 
     public:
         double MoveCost(bool, int, int, int, int);
@@ -211,7 +212,15 @@ class ProcessRun: public Process
     public:
         MyHero *GetMyHero() const
         {
-            return m_MyHero;
+            // GetMyHero() is read-only
+            // won't use RetrieveUID(), it may change m_CreatureList
+
+            if(m_MyHeroUID){
+                if(auto p = m_CreatureList.find(m_MyHeroUID); p != m_CreatureList.end()){
+                    return dynamic_cast<MyHero *>(p->second.get());
+                }
+            }
+            return nullptr;
         }
 
     public:
@@ -256,13 +265,17 @@ class ProcessRun: public Process
 
     public:
         int CheckPathGrid(int, int) const;
-        double OneStepCost(const ClientPathFinder *, bool, int, int, int, int) const;
+        double OneStepCost(const ClientPathFinder *, bool, int, int, int, int, int) const;
 
     public:
         bool RequestSpaceMove(uint32_t, int, int);
 
     public:
         void ClearCreature();
+
+    public:
+        void QueryCORecord(uint64_t) const;
+        void OnActionSpawn(uint64_t, const ActionNode &);
 
     public:
         Widget *GetWidget(const char *);

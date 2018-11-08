@@ -177,7 +177,7 @@ class Player final: public CharObject
         bool Offline();
 
     protected:
-        virtual int MaxStep();
+        virtual int MaxStep() const;
 
     protected:
         virtual void RecoverHealth();

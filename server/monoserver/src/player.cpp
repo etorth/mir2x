@@ -717,8 +717,8 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 {
                     AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
 
-                    extern NetDriver *g_NetDriver;
-                    g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
+                    // extern NetDriver *g_NetDriver;
+                    // g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
                 });
                 break;
             }
@@ -771,7 +771,7 @@ void Player::OnCMActionPickUp(CMAction stCMA)
     }
 }
 
-int Player::MaxStep()
+int Player::MaxStep() const
 {
     if(Horse()){
         return 3;

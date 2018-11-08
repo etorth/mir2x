@@ -18,21 +18,21 @@
 
 #pragma once
 #include "game.hpp"
+#include "uidfunc.hpp"
 #include "creature.hpp"
 #include "protocoldef.hpp"
 #include "clientmessage.hpp"
 
 class Monster: public Creature
 {
+    public:
+        static Monster *CreateMonster(uint64_t, ProcessRun *, const ActionNode &);
+
     protected:
-        const uint32_t m_MonsterID;
+        Monster(uint64_t, ProcessRun *);
 
     public:
-       static Monster *Create(uint64_t, uint32_t, ProcessRun *, const ActionNode &);
-
-    protected:
-        Monster(uint64_t, uint32_t, ProcessRun *);
-       ~Monster() = default;
+        ~Monster() = default;
 
     public:
         int Type() const
@@ -47,7 +47,7 @@ class Monster: public Creature
     public:
         uint32_t MonsterID() const
         {
-            return m_MonsterID;
+            return UIDFunc::GetMonsterID(UID());
         }
 
     protected:

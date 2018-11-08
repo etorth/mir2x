@@ -280,7 +280,7 @@ class Creature
                 int, int,       // src
                 int, int,       // dst
                 bool,           // bCheckGround
-                bool);          // bCheckCreature
+                int);           // nCheckCreature
 
     protected:
         virtual bool MotionQueueValid();

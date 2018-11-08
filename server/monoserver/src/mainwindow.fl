@@ -1,38 +1,36 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0303 
-header_name {.hpp} 
+version 1.0304
+header_name {.hpp}
 code_name {.cpp}
 decl {\#include <asio.hpp>} {public global
-} 
+}
 
 decl {\#include <ctime>} {public global
-} 
+}
 
 decl {\#include <string>} {public global
-} 
+}
 
 decl {\#include <mutex>} {private local
-} 
+}
 
 decl {class CommandWindow;} {public global
-} 
+}
 
-class MainWindow {open
-} {
-  Function {MainWindow()} {open
-  } {
+class MainWindow {} {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
-      label {Scene Server}
+      label MonoServer
       callback {{
 	// do nothing
-}} open
-      xywh {746 272 720 400} type Double labelfont 4 resizable visible
+}}
+      xywh {955 148 720 400} type Double labelfont 4 resizable visible
     } {
-      Fl_Menu_Bar {} {open
+      Fl_Menu_Bar {} {
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
-          label Server open
+          label Server
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -60,7 +58,7 @@ class MainWindow {open
           }
         }
         Submenu {} {
-          label Configure open
+          label Configure
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -78,12 +76,209 @@ class MainWindow {open
 	extern DatabaseConfigureWindow	*g_DatabaseConfigureWindow;
 	g_DatabaseConfigureWindow->ShowAll();
 }}
-            xywh {0 0 30 20} labelfont 4
+            xywh {0 0 30 20} labelfont 4 divider
             code0 {\#include "databaseconfigurewindow.hpp"}
+          }
+          Submenu {} {
+            label Fonts
+            xywh {0 0 70 21} labelfont 4
+          } {
+            MenuItem m_MenuItemFirstFont {
+              label dynamic_label
+              xywh {10 10 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {20 20 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {30 30 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {40 40 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {50 50 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {60 60 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {70 70 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {80 80 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {90 90 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {100 100 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {110 110 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {120 120 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {130 130 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {140 140 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {150 150 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {160 160 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {170 170 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {180 180 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {190 190 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {180 180 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {190 190 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {200 200 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {210 210 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {200 200 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {210 210 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {220 220 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {230 230 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {240 240 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {250 250 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {260 260 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {270 270 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {280 280 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {290 290 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {300 300 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {310 310 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {320 320 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {330 330 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {340 340 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {350 350 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {360 360 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {370 370 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {380 380 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {390 390 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {400 400 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {410 410 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {420 420 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {430 430 36 21} labelfont 4
+            }
+            MenuItem m_MenuItemLastFont {
+              label dynamic_label
+              xywh {20 20 36 21} labelfont 4
+            }
           }
         }
         Submenu m_CommandMenuButton {
-          label Command open
+          label Command
           xywh {15 15 62 20} labelfont 4
         } {
           MenuItem m_SubMenuRunCommand {
@@ -337,7 +532,7 @@ class MainWindow {open
           }
         }
         Submenu {} {
-          label Script open
+          label Script
           xywh {0 0 100 20} labelfont 4
         } {
           MenuItem {} {
@@ -376,10 +571,40 @@ class MainWindow {open
           }
         }
       }
-      Fl_Browser m_Browser {selected
+      Fl_Browser m_Browser {
         xywh {0 24 720 375} type Hold labelfont 4 textfont 4 resizable
       }
     }
+    code {// insert font menus
+{
+    // trying to insert font-selection menu items
+    // dynamically changing menus for fluid created gui is dangerous
+    auto fnCallback = [](Fl_Widget *, void *pArg) -> void
+    {
+        extern MainWindow *g_MainWindow;
+        g_MainWindow->SetGUIFont((int)((intptr_t)(pArg)));
+    };
+
+    int nFontCount = Fl::set_fonts("-*");
+    for(auto pMenuItem = m_MenuItemFirstFont; pMenuItem <= m_MenuItemLastFont; ++pMenuItem){
+        auto nIndex = (int)(pMenuItem - m_MenuItemFirstFont);
+        if(nIndex >= nFontCount){
+            pMenuItem->hide();
+            continue;
+        }
+
+        int nFontType = -1;
+        const char *szFontName = Fl::get_font_name((Fl_Font)(nIndex), &nFontType);
+        if(!szFontName){
+            break;
+        }
+
+        pMenuItem->label(szFontName);
+        pMenuItem->labelfont((Fl_Font)(nIndex));
+        pMenuItem->callback((Fl_Callback *)(fnCallback), (void *)((intptr_t)(nIndex)));
+        pMenuItem->show();
+    }
+}} {}
   }
   Function {ShowAll()} {} {
     code {{
@@ -539,4 +764,16 @@ class MainWindow {open
     }
 }} {}
   }
-} 
+  Function {SetGUIFont(int nFont)} {return_type void
+  } {
+    code {// SetGUIFont(int nFont)
+// call it in callback of Configure/Fonts/xxx
+{
+    m_Browser->textfont((Fl_Font)(nFont));
+    m_Window->redraw();
+
+    extern ScriptWindow *g_ScriptWindow;
+    g_ScriptWindow->SetGUIFont(nFont);
+}} {}
+  }
+}

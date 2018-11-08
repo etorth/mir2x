@@ -38,7 +38,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule()
     : BatchLuaModule()
 {}
 
-ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxStep, bool bCheckCO)
+ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxStep, int nCheckCO)
     : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
       {
           if(0){
@@ -65,15 +65,30 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
               }
           }
 
-          const bool bCheckLock = m_CheckCO;
-          return m_Map->OneStepCost(m_CheckCO, bCheckLock, nSrcX, nSrcY, nDstX, nDstY);
+          const int nCheckLock = m_CheckCO;
+          return m_Map->OneStepCost(m_CheckCO, nCheckLock, nSrcX, nSrcY, nDstX, nDstY);
       }, nMaxStep)
     , m_Map(pMap)
-    , m_CheckCO(bCheckCO)
+    , m_CheckCO(nCheckCO)
 {
     if(!pMap){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, (int)(bCheckCO));
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, nCheckCO);
+    }
+
+    switch(nCheckCO){
+        case 0:
+        case 1:
+        case 2:
+            {
+                break;
+            }
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
+                break;
+            }
     }
 
     switch(MaxStep()){
@@ -269,8 +284,38 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
     return false;
 }
 
-double ServerMap::OneStepCost(bool bCheckCO, bool bCheckLock, int nX0, int nY0, int nX1, int nY1) const
+double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, int nX1, int nY1) const
 {
+    switch(nCheckCO){
+        case 0:
+        case 1:
+        case 2:
+            {
+                break;
+            }
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
+                return -1.00;
+            }
+    }
+
+    switch(nCheckLock){
+        case 0:
+        case 1:
+        case 2:
+            {
+                break;
+            }
+        default:
+            {
+                extern MonoServer *g_MonoServer;
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid CheckLock provided: %d, should be (0, 1, 2)", nCheckLock);
+                return -1.00;
+            }
+    }
+
     int nMaxIndex = -1;
     switch(LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
@@ -314,15 +359,41 @@ double ServerMap::OneStepCost(bool bCheckCO, bool bCheckLock, int nX0, int nY0, 
                 }
             case PathFind::OCCUPIED:
                 {
-                    if(bCheckCO){
-                        fExtraPen += 100.00;
+                    switch(nCheckCO){
+                        case 1:
+                            {
+                                fExtraPen += 100.00;
+                                break;
+                            }
+                        case 2:
+                            {
+                                return -1.00;
+                            }
+                        default:
+                            {
+                                break;
+                            }
                     }
                     break;
                 }
             case PathFind::LOCKED:
                 {
-                    if(bCheckLock && ((nIndex == 0) || (nIndex == nMaxIndex))){
-                        fExtraPen += 100.00;
+                    if(((nIndex == 0) || (nIndex == nMaxIndex))){
+                        switch(nCheckLock){
+                            case 1:
+                                {
+                                    fExtraPen += 100.00;
+                                    break;
+                                }
+                            case 2:
+                                {
+                                    return -1.00;
+                                }
+                            default:
+                                {
+                                    break;
+                                }
+                        }
                     }
                     break;
                 }
