@@ -109,61 +109,68 @@ bool IndepMagic::Done() const
 
 void IndepMagic::Update(double fTime)
 {
-    if(!Done()){
-        m_AccuTime += fTime;
-
-        if(StageDone()){
-            auto fnCheckStageValid = [this](int nNewStage) -> bool
-            {
-                if(auto &rstMR = DBCOM_MAGICRECORD(ID())){
-                    for(int nGfxEntryIndex = 1;; ++nGfxEntryIndex){
-                        if(auto &rstGfxEntry = rstMR.GetGfxEntry(nGfxEntryIndex)){
-                            if(rstGfxEntry.Stage == nNewStage){
-                                return true;
-                            }
-                        }else{ break; }
-                    }
-                }
-                return false;
-            };
-
-            switch(Stage()){
-                case EGS_START:
-                    {
-                        if(fnCheckStageValid(EGS_RUN)){
-                            m_Stage = EGS_RUN;
-                        }else if(fnCheckStageValid(EGS_DONE)){
-                            m_Stage = EGS_DONE;
-                        }else{
-                            m_Stage = EGS_NONE;
-                        }
-                        break;
-                    }
-                case EGS_RUN:
-                    {
-                        if(fnCheckStageValid(EGS_DONE)){
-                            m_Stage = EGS_DONE;
-                        }else{
-                            m_Stage = EGS_NONE;
-                        }
-                        break;
-                    }
-                case EGS_DONE:
-                    {
-                        m_Stage = EGS_DONE;
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
-
-            // clear the accumulated time
-            // should I record the duration in total?
-            m_AccuTime = 0.0;
-        }
+    if(Done()){
+        return;
     }
+
+    m_AccuTime += fTime;
+    ExecUpdateFunc();
+
+    if(!StageDone()){
+        return;
+    }
+
+    auto fnCheckStageValid = [this](int nNewStage) -> bool
+    {
+        if(auto &rstMR = DBCOM_MAGICRECORD(ID())){
+            for(int nGfxEntryIndex = 1;; ++nGfxEntryIndex){
+                if(auto &rstGfxEntry = rstMR.GetGfxEntry(nGfxEntryIndex)){
+                    if(rstGfxEntry.Stage == nNewStage){
+                        return true;
+                    }
+                }else{
+                    break;
+                }
+            }
+        }
+        return false;
+    };
+
+    switch(Stage()){
+        case EGS_START:
+            {
+                if(fnCheckStageValid(EGS_RUN)){
+                    m_Stage = EGS_RUN;
+                }else if(fnCheckStageValid(EGS_DONE)){
+                    m_Stage = EGS_DONE;
+                }else{
+                    m_Stage = EGS_NONE;
+                }
+                break;
+            }
+        case EGS_RUN:
+            {
+                if(fnCheckStageValid(EGS_DONE)){
+                    m_Stage = EGS_DONE;
+                }else{
+                    m_Stage = EGS_NONE;
+                }
+                break;
+            }
+        case EGS_DONE:
+            {
+                m_Stage = EGS_DONE;
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    // clear the accumulated time
+    // should I record the duration in total?
+    m_AccuTime = 0.0;
 }
 
 void IndepMagic::Draw(int nViewX, int nViewY)
