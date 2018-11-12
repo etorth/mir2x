@@ -717,8 +717,8 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 {
                     AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
 
-                    // extern NetDriver *g_NetDriver;
-                    // g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
+                    // AddMonster will send ACTION_SPAWN to client
+                    // client then use it to play the magic for 召唤骷髅, we don't send magic message here
                 });
                 break;
             }
