@@ -1489,6 +1489,21 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
     switch(UIDFunc::GetMonsterID(nUID)){
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
+                AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"使用魔法: 召唤骷髅"), 
+                m_IndepMagicList.emplace_back(std::make_shared<IndepMagic>
+                (
+                    rstAction.AimUID,
+                    DBCOM_MAGICID(u8"召唤骷髅"), 
+                    0,
+                    EGS_START,
+                    rstAction.Direction,
+                    rstAction.X,
+                    rstAction.Y,
+                    rstAction.X,
+                    rstAction.Y,
+                    nUID
+                ));
+
                 ActionStand stActionStand
                 {
                     rstAction.X,

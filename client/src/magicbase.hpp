@@ -17,6 +17,8 @@
  */
 
 #pragma once
+#include <list>
+#include <functional>
 #include "magicrecord.hpp"
 
 class MagicBase
@@ -34,6 +36,9 @@ class MagicBase
         // mutable means already thread safe
         // don't use this class in multithread env since not atomic protection
         mutable const GfxEntry *m_CacheEntry;
+
+    protected:
+        std::list<std::function<bool()>> m_UpdateFunc;
 
     public:
         MagicBase(int,      // MagicID
@@ -75,6 +80,24 @@ class MagicBase
     public:
         virtual void Draw(int, int) = 0;
         virtual void Update(double) = 0;
+
+    public:
+        void AddFunc(std::function<bool()> fnOnUpdate)
+        {
+            m_UpdateFunc.push_back(fnOnUpdate);
+        }
+
+    protected:
+        void ExecUpdateFunc()
+        {
+            for(auto p = m_UpdateFunc.begin(); p != m_UpdateFunc.end();){
+                if((*p)()){
+                    p = m_UpdateFunc.erase(p);
+                }else{
+                    ++p;
+                }
+            }
+        }
 
     public:
         bool StageDone() const;
