@@ -95,7 +95,7 @@ struct SMAction
     uint16_t AimY;
 
     uint64_t AimUID;
-    uint32_t ActionParam;
+    uint64_t ActionParam;
 };
 
 struct SMCORecord
@@ -117,7 +117,7 @@ struct SMCORecord
         uint16_t AimY;
 
         uint64_t AimUID;
-        uint32_t ActionParam;
+        uint64_t ActionParam;
     }Action;
 
     struct _SMCORecord_Monster

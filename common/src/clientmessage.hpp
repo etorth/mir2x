@@ -64,7 +64,7 @@ struct CMAction
     uint16_t AimY;
 
     uint64_t AimUID;
-    uint32_t ActionParam;
+    uint64_t ActionParam;
 };
 
 struct CMQueryCORecord

@@ -233,7 +233,7 @@ struct AMAction
     int AimY;
 
     uint64_t AimUID;
-    uint32_t ActionParam;
+    uint64_t ActionParam;
 };
 
 struct AMPullCOInfo
@@ -503,7 +503,7 @@ struct AMCORecord
         int AimY;
 
         uint64_t AimUID;
-        uint32_t ActionParam;
+        uint64_t ActionParam;
     }Action;
 
     // instantiation of anonymous struct is supported in C11

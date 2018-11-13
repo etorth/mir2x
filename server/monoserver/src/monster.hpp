@@ -89,7 +89,7 @@ class Monster final: public CharObject
     protected:
        // don't expose it to public
        // master may change by time or by magic
-       uint64_t MasterUID()
+       uint64_t MasterUID() const
        {
            return m_MasterUID;
        }
