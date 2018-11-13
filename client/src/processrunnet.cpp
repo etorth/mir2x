@@ -94,6 +94,8 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         auto nX = stSMA.X;
         auto nY = stSMA.Y;
 
+        m_UIDPending.clear();
+
         ClearCreature();
         m_CreatureList[m_MyHeroUID] = std::make_shared<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
 
@@ -148,6 +150,16 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
                         }
                     default:
                         {
+                            switch(UIDFunc::GetMonsterID(stSMA.UID)){
+                                case DBCOM_MONSTERID(u8"变异骷髅"):
+                                    {
+                                        if(UIDPending(stSMA.UID)){
+                                            return;
+                                        }
+                                        break;
+                                    }
+                            }
+
                             if(auto pMonster = Monster::CreateMonster(stSMA.UID, this, stAction)){
                                 m_CreatureList[stSMA.UID].reset(pMonster);
                             }

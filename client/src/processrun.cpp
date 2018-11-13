@@ -60,6 +60,7 @@ ProcessRun::ProcessRun()
             false)              // 
     , m_InventoryBoard(0, 0, this)
     , m_CreatureList()
+    , m_UIDPending()
     , m_MousePixlLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_MouseGridLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_AscendStrList()
@@ -1492,7 +1493,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                 AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"使用魔法: 召唤骷髅"), 
                 m_IndepMagicList.emplace_back(std::make_shared<IndepMagic>
                 (
-                    rstAction.AimUID,
+                    rstAction.ActionParam,
                     DBCOM_MAGICID(u8"召唤骷髅"), 
                     0,
                     EGS_START,
@@ -1504,16 +1505,32 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                     nUID
                 ));
 
-                ActionStand stActionStand
+                m_UIDPending.insert(nUID);
+                m_IndepMagicList.back()->AddFunc([this, nUID, rstAction, pMagic = m_IndepMagicList.back()]() -> bool
                 {
-                    rstAction.X,
-                    rstAction.Y,
-                    DIR_DOWNLEFT,
-                };
+                    // if(!pMagic->Done()){
+                    //     return false;
+                    // }
 
-                if(auto pMonster = Monster::CreateMonster(nUID, this, stActionStand)){
-                    m_CreatureList[nUID].reset(pMonster);
-                }
+                    if(pMagic->Frame() < 10){
+                        return false;
+                    }
+
+                    ActionStand stActionStand
+                    {
+                        rstAction.X,
+                        rstAction.Y,
+                        DIR_DOWNLEFT,
+                    };
+
+                    if(auto pMonster = Monster::CreateMonster(nUID, this, stActionStand)){
+                        m_CreatureList[nUID].reset(pMonster);
+                    }
+
+                    m_UIDPending.erase(nUID);
+                    return true;
+                });
+
                 return;
             }
         default:
