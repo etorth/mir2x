@@ -10,3 +10,4 @@ ADD_SUBDIRECTORY(weaponwil2png)
 ADD_SUBDIRECTORY(monsterwil2png)
 
 ADD_SUBDIRECTORY(dbcreator)
+ADD_SUBDIRECTORY(zsdbmaker)
