@@ -9,3 +9,5 @@ TARGET_LINK_LIBRARIES(zsdbmaker common)
 TARGET_LINK_LIBRARIES(zsdbmaker stdc++fs)
 TARGET_LINK_LIBRARIES(zsdbmaker pthread)
 TARGET_LINK_LIBRARIES(zsdbmaker ${ZSTD_LIBRARIES})
+
+INSTALL(TARGETS zsdbmaker DESTINATION tools/zsdbmaker)

@@ -24,6 +24,20 @@
 class ZSDB final
 {
     public:
+        struct Entry
+        {
+            const char *FileName;
+            size_t      Length;
+            uint64_t    Attribute;
+
+            Entry(const char *szFileName, size_t nLength, uint64_t nAttribute)
+                : FileName(szFileName)
+                , Length(nLength)
+                , Attribute(nAttribute)
+            {}
+        };
+
+    public:
         enum
         {
             F_COMPRESSED = 1,
@@ -49,7 +63,7 @@ class ZSDB final
             uint64_t StreamLength;
         };
 
-        struct ZSDBEntry
+        struct InnEntry
         {
             uint64_t Offset;
             uint64_t Length;
@@ -69,7 +83,7 @@ class ZSDB final
         ZSDBHeader m_Header;
 
     private:
-        std::vector<ZSDBEntry> m_EntryList;
+        std::vector<InnEntry> m_EntryList;
 
     private:
         std::vector<char> m_FileNameBuf;
@@ -84,10 +98,13 @@ class ZSDB final
         bool Decomp(const char *, size_t, std::vector<uint8_t> *);
 
     private:
-        bool DecompEntry(const ZSDBEntry &, std::vector<uint8_t> *);
+        bool DecompEntry(const InnEntry &, std::vector<uint8_t> *);
 
     private:
-        static const ZSDBEntry &GetErrorEntry();
+        static const InnEntry &GetErrorEntry();
+
+    public:
+        std::vector<ZSDB::Entry> GetEntryList() const;
 
     public:
         static bool BuildDB(const char *, const char *, const char *, const char *, double);

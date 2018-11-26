@@ -148,11 +148,11 @@ static std::vector<uint8_t> decompFileOffData(std::FILE *fp, size_t nDataOff, si
     return decompressDataBuf(stCompBuf.data(), stCompBuf.size(), pDCtx, pDDict);
 }
 
-const ZSDB::ZSDBEntry &ZSDB::GetErrorEntry()
+const ZSDB::InnEntry &ZSDB::GetErrorEntry()
 {
-    const static auto s_ErrorEntry = []() -> ZSDBEntry
+    const static auto s_ErrorEntry = []() -> InnEntry
     {
-        ZSDBEntry stErrorEntry;
+        InnEntry stErrorEntry;
         std::memset(&stErrorEntry, 0, sizeof(stErrorEntry));
 
         stErrorEntry.Offset    = 0X0123456789ABCDEF;
@@ -178,6 +178,11 @@ ZSDB::ZSDB(const char *szPath)
         throw std::runtime_error("failed to open database file");
     }
 
+    m_DCtx = ZSTD_createDCtx();
+    if(!m_DCtx){
+        throw std::runtime_error("failed to create decompress context");
+    }
+
     if(auto stHeaderData = readFileOffData(m_fp, 0, sizeof(ZSDBHeader)); stHeaderData.empty()){
         throw std::runtime_error("failed to load izdb header");
     }else{
@@ -198,25 +203,21 @@ ZSDB::ZSDB(const char *szPath)
     }
 
     if(m_Header.EntryLength){
-        if(m_Header.EntryLength % sizeof(ZSDBEntry)){
-            throw std::runtime_error("zsdb database file corrupted");
-        }
-
         auto nOffset = check_cast<size_t>(m_Header.EntryOffset);
         auto nLength = check_cast<size_t>(m_Header.EntryLength);
 
         if(auto stEntryBuf = decompFileOffData(m_fp, nOffset, nLength, m_DCtx, m_DDict); stEntryBuf.empty()){
             throw std::runtime_error(std::string("failed to load data at (") + ((std::to_string(nOffset) + ", ") + std::to_string(nLength) + ")"));
         }else{
-            if(stEntryBuf.size() != (1 + m_Header.EntryNum) * sizeof(ZSDBEntry)){
+            if(stEntryBuf.size() != (1 + m_Header.EntryNum) * sizeof(InnEntry)){
                 throw std::runtime_error("zsdb database file corrupted");
             }
 
-            auto *pHead = (ZSDBEntry *)(stEntryBuf.data());
+            auto *pHead = (InnEntry *)(stEntryBuf.data());
             m_EntryList.clear();
             m_EntryList.insert(m_EntryList.end(), pHead, pHead + m_Header.EntryNum + 1);
 
-            if(std::memcmp(&m_EntryList.back(), &GetErrorEntry(), sizeof(ZSDBEntry))){
+            if(std::memcmp(&m_EntryList.back(), &GetErrorEntry(), sizeof(InnEntry))){
                 throw std::runtime_error("zsdb database file corrupted");
             }
             m_EntryList.pop_back();
@@ -236,13 +237,20 @@ ZSDB::ZSDB(const char *szPath)
     }
 }
 
+ZSDB::~ZSDB()
+{
+    std::fclose(m_fp);
+    ZSTD_freeDCtx(m_DCtx);
+    ZSTD_freeDDict(m_DDict);
+}
+
 bool ZSDB::Decomp(const char *szFileName, size_t nCheckLen, std::vector<uint8_t> *pDstBuf)
 {
     if(!szFileName || !std::strlen(szFileName)){
         return false;
     }
 
-    auto p = std::lower_bound(m_EntryList.begin(), m_EntryList.end(), szFileName, [this, nCheckLen](const ZSDBEntry &lhs, const char *rhs) -> bool
+    auto p = std::lower_bound(m_EntryList.begin(), m_EntryList.end(), szFileName, [this, nCheckLen](const InnEntry &lhs, const char *rhs) -> bool
             {
             if(nCheckLen){
             return std::strncmp(m_FileNameBuf.data() + lhs.FileName, rhs, nCheckLen) < 0;
@@ -268,7 +276,7 @@ bool ZSDB::Decomp(const char *szFileName, size_t nCheckLen, std::vector<uint8_t>
     return ZSDB::DecompEntry(*p, pDstBuf);
 }
 
-bool ZSDB::DecompEntry(const ZSDB::ZSDBEntry &rstEntry, std::vector<uint8_t> *pDstBuf)
+bool ZSDB::DecompEntry(const ZSDB::InnEntry &rstEntry, std::vector<uint8_t> *pDstBuf)
 {
     if(!pDstBuf){
         return false;
@@ -292,6 +300,15 @@ bool ZSDB::DecompEntry(const ZSDB::ZSDBEntry &rstEntry, std::vector<uint8_t> *pD
 
     pDstBuf->swap(stRetBuf);
     return true;
+}
+
+std::vector<ZSDB::Entry> ZSDB::GetEntryList() const
+{
+    std::vector<ZSDB::Entry> stRetBuf;
+    for(auto &rstEntry: m_EntryList){
+        stRetBuf.emplace_back(m_FileNameBuf.data() + rstEntry.FileName, rstEntry.Length, rstEntry.Attribute);
+    }
+    return stRetBuf;
 }
 
 bool ZSDB::BuildDB(const char *szSaveFullName, const char *szFileNameRegex, const char *szDataPath, const char *szDictPath, double fCompRatio)
@@ -326,7 +343,7 @@ bool ZSDB::BuildDB(const char *szSaveFullName, const char *szFileNameRegex, cons
 
     std::vector<char> stFileNameBuf;
     std::vector<uint8_t> stStreamBuf;
-    std::vector<ZSDBEntry> stEntryList;
+    std::vector<InnEntry> stEntryList;
 
     size_t nCount = 0;
     std::regex stFileNameReg(szFileNameRegex ? szFileNameRegex : ".*");
@@ -343,7 +360,7 @@ bool ZSDB::BuildDB(const char *szSaveFullName, const char *szFileNameRegex, cons
             }
         }
 
-        auto stSrcBuf = readFileData(((std::string(szDataPath) + "/") + szFileName).c_str());
+        auto stSrcBuf = readFileData(p.path().c_str());
         if(stSrcBuf.empty()){
             continue;
         }
@@ -356,7 +373,7 @@ bool ZSDB::BuildDB(const char *szSaveFullName, const char *szFileNameRegex, cons
         bool bCompressed = ((1.00 * stDstBuf.size() / stSrcBuf.size()) < fCompRatio);
         auto &rstCurrBuf = bCompressed ? stDstBuf : stSrcBuf;
 
-        ZSDBEntry stEntry;
+        InnEntry stEntry;
         std::memset(&stEntry, 0, sizeof(stEntry));
 
         stEntry.Offset = stStreamBuf.size();
@@ -375,7 +392,7 @@ bool ZSDB::BuildDB(const char *szSaveFullName, const char *szFileNameRegex, cons
         nCount++;
     }
 
-    std::sort(stEntryList.begin(), stEntryList.end(), [&stFileNameBuf](const ZSDBEntry &lhs, const ZSDBEntry &rhs) -> bool
+    std::sort(stEntryList.begin(), stEntryList.end(), [&stFileNameBuf](const InnEntry &lhs, const InnEntry &rhs) -> bool
     {
         return std::strcmp(stFileNameBuf.data() + lhs.FileName, stFileNameBuf.data() + rhs.FileName) < 0;
     });
@@ -391,13 +408,13 @@ bool ZSDB::BuildDB(const char *szSaveFullName, const char *szFileNameRegex, cons
     stHeader.DictOffset = sizeof(stHeader);
     stHeader.DictLength = stCDictBuf.size();
 
-    auto stEntryCompBuf = compressDataBuf((uint8_t *)(stEntryList.data()), stEntryList.size() * sizeof(ZSDBEntry), pCCtx, nullptr);
+    auto stEntryCompBuf = compressDataBuf((uint8_t *)(stEntryList.data()), stEntryList.size() * sizeof(InnEntry), pCCtx, nullptr);
     stHeader.EntryOffset = stHeader.DictOffset + stHeader.DictLength;
     stHeader.EntryLength = stEntryCompBuf.size();
 
     auto stFileNameCompBuf = compressDataBuf((uint8_t *)(stFileNameBuf.data()), stFileNameBuf.size(), pCCtx, nullptr);
     stHeader.FileNameOffset = stHeader.EntryOffset + stHeader.EntryLength;
-    stHeader.FileNameLength = stFileNameBuf.size();
+    stHeader.FileNameLength = stFileNameCompBuf.size();
 
     stHeader.StreamOffset = stHeader.FileNameOffset + stHeader.FileNameLength;
     stHeader.StreamLength = stStreamBuf.size();
