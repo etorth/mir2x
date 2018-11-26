@@ -18,7 +18,7 @@
 
 #include <cinttypes>
 #include "actorpod.hpp"
-#include "serverenv.hpp"
+#include "serverargparser.hpp"
 #include "monoserver.hpp"
 #include "serverobject.hpp"
 
@@ -53,8 +53,8 @@ ServerObject::ServerObject(uint64_t nUID)
         return false;
     });
 
-    extern ServerEnv *g_ServerEnv;
-    if(g_ServerEnv->TraceActorMessageCount){
+    extern ServerArgParser *g_ServerArgParser;
+    if(g_ServerArgParser->TraceActorMessageCount){
         m_StateHook.Install("PrintAMCount", [this]() -> bool
         {
             if(ActorPodValid()){

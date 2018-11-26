@@ -18,6 +18,7 @@
 #include <ctime>
 #include <asio.hpp>
 
+#include "argh.h"
 #include "log.hpp"
 #include "dbpod.hpp"
 #include "memorypn.hpp"
@@ -25,14 +26,14 @@
 #include "mapbindbn.hpp"
 #include "actorpool.hpp"
 #include "netdriver.hpp"
-#include "serverenv.hpp"
 #include "mainwindow.hpp"
 #include "scriptwindow.hpp"
+#include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"
 #include "databaseconfigurewindow.hpp"
 
+ServerArgParser          *g_ServerArgParser;
 Log                      *g_Log;
-ServerEnv                *g_ServerEnv;
 MemoryPN                 *g_MemoryPN;
 ActorPool                *g_ActorPool;
 ThreadPN                 *g_ThreadPN;
@@ -47,15 +48,16 @@ ServerConfigureWindow    *g_ServerConfigureWindow;
 DatabaseConfigureWindow  *g_DatabaseConfigureWindow;
 
 
-int main()
+int main(int argc, char *argv[])
 {
-    std::srand(std::time(nullptr));
+    std::srand((unsigned int)std::time(nullptr));
+    argh::parser stCmdParser(argc, argv);
 
     // start FLTK multithreading support
     Fl::lock();
 
+    g_ServerArgParser         = new ServerArgParser(stCmdParser);
     g_Log                     = new Log("mir2x-monoserver-v0.1");
-    g_ServerEnv               = new ServerEnv();
     g_ScriptWindow            = new ScriptWindow();
     g_MainWindow              = new MainWindow();
     g_MonoServer              = new MonoServer();
@@ -63,7 +65,7 @@ int main()
     g_MapBinDBN               = new MapBinDBN();
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
-    g_ActorPool               = new ActorPool(1);
+    g_ActorPool               = new ActorPool(g_ServerArgParser->ActorPoolThread);
     g_ThreadPN                = new ThreadPN(4);
     g_DBPodN                  = new DBPodN();
     g_NetDriver               = new NetDriver();

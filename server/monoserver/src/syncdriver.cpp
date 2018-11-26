@@ -18,7 +18,7 @@
 
 #include <cinttypes>
 #include "uidfunc.hpp"
-#include "serverenv.hpp"
+#include "serverargparser.hpp"
 #include "actorpool.hpp"
 #include "monoserver.hpp"
 #include "syncdriver.hpp"
@@ -45,8 +45,8 @@ MessagePack SyncDriver::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
     m_CurrID = (m_CurrID + 1) ? (m_CurrID + 1) : 1;
     auto nCurrID = m_CurrID;
 
-    extern ServerEnv *g_ServerEnv;
-    if(g_ServerEnv->TraceActorMessage){
+    extern ServerArgParser *g_ServerArgParser;
+    if(g_ServerArgParser->TraceActorMessage){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")", UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), nCurrID, nRespond);
     }
