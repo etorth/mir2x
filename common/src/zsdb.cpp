@@ -289,9 +289,9 @@ bool ZSDB::DecompEntry(const ZSDB::InnEntry &rstEntry, std::vector<uint8_t> *pDs
 
     std::vector<uint8_t> stRetBuf;
     if(rstEntry.Attribute & F_COMPRESSED){
-        stRetBuf = decompFileOffData(m_fp, rstEntry.Offset, rstEntry.Length, m_DCtx, m_DDict);
+        stRetBuf = decompFileOffData(m_fp, m_Header.StreamOffset + rstEntry.Offset, rstEntry.Length, m_DCtx, m_DDict);
     }else{
-        stRetBuf = readFileOffData(m_fp, rstEntry.Offset, rstEntry.Length);
+        stRetBuf = readFileOffData(m_fp, m_Header.StreamOffset + rstEntry.Offset, rstEntry.Length);
     }
 
     if(stRetBuf.empty()){

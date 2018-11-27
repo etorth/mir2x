@@ -15,6 +15,7 @@
  * =====================================================================================
  */
 #include <cstdio>
+#include <fstream>
 #include <cinttypes>
 #include "argh.h"
 #include "zsdb.hpp"
@@ -140,6 +141,31 @@ static int list_all(const argh::parser &cmd)
     return 0;
 }
 
+static int uncomp_db(const argh::parser &cmd)
+{
+    auto szDBFileName = [&cmd]() -> std::string
+    {
+        if(cmd["decomp-db"] || cmd("decomp-db").str().empty()){
+            throw std::invalid_argument("option --decomp-db requires an argument");
+        }
+
+        return cmd("decomp-db").str();
+    }();
+
+    ZSDB stZSDB(szDBFileName.c_str());
+    auto stEntryList = stZSDB.GetEntryList();
+
+    for(auto rstEntry: stEntryList){
+        std::vector<uint8_t> stReadBuf;
+        if(stZSDB.Decomp(rstEntry.FileName, 0, &stReadBuf)){
+            std::ofstream f(rstEntry.FileName, std::ios::out | std::ios::binary);
+            f.write((const char *)(stReadBuf.data()), stReadBuf.size());
+            std::printf("%32s %8" PRIu64 " -> %8" PRIu64 " [%3d%%] %8" PRIu64 "\n", rstEntry.FileName, rstEntry.Length, (uint64_t)(stReadBuf.size()), (int)(rstEntry.Length * 100 / stReadBuf.size()), rstEntry.Attribute);
+        }
+    }
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     try{
@@ -155,6 +181,11 @@ int main(int argc, char *argv[])
         if(has_option(cmd, "list")){
             return list_all(cmd);
         }
+
+        if(has_option(cmd, "decomp-db")){
+            return uncomp_db(cmd);
+        }
+
     }catch(std::exception &e){
         std::printf("%s\n", e.what());
         return -1;
