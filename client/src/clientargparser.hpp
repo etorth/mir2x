@@ -28,7 +28,7 @@ struct ClientArgParser
 
     bool TraceMove;
 
-    ClientArgParser(const argh::parser &rstCmdParser)
+    ClientArgParser(const arg_parser &rstCmdParser)
         : EnableDrawMapGrid(rstCmdParser["enable-draw-map-grid"])
         , EnableDrawCreatureCover(rstCmdParser["enable-draw-creature-cover"])
         , EnableDrawMouseLocation(rstCmdParser["enable-draw-mouse-location"])

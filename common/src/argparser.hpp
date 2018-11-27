@@ -2,7 +2,7 @@
  * =====================================================================================
  *
  *       Filename: argparser.hpp
- *        Created: 11/26/2018 07:47:59
+ *        Created: 11/27/2018 07:49:02
  *    Description: 
  *
  *        Version: 1.0
@@ -19,7 +19,10 @@
 #pragma once
 #include "argh.h"
 
-inline bool FindOption(const argh::parser &rstArgParser, const std::string &szOpt)
+class arg_parser: public argh::parser
 {
-    return rstArgParser[szOpt] || rstArgParser(szOpt);
-}
+    public:
+        arg_parser(int argc, char *argv[])
+            : argh::parser(argc, argv)
+        {}
+};

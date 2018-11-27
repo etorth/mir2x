@@ -18,13 +18,13 @@
 #include "log.hpp"
 #include "game.hpp"
 #include "xmlconf.hpp"
-#include "clientargparser.hpp"
 #include "pngtexdbn.hpp"
 #include "fontexdbn.hpp"
 #include "mapbindbn.hpp"
 #include "emoticondbn.hpp"
 #include "notifyboard.hpp"
 #include "pngtexoffdbn.hpp"
+#include "clientargparser.hpp"
 
 // global variables, decide to follow pattern in MapEditor
 // put all global in one place and create them togother
@@ -50,7 +50,7 @@ Game            *g_Game            = nullptr; // gobal instance
 int main(int argc, char *argv[])
 {
     std::srand((unsigned int)std::time(nullptr));
-    argh::parser stCmdParser(argc, argv);
+    arg_parser stCmdParser(argc, argv);
 
     auto fnAtExit = []()
     {

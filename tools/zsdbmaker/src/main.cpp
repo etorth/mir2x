@@ -14,11 +14,12 @@
  *
  * =====================================================================================
  */
+#include <regex>
 #include <cstdio>
 #include <fstream>
 #include <cinttypes>
-#include "argh.h"
 #include "zsdb.hpp"
+#include "argparser.hpp"
 
 static int help()
 {
@@ -135,7 +136,26 @@ static int list_all(const argh::parser &cmd)
     ZSDB stZSDB(szDBFileName.c_str());
     auto stEntryList = stZSDB.GetEntryList();
 
+    auto szRegex = [&cmd]() -> std::string
+    {
+        if(!has_option(cmd, "data-name-regex")){
+            return "";
+        }
+
+        if(auto szRegex = cmd("data-name-regex").str(); !szRegex.empty()){
+            return szRegex;
+        }
+
+        throw std::invalid_argument("option --data-name-regex requires an argument");
+    }();
+
+    std::regex stFileNameReg(szRegex.empty() ? ".*" : szRegex.c_str());
     for(auto rstEntry: stEntryList){
+        if(!szRegex.empty()){
+            if(!std::regex_match(rstEntry.FileName, stFileNameReg)){
+                continue;
+            }
+        }
         std::printf("%32s %8" PRIu64 " %8" PRIu64 "\n", rstEntry.FileName, rstEntry.Length, rstEntry.Attribute);
     }
     return 0;

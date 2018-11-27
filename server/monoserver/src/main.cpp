@@ -18,7 +18,6 @@
 #include <ctime>
 #include <asio.hpp>
 
-#include "argh.h"
 #include "log.hpp"
 #include "dbpod.hpp"
 #include "memorypn.hpp"
@@ -26,6 +25,7 @@
 #include "mapbindbn.hpp"
 #include "actorpool.hpp"
 #include "netdriver.hpp"
+#include "argparser.hpp"
 #include "mainwindow.hpp"
 #include "scriptwindow.hpp"
 #include "serverargparser.hpp"
@@ -51,7 +51,7 @@ DatabaseConfigureWindow  *g_DatabaseConfigureWindow;
 int main(int argc, char *argv[])
 {
     std::srand((unsigned int)std::time(nullptr));
-    argh::parser stCmdParser(argc, argv);
+    arg_parser stCmdParser(argc, argv);
 
     // start FLTK multithreading support
     Fl::lock();
