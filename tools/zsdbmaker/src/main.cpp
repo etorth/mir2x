@@ -189,8 +189,8 @@ static int uncomp_db(const argh::parser &cmd)
 int main(int argc, char *argv[])
 {
     try{
-        argh::parser cmd(argc, argv);
-        if(has_option(cmd, "help")){
+        arg_parser cmd(argc, argv);
+        if(cmd.has_option("help")){
             return help();
         }
 

@@ -26,7 +26,7 @@
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
 
-#include "logtype.hpp"
+#include "strfunc.hpp"
 
 #if (defined(WIN32) || defined(_WIN32) || defined(__WIN32__))
 #define LOG_PATH "./"
@@ -46,7 +46,8 @@
 class Log final
 {
     public:
-        enum {
+        enum LogTypeIntValue: int
+        {
             LOGTYPEV_INFO    = 0,
             LOGTYPEV_WARNING = 1,
             LOGTYPEV_FATAL   = 2,
@@ -77,6 +78,7 @@ class Log final
             std::cout << "* All messges will be redirected to the log after this line" << std::endl;
         }
 
+    public:
         ~Log() = default;
 
     public:
@@ -96,17 +98,31 @@ class Log final
         }
 
     public:
-        void AddLog(const std::array<std::string, 4> &stLoc, const char *szInfo)
+        void AddLog(const std::array<std::string, 4> &stLoc, const char *szLogFormat, ...)
         {
-            int nLine = std::atoi(stLoc[2].c_str());
-            auto stLevel = GetLevel(stLoc[0].c_str());
-            LogCapture(stLoc[1].c_str(), nLine, stLoc[3].c_str(), stLevel).capturef("%s", szInfo);
-        }
+            std::string szLog;
+            bool bError = false;
+            {
+                va_list ap;
+                va_start(ap, szLogFormat);
 
-        template<typename... U> void AddLog(const std::array<std::string, 4> &stLoc, const char *szLogFormat, U&&... u)
-        {
+                try{
+                    szLog = str_vprintf(szLogFormat, ap);
+                }catch(const std::exception &e){
+                    bError = true;
+                    szLog = str_printf("Exception caught in Log::AddLog(\"%s\", ...): %s", szLogFormat, e.what());
+                }
+
+                va_end(ap);
+            }
+
             int nLine = std::atoi(stLoc[2].c_str());
-            auto stLevel = GetLevel(stLoc[0].c_str());
-            LogCapture(stLoc[1].c_str(), nLine, stLoc[3].c_str(), stLevel).capturef(szLogFormat, std::forward<U>(u)...);
+            auto stLevel = bError ? WARNING : GetLevel(stLoc[0].c_str());
+            LogCapture(stLoc[1].c_str(), nLine, stLoc[3].c_str(), stLevel).capturef("%s", szLog.c_str());
         }
 };
+
+#define LOGTYPE_INFO    {std::to_string(Log::LOGTYPEV_INFO   ), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_WARNING {std::to_string(Log::LOGTYPEV_WARNING), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_FATAL   {std::to_string(Log::LOGTYPEV_FATAL  ), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}
+#define LOGTYPE_DEBUG   {std::to_string(Log::LOGTYPEV_DEBUG  ), std::string(__FILE__), std::to_string(__LINE__), std::string(__PRETTY_FUNCTION__)}

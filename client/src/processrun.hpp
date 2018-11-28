@@ -195,7 +195,7 @@ class ProcessRun: public Process
         std::vector<int> GetPlayerList();
 
     public:
-        bool AddOPLog(int, int, const char *, const char *, ...);
+        void AddOPLog(int, int, const char *, const char *, ...);
 
     public:
         bool RegisterUserCommand();

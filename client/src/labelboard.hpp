@@ -86,7 +86,7 @@ class LabelBoard: public Widget
                 nullptr,
                 false)
         {
-            SetText("%s", szContent);
+            FormatText("%s", szContent);
         }
 
     public:
@@ -105,7 +105,7 @@ class LabelBoard: public Widget
         }
 
     public:
-        void SetText(const char *, ...);
+        void FormatText(const char *, ...);
 
     public:
         void SetColor(const SDL_Color &rstColor)
@@ -119,7 +119,7 @@ class LabelBoard: public Widget
                 m_FontColor = rstColor;
 
                 auto szOld = m_Content;
-                SetText(szOld.c_str());
+                FormatText("%s", szOld.c_str());
             }
         }
 

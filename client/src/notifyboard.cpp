@@ -17,7 +17,7 @@
  */
 
 #include "log.hpp"
-#include "logtype.hpp"
+#include "global.hpp"
 #include "condcheck.hpp"
 #include "sdldevice.hpp"
 #include "notifyboard.hpp"
@@ -72,89 +72,51 @@ void NotifyBoard::AddXML(const char *szXML, const std::map<std::string, std::fun
 
 void NotifyBoard::AddLog(std::array<std::string, 4> stLogType, const char *szLogFormat, ...)
 {
-    auto fnRecordError = [](const char *szError)
+    std::string szLog;
+    bool bError = false;
     {
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "%s", szError);
-    };
+        va_list ap;
+        va_start(ap, szLogFormat);
 
-
-    auto fnRecordLog = [this, fnRecordError](int nLogType, const char *szLogInfo)
-    {
-        switch(nLogType){
-            case LOGV_INFO:
-                {
-                    std::string szXMLContent;
-
-                    szXMLContent += "<ROOT><OBJECT TYPE=\"PLAINTEXT\" COLOR=\"WHITE\">";
-                    szXMLContent += szLogInfo ? szLogInfo : "";
-                    szXMLContent += "</OBJECT></ROOT>";
-
-                    AddXML(szXMLContent.c_str(), {});
-                    return;
-                }
-            case LOGV_WARNING:
-                {
-                    std::string szXMLContent;
-
-                    szXMLContent += "<ROOT><OBJECT TYPE=\"PLAINTEXT\" COLOR=\"BROWN\">";
-                    szXMLContent += szLogInfo ? szLogInfo : "";
-                    szXMLContent += "</OBJECT></ROOT>";
-
-                    AddXML(szXMLContent.c_str(), {});
-                    return;
-                }
-            case LOGV_FATAL:
-                {
-                    std::string szXMLContent;
-
-                    szXMLContent += "<ROOT><OBJECT TYPE=\"PLAINTEXT\" COLOR=\"RED\">";
-                    szXMLContent += szLogInfo ? szLogInfo : "";
-                    szXMLContent += "</OBJECT></ROOT>";
-
-                    AddXML(szXMLContent.c_str(), {});
-                    return;
-                }
-            case LOGV_DEBUG:
-                {
-                    std::string szXMLContent;
-
-                    szXMLContent += "<ROOT><OBJECT TYPE=\"PLAINTEXT\" COLOR=\"GREEN\">";
-                    szXMLContent += szLogInfo ? szLogInfo : "";
-                    szXMLContent += "</OBJECT></ROOT>";
-
-                    AddXML(szXMLContent.c_str(), {});
-                    return;
-                }
-            default:
-                {
-                    std::string szXMLContent;
-
-                    szXMLContent += "<ROOT><OBJECT TYPE=\"PLAINTEXT\" COLOR=\"RED\">";
-                    szXMLContent += "Invalid LogType: ";
-                    szXMLContent += std::to_string(nLogType);
-                    szXMLContent += " : ";
-                    szXMLContent += szLogInfo ? szLogInfo : "";
-                    szXMLContent += "</OBJECT></ROOT>";
-
-                    AddXML(szXMLContent.c_str(), {});
-
-                    std::string szErrorInfo;
-                    szErrorInfo += "Invalid LogType: ";
-                    szErrorInfo += std::to_string(nLogType);
-                    szErrorInfo += " : ";
-                    szErrorInfo += szLogInfo;
-
-                    fnRecordError(szErrorInfo.c_str());
-                    return;
-                }
+        try{
+            szLog = str_vprintf(szLogFormat, ap);
+        }catch(const std::exception &e){
+            bError = true;
+            szLog = str_printf("Exception caught in NotifyBoard::AddLog(\"%s\", ...): %s", szLogFormat, e.what());
         }
-    };
 
-    va_list ap;
-    va_start(ap, szLogFormat);
-    LogStr::AddLog(stLogType, szLogFormat, ap, fnRecordLog, fnRecordError);
-    va_end(ap);
+        va_end(ap);
+    }
+
+    int nLogType = bError ? Log::LOGTYPEV_WARNING : std::atoi(stLogType[0].c_str());
+    switch(nLogType){
+        case Log::LOGTYPEV_INFO:
+            {
+                AddXML(str_printf("<ROOT><OBJECT TYPE=\"PLAINTEXT\" COLOR=\"WHITE\">%s</OBJECT></ROOT>", szLog.c_str()).c_str(), {});
+                return;
+            }
+        case Log::LOGTYPEV_WARNING:
+            {
+                AddXML(str_printf("<ROOT><OBJECT TYPE=\"PLAINTEXT\" COLOR=\"BROWN\">%s</OBJECT></ROOT>", szLog.c_str()).c_str(), {});
+                return;
+            }
+        case Log::LOGTYPEV_FATAL:
+            {
+                AddXML(str_printf("<ROOT><OBJECT TYPE=\"PLAINTEXT\" COLOR=\"RED\">%s</OBJECT></ROOT>", szLog.c_str()).c_str(), {});
+                return;
+            }
+        case Log::LOGTYPEV_DEBUG:
+            {
+                AddXML(str_printf("<ROOT><OBJECT TYPE=\"PLAINTEXT\" COLOR=\"GREEN\">%s</OBJECT></ROOT>", szLog.c_str()).c_str(), {});
+                return;
+            }
+        default:
+            {
+                g_Log->AddLog(LOGTYPE_WARNING, "Invalid LogType %d: %s", nLogType, szLog.c_str());
+                AddXML(str_printf("<ROOT><OBJECT TYPE=\"PLAINTEXT\" COLOR=\"RED\">Invalid LogType %d: %s</OBJECT></ROOT>", nLogType, szLog.c_str()).c_str(), {});
+                return;
+            }
+    }
 }
 
 void NotifyBoard::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)

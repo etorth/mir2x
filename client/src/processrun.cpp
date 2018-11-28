@@ -506,8 +506,8 @@ void ProcessRun::Draw()
         int nPointY = -1;
         SDL_GetMouseState(&nPointX, &nPointY);
 
-        m_MousePixlLoc.SetText("Pix_Loc: %3d, %3d", nPointX, nPointY);
-        m_MouseGridLoc.SetText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
+        m_MousePixlLoc.FormatText("Pix_Loc: %3d, %3d", nPointX, nPointY);
+        m_MouseGridLoc.FormatText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
 
         m_MouseGridLoc.DrawEx(10, 10, 0, 0, m_MouseGridLoc.W(), m_MouseGridLoc.H());
         m_MousePixlLoc.DrawEx(10, 30, 0, 0, m_MousePixlLoc.W(), m_MousePixlLoc.H());
@@ -1205,74 +1205,43 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
     return false;
 }
 
-bool ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
+void ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
 {
-    auto fnRecordLog = [this](int nOutPort, int nLogType, const char *szPrompt, const char *szLogInfo)
+    std::string szLog;
+    bool bError = false;
     {
-        if(nOutPort & OUTPORT_LOG){
-            extern Log *g_Log;
-            switch(nLogType){
-                case 0  : g_Log->AddLog(LOGTYPE_INFO   , "%s%s", szPrompt ? szPrompt : "", szLogInfo); break;
-                case 1  : g_Log->AddLog(LOGTYPE_WARNING, "%s%s", szPrompt ? szPrompt : "", szLogInfo); break;
-                default : g_Log->AddLog(LOGTYPE_FATAL  , "%s%s", szPrompt ? szPrompt : "", szLogInfo); break;
-            }
-        }
-
-        if(nOutPort & OUTPORT_SCREEN){
-        }
-
-        if(nOutPort & OUTPORT_CONTROLBOARD){
-            m_ControbBoard.AddLog(nLogType, szLogInfo);
-        }
-    };
-
-    int nLogSize = 0;
-
-    // 1. try static buffer
-    //    give an enough size so we can hopefully stop here
-    {
-        char szSBuf[1024];
-
         va_list ap;
         va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(szSBuf, std::extent<decltype(szSBuf)>::value, szLogFormat, ap);
-        va_end(ap);
 
-        if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < std::extent<decltype(szSBuf)>::value){
-                fnRecordLog(nOutPort, nLogType, szPrompt, szSBuf);
-                return true;
-            }else{
-                // do nothing
-                // have to try the dynamic buffer method
-            }
-        }else{
-            fnRecordLog(nOutPort, 0, "", (std::string("Parse log info failed: ") + szLogFormat).c_str());
-            return false;
+        try{
+            szLog = str_vprintf(szLogFormat, ap);
+        }catch(const std::exception &e){
+            bError = true;
+            szLog = str_printf("Exception caught in ProcessRun::AddOPLog(\"%s\", ...): %s", szLogFormat, e.what());
+        }
+
+        va_end(ap);
+    }
+
+    if(bError){
+        nLogType = Log::LOGTYPEV_WARNING;
+    }
+
+    if(nOutPort & OUTPORT_LOG){
+        extern Log *g_Log;
+        switch(nLogType){
+            case Log::LOGTYPEV_INFO    : g_Log->AddLog(LOGTYPE_INFO   , "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_WARNING : g_Log->AddLog(LOGTYPE_WARNING, "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_DEBUG   : g_Log->AddLog(LOGTYPE_DEBUG,   "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            default                    : g_Log->AddLog(LOGTYPE_FATAL  , "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
         }
     }
 
-    // 2. try dynamic buffer
-    //    use the parsed buffer size above to get enough memory
-    while(true){
-        std::vector<char> szDBuf(nLogSize + 1 + 64);
+    if(nOutPort & OUTPORT_SCREEN){
+    }
 
-        va_list ap;
-        va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(&(szDBuf[0]), szDBuf.size(), szLogFormat, ap);
-        va_end(ap);
-
-        if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < szDBuf.size()){
-                fnRecordLog(nOutPort, nLogType, szPrompt, &(szDBuf[0]));
-                return true;
-            }else{
-                szDBuf.resize(nLogSize + 1 + 64);
-            }
-        }else{
-            fnRecordLog(nOutPort, 0, "", (std::string("Parse log info failed: ") + szLogFormat).c_str());
-            return false;
-        }
+    if(nOutPort & OUTPORT_CONTROLBOARD){
+        m_ControbBoard.AddLog(nLogType, szLog.c_str());
     }
 }
 
