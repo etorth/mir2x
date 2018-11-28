@@ -1418,12 +1418,12 @@ bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
     extern MapBinDBN *g_MapBinDBN;
     if(auto pMapBin = g_MapBinDBN->Retrieve(nMapID)){
         if(pMapBin->ValidC(nX, nY) && pMapBin->Cell(nX, nY).CanThrough()){
-            extern Game *g_Game;
+            extern Client *g_Client;
             CMReqestSpaceMove stCMRSM;
             stCMRSM.MapID = nMapID;
             stCMRSM.X     = nX;
             stCMRSM.Y     = nY;
-            g_Game->Send(CM_REQUESTSPACEMOVE, stCMRSM);
+            g_Client->Send(CM_REQUESTSPACEMOVE, stCMRSM);
             return true;
         }
     }
@@ -1442,8 +1442,8 @@ void ProcessRun::QueryCORecord(uint64_t nUID) const
 
     stCMQCOR.AimUID = nUID;
 
-    extern Game *g_Game;
-    g_Game->Send(CM_QUERYCORECORD, stCMQCOR);
+    extern Client *g_Client;
+    g_Client->Send(CM_QUERYCORECORD, stCMQCOR);
 }
 
 void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)

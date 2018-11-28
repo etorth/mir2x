@@ -22,7 +22,7 @@
 #include <algorithm>
 
 #include "log.hpp"
-#include "game.hpp"
+#include "client.hpp"
 #include "message.hpp"
 #include "sdldevice.hpp"
 #include "pngtexdbn.hpp"
@@ -240,8 +240,8 @@ bool ProcessNew::LocalCheckPwd(const char *szPwd)
 
 void ProcessNew::DoExit()
 {
-    extern Game *g_Game;
-    g_Game->RequestProcess(PROCESSID_LOGIN);
+    extern Client *g_Client;
+    g_Client->RequestProcess(PROCESSID_LOGIN);
 }
 
 void ProcessNew::DoPostAccount()
@@ -272,8 +272,8 @@ void ProcessNew::PostAccount(const char *szID, const char *szPWD, int nOperation
 
         stCMA.Operation = nOperation;
 
-        extern Game *g_Game;
-        g_Game->Send(CM_ACCOUNT, stCMA);
+        extern Client *g_Client;
+        g_Client->Send(CM_ACCOUNT, stCMA);
     }
 }
 

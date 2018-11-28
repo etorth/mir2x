@@ -19,7 +19,7 @@
 #pragma once
 
 #include "log.hpp"
-#include "game.hpp"
+#include "client.hpp"
 #include "xmlconf.hpp"
 #include "sdldevice.hpp"
 #include "notifyboard.hpp"
@@ -33,7 +33,7 @@
 #include "emoticondbn.hpp"
 
 extern Log *g_Log;
-extern Game *g_Game;
+extern Client *g_Client;
 extern XMLConf *g_XMLConf;
 extern SDLDevice *g_SDLDevice;
 

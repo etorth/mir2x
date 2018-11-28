@@ -17,7 +17,7 @@
  */
 
 #include "log.hpp"
-#include "game.hpp"
+#include "client.hpp"
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
@@ -48,8 +48,8 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
               }
           }
 
-          extern Game *g_Game;
-          auto pRun = (ProcessRun *)(g_Game->ProcessValid(PROCESSID_RUN));
+          extern Client *g_Client;
+          auto pRun = (ProcessRun *)(g_Client->ProcessValid(PROCESSID_RUN));
 
           if(!pRun){
               extern Log *g_Log;
@@ -94,8 +94,8 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
 
 int ClientPathFinder::GetGrid(int nX, int nY) const
 {
-    extern Game *g_Game;
-    auto pRun = (ProcessRun *)(g_Game->ProcessValid(PROCESSID_RUN));
+    extern Client *g_Client;
+    auto pRun = (ProcessRun *)(g_Client->ProcessValid(PROCESSID_RUN));
 
     if(!pRun){
         extern Log *g_Log;

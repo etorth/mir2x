@@ -17,7 +17,7 @@
  */
 
 #include "log.hpp"
-#include "game.hpp"
+#include "client.hpp"
 #include "sdldevice.hpp"
 #include "pngtexdbn.hpp"
 #include "tokenboard.hpp"
@@ -34,8 +34,8 @@ void ProcessSyrc::ProcessEvent(const SDL_Event &rstEvent)
         case SDL_KEYDOWN:
             {
                 if(rstEvent.key.keysym.sym == SDLK_ESCAPE){
-                    extern Game *g_Game;
-                    g_Game->RequestProcess(PROCESSID_LOGIN);
+                    extern Client *g_Client;
+                    g_Client->RequestProcess(PROCESSID_LOGIN);
                 }
                 break;
             }
@@ -49,8 +49,8 @@ void ProcessSyrc::ProcessEvent(const SDL_Event &rstEvent)
 void ProcessSyrc::Update(double fDeltaMS)
 {
     if(m_Ratio >= 100){
-        extern Game *g_Game;
-        g_Game->RequestProcess(PROCESSID_LOGIN);
+        extern Client *g_Client;
+        g_Client->RequestProcess(PROCESSID_LOGIN);
         return;
     }
 

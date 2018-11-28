@@ -20,7 +20,7 @@
 #include <cstring>
 
 #include "log.hpp"
-#include "game.hpp"
+#include "client.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "uidfunc.hpp"

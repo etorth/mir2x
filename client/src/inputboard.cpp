@@ -21,7 +21,7 @@
 #include <SDL2/SDL.h>
 
 #include "log.hpp"
-#include "game.hpp"
+#include "client.hpp"
 #include "mathfunc.hpp"
 #include "fontexdbn.hpp"
 #include "inputboard.hpp"
@@ -158,8 +158,8 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                                 if(false
                                         || rstEvent.key.keysym.mod & KMOD_LCTRL
                                         || rstEvent.key.keysym.mod & KMOD_RCTRL){
-                                    extern Game *g_Game;
-                                    g_Game->Clipboard(m_TokenBoard.GetXML(true));
+                                    extern Client *g_Client;
+                                    g_Client->Clipboard(m_TokenBoard.GetXML(true));
                                     m_TokenBoard.Delete(true);
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
@@ -180,8 +180,8 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                                 if(false
                                         || rstEvent.key.keysym.mod & KMOD_LCTRL
                                         || rstEvent.key.keysym.mod & KMOD_RCTRL){
-                                    extern Game *g_Game;
-                                    g_Game->Clipboard(m_TokenBoard.GetXML(true));
+                                    extern Client *g_Client;
+                                    g_Client->Clipboard(m_TokenBoard.GetXML(true));
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
                                         if(false
@@ -201,8 +201,8 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                                 if(false
                                         || rstEvent.key.keysym.mod & KMOD_LCTRL
                                         || rstEvent.key.keysym.mod & KMOD_RCTRL){
-                                    extern Game *g_Game;
-                                    m_TokenBoard.ParseXML(g_Game->Clipboard().c_str(), {});
+                                    extern Client *g_Client;
+                                    m_TokenBoard.ParseXML(g_Client->Clipboard().c_str(), {});
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
                                         if(false

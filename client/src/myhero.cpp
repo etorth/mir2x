@@ -17,7 +17,7 @@
  */
 
 #include "log.hpp"
-#include "game.hpp"
+#include "client.hpp"
 #include "myhero.hpp"
 #include "message.hpp"
 #include "mathfunc.hpp"
@@ -721,12 +721,12 @@ void MyHero::ReportAction(const ActionNode &rstAction)
     stCMA.AimUID      = rstAction.AimUID;
     stCMA.ActionParam = rstAction.ActionParam;
 
-    extern Game *g_Game;
-    g_Game->Send(CM_ACTION, stCMA);
+    extern Client *g_Client;
+    g_Client->Send(CM_ACTION, stCMA);
 }
 
 void MyHero::PullGold()
 {
-    extern Game *g_Game;
-    g_Game->Send(CM_QUERYGOLD);
+    extern Client *g_Client;
+    g_Client->Send(CM_QUERYGOLD);
 }

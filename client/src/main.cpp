@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 #include "log.hpp"
-#include "game.hpp"
+#include "client.hpp"
 #include "xmlconf.hpp"
 #include "pngtexdbn.hpp"
 #include "fontexdbn.hpp"
@@ -42,10 +42,10 @@ PNGTexOffDBN    *g_MagicDBN        = nullptr; // database for magic
 EmoticonDBN     *g_EmoticonDBN     = nullptr; // database for emoticons
 MapBinDBN       *g_MapBinDBN       = nullptr;
 FontexDBN       *g_FontexDBN       = nullptr;
-XMLConf         *g_XMLConf         = nullptr; // for game configure XML parsing
+XMLConf         *g_XMLConf         = nullptr; // for client configure XML parsing
 SDLDevice       *g_SDLDevice       = nullptr; // for SDL hardware device
 NotifyBoard     *g_NotifyBoard     = nullptr;
-Game            *g_Game            = nullptr; // gobal instance
+Client            *g_Client            = nullptr; // gobal instance
 
 int main(int argc, char *argv[])
 {
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         delete g_MapBinDBN      ; g_MapBinDBN       = nullptr;
         delete g_EmoticonDBN    ; g_EmoticonDBN     = nullptr;
         delete g_NotifyBoard    ; g_NotifyBoard     = nullptr;
-        delete g_Game           ; g_Game            = nullptr;
+        delete g_Client           ; g_Client            = nullptr;
     };
 
     std::atexit(fnAtExit);
@@ -89,8 +89,8 @@ int main(int argc, char *argv[])
     g_MapBinDBN       = new MapBinDBN();
     g_EmoticonDBN     = new EmoticonDBN();
     g_NotifyBoard     = new NotifyBoard();
-    g_Game            = new Game();
+    g_Client            = new Client();
 
-    g_Game->MainLoop();
+    g_Client->MainLoop();
     return 0;
 }
