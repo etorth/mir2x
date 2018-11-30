@@ -305,6 +305,9 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
                     case PathFind::OCCUPIED:
                     default:
                         {
+                            if(fnOnMoveError){
+                                fnOnMoveError();
+                            }
                             return false;
                         }
                 }

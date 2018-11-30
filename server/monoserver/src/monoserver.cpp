@@ -79,14 +79,17 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
             }
         default:
             {
-                extern Log *g_Log;
-                g_Log->AddLog(stLogDesc, "%s", szLog.c_str());
+                // flush the log window
+                // make LOGTYPEV_FATAL be seen before process crash
                 {
                     std::lock_guard<std::mutex> stLockGuard(m_LogLock);
                     m_LogBuf.push_back((char)(nLogType));
                     m_LogBuf.insert(m_LogBuf.end(), szLog.c_str(), szLog.c_str() + std::strlen(szLog.c_str()) + 1);
                 }
                 NotifyGUI("FlushBrowser");
+
+                extern Log *g_Log;
+                g_Log->AddLog(stLogDesc, "%s", szLog.c_str());
                 return;
             }
     }
