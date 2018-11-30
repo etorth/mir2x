@@ -149,12 +149,7 @@ class TextButton: public ButtonBase
                 int);       // size to draw
 
     public:
-        template<typename... U> void SetText(const char *szText, U&&... u)
-        {
-            m_Label.SetText(szText, std::forward<U>(u)...);
-            m_W = std::max<int>(m_W, m_Label.W());
-            m_H = std::max<int>(m_H, m_Label.H());
-        }
+        void FormatText(const char *, ...);
 
     public:
         const LabelBoard &GetLabelBoard()

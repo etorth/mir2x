@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: game.cpp
+ *       Filename: client.cpp
  *        Created: 08/12/2015 09:59:15
  *    Description:
  *
@@ -20,7 +20,7 @@
 #include <thread>
 
 #include "log.hpp"
-#include "game.hpp"
+#include "client.hpp"
 #include "xmlconf.hpp"
 #include "initview.hpp"
 #include "sysconst.hpp"
@@ -35,7 +35,7 @@
 #include "pngtexoffdbn.hpp"
 #include "servermessage.hpp"
 
-Game::Game()
+Client::Client()
     : m_ServerDelay( 0.00)
     , m_NetPackTick(-1.00)
     , m_RequestProcess(PROCESSID_NONE)
@@ -46,10 +46,10 @@ Game::Game()
     g_SDLDevice->CreateMainWindow();
 }
 
-Game::~Game()
+Client::~Client()
 {}
 
-void Game::ProcessEvent()
+void Client::ProcessEvent()
 {
     if(m_CurrentProcess){
         SDL_Event stEvent;
@@ -59,7 +59,7 @@ void Game::ProcessEvent()
     }
 }
 
-void Game::MainLoop()
+void Client::MainLoop()
 {
     SwitchProcess(PROCESSID_LOGO);
     InitASIO();
@@ -110,7 +110,7 @@ void Game::MainLoop()
     }
 }
 
-void Game::EventDelay(double fDelayMS)
+void Client::EventDelay(double fDelayMS)
 {
     double fStartDelayMS = SDL_GetTicks() * 1.0;
     while(true){
@@ -134,7 +134,7 @@ void Game::EventDelay(double fDelayMS)
     }
 }
 
-void Game::InitASIO()
+void Client::InitASIO()
 {
     // this function will run in another thread
     // make sure there is no data race
@@ -165,17 +165,17 @@ void Game::InitASIO()
     );
 }
 
-void Game::PollASIO()
+void Client::PollASIO()
 {
     m_NetIO.PollIO();
 }
 
-void Game::StopASIO()
+void Client::StopASIO()
 {
     m_NetIO.StopIO();
 }
 
-void Game::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
+void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
     // 1. update the time when last message received
     m_NetPackTick = SDL_GetTicks() * 1.0;
@@ -280,7 +280,7 @@ void Game::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
     }
 }
 
-void Game::SwitchProcess()
+void Client::SwitchProcess()
 {
     if(true
             && m_RequestProcess > PROCESSID_NONE
@@ -290,12 +290,12 @@ void Game::SwitchProcess()
     m_RequestProcess = PROCESSID_NONE;
 }
 
-void Game::SwitchProcess(int nNewID)
+void Client::SwitchProcess(int nNewID)
 {
     SwitchProcess((m_CurrentProcess ? m_CurrentProcess->ID() : PROCESSID_NONE), nNewID);
 }
 
-void Game::SwitchProcess(int nOldID, int nNewID)
+void Client::SwitchProcess(int nOldID, int nNewID)
 {
     delete m_CurrentProcess;
     m_CurrentProcess = nullptr;

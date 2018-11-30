@@ -210,7 +210,7 @@ fl_alert("%s", "Haven't implement yet!");}
         std::memset(szHexString, 0, sizeof(szHexString));
 
         uint32_t nKey = (((uint32_t)(nFileIndex)) << 16) + ((uint32_t)(nImageIndex));
-        HexString::ToString<uint32_t, 4>(nKey, szHexString);
+        HexString::ToString<uint32_t, 4>(nKey, szHexString, true);
 
         std::string szIMGPNGName = ((g_WorkingPathName + "/IMG/") + szHexString) + ".PNG";
 

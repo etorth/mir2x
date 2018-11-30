@@ -22,6 +22,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "global.hpp"
+#include "strfunc.hpp"
 #include "mathfunc.hpp"
 #include "initview.hpp"
 #include "fontexdbn.hpp"
@@ -34,7 +36,7 @@ InitView::InitView(size_t nFontSize)
     , m_ButtonState(0)
     , m_LoadProcV()
     , m_Lock()
-    , m_MessageRecord()
+    , m_MessageList()
     , m_TTF(nullptr)
     , m_TextureV {nullptr, nullptr}
 {
@@ -158,7 +160,7 @@ InitView::InitView(size_t nFontSize)
 
 InitView::~InitView()
 {
-    for(auto &rstMessage: m_MessageRecord){
+    for(auto &rstMessage: m_MessageList){
         if(rstMessage.Texture){
             SDL_DestroyTexture(rstMessage.Texture);
         }
@@ -265,90 +267,52 @@ void InitView::Proc()
 
 void InitView::AddIVLog(int nLogType, const char *szLogFormat, ...)
 {
-    auto fnRecordLog = [this](int nLogType, const char *szLogInfo)
+    std::string szLog;
+    bool bError = false;
     {
-        // 1. add system log
-        switch(nLogType){
-            case LOGIV_INFO:
-                {
-                    extern Log *g_Log;
-                    g_Log->AddLog(LOGTYPE_INFO, szLogInfo);
-                    break;
-                }
-            case LOGIV_WARNING:
-                {
-                    extern Log *g_Log;
-                    g_Log->AddLog(LOGTYPE_WARNING, szLogInfo);
-                    break;
-                }
-            case LOGIV_FATAL:
-                {
-                    extern Log *g_Log;
-                    g_Log->AddLog(LOGTYPE_FATAL, szLogInfo);
-                    break;
-                }
-            default:
-                {
-                    extern Log *g_Log;
-                    g_Log->AddLog(LOGTYPE_WARNING, "Unknow LogType for message: %s", szLogInfo);
-                    return;
-                }
-        }
-
-        // 2. add board log
-        {
-            std::lock_guard<std::mutex> stLockGuard(m_Lock);
-            m_MessageRecord.emplace_back(nLogType, szLogInfo, nullptr);
-        }
-    };
-
-    int nLogSize = 0;
-
-    // 1. try static buffer
-    //    give an enough size so we can hopefully stop here
-    {
-        char szSBuf[1024];
-
         va_list ap;
         va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(szSBuf, (sizeof(szSBuf) / sizeof(szSBuf[0])), szLogFormat, ap);
-        va_end(ap);
 
-        if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < (sizeof(szSBuf) / sizeof(szSBuf[0]))){
-                fnRecordLog(nLogType, szSBuf);
-                return;
-            }else{
-                // do nothing
-                // have to try the dynamic buffer method
-            }
-        }else{
-            fnRecordLog(LOGIV_WARNING, (std::string("Parse log info failed: ") + szLogFormat).c_str());
-            return;
+        try{
+            szLog = str_vprintf(szLogFormat, ap);
+        }catch(const std::exception &e){
+            bError = true;
+            szLog = str_printf("Exception caught in InitView::AddIVLog(\"%s\", ...): %s", szLogFormat, e.what());
         }
+
+        va_end(ap);
     }
 
-    // 2. try dynamic buffer
-    //    use the parsed buffer size above to get enough memory
-    while(true){
-        std::vector<char> szDBuf(nLogSize + 1 + 64);
+    if(bError){
+        nLogType = LOGIV_WARNING;
+    }
 
-        va_list ap;
-        va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(&(szDBuf[0]), szDBuf.size(), szLogFormat, ap);
-        va_end(ap);
-
-        if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < szDBuf.size()){
-                fnRecordLog(nLogType, &(szDBuf[0]));
-                return;
-            }else{
-                szDBuf.resize(nLogSize + 1 + 64);
+    switch(nLogType){
+        case LOGIV_INFO:
+            {
+                g_Log->AddLog(LOGTYPE_INFO, "%s", szLog.c_str());
+                break;
             }
-        }else{
-            fnRecordLog(LOGIV_WARNING, (std::string("Parse log info failed: ") + szLogFormat).c_str());
-            return;
-        }
+        case LOGIV_WARNING:
+            {
+                g_Log->AddLog(LOGTYPE_WARNING, "%s", szLog.c_str());
+                break;
+            }
+        case LOGIV_FATAL:
+            {
+                g_Log->AddLog(LOGTYPE_FATAL, "%s", szLog.c_str());
+                break;
+            }
+        default:
+            {
+                g_Log->AddLog(LOGTYPE_WARNING, "Unknow LogType %d for message: %s", nLogType, szLog.c_str());
+                return;
+            }
+    }
+
+    {
+        std::lock_guard<std::mutex> stLockGuard(m_Lock);
+        m_MessageList.emplace_back(nLogType, szLog.c_str(), nullptr);
     }
 }
 
@@ -419,16 +383,16 @@ void InitView::Draw()
         std::lock_guard<std::mutex> stLockGuard(m_Lock);
         {
             size_t nStartIndex = 0;
-            if(m_MessageRecord.size() > stTextureV.size()){
-                nStartIndex = m_MessageRecord.size() - stTextureV.size();
+            if(m_MessageList.size() > stTextureV.size()){
+                nStartIndex = m_MessageList.size() - stTextureV.size();
             }
 
-            for(size_t nIndex = nStartIndex, nTextureIndex = 0; nIndex < m_MessageRecord.size(); ++nIndex, ++nTextureIndex){
-                if(nIndex < m_MessageRecord.size()){
-                    if(!m_MessageRecord[nIndex].Texture){
-                        m_MessageRecord[nIndex].Texture = fnCreateTexture(m_MessageRecord[nIndex].Type, m_MessageRecord[nIndex].Message.c_str());
+            for(size_t nIndex = nStartIndex, nTextureIndex = 0; nIndex < m_MessageList.size(); ++nIndex, ++nTextureIndex){
+                if(nIndex < m_MessageList.size()){
+                    if(!m_MessageList[nIndex].Texture){
+                        m_MessageList[nIndex].Texture = fnCreateTexture(m_MessageList[nIndex].Type, m_MessageList[nIndex].Message.c_str());
                     }
-                    stTextureV[nTextureIndex] = m_MessageRecord[nIndex].Texture;
+                    stTextureV[nTextureIndex] = m_MessageList[nIndex].Texture;
                 }
             }
         }

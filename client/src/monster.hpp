@@ -17,7 +17,7 @@
  */
 
 #pragma once
-#include "game.hpp"
+#include "client.hpp"
 #include "uidfunc.hpp"
 #include "creature.hpp"
 #include "protocoldef.hpp"

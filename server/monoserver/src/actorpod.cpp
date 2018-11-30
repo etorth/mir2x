@@ -22,7 +22,7 @@
 #include "uidfunc.hpp"
 #include "actorpod.hpp"
 #include "actorpool.hpp"
-#include "serverenv.hpp"
+#include "serverargparser.hpp"
 #include "monoserver.hpp"
 
 ActorPod::ActorPod(uint64_t nUID,
@@ -81,8 +81,8 @@ ActorPod::~ActorPod()
 
 void ActorPod::InnHandler(const MessagePack &rstMPK)
 {
-    extern ServerEnv *g_ServerEnv;
-    if(g_ServerEnv->TraceActorMessage){
+    extern ServerArgParser *g_ServerArgParser;
+    if(g_ServerArgParser->TraceActorMessage){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_DEBUG,
                 "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
@@ -181,8 +181,8 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
 
 uint32_t ActorPod::GetValidID()
 {
-    extern ServerEnv *g_ServerEnv;
-    if(g_ServerEnv->TraceActorMessage){
+    extern ServerArgParser *g_ServerArgParser;
+    if(g_ServerArgParser->TraceActorMessage){
         static std::atomic<uint32_t> s_ValidID(1);
         return s_ValidID.fetch_add(1);
     }
@@ -223,8 +223,8 @@ bool ActorPod::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
         return false;
     }
 
-    extern ServerEnv *g_ServerEnv;
-    if(g_ServerEnv->TraceActorMessage){
+    extern ServerArgParser *g_ServerArgParser;
+    if(g_ServerArgParser->TraceActorMessage){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_DEBUG,
                 "%s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 ")",
@@ -270,8 +270,8 @@ bool ActorPod::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
 
     auto nID = GetValidID();
 
-    extern ServerEnv *g_ServerEnv;
-    if(g_ServerEnv->TraceActorMessage){
+    extern ServerArgParser *g_ServerArgParser;
+    if(g_ServerArgParser->TraceActorMessage){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_DEBUG,
                 "%s -> %s: (Type: %s, ID: %u, Resp: %u)",

@@ -17,11 +17,11 @@
  */
 
 #include "log.hpp"
-#include "game.hpp"
+#include "client.hpp"
 #include "myhero.hpp"
 #include "message.hpp"
 #include "mathfunc.hpp"
-#include "clientenv.hpp"
+#include "clientargparser.hpp"
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
@@ -538,8 +538,8 @@ bool MyHero::ParseActionQueue()
     // trace message
     // trace move action before parsing
     {
-        extern ClientEnv *g_ClientEnv;
-        if(g_ClientEnv->TraceMove){
+        extern ClientArgParser *g_ClientArgParser;
+        if(g_ClientArgParser->TraceMove){
             if((!m_ActionQueue.empty()) && (m_ActionQueue.front().Action == ACTION_MOVE)){
                 auto nMotionX0 = m_CurrMotion.X;
                 auto nMotionY0 = m_CurrMotion.Y;
@@ -630,8 +630,8 @@ bool MyHero::ParseActionQueue()
             // trace message
             // trace move action after parsing
             {
-                extern ClientEnv *g_ClientEnv;
-                if(g_ClientEnv->TraceMove){
+                extern ClientArgParser *g_ClientArgParser;
+                if(g_ClientArgParser->TraceMove){
                     for(auto &rstMotion: m_MotionQueue){
                         auto nMotionX0 = rstMotion.X;
                         auto nMotionY0 = rstMotion.Y;
@@ -721,12 +721,12 @@ void MyHero::ReportAction(const ActionNode &rstAction)
     stCMA.AimUID      = rstAction.AimUID;
     stCMA.ActionParam = rstAction.ActionParam;
 
-    extern Game *g_Game;
-    g_Game->Send(CM_ACTION, stCMA);
+    extern Client *g_Client;
+    g_Client->Send(CM_ACTION, stCMA);
 }
 
 void MyHero::PullGold()
 {
-    extern Game *g_Game;
-    g_Game->Send(CM_QUERYGOLD);
+    extern Client *g_Client;
+    g_Client->Send(CM_QUERYGOLD);
 }

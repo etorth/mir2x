@@ -83,38 +83,46 @@ IndepMagic::IndepMagic(uint64_t nUID,
 
 bool IndepMagic::Done() const
 {
-    if(StageDone()){
-        if(RefreshCache()){
-            switch(m_CacheEntry->Stage){
-                case EGS_DONE:
-                    {
-                        return true;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
-        }else{
-            // when we deref m_CacheEntry
-            // we should call RefreshCache() first
-
-            // when really done Update() will make current stage as EGS_NONE
-            // then RefreshCache() makes m_CacheEntry as nullptr
-            return true;
-        }
+    if(!StageDone()){
+        return false;
     }
-    return false;
+
+    if(RefreshCache()){
+        switch(m_CacheEntry->Stage){
+            case EGS_DONE:
+                {
+                    return true;
+                }
+            default:
+                {
+                    return false;
+                }
+        }
+    }else{
+        // when we deref m_CacheEntry
+        // we should call RefreshCache() first
+
+        // when really done Update() will make current stage as EGS_NONE
+        // then RefreshCache() makes m_CacheEntry as nullptr
+        return true;
+    }
 }
 
 void IndepMagic::Update(double fTime)
 {
+    // magic is driven by time, can't turn to DONE status without update
+    // then only way to move the magic forward is to increase the accumulated time
+
     if(Done()){
         return;
     }
 
     m_AccuTime += fTime;
     ExecUpdateFunc();
+
+    if(Done()){
+        m_UpdateFunc.clear();
+    }
 
     if(!StageDone()){
         return;

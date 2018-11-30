@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <set>
 #include <map>
 #include <list>
 #include <memory>
@@ -107,6 +108,9 @@ class ProcessRun: public Process
         std::map<uint64_t, std::shared_ptr<Creature>> m_CreatureList;
 
     private:
+        std::set<uint64_t> m_UIDPending;
+
+    private:
         // use a tokenboard to show all in future
         LabelBoard m_MousePixlLoc;
         LabelBoard m_MouseGridLoc;
@@ -133,6 +137,12 @@ class ProcessRun: public Process
         uint32_t MapID() const
         {
             return m_MapID;
+        }
+
+    public:
+        bool UIDPending(uint64_t nUID) const
+        {
+            return m_UIDPending.find(nUID) != m_UIDPending.end();
         }
 
     public:
@@ -185,7 +195,7 @@ class ProcessRun: public Process
         std::vector<int> GetPlayerList();
 
     public:
-        bool AddOPLog(int, int, const char *, const char *, ...);
+        void AddOPLog(int, int, const char *, const char *, ...);
 
     public:
         bool RegisterUserCommand();

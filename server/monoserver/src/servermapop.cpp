@@ -22,7 +22,7 @@
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
 #include "actorpod.hpp"
-#include "serverenv.hpp"
+#include "serverargparser.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
 #include "rotatecoord.hpp"
@@ -30,8 +30,8 @@
 
 void ServerMap::On_MPK_METRONOME(const MessagePack &)
 {
-    extern ServerEnv *g_ServerEnv;
-    if(m_LuaModule && !g_ServerEnv->DisableMapScript){
+    extern ServerArgParser *g_ServerArgParser;
+    if(m_LuaModule && !g_ServerArgParser->DisableMapScript){
 
         // could this slow down the server
         // if so I have to move it to a seperated thread

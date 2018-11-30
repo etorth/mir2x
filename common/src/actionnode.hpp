@@ -205,13 +205,13 @@ struct ActionNode
     const int AimY = -1;
 
     const uint64_t AimUID      = 0;
-    const uint32_t ActionParam = 0;
+    const uint64_t ActionParam = 0;
 
     ActionNode()
         : Action(ACTION_NONE)
     {}
 
-    ActionNode(int nAction, int nSpeed, int nDirection, int nX, int nY, int nAimX, int nAimY, uint64_t nAimUID, uint32_t nActionParam)
+    ActionNode(int nAction, int nSpeed, int nDirection, int nX, int nY, int nAimX, int nAimY, uint64_t nAimUID, uint64_t nActionParam)
         : Action(nAction)
         , Speed(nSpeed)
         , Direction(nDirection)

@@ -61,7 +61,7 @@ class NetIO final
         std::vector<uint8_t> m_ReadBuf;
 
     private:
-        // Game::InitASIO() provide the completion handler for read messages
+        // Client::InitASIO() provide the completion handler for read messages
         // the handler will handle a fully received message instead of (HC, Body) seperately
         std::function<void(uint8_t, const uint8_t *, size_t)> m_OnReadDone;
 

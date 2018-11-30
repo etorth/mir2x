@@ -27,7 +27,7 @@ namespace HexString
     // convert an intergal key to a hex string
     // 1. invocation should prepare enough buffer to szString
     // 2. no '\0' padding at the end for compactness
-    template<typename T, size_t ByteN = 0> const char *ToString(T nKey, char *szString)
+    template<typename T, size_t ByteN = 0> const char *ToString(T nKey, char *szString, bool bAppendZero)
     {
         static_assert(std::is_unsigned<T>::value, "HexString::ToString() requires unsigned intergal type");
         const size_t nByteN = (ByteN) ? std::min(ByteN, sizeof(T)) : sizeof(T);
@@ -38,6 +38,10 @@ namespace HexString
 
         for(size_t nIndex = 0; nIndex < nByteN; ++nIndex, (nKey >>= 8)){
             *(uint16_t *)(szString + 2 * (nByteN - nIndex - 1)) = knvHexStringChunk[(nKey & 0XFF)];
+        }
+
+        if(bAppendZero){
+            szString[nByteN * 2] = '\0';
         }
 
         return szString;

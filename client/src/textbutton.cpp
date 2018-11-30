@@ -15,7 +15,8 @@
  *
  * =====================================================================================
  */
-
+#include "global.hpp"
+#include "strfunc.hpp"
 #include "mathfunc.hpp"
 #include "sdldevice.hpp"
 #include "textbutton.hpp"
@@ -48,4 +49,31 @@ void TextButton::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int 
         m_Label.SetColor(m_Color[State()][0]);
         m_Label.DrawEx(nDstX + (nLBX - nSrcX) + OffX(), nDstY + (nLBY - nSrcY) + OffY(), nLBX - nLBX0, nLBY - nLBY0, nLBW, nLBH);
     }
+}
+
+void TextButton::FormatText(const char *szFormatText, ...)
+{
+    std::string szText;
+    std::string szError;
+    {
+        va_list ap;
+        va_start(ap, szFormatText);
+
+        try{
+            szText = str_vprintf(szFormatText, ap);
+        }catch(const std::exception &e){
+            szText = "INTERNAL_ERROR";
+            szError = str_printf("Exception caught in TextButton::FormatText(\"%s\", ...): %s", szFormatText, e.what());
+        }
+
+        va_end(ap);
+    }
+
+    if(!szError.empty()){
+        g_Log->AddLog(LOGTYPE_WARNING, "%s", szError.c_str());
+    }
+
+    m_Label.FormatText("%s", szText.c_str());
+    m_W = std::max<int>(m_W, m_Label.W());
+    m_H = std::max<int>(m_H, m_Label.H());
 }

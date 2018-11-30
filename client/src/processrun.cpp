@@ -25,7 +25,7 @@
 #include "mapbindbn.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
-#include "clientenv.hpp"
+#include "clientargparser.hpp"
 #include "pathfinder.hpp"
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
@@ -60,6 +60,7 @@ ProcessRun::ProcessRun()
             false)              // 
     , m_InventoryBoard(0, 0, this)
     , m_CreatureList()
+    , m_UIDPending()
     , m_MousePixlLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_MouseGridLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_AscendStrList()
@@ -263,8 +264,8 @@ void ProcessRun::Draw()
             }
         }
 
-        extern ClientEnv *g_ClientEnv;
-        if(g_ClientEnv->EnableDrawMapGrid){
+        extern ClientArgParser *g_ClientArgParser;
+        if(g_ClientArgParser->EnableDrawMapGrid){
             int nGridX0 = m_ViewX / SYS_MAPGRIDXP;
             int nGridY0 = m_ViewY / SYS_MAPGRIDYP;
 
@@ -392,8 +393,8 @@ void ProcessRun::Draw()
                             &&  (pCreature.second->Y() == nY)
                             && !(pCreature.second->StayDead())){
 
-                        extern ClientEnv *g_ClientEnv;
-                        if(g_ClientEnv->EnableDrawCreatureCover){
+                        extern ClientArgParser *g_ClientArgParser;
+                        if(g_ClientArgParser->EnableDrawCreatureCover){
                             g_SDLDevice->PushColor(0, 0, 255, 128);
                             g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
                             g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
@@ -493,8 +494,8 @@ void ProcessRun::Draw()
     m_InventoryBoard.Draw();
 
     // draw cursor location information on top-left
-    extern ClientEnv *g_ClientEnv;
-    if(g_ClientEnv->EnableDrawMouseLocation){
+    extern ClientArgParser *g_ClientArgParser;
+    if(g_ClientArgParser->EnableDrawMouseLocation){
         g_SDLDevice->PushColor(0, 0, 0, 230);
         g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
         g_SDLDevice->FillRectangle(0, 0, 200, 60);
@@ -505,8 +506,8 @@ void ProcessRun::Draw()
         int nPointY = -1;
         SDL_GetMouseState(&nPointX, &nPointY);
 
-        m_MousePixlLoc.SetText("Pix_Loc: %3d, %3d", nPointX, nPointY);
-        m_MouseGridLoc.SetText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
+        m_MousePixlLoc.FormatText("Pix_Loc: %3d, %3d", nPointX, nPointY);
+        m_MouseGridLoc.FormatText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
 
         m_MouseGridLoc.DrawEx(10, 10, 0, 0, m_MouseGridLoc.W(), m_MouseGridLoc.H());
         m_MousePixlLoc.DrawEx(10, 30, 0, 0, m_MousePixlLoc.W(), m_MousePixlLoc.H());
@@ -1204,74 +1205,43 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
     return false;
 }
 
-bool ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
+void ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
 {
-    auto fnRecordLog = [this](int nOutPort, int nLogType, const char *szPrompt, const char *szLogInfo)
+    std::string szLog;
+    bool bError = false;
     {
-        if(nOutPort & OUTPORT_LOG){
-            extern Log *g_Log;
-            switch(nLogType){
-                case 0  : g_Log->AddLog(LOGTYPE_INFO   , "%s%s", szPrompt ? szPrompt : "", szLogInfo); break;
-                case 1  : g_Log->AddLog(LOGTYPE_WARNING, "%s%s", szPrompt ? szPrompt : "", szLogInfo); break;
-                default : g_Log->AddLog(LOGTYPE_FATAL  , "%s%s", szPrompt ? szPrompt : "", szLogInfo); break;
-            }
-        }
-
-        if(nOutPort & OUTPORT_SCREEN){
-        }
-
-        if(nOutPort & OUTPORT_CONTROLBOARD){
-            m_ControbBoard.AddLog(nLogType, szLogInfo);
-        }
-    };
-
-    int nLogSize = 0;
-
-    // 1. try static buffer
-    //    give an enough size so we can hopefully stop here
-    {
-        char szSBuf[1024];
-
         va_list ap;
         va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(szSBuf, std::extent<decltype(szSBuf)>::value, szLogFormat, ap);
-        va_end(ap);
 
-        if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < std::extent<decltype(szSBuf)>::value){
-                fnRecordLog(nOutPort, nLogType, szPrompt, szSBuf);
-                return true;
-            }else{
-                // do nothing
-                // have to try the dynamic buffer method
-            }
-        }else{
-            fnRecordLog(nOutPort, 0, "", (std::string("Parse log info failed: ") + szLogFormat).c_str());
-            return false;
+        try{
+            szLog = str_vprintf(szLogFormat, ap);
+        }catch(const std::exception &e){
+            bError = true;
+            szLog = str_printf("Exception caught in ProcessRun::AddOPLog(\"%s\", ...): %s", szLogFormat, e.what());
+        }
+
+        va_end(ap);
+    }
+
+    if(bError){
+        nLogType = Log::LOGTYPEV_WARNING;
+    }
+
+    if(nOutPort & OUTPORT_LOG){
+        extern Log *g_Log;
+        switch(nLogType){
+            case Log::LOGTYPEV_INFO    : g_Log->AddLog(LOGTYPE_INFO   , "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_WARNING : g_Log->AddLog(LOGTYPE_WARNING, "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_DEBUG   : g_Log->AddLog(LOGTYPE_DEBUG,   "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            default                    : g_Log->AddLog(LOGTYPE_FATAL  , "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
         }
     }
 
-    // 2. try dynamic buffer
-    //    use the parsed buffer size above to get enough memory
-    while(true){
-        std::vector<char> szDBuf(nLogSize + 1 + 64);
+    if(nOutPort & OUTPORT_SCREEN){
+    }
 
-        va_list ap;
-        va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(&(szDBuf[0]), szDBuf.size(), szLogFormat, ap);
-        va_end(ap);
-
-        if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < szDBuf.size()){
-                fnRecordLog(nOutPort, nLogType, szPrompt, &(szDBuf[0]));
-                return true;
-            }else{
-                szDBuf.resize(nLogSize + 1 + 64);
-            }
-        }else{
-            fnRecordLog(nOutPort, 0, "", (std::string("Parse log info failed: ") + szLogFormat).c_str());
-            return false;
-        }
+    if(nOutPort & OUTPORT_CONTROLBOARD){
+        m_ControbBoard.AddLog(nLogType, szLog.c_str());
     }
 }
 
@@ -1448,12 +1418,12 @@ bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
     extern MapBinDBN *g_MapBinDBN;
     if(auto pMapBin = g_MapBinDBN->Retrieve(nMapID)){
         if(pMapBin->ValidC(nX, nY) && pMapBin->Cell(nX, nY).CanThrough()){
-            extern Game *g_Game;
+            extern Client *g_Client;
             CMReqestSpaceMove stCMRSM;
             stCMRSM.MapID = nMapID;
             stCMRSM.X     = nX;
             stCMRSM.Y     = nY;
-            g_Game->Send(CM_REQUESTSPACEMOVE, stCMRSM);
+            g_Client->Send(CM_REQUESTSPACEMOVE, stCMRSM);
             return true;
         }
     }
@@ -1472,8 +1442,8 @@ void ProcessRun::QueryCORecord(uint64_t nUID) const
 
     stCMQCOR.AimUID = nUID;
 
-    extern Game *g_Game;
-    g_Game->Send(CM_QUERYCORECORD, stCMQCOR);
+    extern Client *g_Client;
+    g_Client->Send(CM_QUERYCORECORD, stCMQCOR);
 }
 
 void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
@@ -1492,7 +1462,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                 AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"使用魔法: 召唤骷髅"), 
                 m_IndepMagicList.emplace_back(std::make_shared<IndepMagic>
                 (
-                    rstAction.AimUID,
+                    rstAction.ActionParam,
                     DBCOM_MAGICID(u8"召唤骷髅"), 
                     0,
                     EGS_START,
@@ -1504,16 +1474,32 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                     nUID
                 ));
 
-                ActionStand stActionStand
+                m_UIDPending.insert(nUID);
+                m_IndepMagicList.back()->AddFunc([this, nUID, rstAction, pMagic = m_IndepMagicList.back()]() -> bool
                 {
-                    rstAction.X,
-                    rstAction.Y,
-                    DIR_DOWNLEFT,
-                };
+                    // if(!pMagic->Done()){
+                    //     return false;
+                    // }
 
-                if(auto pMonster = Monster::CreateMonster(nUID, this, stActionStand)){
-                    m_CreatureList[nUID].reset(pMonster);
-                }
+                    if(pMagic->Frame() < 10){
+                        return false;
+                    }
+
+                    ActionStand stActionStand
+                    {
+                        rstAction.X,
+                        rstAction.Y,
+                        DIR_DOWNLEFT,
+                    };
+
+                    if(auto pMonster = Monster::CreateMonster(nUID, this, stActionStand)){
+                        m_CreatureList[nUID].reset(pMonster);
+                    }
+
+                    m_UIDPending.erase(nUID);
+                    return true;
+                });
+
                 return;
             }
         default:

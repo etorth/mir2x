@@ -107,7 +107,7 @@ class InitView final
 
     private:
         std::mutex                m_Lock;
-        std::vector<MessageEntry> m_MessageRecord;
+        std::vector<MessageEntry> m_MessageList;
 
     private:
         TTF_Font    *m_TTF;
