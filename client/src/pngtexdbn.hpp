@@ -17,100 +17,47 @@
  */
 
 #pragma once
-#include <zip.h>
 #include <vector>
+#include <memory>
 #include <unordered_map>
 
+#include "zsdb.hpp"
 #include "inndb.hpp"
 #include "hexstring.hpp"
 #include "sdldevice.hpp"
 
-struct PNGTexItem
+struct PNGTexEntry
 {
     SDL_Texture *Texture;
 };
 
-template<size_t ResMaxN> class PNGTexDB: public InnDB<uint32_t, PNGTexItem, ResMaxN>
+template<size_t ResMaxN> class PNGTexDB: public InnDB<uint32_t, PNGTexEntry, ResMaxN>
 {
     private:
-        struct ZIPItemInfo
-        {
-            zip_uint64_t Index;
-            size_t       Size;
-        };
-
-    private:
-        struct zip *m_ZIP;
-
-    private:
-        std::unordered_map<uint32_t, ZIPItemInfo> m_ZIPItemInfoCache;
+        std::unique_ptr<ZSDB> m_ZSDBPtr;
 
     public:
         PNGTexDB()
-            : InnDB<uint32_t, PNGTexItem, ResMaxN>()
-            , m_ZIP(nullptr)
-            , m_ZIPItemInfoCache()
+            : InnDB<uint32_t, PNGTexEntry, ResMaxN>()
+            , m_ZSDBPtr()
         {}
 
-        virtual ~PNGTexDB()
-        {
-            if(m_ZIP){
-                zip_close(m_ZIP);
-            }
-        }
-
     public:
-        bool Valid()
-        {
-            return m_ZIP && !m_ZIPItemInfoCache.empty();
-        }
-
         bool Load(const char *szPNGTexDBName)
         {
-            int nErrorCode = 0;
-
-#ifdef ZIP_RDONLY
-            m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS | ZIP_RDONLY, &nErrorCode);
-#else
-            m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS, &nErrorCode);
-#endif
-
-            if(!m_ZIP){
+            try{
+                m_ZSDBPtr = std::make_unique<ZSDB>(szPNGTexDBName);
+            }catch(...){
                 return false;
             }
-
-            if(nErrorCode){
-                if(m_ZIP){
-                    zip_close(m_ZIP);
-                    m_ZIP = nullptr;
-                }
-                return false;
-            }
-
-            zip_int64_t nCount = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
-            if(nCount > 0){
-                for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)(nCount); ++nIndex){
-                    struct zip_stat stZIPStat;
-                    if(!zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stZIPStat)){
-                        if(true
-                                && stZIPStat.valid & ZIP_STAT_INDEX
-                                && stZIPStat.valid & ZIP_STAT_SIZE
-                                && stZIPStat.valid & ZIP_STAT_NAME){
-                            uint32_t nKey = HexString::ToHex<uint32_t, 4>(stZIPStat.name);
-                            m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)(stZIPStat.size)};
-                        }
-                    }
-                }
-            }
-
-            return Valid();
+            return true;
         }
 
     public:
         SDL_Texture *Retrieve(uint32_t nKey)
         {
-            if(PNGTexItem stItem {nullptr}; this->RetrieveResource(nKey, &stItem)){
-                return stItem.Texture;
+            if(PNGTexEntry stEntry {nullptr}; this->RetrieveResource(nKey, &stEntry)){
+                return stEntry.Texture;
             }
             return nullptr;
         }
@@ -121,30 +68,23 @@ template<size_t ResMaxN> class PNGTexDB: public InnDB<uint32_t, PNGTexItem, ResM
         }
 
     public:
-        virtual std::tuple<PNGTexItem, size_t> LoadResource(uint32_t nKey)
+        virtual std::tuple<PNGTexEntry, size_t> LoadResource(uint32_t nKey)
         {
-            PNGTexItem stItem {nullptr};
-            if(auto pZIPIndexRecord = m_ZIPItemInfoCache.find(nKey); pZIPIndexRecord != m_ZIPItemInfoCache.end()){
-                if(auto fp = zip_fopen_index(m_ZIP, pZIPIndexRecord->second.Index, ZIP_FL_UNCHANGED)){
-                    std::vector<uint8_t> stBuf;
-                    size_t nSize = pZIPIndexRecord->second.Size;
+            char szKeyString[16];
+            PNGTexEntry stEntry {nullptr};
 
-                    stBuf.resize(nSize);
-                    if(nSize == (size_t)(zip_fread(fp, stBuf.data(), nSize))){
-                        extern SDLDevice *g_SDLDevice;
-                        stItem.Texture = g_SDLDevice->CreateTexture((const uint8_t *)(stBuf.data()), nSize);
-                    }
-                    zip_fclose(fp);
-                }
+            if(std::vector<uint8_t> stBuf; m_ZSDBPtr->Decomp(HexString::ToString<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf)){
+                extern SDLDevice *g_SDLDevice;
+                stEntry.Texture = g_SDLDevice->CreateTexture(stBuf.data(), stBuf.size());
             }
-            return {stItem, stItem.Texture ? 1 : 0};
+            return {stEntry, stEntry.Texture ? 1 : 0};
         }
 
-        virtual void FreeResource(PNGTexItem &rstItem)
+        virtual void FreeResource(PNGTexEntry &rstEntry)
         {
-            if(rstItem.Texture){
-                SDL_DestroyTexture(rstItem.Texture);
-                rstItem.Texture = nullptr;
+            if(rstEntry.Texture){
+                SDL_DestroyTexture(rstEntry.Texture);
+                rstEntry.Texture = nullptr;
             }
         }
 };

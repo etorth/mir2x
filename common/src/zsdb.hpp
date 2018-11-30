@@ -95,7 +95,7 @@ class ZSDB final
         ~ZSDB();
 
     public:
-        bool Decomp(const char *, size_t, std::vector<uint8_t> *);
+        const char *Decomp(const char *, size_t, std::vector<uint8_t> *);
 
     private:
         bool DecompEntry(const InnEntry &, std::vector<uint8_t> *);

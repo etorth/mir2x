@@ -45,7 +45,7 @@ FontexDBN       *g_FontexDBN       = nullptr;
 XMLConf         *g_XMLConf         = nullptr; // for client configure XML parsing
 SDLDevice       *g_SDLDevice       = nullptr; // for SDL hardware device
 NotifyBoard     *g_NotifyBoard     = nullptr;
-Client            *g_Client            = nullptr; // gobal instance
+Client          *g_Client          = nullptr; // gobal instance
 
 int main(int argc, char *argv[])
 {
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         delete g_MapBinDBN      ; g_MapBinDBN       = nullptr;
         delete g_EmoticonDBN    ; g_EmoticonDBN     = nullptr;
         delete g_NotifyBoard    ; g_NotifyBoard     = nullptr;
-        delete g_Client           ; g_Client            = nullptr;
+        delete g_Client         ; g_Client            = nullptr;
     };
 
     std::atexit(fnAtExit);
@@ -88,8 +88,8 @@ int main(int argc, char *argv[])
     g_FontexDBN       = new FontexDBN();
     g_MapBinDBN       = new MapBinDBN();
     g_EmoticonDBN     = new EmoticonDBN();
-    g_NotifyBoard     = new NotifyBoard();
-    g_Client            = new Client();
+    g_Client          = new Client();       // loads fontex resource
+    g_NotifyBoard     = new NotifyBoard();  // needs fontex
 
     g_Client->MainLoop();
     return 0;

@@ -21,7 +21,7 @@
 #include "zsdb.hpp"
 #include "argparser.hpp"
 
-static int help()
+static int cmd_help()
 {
     std::printf("--help:\n");
     std::printf("--create-db\n");
@@ -40,7 +40,7 @@ static bool has_option(const argh::parser &cmd, const std::string &opt)
     return cmd[opt] || cmd(opt);
 }
 
-static int create_db(const argh::parser &cmd)
+static int cmd_create_db(const argh::parser &cmd)
 {
     auto szDBOutputName = [&cmd]() -> std::string
     {
@@ -122,7 +122,7 @@ static int create_db(const argh::parser &cmd)
     return -1;
 }
 
-static int list_all(const argh::parser &cmd)
+static int cmd_list(const argh::parser &cmd)
 {
     auto szDBFileName = [&cmd]() -> std::string
     {
@@ -161,7 +161,7 @@ static int list_all(const argh::parser &cmd)
     return 0;
 }
 
-static int uncomp_db(const argh::parser &cmd)
+static int cmd_uncomp_db(const argh::parser &cmd)
 {
     auto szDBFileName = [&cmd]() -> std::string
     {
@@ -171,6 +171,16 @@ static int uncomp_db(const argh::parser &cmd)
 
         return cmd("decomp-db").str();
     }();
+
+    auto szDataNameRegex = [&cmd]() -> std::string
+    {
+        if(cmd["decomp-db"] || cmd("decomp-db").str().empty()){
+            throw std::invalid_argument("option --decomp-db requires an argument");
+        }
+
+        return cmd("decomp-db").str();
+    }();
+
 
     ZSDB stZSDB(szDBFileName.c_str());
     auto stEntryList = stZSDB.GetEntryList();
@@ -191,19 +201,19 @@ int main(int argc, char *argv[])
     try{
         arg_parser cmd(argc, argv);
         if(cmd.has_option("help")){
-            return help();
+            return cmd_help();
         }
 
-        if(has_option(cmd, "create-db")){
-            return create_db(cmd);
+        if(cmd.has_option("create-db")){
+            return cmd_create_db(cmd);
         }
 
-        if(has_option(cmd, "list")){
-            return list_all(cmd);
+        if(cmd.has_option("list")){
+            return cmd_list(cmd);
         }
 
         if(has_option(cmd, "decomp-db")){
-            return uncomp_db(cmd);
+            return cmd_uncomp_db(cmd);
         }
 
     }catch(std::exception &e){

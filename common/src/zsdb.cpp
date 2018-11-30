@@ -17,6 +17,7 @@
  */
 
 #include <regex>
+#include <zstd.h>
 #include <cstdio>
 #include <cstring>
 #include <stdexcept>
@@ -24,8 +25,8 @@
 #include <algorithm>
 #include <filesystem>
 
-#include <zstd.h>
 #include "zsdb.hpp"
+#include "fileptr.hpp"
 
 const static int g_CompLevel = 3;
 
@@ -106,17 +107,17 @@ static std::vector<uint8_t> readFileData(const char *szPath)
         return {};
     }
 
-    std::FILE *fp = std::fopen(szPath, "rb");
+    auto fp = make_fileptr(szPath, "rb");
     if(!fp){
         return {};
     }
 
-    std::fseek(fp, 0, SEEK_END);
-    auto nFileLen = std::ftell(fp);
-    std::fseek(fp, 0, SEEK_SET);
+    std::fseek(fp.get(), 0, SEEK_END);
+    auto nFileLen = std::ftell(fp.get());
+    std::fseek(fp.get(), 0, SEEK_SET);
 
     std::vector<uint8_t> stDataBuf(nFileLen, 0);
-    std::fread(stDataBuf.data(), nFileLen, 1, fp);
+    std::fread(stDataBuf.data(), nFileLen, 1, fp.get());
     return stDataBuf;
 }
 
@@ -244,36 +245,36 @@ ZSDB::~ZSDB()
     ZSTD_freeDDict(m_DDict);
 }
 
-bool ZSDB::Decomp(const char *szFileName, size_t nCheckLen, std::vector<uint8_t> *pDstBuf)
+const char *ZSDB::Decomp(const char *szFileName, size_t nCheckLen, std::vector<uint8_t> *pDstBuf)
 {
     if(!szFileName || !std::strlen(szFileName)){
-        return false;
+        return nullptr;
     }
 
     auto p = std::lower_bound(m_EntryList.begin(), m_EntryList.end(), szFileName, [this, nCheckLen](const InnEntry &lhs, const char *rhs) -> bool
-            {
-            if(nCheckLen){
+    {
+        if(nCheckLen){
             return std::strncmp(m_FileNameBuf.data() + lhs.FileName, rhs, nCheckLen) < 0;
-            }else{
+        }else{
             return std::strcmp(m_FileNameBuf.data() + lhs.FileName, rhs) < 0;
-            }
-            });
+        }
+    });
 
     if(p == m_EntryList.end()){
-        return false;
+        return nullptr;
     }
 
     if(nCheckLen){
         if(std::strncmp(szFileName, m_FileNameBuf.data() + p->FileName, nCheckLen)){
-            return false;
+            return nullptr;
         }
     }else{
         if(std::strcmp(szFileName, m_FileNameBuf.data() + p->FileName)){
-            return false;
+            return nullptr;
         }
     }
 
-    return ZSDB::DecompEntry(*p, pDstBuf);
+    return ZSDB::DecompEntry(*p, pDstBuf) ? (m_FileNameBuf.data() + p->FileName) : nullptr;
 }
 
 bool ZSDB::DecompEntry(const ZSDB::InnEntry &rstEntry, std::vector<uint8_t> *pDstBuf)
@@ -419,28 +420,24 @@ bool ZSDB::BuildDB(const char *szSaveFullName, const char *szFileNameRegex, cons
     stHeader.StreamOffset = stHeader.FileNameOffset + stHeader.FileNameLength;
     stHeader.StreamLength = stStreamBuf.size();
 
-    auto fp = std::fopen(szSaveFullName, "wb");
+    auto fp = make_fileptr(szSaveFullName, "wb");
     if(!fp){
         return false;
     }
 
-    if(std::fwrite(&stHeader, sizeof(stHeader), 1, fp) != 1){
+    if(std::fwrite(&stHeader, sizeof(stHeader), 1, fp.get()) != 1){
         return false;
     }
 
-    if(std::fwrite(stEntryCompBuf.data(), stEntryCompBuf.size(), 1, fp) != 1){
+    if(std::fwrite(stEntryCompBuf.data(), stEntryCompBuf.size(), 1, fp.get()) != 1){
         return false;
     }
 
-    if(std::fwrite(stFileNameCompBuf.data(), stFileNameCompBuf.size(), 1, fp) != 1){
+    if(std::fwrite(stFileNameCompBuf.data(), stFileNameCompBuf.size(), 1, fp.get()) != 1){
         return false;
     }
 
-    if(std::fwrite(stStreamBuf.data(), stStreamBuf.size(), 1, fp) != 1){
-        return false;
-    }
-
-    if(std::fclose(fp)){
+    if(std::fwrite(stStreamBuf.data(), stStreamBuf.size(), 1, fp.get()) != 1){
         return false;
     }
 
