@@ -8,5 +8,3 @@
 *.bin filter=lfs diff=lfs merge=lfs -text
 *.ZSDB filter=lfs diff=lfs merge=lfs -text
 *.zsdb filter=lfs diff=lfs merge=lfs -text
-.ZSDB filter=lfs diff=lfs merge=lfs -text
-.zsdb filter=lfs diff=lfs merge=lfs -text
