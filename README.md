@@ -76,7 +76,7 @@ Global variables:
     - simple
     - thread-safe
     - atomic operations
-4. name all global pointers as g_XXXX and put them in global.hpp, and
+4. name all global pointers as g_XXXX and use them by extern, and
     - allocate them at beginning of main()
     - remain valid during the whole run, and ONLY free them at process exit.
 
