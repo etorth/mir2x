@@ -376,7 +376,7 @@ bool Monster::FollowMaster()
             // not that long
             // slave should move step by step
 
-            auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 3);
+            auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 1);
             switch(LDistance2(nBackX, nBackY, X(), Y())){
                 case 0:
                     {
