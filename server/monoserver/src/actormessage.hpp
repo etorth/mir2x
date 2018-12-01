@@ -314,8 +314,8 @@ struct AMPathFind
     uint64_t UID;
     uint32_t MapID;
 
+    int CheckCO;
     int MaxStep;
-    bool CheckCO;
 
     int X;
     int Y;

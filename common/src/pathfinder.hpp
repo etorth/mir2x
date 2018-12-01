@@ -32,6 +32,7 @@
 
 #include "fsa.h"
 #include "stlastar.h"
+#include "strfunc.hpp"
 #include "condcheck.hpp"
 #include "protocoldef.hpp"
 
@@ -71,6 +72,7 @@ namespace PathFind
     inline const char *GetDirName(int nDirection)
     {
         switch (nDirection){
+            case DIR_NONE      : return "DIR_NONE";
             case DIR_UP        : return "DIR_UP";
             case DIR_DOWN      : return "DIR_DOWN";
             case DIR_LEFT      : return "DIR_LEFT";
@@ -79,7 +81,7 @@ namespace PathFind
             case DIR_UPRIGHT   : return "DIR_UPRIGHT";
             case DIR_DOWNLEFT  : return "DIR_DOWNLEFT";
             case DIR_DOWNRIGHT : return "DIR_DOWNRIGHT";
-            default            : return "DIR_NONE";
+            default            : return "DIR_UNKNOWN";
         }
     }
 
@@ -98,33 +100,34 @@ namespace PathFind
         }
     }
 
-    inline bool GetFrontLocation(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
+    inline void GetFrontLocation(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
     {
-        static const int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
-        static const int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
+        static constexpr int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
+        static constexpr int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
 
-        if(true
-                && nDirection > DIR_NONE
-                && nDirection < DIR_MAX){
-
-            if(pX){ *pX = nX + nLen * nDX[nDirection - (DIR_NONE + 1)]; }
-            if(pY){ *pY = nY + nLen * nDY[nDirection - (DIR_NONE + 1)]; }
-
-            return true;
+        if(nDirection <= DIR_NONE || nDirection >= DIR_MAX){
+            throw std::invalid_argument(str_printf("In PathFind::GetFrontLocation(%p, %p, %d, %d, %d, %d)", pX, pY, nX, nY, nDirection, nLen));
         }
-        return false;
+
+        if(pX){
+            *pX = nX + nLen * nDX[nDirection - (DIR_NONE + 1)];
+        }
+
+        if(pY){
+            *pY = nY + nLen * nDY[nDirection - (DIR_NONE + 1)];
+        }
     }
 
-    inline bool GetBackLocation(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
+    inline void GetBackLocation(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
     {
-        return GetFrontLocation(pX, pY, nX, nY, GetBack(nDirection), nLen);
+        GetFrontLocation(pX, pY, nX, nY, GetBack(nDirection), nLen);
     }
 
     // return direction for src -> dst
     // direction code defined in protocoldef.hpp
     inline int GetDirection(int nSrcX, int nSrcY, int nDstX, int nDstY)
     {
-        static const int nDirV[][3]
+        static constexpr int nDirV[][3]
         {
             {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
             {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },

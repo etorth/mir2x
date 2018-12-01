@@ -361,7 +361,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                         }
                     default:
                         {
-                            auto stvPathNode = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, false);
+                            auto stvPathNode = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, 0);
                             switch(stvPathNode.size()){
                                 case 0:
                                 case 1:

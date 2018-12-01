@@ -286,10 +286,16 @@ void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
 bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
     if(!CanMove()){
+        if(fnOnMoveError){
+            fnOnMoveError();
+        }
         return false;
     }
 
     if(EstimateHop(nX, nY) != 1){
+        if(fnOnMoveError){
+            fnOnMoveError();
+        }
         return false;
     }
 
@@ -319,15 +325,16 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
                 // need to check if there is co blocking the path
                 int nXm = -1;
                 int nYm = -1;
-                if(!PathFind::GetFrontLocation(&nXm, &nYm, X(), Y(), PathFind::GetDirection(X(), Y(), nX, nY), 1)){
-                    return false;
-                }
+                PathFind::GetFrontLocation(&nXm, &nYm, X(), Y(), PathFind::GetDirection(X(), Y(), nX, nY), 1);
 
                 // for strict co check
                 // need to skip the current (X(), Y())
 
                 if(OneStepCost(nullptr, 2, nXm, nYm, nX, nY) < 0.00){
                     if(!bAllowHalfMove){
+                        if(fnOnMoveError){
+                            fnOnMoveError();
+                        }
                         return false;
                     }
                 }
@@ -347,7 +354,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
     stAMTM.AllowHalfMove = bAllowHalfMove;
 
     m_MoveLock = true;
-    return m_ActorPod->Forward(m_Map->UID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, bAllowHalfMove, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)
+    auto bForwardOK = m_ActorPod->Forward(m_Map->UID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)
     {
         if(!m_MoveLock){
             extern MonoServer *g_MonoServer;
@@ -423,6 +430,17 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
                 }
         }
     });
+
+    // send failure should trigger fnOnMoveError
+    // but a successful send doesn't mean move successfully
+
+    if(!bForwardOK){
+        if(fnOnMoveError){
+            fnOnMoveError();
+        }
+    }
+
+    return bForwardOK;
 }
 
 bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)

@@ -293,6 +293,21 @@ int Monster::MotionFrameCount(int nMotion, int nDirection) const
 
 bool Monster::ParseAction(const ActionNode &rstAction)
 {
+    bool bFindMotionDie = false;
+    for(auto &rstMotionNode: m_MotionQueue){
+        if(rstMotionNode.Motion == MOTION_MON_DIE){
+            bFindMotionDie = true;
+            break;
+        }
+    }
+
+    // found pending motion die
+    // ignore all the following actions till the MOTION_MON_DIE done
+
+    if(bFindMotionDie){
+        return true;
+    }
+
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
     switch(rstAction.Action){
@@ -300,6 +315,7 @@ bool Monster::ParseAction(const ActionNode &rstAction)
         case ACTION_MOVE:
         case ACTION_ATTACK:
         case ACTION_HITTED:
+        case ACTION_DIE:
             {
                 // when cleaning pending queue
                 // there could be MOTION_MON_DIE skipped
@@ -320,7 +336,7 @@ bool Monster::ParseAction(const ActionNode &rstAction)
                         }
                     default:
                         {
-                            auto stvPathNode = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, true);
+                            auto stvPathNode = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, 1);
                             switch(stvPathNode.size()){
                                 case 0:
                                 case 1:

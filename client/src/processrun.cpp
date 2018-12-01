@@ -1370,13 +1370,13 @@ void ProcessRun::CenterMyHero()
                         {
                             int nDX = -1;
                             int nDY = -1;
-                            if(PathFind::GetFrontLocation(&nDX, &nDY, 0, 0, nDirection, nStepLen)){
-                                int nOffX = nDX * SYS_MAPGRIDXP * (nFrame + 1) / nFrameCount;
-                                int nOffY = nDY * SYS_MAPGRIDYP * (nFrame + 1) / nFrameCount;
+                            PathFind::GetFrontLocation(&nDX, &nDY, 0, 0, nDirection, nStepLen);
 
-                                m_ViewX = nX * SYS_MAPGRIDXP + nOffX - nShowWindowW / 2;
-                                m_ViewY = nY * SYS_MAPGRIDYP + nOffY - nShowWindowH / 2;
-                            }
+                            int nOffX = nDX * SYS_MAPGRIDXP * (nFrame + 1) / nFrameCount;
+                            int nOffY = nDY * SYS_MAPGRIDYP * (nFrame + 1) / nFrameCount;
+
+                            m_ViewX = nX * SYS_MAPGRIDXP + nOffX - nShowWindowW / 2;
+                            m_ViewY = nY * SYS_MAPGRIDYP + nOffY - nShowWindowH / 2;
                             return;
                         }
                     default:

@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <tuple>
 #include <cinttypes>
 #include "player.hpp"
 #include "motion.hpp"
@@ -346,17 +347,19 @@ bool Monster::FollowMaster()
         // get back location with different distance
         // here we use different distance if space move and follow
 
-        auto fnGetBack = [nX, nY, nDirection](int *pX, int *pY, int nLD) -> bool
+        auto fnGetBack = [](int nX, int nY, int nDirection, int nLD) -> std::tuple<int, int>
         {
-            if(!PathFind::GetBackLocation(pX, pY, nX, nY, nDirection, nLD)){
-                // randomly pick a location
-                // for some COs it doesn't have direction
-                auto nRandDir = (std::rand() % 8) + (DIR_NONE + 1);
-                if(!PathFind::GetBackLocation(pX, pY, nX, nY, nRandDir, nLD)){
-                    return false;
-                }
+            // randomly pick a location
+            // for some COs it doesn't have direction
+            if(!PathFind::ValidDir(nDirection)){
+                nDirection = ((std::rand() % 8) + (DIR_NONE + 1));
             }
-            return true;
+
+            int nBackX = -1;
+            int nBackY = -1;
+
+            PathFind::GetBackLocation(&nBackX, &nBackY, nX, nY, nDirection, nLD);
+            return {nBackX, nBackY};
         };
 
         if(false
@@ -366,41 +369,31 @@ bool Monster::FollowMaster()
             // long distance
             // slave have to do space move
 
-            int nBackX = -1;
-            int nBackY = -1;
-
-            if(fnGetBack(&nBackX, &nBackY, 3)){
-                return RequestSpaceMove(nMapID, nBackX, nBackY, false, [](){}, [](){});
-            }
-            return false;
+            auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 3);
+            return RequestSpaceMove(nMapID, nBackX, nBackY, false, [](){}, [](){});
         }else{
 
             // not that long
             // slave should move step by step
 
-            int nBackX = -1;
-            int nBackY = -1;
+            auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 3);
+            switch(LDistance2(nBackX, nBackY, X(), Y())){
+                case 0:
+                    {
+                        // already get there
+                        // need to make a turn if needed
 
-            if(fnGetBack(&nBackX, &nBackY, 1)){
-                switch(LDistance2(nBackX, nBackY, X(), Y())){
-                    case 0:
-                        {
-                            // already get there
-                            // need to make a turn if needed
-
-                            if(Direction() != nDirection){
-                                m_Direction= nDirection;
-                                DispatchAction(ActionStand(X(), Y(), Direction()));
-                            }
-                            return true;
+                        if(Direction() != nDirection){
+                            m_Direction= nDirection;
+                            DispatchAction(ActionStand(X(), Y(), Direction()));
                         }
-                    default:
-                        {
-                            return MoveOneStep(nBackX, nBackY);
-                        }
-                }
+                        return true;
+                    }
+                default:
+                    {
+                        return MoveOneStep(nBackX, nBackY);
+                    }
             }
-            return false;
         }
     });
 }
@@ -863,7 +856,7 @@ bool Monster::MoveOneStepNeighbor(int nX, int nY, std::function<void()> fnOnErro
         return false;
     }
 
-    CharObject::COPathFinder stFinder(this, 2);
+    CharObject::COPathFinder stFinder(this, 1);
     if(!stFinder.Search(X(), Y(), nX, nY)){
         if(fnOnError){
             fnOnError();
@@ -922,8 +915,8 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnError)
 
     stAMPF.UID     = UID();
     stAMPF.MapID   = MapID();
+    stAMPF.CheckCO = 1;
     stAMPF.MaxStep = MaxStep();
-    stAMPF.CheckCO = true;
     stAMPF.X       = X();
     stAMPF.Y       = Y();
     stAMPF.EndX    = nX;

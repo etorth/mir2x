@@ -698,11 +698,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
             {
                 int nFrontX = -1;
                 int nFrontY = -1;
-
-                if(!PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2)){
-                    nFrontX = X() + 1;
-                    nFrontY = Y() + 1;
-                }
+                PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2);
 
                 SMFireMagic stSMFM;
                 std::memset(&stSMFM, 0, sizeof(stSMFM));
