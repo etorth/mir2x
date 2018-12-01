@@ -476,6 +476,11 @@ void Monster::OperateAM(const MessagePack &rstMPK)
                 On_MPK_NOTIFYNEWCO(rstMPK);
                 break;
             }
+        case MPK_DEADFADEOUT:
+            {
+                On_MPK_DEADFADEOUT(rstMPK);
+                break;
+            }
         case MPK_NOTIFYDEAD:
             {
                 On_MPK_NOTIFYDEAD(rstMPK);
@@ -817,7 +822,7 @@ bool Monster::MoveOneStep(int nX, int nY)
             }
         case 1:
             {
-                if(OneStepCost(nullptr, 2, X(), Y(), nX, nY) >= 0.00){
+                if(OneStepCost(nullptr, 1, X(), Y(), nX, nY) >= 0.00){
                     return RequestMove(nX, nY, MoveSpeed(), false, [](){}, [](){});
                 }
                 break;
@@ -836,7 +841,7 @@ bool Monster::MoveOneStep(int nX, int nY)
     int nYm = -1;
 
     if(m_AStarCache.Retrieve(&nXm, &nYm, X(), Y(), nX, nY, MapID())){
-        if(OneStepCost(nullptr, 2, X(), Y(), nX, nY) >= 0.00){
+        if(OneStepCost(nullptr, 1, X(), Y(), nX, nY) >= 0.00){
             return RequestMove(nXm, nYm, MoveSpeed(), false, [](){}, [](){});
         }
     }

@@ -227,6 +227,15 @@ void Monster::On_MPK_BADACTORPOD(const MessagePack &)
 {
 }
 
+void Monster::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
+{
+    AMDeadFadeOut stAMDFO;
+    std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
+
+    RemoveTarget(stAMDFO.UID);
+    m_LocationList.erase(stAMDFO.UID);
+}
+
 void Monster::On_MPK_NOTIFYDEAD(const MessagePack &rstMPK)
 {
     AMNotifyDead stAMND;

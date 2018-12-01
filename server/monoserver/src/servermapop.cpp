@@ -620,7 +620,7 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
             if(true || ValidC(nX, nY)){
                 for(auto nUID: GetUIDList(nX, nY)){
                     if(nUID != stAMDFO.UID){
-                        if(UIDFunc::GetUIDType(nUID) == UID_PLY){
+                        if(UIDFunc::GetUIDType(nUID) == UID_PLY || UIDFunc::GetUIDType(nUID) == UID_MON){
                             m_ActorPod->Forward(nUID, {MPK_DEADFADEOUT, stAMDFO});
                         }
                     }

@@ -348,6 +348,7 @@ void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
     AMDeadFadeOut stAMDFO;
     std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
 
+    m_LocationList.erase(stAMDFO.UID);
     if(stAMDFO.UID != UID()){
         SMDeadFadeOut stSMDFO;
         stSMDFO.UID   = stAMDFO.UID;
