@@ -144,6 +144,19 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_AddAbility()
 {
     condcheck(m_Map);
+    m_StateHook.Install("RemoveDeadUIDLocation", [this, nLastCheckTick = (uint32_t)(0)]() mutable -> bool
+    {
+        extern MonoServer *g_MonoServer;
+        if(auto nCurrCheckTick = g_MonoServer->GetTimeTick(); nLastCheckTick + 5000 < nCurrCheckTick){
+            if(ActorPodValid()){
+                // remove all dead ones
+                // dispatch action requires check location list
+                DispatchAction(ActionStand(X(), Y(), Direction()));
+            }
+            nLastCheckTick = nCurrCheckTick;
+        }
+        return false;
+    });
 }
 
 bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
@@ -686,9 +699,14 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
         return true;
     }
 
-    // do query new location
     // found record is out of time
-    return fnQueryLocation();
+    // if query failed means this UID doesn't exist
+
+    if(!fnQueryLocation()){
+        m_LocationList.erase(nUID);
+        return false;
+    }
+    return true;
 }
 
 bool CharObject::AddHitterUID(uint64_t nUID, int nDamage)

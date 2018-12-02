@@ -1497,6 +1497,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                     }
 
                     m_UIDPending.erase(nUID);
+                    QueryCORecord(nUID);
                     return true;
                 });
 
