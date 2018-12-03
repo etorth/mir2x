@@ -22,7 +22,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "global.hpp"
 #include "strfunc.hpp"
 #include "mathfunc.hpp"
 #include "initview.hpp"
@@ -30,6 +29,8 @@
 #include "pngtexdbn.hpp"
 #include "mapbindbn.hpp"
 #include "pngtexoffdbn.hpp"
+
+extern Log *g_Log;
 
 InitView::InitView(size_t nFontSize)
     : m_ProcState(IVPROC_LOOP)

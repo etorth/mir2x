@@ -17,7 +17,6 @@
  */
 #include <cinttypes>
 #include "dbpod.hpp"
-#include "global.hpp"
 #include "player.hpp"
 #include "uidfunc.hpp"
 #include "dbcomid.hpp"
@@ -28,6 +27,9 @@
 #include "charobject.hpp"
 #include "friendtype.hpp"
 #include "protocoldef.hpp"
+
+extern DBPodN *g_DBPodN;
+extern MonoServer *g_MonoServer;
 
 Player::Player(uint32_t nDBID,
         ServiceCore    *pServiceCore,

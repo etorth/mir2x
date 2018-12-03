@@ -15,12 +15,16 @@
  *
  * =====================================================================================
  */
-#include "global.hpp"
+
+#include "log.hpp"
 #include "strfunc.hpp"
 #include "mathfunc.hpp"
 #include "sdldevice.hpp"
 #include "textbutton.hpp"
 #include "tritexbutton.hpp"
+
+extern Log *g_Log;
+extern SDLDevice *g_SDLDevice;
 
 void TextButton::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {

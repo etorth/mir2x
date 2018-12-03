@@ -19,12 +19,14 @@
 #include <functional>
 #include <unordered_map>
 
-#include "global.hpp"
+#include "log.hpp"
 #include "strfunc.hpp"
 #include "colorfunc.hpp"
 #include "labelboard.hpp"
 #include "tokenboard.hpp"
 #include "xmlobjectlist.hpp"
+
+extern Log *g_Log;
 
 void LabelBoard::FormatText(const char * szFormatStr, ...)
 {

@@ -17,10 +17,11 @@
  */
 
 #include "log.hpp"
-#include "global.hpp"
 #include "condcheck.hpp"
 #include "sdldevice.hpp"
 #include "notifyboard.hpp"
+
+extern Log *g_Log;
 
 void NotifyBoard::Pop()
 {
