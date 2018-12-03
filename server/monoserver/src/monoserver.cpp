@@ -215,8 +215,20 @@ void MonoServer::PropagateException()
 {
     // TODO
     // add multi-thread protection
-    m_CurrException = std::current_exception();
-    Fl::awake((void *)(uintptr_t)(2));
+    try{
+        if(!std::current_exception()){
+            throw std::runtime_error("Call MonoServer::PropagateException() without exception captured");
+        }
+
+        // we do have an exception
+        // but may not be std::exception, nest it...
+        std::throw_with_nested(std::runtime_error("Rethrow in MonoServer::PropagateException()"));
+    }catch(...){
+        // must have one exception...
+        // now we are sure main thread will always capture an std::exception
+        m_CurrException = std::current_exception();
+        Fl::awake((void *)(uintptr_t)(2));
+    }
 }
 
 void MonoServer::DetectException()
