@@ -83,10 +83,27 @@ int main(int argc, char *argv[])
                     // call Fl::awake(0) to force Fl::wait() to terminate
                     break;
                 }
+            case 2:
+                {
+                    // propagate all exceptions to main thread
+                    // then log it in main thread and request restart
+                    //
+                    // won't handle exception in threads
+                    // all threads need to call Fl::awake(2) to propagate exception(s) caught
+                    extern MonoServer *g_MonoServer;
+                    try{
+                        g_MonoServer->DetectException();
+                    }catch(const std::exception &stException){
+                        g_MonoServer->LogException(stException);
+                        g_MonoServer->Restart();
+                    }
+                    break;
+                }
+            case 1:
             default:
                 {
+                    // pase the gui requests in the queue
                     // designed to send Fl::awake(1) to notify gui
-                    // to pase the requests in the cached queue
                     extern MonoServer *g_MonoServer;
                     g_MonoServer->ParseNotifyGUIQ();
                     break;

@@ -23,6 +23,8 @@
 #include <vector>
 #include <chrono>
 #include <cstdint>
+#include <exception>
+#include <stdexcept>
 #include <sol/sol.hpp>
 #include <type_traits>
 #include <unordered_map>
@@ -60,6 +62,9 @@ class MonoServer final
         ServiceCore *m_ServiceCore;
 
     private:
+        std::exception_ptr m_CurrException;
+
+    private:
         const std::chrono::time_point<std::chrono::steady_clock> m_StartTime;
 
     public:
@@ -84,6 +89,11 @@ class MonoServer final
         void RunASIO();
         void CreateDBConnection();
         void LoadMapBinDBN();
+
+    public:
+        void DetectException();
+        void PropagateException();
+        void LogException(const std::exception &);
 
     public:
         void AddCWLog(uint32_t,         // command window id

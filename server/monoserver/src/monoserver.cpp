@@ -47,6 +47,7 @@ MonoServer::MonoServer()
     : m_LogLock()
     , m_LogBuf()
     , m_ServiceCore(nullptr)
+    , m_CurrException()
     , m_StartTime(std::chrono::steady_clock::now())
 {}
 
@@ -208,6 +209,33 @@ void MonoServer::Launch()
 
     StartServiceCore();
     StartNetwork();
+}
+
+void MonoServer::PropagateException()
+{
+    // TODO
+    // add multi-thread protection
+    m_CurrException = std::current_exception();
+    Fl::awake((void *)(uintptr_t)(2));
+}
+
+void MonoServer::DetectException()
+{
+    if(m_CurrException){
+        std::rethrow_exception(m_CurrException);
+    }
+}
+
+void MonoServer::LogException(const std::exception &stException)
+{
+    AddLog(LOGTYPE_WARNING, "%s", stException.what());
+    try{
+        std::rethrow_if_nested(stException);
+    }catch(const std::exception &stNestedException){
+        LogException(stNestedException);
+    }catch(...){
+        AddLog(LOGTYPE_WARNING, "%s", "Exception can't recongize, skipped...");
+    }
 }
 
 void MonoServer::Restart()

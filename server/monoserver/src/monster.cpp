@@ -216,7 +216,7 @@ bool Monster::AttackUID(uint64_t nUID, int nDC)
     // before response received we can't allow any attack request
 
     m_AttackLock = true;
-    return RetrieveLocation(nUID, [this, nDC, nUID](const COLocation &stCOLocation) -> bool
+    if(!RetrieveLocation(nUID, [this, nDC, nUID](const COLocation &stCOLocation) -> bool
     {
         if(!m_AttackLock){
             extern MonoServer *g_MonoServer;
@@ -278,7 +278,17 @@ bool Monster::AttackUID(uint64_t nUID, int nDC)
                 }
         }
         return false;
-    });
+    })){
+        RemoveTarget(nUID);
+        m_LocationList.erase(nUID);
+
+        m_AttackLock = false;
+        return false;
+    }
+
+    // RetrieveLocation returns true
+    // means we have valid location or successfully queried the location
+    return true;
 }
 
 bool Monster::TrackUID(uint64_t nUID)
