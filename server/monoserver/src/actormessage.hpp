@@ -27,6 +27,7 @@ enum MessagePackType: int
     MPK_BADCHANNEL,
     MPK_TIMEOUT,
     MPK_UID,
+    MPK_BADUID,
     MPK_PING,
     MPK_LOGIN,
     MPK_METRONOME,

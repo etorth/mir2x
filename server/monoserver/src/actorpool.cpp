@@ -277,13 +277,11 @@ bool ActorPool::Detach(const Receiver *pReceiver)
 bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
 {
     if(!nUID){
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Sending %s to zero UID", stMPK.Name());
-        return false;
+        throw std::invalid_argument(str_ffl() + str_printf(": Sending %s to zero UID", stMPK.Name()));
     }
 
     if(!stMPK){
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Sending empty message to UID = %" PRIu64, nUID);
-        return false;
+        throw std::invalid_argument(str_ffl() + str_printf(": Sending empty message to %" PRIu64, nUID));
     }
 
     if(IsReceiver(nUID)){

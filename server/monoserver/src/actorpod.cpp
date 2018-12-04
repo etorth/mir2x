@@ -22,8 +22,11 @@
 #include "uidfunc.hpp"
 #include "actorpod.hpp"
 #include "actorpool.hpp"
-#include "serverargparser.hpp"
 #include "monoserver.hpp"
+#include "serverargparser.hpp"
+
+extern ActorPool *g_ActorPool;
+extern MonoServer *g_MonoServer;
 
 ActorPod::ActorPod(uint64_t nUID,
         const std::function<void()> &fnTrigger,
@@ -31,14 +34,12 @@ ActorPod::ActorPod(uint64_t nUID,
     : m_UID([nUID]() -> uint64_t
       {
           if(!nUID){
-              extern MonoServer *g_MonoServer;
               g_MonoServer->AddLog(LOGTYPE_WARNING, "Provide user-defined zero UID");
               g_MonoServer->Restart();
               return 0;
           }
 
           if(nUID & 0XFFFF000000000000){
-              extern MonoServer *g_MonoServer;
               g_MonoServer->AddLog(LOGTYPE_WARNING, "Provide user-defined UID greater than 0XFFFF000000000000: %" PRIu64, nUID);
               g_MonoServer->Restart();
               return 0;
@@ -52,9 +53,7 @@ ActorPod::ActorPod(uint64_t nUID,
     , m_ExpireTime(nExpireTime)
     , m_RespondHandlerGroup()
 {
-    extern ActorPool *g_ActorPool;
     if(!g_ActorPool->Register(this)){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Register actor failed: ActorPod = %p, ActorPod::UID() = %" PRIu64, this, UID());
         g_MonoServer->Restart();
     }
@@ -71,9 +70,7 @@ ActorPod::~ActorPod()
     // Detach(this, true) will report error if called in running actor thread
     // good enough
 
-    extern ActorPool *g_ActorPool;
     if(!g_ActorPool->Detach(this, [](){})){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "ActorPool::Detach(ActorPod = %p) failed", this);
         g_MonoServer->Restart();
     }
@@ -83,7 +80,6 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
 {
     extern ServerArgParser *g_ServerArgParser;
     if(g_ServerArgParser->TraceActorMessage){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_DEBUG,
                 "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
                 UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
@@ -91,12 +87,10 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
 
     if(m_ExpireTime){
         while(!m_RespondHandlerGroup.empty()){
-            extern MonoServer *g_MonoServer;
             if(g_MonoServer->GetTimeTick() >= m_RespondHandlerGroup.begin()->second.ExpireTime){
                 try{
                     m_RespondHandlerGroup.begin()->second.Operation(MPK_TIMEOUT);
                 }catch(...){
-                    extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_WARNING,
                             "%s <- NA : (Type: MPK_TIMEOUT, ID: %" PRIu32 ", Resp: NA): Caught exception in handing timeout",
                             UIDFunc::GetUIDString(UID()).c_str(), m_RespondHandlerGroup.begin()->first, rstMPK.Respond());
@@ -121,7 +115,6 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
         // 2. not find it: 1. didn't register for it
         //                 2. repsonse is too late ooops
         if(auto p = m_RespondHandlerGroup.find(rstMPK.Respond()); p == m_RespondHandlerGroup.end()){
-            extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING,
                     "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): No valid handler for current message",
                     UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
@@ -132,13 +125,11 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
                 try{
                     p->second.Operation(rstMPK);
                 }catch(...){
-                    extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_WARNING,
                             "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Caught exception in response handler",
                             UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
                 }
             }else{
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_WARNING,
                         "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Current response handler not executable",
                         UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
@@ -152,7 +143,6 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
             try{
                 m_Operation(rstMPK);
             }catch(...){
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_WARNING,
                         "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Caught exception in message handler",
                         UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
@@ -160,7 +150,6 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
         }else{
             // shoud I make it fatal?
             // we may get a lot warning message here
-            extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING,
                     "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Current message handler not executable",
                     UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
@@ -171,7 +160,6 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
         try{
             m_Trigger();
         }catch(...){
-            extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING,
                     "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Caught exeption in trigger after message handling",
                     UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
@@ -191,7 +179,6 @@ uint32_t ActorPod::GetValidID()
     if(auto p = m_RespondHandlerGroup.find(m_ValidID); p == m_RespondHandlerGroup.end()){
         return m_ValidID;
     }else{
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_FATAL, "Running out of message ID, exiting...");
         return 0;
     }
@@ -200,91 +187,81 @@ uint32_t ActorPod::GetValidID()
 bool ActorPod::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond)
 {
     if(!nUID){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING,
-                "%s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
-                UIDFunc::GetUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
-        return false;
+        throw std::invalid_argument(str_ffl() +
+                str_printf(": %s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
+                UIDFunc::GetUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
     }
 
     if(nUID == UID()){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING,
-                "%s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
-                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
-        return false;
+        throw std::invalid_argument(str_ffl() +
+                str_printf(": %s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
+                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
     }
 
     if(!rstMB){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING,
-                "%s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
-                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), nRespond);
-        return false;
+        throw std::invalid_argument(str_ffl() +
+                str_printf(": %s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
+                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), nRespond));
     }
 
     extern ServerArgParser *g_ServerArgParser;
     if(g_ServerArgParser->TraceActorMessage){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_DEBUG,
                 "%s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 ")",
                 UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
     }
 
-    extern ActorPool *g_ActorPool;
     return g_ActorPool->PostMessage(nUID, {rstMB, UID(), 0, nRespond});
 }
 
 bool ActorPod::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, std::function<void(const MessagePack &)> fnOPR)
 {
     if(!nUID){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING,
-                "%s -> NONE: (Type: %s, ID: NA, Resp: %" PRIu32 "): Try to send message to an empty address",
-                UIDFunc::GetUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
-        return false;
+        throw std::invalid_argument(str_ffl() +
+                str_printf(": %s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
+                UIDFunc::GetUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
     }
 
     if(nUID == UID()){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING,
-                "%s -> %s: (Type: %s, ID: NA, Resp: %" PRIu32 "): Try to send message to itself",
-                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
-        return false;
+        throw std::invalid_argument(str_ffl() +
+                str_printf(": %s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
+                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
     }
 
     if(!rstMB){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING,
-                "%s -> %s: (Type: MPK_NONE, ID: NA, Resp: %" PRIu32 "): Try to send an empty message",
-                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), nRespond);
-        return false;
+        throw std::invalid_argument(str_ffl() +
+                str_printf(": %s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
+                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), nRespond));
     }
 
     if(!fnOPR){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING,
-                "%s -> %s: (Type: %s, ID: NA, Resp: %" PRIu32 "): Response handler not executable",
-                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
+        throw std::invalid_argument(str_ffl() +
+                str_printf(": %s -> %s: (Type: %s, ID: NA, Resp: %" PRIu32 "): Response handler not executable",
+                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
     }
 
     auto nID = GetValidID();
 
     extern ServerArgParser *g_ServerArgParser;
     if(g_ServerArgParser->TraceActorMessage){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_DEBUG,
                 "%s -> %s: (Type: %s, ID: %u, Resp: %u)",
                 UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
     }
 
-    extern ActorPool *g_ActorPool;
-    if(!g_ActorPool->PostMessage(nUID, {rstMB, UID(), nID, nRespond})){
+    if(g_ActorPool->PostMessage(nUID, {rstMB, UID(), nID, nRespond})){
+        if(m_RespondHandlerGroup.try_emplace(nID, g_MonoServer->GetTimeTick() + m_ExpireTime, std::move(fnOPR)).second){
+            return true;
+        }
+        throw std::runtime_error(str_ffl() + str_printf(": Failed to register response handler for posted message: %s", MessagePack(rstMB.Type()).Name()));
+    }else{
+        // respond the response handler here
+        // if post failed, it can only be the UID is detached
+        if(fnOPR){
+            fnOPR(MPK_BADUID);
+        }
         return false;
     }
-
-    extern MonoServer *g_MonoServer;
-    return m_RespondHandlerGroup.emplace(nID, RespondHandler(g_MonoServer->GetTimeTick() + m_ExpireTime, std::move(fnOPR))).second;
 }
 
 bool ActorPod::Detach(const std::function<void()> &fnAtExit) const
@@ -307,7 +284,6 @@ bool ActorPod::Detach(const std::function<void()> &fnAtExit) const
 
     // theron library also has this issue
     // only destructor can guarentee the actor is not running any more
-    extern ActorPool *g_ActorPool;
     return g_ActorPool->Detach(this, fnAtExit);
 }
 

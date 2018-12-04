@@ -211,6 +211,7 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
                 case MPK_BADCHANNEL          : return "MPK_BADCHANNEL";
                 case MPK_TIMEOUT             : return "MPK_TIMEOUT";
                 case MPK_UID                 : return "MPK_UID";
+                case MPK_BADUID              : return "MPK_BADUID";
                 case MPK_PING                : return "MPK_PING";
                 case MPK_LOGIN               : return "MPK_LOGIN";
                 case MPK_METRONOME           : return "MPK_METRONOME";

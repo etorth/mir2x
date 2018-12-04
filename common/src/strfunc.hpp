@@ -91,7 +91,11 @@
 #include <string>
 #include <cstdarg>
 
- bool str_nonempty(const char *);
+bool str_nonempty(const char *);
 
- std::string str_printf(const char *, ...);
- std::string str_vprintf(const char *, va_list);
+std::string str_printf(const char *, ...);
+std::string str_vprintf(const char *, va_list);
+
+// before std::source_location standardized
+// we have to use macro to capture the file/function/line information
+#define str_ffl() str_printf("In file: %s, function: %s, line %d", __FILE__, __PRETTY_FUNCTION__, __LINE__)

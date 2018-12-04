@@ -216,12 +216,10 @@ bool Monster::AttackUID(uint64_t nUID, int nDC)
     // before response received we can't allow any attack request
 
     m_AttackLock = true;
-    if(!RetrieveLocation(nUID, [this, nDC, nUID](const COLocation &stCOLocation) -> bool
+    return RetrieveLocation(nUID, [this, nDC, nUID](const COLocation &stCOLocation) -> bool
     {
         if(!m_AttackLock){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "AttackLock released before location query done");
-            return false;
+            throw std::runtime_error(str_ffl() + "AttackLock released before location query done");
         }
 
         // if we get inside current block, we should release the attack lock
@@ -278,17 +276,15 @@ bool Monster::AttackUID(uint64_t nUID, int nDC)
                 }
         }
         return false;
-    })){
+    },
+
+    [this, nUID]() -> void
+    {
+        m_AttackLock = false;
+
         RemoveTarget(nUID);
         m_LocationList.erase(nUID);
-
-        m_AttackLock = false;
-        return false;
-    }
-
-    // RetrieveLocation returns true
-    // means we have valid location or successfully queried the location
-    return true;
+    });
 }
 
 bool Monster::TrackUID(uint64_t nUID)
