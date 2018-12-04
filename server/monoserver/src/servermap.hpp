@@ -53,10 +53,10 @@ class ServerMap final: public ServerObject
                 const ServerMap *m_Map;
 
             private:
-                const bool m_CheckCO;
+                const int m_CheckCO;
 
             public:
-                ServerPathFinder(const ServerMap*, int, bool);
+                ServerPathFinder(const ServerMap*, int, int);
                ~ServerPathFinder() = default;
         };
 
@@ -65,7 +65,7 @@ class ServerMap final: public ServerObject
         friend class ServerPathFinder;
 
     private:
-        struct CellRecord
+        struct MapCell
         {
             bool Locked;
             std::vector<uint64_t> UIDList;
@@ -76,7 +76,7 @@ class ServerMap final: public ServerObject
 
             CacheQueue<CommonItem, SYS_MAXDROPITEM> GroundItemQueue;
 
-            CellRecord()
+            MapCell()
                 : Locked(false)
                 , UIDList()
                 , MapID(0)
@@ -97,7 +97,7 @@ class ServerMap final: public ServerObject
         ServiceCore *m_ServiceCore;
 
     private:
-        Vec2D<CellRecord> m_CellVec2D;
+        Vec2D<MapCell> m_CellVec2D;
 
     private:
         ServerMapLuaModule *m_LuaModule;
@@ -126,7 +126,7 @@ class ServerMap final: public ServerObject
         bool CanMove(bool, bool, int, int, int, int);
 
     protected:
-        double OneStepCost(bool, bool, int, int, int, int) const;
+        double OneStepCost(int, int, int, int, int, int) const;
 
     public:
         const Mir2xMapData &GetMir2xMapData() const

@@ -15,19 +15,19 @@
     </Window>
 
 
-    <Font><FontexDBN>Res/Font/FontexDBN.ZIP</FontexDBN></Font>
+    <Font><FontexDBN>Res/Font/FontexDBN.ZSDB</FontexDBN></Font>
     <Texture>
-        <ProgUseDBN>Res/Texture/ProgUseDBN.ZIP</ProgUseDBN>
-        <GroundItemDBN>Res/Texture/GroundItemDBN.ZIP</GroundItemDBN>
-        <CommonItemDBN>Res/Texture/CommonItemDBN.ZIP</CommonItemDBN>
-        <MapDBN>Res/Texture/MapDBN.ZIP</MapDBN>
-        <HeroDBN>Res/Texture/HeroDBN.ZIP</HeroDBN>
-        <MonsterDBN>Res/Texture/MonsterDBN.ZIP</MonsterDBN>
-        <WeaponDBN>Res/Texture/WeaponDBN.ZIP</WeaponDBN>
-        <MagicDBN>Res/Texture/MagicDBN.ZIP</MagicDBN>
+        <ProgUseDBN>Res/Texture/ProgUseDBN.ZSDB</ProgUseDBN>
+        <GroundItemDBN>Res/Texture/GroundItemDBN.ZSDB</GroundItemDBN>
+        <CommonItemDBN>Res/Texture/CommonItemDBN.ZSDB</CommonItemDBN>
+        <MapDBN>Res/Texture/MapDBN.ZSDB</MapDBN>
+        <HeroDBN>Res/Texture/HeroDBN.ZSDB</HeroDBN>
+        <MonsterDBN>Res/Texture/MonsterDBN.ZSDB</MonsterDBN>
+        <WeaponDBN>Res/Texture/WeaponDBN.ZSDB</WeaponDBN>
+        <MagicDBN>Res/Texture/MagicDBN.ZSDB</MagicDBN>
     </Texture>
     <Map>
-        <MapBinDBN>Res/Map/MapBinDBN.ZIP</MapBinDBN>
+        <MapBinDBN>Res/Map/MapBinDBN.ZSDB</MapBinDBN>
     </Map>
     <Font>
         <FontFile Index="0">

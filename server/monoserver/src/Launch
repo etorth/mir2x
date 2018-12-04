@@ -1,0 +1,12 @@
+actorpod.cpp:    if(!g_ActorPool->Register(this)){
+actorpod.cpp:    if(!g_ActorPool->Detach(this, [](){})){
+actorpod.cpp:    return g_ActorPool->PostMessage(nUID, {rstMB, UID(), 0, nRespond});
+actorpod.cpp:    if(!g_ActorPool->PostMessage(nUID, {rstMB, UID(), nID, nRespond})){
+actorpod.cpp:    return g_ActorPool->Detach(this, fnAtExit);
+dispatcher.cpp:    return g_ActorPool->PostMessage(nUID, {rstMB, 0, 0, nRespond});
+monoserver.cpp:    g_ActorPool->Launch();
+netdriver.cpp:    if(g_ActorPool->CheckInvalid(nUID)){
+receiver.cpp:    if(!g_ActorPool->Register(this)){
+receiver.cpp:    if(!g_ActorPool->Detach(this)){
+syncdriver.cpp:    if(g_ActorPool->IsActorThread()){
+syncdriver.cpp:    if(!g_ActorPool->PostMessage(nUID, {rstMB, UID(), nCurrID, nRespond})){

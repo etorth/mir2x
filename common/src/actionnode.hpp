@@ -47,6 +47,19 @@ struct ActionStand
     {}
 };
 
+struct ActionSpawn
+{
+    int X = -1;
+    int Y = -1;
+    int Direction = -1;
+
+    ActionSpawn(int nX, int nY, int nDirection)
+        : X(nX)
+        , Y(nY)
+        , Direction(nDirection)
+    {}
+};
+
 struct ActionSpell
 {
     int X    = -1;
@@ -192,13 +205,13 @@ struct ActionNode
     const int AimY = -1;
 
     const uint64_t AimUID      = 0;
-    const uint32_t ActionParam = 0;
+    const uint64_t ActionParam = 0;
 
     ActionNode()
         : Action(ACTION_NONE)
     {}
 
-    ActionNode(int nAction, int nSpeed, int nDirection, int nX, int nY, int nAimX, int nAimY, uint64_t nAimUID, uint32_t nActionParam)
+    ActionNode(int nAction, int nSpeed, int nDirection, int nX, int nY, int nAimX, int nAimY, uint64_t nAimUID, uint64_t nActionParam)
         : Action(nAction)
         , Speed(nSpeed)
         , Direction(nDirection)
@@ -222,6 +235,13 @@ struct ActionNode
         , Direction(rstStand.Direction)
         , X(rstStand.X)
         , Y(rstStand.Y)
+    {}
+
+    ActionNode(const ActionSpawn &rstSpawn)
+        : Action(ACTION_SPAWN)
+        , Direction(rstSpawn.Direction)
+        , X(rstSpawn.X)
+        , Y(rstSpawn.Y)
     {}
 
     ActionNode(const ActionMove &rstMove)

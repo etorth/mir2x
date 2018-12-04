@@ -44,6 +44,7 @@ enum DirectionType: int
 enum ActionType: int
 {
     ACTION_NONE = 0,
+    ACTION_SPAWN,
     ACTION_STAND,
     ACTION_PICKUP,
     ACTION_MOVE,

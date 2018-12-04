@@ -21,7 +21,7 @@
 #include <algorithm>
 
 #include "log.hpp"
-#include "game.hpp"
+#include "client.hpp"
 #include "message.hpp"
 #include "sdldevice.hpp"
 #include "pngtexdbn.hpp"
@@ -165,13 +165,13 @@ void ProcessLogin::DoLogin()
         std::memcpy(stCML.ID, szID.c_str(), szID.size());
         std::memcpy(stCML.Password, szPWD.c_str(), szPWD.size());
 
-        extern Game *g_Game;
-        g_Game->Send(CM_LOGIN, stCML);
+        extern Client *g_Client;
+        g_Client->Send(CM_LOGIN, stCML);
     }
 }
 
 void ProcessLogin::DoCreateAccount()
 {
-    extern Game *g_Game;
-    g_Game->RequestProcess(PROCESSID_NEW);
+    extern Client *g_Client;
+    g_Client->RequestProcess(PROCESSID_NEW);
 }

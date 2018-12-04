@@ -66,7 +66,7 @@ Fl_Shared_Image *ImageCache::Retrieve(uint8_t nFileIndex, uint16_t nImageIndex)
     // retrieve in file system cache
     char szHexStr[32];
     std::memset(szHexStr, 0, sizeof(szHexStr));
-    HexString::ToString<uint32_t, 4>(nKey, szHexStr);
+    HexString::ToString<uint32_t, 4>(nKey, szHexStr, true);
     std::string szPNGFullName = m_Path + "/CACHE/" + szHexStr + ".PNG";
 
     if(FileSys::FileExist(szPNGFullName.c_str())){
@@ -88,7 +88,7 @@ bool ImageCache::Register(uint8_t nFileIndex, uint16_t nImageIndex, const uint32
 
     char szHexStr[32];
     std::memset(szHexStr, 0, sizeof(szHexStr));
-    HexString::ToString<uint32_t, 4>(nKey, szHexStr);
+    HexString::ToString<uint32_t, 4>(nKey, szHexStr, true);
     std::string szPNGFullName = m_Path + "/CACHE/" + szHexStr + ".PNG";
     return SaveRGBABufferToPNG((uint8_t *)pBuff, nW, nH, szPNGFullName.c_str())
         && Retrieve(nFileIndex, nImageIndex) != nullptr;

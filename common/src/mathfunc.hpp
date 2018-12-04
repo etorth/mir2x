@@ -22,6 +22,17 @@
 #include <type_traits>
 #include "condcheck.hpp"
 
+template<typename T> T CDistance(T nfX, T nfY, T nfX1, T nfY1)
+{
+    static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
+    if(std::is_unsigned<T>::value){
+        // for unsigned intergal and bool
+        if(nfX < nfX1){ std::swap(nfX, nfX1); }
+        if(nfY < nfY1){ std::swap(nfY, nfY1); }
+    }
+    return std::max<T>(std::abs(nfX - nfX1), std::abs(nfY - nfY1));
+}
+
 template<typename T> T LDistance2(T nfX, T nfY, T nfX1, T nfY1)
 {
     static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");

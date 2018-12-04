@@ -27,6 +27,7 @@ enum MessagePackType: int
     MPK_BADCHANNEL,
     MPK_TIMEOUT,
     MPK_UID,
+    MPK_BADUID,
     MPK_PING,
     MPK_LOGIN,
     MPK_METRONOME,
@@ -233,7 +234,7 @@ struct AMAction
     int AimY;
 
     uint64_t AimUID;
-    uint32_t ActionParam;
+    uint64_t ActionParam;
 };
 
 struct AMPullCOInfo
@@ -314,8 +315,8 @@ struct AMPathFind
     uint64_t UID;
     uint32_t MapID;
 
+    int CheckCO;
     int MaxStep;
-    bool CheckCO;
 
     int X;
     int Y;
@@ -503,7 +504,7 @@ struct AMCORecord
         int AimY;
 
         uint64_t AimUID;
-        uint32_t ActionParam;
+        uint64_t ActionParam;
     }Action;
 
     // instantiation of anonymous struct is supported in C11

@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: game.hpp
+ *       Filename: client.hpp
  *        Created: 08/12/2015 09:59:15
- *    Description: public API for class game only
+ *    Description: public API for class client only
  *
  *        Version: 1.0
  *       Revision: none
@@ -25,7 +25,7 @@
 #include "process.hpp"
 #include "sdldevice.hpp"
 
-class Game final
+class Client final
 {
     private:
         double m_ServerDelay;
@@ -42,8 +42,8 @@ class Game final
         std::string m_ClipboardBuf;
 
     public:
-        Game();
-       ~Game();
+        Client();
+       ~Client();
 
     public:
         void MainLoop();

@@ -19,6 +19,7 @@
 #include "log.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
+#include "uidfunc.hpp"
 #include "mathfunc.hpp"
 #include "condcheck.hpp"
 #include "processrun.hpp"
@@ -27,12 +28,10 @@
 #include "pngtexoffdbn.hpp"
 #include "clientpathfinder.hpp"
 
-Monster::Monster(uint64_t nUID, uint32_t nMonsterID, ProcessRun *pRun)
+Monster::Monster(uint64_t nUID, ProcessRun *pRun)
     : Creature(nUID, pRun)
-    , m_MonsterID(nMonsterID)
 {
     condcheck(nUID);
-    condcheck(nMonsterID);
     condcheck(pRun);
 }
 
@@ -294,6 +293,22 @@ int Monster::MotionFrameCount(int nMotion, int nDirection) const
 
 bool Monster::ParseAction(const ActionNode &rstAction)
 {
+    m_LastActive = SDL_GetTicks();
+    bool bFindMotionDie = false;
+    for(auto &rstMotionNode: m_MotionQueue){
+        if(rstMotionNode.Motion == MOTION_MON_DIE){
+            bFindMotionDie = true;
+            break;
+        }
+    }
+
+    // found pending motion die
+    // ignore all the following actions till the MOTION_MON_DIE done
+
+    if(bFindMotionDie){
+        return true;
+    }
+
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
     switch(rstAction.Action){
@@ -301,6 +316,7 @@ bool Monster::ParseAction(const ActionNode &rstAction)
         case ACTION_MOVE:
         case ACTION_ATTACK:
         case ACTION_HITTED:
+        case ACTION_DIE:
             {
                 // when cleaning pending queue
                 // there could be MOTION_MON_DIE skipped
@@ -321,7 +337,7 @@ bool Monster::ParseAction(const ActionNode &rstAction)
                         }
                     default:
                         {
-                            auto stvPathNode = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, true);
+                            auto stvPathNode = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, 1);
                             switch(stvPathNode.size()){
                                 case 0:
                                 case 1:
@@ -597,16 +613,44 @@ bool Monster::CanFocus(int nPointX, int nPointY)
     return false;
 }
 
-Monster *Monster::Create(uint64_t nUID, uint32_t nMonsterID, ProcessRun *pRun, const ActionNode &rstAction)
+Monster *Monster::CreateMonster(uint64_t nUID, ProcessRun *pRun, const ActionNode &rstAction)
 {
-    auto pNew = new Monster(nUID, nMonsterID, pRun);
-    pNew->m_CurrMotion = {MOTION_MON_STAND, 0, DIR_UP, rstAction.X, rstAction.Y};
-
-    if(pNew->ParseAction(rstAction)){
-        return pNew;
+    if(UIDFunc::GetUIDType(nUID) != UID_MON){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "Invalid UID provided for monster type: UIDName = %s", UIDFunc::GetUIDString(nUID).c_str());
+        return nullptr;
     }
 
-    delete pNew;
+    Monster *pMonster = nullptr;
+    try
+    {
+        pMonster = new Monster(nUID, pRun);
+    }catch(...){
+        extern Log *g_Log;
+        g_Log->AddLog(LOGTYPE_FATAL, "Create monster failed: UIDName = %s", UIDFunc::GetUIDString(nUID).c_str());
+        return nullptr;
+    }
+
+    // setup the initial motion
+    // this motion may never be present since we immediately call ParseAction()
+    switch(pMonster->MonsterID()){
+        case DBCOM_MONSTERID(u8"变异骷髅"):
+            {
+                pMonster->m_CurrMotion = {MOTION_MON_STAND, 0, DIR_DOWNLEFT, rstAction.X, rstAction.Y};
+                break;
+            }
+        default:
+            {
+                pMonster->m_CurrMotion = {MOTION_MON_STAND, 0, DIR_UP, rstAction.X, rstAction.Y};
+                break;
+            }
+    }
+
+    if(pMonster->ParseAction(rstAction)){
+        return pMonster;
+    }
+
+    delete pMonster;
     return nullptr;
 }
 
@@ -614,8 +658,8 @@ MotionNode Monster::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpee
 {
     if(true
             && m_ProcessRun
-            && m_ProcessRun->CanMove(false, nX0, nY0)
-            && m_ProcessRun->CanMove(false, nX1, nY1)
+            && m_ProcessRun->CanMove(true, 0, nX0, nY0)
+            && m_ProcessRun->CanMove(true, 0, nX1, nY1)
 
             && nSpeed >= SYS_MINSPEED
             && nSpeed <= SYS_MAXSPEED){

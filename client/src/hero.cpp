@@ -337,6 +337,8 @@ bool Hero::MotionValid(const MotionNode &rstMotion) const
 
 bool Hero::ParseAction(const ActionNode &rstAction)
 {
+    m_LastActive = SDL_GetTicks();
+
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
     switch(rstAction.Action){
@@ -361,7 +363,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                         }
                     default:
                         {
-                            auto stvPathNode = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, false);
+                            auto stvPathNode = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, 0);
                             switch(stvPathNode.size()){
                                 case 0:
                                 case 1:
@@ -471,7 +473,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                             };
 
                             int nDir = DIR_NONE;
-                            if(m_ProcessRun->CanMove(false, rstAction.AimX, rstAction.AimY)){
+                            if(m_ProcessRun->CanMove(true, 0, rstAction.AimX, rstAction.AimY)){
                                 nDir = fnGetSpellDir(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY);
                             }else if(rstAction.AimUID){
                                 if(auto pCreature = m_ProcessRun->RetrieveUID(rstAction.AimUID)){
@@ -729,8 +731,8 @@ MotionNode Hero::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed) 
 {
     if(true
             && m_ProcessRun
-            && m_ProcessRun->CanMove(false, nX0, nY0)
-            && m_ProcessRun->CanMove(false, nX1, nY1)
+            && m_ProcessRun->CanMove(true, 0, nX0, nY0)
+            && m_ProcessRun->CanMove(true, 0, nX1, nY1)
 
             && nSpeed >= SYS_MINSPEED
             && nSpeed <= SYS_MAXSPEED){

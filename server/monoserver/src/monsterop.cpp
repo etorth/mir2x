@@ -49,78 +49,102 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK)
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    if(stAMA.UID != UID()){
-        int nX   = -1;
-        int nY   = -1;
-        int nDir = -1;
-        switch(stAMA.Action){
-            case ACTION_STAND:
-            case ACTION_ATTACK:
-            case ACTION_HITTED:
-                {
-                    nX   = stAMA.X;
-                    nY   = stAMA.Y;
-                    nDir = stAMA.Direction;
-                    break;
-                }
-            case ACTION_MOVE:
-            case ACTION_SPELL:
-                {
-                    nX = stAMA.X;
-                    nY = stAMA.Y;
-                    break;
-                }
-            case ACTION_DIE:
-                {
-                    RemoveTarget(stAMA.UID);
-                    return;
-                }
-            default:
-                {
-                    return;
-                }
-        }
+    if(stAMA.UID == UID()){
+        return;
+    }
 
-        extern MonoServer *g_MonoServer;
-        m_LocationList[stAMA.UID] = COLocation
-        {
-            stAMA.UID,
-            stAMA.MapID,
-            g_MonoServer->GetTimeTick(),
-            nX,
-            nY,
-            nDir,
-        };
+    if(stAMA.MapID != MapID()){
+        m_LocationList.erase(stAMA.UID);
+        return;
+    }
 
-        if(InRange(RANGE_VISIBLE, stAMA.X, stAMA.Y)){
-            switch(GetState(STATE_ATTACKMODE)){
-                case STATE_ATTACKMODE_NORMAL:
-                    {
-                        if(UIDFunc::GetUIDType(stAMA.UID) == UID_PLY){
-                            AddTarget(stAMA.UID);
-                        }
-                        break;
-                    }
-                case STATE_ATTACKMODE_DOGZ:
-                    {
-                        if(UIDFunc::GetUIDType(stAMA.UID) == UID_MON){
-                            AddTarget(stAMA.UID);
-                        }
-                        break;
-                    }
-                case STATE_ATTACKMODE_ATTACKALL:
-                    {
-                        if(auto nType = UIDFunc::GetUIDType(stAMA.UID); nType == UID_PLY || nType == UID_MON){
-                            AddTarget(stAMA.UID);
-                        }
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
+    int nX   = -1;
+    int nY   = -1;
+    int nDir = -1;
+
+    switch(stAMA.Action){
+        case ACTION_STAND:
+        case ACTION_ATTACK:
+        case ACTION_HITTED:
+            {
+                nX   = stAMA.X;
+                nY   = stAMA.Y;
+                nDir = stAMA.Direction;
+                break;
             }
-        }
+        case ACTION_MOVE:
+        case ACTION_SPELL:
+        case ACTION_SPAWN:
+            {
+                nX = stAMA.X;
+                nY = stAMA.Y;
+                break;
+            }
+        case ACTION_DIE:
+            {
+                RemoveTarget(stAMA.UID);
+                return;
+            }
+        default:
+            {
+                return;
+            }
+    }
+
+    if(!InRange(RANGE_VISIBLE, nX, nY)){
+        return;
+    }
+
+    switch(stAMA.Action){
+        case ACTION_SPAWN:
+        case ACTION_SPACEMOVE2:
+            {
+                DispatchAction(stAMA.UID, ActionStand(X(), Y(), Direction()));
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    extern MonoServer *g_MonoServer;
+    m_LocationList[stAMA.UID] = COLocation
+    {
+        stAMA.UID,
+        stAMA.MapID,
+        g_MonoServer->GetTimeTick(),
+        nX,
+        nY,
+        nDir,
+    };
+
+    switch(GetState(STATE_ATTACKMODE)){
+        case STATE_ATTACKMODE_NORMAL:
+            {
+                if(UIDFunc::GetUIDType(stAMA.UID) == UID_PLY){
+                    AddTarget(stAMA.UID);
+                }
+                break;
+            }
+        case STATE_ATTACKMODE_DOGZ:
+            {
+                if(UIDFunc::GetUIDType(stAMA.UID) == UID_MON){
+                    AddTarget(stAMA.UID);
+                }
+                break;
+            }
+        case STATE_ATTACKMODE_ATTACKALL:
+            {
+                if(auto nType = UIDFunc::GetUIDType(stAMA.UID); nType == UID_PLY || nType == UID_MON){
+                    AddTarget(stAMA.UID);
+                }
+                break;
+            }
+        default:
+            {
+                break;
+            }
     }
 }
 
@@ -201,6 +225,15 @@ void Monster::On_MPK_UPDATEHP(const MessagePack &)
 
 void Monster::On_MPK_BADACTORPOD(const MessagePack &)
 {
+}
+
+void Monster::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
+{
+    AMDeadFadeOut stAMDFO;
+    std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
+
+    RemoveTarget(stAMDFO.UID);
+    m_LocationList.erase(stAMDFO.UID);
 }
 
 void Monster::On_MPK_NOTIFYDEAD(const MessagePack &rstMPK)

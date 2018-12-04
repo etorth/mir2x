@@ -18,7 +18,7 @@
 
 #include <cinttypes>
 #include "uidfunc.hpp"
-#include "serverenv.hpp"
+#include "serverargparser.hpp"
 #include "actorpool.hpp"
 #include "monoserver.hpp"
 #include "dispatcher.hpp"
@@ -26,8 +26,8 @@
 
 bool Dispatcher::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond)
 {
-    extern ServerEnv *g_ServerEnv;
-    if(g_ServerEnv->TraceActorMessage){
+    extern ServerArgParser *g_ServerArgParser;
+    if(g_ServerArgParser->TraceActorMessage){
         extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %" PRIu32 ")", UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
     }

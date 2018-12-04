@@ -25,7 +25,8 @@
 #include "mapbindbn.hpp"
 #include "pngtexdbn.hpp"
 #include "sdldevice.hpp"
-#include "clientenv.hpp"
+#include "clientargparser.hpp"
+#include "pathfinder.hpp"
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
 #include "clientluamodule.hpp"
@@ -36,7 +37,7 @@ ProcessRun::ProcessRun()
     , m_MapID(0)
     , m_Mir2xMapData()
     , m_GroundItemList()
-    , m_MyHero(nullptr)
+    , m_MyHeroUID(0)
     , m_FocusTable()
     , m_ViewX(0)
     , m_ViewY(0)
@@ -59,9 +60,10 @@ ProcessRun::ProcessRun()
             false)              // 
     , m_InventoryBoard(0, 0, this)
     , m_CreatureList()
+    , m_UIDPending()
     , m_MousePixlLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
     , m_MouseGridLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
-    , m_AscendStrRecord()
+    , m_AscendStrList()
 {
     m_FocusTable.fill(0);
     RegisterUserCommand();
@@ -73,30 +75,34 @@ void ProcessRun::ScrollMap()
     auto nShowWindowW = g_SDLDevice->WindowW(false);
     auto nShowWindowH = g_SDLDevice->WindowH(false);
 
-    if(m_MyHero){
-        int nViewX = m_MyHero->X() * SYS_MAPGRIDXP - nShowWindowW / 2;
-        int nViewY = m_MyHero->Y() * SYS_MAPGRIDYP - nShowWindowH / 2;
+    if(!GetMyHero()){
+        return;
+    }
 
-        int nDViewX = nViewX - m_ViewX;
-        int nDViewY = nViewY - m_ViewY;
+    int nViewX = GetMyHero()->X() * SYS_MAPGRIDXP - nShowWindowW / 2;
+    int nViewY = GetMyHero()->Y() * SYS_MAPGRIDYP - nShowWindowH / 2;
 
-        if(m_RollMap
-                ||  (std::abs(nDViewX) > nShowWindowW / 4)
-                ||  (std::abs(nDViewY) > nShowWindowH / 4)){
+    int nDViewX = nViewX - m_ViewX;
+    int nDViewY = nViewY - m_ViewY;
 
-            m_RollMap = true;
+    if(m_RollMap
+            ||  (std::abs(nDViewX) > nShowWindowW / 4)
+            ||  (std::abs(nDViewY) > nShowWindowH / 4)){
 
-            m_ViewX += (int)(std::lround(std::copysign(std::min<int>(3, std::abs(nDViewX)), nDViewX)));
-            m_ViewY += (int)(std::lround(std::copysign(std::min<int>(2, std::abs(nDViewY)), nDViewY)));
+        m_RollMap = true;
 
-            m_ViewX = std::max<int>(0, m_ViewX);
-            m_ViewY = std::max<int>(0, m_ViewY);
-        }
+        m_ViewX += (int)(std::lround(std::copysign(std::min<int>(3, std::abs(nDViewX)), nDViewX)));
+        m_ViewY += (int)(std::lround(std::copysign(std::min<int>(2, std::abs(nDViewY)), nDViewY)));
 
-        // stop rolling the map when
-        //   1. the hero is at the required position
-        //   2. the hero is not moving
-        if((nDViewX == 0) && (nDViewY == 0) && !m_MyHero->Moving()){ m_RollMap = false; }
+        m_ViewX = std::max<int>(0, m_ViewX);
+        m_ViewY = std::max<int>(0, m_ViewY);
+    }
+
+    // stop rolling the map when
+    //   1. the hero is at the required position
+    //   2. the hero is not moving
+    if((nDViewX == 0) && (nDViewY == 0) && !GetMyHero()->Moving()){
+        m_RollMap = false;
     }
 }
 
@@ -105,40 +111,38 @@ void ProcessRun::Update(double fUpdateTime)
     ScrollMap();
     m_ControbBoard.Update(fUpdateTime);
 
-    for(auto pRecord = m_CreatureList.begin(); pRecord != m_CreatureList.end();){
-        if(true
-                && pRecord->second
-                && pRecord->second->Active()){
-            pRecord->second->Update(fUpdateTime);
-            ++pRecord;
+    for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
+        if(p->second->Visible()){
+            if(p->second->LastActive() + 2000 < SDL_GetTicks()){
+                QueryCORecord(p->second->UID());
+            }
+            p->second->Update(fUpdateTime);
+            ++p;
         }else{
-            delete pRecord->second;
-            pRecord = m_CreatureList.erase(pRecord);
+            p = m_CreatureList.erase(p);
         }
     }
 
-    for(size_t nIndex = 0; nIndex < m_IndepMagicList.size();){
-        m_IndepMagicList[nIndex]->Update(fUpdateTime);
-        if(m_IndepMagicList[nIndex]->Done()){
-            std::swap(m_IndepMagicList[nIndex], m_IndepMagicList.back());
-            m_IndepMagicList.pop_back();
+    for(auto p = m_IndepMagicList.begin(); p != m_IndepMagicList.end();){
+        if((*p)->Done()){
+            p = m_IndepMagicList.erase(p);
         }else{
-            nIndex++;
+            (*p)->Update(fUpdateTime);
+            ++p;
         }
     }
 
-    for(auto pRecord = m_AscendStrRecord.begin(); pRecord != m_AscendStrRecord.end();){
-        if((*pRecord)->Ratio() < 1.0){
-            (*pRecord)->Update(fUpdateTime);
-            ++pRecord;
+    for(auto p = m_AscendStrList.begin(); p != m_AscendStrList.end();){
+        if((*p)->Ratio() < 1.00){
+            (*p)->Update(fUpdateTime);
+            ++p;
         }else{
-            delete (*pRecord);
-            pRecord = m_AscendStrRecord.erase(pRecord);
+            p = m_AscendStrList.erase(p);
         }
     }
 
-    if(auto pCreature = RetrieveUID(m_FocusTable[FOCUS_ATTACK])){
-        if(pCreature->StayDead()){
+    if(auto p = RetrieveUID(m_FocusTable[FOCUS_ATTACK])){
+        if(p->StayDead()){
             m_FocusTable[FOCUS_ATTACK] = 0;
         }else{
             TrackAttack(false, m_FocusTable[FOCUS_ATTACK]);
@@ -164,7 +168,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                     auto fnCheckFocus = [this](uint64_t nUID, int nX, int nY) -> bool
                     {
                         if(auto pCreature = RetrieveUID(nUID)){
-                            if(pCreature != m_MyHero){
+                            if(nUID != m_MyHeroUID){
                                 if(pCreature->CanFocus(nX, nY)){
                                     return true;
                                 }
@@ -193,7 +197,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                                     ||  pFocus->Y() < pRecord.second->Y()){
                                 // 1. currently we have no candidate yet
                                 // 2. we have candidate but it's not at more front location
-                                pFocus = pRecord.second;
+                                pFocus = pRecord.second.get();
                             }
                         }
                     }
@@ -263,8 +267,8 @@ void ProcessRun::Draw()
             }
         }
 
-        extern ClientEnv *g_ClientEnv;
-        if(g_ClientEnv->EnableDrawMapGrid){
+        extern ClientArgParser *g_ClientArgParser;
+        if(g_ClientArgParser->EnableDrawMapGrid){
             int nGridX0 = m_ViewX / SYS_MAPGRIDXP;
             int nGridY0 = m_ViewY / SYS_MAPGRIDYP;
 
@@ -392,8 +396,8 @@ void ProcessRun::Draw()
                             &&  (pCreature.second->Y() == nY)
                             && !(pCreature.second->StayDead())){
 
-                        extern ClientEnv *g_ClientEnv;
-                        if(g_ClientEnv->EnableDrawCreatureCover){
+                        extern ClientArgParser *g_ClientArgParser;
+                        if(g_ClientArgParser->EnableDrawCreatureCover){
                             g_SDLDevice->PushColor(0, 0, 255, 128);
                             g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
                             g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
@@ -464,12 +468,9 @@ void ProcessRun::Draw()
         }
 
         // draw magics
-        for(auto pMagic: m_IndepMagicList){
-            if(true
-                    &&  pMagic
-                    && !pMagic->Done()){
-
-                pMagic->Draw(m_ViewX, m_ViewY);
+        for(auto p: m_IndepMagicList){
+            if(!p->Done()){
+                p->Draw(m_ViewX, m_ViewY);
             }
         }
 
@@ -488,16 +489,16 @@ void ProcessRun::Draw()
         g_SDLDevice->PopColor();
     }
 
-    for(auto pRecord: m_AscendStrRecord){
-        pRecord->Draw(m_ViewX, m_ViewY);
+    for(auto p: m_AscendStrList){
+        p->Draw(m_ViewX, m_ViewY);
     }
 
     m_ControbBoard  .Draw();
     m_InventoryBoard.Draw();
 
     // draw cursor location information on top-left
-    extern ClientEnv *g_ClientEnv;
-    if(g_ClientEnv->EnableDrawMouseLocation){
+    extern ClientArgParser *g_ClientArgParser;
+    if(g_ClientArgParser->EnableDrawMouseLocation){
         g_SDLDevice->PushColor(0, 0, 0, 230);
         g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
         g_SDLDevice->FillRectangle(0, 0, 200, 60);
@@ -508,8 +509,8 @@ void ProcessRun::Draw()
         int nPointY = -1;
         SDL_GetMouseState(&nPointX, &nPointY);
 
-        m_MousePixlLoc.SetText("Pix_Loc: %3d, %3d", nPointX, nPointY);
-        m_MouseGridLoc.SetText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
+        m_MousePixlLoc.FormatText("Pix_Loc: %3d, %3d", nPointX, nPointY);
+        m_MouseGridLoc.FormatText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
 
         m_MouseGridLoc.DrawEx(10, 10, 0, 0, m_MouseGridLoc.W(), m_MouseGridLoc.H());
         m_MousePixlLoc.DrawEx(10, 30, 0, 0, m_MousePixlLoc.W(), m_MousePixlLoc.H());
@@ -540,7 +541,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             }else{
                                 auto &rstGroundItemList = GetGroundItemList(nMouseGridX, nMouseGridY);
                                 if(!rstGroundItemList.empty()){
-                                    m_MyHero->EmplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, rstGroundItemList.back().ID()));
+                                    GetMyHero()->EmplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, rstGroundItemList.back().ID()));
                                 }
                             }
                             break;
@@ -564,7 +565,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                 int nY = -1;
                                 if(true
                                         && ScreenPoint2Grid(rstEvent.button.x, rstEvent.button.y, &nX, &nY)
-                                        && LDistance2(m_MyHero->CurrMotion().EndX, m_MyHero->CurrMotion().EndY, nX, nY)){
+                                        && LDistance2(GetMyHero()->CurrMotion().EndX, GetMyHero()->CurrMotion().EndY, nX, nY)){
 
                                     // we get a valid dst to go
                                     // provide myHero with new move action command
@@ -572,14 +573,14 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                     // when post move action don't use X() and Y()
                                     // since if clicks during hero moving then X() may not equal to EndX
 
-                                    m_MyHero->EmplaceAction(ActionMove
+                                    GetMyHero()->EmplaceAction(ActionMove
                                     {
-                                        m_MyHero->CurrMotion().EndX,    // don't use X()
-                                        m_MyHero->CurrMotion().EndY,    // don't use Y()
+                                        GetMyHero()->CurrMotion().EndX,    // don't use X()
+                                        GetMyHero()->CurrMotion().EndY,    // don't use Y()
                                         nX,
                                         nY,
                                         SYS_DEFSPEED,
-                                        m_MyHero->OnHorse() ? 1 : 0
+                                        GetMyHero()->OnHorse() ? 1 : 0
                                     });
                                 }
                             }
@@ -620,10 +621,10 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             }
 
                             if(auto nFocusUID = FocusUID(FOCUS_MAGIC)){
-                                m_MyHero->EmplaceAction(ActionSpell
+                                GetMyHero()->EmplaceAction(ActionSpell
                                 {
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
+                                    GetMyHero()->CurrMotion().EndX,
+                                    GetMyHero()->CurrMotion().EndY,
                                     nFocusUID,
                                     DBCOM_MAGICID(u8"雷电术"),
                                 });
@@ -634,10 +635,10 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                 int nMouseY = -1;
                                 SDL_GetMouseState(&nMouseX, &nMouseY);
                                 ScreenPoint2Grid(nMouseX, nMouseY, &nAimX, &nAimY);
-                                m_MyHero->EmplaceAction(ActionSpell
+                                GetMyHero()->EmplaceAction(ActionSpell
                                 {
-                                    m_MyHero->CurrMotion().EndX,
-                                    m_MyHero->CurrMotion().EndY,
+                                    GetMyHero()->CurrMotion().EndX,
+                                    GetMyHero()->CurrMotion().EndY,
                                     nAimX,
                                     nAimY,
                                     DBCOM_MAGICID(u8"雷电术"),
@@ -647,17 +648,17 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                         }
                     case SDLK_p:
                         {
-                            m_MyHero->PickUp();
+                            GetMyHero()->PickUp();
                             break;
                         }
                     case SDLK_y:
                         {
-                            m_MyHero->EmplaceAction(ActionSpell(m_MyHero->X(), m_MyHero->Y(), m_MyHero->UID(), DBCOM_MAGICID(u8"魔法盾")));
+                            GetMyHero()->EmplaceAction(ActionSpell(GetMyHero()->X(), GetMyHero()->Y(), GetMyHero()->UID(), DBCOM_MAGICID(u8"魔法盾")));
                             break;
                         }
                     case SDLK_u:
                         {
-                            m_MyHero->EmplaceAction(ActionSpell(m_MyHero->X(), m_MyHero->Y(), m_MyHero->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
+                            GetMyHero()->EmplaceAction(ActionSpell(GetMyHero()->X(), GetMyHero()->Y(), GetMyHero()->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
                             break;
                         }
                     default:
@@ -704,7 +705,7 @@ int ProcessRun::LoadMap(uint32_t nMapID)
     return -1;
 }
 
-bool ProcessRun::CanMove(bool bCheckCreature, int nX, int nY)
+bool ProcessRun::CanMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
 {
     switch(auto nGrid = CheckPathGrid(nX, nY)){
         case PathFind::FREE:
@@ -714,12 +715,28 @@ bool ProcessRun::CanMove(bool bCheckCreature, int nX, int nY)
         case PathFind::OBSTACLE:
         case PathFind::INVALID:
             {
-                return false;
+                return bCheckGround ? false : true;
             }
         case PathFind::OCCUPIED:
         case PathFind::LOCKED:
             {
-                return bCheckCreature ? false : true;
+                switch(nCheckCreature){
+                    case 0:
+                    case 1:
+                        {
+                            return true;
+                        }
+                    case 2:
+                        {
+                            return false;
+                        }
+                    default:
+                        {
+                            extern Log *g_Log;
+                            g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
+                            return false;
+                        }
+                }
             }
         default:
             {
@@ -763,13 +780,28 @@ int ProcessRun::CheckPathGrid(int nX, int nY) const
     return PathFind::FREE;
 }
 
-bool ProcessRun::CanMove(bool bCheckCreature, int nX0, int nY0, int nX1, int nY1)
+bool ProcessRun::CanMove(bool bCheckGround, int nCheckCreature, int nX0, int nY0, int nX1, int nY1)
 {
-    return OneStepCost(nullptr, bCheckCreature, nX0, nY0, nX1, nY1) >= 0.00;
+    return OneStepCost(nullptr, bCheckGround, nCheckCreature, nX0, nY0, nX1, nY1) >= 0.00;
 }
 
-double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckCreature, int nX0, int nY0, int nX1, int nY1) const
+double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckGround, int nCheckCreature, int nX0, int nY0, int nX1, int nY1) const
 {
+    switch(nCheckCreature){
+        case 0:
+        case 1:
+        case 2:
+            {
+                break;
+            }
+        default:
+            {
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
+                break;
+            }
+    }
+
     int nMaxIndex = -1;
     switch(LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
@@ -816,14 +848,30 @@ double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckCreat
             case PathFind::LOCKED:
             case PathFind::OCCUPIED:
                 {
-                    if(bCheckCreature){
-                        fExtraPen += 100.00;
+                    switch(nCheckCreature){
+                        case 1:
+                            {
+                                fExtraPen += 100.00;
+                                break;
+                            }
+                        case 2:
+                            {
+                                return -1.00;
+                            }
+                        default:
+                            {
+                                break;
+                            }
                     }
                     break;
                 }
             case PathFind::INVALID:
             case PathFind::OBSTACLE:
                 {
+                    if(bCheckGround){
+                        return -1.00;
+                    }
+
                     fExtraPen += 10000.00;
                     break;
                 }
@@ -941,14 +989,12 @@ bool ProcessRun::UserCommand(const char *szUserCommand)
 std::vector<int> ProcessRun::GetPlayerList()
 {
     std::vector<int> stRetV {};
-    for(auto pRecord = m_CreatureList.begin(); pRecord != m_CreatureList.end();){
-        if(true
-                && pRecord->second
-                && pRecord->second->Active()){
-            switch(pRecord->second->Type()){
+    for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
+        if(p->second->Visible()){
+            switch(p->second->Type()){
                 case CREATURE_PLAYER:
                     {
-                        stRetV.push_back(pRecord->second->UID());
+                        stRetV.push_back(p->second->UID());
                         break;
                     }
                 default:
@@ -956,10 +1002,9 @@ std::vector<int> ProcessRun::GetPlayerList()
                         break;
                     }
             }
-            ++pRecord;
+            ++p;
         }else{
-            delete pRecord->second;
-            pRecord = m_CreatureList.erase(pRecord);
+            p = m_CreatureList.erase(p);
         }
     }
     return stRetV;
@@ -1143,7 +1188,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         pModule->GetLuaState().set_function("myHero_dress", [this](int nDress)
         {
             if(nDress >= 0){
-                m_MyHero->Dress((uint32_t)(nDress));
+                GetMyHero()->Dress((uint32_t)(nDress));
             }
         });
 
@@ -1152,7 +1197,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         pModule->GetLuaState().set_function("myHero_weapon", [this](int nWeapon)
         {
             if(nWeapon >= 0){
-                m_MyHero->Weapon((uint32_t)(nWeapon));
+                GetMyHero()->Weapon((uint32_t)(nWeapon));
             }
         });
 
@@ -1163,74 +1208,43 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
     return false;
 }
 
-bool ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
+void ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
 {
-    auto fnRecordLog = [this](int nOutPort, int nLogType, const char *szPrompt, const char *szLogInfo)
+    std::string szLog;
+    bool bError = false;
     {
-        if(nOutPort & OUTPORT_LOG){
-            extern Log *g_Log;
-            switch(nLogType){
-                case 0  : g_Log->AddLog(LOGTYPE_INFO   , "%s%s", szPrompt ? szPrompt : "", szLogInfo); break;
-                case 1  : g_Log->AddLog(LOGTYPE_WARNING, "%s%s", szPrompt ? szPrompt : "", szLogInfo); break;
-                default : g_Log->AddLog(LOGTYPE_FATAL  , "%s%s", szPrompt ? szPrompt : "", szLogInfo); break;
-            }
-        }
-
-        if(nOutPort & OUTPORT_SCREEN){
-        }
-
-        if(nOutPort & OUTPORT_CONTROLBOARD){
-            m_ControbBoard.AddLog(nLogType, szLogInfo);
-        }
-    };
-
-    int nLogSize = 0;
-
-    // 1. try static buffer
-    //    give an enough size so we can hopefully stop here
-    {
-        char szSBuf[1024];
-
         va_list ap;
         va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(szSBuf, std::extent<decltype(szSBuf)>::value, szLogFormat, ap);
-        va_end(ap);
 
-        if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < std::extent<decltype(szSBuf)>::value){
-                fnRecordLog(nOutPort, nLogType, szPrompt, szSBuf);
-                return true;
-            }else{
-                // do nothing
-                // have to try the dynamic buffer method
-            }
-        }else{
-            fnRecordLog(nOutPort, 0, "", (std::string("Parse log info failed: ") + szLogFormat).c_str());
-            return false;
+        try{
+            szLog = str_vprintf(szLogFormat, ap);
+        }catch(const std::exception &e){
+            bError = true;
+            szLog = str_printf("Exception caught in ProcessRun::AddOPLog(\"%s\", ...): %s", szLogFormat, e.what());
+        }
+
+        va_end(ap);
+    }
+
+    if(bError){
+        nLogType = Log::LOGTYPEV_WARNING;
+    }
+
+    if(nOutPort & OUTPORT_LOG){
+        extern Log *g_Log;
+        switch(nLogType){
+            case Log::LOGTYPEV_INFO    : g_Log->AddLog(LOGTYPE_INFO   , "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_WARNING : g_Log->AddLog(LOGTYPE_WARNING, "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_DEBUG   : g_Log->AddLog(LOGTYPE_DEBUG,   "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            default                    : g_Log->AddLog(LOGTYPE_FATAL  , "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
         }
     }
 
-    // 2. try dynamic buffer
-    //    use the parsed buffer size above to get enough memory
-    while(true){
-        std::vector<char> szDBuf(nLogSize + 1 + 64);
+    if(nOutPort & OUTPORT_SCREEN){
+    }
 
-        va_list ap;
-        va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(&(szDBuf[0]), szDBuf.size(), szLogFormat, ap);
-        va_end(ap);
-
-        if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < szDBuf.size()){
-                fnRecordLog(nOutPort, nLogType, szPrompt, &(szDBuf[0]));
-                return true;
-            }else{
-                szDBuf.resize(nLogSize + 1 + 64);
-            }
-        }else{
-            fnRecordLog(nOutPort, 0, "", (std::string("Parse log info failed: ") + szLogFormat).c_str());
-            return false;
-        }
+    if(nOutPort & OUTPORT_CONTROLBOARD){
+        m_ControbBoard.AddLog(nLogType, szLog.c_str());
     }
 }
 
@@ -1246,18 +1260,14 @@ Creature *ProcessRun::RetrieveUID(uint64_t nUID)
     }
 
     if(auto p = m_CreatureList.find(nUID); p != m_CreatureList.end()){
-        if(true
-                && p->second
-                && p->second->Active()
-                && p->second->UID() == nUID){
-            // here return the naked pointer
-            // OK since we force to use single thread
-            return p->second;
+        if(p->second->Visible()){
+            if(p->second->UID() != nUID){
+                extern Log *g_Log;
+                g_Log->AddLog(LOGTYPE_FATAL, "Invalid creature record: %p, UID = %" PRIu64, p->second, p->second->UID());
+                return nullptr;
+            }
+            return p->second.get();
         }
-
-        // invalid record found
-        // delete it as garbage collector
-        delete p->second;
         m_CreatureList.erase(p);
     }
     return nullptr;
@@ -1276,10 +1286,10 @@ bool ProcessRun::LocateUID(uint64_t nUID, int *pX, int *pY)
 bool ProcessRun::TrackAttack(bool bForce, uint64_t nUID)
 {
     if(RetrieveUID(nUID)){
-        if(bForce || m_MyHero->StayIdle()){
-            auto nEndX = m_MyHero->CurrMotion().EndX;
-            auto nEndY = m_MyHero->CurrMotion().EndY;
-            return m_MyHero->EmplaceAction(ActionAttack(nEndX, nEndY, DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
+        if(bForce || GetMyHero()->StayIdle()){
+            auto nEndX = GetMyHero()->CurrMotion().EndX;
+            auto nEndY = GetMyHero()->CurrMotion().EndY;
+            return GetMyHero()->EmplaceAction(ActionAttack(nEndX, nEndY, DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
         }
     }
     return false;
@@ -1317,7 +1327,7 @@ uint32_t ProcessRun::GetFocusFaceKey()
 
 void ProcessRun::AddAscendStr(int nType, int nValue, int nX, int nY)
 {
-    m_AscendStrRecord.emplace_back(new AscendStr(nType, nValue, nX, nY));
+    m_AscendStrList.emplace_back(std::make_shared<AscendStr>(nType, nValue, nX, nY));
 }
 
 bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
@@ -1335,13 +1345,13 @@ bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
 
 void ProcessRun::CenterMyHero()
 {
-    if(m_MyHero){
-        auto nMotion     = m_MyHero->CurrMotion().Motion;
-        auto nDirection  = m_MyHero->CurrMotion().Direction;
-        auto nX          = m_MyHero->CurrMotion().X;
-        auto nY          = m_MyHero->CurrMotion().Y;
-        auto nFrame      = m_MyHero->CurrMotion().Frame;
-        auto nFrameCount = m_MyHero->MotionFrameCount(nMotion, nDirection);
+    if(GetMyHero()){
+        auto nMotion     = GetMyHero()->CurrMotion().Motion;
+        auto nDirection  = GetMyHero()->CurrMotion().Direction;
+        auto nX          = GetMyHero()->CurrMotion().X;
+        auto nY          = GetMyHero()->CurrMotion().Y;
+        auto nFrame      = GetMyHero()->CurrMotion().Frame;
+        auto nFrameCount = GetMyHero()->MotionFrameCount(nMotion, nDirection);
 
         if(nFrameCount > 0){
             auto fnSetOff = [this, nX, nY, nDirection, nFrame, nFrameCount](int nStepLen)
@@ -1363,13 +1373,13 @@ void ProcessRun::CenterMyHero()
                         {
                             int nDX = -1;
                             int nDY = -1;
-                            if(PathFind::GetFrontLocation(&nDX, &nDY, 0, 0, nDirection, nStepLen)){
-                                int nOffX = nDX * SYS_MAPGRIDXP * (nFrame + 1) / nFrameCount;
-                                int nOffY = nDY * SYS_MAPGRIDYP * (nFrame + 1) / nFrameCount;
+                            PathFind::GetFrontLocation(&nDX, &nDY, 0, 0, nDirection, nStepLen);
 
-                                m_ViewX = nX * SYS_MAPGRIDXP + nOffX - nShowWindowW / 2;
-                                m_ViewY = nY * SYS_MAPGRIDYP + nOffY - nShowWindowH / 2;
-                            }
+                            int nOffX = nDX * SYS_MAPGRIDXP * (nFrame + 1) / nFrameCount;
+                            int nOffY = nDY * SYS_MAPGRIDYP * (nFrame + 1) / nFrameCount;
+
+                            m_ViewX = nX * SYS_MAPGRIDXP + nOffX - nShowWindowW / 2;
+                            m_ViewY = nY * SYS_MAPGRIDYP + nOffY - nShowWindowH / 2;
                             return;
                         }
                     default:
@@ -1411,12 +1421,12 @@ bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
     extern MapBinDBN *g_MapBinDBN;
     if(auto pMapBin = g_MapBinDBN->Retrieve(nMapID)){
         if(pMapBin->ValidC(nX, nY) && pMapBin->Cell(nX, nY).CanThrough()){
-            extern Game *g_Game;
+            extern Client *g_Client;
             CMReqestSpaceMove stCMRSM;
             stCMRSM.MapID = nMapID;
             stCMRSM.X     = nX;
             stCMRSM.Y     = nY;
-            g_Game->Send(CM_REQUESTSPACEMOVE, stCMRSM);
+            g_Client->Send(CM_REQUESTSPACEMOVE, stCMRSM);
             return true;
         }
     }
@@ -1425,12 +1435,94 @@ bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
 
 void ProcessRun::ClearCreature()
 {
-    m_MyHero = nullptr;
-
-    for(auto pRecord: m_CreatureList){
-        delete pRecord.second;
-    }
     m_CreatureList.clear();
+}
+
+void ProcessRun::QueryCORecord(uint64_t nUID) const
+{
+    CMQueryCORecord stCMQCOR;
+    std::memset(&stCMQCOR, 0, sizeof(stCMQCOR));
+
+    stCMQCOR.AimUID = nUID;
+
+    extern Client *g_Client;
+    g_Client->Send(CM_QUERYCORECORD, stCMQCOR);
+}
+
+void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
+{
+    condcheck(nUID);
+    condcheck(rstAction.Action == ACTION_SPAWN);
+
+    if(UIDFunc::GetUIDType(nUID) != UID_MON){
+        QueryCORecord(nUID);
+        return;
+    }
+
+    switch(UIDFunc::GetMonsterID(nUID)){
+        case DBCOM_MONSTERID(u8"变异骷髅"):
+            {
+                AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"使用魔法: 召唤骷髅"), 
+                m_IndepMagicList.emplace_back(std::make_shared<IndepMagic>
+                (
+                    rstAction.ActionParam,
+                    DBCOM_MAGICID(u8"召唤骷髅"), 
+                    0,
+                    EGS_START,
+                    rstAction.Direction,
+                    rstAction.X,
+                    rstAction.Y,
+                    rstAction.X,
+                    rstAction.Y,
+                    nUID
+                ));
+
+                m_UIDPending.insert(nUID);
+                m_IndepMagicList.back()->AddFunc([this, nUID, rstAction, pMagic = m_IndepMagicList.back()]() -> bool
+                {
+                    // if(!pMagic->Done()){
+                    //     return false;
+                    // }
+
+                    if(pMagic->Frame() < 10){
+                        return false;
+                    }
+
+                    ActionStand stActionStand
+                    {
+                        rstAction.X,
+                        rstAction.Y,
+                        DIR_DOWNLEFT,
+                    };
+
+                    if(auto pMonster = Monster::CreateMonster(nUID, this, stActionStand)){
+                        m_CreatureList[nUID].reset(pMonster);
+                    }
+
+                    m_UIDPending.erase(nUID);
+                    QueryCORecord(nUID);
+                    return true;
+                });
+
+                return;
+            }
+        default:
+            {
+                ActionStand stActionStand
+                {
+                    rstAction.X,
+                    rstAction.Y,
+                    PathFind::ValidDir(rstAction.Direction) ? rstAction.Direction : DIR_UP,
+                };
+
+                if(auto pMonster = Monster::CreateMonster(nUID, this, stActionStand)){
+                    m_CreatureList[nUID].reset(pMonster);
+                }
+
+                QueryCORecord(nUID);
+                return;
+            }
+    }
 }
 
 Widget *ProcessRun::GetWidget(const char *szWidgetName)

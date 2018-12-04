@@ -25,14 +25,15 @@
 #include "mapbindbn.hpp"
 #include "actorpool.hpp"
 #include "netdriver.hpp"
-#include "serverenv.hpp"
+#include "argparser.hpp"
 #include "mainwindow.hpp"
 #include "scriptwindow.hpp"
+#include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"
 #include "databaseconfigurewindow.hpp"
 
+ServerArgParser          *g_ServerArgParser;
 Log                      *g_Log;
-ServerEnv                *g_ServerEnv;
 MemoryPN                 *g_MemoryPN;
 ActorPool                *g_ActorPool;
 ThreadPN                 *g_ThreadPN;
@@ -47,15 +48,16 @@ ServerConfigureWindow    *g_ServerConfigureWindow;
 DatabaseConfigureWindow  *g_DatabaseConfigureWindow;
 
 
-int main()
+int main(int argc, char *argv[])
 {
-    std::srand(std::time(nullptr));
+    std::srand((unsigned int)std::time(nullptr));
+    arg_parser stCmdParser(argc, argv);
 
     // start FLTK multithreading support
     Fl::lock();
 
+    g_ServerArgParser         = new ServerArgParser(stCmdParser);
     g_Log                     = new Log("mir2x-monoserver-v0.1");
-    g_ServerEnv               = new ServerEnv();
     g_ScriptWindow            = new ScriptWindow();
     g_MainWindow              = new MainWindow();
     g_MonoServer              = new MonoServer();
@@ -63,7 +65,7 @@ int main()
     g_MapBinDBN               = new MapBinDBN();
     g_ServerConfigureWindow   = new ServerConfigureWindow();
     g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
-    g_ActorPool               = new ActorPool(1);
+    g_ActorPool               = new ActorPool(g_ServerArgParser->ActorPoolThread);
     g_ThreadPN                = new ThreadPN(4);
     g_DBPodN                  = new DBPodN();
     g_NetDriver               = new NetDriver();
@@ -81,10 +83,27 @@ int main()
                     // call Fl::awake(0) to force Fl::wait() to terminate
                     break;
                 }
+            case 2:
+                {
+                    // propagate all exceptions to main thread
+                    // then log it in main thread and request restart
+                    //
+                    // won't handle exception in threads
+                    // all threads need to call Fl::awake(2) to propagate exception(s) caught
+                    extern MonoServer *g_MonoServer;
+                    try{
+                        g_MonoServer->DetectException();
+                    }catch(const std::exception &stException){
+                        g_MonoServer->LogException(stException);
+                        g_MonoServer->Restart();
+                    }
+                    break;
+                }
+            case 1:
             default:
                 {
+                    // pase the gui requests in the queue
                     // designed to send Fl::awake(1) to notify gui
-                    // to pase the requests in the cached queue
                     extern MonoServer *g_MonoServer;
                     g_MonoServer->ParseNotifyGUIQ();
                     break;

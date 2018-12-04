@@ -20,7 +20,7 @@ mir2x is a c/s based mir2ei implementation with various platforms supported. It 
 
 ### Building from source
 
-mir2x requires [cmake](https://cmake.org/) v3+ and [gcc](https://gcc.gnu.org/) support c++14 to run. Mir2x needs some pre-installed packages before compile:
+mir2x requires [cmake](https://cmake.org/) v3+ and [gcc](https://gcc.gnu.org/) support c++17 to run. Mir2x needs some pre-installed packages before compile:
 
 ```sh
 libsdl2-dev
@@ -68,43 +68,26 @@ $ ./client
 
 ### Code style
 
-global variables:
+Global variables:
 
-1. don't use global of build-in type or struct since no multithread control.
-2. don't use global of class instanse since confusing construction/distruction.
+1. no globals of builtin types, they are lacking of multithread access control.
+2. no globals of class instances, use pointer instead, for better construction/destruction control.
+3. all member functions of globals should be:
+    - simple
+    - thread-safe
+    - atomic operations
+4. name all global pointers as g_XXXX and use them by extern, and
+    - allocate them at beginning of main()
+    - remain valid during the whole run, and ONLY free them at process exit.
 
-actually:
+Error handling:
+1. use exception for good/bad path control, force catch at exit of main() or clone().
+2. do strict parameters checking before doing actual logic, no assumptions.
+3. let the crash happen ASAP if any fatal error detected
 
-1. only use class pointer;
-2. only reference it by ``extern g_VarXXX";
-3. no local function for operation on global variable only, means:
-4. all operations over global variables should be self-contained;
-5. all global variable pointers stay valid during the whole procedure;
-
-Since I already have a powerful log system, I won't use exception. If un-recoverable error happens
-
-1. log system record the detailed info by LOGTYPE_FATAL;
-2. then just let it crash, or use exit(0) to do forced kill;
-
-The function who throws always think it's a fatal error so it just throw, but how to handle this ``fatal" error or do catch sub-clause really takes it as fatal is decided not by the thrower, but the catcher.
-
-For modules like mapeditor which doesn't have a log system, always put assertion to check parameters. If functions invoked with invalid parameters, fail assertion and let it crash.
-
-General rules for functions:
-
-1. put strict parameters check above doing actual logic;
-2. take invalid argument as severe error, just log the error and let it crash;
-3. never give assumption for argument;
-4. try best to make each memeber function self-contained to avoid first-half / second-half splitted functions;
-
-General rules for classes:
-
-1. an object should be in legal state when created, by factory method or constructor;
-2. an object should stay valid if no input provided;
-3. put strict parameters check when provide input to objects, and reject immedately if not valid;
-4. avoid to do state validation outside an object;
-5. external call of member function should never break current object, keep log instead;
-
+General rules:
+1. make all member functions self-contained, avoid first/second half logic.
+2. don't do optimization too early, perfer simple/clear logic.
 
 ### Packages
 
@@ -121,6 +104,5 @@ mir2x uses a number of open source projects to work properly, and of course itse
 * [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - A simple, small, efficient, C++ XML parser.
 * [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for UTF-8 string handling.
 * [libpng](http://www.libpng.org/pub/png/libpng.html) - The official PNG reference library.
-* [libzip](https://nih.at/libzip/) - C library for reading, creating, and modifying zip archives.
 * [ThreadPool](https://github.com/progschj/ThreadPool) - A simple C++11 Thread Pool implementation
 * [astar-algorithm](https://github.com/justinhj/astar-algorithm-cpp) - Implementation of the A* algorithm in C++ and C#

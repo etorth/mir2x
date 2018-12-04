@@ -1,32 +1,30 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0303 
-header_name {.hpp} 
+version 1.0304
+header_name {.hpp}
 code_name {.cpp}
 decl {\#include <string>} {public global
-} 
+}
 
 decl {\#include <FL/fl_ask.H>} {private local
-} 
+}
 
 decl {\#include <Fl/Fl_Text_Buffer.H>} {private local
-} 
+}
 
-class ScriptWindow {open
-} {
+class ScriptWindow {} {
   decl {std::string m_FileName;} {private local
   }
   decl {Fl_Text_Buffer *m_Buffer;} {private local
   }
-  Function {ScriptWindow()} {open
-  } {
-    Fl_Window m_Window {open
-      xywh {576 322 830 505} type Double labelfont 4 visible
+  Function {ScriptWindow()} {} {
+    Fl_Window m_Window {
+      xywh {1 41 830 505} type Double labelfont 4 resizable visible
     } {
-      Fl_Menu_Bar {} {open
+      Fl_Menu_Bar {} {
         xywh {0 0 830 25} box FLAT_BOX labelfont 4
       } {
         Submenu {} {
-          label File open
+          label File
           xywh {0 0 100 20} labelfont 4
         } {
           MenuItem {} {
@@ -51,7 +49,7 @@ class ScriptWindow {open
           }
         }
         Submenu {} {
-          label Execute open
+          label Execute
           xywh {0 0 100 20} labelfont 4
         } {
           MenuItem {} {
@@ -64,8 +62,8 @@ class ScriptWindow {open
           }
         }
       }
-      Fl_Text_Display m_Display {selected
-        xywh {0 25 830 480} labelfont 4 textfont 4
+      Fl_Text_Display m_Display {
+        xywh {0 25 830 480} labelfont 4 textfont 4 resizable
       }
     }
     code {{
@@ -74,13 +72,13 @@ class ScriptWindow {open
 	m_Display->buffer(m_Buffer);
 }} {}
   }
-  Function {ShowAll()} {open return_type void
+  Function {ShowAll()} {return_type void
   } {
     code {{
 	m_Window->show();
 }} {}
   }
-  Function {LoadFile(const char *szFileName)} {open return_type void
+  Function {LoadFile(const char *szFileName)} {return_type void
   } {
     code {{
 	// Load file
@@ -100,4 +98,11 @@ class ScriptWindow {open
     }
 }} {}
   }
-} 
+  Function {SetGUIFont(int nFont)} {return_type void
+  } {
+    code {{
+    m_Display->textfont((Fl_Font)(nFont));
+    m_Window->redraw();
+}} {}
+  }
+}

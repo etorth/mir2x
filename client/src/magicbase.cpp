@@ -68,28 +68,31 @@ int MagicBase::Frame() const
 
 bool MagicBase::StageDone() const
 {
-    if(RefreshCache()){
-        if(false
-                || m_CacheEntry->Loop
-                || Frame() <= (m_CacheEntry->FrameCount - 1)){
-
-            // 1. loop effect
-            // 2. not looping but not finished yet
-
-            // I allow the last frame as ``incomplete"
-            // otherwise I can't show the last frame in Draw()
-
-            return false;
-        }
+    if(!RefreshCache()){
+        return true;
     }
+
+    // 1. loop effect
+    // 2. not looping but not finished yet
+
+    if(m_CacheEntry->Loop){
+        return false;
+    }
+
+    // I allow the last frame as ``incomplete"
+    // otherwise I can't show the last magic frame in Draw()
+    if(Frame() <= (m_CacheEntry->FrameCount - 1)){
+        return false;
+    }
+
     return true;
 }
 
 bool MagicBase::RefreshCache() const
 {
-    if(true
-            && m_CacheEntry
-            && m_CacheEntry->Stage == Stage()){ return true; }
+    if(m_CacheEntry && (m_CacheEntry->Stage == Stage())){
+        return true;
+    }
 
     // need to update it
     // current cache entry doesn't match / is not valid
@@ -101,7 +104,9 @@ bool MagicBase::RefreshCache() const
                     m_CacheEntry = &rstGfxEntry;
                     return true;
                 }
-            }else{ break; }
+            }else{
+                break;
+            }
         }
     }
 

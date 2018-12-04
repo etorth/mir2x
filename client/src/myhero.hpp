@@ -59,7 +59,7 @@ class MyHero: public Hero
         //          : bCheckMove      : true  : srcLoc->decompLoc is valid and non-occupied
         //                            : false : not guaranteed
         bool DecompMove(bool,   // bCheckGround
-                bool,           // bCheckCreature
+                int,            // nCheckCreature
                 bool,           // bCheckMove
                 int, int,       // srcLoc
                 int, int,       // dstLoc

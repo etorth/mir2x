@@ -24,12 +24,15 @@
  */
 
 #pragma once
+#include <tuple>
 #include <cmath>
 #include <array>
+#include <vector>
 #include <functional>
 
 #include "fsa.h"
 #include "stlastar.h"
+#include "strfunc.hpp"
 #include "condcheck.hpp"
 #include "protocoldef.hpp"
 
@@ -54,11 +57,22 @@ namespace PathFind
         {
             return (rstNode.X == X) && (rstNode.Y == Y);
         }
+
+        bool Eq(int nX, int nY) const
+        {
+            return X == nX && Y == nY;
+        }
     };
 
-    inline const char *GetDirectionName(int nDirection)
+    inline bool ValidDir(int nDirection)
+    {
+        return  nDirection > DIR_NONE && nDirection < DIR_MAX;
+    }
+
+    inline const char *GetDirName(int nDirection)
     {
         switch (nDirection){
+            case DIR_NONE      : return "DIR_NONE";
             case DIR_UP        : return "DIR_UP";
             case DIR_DOWN      : return "DIR_DOWN";
             case DIR_LEFT      : return "DIR_LEFT";
@@ -67,7 +81,7 @@ namespace PathFind
             case DIR_UPRIGHT   : return "DIR_UPRIGHT";
             case DIR_DOWNLEFT  : return "DIR_DOWNLEFT";
             case DIR_DOWNRIGHT : return "DIR_DOWNRIGHT";
-            default            : return "DIR_NONE";
+            default            : return "DIR_UNKNOWN";
         }
     }
 
@@ -86,33 +100,34 @@ namespace PathFind
         }
     }
 
-    inline bool GetFrontLocation(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
+    inline void GetFrontLocation(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
     {
-        static const int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
-        static const int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
+        static constexpr int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
+        static constexpr int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
 
-        if(true
-                && nDirection > DIR_NONE
-                && nDirection < DIR_MAX){
-
-            if(pX){ *pX = nX + nLen * nDX[nDirection - (DIR_NONE + 1)]; }
-            if(pY){ *pY = nY + nLen * nDY[nDirection - (DIR_NONE + 1)]; }
-
-            return true;
+        if(nDirection <= DIR_NONE || nDirection >= DIR_MAX){
+            throw std::invalid_argument(str_printf("In PathFind::GetFrontLocation(%p, %p, %d, %d, %d, %d)", pX, pY, nX, nY, nDirection, nLen));
         }
-        return false;
+
+        if(pX){
+            *pX = nX + nLen * nDX[nDirection - (DIR_NONE + 1)];
+        }
+
+        if(pY){
+            *pY = nY + nLen * nDY[nDirection - (DIR_NONE + 1)];
+        }
     }
 
-    inline bool GetBackLocation(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
+    inline void GetBackLocation(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
     {
-        return GetFrontLocation(pX, pY, nX, nY, GetBack(nDirection), nLen);
+        GetFrontLocation(pX, pY, nX, nY, GetBack(nDirection), nLen);
     }
 
     // return direction for src -> dst
     // direction code defined in protocoldef.hpp
     inline int GetDirection(int nSrcX, int nSrcY, int nDstX, int nDstY)
     {
-        static const int nDirV[][3]
+        static constexpr int nDirV[][3]
         {
             {DIR_UPLEFT,   DIR_UP,   DIR_UPRIGHT  },
             {DIR_LEFT,     DIR_NONE, DIR_RIGHT    },
@@ -182,7 +197,10 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
         inline bool Search(int, int, int, int);
 
     public:
-        template<size_t PathNodeNum> std::array<PathFind::PathNode, PathNodeNum> GetPathNode();
+        inline std::vector<PathFind::PathNode> GetPathNode();
+
+    public:
+        template<size_t PathNodeNum> std::tuple<std::array<PathFind::PathNode, PathNodeNum>, size_t> GetFirstNPathNode();
 };
 
 class AStarPathFinderNode
@@ -379,27 +397,50 @@ inline bool AStarPathFinder::Search(int nX0, int nY0, int nX1, int nY1)
     return m_FoundPath;
 }
 
-template<size_t PathNodeNum> std::array<PathFind::PathNode, PathNodeNum> AStarPathFinder::GetPathNode()
+inline std::vector<PathFind::PathNode> AStarPathFinder::GetPathNode()
 {
-    static_assert(PathNodeNum >= 2, "PathFinder::GetPathNode(): template argument invalid");
     if(!PathFound()){
-        return {{-1, -1}};
+        return {};
     }
 
+    std::vector<PathFind::PathNode> stPathRes;
+    if(auto pNode0 = GetSolutionStart()){
+        stPathRes.emplace_back(pNode0->X(), pNode0->Y());
+    }else{
+        return {};
+    }
+
+    while(auto pNode = GetSolutionNext()){
+        stPathRes.emplace_back(pNode->X(), pNode->Y());
+    }
+
+    return stPathRes;
+}
+
+template<size_t PathNodeNum> std::tuple<std::array<PathFind::PathNode, PathNodeNum>, size_t> AStarPathFinder::GetFirstNPathNode()
+{
+    static_assert(PathNodeNum >= 2, "PathFinder::GetFirstNPathNode(): template argument invalid");
     std::array<PathFind::PathNode, PathNodeNum> stPathRes;
+
+    // some C++ question to myself:
+    // why I can't directly return {{}, 0} ? what's implicit constructible?
+
+    if(!PathFound()){
+        return {stPathRes, 0};
+    }
+
     if(auto pNode0 = GetSolutionStart()){
         stPathRes[0] = {pNode0->X(), pNode0->Y()};
     }else{
-        return {{-1, -1}};
+        return {stPathRes, 0};
     }
 
     for(size_t nIndex = 1; nIndex < stPathRes.size(); ++nIndex){
         if(auto pNode = GetSolutionNext()){
             stPathRes[nIndex] = {pNode->X(), pNode->Y()};
         }else{
-            stPathRes[nIndex] = {-1, -1};
+            return {stPathRes, nIndex};
         }
     }
-
-    return stPathRes;
+    return {stPathRes, stPathRes.size()};
 }

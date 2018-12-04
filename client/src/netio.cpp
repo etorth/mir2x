@@ -578,7 +578,7 @@ bool NetIO::InitIO(const char *szIP, const char * szPort, const std::function<vo
     );
 
     // 3. we won't call asio::io_service::run() here
-    //    instead we'll explicitly call asio::io_service::poll() in Game::MainLoop()
+    //    instead we'll explicitly call asio::io_service::poll() in Client::MainLoop()
     return true;
 }
 

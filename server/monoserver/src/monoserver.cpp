@@ -47,82 +47,52 @@ MonoServer::MonoServer()
     : m_LogLock()
     , m_LogBuf()
     , m_ServiceCore(nullptr)
+    , m_CurrException()
     , m_StartTime(std::chrono::steady_clock::now())
 {}
 
 void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char *szLogFormat, ...)
 {
-    int nLogSize = 0;
-    int nLogType = std::atoi(stLogDesc[0].c_str());
-
-    auto fnRecordLog = [this, &stLogDesc](int nLogType, const char *szLogInfo)
+    std::string szLog;
+    bool bError = false;
     {
-        extern Log *g_Log;
-        switch(nLogType){
-            case Log::LOGTYPEV_DEBUG:
-                {
-                    g_Log->AddLog(stLogDesc, szLogInfo);
-                    break;
-                }
-            default:
-                {
-                    g_Log->AddLog(stLogDesc, szLogInfo);
-                    {
-                        std::lock_guard<std::mutex> stLockGuard(m_LogLock);
-                        m_LogBuf.push_back((char)(nLogType));
-                        m_LogBuf.insert(m_LogBuf.end(), szLogInfo, szLogInfo + std::strlen(szLogInfo) + 1);
-                    }
-                    NotifyGUI("FlushBrowser");
-                    break;
-                }
-        }
-    };
-
-    // 1. try static buffer
-    //    give an enough size so we can hopefully stop here
-    {
-        char szSBuf[1024];
-
         va_list ap;
         va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(szSBuf, (sizeof(szSBuf) / sizeof(szSBuf[0])), szLogFormat, ap);
-        va_end(ap);
 
-        if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < (sizeof(szSBuf) / sizeof(szSBuf[0]))){
-                fnRecordLog(nLogType, szSBuf);
-                return;
-            }else{
-                // do nothing
-                // have to try the dynamic buffer method
-            }
-        }else{
-            fnRecordLog(Log::LOGTYPEV_FATAL, (std::string("Parse log info failed: ") + szLogFormat).c_str());
-            return;
+        try{
+            szLog = str_vprintf(szLogFormat, ap);
+        }catch(const std::exception &e){
+            bError = true;
+            szLog = str_printf("Exception caught in MonoServer::AddLog(\"%s\", ...): %s", szLogFormat, e.what());
         }
+
+        va_end(ap);
     }
 
-    // 2. try dynamic buffer
-    //    use the parsed buffer size above to get enough memory
-    while(true){
-        std::vector<char> szDBuf(nLogSize + 1 + 64);
+    int nLogType = bError ? Log::LOGTYPEV_WARNING : std::atoi(stLogDesc[0].c_str());
 
-        va_list ap;
-        va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(&(szDBuf[0]), szDBuf.size(), szLogFormat, ap);
-        va_end(ap);
-
-        if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < szDBuf.size()){
-                fnRecordLog(nLogType, &(szDBuf[0]));
+    switch(nLogType){
+        case Log::LOGTYPEV_DEBUG:
+            {
+                extern Log *g_Log;
+                g_Log->AddLog(stLogDesc, "%s", szLog.c_str());
                 return;
-            }else{
-                szDBuf.resize(nLogSize + 1 + 64);
             }
-        }else{
-            fnRecordLog(Log::LOGTYPEV_FATAL, (std::string("Parse log info failed: ") + szLogFormat).c_str());
-            return;
-        }
+        default:
+            {
+                // flush the log window
+                // make LOGTYPEV_FATAL be seen before process crash
+                {
+                    std::lock_guard<std::mutex> stLockGuard(m_LogLock);
+                    m_LogBuf.push_back((char)(nLogType));
+                    m_LogBuf.insert(m_LogBuf.end(), szLog.c_str(), szLog.c_str() + std::strlen(szLog.c_str()) + 1);
+                }
+                NotifyGUI("FlushBrowser");
+
+                extern Log *g_Log;
+                g_Log->AddLog(stLogDesc, "%s", szLog.c_str());
+                return;
+            }
     }
 }
 
@@ -150,54 +120,30 @@ void MonoServer::AddCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, co
         }
     };
 
-    int nLogSize = 0;
-
-    // 1. try static buffer
-    //    give a enough size so we can hopefully stop here
+    std::string szLog;
+    bool bError = false;
     {
-        char szSBuf[1024];
-
         va_list ap;
         va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(szSBuf, (sizeof(szSBuf) / sizeof(szSBuf[0])), szLogFormat, ap);
-        va_end(ap);
 
-        if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < (sizeof(szSBuf) / sizeof(szSBuf[0]))){
-                fnCWRecordLog(nCWID, nLogType, szPrompt, szSBuf);
-                return;
-            }else{
-                // do nothing
-                // have to try the dynamic buffer method
-            }
-        }else{
-            AddLog(LOGTYPE_WARNING, "Parse command window log info failed: %s", szLogFormat);
-            return;
+        try{
+            szLog = str_vprintf(szLogFormat, ap);
+        }catch(const std::exception &e){
+            bError = true;
+            szLog = str_printf("Exception caught in MonoServer::AddCWLog(CWID = %" PRIu32 ", \"%s\", ...): %s", nCWID, szLogFormat, e.what());
         }
+
+        va_end(ap);
     }
 
-    // 2. try dynamic buffer
-    //    use the parsed buffer size above to get enough memory
-    while(true){
-        std::vector<char> szDBuf(nLogSize + 1 + 64);
-
-        va_list ap;
-        va_start(ap, szLogFormat);
-        nLogSize = std::vsnprintf(&(szDBuf[0]), szDBuf.size(), szLogFormat, ap);
-        va_end(ap);
-
-        if(nLogSize >= 0){
-            if((size_t)(nLogSize + 1) < szDBuf.size()){
-                fnCWRecordLog(nCWID, nLogType, szPrompt, &(szDBuf[0]));
-                return;
-            }else{
-                szDBuf.resize(nLogSize + 1 + 64);
-            }
-        }else{
-            AddLog(LOGTYPE_WARNING, "Parse command window log info failed: %s", szLogFormat);
-            return;
-        }
+    if(bError){
+        AddLog(LOGTYPE_WARNING, "%s", szLog.c_str());
     }
+
+    if(bError){
+        nLogType = Log::LOGTYPEV_WARNING;
+    }
+    fnCWRecordLog(nCWID, nLogType, szPrompt, szLog.c_str());
 }
 
 void MonoServer::CreateDBConnection()
@@ -263,6 +209,45 @@ void MonoServer::Launch()
 
     StartServiceCore();
     StartNetwork();
+}
+
+void MonoServer::PropagateException()
+{
+    // TODO
+    // add multi-thread protection
+    try{
+        if(!std::current_exception()){
+            throw std::runtime_error("Call MonoServer::PropagateException() without exception captured");
+        }
+
+        // we do have an exception
+        // but may not be std::exception, nest it...
+        std::throw_with_nested(std::runtime_error("Rethrow in MonoServer::PropagateException()"));
+    }catch(...){
+        // must have one exception...
+        // now we are sure main thread will always capture an std::exception
+        m_CurrException = std::current_exception();
+        Fl::awake((void *)(uintptr_t)(2));
+    }
+}
+
+void MonoServer::DetectException()
+{
+    if(m_CurrException){
+        std::rethrow_exception(m_CurrException);
+    }
+}
+
+void MonoServer::LogException(const std::exception &stException)
+{
+    AddLog(LOGTYPE_WARNING, "%s", stException.what());
+    try{
+        std::rethrow_if_nested(stException);
+    }catch(const std::exception &stNestedException){
+        LogException(stNestedException);
+    }catch(...){
+        AddLog(LOGTYPE_WARNING, "%s", "Exception can't recongize, skipped...");
+    }
 }
 
 void MonoServer::Restart()

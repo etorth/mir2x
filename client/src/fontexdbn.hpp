@@ -17,11 +17,13 @@
  * =====================================================================================
  */
 
-#include <zip.h>
+#pragma once
+#include <map>
 #include <cstring>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "zsdb.hpp"
 #include "inndb.hpp"
 #include "hexstring.hpp"
 #include "sdldevice.hpp"
@@ -37,116 +39,96 @@ enum FontStyle: uint8_t
     FONTSTYLE_BLENDED       = 0B0100'0000,
 };
 
-struct FontexItem
+struct FontexEntry
 {
     SDL_Texture *Texture;
 };
 
-template<size_t ResMaxN> class FontexDB: public InnDB<uint64_t, FontexItem, ResMaxN>
+template<size_t ResMaxN> class FontexDB: public InnDB<uint64_t, FontexEntry, ResMaxN>
 {
     private:
-        struct ZIPItemInfo
-        {
-            zip_uint64_t Index;
-            size_t       Size;
-            // this is the data buffer for the font file in the ZIP
-            // but we didn't allocate it when in Load(), instead
-            // we load it if LoadResource() need it
-            uint8_t     *Data;
-            // this filed means we tried to load this ttf or not
-            // to prevent load many times
-            //
-            // for PNGTexDB we don't need it since when return nullptr
-            // it'll prevent load again
-            //
-            // but here one ttf contains many fontex, one null fontex
-            // can prevent others to load again
-            int          Tried;
-        };
+        std::unique_ptr<ZSDB> m_ZSDBPtr;
 
     private:
-        struct zip *m_ZIP;
+        // 0XFF00 : font index
+        // 0X00FF : font point size
+        std::map<uint16_t, TTF_Font *> m_TTFCache;
 
     private:
-        std::unordered_map<uint16_t, TTF_Font *> m_SizedFontCache;
-
-    private:
-        std::unordered_map<uint8_t, ZIPItemInfo> m_ZIPItemInfoCache;
+        std::map<uint8_t, std::vector<uint8_t>> m_FontDataCache;
 
     public:
         FontexDB()
-            : InnDB<uint64_t, FontexItem, ResMaxN>()
-            , m_ZIP(nullptr)
-            , m_SizedFontCache()
-            , m_ZIPItemInfoCache()
+            : InnDB<uint64_t, FontexEntry, ResMaxN>()
+            , m_ZSDBPtr()
+            , m_TTFCache()
+            , m_FontDataCache()
         {}
 
         virtual ~FontexDB()
         {
-            for(auto &stItem: m_ZIPItemInfoCache){
-                delete stItem.second.Data;
+            for(auto &stEntry: m_TTFCache){
+                TTF_CloseFont(stEntry.second);
+            }
+        }
+
+    private:
+        const std::vector<uint8_t> &RetrieveFontData(uint8_t nFontIndex)
+        {
+            if(auto p = m_FontDataCache.find(nFontIndex); p != m_FontDataCache.end()){
+                return p->second;
             }
 
-            this->ClearCache();
+            m_FontDataCache[nFontIndex] = [this, nFontIndex]() -> std::vector<uint8_t>
+            {
+                char szFontIndexString[8];
+                std::vector<uint8_t> stFontDataBuf;
+                if(m_ZSDBPtr->Decomp(HexString::ToString<uint8_t, 1>(nFontIndex, szFontIndexString, true), 2, &stFontDataBuf)){
+                    return stFontDataBuf;
+                }
+                return {};
+            }();
 
-            for(auto &stItem: m_SizedFontCache){
-                TTF_CloseFont(stItem.second);
+            return m_FontDataCache[nFontIndex];
+        }
+
+        TTF_Font *RetrieveTTF(uint16_t nTTFIndex)
+        {
+            uint8_t nFontIndex = ((nTTFIndex & 0XFF00) >> 8);
+            uint8_t nFontSize  = ((nTTFIndex & 0X00FF) >> 0);
+
+            if(auto p = m_TTFCache.find(nTTFIndex); p != m_TTFCache.end()){
+                return p->second;
             }
+
+            m_TTFCache[nTTFIndex] = [this, nFontSize, nFontIndex]() -> TTF_Font *
+            {
+                if(auto &stFontDataBuf = RetrieveFontData(nFontIndex); !stFontDataBuf.empty()){
+                    extern SDLDevice *g_SDLDevice;
+                    return g_SDLDevice->CreateTTF(stFontDataBuf.data(), stFontDataBuf.size(), nFontSize);
+                }
+                return nullptr;
+            }();
+
+            return m_TTFCache[nTTFIndex];
         }
 
     public:
-        bool Valid()
-        {
-            return m_ZIP && !m_ZIPItemInfoCache.empty();
-        }
-
         bool Load(const char *szFontexDBName)
         {
-            int nErrorCode = 0;
-
-#ifdef ZIP_RDONLY
-            m_ZIP = zip_open(szFontexDBName, ZIP_CHECKCONS | ZIP_RDONLY, &nErrorCode);
-#else
-            m_ZIP = zip_open(szFontexDBName, ZIP_CHECKCONS, &nErrorCode);
-#endif
-            if(!m_ZIP){
+            try{
+                m_ZSDBPtr = std::make_unique<ZSDB>(szFontexDBName);
+            }catch(...){
                 return false;
             }
-
-            zip_int64_t nCount = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
-            if(nCount > 0){
-                for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)(nCount); ++nIndex){
-                    struct zip_stat stZIPStat;
-                    if(!zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stZIPStat)){
-                        if(true
-                                && stZIPStat.valid & ZIP_STAT_INDEX
-                                && stZIPStat.valid & ZIP_STAT_SIZE
-                                && stZIPStat.valid & ZIP_STAT_NAME){
-                            // file name inside is pretty simple
-                            // just like
-                            //
-                            // 00.TTF
-                            // 01.TTF
-                            // ...
-                            //
-                            // FE.TTF
-                            // FF.TTF
-
-                            uint8_t nKey = HexString::ToHex<uint8_t, 1>(stZIPStat.name);
-                            m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)(stZIPStat.size), nullptr, 0};
-                        }
-                    }
-                }
-            }
-
-            return Valid();
+            return true;
         }
 
     public:
         SDL_Texture *Retrieve(uint64_t nKey)
         {
-            if(FontexItem stItem {nullptr}; this->RetrieveResource(nKey, &stItem)){
-                return stItem.Texture;
+            if(FontexEntry stEntry {nullptr}; this->RetrieveResource(nKey, &stEntry)){
+                return stEntry.Texture;
             }
             return nullptr;
         }
@@ -162,81 +144,21 @@ template<size_t ResMaxN> class FontexDB: public InnDB<uint64_t, FontexItem, ResM
         }
 
     public:
-        virtual std::tuple<FontexItem, size_t> LoadResource(uint64_t nKey)
+        virtual std::tuple<FontexEntry, size_t> LoadResource(uint64_t nKey)
         {
-            // null resource desc
-            FontexItem stItem {nullptr};
+            FontexEntry stEntry {nullptr};
 
-            uint16_t nSizedFontIndex = ((nKey & 0X00FFFF0000000000) >> 40);
-            uint8_t  nFontIndex      = ((nKey & 0X00FF000000000000) >> 48);
-            uint8_t  nPointSize      = ((nKey & 0X0000FF0000000000) >> 40);
-            uint8_t  nFontStyle      = ((nKey & 0X000000FF00000000) >> 32);
-            uint32_t nUTF8Code       = ((nKey & 0X00000000FFFFFFFF) >>  0);
+            uint16_t nTTFIndex  = ((nKey & 0X00FFFF0000000000) >> 40);
+            uint8_t  nFontStyle = ((nKey & 0X000000FF00000000) >> 32);
+            uint32_t nUTF8Code  = ((nKey & 0X00000000FFFFFFFF) >>  0);
 
-            auto pZIPIndexRecord = m_ZIPItemInfoCache.find(nFontIndex);
-            if(pZIPIndexRecord == m_ZIPItemInfoCache.end()){
-                // no FontIndex supported in the DB
-                // just return
-                return {stItem, 0};
+            auto pFont = RetrieveTTF(nTTFIndex);
+            if(!pFont){
+                return {stEntry, 0};
             }
 
-            // supported FontIndex, try find SizedFont in the cache
-            auto pSizedFontRecord = m_SizedFontCache.find(nSizedFontIndex);
-            if(pSizedFontRecord == m_SizedFontCache.end()){
-                // didn't find it
-                // 1. may be we didn't load it yet
-                // 2. previously loading ran into failure
-                if(!pZIPIndexRecord->second.Data){
-                    if(pZIPIndexRecord->second.Tried){
-                        // ooops, can't help..
-                        return {stItem, 0};
-                    }
+            TTF_SetFontKerning(pFont, 0);
 
-                    // didn't try yet
-                    // so firstly load the ttf data
-
-                    // first time, ok
-                    // 1. mark it as tried, any failure will prevent following loading
-                    pZIPIndexRecord->second.Tried = 1;
-
-                    // 2. open the ttf in the zip
-                    auto pf = zip_fopen_index(m_ZIP, pZIPIndexRecord->second.Index, ZIP_FL_UNCHANGED);
-                    if(!pf){
-                        return {stItem, 0};
-                    }
-
-                    // 3. allocate new buffer for the ttf file
-                    pZIPIndexRecord->second.Data = new uint8_t[pZIPIndexRecord->second.Size];
-
-                    // 4. read ttf file from zip archive
-                    auto nReadSize = (size_t)zip_fread(pf, pZIPIndexRecord->second.Data, pZIPIndexRecord->second.Size);
-
-                    // 5. close the file handler anyway
-                    zip_fclose(pf);
-
-                    // 6. ran into failure, then free the buffer
-                    if(nReadSize != pZIPIndexRecord->second.Size){
-                        delete pZIPIndexRecord->second.Data;
-                        pZIPIndexRecord->second.Data = nullptr;
-                        return {stItem, 0};
-                    }
-
-                    // 7. eventually we are done, now the buffer is for ttf file data
-                    //    we can use it to create SizedTTF
-                }
-
-                // now the data buffer is well prepared
-                extern SDLDevice *g_SDLDevice;
-                m_SizedFontCache[nSizedFontIndex] = g_SDLDevice->CreateTTF((pZIPIndexRecord->second.Data), pZIPIndexRecord->second.Size, nPointSize);
-
-                pSizedFontRecord = m_SizedFontCache.find(nSizedFontIndex);
-            }
-
-            // now pSizedFontRecord is well prepared
-            auto pFont = pSizedFontRecord->second;
-            TTF_SetFontKerning(pFont, false);
-
-            // set font style if necessary
             if(nFontStyle){
                 int nTTFontStyle = 0;
                 if(nFontStyle & FONTSTYLE_BOLD){
@@ -258,53 +180,38 @@ template<size_t ResMaxN> class FontexDB: public InnDB<uint64_t, FontexItem, ResM
                 TTF_SetFontStyle(pFont, nTTFontStyle);
             }
 
-            SDL_Surface *pSurface = nullptr;
             char szUTF8[8];
+            SDL_Surface *pSurface = nullptr;
 
-            // to avoid strict aliasing problem
-            std::memcpy(szUTF8, &nUTF8Code, sizeof(nUTF8Code));
             szUTF8[4] = 0;
+            std::memcpy(szUTF8, &nUTF8Code, sizeof(nUTF8Code));
 
             if(nFontStyle & FONTSTYLE_SOLID){
                 pSurface = TTF_RenderUTF8_Solid(pFont, szUTF8, {0XFF, 0XFF, 0XFF, 0XFF});
             }else if(nFontStyle & FONTSTYLE_SHADED){
                 pSurface = TTF_RenderUTF8_Shaded(pFont, szUTF8, {0XFF, 0XFF, 0XFF, 0XFF}, {0X00, 0X00, 0X00, 0X00});
             }else{
-                // blended is by default by of lowest priority
-                // means if we really need to set SOLID/SHADOWED/BLENDED
-                // most likely we don't want the default setting
+                // blended is by default but with lowest priority
+                // mask the bits if we really need to set SOLID/SHADOWED/BLENDED
                 pSurface = TTF_RenderUTF8_Blended(pFont, szUTF8, {0XFF, 0XFF, 0XFF, 0XFF});
             }
 
-            if(pSurface){
-                extern SDLDevice *g_SDLDevice;
-                // TODO
-                //
-                // TBD
-                // whethere make a SDLDevice::CreateTextureFromSurface() or
-                // make a SDLDevice::CreateTextureFont(TTF_Font, UTF8Char)?
-                //
-                // 1. we want all data passed to SDLDevice to be builtin
-                //    but both options are impossible
-                //
-                // 2. we can have CreateTextureFont(pSurface->Data, ...)
-                //    but we need to handle endian by ourself
-                //
-                // 3. FONTSTYLE_XXX is defined in FontexDB, if we make this
-                //    creation inside of SDLDevice, then SDLDevice need to 
-                //    include this header file
-                stItem.Texture = g_SDLDevice->CreateTextureFromSurface(pSurface);
-                SDL_FreeSurface(pSurface);
+            if(!pSurface){
+                return {stEntry, 0};
             }
 
-            return {stItem, 1};
+            extern SDLDevice *g_SDLDevice;
+            stEntry.Texture = g_SDLDevice->CreateTextureFromSurface(pSurface);
+            SDL_FreeSurface(pSurface);
+
+            return {stEntry, stEntry.Texture ? 1 : 0};
         }
 
-        virtual void FreeResource(FontexItem &rstItem)
+        virtual void FreeResource(FontexEntry &rstEntry)
         {
-            if(rstItem.Texture){
-                SDL_DestroyTexture(rstItem.Texture);
-                rstItem.Texture = nullptr;
+            if(rstEntry.Texture){
+                SDL_DestroyTexture(rstEntry.Texture);
+                rstEntry.Texture = nullptr;
             }
         }
 };

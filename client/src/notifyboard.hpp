@@ -16,9 +16,9 @@
  * =====================================================================================
  */
 
+#pragma once
 #include <queue>
 #include <array>
-#include "logtype.hpp"
 #include "tokenboard.hpp"
 
 class NotifyBoard: public Widget

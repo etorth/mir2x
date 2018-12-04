@@ -131,6 +131,7 @@ class Player final: public CharObject
         void ReportGold();
         void ReportStand();
         void ReportHealth();
+        void ReportDeadUID(uint64_t);
         void ReportCORecord(uint64_t);
         void ReportOffline(uint64_t, uint32_t);
         void ReportAction(uint64_t, const ActionNode &);
@@ -177,7 +178,7 @@ class Player final: public CharObject
         bool Offline();
 
     protected:
-        virtual int MaxStep();
+        virtual int MaxStep() const;
 
     protected:
         virtual void RecoverHealth();

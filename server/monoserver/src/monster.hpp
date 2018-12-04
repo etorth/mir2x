@@ -89,7 +89,7 @@ class Monster final: public CharObject
     protected:
        // don't expose it to public
        // master may change by time or by magic
-       uint64_t MasterUID()
+       uint64_t MasterUID() const
        {
            return m_MasterUID;
        }
@@ -132,6 +132,7 @@ class Monster final: public CharObject
         void On_MPK_NOTIFYDEAD    (const MessagePack &);
         void On_MPK_BADACTORPOD   (const MessagePack &);
         void On_MPK_CHECKMASTER   (const MessagePack &);
+        void On_MPK_DEADFADEOUT   (const MessagePack &);
         void On_MPK_NOTIFYNEWCO   (const MessagePack &);
         void On_MPK_QUERYCORECORD (const MessagePack &);
         void On_MPK_QUERYLOCATION (const MessagePack &);
@@ -158,10 +159,10 @@ class Monster final: public CharObject
         void CheckFriend(uint64_t, const std::function<void(int)> &);
 
     protected:
-        bool MoveOneStepAStar   (int, int);
-        bool MoveOneStepGreedy  (int, int);
-        bool MoveOneStepCombine (int, int);
-        bool MoveOneStepNeighbor(int, int);
+        bool MoveOneStepAStar   (int, int, std::function<void()> /* fnOnError */);
+        bool MoveOneStepGreedy  (int, int, std::function<void()> /* fnOnError */);
+        bool MoveOneStepCombine (int, int, std::function<void()> /* fnOnError */);
+        bool MoveOneStepNeighbor(int, int, std::function<void()> /* fnOnError */);
 
     protected:
         bool CanMove();
@@ -169,9 +170,6 @@ class Monster final: public CharObject
 
     protected:
         void CheckMaster();
-
-    protected:
-        std::array<PathFind::PathNode, 3> GetChaseGrid(int, int);
 
     protected:
         virtual bool GoDie();

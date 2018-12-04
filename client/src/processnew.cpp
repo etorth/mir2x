@@ -22,7 +22,7 @@
 #include <algorithm>
 
 #include "log.hpp"
-#include "game.hpp"
+#include "client.hpp"
 #include "message.hpp"
 #include "sdldevice.hpp"
 #include "pngtexdbn.hpp"
@@ -240,8 +240,8 @@ bool ProcessNew::LocalCheckPwd(const char *szPwd)
 
 void ProcessNew::DoExit()
 {
-    extern Game *g_Game;
-    g_Game->RequestProcess(PROCESSID_LOGIN);
+    extern Client *g_Client;
+    g_Client->RequestProcess(PROCESSID_LOGIN);
 }
 
 void ProcessNew::DoPostAccount()
@@ -272,8 +272,8 @@ void ProcessNew::PostAccount(const char *szID, const char *szPWD, int nOperation
 
         stCMA.Operation = nOperation;
 
-        extern Game *g_Game;
-        g_Game->Send(CM_ACCOUNT, stCMA);
+        extern Client *g_Client;
+        g_Client->Send(CM_ACCOUNT, stCMA);
     }
 }
 
@@ -289,7 +289,7 @@ void ProcessNew::CheckInput()
     }else if(CacheFind(false, szID)){
         m_CheckID = CHECK_ERROR;
         m_LBCheckID.SetColor(ColorFunc::COLOR_RED);
-        m_LBCheckID.SetText ("ID has been used by others");
+        m_LBCheckID.FormatText ("ID has been used by others");
     }else{
         if(szID.empty()){
             m_CheckID = CHECK_NONE;
@@ -297,11 +297,11 @@ void ProcessNew::CheckInput()
             if(LocalCheckID(szID.c_str())){
                 m_CheckID = CHECK_PENDING;
                 m_LBCheckID.SetColor(ColorFunc::COLOR_GREEN);
-                m_LBCheckID.SetText ("Pending...");
+                m_LBCheckID.FormatText ("Pending...");
             }else{
                 m_CheckID = CHECK_ERROR;
                 m_LBCheckID.SetColor(ColorFunc::COLOR_RED);
-                m_LBCheckID.SetText ("Invalid ID");
+                m_LBCheckID.FormatText ("Invalid ID");
             }
         }
     }
@@ -315,7 +315,7 @@ void ProcessNew::CheckInput()
         }else{
             m_CheckPwd = CHECK_ERROR;
             m_LBCheckPwd.SetColor(ColorFunc::COLOR_RED);
-            m_LBCheckPwd.SetText ("Invalid password");
+            m_LBCheckPwd.FormatText ("Invalid password");
         }
     }
 
@@ -328,7 +328,7 @@ void ProcessNew::CheckInput()
         }else{
             m_CheckPwdConfirm = CHECK_ERROR;
             m_LBCheckPwdConfirm.SetColor(ColorFunc::COLOR_RED);
-            m_LBCheckPwdConfirm.SetText ("Password doesn't match");
+            m_LBCheckPwdConfirm.FormatText ("Password doesn't match");
         }
     }
 }

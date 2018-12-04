@@ -22,7 +22,7 @@
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
 #include "actorpod.hpp"
-#include "serverenv.hpp"
+#include "serverargparser.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
 #include "rotatecoord.hpp"
@@ -30,8 +30,8 @@
 
 void ServerMap::On_MPK_METRONOME(const MessagePack &)
 {
-    extern ServerEnv *g_ServerEnv;
-    if(m_LuaModule && !g_ServerEnv->DisableMapScript){
+    extern ServerArgParser *g_ServerArgParser;
+    if(m_LuaModule && !g_ServerArgParser->DisableMapScript){
 
         // could this slow down the server
         // if so I have to move it to a seperated thread
@@ -620,7 +620,7 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
             if(true || ValidC(nX, nY)){
                 for(auto nUID: GetUIDList(nX, nY)){
                     if(nUID != stAMDFO.UID){
-                        if(UIDFunc::GetUIDType(nUID) == UID_PLY){
+                        if(UIDFunc::GetUIDType(nUID) == UID_PLY || UIDFunc::GetUIDType(nUID) == UID_MON){
                             m_ActorPod->Forward(nUID, {MPK_DEADFADEOUT, stAMDFO});
                         }
                     }

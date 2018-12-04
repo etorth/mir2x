@@ -28,7 +28,9 @@
 #include "protocoldef.hpp"
 #include "eventtaskhub.hpp"
 
-CharObject::COPathFinder::COPathFinder(const CharObject *pCO, bool bCheckCO)
+extern MonoServer *g_MonoServer;
+
+CharObject::COPathFinder::COPathFinder(const CharObject *pCO, int nCheckCO)
     : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
       {
           // we pass lambda to ctor of AStarPathFinder()
@@ -40,7 +42,6 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, bool bCheckCO)
                       && MaxStep() != 2
                       && MaxStep() != 3){
 
-                    extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
                     return 10000.00;
               }
@@ -52,7 +53,6 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, bool bCheckCO)
                       && nDistance2 != MaxStep() * MaxStep()
                       && nDistance2 != MaxStep() * MaxStep() * 2){
 
-                  extern MonoServer *g_MonoServer;
                   g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
                   return 10000.00;
               }
@@ -61,12 +61,25 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, bool bCheckCO)
           return m_CO->OneStepCost(this, m_CheckCO, nSrcX, nSrcY, nDstX, nDstY);
       }, pCO->MaxStep())
     , m_CO(pCO)
-    , m_CheckCO(bCheckCO)
+    , m_CheckCO(nCheckCO)
     , m_Cache()
 {
     if(!m_CO){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: CO = %p, CheckCreature = %d", m_CO, (int)(bCheckCO));
+        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: CO = %p, CheckCO = %d", m_CO, m_CheckCO);
+    }
+
+    switch(m_CheckCO){
+        case 0:
+        case 1:
+        case 2:
+            {
+                break;
+            }
+        default:
+            {
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: CO = %p, CheckCO = %d", m_CO, m_CheckCO);
+                break;
+            }
     }
 
     switch(m_CO->MaxStep()){
@@ -78,7 +91,6 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, bool bCheckCO)
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", m_CO->MaxStep());
                 break;
             }
@@ -129,6 +141,18 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_AddAbility()
 {
     condcheck(m_Map);
+    m_StateHook.Install("RemoveDeadUIDLocation", [this, nLastCheckTick = (uint32_t)(0)]() mutable -> bool
+    {
+        if(auto nCurrCheckTick = g_MonoServer->GetTimeTick(); nLastCheckTick + 5000 < nCurrCheckTick){
+            if(ActorPodValid()){
+                // remove all dead ones
+                // dispatch action requires check location list
+                DispatchAction(ActionStand(X(), Y(), Direction()));
+            }
+            nLastCheckTick = nCurrCheckTick;
+        }
+        return false;
+    });
 }
 
 bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
@@ -156,7 +180,7 @@ bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
 uint64_t CharObject::Activate()
 {
     if(auto nUID = ServerObject::Activate(); nUID){
-        DispatchAction(ActionStand(X(), Y(), Direction()));
+        DispatchAction(ActionSpawn(X(), Y(), Direction()));
         return nUID;
     }
     return 0;
@@ -172,7 +196,6 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
     // this would cause zombies
 
     if(!ActorPodValid()){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch action: %s", rstAction.ActionName());
         return;
     }
@@ -200,6 +223,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
         case ACTION_PUSHMOVE:
         case ACTION_SPACEMOVE1:
         case ACTION_SPACEMOVE2:
+        case ACTION_SPAWN:
             {
                 m_ActorPod->Forward(m_Map->UID(), {MPK_ACTION, stAMA});
                 return;
@@ -212,7 +236,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
                     auto nY     = pLoc->second.Y;
                     auto nMapID = pLoc->second.MapID;
 
-                    if(m_Map->In(nMapID, nX, nY) && LDistance2(nX, nY, X(), Y()) < 100){
+                    if(m_Map->In(nMapID, nX, nY) && LDistance2(nX, nY, X(), Y()) < 10 * 10){
                         // if one co becomes my new neighbor
                         // is should be included in the list already
                         // but if we find a neighbor in the cache list we need to refresh it
@@ -238,14 +262,92 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
     }
 }
 
+void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
+{
+    // should check to avoid dead CO call this function
+    // this would cause zombies
+
+    condcheck(nUID);
+    condcheck(ActorPodValid());
+
+    AMAction stAMA;
+    std::memset(&stAMA, 0, sizeof(stAMA));
+
+    stAMA.UID   = UID();
+    stAMA.MapID = MapID();
+
+    stAMA.Action    = rstAction.Action;
+    stAMA.Speed     = rstAction.Speed;
+    stAMA.Direction = rstAction.Direction;
+
+    stAMA.X    = rstAction.X;
+    stAMA.Y    = rstAction.Y;
+    stAMA.AimX = rstAction.AimX;
+    stAMA.AimY = rstAction.AimY;
+
+    stAMA.AimUID      = rstAction.AimUID;
+    stAMA.ActionParam = rstAction.ActionParam;
+
+    m_ActorPod->Forward(nUID, {MPK_ACTION, stAMA});
+}
+
 bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
     if(!CanMove()){
+        if(fnOnMoveError){
+            fnOnMoveError();
+        }
         return false;
     }
 
     if(EstimateHop(nX, nY) != 1){
+        if(fnOnMoveError){
+            fnOnMoveError();
+        }
         return false;
+    }
+
+    switch(LDistance2(X(), Y(), nX, nY)){
+        case 1:
+        case 2:
+            {
+                switch(CheckPathGrid(nX, nY, 0)){
+                    case PathFind::FREE:
+                        {
+                            break;
+                        }
+                    case PathFind::OCCUPIED:
+                    default:
+                        {
+                            if(fnOnMoveError){
+                                fnOnMoveError();
+                            }
+                            return false;
+                        }
+                }
+                break;
+            }
+        default:
+            {
+                // one-hop distance but has internal steps
+                // need to check if there is co blocking the path
+                int nXm = -1;
+                int nYm = -1;
+                PathFind::GetFrontLocation(&nXm, &nYm, X(), Y(), PathFind::GetDirection(X(), Y(), nX, nY), 1);
+
+                // for strict co check
+                // need to skip the current (X(), Y())
+
+                if(OneStepCost(nullptr, 2, nXm, nYm, nX, nY) < 0.00){
+                    if(!bAllowHalfMove){
+                        if(fnOnMoveError){
+                            fnOnMoveError();
+                        }
+                        return false;
+                    }
+                }
+                break;
+            }
     }
 
     AMTryMove stAMTM;
@@ -260,10 +362,9 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
     stAMTM.AllowHalfMove = bAllowHalfMove;
 
     m_MoveLock = true;
-    return m_ActorPod->Forward(m_Map->UID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, bAllowHalfMove, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)
+    auto bForwardOK = m_ActorPod->Forward(m_Map->UID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)
     {
         if(!m_MoveLock){
-            extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before map responds: ClassName = %s", UIDName());
             g_MonoServer->Restart();
         }
@@ -296,7 +397,6 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
 
                         m_Direction = nDir;
 
-                        extern MonoServer *g_MonoServer;
                         m_LastMoveTime = g_MonoServer->GetTimeTick();
 
                         m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
@@ -336,6 +436,17 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
                 }
         }
     });
+
+    // send failure should trigger fnOnMoveError
+    // but a successful send doesn't mean move successfully
+
+    if(!bForwardOK){
+        if(fnOnMoveError){
+            fnOnMoveError();
+        }
+    }
+
+    return bForwardOK;
 }
 
 bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
@@ -345,7 +456,6 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
     }
 
     if(!UIDFunc::GetMapUID(nMapID)){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid MapID: %" PRIu32, nMapID);
         return false;
     }
@@ -365,7 +475,6 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
         //    shouldn't release before get map's response
 
         if(!m_MoveLock){
-            extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before map responds: UIDName = %s", UIDName());
             g_MonoServer->Restart();
         }
@@ -405,7 +514,6 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                     m_ActorPod->Forward(m_Map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, rstRMPK, nX, nY, fnOnMoveOK, fnOnMoveError](const MessagePack &rstLeaveRMPK)
                     {
                         if(!m_MoveLock){
-                            extern MonoServer *g_MonoServer;
                             g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before map responds: UIDName = %s", UIDName());
                             g_MonoServer->Restart();
                         }
@@ -431,7 +539,6 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                                         m_Y   = nY;
                                         m_Map = (ServerMap *)(stAMSMOK.Ptr);
 
-                                        extern MonoServer *g_MonoServer;
                                         m_LastMoveTime = g_MonoServer->GetTimeTick();
                                         m_ActorPod->Forward(rstRMPK.From(), MPK_OK, rstRMPK.ID());
 
@@ -495,18 +602,14 @@ bool CharObject::CanAttack()
     }
 }
 
-bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnLocationOK)
+bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnLocationOK, std::function<void()> fnOnLocationError)
 {
     if(!nUID){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Query location with zero UID");
-        return false;
+        throw std::invalid_argument(str_ffl() + ": Query location with zero UID");
     }
 
     if(nUID == UID()){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Query UID to co itself");
-        return false;
+        throw std::invalid_argument(str_ffl() + ": Query UID to CO itself: " + UIDFunc::GetUIDString(nUID));
     }
 
     // current the UID is valid
@@ -514,7 +617,7 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
     // 1.     valid cache : call fnOnLocationOK
     // 2. not valid cache : call fnOnLocationOK after refresh
 
-    auto fnQueryLocation = [this, nUID, fnOnLocationOK]() -> bool
+    auto fnQueryLocation = [this, nUID, fnOnLocationOK, fnOnLocationError]() -> bool
     {
         AMQueryLocation stAMQL;
         std::memset(&stAMQL, 0, sizeof(stAMQL));
@@ -522,7 +625,7 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
         stAMQL.UID   = UID();
         stAMQL.MapID = MapID();
 
-        return m_ActorPod->Forward(nUID, {MPK_QUERYLOCATION, stAMQL}, [this, nUID, fnOnLocationOK](const MessagePack &rstRMPK)
+        return m_ActorPod->Forward(nUID, {MPK_QUERYLOCATION, stAMQL}, [this, nUID, fnOnLocationOK, fnOnLocationError](const MessagePack &rstRMPK)
         {
             switch(rstRMPK.Type()){
                 case MPK_LOCATION:
@@ -544,18 +647,21 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
                                 stAML.Y,
                                 stAML.Direction
                             };
-
-                            if(fnOnLocationOK){
-                                fnOnLocationOK(m_LocationList[nUID]);
-                            }
                         }else{
                             m_LocationList.erase(nUID);
+                        }
+
+                        if(fnOnLocationOK){
+                            fnOnLocationOK(m_LocationList[nUID]);
                         }
                         break;
                     }
                 default:
                     {
                         m_LocationList.erase(nUID);
+                        if(fnOnLocationError){
+                            fnOnLocationError();
+                        }
                         break;
                     }
             }
@@ -570,7 +676,6 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
 
     // we find an entry
     // valid the entry, could be expired
-    extern MonoServer *g_MonoServer;
     auto &rstRecord = m_LocationList[nUID];
     if(m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)
             && g_MonoServer->GetTimeTick() <= rstRecord.RecordTime + 2 * 1000){
@@ -581,9 +686,14 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
         return true;
     }
 
-    // do query new location
     // found record is out of time
-    return fnQueryLocation();
+    // if query failed means this UID doesn't exist
+
+    if(!fnQueryLocation()){
+        m_LocationList.erase(nUID);
+        return false;
+    }
+    return true;
 }
 
 bool CharObject::AddHitterUID(uint64_t nUID, int nDamage)
@@ -592,14 +702,12 @@ bool CharObject::AddHitterUID(uint64_t nUID, int nDamage)
         for(auto rstRecord: m_HitterUIDRecord){
             if(rstRecord.UID == nUID){
                 rstRecord.Damage += std::max<int>(0, nDamage);
-                extern MonoServer *g_MonoServer;
                 rstRecord.ActiveTime = g_MonoServer->GetTimeTick();
                 return true;
             }
         }
 
         // new entry
-        extern MonoServer *g_MonoServer;
         m_HitterUIDRecord.emplace_back(nUID, std::max<int>(0, nDamage), g_MonoServer->GetTimeTick());
         return true;
     }
@@ -608,7 +716,6 @@ bool CharObject::AddHitterUID(uint64_t nUID, int nDamage)
 
 bool CharObject::DispatchHitterExp()
 {
-    extern MonoServer *g_MonoServer;
     auto nNowTick = g_MonoServer->GetTimeTick();
     for(size_t nIndex = 0; nIndex < m_HitterUIDRecord.size();){
         if(true
@@ -756,7 +863,7 @@ void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bRandom)
     stAMACO.Monster.MonsterID = nMonsterID;
     stAMACO.Monster.MasterUID = UID();
 
-    auto fnOnRet = [](const MessagePack &rstRMPK)
+    m_ActorPod->Forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.ID()){
             default:
@@ -764,50 +871,54 @@ void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bRandom)
                     break;
                 }
         }
-    };
-    m_ActorPod->Forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, fnOnRet);
+    });
 }
 
 int CharObject::EstimateHop(int nX, int nY)
 {
-    if(m_Map->ValidC(nX, nY)){
-
-        auto nMaxStep = MaxStep();
-        auto nLDistance2 = LDistance2(nX, nY, X(), Y());
-
-        switch(nLDistance2){
-            case 0:
-                {
-                    return 0;
-                }
-            case 1:
-            case 2:
-                {
-                    return 1;
-                }
-            default:
-                {
-                    if(false
-                            || nLDistance2 == 1 * nMaxStep * nMaxStep
-                            || nLDistance2 == 2 * nMaxStep * nMaxStep){
-
-                        auto nDir = PathFind::GetDirection(X(), Y(), nX, nY);
-                        auto nMaxReach = OneStepReach(nDir, nMaxStep, nullptr, nullptr);
-
-                        if(nMaxReach == nMaxStep){
-                            return 1;
-                        }
-                    }
-
-                    return 2;
-                }
-        }
+    condcheck(m_Map);
+    if(!m_Map->ValidC(nX, nY)){
+        return -1;
     }
-    return -1;
+
+    int nLDistance2 = LDistance2(nX, nY, X(), Y());
+    switch(nLDistance2){
+        case 0:
+            {
+                return 0;
+            }
+        case 1:
+        case 2:
+            {
+                return 1;
+            }
+        default:
+            {
+                auto nMaxStep = MaxStep();
+                condcheck(false
+                        || nMaxStep == 1
+                        || nMaxStep == 2
+                        || nMaxStep == 3);
+
+                if(false
+                        || nLDistance2 == 1 * nMaxStep * nMaxStep
+                        || nLDistance2 == 2 * nMaxStep * nMaxStep){
+
+                    auto nDir = PathFind::GetDirection(X(), Y(), nX, nY);
+                    auto nMaxReach = OneStepReach(nDir, nMaxStep, nullptr, nullptr);
+
+                    if(nMaxReach == nMaxStep){
+                        return 1;
+                    }
+                }
+                return 2;
+            }
+    }
 }
 
 int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
 {
+    condcheck(m_Map);
     if(!m_Map->GetMir2xMapData().ValidC(nX, nY)){
         return PathFind::INVALID;
     }
@@ -816,9 +927,12 @@ int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
         return PathFind::OBSTACLE;
     }
 
+    if(X() == nX && Y() == nY){
+        return PathFind::OCCUPIED;
+    }
+
     for(auto stLocation: m_LocationList){
         if(nTimeOut){
-            extern MonoServer *g_MonoServer;
             if(g_MonoServer->GetTimeTick() > stLocation.second.RecordTime + nTimeOut){
                 continue;
             }
@@ -834,8 +948,69 @@ int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
     return PathFind::FREE;
 }
 
-double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, bool bCheckCO, int nX0, int nY0, int nX1, int nY1) const
+std::array<PathFind::PathNode, 3> CharObject::GetChaseGrid(int nX, int nY, int nDLen) const
 {
+    // always get the next step to chase
+    // this function won't check if (nX, nY) is valid
+
+    int nX0 = X();
+    int nY0 = Y();
+
+    std::array<PathFind::PathNode, 3> stvPathNode
+    {{
+        {-1, -1},
+        {-1, -1},
+        {-1, -1},
+    }};
+
+    int nDX = ((nX > nX0) - (nX < nX0));
+    int nDY = ((nY > nY0) - (nY < nY0));
+
+    switch(std::abs(nDX) + std::abs(nDY)){
+        case 1:
+            {
+                if(nDY){
+                    stvPathNode[0] = {nX0        , nY0 + nDY * nDLen};
+                    stvPathNode[1] = {nX0 - nDLen, nY0 + nDY * nDLen};
+                    stvPathNode[2] = {nX0 + nDLen, nY0 + nDY * nDLen};
+                }else{
+                    stvPathNode[0] = {nX0 + nDX * nDLen, nY0        };
+                    stvPathNode[1] = {nX0 + nDX * nDLen, nY0 - nDLen};
+                    stvPathNode[2] = {nX0 + nDX * nDLen, nY0 + nDLen};
+                }
+                break;
+            }
+        case 2:
+            {
+                stvPathNode[0] = {nX0 + nDX * nDLen, nY0 + nDY * nDLen};
+                stvPathNode[1] = {nX0              , nY0 + nDY * nDLen};
+                stvPathNode[2] = {nX0 + nDX * nDLen, nY0              };
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+    return stvPathNode;
+}
+
+double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nCheckCO, int nX0, int nY0, int nX1, int nY1) const
+{
+    switch(nCheckCO){
+        case 0:
+        case 1:
+        case 2:
+            {
+                break;
+            }
+        default:
+            {
+                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: COPathFinder = %p, CheckCO = %d", pFinder, nCheckCO);
+                break;
+            }
+    }
+
     int nMaxIndex = -1;
     switch(LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
@@ -872,15 +1047,29 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, bool bCh
 
     double fExtraPen = 0.00;
     for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
-        switch(auto nGrid = pFinder->GetGrid(nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+        int nCurrX = nX0 + nDX * nIndex;
+        int nCurrY = nY0 + nDY * nIndex;
+        switch(auto nGrid = pFinder ? pFinder->GetGrid(nCurrX, nCurrY) : CheckPathGrid(nCurrX, nCurrY)){
             case PathFind::FREE:
                 {
                     break;
                 }
             case PathFind::OCCUPIED:
                 {
-                    if(bCheckCO){
-                        fExtraPen += 100.00;
+                    switch(nCheckCO){
+                        case 1:
+                            {
+                                fExtraPen += 100.00;
+                                break;
+                            }
+                        case 2:
+                            {
+                                return -1.00;
+                            }
+                        default:
+                            {
+                                break;
+                            }
                     }
                     break;
                 }
@@ -891,8 +1080,7 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, bool bCh
                 }
             default:
                 {
-                    extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nX0 + nDX * nIndex, nY0 + nDY * nIndex);
+                    g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nCurrX, nCurrY);
                     break;
                 }
         }

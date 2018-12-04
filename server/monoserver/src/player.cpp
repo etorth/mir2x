@@ -28,6 +28,9 @@
 #include "friendtype.hpp"
 #include "protocoldef.hpp"
 
+extern DBPodN *g_DBPodN;
+extern MonoServer *g_MonoServer;
+
 Player::Player(uint32_t nDBID,
         ServiceCore    *pServiceCore,
         ServerMap      *pServerMap,
@@ -283,18 +286,26 @@ void Player::ReportAction(uint64_t nUID, const ActionNode &rstAction)
     }
 }
 
+void Player::ReportDeadUID(uint64_t nDeadUID)
+{
+    SMNotifyDead stSMND;
+    std::memset(&stSMND, 0, sizeof(stSMND));
+
+    stSMND.UID = nDeadUID;
+    PostNetMessage(SM_NOTIFYDEAD, stSMND);
+}
+
 void Player::ReportHealth()
 {
-    if(ChannID()){
-        SMUpdateHP stSMUHP;
-        stSMUHP.UID   = UID();
-        stSMUHP.MapID = MapID();
-        stSMUHP.HP    = HP();
-        stSMUHP.HPMax = HPMax();
+    SMUpdateHP stSMUHP;
+    std::memset(&stSMUHP, 0, sizeof(stSMUHP));
 
-        extern NetDriver *g_NetDriver;
-        g_NetDriver->Post(ChannID(), SM_UPDATEHP, stSMUHP);
-    }
+    stSMUHP.UID   = UID();
+    stSMUHP.MapID = MapID();
+    stSMUHP.HP    = HP();
+    stSMUHP.HPMax = HPMax();
+
+    PostNetMessage(SM_UPDATEHP, stSMUHP);
 }
 
 bool Player::InRange(int nRangeType, int nX, int nY)
@@ -697,11 +708,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
             {
                 int nFrontX = -1;
                 int nFrontY = -1;
-
-                if(!PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2)){
-                    nFrontX = X() + 1;
-                    nFrontY = Y() + 1;
-                }
+                PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2);
 
                 SMFireMagic stSMFM;
                 std::memset(&stSMFM, 0, sizeof(stSMFM));
@@ -717,8 +724,8 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 {
                     AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
 
-                    extern NetDriver *g_NetDriver;
-                    g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
+                    // AddMonster will send ACTION_SPAWN to client
+                    // client then use it to play the magic for 召唤骷髅, we don't send magic message here
                 });
                 break;
             }
@@ -771,7 +778,7 @@ void Player::OnCMActionPickUp(CMAction stCMA)
     }
 }
 
-int Player::MaxStep()
+int Player::MaxStep() const
 {
     if(Horse()){
         return 3;
@@ -864,73 +871,37 @@ bool Player::CanPickUp(uint32_t, uint32_t)
 
 bool Player::DBUpdate(const char *szTableName, const char *szFieldList, ...)
 {
-    if(true
-            && (szTableName && std::strlen(szTableName))
-            && (szFieldList && std::strlen(szFieldList))){
-
-        auto fnWriteDB = [this](const char *szTableName, const char *szSQLCommand) -> bool
-        {
-            extern DBPodN *g_DBPodN;
-            auto pDBHDR = g_DBPodN->CreateDBHDR();
-
-            if(!pDBHDR->Execute("update mir2x.%s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand, DBID())){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-                return false;
-            }
-            return true;
-        };
-
-        int nCmdLen = 0;
-
-        // 1. try static buffer
-        //    give an enough size so we can hopefully stop here
-        {
-            char szSBuf[1024];
-
-            va_list ap;
-            va_start(ap, szFieldList);
-            nCmdLen = std::vsnprintf(szSBuf, std::extent<decltype(szSBuf)>::value, szFieldList, ap);
-            va_end(ap);
-
-            if(nCmdLen >= 0){
-                if((size_t)(nCmdLen + 1) < std::extent<decltype(szSBuf)>::value){
-                    return fnWriteDB(szTableName, szSBuf);
-                }else{
-                    // do nothing
-                    // have to try the dynamic buffer method
-                }
-            }else{
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL table %s update command parsing failed: %s", szTableName, szFieldList);
-                return false;
-            }
-        }
-
-        // 2. try dynamic buffer
-        //    use the parsed buffer size above to get enough memory
-        while(true){
-            std::vector<char> szDBuf(nCmdLen + 1 + 64);
-
-            va_list ap;
-            va_start(ap, szFieldList);
-            nCmdLen = std::vsnprintf(&(szDBuf[0]), szDBuf.size(), szFieldList, ap);
-            va_end(ap);
-
-            if(nCmdLen >= 0){
-                if((size_t)(nCmdLen + 1) < szDBuf.size()){
-                    return fnWriteDB(szTableName, &(szDBuf[0]));
-                }else{
-                    szDBuf.resize(nCmdLen + 1 + 64);
-                }
-            }else{
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL table %s update command parsing failed: %s", szTableName, szFieldList);
-                return false;
-            }
-        }
+    if(false
+            || (!szTableName || !std::strlen(szTableName))
+            || (!szFieldList || !std::strlen(szFieldList))){
+        return false;
     }
-    return false;
+
+    std::string szSQLCommand;
+    std::string szExceptionStr;
+    {
+        va_list ap;
+        va_start(ap, szFieldList);
+
+        try{
+            szSQLCommand = str_vprintf(szFieldList, ap);
+        }catch(const std::exception &e){
+            szExceptionStr = str_printf("Exception caught in Player::Update(%s, \"%s\"): %s", szTableName, szFieldList, e.what());
+        }
+
+        va_end(ap);
+    }
+
+    if(!szExceptionStr.empty()){
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "%s", szExceptionStr.c_str());
+        return false;
+    }
+
+    if(auto pDBHDR = g_DBPodN->CreateDBHDR(); !pDBHDR->Execute("update mir2x.%s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand.c_str(), DBID())){
+        g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
+        return false;
+    }
+    return true;
 }
 
 bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::function<std::string(const char *)> fnDBOperation)
