@@ -158,7 +158,14 @@ if( MYSQL_LIBRARY )
         set( MYSQL_INCLUDE_DIRS ${MYSQL_INCLUDE_DIR})
         set( MYSQL_LIBRARY_DIR  ${MYSQL_LIBRARY})
         set( MYSQL_LIBRARY_DIRS ${MYSQL_LIBRARY})
-        set( MYSQL_LIBRARIES "mysqlclient")
+
+        # sometimes mysql_config is installed by mariadb
+        # then actually we will get mariadb libs
+
+        # set( MYSQL_LIBRARIES "mysqlclient")
+        get_filename_component(MYSQL_CLIENT_LIB_FILENAME ${MYSQL_LIBRARY} NAME_WE)
+        string(REGEX REPLACE "^lib" "" MYSQL_CLIENT_LIBNAME ${MYSQL_CLIENT_LIB_FILENAME})
+        set( MYSQL_LIBRARIES ${MYSQL_CLIENT_LIBNAME})
 
         message(STATUS "Found MySQL library: ${MYSQL_LIBRARY_DIR}")
         message(STATUS "Found MySQL headers: ${MYSQL_INCLUDE_DIR}")
