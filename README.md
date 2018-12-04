@@ -81,7 +81,7 @@ Global variables:
     - remain valid during the whole run, and ONLY free them at process exit.
 
 Error handling:
-1. use Log to give better debug information at crash
+1. use exception for good/bad path control, force catch at exit of main() or clone().
 2. do strict parameters checking before doing actual logic, no assumptions.
 3. let the crash happen ASAP if any fatal error detected
 
@@ -104,6 +104,5 @@ mir2x uses a number of open source projects to work properly, and of course itse
 * [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - A simple, small, efficient, C++ XML parser.
 * [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for UTF-8 string handling.
 * [libpng](http://www.libpng.org/pub/png/libpng.html) - The official PNG reference library.
-* [libzip](https://nih.at/libzip/) - C library for reading, creating, and modifying zip archives.
 * [ThreadPool](https://github.com/progschj/ThreadPool) - A simple C++11 Thread Pool implementation
 * [astar-algorithm](https://github.com/justinhj/astar-algorithm-cpp) - Implementation of the A* algorithm in C++ and C#
