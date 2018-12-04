@@ -112,7 +112,10 @@ void ProcessRun::Update(double fUpdateTime)
     m_ControbBoard.Update(fUpdateTime);
 
     for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
-        if(p->second->Active()){
+        if(p->second->Visible()){
+            if(p->second->LastActive() + 2000 < SDL_GetTicks()){
+                QueryCORecord(p->second->UID());
+            }
             p->second->Update(fUpdateTime);
             ++p;
         }else{
@@ -987,7 +990,7 @@ std::vector<int> ProcessRun::GetPlayerList()
 {
     std::vector<int> stRetV {};
     for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
-        if(p->second->Active()){
+        if(p->second->Visible()){
             switch(p->second->Type()){
                 case CREATURE_PLAYER:
                     {
@@ -1257,7 +1260,7 @@ Creature *ProcessRun::RetrieveUID(uint64_t nUID)
     }
 
     if(auto p = m_CreatureList.find(nUID); p != m_CreatureList.end()){
-        if(p->second->Active()){
+        if(p->second->Visible()){
             if(p->second->UID() != nUID){
                 extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_FATAL, "Invalid creature record: %p, UID = %" PRIu64, p->second, p->second->UID());

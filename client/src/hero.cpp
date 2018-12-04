@@ -337,6 +337,8 @@ bool Hero::MotionValid(const MotionNode &rstMotion) const
 
 bool Hero::ParseAction(const ActionNode &rstAction)
 {
+    m_LastActive = SDL_GetTicks();
+
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
     switch(rstAction.Action){

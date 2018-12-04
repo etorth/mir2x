@@ -155,6 +155,9 @@ class Creature
         std::vector<std::shared_ptr<AttachMagic>> m_AttachMagicList;
 
     protected:
+        uint32_t m_LastActive;
+
+    protected:
         double m_LastUpdateTime;
 
     protected:
@@ -168,6 +171,7 @@ class Creature
             , m_CurrMotion()
             , m_MotionQueue()
             , m_AttachMagicList()
+            , m_LastActive(0)
             , m_LastUpdateTime(0.0)
         {
             condcheck(m_UID);
@@ -214,7 +218,15 @@ class Creature
         virtual bool CanFocus(int, int) = 0;
 
     public:
+        bool Alive();
         bool Active();
+        bool Visible();
+
+    public:
+        uint32_t LastActive() const
+        {
+            return m_LastActive;
+        }
 
     public:
         int X() { int nX; return Location(&nX, nullptr) ? nX : -1; }

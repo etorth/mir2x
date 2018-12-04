@@ -30,6 +30,7 @@ enum: uint8_t
     SM_ACTION,
     SM_CORECORD,
     SM_UPDATEHP,
+    SM_NOTIFYDEAD,
     SM_DEADFADEOUT,
     SM_EXP,
     SM_SHOWDROPITEM,
@@ -163,6 +164,11 @@ struct SMDeadFadeOut
     uint32_t Y;
 };
 
+struct SMNotifyDead
+{
+    uint64_t UID;
+};
+
 struct SMExp
 {
     uint32_t Exp;
@@ -250,6 +256,7 @@ class SMSGParam: public MessageBase
                 {SM_ACTION,           {1, sizeof(SMAction),                "SM_ACTION"          }},
                 {SM_CORECORD,         {1, sizeof(SMCORecord),              "SM_CORECORD"        }},
                 {SM_UPDATEHP,         {1, sizeof(SMUpdateHP),              "SM_UPDATEHP"        }},
+                {SM_NOTIFYDEAD,       {1, sizeof(SMNotifyDead),            "SM_NOTIFYDEAD"      }},
                 {SM_DEADFADEOUT,      {1, sizeof(SMDeadFadeOut),           "SM_DEADFADEOUT"     }},
                 {SM_EXP,              {1, sizeof(SMExp),                   "SM_EXP"             }},
                 {SM_SHOWDROPITEM,     {1, sizeof(SMShowDropItem),          "SM_SHOWDROPITEM"    }},

@@ -293,6 +293,7 @@ int Monster::MotionFrameCount(int nMotion, int nDirection) const
 
 bool Monster::ParseAction(const ActionNode &rstAction)
 {
+    m_LastActive = SDL_GetTicks();
     bool bFindMotionDie = false;
     for(auto &rstMotionNode: m_MotionQueue){
         if(rstMotionNode.Motion == MOTION_MON_DIE){

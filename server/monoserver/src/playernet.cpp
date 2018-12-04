@@ -58,7 +58,9 @@ void Player::Net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
         // send the query without response requirement
 
         stAMQCOR.UID = UID();
-        m_ActorPod->Forward(stCMQCOR.AimUID, {MPK_QUERYCORECORD, stAMQCOR});
+        if(!m_ActorPod->Forward(stCMQCOR.AimUID, {MPK_QUERYCORECORD, stAMQCOR})){
+            ReportDeadUID(stCMQCOR.AimUID);
+        }
     }
 }
 

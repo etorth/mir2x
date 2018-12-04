@@ -170,6 +170,7 @@ class ProcessRun: public Process
         void Net_CORECORD(const uint8_t *, size_t);
         void Net_UPDATEHP(const uint8_t *, size_t);
         void Net_FIREMAGIC(const uint8_t *, size_t);
+        void Net_NOTIFYDEAD(const uint8_t *, size_t);
         void Net_DEADFADEOUT(const uint8_t *, size_t);
         void Net_MONSTERGINFO(const uint8_t *, size_t);
         void Net_SHOWDROPITEM(const uint8_t *, size_t);

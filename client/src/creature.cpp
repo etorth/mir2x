@@ -466,36 +466,67 @@ bool Creature::DeadFadeOut()
     return false;
 }
 
-bool Creature::Active()
+bool Creature::Alive()
 {
-    if(MotionValid(m_CurrMotion)){
-        switch(m_CurrMotion.Motion){
-            case MOTION_DIE:
-            case MOTION_MON_DIE:
-                {
-                    auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
-                    if(nFrameCount > 0){
-                        if(true
-                                && m_CurrMotion.Frame   == (nFrameCount - 1)
-                                && m_CurrMotion.FadeOut == (255)){
-                            return false;
-                        }
-
-                        return true;
-                    }else{
-                        extern Log *g_Log;
-                        g_Log->AddLog(LOGTYPE_WARNING, "Current motion is not valid");
-                        return false;
-                    }
-                }
-            default:
-                {
-                    return true;
-                }
-        }
+    if(!MotionValid(m_CurrMotion)){
+        throw std::runtime_error(str_ffl() + "; Invalid motion detected");
     }
 
-    return false;
+    switch(m_CurrMotion.Motion){
+        case MOTION_DIE:
+        case MOTION_MON_DIE:
+            {
+                return false;
+            }
+        default:
+            {
+                return true;
+            }
+    }
+}
+
+bool Creature::Active()
+{
+    if(!MotionValid(m_CurrMotion)){
+        throw std::runtime_error(str_ffl() + ": Invalid motion detected");
+    }
+
+    switch(m_CurrMotion.Motion){
+        case MOTION_DIE:
+        case MOTION_MON_DIE:
+            {
+                if(auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction); nFrameCount > 0){
+                    return m_CurrMotion.Frame < (nFrameCount - 1);
+                }
+                throw std::runtime_error(str_ffl() + ": Invalid motion detected");
+            }
+        default:
+            {
+                return true;
+            }
+    }
+}
+
+bool Creature::Visible()
+{
+    if(!MotionValid(m_CurrMotion)){
+        throw std::runtime_error(str_ffl() + ": Invalid motion detected");
+    }
+
+    switch(m_CurrMotion.Motion){
+        case MOTION_DIE:
+        case MOTION_MON_DIE:
+            {
+                if(auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction); nFrameCount > 0){
+                    return (m_CurrMotion.Frame < (nFrameCount - 1)) || (m_CurrMotion.FadeOut < 255);
+                }
+                throw std::runtime_error(str_ffl() + ": Invalid motion detected");
+            }
+        default:
+            {
+                return true;
+            }
+    }
 }
 
 MotionNode Creature::MakeMotionIdle() const

@@ -286,18 +286,26 @@ void Player::ReportAction(uint64_t nUID, const ActionNode &rstAction)
     }
 }
 
+void Player::ReportDeadUID(uint64_t nDeadUID)
+{
+    SMNotifyDead stSMND;
+    std::memset(&stSMND, 0, sizeof(stSMND));
+
+    stSMND.UID = nDeadUID;
+    PostNetMessage(SM_NOTIFYDEAD, stSMND);
+}
+
 void Player::ReportHealth()
 {
-    if(ChannID()){
-        SMUpdateHP stSMUHP;
-        stSMUHP.UID   = UID();
-        stSMUHP.MapID = MapID();
-        stSMUHP.HP    = HP();
-        stSMUHP.HPMax = HPMax();
+    SMUpdateHP stSMUHP;
+    std::memset(&stSMUHP, 0, sizeof(stSMUHP));
 
-        extern NetDriver *g_NetDriver;
-        g_NetDriver->Post(ChannID(), SM_UPDATEHP, stSMUHP);
-    }
+    stSMUHP.UID   = UID();
+    stSMUHP.MapID = MapID();
+    stSMUHP.HP    = HP();
+    stSMUHP.HPMax = HPMax();
+
+    PostNetMessage(SM_UPDATEHP, stSMUHP);
 }
 
 bool Player::InRange(int nRangeType, int nX, int nY)
