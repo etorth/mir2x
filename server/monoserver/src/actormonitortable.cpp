@@ -18,6 +18,7 @@
 
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
+#include "uidfunc.hpp"
 #include "actorpool.hpp"
 #include "actormonitortable.hpp"
 
@@ -27,7 +28,7 @@ ActorMonitorTable::ActorMonitorTable(int nX, int nY, int nW, int nH, const char 
     : Fl_TableImpl(nX, nY, nW, nH, szLabel)
     , m_ColumnName
       {
-          "UID", "LIVE", "BUSY", "MSG_DONE", "MSG_PENDING"
+          "UID", "TYPE", "LIVE", "BUSY", "MSG_DONE", "MSG_PENDING"
       }
     , m_ActorMonitorList()
 {
@@ -43,15 +44,55 @@ ActorMonitorTable::ActorMonitorTable(int nX, int nY, int nW, int nH, const char 
     end();
 }
 
+static std::string GetTimeString(uint32_t nMS)
+{
+    int nHour   = nMS / 3600000; nMS -= (nHour   * 3600000);
+    int nMinute = nMS /   60000; nMS -= (nMinute *   60000);
+    int nSecond = nMS /    1000; nMS -= (nSecond *    1000);
+
+    char szTimeString[128];
+    std::sprintf(szTimeString, "%dh:%02dm:%02ds:%03dms", nHour, nMinute, nSecond, nMS);
+    return szTimeString;
+}
+
 std::string ActorMonitorTable::GetGridData(int nRow, int nCol)
 {
+    if(nRow >= (int)(m_ActorMonitorList.size()) || nCol >= (int)(m_ColumnName.size())){
+        return "";
+    }
+
+    const auto &rstMonitor = m_ActorMonitorList[nRow];
     switch(nCol){
-        case 0  : return std::to_string(m_ActorMonitorList[nRow].UID);
-        case 1  : return std::to_string(m_ActorMonitorList[nRow].LiveTick);
-        case 2  : return std::to_string(m_ActorMonitorList[nRow].BusyTick);
-        case 3  : return std::to_string(m_ActorMonitorList[nRow].MessageDone);
-        case 4  : return std::to_string(m_ActorMonitorList[nRow].MessagePending);
-        default : return "";
+        case 0:
+            {
+                char szUIDHexString[64];
+                std::sprintf(szUIDHexString, "%" PRIx64, rstMonitor.UID);
+                return szUIDHexString;
+            }
+        case 1:
+            {
+                return UIDFunc::GetUIDTypeString(rstMonitor.UID);
+            }
+        case 2:
+            {
+                return GetTimeString(rstMonitor.LiveTick);
+            }
+        case 3:
+            {
+                return GetTimeString(rstMonitor.BusyTick);
+            }
+        case 4:
+            {
+                return std::to_string(rstMonitor.MessageDone);
+            }
+        case 5:
+            {
+                return std::to_string(rstMonitor.MessagePending);
+            }
+        default:
+            {
+                return "???";
+            }
     }
 }
 
