@@ -19,12 +19,16 @@
 #pragma once
 #include <vector>
 #include <string>
+#include "actorpool.hpp"
 #include "fltableimpl.hpp"
 
 class ActorMonitorTable: public Fl_TableImpl
 {
     private:
         std::vector<std::string> m_ColumnName;
+
+    private:
+        std::vector<ActorPool::ActorMonitor> m_ActorMonitorList;
 
     public:
         ActorMonitorTable(int, int, int, int, const char * = nullptr);
@@ -35,4 +39,7 @@ class ActorMonitorTable: public Fl_TableImpl
     protected:
         void DrawData  (const char *, int, int, int, int);
         void DrawHeader(const char *, int, int, int, int);
+
+    protected:
+        std::string GetGridData(int, int);
 };

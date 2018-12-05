@@ -18,17 +18,21 @@
 
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
+#include "actorpool.hpp"
 #include "actormonitortable.hpp"
+
+extern ActorPool *g_ActorPool;
 
 ActorMonitorTable::ActorMonitorTable(int nX, int nY, int nW, int nH, const char *szLabel)
     : Fl_TableImpl(nX, nY, nW, nH, szLabel)
     , m_ColumnName
       {
-          "UID", "Type", "SEQ", "MessageCount"
+          "UID", "LIVE", "BUSY", "MSG_DONE", "MSG_PENDING"
       }
+    , m_ActorMonitorList()
 {
-    rows(100);
-    row_header(1);
+    rows(0);
+    row_header(0);
     row_height_all(20);
     row_resize(0);
 
@@ -39,12 +43,26 @@ ActorMonitorTable::ActorMonitorTable(int nX, int nY, int nW, int nH, const char 
     end();
 }
 
+std::string ActorMonitorTable::GetGridData(int nRow, int nCol)
+{
+    switch(nCol){
+        case 0  : return std::to_string(m_ActorMonitorList[nRow].UID);
+        case 1  : return std::to_string(m_ActorMonitorList[nRow].LiveTick);
+        case 2  : return std::to_string(m_ActorMonitorList[nRow].BusyTick);
+        case 3  : return std::to_string(m_ActorMonitorList[nRow].MessageDone);
+        case 4  : return std::to_string(m_ActorMonitorList[nRow].MessagePending);
+        default : return "";
+    }
+}
+
 void ActorMonitorTable::draw_cell(TableContext nContext, int nRow, int nCol, int nX, int nY, int nW, int nH)
 {
     switch(nContext)
     {
         case CONTEXT_STARTPAGE:
             {
+                m_ActorMonitorList = g_ActorPool->GetActorMonitor();
+                rows(m_ActorMonitorList.size());
                 return; 
             }
         case CONTEXT_COL_HEADER:
@@ -54,12 +72,12 @@ void ActorMonitorTable::draw_cell(TableContext nContext, int nRow, int nCol, int
             }
         case CONTEXT_ROW_HEADER:
             {
-                DrawHeader("TEST", nX, nY, nW, nH);
+                DrawHeader("???", nX, nY, nW, nH);
                 return;
             }
         case CONTEXT_CELL:
             {
-                DrawData(std::to_string(nRow).c_str(), nX, nY, nW, nH);
+                DrawData(GetGridData(nRow, nCol).c_str(), nX, nY, nW, nH);
                 return;
             }
         default:

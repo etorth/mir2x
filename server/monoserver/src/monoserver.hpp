@@ -21,7 +21,6 @@
 #include <mutex>
 #include <queue>
 #include <vector>
-#include <chrono>
 #include <cstdint>
 #include <exception>
 #include <stdexcept>
@@ -33,6 +32,7 @@
 #include "message.hpp"
 #include "taskhub.hpp"
 #include "database.hpp"
+#include "hrestimer.hpp"
 #include "eventtaskhub.hpp"
 #include "commandluamodule.hpp"
 
@@ -65,7 +65,7 @@ class MonoServer final
         std::exception_ptr m_CurrException;
 
     private:
-        const std::chrono::time_point<std::chrono::steady_clock> m_StartTime;
+        hres_timer<uint64_t> m_HRTimer;
 
     public:
         void NotifyGUI(std::string);
@@ -125,32 +125,10 @@ class MonoServer final
                 bool);                  // do random throw if (x, y) is invalid
 
     public:
-        std::chrono::time_point<std::chrono::steady_clock> GetTimeNow()
-        {
-            return std::chrono::steady_clock::now();
-        }
-
-        uint32_t GetTimeDiff(std::chrono::time_point<std::chrono::steady_clock> stBegin, const char *szUnit)
-        {
-            if(!std::strcmp(szUnit, "ns")){
-                return std::chrono::duration_cast<std::chrono::microseconds>(GetTimeNow() - stBegin).count();
-            }
-
-            if(!std::strcmp(szUnit, "ms")){
-                return std::chrono::duration_cast<std::chrono::milliseconds>(GetTimeNow() - stBegin).count();
-            }
-
-            if(!std::strcmp(szUnit, "s") || !std::strcmp(szUnit, "sec")){
-                return std::chrono::duration_cast<std::chrono::seconds>(GetTimeNow() - stBegin).count();
-            }
-            return 0;
-        }
-
         uint32_t GetTimeTick() const
         {
-            return (uint32_t)(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_StartTime).count());
+            return (uint32_t)(m_HRTimer.diff_msec());
         }
-
 
     public:
         bool RegisterLuaExport(CommandLuaModule *, uint32_t);

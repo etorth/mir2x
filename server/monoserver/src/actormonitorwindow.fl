@@ -2,23 +2,37 @@
 version 1.0304
 header_name {.hpp}
 code_name {.cpp}
-class ActorMonitorWindow {open
-} {
-  Function {ActorMonitorWindow()} {open
-  } {
+class ActorMonitorWindow {} {
+  Function {ActorMonitorWindow()} {} {
     Fl_Window m_Window {
-      label ActorMointorWindow open
+      label ActorMointorWindow
       xywh {1 41 740 445} type Double labelfont 4 resizable visible
     } {
-      Fl_Table m_ActorMonitorTable {selected
+      Fl_Table m_ActorMonitorTable {
         xywh {0 0 740 445} labelfont 4 resizable
         code0 {\#include "actormonitortable.hpp"}
         class ActorMonitorTable
       } {}
     }
+    code {// register the timer here
+Fl::add_timeout(1.00, ActorMonitorWindow_Timer_CB, this);} {}
   }
   Function {ShowAll()} {return_type void
   } {
     code {m_Window->show();} {}
   }
+  Function {RedrawAll()} {return_type void
+  } {
+    code {m_Window->redraw();} {}
+  }
+}
+
+Function {ActorMonitorWindow_Timer_CB(void *pUserData)} {return_type void
+} {
+  code {// used to flush the actor mointor table
+{
+    auto pWindow = (ActorMonitorWindow *)(pUserData);
+    pWindow->RedrawAll();
+    Fl::repeat_timeout(1.00, ActorMonitorWindow_Timer_CB, pWindow);
+}} {}
 }

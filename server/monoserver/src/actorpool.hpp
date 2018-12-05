@@ -27,6 +27,7 @@
 #include <cstdint>
 #include <shared_mutex>
 #include "condcheck.hpp"
+#include "hrestimer.hpp"
 #include "messagepack.hpp"
 
 class ActorPod;
@@ -41,6 +42,44 @@ class ActorPool final
         friend class Receiver;
         friend class Dispatcher;
         friend class SyncDriver;
+
+    public:
+        struct ActorMonitor
+        {
+            uint64_t UID;
+
+            uint32_t LiveTick;
+            uint32_t BusyTick;
+
+            uint32_t MessageDone;
+            uint32_t MessagePending;
+
+            ActorMonitor(uint64_t nUID, uint32_t nLiveTick, uint32_t nBusyTick, uint32_t nMessageDone, uint32_t nMessagePending)
+                : UID(nUID)
+                , LiveTick(nLiveTick)
+                , BusyTick(nBusyTick)
+                , MessageDone(nMessageDone)
+                , MessagePending(nMessagePending)
+            {}
+
+            ActorMonitor()
+                : UID(0)
+            {}
+
+            operator bool () const
+            {
+                return UID != 0;
+            }
+        };
+
+        struct ActorThreadMonitor
+        {
+            int      ThreadID;
+            uint64_t ActorCount;
+
+            uint32_t LiveTick;
+            uint32_t BusyTick;
+        };
 
     private:
         static void Backoff(uint32_t &nBackoff)
@@ -217,14 +256,42 @@ class ActorPool final
 
             std::function<void()> AtExit;
 
-            Mailbox(ActorPod *pActor)
-                : Actor(pActor)
-                , SchedLock()
-                , NextQLock()
-                , CurrQ()
-                , NextQ()
-                , AtExit()
-            {}
+            // put a monitor structure and always maintain it
+            // then no need to acquire SchedLock to dump the monitor
+            struct MailboxMonitor
+            {
+                uint64_t UID;
+
+                hres_timer<uint64_t>  LiveTimer;
+                std::atomic<uint64_t> ProcTick;
+
+                std::atomic<uint32_t> MessageDone;
+                std::atomic<uint32_t> MessagePending;
+
+                MailboxMonitor(uint64_t nUID)
+                    : UID(nUID)
+                    , LiveTimer()
+                    , ProcTick {0}
+                    , MessageDone {0}
+                    , MessagePending {0}
+                {}
+            } Monitor;
+
+            auto DumpMonitor() const
+            {
+                return ActorMonitor
+                {
+                    Monitor.UID,
+                    (uint32_t)(Monitor.LiveTimer.diff_msec()),
+                    (uint32_t)(Monitor.ProcTick.load() / 1000000),
+                    Monitor.MessageDone.load(),
+                    Monitor.MessagePending.load(),
+                };
+            }
+
+            // put ctor in actorpool.cpp
+            // ActorPod is incomplete type in actorpool.hpp
+            Mailbox(ActorPod *);
         };
 
         struct MailboxBucket
@@ -311,4 +378,16 @@ class ActorPool final
 
     private:
         void ClearOneMailbox(Mailbox *);
+
+    public:
+        size_t ActorThreadCount() const
+        {
+            // always thread safe
+            // never change the bucket size after construction
+            return m_BucketList.size();
+        }
+
+    public:
+        ActorMonitor GetActorMonitor(uint64_t) const;
+        std::vector<ActorMonitor> GetActorMonitor() const;
 };
