@@ -24,9 +24,9 @@ class MainWindow {} {
       callback {{
 	// do nothing
 }}
-      xywh {955 148 720 400} type Double labelfont 4 resizable visible
+      xywh {1 41 720 400} type Double labelfont 4 resizable visible
     } {
-      Fl_Menu_Bar {} {
+      Fl_Menu_Bar {} {selected
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -568,6 +568,31 @@ class MainWindow {} {
 }}
             xywh {0 0 100 20} labelfont 4
             code0 {\#include "scriptwindow.hpp"}
+          }
+        }
+        Submenu {} {
+          label Monitor
+          xywh {0 0 70 21} labelfont 4
+        } {
+          MenuItem {} {
+            label Actor
+            callback {// show actor information window
+{
+    extern ActorMonitorWindow *g_ActorMonitorWindow;
+    g_ActorMonitorWindow->ShowAll();
+}}
+            xywh {0 0 36 21} labelfont 4 divider
+            code0 {\#include "actormonitorwindow.hpp"}
+          }
+          MenuItem {} {
+            label {Actor Thread}
+            callback {// show actor thread information window
+{
+    extern ActorThreadMonitorWindow *g_ActorThreadMonitorWindow;
+    g_ActorThreadMonitorWindow->ShowAll();
+}}
+            xywh {0 0 36 21} labelfont 4
+            code0 {\#include "actorthreadmonitorwindow.hpp"}
           }
         }
       }

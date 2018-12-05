@@ -1,0 +1,24 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.hpp}
+code_name {.cpp}
+class ActorMonitorWindow {open
+} {
+  Function {ActorMonitorWindow()} {open
+  } {
+    Fl_Window m_Window {
+      label ActorMointorWindow open
+      xywh {1 41 740 445} type Double labelfont 4 resizable visible
+    } {
+      Fl_Table m_ActorMonitorTable {selected
+        xywh {0 0 740 445} labelfont 4 resizable
+        code0 {\#include "actormonitortable.hpp"}
+        class ActorMonitorTable
+      } {}
+    }
+  }
+  Function {ShowAll()} {return_type void
+  } {
+    code {m_Window->show();} {}
+  }
+}
