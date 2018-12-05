@@ -75,6 +75,19 @@ namespace UIDFunc
         }
         return (int)((nUID & 0X0000F00000000000) >> 44);
     }
+
+    inline const char *GetUIDTypeString(uint64_t nUID)
+    {
+        switch(GetUIDType(nUID)){
+            case UID_MON: return "MON";
+            case UID_PLY: return "PLY";
+            case UID_NPC: return "NPC";
+            case UID_MAP: return "MAP";
+            case UID_COR: return "COR";
+            case UID_ETC: return "ETC";
+            default     : return "ERR";
+        }
+    }
 }
 
 namespace UIDFunc
