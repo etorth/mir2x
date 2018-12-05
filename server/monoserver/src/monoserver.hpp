@@ -32,7 +32,7 @@
 #include "message.hpp"
 #include "taskhub.hpp"
 #include "database.hpp"
-#include "hrestimer.hpp"
+#include "raiitimer.hpp"
 #include "eventtaskhub.hpp"
 #include "commandluamodule.hpp"
 
@@ -65,7 +65,7 @@ class MonoServer final
         std::exception_ptr m_CurrException;
 
     private:
-        hres_timer<uint64_t> m_HRTimer;
+        hres_timer m_HRTimer;
 
     public:
         void NotifyGUI(std::string);

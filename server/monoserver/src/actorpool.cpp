@@ -20,7 +20,7 @@
 #include <thread>
 #include <cstdint>
 #include <cinttypes>
-#include "hrestimer.hpp"
+#include "raiitimer.hpp"
 #include "receiver.hpp"
 #include "actorpod.hpp"
 #include "actorpool.hpp"
@@ -367,7 +367,7 @@ bool ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
         }
 
         {
-            hres_timer stTimer(&(pMailbox->Monitor.ProcTick));
+            raii_timer stTimer(&(pMailbox->Monitor.ProcTick));
             pMailbox->Actor->InnHandler({MPK_METRONOME, 0, 0});
         }
         pMailbox->Monitor.MessageDone.fetch_add(1);
@@ -397,7 +397,7 @@ bool ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
         }
 
         {
-            hres_timer stTimer(&(pMailbox->Monitor.ProcTick));
+            raii_timer stTimer(&(pMailbox->Monitor.ProcTick));
             pMailbox->Actor->InnHandler(*p);
         }
         pMailbox->Monitor.MessageDone.fetch_add(1);

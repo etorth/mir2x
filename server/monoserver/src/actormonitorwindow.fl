@@ -6,13 +6,32 @@ class ActorMonitorWindow {} {
   Function {ActorMonitorWindow()} {} {
     Fl_Window m_Window {
       label ActorMointorWindow
-      xywh {1 41 740 445} type Double labelfont 4 resizable visible
+      callback {{
+    // do nothing
+}}
+      xywh {972 400 740 445} type Double labelfont 4 resizable visible
     } {
       Fl_Table m_ActorMonitorTable {
-        xywh {0 0 740 445} labelfont 4 resizable
+        xywh {0 25 740 420} labelfont 4 resizable
         code0 {\#include "actormonitortable.hpp"}
         class ActorMonitorTable
       } {}
+      Fl_Menu_Bar {} {
+        xywh {0 0 740 25} labelfont 4
+      } {
+        Submenu {} {
+          label Project
+          xywh {0 0 70 21} labelfont 4
+        } {
+          MenuItem {} {
+            label {Exit    }
+            callback {{
+    m_Window->hide();
+}}
+            xywh {0 0 36 21} shortcut 0x40071 labelfont 4
+          }
+        }
+      }
     }
     code {// register the timer here
 Fl::add_timeout(1.00, ActorMonitorWindow_Timer_CB, this);} {}

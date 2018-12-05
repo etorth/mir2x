@@ -27,7 +27,7 @@
 #include <cstdint>
 #include <shared_mutex>
 #include "condcheck.hpp"
-#include "hrestimer.hpp"
+#include "raiitimer.hpp"
 #include "messagepack.hpp"
 
 class ActorPod;
@@ -260,11 +260,10 @@ class ActorPool final
             // then no need to acquire SchedLock to dump the monitor
             struct MailboxMonitor
             {
-                uint64_t UID;
+                uint64_t   UID;
+                hres_timer LiveTimer;
 
-                hres_timer<uint64_t>  LiveTimer;
                 std::atomic<uint64_t> ProcTick;
-
                 std::atomic<uint32_t> MessageDone;
                 std::atomic<uint32_t> MessagePending;
 

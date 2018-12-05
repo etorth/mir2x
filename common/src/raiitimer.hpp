@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: hrestimer.hpp
+ *       Filename: raiitimer.hpp
  *        Created: 12/05/2018 01:42:56
  *    Description: high resolution timer for profiling
  *
@@ -21,29 +21,19 @@
 #include <atomic>
 #include <cstdint>
 
-template<typename T = uint64_t> class hres_timer final
+class hres_timer
 {
-    private:
-        T *m_u64;
-
     private:
         struct timespec m_start;
 
     public:
-        explicit hres_timer(T *pu64 = nullptr)
-            : m_u64(pu64)
+        explicit hres_timer()
         {
-            static_assert(std::is_same<T, uint64_t>::value || std::is_same<T, std::atomic<uint64_t>>::value);
             reset();
         }
 
     public:
-        ~hres_timer()
-        {
-            if(m_u64){
-                *m_u64 += diff_nsec();
-            }
-        }
+        ~hres_timer() = default;
 
     public:
         uint64_t diff_nsec() const
@@ -81,14 +71,36 @@ template<typename T = uint64_t> class hres_timer final
         }
 
     public:
-        void dismiss()
-        {
-            m_u64 = nullptr;
-        }
-
-    public:
         const auto &origin() const
         {
             return m_start;
+        }
+};
+
+template<typename T = uint64_t> class raii_timer final: public hres_timer
+{
+    private:
+        T *m_u64;
+
+    public:
+        explicit raii_timer(T *pu64 = nullptr)
+            : hres_timer()
+            , m_u64(pu64)
+        {
+            static_assert(std::is_same<T, uint64_t>::value || std::is_same<T, std::atomic<uint64_t>>::value);
+        }
+
+    public:
+        ~raii_timer()
+        {
+            if(m_u64){
+                *m_u64 += diff_nsec();
+            }
+        }
+
+    public:
+        void dismiss()
+        {
+            m_u64 = nullptr;
         }
 };
