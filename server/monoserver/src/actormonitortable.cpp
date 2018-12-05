@@ -17,6 +17,7 @@
  */
 
 #include <FL/Fl.H>
+#include <algorithm>
 #include <FL/fl_draw.H>
 #include "uidfunc.hpp"
 #include "actorpool.hpp"
@@ -61,6 +62,14 @@ std::string ActorMonitorTable::GetGridData(int nRow, int nCol)
         return "";
     }
 
+    auto fnAdjustLength = [](std::string szString, size_t nNewLength) -> std::string
+    {
+        if(nNewLength <= szString.length()){
+            return szString;
+        }
+        return std::string(nNewLength - szString.size(), ' ') + szString;
+    };
+
     const auto &rstMonitor = m_ActorMonitorList[nRow];
     switch(nCol){
         case 0:
@@ -83,11 +92,11 @@ std::string ActorMonitorTable::GetGridData(int nRow, int nCol)
             }
         case 4:
             {
-                return std::to_string(rstMonitor.MessageDone);
+                return fnAdjustLength(std::to_string(rstMonitor.MessageDone), 10);
             }
         case 5:
             {
-                return std::to_string(rstMonitor.MessagePending);
+                return fnAdjustLength(std::to_string(rstMonitor.MessagePending), 4);
             }
         default:
             {
@@ -103,6 +112,11 @@ void ActorMonitorTable::draw_cell(TableContext nContext, int nRow, int nCol, int
         case CONTEXT_STARTPAGE:
             {
                 m_ActorMonitorList = g_ActorPool->GetActorMonitor();
+                std::sort(m_ActorMonitorList.begin(), m_ActorMonitorList.end(), [](const ActorPool::ActorMonitor &lhs, const ActorPool::ActorMonitor &rhs) -> bool
+                {
+                    return lhs.MessagePending > rhs.MessagePending;
+                });
+
                 rows(m_ActorMonitorList.size());
                 return; 
             }
