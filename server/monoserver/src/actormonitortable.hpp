@@ -25,7 +25,7 @@
 class ActorMonitorTable: public Fl_TableImpl
 {
     private:
-        std::vector<std::string> m_ColumnName;
+        const std::vector<std::string> m_ColumnName;
 
     private:
         std::vector<ActorPool::ActorMonitor> m_ActorMonitorList;

@@ -1,8 +1,8 @@
 /*
  * =====================================================================================
  *
- *       Filename: fltableimpl.hpp
- *        Created: 12/04/2018 22:59:06
+ *       Filename: fltableimpl.cpp
+ *        Created: 12/06/2018 00:29:57
  *    Description: 
  *
  *        Version: 1.0
@@ -16,16 +16,18 @@
  * =====================================================================================
  */
 
-#pragma once
-#include <Fl/Fl_Table.H>
+#include <FL/Fl.H>
+#include <FL/fl_draw.H>
+#include "fltableimpl.hpp"
 
-class Fl_TableImpl: public Fl_Table
+int Fl_TableImpl::GetFontWidth() const
 {
-    public:
-        Fl_TableImpl(int nX, int nY, int nW, int nH, const char *szLabel = nullptr)
-            : Fl_Table(nX, nY, nW, nH, szLabel)
-        {}
-        
-    public:
-        int GetFontWidth() const;
-};
+    // disble the @SYMBOL handling
+    int nW = 0;
+    int nH = 0;
+
+    const char *sz10WidthChars = "MMMMMHHHHH";
+    fl_measure(sz10WidthChars, nW, nH, 0);
+
+    return nW / 10;
+}

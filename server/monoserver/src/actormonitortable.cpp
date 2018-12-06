@@ -33,15 +33,19 @@ ActorMonitorTable::ActorMonitorTable(int nX, int nY, int nW, int nH, const char 
       }
     , m_ActorMonitorList()
 {
-    rows(0);
-    row_header(0);
-    row_height_all(20);
-    row_resize(0);
+    // begin
+    {
+        rows(0);
+        row_header(0);
+        row_height_all(20);
+        row_resize(0);
 
-    cols(m_ColumnName.size());
-    col_header(1);
-    col_width_all(80);
-    col_resize(1);
+        cols(m_ColumnName.size());
+        col_header(1);
+        col_resize_min(80);
+        col_width_all(100);
+        col_resize(1);
+    }
     end();
 }
 
@@ -96,7 +100,7 @@ std::string ActorMonitorTable::GetGridData(int nRow, int nCol)
             }
         case 5:
             {
-                return fnAdjustLength(std::to_string(rstMonitor.MessagePending), 4);
+                return fnAdjustLength(std::to_string(rstMonitor.MessagePending), 3);
             }
         default:
             {
