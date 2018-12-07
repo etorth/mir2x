@@ -80,10 +80,6 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
                 UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
     }
 
-    // when we remove some handlers
-    // keep track if the handler for current message is removed or just missing
-    bool bRemoved = false;
-
     if(m_ExpireTime){
         while(!m_RespondHandlerGroup.empty()){
             if(g_MonoServer->GetTimeTick() >= m_RespondHandlerGroup.begin()->second.ExpireTime){
@@ -93,10 +89,6 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
                 {
                     raii_timer stTimer(&(m_PodMonitor.AMProcMonitorList[MPK_TIMEOUT].ProcTick));
                     m_RespondHandlerGroup.begin()->second.Operation(MPK_TIMEOUT);
-                }
-
-                if(rstMPK.Respond() && (m_RespondHandlerGroup.begin()->first == rstMPK.Respond())){
-                    bRemoved = true;
                 }
                 m_RespondHandlerGroup.erase(m_RespondHandlerGroup.begin());
                 continue;
@@ -114,25 +106,23 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
     if(rstMPK.Respond()){
         // try to find the response handler for current responding message
         // 1.     find it, good
-        // 2. not find it: 1. didn't register for it
-        //                 2. repsonse is too late ooops
-        if(!bRemoved){
-            if(auto p = m_RespondHandlerGroup.find(rstMPK.Respond()); p == m_RespondHandlerGroup.end()){
-                throw std::runtime_error(str_fflprintf("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Can't find the response handler",
-                            UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond()));
-            }else{
-                if(p->second.Operation){
-                    m_PodMonitor.AMProcMonitorList[rstMPK.Type()].RecvCount++;
-                    {
-                        raii_timer stTimer(&(m_PodMonitor.AMProcMonitorList[rstMPK.Type()].ProcTick));
-                        p->second.Operation(rstMPK);
-                    }
-                }else{
-                    throw std::runtime_error(str_fflprintf("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Response handler not executable",
-                                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond()));
+        // 2. not find it: 1. didn't register for it, we must prevent this at sending
+        //                 2. repsonse is too late ooops and the handler has already be deleted
+        if(auto p = m_RespondHandlerGroup.find(rstMPK.Respond()); p != m_RespondHandlerGroup.end()){
+            if(p->second.Operation){
+                m_PodMonitor.AMProcMonitorList[rstMPK.Type()].RecvCount++;
+                {
+                    raii_timer stTimer(&(m_PodMonitor.AMProcMonitorList[rstMPK.Type()].ProcTick));
+                    p->second.Operation(rstMPK);
                 }
-                m_RespondHandlerGroup.erase(p);
+            }else{
+                throw std::runtime_error(str_fflprintf("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Response handler not executable",
+                            UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond()));
             }
+            m_RespondHandlerGroup.erase(p);
+        }else{
+            // should only caused by deletion of timeout
+            // do nothing for this case, don't take this as an error
         }
     }else{
         // this is not a responding message
