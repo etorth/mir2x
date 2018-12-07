@@ -41,6 +41,43 @@ class ActorPod final
             {}
         };
 
+    public:
+        // if put this in actorpool, it's hard to collect the SendCount
+        // because therotically post a message doesn't need the sender's information
+        struct AMProcMonitor
+        {
+            uint64_t ProcTick;
+            uint64_t SendTick;
+
+            uint32_t SendCount;
+            uint32_t RecvCount;
+
+            AMProcMonitor()
+                : ProcTick(0)
+                , SendTick(0)
+                , SendCount(0)
+                , RecvCount(0)
+            {}
+        };
+
+        struct ActorPodMonitor
+        {
+            std::array<AMProcMonitor, MPK_MAX> AMProcMonitorList;
+
+            struct _TriggerMonitor
+            {
+                uint64_t ProcTick;
+                _TriggerMonitor()
+                    : ProcTick(0)
+                {}
+            }TriggerMonitor;
+
+            ActorPodMonitor()
+                : AMProcMonitorList()
+                , TriggerMonitor()
+            {}
+        };
+
     private:
         const uint64_t m_UID;
 
@@ -85,6 +122,9 @@ class ActorPod final
         //    then when checking expired ones, we start from std::map::begin() and stop at the fist non-expired one
         std::map<uint32_t, RespondHandler> m_RespondHandlerGroup;
 
+    private:
+        ActorPodMonitor m_PodMonitor;
+
     public:
         explicit ActorPod(uint64_t,
                 const std::function<void()> &,
@@ -125,5 +165,10 @@ class ActorPod final
         bool Detach(const std::function<void()> &) const;
 
     public:
-        uint32_t GetMessageCount() const;
+        const ActorPodMonitor &GetActorPodMonitor() const
+        {
+            // TODO: how to protect this?
+            // only the charobject who owns the pod can call this
+            return m_PodMonitor;
+        }
 };

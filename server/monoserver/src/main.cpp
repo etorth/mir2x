@@ -46,6 +46,8 @@ MainWindow               *g_MainWindow;
 MonoServer               *g_MonoServer;
 ServerConfigureWindow    *g_ServerConfigureWindow;
 DatabaseConfigureWindow  *g_DatabaseConfigureWindow;
+ActorMonitorWindow       *g_ActorMonitorWindow;
+ActorThreadMonitorWindow *g_ActorThreadMonitorWindow;
 
 
 int main(int argc, char *argv[])
@@ -56,19 +58,21 @@ int main(int argc, char *argv[])
     // start FLTK multithreading support
     Fl::lock();
 
-    g_ServerArgParser         = new ServerArgParser(stCmdParser);
-    g_Log                     = new Log("mir2x-monoserver-v0.1");
-    g_ScriptWindow            = new ScriptWindow();
-    g_MainWindow              = new MainWindow();
-    g_MonoServer              = new MonoServer();
-    g_MemoryPN                = new MemoryPN();
-    g_MapBinDBN               = new MapBinDBN();
-    g_ServerConfigureWindow   = new ServerConfigureWindow();
-    g_DatabaseConfigureWindow = new DatabaseConfigureWindow();
-    g_ActorPool               = new ActorPool(g_ServerArgParser->ActorPoolThread);
-    g_ThreadPN                = new ThreadPN(4);
-    g_DBPodN                  = new DBPodN();
-    g_NetDriver               = new NetDriver();
+    g_ServerArgParser          = new ServerArgParser(stCmdParser);
+    g_Log                      = new Log("mir2x-monoserver-v0.1");
+    g_ScriptWindow             = new ScriptWindow();
+    g_MainWindow               = new MainWindow();
+    g_MonoServer               = new MonoServer();
+    g_MemoryPN                 = new MemoryPN();
+    g_MapBinDBN                = new MapBinDBN();
+    g_ServerConfigureWindow    = new ServerConfigureWindow();
+    g_DatabaseConfigureWindow  = new DatabaseConfigureWindow();
+    g_ActorPool                = new ActorPool(g_ServerArgParser->ActorPoolThread);
+    g_ThreadPN                 = new ThreadPN(4);
+    g_DBPodN                   = new DBPodN();
+    g_NetDriver                = new NetDriver();
+    g_ActorMonitorWindow       = new ActorMonitorWindow();
+    g_ActorThreadMonitorWindow = new ActorThreadMonitorWindow();
 
     g_MainWindow->ShowAll();
 

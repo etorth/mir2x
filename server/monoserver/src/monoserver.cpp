@@ -48,7 +48,7 @@ MonoServer::MonoServer()
     , m_LogBuf()
     , m_ServiceCore(nullptr)
     , m_CurrException()
-    , m_StartTime(std::chrono::steady_clock::now())
+    , m_HRTimer()
 {}
 
 void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char *szLogFormat, ...)

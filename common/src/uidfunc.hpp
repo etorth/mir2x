@@ -36,10 +36,10 @@ enum UIDType: int
     UID_U10 = 10,
     UID_U11 = 11,
     UID_U12 = 12,
-    UID_U13 = 13,
-    UID_COR = 14,
-    UID_ETC = 15,
-    UID_INN = 16, // put the internal out of 0 ~ 15
+    UID_COR = 13,
+    UID_ETC = 14,
+    UID_INN = 15, // put the internal out of 0 ~ 15
+    UID_MAX = 16,
 };
 
 namespace UIDFunc
@@ -74,6 +74,19 @@ namespace UIDFunc
             return UID_INN;
         }
         return (int)((nUID & 0X0000F00000000000) >> 44);
+    }
+
+    inline const char *GetUIDTypeString(uint64_t nUID)
+    {
+        switch(GetUIDType(nUID)){
+            case UID_MON: return "MON";
+            case UID_PLY: return "PLY";
+            case UID_NPC: return "NPC";
+            case UID_MAP: return "MAP";
+            case UID_COR: return "COR";
+            case UID_ETC: return "ETC";
+            default     : return "ERR";
+        }
     }
 }
 

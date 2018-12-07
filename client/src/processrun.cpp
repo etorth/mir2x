@@ -32,6 +32,14 @@
 #include "clientluamodule.hpp"
 #include "clientpathfinder.hpp"
 
+extern Log *g_Log;
+extern Client *g_Client;
+extern PNGTexDBN *g_MapDBN;
+extern SDLDevice *g_SDLDevice;
+extern MapBinDBN *g_MapBinDBN;
+extern PNGTexDBN *g_GroundItemDBN;
+extern ClientArgParser *g_ClientArgParser;
+
 ProcessRun::ProcessRun()
     : Process()
     , m_MapID(0)
@@ -47,12 +55,10 @@ ProcessRun::ProcessRun()
             0,                  // x
             []() -> int         // y
             {
-                extern SDLDevice *g_SDLDevice;
                 return g_SDLDevice->WindowH(false) - 134;
             }(),
             []() -> int         // w
             {
-                extern SDLDevice *g_SDLDevice;
                 return g_SDLDevice->WindowW(false);
             }(),
             this,               // self-bind
@@ -71,7 +77,6 @@ ProcessRun::ProcessRun()
 
 void ProcessRun::ScrollMap()
 {
-    extern SDLDevice *g_SDLDevice;
     auto nShowWindowW = g_SDLDevice->WindowW(false);
     auto nShowWindowH = g_SDLDevice->WindowH(false);
 
@@ -217,8 +222,6 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
 
 void ProcessRun::Draw()
 {
-    extern PNGTexDBN *g_MapDBN;
-    extern SDLDevice *g_SDLDevice;
     g_SDLDevice->ClearScreen();
 
     // 1. draw map + object
@@ -267,7 +270,6 @@ void ProcessRun::Draw()
             }
         }
 
-        extern ClientArgParser *g_ClientArgParser;
         if(g_ClientArgParser->EnableDrawMapGrid){
             int nGridX0 = m_ViewX / SYS_MAPGRIDXP;
             int nGridY0 = m_ViewY / SYS_MAPGRIDYP;
@@ -309,8 +311,6 @@ void ProcessRun::Draw()
                 for(auto rstGroundItem: rstGroundItemList){
                     if(auto &rstIR = DBCOM_ITEMRECORD(rstGroundItem.ID())){
                         if(rstIR.PkgGfxID >= 0){
-                            extern SDLDevice *g_SDLDevice;
-                            extern PNGTexDBN *g_GroundItemDBN;
                             if(auto pTexture = g_GroundItemDBN->Retrieve(rstIR.PkgGfxID)){
                                 int nW = -1;
                                 int nH = -1;
@@ -396,7 +396,6 @@ void ProcessRun::Draw()
                             &&  (pCreature.second->Y() == nY)
                             && !(pCreature.second->StayDead())){
 
-                        extern ClientArgParser *g_ClientArgParser;
                         if(g_ClientArgParser->EnableDrawCreatureCover){
                             g_SDLDevice->PushColor(0, 0, 255, 128);
                             g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
@@ -432,9 +431,6 @@ void ProcessRun::Draw()
                 for(int nX = nX0; nX <= nX1; ++nX){
 
                     if(!GetGroundItemList(nX, nY).empty()){
-                        extern SDLDevice *g_SDLDevice;
-                        extern PNGTexDBN *g_GroundItemDBN;
-
                         if(auto pTexture = g_GroundItemDBN->Retrieve(0X01000000)){
                             int nW = -1;
                             int nH = -1;
@@ -497,7 +493,6 @@ void ProcessRun::Draw()
     m_InventoryBoard.Draw();
 
     // draw cursor location information on top-left
-    extern ClientArgParser *g_ClientArgParser;
     if(g_ClientArgParser->EnableDrawMouseLocation){
         g_SDLDevice->PushColor(0, 0, 0, 230);
         g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
@@ -682,7 +677,6 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
 int ProcessRun::LoadMap(uint32_t nMapID)
 {
     if(nMapID){
-        extern MapBinDBN *g_MapBinDBN;
         if(auto pMapBin = g_MapBinDBN->Retrieve(nMapID)){
             m_MapID        =  nMapID;
             m_Mir2xMapData = *pMapBin;
@@ -732,7 +726,6 @@ bool ProcessRun::CanMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
                         }
                     default:
                         {
-                            extern Log *g_Log;
                             g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
                             return false;
                         }
@@ -740,7 +733,6 @@ bool ProcessRun::CanMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
             }
         default:
             {
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nX, nY);
                 return false;
             }
@@ -796,7 +788,6 @@ double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckGroun
             }
         default:
             {
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
                 break;
             }
@@ -877,7 +868,6 @@ double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckGroun
                 }
             default:
                 {
-                    extern Log *g_Log;
                     g_Log->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nCurrX, nCurrY);
                     break;
                 }
@@ -911,7 +901,6 @@ bool ProcessRun::LuaCommand(const char *szLuaCommand)
         }else{
             sol::error stError = stCallResult;
 
-            extern Log *g_Log;
             g_Log->AddLog(LOGTYPE_WARNING, "%s", stError.what());
         }
 
@@ -1113,7 +1102,6 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
                     && stLogType.is<int>()
                     && stLogInfo.is<std::string>()){
 
-                extern Log *g_Log;
                 switch(stLogType.as<int>()){
                     case 0  : g_Log->AddLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
                     case 1  : g_Log->AddLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
@@ -1231,7 +1219,6 @@ void ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, cons
     }
 
     if(nOutPort & OUTPORT_LOG){
-        extern Log *g_Log;
         switch(nLogType){
             case Log::LOGTYPEV_INFO    : g_Log->AddLog(LOGTYPE_INFO   , "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
             case Log::LOGTYPEV_WARNING : g_Log->AddLog(LOGTYPE_WARNING, "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
@@ -1262,7 +1249,6 @@ Creature *ProcessRun::RetrieveUID(uint64_t nUID)
     if(auto p = m_CreatureList.find(nUID); p != m_CreatureList.end()){
         if(p->second->Visible()){
             if(p->second->UID() != nUID){
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_FATAL, "Invalid creature record: %p, UID = %" PRIu64, p->second, p->second->UID());
                 return nullptr;
             }
@@ -1356,7 +1342,6 @@ void ProcessRun::CenterMyHero()
         if(nFrameCount > 0){
             auto fnSetOff = [this, nX, nY, nDirection, nFrame, nFrameCount](int nStepLen)
             {
-                extern SDLDevice *g_SDLDevice;
                 auto nShowWindowW = g_SDLDevice->WindowW(false);
                 auto nShowWindowH = g_SDLDevice->WindowH(false);
 
@@ -1418,10 +1403,8 @@ void ProcessRun::CenterMyHero()
 
 bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
 {
-    extern MapBinDBN *g_MapBinDBN;
     if(auto pMapBin = g_MapBinDBN->Retrieve(nMapID)){
         if(pMapBin->ValidC(nX, nY) && pMapBin->Cell(nX, nY).CanThrough()){
-            extern Client *g_Client;
             CMReqestSpaceMove stCMRSM;
             stCMRSM.MapID = nMapID;
             stCMRSM.X     = nX;
@@ -1444,8 +1427,6 @@ void ProcessRun::QueryCORecord(uint64_t nUID) const
     std::memset(&stCMQCOR, 0, sizeof(stCMQCOR));
 
     stCMQCOR.AimUID = nUID;
-
-    extern Client *g_Client;
     g_Client->Send(CM_QUERYCORECORD, stCMQCOR);
 }
 

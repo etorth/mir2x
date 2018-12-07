@@ -1,0 +1,57 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.hpp}
+code_name {.cpp}
+class ActorMonitorWindow {} {
+  Function {ActorMonitorWindow()} {} {
+    Fl_Window m_Window {
+      label ActorMointorWindow
+      callback {{
+    // do nothing
+}}
+      xywh {542 174 900 445} type Double labelfont 4 resizable visible
+    } {
+      Fl_Table m_ActorMonitorTable {
+        xywh {0 25 900 420} labelfont 4 resizable
+        code0 {\#include "actormonitortable.hpp"}
+        class ActorMonitorTable
+      } {}
+      Fl_Menu_Bar {} {
+        xywh {0 0 900 25} box THIN_UP_BOX labelfont 4
+      } {
+        Submenu {} {
+          label Monitor
+          xywh {0 0 70 21} labelfont 4
+        } {
+          MenuItem {} {
+            label {Exit    }
+            callback {{
+    m_Window->hide();
+}}
+            xywh {0 0 36 21} shortcut 0x40071 labelfont 4
+          }
+        }
+      }
+    }
+    code {// register the timer here
+Fl::add_timeout(0.370, ActorMonitorWindow_Timer_CB, this);} {}
+  }
+  Function {ShowAll()} {return_type void
+  } {
+    code {m_Window->show();} {}
+  }
+  Function {RedrawAll()} {return_type void
+  } {
+    code {m_Window->redraw();} {}
+  }
+}
+
+Function {ActorMonitorWindow_Timer_CB(void *pUserData)} {return_type void
+} {
+  code {// used to flush the actor mointor table
+{
+    auto pWindow = (ActorMonitorWindow *)(pUserData);
+    pWindow->RedrawAll();
+    Fl::repeat_timeout(0.370, ActorMonitorWindow_Timer_CB, pWindow);
+}} {}
+}
