@@ -329,4 +329,7 @@ class Creature
 
     public:
         bool AddAttachMagic(int, int, int);
+
+    public:
+        void QuerySelf() const;
 };

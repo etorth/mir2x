@@ -52,20 +52,6 @@ ServerObject::ServerObject(uint64_t nUID)
         // it's never done
         return false;
     });
-
-    extern ServerArgParser *g_ServerArgParser;
-    if(g_ServerArgParser->TraceActorMessageCount){
-        m_StateHook.Install("PrintAMCount", [this]() -> bool
-        {
-            if(ActorPodValid()){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_DEBUG, "(UIDName: %s, Length: %" PRIu32 ")", UIDName(), m_ActorPod->GetMessageCount());
-            }
-
-            // it's never done
-            return false;
-        });
-    }
 }
 
 ServerObject::~ServerObject()

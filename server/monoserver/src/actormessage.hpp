@@ -27,7 +27,6 @@ enum MessagePackType: int
     MPK_BADCHANNEL,
     MPK_TIMEOUT,
     MPK_UID,
-    MPK_BADUID,
     MPK_PING,
     MPK_LOGIN,
     MPK_METRONOME,
@@ -73,6 +72,7 @@ enum MessagePackType: int
     MPK_CORECORD,
     MPK_NOTIFYNEWCO,
     MPK_CHECKMASTER,
+    MPK_MAX,
 };
 
 struct AMBadActorPod

@@ -22,11 +22,13 @@
 #include "uidfunc.hpp"
 #include "actorpod.hpp"
 #include "actorpool.hpp"
+#include "raiitimer.hpp"
 #include "monoserver.hpp"
 #include "serverargparser.hpp"
 
 extern ActorPool *g_ActorPool;
 extern MonoServer *g_MonoServer;
+extern ServerArgParser *g_ServerArgParser;
 
 ActorPod::ActorPod(uint64_t nUID,
         const std::function<void()> &fnTrigger,
@@ -34,17 +36,12 @@ ActorPod::ActorPod(uint64_t nUID,
     : m_UID([nUID]() -> uint64_t
       {
           if(!nUID){
-              g_MonoServer->AddLog(LOGTYPE_WARNING, "Provide user-defined zero UID");
-              g_MonoServer->Restart();
-              return 0;
+              throw std::runtime_error("Provide user-defined zero UID");
           }
 
           if(nUID & 0XFFFF000000000000){
-              g_MonoServer->AddLog(LOGTYPE_WARNING, "Provide user-defined UID greater than 0XFFFF000000000000: %" PRIu64, nUID);
-              g_MonoServer->Restart();
-              return 0;
+              throw std::runtime_error(str_fflprintf("Provide user-defined UID greater than 0XFFFF000000000000: %" PRIu64, nUID));
           }
-
           return nUID;
       }())
     , m_Trigger(fnTrigger)
@@ -52,10 +49,10 @@ ActorPod::ActorPod(uint64_t nUID,
     , m_ValidID(0)
     , m_ExpireTime(nExpireTime)
     , m_RespondHandlerGroup()
+    , m_PodMonitor()
 {
     if(!g_ActorPool->Register(this)){
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Register actor failed: ActorPod = %p, ActorPod::UID() = %" PRIu64, this, UID());
-        g_MonoServer->Restart();
+        throw std::runtime_error(str_fflprintf("Register actor failed: ActorPod = %p, ActorPod::UID() = %" PRIu64, this, UID()));
     }
 }
 
@@ -78,24 +75,29 @@ ActorPod::~ActorPod()
 
 void ActorPod::InnHandler(const MessagePack &rstMPK)
 {
-    extern ServerArgParser *g_ServerArgParser;
     if(g_ServerArgParser->TraceActorMessage){
-        g_MonoServer->AddLog(LOGTYPE_DEBUG,
-                "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
+        g_MonoServer->AddLog(LOGTYPE_DEBUG, "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
                 UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
     }
+
+    // when we remove some handlers
+    // keep track if the handler for current message is removed or just missing
+    bool bRemoved = false;
 
     if(m_ExpireTime){
         while(!m_RespondHandlerGroup.empty()){
             if(g_MonoServer->GetTimeTick() >= m_RespondHandlerGroup.begin()->second.ExpireTime){
-                try{
+                // everytime when we received the new MPK we check if there is handler the timeout
+                // also this time get counted into the monitor entry
+                m_PodMonitor.AMProcMonitorList[MPK_TIMEOUT].RecvCount++;
+                {
+                    raii_timer stTimer(&(m_PodMonitor.AMProcMonitorList[MPK_TIMEOUT].ProcTick));
                     m_RespondHandlerGroup.begin()->second.Operation(MPK_TIMEOUT);
-                }catch(...){
-                    g_MonoServer->AddLog(LOGTYPE_WARNING,
-                            "%s <- NA : (Type: MPK_TIMEOUT, ID: %" PRIu32 ", Resp: NA): Caught exception in handing timeout",
-                            UIDFunc::GetUIDString(UID()).c_str(), m_RespondHandlerGroup.begin()->first, rstMPK.Respond());
                 }
 
+                if(rstMPK.Respond() && (m_RespondHandlerGroup.begin()->first == rstMPK.Respond())){
+                    bRemoved = true;
+                }
                 m_RespondHandlerGroup.erase(m_RespondHandlerGroup.begin());
                 continue;
             }
@@ -114,151 +116,140 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
         // 1.     find it, good
         // 2. not find it: 1. didn't register for it
         //                 2. repsonse is too late ooops
-        if(auto p = m_RespondHandlerGroup.find(rstMPK.Respond()); p == m_RespondHandlerGroup.end()){
-            g_MonoServer->AddLog(LOGTYPE_WARNING,
-                    "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): No valid handler for current message",
-                    UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
-            // won't die here
-            // could be legal if then responding actor delays too much
-        }else{
-            if(p->second.Operation){
-                try{
-                    p->second.Operation(rstMPK);
-                }catch(...){
-                    g_MonoServer->AddLog(LOGTYPE_WARNING,
-                            "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Caught exception in response handler",
-                            UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
-                }
+        if(!bRemoved){
+            if(auto p = m_RespondHandlerGroup.find(rstMPK.Respond()); p == m_RespondHandlerGroup.end()){
+                throw std::runtime_error(str_fflprintf("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Can't find the response handler",
+                            UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond()));
             }else{
-                g_MonoServer->AddLog(LOGTYPE_WARNING,
-                        "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Current response handler not executable",
-                        UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+                if(p->second.Operation){
+                    m_PodMonitor.AMProcMonitorList[rstMPK.Type()].RecvCount++;
+                    {
+                        raii_timer stTimer(&(m_PodMonitor.AMProcMonitorList[rstMPK.Type()].ProcTick));
+                        p->second.Operation(rstMPK);
+                    }
+                }else{
+                    throw std::runtime_error(str_fflprintf("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Response handler not executable",
+                                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond()));
+                }
+                m_RespondHandlerGroup.erase(p);
             }
-            m_RespondHandlerGroup.erase(p);
         }
     }else{
         // this is not a responding message
         // use default message handling operation
         if(m_Operation){
-            try{
+            m_PodMonitor.AMProcMonitorList[rstMPK.Type()].RecvCount++;
+            {
+                raii_timer stTimer(&(m_PodMonitor.AMProcMonitorList[rstMPK.Type()].ProcTick));
                 m_Operation(rstMPK);
-            }catch(...){
-                g_MonoServer->AddLog(LOGTYPE_WARNING,
-                        "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Caught exception in message handler",
-                        UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
             }
         }else{
             // shoud I make it fatal?
             // we may get a lot warning message here
-            g_MonoServer->AddLog(LOGTYPE_WARNING,
-                    "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Current message handler not executable",
-                    UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+            throw std::runtime_error(str_fflprintf("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Message handler not executable",
+                        UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond()));
         }
     }
 
+    // trigger is for all types of messages
+    // currently we don't take trigger time into consideration
+
     if(m_Trigger){
-        try{
-            m_Trigger();
-        }catch(...){
-            g_MonoServer->AddLog(LOGTYPE_WARNING,
-                    "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Caught exeption in trigger after message handling",
-                    UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
-        }
+        raii_timer stTimer(&(m_PodMonitor.TriggerMonitor.ProcTick));
+        m_Trigger();
     }
 }
 
 uint32_t ActorPod::GetValidID()
 {
-    extern ServerArgParser *g_ServerArgParser;
-    if(g_ServerArgParser->TraceActorMessage){
+    // previously I use g_ServerArgParser->TraceActorMessage to select use this one
+    // this is dangerous since if we can change g_ServerArgParser->TraceActorMessage during runtime then it's dead
+    if(1){
         static std::atomic<uint32_t> s_ValidID(1);
-        return s_ValidID.fetch_add(1);
+        auto nNewValidID = s_ValidID.fetch_add(1);
+
+        if(nNewValidID){
+            return nNewValidID;
+        }
+        throw std::runtime_error(str_fflprintf("Running out of message ID, exiting..."));
     }
 
     m_ValidID = (m_RespondHandlerGroup.empty() ? 1 : (m_ValidID + 1));
     if(auto p = m_RespondHandlerGroup.find(m_ValidID); p == m_RespondHandlerGroup.end()){
         return m_ValidID;
-    }else{
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Running out of message ID, exiting...");
-        return 0;
     }
+    throw std::runtime_error(str_fflprintf("Running out of message ID, exiting..."));
 }
 
 bool ActorPod::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond)
 {
     if(!nUID){
-        throw std::invalid_argument(str_ffl() +
-                str_printf(": %s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
-                UIDFunc::GetUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
+        throw std::invalid_argument(str_fflprintf(": %s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
+                    UIDFunc::GetUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
     }
 
     if(nUID == UID()){
-        throw std::invalid_argument(str_ffl() +
-                str_printf(": %s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
-                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
+        throw std::invalid_argument(str_fflprintf(": %s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
+                    UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
     }
 
     if(!rstMB){
-        throw std::invalid_argument(str_ffl() +
-                str_printf(": %s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
-                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), nRespond));
+        throw std::invalid_argument(str_fflprintf(": %s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
+                    UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), nRespond));
     }
 
-    extern ServerArgParser *g_ServerArgParser;
     if(g_ServerArgParser->TraceActorMessage){
-        g_MonoServer->AddLog(LOGTYPE_DEBUG,
-                "%s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 ")",
+        g_MonoServer->AddLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 ")",
                 UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
     }
 
+    m_PodMonitor.AMProcMonitorList[rstMB.Type()].SendCount++;
     return g_ActorPool->PostMessage(nUID, {rstMB, UID(), 0, nRespond});
 }
 
 bool ActorPod::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, std::function<void(const MessagePack &)> fnOPR)
 {
     if(!nUID){
-        throw std::invalid_argument(str_ffl() +
-                str_printf(": %s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
-                UIDFunc::GetUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
+        throw std::invalid_argument(str_fflprintf(": %s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
+                    UIDFunc::GetUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
     }
 
     if(nUID == UID()){
-        throw std::invalid_argument(str_ffl() +
-                str_printf(": %s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
-                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
+        throw std::invalid_argument(str_fflprintf(": %s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
+                    UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
     }
 
     if(!rstMB){
-        throw std::invalid_argument(str_ffl() +
-                str_printf(": %s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
-                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), nRespond));
+        throw std::invalid_argument(str_fflprintf(": %s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
+                    UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), nRespond));
     }
 
     if(!fnOPR){
-        throw std::invalid_argument(str_ffl() +
-                str_printf(": %s -> %s: (Type: %s, ID: NA, Resp: %" PRIu32 "): Response handler not executable",
-                UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
+        throw std::invalid_argument(str_fflprintf(": %s -> %s: (Type: %s, ID: NA, Resp: %" PRIu32 "): Response handler not executable",
+                    UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
     }
 
     auto nID = GetValidID();
-
-    extern ServerArgParser *g_ServerArgParser;
     if(g_ServerArgParser->TraceActorMessage){
-        g_MonoServer->AddLog(LOGTYPE_DEBUG,
-                "%s -> %s: (Type: %s, ID: %u, Resp: %u)",
+        g_MonoServer->AddLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %u, Resp: %u)",
                 UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
     }
 
+    m_PodMonitor.AMProcMonitorList[rstMB.Type()].SendCount++;
     if(g_ActorPool->PostMessage(nUID, {rstMB, UID(), nID, nRespond})){
         if(m_RespondHandlerGroup.try_emplace(nID, g_MonoServer->GetTimeTick() + m_ExpireTime, std::move(fnOPR)).second){
             return true;
         }
-        throw std::runtime_error(str_ffl() + str_printf(": Failed to register response handler for posted message: %s", MessagePack(rstMB.Type()).Name()));
+        throw std::runtime_error(str_fflprintf(": Failed to register response handler for posted message: %s", MessagePack(rstMB.Type()).Name()));
     }else{
         // respond the response handler here
         // if post failed, it can only be the UID is detached
         if(fnOPR){
-            fnOPR(MPK_BADUID);
+            m_PodMonitor.AMProcMonitorList[MPK_BADACTORPOD].RecvCount++;
+            {
+                raii_timer stTimer(&(m_PodMonitor.AMProcMonitorList[MPK_BADACTORPOD].ProcTick));
+                fnOPR(MPK_BADACTORPOD);
+            }
         }
         return false;
     }
@@ -285,9 +276,4 @@ bool ActorPod::Detach(const std::function<void()> &fnAtExit) const
     // theron library also has this issue
     // only destructor can guarentee the actor is not running any more
     return g_ActorPool->Detach(this, fnAtExit);
-}
-
-uint32_t ActorPod::GetMessageCount() const
-{
-    return 0;
 }
