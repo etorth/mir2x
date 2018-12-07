@@ -386,6 +386,11 @@ class ActorPool final
             return m_BucketList.size();
         }
 
+        size_t UIDGroup(uint64_t nUID)
+        {
+            return nUID % ActorThreadCount();
+        }
+
     public:
         ActorMonitor GetActorMonitor(uint64_t) const;
         std::vector<ActorMonitor> GetActorMonitor() const;

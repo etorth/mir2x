@@ -36,10 +36,10 @@ enum UIDType: int
     UID_U10 = 10,
     UID_U11 = 11,
     UID_U12 = 12,
-    UID_U13 = 13,
-    UID_COR = 14,
-    UID_ETC = 15,
-    UID_INN = 16, // put the internal out of 0 ~ 15
+    UID_COR = 13,
+    UID_ETC = 14,
+    UID_INN = 15, // put the internal out of 0 ~ 15
+    UID_MAX = 16,
 };
 
 namespace UIDFunc

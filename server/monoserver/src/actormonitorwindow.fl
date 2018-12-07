@@ -9,18 +9,18 @@ class ActorMonitorWindow {} {
       callback {{
     // do nothing
 }}
-      xywh {972 400 740 445} type Double labelfont 4 resizable visible
+      xywh {542 174 900 445} type Double labelfont 4 resizable visible
     } {
       Fl_Table m_ActorMonitorTable {
-        xywh {0 25 740 420} labelfont 4 resizable
+        xywh {0 25 900 420} labelfont 4 resizable
         code0 {\#include "actormonitortable.hpp"}
         class ActorMonitorTable
       } {}
       Fl_Menu_Bar {} {
-        xywh {0 0 740 25} labelfont 4
+        xywh {0 0 900 25} box THIN_UP_BOX labelfont 4
       } {
         Submenu {} {
-          label Project
+          label Monitor
           xywh {0 0 70 21} labelfont 4
         } {
           MenuItem {} {
@@ -34,7 +34,7 @@ class ActorMonitorWindow {} {
       }
     }
     code {// register the timer here
-Fl::add_timeout(1.00, ActorMonitorWindow_Timer_CB, this);} {}
+Fl::add_timeout(0.370, ActorMonitorWindow_Timer_CB, this);} {}
   }
   Function {ShowAll()} {return_type void
   } {
@@ -52,6 +52,6 @@ Function {ActorMonitorWindow_Timer_CB(void *pUserData)} {return_type void
 {
     auto pWindow = (ActorMonitorWindow *)(pUserData);
     pWindow->RedrawAll();
-    Fl::repeat_timeout(1.00, ActorMonitorWindow_Timer_CB, pWindow);
+    Fl::repeat_timeout(0.370, ActorMonitorWindow_Timer_CB, pWindow);
 }} {}
 }

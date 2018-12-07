@@ -17,13 +17,13 @@
  */
 
 #pragma once
-#include <Fl/Fl_Table.H>
+#include <Fl/Fl_Table_Row.H>
 
-class Fl_TableImpl: public Fl_Table
+class Fl_TableImpl: public Fl_Table_Row
 {
     public:
         Fl_TableImpl(int nX, int nY, int nW, int nH, const char *szLabel = nullptr)
-            : Fl_Table(nX, nY, nW, nH, szLabel)
+            : Fl_Table_Row(nX, nY, nW, nH, szLabel)
         {}
         
     public:
