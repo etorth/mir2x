@@ -22,6 +22,9 @@
 #include "monoserver.hpp"
 #include "serverobject.hpp"
 
+extern MonoServer *g_MonoServer;
+extern ServerArgParser *g_ServerArgParser;
+
 ServerObject::ServerObject(uint64_t nUID)
     : m_UID(nUID)
     , m_UIDName(UIDFunc::GetUIDString(nUID))
@@ -37,21 +40,27 @@ ServerObject::ServerObject(uint64_t nUID)
 
     m_StateHook.Install("DelayCmdQueue", [this]() -> bool
     {
-        extern MonoServer *g_MonoServer;
         if(!m_DelayCmdQ.empty()){
             if(g_MonoServer->GetTimeTick() >= m_DelayCmdQ.top().Tick()){
-                try{
-                    m_DelayCmdQ.top()();
-                }catch(...){
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Caught exception for delay command");
-                }
+                m_DelayCmdQ.top()();
                 m_DelayCmdQ.pop();
             }
         }
-
-        // it's never done
         return false;
     });
+
+    if(g_ServerArgParser->TraceActorMessage){
+        m_StateHook.Install("ReportActorPodMonitor", [this, nLastCheckTick = (uint32_t)(0)]() mutable -> bool
+        {
+            if(auto nCurrCheckTick = g_MonoServer->GetTimeTick(); nLastCheckTick + 1000 < nCurrCheckTick){
+                if(ActorPodValid()){
+                    m_ActorPod->PrintMonitor();
+                }
+                nLastCheckTick = nCurrCheckTick;
+            }
+            return false;
+        });
+    }
 }
 
 ServerObject::~ServerObject()
@@ -72,19 +81,10 @@ ServerObject::~ServerObject()
 uint64_t ServerObject::Activate()
 {
     if(!m_ActorPod){
-        try{
-            m_ActorPod = new ActorPod(m_UID, [this](){ m_StateHook.Execute(); }, [this](const MessagePack &rstMPK){ OperateAM(rstMPK); });
-        }catch(...){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Activate server object failed: %s", UIDFunc::GetUIDString(m_UID).c_str());
-            g_MonoServer->Restart();
-        }
-    }else{
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Activation twice: %s", UIDFunc::GetUIDString(UID()).c_str());
-        g_MonoServer->Restart();
+        m_ActorPod = new ActorPod(m_UID, [this](){ m_StateHook.Execute(); }, [this](const MessagePack &rstMPK){ OperateAM(rstMPK); });
+        return UID();
     }
-    return UID();
+    throw std::runtime_error(str_fflprintf(": Activation twice: %s", UIDFunc::GetUIDString(UID()).c_str()));
 }
 
 void ServerObject::Deactivate()
@@ -96,14 +96,12 @@ void ServerObject::Deactivate()
 
 void ServerObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
 {
-    extern MonoServer *g_MonoServer;
     m_DelayCmdCount = m_DelayCmdQ.empty() ? 0 : (m_DelayCmdCount + 1);
     m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTimeTick(), m_DelayCmdCount, fnCmd);
 }
 
 void ServerObject::SetState(uint8_t nStateLoc, uint8_t nStateValue)
 {
-    extern MonoServer *g_MonoServer;
     m_StateV[nStateLoc] = nStateValue;
     m_StateTimeV[nStateLoc] = g_MonoServer->GetTimeTick();
 }
@@ -115,6 +113,5 @@ uint8_t ServerObject::GetState(uint8_t nState) const
 
 uint32_t ServerObject::GetStateTime(uint8_t nState) const
 {
-    extern MonoServer *g_MonoServer;
     return g_MonoServer->GetTimeTick() - m_StateTimeV[nState];
 }

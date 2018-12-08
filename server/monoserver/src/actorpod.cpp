@@ -267,3 +267,15 @@ bool ActorPod::Detach(const std::function<void()> &fnAtExit) const
     // only destructor can guarentee the actor is not running any more
     return g_ActorPool->Detach(this, fnAtExit);
 }
+
+void ActorPod::PrintMonitor() const
+{
+    for(size_t nIndex = 0; nIndex < m_PodMonitor.AMProcMonitorList.size(); ++nIndex){
+        uint64_t nProcTick  = m_PodMonitor.AMProcMonitorList[nIndex].ProcTick / 1000000;
+        uint32_t nSendCount = m_PodMonitor.AMProcMonitorList[nIndex].SendCount;
+        uint32_t nRecvCount = m_PodMonitor.AMProcMonitorList[nIndex].RecvCount;
+        if(nSendCount || nRecvCount){
+            g_MonoServer->AddLog(LOGTYPE_DEBUG, "UID: %s %s: ProcTick %" PRIu64 "ms, SendCount %" PRIu32 ", RecvCount %" PRIu32, UIDFunc::GetUIDString(UID()).c_str(), MessagePack(nIndex).Name(), nProcTick, nSendCount, nRecvCount);
+        }
+    }
+}
