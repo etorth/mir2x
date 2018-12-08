@@ -195,12 +195,12 @@ class ServerMap final: public ServerObject
         }
 
     private:
-        auto &GetUIDList(int nX, int nY)
+        auto &GetUIDListRef(int nX, int nY)
         {
             return m_CellVec2D[nX][nY].UIDList;
         }
 
-        const auto &GetUIDList(int nX, int nY) const
+        const auto &GetUIDListRef(int nX, int nY) const
         {
             return m_CellVec2D[nX][nY].UIDList;
         }
