@@ -35,6 +35,8 @@
 #include "serverconfigurewindow.hpp"
 
 extern MapBinDBN *g_MapBinDBN;
+extern MonoServer *g_MonoServer;
+extern ServerConfigureWindow *g_ServerConfigureWindow;
 
 ServerMap::ServerMapLuaModule::ServerMapLuaModule()
     : BatchLuaModule()
@@ -49,7 +51,6 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
                       && MaxStep() != 2
                       && MaxStep() != 3){
 
-                  extern MonoServer *g_MonoServer;
                   g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
                   return 10000.00;
               }
@@ -61,7 +62,6 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
                       && nDistance2 != MaxStep() * MaxStep()
                       && nDistance2 != MaxStep() * MaxStep() * 2){
 
-                  extern MonoServer *g_MonoServer;
                   g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
                   return 10000.00;
               }
@@ -74,7 +74,6 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
     , m_CheckCO(nCheckCO)
 {
     if(!pMap){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, nCheckCO);
     }
 
@@ -87,7 +86,6 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
                 break;
             }
@@ -102,7 +100,6 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
                 break;
             }
@@ -250,7 +247,6 @@ void ServerMap::OperateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_FATAL, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
@@ -297,7 +293,6 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
                 return -1.00;
             }
@@ -312,7 +307,6 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid CheckLock provided: %d, should be (0, 1, 2)", nCheckLock);
                 return -1.00;
             }
@@ -406,7 +400,6 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
                 }
             default:
                 {
-                    extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nX0 + nDX * nIndex, nY0 + nDY * nIndex);
                     break;
                 }
@@ -886,7 +879,6 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
 
         // load lua script to the module
         {
-            extern ServerConfigureWindow *g_ServerConfigureWindow;
             auto szScriptPath = g_ServerConfigureWindow->GetScriptPath();
             if(szScriptPath.empty()){
                 szScriptPath  = "/home/anhong/mir2x/server/monoserver/script/map";
