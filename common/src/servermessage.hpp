@@ -40,6 +40,7 @@ enum: uint8_t
     SM_REMOVEGROUNDITEM,
     SM_PICKUPOK,
     SM_GOLD,
+    SM_MAX,
 };
 
 #pragma pack(push, 1)

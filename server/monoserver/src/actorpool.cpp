@@ -556,8 +556,10 @@ void ActorPool::RunWorkerOneLoop(size_t nIndex)
                     }
                 default:
                     {
+                        // we didn't get the schedlock
+                        // then don't access the actor pointer here for read/log...
                         if(!IsActorThread(stMailboxLock.LockType())){
-                            throw std::runtime_error(str_fflprintf(": Invalid actor status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %d", p->second->Actor, p->second->Actor->UID(), stMailboxLock.LockType()));
+                            throw std::runtime_error(str_fflprintf(": Invalid actor status: %d", stMailboxLock.LockType()));
                         }
 
                         // current dedicated *actor* thread has already grabbed this mailbox lock

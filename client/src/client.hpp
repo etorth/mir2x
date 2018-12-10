@@ -19,14 +19,42 @@
 #pragma once 
 #include <atomic>
 #include <SDL2/SDL.h>
-#include "cachequeue.hpp"
 
 #include "netio.hpp"
 #include "process.hpp"
+#include "message.hpp"
 #include "sdldevice.hpp"
+#include "raiitimer.hpp"
+#include "cachequeue.hpp"
 
 class Client final
 {
+    private:
+        struct SMProcMonitor
+        {
+            uint64_t ProcTick;
+            uint32_t RecvCount;
+
+            SMProcMonitor()
+                : ProcTick(0)
+                , RecvCount(0)
+            {}
+        };
+
+        struct ClientMonitor
+        {
+            std::array<SMProcMonitor, SM_MAX> SMProcMonitorList;
+            ClientMonitor()
+                : SMProcMonitorList()
+            {}
+        };
+
+    private:
+        ClientMonitor m_ClientMonitor;
+
+    private:
+        hres_timer m_ClientTimer;
+
     private:
         double m_ServerDelay;
         double m_NetPackTick;
@@ -113,4 +141,7 @@ class Client final
         {
             m_NetIO.Send(std::forward<U>(u)...);
         }
+
+    public:
+        void PrintMonitor() const;
 };

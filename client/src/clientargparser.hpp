@@ -25,6 +25,7 @@ struct ClientArgParser
     const bool EnableDrawMapGrid;       // "--enable-draw-map-grid"
     const bool EnableDrawCreatureCover; // "--enable-draw-creature-cover"
     const bool EnableDrawMouseLocation; // "--enable-draw-mouse-location"
+    const bool EnableClientMonitor;     // "--enable-client-monitor"
 
     bool TraceMove;
 
@@ -32,6 +33,7 @@ struct ClientArgParser
         : EnableDrawMapGrid(rstCmdParser["enable-draw-map-grid"])
         , EnableDrawCreatureCover(rstCmdParser["enable-draw-creature-cover"])
         , EnableDrawMouseLocation(rstCmdParser["enable-draw-mouse-location"])
+        , EnableClientMonitor(rstCmdParser["enable-client-monitor"])
         , TraceMove(rstCmdParser["trace-move"])
     {}
 };

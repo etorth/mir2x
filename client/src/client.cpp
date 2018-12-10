@@ -34,15 +34,21 @@
 #include "processlogin.hpp"
 #include "pngtexoffdbn.hpp"
 #include "servermessage.hpp"
+#include "clientargparser.hpp"
+
+extern Log *g_Log;
+extern XMLConf *g_XMLConf;
+extern SDLDevice *g_SDLDevice;
+extern ClientArgParser *g_ClientArgParser;
 
 Client::Client()
-    : m_ServerDelay( 0.00)
+    : m_ClientMonitor()
+    , m_ServerDelay( 0.00)
     , m_NetPackTick(-1.00)
     , m_RequestProcess(PROCESSID_NONE)
     , m_CurrentProcess(nullptr)
 {
     InitView(10);
-    extern SDLDevice *g_SDLDevice;
     g_SDLDevice->CreateMainWindow();
 }
 
@@ -73,6 +79,10 @@ void Client::MainLoop()
     auto fLastLoop   = SDL_GetTicks() * 1.0;
 
     while(true){
+        if(g_ClientArgParser->EnableClientMonitor){
+            PrintMonitor();
+        }
+
         SwitchProcess();
         if(true
                 && m_CurrentProcess
@@ -84,15 +94,13 @@ void Client::MainLoop()
                 }
             }
 
-            auto fCurrUpdate = 1.0 * SDL_GetTicks();
-            if(fCurrUpdate - fLastUpdate > fDelayUpdate){
+            if(auto fCurrUpdate = 1.0 * SDL_GetTicks(); fCurrUpdate - fLastUpdate > fDelayUpdate){
                 auto fPastUpdate = fCurrUpdate - fLastUpdate;
                 fLastUpdate = fCurrUpdate;
                 Update(fPastUpdate);
             }
 
-            auto fCurrDraw = 1.0 * SDL_GetTicks();
-            if(fCurrDraw - fLastDraw > fDelayDraw){
+            if(auto fCurrDraw = 1.0 * SDL_GetTicks(); fCurrDraw - fLastDraw > fDelayDraw){
                 fLastDraw = fCurrDraw;
                 Draw();
             }
@@ -144,7 +152,6 @@ void Client::InitASIO()
     std::string szIP;
     std::string szPort;
 
-    extern XMLConf *g_XMLConf;
     auto p1 = g_XMLConf->GetXMLNode("/Root/Network/Server/IP"  );
     auto p2 = g_XMLConf->GetXMLNode("/Root/Network/Server/Port");
 
@@ -156,13 +163,12 @@ void Client::InitASIO()
         szPort = "5000";
     }
 
-    m_NetIO.InitIO(szIP.c_str(), szPort.c_str(),
-        [this](uint8_t nHC, const uint8_t *pData, size_t nDataLen){
-            // core should handle on fully recieved message from the serer
-            // previously there are two steps (HC, Body) seperately handled, error-prone
-            OnServerMessage(nHC, pData, nDataLen);
-        }
-    );
+    m_NetIO.InitIO(szIP.c_str(), szPort.c_str(), [this](uint8_t nHC, const uint8_t *pData, size_t nDataLen)
+    {
+        // core should handle on fully recieved message from the serer
+        // previously there are two steps (HC, Body) seperately handled, error-prone
+        OnServerMessage(nHC, pData, nDataLen);
+    });
 }
 
 void Client::PollASIO()
@@ -179,6 +185,9 @@ void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
     // 1. update the time when last message received
     m_NetPackTick = SDL_GetTicks() * 1.0;
+
+    m_ClientMonitor.SMProcMonitorList[nHC].RecvCount++;
+    raii_timer stTimer(&(m_ClientMonitor.SMProcMonitorList[nHC].ProcTick));
 
     // 2. handle messages
     switch(nHC){
@@ -241,7 +250,6 @@ void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
                     pRun->Net_LOGINOK(pData, nDataLen);
                 }else{
-                    extern Log *g_Log;
                     g_Log->AddLog(LOGTYPE_INFO, "failed to jump into main loop");
                 }
                 break;
@@ -255,7 +263,6 @@ void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
             }
         case SM_LOGINFAIL:
             {
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_WARNING, "Login failed: ID = %d", (int)(((SMLoginFail *)(pData))->FailID));
                 break;
             }
@@ -389,5 +396,17 @@ void Client::SwitchProcess(int nOldID, int nNewID)
             {
                 break;
             }
+    }
+}
+
+void Client::PrintMonitor() const
+{
+    g_Log->AddLog(LOGTYPE_DEBUG, "Client runs %" PRIu64 " msec", m_ClientTimer.diff_msec());
+    for(size_t nIndex = 0; nIndex < SM_MAX; ++nIndex){
+        uint64_t nProcTick  = m_ClientMonitor.SMProcMonitorList[nIndex].ProcTick / 1000000;
+        uint64_t nRecvCount = m_ClientMonitor.SMProcMonitorList[nIndex].RecvCount;
+        if(nRecvCount > 0){
+            g_Log->AddLog(LOGTYPE_DEBUG, "%s: RecvCount = %" PRIu64 ", ProcTick = %" PRIu64 "msec", SMSGParam(nIndex).Name().c_str(), nRecvCount, nProcTick);
+        }
     }
 }
