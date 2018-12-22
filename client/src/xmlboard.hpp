@@ -381,8 +381,13 @@ class XMLBoard
         int    LineIntervalMaxH2(size_t, size_t, size_t) const;
 
     public:
+        uint32_t Color() const
+        {
+            return 0;
+        }
+
         uint32_t BGColor() const
         {
-            return ColorFunc::RED + 128;
+            return 0;
         }
 };

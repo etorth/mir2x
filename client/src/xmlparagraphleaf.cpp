@@ -62,12 +62,6 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     if(Type() == LEAF_UTF8GROUP){
         m_UTF8CharOff = UTF8Func::BuildUTF8Off(UTF8Text());
     }
-
-    try{
-        if(const auto *pszBGColor = XMLFunc::FindAttribute(Node(), "font_bgcolor", true)){
-            m_BGColor.emplace(ColorFunc::String2RGBA(pszBGColor));
-        }
-    }catch(...){}
 }
 
 void XMLParagraphLeaf::MarkEvent(int nEvent)
@@ -98,4 +92,24 @@ uint32_t XMLParagraphLeaf::PeekUTF8Code(size_t nLeafOff) const
     }
 
     return UTF8Func::PeekUTF8Code(Node()->Value() + UTF8CharOffRef()[nLeafOff]);
+}
+
+std::optional<uint32_t> XMLParagraphLeaf::Color() const
+{
+    if(const auto pszColor = XMLFunc::FindAttribute(Node(), "font_color", true)){
+        try{
+            return ColorFunc::String2RGBA(pszColor);
+        }catch(...){}
+    }
+    return {};
+}
+
+std::optional<uint32_t> XMLParagraphLeaf::BGColor() const
+{
+    if(const auto pszColor = XMLFunc::FindAttribute(Node(), "font_bgcolor", true)){
+        try{
+            return ColorFunc::String2RGBA(pszColor);
+        }catch(...){}
+    }
+    return {};
 }

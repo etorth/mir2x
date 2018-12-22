@@ -47,10 +47,6 @@ class XMLParagraphLeaf
         std::vector<size_t> m_UTF8CharOff;
 
     private:
-        std::optional<uint32_t> m_Color;
-        std::optional<uint32_t> m_BGColor;
-
-    private:
         int m_Event;
 
     public:
@@ -98,16 +94,6 @@ class XMLParagraphLeaf
             return const_cast<std::vector<size_t> &>(static_cast<const XMLParagraphLeaf *>(this)->UTF8CharOffRef());
         }
 
-        std::optional<uint32_t> Color() const
-        {
-            return m_Color;
-        }
-
-        std::optional<uint32_t> BGColor() const
-        {
-            return m_BGColor;
-        }
-
         const char *UTF8Text() const
         {
             if(Type() != LEAF_UTF8GROUP){
@@ -136,4 +122,8 @@ class XMLParagraphLeaf
 
     public:
         void MarkEvent(int);
+
+    public:
+        std::optional<uint32_t>   Color() const;
+        std::optional<uint32_t> BGColor() const;
 };
