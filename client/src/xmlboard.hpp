@@ -200,7 +200,6 @@ class XMLBoard
         }
 
     public:
-        void Draw(int, int) const;
         void DrawEx(int, int, int, int, int, int) const;
 
     public:
@@ -237,7 +236,6 @@ class XMLBoard
         void CheckDefaultFont() const;
 
     private:
-        void ResetLine(size_t);
         void ResetOneLine(size_t, bool);
 
     private:
@@ -383,7 +381,7 @@ class XMLBoard
     public:
         uint32_t Color() const
         {
-            return 0;
+            return ColorFunc::WHITE + 255;
         }
 
         uint32_t BGColor() const

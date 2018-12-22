@@ -25,6 +25,29 @@
 #include "sdldevice.hpp"
 #include "condcheck.hpp"
 
+extern Log *g_Log;
+extern SDLDevice *g_SDLDevice;
+
+SDLDevice::EnableDrawColor::EnableDrawColor(uint32_t nRGBA)
+{
+    g_SDLDevice->PushColor(nRGBA);
+}
+
+SDLDevice::EnableDrawColor::~EnableDrawColor()
+{
+    g_SDLDevice->PopColor();
+}
+
+SDLDevice::EnableDrawBlendMode::EnableDrawBlendMode(SDL_BlendMode stBlendMode)
+{
+    g_SDLDevice->PushBlendMode(stBlendMode);
+}
+
+SDLDevice::EnableDrawBlendMode::~EnableDrawBlendMode()
+{
+    g_SDLDevice->PopBlendMode();
+}
+
 SDLDevice::SDLDevice()
     : m_Window(nullptr)
     , m_Renderer(nullptr)
@@ -216,12 +239,12 @@ TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontP
 
 void SDLDevice::PushColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
 {
-    uint32_t nARGB = ColorFunc::ARGB(nA, nR, nG, nB);
-    if(m_ColorStack.empty() || nARGB != m_ColorStack.back()[0]){
+    uint32_t nRGBA = ColorFunc::RGBA(nR, nG, nB, nA);
+    if(m_ColorStack.empty() || nRGBA != m_ColorStack.back().Color){
         SetColor(nR, nG, nB, nA);
-        m_ColorStack.push_back({nARGB, 1});
+        m_ColorStack.emplace_back(nRGBA, 1);
     }else{
-        ++m_ColorStack.back()[1];
+        ++m_ColorStack.back().Repeat;
     }
 }
 
@@ -230,28 +253,38 @@ void SDLDevice::PopColor()
     if(m_ColorStack.empty()){
         PushColor(0, 0, 0, 0);
     }else{
-        condcheck(m_ColorStack.back()[1]);
-        if(m_ColorStack.back()[1] == 1){
-            m_ColorStack.pop_back();
-            if(m_ColorStack.empty()){
-                PushColor(0, 0, 0, 0);
-            }else{
-                SDL_Color stColor = ColorFunc::RGBA2Color(ColorFunc::ARGB2RGBA((m_ColorStack.back()[0])));
-                SetColor(stColor.r, stColor.g, stColor.b, stColor.a);
-            }
-        }else{
-            --m_ColorStack.back()[1];
+        switch(m_ColorStack.back().Repeat){
+            case 0:
+                {
+                    throw std::runtime_error(str_fflprintf(": Last color 0x%" PRIx32 "with zero repeat", m_ColorStack.back().Color));
+                }
+            case 1:
+                {
+                    m_ColorStack.pop_back();
+                    if(m_ColorStack.empty()){
+                        PushColor(0, 0, 0, 0);
+                    }else{
+                        SDL_Color stColor = ColorFunc::RGBA2Color(m_ColorStack.back().Color);
+                        SetColor(stColor.r, stColor.g, stColor.b, stColor.a);
+                    }
+                    break;
+                }
+            default:
+                {
+                    --m_ColorStack.back().Repeat;
+                    break;
+                }
         }
     }
 }
 
-void SDLDevice::PushBlendMode(SDL_BlendMode stMode)
+void SDLDevice::PushBlendMode(SDL_BlendMode stBlendMode)
 {
-    if(m_BlendModeStack.empty() || stMode != m_BlendModeStack.back().first){
-        SDL_SetRenderDrawBlendMode(m_Renderer, stMode);
-        m_BlendModeStack.push_back({stMode, 1});
+    if(m_BlendModeStack.empty() || stBlendMode != m_BlendModeStack.back().BlendMode){
+        SDL_SetRenderDrawBlendMode(m_Renderer, stBlendMode);
+        m_BlendModeStack.emplace_back(stBlendMode, 1);
     }else{
-        ++m_BlendModeStack.back().second;
+        ++m_BlendModeStack.back().Repeat;
     }
 }
 
@@ -260,16 +293,26 @@ void SDLDevice::PopBlendMode()
     if(m_BlendModeStack.empty()){
         PushBlendMode(SDL_BLENDMODE_NONE);
     }else{
-        condcheck(m_BlendModeStack.back().second);
-        if(m_BlendModeStack.back().second == 1){
-            m_BlendModeStack.pop_back();
-            if(m_BlendModeStack.empty()){
-                PushBlendMode(SDL_BLENDMODE_NONE);
-            }else{
-                SDL_SetRenderDrawBlendMode(m_Renderer, m_BlendModeStack.back().first);
-            }
-        }else{
-            --m_BlendModeStack.back().second;
+        switch(m_BlendModeStack.back().Repeat){
+            case 0:
+                {
+                    throw std::runtime_error(str_fflprintf(": Last blend mode with zero repeat"));
+                }
+            case 1:
+                {
+                    m_BlendModeStack.pop_back();
+                    if(m_BlendModeStack.empty()){
+                        PushBlendMode(SDL_BLENDMODE_NONE);
+                    }else{
+                        SDL_SetRenderDrawBlendMode(m_Renderer, m_BlendModeStack.back().BlendMode);
+                    }
+                    break;
+                }
+            default:
+                {
+                    --m_BlendModeStack.back().Repeat;
+                    break;
+                }
         }
     }
 }

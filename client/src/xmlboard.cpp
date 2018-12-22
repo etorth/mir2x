@@ -28,10 +28,6 @@ extern Log *g_Log;
 extern SDLDevice *g_SDLDevice;
 extern FontexDBN *g_FontexDBN;
 
-void XMLBoard::ResetLine(size_t)
-{
-}
-
 void XMLBoard::SetTokenBoxWordSpace(size_t nLine)
 {
     if(!LineValid(nLine)){
@@ -807,6 +803,10 @@ void XMLBoard::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, int
     int nDstDX = nDstX - nSrcX;
     int nDstDY = nDstY - nSrcY;
 
+    uint32_t nColor   = 0;
+    uint32_t nBGColor = 0;
+
+    size_t nLastLeaf = -1;
     for(size_t nLine = 0; nLine < LineCount(); ++nLine){
         for(size_t nToken = 0; nToken < LineTokenCount(nLine); ++nToken){
             auto pToken = GetToken(nToken, nLine);
@@ -821,10 +821,14 @@ void XMLBoard::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, int
             }
 
             auto &stLeaf = m_Paragraph.LeafRef(pToken->Leaf);
-            g_SDLDevice->FillRectangle(stLeaf.BGColor().value_or(BGColor()), nX + nDstX, nY + nDstY, nW, nH);
+            if(nLastLeaf != pToken->Leaf){
+                nColor    = stLeaf.  Color().value_or(  Color());
+                nBGColor  = stLeaf.BGColor().value_or(BGColor());
+                nLastLeaf = pToken->Leaf;
+            }
 
-            auto nColor = ColorFunc::GREEN;
-            auto nBGColor = stLeaf.BGColor().value_or(BGColor());
+            g_SDLDevice->FillRectangle(nBGColor, nX + nDstX, nY + nDstY, nW, nH);
+
             switch(stLeaf.Type()){
                 case LEAF_UTF8GROUP:
                     {

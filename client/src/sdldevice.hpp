@@ -30,25 +30,44 @@ class SDLDevice final
         struct EnableDrawColor
         {
             EnableDrawColor(uint32_t);
-            ~EnableDrawColor();
+           ~EnableDrawColor();
         };
 
         struct EnableDrawBlendMode
         {
             EnableDrawBlendMode(SDL_BlendMode);
-            ~EnableDrawBlendMode();
+           ~EnableDrawBlendMode();
         };
 
     private:
-        using ColoStackNode      = std::array<uint32_t, 2>;
-        using BlendModeStackNode = std::pair<SDL_BlendMode, uint32_t>;
+        struct ColorStackNode
+        {
+            uint32_t Color;
+            size_t   Repeat;
+
+            ColorStackNode(uint32_t nColor, size_t nRepeat)
+                : Color(nColor)
+                , Repeat(nRepeat)
+            {}
+        };
+
+        struct BlendModeStackNode
+        {
+            SDL_BlendMode BlendMode;
+            size_t        Repeat;
+
+            BlendModeStackNode(SDL_BlendMode stBlendMode, size_t nRepeat)
+                : BlendMode(stBlendMode)
+                , Repeat(nRepeat)
+            {}
+        };
 
     private:
        SDL_Window   *m_Window;
        SDL_Renderer *m_Renderer;
 
     private:
-       std::vector<ColoStackNode>      m_ColorStack;
+       std::vector<ColorStackNode>     m_ColorStack;
        std::vector<BlendModeStackNode> m_BlendModeStack;
 
     private:
@@ -130,8 +149,10 @@ class SDLDevice final
            SDL_RenderFillRect(m_Renderer, &stRect);
        }
 
-       void FillRectangle(uint32_t, int nX, int nY, int nW, int nH)
+       void FillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH)
        {
+           EnableDrawColor stEnableColor(nRGBA);
+
            SDL_Rect stRect;
            stRect.x = nX;
            stRect.y = nY;
@@ -139,11 +160,6 @@ class SDLDevice final
            stRect.h = nH;
 
            SDL_RenderFillRect(m_Renderer, &stRect);
-       }
-
-       SDL_Color Color()
-       {
-           return ColorFunc::RGBA2Color(m_ColorStack.back()[0]);
        }
 
        void DrawPixel(int nX, int nY)
@@ -206,6 +222,13 @@ class SDLDevice final
 
     public:
        void PushColor(uint8_t, uint8_t, uint8_t, uint8_t);
+
+    public:
+       void PushColor(uint32_t nRGBA)
+       {
+           PushColor(ColorFunc::R(nRGBA), ColorFunc::G(nRGBA), ColorFunc::B(nRGBA), ColorFunc::A(nRGBA));
+       }
+
        void PushColor(const SDL_Color &rstColor)
        {
            PushColor(rstColor.r, rstColor.g, rstColor.b, rstColor.a);
