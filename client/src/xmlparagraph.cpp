@@ -30,7 +30,7 @@
 
 extern Log *g_Log;
 
-bool isTextLeaf(const tinyxml2::XMLNode *pNode)
+static bool isTextLeaf(const tinyxml2::XMLNode *pNode)
 {
     if(!pNode){
         throw std::invalid_argument(str_fflprintf(": Invalid argument: nullptr"));
@@ -43,7 +43,7 @@ bool isTextLeaf(const tinyxml2::XMLNode *pNode)
     return pNode->ToText() != nullptr;
 }
 
-bool isEmojiLeaf(const tinyxml2::XMLNode *pNode)
+static bool isEmojiLeaf(const tinyxml2::XMLNode *pNode)
 {
     if(!pNode){
         throw std::invalid_argument(str_fflprintf(": Invalid argument: nullptr"));
@@ -72,7 +72,7 @@ bool isEmojiLeaf(const tinyxml2::XMLNode *pNode)
     return false;
 }
 
-bool isImageLeaf(const tinyxml2::XMLNode *pNode)
+static bool isImageLeaf(const tinyxml2::XMLNode *pNode)
 {
     if(!pNode){
         throw std::invalid_argument(str_fflprintf(": Invalid argument: nullptr"));
@@ -101,7 +101,7 @@ bool isImageLeaf(const tinyxml2::XMLNode *pNode)
     return false;
 }
 
-bool isValidLeaf(const tinyxml2::XMLNode *pNode)
+static bool isValidLeaf(const tinyxml2::XMLNode *pNode)
 {
     if(!pNode){
         throw std::invalid_argument(str_fflprintf(": Invalid argument: nullptr"));
@@ -407,11 +407,6 @@ std::tuple<size_t, size_t, size_t> XMLParagraph::NextLeafOff(size_t nLeaf, size_
     return {nCurrLeaf, nCurrLeafOff, nAdvancedToken};
 }
 
-tinyxml2::XMLNode *XMLParagraph::Clone(tinyxml2::XMLDocument *pDoc)
-{
-    return m_XMLDocument.RootElement()->DeepClone(pDoc);
-}
-
 // lowest common ancestor
 const tinyxml2::XMLNode *XMLParagraph::LeafCommonAncestor(size_t, size_t) const
 {
@@ -490,17 +485,4 @@ void XMLParagraph::LoadXML(const char *szXMLString)
             m_LeafList.emplace_back(pNode);
         }
     }
-}
-
-std::string XMLParagraph::PrintXML() const
-{
-    tinyxml2::XMLPrinter stPrinter;
-    m_XMLDocument.Accept(&stPrinter);
-    return std::string(stPrinter.CStr());
-}
-
-void XMLParagraph::Clear()
-{
-    m_LeafList.clear();
-    m_XMLDocument.Clear();
 }

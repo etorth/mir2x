@@ -218,7 +218,12 @@ class XMLParagraph
         void InsertUTF8Char(size_t, size_t, const char *);
 
     public:
-        tinyxml2::XMLNode *Clone(tinyxml2::XMLDocument *);
+        tinyxml2::XMLNode *Clone(tinyxml2::XMLDocument *pDoc)
+        {
+            return m_XMLDocument.RootElement()->DeepClone(pDoc);
+        }
+
+    public:
         tinyxml2::XMLNode *Clone(tinyxml2::XMLDocument *, size_t, size_t, size_t);
 
     public:
@@ -228,7 +233,12 @@ class XMLParagraph
         }
 
     public:
-        std::string PrintXML() const;
+        std::string PrintXML() const
+        {
+            tinyxml2::XMLPrinter stPrinter;
+            m_XMLDocument.Accept(&stPrinter);
+            return std::string(stPrinter.CStr());
+        }
 
     public:
         void Delete(size_t, size_t, size_t);
@@ -245,5 +255,9 @@ class XMLParagraph
         const tinyxml2::XMLNode *LeafCommonAncestor(size_t, size_t) const;
 
     private:
-        void Clear();
+        void Clear()
+        {
+            m_LeafList.clear();
+            m_XMLDocument.Clear();
+        }
 };
