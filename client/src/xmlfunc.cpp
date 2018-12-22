@@ -20,6 +20,111 @@
 #include "xmlfunc.hpp"
 #include "strfunc.hpp"
 
+bool XMLFunc::CheckTextLeaf(const tinyxml2::XMLNode *pNode)
+{
+    if(!pNode){
+        throw std::invalid_argument(str_fflprintf(": Invalid argument: nullptr"));
+    }
+
+    if(!pNode->NoChildren()){
+        return false;
+    }
+
+    return pNode->ToText() != nullptr;
+}
+
+bool XMLFunc::CheckEmojiLeaf(const tinyxml2::XMLNode *pNode)
+{
+    if(!pNode){
+        throw std::invalid_argument(str_fflprintf(": Invalid argument: nullptr"));
+    }
+
+    if(!pNode->NoChildren()){
+        return false;
+    }
+
+    if(!pNode->ToElement()){
+        return false;
+    }
+
+    constexpr const char * szEmojiTags []
+    {
+        "EMOJI",
+        "Emoji",
+        "emoji",
+    };
+
+    for(size_t nIndex = 0; std::extent<decltype(szEmojiTags)>::value; ++nIndex){
+        if(std::strcmp(szEmojiTags[nIndex], pNode->ToElement()->Name())){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool XMLFunc::CheckImageLeaf(const tinyxml2::XMLNode *pNode)
+{
+    if(!pNode){
+        throw std::invalid_argument(str_fflprintf(": Invalid argument: nullptr"));
+    }
+
+    if(!pNode->NoChildren()){
+        return false;
+    }
+
+    if(!pNode->ToElement()){
+        return false;
+    }
+
+    constexpr const char * szImageTags []
+    {
+        "IMAGE",
+        "Image",
+        "image",
+    };
+
+    for(size_t nIndex = 0; std::extent<decltype(szImageTags)>::value; ++nIndex){
+        if(std::strcmp(szImageTags[nIndex], pNode->ToElement()->Name())){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool XMLFunc::CheckValidLeaf(const tinyxml2::XMLNode *pNode)
+{
+    if(!pNode){
+        throw std::invalid_argument(str_fflprintf(": Invalid argument: nullptr"));
+    }
+
+    if(!pNode->NoChildren()){
+        throw std::invalid_argument(str_fflprintf(": Invalid argument: not a leaf"));
+    }
+
+    return CheckTextLeaf(pNode) || CheckEmojiLeaf(pNode) || CheckImageLeaf(pNode);
+}
+
+const char *XMLFunc::FindAttribute(const tinyxml2::XMLNode *pNode, const char *szAttributeName, bool bRecursive)
+{
+    if(!pNode){
+        throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
+    }
+
+    for(; pNode; pNode = pNode->Parent()){
+        if(auto pElement = pNode->ToElement()){
+            if(auto szAttributeValue = pElement->Attribute(szAttributeName)){
+                return szAttributeValue;
+            }
+
+            if(!bRecursive){
+                return nullptr;
+            }
+        }
+    }
+    return nullptr;
+}
+
+
 tinyxml2::XMLNode *XMLFunc::GetNextLeaf(tinyxml2::XMLNode *pNode)
 {
     if(!pNode){

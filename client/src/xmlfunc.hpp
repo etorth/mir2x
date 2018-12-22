@@ -24,6 +24,13 @@
 
 namespace XMLFunc
 {
+    bool CheckTextLeaf (const tinyxml2::XMLNode *);
+    bool CheckEmojiLeaf(const tinyxml2::XMLNode *);
+    bool CheckImageLeaf(const tinyxml2::XMLNode *);
+    bool CheckValidLeaf(const tinyxml2::XMLNode *);
+
+    const char *FindAttribute(const tinyxml2::XMLNode *, const char *, bool);
+
     // 1. current input should be a xml leaf
     // 2. return next xml node if exists, or nullptr
     tinyxml2::XMLNode *GetNextLeaf(tinyxml2::XMLNode *);
