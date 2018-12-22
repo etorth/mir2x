@@ -821,10 +821,10 @@ void XMLBoard::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, int
             }
 
             auto &stLeaf = m_Paragraph.LeafRef(pToken->Leaf);
-            g_SDLDevice->FillRectangle(stLeaf.BGColor(), nX + nDstX, nY + nDstY, nW, nH);
+            g_SDLDevice->FillRectangle(stLeaf.BGColor().value_or(BGColor()), nX + nDstX, nY + nDstY, nW, nH);
 
             auto nColor = ColorFunc::GREEN;
-            auto nBGColor = stLeaf.BGColor();
+            auto nBGColor = stLeaf.BGColor().value_or(BGColor());
             switch(stLeaf.Type()){
                 case LEAF_UTF8GROUP:
                     {
@@ -892,7 +892,7 @@ std::string XMLBoard::GetText(bool bTextOnly) const
         switch(auto nType = m_Paragraph.LeafRef(nIndex).Type()){
             case LEAF_UTF8GROUP:
                 {
-                    szPlainString += m_Paragraph.LeafRef(nIndex).Text();
+                    szPlainString += m_Paragraph.LeafRef(nIndex).UTF8Text();
                     break;
                 }
             case LEAF_IMAGE:

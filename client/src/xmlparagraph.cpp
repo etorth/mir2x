@@ -28,55 +28,10 @@
 
 extern Log *g_Log;
 
-static const char *findAttribute(const tinyxml2::XMLNode *pNode, const char *szAttributeName)
-{
-    if(!pNode){
-        throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
-    }
-
-    for(; pNode; pNode = pNode->Parent()){
-        if(auto pElement = pNode->ToElement()){
-            if(auto szAttributeValue = pElement->Attribute(szAttributeName)){
-                return szAttributeValue;
-            }
-        }
-    }
-    return nullptr;
-}
-
-static uint8_t findAttributeFont(const tinyxml2::XMLNode *pNode, uint8_t nDefaultFont)
-{
-    try{
-        if(auto szFontString = findAttribute(pNode, "font")){
-            return std::stoi(szFontString);
-        }
-    }catch(...){}
-    return nDefaultFont;
-}
-
-static uint8_t findAttributeFontSize(const tinyxml2::XMLNode *pNode, uint8_t nDefaultFontSize)
-{
-    try{
-        if(auto szFontString = findAttribute(pNode, "font_size")){
-            return std::stoi(szFontString);
-        }
-    }catch(...){}
-    return nDefaultFontSize;
-}
-
 XMLParagraph::XMLParagraph()
     : m_XMLDocument()
     , m_LeafList()
 {}
-
-void XMLParagraph::BuildXMLNodeBlock(tinyxml2::XMLNode *pNode)
-{
-    auto pBlock = new XMLParagraph::NodeBlock();
-    pBlock->Font     = findAttributeFont(pNode, 0);
-    pBlock->FontSize = findAttributeFontSize(pNode, 0);
-
-    pNode->SetUserData(pBlock);
-}
 
 void XMLParagraph::DeleteLeaf(size_t nLeaf)
 {
@@ -117,7 +72,7 @@ void XMLParagraph::InsertUTF8Char(size_t nLeaf, size_t nLeafOff, const char *szU
 
     auto pszOldValue    = LeafRef(nLeaf).Node()->Value();
     auto szNewValue     = (std::string(pszOldValue, pszOldValue + nLeafOff) + szUTF8String) + std::string(pszOldValue + nLeafOff);
-    auto stvNewValueOff = UTF8Func::BuildOff(szNewValue.c_str());
+    auto stvNewValueOff = UTF8Func::BuildUTF8Off(szNewValue.c_str());
 
     m_LeafList[nLeaf].Node()->SetValue(szNewValue.c_str());
 

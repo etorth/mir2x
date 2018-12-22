@@ -379,4 +379,10 @@ class XMLBoard
         size_t LineNewStartY(size_t);
         size_t LineTokenBestY(size_t, size_t, size_t, size_t) const;
         int    LineIntervalMaxH2(size_t, size_t, size_t) const;
+
+    public:
+        uint32_t BGColor() const
+        {
+            return ColorFunc::RED + 128;
+        }
 };

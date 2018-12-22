@@ -24,18 +24,6 @@
 class XMLParagraph
 {
     private:
-        struct NodeBlock
-        {
-            tinyxml2::XMLNode* Node;
-
-            uint8_t  Font;
-            uint8_t  FontSize;
-            uint8_t  FontStyle;
-            uint32_t FontColor;
-            uint32_t FontEventColor[3];
-        };
-
-    private:
         tinyxml2::XMLDocument m_XMLDocument;
 
     private:
@@ -124,9 +112,6 @@ class XMLParagraph
 
     public:
         void Delete(size_t, size_t, size_t);
-
-    private:
-        void BuildXMLNodeBlock(tinyxml2::XMLNode *);
 
     public:
         void DeleteLeaf(size_t);

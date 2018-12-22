@@ -107,43 +107,66 @@ bool isValidLeaf(const tinyxml2::XMLNode *pNode)
     return isTextLeaf(pNode) || isEmojiLeaf(pNode) || isImageLeaf(pNode);
 }
 
-XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
-    : m_Type(LEAF_UTF8GROUP)
-    , m_Node(pNode)
-    , m_UTF8CharOff()
-    , m_Event(BEVENT_OFF)
+static const char *findAttribute(const tinyxml2::XMLNode *pNode, const char *szAttributeName)
 {
-    if(pNode == nullptr){
+    if(!pNode){
         throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
     }
 
-    if(!isValidLeaf(pNode)){
-        throw std::invalid_argument(str_fflprintf(": Invalid argument: not a valid XMParagraph leaf"));
-    }
-
-    m_Node = pNode;
-
-    if(isTextLeaf(pNode)){
-        if(!utf8::is_valid(pNode->Value(), pNode->Value() + std::strlen(pNode->Value()))){
-            throw std::invalid_argument(str_fflprintf(": Invalid argument: not a utf8 string"));
+    for(; pNode; pNode = pNode->Parent()){
+        if(auto pElement = pNode->ToElement()){
+            if(auto szAttributeValue = pElement->Attribute(szAttributeName)){
+                return szAttributeValue;
+            }
         }
+    }
+    return nullptr;
+}
 
-        m_Type        = LEAF_UTF8GROUP;
-        m_UTF8CharOff = UTF8Func::BuildOff(pNode->Value());
-        return;
+XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
+    : m_Node([pNode]()
+      {
+          if(pNode == nullptr){
+              throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
+          }
+
+          if(!isValidLeaf(pNode)){
+              throw std::invalid_argument(str_fflprintf(": Invalid argument: not a valid XMParagraph leaf"));
+          }
+          return pNode;
+      }())
+    , m_Type([this]()
+      {
+          if(isTextLeaf(Node())){
+              if(!utf8::is_valid(Node()->Value(), Node()->Value() + std::strlen(Node()->Value()))){
+                  throw std::invalid_argument(str_fflprintf(": Not a utf8 string: %s", Node()->Value()));
+              }
+              return LEAF_UTF8GROUP;
+          }
+
+          if(isEmojiLeaf(Node())){
+              return LEAF_EMOJI;
+          }
+
+          if(isImageLeaf(Node())){
+              return LEAF_IMAGE;
+          }
+
+          throw std::invalid_argument(str_fflprintf(": Invalid argument: node type not recognized"));
+      }())
+    , m_U64Key(0)
+    , m_UTF8CharOff()
+    , m_Event(BEVENT_OFF)
+{
+    if(Type() == LEAF_UTF8GROUP){
+        m_UTF8CharOff.emplace(UTF8Func::BuildUTF8Off(UTF8Text()));
     }
 
-    else if(isEmojiLeaf(pNode)){
-        m_Type = LEAF_EMOJI;
-        return;
-    }
-
-    else if(isImageLeaf(pNode)){
-        m_Type = LEAF_IMAGE;
-        return;
-    }
-
-    throw std::invalid_argument(str_fflprintf(": Invalid argument: node type not recognized"));
+    try{
+        if(const auto *pszBGColor = findAttribute(Node(), "font_bgcolor")){
+            m_BGColor.emplace(ColorFunc::String2RGBA(pszBGColor));
+        }
+    }catch(...){}
 }
 
 void XMLParagraphLeaf::MarkEvent(int nEvent)

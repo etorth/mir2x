@@ -36,7 +36,7 @@ uint32_t UTF8Func::PeekUTF8Code(const char *szUTF8String)
     }
 }
 
-std::vector<size_t> UTF8Func::BuildOff(const char *szUTF8String)
+std::vector<size_t> UTF8Func::BuildUTF8Off(const char *szUTF8String)
 {
     if(!szUTF8String){
         throw std::invalid_argument(str_fflprintf(": Invalid argument: nullptr"));
