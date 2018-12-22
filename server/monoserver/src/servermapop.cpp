@@ -245,7 +245,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     }
 
     int nStepSize = -1;
-    switch(LDistance2(stAMTM.X, stAMTM.Y, stAMTM.EndX, stAMTM.EndY)){
+    switch(MathFunc::LDistance2(stAMTM.X, stAMTM.Y, stAMTM.EndX, stAMTM.EndY)){
         case 1:
         case 2:
             {
@@ -543,7 +543,7 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
         }
         int nEndX = pNode1->X();
         int nEndY = pNode1->Y();
-        switch(LDistance2(nCurrX, nCurrY, nEndX, nEndY)){
+        switch(MathFunc::LDistance2(nCurrX, nCurrY, nEndX, nEndY)){
             case 1:
             case 2:
                 {

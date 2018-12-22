@@ -46,7 +46,7 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, int nCheckCO)
                     return 10000.00;
               }
 
-              int nDistance2 = LDistance2(nSrcX, nSrcY, nDstX, nDstY);
+              int nDistance2 = MathFunc::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
               if(true
                       && nDistance2 != 1
                       && nDistance2 != 2
@@ -236,7 +236,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
                     auto nY     = pLoc->second.Y;
                     auto nMapID = pLoc->second.MapID;
 
-                    if(m_Map->In(nMapID, nX, nY) && LDistance2(nX, nY, X(), Y()) < 10 * 10){
+                    if(m_Map->In(nMapID, nX, nY) && MathFunc::LDistance2(nX, nY, X(), Y()) < 10 * 10){
                         // if one co becomes my new neighbor
                         // is should be included in the list already
                         // but if we find a neighbor in the cache list we need to refresh it
@@ -245,7 +245,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
                             auto nX = rstLocation.X;
                             auto nY = rstLocation.Y;
                             auto nMapID = rstLocation.MapID;
-                            if(m_Map->In(nMapID, nX, nY) && LDistance2(nX, nY, X(), Y()) < 100){
+                            if(m_Map->In(nMapID, nX, nY) && MathFunc::LDistance2(nX, nY, X(), Y()) < 100){
                                 m_ActorPod->Forward(rstLocation.UID, {MPK_ACTION, stAMA});
                             }
                         });
@@ -307,7 +307,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
         return false;
     }
 
-    switch(LDistance2(X(), Y(), nX, nY)){
+    switch(MathFunc::LDistance2(X(), Y(), nX, nY)){
         case 1:
         case 2:
             {
@@ -881,7 +881,7 @@ int CharObject::EstimateHop(int nX, int nY)
         return -1;
     }
 
-    int nLDistance2 = LDistance2(nX, nY, X(), Y());
+    int nLDistance2 = MathFunc::LDistance2(nX, nY, X(), Y());
     switch(nLDistance2){
         case 0:
             {
@@ -1012,7 +1012,7 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nChe
     }
 
     int nMaxIndex = -1;
-    switch(LDistance2(nX0, nY0, nX1, nY1)){
+    switch(MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
             {
                 nMaxIndex = 0;

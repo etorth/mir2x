@@ -30,7 +30,7 @@
 #include "processnew.hpp"
 #include "processrun.hpp"
 #include "processlogo.hpp"
-#include "processsyrc.hpp"
+#include "processsync.hpp"
 #include "processlogin.hpp"
 #include "pngtexoffdbn.hpp"
 #include "servermessage.hpp"
@@ -339,7 +339,7 @@ void Client::SwitchProcess(int nOldID, int nNewID)
                     case PROCESSID_SYRC:
                         {
                             // on initialization
-                            m_CurrentProcess = new ProcessSyrc();
+                            m_CurrentProcess = new ProcessSync();
                             SDL_ShowCursor(1);
                             break;
                         }

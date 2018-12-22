@@ -317,11 +317,11 @@ bool Player::InRange(int nRangeType, int nX, int nY)
     switch(nRangeType){
         case RANGE_VISIBLE:
             {
-                return LDistance2(X(), Y(), nX, nY) < 20 * 20;
+                return MathFunc::LDistance2(X(), Y(), nX, nY) < 20 * 20;
             }
         case RANGE_ATTACK:
             {
-                return LDistance2(X(), Y(), nX, nY) < 10 * 10;
+                return MathFunc::LDistance2(X(), Y(), nX, nY) < 10 * 10;
             }
         default:
             {
@@ -618,7 +618,7 @@ void Player::OnCMActionAttack(CMAction stCMA)
                         switch(EstimateHop(nX0, nY0)){
                             case 0:
                                 {
-                                    switch(LDistance2(nX0, nY0, rstLocation.X, rstLocation.Y)){
+                                    switch(MathFunc::LDistance2(nX0, nY0, rstLocation.X, rstLocation.Y)){
                                         case 1:
                                         case 2:
                                             {

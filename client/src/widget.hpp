@@ -19,16 +19,17 @@
 #include <vector>
 #include <cstdint>
 #include <SDL2/SDL.h>
+#include "lalign.hpp"
 
 class Widget
 {
     private:
-        struct ChildRecord
+        struct ChildNode
         {
             Widget *Child;
             bool    AutoDelete;
 
-            ChildRecord(Widget *pWidget, bool bAutoDelete)
+            ChildNode(Widget *pWidget, bool bAutoDelete)
                 : Child(pWidget)
                 , AutoDelete(bAutoDelete)
             {}
@@ -48,29 +49,11 @@ class Widget
         int m_H;
 
     protected:
-        std::vector<ChildRecord> m_BindChildV;
+        std::vector<ChildNode> m_ChildNodeList;
 
     public:
-
-        // when creating, every widget should specify its parent, and
-        // the location w.r.t its parent's up-left point.
-        //
-        // if pWidget is null, then it's the base widget, this means
-        // widget location are ``fixed" w.r.t its parents, if you want
-        // to move independently, you should have its pointer to do so.
-        //
-        // you can specify the width and height, but for tokenboard, it
-        // is undefined before parsing the XML.
-
-        Widget(
-                int nX,                     //
-                int nY,                     //
-                int nW = 0,                 //
-                int nH = 0,                 //
-                Widget *pWidget  = nullptr, // by default all widget are independent
-                bool bAutoDelete = false)   // delete automatically when deleting its parent
-
-            : m_Parent(pWidget)
+        Widget(int nX, int nY, int nW = 0, int nH = 0, Widget *pParent = nullptr, bool bAutoDelete = false)
+            : m_Parent(pParent)
             , m_Show(true)
             , m_Focus(false)
             , m_X(nX)
@@ -79,15 +62,16 @@ class Widget
             , m_H(nH)
         {
             if(m_Parent){
-                m_Parent->m_BindChildV.emplace_back(this, bAutoDelete);
+                m_Parent->m_ChildNodeList.emplace_back(this, bAutoDelete);
             }
         }
         
+    public:
         virtual ~Widget()
         {
-            for(auto &stRecord: m_BindChildV){
-                if(stRecord.AutoDelete){
-                    delete stRecord.Child;
+            for(auto rstChildNode: m_ChildNodeList){
+                if(rstChildNode.AutoDelete){
+                    delete rstChildNode.Child;
                 }
             }
         }
@@ -114,50 +98,13 @@ class Widget
             // but not every widget should update
         }
 
-        // it's not pure virtual, since not every widget should
-        // accept events.
-        //
-        // Add a ``bool *" here to indicate the passed event is
-        // valid or not:
-        //
-        //
-        // +----------+
-        // |          |
-        // |    +---+ |
-        // |    | 1 | |    +----------+
-        // |    +---+ |    | +---+    |
-        // +----------+    | | 2 |    |
-        //                 | +---+    |
-        //                 +----------+
-        //
-        // currently events will be dispatched to *every* widget, 
-        // when button-1 and button-2 are overlapped. then both
-        // event handler will be triggered if there is a click o-
-        // ver button-1!
-        //
-        // but if we use ProcessEvent(const SDL_Event *) to pass a
-        // null pointer to indicate event has already be grabbed, 
-        // then can we update all the widgets properly?
-        //
-        // bValid to be null means this event is broadcast, we must
-        // handle it?
-
-        virtual bool ProcessEvent(const SDL_Event &, bool *)
+    public:
+        virtual bool ProcessEvent(const SDL_Event &, bool)
         {
-            // since it's virtual
-            // don't use default nullptr for bValid as default parameter
             return false;
         }
 
     public:
-
-        // we don't have SetX/Y/W/H()
-        // W/H() is not needed, for X/Y() most likely if we want to use
-        // SetX/Y(), which means we need to draw the widget at different place.
-
-        // If we have this requirement, we could just make it independent 
-        // and use Draw(int, int) to draw itself instead.
-
         int X() const
         {
             if(m_Parent){
@@ -176,15 +123,20 @@ class Widget
             }
         }
 
-        int W() const { return m_W; }
-        int H() const { return m_H; }
+        int W() const
+        {
+            return m_W;
+        }
+
+        int H() const
+        {
+            return m_H;
+        }
 
     public:
         bool In(int nX, int nY) const
         {
-            return true
-                && nX >= X() && nX < X() + W()
-                && nY >= Y() && nY < Y() + H();
+            return (nX >= X() && nX < X() + W()) && (nY >= Y() && nY < Y() + H());
         }
 
     public:
@@ -215,4 +167,12 @@ class Widget
             m_X += nDX;
             m_Y += nDY;
         }
+
+        void MoveTo(int nX, int nY)
+        {
+            m_X = nX;
+            m_Y = nY;
+        }
+
+    public:
 };

@@ -1,7 +1,6 @@
 ADD_SUBDIRECTORY(mapeditor)
 ADD_SUBDIRECTORY(pkgviewer)
 ADD_SUBDIRECTORY(mapinfo)
-ADD_SUBDIRECTORY(shadowmaker)
 ADD_SUBDIRECTORY(animaker)
 ADD_SUBDIRECTORY(mapdbmaker)
 

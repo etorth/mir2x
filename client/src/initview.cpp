@@ -195,7 +195,7 @@ void InitView::ProcessEvent()
         switch(stEvent.type){
             case SDL_MOUSEBUTTONUP:
                 {
-                    if(PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
+                    if(MathFunc::PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
                         if(m_ButtonState == 2){
                             std::exit(0);
                         }else{
@@ -211,7 +211,7 @@ void InitView::ProcessEvent()
                     switch(stEvent.button.button){
                         case SDL_BUTTON_LEFT:
                             {
-                                if(PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
+                                if(MathFunc::PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
                                     m_ButtonState = 2;
                                 }
                                 break;
@@ -225,7 +225,7 @@ void InitView::ProcessEvent()
                 }
             case SDL_MOUSEMOTION:
                 {
-                    if(PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
+                    if(MathFunc::PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
                         m_ButtonState = 1;
                     }else{
                         m_ButtonState = 0;

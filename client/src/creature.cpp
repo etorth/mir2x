@@ -258,7 +258,7 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
     }
 
     auto nMaxStep = MaxStep();
-    switch(auto nLDistance2 = LDistance2(nX0, nY0, nX1, nY1)){
+    switch(auto nLDistance2 = MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
             {
                 return {{nX0, nY0}};

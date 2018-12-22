@@ -55,7 +55,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
                   return 10000.00;
               }
 
-              int nDistance2 = LDistance2(nSrcX, nSrcY, nDstX, nDstY);
+              int nDistance2 = MathFunc::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
               if(true
                       && nDistance2 != 1
                       && nDistance2 != 2
@@ -313,7 +313,7 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
     }
 
     int nMaxIndex = -1;
-    switch(LDistance2(nX0, nY0, nX1, nY1)){
+    switch(MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
             {
                 nMaxIndex = 0;
@@ -562,10 +562,7 @@ bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(i
     int nX0 = nCX0 - nCR + 1;
     int nY0 = nCY0 - nCR + 1;
 
-    if(true
-            && nW > 0
-            && nH > 0
-            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+    if((nW > 0) && (nH > 0) && MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -573,7 +570,7 @@ bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(i
         for(int nX = nX0; nX < nX0 + nW; ++nX){
             for(int nY = nY0; nY < nY0 + nH; ++nY){
                 if(true || ValidC(nX, nY)){
-                    if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                    if(MathFunc::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
                         if(!fnOP){
                             return false;
                         }
@@ -591,10 +588,7 @@ bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(i
 
 bool ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<bool(int, int)> &fnOP)
 {
-    if(true
-            && nW > 0
-            && nH > 0
-            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+    if((nW > 0) && (nH > 0) && MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -631,7 +625,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
     if(true
             && nW > 0
             && nH > 0
-            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+            && MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -643,7 +637,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
                 int nY = stRC.Y();
 
                 if(true || ValidC(nX, nY)){
-                    if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                    if(MathFunc::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
                         if(!fnOP){
                             return false;
                         }
@@ -671,7 +665,7 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
     if(true
             && nW > 0
             && nH > 0
-            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+            && MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest

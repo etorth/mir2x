@@ -363,7 +363,7 @@ void InputBoard::Draw()
     int nTBW  = m_TokenBoard.W();
     int nTBH  = m_TokenBoard.H();
 
-    if(RectangleOverlapRegion(0, 0, W(), H(), &nTBDX, &nTBDY, &nTBW, &nTBH)){
+    if(MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nTBDX, &nTBDY, &nTBW, &nTBH)){
         int nTBX = nTBDX - m_TokenBoard.X();
         int nTBY = nTBDY - m_TokenBoard.Y();
         m_TokenBoard.DrawEx(nTBDX + X(), nTBDY + Y(), nTBX, nTBY, nTBW, nTBH);

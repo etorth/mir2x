@@ -232,7 +232,7 @@ bool Monster::AttackUID(uint64_t nUID, int nDC)
         switch(nDC){
             case DC_PHY_PLAIN:
                 {
-                    switch(LDistance2(X(), Y(), nX, nY)){
+                    switch(MathFunc::LDistance2(X(), Y(), nX, nY)){
                         case 1:
                         case 2:
                             {
@@ -303,7 +303,7 @@ bool Monster::TrackUID(uint64_t nUID)
             return false;
         }
 
-        switch(LDistance2(nX, nY, X(), Y())){
+        switch(MathFunc::LDistance2(nX, nY, X(), Y())){
             case 0:
             case 1:
             case 2:
@@ -370,7 +370,7 @@ bool Monster::FollowMaster()
 
         if(false
                 || (nMapID != MapID())
-                || (LDistance<double>(nX, nY, X(), Y()) > 10.0)){
+                || (MathFunc::LDistance<double>(nX, nY, X(), Y()) > 10.0)){
 
             // long distance
             // slave have to do space move
@@ -383,7 +383,7 @@ bool Monster::FollowMaster()
             // slave should move step by step
 
             auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 1);
-            switch(LDistance2(nBackX, nBackY, X(), Y())){
+            switch(MathFunc::LDistance2(nBackX, nBackY, X(), Y())){
                 case 0:
                     {
                         // already get there
@@ -598,13 +598,13 @@ bool Monster::InRange(int nRangeType, int nX, int nY)
         switch(nRangeType){
             case RANGE_VISIBLE:
                 {
-                    return LDistance2(X(), Y(), nX, nY) < 20 * 20;
+                    return MathFunc::LDistance2(X(), Y(), nX, nY) < 20 * 20;
                 }
             case RANGE_ATTACK:
                 {
                     // inside this range
                     // monster will decide to make an attack
-                    return LDistance2(X(), Y(), nX, nY) < 10 * 10;
+                    return MathFunc::LDistance2(X(), Y(), nX, nY) < 10 * 10;
                 }
         }
     }
@@ -888,7 +888,7 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnError)
         return false;
     }
 
-    bool bDoLongJump = (MaxStep() > 1) && (CDistance(X(), Y(), nX, nY) >= MaxStep());
+    bool bDoLongJump = (MaxStep() > 1) && (MathFunc::CDistance(X(), Y(), nX, nY) >= MaxStep());
     auto stvPathNode = GetChaseGrid(nX, nY, bDoLongJump ? MaxStep() : 1);
 
     return RequestMove(stvPathNode[0].X, stvPathNode[0].Y, MoveSpeed(), false, [](){}, [this, bDoLongJump, nX, nY, stvPathNode, fnOnError]()

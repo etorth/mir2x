@@ -212,7 +212,7 @@ class MemoryChunkPN
                 // or we can just use function ValidUnit(nIndex)
                 size_t nNodeSize = PoolSize * 2;
                 for(size_t nIndex = 0; nIndex < 2 * PoolSize - 1; ++nIndex){
-                    if(PowerOf2(nIndex + 1)){
+                    if(MathFunc::PowerOf2(nIndex + 1)){
                         nNodeSize /= 2;
                     }
 
@@ -438,8 +438,8 @@ class MemoryChunkPN
             size_t nSizeInUnit = (nSizeInByte + nOff + UnitSize - 1) / UnitSize;
 
             // then nSizeInUnit == 0 won't happen
-            if(!PowerOf2<size_t>(nSizeInUnit)){
-                nSizeInUnit = RoundByPowerOf2<size_t>(nSizeInUnit);
+            if(!MathFunc::PowerOf2<size_t>(nSizeInUnit)){
+                nSizeInUnit = MathFunc::RoundByPowerOf2<size_t>(nSizeInUnit);
             }
 
             // oooops, request tooo large memory chunk and any pool can't satisfy

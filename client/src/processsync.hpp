@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: processsyrc.hpp
+ *       Filename: processsync.hpp
  *        Created: 08/14/2015 02:47:30
  *    Description: 
  *
@@ -21,17 +21,17 @@
 #include "labelboard.hpp"
 #include "tokenboard.hpp"
 
-class ProcessSyrc: public Process
+class ProcessSync: public Process
 {
     private:
         int        m_Ratio;
         LabelBoard m_Info;
 
     public:
-        ProcessSyrc();
+        ProcessSync();
 
     public:
-        ~ProcessSyrc() = default;
+        ~ProcessSync() = default;
 
     public:
         int ID() const

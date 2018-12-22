@@ -86,16 +86,16 @@ ControlBoard::ControlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
             343 + (nW - 800),
             15,
             1,
-            ColorFunc::COLOR_WHITE,
+            {0XFF, 0XFF, 0XFF, 0XFF},
             1,
             12,
             0,
-            ColorFunc::COLOR_WHITE,
+            {0XFF, 0XFF, 0XFF, 0XFF},
             [    ](){                  },
             [this](){ InputLineDone(); },
             this,
             false)
-    , m_LocBoard(0, 0, "", 1, 12, 0, {0XFF, 0X00, 0X00, 0X00})
+    , m_LocBoard(0, 0, "", 1, 12, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_LogBoard(
             187,
             18,
@@ -109,7 +109,7 @@ ControlBoard::ControlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
             1,
             12,
             0,
-            ColorFunc::COLOR_WHITE,
+            {0XFF, 0XFF, 0XFF, 0XFF},
             this,
             false)
 {
@@ -233,7 +233,7 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
     {
         auto nX = m_ProcessRun->GetMyHero()->X();
         auto nY = m_ProcessRun->GetMyHero()->Y();
-        m_LocBoard.FormatText(u8"%s: %d %d", DBCOM_MAPRECORD(m_ProcessRun->MapID()).Name, nX, nY);
+        m_LocBoard.SetText(u8"%s: %d %d", DBCOM_MAPRECORD(m_ProcessRun->MapID()).Name, nX, nY);
         m_LocBoard.DrawEx(nX0 + (136 - m_LocBoard.W()) / 2, nY0 + 108, 0, 0, m_LocBoard.W(), m_LocBoard.H());
     }
 

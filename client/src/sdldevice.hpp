@@ -26,6 +26,19 @@
 
 class SDLDevice final
 {
+    public:
+        struct EnableDrawColor
+        {
+            EnableDrawColor(uint32_t);
+            ~EnableDrawColor();
+        };
+
+        struct EnableDrawBlendMode
+        {
+            EnableDrawBlendMode(SDL_BlendMode);
+            ~EnableDrawBlendMode();
+        };
+
     private:
         using ColoStackNode      = std::array<uint32_t, 2>;
         using BlendModeStackNode = std::pair<SDL_BlendMode, uint32_t>;
@@ -107,6 +120,17 @@ class SDLDevice final
        }
 
        void FillRectangle(int nX, int nY, int nW, int nH)
+       {
+           SDL_Rect stRect;
+           stRect.x = nX;
+           stRect.y = nY;
+           stRect.w = nW;
+           stRect.h = nH;
+
+           SDL_RenderFillRect(m_Renderer, &stRect);
+       }
+
+       void FillRectangle(uint32_t, int nX, int nY, int nW, int nH)
        {
            SDL_Rect stRect;
            stRect.x = nX;
@@ -200,4 +224,7 @@ class SDLDevice final
     public:
        void CreateMainWindow();
        void CreateInitViewWindow();
+
+    public:
+       TTF_Font *DefaultTTF(uint8_t);
 };

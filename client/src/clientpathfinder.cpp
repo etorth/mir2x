@@ -35,7 +35,7 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
                   return -1.00;
               }
 
-              int nDistance2 = LDistance2(nSrcX, nSrcY, nDstX, nDstY);
+              int nDistance2 = MathFunc::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
               if(true
                       && nDistance2 != 1
                       && nDistance2 != 2

@@ -86,12 +86,20 @@ bool TokenBoard::GetAttributeColor(SDL_Color *pOutColor, const SDL_Color &rstDef
         }
     }
 
-    if(pText && ColorFunc::String2Color(pOutColor, pText)){
-        return true;
-    }else{
-        if(pOutColor){ *pOutColor = rstDefaultColor; }
-        return false;
+    if(pText){
+        try{
+            auto stColor = ColorFunc::RGBA2Color(ColorFunc::String2RGBA(pText));
+            if(pOutColor){
+                *pOutColor = stColor;
+            }
+            return true;
+        }catch(...){}
     }
+
+    if(pOutColor){
+        *pOutColor = rstDefaultColor;
+    }
+    return false;
 }
 
 bool TokenBoard::GetAttributeAtoi(int *pOut, int nDefaultOut,
@@ -605,7 +613,7 @@ int TokenBoard::GetLineIntervalMaxH2(int nLine, int nIntervalStartX, int nInterv
         int nW1 = rstTokenBox.State.W1;
         int nW2 = rstTokenBox.State.W2;
 
-        if(IntervalOverlap(nX, nW1 + nW + nW2, nIntervalStartX, nIntervalWidth)){
+        if(MathFunc::IntervalOverlap(nX, nW1 + nW + nW2, nIntervalStartX, nIntervalWidth)){
             nMaxH2 = (std::max)(nMaxH2, nH2);
         }
     }
@@ -744,7 +752,7 @@ void TokenBoard::DrawEx(
         int nSrcW, int nSrcH)
 {
     // 1. if no overlapping at all then directly return
-    if(!RectangleOverlap(nSrcX, nSrcY, nSrcW, nSrcH, 0, 0, W(), H())){ return; }
+    if(!MathFunc::RectangleOverlap(nSrcX, nSrcY, nSrcW, nSrcH, 0, 0, W(), H())){ return; }
 
     // get the coordinate of the top-left corner point on the dst
     int nDstDX = nDstX - nSrcX;
@@ -759,7 +767,7 @@ void TokenBoard::DrawEx(
             int nH = rstTokenBox.Cache.H;
 
             // try to get the clipped region of the tokenbox
-            if(!RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){ continue; }
+            if(!MathFunc::RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){ continue; }
             if(!SectionValid(rstTokenBox.Section, true)){
                 extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_INFO, "section id invalid: %d", rstTokenBox.Section);
@@ -1135,7 +1143,7 @@ bool TokenBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
         int nW = rstLastTB.Cache.W;
         int nH = rstLastTB.Cache.H;
 
-        if(PointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
+        if(MathFunc::PointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
             nTBLocX    = m_LastTokenBoxLoc.X;
             nTBLocY    = m_LastTokenBoxLoc.Y;
             bFirstHalf = (nEventDX < nX + nW / 2);
@@ -1160,7 +1168,7 @@ bool TokenBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
                 int nW = rstTokenBox.Cache.W;
                 int nH = rstTokenBox.Cache.H;
 
-                if(PointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
+                if(MathFunc::PointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
                     nTBLocX    = stLoc.X;
                     nTBLocY    = stLoc.Y;
                     bFirstHalf = (nEventDX < nX + nW / 2);
@@ -1234,7 +1242,7 @@ bool TokenBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
             int nW  = m_LineV[nRowIn].Content[nXCnt].Cache.W;
             int nCX = nX + nW / 2;
 
-            if(PointInSegment(nEventDX, nLastCenterX, nCX - nLastCenterX + 1)){
+            if(MathFunc::PointInSegment(nEventDX, nLastCenterX, nCX - nLastCenterX + 1)){
                 nTokenBoxBind = nXCnt;
                 break;
             }
@@ -1450,7 +1458,7 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
                         szXML += std::to_string(rstSN.Info.Text.Size);
 
                         char szColor[16];
-                        std::sprintf(szColor, "0x%08x", ColorFunc::Color2ARGB(rstSN.Info.Text.Color[0]));
+                        std::sprintf(szColor, "0x%08x", ColorFunc::RGBA2ARGB(ColorFunc::Color2RGBA(rstSN.Info.Text.Color[0])));
                         szXML += " color=";
                         szXML += szColor;
                         szXML += ">";
@@ -2305,7 +2313,7 @@ std::string TokenBoard::Print(bool bSelectOnly)
                                                 && std::strlen(szObjectContent)){
 
                                             char szColor[16];
-                                            std::sprintf(szColor, "0X%08X", ColorFunc::Color2ARGB(rstSEC.Info.Text.Color[0]));
+                                            std::sprintf(szColor, "0X%08X", ColorFunc::RGBA2ARGB(ColorFunc::Color2RGBA(rstSEC.Info.Text.Color[0])));
                                             pList->Add({
                                                     {"Type" , "PlainText"                           },
                                                     {"Font" , std::to_string(rstSEC.Info.Text.Font) },
@@ -2324,7 +2332,7 @@ std::string TokenBoard::Print(bool bSelectOnly)
 
                                             char szColor[3][16];
                                             for(int nIndex = 0; nIndex < 3; ++nIndex){
-                                                std::sprintf(szColor[nIndex], "0X%08X", ColorFunc::Color2ARGB(rstSEC.Info.Text.Color[nIndex]));
+                                                std::sprintf(szColor[nIndex], "0X%08X", ColorFunc::RGBA2ARGB(ColorFunc::Color2RGBA(rstSEC.Info.Text.Color[nIndex])));
                                             }
                                             pList->Add({
                                                     {"Type" , "EventText"                           },

@@ -67,8 +67,8 @@ ProcessRun::ProcessRun()
     , m_InventoryBoard(0, 0, this)
     , m_CreatureList()
     , m_UIDPending()
-    , m_MousePixlLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
-    , m_MouseGridLoc(0, 0, "", 0, 15, 0, {0XFF, 0X00, 0X00, 0X00})
+    , m_MousePixlLoc(0, 0, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
+    , m_MouseGridLoc(0, 0, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_AscendStrList()
 {
     m_FocusTable.fill(0);
@@ -346,7 +346,7 @@ void ProcessRun::Draw()
                                     g_SDLDevice->DrawTexture(pTexture, nXt, nYt);
 
                                     if(bChoose){
-                                        LabelBoard stItemName(0, 0, rstIR.Name, 1, 12, 0, {0XFF, 0XFF, 0X00, 0X00});
+                                        LabelBoard stItemName(0, 0, rstIR.Name, 1, 12, 0, ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00));
                                         int nLW = stItemName.W();
                                         int nLH = stItemName.H();
 
@@ -504,8 +504,8 @@ void ProcessRun::Draw()
         int nPointY = -1;
         SDL_GetMouseState(&nPointX, &nPointY);
 
-        m_MousePixlLoc.FormatText("Pix_Loc: %3d, %3d", nPointX, nPointY);
-        m_MouseGridLoc.FormatText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
+        m_MousePixlLoc.SetText("Pix_Loc: %3d, %3d", nPointX, nPointY);
+        m_MouseGridLoc.SetText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
 
         m_MouseGridLoc.DrawEx(10, 10, 0, 0, m_MouseGridLoc.W(), m_MouseGridLoc.H());
         m_MousePixlLoc.DrawEx(10, 30, 0, 0, m_MousePixlLoc.W(), m_MousePixlLoc.H());
@@ -560,7 +560,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                 int nY = -1;
                                 if(true
                                         && ScreenPoint2Grid(rstEvent.button.x, rstEvent.button.y, &nX, &nY)
-                                        && LDistance2(GetMyHero()->CurrMotion().EndX, GetMyHero()->CurrMotion().EndY, nX, nY)){
+                                        && MathFunc::LDistance2(GetMyHero()->CurrMotion().EndX, GetMyHero()->CurrMotion().EndY, nX, nY)){
 
                                     // we get a valid dst to go
                                     // provide myHero with new move action command
@@ -794,7 +794,7 @@ double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckGroun
     }
 
     int nMaxIndex = -1;
-    switch(LDistance2(nX0, nY0, nX1, nY1)){
+    switch(MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
             {
                 nMaxIndex = 0;

@@ -57,7 +57,7 @@ void BaseArea::DrawImage(Fl_Image *pImage, int nX, int nY, int nImageX, int nIma
         if(true
                 && nImageW > 0
                 && nImageH > 0
-                && RectangleOverlapRegion<int>(0, 0, pImage->w(), pImage->h(), &nImageX, &nImageY, &nImageW, &nImageH)){
+                && MathFunc::RectangleOverlapRegion<int>(0, 0, pImage->w(), pImage->h(), &nImageX, &nImageY, &nImageW, &nImageH)){
 
             nX += (nImageX - nOldImageX);
             nY += (nImageY - nOldImageY);
@@ -68,7 +68,7 @@ void BaseArea::DrawImage(Fl_Image *pImage, int nX, int nY, int nImageX, int nIma
             if(true
                     && nImageW > 0
                     && nImageH > 0
-                    && RectangleOverlapRegion<int>(0, 0, w(), h(), &nX, &nY, &nImageW, &nImageH)){
+                    && MathFunc::RectangleOverlapRegion<int>(0, 0, w(), h(), &nX, &nY, &nImageW, &nImageH)){
 
                 nImageX += (nX - nOldAX);
                 nImageY += (nY - nOldAY);
@@ -156,7 +156,7 @@ void BaseArea::DrawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
 
             && nW > 0
             && nH > 0
-            && RectangleOverlapRegion(0, 0, w(), h(), &nX, &nY, &nW, &nH)){
+            && MathFunc::RectangleOverlapRegion(0, 0, w(), h(), &nX, &nY, &nW, &nH)){
 
         // use an image as a cover to repeat
         // should do partically drawing at end of x and y
@@ -219,7 +219,7 @@ void BaseArea::DrawCircle(int nX, int nY, int nR)
         int nCBoxW =  2 * nR - 1;
 
         // draw a full circle
-        if(RectangleInside(0, 0, w(), h(), nCBoxX, nCBoxY, nCBoxW, nCBoxW)){
+        if(MathFunc::RectangleInside(0, 0, w(), h(), nCBoxX, nCBoxY, nCBoxW, nCBoxW)){
             fl_circle(x() + nX, y() + nY, nR);
             return;
         }
@@ -231,7 +231,7 @@ void BaseArea::DrawCircle(int nX, int nY, int nR)
 
 void BaseArea::DrawLine(int nX0, int nY0, int nX1, int nY1)
 {
-    if(LocateLineSegment(0, 0, w(), h(), &nX0, &nY0, &nX1, &nY1)){
+    if(MathFunc::LocateLineSegment(0, 0, w(), h(), &nX0, &nY0, &nX1, &nY1)){
         fl_line(nX0 + x(), nY0 + y(), nX1 + x(), nY1 + y());
     }
 }
@@ -297,7 +297,7 @@ void BaseArea::FillRectangle(int nX, int nY, int nW, int nH, uint32_t nARGB)
     if(true
             && nW > 0
             && nH > 0
-            && RectangleOverlap(0, 0, w(), h(), nX, nY, nW, nH)
+            && MathFunc::RectangleOverlap(0, 0, w(), h(), nX, nY, nW, nH)
             && ((nARGB & 0XFF000000))){
 
         if(auto pImage = RetrieveImageCover(nARGB)){

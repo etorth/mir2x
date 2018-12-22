@@ -216,7 +216,7 @@ TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontP
 
 void SDLDevice::PushColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
 {
-    uint32_t nARGB = ColorFunc::Color2ARGB(ColorFunc::RGBA2Color(nR, nG, nB, nA));
+    uint32_t nARGB = ColorFunc::ARGB(nA, nR, nG, nB);
     if(m_ColorStack.empty() || nARGB != m_ColorStack.back()[0]){
         SetColor(nR, nG, nB, nA);
         m_ColorStack.push_back({nARGB, 1});
@@ -236,7 +236,7 @@ void SDLDevice::PopColor()
             if(m_ColorStack.empty()){
                 PushColor(0, 0, 0, 0);
             }else{
-                SDL_Color stColor = ColorFunc::ARGB2Color(m_ColorStack.back()[0]);
+                SDL_Color stColor = ColorFunc::RGBA2Color(ColorFunc::ARGB2RGBA((m_ColorStack.back()[0])));
                 SetColor(stColor.r, stColor.g, stColor.b, stColor.a);
             }
         }else{
@@ -415,4 +415,18 @@ void SDLDevice::DrawTextureEx(SDL_Texture *pTexture,
 
         SDL_RenderCopyEx(m_Renderer, pTexture, &stSrc, &stDst, fAngle, &stCenter, SDL_FLIP_NONE);
     }
+}
+
+TTF_Font *SDLDevice::DefaultTTF(uint8_t /* nFontSize */)
+{
+    static std::vector<uint32_t> s_DefaultTTFData
+    {
+        // binary format for .inc file
+        // there could be serveral zeros at end
+        // [0] : dataLen + N in bytes
+        // [x] : data
+        // [N] : zeros
+        #include "defaultttf.inc"
+    };
+    return nullptr;
 }

@@ -23,7 +23,7 @@
 
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pWidget, bool bAutoFree)
     : Widget(nX, nY, 0, 0, pWidget, bAutoFree)
-    , m_GoldBoard(70, 403, "", 0, 15, 0, {0XFF, 0XFF, 0X00, 0X00}, this, false)
+    , m_GoldBoard(70, 403, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00), this, false)
     , m_CloseButton(
             242,
             422,
@@ -86,7 +86,7 @@ void InventoryBoard::DrawEx(int nDstX, int nDstY, int, int, int, int)
 
     if(auto pMyHero = m_ProcessRun->GetMyHero()){
         // 1. draw gold
-        m_GoldBoard.FormatText("%d", pMyHero->GetGold());
+        m_GoldBoard.SetText("%d", pMyHero->GetGold());
 
         // 2. draw all items
         for(auto &rstBin: pMyHero->GetInvPack().GetPackBinList()){

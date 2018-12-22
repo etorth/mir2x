@@ -27,7 +27,7 @@ int PathFind::MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_
 
         // 1. verify all nodes
         for(size_t nIndex = 1; nIndex < nSize; ++nIndex){
-            switch(LDistance2(pNodeV[nIndex].X, pNodeV[nIndex].Y, pNodeV[nIndex - 1].X, pNodeV[nIndex - 1].Y)){
+            switch(MathFunc::LDistance2(pNodeV[nIndex].X, pNodeV[nIndex].Y, pNodeV[nIndex - 1].X, pNodeV[nIndex - 1].Y)){
                 case 1:
                 case 2:
                     {

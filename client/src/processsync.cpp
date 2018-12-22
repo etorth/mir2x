@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: processsyrc.cpp
+ *       Filename: processsync.cpp
  *        Created: 08/14/2015 02:47:49
  *    Description: 
  *
@@ -21,14 +21,14 @@
 #include "sdldevice.hpp"
 #include "pngtexdbn.hpp"
 #include "tokenboard.hpp"
-#include "processsyrc.hpp"
+#include "processsync.hpp"
 
-ProcessSyrc::ProcessSyrc()
+ProcessSync::ProcessSync()
 	: Process()
     , m_Ratio(0)
     , m_Info(100, 100, "Connecting...", 1, 10, 0)
 {} 
-void ProcessSyrc::ProcessEvent(const SDL_Event &rstEvent)
+void ProcessSync::ProcessEvent(const SDL_Event &rstEvent)
 {
     switch(rstEvent.type){
         case SDL_KEYDOWN:
@@ -46,7 +46,7 @@ void ProcessSyrc::ProcessEvent(const SDL_Event &rstEvent)
     }
 }
 
-void ProcessSyrc::Update(double fDeltaMS)
+void ProcessSync::Update(double fDeltaMS)
 {
     if(m_Ratio >= 100){
         extern Client *g_Client;
@@ -57,7 +57,7 @@ void ProcessSyrc::Update(double fDeltaMS)
     m_Ratio += (fDeltaMS > 0.0 ? 1 : 0);
 }
 
-void ProcessSyrc::Draw()
+void ProcessSync::Draw()
 {
     extern SDLDevice *g_SDLDevice;
     extern PNGTexDBN *g_ProgUseDBN;

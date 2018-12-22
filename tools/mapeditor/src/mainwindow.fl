@@ -293,7 +293,7 @@ fl_alert("%s", "Haven't implement yet!");}
             if(true
                     && nOnSrcW > 0
                     && nOnSrcH > 0
-                    && RectangleOverlapRegion<int>(0, 0, nSrcW, nSrcH, &nOnSrcX, &nOnSrcY, &nOnSrcW, &nOnSrcH)){
+                    && MathFunc::RectangleOverlapRegion<int>(0, 0, nSrcW, nSrcH, &nOnSrcX, &nOnSrcY, &nOnSrcW, &nOnSrcH)){
 
                 nOnDstX += (nOnSrcX - nOldOnSrcX);
                 nOnDstY += (nOnSrcY - nOldOnSrcY);
@@ -304,7 +304,7 @@ fl_alert("%s", "Haven't implement yet!");}
                 if(true
                         && nOnSrcW > 0
                         && nOnSrcH > 0
-                        && RectangleOverlapRegion<int>(0, 0, nDstW, nDstH, &nOnDstX, &nOnDstY, &nOnSrcW, &nOnSrcH)){
+                        && MathFunc::RectangleOverlapRegion<int>(0, 0, nDstW, nDstH, &nOnDstX, &nOnDstY, &nOnSrcW, &nOnSrcH)){
 
                     nOnSrcX += (nOnDstX - nOldOnDstX);
                     nOnSrcY += (nOnDstY - nOldOnDstY);
@@ -317,7 +317,7 @@ fl_alert("%s", "Haven't implement yet!");}
                             for(int nOnSrcDY = 0; nOnSrcDY < nOnSrcH; ++nOnSrcDY){
                                 auto &nSrc = pSrc[(nOnSrcX + nOnSrcDX) + (nOnSrcY + nOnSrcDY) * nSrcW];
                                 auto &nDst = pDst[(nOnDstX + nOnSrcDX) + (nOnDstY + nOnSrcDY) * nDstW];
-                                nDst = ColorFunc::RenderARGB(nDst, nSrc);
+                                nDst = ColorFunc::RGBA2ARGB(ColorFunc::RenderRGBA(ColorFunc::ARGB2RGBA(nDst), ColorFunc::ARGB2RGBA(nSrc)));
                             }
                         }
                     }

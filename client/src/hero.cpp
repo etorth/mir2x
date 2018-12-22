@@ -242,7 +242,7 @@ bool Hero::MotionValid(const MotionNode &rstMotion) const
             && rstMotion.Frame >= 0
             && rstMotion.Frame <  MotionFrameCount(rstMotion.Motion, rstMotion.Direction)){
 
-        auto nLDistance2 = LDistance2(rstMotion.X, rstMotion.Y, rstMotion.EndX, rstMotion.EndY);
+        auto nLDistance2 = MathFunc::LDistance2(rstMotion.X, rstMotion.Y, rstMotion.EndX, rstMotion.EndY);
         switch(rstMotion.Motion){
             case MOTION_STAND:
                 {
@@ -356,7 +356,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                 //    1. all nodes are valid grid
                 //    2. prefer path without creatures on the way
 
-                switch(LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
+                switch(MathFunc::LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
                     case 0:
                         {
                             break;
@@ -460,7 +460,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                         if(nMotionSpell != MOTION_NONE){
                             auto fnGetSpellDir = [this](int nX0, int nY0, int nX1, int nY1) -> int
                             {
-                                switch(LDistance2(nX0, nY0, nX1, nY1)){
+                                switch(MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
                                     case 0:
                                         {
                                             return m_CurrMotion.Direction;
@@ -697,8 +697,8 @@ bool Hero::CanFocus(int nPointX, int nPointY)
         int nMaxTargetW = SYS_MAPGRIDXP + SYS_TARGETRGN_GAPX;
         int nMaxTargetH = SYS_MAPGRIDYP + SYS_TARGETRGN_GAPY;
 
-        return ((nW >= nMaxTargetW) ? PointInSegment(nPointX, (nStartX + (nW - nMaxTargetW) / 2), nMaxTargetW) : PointInSegment(nPointX, nStartX, nW))
-            && ((nH >= nMaxTargetH) ? PointInSegment(nPointY, (nStartY + (nH - nMaxTargetH) / 2), nMaxTargetH) : PointInSegment(nPointY, nStartY, nH));
+        return ((nW >= nMaxTargetW) ? MathFunc::PointInSegment(nPointX, (nStartX + (nW - nMaxTargetW) / 2), nMaxTargetW) : MathFunc::PointInSegment(nPointX, nStartX, nW))
+            && ((nH >= nMaxTargetH) ? MathFunc::PointInSegment(nPointY, (nStartY + (nH - nMaxTargetH) / 2), nMaxTargetH) : MathFunc::PointInSegment(nPointY, nStartY, nH));
     }
     return false;
 }
@@ -746,7 +746,7 @@ MotionNode Hero::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed) 
         int nSDY = 1 + (nY1 > nY0) - (nY1 < nY0);
 
         int nMotion = MOTION_NONE;
-        switch(LDistance2(nX0, nY0, nX1, nY1)){
+        switch(MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
             case 1:
             case 2:
                 {
