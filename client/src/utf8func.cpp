@@ -32,13 +32,18 @@ uint32_t UTF8Func::PeekUTF8Code(const char *szUTF8String)
         throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
     }
 
+    size_t nStrLen = std::strlen(szUTF8String);
+    if(nStrLen == 0){
+        throw std::invalid_argument(str_fflprintf(": Invalid argument: empty string"));
+    }
+
     auto pszBegin = szUTF8String;
     auto pszEnd   = pszBegin;
 
     try{
-        utf8::advance(pszEnd, 1, szUTF8String + std::strlen(szUTF8String));
+        utf8::advance(pszEnd, 1, szUTF8String + nStrLen);
     }catch(...){
-        throw std::invalid_argument(str_fflprintf(": Invalid argument: failed to peek one utf8 code"));
+        throw std::invalid_argument(str_fflprintf(": Invalid argument: failed to peek the first utf8 code"));
     }
 
     if(pszEnd - pszBegin > 4){
@@ -53,7 +58,7 @@ uint32_t UTF8Func::PeekUTF8Code(const char *szUTF8String)
 std::vector<size_t> UTF8Func::BuildUTF8Off(const char *szUTF8String)
 {
     if(!szUTF8String){
-        throw std::invalid_argument(str_fflprintf(": Invalid argument: nullptr"));
+        throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
     }
 
     auto nStrLen = std::strlen(szUTF8String);
