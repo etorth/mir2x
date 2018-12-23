@@ -108,7 +108,10 @@ class XMLBoard
         {
             Clear();
             m_Paragraph.LoadXML(szXMLString);
-            BuildBoard(0, 0);
+
+            if(m_Paragraph.LeafCount() > 0){
+                BuildBoard(0, 0);
+            }
         }
 
     public:

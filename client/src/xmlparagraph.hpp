@@ -65,7 +65,7 @@ class XMLParagraph
         const auto &LeafRef(size_t nLeaf) const
         {
             if(!LeafValid(nLeaf)){
-                throw std::invalid_argument(str_fflprintf(": Invlaid leaf index: %zu", nLeaf));
+                throw std::invalid_argument(str_fflprintf(": Invalid leaf index: %zu", nLeaf));
             }
             return m_LeafList[nLeaf];
         }

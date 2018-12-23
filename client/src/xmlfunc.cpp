@@ -54,8 +54,8 @@ bool XMLFunc::CheckEmojiLeaf(const tinyxml2::XMLNode *pNode)
         "emoji",
     };
 
-    for(size_t nIndex = 0; std::extent<decltype(szEmojiTags)>::value; ++nIndex){
-        if(std::strcmp(szEmojiTags[nIndex], pNode->ToElement()->Name())){
+    for(size_t nIndex = 0; nIndex < std::extent<decltype(szEmojiTags)>::value; ++nIndex){
+        if(std::strcmp(szEmojiTags[nIndex], pNode->ToElement()->Name()) == 0){
             return true;
         }
     }
@@ -83,8 +83,8 @@ bool XMLFunc::CheckImageLeaf(const tinyxml2::XMLNode *pNode)
         "image",
     };
 
-    for(size_t nIndex = 0; std::extent<decltype(szImageTags)>::value; ++nIndex){
-        if(std::strcmp(szImageTags[nIndex], pNode->ToElement()->Name())){
+    for(size_t nIndex = 0; nIndex < std::extent<decltype(szImageTags)>::value; ++nIndex){
+        if(std::strcmp(szImageTags[nIndex], pNode->ToElement()->Name()) == 0){
             return true;
         }
     }
