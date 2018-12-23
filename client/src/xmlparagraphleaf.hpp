@@ -126,4 +126,9 @@ class XMLParagraphLeaf
     public:
         std::optional<uint32_t>   Color() const;
         std::optional<uint32_t> BGColor() const;
+
+    public:
+        std::optional<uint8_t> Font()      const;
+        std::optional<uint8_t> FontSize()  const;
+        std::optional<uint8_t> FontStyle() const;
 };

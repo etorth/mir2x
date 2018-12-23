@@ -26,7 +26,7 @@
 ProcessSync::ProcessSync()
 	: Process()
     , m_Ratio(0)
-    , m_Info(100, 100, "Connecting...", 1, 10, 0)
+    , m_ProcessBarInfo(0, 0, "Connecting...", 1, 10, 0)
 {} 
 void ProcessSync::ProcessEvent(const SDL_Event &rstEvent)
 {
@@ -77,9 +77,9 @@ void ProcessSync::Draw()
             nH);  // src h
     g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000001), 0, 0);
 
-    int nInfoX = (g_SDLDevice->WindowW(false) - m_Info.W()) / 2;
-    int nInfoY = 528 + (nH - m_Info.H()) / 2;
+    int nInfoX = (g_SDLDevice->WindowW(false) - m_ProcessBarInfo.W()) / 2;
+    int nInfoY = 528 + (nH - m_ProcessBarInfo.H()) / 2;
 
-    m_Info.DrawEx(nInfoX, nInfoY, 0, 0, m_Info.W(), m_Info.H());
+    m_ProcessBarInfo.DrawEx(nInfoX, nInfoY, 0, 0, m_ProcessBarInfo.W(), m_ProcessBarInfo.H());
     g_SDLDevice->Present();
 }

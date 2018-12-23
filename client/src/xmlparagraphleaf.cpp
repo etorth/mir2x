@@ -18,11 +18,15 @@
 
 #include <utf8.h>
 #include <tinyxml2.h>
+
+#include "log.hpp"
 #include "bevent.hpp"
 #include "xmlfunc.hpp"
 #include "utf8func.hpp"
 #include "colorfunc.hpp"
 #include "xmlparagraphleaf.hpp"
+
+extern Log *g_Log;
 
 XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     : m_Node([pNode]()
@@ -106,10 +110,64 @@ std::optional<uint32_t> XMLParagraphLeaf::Color() const
 
 std::optional<uint32_t> XMLParagraphLeaf::BGColor() const
 {
-    if(const auto pszColor = XMLFunc::FindAttribute(Node(), "font_bgcolor", true)){
+    if(const auto pszBGColor = XMLFunc::FindAttribute(Node(), "font_bgcolor", true)){
         try{
-            return ColorFunc::String2RGBA(pszColor);
+            return ColorFunc::String2RGBA(pszBGColor);
         }catch(...){}
+    }
+    return {};
+}
+
+std::optional<uint8_t> XMLParagraphLeaf::Font() const
+{
+    if(const auto pszFont = XMLFunc::FindAttribute(Node(), "font", true)){
+        try{
+            if(auto nFontIndex = std::atoi(pszFont); (nFontIndex < 0 || nFontIndex > 255)){
+                throw std::runtime_error(str_fflprintf(": Invalid font index, not an uint8_t: %d", nFontIndex));
+            }else{
+                return (uint8_t)(nFontIndex);
+            }
+        }catch(const std::exception &e){
+            g_Log->AddLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
+        }catch(...){
+            g_Log->AddLog(LOGTYPE_DEBUG, "Caught unknown exception");
+        }
+    }
+    return {};
+}
+
+std::optional<uint8_t> XMLParagraphLeaf::FontSize() const
+{
+    if(const auto pszFontSize = XMLFunc::FindAttribute(Node(), "font_size", true)){
+        try{
+            if(auto nFontSize = std::atoi(pszFontSize); (nFontSize < 0 || nFontSize > 255)){
+                throw std::runtime_error(str_fflprintf(": Invalid font size, not an uint8_t: %d", nFontSize));
+            }else{
+                return (uint8_t)(nFontSize);
+            }
+        }catch(const std::exception &e){
+            g_Log->AddLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
+        }catch(...){
+            g_Log->AddLog(LOGTYPE_DEBUG, "Caught unknown exception");
+        }
+    }
+    return {};
+}
+
+std::optional<uint8_t> XMLParagraphLeaf::FontStyle() const
+{
+    if(const auto pszFontStyle = XMLFunc::FindAttribute(Node(), "font_style", true)){
+        try{
+            if(auto nFontStyle = std::atoi(pszFontStyle); (nFontStyle < 0 || nFontStyle > 255)){
+                throw std::runtime_error(str_fflprintf(": Invalid font style, not an uint8_t: %d", nFontStyle));
+            }else{
+                return (uint8_t)(nFontStyle);
+            }
+        }catch(const std::exception &e){
+            g_Log->AddLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
+        }catch(...){
+            g_Log->AddLog(LOGTYPE_DEBUG, "Caught unknown exception");
+        }
     }
     return {};
 }

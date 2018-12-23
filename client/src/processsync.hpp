@@ -25,7 +25,7 @@ class ProcessSync: public Process
 {
     private:
         int        m_Ratio;
-        LabelBoard m_Info;
+        LabelBoard m_ProcessBarInfo;
 
     public:
         ProcessSync();

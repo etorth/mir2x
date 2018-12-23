@@ -571,7 +571,10 @@ TOKEN XMLBoard::CreateToken(size_t nLeaf, size_t nLeafOff) const
     switch(auto &rstLeaf = m_Paragraph.LeafRef(nLeaf); rstLeaf.Type()){
         case LEAF_UTF8GROUP:
             {
-                return BuildUTF8Token(0, 10, 0, rstLeaf.PeekUTF8Code(nLeafOff));
+                auto nFont      = rstLeaf.Font()     .value_or(m_DefaultFont);
+                auto nFontSize  = rstLeaf.FontSize() .value_or(m_DefaultFontSize);
+                auto nFontStyle = rstLeaf.FontStyle().value_or(m_DefaultFontStyle);
+                return BuildUTF8Token(nFont, nFontSize, nFontStyle, rstLeaf.PeekUTF8Code(nLeafOff));
             }
         case LEAF_EMOJI:
         case LEAF_IMAGE:
@@ -827,6 +830,7 @@ void XMLBoard::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, int
                 nLastLeaf = pToken->Leaf;
             }
 
+            SDLDevice::EnableDrawBlendMode stEnableDrawBlendMode(SDL_BLENDMODE_BLEND);
             g_SDLDevice->FillRectangle(nBGColor, nX + nDstX, nY + nDstY, nW, nH);
 
             switch(stLeaf.Type()){

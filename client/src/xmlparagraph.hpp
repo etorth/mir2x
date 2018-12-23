@@ -19,7 +19,6 @@
 
 #pragma once
 #include <vector>
-#include <optional>
 #include <stdexcept>
 #include <tinyxml2.h>
 
