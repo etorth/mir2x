@@ -25,15 +25,29 @@
 
 uint32_t UTF8Func::PeekUTF8Code(const char *szUTF8String)
 {
+    // seems utf8::peek_next() is not what I need here
+    // what it returns?
+
     if(!szUTF8String){
         throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
     }
 
+    auto pszBegin = szUTF8String;
+    auto pszEnd   = pszBegin;
+
     try{
-        return utf8::peek_next(szUTF8String, szUTF8String + std::strlen(szUTF8String));
+        utf8::advance(pszEnd, 1, szUTF8String + std::strlen(szUTF8String));
     }catch(...){
         throw std::invalid_argument(str_fflprintf(": Invalid argument: failed to peek one utf8 code"));
     }
+
+    if(pszEnd - pszBegin > 4){
+        throw std::runtime_error(str_fflprintf(": Pick a code point longer than 4 bytes: %s", szUTF8String));
+    }
+
+    uint32_t nUTF8Key = 0;
+    std::memcpy(&nUTF8Key, pszBegin, pszEnd - pszBegin);
+    return nUTF8Key;
 }
 
 std::vector<size_t> UTF8Func::BuildUTF8Off(const char *szUTF8String)
