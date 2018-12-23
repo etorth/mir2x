@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <map>
 #include <array>
 #include <vector>
 #include <algorithm>
@@ -73,6 +74,9 @@ class SDLDevice final
     private:
        int m_WindowW;
        int m_WindowH;
+
+    private:
+       std::map<uint8_t, TTF_Font *> m_InnFontMap;
 
     private:
        // for sound

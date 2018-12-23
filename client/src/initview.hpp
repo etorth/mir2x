@@ -29,6 +29,8 @@
 #include <mutex>
 #include <vector>
 #include <string>
+#include <cstdint>
+#include <cstddef>
 #include <SDL2/SDL.h>
 #include <functional>
 
@@ -88,10 +90,10 @@ class InitView final
         };
 
     private:
-        static const int m_ButtonX = 345;
-        static const int m_ButtonY = 117;
-        static const int m_ButtonW =  32;
-        static const int m_ButtonH =  30;
+        static constexpr int m_ButtonX = 345;
+        static constexpr int m_ButtonY = 117;
+        static constexpr int m_ButtonW =  32;
+        static constexpr int m_ButtonH =  30;
 
     private:
         std::atomic<int> m_ProcState;
@@ -103,6 +105,9 @@ class InitView final
         int m_ButtonState;
 
     private:
+        uint8_t m_FontSize;
+
+    private:
         std::vector<LoadProc> m_LoadProcV;
 
     private:
@@ -110,11 +115,10 @@ class InitView final
         std::vector<MessageEntry> m_MessageList;
 
     private:
-        TTF_Font    *m_TTF;
         SDL_Texture *m_TextureV[2];
 
     public:
-        InitView(size_t);
+        InitView(uint8_t);
 
     public:
         ~InitView();

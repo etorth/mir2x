@@ -21,6 +21,7 @@
 #include <SDL2/SDL_image.h>
 
 #include "log.hpp"
+#include "rawbuf.hpp"
 #include "xmlconf.hpp"
 #include "sdldevice.hpp"
 #include "condcheck.hpp"
@@ -55,6 +56,7 @@ SDLDevice::SDLDevice()
     , m_BlendModeStack()
     , m_WindowW(0)
     , m_WindowH(0)
+    , m_InnFontMap()
 {
     extern SDLDevice *g_SDLDevice;
     if(g_SDLDevice){
@@ -80,6 +82,11 @@ SDLDevice::SDLDevice()
 
 SDLDevice::~SDLDevice()
 {
+    for(auto pTTF: m_InnFontMap){
+        TTF_CloseFont(pTTF.second);
+    }
+    m_InnFontMap.clear();
+
     if(m_Window){
         SDL_DestroyWindow(m_Window);
     }
@@ -460,16 +467,21 @@ void SDLDevice::DrawTextureEx(SDL_Texture *pTexture,
     }
 }
 
-TTF_Font *SDLDevice::DefaultTTF(uint8_t /* nFontSize */)
+TTF_Font *SDLDevice::DefaultTTF(uint8_t nFontSize)
 {
-    static std::vector<uint32_t> s_DefaultTTFData
+    static Rawbuf s_DefaultTTFData
     {
-        // binary format for .inc file
-        // there could be serveral zeros at end
-        // [0] : dataLen + N in bytes
-        // [x] : data
-        // [N] : zeros
-        #include "defaultttf.inc"
+        #include "monaco.rawbuf"
     };
-    return nullptr;
+
+    if(auto p = m_InnFontMap.find(nFontSize); p != m_InnFontMap.end()){
+        return p->second;
+    }
+
+    if(auto pTTF = CreateTTF(s_DefaultTTFData.Data(), s_DefaultTTFData.DataLen(), nFontSize); !pTTF){
+        throw std::runtime_error(str_fflprintf(": Can't build default ttf with point: %" PRIu8, nFontSize));
+    }else{
+        m_InnFontMap[nFontSize] = pTTF;
+    }
+    return m_InnFontMap[nFontSize];
 }
