@@ -90,6 +90,7 @@
 #pragma once
 #include <string>
 #include <cstdarg>
+#include <filesystem>
 
 bool str_nonempty(const char *);
 
@@ -98,5 +99,5 @@ std::string str_vprintf(const char *, va_list);
 
 // before std::source_location standardized
 // we have to use macro to capture the file/function/line information
-#define str_ffl()          str_printf("In file: %s, function: %s, line %d", __FILE__, __PRETTY_FUNCTION__, __LINE__)
+#define str_ffl()          str_printf("In file: %s, function: %s, line %d",std::filesystem::path(__FILE__).filename().c_str(), __PRETTY_FUNCTION__, __LINE__)
 #define str_fflprintf(...) std::string(str_ffl() + str_printf(__VA_ARGS__))
