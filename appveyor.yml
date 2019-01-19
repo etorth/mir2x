@@ -9,7 +9,9 @@ configuration:
   - Release
 
 install:
-    - echo "Done clone here"
+    - cmd: |-
+        vcpkg install lua
+        vcpkg install sdl2
 
 before_build:
     - cmd: |-
