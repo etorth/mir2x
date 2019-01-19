@@ -2,8 +2,14 @@ version: 'build-{build}'
 
 image: Visual Studio 2017
 
-platform:
-  - x64
+platform: x64
+
+environemnt:
+    ENVDEF_CMAKE_GENERATOR: -G"Visual Studio 15 2017 Win64"
+    ENVDEF_CMAKE_GENERATOR_PLATFORM: -DCMAKE_GENERATOR_PLATFORM=x64
+    ENVDEF_CMAKE_TOOLCHAIN_FILE: -DCMAKE_TOOLCHAIN_FILE="C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake"
+    ENVDEF_CMAKE_TARGET_TRIPLET: -DCMAKE_TARGET_TRIPLET=x64-windows
+    VCPKG_DEFAULT_TRIPLET: x64-windows
  
 configuration:
   - Release
@@ -18,7 +24,7 @@ before_build:
         mkdir build
         cd build
         cmake --version
-        cmake .. -G "Visual Studio 15 2017 Win64" -DCMAKE_TOOLCHAIN_FILE=C:/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake
+        cmake .. %ENVDEF_CMAKE_GENERATOR% %ENVDEF_CMAKE_GENERATOR_PLATFORM% %ENVDEF_CMAKE_TOOLCHAIN_FILE% %ENVDEF_CMAKE_TARGET_TRIPLET%
         cmake --build . --target package --config Release
 
 build_script:
