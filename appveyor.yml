@@ -22,6 +22,7 @@ install:
         vcpkg install zlib
         vcpkg install libpng
         vcpkg install libmariadb
+        vcpkg install libmysql
 
 before_build:
     - cmd: |-
