@@ -17,6 +17,10 @@ install:
     - cmd: |-
         vcpkg install lua
         vcpkg install sdl2
+        vcpkg install fltk
+        vcpkg install opengl
+        vcpkg install zlib
+        vcpkg install libpng
 
 before_build:
     - cmd: |-
