@@ -4,7 +4,7 @@ image: Visual Studio 2017
 
 platform: x64
 
-environemnt:
+environment:
     ENVDEF_CMAKE_GENERATOR: -G"Visual Studio 15 2017 Win64"
     ENVDEF_CMAKE_GENERATOR_PLATFORM: -DCMAKE_GENERATOR_PLATFORM=x64
     ENVDEF_CMAKE_TOOLCHAIN_FILE: -DCMAKE_TOOLCHAIN_FILE="C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake"
