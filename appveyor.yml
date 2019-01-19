@@ -13,9 +13,6 @@ environment:
 configuration:
     - Release
 
-init:
-    - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-
 install:
     - cmd: |-
         vcpkg install lua
@@ -45,6 +42,9 @@ test_script:
 
 artifacts:
     - path: build\*.zip
+
+on_finish:
+    - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 deploy:
     provider: GitHub
