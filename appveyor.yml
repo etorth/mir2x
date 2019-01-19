@@ -25,6 +25,7 @@ install:
 
 before_build:
     - cmd: |-
+        dir C:\Tools\vcpkg /s /b
         mkdir build
         cd build
         cmake --version
