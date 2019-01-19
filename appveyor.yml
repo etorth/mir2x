@@ -21,6 +21,7 @@ install:
         vcpkg install opengl
         vcpkg install zlib
         vcpkg install libpng
+        vcpkg install libmariadb
 
 before_build:
     - cmd: |-
