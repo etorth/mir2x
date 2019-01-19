@@ -1,0 +1,39 @@
+version: 'build-{build}'
+
+image: Visual Studio 2017
+
+platform:
+  - x64
+ 
+configuration:
+  - Release
+
+install:
+    - echo "Done clone here"
+
+before_build:
+    - cmd: |-
+        mkdir build
+        cd build
+        cmake --version
+        cmake .. -G "Visual Studio 15 2017 Win64"
+        cmake --build . --target package --config Release
+
+build_script:
+    - echo "Done"
+
+after_build:
+    - echo "Done"
+
+test_script:
+    - echo "Done"
+
+artifacts:
+    - path: build\*.zip
+
+deploy:
+    provider: GitHub
+    auth_token:
+        secure: HHPH5otHDTeP2iU11PdRWnhpOMycDJ/n+NKC0xvSphvA4NLz41/rASWc1UseTQgU
+    on:
+        APPVEYOR_REPO_TAG: true
