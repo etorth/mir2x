@@ -18,6 +18,7 @@ IF (NOT MARIADB_INCLUDE_DIR)
             $ENV{MARIADB_INCLUDE_DIR}
             $ENV{MARIADB_DIR}/include
             $ENV{MARIADB_DIR}/include/mariadb
+            "C:/Tools/vcpkg/installed/x64-windows/include"
             "C:/Tools/vcpkg/installed/*/include"
             ${PFILES}/MariaDB/*/include
          DOC
