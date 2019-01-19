@@ -9,6 +9,7 @@ environment:
     CMAKE_TOOLCHAIN_FILE: -DCMAKE_TOOLCHAIN_FILE="C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake"
     CMAKE_TARGET_TRIPLET: -DCMAKE_TARGET_TRIPLET=x64-windows
     VCPKG_DEFAULT_TRIPLET: x64-windows
+    MARIADB_DIR: C:\Tools\vcpkg\installed\x64-windows
  
 configuration:
     - Release
