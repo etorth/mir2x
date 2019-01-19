@@ -15,6 +15,7 @@ IF (NOT MARIADB_INCLUDE_DIR)
       $ENV{MARIADB_INCLUDE_DIR}
       $ENV{MARIADB_DIR}/include
       $ENV{MARIADB_DIR}/include/mariadb
+      "C:/Tools/vcpkg/installed/*/include"
       ${PFILES}/MariaDB/*/include)
   ELSE()
     FIND_PATH(MARIADB_BIN_DIR mariadb_config
@@ -44,6 +45,7 @@ IF(NOT MARIADB_LIBRARY_DIR)
     FIND_PATH(MARIADB_LIBRARY_DIR ${MARIADB_CLIENT_FILENAME}
         $ENV{MARIADB_LIBRARY}
         ${PFILES}/MariaDB/*/lib
+        "C:/Tools/vcpkg/installed/*/lib"
         $ENV{MARIADB_DIR}/lib/mariadb
         $ENV{MARIADB_DIR}/lib
         $ENV{MARIADB_DIR}/libmariadb)
