@@ -12,14 +12,13 @@ install:
     - cmd: |-
         vcpkg install lua
         vcpkg install sdl2
-        vcpkg integrate install
 
 before_build:
     - cmd: |-
         mkdir build
         cd build
         cmake --version
-        cmake .. -G "Visual Studio 15 2017 Win64" -DCMAKE_TOOLCHAIN_FILE="C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake"
+        cmake .. -G "Visual Studio 15 2017 Win64" -DCMAKE_TOOLCHAIN_FILE=C:/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake
         cmake --build . --target package --config Release
 
 build_script:
