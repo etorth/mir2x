@@ -11,7 +11,10 @@ environment:
     VCPKG_DEFAULT_TRIPLET: x64-windows
  
 configuration:
-  - Release
+    - Release
+
+init:
+    - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 install:
     - cmd: |-
@@ -25,7 +28,6 @@ install:
 
 before_build:
     - cmd: |-
-        dir C:\Tools\vcpkg /s /b
         mkdir build
         cd build
         cmake --version
