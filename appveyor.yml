@@ -12,6 +12,7 @@ install:
     - cmd: |-
         vcpkg install lua
         vcpkg install sdl2
+        vcpkg integrate install
 
 before_build:
     - cmd: |-
