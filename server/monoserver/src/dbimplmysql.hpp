@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: dbconnection.cpp
- *        Created: 09/03/2015 03:49:00 AM
- *    Description:
+ *       Filename: dbimplmysql.hpp
+ *        Created: 01/21/2019 07:24:10
+ *    Description: 
  *
  *        Version: 1.0
  *       Revision: none
@@ -15,6 +15,54 @@
  *
  * =====================================================================================
  */
+
+#pragma once
+#include <new>
+#include "mysqlinc.hpp"
+#include "dbrecord.hpp"
+namespace DBImpl
+{
+
+class DBConnection
+{
+    // don't use it to create new database
+    // this should be done by me manually
+    //
+    // DBConnection only query information from current database
+    // then each DBConnection has a specified database name
+    //
+    public:
+        DBConnection(const char *, const char *, const char *, const char *, unsigned int);
+       ~DBConnection();
+
+    public:
+        bool Valid(){ return m_Valid; }
+
+    public:
+        const char *DBEngine() const;
+
+    public:
+        int ErrorID();
+        const char *ErrorInfo();
+
+    public:
+        DBRecord *CreateDBRecord(DBRecord *pBuf = nullptr)
+        {
+            return pBuf ? (new (pBuf) DBRecord(this)) : (new DBRecord(this));
+        }
+
+        void DestroyDBRecord(DBRecord *);
+
+    private:
+        MYSQL   *m_SQL;
+        bool     m_Valid;
+
+    public:
+        friend class DBRecord;
+};
+}
+
+
 #include "mysqlinc.hpp"
 #include "dbrecord.hpp"
 #include "dbconnection.hpp"

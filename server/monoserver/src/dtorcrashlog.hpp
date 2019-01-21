@@ -1,8 +1,8 @@
 /*
  * =====================================================================================
  *
- *       Filename: dbconnection.hpp
- *        Created: 01/21/2019 22:03:34
+ *       Filename: dtorcrashlog.hpp
+ *        Created: 01/21/2019 21:35:35
  *    Description: 
  *
  *        Version: 1.0
@@ -16,14 +16,4 @@
  * =====================================================================================
  */
 
-class DBConnection
-{
-};
-
-class DBRecord
-{
-};
-
-#if defined(MIR2X_ENABLE_SQLITE3)
-    #include "dbengine_sqlite3.hpp"
-#endif
+void DtorCrashLog(const char *, ...);
