@@ -16,6 +16,10 @@
  * =====================================================================================
  */
 
+#pragma once
+#include <cstdint>
+#include <variant>
+
 class DBRecord;
 class DBConnection
 {
@@ -33,12 +37,42 @@ class DBConnection
 
 class DBRecord
 {
+    protected:
+        using DBDataType = std::variant<int64_t, double, const char *>;
+
     public:
         DBRecord() = default;
         virtual ~DBRecord() = default;
 
     public:
         virtual void Execute(const char *, ...) = 0;
+
+    public:
+        virtual DBDataType GetData(const char *) = 0;
+
+    public:
+        template<> int64_t Get<int64_t>(const char *szName)
+        {
+            return GetInt64(szName);
+        }
+
+        template<> double Get<double>(const char *szName)
+        {
+            return GetDouble(szName);
+        }
+
+        template<> const char * Get<const char *>(const char *szName)
+        {
+            return GetString(szName);
+        }
+
+        template<> std::string Get<std::string>(const char *szName)
+        {
+            return std::string(GetString(szName));
+        }
+
+    public:
+        template<typename T> T Get<T>(const char *);
 };
 
 #if defined(MIR2X_ENABLE_SQLITE3)
