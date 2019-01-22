@@ -31,7 +31,6 @@
 #include "strfunc.hpp"
 #include "dbrecord.hpp"
 #include "dbconnection.hpp"
-#include "memoryblockpn.hpp"
 
 template<size_t ConnectionCount = 4> class DBPod final
 {
@@ -39,16 +38,17 @@ template<size_t ConnectionCount = 4> class DBPod final
         class InnDeleter
         {
             private:
+                DBConnection *m_DBConnection;
+
+            private:
                 std::mutex *m_Lock;
 
             public:
-                InnDeleter(std::mutex *pLock = nullptr, DBRecordPN *pDBRPN = nullptr)
-                    : m_Lock(pLock)
-                    , m_DBRPN(pDBRPN)
+                InnDeleter(DBConnection *pDBConnection = nullptr, std::mutex *pLock = nullptr)
+                    : m_DBConnection(pDBConnection)
+                    , m_Lock(pLock)
                 {}
 
-                // this class won't own any resource
-                // so just use default destructor
                 ~InnDeleter() = default;
 
             public:
@@ -56,6 +56,10 @@ template<size_t ConnectionCount = 4> class DBPod final
                 {
                     if(!pRecord){
                         return;
+                    }
+
+                    if(pDBConnection){
+                        pDBConnection->DestroyDBRecord(pRecord);
                     }
 
                     if(ConnectionCount > 1 && m_Lock){
@@ -76,16 +80,10 @@ template<size_t ConnectionCount = 4> class DBPod final
         std::unique_ptr<DBEngine> m_ConnVec    [ConnectionCount];
 
     public:
-        // I didn't check validation of connection here
         DBPod()
             : m_Current {0}
         {
             static_assert(ConnectionCount > 0, "DBPod should contain at least one connection handler");
-
-            for(size_t nIndex = 0; nIndex < ConnectionCount; ++nIndex){
-                m_LockV[nIndex]   = nullptr;
-                m_DBConnV[nIndex] = nullptr;
-            }
         }
 
         void LaunchMySQL(const char *szHostName, const char *szUserName, const char *szPassword, const char *szDBName, unsigned int nPort)
@@ -112,36 +110,10 @@ template<size_t ConnectionCount = 4> class DBPod final
 
         DBHDR InnCreateDBHDR(size_t nPodIndex)
         {
-            DBRecord *pRecord = nullptr;
-            try{
-                if(auto pBuf = m_DBRPNV[nPodIndex].Get();
-                if(!pBuf){
-                    return DBHDR(nullptr, InnDeleter());
-                }
-
-                pRecord = m_DBConnV[nPodIndex]->CreateDBRecord((DBRecord *)pBuf);
-            }catch(...){
-                pRecord = nullptr;
+            if(auto p = m_ConnVec[nPodIndex]->CreateDBRecord()){
+                return DBHDR(p, InnDeleter(m_ConnVec[nPodIndex].get(), m_ConnLockVec + nPodIndex));
             }
-
-            return DBHDR(pRecord, InnDeleter(m_LockV[nPodIndex], &(m_DBRPNV[nPodIndex])));
-        }
-
-        DBHDR InnCreateDBHDR(size_t nPodIndex)
-        {
-            DBRecord *pRecord = nullptr;
-            try{
-                auto pBuf = m_DBRPNV[nPodIndex].Get();
-                if(!pBuf){
-                    return DBHDR(nullptr, InnDeleter());
-                }
-
-                pRecord = m_DBConnV[nPodIndex]->CreateDBRecord((DBRecord *)pBuf);
-            }catch(...){
-                pRecord = nullptr;
-            }
-
-            return DBHDR(pRecord, InnDeleter(m_LockV[nPodIndex], &(m_DBRPNV[nPodIndex])));
+            return DBHDR(nullptr, InnDeleter());
         }
 
         DBHDR CreateDBHDR()
