@@ -177,8 +177,6 @@ class DBRecord_SQLite3: public DBRecord
            }
        }
 
-    public:
-
     private:
        void Query(const char *szQueryCmd)
        {

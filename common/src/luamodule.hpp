@@ -19,7 +19,7 @@
  */
 
 #pragma once
-#include <sol/sol.hpp>
+#include <sol.hpp>
 
 class LuaModule
 {

@@ -22,9 +22,9 @@
 #include <queue>
 #include <vector>
 #include <cstdint>
+#include <sol.hpp>
 #include <exception>
 #include <stdexcept>
-#include <sol/sol.hpp>
 #include <type_traits>
 #include <unordered_map>
 

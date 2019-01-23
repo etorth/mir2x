@@ -20,17 +20,8 @@
 #include <memory>
 #include <string>
 
-#if defined(MIR2X_ENABLE_MYSQL)
-    #include "dbengine_mysql.hpp"
-#endif
-
-#if defined(MIR2X_ENABLE_SQLITE3)
-    #include "dbengine_sqlite3.hpp"
-#endif
-
 #include "strfunc.hpp"
-#include "dbrecord.hpp"
-#include "dbconnection.hpp"
+#include "database.hpp"
 
 template<size_t ConnectionCount = 4> class DBPod final
 {
