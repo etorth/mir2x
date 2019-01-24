@@ -17,7 +17,6 @@
  */
 
 #pragma once
-#include <new>
 #include "dbbase.hpp"
 #include "mysqlinc.hpp"
 
@@ -62,10 +61,7 @@ class DBEngine_MySQL: public DBConnection
         inline DBRecord *CreateDBRecord() override;
 
     public:
-        void DestroyDBRecord(DBRecord *pDBRecord) override
-        {
-            delete pDBRecord;
-        }
+        inline void DestroyDBRecord(DBRecord *) override;
 
     public:
         friend class DBRecord;
@@ -149,9 +145,6 @@ class DBRecord_MySQL: public DBRecord
     private:
         void Query(const char *szQueryCmd)
         {
-            if(mysql_query(m_DBEngine->m_SQL, szQueryCmd)){
-                throw std::runtime_error(str_fflprintf(": mysql_query(\"%s\") failed: %s", szQueryCmd, mysql_error(&(m_Engine->m_SQL))));
-            }
         }
 
     private:
@@ -174,14 +167,42 @@ class DBRecord_MySQL: public DBRecord
         }
 
     public:
+        bool QueryResult(const char *szQueryCmd, ...)
+        {
+            va_list ap;
+            va_start(ap, szQueryCmd);
+
+            std::string szRetStr;
+            try{
+                szRetStr = str_vprintf(szQueryCmd, ap);
+                va_end(ap);
+            }catch(...){
+                va_end(ap);
+                throw std::runtime_error(str_fflprintf(": Call str_vprintf(%s) failed", szQueryCmd));
+            }
+
+            return Query(szRetStr.c_str()) && StoreResult() && Fetch();
+        }
+
+    private:
+        bool Query(const char *szQueryCmd)
+        {
+            if(mysql_query(m_DBEngine->m_SQL, szQueryCmd)){
+                throw std::runtime_error(str_fflprintf(": mysql_query(%s) failed: %s", szQueryCmd, mysql_error(&(m_Engine->m_SQL))));
+            }
+            return true;
+        }
+
+    public:
         bool Fetch() override
         {
             if(!m_SQLRES){
-                return false;
+                throw std::runtime_error(str_fflprintf(": Call Fetch() before QueryResult(QueryCmd, ...)"));
             }
             return (m_CurrentRow = mysql_fetch_row(m_SQLRES)) != nullptr;
         }
 
+    public:
         int RowCount() override
         {
             if(m_SQLRES){
@@ -220,4 +241,9 @@ class DBRecord_MySQL: public DBRecord
 DBRecord *DBEngine_MySQL::CreateDBRecord()
 {
     return new DBRecord_MySQL(this);
+}
+
+void DBEngine_MySQL::DestroyDBRecord(DBRecord *pDBRecord)
+{
+    delete pDBRecord;
 }

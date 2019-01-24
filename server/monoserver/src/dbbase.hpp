@@ -55,4 +55,8 @@ class DBRecord
         {
             return std::get<T>(GetData(szName));
         }
+
+    public:
+        virtual int RowCount() = 0;
+        virtual int ColumnCount() = 0;
 };
