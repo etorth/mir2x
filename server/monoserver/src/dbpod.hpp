@@ -80,25 +80,30 @@ template<size_t ConnectionCount = 4> class DBPod final
             static_assert(ConnectionCount > 0, "DBPod should contain at least one connection handler");
         }
 
-        void LaunchMySQL(const char *szHostName, const char *szUserName, const char *szPassword, const char *szDBName, unsigned int nPort)
+        void LaunchMySQL(
+                [[maybe_unused]] const char *szHostName,
+                [[maybe_unused]] const char *szUserName,
+                [[maybe_unused]] const char *szPassword,
+                [[maybe_unused]] const char *szDBName,
+                [[maybe_unused]] unsigned int nPort)
         {
 #if defined(MIR2X_ENABLE_MYSQL)
             for(size_t nIndex = 0; nIndex < ConnectionCount; ++nIndex){
                 m_ConnVec[nIndex] = std::make_unique<DBEngine_MySQL>(szHostName, szUserName, szPassword, szDBName, nPort);
             }
 #else
-            throw std::runtime_error(str_fflprintf(": LaunchMySQL() not supported in current build"));
+            throw std::runtime_error(str_fflprintf(": LaunchMySQL(...) not supported in current build"));
 #endif
         }
 
-        void LaunchSQLite3(const char *szDBName)
+        void LaunchSQLite3([[maybe_unused]] const char *szDBName)
         {
 #if defined(MIR2X_ENABLE_SQLITE3)
             for(size_t nIndex = 0; nIndex < ConnectionCount; ++nIndex){
                 m_ConnVec[nIndex] = std::make_unique<DBEngine_SQLite3>(szDBName);
             }
 #else
-            throw std::runtime_error(str_fflprintf(": LaunchSQLite3() not supported in current build"));
+            throw std::runtime_error(str_fflprintf(": LaunchSQLite3(...) not supported in current build"));
 #endif
         }
 
