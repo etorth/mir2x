@@ -147,6 +147,12 @@ template<size_t ConnectionCount = 4> class DBPod final
             }
             throw std::invalid_argument(str_fflprintf(": Invalid dbengine name: %s", szDBEngineName));
         }
+
+    public:
+        const char *DBEngine() const
+        {
+            return m_ConnVec[0] ? m_ConnVec[0]->DBEngine() : nullptr;
+        }
 };
 
 using DBPodN = DBPod<4>;

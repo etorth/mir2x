@@ -897,7 +897,7 @@ bool Player::DBUpdate(const char *szTableName, const char *szFieldList, ...)
         return false;
     }
 
-    g_DBPodN->CreateDBHDR()->QueryResult("update mir2x.%s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand.c_str(), DBID());
+    g_DBPodN->CreateDBHDR()->QueryResult("update %s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand.c_str(), DBID());
     return true;
 }
 
@@ -908,9 +908,7 @@ bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::fun
             && (szFieldName && std::strlen(szFieldName))){
 
         auto pDBHDR = g_DBPodN->CreateDBHDR();
-        pDBHDR->QueryResult("select %s from mir2x.%s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID());
-
-        if(pDBHDR->RowCount() < 1){
+        if(!pDBHDR->QueryResult("select %s from %s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID())){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_INFO, "No dbid created for this player: DBID = %" PRIu32, DBID());
             return false;
@@ -923,7 +921,7 @@ bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::fun
         // then empty string should be "\"\"", not szRes.empty()
 
         if(!szRes.empty()){
-            pDBHDR->QueryResult("update mir2x.%s set %s = %s where fld_dbid = %" PRIu32, szTableName, szFieldName, szRes.c_str(), DBID());
+            pDBHDR->QueryResult("update %s set %s = %s where fld_dbid = %" PRIu32, szTableName, szFieldName, szRes.c_str(), DBID());
             return true;
         }
     }

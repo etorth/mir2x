@@ -90,6 +90,9 @@ class MonoServer final
         void CreateDBConnection();
         void LoadMapBinDBN();
 
+    private:
+        void CreateDefaultDatabase();
+
     public:
         void DetectException();
         void PropagateException();

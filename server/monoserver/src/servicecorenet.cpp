@@ -40,11 +40,9 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     };
 
     g_MonoServer->AddLog(LOGTYPE_INFO, "Login requested: (%s:%s)", stCML.ID, "******");
-
     auto pDBHDR = g_DBPodN->CreateDBHDR();
-    pDBHDR->QueryResult("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", stCML.ID, stCML.Password);
 
-    if(pDBHDR->RowCount() < 1){
+    if(!pDBHDR->QueryResult("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", stCML.ID, stCML.Password)){
         g_MonoServer->AddLog(LOGTYPE_INFO, "can't find account: (%s:%s)", stCML.ID, "******");
 
         fnOnLoginFail();
@@ -52,9 +50,7 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     }
 
     auto nID = pDBHDR->Get<int64_t>("fld_id");
-    pDBHDR->QueryResult("select * from mir2x.tbl_dbid where fld_id = %d", (int)(nID));
-
-    if(pDBHDR->RowCount() < 1){
+    if(!pDBHDR->QueryResult("select * from tbl_dbid where fld_id = %d", (int)(nID))){
         g_MonoServer->AddLog(LOGTYPE_INFO, "no dbid created for this account: (%s:%s)", stCML.ID, "******");
 
         fnOnLoginFail();

@@ -154,6 +154,52 @@ void MonoServer::AddCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, co
     fnCWRecordLog(nCWID, nLogType, szPrompt, szLog.c_str());
 }
 
+void MonoServer::CreateDefaultDatabase()
+{
+    if(std::strcmp(g_DBPodN->DBEngine(), "mysql") == 0){
+
+    }
+
+    else if(std::strcmp(g_DBPodN->DBEngine(), "sqlite3") == 0){
+        const char *szSQLCmdList[]
+        {
+            u8"create table tbl_account("
+                "fld_id       integer not null primary key autoincrement,"
+                "fld_account  char(32) not null,"
+                "fld_password char(32) not null)",
+
+            u8"insert into tbl_account(fld_account, fld_password) values"
+                "(\'test\',   \'123456\'),"
+                "(\'test0\',  \'123456\'),"
+                "(\'test1\',  \'123456\')",
+
+            u8"create table tbl_dbid("
+                "fld_dbid      integer not null primary key autoincrement,"
+                "fld_id        int unsigned not null,"
+                "fld_name      varchar(32)  not null,"
+                "fld_mapname   varchar(32)  not null,"
+                "fld_mapx      int unsigned not null,"
+                "fld_mapy      int unsigned not null,"
+                "fld_exp       int unsigned not null,"
+                "fld_gold      int unsigned not null,"
+                "fld_level     int unsigned not null,"
+                "fld_jobid     int unsigned not null,"
+                "fld_direction int unsigned not null)",
+
+            u8"insert into tbl_dbid(fld_id, fld_name, fld_mapname, fld_mapx, fld_mapy, fld_exp, fld_gold, fld_level, fld_jobid, fld_direction) values"
+                "(1, \'亚当\', \'道馆\',   405, 120, 0, 0, 1, 1, 1),"
+                "(2, \'夏娃\', \'比奇省\', 441, 381, 0, 0, 1, 1, 1),"
+                "(3, \'逗逼\', \'比奇省\', 440, 381, 0, 0, 1, 1, 1)",
+        };
+
+        auto pDBHDR = g_DBPodN->CreateDBHDR();
+        for(size_t nIndex = 0; nIndex < std::extent<decltype(szSQLCmdList)>::value; ++nIndex){
+            pDBHDR->QueryResult(szSQLCmdList[nIndex]);
+        }
+        AddLog(LOGTYPE_INFO, "Create default sqlite3 database done");
+    }
+}
+
 void MonoServer::CreateDBConnection()
 {
     if(std::strcmp(g_DatabaseConfigureWindow->SelectedDBEngine(), "mysql") == 0){
@@ -172,8 +218,9 @@ void MonoServer::CreateDBConnection()
         g_DBPodN->LaunchSQLite3(g_DatabaseConfigureWindow->DatabaseName());
         AddLog(LOGTYPE_INFO, "Connect to SQLite3 Database (%s) successfully", g_DatabaseConfigureWindow->DatabaseName());
 
-        auto pDBHDR = g_DBPodN->CreateDBHDR();
-        pDBHDR->QueryResult("use mir2x");
+        if(!g_DBPodN->CreateDBHDR()->QueryResult("select name from sqlite_master where type=\'table\'")){
+            CreateDefaultDatabase();
+        }
     }
 
     else{
@@ -245,11 +292,11 @@ void MonoServer::DetectException()
     }
 }
 
-void MonoServer::LogException(const std::exception &stException)
+void MonoServer::LogException(const std::exception &rstException)
 {
-    AddLog(LOGTYPE_WARNING, "%s", stException.what());
+    AddLog(LOGTYPE_WARNING, "%s", rstException.what());
     try{
-        std::rethrow_if_nested(stException);
+        std::rethrow_if_nested(rstException);
     }catch(const std::exception &stNestedException){
         LogException(stNestedException);
     }catch(...){
