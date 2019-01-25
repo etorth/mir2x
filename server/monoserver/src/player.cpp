@@ -897,10 +897,7 @@ bool Player::DBUpdate(const char *szTableName, const char *szFieldList, ...)
         return false;
     }
 
-    if(auto pDBHDR = g_DBPodN->CreateDBHDR(); !pDBHDR->Execute("update mir2x.%s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand.c_str(), DBID())){
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-        return false;
-    }
+    g_DBPodN->CreateDBHDR()->QueryResult("update mir2x.%s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand.c_str(), DBID());
     return true;
 }
 
@@ -910,14 +907,8 @@ bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::fun
             && (szTableName && std::strlen(szTableName))
             && (szFieldName && std::strlen(szFieldName))){
 
-        extern DBPodN *g_DBPodN;
         auto pDBHDR = g_DBPodN->CreateDBHDR();
-
-        if(!pDBHDR->Execute("select %s from mir2x.%s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID())){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-            return false;
-        }
+        pDBHDR->QueryResult("select %s from mir2x.%s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID());
 
         if(pDBHDR->RowCount() < 1){
             extern MonoServer *g_MonoServer;
@@ -925,19 +916,14 @@ bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::fun
             return false;
         }
 
-        pDBHDR->Fetch();
-        auto szRes = fnDBOperation(pDBHDR->Get(szFieldName));
+        auto szRes = fnDBOperation(pDBHDR->Get<std::string>(szFieldName).c_str());
 
         // if need to return a string we should do:
         //     return "\"xxxx\"";
         // then empty string should be "\"\"", not szRes.empty()
 
         if(!szRes.empty()){
-            if(!pDBHDR->Execute("update mir2x.%s set %s = %s where fld_dbid = %" PRIu32, szTableName, szFieldName, szRes.c_str(), DBID())){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-                return false;
-            }
+            pDBHDR->QueryResult("update mir2x.%s set %s = %s where fld_dbid = %" PRIu32, szTableName, szFieldName, szRes.c_str(), DBID());
             return true;
         }
     }

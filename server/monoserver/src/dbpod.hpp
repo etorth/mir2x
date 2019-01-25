@@ -17,8 +17,11 @@
  */
 
 #pragma once
+#include <mutex>
+#include <thread>
 #include <memory>
 #include <string>
+#include <atomic>
 
 #include "strfunc.hpp"
 #include "database.hpp"
@@ -49,8 +52,8 @@ template<size_t ConnectionCount = 4> class DBPod final
                         return;
                     }
 
-                    if(pDBConnection){
-                        pDBConnection->DestroyDBRecord(pRecord);
+                    if(m_DBConnection){
+                        m_DBConnection->DestroyDBRecord(pRecord);
                     }
 
                     if(ConnectionCount > 1 && m_Lock){
@@ -67,8 +70,8 @@ template<size_t ConnectionCount = 4> class DBPod final
         std::atomic<size_t> m_Current;
 
     private:
-        std::mutex                m_ConnLockVec[ConnectionCount];
-        std::unique_ptr<DBEngine> m_ConnVec    [ConnectionCount];
+        std::mutex                    m_ConnLockVec[ConnectionCount];
+        std::unique_ptr<DBConnection> m_ConnVec    [ConnectionCount];
 
     public:
         DBPod()
@@ -81,7 +84,7 @@ template<size_t ConnectionCount = 4> class DBPod final
         {
 #if defined(MIR2X_ENABLE_MYSQL)
             for(size_t nIndex = 0; nIndex < ConnectionCount; ++nIndex){
-                m_ConnVec_MySQL[nIndex] = std::make_unique<DBEngine_MySQL>(szHostName, szUserName, szPassword, szDBName, nPort);
+                m_ConnVec[nIndex] = std::make_unique<DBEngine_MySQL>(szHostName, szUserName, szPassword, szDBName, nPort);
             }
 #else
             throw std::runtime_error(str_fflprintf(": LaunchMySQL() not supported in current build"));
@@ -92,7 +95,7 @@ template<size_t ConnectionCount = 4> class DBPod final
         {
 #if defined(MIR2X_ENABLE_SQLITE3)
             for(size_t nIndex = 0; nIndex < ConnectionCount; ++nIndex){
-                m_ConnVec_SQLite3[nIndex] = std::make_unique<DBEngine_SQLite3>(szDBName);
+                m_ConnVec[nIndex] = std::make_unique<DBEngine_SQLite3>(szDBName);
             }
 #else
             throw std::runtime_error(str_fflprintf(": LaunchSQLite3() not supported in current build"));
@@ -117,7 +120,7 @@ template<size_t ConnectionCount = 4> class DBPod final
             // will be unlocked if this DBHDR get constructed
 
             for(size_t nIndex = m_Current.fetch_add(1) % ConnectionCount;; nIndex = (nIndex + 1) % ConnectionCount){
-                if(m_LockV[nIndex]->try_lock()){
+                if(m_ConnLockVec[nIndex].try_lock()){
                     return InnCreateDBHDR(nIndex);
                 }
             }
@@ -142,7 +145,7 @@ template<size_t ConnectionCount = 4> class DBPod final
                 return false;
 #endif
             }
-            throw std::invalid_argument(str_fflprintf(": Invalid dbengine name: %s", szDBName));
+            throw std::invalid_argument(str_fflprintf(": Invalid dbengine name: %s", szDBEngineName));
         }
 };
 

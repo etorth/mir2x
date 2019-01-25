@@ -1,12 +1,12 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0303 
-header_name {.hpp} 
+version 1.0304
+header_name {.hpp}
 code_name {.cpp}
 decl {\#include <cmath>} {public global
-} 
+}
 
 decl {\#include <algorithm>} {public global
-} 
+}
 
 class ServerConfigureWindow {open
 } {
@@ -14,7 +14,7 @@ class ServerConfigureWindow {open
   } {
     Fl_Window m_Window {
       label ConfigureWindow open
-      xywh {878 318 625 360} type Double labelfont 4 modal visible
+      xywh {327 327 625 360} type Double labelfont 4 modal visible
     } {
       Fl_Value_Input m_MaxPlayerCount {
         label {Maximal Player: }
@@ -156,7 +156,7 @@ class ServerConfigureWindow {open
 	return "";
 }} {}
   }
-  Function {MaxPlayerCount()} {selected return_type int
+  Function {MaxPlayerCount()} {return_type int
   } {
     code {{
     return std::lround(m_MaxPlayerCount->value());
@@ -192,4 +192,4 @@ class ServerConfigureWindow {open
     return std::lround(m_Port->value());
 }} {}
   }
-} 
+}

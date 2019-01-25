@@ -22,6 +22,10 @@
 #include "dispatcher.hpp"
 #include "servicecore.hpp"
 
+extern DBPodN *g_DBPodN;
+extern NetDriver *g_NetDriver;
+extern MonoServer *g_MonoServer;
+
 void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData, size_t)
 {
     CMLogin stCML;
@@ -29,49 +33,28 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
 
     auto fnOnLoginFail = [nChannID, stCML]()
     {
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_INFO, "Login failed for (%s:%s)", stCML.ID, "******");
 
-        extern NetDriver *g_NetDriver;
         g_NetDriver->Post(nChannID, SM_LOGINFAIL);
         g_NetDriver->Shutdown(nChannID, false);
     };
 
-    extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_INFO, "Login requested: (%s:%s)", stCML.ID, "******");
 
-    extern DBPodN *g_DBPodN;
     auto pDBHDR = g_DBPodN->CreateDBHDR();
-
-    if(!pDBHDR->Execute("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", stCML.ID, stCML.Password)){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-
-        fnOnLoginFail();
-        return;
-    }
+    pDBHDR->QueryResult("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", stCML.ID, stCML.Password);
 
     if(pDBHDR->RowCount() < 1){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_INFO, "can't find account: (%s:%s)", stCML.ID, "******");
 
         fnOnLoginFail();
         return;
     }
 
-    pDBHDR->Fetch();
-
-    auto nID = std::atoi(pDBHDR->Get("fld_id"));
-    if(!pDBHDR->Execute("select * from mir2x.tbl_dbid where fld_id = %d", nID)){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-
-        fnOnLoginFail();
-        return;
-    }
+    auto nID = pDBHDR->Get<int64_t>("fld_id");
+    pDBHDR->QueryResult("select * from mir2x.tbl_dbid where fld_id = %d", (int)(nID));
 
     if(pDBHDR->RowCount() < 1){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_INFO, "no dbid created for this account: (%s:%s)", stCML.ID, "******");
 
         fnOnLoginFail();
@@ -81,19 +64,16 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     AMLoginQueryDB stAMLQDBOK;
     std::memset(&stAMLQDBOK, 0, sizeof(stAMLQDBOK));
 
-    pDBHDR->Fetch();
-
-    auto nDBID      = std::atoi(pDBHDR->Get("fld_dbid"));
-    auto nMapID     = DBCOM_MAPID(pDBHDR->Get("fld_mapname"));
-    auto nMapX      = std::atoi(pDBHDR->Get("fld_mapx"));
-    auto nMapY      = std::atoi(pDBHDR->Get("fld_mapy"));
-    auto nDirection = std::atoi(pDBHDR->Get("fld_direction"));
+    auto nDBID      = pDBHDR->Get<int64_t>("fld_dbid");
+    auto nMapID     = DBCOM_MAPID(pDBHDR->Get<std::string>("fld_mapname").c_str());
+    auto nMapX      = pDBHDR->Get<int64_t>("fld_mapx");
+    auto nMapY      = pDBHDR->Get<int64_t>("fld_mapy");
+    auto nDirection = pDBHDR->Get<int64_t>("fld_direction");
 
     auto pMap = RetrieveMap(nMapID);
     if(false
             || !pMap
             || !pMap->In(nMapID, nMapX, nMapY)){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid db record found: (map, x, y) = (%d, %d, %d)", nMapID, nMapX, nMapY);
 
         fnOnLoginFail();

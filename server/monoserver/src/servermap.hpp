@@ -25,6 +25,7 @@
 #include "querytype.hpp"
 #include "commonitem.hpp"
 #include "pathfinder.hpp"
+#include "cachequeue.hpp"
 #include "mir2xmapdata.hpp"
 #include "serverobject.hpp"
 #include "batchluamodule.hpp"

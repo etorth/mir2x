@@ -43,6 +43,16 @@
 #include "commandwindow.hpp"
 #include "databaseconfigurewindow.hpp"
 
+extern Log *g_Log;
+extern DBPodN *g_DBPodN;
+extern ActorPool *g_ActorPool;
+extern MapBinDBN *g_MapBinDBN;
+extern NetDriver *g_NetDriver;
+extern MonoServer *g_MonoServer;
+extern MainWindow *g_MainWindow;
+extern ServerConfigureWindow *g_ServerConfigureWindow;
+extern DatabaseConfigureWindow *g_DatabaseConfigureWindow;
+
 MonoServer::MonoServer()
     : m_LogLock()
     , m_LogBuf()
@@ -74,7 +84,6 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
     switch(nLogType){
         case Log::LOGTYPEV_DEBUG:
             {
-                extern Log *g_Log;
                 g_Log->AddLog(stLogDesc, "%s", szLog.c_str());
                 return;
             }
@@ -89,7 +98,6 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
                 }
                 NotifyGUI("FlushBrowser");
 
-                extern Log *g_Log;
                 g_Log->AddLog(stLogDesc, "%s", szLog.c_str());
                 return;
             }
@@ -148,33 +156,33 @@ void MonoServer::AddCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, co
 
 void MonoServer::CreateDBConnection()
 {
-    extern DBPodN *g_DBPodN;
-    extern DatabaseConfigureWindow *g_DatabaseConfigureWindow;
+    if(std::strcmp(g_DatabaseConfigureWindow->SelectedDBEngine(), "mysql")){
+        g_DBPodN->LaunchMySQL(
+                g_DatabaseConfigureWindow->DatabaseIP(),
+                g_DatabaseConfigureWindow->UserName(),
+                g_DatabaseConfigureWindow->Password(),
+                g_DatabaseConfigureWindow->DatabaseName(),
+                g_DatabaseConfigureWindow->DatabasePort());
+        AddLog(LOGTYPE_INFO, "Connect to Database (%s:%d) successfully",
+                g_DatabaseConfigureWindow->DatabaseIP(),
+                g_DatabaseConfigureWindow->DatabasePort());
+    }
 
-    if(g_DBPodN->Launch(
-            g_DatabaseConfigureWindow->DatabaseIP(),
-            g_DatabaseConfigureWindow->UserName(),
-            g_DatabaseConfigureWindow->Password(),
-            g_DatabaseConfigureWindow->DatabaseName(),
-            g_DatabaseConfigureWindow->DatabasePort())){
-        AddLog(LOGTYPE_WARNING, "DBPod can't connect to Database (%s:%d)", 
-                g_DatabaseConfigureWindow->DatabaseIP(),
-                g_DatabaseConfigureWindow->DatabasePort());
-        // no database we just restart the monoserver
+    else if(std::strcmp(g_DatabaseConfigureWindow->SelectedDBEngine(), "sqlite3")){
+        g_DBPodN->LaunchSQLite3(g_DatabaseConfigureWindow->DatabaseName());
+        AddLog(LOGTYPE_INFO, "Connect to Database (%s) successfully", g_DatabaseConfigureWindow->DatabaseName());
+    }
+
+    else{
+        AddLog(LOGTYPE_WARNING, "No database started");
         Restart();
-    }else{
-        AddLog(LOGTYPE_INFO, "Connect to Database (%s:%d) successfully", 
-                g_DatabaseConfigureWindow->DatabaseIP(),
-                g_DatabaseConfigureWindow->DatabasePort());
     }
 }
 
 void MonoServer::LoadMapBinDBN()
 {
-    extern ServerConfigureWindow *g_ServerConfigureWindow;
     std::string szMapPath = g_ServerConfigureWindow->GetMapPath();
 
-    extern MapBinDBN *g_MapBinDBN;
     if(!g_MapBinDBN->Load(szMapPath.c_str())){
         AddLog(LOGTYPE_WARNING, "Failed to load mapbindbn");
         Restart();
@@ -183,7 +191,6 @@ void MonoServer::LoadMapBinDBN()
 
 void MonoServer::StartServiceCore()
 {
-    extern ActorPool *g_ActorPool;
     g_ActorPool->Launch();
 
     m_ServiceCore = new ServiceCore();
@@ -192,9 +199,6 @@ void MonoServer::StartServiceCore()
 
 void MonoServer::StartNetwork()
 {
-    extern NetDriver *g_NetDriver;
-    extern ServerConfigureWindow *g_ServerConfigureWindow;
-
     uint32_t nPort = g_ServerConfigureWindow->Port();
     if(!g_NetDriver->Launch(nPort, m_ServiceCore->UID())){
         AddLog(LOGTYPE_WARNING, "Failed to launch the network");
@@ -451,7 +455,6 @@ void MonoServer::ParseNotifyGUIQ()
                 || stTokenList.front() == "flushbrowser"
                 || stTokenList.front() == "FlushBrowser"
                 || stTokenList.front() == "FLUSHBROWSER"){
-            extern MonoServer *g_MonoServer;
             g_MonoServer->FlushBrowser();
             continue;
         }
@@ -460,7 +463,6 @@ void MonoServer::ParseNotifyGUIQ()
                 || stTokenList.front() == "flushcwbrowser"
                 || stTokenList.front() == "FlushCWBrowser"
                 || stTokenList.front() == "FLUSHCWBROWSER"){
-            extern MonoServer *g_MonoServer;
             g_MonoServer->FlushCWBrowser();
             continue;
         }
@@ -478,7 +480,6 @@ void MonoServer::ParseNotifyGUIQ()
             }
 
             if(nCWID > 0){
-                extern MainWindow *g_MainWindow;
                 g_MainWindow->DeleteCommandWindow(nCWID);
             }
             continue;
@@ -487,7 +488,6 @@ void MonoServer::ParseNotifyGUIQ()
         // unsupported command here
         // print into the log file and not exit here
         {
-            extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_WARNING, "Unsupported NotifyGUI command: %s", stTokenList.front().c_str());
             continue;
         }
@@ -500,7 +500,6 @@ void MonoServer::FlushBrowser()
     {
         auto nCurrLoc = (size_t)(0);
         while(nCurrLoc < m_LogBuf.size()){
-            extern MainWindow *g_MainWindow;
             g_MainWindow->AddLog((int)(m_LogBuf[nCurrLoc]), &(m_LogBuf[nCurrLoc + 1]));
             nCurrLoc += (1 + 1 + std::strlen(&(m_LogBuf[nCurrLoc + 1])));
         }
@@ -531,7 +530,6 @@ void MonoServer::FlushCWBrowser()
             auto pInfo0 = &(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1]);
             auto pInfo1 = &(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1 + nInfoLen0 + 1]);
 
-            extern MainWindow *g_MainWindow;
             g_MainWindow->AddCWLog(nCWID, (int)(m_CWLogBuf[nCurrLoc + sizeof(nCWID)]), pInfo0, pInfo1);
             nCurrLoc += (sizeof(nCWID) + 1 + nInfoLen0 + 1 + nInfoLen1 + 1);
         }

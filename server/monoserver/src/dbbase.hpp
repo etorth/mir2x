@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <string>
 #include <cstdint>
 #include <variant>
 
@@ -38,17 +39,31 @@ class DBConnection
 class DBRecord
 {
     protected:
-        using DBDataType = std::variant<int64_t, double, const char *>;
+        using DBDataType = std::variant<int64_t, double, std::string>;
 
     public:
         DBRecord() = default;
         virtual ~DBRecord() = default;
 
     public:
-        virtual void Execute(const char *, ...) = 0;
+        // query with given sql statement, return true if result available
+        //
+        //      if(!hdl->QueryResult("select * where fld_id = \"%s\"", szId.c_str())){
+        //          addLog("No record valid for id = %s", szId.c_str());
+        //      }else{
+        //          do{
+        //              int64_t     id   = hdl->Get<int64_t>("fld_id");
+        //              std::string name = hdl->Get<std::string>("fld_name");
+        //              ...
+        //          }while(hdl->Fetch());
+        //      }
+        //
+        // if get result this function returns true and valid for Get()
+        // if query failed it throws
+        virtual bool QueryResult(const char *, ...) = 0;
 
-    protected:
-        virtual DBDataType GetData(const char *) = 0;
+    public:
+        virtual bool Fetch() = 0;
 
     public:
         template<typename T> T Get(const char *szName)
@@ -57,6 +72,14 @@ class DBRecord
         }
 
     public:
+        // query row/column for query result
+        // output:
+        //    <  0: can't have a well implementation but no error happens
+        //    >= 0: rows/columns
+        //   throw: error
         virtual int RowCount() = 0;
         virtual int ColumnCount() = 0;
+
+    protected:
+        virtual DBDataType GetData(const char *) = 0;
 };
