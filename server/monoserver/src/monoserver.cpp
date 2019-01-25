@@ -156,21 +156,24 @@ void MonoServer::AddCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, co
 
 void MonoServer::CreateDBConnection()
 {
-    if(std::strcmp(g_DatabaseConfigureWindow->SelectedDBEngine(), "mysql")){
+    if(std::strcmp(g_DatabaseConfigureWindow->SelectedDBEngine(), "mysql") == 0){
         g_DBPodN->LaunchMySQL(
                 g_DatabaseConfigureWindow->DatabaseIP(),
                 g_DatabaseConfigureWindow->UserName(),
                 g_DatabaseConfigureWindow->Password(),
                 g_DatabaseConfigureWindow->DatabaseName(),
                 g_DatabaseConfigureWindow->DatabasePort());
-        AddLog(LOGTYPE_INFO, "Connect to Database (%s:%d) successfully",
+        AddLog(LOGTYPE_INFO, "Connect to MySQL Database (%s:%d) successfully",
                 g_DatabaseConfigureWindow->DatabaseIP(),
                 g_DatabaseConfigureWindow->DatabasePort());
     }
 
-    else if(std::strcmp(g_DatabaseConfigureWindow->SelectedDBEngine(), "sqlite3")){
+    else if(std::strcmp(g_DatabaseConfigureWindow->SelectedDBEngine(), "sqlite3") == 0){
         g_DBPodN->LaunchSQLite3(g_DatabaseConfigureWindow->DatabaseName());
-        AddLog(LOGTYPE_INFO, "Connect to Database (%s) successfully", g_DatabaseConfigureWindow->DatabaseName());
+        AddLog(LOGTYPE_INFO, "Connect to SQLite3 Database (%s) successfully", g_DatabaseConfigureWindow->DatabaseName());
+
+        auto pDBHDR = g_DBPodN->CreateDBHDR();
+        pDBHDR->QueryResult("use mir2x");
     }
 
     else{

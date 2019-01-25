@@ -80,7 +80,7 @@ class DBRecord_SQLite3: public DBRecord
             }
 
             if(int nRC = sqlite3_prepare_v2(m_DBEngine->m_SQLite3, szQueryCmd.c_str(), szQueryCmd.length(), &m_Statement, nullptr); nRC != SQLITE_OK){
-                throw std::runtime_error(str_fflprintf(": sqlite3_prepare_v2(%s) failed, errcode = %d", szQueryCmd.c_str(), nRC));
+                throw std::runtime_error(str_fflprintf(": sqlite3_prepare_v2(\"%s\") failed, errcode = %d, errmsg: %s", szQueryCmd.c_str(), nRC, sqlite3_errmsg(m_DBEngine->m_SQLite3)));
             }
         }
 
