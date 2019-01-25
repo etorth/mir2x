@@ -15,12 +15,12 @@ configuration:
 
 install:
     - cmd: |-
-        vcpkg install lua
-        vcpkg install sdl2
-        vcpkg install fltk
-        vcpkg install opengl
-        vcpkg install zlib
-        vcpkg install libpng
+        vcpkg install lua:x64-windows-static
+        vcpkg install sdl2:x64-windows-static
+        vcpkg install fltk:x64-windows-static
+        vcpkg install opengl:x64-windows-static
+        vcpkg install zlib:x64-windows-static
+        vcpkg install libpng:x64-windows-static
         vcpkg install sqlite3:x64-windows-static
 
 before_build:
@@ -43,8 +43,8 @@ test_script:
 artifacts:
     - path: build\*.zip
 
-# on_finish:
-#     - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+on_finish:
+    - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 deploy:
     provider: GitHub
