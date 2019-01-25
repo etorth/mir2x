@@ -7,9 +7,8 @@ platform: x64
 environment:
     CMAKE_GENERATOR: -G"Visual Studio 15 2017 Win64"
     CMAKE_TOOLCHAIN_FILE: -DCMAKE_TOOLCHAIN_FILE="C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake"
-    CMAKE_TARGET_TRIPLET: -DCMAKE_TARGET_TRIPLET=x64-windows
     VCPKG_DEFAULT_TRIPLET: x64-windows
-    MARIADB_DIR: C:\Tools\vcpkg\installed\x64-windows
+    VCPKG_TARGET_TRIPLET: -DVCPKG_TARGET_TRIPLET=x64-windows-static
  
 configuration:
     - Release
@@ -22,14 +21,14 @@ install:
         vcpkg install opengl
         vcpkg install zlib
         vcpkg install libpng
-        vcpkg install libmariadb
+        vcpkg install sqlite3:x64-windows-static
 
 before_build:
     - cmd: |-
         mkdir build
         cd build
         cmake --version
-        cmake .. %CMAKE_GENERATOR% %CMAKE_TOOLCHAIN_FILE% %CMAKE_TARGET_TRIPLET%
+        cmake .. %CMAKE_GENERATOR% %CMAKE_TOOLCHAIN_FILE% %VCPKG_TARGET_TRIPLET%
         cmake --build . --target package --config Release
 
 build_script:
