@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#include <sol.hpp>
+#include <sol/sol.hpp>
 #include "monoserver.hpp"
 #include "batchluamodule.hpp"
 

@@ -22,10 +22,10 @@
 #include <queue>
 #include <vector>
 #include <cstdint>
-#include <sol.hpp>
 #include <exception>
 #include <stdexcept>
 #include <type_traits>
+#include <sol/sol.hpp>
 #include <unordered_map>
 
 #include "log.hpp"

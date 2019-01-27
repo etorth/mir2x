@@ -22,7 +22,7 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # enable condcheck()
 # cmake disble assert() if in release mode
-ADD_COMPILE_DEFINITIONS(DCONDCHECK)
+ADD_COMPILE_DEFINITIONS(CONDCHECK)
 
 # add flags to release mode
 # by default won't use release mode
@@ -83,13 +83,13 @@ SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werr
 # SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -pg")
 
 # set common source used in client, server, tools
-SET(COMMON_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/common/src)
-SET(MIR2X_3RD_PARTY_DIR "${CMAKE_CURRENT_BINARY_DIR}/3rdparty")
+SET(COMMON_SOURCE_DIR ${CMAKE_SOURCE_DIR}/common/src)
+SET(MIR2X_3RD_PARTY_DIR "${CMAKE_BINARY_DIR}/3rdparty")
 
 # set additional module path
-LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
-FILE(GLOB MIR2X_DEPS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/deps/*.cmake")
+FILE(GLOB MIR2X_DEPS_DIR "${CMAKE_SOURCE_DIR}/cmake/deps/*.cmake")
 FOREACH(MIR2X_DEP ${MIR2X_DEPS_DIR})
     INCLUDE(${MIR2X_DEP})
 ENDFOREACH()
