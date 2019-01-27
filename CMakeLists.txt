@@ -15,14 +15,14 @@
 #=======================================================================================
 
 PROJECT(mir2x)
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # enable condcheck()
 # cmake disble assert() if in release mode
-ADD_DEFINITIONS(-DCONDCHECK)
+ADD_COMPILE_DEFINITIONS(DCONDCHECK)
 
 # add flags to release mode
 # by default won't use release mode

@@ -95,7 +95,12 @@ int main(int argc, char *argv[])
                         //
                         // won't handle exception in threads
                         // all threads need to call Fl::awake(2) to propagate exception(s) caught
-                        g_MonoServer->DetectException();
+                        try{
+                            g_MonoServer->DetectException();
+                        }catch(const std::exception &rstException){
+                            g_MonoServer->LogException(rstException);
+                            g_MonoServer->Restart();
+                        }
                         break;
                     }
                 case 1:
@@ -108,12 +113,12 @@ int main(int argc, char *argv[])
                     }
             }
         }
-    }catch(const std::exception &rstException){
-        g_MonoServer->LogException(rstException);
-        g_MonoServer->Restart();
+    }catch(const std::exception &e){
+        // use raw log directly
+        // no gui available because we are out of gui event loop
+        g_Log->AddLog(LOGTYPE_WARNING, "Exception in main thread: %s", e.what());
     }catch(...){
-        g_MonoServer->LogException(std::runtime_error("Caught unknown exception"));
-        g_MonoServer->Restart();
+        g_Log->AddLog(LOGTYPE_WARNING, "Unknown exception caught in main thread");
     }
     return 0;
 }
