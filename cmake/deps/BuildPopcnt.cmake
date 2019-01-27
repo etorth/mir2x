@@ -37,3 +37,4 @@ ExternalProject_Add(
 
 SET(LIBPOPCNT_INCLUDE_DIRS "${MIR2X_3RD_PARTY_DIR}/libpopcnt/build/install/include")
 INCLUDE_DIRECTORIES(SYSTEM ${LIBPOPCNT_INCLUDE_DIRS})
+ADD_DEPENDENCIES(mir2x_3rds libpopcnt)
