@@ -24,21 +24,21 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 # cmake disble assert() if in release mode
 ADD_COMPILE_DEFINITIONS(CONDCHECK)
 
-# add flags to release mode
-# by default won't use release mode
-SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}")
-SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
-SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing")
-SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wfatal-errors -Wextra -Wunused -Werror")
+IF(WIN32 AND MSVC)
+    ADD_COMPILE_OPTIONS(/W4 /WX)
+ELSE()
+    ADD_COMPILE_OPTIONS(-fno-strict-aliasing)
+    ADD_COMPILE_OPTIONS(-Wall -Wfatal-errors -Wextra -Wunused -Werror)
 
-# always compile mir2x in debug mode
-# for trace message use MIR2X_DEBUG_ARG_LIST to enable
-SET(CMAKE_BUILD_TYPE "Debug")
-SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+    STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " $ENV{CXXFLAGS}")
+    STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -O0")
+    STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -g3 -ggdb3 -pedantic")
 
-# enable check for asan/usan/tsan
-# keep in mind that these three can't be set at the same time
+    # add flags to release mode
+    # by default won't use release mode
+    STRING(APPEND CMAKE_CXX_FLAGS_RELEASE " $ENV{CXXFLAGS}")
+    STRING(APPEND CMAKE_CXX_FLAGS_RELEASE " -O3")
+ENDIF()
 
 OPTION(MIR2X_ENABLE_ASAN "Enable ASAN" OFF)
 OPTION(MIR2X_ENABLE_USAN "Enable USAN" OFF)
@@ -47,44 +47,45 @@ OPTION(MIR2X_ENABLE_TSAN "Enable TSAN" OFF)
 OPTION(MIR2X_ENABLE_SQLITE3 "Enable SQLite3" ON)
 OPTION(MIR2X_ENABLE_MYSQL   "Enable MySQL"   OFF)
 
+IF(MIR2X_ENABLE_ASAN)
+    IF(WIN32 AND MSVC)
+        MESSAGE(STATUS "ASAN not enabled on windows platform")
+    ELSE()
+        MESSAGE(STATUS "ASAN enabled")
+        STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address")
+    ENDIF()
+ENDIF()
+
+IF(MIR2X_ENABLE_USAN)
+    IF(WIN32 AND MSVC)
+        MESSAGE(STATUS "USAN not enabled on windows platform")
+    ELSE()
+        MESSAGE(STATUS "USAN enabled")
+        STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=undefined")
+    ENDIF()
+ENDIF()
+
+IF(MIR2X_ENABLE_TSAN)
+    IF(WIN32 AND MSVC)
+        MESSAGE(STATUS "TSAN not enabled on windows platform")
+    ELSE()
+        MESSAGE(STATUS "TSAN enabled")
+        STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=thread")
+    ENDIF()
+ENDIF()
+
 IF(MIR2X_ENABLE_SQLITE3)
     MESSAGE(STATUS "SQLite3 supported")
-    ADD_DEFINITIONS(-DMIR2X_ENABLE_SQLITE3)
+    ADD_COMPILE_DEFINITIONS(MIR2X_ENABLE_SQLITE3)
 ENDIF()
 
 IF(MIR2X_ENABLE_MYSQL)
     MESSAGE(STATUS "MySQL(mysql/mariadb) supported")
-    ADD_DEFINITIONS(-DMIR2X_ENABLE_MYSQL)
+    ADD_COMPILE_DEFINITIONS(MIR2X_ENABLE_MYSQL)
 ENDIF()
 
-IF(MIR2X_ENABLE_ASAN)
-    MESSAGE(STATUS "ASAN enabled")
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
-ENDIF()
-
-IF(MIR2X_ENABLE_USAN)
-    MESSAGE(STATUS "USAN enabled")
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
-ENDIF()
-
-IF(MIR2X_ENABLE_TSAN)
-    MESSAGE(STATUS "TSAN enabled")
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
-ENDIF()
-
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werror")
-
-# to enable gprof for performance profiling
-# not use it since I move to google-gproftools for multi-thread support
-# SET(CMAKE_CXX_FLAGS_DEBUG           "${CMAKE_CXX_FLAGS_DEBUG} -pg")
-# SET(CMAKE_EXE_LINKER_FLAGS_DEBUG    "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg")
-# SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -pg")
-
-# set common source used in client, server, tools
-SET(COMMON_SOURCE_DIR ${CMAKE_SOURCE_DIR}/common/src)
 SET(MIR2X_3RD_PARTY_DIR "${CMAKE_BINARY_DIR}/3rdparty")
+SET(MIR2X_COMMON_SOURCE_DIR ${CMAKE_SOURCE_DIR}/common/src)
 
 # set additional module path
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
