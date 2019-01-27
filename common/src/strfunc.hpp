@@ -97,7 +97,23 @@ bool str_nonempty(const char *);
 std::string str_printf(const char *, ...);
 std::string str_vprintf(const char *, va_list);
 
-// before std::source_location standardized
-// we have to use macro to capture the file/function/line information
-#define str_ffl()          str_printf("In file: %s, function: %s, line %d",std::filesystem::path(__FILE__).filename().c_str(), __PRETTY_FUNCTION__, __LINE__)
+// copy from boost
+// definition of BOOST_CURRENT_FUNCTION
+
+#if defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) || (defined(__ICC) && (__ICC >= 600))
+    #define str_ffl() str_printf("In file: %s, function: %s, line %d", std::filesystem::path(__FILE__).filename().c_str(), __PRETTY_FUNCTION__, __LINE__)
+#elif defined(__DMC__) && (__DMC__ >= 0x810)
+    #define str_ffl() str_printf("In file: %s, function: %s, line %d", std::filesystem::path(__FILE__).filename().c_str(), __PRETTY_FUNCTION__, __LINE__)
+#elif defined(__FUNCSIG__)
+    #define str_ffl() str_printf("In file: %s, function: %s, line %d", std::filesystem::path(__FILE__).filename().c_str(),         __FUNCSIG__, __LINE__)
+#elif (defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 600)) || (defined(__IBMCPP__) && (__IBMCPP__ >= 500))
+    #define str_ffl() str_printf("In file: %s, function: %s, line %d", std::filesystem::path(__FILE__).filename().c_str(),        __FUNCTION__, __LINE__)
+#elif defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
+    #define str_ffl() str_printf("In file: %s, function: %s, line %d", std::filesystem::path(__FILE__).filename().c_str(),            __FUNC__, __LINE__)
+#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901)
+    #define str_ffl() str_printf("In file: %s, function: %s, line %d", std::filesystem::path(__FILE__).filename().c_str(),            __func__, __LINE__)
+#else
+    #define str_ffl() str_printf("In file: %s, function: %s, line %d", std::filesystem::path(__FILE__).filename().c_str(),         "(unknown)", __LINE__)
+#endif
+
 #define str_fflprintf(...) std::string(str_ffl() + str_printf(__VA_ARGS__))
