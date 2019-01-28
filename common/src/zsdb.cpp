@@ -350,7 +350,7 @@ bool ZSDB::BuildDB(const char *szSaveFullName, const char *szFileNameRegex, cons
     std::regex stFileNameReg(szFileNameRegex ? szFileNameRegex : ".*");
 
     for(auto &p: std::filesystem::directory_iterator(szDataPath)){
-        std::string szFileName = p.path().filename();
+        auto szFileName = p.path().filename().u8string();
         if(!p.is_regular_file()){
             continue;
         }
@@ -361,7 +361,7 @@ bool ZSDB::BuildDB(const char *szSaveFullName, const char *szFileNameRegex, cons
             }
         }
 
-        auto stSrcBuf = readFileData(p.path().c_str());
+        auto stSrcBuf = readFileData(p.path().u8string().c_str());
         if(stSrcBuf.empty()){
             continue;
         }
