@@ -84,8 +84,8 @@ bool Monster::Update(double fUpdateTime)
                                 default:
                                     {
                                         auto nNextFadeOut = 0;
-                                        nNextFadeOut = std::max<int>(1, m_CurrMotion.FadeOut + 10);
-                                        nNextFadeOut = std::min<int>(nNextFadeOut, 255);
+                                        nNextFadeOut = (std::max<int>)(1, m_CurrMotion.FadeOut + 10);
+                                        nNextFadeOut = (std::min<int>)(nNextFadeOut, 255);
 
                                         m_CurrMotion.FadeOut = nNextFadeOut;
                                         break;
@@ -207,7 +207,7 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
                     Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53,
                     0,
                     0,
-                    (int)(std::lround(nW * (m_HPMax ? std::min<double>(1.0, (1.0 * m_HP) / m_HPMax) : 1.0))),
+                    (int)(std::lround(nW * (m_HPMax ? (std::min<double>)(1.0, (1.0 * m_HP) / m_HPMax) : 1.0))),
                     nH);
 
             g_SDLDevice->DrawTexture(pBar0,

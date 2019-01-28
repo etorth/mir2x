@@ -290,7 +290,7 @@ class MemoryChunkPN
                 // set all its ancestor for right capacity
                 while(nIndex){
                     nIndex = ParentNode(nIndex);
-                    Longest[nIndex] = std::max<size_t>(Longest[LeftNode(nIndex)], Longest[RightNode(nIndex)]);
+                    Longest[nIndex] = (std::max<size_t>)(Longest[LeftNode(nIndex)], Longest[RightNode(nIndex)]);
                 }
 
                 return &(pHead->Data[0]);
@@ -332,7 +332,7 @@ class MemoryChunkPN
                     }else{
                         // part or all of the memory it takes in charge is not valid
                         // mark for the longest valid memory
-                        Longest[nNodeID] = std::max<size_t>(nLeftUnit, nRightUnit);
+                        Longest[nNodeID] = (std::max<size_t>)(nLeftUnit, nRightUnit);
                     }
                 }
             }

@@ -236,16 +236,16 @@ void LayerEditArea::SetOffset(int nX, bool bRelativeX, int nY, bool bRelativeY)
                 m_OffsetX = nX;
             }
             
-            m_OffsetX = (std::max)(m_OffsetX, -SYS_OBJMAXW * SYS_MAPGRIDXP * 2);
-            m_OffsetX = (std::min)(m_OffsetX, (std::max)(0, SYS_MAPGRIDXP * pEditorMap->W() - w()));
+            m_OffsetX = (std::max<int>)(m_OffsetX, -SYS_OBJMAXW * SYS_MAPGRIDXP * 2);
+            m_OffsetX = (std::min<int>)(m_OffsetX, (std::max<int>)(0, SYS_MAPGRIDXP * pEditorMap->W() - w()));
 
             if(bRelativeY){
                 m_OffsetY += nY;
             }else{
                 m_OffsetY = nY;
             }
-            m_OffsetY = (std::max)(m_OffsetY, -SYS_OBJMAXH * SYS_MAPGRIDYP * 2);
-            m_OffsetY = (std::min)(m_OffsetY, (std::max)(0, SYS_MAPGRIDYP * pEditorMap->H() - h()));
+            m_OffsetY = (std::max<int>)(m_OffsetY, -SYS_OBJMAXH * SYS_MAPGRIDYP * 2);
+            m_OffsetY = (std::min<int>)(m_OffsetY, (std::max<int>)(0, SYS_MAPGRIDYP * pEditorMap->H() - h()));
         }
     }
 }

@@ -274,7 +274,7 @@ class AStarPathFinderNode
             auto nXDistance = (std::labs(rstGoalNode.X() - X()) + (nMaxStep - 1)) / nMaxStep;
             auto nYDistance = (std::labs(rstGoalNode.Y() - Y()) + (nMaxStep - 1)) / nMaxStep;
 
-            return std::max<float>(nXDistance, nYDistance);
+            return (std::max<float>)(nXDistance, nYDistance);
         }
 
         bool IsGoal(const AStarPathFinderNode &rstGoalNode) const
@@ -372,7 +372,7 @@ class AStarPathFinderNode
                     && (nNewDirIndex >= 0) && (nNewDirIndex < 8));
 
             auto nDDirIndex = ((nNewDirIndex - nOldDirIndex) + 8) % 8;
-            return (float)(fCost) + 1.00 * std::min<int>(nDDirIndex, 8 - nDDirIndex);
+            return (float)(fCost) + 1.00 * (std::min<int>)(nDDirIndex, 8 - nDDirIndex);
         }
 
         bool IsSameState(const AStarPathFinderNode &rstNode) const

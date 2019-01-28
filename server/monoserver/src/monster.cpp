@@ -616,11 +616,11 @@ DamageNode Monster::GetAttackDamage(int nDC)
     switch(nDC){
         case DC_PHY_PLAIN:
             {
-                return {UID(), nDC, m_MonsterRecord.DC + std::rand() % (1 + std::max<int>(m_MonsterRecord.DCMax - m_MonsterRecord.DC, 0)), EC_NONE};
+                return {UID(), nDC, m_MonsterRecord.DC + std::rand() % (1 + (std::max<int>)(m_MonsterRecord.DCMax - m_MonsterRecord.DC, 0)), EC_NONE};
             }
         case DC_MAG_FIRE:
             {
-                return {UID(), nDC, m_MonsterRecord.MDC + std::rand() % (1 + std::max<int>(m_MonsterRecord.MDCMax - m_MonsterRecord.MDC, 0)), EC_FIRE};
+                return {UID(), nDC, m_MonsterRecord.MDC + std::rand() % (1 + (std::max<int>)(m_MonsterRecord.MDCMax - m_MonsterRecord.MDC, 0)), EC_FIRE};
             }
         default:
             {
@@ -804,7 +804,7 @@ bool Monster::StruckDamage(const DamageNode &rstDamage)
     }
 
     if(rstDamage){
-        m_HP = std::max<int>(0, HP() - rstDamage.Damage);
+        m_HP = (std::max<int>)(0, HP() - rstDamage.Damage);
         DispatchHealth();
 
         if(HP() <= 0){

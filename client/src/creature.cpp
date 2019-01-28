@@ -589,8 +589,8 @@ bool Creature::AddAttachMagic(int nMagicID, int nMagicParam, int nMagicStage)
 double Creature::CurrMotionDelay() const
 {
     auto nSpeed = CurrMotion().Speed;
-    nSpeed = std::max<int>(SYS_MINSPEED, nSpeed);
-    nSpeed = std::min<int>(SYS_MAXSPEED, nSpeed);
+    nSpeed = (std::max<int>)(SYS_MINSPEED, nSpeed);
+    nSpeed = (std::min<int>)(SYS_MAXSPEED, nSpeed);
 
     return (1000.0 / SYS_DEFFPS) * (100.0 / nSpeed);
 }

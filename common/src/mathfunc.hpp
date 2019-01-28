@@ -40,7 +40,7 @@ namespace MathFunc
                 std::swap(nfY, nfY1);
             }
         }
-        return std::max<T>(std::abs(nfX - nfX1), std::abs(nfY - nfY1));
+        return (std::max<T>)(std::abs(nfX - nfX1), std::abs(nfY - nfY1));
     }
 
     template<typename T> T LDistance2(T nfX, T nfY, T nfX1, T nfY1)
@@ -193,10 +193,10 @@ namespace MathFunc
             // we assume W, H are always non-negative
             // then even if we have substraction here, it's guarenteed to be safe
 
-            nfRX = (std::max)(nfX1, *nfX2);
-            nfRY = (std::max)(nfY1, *nfY2);
-            nfRW = (std::min)(nfX1 + nfW1, *nfX2 + *nfW2) - nfRX;
-            nfRH = (std::min)(nfY1 + nfH1, *nfY2 + *nfH2) - nfRY;
+            nfRX = (std::max<T>)(nfX1, *nfX2);
+            nfRY = (std::max<T>)(nfY1, *nfY2);
+            nfRW = (std::min<T>)(nfX1 + nfW1, *nfX2 + *nfW2) - nfRX;
+            nfRH = (std::min<T>)(nfY1 + nfH1, *nfY2 + *nfH2) - nfRY;
 
             *nfX2 = nfRX;
             *nfY2 = nfRY;

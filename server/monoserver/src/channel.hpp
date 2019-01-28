@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <array>
 #include <mutex>
 #include <memory>
 #include <cstdint>

@@ -18,6 +18,7 @@
 
 #include <future>
 #include <thread>
+#include <cinttypes>
 
 #include "log.hpp"
 #include "client.hpp"

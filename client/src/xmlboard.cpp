@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <cinttypes>
 #include "log.hpp"
 #include "lalign.hpp"
 #include "xmlboard.hpp"
@@ -360,7 +361,7 @@ int XMLBoard::LineIntervalMaxH2(size_t nLine, size_t nIntervalStartX, size_t nIn
         int nH2 = pToken->Box.State.H2;
 
         if(MathFunc::IntervalOverlap<int>(nX - nW1, nW1 + nW + nW2, nIntervalStartX, nIntervalWidth)){
-            nMaxH2 = std::max(nMaxH2, nH2);
+            nMaxH2 = (std::max<int>)(nMaxH2, nH2);
         }
     }
 
@@ -475,7 +476,7 @@ size_t XMLBoard::LineNewStartY(size_t nLine)
         int nH1 = pToken->Box.State.H1;
 
         // LineTokenBestY() already take m_LineSpace into consideration
-        nCurrentY = std::max<int>(nCurrentY, LineTokenBestY(nLine, nX, nW, nH1));
+        nCurrentY = (std::max<int>)(nCurrentY, LineTokenBestY(nLine, nX, nW, nH1));
     }
 
     // not done yet, think about the following situation
@@ -491,7 +492,7 @@ size_t XMLBoard::LineNewStartY(size_t nLine)
     // -+--+--+----+ |    | ------ nth
     //               +----+
 
-    return (size_t)(std::max<int>(nCurrentY, LineReachMaxY(nLine - 1) + 1));
+    return (size_t)((std::max<int>)(nCurrentY, LineReachMaxY(nLine - 1) + 1));
 }
 
 void XMLBoard::SetLineTokenStartY(size_t nLine)
@@ -703,10 +704,10 @@ void XMLBoard::ResetBoardPixelRegion()
             throw std::runtime_error(str_fflprintf(": Found empty line in XMLBoard: line = %zu", nLine));
         }
 
-        nMaxPX = std::max<size_t>(nMaxPX, LineReachMaxX(nLine));
-        nMaxPY = std::max<size_t>(nMaxPY, LineReachMaxY(nLine));
-        nMinPX = std::min<size_t>(nMinPX, LineReachMinX(nLine));
-        nMinPY = std::min<size_t>(nMinPY, LineReachMinY(nLine));
+        nMaxPX = (std::max<size_t>)(nMaxPX, LineReachMaxX(nLine));
+        nMaxPY = (std::max<size_t>)(nMaxPY, LineReachMaxY(nLine));
+        nMinPX = (std::min<size_t>)(nMinPX, LineReachMinX(nLine));
+        nMinPY = (std::min<size_t>)(nMinPY, LineReachMinY(nLine));
     }
 
     m_PX = nMinPX;
@@ -992,7 +993,7 @@ size_t XMLBoard::LineMaxHk(size_t nLine, size_t k) const
 
     size_t nCurrMaxHk = 0;
     for(size_t nIndex = 0; nIndex < LineTokenCount(nLine); ++nIndex){
-        nCurrMaxHk = std::max<int>(nCurrMaxHk, (k == 1) ? GetToken(nIndex, nLine)->Box.State.H1 : GetToken(nIndex, nLine)->Box.State.H2);
+        nCurrMaxHk = (std::max<int>)(nCurrMaxHk, (k == 1) ? GetToken(nIndex, nLine)->Box.State.H1 : GetToken(nIndex, nLine)->Box.State.H2);
     }
     return nCurrMaxHk;
 }

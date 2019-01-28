@@ -1,69 +1,66 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0303 
-header_name {.hpp} 
+version 1.0304
+header_name {.hpp}
 code_name {.cpp}
 decl {\#include <map>} {private local
-} 
+}
 
 decl {\#include <array>} {private local
-} 
+}
 
 decl {\#include <string>} {private local
-} 
+}
 
 decl {\#include <ctime>} {private local
-} 
+}
 
 decl {\#include <vector>} {public local
-} 
+}
 
 decl {\#include <cstdint>} {private local
-} 
+}
 
 decl {\#include <cstring>} {private local
-} 
-
-decl {\#include <dirent.h>} {public local
-} 
+}
 
 decl {\#include <FL/fl_draw.H>} {public local
-} 
+}
 
-decl {\#include <FL/Fl_Shared_Image.H>} {public local
-} 
+decl {\#include <FL/Fl_Shared_Image.H>} {selected public local
+}
 
 decl {\#include "filesys.hpp"} {private local
-} 
+}
 
 decl {\#include "savepng.hpp"} {private local
-} 
+}
 
 decl {\#include "imagedb.hpp"} {private local
-} 
+}
 
 decl {\#include "drawarea.hpp"} {public global
-} 
+}
 
 decl {\#include "mathfunc.hpp"} {private local
-} 
+}
 
 decl {\#include "colorfunc.hpp"} {private local
-} 
+}
 
 decl {\#include "hexstring.hpp"} {private local
-} 
+}
 
 decl {\#include "editormap.hpp"} {private local
-} 
+}
 
 decl {\#include "imagecache.hpp"} {private local
-} 
+}
 
 decl {\#include "animationdraw.hpp"} {private local
-} 
+}
 
 decl {\#include "animationselectwindow.hpp"} {private local
-} 
+}
 
 class MainWindow {open
 } {
@@ -78,9 +75,9 @@ class MainWindow {open
 		default :          break;
 	}
 }} open
-      xywh {824 107 985 665} type Double resizable visible
+      xywh {148 119 985 665} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {selected
+      Fl_Box m_DrawArea {
         xywh {0 20 965 627} labelfont 4 resizable
         class DrawArea
       }
@@ -667,7 +664,7 @@ auto fValue  = pWidget->value();
 extern EditorMap g_EditorMap;
 if(g_EditorMap.Valid()){
 	int nValidYOffset = g_EditorMap.H() * SYS_MAPGRIDYP - m_DrawArea->h();
-	nValidYOffset = (std::max)(0, nValidYOffset);
+	nValidYOffset = (std::max<int>)(0, nValidYOffset);
 	int nYOffset = (int)(nValidYOffset * fValue * 1.0);
     	m_DrawArea->SetOffset(0, true, nYOffset, false);
 	m_Window->redraw();
@@ -682,7 +679,7 @@ auto fValue  = pWidget->value();
 extern EditorMap g_EditorMap;
 if(g_EditorMap.Valid()){
 	int nValidXOffset = g_EditorMap.W() * SYS_MAPGRIDXP - m_DrawArea->w();
-	nValidXOffset = (std::max)(0, nValidXOffset);
+	nValidXOffset = (std::max<int>)(0, nValidXOffset);
 	int nXOffset = (int)(nValidXOffset * fValue * 1.0);
     	m_DrawArea->SetOffset(nXOffset, false, 0, true);
 	m_Window->redraw();
@@ -1111,7 +1108,7 @@ if(g_EditorMap.Valid()){
   } {
     code {{
 	auto pWidgetX = ((Fl_Valuator *)(m_SBar));
-	fXP = (std::min)(1.0, (std::max)(0.0, fXP));
+	fXP = (std::min<double>)(1.0, (std::max<double>)(0.0, fXP));
 	pWidgetX->value(pWidgetX->round(fXP));
 }} {}
   }
@@ -1119,7 +1116,7 @@ if(g_EditorMap.Valid()){
   } {
     code {{
 	auto pWidgetY = ((Fl_Valuator *)(m_VSBar));
-	fYP = (std::min)(1.0, (std::max)(0.0, fYP));
+	fYP = (std::min<double>)(1.0, (std::max<double>)(0.0, fYP));
 	pWidgetY->value(pWidgetY->round(fYP));
 }} {}
   }
@@ -1139,4 +1136,4 @@ if(g_EditorMap.Valid()){
     m_MenuBar->deactivate();
 }} {}
   }
-} 
+}

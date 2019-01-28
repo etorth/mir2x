@@ -160,7 +160,7 @@ bool Hero::Draw(int nViewX, int nViewY, int)
                         Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53,
                         0,
                         0,
-                        (int)(std::lround(nW * (m_HPMax ? std::min<double>(1.0, (1.0 * m_HP) / m_HPMax) : 1.0))),
+                        (int)(std::lround(nW * (m_HPMax ? (std::min<double>)(1.0, (1.0 * m_HP) / m_HPMax) : 1.0))),
                         nH);
 
                 g_SDLDevice->DrawTexture(pBar0,

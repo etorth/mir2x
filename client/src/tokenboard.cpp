@@ -614,7 +614,7 @@ int TokenBoard::GetLineIntervalMaxH2(int nLine, int nIntervalStartX, int nInterv
         int nW2 = rstTokenBox.State.W2;
 
         if(MathFunc::IntervalOverlap(nX, nW1 + nW + nW2, nIntervalStartX, nIntervalWidth)){
-            nMaxH2 = (std::max)(nMaxH2, nH2);
+            nMaxH2 = (std::max<int>)(nMaxH2, nH2);
         }
     }
     // maybe the line is not long enough to cover Interval
@@ -735,7 +735,7 @@ int TokenBoard::GetNewLineStartY(int nLine)
         int nH1 = rstTokenBox.Cache.H1;
 
         // GetLineTokenBoxStartY() already take m_LineSpace into consideration
-        nCurrentY = (std::max)(nCurrentY, GetLineTokenBoxStartY(nLine, nX, nW, nH1));
+        nCurrentY = (std::max<int>)(nCurrentY, GetLineTokenBoxStartY(nLine, nX, nW, nH1));
     }
 
     return nCurrentY;
@@ -887,7 +887,7 @@ void TokenBoard::ResetLine(int nLine)
     }else{
         m_W = 0;
         for(int nIndex = 0; nIndex < (int)(m_LineV.size()); ++nIndex){
-            m_W = (std::max)(m_W, LineFullWidth(nIndex));
+            m_W = (std::max<int>)(m_W, LineFullWidth(nIndex));
         }
         m_W += (m_Margin[1] + m_Margin[3]);
     }
@@ -2498,7 +2498,7 @@ int TokenBoard::GetLineMaxH1(int nLine)
     if(LineValid(nLine)){
         int nCurrMaxH1 = 0;
         for(auto &rstTokenBox: m_LineV[nLine].Content){
-            nCurrMaxH1 = (std::max)(nCurrMaxH1, rstTokenBox.Cache.H1);
+            nCurrMaxH1 = (std::max<int>)(nCurrMaxH1, rstTokenBox.Cache.H1);
         }
     }
     return -1;
@@ -2591,8 +2591,8 @@ int TokenBoard::SelectBox(int nX0, int nY0, int nX1, int nY1, const SDL_Color &r
 // but I use this more direct way
 void TokenBoard::RemoveLine(int nStartLine, int nLineCount)
 {
-    nStartLine = std::max<int>(nStartLine, 0);
-    nLineCount = std::min<int>(nLineCount, GetLineCount() - nStartLine);
+    nStartLine = (std::max<int>)(nStartLine, 0);
+    nLineCount = (std::min<int>)(nLineCount, GetLineCount() - nStartLine);
 
     m_LineV.erase(m_LineV.begin() + nStartLine, m_LineV.begin() + nStartLine + nLineCount);
     ResetLine(nStartLine);

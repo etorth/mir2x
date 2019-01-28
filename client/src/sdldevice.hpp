@@ -122,7 +122,7 @@ class SDLDevice final
        void SetGamma(double fGamma)
        {
            Uint16 pRawRamp[256];
-           SDL_CalculateGammaRamp((float)(std::min(std::max(fGamma, 0.0), 1.0)), pRawRamp);
+           SDL_CalculateGammaRamp((float)((std::min<double>)((std::max<double>)(fGamma, 0.0), 1.0)), pRawRamp);
            SDL_SetWindowGammaRamp(m_Window, pRawRamp, pRawRamp, pRawRamp);
        }
 

@@ -32,8 +32,8 @@ class ProgressBarWindow {open
   }
   Function {SetValue(int nValue)} {open return_type void
   } {
-    code {nValue = (std::min)(nValue, 100);
-nValue = (std::max)(nValue, 0);
+    code {nValue = (std::min<int>)(nValue, 100);
+nValue = (std::max<int>)(nValue, 0);
 
 std::string szLabel;
 szLabel  = "Progress: ";

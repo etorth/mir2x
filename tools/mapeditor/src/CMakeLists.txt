@@ -32,6 +32,6 @@ TARGET_LINK_LIBRARIES(mapeditor ${FLTK_LIBRARIES}  )
 TARGET_LINK_LIBRARIES(mapeditor ${OPENGL_LIBRARIES})
 TARGET_LINK_LIBRARIES(mapeditor ${CMAKE_DL_LIBS}                 )
 TARGET_LINK_LIBRARIES(mapeditor common             )
-TARGET_LINK_LIBRARIES(mapeditor png                )
+TARGET_LINK_LIBRARIES(mapeditor PNG::PNG                )
 
 INSTALL(TARGETS mapeditor DESTINATION tools/mapeditor)

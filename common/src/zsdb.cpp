@@ -350,11 +350,11 @@ bool ZSDB::BuildDB(const char *szSaveFullName, const char *szFileNameRegex, cons
     std::regex stFileNameReg(szFileNameRegex ? szFileNameRegex : ".*");
 
     for(auto &p: std::filesystem::directory_iterator(szDataPath)){
-        auto szFileName = p.path().filename().u8string();
         if(!p.is_regular_file()){
             continue;
         }
 
+        auto szFileName = p.path().filename().u8string();
         if(szFileNameRegex){
             if(!std::regex_match(szFileName.c_str(), stFileNameReg)){
                 continue;

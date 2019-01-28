@@ -162,13 +162,13 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
 
             // TODO
             // here I calculated the metrics, but seems I didn't use this info
-            int nMinX = (std::min)(0 - m_DSX[nFrame], 0);
-            int nMinY = (std::min)(0 - m_DSY[nFrame], 0);
-            int nMaxX = (std::max)(0 - m_DSX[nFrame] + m_PNG[0][nFrame]->w(), 0 + m_PNG[1][nFrame]->w());
-            int nMaxY = (std::max)(0 - m_DSY[nFrame] + m_PNG[0][nFrame]->h(), 0 + m_PNG[1][nFrame]->h());
+            int nMinX = (std::min<int>)(0 - m_DSX[nFrame], 0);
+            int nMinY = (std::min<int>)(0 - m_DSY[nFrame], 0);
+            int nMaxX = (std::max<int>)(0 - m_DSX[nFrame] + m_PNG[0][nFrame]->w(), 0 + m_PNG[1][nFrame]->w());
+            int nMaxY = (std::max<int>)(0 - m_DSY[nFrame] + m_PNG[0][nFrame]->h(), 0 + m_PNG[1][nFrame]->h());
 
-            nMaxW = (std::max)(nMaxW, nMaxX - nMinX);
-            nMaxH = (std::max)(nMaxH, nMaxY - nMinY);
+            nMaxW = (std::max<int>)(nMaxW, nMaxX - nMinX);
+            nMaxH = (std::max<int>)(nMaxH, nMaxY - nMinY);
             m_FrameCount++;
         }else{
             m_PNG[0][nFrame] = nullptr;

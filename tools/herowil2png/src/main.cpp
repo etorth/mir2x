@@ -153,8 +153,8 @@ bool heroWil2PNG(bool bGender,
                         //  project :  (nW + nH / 2) x (nH / 2 + 1)
                         //          :  (nW x nH)
                         //
-                        int nMaxW = std::max<int>(stInfo.shWidth + stInfo.shHeight / 2, stInfo.shWidth ) + 20;
-                        int nMaxH = std::max<int>(             1 + stInfo.shHeight / 2, stInfo.shHeight) + 20;
+                        int nMaxW = (std::max<int>)(stInfo.shWidth + stInfo.shHeight / 2, stInfo.shWidth ) + 20;
+                        int nMaxH = (std::max<int>)(             1 + stInfo.shHeight / 2, stInfo.shHeight) + 20;
                         stPNGBufShadow.resize(nMaxW * nMaxH);
 
                         bool bProject = true;

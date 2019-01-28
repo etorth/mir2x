@@ -19,6 +19,7 @@
 #pragma once
 #include <map>
 #include <mutex>
+#include <array>
 #include <chrono>
 #include <future>
 #include <atomic>

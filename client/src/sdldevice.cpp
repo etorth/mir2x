@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <cinttypes>
 #include <SDL2/SDL.h>
 #include <system_error>
 #include <SDL2/SDL_image.h>

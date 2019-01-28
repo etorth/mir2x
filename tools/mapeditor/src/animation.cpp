@@ -149,8 +149,8 @@ int Animation::AnimationW(uint32_t nAction, uint32_t nDirection)
         for(auto &rstFrame: rstFrameV){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
                 if(rstFrame[nIndex].Valid()){
-                    nMinX = std::min<int>(nMinX, rstFrame[nIndex].DX);
-                    nMaxX = std::max<int>(nMaxX, rstFrame[nIndex].DX + rstFrame[nIndex].Image->w());
+                    nMinX = (std::min<int>)(nMinX, rstFrame[nIndex].DX);
+                    nMaxX = (std::max<int>)(nMaxX, rstFrame[nIndex].DX + rstFrame[nIndex].Image->w());
                 }
             }
         }
@@ -172,8 +172,8 @@ int Animation::AnimationH(uint32_t nAction, uint32_t nDirection)
         for(auto &rstFrame: rstFrameV){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
                 if(rstFrame[nIndex].Valid()){
-                    nMinY = std::min<int>(nMinY, rstFrame[nIndex].DY);
-                    nMaxY = std::max<int>(nMaxY, rstFrame[nIndex].DY + rstFrame[nIndex].Image->h());
+                    nMinY = (std::min<int>)(nMinY, rstFrame[nIndex].DY);
+                    nMaxY = (std::max<int>)(nMaxY, rstFrame[nIndex].DY + rstFrame[nIndex].Image->h());
                 }
             }
         }

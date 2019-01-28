@@ -78,6 +78,6 @@ void TextButton::FormatText(const char *szFormatText, ...)
     }
 
     m_Label.SetText("%s", szText.c_str());
-    m_W = std::max<int>(m_W, m_Label.W());
-    m_H = std::max<int>(m_H, m_Label.H());
+    m_W = (std::max<int>)(m_W, m_Label.W());
+    m_H = (std::max<int>)(m_H, m_Label.H());
 }

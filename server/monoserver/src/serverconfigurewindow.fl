@@ -165,19 +165,19 @@ class ServerConfigureWindow {open
   Function {ExpRate()} {return_type double
   } {
     code {{
-    return (std::max)(0.00, (double)(m_ExpRate->value()));
+    return (std::max<double>)(0.00, (double)(m_ExpRate->value()));
 }} {}
   }
   Function {EquipRate()} {return_type double
   } {
     code {{
-    return (std::max)(0.00, (double)(m_EquipRate->value()));
+    return (std::max<double>)(0.00, (double)(m_EquipRate->value()));
 }} {}
   }
   Function {GoldRate()} {return_type double
   } {
     code {{
-    return (std::max)(0.00, (double)(m_GoldRate->value()));
+    return (std::max<double>)(0.00, (double)(m_GoldRate->value()));
 }} {}
   }
   Function {MaxMonsterCount()} {return_type int

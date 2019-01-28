@@ -433,7 +433,7 @@ bool Player::StruckDamage(const DamageNode &rstDamage)
     return true;
 
     if(rstDamage){
-        m_HP = std::max<int>(0, HP() - rstDamage.Damage);
+        m_HP = (std::max<int>)(0, HP() - rstDamage.Damage);
         ReportHealth();
         DispatchHealth();
 
@@ -796,8 +796,8 @@ void Player::RecoverHealth()
                 && nMax  >= 0
                 && nCurr <= nMax){
 
-            auto nAdd = std::max<int>(nMax / 60, 1);
-            return std::min<int>(nAdd, nMax - nCurr);
+            auto nAdd = (std::max<int>)(nMax / 60, 1);
+            return (std::min<int>)(nAdd, nMax - nCurr);
         }
         return 0;
     };

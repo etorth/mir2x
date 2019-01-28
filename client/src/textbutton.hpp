@@ -136,8 +136,8 @@ class TextButton: public ButtonBase
         // end of initialization list
         // put all validation in the function body
         {
-            m_W = std::max<int>(m_W, m_Label.W());
-            m_H = std::max<int>(m_H, m_Label.H());
+            m_W = (std::max<int>)(m_W, m_Label.W());
+            m_H = (std::max<int>)(m_H, m_Label.H());
         }
 
     public:

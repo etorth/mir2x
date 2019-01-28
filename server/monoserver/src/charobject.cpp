@@ -701,14 +701,14 @@ bool CharObject::AddHitterUID(uint64_t nUID, int nDamage)
     if(nUID){
         for(auto rstRecord: m_HitterUIDRecord){
             if(rstRecord.UID == nUID){
-                rstRecord.Damage += std::max<int>(0, nDamage);
+                rstRecord.Damage += (std::max<int>)(0, nDamage);
                 rstRecord.ActiveTime = g_MonoServer->GetTimeTick();
                 return true;
             }
         }
 
         // new entry
-        m_HitterUIDRecord.emplace_back(nUID, std::max<int>(0, nDamage), g_MonoServer->GetTimeTick());
+        m_HitterUIDRecord.emplace_back(nUID, (std::max<int>)(0, nDamage), g_MonoServer->GetTimeTick());
         return true;
     }
     return false;

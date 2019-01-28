@@ -96,11 +96,11 @@ void ProcessRun::ScrollMap()
 
         m_RollMap = true;
 
-        m_ViewX += (int)(std::lround(std::copysign(std::min<int>(3, std::abs(nDViewX)), nDViewX)));
-        m_ViewY += (int)(std::lround(std::copysign(std::min<int>(2, std::abs(nDViewY)), nDViewY)));
+        m_ViewX += (int)(std::lround(std::copysign((std::min<int>)(3, std::abs(nDViewX)), nDViewX)));
+        m_ViewY += (int)(std::lround(std::copysign((std::min<int>)(2, std::abs(nDViewY)), nDViewY)));
 
-        m_ViewX = std::max<int>(0, m_ViewX);
-        m_ViewY = std::max<int>(0, m_ViewY);
+        m_ViewX = (std::max<int>)(0, m_ViewX);
+        m_ViewY = (std::max<int>)(0, m_ViewY);
     }
 
     // stop rolling the map when

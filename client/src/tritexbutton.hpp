@@ -80,8 +80,8 @@ class TritexButton: public ButtonBase
                     if(auto pTexture = g_ProgUseDBN->Retrieve(m_TexID[nState])){
                         int nCurrW, nCurrH;
                         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nCurrW, &nCurrH)){
-                            nW = std::max(nCurrW, nW);
-                            nH = std::max(nCurrH, nH);
+                            nW = (std::max<int>)(nCurrW, nW);
+                            nH = (std::max<int>)(nCurrH, nH);
                         }
                     }
                 }

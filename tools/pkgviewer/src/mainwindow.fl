@@ -353,8 +353,8 @@ if(g_WilPackage.CurrentImageValid()){
 	int W = g_WilPackage.CurrentImageInfo().shWidth;
 	int H = g_WilPackage.CurrentImageInfo().shHeight;
 	
-	H = (std::max)(((std::min)(((int)(H * 1.5)), (int)(H + 40))), (int)200);
-	W = (std::max)(((std::min)(((int)(W * 1.5)), (int)(W + 40))), (int)200);
+	H = (std::max<int>)(((std::min<int>)(((int)(H * 1.5)), (int)(H + 40))), (int)200);
+	W = (std::max<int>)(((std::min<int>)(((int)(W * 1.5)), (int)(W + 40))), (int)200);
 
 	g_PreviewWindow = new PreviewWindow(W, H);
 	g_PreviewWindow->show();

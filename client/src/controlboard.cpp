@@ -210,8 +210,8 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
                 double fHPRatio = (pMyHero->HPMax() > 0) ? ((1.0 * pMyHero->HP()) / pMyHero->HPMax()) : 1.0;
                 double fMPRatio = (pMyHero->MPMax() > 0) ? ((1.0 * pMyHero->MP()) / pMyHero->MPMax()) : 1.0;
 
-                fHPRatio = std::max<double>(std::min<double>(fHPRatio, 1.0), 0.0);
-                fMPRatio = std::max<double>(std::min<double>(fMPRatio, 1.0), 0.0);
+                fHPRatio = (std::max<double>)((std::min<double>)(fHPRatio, 1.0), 0.0);
+                fMPRatio = (std::max<double>)((std::min<double>)(fMPRatio, 1.0), 0.0);
 
                 double fLostHPRatio = 1.0 - fHPRatio;
                 double fLostMPRatio = 1.0 - fMPRatio;

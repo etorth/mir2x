@@ -535,8 +535,8 @@ void DrawArea::DrawTextBox()
     DrawText(10, nY, "OffsetX: %d %d", m_OffsetX / SYS_MAPGRIDXP, m_OffsetX); nY += 20;
     DrawText(10, nY, "OffsetY: %d %d", m_OffsetY / SYS_MAPGRIDYP, m_OffsetY); nY += 20;
 
-    int nMouseX = (std::max)(0, m_MouseX + m_OffsetX - x());
-    int nMouseY = (std::max)(0, m_MouseY + m_OffsetY - y());
+    int nMouseX = (std::max<int>)(0, m_MouseX + m_OffsetX - x());
+    int nMouseY = (std::max<int>)(0, m_MouseY + m_OffsetY - y());
 
     DrawText(10, nY, "MouseMX: %d %d", nMouseX / SYS_MAPGRIDXP, nMouseX); nY += 20;
     DrawText(10, nY, "MouseMY: %d %d", nMouseY / SYS_MAPGRIDYP, nMouseY); nY += 20;
@@ -737,16 +737,16 @@ void DrawArea::SetOffset(int nX, bool bRelativeX, int nY, bool bRelativeY)
         }else{
             m_OffsetX = nX;
         }
-        m_OffsetX = (std::max)(m_OffsetX, 0);
-        m_OffsetX = (std::min)(m_OffsetX, (std::max)(0, SYS_MAPGRIDXP * g_EditorMap.W() - w()));
+        m_OffsetX = (std::max<int>)(m_OffsetX, 0);
+        m_OffsetX = (std::min<int>)(m_OffsetX, (std::max<int>)(0, SYS_MAPGRIDXP * g_EditorMap.W() - w()));
 
         if(bRelativeY){
             m_OffsetY += nY;
         }else{
             m_OffsetY = nY;
         }
-        m_OffsetY = (std::max)(m_OffsetY, 0);
-        m_OffsetY = (std::min)(m_OffsetY, (std::max)(0, SYS_MAPGRIDYP * g_EditorMap.H() - h()));
+        m_OffsetY = (std::max<int>)(m_OffsetY, 0);
+        m_OffsetY = (std::min<int>)(m_OffsetY, (std::max<int>)(0, SYS_MAPGRIDYP * g_EditorMap.H() - h()));
     }
 }
 
