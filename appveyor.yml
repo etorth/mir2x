@@ -6,7 +6,7 @@ platform: x64
 
 environment:
     VCPKG_INSTALLED_TOOLS_PATH: C:\Tools\vcpkg\installed\x64-windows-static\tools
-    PATH: %VCPKG_INSTALLED_TOOLS_PATH%;%VCPKG_INSTALLED_TOOLS_PATH%\fltk;%VCPKG_INSTALLED_TOOLS_PATH%\lua;%PATH%
+    PATH: $(VCPKG_INSTALLED_TOOLS_PATH%);$(VCPKG_INSTALLED_TOOLS_PATH)\fltk;$(VCPKG_INSTALLED_TOOLS_PATH)\lua;%PATH%
     CMAKE_GENERATOR: -G"Visual Studio 15 2017 Win64"
     CMAKE_TOOLCHAIN_FILE: -DCMAKE_TOOLCHAIN_FILE="C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake"
     VCPKG_DEFAULT_TRIPLET: x64-windows
