@@ -21,7 +21,7 @@
 #include <unordered_map>
 #include "messagebase.hpp"
 
-enum: uint8_t
+enum SMType: uint8_t
 {
     SM_NONE = 0,
     SM_PING,

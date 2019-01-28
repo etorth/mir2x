@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include "messagebase.hpp"
 
-enum: uint8_t
+enum CMType: uint8_t
 {
     CM_NONE = 0,
     CM_PING,
