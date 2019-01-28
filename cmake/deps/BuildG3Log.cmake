@@ -22,7 +22,9 @@ INCLUDE(ExternalProject)
 ExternalProject_Add(
     g3log
 
-    GIT_REPOSITORY "https://github.com/KjellKod/g3log"
+    # GIT_REPOSITORY "https://github.com/KjellKod/g3log"
+    # use my fork to try support windows
+    GIT_REPOSITORY "https://github.com/etorth/g3log"
     GIT_TAG        "master"
   
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/g3log"
