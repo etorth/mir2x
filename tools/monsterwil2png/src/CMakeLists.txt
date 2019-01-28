@@ -30,7 +30,7 @@ TARGET_INCLUDE_DIRECTORIES(monsterwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 TARGET_LINK_LIBRARIES(monsterwil2png ${FLTK_LIBRARIES}  )
 TARGET_LINK_LIBRARIES(monsterwil2png ${OPENGL_LIBRARIES})
-TARGET_LINK_LIBRARIES(monsterwil2png dl                 )
+TARGET_LINK_LIBRARIES(monsterwil2png ${CMAKE_DL_LIBS}   )
 TARGET_LINK_LIBRARIES(monsterwil2png common             )
 TARGET_LINK_LIBRARIES(monsterwil2png ${TINYXML2_LIBRARIES})
 TARGET_LINK_LIBRARIES(monsterwil2png png                )

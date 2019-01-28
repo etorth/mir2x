@@ -30,7 +30,7 @@ TARGET_INCLUDE_DIRECTORIES(weaponwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 TARGET_LINK_LIBRARIES(weaponwil2png ${FLTK_LIBRARIES}  )
 TARGET_LINK_LIBRARIES(weaponwil2png ${OPENGL_LIBRARIES})
-TARGET_LINK_LIBRARIES(weaponwil2png dl                 )
+TARGET_LINK_LIBRARIES(weaponwil2png ${CMAKE_DL_LIBS}                 )
 TARGET_LINK_LIBRARIES(weaponwil2png common             )
 TARGET_LINK_LIBRARIES(weaponwil2png ${TINYXML2_LIBRARIES}           )
 TARGET_LINK_LIBRARIES(weaponwil2png png                )

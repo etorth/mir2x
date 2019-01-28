@@ -17,18 +17,37 @@
  */
 
 #pragma once
-#include "time.h"
+#ifdef _MSC_VER
+    #include <windows.h>
+#else
+    #include "time.h"
+#endif
+
 #include <atomic>
 #include <cstdint>
 
 class hres_timer
 {
+#ifdef _MSC_VER
+    private:
+        LARGE_INTEGER m_start;
+        LARGE_INTEGER m_freq;
+#else
     private:
         struct timespec m_start;
-
+#endif
     public:
         explicit hres_timer()
         {
+#ifdef _MSC_VER
+            // not sure how heavy is it
+            // msdn document recommends to cache this value
+            QueryPerformanceFrequency(&m_freq);
+            if(m_freq.QuadPart == 0){
+                // hr-counter not supported
+                // after WinXP this error won't happen
+            }
+#endif
             reset();
         }
 
@@ -38,6 +57,11 @@ class hres_timer
     public:
         uint64_t diff_nsec() const
         {
+#ifdef _MSC_VER
+            LARGE_INTEGER curr_time;
+            QueryPerformanceCounter(&curr_time);
+            return ((uint64_t)(curr_time.QuadPart - m_start.QuadPart) * 1000000000ULL) / (uint64_t)(m_freq.QuadPart);
+#else
             struct timespec curr_time;
             if(clock_gettime(CLOCK_MONOTONIC, &curr_time)){
                 return 0;
@@ -45,6 +69,7 @@ class hres_timer
 
             constexpr long TIME_PRECISION = 1000000000;
             return (uint64_t)((long)(curr_time.tv_sec - m_start.tv_sec) * TIME_PRECISION + (curr_time.tv_nsec - m_start.tv_nsec));
+#endif
         }
 
         uint64_t diff_usec() const
@@ -65,9 +90,16 @@ class hres_timer
     public:
         void reset()
         {
+#ifdef _MSC_VER
+            QueryPerformanceCounter(&m_start);
+            if(m_start.QuadPart == 0){
+
+            }
+#else
             if(clock_gettime(CLOCK_MONOTONIC, &m_start)){
                 // ...
             }
+#endif
         }
 
     public:
@@ -80,12 +112,12 @@ class hres_timer
 template<typename T = uint64_t> class raii_timer final: public hres_timer
 {
     private:
-        T *m_u64;
+        T *m_valptr;
 
     public:
-        explicit raii_timer(T *pu64 = nullptr)
+        explicit raii_timer(T *valptr = nullptr)
             : hres_timer()
-            , m_u64(pu64)
+            , m_valptr(valptr)
         {
             static_assert(std::is_same<T, uint64_t>::value || std::is_same<T, std::atomic<uint64_t>>::value);
         }
@@ -93,14 +125,14 @@ template<typename T = uint64_t> class raii_timer final: public hres_timer
     public:
         ~raii_timer()
         {
-            if(m_u64){
-                *m_u64 += diff_nsec();
+            if(m_valptr){
+                *m_valptr += diff_nsec();
             }
         }
 
     public:
         void dismiss()
         {
-            m_u64 = nullptr;
+            m_valptr = nullptr;
         }
 };

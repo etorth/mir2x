@@ -30,6 +30,6 @@ TARGET_INCLUDE_DIRECTORIES(pkgviewer PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 TARGET_LINK_LIBRARIES(pkgviewer ${FLTK_LIBRARIES}  )
 TARGET_LINK_LIBRARIES(pkgviewer ${OPENGL_LIBRARIES})
-TARGET_LINK_LIBRARIES(pkgviewer dl                 )
+TARGET_LINK_LIBRARIES(pkgviewer ${CMAKE_DL_LIBS}                 )
 TARGET_LINK_LIBRARIES(pkgviewer common             )
 TARGET_LINK_LIBRARIES(pkgviewer png                )
