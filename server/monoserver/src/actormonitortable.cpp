@@ -181,14 +181,22 @@ void ActorMonitorTable::DrawData(int nRow, int nCol, int nX, int nY, int nW, int
     int fg_color = FL_BLACK;
     int bg_color = FL_WHITE;
 
-    if(m_ActorMonitorList[nRow].UID == m_SelectedUID){
+    bool bSelectedRow = (m_ActorMonitorList[nRow].UID == m_SelectedUID);
+    bool bSelectedCol = (m_SortByCol >= 0 && m_SortByCol == nCol);
+
+    if(bSelectedRow){
         fg_color = FL_WHITE;
         bg_color = 0xaa4444;
     }
 
-    if(m_SortByCol >= 0 && m_SortByCol == nCol){
+    if(bSelectedCol){
         fg_color = FL_WHITE;
         bg_color = 0x44aa44;
+    }
+
+    if(bSelectedRow && bSelectedCol){
+        fg_color = FL_WHITE;
+        bg_color = 0x4444aa;
     }
 
     fl_push_clip(nX, nY, nW, nH);

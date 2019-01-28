@@ -40,6 +40,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cinttypes>
+#include <algorithm>
 
 #include "shadow.hpp"
 #include "savepng.hpp"

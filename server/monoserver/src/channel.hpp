@@ -17,11 +17,13 @@
  */
 
 #pragma once
+#include <asio.hpp>
 #include <array>
 #include <mutex>
 #include <memory>
+#include <vector>
+#include <atomic>
 #include <cstdint>
-#include <asio.hpp>
 #include <functional>
 #include "dispatcher.hpp"
 #include "channpackq.hpp"
