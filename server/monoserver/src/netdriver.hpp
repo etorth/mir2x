@@ -24,10 +24,10 @@
 
 #pragma once
 
+#include <asio.hpp>
 #include <atomic>
 #include <thread>
 #include <cstdint>
-#include <asio.hpp>
 #include "channel.hpp"
 #include "sysconst.hpp"
 #include "monoserver.hpp"

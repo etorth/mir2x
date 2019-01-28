@@ -15,6 +15,9 @@ environment:
 configuration:
     - Release
 
+cache:
+    - build\3rdparty -> appveyor.yml
+
 install:
     - cmd: |-
         vcpkg install lua:x64-windows-static

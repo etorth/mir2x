@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include <queue>
 #include <asio.hpp>
+#include <queue>
 #include <functional>
 
 #include "memorychunkpn.hpp"
