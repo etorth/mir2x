@@ -25,7 +25,9 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 ADD_COMPILE_DEFINITIONS(CONDCHECK)
 
 IF(WIN32 AND MSVC)
-    ADD_COMPILE_OPTIONS(/W4 /WX)
+    # won't use the /WX
+    # have a lot secure warnings
+    ADD_COMPILE_OPTIONS(/W4)
 ELSE()
     ADD_COMPILE_OPTIONS(-fno-strict-aliasing)
     ADD_COMPILE_OPTIONS(-Wall -Wfatal-errors -Wextra -Wunused -Werror)
