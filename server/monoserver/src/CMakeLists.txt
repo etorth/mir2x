@@ -58,7 +58,6 @@ TARGET_LINK_LIBRARIES(monoserver ${THERON_LIBRARIES})
 TARGET_LINK_LIBRARIES(monoserver dl                 )
 TARGET_LINK_LIBRARIES(monoserver common             )
 TARGET_LINK_LIBRARIES(monoserver pthread            )
-TARGET_LINK_LIBRARIES(monoserver stdc++fs           )
 TARGET_LINK_LIBRARIES(monoserver ${G3LOG_LIBRARIES} )
 TARGET_LINK_LIBRARIES(monoserver ${ZSTD_LIBRARIES}  )
 
