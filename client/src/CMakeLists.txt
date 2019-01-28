@@ -16,6 +16,7 @@ TARGET_LINK_LIBRARIES(client Threads::Threads     )
 
 IF(WIN32)
     TARGET_LINK_LIBRARIES(client SDL2::SDL2main SDL2::SDL2-static)
+    TARGET_LINK_LIBRARIES(client FreeType::FreeType)
 ELSE()
     TARGET_LINK_LIBRARIES(client ${SDL2_LIBRARIES})
 ENDIF()
