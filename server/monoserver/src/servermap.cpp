@@ -45,27 +45,31 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule()
 ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxStep, int nCheckCO)
     : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
       {
-          if(0){
-              if(true
-                      && MaxStep() != 1
-                      && MaxStep() != 2
-                      && MaxStep() != 3){
+          // comment the following code out
+          // seems it triggers some wired msvc compilation error:
+          // error C2248: 'AStarPathFinder::MaxStep': cannot access protected member declared in class 'AStarPathFinder'
 
-                  g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
-                  return 10000.00;
-              }
-
-              int nDistance2 = MathFunc::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
-              if(true
-                      && nDistance2 != 1
-                      && nDistance2 != 2
-                      && nDistance2 != MaxStep() * MaxStep()
-                      && nDistance2 != MaxStep() * MaxStep() * 2){
-
-                  g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
-                  return 10000.00;
-              }
-          }
+          // if(0){
+          //     if(true
+          //             && MaxStep() != 1
+          //             && MaxStep() != 2
+          //             && MaxStep() != 3){
+          //
+          //         g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
+          //         return 10000.00;
+          //     }
+          //
+          //     int nDistance2 = MathFunc::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
+          //     if(true
+          //             && nDistance2 != 1
+          //             && nDistance2 != 2
+          //             && nDistance2 != MaxStep() * MaxStep()
+          //             && nDistance2 != MaxStep() * MaxStep() * 2){
+          //
+          //         g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
+          //         return 10000.00;
+          //     }
+          // }
 
           const int nCheckLock = m_CheckCO;
           return m_Map->OneStepCost(m_CheckCO, nCheckLock, nSrcX, nSrcY, nDstX, nDstY);
