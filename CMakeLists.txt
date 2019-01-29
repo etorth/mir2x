@@ -28,6 +28,7 @@ IF(WIN32 AND MSVC)
     # won't use the /WX
     # have a lot secure warnings
     ADD_COMPILE_OPTIONS(/W4)
+    ADD_COMPILE_DEFINITIONS(WIN32_LEAN_AND_MEAN)
 ELSE()
     ADD_COMPILE_OPTIONS(-fno-strict-aliasing)
     ADD_COMPILE_OPTIONS(-Wall -Wfatal-errors -Wextra -Wunused -Werror)
