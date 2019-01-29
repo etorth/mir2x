@@ -98,9 +98,12 @@ template<typename KeyT, typename ResT, size_t ResMax> class InnDB
                 m_DLink.PushHead(nKey);
             }
 
-            m_Cache[nKey].Resource = stResource;
-            m_Cache[nKey].Weight   = nWeight;
-            m_Cache[nKey].DLinkOff = (ResMax > 0) ? m_DLink.HeadOff() : 0;
+            ResourceEntry stEntry;
+            stEntry.Resource = stResource;
+            stEntry.Weight   = nWeight;
+            stEntry.DLinkOff = (ResMax > 0) ? m_DLink.HeadOff() : 0;
+
+            m_Cache[nKey] = stEntry;
 
             if(ResMax){
                 m_ResourceSum += nWeight;
@@ -122,6 +125,7 @@ template<typename KeyT, typename ResT, size_t ResMax> class InnDB
                 if(auto p = m_Cache.find(m_DLink.Back()); p != m_Cache.end()){
                     FreeResource(p->second.Resource);
                     m_ResourceSum -= p->second.Weight;
+                    m_Cache.erase(p);
                 }
                 m_DLink.PopBack();
             }
