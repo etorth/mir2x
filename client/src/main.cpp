@@ -91,6 +91,12 @@ int main(int argc, char *argv[])
     g_Client          = new Client();       // loads fontex resource
     g_NotifyBoard     = new NotifyBoard();  // needs fontex
 
-    g_Client->MainLoop();
+    try{
+        g_Client->MainLoop();
+    }catch(const std::exception &e){
+        g_Log->AddLog(LOGTYPE_FATAL, "Caught exception: %s", e.what());
+    }catch(...){
+        g_Log->AddLog(LOGTYPE_FATAL, "Caught unknown exception, exit...");
+    }
     return 0;
 }
