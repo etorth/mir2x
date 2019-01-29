@@ -45,7 +45,7 @@ $ make
 $ make install
 ```
 ### First time run
-The above steps install binaries in mir2x/b/install. Before run the server/client you need to start mysql server on your host. Then create the default database:
+The above steps install binaries in mir2x/b/install. By default mir2x server use embeded sqlite3. But if you prefer mysql, you have to start mysql server on your host, and create the default database:
 
 ```sh
 $ cd mir2x/b/install/tools/dbcreator/
