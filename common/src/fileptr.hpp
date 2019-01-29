@@ -20,27 +20,44 @@
 #include <memory>
 #include <cerrno>
 #include <cstring>
+#include <type_traits>
 #include "strfunc.hpp"
 
 inline auto make_fileptr(const char *path, const char *mode)
 {
     if(auto fp = std::fopen(path, mode); fp){
-        auto file_closer = [](std::FILE *fp) -> void
+        auto fileptr_deleter = [](std::FILE *fp)-> void
         {
             // don't need to check fp
             // deleter only get called when fp is not null
             if(std::fclose(fp)){
                 // we shouldn't throw
-                // how to handle the failure...
+                // how to handle the failure here ?
             }
         };
 
-        // use a wrapper to the file_closer
-        // avoid pass standard lib's function pointer std::fclose
-        return std::unique_ptr<std::FILE, decltype(file_closer)>(fp, file_closer);
+        // use a wrapper to the std::fclose
+        // avoid pass standard lib's function pointer
+        return std::unique_ptr<std::FILE, decltype(fileptr_deleter)>(fp, fileptr_deleter);
     }
-    throw std::runtime_error(str_printf("in make_fileptr(%s, %s): %s", path ? path : "(null)", mode ? mode : "(null)", std::strerror(errno)));
+    throw std::runtime_error(str_printf("in make_fileptr(\"%s\", \"%s\"): %s", path ? path : "(null)", mode ? mode : "(null)", std::strerror(errno)));
 }
 
-// seems I can't support this
-// using fileptr = std::invoke_result_t<decltype(&make_fileptr), const char *, const char *>;
+// define a standalone type of fileptr
+// but can't use it to instantiate an uninitalized object:
+//
+// fileptr p_null;                                // wrong: std::unique<std::FILE, deleter> doesn't have default constructor
+// fileptr p_good = make_fileptr("123.txt", "r"); // good!
+// 
+//
+// struct test
+// {
+//     fileptr m_good_ptr;
+//     fileptr m_null_ptr;
+//     test()
+//       : m_good_ptr(make_fileptr("123.txt", "r"))    // good
+//       , m_null_ptr(nullptr)                         // wrong
+//       , m_null_ptr()                                // wrong
+//     {}
+// }
+using fileptr = std::invoke_result_t<decltype(&make_fileptr), const char *, const char *>;

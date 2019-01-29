@@ -1,0 +1,58 @@
+version: 'build-{build}'
+
+image: Visual Studio 2017
+
+platform: x64
+
+environment:
+    VCPKG_INSTALLED_TOOLS_PATH: C:\Tools\vcpkg\installed\x64-windows-static\tools
+    PATH: $(VCPKG_INSTALLED_TOOLS_PATH%);$(VCPKG_INSTALLED_TOOLS_PATH)\fltk;$(VCPKG_INSTALLED_TOOLS_PATH)\lua;$(PATH)
+    CMAKE_GENERATOR: -G"Visual Studio 15 2017 Win64"
+    CMAKE_TOOLCHAIN_FILE: -DCMAKE_TOOLCHAIN_FILE="C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake"
+    VCPKG_DEFAULT_TRIPLET: x64-windows
+    VCPKG_TARGET_TRIPLET: -DVCPKG_TARGET_TRIPLET=x64-windows-static
+ 
+configuration:
+    - Release
+
+install:
+    - cmd: |-
+        vcpkg install lua:x64-windows-static
+        vcpkg install sdl2:x64-windows-static
+        vcpkg install sdl2-ttf:x64-windows-static
+        vcpkg install sdl2-image:x64-windows-static
+        vcpkg install fltk:x64-windows-static
+        vcpkg install opengl:x64-windows-static
+        vcpkg install zlib:x64-windows-static
+        vcpkg install libpng:x64-windows-static
+        vcpkg install sqlite3:x64-windows-static
+
+before_build:
+    - cmd: |-
+        mkdir build
+        cd build
+        cmake --version
+        cmake .. %CMAKE_GENERATOR% %CMAKE_TOOLCHAIN_FILE% %VCPKG_TARGET_TRIPLET%
+        cmake --build . --target package --config Release
+
+build_script:
+    - echo "Done"
+
+after_build:
+    - echo "Done"
+
+test_script:
+    - echo "Done"
+
+artifacts:
+    - path: build\*.zip
+
+on_finish:
+    - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
+deploy:
+    provider: GitHub
+    auth_token:
+        secure: HHPH5otHDTeP2iU11PdRWnhpOMycDJ/n+NKC0xvSphvA4NLz41/rASWc1UseTQgU
+    on:
+        APPVEYOR_REPO_TAG: true

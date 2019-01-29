@@ -153,7 +153,7 @@ bool MyHero::DecompMove(bool bCheckGround, int nCheckCreature, bool bCheckMove, 
                     int nDY = (nYt > nY0) - (nYt < nY0);
 
                     int nIndexMax = 0;
-                    switch(LDistance2(nX0, nY0, nXt, nYt)){
+                    switch(MathFunc::LDistance2(nX0, nY0, nXt, nYt)){
                         case 1:
                         case 2:
                             {
@@ -265,7 +265,7 @@ bool MyHero::DecompActionPickUp()
             return false;
         }
 
-        switch(LDistance2(nX0, nY0, nX1, nY1)){
+        switch(MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
             case 0:
                 {
                     m_ActionQueue.emplace_front(stCurrPickUp);
@@ -319,7 +319,7 @@ bool MyHero::DecompActionMove()
             return false;
         }
 
-        switch(LDistance2(nX0, nY0, nX1, nY1)){
+        switch(MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
             case 0:
                 {
                     extern Log *g_Log;
@@ -335,7 +335,7 @@ bool MyHero::DecompActionMove()
                 {
                     auto fnAddHop = [this, stCurrMove](int nXm, int nYm) -> bool
                     {
-                        switch(LDistance2(stCurrMove.AimX, stCurrMove.AimY, nXm, nYm)){
+                        switch(MathFunc::LDistance2(stCurrMove.AimX, stCurrMove.AimY, nXm, nYm)){
                             case 0:
                                 {
                                     m_ActionQueue.emplace_front(stCurrMove);
@@ -412,7 +412,7 @@ bool MyHero::DecompActionAttack()
             auto nX1 = pCreature->X();
             auto nY1 = pCreature->Y();
 
-            switch(LDistance2(nX0, nY0, nX1, nY1)){
+            switch(MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
                 case 0:
                     {
                         extern Log *g_Log;
@@ -440,7 +440,7 @@ bool MyHero::DecompActionAttack()
                             // decompse the move
                             // but need to check if it's one step distance
 
-                            switch(LDistance2(nXt, nYt, nX1, nY1)){
+                            switch(MathFunc::LDistance2(nXt, nYt, nX1, nY1)){
                                 case 0:
                                     {
                                         // one hop we can reach the attack location

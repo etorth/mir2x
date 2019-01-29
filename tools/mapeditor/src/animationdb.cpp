@@ -17,34 +17,33 @@
  */
 
 #include <cstring>
-#include <dirent.h>
+#include <filesystem>
 #include "hexstring.hpp"
 #include "animationdb.hpp"
 
 bool AnimationDB::Load(const char *szDBPath)
 {
     // 1. check argument
-    if(!(szDBPath && std::strlen(szDBPath))){ return false; }
+    if(!(szDBPath && std::strlen(szDBPath))){
+        return false;
+    }
 
     // 2. record this path
     m_DBPath = szDBPath;
-    while(m_DBPath.back() == '/'){ m_DBPath.pop_back(); }
-    if(m_DBPath.empty()){ return false; }
+    while(m_DBPath.back() == '/'){
+        m_DBPath.pop_back();
+    }
 
-    auto *pDir = opendir(m_DBPath.c_str());
-    if(!pDir){ return false; }
+    if(m_DBPath.empty()){
+        return false;
+    }
 
-    while(auto *pDirItem = readdir(pDir)){
-        // 1. skip current and parent directory
-        if(!std::strcmp(pDirItem->d_name,  ".")){ continue; }
-        if(!std::strcmp(pDirItem->d_name, "..")){ continue; }
+    for(auto &p: std::filesystem::directory_iterator(m_DBPath.c_str())){
+        if(!p.is_regular_file()){
+            continue;
+        }
 
-        // 2. only read regular file
-        if(pDirItem->d_type != DT_REG){ continue; }
-
-        // 3. ok now we get a regular file
-        //    we need to analysis the file name
-        std::string szFileName = pDirItem->d_name;
+        auto szFileName = p.path().filename().u8string();
         if(szFileName.size() != (18 + 4)){ continue; }
         if(szFileName[0] != '0'){ continue; }
         if((szFileName[1] != '0') && (szFileName[1] != '1')){ continue; }
@@ -74,6 +73,5 @@ bool AnimationDB::Load(const char *szDBPath)
         Add(nMonsterID, nAction, nDirection, nFrame, (szFileName[1] == '1'), nDX, nDY, (m_DBPath + "/" + szFileName));
         // since we didn't update this directory, so we don't need rewinddir()
     }
-
-    return !closedir(pDir);
+    return true;
 }

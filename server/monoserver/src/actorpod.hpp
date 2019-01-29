@@ -18,6 +18,7 @@
 #pragma once
 
 #include <map>
+#include <array>
 #include <string>
 #include <functional>
 
@@ -47,14 +48,11 @@ class ActorPod final
         struct AMProcMonitor
         {
             uint64_t ProcTick;
-            uint64_t SendTick;
-
             uint32_t SendCount;
             uint32_t RecvCount;
 
             AMProcMonitor()
                 : ProcTick(0)
-                , SendTick(0)
                 , SendCount(0)
                 , RecvCount(0)
             {}
@@ -165,10 +163,5 @@ class ActorPod final
         bool Detach(const std::function<void()> &) const;
 
     public:
-        const ActorPodMonitor &GetActorPodMonitor() const
-        {
-            // TODO: how to protect this?
-            // only the charobject who owns the pod can call this
-            return m_PodMonitor;
-        }
+        void PrintMonitor() const;
 };

@@ -30,7 +30,7 @@ namespace HexString
     template<typename T, size_t ByteN = 0> const char *ToString(T nKey, char *szString, bool bAppendZero)
     {
         static_assert(std::is_unsigned<T>::value, "HexString::ToString() requires unsigned intergal type");
-        const size_t nByteN = (ByteN) ? std::min(ByteN, sizeof(T)) : sizeof(T);
+        const size_t nByteN = (ByteN) ? (std::min<size_t>)(ByteN, sizeof(T)) : sizeof(T);
         const uint16_t knvHexStringChunk[]
         {
             #include "hexstring.inc"
@@ -56,7 +56,7 @@ namespace HexString
     template<typename T, size_t ByteN = 0> T ToHex(const char *szString)
     {
         static_assert(std::is_unsigned<T>::value, "HexString::ToHex() requires unsigned intergal type");
-        const size_t nByteN = (ByteN) ? std::min(ByteN, sizeof(T)) : sizeof(T);
+        const size_t nByteN = (ByteN) ? (std::min<size_t>)(ByteN, sizeof(T)) : sizeof(T);
         const uint8_t knvStringHexChunk[]
         {
             0X00,  // "0" - "0"

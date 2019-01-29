@@ -53,7 +53,7 @@ class NotifyBoard: public Widget
                   0,
                   16,
                   0,
-                  ColorFunc::COLOR_RED,
+                  {0XFF, 0X00, 0X00, 0X00},
                   0,
                   0,
                   0,

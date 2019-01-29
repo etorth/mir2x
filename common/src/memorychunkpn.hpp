@@ -212,7 +212,7 @@ class MemoryChunkPN
                 // or we can just use function ValidUnit(nIndex)
                 size_t nNodeSize = PoolSize * 2;
                 for(size_t nIndex = 0; nIndex < 2 * PoolSize - 1; ++nIndex){
-                    if(PowerOf2(nIndex + 1)){
+                    if(MathFunc::PowerOf2(nIndex + 1)){
                         nNodeSize /= 2;
                     }
 
@@ -290,7 +290,7 @@ class MemoryChunkPN
                 // set all its ancestor for right capacity
                 while(nIndex){
                     nIndex = ParentNode(nIndex);
-                    Longest[nIndex] = std::max<size_t>(Longest[LeftNode(nIndex)], Longest[RightNode(nIndex)]);
+                    Longest[nIndex] = (std::max<size_t>)(Longest[LeftNode(nIndex)], Longest[RightNode(nIndex)]);
                 }
 
                 return &(pHead->Data[0]);
@@ -332,7 +332,7 @@ class MemoryChunkPN
                     }else{
                         // part or all of the memory it takes in charge is not valid
                         // mark for the longest valid memory
-                        Longest[nNodeID] = std::max<size_t>(nLeftUnit, nRightUnit);
+                        Longest[nNodeID] = (std::max<size_t>)(nLeftUnit, nRightUnit);
                     }
                 }
             }
@@ -438,8 +438,8 @@ class MemoryChunkPN
             size_t nSizeInUnit = (nSizeInByte + nOff + UnitSize - 1) / UnitSize;
 
             // then nSizeInUnit == 0 won't happen
-            if(!PowerOf2<size_t>(nSizeInUnit)){
-                nSizeInUnit = RoundByPowerOf2<size_t>(nSizeInUnit);
+            if(!MathFunc::PowerOf2<size_t>(nSizeInUnit)){
+                nSizeInUnit = MathFunc::RoundByPowerOf2<size_t>(nSizeInUnit);
             }
 
             // oooops, request tooo large memory chunk and any pool can't satisfy

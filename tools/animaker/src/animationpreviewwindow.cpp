@@ -176,13 +176,13 @@ AnimationPreviewWindow::AnimationPreviewWindow(uint32_t nFileIndex, uint32_t nAn
             if(m_PNG[0][nFrame] == nullptr || m_PNG[1][nFrame] == nullptr){
                 continue;
             }
-            int nMinX = (std::min)(0 - m_DSX[nFrame], 0);
-            int nMinY = (std::min)(0 - m_DSY[nFrame], 0);
-            int nMaxX = (std::max)(0 - m_DSX[nFrame] + m_PNG[0][nFrame]->w(), 0 + m_PNG[1][nFrame]->w());
-            int nMaxY = (std::max)(0 - m_DSY[nFrame] + m_PNG[0][nFrame]->h(), 0 + m_PNG[1][nFrame]->h());
+            int nMinX = (std::min<int>)(0 - m_DSX[nFrame], 0);
+            int nMinY = (std::min<int>)(0 - m_DSY[nFrame], 0);
+            int nMaxX = (std::max<int>)(0 - m_DSX[nFrame] + m_PNG[0][nFrame]->w(), 0 + m_PNG[1][nFrame]->w());
+            int nMaxY = (std::max<int>)(0 - m_DSY[nFrame] + m_PNG[0][nFrame]->h(), 0 + m_PNG[1][nFrame]->h());
 
-            nMaxW = (std::max)(nMaxW, nMaxX - nMinX);
-            nMaxH = (std::max)(nMaxH, nMaxY - nMinY);
+            nMaxW = (std::max<int>)(nMaxW, nMaxX - nMinX);
+            nMaxH = (std::max<int>)(nMaxH, nMaxY - nMinY);
 
             m_LastFrameIndex = nFrame;
             m_FrameCount++;
@@ -194,8 +194,8 @@ AnimationPreviewWindow::AnimationPreviewWindow(uint32_t nFileIndex, uint32_t nAn
 
     delete pData;
 
-    m_MaxH      = (std::max)(((std::min)(((int16_t)(nMaxH * 1.5)), (int16_t)(nMaxH + 40))), (int16_t)250);
-    m_MaxW      = (std::max)(((std::min)(((int16_t)(nMaxW * 1.5)), (int16_t)(nMaxW + 40))), (int16_t)250);
+    m_MaxH      = (std::max<int16_t>)(((std::min<int64_t>)(((int16_t)(nMaxH * 1.5)), (int16_t)(nMaxH + 40))), (int16_t)250);
+    m_MaxW      = (std::max<int16_t>)(((std::min<int64_t>)(((int16_t)(nMaxW * 1.5)), (int16_t)(nMaxW + 40))), (int16_t)250);
     m_ImageMaxW = nMaxW;
     m_ImageMaxH = nMaxH;
 
@@ -237,16 +237,16 @@ void AnimationPreviewWindow::RedrawAll()
     m_Window->make_current();
     Fl::check();
 
-    int nMinX = (std::min)(0 - m_DSX[m_CurrentFrameIndex], 0);
-    int nMinY = (std::min)(0 - m_DSY[m_CurrentFrameIndex], 0);
-    int nMaxX = (std::max)(0 - m_DSX[m_CurrentFrameIndex] + m_PNG[0][m_CurrentFrameIndex]->w(), 0 + m_PNG[1][m_CurrentFrameIndex]->w());
-    int nMaxY = (std::max)(0 - m_DSY[m_CurrentFrameIndex] + m_PNG[0][m_CurrentFrameIndex]->h(), 0 + m_PNG[1][m_CurrentFrameIndex]->h());
+    int nMinX = (std::min<int>)(0 - m_DSX[m_CurrentFrameIndex], 0);
+    int nMinY = (std::min<int>)(0 - m_DSY[m_CurrentFrameIndex], 0);
+    int nMaxX = (std::max<int>)(0 - m_DSX[m_CurrentFrameIndex] + m_PNG[0][m_CurrentFrameIndex]->w(), 0 + m_PNG[1][m_CurrentFrameIndex]->w());
+    int nMaxY = (std::max<int>)(0 - m_DSY[m_CurrentFrameIndex] + m_PNG[0][m_CurrentFrameIndex]->h(), 0 + m_PNG[1][m_CurrentFrameIndex]->h());
 
     // int nW = nMaxX - nMinX;
     // int nH = nMaxY - nMinY;
 
-    int nMaxW = (std::max)(nMaxW, nMaxX - nMinX);
-    int nMaxH = (std::max)(nMaxH, nMaxY - nMinY);
+    int nMaxW = (std::max<int>)(nMaxW, nMaxX - nMinX);
+    int nMaxH = (std::max<int>)(nMaxH, nMaxY - nMinY);
 
     int nStartX = (m_MaxW - m_ImageMaxW) / 2;
     int nStartY = (m_MaxH - m_ImageMaxH) / 2;

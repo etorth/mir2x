@@ -241,16 +241,16 @@ bool EditorMap::Resize(
 {
     // we only support 2M * 2N cropping and expansion
     if(Valid()){
-        nX = (std::max)(0, nX);
-        nY = (std::max)(0, nY);
+        nX = (std::max<int>)(0, nX);
+        nY = (std::max<int>)(0, nY);
 
         if(nX % 2){ nX--; nW++; }
         if(nY % 2){ nY--; nH++; }
         if(nW % 2){ nW++; }
         if(nH % 2){ nH++; }
 
-        nW = (std::min)(nW, W() - nX);
-        nH = (std::min)(nH, H() - nY);
+        nW = (std::min<int>)(nW, W() - nX);
+        nH = (std::min<int>)(nH, H() - nY);
 
         if(true
                 && nX == 0
@@ -778,10 +778,10 @@ EditorMap *EditorMap::ExportLayer()
 
         auto fnExtend = [&nX0, &nY0, &nX1, &nY1](int nX, int nY)
         {
-            nX0 = std::min<int>(nX0, nX);
-            nY0 = std::min<int>(nY0, nY);
-            nX1 = std::max<int>(nX1, nX);
-            nY1 = std::max<int>(nY1, nY);
+            nX0 = (std::min<int>)(nX0, nX);
+            nY0 = (std::min<int>)(nY0, nY);
+            nX1 = (std::max<int>)(nX1, nX);
+            nY1 = (std::max<int>)(nY1, nY);
         };
 
         extern LayerBrowserWindow *g_LayerBrowserWindow;

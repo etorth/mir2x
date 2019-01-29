@@ -30,7 +30,7 @@ bool RotateCoord::Reset(int nCenterX, int nCenterY, int nStartX, int nStartY, in
         m_StopX   = nStartX + nW - 1;
         m_StopY   = nStartY + nH - 1;
 
-        if(PointInRectangle(m_CenterX, m_CenterY, m_StartX, m_StartY, nW, nH)){
+        if(MathFunc::PointInRectangle(m_CenterX, m_CenterY, m_StartX, m_StartY, nW, nH)){
             m_Distance  = 0;
             m_Direction = 0;
             m_CurrentX  = m_CenterX;
@@ -59,7 +59,7 @@ bool RotateCoord::Reset(int nCenterX, int nCenterY, int nStartX, int nStartY, in
                     && ((m_CenterY < m_StartY))){
                 m_Distance  = m_StartY - m_CenterY;
                 m_Direction = 0;
-                m_CurrentX  = (std::max)(m_StartX, m_CenterX - m_Distance);
+                m_CurrentX  = (std::max<int>)(m_StartX, m_CenterX - m_Distance);
                 m_CurrentY  = m_StartY;
             }
 
@@ -85,7 +85,7 @@ bool RotateCoord::Reset(int nCenterX, int nCenterY, int nStartX, int nStartY, in
                 }else{
                     // set start point with direction = 3
                     m_Direction = 3;
-                    m_CurrentY  = (std::max)(m_StartY, m_CenterY - m_Distance);
+                    m_CurrentY  = (std::max<int>)(m_StartY, m_CenterY - m_Distance);
                 }
             }
 
@@ -98,7 +98,7 @@ bool RotateCoord::Reset(int nCenterX, int nCenterY, int nStartX, int nStartY, in
 
                 m_Distance  = m_CenterY - m_StopY;
                 m_Direction = 2;
-                m_CurrentX  = (std::min)(m_StopX, m_CenterX + m_Distance);
+                m_CurrentX  = (std::min<int>)(m_StopX, m_CenterX + m_Distance);
                 m_CurrentY  = m_StopY;
             }
 
@@ -112,7 +112,7 @@ bool RotateCoord::Reset(int nCenterX, int nCenterY, int nStartX, int nStartY, in
                 m_Distance  = m_StartX - m_CenterX;
                 m_Direction = 1;
 				m_CurrentX  = m_StartX;
-                m_CurrentY  = (std::min)(m_StopY, m_CenterY + m_Distance);
+                m_CurrentY  = (std::min<int>)(m_StopY, m_CenterY + m_Distance);
             }
         }
 
@@ -124,10 +124,10 @@ bool RotateCoord::Reset(int nCenterX, int nCenterY, int nStartX, int nStartY, in
 
 void RotateCoord::CheckOverlap()
 {
-    m_Overlap[0] = PointInSegment(m_CenterY + m_Distance, m_StartY, m_StopY - m_StartY + 1);
-    m_Overlap[1] = PointInSegment(m_CenterX + m_Distance, m_StartX, m_StopX - m_StartX + 1);
-    m_Overlap[2] = PointInSegment(m_CenterY - m_Distance, m_StartY, m_StopY - m_StartY + 1);
-    m_Overlap[3] = PointInSegment(m_CenterX - m_Distance, m_StartX, m_StopX - m_StartX + 1);
+    m_Overlap[0] = MathFunc::PointInSegment(m_CenterY + m_Distance, m_StartY, m_StopY - m_StartY + 1);
+    m_Overlap[1] = MathFunc::PointInSegment(m_CenterX + m_Distance, m_StartX, m_StopX - m_StartX + 1);
+    m_Overlap[2] = MathFunc::PointInSegment(m_CenterY - m_Distance, m_StartY, m_StopY - m_StartY + 1);
+    m_Overlap[3] = MathFunc::PointInSegment(m_CenterX - m_Distance, m_StartX, m_StopX - m_StartX + 1);
 }
 
 bool RotateCoord::MoveToNextRound()
@@ -135,23 +135,23 @@ bool RotateCoord::MoveToNextRound()
     // always pick the first valid position following current direction
     if(m_Overlap[0]){
         m_Direction = 0;
-        m_CurrentX  = (std::max)(m_StartX, m_CenterX - m_Distance);
+        m_CurrentX  = (std::max<int>)(m_StartX, m_CenterX - m_Distance);
         m_CurrentY  = m_CenterY + m_Distance;
         return true;
     }else if(m_Overlap[1]){
         m_Direction = 1;
         m_CurrentX  = m_CenterX + m_Distance;
-        m_CurrentY  = (std::min)(m_StopY, m_CenterY + m_Distance);
+        m_CurrentY  = (std::min<int>)(m_StopY, m_CenterY + m_Distance);
         return true;
     }else if(m_Overlap[2]){
         m_Direction = 2;
-        m_CurrentX  = (std::min)(m_StopX, m_CenterX + m_Distance);
+        m_CurrentX  = (std::min<int>)(m_StopX, m_CenterX + m_Distance);
         m_CurrentY  = m_CenterY - m_Distance;
         return true;
     }else if(m_Overlap[3]){
         m_Direction = 3;
 		m_CurrentX  = m_CenterX - m_Distance;
-        m_CurrentY  = (std::max)(m_StartY, m_CenterY - m_Distance);
+        m_CurrentY  = (std::max<int>)(m_StartY, m_CenterY - m_Distance);
         return true;
     }else{
         return false;
@@ -166,7 +166,7 @@ bool RotateCoord::Forward()
         switch(m_Direction){
             case 0:
                 {
-                    if(m_CurrentX == (std::min)(m_StopX, m_CenterX + m_Distance)){
+                    if(m_CurrentX == (std::min<int>)(m_StopX, m_CenterX + m_Distance)){
                         if(m_Overlap[1]){
 
                             // 0 and 1 are neighbor
@@ -174,7 +174,7 @@ bool RotateCoord::Forward()
                             // so need to check if overlap at the endpoint of direction 0
                             //
                             int nNewX = m_CenterX + m_Distance;
-                            int nNewY = (std::min)(m_StopY, m_CenterY + m_Distance);
+                            int nNewY = (std::min<int>)(m_StopY, m_CenterY + m_Distance);
 
                             if(true
                                     && (nNewX == m_CurrentX)
@@ -182,7 +182,7 @@ bool RotateCoord::Forward()
 
                             // I didn't store the (W, H)
                             // so for W and H need to calculate it
-                            if(PointInRectangle(nNewX, nNewY, m_StartX, m_StartY, m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
+                            if(MathFunc::PointInRectangle(nNewX, nNewY, m_StartX, m_StartY, m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
                                 m_Direction = 1;
                                 m_CurrentX  = nNewX;
                                 m_CurrentY  = nNewY;
@@ -195,7 +195,7 @@ bool RotateCoord::Forward()
                             // because they are not neighbor nothing needs to be check
                             // just jump to the first valid point
 
-                            m_CurrentX  = (std::min)(m_StopX, m_CenterX + m_Distance);
+                            m_CurrentX  = (std::min<int>)(m_StopX, m_CenterX + m_Distance);
                             m_CurrentY  = m_CenterY - m_Distance;
                             m_Direction = 2;
                             return true;
@@ -208,11 +208,11 @@ bool RotateCoord::Forward()
 
                             // (NewX, NewY) is starting point of direction 3
                             int nNewX = m_CenterX - m_Distance;
-                            int nNewY = (std::max)(m_StartY, m_CenterY - m_Distance);
+                            int nNewY = (std::max<int>)(m_StartY, m_CenterY - m_Distance);
 
                             // (D0StartX, D0StartY) is the starting point of direction 0
                             // and we have traversed it
-                            int nD0StartX = (std::max)(m_StartX, m_CenterX - m_Distance);
+                            int nD0StartX = (std::max<int>)(m_StartX, m_CenterX - m_Distance);
                             int nD0StartY = m_CenterY + m_Distance;
 
                             if(true
@@ -248,15 +248,15 @@ bool RotateCoord::Forward()
                     // for rest cases I won't write detailed comments
                     // refer to case-0 for reasoning
 
-                    if(m_CurrentY == (std::max)(m_StartY, m_CenterY - m_Distance)){
+                    if(m_CurrentY == (std::max<int>)(m_StartY, m_CenterY - m_Distance)){
                         if(m_Overlap[2]){
-                            int nNewX = (std::min)(m_StopX, m_CenterX + m_Distance);
+                            int nNewX = (std::min<int>)(m_StopX, m_CenterX + m_Distance);
                             int nNewY = m_CenterY - m_Distance;
                             if(true
                                     && (nNewX == m_CurrentX)
                                     && (nNewY == m_CurrentY)){ nNewX--; }
 
-                            if(PointInRectangle(nNewX, nNewY, m_StartX, m_StartY, m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
+                            if(MathFunc::PointInRectangle(nNewX, nNewY, m_StartX, m_StartY, m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
                                 m_Direction = 2;
                                 m_CurrentX  = nNewX;
                                 m_CurrentY  = nNewY;
@@ -266,9 +266,9 @@ bool RotateCoord::Forward()
 
                         if(m_Overlap[3]){
                             int nNewX = m_CenterX - m_Distance;
-                            int nNewY = (std::max)(m_StartY, m_CenterY - m_Distance);
+                            int nNewY = (std::max<int>)(m_StartY, m_CenterY - m_Distance);
 
-                            int nD0StartX = (std::max)(m_StartX, m_CenterX - m_Distance);
+                            int nD0StartX = (std::max<int>)(m_StartX, m_CenterX - m_Distance);
                             int nD0StartY = m_CenterY + m_Distance;
 
                             if(true
@@ -294,16 +294,16 @@ bool RotateCoord::Forward()
                 }
             case 2:
                 {
-                    if(m_CurrentX == (std::max)(m_StartX, m_CenterX - m_Distance)){
+                    if(m_CurrentX == (std::max<int>)(m_StartX, m_CenterX - m_Distance)){
                         if(m_Overlap[3]){
                             int nNewX = m_CenterX - m_Distance;
-                            int nNewY = (std::max)(m_StartY, m_CenterY - m_Distance);
+                            int nNewY = (std::max<int>)(m_StartY, m_CenterY - m_Distance);
                             if(true
                                     && (nNewX == m_CurrentX)
                                     && (nNewY == m_CurrentY)){ nNewY++; }
 
-                            if(PointInRectangle(nNewX, nNewY, m_StartX, m_StartY, m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
-                                int nD0StartX = (std::max)(m_StartX, m_CenterX - m_Distance);
+                            if(MathFunc::PointInRectangle(nNewX, nNewY, m_StartX, m_StartY, m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
+                                int nD0StartX = (std::max<int>)(m_StartX, m_CenterX - m_Distance);
                                 int nD0StartY = m_CenterY + m_Distance;
                                 if(true
                                         && (nNewX == nD0StartX)

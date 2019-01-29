@@ -27,7 +27,7 @@ int PathFind::MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_
 
         // 1. verify all nodes
         for(size_t nIndex = 1; nIndex < nSize; ++nIndex){
-            switch(LDistance2(pNodeV[nIndex].X, pNodeV[nIndex].Y, pNodeV[nIndex - 1].X, pNodeV[nIndex - 1].Y)){
+            switch(MathFunc::LDistance2(pNodeV[nIndex].X, pNodeV[nIndex].Y, pNodeV[nIndex - 1].X, pNodeV[nIndex - 1].Y)){
                 case 1:
                 case 2:
                     {
@@ -50,8 +50,8 @@ int PathFind::MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_
                               int nDX = std::abs(pNodeV[nMaxStepLen].X - pNodeV[0].X);
                               int nDY = std::abs(pNodeV[nMaxStepLen].Y - pNodeV[0].Y);
                               if(true
-                                      && (std::max<size_t>(nDX, nDY) == nMaxStepLen)
-                                      && (std::min<size_t>(nDX, nDY) == 0 || nDX == nDY)){
+                                      && ((std::max<size_t>)(nDX, nDY) == nMaxStepLen)
+                                      && ((std::min<size_t>)(nDX, nDY) == 0 || nDX == nDY)){
                                   return (int)(nMaxStepLen);
                               }
                           }

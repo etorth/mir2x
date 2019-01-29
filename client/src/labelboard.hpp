@@ -5,16 +5,6 @@
  *        Created: 08/20/2015 08:59:11
  *    Description:
  *
- *              LabelBoard is a class with features:
- *
- *                      1. without padding
- *                      2. without wrapping
- *                      3. non-editable
- *                      4. non-selectable
- *                      5. won't accept any events
- *                      6. only have one type of font
- *                      7. may contain emoticons
- *
  *        Version: 1.0
  *       Revision: none
  *       Compiler: gcc
@@ -27,116 +17,103 @@
  */
 
 #pragma once
-#include <vector>
 #include <string>
+#include <vector>
 #include <cstdint>
 #include <SDL2/SDL.h>
 
 #include "widget.hpp"
-#include "tokenbox.hpp"
-#include "tokenboard.hpp"
+#include "lalign.hpp"
+#include "xmlboard.hpp"
+#include "colorfunc.hpp"
 
 class LabelBoard: public Widget
 {
     private:
-        uint8_t   m_Font;
-        uint8_t   m_FontSize;
-        uint8_t   m_FontStyle;
-        SDL_Color m_FontColor;
-
-    private:
-        std::string m_Content;
-        TokenBoard  m_TokenBoard;
+        XMLBoard m_Board;
 
     public:
         LabelBoard(
                 int              nX,
                 int              nY,
-                const char      *szContent   = "",
-                uint8_t          nFont       = 0,
-                uint8_t          nSize       = 10,
-                uint8_t          nStyle      = 0,
-                const SDL_Color &rstColor    = {0XFF, 0XFF, 0XFF, 0XFF},
-                Widget          *pWidget     = nullptr,
-                bool             bAutoDelete = false)
+                const char      *szContent         = "",
+                uint8_t          nDefaultFont      = 0,
+                uint8_t          nDefaultFontSize  = 10,
+                uint8_t          nDefaultFontStyle = 0,
+                uint32_t         nDefaultFontColor = ColorFunc::WHITE + 255,
+                Widget          *pWidget           = nullptr,
+                bool             bAutoDelete       = false)
             : Widget(nX, nY, 0, 0, pWidget, bAutoDelete)
-            , m_Font(nFont)
-            , m_FontSize(nSize)
-            , m_FontStyle(nStyle)
-            , m_FontColor(rstColor)
-            , m_Content(szContent)
-            , m_TokenBoard(
-                0,
-                0,
-                false,
-                false,
-                false,
-                false,
-               -1,
-                0,
-                0,
-                nFont,
-                nSize,
-                nStyle,
-                rstColor,
-                0,
-                0,
-                0,
-                0,
-                nullptr,
-                false)
+            , m_Board
+              {
+                  0,
+                  LALIGN_LEFT,
+                  false,
+                  0,
+                  0,
+                  nDefaultFont,
+                  nDefaultFontSize,
+                  nDefaultFontStyle,
+                  nDefaultFontColor,
+              }
         {
-            FormatText("%s", szContent);
+            SetText("%s", szContent);
         }
 
     public:
         ~LabelBoard() = default;
 
     public:
-        bool Load(XMLObjectList &rstXMLObjectList)
+        void LoadXML(const char *szXMLString)
         {
-            return m_TokenBoard.Load(rstXMLObjectList);
+            m_Board.LoadXML(szXMLString);
         }
 
     public:
-        const char *GetText() const
+        void SetText(const char *, ...);
+
+    public:
+        std::string GetText(bool bTextOnly) const
         {
-            return m_Content.c_str();
+            return m_Board.GetText(bTextOnly);
         }
 
     public:
-        void FormatText(const char *, ...);
-
-    public:
-        void SetColor(const SDL_Color &rstColor)
+        void SetFont(uint8_t nFont)
         {
-            if(false
-                    || rstColor.r != m_FontColor.r
-                    || rstColor.g != m_FontColor.g
-                    || rstColor.b != m_FontColor.b
-                    || rstColor.a != m_FontColor.a){
+            m_Board.SetDefaultFont(nFont);
+        }
 
-                m_FontColor = rstColor;
+        void SetFontSize(uint8_t nFontSize)
+        {
+            m_Board.SetDefaultFontSize(nFontSize);
+        }
 
-                auto szOld = m_Content;
-                FormatText("%s", szOld.c_str());
-            }
+        void SetFontStyle(uint8_t nFontStyle)
+        {
+            m_Board.SetDefaultFontStyle(nFontStyle);
+        }
+
+        void SetFontColor(uint32_t nFontColor)
+        {
+            m_Board.SetDefaultFontColor(nFontColor);
         }
 
     public:
         void Clear()
         {
-            m_Content = "";
-            m_TokenBoard.Clear();
+            m_Board.Clear();
         }
 
     public:
-        std::string Print   () const;
-        std::string PrintXML() const;
+        std::string PrintXML() const
+        {
+            return m_Board.PrintXML();
+        }
 
     public:
         void DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
         {
-            m_TokenBoard.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
+            m_Board.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
         }
 };

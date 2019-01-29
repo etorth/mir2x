@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <map>
 #include <array>
 #include <vector>
 #include <algorithm>
@@ -26,21 +27,56 @@
 
 class SDLDevice final
 {
+    public:
+        struct EnableDrawColor
+        {
+            EnableDrawColor(uint32_t);
+           ~EnableDrawColor();
+        };
+
+        struct EnableDrawBlendMode
+        {
+            EnableDrawBlendMode(SDL_BlendMode);
+           ~EnableDrawBlendMode();
+        };
+
     private:
-        using ColoStackNode      = std::array<uint32_t, 2>;
-        using BlendModeStackNode = std::pair<SDL_BlendMode, uint32_t>;
+        struct ColorStackNode
+        {
+            uint32_t Color;
+            size_t   Repeat;
+
+            ColorStackNode(uint32_t nColor, size_t nRepeat)
+                : Color(nColor)
+                , Repeat(nRepeat)
+            {}
+        };
+
+        struct BlendModeStackNode
+        {
+            SDL_BlendMode BlendMode;
+            size_t        Repeat;
+
+            BlendModeStackNode(SDL_BlendMode stBlendMode, size_t nRepeat)
+                : BlendMode(stBlendMode)
+                , Repeat(nRepeat)
+            {}
+        };
 
     private:
        SDL_Window   *m_Window;
        SDL_Renderer *m_Renderer;
 
     private:
-       std::vector<ColoStackNode>      m_ColorStack;
+       std::vector<ColorStackNode>     m_ColorStack;
        std::vector<BlendModeStackNode> m_BlendModeStack;
 
     private:
        int m_WindowW;
        int m_WindowH;
+
+    private:
+       std::map<uint8_t, TTF_Font *> m_InnFontMap;
 
     private:
        // for sound
@@ -86,7 +122,7 @@ class SDLDevice final
        void SetGamma(double fGamma)
        {
            Uint16 pRawRamp[256];
-           SDL_CalculateGammaRamp((float)(std::min(std::max(fGamma, 0.0), 1.0)), pRawRamp);
+           SDL_CalculateGammaRamp((float)((std::min<double>)((std::max<double>)(fGamma, 0.0), 1.0)), pRawRamp);
            SDL_SetWindowGammaRamp(m_Window, pRawRamp, pRawRamp, pRawRamp);
        }
 
@@ -117,9 +153,17 @@ class SDLDevice final
            SDL_RenderFillRect(m_Renderer, &stRect);
        }
 
-       SDL_Color Color()
+       void FillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH)
        {
-           return ColorFunc::RGBA2Color(m_ColorStack.back()[0]);
+           EnableDrawColor stEnableColor(nRGBA);
+
+           SDL_Rect stRect;
+           stRect.x = nX;
+           stRect.y = nY;
+           stRect.w = nW;
+           stRect.h = nH;
+
+           SDL_RenderFillRect(m_Renderer, &stRect);
        }
 
        void DrawPixel(int nX, int nY)
@@ -182,6 +226,13 @@ class SDLDevice final
 
     public:
        void PushColor(uint8_t, uint8_t, uint8_t, uint8_t);
+
+    public:
+       void PushColor(uint32_t nRGBA)
+       {
+           PushColor(ColorFunc::R(nRGBA), ColorFunc::G(nRGBA), ColorFunc::B(nRGBA), ColorFunc::A(nRGBA));
+       }
+
        void PushColor(const SDL_Color &rstColor)
        {
            PushColor(rstColor.r, rstColor.g, rstColor.b, rstColor.a);
@@ -200,4 +251,7 @@ class SDLDevice final
     public:
        void CreateMainWindow();
        void CreateInitViewWindow();
+
+    public:
+       TTF_Font *DefaultTTF(uint8_t);
 };

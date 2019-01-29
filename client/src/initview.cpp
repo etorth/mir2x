@@ -32,13 +32,13 @@
 
 extern Log *g_Log;
 
-InitView::InitView(size_t nFontSize)
+InitView::InitView(uint8_t nFontSize)
     : m_ProcState(IVPROC_LOOP)
     , m_ButtonState(0)
+    , m_FontSize(nFontSize)
     , m_LoadProcV()
     , m_Lock()
     , m_MessageList()
-    , m_TTF(nullptr)
     , m_TextureV {nullptr, nullptr}
 {
     // 1. emplace all loading procedures
@@ -143,12 +143,10 @@ InitView::InitView(size_t nFontSize)
     // create window before loading textures
     // in SDL2 textures binds to SDL_Renderer
 
-    m_TTF         = g_SDLDevice->CreateTTF    ((uint8_t *)(&(stBufU32V[0][1])), (size_t)(stBufU32V[0][0]), nFontSize);
     m_TextureV[0] = g_SDLDevice->CreateTexture((uint8_t *)(&(stBufU32V[1][1])), (size_t)(stBufU32V[1][0]));
     m_TextureV[1] = g_SDLDevice->CreateTexture((uint8_t *)(&(stBufU32V[2][1])), (size_t)(stBufU32V[2][0]));
 
     if(false
-            || !m_TTF
             || !m_TextureV[0]
             || !m_TextureV[1]){
         extern Log *g_Log;
@@ -165,11 +163,6 @@ InitView::~InitView()
         if(rstMessage.Texture){
             SDL_DestroyTexture(rstMessage.Texture);
         }
-    }
-
-    if(m_TTF){
-        TTF_CloseFont(m_TTF);
-        m_TTF= nullptr;
     }
 
     if(m_TextureV[0]){
@@ -195,7 +188,7 @@ void InitView::ProcessEvent()
         switch(stEvent.type){
             case SDL_MOUSEBUTTONUP:
                 {
-                    if(PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
+                    if(MathFunc::PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
                         if(m_ButtonState == 2){
                             std::exit(0);
                         }else{
@@ -211,7 +204,7 @@ void InitView::ProcessEvent()
                     switch(stEvent.button.button){
                         case SDL_BUTTON_LEFT:
                             {
-                                if(PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
+                                if(MathFunc::PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
                                     m_ButtonState = 2;
                                 }
                                 break;
@@ -225,7 +218,7 @@ void InitView::ProcessEvent()
                 }
             case SDL_MOUSEMOTION:
                 {
-                    if(PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
+                    if(MathFunc::PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
                         m_ButtonState = 1;
                     }else{
                         m_ButtonState = 0;
@@ -362,18 +355,19 @@ void InitView::Draw()
     auto fnCreateTexture = [this](int nLogType, const std::string &szMessage) -> SDL_Texture *
     {
         SDL_Texture *pTexture = nullptr;
-        if(m_TTF){
-            SDL_Color stColor;
+        auto stColor = [nLogType]() -> SDL_Color
+        {
             switch(nLogType){
-                case 0  : stColor = {0XFF, 0XFF, 0XFF, 0XFF}; break;
-                case 1  : stColor = {0XFF, 0XFF, 0X00, 0XFF}; break;
-                default : stColor = {0XFF, 0X00, 0X00, 0XFF}; break;
+                case 0  : return {0XFF, 0XFF, 0XFF, 0XFF};
+                case 1  : return {0XFF, 0XFF, 0X00, 0XFF};
+                default : return {0XFF, 0X00, 0X00, 0XFF};
             }
-            if(auto pSurface = TTF_RenderUTF8_Blended(m_TTF, szMessage.c_str(), stColor)){
-                extern SDLDevice *g_SDLDevice;
-                pTexture = g_SDLDevice->CreateTextureFromSurface(pSurface);
-                SDL_FreeSurface(pSurface);
-            }
+        }();
+
+        if(auto pSurface = TTF_RenderUTF8_Blended(g_SDLDevice->DefaultTTF(m_FontSize), szMessage.c_str(), stColor)){
+            extern SDLDevice *g_SDLDevice;
+            pTexture = g_SDLDevice->CreateTextureFromSurface(pSurface);
+            SDL_FreeSurface(pSurface);
         }
         return pTexture;
     };

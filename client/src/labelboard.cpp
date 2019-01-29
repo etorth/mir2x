@@ -16,31 +16,27 @@
  * =====================================================================================
  */
 
-#include <functional>
-#include <unordered_map>
-
 #include "log.hpp"
 #include "strfunc.hpp"
+#include "xmlboard.hpp"
 #include "colorfunc.hpp"
 #include "labelboard.hpp"
-#include "tokenboard.hpp"
-#include "xmlobjectlist.hpp"
 
 extern Log *g_Log;
 
-void LabelBoard::FormatText(const char * szFormatStr, ...)
+void LabelBoard::SetText(const char * szFormatString, ...)
 {
     std::string szText;
     bool bError = false;
     {
         va_list ap;
-        va_start(ap, szFormatStr);
+        va_start(ap, szFormatString);
 
         try{
-            szText = str_vprintf(szFormatStr, ap);
+            szText = str_vprintf(szFormatString, ap);
         }catch(const std::exception &e){
             bError = true;
-            szText = str_printf("Exception caught in LabelBoard::FormatText(\"%s\", ...): %s", szFormatStr, e.what());
+            szText = str_printf("Exception caught in LabelBoard::SetText(\"%s\", ...): %s", szFormatString, e.what());
         }
 
         va_end(ap);
@@ -50,38 +46,10 @@ void LabelBoard::FormatText(const char * szFormatStr, ...)
         g_Log->AddLog(LOGTYPE_WARNING, "%s", szText.c_str());
     }
 
-    // 1. store parameter as m_Content
-    // 2. build the token board for drawing
-    m_Content = szText;
+    // use the fallback values of m_Board
+    // don't need to specify the font/size/style info here
+    m_Board.LoadXML(str_printf("<par>%s</par>", szText.c_str()).c_str());
 
-    char szStyle[16];
-    std::sprintf(szStyle, "0X%02X", m_FontStyle);
-
-    char szColor[16];
-    std::sprintf(szColor, "0X%08X", ColorFunc::Color2ARGB(m_FontColor));
-
-    XMLObjectList stObjectList;
-    stObjectList.Add(
-            {
-                {"type" , std::string("plaintext")},
-                {"font" , std::to_string(m_Font)},
-                {"size" , std::to_string(m_FontSize)},
-                {"style", std::string(szStyle)},
-                {"color", std::string(szColor)}
-            }, m_Content.c_str());
-
-    m_TokenBoard.Load(stObjectList);
-
-    m_W = m_TokenBoard.W();
-    m_H = m_TokenBoard.H();
-}
-
-std::string LabelBoard::Print() const
-{
-    return "";
-}
-
-std::string LabelBoard::PrintXML() const
-{
-    return "";
+    m_W = m_Board.PX() + m_Board.PW();
+    m_H = m_Board.PY() + m_Board.PH();
 }

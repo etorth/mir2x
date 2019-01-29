@@ -22,9 +22,12 @@
 #include <unordered_map>
 #include "messagebase.hpp"
 
-enum: uint8_t
+enum CMType: uint8_t
 {
-    CM_NONE = 0,
+    // CM_NONE already used on windows
+    // outside of this file use zero directly for invalid value
+    CM_NONE_0 = 0,
+
     CM_PING,
     CM_LOGIN,
     CM_ACTION,
@@ -123,7 +126,7 @@ class CMSGParam: public MessageBase
                 //  2    : not empty,     fixed size, not compressed
                 //  3    : not empty, not fixed size, not compressed
 
-                {CM_NONE,             {0, 0,                         "CM_NONE"            }},
+                {CM_NONE_0,           {0, 0,                         "CM_NONE"            }},
                 {CM_PING,             {2, sizeof(CMPing),            "CM_PING"            }},
                 {CM_LOGIN,            {1, sizeof(CMLogin),           "CM_LOGIN"           }},
                 {CM_ACTION,           {1, sizeof(CMAction),          "CM_ACTION"          }},
@@ -134,6 +137,6 @@ class CMSGParam: public MessageBase
                 {CM_ACCOUNT,          {1, sizeof(CMAccount),         "CM_ACCOUNT"         }},
             };
 
-            return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(CM_NONE) : nHC);
+            return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(CM_NONE_0) : nHC);
         }
 };

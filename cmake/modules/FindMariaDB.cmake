@@ -11,11 +11,18 @@ ENDIF()
 
 IF (NOT MARIADB_INCLUDE_DIR)
   IF(WIN32)
-    FIND_PATH(MARIADB_INCLUDE_DIR mysql.h
-      $ENV{MARIADB_INCLUDE_DIR}
-      $ENV{MARIADB_DIR}/include
-      $ENV{MARIADB_DIR}/include/mariadb
-      ${PFILES}/MariaDB/*/include)
+    FIND_PATH(MARIADB_INCLUDE_DIR
+        NAMES
+            mysql.h
+        PATHS
+            $ENV{MARIADB_INCLUDE_DIR}
+            $ENV{MARIADB_DIR}/include
+            $ENV{MARIADB_DIR}/include/mariadb
+            "C:/Tools/vcpkg/installed/x64-windows/include"
+            "C:/Tools/vcpkg/installed/*/include"
+            ${PFILES}/MariaDB/*/include
+         DOC
+            "Specify the directory containing mysql.h")
   ELSE()
     FIND_PATH(MARIADB_BIN_DIR mariadb_config
               $ENV{MARIADB_DIR}/bin
@@ -44,6 +51,7 @@ IF(NOT MARIADB_LIBRARY_DIR)
     FIND_PATH(MARIADB_LIBRARY_DIR ${MARIADB_CLIENT_FILENAME}
         $ENV{MARIADB_LIBRARY}
         ${PFILES}/MariaDB/*/lib
+        C:/Tools/vcpkg/installed/*/lib
         $ENV{MARIADB_DIR}/lib/mariadb
         $ENV{MARIADB_DIR}/lib
         $ENV{MARIADB_DIR}/libmariadb)

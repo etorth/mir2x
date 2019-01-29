@@ -19,23 +19,22 @@
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
+#include "strfunc.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
 #include "actorpod.hpp"
-#include "serverargparser.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
 #include "rotatecoord.hpp"
 #include "dbcomrecord.hpp"
+#include "serverargparser.hpp"
+
+extern MonoServer *g_MonoServer;
+extern ServerArgParser *g_ServerArgParser;
 
 void ServerMap::On_MPK_METRONOME(const MessagePack &)
 {
-    extern ServerArgParser *g_ServerArgParser;
     if(m_LuaModule && !g_ServerArgParser->DisableMapScript){
-
-        // could this slow down the server
-        // if so I have to move it to a seperated thread
-
         m_LuaModule->LoopOne();
     }
 }
@@ -204,7 +203,6 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
 
     auto fnPrintMoveError = [&stAMTM]()
     {
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "TRYMOVE[%p]::UID           = %" PRIu32 , &stAMTM, stAMTM.UID);
         g_MonoServer->AddLog(LOGTYPE_WARNING, "TRYMOVE[%p]::MapID         = %" PRIu32 , &stAMTM, stAMTM.MapID);
         g_MonoServer->AddLog(LOGTYPE_WARNING, "TRYMOVE[%p]::X             = %d"       , &stAMTM, stAMTM.X);
@@ -215,7 +213,6 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     };
 
     if(!In(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
         m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
@@ -226,7 +223,6 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     // for client every motion request need to be prepared to avoid this
 
     if(!In(stAMTM.MapID, stAMTM.EndX, stAMTM.EndY)){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintMoveError();
         m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
@@ -234,7 +230,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     }
 
     bool bFindCO = false;
-    for(auto nUID: GetUIDList(stAMTM.X, stAMTM.Y)){
+    for(auto nUID: GetUIDListRef(stAMTM.X, stAMTM.Y)){
         if(nUID == stAMTM.UID){
             bFindCO = true;
             break;
@@ -242,7 +238,6 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     }
 
     if(!bFindCO){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintMoveError();
         m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
@@ -250,7 +245,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     }
 
     int nStepSize = -1;
-    switch(LDistance2(stAMTM.X, stAMTM.Y, stAMTM.EndX, stAMTM.EndY)){
+    switch(MathFunc::LDistance2(stAMTM.X, stAMTM.Y, stAMTM.EndX, stAMTM.EndY)){
         case 1:
         case 2:
             {
@@ -271,7 +266,6 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid move request: (X, Y) -> (EndX, EndY)");
                 fnPrintMoveError();
                 m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
@@ -345,10 +339,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     m_ActorPod->Forward(rstMPK.From(), {MPK_MOVEOK, stAMMOK}, rstMPK.ID(), [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK)
     {
         if(!GetCell(nMostX, nMostY).Locked){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Cell lock released before MOVEOK get responsed: MapUID = %" PRIu64, UID());
-            g_MonoServer->Restart();
-            return;
+            throw std::runtime_error(str_fflprintf("Cell lock released before MOVEOK get responsed: MapUID = %" PRIu64, UID()));
         }
 
         GetCell(nMostX, nMostY).Locked = false;
@@ -360,7 +351,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
 
                     // 1. leave last cell
                     bool bFindCO = false;
-                    auto &rstUIDList = GetUIDList(stAMTM.X, stAMTM.Y);
+                    auto &rstUIDList = GetUIDListRef(stAMTM.X, stAMTM.Y);
 
                     for(auto &nUID: rstUIDList){
                         if(nUID == stAMTM.UID){
@@ -372,9 +363,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
                     }
 
                     if(!bFindCO){
-                        extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_FATAL, "CO location error: (UID = %" PRIu32 ", X = %d, Y = %d)", stAMTM.UID, stAMTM.X, stAMTM.Y);
-                        g_MonoServer->Restart();
+                        throw std::runtime_error(str_fflprintf("CO location error: (UID = %" PRIu32 ", X = %d, Y = %d)", stAMTM.UID, stAMTM.X, stAMTM.Y));
                     }
 
                     // 2. push to the new cell
@@ -409,7 +398,7 @@ void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK)
             && stAMTL.UID
             && stAMTL.MapID
             && ValidC(stAMTL.X, stAMTL.Y)){
-        auto &rstUIDList = GetUIDList(stAMTL.X, stAMTL.Y);
+        auto &rstUIDList = GetUIDListRef(stAMTL.X, stAMTL.Y);
         for(auto &nUID: rstUIDList){
             if(nUID == stAMTL.UID){
                 RemoveGridUID(nUID, stAMTL.X, stAMTL.Y);
@@ -421,7 +410,6 @@ void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK)
 
     // otherwise try leave failed
     // can't leave means it's illegal then we won't report MPK_ERROR
-    extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "Leave request failed: UID = " PRIu64 ", X = %d, Y = %d", stAMTL.UID, stAMTL.X, stAMTL.Y);
 }
 
@@ -460,7 +448,6 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
     int nY = stAMTMS.EndY;
 
     if(!CanMove(false, false, nX, nY)){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Requested map switch location is invalid: MapName = %s, X = %d, Y = %d", DBCOM_MAPRECORD(ID()).Name, nX, nY);
         m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
@@ -477,10 +464,7 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
     m_ActorPod->Forward(rstMPK.From(), {MPK_MAPSWITCHOK, stAMMSOK}, rstMPK.ID(), [this, stAMTMS, stAMMSOK](const MessagePack &rstRMPK)
     {
         if(!GetCell(stAMMSOK.X, stAMMSOK.Y).Locked){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Cell lock released before MAPSWITCHOK get responsed: MapUID = %" PRIu64, UID());
-            g_MonoServer->Restart();
-            return;
+            throw std::runtime_error(str_fflprintf("Cell lock released before MAPSWITCHOK get responsed: MapUID = %" PRIu64, UID()));
         }
 
         GetCell(stAMMSOK.X, stAMMSOK.Y).Locked = false;
@@ -533,8 +517,6 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
         // we get a dangerous parameter from actormessage
         // correct here and put an warning in the log system
         stAMPF.MaxStep = 1;
-
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid MaxStep: %d, should be (1, 2, 3)", stAMPF.MaxStep);
     }
 
@@ -561,7 +543,7 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
         }
         int nEndX = pNode1->X();
         int nEndY = pNode1->Y();
-        switch(LDistance2(nCurrX, nCurrY, nEndX, nEndY)){
+        switch(MathFunc::LDistance2(nCurrX, nCurrY, nEndX, nEndY)){
             case 1:
             case 2:
                 {
@@ -577,7 +559,6 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
             case 0:
             default:
                 {
-                    extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid path node found");
                     break;
                 }
@@ -595,7 +576,7 @@ void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK)
         DoCircle(stAMUHP.X, stAMUHP.Y, 20, [this, stAMUHP](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
-                for(auto nUID: GetUIDList(nX, nY)){
+                for(auto nUID: GetUIDListRef(nX, nY)){
                     if(nUID != stAMUHP.UID){
                         if(UIDFunc::GetUIDType(nUID) == UID_PLY || UIDFunc::GetUIDType(nUID) == UID_MON){
                             m_ActorPod->Forward(nUID, {MPK_UPDATEHP, stAMUHP});
@@ -618,7 +599,7 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
         DoCircle(stAMDFO.X, stAMDFO.Y, 20, [this, stAMDFO](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
-                for(auto nUID: GetUIDList(nX, nY)){
+                for(auto nUID: GetUIDListRef(nX, nY)){
                     if(nUID != stAMDFO.UID){
                         if(UIDFunc::GetUIDType(nUID) == UID_PLY || UIDFunc::GetUIDType(nUID) == UID_MON){
                             m_ActorPod->Forward(nUID, {MPK_DEADFADEOUT, stAMDFO});
@@ -644,7 +625,7 @@ void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
     int nCOCount = 0;
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
-            std::for_each(GetUIDList(nX, nY).begin(), GetUIDList(nX, nY).end(), [stAMQCOC, &nCOCount](uint64_t nUID){
+            std::for_each(GetUIDListRef(nX, nY).begin(), GetUIDListRef(nX, nY).end(), [stAMQCOC, &nCOCount](uint64_t nUID){
                 if(UIDFunc::GetUIDType(nUID) == UID_PLY || UIDFunc::GetUIDType(nUID) == UID_MON){
                     if(stAMQCOC.Check.NPC    ){ nCOCount++; return; }
                     if(stAMQCOC.Check.Player ){ nCOCount++; return; }
@@ -673,7 +654,7 @@ void ServerMap::On_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK)
     for(int nY = stAMQRUIDL.Y; nY < stAMQRUIDL.Y + stAMQRUIDL.H; ++nY){
         for(int nX = stAMQRUIDL.X; nX < stAMQRUIDL.X + stAMQRUIDL.W; ++nX){
             if(In(stAMQRUIDL.MapID, nX, nY)){
-                for(auto nUID: GetUIDList(nX, nY)){
+                for(auto nUID: GetUIDListRef(nX, nY)){
                     stAMUIDL.UIDList[nIndex++] = nUID;
                 }
             }
@@ -766,7 +747,7 @@ void ServerMap::On_MPK_OFFLINE(const MessagePack &rstMPK)
     DoCircle(stAMO.X, stAMO.Y, 10, [stAMO, this](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
-            for(auto nUID: GetUIDList(nX, nY)){
+            for(auto nUID: GetUIDListRef(nX, nY)){
                 if(nUID != stAMO.UID){
                     m_ActorPod->Forward(nUID, {MPK_OFFLINE, stAMO});
                 }
@@ -782,7 +763,6 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK)
     std::memcpy(&stAMPU, rstMPK.Data(), sizeof(stAMPU));
 
     if(!ValidC(stAMPU.X, stAMPU.Y) || !stAMPU.ID){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid pickup request: X = %d, Y = %d, ID = %" PRIu32, stAMPU.X, stAMPU.Y, stAMPU.ID);
         return;
     }

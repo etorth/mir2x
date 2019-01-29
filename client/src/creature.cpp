@@ -258,7 +258,7 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
     }
 
     auto nMaxStep = MaxStep();
-    switch(auto nLDistance2 = LDistance2(nX0, nY0, nX1, nY1)){
+    switch(auto nLDistance2 = MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
             {
                 return {{nX0, nY0}};
@@ -589,8 +589,8 @@ bool Creature::AddAttachMagic(int nMagicID, int nMagicParam, int nMagicStage)
 double Creature::CurrMotionDelay() const
 {
     auto nSpeed = CurrMotion().Speed;
-    nSpeed = std::max<int>(SYS_MINSPEED, nSpeed);
-    nSpeed = std::min<int>(SYS_MAXSPEED, nSpeed);
+    nSpeed = (std::max<int>)(SYS_MINSPEED, nSpeed);
+    nSpeed = (std::min<int>)(SYS_MAXSPEED, nSpeed);
 
     return (1000.0 / SYS_DEFFPS) * (100.0 / nSpeed);
 }

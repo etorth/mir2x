@@ -52,6 +52,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cinttypes>
+#include <algorithm>
 
 #include "shadow.hpp"
 #include "savepng.hpp"
@@ -182,8 +183,8 @@ bool weaponWil2PNG(bool bGender, int nIndex,
                         //          :  (nW x nH)
                         //
 
-                        int nMaxShadowW = std::max<int>(stWeaponInfo.shWidth + stWeaponInfo.shHeight / 2, stWeaponInfo.shWidth ) + 20;
-                        int nMaxShadowH = std::max<int>(                   1 + stWeaponInfo.shHeight / 2, stWeaponInfo.shHeight) + 20;
+                        int nMaxShadowW = (std::max<int>)(stWeaponInfo.shWidth + stWeaponInfo.shHeight / 2, stWeaponInfo.shWidth ) + 20;
+                        int nMaxShadowH = (std::max<int>)(                   1 + stWeaponInfo.shHeight / 2, stWeaponInfo.shHeight) + 20;
                         stWeaponPNGBufShadow.resize(nMaxShadowW * nMaxShadowH);
 
                         int nShadowW = 0;

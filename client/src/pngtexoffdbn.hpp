@@ -17,7 +17,6 @@
  */
 
 #pragma once
-#include <zip.h>
 #include <memory>
 #include <vector>
 #include <cstdint>

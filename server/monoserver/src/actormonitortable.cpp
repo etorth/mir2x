@@ -181,14 +181,22 @@ void ActorMonitorTable::DrawData(int nRow, int nCol, int nX, int nY, int nW, int
     int fg_color = FL_BLACK;
     int bg_color = FL_WHITE;
 
-    if(m_ActorMonitorList[nRow].UID == m_SelectedUID){
+    bool bSelectedRow = (m_ActorMonitorList[nRow].UID == m_SelectedUID);
+    bool bSelectedCol = (m_SortByCol >= 0 && m_SortByCol == nCol);
+
+    if(bSelectedRow){
         fg_color = FL_WHITE;
         bg_color = 0xaa4444;
     }
 
-    if(m_SortByCol >= 0 && m_SortByCol == nCol){
+    if(bSelectedCol){
         fg_color = FL_WHITE;
         bg_color = 0x44aa44;
+    }
+
+    if(bSelectedRow && bSelectedCol){
+        fg_color = FL_WHITE;
+        bg_color = 0x4444aa;
     }
 
     fl_push_clip(nX, nY, nW, nH);
@@ -211,8 +219,8 @@ ActorMonitorTable::MonitorDataDiags ActorMonitorTable::GetMonitorDataDiags(const
     std::memset(&stDiags, 0, sizeof(stDiags));
 
     for(const auto &rstMonitor: rstMonitorList){
-        stDiags.MaxMessageDone    = std::max<uint32_t>(stDiags.MaxMessageDone,    rstMonitor.MessageDone);
-        stDiags.MaxMessagePending = std::max<uint32_t>(stDiags.MaxMessagePending, rstMonitor.MessagePending);
+        stDiags.MaxMessageDone    = (std::max<uint32_t>)(stDiags.MaxMessageDone,    rstMonitor.MessageDone);
+        stDiags.MaxMessagePending = (std::max<uint32_t>)(stDiags.MaxMessagePending, rstMonitor.MessagePending);
 
         ++stDiags.UIDTypeList[UIDFunc::GetUIDType(rstMonitor.UID)];
     }
@@ -234,13 +242,13 @@ void ActorMonitorTable::SetupHeaderWidth()
             col_width(nIndex, fnHeaderWidth(nIndex));
         }
     }else{
-        col_width(0, std::max<int>(fnHeaderWidth(0), 150)); // UID
-        col_width(1, std::max<int>(fnHeaderWidth(1),  80)); // TYPE
-        col_width(2, std::max<int>(fnHeaderWidth(2),  30)); // GROUP
-        col_width(3, std::max<int>(fnHeaderWidth(3), 160)); // LIVE
-        col_width(4, std::max<int>(fnHeaderWidth(4), 160)); // BUSY
-        col_width(5, std::max<int>(fnHeaderWidth(5), 120)); // MSG_DONE
-        col_width(6, std::max<int>(fnHeaderWidth(6),  30)); // MSG_PENDING
+        col_width(0, (std::max<int>)(fnHeaderWidth(0), 150)); // UID
+        col_width(1, (std::max<int>)(fnHeaderWidth(1),  80)); // TYPE
+        col_width(2, (std::max<int>)(fnHeaderWidth(2),  30)); // GROUP
+        col_width(3, (std::max<int>)(fnHeaderWidth(3), 160)); // LIVE
+        col_width(4, (std::max<int>)(fnHeaderWidth(4), 160)); // BUSY
+        col_width(5, (std::max<int>)(fnHeaderWidth(5), 120)); // MSG_DONE
+        col_width(6, (std::max<int>)(fnHeaderWidth(6),  30)); // MSG_PENDING
     }
 }
 

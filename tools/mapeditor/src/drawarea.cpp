@@ -220,7 +220,7 @@ void DrawArea::DrawSelectByObjectGround(bool bGround)
                         int nStartX = nX     * SYS_MAPGRIDXP - m_OffsetX;
                         int nStartY = nCurrY * SYS_MAPGRIDYP - m_OffsetY + SYS_MAPGRIDYP - nH;
 
-                        if(PointInRectangle(nMouseXOnMap - m_OffsetX, nMouseYOnMap - m_OffsetY, nStartX, nStartY, nW, nH)){
+                        if(MathFunc::PointInRectangle(nMouseXOnMap - m_OffsetX, nMouseYOnMap - m_OffsetY, nStartX, nStartY, nW, nH)){
                             extern MainWindow *g_MainWindow;
                             FillRectangle(nStartX, nStartY, nW, nH, g_MainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
                             DrawFloatObject(nX, nCurrY, (nIndex == 0) ? FOTYPE_OBJ0 : FOTYPE_OBJ1, m_MouseX - x(), m_MouseY - y());
@@ -290,7 +290,7 @@ void DrawArea::AddSelectByObject(bool bGround)
                         int nStartX = nX     * SYS_MAPGRIDXP - m_OffsetX;
                         int nStartY = nCurrY * SYS_MAPGRIDYP - m_OffsetY + SYS_MAPGRIDYP - nH;
 
-                        if(PointInRectangle(nMouseXOnMap - m_OffsetX, nMouseYOnMap - m_OffsetY, nStartX, nStartY, nW, nH)){
+                        if(MathFunc::PointInRectangle(nMouseXOnMap - m_OffsetX, nMouseYOnMap - m_OffsetY, nStartX, nStartY, nW, nH)){
                             auto &rstCell = g_EditorMap.Cell(nX, nCurrY);
                             extern MainWindow *g_MainWindow;
                             if(bGround){
@@ -535,8 +535,8 @@ void DrawArea::DrawTextBox()
     DrawText(10, nY, "OffsetX: %d %d", m_OffsetX / SYS_MAPGRIDXP, m_OffsetX); nY += 20;
     DrawText(10, nY, "OffsetY: %d %d", m_OffsetY / SYS_MAPGRIDYP, m_OffsetY); nY += 20;
 
-    int nMouseX = (std::max)(0, m_MouseX + m_OffsetX - x());
-    int nMouseY = (std::max)(0, m_MouseY + m_OffsetY - y());
+    int nMouseX = (std::max<int>)(0, m_MouseX + m_OffsetX - x());
+    int nMouseY = (std::max<int>)(0, m_MouseY + m_OffsetY - y());
 
     DrawText(10, nY, "MouseMX: %d %d", nMouseX / SYS_MAPGRIDXP, nMouseX); nY += 20;
     DrawText(10, nY, "MouseMY: %d %d", nMouseY / SYS_MAPGRIDYP, nMouseY); nY += 20;
@@ -737,16 +737,16 @@ void DrawArea::SetOffset(int nX, bool bRelativeX, int nY, bool bRelativeY)
         }else{
             m_OffsetX = nX;
         }
-        m_OffsetX = (std::max)(m_OffsetX, 0);
-        m_OffsetX = (std::min)(m_OffsetX, (std::max)(0, SYS_MAPGRIDXP * g_EditorMap.W() - w()));
+        m_OffsetX = (std::max<int>)(m_OffsetX, 0);
+        m_OffsetX = (std::min<int>)(m_OffsetX, (std::max<int>)(0, SYS_MAPGRIDXP * g_EditorMap.W() - w()));
 
         if(bRelativeY){
             m_OffsetY += nY;
         }else{
             m_OffsetY = nY;
         }
-        m_OffsetY = (std::max)(m_OffsetY, 0);
-        m_OffsetY = (std::min)(m_OffsetY, (std::max)(0, SYS_MAPGRIDYP * g_EditorMap.H() - h()));
+        m_OffsetY = (std::max<int>)(m_OffsetY, 0);
+        m_OffsetY = (std::min<int>)(m_OffsetY, (std::max<int>)(0, SYS_MAPGRIDYP * g_EditorMap.H() - h()));
     }
 }
 
@@ -921,7 +921,7 @@ Fl_Image *DrawArea::CreateRoundImage(int nRadius, uint32_t nColor)
             for(int nY = 0; nY < nSize; ++nY){
                 auto nRX = nX - nRadius + 1;
                 auto nRY = nY - nRadius + 1;
-                auto nR2 = LDistance2<int>(nRX, nRY, 0, 0);
+                auto nR2 = MathFunc::LDistance2<int>(nRX, nRY, 0, 0);
                 if(nR2 <= nRadius * nRadius){
                     auto nA = (uint8_t)(0X02 + std::lround(0X2F * (1.0 - 1.0 * nR2 / (nRadius * nRadius))));
                     stvBuf[nX + nY * nSize] = (((uint32_t)(nA)) << 24) | (nColor & 0X00FFFFFF);

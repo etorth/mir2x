@@ -3,14 +3,7 @@
  *
  *       Filename: dbpod.hpp
  *        Created: 05/20/2016 14:31:19
- *    Description: so many db interaction, so enable the multi-thread support
- *                 when got a DBRecord, the corresponding DBConnection would
- *                 be locked, this is the reason I have to introduce DBHDR, by
- *                 the way I hate the name DBPod<N>::DBHDR
- *
- *                 do I really need a memory pool inside? NO, but since I need
- *                 put RTTI support for the db unlock, which needs unique
- *                 pointer with deleter, so I just make a memory pool inside.
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -24,149 +17,146 @@
  */
 
 #pragma once
+#include <mutex>
+#include <thread>
 #include <memory>
 #include <string>
+#include <atomic>
 
-#include "dbrecord.hpp"
-#include "dbconnection.hpp"
-#include "memoryblockpn.hpp"
+#include "strfunc.hpp"
+#include "database.hpp"
 
-// ConnectionSize gives the number of internal connection handler
-//       0 : invalid
-//       1 : single thread
-//    >= 2 : support multi-thread
-//
-template<size_t ConnectionSize = 4>
-class DBPod final
+template<size_t ConnectionCount = 4> class DBPod final
 {
     private:
-        // the lock is on DBConnection and its DBRecordPN both, so here
-        // we just use a un-locking PN
-        using DBRecordPN = MemoryBlockPN<sizeof(DBRecord), 1024, 1>;
         class InnDeleter
         {
             private:
+                DBConnection *m_DBConnection;
+
+            private:
                 std::mutex *m_Lock;
-                DBRecordPN *m_DBRPN;
 
             public:
-                InnDeleter(std::mutex *pLock = nullptr, DBRecordPN *pDBRPN = nullptr)
-                    : m_Lock(pLock)
-                    , m_DBRPN(pDBRPN)
+                InnDeleter(DBConnection *pDBConnection = nullptr, std::mutex *pLock = nullptr)
+                    : m_DBConnection(pDBConnection)
+                    , m_Lock(pLock)
                 {}
 
-                // this class won't own any resource
-                // so just use default destructor
                 ~InnDeleter() = default;
 
-            void operator()(DBRecord *pBuf)
-            {
-                // 0. screen out null operation
-                if(!pBuf){ return; }
+            public:
+                void operator()(DBRecord *pRecord)
+                {
+                    if(!pRecord){
+                        return;
+                    }
 
-                // 1. free the buffer allocated from the corresponding PN
-                if(m_DBRPN){ m_DBRPN->Free(pBuf); }
+                    if(m_DBConnection){
+                        m_DBConnection->DestroyDBRecord(pRecord);
+                    }
 
-                // 2. unlock the corresponding DBConnection
-                //    not a good design since lock() / unlock() are in different scope
-                //    be careful when using it
-                if(ConnectionSize > 1 && m_Lock){ m_Lock->unlock(); }
-            }
+                    if(ConnectionCount > 1 && m_Lock){
+                        m_Lock->unlock();
+                    }
+                    m_Lock = nullptr;
+                }
         };
 
     public:
         using DBHDR = std::unique_ptr<DBRecord, InnDeleter>;
 
     private:
-        std::string m_HostName;
-        std::string m_UserName;
-        std::string m_Password;
-        std::string m_DBName;
+        std::atomic<size_t> m_Current;
 
-        unsigned int m_Port;
-
-        size_t m_Count;
-        std::mutex *m_LockV[ConnectionSize];
-        DBRecordPN m_DBRPNV[ConnectionSize];
-        DBConnection *m_DBConnV[ConnectionSize];
+    private:
+        std::mutex                    m_ConnLockVec[ConnectionCount];
+        std::unique_ptr<DBConnection> m_ConnVec    [ConnectionCount];
 
     public:
-        // I didn't check validation of connection here
         DBPod()
-            : m_Count(0)
+            : m_Current {0}
         {
-            static_assert(ConnectionSize > 0, "DBPod should contain at least one connection handler");
-
-            for(size_t nIndex = 0; nIndex < ConnectionSize; ++nIndex){
-                m_LockV[nIndex]   = nullptr;
-                m_DBConnV[nIndex] = nullptr;
-            }
+            static_assert(ConnectionCount > 0, "DBPod should contain at least one connection handler");
         }
 
-        // launch the db connection
-        // return value
-        //      0: OK
-        //      1: invalid argument
-        //      2: failed in connection
-        //      3: mysterious errors
-        int Launch(const char *szHostName, const char *szUserName,
-                const char *szPassword, const char *szDBName, unsigned int nPort)
+        void LaunchMySQL(
+                [[maybe_unused]] const char *szHostName,
+                [[maybe_unused]] const char *szUserName,
+                [[maybe_unused]] const char *szPassword,
+                [[maybe_unused]] const char *szDBName,
+                [[maybe_unused]] unsigned int nPort)
         {
-            // TODO add argument check here
-            if(false){ return 1; }
-
-            m_HostName = szHostName;
-            m_UserName = szUserName;
-            m_Password = szPassword;
-            m_DBName   = szDBName;
-            m_Port     = nPort;
-
-            for(int nIndex = 0; nIndex < (int)ConnectionSize; ++nIndex){
-                auto pConn = new DBConnection(szHostName, szUserName, szPassword, szDBName, nPort);
-                if(!pConn->Valid()){ delete pConn; return 2;}
-
-                m_DBConnV[nIndex] = pConn;
-                if(ConnectionSize > 1){ m_LockV[nIndex] = new std::mutex(); }
+#if defined(MIR2X_ENABLE_MYSQL)
+            for(size_t nIndex = 0; nIndex < ConnectionCount; ++nIndex){
+                m_ConnVec[nIndex] = std::make_unique<DBEngine_MySQL>(szHostName, szUserName, szPassword, szDBName, nPort);
             }
-
-            return 0;
+#else
+            throw std::runtime_error(str_fflprintf(": LaunchMySQL(...) not supported in current build"));
+#endif
         }
 
-        // make sure it's non-throw
+        void LaunchSQLite3([[maybe_unused]] const char *szDBName)
+        {
+#if defined(MIR2X_ENABLE_SQLITE3)
+            for(size_t nIndex = 0; nIndex < ConnectionCount; ++nIndex){
+                m_ConnVec[nIndex] = std::make_unique<DBEngine_SQLite3>(szDBName);
+            }
+#else
+            throw std::runtime_error(str_fflprintf(": LaunchSQLite3(...) not supported in current build"));
+#endif
+        }
+
         DBHDR InnCreateDBHDR(size_t nPodIndex)
         {
-            DBRecord *pRecord;
-            try{
-                auto pBuf = m_DBRPNV[nPodIndex].Get();
-                if(!pBuf){ return DBHDR(nullptr, InnDeleter()); }
-
-                pRecord = m_DBConnV[nPodIndex]->CreateDBRecord((DBRecord *)pBuf);
-            }catch(...){
-                pRecord = nullptr;
+            if(auto p = m_ConnVec[nPodIndex]->CreateDBRecord()){
+                return DBHDR(p, InnDeleter(m_ConnVec[nPodIndex].get(), m_ConnLockVec + nPodIndex));
             }
-
-            return DBHDR(pRecord, InnDeleter(m_LockV[nPodIndex], &(m_DBRPNV[nPodIndex])));
+            return DBHDR(nullptr, InnDeleter());
         }
 
         DBHDR CreateDBHDR()
         {
-            // for single thread only, we don't need the lock protection
-            if(ConnectionSize == 1){ return InnCreateDBHDR(0); }
-
-            // ok we need to handle multi-thread
-            size_t nIndex = (m_Count++) % ConnectionSize;
-            while(true){
-                if(m_LockV[nIndex]->try_lock()){
-                    // see here, we don't unlock when return
-                    // it unlocks when HDR is destructing
-                    return InnCreateDBHDR(nIndex);
-                }
-
-                nIndex = (nIndex + 1) % ConnectionSize;
+            if(ConnectionCount == 1){
+                return InnCreateDBHDR(0);
             }
 
-            // never be here
-            return DBHDR(nullptr, InnDeleter());
+            // call try_lock here
+            // will be unlocked if this DBHDR get constructed
+
+            for(size_t nIndex = m_Current.fetch_add(1) % ConnectionCount;; nIndex = (nIndex + 1) % ConnectionCount){
+                if(m_ConnLockVec[nIndex].try_lock()){
+                    return InnCreateDBHDR(nIndex);
+                }
+            }
+            return DBHDR(nullptr, InnDeleter()); // never reach
+        }
+
+    public:
+        static bool Enabled(const char *szDBEngineName)
+        {
+            if(std::strcmp(szDBEngineName, "mysql") == 0){
+#if defined(MIR2X_ENABLE_MYSQL)
+                return true;
+#else
+                return false;
+#endif
+            }
+
+            if(std::strcmp(szDBEngineName, "sqlite3") == 0){
+#if defined(MIR2X_ENABLE_SQLITE3)
+                return true;
+#else
+                return false;
+#endif
+            }
+            throw std::invalid_argument(str_fflprintf(": Invalid dbengine name: %s", szDBEngineName));
+        }
+
+    public:
+        const char *DBEngine() const
+        {
+            return m_ConnVec[0] ? m_ConnVec[0]->DBEngine() : nullptr;
         }
 };
 

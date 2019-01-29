@@ -25,6 +25,7 @@
 #include "querytype.hpp"
 #include "commonitem.hpp"
 #include "pathfinder.hpp"
+#include "cachequeue.hpp"
 #include "mir2xmapdata.hpp"
 #include "serverobject.hpp"
 #include "batchluamodule.hpp"
@@ -195,12 +196,12 @@ class ServerMap final: public ServerObject
         }
 
     private:
-        auto &GetUIDList(int nX, int nY)
+        auto &GetUIDListRef(int nX, int nY)
         {
             return m_CellVec2D[nX][nY].UIDList;
         }
 
-        const auto &GetUIDList(int nX, int nY) const
+        const auto &GetUIDListRef(int nX, int nY) const
         {
             return m_CellVec2D[nX][nY].UIDList;
         }

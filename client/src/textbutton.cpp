@@ -29,11 +29,11 @@ extern SDLDevice *g_SDLDevice;
 void TextButton::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {
     extern SDLDevice *g_SDLDevice;
-    g_SDLDevice->PushColor(m_Color[State()][1]);
+    g_SDLDevice->PushColor(ColorFunc::RGBA2Color(ColorFunc::ARGB2RGBA(m_Color[State()][1])));
     g_SDLDevice->FillRectangle(nDstX, nDstY, nW, nH);
     g_SDLDevice->PopColor();
 
-    g_SDLDevice->PushColor(m_FrameLineColor[State()]);
+    g_SDLDevice->PushColor(ColorFunc::RGBA2Color(ColorFunc::ARGB2RGBA(m_FrameLineColor[State()])));
     g_SDLDevice->DrawRectangle(m_FrameLineWidth, nDstX, nDstY, nW, nH);
     g_SDLDevice->PopColor();
 
@@ -49,8 +49,8 @@ void TextButton::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int 
     int nLBW = nLBW0;
     int nLBH = nLBH0;
 
-    if(RectangleOverlapRegion(nSrcX, nSrcY, nW, nH, &nLBX, &nLBY, &nLBW, &nLBH)){
-        m_Label.SetColor(m_Color[State()][0]);
+    if(MathFunc::RectangleOverlapRegion(nSrcX, nSrcY, nW, nH, &nLBX, &nLBY, &nLBW, &nLBH)){
+        m_Label.SetFontColor(m_Color[State()][0]);
         m_Label.DrawEx(nDstX + (nLBX - nSrcX) + OffX(), nDstY + (nLBY - nSrcY) + OffY(), nLBX - nLBX0, nLBY - nLBY0, nLBW, nLBH);
     }
 }
@@ -77,7 +77,7 @@ void TextButton::FormatText(const char *szFormatText, ...)
         g_Log->AddLog(LOGTYPE_WARNING, "%s", szError.c_str());
     }
 
-    m_Label.FormatText("%s", szText.c_str());
-    m_W = std::max<int>(m_W, m_Label.W());
-    m_H = std::max<int>(m_H, m_Label.H());
+    m_Label.SetText("%s", szText.c_str());
+    m_W = (std::max<int>)(m_W, m_Label.W());
+    m_H = (std::max<int>)(m_H, m_Label.H());
 }

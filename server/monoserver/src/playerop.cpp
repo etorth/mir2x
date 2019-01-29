@@ -124,7 +124,7 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    if(LDistance2(stAMA.X, stAMA.Y, X(), Y()) > 20 * 20){
+    if(MathFunc::LDistance2(stAMA.X, stAMA.Y, X(), Y()) > 20 * 20){
         return;
     }
 

@@ -305,10 +305,10 @@ void InputBoard::QueryCursor(int *pX, int *pY, int *pW, int *pH)
         nH = nBlankLineH + m_TokenBoard.GetLineSpace();
     }
 
-    if(pX){ *pX = nX;                         }
-    if(pY){ *pY = nY;                         }
-    if(pW){ *pW = std::max(1, m_CursorWidth); }
-    if(pH){ *pH = nH;                         }
+    if(pX){ *pX = nX;                                }
+    if(pY){ *pY = nY;                                }
+    if(pW){ *pW = (std::max<int>)(1, m_CursorWidth); }
+    if(pH){ *pH = nH;                                }
 }
 
 // we always move the cursor point into the visiable region
@@ -363,7 +363,7 @@ void InputBoard::Draw()
     int nTBW  = m_TokenBoard.W();
     int nTBH  = m_TokenBoard.H();
 
-    if(RectangleOverlapRegion(0, 0, W(), H(), &nTBDX, &nTBDY, &nTBW, &nTBH)){
+    if(MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nTBDX, &nTBDY, &nTBW, &nTBH)){
         int nTBX = nTBDX - m_TokenBoard.X();
         int nTBY = nTBDY - m_TokenBoard.Y();
         m_TokenBoard.DrawEx(nTBDX + X(), nTBDY + Y(), nTBX, nTBY, nTBW, nTBH);
@@ -397,14 +397,14 @@ void InputBoard::Draw()
                 m_SystemCursorX, m_SystemCursorY - m_H / 2,
                 m_SystemCursorX, m_SystemCursorY + m_H / 2);
         g_SDLDevice->DrawLine(
-                m_SystemCursorX - (std::max)(1, (int)std::lround(m_H * 0.08)),
+                m_SystemCursorX - (std::max<int>)(1, (int)std::lround(m_H * 0.08)),
                 m_SystemCursorY - m_H / 2,
-                m_SystemCursorX + (std::max)(1, (int)std::lround(m_H * 0.08)),
+                m_SystemCursorX + (std::max<int>)(1, (int)std::lround(m_H * 0.08)),
                 m_SystemCursorY - m_H / 2);
         g_SDLDevice->DrawLine(
-                m_SystemCursorX - (std::max)(1, (int)std::lround(m_H * 0.08)),
+                m_SystemCursorX - (std::max<int>)(1, (int)std::lround(m_H * 0.08)),
                 m_SystemCursorY + m_H / 2,
-                m_SystemCursorX + (std::max)(1, (int)std::lround(m_H * 0.08)),
+                m_SystemCursorX + (std::max<int>)(1, (int)std::lround(m_H * 0.08)),
                 m_SystemCursorY + m_H / 2);
         g_SDLDevice->PopColor();
     }

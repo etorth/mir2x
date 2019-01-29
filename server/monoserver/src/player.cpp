@@ -317,11 +317,11 @@ bool Player::InRange(int nRangeType, int nX, int nY)
     switch(nRangeType){
         case RANGE_VISIBLE:
             {
-                return LDistance2(X(), Y(), nX, nY) < 20 * 20;
+                return MathFunc::LDistance2(X(), Y(), nX, nY) < 20 * 20;
             }
         case RANGE_ATTACK:
             {
-                return LDistance2(X(), Y(), nX, nY) < 10 * 10;
+                return MathFunc::LDistance2(X(), Y(), nX, nY) < 10 * 10;
             }
         default:
             {
@@ -433,7 +433,7 @@ bool Player::StruckDamage(const DamageNode &rstDamage)
     return true;
 
     if(rstDamage){
-        m_HP = std::max<int>(0, HP() - rstDamage.Damage);
+        m_HP = (std::max<int>)(0, HP() - rstDamage.Damage);
         ReportHealth();
         DispatchHealth();
 
@@ -618,7 +618,7 @@ void Player::OnCMActionAttack(CMAction stCMA)
                         switch(EstimateHop(nX0, nY0)){
                             case 0:
                                 {
-                                    switch(LDistance2(nX0, nY0, rstLocation.X, rstLocation.Y)){
+                                    switch(MathFunc::LDistance2(nX0, nY0, rstLocation.X, rstLocation.Y)){
                                         case 1:
                                         case 2:
                                             {
@@ -796,8 +796,8 @@ void Player::RecoverHealth()
                 && nMax  >= 0
                 && nCurr <= nMax){
 
-            auto nAdd = std::max<int>(nMax / 60, 1);
-            return std::min<int>(nAdd, nMax - nCurr);
+            auto nAdd = (std::max<int>)(nMax / 60, 1);
+            return (std::min<int>)(nAdd, nMax - nCurr);
         }
         return 0;
     };
@@ -897,10 +897,7 @@ bool Player::DBUpdate(const char *szTableName, const char *szFieldList, ...)
         return false;
     }
 
-    if(auto pDBHDR = g_DBPodN->CreateDBHDR(); !pDBHDR->Execute("update mir2x.%s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand.c_str(), DBID())){
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-        return false;
-    }
+    g_DBPodN->CreateDBHDR()->QueryResult("update %s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand.c_str(), DBID());
     return true;
 }
 
@@ -910,34 +907,21 @@ bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::fun
             && (szTableName && std::strlen(szTableName))
             && (szFieldName && std::strlen(szFieldName))){
 
-        extern DBPodN *g_DBPodN;
         auto pDBHDR = g_DBPodN->CreateDBHDR();
-
-        if(!pDBHDR->Execute("select %s from mir2x.%s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID())){
-            extern MonoServer *g_MonoServer;
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-            return false;
-        }
-
-        if(pDBHDR->RowCount() < 1){
+        if(!pDBHDR->QueryResult("select %s from %s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID())){
             extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_INFO, "No dbid created for this player: DBID = %" PRIu32, DBID());
             return false;
         }
 
-        pDBHDR->Fetch();
-        auto szRes = fnDBOperation(pDBHDR->Get(szFieldName));
+        auto szRes = fnDBOperation(pDBHDR->Get<std::string>(szFieldName).c_str());
 
         // if need to return a string we should do:
         //     return "\"xxxx\"";
         // then empty string should be "\"\"", not szRes.empty()
 
         if(!szRes.empty()){
-            if(!pDBHDR->Execute("update mir2x.%s set %s = %s where fld_dbid = %" PRIu32, szTableName, szFieldName, szRes.c_str(), DBID())){
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "SQL ERROR: (%d: %s)", pDBHDR->ErrorID(), pDBHDR->ErrorInfo());
-                return false;
-            }
+            pDBHDR->QueryResult("update %s set %s = %s where fld_dbid = %" PRIu32, szTableName, szFieldName, szRes.c_str(), DBID());
             return true;
         }
     }

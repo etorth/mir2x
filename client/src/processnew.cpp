@@ -49,9 +49,9 @@ ProcessNew::ProcessNew()
     , m_CheckPwd(true)
     , m_CheckPwdConfirm(true)
 
-    , m_LBID        (0, 0, "ID"              , 0, 15, 0, {0xFF, 0X00, 0X00, 0X00})
-    , m_LBPwd       (0, 0, "Password"        , 0, 15, 0, {0xFF, 0X00, 0X00, 0X00})
-    , m_LBPwdConfirm(0, 0, "Confirm Passowrd", 0, 15, 0, {0xFF, 0X00, 0X00, 0X00})
+    , m_LBID        (0, 0, "ID"              , 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBPwd       (0, 0, "Password"        , 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBPwdConfirm(0, 0, "Confirm Passowrd", 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
 
 	, m_BoxID(
             159,
@@ -118,9 +118,9 @@ ProcessNew::ProcessNew()
                 DoPostAccount();
             })
 
-    , m_LBCheckID        (0, 0, "ID", 0, 15, 0, {0xFF, 0X00, 0X00, 0X00})
-    , m_LBCheckPwd       (0, 0, "ID", 0, 15, 0, {0xFF, 0X00, 0X00, 0X00})
-    , m_LBCheckPwdConfirm(0, 0, "ID", 0, 15, 0, {0xFF, 0X00, 0X00, 0X00})
+    , m_LBCheckID        (0, 0, "ID", 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBCheckPwd       (0, 0, "ID", 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBCheckPwdConfirm(0, 0, "ID", 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
 
 	, m_TBCreate(150, 482, 200, 40, "CREATE", 0, 16, 0, []{}, [this](){ DoPostAccount(); })
 	, m_TBExit  (352, 482, 200, 40, "EXIT",   0, 16, 0, []{}, [this](){ DoExit();        })
@@ -288,20 +288,20 @@ void ProcessNew::CheckInput()
         m_LBCheckID.Clear();
     }else if(CacheFind(false, szID)){
         m_CheckID = CHECK_ERROR;
-        m_LBCheckID.SetColor(ColorFunc::COLOR_RED);
-        m_LBCheckID.FormatText ("ID has been used by others");
+        m_LBCheckID.SetFontColor(ColorFunc::RED);
+        m_LBCheckID.SetText("ID has been used by others");
     }else{
         if(szID.empty()){
             m_CheckID = CHECK_NONE;
         }else{
             if(LocalCheckID(szID.c_str())){
                 m_CheckID = CHECK_PENDING;
-                m_LBCheckID.SetColor(ColorFunc::COLOR_GREEN);
-                m_LBCheckID.FormatText ("Pending...");
+                m_LBCheckID.SetFontColor(ColorFunc::GREEN);
+                m_LBCheckID.SetText("Pending...");
             }else{
                 m_CheckID = CHECK_ERROR;
-                m_LBCheckID.SetColor(ColorFunc::COLOR_RED);
-                m_LBCheckID.FormatText ("Invalid ID");
+                m_LBCheckID.SetFontColor(ColorFunc::RED);
+                m_LBCheckID.SetText("Invalid ID");
             }
         }
     }
@@ -314,8 +314,8 @@ void ProcessNew::CheckInput()
             m_LBCheckPwd.Clear();
         }else{
             m_CheckPwd = CHECK_ERROR;
-            m_LBCheckPwd.SetColor(ColorFunc::COLOR_RED);
-            m_LBCheckPwd.FormatText ("Invalid password");
+            m_LBCheckPwd.SetFontColor(ColorFunc::RED);
+            m_LBCheckPwd.SetText("Invalid password");
         }
     }
 
@@ -327,8 +327,8 @@ void ProcessNew::CheckInput()
             m_LBCheckPwdConfirm.Clear();
         }else{
             m_CheckPwdConfirm = CHECK_ERROR;
-            m_LBCheckPwdConfirm.SetColor(ColorFunc::COLOR_RED);
-            m_LBCheckPwdConfirm.FormatText ("Password doesn't match");
+            m_LBCheckPwdConfirm.SetFontColor(ColorFunc::RED);
+            m_LBCheckPwdConfirm.SetText("Password doesn't match");
         }
     }
 }

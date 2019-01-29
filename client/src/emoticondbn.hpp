@@ -17,7 +17,6 @@
  */
 
 #pragma once
-#include <zip.h>
 #include <SDL2/SDL.h>
 #include <unordered_map>
 
@@ -53,7 +52,7 @@
 //                    +------- always set it as zero
 //                             and when retrieving we can just plus the frame index here
 
-struct EmoticonItem
+struct EmojiEntry
 {
     SDL_Texture *Texture;
     int          FrameW;
@@ -62,92 +61,26 @@ struct EmoticonItem
     int          FPS;
 };
 
-template<size_t ResMaxN> class EmoticonDB: public InnDB<uint32_t, EmoticonItem, ResMaxN>
+template<size_t ResMaxN> class EmoticonDB: public InnDB<uint32_t, EmojiEntry, ResMaxN>
 {
     private:
-        struct ZIPItemInfo
-        {
-            zip_uint64_t Index;
-            size_t       Size;
-
-            // put a item here for simplity
-            // the Texture part is nullptr, which should be of initialization by LoadResource()
-            EmoticonItem  Item;
-        };
-
-    private:
-        // for compatible to libzip v-0.xx.x
-        struct zip *m_ZIP;
-
-    private:
-        std::unordered_map<uint32_t, ZIPItemInfo> m_ZIPItemInfoCache;
+        std::unique_ptr<ZSDB> m_ZSDBPtr;
 
     public:
         EmoticonDB()
-            : InnDB<uint32_t, EmoticonItem, ResMaxN>()
-            , m_ZIP(nullptr)
-            , m_ZIPItemInfoCache()
+            : InnDB<uint32_t, EmojiEntry, ResMaxN>()
+            , m_ZSDBPtr()
         {}
 
-        virtual ~EmoticonDB()
-        {
-            if(m_ZIP){
-                zip_close(m_ZIP);
-            }
-        }
-
     public:
-        bool Valid()
+        bool Load(const char *szEmojiDBName)
         {
-            return m_ZIP && !m_ZIPItemInfoCache.empty();
-        }
-
-        bool Load(const char *szPNGTexDBName)
-        {
-            int nErrorCode = 0;
-
-#ifdef ZIP_RDONLY
-            m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS | ZIP_RDONLY, &nErrorCode);
-#else
-            m_ZIP = zip_open(szPNGTexDBName, ZIP_CHECKCONS, &nErrorCode);
-#endif
-            if(!m_ZIP){
+            try{
+                m_ZSDBPtr = std::make_unique<ZSDB>(szEmojiDBName);
+            }catch(...){
                 return false;
             }
-
-            zip_int64_t nCount = zip_get_num_entries(m_ZIP, ZIP_FL_UNCHANGED);
-            if(nCount > 0){
-                for(zip_uint64_t nIndex = 0; nIndex < (zip_uint64_t)(nCount); ++nIndex){
-                    struct zip_stat stZIPStat;
-                    if(!zip_stat_index(m_ZIP, nIndex, ZIP_FL_ENC_RAW, &stZIPStat)){
-                        if(true
-                                && stZIPStat.valid & ZIP_STAT_INDEX
-                                && stZIPStat.valid & ZIP_STAT_SIZE
-                                && stZIPStat.valid & ZIP_STAT_NAME){
-
-                            // 1. for key, the last byte will always be zero
-                            uint32_t nKey = (HexString::ToHex<uint32_t, 4>(stZIPStat.name) & 0XFFFFFF00);
-
-                            // 2. for FPS
-                            int nFPS = (int)HexString::ToHex<uint8_t, 1>(stZIPStat.name + 8);
-
-                            // 3. for frame W
-                            int nFW = (int)HexString::ToHex<uint16_t, 2>(stZIPStat.name + 10);
-
-                            // 4. for frame H
-                            int nFH = (int)HexString::ToHex<uint16_t, 2>(stZIPStat.name + 14);
-
-                            // 5. for frame H1
-                            int nH1 = (int)HexString::ToHex<uint16_t, 2>(stZIPStat.name + 18);
-
-                            EmoticonItem stItem {nullptr, nFW, nFH, nH1, nFPS};
-                            m_ZIPItemInfoCache[nKey] = {stZIPStat.index, (size_t)(stZIPStat.size), stItem};
-                        }
-                    }
-                }
-            }
-
-            return Valid();
+            return true;
         }
 
     public:
@@ -158,29 +91,29 @@ template<size_t ResMaxN> class EmoticonDB: public InnDB<uint32_t, EmoticonItem, 
                 int *pFPS,
                 int *pFrameCount)
         {
-            EmoticonItem stItem;
-            if(!this->RetrieveResource(nKey & 0XFFFFFF00, &stItem)){
+            EmojiEntry stEntry;
+            if(!this->RetrieveResource(nKey & 0XFFFFFF00, &stEntry)){
                 return nullptr;
             }
 
             int nW = 0;
             int nH = 0;
-            SDL_QueryTexture(stItem.Texture, nullptr, nullptr, &nW, &nH);
+            SDL_QueryTexture(stEntry.Texture, nullptr, nullptr, &nW, &nH);
 
-            int nCountX = nW / stItem.FrameW;
-            int nCountY = nH / stItem.FrameH;
+            int nCountX = nW / stEntry.FrameW;
+            int nCountY = nH / stEntry.FrameH;
 
             int nFrameIndex = (int)(nKey & 0X000000FF);
 
-            if(pSrcX      ){ *pSrcX       = (nFrameIndex % nCountX) * stItem.FrameW; }
-            if(pSrcY      ){ *pSrcY       = (nFrameIndex / nCountX) * stItem.FrameH; }
-            if(pSrcW      ){ *pSrcW       = stItem.FrameW;                           }
-            if(pSrcH      ){ *pSrcW       = stItem.FrameH;                           }
-            if(pH1        ){ *pH1         = stItem.FrameH1;                          }
-            if(pFPS       ){ *pFPS        = stItem.FPS;                              }
-            if(pFrameCount){ *pFrameCount = nCountX * nCountY;                       }
+            if(pSrcX      ){ *pSrcX       = (nFrameIndex % nCountX) * stEntry.FrameW; }
+            if(pSrcY      ){ *pSrcY       = (nFrameIndex / nCountX) * stEntry.FrameH; }
+            if(pSrcW      ){ *pSrcW       = stEntry.FrameW;                           }
+            if(pSrcH      ){ *pSrcW       = stEntry.FrameH;                           }
+            if(pH1        ){ *pH1         = stEntry.FrameH1;                          }
+            if(pFPS       ){ *pFPS        = stEntry.FPS;                              }
+            if(pFrameCount){ *pFrameCount = nCountX * nCountY;                        }
 
-            return stItem.Texture;
+            return stEntry.Texture;
         }
 
         SDL_Texture *Retrieve(uint8_t nSet, uint16_t nSubset, uint8_t nIndex,
@@ -195,38 +128,29 @@ template<size_t ResMaxN> class EmoticonDB: public InnDB<uint32_t, EmoticonItem, 
         }
 
     public:
-        virtual std::tuple<EmoticonItem, size_t> LoadResource(uint32_t nKey)
+        virtual std::tuple<EmojiEntry, size_t> LoadResource(uint32_t nKey)
         {
-            EmoticonItem stItem {nullptr, 0, 0, 0, 0};
-            if(auto pItemRecord = m_ZIPItemInfoCache.find(nKey); pItemRecord != m_ZIPItemInfoCache.end()){
-                stItem = pItemRecord->second.Item;
-                if(auto fp = zip_fopen_index(m_ZIP, pItemRecord->second.Index, ZIP_FL_UNCHANGED)){
+            char szKeyString[16];
+            std::vector<uint8_t> stBuf;
+            EmojiEntry stEntry {nullptr, 0, 0, 0, 0};
 
-                    // 1. get resource data size to extend buffer
-                    std::vector<uint8_t> stBuf;
-                    size_t nSize = pItemRecord->second.Size;
+            if(auto szFileName = m_ZSDBPtr->Decomp(HexString::ToString<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf); szFileName && (std::strlen(szFileName) >= 22)){
+                stEntry.FPS     = (int)HexString::ToHex< uint8_t, 1>(szFileName +  8);
+                stEntry.FrameW  = (int)HexString::ToHex<uint16_t, 2>(szFileName + 10);
+                stEntry.FrameH  = (int)HexString::ToHex<uint16_t, 2>(szFileName + 14);
+                stEntry.FrameH1 = (int)HexString::ToHex<uint16_t, 2>(szFileName + 18);
 
-                    // 2. dump the data to buffer
-                    //    then use sdl to build the texture
-                    stBuf.resize(nSize);
-                    if(nSize == (size_t)(zip_fread(fp, stBuf.data(), nSize))){
-                        extern SDLDevice *g_SDLDevice;
-                        stItem.Texture = g_SDLDevice->CreateTexture((const uint8_t *)(stBuf.data()), nSize);
-                    }
-
-                    // 3. free the zip item desc
-                    //    no matter we decode succeeds or not
-                    zip_fclose(fp);
-                }
+                extern SDLDevice *g_SDLDevice;
+                stEntry.Texture = g_SDLDevice->CreateTexture(stBuf.data(), stBuf.size());
             }
-            return {stItem, stItem.Texture ? 1 : 0};
+            return {stEntry, stEntry.Texture ? 1 : 0};
         }
 
-        virtual void FreeResource(EmoticonItem &rstItem)
+        virtual void FreeResource(EmojiEntry &rstEntry)
         {
-            if(rstItem.Texture){
-                SDL_DestroyTexture(rstItem.Texture);
-                rstItem.Texture = nullptr;
+            if(rstEntry.Texture){
+                SDL_DestroyTexture(rstEntry.Texture);
+                rstEntry.Texture = nullptr;
             }
         }
 };

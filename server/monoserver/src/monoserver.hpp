@@ -24,8 +24,8 @@
 #include <cstdint>
 #include <exception>
 #include <stdexcept>
-#include <sol/sol.hpp>
 #include <type_traits>
+#include <sol/sol.hpp>
 #include <unordered_map>
 
 #include "log.hpp"
@@ -89,6 +89,9 @@ class MonoServer final
         void RunASIO();
         void CreateDBConnection();
         void LoadMapBinDBN();
+
+    private:
+        void CreateDefaultDatabase();
 
     public:
         void DetectException();

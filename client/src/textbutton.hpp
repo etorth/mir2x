@@ -31,10 +31,10 @@ class TextButton: public ButtonBase
         //          2 : pressed
         //     [2]  0 : font
         //          1 : background
-        SDL_Color m_Color[3][2];
+        uint32_t m_Color[3][2];
 
     private:
-        SDL_Color m_FrameLineColor[3];
+        uint32_t m_FrameLineColor[3];
 
     private:
         int m_FrameLineWidth;
@@ -57,26 +57,26 @@ class TextButton: public ButtonBase
                 const std::function<void()> &fnOnOver  = [](){},
                 const std::function<void()> &fnOnClick = [](){},
 
-                const SDL_Color (&rstColor)[2][3] =
+                const uint32_t (&rstColor)[2][3] =
                 {
                     {
-                        {0XFF, 0XFF, 0XFF, 0XFF},   // front ground, off
-                        {0XFF, 0XFF, 0X00, 0X00},   // front ground, over
-                        {0XFF, 0X00, 0X00, 0X00},   // front ground, pressed
+                        ColorFunc::RGBA(0XFF, 0XFF, 0XFF, 0XFF),   // front ground, off
+                        ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00),   // front ground, over
+                        ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00),   // front ground, pressed
                     },
 
                     {
-                        {0X00, 0X00, 0X00, 0X00},   // background, off
-                        {0X00, 0X00, 0X00, 0X00},   // background, over
-                        {0X00, 0X00, 0X00, 0X00},   // background, pressed
+                        ColorFunc::RGBA(0X00, 0X00, 0X00, 0X00),   // background, off
+                        ColorFunc::RGBA(0X00, 0X00, 0X00, 0X00),   // background, over
+                        ColorFunc::RGBA(0X00, 0X00, 0X00, 0X00),   // background, pressed
                     },
                 },
 
-                const SDL_Color (&rstFrameLineColor)[3] =
+                const uint32_t (&rstFrameLineColor)[3] =
                 {
-                    {0XFF, 0XFF, 0XFF, 0XFF},   // frame line, off
-                    {0XFF, 0X00, 0X00, 0X00},   // frame line, over
-                    {0XFF, 0XFF, 0X00, 0X00},   // frame line, pressed
+                    ColorFunc::RGBA(0XFF, 0XFF, 0XFF, 0XFF),   // frame line, off
+                    ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00),   // frame line, over
+                    ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00),   // frame line, pressed
                 },
 
                 int nFrameLineWidth = 1,
@@ -136,8 +136,8 @@ class TextButton: public ButtonBase
         // end of initialization list
         // put all validation in the function body
         {
-            m_W = std::max<int>(m_W, m_Label.W());
-            m_H = std::max<int>(m_H, m_Label.H());
+            m_W = (std::max<int>)(m_W, m_Label.W());
+            m_H = (std::max<int>)(m_H, m_Label.H());
         }
 
     public:

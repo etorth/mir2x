@@ -17,10 +17,10 @@ Triangle::~Triangle()
 
 void Triangle::CalcalatePointInfo()
 {
-    m_MaxX = (std::max)((std::max)(m_PointV[0].first,  m_PointV[1].first ), m_PointV[2].first );
-    m_MaxY = (std::max)((std::max)(m_PointV[0].second, m_PointV[1].second), m_PointV[2].second);
-    m_MinX = (std::min)((std::min)(m_PointV[0].first,  m_PointV[1].first ), m_PointV[2].first );
-    m_MinY = (std::min)((std::min)(m_PointV[0].second, m_PointV[1].second), m_PointV[2].second);
+    m_MaxX = (std::max<double>)((std::max<double>)(m_PointV[0].first,  m_PointV[1].first ), m_PointV[2].first );
+    m_MaxY = (std::max<double>)((std::max<double>)(m_PointV[0].second, m_PointV[1].second), m_PointV[2].second);
+    m_MinX = (std::min<double>)((std::min<double>)(m_PointV[0].first,  m_PointV[1].first ), m_PointV[2].first );
+    m_MinY = (std::min<double>)((std::min<double>)(m_PointV[0].second, m_PointV[1].second), m_PointV[2].second);
 }
 
 bool Triangle::In(double fX, double fY) const

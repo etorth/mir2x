@@ -34,6 +34,10 @@
 #include "rotatecoord.hpp"
 #include "serverconfigurewindow.hpp"
 
+extern MapBinDBN *g_MapBinDBN;
+extern MonoServer *g_MonoServer;
+extern ServerConfigureWindow *g_ServerConfigureWindow;
+
 ServerMap::ServerMapLuaModule::ServerMapLuaModule()
     : BatchLuaModule()
 {}
@@ -41,29 +45,31 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule()
 ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxStep, int nCheckCO)
     : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
       {
-          if(0){
-              if(true
-                      && MaxStep() != 1
-                      && MaxStep() != 2
-                      && MaxStep() != 3){
+          // comment the following code out
+          // seems it triggers some wired msvc compilation error:
+          // error C2248: 'AStarPathFinder::MaxStep': cannot access protected member declared in class 'AStarPathFinder'
 
-                  extern MonoServer *g_MonoServer;
-                  g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
-                  return 10000.00;
-              }
-
-              int nDistance2 = LDistance2(nSrcX, nSrcY, nDstX, nDstY);
-              if(true
-                      && nDistance2 != 1
-                      && nDistance2 != 2
-                      && nDistance2 != MaxStep() * MaxStep()
-                      && nDistance2 != MaxStep() * MaxStep() * 2){
-
-                  extern MonoServer *g_MonoServer;
-                  g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
-                  return 10000.00;
-              }
-          }
+          // if(0){
+          //     if(true
+          //             && MaxStep() != 1
+          //             && MaxStep() != 2
+          //             && MaxStep() != 3){
+          //
+          //         g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
+          //         return 10000.00;
+          //     }
+          //
+          //     int nDistance2 = MathFunc::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
+          //     if(true
+          //             && nDistance2 != 1
+          //             && nDistance2 != 2
+          //             && nDistance2 != MaxStep() * MaxStep()
+          //             && nDistance2 != MaxStep() * MaxStep() * 2){
+          //
+          //         g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
+          //         return 10000.00;
+          //     }
+          // }
 
           const int nCheckLock = m_CheckCO;
           return m_Map->OneStepCost(m_CheckCO, nCheckLock, nSrcX, nSrcY, nDstX, nDstY);
@@ -72,7 +78,6 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
     , m_CheckCO(nCheckCO)
 {
     if(!pMap){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, nCheckCO);
     }
 
@@ -85,7 +90,6 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
                 break;
             }
@@ -100,7 +104,6 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
                 break;
             }
@@ -115,28 +118,28 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
           // server is multi-thread
           // but creating server map is always in service core
 
-          extern MapBinDBN *g_MapBinDBN;
-          auto pMir2xMapData = g_MapBinDBN->Retrieve(nMapID);
+          if(auto pMir2xMapData = g_MapBinDBN->Retrieve(nMapID)){
+              return pMir2xMapData;
+          }
 
           // when constructing a servermap
           // servicecore should test if current nMapID valid
-          condcheck(pMir2xMapData);
-          return pMir2xMapData;
+          throw std::runtime_error(str_fflprintf("Load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name));
       }()))
     , m_ServiceCore(pServiceCore)
     , m_CellVec2D()
     , m_LuaModule(nullptr)
 {
-    m_CellVec2D.clear();
-    if(m_Mir2xMapData.Valid()){
-        m_CellVec2D.resize(W());
-        for(auto &rstStateLine: m_CellVec2D){
-            rstStateLine.resize(H());
-        }
-    }else{
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name);
-        g_MonoServer->Restart();
+    if(!m_Mir2xMapData.Valid()){
+        throw std::runtime_error(str_fflprintf("Load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name));
+    }
+
+    m_CellVec2D.resize(W());
+    m_CellVec2D.shrink_to_fit();
+
+    for(auto &rstStateLine: m_CellVec2D){
+        rstStateLine.resize(H());
+        rstStateLine.shrink_to_fit();
     }
 
     for(auto stLinkEntry: DBCOM_MAPRECORD(nMapID).LinkArray){
@@ -248,7 +251,6 @@ void ServerMap::OperateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_FATAL, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
@@ -267,7 +269,7 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
 {
     if(GroundValid(nX, nY)){
         if(bCheckCO){
-            for(auto nUID: GetUIDList(nX, nY)){
+            for(auto nUID: GetUIDListRef(nX, nY)){
                 if(auto nType = UIDFunc::GetUIDType(nUID); nType == UID_PLY || nType == UID_MON){
                     return false;
                 }
@@ -295,7 +297,6 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
                 return -1.00;
             }
@@ -310,14 +311,13 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid CheckLock provided: %d, should be (0, 1, 2)", nCheckLock);
                 return -1.00;
             }
     }
 
     int nMaxIndex = -1;
-    switch(LDistance2(nX0, nY0, nX1, nY1)){
+    switch(MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
             {
                 nMaxIndex = 0;
@@ -404,7 +404,6 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
                 }
             default:
                 {
-                    extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nX0 + nDX * nIndex, nY0 + nDY * nIndex);
                     break;
                 }
@@ -518,7 +517,7 @@ void ServerMap::AddGridUID(uint64_t nUID, int nX, int nY)
             && ValidC(nX, nY)
             && GroundValid(nX, nY)){
 
-        auto &rstUIDList = GetUIDList(nX, nY);
+        auto &rstUIDList = GetUIDListRef(nX, nY);
         if(std::find(rstUIDList.begin(), rstUIDList.end(), nUID) == rstUIDList.end()){
             rstUIDList.push_back(nUID);
         }
@@ -531,7 +530,7 @@ void ServerMap::RemoveGridUID(uint64_t nUID, int nX, int nY)
             && ValidC(nX, nY)
             && GroundValid(nX, nY)){
 
-        auto &rstUIDList = GetUIDList(nX, nY);
+        auto &rstUIDList = GetUIDListRef(nX, nY);
         auto pUIDRecord  = std::find(rstUIDList.begin(), rstUIDList.end(), nUID);
 
         if(pUIDRecord != rstUIDList.end()){
@@ -551,7 +550,7 @@ bool ServerMap::DoUIDList(int nX, int nY, const std::function<bool(uint64_t)> &f
         return false;
     }
 
-    for(auto nUID: GetUIDList(nX, nY)){
+    for(auto nUID: GetUIDListRef(nX, nY)){
         if(fnOP(nUID)){
             return true;
         }
@@ -567,10 +566,7 @@ bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(i
     int nX0 = nCX0 - nCR + 1;
     int nY0 = nCY0 - nCR + 1;
 
-    if(true
-            && nW > 0
-            && nH > 0
-            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+    if((nW > 0) && (nH > 0) && MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -578,7 +574,7 @@ bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(i
         for(int nX = nX0; nX < nX0 + nW; ++nX){
             for(int nY = nY0; nY < nY0 + nH; ++nY){
                 if(true || ValidC(nX, nY)){
-                    if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                    if(MathFunc::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
                         if(!fnOP){
                             return false;
                         }
@@ -596,10 +592,7 @@ bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(i
 
 bool ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<bool(int, int)> &fnOP)
 {
-    if(true
-            && nW > 0
-            && nH > 0
-            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+    if((nW > 0) && (nH > 0) && MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -636,7 +629,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
     if(true
             && nW > 0
             && nH > 0
-            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+            && MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -648,7 +641,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
                 int nY = stRC.Y();
 
                 if(true || ValidC(nX, nY)){
-                    if(LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                    if(MathFunc::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
                         if(!fnOP){
                             return false;
                         }
@@ -676,7 +669,7 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
     if(true
             && nW > 0
             && nH > 0
-            && RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+            && MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -776,7 +769,7 @@ bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
-                for(auto nUID: GetUIDList(nX, nY)){
+                for(auto nUID: GetUIDListRef(nX, nY)){
                     if(UIDFunc::GetUIDType(nUID) == UID_PLY){
                         m_ActorPod->Forward(nUID, {MPK_SHOWDROPITEM, stAMSDI});
                     }
@@ -796,7 +789,7 @@ int ServerMap::GetMonsterCount(uint32_t nMonsterID)
     int nCount = 0;
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
-            for(auto nUID: GetUIDList(nX, nY)){
+            for(auto nUID: GetUIDListRef(nX, nY)){
                 if(UIDFunc::GetUIDType(nUID) == UID_MON){
                     if(nMonsterID){
                         nCount += ((UIDFunc::GetMonsterID(nUID) == nMonsterID) ? 1 : 0);
@@ -884,7 +877,6 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
 
         // load lua script to the module
         {
-            extern ServerConfigureWindow *g_ServerConfigureWindow;
             auto szScriptPath = g_ServerConfigureWindow->GetScriptPath();
             if(szScriptPath.empty()){
                 szScriptPath  = "/home/anhong/mir2x/server/monoserver/script/map";
@@ -1011,13 +1003,13 @@ int ServerMap::CheckPathGrid(int nX, int nY) const
         return PathFind::OBSTACLE;
     }
 
-    // for(auto nUID: GetUIDList(nX, nY)){
+    // for(auto nUID: GetUIDListRef(nX, nY)){
     //     if(auto nType = UIDFunc::GetUIDType(nUID); nType == UID_PLY || nType == UID_MON){
     //         return PatFind::OCCUPIED;
     //     }
     // }
 
-    if(!GetUIDList(nX, nY).empty()){
+    if(!GetUIDListRef(nX, nY).empty()){
         return PathFind::OCCUPIED;
     }
 
