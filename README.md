@@ -17,6 +17,13 @@ mir2x is a c/s based mir2ei implementation with various platforms supported. It 
 ![image](https://github.com/etorth/mir2x/raw/master/readme/screencapture.gif)
 ![image](https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png)
 
+### Windows
+
+For windows please download binaries from appveyor
+```
+https://ci.appveyor.com/project/etorth/mir2x/build/artifacts
+```
+If complains missing dll, you may need to copy .dll files from mir2x/bin to mir2x/client and mir2x/server.
 
 ### Building from source
 
