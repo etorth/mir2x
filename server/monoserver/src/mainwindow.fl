@@ -17,16 +17,18 @@ decl {\#include <mutex>} {private local
 decl {class CommandWindow;} {public global
 }
 
-class MainWindow {} {
-  Function {MainWindow()} {} {
+class MainWindow {open
+} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_Window {
       label MonoServer
       callback {{
 	// do nothing
-}}
-      xywh {1 41 720 400} type Double labelfont 4 resizable visible
+}} open
+      xywh {483 92 720 400} type Double labelfont 4 resizable visible
     } {
-      Fl_Menu_Bar {} {selected
+      Fl_Menu_Bar {} {open
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -58,7 +60,7 @@ class MainWindow {} {
           }
         }
         Submenu {} {
-          label Configure
+          label Configure open
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -80,7 +82,7 @@ class MainWindow {} {
             code0 {\#include "databaseconfigurewindow.hpp"}
           }
           Submenu {} {
-            label Fonts
+            label Fonts open
             xywh {0 0 70 21} labelfont 4
           } {
             MenuItem m_MenuItemFirstFont {
@@ -271,8 +273,316 @@ class MainWindow {} {
               label dynamic_label
               xywh {430 430 36 21} labelfont 4
             }
-            MenuItem m_MenuItemLastFont {
+            MenuItem {} {
               label dynamic_label
+              xywh {330 330 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {340 340 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {350 350 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {360 360 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {370 370 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {380 380 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {390 390 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {400 400 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {410 410 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {420 420 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {430 430 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {440 440 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {450 450 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {460 460 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {470 470 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {480 480 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {490 490 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {500 500 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {510 510 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {520 520 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {530 530 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {540 540 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {550 550 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {560 560 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {570 570 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {580 580 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {590 590 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {600 600 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {610 610 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {620 620 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {630 630 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {640 640 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {650 650 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {660 660 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {670 670 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {680 680 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {690 690 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {700 700 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {710 710 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {720 720 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {730 730 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {740 740 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {750 750 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {760 760 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {770 770 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {780 780 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {790 790 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {800 800 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {810 810 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {820 820 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {830 830 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {840 840 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {850 850 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {860 860 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {870 870 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {880 880 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {890 890 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {900 900 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {910 910 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {920 920 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {930 930 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {940 940 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {950 950 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {960 960 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {970 970 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {980 980 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {980 980 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {990 990 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {1000 1000 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {1010 1010 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {1020 1020 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {1030 1030 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {1040 1040 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {1050 1050 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {1060 1060 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {1070 1070 36 21} labelfont 4
+            }
+            MenuItem {} {
+              label dynamic_label
+              xywh {1080 1080 36 21} labelfont 4
+            }
+            MenuItem m_MenuItemLastFont {
+              label dynamic_label selected
               xywh {20 20 36 21} labelfont 4
             }
           }
