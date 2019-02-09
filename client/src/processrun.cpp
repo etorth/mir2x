@@ -1044,17 +1044,17 @@ bool ProcessRun::RegisterUserCommand()
         switch(rstvParam.size()){
             case 0 + 1:
                 {
-                    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", "@make 物品名字");
+                    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"@make 物品名字");
                     return 1;
                 }
             case 1 + 1:
                 {
-                    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", "获得%s", rstvParam[1].c_str());
+                    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"获得%s", rstvParam[1].c_str());
                     return 0;
                 }
             default:
                 {
-                    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", "Invalid argument for @make");
+                    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"Invalid argument for @make");
                     return 1;
                 }
         }
@@ -1220,10 +1220,10 @@ void ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, cons
 
     if(nOutPort & OUTPORT_LOG){
         switch(nLogType){
-            case Log::LOGTYPEV_INFO    : g_Log->AddLog(LOGTYPE_INFO   , "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
-            case Log::LOGTYPEV_WARNING : g_Log->AddLog(LOGTYPE_WARNING, "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
-            case Log::LOGTYPEV_DEBUG   : g_Log->AddLog(LOGTYPE_DEBUG,   "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
-            default                    : g_Log->AddLog(LOGTYPE_FATAL  , "%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_INFO    : g_Log->AddLog(LOGTYPE_INFO   , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_WARNING : g_Log->AddLog(LOGTYPE_WARNING, u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_DEBUG   : g_Log->AddLog(LOGTYPE_DEBUG,   u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            default                    : g_Log->AddLog(LOGTYPE_FATAL  , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
         }
     }
 
