@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <string>
 #include "flwrapper.hpp"
 #include "platforms.hpp"
 #include "mainwindow.hpp"
