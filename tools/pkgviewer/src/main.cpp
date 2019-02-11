@@ -41,6 +41,9 @@ int main()
 
     g_ProgressBarWindow = new ProgressBarWindow();
     g_MainWindow        = new MainWindow();
+    g_PreviewWindow     = new PreviewWindow();
+
+    g_PreviewWindow->hide();
     g_MainWindow->ShowAll();
 
     return Fl::run();

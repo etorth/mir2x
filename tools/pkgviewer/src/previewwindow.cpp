@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "flwrapper.hpp"
 #include "platforms.hpp"
 #include "mainwindow.hpp"
 #include "previewwindow.hpp"
@@ -24,9 +25,6 @@
 extern WilImagePackage  g_WilPackage;
 extern MainWindow      *g_MainWindow;
 
-
-// to remove wired black pixels for magic wil images
-// implement here instead of put in WilImagePackage::Decode()
 static void CalcAutoAlpha(uint32_t *pData, size_t nDataLen)
 {
     if(!(pData && nDataLen)){
@@ -61,73 +59,59 @@ static void CalcAutoAlpha(uint32_t *pData, size_t nDataLen)
     }
 }
 
-PreviewWindow::PreviewWindow(int W, int H)
-	: Fl_Double_Window(0, 0, W, H)
-    , m_Inited(false)
-    , m_ImageIndex(0)
-    , m_Image()
-    , m_Buf()
-{}
-
 void PreviewWindow::draw()
 {
-	Fl_Double_Window::draw();
+    Fl_Double_Window::draw();
     if(g_MainWindow->BlackBG()){
         fl_rectf(0, 0, w(), h(), 0, 0, 0);
     }
 
-    if(!m_Inited || (m_Inited && m_ImageIndex != g_MainWindow->SelectedImageIndex())){
-        LoadImage();
+    if(!m_Image){
+        return;
     }
 
-    if(m_Inited && m_ImageIndex == g_MainWindow->SelectedImageIndex() && m_Image){
+    int nX = (w() - m_Image->w()) / 2;
+    int nY = (h() - m_Image->h()) / 2;
+    int nW = m_Image->w();
+    int nH = m_Image->h();
 
-        // for howto use make_current(), see my understanding as comments in:
-        //      tools/mapeditor/src/animationpreviewarea.cpp
-        // put this here as unchanged since it works properly
-        if(PlatformWindows() && !PlatformLinux()){
-            // wtf
-            make_current();
-        }
-
-        int nX = (w() - m_Image->w()) / 2;
-        int nY = (h() - m_Image->h()) / 2;
-        int nW = m_Image->w();
-        int nH = m_Image->h();
-
-        m_Image->draw(nX, nY, nW, nH);
-        auto stColor = fl_color();
-        fl_color(FL_RED);
+    m_Image->draw(nX, nY, nW, nH);
+    {
+        fl_wrapper::enable_color stColor(FL_RED);
         fl_rect(nX, nY, nW, nH);
-        fl_color(stColor);
     }
 }
 
 void PreviewWindow::LoadImage()
 {
-    extern WilImagePackage  g_WilPackage;
-    extern MainWindow      *g_MainWindow;
-
-    if(true
-            && g_WilPackage.SetIndex(g_MainWindow->SelectedImageIndex())
-            && g_WilPackage.CurrentImageValid()){
-
-        auto nW = g_WilPackage.CurrentImageInfo().shWidth;
-        auto nH = g_WilPackage.CurrentImageInfo().shHeight;
-
-        m_Buf.resize(0);
-        m_Buf.resize(nW * nH);
-
-        g_WilPackage.Decode(m_Buf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-        if(g_MainWindow->AutoAlpha()){
-            CalcAutoAlpha(m_Buf.data(), m_Buf.size());
-        }
-        m_Image = std::make_unique<Fl_RGB_Image>((uchar *)(m_Buf.data()), nW, nH, 4);
+    if(!g_WilPackage.SetIndex(g_MainWindow->SelectedImageIndex())){
+        return;
     }
 
-    m_Inited = false;
-    if(m_Image){
-        m_Inited = true;
-        m_ImageIndex = g_MainWindow->SelectedImageIndex();
+    if(!g_WilPackage.CurrentImageValid()){
+        return;
     }
+
+    auto nW = g_WilPackage.CurrentImageInfo().shWidth;
+    auto nH = g_WilPackage.CurrentImageInfo().shHeight;
+
+    m_Buf.resize(0);
+    m_Buf.resize(nW * nH);
+
+    g_WilPackage.Decode(m_Buf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+    if(g_MainWindow->AutoAlpha()){
+        CalcAutoAlpha(m_Buf.data(), m_Buf.size());
+    }
+
+    m_Image = std::make_unique<Fl_RGB_Image>((uchar *)(m_Buf.data()), nW, nH, 4);
+    m_ImageIndex.emplace(g_MainWindow->SelectedImageIndex());
+
+
+    size_t nWinH = (std::max<int>)(((std::min<int>)(((int)(nH * 1.5)), (int)(nH + 40))), (int)200);
+    size_t nWinW = (std::max<int>)(((std::min<int>)(((int)(nW * 1.5)), (int)(nW + 40))), (int)200);
+
+    // resize the window
+    // don't call this function in the ::draw()
+    size(nWinW, nWinH);
+    copy_label(std::to_string(m_ImageIndex.value()).c_str());
 }

@@ -20,14 +20,16 @@ decl {\#include "savepng.hpp"} {private local
 decl {\#include "wilimagepackage.hpp"} {private local
 }
 
-class MainWindow {} {
-  Function {MainWindow()} {} {
+class MainWindow {open
+} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_Window {
       callback {{
 	// don't exit directly
 	// exit(0);
-}}
-      private xywh {1126 302 555 605} type Double labelfont 4
+}} open
+      private xywh {1379 405 555 605} type Double labelfont 4
       code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_MenuBar {
@@ -42,8 +44,7 @@ class MainWindow {} {
             label {Open                     }
             callback {{
     extern PreviewWindow *g_PreviewWindow;
-    delete g_PreviewWindow;
-    g_PreviewWindow = nullptr;
+    g_PreviewWindow->hide();
 
     Fl_Native_File_Chooser fileChooser;
     extern std::string g_FileFullName;
@@ -324,7 +325,13 @@ class MainWindow {} {
         } {
           MenuItem m_MenuItemAutoAlpha {
             label {Auto alpha             }
+            callback {{
+	extern PreviewWindow *g_PreviewWindow;
+    g_PreviewWindow->LoadImage();
+	g_PreviewWindow->redraw();
+}}
             xywh {0 0 36 21} type Toggle labelfont 4
+            code0 {\#include "previewwindow.hpp"}
           }
           MenuItem m_MenuItemAutoOffset {
             label {Auto offset}
@@ -332,7 +339,12 @@ class MainWindow {} {
           }
           MenuItem m_MenuItemBlackBG {
             label {Black background}
+            callback {{
+	extern PreviewWindow *g_PreviewWindow;
+	g_PreviewWindow->redraw();
+}} selected
             xywh {20 20 36 21} type Toggle labelfont 4
+            code0 {\#include "previewwindow.hpp"}
           }
         }
         Submenu {} {
@@ -361,18 +373,9 @@ extern PreviewWindow   *g_PreviewWindow;
 extern MainWindow      *g_MainWindow;
 extern WilImagePackage  g_WilPackage;
 
-delete g_PreviewWindow;
-g_PreviewWindow = nullptr;
-
 g_WilPackage.SetIndex(g_MainWindow->SelectedImageIndex());
 if(g_WilPackage.CurrentImageValid()){
-	int W = g_WilPackage.CurrentImageInfo().shWidth;
-	int H = g_WilPackage.CurrentImageInfo().shHeight;
-	
-	H = (std::max<int>)(((std::min<int>)(((int)(H * 1.5)), (int)(H + 40))), (int)200);
-	W = (std::max<int>)(((std::min<int>)(((int)(W * 1.5)), (int)(W + 40))), (int)200);
-
-	g_PreviewWindow = new PreviewWindow(W, H);
+	g_PreviewWindow->LoadImage();
 	g_PreviewWindow->show();
 	g_PreviewWindow->redraw();
 }
