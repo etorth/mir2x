@@ -29,6 +29,16 @@ static void CalcAutoAlpha(uint32_t *pData, size_t nDataLen)
         return;
     }
 
+    auto fnGetAlpha = [](uint8_t r, uint8_t g, uint8_t b) -> double
+    {
+        constexpr double factor = 5.0;
+
+        double l = (0.30 * r + 0.59 * g + 0.11 * b) / 255.0;
+        double x = (l * 2.0 - 1.0) * factor;
+
+        return 1.0 / (1.0 + std::exp(-x));
+    };
+
     for(size_t nIndex = 0; nIndex < nDataLen; ++nIndex){
         uint8_t a = ((pData[nIndex] & 0XFF000000) >> 24);
 
@@ -40,7 +50,7 @@ static void CalcAutoAlpha(uint32_t *pData, size_t nDataLen)
         uint8_t g = ((pData[nIndex] & 0X0000FF00) >>  8);
         uint8_t b = ((pData[nIndex] & 0X000000FF) >>  0);
 
-        uint32_t lum = std::lround(0.30 * r + 0.59 * g + 0.11 * b);
+        uint32_t lum = std::lround(fnGetAlpha(r, g, b) * 255.0);
 
         pData[nIndex] &= 0X00FFFFFF;
         pData[nIndex] |= (lum << 24);
