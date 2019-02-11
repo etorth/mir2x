@@ -21,6 +21,10 @@
 #include "previewwindow.hpp"
 #include "wilimagepackage.hpp"
 
+extern WilImagePackage  g_WilPackage;
+extern MainWindow      *g_MainWindow;
+
+
 // to remove wired black pixels for magic wil images
 // implement here instead of put in WilImagePackage::Decode()
 static void CalcAutoAlpha(uint32_t *pData, size_t nDataLen)
@@ -68,9 +72,9 @@ PreviewWindow::PreviewWindow(int W, int H)
 void PreviewWindow::draw()
 {
 	Fl_Double_Window::draw();
-
-    extern WilImagePackage  g_WilPackage;
-    extern MainWindow      *g_MainWindow;
+    if(g_MainWindow->BlackBG()){
+        fl_rectf(0, 0, w(), h(), 0, 0, 0);
+    }
 
     if(!m_Inited || (m_Inited && m_ImageIndex != g_MainWindow->SelectedImageIndex())){
         LoadImage();
