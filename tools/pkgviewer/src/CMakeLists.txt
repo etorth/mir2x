@@ -33,3 +33,5 @@ TARGET_LINK_LIBRARIES(pkgviewer ${OPENGL_LIBRARIES})
 TARGET_LINK_LIBRARIES(pkgviewer ${CMAKE_DL_LIBS}                 )
 TARGET_LINK_LIBRARIES(pkgviewer common             )
 TARGET_LINK_LIBRARIES(pkgviewer PNG::PNG                )
+
+INSTALL(TARGETS pkgviewer DESTINATION tools/pkgviewer)

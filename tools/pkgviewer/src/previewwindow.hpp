@@ -17,6 +17,8 @@
  */
 
 #pragma once
+#include <cmath>
+#include <memory>
 #include <vector>
 #include <cstdint>
 #include <FL/Fl_Image.H>
@@ -26,19 +28,22 @@ class PreviewWindow: public Fl_Double_Window
 {
     public:
         PreviewWindow(int, int);
-        ~PreviewWindow();
+
+    public:
+        ~PreviewWindow() = default;
 
     public:
         void draw();
 
     private:
-        void ExtendBuf(size_t);
         void LoadImage();
 
     private:
-        bool          m_Inited;
-        uint32_t      m_ImageIndex;
-        Fl_RGB_Image *m_Image;
+        bool     m_Inited;
+        uint32_t m_ImageIndex;
+
+    private:
+        std::unique_ptr<Fl_RGB_Image> m_Image;
 
     private:
         std::vector<uint32_t> m_Buf;

@@ -21,23 +21,43 @@
 #include "previewwindow.hpp"
 #include "wilimagepackage.hpp"
 
+// to remove wired black pixels for magic wil images
+// implement here instead of put in WilImagePackage::Decode()
+static void CalcAutoAlpha(uint32_t *pData, size_t nDataLen)
+{
+    if(!(pData && nDataLen)){
+        return;
+    }
+
+    for(size_t nIndex = 0; nIndex < nDataLen; ++nIndex){
+        uint8_t a = ((pData[nIndex] & 0XFF000000) >> 24);
+
+        if(a == 0){
+            continue;
+        }
+
+        uint8_t r = ((pData[nIndex] & 0X00FF0000) >> 16);
+        uint8_t g = ((pData[nIndex] & 0X0000FF00) >>  8);
+        uint8_t b = ((pData[nIndex] & 0X000000FF) >>  0);
+
+        uint32_t lum = std::lround(0.30 * r + 0.59 * g + 0.11 * b);
+
+        pData[nIndex] &= 0X00FFFFFF;
+        pData[nIndex] |= (lum << 24);
+    }
+}
+
 PreviewWindow::PreviewWindow(int W, int H)
 	: Fl_Double_Window(0, 0, W, H)
     , m_Inited(false)
     , m_ImageIndex(0)
-    , m_Image(nullptr)
+    , m_Image()
     , m_Buf()
 {}
-
-PreviewWindow::~PreviewWindow()
-{
-    delete m_Image;
-}
 
 void PreviewWindow::draw()
 {
 	Fl_Double_Window::draw();
-    fl_rectf(0, 0, w(), h(), 0, 0, 0);
 
     extern WilImagePackage  g_WilPackage;
     extern MainWindow      *g_MainWindow;
@@ -71,8 +91,6 @@ void PreviewWindow::draw()
 
 void PreviewWindow::LoadImage()
 {
-    delete m_Image; m_Image = nullptr;
-
     extern WilImagePackage  g_WilPackage;
     extern MainWindow      *g_MainWindow;
 
@@ -86,8 +104,11 @@ void PreviewWindow::LoadImage()
         m_Buf.resize(0);
         m_Buf.resize(nW * nH);
 
-        g_WilPackage.Decode(&(m_Buf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-        m_Image = new Fl_RGB_Image((uchar *)(&(m_Buf[0])), nW, nH, 4);
+        g_WilPackage.Decode(m_Buf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+        if(g_MainWindow->AutoAlpha()){
+            CalcAutoAlpha(m_Buf.data(), m_Buf.size());
+        }
+        m_Image = std::make_unique<Fl_RGB_Image>((uchar *)(m_Buf.data()), nW, nH, 4);
     }
 
     m_Inited = false;
