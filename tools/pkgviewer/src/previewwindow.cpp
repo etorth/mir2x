@@ -17,6 +17,7 @@
  */
 
 #include <string>
+#include <cstring>
 #include "flwrapper.hpp"
 #include "platforms.hpp"
 #include "mainwindow.hpp"
@@ -26,20 +27,53 @@
 extern WilImagePackage  g_WilPackage;
 extern MainWindow      *g_MainWindow;
 
-static void CalcAutoAlpha(uint32_t *pData, size_t nDataLen)
+static void CalcAutoAlpha(uint32_t *pData, size_t nDataLen, const std::string &szAutoAlphaMethod)
 {
     if(!(pData && nDataLen)){
         return;
     }
 
-    auto fnGetAlpha = [](uint8_t r, uint8_t g, uint8_t b) -> double
+    if(szAutoAlphaMethod.empty() || szAutoAlphaMethod == "None"){
+        return;
+    }
+
+    enum
     {
-        constexpr double factor = 5.0;
+        AUTOALPHA_NONE = 0,
+        AUTOALPHA_HSL,
+        AUTOALPHA_CMYK,
+    };
 
-        double l = (0.30 * r + 0.59 * g + 0.11 * b) / 255.0;
-        double x = (l * 2.0 - 1.0) * factor;
+    int nMethod = 0;
+    if(szAutoAlphaMethod == "HSL"){
+        nMethod = AUTOALPHA_HSL;
+    }else if(szAutoAlphaMethod == "CMYK"){
+        nMethod = AUTOALPHA_CMYK;
+    }else{
+        return;
+    }
 
-        return 1.0 / (1.0 + std::exp(-x));
+    auto fnGetAlpha = [nMethod](uint8_t r, uint8_t g, uint8_t b) -> double
+    {
+        switch(nMethod){
+            case AUTOALPHA_HSL:
+                {
+                    constexpr double factor = 5.0;
+
+                    double l = (0.30 * r + 0.59 * g + 0.11 * b) / 255.0;
+                    double x = (l * 2.0 - 1.0) * factor;
+
+                    return 1.0 / (1.0 + std::exp(-x));
+                }
+            case AUTOALPHA_CMYK:
+                {
+                    return std::max<double>({r / 255.0, g / 255.0, b / 255.0});
+                }
+            default:
+                {
+                    return 1.0;
+                }
+        }
     };
 
     for(size_t nIndex = 0; nIndex < nDataLen; ++nIndex){
@@ -100,13 +134,13 @@ void PreviewWindow::LoadImage()
     m_Buf.resize(nW * nH);
 
     g_WilPackage.Decode(m_Buf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-    if(g_MainWindow->AutoAlpha()){
-        CalcAutoAlpha(m_Buf.data(), m_Buf.size());
+
+    if(auto szAutoAlphaMethod = g_MainWindow->GetAutoAlphaMethod(); szAutoAlphaMethod != "None"){
+        CalcAutoAlpha(m_Buf.data(), m_Buf.size(), szAutoAlphaMethod);
     }
 
     m_Image = std::make_unique<Fl_RGB_Image>((uchar *)(m_Buf.data()), nW, nH, 4);
     m_ImageIndex.emplace(g_MainWindow->SelectedImageIndex());
-
 
     size_t nWinH = (std::max<int>)(((std::min<int>)(((int)(nH * 1.5)), (int)(nH + 40))), (int)200);
     size_t nWinW = (std::max<int>)(((std::min<int>)(((int)(nW * 1.5)), (int)(nW + 40))), (int)200);

@@ -20,16 +20,14 @@ decl {\#include "savepng.hpp"} {private local
 decl {\#include "wilimagepackage.hpp"} {private local
 }
 
-class MainWindow {open
-} {
-  Function {MainWindow()} {open
-  } {
+class MainWindow {} {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       callback {{
 	// don't exit directly
 	// exit(0);
-}} open
-      private xywh {1379 405 555 605} type Double labelfont 4
+}}
+      private xywh {856 278 555 605} type Double labelfont 4
       code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_MenuBar {
@@ -323,15 +321,50 @@ class MainWindow {open
           label Config
           xywh {0 0 70 21} labelfont 4
         } {
-          MenuItem m_MenuItemAutoAlpha {
-            label {Auto alpha             }
-            callback {{
+          Submenu {} {
+            label {Auto alpha        }
+            xywh {0 0 70 21} labelfont 4 divider
+          } {
+            MenuItem m_MenuItemAutoAlphaFirst {
+              label {None          }
+              callback {{
 	extern PreviewWindow *g_PreviewWindow;
-    g_PreviewWindow->LoadImage();
+	g_PreviewWindow->LoadImage();
 	g_PreviewWindow->redraw();
 }}
-            xywh {0 0 36 21} type Toggle labelfont 4
-            code0 {\#include "previewwindow.hpp"}
+              xywh {0 0 36 21} type Radio value 1 labelfont 4
+              code0 {\#include "previewwindow.hpp"}
+            }
+            MenuItem {} {
+              label CMYK
+              callback {{
+	extern PreviewWindow *g_PreviewWindow;
+	g_PreviewWindow->LoadImage();
+	g_PreviewWindow->redraw();
+}}
+              xywh {0 0 36 21} type Radio labelfont 4
+              code0 {\#include "previewwindow.hpp"}
+            }
+            MenuItem m_MenuItemAutoAlphaLast {
+              label HSL
+              callback {{
+	extern PreviewWindow *g_PreviewWindow;
+	g_PreviewWindow->LoadImage();
+	g_PreviewWindow->redraw();
+}}
+              xywh {10 10 36 21} type Radio labelfont 4 divider
+              code0 {\#include "previewwindow.hpp"}
+            }
+            MenuItem m_MenuItemAutoAlphaRecolor {
+              label Recolor
+              callback {{
+	extern PreviewWindow *g_PreviewWindow;
+	g_PreviewWindow->LoadImage();
+	g_PreviewWindow->redraw();
+}}
+              xywh {20 20 36 21} type Toggle labelfont 4
+              code0 {\#include "previewwindow.hpp"}
+            }
           }
           MenuItem m_MenuItemAutoOffset {
             label {Auto offset}
@@ -342,7 +375,7 @@ class MainWindow {open
             callback {{
 	extern PreviewWindow *g_PreviewWindow;
 	g_PreviewWindow->redraw();
-}} selected
+}}
             xywh {20 20 36 21} type Toggle labelfont 4
             code0 {\#include "previewwindow.hpp"}
           }
@@ -379,7 +412,7 @@ if(g_WilPackage.CurrentImageValid()){
 	g_PreviewWindow->show();
 	g_PreviewWindow->redraw();
 }
-}}
+}} selected
         private xywh {0 20 555 570} type Hold labelfont 4 textfont 4
         code0 {\#include <algorithm>}
         code1 {\#include <FL/fl_draw.H>}
@@ -443,10 +476,47 @@ if(g_WilPackage.CurrentImageValid()){
         m_Window->redraw();
 }} {}
   }
-  Function {AutoAlpha()} {return_type bool
+  Function {GetAutoAlphaMethod()} {return_type {std::string}
   } {
     code {{
-    return m_MenuItemAutoAlpha->value();
+    const char *pszLabel = [this]() -> const char *
+    {
+    	for(auto p = m_MenuItemAutoAlphaFirst;; p += 1){
+            if(p->value()){
+                return p->label();
+            }
+
+            if(p == m_MenuItemAutoAlphaLast){
+                return nullptr;
+            }
+        }
+    }();
+    
+    // sometimes I put black spaces at end of label to make good looking
+    // remove it
+    
+    if(pszLabel == nullptr){
+        return "None";
+    }
+    
+    std::string szRetString = pszLabel;
+    while(!szRetString.empty()){
+        if(szRetString[0] == ' '){
+            szRetString.erase(szRetString.begin());
+        }else{
+            break;
+        }
+    }
+    
+    while(!szRetString.empty()){
+        if(szRetString.back() == ' '){
+            szRetString.pop_back();
+        }else{
+            break;
+        }
+    }
+    
+    return szRetString.empty() ? std::string("None") : szRetString;
 }} {}
   }
   Function {BlackBG()} {return_type bool
