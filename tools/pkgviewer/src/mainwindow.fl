@@ -29,7 +29,7 @@ class MainWindow {open
 	// don't exit directly
 	// exit(0);
 }} open
-      private xywh {1019 191 555 605} type Double labelfont 4
+      private xywh {922 70 555 605} type Double labelfont 4
       code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_MenuBar {
@@ -37,7 +37,7 @@ class MainWindow {open
         private xywh {0 0 600 20} box FLAT_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
-          label File
+          label File open
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -59,10 +59,14 @@ class MainWindow {open
     fileChooser.directory(".");
     switch(fileChooser.show()){
         case -1:
-            fl_alert("%s", fileChooser.errmsg());
-            break;
-        case  1:
-            break;
+            {
+                fl_alert("%s", fileChooser.errmsg());
+                break;
+            }
+        case 1:
+            {
+                break;
+            }
         default:
             {
             	DeactivateAll();
@@ -155,12 +159,17 @@ class MainWindow {open
     fileChooser.title("Save");
     fileChooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_DIRECTORY);
     fileChooser.directory(".");
+    
     switch(fileChooser.show()){
         case -1:
-            fl_alert("%s", fileChooser.errmsg());
-            break;
-        case  1:
-            break;
+            {
+                fl_alert("%s", fileChooser.errmsg());
+                break;
+            }
+        case 1:
+            {
+                break;
+            }
         default:
             {
                 extern WilImagePackage g_WilPackage;
@@ -173,145 +182,118 @@ class MainWindow {open
 
                     std::vector<uint32_t> stvBuf(nW * nH);
                     g_WilPackage.Decode(&(stvBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                    if(AutoAlphaEnabled()){
+                        CalcPixelAutoAlpha(stvBuf.data(), stvBuf.size());
+                    }
 
-                    char tmpIndex[16];
-                    std::sprintf(tmpIndex, "%06d", SelectedImageIndex());
+                    auto nDX = g_WilPackage.CurrentImageInfo().shPX;
+                    auto nDY = g_WilPackage.CurrentImageInfo().shPY;
+
+                    char tmpIndex[128];
+                    auto imgIdx = SelectedImageIndex();
+
+                    if(SaveOffsetEnabled()){
+                        std::sprintf(tmpIndex, "TMP%06d_%s%s%04X%04X",
+                                (int)(imgIdx),
+                                ((nDX > 0) ? "1" : "0"),              // sign, postive for 1
+                                ((nDY > 0) ? "1" : "0"),              // sign
+                                (unsigned int)(std::labs(nDX)),
+                                (unsigned int)(std::labs(nDY)));
+                    }else{
+                        std::sprintf(tmpIndex, "TMP%06d", (int)(imgIdx));
+                    }
+
                     std::string tmpFilePathName = fileChooser.filename();
                     std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
                     SaveRGBABufferToPNG((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
                 }
+                break;
             }
-            break;
     }
-}}
+}} selected
             xywh {0 0 30 20} labelfont 4
             code0 {\#include <cstdint>}
+            code1 {\#include "autoalpha.hpp"}
           }
           MenuItem {} {
             label {Export All}
             callback {{
 	Fl_Native_File_Chooser fileChooser;
-	fileChooser.title("Save All");
+	fileChooser.title("Save All Wil Images");
 	fileChooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_DIRECTORY);
 	fileChooser.directory(".");
 	switch(fileChooser.show()){
 		case -1:
-			fl_alert("%s", fileChooser.errmsg());
-			break;
-        	case  1:
-            		break;
-        	default:
-			{
-				auto p = new ProgressBarWindow();
-                		p->SetValue(0);
-                		p->Redraw();
-                		p->ShowAll();
-                		Fl::check();
-                
-                        std::vector<uint32_t> stvBuf;
-                		extern WilImagePackage g_WilPackage;
-                
-                		for(int i = 1; i <= m_Browser->size(); ++i){
-                			int nNewPer = (int)(i * 100 / g_WilPackage.IndexCount());
-                    			p->SetValue(nNewPer);
-                    			p->Redraw();
-                    			p->ShowAll();
-                    			Fl::check(); // actually we don't need it
-                    
-                    			uint32_t imgIdx = (uint32_t)((intptr_t)(m_Browser->data(i)));
-                    			g_WilPackage.SetIndex(imgIdx);
-                    			if(g_WilPackage.CurrentImageValid()){
-                        			auto nW = g_WilPackage.CurrentImageInfo().shWidth;
-                        			auto nH = g_WilPackage.CurrentImageInfo().shHeight;
+            {
+                fl_alert("%s", fileChooser.errmsg());
+                break;
+            }
+        case 1:
+            {
+                break;
+            }
+        default:
+            {
+                extern WilImagePackage g_WilPackage;
+                extern ProgressBarWindow *g_ProgressBarWindow;
 
-                                    stvBuf.resize(0);
-                                    stvBuf.resize(nW * nH);
+                g_ProgressBarWindow->SetValue(0);
+                g_ProgressBarWindow->Redraw();
+                g_ProgressBarWindow->ShowAll();
+                Fl::check();
 
-                        			g_WilPackage.Decode(&(stvBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-                        			char tmpIndex[16];
-                        			std::sprintf(tmpIndex, "TMP%06d", imgIdx);
-                        			std::string tmpFilePathName = fileChooser.filename();
-                        			std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
-                        			SaveRGBABufferToPNG((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
-                    			}
-                		}
-                
-                		p->HideAll();
-                		delete p;
-            		}
-            		break;
-	}
-}}
-            xywh {10 10 30 20} labelfont 4
-            code0 {\#include "progressbarwindow.hpp"}
-          }
-          MenuItem {} {
-            label {Export With Offset}
-            callback {{
-	Fl_Native_File_Chooser fileChooser;
-	fileChooser.title("Save All With Offset Information");
-	fileChooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_DIRECTORY);
-	fileChooser.directory(".");
-	switch(fileChooser.show()){
-		case -1:
-			fl_alert("%s", fileChooser.errmsg());
-			break;
-        	case  1:
-            		break;
-        	default:
-			{
-				auto p = new ProgressBarWindow();
-                		p->SetValue(0);
-                		p->Redraw();
-                		p->ShowAll();
-                		Fl::check();
-                
-                        std::vector<uint32_t> stvBuf;
-                		extern WilImagePackage g_WilPackage;
-                
-                		for(int i = 1; i <= m_Browser->size(); ++i){
-                			int nNewPer = (int)(i * 100 / g_WilPackage.IndexCount());
-                    			p->SetValue(nNewPer);
-                    			p->Redraw();
-                    			p->ShowAll();
-                    			Fl::check(); // actually we don't need it
-                    
-                    			uint32_t imgIdx = (uint32_t)((intptr_t)(m_Browser->data(i)));
-                    			g_WilPackage.SetIndex(imgIdx);
-                    			if(g_WilPackage.CurrentImageValid()){
-                        			auto nW = g_WilPackage.CurrentImageInfo().shWidth;
-                        			auto nH = g_WilPackage.CurrentImageInfo().shHeight;
+                std::vector<uint32_t> stvBuf;
+                for(int nIndex = 1; nIndex <= m_Browser->size(); ++nIndex){
+                    g_ProgressBarWindow->SetValue((int)(std::lround(nIndex * 100.0 / g_WilPackage.IndexCount())));
+                    g_ProgressBarWindow->Redraw();
+                    g_ProgressBarWindow->ShowAll();
+                    Fl::check();
 
-                                    stvBuf.resize(0);
-                                    stvBuf.resize(nW * nH);
+                    auto imgIdx = (uint32_t)((intptr_t)(m_Browser->data(nIndex)));
 
-                        			g_WilPackage.Decode(&(stvBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                    g_WilPackage.SetIndex(imgIdx);
+                    if(!g_WilPackage.CurrentImageValid()){
+                        continue;
+                    }
 
-                                    auto nDX = g_WilPackage.CurrentImageInfo().shPX;
-                                    auto nDY = g_WilPackage.CurrentImageInfo().shPY;
+                    auto nW = g_WilPackage.CurrentImageInfo().shWidth;
+                    auto nH = g_WilPackage.CurrentImageInfo().shHeight;
 
-                                    char tmpIndex[64];
-                                    std::sprintf(tmpIndex, "TMP%06d_%s%s%04X%04X",
-                                            imgIdx,
-                                            ((nDX > 0) ? "1" : "0"),              // sign, postive for 1
-                                            ((nDY > 0) ? "1" : "0"),              // sign
-                                            (unsigned int)(std::labs(nDX)),
-                                            (unsigned int)(std::labs(nDY)));
+                    stvBuf.resize(0);
+                    stvBuf.resize(nW * nH);
 
-                                    std::string tmpFilePathName = fileChooser.filename();
-                                    std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
-                                    SaveRGBABufferToPNG((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
-                    			}
-                		}
-                
-                		p->HideAll();
-                		delete p;
-            		}
-            		break;
-	}
+                    g_WilPackage.Decode(stvBuf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                    if(AutoAlphaEnabled()){
+                        CalcPixelAutoAlpha(stvBuf.data(), stvBuf.size());
+                    }
+
+                    auto nDX = g_WilPackage.CurrentImageInfo().shPX;
+                    auto nDY = g_WilPackage.CurrentImageInfo().shPY;
+
+                    char tmpIndex[128];
+                    if(SaveOffsetEnabled()){
+                        std::sprintf(tmpIndex, "TMP%06d_%s%s%04X%04X",
+                                (int)(imgIdx),
+                                ((nDX > 0) ? "1" : "0"),              // sign, postive for 1
+                                ((nDY > 0) ? "1" : "0"),              // sign
+                                (unsigned int)(std::labs(nDX)),
+                                (unsigned int)(std::labs(nDY)));
+                    }else{
+                        std::sprintf(tmpIndex, "TMP%06d", (int)(imgIdx));
+                    }
+
+                    std::string tmpFilePathName = fileChooser.filename();
+                    std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
+                    SaveRGBABufferToPNG((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
+                }
+                g_ProgressBarWindow->HideAll();
+                break;
+            }
+    }
 }}
             xywh {20 20 30 20} labelfont 4 divider
             code0 {\#include "progressbarwindow.hpp"}
+            code1 {\#include "autoalpha.hpp"}
           }
           MenuItem {} {
             label Exit
@@ -333,8 +315,8 @@ class MainWindow {open
             xywh {20 20 36 21} type Toggle labelfont 4 divider
             code0 {\#include "previewwindow.hpp"}
           }
-          MenuItem m_MenuItemAutoOffset {
-            label {Auto offset}
+          MenuItem m_MenuItemSaveOffset {
+            label {Save offset}
             xywh {10 10 36 21} type Toggle labelfont 4 divider
           }
           MenuItem m_MenuItemBlackBG {
@@ -443,10 +425,16 @@ if(g_WilPackage.CurrentImageValid()){
         m_Window->redraw();
 }} {}
   }
-  Function {AutoAlphaEnabled()} {open return_type bool
+  Function {AutoAlphaEnabled()} {return_type bool
   } {
     code {{
     return m_MenuItemAutoAlpha->value();
+}} {}
+  }
+  Function {SaveOffsetEnabled()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemSaveOffset->value();
 }} {}
   }
   Function {BlackBG()} {return_type bool

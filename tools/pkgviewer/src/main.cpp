@@ -40,11 +40,12 @@ int main()
     Fl::visual(FL_RGB | FL_ALPHA);
 
     g_ProgressBarWindow = new ProgressBarWindow();
-    g_MainWindow        = new MainWindow();
     g_PreviewWindow     = new PreviewWindow();
+    g_MainWindow        = new MainWindow();
 
     g_PreviewWindow->hide();
-    g_MainWindow->ShowAll();
+    g_ProgressBarWindow->HideAll();
 
+    g_MainWindow->ShowAll();
     return Fl::run();
 }
