@@ -59,25 +59,20 @@ SDLDevice::SDLDevice()
     , m_WindowH(0)
     , m_InnFontMap()
 {
-    extern SDLDevice *g_SDLDevice;
     if(g_SDLDevice){
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "Multiple initialization for SDLDevice");
+        throw std::runtime_error(str_fflprintf(": Multiple initialization for SDLDevice"));
     }
 
     if(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS)){
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "Initialization failed for SDL2: %s", SDL_GetError());
+        throw std::runtime_error(str_fflprintf(": Initialization failed for SDL2: %s", SDL_GetError()));
     }
 
     if(TTF_Init()){
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "Initialization failed for SDL2 TTF: %s", TTF_GetError());
+        throw std::runtime_error(str_fflprintf(": Initialization failed for SDL2 TTF: %s", TTF_GetError()));
     }
 
     if((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG){
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "Initialization failed for SDL2 IMG: %s", IMG_GetError());
+        throw std::runtime_error(str_fflprintf(": Initialization failed for SDL2 IMG: %s", IMG_GetError()));
     }
 }
 
@@ -349,15 +344,13 @@ void SDLDevice::CreateInitViewWindow()
 
     m_Window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nWindowW, nWindowH, SDL_WINDOW_BORDERLESS);
     if(!m_Window){
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "Failed to create SDL window handler: %s", SDL_GetError());
+        throw std::runtime_error(str_fflprintf(": Failed to create SDL window handler: %s", SDL_GetError()));
     }
 
     m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
     if(!m_Renderer){
         SDL_DestroyWindow(m_Window);
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "Failed to create SDL renderer: %s", SDL_GetError());
+        throw std::runtime_error(str_fflprintf(": Failed to create SDL renderer: %s", SDL_GetError()));
     }
 
     SetWindowIcon();
@@ -431,16 +424,14 @@ void SDLDevice::CreateMainWindow()
 
     m_Window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_WindowW, m_WindowH, nFlags);
     if(!m_Window){
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "Failed to create SDL window handler: %s", SDL_GetError());
+        throw std::runtime_error(str_fflprintf(": Failed to create SDL window handler: %s", SDL_GetError()));
     }
 
     m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
 
     if(!m_Renderer){
         SDL_DestroyWindow(m_Window);
-        extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_FATAL, "Failed to create SDL renderer: %s", SDL_GetError());
+        throw std::runtime_error(str_fflprintf(": Failed to create SDL renderer: %s", SDL_GetError()));
     }
 
     SetWindowIcon();
