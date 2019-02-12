@@ -17,9 +17,8 @@
  */
 
 #pragma once
-#include <cmath>
-#include <memory>
 #include <vector>
+#include <memory>
 #include <cstdint>
 #include <optional>
 #include <FL/Fl_Image.H>
@@ -28,20 +27,22 @@
 class PreviewWindow: public Fl_Double_Window
 {
     private:
+        // for Fl_RGB_Image class
+        // caller need to maintain the color buffer
+        std::vector<uint32_t> m_Buf;
+
+    private:
         std::optional<uint32_t> m_ImageIndex;
 
     private:
         std::unique_ptr<Fl_RGB_Image> m_Image;
 
-    private:
-        std::vector<uint32_t> m_Buf;
-
     public:
         PreviewWindow()
             : Fl_Double_Window(0, 0, 10, 10)
+            , m_Buf()
             , m_ImageIndex(0)
             , m_Image()
-            , m_Buf()
         {}
 
     public:
@@ -51,5 +52,5 @@ class PreviewWindow: public Fl_Double_Window
         void draw() override;
 
     public:
-        void LoadImage();
+        bool LoadImage();
 };
