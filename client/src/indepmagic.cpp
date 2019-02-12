@@ -192,7 +192,7 @@ void IndepMagic::Draw(int nViewX, int nViewY)
                 int nOffX = 0;
                 int nOffY = 0;
                 if(auto pTexture = g_MagicDBN->Retrieve(m_CacheEntry->GfxID + Frame(), &nOffX, &nOffY)){
-                    SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_ADD);
+                    SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
                     g_SDLDevice->DrawTexture(pTexture, DrawPX() - nViewX + nOffX, DrawPY() - nViewY + nOffY);
                 }
             }

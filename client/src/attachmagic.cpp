@@ -142,7 +142,7 @@ void AttachMagic::Draw(int nDrawOffX, int nDrawOffY)
             int nOffX = 0;
             int nOffY = 0;
             if(auto pEffectTexture = g_MagicDBN->Retrieve(m_CacheEntry->GfxID + Frame(), &nOffX, &nOffY)){
-                SDL_SetTextureBlendMode(pEffectTexture, SDL_BLENDMODE_ADD);
+                SDL_SetTextureBlendMode(pEffectTexture, SDL_BLENDMODE_BLEND);
                 g_SDLDevice->DrawTexture(pEffectTexture, nDrawOffX + nOffX, nDrawOffY + nOffY);
             }
         }
