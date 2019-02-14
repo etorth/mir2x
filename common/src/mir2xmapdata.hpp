@@ -25,6 +25,7 @@
 #include <vector>
 #include <cstdint>
 #include <functional>
+#include "strfunc.hpp"
 #include "landtype.hpp"
 #include "sysconst.hpp"
 #include "condcheck.hpp"
@@ -208,7 +209,9 @@ class Mir2xMapData final
         Mir2xMapData(const char *pName)
             : Mir2xMapData()
         {
-            condcheck(Load(pName));
+            if(!Load(pName)){
+                throw std::runtime_error(str_fflprintf(": Failed to load map: %s", pName));
+            }
         }
 
     public:
