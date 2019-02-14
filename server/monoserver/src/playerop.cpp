@@ -36,8 +36,11 @@ void Player::On_MPK_METRONOME(const MessagePack &)
     g_NetDriver->Post(ChannID(), SM_PING, stSMP);
 }
 
-void Player::On_MPK_BADACTORPOD(const MessagePack &)
+void Player::On_MPK_BADACTORPOD(const MessagePack &rstMPK)
 {
+    AMBadActorPod stAMBAP;
+    std::memcpy(&stAMBAP, rstMPK.Data(), sizeof(stAMBAP));
+    ReportDeadUID(stAMBAP.UID);
 }
 
 void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK)

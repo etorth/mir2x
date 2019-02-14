@@ -504,6 +504,7 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
             stAMBAP.From    = pMPK->From();
             stAMBAP.ID      = pMPK->ID();
             stAMBAP.Respond = pMPK->Respond();
+            stAMBAP.UID     = pMailbox->Monitor.UID;
 
             PostMessage(pMPK->From(), {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, pMPK->ID()});
         }

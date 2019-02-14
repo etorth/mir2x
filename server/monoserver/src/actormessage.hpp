@@ -81,6 +81,7 @@ struct AMBadActorPod
     uint64_t From;
     uint32_t ID;
     uint32_t Respond;
+    uint64_t UID;
 };
 
 struct AMBadChannel
