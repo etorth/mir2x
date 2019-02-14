@@ -500,6 +500,9 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
             AMBadActorPod stAMBAP;
             std::memset(&stAMBAP, 0, sizeof(stAMBAP));
 
+            // when calling this function the Mailbox::Actor may already be empty
+            // have to know this mailbox's UID, should I move Monitor::UID to Mailbox::UID ?
+
             stAMBAP.Type    = pMPK->Type();
             stAMBAP.From    = pMPK->From();
             stAMBAP.ID      = pMPK->ID();
