@@ -879,7 +879,7 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
         {
             auto szScriptPath = g_ServerConfigureWindow->GetScriptPath();
             if(szScriptPath.empty()){
-                szScriptPath  = "/home/anhong/mir2x/server/monoserver/script/map";
+                szScriptPath = "script/map";
             }
 
             std::string szCommandFile = ((szScriptPath + "/") + DBCOM_MAPRECORD(ID()).Name) + ".lua";

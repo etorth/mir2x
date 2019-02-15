@@ -13,8 +13,8 @@ class ServerConfigureWindow {open
   Function {ServerConfigureWindow()} {open
   } {
     Fl_Window m_Window {
-      label ConfigureWindow open
-      xywh {327 327 625 360} type Double labelfont 4 modal visible
+      label ConfigureWindow open selected
+      xywh {630 211 625 360} type Double labelfont 4 modal visible
     } {
       Fl_Value_Input m_MaxPlayerCount {
         label {Maximal Player: }
@@ -97,14 +97,10 @@ class ServerConfigureWindow {open
         label {@fileopen}
         callback {{
     Fl_Native_File_Chooser stFileChooser;
-    stFileChooser.title("Load Map Database File...");
-    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
+    stFileChooser.title("Load Map Script Path...");
+    stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
+    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
 
-    char szMatchedFileNames[] =
-        "MAPDBN\\t*.ZIP\\n"
-        ;
-
-    stFileChooser.filter(szMatchedFileNames);
     stFileChooser.directory(".");
 
     switch(stFileChooser.show()){
@@ -122,7 +118,7 @@ class ServerConfigureWindow {open
                 std::string szPath = stFileChooser.filename();
                 std::replace(szPath.begin(), szPath.end(), '\\\\', '/');
 
-                m_MapFullName->value(szPath.c_str());
+                m_ScriptFullName->value(szPath.c_str());
             }
     }
 }}
@@ -135,7 +131,7 @@ class ServerConfigureWindow {open
     code {// set up the default map path
 {
     m_MapFullName->value("Map/MapBinDBN.ZSDB");
-    m_ScriptFullName->value("");
+    m_ScriptFullName->value("script/map");
 }} {}
   }
   Function {ShowAll()} {} {
