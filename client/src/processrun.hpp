@@ -235,7 +235,7 @@ class ProcessRun: public Process
         }
 
     public:
-        const auto &GetGroundItemList(int nX, int nY) const
+        const auto &GetGroundItemListRef(int nX, int nY) const
         {
             return m_GroundItemList[nX][nY];
         }

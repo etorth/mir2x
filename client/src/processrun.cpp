@@ -307,7 +307,7 @@ void ProcessRun::Draw()
         // should be over dead actors
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
-                auto &rstGroundItemList = GetGroundItemList(nX, nY);
+                auto &rstGroundItemList = GetGroundItemListRef(nX, nY);
                 for(auto rstGroundItem: rstGroundItemList){
                     if(auto &rstIR = DBCOM_ITEMRECORD(rstGroundItem.ID())){
                         if(rstIR.PkgGfxID >= 0){
@@ -430,7 +430,7 @@ void ProcessRun::Draw()
             for(int nY = nY0; nY <= nY1; ++nY){
                 for(int nX = nX0; nX <= nX1; ++nX){
 
-                    if(!GetGroundItemList(nX, nY).empty()){
+                    if(!GetGroundItemListRef(nX, nY).empty()){
                         if(auto pTexture = g_GroundItemDBN->Retrieve(0X01000000)){
                             int nW = -1;
                             int nH = -1;
@@ -534,7 +534,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                                 m_FocusTable[FOCUS_ATTACK] = nUID;
                                 TrackAttack(true, nUID);
                             }else{
-                                auto &rstGroundItemList = GetGroundItemList(nMouseGridX, nMouseGridY);
+                                auto &rstGroundItemList = GetGroundItemListRef(nMouseGridX, nMouseGridY);
                                 if(!rstGroundItemList.empty()){
                                     GetMyHero()->EmplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, rstGroundItemList.back().ID()));
                                 }

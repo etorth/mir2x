@@ -687,7 +687,7 @@ void MyHero::PickUp()
         int nX = CurrMotion().X;
         int nY = CurrMotion().Y;
 
-        auto &rstGroundItemList = m_ProcessRun->GetGroundItemList(nX, nY);
+        auto &rstGroundItemList = m_ProcessRun->GetGroundItemListRef(nX, nY);
         if(!rstGroundItemList.empty()){
             ReportAction(ActionPickUp(nX, nY, rstGroundItemList.back().ID()));
         }
