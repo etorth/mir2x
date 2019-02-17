@@ -46,7 +46,7 @@ ProcessRun::ProcessRun()
     , m_Mir2xMapData()
     , m_GroundItemList()
     , m_MyHeroUID(0)
-    , m_FocusTable()
+    , m_FocusUIDTable()
     , m_ViewX(0)
     , m_ViewY(0)
     , m_RollMap(false)
@@ -71,7 +71,7 @@ ProcessRun::ProcessRun()
     , m_MouseGridLoc(0, 0, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_AscendStrList()
 {
-    m_FocusTable.fill(0);
+    m_FocusUIDTable.fill(0);
     RegisterUserCommand();
 }
 
@@ -146,20 +146,20 @@ void ProcessRun::Update(double fUpdateTime)
         }
     }
 
-    if(auto p = RetrieveUID(m_FocusTable[FOCUS_ATTACK])){
+    if(auto p = RetrieveUID(m_FocusUIDTable[FOCUS_ATTACK])){
         if(p->StayDead()){
-            m_FocusTable[FOCUS_ATTACK] = 0;
+            m_FocusUIDTable[FOCUS_ATTACK] = 0;
         }else{
-            TrackAttack(false, m_FocusTable[FOCUS_ATTACK]);
+            TrackAttack(false, m_FocusUIDTable[FOCUS_ATTACK]);
         }
     }else{
-        m_FocusTable[FOCUS_ATTACK] = 0;
+        m_FocusUIDTable[FOCUS_ATTACK] = 0;
     }
 }
 
 uint64_t ProcessRun::FocusUID(int nFocusType)
 {
-    if(nFocusType < (int)(m_FocusTable.size())){
+    if(nFocusType < (int)(m_FocusUIDTable.size())){
         switch(nFocusType){
             case FOCUS_NONE:
                 {
@@ -190,8 +190,8 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                     int nCheckPointX = nPointX + m_ViewX;
                     int nCheckPointY = nPointY + m_ViewY;
 
-                    if(fnCheckFocus(m_FocusTable[FOCUS_MOUSE], nCheckPointX, nCheckPointY)){
-                        return m_FocusTable[FOCUS_MOUSE];
+                    if(fnCheckFocus(m_FocusUIDTable[FOCUS_MOUSE], nCheckPointX, nCheckPointY)){
+                        return m_FocusUIDTable[FOCUS_MOUSE];
                     }
 
                     Creature *pFocus = nullptr;
@@ -207,12 +207,12 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                         }
                     }
 
-                    m_FocusTable[FOCUS_MOUSE] = pFocus ? pFocus->UID() : 0;
-                    return m_FocusTable[FOCUS_MOUSE];
+                    m_FocusUIDTable[FOCUS_MOUSE] = pFocus ? pFocus->UID() : 0;
+                    return m_FocusUIDTable[FOCUS_MOUSE];
                 }
             default:
                 {
-                    return m_FocusTable[nFocusType];
+                    return m_FocusUIDTable[nFocusType];
                 }
         }
     }
@@ -531,7 +531,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                     case SDL_BUTTON_LEFT:
                         {
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
-                                m_FocusTable[FOCUS_ATTACK] = nUID;
+                                m_FocusUIDTable[FOCUS_ATTACK] = nUID;
                                 TrackAttack(true, nUID);
                             }else{
                                 auto &rstGroundItemList = GetGroundItemListRef(nMouseGridX, nMouseGridY);
@@ -550,11 +550,11 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                             // 4. if "+GOOD" client will release the motion lock
                             // 5. if "+FAIL" client will use the backup position and direction
 
-                            m_FocusTable[FOCUS_ATTACK] = 0;
-                            m_FocusTable[FOCUS_FOLLOW] = 0;
+                            m_FocusUIDTable[FOCUS_ATTACK] = 0;
+                            m_FocusUIDTable[FOCUS_FOLLOW] = 0;
 
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
-                                m_FocusTable[FOCUS_FOLLOW] = nUID;
+                                m_FocusUIDTable[FOCUS_FOLLOW] = nUID;
                             }else{
                                 int nX = -1;
                                 int nY = -1;
@@ -608,10 +608,10 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
                     case SDLK_t:
                         {
                             if(auto nMouseFocusUID = FocusUID(FOCUS_MOUSE)){
-                                m_FocusTable[FOCUS_MAGIC] = nMouseFocusUID;
+                                m_FocusUIDTable[FOCUS_MAGIC] = nMouseFocusUID;
                             }else{
-                                if(!RetrieveUID(m_FocusTable[FOCUS_MAGIC])){
-                                    m_FocusTable[FOCUS_MAGIC] = 0;
+                                if(!RetrieveUID(m_FocusUIDTable[FOCUS_MAGIC])){
+                                    m_FocusUIDTable[FOCUS_MAGIC] = 0;
                                 }
                             }
 

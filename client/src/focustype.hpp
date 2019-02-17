@@ -24,5 +24,6 @@ enum FocusType: int
     FOCUS_MAGIC,
     FOCUS_FOLLOW,
     FOCUS_ATTACK,
+    FOCUS_CLICKNPC,
     FOCUS_MAX,
 };

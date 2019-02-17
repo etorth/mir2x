@@ -20,6 +20,7 @@
 #include <set>
 #include <map>
 #include <list>
+#include <tuple>
 #include <memory>
 #include <cstdint>
 #include <algorithm>
@@ -83,7 +84,7 @@ class ProcessRun: public Process
         }
 
     private:
-        std::array<uint64_t, FOCUS_MAX> m_FocusTable;
+        std::array<uint64_t, FOCUS_MAX> m_FocusUIDTable;
 
     private:
         int m_ViewX;
@@ -156,6 +157,13 @@ class ProcessRun: public Process
 
     public:
         bool ScreenPoint2Grid(int, int, int *, int *);
+
+    public:
+        std::tuple<int, int> ScreenPoint2Grid(int nPX, int nPY)
+        {
+            return {(nPX + m_ViewX) / SYS_MAPGRIDXP, (nPY + m_ViewY) / SYS_MAPGRIDYP};
+        }
+
 
     public:
         bool OnMap(uint32_t, int, int) const;
