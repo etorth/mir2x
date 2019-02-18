@@ -25,6 +25,7 @@ class MainWindow {open
   Function {MainWindow()} {open
   } {
     Fl_Window m_Window {
+      label pkgviewer
       callback {{
 	// don't exit directly
 	// exit(0);
