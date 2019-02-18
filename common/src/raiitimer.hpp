@@ -67,8 +67,11 @@ class hres_timer
                 return 0;
             }
 
+	    // 1. for 32bit machine (x.tv_sec - y.tv_sec) * 1000000000 can easily overflow
+	    // 2. keep signed for d_sec * 1000000000 + d_nsec, then convert to unsignd
+
             constexpr long TIME_PRECISION = 1000000000;
-            return (uint64_t)((long)(curr_time.tv_sec - m_start.tv_sec) * TIME_PRECISION + (curr_time.tv_nsec - m_start.tv_nsec));
+            return (uint64_t)((int64_t)(curr_time.tv_sec - m_start.tv_sec) * TIME_PRECISION + (curr_time.tv_nsec - m_start.tv_nsec));
 #endif
         }
 
