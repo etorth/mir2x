@@ -156,7 +156,7 @@ static int cmd_list(const argh::parser &cmd)
                 continue;
             }
         }
-        std::printf("%32s %8" PRIu64 " %8" PRIu64 "\n", rstEntry.FileName, rstEntry.Length, rstEntry.Attribute);
+        std::printf("%32s %8zu %8" PRIu64 "\n", rstEntry.FileName, rstEntry.Length, rstEntry.Attribute);
     }
     return 0;
 }
@@ -190,7 +190,7 @@ static int cmd_uncomp_db(const argh::parser &cmd)
         if(stZSDB.Decomp(rstEntry.FileName, 0, &stReadBuf)){
             std::ofstream f(rstEntry.FileName, std::ios::out | std::ios::binary);
             f.write((const char *)(stReadBuf.data()), stReadBuf.size());
-            std::printf("%32s %8" PRIu64 " -> %8" PRIu64 " [%3d%%] %8" PRIu64 "\n", rstEntry.FileName, rstEntry.Length, (uint64_t)(stReadBuf.size()), (int)(rstEntry.Length * 100 / stReadBuf.size()), rstEntry.Attribute);
+            std::printf("%32s %8zu -> %8zu [%3d%%] %8" PRIu64 "\n", rstEntry.FileName, rstEntry.Length, stReadBuf.size(), (int)(rstEntry.Length * 100 / stReadBuf.size()), rstEntry.Attribute);
         }
     }
     return 0;
