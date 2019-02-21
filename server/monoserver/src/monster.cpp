@@ -821,6 +821,18 @@ bool Monster::MoveOneStep(int nX, int nY)
         return false;
     }
 
+    auto fnOnMoveError = [this, nX, nY]()
+    {
+        if(!CanMove()){
+            return;
+        }
+
+        if(auto nDir = PathFind::GetDirection(X(), Y(), nX, nY); Direction() != nDir){
+            m_Direction = nDir;
+            DispatchAction(ActionStand(X(), Y(), Direction()));
+        }
+    };
+
     switch(EstimateHop(nX, nY)){
         case 0:
             {
@@ -829,7 +841,7 @@ bool Monster::MoveOneStep(int nX, int nY)
         case 1:
             {
                 if(OneStepCost(nullptr, 1, X(), Y(), nX, nY) >= 0.00){
-                    return RequestMove(nX, nY, MoveSpeed(), false, [](){}, [](){});
+                    return RequestMove(nX, nY, MoveSpeed(), false, [](){}, fnOnMoveError);
                 }
                 break;
             }
@@ -848,15 +860,15 @@ bool Monster::MoveOneStep(int nX, int nY)
 
     if(m_AStarCache.Retrieve(&nXm, &nYm, X(), Y(), nX, nY, MapID())){
         if(OneStepCost(nullptr, 1, X(), Y(), nX, nY) >= 0.00){
-            return RequestMove(nXm, nYm, MoveSpeed(), false, [](){}, [](){});
+            return RequestMove(nXm, nYm, MoveSpeed(), false, [](){}, fnOnMoveError);
         }
     }
 
     switch(FindPathMethod()){
-        case FPMETHOD_ASTAR    : return MoveOneStepAStar   (nX, nY, [](){});
-        case FPMETHOD_GREEDY   : return MoveOneStepGreedy  (nX, nY, [](){});
-        case FPMETHOD_COMBINE  : return MoveOneStepCombine (nX, nY, [](){});
-        case FPMETHOD_NEIGHBOR : return MoveOneStepNeighbor(nX, nY, [](){});
+        case FPMETHOD_ASTAR    : return MoveOneStepAStar   (nX, nY, fnOnMoveError);
+        case FPMETHOD_GREEDY   : return MoveOneStepGreedy  (nX, nY, fnOnMoveError);
+        case FPMETHOD_COMBINE  : return MoveOneStepCombine (nX, nY, fnOnMoveError);
+        case FPMETHOD_NEIGHBOR : return MoveOneStepNeighbor(nX, nY, fnOnMoveError);
         default                : return false;
     }
 }
