@@ -42,9 +42,6 @@ class ActorMonitorTable: public Fl_TableImpl
         std::vector<ActorPool::ActorMonitor> m_ActorMonitorList;
 
     private:
-        hres_timer m_QueryTimer;
-
-    private:
         int  m_SortByCol;
         bool m_SortOrder;
 
@@ -72,7 +69,9 @@ class ActorMonitorTable: public Fl_TableImpl
     private:
         void ResetSort();
         void SetupHeaderWidth();
-        void OnActorMonitorListUpdate();
+
+    public:
+        void UpdateTable();
 
     private:
         int FindUIDRow(uint64_t);

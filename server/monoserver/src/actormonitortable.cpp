@@ -34,7 +34,6 @@ ActorMonitorTable::ActorMonitorTable(int nX, int nY, int nW, int nH, const char 
           "UID", "TYPE", "GROUP", "LIVE", "BUSY", "MSG_DONE", "MSG_PENDING"
       }
     , m_ActorMonitorList()
-    , m_QueryTimer()
     , m_SortByCol(-1)
     , m_SelectedUID(0)
 {
@@ -133,11 +132,6 @@ void ActorMonitorTable::draw_cell(TableContext nContext, int nRow, int nCol, int
     {
         case CONTEXT_STARTPAGE:
             {
-                if(m_QueryTimer.diff_msec() >= 1300){
-                    OnActorMonitorListUpdate();
-                    m_QueryTimer.reset();
-                }
-
                 if(SelectUIDRow(m_SelectedUID) < 0){
                     m_SelectedUID = 0;
                 }
@@ -252,7 +246,7 @@ void ActorMonitorTable::SetupHeaderWidth()
     }
 }
 
-void ActorMonitorTable::OnActorMonitorListUpdate()
+void ActorMonitorTable::UpdateTable()
 {
     m_ActorMonitorList = g_ActorPool->GetActorMonitor();
     m_MonitorDataDiags = GetMonitorDataDiags(m_ActorMonitorList);
