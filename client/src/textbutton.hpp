@@ -110,9 +110,9 @@ class TextButton: public ButtonBase
               }
             , m_Color
               {
-                  {rstColor[0][0], rstColor[0][1]},
-                  {rstColor[1][0], rstColor[1][1]},
-                  {rstColor[2][0], rstColor[2][1]},
+                  {rstColor[0][0], rstColor[1][0]},
+                  {rstColor[0][1], rstColor[1][1]},
+                  {rstColor[0][2], rstColor[1][2]},
               }
             , m_FrameLineColor
               {
