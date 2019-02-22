@@ -132,9 +132,6 @@ void ActorMonitorTable::draw_cell(TableContext nContext, int nRow, int nCol, int
     {
         case CONTEXT_STARTPAGE:
             {
-                if(SelectUIDRow(m_SelectedUID) < 0){
-                    m_SelectedUID = 0;
-                }
                 return; 
             }
         case CONTEXT_COL_HEADER:
@@ -251,7 +248,9 @@ void ActorMonitorTable::UpdateTable()
     m_ActorMonitorList = g_ActorPool->GetActorMonitor();
     m_MonitorDataDiags = GetMonitorDataDiags(m_ActorMonitorList);
 
-    rows(m_ActorMonitorList.size());
+    if(rows() != (int)(m_ActorMonitorList.size())){
+        rows(m_ActorMonitorList.size());
+    }
 
     ResetSort();
     if(SelectUIDRow(m_SelectedUID) < 0){
