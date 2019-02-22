@@ -63,7 +63,9 @@ std::vector<uint8_t> Rawbuf::BuildBuf(const char *szInFileName)
         std::fseek(fp_in.get(), 0, SEEK_SET);
 
         stReadBuf.resize(nReadFileLen, 0);
-        std::fread(stReadBuf.data(), nReadFileLen, 1, fp_in.get());
+        if(std::fread(stReadBuf.data(), nReadFileLen, 1, fp_in.get()) != 1){
+            throw std::runtime_error(str_fflprintf(": Failed to read file: %s", szInFileName));
+        }
     }
 
     std::vector<uint8_t> stCompBuf(ZSTD_compressBound(stReadBuf.size()), 0);
