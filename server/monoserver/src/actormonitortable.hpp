@@ -61,7 +61,7 @@ class ActorMonitorTable: public Fl_TableImpl
         void DrawHeader(const char *, int, int, int, int);
 
     protected:
-        std::string GetGridData(int, int);
+        std::string GetGridData(int, int) const;
 
     private:
         static MonitorDataDiags GetMonitorDataDiags(const std::vector<ActorPool::ActorMonitor> &);
@@ -74,7 +74,7 @@ class ActorMonitorTable: public Fl_TableImpl
         void UpdateTable();
 
     private:
-        int FindUIDRow(uint64_t);
+        int FindUIDRow(uint64_t) const;
 
     private:
         int GetDataRow() const

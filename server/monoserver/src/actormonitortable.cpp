@@ -75,7 +75,7 @@ static std::string GetTimeString(uint32_t nMS)
     return szTimeString;
 }
 
-std::string ActorMonitorTable::GetGridData(int nRow, int nCol)
+std::string ActorMonitorTable::GetGridData(int nRow, int nCol) const
 {
     if(nRow >= (int)(m_ActorMonitorList.size()) || nCol >= (int)(m_ColumnName.size())){
         return "";
@@ -128,8 +128,7 @@ std::string ActorMonitorTable::GetGridData(int nRow, int nCol)
 
 void ActorMonitorTable::draw_cell(TableContext nContext, int nRow, int nCol, int nX, int nY, int nW, int nH)
 {
-    switch(nContext)
-    {
+    switch(nContext){
         case CONTEXT_STARTPAGE:
             {
                 return; 
@@ -259,7 +258,7 @@ void ActorMonitorTable::UpdateTable()
     SetupHeaderWidth();
 }
 
-int ActorMonitorTable::FindUIDRow(uint64_t nUID)
+int ActorMonitorTable::FindUIDRow(uint64_t nUID) const
 {
     for(int nIndex = 0; nIndex < (int)(m_ActorMonitorList.size()); ++nIndex){
         if(m_ActorMonitorList[nIndex].UID == nUID){
