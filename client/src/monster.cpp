@@ -389,6 +389,7 @@ bool Monster::ParseAction(const ActionNode &rstAction)
         case ACTION_DIE:
             {
                 m_MotionQueue.emplace_back(MOTION_MON_DIE, 0, rstAction.Direction, rstAction.X, rstAction.Y);
+                m_MotionQueue.back().FadeOut = rstAction.ActionParam;
                 break;
             }
         case ACTION_STAND:

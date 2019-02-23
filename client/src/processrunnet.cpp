@@ -240,7 +240,7 @@ void ProcessRun::Net_NOTIFYDEAD(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMND, pBuf, sizeof(stSMND));
 
     if(auto p = RetrieveUID(stSMND.UID)){
-        p->ParseAction(ActionDie(p->X(), p->Y(), p->CurrMotion().Direction));
+        p->ParseAction(ActionDie(p->X(), p->Y(), p->CurrMotion().Direction, true));
     }
 }
 

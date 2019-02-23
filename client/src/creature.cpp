@@ -455,7 +455,9 @@ bool Creature::DeadFadeOut()
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
-                m_CurrMotion.FadeOut = 1;
+                if(!m_CurrMotion.FadeOut){
+                    m_CurrMotion.FadeOut = 1;
+                }
                 return true;
             }
         default:

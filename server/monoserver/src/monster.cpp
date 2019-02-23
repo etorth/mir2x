@@ -715,7 +715,14 @@ bool Monster::GoDie()
                         {
                             RandomDrop();
                             DispatchHitterExp();
-                            DispatchAction(ActionDie(X(), Y(), Direction()));
+
+                            // dispatch die acton without auto-fade-out
+                            // server send the fade-out request in GoGhost()
+
+                            // auto-fade-out is for zombie handling
+                            // when client confirms a zombie, client use auto-fade-out die action
+
+                            DispatchAction(ActionDie(X(), Y(), Direction(), false));
 
                             // let's dispatch ActionDie before mark it dead
                             // theoratically dead actor shouldn't dispatch anything

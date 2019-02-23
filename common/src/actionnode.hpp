@@ -25,12 +25,14 @@ struct ActionDie
 {
     int X = -1;
     int Y = -1;
-    int Direction = -1;
+    int Direction   = -1;
+    int AutoFadeOut =  1;
 
-    ActionDie(int nX, int nY, int nDirection)
+    ActionDie(int nX, int nY, int nDirection, bool bAutoFadeOut)
         : X(nX)
         , Y(nY)
         , Direction(nDirection)
+        , AutoFadeOut((int)(bAutoFadeOut))
     {}
 };
 
@@ -228,6 +230,7 @@ struct ActionNode
         , Direction(rstDie.Direction)
         , X(rstDie.X)
         , Y(rstDie.Y)
+        , ActionParam(rstDie.AutoFadeOut)
     {}
 
     ActionNode(const ActionStand &rstStand)
