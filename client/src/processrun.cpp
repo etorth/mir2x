@@ -80,10 +80,6 @@ void ProcessRun::ScrollMap()
     auto nShowWindowW = g_SDLDevice->WindowW(false);
     auto nShowWindowH = g_SDLDevice->WindowH(false);
 
-    if(!GetMyHero()){
-        return;
-    }
-
     int nViewX = GetMyHero()->X() * SYS_MAPGRIDXP - nShowWindowW / 2;
     int nViewY = GetMyHero()->Y() * SYS_MAPGRIDYP - nShowWindowH / 2;
 
@@ -91,8 +87,8 @@ void ProcessRun::ScrollMap()
     int nDViewY = nViewY - m_ViewY;
 
     if(m_RollMap
-            ||  (std::abs(nDViewX) > nShowWindowW / 4)
-            ||  (std::abs(nDViewY) > nShowWindowH / 4)){
+            ||  (std::abs(nDViewX) > nShowWindowW / 6)
+            ||  (std::abs(nDViewY) > nShowWindowH / 6)){
 
         m_RollMap = true;
 
