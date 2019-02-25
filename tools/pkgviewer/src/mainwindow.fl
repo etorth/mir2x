@@ -30,7 +30,7 @@ class MainWindow {open
 	// don't exit directly
 	// exit(0);
 }} open
-      private xywh {922 70 555 605} type Double labelfont 4
+      private xywh {1 41 555 605} type Double labelfont 4
       code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_MenuBar {
@@ -38,7 +38,7 @@ class MainWindow {open
         private xywh {0 0 600 20} box FLAT_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
-          label File open
+          label File
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -211,13 +211,13 @@ class MainWindow {open
                 break;
             }
     }
-}} selected
+}}
             xywh {0 0 30 20} labelfont 4
             code0 {\#include <cstdint>}
             code1 {\#include "autoalpha.hpp"}
           }
           MenuItem {} {
-            label {Export All}
+            label {Export all}
             callback {{
 	Fl_Native_File_Chooser fileChooser;
 	fileChooser.title("Save All Wil Images");
@@ -303,22 +303,32 @@ class MainWindow {open
           }
         }
         Submenu {} {
-          label Config
+          label Config open
           xywh {0 0 70 21} labelfont 4
         } {
+          MenuItem m_MenuItemSaveOffset {
+            label {Save offset}
+            xywh {10 10 36 21} type Toggle labelfont 4 divider
+          }
           MenuItem m_MenuItemAutoAlpha {
-            label {Auto alpha       }
+            label {Auto alpha magic      }
             callback {{
 	extern PreviewWindow *g_PreviewWindow;
 	g_PreviewWindow->LoadImage();
 	g_PreviewWindow->redraw();
 }}
-            xywh {20 20 36 21} type Toggle labelfont 4 divider
+            xywh {20 20 36 21} type Toggle labelfont 4
             code0 {\#include "previewwindow.hpp"}
           }
-          MenuItem m_MenuItemSaveOffset {
-            label {Save offset}
-            xywh {10 10 36 21} type Toggle labelfont 4 divider
+          MenuItem m_MenuItemAutoAlphaShadow {
+            label {Auto alpha shadow}
+            callback {{
+	extern PreviewWindow *g_PreviewWindow;
+	g_PreviewWindow->LoadImage();
+	g_PreviewWindow->redraw();
+}}
+            xywh {30 30 36 21} type Toggle labelfont 4 divider
+            code0 {\#include "previewwindow.hpp"}
           }
           MenuItem m_MenuItemBlackBG {
             label {Black background}
