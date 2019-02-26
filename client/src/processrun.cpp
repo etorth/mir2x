@@ -78,7 +78,7 @@ ProcessRun::ProcessRun()
 void ProcessRun::ScrollMap()
 {
     auto nShowWindowW = g_SDLDevice->WindowW(false);
-    auto nShowWindowH = g_SDLDevice->WindowH(false);
+    auto nShowWindowH = g_SDLDevice->WindowH(false) - 134;
 
     int nViewX = GetMyHero()->X() * SYS_MAPGRIDXP - nShowWindowW / 2;
     int nViewY = GetMyHero()->Y() * SYS_MAPGRIDYP - nShowWindowH / 2;
