@@ -38,6 +38,8 @@
 #include "messagepack.hpp"
 #include "protocoldef.hpp"
 
+extern MonoServer *g_MonoServer;
+
 Monster::AStarCache::AStarCache()
     : Time(0)
     , MapID(0)
@@ -46,7 +48,6 @@ Monster::AStarCache::AStarCache()
 
 bool Monster::AStarCache::Retrieve(int *pX, int *pY, int nX0, int nY0, int nX1, int nY1, uint32_t nMapID)
 {
-    extern MonoServer *g_MonoServer;
     if(g_MonoServer->GetTimeTick() >= (Time + Refresh)){
         Path.clear();
         return false;
@@ -93,7 +94,6 @@ void Monster::AStarCache::Cache(std::vector<PathFind::PathNode> stvPathNode, uin
     MapID = nMapID;
     Path.swap(stvPathNode);
 
-    extern MonoServer *g_MonoServer;
     Time = g_MonoServer->GetTimeTick();
 }
 
@@ -111,7 +111,6 @@ Monster::Monster(uint32_t   nMonsterID,
     , m_AStarCache()
 {
     if(!m_MonsterRecord){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid monster record: MonsterID = %d", (int)(MonsterID()));
         g_MonoServer->Restart();
     }
@@ -241,7 +240,6 @@ bool Monster::AttackUID(uint64_t nUID, int nDC)
                                     // 1. dispatch action to all
                                     DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), nUID));
 
-                                    extern MonoServer *g_MonoServer;
                                     m_LastAttackTime = g_MonoServer->GetTimeTick();
 
                                     // 2. send attack message to target
@@ -426,14 +424,12 @@ bool Monster::TrackAttack()
 
         for(auto nDC: m_MonsterRecord.DCList()){
             if(AttackUID(m_TargetQueue[0].UID, nDC)){
-                extern MonoServer *g_MonoServer;
                 m_TargetQueue[0].ActiveTime = g_MonoServer->GetTimeTick();
                 return true;
             }
         }
 
         if(TrackUID(m_TargetQueue[0].UID)){
-            extern MonoServer *g_MonoServer;
             m_TargetQueue[0].ActiveTime = g_MonoServer->GetTimeTick();
             return true;
         }
@@ -539,7 +535,6 @@ void Monster::OperateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
                 g_MonoServer->Restart();
                 break;
@@ -632,19 +627,33 @@ DamageNode Monster::GetAttackDamage(int nDC)
 bool Monster::CanMove()
 {
     if(CharObject::CanMove()){
-        extern MonoServer *g_MonoServer;
         return g_MonoServer->GetTimeTick() >= m_LastMoveTime + m_MonsterRecord.WalkWait;
     }
     return false;
 }
 
+// should have a better way for GCD (global cooldown)
+// because for actions with gfx frames, client takes time to present
+// we should give client a chance to show all its animation before dispatch action result
+
+// i.e.:
+// monster moves to (x, y) and attacks player
+// if there is no GCD, it jumps to (x, y) and immediately attack player and dispatch the attack result
+// from client we see monster is just start moving, but player already get the ACTION_HITTED
+
 bool Monster::CanAttack()
 {
-    if(CharObject::CanAttack()){
-        extern MonoServer *g_MonoServer;
-        return g_MonoServer->GetTimeTick() >= m_LastAttackTime + m_MonsterRecord.AttackWait;
+    if(!CharObject::CanAttack()){
+        return false;
     }
-    return false;
+
+    auto nCurrTick = g_MonoServer->GetTimeTick();
+
+    if(nCurrTick < m_LastMoveTime + 800){
+        return false;
+    }
+
+    return nCurrTick >= m_LastAttackTime + m_MonsterRecord.AttackWait;
 }
 
 bool Monster::DCValid(int nDC, bool bCheck)
@@ -693,7 +702,6 @@ void Monster::AddTarget(uint64_t nUID)
             && nUID
             && nUID != MasterUID()){
 
-        extern MonoServer *g_MonoServer;
         for(size_t nIndex = 0; nIndex < m_TargetQueue.Length(); ++nIndex){
             if(m_TargetQueue[nIndex].UID == nUID){
                 m_TargetQueue[nIndex].ActiveTime = g_MonoServer->GetTimeTick();
@@ -1046,7 +1054,6 @@ void Monster::CheckCurrTarget()
 
     while(!m_TargetQueue.Empty()){
         // 1. check timeout
-        extern MonoServer *g_MonoServer;
         if(g_MonoServer->GetTimeTick() >= m_TargetQueue[0].ActiveTime + 60 * 1000){
             m_TargetQueue.PopHead();
             continue;
