@@ -1327,73 +1327,73 @@ bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
 
 void ProcessRun::CenterMyHero()
 {
-    if(GetMyHero()){
-        auto nMotion     = GetMyHero()->CurrMotion().Motion;
-        auto nDirection  = GetMyHero()->CurrMotion().Direction;
-        auto nX          = GetMyHero()->CurrMotion().X;
-        auto nY          = GetMyHero()->CurrMotion().Y;
-        auto nFrame      = GetMyHero()->CurrMotion().Frame;
-        auto nFrameCount = GetMyHero()->MotionFrameCount(nMotion, nDirection);
+    auto nMotion     = GetMyHero()->CurrMotion().Motion;
+    auto nDirection  = GetMyHero()->CurrMotion().Direction;
+    auto nX          = GetMyHero()->CurrMotion().X;
+    auto nY          = GetMyHero()->CurrMotion().Y;
+    auto nFrame      = GetMyHero()->CurrMotion().Frame;
+    auto nFrameCount = GetMyHero()->MotionFrameCount(nMotion, nDirection);
 
-        if(nFrameCount > 0){
-            auto fnSetOff = [this, nX, nY, nDirection, nFrame, nFrameCount](int nStepLen)
-            {
-                auto nShowWindowW = g_SDLDevice->WindowW(false);
-                auto nShowWindowH = g_SDLDevice->WindowH(false);
+    if(nFrameCount <= 0){
+        throw std::runtime_error(str_fflprintf("Current hero has invalid frame count: %d", nFrameCount));
+    }
 
-                switch(nStepLen){
-                    case 0:
-                        {
-                            m_ViewX = nX * SYS_MAPGRIDXP - nShowWindowW / 2;
-                            m_ViewY = nY * SYS_MAPGRIDYP - nShowWindowH / 2;
-                            return;
-                        }
-                    case 1:
-                    case 2:
-                    case 3:
-                        {
-                            int nDX = -1;
-                            int nDY = -1;
-                            PathFind::GetFrontLocation(&nDX, &nDY, 0, 0, nDirection, nStepLen);
+    auto fnSetOff = [this, nX, nY, nDirection, nFrame, nFrameCount](int nStepLen)
+    {
+        auto nShowWindowW = g_SDLDevice->WindowW(false);
+        auto nShowWindowH = g_SDLDevice->WindowH(false);
 
-                            int nOffX = nDX * SYS_MAPGRIDXP * (nFrame + 1) / nFrameCount;
-                            int nOffY = nDY * SYS_MAPGRIDYP * (nFrame + 1) / nFrameCount;
-
-                            m_ViewX = nX * SYS_MAPGRIDXP + nOffX - nShowWindowW / 2;
-                            m_ViewY = nY * SYS_MAPGRIDYP + nOffY - nShowWindowH / 2;
-                            return;
-                        }
-                    default:
-                        {
-                            return;
-                        }
+        switch(nStepLen){
+            case 0:
+                {
+                    m_ViewX = nX * SYS_MAPGRIDXP - nShowWindowW / 2;
+                    m_ViewY = nY * SYS_MAPGRIDYP - nShowWindowH / 2;
+                    return;
                 }
-            };
+            case 1:
+            case 2:
+            case 3:
+                {
+                    int nDX = -1;
+                    int nDY = -1;
+                    PathFind::GetFrontLocation(&nDX, &nDY, 0, 0, nDirection, nStepLen);
 
-            switch(nMotion){
-                case MOTION_WALK:
-                case MOTION_ONHORSEWALK:
-                    {
-                        fnSetOff(1);
-                        break;
-                    }
-                case MOTION_RUN:
-                    {
-                        fnSetOff(2);
-                        break;
-                    }
-                case MOTION_ONHORSERUN:
-                    {
-                        fnSetOff(3);
-                        break;
-                    }
-                default:
-                    {
-                        fnSetOff(0);
-                        break;
-                    }
-            }
+                    int nOffX = nDX * SYS_MAPGRIDXP * (nFrame + 1) / nFrameCount;
+                    int nOffY = nDY * SYS_MAPGRIDYP * (nFrame + 1) / nFrameCount;
+
+                    m_ViewX = nX * SYS_MAPGRIDXP + nOffX - nShowWindowW / 2;
+                    m_ViewY = nY * SYS_MAPGRIDYP + nOffY - nShowWindowH / 2;
+                    return;
+                }
+            default:
+                {
+                    return;
+                }
         }
+    };
+
+    switch(nMotion){
+        case MOTION_WALK:
+        case MOTION_ONHORSEWALK:
+            {
+                fnSetOff(1);
+                break;
+            }
+        case MOTION_RUN:
+            {
+                fnSetOff(2);
+                break;
+            }
+        case MOTION_ONHORSERUN:
+            {
+                fnSetOff(3);
+                break;
+            }
+        default:
+            {
+                fnSetOff(0);
+                break;
+            }
     }
 }
 
