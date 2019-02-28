@@ -239,12 +239,23 @@ bool Monster::AttackUID(uint64_t nUID, int nDC)
                                 if(CanAttack()){
                                     // 1. dispatch action to all
                                     DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), nUID));
-
                                     m_LastAttackTime = g_MonoServer->GetTimeTick();
 
                                     // 2. send attack message to target
                                     //    target can ignore this message directly
-                                    DispatchAttack(nUID, DC_PHY_PLAIN);
+                                    //
+                                    //    For mir2 code, at the time when monster attacks
+                                    //    1. immediately change target CO's HP and MP, but don't report
+                                    //    2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
+                                    //    3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
+                                    Delay(550, [this, nUID]()
+                                    {
+                                        // monster may go dead after this delay
+                                        // but don't check CanAttack() since that's for attack lock
+                                        if(true){
+                                            DispatchAttack(nUID, DC_PHY_PLAIN);
+                                        }
+                                    });
                                 }
                                 return true;
                             }
