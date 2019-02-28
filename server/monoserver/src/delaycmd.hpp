@@ -28,6 +28,8 @@ class DelayCmd
     private:
         uint32_t m_Tick;
         uint32_t m_Count;
+
+    private:
         std::function<void()> m_Cmd;
 
     public:
@@ -43,7 +45,9 @@ class DelayCmd
 
         void operator () () const
         {
-            if(m_Cmd){ m_Cmd(); }
+            if(m_Cmd){
+                m_Cmd();
+            }
         }
 
         // reverse the sematics of operator < ()
