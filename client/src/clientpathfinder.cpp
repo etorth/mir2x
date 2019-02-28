@@ -21,6 +21,9 @@
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
+extern Log *g_Log;
+extern Client *g_Client;
+
 ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nMaxStep)
     : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
       {
@@ -30,7 +33,6 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
                       && MaxStep() != 2
                       && MaxStep() != 3){
 
-                  extern Log *g_Log;
                   g_Log->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
                   return -1.00;
               }
@@ -42,17 +44,14 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
                       && nDistance2 != MaxStep() * MaxStep()
                       && nDistance2 != MaxStep() * MaxStep() * 2){
 
-                  extern Log *g_Log;
                   g_Log->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
                   return -1.00;
               }
           }
 
-          extern Client *g_Client;
           auto pRun = (ProcessRun *)(g_Client->ProcessValid(PROCESSID_RUN));
 
           if(!pRun){
-              extern Log *g_Log;
               g_Log->AddLog(LOGTYPE_FATAL, "ProcessRun is invalid");
               return -1.00;
           }
@@ -70,7 +69,6 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
             }
         default:
             {
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", m_CheckCreature);
                 break;
             }
@@ -85,7 +83,6 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
             }
         default:
             {
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
                 break;
             }
@@ -94,11 +91,9 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
 
 int ClientPathFinder::GetGrid(int nX, int nY) const
 {
-    extern Client *g_Client;
     auto pRun = (ProcessRun *)(g_Client->ProcessValid(PROCESSID_RUN));
 
     if(!pRun){
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_FATAL, "ProcessRun is invalid", pRun);
     }
 

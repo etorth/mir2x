@@ -745,27 +745,25 @@ int ProcessRun::CheckPathGrid(int nX, int nY) const
         return PathFind::OBSTACLE;
     }
 
+    // we should take EndX/EndY, not X()/Y() as occupied
+    // because server only checks EndX/EndY, if we use X()/Y() to request move it just fails
+
     bool bLocked = false;
     for(auto pCreature: m_CreatureList){
         if(true
                 && (pCreature.second)
-                && (pCreature.second->X() == nX)
-                && (pCreature.second->Y() == nY)){
+                && (pCreature.second->CurrMotion().EndX == nX)
+                && (pCreature.second->CurrMotion().EndY == nY)){
             return PathFind::OCCUPIED;
         }
 
-        if(true
-                && pCreature.second->CurrMotion().EndX == nX
-                && pCreature.second->CurrMotion().EndY == nY){
+        if(!bLocked
+                && pCreature.second->X() == nX
+                && pCreature.second->Y() == nY){
             bLocked = true;
         }
     }
-
-    if(bLocked){
-        return PathFind::LOCKED;
-    }
-
-    return PathFind::FREE;
+    return bLocked ? PathFind::LOCKED : PathFind::FREE;
 }
 
 bool ProcessRun::CanMove(bool bCheckGround, int nCheckCreature, int nX0, int nY0, int nX1, int nY1)

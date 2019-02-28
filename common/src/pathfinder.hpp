@@ -40,7 +40,7 @@ namespace PathFind
 {
     enum
     {
-        FREE, LOCKED, OCCUPIED, OBSTACLE, INVALID,
+        INVALID = 0, OBSTACLE, OCCUPIED, LOCKED, FREE,
     };
 
     struct PathNode final
@@ -62,6 +62,70 @@ namespace PathFind
         {
             return X == nX && Y == nY;
         }
+    };
+
+    template<size_t R, size_t N = 3> class GridMaskMap final
+    {
+        private:
+            int m_X;
+            int m_Y;
+
+        private:
+            static constexpr int m_GridBit       = (int)(N);
+            static constexpr int m_GridBitMask   = (1 << m_GridBit) - 1;
+            static constexpr int m_GridPerInt    = sizeof(int) * 8 / m_GridBit;
+            static constexpr int m_GridLineWidth = ((2 * R - 1) + (m_GridPerInt - 1)) / m_GridPerInt;
+
+        private:
+            std::array<int, (2 * R - 1) * m_GridLineWidth> m_Buf;
+
+        public:
+            GridMaskMap(int nCenterX, int nCenterY)
+                : m_X(nCenterX - (int)(R) + 1)
+                , m_Y(nCenterY - (int)(R) + 1)
+                , m_Buf()
+            {
+                static_assert(R > 0, "Requires a non-zero radius");
+                static_assert(N > 0, "Requires a non-zero grid bit-width");
+                m_Buf.fill(0);
+            }
+
+        public:
+            int GetGrid(int nX, int nY) const
+            {
+                int nDX = nX - m_X;
+                if(nDX < 0 || nDX >= (int)(2 * R - 1)){
+                    return 0;
+                }
+
+                int nDY = nY - m_Y;
+                if(nDY < 0 || nDY >= (int)(2 * R - 1)){
+                    return 0;
+                }
+
+                int nOff   = (nDX / m_GridPerInt) + m_GridLineWidth * nDY;
+                int nShift = (nDX % m_GridPerInt) * m_GridBit;
+                return (m_Buf[nOff] >> nShift) & m_GridBitMask;
+            }
+
+            void SetGrid(int nX, int nY, int nVal)
+            {
+                int nDX = nX - m_X;
+                if(nDX < 0 || nDX >= (int)(2 * R - 1)){
+                    return;
+                }
+
+                int nDY = nY - m_Y;
+                if(nDY < 0 || nDY >= (int)(2 * R - 1)){
+                    return;
+                }
+
+                int nOff   = (nDX / m_GridPerInt) + m_GridLineWidth * nDY;
+                int nShift = (nDX % m_GridPerInt) * m_GridBit;
+
+                m_Buf[nOff] |= (        m_GridBitMask  << nShift);
+                m_Buf[nOff] &= ((nVal & m_GridBitMask) << nShift);
+            }
     };
 
     inline bool ValidDir(int nDirection)
