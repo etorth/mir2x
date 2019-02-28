@@ -309,6 +309,10 @@ bool Monster::ParseAction(const ActionNode &rstAction)
         return true;
     }
 
+    // make current motion super-fast
+    // can presents those ignored actions, helpful for debug
+    m_CurrMotion.Speed = SYS_MAXSPEED;
+
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
     switch(rstAction.Action){
