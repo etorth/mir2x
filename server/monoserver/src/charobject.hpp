@@ -222,6 +222,10 @@ class CharObject: public ServerObject
         uint32_t m_LastAttackTime;
 
     protected:
+        int      m_LastAction;
+        uint32_t m_LastActionTime;
+
+    protected:
         std::vector<HitterUIDRecord> m_HitterUIDRecord;
 
     protected:
@@ -316,6 +320,7 @@ class CharObject: public ServerObject
         bool DispatchHitterExp();
 
     protected:
+        virtual bool CanAct();
         virtual bool CanAttack();
 
     protected:

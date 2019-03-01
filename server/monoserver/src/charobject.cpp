@@ -588,6 +588,11 @@ bool CharObject::CanMove()
     }
 }
 
+bool CharObject::CanAct()
+{
+    return true;
+}
+
 bool CharObject::CanAttack()
 {
     switch(GetState(STATE_DEAD)){
