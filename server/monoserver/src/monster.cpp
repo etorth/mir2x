@@ -637,7 +637,7 @@ DamageNode Monster::GetAttackDamage(int nDC)
 
 bool Monster::CanMove()
 {
-    if(CharObject::CanMove()){
+    if(CharObject::CanMove() && CanAct()){
         return g_MonoServer->GetTimeTick() >= m_LastMoveTime + m_MonsterRecord.WalkWait;
     }
     return false;
@@ -654,6 +654,10 @@ bool Monster::CanMove()
 
 bool Monster::CanAttack()
 {
+    if(!CanAct()){
+        return false;
+    }
+
     if(!CharObject::CanAttack()){
         return false;
     }

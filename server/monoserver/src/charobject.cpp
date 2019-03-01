@@ -134,6 +134,8 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_AttackLock(false)
     , m_LastMoveTime(0)
     , m_LastAttackTime(0)
+    , m_LastAction(ACTION_NONE)
+    , m_LastActionTime(0)
     , m_HitterUIDRecord()
     , m_TargetQueue()
     , m_Ability()
@@ -217,6 +219,20 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
 
     stAMA.AimUID      = rstAction.AimUID;
     stAMA.ActionParam = rstAction.ActionParam;
+
+    switch(stAMA.Action){
+        case ACTION_MOVE:
+        case ACTION_SPAWN:
+        case ACTION_ATTACK:
+            {
+                SetLastAction(stAMA.Action);
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
 
     switch(stAMA.Action){
         case ACTION_MOVE:
@@ -590,6 +606,27 @@ bool CharObject::CanMove()
 
 bool CharObject::CanAct()
 {
+    switch(m_LastAction){
+        case ACTION_SPAWN:
+            {
+                if(UIDFunc::GetUIDType(UID()) == UID_MON){
+                    return g_MonoServer->GetTimeTick() > m_LastActionTime + 600;
+                }
+                return true;
+            }
+        case ACTION_ATTACK:
+            {
+                return g_MonoServer->GetTimeTick() > m_LastActionTime + 600;
+            }
+        case ACTION_MOVE:
+            {
+                return g_MonoServer->GetTimeTick() > m_LastActionTime + 700;
+            }
+        default:
+            {
+                break;
+            }
+    }
     return true;
 }
 
@@ -1092,4 +1129,10 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nChe
     }
 
     return 1.00 + nMaxIndex * 0.10 + fExtraPen;
+}
+
+void CharObject::SetLastAction(int nAction)
+{
+    m_LastAction = nAction;
+    m_LastActionTime = g_MonoServer->GetTimeTick();
 }
