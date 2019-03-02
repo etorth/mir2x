@@ -256,11 +256,27 @@ bool ControlBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
             || m_ButtonInventory.ProcessEvent(rstEvent, bValid)){ return true; }
 
     switch(rstEvent.type){
+        case SDL_KEYDOWN:
+            {
+                switch(rstEvent.key.keysym.sym){
+                    case SDLK_RETURN:
+                        {
+                            m_CmdLine.Focus(true);
+                            return true;
+                        }
+                    default:
+                        {
+                            return false;
+                        }
+                }
+            }
         case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEMOTION:
         default:
-            return false;
+            {
+                return false;
+            }
     }
     return false;
 }
