@@ -4,6 +4,11 @@
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/9270/badge.svg"/>
 </a>
+<a href="https://ci.appveyor.com/project/etorth/mir2x">
+  <img alt="Appveyor Build Status"
+       src="https://ci.appveyor.com/api/projects/status/github/etorth/mir2x?svg=true"/>
+</a>
+
 
 mir2x is a c/s based mir2ei implementation with various platforms supported. It contains all need components for game players and developers:
 
