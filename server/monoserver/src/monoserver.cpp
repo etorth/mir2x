@@ -171,7 +171,9 @@ void MonoServer::CreateDefaultDatabase()
             u8"insert into tbl_account(fld_account, fld_password) values"
                 "(\'test\',   \'123456\'),"
                 "(\'test0\',  \'123456\'),"
-                "(\'test1\',  \'123456\')",
+                "(\'test1\',  \'123456\'),"
+                "(\'test2\',  \'123456\'),"
+                "(\'test3\',  \'123456\')",
 
             u8"create table tbl_dbid("
                 "fld_dbid      integer not null primary key autoincrement,"
@@ -188,8 +190,10 @@ void MonoServer::CreateDefaultDatabase()
 
             u8"insert into tbl_dbid(fld_id, fld_name, fld_mapname, fld_mapx, fld_mapy, fld_exp, fld_gold, fld_level, fld_jobid, fld_direction) values"
                 "(1, \'亚当\', \'道馆\',   405, 120, 0, 0, 1, 1, 1),"
-                "(2, \'夏娃\', \'比奇省\', 441, 381, 0, 0, 1, 1, 1),"
-                "(3, \'逗逼\', \'比奇省\', 440, 381, 0, 0, 1, 1, 1)",
+                "(2, \'亚01\', \'道馆\',   400, 120, 0, 0, 1, 1, 1),"
+                "(3, \'夏01\', \'道馆\',   401, 120, 0, 0, 1, 1, 1),"
+                "(4, \'夏娃\', \'比奇省\', 441, 381, 0, 0, 1, 1, 1),"
+                "(5, \'逗逼\', \'比奇省\', 440, 381, 0, 0, 1, 1, 1)",
         };
 
         auto pDBHDR = g_DBPodN->CreateDBHDR();
