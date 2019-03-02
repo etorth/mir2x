@@ -18,6 +18,7 @@
 #include <cinttypes>
 #include "motion.hpp"
 #include "player.hpp"
+#include "dbcomid.hpp"
 #include "monster.hpp"
 #include "mathfunc.hpp"
 #include "actorpod.hpp"
@@ -609,8 +610,24 @@ bool CharObject::CanAct()
     switch(m_LastAction){
         case ACTION_SPAWN:
             {
-                if(UIDFunc::GetUIDType(UID()) == UID_MON){
-                    return g_MonoServer->GetTimeTick() > m_LastActionTime + 600;
+                switch(UIDFunc::GetUIDType(UID())){
+                    case UID_MON:
+                        {
+                            switch(UIDFunc::GetMonsterID(UID())){
+                                case DBCOM_MONSTERID(u8"变异骷髅"):
+                                    {
+                                        return g_MonoServer->GetTimeTick() > m_LastActionTime + 600;
+                                    }
+                                default:
+                                    {
+                                        return true;
+                                    }
+                            }
+                        }
+                    default:
+                        {
+                            return true;
+                        }
                 }
                 return true;
             }
