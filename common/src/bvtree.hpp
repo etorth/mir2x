@@ -351,6 +351,74 @@ namespace bvtree
         };
         return std::make_shared<node_sequence>(std::vector {std::forward<T>(t)...});
     }
+
+    template<typename... T> bvnode_ptr parallel(T && ... t)
+    {
+        class node_parallel: public bvtree::node
+        {
+            private:
+                std::vector<bvnode_ptr> m_nodes;
+
+            private:
+                std::vector<int> m_nodes_done;
+
+            public:
+                node_parallel(std::vector<bvnode_ptr> && v)
+                    : m_nodes(std::move(v))
+                    , m_nodes_done(m_nodes.size(), 0)
+                {}
+
+            public:
+                void reset() override
+                {
+                    for(auto &node: m_nodes){
+                        node->reset();
+                    }
+
+                    for(auto &node_done: m_nodes_done){
+                        node_done = 0;
+                    }
+                }
+
+            public:
+                bvres_t update() override
+                {
+                    if(m_nodes.empty() || m_nodes_done.empty()){
+                        throw std::runtime_error(str_fflprintf(": No valid node"));
+                    }
+
+                    bool has_pending = false;
+                    for(size_t index = 0; index < m_nodes.size(); ++index){
+                        if(m_nodes_done[index]){
+                            continue;
+                        }
+                        switch(auto op_status = m_nodes[index]->update()){
+                            case BV_ABORT:
+                            case BV_FAILURE:
+                                {
+                                    return op_status;
+                                }
+                            case BV_PENDING:
+                                {
+                                    has_pending = true;
+                                    break;
+                                }
+                            case BV_SUCCESS:
+                                {
+                                    m_nodes_done[index] = 1;
+                                    break;
+                                }
+                            default:
+                                {
+                                    throw std::runtime_error(str_fflprintf(": Invalid node status: %d", op_status));
+                                }
+                        }
+                    }
+                    return has_pending ? BV_PENDING : BV_SUCCESS;
+                }
+        };
+        return std::make_shared<node_parallel>(std::vector {std::forward<T>(t)...});
+    }
 }
 
 namespace bvtree
