@@ -387,6 +387,48 @@ bvnode_ptr bvtree::catch_abort(bvnode_ptr operation)
     return std::make_shared<node_catch_abort>(operation);
 }
 
+bvnode_ptr bvtree::abort_failure(bvnode_ptr operation)
+{
+    class node_abort_failure: public bvtree::node
+    {
+        private:
+            bvnode_ptr m_operation;
+
+        public:
+            node_abort_failure(bvnode_ptr operation)
+                : m_operation(operation)
+            {}
+
+        public:
+            void reset() override
+            {
+                m_operation->reset();
+            }
+
+        public:
+            bvres_t update() override
+            {
+                switch(auto op_status = m_operation->update()){
+                    case BV_ABORT:
+                    case BV_PENDING:
+                    case BV_SUCCESS:
+                        {
+                            return op_status;
+                        }
+                    case BV_FAILURE:
+                        {
+                            return BV_ABORT;
+                        }
+                    default:
+                        {
+                            throw std::runtime_error(str_fflprintf(": Invalid node status: %d", op_status));
+                        }
+                }
+            }
+    };
+    return std::make_shared<node_abort_failure>(operation);
+}
+
 bvnode_ptr bvtree::always_success(bvnode_ptr operation)
 {
     class node_always_success: public bvtree::node

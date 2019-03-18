@@ -365,6 +365,7 @@ namespace bvtree
     bvnode_ptr loop_repeat(bvarg_ptr, bvnode_ptr);
 
     bvnode_ptr catch_abort(bvnode_ptr);
+    bvnode_ptr abort_failure(bvnode_ptr);
     bvnode_ptr always_success(bvnode_ptr);
 
     bvnode_ptr op_not(bvnode_ptr);
