@@ -88,6 +88,32 @@ enum bvres_t
     BV_SUCCESS = 3,
 };
 
+inline const char *bvres_cstr(bvres_t status)
+{
+    switch(status){
+        case BV_ABORT:
+            {
+                return "BV_ABORT";
+            }
+        case BV_FAILURE:
+            {
+                return "BV_FAILURE";
+            }
+        case BV_PENDING:
+            {
+                return "BV_PENDING";
+            }
+        case BV_SUCCESS:
+            {
+                return "BV_SUCCESS";
+            }
+        default:
+            {
+                throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+            }
+    }
+}
+
 namespace bvtree
 {
     class node: public std::enable_shared_from_this<node>
@@ -331,4 +357,5 @@ namespace bvtree
 
     bvnode_ptr op_not(bvnode_ptr);
     bvnode_ptr op_abort();
+    bvnode_ptr op_delay(uint64_t, bvnode_ptr);
 }

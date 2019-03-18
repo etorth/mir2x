@@ -17,6 +17,7 @@
  */
 
 #include "bvtree.hpp"
+#include "raiitimer.hpp"
 
 bvnode_ptr bvtree::if_check(bvnode_ptr check, bvnode_ptr operation)
 {
@@ -484,4 +485,55 @@ bvnode_ptr bvtree::op_abort()
             }
     };
     return std::make_shared<node_op_abort>();
+}
+
+bvnode_ptr bvtree::op_delay(uint64_t ms, bvnode_ptr operation)
+{
+    class node_op_delay: public bvtree::node
+    {
+        private:
+            const uint64_t m_delay;
+
+        private:
+            hres_timer m_timer;
+
+        private:
+            bvnode_ptr m_operation;
+
+        public:
+            node_op_delay(uint32_t ms, bvnode_ptr operation)
+                : m_delay(ms)
+                , m_timer()
+                , m_operation(operation)
+            {}
+
+        public:
+            void reset() override
+            {
+                m_operation->reset();
+            }
+
+        public:
+            bvres_t update() override
+            {
+                if(m_timer.diff_msec() <= m_delay){
+                    return BV_PENDING;
+                }
+
+                switch(auto op_status = m_operation->update()){
+                    case BV_ABORT:
+                    case BV_PENDING:
+                    case BV_FAILURE:
+                    case BV_SUCCESS:
+                        {
+                            return op_status;
+                        }
+                    default:
+                        {
+                            throw std::runtime_error(str_fflprintf(": Invalid node status: %d", op_status));
+                        }
+                }
+            }
+    };
+    return std::make_shared<node_op_delay>(ms, operation);
 }
