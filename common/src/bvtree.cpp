@@ -537,6 +537,9 @@ bvnode_ptr bvtree::op_delay(uint64_t ms, bvnode_ptr operation)
             const uint64_t m_delay;
 
         private:
+            bool m_running;
+
+        private:
             hres_timer m_timer;
 
         private:
@@ -545,6 +548,7 @@ bvnode_ptr bvtree::op_delay(uint64_t ms, bvnode_ptr operation)
         public:
             node_op_delay(uint32_t ms, bvnode_ptr operation)
                 : m_delay(ms)
+                , m_running(false)
                 , m_timer()
                 , m_operation(operation)
             {}
@@ -552,12 +556,18 @@ bvnode_ptr bvtree::op_delay(uint64_t ms, bvnode_ptr operation)
         public:
             void reset() override
             {
+                m_running = false;
                 m_operation->reset();
             }
 
         public:
             bvres_t update() override
             {
+                if(!m_running){
+                    m_timer.reset();
+                    m_running = true;
+                }
+
                 if(m_timer.diff_msec() <= m_delay){
                     return BV_PENDING;
                 }
