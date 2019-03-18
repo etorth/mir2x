@@ -45,18 +45,18 @@ bvnode_ptr bvtree::if_check(bvnode_ptr check, bvnode_ptr operation)
             }
 
         public:
-            int update() override
+            bvres_t update() override
             {
                 if(m_in_check){
                     switch(auto status = m_check->update()){
-                        case bvtree::SUCCESS:
+                        case BV_SUCCESS:
                             {
                                 m_in_check = false;
                                 break;
                             }
-                        case bvtree::ABORT:
-                        case bvtree::FAILURE:
-                        case bvtree::PENDING:
+                        case BV_ABORT:
+                        case BV_FAILURE:
+                        case BV_PENDING:
                             {
                                 return status;
                             }
@@ -68,13 +68,13 @@ bvnode_ptr bvtree::if_check(bvnode_ptr check, bvnode_ptr operation)
                 }
 
                 switch(auto op_status = m_operation->update()){
-                    case bvtree::SUCCESS:
-                    case bvtree::FAILURE:
+                    case BV_SUCCESS:
+                    case BV_FAILURE:
                         {
-                            return bvtree::SUCCESS;
+                            return BV_SUCCESS;
                         }
-                    case bvtree::PENDING:
-                    case bvtree::ABORT:
+                    case BV_PENDING:
+                    case BV_ABORT:
                         {
                             return op_status;
                         }
@@ -126,22 +126,22 @@ bvnode_ptr bvtree::if_branch(bvnode_ptr check, bvnode_ptr on_true, bvnode_ptr on
             }
 
         public:
-            int update() override
+            bvres_t update() override
             {
                 if(m_in == IN_CHECK){
                     switch(auto status = m_check->update()){
-                        case bvtree::SUCCESS:
+                        case BV_SUCCESS:
                             {
                                 m_in = IN_ON_TRUE;
                                 break;
                             }
-                        case bvtree::FAILURE:
+                        case BV_FAILURE:
                             {
                                 m_in = IN_ON_FALSE;
                                 break;
                             }
-                        case bvtree::ABORT:
-                        case bvtree::PENDING:
+                        case BV_ABORT:
+                        case BV_PENDING:
                             {
                                 return status;
                             }
@@ -153,15 +153,15 @@ bvnode_ptr bvtree::if_branch(bvnode_ptr check, bvnode_ptr on_true, bvnode_ptr on
                 }
 
                 switch(auto op_status = ((m_in == IN_ON_TRUE) ? m_on_true->update() : m_on_false->update())){
-                    case bvtree::ABORT:
-                    case bvtree::PENDING:
+                    case BV_ABORT:
+                    case BV_PENDING:
                         {
                             return op_status;
                         }
-                    case bvtree::SUCCESS:
-                    case bvtree::FAILURE:
+                    case BV_SUCCESS:
+                    case BV_FAILURE:
                         {
-                            return bvtree::SUCCESS;
+                            return BV_SUCCESS;
                         }
                     default:
                         {
@@ -197,19 +197,19 @@ class node_loop_while: public bvtree::node
         }
 
     public:
-        int update() override
+        bvres_t update() override
         {
             while(true){
                 if(m_in_check){
                     switch(auto status = m_check->update()){
-                        case bvtree::SUCCESS:
+                        case BV_SUCCESS:
                             {
                                 m_in_check = false;
                                 break;
                             }
-                        case bvtree::ABORT:
-                        case bvtree::FAILURE:
-                        case bvtree::PENDING:
+                        case BV_ABORT:
+                        case BV_FAILURE:
+                        case BV_PENDING:
                             {
                                 return status;
                             }
@@ -221,13 +221,13 @@ class node_loop_while: public bvtree::node
                 }
 
                 switch(auto op_status = m_operation->update()){
-                    case bvtree::SUCCESS:
-                    case bvtree::FAILURE:
+                    case BV_SUCCESS:
+                    case BV_FAILURE:
                         {
                             break;
                         }
-                    case bvtree::PENDING:
-                    case bvtree::ABORT:
+                    case BV_PENDING:
+                    case BV_ABORT:
                         {
                             return op_status;
                         }
@@ -247,18 +247,18 @@ bvnode_ptr bvtree::loop_while(bvnode_ptr check, bvnode_ptr operation)
 
 bvnode_ptr bvtree::loop_while(bvarg_ptr arg, bvnode_ptr operation)
 {
-    return std::make_shared<node_loop_while>(bvtree::lambda([arg]() -> int
+    return std::make_shared<node_loop_while>(bvtree::lambda([arg]()
     {
         if(auto p = std::get_if<bool>(arg.get())){
-            return *p ? bvtree::SUCCESS : bvtree::FAILURE;
+            return *p ? BV_SUCCESS : BV_FAILURE;
         }
 
         if(auto p = std::get_if<int>(arg.get())){
-            return *p ? bvtree::SUCCESS : bvtree::FAILURE;
+            return *p ? BV_SUCCESS : BV_FAILURE;
         }
 
         if(auto p = std::get_if<std::string>(arg.get())){
-            return p->empty() ? bvtree::FAILURE : bvtree::SUCCESS;
+            return p->empty() ? BV_FAILURE : BV_SUCCESS;
         }
 
         // should I return ABORT?
@@ -303,17 +303,17 @@ class node_repeat_loop: public bvtree::node
         }
 
     public:
-        int update() override
+        bvres_t update() override
         {
             while(m_index < m_repeat){
                 switch(auto status = m_operation->update()){
-                    case bvtree::ABORT:
-                    case bvtree::PENDING:
+                    case BV_ABORT:
+                    case BV_PENDING:
                         {
                             return status;
                         }
-                    case bvtree::FAILURE:
-                    case bvtree::SUCCESS:
+                    case BV_FAILURE:
+                    case BV_SUCCESS:
                         {
                             m_index++;
                             break;
@@ -324,7 +324,7 @@ class node_repeat_loop: public bvtree::node
                         }
                 }
             }
-            return bvtree::SUCCESS;
+            return BV_SUCCESS;
         }
 };
 
@@ -363,16 +363,16 @@ bvnode_ptr bvtree::catch_abort(bvnode_ptr operation)
             }
 
         public:
-            int update() override
+            bvres_t update() override
             {
                 switch(auto status = m_operation->update()){
-                    case bvtree::ABORT:
+                    case BV_ABORT:
                         {
-                            return bvtree::FAILURE;
+                            return BV_FAILURE;
                         }
-                    case bvtree::FAILURE:
-                    case bvtree::PENDING:
-                    case bvtree::SUCCESS:
+                    case BV_FAILURE:
+                    case BV_PENDING:
+                    case BV_SUCCESS:
                         {
                             return status;
                         }
@@ -405,18 +405,18 @@ bvnode_ptr bvtree::always_success(bvnode_ptr operation)
             }
 
         public:
-            int update() override
+            bvres_t update() override
             {
                 switch(auto status = m_operation->update()){
-                    case bvtree::ABORT:
-                    case bvtree::PENDING:
-                    case bvtree::SUCCESS:
+                    case BV_ABORT:
+                    case BV_PENDING:
+                    case BV_SUCCESS:
                         {
                             return status;
                         }
-                    case bvtree::FAILURE:
+                    case BV_FAILURE:
                         {
-                            return bvtree::SUCCESS;
+                            return BV_SUCCESS;
                         }
                     default:
                         {
@@ -447,21 +447,21 @@ bvnode_ptr bvtree::op_not(bvnode_ptr operation)
             }
 
         public:
-            int update() override
+            bvres_t update() override
             {
                 switch(auto status = m_operation->update()){
-                    case bvtree::ABORT:
-                    case bvtree::PENDING:
+                    case BV_ABORT:
+                    case BV_PENDING:
                         {
                             return status;
                         }
-                    case bvtree::FAILURE:
+                    case BV_FAILURE:
                         {
-                            return bvtree::SUCCESS;
+                            return BV_SUCCESS;
                         }
-                    case bvtree::SUCCESS:
+                    case BV_SUCCESS:
                         {
-                            return bvtree::FAILURE;
+                            return BV_FAILURE;
                         }
                     default:
                         {
@@ -478,9 +478,9 @@ bvnode_ptr bvtree::op_abort()
     class node_op_abort: public bvtree::node
     {
         public:
-            int update() override
+            bvres_t update() override
             {
-                return bvtree::ABORT;
+                return BV_ABORT;
             }
     };
     return std::make_shared<node_op_abort>();

@@ -78,16 +78,18 @@ class bvarg_ptr
         }
 };
 
+// too error-prone
+// don't allow implicit conversion
+enum bvres_t
+{
+    BV_ABORT   = 0,
+    BV_FAILURE = 1,
+    BV_PENDING = 2,
+    BV_SUCCESS = 3,
+};
+
 namespace bvtree
 {
-    enum
-    {
-        ABORT   = 0,
-        FAILURE = 1,
-        PENDING = 2,
-        SUCCESS = 3,
-    };
-
     class node: public std::enable_shared_from_this<node>
     {
         protected:
@@ -104,7 +106,7 @@ namespace bvtree
             }
 
         public:
-            virtual int update() = 0;
+            virtual bvres_t update() = 0;
     };
 }
 using bvnode_ptr = std::shared_ptr<bvtree::node>;
@@ -116,7 +118,7 @@ namespace bvtree
         class node_lambda: public bvtree::node
         {
             private:
-                std::function<int()> m_func;
+                std::function<bvres_t()> m_func;
 
             public:
                 node_lambda(F && f)
@@ -124,13 +126,13 @@ namespace bvtree
                 {}
 
             public:
-                int update() override
+                bvres_t update() override
                 {
                     switch(auto status = m_func()){
-                        case bvtree::SUCCESS:
-                        case bvtree::FAILURE:
-                        case bvtree::PENDING:
-                        case bvtree::ABORT:
+                        case BV_SUCCESS:
+                        case BV_FAILURE:
+                        case BV_PENDING:
+                        case BV_ABORT:
                             {
                                 return status;
                             }
@@ -170,7 +172,7 @@ namespace bvtree
                 }
 
             public:
-                int update() override
+                bvres_t update() override
                 {
                     if(m_nodes.empty()){
                         throw std::runtime_error(str_fflprintf(": No valid node"));
@@ -181,10 +183,10 @@ namespace bvtree
                     }
 
                     switch(auto status = m_nodes[m_currnode]->update()){
-                        case bvtree::SUCCESS:
-                        case bvtree::FAILURE:
-                        case bvtree::PENDING:
-                        case bvtree::ABORT:
+                        case BV_SUCCESS:
+                        case BV_FAILURE:
+                        case BV_PENDING:
+                        case BV_ABORT:
                             {
                                 return status;
                             }
@@ -224,7 +226,7 @@ namespace bvtree
                 }
 
             public:
-                int update() override
+                bvres_t update() override
                 {
                     if(m_nodes.empty()){
                         throw std::runtime_error(str_fflprintf(": No valid node"));
@@ -232,13 +234,13 @@ namespace bvtree
 
                     while(m_currnode < (int)(m_nodes.size())){
                         switch(auto status = m_nodes[m_currnode]->update()){
-                            case bvtree::ABORT:
-                            case bvtree::SUCCESS:
-                            case bvtree::PENDING:
+                            case BV_ABORT:
+                            case BV_SUCCESS:
+                            case BV_PENDING:
                                 {
-                                    return bvtree::PENDING;
+                                    return BV_PENDING;
                                 }
-                            case bvtree::FAILURE:
+                            case BV_FAILURE:
                                 {
                                     m_currnode++;
                                     break;
@@ -249,7 +251,7 @@ namespace bvtree
                                 }
                         }
                     }
-                    return bvtree::FAILURE;
+                    return BV_FAILURE;
                 }
         };
         return std::make_shared<node_selector>(std::vector<bvnode_ptr> {std::forward<T>(t)...});
@@ -281,7 +283,7 @@ namespace bvtree
                 }
 
             public:
-                int update() override
+                bvres_t update() override
                 {
                     if(m_nodes.empty()){
                         throw std::runtime_error(str_fflprintf(": No valid node"));
@@ -289,13 +291,13 @@ namespace bvtree
 
                     while(m_currnode < (int)(m_nodes.size())){
                         switch(auto status = m_nodes[m_currnode]->update()){
-                            case bvtree::ABORT:
-                            case bvtree::FAILURE:
-                            case bvtree::PENDING:
+                            case BV_ABORT:
+                            case BV_FAILURE:
+                            case BV_PENDING:
                                 {
                                     return status;
                                 }
-                            case bvtree::SUCCESS:
+                            case BV_SUCCESS:
                                 {
                                     m_currnode++;
                                     break;
@@ -306,7 +308,7 @@ namespace bvtree
                                 }
                         }
                     }
-                    return bvtree::SUCCESS;
+                    return BV_SUCCESS;
                 }
         };
         return std::make_shared<node_sequence>(std::vector {std::forward<T>(t)...});
