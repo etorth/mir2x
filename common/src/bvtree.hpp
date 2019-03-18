@@ -17,275 +17,268 @@
  */
 
 #pragma once
+#include <memory>
 #include <vector>
+#include <variant>
 #include <stdexcept>
+#include <functional>
 #include "strfunc.hpp"
 
 namespace bvtree
 {
-    class node
-    {
-        public:
-            virtual void enter() {}
-            virtual void exit () {}
+    using argtype = std::variant<bool, int, std::string>;
+}
+using bvarg_ptr = std::shared_ptr<bvtree::argtype>;
 
-        public:
-            virtual int tick() = 0;
+namespace bvtree
+{
+    enum
+    {
+        ABORT   = 0,
+        FAILURE = 1,
+        PENDING = 2,
+        SUCCESS = 3,
     };
 
-    class sequence: public node
+    class node: public std::enable_shared_from_this<node>
     {
-        private:
-            std::vector<node*> m_nodes;
-
-        private:
-            int m_currnode;
-
-        private:
-            bool m_running;
+        protected:
+            bvarg_ptr m_output;
 
         public:
-            sequence(const std::vector<node*> &nodes)
-                : m_nodes(nodes)
-                , m_currnode(-1)
-                , m_running(false)
-            {}
+            virtual void reset() {}
 
         public:
-            void enter() override
+            std::shared_ptr<node> bind_output(bvarg_ptr output)
             {
-                if(!m_running){
-                    m_currnode = 0;
-                }
+                m_output = output;
+                return shared_from_this();
             }
 
         public:
-            int tick() override
-            {
-                while(m_currnode < (int)(this->m_nodes.size())){
-                    auto curr_node = m_nodes[m_currnode];
+            virtual int update() = 0;
+    };
+}
+using bvnode_ptr = std::shared_ptr<bvtree::node>;
 
-                    if(!m_running){
-                        curr_node->enter();
+namespace bvtree
+{
+    template<typename F> bvnode_ptr lambda(F && f)
+    {
+        class node_lambda: public bvtree::node
+        {
+            private:
+                std::function<int()> m_func;
+
+            public:
+                node_lambda(F && f)
+                    : m_func(std::forward<F>(f))
+                {}
+
+            public:
+                int update() override
+                {
+                    switch(auto status = m_func()){
+                        case bvtree::SUCCESS:
+                        case bvtree::FAILURE:
+                        case bvtree::PENDING:
+                        case bvtree::ABORT:
+                            {
+                                return status;
+                            }
+                        default:
+                            {
+                                throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+                            }
+                    }
+                }
+        };
+        return std::make_shared<node_lambda>(std::forward<F>(f));
+    }
+
+    template<typename... T> bvnode_ptr random(T && ... t)
+    {
+        class node_random: public bvtree::node
+        {
+            private:
+                std::vector<bvnode_ptr> m_nodes;
+
+            private:
+                int m_currnode;
+
+            public:
+                node_random(std::vector<bvnode_ptr> && v)
+                    : m_nodes(std::move(v))
+                    , m_currnode(-1)
+                {}
+
+            public:
+                void reset() override
+                {
+                    for(auto &node: m_nodes){
+                        node->reset();
+                    }
+                    m_currnode = -1;
+                }
+
+            public:
+                int update() override
+                {
+                    if(m_nodes.empty()){
+                        throw std::runtime_error(str_fflprintf(": No valid node"));
                     }
 
-                    switch(auto status = m_nodes[m_currnode]->tick()){
-                        case bvtree::RUNNING:
-                            {
-                                m_running = true;
-                                return bvtree::RUNNING;
-                            }
-                        case bvtree::SUCCESS:
-                            {
-                                m_running = false;
-                                curr_node->exit();
+                    if(m_currnode < 0 || m_currnode >= (int)(m_nodes.size())){
+                        m_currnode = std::rand() % (int)(m_nodes.size());
+                    }
 
-                                m_currnode++;
-                                if(m_currnode < (int)(m_nodes.size())){
-                                    continue;
-                                }else{
-                                    return bvtree::SUCCESS;
+                    switch(auto status = m_nodes[m_currnode]->update()){
+                        case bvtree::SUCCESS:
+                        case bvtree::FAILURE:
+                        case bvtree::PENDING:
+                        case bvtree::ABORT:
+                            {
+                                return status;
+                            }
+                        default:
+                            {
+                                throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+                            }
+                    }
+                }
+        };
+        return std::make_shared<node_random>(std::vector<bvnode_ptr>{ std::forward<T>(t)... });
+    }
+
+    template<typename... T> bvnode_ptr selector(T && ... t)
+    {
+        class node_selector: public bvtree::node
+        {
+            private:
+                std::vector<bvnode_ptr> m_nodes;
+
+            private:
+                int m_currnode;
+
+            public:
+                node_selector(std::vector<bvnode_ptr> && v)
+                    : m_nodes(std::move(v))
+                    , m_currnode(-1)
+                {}
+
+            public:
+                void reset() override
+                {
+                    for(auto &node: m_nodes){
+                        node->reset();
+                    }
+                    m_currnode = 0;
+                }
+
+            public:
+                int update() override
+                {
+                    if(m_nodes.empty()){
+                        throw std::runtime_error(str_fflprintf(": No valid node"));
+                    }
+
+                    while(m_currnode < (int)(m_nodes.size())){
+                        switch(auto status = m_nodes[m_currnode]->update()){
+                            case bvtree::ABORT:
+                            case bvtree::SUCCESS:
+                            case bvtree::PENDING:
+                                {
+                                    return bvtree::PENDING;
                                 }
-                            }
-                        case bvtree::ERROR:
-                            {
-                                m_running = false;
-                                curr_node->exit();
-
-                                return bvtree::ERROR;
-                            }
-                        default:
-                            {
-                                throw std::runtime_error(str_fflprintf(": Invalid bvtree status: %d", status));
-                            }
-                    }
-                }
-                return bvtree::SUCCESS;
-            }
-    };
-
-    class selector: public node
-    {
-        private:
-            std::vector<node*> m_nodes;
-
-        private:
-            int m_currnode;
-
-        private:
-            bool m_running;
-
-        public:
-            selector(const std::vector<node*> &nodes)
-                : m_nodes(nodes)
-                , m_currnode(-1)
-                , m_running(false)
-            {}
-
-        public:
-            void enter() override
-            {
-                if(!m_running){
-                    m_currnode = 0;
-                }
-            }
-
-        public:
-            int tick() override
-            {
-                while(m_currnode < (int)(m_nodes.size())){
-                    auto curr_node = m_nodes[m_currnode];
-
-                    if(!m_running){
-                        curr_node->enter();
-                    }
-
-                    switch(auto status = curr_node->tick()){
-                        case bvtree::RUNNING:
-                            {
-                                m_running = true;
-                                return bvtree::RUNNING;
-                            }
-                        case bvtree::SUCCESS:
-                            {
-                                m_running = false;
-                                curr_node->exit();
-                                return bvtree::SUCCESS;
-                            }
-                        case bvtree::ERROR:
-                            {
-                                m_running = false;
-                                curr_node->exit();
-
-                                m_currnode++;
-                                if(m_currnode < (int)(m_nodes.size())){
-                                    continue;
-                                }else{
-                                    return bvtree::ERROR;
+                            case bvtree::FAILURE:
+                                {
+                                    m_currnode++;
+                                    break;
                                 }
-                            }
-                        default:
-                            {
-                                throw std::runtime_error(str_fflprintf(": Invalid bvtree status: %d", status));
-                            }
+                            default:
+                                {
+                                    throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+                                }
+                        }
                     }
+                    return bvtree::FAILURE;
                 }
-                return bvtree::ERROR;
-            }
-    };
+        };
+        return std::make_shared<node_selector>(std::vector<bvnode_ptr> {std::forward<T>(t)...});
+    }
 
-    class random: public node
+    template<typename... T> bvnode_ptr sequence(T && ... t)
     {
-        private:
-            std::vector<node*>m_nodes;
+        class node_sequence: public bvtree::node
+        {
+            private:
+                std::vector<bvnode_ptr> m_nodes;
 
-        private:
-            int m_currnode;
+            private:
+                int m_currnode;
 
-        private:
-            bool m_running;
+            public:
+                node_sequence(std::vector<bvnode_ptr> && v)
+                    : m_nodes(std::move(v))
+                    , m_currnode(-1)
+                {}
 
-        public:
-            random(const std::vector<node*> &nodes)
-                : m_nodes()
-                , m_currnode(-1)
-                , m_running(false)
-            {}
-
-        public:
-            void enter() override
-            {
-                if(!m_running){
+            public:
+                void reset() override
+                {
+                    for(auto &node: m_nodes){
+                        node->reset();
+                    }
                     m_currnode = 0;
                 }
-                m_currnode = std::rand() % (int)(m_nodes.size());
-            }
 
-        public:
-            int tick() override
-            {
-                while(m_currnode < (int)(m_nodes.size())){
-                    auto curr_node = m_nodes[m_currnode];
-
-                    if(!m_running){
-                        curr_node->enter();
+            public:
+                int update() override
+                {
+                    if(m_nodes.empty()){
+                        throw std::runtime_error(str_fflprintf(": No valid node"));
                     }
 
-                    switch(auto status = curr_node->tick()){
-                        case bvtree::RUNNING:
-                            {
-                                m_running = true;
-                                return bvtree::RUNNING;
-                            }
-                        case bvtree::SUCCESS:
-                            {
-                                m_running = false;
-                                curr_node->exit();
-                                return bvtree::SUCCESS;
-                            }
-                        case bvtree::ERROR:
-                            {
-                                m_running = false;
-                                curr_node->exit();
-                                return bvtree::ERROR;
-                            }
-                        default:
-                            {
-                                throw std::runtime_error(str_fflprintf(": Invalid bvtree status: %d", status));
-                            }
+                    while(m_currnode < (int)(m_nodes.size())){
+                        switch(auto status = m_nodes[m_currnode]->update()){
+                            case bvtree::ABORT:
+                            case bvtree::FAILURE:
+                            case bvtree::PENDING:
+                                {
+                                    return status;
+                                }
+                            case bvtree::SUCCESS:
+                                {
+                                    m_currnode++;
+                                    break;
+                                }
+                            default:
+                                {
+                                    throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+                                }
+                        }
                     }
+                    return bvtree::SUCCESS;
                 }
-                return bvtree::ERROR;
-            }
-    };
+        };
+        return std::make_shared<node_sequence>(std::vector {std::forward<T>(t)...});
+    }
+}
 
-    class root: public node
-    {
-        private:
-            node* root;
+namespace bvtree
+{
+    bvnode_ptr if_check (bvnode_ptr, bvnode_ptr);
+    bvnode_ptr if_branch(bvnode_ptr, bvnode_ptr, bvnode_ptr);
 
-        private:
-            bool m_started;
+    bvnode_ptr loop_while(bvnode_ptr, bvnode_ptr);
+    bvnode_ptr loop_while( bvarg_ptr, bvnode_ptr);
 
-        public:
-            root(node *root)
-                : m_root(root)
-                , m_started(0)
-            {}
+    bvnode_ptr loop_repeat(      int, bvnode_ptr);
+    bvnode_ptr loop_repeat(bvarg_ptr, bvnode_ptr);
 
-        public:
-            int tick() override
-            {
-                if(m_started){
-                    return bvtree::RUNNING;
-                }
+    bvnode_ptr catch_abort(bvnode_ptr);
+    bvnode_ptr always_success(bvnode_ptr);
 
-                m_started = true;
-                m_root->enter();
-
-                switch(auto status = m_root->tick()){
-                    case bvtree::RUNNING:
-                        {
-                            m_started = false;
-                            return bvtree::RUNNING;
-                        }
-                    case bvtree::SUCCESS:
-                        {
-                            m_root->exit();
-                            m_started = false;
-                            return bvtree::SUCCESS;
-                        }
-                    case bvtree::ERROR:
-                        {
-                            root->exit();
-                            m_started = false;
-                            return bvtree::ERROR;
-                        }
-                    default:
-                        {
-                            throw std::runtime_error(str_fflprintf(": Invalid bvtree status: %d", status));
-                        }
-                }
-            }
-    };
+    bvnode_ptr op_not(bvnode_ptr);
+    bvnode_ptr op_abort();
 }
