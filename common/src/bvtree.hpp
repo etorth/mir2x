@@ -24,11 +24,59 @@
 #include <functional>
 #include "strfunc.hpp"
 
-namespace bvtree
+class bvarg_ptr
 {
-    using argtype = std::variant<bool, int, std::string>;
-}
-using bvarg_ptr = std::shared_ptr<bvtree::argtype>;
+    private:
+        using argtype = std::variant<bool, int, std::string>;
+
+    private:
+        std::shared_ptr<argtype> m_ptr;
+
+    private:
+        bvarg_ptr(std::shared_ptr<argtype> p)
+            : m_ptr(p)
+        {}
+
+    public:
+        bvarg_ptr() = default;
+
+    public:
+        template<typename I, typename... T> void assign(T && ... t)
+        {
+            if(m_ptr){
+                m_ptr->emplace<I>(std::forward<T>(t)...);
+            }else{
+                m_ptr = std::make_shared<argtype>(std::in_place_type_t<I>(), std::forward<T>(t)...);
+            }
+        }
+
+    public:
+        bvarg_ptr clone() const
+        {
+            return m_ptr ? bvarg_ptr(m_ptr) : bvarg_ptr();
+        }
+
+    public:
+        auto *get()
+        {
+            return m_ptr.get();
+        }
+
+        auto *get() const
+        {
+            return m_ptr.get();
+        }
+
+        auto &get_ref()
+        {
+            return *(m_ptr.get());
+        }
+
+        auto &get_ref() const
+        {
+            return *(m_ptr.get());
+        }
+};
 
 namespace bvtree
 {
