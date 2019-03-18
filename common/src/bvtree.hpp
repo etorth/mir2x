@@ -172,6 +172,18 @@ namespace bvtree
         return std::make_shared<node_lambda>(std::forward<F>(f));
     }
 
+    template<typename F> bvnode_ptr lambda_bool(F && f)
+    {
+        // this is error-prone
+        // we declare f_bool as std::function<bool()> but it accepts []() -> int
+        // how to strictly allow only lambda returning bool ???
+
+        return lambda([f_bool = std::function<bool()>(std::forward<F>(f))]() -> bvres_t
+        {
+            return f_bool() ? BV_SUCCESS : BV_FAILURE;
+        });
+    }
+
     template<typename... T> bvnode_ptr random(T && ... t)
     {
         class node_random: public bvtree::node
