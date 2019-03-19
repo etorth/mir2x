@@ -120,7 +120,7 @@ enum class bvres_t
     SUCCESS,
 };
 
-constexpr bvres_t BV_ABORT   = bvres_t::ABORT  ;
+constexpr bvres_t BV_ABORT   = bvres_t::ABORT;
 constexpr bvres_t BV_FAILURE = bvres_t::FAILURE;
 constexpr bvres_t BV_PENDING = bvres_t::PENDING;
 constexpr bvres_t BV_SUCCESS = bvres_t::SUCCESS;
@@ -176,103 +176,6 @@ using bvnode_ptr = std::shared_ptr<bvtree::node>;
 
 namespace bvtree
 {
-    template<typename R, typename F> bvnode_ptr lambda(R && r, F && f)
-    {
-        class node_lambda: public bvtree::node
-        {
-            private:
-                // should I make as m_reset(bvarg_ptr) to clear bound output:
-                // 
-                //     m_reset([](bvarg_ptr p)
-                //     {
-                //         p.assign(inited = false);
-                //     }
-                //
-                // currently I don't do it, alternatively capture a flag to control
-                //
-                //     bvarg_ptr pInited = make_bvarg<bool>(false);
-                //     m_reset([]()
-                //     {
-                //         pInited.assign<bool>(false);
-                //     })
-                //
-                //     m_update([pInited](bvarg_ptr p) mutable
-                //     {
-                //         if(!pInited.as<bool>()){
-                //             pInited.assign<bool>(true);
-                //         }
-                //     })
-                //
-                std::function<void()> m_reset;
-
-            private:
-                std::function<bvres_t(bvarg_ptr)> m_update;
-
-            public:
-                node_lambda(R && r, F && f)
-                    : m_reset(std::forward<R>(r))
-                    , m_update()
-                {
-                    // I have one unsed ctor call of m_update
-                    // think about this code: m_update([f = std::forward<F>(f)](){ ... })
-
-                    if constexpr(std::is_invocable_r_v<bvres_t, F>){
-                        m_update = [f_void = std::function<bvres_t()>(std::forward<F>(f))](bvarg_ptr)
-                        {
-                            return f_void();
-                        };
-                    }else{
-                        m_update = std::function<bvres_t(bvarg_ptr)>(std::forward<F>(f));
-                    }
-                }
-
-            public:
-                void reset() override
-                {
-                    m_reset();
-                }
-
-            public:
-                bvres_t update() override
-                {
-                    switch(auto status = m_update(m_output)){
-                        case BV_SUCCESS:
-                        case BV_FAILURE:
-                        case BV_PENDING:
-                        case BV_ABORT:
-                            {
-                                return status;
-                            }
-                        default:
-                            {
-                                throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
-                            }
-                    }
-                }
-        };
-        return std::make_shared<node_lambda>(std::forward<R>(r), std::forward<F>(f));
-    }
-
-    template<typename F> bvnode_ptr lambda(F && f)
-    {
-        return lambda([](){}, std::forward<F>(f));
-    }
-
-    template<typename F> bvnode_ptr lambda_bool(F && f)
-    {
-        if constexpr(std::is_invocable_r_v<bool, F>){
-            return lambda([f_void = std::function<bool()>(std::forward<F>(f))]() -> bvres_t
-            {
-                return f_void() ? BV_SUCCESS : BV_FAILURE;
-            });
-        }else{
-            return lambda([f_param = std::function<bool(bvarg_ptr)>(std::forward<F>(f))](bvarg_ptr p) -> bvres_t
-            {
-                return f_param(p) ? BV_SUCCESS : BV_FAILURE;
-            });
-        }
-    }
-
     template<typename... T> bvnode_ptr random(T && ... t)
     {
         class node_random: public bvtree::node
@@ -512,6 +415,18 @@ namespace bvtree
 
 namespace bvtree
 {
+    bvnode_ptr lambda(std::function<bvres_t()>);
+    bvnode_ptr lambda(std::function<bvres_t(bvarg_ptr)>);
+
+    bvnode_ptr lambda(std::function<void()>, std::function<bvres_t()>);
+    bvnode_ptr lambda(std::function<void()>, std::function<bvres_t(bvarg_ptr)>);
+
+    bvnode_ptr lambda_bool(std::function<bool()>);
+    bvnode_ptr lambda_bool(std::function<bool(bvarg_ptr)>);
+
+    bvnode_ptr lambda_bool(std::function<void()>, std::function<bool()>);
+    bvnode_ptr lambda_bool(std::function<void()>, std::function<bool(bvarg_ptr)>);
+
     bvnode_ptr if_check (bvnode_ptr, bvnode_ptr);
     bvnode_ptr if_branch(bvnode_ptr, bvnode_ptr, bvnode_ptr);
 

@@ -19,6 +19,116 @@
 #include "bvtree.hpp"
 #include "raiitimer.hpp"
 
+class node_lambda: public bvtree::node
+{
+    private:
+        // should I make as m_reset(bvarg_ptr) to clear bound output:
+        // 
+        //     m_reset([](bvarg_ptr p)
+        //     {
+        //         p.assign(inited = false);
+        //     }
+        //
+        // currently I don't do it, alternatively capture a flag to control
+        //
+        //     bvarg_ptr pInited = make_bvarg<bool>(false);
+        //     m_reset([]()
+        //     {
+        //         pInited.assign<bool>(false);
+        //     })
+        //
+        //     m_update([pInited](bvarg_ptr p) mutable
+        //     {
+        //         if(!pInited.as<bool>()){
+        //             pInited.assign<bool>(true);
+        //         }
+        //     })
+        //
+        std::function<void()> m_reset;
+
+    private:
+        std::function<bvres_t(bvarg_ptr)> m_update;
+
+    public:
+        node_lambda(std::function<void()> r, std::function<bvres_t(bvarg_ptr)> f)
+            : m_reset(r)
+            , m_update(f)
+        {}
+
+    public:
+        void reset() override
+        {
+            m_reset();
+        }
+
+    public:
+        bvres_t update() override
+        {
+            switch(auto op_status = m_update(m_output)){
+                case BV_SUCCESS:
+                case BV_FAILURE:
+                case BV_PENDING:
+                case BV_ABORT:
+                    {
+                        return op_status;
+                    }
+                default:
+                    {
+                        throw std::runtime_error(str_fflprintf(": Invalid node status: %d", op_status));
+                    }
+            }
+        }
+};
+
+bvnode_ptr bvtree::lambda(std::function<void()> r, std::function<bvres_t()> f)
+{
+    return std::make_shared<node_lambda>(r, [f](bvarg_ptr)
+    {
+        return f();
+    });
+}
+
+bvnode_ptr bvtree::lambda(std::function<bvres_t()> f)
+{
+    return bvtree::lambda([](){}, f);
+}
+
+bvnode_ptr bvtree::lambda(std::function<void()>r, std::function<bvres_t(bvarg_ptr)> f)
+{
+    return std::make_shared<node_lambda>(r, f);
+}
+
+bvnode_ptr bvtree::lambda(std::function<bvres_t(bvarg_ptr)> f)
+{
+    return bvtree::lambda([](){}, f);
+}
+
+bvnode_ptr bvtree::lambda_bool(std::function<void()> r, std::function<bool()> f)
+{
+    return std::make_shared<node_lambda>(r, [f](bvarg_ptr)
+    {
+        return f() ? BV_SUCCESS : BV_FAILURE;
+    });
+}
+
+bvnode_ptr bvtree::lambda_bool(std::function<bool()> f)
+{
+    return bvtree::lambda_bool([](){}, f);
+}
+
+bvnode_ptr bvtree::lambda_bool(std::function<void()>r, std::function<bool(bvarg_ptr)> f)
+{
+    return std::make_shared<node_lambda>(r, [f](bvarg_ptr p)
+    {
+        return f(p) ? BV_SUCCESS : BV_FAILURE;
+    });
+}
+
+bvnode_ptr bvtree::lambda_bool(std::function<bool(bvarg_ptr)> f)
+{
+    return bvtree::lambda_bool([](){}, f);
+}
+
 bvnode_ptr bvtree::if_check(bvnode_ptr check, bvnode_ptr operation)
 {
     class node_if_check: public bvtree::node
@@ -281,8 +391,8 @@ class node_repeat_loop: public bvtree::node
         bvnode_ptr m_operation;
 
     public:
-        template<typename F> node_repeat_loop(F && f, bvnode_ptr operation)
-            : m_repeat_func(std::forward<F>(f))
+        node_repeat_loop(std::function<int()> f, bvnode_ptr operation)
+            : m_repeat_func(f)
             , m_index(0)
             , m_repeat(0)
             , m_operation(operation)
