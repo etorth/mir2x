@@ -77,6 +77,16 @@ class bvarg_ptr
             return *(m_ptr.get());
         }
 
+        template<typename T> auto as_if()
+        {
+            return std::get_if<T>(get());
+        }
+
+        template<typename T> auto as_if() const
+        {
+            return std::get_if<T>(get());
+        }
+
         template<typename T> auto &as()
         {
             return std::get<T>(get_ref());

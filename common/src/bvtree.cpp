@@ -250,15 +250,15 @@ bvnode_ptr bvtree::loop_while(bvarg_ptr arg, bvnode_ptr operation)
 {
     return std::make_shared<node_loop_while>(bvtree::lambda([arg]()
     {
-        if(auto p = std::get_if<bool>(arg.get())){
+        if(auto p = arg.as_if<bool>()){
             return *p ? BV_SUCCESS : BV_FAILURE;
         }
 
-        if(auto p = std::get_if<int>(arg.get())){
+        if(auto p = arg.as_if<int>()){
             return *p ? BV_SUCCESS : BV_FAILURE;
         }
 
-        if(auto p = std::get_if<std::string>(arg.get())){
+        if(auto p = arg.as_if<std::string>()){
             return p->empty() ? BV_FAILURE : BV_SUCCESS;
         }
 
