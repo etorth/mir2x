@@ -109,6 +109,7 @@ Monster::Monster(uint32_t   nMonsterID,
     , m_MasterUID(nMasterUID)
     , m_MonsterRecord(DBCOM_MONSTERRECORD(nMonsterID))
     , m_AStarCache()
+    , m_BvTree()
 {
     if(!m_MonsterRecord){
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid monster record: MonsterID = %d", (int)(MonsterID()));
@@ -1231,4 +1232,13 @@ void Monster::CheckMaster()
             }
         });
     }
+}
+
+void Monster::CreateBvTree()
+{
+    m_BvTree = bvtree::if_check
+    (
+        BvTree_HasMaster(),
+        BvTree_FollowMaster()
+    );
 }

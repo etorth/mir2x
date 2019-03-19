@@ -27,13 +27,13 @@
 class bvarg_ptr
 {
     private:
-        using argtype = std::variant<bool, int, std::string>;
+        using bvarg_type = std::variant<bool, int, uint64_t, std::string>;
 
     private:
-        std::shared_ptr<argtype> m_ptr;
+        std::shared_ptr<bvarg_type> m_ptr;
 
     private:
-        bvarg_ptr(std::shared_ptr<argtype> p)
+        bvarg_ptr(std::shared_ptr<bvarg_type> p)
             : m_ptr(p)
         {}
 
@@ -46,7 +46,7 @@ class bvarg_ptr
             if(m_ptr){
                 m_ptr->emplace<I>(std::forward<T>(t)...);
             }else{
-                m_ptr = std::make_shared<argtype>(std::in_place_type_t<I>(), std::forward<T>(t)...);
+                m_ptr = std::make_shared<bvarg_type>(std::in_place_type_t<I>(), std::forward<T>(t)...);
             }
         }
 
@@ -76,17 +76,44 @@ class bvarg_ptr
         {
             return *(m_ptr.get());
         }
+
+        template<typename T> auto &as()
+        {
+            return std::get<T>(get_ref());
+        }
+
+        template<typename T> auto &as() const
+        {
+            return std::get<T>(get_ref());
+        }
+
+    public:
+        template<typename I, typename... T> static bvarg_ptr make_bvarg(T && ... t)
+        {
+            return std::make_shared<bvarg_ptr::bvarg_type>(std::in_place_type_t<I>(), std::forward<T>(t)...);
+        }
 };
+
+template<typename I, typename... T> bvarg_ptr make_bvarg(T && ... t)
+{
+    return bvarg_ptr::make_bvarg<I>(std::forward<T>(t)...);
+}
 
 // too error-prone
 // don't allow implicit conversion
-enum bvres_t
+
+enum class bvres_t
 {
-    BV_ABORT   = 0,
-    BV_FAILURE = 1,
-    BV_PENDING = 2,
-    BV_SUCCESS = 3,
+    ABORT,
+    FAILURE,
+    PENDING,
+    SUCCESS,
 };
+
+constexpr bvres_t BV_ABORT   = bvres_t::ABORT  ;
+constexpr bvres_t BV_FAILURE = bvres_t::FAILURE;
+constexpr bvres_t BV_PENDING = bvres_t::PENDING;
+constexpr bvres_t BV_SUCCESS = bvres_t::SUCCESS;
 
 inline const char *bvres_cstr(bvres_t status)
 {
@@ -139,22 +166,66 @@ using bvnode_ptr = std::shared_ptr<bvtree::node>;
 
 namespace bvtree
 {
-    template<typename F> bvnode_ptr lambda(F && f)
+    template<typename R, typename F> bvnode_ptr lambda(R && r, F && f)
     {
         class node_lambda: public bvtree::node
         {
             private:
-                std::function<bvres_t()> m_func;
+                // should I make as m_reset(bvarg_ptr) to clear bound output:
+                // 
+                //     m_reset([](bvarg_ptr p)
+                //     {
+                //         p.assign(inited = false);
+                //     }
+                //
+                // currently I don't do it, alternatively capture a flag to control
+                //
+                //     bvarg_ptr pInited = make_bvarg<bool>(false);
+                //     m_reset([]()
+                //     {
+                //         pInited.assign<bool>(false);
+                //     })
+                //
+                //     m_update([pInited](bvarg_ptr p) mutable
+                //     {
+                //         if(!pInited.as<bool>()){
+                //             pInited.assign<bool>(true);
+                //         }
+                //     })
+                //
+                std::function<void()> m_reset;
+
+            private:
+                std::function<bvres_t(bvarg_ptr)> m_update;
 
             public:
-                node_lambda(F && f)
-                    : m_func(std::forward<F>(f))
-                {}
+                node_lambda(R && r, F && f)
+                    : m_reset(std::forward<R>(r))
+                    , m_update()
+                {
+                    // I have one unsed ctor call of m_update
+                    // think about this code: m_update([f = std::forward<F>(f)](){ ... })
+
+                    if constexpr(std::is_invocable_r_v<bvres_t, F>){
+                        m_update = [f_void = std::function<bvres_t()>(std::forward<F>(f))](bvarg_ptr)
+                        {
+                            return f_void();
+                        };
+                    }else{
+                        m_update = std::function<bvres_t(bvarg_ptr)>(std::forward<F>(f));
+                    }
+                }
+
+            public:
+                void reset() override
+                {
+                    m_reset();
+                }
 
             public:
                 bvres_t update() override
                 {
-                    switch(auto status = m_func()){
+                    switch(auto status = m_update(m_output)){
                         case BV_SUCCESS:
                         case BV_FAILURE:
                         case BV_PENDING:
@@ -169,7 +240,12 @@ namespace bvtree
                     }
                 }
         };
-        return std::make_shared<node_lambda>(std::forward<F>(f));
+        return std::make_shared<node_lambda>(std::forward<R>(r), std::forward<F>(f));
+    }
+
+    template<typename F> bvnode_ptr lambda(F && f)
+    {
+        return lambda([](){}, std::forward<F>(f));
     }
 
     template<typename F> bvnode_ptr lambda_bool(F && f)

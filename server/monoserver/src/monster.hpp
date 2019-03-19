@@ -17,6 +17,7 @@
  */
 #pragma once
 #include <functional>
+#include "bvtree.hpp"
 #include "charobject.hpp"
 #include "monsterrecord.hpp"
 
@@ -67,6 +68,9 @@ class Monster final: public CharObject
 
     protected:
         AStarCache m_AStarCache;
+
+    protected:
+        bvnode_ptr m_BvTree;
 
     public:
         Monster(uint32_t,               // monster id
@@ -174,4 +178,12 @@ class Monster final: public CharObject
     protected:
         virtual bool GoDie();
         virtual bool GoGhost();
+
+    protected:
+        virtual void CreateBvTree();
+
+    protected:
+        virtual bvnode_ptr BvTree_HasMaster();
+        virtual bvnode_ptr BvTree_FollowMaster();
+        virtual bvnode_ptr BvTree_LocateUID(bvarg_ptr);
 };
