@@ -1238,7 +1238,7 @@ void Monster::CreateBvTree()
 {
     m_BvTree = bvtree::if_check
     (
-        BvTree_HasMaster(),
+        BvTree_GetMasterUID(),
         BvTree_FollowMaster()
     );
 }

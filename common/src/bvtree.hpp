@@ -260,14 +260,17 @@ namespace bvtree
 
     template<typename F> bvnode_ptr lambda_bool(F && f)
     {
-        // this is error-prone
-        // we declare f_bool as std::function<bool()> but it accepts []() -> int
-        // how to strictly allow only lambda returning bool ???
-
-        return lambda([f_bool = std::function<bool()>(std::forward<F>(f))]() -> bvres_t
-        {
-            return f_bool() ? BV_SUCCESS : BV_FAILURE;
-        });
+        if constexpr(std::is_invocable_r_v<bool, F>){
+            return lambda([f_void = std::function<bool()>(std::forward<F>(f))]() -> bvres_t
+            {
+                return f_void() ? BV_SUCCESS : BV_FAILURE;
+            });
+        }else{
+            return lambda([f_param = std::function<bool(bvarg_ptr)>(std::forward<F>(f))](bvarg_ptr p) -> bvres_t
+            {
+                return f_param(p) ? BV_SUCCESS : BV_FAILURE;
+            });
+        }
     }
 
     template<typename... T> bvnode_ptr random(T && ... t)

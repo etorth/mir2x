@@ -17,9 +17,13 @@
  */
 
 #include "monster.hpp"
-bvnode_ptr Monster::BvTree_HasMaster()
+bvnode_ptr Monster::BvTree_GetMasterUID()
 {
-    return bvtree::lambda_bool([this](){ return MasterUID() != 0; });
+    return bvtree::lambda_bool([this](bvarg_ptr pOutput)
+    {
+        pOutput.assign<uint64_t>(MasterUID());
+        return MasterUID();
+    });
 }
 
 bvnode_ptr Monster::BvTree_FollowMaster()
@@ -61,4 +65,14 @@ bvnode_ptr Monster::BvTree_LocateUID(bvarg_ptr pUID)
         return BV_PENDING;
     };
     return bvtree::lambda(fnReset, fnUpdate);
+}
+
+bvnode_ptr Monster::BvTree_LocateMaster()
+{
+    bvarg_ptr pMasterUID = make_bvarg<uint64_t>(0);
+    return bvtree::if_check
+    (
+        BvTree_GetMasterUID()->bind_output(pMasterUID),
+        BvTree_LocateUID(pMasterUID)
+    );
 }
