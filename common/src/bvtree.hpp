@@ -24,89 +24,118 @@
 #include <functional>
 #include "strfunc.hpp"
 
-class bvarg_ptr
+// bvarg_ref is like a non_empty_pointer
+// it can bind to differnet instance but can't never be null
+class bvarg_ref
 {
     private:
-        using bvarg_type = std::variant<bool, int, uint64_t, std::string>;
-
-    private:
-        std::shared_ptr<bvarg_type> m_ptr;
-
-    private:
-        bvarg_ptr(std::shared_ptr<bvarg_type> p)
-            : m_ptr(p)
-        {}
-
-    public:
-        bvarg_ptr() = default;
-
-    public:
-        template<typename I, typename... T> void assign(T && ... t)
+        struct inn_void_t
         {
-            if(m_ptr){
-                m_ptr->emplace<I>(std::forward<T>(t)...);
-            }else{
-                m_ptr = std::make_shared<bvarg_type>(std::in_place_type_t<I>(), std::forward<T>(t)...);
+            void *unused = nullptr;
+        };
+
+    private:
+        // should always access inn_bvarg_t by bvarg_ref
+        // make it private to prevent user declare local instance
+        using inn_bvarg_t = std::variant<inn_void_t, bool, int, uint64_t, std::string>;
+
+    private:
+        std::shared_ptr<inn_bvarg_t> m_ptr;
+
+    private:
+        bvarg_ref(std::shared_ptr<inn_bvarg_t> p)
+            : m_ptr(p)
+        {
+            if(!m_ptr){
+                throw std::invalid_argument(str_fflprintf(": bvarg_ref bind to empty instance"));
             }
         }
 
     public:
-        bvarg_ptr clone() const
+        // make bvarg_ref always contains one instance by default
+        // otherwise it's too easy to lose result in the program like:
+        //
+        //     bvres_t update()
+        //     {
+        //         return m_func(m_outref); // m_outref may not contain an instance
+        //     }
+        //
+        //     m_func([](bvarg_ref pOutput)
+        //     {
+        //         pOutput.assign<int>(12);
+        //         return BV_SUCCESS;
+        //     }
+        //
+        // if m_outref is empty, pOutput will allocate memory inside the lambda
+        // and then immediately release the memory, m_outref doesn't capture the result
+
+        bvarg_ref()
+            : bvarg_ref(make_bvarg<inn_void_t>())
+        {}
+
+    public:
+        template<typename I, typename... T> void assign(T && ... t)
         {
-            return m_ptr ? bvarg_ptr(m_ptr) : bvarg_ptr();
+            m_ptr->emplace<I>(std::forward<T>(t)...);
         }
 
     public:
-        auto *get()
+        bvarg_ref clone() const
+        {
+            return bvarg_ref(std::make_shared<inn_bvarg_t>(get()));
+        }
+
+    public:
+        inn_bvarg_t *get_ptr()
         {
             return m_ptr.get();
         }
 
-        auto *get() const
+        inn_bvarg_t *get_ptr() const
         {
             return m_ptr.get();
         }
 
-        auto &get_ref()
+        inn_bvarg_t &get()
         {
             return *(m_ptr.get());
         }
 
-        auto &get_ref() const
+        inn_bvarg_t &get() const
         {
             return *(m_ptr.get());
         }
 
-        template<typename T> auto as_if()
+        template<typename T> auto as_ptr()
         {
-            return std::get_if<T>(get());
+            return std::get_if<T>(get_ptr());
         }
 
-        template<typename T> auto as_if() const
+        template<typename T> auto as_ptr() const
         {
-            return std::get_if<T>(get());
+            return std::get_if<T>(get_ptr());
         }
 
         template<typename T> auto &as()
         {
-            return std::get<T>(get_ref());
+            return std::get<T>(get());
         }
 
         template<typename T> auto &as() const
         {
-            return std::get<T>(get_ref());
+            return std::get<T>(get());
         }
 
     public:
-        template<typename I, typename... T> static bvarg_ptr make_bvarg(T && ... t)
+        template<typename I, typename... T> static bvarg_ref make_bvarg(T && ... t)
         {
-            return std::make_shared<bvarg_ptr::bvarg_type>(std::in_place_type_t<I>(), std::forward<T>(t)...);
+            return std::make_shared<bvarg_ref::inn_bvarg_t>(std::in_place_type_t<I>(), std::forward<T>(t)...);
         }
 };
 
-template<typename I, typename... T> bvarg_ptr make_bvarg(T && ... t)
+template<typename I, typename... T> bvarg_ref make_bvarg(T && ... t)
 {
-    return bvarg_ptr::make_bvarg<I>(std::forward<T>(t)...);
+    return bvarg_ref::make_bvarg<I>(std::forward<T>(t)...);
 }
 
 // too error-prone
@@ -156,16 +185,22 @@ namespace bvtree
     class node: public std::enable_shared_from_this<node>
     {
         protected:
-            bvarg_ptr m_output;
+            bvarg_ref m_outref;
 
         public:
             virtual void reset() {}
 
         public:
-            std::shared_ptr<node> bind_output(bvarg_ptr output)
+            std::shared_ptr<node> bind_outref(bvarg_ref outref)
             {
-                m_output = output;
+                m_outref = outref;
                 return shared_from_this();
+            }
+
+        public:
+            bvarg_ref outref() const
+            {
+                return m_outref;
             }
 
         public:
@@ -416,25 +451,25 @@ namespace bvtree
 namespace bvtree
 {
     bvnode_ptr lambda(std::function<bvres_t()>);
-    bvnode_ptr lambda(std::function<bvres_t(bvarg_ptr)>);
+    bvnode_ptr lambda(std::function<bvres_t(bvarg_ref)>);
 
     bvnode_ptr lambda(std::function<void()>, std::function<bvres_t()>);
-    bvnode_ptr lambda(std::function<void()>, std::function<bvres_t(bvarg_ptr)>);
+    bvnode_ptr lambda(std::function<void()>, std::function<bvres_t(bvarg_ref)>);
 
     bvnode_ptr lambda_bool(std::function<bool()>);
-    bvnode_ptr lambda_bool(std::function<bool(bvarg_ptr)>);
+    bvnode_ptr lambda_bool(std::function<bool(bvarg_ref)>);
 
     bvnode_ptr lambda_bool(std::function<void()>, std::function<bool()>);
-    bvnode_ptr lambda_bool(std::function<void()>, std::function<bool(bvarg_ptr)>);
+    bvnode_ptr lambda_bool(std::function<void()>, std::function<bool(bvarg_ref)>);
 
     bvnode_ptr if_check (bvnode_ptr, bvnode_ptr);
     bvnode_ptr if_branch(bvnode_ptr, bvnode_ptr, bvnode_ptr);
 
     bvnode_ptr loop_while(bvnode_ptr, bvnode_ptr);
-    bvnode_ptr loop_while( bvarg_ptr, bvnode_ptr);
+    bvnode_ptr loop_while( bvarg_ref, bvnode_ptr);
 
     bvnode_ptr loop_repeat(      int, bvnode_ptr);
-    bvnode_ptr loop_repeat(bvarg_ptr, bvnode_ptr);
+    bvnode_ptr loop_repeat(bvarg_ref, bvnode_ptr);
 
     bvnode_ptr catch_abort(bvnode_ptr);
     bvnode_ptr abort_failure(bvnode_ptr);

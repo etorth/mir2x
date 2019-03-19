@@ -21,6 +21,7 @@
 #include "player.hpp"
 #include "motion.hpp"
 #include "uidfunc.hpp"
+#include "strfunc.hpp"
 #include "dbconst.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
@@ -453,8 +454,37 @@ bool Monster::TrackAttack()
     return false;
 }
 
+uint64_t Monster::Activate()
+{
+    if(auto nUID = CharObject::Activate()){
+        CreateBvTree();
+        return nUID;
+    }
+    return 0;
+}
+
 bool Monster::Update()
 {
+    if(m_BvTree){
+        switch(auto nState = m_BvTree->update()){
+            case BV_PENDING:
+                {
+                    break;
+                }
+            case BV_ABORT:
+            case BV_SUCCESS:
+            case BV_FAILURE:
+                {
+                    m_BvTree->reset();
+                    break;
+                }
+            default:
+                {
+                    throw std::runtime_error(str_fflprintf(": Invalid node status: %d", nState));
+                }
+        }
+    }
+
     if(HP() > 0){
         CheckMaster();
         if(TrackAttack()){
@@ -1241,4 +1271,5 @@ void Monster::CreateBvTree()
         BvTree_GetMasterUID(),
         BvTree_FollowMaster()
     );
+    m_BvTree->reset();
 }

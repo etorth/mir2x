@@ -168,6 +168,9 @@ class Monster final: public CharObject
         bool MoveOneStepCombine (int, int, std::function<void()> /* fnOnError */);
         bool MoveOneStepNeighbor(int, int, std::function<void()> /* fnOnError */);
 
+    public:
+        uint64_t Activate() override;
+
     protected:
         bool CanMove();
         bool CanAttack();
@@ -185,6 +188,6 @@ class Monster final: public CharObject
     protected:
         virtual bvnode_ptr BvTree_GetMasterUID();
         virtual bvnode_ptr BvTree_FollowMaster();
-        virtual bvnode_ptr BvTree_LocateUID(bvarg_ptr);
+        virtual bvnode_ptr BvTree_LocateUID(bvarg_ref);
         virtual bvnode_ptr BvTree_LocateMaster();
 };

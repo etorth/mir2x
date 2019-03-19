@@ -19,7 +19,7 @@
 #include "monster.hpp"
 bvnode_ptr Monster::BvTree_GetMasterUID()
 {
-    return bvtree::lambda_bool([this](bvarg_ptr pOutput)
+    return bvtree::lambda_bool([this](bvarg_ref pOutput)
     {
         pOutput.assign<uint64_t>(MasterUID());
         return MasterUID();
@@ -31,7 +31,7 @@ bvnode_ptr Monster::BvTree_FollowMaster()
     return bvtree::lambda_bool([this](){ return true; });
 }
 
-bvnode_ptr Monster::BvTree_LocateUID(bvarg_ptr pUID)
+bvnode_ptr Monster::BvTree_LocateUID(bvarg_ref pUID)
 {
     auto pInited = make_bvarg<bool>(false);
     auto fnReset = [pInited]() mutable
@@ -40,7 +40,7 @@ bvnode_ptr Monster::BvTree_LocateUID(bvarg_ptr pUID)
     };
 
     auto pDone = make_bvarg<bool>(false);
-    auto fnUpdate = [this, pUID, pInited, pDone](bvarg_ptr p) mutable -> bvres_t
+    auto fnUpdate = [this, pUID, pInited, pDone](bvarg_ref p) mutable -> bvres_t
     {
         if(!pInited.as<bool>()){
             auto fnOnOK = [p, pDone](const COLocation &loc) mutable
@@ -69,10 +69,10 @@ bvnode_ptr Monster::BvTree_LocateUID(bvarg_ptr pUID)
 
 bvnode_ptr Monster::BvTree_LocateMaster()
 {
-    bvarg_ptr pMasterUID = make_bvarg<uint64_t>(0);
+    bvarg_ref pMasterUID = make_bvarg<uint64_t>(0);
     return bvtree::if_check
     (
-        BvTree_GetMasterUID()->bind_output(pMasterUID),
+        BvTree_GetMasterUID()->bind_outref(pMasterUID),
         BvTree_LocateUID(pMasterUID)
     );
 }

@@ -138,7 +138,7 @@ class ServerObject
         uint32_t GetStateTime(uint8_t) const;
 
     public:
-        uint64_t Activate();
+        virtual uint64_t Activate();
 
     protected:
         void Deactivate();

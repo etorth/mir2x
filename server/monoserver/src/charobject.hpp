@@ -278,7 +278,7 @@ class CharObject: public ServerObject
         }
 
     public:
-        uint64_t Activate();
+        uint64_t Activate() override;
 
     protected:
         virtual void ReportCORecord(uint64_t) = 0;

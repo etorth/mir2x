@@ -22,22 +22,22 @@
 class node_lambda: public bvtree::node
 {
     private:
-        // should I make as m_reset(bvarg_ptr) to clear bound output:
+        // should I make as m_reset(bvarg_ref) to clear bound output:
         // 
-        //     m_reset([](bvarg_ptr p)
+        //     m_reset([](bvarg_ref p)
         //     {
         //         p.assign(inited = false);
         //     }
         //
         // currently I don't do it, alternatively capture a flag to control
         //
-        //     bvarg_ptr pInited = make_bvarg<bool>(false);
+        //     bvarg_ref pInited = make_bvarg<bool>(false);
         //     m_reset([]()
         //     {
         //         pInited.assign<bool>(false);
         //     })
         //
-        //     m_update([pInited](bvarg_ptr p) mutable
+        //     m_update([pInited](bvarg_ref p) mutable
         //     {
         //         if(!pInited.as<bool>()){
         //             pInited.assign<bool>(true);
@@ -47,10 +47,10 @@ class node_lambda: public bvtree::node
         std::function<void()> m_reset;
 
     private:
-        std::function<bvres_t(bvarg_ptr)> m_update;
+        std::function<bvres_t(bvarg_ref)> m_update;
 
     public:
-        node_lambda(std::function<void()> r, std::function<bvres_t(bvarg_ptr)> f)
+        node_lambda(std::function<void()> r, std::function<bvres_t(bvarg_ref)> f)
             : m_reset(r)
             , m_update(f)
         {}
@@ -64,7 +64,7 @@ class node_lambda: public bvtree::node
     public:
         bvres_t update() override
         {
-            switch(auto op_status = m_update(m_output)){
+            switch(auto op_status = m_update(m_outref)){
                 case BV_SUCCESS:
                 case BV_FAILURE:
                 case BV_PENDING:
@@ -82,7 +82,7 @@ class node_lambda: public bvtree::node
 
 bvnode_ptr bvtree::lambda(std::function<void()> r, std::function<bvres_t()> f)
 {
-    return std::make_shared<node_lambda>(r, [f](bvarg_ptr)
+    return std::make_shared<node_lambda>(r, [f](bvarg_ref)
     {
         return f();
     });
@@ -93,19 +93,19 @@ bvnode_ptr bvtree::lambda(std::function<bvres_t()> f)
     return bvtree::lambda([](){}, f);
 }
 
-bvnode_ptr bvtree::lambda(std::function<void()>r, std::function<bvres_t(bvarg_ptr)> f)
+bvnode_ptr bvtree::lambda(std::function<void()>r, std::function<bvres_t(bvarg_ref)> f)
 {
     return std::make_shared<node_lambda>(r, f);
 }
 
-bvnode_ptr bvtree::lambda(std::function<bvres_t(bvarg_ptr)> f)
+bvnode_ptr bvtree::lambda(std::function<bvres_t(bvarg_ref)> f)
 {
     return bvtree::lambda([](){}, f);
 }
 
 bvnode_ptr bvtree::lambda_bool(std::function<void()> r, std::function<bool()> f)
 {
-    return std::make_shared<node_lambda>(r, [f](bvarg_ptr)
+    return std::make_shared<node_lambda>(r, [f](bvarg_ref)
     {
         return f() ? BV_SUCCESS : BV_FAILURE;
     });
@@ -116,15 +116,15 @@ bvnode_ptr bvtree::lambda_bool(std::function<bool()> f)
     return bvtree::lambda_bool([](){}, f);
 }
 
-bvnode_ptr bvtree::lambda_bool(std::function<void()>r, std::function<bool(bvarg_ptr)> f)
+bvnode_ptr bvtree::lambda_bool(std::function<void()>r, std::function<bool(bvarg_ref)> f)
 {
-    return std::make_shared<node_lambda>(r, [f](bvarg_ptr p)
+    return std::make_shared<node_lambda>(r, [f](bvarg_ref p)
     {
         return f(p) ? BV_SUCCESS : BV_FAILURE;
     });
 }
 
-bvnode_ptr bvtree::lambda_bool(std::function<bool(bvarg_ptr)> f)
+bvnode_ptr bvtree::lambda_bool(std::function<bool(bvarg_ref)> f)
 {
     return bvtree::lambda_bool([](){}, f);
 }
@@ -356,19 +356,19 @@ bvnode_ptr bvtree::loop_while(bvnode_ptr check, bvnode_ptr operation)
     return std::make_shared<node_loop_while>(check, operation);
 }
 
-bvnode_ptr bvtree::loop_while(bvarg_ptr arg, bvnode_ptr operation)
+bvnode_ptr bvtree::loop_while(bvarg_ref arg, bvnode_ptr operation)
 {
     return std::make_shared<node_loop_while>(bvtree::lambda([arg]()
     {
-        if(auto p = arg.as_if<bool>()){
+        if(auto p = arg.as_ptr<bool>()){
             return *p ? BV_SUCCESS : BV_FAILURE;
         }
 
-        if(auto p = arg.as_if<int>()){
+        if(auto p = arg.as_ptr<int>()){
             return *p ? BV_SUCCESS : BV_FAILURE;
         }
 
-        if(auto p = arg.as_if<std::string>()){
+        if(auto p = arg.as_ptr<std::string>()){
             return p->empty() ? BV_FAILURE : BV_SUCCESS;
         }
 
@@ -444,11 +444,11 @@ bvnode_ptr bvtree::loop_repeat(int n, bvnode_ptr operation)
     return std::make_shared<node_repeat_loop>([n](){return n;}, operation);
 }
 
-bvnode_ptr bvtree::loop_repeat(bvarg_ptr arg, bvnode_ptr operation)
+bvnode_ptr bvtree::loop_repeat(bvarg_ref arg, bvnode_ptr operation)
 {
     return std::make_shared<node_repeat_loop>([arg]()->int
     {
-        if(auto p = std::get_if<int>(arg.get())){
+        if(auto p = arg.as_ptr<int>()){
             return *p;
         }
         throw std::runtime_error(str_fflprintf(": Captured argument doesn't contain valid type"));
