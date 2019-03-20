@@ -22,35 +22,13 @@
 class node_lambda: public bvtree::node
 {
     private:
-        // should I make as m_reset(bvarg_ref) to clear bound output:
-        // 
-        //     m_reset([](bvarg_ref p)
-        //     {
-        //         p.assign(inited = false);
-        //     }
-        //
-        // currently I don't do it, alternatively capture a flag to control
-        //
-        //     bvarg_ref pInited = make_bvarg<bool>(false);
-        //     m_reset([]()
-        //     {
-        //         pInited.assign<bool>(false);
-        //     })
-        //
-        //     m_update([pInited](bvarg_ref p) mutable
-        //     {
-        //         if(!pInited.as<bool>()){
-        //             pInited.assign<bool>(true);
-        //         }
-        //     })
-        //
         std::function<void()> m_reset;
 
     private:
-        std::function<bvres_t(bvarg_ref)> m_update;
+        std::function<bvres_t()> m_update;
 
     public:
-        node_lambda(std::function<void()> r, std::function<bvres_t(bvarg_ref)> f)
+        node_lambda(std::function<void()> r, std::function<bvres_t()> f)
             : m_reset(r)
             , m_update(f)
         {}
@@ -64,7 +42,7 @@ class node_lambda: public bvtree::node
     public:
         bvres_t update() override
         {
-            switch(auto op_status = m_update(m_outref)){
+            switch(auto op_status = m_update()){
                 case BV_SUCCESS:
                 case BV_FAILURE:
                 case BV_PENDING:
@@ -82,10 +60,7 @@ class node_lambda: public bvtree::node
 
 bvnode_ptr bvtree::lambda(std::function<void()> r, std::function<bvres_t()> f)
 {
-    return std::make_shared<node_lambda>(r, [f](bvarg_ref)
-    {
-        return f();
-    });
+    return std::make_shared<node_lambda>(r, f);
 }
 
 bvnode_ptr bvtree::lambda(std::function<bvres_t()> f)
@@ -93,38 +68,15 @@ bvnode_ptr bvtree::lambda(std::function<bvres_t()> f)
     return bvtree::lambda([](){}, f);
 }
 
-bvnode_ptr bvtree::lambda(std::function<void()>r, std::function<bvres_t(bvarg_ref)> f)
-{
-    return std::make_shared<node_lambda>(r, f);
-}
-
-bvnode_ptr bvtree::lambda(std::function<bvres_t(bvarg_ref)> f)
-{
-    return bvtree::lambda([](){}, f);
-}
-
 bvnode_ptr bvtree::lambda_bool(std::function<void()> r, std::function<bool()> f)
 {
-    return std::make_shared<node_lambda>(r, [f](bvarg_ref)
+    return std::make_shared<node_lambda>(r, [f]()
     {
         return f() ? BV_SUCCESS : BV_FAILURE;
     });
 }
 
 bvnode_ptr bvtree::lambda_bool(std::function<bool()> f)
-{
-    return bvtree::lambda_bool([](){}, f);
-}
-
-bvnode_ptr bvtree::lambda_bool(std::function<void()>r, std::function<bool(bvarg_ref)> f)
-{
-    return std::make_shared<node_lambda>(r, [f](bvarg_ref p)
-    {
-        return f(p) ? BV_SUCCESS : BV_FAILURE;
-    });
-}
-
-bvnode_ptr bvtree::lambda_bool(std::function<bool(bvarg_ref)> f)
 {
     return bvtree::lambda_bool([](){}, f);
 }

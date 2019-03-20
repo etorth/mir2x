@@ -80,6 +80,12 @@ class bvarg_ref
         }
 
     public:
+        void copy(const bvarg_ref &r)
+        {
+            get() = r.get();
+        }
+
+    public:
         bvarg_ref clone() const
         {
             return bvarg_ref(std::make_shared<inn_bvarg_t>(get()));
@@ -184,24 +190,8 @@ namespace bvtree
 {
     class node: public std::enable_shared_from_this<node>
     {
-        protected:
-            bvarg_ref m_outref;
-
         public:
             virtual void reset() {}
-
-        public:
-            std::shared_ptr<node> bind_outref(bvarg_ref outref)
-            {
-                m_outref = outref;
-                return shared_from_this();
-            }
-
-        public:
-            bvarg_ref outref() const
-            {
-                return m_outref;
-            }
 
         public:
             virtual bvres_t update() = 0;
@@ -451,16 +441,10 @@ namespace bvtree
 namespace bvtree
 {
     bvnode_ptr lambda(std::function<bvres_t()>);
-    bvnode_ptr lambda(std::function<bvres_t(bvarg_ref)>);
-
     bvnode_ptr lambda(std::function<void()>, std::function<bvres_t()>);
-    bvnode_ptr lambda(std::function<void()>, std::function<bvres_t(bvarg_ref)>);
 
     bvnode_ptr lambda_bool(std::function<bool()>);
-    bvnode_ptr lambda_bool(std::function<bool(bvarg_ref)>);
-
     bvnode_ptr lambda_bool(std::function<void()>, std::function<bool()>);
-    bvnode_ptr lambda_bool(std::function<void()>, std::function<bool(bvarg_ref)>);
 
     bvnode_ptr if_check (bvnode_ptr, bvnode_ptr);
     bvnode_ptr if_branch(bvnode_ptr, bvnode_ptr, bvnode_ptr);

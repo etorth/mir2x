@@ -186,8 +186,8 @@ class Monster final: public CharObject
         virtual void CreateBvTree();
 
     protected:
-        virtual bvnode_ptr BvTree_GetMasterUID();
+        virtual bvnode_ptr BvTree_GetMasterUID(bvarg_ref);
         virtual bvnode_ptr BvTree_FollowMaster();
-        virtual bvnode_ptr BvTree_LocateUID(bvarg_ref);
-        virtual bvnode_ptr BvTree_LocateMaster();
+        virtual bvnode_ptr BvTree_LocateUID(bvarg_ref, bvarg_ref);
+        virtual bvnode_ptr BvTree_LocateMaster(bvarg_ref);
 };

@@ -1266,9 +1266,11 @@ void Monster::CheckMaster()
 
 void Monster::CreateBvTree()
 {
+    bvarg_ref nMasterUID;
+
     m_BvTree = bvtree::if_check
     (
-        BvTree_GetMasterUID(),
+        BvTree_GetMasterUID(nMasterUID),
         BvTree_FollowMaster()
     );
     m_BvTree->reset();
