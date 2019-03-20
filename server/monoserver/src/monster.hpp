@@ -190,4 +190,7 @@ class Monster final: public CharObject
         virtual bvnode_ptr BvTree_FollowMaster();
         virtual bvnode_ptr BvTree_LocateUID(bvarg_ref, bvarg_ref);
         virtual bvnode_ptr BvTree_LocateMaster(bvarg_ref);
+        virtual bvnode_ptr BvTree_RandomMove();
+        virtual bvnode_ptr BvTree_RandomTurn();
+        virtual bvnode_ptr BvTree_MoveOneStep();
 };

@@ -461,6 +461,7 @@ namespace bvtree
 
     bvnode_ptr op_not(bvnode_ptr);
     bvnode_ptr op_abort();
+    bvnode_ptr op_delay(uint64_t);
     bvnode_ptr op_delay(uint64_t, bvnode_ptr);
     bvnode_ptr op_timeout(uint64_t, bvnode_ptr);
 }

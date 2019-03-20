@@ -483,6 +483,7 @@ bool Monster::Update()
                     throw std::runtime_error(str_fflprintf(": Invalid node status: %d", nState));
                 }
         }
+        return true;
     }
 
     if(HP() > 0){
@@ -1268,10 +1269,11 @@ void Monster::CreateBvTree()
 {
     bvarg_ref nMasterUID;
 
-    m_BvTree = bvtree::if_check
+    m_BvTree = bvtree::if_branch
     (
         BvTree_GetMasterUID(nMasterUID),
-        BvTree_FollowMaster()
+        BvTree_FollowMaster(),
+        BvTree_RandomMove()
     );
     m_BvTree->reset();
 }

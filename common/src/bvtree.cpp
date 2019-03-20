@@ -712,3 +712,8 @@ bvnode_ptr bvtree::op_timeout(uint64_t ms, bvnode_ptr operation)
     };
     return std::make_shared<node_op_timeout>(ms, operation);
 }
+
+bvnode_ptr bvtree::op_delay(uint64_t ms)
+{
+    return bvtree::op_delay(ms, bvtree::lambda([](){ return BV_SUCCESS; }));
+}
