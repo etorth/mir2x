@@ -699,3 +699,64 @@ bvnode_ptr bvtree::op_delay(uint64_t ms, bvnode_ptr operation)
     };
     return std::make_shared<node_op_delay>(ms, operation);
 }
+
+bvnode_ptr bvtree::op_timeout(uint64_t ms, bvnode_ptr operation)
+{
+    class node_op_timeout: public bvtree::node
+    {
+        private:
+            const uint64_t m_timeout;
+
+        private:
+            bool m_running;
+
+        private:
+            hres_timer m_timer;
+
+        private:
+            bvnode_ptr m_operation;
+
+        public:
+            node_op_timeout(uint32_t ms, bvnode_ptr operation)
+                : m_timeout(ms)
+                , m_running(false)
+                , m_timer()
+                , m_operation(operation)
+            {}
+
+        public:
+            void reset() override
+            {
+                m_running = false;
+                m_operation->reset();
+            }
+
+        public:
+            bvres_t update() override
+            {
+                if(!m_running){
+                    m_timer.reset();
+                    m_running = true;
+                }
+
+                if(m_timer.diff_msec() > m_timeout){
+                    return BV_FAILURE;
+                }
+
+                switch(auto op_status = m_operation->update()){
+                    case BV_ABORT:
+                    case BV_PENDING:
+                    case BV_FAILURE:
+                    case BV_SUCCESS:
+                        {
+                            return op_status;
+                        }
+                    default:
+                        {
+                            throw std::runtime_error(str_fflprintf(": Invalid node status: %d", op_status));
+                        }
+                }
+            }
+    };
+    return std::make_shared<node_op_timeout>(ms, operation);
+}
