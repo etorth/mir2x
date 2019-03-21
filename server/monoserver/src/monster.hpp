@@ -105,7 +105,7 @@ class Monster final: public CharObject
     protected:
         bool RandomMove();
         bool TrackAttack();
-        bool FollowMaster();
+        bool FollowMasterOneStep(std::function<void()>, std::function<void()>);
 
     protected:
         bool TrackUID(uint64_t);
@@ -148,7 +148,7 @@ class Monster final: public CharObject
         void ReportCORecord(uint64_t);
 
     protected:
-        bool MoveOneStep(int, int);
+        bool MoveOneStep(int, int, std::function<void()>, std::function<void()>);
 
     protected:
         void CheckCurrTarget();
@@ -163,10 +163,10 @@ class Monster final: public CharObject
         void CheckFriend(uint64_t, const std::function<void(int)> &);
 
     protected:
-        bool MoveOneStepAStar   (int, int, std::function<void()> /* fnOnError */);
-        bool MoveOneStepGreedy  (int, int, std::function<void()> /* fnOnError */);
-        bool MoveOneStepCombine (int, int, std::function<void()> /* fnOnError */);
-        bool MoveOneStepNeighbor(int, int, std::function<void()> /* fnOnError */);
+        bool MoveOneStepAStar   (int, int, std::function<void()>, std::function<void()>);
+        bool MoveOneStepGreedy  (int, int, std::function<void()>, std::function<void()>);
+        bool MoveOneStepCombine (int, int, std::function<void()>, std::function<void()>);
+        bool MoveOneStepNeighbor(int, int, std::function<void()>, std::function<void()>);
 
     public:
         uint64_t Activate() override;
@@ -176,9 +176,6 @@ class Monster final: public CharObject
         bool CanAttack();
 
     protected:
-        void CheckMaster();
-
-    protected:
         virtual bool GoDie();
         virtual bool GoGhost();
 
@@ -186,11 +183,12 @@ class Monster final: public CharObject
         virtual void CreateBvTree();
 
     protected:
-        virtual bvnode_ptr BvTree_GetMasterUID(bvarg_ref);
-        virtual bvnode_ptr BvTree_FollowMaster();
-        virtual bvnode_ptr BvTree_LocateUID(bvarg_ref, bvarg_ref);
-        virtual bvnode_ptr BvTree_LocateMaster(bvarg_ref);
-        virtual bvnode_ptr BvTree_RandomMove();
-        virtual bvnode_ptr BvTree_RandomTurn();
-        virtual bvnode_ptr BvTree_MoveOneStep();
+        virtual bvnode_ptr BvNode_HasMaster();
+        virtual bvnode_ptr BvNode_GetMasterUID(bvarg_ref);
+        virtual bvnode_ptr BvNode_FollowMasterOneStep();
+        virtual bvnode_ptr BvNode_LocateUID(bvarg_ref, bvarg_ref);
+        virtual bvnode_ptr BvNode_RandomMove();
+        virtual bvnode_ptr BvNode_RandomTurn();
+        virtual bvnode_ptr BvNode_MoveForwardOneStep();
+        virtual bvnode_ptr BvNode_MoveOneStep(bvarg_ref);
 };

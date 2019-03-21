@@ -266,6 +266,11 @@ class CharObject: public ServerObject
             return m_Map ? m_Map->ID() : 0;
         }
 
+        uint64_t MapUID() const
+        {
+            return m_Map->UID();
+        }
+
     public:
         virtual bool Update() = 0;
         virtual bool InRange(int, int, int) = 0;

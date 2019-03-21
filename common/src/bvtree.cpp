@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <optional>
 #include "bvtree.hpp"
 #include "raiitimer.hpp"
 
@@ -716,4 +717,72 @@ bvnode_ptr bvtree::op_timeout(uint64_t ms, bvnode_ptr operation)
 bvnode_ptr bvtree::op_delay(uint64_t ms)
 {
     return bvtree::op_delay(ms, bvtree::lambda([](){ return BV_SUCCESS; }));
+}
+
+bvnode_ptr bvtree::op_slowdown(uint64_t ms, bvnode_ptr operation)
+{
+    class node_op_slowdown: public bvtree::node
+    {
+        private:
+            const uint64_t m_slowdown;
+
+        private:
+            std::optional<bvres_t> m_done_res;
+
+        private:
+            hres_timer m_timer;
+
+        private:
+            bvnode_ptr m_operation;
+
+        public:
+            node_op_slowdown(uint32_t ms, bvnode_ptr operation)
+                : m_slowdown(ms)
+                , m_done_res()
+                , m_timer()
+                , m_operation(operation)
+            {}
+
+        public:
+            void reset() override
+            {
+                m_done_res.reset();
+                m_operation->reset();
+            }
+
+        public:
+            bvres_t update() override
+            {
+                if(!m_done_res.has_value()){
+                    m_timer.reset();
+                }
+
+                if(!m_done_res.has_value() || m_done_res.value() == BV_PENDING){
+                    m_done_res.emplace(m_operation->update());
+                    switch(auto op_status = m_done_res.value()){
+                        case BV_ABORT:
+                        case BV_PENDING:
+                            {
+                                return op_status;
+                            }
+                        case BV_FAILURE:
+                        case BV_SUCCESS:
+                            {
+                                break;
+                            }
+                        default:
+                            {
+                                throw std::runtime_error(str_fflprintf(": Invalid node status: %d", op_status));
+                            }
+                    }
+                }
+
+                if(m_timer.diff_msec() > m_slowdown){
+                    return m_done_res.value();
+                }else{
+                    return BV_PENDING;
+                }
+            }
+    };
+    return std::make_shared<node_op_slowdown>(ms, operation);
 }

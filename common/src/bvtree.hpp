@@ -24,6 +24,22 @@
 #include <functional>
 #include "strfunc.hpp"
 
+// too error-prone
+// don't allow implicit conversion
+
+enum class bvres_t
+{
+    ABORT,
+    FAILURE,
+    PENDING,
+    SUCCESS,
+};
+
+constexpr bvres_t BV_ABORT   = bvres_t::ABORT;
+constexpr bvres_t BV_FAILURE = bvres_t::FAILURE;
+constexpr bvres_t BV_PENDING = bvres_t::PENDING;
+constexpr bvres_t BV_SUCCESS = bvres_t::SUCCESS;
+
 // bvarg_ref is like a non_empty_pointer
 // it can bind to differnet instance but can't never be null
 class bvarg_ref
@@ -37,7 +53,7 @@ class bvarg_ref
     private:
         // should always access inn_bvarg_t by bvarg_ref
         // make it private to prevent user declare local instance
-        using inn_bvarg_t = std::variant<inn_void_t, bool, int, uint64_t, std::string>;
+        using inn_bvarg_t = std::variant<inn_void_t, bool, int, uint64_t, bvres_t, std::string, std::tuple<uint32_t, int, int>>;
 
     private:
         std::shared_ptr<inn_bvarg_t> m_ptr;
@@ -137,28 +153,25 @@ class bvarg_ref
         {
             return std::make_shared<bvarg_ref::inn_bvarg_t>(std::in_place_type_t<I>(), std::forward<T>(t)...);
         }
+
+    public:
+        bool has_value() const
+        {
+            // if current bvarg contains an inn_void_t
+            // we say it doesn't have value, but it still ref to a pice of memory
+            return !std::holds_alternative<inn_void_t>(get());
+        }
+
+        void assign_void()
+        {
+            this->assign<inn_void_t>();
+        }
 };
 
 template<typename I, typename... T> bvarg_ref make_bvarg(T && ... t)
 {
     return bvarg_ref::make_bvarg<I>(std::forward<T>(t)...);
 }
-
-// too error-prone
-// don't allow implicit conversion
-
-enum class bvres_t
-{
-    ABORT,
-    FAILURE,
-    PENDING,
-    SUCCESS,
-};
-
-constexpr bvres_t BV_ABORT   = bvres_t::ABORT;
-constexpr bvres_t BV_FAILURE = bvres_t::FAILURE;
-constexpr bvres_t BV_PENDING = bvres_t::PENDING;
-constexpr bvres_t BV_SUCCESS = bvres_t::SUCCESS;
 
 inline const char *bvres_cstr(bvres_t status)
 {
@@ -464,4 +477,5 @@ namespace bvtree
     bvnode_ptr op_delay(uint64_t);
     bvnode_ptr op_delay(uint64_t, bvnode_ptr);
     bvnode_ptr op_timeout(uint64_t, bvnode_ptr);
+    bvnode_ptr op_slowdown(uint64_t, bvnode_ptr);
 }

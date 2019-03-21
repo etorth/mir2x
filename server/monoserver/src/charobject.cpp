@@ -379,20 +379,16 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
     stAMTM.AllowHalfMove = bAllowHalfMove;
 
     m_MoveLock = true;
-    auto bForwardOK = m_ActorPod->Forward(m_Map->UID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)
+    return m_ActorPod->Forward(MapUID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)
     {
         if(!m_MoveLock){
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before map responds: ClassName = %s", UIDName());
-            g_MonoServer->Restart();
+            throw std::runtime_error(str_fflprintf("MoveLock released before map responds: ClassName = %s", UIDName()));
         }
-
-        // 1. release the move lock no matter what kind of message we get
         m_MoveLock = false;
 
-        // 2. handle move, CO may be dead
-        //    need to check if current CO can move
+        // handle move, CO may be dead
+        // need to check if current CO can move
 
-        auto nDir = PathFind::GetDirection(X(), Y(), nX, nY);
         switch(rstMPK.Type()){
             case MPK_MOVEOK:
                 {
@@ -402,78 +398,56 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
                     // since we may allow half move
                     // servermap permitted dst may not be (nX, nY)
 
-                    if(true
-                            && CanMove()
-                            && m_Map->ValidC(stAMMOK.EndX, stAMMOK.EndY)){
+                    if(!m_Map->ValidC(stAMMOK.EndX, stAMMOK.EndY)){
+                        throw std::runtime_error(str_fflprintf("Map returns invalid destination: (%" PRIu64 ", %d, %d)", m_Map->UID(), stAMMOK.EndX, stAMMOK.EndY));
+                    }
 
-                        auto nOldX = m_X;
-                        auto nOldY = m_Y;
-
-                        m_X = stAMMOK.EndX;
-                        m_Y = stAMMOK.EndY;
-
-                        m_Direction = nDir;
-
-                        m_LastMoveTime = g_MonoServer->GetTimeTick();
-
-                        m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
-                        DispatchAction(ActionMove(nOldX, nOldY, X(), Y(), nSpeed, Horse()));
-
-                        if(fnOnMoveOK){
-                            fnOnMoveOK();
-                        }
-                    }else{
+                    if(!CanMove()){
                         m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                         if(fnOnMoveError){
                             fnOnMoveError();
                         }
+                        return;
                     }
 
-                    break;
-                }
-            case MPK_ERROR:
-                {
-                    // should add a new function: CanTurn()
-                    // for stone state we can't even make a turn
+                    auto nOldX = m_X;
+                    auto nOldY = m_Y;
 
-                    if(CanMove() && m_Direction != nDir){
-                        m_Direction = nDir;
-                        DispatchAction(ActionStand(X(), Y(), Direction()));
+                    m_X = stAMMOK.EndX;
+                    m_Y = stAMMOK.EndY;
+
+                    m_Direction = PathFind::GetDirection(nOldX, nOldY, X(), Y());
+                    m_LastMoveTime = g_MonoServer->GetTimeTick();
+
+                    m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
+                    DispatchAction(ActionMove(nOldX, nOldY, X(), Y(), nSpeed, Horse()));
+
+                    if(fnOnMoveOK){
+                        fnOnMoveOK();
                     }
-
-                    if(fnOnMoveError){
-                        fnOnMoveError();
-                    }
-
                     break;
                 }
             default:
                 {
+                    if(fnOnMoveError){
+                        fnOnMoveError();
+                    }
                     break;
                 }
         }
     });
-
-    // send failure should trigger fnOnMoveError
-    // but a successful send doesn't mean move successfully
-
-    if(!bForwardOK){
-        if(fnOnMoveError){
-            fnOnMoveError();
-        }
-    }
-
-    return bForwardOK;
 }
 
 bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
-    if(!CanMove()){
-        return false;
+    if(!(UIDFunc::GetMapUID(nMapID) && (nX >= 0) && (nY >= 0))){
+        throw std::runtime_error(str_fflprintf("Invalid map destination: (%" PRIu32 ", %d, %d)", nMapID, nX, nY));
     }
 
-    if(!UIDFunc::GetMapUID(nMapID)){
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid MapID: %" PRIu32, nMapID);
+    if(!CanMove()){
+        if(fnOnMoveError){
+            fnOnMoveError();
+        }
         return false;
     }
 
@@ -488,28 +462,19 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
     m_MoveLock = true;
     return m_ActorPod->Forward(UIDFunc::GetMapUID(nMapID), {MPK_TRYSPACEMOVE, stAMTSM}, [this, nX, nY, fnOnMoveOK, fnOnMoveError](const MessagePack &rstRMPK)
     {
-        // 1. check if lock released
-        //    shouldn't release before get map's response
-
         if(!m_MoveLock){
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before map responds: UIDName = %s", UIDName());
-            g_MonoServer->Restart();
+            throw std::runtime_error(str_fflprintf("MoveLock released before map responds: ClassName = %s", UIDName()));
         }
-
         m_MoveLock = false;
 
-        // 2. handle move
-        //    need to check if current CO can move even we checked before
+        // handle move, CO can be dead already
+        // check if current CO can move even we checked before
 
         switch(rstRMPK.Type()){
             case MPK_SPACEMOVEOK:
                 {
                     // need to leave src map
                     // dst map already says OK for current move
-
-                    // was to decleare a new function CharObject::LeaveMap(fnLeaveOK)
-                    // but it could cause the issue that m_Map may stay invalid if after MPK_TRYLEAVE succeeds but
-                    // fnLeaveOK doesn't provide a new map pointer
 
                     if(!CanMove()){
                         m_ActorPod->Forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
@@ -531,11 +496,10 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                     m_ActorPod->Forward(m_Map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, rstRMPK, nX, nY, fnOnMoveOK, fnOnMoveError](const MessagePack &rstLeaveRMPK)
                     {
                         if(!m_MoveLock){
-                            g_MonoServer->AddLog(LOGTYPE_WARNING, "MoveLock released before map responds: UIDName = %s", UIDName());
-                            g_MonoServer->Restart();
+                            throw std::runtime_error(str_fflprintf("MoveLock released before map responds: ClassName = %s", UIDName()));
                         }
-
                         m_MoveLock = false;
+
                         switch(rstLeaveRMPK.Type()){
                             case MPK_OK:
                                 {
@@ -547,25 +511,26 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                                         if(fnOnMoveError){
                                             fnOnMoveError();
                                         }
-                                    }else{
-                                        // 1. dispatch space move part 1 on old map
-                                        DispatchAction(ActionSpaceMove1(X(), Y(), Direction()));
+                                        return;
+                                    }
+                                    
+                                    // dispatch space move part 1 on old map
+                                    DispatchAction(ActionSpaceMove1(X(), Y(), Direction()));
 
-                                        // 2. setup new map
-                                        m_X   = nX;
-                                        m_Y   = nY;
-                                        m_Map = (ServerMap *)(stAMSMOK.Ptr);
+                                    // setup new map
+                                    m_X   = nX;
+                                    m_Y   = nY;
+                                    m_Map = (ServerMap *)(stAMSMOK.Ptr);
 
-                                        m_LastMoveTime = g_MonoServer->GetTimeTick();
-                                        m_ActorPod->Forward(rstRMPK.From(), MPK_OK, rstRMPK.ID());
+                                    m_LastMoveTime = g_MonoServer->GetTimeTick();
+                                    m_ActorPod->Forward(rstRMPK.From(), MPK_OK, rstRMPK.ID());
 
-                                        // 3. dispatch/report space move part 2 on new map
-                                        DispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
-                                        ReportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
+                                    //  dispatch/report space move part 2 on new map
+                                    DispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
+                                    ReportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
 
-                                        if(fnOnMoveOK){
-                                            fnOnMoveOK();
-                                        }
+                                    if(fnOnMoveOK){
+                                        fnOnMoveOK();
                                     }
                                     break;
                                 }

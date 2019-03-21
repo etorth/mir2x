@@ -15,9 +15,9 @@
  *
  * =====================================================================================
  */
-
+#include <optional>
 #include "monster.hpp"
-bvnode_ptr Monster::BvTree_GetMasterUID(bvarg_ref nMasterUID)
+bvnode_ptr Monster::BvNode_GetMasterUID(bvarg_ref nMasterUID)
 {
     return bvtree::lambda_bool([this, nMasterUID]() mutable
     {
@@ -26,74 +26,75 @@ bvnode_ptr Monster::BvTree_GetMasterUID(bvarg_ref nMasterUID)
     });
 }
 
-bvnode_ptr Monster::BvTree_FollowMaster()
+bvnode_ptr Monster::BvNode_FollowMasterOneStep()
 {
-    return bvtree::lambda_bool([this](){ return true; });
-}
-
-bvnode_ptr Monster::BvTree_LocateUID(bvarg_ref nUID, bvarg_ref stLocation)
-{
-    auto bInited = make_bvarg<bool>(false);
-    auto fnReset = [bInited]() mutable
+    bvarg_ref nStage;
+    return bvtree::lambda([nStage]() mutable
     {
-        bInited.assign<bool>(false);
-    };
+        nStage.assign_void();
+    },
 
-    auto bDone = make_bvarg<bool>(false);
-    auto fnUpdate = [this, nUID, stLocation, bInited, bDone]() mutable -> bvres_t
+    [this, nStage]() mutable -> bvres_t
     {
-        if(!bInited.as<bool>()){
-            auto fnOnOK = [stLocation, bDone](const COLocation &loc) mutable
+        if(!nStage.has_value()){
+            nStage.assign<bvres_t>(BV_PENDING);
+            FollowMasterOneStep([nStage]() mutable
             {
-                bDone.assign<bool>(true);
-                stLocation.assign<uint64_t>(loc.MapID);
-            };
+                nStage.assign<bvres_t>(BV_SUCCESS);
+            },
 
-            auto fnOnError = [stLocation, bDone]() mutable
+            [nStage]() mutable
             {
-                bDone.assign<bool>(true);
-                stLocation.assign<uint64_t>(0);
-            };
-
-            RetrieveLocation(nUID.as<uint64_t>(), fnOnOK, fnOnError);
-            bInited.assign<bool>(true);
+                nStage.assign<bvres_t>(BV_FAILURE);
+            });
         }
-
-        if(bDone.as<bool>()){
-            return stLocation.as<uint64_t>() ? BV_SUCCESS : BV_FAILURE;
-        }
-        return BV_PENDING;
-    };
-    return bvtree::lambda(fnReset, fnUpdate);
+        return nStage.as<bvres_t>();
+    });
 }
 
-bvnode_ptr Monster::BvTree_LocateMaster(bvarg_ref stLocation)
+bvnode_ptr Monster::BvNode_LocateUID(bvarg_ref nUID, bvarg_ref stLocation)
 {
-    bvarg_ref nMasterUID;
+    bvarg_ref nStage;
+    return bvtree::lambda([nStage]() mutable
+    {
+        nStage.assign_void();
+    },
 
-    return bvtree::if_check
-    (
-        BvTree_GetMasterUID(nMasterUID),
-        BvTree_LocateUID(nMasterUID, stLocation)
-    );
+    [this, nUID, stLocation, nStage]() mutable -> bvres_t
+    {
+        if(!nStage.has_value()){
+            nStage.assign<bvres_t>(BV_PENDING);
+            RetrieveLocation(nUID.as<uint64_t>(), [nStage, stLocation](const COLocation &stLoc) mutable
+            {
+                nStage.assign<bvres_t>(BV_SUCCESS);
+                stLocation.assign<tuple<uint32_t, int, int>>(stLoc.MapID, stLoc.X, stLoc.Y);
+            },
+
+            [nStage]() mutable
+            {
+                nStage.assign<bvres_t>(BV_FAILURE);
+            });
+        }
+        return nStage.as<bvres_t>();
+    });
 }
 
-bvnode_ptr Monster::BvTree_RandomMove()
+bvnode_ptr Monster::BvNode_RandomMove()
 {
     return bvtree::random
     (
-        BvTree_RandomTurn(),
-        BvTree_MoveOneStep(),
-        BvTree_MoveOneStep(),
-        BvTree_MoveOneStep(),
-        BvTree_MoveOneStep(),
-        BvTree_MoveOneStep(),
-        BvTree_MoveOneStep(),
-        BvTree_MoveOneStep()
+        BvNode_RandomTurn(),
+        BvNode_MoveForwardOneStep(),
+        BvNode_MoveForwardOneStep(),
+        BvNode_MoveForwardOneStep(),
+        BvNode_MoveForwardOneStep(),
+        BvNode_MoveForwardOneStep(),
+        BvNode_MoveForwardOneStep(),
+        BvNode_MoveForwardOneStep()
     );
 }
 
-bvnode_ptr Monster::BvTree_RandomTurn()
+bvnode_ptr Monster::BvNode_RandomTurn()
 {
     auto fnUpdate = [this]() -> bvres_t
     {
@@ -140,61 +141,48 @@ bvnode_ptr Monster::BvTree_RandomTurn()
     );
 }
 
-bvnode_ptr Monster::BvTree_MoveOneStep()
+bvnode_ptr Monster::BvNode_MoveForwardOneStep()
 {
-    enum
-    {
-        NONE,
-        DONE,
-        ERROR,
-        PENDING,
-    };
-
-    bvarg_ref nStage = make_bvarg<int>(NONE);
+    bvarg_ref nStage;
 
     auto fnReset = [nStage]() mutable
     {
-        nStage.assign<int>(NONE);
+        nStage.assign_void();
     };
 
     auto fnUpdate = [this, nStage]() mutable -> bvres_t
     {
-        switch(auto stage = nStage.as<int>()){
-            case NONE:
-                {
-                    int nX = -1;
-                    int nY = -1;
+        if(!nStage.has_value()){
+            int nX = -1;
+            int nY = -1;
 
-                    if(OneStepReach(Direction(), 1, &nX, &nY) == 1){
-                        RequestMove(nX, nY, MoveSpeed(), false, [nStage]() mutable
-                        {
-                            nStage.assign<int>(DONE);
-                        },
+            if(OneStepReach(Direction(), 1, &nX, &nY) == 1){
+                RequestMove(nX, nY, MoveSpeed(), false, [nStage]() mutable
+                {
+                    nStage.assign<bvres_t>(BV_SUCCESS);
+                },
 
-                        [nStage]() mutable
-                        {
-                            nStage.assign<int>(ERROR);
-                        });
-                        return BV_PENDING;
-                    }else{
-                        return BV_FAILURE;
-                    }
-                }
-            case DONE:
+                [nStage]() mutable
                 {
-                    return BV_SUCCESS;
-                }
-            case ERROR:
+                    nStage.assign<bvres_t>(BV_FAILURE);
+                });
+                return BV_PENDING;
+            }else{
+                return BV_FAILURE;
+            }
+        }
+
+        switch(auto nStatus = nStage.as<bvres_t>()){
+            case BV_ABORT:
+            case BV_FAILURE:
+            case BV_PENDING:
+            case BV_SUCCESS:
                 {
-                    return BV_FAILURE;
-                }
-            case PENDING:
-                {
-                    return BV_PENDING;
+                    return nStatus;
                 }
             default:
                 {
-                    throw std::runtime_error(str_fflprintf(": Invalid stage: %d", stage));
+                    throw std::runtime_error(str_fflprintf(": Invalid node status: %d", nStatus));
                 }
         }
     };
@@ -205,4 +193,43 @@ bvnode_ptr Monster::BvTree_MoveOneStep()
         bvtree::op_delay(1000),
         bvtree::op_delay( 200)
     );
+}
+
+bvnode_ptr Monster::BvNode_MoveOneStep(bvarg_ref stDstLocation)
+{
+    bvarg_ref nStage;
+    return bvtree::lambda([nStage]() mutable
+    {
+        nStage.assign_void();
+    },
+
+    [this, stDstLocation, nStage]() mutable -> bvres_t
+    {
+        if(!nStage.has_value()){
+            auto [nMapID, nX, nY] = stDstLocation.as<tuple<uint32_t, int, int>>();
+            if(!m_Map->In(nMapID, nX, nY)){
+                return BV_ABORT;
+            }
+
+            nStage.assign<bvres_t>(BV_PENDING);
+            MoveOneStep(nX, nY, [nStage]() mutable
+            {
+                nStage.assign<bvres_t>(BV_SUCCESS);
+            },
+
+            [nStage]() mutable
+            {
+                nStage.assign<bvres_t>(BV_FAILURE);
+            });
+        }
+        return nStage.as<bvres_t>();
+    });
+}
+
+bvnode_ptr Monster::BvNode_HasMaster()
+{
+    return bvtree::lambda_bool([this]() -> bool
+    {
+        return MasterUID();
+    });
 }
