@@ -28,6 +28,11 @@
 #include "pngtexoffdbn.hpp"
 #include "clientpathfinder.hpp"
 
+extern Log *g_Log;
+extern SDLDevice *g_SDLDevice;
+extern PNGTexDBN *g_ProgUseDBN;
+extern PNGTexOffDBN *g_MonsterDBN;
+
 Monster::Monster(uint64_t nUID, ProcessRun *pRun)
     : Creature(nUID, pRun)
 {
@@ -132,7 +137,6 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
         int nDX1 = 0;
         int nDY1 = 0;
 
-        extern PNGTexOffDBN *g_MonsterDBN;
         auto pFrame0 = g_MonsterDBN->Retrieve(nKey0, &nDX0, &nDY0);
         auto pFrame1 = g_MonsterDBN->Retrieve(nKey1, &nDX1, &nDY1);
 
@@ -142,7 +146,6 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
 
         // always reset the alpha mode for each texture because texture is shared
         // one texture to draw can be configured with different alpha mode for other creatures
-        extern SDLDevice *g_SDLDevice;
         if(pFrame0){ SDL_SetTextureAlphaMod(pFrame0, 255); }
         if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
 
@@ -167,7 +170,6 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
 
                 auto stColor = FocusColor(nFocusChan);
                 if(!SDL_SetTextureColorMod(pTexture, stColor.r, stColor.g, stColor.b)){
-                    extern SDLDevice *g_SDLDevice;
                     g_SDLDevice->DrawTexture(pTexture, nX, nY);
                 }
             }
@@ -195,7 +197,6 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
         // draw HP bar
         // if current m_HPMqx is zero we draw full bar
         if(m_CurrMotion.Motion != MOTION_MON_DIE){
-            extern PNGTexDBN *g_ProgUseDBN;
             auto pBar0 = g_ProgUseDBN->Retrieve(0X00000014);
             auto pBar1 = g_ProgUseDBN->Retrieve(0X00000015);
 
@@ -594,7 +595,6 @@ bool Monster::CanFocus(int nPointX, int nPointY)
         int nDX0 = 0;
         int nDY0 = 0;
 
-        extern PNGTexOffDBN *g_MonsterDBN;
         auto pFrame0 = g_MonsterDBN->Retrieve(nKey0, &nDX0, &nDY0);
 
         int nShiftX = 0;
@@ -621,7 +621,6 @@ bool Monster::CanFocus(int nPointX, int nPointY)
 Monster *Monster::CreateMonster(uint64_t nUID, ProcessRun *pRun, const ActionNode &rstAction)
 {
     if(UIDFunc::GetUIDType(nUID) != UID_MON){
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_FATAL, "Invalid UID provided for monster type: UIDName = %s", UIDFunc::GetUIDString(nUID).c_str());
         return nullptr;
     }
@@ -631,7 +630,6 @@ Monster *Monster::CreateMonster(uint64_t nUID, ProcessRun *pRun, const ActionNod
     {
         pMonster = new Monster(nUID, pRun);
     }catch(...){
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_FATAL, "Create monster failed: UIDName = %s", UIDFunc::GetUIDString(nUID).c_str());
         return nullptr;
     }
