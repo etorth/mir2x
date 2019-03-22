@@ -137,7 +137,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_LastAttackTime(0)
     , m_LastAction(ACTION_NONE)
     , m_LastActionTime(0)
-    , m_HitterUIDRecord()
+    , m_OffenderList()
     , m_TargetQueue()
     , m_Ability()
     , m_WAbility()
@@ -723,7 +723,7 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
 bool CharObject::AddHitterUID(uint64_t nUID, int nDamage)
 {
     if(nUID){
-        for(auto rstRecord: m_HitterUIDRecord){
+        for(auto rstRecord: m_OffenderList){
             if(rstRecord.UID == nUID){
                 rstRecord.Damage += (std::max<int>)(0, nDamage);
                 rstRecord.ActiveTime = g_MonoServer->GetTimeTick();
@@ -732,7 +732,7 @@ bool CharObject::AddHitterUID(uint64_t nUID, int nDamage)
         }
 
         // new entry
-        m_HitterUIDRecord.emplace_back(nUID, (std::max<int>)(0, nDamage), g_MonoServer->GetTimeTick());
+        m_OffenderList.emplace_back(nUID, (std::max<int>)(0, nDamage), g_MonoServer->GetTimeTick());
         return true;
     }
     return false;
@@ -741,11 +741,11 @@ bool CharObject::AddHitterUID(uint64_t nUID, int nDamage)
 bool CharObject::DispatchHitterExp()
 {
     auto nNowTick = g_MonoServer->GetTimeTick();
-    for(size_t nIndex = 0; nIndex < m_HitterUIDRecord.size();){
+    for(size_t nIndex = 0; nIndex < m_OffenderList.size();){
         if(true
-                && m_HitterUIDRecord[nIndex].UID
-                && m_HitterUIDRecord[nIndex].ActiveTime + 2 * 60 * 1000 >= nNowTick){
-            if(auto nType = UIDFunc::GetUIDType(m_HitterUIDRecord[nIndex].UID); nType == UID_MON || nType == UID_PLY){
+                && m_OffenderList[nIndex].UID
+                && m_OffenderList[nIndex].ActiveTime + 2 * 60 * 1000 >= nNowTick){
+            if(auto nType = UIDFunc::GetUIDType(m_OffenderList[nIndex].UID); nType == UID_MON || nType == UID_PLY){
                 // record is valid
                 // record is not time-out
                 // record is monster or player
@@ -756,16 +756,16 @@ bool CharObject::DispatchHitterExp()
 
         // remove it
         // we shouldn't cout this record
-        m_HitterUIDRecord[nIndex] = m_HitterUIDRecord.back();
-        m_HitterUIDRecord.pop_back();
+        m_OffenderList[nIndex] = m_OffenderList.back();
+        m_OffenderList.pop_back();
     }
 
     auto fnCalcExp = [this](int nDamage) -> int
     {
-        return nDamage * m_HitterUIDRecord.size();
+        return nDamage * m_OffenderList.size();
     };
 
-    for(auto rstRecord: m_HitterUIDRecord){
+    for(auto rstRecord: m_OffenderList){
         AMExp stAME;
         std::memset(&stAME, 0, sizeof(stAME));
         stAME.Exp = fnCalcExp(rstRecord.Damage);

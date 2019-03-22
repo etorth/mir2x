@@ -178,13 +178,13 @@ class CharObject: public ServerObject
             {}
         };
 
-        struct HitterUIDRecord
+        struct Offender
         {
             uint64_t UID;
             uint32_t Damage;
             uint32_t ActiveTime;
 
-            HitterUIDRecord(uint64_t nUID = 0, uint32_t nDamage = 0, uint32_t nActiveTime = 0)
+            Offender(uint64_t nUID = 0, uint32_t nDamage = 0, uint32_t nActiveTime = 0)
                 : UID(nUID)
                 , Damage(nDamage)
                 , ActiveTime(nActiveTime)
@@ -232,7 +232,7 @@ class CharObject: public ServerObject
         uint32_t m_LastActionTime;
 
     protected:
-        std::vector<HitterUIDRecord> m_HitterUIDRecord;
+        std::vector<Offender> m_OffenderList;
 
     protected:
         CacheQueue<TargetRecord, SYS_MAXTARGET> m_TargetQueue;
