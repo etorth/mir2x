@@ -137,8 +137,8 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_LastAttackTime(0)
     , m_LastAction(ACTION_NONE)
     , m_LastActionTime(0)
+    , m_Target()
     , m_OffenderList()
-    , m_TargetQueue()
     , m_Ability()
     , m_WAbility()
     , m_AddAbility()
@@ -730,17 +730,13 @@ void CharObject::AddOffenderDamage(uint64_t nUID, int nDamage)
         throw std::invalid_argument(str_fflprintf(": Invalid offender damage: %d", nDamage));
     }
 
-    auto fnCmp = [this, nUID](const auto &rstOffender)
-    {
-        return nUID == rstOffender.UID;
-    };
-
-    if(auto p = std::find_if(m_OffenderList.begin(), m_OffenderList.end(), fnCmp); p != m_OffenderList.end()){
-        p->Damage += nDamage;
-        p->ActiveTime = g_MonoServer->GetTimeTick();
-        return;
+    for(auto p = m_OffenderList.begin(); p != m_OffenderList.end(); ++p){
+        if(p->UID == nUID){
+            p->Damage += nDamage;
+            p->ActiveTime = g_MonoServer->GetTimeTick();
+            return;
+        }
     }
-
     m_OffenderList.emplace_back(nUID, nDamage, g_MonoServer->GetTimeTick());
 }
 

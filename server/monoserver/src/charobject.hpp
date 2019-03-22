@@ -167,26 +167,26 @@ class CharObject: public ServerObject
         };
 
     protected:
-        struct TargetRecord
-        {
-            uint64_t UID;
-            uint32_t ActiveTime;
-
-            TargetRecord(uint64_t nUID = 0, uint32_t nActiveTime = 0)
-                : UID(nUID)
-                , ActiveTime(nActiveTime)
-            {}
-        };
-
         struct Offender
         {
-            uint64_t UID;
-            uint32_t Damage;
-            uint32_t ActiveTime;
+            uint64_t UID = 0;
+            uint32_t Damage = 0;
+            uint32_t ActiveTime = 0;
 
             Offender(uint64_t nUID = 0, uint32_t nDamage = 0, uint32_t nActiveTime = 0)
                 : UID(nUID)
                 , Damage(nDamage)
+                , ActiveTime(nActiveTime)
+            {}
+        };
+
+        struct Target
+        {
+            uint64_t UID = 0;
+            uint32_t ActiveTime = 0;
+
+            Target(uint64_t nUID = 0, uint32_t nActiveTime = 0)
+                : UID(nUID)
                 , ActiveTime(nActiveTime)
             {}
         };
@@ -232,10 +232,10 @@ class CharObject: public ServerObject
         uint32_t m_LastActionTime;
 
     protected:
-        std::vector<Offender> m_OffenderList;
+        Target m_Target;
 
     protected:
-        CacheQueue<TargetRecord, SYS_MAXTARGET> m_TargetQueue;
+        std::vector<Offender> m_OffenderList;
 
     protected:
         OBJECTABILITY       m_Ability;

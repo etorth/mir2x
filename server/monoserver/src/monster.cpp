@@ -423,39 +423,20 @@ bool Monster::FollowMasterOneStep(std::function<void()> fnOnOK, std::function<vo
 
 bool Monster::TrackAttack()
 {
-    uint64_t nFirstTarget = 0;
-    while(true){
-        CheckCurrTarget();
-        if(m_TargetQueue.Empty()){
-            return false;
-        }
+    if(!GetProperTarget()){
+        return false;
+    }
 
-        // to prevent deadloop
-        // we rotate till reach the old head
-
-        if(nFirstTarget){
-            if(m_TargetQueue[0].UID == nFirstTarget){
-                return false;
-            }
-        }else{
-            nFirstTarget = m_TargetQueue[0].UID;
-        }
-
-        for(auto nDC: m_MonsterRecord.DCList()){
-            if(AttackUID(m_TargetQueue[0].UID, nDC)){
-                m_TargetQueue[0].ActiveTime = g_MonoServer->GetTimeTick();
-                return true;
-            }
-        }
-
-        if(TrackUID(m_TargetQueue[0].UID)){
-            m_TargetQueue[0].ActiveTime = g_MonoServer->GetTimeTick();
+    for(auto nDC: m_MonsterRecord.DCList()){
+        if(AttackUID(m_Target.UID, nDC)){
+            m_Target.ActiveTime = g_MonoServer->GetTimeTick();
             return true;
         }
+    }
 
-        // not a proper target now
-        // we keep the target (for 1min) and try next one
-        m_TargetQueue.Rotate(1);
+    if(TrackUID(m_Target.UID)){
+        m_Target.ActiveTime = g_MonoServer->GetTimeTick();
+        return true;
     }
     return false;
 }
@@ -727,45 +708,15 @@ bool Monster::DCValid(int nDC, bool bCheck)
 
 void Monster::RemoveTarget(uint64_t nUID)
 {
-    if(nUID){
-
-        // cache queue don't support remove in middle
-        // we implement here
-
-        auto fnRemoveIndex = [this](int nIndex)
-        {
-            if(nIndex >= 0 && nIndex < (int)(m_TargetQueue.Length())){
-                m_TargetQueue.Rotate(nIndex);
-                m_TargetQueue.PopHead();
-                m_TargetQueue.Rotate(-1 * nIndex);
-            }
-        };
-
-        for(size_t nIndex = 0; nIndex < m_TargetQueue.Length();){
-            if(m_TargetQueue[nIndex].UID == nUID){
-                fnRemoveIndex(nIndex);
-            }else{
-                nIndex++;
-            }
-        }
+    if(m_Target.UID == nUID){
+        m_Target = {};
     }
 }
 
 void Monster::AddTarget(uint64_t nUID)
 {
-    if(true
-            && nUID
-            && nUID != MasterUID()){
-
-        for(size_t nIndex = 0; nIndex < m_TargetQueue.Length(); ++nIndex){
-            if(m_TargetQueue[nIndex].UID == nUID){
-                m_TargetQueue[nIndex].ActiveTime = g_MonoServer->GetTimeTick();
-                return;
-            }
-        }
-
-        m_TargetQueue.PushBack(TargetRecord(nUID, g_MonoServer->GetTimeTick()));
-    }
+    m_Target.UID = nUID;
+    m_Target.ActiveTime = g_MonoServer->GetTimeTick();
 }
 
 bool Monster::GoDie()
@@ -1131,23 +1082,27 @@ void Monster::RandomDrop()
     }
 }
 
-void Monster::CheckCurrTarget()
+bool Monster::GetProperTarget()
 {
-    // make the first target valid, means
-    // 1. not time out
-    // 2. not friend
+    if(m_Target.UID){
+        return true;
+    }
 
-    while(!m_TargetQueue.Empty()){
-        // 1. check timeout
-        if(g_MonoServer->GetTimeTick() >= m_TargetQueue[0].ActiveTime + 60 * 1000){
-            m_TargetQueue.PopHead();
-            continue;
-        }
+    if(m_InViewCOList.empty()){
+        return false;
+    }
 
-        // 2. check friend
+    uint64_t nTargetUID = 0;
+    int nTargetDistance = -1;
+
+    std::for_each(m_InViewCOList.begin(), m_InViewCOList.end(), [this, &nTargetUID, &nTargetDistance](const auto &rstPair)
+    {
+        auto nX   = rstPair.second.X;
+        auto nY   = rstPair.second.Y;
+        auto nUID = rstPair.second.UID;
+
         bool bFriend  = false;
-        auto nCurrUID = m_TargetQueue[0].UID;
-        CheckFriend(nCurrUID, [&bFriend](int nFriendType)
+        CheckFriend(nUID, [&bFriend](int nFriendType)
         {
             switch(nFriendType){
                 case FRIENDTYPE_ENEMY:
@@ -1163,14 +1118,20 @@ void Monster::CheckCurrTarget()
         });
 
         if(bFriend){
-            m_TargetQueue.PopHead();
-            continue;
+            return;
         }
 
-        // tests passed
-        // keep the first target as valid
-        return;
+        if(auto nDist = MathFunc::LDistance2(X(), Y(), nX, nY); nTargetDistance < 0 || nTargetDistance > nDist){
+            nTargetUID = nUID;
+            nTargetDistance = nDist;
+        }
+    });
+
+    if(nTargetUID){
+        m_Target.UID = nTargetUID;
+        return true;
     }
+    return false;
 }
 
 void Monster::CheckFriend(uint64_t nCheckUID, const std::function<void(int)> &fnOnFriend)
