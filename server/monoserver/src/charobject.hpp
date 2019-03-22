@@ -327,8 +327,8 @@ class CharObject: public ServerObject
         virtual bool RequestSpaceMove(uint32_t, int, int, bool, std::function<void()>, std::function<void()>);
 
     protected:
-        bool AddHitterUID(uint64_t, int);
-        bool DispatchHitterExp();
+        void AddOffenderDamage(uint64_t, int);
+        void DispatchOffenderExp();
 
     protected:
         virtual bool CanAct();

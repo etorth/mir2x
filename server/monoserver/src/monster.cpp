@@ -777,7 +777,7 @@ bool Monster::GoDie()
                     case 0:
                         {
                             RandomDrop();
-                            DispatchHitterExp();
+                            DispatchOffenderExp();
 
                             // dispatch die acton without auto-fade-out
                             // server send the fade-out request in GoGhost()

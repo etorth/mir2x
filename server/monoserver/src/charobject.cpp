@@ -720,44 +720,42 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
     return true;
 }
 
-bool CharObject::AddHitterUID(uint64_t nUID, int nDamage)
+void CharObject::AddOffenderDamage(uint64_t nUID, int nDamage)
 {
-    if(nUID){
-        for(auto rstRecord: m_OffenderList){
-            if(rstRecord.UID == nUID){
-                rstRecord.Damage += (std::max<int>)(0, nDamage);
-                rstRecord.ActiveTime = g_MonoServer->GetTimeTick();
-                return true;
-            }
-        }
-
-        // new entry
-        m_OffenderList.emplace_back(nUID, (std::max<int>)(0, nDamage), g_MonoServer->GetTimeTick());
-        return true;
+    if(!nUID){
+        throw std::invalid_argument(str_fflprintf(": Offender with zero UID"));
     }
-    return false;
+
+    if(nDamage < 0){
+        throw std::invalid_argument(str_fflprintf(": Invalid offender damage: %d", nDamage));
+    }
+
+    auto fnCmp = [this, nUID](const auto &rstOffender)
+    {
+        return nUID == rstOffender.UID;
+    };
+
+    if(auto p = std::find_if(m_OffenderList.begin(), m_OffenderList.end(), fnCmp); p != m_OffenderList.end()){
+        p->Damage += nDamage;
+        p->ActiveTime = g_MonoServer->GetTimeTick();
+        return;
+    }
+
+    m_OffenderList.emplace_back(nUID, nDamage, g_MonoServer->GetTimeTick());
 }
 
-bool CharObject::DispatchHitterExp()
+void CharObject::DispatchOffenderExp()
 {
-    auto nNowTick = g_MonoServer->GetTimeTick();
-    for(size_t nIndex = 0; nIndex < m_OffenderList.size();){
-        if(true
-                && m_OffenderList[nIndex].UID
-                && m_OffenderList[nIndex].ActiveTime + 2 * 60 * 1000 >= nNowTick){
-            if(auto nType = UIDFunc::GetUIDType(m_OffenderList[nIndex].UID); nType == UID_MON || nType == UID_PLY){
-                // record is valid
-                // record is not time-out
-                // record is monster or player
-                nIndex++;
-                continue;
-            }
+    for(auto p = m_OffenderList.begin(); p != m_OffenderList.end();){
+        if(g_MonoServer->GetTimeTick() >= p->ActiveTime + 2 * 60 * 3600){
+            p = m_OffenderList.erase(p);
+        }else{
+            p++;
         }
+    }
 
-        // remove it
-        // we shouldn't cout this record
-        m_OffenderList[nIndex] = m_OffenderList.back();
-        m_OffenderList.pop_back();
+    if(m_OffenderList.empty()){
+        return;
     }
 
     auto fnCalcExp = [this](int nDamage) -> int
@@ -765,14 +763,15 @@ bool CharObject::DispatchHitterExp()
         return nDamage * m_OffenderList.size();
     };
 
-    for(auto rstRecord: m_OffenderList){
-        AMExp stAME;
-        std::memset(&stAME, 0, sizeof(stAME));
-        stAME.Exp = fnCalcExp(rstRecord.Damage);
-        m_ActorPod->Forward(rstRecord.UID, {MPK_EXP, stAME});
-    }
+    for(const auto &rstOffender: m_OffenderList){
+        if(auto nType = UIDFunc::GetUIDType(rstOffender.UID); nType == UID_MON || nType == UID_PLY){
+            AMExp stAME;
+            std::memset(&stAME, 0, sizeof(stAME));
 
-    return true;
+            stAME.Exp = fnCalcExp(rstOffender.Damage);
+            m_ActorPod->Forward(rstOffender.UID, {MPK_EXP, stAME});
+        }
+    }
 }
 
 int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
