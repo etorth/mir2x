@@ -294,7 +294,7 @@ bool Monster::AttackUID(uint64_t nUID, int nDC)
         m_AttackLock = false;
 
         RemoveTarget(nUID);
-        m_LocationList.erase(nUID);
+        m_InViewCOList.erase(nUID);
     });
 }
 

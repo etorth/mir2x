@@ -123,7 +123,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     : ServerObject(nUID)
     , m_ServiceCore(pServiceCore)
     , m_Map(pServerMap)
-    , m_LocationList()
+    , m_InViewCOList()
     , m_X(nMapX)
     , m_Y(nMapY)
     , m_Direction(nDirection)
@@ -247,7 +247,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
             }
         default:
             {
-                for(auto pLoc = m_LocationList.begin(); pLoc != m_LocationList.end();){
+                for(auto pLoc = m_InViewCOList.begin(); pLoc != m_InViewCOList.end();){
                     auto pNext  = std::next(pLoc);
                     auto nX     = pLoc->second.X;
                     auto nY     = pLoc->second.Y;
@@ -271,7 +271,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
                         // since RetrieveLocation may remove current node
                         pLoc = pNext;
                     }else{
-                        pLoc = m_LocationList.erase(pLoc);
+                        pLoc = m_InViewCOList.erase(pLoc);
                     }
                 }
                 return;
@@ -662,7 +662,7 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
                         // it's possible that the co has switched map
 
                         if(m_Map->In(stAML.MapID, stAML.X, stAML.Y) && stAML.UID == nUID){
-                            m_LocationList[nUID] = COLocation
+                            m_InViewCOList[nUID] = COLocation
                             {
                                 stAML.UID,
                                 stAML.MapID,
@@ -672,17 +672,17 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
                                 stAML.Direction
                             };
                         }else{
-                            m_LocationList.erase(nUID);
+                            m_InViewCOList.erase(nUID);
                         }
 
                         if(fnOnLocationOK){
-                            fnOnLocationOK(m_LocationList[nUID]);
+                            fnOnLocationOK(m_InViewCOList[nUID]);
                         }
                         break;
                     }
                 default:
                     {
-                        m_LocationList.erase(nUID);
+                        m_InViewCOList.erase(nUID);
                         if(fnOnLocationError){
                             fnOnLocationError();
                         }
@@ -694,13 +694,13 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
 
     // no entry found
     // do query and invocation, delay fnOnLocationOK by one step
-    if(m_LocationList.find(nUID) == m_LocationList.end()){
+    if(m_InViewCOList.find(nUID) == m_InViewCOList.end()){
         return fnQueryLocation();
     }
 
     // we find an entry
     // valid the entry, could be expired
-    auto &rstRecord = m_LocationList[nUID];
+    auto &rstRecord = m_InViewCOList[nUID];
     if(m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)
             && g_MonoServer->GetTimeTick() <= rstRecord.RecordTime + 2 * 1000){
 
@@ -714,7 +714,7 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
     // if query failed means this UID doesn't exist
 
     if(!fnQueryLocation()){
-        m_LocationList.erase(nUID);
+        m_InViewCOList.erase(nUID);
         return false;
     }
     return true;
@@ -955,7 +955,7 @@ int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
         return PathFind::OCCUPIED;
     }
 
-    for(auto stLocation: m_LocationList){
+    for(auto stLocation: m_InViewCOList){
         if(nTimeOut){
             if(g_MonoServer->GetTimeTick() > stLocation.second.RecordTime + nTimeOut){
                 continue;
@@ -1117,4 +1117,22 @@ void CharObject::SetLastAction(int nAction)
 {
     m_LastAction = nAction;
     m_LastActionTime = g_MonoServer->GetTimeTick();
+}
+
+void CharObject::AddInViewCO(const COLocation &rstCOLocation)
+{
+    if(!InView(rstCOLocation.MapID, rstCOLocation.X, rstCOLocation.Y)){
+        return;
+    }
+    m_InViewCOList[rstCOLocation.UID] = rstCOLocation;
+}
+
+void CharObject::RemoveInViewCO(uint64_t nUID)
+{
+    m_InViewCOList.erase(nUID);
+}
+
+bool CharObject::InView(uint32_t nMapID, int nX, int nY) const
+{
+    return m_Map->In(nMapID, nX, nY) && MathFunc::LDistance2(X(), Y(), nX, nY) <= 10 * 10;
 }

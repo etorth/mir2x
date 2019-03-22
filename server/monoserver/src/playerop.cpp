@@ -105,7 +105,7 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
     }
 
     if(stAMA.MapID != MapID()){
-        m_LocationList.erase(stAMA.UID);
+        m_InViewCOList.erase(stAMA.UID);
         return;
     }
 
@@ -145,7 +145,7 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
     }
 
     extern MonoServer *g_MonoServer;
-    m_LocationList[stAMA.UID] = COLocation
+    m_InViewCOList[stAMA.UID] = COLocation
     {
         stAMA.UID,
         stAMA.MapID,
@@ -351,7 +351,7 @@ void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
     AMDeadFadeOut stAMDFO;
     std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
 
-    m_LocationList.erase(stAMDFO.UID);
+    m_InViewCOList.erase(stAMDFO.UID);
     if(stAMDFO.UID != UID()){
         SMDeadFadeOut stSMDFO;
         stSMDFO.UID   = stAMDFO.UID;

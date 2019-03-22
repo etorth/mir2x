@@ -202,7 +202,13 @@ class CharObject: public ServerObject
         }
 
     protected:
-        std::map<uint64_t, COLocation> m_LocationList;
+        // list of all COs *this* CO can see
+        // 1. used for path finding
+        // 2. directly report to these COs for action non-moving
+        // 3. need to report to map if moving
+        // 4. part of these COs are neighbors if close enough
+        // 5. don't remove COs in this list if expired, otherwise action in (2) may miss
+        std::map<uint64_t, COLocation> m_InViewCOList;
 
     protected:
         int m_X;
@@ -394,4 +400,10 @@ class CharObject: public ServerObject
     protected:
         int CheckPathGrid(int, int, uint32_t = 0) const;
         double OneStepCost(const CharObject::COPathFinder *, int, int, int, int, int) const;
+
+    protected:
+        void AddInViewCO(const COLocation &);
+        void RemoveInViewCO(uint64_t);
+        void ForeachInViewCO(std::function<void(const COLocation &)>);
+        bool InView(uint32_t, int, int) const;
 };
