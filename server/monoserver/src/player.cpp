@@ -454,7 +454,7 @@ void Player::CheckFriend(uint64_t nUID, const std::function<void(int)> &fnOnFrie
 {
     if(nUID){
         if(0){
-            if(fnOnFriend){ fnOnFriend(FRIENDTYPE_NONE); }
+            if(fnOnFriend){ fnOnFriend(FT_NONE); }
         }
     }
 }

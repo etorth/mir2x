@@ -1110,7 +1110,7 @@ bool Monster::GetProperTarget()
         CheckFriend(nUID, [&bFriend](int nFriendType)
         {
             switch(nFriendType){
-                case FRIENDTYPE_ENEMY:
+                case FT_ENEMY:
                     {
                         break;
                     }
@@ -1185,12 +1185,12 @@ void Monster::CheckFriend(uint64_t nCheckUID, const std::function<void(int)> &fn
                         case UIDFROM_PLAYER:
                         case UIDFROM_SUMMON:
                             {
-                                fnOnFriend(FRIENDTYPE_FRIEND);
+                                fnOnFriend(FT_FRIEND);
                                 return;
                             }
                         case UIDFROM_MONSTER:
                             {
-                                fnOnFriend(FRIENDTYPE_ENEMY);
+                                fnOnFriend(FT_ENEMY);
                                 return;
                             }
                         default:
@@ -1205,12 +1205,12 @@ void Monster::CheckFriend(uint64_t nCheckUID, const std::function<void(int)> &fn
                         case UIDFROM_PLAYER:
                         case UIDFROM_SUMMON:
                             {
-                                fnOnFriend(FRIENDTYPE_ENEMY);
+                                fnOnFriend(FT_ENEMY);
                                 return;
                             }
                         case UIDFROM_MONSTER:
                             {
-                                fnOnFriend(FRIENDTYPE_FRIEND);
+                                fnOnFriend(FT_FRIEND);
                                 return;
                             }
                         default:
@@ -1233,12 +1233,12 @@ void Monster::CheckFriend(uint64_t nCheckUID, const std::function<void(int)> &fn
             case UIDFROM_PLAYER:
             case UIDFROM_SUMMON:
                 {
-                    fnOnFriend(FRIENDTYPE_ENEMY);
+                    fnOnFriend(FT_ENEMY);
                     return;
                 }
             case UIDFROM_MONSTER:
                 {
-                    fnOnFriend(FRIENDTYPE_FRIEND);
+                    fnOnFriend(FT_FRIEND);
                     return;
                 }
             default:
