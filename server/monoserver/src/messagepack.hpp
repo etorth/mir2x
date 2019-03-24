@@ -256,6 +256,7 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
                 case MPK_CORECORD            : return "MPK_CORECORD";
                 case MPK_NOTIFYNEWCO         : return "MPK_NOTIFYNEWCO";
                 case MPK_CHECKMASTER         : return "MPK_CHECKMASTER";
+                case MPK_QUERYMASTER         : return "MPK_QUERYMASTER";
                 case MPK_QUERYFINALMASTER    : return "MPK_QUERYFINALMASTER";
                 default                      : return "MPK_UNKNOWN";
             }

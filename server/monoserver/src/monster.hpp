@@ -136,6 +136,7 @@ class Monster final: public CharObject
         void On_MPK_NOTIFYDEAD      (const MessagePack &);
         void On_MPK_BADACTORPOD     (const MessagePack &);
         void On_MPK_CHECKMASTER     (const MessagePack &);
+        void On_MPK_QUERYMASTER     (const MessagePack &);
         void On_MPK_DEADFADEOUT     (const MessagePack &);
         void On_MPK_NOTIFYNEWCO     (const MessagePack &);
         void On_MPK_QUERYCORECORD   (const MessagePack &);
@@ -162,6 +163,7 @@ class Monster final: public CharObject
 
     protected:
         void CheckFriend(uint64_t, const std::function<void(int)> &);
+        void QueryMaster(uint64_t, std::function<void(uint64_t)>);
         void QueryFinalMaster(uint64_t, std::function<void(uint64_t)>);
 
     protected:

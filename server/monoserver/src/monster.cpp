@@ -1262,18 +1262,17 @@ void Monster::CreateBvTree()
     m_BvTree->reset();
 }
 
-void Monster::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
+void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
 {
     if(!nUID){
         throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
     }
 
-    if((nUID == UID()) && MasterUID() == 0){
-        fnOp(nUID);
-        return;
+    if(nUID == UID()){
+        throw std::invalid_argument(str_fflprintf(": Query self for MasterUID()"));
     }
 
-    m_ActorPod->Forward(MasterUID(), MPK_QUERYFINALMASTER, [this, fnOp](const MessagePack &rstRMPK)
+    m_ActorPod->Forward(nUID, MPK_QUERYMASTER, [this, nUID, fnOp](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_UID:
@@ -1286,9 +1285,56 @@ void Monster::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp
                 }
             default:
                 {
-                    GoDie();
+                    fnOp(0);
+                    if(nUID == MasterUID()){
+                        GoDie();
+                    }
                     return;
                 }
         }
     });
+}
+
+void Monster::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
+{
+    if(!nUID){
+        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
+    }
+
+    auto fnQuery = [this, fnOp](uint64_t nQueryUID)
+    {
+        m_ActorPod->Forward(nQueryUID, MPK_QUERYFINALMASTER, [this, nQueryUID, fnOp](const MessagePack &rstRMPK)
+        {
+            switch(rstRMPK.Type()){
+                case MPK_UID:
+                    {
+                        AMUID stAMUID;
+                        std::memcpy(&stAMUID, rstRMPK.Data(), sizeof(stAMUID));
+
+                        fnOp(stAMUID.UID);
+                        return;
+                    }
+                default:
+                    {
+                        fnOp(0);
+                        if(nQueryUID == MasterUID()){
+                            GoDie();
+                        }
+                        return;
+                    }
+            }
+        });
+    };
+
+    if(nUID != UID()){
+        fnQuery(nUID);
+        return;
+    }
+
+    if(MasterUID()){
+        fnQuery(MasterUID());
+        return;
+    }
+
+    fnOp(UID());
 }
