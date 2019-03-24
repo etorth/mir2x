@@ -72,6 +72,7 @@ enum MessagePackType: int
     MPK_CORECORD,
     MPK_NOTIFYNEWCO,
     MPK_CHECKMASTER,
+    MPK_QUERYFINALMASTER,
     MPK_MAX,
 };
 

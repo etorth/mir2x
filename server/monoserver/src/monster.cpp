@@ -505,6 +505,11 @@ void Monster::OperateAM(const MessagePack &rstMPK)
                 On_MPK_CHECKMASTER(rstMPK);
                 break;
             }
+        case MPK_QUERYFINALMASTER:
+            {
+                On_MPK_QUERYFINALMASTER(rstMPK);
+                break;
+            }
         case MPK_NOTIFYNEWCO:
             {
                 On_MPK_NOTIFYNEWCO(rstMPK);
@@ -1255,4 +1260,35 @@ void Monster::CreateBvTree()
         BvNode_RandomMove()
     );
     m_BvTree->reset();
+}
+
+void Monster::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
+{
+    if(!nUID){
+        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
+    }
+
+    if((nUID == UID()) && MasterUID() == 0){
+        fnOp(nUID);
+        return;
+    }
+
+    m_ActorPod->Forward(MasterUID(), MPK_QUERYFINALMASTER, [this, fnOp](const MessagePack &rstRMPK)
+    {
+        switch(rstRMPK.Type()){
+            case MPK_UID:
+                {
+                    AMUID stAMUID;
+                    std::memcpy(&stAMUID, rstRMPK.Data(), sizeof(stAMUID));
+
+                    fnOp(stAMUID.UID);
+                    return;
+                }
+            default:
+                {
+                    GoDie();
+                    return;
+                }
+        }
+    });
 }

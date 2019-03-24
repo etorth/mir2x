@@ -126,20 +126,21 @@ class Monster final: public CharObject
         DamageNode GetAttackDamage(int);
 
     private:
-        void On_MPK_EXP           (const MessagePack &);
-        void On_MPK_ATTACK        (const MessagePack &);
-        void On_MPK_ACTION        (const MessagePack &);
-        void On_MPK_OFFLINE       (const MessagePack &);
-        void On_MPK_UPDATEHP      (const MessagePack &);
-        void On_MPK_METRONOME     (const MessagePack &);
-        void On_MPK_MAPSWITCH     (const MessagePack &);
-        void On_MPK_NOTIFYDEAD    (const MessagePack &);
-        void On_MPK_BADACTORPOD   (const MessagePack &);
-        void On_MPK_CHECKMASTER   (const MessagePack &);
-        void On_MPK_DEADFADEOUT   (const MessagePack &);
-        void On_MPK_NOTIFYNEWCO   (const MessagePack &);
-        void On_MPK_QUERYCORECORD (const MessagePack &);
-        void On_MPK_QUERYLOCATION (const MessagePack &);
+        void On_MPK_EXP             (const MessagePack &);
+        void On_MPK_ATTACK          (const MessagePack &);
+        void On_MPK_ACTION          (const MessagePack &);
+        void On_MPK_OFFLINE         (const MessagePack &);
+        void On_MPK_UPDATEHP        (const MessagePack &);
+        void On_MPK_METRONOME       (const MessagePack &);
+        void On_MPK_MAPSWITCH       (const MessagePack &);
+        void On_MPK_NOTIFYDEAD      (const MessagePack &);
+        void On_MPK_BADACTORPOD     (const MessagePack &);
+        void On_MPK_CHECKMASTER     (const MessagePack &);
+        void On_MPK_DEADFADEOUT     (const MessagePack &);
+        void On_MPK_NOTIFYNEWCO     (const MessagePack &);
+        void On_MPK_QUERYCORECORD   (const MessagePack &);
+        void On_MPK_QUERYLOCATION   (const MessagePack &);
+        void On_MPK_QUERYFINALMASTER(const MessagePack &);
 
     protected:
         void OperateAM(const MessagePack &);
@@ -161,6 +162,7 @@ class Monster final: public CharObject
 
     protected:
         void CheckFriend(uint64_t, const std::function<void(int)> &);
+        void QueryFinalMaster(uint64_t, std::function<void(uint64_t)>);
 
     protected:
         bool MoveOneStepAStar   (int, int, std::function<void()>, std::function<void()>);
