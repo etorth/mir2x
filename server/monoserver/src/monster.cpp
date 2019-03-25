@@ -1261,8 +1261,6 @@ void Monster::CheckFriend(uint64_t nCheckUID, const std::function<void(int)> &fn
 
 void Monster::CreateBvTree()
 {
-    bvarg_ref nMasterUID;
-
     m_BvTree = bvtree::if_branch
     (
         BvNode_HasMaster(),
