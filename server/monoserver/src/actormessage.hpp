@@ -74,6 +74,10 @@ enum MessagePackType: int
     MPK_CHECKMASTER,
     MPK_QUERYMASTER,
     MPK_QUERYFINALMASTER,
+    MPK_QUERYFRIENDTYPE,
+    MPK_FRIENDTYPE,
+    MPK_QUERYNAMECOLOR,
+    MPK_NAMECOLOR,
     MPK_MAX,
 };
 
@@ -541,4 +545,19 @@ struct AMCORecord
 struct AMNotifyNewCO
 {
     uint64_t UID;
+};
+
+struct AMQueryFriendType
+{
+    uint64_t UID;
+};
+
+struct AMFriendType
+{
+    int Type;
+};
+
+struct AMNameColor
+{
+    int Color;
 };

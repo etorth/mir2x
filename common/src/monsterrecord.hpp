@@ -28,7 +28,7 @@ class MonsterRecord
 
         int Level;
         int Undead;
-        int Tameable;
+        int Tamable;
         int CoolEye;
 
         int LookID;
@@ -77,7 +77,7 @@ class MonsterRecord
 
                 int nLevel,
                 int nUndead,
-                int nTameable,
+                int nTamable,
                 int nCoolEye,
 
                 int nLookID,
@@ -122,7 +122,7 @@ class MonsterRecord
             : Name(szName ? szName : "")
             , Level(nLevel)
             , Undead(nUndead)
-            , Tameable(nTameable)
+            , Tamable(nTamable)
             , CoolEye(nCoolEye)
 
             , LookID(nLookID)

@@ -141,6 +141,8 @@ class Monster final: public CharObject
         void On_MPK_NOTIFYNEWCO     (const MessagePack &);
         void On_MPK_QUERYCORECORD   (const MessagePack &);
         void On_MPK_QUERYLOCATION   (const MessagePack &);
+        void On_MPK_QUERYNAMECOLOR  (const MessagePack &);
+        void On_MPK_QUERYFRIENDTYPE (const MessagePack &);
         void On_MPK_QUERYFINALMASTER(const MessagePack &);
 
     protected:
@@ -160,6 +162,15 @@ class Monster final: public CharObject
 
     protected:
         void RandomDrop();
+
+    protected:
+        void CheckFriendType(uint64_t, std::function<void(int)>);
+        void QueryFriendType(uint64_t, uint64_t, std::function<void(int)>);
+
+    private:
+        void CheckFriendType_AsGuard      (uint64_t, std::function<void(int)>);
+        void CheckFriendType_CtrlByPlayer (uint64_t, std::function<void(int)>);
+        void CheckFriendType_CtrlByMonster(uint64_t, std::function<void(int)>);
 
     protected:
         void CheckFriend(uint64_t, const std::function<void(int)> &);
@@ -195,4 +206,7 @@ class Monster final: public CharObject
         virtual bvnode_ptr BvNode_RandomTurn();
         virtual bvnode_ptr BvNode_MoveForwardOneStep();
         virtual bvnode_ptr BvNode_MoveOneStep(bvarg_ref);
+
+    public:
+        static bool IsGuard(uint64_t);
 };

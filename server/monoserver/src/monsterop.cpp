@@ -282,3 +282,27 @@ void Monster::On_MPK_QUERYFINALMASTER(const MessagePack &rstMPK)
         m_ActorPod->Forward(rstMPK.From(), {MPK_UID, stAMUID}, rstMPK.ID());
     });
 }
+
+void Monster::On_MPK_QUERYFRIENDTYPE(const MessagePack &rstMPK)
+{
+    AMQueryFriendType stAMQFT;
+    std::memcpy(&stAMQFT, rstMPK.Data(), sizeof(stAMQFT));
+
+    CheckFriendType(stAMQFT.UID, [this, rstMPK](int nFriendType)
+    {
+        AMFriendType stAMFT;
+        std::memset(&stAMFT, 0, sizeof(stAMFT));
+
+        stAMFT.Type = nFriendType;
+        m_ActorPod->Forward(rstMPK.From(), {MPK_FRIENDTYPE, stAMFT}, rstMPK.ID());
+    });
+}
+
+void Monster::On_MPK_QUERYNAMECOLOR(const MessagePack &rstMPK)
+{
+    AMNameColor stAMNC;
+    std::memset(&stAMNC, 0, sizeof(stAMNC));
+
+    stAMNC.Color = 'W';
+    m_ActorPod->Forward(rstMPK.From(), {MPK_NAMECOLOR, stAMNC}, rstMPK.ID());
+}

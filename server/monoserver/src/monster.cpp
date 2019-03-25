@@ -510,6 +510,16 @@ void Monster::OperateAM(const MessagePack &rstMPK)
                 On_MPK_QUERYFINALMASTER(rstMPK);
                 break;
             }
+        case MPK_QUERYFRIENDTYPE:
+            {
+                On_MPK_QUERYFRIENDTYPE(rstMPK);
+                break;
+            }
+        case MPK_QUERYNAMECOLOR:
+            {
+                On_MPK_QUERYNAMECOLOR(rstMPK);
+                break;
+            }
         case MPK_NOTIFYNEWCO:
             {
                 On_MPK_NOTIFYNEWCO(rstMPK);
@@ -1337,4 +1347,266 @@ void Monster::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp
     }
 
     fnOp(UID());
+}
+
+void Monster::CheckFriendType_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
+{
+    if(!IsGuard(UID())){
+        throw std::runtime_error(str_fflprintf(": Invalid call to CheckFriendType_AsGuard"));
+    }
+
+    switch(UIDFunc::GetUIDType(nUID)){
+        case UID_MON:
+            {
+                fnOp(IsGuard(nUID) ? FT_NEUTRAL : FT_ENEMY);
+                return;
+            }
+        case UID_PLY:
+            {
+                m_ActorPod->Forward(nUID, MPK_QUERYNAMECOLOR, [fnOp](const MessagePack &rstMPK)
+                {
+                    switch(rstMPK.Type()){
+                        case MPK_NAMECOLOR:
+                            {
+                                AMNameColor stAMNC;
+                                std::memcpy(&stAMNC, rstMPK.Data(), sizeof(stAMNC));
+
+                                switch(stAMNC.Color){
+                                    case 'R':
+                                        {
+                                            fnOp(FT_ENEMY);
+                                            return;
+                                        }
+                                    default:
+                                        {
+                                            fnOp(FT_NEUTRAL);
+                                            return;
+                                        }
+                                }
+                            }
+                        default:
+                            {
+                                fnOp(FT_ERROR);
+                                return;
+                            }
+                    }
+                });
+                return;
+            }
+        default:
+            {
+                throw std::invalid_argument(str_fflprintf(": Invalid UID type: %s", UIDFunc::GetUIDTypeString(nUID)));
+            }
+    }
+}
+
+void Monster::CheckFriendType_CtrlByMonster(uint64_t nUID, std::function<void(int)> fnOp)
+{
+    if(MasterUID() && UIDFunc::GetUIDType(MasterUID()) != UID_MON){
+        throw std::runtime_error(str_fflprintf(": Invalid call to CheckFriendType_CtrlByMonster"));
+    }
+
+    switch(UIDFunc::GetUIDType(nUID)){
+        case UID_PLY:
+            {
+                fnOp(FT_ENEMY);
+                return;
+            }
+        case UID_MON:
+            {
+                if(!DBCOM_MONSTERRECORD(UIDFunc::GetMonsterID(nUID)).Tamable){
+                    fnOp(FT_NEUTRAL);
+                    return;
+                }
+
+                QueryFinalMaster(nUID, [fnOp](const MessagePack &rstRMPK)
+                {
+                    switch(rstRMPK.Type()){
+                        case MPK_UID:
+                            {
+                                AMUID stAMUID;
+                                std::memcpy(&stAMUID, rstRMPK.Data(), sizeof(stAMUID));
+
+                                switch(UIDFunc::GetUIDType(stAMUID.UID)){
+                                    case UID_MON:
+                                        {
+                                            fnOp(FT_NEUTRAL);
+                                            return;
+                                        }
+                                    case UID_PLY:
+                                        {
+                                            fnOp(FT_ENEMY);
+                                            return;
+                                        }
+                                    default:
+                                        {
+                                            throw std::runtime_error(str_fflprintf(": Invalid final master UID type: %s", UIDFunc::GetUIDTypeString(stAMUID.UID)));
+                                        }
+                                }
+                            }
+                        default:
+                            {
+                                fnOp(FT_ERROR);
+                                return;
+                            }
+                    }
+                });
+                return;
+            }
+        default:
+            {
+                throw std::invalid_argument(str_fflprintf(": Invalid UID type: %s", UIDFunc::GetUIDTypeString(nUID)));
+            }
+    }
+}
+
+void Monster::CheckFriendType_CtrlByPlayer(uint64_t nUID, std::function<void(int)> fnOp)
+{
+    if(UIDFunc::GetUIDType(MasterUID()) != UID_PLY){
+        throw std::runtime_error(str_fflprintf(": Invalid call to CheckFriendType_CtrlByPlayer"));
+    }
+
+    switch(UIDFunc::GetUIDType(nUID)){
+        case UID_MON:
+            {
+                if(!DBCOM_MONSTERRECORD(UIDFunc::GetMonsterID(nUID)).Tamable){
+                    fnOp(FT_ENEMY);
+                    return;
+                }
+
+                QueryFinalMaster(nUID, [this, nUID, fnOp](const MessagePack &rstMPK)
+                {
+                    switch(rstMPK.Type()){
+                        case MPK_UID:
+                            {
+                                AMUID stAMUID;
+                                std::memcpy(&stAMUID, rstMPK.Data(), sizeof(stAMUID));
+
+                                switch(UIDFunc::GetUIDType(stAMUID.UID)){
+                                    case UID_MON:
+                                        {
+                                            fnOp(FT_ENEMY);
+                                            return;
+                                        }
+                                    case UID_PLY:
+                                        {
+                                            QueryFriendType(MasterUID(), nUID, [fnOp](int nFriendType)
+                                            {
+                                                fnOp(nFriendType);
+                                            });
+                                            return;
+                                        }
+                                    default:
+                                        {
+                                            throw std::runtime_error(str_fflprintf(": Invalid final master UID type: %s", UIDFunc::GetUIDTypeString(stAMUID.UID)));
+                                        }
+                                }
+                            }
+                        default:
+                            {
+                                fnOp(FT_ERROR);
+                                return;
+                            }
+                    }
+                });
+                return;
+            }
+        case UID_PLY:
+            {
+                QueryFriendType(MasterUID(), nUID, [fnOp](int nFriendType)
+                {
+                    fnOp(nFriendType);
+                });
+                return;
+            }
+        default:
+            {
+                throw std::runtime_error(str_fflprintf(": Invalid call to CheckFriendType_CtrlByPlayer"));
+            }
+    }
+}
+
+void Monster::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
+{
+    if(!nUID){
+        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
+    }
+
+    // 1. 大刀卫士 or 弓箭卫士
+    // 2. no master or master is still monster
+    // 3. as pet, master is UID_PLY
+
+    if(IsGuard(UID())){
+        CheckFriendType_AsGuard(nUID, fnOp);
+        return;
+    }
+
+    if(MasterUID() && UIDFunc::GetUIDType(MasterUID()) == UID_PLY){
+        CheckFriendType_CtrlByPlayer(nUID, fnOp);
+        return;
+    }
+
+    CheckFriendType_CtrlByMonster(nUID, fnOp);
+}
+
+void Monster::QueryFriendType(uint64_t nUID, uint64_t nTargetUID, std::function<void(int)> fnOp)
+{
+    if(!(nUID && nTargetUID)){
+        throw std::invalid_argument(str_fflprintf(": Invalid UID: %" PRIu64 ", %" PRIu64, nUID, nTargetUID));
+    }
+
+    AMQueryFriendType stAMQFT;
+    std::memset(&stAMQFT, 0, sizeof(stAMQFT));
+
+    stAMQFT.UID = nTargetUID;
+
+    m_ActorPod->Forward(nUID, {MPK_QUERYFRIENDTYPE, stAMQFT}, [fnOp](const MessagePack &rstMPK)
+    {
+        switch(rstMPK.Type()){
+            case MPK_FRIENDTYPE:
+                {
+                    AMFriendType stAMFT;
+                    std::memcpy(&stAMFT, rstMPK.Data(), sizeof(stAMFT));
+
+                    switch(stAMFT.Type){
+                        case FT_ERROR:
+                        case FT_ENEMY:
+                        case FT_FRIEND:
+                        case FT_NEUTRAL:
+                            {
+                                fnOp(stAMFT.Type);
+                                return;
+                            }
+                        default:
+                            {
+                                throw std::runtime_error(str_fflprintf(": Invalid friend type: %d", stAMFT.Type));
+                            }
+                    }
+                }
+            default:
+                {
+                    fnOp(FT_NEUTRAL);
+                    return;
+                }
+        }
+    });
+}
+
+bool Monster::IsGuard(uint64_t nUID)
+{
+    if(UIDFunc::GetUIDType(nUID) != UID_MON){
+        return false;
+    }
+
+    switch(UIDFunc::GetMonsterID(nUID)){
+        case DBCOM_MONSTERID(u8"大刀卫士"):
+        case DBCOM_MONSTERID(u8"弓箭卫士"):
+            {
+                return true;
+            }
+        default:
+            {
+                return false;
+            }
+    }
 }
