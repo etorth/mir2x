@@ -208,7 +208,7 @@ class CharObject: public ServerObject
         // 3. need to report to map if moving
         // 4. part of these COs are neighbors if close enough
         // 5. don't remove COs in this list if expired, otherwise action in (2) may miss
-        std::map<uint64_t, COLocation> m_InViewCOList;
+        std::vector<COLocation> m_InViewCOList;
 
     protected:
         int m_X;
@@ -402,8 +402,14 @@ class CharObject: public ServerObject
         double OneStepCost(const CharObject::COPathFinder *, int, int, int, int, int) const;
 
     protected:
-        void AddInViewCO(const COLocation &);
-        void RemoveInViewCO(uint64_t);
-        void ForeachInViewCO(std::function<void(const COLocation &)>);
         bool InView(uint32_t, int, int) const;
+
+    protected:
+        void SortInViewCO();
+        void RemoveInViewCO(uint64_t);
+        void AddInViewCO(const COLocation &);
+
+    protected:
+        COLocation &GetInViewCORef(uint64_t);
+        COLocation *GetInViewCOPtr(uint64_t);
 };

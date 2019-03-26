@@ -24,6 +24,7 @@
 #include "mathfunc.hpp"
 #include "monoserver.hpp"
 
+extern MonoServer *g_MonoServer;
 void Monster::On_MPK_METRONOME(const MessagePack &)
 {
     Update();
@@ -54,7 +55,7 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK)
     }
 
     if(stAMA.MapID != MapID()){
-        m_InViewCOList.erase(stAMA.UID);
+        RemoveInViewCO(stAMA.UID);
         return;
     }
 
@@ -108,8 +109,7 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    extern MonoServer *g_MonoServer;
-    m_InViewCOList[stAMA.UID] = COLocation
+    AddInViewCO(COLocation
     {
         stAMA.UID,
         stAMA.MapID,
@@ -117,7 +117,7 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK)
         nX,
         nY,
         nDir,
-    };
+    });
 
     switch(GetState(STATE_ATTACKMODE)){
         case STATE_ATTACKMODE_NORMAL:
@@ -233,7 +233,7 @@ void Monster::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
     std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
 
     RemoveTarget(stAMDFO.UID);
-    m_InViewCOList.erase(stAMDFO.UID);
+    RemoveInViewCO(stAMDFO.UID);
 }
 
 void Monster::On_MPK_NOTIFYDEAD(const MessagePack &rstMPK)
@@ -242,7 +242,7 @@ void Monster::On_MPK_NOTIFYDEAD(const MessagePack &rstMPK)
     std::memcpy(&stAMND, rstMPK.Data(), sizeof(stAMND));
 
     RemoveTarget(stAMND.UID);
-    m_InViewCOList.erase(stAMND.UID);
+    RemoveInViewCO(stAMND.UID);
 }
 
 void Monster::On_MPK_OFFLINE(const MessagePack &rstMPK)

@@ -24,6 +24,8 @@
 #include "netdriver.hpp"
 #include "monoserver.hpp"
 
+extern MonoServer *g_MonoServer;
+
 void Player::On_MPK_METRONOME(const MessagePack &)
 {
     extern NetDriver *g_NetDriver;
@@ -105,7 +107,7 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
     }
 
     if(stAMA.MapID != MapID()){
-        m_InViewCOList.erase(stAMA.UID);
+        RemoveInViewCO(stAMA.UID);
         return;
     }
 
@@ -144,8 +146,7 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    extern MonoServer *g_MonoServer;
-    m_InViewCOList[stAMA.UID] = COLocation
+    AddInViewCO(COLocation
     {
         stAMA.UID,
         stAMA.MapID,
@@ -153,7 +154,7 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
         stAMA.X,
         stAMA.Y,
         nDirection
-    };
+    });
 
     ReportAction(stAMA.UID, ActionNode
     {
@@ -351,7 +352,7 @@ void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
     AMDeadFadeOut stAMDFO;
     std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
 
-    m_InViewCOList.erase(stAMDFO.UID);
+    RemoveInViewCO(stAMDFO.UID);
     if(stAMDFO.UID != UID()){
         SMDeadFadeOut stSMDFO;
         stSMDFO.UID   = stAMDFO.UID;

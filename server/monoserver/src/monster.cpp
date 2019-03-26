@@ -1269,13 +1269,13 @@ void Monster::CreateBvTree()
 
     m_BvTree = bvtree::if_branch
     (
-        BvNode_HasMaster(),
-        BvNode_FollowMaster(),
+        BvNode_GetProperTarget(nTargetUID),
+        BvNode_TrackAttackUID(nTargetUID),
 
         bvtree::if_branch
         (
-            BvNode_GetProperTarget(nTargetUID),
-            BvNode_TrackAttackUID(nTargetUID),
+            BvNode_HasMaster(),
+            BvNode_FollowMaster(),
             BvNode_RandomMove()
         )
     );
