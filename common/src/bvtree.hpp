@@ -459,6 +459,8 @@ namespace bvtree
     bvnode_ptr lambda_bool(std::function<bool()>);
     bvnode_ptr lambda_bool(std::function<void()>, std::function<bool()>);
 
+    bvnode_ptr lambda_stage(std::function<void(bvarg_ref)>);
+
     bvnode_ptr if_check (bvnode_ptr, bvnode_ptr);
     bvnode_ptr if_branch(bvnode_ptr, bvnode_ptr, bvnode_ptr);
 

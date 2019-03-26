@@ -26,7 +26,7 @@ bvnode_ptr Monster::BvNode_GetMasterUID(bvarg_ref nMasterUID)
     });
 }
 
-bvnode_ptr Monster::BvNode_FollowMasterOneStep()
+bvnode_ptr Monster::BvNode_FollowMaster()
 {
     bvarg_ref nStage;
     return bvtree::lambda([nStage]() mutable
@@ -38,7 +38,7 @@ bvnode_ptr Monster::BvNode_FollowMasterOneStep()
     {
         if(!nStage.has_value()){
             nStage.assign<bvres_t>(BV_PENDING);
-            FollowMasterOneStep([nStage]() mutable
+            FollowMaster([nStage]() mutable
             {
                 nStage.assign<bvres_t>(BV_SUCCESS);
             },
@@ -231,5 +231,55 @@ bvnode_ptr Monster::BvNode_HasMaster()
     return bvtree::lambda_bool([this]() -> bool
     {
         return MasterUID();
+    });
+}
+
+bvnode_ptr Monster::BvNode_GetProperTarget(bvarg_ref nTargetUID)
+{
+    return bvtree::lambda_stage([this, nTargetUID](bvarg_ref nStage) mutable
+    {
+        GetProperTarget([nTargetUID, nStage](uint64_t nUID) mutable
+        {
+            if(!nUID){
+                nTargetUID.assign<uint64_t>(0);
+                nStage.assign<bvres_t>(BV_FAILURE);
+                return;
+            }
+
+            nTargetUID.assign<uint64_t>(nUID);
+            nStage.assign<bvres_t>(BV_SUCCESS);
+        });
+    });
+}
+
+bvnode_ptr Monster::BvNode_AttackUID(bvarg_ref nTargetUID, bvarg_ref nDCType)
+{
+    return bvtree::lambda_stage([this, nTargetUID, nDCType](bvarg_ref nStage)
+    {
+        AttackUID(nTargetUID.as<uint64_t>(), nDCType.as<int>(), [nStage]() mutable
+        {
+            nStage.assign<bvres_t>(BV_SUCCESS);
+        },
+
+        [nStage]() mutable
+        {
+            nStage.assign<bvres_t>(BV_FAILURE);
+        });
+    });
+}
+
+bvnode_ptr Monster::BvNode_TrackAttackUID(bvarg_ref nTargetUID)
+{
+    return bvtree::lambda_stage([this, nTargetUID](bvarg_ref nStage) mutable
+    {
+        TrackAttackUID(nTargetUID.as<uint64_t>(), [nStage]() mutable
+        {
+            nStage.assign<bvres_t>(BV_SUCCESS);
+        },
+
+        [nStage]() mutable
+        {
+            nStage.assign<bvres_t>(BV_FAILURE);
+        });
     });
 }

@@ -82,6 +82,24 @@ bvnode_ptr bvtree::lambda_bool(std::function<bool()> f)
     return bvtree::lambda_bool([](){}, f);
 }
 
+bvnode_ptr bvtree::lambda_stage(std::function<void(bvarg_ref)> f)
+{
+    bvarg_ref nStage;
+    return bvtree::lambda([nStage]() mutable
+    {
+        nStage.assign_void();
+    },
+
+    [nStage, f]() mutable -> bvres_t
+    {
+        if(!nStage.has_value()){
+            nStage.assign<bvres_t>(BV_PENDING);
+            f(nStage);
+        }
+        return nStage.as<bvres_t>();
+    });
+}
+
 bvnode_ptr bvtree::if_check(bvnode_ptr check, bvnode_ptr operation)
 {
     class node_if_check: public bvtree::node

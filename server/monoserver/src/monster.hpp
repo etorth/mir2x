@@ -104,12 +104,16 @@ class Monster final: public CharObject
 
     protected:
         bool RandomMove();
-        bool TrackAttack();
-        bool FollowMasterOneStep(std::function<void()>, std::function<void()>);
+        bool FollowMaster(std::function<void()>, std::function<void()>);
 
     protected:
-        bool TrackUID(uint64_t);
-        bool AttackUID(uint64_t, int);
+        void RecursiveCheckInViewTarget(size_t, std::function<void(uint64_t)>);
+        void SearchNearestTarget(std::function<void(uint64_t)>);
+
+    protected:
+        void TrackUID      (uint64_t, int, std::function<void()>, std::function<void()>);
+        void AttackUID     (uint64_t, int, std::function<void()>, std::function<void()>);
+        void TrackAttackUID(uint64_t,      std::function<void()>, std::function<void()>);
 
     protected:
         bool DCValid(int, bool);
@@ -155,7 +159,7 @@ class Monster final: public CharObject
         bool MoveOneStep(int, int, std::function<void()>, std::function<void()>);
 
     protected:
-        bool GetProperTarget();
+        void GetProperTarget(std::function<void(uint64_t)>);
 
     protected:
         int FindPathMethod();
@@ -200,12 +204,15 @@ class Monster final: public CharObject
     protected:
         virtual bvnode_ptr BvNode_HasMaster();
         virtual bvnode_ptr BvNode_GetMasterUID(bvarg_ref);
-        virtual bvnode_ptr BvNode_FollowMasterOneStep();
+        virtual bvnode_ptr BvNode_FollowMaster();
         virtual bvnode_ptr BvNode_LocateUID(bvarg_ref, bvarg_ref);
         virtual bvnode_ptr BvNode_RandomMove();
         virtual bvnode_ptr BvNode_RandomTurn();
+        virtual bvnode_ptr BvNode_AttackUID(bvarg_ref, bvarg_ref);
         virtual bvnode_ptr BvNode_MoveForwardOneStep();
         virtual bvnode_ptr BvNode_MoveOneStep(bvarg_ref);
+        virtual bvnode_ptr BvNode_GetProperTarget(bvarg_ref);
+        virtual bvnode_ptr BvNode_TrackAttackUID(bvarg_ref);
 
     public:
         static bool IsGuard(uint64_t);

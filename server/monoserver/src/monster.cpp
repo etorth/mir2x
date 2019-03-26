@@ -203,28 +203,27 @@ bool Monster::RandomMove()
     return false;
 }
 
-bool Monster::AttackUID(uint64_t nUID, int nDC)
+void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!CanAttack()){
-        return false;
+        fnOnError();
+        return;
     }
 
     if(!DCValid(nDC, true)){
-        return false;
+        fnOnError();
+        return;
     }
 
     // retrieving could schedule location query
     // before response received we can't allow any attack request
 
     m_AttackLock = true;
-    return RetrieveLocation(nUID, [this, nDC, nUID](const COLocation &stCOLocation) -> bool
+    RetrieveLocation(nUID, [this, nDC, nUID, fnOnOK, fnOnError](const COLocation &stCOLocation)
     {
         if(!m_AttackLock){
             throw std::runtime_error(str_ffl() + "AttackLock released before location query done");
         }
-
-        // if we get inside current block, we should release the attack lock
-        // it can be released immediately if location retrieve succeeds without querying
         m_AttackLock = false;
 
         auto nX = stCOLocation.X;
@@ -238,98 +237,94 @@ bool Monster::AttackUID(uint64_t nUID, int nDC)
                         case 2:
                             {
                                 m_Direction = PathFind::GetDirection(X(), Y(), nX, nY);
-                                if(CanAttack()){
-                                    // 1. dispatch action to all
-                                    DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), nUID));
-                                    m_LastAttackTime = g_MonoServer->GetTimeTick();
-
-                                    // 2. send attack message to target
-                                    //    target can ignore this message directly
-                                    //
-                                    //    For mir2 code, at the time when monster attacks
-                                    //    1. immediately change target CO's HP and MP, but don't report
-                                    //    2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
-                                    //    3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
-                                    Delay(550, [this, nUID]()
-                                    {
-                                        // monster may go dead after this delay
-                                        // but don't check CanAttack() since that's for attack lock
-                                        if(true){
-                                            DispatchAttack(nUID, DC_PHY_PLAIN);
-                                        }
-                                    });
+                                if(!CanAttack()){
+                                    fnOnError();
+                                    return;
                                 }
-                                return true;
+
+                                AddTarget(nUID);
+                                m_LastAttackTime = g_MonoServer->GetTimeTick();
+                                DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), nUID));
+
+                                // 2. send attack message to target
+                                //    target can ignore this message directly
+                                //
+                                //    For mir2 code, at the time when monster attacks
+                                //    1. immediately change target CO's HP and MP, but don't report
+                                //    2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
+                                //    3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
+                                Delay(550, [this, nUID]()
+                                {
+                                    // monster may go dead after this delay
+                                    // but don't check CanAttack() since that's for attack lock
+                                    if(true){
+                                        DispatchAttack(nUID, DC_PHY_PLAIN);
+                                    }
+                                });
+
+                                fnOnOK();
+                                return;
                             }
                         case 0:
+                            {
+                                // TODO this can happen
+                                // should I schedule an random move?
+                                fnOnError();
+                                return;
+                            }
                         default:
                             {
-                                // if distance is zero
-                                // means the location cache is out of time
-
-                                // TODO
-                                // one issue is evertime we do AttackUID() || TrackUID()
-                                // then could be a case everytime we schedule an attack operation
-                                // but actually this attack can't be done successfully
-                                // then we don't do AttackUID() nor TrackUID()
-                                TrackUID(nUID);
-                                return false;
+                                fnOnError();
+                                return;
                             }
                     }
                 }
             case DC_MAG_FIRE:
-                {
-                    return false;
-                }
             default:
                 {
-                    break;
+                    fnOnError();
+                    return;
                 }
         }
-        return false;
     },
 
-    [this, nUID]() -> void
+    [this, nUID]()
     {
         m_AttackLock = false;
 
         RemoveTarget(nUID);
-        m_InViewCOList.erase(nUID);
+        RemoveInViewCO(nUID);
     });
 }
 
-bool Monster::TrackUID(uint64_t nUID)
+void Monster::TrackUID(uint64_t nUID, int nMinCDistance, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    if(!CanMove()){
-        return false;
+    if(nMinCDistance < 1){
+        throw std::invalid_argument(str_fflprintf(": Invalid distance: %d", nMinCDistance));
     }
 
-    return RetrieveLocation(nUID, [this](const COLocation &rstCOLocation) -> bool
+    RetrieveLocation(nUID, [this, nMinCDistance, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
     {
         auto nX     = rstCOLocation.X;
         auto nY     = rstCOLocation.Y;
         auto nMapID = rstCOLocation.MapID;
 
-        if(nMapID != MapID()){
+        if(!m_Map->In(nMapID, nX, nY)){
+            fnOnError();
             return false;
         }
 
-        switch(MathFunc::LDistance2(nX, nY, X(), Y())){
-            case 0:
-            case 1:
-            case 2:
-                {
-                    return true;
-                }
-            default:
-                {
-                    return MoveOneStep(nX, nY, []{}, []{});
-                }
+        if(MathFunc::CDistance(X(), Y(), nX, nY) <= nMinCDistance){
+            fnOnOK();
+            return true;
         }
+
+        MoveOneStep(nX, nY, fnOnOK, fnOnError);
+        return true;
     });
 }
 
-bool Monster::FollowMasterOneStep(std::function<void()> fnOnOK, std::function<void()> fnOnError)
+bool Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!(MasterUID() && CanMove())){
         if(fnOnError){
@@ -421,24 +416,22 @@ bool Monster::FollowMasterOneStep(std::function<void()> fnOnOK, std::function<vo
     });
 }
 
-bool Monster::TrackAttack()
+void Monster::TrackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    if(!GetProperTarget()){
-        return false;
+    if(!nTargetUID){
+        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
     }
 
-    for(auto nDC: m_MonsterRecord.DCList()){
-        if(AttackUID(m_Target.UID, nDC)){
-            m_Target.ActiveTime = g_MonoServer->GetTimeTick();
-            return true;
-        }
-    }
+    // TODO choose proper DC
+    // for different monster it may use different DC
+    
+    int nProperDC = m_MonsterRecord.DCList()[0];
+    int nMinCDistance = 1;
 
-    if(TrackUID(m_Target.UID)){
-        m_Target.ActiveTime = g_MonoServer->GetTimeTick();
-        return true;
-    }
-    return false;
+    TrackUID(nTargetUID, nMinCDistance, [nTargetUID, nProperDC, fnOnOK, fnOnError, this]()
+    {
+        AttackUID(nTargetUID, nProperDC, fnOnOK, fnOnError);
+    }, fnOnError);
 }
 
 uint64_t Monster::Activate()
@@ -1097,56 +1090,67 @@ void Monster::RandomDrop()
     }
 }
 
-bool Monster::GetProperTarget()
+void Monster::RecursiveCheckInViewTarget(size_t nIndex, std::function<void(uint64_t)> fnTarget)
 {
-    if(m_Target.UID){
-        return true;
+    if(nIndex >= m_InViewCOList.size()){
+        fnTarget(0);
+        return;
     }
 
-    if(m_InViewCOList.empty()){
-        return false;
-    }
-
-    uint64_t nTargetUID = 0;
-    int nTargetDistance = -1;
-
-    std::for_each(m_InViewCOList.begin(), m_InViewCOList.end(), [this, &nTargetUID, &nTargetDistance](const auto &rstPair)
+    auto nUID = m_InViewCOList[nIndex].UID;
+    CheckFriendType(nUID, [this, nIndex, nUID, fnTarget](int nFriendType)
     {
-        auto nX   = rstPair.second.X;
-        auto nY   = rstPair.second.Y;
-        auto nUID = rstPair.second.UID;
+        // when reach here
+        // m_InViewCOList[nIndex] may not be nUID anymore
 
-        bool bFriend  = false;
-        CheckFriend(nUID, [&bFriend](int nFriendType)
-        {
-            switch(nFriendType){
-                case FT_ENEMY:
-                    {
-                        break;
-                    }
-                default:
-                    {
-                        bFriend = true;
-                        break;
-                    }
-            }
-        });
+        // if changed
+        // we'd better redo the search
 
-        if(bFriend){
+        if(nIndex >= m_InViewCOList.size() || m_InViewCOList[nIndex].UID != nUID){
+            RecursiveCheckInViewTarget(0, fnTarget);
             return;
         }
 
-        if(auto nDist = MathFunc::LDistance2(X(), Y(), nX, nY); nTargetDistance < 0 || nTargetDistance > nDist){
-            nTargetUID = nUID;
-            nTargetDistance = nDist;
+        if(nFriendType == FT_ENEMY){
+            fnTarget(nUID);
+            return;
         }
+        RecursiveCheckInViewTarget(nIndex + 1, fnTarget);
     });
+}
 
-    if(nTargetUID){
-        m_Target.UID = nTargetUID;
-        return true;
+void Monster::SearchNearestTarget(std::function<void(uint64_t)> fnTarget)
+{
+    if(m_InViewCOList.empty()){
+        fnTarget(0);
+        return;
     }
-    return false;
+    RecursiveCheckInViewTarget(0, fnTarget);
+}
+
+void Monster::GetProperTarget(std::function<void(uint64_t)> fnTarget)
+{
+    if(m_Target.UID){
+        if(g_MonoServer->GetTimeTick() < m_Target.ActiveTime + 60 * 1000){
+            CheckFriendType(m_Target.UID, [nTargetUID = m_Target.UID, fnTarget, this](int nFriendType)
+            {
+                if(nFriendType == FT_ENEMY){
+                    fnTarget(nTargetUID);
+                    return;
+                }
+
+                // may changed monster
+                // last target is not a target anymore
+
+                RemoveTarget(nTargetUID);
+                SearchNearestTarget(fnTarget);
+            });
+        }
+        return;
+    }
+
+    RemoveTarget(m_Target.UID);
+    SearchNearestTarget(fnTarget);
 }
 
 void Monster::CheckFriend(uint64_t nCheckUID, const std::function<void(int)> &fnOnFriend)
@@ -1261,11 +1265,19 @@ void Monster::CheckFriend(uint64_t nCheckUID, const std::function<void(int)> &fn
 
 void Monster::CreateBvTree()
 {
+    bvarg_ref nTargetUID;
+
     m_BvTree = bvtree::if_branch
     (
         BvNode_HasMaster(),
-        BvNode_FollowMasterOneStep(),
-        BvNode_RandomMove()
+        BvNode_FollowMaster(),
+
+        bvtree::if_branch
+        (
+            BvNode_GetProperTarget(nTargetUID),
+            BvNode_TrackAttackUID(nTargetUID),
+            BvNode_RandomMove()
+        )
     );
     m_BvTree->reset();
 }
