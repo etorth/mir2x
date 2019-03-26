@@ -215,5 +215,6 @@ class Monster final: public CharObject
         virtual bvnode_ptr BvNode_TrackAttackUID(bvarg_ref);
 
     public:
+        static bool IsPet(uint64_t);
         static bool IsGuard(uint64_t);
 };

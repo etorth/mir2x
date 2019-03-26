@@ -1620,3 +1620,21 @@ bool Monster::IsGuard(uint64_t nUID)
             }
     }
 }
+
+bool Monster::IsPet(uint64_t nUID)
+{
+    if(UIDFunc::GetUIDType(nUID) != UID_MON){
+        return false;
+    }
+
+    switch(UIDFunc::GetMonsterID(nUID)){
+        case DBCOM_MONSTERID(u8"变异骷髅"):
+            {
+                return true;
+            }
+        default:
+            {
+                return false;
+            }
+    }
+}
