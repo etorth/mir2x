@@ -412,4 +412,20 @@ class CharObject: public ServerObject
     protected:
         COLocation &GetInViewCORef(uint64_t);
         COLocation *GetInViewCOPtr(uint64_t);
+
+    protected:
+        virtual void CheckFriendType(uint64_t, std::function<void(int)>) = 0;
+
+    protected:
+        void QueryFinalMaster(uint64_t, std::function<void(uint64_t)>);
+
+    protected:
+        bool IsOffender(uint64_t);
+
+    protected:
+        virtual void On_MPK_QUERYFRIENDTYPE(const MessagePack &);
+
+    protected:
+        bool IsPlayer()  const;
+        bool IsMonster() const;
 };

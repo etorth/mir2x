@@ -1315,50 +1315,6 @@ void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
     });
 }
 
-void Monster::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
-{
-    if(!nUID){
-        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
-    }
-
-    auto fnQuery = [this, fnOp](uint64_t nQueryUID)
-    {
-        m_ActorPod->Forward(nQueryUID, MPK_QUERYFINALMASTER, [this, nQueryUID, fnOp](const MessagePack &rstRMPK)
-        {
-            switch(rstRMPK.Type()){
-                case MPK_UID:
-                    {
-                        AMUID stAMUID;
-                        std::memcpy(&stAMUID, rstRMPK.Data(), sizeof(stAMUID));
-
-                        fnOp(stAMUID.UID);
-                        return;
-                    }
-                default:
-                    {
-                        fnOp(0);
-                        if(nQueryUID == MasterUID()){
-                            GoDie();
-                        }
-                        return;
-                    }
-            }
-        });
-    };
-
-    if(nUID != UID()){
-        fnQuery(nUID);
-        return;
-    }
-
-    if(MasterUID()){
-        fnQuery(MasterUID());
-        return;
-    }
-
-    fnOp(UID());
-}
-
 void Monster::CheckFriendType_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(!IsGuard(UID())){

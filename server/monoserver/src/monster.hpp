@@ -58,6 +58,9 @@ class Monster final: public CharObject
         };
 
     protected:
+        friend class CharObject;
+
+    protected:
         const uint32_t m_MonsterID;
 
     protected:
@@ -168,8 +171,8 @@ class Monster final: public CharObject
         void RandomDrop();
 
     protected:
-        void CheckFriendType(uint64_t, std::function<void(int)>);
         void QueryFriendType(uint64_t, uint64_t, std::function<void(int)>);
+        void CheckFriendType(uint64_t, std::function<void(int)>) override;
 
     private:
         void CheckFriendType_AsGuard      (uint64_t, std::function<void(int)>);
@@ -179,7 +182,6 @@ class Monster final: public CharObject
     protected:
         void CheckFriend(uint64_t, const std::function<void(int)> &);
         void QueryMaster(uint64_t, std::function<void(uint64_t)>);
-        void QueryFinalMaster(uint64_t, std::function<void(uint64_t)>);
 
     protected:
         bool MoveOneStepAStar   (int, int, std::function<void()>, std::function<void()>);

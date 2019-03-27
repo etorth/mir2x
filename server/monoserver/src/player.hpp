@@ -202,4 +202,7 @@ class Player final: public CharObject
     protected:
         bool DBLoadPlayer();
         bool DBSavePlayer();
+
+    protected:
+        void CheckFriendType(uint64_t, std::function<void(int)>) override;
 };

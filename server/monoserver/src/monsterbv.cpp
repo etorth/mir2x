@@ -17,6 +17,10 @@
  */
 #include <optional>
 #include "monster.hpp"
+#include "monoserver.hpp"
+
+extern MonoServer *g_MonoServer;
+
 bvnode_ptr Monster::BvNode_GetMasterUID(bvarg_ref nMasterUID)
 {
     return bvtree::lambda_bool([this, nMasterUID]() mutable

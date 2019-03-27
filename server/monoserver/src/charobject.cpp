@@ -1164,3 +1164,87 @@ COLocation *CharObject::GetInViewCOPtr(uint64_t nUID)
     }
     return nullptr;
 }
+
+bool CharObject::IsOffender(uint64_t nUID)
+{
+    for(auto &rstOffender: m_OffenderList){
+        if(rstOffender.UID == nUID){
+            return true;
+        }
+    }
+    return false;
+}
+
+void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
+{
+    if(!nUID){
+        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
+    }
+
+    auto fnQuery = [this, fnOp](uint64_t nQueryUID)
+    {
+        m_ActorPod->Forward(nQueryUID, MPK_QUERYFINALMASTER, [this, nQueryUID, fnOp](const MessagePack &rstRMPK)
+        {
+            switch(rstRMPK.Type()){
+                case MPK_UID:
+                    {
+                        AMUID stAMUID;
+                        std::memcpy(&stAMUID, rstRMPK.Data(), sizeof(stAMUID));
+
+                        fnOp(stAMUID.UID);
+                        return;
+                    }
+                default:
+                    {
+                        fnOp(0);
+                        if(IsMonster() && (nQueryUID == dynamic_cast<Monster *>(this)->MasterUID())){
+                            GoDie();
+                        }
+                        return;
+                    }
+            }
+        });
+    };
+
+    switch(UIDFunc::GetUIDType(UID())){
+        case UID_MON:
+            {
+                if(nUID != UID()){
+                    fnQuery(nUID);
+                    return;
+                }
+
+                // querying self
+                // this is allow for monster
+
+                if(auto nMasterUID = dynamic_cast<Monster *>(this)->MasterUID()){
+                    fnQuery(nMasterUID);
+                    return;
+                }
+
+                // querying self
+                // and doesn't have master
+                fnOp(UID());
+                return;
+            }
+        case UID_PLY:
+        default:
+            {
+                if(nUID != UID()){
+                    fnQuery(nUID);
+                    return;
+                }
+                throw std::invalid_argument(str_fflprintf(": %s can't query self for final master", UIDFunc::GetUIDTypeString(UID())));
+            }
+    }
+}
+
+bool CharObject::IsPlayer() const
+{
+    return UIDFunc::GetUIDType(UID()) == UID_PLY;
+}
+
+bool CharObject::IsMonster() const
+{
+    return UIDFunc::GetUIDType(UID()) == UID_MON;
+}

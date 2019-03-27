@@ -27,6 +27,7 @@
 #include "charobject.hpp"
 #include "friendtype.hpp"
 #include "protocoldef.hpp"
+#include "dbcomrecord.hpp"
 
 extern DBPodN *g_DBPodN;
 extern MonoServer *g_MonoServer;
@@ -104,6 +105,11 @@ void Player::OperateAM(const MessagePack &rstMPK)
         case MPK_QUERYLOCATION:
             {
                 On_MPK_QUERYLOCATION(rstMPK);
+                break;
+            }
+        case MPK_QUERYFRIENDTYPE:
+            {
+                On_MPK_QUERYFRIENDTYPE(rstMPK);
                 break;
             }
         case MPK_EXP:
@@ -945,4 +951,51 @@ void Player::ReportGold()
 
     stSMG.Gold = Gold();
     PostNetMessage(SM_GOLD, stSMG);
+}
+
+void Player::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
+{
+    if(!nUID){
+        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
+    }
+
+    switch(UIDFunc::GetUIDType(nUID)){
+        case UID_PLY:
+            {
+                fnOp(IsOffender(nUID) ? FT_ENEMY : FT_NEUTRAL);
+                return;
+            }
+        case UID_MON:
+            {
+                if(!DBCOM_MONSTERRECORD(UIDFunc::GetMonsterID(nUID)).Tamable){
+                    fnOp(FT_ENEMY);
+                    return;
+                }
+
+                QueryFinalMaster(nUID, [this, nUID, fnOp](uint64_t nFMasterUID)
+                {
+                    switch(UIDFunc::GetUIDType(nFMasterUID)){
+                        case UID_PLY:
+                            {
+                                fnOp(IsOffender(nUID) ? FT_ENEMY : FT_NEUTRAL);
+                                return;
+                            }
+                        case UID_MON:
+                            {
+                                fnOp(FT_ENEMY);
+                                return;
+                            }
+                        default:
+                            {
+                                throw std::runtime_error(str_fflprintf(": Final master is not PLY nor MON"));
+                            }
+                    }
+                });
+                return;
+            }
+        default:
+            {
+                throw std::invalid_argument(str_fflprintf(": Checking friend type for: %s", UIDFunc::GetUIDTypeString(nUID)));
+            }
+    }
 }
