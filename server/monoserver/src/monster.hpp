@@ -107,7 +107,7 @@ class Monster final: public CharObject
 
     protected:
         bool RandomMove();
-        bool FollowMaster(std::function<void()>, std::function<void()>);
+        void FollowMaster(std::function<void()>, std::function<void()>);
 
     protected:
         void RecursiveCheckInViewTarget(size_t, std::function<void(uint64_t)>);

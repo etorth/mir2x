@@ -324,35 +324,29 @@ void Monster::TrackUID(uint64_t nUID, int nMinCDistance, std::function<void()> f
     });
 }
 
-bool Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> fnOnError)
+void Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!(MasterUID() && CanMove())){
-        if(fnOnError){
-            fnOnError();
-        }
-        return false;
+        fnOnError();
+        return;
     }
 
     // followMaster works almost like TrackUID(), but
     // 1. follower always try to stand at the back of the master
     // 2. when distance is too far or master is on different map, follower takes space move
 
-    return RetrieveLocation(MasterUID(), [this, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
+    RetrieveLocation(MasterUID(), [this, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
     {
         // check if it's still my master?
         // possible during the location query master changed
 
         if(rstCOLocation.UID != MasterUID()){
-            if(fnOnError){
-                fnOnError();
-            }
+            fnOnError();
             return false;
         }
 
         if(!CanMove()){
-            if(fnOnError){
-                fnOnError();
-            }
+            fnOnError();
             return false;
         }
 
@@ -396,9 +390,7 @@ bool Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> f
                             DispatchAction(ActionStand(X(), Y(), Direction()));
                         }
 
-                        if(fnOnOK){
-                            fnOnOK();
-                        }
+                        fnOnOK();
                         return true;
                     }
                 default:
