@@ -273,12 +273,12 @@ void Monster::On_MPK_QUERYMASTER(const MessagePack &rstMPK)
 
 void Monster::On_MPK_QUERYFINALMASTER(const MessagePack &rstMPK)
 {
-    QueryFinalMaster(UID(), [this, rstMPK](uint64_t nUID)
+    QueryFinalMaster(UID(), [this, rstMPK](uint64_t nFMasterUID)
     {
         AMUID stAMUID;
         std::memset(&stAMUID, 0, sizeof(stAMUID));
 
-        stAMUID.UID = nUID;
+        stAMUID.UID = nFMasterUID;
         m_ActorPod->Forward(rstMPK.From(), {MPK_UID, stAMUID}, rstMPK.ID());
     });
 }

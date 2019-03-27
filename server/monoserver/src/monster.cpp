@@ -1385,35 +1385,27 @@ void Monster::CheckFriendType_CtrlByMonster(uint64_t nUID, std::function<void(in
                     return;
                 }
 
-                QueryFinalMaster(nUID, [fnOp](const MessagePack &rstRMPK)
+                QueryFinalMaster(nUID, [nUID, fnOp](uint64_t nFMasterUID)
                 {
-                    switch(rstRMPK.Type()){
-                        case MPK_UID:
-                            {
-                                AMUID stAMUID;
-                                std::memcpy(&stAMUID, rstRMPK.Data(), sizeof(stAMUID));
+                    if(!nFMasterUID){
+                        fnOp(FT_ERROR);
+                        return;
+                    }
 
-                                switch(UIDFunc::GetUIDType(stAMUID.UID)){
-                                    case UID_MON:
-                                        {
-                                            fnOp(FT_NEUTRAL);
-                                            return;
-                                        }
-                                    case UID_PLY:
-                                        {
-                                            fnOp(FT_ENEMY);
-                                            return;
-                                        }
-                                    default:
-                                        {
-                                            throw std::runtime_error(str_fflprintf(": Invalid final master UID type: %s", UIDFunc::GetUIDTypeString(stAMUID.UID)));
-                                        }
-                                }
+                    switch(UIDFunc::GetUIDType(nFMasterUID)){
+                        case UID_MON:
+                            {
+                                fnOp(FT_NEUTRAL);
+                                return;
+                            }
+                        case UID_PLY:
+                            {
+                                fnOp(FT_ENEMY);
+                                return;
                             }
                         default:
                             {
-                                fnOp(FT_ERROR);
-                                return;
+                                throw std::runtime_error(str_fflprintf(": Invalid final master type: %s", UIDFunc::GetUIDTypeString(nFMasterUID)));
                             }
                     }
                 });
@@ -1440,38 +1432,30 @@ void Monster::CheckFriendType_CtrlByPlayer(uint64_t nUID, std::function<void(int
                     return;
                 }
 
-                QueryFinalMaster(nUID, [this, nUID, fnOp](const MessagePack &rstMPK)
+                QueryFinalMaster(nUID, [this, nUID, fnOp](uint64_t nFMasterUID)
                 {
-                    switch(rstMPK.Type()){
-                        case MPK_UID:
-                            {
-                                AMUID stAMUID;
-                                std::memcpy(&stAMUID, rstMPK.Data(), sizeof(stAMUID));
+                    if(!nFMasterUID){
+                        fnOp(FT_ERROR);
+                        return;
+                    }
 
-                                switch(UIDFunc::GetUIDType(stAMUID.UID)){
-                                    case UID_MON:
-                                        {
-                                            fnOp(FT_ENEMY);
-                                            return;
-                                        }
-                                    case UID_PLY:
-                                        {
-                                            QueryFriendType(MasterUID(), nUID, [fnOp](int nFriendType)
-                                            {
-                                                fnOp(nFriendType);
-                                            });
-                                            return;
-                                        }
-                                    default:
-                                        {
-                                            throw std::runtime_error(str_fflprintf(": Invalid final master UID type: %s", UIDFunc::GetUIDTypeString(stAMUID.UID)));
-                                        }
-                                }
+                    switch(UIDFunc::GetUIDType(nFMasterUID)){
+                        case UID_MON:
+                            {
+                                fnOp(FT_ENEMY);
+                                return;
+                            }
+                        case UID_PLY:
+                            {
+                                QueryFriendType(MasterUID(), nUID, [fnOp](int nFriendType)
+                                {
+                                    fnOp(nFriendType);
+                                });
+                                return;
                             }
                         default:
                             {
-                                fnOp(FT_ERROR);
-                                return;
+                                throw std::runtime_error(str_fflprintf(": Invalid final master type: %s", UIDFunc::GetUIDTypeString(nFMasterUID)));
                             }
                     }
                 });

@@ -1181,6 +1181,10 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
         throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
     }
 
+    if(UIDFunc::GetUIDType(nUID) != UID_MON){
+        throw std::invalid_argument(str_fflprintf(": %s can't have master", UIDFunc::GetUIDTypeString(nUID)));
+    }
+
     auto fnQuery = [this, fnOp](uint64_t nQueryUID)
     {
         m_ActorPod->Forward(nQueryUID, MPK_QUERYFINALMASTER, [this, nQueryUID, fnOp](const MessagePack &rstRMPK)
@@ -1206,6 +1210,9 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
         });
     };
 
+    // check self type
+    // we allow self-query for monster
+
     switch(UIDFunc::GetUIDType(UID())){
         case UID_MON:
             {
@@ -1215,11 +1222,25 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
                 }
 
                 // querying self
-                // this is allow for monster
+                // this is ok for monster
 
                 if(auto nMasterUID = dynamic_cast<Monster *>(this)->MasterUID()){
-                    fnQuery(nMasterUID);
-                    return;
+                    switch(UIDFunc::GetUIDType(nMasterUID)){
+                        case UID_PLY:
+                            {
+                                fnOp(nMasterUID);
+                                return;
+                            }
+                        case UID_MON:
+                            {
+                                fnQuery(nMasterUID);
+                                return;
+                            }
+                        default:
+                            {
+                                throw std::runtime_error(str_fflprintf(": Invalid master type: %s", UIDFunc::GetUIDTypeString(nMasterUID)));
+                            }
+                    }
                 }
 
                 // querying self
