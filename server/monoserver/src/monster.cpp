@@ -1498,6 +1498,10 @@ void Monster::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
         throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
     }
 
+    if(nUID == UID()){
+        throw std::invalid_argument(str_fflprintf(": Check friend type to self"));
+    }
+
     // 1. 大刀卫士 or 弓箭卫士
     // 2. no master or master is still monster
     // 3. as pet, master is UID_PLY
@@ -1507,12 +1511,48 @@ void Monster::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
         return;
     }
 
-    if(MasterUID() && UIDFunc::GetUIDType(MasterUID()) == UID_PLY){
-        CheckFriendType_CtrlByPlayer(nUID, fnOp);
+    if(!MasterUID()){
+        CheckFriendType_CtrlByMonster(nUID, fnOp);
+    }
+
+    // has a master
+    // can be its master
+
+    if(nUID == MasterUID()){
+        fnOp(FT_FRIEND);
         return;
     }
 
-    CheckFriendType_CtrlByMonster(nUID, fnOp);
+    // has a master
+    // check the final master
+
+    QueryFinalMaster(UID(), [this, nUID, fnOp](uint64_t nFMasterUID)
+    {
+        if(!nFMasterUID){
+            // TODO monster can swith master
+            // then here we may incorrectly kill the monster
+            fnOp(FT_ERROR);
+            GoDie();
+            return;
+        }
+
+        switch(UIDFunc::GetUIDType(nFMasterUID)){
+            case UID_PLY:
+                {
+                    CheckFriendType_CtrlByPlayer(nUID, fnOp);
+                    return;
+                }
+            case UID_MON:
+                {
+                    CheckFriendType_CtrlByMonster(nUID, fnOp);
+                    return;
+                }
+            default:
+                {
+                    throw std::runtime_error(str_fflprintf(": Monster can't be controlled by type: %s", UIDFunc::GetUIDTypeString(nFMasterUID)));
+                }
+        }
+    });
 }
 
 void Monster::QueryFriendType(uint64_t nUID, uint64_t nTargetUID, std::function<void(int)> fnOp)
