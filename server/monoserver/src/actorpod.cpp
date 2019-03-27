@@ -268,6 +268,14 @@ bool ActorPod::Detach(const std::function<void()> &fnAtExit) const
     return g_ActorPool->Detach(this, fnAtExit);
 }
 
+bool ActorPod::CheckInvalid(uint64_t nUID)
+{
+    if(!nUID){
+        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
+    }
+    return g_ActorPool->CheckInvalid(nUID);
+}
+
 void ActorPod::PrintMonitor() const
 {
     for(size_t nIndex = 0; nIndex < m_PodMonitor.AMProcMonitorList.size(); ++nIndex){

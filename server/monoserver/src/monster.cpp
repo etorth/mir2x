@@ -449,21 +449,8 @@ bool Monster::Update()
         return GoDie();
     }
 
-    if(MasterUID()){
-        m_ActorPod->Forward(MasterUID(), MPK_CHECKMASTER, [this](const MessagePack &rstRMPK)
-        {
-            switch(rstRMPK.Type()){
-                case MPK_BADACTORPOD:
-                    {
-                        GoDie();
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
-        });
+    if(MasterUID() && m_ActorPod->CheckInvalid(MasterUID())){
+        return GoDie();
     }
 
     switch(auto nState = m_BvTree->update()){

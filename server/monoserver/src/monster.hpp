@@ -211,7 +211,7 @@ class Monster final: public CharObject
         virtual bvnode_ptr BvNode_RandomMove();
         virtual bvnode_ptr BvNode_RandomTurn();
         virtual bvnode_ptr BvNode_AttackUID(bvarg_ref, bvarg_ref);
-        virtual bvnode_ptr BvNode_MoveForwardOneStep();
+        virtual bvnode_ptr BvNode_MoveForward();
         virtual bvnode_ptr BvNode_MoveOneStep(bvarg_ref);
         virtual bvnode_ptr BvNode_GetProperTarget(bvarg_ref);
         virtual bvnode_ptr BvNode_TrackAttackUID(bvarg_ref);

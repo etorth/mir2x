@@ -88,13 +88,13 @@ bvnode_ptr Monster::BvNode_RandomMove()
     return bvtree::random
     (
         BvNode_RandomTurn(),
-        BvNode_MoveForwardOneStep(),
-        BvNode_MoveForwardOneStep(),
-        BvNode_MoveForwardOneStep(),
-        BvNode_MoveForwardOneStep(),
-        BvNode_MoveForwardOneStep(),
-        BvNode_MoveForwardOneStep(),
-        BvNode_MoveForwardOneStep()
+        BvNode_MoveForward(),
+        BvNode_MoveForward(),
+        BvNode_MoveForward(),
+        BvNode_MoveForward(),
+        BvNode_MoveForward(),
+        BvNode_MoveForward(),
+        BvNode_MoveForward()
     );
 }
 
@@ -145,7 +145,7 @@ bvnode_ptr Monster::BvNode_RandomTurn()
     );
 }
 
-bvnode_ptr Monster::BvNode_MoveForwardOneStep()
+bvnode_ptr Monster::BvNode_MoveForward()
 {
     bvarg_ref nStage;
 
