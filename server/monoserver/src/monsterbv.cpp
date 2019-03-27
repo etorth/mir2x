@@ -23,7 +23,7 @@ extern MonoServer *g_MonoServer;
 
 bvnode_ptr Monster::BvNode_GetMasterUID(bvarg_ref nMasterUID)
 {
-    return bvtree::lambda_bool([this, nMasterUID]() mutable
+    return bvtree::lambda_bool([this, nMasterUID]() mutable -> bool
     {
         nMasterUID.assign<uint64_t>(MasterUID());
         return MasterUID();
@@ -32,54 +32,34 @@ bvnode_ptr Monster::BvNode_GetMasterUID(bvarg_ref nMasterUID)
 
 bvnode_ptr Monster::BvNode_FollowMaster()
 {
-    bvarg_ref nStage;
-    return bvtree::lambda([nStage]() mutable
+    return bvtree::lambda_stage([this](bvarg_ref nStage) mutable
     {
-        nStage.assign_void();
-    },
+        FollowMaster([nStage]() mutable
+        {
+            nStage.assign<bvres_t>(BV_SUCCESS);
+        },
 
-    [this, nStage]() mutable -> bvres_t
-    {
-        if(!nStage.has_value()){
-            nStage.assign<bvres_t>(BV_PENDING);
-            FollowMaster([nStage]() mutable
-            {
-                nStage.assign<bvres_t>(BV_SUCCESS);
-            },
-
-            [nStage]() mutable
-            {
-                nStage.assign<bvres_t>(BV_FAILURE);
-            });
-        }
-        return nStage.as<bvres_t>();
+        [nStage]() mutable
+        {
+            nStage.assign<bvres_t>(BV_FAILURE);
+        });
     });
 }
 
 bvnode_ptr Monster::BvNode_LocateUID(bvarg_ref nUID, bvarg_ref stLocation)
 {
-    bvarg_ref nStage;
-    return bvtree::lambda([nStage]() mutable
+    return bvtree::lambda_stage([this, nUID, stLocation](bvarg_ref nStage) mutable
     {
-        nStage.assign_void();
-    },
+        RetrieveLocation(nUID.as<uint64_t>(), [nStage, stLocation](const COLocation &stLoc) mutable
+        {
+            stLocation.assign<tuple<uint32_t, int, int>>(stLoc.MapID, stLoc.X, stLoc.Y);
+            nStage.assign<bvres_t>(BV_SUCCESS);
+        },
 
-    [this, nUID, stLocation, nStage]() mutable -> bvres_t
-    {
-        if(!nStage.has_value()){
-            nStage.assign<bvres_t>(BV_PENDING);
-            RetrieveLocation(nUID.as<uint64_t>(), [nStage, stLocation](const COLocation &stLoc) mutable
-            {
-                nStage.assign<bvres_t>(BV_SUCCESS);
-                stLocation.assign<tuple<uint32_t, int, int>>(stLoc.MapID, stLoc.X, stLoc.Y);
-            },
-
-            [nStage]() mutable
-            {
-                nStage.assign<bvres_t>(BV_FAILURE);
-            });
-        }
-        return nStage.as<bvres_t>();
+        [nStage]() mutable
+        {
+            nStage.assign<bvres_t>(BV_FAILURE);
+        });
     });
 }
 
@@ -201,32 +181,23 @@ bvnode_ptr Monster::BvNode_MoveForward()
 
 bvnode_ptr Monster::BvNode_MoveOneStep(bvarg_ref stDstLocation)
 {
-    bvarg_ref nStage;
-    return bvtree::lambda([nStage]() mutable
+    return bvtree::lambda_stage([this, stDstLocation](bvarg_ref nStage) mutable
     {
-        nStage.assign_void();
-    },
-
-    [this, stDstLocation, nStage]() mutable -> bvres_t
-    {
-        if(!nStage.has_value()){
-            auto [nMapID, nX, nY] = stDstLocation.as<tuple<uint32_t, int, int>>();
-            if(!m_Map->In(nMapID, nX, nY)){
-                return BV_ABORT;
-            }
-
-            nStage.assign<bvres_t>(BV_PENDING);
-            MoveOneStep(nX, nY, [nStage]() mutable
-            {
-                nStage.assign<bvres_t>(BV_SUCCESS);
-            },
-
-            [nStage]() mutable
-            {
-                nStage.assign<bvres_t>(BV_FAILURE);
-            });
+        auto [nMapID, nX, nY] = stDstLocation.as<tuple<uint32_t, int, int>>();
+        if(!m_Map->In(nMapID, nX, nY)){
+            nStage.assign<bvres_t>(BV_ABORT);
+            return;
         }
-        return nStage.as<bvres_t>();
+
+        MoveOneStep(nX, nY, [nStage]() mutable
+        {
+            nStage.assign<bvres_t>(BV_SUCCESS);
+        },
+
+        [nStage]() mutable
+        {
+            nStage.assign<bvres_t>(BV_FAILURE);
+        });
     });
 }
 
