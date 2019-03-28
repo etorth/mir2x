@@ -315,9 +315,27 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK)
     AMAttack stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
+    if(MathFunc::LDistance2(X(), Y(), stAMA.X, stAMA.Y) >= 2){
+        switch(UIDFunc::GetUIDType(stAMA.UID)){
+            case UID_MON:
+            case UID_PLY:
+                {
+                    AMMiss stAMM;
+                    std::memset(&stAMM, 0, sizeof(stAMM));
+
+                    stAMM.UID = stAMA.UID;
+                    m_ActorPod->Forward(stAMA.UID, {MPK_MISS, stAMM});
+                    return;
+                }
+            default:
+                {
+                    return;
+                }
+        }
+    }
+
     DispatchAction(ActionHitted(X(), Y(), Direction()));
     StruckDamage({stAMA.UID, stAMA.Type, stAMA.Damage, stAMA.Element});
-
     ReportAction(UID(), ActionHitted(X(), Y(), Direction()));
 }
 
