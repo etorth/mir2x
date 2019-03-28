@@ -624,7 +624,7 @@ bool CharObject::CanAttack()
     }
 }
 
-bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnLocationOK, std::function<void()> fnOnLocationError)
+bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnOK, std::function<void()> fnOnError)
 {
     if(!nUID){
         throw std::invalid_argument(str_ffl() + ": Query location with zero UID");
@@ -635,11 +635,11 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
     }
 
     // current the UID is valid
-    // lambda captured fnOnLocationOK then can be delayed by one step
-    // 1.     valid cache : call fnOnLocationOK
-    // 2. not valid cache : call fnOnLocationOK after refresh
+    // lambda captured fnOnOK then can be delayed by one step
+    // 1.     valid cache : call fnOnOK
+    // 2. not valid cache : call fnOnOK after refresh
 
-    auto fnQueryLocation = [this, nUID, fnOnLocationOK, fnOnLocationError]() -> bool
+    auto fnQueryLocation = [this, nUID, fnOnOK, fnOnError]() -> bool
     {
         AMQueryLocation stAMQL;
         std::memset(&stAMQL, 0, sizeof(stAMQL));
@@ -647,7 +647,7 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
         stAMQL.UID   = UID();
         stAMQL.MapID = MapID();
 
-        return m_ActorPod->Forward(nUID, {MPK_QUERYLOCATION, stAMQL}, [this, nUID, fnOnLocationOK, fnOnLocationError](const MessagePack &rstRMPK)
+        return m_ActorPod->Forward(nUID, {MPK_QUERYLOCATION, stAMQL}, [this, nUID, fnOnOK, fnOnError](const MessagePack &rstRMPK)
         {
             switch(rstRMPK.Type()){
                 case MPK_LOCATION:
@@ -673,17 +673,13 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
                             RemoveInViewCO(nUID);
                         }
 
-                        if(fnOnLocationOK){
-                            fnOnLocationOK(GetInViewCORef(nUID));
-                        }
+                        fnOnOK(GetInViewCORef(nUID));
                         break;
                     }
                 default:
                     {
                         RemoveInViewCO(nUID);
-                        if(fnOnLocationError){
-                            fnOnLocationError();
-                        }
+                        fnOnError();
                         break;
                     }
             }
@@ -691,7 +687,7 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
     };
 
     // no entry found
-    // do query and invocation, delay fnOnLocationOK by one step
+    // do query and invocation, delay fnOnOK by one step
     if(!GetInViewCOPtr(nUID)){
         return fnQueryLocation();
     }
@@ -702,9 +698,7 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
     if(m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)
             && g_MonoServer->GetTimeTick() <= rstRecord.RecordTime + 2 * 1000){
 
-        if(fnOnLocationOK){
-            fnOnLocationOK(rstRecord);
-        }
+        fnOnOK(rstRecord);
         return true;
     }
 
