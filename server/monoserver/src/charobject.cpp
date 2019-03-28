@@ -247,29 +247,16 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
             }
         default:
             {
-                for(auto pLoc = m_InViewCOList.begin(); pLoc != m_InViewCOList.end();){
-                    auto pNext  = std::next(pLoc);
-                    auto nX     = pLoc->X;
-                    auto nY     = pLoc->Y;
-                    auto nMapID = pLoc->MapID;
-
-                    if(InView(nMapID, nX, nY)){
-                        RetrieveLocation(pLoc->UID, [this, stAMA](const COLocation &rstLocation)
-                        {
-                            auto nX = rstLocation.X;
-                            auto nY = rstLocation.Y;
-                            auto nMapID = rstLocation.MapID;
-                            if(m_Map->In(nMapID, nX, nY) && MathFunc::LDistance2(nX, nY, X(), Y()) < 100){
-                                m_ActorPod->Forward(rstLocation.UID, {MPK_ACTION, stAMA});
-                            }
-                        });
-
-                        // we need to keep pNext
-                        // since RetrieveLocation may remove current node
-                        pLoc = pNext;
-                    }else{
-                        pLoc = m_InViewCOList.erase(pLoc);
-                    }
+                for(const auto &rstCOLocation: m_InViewCOList){
+                    RetrieveLocation(rstCOLocation.UID, [this, stAMA](const COLocation &rstLocation)
+                    {
+                        auto nX = rstLocation.X;
+                        auto nY = rstLocation.Y;
+                        auto nMapID = rstLocation.MapID;
+                        if(InView(nMapID, nX, nY)){
+                            m_ActorPod->Forward(rstLocation.UID, {MPK_ACTION, stAMA});
+                        }
+                    });
                 }
                 return;
             }
@@ -1117,7 +1104,11 @@ void CharObject::RemoveInViewCO(uint64_t nUID)
     {
         return rstCOLoc.UID == nUID || !InView(rstCOLoc.MapID, rstCOLoc.X, rstCOLoc.Y);
     }), m_InViewCOList.end());
+
     m_InViewCOList.shrink_to_fit();
+    if(UIDFunc::GetUIDType(UID()) == UID_MON){
+        dynamic_cast<Monster *>(this)->RemoveTarget(nUID);
+    }
 }
 
 bool CharObject::InView(uint32_t nMapID, int nX, int nY) const
