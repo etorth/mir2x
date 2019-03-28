@@ -144,6 +144,10 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK)
     switch(GetState(STATE_DEAD)){
         case 0:
             {
+                if(MathFunc::LDistance2(X(), Y(), stAMAK.X, stAMAK.Y) >= 2){
+                    return;
+                }
+
                 AddTarget(stAMAK.UID);
                 DispatchAction(ActionHitted(X(), Y(), Direction()));
 
