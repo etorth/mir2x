@@ -32,18 +32,24 @@ bvnode_ptr Monster::BvNode_GetMasterUID(bvarg_ref nMasterUID)
 
 bvnode_ptr Monster::BvNode_FollowMaster()
 {
-    return bvtree::lambda_stage([this](bvarg_ref nStage) mutable
-    {
-        FollowMaster([nStage]() mutable
+    return bvtree::if_branch
+    (
+        bvtree::lambda_stage([this](bvarg_ref nStage) mutable
         {
-            nStage.assign<bvres_t>(BV_SUCCESS);
-        },
+            FollowMaster([nStage]() mutable
+            {
+                nStage.assign<bvres_t>(BV_SUCCESS);
+            },
 
-        [nStage]() mutable
-        {
-            nStage.assign<bvres_t>(BV_FAILURE);
-        });
-    });
+            [nStage]() mutable
+            {
+                nStage.assign<bvres_t>(BV_FAILURE);
+            });
+        }),
+
+        bvtree::op_delay(1000),
+        bvtree::op_delay(200)
+    );
 }
 
 bvnode_ptr Monster::BvNode_LocateUID(bvarg_ref nUID, bvarg_ref stLocation)
@@ -245,16 +251,22 @@ bvnode_ptr Monster::BvNode_AttackUID(bvarg_ref nTargetUID, bvarg_ref nDCType)
 
 bvnode_ptr Monster::BvNode_TrackAttackUID(bvarg_ref nTargetUID)
 {
-    return bvtree::lambda_stage([this, nTargetUID](bvarg_ref nStage) mutable
-    {
-        TrackAttackUID(nTargetUID.as<uint64_t>(), [nStage]() mutable
+    return bvtree::if_branch
+    (
+        bvtree::lambda_stage([this, nTargetUID](bvarg_ref nStage) mutable
         {
-            nStage.assign<bvres_t>(BV_SUCCESS);
-        },
+            TrackAttackUID(nTargetUID.as<uint64_t>(), [nStage]() mutable
+            {
+                nStage.assign<bvres_t>(BV_SUCCESS);
+            },
 
-        [nStage]() mutable
-        {
-            nStage.assign<bvres_t>(BV_FAILURE);
-        });
-    });
+            [nStage]() mutable
+            {
+                nStage.assign<bvres_t>(BV_FAILURE);
+            });
+        }),
+
+        bvtree::op_delay(1000),
+        bvtree::op_delay(200)
+    );
 }
