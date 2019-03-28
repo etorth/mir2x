@@ -671,6 +671,10 @@ void CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
             default:
                 {
                     RemoveInViewCO(nUID);
+                    if(UIDFunc::GetUIDType(UID()) == UID_MON){
+                        dynamic_cast<Monster *>(this)->RemoveTarget(nUID);
+                    }
+
                     fnOnError();
                     return;
                 }

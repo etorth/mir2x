@@ -321,7 +321,7 @@ void Monster::TrackUID(uint64_t nUID, int nMinCDistance, std::function<void()> f
 
         MoveOneStep(nX, nY, fnOnOK, fnOnError);
         return true;
-    });
+    }, fnOnError);
 }
 
 void Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> fnOnError)
