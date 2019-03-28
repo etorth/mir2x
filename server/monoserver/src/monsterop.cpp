@@ -85,6 +85,7 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK)
         case ACTION_DIE:
             {
                 RemoveTarget(stAMA.UID);
+                RemoveInViewCO(stAMA.UID);
                 return;
             }
         default:

@@ -339,10 +339,10 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     m_ActorPod->Forward(rstMPK.From(), {MPK_MOVEOK, stAMMOK}, rstMPK.ID(), [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK)
     {
         if(!GetCell(nMostX, nMostY).Locked){
-            throw std::runtime_error(str_fflprintf("Cell lock released before MOVEOK get responsed: MapUID = %" PRIu64, UID()));
+            throw std::runtime_error(str_fflprintf(": Cell lock released before MOVEOK get responsed: MapUID = %" PRIu64, UID()));
         }
-
         GetCell(nMostX, nMostY).Locked = false;
+
         switch(rstRMPK.Type()){
             case MPK_OK:
                 {

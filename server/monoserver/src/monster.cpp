@@ -1406,7 +1406,7 @@ void Monster::CheckFriendType_CtrlByPlayer(uint64_t nUID, std::function<void(int
     switch(UIDFunc::GetUIDType(nUID)){
         case UID_MON:
             {
-                if(!DBCOM_MONSTERRECORD(UIDFunc::GetMonsterID(nUID)).Tamable){
+                if(!(IsPet(nUID) || DBCOM_MONSTERRECORD(UIDFunc::GetMonsterID(nUID)).Tamable)){
                     fnOp(FT_ENEMY);
                     return;
                 }
@@ -1426,6 +1426,11 @@ void Monster::CheckFriendType_CtrlByPlayer(uint64_t nUID, std::function<void(int
                             }
                         case UID_PLY:
                             {
+                                if(nFMasterUID == MasterUID()){
+                                    fnOp(FT_NEUTRAL);
+                                    return;
+                                }
+
                                 QueryFriendType(MasterUID(), nUID, [fnOp](int nFriendType)
                                 {
                                     fnOp(nFriendType);
