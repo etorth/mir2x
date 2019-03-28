@@ -372,6 +372,18 @@ void Player::On_MPK_EXP(const MessagePack &rstMPK)
     }
 }
 
+void Player::On_MPK_MISS(const MessagePack &rstMPK)
+{
+    AMMiss stAMM;
+    std::memcpy(&stAMM, rstMPK.Data(), sizeof(stAMM));
+
+    SMMiss stSMM;
+    std::memset(&stSMM, 0, sizeof(stSMM));
+
+    stSMM.UID = stAMM.UID;
+    PostNetMessage(SM_MISS, stSMM);
+}
+
 void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
 {
     AMShowDropItem stAMSDI;

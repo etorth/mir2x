@@ -123,7 +123,7 @@ class Monster final: public CharObject
         bool InRange(int, int, int);
 
     protected:
-        void AddTarget(uint64_t);
+        void SetTarget(uint64_t);
         void RemoveTarget(uint64_t);
 
     protected:
@@ -134,6 +134,7 @@ class Monster final: public CharObject
 
     private:
         void On_MPK_EXP             (const MessagePack &);
+        void On_MPK_MISS            (const MessagePack &);
         void On_MPK_ATTACK          (const MessagePack &);
         void On_MPK_ACTION          (const MessagePack &);
         void On_MPK_OFFLINE         (const MessagePack &);

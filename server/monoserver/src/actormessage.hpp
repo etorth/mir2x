@@ -62,6 +62,7 @@ enum MessagePackType: int
     MPK_QUERYRECTUIDLIST,
     MPK_UIDLIST,
     MPK_EXP,
+    MPK_MISS,
     MPK_NEWDROPITEM,
     MPK_SHOWDROPITEM,
     MPK_NOTIFYDEAD,
@@ -425,6 +426,11 @@ struct AMUIDList
 struct AMExp
 {
     int Exp;
+};
+
+struct AMMiss
+{
+    uint64_t UID;
 };
 
 struct AMNewDropItem

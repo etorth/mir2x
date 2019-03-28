@@ -246,6 +246,7 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
                 case MPK_QUERYRECTUIDLIST    : return "MPK_QUERYRECTUIDLIST";
                 case MPK_UIDLIST             : return "MPK_UIDLIST";
                 case MPK_EXP                 : return "MPK_EXP";
+                case MPK_MISS                : return "MPK_MISS";
                 case MPK_NEWDROPITEM         : return "MPK_NEWDROPITEM";
                 case MPK_SHOWDROPITEM        : return "MPK_SHOWDROPITEM";
                 case MPK_NOTIFYDEAD          : return "MPK_NOTIFYDEAD";
@@ -259,8 +260,8 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
                 case MPK_QUERYMASTER         : return "MPK_QUERYMASTER";
                 case MPK_QUERYFINALMASTER    : return "MPK_QUERYFINALMASTER";
                 case MPK_QUERYFRIENDTYPE     : return "MPK_QUERYFRIENDTYPE";
-                case MPK_QUERYNAMECOLOR      : return "MPK_QUERYNAMECOLOR";
                 case MPK_FRIENDTYPE          : return "MPK_FRIENDTYPE";
+                case MPK_QUERYNAMECOLOR      : return "MPK_QUERYNAMECOLOR";
                 case MPK_NAMECOLOR           : return "MPK_NAMECOLOR";
                 default                      : return "MPK_UNKNOWN";
             }

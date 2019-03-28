@@ -266,6 +266,18 @@ void ProcessRun::Net_EXP(const uint8_t *pBuf, size_t)
     }
 }
 
+void ProcessRun::Net_MISS(const uint8_t *pBuf, size_t)
+{
+    SMMiss stSMM;
+    std::memcpy(&stSMM, pBuf, sizeof(stSMM));
+
+    if(auto p = RetrieveUID(stSMM.UID)){
+        int nX = p->X() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2;
+        int nY = p->Y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP * 1;
+        AddAscendStr(ASCENDSTR_MISS, 0, nX, nY);
+    }
+}
+
 void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
 {
     SMShowDropItem stSMSDI;

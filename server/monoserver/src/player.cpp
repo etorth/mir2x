@@ -117,6 +117,11 @@ void Player::OperateAM(const MessagePack &rstMPK)
                 On_MPK_EXP(rstMPK);
                 break;
             }
+        case MPK_MISS:
+            {
+                On_MPK_MISS(rstMPK);
+                break;
+            }
         case MPK_ACTION:
             {
                 On_MPK_ACTION(rstMPK);

@@ -33,6 +33,7 @@ enum SMType: uint8_t
     SM_NOTIFYDEAD,
     SM_DEADFADEOUT,
     SM_EXP,
+    SM_MISS,
     SM_SHOWDROPITEM,
     SM_FIREMAGIC,
     SM_SPACEMOVE,
@@ -175,6 +176,11 @@ struct SMExp
     uint32_t Exp;
 };
 
+struct SMMiss
+{
+    uint64_t UID;
+};
+
 struct SMShowDropItem
 {
     struct _CommonItem
@@ -260,6 +266,7 @@ class SMSGParam: public MessageBase
                 {SM_NOTIFYDEAD,       {1, sizeof(SMNotifyDead),            "SM_NOTIFYDEAD"      }},
                 {SM_DEADFADEOUT,      {1, sizeof(SMDeadFadeOut),           "SM_DEADFADEOUT"     }},
                 {SM_EXP,              {1, sizeof(SMExp),                   "SM_EXP"             }},
+                {SM_MISS,             {1, sizeof(SMMiss),                  "SM_MISS"            }},
                 {SM_SHOWDROPITEM,     {1, sizeof(SMShowDropItem),          "SM_SHOWDROPITEM"    }},
                 {SM_FIREMAGIC,        {1, sizeof(SMFireMagic),             "SM_FIREMAGIC"       }},
                 {SM_OFFLINE,          {1, sizeof(SMOffline),               "SM_OFFLINE"         }},

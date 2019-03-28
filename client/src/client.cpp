@@ -220,6 +220,13 @@ void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
                 }
                 break;
             }
+        case SM_MISS:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_MISS(pData, nDataLen);
+                }
+                break;
+            }
         case SM_GOLD:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){

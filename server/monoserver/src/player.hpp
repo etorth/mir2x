@@ -96,6 +96,7 @@ class Player final: public CharObject
 
     private:
         void On_MPK_EXP(const MessagePack &);
+        void On_MPK_MISS(const MessagePack &);
         void On_MPK_ACTION(const MessagePack &);
         void On_MPK_ATTACK(const MessagePack &);
         void On_MPK_OFFLINE(const MessagePack &);

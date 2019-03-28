@@ -242,7 +242,7 @@ void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
                                     return;
                                 }
 
-                                AddTarget(nUID);
+                                SetTarget(nUID);
                                 m_LastAttackTime = g_MonoServer->GetTimeTick();
                                 DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), nUID));
 
@@ -517,6 +517,11 @@ void Monster::OperateAM(const MessagePack &rstMPK)
                 On_MPK_EXP(rstMPK);
                 break;
             }
+        case MPK_MISS:
+            {
+                On_MPK_MISS(rstMPK);
+                break;
+            }
         case MPK_ACTION:
             {
                 On_MPK_ACTION(rstMPK);
@@ -700,7 +705,7 @@ void Monster::RemoveTarget(uint64_t nUID)
     }
 }
 
-void Monster::AddTarget(uint64_t nUID)
+void Monster::SetTarget(uint64_t nUID)
 {
     m_Target.UID = nUID;
     m_Target.ActiveTime = g_MonoServer->GetTimeTick();
