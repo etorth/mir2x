@@ -624,7 +624,7 @@ bool CharObject::CanAttack()
     }
 }
 
-bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnOK, std::function<void()> fnOnError)
+void CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnOK, std::function<void()> fnOnError)
 {
     if(!nUID){
         throw std::invalid_argument(str_ffl() + ": Query location with zero UID");
@@ -634,82 +634,61 @@ bool CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
         throw std::invalid_argument(str_ffl() + ": Query UID to CO itself: " + UIDFunc::GetUIDString(nUID));
     }
 
-    // current the UID is valid
-    // lambda captured fnOnOK then can be delayed by one step
-    // 1.     valid cache : call fnOnOK
-    // 2. not valid cache : call fnOnOK after refresh
+    // CO dispatches location changes automatically
+    // always trust the InViewCOList, can even skip the expiration now
 
-    auto fnQueryLocation = [this, nUID, fnOnOK, fnOnError]() -> bool
+    if(auto p = GetInViewCOPtr(nUID); p && g_MonoServer->GetTimeTick() <= p->RecordTime + 2 * 1000){
+        fnOnOK(*p);
+        return;
+    }
+
+    // can't find uid or expired
+    // query the location and put to InViewCOList if applicable
+
+    AMQueryLocation stAMQL;
+    std::memset(&stAMQL, 0, sizeof(stAMQL));
+
+    stAMQL.UID   = UID();
+    stAMQL.MapID = MapID();
+
+    m_ActorPod->Forward(nUID, {MPK_QUERYLOCATION, stAMQL}, [this, nUID, fnOnOK, fnOnError](const MessagePack &rstRMPK)
     {
-        AMQueryLocation stAMQL;
-        std::memset(&stAMQL, 0, sizeof(stAMQL));
+        switch(rstRMPK.Type()){
+            case MPK_LOCATION:
+                {
+                    AMLocation stAML;
+                    std::memcpy(&stAML, rstRMPK.Data(), sizeof(stAML));
 
-        stAMQL.UID   = UID();
-        stAMQL.MapID = MapID();
+                    // TODO when we get this response
+                    // it's possible that the co has switched map or dead
 
-        return m_ActorPod->Forward(nUID, {MPK_QUERYLOCATION, stAMQL}, [this, nUID, fnOnOK, fnOnError](const MessagePack &rstRMPK)
-        {
-            switch(rstRMPK.Type()){
-                case MPK_LOCATION:
+                    COLocation stCOLoccation
                     {
-                        AMLocation stAML;
-                        std::memcpy(&stAML, rstRMPK.Data(), sizeof(stAML));
+                        stAML.UID,
+                        stAML.MapID,
+                        stAML.RecordTime,
+                        stAML.X,
+                        stAML.Y,
+                        stAML.Direction
+                    };
 
-                        // TODO
-                        // when we get this response
-                        // it's possible that the co has switched map
-
-                        if(InView(stAML.MapID, stAML.X, stAML.Y) && stAML.UID == nUID){
-                            AddInViewCO(COLocation
-                            {
-                                stAML.UID,
-                                stAML.MapID,
-                                stAML.RecordTime,
-                                stAML.X,
-                                stAML.Y,
-                                stAML.Direction
-                            });
-                        }else{
-                            RemoveInViewCO(nUID);
-                        }
-
-                        fnOnOK(GetInViewCORef(nUID));
-                        break;
-                    }
-                default:
-                    {
+                    if((stAML.UID == nUID) && InView(stAML.MapID, stAML.X, stAML.Y)){
+                        AddInViewCO(stCOLoccation);
+                    }else{
                         RemoveInViewCO(nUID);
-                        fnOnError();
-                        break;
                     }
-            }
-        });
-    };
 
-    // no entry found
-    // do query and invocation, delay fnOnOK by one step
-    if(!GetInViewCOPtr(nUID)){
-        return fnQueryLocation();
-    }
-
-    // we find an entry
-    // valid the entry, could be expired
-    auto &rstRecord = GetInViewCORef(nUID);
-    if(m_Map->In(rstRecord.MapID, rstRecord.X, rstRecord.Y)
-            && g_MonoServer->GetTimeTick() <= rstRecord.RecordTime + 2 * 1000){
-
-        fnOnOK(rstRecord);
-        return true;
-    }
-
-    // found record is out of time
-    // if query failed means this UID doesn't exist
-
-    if(!fnQueryLocation()){
-        RemoveInViewCO(nUID);
-        return false;
-    }
-    return true;
+                    fnOnOK(stCOLoccation);
+                    return;
+                }
+            default:
+                {
+                    RemoveInViewCO(nUID);
+                    fnOnError();
+                    return;
+                }
+        }
+    });
 }
 
 void CharObject::AddOffenderDamage(uint64_t nUID, int nDamage)
