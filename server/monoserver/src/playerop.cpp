@@ -146,16 +146,7 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    AddInViewCO(COLocation
-    {
-        stAMA.UID,
-        stAMA.MapID,
-        g_MonoServer->GetTimeTick(),
-        stAMA.X,
-        stAMA.Y,
-        nDirection
-    });
-
+    AddInViewCO(stAMA.UID, stAMA.MapID, stAMA.X, stAMA.Y, nDirection);
     ReportAction(stAMA.UID, ActionNode
     {
         stAMA.Action,

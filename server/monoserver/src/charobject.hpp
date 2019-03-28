@@ -410,6 +410,7 @@ class CharObject: public ServerObject
         void SortInViewCO();
         void RemoveInViewCO(uint64_t);
         void AddInViewCO(const COLocation &);
+        void AddInViewCO(uint64_t, uint32_t, int, int, int);
 
     protected:
         COLocation &GetInViewCORef(uint64_t);

@@ -55,6 +55,7 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK)
     }
 
     if(stAMA.MapID != MapID()){
+        RemoveTarget(stAMA.UID);
         RemoveInViewCO(stAMA.UID);
         return;
     }
@@ -92,10 +93,6 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    if(!InRange(RANGE_VISIBLE, nX, nY)){
-        return;
-    }
-
     switch(stAMA.Action){
         case ACTION_SPAWN:
         case ACTION_SPACEMOVE2:
@@ -109,43 +106,7 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    AddInViewCO(COLocation
-    {
-        stAMA.UID,
-        stAMA.MapID,
-        g_MonoServer->GetTimeTick(),
-        nX,
-        nY,
-        nDir,
-    });
-
-    switch(GetState(STATE_ATTACKMODE)){
-        case STATE_ATTACKMODE_NORMAL:
-            {
-                if(UIDFunc::GetUIDType(stAMA.UID) == UID_PLY){
-                    AddTarget(stAMA.UID);
-                }
-                break;
-            }
-        case STATE_ATTACKMODE_DOGZ:
-            {
-                if(UIDFunc::GetUIDType(stAMA.UID) == UID_MON){
-                    AddTarget(stAMA.UID);
-                }
-                break;
-            }
-        case STATE_ATTACKMODE_ATTACKALL:
-            {
-                if(auto nType = UIDFunc::GetUIDType(stAMA.UID); nType == UID_PLY || nType == UID_MON){
-                    AddTarget(stAMA.UID);
-                }
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
+    AddInViewCO(stAMA.UID, stAMA.MapID, nX, nY, nDir);
 }
 
 void Monster::On_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)

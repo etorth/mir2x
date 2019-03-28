@@ -1097,6 +1097,11 @@ void CharObject::AddInViewCO(const COLocation &rstCOLocation)
     SortInViewCO();
 }
 
+void CharObject::AddInViewCO(uint64_t nUID, uint32_t nMapID, int nX, int nY, int nDirection)
+{
+    AddInViewCO(COLocation(nUID, nMapID, g_MonoServer->GetTimeTick(), nX, nY, nDirection));
+}
+
 void CharObject::SortInViewCO()
 {
     RemoveInViewCO(0);
