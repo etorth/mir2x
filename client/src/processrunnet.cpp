@@ -272,7 +272,7 @@ void ProcessRun::Net_MISS(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMM, pBuf, sizeof(stSMM));
 
     if(auto p = RetrieveUID(stSMM.UID)){
-        int nX = p->X() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2;
+        int nX = p->X() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2 - 20;
         int nY = p->Y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP * 1;
         AddAscendStr(ASCENDSTR_MISS, 0, nX, nY);
     }
