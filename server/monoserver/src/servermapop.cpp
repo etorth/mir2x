@@ -394,12 +394,8 @@ void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK)
     AMTryLeave stAMTL;
     std::memcpy(&stAMTL, rstMPK.Data(), rstMPK.DataLen());
 
-    if(true
-            && stAMTL.UID
-            && stAMTL.MapID
-            && ValidC(stAMTL.X, stAMTL.Y)){
-        auto &rstUIDList = GetUIDListRef(stAMTL.X, stAMTL.Y);
-        for(auto &nUID: rstUIDList){
+    if(stAMTL.UID && In(stAMTL.MapID, stAMTL.X, stAMTL.Y)){
+        for(auto nUID: GetUIDListRef(stAMTL.X, stAMTL.Y)){
             if(nUID == stAMTL.UID){
                 RemoveGridUID(nUID, stAMTL.X, stAMTL.Y);
                 m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
@@ -409,7 +405,8 @@ void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK)
     }
 
     // otherwise try leave failed
-    // can't leave means it's illegal then we won't report MPK_ERROR
+    // we reply MPK_ERROR but this is already something wrong, map never prevert leave on purpose
+    m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
     g_MonoServer->AddLog(LOGTYPE_WARNING, "Leave request failed: UID = " PRIu64 ", X = %d, Y = %d", stAMTL.UID, stAMTL.X, stAMTL.Y);
 }
 

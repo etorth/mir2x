@@ -200,8 +200,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
     // this would cause zombies
 
     if(!ActorPodValid()){
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch action: %s", rstAction.ActionName());
-        return;
+        throw std::runtime_error(str_fflprintf(": Can't dispatch action: %s", rstAction.ActionName()));
     }
 
     AMAction stAMA;
@@ -294,16 +293,12 @@ void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
 bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
     if(!CanMove()){
-        if(fnOnMoveError){
-            fnOnMoveError();
-        }
+        fnOnMoveError();
         return false;
     }
 
     if(EstimateHop(nX, nY) != 1){
-        if(fnOnMoveError){
-            fnOnMoveError();
-        }
+        fnOnMoveError();
         return false;
     }
 
@@ -319,9 +314,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
                     case PathFind::OCCUPIED:
                     default:
                         {
-                            if(fnOnMoveError){
-                                fnOnMoveError();
-                            }
+                            fnOnMoveError();
                             return false;
                         }
                 }
@@ -340,9 +333,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
 
                 if(OneStepCost(nullptr, 2, nXm, nYm, nX, nY) < 0.00){
                     if(!bAllowHalfMove){
-                        if(fnOnMoveError){
-                            fnOnMoveError();
-                        }
+                        fnOnMoveError();
                         return false;
                     }
                 }
@@ -387,9 +378,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
 
                     if(!CanMove()){
                         m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
-                        if(fnOnMoveError){
-                            fnOnMoveError();
-                        }
+                        fnOnMoveError();
                         return;
                     }
 
@@ -406,17 +395,13 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
                     DispatchAction(ActionMove(nOldX, nOldY, X(), Y(), nSpeed, Horse()));
                     SortInViewCO();
 
-                    if(fnOnMoveOK){
-                        fnOnMoveOK();
-                    }
-                    break;
+                    fnOnMoveOK();
+                    return;
                 }
             default:
                 {
-                    if(fnOnMoveError){
-                        fnOnMoveError();
-                    }
-                    break;
+                    fnOnMoveError();
+                    return;
                 }
         }
     });
@@ -429,9 +414,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
     }
 
     if(!CanMove()){
-        if(fnOnMoveError){
-            fnOnMoveError();
-        }
+        fnOnMoveError();
         return false;
     }
 
@@ -462,9 +445,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
 
                     if(!CanMove()){
                         m_ActorPod->Forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
-                        if(fnOnMoveError){
-                            fnOnMoveError();
-                        }
+                        fnOnMoveError();
                         return;
                     }
 
@@ -492,9 +473,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
 
                                     if(!CanMove()){
                                         m_ActorPod->Forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
-                                        if(fnOnMoveError){
-                                            fnOnMoveError();
-                                        }
+                                        fnOnMoveError();
                                         return;
                                     }
                                     
@@ -513,17 +492,14 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                                     DispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
                                     ReportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
 
-                                    if(fnOnMoveOK){
-                                        fnOnMoveOK();
-                                    }
-                                    break;
+                                    fnOnMoveOK();
+                                    return;
                                 }
                             default:
                                 {
-                                    if(fnOnMoveError){
-                                        fnOnMoveError();
-                                    }
-                                    break;
+                                    m_ActorPod->Forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
+                                    fnOnMoveError();
+                                    return;
                                 }
                         }
                     });
@@ -531,9 +507,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                 }
             default:
                 {
-                    if(fnOnMoveError){
-                        fnOnMoveError();
-                    }
+                    fnOnMoveError();
                     break;
                 }
         }
