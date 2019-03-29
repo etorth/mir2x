@@ -20,7 +20,8 @@ ExternalProject_Add(
     sol2
 
     GIT_REPOSITORY "https://github.com/ThePhD/sol2.git"
-    GIT_TAG        "develop"
+    # GIT_TAG        "develop"
+    GIT_TAG        "v2.20.6"
   
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/sol2"
 
