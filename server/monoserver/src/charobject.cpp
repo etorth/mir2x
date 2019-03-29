@@ -22,6 +22,7 @@
 #include "monster.hpp"
 #include "mathfunc.hpp"
 #include "actorpod.hpp"
+#include "svobuffer.hpp"
 #include "condcheck.hpp"
 #include "monoserver.hpp"
 #include "charobject.hpp"
@@ -1098,14 +1099,13 @@ void CharObject::ForeachInViewCO(std::function<void(const COLocation &)> fnOnLoc
     // RemoveInViewCO() may get called in fnOnLoc
     // RemoveInViewCO() may get called in RetrieveLocation
 
-    std::vector<uint64_t> stvUIDList;
-    std::transform(m_InViewCOList.begin(), m_InViewCOList.end(), std::back_inserter(stvUIDList), [](const auto &rstCOLoc)
-    {
-        return rstCOLoc.UID;
-    });
+    svo_buffer<uint64_t, 4> stvUIDList;
+    for(const auto &rstCOLoc: m_InViewCOList){
+        stvUIDList.push_back(rstCOLoc.UID);
+    }
 
-    for(auto nUID: stvUIDList){
-        RetrieveLocation(nUID, fnOnLoc, [](){});
+    for(size_t nIndex = 0; nIndex < stvUIDList.size(); ++nIndex){
+        RetrieveLocation(stvUIDList.at(nIndex), fnOnLoc);
     }
 }
 
