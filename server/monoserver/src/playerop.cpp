@@ -315,7 +315,7 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK)
     AMAttack stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    if(MathFunc::LDistance2(X(), Y(), stAMA.X, stAMA.Y) >= 2){
+    if(MathFunc::LDistance2(X(), Y(), stAMA.X, stAMA.Y) > 2){
         switch(UIDFunc::GetUIDType(stAMA.UID)){
             case UID_MON:
             case UID_PLY:

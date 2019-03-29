@@ -247,17 +247,15 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
             }
         default:
             {
-                for(const auto &rstCOLocation: m_InViewCOList){
-                    RetrieveLocation(rstCOLocation.UID, [this, stAMA](const COLocation &rstLocation)
-                    {
-                        auto nX = rstLocation.X;
-                        auto nY = rstLocation.Y;
-                        auto nMapID = rstLocation.MapID;
-                        if(InView(nMapID, nX, nY)){
-                            m_ActorPod->Forward(rstLocation.UID, {MPK_ACTION, stAMA});
-                        }
-                    });
-                }
+                ForeachInViewCO([this, stAMA](const COLocation &rstLocation)
+                {
+                    auto nX = rstLocation.X;
+                    auto nY = rstLocation.Y;
+                    auto nMapID = rstLocation.MapID;
+                    if(InView(nMapID, nX, nY)){
+                        m_ActorPod->Forward(rstLocation.UID, {MPK_ACTION, stAMA});
+                    }
+                });
                 return;
             }
     }
@@ -670,6 +668,10 @@ void CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
                 }
             default:
                 {
+                    // TODO dangerous part here
+                    // when nUID is not detached ActorPod::Forward receives MPK_BADACTORPOD immedately
+                    // then this branch get called, then m_InViewCOList get updated implicitly
+
                     RemoveInViewCO(nUID);
                     if(UIDFunc::GetUIDType(UID()) == UID_MON){
                         dynamic_cast<Monster *>(this)->RemoveTarget(nUID);
@@ -1088,6 +1090,25 @@ void CharObject::AddInViewCO(const COLocation &rstCOLocation)
     SortInViewCO();
 }
 
+void CharObject::ForeachInViewCO(std::function<void(const COLocation &)> fnOnLoc)
+{
+    // TODO dangerous part
+    // check comments in RetrieveLocation
+
+    // RemoveInViewCO() may get called in fnOnLoc
+    // RemoveInViewCO() may get called in RetrieveLocation
+
+    std::vector<uint64_t> stvUIDList;
+    std::transform(m_InViewCOList.begin(), m_InViewCOList.end(), std::back_inserter(stvUIDList), [](const auto &rstCOLoc)
+    {
+        return rstCOLoc.UID;
+    });
+
+    for(auto nUID: stvUIDList){
+        RetrieveLocation(nUID, fnOnLoc, [](){});
+    }
+}
+
 void CharObject::AddInViewCO(uint64_t nUID, uint32_t nMapID, int nX, int nY, int nDirection)
 {
     AddInViewCO(COLocation(nUID, nMapID, g_MonoServer->GetTimeTick(), nX, nY, nDirection));
@@ -1109,7 +1130,10 @@ void CharObject::RemoveInViewCO(uint64_t nUID)
         return rstCOLoc.UID == nUID || !InView(rstCOLoc.MapID, rstCOLoc.X, rstCOLoc.Y);
     }), m_InViewCOList.end());
 
-    m_InViewCOList.shrink_to_fit();
+    if((m_InViewCOList.size() < m_InViewCOList.capacity() / 2) && (m_InViewCOList.capacity() > 20)){
+        m_InViewCOList.shrink_to_fit();
+    }
+
     if(UIDFunc::GetUIDType(UID()) == UID_MON){
         dynamic_cast<Monster *>(this)->RemoveTarget(nUID);
     }

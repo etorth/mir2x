@@ -411,6 +411,7 @@ class CharObject: public ServerObject
         void RemoveInViewCO(uint64_t);
         void AddInViewCO(const COLocation &);
         void AddInViewCO(uint64_t, uint32_t, int, int, int);
+        void ForeachInViewCO(std::function<void(const COLocation &)>);
 
     protected:
         COLocation &GetInViewCORef(uint64_t);

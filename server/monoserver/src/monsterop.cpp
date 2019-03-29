@@ -39,14 +39,12 @@ void Monster::On_MPK_MISS(const MessagePack &rstMPK)
         return;
     }
 
-    for(const auto &rstCOLocation: m_InViewCOList){
-        RetrieveLocation(rstCOLocation.UID, [this, stAMM](const COLocation &rstLocation)
-        {
-            if(UIDFunc::GetUIDType(rstLocation.UID) == UID_PLY){
-                m_ActorPod->Forward(rstLocation.UID, {MPK_MISS, stAMM});
-            }
-        });
-    }
+    ForeachInViewCO([this, stAMM](const COLocation &rstLocation)
+    {
+        if(UIDFunc::GetUIDType(rstLocation.UID) == UID_PLY){
+            m_ActorPod->Forward(rstLocation.UID, {MPK_MISS, stAMM});
+        }
+    });
 }
 
 void Monster::On_MPK_QUERYCORECORD(const MessagePack &rstMPK)
@@ -163,7 +161,7 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK)
     switch(GetState(STATE_DEAD)){
         case 0:
             {
-                if(MathFunc::LDistance2(X(), Y(), stAMAK.X, stAMAK.Y) >= 2){
+                if(MathFunc::LDistance2(X(), Y(), stAMAK.X, stAMAK.Y) > 2){
                     switch(UIDFunc::GetUIDType(stAMAK.UID)){
                         case UID_MON:
                         case UID_PLY:
@@ -185,7 +183,7 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK)
                 AddOffenderDamage(stAMAK.UID, stAMAK.Damage);
                 DispatchAction(ActionHitted(X(), Y(), Direction()));
                 StruckDamage({stAMAK.UID, stAMAK.Type, stAMAK.Damage, stAMAK.Element, stAMAK.Effect});
-                break;
+                return;
             }
         default:
             {
@@ -194,7 +192,7 @@ void Monster::On_MPK_ATTACK(const MessagePack &rstMPK)
 
                 stAMND.UID = UID();
                 m_ActorPod->Forward(stAMAK.UID, {MPK_NOTIFYDEAD, stAMND});
-                break;
+                return;
             }
     }
 }
