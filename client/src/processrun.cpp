@@ -114,8 +114,8 @@ void ProcessRun::Update(double fUpdateTime)
 
     for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
         if(p->second->Visible()){
-            if(p->second->LastActive() + 2000 < SDL_GetTicks()){
-                QueryCORecord(p->second->UID());
+            if(p->second->LastActive() + 5000 < SDL_GetTicks() && p->second->LastQuerySelf() + 5000 < SDL_GetTicks()){
+                p->second->QuerySelf();
             }
             p->second->Update(fUpdateTime);
             ++p;

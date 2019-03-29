@@ -156,6 +156,7 @@ class Creature
 
     protected:
         uint32_t m_LastActive;
+        uint32_t m_LastQuerySelf;
 
     protected:
         double m_LastUpdateTime;
@@ -172,6 +173,7 @@ class Creature
             , m_MotionQueue()
             , m_AttachMagicList()
             , m_LastActive(0)
+            , m_LastQuerySelf(0)
             , m_LastUpdateTime(0.0)
         {
             condcheck(m_UID);
@@ -226,6 +228,11 @@ class Creature
         uint32_t LastActive() const
         {
             return m_LastActive;
+        }
+
+        uint32_t LastQuerySelf() const
+        {
+            return m_LastQuerySelf;
         }
 
     public:
@@ -331,5 +338,5 @@ class Creature
         bool AddAttachMagic(int, int, int);
 
     public:
-        void QuerySelf() const;
+        void QuerySelf();
 };

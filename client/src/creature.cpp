@@ -597,7 +597,8 @@ double Creature::CurrMotionDelay() const
     return (1000.0 / SYS_DEFFPS) * (100.0 / nSpeed);
 }
 
-void Creature::QuerySelf() const
+void Creature::QuerySelf()
 {
+    m_LastQuerySelf = SDL_GetTicks();
     m_ProcessRun->QueryCORecord(UID());
 }
