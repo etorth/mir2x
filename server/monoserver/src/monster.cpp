@@ -1486,6 +1486,7 @@ void Monster::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
 
     if(!MasterUID()){
         CheckFriendType_CtrlByMonster(nUID, fnOp);
+        return;
     }
 
     // has a master
