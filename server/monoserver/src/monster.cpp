@@ -831,18 +831,14 @@ bool Monster::StruckDamage(const DamageNode &rstDamage)
 bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!CanMove()){
-        if(fnOnError){
-            fnOnError();
-        }
+        fnOnError();
         return false;
     }
 
     switch(EstimateHop(nX, nY)){
         case 0:
             {
-                if(fnOnError){
-                    fnOnError();
-                }
+                fnOnError();
                 return false;
             }
         case 1:
@@ -858,9 +854,7 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
             }
         default:
             {
-                if(fnOnError){
-                    fnOnError();
-                }
+                fnOnError();
                 return false;
             }
     }
@@ -893,9 +887,7 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
             }
         default:
             {
-                if(fnOnError){
-                    fnOnError();
-                }
+                fnOnError();
                 return false;
             }
     }
@@ -904,17 +896,13 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
 bool Monster::MoveOneStepNeighbor(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!CanMove()){
-        if(fnOnError){
-            fnOnError();
-        }
+        fnOnError();
         return false;
     }
 
     CharObject::COPathFinder stFinder(this, 1);
     if(!stFinder.Search(X(), Y(), nX, nY)){
-        if(fnOnError){
-            fnOnError();
-        }
+        fnOnError();
         return false;
     }
 
@@ -930,9 +918,7 @@ bool Monster::MoveOneStepNeighbor(int nX, int nY, std::function<void()> fnOnOK, 
 bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!CanMove()){
-        if(fnOnError){
-            fnOnError();
-        }
+        fnOnError();
         return false;
     }
 
@@ -946,9 +932,7 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
             RequestMove(stvPathNode[2].X, stvPathNode[2].Y, MoveSpeed(), false, fnOnOK, [this, bLongJump, nX, nY,fnOnOK, fnOnError]()
             {
                 if(!bLongJump){
-                    if(fnOnError){
-                        fnOnError();
-                    }
+                    fnOnError();
                     return;
                 }
 
@@ -968,9 +952,7 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
 bool Monster::MoveOneStepCombine(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!CanMove()){
-        if(fnOnError){
-            fnOnError();
-        }
+        fnOnError();
         return false;
     }
 
@@ -983,9 +965,7 @@ bool Monster::MoveOneStepCombine(int nX, int nY, std::function<void()> fnOnOK, s
 bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!CanMove()){
-        if(fnOnError){
-            fnOnError();
-        }
+        fnOnError();
         return false;
     }
 
@@ -1034,9 +1014,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
                 }
             default:
                 {
-                    if(fnOnError){
-                        fnOnError();
-                    }
+                    fnOnError();
                     break;
                 }
         }
