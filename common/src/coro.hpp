@@ -72,6 +72,10 @@ template<typename T> class coro
     public:
         coro(T t): m_func(t)
         {
+            if(!getMainCORef()){
+                throw fflerror("Need to call coro_init_thread() before spawn coroutines");
+            }
+
 #ifdef _MSC_VER
             {
                 auto fnRoutine = [](void *coptr) -> void

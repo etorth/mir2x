@@ -57,32 +57,6 @@ ActorThreadMonitorWindow *g_ActorThreadMonitorWindow;
 
 int main(int argc, char *argv[])
 {
-    coro_init_thread();
-
-    coro f1([](auto *self)
-    {
-        int cnt = 0;
-        while(true){
-            std::cout << "in f1, cnt = " << cnt++ << std::endl;
-            self->coro_yield();
-        }
-    });
-
-    coro f2([](auto *self)
-    {
-        int cnt = 7;
-        while(true){
-            std::cout << "in f2, cnt = " << cnt++ << std::endl;
-            self->coro_yield();
-        }
-    });
-
-    while(true){
-        std::cout << "in main" << std::endl;
-        f1.coro_resume();
-        f2.coro_resume();
-    }
-
     std::srand((unsigned int)std::time(nullptr));
     try{
         arg_parser stCmdParser(argc, argv);
